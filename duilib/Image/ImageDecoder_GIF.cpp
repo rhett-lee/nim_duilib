@@ -70,20 +70,13 @@ std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const ImageDecodeParam& 
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_GIF* pImageGIF = new Image_GIF;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageGIF);
-    if (!pImageGIF->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImageGIF->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale, decodeParam.m_bAsyncDecode)) {
         ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImageGIF->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        IAnimationImage::AnimationFrame frame;
-        if (pImageGIF->ReadFrameData(0, &frame)) {
-            return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
-        }
-        else {
-            ASSERT(0);
-            return nullptr;
-        }
+        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
     }
     else {
         //多帧图片

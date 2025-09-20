@@ -40,22 +40,6 @@ public:
     int32_t GetHeight() const;
 
 public:
-    /** 设置原图数据接口
-    * @param [in] loadParam 加载参数
-    * @param [in] nImageInfoWidth 图片信息的宽度
-    * @param [in] nImageInfoHeight 图片信息的高度
-    * @param [in] pImageData 原图数据接口
-    * @param [in] bBitmapSizeDpiScaled 加载的图片宽高是否做过DPI自适应
-    * @param [in] asyncLoadCallback 加载完成后的通知函数（仅当异步加载完成时通知）
-    */
-    bool SetImageData(const ImageLoadParam& loadParam,
-                      int32_t nImageInfoWidth,
-                      int32_t nImageInfoHeight,
-                      const std::shared_ptr<IImage>& pImageData,
-                      bool bBitmapSizeDpiScaled,
-                      StdClosure asyncLoadCallback);
-
-public:
     /** 是否为SVG图片
     */
     bool IsSvgImage() const;
@@ -114,6 +98,23 @@ public:
     */
     DString GetImageKey() const;
 
+    /** 设置原图数据接口
+    * @param [in] loadParam 加载参数
+    * @param [in] nImageInfoWidth 图片信息的宽度
+    * @param [in] nImageInfoHeight 图片信息的高度
+    * @param [in] pImageData 原图数据接口
+    * @param [in] bBitmapSizeDpiScaled 加载的图片宽高是否做过DPI自适应
+    */
+    bool SetImageData(const ImageLoadParam& loadParam,
+                      int32_t nImageInfoWidth,
+                      int32_t nImageInfoHeight,
+                      const std::shared_ptr<IImage>& pImageData,
+                      bool bBitmapSizeDpiScaled);
+
+    /** 获取关联的原图的图片数据接口
+    */
+    std::shared_ptr<IImage> GetImageData() const;
+
 private:
     /** 释放图片资源（延迟释放，以便于共享）
     */
@@ -170,10 +171,6 @@ private:
     *   使用完成后，放到ImageManager::m_delayReleaseImageList中，延迟释放，以实现原图共享功能
     */
     std::shared_ptr<IImage> m_pImageData;
-
-    /** 加载完成后的通知函数（仅当异步加载完成时通知）
-    */
-    StdClosure m_asyncLoadCallback;
 
 private:
     /** 图片类型

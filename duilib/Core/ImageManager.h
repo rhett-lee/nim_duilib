@@ -29,10 +29,9 @@ public:
 public:
     /** 加载图片 ImageInfo 对象
      * @param [in] loadParam 图片的加载属性，包含图片路径等信息
-     * @param [in] asyncLoadCallback 多帧图片异步加载完成后的回调函数（用来更新界面，显示动画图片）
      * @return 返回图片 ImageInfo 对象的智能指针
      */
-    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam, StdClosure asyncLoadCallback);
+    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam);
 
     /** 从缓存中删除所有图片
      */

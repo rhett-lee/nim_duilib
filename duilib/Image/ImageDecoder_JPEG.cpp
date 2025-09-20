@@ -1,5 +1,6 @@
 #include "ImageDecoder_JPEG.h"
 #include "duilib/Image/Image_JPEG.h"
+#include "duilib/Image/Image_Bitmap.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/StringUtil.h"
 
@@ -61,11 +62,11 @@ std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const ImageDecodeParam&
     std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_JPEG* pImageJPEG = new Image_JPEG;
-    std::unique_ptr<IImage> pImage(pImageJPEG);
-    if (!pImageJPEG->LoadImageData(fileData, fImageSizeScale)) {
-        pImage.reset();
-    }     
-    return pImage;
+    std::shared_ptr<IBitmapImage> pImage(pImageJPEG);
+    if (pImageJPEG->LoadImageData(fileData, fImageSizeScale, decodeParam.m_bAsyncDecode)) {
+        return Image_Bitmap::MakeImage(pImage);        
+    }
+    return nullptr;
 }
 
 } //namespace ui

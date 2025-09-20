@@ -26,22 +26,32 @@ Image_ICO::~Image_ICO()
 {
 }
 
-bool Image_ICO::IsDecodeImageDataEnabled() const
+bool Image_ICO::IsDelayDecodeEnabled() const
 {
     return false;
 }
 
-void Image_ICO::SetDecodeImageDataStarted()
-{
-}
-
-bool Image_ICO::DecodeImageData()
+bool Image_ICO::IsDelayDecodeFinished() const
 {
     return true;
 }
 
-void Image_ICO::SetDecodeImageDataAborted()
+uint32_t Image_ICO::GetDecodedFrameIndex() const
 {
+    if (!m_impl->m_frames.empty()) {
+        return (uint32_t)m_impl->m_frames.size() - 1;
+    }
+    return 0;
+}
+
+bool Image_ICO::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+{
+    return false;
+}
+
+bool Image_ICO::MergeDelayDecodeData()
+{
+    return false;
 }
 
 bool Image_ICO::LoadImageFromMemory(const std::vector<UiImageData>& imageData,

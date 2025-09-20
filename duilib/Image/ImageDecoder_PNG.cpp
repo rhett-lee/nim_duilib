@@ -54,23 +54,17 @@ std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& 
     }
     std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_PNG* pImagePNG = new Image_PNG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePNG);
-    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, bAsyncDecode, fImageSizeScale)) {
         ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImagePNG->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        IAnimationImage::AnimationFrame frame;
-        if (pImagePNG->ReadFrameData(0, &frame)) {
-            return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
-        }
-        else {
-            ASSERT(0);
-            return nullptr;
-        }
+        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
     }
     else {
         //多帧图片

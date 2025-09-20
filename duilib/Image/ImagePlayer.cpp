@@ -171,9 +171,8 @@ void ImagePlayer::PlayingImageAnimation()
         if (nNextFrameIndex >= pImageInfo->GetFrameCount()) {
             nNextFrameIndex = 0;
         }
-        if (!pImageInfo->IsFrameDataReady(nFrameIndex)) {
+        if (!pImageInfo->IsFrameDataReady(nNextFrameIndex)) {
             //下一帧图片数据尚未完成解码: 不切换到下一帧
-            //TODO：（待优化实现方式：等下一帧解码完成后，立即显示）
             return;
         }
     }

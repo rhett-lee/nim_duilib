@@ -15,6 +15,9 @@ struct Image_JPEG::TImpl
     //解压Jpeg的句柄
     tjhandle m_tjInstance = nullptr;
 
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode = false;
+
     //图片宽度
     uint32_t m_nWidth = 0;
 
@@ -27,6 +30,10 @@ struct Image_JPEG::TImpl
     /** 位图数据
     */
     std::shared_ptr<IBitmap> m_pBitmap;
+
+    /** 位图数据（延迟解码）
+    */
+    std::shared_ptr<IBitmap> m_pDelayBitmap;
 };
 
 Image_JPEG::Image_JPEG()
@@ -68,7 +75,7 @@ static float FindClosestScale(float fImageSizeScale)
     return closest;
 }
 
-bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData, float fImageSizeScale)
+bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData, float fImageSizeScale, bool bAsyncDecode)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {
@@ -123,16 +130,17 @@ bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData, float fImageSizeS
     m_impl->m_fImageSizeScale = fRealImageSizeScale;
     m_impl->m_tjInstance = tjInstance;
     m_impl->m_fileData.swap(fileData);
+    m_impl->m_bAsyncDecode = bAsyncDecode;
     fileData.clear();
     return true;
 }
 
-int32_t Image_JPEG::GetWidth() const
+uint32_t Image_JPEG::GetWidth() const
 {
     return m_impl->m_nWidth;
 }
 
-int32_t Image_JPEG::GetHeight() const
+uint32_t Image_JPEG::GetHeight() const
 {
     return m_impl->m_nHeight;
 }
@@ -142,18 +150,28 @@ float Image_JPEG::GetImageSizeScale() const
     return m_impl->m_fImageSizeScale;
 }
 
-ImageType Image_JPEG::GetImageType() const
+std::shared_ptr<IBitmap> Image_JPEG::GetBitmap()
 {
-    return ImageType::kImageBitmap;
+    GlobalManager::Instance().AssertUIThread();
+    if (m_impl->m_bAsyncDecode || (m_impl->m_pBitmap != nullptr)) {
+        //异步解码, 或者已经完成解码
+        return m_impl->m_pBitmap;
+    }
+    else {
+        //延迟解码        
+        m_impl->m_pBitmap = DecodeBitmap();
+        return m_impl->m_pBitmap;
+    }
 }
 
-std::shared_ptr<IBitmap> Image_JPEG::GetImageBitmap() const
+std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
 {
-    if ((m_impl->m_pBitmap == nullptr) &&
-        (m_impl->m_tjInstance != nullptr) &&
-        !m_impl->m_fileData.empty() &&
-        (m_impl->m_nWidth > 0) &&
-        (m_impl->m_nHeight > 0)) {
+    std::shared_ptr<IBitmap> pJpegBitmap;
+    const TImpl& impl = *m_impl;
+    if ((impl.m_tjInstance != nullptr) &&
+        !impl.m_fileData.empty() &&
+        (impl.m_nWidth > 0) &&
+        (impl.m_nHeight > 0)) {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory == nullptr) {
@@ -164,16 +182,14 @@ std::shared_ptr<IBitmap> Image_JPEG::GetImageBitmap() const
         if (pBitmap == nullptr) {
             return nullptr;
         }
-        if (!pBitmap->Init(m_impl->m_nWidth, m_impl->m_nHeight, nullptr)) {
-            delete pBitmap;
+        pJpegBitmap.reset(pBitmap);
+        if (!pBitmap->Init(impl.m_nWidth, impl.m_nHeight, nullptr)) {
             return nullptr;
         }
         void* pBitmapBits = pBitmap->LockPixelBits();
         if (pBitmapBits == nullptr) {
-            delete pBitmap;
             return nullptr;
-        }
-        m_impl->m_pBitmap.reset(pBitmap);
+        }        
 
 #ifdef DUILIB_BUILD_FOR_WIN
         int pixelFormat = TJPF_BGRA;
@@ -182,21 +198,79 @@ std::shared_ptr<IBitmap> Image_JPEG::GetImageBitmap() const
 #endif
 
         // 执行解码：从JPG内存数据解码为RGBA格式
-        int ret = tjDecompress2(m_impl->m_tjInstance,
-                                m_impl->m_fileData.data(),
-                                (unsigned long)m_impl->m_fileData.size(),
+        int ret = tjDecompress2(impl.m_tjInstance,
+                                impl.m_fileData.data(),
+                                (unsigned long)impl.m_fileData.size(),
                                 (unsigned char*)pBitmapBits,
-                                (int)m_impl->m_nWidth,
+                                (int)impl.m_nWidth,
                                 0, // 行间距，0表示使用默认值（width * bytesPerPixel）
-                                (int)m_impl->m_nHeight,
+                                (int)impl.m_nHeight,
                                 pixelFormat, // 输出格式为RGBA/BGRA
                                 TJFLAG_FASTDCT); // 使用快速DCT算法加速
         ASSERT(ret == 0);
-        if (ret != 0) {
-            m_impl->m_pBitmap.reset();
+        if (ret == 0) {
+            pBitmap->UnLockPixelBits();
+        }
+        else {
+            pJpegBitmap.reset();
         }
     }
-    return m_impl->m_pBitmap;
+    return pJpegBitmap;
+}
+
+bool Image_JPEG::IsDelayDecodeEnabled() const
+{
+    if (m_impl->m_bAsyncDecode &&
+        (m_impl->m_tjInstance != nullptr) &&
+        !m_impl->m_fileData.empty() &&
+        (m_impl->m_nWidth > 0) &&
+        (m_impl->m_nHeight > 0) &&
+        (m_impl->m_pDelayBitmap == nullptr)) {
+        return true;
+    }
+    return false;
+}
+
+bool Image_JPEG::IsDelayDecodeFinished() const
+{
+    return (m_impl->m_pBitmap != nullptr) || (m_impl->m_pDelayBitmap != nullptr);
+}
+
+uint32_t Image_JPEG::GetDecodedFrameIndex() const
+{
+    return 0;
+}
+
+bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+{
+    if (IsDelayDecodeEnabled()) {
+        ASSERT(m_impl->m_pDelayBitmap == nullptr);
+        if (m_impl->m_pDelayBitmap == nullptr) {
+            m_impl->m_pDelayBitmap = DecodeBitmap();
+            return m_impl->m_pDelayBitmap != nullptr;
+        }
+    }    
+    return false;
+}
+
+bool Image_JPEG::MergeDelayDecodeData()
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(m_impl->m_pBitmap == nullptr);
+    if (m_impl->m_pDelayBitmap != nullptr) {
+        m_impl->m_pBitmap = m_impl->m_pDelayBitmap;
+        m_impl->m_pDelayBitmap.reset();
+
+        //解码完成，释放原图资源
+        if (m_impl->m_tjInstance != nullptr) {
+            tjDestroy(m_impl->m_tjInstance);
+            m_impl->m_tjInstance = nullptr;
+        }
+        std::vector<uint8_t> fileData;
+        m_impl->m_fileData.swap(fileData);
+        return true;
+    }
+    return false;
 }
 
 } //namespace ui

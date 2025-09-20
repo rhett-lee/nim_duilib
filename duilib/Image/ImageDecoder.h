@@ -2,6 +2,7 @@
 #define UI_IMAGE_IMAGE_DECODER_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/Callback.h"
 
 namespace ui
 {
@@ -9,29 +10,79 @@ namespace ui
 */
 class IBitmap;
 
-/** 支持多线程解码的接口（支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
+/** 支持多线程解码的接口（底层解码使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
 */
 class UILIB_API IImageDelayDecode
 {
 public:
     virtual ~IImageDelayDecode() = default;
 
-    /** 是否需要解码数据
+    /** 是否支持延迟解码数据
     * @return 返回true表示需要解码，返回false表示不需要解码
     */
-    virtual bool IsDecodeImageDataEnabled() const = 0;
+    virtual bool IsDelayDecodeEnabled() const = 0;
 
-    /** 设置开始解码数据（放入队列）
+    /** 延迟解码图片数据是否完成
+    * @return 延迟解码图片数据操作已经完成
     */
-    virtual void SetDecodeImageDataStarted() = 0;
+    virtual bool IsDelayDecodeFinished() const = 0;
 
-    /** 解码数据（可以在多线程中调用）
+    /** 获取当前延迟解码完成的图片帧索引号（从0开始编号）
     */
-    virtual bool DecodeImageData() = 0;
+    virtual uint32_t GetDecodedFrameIndex() const = 0;
 
-    /** 设置终止解码数据（关联的Image对象已经销毁）
+    /** 延迟解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual void SetDecodeImageDataAborted() = 0;
+    virtual bool DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) = 0;
+
+    /** 合并延迟解码图片数据的结果
+    */
+    virtual bool MergeDelayDecodeData() = 0;
+};
+
+/** 支持多线程解码的接口（应用层使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
+*/
+class UILIB_API IImageAsyncDecode
+{
+public:
+    virtual ~IImageAsyncDecode() = default;
+
+    /** 是否需要异步解码图片数据
+    * @return 返回true表示需要解码，返回false表示不需要解码
+    */
+    virtual bool IsAsyncDecodeEnabled() const = 0;
+
+    /** 异步解码图片数据是否完成
+    * @return 异步解码图片数据操作已经完成
+    */
+    virtual bool IsAsyncDecodeFinished() const = 0;
+
+    /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
+    */
+    virtual uint32_t GetDecodedFrameIndex() const = 0;
+
+    /** 设置异步解码的任务ID
+    * @param [in] nTaskId 在子线程中的任务ID
+    */
+    virtual void SetAsyncDecodeTaskId(size_t nTaskId) = 0;
+
+    /** 获取异步解码的任务ID
+    */
+    virtual size_t GetAsyncDecodeTaskId() const = 0;
+
+    /** 异步解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
+    */
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) = 0;
+
+    /** 合并异步解码图片数据的结果
+    */
+    virtual bool MergeAsyncDecodeData() = 0;
 };
 
 /** SVG矢量图片接口
@@ -53,6 +104,30 @@ public:
     * @param [in] szImageSize 代表获取图片的宽度(cx)和高度(cy)
     */
     virtual std::shared_ptr<IBitmap> GetBitmap(const UiSize& szImageSize) = 0;
+};
+
+/** 单帧位图图片接口
+*/
+class UILIB_API IBitmapImage : public IImageDelayDecode
+{
+public:
+    virtual ~IBitmapImage() = default;
+
+    /** 获取图片宽度
+    */
+    virtual uint32_t GetWidth() const = 0;
+
+    /** 获取图片高度
+    */
+    virtual uint32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
+    /** 获取位图
+    */
+    virtual std::shared_ptr<IBitmap> GetBitmap() = 0;
 };
 
 /** 动画图片默认的播放时间间隔（毫秒）
@@ -157,7 +232,7 @@ enum class UILIB_API ImageType
 
 /** 图片接口
 */
-class UILIB_API IImage
+class UILIB_API IImage: public IImageAsyncDecode
 {
 public:
     virtual ~IImage() = default;
@@ -182,7 +257,7 @@ public:
     /** 获取图片数据
     * @return 仅当ImageType==ImageType::kImageBitmap时返回图片数据
     */
-    virtual std::shared_ptr<IBitmap> GetImageBitmap() const { return nullptr; }
+    virtual std::shared_ptr<IBitmapImage> GetImageBitmap() const { return nullptr; }
 
     /** 获取图片数据
     * @return 仅当ImageType==ImageType::kImageSvg时返回图片数据
@@ -214,6 +289,9 @@ public:
 
     //是否为程序资源目录以外的外部图片(外部文件的尺寸可能很大，加载策略会有所不同；而程序资源目录内的图片尺寸一般不会很大)
     bool m_bExternalImagePath = false;
+
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode = false;
 
 public:
     //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）

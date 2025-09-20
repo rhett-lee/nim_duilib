@@ -50,7 +50,7 @@ public:
     bool DecodeNextFrame();
 
     /** 获取解码进度
-     * @param[out] pCurFrame 当前已解码帧数
+     * @param[out] pCurFrame 当前已解码帧数（注意：不是帧的索引号）
      * @param[out] pTotalFrames 总帧数
      */
     void GetProgress(int32_t* pCurFrame, int32_t* pTotalFrames) const;

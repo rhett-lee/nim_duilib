@@ -19,7 +19,7 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, StdClosure asyncLoadCallback)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     const DString loadKey = loadParam.GetLoadKey(loadParam.GetLoadDpiScale());
@@ -140,7 +140,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         //赋值, 添加到容器(替换删除函数)
         ASSERT(imageKey == imageFullPath);
         spImageData.reset(pImageData.release(), ImageManager::OnImageDataDestroy);//TODO：待验证，或许有平台兼容性问题
-        m_imageDataMap[imageKey] = spImageData;
+        m_imageDataMap[imageKey] = spImageData;       
     }
     if (spImageData == nullptr) {
         //加载失败
@@ -217,7 +217,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     bool bBitmapSizeDpiScaled = bEnableImageDpiScale;
     std::shared_ptr<ImageInfo> imageInfo(new ImageInfo,&ImageManager::OnImageInfoDestroy);
     imageInfo->SetImageKey(imageKey);
-    if (imageInfo->SetImageData(loadParam, nImageInfoWidth, nImageInfoHeight, spImageData, bBitmapSizeDpiScaled, asyncLoadCallback)) {
+    if (imageInfo->SetImageData(loadParam, nImageInfoWidth, nImageInfoHeight, spImageData, bBitmapSizeDpiScaled)) {
         ASSERT(loadKey == imageInfo->GetLoadKey());
         m_imageInfoMap[loadKey] = imageInfo;
     }

@@ -113,12 +113,17 @@ std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeP
     std::shared_ptr<IBitmap> pBitmap;
     ImageDecodeParam newDecodeParam = decodeParam;
     newDecodeParam.m_bLoadAllFrames = false;//只加载单帧图片，不支持多帧
+    newDecodeParam.m_bAsyncDecode = false;  //不支持异步线程解码
     std::shared_ptr<IImage> pImage = LoadImageData(newDecodeParam);
     ASSERT(pImage != nullptr);
     if (pImage != nullptr) {
         ASSERT(pImage->GetImageType() == ImageType::kImageBitmap);
         if (pImage->GetImageType() == ImageType::kImageBitmap) {
-            pBitmap = pImage->GetImageBitmap();
+            std::shared_ptr<IBitmapImage> pBitmapImage = pImage->GetImageBitmap();
+            ASSERT(pBitmapImage != nullptr);
+            if (pBitmapImage != nullptr) {
+                pBitmap = pBitmapImage->GetBitmap();
+            }
         }
     }
     return pBitmap;

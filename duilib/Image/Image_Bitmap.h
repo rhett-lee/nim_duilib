@@ -29,6 +29,14 @@ public:
     */
     static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<IBitmap>& pBitmap, float fImageSizeScale);
 
+    /** 从一个支持延迟解码的位图对象创建
+    */
+    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<IBitmapImage>& pBitmap);
+
+    /** 从一个支持延迟解码的动画图片对象创建(取第一帧)
+    */
+    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<IAnimationImage>& pAnimationImage, float fImageSizeScale);
+
 public:
     Image_Bitmap();
     virtual ~Image_Bitmap() override;
@@ -52,16 +60,54 @@ public:
     /** 获取图片数据
     * @return 仅当ImageType==ImageType::kImageBitmap时返回图片数据
     */
-    virtual std::shared_ptr<IBitmap> GetImageBitmap() const override;
+    virtual std::shared_ptr<IBitmapImage> GetImageBitmap() const override;
 
 private:
-    /** 位图数据
+    /** 是否需要异步解码图片数据
+    * @return 返回true表示需要解码，返回false表示不需要解码
     */
-    std::shared_ptr<IBitmap> m_pBitmap;
+    virtual bool IsAsyncDecodeEnabled() const override;
 
-    /** 原图加载时的缩放比例
+    /** 异步解码图片数据是否完成
+    * @return 异步解码图片数据操作已经完成
     */
-    float m_fImageSizeScale;
+    virtual bool IsAsyncDecodeFinished() const override;
+
+    /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
+    */
+    virtual uint32_t GetDecodedFrameIndex() const override;
+
+    /** 设置异步解码的任务ID
+    * @param [in] nTaskId 在子线程中的任务ID
+    */
+    virtual void SetAsyncDecodeTaskId(size_t nTaskId) override;
+
+    /** 获取异步解码的任务ID
+    */
+    virtual size_t GetAsyncDecodeTaskId() const override;
+
+    /** 异步解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
+    */
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override;
+
+    /** 合并异步解码图片数据的结果
+    */
+    virtual bool MergeAsyncDecodeData() override;
+
+private:
+    //IBitmapImage接口的内部实现
+    class BitmapImageImpl;
+
+    /** 关联的IBitmapImage指针
+    */
+    std::shared_ptr<IBitmapImage> m_pBitmapImage;
+
+    /** 异步解码任务ID
+    */
+    size_t m_nAsyncDecodeTaskId;
 };
 
 } //namespace ui

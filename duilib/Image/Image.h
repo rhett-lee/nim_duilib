@@ -16,7 +16,7 @@ class DpiManager;
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
 */
-class UILIB_API Image
+class UILIB_API Image : public virtual SupportWeakCallback
 {
 public:
     Image();
@@ -163,6 +163,10 @@ public:
     */
     void SetDrawDestRect(const UiRect& rcImageRect);
 
+    /** 获取图片的显示区域
+    */
+    const UiRect& GetDrawDestRect() const;
+
     /** 播放动画
     */
     void CheckStartImageAnimation();
@@ -206,7 +210,7 @@ private:
 
     /** 多帧图片播放实现接口
     */
-    ImagePlayer* m_pImagePlayer;
+    std::unique_ptr<ImagePlayer> m_pImagePlayer;
 
     /** 图片属性
     */

@@ -13,9 +13,8 @@ Image::Image() :
 
 Image::~Image()
 {
-    if (m_pImagePlayer != nullptr) {
+    if ((m_pImagePlayer != nullptr) && m_pImagePlayer->IsAnimationPlaying()) {
         m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
-        delete m_pImagePlayer;
     }
 }
 
@@ -141,9 +140,9 @@ void Image::ClearImageCache()
 void Image::SetCurrentFrameIndex(uint32_t nCurrentFrame)
 {
     m_nCurrentFrame = nCurrentFrame;
-    uint32_t nFrameCount = GetFrameCount();
+    const uint32_t nFrameCount = GetFrameCount();
     if ((m_nCurrentFrame >= nFrameCount) && (nFrameCount > 0)) {
-        nCurrentFrame = m_nCurrentFrame % nFrameCount;
+        m_nCurrentFrame = m_nCurrentFrame % nFrameCount;
     }
 }
 
@@ -274,11 +273,11 @@ ImagePlayer* Image::InitImagePlayer()
         return nullptr;
     }
     if (m_pImagePlayer == nullptr) {
-        m_pImagePlayer = new ImagePlayer;
+        m_pImagePlayer = std::make_unique<ImagePlayer>();
         m_pImagePlayer->SetImage(this);
         m_pImagePlayer->SetControl(m_pControl);
     }
-    return m_pImagePlayer;
+    return m_pImagePlayer.get();
 }
 
 void Image::SetDrawDestRect(const UiRect& rcImageRect)
@@ -291,6 +290,11 @@ void Image::SetDrawDestRect(const UiRect& rcImageRect)
             pImagePlayer->SetImageAnimationRect(rcImageRect);
         }
     }
+}
+
+const UiRect& Image::GetDrawDestRect() const
+{
+    return m_rcDrawDestRect;
 }
 
 void Image::CheckStartImageAnimation()

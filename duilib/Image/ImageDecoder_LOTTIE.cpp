@@ -54,14 +54,7 @@ std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodePara
     }
     if (!bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        IAnimationImage::AnimationFrame frame;
-        if (pImageLOTTIE->ReadFrameData(0, &frame)) {
-            return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
-        }
-        else {
-            ASSERT(0);
-            return nullptr;
-        }
+        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
     }
     else {
         //多帧图片

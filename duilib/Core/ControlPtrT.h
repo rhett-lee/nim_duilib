@@ -185,6 +185,8 @@ typedef ControlPtrT<Control> ControlPtr;
 class Box;
 typedef ControlPtrT<Box> BoxPtr;
 
+/** 窗口的智能指针
+*/
 class Window;
 typedef ControlPtrT<Window> WindowPtr;
 

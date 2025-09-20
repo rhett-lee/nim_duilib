@@ -5,16 +5,13 @@ namespace ui
 Image_Animation::Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage,
                                  float fImageSizeScale):
     m_pAnimationImage(pAnimationImage),
-    m_fImageSizeScale(fImageSizeScale)
+    m_fImageSizeScale(fImageSizeScale),
+    m_nAsyncDecodeTaskId(0)
 {
 }
 
 Image_Animation::~Image_Animation()
 {
-    //关联的Image析构时，终止解码
-    if (m_pAnimationImage != nullptr) {
-        m_pAnimationImage->SetDecodeImageDataAborted();
-    }
 }
 
 int32_t Image_Animation::GetWidth() const
@@ -46,6 +43,58 @@ ImageType Image_Animation::GetImageType() const
 std::shared_ptr<IAnimationImage> Image_Animation::GetImageAnimation() const
 {
     return m_pAnimationImage;
+}
+
+bool Image_Animation::IsAsyncDecodeEnabled() const
+{
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->IsDelayDecodeEnabled();
+    }
+    return false;
+}
+
+bool Image_Animation::IsAsyncDecodeFinished() const
+{
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->IsDelayDecodeFinished();
+    }
+    return false;
+}
+
+uint32_t Image_Animation::GetDecodedFrameIndex() const
+{
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->GetDecodedFrameIndex();
+    }
+    return 0;
+}
+
+void Image_Animation::SetAsyncDecodeTaskId(size_t nTaskId)
+{
+    m_nAsyncDecodeTaskId = nTaskId;
+}
+
+size_t Image_Animation::GetAsyncDecodeTaskId() const
+{
+    return m_nAsyncDecodeTaskId;
+}
+
+bool Image_Animation::AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+{
+    ASSERT(m_pAnimationImage != nullptr);
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->DelayDecode(nMinFrameIndex, IsAborted);
+    }
+    return false;
+}
+
+bool Image_Animation::MergeAsyncDecodeData()
+{
+    ASSERT(m_pAnimationImage != nullptr);
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->MergeDelayDecodeData();
+    }
+    return false;
 }
 
 } //namespace ui

@@ -17,10 +17,12 @@ public:
     /** 加载图像数据
     * @param [in] fileData 图片文件数据
     * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
+    * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
     * @param [in] fImageSizeScale 图片缩放百分比
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
                              bool bLoadAllFrames,
+                             bool bAsyncDecode,
                              float fImageSizeScale);
 
 public:
@@ -59,22 +61,30 @@ public:
     virtual bool ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame) override;
 
 public:
-    /** 是否需要解码数据
+    /** 是否支持延迟解码数据
     * @return 返回true表示需要解码，返回false表示不需要解码
     */
-    virtual bool IsDecodeImageDataEnabled() const override;
+    virtual bool IsDelayDecodeEnabled() const override;
 
-    /** 设置开始解码数据（放入队列）
+    /** 延迟解码图片数据是否完成
+    * @return 延迟解码图片数据操作已经完成
     */
-    virtual void SetDecodeImageDataStarted() override;
+    virtual bool IsDelayDecodeFinished() const override;
 
-    /** 解码数据（可以在多线程中调用）
+    /** 获取当前延迟解码完成的图片帧索引号（从0开始编号）
     */
-    virtual bool DecodeImageData() override;
+    virtual uint32_t GetDecodedFrameIndex() const override;
 
-    /** 设置终止解码数据（关联的Image对象已经销毁）
+    /** 延迟解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual void SetDecodeImageDataAborted() override;
+    virtual bool DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override;
+
+    /** 合并延迟解码图片数据的结果
+    */
+    virtual bool MergeDelayDecodeData() override;
 
 private:
     /** 私有实现数据

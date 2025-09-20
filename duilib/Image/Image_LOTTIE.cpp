@@ -144,24 +144,34 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     return true;
 }
 
-bool Image_LOTTIE::IsDecodeImageDataEnabled() const
+bool Image_LOTTIE::IsDelayDecodeEnabled() const
 {
     //不需要多线程解码图片数据
     return false;
 }
 
-void Image_LOTTIE::SetDecodeImageDataStarted()
+bool Image_LOTTIE::IsDelayDecodeFinished() const
 {
+    return true;
 }
 
-bool Image_LOTTIE::DecodeImageData()
+uint32_t Image_LOTTIE::GetDecodedFrameIndex() const
+{
+    if (m_impl->m_nFrameCount > 0) {
+        return m_impl->m_nFrameCount - 1;
+    }
+    return 0;
+}
+
+bool Image_LOTTIE::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
 {
     //不需要多线程解码图片数据
     return false;
 }
 
-void Image_LOTTIE::SetDecodeImageDataAborted()
+bool Image_LOTTIE::MergeDelayDecodeData()
 {
+    return false;
 }
 
 uint32_t Image_LOTTIE::GetWidth() const

@@ -339,8 +339,10 @@ bool APngDecoder::DecodeNextFrame() {
 // 获取解码进度
 void APngDecoder::GetProgress(int32_t* pCurFrame, int32_t* pTotalFrames) const
 {
-    if (pCurFrame && pTotalFrames) {
+    if (pCurFrame != nullptr) {
         *pCurFrame = m_currentFrame;
+    }
+    if (pTotalFrames != nullptr) {
         *pTotalFrames = m_frameCount;
     }
 }

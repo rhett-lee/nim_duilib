@@ -166,98 +166,16 @@ namespace ReadPngHeader
         return true;
     }
 }
-//
-////解码PNG/APNG图片数据
-//static bool DecodeImage_APNG(APNGDATA* pngData,
-//                             float fImageSizeScale,
-//                             std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& frames,
-//                             volatile bool* pAbortFlag = nullptr)
-//{
-//    ASSERT((pngData != nullptr) && (pngData->nWid > 0) && (pngData->nHei > 0) && (pngData->nFrames > 0));
-//    const int nWid = pngData->nWid;
-//    const int nHei = pngData->nHei;
-//    if ((nWid <= 0) || (nHei <= 0) || (pngData->nFrames < 1)) {
-//        return false;
-//    }
-//    ASSERT(fImageSizeScale > 0);
-//    if (fImageSizeScale < 0) {
-//        return false;
-//    }
-//
-//    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-//    ASSERT(pRenderFactory != nullptr);
-//    if (pRenderFactory == nullptr) {
-//        return false;
-//    }
-//    frames.clear();
-//
-//    //swap rgba to bgra and do premultiply
-//    uint8_t* p = pngData->pdata;
-//    if (p == nullptr) {
-//        return false;
-//    }
-//    int pixel_count = nWid * nHei * pngData->nFrames;
-//    for (int i = 0; i < pixel_count; ++i) {
-//        uint8_t a = p[3];
-//        uint8_t t = p[0];
-//        if (a)
-//        {
-//#ifdef DUILIB_BUILD_FOR_WIN
-//            //数据格式：Window平台BGRA，其他平台RGBA
-//            p[0] = (p[2] * a) / 255;
-//            p[1] = (p[1] * a) / 255;
-//            p[2] = (t * a) / 255;
-//#else
-//            p[0] = (p[0] * a) / 255;
-//            p[1] = (p[1] * a) / 255;
-//            p[2] = (p[2] * a) / 255;
-//#endif
-//        }
-//        else
-//        {
-//            memset(p, 0, 4);
-//        }
-//        p += 4;
-//    }
-//
-//    p = pngData->pdata;
-//
-//    frames.resize(pngData->nFrames);
-//    for (int i = 0; i < pngData->nFrames; ++i) {
-//        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
-//        pFrameData->m_nFrameIndex = i;
-//        pFrameData->SetDelayMs(pngData->pDelay ? pngData->pDelay[i] : 0);
-//        pFrameData->m_nOffsetX = 0;
-//        pFrameData->m_nOffsetY = 0;
-//        pFrameData->m_bDataPending = false;
-//        pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
-//        ASSERT(pFrameData->m_pBitmap != nullptr);
-//        if (pFrameData->m_pBitmap == nullptr) {
-//            return false;
-//        }
-//        pFrameData->m_pBitmap->Init(nWid, nHei, p, fImageSizeScale);
-//        frames[i] = pFrameData;
-//
-//        //下一个帧
-//        const int imageDataSize = nWid * nHei * 4;
-//        p += imageDataSize;
-//        if (pAbortFlag && *pAbortFlag) {
-//            //已经取消
-//            return false;
-//        }
-//    }
-//    return true;
-//}
 
 struct Image_PNG::TImpl
 {
     //文件数据
     std::vector<uint8_t> m_fileData;
 
-    //图片宽度
+    //图片宽度(按照m_fImageSizeScale缩放过的值)
     uint32_t m_nWidth = 0;
 
-    //图片高度
+    //图片高度(按照m_fImageSizeScale缩放过的值)
     uint32_t m_nHeight = 0;
 
     //图片总帧数
@@ -269,29 +187,27 @@ struct Image_PNG::TImpl
     //是否加载所有帧
     bool m_bLoadAllFrames = true;
 
-    //延迟解码是否已经开始
-    bool m_bDecodeImageDataStarted = false;
-
-    //延迟解码是否已经开始
-    bool m_bDecodeImageDataRunning = false;
-
-    //延迟解码是否已经取消
-    volatile bool m_bDecodeImageDataAborted = false;
-
-    //延迟解码是否已经结束
-    volatile bool m_bDecodeImageDataFinished = false;
-
     //缩放比例
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
 
-    //各个图片帧的数据(延迟解码的数据)
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
-
     //每一帧的播放延迟时间，毫秒
     std::vector<int32_t> m_framesDelayMs;
+
+public:
+    //图片数据解码器
+    std::unique_ptr<APngDecoder> m_pImageDecoder;
+
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode = false;
+
+    //是否正在解码图片数据
+    std::atomic<bool> m_bAsyncDecoding = false;
+
+    //各个图片帧的数据(延迟解码的数据)
+    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
 };
 
 Image_PNG::Image_PNG()
@@ -300,11 +216,12 @@ Image_PNG::Image_PNG()
 }
 
 Image_PNG::~Image_PNG()
-{  
+{
 }
 
 bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
+                                    bool bAsyncDecode,
                                     float fImageSizeScale)
 {
     ASSERT(!fileData.empty());
@@ -315,16 +232,13 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_fileData.swap(fileData);
     m_impl->m_fImageSizeScale = fImageSizeScale;
     m_impl->m_bLoadAllFrames = bLoadAllFrames;
+    m_impl->m_bAsyncDecode = bAsyncDecode;
 
     //只加载关键信息，不解码图片数据
     ReadPngHeader::PngImageInfo pngImageInfo;
     bool bLoaded = ReadPngHeader::load_apng_image_info(m_impl->m_fileData, pngImageInfo);
-    if (!bLoaded) {
-        //加载失败时，需要恢复原文件数据
-        m_impl->m_fileData.swap(fileData);
-    }
-    else {
-        //记录总帧数            
+    if (bLoaded) {
+        //加载成功，记录总帧数            
         m_impl->m_nWidth = ImageUtil::GetScaledImageSize(pngImageInfo.width, fImageSizeScale);
         m_impl->m_nHeight = ImageUtil::GetScaledImageSize(pngImageInfo.height, fImageSizeScale);
         m_impl->m_nFrameCount = pngImageInfo.frame_count;
@@ -352,66 +266,152 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
             m_impl->m_nFrameCount = 1;
         }
     }
+    else {
+        //加载失败时，需要恢复原文件数据
+        m_impl->m_fileData.swap(fileData);
+    }
     return bLoaded;
 }
 
-bool Image_PNG::IsDecodeImageDataEnabled() const
+std::shared_ptr<IAnimationImage::AnimationFrame> Image_PNG::DecodeImageFrame()
 {
-    if (!m_impl->m_fileData.empty() &&
-        m_impl->m_bLoadAllFrames &&
-        (m_impl->m_nFrameCount > 1) &&
-        !m_impl->m_bDecodeImageDataStarted &&
-        !m_impl->m_bDecodeImageDataAborted) {
+    ASSERT(!m_impl->m_fileData.empty());
+    if (m_impl->m_fileData.empty()) {
+        return nullptr;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+
+    bool bLoaded = true;
+    float fImageSizeScale = m_impl->m_fImageSizeScale;
+    if (m_impl->m_pImageDecoder == nullptr) {
+        m_impl->m_pImageDecoder = std::make_unique<APngDecoder>();
+        bLoaded = m_impl->m_pImageDecoder->LoadFromMemory(m_impl->m_fileData.data(), m_impl->m_fileData.size(), true);
+        if (!bLoaded) {
+            m_impl->m_pImageDecoder.reset();
+            std::vector<uint8_t> fileData;
+            m_impl->m_fileData.swap(fileData);
+        }
+    }
+    std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData;
+    if (bLoaded) {
+        APngDecoder& pngDecoder = *(m_impl->m_pImageDecoder);
+        ASSERT(m_impl->m_nWidth == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetWidth(), fImageSizeScale));
+        ASSERT(m_impl->m_nHeight == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetHeight(), fImageSizeScale));
+
+        if (pngDecoder.DecodeNextFrame()) {            
+            int32_t nCurFrame = 0;
+            int32_t nTotalFrames = 0;
+            pngDecoder.GetProgress(&nCurFrame, &nTotalFrames);
+            int32_t nFrameIndex = nCurFrame - 1;
+            ASSERT(nTotalFrames == m_impl->m_nFrameCount);
+            ASSERT(nFrameIndex < m_impl->m_nFrameCount);
+
+            pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+            pFrameData->m_nFrameIndex = nFrameIndex;
+            pFrameData->SetDelayMs(pngDecoder.GetFrameDelay(nFrameIndex));
+            pFrameData->m_nOffsetX = 0;
+            pFrameData->m_nOffsetY = 0;
+            pFrameData->m_bDataPending = false;
+            pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
+            ASSERT(pFrameData->m_pBitmap != nullptr);
+            if (pFrameData->m_pBitmap != nullptr) {
+                std::vector<uint8_t> bitmapData;
+                bitmapData.resize(pngDecoder.GetHeight() * pngDecoder.GetWidth() * 4);
+                if (pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data())) {
+                    bool bRet = pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
+                    if (!bRet) {
+                        ASSERT(!"Init bitmap data failed!");
+                        pFrameData.reset();
+                    }
+                }
+                else {
+                    ASSERT(!"GetFrameDataPremultiplied failed!");
+                    pFrameData.reset();
+                }                
+            }
+        }
+    }
+    return pFrameData;
+}
+
+bool Image_PNG::IsDelayDecodeEnabled() const
+{
+    if (m_impl->m_bAsyncDecode && !m_impl->m_fileData.empty() ) {
         //仅多帧时支持多线程解码
         return true;
     }
     return false;
 }
 
-void Image_PNG::SetDecodeImageDataStarted()
+bool Image_PNG::IsDelayDecodeFinished() const
 {
-    m_impl->m_bDecodeImageDataStarted = true;
-    m_impl->m_bDecodeImageDataAborted = false;
-}
-
-bool Image_PNG::DecodeImageData()
-{
-    if ((m_impl->m_fileData.empty() || !m_impl->m_bLoadAllFrames) ||
-        (m_impl->m_nFrameCount <= 1) || m_impl->m_bDecodeImageDataRunning) {
+    if (m_impl->m_bAsyncDecoding) {
         return false;
     }
-    m_impl->m_bDecodeImageDataRunning = true;
-    float fImageSizeScale = m_impl->m_fImageSizeScale;
-    uint32_t nOutFrameCount = 0;
+    return (m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
+}
 
-    ////多帧图片延迟解码
-    //bool bLoaded = false;
-    //APNGDATA* apngData = LoadAPNG_from_memory((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size(), true, nOutFrameCount);
-    //if (apngData != nullptr) {
-    //    //加载图片数据
-    //    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> frames;
-    //    if (DecodeImage_APNG(apngData, fImageSizeScale, frames, &(m_impl->m_bDecodeImageDataAborted))) {
-    //        bLoaded = true;
-    //        //记录总帧数
-    //        ASSERT(m_impl->m_nWidth == ImageUtil::GetScaledImageSize((uint32_t)apngData->nWid, fImageSizeScale));
-    //        ASSERT(m_impl->m_nHeight == ImageUtil::GetScaledImageSize((uint32_t)apngData->nHei, fImageSizeScale));
-    //        ASSERT(m_impl->m_nFrameCount == (int32_t)nOutFrameCount);
+uint32_t Image_PNG::GetDecodedFrameIndex() const
+{
+    if (m_impl->m_frames.empty()) {
+        return 0;
+    }
+    else {
+        return (uint32_t)m_impl->m_frames.size() - 1;
+    }
+}
 
-    //        ASSERT(!m_impl->m_bDecodeImageDataFinished);
-    //        ASSERT(m_impl->m_delayFrames.empty());
+bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+{
+    if (!IsDelayDecodeEnabled()) {
+        return false;
+    }
+    if (m_impl->m_bAsyncDecoding) {
+        return false;
+    }
+    m_impl->m_bAsyncDecoding = true;
 
-    //        m_impl->m_delayFrames.swap(frames);
-    //        m_impl->m_bDecodeImageDataFinished = true;
-    //    }
-    //    APNG_Destroy(apngData);
-    //}
-    //return bLoaded;
+    while (((IsAborted == nullptr) || !IsAborted()) &&
+           (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
+           ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
+        std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame = DecodeImageFrame();
+        if (pNewAnimationFrame != nullptr) {
+            m_impl->m_delayFrames.push_back(pNewAnimationFrame);
+        }
+        else {
+            break;
+        }
+    }
+
+    m_impl->m_bAsyncDecoding = false;
     return true;
 }
 
-void Image_PNG::SetDecodeImageDataAborted()
+bool Image_PNG::MergeDelayDecodeData()
 {
-    m_impl->m_bDecodeImageDataAborted = true;
+    GlobalManager::Instance().AssertUIThread();
+    bool bRet = false;
+    if (!m_impl->m_bAsyncDecoding && !m_impl->m_delayFrames.empty()) {
+        //合并数据
+        for (auto p : m_impl->m_delayFrames) {
+            m_impl->m_frames.push_back(p);
+        }
+        m_impl->m_delayFrames.clear();
+        bRet = true;
+    }
+    if (!m_impl->m_bAsyncDecoding) {
+        //如果解码完成，则释放图片资源
+        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+            m_impl->m_pImageDecoder.reset();
+            std::vector<uint8_t> fileData;
+            m_impl->m_fileData.swap(fileData);
+        }
+    }
+    return bRet;
 }
 
 uint32_t Image_PNG::GetWidth() const
@@ -436,19 +436,21 @@ int32_t Image_PNG::GetLoopCount() const
 
 bool Image_PNG::IsFrameDataReady(uint32_t nFrameIndex)
 {
-    if (nFrameIndex < m_impl->m_frames.size()) {
-        return true;
-    }
-    if (m_impl->m_bDecodeImageDataFinished) {
-        if (nFrameIndex < m_impl->m_delayFrames.size()) {
+    GlobalManager::Instance().AssertUIThread();
+    if (m_impl->m_bAsyncDecode) {
+        if (nFrameIndex < m_impl->m_frames.size()) {
             return true;
         }
+        return false;
     }
-    return false;
+    else {
+        return true;
+    }
 }
 
 int32_t Image_PNG::GetFrameDelayMs(uint32_t nFrameIndex)
 {
+    GlobalManager::Instance().AssertUIThread();
     if (nFrameIndex < m_impl->m_framesDelayMs.size()) {
         return m_impl->m_framesDelayMs[nFrameIndex];
     }
@@ -457,6 +459,7 @@ int32_t Image_PNG::GetFrameDelayMs(uint32_t nFrameIndex)
 
 bool Image_PNG::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
 {
+    GlobalManager::Instance().AssertUIThread();
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
         return false;
@@ -471,63 +474,38 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
         return false;
     }
 
-    if (m_impl->m_frames.empty()) {
-        //尚未解码，解码第一帧
-        float fImageSizeScale = m_impl->m_fImageSizeScale;
-        APngDecoder pngDecoder;
-        bool bLoaded = pngDecoder.LoadFromMemory(m_impl->m_fileData.data(), m_impl->m_fileData.size(), true);
-        if (bLoaded) {
-            ASSERT(m_impl->m_nWidth == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetWidth(), fImageSizeScale));
-            ASSERT(m_impl->m_nHeight == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetHeight(), fImageSizeScale));
-
-            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-            ASSERT(pRenderFactory != nullptr);
-            if (pRenderFactory == nullptr) {
-                return false;
+    if (!m_impl->m_bAsyncDecode) {
+        //同步解码的情况, 解码所需要的帧
+        while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
+               (m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
+            std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame = DecodeImageFrame();
+            if (pNewAnimationFrame != nullptr) {
+                m_impl->m_frames.push_back(pNewAnimationFrame);
             }
-
-            int32_t nFrameIndex = 0;
-            while (pngDecoder.DecodeNextFrame()) {
-                std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
-                pFrameData->m_nFrameIndex = nFrameIndex;
-                pFrameData->SetDelayMs(pngDecoder.GetFrameDelay(nFrameIndex));
-                pFrameData->m_nOffsetX = 0;
-                pFrameData->m_nOffsetY = 0;
-                pFrameData->m_bDataPending = false;
-                pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
-                ASSERT(pFrameData->m_pBitmap != nullptr);
-                if (pFrameData->m_pBitmap == nullptr) {
-                    return false;
-                }
-                std::vector<uint8_t> bitmapData;
-                bitmapData.resize(pngDecoder.GetHeight() * pngDecoder.GetWidth() * 4);
-                pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data());//返回值
-
-                pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
-                m_impl->m_frames.push_back(pFrameData);
-                ++nFrameIndex;
+            else {
+                break;
             }
-
-            *pAnimationFrame = *m_impl->m_frames[0];
         }
-        return bLoaded;
-    }
 
-    if (m_impl->m_bDecodeImageDataFinished && !m_impl->m_delayFrames.empty()) {
-        //合并延迟解码的数据
-        if (m_impl->m_nFrameCount == m_impl->m_delayFrames.size() && (m_impl->m_frames.size() == 1)) {
-            auto p = m_impl->m_frames[0];
-            m_impl->m_frames.swap(m_impl->m_delayFrames);
-            m_impl->m_frames[0] = p;
-            m_impl->m_delayFrames.clear();
+        ASSERT((nFrameIndex < (int32_t)m_impl->m_frames.size()));
+        if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
+            return false;
+        }
+        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+            //解码完成，释放资源
+            if (m_impl->m_pImageDecoder != nullptr) {
+                m_impl->m_pImageDecoder.reset();
+            }
+            if (!m_impl->m_fileData.empty()) {
+                std::vector<uint8_t> fileData;
+                m_impl->m_fileData.swap(fileData);
+            }            
         }
     }
-
-    //ASSERT(!m_impl->m_frames.empty());
-    if (m_impl->m_frames.empty()) {
-        return false;
+    else {
+        //合并数据
+        MergeDelayDecodeData();
     }
-
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
         std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
@@ -539,13 +517,19 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
             bRet = true;
         }
     }
-    else {
+    else if (m_impl->m_bAsyncDecode) {
         if ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount) {
             //尚未完成多帧解码
             pAnimationFrame->m_bDataPending = true;
             pAnimationFrame->m_pBitmap.reset();
             bRet = true;
         }
+        else {
+            ASSERT(0);
+        }
+    }
+    else {
+        ASSERT(0);
     }
     return bRet;
 }

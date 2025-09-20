@@ -36,6 +36,41 @@ public:
     virtual std::shared_ptr<IAnimationImage> GetImageAnimation() const override;
 
 private:
+    /** 是否需要异步解码图片数据
+    * @return 返回true表示需要解码，返回false表示不需要解码
+    */
+    virtual bool IsAsyncDecodeEnabled() const override;
+
+    /** 异步解码图片数据是否完成
+    * @return 异步解码图片数据操作已经完成
+    */
+    virtual bool IsAsyncDecodeFinished() const override;
+
+    /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
+    */
+    virtual uint32_t GetDecodedFrameIndex() const override;
+
+    /** 设置异步解码的任务ID
+    * @param [in] nTaskId 在子线程中的任务ID
+    */
+    virtual void SetAsyncDecodeTaskId(size_t nTaskId) override;
+
+    /** 获取异步解码的任务ID
+    */
+    virtual size_t GetAsyncDecodeTaskId() const override;
+
+    /** 异步解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
+    */
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override;
+
+    /** 合并异步解码图片数据的结果
+    */
+    virtual bool MergeAsyncDecodeData() override;
+
+private:
     /** 动画图片
     */
     std::shared_ptr<IAnimationImage> m_pAnimationImage;
@@ -43,6 +78,10 @@ private:
     /** 图片的缩放比例
     */
     float m_fImageSizeScale;
+
+    /** 异步解码任务ID
+    */
+    size_t m_nAsyncDecodeTaskId;
 };
 
 } //namespace ui

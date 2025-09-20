@@ -234,10 +234,13 @@ static int32_t UiGifGetFrameDelayMs(const SavedImage& frame)
 
 /** 将GIF文件解析为逐帧RGBA数据
  * @param gif DGifSlurp成功后的GIF数据指针
- * @param bLoadAllFrames true表示加载全部帧，false表示只加载第一帧
+ * @param nFrameIndex 加载哪一帧
  * @param fImageSizeScale 图片的缩放比例
- * @param out_frames 输出参数，存储每帧的RGBA数据
- * @return true成功，false失败
+ * @param backgroundColor 背景色
+ * @param canvas 画布
+ * @param canvas_backup 备份的画布
+ * @param nLastFrameIndex 上一帧的索引号
+ * @return 返回创建的帧数据
  *
  * 功能说明：
  * 1. 支持透明色处理（包括全局背景色和帧局部透明色）
@@ -245,26 +248,41 @@ static int32_t UiGifGetFrameDelayMs(const SavedImage& frame)
  * 3. 支持多帧合成画布模式
  * 4. 跨平台颜色格式处理（Windows和其他平台不同）
  */
-static bool UiGifToRgbaFrames(const GifFileType* gif, bool bLoadAllFrames, float fImageSizeScale,
-                              std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& out_frames,
-                              volatile bool* pAbortFlag)
+static std::shared_ptr<IAnimationImage::AnimationFrame> UiGifToRgbaFrames(const GifFileType* gif,
+                                                                          int32_t nFrameIndex,
+                                                                          float fImageSizeScale,
+                                                                          UiGifRGBA& backgroundColor,
+                                                                          std::vector<UiGifRGBA>& canvas,
+                                                                          std::vector<UiGifRGBA>& canvas_backup,
+                                                                          int32_t& nLastFrameIndex)
 {
     // 参数有效性检查
     ASSERT((gif != nullptr) && (gif->SavedImages != nullptr) && (gif->ImageCount > 0));
     if (gif == nullptr || gif->SavedImages == nullptr || gif->ImageCount <= 0) {
-        return false;
+        return nullptr;
     }
+    ASSERT((nFrameIndex >= 0) && (nFrameIndex < gif->ImageCount));
+    if ((nFrameIndex < 0) || (nFrameIndex >= gif->ImageCount)) {
+        return nullptr;
+    }
+
+    ASSERT(nLastFrameIndex == (nFrameIndex - 1));
+    if (nLastFrameIndex != (nFrameIndex - 1)) {
+        //必须逐帧解码，无法跳过帧
+        return nullptr;
+    }
+
     // 检查GIF宽度和高度是否有效
     ASSERT((gif->SWidth > 0) && (gif->SHeight > 0));
     if ((gif->SWidth <= 0) || (gif->SHeight <= 0)) {
-        return false;
+        return nullptr;
     }
 
     // 获取渲染工厂实例
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
-        return false;
+        return nullptr;
     }
 
     const int nImageWidth = gif->SWidth;
@@ -272,195 +290,144 @@ static bool UiGifToRgbaFrames(const GifFileType* gif, bool bLoadAllFrames, float
     const int canvas_pixel_count = nImageWidth * nImageHeight;
 
     // 初始化画布（考虑全局背景色）
-    UiGifRGBA backgroundColor = UiGifRGBA{ 0, 0, 0, 0 }; //背景色
-    std::vector<UiGifRGBA> canvas(canvas_pixel_count);
-    if (gif->SColorMap != nullptr && gif->SBackGroundColor >= 0 &&
-        gif->SBackGroundColor < gif->SColorMap->ColorCount) {
-        // 使用全局背景色初始化画布
-        const GifColorType& bg_color = gif->SColorMap->Colors[gif->SBackGroundColor];
+    if (canvas.empty()) {
+        backgroundColor = UiGifRGBA{ 0, 0, 0, 0 }; //背景色
+        canvas.resize(canvas_pixel_count);
+        if (gif->SColorMap != nullptr && gif->SBackGroundColor >= 0 &&
+            gif->SBackGroundColor < gif->SColorMap->ColorCount) {
+            // 使用全局背景色初始化画布
+            const GifColorType& bg_color = gif->SColorMap->Colors[gif->SBackGroundColor];
 #ifdef DUILIB_BUILD_FOR_WIN
-        UiGifRGBA init_color = {
-            static_cast<uint8_t>(bg_color.Blue),
-            static_cast<uint8_t>(bg_color.Green),
-            static_cast<uint8_t>(bg_color.Red),
-            0 // 初始背景设为透明
-        };
+            UiGifRGBA init_color = {
+                static_cast<uint8_t>(bg_color.Blue),
+                static_cast<uint8_t>(bg_color.Green),
+                static_cast<uint8_t>(bg_color.Red),
+                0 // 初始背景设为透明
+            };
 #else
-        UiGifRGBA init_color = {
-            static_cast<uint8_t>(bg_color.Red),
-            static_cast<uint8_t>(bg_color.Green),
-            static_cast<uint8_t>(bg_color.Blue),
-            0 // 初始背景设为透明
-        };
+            UiGifRGBA init_color = {
+                static_cast<uint8_t>(bg_color.Red),
+                static_cast<uint8_t>(bg_color.Green),
+                static_cast<uint8_t>(bg_color.Blue),
+                0 // 初始背景设为透明
+            };
 #endif
-        backgroundColor = init_color;
-        std::fill(canvas.begin(), canvas.end(), init_color);
+            backgroundColor = init_color;
+            std::fill(canvas.begin(), canvas.end(), init_color);
+        }
+        else {
+            // 无有效背景色，初始化为全透明
+            std::fill(canvas.begin(), canvas.end(), UiGifRGBA{ 0, 0, 0, 0 });
+        }
     }
-    else {
-        // 无有效背景色，初始化为全透明
-        std::fill(canvas.begin(), canvas.end(), UiGifRGBA{ 0, 0, 0, 0 });
-    }
-
-    // 预创建帧对象
-    int nImageCount = bLoadAllFrames ? gif->ImageCount : 1;
-    out_frames.clear();
 
     // 预创建所有帧的位图对象
-    for (int frame_idx = 0; frame_idx < nImageCount; ++frame_idx) {
-        std::shared_ptr<IBitmap> pBitmap(pRenderFactory->CreateBitmap());
-        if (pBitmap == nullptr) {
-            return false;
-        }
-
-        auto pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
-        pFrameData->m_nFrameIndex = frame_idx;
-        pFrameData->m_nOffsetX = 0; // OffsetX和OffsetY均不需要处理
-        pFrameData->m_nOffsetY = 0;
-        pFrameData->m_bDataPending = false;
-        pFrameData->m_pBitmap = pBitmap;
-        out_frames.push_back(pFrameData);
+    std::shared_ptr<IBitmap> pBitmap(pRenderFactory->CreateBitmap());
+    if (pBitmap == nullptr) {
+        return nullptr;
     }
+
+    std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+    pFrameData->m_nFrameIndex = nFrameIndex;
+    pFrameData->m_nOffsetX = 0; // OffsetX和OffsetY均不需要处理
+    pFrameData->m_nOffsetY = 0;
+    pFrameData->m_bDataPending = false;
+    pFrameData->m_pBitmap = pBitmap;
 
     // 逐帧处理
-    for (int frame_idx = 0; frame_idx < nImageCount; ++frame_idx) {
-        const SavedImage& frame = gif->SavedImages[frame_idx];
-        const GifImageDesc& img_desc = frame.ImageDesc;
+    const SavedImage& frame = gif->SavedImages[nFrameIndex];
+    const GifImageDesc& img_desc = frame.ImageDesc;
 
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = out_frames[frame_idx];
-        std::shared_ptr<IBitmap> pBitmap;
+    // 设置帧延迟时间
+    pFrameData->SetDelayMs(UiGifGetFrameDelayMs(frame));
 
-        if (pFrameData != nullptr) {
-            pBitmap = pFrameData->m_pBitmap;
-        }
+    // 获取帧信息
+    const ColorMapObject* colormap = UiGifGetFrameColorMap(gif, frame);
+    const int transparent_idx = UiGifGetTransparentIndex(frame);
+    const int disposal_method = UiGifGetDisposalMethod(frame);
 
-        ASSERT(pBitmap != nullptr);
-        if (pBitmap == nullptr) {
-            continue;
-        }
+    // 备份画布（用于Disposal Method=3）
+    if (disposal_method == 3) {
+        canvas_backup = canvas;
+    }
 
-        // 设置帧延迟时间
-        pFrameData->SetDelayMs(UiGifGetFrameDelayMs(frame));
+    // 处理当前帧像素
+    if (colormap != nullptr) {
+        const GifByteType* raster_bits = frame.RasterBits;
+        for (int y = 0; y < img_desc.Height; ++y) {
+            for (int x = 0; x < img_desc.Width; ++x) {
+                const int canvas_x = img_desc.Left + x;
+                const int canvas_y = img_desc.Top + y;
 
-        // 获取帧信息
-        const ColorMapObject* colormap = UiGifGetFrameColorMap(gif, frame);
-        const int transparent_idx = UiGifGetTransparentIndex(frame);
-        const int disposal_method = UiGifGetDisposalMethod(frame);
+                if (canvas_x < 0 || canvas_x >= nImageWidth ||
+                    canvas_y < 0 || canvas_y >= nImageHeight) {
+                    continue;
+                }
 
-        // 备份画布（用于Disposal Method=3）
-        std::vector<UiGifRGBA> canvas_backup;
-        if (disposal_method == 3) {
-            canvas_backup = canvas;
-        }
+                const int pixel_idx = canvas_y * nImageWidth + canvas_x;
+                const GifByteType color_idx = raster_bits[y * img_desc.Width + x];
 
-        // 处理当前帧像素
-        if (colormap != nullptr) {
-            const GifByteType* raster_bits = frame.RasterBits;
-            for (int y = 0; y < img_desc.Height; ++y) {
-                for (int x = 0; x < img_desc.Width; ++x) {
-                    const int canvas_x = img_desc.Left + x;
-                    const int canvas_y = img_desc.Top + y;
+                if (color_idx >= colormap->ColorCount) {
+                    continue;
+                }
 
-                    if (canvas_x < 0 || canvas_x >= nImageWidth ||
-                        canvas_y < 0 || canvas_y >= nImageHeight) {
-                        continue;
-                    }
-
-                    const int pixel_idx = canvas_y * nImageWidth + canvas_x;
-                    const GifByteType color_idx = raster_bits[y * img_desc.Width + x];
-
-                    if (color_idx >= colormap->ColorCount) {
-                        continue;
-                    }
-
-                    // 透明处理逻辑
-                    const GifColorType& color = colormap->Colors[color_idx];
-                    uint8_t alpha = 255;
-                    if ((transparent_idx >= 0) && (color_idx == transparent_idx)) {
-                        alpha = 0; // 明确指定的透明色
-                    }
+                // 透明处理逻辑
+                const GifColorType& color = colormap->Colors[color_idx];
+                uint8_t alpha = 255;
+                if ((transparent_idx >= 0) && (color_idx == transparent_idx)) {
+                    alpha = 0; // 明确指定的透明色
+                }
 
 #ifdef DUILIB_BUILD_FOR_WIN
-                    canvas[pixel_idx] = {
-                        static_cast<uint8_t>(color.Blue),
-                        static_cast<uint8_t>(color.Green),
-                        static_cast<uint8_t>(color.Red),
-                        alpha
-                    };
+                canvas[pixel_idx] = {
+                    static_cast<uint8_t>(color.Blue),
+                    static_cast<uint8_t>(color.Green),
+                    static_cast<uint8_t>(color.Red),
+                    alpha
+                };
 #else
-                    canvas[pixel_idx] = {
-                        static_cast<uint8_t>(color.Red),
-                        static_cast<uint8_t>(color.Green),
-                        static_cast<uint8_t>(color.Blue),
-                        alpha
-                    };
+                canvas[pixel_idx] = {
+                    static_cast<uint8_t>(color.Red),
+                    static_cast<uint8_t>(color.Green),
+                    static_cast<uint8_t>(color.Blue),
+                    alpha
+                };
 #endif
+            }
+        }
+    }
+
+    // 处理Disposal Method
+    switch (disposal_method) {
+    case 2: // 清除当前帧区域, 恢复为背景色
+        for (int y = 0; y < img_desc.Height; ++y) {
+            for (int x = 0; x < img_desc.Width; ++x) {
+                const int canvas_x = img_desc.Left + x;
+                const int canvas_y = img_desc.Top + y;
+                if (canvas_x >= 0 && canvas_x < nImageWidth &&
+                    canvas_y >= 0 && canvas_y < nImageHeight) {
+                    canvas[canvas_y * nImageWidth + canvas_x] = backgroundColor;
                 }
             }
         }
-
-        // 处理Disposal Method
-        switch (disposal_method) {
-        case 2: // 清除当前帧区域, 恢复为背景色
-            for (int y = 0; y < img_desc.Height; ++y) {
-                for (int x = 0; x < img_desc.Width; ++x) {
-                    const int canvas_x = img_desc.Left + x;
-                    const int canvas_y = img_desc.Top + y;
-                    if (canvas_x >= 0 && canvas_x < nImageWidth &&
-                        canvas_y >= 0 && canvas_y < nImageHeight) {
-                        canvas[canvas_y * nImageWidth + canvas_x] = backgroundColor;
-                    }
-                }
-            }
-            break;
-        case 3: // 恢复上一帧画布
-            canvas = canvas_backup;
-            break;
-        default:
-            break;
-        }
-
-        // 更新位图数据
-        pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
-
-        if (pAbortFlag && *pAbortFlag) {
-            //已经取消
-            out_frames.clear();
-            return false;
-        }
+        break;
+    case 3: // 恢复上一帧画布
+        canvas = canvas_backup;
+        break;
+    default:
+        break;
     }
-    return true;
-}
 
-//解码GIF图片数据
-static bool DecodeImage_GIF(GifFileType* gifDecoder,
-                            float fImageSizeScale,
-                            bool bLoadAllFrames,
-                            std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& frames,
-                            volatile bool* pAbortFlag = nullptr)
-{
-    ASSERT(gifDecoder != nullptr);
-    if (gifDecoder == nullptr) {
-        return false;
-    }
-    ASSERT(fImageSizeScale > 0);
-    if (fImageSizeScale < 0) {
-        return false;
-    }
-    frames.clear();
-    bool bLoaded = UiGifToRgbaFrames(gifDecoder, bLoadAllFrames, fImageSizeScale, frames, pAbortFlag);
-    if (!bLoaded) {
-        frames.clear();
-    }
-    return bLoaded;
+    // 更新位图数据
+    pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
+    nLastFrameIndex = nFrameIndex;
+    return pFrameData;
 }
 
 struct Image_GIF::TImpl
 {
     //文件数据
     std::vector<uint8_t> m_fileData;
-
-    //加载后的句柄
-    GifFileType* m_gifDecoder = nullptr;
 
     //图片宽度
     uint32_t m_nWidth = 0;
@@ -477,26 +444,39 @@ struct Image_GIF::TImpl
     //是否加载所有帧
     bool m_bLoadAllFrames = true;
 
-    //延迟解码是否已经开始
-    bool m_bDecodeImageDataStarted = false;
-
-    //延迟解码是否已经取消
-    volatile bool m_bDecodeImageDataAborted = false;
-
-    //延迟解码是否已经结束
-    volatile bool m_bDecodeImageDataFinished = false;
-
     //缩放比例
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
 
+    //每一帧的播放延迟时间，毫秒
+    std::vector<int32_t> m_framesDelayMs;
+
+public:
     //各个图片帧的数据(延迟解码的数据)
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
 
-    //每一帧的播放延迟时间，毫秒
-    std::vector<int32_t> m_framesDelayMs;
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode = false;
+
+    //是否正在解码图片数据
+    std::atomic<bool> m_bAsyncDecoding = false;
+
+    //加载后的句柄
+    GifFileType* m_gifDecoder = nullptr;
+
+    //GIF图片的背景色
+    UiGifRGBA m_backgroundColor;
+
+    //GIF图片绘制的画布
+    std::vector<UiGifRGBA> m_gifCanvas;
+
+    //GIF图片绘制的画布（备份）
+    std::vector<UiGifRGBA> m_gifCanvasBackup;
+
+    //上一帧的索引号
+    int32_t m_nLastFrameIndex = -1;
 };
 
 Image_GIF::Image_GIF()
@@ -514,6 +494,7 @@ Image_GIF::~Image_GIF()
 
 bool Image_GIF::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
+                                    bool bAsyncDecode,
                                     float fImageSizeScale)
 {
     ASSERT(!fileData.empty());
@@ -524,6 +505,7 @@ bool Image_GIF::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_fileData.swap(fileData);
     m_impl->m_fImageSizeScale = fImageSizeScale;
     m_impl->m_bLoadAllFrames = bLoadAllFrames;
+    m_impl->m_bAsyncDecode = bAsyncDecode;
 
     int nErrorCode = 0;
     GifFileType* dec = UiGifInitDecoder(m_impl->m_fileData.data(), m_impl->m_fileData.size(), &nErrorCode);
@@ -558,14 +540,6 @@ bool Image_GIF::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     //循环播放固定为一直播放，因GIF格式无此设置
     m_impl->m_nLoops = -1;
 
-    //加载第一帧
-    if (!DecodeImage_GIF(dec, fImageSizeScale, false, m_impl->m_frames)) {
-        //加载失败时，需要恢复原文件数据
-        UiGifFreeDecoder(dec, nullptr);
-        m_impl->m_fileData.swap(fileData);
-        return false;
-    }
-
     //解出每一帧的播放时间
     m_impl->m_framesDelayMs.clear();
     for (int frame_idx = 0; frame_idx < m_impl->m_nFrameCount; ++frame_idx) {
@@ -574,56 +548,107 @@ bool Image_GIF::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     }
 
     m_impl->m_gifDecoder = dec;
+    m_impl->m_gifCanvas.clear();
+    m_impl->m_gifCanvasBackup.clear();
+    m_impl->m_nLastFrameIndex = -1;
     return true;
 }
 
-bool Image_GIF::IsDecodeImageDataEnabled() const
+bool Image_GIF::IsDelayDecodeEnabled() const
 {
-    if (!m_impl->m_fileData.empty() &&
-        (m_impl->m_gifDecoder != nullptr) &&
-        m_impl->m_bLoadAllFrames &&
-        (m_impl->m_nFrameCount > 1) &&
-        (m_impl->m_frames.size() == 1)) {
+    if (m_impl->m_bAsyncDecode &&
+        !m_impl->m_fileData.empty() &&
+        (m_impl->m_gifDecoder != nullptr)) {
         return true;
     }
     return false;
 }
 
-void Image_GIF::SetDecodeImageDataStarted()
+bool Image_GIF::IsDelayDecodeFinished() const
 {
-    m_impl->m_bDecodeImageDataStarted = true;
-    m_impl->m_bDecodeImageDataAborted = false;
-}
-
-bool Image_GIF::DecodeImageData()
-{
-    if (!IsDecodeImageDataEnabled()) {
+    if (m_impl->m_bAsyncDecoding) {
         return false;
-    }    
-    float fImageSizeScale = m_impl->m_fImageSizeScale;
-
-    //加载所有帧
-    bool bLoaded = false;
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> frames;
-    if (DecodeImage_GIF(m_impl->m_gifDecoder, fImageSizeScale, true, frames)) {
-        ASSERT(!m_impl->m_bDecodeImageDataFinished);
-        ASSERT(m_impl->m_delayFrames.empty());
-
-        m_impl->m_delayFrames.swap(frames);
-        m_impl->m_bDecodeImageDataFinished = true;
-        bLoaded = true;
     }
-    //不管是否成功，释放资源
-    UiGifFreeDecoder(m_impl->m_gifDecoder, nullptr);
-    m_impl->m_gifDecoder = nullptr;
-    std::vector<uint8_t> fileData;
-    m_impl->m_fileData.swap(fileData);
-    return bLoaded;
+    return (m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
 }
 
-void Image_GIF::SetDecodeImageDataAborted()
+uint32_t Image_GIF::GetDecodedFrameIndex() const
 {
-    m_impl->m_bDecodeImageDataAborted = true;
+    if (m_impl->m_frames.empty()) {
+        return 0;
+    }
+    else {
+        return (uint32_t)m_impl->m_frames.size() - 1;
+    }
+}
+
+bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+{
+    if (!IsDelayDecodeEnabled()) {
+        return false;
+    }
+    if (m_impl->m_bAsyncDecoding) {
+        return false;
+    }
+    m_impl->m_bAsyncDecoding = true;
+
+    float fImageSizeScale = m_impl->m_fImageSizeScale;
+    uint32_t nFrameIndex = (uint32_t)(m_impl->m_delayFrames.size() + m_impl->m_frames.size());
+    while (((IsAborted == nullptr) || !IsAborted()) &&
+           (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
+           ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
+        std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+        //一次解码一帧图片
+        pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
+                                               nFrameIndex,
+                                               fImageSizeScale,
+                                               m_impl->m_backgroundColor,
+                                               m_impl->m_gifCanvas,
+                                               m_impl->m_gifCanvasBackup,
+                                               m_impl->m_nLastFrameIndex);
+        if (pNewAnimationFrame != nullptr) {
+            m_impl->m_delayFrames.push_back(pNewAnimationFrame);
+        }
+        else {
+            break;
+        }
+        ++nFrameIndex;
+    }
+
+    m_impl->m_bAsyncDecoding = false;
+    return true;
+}
+
+bool Image_GIF::MergeDelayDecodeData()
+{
+    GlobalManager::Instance().AssertUIThread();
+    bool bRet = false;
+    if (!m_impl->m_bAsyncDecoding && !m_impl->m_delayFrames.empty()) {
+        //合并数据
+        for (auto p : m_impl->m_delayFrames) {
+            m_impl->m_frames.push_back(p);
+        }
+        m_impl->m_delayFrames.clear();
+        bRet = true;
+    }
+    if (!m_impl->m_bAsyncDecoding) {
+        //如果解码完成，则释放图片资源
+        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+            if (m_impl->m_gifDecoder != nullptr) {
+                UiGifFreeDecoder(m_impl->m_gifDecoder, nullptr);
+                m_impl->m_gifDecoder = nullptr;
+            }
+            std::vector<uint8_t> fileData;
+            m_impl->m_fileData.swap(fileData);
+
+            std::vector<UiGifRGBA> gifCanvas;
+            m_impl->m_gifCanvas.swap(gifCanvas);
+
+            std::vector<UiGifRGBA> gifCanvasBackup;
+            m_impl->m_gifCanvasBackup.swap(gifCanvas);
+        }
+    }
+    return bRet;
 }
 
 uint32_t Image_GIF::GetWidth() const
@@ -648,10 +673,16 @@ int32_t Image_GIF::GetLoopCount() const
 
 bool Image_GIF::IsFrameDataReady(uint32_t nFrameIndex)
 {
-    if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
+    GlobalManager::Instance().AssertUIThread();
+    if (m_impl->m_bAsyncDecode) {
+        if (nFrameIndex < m_impl->m_frames.size()) {
+            return true;
+        }
+        return false;
+    }
+    else {
         return true;
     }
-    return false;
 }
 
 int32_t Image_GIF::GetFrameDelayMs(uint32_t nFrameIndex)
@@ -672,10 +703,12 @@ int32_t Image_GIF::GetFrameDelayMs(uint32_t nFrameIndex)
 
 bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
 {
+    GlobalManager::Instance().AssertUIThread();
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
         return false;
     }
+    pAnimationFrame->m_bDataPending = true;
     ASSERT((nFrameIndex >= 0) && (nFrameIndex < m_impl->m_nFrameCount));
     if ((nFrameIndex < 0) || (nFrameIndex >= m_impl->m_nFrameCount)) {
         return false;
@@ -684,21 +717,42 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
     if (m_impl->m_nFrameCount <= 0) {
         return false;
     }
-    ASSERT(!m_impl->m_frames.empty());
-    if (m_impl->m_frames.empty()) {
-        return false;
-    }
 
-    if (m_impl->m_bDecodeImageDataFinished && !m_impl->m_delayFrames.empty()) {
-        //合并延迟解码的数据
-        if (m_impl->m_nFrameCount == m_impl->m_delayFrames.size() && (m_impl->m_frames.size() == 1)) {
-            auto p = m_impl->m_frames[0];
-            m_impl->m_frames.swap(m_impl->m_delayFrames);
-            m_impl->m_frames[0] = p;
-            m_impl->m_delayFrames.clear();
+    if (!m_impl->m_bAsyncDecode) {
+        //同步解码的情况, 解码所需要的帧
+        while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
+            (m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
+            ASSERT(m_impl->m_delayFrames.empty());
+            uint32_t nInitFrameIndex = (uint32_t)m_impl->m_frames.size();
+            float fImageSizeScale = m_impl->m_fImageSizeScale;
+
+            //一次解码一帧图片
+            std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+            pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
+                                                   nInitFrameIndex,
+                                                   fImageSizeScale,
+                                                   m_impl->m_backgroundColor,
+                                                   m_impl->m_gifCanvas,
+                                                   m_impl->m_gifCanvasBackup,
+                                                   m_impl->m_nLastFrameIndex);
+
+            if (pNewAnimationFrame != nullptr) {
+                m_impl->m_frames.push_back(pNewAnimationFrame);
+            }
+            else {
+                break;
+            }
+        }
+
+        ASSERT((nFrameIndex < (int32_t)m_impl->m_frames.size()));
+        if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
+            return false;
         }
     }
-
+    else {
+        //合并数据
+        MergeDelayDecodeData();
+    }
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
         std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
@@ -710,13 +764,19 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
             bRet = true;
         }
     }
-    else {
+    else if (m_impl->m_bAsyncDecode) {
         if ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount) {
             //尚未完成多帧解码
             pAnimationFrame->m_bDataPending = true;
             pAnimationFrame->m_pBitmap.reset();
             bRet = true;
         }
+        else {
+            ASSERT(0);
+        }
+    }
+    else {
+        ASSERT(0);
     }
     return bRet;
 }

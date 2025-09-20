@@ -57,4 +57,39 @@ std::shared_ptr<ISvgImage> Image_Svg::GetImageSvg() const
     return m_pSvgImage;
 }
 
+bool Image_Svg::IsAsyncDecodeEnabled() const
+{
+    //不支持延迟解码
+    return false;
+}
+
+bool Image_Svg::IsAsyncDecodeFinished() const
+{
+    return true;
+}
+
+uint32_t Image_Svg::GetDecodedFrameIndex() const
+{
+    return 0;
+}
+
+void Image_Svg::SetAsyncDecodeTaskId(size_t /*nTaskId*/)
+{
+}
+
+size_t Image_Svg::GetAsyncDecodeTaskId() const
+{
+    return 0;
+}
+
+bool Image_Svg::AsyncDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+{
+    return false;
+}
+
+bool Image_Svg::MergeAsyncDecodeData()
+{
+    return false;
+}
+
 } //namespace ui

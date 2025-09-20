@@ -12,7 +12,6 @@ ImageInfo::ImageInfo():
     m_nFrameCount(0),
     m_nWidth(0),
     m_nHeight(0),
-    m_asyncLoadCallback(nullptr),
     m_imageType(ImageType::kImageBitmap),
     m_bBitmapSizeDpiScaled(false),
     m_bHasCustomSizeScale(false),
@@ -77,8 +76,7 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
         //SVG图片
         return GetSvgBitmap(IMAGE_SIZE_SCALE_NONE);
     }
-    else if (m_imageType == ImageType::kImageAnimation) {
-        //动画图片
+    else {
         ASSERT(0);
         return nullptr;
     }
@@ -92,7 +90,12 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
 
     ImageType imageType = pImageData->GetImageType();
     if (imageType == ImageType::kImageBitmap) {
-        std::shared_ptr<IBitmap> pBitmap = pImageData->GetImageBitmap();
+        std::shared_ptr<IBitmapImage> pIBitmapImage = pImageData->GetImageBitmap();
+        ASSERT(pIBitmapImage != nullptr);
+        if (pIBitmapImage == nullptr) {
+            return nullptr;
+        }
+        std::shared_ptr<IBitmap> pBitmap = pIBitmapImage->GetBitmap();
         ASSERT(pBitmap != nullptr);
         if (pBitmap == nullptr) {
             return nullptr;
@@ -230,8 +233,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
                              int32_t nImageInfoWidth,
                              int32_t nImageInfoHeight,
                              const std::shared_ptr<IImage>& pImageData,
-                             bool bBitmapSizeDpiScaled,
-                             StdClosure asyncLoadCallback)
+                             bool bBitmapSizeDpiScaled)
 {
     ASSERT(pImageData != nullptr);
     if (pImageData == nullptr) {
@@ -272,7 +274,6 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
 
     m_loadParam = loadParam;
     m_pImageData = pImageData;    
-    m_asyncLoadCallback = asyncLoadCallback;
     m_fImageSizeScale = pImageData->GetImageSizeScale();
 
     //设置图片内部数据
@@ -301,25 +302,17 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
         if (m_nLoopCount == 0) {
             m_nLoopCount = -1;
         }
-        if (pAnimationImage->IsDecodeImageDataEnabled()) {
-            //开始延迟解码(优先在子线程中解码) //TODO: 线程管理
-            pAnimationImage->SetDecodeImageDataStarted();
-            int32_t nDecodeImageThread = ThreadIdentifier::kThreadWorker;
-            if (!GlobalManager::Instance().Thread().HasThread(nDecodeImageThread)) {
-                nDecodeImageThread = ThreadIdentifier::kThreadUI;
-            }
-            auto decodeImageTask = [pAnimationImage]() {
-                    //异步解码图片
-                    pAnimationImage->DecodeImageData();
-                };
-            GlobalManager::Instance().Thread().PostTask(nDecodeImageThread, decodeImageTask);
-        }
     }
     else {
         ASSERT(0);
         return false;
     }
     return true;
+}
+
+std::shared_ptr<IImage> ImageInfo::GetImageData() const
+{
+    return m_pImageData;
 }
 
 int32_t ImageInfo::GetWidth() const
