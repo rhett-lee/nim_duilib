@@ -4,6 +4,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
 
@@ -443,5 +444,81 @@ DString ImageManager::GetDpiScaledPath(uint32_t dpiScale, const DString& imageFu
     return strNewFilePath;
 }
 
+void ImageManager::AddDelayPaintData(Control* pControl, Image* pImage, const DString& imageKey)
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT((pControl != nullptr) && (pImage != nullptr) && !imageKey.empty());
+    if ((pControl == nullptr) || (pImage == nullptr) || imageKey.empty()) {
+        return;
+    }
+    RemoveDelayPaintData(pImage); //一个Image资源，只保留一条记录
+
+    TImageDelayPaintData delayPaint;
+    delayPaint.m_pControl = pControl;
+    delayPaint.m_pImage = pImage;
+    delayPaint.m_imageKey = imageKey;
+    m_delayPaintImageList.push_back(delayPaint);
 }
 
+void ImageManager::RemoveDelayPaintData(Control* pControl)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pControl == pControl) || (iter->m_pControl == nullptr)) {
+            iter = m_delayPaintImageList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+void ImageManager::RemoveDelayPaintData(Image* pImage)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT((pImage != nullptr));
+    if (pImage == nullptr) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pImage == pImage) || (iter->m_pImage == nullptr)) {
+            iter = m_delayPaintImageList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+void ImageManager::DelayPaintImage(const DString& imageKey)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(!imageKey.empty());
+    if (imageKey.empty()) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pControl == nullptr) || (iter->m_pImage == nullptr) || (iter->m_imageKey == imageKey)) {
+            ControlPtrT<Image> pImage = iter->m_pImage;
+            iter = m_delayPaintImageList.erase(iter);
+            if (pImage != nullptr) {
+                pImage->RedrawImage();
+            }
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+} //namespace ui

@@ -1,6 +1,7 @@
 #include "Image.h"
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/ImagePlayer.h"
+#include "duilib/Core/Control.h"
 
 namespace ui 
 {
@@ -297,6 +298,18 @@ void Image::SetDrawDestRect(const UiRect& rcImageRect)
 const UiRect& Image::GetDrawDestRect() const
 {
     return m_rcDrawDestRect;
+}
+
+void Image::RedrawImage()
+{
+    if (m_pControl != nullptr) {
+        if (m_rcDrawDestRect.IsEmpty()) {
+            m_pControl->Invalidate();
+        }
+        else {
+            m_pControl->InvalidateRect(m_rcDrawDestRect);
+        }        
+    }
 }
 
 void Image::CheckStartImageAnimation()

@@ -2,9 +2,11 @@
 #define UI_CORE_IMAGEMANAGER_H_
 
 #include "duilib/Core/Callback.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Image/ImageDecoder.h"
 #include <string>
 #include <vector>
+#include <list>
 #include <unordered_map>
 #include <memory>
 #include <chrono>
@@ -15,6 +17,8 @@ class ImageInfo;
 class ImageLoadParam;
 class DpiManager;
 class Window;
+class Control;
+class Image;
 
 /** 图片管理器
  */
@@ -68,6 +72,26 @@ public:
     /** 获取默认是否启用图片数据的多线程异步加载
     */
     bool IsImageAsyncLoad() const;
+
+public:
+    /** 添加到延迟绘制列表
+    * @param [in] pControl 图片关联的控件
+    * @param [in] pImage 图片接口
+    * @param [in] imageKey 图片资源的KEY
+    */
+    void AddDelayPaintData(Control* pControl, Image* pImage, const DString& imageKey);
+
+    /** 从延迟绘制列表中移除图片关联的数据
+    * @param [in] pControl 图片关联的控件
+    * @param [in] pImage 图片接口
+    */
+    void RemoveDelayPaintData(Control* pControl);
+    void RemoveDelayPaintData(Image* pImage);
+
+    /** 执行延迟绘制（当图片资源在子线程加载完成时调用）
+    * @param [in] imageKey 图片资源的KEY
+    */
+    void DelayPaintImage(const DString& imageKey);
 
 private:
     /** 图片信息被销毁的回调函数，用于释放图片资源
@@ -149,6 +173,17 @@ private:
         std::chrono::steady_clock::time_point m_releaseTime;
     };
     std::vector<TImageData> m_delayReleaseImageList;
+
+private:
+    /** 图片延迟绘制相关数据（图片资源在子线程加载完成后，需要通知界面重新绘制该图片）
+    */
+    struct TImageDelayPaintData
+    {
+        ControlPtr m_pControl;          //关联的控件接口
+        ControlPtrT<Image> m_pImage;    //关联的图片接口
+        DString m_imageKey;             //图片资源的KEY
+    };
+    std::list<TImageDelayPaintData> m_delayPaintImageList;
 };
 
 }

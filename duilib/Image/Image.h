@@ -167,6 +167,10 @@ public:
     */
     const UiRect& GetDrawDestRect() const;
 
+    /** 重绘图片（按其显示区域）
+    */
+    void RedrawImage();
+
     /** 播放动画
     */
     void CheckStartImageAnimation();
