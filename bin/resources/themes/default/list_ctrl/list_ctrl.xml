@@ -156,7 +156,8 @@
                           list_view_item_class="list_ctrl_list_view_item"
                           list_view_item_image_class="list_ctrl_list_view_item_image"
                           list_view_item_label_class="list_ctrl_list_view_item_label"
-                          enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
+                          enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"
+                          loading_image="file='loading.svg' width='100'"/>
             </VBox>
         </VBox>
     </VBox>
