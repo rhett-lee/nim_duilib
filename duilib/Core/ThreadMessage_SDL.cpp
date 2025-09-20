@@ -36,8 +36,11 @@ void ThreadMessage::Initialize(void* /*platformData*/)
 {
 }
 
-bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam)
+bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode)
 {
+    if (nErrorCode) {
+        *nErrorCode = 0;
+    }
     if (m_impl->m_bTerm) {
         //已经终止
         return false;

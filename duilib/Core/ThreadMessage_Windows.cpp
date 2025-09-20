@@ -75,8 +75,11 @@ void ThreadMessage::Initialize(void* platformData)
     }
 }
 
-bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam)
+bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode)
 {
+    if (nErrorCode) {
+        *nErrorCode = 0;
+    }
     if (m_impl->m_bTerm) {
         //已经终止
         return false;
@@ -86,6 +89,11 @@ bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam)
     ASSERT(m_impl->m_hMessageWnd != nullptr);
     if ((m_impl->m_hMessageWnd != nullptr) && (msgId == m_impl->m_msgId)) {
         bRet = ::PostMessage(m_impl->m_hMessageWnd, m_impl->m_msgId, wParam, lParam) != FALSE;
+        if (!bRet) {
+            if (nErrorCode) {
+                *nErrorCode = (uint32_t)::GetLastError();
+            }
+        }
     }
     return bRet;
 }

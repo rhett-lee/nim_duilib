@@ -171,7 +171,7 @@ size_t FrameworkThread::PostTask(const StdClosure& task, const StdClosure& unloc
 {
     ASSERT(task != nullptr);
     if (task == nullptr) {
-        return false;
+        return 0;
     }
     ScopedLock threadGuard(m_taskMutex);
     size_t nTaskId = GetNextTaskId();
@@ -278,7 +278,36 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId,
         UNUSED_VARIABLE(unlockClosure1);
         UNUSED_VARIABLE(unlockClosure2);
 #endif
-        return m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0);
+        uint32_t nErrorCode = 0;
+        bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0, &nErrorCode);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+        if (!bRet) {
+            if ((nErrorCode == ERROR_NOT_ENOUGH_QUOTA) && !GlobalManager::Instance().IsInUIThread()) {
+                //将外层的锁释放，避免SDL底层的锁反向调用产生死锁
+                if (unlockClosure1) {
+                    unlockClosure1();
+                }
+                if (unlockClosure2) {
+                    unlockClosure2();
+                }
+                //在程序启动时，如果在子线程向主线程Post消息，会遇到此错误
+                for (int32_t i = 0; i < 200; ++i) {
+                    ::Sleep(50);
+                    if (!IsRunning()) {
+                        break;
+                    }
+                    bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0, &nErrorCode);
+                    if (bRet || (nErrorCode != ERROR_NOT_ENOUGH_QUOTA)) {
+                        break;
+                    }
+                }
+            }
+            ASSERT_UNUSED_VARIABLE(bRet);
+        }
+#else
+        ASSERT_UNUSED_VARIABLE(bRet);
+#endif
+        return bRet;
     }
     else {
         //后台工作线程

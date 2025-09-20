@@ -36,8 +36,9 @@ public:
     * @param [in] msgId 消息ID
     * @param [in] wParam 消息的第1个参数
     * @param [in] lParam 消息的第2个参数
+    * @param [out] nErrorCode 发生错误时，返回错误码
     */
-    bool PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam);
+    bool PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode);
 
     /** 从消息队列里面移除多余的消息
     * @param [in] msgId 消息ID
