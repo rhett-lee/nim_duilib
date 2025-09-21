@@ -1405,9 +1405,22 @@ bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uin
 bool ListBox::ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
                                  bool bTriggerEvent, uint64_t vkFlag)
 {
-    if (!IsSelectableItem(iIndex)) {
-        //iIndex的值无效，或者当前子项不可选择
-        return false;
+    if (!IsVisible()) {
+        //隐藏状态时，避免获取焦点
+        bTakeFocus = false;
+    }
+    if (IsVisible()) {
+        if (!IsSelectableItem(iIndex)) {
+            //iIndex的值无效，或者当前子项不可选择
+            return false;
+        }
+    }
+    else {
+        Control* pControl = GetItemAt(iIndex);
+        if ((pControl == nullptr) || !pControl->IsSelectableType() || !pControl->IsEnabled()) {
+            //iIndex的值无效，或者当前子项不可选择
+            return false;
+        }
     }
 
     //事件触发，需要放在函数返回之前，不能放在代码中间
@@ -1561,6 +1574,10 @@ void ListBox::OnItemCheckedChanged(size_t /*iIndex*/, IListBoxItem* /*pListBoxIt
 
 bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
+    if (!IsVisible()) {
+        //隐藏状态时，避免获取焦点
+        bTakeFocus = false;
+    }
     //单选
     if (iIndex == m_iCurSel) {
         Control* pControl = GetItemAt(iIndex);
@@ -1607,7 +1624,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
     }
 
     Control* pControl = GetItemAt(iIndex);
-    if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+    if ((pControl == nullptr) || (IsVisible() && !pControl->IsVisible()) || !pControl->IsEnabled()) {
         Invalidate();
         if (hasUnSelectEvent && bTriggerEvent) {
             SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
@@ -1644,6 +1661,10 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
 
 bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent)
 {
+    if (!IsVisible()) {
+        //隐藏状态时，避免获取焦点
+        bTakeFocus = false;
+    }
     //多选: m_iCurSel 始终执行最后一个选中项
     size_t iOldSel = m_iCurSel;
     m_iCurSel = Box::InvalidIndex;
@@ -1652,7 +1673,7 @@ bool ListBox::SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
         return false;
     }
     Control* pControl = GetItemAt(iIndex);
-    if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()){
+    if ((pControl == nullptr) || (IsVisible() && !pControl->IsVisible()) || !pControl->IsEnabled()){
         Invalidate();
         return false;
     }

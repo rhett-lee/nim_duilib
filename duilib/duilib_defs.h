@@ -383,7 +383,7 @@ namespace ui
         kEventScrollChange,         //ScrollBox类：当滚动条位置发生变化时触发
         kEventValueChange,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
         kEventResize,               //Control类：当控件的大小和位置发生变化时触发
-        kEventVisibleChange,        //Control类：当控件的Visible属性发生变化时触发
+        kEventVisibleChange,        //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
         kEventStateChange,          //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
         kEventSelectColor,          //ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
@@ -391,6 +391,7 @@ namespace ui
 
         kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
+        kEventDataItemCountChanged, //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发

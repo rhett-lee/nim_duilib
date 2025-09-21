@@ -1585,7 +1585,8 @@ void Control::SetFadeVisible(bool bVisible)
 void Control::OnSetVisible(bool bChanged)
 {
     BaseClass::OnSetVisible(bChanged);
-    if (!IsVisible()) {
+    const bool bVisible = IsVisible();
+    if (!bVisible) {
         EnsureNoFocus();
     }
 
@@ -1596,8 +1597,10 @@ void Control::OnSetVisible(bool bChanged)
     if (!IsVisible()) {
         PauseImageAnimation();
     }
-
-    SendEvent(kEventVisibleChange);
+    if (bChanged) {
+        WPARAM wParam = bVisible ? 1 : 0;
+        SendEvent(kEventVisibleChange, wParam);
+    }
 }
 
 void Control::OnSetEnabled(bool bChanged)
@@ -2814,6 +2817,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
                 if (IsBordersOnTop()) {
                     PaintBorder(pCacheRender);     //绘制边框
                 }
+                PaintLoading(pCacheRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
             }
             pCacheRender->SetWindowOrg(ptOldOrg);
             SetCacheDirty(false);
@@ -2838,6 +2842,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             if (IsBordersOnTop()) {
                 PaintBorder(pRender);     //绘制边框
             }
+            PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
         }
         if (isAlpha) {
             SetCacheDirty(true);
@@ -2865,6 +2870,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (IsBordersOnTop()) {
             PaintBorder(pRender);     //绘制边框
         }
+        PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
         pRender->SetWindowOrg(ptOldOrg);
     }
 }
@@ -2903,8 +2909,7 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     if (!IsBordersOnTop()) {
         PaintBorder(pRender);     //绘制边框
     }    
-    PaintFocusRect(pRender);      //绘制焦点状态
-    PaintLoading(pRender);        //绘制Loading图片，无状态
+    PaintFocusRect(pRender);      //绘制焦点状态    
 }
 
 void Control::PaintShadow(IRender* pRender)

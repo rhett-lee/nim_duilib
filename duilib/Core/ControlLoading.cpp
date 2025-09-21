@@ -100,7 +100,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
     DString modify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
 
     //绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
-    AutoClip autoClip(pRender, imageDestRect, true);
+   // AutoClip autoClip(pRender, imageDestRect, true);
     pControl->PaintImage(pRender, m_pLoadingImage.get(), modify, -1, spMatrix.get());
 }
 
@@ -129,7 +129,7 @@ bool ControlLoading::StartLoading(int32_t fStartAngle)
     m_bIsLoading = true;
     GlobalManager::Instance().Timer().AddTimer(m_loadingImageFlag.GetWeakFlag(), 
                                                          UiBind(&ControlLoading::Loading, this),
-                                                         50);
+                                                         100);
     return true;
 }
 
