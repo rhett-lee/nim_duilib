@@ -33,9 +33,10 @@ public:
 public:
     /** 加载图片 ImageInfo 对象
      * @param [in] loadParam 图片的加载属性，包含图片路径等信息
+     * @param [out] bFromCache 返回true表示从缓存获取的ImageInfo，否则表示重新加载的ImageInfo
      * @return 返回图片 ImageInfo 对象的智能指针
      */
-    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam);
+    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam, bool& bFromCache);
 
     /** 从缓存中删除所有图片
      */

@@ -21,15 +21,17 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, bool& bFromCache)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
+    bFromCache = false;
     const DString loadKey = loadParam.GetLoadKey(loadParam.GetLoadDpiScale());
     auto iter = m_imageInfoMap.find(loadKey);
     if (iter != m_imageInfoMap.end()) {
         std::shared_ptr<ImageInfo> spImageInfo = iter->second.lock();
         if (spImageInfo != nullptr) {
             //从缓存中，找到有效图片资源，直接返回
+            bFromCache = true;
             return spImageInfo;
         }
     }
@@ -156,6 +158,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     int32_t nImageInfoHeight = spImageData->GetHeight();
     const float fRealImageSizeScale = spImageData->GetImageSizeScale(); //实际加载的缩放比例
     if ((nImageDpiScale != 100) && ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
+        //举例：原图文件为"autumn.png"，如果匹配到DPI自适应图文件名为"autumn@175.png"，此时nImageDpiScale的值就是175
         const float fSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / 100.0f;
         //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小
         int32_t nCalcSize = static_cast<int32_t>(nImageInfoWidth * 1.0f / fRealImageSizeScale + 0.5f);

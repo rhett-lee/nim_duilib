@@ -1812,21 +1812,21 @@ UiSize Control::EstimateText(UiSize /*szAvailable*/)
 UiSize Control::EstimateImage(UiSize szAvailable)
 {
     UiSize imageSize;
-    std::shared_ptr<ImageInfo> imageCache;
+    std::shared_ptr<ImageInfo> imageInfo;
     Image* image = GetEstimateImage();
     if (image != nullptr) {
         //加载图片：需要获取图片的宽和高
         LoadImageInfo(*image);
-        imageCache = image->GetImageInfo();
+        imageInfo = image->GetImageInfo();
     }
     //控件自身的内边距
     const UiPadding rcControlPadding = GetControlPadding();
 
-    if ((imageCache != nullptr) && (image != nullptr)) {
+    if ((imageInfo != nullptr) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
         bool hasDestAttr = false;
-        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(imageCache->GetWidth(), imageCache->GetHeight(), Dpi());
+        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(imageInfo->GetWidth(), imageInfo->GetHeight(), Dpi());
         if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
             //使用配置中指定的目标区域
             rcDest = rcImageDestRect;
@@ -1841,8 +1841,8 @@ UiSize Control::EstimateImage(UiSize szAvailable)
         UiRect rcDestCorners;
         UiRect rcSource = imageAttribute.GetImageSourceRect();
         UiRect rcSourceCorners = imageAttribute.GetImageCorner();
-        ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
-                                       Dpi(), imageCache->IsBitmapSizeDpiScaled(),
+        ImageAttribute::ScaleImageRect(imageInfo->GetWidth(), imageInfo->GetHeight(),
+                                       Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
                                        rcDestCorners,
                                        rcSource,
                                        rcSourceCorners);
@@ -1853,7 +1853,7 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             imageSize.cx = rcSource.Width();
         }
         else {
-            imageSize.cx = imageCache->GetWidth();
+            imageSize.cx = imageInfo->GetWidth();
         }
 
         if (rcDest.Height() > 0) {
@@ -1863,7 +1863,7 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             imageSize.cy = rcSource.Height();
         }
         else {
-            imageSize.cy = imageCache->GetHeight();
+            imageSize.cy = imageInfo->GetHeight();
         }
         if (!hasDestAttr) {
             //如果没有rcDest属性，则需要增加图片的内边距（图片自身的内边距属性）
@@ -1889,7 +1889,7 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             }
         }
     }
-    imageCache.reset();
+    imageInfo.reset();
 
     //图片大小，需要附加控件的内边距
     if (imageSize.cx > 0) {
@@ -3821,18 +3821,21 @@ bool Control::LoadImageInfo(Image& duiImage) const
         (imageInfo->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
         //第1种情况：如果图片没有加载则执行加载图片；
         //第2种情况：如果图片发生变化，则重新加载该图片
-        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam);
+        bool bFromCache = false;
+        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bFromCache);
         duiImage.SetImageInfo(imageInfo);
 
-        //检查并启动多线程解码，在子线程中解码图片数据
-        std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
-        if (pImageData != nullptr) {
-            std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();
-            pAsyncDecoder->m_nTaskId = 0;
-            pAsyncDecoder->m_pImageData = std::move(pImageData);
-            pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
-            AsyncDecodeImageData(pAsyncDecoder);
-        }        
+        if (!bFromCache) {
+            //检查并启动多线程解码，在子线程中解码图片数据
+            std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
+            if (pImageData != nullptr) {
+                std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();
+                pAsyncDecoder->m_nTaskId = 0;
+                pAsyncDecoder->m_pImageData = std::move(pImageData);
+                pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
+                AsyncDecodeImageData(pAsyncDecoder);
+            }
+        }
     }
     return imageInfo ? true : false;
 }

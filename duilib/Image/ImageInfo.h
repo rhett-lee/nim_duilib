@@ -23,7 +23,7 @@ public:
     ImageInfo& operator = (const ImageInfo&) = delete;
 
 public:
-    /** 判断该图片的大小是否已经做过适应DPI处理
+    /** 判断该图片的大小是否已经做过适应DPI处理（当计算rcDestCorners/rcSource/rcSourceCorners时使用，参见ImageAttribute::ScaleImageRect函数）
     */
     bool IsBitmapSizeDpiScaled() const;
 
@@ -103,7 +103,7 @@ public:
     * @param [in] nImageInfoWidth 图片信息的宽度
     * @param [in] nImageInfoHeight 图片信息的高度
     * @param [in] pImageData 原图数据接口
-    * @param [in] bBitmapSizeDpiScaled 加载的图片宽高是否做过DPI自适应
+    * @param [in] bBitmapSizeDpiScaled 加载的图片宽高是否做过DPI自适应（当计算rcDestCorners/rcSource/rcSourceCorners时使用，参见ImageAttribute::ScaleImageRect函数）
     */
     bool SetImageData(const ImageLoadParam& loadParam,
                       int32_t nImageInfoWidth,
@@ -133,7 +133,7 @@ private:
     */
     ImageLoadParam m_loadParam;
 
-    /** 是否做过DPI自适应
+    /** 是否做过DPI自适应（当计算rcDestCorners/rcSource/rcSourceCorners时使用，参见ImageAttribute::ScaleImageRect函数）
     */
     bool m_bBitmapSizeDpiScaled;
 
