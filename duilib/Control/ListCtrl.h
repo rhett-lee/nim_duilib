@@ -837,6 +837,14 @@ public:
      */
     void AttachLeaveEdit(const EventCallback& callback) { this->AttachEvent(kEventLeaveEdit, callback); }
 
+    /** 监听数据项总个数变化事件
+     * @param[in] callback 事件回调函数
+     * 参数说明:
+     *   wParam: 是新的个数(size_t)
+     *   lParam: 是旧的个数(size_t)
+     */
+    void AttachDataItemCountChanged(const EventCallback& callback) { this->AttachEvent(kEventDataItemCountChanged, callback); }
+
 protected:
     /** 控件初始化
     */

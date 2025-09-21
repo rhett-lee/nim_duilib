@@ -531,6 +531,8 @@ void MainForm::OnInitWindow()
         OnListCtrlEvent(args);
         return true;
         });
+
+    //pListCtrl->StartLoading();
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)

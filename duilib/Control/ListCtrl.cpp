@@ -1443,10 +1443,17 @@ size_t ListCtrl::GetDataItemCount() const
 
 bool ListCtrl::SetDataItemCount(size_t itemCount)
 {
+    const size_t nOldDataItemCount = m_pData->GetDataItemCount();
     bool bRet = m_pData->SetDataItemCount(itemCount);
     if (bRet) {
-        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
-        UpdateHeaderCheckBox();
+        const size_t nNewDataItemCount = m_pData->GetDataItemCount();
+        bool bChanged = (nOldDataItemCount != nNewDataItemCount);
+        if (bChanged) {
+            //列表数据个数发生变化
+            UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+            UpdateHeaderCheckBox();
+            SendEvent(kEventDataItemCountChanged, (WPARAM)nNewDataItemCount, (LPARAM)nOldDataItemCount);
+        }
     }
     return bRet;
 }
