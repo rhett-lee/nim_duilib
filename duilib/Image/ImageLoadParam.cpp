@@ -120,6 +120,13 @@ bool ImageLoadParam::IsAsyncDecodeEnabled() const
     return m_bAsyncDecode;
 }
 
+bool ImageLoadParam::HasImageFixedSize(void) const
+{
+    uint32_t nImageFixedWidth = 0;
+    uint32_t nImageFixedHeight = 0;
+    return GetImageFixedSize(nImageFixedWidth, nImageFixedHeight, false);
+}
+
 bool ImageLoadParam::GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const
 {
     if (!GetScaledFixedSize(m_srcWidth.c_str(), nImageWidth, bNeedDpiScale)) {
@@ -154,6 +161,13 @@ bool ImageLoadParam::GetScaledFixedSize(const DString& srcSize, uint32_t& nScale
         }
     }
     return nScaledSize > 0;
+}
+
+bool ImageLoadParam::HasImageFixedPercent() const
+{
+    float fImageFixedWidthPercent = 1.0f;
+    float fImageFixedHeightPercent = 1.0f;
+    return GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent, false);
 }
 
 bool ImageLoadParam::GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent, bool bNeedDpiScale) const

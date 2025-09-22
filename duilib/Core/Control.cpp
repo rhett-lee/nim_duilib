@@ -1838,14 +1838,8 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             }
             hasDestAttr = true;
         }
-        UiRect rcDestCorners;
         UiRect rcSource = imageAttribute.GetImageSourceRect();
-        UiRect rcSourceCorners = imageAttribute.GetImageCorner();
-        ImageAttribute::ScaleImageRect(imageInfo->GetWidth(), imageInfo->GetHeight(),
-                                       Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
-                                       rcDestCorners,
-                                       rcSource,
-                                       rcSourceCorners);
+        imageInfo->ScaleImageSourceRect(Dpi(), rcSource);
         if (rcDest.Width() > 0) {
             imageSize.cx = rcDest.Width();
         }
@@ -2512,11 +2506,7 @@ bool Control::PaintImage(IRender* pRender,
     UiRect rcDestCorners;
     UiRect rcSource = newImageAttribute.GetImageSourceRect();
     UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
-    ImageAttribute::ScaleImageRect(imageInfo->GetWidth(), imageInfo->GetHeight(),
-                                   Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
-                                   rcDestCorners,
-                                   rcSource,
-                                   rcSourceCorners);
+    imageInfo->ScaleImageSourceRect(Dpi(), rcDestCorners, rcSource, rcSourceCorners);
     
     //运用rcPadding、hAlign、vAlign 三个图片属性
     rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
@@ -2587,7 +2577,7 @@ bool Control::PaintImage(IRender* pRender,
     bool bDataPending = false;
     if (duiImage.IsMultiFrameImage()) {
         //多帧图片
-        std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = duiImage.GetCurrentFrame();
+        std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = duiImage.GetCurrentFrame(rcSource, rcSourceCorners);
         ASSERT(pAnimationFrame != nullptr);
         if (pAnimationFrame == nullptr) {
             return false;
@@ -2620,8 +2610,11 @@ bool Control::PaintImage(IRender* pRender,
                 rcDest.top += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, fRectScaleY);
                 rcDest.bottom = rcDest.top + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestHeight, fImageScaleY);
             }
-            ASSERT(pAnimationFrame->m_pBitmap->GetWidth() <= (uint32_t)imageInfo->GetWidth());
-            ASSERT(pAnimationFrame->m_pBitmap->GetHeight() <= (uint32_t)imageInfo->GetHeight());
+
+            //TODO:
+            //位图图片的宽高，不可以超过ImageInfo的宽高（多帧图片可以小于ImageInfo的宽高）
+            //ASSERT(pAnimationFrame->m_pBitmap->GetWidth() <= (uint32_t)imageInfo->GetWidth());
+            //ASSERT(pAnimationFrame->m_pBitmap->GetHeight() <= (uint32_t)imageInfo->GetHeight());
         }
         else {
             ASSERT(!"pAnimationFrame->m_pBitmap is invalid!");
@@ -2634,26 +2627,11 @@ bool Control::PaintImage(IRender* pRender,
             //当设置平铺时，无需拉伸图片
             bImageStretch = false;
         }
-        else if (!rcSourceCorners.IsZero()) {
-            //如果设置了九宫格绘制，则按不拉伸处理(如果拉伸图片，四个角会变形)
-            bImageStretch = false;
-        }
         else if (newImageAttribute.m_bWindowShadowMode) {
             //阴影模式：不拉伸，避免四个角变形
             bImageStretch = false;
         }
-        else if ((rcDest.Width() == rcSource.Width()) && (rcDest.Height() == rcSource.Height())) {
-            //如果绘制目标区域和图片源区域大小一致，无需拉伸
-            bImageStretch = false;
-        }
-        if (bImageStretch) {
-            //绘制图片有拉伸时
-            pBitmap = duiImage.GetCurrentBitmap(rcDest, rcSource);
-        }
-        else {
-            //绘制图片无拉伸时
-            pBitmap = duiImage.GetCurrentBitmap();
-        }
+        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcDest, rcSource, rcSourceCorners);
         if (duiImage.GetImageAttribute().m_bAsyncLoad) {
             bDataPending = true;            
         }
@@ -2667,10 +2645,10 @@ bool Control::PaintImage(IRender* pRender,
     if (pBitmap != nullptr) {
         bPainted = true;
         //校验rcSource(多帧的情况下，实际图片与总宽高可能不符，需要进一步校验)
-        if ((rcSource.left < 0) || (rcSource.left > (int32_t)pBitmap->GetWidth())) {
+        if ((rcSource.left < 0) || (rcSource.left >= (int32_t)pBitmap->GetWidth())) {
             rcSource.left = 0;
         }
-        if ((rcSource.top < 0) || (rcSource.top > (int32_t)pBitmap->GetHeight())) {
+        if ((rcSource.top < 0) || (rcSource.top >= (int32_t)pBitmap->GetHeight())) {
             rcSource.top = 0;
         }
         if ((rcSource.right < 0) || (rcSource.right > (int32_t)pBitmap->GetWidth())) {

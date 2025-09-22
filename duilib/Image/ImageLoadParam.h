@@ -129,11 +129,19 @@ public:
     */
     DString GetLoadKey(uint32_t nLoadDpiScale) const;
 
+    /** 获取图片加载是否包含固定设置大小的选项
+    */
+    bool HasImageFixedSize(void) const;
+
     /** 获取图片加载的固定设置大小
     * @param [out] nImageWidth 图片设置的宽度，如果返回0则无数据，比如：width='300'
     * @param [out] nImageHeight 图片设置的高度，如果返回0则无数据，比如：height='300'
     */
     bool GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const;
+
+    /** 获取图片加载是否包含固定百分比设置大小的选项
+    */
+    bool HasImageFixedPercent() const;
 
     /** 获取图片加载的固定百分比设置大小
     * @param [out] fImageWidthPercent 图片设置的宽度，如果返回1.0f则无数据，比如：width='300%'

@@ -111,13 +111,13 @@ private:
     * @param [in] bIsUseZip 是否使用zip压缩包资源
     * @param [in] imageFullPath 图片资源的完整路径
     * @param [out] dpiImageFullPath 返回指定DPI下的图片资源路径，如果没找到，则返回空串
-    * @param [out] nImageDpiScale 图片对应的DPI缩放百分比
+    * @param [out] nImageFileDpiScale 图片对应的DPI缩放百分比
     */
     bool GetDpiScaleImageFullPath(uint32_t dpiScale, 
                                   bool bIsUseZip,
                                   const DString& imageFullPath,
                                   DString& dpiImageFullPath,
-                                  uint32_t& nImageDpiScale) const;
+                                  uint32_t& nImageFileDpiScale) const;
 
     /** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
     *   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
@@ -158,14 +158,36 @@ private:
     */
     std::unordered_map<DString, std::weak_ptr<ImageInfo>> m_imageInfoMap;
 
+    /** 图片的原图数据
+    */
+    struct TImageData
+    {
+        //构造函数
+        TImageData() :
+            m_fImageSizeScale(1.0f)
+        {
+        }
+        TImageData(const std::shared_ptr<IImage>& pImage, float fImageSizeScale) :
+            m_pImage(pImage),
+            m_fImageSizeScale(fImageSizeScale)
+        {
+        }
+
+        //释放的图片接口
+        std::weak_ptr<IImage> m_pImage;
+
+        //加载时输入的图片缩放比例
+        float m_fImageSizeScale;
+    };
+
     /** 图片资源映射表（原图数据Key与图片数据的映射表）
     *   KEY：由ImageManager::GetDpiScaleImageFullPath函数获取，参数：dpiImageFullPath
     */
-    std::unordered_map<DString, std::weak_ptr<IImage>> m_imageDataMap;
+    std::unordered_map<DString, TImageData> m_imageDataMap;
 
     /** 等待释放的原图数据
     */
-    struct TImageData
+    struct TReleaseImageData
     {
         //释放的图片接口
         std::shared_ptr<IImage> m_pImage;
@@ -173,7 +195,7 @@ private:
         //数据释放的时间
         std::chrono::steady_clock::time_point m_releaseTime;
     };
-    std::vector<TImageData> m_delayReleaseImageList;
+    std::vector<TReleaseImageData> m_delayReleaseImageList;
 
 private:
     /** 图片延迟绘制相关数据（图片资源在子线程加载完成后，需要通知界面重新绘制该图片）

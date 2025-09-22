@@ -136,18 +136,19 @@ public:
 
     /** 获取当前图片帧的图片数据（多帧图片）
     */
-    std::shared_ptr<IAnimationImage::AnimationFrame> GetCurrentFrame() const;
+    std::shared_ptr<IAnimationImage::AnimationFrame> GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const;
 
 public:
-    /** 获取当前图片帧的图片数据（单帧图片）
-    */
-    std::shared_ptr<IBitmap> GetCurrentBitmap() const;
-
     /** 获取图片数据(单帧图片，对于Svg等格式，支持矢量缩放图片)
+    * @param [in] bImageStretch 绘制图片时是否会被拉伸
     * @param [in] rcDest 绘制目标区域
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
+    * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
     */
-    std::shared_ptr<IBitmap> GetCurrentBitmap(const UiRect& rcDest, UiRect& rcSource) const;
+    std::shared_ptr<IBitmap> GetCurrentBitmap(bool bImageStretch,
+                                              const UiRect& rcDest,
+                                              UiRect& rcSource,
+                                              UiRect& rcSourceCorners) const;
 
     /** @} */
 
@@ -201,6 +202,19 @@ private:
     /** 初始化动画播放器
     */
     ImagePlayer* InitImagePlayer();
+
+    /** 获取当前图片帧的图片数据（单帧图片）
+    * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
+    * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
+    */
+    std::shared_ptr<IBitmap> GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners) const;
+
+    /** 根据位图大小，调整绘制源区域
+    * @param [in] pBitmap 位图接口
+    * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
+    * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
+    */
+    void AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRect& rcSource, UiRect& rcSourceCorners) const;
 
 private:
 

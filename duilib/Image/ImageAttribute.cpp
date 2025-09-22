@@ -387,58 +387,6 @@ bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)
     return false;
 }
 
-void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, 
-                                    const DpiManager& dpi, bool bImageDpiScaled,
-                                    UiRect& rcDestCorners,
-                                    UiRect& rcSource, UiRect& rcSourceCorners)
-{
-    ASSERT((imageWidth > 0) && (imageHeight > 0));
-    if ((imageWidth == 0) || (imageHeight == 0)) {
-        return;
-    }
-    //对rcImageSourceCorners进行处理：对边角值进行容错处理（四个边代表边距，不代表矩形区域）
-    //在XML解析加载的时候，未做DPI自适应；
-    //在绘制的时候，如果图片做过DPI自适应，也要做DPI自适应，如果图片未做DPI自适应，也不需要做。    
-    if ((rcSourceCorners.left < 0) || (rcSourceCorners.top < 0) ||
-        (rcSourceCorners.right < 0)|| (rcSourceCorners.bottom < 0)) {
-        rcSourceCorners.Clear();
-    }
-    else if (bImageDpiScaled) {
-        dpi.ScaleRect(rcSourceCorners);
-    }
-
-    //对rcDestCorners进行处理：由rcSourceCorners赋值，边角保持一致，避免绘制图片的时候四个角有变形；
-    //采用九宫格绘制的时候，四个角的存在，是为了避免绘制的时候四个角出现变形
-    rcDestCorners = rcSourceCorners;
-    if (!bImageDpiScaled) {
-        //rcDestCorners必须做DPI自适应，rcSourceCorners可能不做DPI自适应（根据配置指定，跟随图片）
-        dpi.ScaleRect(rcDestCorners);
-    }
-
-    // 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
-    if ((rcSource.left < 0) || (rcSource.top < 0) ||
-        (rcSource.right < 0) || (rcSource.bottom < 0) ||
-        (rcSource.Width() <= 0) || (rcSource.Height() <= 0)) {
-        //如果是无效值，则重置为整个图片大小
-        rcSource.left = 0;
-        rcSource.top = 0;
-        rcSource.right = (int32_t)imageWidth;
-        rcSource.bottom = (int32_t)imageHeight;
-    }
-    else if (bImageDpiScaled) {
-        //如果外部设置此值，做DPI自适应处理
-        dpi.ScaleRect(rcSource);
-    }
-
-    //图片源容错处理
-    if (rcSource.right > (int32_t)imageWidth) {
-        rcSource.right = (int32_t)imageWidth;
-    }
-    if (rcSource.bottom > (int32_t)imageHeight) {
-        rcSource.bottom = (int32_t)imageHeight;
-    }
-}
-
 UiRect ImageAttribute::GetImageSourceRect() const
 {
     UiRect rc;

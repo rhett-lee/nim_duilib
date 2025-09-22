@@ -39,20 +39,6 @@ public:
     */
     static bool HasValidImageRect(const UiRect& rcDest);
 
-    /** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
-    * @param [in] imageWidth 图片的宽度
-    * @param [in] imageHeight 图片的高度
-    * @param [in] dpi DPI缩放接口
-    * @param [in] bImageDpiScaled 图片是否做过DPI自适应操作
-    * @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
-    * @param [in/out] rcSource 图片区域
-    * @param [in/out] rcSourceCorners 图片区域的圆角信息
-    */
-    static void ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, 
-                               const DpiManager& dpi, bool bImageDpiScaled,
-                               UiRect& rcDestCorners,
-                               UiRect& rcSource, UiRect& rcSourceCorners);
-
     /** 计算保持比例的自适应绘制区域
      * @param nImageWidth 原始图片宽度
      * @param nImageHeight 原始图片高度

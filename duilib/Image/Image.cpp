@@ -178,54 +178,129 @@ bool Image::IsMultiFrameImage() const
     return m_imageInfo->IsMultiFrameImage();
 }
 
-std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame() const
+std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const
 {
     ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || !m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
     //多帧图片
+    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame;
     if (m_nCurrentFrame < m_imageInfo->GetFrameCount()) {
-        return m_imageInfo->GetFrame(m_nCurrentFrame);
+        pAnimationFrame = m_imageInfo->GetFrame(m_nCurrentFrame);
     }
     else {
         uint32_t nCurrentFrame = 0;
         if (m_imageInfo->GetFrameCount() > 0) {
             nCurrentFrame = m_nCurrentFrame % m_imageInfo->GetFrameCount();
         }
-        return m_imageInfo->GetFrame(nCurrentFrame);
+        pAnimationFrame = m_imageInfo->GetFrame(nCurrentFrame);
     }
+    if (pAnimationFrame != nullptr) {
+        AdjustImageSourceRect(pAnimationFrame->m_pBitmap, rcSource, rcSourceCorners);
+    }
+    return pAnimationFrame;
 }
 
-std::shared_ptr<IBitmap> Image::GetCurrentBitmap() const
+std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners) const
 {
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
     //单帧图片
-    return m_imageInfo->GetBitmap();
+    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetBitmap();
+    AdjustImageSourceRect(pBitmap, rcSource, rcSourceCorners);
+    return pBitmap;
 }
 
-std::shared_ptr<IBitmap> Image::GetCurrentBitmap(const UiRect& rcDest, UiRect& rcSource) const
+void Image::AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRect& rcSource, UiRect& rcSourceCorners) const
+{
+    if (pBitmap == nullptr) {
+        return;
+    }
+    ASSERT((pBitmap->GetWidth() > 0) && (pBitmap->GetHeight() > 0));
+    if ((pBitmap->GetWidth() <= 0) || (pBitmap->GetHeight() <= 0)) {
+        return;
+    }
+    ASSERT((m_imageInfo->GetWidth() > 0) && (m_imageInfo->GetHeight() > 0));
+    if ((m_imageInfo->GetWidth() <= 0) || (m_imageInfo->GetHeight() <= 0)) {
+        return;
+    }
+    //校验位图大小与ImageInfo大小是否一致，如果不一致，则需要调整绘制区域参数
+    if ((m_imageInfo->GetWidth() == (int32_t)pBitmap->GetWidth()) &&
+        (m_imageInfo->GetHeight() == (int32_t)pBitmap->GetHeight())) {
+        return;
+    }
+    float fSizeScaleX = static_cast<float>(pBitmap->GetWidth()) / m_imageInfo->GetWidth();
+    float fSizeScaleY = static_cast<float>(pBitmap->GetHeight()) / m_imageInfo->GetHeight();
+    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX : fSizeScaleY;
+    const bool bFullImage = (rcSource.left == 0) &&
+                            (rcSource.top == 0) &&
+                            (rcSource.right == m_imageInfo->GetWidth()) &&
+                            (rcSource.bottom == m_imageInfo->GetHeight());
+    if (bFullImage) {
+        //完整图片
+        rcSource.right = pBitmap->GetWidth();
+        rcSource.bottom = pBitmap->GetHeight();
+
+        rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fImageSizeScale);
+        rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fImageSizeScale);
+        rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fImageSizeScale);
+        rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fImageSizeScale);
+    }
+    else if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
+        //需要对rcSource修改
+        rcSource.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.left, fImageSizeScale);
+        rcSource.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.top, fImageSizeScale);
+        rcSource.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.right, fImageSizeScale);
+        rcSource.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.bottom, fImageSizeScale);
+        ASSERT(rcSource.right > rcSource.left);
+        ASSERT(rcSource.bottom > rcSource.top);
+        ASSERT(rcSource.left >= 0);
+        ASSERT(rcSource.top >= 0);
+        ASSERT(rcSource.right <= (int32_t)pBitmap->GetWidth());
+        ASSERT(rcSource.bottom <= (int32_t)pBitmap->GetHeight());
+
+        rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fImageSizeScale);
+        rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fImageSizeScale);
+        rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fImageSizeScale);
+        rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fImageSizeScale);
+    }
+}
+
+std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
+                                                 const UiRect& rcDest,
+                                                 UiRect& rcSource,
+                                                 UiRect& rcSourceCorners) const
 {
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
+    ASSERT(!rcDest.IsEmpty() && !rcSource.IsEmpty());
+    if (rcDest.IsEmpty() || rcSource.IsEmpty()) {
+        return nullptr;
+    }
 
-    if (!m_imageInfo->IsSvgImage()) {
+    if (!bImageStretch) {
+        //绘制时，不支持拉伸
+        return GetBitmapData(rcSource, rcSourceCorners);
+    }
+    else if (!m_imageInfo->IsSvgImage()) {
         //不是SVG图片，不支持矢量缩放
-        return GetCurrentBitmap();
+        return GetBitmapData(rcSource, rcSourceCorners);
+    }
+    else if (!rcSourceCorners.IsZero()) {
+        //如果设置了九宫格绘制，则按不拉伸处理(如果拉伸图片，四个角会变形)
+        return GetBitmapData(rcSource, rcSourceCorners);
+    }
+    else if ((rcDest.Width() == rcSource.Width()) ||
+             (rcDest.Height() == rcSource.Height())) {
+        //如果绘制目标区域和图片源区域大小一致，无需拉伸
+        return GetBitmapData(rcSource, rcSourceCorners);
     }
 
-    if (rcDest.IsEmpty()   ||
-        rcSource.IsEmpty() ||
-        (rcDest.Width() == rcSource.Width()) ||
-        (rcDest.Height() == rcSource.Height())) {
-        //不满足条件
-        return GetCurrentBitmap();
-    }
     const bool bFullImage = (rcSource.left == 0) &&
                             (rcSource.top == 0)  &&
                             (rcSource.right == m_imageInfo->GetWidth()) &&
@@ -237,7 +312,7 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(const UiRect& rcDest, UiRect& r
 
     std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(fImageSizeScale);
     if (pBitmap == nullptr) {
-        pBitmap = GetCurrentBitmap();
+        pBitmap = GetBitmapData(rcSource, rcSourceCorners);
     }
     else if (bFullImage) {
         //完整图片
