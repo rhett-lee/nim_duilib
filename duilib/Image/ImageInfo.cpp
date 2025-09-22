@@ -360,13 +360,13 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
         //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小
         int32_t nCalcSize = static_cast<int32_t>(nImageInfoWidth * 1.0f / fRealImageSizeScale + 0.5f);
         nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageFileDpiScale + 0.5f);//原图大小
-        nCalcSize = ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
+        nCalcSize = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
         if (nCalcSize > 0) {
             nImageInfoWidth = nCalcSize;
         }
         nCalcSize = static_cast<int32_t>(nImageInfoHeight * 1.0f / fRealImageSizeScale + 0.5f);
         nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageFileDpiScale + 0.5f);//原图大小
-        nCalcSize = ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
+        nCalcSize = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
         if (nCalcSize > 0) {
             nImageInfoHeight = nCalcSize;
         }
@@ -380,11 +380,11 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
     //计算设置的比例, 影响加载的缩放百分比（通过width='300'或者width='300%'这种形式设置的图片属性）
     uint32_t nImageFixedWidth = 0;
     uint32_t nImageFixedHeight = 0;
-    const bool bHasFixedSize = loadParam.GetImageFixedSize(nImageFixedWidth, nImageFixedHeight, true);
+    const bool bHasFixedSize = loadParam.GetImageFixedSize(nImageFixedWidth, nImageFixedHeight, true); //绝对数值，需要按配置执行DPI缩放
 
     float fImageFixedWidthPercent = 1.0f;
     float fImageFixedHeightPercent = 1.0f;
-    const bool bHasFixedPercent = loadParam.GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent, false);//不需要DPI缩放
+    const bool bHasFixedPercent = loadParam.GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent, !bEnableImageDpiScale);//百分比: DPI缩放逻辑与加载DPI缩放相反
 
     if (bHasFixedSize || bHasFixedPercent) {
         //有设置图片属性：通过width='300'或者width='300%'这种形式设置的图片属性
@@ -396,14 +396,14 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
                 nImageInfoWidth = nImageFixedWidth;
             }
             else if (ImageUtil::NeedResizeImage(fImageFixedWidthPercent)) {
-                nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
+                nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
             }
 
             if (nImageFixedHeight > 0) {
                 nImageInfoHeight = nImageFixedHeight;
             }
             else if (ImageUtil::NeedResizeImage(fImageFixedHeightPercent)) {
-                nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
+                nImageInfoHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
             }
         }
         else if (bFixedWidthSet) {
@@ -413,10 +413,10 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
                 nImageInfoWidth = nImageFixedWidth;
             }
             else if (ImageUtil::NeedResizeImage(fImageFixedWidthPercent)) {
-                nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
+                nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
             }
             float fNewScale = static_cast<float>(nImageInfoWidth) / nOldImageInfoWidth;
-            nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fNewScale);
+            nImageInfoHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fNewScale);
         }
         else if (bFixedHeightSet) {
             //只设置了高度，宽度同比例缩放
@@ -425,11 +425,17 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
                 nImageInfoHeight = nImageFixedHeight;
             }
             else if (ImageUtil::NeedResizeImage(fImageFixedHeightPercent)) {
-                nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
+                nImageInfoHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
             }
             float fNewScale = static_cast<float>(nImageInfoHeight) / nOldImageInfoHeight;
-            nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fNewScale);
+            nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fNewScale);
         }
+    }
+    else if (!bEnableImageDpiScale) {
+        //当图片加载时未开启DPI自适应, ImageInfo大小需要按DPI缩放
+        float fImageScale = loadParam.GetLoadDpiScale() / 100.0f;
+        nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageScale);
+        nImageInfoHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageScale);
     }
 }
 

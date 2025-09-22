@@ -90,15 +90,8 @@ const ImageAttribute& Image::GetImageAttribute() const
 
 ImageLoadParam Image::GetImageLoadParam() const
 {
-    ImageLoadParam::DpiScaleOption nDpiScaleOption = ImageLoadParam::DpiScaleOption::kDefault;
-    if (m_imageAttribute.m_bHasSrcDpiScale) {
-        if (m_imageAttribute.m_srcDpiScale) {
-            nDpiScaleOption = ImageLoadParam::DpiScaleOption::kOn;
-        }
-        else {
-            nDpiScaleOption = ImageLoadParam::DpiScaleOption::kOff;
-        }
-    }
+    DpiScaleOption loadDpiScaleOption = m_imageAttribute.m_loadDpiScale;
+    DpiScaleOption imageSizeDpiScaleOption = m_imageAttribute.m_sizeDpiScale;
     uint32_t nLoadDpiScale = 100;//此时未知，不需要设置
     bool bAsyncDecode = m_imageAttribute.m_bAsyncLoad;
     bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
@@ -107,7 +100,8 @@ ImageLoadParam Image::GetImageLoadParam() const
     float fPagMaxFrameRate = m_imageAttribute.m_fPagMaxFrameRate;
     return ImageLoadParam(m_imageAttribute.m_srcWidth.c_str(),
                           m_imageAttribute.m_srcHeight.c_str(),
-                          nDpiScaleOption,
+                          loadDpiScaleOption,
+                          imageSizeDpiScaleOption,
                           nLoadDpiScale,
                           bAsyncDecode,
                           bIconAsAnimation,

@@ -32,16 +32,7 @@ struct UILIB_API ImageLoadPath
 /** 图片加载参数，用于加载一个图片
 */
 class UILIB_API ImageLoadParam
-{
-public:
-    /** DPI缩放选项
-    */
-    enum class DpiScaleOption
-    {
-        kDefault,   //默认：未设置dpi_scale图片属性
-        kOn,        //开启：图片属性：dpi_scale="true"
-        kOff        //关闭：图片属性：dpi_scale="false"
-    };
+{   
 public:
     /** 默认构造函数
     */
@@ -50,7 +41,8 @@ public:
     /** 构造函数
     * @param [in] srcWidth 指定的图片宽度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
     * @param [in] srcHeight 指定的图片高度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
-    * @param [in] nDpiScaleOption 图片大小DPI缩放的设置
+    * @param [in] loadDpiScaleOption 加载图片时的DPI缩放的设置
+    * @param [in] imageSizeDpiScaleOption 设置图片大小时的DPI缩放的设置（针对srcWidth和srcHeight）
     * @param [in] nLoadDpiScale 绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
     * @param [in] bIconAsAnimation 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
@@ -60,7 +52,8 @@ public:
     */
     ImageLoadParam(DString srcWidth,
                    DString srcHeight,
-                   DpiScaleOption nDpiScaleOption,
+                   DpiScaleOption loadDpiScaleOption,
+                   DpiScaleOption imageSizeDpiScaleOption,
                    uint32_t nLoadDpiScale /*= 100*/,
                    bool bAsyncDecode /*= false*/,
                    bool bIconAsAnimation /*= false*/,
@@ -83,13 +76,13 @@ public:
     const ImageLoadPath& GetImageLoadPath() const;
 
 public:
-    /** 设置图片大小的DPI缩放选项
+    /** 设置图片加载时的DPI缩放选项
     */
-    void SetDpiScaleOption(DpiScaleOption nDpiScaleOption);
+    void SetLoadDpiScaleOption(DpiScaleOption loadDpiScaleOption);
 
     /** 获取图片大小的DPI缩放选项
     */
-    DpiScaleOption GetDpiScaleOption() const;
+    DpiScaleOption GetLoadDpiScaleOption() const;
 
     /** 设置绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100% ，无缩放）
     */
@@ -168,9 +161,6 @@ private:
     //设置图片高度(属性名称："height")，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
     UiString m_srcHeight;
 
-    //图片大小的DPI缩放选项
-    DpiScaleOption m_nDpiScaleOption;
-
     //绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     uint32_t m_nLoadDpiScale;
 
@@ -189,6 +179,12 @@ private:
 
     //是否支持异步线程解码图片数据
     bool m_bAsyncDecode;
+
+    //图片加载的DPI缩放选项（加载图片时是否做DPI缩放，影响内存占有率）
+    DpiScaleOption m_loadDpiScaleOption;
+
+    //图片大小的DPI缩放选项
+    DpiScaleOption m_imageSizeDpiScaleOption;
 };
 
 } // namespace ui

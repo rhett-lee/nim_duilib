@@ -6,7 +6,8 @@
 namespace ui 
 {
 ImageLoadParam::ImageLoadParam():
-    m_nDpiScaleOption(ImageLoadParam::DpiScaleOption::kDefault),
+    m_loadDpiScaleOption(DpiScaleOption::kDefault),
+    m_imageSizeDpiScaleOption(DpiScaleOption::kDefault),
     m_nLoadDpiScale(100),
     m_bAsyncDecode(false),
     m_bIconAsAnimation(false),
@@ -18,14 +19,16 @@ ImageLoadParam::ImageLoadParam():
 
 ImageLoadParam::ImageLoadParam(DString srcWidth,
                                DString srcHeight,
-                               DpiScaleOption nDpiScaleOption,
+                               DpiScaleOption loadDpiScaleOption,
+                               DpiScaleOption imageSizeDpiScaleOption,
                                uint32_t nLoadDpiScale,
                                bool bAsyncDecode,
                                bool bIconAsAnimation,
                                int32_t nIconFrameDelayMs,
                                uint32_t nIconSize,
                                float fPagMaxFrameRate):
-    m_nDpiScaleOption(nDpiScaleOption),
+    m_loadDpiScaleOption(loadDpiScaleOption),
+    m_imageSizeDpiScaleOption(imageSizeDpiScaleOption),
     m_nLoadDpiScale(nLoadDpiScale),
     m_bAsyncDecode(bAsyncDecode),
     m_bIconAsAnimation(bIconAsAnimation),
@@ -72,14 +75,14 @@ DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
     return fullPath;
 }
 
-void ImageLoadParam::SetDpiScaleOption(DpiScaleOption nDpiScaleOption)
+void ImageLoadParam::SetLoadDpiScaleOption(DpiScaleOption loadDpiScaleOption)
 {
-    m_nDpiScaleOption = nDpiScaleOption;
+    m_loadDpiScaleOption = loadDpiScaleOption;
 }
 
-ImageLoadParam::DpiScaleOption ImageLoadParam::GetDpiScaleOption() const
+DpiScaleOption ImageLoadParam::GetLoadDpiScaleOption() const
 {
-    return m_nDpiScaleOption;
+    return m_loadDpiScaleOption;
 }
 
 void ImageLoadParam::SetLoadDpiScale(uint32_t nLoadDpiScale)
@@ -152,8 +155,7 @@ bool ImageLoadParam::GetScaledFixedSize(const DString& srcSize, uint32_t& nScale
             if (bNeedDpiScale && (nScaledSize > 0)) {
                 uint32_t nLoadDpiScale = GetLoadDpiScale();
                 if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
-                    ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
-                    if (m_nDpiScaleOption != DpiScaleOption::kOff) {
+                    if (m_imageSizeDpiScaleOption != DpiScaleOption::kOff) {
                         nScaledSize = static_cast<uint32_t>(nScaledSize * nLoadDpiScale * 1.0 / 100.0 + 0.5);
                     }
                 }
@@ -201,8 +203,7 @@ bool ImageLoadParam::GetScaledFixedPercent(const DString& srcSize, float& fScale
     if (bRet && bNeedDpiScale) {
         uint32_t nLoadDpiScale = GetLoadDpiScale();
         if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
-            ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
-            if (m_nDpiScaleOption != DpiScaleOption::kOff) {
+            if (m_imageSizeDpiScaleOption != DpiScaleOption::kOff) {
                 fScaledPercent = fScaledPercent * nLoadDpiScale / 100.0f;
             }
         }

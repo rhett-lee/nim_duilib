@@ -36,10 +36,9 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_srcWidth = r.m_srcWidth;
     m_srcHeight = r.m_srcHeight;
 
-    m_srcDpiScale = r.m_srcDpiScale;
-    m_bHasSrcDpiScale = r.m_bHasSrcDpiScale;
+    m_loadDpiScale = r.m_loadDpiScale;
+    m_sizeDpiScale = r.m_sizeDpiScale;    
     m_destDpiScale = r.m_destDpiScale;
-    m_bHasDestDpiScale = r.m_bHasDestDpiScale;
     m_rcPaddingScale = r.m_rcPaddingScale;
 
     m_hAlign = r.m_hAlign;
@@ -125,10 +124,9 @@ void ImageAttribute::Init()
     m_srcWidth.clear();
     m_srcHeight.clear();
 
-    m_srcDpiScale = false;
-    m_bHasSrcDpiScale = false;
-    m_destDpiScale = false;
-    m_bHasDestDpiScale = false;
+    m_loadDpiScale = DpiScaleOption::kDefault;
+    m_sizeDpiScale = DpiScaleOption::kDefault;
+    m_destDpiScale = DpiScaleOption::kDefault;
     m_rcPaddingScale = 0;
 
     m_hAlign.clear();
@@ -208,8 +206,9 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
     AttributeUtil::ParseAttributeList(strImageString, _T('\''), attributeList);
 
     ImageAttribute& imageAttribute = *this;
-    imageAttribute.m_bHasSrcDpiScale = false;
-    imageAttribute.m_bHasDestDpiScale = false;
+    imageAttribute.m_sizeDpiScale = DpiScaleOption::kDefault;
+    imageAttribute.m_loadDpiScale = DpiScaleOption::kDefault;
+    imageAttribute.m_destDpiScale = DpiScaleOption::kDefault;
     for (const auto& attribute : attributeList) {
         const DString& name = attribute.first;
         const DString& value = attribute.second;
@@ -248,9 +247,17 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcCorner);
         }
         else if ((name == _T("dpi_scale")) || (name == _T("dpiscale"))) {
-            //加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
-            imageAttribute.m_srcDpiScale = (value == _T("true"));
-            imageAttribute.m_bHasSrcDpiScale = true;
+            //加载图片时，按照DPI缩放图片大小（会影响width属性、height属性）
+            imageAttribute.m_sizeDpiScale = (value == _T("true")) ? DpiScaleOption::kOn : DpiScaleOption::kOff;
+        }
+        else if (name == _T("load_scale")) {
+            //加载图片时，按照DPI缩放图片大小（会影响内存占用）
+            imageAttribute.m_loadDpiScale = (value == _T("true")) ? DpiScaleOption::kOn : DpiScaleOption::kOff;
+        }
+        else if ((name == _T("dest_scale")) || (name == _T("destscale"))) {
+            //加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
+            //绘制时（内部使用），控制是否对dest属性进行DPI缩放
+            imageAttribute.m_destDpiScale = (value == _T("true")) ? DpiScaleOption::kOn : DpiScaleOption::kOff;
         }
         else if (name == _T("dest")) {
             //设置目标区域，该区域是指相对于所属控件的Rect区域
@@ -274,12 +281,6 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
                     rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
                 }
             }
-        }
-        else if ((name == _T("dest_scale")) || (name == _T("destscale"))) {
-            //加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
-            //绘制时（内部使用），控制是否对dest属性进行DPI缩放
-            imageAttribute.m_destDpiScale = (value == _T("true"));
-            imageAttribute.m_bHasDestDpiScale = true;
         }
         else if (name == _T("padding")) {
             //在目标区域中设置内边距
@@ -401,7 +402,7 @@ UiRect ImageAttribute::GetImageDestRect(int32_t imageWidth, int32_t imageHeight,
     UiRect rc;
     if (m_rcDest != nullptr) {
         rc = *m_rcDest;
-        if (m_bHasDestDpiScale && !m_destDpiScale) {
+        if (m_destDpiScale == DpiScaleOption::kOff) {
             //禁止DPI缩放
         }
         else {

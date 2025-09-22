@@ -97,17 +97,14 @@ public:
     //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
     UiString m_srcHeight;
 
-    //rcSource的DPI自适应属性（仅当bHasSrcDpiScale为true时有效）
-    bool m_srcDpiScale;
+    //加载图片时，按照DPI缩放图片大小（"dpi_scale"，会影响width属性、height属性）
+    DpiScaleOption m_sizeDpiScale;
 
-    //加载图片时，是否设置了DPI自适应属性（"dpi_scale"）
-    bool m_bHasSrcDpiScale;
+    //加载图片时，按照DPI缩放图片大小（"load_scale"）
+    DpiScaleOption m_loadDpiScale;
 
-    //rcDest属性的DPI自适应属性（仅当bHasDestDpiScale时有效）
-    bool m_destDpiScale;
-
-    //rcDest是否设置了DPI自适应属性（"dest_scale"）
-    bool m_bHasDestDpiScale;
+    //rcDest属性的DPI自适应属性（"dest_scale"）
+    DpiScaleOption m_destDpiScale;
 
     //在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_hAlign;

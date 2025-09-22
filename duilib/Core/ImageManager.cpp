@@ -42,7 +42,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     uint32_t nImageFileDpiScale = 100;                                  //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
     const bool bEnableImageDpiScale = IsDpiScaleAllImages() &&          //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-                                      (loadParam.GetDpiScaleOption() != ImageLoadParam::DpiScaleOption::kOff); //图片属性：dpi_scale="false"，只使用原图，不需要缩放
+                                      (loadParam.GetLoadDpiScaleOption() != DpiScaleOption::kOff); //图片属性：load_scale="false"，只使用原图，不需要缩放
     if (bEnableImageDpiScale && 
         ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
          (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {

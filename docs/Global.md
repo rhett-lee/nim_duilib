@@ -131,9 +131,10 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | height | | string | 图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%，如果不设置则使用图片的实际高度 |
 | src | | rect | 图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源） |
 | corner | | rect | 图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制，比如'8,8,8,8' |
-| dpi_scale | | bool | 加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、src属性、corner属性） |
 | dest | | rect | 设置目标区域，该区域是指相对于所属控件的矩形区域（允许只设置顶点坐标，此时矩形区域大小与图片大小一致） |
-| dest_scale | | bool | 加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）; 绘制时（内部使用），控制是否对dest属性进行DPI缩放 |
+| dest_scale |true | bool | 加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）; 绘制时（内部使用），控制是否对dest属性进行DPI缩放 |
+| dpi_scale |true | bool | 是否按照DPI缩放后的大小来确定显示区域的大小（仅针对width属性、height属性） |
+| load_scale |true | bool | 加载图片时，是否直接按DPI自适应缩放后的大小加载图片，此选项意在内存占有率和绘制效率之前寻求平衡。<br>当图片的宽高很大时，高清屏下，开启该选项会占用较多内存<br>当图片的宽高较小时，该选项的开启和关闭影响不大 |
 | adaptive_dest_rect | false | bool | 自动适应目标区域（等比例缩放图片） |
 | padding | | rect | 在目标区域中设置内边距 |
 | halign | | string | 横向对齐方式，可取值："left"、"center"、"right" |

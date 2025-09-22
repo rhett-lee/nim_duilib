@@ -3786,12 +3786,12 @@ bool Control::LoadImageInfo(Image& duiImage) const
     ImageLoadParam imageLoadParam = duiImage.GetImageLoadParam();
     imageLoadParam.SetLoadDpiScale(nLoadDpiScale);//设置加载的DPI百分比
     imageLoadParam.SetImageLoadPath(imageLoadPath);
-    if (imageLoadParam.GetDpiScaleOption() == ImageLoadParam::DpiScaleOption::kDefault) {
+    if (imageLoadParam.GetLoadDpiScaleOption() == DpiScaleOption::kDefault) {
         if (GlobalManager::Instance().Image().IsDpiScaleAllImages()) {
-            imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOn);
+            imageLoadParam.SetLoadDpiScaleOption(DpiScaleOption::kOn);
         }
         else {
-            imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOff);
+            imageLoadParam.SetLoadDpiScaleOption(DpiScaleOption::kOff);
         }
     }
     std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
