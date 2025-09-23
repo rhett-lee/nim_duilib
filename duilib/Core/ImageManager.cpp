@@ -41,8 +41,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     DString imageFullPath = imageLoadPath.m_imageFullPath;              //图片的路径（本地路径或者压缩包内相对路径）
     uint32_t nImageFileDpiScale = 100;                                  //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
-    const bool bEnableImageDpiScale = IsDpiScaleAllImages() &&          //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-                                      (loadParam.GetLoadDpiScaleOption() != DpiScaleOption::kOff); //图片属性：load_scale="false"，只使用原图，不需要缩放
+    const bool bEnableImageDpiScale = (IsDpiScaleAllImages() &&         //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
+                                      (loadParam.GetLoadDpiScaleOption() != DpiScaleOption::kOff)) || //图片属性：load_scale="false"，只使用原图，不需要缩放
+                                      loadParam.IsSvgImageFile();       // SVG图片，始终开启DPI自适应（因关闭时，部分矢量缩放的逻辑失效，导致绘制异常）
     if (bEnableImageDpiScale && 
         ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
          (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {

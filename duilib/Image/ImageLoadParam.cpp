@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui 
 {
@@ -54,6 +55,19 @@ const ImageLoadPath& ImageLoadParam::GetImageLoadPath() const
 {
     ASSERT(!m_srcImageLoadPath.m_imageFullPath.empty());
     return m_srcImageLoadPath;
+}
+
+bool ImageLoadParam::IsSvgImageFile() const
+{
+    if (m_srcImageLoadPath.m_imageFullPath.empty()) {
+        return false;
+    }
+    DString fileExt = FilePathUtil::GetFileExtension(m_srcImageLoadPath.m_imageFullPath);
+    StringUtil::MakeUpperString(fileExt);
+    if (fileExt == _T("SVG")) {
+        return true;
+    }
+    return false;
 }
 
 DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const

@@ -48,9 +48,10 @@ public:
     bool IsSvgImage() const;
 
     /** 获取Svg图片的位图，支持矢量缩放
-    * @param [in] fImageSizeScale 图片缩放的比例
+    * @param [in] rcDest 绘制目标区域
+    * @param [in] rcSource 图片源区域
     */
-    std::shared_ptr<IBitmap> GetSvgBitmap(float fImageSizeScale);
+    std::shared_ptr<IBitmap> GetSvgBitmap(const UiRect& rcDest, UiRect& rcSource);
 
 public:
     /** 获取一个位图图片数据（单帧图片）
@@ -142,6 +143,11 @@ private:
                            uint32_t nImageFileDpiScale,
                            int32_t& nImageInfoWidth,
                            int32_t& nImageInfoHeight) const;
+
+    /** 获取Svg图片的位图，支持矢量缩放
+    * @param [in] fImageSizeScale 图片缩放的比例
+    */
+    std::shared_ptr<IBitmap> GetSvgBitmap(float fImageSizeScale);
 
 
 private:

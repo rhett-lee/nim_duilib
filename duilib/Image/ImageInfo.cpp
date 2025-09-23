@@ -36,6 +36,41 @@ bool ImageInfo::IsSvgImage() const
     return (m_imageType == ImageType::kImageSvg);
 }
 
+std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(const UiRect& rcDest, UiRect& rcSource)
+{
+    std::shared_ptr<IImage> pImageData = m_pImageData;
+    ASSERT(pImageData != nullptr);
+    if (pImageData == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<ISvgImage> pSvgImage;
+    if (m_imageType == ImageType::kImageSvg) {
+        pSvgImage = pImageData->GetImageSvg();        
+    }
+    ASSERT(pSvgImage != nullptr);
+    if (pSvgImage == nullptr) {
+        return nullptr;
+    }
+    ASSERT((rcSource.Width() > 0) && (rcSource.Height() > 0));
+    if ((rcSource.Width() <= 0) && (rcSource.Height() <= 0)) {
+        return nullptr;
+    }
+    ASSERT((pSvgImage->GetWidth() > 0) && (pSvgImage->GetHeight() > 0));
+    if ((pSvgImage->GetWidth() <= 0) && (pSvgImage->GetHeight() <= 0)) {
+        return nullptr;
+    }
+    ASSERT((m_nImageInfoWidth > 0) && (m_nImageInfoHeight > 0));
+    if ((m_nImageInfoWidth <= 0) && (m_nImageInfoHeight <= 0)) {
+        return nullptr;
+    }
+
+    float fSizeScaleX = static_cast<float>(rcDest.Width()) / rcSource.Width();
+    float fSizeScaleY = static_cast<float>(rcDest.Height()) / rcSource.Height();
+    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX  : fSizeScaleY ;
+    std::shared_ptr<IBitmap> pBitmap = GetSvgBitmap(fImageSizeScale);
+    return pBitmap;
+}
+
 std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(float fImageSizeScale)
 {
     GlobalManager::Instance().AssertUIThread();

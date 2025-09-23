@@ -228,7 +228,6 @@ void Image::AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRec
     }
     float fSizeScaleX = static_cast<float>(pBitmap->GetWidth()) / m_imageInfo->GetWidth();
     float fSizeScaleY = static_cast<float>(pBitmap->GetHeight()) / m_imageInfo->GetHeight();
-    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX : fSizeScaleY;
     const bool bFullImage = (rcSource.left == 0) &&
                             (rcSource.top == 0) &&
                             (rcSource.right == m_imageInfo->GetWidth()) &&
@@ -238,28 +237,38 @@ void Image::AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRec
         rcSource.right = pBitmap->GetWidth();
         rcSource.bottom = pBitmap->GetHeight();
 
-        rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fImageSizeScale);
-        rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fImageSizeScale);
-        rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fImageSizeScale);
-        rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fImageSizeScale);
+        if (ImageUtil::NeedResizeImage(fSizeScaleX)) {
+            rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fSizeScaleX);
+            rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fSizeScaleX);
+        }
+        if (ImageUtil::NeedResizeImage(fSizeScaleY)) {
+            rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fSizeScaleY);
+            rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fSizeScaleY);
+        }
     }
-    else if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
-        //需要对rcSource修改
-        rcSource.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.left, fImageSizeScale);
-        rcSource.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.top, fImageSizeScale);
-        rcSource.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.right, fImageSizeScale);
-        rcSource.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.bottom, fImageSizeScale);
-        ASSERT(rcSource.right > rcSource.left);
-        ASSERT(rcSource.bottom > rcSource.top);
-        ASSERT(rcSource.left >= 0);
-        ASSERT(rcSource.top >= 0);
-        ASSERT(rcSource.right <= (int32_t)pBitmap->GetWidth());
-        ASSERT(rcSource.bottom <= (int32_t)pBitmap->GetHeight());
+    else {
+        if (ImageUtil::NeedResizeImage(fSizeScaleX)) {
+            //需要对rcSource修改
+            rcSource.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.left, fSizeScaleX);
+            rcSource.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.right, fSizeScaleX);
+            ASSERT(rcSource.right > rcSource.left);
+            ASSERT(rcSource.left >= 0);
+            ASSERT(rcSource.right <= (int32_t)pBitmap->GetWidth());
 
-        rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fImageSizeScale);
-        rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fImageSizeScale);
-        rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fImageSizeScale);
-        rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fImageSizeScale);
+            rcSourceCorners.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.left, fSizeScaleX);
+            rcSourceCorners.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.right, fSizeScaleX);
+        }
+        if (ImageUtil::NeedResizeImage(fSizeScaleY)) {
+            //需要对rcSource修改
+            rcSource.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.top, fSizeScaleY);
+            rcSource.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.bottom, fSizeScaleY);
+            ASSERT(rcSource.bottom > rcSource.top);
+            ASSERT(rcSource.top >= 0);
+            ASSERT(rcSource.bottom <= (int32_t)pBitmap->GetHeight());
+
+            rcSourceCorners.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.top, fSizeScaleY);
+            rcSourceCorners.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSourceCorners.bottom, fSizeScaleY);
+        }
     }
 }
 
@@ -294,39 +303,17 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
         //如果绘制目标区域和图片源区域大小一致，无需拉伸
         return GetBitmapData(rcSource, rcSourceCorners);
     }
-
-    const bool bFullImage = (rcSource.left == 0) &&
-                            (rcSource.top == 0)  &&
-                            (rcSource.right == m_imageInfo->GetWidth()) &&
-                            (rcSource.bottom == m_imageInfo->GetHeight());
-
-    float fSizeScaleX = static_cast<float>(rcDest.Width()) / rcSource.Width();
-    float fSizeScaleY = static_cast<float>(rcDest.Height()) / rcSource.Height();
-    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX : fSizeScaleY;
-
-    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(fImageSizeScale);
-    if (pBitmap == nullptr) {
-        pBitmap = GetBitmapData(rcSource, rcSourceCorners);
-    }
-    else if (bFullImage) {
-        //完整图片
-        rcSource.right = pBitmap->GetWidth();
-        rcSource.bottom = pBitmap->GetHeight();
-    }
-    else if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
-        //缩放后，需要对rcSource修改
-        rcSource.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.left, fImageSizeScale);
-        rcSource.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.top, fImageSizeScale);
-        rcSource.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.right, fImageSizeScale);
-        rcSource.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.bottom, fImageSizeScale);
-        ASSERT(rcSource.right > rcSource.left);
-        ASSERT(rcSource.bottom > rcSource.top);
-        ASSERT(rcSource.left >= 0);
-        ASSERT(rcSource.top >= 0);
-        ASSERT(rcSource.right <= (int32_t)pBitmap->GetWidth());
-        ASSERT(rcSource.bottom <= (int32_t)pBitmap->GetHeight());
-    }
-    return pBitmap;
+    else {
+        //SVG图片：支持矢量缩放
+        std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(rcDest, rcSource);
+        if (pBitmap == nullptr) {
+            pBitmap = GetBitmapData(rcSource, rcSourceCorners);
+        }
+        else {
+            AdjustImageSourceRect(pBitmap, rcSource, rcSourceCorners);
+        }
+        return pBitmap;
+    }    
 }
 
 void Image::SetControl(Control* pControl)

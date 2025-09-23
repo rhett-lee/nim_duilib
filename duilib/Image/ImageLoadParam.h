@@ -75,6 +75,10 @@ public:
     */
     const ImageLoadPath& GetImageLoadPath() const;
 
+    /** 判断是否为svg图片（svg支持矢量缩放，需要做些特殊处理）
+    */
+    bool IsSvgImageFile() const;
+
 public:
     /** 设置图片加载时的DPI缩放选项
     */
