@@ -48,17 +48,17 @@ std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodePara
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_LOTTIE* pImageLOTTIE = new Image_LOTTIE;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageLOTTIE);
-    if (!pImageLOTTIE->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImageLOTTIE->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale, decodeParam.m_rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
+        return Image_Bitmap::MakeImage(pAnimationImage);
     }
     else {
         //多帧图片
-        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage, fImageSizeScale));
+        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage));
         return pImage;
     }
 }

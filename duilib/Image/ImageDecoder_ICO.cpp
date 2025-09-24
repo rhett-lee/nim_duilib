@@ -100,7 +100,7 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const ImageDecodeParam& 
             Image_ICO* pImageICO = new Image_ICO;
             std::shared_ptr<IAnimationImage> pAnimationImage(pImageICO);
             if (pImageICO->LoadImageFromMemory(imageData, fImageSizeScale, nIconSize, nFrameDelayMs)) {
-                pImage.reset(new Image_Animation(pAnimationImage, fImageSizeScale));
+                pImage.reset(new Image_Animation(pAnimationImage));
             }
         }
     }

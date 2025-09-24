@@ -220,4 +220,31 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
     return pNewBitmap;
 }
 
+bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
+                                  int32_t nImageWidth,
+                                  int32_t nImageHeight,
+                                  float& fScale)
+{
+    if ((rcMaxDestRectSize.cx <= 0) || (rcMaxDestRectSize.cy <= 0)) {
+        return false;
+    }
+    if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
+        return false;
+    }
+    if ((nImageWidth <= rcMaxDestRectSize.cx) || (nImageHeight <= rcMaxDestRectSize.cy)) {
+        //图片小于目标区域时，计算合适的缩放比（适当放大）
+        float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
+        float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
+        fScale = std::max(fScaleX, fScaleY);
+        return true;
+    }
+    else {
+        //图片大于目标区域时，计算合适的缩放比（适当缩小）
+        float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
+        float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
+        fScale = std::min(fScaleX, fScaleY);
+        return true;
+    }
+}
+
 } //namespace ui

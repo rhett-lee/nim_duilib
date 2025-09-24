@@ -387,9 +387,9 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
     ASSERT((nImageInfoWidth > 0) && (nImageInfoHeight > 0));
     if ((nImageInfoWidth <= 0) || (nImageInfoHeight <= 0)) {
         return;
-    }
-    const float fRealImageSizeScale = pImageData->GetImageSizeScale(); //实际加载的缩放比例(此值与加载时传入的缩放比例不一定相同)
-    if (bEnableImageDpiScale && (nImageFileDpiScale != 100) && ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
+    }    
+    if (bEnableImageDpiScale && (nImageFileDpiScale != 100) && ImageUtil::IsValidImageScale(pImageData->GetImageSizeScale())) {
+        const float fRealImageSizeScale = pImageData->GetImageSizeScale(); //实际加载的缩放比例(此值与加载时传入的缩放比例不一定相同)
         //举例：原图文件为"autumn.png"，如果匹配到DPI自适应图文件名为"autumn@175.png"，此时nImageFileDpiScale的值就是175
         const float fSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / 100.0f;
         //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小

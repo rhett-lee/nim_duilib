@@ -52,17 +52,17 @@ std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const ImageDecodeParam&
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_WEBP* pImageWEBP = new Image_WEBP;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageWEBP);
-    if (!pImageWEBP->LoadImageFromMemory(fileData, bLoadAllFrames, decodeParam.m_bAsyncDecode, fImageSizeScale)) {
+    if (!pImageWEBP->LoadImageFromMemory(fileData, bLoadAllFrames, decodeParam.m_bAsyncDecode, fImageSizeScale, decodeParam.m_rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImageWEBP->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
+        return Image_Bitmap::MakeImage(pAnimationImage);
     }
     else {
         //多帧图片
-        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage, fImageSizeScale));
+        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage));
         return pImage;
     }
 }

@@ -59,6 +59,15 @@ namespace ui
         kOff        //关闭DPI缩放
     };
 
+    /** 估算图片大小的类型
+    */
+    enum class EstimateImageType
+    {
+        kBoth,          //同时估算宽度和高度
+        kWidthOnly,     //只估算宽度
+        kHeightOnly     //只估算高度
+    };
+
     /** 设置的控件大小
     */
     class UILIB_API UiFixedSize

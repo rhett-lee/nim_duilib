@@ -1,6 +1,7 @@
 #include "ImageDecoder_Common.h"
 #include "duilib/Image/ImageDecoderUtil.h"
 #include "duilib/Image/Image_Bitmap.h"
+#include "duilib/Image/ImageUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/StringUtil.h"
 
@@ -53,7 +54,13 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
     std::unique_ptr<IImage> pImage;
     UiImageData imageData;
     if (ImageDecoderUtil::LoadImageFromMemory(fileData, imageData)) {
-        pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fImageSizeScale);
+        int32_t nWidth = (int32_t)imageData.m_imageWidth;
+        int32_t nHeight = (int32_t)imageData.m_imageHeight;
+        float fNewScale = fImageSizeScale;
+        if (!ImageUtil::GetBestImageScale(decodeParam.m_rcMaxDestRectSize, nWidth, nHeight, fNewScale)) {
+            fNewScale = fImageSizeScale;
+        }
+        pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fNewScale);
     }    
     return pImage;
 }

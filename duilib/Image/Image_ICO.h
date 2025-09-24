@@ -35,6 +35,10 @@ public:
     */
     virtual uint32_t GetHeight() const override;
 
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const override;
+
     /** 获取图片的帧数
     */
     virtual int32_t GetFrameCount() const override;

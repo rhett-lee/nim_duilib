@@ -3203,7 +3203,7 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
     UiSize szAvailable(rcAvailable.Width(), rcAvailable.Height());
 
     //估算图片区域大小
-    UiSize imageSize = EstimateImage(szAvailable);
+    UiSize imageSize = EstimateImage(szAvailable, EstimateImageType::kBoth);
     if (imageSize.cx > rc.Width()) {
         imageSize.cx = 0;
     }

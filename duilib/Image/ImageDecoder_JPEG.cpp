@@ -63,8 +63,8 @@ std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const ImageDecodeParam&
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_JPEG* pImageJPEG = new Image_JPEG;
     std::shared_ptr<IBitmapImage> pImage(pImageJPEG);
-    if (pImageJPEG->LoadImageData(fileData, fImageSizeScale, decodeParam.m_bAsyncDecode)) {
-        return Image_Bitmap::MakeImage(pImage);        
+    if (pImageJPEG->LoadImageData(fileData, fImageSizeScale, decodeParam.m_bAsyncDecode, decodeParam.m_rcMaxDestRectSize)) {
+        return Image_Bitmap::MakeImage(pImage);
     }
     return nullptr;
 }

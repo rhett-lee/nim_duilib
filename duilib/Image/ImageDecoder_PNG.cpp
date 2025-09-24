@@ -58,17 +58,17 @@ std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& 
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_PNG* pImagePNG = new Image_PNG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePNG);
-    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, bAsyncDecode, fImageSizeScale)) {
+    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, bAsyncDecode, fImageSizeScale, decodeParam.m_rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImagePNG->GetFrameCount() == 1)) {
         //单帧，加载位图图片
-        return Image_Bitmap::MakeImage(pAnimationImage, fImageSizeScale);
+        return Image_Bitmap::MakeImage(pAnimationImage);
     }
     else {
         //多帧图片
-        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage, fImageSizeScale));
+        std::unique_ptr<IImage> pImage(new Image_Animation(pAnimationImage));
         return pImage;
     }
 }

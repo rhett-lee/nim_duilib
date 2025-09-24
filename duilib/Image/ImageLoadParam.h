@@ -146,6 +146,15 @@ public:
     */
     bool GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent, bool bNeedDpiScale) const;
 
+    /** 设置该图片绘制目标区域大小(已做过DPI缩放)，用于优化加载性能
+    * @param [in] rcMaxDestRectSize 区域的宽度和高度
+    */
+    void SetMaxDestRectSize(const UiSize& rcMaxDestRectSize);
+
+    /** 获取该图片绘制目标区域大小(已做过DPI缩放)，用于优化加载性能
+    */
+    UiSize GetMaxDestRectSize() const;
+
 private:
     /** 获取图片加载的固定设置大小
     */
@@ -164,6 +173,9 @@ private:
 
     //设置图片高度(属性名称："height")，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
     UiString m_srcHeight;
+
+    //目标区域大小，用于优化加载性能（绘制阶段加载的图片，不需要图片宽高来确定目标区域，可做加载优化；对于大图，可以加载一个小图，保证绘制质量的情况下，提高绘制速度，并减少内存占用）
+    UiSize m_rcMaxDestRectSize;
 
     //绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     uint32_t m_nLoadDpiScale;

@@ -100,6 +100,10 @@ public:
     */
     virtual uint32_t GetHeight() const = 0;
 
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
     /** 获取指定大小的位图，矢量缩放
     * @param [in] szImageSize 代表获取图片的宽度(cx)和高度(cy)
     */
@@ -189,6 +193,10 @@ public:
     /** 获取图片高度
     */
     virtual uint32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
 
     /** 获取图片的帧数
     */
@@ -283,6 +291,9 @@ public:
 
     //文件数据（如果为空表示未加载文件数据，需要根据文件路径去读取文件数据）
     std::shared_ptr<std::vector<uint8_t>> m_pFileData;
+
+    //目标区域大小，用于优化加载性能
+    UiSize m_rcMaxDestRectSize;
 
     //请求加载的缩放比例
     float m_fImageSizeScale = 1.0f;

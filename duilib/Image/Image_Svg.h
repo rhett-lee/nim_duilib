@@ -15,11 +15,9 @@ public:
     @param [in] nWidth 宽度
     @param [in] nHeight 高度
     @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nWidth*4*nHeight
-    @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
     @param [in] alphaType 位图的Alpha类型    
     */
-    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<ISvgImage>& pSvgImage,
-                                             float fImageSizeScale = 1.0f);
+    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<ISvgImage>& pSvgImage);
 
 public:
     Image_Svg();
@@ -85,10 +83,6 @@ private:
     /** 位图数据
     */
     std::shared_ptr<ISvgImage> m_pSvgImage;
-
-    /** 原图加载时的缩放比例
-    */
-    float m_fImageSizeScale;
 };
 
 } //namespace ui

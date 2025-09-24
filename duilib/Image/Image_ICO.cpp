@@ -13,6 +13,9 @@ struct Image_ICO::TImpl
     //图片高度
     uint32_t m_nHeight = 0;
 
+    //缩放比例
+    float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
+
     //各个图片帧的数据
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
 };
@@ -66,6 +69,7 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<UiImageData>& imageData,
     //使用nIconSize参数作为图片的大小
     m_impl->m_nWidth = ImageUtil::GetScaledImageSize(nIconSize, fImageSizeScale);
     m_impl->m_nHeight = m_impl->m_nWidth;
+    m_impl->m_fImageSizeScale = fImageSizeScale;
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
     if ((m_impl->m_nWidth == 0) || (m_impl->m_nHeight == 0)) {
         return false;
@@ -134,6 +138,11 @@ uint32_t Image_ICO::GetWidth() const
 uint32_t Image_ICO::GetHeight() const
 {
     return m_impl->m_nHeight;
+}
+
+float Image_ICO::GetImageSizeScale() const
+{
+    return m_impl->m_fImageSizeScale;
 }
 
 int32_t Image_ICO::GetFrameCount() const

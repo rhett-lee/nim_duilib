@@ -225,4 +225,14 @@ bool ImageLoadParam::GetScaledFixedPercent(const DString& srcSize, float& fScale
     return bRet && !ImageUtil::IsSameImageScale(fScaledPercent, 1.0f);
 }
 
+void ImageLoadParam::SetMaxDestRectSize(const UiSize& rcMaxDestRectSize)
+{
+    m_rcMaxDestRectSize = rcMaxDestRectSize;
+}
+
+UiSize ImageLoadParam::GetMaxDestRectSize() const
+{
+    return m_rcMaxDestRectSize;
+}
+
 }

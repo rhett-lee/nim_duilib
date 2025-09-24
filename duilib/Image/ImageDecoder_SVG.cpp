@@ -96,6 +96,10 @@ public:
     */
     virtual uint32_t GetHeight() const override { return m_nImageHeight; }
 
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const override { return m_fImageSizeScale; }
+
     /** 获取指定大小的位图，矢量缩放
     * @param [in] szImageSize 代表获取图片的宽度(cx)和高度(cy)
     */
@@ -157,6 +161,9 @@ public:
 
     //高度
     uint32_t m_nImageHeight = 0;
+
+    //缩放比例
+    float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //内存数据流
     std::unique_ptr<SkMemoryStream> m_spMemStream;
@@ -272,10 +279,11 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     std::shared_ptr<ISvgImage> pSvgImage(pSvgImageImpl);    
     pSvgImageImpl->m_nImageWidth = nImageWidth;
     pSvgImageImpl->m_nImageHeight = nImageHeight;
+    pSvgImageImpl->m_fImageSizeScale = fImageSizeScale;
     pSvgImageImpl->m_spMemStream = std::move(spMemStream);
     pSvgImageImpl->m_svgDom = svgDom;
 
-    std::unique_ptr<IImage> pImage = Image_Svg::MakeImage(pSvgImage, fImageSizeScale);
+    std::unique_ptr<IImage> pImage = Image_Svg::MakeImage(pSvgImage);
     return pImage;
 }
 

@@ -2,10 +2,8 @@
 
 namespace ui
 {
-Image_Animation::Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage,
-                                 float fImageSizeScale):
+Image_Animation::Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage):
     m_pAnimationImage(pAnimationImage),
-    m_fImageSizeScale(fImageSizeScale),
     m_nAsyncDecodeTaskId(0)
 {
 }
@@ -32,7 +30,10 @@ int32_t Image_Animation::GetHeight() const
 
 float Image_Animation::GetImageSizeScale() const
 {
-    return m_fImageSizeScale;
+    if (m_pAnimationImage != nullptr) {
+        return m_pAnimationImage->GetImageSizeScale();
+    }
+    return IMAGE_SIZE_SCALE_NONE;
 }
 
 ImageType Image_Animation::GetImageType() const

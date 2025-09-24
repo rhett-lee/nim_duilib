@@ -10,8 +10,7 @@ namespace ui
 class Image_Animation: public IImage
 {
 public:
-    Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage,
-                    float fImageSizeScale);
+    Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage);
     virtual ~Image_Animation() override;
 
     /** 获取图片宽度
@@ -74,10 +73,6 @@ private:
     /** 动画图片
     */
     std::shared_ptr<IAnimationImage> m_pAnimationImage;
-
-    /** 图片的缩放比例
-    */
-    float m_fImageSizeScale;
 
     /** 异步解码任务ID
     */

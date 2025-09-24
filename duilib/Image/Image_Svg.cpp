@@ -3,8 +3,7 @@
 
 namespace ui
 {
-Image_Svg::Image_Svg():
-    m_fImageSizeScale(IMAGE_SIZE_SCALE_NONE)
+Image_Svg::Image_Svg()
 {
 }
 
@@ -12,8 +11,7 @@ Image_Svg::~Image_Svg()
 {
 }
 
-std::unique_ptr<IImage> Image_Svg::MakeImage(const std::shared_ptr<ISvgImage>& pSvgImage,
-                                             float fImageSizeScale)
+std::unique_ptr<IImage> Image_Svg::MakeImage(const std::shared_ptr<ISvgImage>& pSvgImage)
 {
     ASSERT(pSvgImage != nullptr);
     if (pSvgImage == nullptr) {
@@ -22,7 +20,6 @@ std::unique_ptr<IImage> Image_Svg::MakeImage(const std::shared_ptr<ISvgImage>& p
     Image_Svg* pImageObj = new Image_Svg;
     std::unique_ptr<IImage> pImage(pImageObj);
     pImageObj->m_pSvgImage = pSvgImage;
-    pImageObj->m_fImageSizeScale = fImageSizeScale;
     return pImage;
 }
 
@@ -44,7 +41,10 @@ int32_t Image_Svg::GetHeight() const
 
 float Image_Svg::GetImageSizeScale() const
 {
-    return m_fImageSizeScale;
+    if (m_pSvgImage != nullptr) {
+        return m_pSvgImage->GetImageSizeScale();
+    }
+    return IMAGE_SIZE_SCALE_NONE;
 }
 
 ImageType Image_Svg::GetImageType() const

@@ -126,7 +126,8 @@ Image_WEBP::~Image_WEBP()
 bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                      bool bLoadAllFrames,
                                      bool bAsyncDecode,
-                                     float fImageSizeScale)
+                                     float fImageSizeScale,
+                                     const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {
@@ -171,17 +172,26 @@ bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_nHeight = anim_info.canvas_height;
     m_impl->m_nFrameCount = (int32_t)anim_info.frame_count;
 
+    float fScale = fImageSizeScale;
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fScale)) {
+        m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
+        m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
+        m_impl->m_fImageSizeScale = fScale;
+    }
+    else {
+        m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
+        m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
+    }
+    ASSERT(m_impl->m_nWidth > 0);
+    ASSERT(m_impl->m_nHeight > 0);
+    ASSERT(m_impl->m_nFrameCount > 0);
+
     if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {        
         //加载失败时，需要恢复原文件数据
         WebPAnimDecoderDelete(dec);
         m_impl->m_fileData.swap(fileData);
         return false;
     }
-
-    m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
-    m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
-    ASSERT(m_impl->m_nWidth > 0);
-    ASSERT(m_impl->m_nHeight > 0);
 
     m_impl->m_nLoops = (int32_t)anim_info.loop_count;
     if (m_impl->m_nLoops <= 0) {
@@ -286,6 +296,11 @@ uint32_t Image_WEBP::GetWidth() const
 uint32_t Image_WEBP::GetHeight() const
 {
     return m_impl->m_nHeight;
+}
+
+float Image_WEBP::GetImageSizeScale() const
+{
+    return m_impl->m_fImageSizeScale;
 }
 
 int32_t Image_WEBP::GetFrameCount() const

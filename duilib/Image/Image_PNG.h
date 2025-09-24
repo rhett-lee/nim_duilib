@@ -19,11 +19,13 @@ public:
     * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
     * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
                              bool bLoadAllFrames,
                              bool bAsyncDecode,
-                             float fImageSizeScale);
+                             float fImageSizeScale,
+                             const UiSize& rcMaxDestRectSize);
 
 public:
     /** 获取图片宽度
@@ -33,6 +35,10 @@ public:
     /** 获取图片高度
     */
     virtual uint32_t GetHeight() const override;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const override;
 
     /** 获取图片的帧数
     */

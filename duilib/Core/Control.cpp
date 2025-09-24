@@ -1774,7 +1774,17 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
         return GetEstimateSize();
     }
 
-    UiSize szControlSize = EstimateControlSize(szAvailable);
+    //设置估算图片宽高的类型，用于优化性能（有些属性设置后，图片可以延迟加载）
+    EstimateImageType estImageType = EstimateImageType::kBoth;
+    if (!fixedSize.cx.IsAuto() || !fixedSize.cy.IsAuto()) {
+        if (fixedSize.cx.IsAuto()) {
+            estImageType = EstimateImageType::kWidthOnly;
+        }
+        else {
+            estImageType = EstimateImageType::kHeightOnly;
+        }
+    }
+    UiSize szControlSize = EstimateControlSize(szAvailable, estImageType);
 
     //选取图片和文本区域高度和宽度的最大值
     if (fixedSize.cx.IsAuto()) {
@@ -1790,10 +1800,10 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
     return estSize;
 }
 
-UiSize Control::EstimateControlSize(UiSize szAvailable)
+UiSize Control::EstimateControlSize(UiSize szAvailable, EstimateImageType estImageType)
 {
     //估算图片区域大小
-    UiSize imageSize = EstimateImage(szAvailable);
+    UiSize imageSize = EstimateImage(szAvailable, estImageType);
 
     //估算文本区域大小, 函数计算时，已经包含了内边距
     UiSize textSize = EstimateText(szAvailable);
@@ -1809,24 +1819,57 @@ UiSize Control::EstimateText(UiSize /*szAvailable*/)
     return UiSize(0, 0);
 }
 
-UiSize Control::EstimateImage(UiSize szAvailable)
+UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType)
 {
     UiSize imageSize;
-    std::shared_ptr<ImageInfo> imageInfo;
     Image* image = GetEstimateImage();
+    uint32_t nImageInfoWidth = 0;
+    uint32_t nImageInfoHeight = 0;
     if (image != nullptr) {
+        bool bNeedLoadImage = true;
+        ImageLoadParam loadParam = image->GetImageLoadParam();        
+        loadParam.GetImageFixedSize(nImageInfoWidth, nImageInfoHeight, true);
+        if (estImageType == EstimateImageType::kWidthOnly) {
+            if (nImageInfoWidth > 0) {
+                bNeedLoadImage = false;
+            }
+        }
+        else if (estImageType == EstimateImageType::kHeightOnly) {
+            if (nImageInfoHeight > 0) {
+                bNeedLoadImage = false;
+            }
+        }
+        else {
+            if ((nImageInfoWidth > 0) && (nImageInfoHeight > 0)) {
+                bNeedLoadImage = false;
+            }
+        }
         //加载图片：需要获取图片的宽和高
-        LoadImageInfo(*image);
-        imageInfo = image->GetImageInfo();
+        if (bNeedLoadImage) {
+            LoadImageInfo(*image);
+            std::shared_ptr<ImageInfo> imageInfo = image->GetImageInfo();
+            if (imageInfo != nullptr) {
+                nImageInfoWidth = imageInfo->GetWidth();
+                nImageInfoHeight = imageInfo->GetHeight();
+            }
+        }
+        else {
+            if (nImageInfoWidth == 0) {
+                nImageInfoWidth = nImageInfoHeight;
+            }
+            if (nImageInfoHeight == 0) {
+                nImageInfoHeight = nImageInfoWidth;
+            }
+        }
     }
     //控件自身的内边距
     const UiPadding rcControlPadding = GetControlPadding();
 
-    if ((imageInfo != nullptr) && (image != nullptr)) {
+    if ((nImageInfoWidth > 0) && (nImageInfoHeight > 0) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
         bool hasDestAttr = false;
-        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(imageInfo->GetWidth(), imageInfo->GetHeight(), Dpi());
+        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(nImageInfoWidth, nImageInfoHeight, Dpi());
         if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
             //使用配置中指定的目标区域
             rcDest = rcImageDestRect;
@@ -1839,7 +1882,14 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             hasDestAttr = true;
         }
         UiRect rcSource = imageAttribute.GetImageSourceRect();
-        imageInfo->ScaleImageSourceRect(Dpi(), rcSource);
+        Dpi().ScaleRect(rcSource);
+        if (rcSource.right > (int32_t)nImageInfoWidth) {
+            rcSource.right = (int32_t)nImageInfoWidth;
+        }
+        if (rcSource.bottom > (int32_t)nImageInfoHeight) {
+            rcSource.bottom = (int32_t)nImageInfoHeight;
+        }
+
         if (rcDest.Width() > 0) {
             imageSize.cx = rcDest.Width();
         }
@@ -1847,7 +1897,7 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             imageSize.cx = rcSource.Width();
         }
         else {
-            imageSize.cx = imageInfo->GetWidth();
+            imageSize.cx = nImageInfoWidth;
         }
 
         if (rcDest.Height() > 0) {
@@ -1857,7 +1907,7 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             imageSize.cy = rcSource.Height();
         }
         else {
-            imageSize.cy = imageInfo->GetHeight();
+            imageSize.cy = nImageInfoHeight;
         }
         if (!hasDestAttr) {
             //如果没有rcDest属性，则需要增加图片的内边距（图片自身的内边距属性）
@@ -1883,7 +1933,6 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             }
         }
     }
-    imageInfo.reset();
 
     //图片大小，需要附加控件的内边距
     if (imageSize.cx > 0) {
@@ -2475,7 +2524,7 @@ bool Control::PaintImage(IRender* pRender,
         return false;
     }
 
-    LoadImageInfo(duiImage);
+    LoadImageInfo(duiImage, true);
     std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
     ASSERT(imageInfo != nullptr);
     if (imageInfo == nullptr) {
@@ -2514,7 +2563,17 @@ bool Control::PaintImage(IRender* pRender,
     rcSource.Validate();
     const int32_t nImageWidth = rcSource.Width();
     const int32_t nImageHeight = rcSource.Height();
-    if (newImageAttribute.m_bAdaptiveDestRect) {
+
+    bool bAdaptiveDestRect = newImageAttribute.m_bAdaptiveDestRect; //自动适应目标区域（等比例缩放后，按指定对齐方式绘制）
+    if (!bAdaptiveDestRect && (!newImageAttribute.m_hAlign.empty() || !newImageAttribute.m_vAlign.empty())) {
+        if (!newImageAttribute.m_hAlign.empty() && (nImageWidth > rcDest.Width())) {
+            bAdaptiveDestRect = true;
+        }
+        else if (!newImageAttribute.m_vAlign.empty() && (nImageHeight > rcDest.Height())) {
+            bAdaptiveDestRect = true;
+        }
+    }
+    if (bAdaptiveDestRect) {
         //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
         rcDest = ImageAttribute::CalculateAdaptiveRect(nImageWidth, nImageHeight,
                                                        rcDest,
@@ -3708,7 +3767,7 @@ static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecode
     pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(nTaskId);
 }
 
-bool Control::LoadImageInfo(Image& duiImage) const
+bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
 {
     GlobalManager::Instance().AssertUIThread();
     //DPI缩放百分比
@@ -3800,9 +3859,18 @@ bool Control::LoadImageInfo(Image& duiImage) const
         //第1种情况：如果图片没有加载则执行加载图片；
         //第2种情况：如果图片发生变化，则重新加载该图片
         bool bFromCache = false;
+        bool bEnableImageLoadSizeOpt = bPaintImage;//是否开启图片加载优化
+        if (duiImage.GetImageAttribute().m_bTiledX ||
+            duiImage.GetImageAttribute().m_bTiledY ||
+            duiImage.GetImageAttribute().m_bWindowShadowMode) {
+            bEnableImageLoadSizeOpt = false;
+        }
+        if (bEnableImageLoadSizeOpt) {
+            //绘制阶段加载的图片，不需要图片宽高来确定目标区域，可做加载优化（对于大图，可以加载一个小图，保证绘制质量的情况下，提高绘制速度，并减少内存占用）
+            imageLoadParam.SetMaxDestRectSize(UiSize(GetRect().Width(), GetRect().Height()));
+        }
         imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bFromCache);
         duiImage.SetImageInfo(imageInfo);
-
         if (!bFromCache) {
             //检查并启动多线程解码，在子线程中解码图片数据
             std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();

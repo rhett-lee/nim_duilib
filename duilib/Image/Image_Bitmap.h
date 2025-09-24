@@ -35,7 +35,7 @@ public:
 
     /** 从一个支持延迟解码的动画图片对象创建(取第一帧)
     */
-    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<IAnimationImage>& pAnimationImage, float fImageSizeScale);
+    static std::unique_ptr<IImage> MakeImage(const std::shared_ptr<IAnimationImage>& pAnimationImage);
 
 public:
     Image_Bitmap();

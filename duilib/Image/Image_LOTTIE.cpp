@@ -103,7 +103,8 @@ Image_LOTTIE::~Image_LOTTIE()
 
 bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                        bool /*bLoadAllFrames*/,
-                                       float fImageSizeScale)
+                                       float fImageSizeScale,
+                                       const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {
@@ -124,7 +125,21 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     SkISize imageSize = m_impl->m_pSkAnimation->size().toCeil();
     m_impl->m_nWidth = (uint32_t)imageSize.fWidth;
     m_impl->m_nHeight = (uint32_t)imageSize.fHeight;
+    float fScale = fImageSizeScale;
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fScale)) {
+        m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
+        m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
+        m_impl->m_fImageSizeScale = fScale;
+    }
+    else {
+        m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
+        m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
+    }
     m_impl->m_nFrameCount = static_cast<int32_t>(m_impl->m_pSkAnimation->duration() * m_impl->m_pSkAnimation->fps() + 0.5);
+
+    ASSERT(m_impl->m_nWidth > 0);
+    ASSERT(m_impl->m_nHeight > 0);
+    ASSERT(m_impl->m_nFrameCount > 0);
     if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);
@@ -182,6 +197,11 @@ uint32_t Image_LOTTIE::GetWidth() const
 uint32_t Image_LOTTIE::GetHeight() const
 {
     return m_impl->m_nHeight;
+}
+
+float Image_LOTTIE::GetImageSizeScale() const
+{
+    return m_impl->m_fImageSizeScale;
 }
 
 int32_t Image_LOTTIE::GetFrameCount() const

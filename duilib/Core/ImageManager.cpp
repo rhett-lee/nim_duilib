@@ -113,6 +113,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
             decodeParam.m_pFileData->swap(fileData);
         }
+        if (nImageFileDpiScale == 100) {//针对DPI自适应的原图，不开启该项优化，避免计算原图大小时出现异常
+            decodeParam.m_rcMaxDestRectSize = loadParam.GetMaxDestRectSize();
+        }
         decodeParam.m_fImageSizeScale = fImageSizeScale;
         decodeParam.m_bExternalImagePath = (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) ? true : false;
 
@@ -130,6 +133,16 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             //加载失败
             return nullptr;
         }
+        //////////////TODO
+        /*if (1) {
+            float fScale = pImageData->GetImageSizeScale();
+            int32_t w = pImageData->GetWidth();
+            int32_t h = pImageData->GetHeight();
+            int32_t ww = (int32_t)(w / fScale + 0.5f);
+            int32_t hh = (int32_t)(h / fScale + 0.5f);
+            fScale = 0;
+        }*/
+        //////////////
         ASSERT((pImageData->GetWidth() > 0) && (pImageData->GetHeight() > 0));
         if ((pImageData->GetWidth() <= 0) || (pImageData->GetHeight() <= 0)) {
             //加载失败

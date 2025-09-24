@@ -525,9 +525,10 @@ public:
 
     /** 计算图片区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
-     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     *  @param [in] estImageType 估算图片的类型
+     *  @return 控件的图片估算大小，包含内边距(Box)，不包含外边距
      */
-    virtual UiSize EstimateImage(UiSize szAvailable);
+    virtual UiSize EstimateImage(UiSize szAvailable, EstimateImageType estImageType);
 
     /**
      * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
@@ -754,9 +755,10 @@ public:
 public:
     /// 图片资源
     /** 根据图片属性设置, 加载图片信息到缓存中
-     * @param[in,out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+     * @param [in,out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+     * @param [out] bPaintImage true表示在绘制时加载图片，false表示其他情况下加载图片
      */
-    bool LoadImageInfo(Image& duiImage) const;
+    bool LoadImageInfo(Image& duiImage, bool bPaintImage = false) const;
 
     /** 清理图片缓存, 清理后，如果使用则会重新加载
      */
@@ -1219,9 +1221,10 @@ protected:
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @param [in] estImageType 估算图片的类型
      *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
      */
-    UiSize EstimateControlSize(UiSize szAvailable);
+    UiSize EstimateControlSize(UiSize szAvailable, EstimateImageType estImageType);
 
     /** 画边框线
     */

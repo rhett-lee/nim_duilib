@@ -62,6 +62,10 @@ public:
             IAnimationImage::AnimationFrame frame;
             if (m_pAnimationImage->ReadFrameData(0, &frame)) {
                 m_pBitmap = frame.m_pBitmap;
+                if (m_pBitmap != nullptr) {
+                    //读取完成后，释放资源
+                    m_pAnimationImage.reset();
+                }
             }
             else {
                 ASSERT(0);
@@ -216,7 +220,7 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IBitmapIma
     return pImage;
 }
 
-std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IAnimationImage>& pAnimationImage, float fImageSizeScale)
+std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IAnimationImage>& pAnimationImage)
 {
     ASSERT(pAnimationImage != nullptr);
     if (pAnimationImage == nullptr) {
@@ -233,7 +237,7 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IAnimation
     pImageBitmap->m_pBitmapImage.reset(pImageBitmapImpl);
 
     pImageBitmapImpl->m_pAnimationImage = pAnimationImage;
-    pImageBitmapImpl->m_fImageSizeScale = fImageSizeScale;
+    pImageBitmapImpl->m_fImageSizeScale = pAnimationImage->GetImageSizeScale();
     return pImage;
 }
 

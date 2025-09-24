@@ -222,7 +222,8 @@ Image_PNG::~Image_PNG()
 bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
                                     bool bAsyncDecode,
-                                    float fImageSizeScale)
+                                    float fImageSizeScale,
+                                    const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {
@@ -238,9 +239,19 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     ReadPngHeader::PngImageInfo pngImageInfo;
     bool bLoaded = ReadPngHeader::load_apng_image_info(m_impl->m_fileData, pngImageInfo);
     if (bLoaded) {
-        //加载成功，记录总帧数            
-        m_impl->m_nWidth = ImageUtil::GetScaledImageSize(pngImageInfo.width, fImageSizeScale);
-        m_impl->m_nHeight = ImageUtil::GetScaledImageSize(pngImageInfo.height, fImageSizeScale);
+        //加载成功，记录总帧数和宽高
+        m_impl->m_nWidth = pngImageInfo.width;
+        m_impl->m_nHeight = pngImageInfo.height;
+        float fScale = fImageSizeScale;
+        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fScale)) {
+            m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
+            m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
+            m_impl->m_fImageSizeScale = fScale;
+        }
+        else {
+            m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
+            m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
+        }
         m_impl->m_nFrameCount = pngImageInfo.frame_count;
         m_impl->m_nLoops = pngImageInfo.loop_count;
         if (m_impl->m_nLoops <= 0) {
@@ -250,7 +261,10 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
         ASSERT(m_impl->m_nHeight > 0);
         ASSERT(m_impl->m_nFrameCount > 0);
 
-        if (bLoadAllFrames) {
+        if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
+            bLoaded = false;
+        }
+        else if (bLoadAllFrames) {
             //支持加载多帧
             m_impl->m_framesDelayMs.clear();
             if (pngImageInfo.frame_count > 1) {
@@ -422,6 +436,11 @@ uint32_t Image_PNG::GetWidth() const
 uint32_t Image_PNG::GetHeight() const
 {
     return m_impl->m_nHeight;
+}
+
+float Image_PNG::GetImageSizeScale() const
+{
+    return m_impl->m_fImageSizeScale;
 }
 
 int32_t Image_PNG::GetFrameCount() const

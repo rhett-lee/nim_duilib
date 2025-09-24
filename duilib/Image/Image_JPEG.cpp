@@ -49,8 +49,42 @@ Image_JPEG::~Image_JPEG()
     }
 }
 
+// 查找与fImageSizeScale最接近的数值(但需要保证返回的值不小于fImageSizeScale)
+static float FindClosestScale1(float fImageSizeScale)
+{
+    // 存储所有可能的比例值
+    std::vector<float> scales = {
+        1.0f / 8, 1.0f / 4, 3.0f / 8, 1.0f / 2,
+        5.0f / 8, 3.0f / 4, 7.0f / 8, 1.0f / 1,
+        9.0f / 8, 5.0f / 4, 11.0f / 8, 3.0f / 2,
+        13.0f / 8, 7.0f / 4, 15.0f / 8, 2.0f / 1
+    };
+
+    // 首先检查是否有精确匹配的值
+    auto it = std::find(scales.begin(), scales.end(), fImageSizeScale);
+    if (it != scales.end()) {
+        return *it;
+    }
+
+    // 找到所有大于等于目标值的元素
+    std::vector<float> candidates;
+    for (float scale : scales) {
+        if (scale >= fImageSizeScale) {
+            candidates.push_back(scale);
+        }
+    }
+
+    // 如果有符合条件的候选值，返回最小的那个（最接近目标值）
+    if (!candidates.empty()) {
+        return *std::min_element(candidates.begin(), candidates.end());
+    }
+
+    // 如果所有值都小于目标值，返回最大的元素
+    return *std::max_element(scales.begin(), scales.end());
+}
+
 // 查找与fImageSizeScale最接近的数值
-static float FindClosestScale(float fImageSizeScale)
+static float FindClosestScale2(float fImageSizeScale)
 {
     // 用vector存储数组
     std::vector<float> scales = {
@@ -75,7 +109,10 @@ static float FindClosestScale(float fImageSizeScale)
     return closest;
 }
 
-bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData, float fImageSizeScale, bool bAsyncDecode)
+bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData,
+                               float fImageSizeScale,
+                               bool bAsyncDecode,
+                               const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {
@@ -110,15 +147,27 @@ bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData, float fImageSizeS
     if (!ImageUtil::IsValidImageScale(fImageSizeScale)) {
         fImageSizeScale = 1.0f;
     }
-
-    //解析Header成功
     //libjpeg API: IDCT scaling extensions in decompressor
     //libjpeg - turbo supports IDCT scaling with scaling factors of 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4, 15/8, and 2/1 (only 1/4 and 1/2 are SIMD - accelerated.)
-    //加载缩放时，只支持固定的锁定的比例
-    float fRealImageSizeScale = FindClosestScale(fImageSizeScale);
-    if (!ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
-        fRealImageSizeScale = 1.0f;
+    //加载缩放时，只支持固定的锁定的比例，如果比例不符合要求，会导致解码失败
+
+    //解析Header成功
+    float fRealImageSizeScale = fImageSizeScale;
+    bool bFoundImageScale = false;
+    float fScale = fImageSizeScale;
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fScale)) {
+        fScale = FindClosestScale1(fScale);
+        if (ImageUtil::IsValidImageScale(fScale)) {
+            bFoundImageScale = true;
+            fRealImageSizeScale = fScale;
+        }
     }
+    if (!bFoundImageScale) {
+        fRealImageSizeScale = FindClosestScale2(fImageSizeScale);
+        if (!ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
+            fRealImageSizeScale = 1.0f;
+        }
+    }    
     m_impl->m_nWidth = ImageUtil::GetScaledImageSize((uint32_t)width, fRealImageSizeScale);
     m_impl->m_nHeight = ImageUtil::GetScaledImageSize((uint32_t)height, fRealImageSizeScale);
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
