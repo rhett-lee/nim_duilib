@@ -8,6 +8,10 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #define OUTPUT_IMAGE_LOG 1
+#endif
+
 namespace ui 
 {
 ImageManager::ImageManager():
@@ -134,6 +138,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             return nullptr;
         }
         //////////////TODO
+#ifdef  OUTPUT_IMAGE_LOG 1
         /*if (1) {
             float fScale = pImageData->GetImageSizeScale();
             int32_t w = pImageData->GetWidth();
@@ -142,6 +147,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             int32_t hh = (int32_t)(h / fScale + 0.5f);
             fScale = 0;
         }*/
+#endif
         //////////////
         ASSERT((pImageData->GetWidth() > 0) && (pImageData->GetHeight() > 0));
         if ((pImageData->GetWidth() <= 0) || (pImageData->GetHeight() <= 0)) {
@@ -150,40 +156,80 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         }
         //赋值, 添加到容器(替换删除函数)
         ASSERT(imageKey == imageFullPath);
-        spImageData.reset(pImageData.release(), ImageManager::OnImageDataDestroy);//TODO：待验证，或许有平台兼容性问题
-        m_imageDataMap[imageKey] = TImageData(spImageData, fImageSizeScale);
+        spImageData.reset(pImageData.release(), ImageManager::CallImageDataDestroy);//TODO：待验证，或许有平台兼容性问题
+        OnImageDataCreate(imageKey, spImageData, fImageSizeScale);        
     }
     if (spImageData != nullptr) {
-        std::shared_ptr<ImageInfo> imageInfo(new ImageInfo, &ImageManager::OnImageInfoDestroy);
+        std::shared_ptr<ImageInfo> imageInfo(new ImageInfo, &ImageManager::CallImageInfoDestroy);
         imageInfo->SetImageKey(imageKey);
         bool bRet = imageInfo->SetImageData(loadParam, spImageData, bEnableImageDpiScale, nImageFileDpiScale);
         ASSERT(bRet);
         if (bRet) {
             ASSERT(loadKey == imageInfo->GetLoadKey());
-            m_imageInfoMap[loadKey] = imageInfo;
+            OnImageInfoCreate(imageInfo);
             return imageInfo;
         }
     }
     return nullptr;
 }
 
+void ImageManager::CallImageInfoDestroy(ImageInfo* pImageInfo)
+{
+    ImageManager& imageManager = GlobalManager::Instance().Image();
+    imageManager.OnImageInfoDestroy(pImageInfo);
+}
+
+void ImageManager::CallImageDataDestroy(IImage* pImage)
+{
+    ImageManager& imageManager = GlobalManager::Instance().Image();
+    imageManager.OnImageDataDestroy(pImage);
+}
+
+void ImageManager::OnImageInfoCreate(std::shared_ptr<ImageInfo>& pImageInfo)
+{
+    ASSERT(pImageInfo != nullptr);
+    if (pImageInfo != nullptr) {
+        DString loadKey = pImageInfo->GetLoadKey();
+        ASSERT(!loadKey.empty());
+        if (!loadKey.empty()) {
+            m_imageInfoMap[loadKey] = pImageInfo;
+#ifdef OUTPUT_IMAGE_LOG
+            DString log = _T("Created ImageInfo: ") + loadKey + _T("\n");
+            ::OutputDebugString(log.c_str());
+#endif
+        }
+    }
+}
+
 void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     ASSERT(pImageInfo != nullptr);
-    ImageManager& imageManager = GlobalManager::Instance().Image();
     if (pImageInfo != nullptr) {
         DString loadKey = pImageInfo->GetLoadKey();
+        ASSERT(!loadKey.empty());
         if (!loadKey.empty()) {            
-            auto iter = imageManager.m_imageInfoMap.find(loadKey);
-            if (iter != imageManager.m_imageInfoMap.end()) {
-                imageManager.m_imageInfoMap.erase(iter);
+            auto iter = m_imageInfoMap.find(loadKey);
+            if (iter != m_imageInfoMap.end()) {
+                m_imageInfoMap.erase(iter);
             }
         }
         delete pImageInfo;
-#ifdef _DEBUG
-        //DString log = _T("Removed ImageInfo: ") + loadKey + _T("\n");
-        //::OutputDebugString(log.c_str());
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Removed ImageInfo: ") + loadKey + _T("\n");
+        ::OutputDebugString(log.c_str());
+#endif
+    }
+}
+
+void ImageManager::OnImageDataCreate(const DString& imageKey, std::shared_ptr<IImage>& pImage, float fImageSizeScale)
+{
+    ASSERT(!imageKey.empty() && (pImage != nullptr));
+    if (!imageKey.empty() && (pImage != nullptr)) {
+        m_imageDataMap[imageKey] = TImageData(pImage, fImageSizeScale);
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Created ImageData: ") + imageKey + _T("\n");
+        ::OutputDebugString(log.c_str());
 #endif
     }
 }
@@ -192,16 +238,15 @@ void ImageManager::OnImageDataDestroy(IImage* pImage)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     ASSERT(pImage != nullptr);
-    ImageManager& imageManager = GlobalManager::Instance().Image();
     if (pImage != nullptr) {
-        auto iter = imageManager.m_imageDataMap.begin();
-        while (iter != imageManager.m_imageDataMap.end()) {
+        auto iter = m_imageDataMap.begin();
+        while (iter != m_imageDataMap.end()) {
             if (iter->second.m_pImage.expired()) {
-#ifdef _DEBUG
-                //DString log = _T("Removed ImageData: ") + iter->first + _T("\n");
-                //::OutputDebugString(log.c_str());
+#ifdef OUTPUT_IMAGE_LOG
+                DString log = _T("Removed ImageData: ") + iter->first + _T("\n");
+                ::OutputDebugString(log.c_str());
 #endif
-                iter = imageManager.m_imageDataMap.erase(iter);
+                iter = m_imageDataMap.erase(iter);
             }
             else {
                 ++iter;

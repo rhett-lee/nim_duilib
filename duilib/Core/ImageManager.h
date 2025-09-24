@@ -96,15 +96,39 @@ public:
 
 private:
     /** 图片信息被销毁的回调函数，用于释放图片资源
-     * @param[in] pImageInfo 图片对应的 ImageInfo 对象
-     */
-    static void OnImageInfoDestroy(ImageInfo* pImageInfo);
+    * @param[in] pImageInfo 图片对应的 ImageInfo 对象
+    */
+    static void CallImageInfoDestroy(ImageInfo* pImageInfo);
 
     /** 图片数据被销毁的回调函数，用于释放图片资源的数据
+    * @param[in] pImage 图片数据接口
+    */
+    static void CallImageDataDestroy(IImage* pImage);
+
+private:
+    /** 图片信息被创建的回调函数
+    * @param[in] pImageInfo 图片对应的 ImageInfo 对象
+    */
+    void OnImageInfoCreate(std::shared_ptr<ImageInfo>& pImageInfo);
+
+    /** 图片信息被销毁的回调函数，用于释放图片资源
      * @param[in] pImageInfo 图片对应的 ImageInfo 对象
      */
-    static void OnImageDataDestroy(IImage* pImage);
+    void OnImageInfoDestroy(ImageInfo* pImageInfo);
 
+    /** 图片数据被创建的回调函数
+     * @param[in] imageKey 图片的KEY
+     * @param[in] pImage 图片数据接口
+     * @param[in] fImageSizeScale 该图片的缩放比
+     */
+    void OnImageDataCreate(const DString& imageKey, std::shared_ptr<IImage>& pImage, float fImageSizeScale);
+
+    /** 图片数据被销毁的回调函数，用于释放图片资源的数据
+     * @param[in] pImage 图片数据接口
+     */
+    void OnImageDataDestroy(IImage* pImage);
+
+private:
     /** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
     *   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
     * @param [in] dpiScale 需要查找的DPI缩放百分比

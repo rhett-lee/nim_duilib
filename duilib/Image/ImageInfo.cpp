@@ -1,6 +1,7 @@
 #include "ImageInfo.h"
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 namespace ui 
 {
@@ -25,6 +26,7 @@ ImageInfo::~ImageInfo()
 
 void ImageInfo::ReleaseImage()
 {
+    ASSERT(0); //待调试和测试
     if (m_pImageData != nullptr) {
         GlobalManager::Instance().Image().ReleaseImage(m_pImageData);
         m_pImageData.reset();
@@ -186,6 +188,7 @@ std::shared_ptr<IAnimationImage> ImageInfo::GetAnimationImage(uint32_t nFrameInd
 
 std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nFrameIndex)
 {
+    PerformanceStat statPerformance(_T("ImageInfo::GetFrame"));
     GlobalManager::Instance().AssertUIThread();
     std::shared_ptr<IAnimationImage> pAnimationImage = GetAnimationImage(nFrameIndex);
     ASSERT(pAnimationImage != nullptr);
@@ -198,13 +201,6 @@ std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nF
     if (nFrameCount == 0) {
         //动画图片帧数异常
         return nullptr;
-    }
-
-    //查询缓存，如果缓存中有该帧，则直接返回
-    if (nFrameIndex < m_frameList.size()) {
-        if (m_frameList[nFrameIndex] != nullptr) {
-            return m_frameList[nFrameIndex];
-        }
     }
 
     std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame;
@@ -233,13 +229,6 @@ std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nF
                 pAnimationFrame->m_pBitmap = ImageUtil::ResizeImageBitmap(pAnimationFrame->m_pBitmap.get(), nNewWidth, nNewHeight);
                 ASSERT(pAnimationFrame->m_pBitmap != nullptr);
             }*/
-        }
-        if (pAnimationFrame->m_pBitmap != nullptr) {
-            //生成缓存
-            if (m_frameList.size() != nFrameCount) {
-                m_frameList.resize(nFrameCount);
-            }
-            //m_frameList[nFrameIndex] = pAnimationFrame;
         }
     }
     return pAnimationFrame;

@@ -120,50 +120,51 @@ static bool ResizeSkiaImageByOpenCV(const sk_sp<SkImage>& skImage, const UiRect&
 #else
 /** 对Skia的图片进行resize操作，以适配绘制目标大小，避免绘制时缩放导致速度降低(stb_image实现)
 */
-static bool ResizeSkiaImageByStbImage(const sk_sp<SkImage>& skImage, const UiRect& rcSrc, const UiRect& rcDest, sk_sp<SkImage>& skNewImage)
+static bool ResizeSkiaImageByStbImage(const sk_sp<SkImage>& /*skImage*/, const UiRect& /*rcSrc*/, const UiRect& /*rcDest*/, sk_sp<SkImage>& /*skNewImage*/)
 {
-    if ((skImage == nullptr) || (rcSrc.left != 0) || (rcSrc.top != 0) || (rcSrc.Width() < 10) || (rcSrc.Height() < 10) || (rcDest.Width() < 10) || (rcDest.Height() < 10)) {
-        return false;
-    }
-    if ((rcSrc.Width() == rcDest.Width()) && (rcSrc.Height() == rcDest.Height())) {
-        //区域相同，无缩放
-        return false;
-    }
-    if ((skImage->width() != rcSrc.Width()) || (skImage->height() != rcSrc.Height())) {
-        //不是整个图片绘制
-        return false;
-    }
-    SkPixmap srcPixmap;
-    if (!skImage->peekPixels(&srcPixmap)) {
-        return false;
-    }
-    if ((srcPixmap.width() != rcSrc.Width()) || (srcPixmap.height() != rcSrc.Height())) {
-        //有错误
-        return false;
-    }
-
-    PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByStbImage"));
-
-    sk_sp<SkData> skData = SkData::MakeUninitialized(rcDest.Height() * rcDest.Width() * sizeof(uint32_t));
-    const unsigned char* input_pixels = (const unsigned char*)srcPixmap.addr();
-    int input_w = srcPixmap.width();
-    int input_h = srcPixmap.height();
-    int input_stride_in_bytes = 0;
-    unsigned char* output_pixels = (unsigned char*)skData->writable_data();
-    int output_w = rcDest.Width();
-    int output_h = rcDest.Height();
-    int output_stride_in_bytes = 0;
-    stbir_pixel_layout num_channels = STBIR_RGBA;
-    unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
-                                                      output_pixels, output_w, output_h, output_stride_in_bytes,
-                                                      num_channels);
-    if (result != nullptr) {
-        skNewImage = SkImages::RasterFromData(SkImageInfo::Make(SkISize::Make(output_w, output_h), skImage->imageInfo().colorInfo()), skData, rcDest.Width() * sizeof(uint32_t));
-        if ((skNewImage->height() == rcDest.Height()) && (skNewImage->width() == rcDest.Width())) {
-            return (skNewImage != nullptr);
-        }
-    }
+    //屏蔽该功能，经测试发现，按目前的代码，这项开启后，绘制性能明显下降，主要因为这个函数的缩放耗时比Skia自身的缩放耗时要多很多（可能最新版本skia的缩放性能有改进）。
     return false;
+    //if ((skImage == nullptr) || (rcSrc.left != 0) || (rcSrc.top != 0) || (rcSrc.Width() < 10) || (rcSrc.Height() < 10) || (rcDest.Width() < 10) || (rcDest.Height() < 10)) {
+    //    return false;
+    //}
+    //if ((rcSrc.Width() == rcDest.Width()) && (rcSrc.Height() == rcDest.Height())) {
+    //    //区域相同，无缩放
+    //    return false;
+    //}
+    //if ((skImage->width() != rcSrc.Width()) || (skImage->height() != rcSrc.Height())) {
+    //    //不是整个图片绘制
+    //    return false;
+    //}
+    //SkPixmap srcPixmap;
+    //if (!skImage->peekPixels(&srcPixmap)) {
+    //    return false;
+    //}
+    //if ((srcPixmap.width() != rcSrc.Width()) || (srcPixmap.height() != rcSrc.Height())) {
+    //    //有错误
+    //    return false;
+    //}
+    //PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByStbImage"));
+
+    //sk_sp<SkData> skData = SkData::MakeUninitialized(rcDest.Height() * rcDest.Width() * sizeof(uint32_t));
+    //const unsigned char* input_pixels = (const unsigned char*)srcPixmap.addr();
+    //int input_w = srcPixmap.width();
+    //int input_h = srcPixmap.height();
+    //int input_stride_in_bytes = 0;
+    //unsigned char* output_pixels = (unsigned char*)skData->writable_data();
+    //int output_w = rcDest.Width();
+    //int output_h = rcDest.Height();
+    //int output_stride_in_bytes = 0;
+    //stbir_pixel_layout num_channels = STBIR_RGBA;
+    //unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
+    //                                                  output_pixels, output_w, output_h, output_stride_in_bytes,
+    //                                                  num_channels);
+    //if (result != nullptr) {
+    //    skNewImage = SkImages::RasterFromData(SkImageInfo::Make(SkISize::Make(output_w, output_h), skImage->imageInfo().colorInfo()), skData, rcDest.Width() * sizeof(uint32_t));
+    //    if ((skNewImage->height() == rcDest.Height()) && (skNewImage->width() == rcDest.Width())) {
+    //        return (skNewImage != nullptr);
+    //    }
+    //}
+    //return false;
 }
 #endif //end of OpenCV
 

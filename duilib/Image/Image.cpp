@@ -2,6 +2,7 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/ImagePlayer.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 namespace ui 
 {
@@ -174,6 +175,7 @@ bool Image::IsMultiFrameImage() const
 
 std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const
 {
+    PerformanceStat statPerformance(_T("Image::GetCurrentFrame"));
     ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || !m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
@@ -198,6 +200,7 @@ std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame(UiRect& 
 
 std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners) const
 {
+    PerformanceStat statPerformance(_T("Image::GetBitmapData"));
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;

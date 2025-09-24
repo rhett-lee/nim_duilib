@@ -204,10 +204,6 @@ private:
     /** 图片数据(单帧，缓存；但svg图片无缓存)
     */
     std::shared_ptr<IBitmap> m_pBitmap;
-
-    /** 图片数据(多帧，缓存)
-    */
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frameList;
 };
 
 } // namespace ui
