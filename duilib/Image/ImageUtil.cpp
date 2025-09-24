@@ -223,6 +223,7 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
 bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
                                   int32_t nImageWidth,
                                   int32_t nImageHeight,
+                                  float fMaxScale,
                                   float& fScale)
 {
     if ((rcMaxDestRectSize.cx <= 0) || (rcMaxDestRectSize.cy <= 0)) {
@@ -236,15 +237,33 @@ bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
         float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
         float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
         fScale = std::max(fScaleX, fScaleY);
-        return true;
     }
     else {
         //图片大于目标区域时，计算合适的缩放比（适当缩小）
         float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
         float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
         fScale = std::min(fScaleX, fScaleY);
-        return true;
     }
+    if (fMaxScale > 1.0f) {
+        //限制最大值
+        if (fScale > fMaxScale) {
+            fScale = fMaxScale;
+        }
+    }
+
+    //限制最小值，避免缩放过小
+    const float fMinScale = 1.0f / 16;
+    if (fScale < fMinScale) {
+        fScale = fMinScale;
+    }
+    const int32_t minImageSize = GlobalManager::Instance().Dpi().GetScaleInt(12);
+    if ((int32_t)(nImageWidth * fScale) < minImageSize) {
+        fScale = static_cast<float>(minImageSize) / nImageWidth;
+    }
+    if ((int32_t)(nImageHeight * fScale) < minImageSize) {
+        fScale = static_cast<float>(minImageSize) / nImageHeight;
+    }
+    return true;
 }
 
 } //namespace ui

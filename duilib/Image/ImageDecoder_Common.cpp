@@ -57,7 +57,7 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
         int32_t nWidth = (int32_t)imageData.m_imageWidth;
         int32_t nHeight = (int32_t)imageData.m_imageHeight;
         float fNewScale = fImageSizeScale;
-        if (!ImageUtil::GetBestImageScale(decodeParam.m_rcMaxDestRectSize, nWidth, nHeight, fNewScale)) {
+        if (!ImageUtil::GetBestImageScale(decodeParam.m_rcMaxDestRectSize, nWidth, nHeight, fImageSizeScale, fNewScale)) {
             fNewScale = fImageSizeScale;
         }
         pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fNewScale);

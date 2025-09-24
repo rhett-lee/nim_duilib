@@ -173,7 +173,7 @@ bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_nFrameCount = (int32_t)anim_info.frame_count;
 
     float fScale = fImageSizeScale;
-    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fScale)) {
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fImageSizeScale, fScale)) {
         m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
         m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
         m_impl->m_fImageSizeScale = fScale;

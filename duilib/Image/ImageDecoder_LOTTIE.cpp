@@ -46,9 +46,13 @@ std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodePara
     std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
+    const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_LOTTIE* pImageLOTTIE = new Image_LOTTIE;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageLOTTIE);
-    if (!pImageLOTTIE->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale, decodeParam.m_rcMaxDestRectSize)) {
+    if (!pImageLOTTIE->LoadImageFromMemory(fileData,
+                                           bLoadAllFrames,
+                                           fImageSizeScale,
+                                           rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }

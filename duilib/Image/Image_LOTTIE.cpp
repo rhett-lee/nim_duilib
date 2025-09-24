@@ -126,7 +126,7 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_nWidth = (uint32_t)imageSize.fWidth;
     m_impl->m_nHeight = (uint32_t)imageSize.fHeight;
     float fScale = fImageSizeScale;
-    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fScale)) {
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fImageSizeScale, fScale)) {
         m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
         m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
         m_impl->m_fImageSizeScale = fScale;
@@ -149,11 +149,6 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     if (m_impl->m_nFrameDelayMs < IMAGE_ANIMATION_DELAY_MS_MIN) {
         m_impl->m_nFrameDelayMs = IMAGE_ANIMATION_DELAY_MS_MIN;
     }
-    m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
-    m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
-    ASSERT(m_impl->m_nWidth > 0);
-    ASSERT(m_impl->m_nHeight > 0);
-
     //循环播放固定为一直播放，因GIF格式无此设置
     m_impl->m_nLoops = -1;
     return true;

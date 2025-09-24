@@ -67,11 +67,16 @@ std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const ImageDecodeParam& 
     }
     std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
+    const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_GIF* pImageGIF = new Image_GIF;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageGIF);
-    if (!pImageGIF->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale,
-                                        decodeParam.m_bAsyncDecode, decodeParam.m_rcMaxDestRectSize)) {
+    if (!pImageGIF->LoadImageFromMemory(fileData,
+                                        bLoadAllFrames,
+                                        bAsyncDecode,
+                                        fImageSizeScale,
+                                        rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }

@@ -50,11 +50,13 @@ public:
     * @param [in] rcMaxDestRectSize 绘制目标大小
     * @param [in] nImageWidth 原始图片的宽度
     * @param [in] nImageHeight 原始图片的高度
+    * @param [in] fMaxScale 最大的比例（避免占用过多内存）
     * @param [out] fScale 返回最佳的加载缩放比
     */
     static bool GetBestImageScale(const UiSize& rcMaxDestRectSize,
                                   int32_t nImageWidth,
                                   int32_t nImageHeight,
+                                  float fMaxScale,
                                   float& fScale);
 
     /** 对 32 位像素格式（RGBA/ARGB 等，4 字节/像素）的图像进行高度翻转（上下翻转）

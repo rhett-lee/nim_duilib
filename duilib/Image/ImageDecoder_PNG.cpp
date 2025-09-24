@@ -56,9 +56,14 @@ std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& 
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
+    const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_PNG* pImagePNG = new Image_PNG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePNG);
-    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, bAsyncDecode, fImageSizeScale, decodeParam.m_rcMaxDestRectSize)) {
+    if (!pImagePNG->LoadImageFromMemory(fileData,
+                                        bLoadAllFrames,
+                                        bAsyncDecode,
+                                        fImageSizeScale,
+                                        rcMaxDestRectSize)) {
         ASSERT(0);
         return nullptr;
     }

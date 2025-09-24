@@ -155,7 +155,7 @@ bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData,
     float fRealImageSizeScale = fImageSizeScale;
     bool bFoundImageScale = false;
     float fScale = fImageSizeScale;
-    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fScale)) {
+    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fImageSizeScale, fScale)) {
         fScale = FindClosestScale1(fScale);
         if (ImageUtil::IsValidImageScale(fScale)) {
             bFoundImageScale = true;
