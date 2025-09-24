@@ -15,7 +15,7 @@ static bool DecodeImage_LOTTIE(sk_sp<skottie::Animation>& pSkAnimation,
                                uint32_t nImageWidth,
                                uint32_t nImageHeight,
                                int32_t nFrame,
-                               std::shared_ptr<IAnimationImage::AnimationFrame>& frame)
+                               AnimationFramePtr& frame)
 {
     ASSERT(pSkAnimation != nullptr);
     if (pSkAnimation == nullptr) {
@@ -243,7 +243,7 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimation
         return false;
     }
 
-    std::shared_ptr<IAnimationImage::AnimationFrame> frame;
+    AnimationFramePtr frame;
     if (m_impl->m_pSkAnimation != nullptr) {
         if(DecodeImage_LOTTIE(m_impl->m_pSkAnimation,
                               nImageWidth,
@@ -253,7 +253,7 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimation
             if (frame != nullptr) {
                 *pAnimationFrame = *frame;
                 pAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
-            }            
+            }
         }
     }    
     return frame != nullptr;

@@ -2638,7 +2638,7 @@ bool Control::PaintImage(IRender* pRender,
     bool bDataPending = false;
     if (duiImage.IsMultiFrameImage()) {
         //多帧图片
-        std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = duiImage.GetCurrentFrame(rcSource, rcSourceCorners);
+        AnimationFramePtr pAnimationFrame = duiImage.GetCurrentFrame(rcSource, rcSourceCorners);
         ASSERT(pAnimationFrame != nullptr);
         if (pAnimationFrame == nullptr) {
             return false;

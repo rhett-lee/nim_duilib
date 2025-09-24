@@ -138,7 +138,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             return nullptr;
         }
         //////////////TODO
-#ifdef  OUTPUT_IMAGE_LOG 1
+#ifdef  OUTPUT_IMAGE_LOG
         /*if (1) {
             float fScale = pImageData->GetImageSizeScale();
             int32_t w = pImageData->GetWidth();

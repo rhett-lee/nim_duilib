@@ -17,7 +17,7 @@ struct Image_ICO::TImpl
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
+    std::vector<AnimationFramePtr> m_frames;
 };
 
 Image_ICO::Image_ICO()
@@ -87,7 +87,7 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<UiImageData>& imageData,
     const int32_t nFrameCount = (int32_t)imageData.size();
     for (int i = 0; i < nFrameCount; ++i) {
         const UiImageData& icoData = imageData[i];
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+        AnimationFramePtr pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
         pFrameData->m_nFrameIndex = i;
         pFrameData->SetDelayMs(nFrameDelayMs);
         pFrameData->m_nOffsetX = 0;
@@ -186,7 +186,7 @@ bool Image_ICO::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
     }
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
+        AnimationFramePtr pFrameData = m_impl->m_frames[nFrameIndex];
         ASSERT(pFrameData != nullptr);
         if (pFrameData != nullptr) {
             ASSERT(pFrameData->m_nFrameIndex == nFrameIndex);

@@ -173,7 +173,7 @@ bool Image::IsMultiFrameImage() const
     return m_imageInfo->IsMultiFrameImage();
 }
 
-std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const
+AnimationFramePtr Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const
 {
     PerformanceStat statPerformance(_T("Image::GetCurrentFrame"));
     ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
@@ -181,7 +181,7 @@ std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame(UiRect& 
         return nullptr;
     }
     //多帧图片
-    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame;
+    AnimationFramePtr pAnimationFrame;
     if (m_nCurrentFrame < m_imageInfo->GetFrameCount()) {
         pAnimationFrame = m_imageInfo->GetFrame(m_nCurrentFrame);
     }

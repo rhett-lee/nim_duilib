@@ -67,7 +67,7 @@ public:
     /** 获取一个图片帧数据
     * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
     */
-    std::shared_ptr<IAnimationImage::AnimationFrame> GetFrame(uint32_t nFrameIndex);
+    AnimationFramePtr GetFrame(uint32_t nFrameIndex);
 
     /** 获取一个图片帧的播放持续时间，单位为毫秒
     * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())

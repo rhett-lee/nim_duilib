@@ -225,6 +225,10 @@ public:
     virtual bool ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame) = 0;
 };
 
+/** AnimationFrame 的智能指针
+*/
+typedef std::shared_ptr<IAnimationImage::AnimationFrame> AnimationFramePtr;
+
 /** 图片类型
 */
 enum class UILIB_API ImageType

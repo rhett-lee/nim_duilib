@@ -248,13 +248,13 @@ static int32_t UiGifGetFrameDelayMs(const SavedImage& frame)
  * 3. 支持多帧合成画布模式
  * 4. 跨平台颜色格式处理（Windows和其他平台不同）
  */
-static std::shared_ptr<IAnimationImage::AnimationFrame> UiGifToRgbaFrames(const GifFileType* gif,
-                                                                          int32_t nFrameIndex,
-                                                                          float fImageSizeScale,
-                                                                          UiGifRGBA& backgroundColor,
-                                                                          std::vector<UiGifRGBA>& canvas,
-                                                                          std::vector<UiGifRGBA>& canvas_backup,
-                                                                          int32_t& nLastFrameIndex)
+static AnimationFramePtr UiGifToRgbaFrames(const GifFileType* gif,
+                                           int32_t nFrameIndex,
+                                           float fImageSizeScale,
+                                           UiGifRGBA& backgroundColor,
+                                           std::vector<UiGifRGBA>& canvas,
+                                           std::vector<UiGifRGBA>& canvas_backup,
+                                           int32_t& nLastFrameIndex)
 {
     // 参数有效性检查
     ASSERT((gif != nullptr) && (gif->SavedImages != nullptr) && (gif->ImageCount > 0));
@@ -327,7 +327,7 @@ static std::shared_ptr<IAnimationImage::AnimationFrame> UiGifToRgbaFrames(const 
         return nullptr;
     }
 
-    std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+    AnimationFramePtr pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
     pFrameData->m_nFrameIndex = nFrameIndex;
     pFrameData->m_nOffsetX = 0; // OffsetX和OffsetY均不需要处理
     pFrameData->m_nOffsetY = 0;
@@ -448,14 +448,14 @@ struct Image_GIF::TImpl
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
+    std::vector<AnimationFramePtr> m_frames;
 
     //每一帧的播放延迟时间，毫秒
     std::vector<int32_t> m_framesDelayMs;
 
 public:
     //各个图片帧的数据(延迟解码的数据)
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
+    std::vector<AnimationFramePtr> m_delayFrames;
 
     //是否支持异步线程解码图片数据
     bool m_bAsyncDecode = false;
@@ -606,7 +606,7 @@ bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
            ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+        AnimationFramePtr pNewAnimationFrame;
         //一次解码一帧图片
         pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
                                                nFrameIndex,
@@ -741,7 +741,7 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
             float fImageSizeScale = m_impl->m_fImageSizeScale;
 
             //一次解码一帧图片
-            std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+            AnimationFramePtr pNewAnimationFrame;
             pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
                                                    nInitFrameIndex,
                                                    fImageSizeScale,
@@ -769,7 +769,7 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
     }
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
+        AnimationFramePtr pFrameData = m_impl->m_frames[nFrameIndex];
         if (pFrameData != nullptr) {
             ASSERT(pFrameData->m_nFrameIndex == nFrameIndex);
             *pAnimationFrame = *pFrameData;

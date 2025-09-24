@@ -191,7 +191,7 @@ struct Image_PNG::TImpl
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
+    std::vector<AnimationFramePtr> m_frames;
 
     //每一帧的播放延迟时间，毫秒
     std::vector<int32_t> m_framesDelayMs;
@@ -207,7 +207,7 @@ public:
     std::atomic<bool> m_bAsyncDecoding = false;
 
     //各个图片帧的数据(延迟解码的数据)
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
+    std::vector<AnimationFramePtr> m_delayFrames;
 };
 
 Image_PNG::Image_PNG()
@@ -287,7 +287,7 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     return bLoaded;
 }
 
-std::shared_ptr<IAnimationImage::AnimationFrame> Image_PNG::DecodeImageFrame()
+AnimationFramePtr Image_PNG::DecodeImageFrame()
 {
     ASSERT(!m_impl->m_fileData.empty());
     if (m_impl->m_fileData.empty()) {
@@ -310,7 +310,7 @@ std::shared_ptr<IAnimationImage::AnimationFrame> Image_PNG::DecodeImageFrame()
             m_impl->m_fileData.swap(fileData);
         }
     }
-    std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData;
+    AnimationFramePtr pFrameData;
     if (bLoaded) {
         APngDecoder& pngDecoder = *(m_impl->m_pImageDecoder);
         ASSERT(m_impl->m_nWidth == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetWidth(), fImageSizeScale));
@@ -392,7 +392,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
            ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame = DecodeImageFrame();
+        AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
         if (pNewAnimationFrame != nullptr) {
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
         }
@@ -497,7 +497,7 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
         //同步解码的情况, 解码所需要的帧
         while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
                (m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
-            std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame = DecodeImageFrame();
+            AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
             if (pNewAnimationFrame != nullptr) {
                 m_impl->m_frames.push_back(pNewAnimationFrame);
             }
@@ -527,7 +527,7 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFra
     }
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
+        AnimationFramePtr pFrameData = m_impl->m_frames[nFrameIndex];
         if (pFrameData != nullptr) {
             ASSERT(pFrameData->m_nFrameIndex == nFrameIndex);
             *pAnimationFrame = *pFrameData;

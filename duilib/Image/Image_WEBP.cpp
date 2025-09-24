@@ -8,10 +8,10 @@
 namespace ui
 {
 //解码WebP图片数据, 一次解码一帧
-static std::shared_ptr<IAnimationImage::AnimationFrame> DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
-                                                                         float fImageSizeScale,
-                                                                         uint32_t nFrameIndex,
-                                                                         int32_t& nPrevTimestamp)
+static AnimationFramePtr DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
+                                          float fImageSizeScale,
+                                          uint32_t nFrameIndex,
+                                          int32_t& nPrevTimestamp)
 {
     ASSERT(pWebPAnimDecoder != nullptr);
     if (pWebPAnimDecoder == nullptr) {
@@ -33,7 +33,7 @@ static std::shared_ptr<IAnimationImage::AnimationFrame> DecodeImage_WEBP(WebPAni
         return nullptr;
     }
 
-    std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData;
+    AnimationFramePtr pFrameData;
     //WebPAnimDecoderReset(pWebPAnimDecoder);
     if (WebPAnimDecoderHasMoreFrames(pWebPAnimDecoder)) {
         uint8_t* pImageData = nullptr;
@@ -91,7 +91,7 @@ struct Image_WEBP::TImpl
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
     //各个图片帧的数据
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_frames;
+    std::vector<AnimationFramePtr> m_frames;
 
 public:
     //是否支持异步线程解码图片数据
@@ -107,7 +107,7 @@ public:
     int32_t m_nPrevTimestamp = 0;
 
     //各个图片帧的数据(延迟解码的数据)
-    std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
+    std::vector<AnimationFramePtr> m_delayFrames;
 };
 
 Image_WEBP::Image_WEBP()
@@ -244,7 +244,7 @@ bool Image_WEBP::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> 
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
            ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+        AnimationFramePtr pNewAnimationFrame;
         pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
                                               fImageSizeScale,
                                               nFrameIndex,
@@ -332,13 +332,13 @@ int32_t Image_WEBP::GetFrameDelayMs(uint32_t nFrameIndex)
     GlobalManager::Instance().AssertUIThread();
     int32_t nDelayMs = 1000;
     if (nFrameIndex < m_impl->m_frames.size()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrame = m_impl->m_frames[nFrameIndex];
+        AnimationFramePtr pFrame = m_impl->m_frames[nFrameIndex];
         if (pFrame != nullptr) {
             nDelayMs = pFrame->GetDelayMs();
         }
     }
     else if (!m_impl->m_frames.empty()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrame = m_impl->m_frames.back();
+        AnimationFramePtr pFrame = m_impl->m_frames.back();
         if (pFrame != nullptr) {
             nDelayMs = pFrame->GetDelayMs();
         }
@@ -370,7 +370,7 @@ bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFr
             ASSERT(m_impl->m_delayFrames.empty());
             uint32_t nInitFrameIndex = (uint32_t)m_impl->m_frames.size();
             float fImageSizeScale = m_impl->m_fImageSizeScale;
-            std::shared_ptr<IAnimationImage::AnimationFrame> pNewAnimationFrame;
+            AnimationFramePtr pNewAnimationFrame;
             pNewAnimationFrame = DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder,
                                                   fImageSizeScale,
                                                   nInitFrameIndex,
@@ -394,7 +394,7 @@ bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFr
     }
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = m_impl->m_frames[nFrameIndex];
+        AnimationFramePtr pFrameData = m_impl->m_frames[nFrameIndex];
         if (pFrameData != nullptr) {
             ASSERT(pFrameData->m_nFrameIndex == nFrameIndex);
             *pAnimationFrame = *pFrameData;

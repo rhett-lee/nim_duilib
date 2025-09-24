@@ -136,7 +136,7 @@ public:
 
     /** 获取当前图片帧的图片数据（多帧图片）
     */
-    std::shared_ptr<IAnimationImage::AnimationFrame> GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const;
+    AnimationFramePtr GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const;
 
 public:
     /** 获取图片数据(单帧图片，对于Svg等格式，支持矢量缩放图片)

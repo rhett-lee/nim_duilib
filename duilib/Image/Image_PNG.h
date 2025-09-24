@@ -96,7 +96,7 @@ private:
     /** 解码一帧数据
     * @return 返回解码的帧数据
     */
-    std::shared_ptr<IAnimationImage::AnimationFrame> DecodeImageFrame();
+    AnimationFramePtr DecodeImageFrame();
 
 private:
     /** 私有实现数据
