@@ -715,7 +715,7 @@ int32_t Image_GIF::GetFrameDelayMs(uint32_t nFrameIndex)
     return IMAGE_ANIMATION_DELAY_MS;
 }
 
-bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_GIF::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSize*/, AnimationFrame* pAnimationFrame)
 {
     GlobalManager::Instance().AssertUIThread();
     ASSERT(pAnimationFrame != nullptr);

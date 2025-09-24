@@ -173,7 +173,7 @@ bool Image::IsMultiFrameImage() const
     return m_imageInfo->IsMultiFrameImage();
 }
 
-AnimationFramePtr Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const
+AnimationFramePtr Image::GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource, UiRect& rcSourceCorners) const
 {
     PerformanceStat statPerformance(_T("Image::GetCurrentFrame"));
     ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
@@ -183,14 +183,14 @@ AnimationFramePtr Image::GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorne
     //多帧图片
     AnimationFramePtr pAnimationFrame;
     if (m_nCurrentFrame < m_imageInfo->GetFrameCount()) {
-        pAnimationFrame = m_imageInfo->GetFrame(m_nCurrentFrame);
+        pAnimationFrame = m_imageInfo->GetFrame(m_nCurrentFrame, UiSize(rcDest.Width(), rcDest.Height()));
     }
     else {
         uint32_t nCurrentFrame = 0;
         if (m_imageInfo->GetFrameCount() > 0) {
             nCurrentFrame = m_nCurrentFrame % m_imageInfo->GetFrameCount();
         }
-        pAnimationFrame = m_imageInfo->GetFrame(nCurrentFrame);
+        pAnimationFrame = m_imageInfo->GetFrame(nCurrentFrame, UiSize(rcDest.Width(), rcDest.Height()));
     }
     if (pAnimationFrame != nullptr) {
         AdjustImageSourceRect(pAnimationFrame->m_pBitmap, rcSource, rcSourceCorners);

@@ -135,13 +135,16 @@ public:
     int32_t GetLoopCount() const;
 
     /** 获取当前图片帧的图片数据（多帧图片）
+    * @param [in] rcDest 绘制目标区域, 用于矢量图的缩放
+    * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
+    * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
     */
-    AnimationFramePtr GetCurrentFrame(UiRect& rcSource, UiRect& rcSourceCorners) const;
+    AnimationFramePtr GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource, UiRect& rcSourceCorners) const;
 
 public:
     /** 获取图片数据(单帧图片，对于Svg等格式，支持矢量缩放图片)
     * @param [in] bImageStretch 绘制图片时是否会被拉伸
-    * @param [in] rcDest 绘制目标区域
+    * @param [in] rcDest 绘制目标区域, 用于矢量图的缩放
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
     * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
     */

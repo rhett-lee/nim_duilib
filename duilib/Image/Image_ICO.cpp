@@ -174,7 +174,7 @@ int32_t Image_ICO::GetFrameDelayMs(uint32_t nFrameIndex)
     return IMAGE_ANIMATION_DELAY_MS;
 }
 
-bool Image_ICO::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_ICO::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSize*/, AnimationFrame* pAnimationFrame)
 {
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {

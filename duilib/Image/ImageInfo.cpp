@@ -186,7 +186,7 @@ std::shared_ptr<IAnimationImage> ImageInfo::GetAnimationImage(uint32_t nFrameInd
     return pAnimationImage;
 }
 
-AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex)
+AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDestRectSize)
 {
     PerformanceStat statPerformance(_T("ImageInfo::GetFrame"));
     GlobalManager::Instance().AssertUIThread();
@@ -205,7 +205,7 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex)
 
     AnimationFramePtr pAnimationFrame;
     pAnimationFrame = std::make_shared<IAnimationImage::AnimationFrame>();
-    if (pAnimationImage->ReadFrameData(nFrameIndex, pAnimationFrame.get())) {
+    if (pAnimationImage->ReadFrameData(nFrameIndex, szDestRectSize, pAnimationFrame.get())) {
         pAnimationFrame->m_nFrameIndex = nFrameIndex;
         if (pAnimationFrame->m_bDataPending) {
             //数据解码未完成，直接返回

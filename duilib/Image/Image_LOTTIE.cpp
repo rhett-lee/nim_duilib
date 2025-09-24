@@ -50,7 +50,8 @@ static bool DecodeImage_LOTTIE(sk_sp<skottie::Animation>& pSkAnimation,
 #endif
     skBitmap.allocPixels(info);
     SkCanvas canvas(skBitmap);
-    pSkAnimation->render(&canvas);
+    SkRect dst = SkRect::MakeLTRB(0.0f, 0.0f, (float)nImageWidth, (float)nImageHeight);
+    pSkAnimation->render(&canvas, &dst);
     if (!pBitmap->Init(nImageWidth, nImageHeight, skBitmap.getPixels())) {
         pBitmap.reset();
     }
@@ -221,7 +222,7 @@ int32_t Image_LOTTIE::GetFrameDelayMs(uint32_t /*nFrameIndex*/)
     return m_impl->m_nFrameDelayMs;
 }
 
-bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSize, AnimationFrame* pAnimationFrame)
 {
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
@@ -241,6 +242,39 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimation
     ASSERT((nImageWidth > 0) && (nImageHeight > 0));
     if ((nImageWidth == 0) || (nImageHeight == 0)) {
         return false;
+    }
+    if ((szDestRectSize.cx > 0) || (szDestRectSize.cy > 0)) {
+        bool bScaled = false;
+        float fScale = 1.0f;        
+        if ((szDestRectSize.cx > 0) && (szDestRectSize.cy > 0)) {            
+            if ((szDestRectSize.cx < (int32_t)nImageWidth) && (szDestRectSize.cy < (int32_t)nImageHeight)) {
+                float fScaleX = static_cast<float>(szDestRectSize.cx) / nImageWidth;
+                float fScaleY = static_cast<float>(szDestRectSize.cy) / nImageHeight;
+                fScale = std::max(fScaleX, fScaleY);
+                bScaled = true;
+            }
+        }
+        else if (szDestRectSize.cx > 0) {
+            if (szDestRectSize.cx < (int32_t)nImageWidth) {
+                fScale = static_cast<float>(szDestRectSize.cx) / nImageWidth;
+                bScaled = true;
+            }
+        }
+        else if (szDestRectSize.cy > 0) {
+            if (szDestRectSize.cy < (int32_t)nImageHeight) {
+                fScale = static_cast<float>(szDestRectSize.cy) / nImageHeight;
+                bScaled = true;
+            }
+        }
+        if (bScaled) {
+            //等比例缩小（提高绘制速度）
+            uint32_t nNewImageWidth = ImageUtil::GetScaledImageSize(nImageWidth, fScale);
+            uint32_t nNewImageHeight = ImageUtil::GetScaledImageSize(nImageHeight, fScale);
+            if ((nNewImageWidth > 0) && (nNewImageHeight > 0)) {
+                nImageWidth = nNewImageWidth;
+                nImageHeight = nNewImageHeight;
+            }
+        }
     }
 
     AnimationFramePtr frame;

@@ -60,10 +60,11 @@ public:
 
     /** 读取一帧数据
     * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    * @param [in] szDestRectSize 目标区域的大小，用于矢量图的缩放
     * @param [out] pAnimationFrame 返回该帧的图片位图数据
     * @return 成功返回true，失败则返回false
     */
-    virtual bool ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame) override;
+    virtual bool ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSize, AnimationFrame* pAnimationFrame) override;
 
 public:
     /** 是否支持延迟解码数据

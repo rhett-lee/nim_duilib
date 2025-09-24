@@ -60,7 +60,7 @@ public:
         if (m_pAnimationImage != nullptr) {
             //单帧，加载位图图片
             IAnimationImage::AnimationFrame frame;
-            if (m_pAnimationImage->ReadFrameData(0, &frame)) {
+            if (m_pAnimationImage->ReadFrameData(0, UiSize(), &frame)) {
                 m_pBitmap = frame.m_pBitmap;
                 if (m_pBitmap != nullptr) {
                     //读取完成后，释放资源

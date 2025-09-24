@@ -346,7 +346,7 @@ int32_t Image_WEBP::GetFrameDelayMs(uint32_t nFrameIndex)
     return nDelayMs;
 }
 
-bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSize*/, AnimationFrame* pAnimationFrame)
 {
     GlobalManager::Instance().AssertUIThread();
     ASSERT(pAnimationFrame != nullptr);

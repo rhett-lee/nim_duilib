@@ -2638,7 +2638,7 @@ bool Control::PaintImage(IRender* pRender,
     bool bDataPending = false;
     if (duiImage.IsMultiFrameImage()) {
         //多帧图片
-        AnimationFramePtr pAnimationFrame = duiImage.GetCurrentFrame(rcSource, rcSourceCorners);
+        AnimationFramePtr pAnimationFrame = duiImage.GetCurrentFrame(rcImageDect, rcSource, rcSourceCorners);
         ASSERT(pAnimationFrame != nullptr);
         if (pAnimationFrame == nullptr) {
             return false;
@@ -2692,7 +2692,7 @@ bool Control::PaintImage(IRender* pRender,
             //阴影模式：不拉伸，避免四个角变形
             bImageStretch = false;
         }
-        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcDest, rcSource, rcSourceCorners);
+        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcImageDect, rcSource, rcSourceCorners);
         if (duiImage.GetImageAttribute().m_bAsyncLoad) {
             bDataPending = true;            
         }
