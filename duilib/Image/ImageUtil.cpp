@@ -226,25 +226,37 @@ bool ImageUtil::GetBestImageScale(const UiSize& rcMaxDestRectSize,
                                   float fMaxScale,
                                   float& fScale)
 {
-    if ((rcMaxDestRectSize.cx <= 0) || (rcMaxDestRectSize.cy <= 0)) {
-        return false;
-    }
     if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
         return false;
     }
-    if ((nImageWidth <= rcMaxDestRectSize.cx) || (nImageHeight <= rcMaxDestRectSize.cy)) {
-        //图片小于目标区域时，计算合适的缩放比（适当放大）
-        float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
-        float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
-        fScale = std::max(fScaleX, fScaleY);
+    if ((rcMaxDestRectSize.cx > 0) && (rcMaxDestRectSize.cy > 0)) {
+        //同时设置的宽度和高度
+        if ((nImageWidth <= rcMaxDestRectSize.cx) || (nImageHeight <= rcMaxDestRectSize.cy)) {
+            //图片小于目标区域时，计算合适的缩放比（适当放大）
+            float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
+            float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
+            fScale = std::max(fScaleX, fScaleY);
+        }
+        else {
+            //图片大于目标区域时，计算合适的缩放比（适当缩小）
+            float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
+            float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
+            fScale = std::min(fScaleX, fScaleY);
+        }
+    }
+    else if (rcMaxDestRectSize.cx > 0) {
+        //只设置了宽度
+        fScale = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
+    }
+    else if (rcMaxDestRectSize.cy > 0) {
+        //只设置了高度
+        fScale = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
     }
     else {
-        //图片大于目标区域时，计算合适的缩放比（适当缩小）
-        float fScaleX = static_cast<float>(rcMaxDestRectSize.cx) / nImageWidth;
-        float fScaleY = static_cast<float>(rcMaxDestRectSize.cy) / nImageHeight;
-        fScale = std::min(fScaleX, fScaleY);
+        return false;
     }
-    if (fMaxScale > 1.0f) {
+
+    if (fMaxScale > 0.99f) {
         //限制最大值
         if (fScale > fMaxScale) {
             fScale = fMaxScale;

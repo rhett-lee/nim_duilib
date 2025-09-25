@@ -3867,10 +3867,17 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             duiImage.GetImageAttribute().m_bWindowShadowMode) {
             bEnableImageLoadSizeOpt = false;
         }
-        if (bEnableImageLoadSizeOpt) {
+        //如果图片指定了宽度或者高度，则加载时，计算最适合的缩放比
+        uint32_t nImageSetWidth = 0;
+        uint32_t nImageSetHeight = 0;
+        if (imageLoadParam.GetImageFixedSize(nImageSetWidth, nImageSetHeight, true)) {
+            imageLoadParam.SetMaxDestRectSize(UiSize((int32_t)nImageSetWidth, (int32_t)nImageSetHeight));
+        }
+        else if (bEnableImageLoadSizeOpt) {
             //绘制阶段加载的图片，不需要图片宽高来确定目标区域，可做加载优化（对于大图，可以加载一个小图，保证绘制质量的情况下，提高绘制速度，并减少内存占用）
             imageLoadParam.SetMaxDestRectSize(UiSize(GetRect().Width(), GetRect().Height()));
         }
+
         imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bFromCache);
         duiImage.SetImageInfo(imageInfo);
         if (!bFromCache) {

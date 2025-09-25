@@ -26,7 +26,6 @@ ImageInfo::~ImageInfo()
 
 void ImageInfo::ReleaseImage()
 {
-    ASSERT(0); //待调试和测试
     if (m_pImageData != nullptr) {
         GlobalManager::Instance().Image().ReleaseImage(m_pImageData);
         m_pImageData.reset();

@@ -270,9 +270,26 @@ void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
         imageData.m_pImage = pImageData;
         imageData.m_releaseTime = std::chrono::steady_clock::now();
         m_delayReleaseImageList.push_back(imageData);
-        //TODO: 检查并释放图片资源
-
     }
+
+    const int32_t nDelaySeconds = 35;
+    auto delayReleaseImage = []() {
+        ImageManager& imageManager = GlobalManager::Instance().Image();
+        auto nowTime = std::chrono::steady_clock::now();
+        auto iter = imageManager.m_delayReleaseImageList.begin();
+        while (iter != imageManager.m_delayReleaseImageList.end()) {
+            const TReleaseImageData& imageData = *iter;
+            //检查并释放图片资源(间隔：30秒，释放原图，以避免影响图片共享)
+            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(nowTime - imageData.m_releaseTime);
+            if (seconds.count() > (nDelaySeconds - 5)) {
+                iter = imageManager.m_delayReleaseImageList.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+    };
+    GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, nDelaySeconds * 1000);
 }
 
 void ImageManager::SetDpiScaleAllImages(bool bEnable)
