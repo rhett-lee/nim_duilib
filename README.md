@@ -122,26 +122,26 @@
 </table>
 
 ## 使用的第三方库说明
-| 名称     |代码子目录| 用途 | license文件|
-| :---     | :---     |:---  |:---        |
-|apng      |duilib/third_party/libpng| 支持APNG图片格式|zlib/libpng License|
-|libpng    |duilib/third_party/libpng| 支持PNG图片格式|[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|
-|zlib      |duilib/third_party/zlib| 支持PNG/APNG图片格式、Zip文件解压|[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|
-|cximage   |duilib/third_party/cximage| 支持ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
-|giflib    |duilib/third_party/giflib| 支持GIF图片格式|[giflib.LICENSE.txt](licenses/giflib.LICENSE.txt)|
-|libwebp   |duilib/third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
-|stb_image |duilib/third_party/stb_image| 支持BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
-|libjpeg-turbo|duilib/third_party/libjpeg-turbo| 支持JPEG图片格式|[libjpeg-turbo.LICENSE.md](licenses/libjpeg-turbo.LICENSE.md)|
-|nanosvg   |duilib/third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|
-|pugixml   |duilib/third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
-|ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
-|skia      |项目未包含skia源码     | 界面库渲染引擎/支持SVG图片格式|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
-|SDL       |项目未包含SDL源码      | 跨平台窗口管理|[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|
-|duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
-|NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
-|libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
-|udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度|[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|
-|WebView2    |duilib/third_party/Microsoft.Web.WebView2| 支持WebView2控件|[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|
+| 名称     |代码子目录                 | 用途                                 | license文件        | 协议分类          |
+| :---     | :---                      |:---                                  |:---               |:---               |
+|apng      |duilib/third_party/libpng  | 支持APNG图片格式                     |zlib/libpng License|zlib/libpng 许可协议，宽松型开源协议|
+|libpng    |duilib/third_party/libpng  | 支持PNG图片格式                      |[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|自定义的 BSD 风格宽松协议|
+|zlib      |duilib/third_party/zlib    | 支持PNG/APNG图片格式<br>Zip文件解压  |[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|zlib许可协议，宽松型开源协议|
+|cximage   |duilib/third_party/cximage | 支持ICO图片格式                      |[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|MIT 风格协议（非标准 MIT 协议）|
+|giflib    |duilib/third_party/giflib  | 支持GIF图片格式                      |[giflib.LICENSE.txt](licenses/giflib.LICENSE.txt)|MIT 许可协议|
+|libwebp   |duilib/third_party/libwebp | 支持WebP图片格式                     |[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|BSD 3条款许可协议|
+|stb_image |duilib/third_party/stb_image| 支持BMP图片格式<br>调整图片大小     |[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|MIT 许可协议/公有领域协议|
+|libjpeg-turbo|duilib/third_party/libjpeg-turbo| 支持JPEG图片格式             |[libjpeg-turbo.LICENSE.md](licenses/libjpeg-turbo.LICENSE.md)|IJG 许可证和修改后的BSD 3条款许可协议|
+|nanosvg   |duilib/third_party/svg      | 支持SVG图片格式                     |[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|zlib 许可协议|
+|pugixml   |duilib/third_party/xml      | 支持资源描述XML的解析               |[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|MIT 许可协议|
+|ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码转换         |[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|Apache License Version 2.0 为主，<br>LLVM 例外条款补充，<br>历史版本兼容 legacy 协议|
+|skia      |项目未包含skia源码          | 界面库渲染引擎<br>支持SVG图片格式<br>支持LOTTIE动画|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3条款许可协议|
+|SDL       |项目未包含SDL源码           | 跨平台窗口管理                     |[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|zlib 许可协议|
+|duilib    |                            | NIM_Duilib_Framework<br>是基于duilib开发  |[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|BSD 2条款许可协议|
+|NIM_Duilib<br>Framework|               | 本项目是基于<br>NIM_Duilib_Framework开发   |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT 许可协议|
+|libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|BSD 3条款许可协议|
+|udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度         |[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|BSD 2条款许可协议|
+|WebView2    |duilib/third_party/<br>Microsoft.Web.WebView2| 支持WebView2控件 |[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|BSD 3条款许可协议|
 ## 界面效果预览
 使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
 
@@ -484,5 +484,5 @@ chmod +x ./build/freebsd_build.sh
 
 ## 相关链接
 1. Skia的编译文档库，点击访问：[skia compile](https://github.com/rhett-lee/skia_compile) ：    
-2. 本项目最早是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
-3. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
+2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
+3. NIM_Duilib_Framework项目是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
