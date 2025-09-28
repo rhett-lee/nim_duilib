@@ -5,7 +5,7 @@
     <!-- libCEF 最新 版本 支持Win10及新版本操作系统，但不支持低于Win10的操作系统-->
     <PropertyGroup Label="Globals">
         <!-- libCEF 版本控制的开关变量，有两种值：true表示使用libCEF 109 版本，false：表示用libCEF最新版本 -->
-        <LibCefVersion109>true</LibCefVersion109>
+        <LibCefVersion109>false</LibCefVersion109>
 
         <!-- libCEF 最新 版本的源码子目录，位于duilib\third_party\libcef中 -->
         <LibCefSrcDir Condition="'$(LibCefVersion109)' != 'true'">libcef_win</LibCefSrcDir>
