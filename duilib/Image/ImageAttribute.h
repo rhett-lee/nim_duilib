@@ -148,6 +148,9 @@ public:
     //如果是PAG文件，用于指定动画的帧率，默认为30.0f
     float m_fPagMaxFrameRate;
 
+    //如果是PAG文件，设置解码文件所需的密码
+    UiString m_pagFilePwd;
+
     //如果是ICO文件，用于指定需要加载的ICO图片的大小
     uint32_t m_nIconSize;
 

@@ -25,6 +25,12 @@
 #if (DUILIB_JPEG_TURBO)
     #define DUILIB_IMAGE_SUPPORT_JPEG_TURBO 1
 #endif
+
+/** 是否支持libpag库来解码PAG格式
+*/
+#if (DUILIB_LIB_PAG)
+    #define DUILIB_IMAGE_SUPPORT_LIB_PAG 1
+#endif
     
 #elif defined(linux) || defined(__linux) || defined(__linux__)
     #define DUILIB_BUILD_FOR_LINUX  1

@@ -99,6 +99,7 @@ ImageLoadParam Image::GetImageLoadParam() const
     uint32_t nIconSize = m_imageAttribute.m_nIconSize;
     int32_t nIconFrameDelayMs = m_imageAttribute.m_nIconFrameDelayMs;
     float fPagMaxFrameRate = m_imageAttribute.m_fPagMaxFrameRate;
+    DString pagFilePwd = m_imageAttribute.m_pagFilePwd.c_str();
     return ImageLoadParam(m_imageAttribute.m_srcWidth.c_str(),
                           m_imageAttribute.m_srcHeight.c_str(),
                           loadDpiScaleOption,
@@ -108,7 +109,8 @@ ImageLoadParam Image::GetImageLoadParam() const
                           bIconAsAnimation,
                           nIconFrameDelayMs,
                           nIconSize,
-                          fPagMaxFrameRate);
+                          fPagMaxFrameRate,
+                          pagFilePwd);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const

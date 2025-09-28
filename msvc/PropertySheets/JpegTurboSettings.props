@@ -16,7 +16,7 @@
         <!-- 是否支持libjpeg-turbo的宏定义： 0表示不支持；1 表示支持 -->
         <JpegTurboEnabled>1</JpegTurboEnabled>
 
-        <!-- SDL的lib列表 -->
+        <!-- lib列表 -->
         <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0'">turbojpeg-static.lib</JpegTurboLibs>
         <JpegTurboLibs Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboLibs>
 

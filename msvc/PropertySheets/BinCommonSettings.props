@@ -19,44 +19,60 @@
     <!-- JpegTurbo: 需要添加lib路径, lib列表 -->
     <Import Project="JpegTurboSettings.props" />
     
+    <!-- libpag: 需要添加lib路径, lib列表 -->
+    <Import Project="LibPagSettings.props" />
+
+    <PropertyGroup Label="Globals">
+        <!-- 头文件Include -->
+        <DuilibBinIncludeDir>$(SolutionDir)\..;$(ProjectDir)</DuilibBinIncludeDir>
+
+        <!-- 库文件Include -->
+        <DuilibBinLibIncludeDir>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+
+        <!-- 库文件列表 -->
+        <DuilibBinLibList>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);$(LibPagLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;</DuilibBinLibList>
+    </PropertyGroup>
+    
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(DuilibBinLibList);%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
         </Link>
     </ItemDefinitionGroup>
     <ItemGroup />

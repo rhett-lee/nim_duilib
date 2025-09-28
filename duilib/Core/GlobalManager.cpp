@@ -13,6 +13,7 @@
 #include "duilib/Image/ImageDecoder_Icon.h"
 #include "duilib/Image/ImageDecoder_GIF.h"
 #include "duilib/Image/ImageDecoder_PNG.h"
+#include "duilib/Image/ImageDecoder_PAG.h"
 #include "duilib/Image/ImageDecoder_SVG.h"
 #include "duilib/Image/ImageDecoder_WEBP.h"
 #include "duilib/Image/ImageDecoder_JPEG.h"
@@ -142,11 +143,19 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_SVG>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PNG>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_GIF>());
+
+#ifdef DUILIB_IMAGE_SUPPORT_JPEG_TURBO
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_JPEG>());
+#endif
+
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_WEBP>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_ICO>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Icon>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_LOTTIE>());
+
+#ifdef DUILIB_IMAGE_SUPPORT_LIB_PAG
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PAG>());
+#endif
 
     //通用解码器，放在最后
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Common>());

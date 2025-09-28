@@ -12,7 +12,7 @@
  - 皮肤支持：通过XML文件定义皮肤结构，可以轻松改变界面风格
  - 性能优异：界面资源的内存占有率低，使用Skia引擎绘制，后台绘制配置使用CPU绘制或者GPU绘制
  - 多种图片格式：支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
- - 支持动画图片：支持GIF动画文件、APNG动画文件、WebP动画文件
+ - 支持动画格式：支持GIF、APNG、WebP、LOTTIE、PAG动画文件格式
  - 窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新
  - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
  - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）
@@ -41,7 +41,7 @@
         <th>修改内容</th>
     </tr>
     <tr>
-        <td rowspan="10">整体改进</td>
+        <td rowspan="11">整体改进</td>
         <td align="left">1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
     </tr>
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
@@ -52,7 +52,8 @@
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
     <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>
-    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统）</td></tr>
+    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统）</td></tr>
+    <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
         <td rowspan="17">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
@@ -119,6 +120,7 @@
     </tr>
     <tr><td align="left">2. 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的</td></tr>
     <tr><td align="left">3. 各个平台的编译文档和依赖的编译脚本</td></tr>
+    <tr><td align="left">4. 重新整理主体项目、依赖第三方源码的授权文件，统一放在licenses目录中管理</td></tr>
 </table>
 
 ## 使用的第三方库说明
@@ -141,7 +143,8 @@
 |NIM_Duilib<br>Framework|               | 本项目是基于<br>NIM_Duilib_Framework开发   |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT 许可协议|
 |libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|BSD 3条款许可协议|
 |udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度         |[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|BSD 2条款许可协议|
-|WebView2    |duilib/third_party/<br>Microsoft.Web.WebView2| 支持WebView2控件 |[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|BSD 3条款许可协议|
+|WebView2  |duilib/third_party/<br>Microsoft.Web.WebView2| 支持WebView2控件 |[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|BSD 3条款许可协议|
+|libpag    |duilib/third_party/libpag   | 支持PAG动画文件                    |[libpag.LICENSE.txt](licenses/libpag.LICENSE.txt)|Apache License Version 2.0(主体)<br>libpag依赖的第三方组件的<br>授权协议很多，详见目录:<br>`duilib/third_party/libpag/licenses`<br>中的文件。<br>如果介意libpag的授权协议<br>（包括主体协议/第三方组件协议），<br>可以通过编译开关来关闭PAG功能<br>（关闭后就不再使用libpag）。|
 ## 界面效果预览
 使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
 

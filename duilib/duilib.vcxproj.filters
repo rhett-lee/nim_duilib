@@ -798,6 +798,12 @@
     <ClCompile Include="..\..\skia\tools\ganesh\gl\win\SkWGL_win.cpp">
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
+    <ClCompile Include="Image\Image_PAG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_PAG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1657,6 +1663,12 @@
     </ClInclude>
     <ClInclude Include="..\..\skia\tools\ganesh\gl\win\SkWGL.h">
       <Filter>RenderSkia\Skia</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_PAG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_PAG.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

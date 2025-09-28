@@ -20,29 +20,37 @@
     
     <!-- libjpeg-turbo: 需要添加include路径，需要添加是否支持的宏定义： DUILIB_JPEG_TURBO=1 开启，DUILIB_JPEG_TURBO=0 关闭  -->
     <Import Project="JpegTurboSettings.props" />
-
+    
+    <!-- libpag: 需要添加include路径，需要添加是否支持的宏定义： DUILIB_LIB_PAG=1 开启，DUILIB_LIB_PAG=0 关闭  -->
+    <Import Project="LibPagSettings.props" />
+    
+    <PropertyGroup Label="Globals">
+        <!-- Include 目录  -->
+        <DuilibIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);$(LibPagIncludeDir)</DuilibIncludeDirectories>
+    </PropertyGroup>
+    
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     

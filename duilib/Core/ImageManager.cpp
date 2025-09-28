@@ -6,6 +6,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -128,6 +129,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         decodeParam.m_nIconSize = loadParam.GetIconSize();                //ICO格式相关参数
         decodeParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
         decodeParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
+        decodeParam.m_pagFilePwd = StringConvert::TToUTF8(loadParam.GetPagFilePwd()); //PAG格式相关参数
         decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
 
         //加载图片     
