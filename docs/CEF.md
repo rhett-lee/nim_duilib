@@ -86,8 +86,8 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 #### （1）libcef 新版的支持
 libcef 的较新的版本（高于109版本），功能更完善。支持Win10及以上版本的操作系统（Win10/Win11等），不支持Win7等低于Win10的操作系统。    
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
-1. 修改VC工程的头文件包含路径：添加`duilib\third_party\libcef_win`（入口：VS工程属性 -> C/C++ -> General -> Additional Include Directories）    
-2. 修改VC工程的库文件包含路径：添加`duilib\third_party\libcef_win\lib\$(Platform)`（入口：VS工程属性 -> Linker -> General -> Additional Library Directories）    
+1. 修改VC工程的头文件包含路径：添加`duilib\third_party\libcef\libcef_win`（入口：VS工程属性 -> C/C++ -> General -> Additional Include Directories）    
+2. 修改VC工程的库文件包含路径：添加`duilib\third_party\libcef\libcef_win\lib\$(Platform)`（入口：VS工程属性 -> Linker -> General -> Additional Library Directories）    
 3. 修改VC工程的库文件包含一下库文件（入口：VS工程属性 -> Linker -> Input -> Additional Dependencies）：    
 * Debug版本添加：`libcef.lib;libcef_dll_wrapper_d.lib`    
 * Release版本添加：`libcef.lib;libcef_dll_wrapper.lib`  
@@ -99,8 +99,8 @@ libcef 的较新的版本（高于109版本），功能更完善。支持Win10�
 #### （2）libcef 109版本的支持
 libcef 109版本支持Win7及以上版本的操作系统（Win7/Win10/Win11等），不支持Windows XP等低版本的操作系统。    
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
-1. 修改VC工程的头文件包含路径：添加`duilib\third_party\libcef_win_109`（入口：VS工程属性 -> C/C++ -> General -> Additional Include Directories）    
-2. 修改VC工程的库文件包含路径：添加`duilib\third_party\libcef_win_109\lib\$(Platform)`（入口：VS工程属性 -> Linker -> General -> Additional Library Directories）    
+1. 修改VC工程的头文件包含路径：添加`duilib\third_party\libcef\libcef_win_109`（入口：VS工程属性 -> C/C++ -> General -> Additional Include Directories）    
+2. 修改VC工程的库文件包含路径：添加`duilib\third_party\libcef\libcef_win_109\lib\$(Platform)`（入口：VS工程属性 -> Linker -> General -> Additional Library Directories）    
 3. 修改VC工程的库文件包含一下库文件（入口：VS工程属性 -> Linker -> Input -> Additional Dependencies）：    
 * Debug版本添加：`libcef.lib;libcef_dll_wrapper_109_d.lib`    
 * Release版本添加：`libcef.lib;libcef_dll_wrapper_109.lib`  
@@ -133,7 +133,7 @@ resources.pak
 locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 ```
 ### 3. 程序的Makefile或者CMakeLists.txt里面需要添加的内容
-* 头文件包含路径中，添加`duilib/third_party/libcef_linux`    
+* 头文件包含路径中，添加`duilib/third_party/libcef/libcef_linux`    
 * 库文件包含路径中，添加`bin/libcef_linux`（这个目录包含了libcef的动态库文件：libcef.so等）    
 * 设置链接依赖的库，添加` libcef.so cef_dll_wrapper X11`    
 * 将libcef的二进制文件和资源文件（libcef.so等）放在以下目录`bin/libcef_linux`中。    

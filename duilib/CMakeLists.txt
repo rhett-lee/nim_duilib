@@ -66,7 +66,7 @@ include_directories("${SDL_SRC_ROOT_DIR}/include")
 
 # Conditionally include CEF directory
 if(CEF_LIB_DIR AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/${CEF_LIB_DIR}/" ABSOLUTE)
+    get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
     include_directories(${CEF_INCLUDE_ROOT_DIR})
 else()
     message(STATUS "CEF includes disabled - not supported on this platform")

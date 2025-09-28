@@ -55,7 +55,7 @@ if not exist "%DUILIB_BUILD_DIR%" (
 )
 
 @REM # 编译第三方库   
-SET DUILIB_THIRD_PARTY_LIBS=zlib,libpng,cximage,libwebp,libcef_win
+SET DUILIB_THIRD_PARTY_LIBS=zlib,libpng,cximage,libwebp,libcef\libcef_win
 for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
     %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%duilib\third_party\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE%
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_BUILD_PARAM%
