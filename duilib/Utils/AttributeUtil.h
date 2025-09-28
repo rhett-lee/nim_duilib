@@ -67,6 +67,13 @@ public:
                                 UiSize& size,
                                 bool* pScaledCX, bool* pScaledCY,
                                 bool* pPercentCX, bool* pPercentCY);
+
+    /** 对窗口大小进行校验，避免超出窗口所在屏幕的区域
+    * @param [in] pWindow 关联的窗口，可以为nullptr
+    * @param [in,out] nWindowWidth 窗口宽度
+    * @param [in,out] nWindowHeight 窗口高度
+    */
+    static void ValidateWindowSize(const Window* pWindow, int32_t& nWindowWidth, int32_t& nWindowHeight);
 };
 
 } //namespace ui

@@ -359,7 +359,7 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
         if (cx > rcWork.Width()) {
             cx = rcWork.Width();
         }
-        if (cy > rcWork.Width()) {
+        if (cy > rcWork.Height()) {
             cy = rcWork.Height();
         }
     }
@@ -370,6 +370,24 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
     }
     if (pScaledCY) {
         *pScaledCY = (pWindow != nullptr) ? true : !needScaleCY;
+    }
+}
+
+void AttributeUtil::ValidateWindowSize(const Window* pWindow, int32_t& nWindowWidth, int32_t& nWindowHeight)
+{
+    UiRect rcWork;
+    if (pWindow != nullptr) {
+        pWindow->GetMonitorWorkRect(rcWork);
+    }
+    else {
+        WindowBase::GetPrimaryMonitorWorkRect(rcWork);
+    }
+    //如果超过宽度，就按屏幕的95%来确定大小（避免占满整个屏幕，导致该状态与最大化状态无法区分）
+    if (nWindowWidth > rcWork.Width()) {
+        nWindowWidth = (int32_t)(rcWork.Width() * 0.95);
+    }
+    if (nWindowHeight > rcWork.Height()) {
+        nWindowHeight = (int32_t)(rcWork.Height() * 0.95);
     }
 }
 

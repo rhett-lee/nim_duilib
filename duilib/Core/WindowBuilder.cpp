@@ -474,8 +474,9 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
                 cy += rcShadowCorner.top + rcShadowCorner.bottom;
             }
         }
+        AttributeUtil::ValidateWindowSize(nullptr, cx, cy);
         createAttributes.m_szInitSize.cx = cx;
-        createAttributes.m_szInitSize.cy = cy;
+        createAttributes.m_szInitSize.cy = cy;        
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
@@ -735,6 +736,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                     cy += rcShadowCorner.top + rcShadowCorner.bottom;
                 }
             }
+            AttributeUtil::ValidateWindowSize(pWindow, cx, cy);
             pWindow->SetInitSize(cx, cy);
         }
         else if (strName == _T("opacity")) {
