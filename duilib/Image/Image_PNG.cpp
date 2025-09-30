@@ -366,7 +366,7 @@ bool Image_PNG::IsDelayDecodeFinished() const
     if (m_impl->m_bAsyncDecoding) {
         return false;
     }
-    return (m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
+    return (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
 }
 
 uint32_t Image_PNG::GetDecodedFrameIndex() const
@@ -391,7 +391,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
 
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
-           ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
+           ((int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
         AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
         if (pNewAnimationFrame != nullptr) {
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
@@ -419,7 +419,7 @@ bool Image_PNG::MergeDelayDecodeData()
     }
     if (!m_impl->m_bAsyncDecoding) {
         //如果解码完成，则释放图片资源
-        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+        if ((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) {
             m_impl->m_pImageDecoder.reset();
             std::vector<uint8_t> fileData;
             m_impl->m_fileData.swap(fileData);
@@ -496,7 +496,7 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     if (!m_impl->m_bAsyncDecode) {
         //同步解码的情况, 解码所需要的帧
         while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
-               (m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
+               ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
             AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
             if (pNewAnimationFrame != nullptr) {
                 m_impl->m_frames.push_back(pNewAnimationFrame);
@@ -510,7 +510,7 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
             return false;
         }
-        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+        if ((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) {
             //解码完成，释放资源
             if (m_impl->m_pImageDecoder != nullptr) {
                 m_impl->m_pImageDecoder.reset();

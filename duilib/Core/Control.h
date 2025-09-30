@@ -938,7 +938,7 @@ public:
     /** 判断颜色定义是否有效
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF       
-    *            (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
     *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：参见ui::UiColors::UiColorConsts函数中的定义
     */
@@ -947,7 +947,7 @@ public:
     /** 获取某个颜色对应的值
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
-    *            (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
     *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：直接指定预定义的颜色别名，参见ui::UiColors::UiColorConsts函数中的定义
     * @return ARGB颜色值

@@ -578,7 +578,7 @@ bool Image_GIF::IsDelayDecodeFinished() const
     if (m_impl->m_bAsyncDecoding) {
         return false;
     }
-    return (m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
+    return (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
 }
 
 uint32_t Image_GIF::GetDecodedFrameIndex() const
@@ -605,7 +605,7 @@ bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
     uint32_t nFrameIndex = (uint32_t)(m_impl->m_delayFrames.size() + m_impl->m_frames.size());
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
-           ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
+           ((int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
         AnimationFramePtr pNewAnimationFrame;
         //一次解码一帧图片
         pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
@@ -642,7 +642,7 @@ bool Image_GIF::MergeDelayDecodeData()
     }
     if (!m_impl->m_bAsyncDecoding) {
         //如果解码完成，则释放图片资源
-        if (m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+        if ((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) {
             if (m_impl->m_gifDecoder != nullptr) {
                 UiGifFreeDecoder(m_impl->m_gifDecoder, nullptr);
                 m_impl->m_gifDecoder = nullptr;
@@ -735,7 +735,7 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     if (!m_impl->m_bAsyncDecode) {
         //同步解码的情况, 解码所需要的帧
         while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
-            (m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
+               ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
             ASSERT(m_impl->m_delayFrames.empty());
             uint32_t nInitFrameIndex = (uint32_t)m_impl->m_frames.size();
             float fImageSizeScale = m_impl->m_fImageSizeScale;

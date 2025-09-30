@@ -67,7 +67,7 @@ bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) con
     if (iter != m_iconMap.end()) {
         bitmapData = iter->second;
         if (!bitmapData.m_bitmapData.empty() && (bitmapData.m_nBitmapWidth > 0) && (bitmapData.m_nBitmapHeight > 0) &&
-            (bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4 == bitmapData.m_bitmapData.size())) {
+            (bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4 == (int32_t)bitmapData.m_bitmapData.size())) {
             return true;
         }        
     }
