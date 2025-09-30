@@ -405,9 +405,14 @@ namespace ui
                                     //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
                                     //                   当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
 
-        kEventImageAnimationStart,      // 开始播放图片动画(背景图片)：wParam 为数据指针：ImageAnimationStatus*
-        kEventImageAnimationPlayFrame,  // 图片动画播放某帧(背景图片)：wParam 为数据指针：ImageAnimationStatus*
-        kEventImageAnimationStop,       // 停止播放图片动画(背景图片)：wParam 为数据指针：ImageAnimationStatus*
+        kEventImageAnimationStart,      // 开始播放图片动画(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+        kEventImageAnimationPlayFrame,  // 图片动画播放某帧(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+        kEventImageAnimationStop,       // 停止播放图片动画(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+
+                                        //ui::ControlLoadingStatus 在 "duilib/Core/ControlLoading.h"中定义
+        kEventLoadingStart,             //控件开始加载状态，此时控件变成Disabled状态：wParam 为数据指针：ui::ControlLoadingStatus*
+        kEventLoading,                  //控件处于加载中状态，定时回调：             wParam 为数据指针：ui::ControlLoadingStatus*
+        kEventLoadingStop,              //控件结束加载状态，此时控件变成Enabled状态： wParam 为数据指针：ui::ControlLoadingStatus*
 
         kEventLast                  //无使用者
     };

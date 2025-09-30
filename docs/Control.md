@@ -68,7 +68,7 @@
 | menu | false | bool | |是否需要右键菜单,如“true”|
 | no_focus | false | bool | SetNoFocus|是否可以获取焦点,如“true”|
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
-| show_focus_rect | false| bool | SetLoadingBkColor| 是否显示焦点状态(一个虚线构成的矩形) |
+| show_focus_rect | false| bool | SetShowFocusRect| 是否显示焦点状态(一个虚线构成的矩形) |
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如(128)，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hot、pushed、disabled状态 |
@@ -82,8 +82,7 @@
 | fade_in_out_x_from_right | false | bool | GetAnimationManager(). SetFadeInOutX|是否启用控件从右到左的动画,如“true”| 
 | fade_in_out_y_from_top | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从上到下的动画,如“true”| 
 | fade_in_out_y_from_bottom | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从下到上的动画,如“true”|
-| loading_image | | string | SetLoadingImage| 加载中状态的图片 |
-| loading_bkcolor | | string | SetLoadingBkColor| 加载中状态的背景色 |
+| loading     | | string | SetLoadingAttribute| 设置控件加载中状态的UI显示相关属性，使用方法与Image属性相似。<br>使用示例：loading="file='loading.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'" <br> loading的可用属性如下：<br> "file": XML资源文件名，根据此设置去加载XML资源，最终放在一个Box容器中显示<br>"width": longding控件的显示宽度，像素<br>"height": longding控件的显示高度，像素 <br> "offset_x": longding控件的位置X方向偏移，相对于关联控件的左上角，有效值: >= 0 <br> "offset_y": longding控件的位置Y方向偏移，相对于关联控件的左上角，有效值: >= 0  <br> "halign":水平方向对齐方式，可取值："left" "center" "right"，仅当offset_x不含有效值时生效 <br>  "valign":垂直方向对齐方式，可取值："top" "center" "bottom"，仅当offset_y不含有效值时生效<br>"fade":loading控件的透明度，有效值： 0 - 255<br>"auto_stop"：loading动画播放结束以后，自动停止loading状态（自动调用StopLoading()函数）<br>"animation_control":动画控件的名称，用于Loading功能与loading控件上的动画控件交互使用<br><br>loading功能的完整演示，可参考`examples/ListCtrl`示例程序|
 | paint_order | | string | SetPaintOrder| 设置绘制顺序：0 表示常规绘制，非0表示指定绘制顺序，值越大表示越晚绘制 |
 | start_image_animation     | | string | StartImageAnimation   | 播放动画，最多3个参数，每个参数用','分割，详见函数的参数列表 |
 | stop_image_animation      | | string | StopImageAnimation    | 停止动画，最多3个参数，每个参数用','分割 ，详见函数的参数列表 |

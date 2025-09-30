@@ -1,7 +1,8 @@
 #include "MainForm.h"
 #include "MainThread.h"
 
-MainForm::MainForm()
+MainForm::MainForm():
+    m_fLoadingPercent(0)
 {
 }
 
@@ -532,7 +533,175 @@ void MainForm::OnInitWindow()
         return true;
         });
 
-    //pListCtrl->StartLoading();
+    //测试loading功能
+    ui::Button* pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_progress_btn1")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                OnTestLoadingProgress();
+            }
+            return true;
+            });
+    }
+
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_progress_btn2")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading_progress2.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                OnTestLoadingProgress();
+            }
+            return true;
+            });
+    }
+
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn1")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);                
+            }
+            return true;
+            });
+    }
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn2")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading2.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);
+            }
+            return true;
+            });
+    }
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn3")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading3.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);
+            }
+            return true;
+            });
+    }
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn4")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading4.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);
+            }
+            return true;
+            });
+    }
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn5")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading5.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);
+            }
+            return true;
+            });
+    }
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_btn6")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            if (!pListCtrl->IsLoading()) {
+                pListCtrl->SetLoadingAttribute(_T("file='loading6.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
+                //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
+                pListCtrl->StartLoading(100, -1);
+            }
+            return true;
+            });
+    }
+}
+
+void MainForm::OnTestLoadingProgress()
+{
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (pListCtrl->IsLoading()) {
+        return;
+    }
+
+    m_fLoadingPercent = 0;//当前进度，模拟值
+    pListCtrl->DetachEvent(ui::kEventLoadingStart); //解除其他地方注册的回调，避免相互干扰
+    pListCtrl->AttachLoadingStart([](const ui::EventArgs& args) {
+        ui::ControlLoadingStatus* pLoadingStatus = (ui::ControlLoadingStatus*)args.wParam;
+        if (pLoadingStatus != nullptr) {
+            //获取关联控件的接口，使用前需要判断是否为nullptr
+            //ui::ControlPtrT<ui::Control> pControl = pLoadingStatus->m_pControl;
+            //ui::ControlPtrT<ui::Box> pLoadingUiRootBox = pLoadingStatus->m_pLoadingUiRootBox;
+            //ui::ControlPtrT<ui::Control> pAnimationControl = pLoadingStatus->m_pAnimationControl;
+
+        }
+        return true;
+        });
+    pListCtrl->DetachEvent(ui::kEventLoading); //解除其他地方注册的回调，避免相互干扰
+    pListCtrl->AttachLoading([pListCtrl, this](const ui::EventArgs& args) {
+        if (!pListCtrl->IsLoading()) {
+            //loading状态已经终止，停止派发该事件（当注册多个事件回调函数时，会遇到这种现象）
+            return false;
+        }
+        bool bRet = true;
+        ui::ControlLoadingStatus* pLoadingStatus = (ui::ControlLoadingStatus*)args.wParam;
+        if (pLoadingStatus != nullptr) {
+            //获取关联控件的接口，使用前需要判断是否为nullptr
+            ui::ControlPtrT<ui::Control> pControl = pLoadingStatus->m_pControl;
+            ui::ControlPtrT<ui::Box> pLoadingUiRootBox = pLoadingStatus->m_pLoadingUiRootBox;
+            ui::ControlPtrT<ui::Control> pAnimationControl = pLoadingStatus->m_pAnimationControl;
+
+            //设置进度
+            bool bFinished = false;
+            if (pAnimationControl != nullptr) {
+                uint32_t nFrameCount = pAnimationControl->GetImageAnimationFrameCount();
+                uint32_t nFrameIndex = (uint32_t)(m_fLoadingPercent * nFrameCount / 100);
+                if (nFrameIndex >= nFrameCount) {
+                    //完成
+                    nFrameIndex = nFrameCount - 1;
+                    bFinished = true;
+                }
+                pAnimationControl->SetImageAnimationFrame(nFrameIndex);
+            }
+            if (bFinished) {
+                //停止加载中的状态
+                pLoadingStatus->m_bStopLoading = true;
+            }
+            else {
+                m_fLoadingPercent += 0.35f;//当前进度，模拟值
+            }
+        }
+        return bRet;
+        });
+    pListCtrl->DetachEvent(ui::kEventLoadingStop); //解除其他地方注册的回调，避免相互干扰
+    pListCtrl->AttachLoadingStop([pListCtrl](const ui::EventArgs& args) {
+        ui::ControlLoadingStatus* pLoadingStatus = (ui::ControlLoadingStatus*)args.wParam;
+        if (pLoadingStatus != nullptr) {
+            //获取关联控件的接口，使用前需要判断是否为nullptr
+            //ui::ControlPtrT<ui::Control> pControl = pLoadingStatus->m_pControl;
+            //ui::ControlPtrT<ui::Box> pLoadingUiRootBox = pLoadingStatus->m_pLoadingUiRootBox;
+            //ui::ControlPtrT<ui::Control> pAnimationControl = pLoadingStatus->m_pAnimationControl;
+
+        }
+        //解除注册的回调，避免影响其他业务
+        pListCtrl->DetachEvent(ui::kEventLoadingStart);
+        pListCtrl->DetachEvent(ui::kEventLoading);
+        pListCtrl->DetachEvent(ui::kEventLoadingStop);
+        return true;
+        });
+
+    pListCtrl->StartLoading(33, -1);
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)

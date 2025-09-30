@@ -17,14 +17,14 @@ ImageDecoder_LOTTIE::~ImageDecoder_LOTTIE()
 
 DString ImageDecoder_LOTTIE::GetFormatName() const
 {
-    return _T("LOTTIE");
+    return _T("LOTTIE-JSON");
 }
 
 bool ImageDecoder_LOTTIE::CanDecode(const DString& imageFilePath) const
 {
     DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
-    if ((fileExt == _T("JSON")) && (fileExt == _T("LOTTIE"))) {
+    if (fileExt == _T("JSON")) {
         return true;
     }
     return false;

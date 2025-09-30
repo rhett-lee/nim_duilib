@@ -448,11 +448,8 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("tab_stop")) || (strName == _T("tabstop"))) {
         SetTabStop(strValue == _T("true"));
     }
-    else if ((strName == _T("loading_image")) || (strName == _T("loadingimage"))) {
-        SetLoadingImage(strValue);
-    }
-    else if ((strName == _T("loading_bkcolor")) || (strName == _T("loadingbkcolor"))) {
-        SetLoadingBkColor(strValue);
+    else if (strName == _T("loading")) {
+        SetLoadingAttribute(strValue);
     }
     else if (strName == _T("show_focus_rect")) {
         SetShowFocusRect(strValue == _T("true"));
@@ -901,42 +898,58 @@ void Control::SetUTF8BkImage(const std::string& strImage)
     SetBkImage(strOut);
 }
 
-void Control::SetLoadingImage(const DString& strImage) 
+bool Control::SetLoadingAttribute(const DString& loadingAttribute)
 {
-    if (!strImage.empty()) {
+    bool bRet = false;
+    if (!loadingAttribute.empty()) {
         if (m_pLoading == nullptr) {
             m_pLoading = std::make_unique<ControlLoading>(this);
         }
-    }
-    if (m_pLoading != nullptr) {
-        if (m_pLoading->SetLoadingImage(strImage)) {
-            Invalidate();
+        else {
+            if (m_pLoading->IsLoading()) {
+                m_pLoading->StopLoading();
+            }
+        }
+        bRet = m_pLoading->SetLoadingAttribute(loadingAttribute);
+        if (!bRet) {
+            m_pLoading.reset();
         }
     }
+    else {
+        bRet = true;
+        m_pLoading.reset();
+    }
+    return bRet;
 }
 
-void Control::SetLoadingBkColor(const DString& strColor) 
+bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 {
+    bool bRet = false;
+    ASSERT(m_pLoading != nullptr);
     if (m_pLoading != nullptr) {
-        if (m_pLoading->SetLoadingBkColor(strColor)) {
-            Invalidate();
-        }
-    }    
-}
-
-void Control::StartLoading(int32_t fStartAngle)
-{
-    if ((m_pLoading != nullptr) && m_pLoading->StartLoading(fStartAngle)) {
+        bRet = m_pLoading->StartLoading(nIntervalMs, nMaxCount);
+    }
+    if (bRet) {
         SetEnabled(false);
     }
+    return bRet;
 }
 
-void Control::StopLoading(AnimationImagePos frame)
+void Control::StopLoading()
 {
     if (m_pLoading != nullptr) {
-        m_pLoading->StopLoading(frame);
+        m_pLoading->StopLoading();
     }
     SetEnabled(true);
+}
+
+bool Control::IsLoading() const
+{
+    bool bRet = false;
+    if (m_pLoading != nullptr) {
+        bRet = m_pLoading->IsLoading();
+    }
+    return bRet;
 }
 
 bool Control::HasStateImages(void) const
@@ -1755,6 +1768,10 @@ void Control::SetPos(UiRect rc)
     }
     if (needInvalidate && (GetWindow() != nullptr)) {
         GetWindow()->Invalidate(invalidateRc);
+    }
+
+    if (m_pLoading != nullptr) {
+        m_pLoading->UpdateLoadingPos();
     }
 
     if (isPosChanged) {
@@ -2856,7 +2873,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
                 if (IsBordersOnTop()) {
                     PaintBorder(pCacheRender);     //绘制边框
                 }
-                PaintLoading(pCacheRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+                PaintLoading(pCacheRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
             }
             pCacheRender->SetWindowOrg(ptOldOrg);
             SetCacheDirty(false);
@@ -2881,7 +2898,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             if (IsBordersOnTop()) {
                 PaintBorder(pRender);     //绘制边框
             }
-            PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+            PaintLoading(pRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
         }
         if (isAlpha) {
             SetCacheDirty(true);
@@ -2909,7 +2926,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (IsBordersOnTop()) {
             PaintBorder(pRender);     //绘制边框
         }
-        PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+        PaintLoading(pRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
         pRender->SetWindowOrg(ptOldOrg);
     }
 }
@@ -3507,10 +3524,10 @@ void Control::PaintText(IRender* /*pRender*/)
     return;
 }
 
-void Control::PaintLoading(IRender* pRender)
+void Control::PaintLoading(IRender* pRender, const UiRect& rcPaint)
 {
     if (m_pLoading != nullptr) {
-        m_pLoading->PaintLoading(pRender);
+        m_pLoading->PaintLoading(pRender, rcPaint);
     }
 }
 
@@ -3626,6 +3643,11 @@ bool Control::StopImageAnimation(const DString& imageName,
     return false;
 }
 
+bool Control::SetImageAnimationFrame(int32_t nFrameIndex)
+{
+    return SetImageAnimationFrame(DString(), nFrameIndex);
+}
+
 bool Control::SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex)
 {
     GlobalManager::Instance().AssertUIThread();
@@ -3644,6 +3666,54 @@ bool Control::SetImageAnimationFrame(const DString& imageName, int32_t nFrameInd
         return true;
     }
     return false;
+}
+
+uint32_t Control::GetImageAnimationFrameIndex() const
+{
+    return GetImageAnimationFrameIndex(DString());
+}
+
+uint32_t Control::GetImageAnimationFrameIndex(const DString& imageName) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return 0;
+    }
+    return pImage->GetCurrentFrameIndex();
+}
+
+uint32_t Control::GetImageAnimationFrameCount()
+{
+    return GetImageAnimationFrameCount(DString());
+}
+
+uint32_t Control::GetImageAnimationFrameCount(const DString& imageName)
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return 0;
+    }
+    if (!LoadImageInfo(*pImage)) {
+        return 0;
+    }
+    return pImage->GetFrameCount();
+}
+
+bool  Control::IsImageAnimationLoaded() const
+{
+    return IsImageAnimationLoaded(DString());
+}
+
+bool  Control::IsImageAnimationLoaded(const DString& imageName) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
+    }
+    return pImage->GetImageInfo() != nullptr;
 }
 
 /** 多线程解码的数据结构(异步，在子线程解码)

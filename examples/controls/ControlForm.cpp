@@ -544,9 +544,6 @@ void ControlForm::OnResourceFileLoaded(const DString& xml)
         pRichEdit->SetFocus();
         pRichEdit->HomeUp();
     }
-    //启动加载动画
-    //pRichEdit->StartLoading();
-    //pRichEdit->StartImageAnimation();
 }
 
 void ControlForm::OnProgressValueChagned(float value)

@@ -34,7 +34,7 @@
 #include "Core/FrameworkThread.h"
 #include "Core/PlaceHolder.h"
 #include "Core/Control.h"
-#include "Core/ControlPtrT.h"
+#include "Core/ControlLoading.h"
 #include "Core/Box.h"
 #include "Core/ScrollBar.h"
 #include "Core/ControlDragable.h"

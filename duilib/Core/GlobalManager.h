@@ -256,14 +256,14 @@ public:
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    bool FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 使用构建过的缓存填充指定 Box，如果没有则重新构建
      * @param[in] pUserDefinedBox 要填充的 box 指针
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    bool FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 自定义控件创建后的全局回调函数
      * @param[in] strControlName 自定义控件名称

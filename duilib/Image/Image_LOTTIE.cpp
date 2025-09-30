@@ -1,11 +1,13 @@
 #include "Image_LOTTIE.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/RenderSkia/FontMgr_Skia.h"
 
 #include "duilib/RenderSkia/SkiaHeaderBegin.h"
 #include "modules/skottie/include/Skottie.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkFontMgr.h"
 #include "duilib/RenderSkia/SkiaHeaderEnd.h"
 
 namespace ui
@@ -111,12 +113,33 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     if (fileData.empty()) {
         return false;
     }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return false;
+    }
+    IFontMgr* pFontMgr = pRenderFactory->GetFontMgr();
+    ASSERT(pFontMgr != nullptr);
+    if (pFontMgr == nullptr) {
+        return false;
+    }
+    FontMgr_Skia* pFontMgrSKia = dynamic_cast<FontMgr_Skia*>(pFontMgr);
+    ASSERT(pFontMgrSKia != nullptr);
+    if (pFontMgrSKia == nullptr) {
+        return false;
+    }
+    sk_sp<SkFontMgr>* pSkFontMgr = (sk_sp<SkFontMgr>*)pFontMgrSKia->GetSkiaFontMgrPtr();
+    ASSERT(pSkFontMgr != nullptr);
+    if (pSkFontMgr == nullptr) {
+        return false;
+    }
+
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
     m_impl->m_fImageSizeScale = fImageSizeScale;
 
-    // 加载Lottie动画
-    m_impl->m_pSkAnimation = skottie::Animation::Builder().make((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size());
+    // 加载Lottie动画(同时设置字体管理器)
+    m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).make((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size());
     if (!m_impl->m_pSkAnimation) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);

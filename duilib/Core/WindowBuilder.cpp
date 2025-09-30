@@ -210,7 +210,7 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
     return true;
 }
 
-bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
+bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath)
 {
     ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
     if (xmlFilePath.IsEmpty()) {
@@ -219,6 +219,11 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
     bool isLoaded = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+        if (!windowResPath.IsEmpty() && !GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
+            //在窗口目录查找
+            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+            sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
+        }
         std::vector<unsigned char> file_data;
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
@@ -233,6 +238,11 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
         FilePath xmlFileFullPath;
         if (xmlFilePath.IsRelativePath()) {
             xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+            if (!windowResPath.IsEmpty() && !xmlFileFullPath.IsExistsFile()) {
+                //在窗口目录查找
+                xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+                xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
+            }
         }
         else {
             xmlFileFullPath = xmlFilePath;

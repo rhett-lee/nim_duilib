@@ -429,4 +429,9 @@ void FontMgr_Skia::DeleteSkFont(SkFont* pSkFont)
     }
 }
 
+void* FontMgr_Skia::GetSkiaFontMgrPtr() const
+{
+    return &(m_impl->m_pSkFontMgr);
+}
+
 } // namespace ui

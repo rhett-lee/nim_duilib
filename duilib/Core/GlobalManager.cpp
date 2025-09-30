@@ -796,31 +796,41 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
     return box;
 }
 
-void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
+bool GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
+    bool bRet = false;
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        if (winBuilder.ParseXmlFile(strXmlPath)) {
+        FilePath windowResPath;
+        if (pUserDefinedBox->GetWindow() != nullptr) {
+            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
+        } 
+        if (winBuilder.ParseXmlFile(strXmlPath, windowResPath)) {
             Control* pControl = winBuilder.CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
             Box* box = winBuilder.ToBox(pControl);
-            ASSERT_UNUSED_VARIABLE(box != nullptr);
+            bRet = box != nullptr;
         }
-    }    
+    }
+    return bRet;
 }
 
-void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
+bool GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox == nullptr) {
-        return;
+        return false;
     }
     ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPI感知功能要求，必须先关联窗口
     Box* box = nullptr;
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        if (winBuilder->ParseXmlFile(strXmlPath)) {
+        FilePath windowResPath;
+        if (pUserDefinedBox->GetWindow() != nullptr) {
+            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
+        }
+        if (winBuilder->ParseXmlFile(strXmlPath, windowResPath)) {
             Control* pControl = winBuilder->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
             box = winBuilder->ToBox(pControl);
         }        
@@ -837,7 +847,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         box = it->second->ToBox(pControl);
     }
     ASSERT(pUserDefinedBox == box);
-    ASSERT_UNUSED_VARIABLE(box != nullptr);
+    return (box != nullptr);
 }
 
 Control* GlobalManager::CreateControl(const DString& strControlName)

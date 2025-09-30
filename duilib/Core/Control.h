@@ -3,8 +3,8 @@
 
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
-#include "duilib/Utils/Delegate.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Utils/Delegate.h"
 #include <map>
 #include <memory>
 
@@ -121,27 +121,6 @@ public:
      * @return 无
      */
     void SetUTF8BkImage(const std::string& strImage);
-
-public:
-    /** 设置loading图片
-    * @param[in] strImage 要设置的图片路径及属性
-    */
-    void SetLoadingImage(const DString& strImage);
-
-    /** 设置loading背景色
-    * @param[in] strColor 背景色
-    */
-    void SetLoadingBkColor(const DString& strColor);
-
-    /** 开启loading状态
-    * @param[in] start_angle loading图片旋转的角度
-    */
-    void StartLoading(int32_t fStartAngle = -1);
-
-    /** 关闭loading状态
-    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
-    */
-    void StopLoading(AnimationImagePos frame = AnimationImagePos::kFrameFirst);
 
 public:
     /**
@@ -704,6 +683,42 @@ public:
     void SetRenderOffsetY(int64_t renderOffsetY);
 
 public:
+    /// Loading状态管理
+    /** 设置loading的属性，根据属性中指定的XML文件创建显示界面，并设置界面属性
+    * @param [in] loadingAttribute loading的属性字符串
+    */
+    bool SetLoadingAttribute(const DString& loadingAttribute);
+
+    /** 开启loading状态
+    * @param [in] nIntervalMs 回调的时间间隔（毫秒），最小值为10毫秒
+    * @param [in] nMaxCount 设置最大回调次数，超过此值则自动停止，loading总时间为 nMaxCount * nIntervalMs 毫秒；如果为-1表示一值加载，等待手动停止
+    */
+    bool StartLoading(int32_t nIntervalMs, int32_t nMaxCount);
+
+    /** 关闭loading状态
+    */
+    void StopLoading();
+
+    /** 当前是否正在加载中
+    */
+    bool IsLoading() const;
+
+    /** 监听loading开始的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoadingStart(const EventCallback& callback) { AttachEvent(kEventLoadingStart, callback); }
+
+    /** 监听loading回调的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoading(const EventCallback& callback) { AttachEvent(kEventLoading, callback); }
+
+    /** 监听loading结束的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoadingStop(const EventCallback& callback) { AttachEvent(kEventLoadingStop, callback); }
+
+public:
     /// 动画图片
     /** 播放动画
      * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
@@ -730,7 +745,25 @@ public:
      * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
      * @param [in] nFrameIndex 从0开始的图片帧索引号
      */
+    bool SetImageAnimationFrame(int32_t nFrameIndex);//背景图片
     bool SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex);
+
+    /** 获取动画的当前帧的索引号
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    */
+    uint32_t GetImageAnimationFrameIndex() const;//背景图片
+    uint32_t GetImageAnimationFrameIndex(const DString& imageName) const;
+
+    /** 获取动画的总帧数
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    */
+    uint32_t GetImageAnimationFrameCount();//背景图片
+    uint32_t GetImageAnimationFrameCount(const DString& imageName);
+
+    /** 动画图片是否已经完成加载
+    */
+    bool IsImageAnimationLoaded() const;//背景图片
+    bool IsImageAnimationLoaded(const DString& imageName) const;
 
     /** 监听动画播放开始通知(所有图片动画)
      * @param[in] callback 要监听动画停止播放的回调函数
@@ -1123,7 +1156,7 @@ protected:
     virtual void PaintText(IRender* pRender);
     virtual void PaintBorder(IRender* pRender);
     virtual void PaintFocusRect(IRender* pRender);
-    virtual void PaintLoading(IRender* pRender);
+    virtual void PaintLoading(IRender* pRender, const UiRect& rcPaint);
 
 protected:
     /** 是否状态图片, 只要含有任意状态图片，即返回true

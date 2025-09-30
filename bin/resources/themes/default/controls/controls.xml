@@ -93,7 +93,7 @@
                         <!-- Progress/Slider -->
                         <VBox width="200">
                             <HBox margin="0,10" height="32">
-                                <Control width="auto" height="auto" bkimage="public/animation/ani_loading.gif" valign="center"/>
+                                <Control width="20" height="20" bkimage="file='public/animation/loading3.json'" valign="center"/>
                                 <Progress class="progress_horizontal_blue" name="progress" value="0" margin="10" tooltip_text="ui::Progress"/>
                             </HBox>
                             <HBox margin="0,0,0,10" height="32">
@@ -187,7 +187,6 @@
                             hide_selection="false" multiline="true" auto_vscroll="true"
                             vscrollbar="true" hscrollbar="true" 
                             want_return_msg="true" rich="false" 
-                            loading_image="file='loading.svg' width='100'"
                             enable_drag_drop="true" enable_drop_file="true" drop_file_types=".txt;.md"/>
                 <RichEdit class="prompt" name="edit2" bkcolor="white" width="stretch" height="stretch"
                             hide_selection="false" multiline="true" auto_vscroll="true"
