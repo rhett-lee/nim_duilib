@@ -32,7 +32,7 @@ public:
         if (m_pIconControl != nullptr) {
             if (!fileInfo.m_bFolder && IsImageFile(fileInfo.m_displayName)) {
                 //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
-                int32_t itemWidth = 32;// this->GetWidth();
+                int32_t itemWidth = this->GetWidth() / 2;
                 DString imageString = fileInfo.m_filePath.ToString();
                 if (itemWidth > 0) {
                     imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d'"), imageString.c_str(), itemWidth);
@@ -67,17 +67,24 @@ private:
         if (fileExt == _T(".svg")) {
             return true;
         }
-        /*if ((fileExt == _T(".svg")) ||
+        if ((fileExt == _T(".svg")) ||
             (fileExt == _T(".jpg")) ||
             (fileExt == _T(".jpeg")) ||
+            (fileExt == _T(".jpe")) ||
+            (fileExt == _T(".jif")) ||
+            (fileExt == _T(".jfif")) ||
+            (fileExt == _T(".jfi")) ||
             (fileExt == _T(".gif")) ||
             (fileExt == _T(".png")) ||
             (fileExt == _T(".bmp")) ||
+            (fileExt == _T(".dib")) ||
             (fileExt == _T(".webp")) ||
+            (fileExt == _T(".json")) ||
+            (fileExt == _T(".pag")) ||
             (fileExt == _T(".ico"))) {
             return true;
-        }*/
-        return false;
+        }
+        return true;
     }
 
 private:

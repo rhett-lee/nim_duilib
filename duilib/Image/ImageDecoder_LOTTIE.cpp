@@ -53,7 +53,7 @@ std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodePara
                                            bLoadAllFrames,
                                            fImageSizeScale,
                                            rcMaxDestRectSize)) {
-        ASSERT(0);
+        //ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {

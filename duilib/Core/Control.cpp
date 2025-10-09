@@ -3950,7 +3950,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
 
         imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bFromCache);
         duiImage.SetImageInfo(imageInfo);
-        if (!bFromCache) {
+        if (!bFromCache && (imageInfo != nullptr)) {
             //检查并启动多线程解码，在子线程中解码图片数据
             std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
             if (pImageData != nullptr) {

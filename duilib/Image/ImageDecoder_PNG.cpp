@@ -64,7 +64,7 @@ std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& 
                                         bAsyncDecode,
                                         fImageSizeScale,
                                         rcMaxDestRectSize)) {
-        ASSERT(0);
+        //ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImagePNG->GetFrameCount() == 1)) {

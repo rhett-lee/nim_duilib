@@ -59,7 +59,7 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
                                         fImageSizeScale,
                                         pagFilePwd,
                                         rcMaxDestRectSize)) {
-        ASSERT(0);
+        //ASSERT(0);
         return nullptr;
     }
     if (!bLoadAllFrames || (pImagePAG->GetFrameCount() == 1)) {
