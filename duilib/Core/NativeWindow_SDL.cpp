@@ -1,8 +1,7 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
 #include "WindowDropTarget_SDL.h"
-#include "duilib/Image/ImageLoadParam.h"
-#include "duilib/Image/ImageInfo.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
@@ -2680,20 +2679,19 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     if (!IsWindow()) {
         return false;
     }
-    ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
-    loadAttr.SetImageFullPath(iconFileName);
-    uint32_t nFrameCount = 0;
-    ImageDecoder imageDecoder;
-    std::vector<uint8_t> fileData(iconFileData);
-    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, m_pOwner->OnNativeGetDpi().GetScale(), true, nFrameCount);
-    ASSERT(imageInfo != nullptr);
-    if (imageInfo == nullptr) {
+    ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
+    float fImageSizeScale = (m_pOwner != nullptr) ? m_pOwner->OnNativeGetDpi().GetScale() / 100.0f : 1.0f;
+    ImageDecodeParam decodeParam;
+    decodeParam.m_imagePath = iconFileName;
+    decodeParam.m_fImageSizeScale = fImageSizeScale;
+    decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>(iconFileData);
+    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);
+    if (pBitmap == nullptr) {
         return false;
     }
-
-    IBitmap* pBitmap = imageInfo->GetBitmap(0);
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
+    uint32_t nWidth = pBitmap->GetWidth();
+    uint32_t nHeight = pBitmap->GetHeight();
+    if ((nWidth < 1) || (nHeight < 1)) {
         return false;
     }
 
