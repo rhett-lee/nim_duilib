@@ -147,7 +147,7 @@ echo - Cloning SDL ...
     )
 )
 
-set SKIA_PATCH_SRC_ZIP=skia.2025-06-06.src.zip
+set SKIA_PATCH_SRC_ZIP=skia.2025-10-08.src.zip
 if not exist ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" (
     echo ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" not found!
     cd /d %CURRENT_DIR%
@@ -155,7 +155,7 @@ if not exist ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" (
 )
 
 cd skia
-git checkout 290495056ba5b737330ae7f2e6e722eeda9526f8
+git checkout 8aab0865b45e3fd0563a4ab922fca89b6f6639d1
 if %errorlevel% neq 0 (
     echo git checkout skia failed!
     cd /d %CURRENT_DIR%
