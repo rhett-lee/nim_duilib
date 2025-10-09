@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Image/ImageDecoder.h"
+#include "duilib/Utils/FileUtil.h"
 
 #ifdef DUILIB_IMAGE_SUPPORT_LIB_PAG
 
@@ -49,6 +50,77 @@ public:
     // PAG相关对象
     std::shared_ptr<pag::PAGComposition> m_pagComposition = nullptr;
     std::shared_ptr<pag::PAGDecoder> m_pagDecoder = nullptr;
+
+public:
+    //从已经打开的文件初始化数据
+    bool InitImageData(std::vector<uint8_t>& fileData,
+                       bool bLoadAllFrames,
+                       float fPagMaxFrameRate,
+                       float fImageSizeScale,
+                       const UiSize& rcMaxDestRectSize)
+    {
+        if (m_pagComposition == nullptr) {
+            m_fileData.swap(fileData);
+            return false;
+        }
+
+        m_fImageSizeScale = fImageSizeScale;
+        m_bLoadAllFrames = bLoadAllFrames;        
+        m_pagDecoder = pag::PAGDecoder::MakeFrom(m_pagComposition, fPagMaxFrameRate, 1.0f);
+        if (m_pagDecoder == nullptr) {
+            m_fileData.swap(fileData);
+            return false;
+        }
+
+        //计算合适的缩放比例
+        int32_t nWidth = m_pagDecoder->width();
+        int32_t nHeight = m_pagDecoder->height();
+        if ((nWidth <= 0) || (nHeight <= 0)) {
+            m_fileData.swap(fileData);
+            return false;
+        }
+        float fRealScale = fImageSizeScale;
+        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, nWidth, nHeight, fImageSizeScale, fRealScale)) {
+            m_fImageSizeScale = fRealScale;
+            m_pagDecoder = pag::PAGDecoder::MakeFrom(m_pagComposition, fPagMaxFrameRate, fRealScale);
+            if (m_pagDecoder == nullptr) {
+                m_fileData.swap(fileData);
+                return false;
+            }
+        }
+        else {
+            m_fImageSizeScale = fImageSizeScale;
+        }
+
+        pag::PAGDecoder& pagDecoder = *m_pagDecoder;
+        if ((pagDecoder.width() <= 0) || (pagDecoder.height() <= 0) || (pagDecoder.numFrames() <= 0)) {
+            m_fileData.swap(fileData);
+            return false;
+        }
+
+        m_nWidth = (uint32_t)pagDecoder.width();
+        m_nHeight = (uint32_t)pagDecoder.height();
+        m_nFrameCount = (int32_t)pagDecoder.numFrames();
+
+        ASSERT(m_nWidth > 0);
+        ASSERT(m_nHeight > 0);
+        ASSERT(m_nFrameCount > 0);
+
+        if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
+            //加载失败时，需要恢复原文件数据
+            m_fileData.swap(fileData);
+            return false;
+        }
+        //循环播放固定为一直播放，因GIF格式无此设置
+        m_nLoops = -1;
+        if (!bLoadAllFrames) {
+            m_nFrameCount = 1;
+        }
+
+        //每帧的播放时间
+        m_frameDelayMs = (int32_t)(1000 / pagDecoder.frameRate());    
+        return true;
+    }
 };
 
 Image_PAG::Image_PAG()
@@ -61,8 +133,23 @@ Image_PAG::~Image_PAG()
     
 }
 
-bool Image_PAG::LoadImageFromMemory(const DString& /*filePath*/,
-                                    std::vector<uint8_t>& fileData,
+bool Image_PAG::LoadImageFromFile(const FilePath& filePath,
+                                  bool bLoadAllFrames,
+                                  float fPagMaxFrameRate,
+                                  float fImageSizeScale,
+                                  const std::string& pagFilePwd,
+                                  const UiSize& rcMaxDestRectSize)
+{
+    //需要读取到内存中，然后再加载（不使用从文件路径加载的函数，因为这个函数有bug，返回失败）
+    std::vector<uint8_t> fileData;
+    FileUtil::ReadFileData(filePath, fileData);
+    if (fileData.empty()) {
+        return false;
+    }
+    return LoadImageFromMemory(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, pagFilePwd, rcMaxDestRectSize);
+}
+
+bool Image_PAG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
                                     float fPagMaxFrameRate,
                                     float fImageSizeScale,
@@ -75,75 +162,13 @@ bool Image_PAG::LoadImageFromMemory(const DString& /*filePath*/,
     }
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
-    m_impl->m_fImageSizeScale = fImageSizeScale;
-    m_impl->m_bLoadAllFrames = bLoadAllFrames;
-
-    if (!m_impl->m_fileData.empty()) {
-        m_impl->m_pagComposition = pag::PAGFile::Load(m_impl->m_fileData.data(), m_impl->m_fileData.size(), "", pagFilePwd);
-    }
-    else {
-        std::string pagFilePath;
-        m_impl->m_pagComposition = pag::PAGFile::Load(pagFilePath, pagFilePwd);
-    }
-    
+    //备注：libpag内部实际没实现支持密码的功能，只是接口支持了这个参数
+    m_impl->m_pagComposition = pag::PAGFile::Load(m_impl->m_fileData.data(), m_impl->m_fileData.size(), "", pagFilePwd);
     if (m_impl->m_pagComposition == nullptr) {
         m_impl->m_fileData.swap(fileData);
         return false;
     }
-    m_impl->m_pagDecoder = pag::PAGDecoder::MakeFrom(m_impl->m_pagComposition, fPagMaxFrameRate, 1.0f);
-    if (m_impl->m_pagDecoder == nullptr) {
-        m_impl->m_fileData.swap(fileData);
-        return false;
-    }
-
-    //计算合适的缩放比例
-    int32_t nWidth = m_impl->m_pagDecoder->width();
-    int32_t nHeight = m_impl->m_pagDecoder->height();
-    if ((nWidth <= 0) || (nHeight <= 0)) {
-        m_impl->m_fileData.swap(fileData);
-        return false;
-    }
-    float fRealScale = fImageSizeScale;
-    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, nWidth, nHeight, fImageSizeScale, fRealScale)) {
-        m_impl->m_fImageSizeScale = fRealScale;
-        m_impl->m_pagDecoder = pag::PAGDecoder::MakeFrom(m_impl->m_pagComposition, fPagMaxFrameRate, fRealScale);
-        if (m_impl->m_pagDecoder == nullptr) {
-            m_impl->m_fileData.swap(fileData);
-            return false;
-        }
-    }
-    else {
-        m_impl->m_fImageSizeScale = fImageSizeScale;
-    }
-
-    pag::PAGDecoder& pagDecoder = *m_impl->m_pagDecoder;
-    if ((pagDecoder.width() <= 0) || (pagDecoder.height() <= 0) || (pagDecoder.numFrames() <= 0)) {
-        m_impl->m_fileData.swap(fileData);
-        return false;
-    }
-
-    m_impl->m_nWidth = (uint32_t)pagDecoder.width();
-    m_impl->m_nHeight = (uint32_t)pagDecoder.height();
-    m_impl->m_nFrameCount = (int32_t)pagDecoder.numFrames();
-
-    ASSERT(m_impl->m_nWidth > 0);
-    ASSERT(m_impl->m_nHeight > 0);
-    ASSERT(m_impl->m_nFrameCount > 0);
-
-    if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
-        //加载失败时，需要恢复原文件数据
-        m_impl->m_fileData.swap(fileData);
-        return false;
-    }
-    //循环播放固定为一直播放，因GIF格式无此设置
-    m_impl->m_nLoops = -1;
-    if (!bLoadAllFrames) {
-        m_impl->m_nFrameCount = 1;
-    }
-
-    //每帧的播放时间
-    m_impl->m_frameDelayMs = (int32_t)(1000 / pagDecoder.frameRate());    
-    return true;
+    return m_impl->InitImageData(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, rcMaxDestRectSize);
 }
 
 bool Image_PAG::IsDelayDecodeEnabled() const

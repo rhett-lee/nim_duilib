@@ -38,8 +38,9 @@ std::unique_ptr<IImage> ImageDecoder_Icon::LoadImageData(const ImageDecodeParam&
 {
     std::unique_ptr<IImage> pImage;
     IconManager& iconManager = GlobalManager::Instance().Icon();
-    if (iconManager.IsIconString(decodeParam.m_imagePath)) {
-        uint32_t nIconID = iconManager.GetIconID(decodeParam.m_imagePath);
+    const DString imageFilePath = decodeParam.m_imageFilePath.NativePath(); //图片文件路径
+    if (iconManager.IsIconString(imageFilePath)) {
+        uint32_t nIconID = iconManager.GetIconID(imageFilePath);
         if (!iconManager.IsImageString(nIconID)) {
             IconBitmapData bitmapData;
             if (iconManager.GetIconBitmapData(nIconID, bitmapData)) {

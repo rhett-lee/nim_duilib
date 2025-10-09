@@ -1,6 +1,7 @@
 #include "Image_WEBP.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/FileUtil.h"
 
 #include "duilib/third_party/libwebp/src/webp/decode.h"
 #include "duilib/third_party/libwebp/src/webp/demux.h"
@@ -121,6 +122,18 @@ Image_WEBP::~Image_WEBP()
         WebPAnimDecoderDelete(m_impl->m_pWebPAnimDecoder);
         m_impl->m_pWebPAnimDecoder = nullptr;
     }
+}
+
+bool Image_WEBP::LoadImageFromFile(const FilePath& filePath,
+                                   bool bLoadAllFrames,
+                                   bool bAsyncDecode,
+                                   float fImageSizeScale,
+                                   const UiSize& rcMaxDestRectSize)
+{
+    //没有支持文件路径的接口
+    std::vector<uint8_t> fileData;
+    FileUtil::ReadFileData(filePath, fileData);
+    return LoadImageFromMemory(fileData, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
 }
 
 bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,

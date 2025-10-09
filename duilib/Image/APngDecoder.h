@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <fstream>
 
 namespace ui
 {
@@ -42,7 +43,14 @@ public:
      * @param bLoadAllFrames 是否加载所有帧，false则只加载第一帧
      * @return 加载成功返回true，失败返回false
      */
-    bool LoadFromMemory(const uint8_t* pBuf, size_t nLen, bool bLoadAllFrames = true);
+    bool LoadFromMemory(const uint8_t* pBuf, size_t nLen, bool bLoadAllFrames);
+
+    /** 从文件加载APNG图片
+     * @param filePath 文件路径
+     * @param bLoadAllFrames 是否加载所有帧，false则只加载第一帧
+     * @return 加载成功返回true，失败返回false
+     */
+    bool LoadFromFile(const std::string& filePath, bool bLoadAllFrames);
 
     /** 解码下一帧（分步解码使用）
      * @return 解码成功返回true，所有帧解码完成或失败返回false
@@ -119,6 +127,17 @@ private:
         size_t nLen;
 
         MemReader(const char* buf, size_t len) : pbuf(buf), nLen(len) {}
+        // 读取数据到libpng缓冲区
+        virtual size_t read(png_bytep data, png_size_t length) override;
+    };
+
+    // 文件读取器实现
+    struct FileReader : public IPngReader
+    {
+        std::ifstream fs;
+
+        FileReader(const std::string& filePath);
+        // 读取数据到libpng缓冲区
         virtual size_t read(png_bytep data, png_size_t length) override;
     };
 

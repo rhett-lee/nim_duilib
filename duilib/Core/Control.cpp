@@ -3908,8 +3908,8 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             }
         }
     }
-    ASSERT(!imageLoadPath.m_imageFullPath.empty());
-    if (imageLoadPath.m_imageFullPath.empty()) {
+    ASSERT(!imageLoadPath.m_imageFullPath.IsEmpty());
+    if (imageLoadPath.m_imageFullPath.IsEmpty()) {
         //图片资源文件不存在
         return false;
     }

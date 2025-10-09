@@ -40,23 +40,32 @@ bool ImageDecoder_LOTTIE::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
-        return nullptr;
-    }
-    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
-    bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_LOTTIE* pImageLOTTIE = new Image_LOTTIE;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageLOTTIE);
-    if (!pImageLOTTIE->LoadImageFromMemory(fileData,
-                                           bLoadAllFrames,
-                                           fImageSizeScale,
-                                           rcMaxDestRectSize)) {
-        //ASSERT(0);
+
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+        if (!pImageLOTTIE->LoadImageFromMemory(fileData,
+                                               fImageSizeScale,
+                                               rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        if (!pImageLOTTIE->LoadImageFromFile(decodeParam.m_imageFilePath,
+                                             fImageSizeScale,
+                                             rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else {
+        ASSERT(0);
         return nullptr;
     }
-    if (!bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {
+    
+    if (!decodeParam.m_bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         return Image_Bitmap::MakeImage(pAnimationImage);
     }

@@ -44,21 +44,33 @@ bool ImageDecoder_WEBP::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
-        return nullptr;
-    }
-    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_WEBP* pImageWEBP = new Image_WEBP;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageWEBP);
-    if (!pImageWEBP->LoadImageFromMemory(fileData,
-                                         bLoadAllFrames,
-                                         bAsyncDecode,
-                                         fImageSizeScale,
-                                         rcMaxDestRectSize)) {
+
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+        if (!pImageWEBP->LoadImageFromMemory(fileData,
+                                             bLoadAllFrames,
+                                             bAsyncDecode,
+                                             fImageSizeScale,
+                                             rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        if (!pImageWEBP->LoadImageFromFile(decodeParam.m_imageFilePath,
+                                           bLoadAllFrames,
+                                           bAsyncDecode,
+                                           fImageSizeScale,
+                                           rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else {
         ASSERT(0);
         return nullptr;
     }

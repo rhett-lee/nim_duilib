@@ -48,23 +48,21 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
 void ImageLoadParam::SetImageLoadPath(const ImageLoadPath& imageLoadPath)
 {
     m_srcImageLoadPath = imageLoadPath;
-    FilePath fullPath(imageLoadPath.m_imageFullPath.c_str());
-    fullPath.NormalizeFilePath();
-    m_srcImageLoadPath.m_imageFullPath = fullPath.NativePath();//路径规范化    
+    m_srcImageLoadPath.m_imageFullPath.NormalizeFilePath();//路径规范化      
 }
 
 const ImageLoadPath& ImageLoadParam::GetImageLoadPath() const
 {
-    ASSERT(!m_srcImageLoadPath.m_imageFullPath.empty());
+    ASSERT(!m_srcImageLoadPath.m_imageFullPath.IsEmpty());
     return m_srcImageLoadPath;
 }
 
 bool ImageLoadParam::IsSvgImageFile() const
 {
-    if (m_srcImageLoadPath.m_imageFullPath.empty()) {
+    if (m_srcImageLoadPath.m_imageFullPath.IsEmpty()) {
         return false;
     }
-    DString fileExt = FilePathUtil::GetFileExtension(m_srcImageLoadPath.m_imageFullPath);
+    DString fileExt = FilePathUtil::GetFileExtension(m_srcImageLoadPath.m_imageFullPath.ToString());
     StringUtil::MakeUpperString(fileExt);
     if (fileExt == _T("SVG")) {
         return true;
@@ -75,8 +73,8 @@ bool ImageLoadParam::IsSvgImageFile() const
 DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
 {
     //格式为(中括号内容为可选)：<图片路径>[@nLoadDpiScale][@srcWidth:srcHeight]
-    ASSERT(!m_srcImageLoadPath.m_imageFullPath.empty());
-    DString fullPath = m_srcImageLoadPath.m_imageFullPath;
+    ASSERT(!m_srcImageLoadPath.m_imageFullPath.IsEmpty());
+    DString fullPath = m_srcImageLoadPath.m_imageFullPath.ToString();
     if ((nLoadDpiScale != 0) && (nLoadDpiScale != 100)) {
         //追加缩放百分比
         fullPath += _T("@");

@@ -43,7 +43,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
 
     //重新加载资源
     const ImageLoadPath& imageLoadPath = loadParam.GetImageLoadPath();
-    DString imageFullPath = imageLoadPath.m_imageFullPath;              //图片的路径（本地路径或者压缩包内相对路径）
+    DString imageFullPath = imageLoadPath.m_imageFullPath.ToString();   //图片的路径（本地路径或者压缩包内相对路径）
     uint32_t nImageFileDpiScale = 100;                                  //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
     const bool bEnableImageDpiScale = (IsDpiScaleAllImages() &&         //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
@@ -97,26 +97,56 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         //从内存数据加载图片
         ImageDecoderFactory& ImageDecoders = GlobalManager::Instance().ImageDecoders();
         std::vector<uint8_t> fileData;
+        std::vector<uint8_t> fileHeaderData;
         if (imageLoadPath.m_pathType != ImageLoadPathType::kVirtualPath) {
             //实体图片文件，必须有图片数据用于解码图片
             FilePath imageFilePath(imageFullPath);
             if (isUseZip && !imageFilePath.IsAbsolutePath()) {
                 GlobalManager::Instance().Zip().GetZipData(imageFilePath, fileData);
+                ASSERT(!fileData.empty());
+                if (fileData.empty()) {
+                    //加载失败
+                    return nullptr;
+                }
             }
             else {
-                FileUtil::ReadFileData(imageFilePath, fileData);
-            }
-            ASSERT(!fileData.empty());
-            if (fileData.empty()) {
-                //加载失败
-                return nullptr;
-            }
+                bool bReadFileData = true;//是否读取完整文件内容到内存（默认将图片文件的数据全部读取到内存，然后再加载并解码图片数据）
+                if (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) {
+                    //本地文件（非程序的resources目录，可能存在较大的文件，比如几MB或者更大的文件）
+                    uint64_t nFileSize = imageFilePath.GetFileSize();
+                    if (nFileSize > 128 * 1024) {//128KB
+                        //大文件
+                        bReadFileData = false;
+                    }
+                }
+                if (bReadFileData) {
+                    //小文件/程序的resources目录文件等，读取文件全部数据
+                    FileUtil::ReadFileData(imageFilePath, fileData);
+                    ASSERT(!fileData.empty());
+                    if (fileData.empty()) {
+                        //加载失败
+                        return nullptr;
+                    }
+                }
+                else {
+                    //大文件，只读取文件头的部分数据，用作签名校验(读取4KB数据)
+                    FileUtil::ReadFileHeaderData(imageFilePath, 4 * 1024, fileHeaderData);
+                    ASSERT(!fileHeaderData.empty());
+                    if (fileHeaderData.empty()) {
+                        //加载失败
+                        return nullptr;
+                    }
+                }
+            }           
         }
         ImageDecodeParam decodeParam;
-        decodeParam.m_imagePath = imageFullPath;//前面的流程，当是本地文件时，已经确保文件存在
+        decodeParam.m_imageFilePath = imageFullPath;//前面的流程，当是本地文件时，已经确保文件存在
         if (!fileData.empty()) {
             decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
             decodeParam.m_pFileData->swap(fileData);
+        }
+        else if (!fileHeaderData.empty()) {
+            decodeParam.m_fileHeaderData.swap(fileHeaderData);
         }
         if (nImageFileDpiScale == 100) {//针对DPI自适应的原图，不开启该项优化，避免计算原图大小时出现异常
             decodeParam.m_rcMaxDestRectSize = loadParam.GetMaxDestRectSize();

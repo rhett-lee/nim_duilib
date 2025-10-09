@@ -17,7 +17,21 @@ public:
 
 public:
     /** 加载图像数据
-    * @param [in] filePath 文件路径
+    * @param [in] filePath 图片文件路径
+    * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
+    * @param [in] fPagMaxFrameRate 解码动画的帧率
+    * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] pagFilePwd 解码PAG文件所需的密码
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    */
+    bool LoadImageFromFile(const FilePath& filePath,
+                           bool bLoadAllFrames,
+                           float fPagMaxFrameRate,
+                           float fImageSizeScale,
+                           const std::string& pagFilePwd,
+                           const UiSize& rcMaxDestRectSize);
+
+    /** 加载图像数据
     * @param [in] fileData 图片文件数据
     * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
     * @param [in] fPagMaxFrameRate 解码动画的帧率
@@ -25,8 +39,7 @@ public:
     * @param [in] pagFilePwd 解码PAG文件所需的密码
     * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
     */
-    bool LoadImageFromMemory(const DString& filePath,
-                             std::vector<uint8_t>& fileData,
+    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
                              bool bLoadAllFrames,
                              float fPagMaxFrameRate,
                              float fImageSizeScale,

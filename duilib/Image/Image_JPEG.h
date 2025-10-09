@@ -14,15 +14,26 @@ class Image_JPEG: public IBitmapImage
 {
 public:
     /** 加载图片数据
+     * @param [in] filePath 文件路径
+     * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
+     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
+     * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+     */
+    bool LoadImageFromFile(const FilePath& filePath,
+                           float fImageSizeScale,
+                           bool bAsyncDecode,
+                           const UiSize& rcMaxDestRectSize);
+
+    /** 加载图片数据
      * @param [in] fileData 文件数据
      * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
      * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
      * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
      */
-    bool LoadImageData(std::vector<uint8_t>& fileData,
-                       float fImageSizeScale,
-                       bool bAsyncDecode,
-                       const UiSize& rcMaxDestRectSize);
+    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
+                             float fImageSizeScale,
+                             bool bAsyncDecode,
+                             const UiSize& rcMaxDestRectSize);
 
 public:
     Image_JPEG();

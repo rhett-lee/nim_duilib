@@ -1396,7 +1396,7 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_
         fImageSizeScale = static_cast<float>(nWindowDpi) / 100.0f;
     }
     ImageDecodeParam decodeParam;
-    decodeParam.m_imagePath = fileName;
+    decodeParam.m_imageFilePath = FilePath(fileName);
     decodeParam.m_fImageSizeScale = fImageSizeScale;
     decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
     decodeParam.m_pFileData->swap(imageFileData);

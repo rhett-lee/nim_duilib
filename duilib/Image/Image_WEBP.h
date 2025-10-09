@@ -15,6 +15,19 @@ public:
 
 public:
     /** 加载图像数据
+    * @param [in] filePath 图片文件路径
+    * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
+    * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
+    * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    */
+    bool LoadImageFromFile(const FilePath& filePath,
+                           bool bLoadAllFrames,
+                           bool bAsyncDecode,
+                           float fImageSizeScale,
+                           const UiSize& rcMaxDestRectSize);
+
+    /** 加载图像数据
     * @param [in] fileData 图片文件数据
     * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据

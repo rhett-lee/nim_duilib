@@ -15,13 +15,20 @@ public:
 
 public:
     /** 加载图像数据
+    * @param [in] filePath 图片文件路径
+    * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    */
+    bool LoadImageFromFile(const FilePath& filePath,
+                           float fImageSizeScale,
+                           const UiSize& rcMaxDestRectSize);
+
+    /** 加载图像数据
     * @param [in] fileData 图片文件数据
-    * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
     * @param [in] fImageSizeScale 图片缩放百分比
     * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                             bool bLoadAllFrames,
                              float fImageSizeScale,
                              const UiSize& rcMaxDestRectSize);
 
@@ -90,6 +97,18 @@ public:
     /** 合并延迟解码图片数据的结果
     */
     virtual bool MergeDelayDecodeData() override;
+
+private:
+    /** 加载图像数据或者从文件加载
+    * @param [in] fileData 图片文件数据
+    * @param [in] filePath 图片文件路径
+    * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+    */
+    bool LoadImageFromMemoryOrFile(std::vector<uint8_t>& fileData,
+                                   const FilePath& filePath,
+                                   float fImageSizeScale,
+                                   const UiSize& rcMaxDestRectSize);
 
 private:
     /** 私有实现数据

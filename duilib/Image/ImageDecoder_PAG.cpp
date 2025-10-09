@@ -40,11 +40,6 @@ bool ImageDecoder_PAG::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
-        return nullptr;
-    }
-    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
-    const DString& filePath = decodeParam.m_imagePath;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     float fPagMaxFrameRate = decodeParam.m_fPagMaxFrameRate;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
@@ -52,16 +47,33 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_PAG* pImagePAG = new Image_PAG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePAG);
-    if (!pImagePAG->LoadImageFromMemory(filePath,
-                                        fileData,
-                                        bLoadAllFrames,
-                                        fPagMaxFrameRate,
-                                        fImageSizeScale,
-                                        pagFilePwd,
-                                        rcMaxDestRectSize)) {
-        //ASSERT(0);
+
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;    
+        if (!pImagePAG->LoadImageFromMemory(fileData,
+                                            bLoadAllFrames,
+                                            fPagMaxFrameRate,
+                                            fImageSizeScale,
+                                            pagFilePwd,
+                                            rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        if (!pImagePAG->LoadImageFromFile(decodeParam.m_imageFilePath,
+                                          bLoadAllFrames,
+                                          fPagMaxFrameRate,
+                                          fImageSizeScale,
+                                          pagFilePwd,
+                                          rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else {
+        ASSERT(0);
         return nullptr;
     }
+    
     if (!bLoadAllFrames || (pImagePAG->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         return Image_Bitmap::MakeImage(pAnimationImage);

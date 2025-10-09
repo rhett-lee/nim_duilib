@@ -9,11 +9,18 @@ namespace ui
 class UILIB_API FileUtil
 {
 public:
-    /** 读取文件内容
+    /** 读取文件内容（全部内容）
     * @param [in] filePath 本地文件路径(绝对路径)
     * @param [out] fileData 文件数据，按二进制数据读取
     */
     static bool ReadFileData(const FilePath& filePath, std::vector<uint8_t>& fileData);
+
+    /** 读取文件头部分数据内容（部分内容）
+    * @param [in] filePath 本地文件路径(绝对路径)
+    * @param [in] nReadSize 读取的数据长度
+    * @param [out] fileHeaderData 文件数据，按二进制数据读取
+    */
+    static bool ReadFileHeaderData(const FilePath& filePath, uint32_t nReadSize, std::vector<uint8_t>& fileHeaderData);
 
     /** 写入文件内容
     * @param [in] filePath 本地文件路径(绝对路径)

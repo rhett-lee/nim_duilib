@@ -104,8 +104,19 @@ Image_LOTTIE::~Image_LOTTIE()
     m_impl->m_pSkAnimation.reset();
 }
 
+bool Image_LOTTIE::LoadImageFromFile(const FilePath& filePath,
+                                     float fImageSizeScale,
+                                     const UiSize& rcMaxDestRectSize)
+{
+    ASSERT(!filePath.IsEmpty());
+    if (filePath.IsEmpty()) {
+        return false;
+    }
+    std::vector<uint8_t> fileData;
+    return LoadImageFromMemoryOrFile(fileData, filePath, fImageSizeScale, rcMaxDestRectSize);
+}
+
 bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                                       bool /*bLoadAllFrames*/,
                                        float fImageSizeScale,
                                        const UiSize& rcMaxDestRectSize)
 {
@@ -113,6 +124,15 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     if (fileData.empty()) {
         return false;
     }
+    FilePath filePath;
+    return LoadImageFromMemoryOrFile(fileData, filePath, fImageSizeScale, rcMaxDestRectSize);
+}
+
+bool Image_LOTTIE::LoadImageFromMemoryOrFile(std::vector<uint8_t>& fileData,
+                                             const FilePath& filePath,
+                                             float fImageSizeScale,
+                                             const UiSize& rcMaxDestRectSize)
+{
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
@@ -139,7 +159,16 @@ bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_fImageSizeScale = fImageSizeScale;
 
     // 加载Lottie动画(同时设置字体管理器)
-    m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).make((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size());
+    if (!m_impl->m_fileData.empty()) {
+        m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).make((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size());
+    }
+    else if (!filePath.IsEmpty()) {
+        std::string jsonFilePath = filePath.NativePathA();
+        m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).makeFromFile((const char*)jsonFilePath.c_str());
+    }
+    else {
+        ASSERT(0);
+    }
     if (!m_impl->m_pSkAnimation) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);

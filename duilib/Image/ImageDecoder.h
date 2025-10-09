@@ -3,6 +3,7 @@
 
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/Callback.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui
 {
@@ -289,7 +290,7 @@ struct ImageDecodeParam
 {
 public:
     //文件路径
-    DString m_imagePath;
+    FilePath m_imageFilePath;
 
     //文件头数据(1KB数据，用于选择图片解码器)
     std::vector<uint8_t> m_fileHeaderData;

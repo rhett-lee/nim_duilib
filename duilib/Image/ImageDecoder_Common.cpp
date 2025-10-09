@@ -46,14 +46,21 @@ bool ImageDecoder_Common::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
-        return nullptr;
-    }
-    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     std::unique_ptr<IImage> pImage;
     UiImageData imageData;
-    if (ImageDecoderUtil::LoadImageFromMemory(fileData, imageData)) {
+    bool bLoaded = false;
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+        bLoaded = ImageDecoderUtil::LoadImageFromMemory(fileData, imageData);
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        bLoaded = ImageDecoderUtil::LoadImageFromFile(decodeParam.m_imageFilePath, imageData);
+    }
+    else {
+        ASSERT(0);
+    }
+    if (bLoaded) {
         int32_t nWidth = (int32_t)imageData.m_imageWidth;
         int32_t nHeight = (int32_t)imageData.m_imageHeight;
         float fNewScale = fImageSizeScale;

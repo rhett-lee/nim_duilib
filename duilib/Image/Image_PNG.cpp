@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <cmath>
+#include <fstream>
 
 namespace ui
 {
@@ -69,6 +70,7 @@ namespace ReadPngHeader
         size_t offset;
     };
 
+    //从内存数据读取数据的回调函数
     static void png_read_mem_callback(png_structp png, png_bytep data, png_size_t length) {
         PngBuffer* buf = static_cast<PngBuffer*>(png_get_io_ptr(png));
         if (buf->offset + length > buf->size) {
@@ -79,6 +81,7 @@ namespace ReadPngHeader
         buf->offset += length;
     }
 
+    //从内存数据加载图片信息
     bool load_apng_image_info(const std::vector<uint8_t>& fileData, PngImageInfo& pngImageInfo)
     {
         pngImageInfo.width = 0;
@@ -165,12 +168,123 @@ namespace ReadPngHeader
         }
         return true;
     }
+
+    // 从文件读取数据的回调函数
+    static void png_read_file_callback(png_structp png, png_bytep data, png_size_t length) {
+        std::ifstream* fp = static_cast<std::ifstream*>(png_get_io_ptr(png));
+        fp->read(reinterpret_cast<char*>(data), length);
+        if (!fp->good()) {
+            png_error(png, "Read error");
+        }
+    }
+
+    //从文件加载图片信息
+    bool load_apng_image_info(const std::string& filePath, PngImageInfo& pngImageInfo)
+    {
+        // 初始化输出结构
+        pngImageInfo.width = 0;
+        pngImageInfo.height = 0;
+        pngImageInfo.is_apng = false;
+        pngImageInfo.frame_count = 0;
+        pngImageInfo.loop_count = 0;
+        pngImageInfo.frames.clear();
+
+        // 打开文件
+        std::ifstream fp(filePath, std::ios::binary);
+        if (!fp) {
+            return false;
+        }
+
+        // 检查 PNG 签名（8字节）
+        png_byte sig[8] = {0};
+        fp.read(reinterpret_cast<char*>(sig), 8);
+        if (!fp || png_sig_cmp(sig, 0, 8) != 0) {
+            return false;
+        }
+
+        // 创建 png_struct 和 png_info
+        png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+        if (!png) {
+            return false;
+        }
+
+        png_infop info = png_create_info_struct(png);
+        if (!info) {
+            png_destroy_read_struct(&png, nullptr, nullptr);
+            return false;
+        }
+
+        // 设置错误处理（libpng 用 setjmp/longjmp）
+#pragma warning(push)
+#pragma warning(disable: 4611)
+        if (setjmp(png_jmpbuf(png))) {
+            png_destroy_read_struct(&png, &info, nullptr);
+            return false;
+        }
+#pragma warning(pop)
+
+        // 设置文件读取回调
+        png_set_read_fn(png, &fp, png_read_file_callback);
+
+        // 告诉 libpng 我们已经读取了 8 字节签名
+        png_set_sig_bytes(png, 8);
+
+        // 注册用户块回调
+        png_set_read_user_chunk_fn(png, &pngImageInfo, read_chunk_callback);
+        const png_byte chunk_name[] = "fcTL";
+        png_set_keep_unknown_chunks(png, PNG_HANDLE_CHUNK_ALWAYS, chunk_name, 1);
+
+        png_read_info(png, info);
+        png_read_update_info(png, info);
+
+        pngImageInfo.width = info->width;
+        pngImageInfo.height = info->height;
+
+        if (!png_get_valid(png, info, PNG_INFO_acTL)) {
+            //单帧图片
+            pngImageInfo.frame_count = 1;
+            pngImageInfo.loop_count = 0;
+            pngImageInfo.is_apng = false;
+        }
+        else {
+            pngImageInfo.is_apng = true;
+        }
+        png_read_end(png, info);
+        if (pngImageInfo.is_apng) {
+            pngImageInfo.frame_count = (uint32_t)pngImageInfo.frames.size();
+            pngImageInfo.loop_count = png_get_num_plays(png, info);
+        }
+        png_destroy_read_struct(&png, &info, nullptr);
+
+        ASSERT((pngImageInfo.width > 0) && (pngImageInfo.height > 0));
+        if ((pngImageInfo.width <= 0) || (pngImageInfo.height <= 0)) {
+            return false;
+        }
+        ASSERT(pngImageInfo.frame_count > 0);
+        if (pngImageInfo.frame_count <= 0) {
+            return false;
+        }
+        if (pngImageInfo.frame_count > 1) {
+            //多帧图片
+            ASSERT(pngImageInfo.frame_count == pngImageInfo.frames.size());
+            if (pngImageInfo.frame_count != pngImageInfo.frames.size()) {
+                return false;
+            }
+            if (pngImageInfo.loop_count <= 0) {
+                pngImageInfo.loop_count = -1;
+            }
+        }
+        return true;
+    }
 }
 
 struct Image_PNG::TImpl
 {
     //文件数据
     std::vector<uint8_t> m_fileData;
+
+    //文件路径
+    FilePath m_filePath;
 
     //图片宽度(按照m_fImageSizeScale缩放过的值)
     uint32_t m_nWidth = 0;
@@ -208,6 +322,66 @@ public:
 
     //各个图片帧的数据(延迟解码的数据)
     std::vector<AnimationFramePtr> m_delayFrames;
+
+public:
+    //从已经加载成功的文件初始化图片信息
+    bool InitImageData(std::vector<uint8_t>& fileData,
+                       const ReadPngHeader::PngImageInfo& pngImageInfo,
+                       bool bLoadAllFrames,
+                       bool bAsyncDecode,
+                       float fImageSizeScale,
+                       const UiSize& rcMaxDestRectSize)
+    {
+        m_fImageSizeScale = fImageSizeScale;
+        m_bLoadAllFrames = bLoadAllFrames;
+        m_bAsyncDecode = bAsyncDecode;
+
+        //只加载关键信息，不解码图片数据(记录总帧数和宽高)
+        m_nWidth = pngImageInfo.width;
+        m_nHeight = pngImageInfo.height;
+        float fScale = fImageSizeScale;
+        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_nWidth, m_nHeight, fImageSizeScale, fScale)) {
+            m_nWidth = ImageUtil::GetScaledImageSize(m_nWidth, fScale);
+            m_nHeight = ImageUtil::GetScaledImageSize(m_nHeight, fScale);
+            m_fImageSizeScale = fScale;
+        }
+        else {
+            m_nWidth = ImageUtil::GetScaledImageSize(m_nWidth, fImageSizeScale);
+            m_nHeight = ImageUtil::GetScaledImageSize(m_nHeight, fImageSizeScale);
+        }
+        m_nFrameCount = pngImageInfo.frame_count;
+        m_nLoops = pngImageInfo.loop_count;
+        if (m_nLoops <= 0) {
+            m_nLoops = -1;
+        }
+        ASSERT(m_nWidth > 0);
+        ASSERT(m_nHeight > 0);
+        ASSERT(m_nFrameCount > 0);
+
+        bool bLoaded = true;
+        if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
+            bLoaded = false;
+        }
+        else if (bLoadAllFrames) {
+            //支持加载多帧
+            m_framesDelayMs.clear();
+            if (pngImageInfo.frame_count > 1) {
+                for (const ReadPngHeader::FrameDuration& frameDuration : pngImageInfo.frames) {
+                    AnimationFrame animFrame;
+                    animFrame.SetDelayMs(frameDuration.duration_ms);
+                    m_framesDelayMs.push_back(animFrame.GetDelayMs());
+                }
+            }
+        }
+        else {
+            //按单帧加载
+            m_nFrameCount = 1;
+        }
+        if (!bLoaded) {
+            m_fileData.swap(fileData);
+        }
+        return bLoaded;
+    }
 };
 
 Image_PNG::Image_PNG()
@@ -217,6 +391,28 @@ Image_PNG::Image_PNG()
 
 Image_PNG::~Image_PNG()
 {
+}
+
+bool Image_PNG::LoadImageFromFile(const FilePath& filePath,
+                                  bool bLoadAllFrames,
+                                  bool bAsyncDecode,
+                                  float fImageSizeScale,
+                                  const UiSize& rcMaxDestRectSize)
+{
+    DStringA pngFileName = filePath.NativePathA();
+    ASSERT(!pngFileName.empty());
+    if (pngFileName.empty()) {
+        return false;
+    }
+    ReadPngHeader::PngImageInfo pngImageInfo;
+    bool bLoaded = ReadPngHeader::load_apng_image_info(pngFileName, pngImageInfo);
+    if (!bLoaded) {
+        return false;
+    }
+    m_impl->m_fileData.clear();
+    m_impl->m_filePath = filePath;
+    std::vector<uint8_t> fileData;
+    return m_impl->InitImageData(fileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
 }
 
 bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
@@ -229,70 +425,22 @@ bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     if (fileData.empty()) {
         return false;
     }
+    m_impl->m_filePath.Clear();
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
-    m_impl->m_fImageSizeScale = fImageSizeScale;
-    m_impl->m_bLoadAllFrames = bLoadAllFrames;
-    m_impl->m_bAsyncDecode = bAsyncDecode;
-
     //只加载关键信息，不解码图片数据
     ReadPngHeader::PngImageInfo pngImageInfo;
     bool bLoaded = ReadPngHeader::load_apng_image_info(m_impl->m_fileData, pngImageInfo);
-    if (bLoaded) {
-        //加载成功，记录总帧数和宽高
-        m_impl->m_nWidth = pngImageInfo.width;
-        m_impl->m_nHeight = pngImageInfo.height;
-        float fScale = fImageSizeScale;
-        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, m_impl->m_nWidth, m_impl->m_nHeight, fImageSizeScale, fScale)) {
-            m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fScale);
-            m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fScale);
-            m_impl->m_fImageSizeScale = fScale;
-        }
-        else {
-            m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
-            m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
-        }
-        m_impl->m_nFrameCount = pngImageInfo.frame_count;
-        m_impl->m_nLoops = pngImageInfo.loop_count;
-        if (m_impl->m_nLoops <= 0) {
-            m_impl->m_nLoops = -1;
-        }
-        ASSERT(m_impl->m_nWidth > 0);
-        ASSERT(m_impl->m_nHeight > 0);
-        ASSERT(m_impl->m_nFrameCount > 0);
-
-        if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
-            bLoaded = false;
-        }
-        else if (bLoadAllFrames) {
-            //支持加载多帧
-            m_impl->m_framesDelayMs.clear();
-            if (pngImageInfo.frame_count > 1) {
-                for (const ReadPngHeader::FrameDuration& frameDuration : pngImageInfo.frames) {
-                    AnimationFrame animFrame;
-                    animFrame.SetDelayMs(frameDuration.duration_ms);
-                    m_impl->m_framesDelayMs.push_back(animFrame.GetDelayMs());
-                }
-            }
-        }
-        else {
-            //按单帧加载
-            m_impl->m_nFrameCount = 1;
-        }
-    }
-    else {
+    if (!bLoaded) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);
+        return false;
     }
-    return bLoaded;
+    return m_impl->InitImageData(fileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
 }
 
 AnimationFramePtr Image_PNG::DecodeImageFrame()
 {
-    ASSERT(!m_impl->m_fileData.empty());
-    if (m_impl->m_fileData.empty()) {
-        return nullptr;
-    }
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
@@ -303,7 +451,15 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
     float fImageSizeScale = m_impl->m_fImageSizeScale;
     if (m_impl->m_pImageDecoder == nullptr) {
         m_impl->m_pImageDecoder = std::make_unique<APngDecoder>();
-        bLoaded = m_impl->m_pImageDecoder->LoadFromMemory(m_impl->m_fileData.data(), m_impl->m_fileData.size(), true);
+        if (!m_impl->m_fileData.empty()) {
+            bLoaded = m_impl->m_pImageDecoder->LoadFromMemory(m_impl->m_fileData.data(), m_impl->m_fileData.size(), m_impl->m_bLoadAllFrames);
+        }
+        else if (!m_impl->m_filePath.IsEmpty()) {
+            bLoaded = m_impl->m_pImageDecoder->LoadFromFile(m_impl->m_filePath.NativePathA(), m_impl->m_bLoadAllFrames);
+        }
+        else {
+            ASSERT(0);
+        }
         if (!bLoaded) {
             m_impl->m_pImageDecoder.reset();
             std::vector<uint8_t> fileData;
@@ -354,7 +510,7 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
 
 bool Image_PNG::IsDelayDecodeEnabled() const
 {
-    if (m_impl->m_bAsyncDecode && !m_impl->m_fileData.empty() ) {
+    if (m_impl->m_bAsyncDecode && (!m_impl->m_fileData.empty() || !m_impl->m_filePath.IsEmpty())) {
         //仅多帧时支持多线程解码
         return true;
     }

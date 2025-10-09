@@ -1,5 +1,6 @@
 #include "Image_JPEG.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/FileUtil.h"
 
 #ifdef DUILIB_IMAGE_SUPPORT_JPEG_TURBO
 
@@ -109,10 +110,21 @@ static float FindClosestScale2(float fImageSizeScale)
     return closest;
 }
 
-bool Image_JPEG::LoadImageData(std::vector<uint8_t>& fileData,
-                               float fImageSizeScale,
-                               bool bAsyncDecode,
-                               const UiSize& rcMaxDestRectSize)
+bool Image_JPEG::LoadImageFromFile(const FilePath& filePath,
+                                   float fImageSizeScale,
+                                   bool bAsyncDecode,
+                                   const UiSize& rcMaxDestRectSize)
+{
+    //没有直接支持传入文件路径的函数，需要自己读入到内存，然后再处理
+    std::vector<uint8_t> fileData;
+    FileUtil::ReadFileData(filePath, fileData);
+    return LoadImageFromMemory(fileData, fImageSizeScale, bAsyncDecode, rcMaxDestRectSize);
+}
+
+bool Image_JPEG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
+                                     float fImageSizeScale,
+                                     bool bAsyncDecode,
+                                     const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
     if (fileData.empty()) {

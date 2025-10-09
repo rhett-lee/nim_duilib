@@ -71,6 +71,10 @@ public:
     */
     bool IsExistsDirectory() const noexcept;
 
+    /** 获取文件大小
+    */
+    uint64_t GetFileSize() const noexcept;
+
     /** 获取路径分隔符（字符）
     */
     static DString::value_type GetPathSeparator();

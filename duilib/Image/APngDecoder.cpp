@@ -34,6 +34,22 @@ size_t APngDecoder::MemReader::read(png_bytep data, png_size_t length)
     return length;
 }
 
+// 文件读取器的实现
+APngDecoder::FileReader::FileReader(const std::string& filePath)
+{
+    // 以二进制模式打开文件
+    fs.open(filePath, std::ios::binary);
+}
+
+size_t APngDecoder::FileReader::read(png_bytep data, png_size_t length)
+{
+    if (!fs) {
+        return 0;
+    }
+    fs.read(reinterpret_cast<char*>(data), length);
+    return static_cast<size_t>(fs.gcount());
+}
+
 // PNG警告回调
 void APngDecoder::PngWarningCallback(png_structp png_ptr, png_const_charp message)
 {
@@ -79,11 +95,31 @@ APngDecoder::~APngDecoder()
 // 从内存加载APNG
 bool APngDecoder::LoadFromMemory(const uint8_t* pBuf, size_t nLen, bool bLoadAllFrames)
 {
-    // 先释放原有资源
+    if ((pBuf == nullptr) || (nLen == 0)) {
+        return false;
+    }
+    //先释放原有资源
     Destroy();
-
     try {
         m_reader = std::make_unique<MemReader>((const char*)pBuf, nLen);
+        return LoadPng(m_reader.get(), bLoadAllFrames);
+    }
+    catch (...) {
+        Destroy();
+        return false;
+    }
+}
+
+bool APngDecoder::LoadFromFile(const std::string& filePath, bool bLoadAllFrames)
+{
+    if (filePath.empty()) {
+        return false;
+    }
+
+    // 先释放原有资源
+    Destroy();
+    try {
+        m_reader = std::make_unique<FileReader>(filePath);
         return LoadPng(m_reader.get(), bLoadAllFrames);
     }
     catch (...) {

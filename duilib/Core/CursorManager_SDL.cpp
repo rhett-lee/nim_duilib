@@ -128,7 +128,7 @@ bool CursorManager::SetCursor(CursorType cursorType)
 
 /** 从内存数据中加载光标
 */
-static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData, const DString& imagePath)
+static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData, const FilePath& imageFilePath)
 {
     if (fileData.empty() || (pWindow == nullptr)) {
         return nullptr;
@@ -137,7 +137,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
     float fImageSizeScale = pWindow->Dpi().GetScale() / 100.0f;
     ImageDecodeParam decodeParam;
-    decodeParam.m_imagePath = imagePath;
+    decodeParam.m_imageFilePath = imageFilePath;
     decodeParam.m_fImageSizeScale = fImageSizeScale;
     decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>(fileData);
     std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);
@@ -169,6 +169,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
 
     int hot_x = 0;
     int hot_y = 0;
+    DString imagePath = imageFilePath.ToString();
     size_t nDot = imagePath.rfind(_T('.'));
     if ((nDot != DString::npos) && (fileData.size() > 16)) {
         DString ext = imagePath.substr(nDot);
@@ -234,7 +235,7 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
         ASSERT(!fileData.empty());
         if (!fileData.empty()) {
             //从内存中加载光标
-            sdlCursor = LoadCursorFromData(pWindow, fileData, curImagePath.ToString());
+            sdlCursor = LoadCursorFromData(pWindow, fileData, curImagePath);
             ASSERT(sdlCursor != nullptr);
             if (sdlCursor != nullptr) {
                 m_impl->m_cursorMap[cursorFullPath] = sdlCursor;

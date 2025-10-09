@@ -62,24 +62,37 @@ bool ImageDecoder_GIF::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
-        return nullptr;
-    }
-    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_GIF* pImageGIF = new Image_GIF;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageGIF);
-    if (!pImageGIF->LoadImageFromMemory(fileData,
-                                        bLoadAllFrames,
-                                        bAsyncDecode,
-                                        fImageSizeScale,
-                                        rcMaxDestRectSize)) {
+
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+        if (!pImageGIF->LoadImageFromMemory(fileData,
+                                            bLoadAllFrames,
+                                            bAsyncDecode,
+                                            fImageSizeScale,
+                                            rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
+        if (!pImageGIF->LoadImageFromFile(decodeParam.m_imageFilePath,
+                                          bLoadAllFrames,
+                                          bAsyncDecode,
+                                          fImageSizeScale,
+                                          rcMaxDestRectSize)) {
+            return nullptr;
+        }
+    }
+    else {
         ASSERT(0);
         return nullptr;
     }
+    
     if (!bLoadAllFrames || (pImageGIF->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         return Image_Bitmap::MakeImage(pAnimationImage);

@@ -2,6 +2,7 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/Image_Svg.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/FileUtil.h"
 #include "duilib/Core/GlobalManager.h"
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -215,10 +216,21 @@ bool ImageDecoder_SVG::CanDecode(const uint8_t* data, size_t dataLen) const
 
 std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
+    std::vector<uint8_t> fileData;
+    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
+        fileData = *decodeParam.m_pFileData;
+    }
+    else if (!decodeParam.m_imageFilePath.IsEmpty()){
+        FileUtil::ReadFileData(decodeParam.m_imageFilePath, fileData);
+        ASSERT(!fileData.empty());
+        if (fileData.empty()) {
+            return nullptr;
+        }
+    }
+    else {
+        ASSERT(0);
         return nullptr;
     }
-    const std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
     std::unique_ptr<SkMemoryStream> spMemStream = SkMemoryStream::MakeCopy(fileData.data(), fileData.size());
     ASSERT(spMemStream != nullptr);
     if (spMemStream == nullptr) {

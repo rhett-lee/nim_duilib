@@ -2,13 +2,13 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Image/ImageUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244 4505)
 #define STB_IMAGE_IMPLEMENTATION
-#define STBI_NO_STDIO
 #define STBI_NO_TGA
 #define STBI_NO_HDR
 #define STBI_NO_PIC
@@ -42,30 +42,33 @@ namespace STBImageLoader
 {
     /** 从内存数据加载图片
     */
-    static bool LoadImageFromMemory(const std::vector<uint8_t>& fileData, UiImageData& imageData)
+    static bool LoadImageFromMemoryOrFile(const std::vector<uint8_t>& fileData, const FilePath& filePath, UiImageData& imageData)
     {
-        ASSERT(!fileData.empty());
-        if (fileData.empty()) {
-            return false;
-        }
 #ifdef DUILIB_BUILD_FOR_WIN
         imageData.m_imageDataType = UiImageDataType::kBGRA;
 #else
         imageData.m_imageDataType = UiImageDataType::kRGBA;
 #endif
-        const uint8_t* buffer = fileData.data();
-        int len = (int)fileData.size();
         int nWidth = 0;
         int nHeight = 0;
         std::vector<uint8_t>& argbData = imageData.m_imageData;
         argbData.clear();
-        ASSERT((buffer != nullptr) && (len > 0));
-        if ((buffer == nullptr) || (len <= 0)) {
-            return false;
-        }
         constexpr const int desired_channels = 4; //返回的图像数据格式固定：RGBA，每个图像元素是4个字节
         int channels_in_file = 4;
-        uint8_t* rgbaData = stbi_load_from_memory(buffer, len, &nWidth, &nHeight, &channels_in_file, desired_channels);
+        uint8_t* rgbaData = nullptr;
+        if (!fileData.empty()) {
+            const uint8_t* buffer = fileData.data();
+            int len = (int)fileData.size();
+            rgbaData = stbi_load_from_memory(buffer, len, &nWidth, &nHeight, &channels_in_file, desired_channels);
+        }
+        else if (!filePath.IsEmpty()) {
+            std::string filePathA = filePath.NativePathA();
+            rgbaData = stbi_load(filePathA.c_str(), &nWidth, &nHeight, &channels_in_file, desired_channels);
+        }
+        else {
+            ASSERT(0);
+        }
+        
         if (rgbaData == nullptr) {
             return false;
         }
@@ -337,10 +340,29 @@ bool ImageDecoderUtil::CanDecode(const uint8_t* data, size_t dataLen)
     return true;
 }
 
+bool ImageDecoderUtil::LoadImageFromFile(const FilePath& filePath,
+                                         UiImageData& imageData)
+{
+    std::vector<uint8_t> fileData;
+    return STBImageLoader::LoadImageFromMemoryOrFile(fileData, filePath, imageData);
+}
+
 bool ImageDecoderUtil::LoadImageFromMemory(const std::vector<uint8_t>& fileData,
                                            UiImageData& imageData)
 {
-    return STBImageLoader::LoadImageFromMemory(fileData, imageData);
+    FilePath filePath;
+    return STBImageLoader::LoadImageFromMemoryOrFile(fileData, filePath, imageData);
+}
+
+bool ImageDecoderUtil::LoadIcoFromFile(const FilePath& filePath,
+                                       bool bLoadAllFrames,
+                                       uint32_t iconSize /*仅当bLoadAllFrames为false时有效*/,
+                                       std::vector<UiImageData>& imageData)
+{
+    //ICO格式只支持从内存流加载
+    std::vector<uint8_t> fileData;
+    FileUtil::ReadFileData(filePath, fileData);
+    return CxImageLoader::LoadImageFromMemory(fileData, bLoadAllFrames, iconSize, imageData);
 }
 
 bool ImageDecoderUtil::LoadIcoFromMemory(const std::vector<uint8_t>& fileData,

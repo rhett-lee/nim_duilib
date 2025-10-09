@@ -2682,7 +2682,7 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
     float fImageSizeScale = (m_pOwner != nullptr) ? m_pOwner->OnNativeGetDpi().GetScale() / 100.0f : 1.0f;
     ImageDecodeParam decodeParam;
-    decodeParam.m_imagePath = iconFileName;
+    decodeParam.m_imageFilePath = iconFileName;
     decodeParam.m_fImageSizeScale = fImageSizeScale;
     decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>(iconFileData);
     std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);

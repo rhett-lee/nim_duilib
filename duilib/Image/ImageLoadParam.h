@@ -2,6 +2,7 @@
 #define UI_IMAGE_IMAGE_LOAD_PARAM_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui 
 {
@@ -23,7 +24,7 @@ enum class UILIB_API ImageLoadPathType
 struct UILIB_API ImageLoadPath
 {
     //图片路径（本地绝对路径或者压缩包内的相对路径）
-    DString m_imageFullPath;
+    FilePath m_imageFullPath;
 
     //图片路径类型
     ImageLoadPathType m_pathType = ImageLoadPathType::kUnknownPath;
