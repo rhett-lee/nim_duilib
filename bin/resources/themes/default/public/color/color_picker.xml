@@ -62,7 +62,7 @@
                                     <VBox width="204">
                                         <HBox height="28" margin="0,2,0,0">
                                             <Label text="颜色值ARGB：" height="28" text_align="vcenter" margin="2,0,0,0"/>
-                                            <RichEdit class="simple color_picker_color_edit" name="color_picker_new_color_edit" height="28" width="90" text="#FFFFFFFF" halign="center" text_align="left,vcenter" readonly="false" limit_text="9" limit_chars="#0123456789ABCDEFabcdef"/>
+                                            <RichEdit class="simple color_picker_color_edit" name="color_picker_new_color_edit" height="28" width="90" halign="center" text_align="left,vcenter" readonly="false" limit_text="9" limit_chars="#0123456789ABCDEFabcdef" text="#FFFFFFFF"/>
                                         </HBox>
                                         <GroupVBox margin="2,0,2,2" height="auto" text=" RGB ">
                                             <HBox height="28" margin="4,22,0,0">
