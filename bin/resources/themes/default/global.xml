@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+】、<?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
     <!-- 字体说明："微软雅黑","宋体" 是Windows使用 -->
@@ -197,7 +197,7 @@
                              selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' width='18' height='18' valign='center' fade='80'"/>
     <!--下拉框-->
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
@@ -209,18 +209,18 @@
                                             normal_image={file='public/combo/arrow_normal.svg' valign='center'} 
                                             hot_image={file='public/combo/arrow_hot.svg' valign='center'}"/>
     <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                               combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                               combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                                combo_tree_node_class="tree_node" 
                                combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                                combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
-                              dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
+                              dropbox="padding='0,0,0,0' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='0,0,0,0' vscrollbar='true'"
                               dropbox_item_class="width={stretch} height={24} text_padding={20,0,2,1} text_align={left,vcenter} 
                                                   normal_image={file='public/checkbox/checkbox-outline-unchecked.svg' valign='center'} 
                                                   selected_normal_image={file='public/checkbox/checkbox-outline-checked.svg' valign='center'}" 
                               selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,1,2,1}"/>
     <Class name="combo_button" padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
-                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} valign={center} 
                                                   hot_border_color={blue} 
                                                   pushed_border_color={blue}                                                   

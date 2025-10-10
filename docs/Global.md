@@ -225,7 +225,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <!--下拉框-->
 <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                    combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                    combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                     combo_tree_node_class="tree_node" 
                     combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
                     combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"

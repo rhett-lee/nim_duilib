@@ -27,7 +27,7 @@
 
     <!--下拉框-->
     <Class name="property_grid_combo" bkcolor="white" dropbox_size="0,200" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
@@ -35,7 +35,7 @@
     <!--颜色选择下拉框-->
     <Class name="property_grid_combo_button" height="100%" width="100%" dropbox_size="200,250"
                                padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
-                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} bkcolor={white} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center}" 
                                left_button_top_label_class="width={stretch} height={16} margin={1,0,1,0} font={system_12} text_align={bottom,hcenter}" 
                                left_button_bottom_label_class="width={stretch} height={stretch} margin={2,0,2,1} bkcolor={black}" 
