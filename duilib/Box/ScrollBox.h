@@ -13,7 +13,7 @@ namespace ui
 {
 
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
- *   通过修改布局，形成 HScrollBox 和 VScrollBox 和 TileScrollBox三个子类
+ *   通过修改布局，形成 HScrollBox/VScrollBox/HTileScrollBox/VTileScrollBox四个子类
  */
 class UILIB_API ScrollBox : public Box
 {

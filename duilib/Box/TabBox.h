@@ -5,7 +5,8 @@
 
 namespace ui
 {
-
+/** 页管理容器，内部的多个子控件，只有一个可见，其他是隐藏的，可动态切换
+*/
 class UILIB_API TabBox : public Box
 {
     typedef Box BaseClass;
