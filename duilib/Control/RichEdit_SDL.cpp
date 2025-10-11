@@ -3255,6 +3255,11 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
         //使用Control设置的光标
         return BaseClass::OnSetCursor(msg);
     }
+    if (!IsEnabled()) {
+        //未启用状态下，使用默认光标
+        return BaseClass::OnSetCursor(msg);
+    }
+
     SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
     return true;
 }

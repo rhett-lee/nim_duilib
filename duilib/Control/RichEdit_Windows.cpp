@@ -1918,6 +1918,11 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
         return BaseClass::OnSetCursor(msg);
     }
 
+    if (!IsEnabled()) {
+        //未启用状态下，使用默认光标
+        return BaseClass::OnSetCursor(msg);
+    }
+
     if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
         return true;
     }
