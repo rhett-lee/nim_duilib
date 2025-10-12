@@ -14,7 +14,7 @@
                 <Button class="btn_global_white_80x30" name="btn_find_next" text="查找下一个" width="80" height="28" margin="4,8,8,0"/>
             </HBox>
             <GroupVBox margin="10,6,10,6" text=" 搜索方向 " height="auto" corner_size="4,4">
-                <HBox height="40" margin="8,16,8,0" padding="12,0,0,0">
+                <HBox height="40" margin="24,12,8,4" padding="12,0,0,0">
                     <Option class="option_1" group="option_direction_group" text="向上搜索" margin="0,6,0,0"/>
                     <Option class="option_1" group="option_direction_group" text="向下搜索" name="option_direction_down" margin="16,6,0,0" selected="true"/>
                 </HBox>

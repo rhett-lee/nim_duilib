@@ -2,6 +2,7 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/ImagePlayer.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
 namespace ui 
@@ -93,7 +94,7 @@ ImageLoadParam Image::GetImageLoadParam() const
 {
     DpiScaleOption loadDpiScaleOption = m_imageAttribute.m_loadDpiScale;
     DpiScaleOption imageSizeDpiScaleOption = m_imageAttribute.m_sizeDpiScale;
-    uint32_t nLoadDpiScale = 100;//此时未知，不需要设置
+    uint32_t nLoadDpiScale = (m_pControl != nullptr) ? m_pControl->Dpi().GetScale() : 100;
     bool bAsyncDecode = m_imageAttribute.m_bAsyncLoad;
     bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
     uint32_t nIconSize = m_imageAttribute.m_nIconSize;
