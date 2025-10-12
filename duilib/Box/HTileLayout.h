@@ -7,7 +7,9 @@ namespace ui
 {
 
 /** 瓦片布局(横向)
-*/
+ *  水平方向对齐方式：靠左对齐，按控件依次排列，子控件本身指定的垂直对齐方式不生效
+ *  垂直方向对齐方式：默认居中对齐
+ */
 class UILIB_API HTileLayout : public Layout
 {
     typedef Layout BaseClass;
@@ -181,7 +183,7 @@ private:
                                    UiRect& szTilePos);
 
 private:
-    /** 对子控件布局的内部实现函数
+    /** 对子控件布局的内部实现函数（默认对齐方式：居中对齐）
     * @param [in] items 子控件列表
     * @param [in] rect 可用矩形大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
     * @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
@@ -195,7 +197,7 @@ private:
                                 const std::vector<int32_t>& inRowHeights,
                                 std::vector<int32_t>& outRowHeights) const;
 
-    /** 使用自由布局排列控件(无固定列数，尽量充分利用展示空间，显示尽可能多的内容)
+    /** 使用自由布局排列控件(无固定列数，尽量充分利用展示空间，显示尽可能多的内容)（默认对齐方式：居中对齐）
     * @param [in] items 子控件列表
     * @param [in] rect 可用矩形大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
     * @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。

@@ -480,10 +480,10 @@ private:
     UiPadding16 m_rcPadding;
 
     //控件水平对齐方式(HorAlignType)
-    int8_t m_horAlignType;
+    HorAlignType m_horAlignType;
 
     //控件垂直对齐方式(VerAlignType)
-    int8_t m_verAlignType;
+    VerAlignType m_verAlignType;
 
     //是否需要重新评估大小
     bool m_bReEstimateSize;

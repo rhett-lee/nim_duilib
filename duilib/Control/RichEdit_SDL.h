@@ -417,7 +417,7 @@ public:
 
     /** 设置文本水平对齐方式
     */
-    void SetHAlignType(HorAlignType alignType);
+    void SetTextHAlignType(HorAlignType alignType);
 
     /** 获取文本水平对齐方式
     */
@@ -425,7 +425,7 @@ public:
 
     /** 设置文本垂直对齐方式
     */
-    void SetVAlignType(VerAlignType alignType);
+    void SetTextVAlignType(VerAlignType alignType);
 
     /** 获取文本垂直对齐方式
     */

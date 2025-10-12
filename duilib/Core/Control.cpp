@@ -70,13 +70,13 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("halign")) {
         if (strValue == _T("left")) {
-            SetHorAlignType(kHorAlignLeft);
+            SetHorAlignType(HorAlignType::kHorAlignLeft);
         }
         else if (strValue == _T("center")) {
-            SetHorAlignType(kHorAlignCenter);
+            SetHorAlignType(HorAlignType::kHorAlignCenter);
         }
         else if (strValue == _T("right")) {
-            SetHorAlignType(kHorAlignRight);
+            SetHorAlignType(HorAlignType::kHorAlignRight);
         }
         else {
             ASSERT(0);
@@ -84,16 +84,38 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("valign")) {
         if (strValue == _T("top")) {
-            SetVerAlignType(kVerAlignTop);
+            SetVerAlignType(VerAlignType::kVerAlignTop);
         }
         else if (strValue == _T("center")) {
-            SetVerAlignType(kVerAlignCenter);
+            SetVerAlignType(VerAlignType::kVerAlignCenter);
         }
         else if (strValue == _T("bottom")) {
-            SetVerAlignType(kVerAlignBottom);
+            SetVerAlignType(VerAlignType::kVerAlignBottom);
         }
         else {
             ASSERT(0);
+        }
+    }
+    else if (strName == _T("align")) {
+        //水平对齐
+        if (strValue.find(_T("left")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kHorAlignLeft);
+        }
+        if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kHorAlignCenter);
+        }
+        if (strValue.find(_T("right")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kHorAlignRight);
+        }
+        //垂直对齐
+        if (strValue.find(_T("top")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kVerAlignTop);
+        }
+        if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kVerAlignCenter);
+        }
+        if (strValue.find(_T("bottom")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kVerAlignBottom);
         }
     }
     else if (strName == _T("margin")) {

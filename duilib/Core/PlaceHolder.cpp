@@ -13,8 +13,8 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_cxyMin(0, 0),
     m_cxyMax(INT32_MAX, INT32_MAX),
     m_pParent(nullptr),
-    m_horAlignType(kHorAlignLeft),
-    m_verAlignType(kVerAlignTop),
+    m_horAlignType(HorAlignType::kHorAlignLeft),
+    m_verAlignType(VerAlignType::kVerAlignTop),
     m_bFloat(false),
     m_bVisible(true),
     m_bAncestorVisible(true),
@@ -410,7 +410,7 @@ void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 
 HorAlignType PlaceHolder::GetHorAlignType() const
 { 
-    return static_cast<HorAlignType>(m_horAlignType);
+    return m_horAlignType;
 }
 
 void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
@@ -428,7 +428,7 @@ void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 
 VerAlignType PlaceHolder::GetVerAlignType() const
 { 
-    return static_cast<VerAlignType>(m_verAlignType);
+    return m_verAlignType;
 }
 
 UiMargin PlaceHolder::GetMargin() const

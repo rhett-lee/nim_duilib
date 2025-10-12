@@ -15,6 +15,7 @@
 #include "duilib/Core/UiFixedInt.h"
 #include "duilib/Core/UiEstInt.h"
 #include "duilib/Core/UiString.h"
+#include <string>
 #include <cmath>
 #include <memory>
 #include <vector>

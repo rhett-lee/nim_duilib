@@ -1015,8 +1015,8 @@ private:
     void GetCharFormat(const DString& fontId, CHARFORMAT2W& cf) const;
 
     //文本横向和纵向对齐方式
-    void SetHAlignType(HorAlignType alignType);
-    void SetVAlignType(VerAlignType alignType);
+    void SetTextHAlignType(HorAlignType alignType);
+    void SetTextVAlignType(VerAlignType alignType);
 
     /** 使用私有的DC绘制
     */

@@ -51,7 +51,7 @@ void RichEditData::SetScrollOffset(const UiSize& szScrollOffset)
     m_szScrollOffset = szScrollOffset;
 }
 
-void RichEditData::SetHAlignType(HorAlignType hAlignType)
+void RichEditData::SetTextHAlignType(HorAlignType hAlignType)
 {
     if (m_hAlignType != hAlignType) {
         m_hAlignType = hAlignType;
@@ -64,7 +64,7 @@ HorAlignType RichEditData::GetHAlignType() const
     return m_hAlignType;
 }
 
-void RichEditData::SetVAlignType(VerAlignType vAlignType)
+void RichEditData::SetTextVAlignType(VerAlignType vAlignType)
 {
     if (m_vAlignType != vAlignType) {
         m_vAlignType = vAlignType;

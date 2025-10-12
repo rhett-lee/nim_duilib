@@ -152,23 +152,23 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHAlignType(kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kHorAlignLeft);
         }
         if (strValue.find(_T("right")) != DString::npos) {
-            SetHAlignType(kHorAlignRight);
+            SetTextHAlignType(HorAlignType::kHorAlignRight);
         }
         if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHAlignType(kHorAlignCenter);
+            SetTextHAlignType(HorAlignType::kHorAlignCenter);
         }
 
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVAlignType(kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kVerAlignTop);
         }
         if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVAlignType(kVerAlignBottom);
+            SetTextVAlignType(VerAlignType::kVerAlignBottom);
         }
         if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVAlignType(kVerAlignCenter);
+            SetTextVAlignType(VerAlignType::kVerAlignCenter);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -2894,10 +2894,10 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
     }
 }
 
-void RichEdit::SetHAlignType(HorAlignType alignType)
+void RichEdit::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_pTextData->GetHAlignType() != alignType) {
-        m_pTextData->SetHAlignType(alignType);
+        m_pTextData->SetTextHAlignType(alignType);
         Redraw();
     }
 }
@@ -2907,10 +2907,10 @@ HorAlignType RichEdit::GetHAlignType() const
     return m_pTextData->GetHAlignType();
 }
 
-void RichEdit::SetVAlignType(VerAlignType alignType)
+void RichEdit::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_pTextData->GetVAlignType() != alignType) {
-        m_pTextData->SetVAlignType(alignType);
+        m_pTextData->SetTextVAlignType(alignType);
         Redraw();
     }
 }

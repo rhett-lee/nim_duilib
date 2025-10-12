@@ -87,7 +87,7 @@ public:
 
     /** 设置文本水平对齐方式(应用于整体文本)
     */
-    void SetHAlignType(HorAlignType hAlignType);
+    void SetTextHAlignType(HorAlignType hAlignType);
 
     /** 获取文本水平对齐方式
     */
@@ -95,7 +95,7 @@ public:
 
     /** 设置文本垂直对齐方式(应用于整体文本)
     */
-    void SetVAlignType(VerAlignType vAlignType);
+    void SetTextVAlignType(VerAlignType vAlignType);
 
     /** 获取文本垂直对齐方式
     */

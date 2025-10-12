@@ -6,10 +6,13 @@
 namespace ui 
 {
 
-/** 水平布局: 各个子控件纵向坐标的top都相同，水平方向依次排列
-*/
+/** 水平布局: 各个子控件纵向靠上，水平方向依次排列
+ *  水平方向对齐方式：默认靠左对齐，子控件本身指定的垂直对齐方式不生效
+ *  垂直方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件
+ */
 class UILIB_API HLayout : public Layout
 {
+    typedef Layout BaseClass;
 public:
     HLayout();
 

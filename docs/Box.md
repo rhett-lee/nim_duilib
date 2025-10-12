@@ -83,9 +83,12 @@
 ### 1. 浮动布局（Layout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | 子控件之间的额外边距: X 轴方向 和 Y 轴方向同时设置为相同值|
-| child_margin_x | 0 | int | 子控件之间的额外边距: X 轴方向 |
-| child_margin_y | 0 | int | 子控件之间的额外边距: Y 轴方向|
+| child_margin   | 0 | int | 子控件之间的间隔: X 轴方向 和 Y 轴方向同时设置为相同值|
+| child_margin_x | 0 | int | 子控件之间的间隔: X 轴方向 |
+| child_margin_y | 0 | int | 子控件之间的间隔: Y 轴方向 |
+| child_valign   |   | string | 子控件的垂直方向对齐方式，可选值："top","center","bottom" |
+| child_halign   |   | string | 子控件的水平方向对齐方式，可选值："left","center","right" |
+| child_align    |   | string | 同时设置子控件的水平方向和垂直方向的对齐方式，功能与child_valign和child_halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 
 ### 2. 水平布局（HLayout）
 可用属性继承`浮动布局（Layout）`的属性
@@ -139,9 +142,12 @@
 ### 1. 容器（Box）的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| child_margin   | 0 | int | 布局属性，子控件之间的额外边距: X 轴方向 和 Y 轴方向同时设置为相同值|
-| child_margin_x | 0 | int | 布局属性，子控件之间的额外边距: X 轴方向 |
-| child_margin_y | 0 | int | 布局属性，子控件之间的额外边距: Y 轴方向|
+| child_margin   | 0 | int | 布局属性，子控件之间的间隔: X 轴方向 和 Y 轴方向同时设置为相同值|
+| child_margin_x | 0 | int | 布局属性，子控件之间的间隔: X 轴方向 |
+| child_margin_y | 0 | int | 布局属性，子控件之间的间隔: Y 轴方向 |
+| child_valign   |   | string | 布局属性，子控件的垂直方向对齐方式，可选值："top","center","bottom" |
+| child_halign   |   | string | 布局属性，子控件的水平方向对齐方式，可选值："left","center","right" |
+| child_align    |   | string | 布局属性，同时设置子控件的水平方向和垂直方向的对齐方式，功能与child_valign和child_halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | margin | 0,0,0,0 | rect | 外边距,如(2,2,2,2) |
 | padding | 0,0,0,0 | rect | 内边距,如(2,2,2,2) |
 | mouse_child | true | bool | 子控件是否可以鼠标操作, true 或者 false|

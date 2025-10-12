@@ -442,23 +442,23 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHAlignType(kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kHorAlignLeft);
         }
         if (strValue.find(_T("right")) != DString::npos) {
-            SetHAlignType(kHorAlignRight);
+            SetTextHAlignType(HorAlignType::kHorAlignRight);
         }
         if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHAlignType(kHorAlignCenter);
+            SetTextHAlignType(HorAlignType::kHorAlignCenter);
         }
 
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVAlignType(kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kVerAlignTop);
         }
         if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVAlignType(kVerAlignBottom);
+            SetTextVAlignType(VerAlignType::kVerAlignBottom);
         }
         if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVAlignType(kVerAlignCenter);
+            SetTextVAlignType(VerAlignType::kVerAlignCenter);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -3531,10 +3531,10 @@ void RichEdit::SetTextColorInternal(const UiColor& textColor)
     }
 }
 
-void RichEdit::SetHAlignType(HorAlignType alignType)
+void RichEdit::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->SetHAlignType(alignType);
+        m_pRichHost->SetTextHAlignType(alignType);
     }
     PARAFORMAT pf;
     ZeroMemory(&pf, sizeof(PARAFORMAT));
@@ -3554,10 +3554,10 @@ void RichEdit::SetHAlignType(HorAlignType alignType)
     ASSERT_UNUSED_VARIABLE(bRet);
 }
 
-void RichEdit::SetVAlignType(VerAlignType alignType)
+void RichEdit::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->SetVAlignType(alignType);
+        m_pRichHost->SetTextVAlignType(alignType);
     }
 }
 

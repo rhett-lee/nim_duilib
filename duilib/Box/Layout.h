@@ -2,8 +2,6 @@
 #define UI_BOX_LAYOUT_H_
 
 #include "duilib/Core/UiTypes.h"
-#include <string>
-#include <vector>
 
 namespace ui 
 {
@@ -27,10 +25,10 @@ enum class LayoutType
     ListCtrlReportLayout    //ListCtrl控件的Report模式布局
 };
 
-/** 控件布局(Float方式布局)：
-*    各个子控件顶点坐标(left,top)都相同，各个控件堆叠排列（相当于都看成是Float控件）
-*    子控件可用指定横向对齐方式和纵向对齐方式，排列的时候会按照子控件指定的对齐方式排列
-*/
+/** 控件布局(Float方式布局)：各个子控件以区域左上角坐标依次堆叠排列（相当于都看成是Float控件）
+ *  水平方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件
+ *  垂直方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件
+ */
 class UILIB_API Layout
 {
 public:
@@ -42,6 +40,22 @@ public:
     /** 布局类型
     */
     virtual LayoutType GetLayoutType() const { return LayoutType::FloatLayout; }
+
+    /** 设置布局属性
+     * @param [in] strName 要设置的属性名
+     * @param [in] strValue 要设置的属性值
+     * @param [in] dpiManager DPI管理接口
+     * @return true 设置成功，false 属性不存在
+     */
+    virtual bool SetAttribute(const DString& strName, 
+                              const DString& strValue,
+                              const DpiManager& dpiManager);
+
+    /** DPI发生变化，更新控件大小和布局
+     * @param [in] nOldDpiScale 旧的DPI缩放百分比
+     * @param [in] dpiManager DPI缩放管理器
+     */
+    virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
 
     /** 是否为纵向布局
     */
@@ -77,31 +91,6 @@ public:
                (type == LayoutType::VirtualHTileLayout);
     }
 
-    /** 设置所有者容器接口
-     */
-    void SetOwner(Box* pOwner);
-
-    /** 获取所有者容器接口
-    */
-    Box* GetOwner() const { return m_pOwner; }
-
-    /** 设置浮动状态下的坐标信息
-     * @param[in] pControl 控件句柄
-     * @param[in] rcContainer 要设置的矩形区域，包含内边距，包含外边距
-     * @return 返回控件最终的大小信息（宽度和高度）
-     */
-    static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
-
-    /** 设置布局属性
-     * @param [in] strName 要设置的属性名
-     * @param [in] strValue 要设置的属性值
-     * @param [in] dpiManager DPI管理接口
-     * @return true 设置成功，false 属性不存在
-     */
-    virtual bool SetAttribute(const DString& strName, 
-                              const DString& strValue,
-                              const DpiManager& dpiManager);
-
     /** 调整内部所有控件的位置信息
      * @param[in] items 控件列表
      * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
@@ -120,41 +109,70 @@ public:
      */
     virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
 
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] dpiManager DPI缩放管理器
-    */
-    virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
-
 public:
+    /** 设置所有者容器接口
+    */
+    void SetOwner(Box* pOwner);
+
+    /** 获取所有者容器接口
+    */
+    Box* GetOwner() const { return m_pOwner; }
+
     /** 获取子控件之间的额外边距（X轴方向）
      * @return 返回额外间距的数值
      */
-    int32_t GetChildMarginX() const { return m_iChildMarginX; }
+    int32_t GetChildMarginX() const { return m_nChildMarginX; }
 
     /** 获取子控件之间的额外边距（Y轴方向）
      * @return 返回额外间距的数值
      */
-    int32_t GetChildMarginY() const { return m_iChildMarginY; }
+    int32_t GetChildMarginY() const { return m_nChildMarginY; }
 
     /** 设置子控件之间的额外边距（X轴方向）
-     * @param [in] iMarginX 要设置的边距数值
+     * @param [in] nMarginX 要设置的边距数值
      */
-    void SetChildMarginX(int32_t iMarginX);
+    void SetChildMarginX(int32_t nMarginX);
 
     /** 设置子控件之间的额外边距（Y轴方向）
-     * @param [in] iMarginY 要设置的边距数值
+     * @param [in] nMarginY 要设置的边距数值
      */
-    void SetChildMarginY(int32_t iMarginY);
+    void SetChildMarginY(int32_t nMarginY);
 
     /** 设置子控件之间的额外边距（X轴方向和Y轴方向，均设置为同一个值）
-     * @param [in] iMargin 要设置的边距数值
+     * @param [in] nMargin 要设置的边距数值
      */
-    void SetChildMargin(int32_t iMargin);
+    void SetChildMargin(int32_t nMargin);
 
+    /** 获取子控件的水平对齐方式
+     */
+    HorAlignType GetChildHAlignType() const { return m_hChildAlignType; }
+
+    /** 设置子控件的水平对齐方式
+     * @param [in] hAlignType 要设置的对齐方式
+     */
+    void SetChildHAlignType(HorAlignType hAlignType);
+
+    /** 获取子控件的垂直对齐方式
+     */
+    VerAlignType GetChildVAlignType() const { return m_vChildAlignType; }
+
+    /** 设置子控件的垂直对齐方式
+     * @param [in] vAlignType 要设置的对齐方式
+     */
+    void SetChildVAlignType(VerAlignType vAlignType);
+
+public:
     /** 将区域去掉内边距, 并确保rc区域有效
     */
     void DeflatePadding(UiRect& rc) const;
+
+public:
+    /** 设置浮动状态下的坐标信息
+     * @param[in] pControl 控件句柄
+     * @param[in] rcContainer 要设置的矩形区域，包含内边距，包含外边距
+     * @return 返回控件最终的大小信息（宽度和高度）
+     */
+    static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
 
 protected:
     /** 检查配置的宽和高是否正确, 如果发现错误，给予断言
@@ -175,10 +193,16 @@ private:
     Box* m_pOwner;
 
     //子控件之间的额外边距: X 轴方向
-    uint16_t m_iChildMarginX;
+    uint16_t m_nChildMarginX;
 
     //子控件之间的额外边距: Y 轴方向
-    uint16_t m_iChildMarginY;
+    uint16_t m_nChildMarginY;
+
+    //子控件的水平对齐方式
+    HorAlignType m_hChildAlignType;
+
+    //子控件的垂直对齐方式
+    VerAlignType m_vChildAlignType;
 };
 
 } // namespace ui

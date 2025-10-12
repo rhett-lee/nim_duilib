@@ -21,8 +21,9 @@
 | margin | 0,0,0,0 | rect | SetMargin|外边距,如(2,2,2,2) |
 | padding | 0,0,0,0 | rect | SetPadding|内边距,如(2,2,2,2) |
 | control_padding | true | bool | SetEnableControlPadding|是否允许控件自身运用内边距 |
-| halign | left | string | SetHorAlignType|控件的横向位置,如(center),支持left、center、right三种位置 |
-| valign | top | string | SetVerAlignType|控件的纵向位置,如(center),支持top、center、bottom三种位置 |
+| halign | left | string | SetHorAlignType|控件的水平方向的对齐方式,如(center),支持left、center、right三种位置 |
+| valign | top | string | SetVerAlignType|控件的垂直方向的对齐方式,如(center),支持top、center、bottom三种位置 |
+| align | left,top | string | SetHorAlignType<br>SetVerAlignType |同时设置控件的水平方向和垂直方向的对齐方式，功能与valign和halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | float | false | bool | SetFloat|是否使用绝对定位,如“true”|
 | keep_float_pos | false | bool | SetKeepFloatPos|设置当父控件位置和大小调整时，是否保持浮动控件相对父控件的位置不变,如“true”|
 | bkcolor |  | string | SetBkColor|背景颜色字符串常量,如(white) |
@@ -132,7 +133,7 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
 | text_id |  | string | 多语言功能的文本ID |
-| text_align | left | string | 文本的对其方式, 支持以下取值：left、hcenter、right、top、vcenter、bottom |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | text_padding | 0,0,0,0 | rect | 文字显示的边距, 如(2,2,2,2) |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
 | end_ellipsis | false | bool | 句末显示不完整是否使用...代替 |
@@ -377,7 +378,7 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | number_only | false | bool | 是否只允许输入数字,如"false" |
 | max_number | INT_MAX | int | 允许的最大数字(仅当number_only为true的时候有效) |
 | min_number | INT_MIN | int | 允许的最小数字(仅当number_only为true的时候有效 |
-| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如"right,bottom" |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | text |  | string | 显示文本 |
 | text_id |  | string | 显示文本的多语言功能ID |
@@ -436,7 +437,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如(right,bottom) |
+| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |

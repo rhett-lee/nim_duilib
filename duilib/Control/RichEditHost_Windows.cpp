@@ -858,35 +858,41 @@ void RichEditHost::SetMultiLine(bool bMultiLine)
     OnTxPropertyBitsChange(TXTBIT_MULTILINE, bMultiLine ? TXTBIT_MULTILINE : 0);
 }
 
-void RichEditHost::SetHAlignType(HorAlignType alignType)
+void RichEditHost::SetTextHAlignType(HorAlignType alignType)
 {
-    if (alignType == kHorAlignLeft) {
+    if (alignType == HorAlignType::kHorAlignLeft) {
         m_dwStyle &= ~(UI_ES_CENTER | UI_ES_RIGHT);
         m_dwStyle |= UI_ES_LEFT;
     }
-    else if (alignType == kHorAlignCenter) {
+    else if (alignType == HorAlignType::kHorAlignCenter) {
         m_dwStyle &= ~(UI_ES_LEFT | UI_ES_RIGHT);
         m_dwStyle |= UI_ES_CENTER;
     }
-    else if (alignType == kHorAlignRight) {
+    else if (alignType == HorAlignType::kHorAlignRight) {
         m_dwStyle &= ~(UI_ES_LEFT | UI_ES_CENTER);
         m_dwStyle |= UI_ES_RIGHT;
     }
+    else {
+        ASSERT(0);
+    }
 }
 
-void RichEditHost::SetVAlignType(VerAlignType alignType)
+void RichEditHost::SetTextVAlignType(VerAlignType alignType)
 {
-    if (alignType == kVerAlignTop) {
+    if (alignType == VerAlignType::kVerAlignTop) {
         m_dwStyle &= ~(UI_ES_VCENTER | UI_ES_BOTTOM);
         m_dwStyle |= UI_ES_TOP;
     }
-    else if (alignType == kVerAlignCenter) {
+    else if (alignType == VerAlignType::kVerAlignCenter) {
         m_dwStyle &= ~(UI_ES_TOP | UI_ES_BOTTOM);
         m_dwStyle |= UI_ES_VCENTER;
     }
-    else if (alignType == kVerAlignBottom) {
+    else if (alignType == VerAlignType::kVerAlignBottom) {
         m_dwStyle &= ~(UI_ES_TOP | UI_ES_VCENTER);
         m_dwStyle |= UI_ES_BOTTOM;
+    }
+    else {
+        ASSERT(0);
     }
     OnTxPropertyBitsChange(TXTBIT_CLIENTRECTCHANGE, TXTBIT_CLIENTRECTCHANGE);
 }

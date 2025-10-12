@@ -9,14 +9,11 @@ namespace ui
 {
 Layout::Layout() :
     m_pOwner(nullptr),
-    m_iChildMarginX(0),
-    m_iChildMarginY(0)
+    m_nChildMarginX(0),
+    m_nChildMarginY(0),
+    m_hChildAlignType(HorAlignType::kAlignNone),
+    m_vChildAlignType(VerAlignType::kAlignNone)
 {
-}
-
-void Layout::SetOwner(Box* pOwner)
-{
-    m_pOwner = pOwner;
 }
 
 bool Layout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
@@ -37,6 +34,58 @@ bool Layout::SetAttribute(const DString& strName, const DString& strValue, const
         dpiManager.ScaleInt(iMargin);
         SetChildMarginY(iMargin);
     }
+    else if (strName == _T("child_valign")) {
+        //垂直对齐方式
+        if (strValue == _T("top")) {
+            SetChildVAlignType(VerAlignType::kVerAlignTop);
+        }
+        else if (strValue == _T("center")) {
+            SetChildVAlignType(VerAlignType::kVerAlignCenter);
+        }
+        else if (strValue == _T("bottom")) {
+            SetChildVAlignType(VerAlignType::kVerAlignBottom);
+        }
+        else {
+            ASSERT(0);
+        }
+    }
+    else if (strName == _T("child_halign")) {
+        //水平对齐方式
+        if (strValue == _T("left")) {
+            SetChildHAlignType(HorAlignType::kHorAlignLeft);
+        }
+        else if (strValue == _T("center")) {
+            SetChildHAlignType(HorAlignType::kHorAlignCenter);
+        }
+        else if (strValue == _T("right")) {
+            SetChildHAlignType(HorAlignType::kHorAlignRight);
+        }
+        else {
+            ASSERT(0);
+        }
+    }
+    else if (strName == _T("child_align")) {
+        //水平对齐
+        if (strValue.find(_T("left")) != DString::npos) {
+            SetChildHAlignType(HorAlignType::kHorAlignLeft);
+        }
+        if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetChildHAlignType(HorAlignType::kHorAlignCenter);
+        }
+        if (strValue.find(_T("right")) != DString::npos) {
+            SetChildHAlignType(HorAlignType::kHorAlignRight);
+        }
+        //垂直对齐
+        if (strValue.find(_T("top")) != DString::npos) {
+            SetChildVAlignType(VerAlignType::kVerAlignTop);
+        }
+        if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetChildVAlignType(VerAlignType::kVerAlignCenter);
+        }
+        if (strValue.find(_T("bottom")) != DString::npos) {
+            SetChildVAlignType(VerAlignType::kVerAlignBottom);
+        }
+    }
     else {
         hasAttribute = false;
     }
@@ -52,6 +101,11 @@ void Layout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
     iMargin = GetChildMarginY();
     iMargin = dpiManager.GetScaleInt(iMargin, nOldDpiScale);
     SetChildMarginY(iMargin);
+}
+
+void Layout::SetOwner(Box* pOwner)
+{
+    m_pOwner = pOwner;
 }
 
 UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
@@ -141,28 +195,28 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
     int32_t childTop = 0;
     int32_t childBottm = 0;
 
-    if (horAlignType == kHorAlignLeft) {
+    if (horAlignType == HorAlignType::kHorAlignLeft) {
         childLeft = iPosLeft;
         childRight = childLeft + childWidth;
     }
-    else if (horAlignType == kHorAlignRight) {
+    else if (horAlignType == HorAlignType::kHorAlignRight) {
         childRight = iPosRight;
         childLeft = childRight - childWidth;
     }
-    else if (horAlignType == kHorAlignCenter) {
+    else if (horAlignType == HorAlignType::kHorAlignCenter) {
         childLeft = iPosLeft + (iPosRight - iPosLeft - childWidth) / 2;
         childRight = childLeft + childWidth;
     }
 
-    if (verAlignType == kVerAlignTop) {
+    if (verAlignType == VerAlignType::kVerAlignTop) {
         childTop = iPosTop;
         childBottm = childTop + childHeight;
     }
-    else if (verAlignType == kVerAlignBottom) {
+    else if (verAlignType == VerAlignType::kVerAlignBottom) {
         childBottm = iPosBottom;
         childTop = childBottm - childHeight;
     }
-    else if (verAlignType == kVerAlignCenter) {
+    else if (verAlignType == VerAlignType::kVerAlignCenter) {
         childTop = iPosTop + (iPosBottom - iPosTop - childHeight) / 2;
         childBottm = childTop + childHeight;
     }
@@ -290,40 +344,60 @@ void Layout::CheckConfig(const std::vector<Control*>& items)
     }
 }
 
-void Layout::SetChildMargin(int32_t iMargin)
+void Layout::SetChildMargin(int32_t nMargin)
 {
-    ASSERT(iMargin >= 0);
-    iMargin = std::max(iMargin, 0);
-    bool isChanged = ((int32_t)m_iChildMarginX != iMargin) || ((int32_t)m_iChildMarginY != iMargin);
-    m_iChildMarginX = TruncateToUInt16((uint32_t)iMargin);
-    m_iChildMarginY = TruncateToUInt16((uint32_t)iMargin);
+    ASSERT(nMargin >= 0);
+    nMargin = std::max(nMargin, 0);
+    bool isChanged = ((int32_t)m_nChildMarginX != nMargin) || ((int32_t)m_nChildMarginY != nMargin);
+    m_nChildMarginX = TruncateToUInt16((uint32_t)nMargin);
+    m_nChildMarginY = TruncateToUInt16((uint32_t)nMargin);
     ASSERT(m_pOwner != nullptr);
     if (isChanged && (m_pOwner != nullptr)) {
         m_pOwner->Arrange();
     }
 }
 
-void Layout::SetChildMarginX(int32_t iMarginX)
+void Layout::SetChildMarginX(int32_t nMarginX)
 {
-    ASSERT(iMarginX >= 0);
-    iMarginX = std::max(iMarginX, 0);
-    bool isChanged = ((int32_t)m_iChildMarginX != iMarginX);
-    m_iChildMarginX = TruncateToUInt16((uint32_t)iMarginX);
+    ASSERT(nMarginX >= 0);
+    nMarginX = std::max(nMarginX, 0);
+    bool isChanged = ((int32_t)m_nChildMarginX != nMarginX);
+    m_nChildMarginX = TruncateToUInt16((uint32_t)nMarginX);
     ASSERT(m_pOwner != nullptr);
     if (isChanged && (m_pOwner != nullptr)) {
         m_pOwner->Arrange();
     }
 }
 
-void Layout::SetChildMarginY(int32_t iMarginY)
+void Layout::SetChildMarginY(int32_t nMarginY)
 {
-    ASSERT(iMarginY >= 0);
-    iMarginY = std::max(iMarginY, 0);
-    bool isChanged = ((int32_t)m_iChildMarginY != iMarginY);
-    m_iChildMarginY = TruncateToUInt16((uint32_t)iMarginY);
+    ASSERT(nMarginY >= 0);
+    nMarginY = std::max(nMarginY, 0);
+    bool isChanged = ((int32_t)m_nChildMarginY != nMarginY);
+    m_nChildMarginY = TruncateToUInt16((uint32_t)nMarginY);
     ASSERT(m_pOwner != nullptr);
     if (isChanged && (m_pOwner != nullptr)) {
         m_pOwner->Arrange();
+    }
+}
+
+void Layout::SetChildHAlignType(HorAlignType hAlignType)
+{
+    if (m_hChildAlignType != hAlignType) {
+        m_hChildAlignType = hAlignType;
+        if (m_pOwner != nullptr) {
+            m_pOwner->Arrange();
+        }
+    }
+}
+
+void Layout::SetChildVAlignType(VerAlignType vAlignType)
+{
+    if (m_vChildAlignType != vAlignType) {
+        m_vChildAlignType = vAlignType;
+        if (m_pOwner != nullptr) {
+            m_pOwner->Arrange();
+        }
     }
 }
 

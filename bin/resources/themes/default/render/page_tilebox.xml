@@ -2,7 +2,7 @@
 <Window>
     <Class name="page_tile_box" margin="10,10,10,10" width="200" height="100" text_padding="4,0,0,0" bkcolor="Sienna" border_size="1" border_color="green"/>
     <Label text="布局VTileBox测试（纵向布局）"/>
-    <VTileBox columns="0" item_size="0,0" scale_down="true" width="stretch" height="auto" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
+    <VTileBox child_halign="center" columns="0" item_size="200,0" scale_down="true" width="stretch" height="auto" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
         <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
 <!--       
         <Label text="minwidth/minheight: 300*300" float="true" text_align="top" width="200" height="100" minwidth="300" minheight="300" margin="64,160,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
@@ -24,7 +24,7 @@
     </VTileBox>
     
     <Label text="布局HTileBox测试（横向布局）" margin="0,4,0,4"/>
-    <HTileBox rows="0" item_size="0,0" scale_down="true" width="stretch" height="stretch" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
+    <HTileBox child_valign="center" rows="0" item_size="0,0" scale_down="true" width="stretch" height="stretch" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
         <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>    
         <Label class="page_tile_box" text="1 left,top" halign="left" valign="top"/>
         <Label class="page_tile_box" text="2 left,center" halign="left" valign="center"/>

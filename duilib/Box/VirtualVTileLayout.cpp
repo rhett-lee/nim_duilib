@@ -8,6 +8,9 @@ VirtualVTileLayout::VirtualVTileLayout()
 {
     SetColumns(0);
     SetAutoCalcColumns(true);
+
+    //默认水平方向，居中对齐
+    SetChildHAlignType(HorAlignType::kHorAlignCenter);
 }
 
 VirtualListBox* VirtualVTileLayout::GetOwnerBox() const
@@ -194,6 +197,23 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
 
     //子项的左边起始位置 
     int32_t iPosLeft = rc.left;
+
+    //确定对齐方式
+    int32_t cxTotal = nColumns * szItem.cx;
+    if (nColumns > 1) {
+        cxTotal += (nColumns - 1) * GetChildMarginX();
+    }
+    if (cxTotal < rc.Width()) {
+        HorAlignType hAlign = GetChildHAlignType();
+        if (hAlign == HorAlignType::kHorAlignCenter) {
+            //居中对齐
+            iPosLeft = rc.CenterX() - cxTotal / 2;
+        }
+        else if (hAlign == HorAlignType::kHorAlignRight) {
+            //靠右对齐
+            iPosLeft = rc.right - cxTotal;
+        }
+    }
 
     //Y轴坐标的偏移，需要保持，避免滚动位置变动后，重新刷新界面出现偏差
     int32_t yOffset = 0;

@@ -14,60 +14,68 @@
         </HBox>
     
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <HBox child_margin="5" bkcolor="white" padding="5,5,5,10">
-            <VBox width="300" border_size="1" border_color="splitline_level2" padding="5,10,5,10" child_margin="10">
-                <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text="行/列设置:"  width="auto" height="auto" valign="center" />
-                    <Option class="option_1" name="option_column_auto" group="option_group" text="自动计算" margin="0,5,0,10" selected="true"/>
-                    <Option class="option_1" name="option_column_fix"  group="option_group" text="固定列数" margin="0,5,0,10">
-                        <Event type="select" receiver="box_column_op" applyattribute="visible=&quot;true&quot;" />
-                        <Event type="unselect" receiver="box_column_op" applyattribute="visible=&quot;false&quot;" />
-                    </Option>
-                </HBox>        
-                <HBox name="box_column_op" height="30" child_margin="10" visible="false">
-                    <Control width="45" />
-                    <Box border_size="1" border_color="splitline_level1" width="80"  height="26">
-                        <RichEdit name="edit_column" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="列数" text_align="vcenter,hcenter" text="3" prompt_color="splitline_level1" auto_hscroll="true" />                  
-                    </Box>
-                    <CheckBox class="checkbox_1" name="checkbox_item_center" text="列表居中" margin="0,5,0,10" selected="true" />            
-                </HBox>     
-                <Control height="1" bkcolor="splitline_level2" />
+        <HBox height="30">
+            <Label text="当前虚表容器类型为：" font="system_14" valign="center" margin="8,0,8,0"/>
+            <Label name="list_box_type" text="VirtualHTileListBox" font="system_14" valign="center"/>
+        </HBox>
+        <HBox child_margin="5" padding="5,5,5,10">
+            <VBox width="300" border_size="1" border_color="splitline_level1" padding="5,10,5,10" child_margin="10">
+                <VBox height="80">
+                    <Label name="label_column_row" font="system_bold_14" text="行/列设置:"  width="auto" height="auto" valign="center" />
+                    <Option class="option_1" name="option_column_auto" group="option_group" text="自动计算" height="28" margin="80,0,0,0" selected="true"/>
+                    <HBox height="30" >
+                        <Option class="option_1" name="option_column_fix" group="option_group" text="固定列数" margin="80,0,0,0">
+                            <Event type="select" receiver="edit_column" applyattribute="visible=&quot;true&quot;" />
+                            <Event type="unselect" receiver="edit_column" applyattribute="visible=&quot;false&quot;" />
+                        </Option>
+                        <RichEdit class="simple rich_edit_spin" name="edit_column" text="3" min_number="1" max_number="12" visible="false" text_padding="1,0,8,0" width="50" height="28" margin="6,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
+                    </HBox>
+                </VBox>
+                <Control height="1" bkcolor="splitline_level1" />
+                
+                <VBox height="auto">
+                    <Label font="system_bold_14" text="对齐方式:"  width="auto" height="auto" valign="center" />
+                    <Option class="option_1" name="option_align1" group="option_group_align" text="靠左对齐(left)" height="28" margin="80,0,0,0" selected="true"/>
+                    <Option class="option_1" name="option_align2" group="option_group_align" text="居中对齐(center)" height="28" margin="80,0,0,0" selected="false"/>
+                    <Option class="option_1" name="option_align3" group="option_group_align" text="靠右对齐(right)" height="28" margin="80,0,0,0" selected="false"/>
+                </VBox>
+                
+                <Control height="1" bkcolor="splitline_level1" />
                 <VBox height="auto">
                     <HBox height="30" child_margin="10">
-                        <Label font="system_bold_14" text="子项间隙X:"  width="auto" height="auto" valign="center" />
-                        <Box border_size="1" border_color="splitline_level1" width="90"  height="26">
-                            <RichEdit name="edit_child_margin_x" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="子项间隙X" text_align="vcenter,hcenter" text="" prompt_color="splitline_level1" auto_hscroll="true" />                  
+                        <Label name="label_child_margin_x" font="system_bold_14" text="子项间隙X:"  width="auto" height="auto" valign="center" />
+                        <Box border_size="1" border_color="splitline_level1" width="90" height="26" valign="center">
+                            <RichEdit name="edit_child_margin_x" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="子项间隙X" text_align="vcenter" text="" text_padding="2,0,0,0" prompt_color="splitline_level1" auto_hscroll="true" />                  
                         </Box>           
                     </HBox> 
                     <HBox height="30" child_margin="10">
-                        <Label font="system_bold_14" text="子项间隙Y:"  width="auto" height="auto" valign="center" />
-                        <Box border_size="1" border_color="splitline_level1" width="90"  height="26">
-                            <RichEdit name="edit_child_margin_y" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="子项间隙Y" text_align="vcenter,hcenter" text="" prompt_color="splitline_level1" auto_hscroll="true" />                  
+                        <Label font="system_bold_14" name="label_child_margin_y" text="子项间隙Y:"  width="auto" height="auto" valign="center" />
+                        <Box border_size="1" border_color="splitline_level1" width="90" height="26" valign="center">
+                            <RichEdit name="edit_child_margin_y" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="子项间隙Y" text_align="vcenter" text="" text_padding="2,0,0,0" prompt_color="splitline_level1" auto_hscroll="true" />                  
                         </Box>           
                     </HBox> 
                 </VBox>
                      
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="总数据:"  width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="splitline_level1" width="180" >
-                        <RichEdit name="edit_total" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="总数据" prompt_color="splitline_level1" auto_hscroll="true"  />                    
-                    </Box>
-                   
+                    <Box border_size="1" border_color="splitline_level1" width="180" height="26" valign="center">
+                        <RichEdit name="edit_total" bkcolor="white" text="10000" number_only="true" min_number="0" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="总数据" text_align="vcenter" text_padding="2,0,0,0" prompt_color="splitline_level1" auto_hscroll="true"  />                    
+                    </Box>                   
                 </HBox>
             
                 <Box height="30" child_margin="10" width="stretch">
                     <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_set_total" text="更改/设置" />
                 </Box>
             
-                <Control height="1" bkcolor="splitline_level2" />
+                <Control height="1" bkcolor="splitline_level1" />
             
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="改变数据:"  width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="splitline_level1" height="26">
-                        <RichEdit name="edit_update" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="序号(下标1)" prompt_color="splitline_level1" auto_hscroll="true" text_align="vcenter,hcenter" />                  
+                    <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
+                        <RichEdit name="edit_update" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                  
                     </Box>
-                    <Box border_size="1" border_color="splitline_level1" height="26">
-                        <RichEdit name="edit_task_name" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="新的任务名称" prompt_color="splitline_level1" auto_hscroll="true" />                  
+                    <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
+                        <RichEdit name="edit_task_name" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="新的任务名称" prompt_color="splitline_level1" auto_hscroll="true" />                  
                     </Box>           
                 </HBox>
             
@@ -75,19 +83,19 @@
                     <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_update" text="更新数据" />
                 </Box>
             
-                <Control height="1" bkcolor="splitline_level2" />        
+                <Control height="1" bkcolor="splitline_level1" />        
 
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="删除数据:"  width="auto" height="auto" valign="center" />
-                    <Box border_size="1" border_color="splitline_level1" >
-                        <RichEdit name="edit_delete" margin="10,0,10,0" font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="序号(下标1)" prompt_color="splitline_level1" auto_hscroll="true" text_align="vcenter,hcenter" />                    
+                    <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
+                        <RichEdit name="edit_delete" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                    
                     </Box>   
                     <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text="删除数据" />            
                 </HBox>
             </VBox>
-            <!--column="3" width="auto" halign="center" child_margin="10" -->
             <Box>
-                <VirtualVTileListBox class="list" name="list" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level2" padding="1,1,1,1"/>     
+                <!-- VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox -->
+                <VirtualHTileListBox class="list" name="list" bkcolor="white" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level1" padding="1,1,1,1"/>     
             </Box>
         </HBox>
     </VBox>

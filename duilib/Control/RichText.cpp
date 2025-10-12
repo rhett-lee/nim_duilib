@@ -33,23 +33,23 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHAlignType(HorAlignType::kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kHorAlignLeft);
         }
         else if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHAlignType(HorAlignType::kHorAlignCenter);
+            SetTextHAlignType(HorAlignType::kHorAlignCenter);
         }
         else if (strValue.find(_T("right")) != DString::npos) {
-            SetHAlignType(HorAlignType::kHorAlignRight);
+            SetTextHAlignType(HorAlignType::kHorAlignRight);
         }
 
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVAlignType(VerAlignType::kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kVerAlignTop);
         }
         else if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVAlignType(VerAlignType::kVerAlignCenter);
+            SetTextVAlignType(VerAlignType::kVerAlignCenter);
         }
         else if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVAlignType(VerAlignType::kVerAlignBottom);
+            SetTextVAlignType(VerAlignType::kVerAlignBottom);
         }
         m_textData.clear();
         m_spDrawRichTextCache.reset();
@@ -728,7 +728,7 @@ void RichText::SetWordWrap(bool bWordWrap)
     }
 }
 
-void RichText::SetHAlignType(HorAlignType alignType)
+void RichText::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_hAlignType != alignType) {
         m_hAlignType = alignType;
@@ -741,7 +741,7 @@ HorAlignType RichText::GetHAlignType() const
     return m_hAlignType;
 }
 
-void RichText::SetVAlignType(VerAlignType alignType)
+void RichText::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_vAlignType != alignType) {
         m_vAlignType = alignType;

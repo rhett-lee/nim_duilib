@@ -6,6 +6,26 @@ namespace ui
 VirtualHLayout::VirtualHLayout():
     m_bAutoCalcItemHeight(false)
 {
+    //默认居中对齐
+    SetChildVAlignType(VerAlignType::kVerAlignCenter);
+}
+
+bool VirtualHLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
+{
+    bool hasAttribute = true;
+    if ((strName == _T("item_size")) || (strName == _T("itemsize"))) {
+        UiSize szItem;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
+        dpiManager.ScaleSize(szItem);
+        SetItemSize(szItem);
+    }
+    else if (strName == _T("auto_calc_item_size")) {
+        SetAutoCalcItemHeight(strValue == _T("true"));
+    }
+    else {
+        hasAttribute = BaseClass::SetAttribute(strName, strValue, dpiManager);
+    }
+    return hasAttribute;
 }
 
 VirtualListBox* VirtualHLayout::GetOwnerBox() const
@@ -24,7 +44,7 @@ UiSize64 VirtualHLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui
     }
     DeflatePadding(rc);
     if (IsAutoCalcItemHeight()) {
-        //设置了固定行，并且设置了自动计算子项高度
+        //设置了自动计算子项高度：占满整个高度
         UiSize szNewItemSize = GetItemSize();
         szNewItemSize.cy = rc.Height();
         SetItemSize(szNewItemSize, false);
@@ -86,24 +106,6 @@ UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
     }
     size.Validate();
     return size;
-}
-
-bool VirtualHLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
-{
-    bool hasAttribute = true;
-    if ((strName == _T("item_size")) || (strName == _T("itemsize"))) {
-        UiSize szItem;
-        AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
-        dpiManager.ScaleSize(szItem);
-        SetItemSize(szItem);
-    }
-    else if (strName == _T("auto_calc_item_size")) {
-        SetAutoCalcItemHeight(strValue == _T("true"));
-    }
-    else {
-        hasAttribute = HLayout::SetAttribute(strName, strValue, dpiManager);
-    }
-    return hasAttribute;
 }
 
 void VirtualHLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
@@ -205,6 +207,17 @@ void VirtualHLayout::LazyArrangeChild(UiRect rc) const
 
     //子项的顶部起始位置
     int32_t iPosTop = rc.top;
+
+    //确定对齐方式
+    if (szItem.cy < rc.Height()) {
+        VerAlignType vAlign = GetChildVAlignType();
+        if (vAlign == VerAlignType::kVerAlignCenter) {
+            iPosTop = rc.CenterY() - szItem.cy / 2;
+        }
+        else if (vAlign == VerAlignType::kVerAlignBottom) {
+            iPosTop = rc.bottom - szItem.cy;
+        }
+    }
 
     //设置虚拟偏移，否则当数据量较大时，rc这个32位的矩形的高度会越界，需要64位整型才能容纳
     pOwnerBox->SetScrollVirtualOffsetX(pOwnerBox->GetScrollPos().cx);
