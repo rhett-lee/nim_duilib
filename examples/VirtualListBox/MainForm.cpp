@@ -218,12 +218,12 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
         }
     }
     else if (sName == _T("btn_update")) {
-        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditUpdate->GetText().c_str()) - 1;
+        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditUpdate->GetText().c_str());
         ASSERT(nIndex < m_pDataProvider->GetElementCount());
         m_pDataProvider->ChangeTaskName(nIndex, m_pEditTaskName->GetText());
     }
     else if (sName == _T("btn_delete")) {
-        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditDelete->GetText().c_str()) - 1;
+        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_pEditDelete->GetText().c_str());
         ASSERT(nIndex < m_pDataProvider->GetElementCount());
         m_pDataProvider->RemoveTask(nIndex);
     }

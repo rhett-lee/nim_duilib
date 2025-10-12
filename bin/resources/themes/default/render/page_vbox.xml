@@ -21,7 +21,7 @@
             <Label class="page_vbox" text="8 right,center" halign="right" valign="center"/>
             <Label class="page_vbox" text="9 right,bottom" halign="right" valign="bottom" width="stretch" height="stretch"/>
         </VBox>
-        <VBox height="30%" child_valign="bottom">
+        <VBox height="30%" child_valign="center">
             <Label class="page_vbox" width="150" text="layout valign test" halign="center"/>
         </VBox>
     </VBox>

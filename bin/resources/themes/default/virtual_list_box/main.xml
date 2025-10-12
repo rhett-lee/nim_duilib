@@ -59,7 +59,7 @@
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="总数据:"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="splitline_level1" width="180" height="26" valign="center">
-                        <RichEdit name="edit_total" bkcolor="white" text="10000" number_only="true" min_number="0" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="总数据" text_align="vcenter" text_padding="2,0,0,0" prompt_color="splitline_level1" auto_hscroll="true"  />                    
+                        <RichEdit name="edit_total" bkcolor="white" text="10000" number_only="true" min_number="1" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="总数据" text_align="vcenter" text_padding="2,0,0,0" prompt_color="splitline_level1" auto_hscroll="true"  />                    
                     </Box>                   
                 </HBox>
             
@@ -72,7 +72,7 @@
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="改变数据:"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_update" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                  
+                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                  
                     </Box>
                     <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
                         <RichEdit name="edit_task_name" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="新的任务名称" prompt_color="splitline_level1" auto_hscroll="true" />                  
@@ -88,14 +88,14 @@
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="删除数据:"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_delete" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                    
+                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="white" font="system_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="序号(下标)" prompt_color="splitline_level1" auto_hscroll="true"/>                    
                     </Box>   
                     <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text="删除数据" />            
                 </HBox>
             </VBox>
             <Box>
                 <!-- VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox -->
-                <VirtualHTileListBox class="list" name="list" bkcolor="white" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level1" padding="1,1,1,1"/>     
+                <VirtualVListBox class="list" name="list" bkcolor="white" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level1" padding="1,1,1,1"/>     
             </Box>
         </HBox>
     </VBox>
