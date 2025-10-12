@@ -7,8 +7,9 @@
 namespace ui 
 {
 /** 虚表实现的瓦片布局(横向布局)
- *  水平方向对齐方式：靠左对齐，按控件依次排列，子控件本身指定的垂直对齐方式不生效
+ *  水平方向对齐方式：靠左对齐，按控件依次排列
  *  垂直方向对齐方式：默认居中对齐
+ *  在瓦片布局中，子控件本身指定的对齐方式不生效
  */
 class VirtualListBox;
 class UILIB_API VirtualHTileLayout : public HTileLayout, public VirtualLayout

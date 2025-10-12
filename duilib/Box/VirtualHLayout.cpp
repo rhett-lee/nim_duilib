@@ -7,7 +7,7 @@ VirtualHLayout::VirtualHLayout():
     m_bAutoCalcItemHeight(false)
 {
     //默认居中对齐
-    SetChildVAlignType(VerAlignType::kVerAlignCenter);
+    SetChildVAlignType(VerAlignType::kAlignCenter);
 }
 
 bool VirtualHLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
@@ -211,10 +211,10 @@ void VirtualHLayout::LazyArrangeChild(UiRect rc) const
     //确定对齐方式
     if (szItem.cy < rc.Height()) {
         VerAlignType vAlign = GetChildVAlignType();
-        if (vAlign == VerAlignType::kVerAlignCenter) {
+        if (vAlign == VerAlignType::kAlignCenter) {
             iPosTop = rc.CenterY() - szItem.cy / 2;
         }
-        else if (vAlign == VerAlignType::kVerAlignBottom) {
+        else if (vAlign == VerAlignType::kAlignBottom) {
             iPosTop = rc.bottom - szItem.cy;
         }
     }

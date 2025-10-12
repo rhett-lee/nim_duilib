@@ -860,39 +860,39 @@ void RichEditHost::SetMultiLine(bool bMultiLine)
 
 void RichEditHost::SetTextHAlignType(HorAlignType alignType)
 {
-    if (alignType == HorAlignType::kHorAlignLeft) {
-        m_dwStyle &= ~(UI_ES_CENTER | UI_ES_RIGHT);
-        m_dwStyle |= UI_ES_LEFT;
-    }
-    else if (alignType == HorAlignType::kHorAlignCenter) {
+    if (alignType == HorAlignType::kAlignCenter) {
+        //水平居中对齐
         m_dwStyle &= ~(UI_ES_LEFT | UI_ES_RIGHT);
         m_dwStyle |= UI_ES_CENTER;
     }
-    else if (alignType == HorAlignType::kHorAlignRight) {
+    else if (alignType == HorAlignType::kAlignRight) {
+        //靠右对齐
         m_dwStyle &= ~(UI_ES_LEFT | UI_ES_CENTER);
         m_dwStyle |= UI_ES_RIGHT;
     }
     else {
-        ASSERT(0);
+        //靠左对齐
+        m_dwStyle &= ~(UI_ES_CENTER | UI_ES_RIGHT);
+        m_dwStyle |= UI_ES_LEFT;
     }
 }
 
 void RichEditHost::SetTextVAlignType(VerAlignType alignType)
 {
-    if (alignType == VerAlignType::kVerAlignTop) {
-        m_dwStyle &= ~(UI_ES_VCENTER | UI_ES_BOTTOM);
-        m_dwStyle |= UI_ES_TOP;
-    }
-    else if (alignType == VerAlignType::kVerAlignCenter) {
+    if (alignType == VerAlignType::kAlignCenter) {
+        //垂直居中对齐
         m_dwStyle &= ~(UI_ES_TOP | UI_ES_BOTTOM);
         m_dwStyle |= UI_ES_VCENTER;
     }
-    else if (alignType == VerAlignType::kVerAlignBottom) {
+    else if (alignType == VerAlignType::kAlignBottom) {
+        //靠下对齐
         m_dwStyle &= ~(UI_ES_TOP | UI_ES_VCENTER);
         m_dwStyle |= UI_ES_BOTTOM;
     }
     else {
-        ASSERT(0);
+        //靠上对齐
+        m_dwStyle &= ~(UI_ES_VCENTER | UI_ES_BOTTOM);
+        m_dwStyle |= UI_ES_TOP;
     }
     OnTxPropertyBitsChange(TXTBIT_CLIENTRECTCHANGE, TXTBIT_CLIENTRECTCHANGE);
 }

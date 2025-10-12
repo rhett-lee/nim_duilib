@@ -441,24 +441,26 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
+        //水平方向对齐方式
         if (strValue.find(_T("left")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kAlignLeft);
+        }        
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignRight);
-        }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignCenter);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
+        //垂直方向对齐方式
         if (strValue.find(_T("top")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kAlignTop);
+        }        
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignBottom);
-        }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignCenter);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -3541,10 +3543,10 @@ void RichEdit::SetTextHAlignType(HorAlignType alignType)
     pf.cbSize = sizeof(PARAFORMAT);
     m_richCtrl.GetParaFormat(pf);
     pf.dwMask |= PFM_ALIGNMENT;
-    if (alignType == HorAlignType::kHorAlignCenter) {
+    if (alignType == HorAlignType::kAlignCenter) {
         pf.wAlignment = PFA_CENTER;
     }        
-    else if (alignType == HorAlignType::kHorAlignRight) {
+    else if (alignType == HorAlignType::kAlignRight) {
         pf.wAlignment = PFA_RIGHT;
     }
     else {

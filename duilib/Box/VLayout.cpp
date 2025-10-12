@@ -8,7 +8,7 @@ namespace ui
 VLayout::VLayout()
 {
     //默认靠上对齐
-    SetChildVAlignType(VerAlignType::kVerAlignTop);
+    SetChildVAlignType(VerAlignType::kAlignTop);
 }
 
 UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
@@ -180,20 +180,27 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
             }
         }
                 
-        //调整横向对齐方式，确定X轴坐标
+        //调整水平方向的对齐方式，确定X轴坐标
         int32_t childLeft = 0;
         int32_t childRight = 0;
         HorAlignType horAlignType = pControl->GetHorAlignType();
-        if (horAlignType == HorAlignType::kHorAlignLeft) {
-            childLeft = iPosLeft + rcMargin.left;
-            childRight = childLeft + sz.cx;
+        if (horAlignType == HorAlignType::kAlignNone) {
+            //控件未设置对齐方式，按容器的对齐方式
+            horAlignType = GetChildHAlignType();
         }
-        else if (horAlignType == HorAlignType::kHorAlignRight) {
+        if (horAlignType == HorAlignType::kAlignRight) {
+            //靠右
             childRight = iPosRight - rcMargin.right;
             childLeft = childRight - sz.cx;
         }
-        else if (horAlignType == HorAlignType::kHorAlignCenter) {
+        else if (horAlignType == HorAlignType::kAlignCenter) {
+            //水平居中
             childLeft = iPosLeft + (iPosRight - iPosLeft + rcMargin.left - rcMargin.right - sz.cx) / 2;
+            childRight = childLeft + sz.cx;
+        }
+        else {
+            //靠左（默认）
+            childLeft = iPosLeft + rcMargin.left;
             childRight = childLeft + sz.cx;
         }
 
@@ -224,12 +231,12 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
     if (size.cy < rcBox.Height()) {
         //垂直对齐方式：需要处理靠下对齐和居中对齐，因默认是上对齐
         VerAlignType vAlign = GetChildVAlignType();
-        int32_t nOffset = 0;
-        if (vAlign == VerAlignType::kVerAlignCenter) {
+        int32_t nOffset = 0;//默认靠上对齐
+        if (vAlign == VerAlignType::kAlignCenter) {
             //居中对齐
             nOffset = (int32_t)(rcBox.Height() - size.cy) / 2;
         }
-        else if (vAlign == VerAlignType::kVerAlignBottom) {
+        else if (vAlign == VerAlignType::kAlignBottom) {
             //靠下对齐
             nOffset = (int32_t)(rcBox.Height() - size.cy);
         }
@@ -249,8 +256,8 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         Control* pControl = iter.first;
         const UiRect& rcChildPos = iter.second;
         if (pControl->IsFloat()) {
-            //浮动控件
-            SetFloatPos(pControl, rcChildPos);
+            //浮动控件(容器设置的对齐方式：不生效)
+            SetFloatPos(nullptr, pControl, rcChildPos);
         }
         else {
             pControl->SetPos(rcChildPos);

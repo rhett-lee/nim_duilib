@@ -151,24 +151,26 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
+        //水平方向对齐
         if (strValue.find(_T("left")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kAlignLeft);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignRight);
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignCenter);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
+        //垂直方向对齐
         if (strValue.find(_T("top")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kAlignTop);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignBottom);
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignCenter);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -2935,10 +2937,10 @@ uint16_t RichEdit::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     HorAlignType hAlignType = GetHAlignType();
-    if (hAlignType == HorAlignType::kHorAlignCenter) {
+    if (hAlignType == HorAlignType::kAlignCenter) {
         uTextStyle |= TEXT_CENTER;
     }
-    else if (hAlignType == HorAlignType::kHorAlignRight) {
+    else if (hAlignType == HorAlignType::kAlignRight) {
         uTextStyle |= TEXT_RIGHT;
     }
     else {
@@ -2946,10 +2948,10 @@ uint16_t RichEdit::GetTextStyle() const
     }
 
     VerAlignType vAlignType = GetVAlignType();
-    if (vAlignType == VerAlignType::kVerAlignCenter) {
+    if (vAlignType == VerAlignType::kAlignCenter) {
         uTextStyle |= TEXT_VCENTER;
     }
-    else if (vAlignType == VerAlignType::kVerAlignBottom) {
+    else if (vAlignType == VerAlignType::kAlignBottom) {
         uTextStyle |= TEXT_BOTTOM;
     }
     else {

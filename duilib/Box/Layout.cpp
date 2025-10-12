@@ -37,13 +37,13 @@ bool Layout::SetAttribute(const DString& strName, const DString& strValue, const
     else if (strName == _T("child_valign")) {
         //垂直对齐方式
         if (strValue == _T("top")) {
-            SetChildVAlignType(VerAlignType::kVerAlignTop);
+            SetChildVAlignType(VerAlignType::kAlignTop);
         }
         else if (strValue == _T("center")) {
-            SetChildVAlignType(VerAlignType::kVerAlignCenter);
+            SetChildVAlignType(VerAlignType::kAlignCenter);
         }
         else if (strValue == _T("bottom")) {
-            SetChildVAlignType(VerAlignType::kVerAlignBottom);
+            SetChildVAlignType(VerAlignType::kAlignBottom);
         }
         else {
             ASSERT(0);
@@ -52,13 +52,13 @@ bool Layout::SetAttribute(const DString& strName, const DString& strValue, const
     else if (strName == _T("child_halign")) {
         //水平对齐方式
         if (strValue == _T("left")) {
-            SetChildHAlignType(HorAlignType::kHorAlignLeft);
+            SetChildHAlignType(HorAlignType::kAlignLeft);
         }
         else if (strValue == _T("center")) {
-            SetChildHAlignType(HorAlignType::kHorAlignCenter);
+            SetChildHAlignType(HorAlignType::kAlignCenter);
         }
         else if (strValue == _T("right")) {
-            SetChildHAlignType(HorAlignType::kHorAlignRight);
+            SetChildHAlignType(HorAlignType::kAlignRight);
         }
         else {
             ASSERT(0);
@@ -67,23 +67,24 @@ bool Layout::SetAttribute(const DString& strName, const DString& strValue, const
     else if (strName == _T("child_align")) {
         //水平对齐
         if (strValue.find(_T("left")) != DString::npos) {
-            SetChildHAlignType(HorAlignType::kHorAlignLeft);
+            SetChildHAlignType(HorAlignType::kAlignLeft);
         }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetChildHAlignType(HorAlignType::kHorAlignCenter);
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetChildHAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetChildHAlignType(HorAlignType::kHorAlignRight);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetChildHAlignType(HorAlignType::kAlignRight);
         }
+
         //垂直对齐
         if (strValue.find(_T("top")) != DString::npos) {
-            SetChildVAlignType(VerAlignType::kVerAlignTop);
+            SetChildVAlignType(VerAlignType::kAlignTop);
         }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetChildVAlignType(VerAlignType::kVerAlignCenter);
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetChildVAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetChildVAlignType(VerAlignType::kVerAlignBottom);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetChildVAlignType(VerAlignType::kAlignBottom);
         }
     }
     else {
@@ -108,7 +109,7 @@ void Layout::SetOwner(Box* pOwner)
     m_pOwner = pOwner;
 }
 
-UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
+UiSize64 Layout::SetFloatPos(const Layout* pLayout, Control* pControl, const UiRect& rcContainer)
 {
     ASSERT(pControl != nullptr);
     if ((pControl == nullptr) || (!pControl->IsVisible())) {
@@ -144,7 +145,7 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
         childSize.cy = pControl->GetMaxHeight();
     }
 
-    UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
+    UiRect childPos = GetFloatPos(pLayout, pControl, rcContainer, childSize);
     if (pControl->IsFloat() && pControl->IsKeepFloatPos() && (pControl->GetParent() != nullptr)) {
         //浮动控件：如果外部调整了其位置，则保持原位置
         UiSize oldFloatPos = pControl->GetFloatPos();
@@ -160,7 +161,7 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
     return UiSize64(childPos.Width(), childPos.Height());
 }
 
-UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize)
+UiRect Layout::GetFloatPos(const Layout* pLayout, const Control* pControl, UiRect rcContainer, UiSize childSize)
 {
     rcContainer.Validate();
     ASSERT(pControl != nullptr);
@@ -188,36 +189,54 @@ UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSi
 
     //按照子控件指定的横向对齐方式和纵向对齐方式来排列控件
     HorAlignType horAlignType = pControl->GetHorAlignType();
+    if (horAlignType == HorAlignType::kAlignNone) {
+        if (pLayout != nullptr) {
+            horAlignType = pLayout->GetChildHAlignType();
+        }
+    }
     VerAlignType verAlignType = pControl->GetVerAlignType();
+    if (verAlignType == VerAlignType::kAlignNone) {
+        if (pLayout != nullptr) {
+            verAlignType = pLayout->GetChildVAlignType();
+        }
+    }
 
     int32_t childLeft = 0;
     int32_t childRight = 0;
     int32_t childTop = 0;
     int32_t childBottm = 0;
 
-    if (horAlignType == HorAlignType::kHorAlignLeft) {
-        childLeft = iPosLeft;
-        childRight = childLeft + childWidth;
-    }
-    else if (horAlignType == HorAlignType::kHorAlignRight) {
+    //水平对齐方式
+    if (horAlignType == HorAlignType::kAlignRight) {
+        //靠右
         childRight = iPosRight;
         childLeft = childRight - childWidth;
     }
-    else if (horAlignType == HorAlignType::kHorAlignCenter) {
+    else if (horAlignType == HorAlignType::kAlignCenter) {
+        //水平居中
         childLeft = iPosLeft + (iPosRight - iPosLeft - childWidth) / 2;
         childRight = childLeft + childWidth;
     }
-
-    if (verAlignType == VerAlignType::kVerAlignTop) {
-        childTop = iPosTop;
-        childBottm = childTop + childHeight;
+    else {
+        //靠左（默认）
+        childLeft = iPosLeft;
+        childRight = childLeft + childWidth;
     }
-    else if (verAlignType == VerAlignType::kVerAlignBottom) {
+
+    //垂直方向对齐方式
+    if (verAlignType == VerAlignType::kAlignBottom) {
+        //靠下
         childBottm = iPosBottom;
         childTop = childBottm - childHeight;
     }
-    else if (verAlignType == VerAlignType::kVerAlignCenter) {
+    else if (verAlignType == VerAlignType::kAlignCenter) {
+        //垂直居中
         childTop = iPosTop + (iPosBottom - iPosTop - childHeight) / 2;
+        childBottm = childTop + childHeight;
+    }
+    else {
+        //靠上（默认）
+        childTop = iPosTop;
         childBottm = childTop + childHeight;
     }
 
@@ -233,7 +252,7 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         if ((pControl == nullptr) || (!pControl->IsVisible())) {
             continue;
         }
-        UiSize64 controlSize = SetFloatPos(pControl, rc);
+        UiSize64 controlSize = SetFloatPos(this, pControl, rc);
         size.cx = std::max(size.cx, controlSize.cx);
         size.cy = std::max(size.cy, controlSize.cy);
     }

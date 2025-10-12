@@ -9,7 +9,7 @@ VirtualVLayout::VirtualVLayout():
     m_bAutoCalcItemWidth(false)
 {
     //默认居中对齐
-    SetChildHAlignType(HorAlignType::kHorAlignCenter);
+    SetChildHAlignType(HorAlignType::kAlignCenter);
 }
 
 bool VirtualVLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
@@ -204,10 +204,10 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
     //确定对齐方式
     if (szItem.cx < rc.Width()) {
         HorAlignType hAlign = GetChildHAlignType();
-        if (hAlign == HorAlignType::kHorAlignCenter) {
+        if (hAlign == HorAlignType::kAlignCenter) {
             iPosLeft = rc.CenterX() - szItem.cx / 2;
         }
-        else if (hAlign == HorAlignType::kHorAlignRight) {
+        else if (hAlign == HorAlignType::kAlignRight) {
             iPosLeft = rc.right - szItem.cx;
         }
     }

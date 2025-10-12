@@ -13,8 +13,8 @@ namespace ui
 
 RichText::RichText(Window* pWindow) :
     Control(pWindow),
-    m_hAlignType(HorAlignType::kHorAlignLeft),
-    m_vAlignType(VerAlignType::kVerAlignTop),
+    m_hAlignType(HorAlignType::kAlignLeft),
+    m_vAlignType(VerAlignType::kAlignTop),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),
     m_nTextDataDPI(0),
@@ -32,24 +32,26 @@ DString RichText::GetType() const { return DUI_CTR_RICHTEXT; }
 void RichText::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("text_align")) {
+        //水平方向对齐方式
         if (strValue.find(_T("left")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kAlignLeft);
         }
         else if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignCenter);
+            SetTextHAlignType(HorAlignType::kAlignCenter);
         }
         else if (strValue.find(_T("right")) != DString::npos) {
-            SetTextHAlignType(HorAlignType::kHorAlignRight);
+            SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
+        //垂直方向对齐方式
         if (strValue.find(_T("top")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kAlignTop);
         }
         else if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignCenter);
+            SetTextVAlignType(VerAlignType::kAlignCenter);
         }
         else if (strValue.find(_T("bottom")) != DString::npos) {
-            SetTextVAlignType(VerAlignType::kVerAlignBottom);
+            SetTextVAlignType(VerAlignType::kAlignBottom);
         }
         m_textData.clear();
         m_spDrawRichTextCache.reset();
@@ -146,20 +148,20 @@ void RichText::Redraw()
 uint16_t RichText::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
-    if (m_hAlignType == HorAlignType::kHorAlignCenter) {
+    if (m_hAlignType == HorAlignType::kAlignCenter) {
         uTextStyle |= TEXT_CENTER;
     }
-    else if (m_hAlignType == HorAlignType::kHorAlignRight) {
+    else if (m_hAlignType == HorAlignType::kAlignRight) {
         uTextStyle |= TEXT_RIGHT;
     }
     else {
         uTextStyle |= TEXT_LEFT;
     }
 
-    if (m_vAlignType == VerAlignType::kVerAlignCenter) {
+    if (m_vAlignType == VerAlignType::kAlignCenter) {
         uTextStyle |= TEXT_VCENTER;
     }
-    else if (m_vAlignType == VerAlignType::kVerAlignBottom) {
+    else if (m_vAlignType == VerAlignType::kAlignBottom) {
         uTextStyle |= TEXT_BOTTOM;
     }
     else {

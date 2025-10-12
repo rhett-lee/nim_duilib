@@ -54,7 +54,8 @@
 | VBoxDragable | VBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 垂直布局（VLayout） | 支持子控件的拖入/拖出操作的容器 |
 
 容器（Box）包含如下基础属性：    
-* 子控件之间的间距: X轴方向/Y轴方向
+* 子控件之间的间隔（X方向和Y方向）: child_margin_x/child_margin_y
+* 子控件的对齐方式（水平对齐与垂直对齐）：child_halign/child_valign
 * 外边距：margin
 * 内边距：padding
 * 子控件是否可以鼠标操作：mouse_child
@@ -78,6 +79,14 @@
 | VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局|
 | VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
 | ListCtrlReportLayout |Layout| [duilib/Control/ListCtrlReportView.h](../duilib/Control/ListCtrlReportView.h) | ListCtrl控件的Report模式布局（个性化实现）|
+
+容器在布局子控件时，关联的子控件（可以是Control或者Box及其子类）属性主要有：    
+* 容器的内边距：padding
+* 容器关联布局（Layout）的属性：子控件之间的间隔（水平方向：child_margin_x、垂直方向：child_margin_y）
+* 容器关联布局（Layout）的属性：对齐方式（水平方向：child_halign、垂直方向：child_valign）
+* 子控件自身的对齐方式：水平方向（halign）、垂直方向（valign）
+* 子控件自身的外边距：margin
+* 子控件自身的大小：高度（width）、宽度（height）
 
 ## 二、布局（Layout）的属性
 ### 1. 浮动布局（Layout）
@@ -150,7 +159,7 @@
 | child_align    |   | string | 布局属性，同时设置子控件的水平方向和垂直方向的对齐方式，功能与child_valign和child_halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | margin | 0,0,0,0 | rect | 外边距,如(2,2,2,2) |
 | padding | 0,0,0,0 | rect | 内边距,如(2,2,2,2) |
-| mouse_child | true | bool | 子控件是否可以鼠标操作, true 或者 false|
+| mouse_child | true | bool | 子控件是否支持鼠标操作, true 或者 false|
 | drag_out_id | 0 | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
 | drop_in_id | 0 | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
 

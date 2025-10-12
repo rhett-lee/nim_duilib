@@ -14,7 +14,7 @@ VTileLayout::VTileLayout():
     m_bAutoCalcItemWidth(false)
 {
     //默认居中对齐
-    SetChildHAlignType(HorAlignType::kHorAlignCenter);
+    SetChildHAlignType(HorAlignType::kAlignCenter);
 }
 
 bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
@@ -165,8 +165,8 @@ UiSize64 VTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
             //浮动控件
             UiSize64 floatSize;
             if (!isCalcOnly) {
-                //设置浮动控件的位置
-                floatSize = SetFloatPos(pControl, rc);
+                //设置浮动控件的位置（容器本身的对齐方式不生效）
+                floatSize = SetFloatPos(nullptr, pControl, rc);
             }
             else {
                 //计算Float控件的大小
@@ -303,8 +303,8 @@ UiSize VTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
         }
     }
 
-    //rcTile包含外边距，realSize不包含外边距
-    szTilePos = GetFloatPos(itemSizeInfo.pControl, rcTile, realSize);
+    //rcTile包含外边距，realSize不包含外边距（容器本身的对齐方式不生效）
+    szTilePos = GetFloatPos(nullptr, itemSizeInfo.pControl, rcTile, realSize);
     if (szTilePos.left < ptTile.x) {
         //如果控件较大，超过边界，则靠左对齐
         int32_t width = szTilePos.Width();
@@ -439,11 +439,11 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
         }
         if (cxTotal < rc.Width()) {
             HorAlignType hAlign = GetChildHAlignType();
-            if (hAlign == HorAlignType::kHorAlignCenter) {
+            if (hAlign == HorAlignType::kAlignCenter) {
                 //居中对齐
                 xPosLeft = rc.CenterX() - cxTotal / 2;
             }
-            else if (hAlign == HorAlignType::kHorAlignRight) {
+            else if (hAlign == HorAlignType::kAlignRight) {
                 //靠右对齐
                 xPosLeft = rc.right - cxTotal;
             }
@@ -630,11 +630,11 @@ UiSize64 VTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
         if (size.cx < rcBox.Width()) {
             HorAlignType hAlign = GetChildHAlignType();
             int32_t nOffset = 0;
-            if (hAlign == HorAlignType::kHorAlignCenter) {
+            if (hAlign == HorAlignType::kAlignCenter) {
                 //居中对齐
                 nOffset = (int32_t)(rcBox.Width() - size.cx) / 2;
             }
-            else if (hAlign == HorAlignType::kHorAlignRight) {
+            else if (hAlign == HorAlignType::kAlignRight) {
                 //靠右对齐
                 nOffset = (int32_t)(rcBox.Width() - size.cx);
             }
@@ -653,8 +653,8 @@ UiSize64 VTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
             Control* pControl = iter.first;
             const UiRect& rcChildPos = iter.second;
             if (pControl->IsFloat()) {
-                //浮动控件
-                SetFloatPos(pControl, rcChildPos);
+                //浮动控件（容器本身的对齐方式不生效）
+                SetFloatPos(nullptr, pControl, rcChildPos);
             }
             else {
                 pControl->SetPos(rcChildPos);

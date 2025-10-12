@@ -524,12 +524,12 @@ bool ListCtrlHeaderItem::IsShowIconAtTop() const
 void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
 {
     uint32_t textStyle = GetTextStyle();
-    if (alignType == HorAlignType::kHorAlignCenter) {
+    if (alignType == HorAlignType::kAlignCenter) {
         //文本：居中对齐
         textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
         textStyle |= TEXT_CENTER;
     }
-    else if (alignType == HorAlignType::kHorAlignRight) {
+    else if (alignType == HorAlignType::kAlignRight) {
         //文本：右对齐
         textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
         textStyle |= TEXT_RIGHT;
@@ -544,15 +544,15 @@ void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
 
 HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
 {
-    HorAlignType alignType = HorAlignType::kHorAlignLeft;//文本：左对齐
+    HorAlignType alignType = HorAlignType::kAlignLeft;//文本：左对齐
     uint32_t textStyle = GetTextStyle();
     if (textStyle & TEXT_CENTER) {
         //文本：居中对齐
-        alignType = HorAlignType::kHorAlignCenter;
+        alignType = HorAlignType::kAlignCenter;
     }
     else if (textStyle & TEXT_RIGHT) {
         //文本：右对齐
-        alignType = HorAlignType::kHorAlignRight;
+        alignType = HorAlignType::kAlignRight;
     }
     return alignType;
 }

@@ -70,13 +70,13 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("halign")) {
         if (strValue == _T("left")) {
-            SetHorAlignType(HorAlignType::kHorAlignLeft);
+            SetHorAlignType(HorAlignType::kAlignLeft);
         }
         else if (strValue == _T("center")) {
-            SetHorAlignType(HorAlignType::kHorAlignCenter);
+            SetHorAlignType(HorAlignType::kAlignCenter);
         }
         else if (strValue == _T("right")) {
-            SetHorAlignType(HorAlignType::kHorAlignRight);
+            SetHorAlignType(HorAlignType::kAlignRight);
         }
         else {
             ASSERT(0);
@@ -84,38 +84,38 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("valign")) {
         if (strValue == _T("top")) {
-            SetVerAlignType(VerAlignType::kVerAlignTop);
+            SetVerAlignType(VerAlignType::kAlignTop);
         }
         else if (strValue == _T("center")) {
-            SetVerAlignType(VerAlignType::kVerAlignCenter);
+            SetVerAlignType(VerAlignType::kAlignCenter);
         }
         else if (strValue == _T("bottom")) {
-            SetVerAlignType(VerAlignType::kVerAlignBottom);
+            SetVerAlignType(VerAlignType::kAlignBottom);
         }
         else {
             ASSERT(0);
         }
     }
     else if (strName == _T("align")) {
-        //水平对齐
+        //水平方向对齐方式
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHorAlignType(HorAlignType::kHorAlignLeft);
+            SetHorAlignType(HorAlignType::kAlignLeft);
         }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHorAlignType(HorAlignType::kHorAlignCenter);
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetHorAlignType(HorAlignType::kHorAlignRight);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kAlignRight);
         }
-        //垂直对齐
+        //垂直方向对齐方式
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVerAlignType(VerAlignType::kVerAlignTop);
+            SetVerAlignType(VerAlignType::kAlignTop);
         }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVerAlignType(VerAlignType::kVerAlignCenter);
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVerAlignType(VerAlignType::kVerAlignBottom);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if (strName == _T("margin")) {

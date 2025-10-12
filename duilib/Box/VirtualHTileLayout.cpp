@@ -10,7 +10,7 @@ VirtualHTileLayout::VirtualHTileLayout()
     SetAutoCalcRows(true);
 
     //默认垂直方向，居中对齐
-    SetChildVAlignType(VerAlignType::kVerAlignCenter);
+    SetChildVAlignType(VerAlignType::kAlignCenter);
 }
 
 VirtualListBox* VirtualHTileLayout::GetOwnerBox() const
@@ -205,11 +205,11 @@ void VirtualHTileLayout::LazyArrangeChild(UiRect rc) const
     }
     if (cyTotal < rc.Height()) {
         VerAlignType vAlign = GetChildVAlignType();
-        if (vAlign == VerAlignType::kVerAlignCenter) {
+        if (vAlign == VerAlignType::kAlignCenter) {
             //居中对齐
             iPosTop = rc.CenterY() - cyTotal / 2;
         }
-        else if (vAlign == VerAlignType::kVerAlignBottom) {
+        else if (vAlign == VerAlignType::kAlignBottom) {
             //靠下对齐
             iPosTop = rc.bottom - cyTotal;
         }

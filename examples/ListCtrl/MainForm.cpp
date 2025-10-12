@@ -355,15 +355,15 @@ void MainForm::OnInitWindow()
             }
         };
     pColumnHeaderTextAlignLeft->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
-        OnHeaderTextAlign(ui::HorAlignType::kHorAlignLeft);
+        OnHeaderTextAlign(ui::HorAlignType::kAlignLeft);
         return true;
         });
     pColumnHeaderTextAlignCenter->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
-        OnHeaderTextAlign(ui::HorAlignType::kHorAlignCenter);
+        OnHeaderTextAlign(ui::HorAlignType::kAlignCenter);
         return true;
         });
     pColumnHeaderTextAlignRight->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
-        OnHeaderTextAlign(ui::HorAlignType::kHorAlignRight);
+        OnHeaderTextAlign(ui::HorAlignType::kAlignRight);
         return true;
         });
 
@@ -771,10 +771,10 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     pColumnEditable->Selected(bColumnEditable, false);
 
     ui::HorAlignType hAlignType = pHeaderItem->GetTextHorAlign();
-    if (hAlignType == ui::HorAlignType::kHorAlignCenter) {
+    if (hAlignType == ui::HorAlignType::kAlignCenter) {
         pColumnHeaderTextAlignCenter->Selected(true, false);
     }
-    else if (hAlignType == ui::HorAlignType::kHorAlignRight) {
+    else if (hAlignType == ui::HorAlignType::kAlignRight) {
         pColumnHeaderTextAlignRight->Selected(true, false);
     }
     else {
