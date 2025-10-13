@@ -4,11 +4,11 @@
 // duilib
 #include "duilib/duilib.h"
 
-class LayoutsForm : public ui::WindowImplBase
+class ChatForm : public ui::WindowImplBase
 {
 public:
-    LayoutsForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml);
-    virtual ~LayoutsForm() override;
+    ChatForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml);
+    virtual ~ChatForm() override;
 
     /** 资源相关接口
      * GetSkinFolder 接口设置你要绘制的窗口皮肤资源路径
@@ -25,8 +25,8 @@ public:
     static void ShowCustomWindow(const DString& class_name, const DString& theme_directory, const DString& layout_xml);
 
 private:
-    DString theme_directory_;
-    DString layout_xml_;
+    DString m_themeDirectory;
+    DString m_layoutXml;
 };
 
 #endif //EXAMPLES_LAYOUTS_FORM_H_

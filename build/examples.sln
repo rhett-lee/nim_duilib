@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B2
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic", "..\examples\basic\basic.vcxproj", "{F1A9371F-9A34-45A0-98EB-83FF371F067F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "layouts", "..\examples\layouts\layouts.vcxproj", "{2BFFA1EE-039D-479E-9BCC-2D12F8AEDD16}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chat", "..\examples\chat\chat.vcxproj", "{2BFFA1EE-039D-479E-9BCC-2D12F8AEDD16}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cef", "..\examples\cef\cef.vcxproj", "{B8588C07-9CE2-456C-83B1-86E4B65D4108}"
 	ProjectSection(ProjectDependencies) = postProject

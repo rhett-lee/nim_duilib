@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{2BFFA1EE-039D-479E-9BCC-2D12F8AEDD16}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>layouts</RootNamespace>
+    <RootNamespace>chat</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -164,23 +164,23 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="layouts_form.h" />
+    <ClInclude Include="ChatForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="layouts_form.cpp" />
+    <ClCompile Include="ChatForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="layouts.rc" />
+    <ResourceCompile Include="chat.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="layouts.ico" />
+    <Image Include="chat.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

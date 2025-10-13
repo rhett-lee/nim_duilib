@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.18)
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 
 # 定义项目名称和开发语言
-project(layouts CXX)
+project(chat CXX)
 
 # duilib 的源码根目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../" ABSOLUTE) 

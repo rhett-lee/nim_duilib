@@ -32,7 +32,7 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_LAYOUTS             ICON                    "layouts.ico"
+IDI_LAYOUTS             ICON                    "chat.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////

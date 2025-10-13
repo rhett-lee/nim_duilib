@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="layouts_form.h">
+    <ClInclude Include="ChatForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainThread.h">
@@ -32,7 +32,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="layouts_form.cpp">
+    <ClCompile Include="ChatForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main_windows.cpp">
@@ -46,12 +46,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="layouts.rc">
+    <ResourceCompile Include="chat.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="layouts.ico">
+    <Image Include="chat.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
