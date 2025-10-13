@@ -28,6 +28,8 @@ namespace ui
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
+/** 控件基类(相当于Widget)
+*/
 class UILIB_API Control: public PlaceHolder
 {
     typedef PlaceHolder BaseClass;

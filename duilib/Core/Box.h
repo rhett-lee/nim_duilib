@@ -6,9 +6,8 @@
 
 namespace ui 
 {
-
-/////////////////////////////////////////////////////////////////////////////////////
-//
+/** 容器基类(Container)
+*/
 class UILIB_API Box : public Control
 {
     typedef Control BaseClass;
