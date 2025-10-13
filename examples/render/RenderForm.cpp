@@ -1,6 +1,5 @@
-#include "render_form.h"
+#include "RenderForm.h"
 #include "RenderTest1.h"
-#include "RenderTest2.h"
 #include "RenderTest2.h"
 
 RenderForm::RenderForm()

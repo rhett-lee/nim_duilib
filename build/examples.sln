@@ -65,6 +65,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2", "..\examples\Web
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2Browser", "..\examples\WebView2Browser\WebView2Browser.vcxproj", "{34272A88-EF1F-4AD2-8101-512A9A316757}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "layout", "..\examples\layout\layout.vcxproj", "{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -273,6 +275,14 @@ Global
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|Win32.Build.0 = Release|Win32
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|x64.ActiveCfg = Release|x64
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|x64.Build.0 = Release|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|Win32.Build.0 = Debug|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|x64.ActiveCfg = Debug|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|x64.Build.0 = Debug|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|Win32.ActiveCfg = Release|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|Win32.Build.0 = Release|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|x64.ActiveCfg = Release|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -302,6 +312,7 @@ Global
 		{F1A9371F-9A34-45A0-98EB-83FF371F066A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{5C19133B-684C-4909-9729-EF2408ACF68A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{34272A88-EF1F-4AD2-8101-512A9A316757} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}

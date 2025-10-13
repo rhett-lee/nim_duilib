@@ -66,7 +66,7 @@ for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
 %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\duilib" %DUILIB_BUILD_PARAM%
 
 @REM #编译examples下的各个程序
-SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,chat,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView,cef,CefBrowser,WebView2,WebView2Browser
+SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,chat,layout,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView,cef,CefBrowser,WebView2,WebView2Browser
 for %%i in (%DUILIB_PROGRAMS%) do (
     %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% -DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_BUILD_PARAM%
