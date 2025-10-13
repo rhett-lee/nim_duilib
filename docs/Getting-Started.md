@@ -1,6 +1,6 @@
 ﻿# 快速上手（Windows系统，VS 2022）
 
-此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `examples` 中的 `MyDuilibApp` 项目一致，如果你更喜欢查看代码，可以打开`examples.sln`工程，参考示例代码而无需多花费时间。
+此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `examples` 中的 `basic` 项目相似，如果你更喜欢查看代码，可以打开`examples.sln`工程，参考示例代码而无需多花费时间。
 
 ## 获取项目代码并编译
 
@@ -28,10 +28,10 @@ git clone https://github.com/rhett-lee/skia_compile
 
 ## 创建基础工程
 
-使用 Visual Studio 打开项目目录中 `duilib.sln` 解决方案，新建一个 Windows 桌面应用，来一步一步完成第一个基于 duilib 界面库的程序。
+使用 Visual Studio 打开项目目录中 `examples.sln` 解决方案，新建一个 Windows 桌面应用，来一步一步完成第一个基于 duilib 界面库的程序。
 
-1. 在`duilib.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application）。
-假定程序名为：`MyDuilibApp`，源码放在`examples2`子目录中。    
+1. 在`examples.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application）。
+假定程序名为：`MyDuilibApp`，源码放在`examples`子目录中。    
 
 <img src="./Images/vs01.png"/>
 
@@ -55,7 +55,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 ## 配置项目属性
 - 使用nim_duilib提供的通用配置（`msvc\PropertySheets\BinCommonSettings.props`）    
-（1）用文本编辑器打开刚刚创建的工程文件（`examples2\MyDuilibApp\MyDuilibApp.vcxproj`）    
+（1）用文本编辑器打开刚刚创建的工程文件（`examples\MyDuilibApp\MyDuilibApp.vcxproj`）    
 （2）找到`<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />`这一行的位置，在这行的后面插入一行，添加一下内容：    
          `<Import Project="..\..\msvc\PropertySheets\BinCommonSettings.props" />`    
 （3）保存该工程文件的修改，如果已经在VS中打开，需要重新加载。    
@@ -74,6 +74,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 在创建的项目中增加自定义的线程类MainThread（主线程和一个工作线程）    
 创建两个文件（`MainThread.h` 和 `MainThread.cpp`），并添加到VS工程中，两个文件的内容分别如下：
 
+MainThread.h    
 ```cpp
 #ifndef EXAMPLES_MAIN_THREAD_H_
 #define EXAMPLES_MAIN_THREAD_H_
@@ -102,6 +103,7 @@ private:
 #endif // EXAMPLES_MAIN_THREAD_H_
 ```
 
+MainThread.cpp    
 ```cpp
 #include "MainThread.h"
 #include "MainForm.h"
