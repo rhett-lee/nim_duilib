@@ -78,7 +78,6 @@
 | VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表垂直布局|
 | VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局|
 | VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
-| ListCtrlReportLayout |Layout| [duilib/Control/ListCtrlReportView.h](../duilib/Control/ListCtrlReportView.h) | ListCtrl控件的Report模式布局（个性化实现）|
 
 容器在布局子控件时，关联的子控件（可以是Control或者Box及其子类）属性主要有：    
 * 容器的内边距：padding

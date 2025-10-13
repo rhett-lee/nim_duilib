@@ -18,11 +18,13 @@ enum class LayoutType
     VLayout,                //纵向布局
     HTileLayout,            //横向瓦片布局
     VTileLayout,            //纵向瓦片布局
+
     VirtualHLayout,         //虚表横向布局
     VirtualVLayout,         //虚表纵向布局
     VirtualHTileLayout,     //虚表横向瓦片布局
     VirtualVTileLayout,     //虚表纵向瓦片布局
-    ListCtrlReportLayout    //ListCtrl控件的Report模式布局
+
+    ListCtrlReportLayout    //ListCtrl控件的Report模式布局(仅内部使用)
 };
 
 /** 布局管理器基类

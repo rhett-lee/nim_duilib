@@ -23,35 +23,35 @@
         
         <!-- 显示区域 --> 
         <VBox>
-            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">
-                <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="0"/>
-                <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="1"/>
-                <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title="文字" close_button_class="" tab_box_item_index="4"/>
+            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">                
+                <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="0"/>
+                <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="1"/>
+                <TabCtrlItem class="tab_ctrl_item" title="文字" close_button_class="" tab_box_item_index="2"/>
+                <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="4"/>
                 <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="5"/>                
                 <TabCtrlItem class="tab_ctrl_item" title="PropertyGrid" close_button_class="" tab_box_item_index="6"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
-                    <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
-                    <RenderTest1 />
-                </VBox>
-                <VBox name="main_view_page_01">
-                    <Label text="页面2：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
-                    <RenderTest2 />
-                </VBox>
-                <VBox name="main_view_page_02">
                     <Label text="页面3：用标准控件测试所有支持的图片格式"/>
                     <Include src="page_image1.xml"/>
                 </VBox>
-                <VBox name="main_view_page_03">
+                <VBox name="main_view_page_01">
                     <Label text="页面4：用标准控件测试支持的图片属性"/>
                     <Include src="page_image2.xml"/>
                 </VBox>
-                <VBox name="main_view_page_04">
+                <VBox name="main_view_page_02">
                     <Label text="页面5：文字绘制测试"/>
                     <Include src="page_text.xml"/>
+                </VBox>
+                <VBox name="main_view_page_03">
+                    <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
+                    <RenderTest1 />
+                </VBox>
+                <VBox name="main_view_page_04">
+                    <Label text="页面2：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
+                    <RenderTest2 />
                 </VBox>
                 <VBox name="main_view_page_05">
                     <Label text="页面6：DrawBoxShadow测试"/>
