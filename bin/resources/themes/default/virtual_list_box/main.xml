@@ -95,7 +95,7 @@
             </VBox>
             <Box>
                 <!-- VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox -->
-                <VirtualVListBox class="list" name="list" bkcolor="white" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level1" padding="1,1,1,1"/>     
+                <VirtualVTileListBox class="list" name="list" bkcolor="white" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level1" padding="1,1,1,1"/>     
             </Box>
         </HBox>
     </VBox>

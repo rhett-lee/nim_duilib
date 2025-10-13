@@ -43,10 +43,10 @@
 | VListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直布局（VLayout）   | 列表容器，支持滚动条 |
 | HTileListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平瓦片布局（HTileLayout）| 列表容器，支持滚动条 |
 | VTileListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直瓦片布局（VTileLayout）| 列表容器，支持滚动条 |
-| VirtualListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 浮动布局（Layout）     | 虚表实现的ListBox，支持大数据量，只支持纵向滚动条 |
-| VirtualHListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平布局（HLayout）   | 虚表实现的ListBox，支持大数据量，只支持纵向滚动条 |
+| VirtualListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 浮动布局（Layout）     | 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| VirtualHListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平布局（HLayout）   | 虚表实现的ListBox，支持大数据量，只支持横向滚动条 |
 | VirtualVListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 垂直布局（VLayout）   | 虚表实现的ListBox，支持大数据量，只支持纵向滚动条 |
-| VirtualHTileListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平瓦片布局（HTileLayout）| 虚表实现的ListBox，支持大数据量，只支持纵向滚动条 |
+| VirtualHTileListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平瓦片布局（HTileLayout）| 虚表实现的ListBox，支持大数据量，只支持横向滚动条 |
 | VirtualVTileListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 垂直瓦片布局（VTileLayout）| 虚表实现的ListBox，支持大数据量，只支持纵向滚动条 |
 | TabBox | Box|[duilib/Box/TabBox.h](../duilib/Box/TabBox.h) | 浮动布局（Layout） | 页管理容器，内部的多个子控件，只有一个可见，其他是隐藏的，可动态切换 |
 | BoxDragable | Box|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 浮动布局（Layout）    | 支持子控件的拖入/拖出操作的容器 |

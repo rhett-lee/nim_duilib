@@ -103,7 +103,7 @@ private:
     CountChangedNotify m_pfnCountChangedNotify;
 };
 
-/** 虚表实现的ListBox，支持大数据量，只支持纵向滚动条
+/** 虚表实现的ListBox，支持大数据量，支持滚动条
 */
 class UILIB_API VirtualListBox : public ListBox
 {
