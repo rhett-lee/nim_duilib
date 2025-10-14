@@ -75,6 +75,13 @@ UiSize64 VirtualVTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
     int64_t nTotalHeight = GetElementsHeight(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cy = std::max(nTotalHeight, sz.cy);
+
+    //计算横向所需宽度，以支持水平滚动条
+    int32_t nColumns = CalcTileColumns(rc.Width()); //列数
+    const UiSize szItem = GetItemSize();
+    int64_t cxWidth = szItem.cx * nColumns + GetChildMarginX() * (nColumns - 1);
+    sz.cx = std::max(cxWidth, sz.cx);
+
     LazyArrangeChild(rc);
     return sz;
 }

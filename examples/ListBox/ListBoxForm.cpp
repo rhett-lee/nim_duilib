@@ -35,11 +35,13 @@ void ListBoxForm::OnInitWindow()
 
     if (bVTileListBox) {
         //VTileListBox: 设置为固定2列, 自动计算Item宽度
+        //m_pListBox->SetAttribute(_T("item_size"), _T("200，80"));
         m_pListBox->SetAttribute(_T("columns"), _T("2"));
         m_pListBox->SetAttribute(_T("auto_calc_item_size"), _T("true"));
     }
     else if (bHTileListBox) {
         //HTileListBox: 设置为固定2行, 自动计算Item高度
+        //m_pListBox->SetAttribute(_T("item_size"), _T("200，80"));
         m_pListBox->SetAttribute(_T("rows"), _T("2"));
         m_pListBox->SetAttribute(_T("auto_calc_item_size"), _T("true"));
     }

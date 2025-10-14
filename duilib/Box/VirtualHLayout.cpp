@@ -52,6 +52,7 @@ UiSize64 VirtualHLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui
     int64_t nTotalWidth = GetElementsWidth(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cx = std::max(nTotalWidth, sz.cx);
+    sz.cy = std::max((int64_t)GetItemSize().cy, sz.cy);//支持纵向滚动条
     LazyArrangeChild(rc);
     return sz;
 }

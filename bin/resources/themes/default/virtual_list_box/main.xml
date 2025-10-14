@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,75%" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" min_size="600,400" size_box="4,4,4,4">
+<Window size="75%,75%" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" min_size="750,500" size_box="4,4,4,4">
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
