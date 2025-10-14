@@ -761,21 +761,21 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
         }
     }
 
-    int64_t cx = 0;
-    int64_t cy = 0;
+    int64_t cxOffset = 0;
+    int64_t cyOffset = 0;
     if( (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() ) {
         int64_t iLastScrollPos = m_pVScrollBar->GetScrollPos();
         m_pVScrollBar->SetScrollPos(szPos.cy);
-        cy = m_pVScrollBar->GetScrollPos() - iLastScrollPos;
+        cyOffset = m_pVScrollBar->GetScrollPos() - iLastScrollPos;
     }
 
     if( (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() ) {
         int64_t iLastScrollPos = m_pHScrollBar->GetScrollPos();
         m_pHScrollBar->SetScrollPos(szPos.cx);
-        cx = m_pHScrollBar->GetScrollPos() - iLastScrollPos;
+        cxOffset = m_pHScrollBar->GetScrollPos() - iLastScrollPos;
     }
 
-    if (cx == 0 && cy == 0) {
+    if (cxOffset == 0 && cyOffset == 0) {
         return;
     }
     UiSize newScrollOffset = GetScrollOffset();
@@ -784,7 +784,7 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
     }
 
     Invalidate();
-    SendEvent(kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
+    SendEvent(kEventScrollChange, (cyOffset == 0) ? 0 : 1, (cxOffset == 0) ? 0 : 1);
 }
 
 void ScrollBox::SetScrollPosY(int64_t y)
