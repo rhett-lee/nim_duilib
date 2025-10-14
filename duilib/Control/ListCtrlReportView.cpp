@@ -1565,6 +1565,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
                                   showItemIndexList, atTopItemIndexList, nPrevItemHeights);
     if (showItemIndexList.empty() && atTopItemIndexList.empty()) {
         //没有需要显示的数据
+        pDataView->SetScrollVirtualOffsetY(nScrollPosY);
         return;
     }
 
@@ -1982,14 +1983,6 @@ bool ListCtrlReportLayout::NeedReArrange() const
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(0);
-        return false;
-    }
-    size_t nItemCount = pDataView->GetItemCount();//界面的显示控件个数（行）
-    if (nItemCount == 0) {
-        return false;
-    }
-
-    if (pDataView->GetElementCount() <= nItemCount) {
         return false;
     }
 
