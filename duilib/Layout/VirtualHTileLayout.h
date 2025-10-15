@@ -1,26 +1,26 @@
-#ifndef UI_BOX_VIRTUAL_VTILELAYOUT_H_
-#define UI_BOX_VIRTUAL_VTILELAYOUT_H_
+#ifndef UI_LAYOUT_VIRTUAL_HTILELAYOUT_H_
+#define UI_LAYOUT_VIRTUAL_HTILELAYOUT_H_
 
-#include "duilib/Box/VTileLayout.h"
-#include "duilib/Box/VirtualLayout.h"
+#include "duilib/Layout/HTileLayout.h"
+#include "duilib/Layout/VirtualLayout.h"
 
 namespace ui 
 {
-/** 虚表实现的瓦片布局(纵向布局)
- *  水平方向对齐方式：默认居中对齐
- *  垂直方向对齐方式：靠上对齐，按控件依次排列
+/** 虚表实现的瓦片布局(横向布局)
+ *  水平方向对齐方式：靠左对齐，按控件依次排列
+ *  垂直方向对齐方式：默认居中对齐
  *  在瓦片布局中，子控件本身指定的对齐方式不生效
  */
 class VirtualListBox;
-class UILIB_API VirtualVTileLayout : public VTileLayout, public VirtualLayout
+class UILIB_API VirtualHTileLayout : public HTileLayout, public VirtualLayout
 {
-    typedef VTileLayout BaseClass;
+    typedef HTileLayout BaseClass;
 public:
-    VirtualVTileLayout();
+    VirtualHTileLayout();
 
     /** 布局类型
     */
-    virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualVTileLayout; }
+    virtual LayoutType GetLayoutType() const override { return LayoutType::VirtualHTileLayout; }
 
     /** 调整内部所有控件的位置信息
         * @param [in] items 控件列表
@@ -82,18 +82,18 @@ public:
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const override;
 
 private:
-    /** 获取数据项的高度
+    /** 获取数据项的宽度
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
-    * @return 返回 nCount 个数据项的高度总和
+    * @return 返回 nCount 个数据项的宽度总和
     */
-    int64_t GetElementsHeight(const UiRect& rc, size_t nCount) const;
+    int64_t GetElementsWidth(const UiRect& rc, size_t nCount) const;
 
-    /** 计算列数
-    *@param [in] rcWidth 可用区域宽度
-    *@return 计算得到的列数, 大于或等于1
+    /** 计算行数
+    *@param [in] rcHeight 可用区域高度
+    *@return 计算得到的行数, 大于或等于1
     */
-    int32_t CalcTileColumns(int32_t rcWidth) const;
+    int32_t CalcTileRows(int32_t rcHeight) const;
 
 private:
     /** 获取关联的Box接口
@@ -102,4 +102,4 @@ private:
 };
 } // namespace ui
 
-#endif // UI_BOX_VIRTUAL_VTILELAYOUT_H_
+#endif // UI_LAYOUT_VIRTUAL_HTILELAYOUT_H_

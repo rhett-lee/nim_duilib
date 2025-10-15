@@ -73,17 +73,17 @@
   按照布局方案不同，布局（Layout）的分类如下：    
 | 类名称（布局） | 基类名称 |关联头文件| 布局方案说明 |
 | :--- | :--- |:--- | :--- |
-| Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 浮动布局：子控件之间无关联，均使用自身的属性设置控件位置和大小 |
-| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | 水平布局：子控件在水平方向上，依次排列，不换行|
-| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，不换行|
-| HFlowLayout |Layout |[duilib/Box/HFlowLayout.h](../duilib/Box/HFlowLayout.h) | 水平布局：子控件在水平方向上，依次排列，自动换行|
-| VFlowLayout |Layout |[duilib/Box/VFlowLayout.h](../duilib/Box/VFlowLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，自动换行|
-| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | 水平瓦片布局，支持设置行数|
-| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | 垂直瓦片布局，支持设置列数|
-| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | 虚表水平布局，单行|
-| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表垂直布局，单列|
-| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局，支持设置行数|
-| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局，支持设置列数|
+| Layout | |[duilib/Layout/Layout.h](../duilib/Layout/Layout.h) | 浮动布局：子控件之间无关联，均使用自身的属性设置控件位置和大小 |
+| HLayout |Layout |[duilib/Layout/HLayout.h](../duilib/Layout/HLayout.h) | 水平布局：子控件在水平方向上，依次排列，不换行|
+| VLayout |Layout |[duilib/Layout/VLayout.h](../duilib/Layout/VLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，不换行|
+| HFlowLayout |Layout |[duilib/Layout/HFlowLayout.h](../duilib/Layout/HFlowLayout.h) | 水平布局：子控件在水平方向上，依次排列，自动换行|
+| VFlowLayout |Layout |[duilib/Layout/VFlowLayout.h](../duilib/Layout/VFlowLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，自动换行|
+| HTileLayout |Layout| [duilib/Layout/HTileLayout.h](../duilib/Layout/HTileLayout.h) | 水平瓦片布局，支持设置行数|
+| VTileLayout |Layout| [duilib/Layout/VTileLayout.h](../duilib/Layout/VTileLayout.h) | 垂直瓦片布局，支持设置列数|
+| VirtualHLayout |HLayout| [duilib/Layout/VirtualHLayout.h](../duilib/Layout/VirtualHLayout.h) | 虚表水平布局，单行|
+| VirtualVLayout |VLayout| [duilib/Layout/VirtualVLayout.h](../duilib/Layout/VirtualVLayout.h) | 虚表垂直布局，单列|
+| VirtualHTileLayout |HTileLayout| [duilib/Layout/VirtualHTileLayout.h](../duilib/Layout/VirtualHTileLayout.h) | 虚表水平瓦片布局，支持设置行数|
+| VirtualVTileLayout |VTileLayout| [duilib/Layout/VirtualVTileLayout.h](../duilib/Layout/VirtualVTileLayout.h) | 虚表垂直瓦片布局，支持设置列数|
 
 容器在布局子控件时，关联的子控件（可以是Control或者Box及其子类）属性主要有：    
 * 容器的内边距：padding

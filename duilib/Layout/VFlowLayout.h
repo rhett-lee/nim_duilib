@@ -1,7 +1,7 @@
-#ifndef UI_BOX_VFLOWLAYOUT_H_
-#define UI_BOX_VFLOWLAYOUT_H_
+#ifndef UI_LAYOUT_VFLOWLAYOUT_H_
+#define UI_LAYOUT_VFLOWLAYOUT_H_
 
-#include "duilib/Box/Layout.h"
+#include "duilib/Layout/Layout.h"
 
 namespace ui 
 {
@@ -50,4 +50,4 @@ private:
 
 } // namespace ui
 
-#endif // UI_BOX_VFLOWLAYOUT_H_
+#endif // UI_LAYOUT_VFLOWLAYOUT_H_

@@ -1,8 +1,8 @@
-#ifndef UI_BOX_VIRTUAL_VLAYOUT_H_
-#define UI_BOX_VIRTUAL_VLAYOUT_H_
+#ifndef UI_LAYOUT_VIRTUAL_VLAYOUT_H_
+#define UI_LAYOUT_VIRTUAL_VLAYOUT_H_
 
-#include "duilib/Box/VLayout.h"
-#include "duilib/Box/VirtualLayout.h"
+#include "duilib/Layout/VLayout.h"
+#include "duilib/Layout/VirtualLayout.h"
 
 namespace ui 
 {
@@ -138,4 +138,4 @@ private:
 };
 } // namespace ui
 
-#endif // UI_BOX_VIRTUAL_VLAYOUT_H_
+#endif // UI_LAYOUT_VIRTUAL_VLAYOUT_H_

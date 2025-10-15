@@ -1,29 +1,29 @@
-#ifndef UI_BOX_VLAYOUT_H_
-#define UI_BOX_VLAYOUT_H_
+#ifndef UI_LAYOUT_HLAYOUT_H_
+#define UI_LAYOUT_HLAYOUT_H_
 
-#include "duilib/Box/Layout.h"
+#include "duilib/Layout/Layout.h"
 
 namespace ui 
 {
 
-/** 垂直布局：各个子控件横向靠左，垂直方向依次排列
- *  水平方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
- *  垂直方向对齐方式：默认靠上对齐，子控件本身指定的垂直对齐方式不生效
+/** 水平布局: 各个子控件纵向靠上，水平方向依次排列
+ *  水平方向对齐方式：默认靠左对齐，子控件本身指定的对齐方式不生效
+ *  垂直方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
  */
-class UILIB_API VLayout : public Layout
+class UILIB_API HLayout : public Layout
 {
     typedef Layout BaseClass;
 public:
-    VLayout();
+    HLayout();
 
     /** 布局类型
     */
-    virtual LayoutType GetLayoutType() const override { return LayoutType::VLayout; }
-    
+    virtual LayoutType GetLayoutType() const override { return LayoutType::HLayout; }
+
     /** 调整内部所有控件的位置信息
      * @param[in] items 控件列表
      * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
-     * @return 返回排列后最终盒子的宽度和高度信息
+     * @return 返回排列后最终盒子的宽度和高度信息，包含Owner Box的内边距，不包含外边距
      */
     virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override;
 
@@ -41,4 +41,4 @@ public:
 
 } // namespace ui
 
-#endif // UI_BOX_VLAYOUT_H_
+#endif // UI_LAYOUT_HLAYOUT_H_

@@ -1,7 +1,7 @@
 #include "HTileLayout.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include <numeric>
 

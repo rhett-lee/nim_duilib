@@ -2,8 +2,8 @@
 #define UI_CORE_VBOX_H_
 
 #include "duilib/Core/Box.h"
-#include "duilib/Box/VLayout.h"
-#include "duilib/Box/VFlowLayout.h"
+#include "duilib/Layout/VLayout.h"
+#include "duilib/Layout/VFlowLayout.h"
 
 namespace ui
 {

@@ -2,8 +2,8 @@
 #include "ListBoxHelper.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Box/VirtualHTileLayout.h"
-#include "duilib/Box/VirtualVTileLayout.h"
+#include "duilib/Layout/VirtualHTileLayout.h"
+#include "duilib/Layout/VirtualVTileLayout.h"
 
 namespace ui 
 {

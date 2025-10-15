@@ -2,8 +2,8 @@
 #define UI_CORE_HBOX_H_
 
 #include "duilib/Core/Box.h"
-#include "duilib/Box/HLayout.h"
-#include "duilib/Box/HFlowLayout.h"
+#include "duilib/Layout/HLayout.h"
+#include "duilib/Layout/HFlowLayout.h"
 
 namespace ui
 {

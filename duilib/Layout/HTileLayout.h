@@ -1,25 +1,25 @@
-#ifndef UI_BOX_VTILE_LAYOUT_H_
-#define UI_BOX_VTILE_LAYOUT_H_
+#ifndef UI_LAYOUT_HTILE_LAYOUT_H_
+#define UI_LAYOUT_HTILE_LAYOUT_H_
 
-#include "duilib/Box/Layout.h"
+#include "duilib/Layout/Layout.h"
 
 namespace ui 
 {
 
-/** 瓦片布局(纵向)
- *  水平方向对齐方式：默认居中对齐
- *  垂直方向对齐方式：靠上对齐，按控件依次排列
- *  在瓦片布局中，子控件本身指定的垂直对齐方式不生效
+/** 瓦片布局(横向)
+ *  水平方向对齐方式：靠左对齐，按控件依次排列
+ *  垂直方向对齐方式：默认居中对齐
+ *  在瓦片布局中，子控件本身指定的对齐方式不生效
  */
-class UILIB_API VTileLayout : public Layout
+class UILIB_API HTileLayout : public Layout
 {
     typedef Layout BaseClass;
 public:
-    VTileLayout();
+    HTileLayout();
 
     /** 布局类型
     */
-    virtual LayoutType GetLayoutType() const override { return LayoutType::VTileLayout; }
+    virtual LayoutType GetLayoutType() const override { return LayoutType::HTileLayout; }
 
     /** 调整内部所有控件的位置信息
      * @param[in] items 控件列表
@@ -66,22 +66,22 @@ public:
      */
     void SetItemSize(UiSize szItem, bool bArrange = true);
 
-    /** 获取列数量
+    /** 获取行数量
      */
-    int32_t GetColumns() const;
+    int32_t GetRows() const;
 
-    /** 设置显示几列数据
-     * @param[in] nCols 要设置显示几列的数值
+    /** 设置显示几行数据
+     * @param[in] nRows 要设置显示几行的数值
      */
-    void SetColumns(int32_t nCols);
+    void SetRows(int32_t nRows);
 
-    /** 设置是否自动计算列数
+    /** 设置是否自动计算行
      */
-    void SetAutoCalcColumns(bool bAutoCalcColumns);
+    void SetAutoCalcRows(bool bAutoCalcRows);
 
-    /** 判断是否自动计算列数
+    /** 判断是否自动计算行数
      */
-    bool IsAutoCalcColumns() const;
+    bool IsAutoCalcRows() const;
 
     /** 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
     */
@@ -91,21 +91,21 @@ public:
     */
     bool IsScaleDown() const;
 
-    /** 设置是否自动计算子项的宽度（仅当设置为固定列时有效）
+    /** 设置是否自动计算子项的高度（仅当设置为固定行时有效）
     */
-    void SetAutoCalcItemWidth(bool bAutoCalcItemWidth);
+    void SetAutoCalcItemHeight(bool bAutoCalcItemHeight);
 
-    /** 是否自动计算子项的宽度
+    /** 是否自动计算子项的高度
     */
-    bool IsAutoCalcItemWidth() const;
+    bool IsAutoCalcItemHeight() const;
 
     /** 当前是否为自由布局
     */
     bool IsFreeLayout() const;
 
-    /** 计算子项的宽度
+    /** 计算子项的高度
     */
-    bool AutoCalcItemWidth(int32_t nColumns, int32_t nMarginX, int32_t szAvailable, int32_t& nItemWidth) const;
+    bool AutoCalcItemHeight(int32_t nRows, int32_t nMarginY, int32_t szAvailable, int32_t& nItemHeight) const;
 
 private:
     /** 未处理的子控件接口和其宽高信息
@@ -128,14 +128,14 @@ private:
     /** 获取基本参数：瓦片的列数
     * @param [in] normalItems 子控件列表
     * @param [in] rc 瓦片控件所在容器的矩形
-    * @param [in] tileWidth 每个瓦片控件的宽度(配置值)
+    * @param [in] tileHeight 每个瓦片控件的宽度(配置值)
     * @param [in] childMarginX 子控件的X轴间隔
     * @param [in] childMarginY 子控件的Y轴间隔    
-    * @param [out] nColumns 返回总列数
+    * @param [out] nRows 返回总行数
     */
-    static void CalcTileColumns(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
-                                int32_t tileWidth, int32_t childMarginX, int32_t childMarginY,
-                                int32_t& nColumns);
+    static void CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, const UiRect& rc,
+                             int32_t tileHeight, int32_t childMarginX, int32_t childMarginY,
+                             int32_t& nRows);
 
     /** 估算浮动控件的大小
     */
@@ -155,17 +155,17 @@ private:
                                       bool isCalcOnly, 
                                       std::vector<ItemSizeInfo>& normalItems);
 
-    /** 获取基本参数：瓦片高度，布局排列过程中，在每行开始时，计算本行的高度
+    /** 获取基本参数：瓦片高度，布局排列过程中，在每列开始时，计算本列的宽度
     * @param [in] normalItems 子控件列表
     * @param [in] iterBegin 子控件开始的迭代器
-    * @param [in] nColumns 总列数
+    * @param [in] nRows 总行数
     * @param [in] szItem 瓦片控件宽度和高度（设置值）
-    * @return 返回高度值，包含了外边距Margin.top + Margin.bottom值
+    * @return 返回高宽值，包含了外边距Margin.top + Margin.bottom值
     */
-    static int32_t CalcTileRowHeight(const std::vector<ItemSizeInfo>& normalItems,
-                                     const std::vector<ItemSizeInfo>::const_iterator iterBegin,
-                                      int32_t nColumns,
-                                     const UiSize& szItem);
+    static int32_t CalcTileColumnWidth(const std::vector<ItemSizeInfo>& normalItems,
+                                       const std::vector<ItemSizeInfo>::const_iterator iterBegin,
+                                        int32_t nRows,
+                                       const UiSize& szItem);
 
     /** 计算瓦片控件的显示坐标和大小
     * @param [in] itemSizeInfo 瓦片控件的接口, 及控件的大小信息
@@ -188,15 +188,15 @@ private:
     * @param [in] items 子控件列表
     * @param [in] rect 可用矩形大小，包含分配给该控件的内边距，但不包含分配给控件的外边距
     * @param [in] isCalcOnly 如果为true表示仅计算区域，对控件位置不做调整；如果为false，表示对控件位置做调整。
-    * @param [in] inColumnWidths 每列的宽度值，可用为空
-    * @param [out] outColumnWidths 本次布局，使用的每列宽度值
+    * @param [in] inRowHeights 每行的高度值，可用为空
+    * @param [out] outRowHeights 本次布局，使用的每行高度值
     * @return 返回区域的宽度和高度
     */
     UiSize64 ArrangeChildNormal(const std::vector<Control*>& items, 
                                 UiRect rect,
                                 bool isCalcOnly,
-                                const std::vector<int32_t>& inColumnWidths,
-                                std::vector<int32_t>& outColumnWidths) const;
+                                const std::vector<int32_t>& inRowHeights,
+                                std::vector<int32_t>& outRowHeights) const;
 
     /** 使用自由布局排列控件(无固定列数，尽量充分利用展示空间，显示尽可能多的内容)（默认对齐方式：居中对齐）
     * @param [in] items 子控件列表
@@ -212,19 +212,19 @@ private:
     //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
     UiSize m_szItem;
 
-    //显示几列数据
-    int32_t m_nColumns;
+    //显示几行数据
+    int32_t m_nRows;
 
-    //自动计算列数
-    bool m_bAutoCalcColumns;
+    //自动计算行数
+    bool m_bAutoCalcRows;
 
     //当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
     bool m_bScaleDown;
 
-    //是否自动计算子项的宽度（根据父控件总体宽度自动适应，仅当设置为固定列时有效）
-    bool m_bAutoCalcItemWidth;
+    //是否自动计算子项的高度（根据父控件总体高度自动适应，仅当设置为固定行时有效）
+    bool m_bAutoCalcItemHeight;
 };
 
 } // namespace ui
 
-#endif // UI_BOX_VTILE_LAYOUT_H_
+#endif // UI_LAYOUT_HTILE_LAYOUT_H_

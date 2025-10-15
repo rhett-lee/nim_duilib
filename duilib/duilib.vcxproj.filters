@@ -94,6 +94,9 @@
     <Filter Include="third_party\giflib">
       <UniqueIdentifier>{c409bb08-0a10-482a-8039-6a2bc02d859e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Layout">
+      <UniqueIdentifier>{73caecff-d534-4100-8a51-3543a4be751f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -246,40 +249,10 @@
     <ClCompile Include="Utils\AttributeUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Box\Layout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\HLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
     <ClCompile Include="Box\ScrollBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Box\ListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualHLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualVLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\HTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualVTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualHTileLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Core\ControlLoading.cpp">
@@ -804,10 +777,40 @@
     <ClCompile Include="Image\ImageDecoder_PAG.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Box\HFlowLayout.cpp">
-      <Filter>Box</Filter>
+    <ClCompile Include="Layout\HFlowLayout.cpp">
+      <Filter>Layout</Filter>
     </ClCompile>
-    <ClCompile Include="Box\VFlowLayout.cpp">
+    <ClCompile Include="Layout\HLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\HTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\Layout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VFlowLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualHLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualHTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualVLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualVTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1034,15 +1037,6 @@
     <ClInclude Include="Core\UiSize64.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Box\Layout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\HLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
     <ClInclude Include="Box\ScrollBox.h">
       <Filter>Box</Filter>
     </ClInclude>
@@ -1065,27 +1059,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Box\VirtualListBox.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualHLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualVLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\HTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualVTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualHTileLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Core\UiString.h">
@@ -1676,11 +1649,41 @@
     <ClInclude Include="Image\ImageDecoder_PAG.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Box\HFlowLayout.h">
-      <Filter>Box</Filter>
+    <ClInclude Include="Layout\HFlowLayout.h">
+      <Filter>Layout</Filter>
     </ClInclude>
-    <ClInclude Include="Box\VFlowLayout.h">
-      <Filter>Box</Filter>
+    <ClInclude Include="Layout\HLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\HTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\Layout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VFlowLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualHLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualHTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualVLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualVTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VTileLayout.h">
+      <Filter>Layout</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

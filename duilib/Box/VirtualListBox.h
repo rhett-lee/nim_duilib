@@ -2,10 +2,10 @@
 #define UI_BOX_VIRTUAL_LISTBOX_H_
 
 #include "duilib/Box/ListBox.h"
-#include "duilib/Box/VirtualHLayout.h"
-#include "duilib/Box/VirtualVLayout.h"
-#include "duilib/Box/VirtualHTileLayout.h"
-#include "duilib/Box/VirtualVTileLayout.h"
+#include "duilib/Layout/VirtualHLayout.h"
+#include "duilib/Layout/VirtualVLayout.h"
+#include "duilib/Layout/VirtualHTileLayout.h"
+#include "duilib/Layout/VirtualVTileLayout.h"
 #include "duilib/Core/Callback.h"
 
 namespace ui {

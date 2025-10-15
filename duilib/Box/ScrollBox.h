@@ -1,12 +1,12 @@
 #ifndef UI_BOX_SCROLLBOX_H_
 #define UI_BOX_SCROLLBOX_H_
 
-#include "duilib/Box/HLayout.h"
-#include "duilib/Box/VLayout.h"
-#include "duilib/Box/HFlowLayout.h"
-#include "duilib/Box/VFlowLayout.h"
-#include "duilib/Box/HTileLayout.h"
-#include "duilib/Box/VTileLayout.h"
+#include "duilib/Layout/HLayout.h"
+#include "duilib/Layout/VLayout.h"
+#include "duilib/Layout/HFlowLayout.h"
+#include "duilib/Layout/VFlowLayout.h"
+#include "duilib/Layout/HTileLayout.h"
+#include "duilib/Layout/VTileLayout.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Animation/AnimationPlayer.h"

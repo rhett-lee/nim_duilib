@@ -80,6 +80,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Box BOX_SRC)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Layout LAYOUT_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Control CONTROL_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Core CORE_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Image IMAGE_SRC)
@@ -189,6 +190,7 @@ set(LIBRARY_SOURCES
     ${DIR_LIB_SRC}
     ${ANIMATION_SRC}
     ${BOX_SRC}
+    ${LAYOUT_SRC}    
     ${CONTROL_SRC}
     ${CORE_SRC}
     ${IMAGE_SRC}

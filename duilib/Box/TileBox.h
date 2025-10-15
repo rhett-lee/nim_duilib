@@ -2,8 +2,8 @@
 #define UI_BOX_TILEBOX_H_
 
 #include "duilib/Core/Box.h"
-#include "duilib/Box/VTileLayout.h"
-#include "duilib/Box/HTileLayout.h"
+#include "duilib/Layout/VTileLayout.h"
+#include "duilib/Layout/HTileLayout.h"
 
 namespace ui
 {

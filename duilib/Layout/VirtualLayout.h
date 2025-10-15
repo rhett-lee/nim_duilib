@@ -1,8 +1,7 @@
-#ifndef UI_BOX_VIRTUAL_LAYOUT_H_
-#define UI_BOX_VIRTUAL_LAYOUT_H_
+#ifndef UI_LAYOUT_VIRTUAL_LAYOUT_H_
+#define UI_LAYOUT_VIRTUAL_LAYOUT_H_
 
 #include "duilib/Core/UiTypes.h"
-#include <vector>
 
 namespace ui 
 {
@@ -60,4 +59,4 @@ public:
 
 } // namespace ui
 
-#endif // UI_BOX_VIRTUAL_LAYOUT_H_
+#endif // UI_LAYOUT_VIRTUAL_LAYOUT_H_
