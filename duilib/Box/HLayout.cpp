@@ -182,11 +182,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         //调整垂直方向对齐方式，确定Y轴坐标
         int32_t childTop = 0;
         int32_t childBottm = 0;
-        VerAlignType verAlignType = pControl->GetVerAlignType();
-        if (verAlignType == VerAlignType::kAlignNone) {
-            //控件未设置对齐方式，按容器的对齐方式
-            verAlignType = GetChildVAlignType();
-        }
+        const VerAlignType verAlignType = pControl->GetVerAlignType();
         if (verAlignType == VerAlignType::kAlignBottom) {
             //靠下
             childBottm = iPosBottom - rcMargin.bottom;
@@ -257,7 +253,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         const UiRect& rcChildPos = iter.second;
         if (pControl->IsFloat()) {
             //浮动控件（容器本身的对齐方式不生效）
-            SetFloatPos(nullptr, pControl, rcChildPos);
+            SetFloatPos(pControl, rcChildPos);
         }
         else {
             pControl->SetPos(rcChildPos);

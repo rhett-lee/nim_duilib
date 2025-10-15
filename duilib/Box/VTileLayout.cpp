@@ -166,7 +166,7 @@ UiSize64 VTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
             UiSize64 floatSize;
             if (!isCalcOnly) {
                 //设置浮动控件的位置（容器本身的对齐方式不生效）
-                floatSize = SetFloatPos(nullptr, pControl, rc);
+                floatSize = SetFloatPos(pControl, rc);
             }
             else {
                 //计算Float控件的大小
@@ -304,7 +304,7 @@ UiSize VTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
     }
 
     //rcTile包含外边距，realSize不包含外边距（容器本身的对齐方式不生效）
-    szTilePos = GetFloatPos(nullptr, itemSizeInfo.pControl, rcTile, realSize);
+    szTilePos = GetFloatPos(itemSizeInfo.pControl, rcTile, realSize);
     if (szTilePos.left < ptTile.x) {
         //如果控件较大，超过边界，则靠左对齐
         int32_t width = szTilePos.Width();
@@ -654,7 +654,7 @@ UiSize64 VTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
             const UiRect& rcChildPos = iter.second;
             if (pControl->IsFloat()) {
                 //浮动控件（容器本身的对齐方式不生效）
-                SetFloatPos(nullptr, pControl, rcChildPos);
+                SetFloatPos(pControl, rcChildPos);
             }
             else {
                 pControl->SetPos(rcChildPos);

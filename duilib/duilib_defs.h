@@ -171,7 +171,6 @@ namespace ui
     //水平对齐方式
     enum class HorAlignType: int8_t
     {
-        kAlignNone   = -1,   // 未设置
         kAlignLeft   = 0,    // 靠左对齐
         kAlignCenter = 1,    // 水平居中
         kAlignRight  = 2     // 靠右对齐
@@ -180,7 +179,6 @@ namespace ui
     //垂直对齐方式
     enum class VerAlignType: int8_t
     {
-        kAlignNone   = -1,   // 未设置
         kAlignTop    = 0,    // 顶端对齐
         kAlignCenter = 1,    // 垂直居中
         kAlignBottom = 2     // 底部对齐

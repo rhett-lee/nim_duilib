@@ -283,7 +283,7 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         }
         if (pControl->IsFloat()) {
             //浮动控件（容器本身的对齐方式不生效）
-            SetFloatPos(nullptr, pControl, rc);
+            SetFloatPos(pControl, rc);
         }
     }
     return szChildren;

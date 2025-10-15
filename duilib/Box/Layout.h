@@ -31,8 +31,8 @@ enum class LayoutType
 
 /** 布局管理器基类
  *  该类的控件布局类型为Float方式布局：各个子控件以区域左上角坐标依次堆叠排列（相当于都看成是Float控件）
- *  水平方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件，如果子控件未设置，其获按容器的水平对齐方式排列
- *  垂直方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件，如果子控件未设置，其获按容器的水平对齐方式排列
+ *  水平方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
+ *  垂直方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
  */
 class UILIB_API Layout
 {
@@ -175,12 +175,11 @@ public:
 
 public:
     /** 设置浮动状态下的坐标信息
-     * @param [in] pLayout 关联的布局接口，用于获取容器的对齐方式设置，可以为nullptr
      * @param [in] pControl 控件句柄
      * @param [in] rcContainer 要设置的矩形区域，包含内边距，包含外边距
      * @return 返回控件最终的大小信息（宽度和高度）
      */
-    static UiSize64 SetFloatPos(const Layout* pLayout, Control* pControl, const UiRect& rcContainer);
+    static UiSize64 SetFloatPos(Control* pControl, const UiRect& rcContainer);
 
 protected:
     /** 检查配置的宽和高是否正确, 如果发现错误，给予断言
@@ -188,14 +187,13 @@ protected:
     void CheckConfig(const std::vector<Control*>& items);
 
     /** 按照控件指定的对齐方式，计算控件的布局位置
-    * @param [in] pLayout 关联的布局接口，用于获取容器的对齐方式设置，可以为nullptr
     * @param [in] pControl 控件的接口
     * @param [in] rcContainer 目标容器的矩形，包含控件的外边距和内边距
     * @param [in] childSize 控件pControl的大小（宽和高）, 包含内边距，内部不会再计算控件的大小
     * @return 返回控件的位置和大小，不包含外边距，包含内边距
               这个返回值，可用pControl->SetPos(rect)来调整控件位置;
     */
-    static UiRect GetFloatPos(const Layout* pLayout, const Control* pControl, UiRect rcContainer, UiSize childSize);
+    static UiRect GetFloatPos(const Control* pControl, UiRect rcContainer, UiSize childSize);
 
 private:
     //所属Box对象

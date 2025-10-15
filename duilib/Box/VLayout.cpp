@@ -184,10 +184,6 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         int32_t childLeft = 0;
         int32_t childRight = 0;
         HorAlignType horAlignType = pControl->GetHorAlignType();
-        if (horAlignType == HorAlignType::kAlignNone) {
-            //控件未设置对齐方式，按容器的对齐方式
-            horAlignType = GetChildHAlignType();
-        }
         if (horAlignType == HorAlignType::kAlignRight) {
             //靠右
             childRight = iPosRight - rcMargin.right;
@@ -257,7 +253,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         const UiRect& rcChildPos = iter.second;
         if (pControl->IsFloat()) {
             //浮动控件(容器设置的对齐方式：不生效)
-            SetFloatPos(nullptr, pControl, rcChildPos);
+            SetFloatPos(pControl, rcChildPos);
         }
         else {
             pControl->SetPos(rcChildPos);

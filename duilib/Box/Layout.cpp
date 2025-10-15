@@ -11,8 +11,8 @@ Layout::Layout() :
     m_pOwner(nullptr),
     m_nChildMarginX(0),
     m_nChildMarginY(0),
-    m_hChildAlignType(HorAlignType::kAlignNone),
-    m_vChildAlignType(VerAlignType::kAlignNone)
+    m_hChildAlignType(HorAlignType::kAlignLeft),
+    m_vChildAlignType(VerAlignType::kAlignTop)
 {
 }
 
@@ -109,7 +109,7 @@ void Layout::SetOwner(Box* pOwner)
     m_pOwner = pOwner;
 }
 
-UiSize64 Layout::SetFloatPos(const Layout* pLayout, Control* pControl, const UiRect& rcContainer)
+UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 {
     ASSERT(pControl != nullptr);
     if ((pControl == nullptr) || (!pControl->IsVisible())) {
@@ -145,7 +145,7 @@ UiSize64 Layout::SetFloatPos(const Layout* pLayout, Control* pControl, const UiR
         childSize.cy = pControl->GetMaxHeight();
     }
 
-    UiRect childPos = GetFloatPos(pLayout, pControl, rcContainer, childSize);
+    UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
     if (pControl->IsFloat() && pControl->IsKeepFloatPos() && (pControl->GetParent() != nullptr)) {
         //浮动控件：如果外部调整了其位置，则保持原位置
         UiSize oldFloatPos = pControl->GetFloatPos();
@@ -161,7 +161,7 @@ UiSize64 Layout::SetFloatPos(const Layout* pLayout, Control* pControl, const UiR
     return UiSize64(childPos.Width(), childPos.Height());
 }
 
-UiRect Layout::GetFloatPos(const Layout* pLayout, const Control* pControl, UiRect rcContainer, UiSize childSize)
+UiRect Layout::GetFloatPos(const Control* pControl, UiRect rcContainer, UiSize childSize)
 {
     rcContainer.Validate();
     ASSERT(pControl != nullptr);
@@ -188,18 +188,8 @@ UiRect Layout::GetFloatPos(const Layout* pLayout, const Control* pControl, UiRec
     int32_t childHeight = childSize.cy;
 
     //按照子控件指定的横向对齐方式和纵向对齐方式来排列控件
-    HorAlignType horAlignType = pControl->GetHorAlignType();
-    if (horAlignType == HorAlignType::kAlignNone) {
-        if (pLayout != nullptr) {
-            horAlignType = pLayout->GetChildHAlignType();
-        }
-    }
-    VerAlignType verAlignType = pControl->GetVerAlignType();
-    if (verAlignType == VerAlignType::kAlignNone) {
-        if (pLayout != nullptr) {
-            verAlignType = pLayout->GetChildVAlignType();
-        }
-    }
+    const HorAlignType horAlignType = pControl->GetHorAlignType();
+    const VerAlignType verAlignType = pControl->GetVerAlignType();
 
     int32_t childLeft = 0;
     int32_t childRight = 0;
@@ -246,13 +236,14 @@ UiRect Layout::GetFloatPos(const Layout* pLayout, const Control* pControl, UiRec
 
 UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 {
+    
     DeflatePadding(rc);
     UiSize64 size;
     for (Control* pControl : items) {
         if ((pControl == nullptr) || (!pControl->IsVisible())) {
             continue;
         }
-        UiSize64 controlSize = SetFloatPos(this, pControl, rc);
+        UiSize64 controlSize = SetFloatPos(pControl, rc);
         size.cx = std::max(size.cx, controlSize.cx);
         size.cy = std::max(size.cy, controlSize.cy);
     }
