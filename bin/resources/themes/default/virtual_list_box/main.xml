@@ -25,8 +25,8 @@
                     <Option class="option_1" name="option_column_auto" group="option_group" text="自动计算" height="28" margin="80,0,0,0" selected="true"/>
                     <HBox height="30" >
                         <Option class="option_1" name="option_column_fix" group="option_group" text="固定列数" margin="80,0,0,0">
-                            <Event type="select" receiver="edit_column" applyattribute="visible=&quot;true&quot;" />
-                            <Event type="unselect" receiver="edit_column" applyattribute="visible=&quot;false&quot;" />
+                            <Event type="select" receiver="edit_column" apply_attribute="visible='true'" />
+                            <Event type="unselect" receiver="edit_column" apply_attribute="visible='false'" />
                         </Option>
                         <RichEdit class="simple rich_edit_spin" name="edit_column" text="3" min_number="1" max_number="12" visible="false" text_padding="1,0,8,0" width="50" height="28" margin="6,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
                     </HBox>

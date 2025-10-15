@@ -157,7 +157,9 @@ void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
     if (GetLayout() != nullptr) {
         layoutType = GetLayout()->GetLayoutType();
     }
-    if ((layoutType != LayoutType::ListCtrlReportLayout) && 
+    if ((layoutType != LayoutType::ListCtrlReportLayout) &&
+        (layoutType != LayoutType::HFlowLayout) &&
+        (layoutType != LayoutType::VFlowLayout) &&
         (requiredSize.cx > 0) && (requiredSize.cy > 0)) {
         //需要按照真实大小再计算一次，因为内部根据rc评估的时候，显示位置是不正确的
         //（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。        
@@ -269,6 +271,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
     }
     UiRect childSize = rc;
     if (!m_bScrollBarFloat && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid()) {
+        //目标区域减去垂直滚动条的宽度
         if (m_bVScrollBarAtLeft) {
             ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
             childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
@@ -279,10 +282,13 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
         }
     }
     if (!m_bScrollBarFloat && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
+        //目标区域减去水平滚动条的宽度
         ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
         childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
     }
     childSize.Validate();
+
+    //在目标区域中，对子控件进行布局管理（调整子控件的位置和大小）
     requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
     return requiredSize;
 }

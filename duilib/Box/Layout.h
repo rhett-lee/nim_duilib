@@ -18,6 +18,8 @@ enum class LayoutType
     VLayout,                //纵向布局
     HTileLayout,            //横向瓦片布局
     VTileLayout,            //纵向瓦片布局
+    HFlowLayout,            //横向流式布局
+    VFlowLayout,            //纵向流式布局
 
     VirtualHLayout,         //虚表横向布局
     VirtualVLayout,         //虚表纵向布局
@@ -66,6 +68,7 @@ public:
     {
         LayoutType type = GetLayoutType();
         return (type == LayoutType::VLayout) ||
+               (type == LayoutType::VFlowLayout) ||
                (type == LayoutType::VTileLayout) ||
                (type == LayoutType::VirtualVLayout) ||
                (type == LayoutType::VirtualVTileLayout) ||
@@ -78,6 +81,7 @@ public:
     {
         LayoutType type = GetLayoutType();
         return (type == LayoutType::HLayout) ||
+               (type == LayoutType::HFlowLayout) ||
                (type == LayoutType::HTileLayout) ||
                (type == LayoutType::VirtualHLayout) ||
                (type == LayoutType::VirtualHTileLayout);

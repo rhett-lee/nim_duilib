@@ -120,6 +120,7 @@ public:
     void SetStretch(int32_t iValue)
     {
         type = Type::Stretch;
+        ASSERT((iValue > 0) && (iValue <= 100));
         if ((iValue > 0) && (iValue <= 100)) {
             value = iValue;
         }

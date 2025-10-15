@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_hflowbox" margin="6,6,6,6" width="100" height="80" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <VBox height="84" padding="6,0,6,0" >
+        <Label text="布局HFlowBox测试" height="28" valign="center"/>
+        <HBox height="28">            
+            <Label text="子控件水平对齐方式：" valign="center"/>
+            <Option class="option_1" group="hflowbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_halign='left'" />
+            </Option>
+            <Option class="option_1" group="hflowbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_halign='center'" />
+            </Option>
+            <Option class="option_1" group="hflowbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_halign='right'" />
+            </Option>
+            <Label text="（在同一行内对齐）" valign="center"/>
+        </HBox>
+        <HBox height="28">            
+            <Label text="子控件垂直对齐方式：" valign="center"/>
+            <Option class="option_1" group="hflowbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_valign='top'" />
+            </Option>
+            <Option class="option_1" group="hflowbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_valign='center'" />
+            </Option>
+            <Option class="option_1" group="hflowbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hflowbox_test" apply_attribute="child_valign='bottom'" />
+            </Option>
+            <Label text="（仅当子控件总高度小于显示区域高度时生效）" valign="center"/>
+        </HBox>
+    </VBox>
+    <VBox>
+        <HFlowBox name="hflowbox_test" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" height="70%">           
+            <Label class="page_hflowbox" text="1 top" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_hflowbox" text="2 center" halign="left" valign="center"/>
+            <Label class="page_hflowbox" text="3 bottom" halign="left" valign="bottom" height="40"/>
+            <Label class="page_hflowbox" text="4 top" halign="center" valign="top"/>
+            <Label class="page_hflowbox" text="5 center" halign="center" valign="center" height="40"/>
+            <Label class="page_hflowbox" text="6 bottom" halign="center" valign="bottom"/>
+            <Label class="page_hflowbox" text="7 top" halign="right" valign="top" height="40"/>
+            <Label class="page_hflowbox" text="8 center" halign="right" valign="center"/>
+            <Label class="page_hflowbox" text="9 bottom" halign="right" valign="bottom" width="300"/>
+            <Label class="page_hflowbox" text="10 top" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_hflowbox" text="11 center stretch: 100%" halign="left" valign="center" width="stretch"/>
+            <Label class="page_hflowbox" text="12 bottom" halign="left" valign="bottom" height="40"/>
+            <Label class="page_hflowbox" text="13 top stretch: 50%" halign="center" valign="top" width="50%"/>
+            <Label class="page_hflowbox" text="12 center" halign="center" valign="center" height="40"/>
+            <Label class="page_hflowbox" text="15 bottom" halign="center" valign="bottom"/>
+            <Label class="page_hflowbox" text="16 top" halign="right" valign="top" height="40"/>
+            <Label class="page_hflowbox" text="17 center" halign="right" valign="center"/>
+            <Label class="page_hflowbox" text="18 bottom" halign="right" valign="bottom" width="300"/>
+            <Label class="page_hflowbox" text="19 center, width: 1600" halign="right" valign="center" width="1600"/>
+            <Label class="page_hflowbox" text="20 top" halign="right" valign="top" height="40"/>
+        </HFlowBox>
+    </VBox>
+</Window>

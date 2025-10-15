@@ -227,6 +227,7 @@
     </ClCompile>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
+    <ClCompile Include="Box\HFlowLayout.cpp" />
     <ClCompile Include="Box\HLayout.cpp" />
     <ClCompile Include="Box\HTileLayout.cpp" />
     <ClCompile Include="Box\Layout.cpp" />
@@ -234,6 +235,7 @@
     <ClCompile Include="Box\ListBoxHelper.cpp" />
     <ClCompile Include="Box\ScrollBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
+    <ClCompile Include="Box\VFlowLayout.cpp" />
     <ClCompile Include="Box\VirtualHLayout.cpp" />
     <ClCompile Include="Box\VirtualHTileLayout.cpp" />
     <ClCompile Include="Box\VirtualListBox.cpp" />
@@ -543,6 +545,7 @@
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
     <ClInclude Include="Box\HBox.h" />
+    <ClInclude Include="Box\HFlowLayout.h" />
     <ClInclude Include="Box\HLayout.h" />
     <ClInclude Include="Box\HTileLayout.h" />
     <ClInclude Include="Box\Layout.h" />
@@ -553,6 +556,7 @@
     <ClInclude Include="Box\TabBox.h" />
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
+    <ClInclude Include="Box\VFlowLayout.h" />
     <ClInclude Include="Box\VirtualHLayout.h" />
     <ClInclude Include="Box\VirtualHTileLayout.h" />
     <ClInclude Include="Box\VirtualLayout.h" />

@@ -3,6 +3,8 @@
 
 #include "duilib/Box/HLayout.h"
 #include "duilib/Box/VLayout.h"
+#include "duilib/Box/HFlowLayout.h"
+#include "duilib/Box/VFlowLayout.h"
 #include "duilib/Box/HTileLayout.h"
 #include "duilib/Box/VTileLayout.h"
 #include "duilib/Core/ScrollBar.h"
@@ -13,7 +15,7 @@ namespace ui
 {
 
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
- *   通过修改布局，形成 HScrollBox/VScrollBox/HTileScrollBox/VTileScrollBox四个子类
+ *   通过修改布局，形成 HScrollBox/VScrollBox/HFlowScrollBox/VFlowScrollBox/HTileScrollBox/VTileScrollBox六个子类
  */
 class UILIB_API ScrollBox : public Box
 {
@@ -365,6 +367,32 @@ public:
     }
 
     virtual DString GetType() const override { return DUI_CTR_VSCROLLBOX; }
+};
+
+/** 横向流式布局的ScrollBox
+*/
+class UILIB_API HFlowScrollBox : public ScrollBox
+{
+public:
+    explicit HFlowScrollBox(Window* pWindow):
+        ScrollBox(pWindow, new HFlowLayout)
+    {
+    }
+
+    virtual DString GetType() const override { return DUI_CTR_HFLOW_SCROLLBOX; }
+};
+
+/** 纵向流式布局的ScrollBox
+*/
+class UILIB_API VFlowScrollBox : public ScrollBox
+{
+public:
+    explicit VFlowScrollBox(Window* pWindow):
+        ScrollBox(pWindow, new VFlowLayout)
+    {
+    }
+
+    virtual DString GetType() const override { return DUI_CTR_VFLOW_SCROLLBOX; }
 };
 
 /** 瓦片布局的ScrollBox(横向布局)

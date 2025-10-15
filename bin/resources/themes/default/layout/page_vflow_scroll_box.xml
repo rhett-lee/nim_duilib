@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_vflow_scrollbox" margin="6,6,6,6" width="100" height="80" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <VBox height="84" padding="6,0,6,0" >
+        <Label text="布局VFlowScrollBox测试" height="28" valign="center"/>
+        <HBox height="28">            
+            <Label text="子控件水平对齐方式：" valign="center"/>
+            <Option class="option_1" group="vflow_scrollbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_halign='left'" />
+            </Option>
+            <Option class="option_1" group="vflow_scrollbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_halign='center'" />
+            </Option>
+            <Option class="option_1" group="vflow_scrollbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_halign='right'" />
+            </Option>
+            <Label text="（仅当不出现滚动条时生效）" valign="center"/>
+        </HBox>
+        <HBox height="28">            
+            <Label text="子控件垂直对齐方式：" valign="center"/>
+            <Option class="option_1" group="vflow_scrollbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_valign='top'" />
+            </Option>
+            <Option class="option_1" group="vflow_scrollbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_valign='center'" />
+            </Option>
+            <Option class="option_1" group="vflow_scrollbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_valign='bottom'" />
+            </Option>
+            <Label text="（在同一列内对齐）" valign="center"/>
+        </HBox>
+    </VBox>
+    <VBox>
+        <VFlowScrollBox name="vflow_scrollbox_test" vscrollbar="true" hscrollbar="true" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" margin="8,8,8,8" height="70%">           
+            <Label class="page_vflow_scrollbox" text="1 left" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_vflow_scrollbox" text="2 center" halign="center" valign="top"/>
+            <Label class="page_vflow_scrollbox" text="3 right" halign="right" valign="top" height="40"/>
+            <Label class="page_vflow_scrollbox" text="4 left" halign="left" valign="center"/>
+            <Label class="page_vflow_scrollbox" text="5 center" halign="center" valign="center" height="40"/>
+            <Label class="page_vflow_scrollbox" text="6 right" halign="right" valign="center"/>
+            <Label class="page_vflow_scrollbox" text="7 left" halign="left" valign="bottom" height="40"/>
+            <Label class="page_vflow_scrollbox" text="8 center" halign="center" valign="bottom"/>
+            <Label class="page_vflow_scrollbox" text="9 right" halign="right" valign="bottom" width="300"/>
+            <Label class="page_vflow_scrollbox" text="10 left" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_vflow_scrollbox" text="11 center stretch: 100%" halign="center" valign="center" height="stretch" width="180"/>
+            <Label class="page_vflow_scrollbox" text="12 right" halign="right" valign="bottom" height="40"/>
+            <Label class="page_vflow_scrollbox" text="13 left stretch: 50%" halign="left" valign="top" height="50%" width="180"/>
+            <Label class="page_vflow_scrollbox" text="12 center" halign="center" valign="center" height="40"/>
+            <Label class="page_vflow_scrollbox" text="15 left" halign="left" valign="bottom"/>
+            <Label class="page_vflow_scrollbox" text="16 center" halign="center" valign="top" height="40"/>
+            <Label class="page_vflow_scrollbox" text="17 right" halign="right" valign="center"/>
+            <Label class="page_vflow_scrollbox" text="18 left" halign="left" valign="bottom" width="300"/>
+            <Label class="page_vflow_scrollbox" text="19 center, height: 800" halign="center" valign="center" height="800" width="180"/>
+            <Label class="page_vflow_scrollbox" text="20 right" halign="right" valign="top" height="40"/>
+        </VFlowScrollBox>
+    </VBox>
+</Window>

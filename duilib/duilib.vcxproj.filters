@@ -804,6 +804,12 @@
     <ClCompile Include="Image\ImageDecoder_PAG.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Box\HFlowLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VFlowLayout.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1669,6 +1675,12 @@
     </ClInclude>
     <ClInclude Include="Image\ImageDecoder_PAG.h">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\HFlowLayout.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\VFlowLayout.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -40,6 +40,9 @@ namespace ui
     #define  DUI_CTR_BOX                             (_T("Box"))
     #define  DUI_CTR_HBOX                            (_T("HBox"))
     #define  DUI_CTR_VBOX                            (_T("VBox"))
+    #define  DUI_CTR_HFLOWBOX                        (_T("HFlowBox"))
+    #define  DUI_CTR_VFLOWBOX                        (_T("VFlowBox"))
+
     #define  DUI_CTR_VTILE_BOX                       (_T("VTileBox"))
     #define  DUI_CTR_HTILE_BOX                       (_T("HTileBox"))
 
@@ -54,6 +57,8 @@ namespace ui
     #define  DUI_CTR_SCROLLBOX                       (_T("ScrollBox"))
     #define  DUI_CTR_HSCROLLBOX                      (_T("HScrollBox"))
     #define  DUI_CTR_VSCROLLBOX                      (_T("VScrollBox"))
+    #define  DUI_CTR_HFLOW_SCROLLBOX                 (_T("HFlowScrollBox"))
+    #define  DUI_CTR_VFLOW_SCROLLBOX                 (_T("VFlowScrollBox"))
     #define  DUI_CTR_HTILE_SCROLLBOX                 (_T("HTileScrollBox"))
     #define  DUI_CTR_VTILE_SCROLLBOX                 (_T("VTileScrollBox"))
 

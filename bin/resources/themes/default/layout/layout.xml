@@ -27,14 +27,18 @@
                 <TabCtrlItem class="tab_ctrl_item" title="Box" close_button_class="" tab_box_item_index="0"/>
                 <TabCtrlItem class="tab_ctrl_item" title="HBox" close_button_class="" tab_box_item_index="1"/>
                 <TabCtrlItem class="tab_ctrl_item" title="VBox" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TileBox" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title="ScrollBox" close_button_class="" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item" title="HScrollBox" close_button_class="" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item" title="VScrollBox" close_button_class="" tab_box_item_index="6"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TileScrollBox" close_button_class="" tab_box_item_index="7"/>
-                <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="8"/>
-                <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="9"/>
-                <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title="HFlowBox" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title="VFlowBox" close_button_class="" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TileBox" close_button_class="" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item" title="ScrollBox" close_button_class="" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item" title="HScrollBox" close_button_class="" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item" title="VScrollBox" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title="HFlowScrollBox" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title="VFlowScrollBox" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TileScrollBox" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="12"/>
+                <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="13"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="14"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
@@ -47,27 +51,39 @@
                     <Include src="page_vbox.xml"/>
                 </VBox>
                 <VBox name="main_view_page_03">
-                    <Include src="page_tilebox.xml"/>
+                    <Include src="page_hflow_box.xml"/>
                 </VBox>
                 <VBox name="main_view_page_04">
-                    <Include src="page_scroll_box.xml"/>
+                    <Include src="page_vflow_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_05">           
-                    <Include src="page_hscroll_box.xml"/>
+                <VBox name="main_view_page_05">
+                    <Include src="page_tilebox.xml"/>
                 </VBox>
                 <VBox name="main_view_page_06">
-                    <Include src="page_vscroll_box.xml"/>
+                    <Include src="page_scroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_07">
-                    <Include src="page_tile_scroll_box.xml"/>
+                <VBox name="main_view_page_07">           
+                    <Include src="page_hscroll_box.xml"/>
                 </VBox>
                 <VBox name="main_view_page_08">
-                    <Include src="page_list_box.xml"/>
+                    <Include src="page_vscroll_box.xml"/>
                 </VBox>
-                <VBox name="main_view_page_09">
-                    <Include src="page_layout.xml"/>
+                <VBox name="main_view_page_09">           
+                    <Include src="page_hflow_scroll_box.xml"/>
                 </VBox>
                 <VBox name="main_view_page_10">
+                    <Include src="page_vflow_scroll_box.xml"/>
+                </VBox>
+                <VBox name="main_view_page_11">
+                    <Include src="page_tile_scroll_box.xml"/>
+                </VBox>
+                <VBox name="main_view_page_12">
+                    <Include src="page_list_box.xml"/>
+                </VBox>
+                <VBox name="main_view_page_13">
+                    <Include src="page_layout.xml"/>
+                </VBox>
+                <VBox name="main_view_page_14">
                     <Include src="page_tabbox.xml"/>
                 </VBox>
             </TabBox>

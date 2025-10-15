@@ -1844,15 +1844,7 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
 
 bool ListBox::IsHorizontalLayout() const
 {
-    LayoutType type = GetLayout()->GetLayoutType();
-    bool bHorizontal = false;
-    if ((type == LayoutType::HLayout) ||
-        (type == LayoutType::HTileLayout) ||
-        (type == LayoutType::VirtualHLayout) ||
-        (type == LayoutType::VirtualHTileLayout)) {
-        bHorizontal = true;
-    }
-    return bHorizontal;
+    return GetLayout()->IsHLayout();
 }
 
 bool ListBox::IsHorizontalScrollBar() const

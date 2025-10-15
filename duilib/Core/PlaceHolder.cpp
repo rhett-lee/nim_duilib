@@ -549,7 +549,7 @@ void PlaceHolder::ArrangeSelf()
         return;
     }
     SetReEstimateSize(true);
-    m_bIsArranged = true;
+    SetArranged(true);
     Invalidate();
 
     if (m_pWindow != nullptr) {
