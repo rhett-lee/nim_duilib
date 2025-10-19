@@ -1716,12 +1716,15 @@ UiRect Render_Skia::MeasureString(const DString& strText,
             }
             for (const DString& lineText : lineTextList) {
                 //按单行评估每行文本，取最大宽度
-                SkScalar lineTextWidth = pSkFont->measureText(lineText.c_str(),
-                                                              lineText.size() * sizeof(DString::value_type),
-                                                              GetTextEncoding(),
-                                                              nullptr,
-                                                              &skPaint);
-                int32_t lineTextIWidth = SkScalarTruncToInt(lineTextWidth + 0.5f);
+                SkScalar lineTextLen = pSkFont->measureText(lineText.c_str(),
+                                                            lineText.size() * sizeof(DString::value_type),
+                                                            GetTextEncoding(),
+                                                            nullptr,
+                                                            &skPaint);
+                int32_t lineTextIWidth = SkScalarTruncToInt(lineTextLen + 0.5f);
+                if (lineTextLen > lineTextIWidth) {
+                    lineTextIWidth += 1;
+                }
                 textWidth = std::max(textWidth, lineTextIWidth);
             }
         }
