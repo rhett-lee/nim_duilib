@@ -64,13 +64,13 @@ public:
      * @param[in] uStyle 要设置的样式
      * @return 无
      */
-    void SetTextStyle(UINT uStyle, bool bRedraw);
+    void SetTextStyle(uint32_t uStyle, bool bRedraw);
 
     /**
      * @brief 获取文本样式
      * @return 返回文本样式
      */
-    UINT GetTextStyle() const;
+    uint32_t GetTextStyle() const;
 
     /**
      * @brief 获取指定状态下的文本颜色
@@ -150,9 +150,9 @@ protected:
 private:
     UiString m_sFontId;
     UiString m_sAutoShowTooltipCache;
-    UINT    m_uTextStyle;
-    bool    m_bSingleLine;
-    bool    m_bAutoShowToolTip;
+    uint32_t m_uTextStyle;
+    bool m_bSingleLine;
+    bool m_bAutoShowToolTip;
     UiPadding16    m_rcTextPadding;
     UiString m_sText;
     UiString m_sTextId;
@@ -482,7 +482,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
     }
     const UiPadding rcTextPadding = this->GetTextPadding();
     const UiPadding rcPadding = this->GetControlPadding();
-    if (nWidth != INT_MAX) {        
+    if (!this->GetFixedWidth().IsAuto()) {
         nWidth -= (rcPadding.left + rcPadding.right);
         nWidth -= (rcTextPadding.left + rcTextPadding.right);
     }
@@ -563,7 +563,7 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextStyle(UINT uStyle, bool bRedraw)
+void LabelTemplate<InheritType>::SetTextStyle(uint32_t uStyle, bool bRedraw)
 {
     m_uTextStyle = uStyle;
     if (m_uTextStyle & TEXT_SINGLELINE) {
@@ -584,7 +584,7 @@ void LabelTemplate<InheritType>::SetDefaultTextStyle(bool bRedraw)
 }
 
 template<typename InheritType>
-UINT LabelTemplate<InheritType>::GetTextStyle() const
+uint32_t LabelTemplate<InheritType>::GetTextStyle() const
 {
     return m_uTextStyle;
 }

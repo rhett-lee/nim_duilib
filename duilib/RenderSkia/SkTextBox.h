@@ -221,9 +221,20 @@ private:
 
 class SkTextLineBreaker {
 public:
-    static int CountLines(const char text[], size_t len, SkTextEncoding, 
-                          const SkFont&, const SkPaint&, 
-                          SkScalar width, SkTextBox::LineMode lineMode);
+    /** 统计绘制需要多少行
+     * @param [in] text 文本字符串的起始地址
+     * @param [in] len 文本字符串的长度（字节）
+     * @param [in] textEncoding 文本的编码
+     * @param [in] font 字体
+     * @param [in] paint 绘制属性
+     * @param [in] width 绘制区域的宽度
+     * @param [in] lineMode 换行模式
+     * @param [out] lineLenList 返回每行文本数据的长度（字节）
+     */
+    static int CountLines(const char text[], size_t len, SkTextEncoding textEncoding,
+                          const SkFont& font,  const SkPaint& paint,
+                          SkScalar width, SkTextBox::LineMode lineMode,
+                          std::vector<size_t>* lineLenList = nullptr);
 };
 
 } //namespace ui

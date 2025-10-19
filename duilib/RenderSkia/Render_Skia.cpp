@@ -1693,14 +1693,38 @@ UiRect Render_Skia::MeasureString(const DString& strText,
     else {
         //多行模式，并且限制宽度width为有效值
         ASSERT(width > 0);
+        std::vector<size_t> lineLenList; //每行文本数据的长度（字节）
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
                                                       strText.size() * sizeof(DString::value_type),
                                                       GetTextEncoding(),
                                                       *pSkFont,
                                                       skPaint,
                                                       SkScalar(width),
-                                                      SkTextBox::kWordBreak_Mode);
-
+                                                      SkTextBox::kWordBreak_Mode,
+                                                      &lineLenList);
+        //计算所需宽度
+        int32_t textWidth = 0;
+        ASSERT(lineLenList.size() == lineCount);
+        if (!lineLenList.empty()) {
+            std::vector<DString> lineTextList; //每行的文本
+            size_t nTextPos = 0;
+            for (size_t len : lineLenList) {
+                ASSERT((len % sizeof(DString::value_type)) == 0);
+                size_t nTextLen = len / sizeof(DString::value_type);
+                lineTextList.push_back(strText.substr(nTextPos, nTextLen));
+                nTextPos += nTextLen;
+            }
+            for (const DString& lineText : lineTextList) {
+                //按单行评估每行文本，取最大宽度
+                SkScalar lineTextWidth = pSkFont->measureText(lineText.c_str(),
+                                                              lineText.size() * sizeof(DString::value_type),
+                                                              GetTextEncoding(),
+                                                              nullptr,
+                                                              &skPaint);
+                int32_t lineTextIWidth = SkScalarTruncToInt(lineTextWidth + 0.5f);
+                textWidth = std::max(textWidth, lineTextIWidth);
+            }
+        }
         float spacingMul = 1.0f;//行间距倍数，暂不支持设置
         SkScalar scaledSpacing = fontHeight * spacingMul;
         SkScalar textHeight = fontHeight;
@@ -1709,7 +1733,7 @@ UiRect Render_Skia::MeasureString(const DString& strText,
         }
         UiRect rc;
         rc.left = 0;
-        rc.right = width;
+        rc.right = textWidth;
         rc.top = 0;
         rc.bottom = SkScalarTruncToInt(textHeight + 0.5f);
         if (textHeight > rc.bottom) {

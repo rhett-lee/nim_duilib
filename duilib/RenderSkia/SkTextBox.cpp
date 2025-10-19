@@ -211,16 +211,20 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
 
 int SkTextLineBreaker::CountLines(const char text[], size_t len, SkTextEncoding textEncoding, 
                                   const SkFont& font, const SkPaint& paint, 
-                                  SkScalar width, SkTextBox::LineMode lineMode)
+                                  SkScalar width, SkTextBox::LineMode lineMode,
+                                  std::vector<size_t>* lineLenList)
 {
     const char* stop = text + len;
-    int         count = 0;
+    int count = 0;
 
-    if (width > 0)
-    {
+    if (width > 0) {
         do {
             count += 1;
-            text += linebreak(text, stop, textEncoding, font, paint, width, lineMode);
+            size_t lineLen = linebreak(text, stop, textEncoding, font, paint, width, lineMode);
+            if (lineLenList != nullptr) {
+                lineLenList->push_back(lineLen);
+            }
+            text += lineLen;
         } while (text < stop);
     }
     return count;
