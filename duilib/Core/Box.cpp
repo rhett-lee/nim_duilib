@@ -101,7 +101,7 @@ void Box::SetPos(UiRect rc)
 {
     Control::SetPos(rc);
     if (m_pLayout != nullptr) {
-        m_pLayout->ArrangeChild(m_items, rc);    
+        m_pLayout->ArrangeChildren(m_items, rc);    
     }
 }
 
@@ -219,7 +219,8 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
     }
 
     //子控件的大小，包含内边距，但不包含外边距
-    UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
+    UiSize64 layoutSize = m_pLayout->EstimateLayoutSize(m_items, szAvailable);
+    UiSize sizeByChild(ui::TruncateToInt32(layoutSize.cx), ui::TruncateToInt32(layoutSize.cy));
     
     SetReEstimateSize(false);
     for (auto pControl : m_items) {

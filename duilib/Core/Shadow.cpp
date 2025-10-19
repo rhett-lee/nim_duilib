@@ -74,7 +74,8 @@ public:
         }
 
         //子控件的大小，包含内边距，但不包含外边距; 包含了阴影本身的大小（即Box的内边距）
-        UiSize sizeByChild = GetLayout()->EstimateSizeByChild(m_items, szAvailable);
+        UiSize64 layoutSize = GetLayout()->EstimateLayoutSize(m_items, szAvailable);
+        UiSize sizeByChild(ui::TruncateToInt32(layoutSize.cx), ui::TruncateToInt32(layoutSize.cy));
 
         SetReEstimateSize(false);
         for (auto pControl : m_items) {

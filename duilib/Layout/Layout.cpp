@@ -104,6 +104,19 @@ void Layout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
     SetChildMarginY(iMargin);
 }
 
+bool Layout::LayoutByActualAreaSize() const
+{
+    LayoutType layoutType = GetLayoutType();
+    if ((layoutType == LayoutType::FloatLayout) ||
+        (layoutType == LayoutType::HLayout) ||
+        (layoutType == LayoutType::VLayout) ||
+        (layoutType == LayoutType::HFlowLayout) ||
+        (layoutType == LayoutType::VFlowLayout)) {
+        return true;
+    }
+    return false;
+}
+
 void Layout::SetOwner(Box* pOwner)
 {
     m_pOwner = pOwner;
@@ -111,10 +124,15 @@ void Layout::SetOwner(Box* pOwner)
 
 UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 {
+    return SetFloatPosInternal(pControl, rcContainer, false);
+}
+
+UiSize64 Layout::SetFloatPosInternal(Control* pControl, const UiRect& rcContainer, bool bEstimateOnly)
+{
     ASSERT(pControl != nullptr);
     if ((pControl == nullptr) || (!pControl->IsVisible())) {
         return UiSize64();
-    }
+    }    
     UiRect rc = rcContainer;
     rc.Deflate(pControl->GetMargin());
     UiSize szAvailable(rc.Width(), rc.Height());
@@ -128,36 +146,29 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
     if (estSize.cy.IsStretch()) {
         childSize.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
     }
+
+    childSize.cx = std::clamp(childSize.cx, pControl->GetMinWidth(), pControl->GetMaxWidth());
+    childSize.cy = std::clamp(childSize.cy, pControl->GetMinHeight(), pControl->GetMaxHeight());
+
     childSize.cx = std::max(childSize.cx, 0);
     childSize.cy = std::max(childSize.cy, 0);
-    
-    if (childSize.cx < pControl->GetMinWidth()) {
-        childSize.cx = pControl->GetMinWidth();
-    }
-    if (childSize.cx > pControl->GetMaxWidth()) {
-        childSize.cx = pControl->GetMaxWidth();
-    }
-    
-    if (childSize.cy < pControl->GetMinHeight()) {
-        childSize.cy = pControl->GetMinHeight();
-    }
-    if (childSize.cy > pControl->GetMaxHeight()) {
-        childSize.cy = pControl->GetMaxHeight();
-    }
 
     UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
-    if (pControl->IsFloat() && pControl->IsKeepFloatPos() && (pControl->GetParent() != nullptr)) {
-        //浮动控件：如果外部调整了其位置，则保持原位置
-        UiSize oldFloatPos = pControl->GetFloatPos();
-        if ((oldFloatPos.cx != INT32_MIN) && (oldFloatPos.cy != INT32_MIN)) {
-            UiRect rcParent = pControl->GetParent()->GetRect();
-            UiSize newFloatPos;
-            newFloatPos.cx = childPos.left - rcParent.left;
-            newFloatPos.cy = childPos.top - rcParent.top;
-            childPos.Offset(oldFloatPos.cx - newFloatPos.cx, oldFloatPos.cy - newFloatPos.cy);
-        }        
+    if (!bEstimateOnly) {
+        //调整控件的位置和大小
+        if (pControl->IsFloat() && pControl->IsKeepFloatPos() && (pControl->GetParent() != nullptr)) {
+            //浮动控件：如果外部调整了其位置，则保持原位置
+            UiSize oldFloatPos = pControl->GetFloatPos();
+            if ((oldFloatPos.cx != INT32_MIN) && (oldFloatPos.cy != INT32_MIN)) {
+                UiRect rcParent = pControl->GetParent()->GetRect();
+                UiSize newFloatPos;
+                newFloatPos.cx = childPos.left - rcParent.left;
+                newFloatPos.cy = childPos.top - rcParent.top;
+                childPos.Offset(oldFloatPos.cx - newFloatPos.cx, oldFloatPos.cy - newFloatPos.cy);
+            }
+        }
+        pControl->SetPos(childPos);
     }
-    pControl->SetPos(childPos);
     return UiSize64(childPos.Width(), childPos.Height());
 }
 
@@ -234,16 +245,15 @@ UiRect Layout::GetFloatPos(const Control* pControl, UiRect rcContainer, UiSize c
     return childPos;
 }
 
-UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
-{
-    
+UiSize64 Layout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly)
+{    
     DeflatePadding(rc);
     UiSize64 size;
     for (Control* pControl : items) {
         if ((pControl == nullptr) || (!pControl->IsVisible())) {
             continue;
         }
-        UiSize64 controlSize = SetFloatPos(pControl, rc);
+        UiSize64 controlSize = SetFloatPosInternal(pControl, rc, bEstimateOnly);
         size.cx = std::max(size.cx, controlSize.cx);
         size.cy = std::max(size.cy, controlSize.cy);
     }
@@ -260,10 +270,16 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
     return size;
 }
 
-UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
+UiSize64 Layout::EstimateLayoutSize(const std::vector<Control*>& items, UiSize szAvailable)
 {
     //宽度：取所有子控件宽度的最大值，加上Margin、Padding等，不含拉伸类型的子控件
     //高度：取所有子控件高度的最大值，加上Margin、Padding等，不含拉伸类型的子控件
+    UiPadding rcPadding;
+    if (m_pOwner != nullptr) {
+        rcPadding = m_pOwner->GetPadding();
+    }
+    szAvailable.cx -= (rcPadding.left + rcPadding.right);
+    szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
     szAvailable.Validate();
     UiSize maxSize;
     UiSize itemSize;
@@ -272,30 +288,26 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
             continue;
         }
         UiEstSize estSize = pControl->EstimateSize(szAvailable);
+        int32_t minWidth = pControl->GetMinWidth();
+        int32_t maxWidth = pControl->GetMaxWidth();
+        int32_t minHeight = pControl->GetMinHeight();
+        int32_t maxHeight = pControl->GetMaxHeight();
+
         itemSize = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
         if (estSize.cx.IsStretch()) {
-            //拉伸类型的子控件，不计入
-            itemSize.cx = 0;
+            //拉伸类型的子控件，不计入， 如果指定最小值，则按最小值计算
+            itemSize.cx = std::max(minWidth, 0);
         }
         else {
-            if (itemSize.cx < pControl->GetMinWidth()) {
-                itemSize.cx = pControl->GetMinWidth();
-            }
-            if (itemSize.cx > pControl->GetMaxWidth()) {
-                itemSize.cx = pControl->GetMaxWidth();
-            }
+            // 非拉伸控件：用std::clamp限制在[minWidth, maxWidth]范围内
+            itemSize.cx = std::clamp(itemSize.cx, minWidth, maxWidth);
         }
         if (estSize.cy.IsStretch()) {
-            //拉伸类型的子控件，不计入
-            itemSize.cy = 0;
+            //拉伸类型的子控件，不计入， 如果指定最小值，则按最小值计算
+            itemSize.cy = std::max(minHeight, 0);
         }
         else {
-            if (itemSize.cy < pControl->GetMinHeight()) {
-                itemSize.cy = pControl->GetMinHeight();
-            }
-            if (itemSize.cy > pControl->GetMaxHeight()) {
-                itemSize.cy = pControl->GetMaxHeight();
-            }
+            itemSize.cy = std::clamp(itemSize.cy, minHeight, maxHeight);
         }
         UiMargin rcMargin = pControl->GetMargin();
         if (itemSize.cx > 0) {
@@ -303,12 +315,8 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
         }
         if (itemSize.cy > 0) {
             maxSize.cy = std::max(itemSize.cy + rcMargin.top + rcMargin.bottom, maxSize.cy);
-        }
-    }
-    UiPadding rcPadding;
-    if (m_pOwner != nullptr) {
-        rcPadding = m_pOwner->GetPadding();
-    }
+        }        
+    }    
     if (maxSize.cx > 0) {
         maxSize.cx += rcPadding.left + rcPadding.right;
     }
@@ -318,7 +326,7 @@ UiSize Layout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize sz
     if ((maxSize.cx == 0) || (maxSize.cy == 0)){
         CheckConfig(items);
     }
-    return maxSize;
+    return UiSize64(maxSize.cx, maxSize.cy);
 }
 
 void Layout::CheckConfig(const std::vector<Control*>& items)

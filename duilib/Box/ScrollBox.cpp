@@ -152,48 +152,46 @@ void ScrollBox::DoSetPos(UiRect rc, bool bScrollProcess)
 void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
 {
     Control::SetPos(rc);
-    UiSize64 requiredSize = CalcRequiredSize(rc);
-    LayoutType layoutType = LayoutType::FloatLayout;
-    if (GetLayout() != nullptr) {
-        layoutType = GetLayout()->GetLayoutType();
+    Layout* pLayout = GetLayout();
+    ASSERT(pLayout != nullptr);
+    if (pLayout == nullptr) {
+        return;
     }
-    if ((layoutType != LayoutType::ListCtrlReportLayout) &&
-        (layoutType != LayoutType::HFlowLayout) &&
-        (layoutType != LayoutType::VFlowLayout) &&
-        (requiredSize.cx > 0) && (requiredSize.cy > 0)) {
-        //需要按照真实大小再计算一次，因为内部根据rc评估的时候，显示位置是不正确的
-        //（比如控件是center或者bottom对齐的时候，会按照rc区域定位坐标，这时是错误的）。        
-        int32_t cx = TruncateToInt32(requiredSize.cx);
-        if (layoutType == LayoutType::VTileLayout) {
-            //VTile模式是限制宽度，但不限制高度
-            if (cx > rc.Width()) {
+    bool bArrangedChildren = false;
+    UiSize64 requiredSize;
+    if (pLayout->LayoutByActualAreaSize()) {
+        //该布局在支持滚动条的容器中，拉伸类型的子控件的布局与目标区域大小相关，需要预先计算目标区域大小
+        requiredSize = CalcRequiredSize(rc);//只计算不调整
+        if ((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
+            int32_t cx = TruncateToInt32(requiredSize.cx);
+            int32_t cy = TruncateToInt32(requiredSize.cy);
+            if (cx < rc.Width()) {
                 cx = rc.Width();
             }
-        }
-        if (cx < rc.Width()) {
-            cx = rc.Width();
-        }
-
-        int32_t cy = TruncateToInt32(requiredSize.cy);
-        if (layoutType == LayoutType::HTileLayout) {
-            //HTile模式是限制高度，但不限制宽度
-            if (cy > rc.Height()) {
+            if (cy < rc.Height()) {
                 cy = rc.Height();
             }
+            UiRect realRect(rc.left, rc.top, rc.left + cx, rc.top + cy);
+            if ((realRect.Width() != rc.Width()) || (realRect.Height() != rc.Height())) {
+                requiredSize = DoArrangeChildren(realRect, false);
+                bArrangedChildren = true;
+            }
         }
-        if (cy < rc.Height()) {
-            cy = rc.Height();
-        }
-
-        UiRect realRect(rc.left, rc.top, rc.left + cx, rc.top + cy);
-        if ((realRect.Width() != rc.Width()) || (realRect.Height() != rc.Height())) {
-            requiredSize = CalcRequiredSize(realRect);
-        }        
     }
+    if (!bArrangedChildren) {
+        requiredSize = DoArrangeChildren(rc, false);
+    }
+
     //requiredSize需要剪去内边距，与ProcessVScrollBar/ProcessHScrollBar的逻辑保持一致
     UiPadding rcPadding = GetPadding();
     requiredSize.cy -= ((int64_t)rcPadding.top + rcPadding.bottom);
     requiredSize.cx -= ((int64_t)rcPadding.left + rcPadding.right);
+    if (requiredSize.cx < 0) {
+        requiredSize.cx = 0;
+    }
+    if (requiredSize.cy < 0) {
+        requiredSize.cy = 0;
+    }
 
     UiRect rcScrollBarPosY;
     int64_t nScrollRangeY = 0;
@@ -265,6 +263,11 @@ void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
 
 UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
 {
+    return DoArrangeChildren(rc, true);
+}
+
+UiSize64 ScrollBox::DoArrangeChildren(const UiRect& rc, bool bEstimateOnly)
+{
     UiSize64 requiredSize;
     if (m_items.empty()) {
         return requiredSize;
@@ -289,7 +292,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
     childSize.Validate();
 
     //在目标区域中，对子控件进行布局管理（调整子控件的位置和大小）
-    requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
+    requiredSize = GetLayout()->ArrangeChildren(m_items, childSize, bEstimateOnly);
     return requiredSize;
 }
 
@@ -1105,7 +1108,7 @@ void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
         m_pVScrollBar.reset(new ScrollBar(GetWindow()));
         m_pVScrollBar->SetVisible(false);
         m_pVScrollBar->SetScrollRange(0);
-        m_pVScrollBar->SetOwner(this);        
+        m_pVScrollBar->SetOwner(this);
         m_pVScrollBar->SetClass(_T("vscrollbar"));
     }
     else if( !bEnableVertical && (m_pVScrollBar != nullptr) ) {
@@ -1117,7 +1120,7 @@ void ScrollBox::EnableScrollBar(bool bEnableVertical, bool bEnableHorizontal)
         m_pHScrollBar->SetVisible(false);
         m_pHScrollBar->SetScrollRange(0);
         m_pHScrollBar->SetHorizontal(true);
-        m_pHScrollBar->SetOwner(this);        
+        m_pHScrollBar->SetOwner(this);
         m_pHScrollBar->SetClass(_T("hscrollbar"));
     }
     else if( !bEnableHorizontal && (m_pHScrollBar != nullptr)) {

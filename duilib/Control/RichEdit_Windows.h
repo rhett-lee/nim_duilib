@@ -950,7 +950,7 @@ protected:
     /** 调整内部所有子控件的位置信息
      * @param[in] items 控件列表
      */
-    virtual void ArrangeChild(const std::vector<Control*>& items) const;
+    virtual void ArrangeChildren(const std::vector<Control*>& items) const;
 
     /** 设置可用状态事件
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化

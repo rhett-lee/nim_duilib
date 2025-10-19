@@ -1,5 +1,5 @@
 #include "HFlowLayout.h"
-#include "duilib/Core/Box.h"
+#include "duilib/Box/ScrollBox.h"
 #include <map>
 
 namespace ui 
@@ -11,10 +11,13 @@ HFlowLayout::HFlowLayout()
     SetChildHAlignType(HorAlignType::kAlignLeft);
 }
 
-UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly) const
+UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly, bool bEstimateLayoutSize) const
 {
     if (items.empty()) {
         return UiSize64();
+    }
+    if (!bEstimateOnly) {
+        bEstimateLayoutSize = false;
     }
     DeflatePadding(rc);
     const UiRect rcBox = rc; //容器的矩形范围
@@ -35,7 +38,16 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
         //计算宽度
         if (estSize.cx.IsStretch()) {
-            sz.cx = (CalcStretchValue(estSize.cx, szAvailable.cx) - rcMargin.left - rcMargin.right);
+            if (bEstimateLayoutSize) {
+                //拉伸类型的子控件，不计入， 如果指定最小值，则按最小值计算
+                sz.cx = 0;
+                if (sz.cx < pControl->GetMinWidth()) {
+                    sz.cx = pControl->GetMinWidth();
+                }
+            }
+            else {
+                sz.cx = (CalcStretchValue(estSize.cx, szAvailable.cx) - rcMargin.left - rcMargin.right);
+            }
             sz.cx = std::max(sz.cx, 0);
         }
         if (sz.cx < pControl->GetMinWidth()) {
@@ -51,15 +63,24 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
         //计算高度
         if (estSize.cy.IsStretch()) {
-            if (estSize.cy.GetStretchPercentValue() >= 100) {
-                //高度完全拉伸：无法显示
-                ASSERT(0);
+            if (bEstimateLayoutSize) {
+                //拉伸类型的子控件，不计入， 如果指定最小值，则按最小值计算
                 sz.cy = 0;
+                if (sz.cy < pControl->GetMinHeight()) {
+                    sz.cy = pControl->GetMinHeight();
+                }
             }
             else {
-                sz.cy = (CalcStretchValue(estSize.cy, szAvailable.cy) - rcMargin.top - rcMargin.bottom);
-                sz.cy = std::max(sz.cy, 0);
+                if (estSize.cy.GetStretchPercentValue() >= 100) {
+                    //高度完全拉伸：无法显示
+                    ASSERT(0);
+                    sz.cy = 0;
+                }
+                else {
+                    sz.cy = (CalcStretchValue(estSize.cy, szAvailable.cy) - rcMargin.top - rcMargin.bottom);
+                }
             }
+            sz.cy = std::max(sz.cy, 0);
         }
         if (sz.cy < pControl->GetMinHeight()) {
             sz.cy = pControl->GetMinHeight();
@@ -188,8 +209,8 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         szChildren.cy += ((int64_t)rcPadding.top + rcPadding.bottom);
     }
 
-    if (bEstimateOnly) {
-        //评估模式, 直接返回结果
+    if (bEstimateLayoutSize) {
+        //评估模式, 直接返回结果（容器的宽度和高度设置为"auto"的情况）
         return szChildren;
     }
 
@@ -198,7 +219,7 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         const HorAlignType hAlignType = GetChildHAlignType();
         //水平方向的对齐方式: 按行设置对齐
         for (TRowControls& control : rowControlList) {
-            const UiRect& rowRect = control.m_rowRect;
+            UiRect& rowRect = control.m_rowRect;
             if (rowRect.Width() < rcBox.Width()) {
                 int32_t nOffsetX = 0;
                 if (hAlignType == HorAlignType::kAlignCenter) {
@@ -210,98 +231,125 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
                     nOffsetX = rcBox.Width() - rowRect.Width();
                 }
                 if (nOffsetX != 0) {
+                    rowRect.Offset(nOffsetX, 0);
                     for (UiRect& rcChild : control.m_pControlRects) {
                         rcChild.Offset(nOffsetX, 0);
                     }
+
+                    //返回的区域大小，需要包含向右调整的偏移量
+                    childrenRect.Union(control.m_rowRect);
                 }
             }
-        }
+        }        
     }
 
     if (cyNeeded < rcBox.Height()) {
-        //垂直方向的对齐方式: 把所有项目当作一个整体排列
-        int32_t nOffsetY = 0;
-        const VerAlignType vAlignType = GetChildVAlignType();
-        if (vAlignType == VerAlignType::kAlignCenter) {
-            //垂直居中对齐
-            nOffsetY = (rcBox.Height() - cyNeeded) / 2;
+        //在ScrollBox中，仅当不出现纵向滚动条时，垂直对齐方式才生效
+        UiRect rcRealBox;
+        bool bEnableVScrollBar = false;
+        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(GetOwner());
+        if (pScrollBox != nullptr) {
+            bEnableVScrollBar = pScrollBox->GetVScrollBar() != nullptr;
+            rcRealBox = pScrollBox->GetPos();
         }
-        else if (vAlignType == VerAlignType::kAlignBottom) {
-            //靠下对齐
-            nOffsetY = rcBox.Height() - cyNeeded;
-        }
-        if (nOffsetY != 0) {
-            for (TRowControls& control : rowControlList) {
-                control.m_rowRect.Offset(0, nOffsetY);
-                for (UiRect& rcChild : control.m_pControlRects) {
-                    rcChild.Offset(0, nOffsetY);
+        if (!bEnableVScrollBar || (cyNeeded < rcRealBox.Height())) {
+            //垂直方向的对齐方式: 把所有项目当作一个整体排列
+            int32_t nOffsetY = 0;
+            const VerAlignType vAlignType = GetChildVAlignType();
+            if (vAlignType == VerAlignType::kAlignCenter) {
+                //垂直居中对齐
+                nOffsetY = (rcBox.Height() - cyNeeded) / 2;
+            }
+            else if (vAlignType == VerAlignType::kAlignBottom) {
+                //靠下对齐
+                nOffsetY = rcBox.Height() - cyNeeded;
+            }
+            if (nOffsetY != 0) {
+                for (TRowControls& control : rowControlList) {
+                    control.m_rowRect.Offset(0, nOffsetY);
+                    for (UiRect& rcChild : control.m_pControlRects) {
+                        rcChild.Offset(0, nOffsetY);
+                    }
+
+                    //返回的区域大小，需要包含向下调整的偏移量
+                    childrenRect.Union(control.m_rowRect);
                 }
             }
         }
     }
 
-    //处理控件的对齐方式（控件本身设置的对齐方式）
-    for (TRowControls& control : rowControlList) {
-        ASSERT(control.m_pControlRects.size() == control.m_pControlList.size());
-        if (control.m_pControlRects.size() != control.m_pControlList.size()) {
-            //错误
-            return szChildren;
-        }
-        const UiRect& rowRect = control.m_rowRect;
-        const size_t nCount = control.m_pControlList.size();
-        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-            Control* pControl = control.m_pControlList[nIndex];
-            UiRect& rcChild = control.m_pControlRects[nIndex];
+    //调整子控件的布局
+    if (!bEstimateOnly) {
+        //调整子控件的布局（非浮动控件）
+        for (TRowControls& control : rowControlList) {
+            ASSERT(control.m_pControlRects.size() == control.m_pControlList.size());
+            if (control.m_pControlRects.size() != control.m_pControlList.size()) {
+                //错误
+                return szChildren;
+            }
+            const UiRect& rowRect = control.m_rowRect;
+            const size_t nCount = control.m_pControlList.size();
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                Control* pControl = control.m_pControlList[nIndex];
+                UiRect& rcChild = control.m_pControlRects[nIndex];
 
-            //只需要处理控件的垂直方向对齐方式
-            const VerAlignType vAlignType = pControl->GetVerAlignType();
-            if ((vAlignType == VerAlignType::kAlignCenter) || (vAlignType == VerAlignType::kAlignBottom)) {
-                UiRect rcFullRect = rowRect;
-                UiMargin rcMargin = pControl->GetMargin();//子控件的外边距
-                rcFullRect.top += rcMargin.top;
-                rcFullRect.bottom -= rcMargin.bottom;
-                if (rcChild.Height() < rcFullRect.Height()) {
-                    int32_t nOffset = rcFullRect.Height() - rcChild.Height();
-                    if (vAlignType == VerAlignType::kAlignCenter) {
-                        rcChild.Offset(0, nOffset / 2);
-                    }
-                    else if (vAlignType == VerAlignType::kAlignBottom) {
-                        rcChild.Offset(0, nOffset);
+                ////处理控件的对齐方式（控件本身设置的对齐方式）
+                //只需要处理控件的垂直方向对齐方式
+                const VerAlignType vAlignType = pControl->GetVerAlignType();
+                if ((vAlignType == VerAlignType::kAlignCenter) || (vAlignType == VerAlignType::kAlignBottom)) {
+                    UiRect rcFullRect = rowRect;
+                    UiMargin rcMargin = pControl->GetMargin();//子控件的外边距
+                    rcFullRect.top += rcMargin.top;
+                    rcFullRect.bottom -= rcMargin.bottom;
+                    if (rcChild.Height() < rcFullRect.Height()) {
+                        int32_t nOffset = rcFullRect.Height() - rcChild.Height();
+                        if (vAlignType == VerAlignType::kAlignCenter) {
+                            rcChild.Offset(0, nOffset / 2);
+                        }
+                        else if (vAlignType == VerAlignType::kAlignBottom) {
+                            rcChild.Offset(0, nOffset);
+                        }
                     }
                 }
-            }
 
-            //调整子控件的布局
-            pControl->SetPos(rcChild);
+                //调整子控件的布局
+                pControl->SetPos(rcChild);
+            }
+        }
+
+        //调整子控件的布局（浮动控件）
+        for (auto pControl : items) {
+            if ((pControl == nullptr) || !pControl->IsVisible()) {
+                continue;
+            }
+            if (pControl->IsFloat()) {
+                //浮动控件（容器本身的对齐方式不生效）
+                SetFloatPos(pControl, rc);
+            }
         }
     }
 
-    //调整子控件的布局（浮动控件）
-    for (auto pControl : items) {
-        if ((pControl == nullptr) || !pControl->IsVisible()) {
-            continue;
-        }
-        if (pControl->IsFloat()) {
-            //浮动控件（容器本身的对齐方式不生效）
-            SetFloatPos(pControl, rc);
-        }
+    //需要重新计算，因为对齐方式引起区域的变化
+    szChildren.cx = (int64_t)childrenRect.Width();
+    szChildren.cy = (int64_t)childrenRect.Height();
+    if (szChildren.cx > 0) {
+        szChildren.cx += ((int64_t)rcPadding.left + rcPadding.right);
+    }
+    if (szChildren.cy > 0) {
+        szChildren.cy += ((int64_t)rcPadding.top + rcPadding.bottom);
     }
     return szChildren;
 }
 
-UiSize64 HFlowLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 HFlowLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly)
 {
-    return ArrangeChildInternal(items, rc, false);
+    return ArrangeChildInternal(items, rc, bEstimateOnly, false);
 }
 
-UiSize HFlowLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
+UiSize64 HFlowLayout::EstimateLayoutSize(const std::vector<Control*>& items, UiSize szAvailable)
 {
     UiRect rc(0, 0, szAvailable.cx, szAvailable.cy);
-    UiSize64 szChildren = ArrangeChildInternal(items, rc, true);
-    UiSize totalSize;
-    totalSize.cx = ui::TruncateToInt32(szChildren.cx);
-    totalSize.cy = ui::TruncateToInt32(szChildren.cy);
-    return totalSize;
+    return ArrangeChildInternal(items, rc, true, true);
 }
 
 } // namespace ui

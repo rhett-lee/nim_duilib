@@ -16,9 +16,10 @@
 #include "duilib/Core/UiEstInt.h"
 #include "duilib/Core/UiString.h"
 #include <string>
-#include <cmath>
 #include <memory>
 #include <vector>
+#include <cmath>
+#include <algorithm>
 
 namespace ui
 {

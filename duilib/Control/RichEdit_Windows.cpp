@@ -1829,13 +1829,13 @@ void RichEdit::SetPos(UiRect rc)
     }
 
     //排列子控件
-    ArrangeChild(m_items);
+    ArrangeChildren(m_items);
 }
 
-void RichEdit::ArrangeChild(const std::vector<Control*>& items) const
+void RichEdit::ArrangeChildren(const std::vector<Control*>& items) const
 {
     //使用默认布局的排布方式
-    GetLayout()->ArrangeChild(items, GetPos());
+    GetLayout()->ArrangeChildren(items, GetPos());
 }
 
 uint32_t RichEdit::GetControlFlags() const

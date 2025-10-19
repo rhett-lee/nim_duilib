@@ -1,28 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Class name="page_hbox" margin="6,6,6,6" width="100" height="80" bkcolor="Sienna" border_size="1" border_color="green"/>
-    <Label text="布局HBox测试"/>
+    <Class name="page_hbox" margin="6,6,6,6" width="110" height="auto" multi_line="true" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <VBox height="auto" padding="6,0,6,6" >
+        <Label text="布局HBox测试" height="28" valign="center"/>
+        <HBox height="28">            
+            <Label text="容器设置的水平对齐方式（child_halign）: " valign="center"/>
+            <Option class="option_1" group="hbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="hbox_test" apply_attribute="child_halign='left'" />
+            </Option>
+            <Option class="option_1" group="hbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hbox_test" apply_attribute="child_halign='center'" />
+            </Option>
+            <Option class="option_1" group="hbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="hbox_test" apply_attribute="child_halign='right'" />
+            </Option>
+            <Label text="（仅当子控件总宽度小于容器宽度时生效）" valign="center"/>
+        </HBox>
+        <HBox height="28">            
+            <Label text="容器设置的垂直对齐方式（child_valign）: 不支持，垂直对齐方式需要在子控件本身设置" valign="center"/>
+        </HBox>
+        <Label text="子控件自身设置的对齐方式: 水平对齐方式（halign）：不支持，垂直对齐方式（valign）：支持" valign="center"/>
+    </VBox>
     <VBox>
-        <HBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" height="70%">
+        <HBox name="hbox_test" child_halign="left" child_valign="top" bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" height="60%">
             <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
-            <Label text="minwidth/minheight: 300*300" float="true" text_align="top" width="200" height="100" minwidth="300" minheight="300" margin="64,160,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
-            <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,160,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
-            <LabelBox text="布局测试" float="true" single_line="false" width="200" height="200" margin="800,160,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
+            <Label text="minwidth/minheight: 200*200" float="true" text_align="top" width="100" height="100" minwidth="200" minheight="200" margin="64,60,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
+            <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,70,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+            <LabelBox text="布局测试" float="true" single_line="false" width="200" height="200" margin="800,50,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
                 <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
             </LabelBox>
             
-            <Label class="page_hbox" text="1 left,top" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_hbox" text="1 left,top minwidth:200" multi_line="true" halign="left" valign="top" max_height="44"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center"/>
-            <Label class="page_hbox" text="3 left,bottom" halign="left" valign="bottom" height="stretch"/>
+            <Label class="page_hbox" text="3 left,bottom 50%" halign="left" valign="bottom" height="50%" width="150"/>
             <Label class="page_hbox" text="4 center,top" halign="center" valign="top"/>
             <Label class="page_hbox" text="5 center,center" halign="center" valign="center"/>
-            <Label class="page_hbox" text="6 center,bottom" halign="center" valign="bottom"/>
+            <Label class="page_hbox" text="6 center,bottom" halign="center" height="120" valign="bottom"/>
             <Label class="page_hbox" text="7 right,top" halign="right" valign="top"/>
             <Label class="page_hbox" text="8 right,center" halign="right" valign="center"/>
-            <Label class="page_hbox" text="9 right,bottom" halign="right" valign="bottom" width="stretch"/>
+            <Label class="page_hbox" text="9 right,bottom" halign="right" valign="bottom"/>
         </HBox>
-        <HBox height="30%" child_halign="center">
-            <Label class="page_hbox" width="150" text="layout halign test" valign="bottom"/>
+        <HBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">           
+            <Label class="page_hbox" text="1 left,top minwidth:200" halign="left" valign="top" max_height="44"/>
+            <Label class="page_hbox" text="2 left,center" halign="left" valign="center" width="80"/>
+            <Label class="page_hbox" text="3 left,bottom height:70%" halign="left" valign="bottom" height="70%"/>           
+            <Label class="page_hbox" text="4 right,bottom 20%" halign="right" valign="bottom" width="20%" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="5 right,top" halign="right" valign="top" width="80"/>
+            <Label class="page_hbox" text="6 right,bottom 30%" halign="right" valign="bottom" width="30%" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="7 right,center" halign="right" valign="center" width="80"/>
+            <Label class="page_hbox" text="8 right,bottom 40%" halign="right" valign="bottom" width="40%" bkcolor="Cornsilk"/>
+        </HBox>
+        <HBox bkcolor="gray" child_margin_x="8" border_size="1" border_color="red" margin="0,4,0,0" height="10%">           
+            <Label class="page_hbox" text="1 left,top" halign="left" valign="top" width="stretch" height="100%" margin="0,6,0,6"/>
+            <Label class="page_hbox" text="2 left,center" halign="left" valign="center" width="stretch" height="100%" margin="0,6,0,6"/>
+            <Label class="page_hbox" text="3 left,bottom" halign="left" valign="bottom" width="stretch" height="100%" margin="0,6,0,6"/>
+        </HBox>
+        <HBox child_margin_x="2"  bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">           
+            <Label class="page_hbox" text="1 left,top minwidth:100"    halign="left"   valign="top"    width="100%" height="70" min_width="100" max_height="60" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="2 left,center maxwidth:100" halign="left"   valign="center" width="100%" height="50" max_width="100" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="3 left,bottom fixed"        halign="left"   valign="bottom" width="140"  height="40" />
+            <Label class="page_hbox" text="4 center,top"               halign="center" valign="top"    width="100%" height="50" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="5 right,center"             halign="right"  valign="center" width="100%" height="40" bkcolor="Cornsilk"/>
+            <Label class="page_hbox" text="6 right,bottom"             halign="right"  valign="bottom" width="100%" height="50" bkcolor="Cornsilk"/>
         </HBox>
     </VBox>
 </Window>

@@ -152,7 +152,7 @@ UiSize64 HTileLayout::EstimateFloatSize(Control* pControl, const UiRect& rc)
 UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
                                        const UiRect& rc,
                                        const UiSize& szItem,
-                                       bool isCalcOnly,
+                                       bool bEstimateOnly,
                                        std::vector<ItemSizeInfo>& normalItems)
 {
     int64_t cxNeededFloat = 0;    //浮动控件需要的总宽度
@@ -164,7 +164,7 @@ UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
         if (pControl->IsFloat()) {
             //浮动控件
             UiSize64 floatSize;
-            if (!isCalcOnly) {
+            if (!bEstimateOnly) {
                 //设置浮动控件的位置（容器本身的对齐方式不生效）
                 floatSize = SetFloatPos(pControl, rc);
             }
@@ -184,7 +184,7 @@ UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
             UiSize childSize = CalcEstimateSize(pControl, szItem, rc);
             if ((childSize.cx <= 0) || (childSize.cy <= 0)) {
                 //大小为0的，不可显示控件(可能是拉伸控件)
-                if (!isCalcOnly) {
+                if (!bEstimateOnly) {
                     UiRect rcPos(rc);
                     rcPos.right = rcPos.left;
                     rcPos.bottom = rcPos.top;
@@ -320,7 +320,7 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
     return UiSize(cxWidth, cyHeight);
 }
 
-UiSize64 HTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
+UiSize64 HTileLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly)
 {
     //总体布局策略：
     // (1) 横向尽量不超出边界（除非行首的第一个元素大小比rc宽，这种情况下横向会超出边界），
@@ -357,7 +357,7 @@ UiSize64 HTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc
 
     if (IsFreeLayout()) {
         //使用自由布局排列控件(无固定行数，尽量充分利用展示空间，显示尽可能多的内容)
-        return ArrangeChildFreeLayout(items, rc, false);
+        return ArrangeChildFreeLayout(items, rc, bEstimateOnly);
     }
     else {
         if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
@@ -375,7 +375,7 @@ UiSize64 HTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc
         std::vector<int32_t> outRowHeights;
         ArrangeChildNormal(items, rc, true, inRowHeights, outRowHeights);
         inRowHeights.swap(outRowHeights);
-        return ArrangeChildNormal(items, rc, false, inRowHeights, outRowHeights);
+        return ArrangeChildNormal(items, rc, bEstimateOnly, inRowHeights, outRowHeights);
     }
 }
 
@@ -386,7 +386,7 @@ bool HTileLayout::IsFreeLayout() const
 
 UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
                                         UiRect rect,
-                                        bool isCalcOnly,
+                                        bool bEstimateOnly,
                                         const std::vector<int32_t>& inRowHeights,
                                         std::vector<int32_t>& outRowHeights) const
 {
@@ -398,7 +398,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
     //调整浮动控件，过滤隐藏控件、不可显示控件等
     //拉伸类型的子控件：如果(m_szItem.cx > 0) && (m_szItem.cy > 0) 为true，则可以显示，否则会被过滤掉
     std::vector<ItemSizeInfo> normalItems;
-    ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //浮动控件需要的总宽度和高度
+    ArrangeFloatChild(items, rc, m_szItem, bEstimateOnly, normalItems); //浮动控件需要的总宽度和高度
 
     int32_t nRows = m_nRows;  //行数（设置值）
     if (m_bAutoCalcRows) {
@@ -432,7 +432,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 
     int32_t yPosTop = rc.top; //第一行的顶部坐标值
     //控件显示内容的上侧坐标值
-    if (!isCalcOnly && !fixedRowHeights.empty()) {
+    if (!bEstimateOnly && !fixedRowHeights.empty()) {
         int32_t cyTotal = std::accumulate(fixedRowHeights.begin(), fixedRowHeights.end(), 0);
         if (fixedRowHeights.size() > 1) {
             cyTotal += ((int32_t)fixedRowHeights.size() - 1) * GetChildMarginX();
@@ -480,7 +480,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
         UiSize szTileSize = CalcTilePosition(itemSizeInfo, posWidth, posHeight,
                                              posLeftTop, m_bScaleDown, rcTilePos);//返回值包含了控件的外边距
         
-        if (!isCalcOnly) {
+        if (!bEstimateOnly) {
             pControl->SetPos(rcTilePos);
         }
 
@@ -540,7 +540,7 @@ UiSize64 HTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
 }
 
 UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
-                                            UiRect rect, bool isCalcOnly) const
+                                            UiRect rect, bool bEstimateOnly) const
 {
     const UiRect rcBox = rect; //容器的矩形范围
     DeflatePadding(rect); //剪去内边距，剩下的是可用区域
@@ -549,7 +549,7 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
     //调整浮动控件，过滤隐藏控件、不可显示控件等
     //拉伸类型的子控件：如果(m_szItem.cx > 0) && (m_szItem.cy > 0) 为true，则可以显示，否则会被过滤掉
     std::vector<ItemSizeInfo> normalItems;
-    ArrangeFloatChild(items, rc, m_szItem, isCalcOnly, normalItems); //浮动控件需要的总宽度和高度
+    ArrangeFloatChild(items, rc, m_szItem, bEstimateOnly, normalItems); //浮动控件需要的总宽度和高度
 
     int64_t cxNeeded = 0;        //非浮动控件需要的总宽度    
     int64_t cyNeeded = 0;        //非浮动控件需要的总高度
@@ -583,7 +583,7 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
                                               ptTile, m_bScaleDown, rcTilePos);                
             }
         }
-        if (!isCalcOnly) {
+        if (!bEstimateOnly) {
             childPosList.push_back(std::pair<Control*, UiRect>(pControl, rcTilePos));//记录位置和大小，延后调整
         }
 
@@ -619,14 +619,14 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
     cxNeeded += (rcPadding.left + rcPadding.right);
     cyNeeded += (rcPadding.top + rcPadding.bottom);
 
-    if (isCalcOnly) {
+    if (bEstimateOnly) {
         //返回的宽度，最大不超过外层容器的空间，因为此返回值会成为容器最终的宽度值
         if (cyNeeded > (rect.Height())) {
             cyNeeded = rect.Height();
         }
     }
     UiSize64 size(cxNeeded, cyNeeded);
-    if (!isCalcOnly) {
+    if (!bEstimateOnly) {
         if (size.cy < rcBox.Height()) {
             //上述实现，默认是靠上对齐
             VerAlignType vAlign = GetChildVAlignType();
@@ -665,7 +665,7 @@ UiSize64 HTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
     return size;
 }
 
-UiSize HTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable)
+UiSize64 HTileLayout::EstimateLayoutSize(const std::vector<Control*>& items, UiSize szAvailable)
 {
     szAvailable.Validate();
     UiRect rc(0, 0, szAvailable.Width(), szAvailable.Height());
@@ -689,8 +689,7 @@ UiSize HTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
         std::vector<int32_t> outRowHeights;
         requiredSize = ArrangeChildNormal(items, rc, true, inRowHeights, outRowHeights);
     }
-    UiSize size(TruncateToInt32(requiredSize.cx), TruncateToInt32(requiredSize.cy));
-    return size;
+    return requiredSize;
 }
 
 void HTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)

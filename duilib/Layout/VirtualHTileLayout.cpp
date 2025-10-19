@@ -55,12 +55,12 @@ int32_t VirtualHTileLayout::CalcTileRows(int32_t rcHeight) const
     return nRows;
 }
 
-UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui::UiRect rc)
+UiSize64 VirtualHTileLayout::ArrangeChildren(const std::vector<ui::Control*>& items, ui::UiRect rc, bool bEstimateOnly)
 {
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return BaseClass::ArrangeChild(items, rc);
+        return BaseClass::ArrangeChildren(items, rc, bEstimateOnly);
     }
     DeflatePadding(rc);
     if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
@@ -72,26 +72,32 @@ UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
             SetItemSize(szNewItemSize, false);
         }
     }
+
+    //计算总宽度
     int64_t nTotalWidth = GetElementsWidth(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cx = std::max(nTotalWidth, sz.cx);
 
-    //计算纵向所需宽度，以支持垂直滚动条
+    //计算纵向所需高度，以支持垂直滚动条
     int32_t nRows = CalcTileRows(rc.Height()); //行数
     const UiSize szItem = GetItemSize();
     int64_t cyHeight = szItem.cy * nRows + GetChildMarginY() * (nRows - 1);
     sz.cy = std::max(cyHeight, sz.cy);
 
-    LazyArrangeChild(rc);
+    if (!bEstimateOnly) {
+        LazyArrangeChild(rc);
+    }    
     return sz;
 }
 
-UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, ui::UiSize szAvailable)
+UiSize64 VirtualHTileLayout::EstimateLayoutSize(const std::vector<Control*>& items, ui::UiSize szAvailable)
 {
+    //估算控件大小时（主要是用于宽高为"auto"类型的情况），只估算容器本身的大小，不包含列表数据的大小
+    //因为虚表数据规模较大，不适合用于估算"auto"控件的大小
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return BaseClass::EstimateSizeByChild(items, szAvailable);
+        return BaseClass::EstimateLayoutSize(items, szAvailable);
     }
     szAvailable.Validate();
     UiPadding rcPadding;
@@ -115,28 +121,36 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     UiSize szItem = GetItemSize();
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
-        return UiSize();
+        return UiSize64();
     }    
     int32_t nRows = CalcTileRows(szAvailable.cy);
     UiEstSize estSize;
     if (GetOwner() != nullptr) {
-        estSize = GetOwner()->Control::EstimateSize(szAvailable);
+        estSize = GetOwner()->Control::EstimateSize(szAvailableLocal);
     }
-    UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+    int32_t nTotalWidth = estSize.cx.GetInt32();
+    int32_t nTotalHeight = estSize.cy.GetInt32();
     if (estSize.cx.IsStretch()) {
-        size.cx = CalcStretchValue(estSize.cx, szAvailableLocal.cx);
-        size.cx += (rcPadding.left + rcPadding.right);
+        nTotalWidth = CalcStretchValue(estSize.cx, szAvailableLocal.cx);
+        if (nTotalWidth > 0) {
+            nTotalWidth += (rcPadding.left + rcPadding.right);
+        }
     }
     if (estSize.cy.IsStretch()) {
-        size.cy = CalcStretchValue(estSize.cy, szAvailableLocal.cy);
-        size.cy += (rcPadding.top + rcPadding.bottom);
+        nTotalHeight = CalcStretchValue(estSize.cy, szAvailableLocal.cy);
+        if (nTotalHeight > 0) {
+            nTotalHeight += (rcPadding.top + rcPadding.bottom);
+        }
     }
-    if (size.cy == 0) {
-        size.cy = szItem.cy * nRows + GetChildMarginY() * (nRows - 1);
-        size.cy += (rcPadding.top + rcPadding.bottom);
+    if ((nTotalHeight == 0) && (nRows > 0)) {
+        nTotalHeight = szItem.cy * nRows + GetChildMarginY() * (nRows - 1);
+        if (nTotalHeight > 0) {
+            nTotalHeight += (rcPadding.top + rcPadding.bottom);
+        }
     }
-    size.Validate();
-    return size;
+    nTotalWidth = std::max(nTotalWidth, 0);
+    nTotalHeight = std::max(nTotalHeight, 0);
+    return UiSize64(nTotalWidth, nTotalHeight);
 }
 
 int64_t VirtualHTileLayout::GetElementsWidth(const UiRect& rc, size_t nCount) const

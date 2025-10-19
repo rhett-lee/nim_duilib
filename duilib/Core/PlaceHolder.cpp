@@ -315,7 +315,12 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
 
 int32_t PlaceHolder::GetMaxWidth() const
 { 
-    ASSERT(m_cxyMax.cx >= 0); 
+    ASSERT(m_cxyMax.cx >= 0);
+    ASSERT(m_cxyMax.cx >= m_cxyMin.cx);
+    if (m_cxyMax.cx < m_cxyMin.cx) {
+        //无效值，返回默认值
+        return INT32_MAX;
+    }
     return m_cxyMax.cx; 
 }
 
@@ -369,7 +374,12 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
 
 int32_t PlaceHolder::GetMaxHeight() const
 { 
-    ASSERT(m_cxyMax.cy >= 0); 
+    ASSERT(m_cxyMax.cy >= 0);
+    ASSERT(m_cxyMax.cy >= m_cxyMin.cy);
+    if (m_cxyMax.cy < m_cxyMin.cy) {
+        //无效值，返回默认值
+        return INT32_MAX;
+    }
     return m_cxyMax.cy; 
 }
 
