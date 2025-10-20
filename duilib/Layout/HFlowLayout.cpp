@@ -16,6 +16,26 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     if (items.empty()) {
         return UiSize64();
     }
+    // 预处理：筛选所有可见、非浮动的控件
+    std::vector<Control*> visibleControls;
+    for (auto pControl : items) {
+        if ((pControl != nullptr) && pControl->IsVisible() && !pControl->IsFloat()) {
+            visibleControls.push_back(pControl);
+        }
+    }
+    if (visibleControls.empty()) {
+        //可见控件为空, 调整子控件的布局（浮动控件），然后直接返回
+        if (!bEstimateOnly) {
+            for (auto pControl : items) {
+                if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsFloat()) {
+                    //浮动控件（容器本身的对齐方式不生效）
+                    SetFloatPos(pControl, rc);
+                }
+            }
+        }
+        return UiSize64();
+    }
+
     if (!bEstimateOnly) {
         bEstimateLayoutSize = false;
     }
@@ -25,14 +45,6 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
     //需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
     std::unordered_map<Control*, UiEstSize> itemsMap;
-
-    // 预处理：筛选所有可见、非浮动的控件
-    std::vector<Control*> visibleControls;
-    for (auto pControl : items) {
-        if ((pControl != nullptr) && pControl->IsVisible() && !pControl->IsFloat()) {
-            visibleControls.push_back(pControl);
-        }
-    }
 
     //计算每个控件的宽度和高度，并记录到Map中
     for (auto pControl : visibleControls) {
@@ -300,10 +312,7 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
         //调整子控件的布局（浮动控件）
         for (auto pControl : items) {
-            if ((pControl == nullptr) || !pControl->IsVisible()) {
-                continue;
-            }
-            if (pControl->IsFloat()) {
+            if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsFloat()) {
                 //浮动控件（容器本身的对齐方式不生效）
                 SetFloatPos(pControl, rc);
             }
