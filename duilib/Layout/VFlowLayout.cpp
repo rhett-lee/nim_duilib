@@ -109,6 +109,9 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     for (size_t nItem = 0; nItem < nItemCount; ++nItem) {
         Control* pControl = visibleControls[nItem];
 
+        //标记是否为最后一个控件
+        bool bLastControl = (nItem == (nItemCount - 1)) ? true : false;
+
         //对一个控件进行布局
         UiMargin rcMargin = pControl->GetMargin();//子控件的外边距
         nPosY += rcMargin.top;
@@ -122,7 +125,6 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
 
         nPosY += rcChild.Height();
         nPosY += rcMargin.bottom;
-        nPosY += GetChildMarginY();
 
         //统计数据
         if (nRowCount != columnControlList.size()) {
@@ -139,29 +141,34 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         rcChild.right += rcMargin.right;
         controls.m_columnRect.Union(rcChild);
 
-        bool bNeedNewColumn = false;
-        if (nPosY > rc.bottom) {
-            bNeedNewColumn = true;
-        }
-        else if (nItem < (nItemCount - 1)) {
-            //判断下个控件是否能够容纳，如果超过边界，则需要换行
-            Control* pNextControl = visibleControls[nItem + 1];//下一个控件
-            if (pNextControl != nullptr) {
-                UiMargin rcNextMargin = pNextControl->GetMargin();//子控件的外边距
-                UiEstSize estNextSize = itemsMap[pNextControl];
-                int32_t nNextHeight = rcNextMargin.top + estNextSize.cy.GetInt32() + rcNextMargin.bottom;
-                if ((nPosY + nNextHeight) > rc.bottom) {
-                    bNeedNewColumn = true;
+        if (!bLastControl) {
+            //还未到达最后一个控件
+            nPosY += GetChildMarginY(); //增加控件间距
+
+            bool bNeedNewColumn = false;
+            if (nPosY > rc.bottom) {
+                bNeedNewColumn = true;
+            }
+            else if (nItem < (nItemCount - 1)) {
+                //判断下个控件是否能够容纳，如果超过边界，则需要换行
+                Control* pNextControl = visibleControls[nItem + 1];//下一个控件
+                if (pNextControl != nullptr) {
+                    UiMargin rcNextMargin = pNextControl->GetMargin();//子控件的外边距
+                    UiEstSize estNextSize = itemsMap[pNextControl];
+                    int32_t nNextHeight = rcNextMargin.top + estNextSize.cy.GetInt32() + rcNextMargin.bottom;
+                    if ((nPosY + nNextHeight) > rc.bottom) {
+                        bNeedNewColumn = true;
+                    }
                 }
             }
-        }
-        
-        if (bNeedNewColumn) {
-            //换列
-            nRowCount += 1;
-            nPosY = rc.top;
-            nPosX += controls.m_columnRect.Width();
-            nPosX += GetChildMarginX();
+
+            if (bNeedNewColumn) {
+                //换列
+                nRowCount += 1;
+                nPosY = rc.top;
+                nPosX += controls.m_columnRect.Width();
+                nPosX += GetChildMarginX();
+            }
         }
     }
 
