@@ -114,8 +114,8 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     int32_t nPosX = rc.left;
     std::vector<TRowControls> rowControlList; //每一行中的控件和行高
 
-    //总的列数
-    size_t nColumnCount = 1;
+    //总的行数
+    size_t nRowCount = 1;
 
     const size_t nItemCount = visibleControls.size();
     for (size_t nItem = 0; nItem < nItemCount; ++nItem) {
@@ -139,10 +139,10 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         nPosX += rcMargin.right;
 
         //统计数据
-        if (nColumnCount != rowControlList.size()) {
-            rowControlList.resize(nColumnCount);
+        if (nRowCount != rowControlList.size()) {
+            rowControlList.resize(nRowCount);
         }
-        TRowControls& controls = rowControlList[nColumnCount - 1];
+        TRowControls& controls = rowControlList[nRowCount - 1];
         controls.m_pControlList.push_back(pControl);
         controls.m_pControlRects.push_back(rcChild);
 
@@ -164,19 +164,17 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
             else if (nItem < (nItemCount - 1)) {
                 //判断下个控件是否能够容纳，如果超过边界，则需要换行
                 Control* pNextControl = visibleControls[nItem + 1];//下一个控件            
-                if (pNextControl != nullptr) {
-                    UiMargin rcNextMargin = pNextControl->GetMargin();//子控件的外边距
-                    UiEstSize estNextSize = itemsMap[pNextControl];
-                    int32_t nNextWidth = rcNextMargin.left + estNextSize.cx.GetInt32() + rcNextMargin.right;
-                    if ((nPosX + nNextWidth) > rc.right) {
-                        bNeedNewRow = true;
-                    }
+                UiMargin rcNextMargin = pNextControl->GetMargin();//子控件的外边距
+                UiEstSize estNextSize = itemsMap[pNextControl];
+                int32_t nNextWidth = rcNextMargin.left + estNextSize.cx.GetInt32() + rcNextMargin.right;
+                if ((nPosX + nNextWidth) > rc.right) {
+                    bNeedNewRow = true;
                 }
             }
 
             if (bNeedNewRow) {
                 //换行
-                nColumnCount += 1;
+                nRowCount += 1;
                 nPosX = rc.left;
                 nPosY += controls.m_rowRect.Height();
                 nPosY += GetChildMarginY();
