@@ -45,7 +45,7 @@
             <Label class="page_vflowbox" text="7 left" halign="left" valign="bottom" height="40"/>
             <Label class="page_vflowbox" text="8 center" halign="center" valign="bottom"/>
             <Label class="page_vflowbox" text="9 right" halign="right" valign="bottom" width="200"/>
-            <Label class="page_vflowbox" text="10 left" halign="left" valign="top" minwidth="300" maxheight="60"/>
+            <Label class="page_vflowbox" text="10 left" halign="left" valign="top" minwidth="200" maxheight="60"/>
             <Label class="page_vflowbox" text="11 center" halign="center" valign="center" height="100" width="100"/>
             <Label class="page_vflowbox" text="12 right" halign="right" valign="bottom" height="40"/>
             <Label class="page_vflowbox" text="13 left stretch: 50%" halign="left" valign="top" height="50%" width="120"/>

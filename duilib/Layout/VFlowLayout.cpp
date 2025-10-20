@@ -61,7 +61,7 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
             }            
             sz.cx = std::max(sz.cx, 0);
         }
-        sz.cx = std::clamp(sz.cx, pControl->GetMinHeight(), pControl->GetMaxHeight());
+        sz.cx = std::clamp(sz.cx, pControl->GetMinWidth(), pControl->GetMaxWidth());
         sz.cx = std::max(sz.cx, 0);
         estSize.cx.SetInt32(sz.cx);//cx是已经计算好的确定数值，不再有拉伸和自动类型值
 
