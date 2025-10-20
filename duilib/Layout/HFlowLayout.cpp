@@ -284,7 +284,7 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
                 Control* pControl = control.m_pControlList[nIndex];
                 UiRect& rcChild = control.m_pControlRects[nIndex];
 
-                ////处理控件的对齐方式（控件本身设置的对齐方式）
+                //处理控件的对齐方式（控件本身设置的对齐方式）
                 //只需要处理控件的垂直方向对齐方式
                 const VerAlignType vAlignType = pControl->GetVerAlignType();
                 if ((vAlignType == VerAlignType::kAlignCenter) || (vAlignType == VerAlignType::kAlignBottom)) {
