@@ -1,6 +1,6 @@
 #include "HFlowLayout.h"
 #include "duilib/Box/ScrollBox.h"
-#include <map>
+#include <unordered_map>
 
 namespace ui 
 {
@@ -24,14 +24,18 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     const UiSize szAvailable(rc.Width(), rc.Height());
 
     //需要进行布局处理的所有控件(KEY是控件，VALUE是宽度和高度)
-    std::map<Control*, UiEstSize> itemsMap;
+    std::unordered_map<Control*, UiEstSize> itemsMap;
+
+    // 预处理：筛选所有可见、非浮动的控件
+    std::vector<Control*> visibleControls;
+    for (auto pControl : items) {
+        if ((pControl != nullptr) && pControl->IsVisible() && !pControl->IsFloat()) {
+            visibleControls.push_back(pControl);
+        }
+    }
 
     //计算每个控件的宽度和高度，并记录到Map中
-    for (auto pControl : items) {
-        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
-            continue;
-        }
-
+    for (auto pControl : visibleControls) {
         UiEstSize estSize = pControl->EstimateSize(szAvailable);
         UiSize sz = UiSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
         UiMargin rcMargin = pControl->GetMargin();
@@ -50,15 +54,8 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
             }
             sz.cx = std::max(sz.cx, 0);
         }
-        if (sz.cx < pControl->GetMinWidth()) {
-            sz.cx = pControl->GetMinWidth();
-        }
-        if (sz.cx > pControl->GetMaxWidth()) {
-            sz.cx = pControl->GetMaxWidth();
-        }
-        if (sz.cx < 0) {
-            sz.cx = 0;
-        }
+        sz.cx = std::clamp(sz.cx, pControl->GetMinHeight(), pControl->GetMaxHeight());
+        sz.cx = std::max(sz.cx, 0);
         estSize.cx.SetInt32(sz.cx);//cx是已经计算好的确定数值，不再有拉伸和自动类型值
 
         //计算高度
@@ -82,15 +79,8 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
             }
             sz.cy = std::max(sz.cy, 0);
         }
-        if (sz.cy < pControl->GetMinHeight()) {
-            sz.cy = pControl->GetMinHeight();
-        }
-        if (sz.cy > pControl->GetMaxHeight()) {
-            sz.cy = pControl->GetMaxHeight();
-        }
-        if (sz.cy < 0) {
-            sz.cy = 0;
-        }
+        sz.cy = std::clamp(sz.cy, pControl->GetMinHeight(), pControl->GetMaxHeight());
+        sz.cy = std::max(sz.cy, 0);
         estSize.cy.SetInt32(sz.cy);//cy是已经计算好的确定数值，不再有拉伸和自动类型值
 
         itemsMap[pControl] = estSize;
@@ -115,12 +105,9 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
     //总的列数
     size_t nColumnCount = 1;
 
-    const size_t nItemCount = items.size();
+    const size_t nItemCount = visibleControls.size();
     for (size_t nItem = 0; nItem < nItemCount; ++nItem) {
-        Control* pControl = items[nItem];
-        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
-            continue;
-        }
+        Control* pControl = visibleControls[nItem];
 
         //对一个控件进行布局
         UiMargin rcMargin = pControl->GetMargin();//子控件的外边距
@@ -152,37 +139,24 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         rcChild.right += rcMargin.right;
         controls.m_rowRect.Union(rcChild);
 
-        bool bNextRow = false;
+        bool bNeedNewRow = false;
         if (nPosX > rc.right) {
-            bNextRow = true;
+            bNeedNewRow = true;
         }
-        else {
+        else if (nItem < (nItemCount - 1)) {
             //判断下个控件是否能够容纳，如果超过边界，则需要换行
-            Control* pNextControl = nullptr;//下一个控件
-            size_t nNextItem = nItem + 1;
-            while (nNextItem < nItemCount) {
-                pNextControl = items[nNextItem];
-                if (!pNextControl->IsVisible() || pNextControl->IsFloat()) {
-                    pNextControl = nullptr;
-                }
-                if (pNextControl != nullptr) {
-                    break;
-                }
-                else {
-                    ++nNextItem;
-                }
-            }
+            Control* pNextControl = visibleControls[nItem + 1];//下一个控件            
             if (pNextControl != nullptr) {
                 UiMargin rcNextMargin = pNextControl->GetMargin();//子控件的外边距
                 UiEstSize estNextSize = itemsMap[pNextControl];
-                int32_t nNextWidth = GetChildMarginX() + rcNextMargin.left + estNextSize.cx.GetInt32() + rcNextMargin.right;
+                int32_t nNextWidth =  rcNextMargin.left + estNextSize.cx.GetInt32() + rcNextMargin.right;
                 if ((nPosX + nNextWidth) > rc.right) {
-                    bNextRow = true;
+                    bNeedNewRow = true;
                 }
             }
         }
         
-        if (bNextRow) {
+        if (bNeedNewRow) {
             //换行
             nColumnCount += 1;
             nPosX = rc.left;

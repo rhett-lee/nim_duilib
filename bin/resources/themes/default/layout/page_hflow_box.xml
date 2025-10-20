@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Class name="page_hflowbox" margin="6,6,6,6" width="100" height="80" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <Class name="page_hflowbox" multi_line="true" margin="6,6,6,6" width="100" height="60" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
         <Label text="布局HFlowBox测试" height="28" valign="center"/>
         <HBox height="28">            
@@ -31,7 +31,11 @@
         </HBox>
     </VBox>
     <VBox>
-        <HFlowBox name="hflowbox_test" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" height="70%">           
+        <HFlowBox name="hflowbox_test" child_halign="left" child_valign="top" bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" height="100%">           
+            <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
+            <Label text="minwidth/minheight: 200*200" float="true" text_align="top" width="100" height="100" minwidth="200" minheight="200" margin="64,60,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
+            <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,70,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+ 
             <Label class="page_hflowbox" text="1 top" halign="left" valign="top" minwidth="300" maxheight="60"/>
             <Label class="page_hflowbox" text="2 center" halign="left" valign="center"/>
             <Label class="page_hflowbox" text="3 bottom" halign="left" valign="bottom" height="40"/>
