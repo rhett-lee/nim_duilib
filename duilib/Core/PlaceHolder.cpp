@@ -10,8 +10,6 @@ namespace ui
 
 PlaceHolder::PlaceHolder(Window* pWindow) :
     m_pWindow(pWindow),
-    m_cxyMin(0, 0),
-    m_cxyMax(INT32_MAX, INT32_MAX),
     m_pParent(nullptr),
     m_horAlignType(HorAlignType::kAlignLeft),
     m_verAlignType(VerAlignType::kAlignTop),
@@ -29,11 +27,7 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_bEnableControlPadding(true),
     m_bInited(false),
     m_bReEstimateSize(true),
-    m_pEstResult(nullptr),
-    m_uiFloatPos(INT32_MIN, INT32_MIN),
-    m_bKeepFloatPos(false),
-    m_rowSpan(1),
-    m_colSpan(1)
+    m_pEstResult(nullptr)
 {
     //控件的高度和宽度值，默认设置为拉伸
     m_cxyFixed.cx.SetStretch();
@@ -42,13 +36,26 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
 
 PlaceHolder::~PlaceHolder()
 {
-    if (m_pEstResult != nullptr) {
-        delete m_pEstResult;
-        m_pEstResult = nullptr;
-    }
+}
+
+PlaceHolder::TPlaceHolderData::TPlaceHolderData():
+    m_cxyMin(0, 0),
+    m_cxyMax(INT32_MAX, INT32_MAX),
+    m_uiFloatPos(INT32_MIN, INT32_MIN),
+    m_bKeepFloatPos(false),
+    m_rowSpan(1),
+    m_colSpan(1)
+{
 }
 
 DString PlaceHolder::GetType() const { return _T("PlaceHolder"); }
+
+void PlaceHolder::CheckPlaceHolderData()
+{
+    if (m_pData == nullptr) {
+        m_pData = std::make_unique<TPlaceHolderData>();
+    }
+}
 
 ui::Box* PlaceHolder::GetAncestor(const DString& strName)
 {
@@ -282,16 +289,19 @@ UiEstSize PlaceHolder::GetEstimateSize() const
 void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable)
 {
     if (m_pEstResult == nullptr) {
-        m_pEstResult = new UiEstResult;
+        m_pEstResult = std::make_unique<UiEstResult>();
     }
     m_pEstResult->m_szAvailable = szAvailable;
     m_pEstResult->m_szEstimateSize = szEstimateSize;
 }
 
 int32_t PlaceHolder::GetMinWidth() const
-{ 
-    ASSERT(m_cxyMin.cx >= 0); 
-    return m_cxyMin.cx; 
+{
+    if (m_pData != nullptr) {
+        ASSERT(m_pData->m_cxyMin.cx >= 0);
+        return m_pData->m_cxyMin.cx;
+    }
+    return 0;
 }
 
 void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
@@ -302,11 +312,13 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cx);
-    }    
-    if (m_cxyMin.cx == cx) {
+    }
+
+    CheckPlaceHolderData();
+    if (m_pData->m_cxyMin.cx == cx) {
         return;
     }
-    m_cxyMin.cx = cx;
+    m_pData->m_cxyMin.cx = cx;
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -316,14 +328,15 @@ void PlaceHolder::SetMinWidth(int32_t cx, bool bNeedDpiScale)
 }
 
 int32_t PlaceHolder::GetMaxWidth() const
-{ 
-    ASSERT(m_cxyMax.cx >= 0);
-    ASSERT(m_cxyMax.cx >= m_cxyMin.cx);
-    if (m_cxyMax.cx < m_cxyMin.cx) {
-        //无效值，返回默认值
-        return INT32_MAX;
+{
+    if (m_pData != nullptr) {
+        ASSERT(m_pData->m_cxyMax.cx >= 0);
+        ASSERT(m_pData->m_cxyMax.cx >= m_pData->m_cxyMin.cx);
+        if (m_pData->m_cxyMax.cx >= m_pData->m_cxyMin.cx) {            
+            return m_pData->m_cxyMax.cx;
+        }
     }
-    return m_cxyMax.cx; 
+    return INT32_MAX;// 返回默认值
 }
 
 void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
@@ -334,12 +347,13 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cx);
-    }    
-    if (m_cxyMax.cx == cx) {
+    }
+    CheckPlaceHolderData();
+    if (m_pData->m_cxyMax.cx == cx) {
         return;
     }
 
-    m_cxyMax.cx = cx;
+    m_pData->m_cxyMax.cx = cx;
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -348,9 +362,12 @@ void PlaceHolder::SetMaxWidth(int32_t cx, bool bNeedDpiScale)
     }
 }
 int32_t PlaceHolder::GetMinHeight() const
-{ 
-    ASSERT(m_cxyMin.cy >= 0);
-    return m_cxyMin.cy; 
+{
+    if (m_pData != nullptr) {
+        ASSERT(m_pData->m_cxyMin.cy >= 0);
+        return m_pData->m_cxyMin.cy;
+    }
+    return 0;
 }
 
 void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
@@ -361,11 +378,12 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
-    }    
-    if (m_cxyMin.cy == cy) {
+    }
+    CheckPlaceHolderData();
+    if (m_pData->m_cxyMin.cy == cy) {
         return;
     }
-    m_cxyMin.cy = cy;
+    m_pData->m_cxyMin.cy = cy;
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -375,14 +393,15 @@ void PlaceHolder::SetMinHeight(int32_t cy, bool bNeedDpiScale)
 }
 
 int32_t PlaceHolder::GetMaxHeight() const
-{ 
-    ASSERT(m_cxyMax.cy >= 0);
-    ASSERT(m_cxyMax.cy >= m_cxyMin.cy);
-    if (m_cxyMax.cy < m_cxyMin.cy) {
-        //无效值，返回默认值
-        return INT32_MAX;
+{
+    if (m_pData != nullptr) {
+        ASSERT(m_pData->m_cxyMax.cy >= 0);
+        ASSERT(m_pData->m_cxyMax.cy >= m_pData->m_cxyMin.cy);
+        if (m_pData->m_cxyMax.cy >= m_pData->m_cxyMin.cy) {
+            return m_pData->m_cxyMax.cy;
+        }
     }
-    return m_cxyMax.cy; 
+    return INT32_MAX; //返回默认值
 }
 
 void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
@@ -393,12 +412,13 @@ void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(cy);
-    }    
-    if (m_cxyMax.cy == cy) {
+    }
+    CheckPlaceHolderData();
+    if (m_pData->m_cxyMax.cy == cy) {
         return;
     }
 
-    m_cxyMax.cy = cy;
+    m_pData->m_cxyMax.cy = cy;
     if (!m_bFloat) {
         ArrangeAncestor();
     }
@@ -600,11 +620,15 @@ void PlaceHolder::SetRect(const UiRect& rc)
     if ((GetParent() != nullptr) && IsFloat()) {
         //浮动控件，则需要记录和父控件相对位置和大小
         UiRect rcParent = GetParent()->GetRect();
-        m_uiFloatPos.cx = rc.left - rcParent.left;
-        m_uiFloatPos.cy = rc.top - rcParent.top;
+
+        CheckPlaceHolderData();
+        m_pData->m_uiFloatPos.cx = rc.left - rcParent.left;
+        m_pData->m_uiFloatPos.cy = rc.top - rcParent.top;
     }
     else {
-        m_uiFloatPos = UiSize(INT32_MIN, INT32_MIN);
+        if (m_pData != nullptr) {
+            m_pData->m_uiFloatPos = UiSize(INT32_MIN, INT32_MIN);
+        }
     }
 }
 
@@ -612,44 +636,58 @@ void PlaceHolder::SetRowSpan(int32_t rowSpan)
 {
     ASSERT(rowSpan > 0);
     if (rowSpan > 0) {
-        m_rowSpan = ui::TruncateToInt16(rowSpan);
+        CheckPlaceHolderData();
+        m_pData->m_rowSpan = ui::TruncateToInt16(rowSpan);
     }
 }
 
 int32_t PlaceHolder::GetRowSpan() const
 {
-    return m_rowSpan;
+    if (m_pData != nullptr) {
+        return m_pData->m_rowSpan;
+    }
+    return 1;
 }
 
 void PlaceHolder::SetColumnSpan(int32_t colSpan)
 {
     ASSERT(colSpan > 0);
     if (colSpan > 0) {
-        m_colSpan = ui::TruncateToInt16(colSpan);
+        CheckPlaceHolderData();
+        m_pData->m_colSpan = ui::TruncateToInt16(colSpan);
     }
 }
 
 int32_t PlaceHolder::GetColumnSpan() const
 {
-    return m_colSpan;
+    if (m_pData != nullptr) {
+        return m_pData->m_colSpan;
+    }
+    return 1;
 }
 
 UiSize PlaceHolder::GetFloatPos() const
 {
     if (IsFloat() && IsKeepFloatPos()) {
-        return m_uiFloatPos;
+        if (m_pData != nullptr) {
+            return m_pData->m_uiFloatPos;
+        }
     }
     return UiSize(INT32_MIN, INT32_MIN);
 }
 
 void PlaceHolder::SetKeepFloatPos(bool bKeepFloatPos)
 {
-    m_bKeepFloatPos = bKeepFloatPos;
+    CheckPlaceHolderData();
+    m_pData->m_bKeepFloatPos = bKeepFloatPos;
 }
 
 bool PlaceHolder::IsKeepFloatPos() const
 {
-    return m_bKeepFloatPos;
+    if (m_pData != nullptr) {
+        return m_pData->m_bKeepFloatPos;
+    }
+    return false;
 }
 
 void PlaceHolder::Invalidate()

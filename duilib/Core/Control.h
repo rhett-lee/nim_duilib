@@ -681,7 +681,7 @@ public:
      * @brief 获取控件绘制偏移量
      * @return 返回当前控件的绘制偏移量
      */
-    UiPoint GetRenderOffset() const { return m_renderOffset;    }
+    UiPoint GetRenderOffset() const;
 
     /** 设置控件绘制偏移量
      * @param [in] renderOffset 控件偏移数据
@@ -1479,10 +1479,16 @@ private:
 
         //焦点状态下的边框颜色
         UiString m_focusBorderColor;
+
+        /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
+            仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
+            其值为原始值，未经DPI缩放
+        */
+        UiSize16 m_borderRound;
     };
 
-    //背景色/前景色相关数据
-    struct TBkColorData
+    //背景色/前景色等颜色相关数据
+    struct TColorData
     {
         //控件的背景颜色
         UiString m_strBkColor;
@@ -1495,6 +1501,9 @@ private:
 
         //控件的前景颜色
         UiString m_strForeColor;
+
+        //焦点状态虚线矩形的颜色
+        UiString m_focusRectColor;
     };
 
     //拖放相关数据
@@ -1521,10 +1530,40 @@ private:
 #endif
     };
 
-private:
-    /** 控件阴影，其圆角大小通过m_cxyBorderRound变量控制
+    /** 动画相关数据
     */
-    std::unique_ptr<BoxShadow> m_pBoxShadow;
+    struct TAnimationData
+    {
+        /** 控件动画播放管理器
+        */
+        std::unique_ptr<AnimationManager> m_animationManager;
+
+        /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+        */
+        UiPoint m_renderOffset;
+    };
+
+    /** 不常用的功能数据
+    */
+    struct TOtherData
+    {
+        /** 控件阴影，其圆角大小通过m_borderRound变量控制
+        */
+        std::unique_ptr<BoxShadow> m_pBoxShadow;
+
+        /** 控件"加载中"逻辑的实现接口
+        */
+        std::unique_ptr<ControlLoading> m_pLoading;
+
+        /** Tooltip数据
+        */
+        std::unique_ptr<TTooltipData> m_pTooltip;
+    };
+
+private:
+    /** 背景图片
+    */
+    std::unique_ptr<Image> m_pBkImage;
 
     /** 边框数据
     */
@@ -1532,11 +1571,7 @@ private:
 
     /** 背景色
     */
-    std::unique_ptr<TBkColorData> m_pBkColorData;
-
-    /** 背景图片
-    */
-    std::unique_ptr<Image> m_pBkImage;
+    std::unique_ptr<TColorData> m_pColorData;
 
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
@@ -1546,14 +1581,6 @@ private:
     */
     std::unique_ptr<StateImageMap> m_pImageMap;
 
-    /** 控件"加载中"逻辑的实现接口
-    */
-    std::unique_ptr<ControlLoading> m_pLoading;
-
-    /** 控件动画播放管理器
-    */
-    std::unique_ptr<AnimationManager> m_animationManager;
-
     /** 绘制渲染引擎接口(控件自身)
     */
     std::unique_ptr<IRender> m_render;
@@ -1562,25 +1589,21 @@ private:
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
 
-    /** Tooltip数据
+    /** 控件动画相关数据
     */
-    std::unique_ptr<TTooltipData> m_pTooltip;
+    std::unique_ptr<TAnimationData> m_pAnimationData;
 
     /** 拖放相关数据
     */
     std::unique_ptr<TDragDropData> m_pDragDropData;
 
-    /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+    /** 其他不常用的数据
     */
-    UiPoint m_renderOffset;
-    
+    std::unique_ptr<TOtherData> m_pOtherData;
+
     /** 控件的绘制区域
     */
     UiRect m_rcPaint;
-
-    /** 焦点状态虚线矩形的颜色
-    */
-    UiString m_focusRectColor;
    
     /** 用户数据ID(字符串)
     */
@@ -1591,12 +1614,6 @@ private:
     size_t m_uUserDataID;
 
 private:
-    /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
-        仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
-        其值为原始值，未经DPI缩放
-    */
-    UiSize16 m_borderRound;
-
     /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
     */
     bool m_isBoxShadowPainted;

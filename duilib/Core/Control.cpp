@@ -49,10 +49,12 @@ Control::~Control()
     GlobalManager::Instance().Image().RemoveDelayPaintData(this);
 
     //清理动画相关资源，避免定时器再产生回调，引发错误
-    if (m_animationManager != nullptr) {
-        m_animationManager->Clear(this);
-    }    
-    m_animationManager.reset();
+    if (m_pAnimationData != nullptr) {
+        if (m_pAnimationData->m_animationManager != nullptr) {
+            m_pAnimationData->m_animationManager->Clear(this);
+        }
+        m_pAnimationData->m_animationManager.reset();
+    }
 
     Window* pWindow = GetWindow();
     if (pWindow) {
@@ -763,28 +765,31 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
 
 AnimationManager& Control::GetAnimationManager()
 {
-    if (m_animationManager == nullptr) {
-        m_animationManager = std::make_unique<AnimationManager>(),
-        m_animationManager->Init(this);
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    return *m_animationManager;
+    if (m_pAnimationData->m_animationManager == nullptr) {
+        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>();
+        m_pAnimationData->m_animationManager->Init(this);
+    }
+    return *m_pAnimationData->m_animationManager;
 }
 
 DString Control::GetBkColor() const
 {
-    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor.c_str() : DString();
+    return (m_pColorData != nullptr) ? m_pColorData->m_strBkColor.c_str() : DString();
 }
 
 void Control::SetBkColor(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_strBkColor == strColor) {
+    if (m_pColorData->m_strBkColor == strColor) {
         return;
     }
-    m_pBkColorData->m_strBkColor = strColor;
+    m_pColorData->m_strBkColor = strColor;
     Invalidate();
 }
 
@@ -801,13 +806,13 @@ void Control::SetBkColor(const UiColor& color)
 void Control::SetBkColor2(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_strBkColor2 == strColor) {
+    if (m_pColorData->m_strBkColor2 == strColor) {
         return;
     }
-    m_pBkColorData->m_strBkColor2 = strColor;
+    m_pColorData->m_strBkColor2 = strColor;
     Invalidate();
 }
 
@@ -823,17 +828,17 @@ void Control::SetBkColor2(const UiColor& color)
 
 DString Control::GetBkColor2() const
 {
-    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor2.c_str() : DString();
+    return (m_pColorData != nullptr) ? m_pColorData->m_strBkColor2.c_str() : DString();
 }
 
 void Control::SetBkColor2Direction(const DString& direction)
 {
     int8_t nDirection = GetColor2Direction(direction);
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_nBkColor2Direction != nDirection) {
-        m_pBkColorData->m_nBkColor2Direction = nDirection;
+    if (m_pColorData->m_nBkColor2Direction != nDirection) {
+        m_pColorData->m_nBkColor2Direction = nDirection;
         Invalidate();
     }
 }
@@ -841,14 +846,14 @@ void Control::SetBkColor2Direction(const DString& direction)
 DString Control::GetBkColor2Direction() const
 {
     DString strBkColor2Direction = _T("1");
-    if (m_pBkColorData != nullptr) {
-        if (m_pBkColorData->m_nBkColor2Direction == 2) {
+    if (m_pColorData != nullptr) {
+        if (m_pColorData->m_nBkColor2Direction == 2) {
             strBkColor2Direction = _T("2");
         }
-        else if (m_pBkColorData->m_nBkColor2Direction == 3) {
+        else if (m_pColorData->m_nBkColor2Direction == 3) {
             strBkColor2Direction = _T("3");
         }
-        else if (m_pBkColorData->m_nBkColor2Direction == 4) {
+        else if (m_pColorData->m_nBkColor2Direction == 4) {
             strBkColor2Direction = _T("4");
         }
     }
@@ -873,19 +878,19 @@ int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
 
 DString Control::GetForeColor() const
 {
-    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strForeColor.c_str() : DString();
+    return (m_pColorData != nullptr) ? m_pColorData->m_strForeColor.c_str() : DString();
 }
 
 void Control::SetForeColor(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_strForeColor == strColor) {
+    if (m_pColorData->m_strForeColor == strColor) {
         return;
     }
-    m_pBkColorData->m_strForeColor = strColor;
+    m_pColorData->m_strForeColor = strColor;
     Invalidate();
 }
 
@@ -964,22 +969,27 @@ bool Control::SetLoadingAttribute(const DString& loadingAttribute)
 {
     bool bRet = false;
     if (!loadingAttribute.empty()) {
-        if (m_pLoading == nullptr) {
-            m_pLoading = std::make_unique<ControlLoading>(this);
+        if (m_pOtherData == nullptr) {
+            m_pOtherData = std::make_unique<TOtherData>();
+        }
+        if (m_pOtherData->m_pLoading == nullptr) {
+            m_pOtherData->m_pLoading = std::make_unique<ControlLoading>(this);
         }
         else {
-            if (m_pLoading->IsLoading()) {
-                m_pLoading->StopLoading();
+            if (m_pOtherData->m_pLoading->IsLoading()) {
+                m_pOtherData->m_pLoading->StopLoading();
             }
         }
-        bRet = m_pLoading->SetLoadingAttribute(loadingAttribute);
+        bRet = m_pOtherData->m_pLoading->SetLoadingAttribute(loadingAttribute);
         if (!bRet) {
-            m_pLoading.reset();
+            m_pOtherData->m_pLoading.reset();
         }
     }
     else {
         bRet = true;
-        m_pLoading.reset();
+        if (m_pOtherData != nullptr) {
+            m_pOtherData->m_pLoading.reset();
+        }       
     }
     return bRet;
 }
@@ -987,9 +997,9 @@ bool Control::SetLoadingAttribute(const DString& loadingAttribute)
 bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 {
     bool bRet = false;
-    ASSERT(m_pLoading != nullptr);
-    if (m_pLoading != nullptr) {
-        bRet = m_pLoading->StartLoading(nIntervalMs, nMaxCount);
+    ASSERT((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr));
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        bRet = m_pOtherData->m_pLoading->StartLoading(nIntervalMs, nMaxCount);
     }
     if (bRet) {
         SetEnabled(false);
@@ -999,8 +1009,8 @@ bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 
 void Control::StopLoading()
 {
-    if (m_pLoading != nullptr) {
-        m_pLoading->StopLoading();
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->StopLoading();
     }
     SetEnabled(true);
 }
@@ -1008,8 +1018,8 @@ void Control::StopLoading()
 bool Control::IsLoading() const
 {
     bool bRet = false;
-    if (m_pLoading != nullptr) {
-        bRet = m_pLoading->IsLoading();
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        bRet = m_pOtherData->m_pLoading->IsLoading();
     }
     return bRet;
 }
@@ -1450,9 +1460,9 @@ bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
 {
     fRoundWidth = 0.0f;
     fRoundHeight = 0.0f;
-    if (HasBorderRound()) {
-        fRoundWidth = Dpi().GetScaleFloat(m_borderRound.cx);
-        fRoundHeight = Dpi().GetScaleFloat(m_borderRound.cy);
+    if (HasBorderRound() && (m_pBorderData != nullptr)) {
+        fRoundWidth = Dpi().GetScaleFloat(m_pBorderData->m_borderRound.cx);
+        fRoundHeight = Dpi().GetScaleFloat(m_pBorderData->m_borderRound.cy);
         return true;
     }
     return false;
@@ -1460,7 +1470,7 @@ bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
 
 bool Control::HasBorderRound() const
 {
-    return (m_borderRound.cx > 0) && (m_borderRound.cy > 0);
+    return (m_pBorderData != nullptr) && (m_pBorderData->m_borderRound.cx > 0) && (m_pBorderData->m_borderRound.cy > 0);
 }
 
 void Control::SetBorderRound(UiSize borderRound)
@@ -1484,11 +1494,16 @@ void Control::SetBorderRound(UiSize borderRound)
             return;
         }
     }
-    if ((m_borderRound.cx != borderRound.cx) || (m_borderRound.cy != borderRound.cy)) {
-        m_borderRound.cx = ui::TruncateToInt16(borderRound.cx);
-        m_borderRound.cy = ui::TruncateToInt16(borderRound.cy);
+
+    if (m_pBorderData == nullptr) {
+        m_pBorderData = std::make_unique<TBorderData>();
+    }
+    UiSize16& borderRoundData = m_pBorderData->m_borderRound;
+    if ((borderRoundData.cx != borderRound.cx) || (borderRoundData.cy != borderRound.cy)) {
+        borderRoundData.cx = ui::TruncateToInt16(borderRound.cx);
+        borderRoundData.cy = ui::TruncateToInt16(borderRound.cy);
         Invalidate();
-    }    
+    }
 }
 
 void Control::SetBoxShadow(const DString& strShadow)
@@ -1496,10 +1511,13 @@ void Control::SetBoxShadow(const DString& strShadow)
     if (strShadow.empty()) {
         return;
     }
-    if (m_pBoxShadow == nullptr) {
-        m_pBoxShadow = std::make_unique<BoxShadow>(this);
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    m_pBoxShadow->SetBoxShadowString(strShadow);
+    if (m_pOtherData->m_pBoxShadow == nullptr) {
+        m_pOtherData->m_pBoxShadow = std::make_unique<BoxShadow>(this);
+    }
+    m_pOtherData->m_pBoxShadow->SetBoxShadowString(strShadow);
 }
 
 CursorType Control::GetCursorType() const
@@ -1515,10 +1533,10 @@ void Control::SetCursorType(CursorType cursorType)
 DString Control::GetToolTipText() const
 {
     DString strText;
-    if (m_pTooltip != nullptr) {
-        strText = m_pTooltip->m_sToolTipText.c_str();
-        if (strText.empty() && !m_pTooltip->m_sToolTipTextId.empty()) {
-            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pTooltip->m_sToolTipTextId.c_str());
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
+        strText = m_pOtherData->m_pTooltip->m_sToolTipText.c_str();
+        if (strText.empty() && !m_pOtherData->m_pTooltip->m_sToolTipTextId.empty()) {
+            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
         }
     }
     return strText;
@@ -1532,16 +1550,16 @@ std::string Control::GetUTF8ToolTipText() const
 
 void Control::SetToolTipText(const DString& strText)
 {
-    if (strText.empty() && (m_pTooltip == nullptr)) {
-        return;
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
     }
-    if (strText != m_pTooltip->m_sToolTipText) {
+    if (strText != m_pOtherData->m_pTooltip->m_sToolTipText) {
         DString strTemp(strText);
         StringUtil::ReplaceAll(_T("<n>"), _T("\r\n"), strTemp);
-        m_pTooltip->m_sToolTipText = strTemp;
+        m_pOtherData->m_pTooltip->m_sToolTipText = strTemp;
         Invalidate();
 
         if (GetWindow() != nullptr) {
@@ -1562,15 +1580,15 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
 
 void Control::SetToolTipTextId(const DString& strTextId)
 {
-    if (strTextId.empty() && (m_pTooltip == nullptr)) {
-        return;
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
     }
 
-    if (m_pTooltip->m_sToolTipTextId != strTextId) {
-        m_pTooltip->m_sToolTipTextId = strTextId;
+    if (m_pOtherData->m_pTooltip->m_sToolTipTextId != strTextId) {
+        m_pOtherData->m_pTooltip->m_sToolTipTextId = strTextId;
         Invalidate();
 
         if (GetWindow() != nullptr) {
@@ -1597,17 +1615,20 @@ void Control::SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nWidth);
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    m_pTooltip->m_nTooltipWidth = nWidth;
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
+    }
+    m_pOtherData->m_pTooltip->m_nTooltipWidth = nWidth;
 }
 
 int32_t Control::GetToolTipWidth(void) const
 {
     int32_t nTooltipWidth = 0;
-    if (m_pTooltip != nullptr) {
-        nTooltipWidth = m_pTooltip->m_nTooltipWidth;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
+        nTooltipWidth = m_pOtherData->m_pTooltip->m_nTooltipWidth;
     }
     return nTooltipWidth;
 }
@@ -1738,12 +1759,22 @@ bool Control::IsShowFocusRect() const
 
 void Control::SetFocusRectColor(const DString& focusRectColor)
 {
-    m_focusRectColor = focusRectColor;
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
+    }
+    if (m_pColorData->m_focusRectColor == focusRectColor) {
+        return;
+    }
+    m_pColorData->m_focusRectColor = focusRectColor;
+    Invalidate();
 }
 
 DString Control::GetFocusRectColor() const
 {
-    return m_focusRectColor.c_str();
+    if (m_pColorData != nullptr) {
+        return m_pColorData->m_focusRectColor.c_str();
+    }
+    return DString();
 }
 
 void Control::Activate(const EventArgs* /*pMsg*/)
@@ -1832,8 +1863,8 @@ void Control::SetPos(UiRect rc)
         GetWindow()->Invalidate(invalidateRc);
     }
 
-    if (m_pLoading != nullptr) {
-        m_pLoading->UpdateLoadingPos();
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->UpdateLoadingPos();
     }
 
     if (isPosChanged) {
@@ -2922,7 +2953,8 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             //重新绘制，首先清楚原内容
             pCacheRender->Clear(UiColor());
 
-            UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
+            UiPoint renderOffset = GetRenderOffset();
+            UiPoint ptOffset(GetRect().left + renderOffset.x, GetRect().top + renderOffset.y);
             UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
 
             bool hasBoxShadowPainted = HasBoxShadow();
@@ -2934,7 +2966,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             }
 
             UiRect rcClip = { 0, 0, size.cx,size.cy};
-            rcClip.Offset((GetRect().left + m_renderOffset.x), (GetRect().top + m_renderOffset.y));
+            rcClip.Offset((GetRect().left + renderOffset.x), (GetRect().top + renderOffset.y));
             AutoClip alphaClip(pCacheRender, rcClip, IsClip());
             std::unique_ptr<AutoClip> roundAlphaClip = CreateRoundClip(pCacheRender, rcClip, bRoundClip);
 
@@ -2985,7 +3017,8 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         }
     }
     else {
-        UiPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
+        UiPoint renderOffset = GetRenderOffset();
+        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);
         bool hasBoxShadowPainted = HasBoxShadow();
         if (hasBoxShadowPainted) {
             //先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
@@ -3039,8 +3072,8 @@ void Control::PaintShadow(IRender* pRender)
         return;
     }
     BoxShadow boxShadow(this);
-    if (m_pBoxShadow != nullptr) {
-        boxShadow = *m_pBoxShadow;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pBoxShadow != nullptr)) {
+        boxShadow = *m_pOtherData->m_pBoxShadow;
     }
 
     ASSERT(pRender != nullptr);
@@ -3063,7 +3096,7 @@ void Control::PaintShadow(IRender* pRender)
 
 void Control::PaintBkColor(IRender* pRender)
 {
-    if ((m_pBkColorData == nullptr) || m_pBkColorData->m_strBkColor.empty()) {
+    if ((m_pColorData == nullptr) || m_pColorData->m_strBkColor.empty()) {
         return;
     }
     ASSERT(pRender != nullptr);
@@ -3071,7 +3104,7 @@ void Control::PaintBkColor(IRender* pRender)
         return;
     }
 
-    UiColor dwBackColor = GetUiColor(m_pBkColorData->m_strBkColor.c_str());
+    UiColor dwBackColor = GetUiColor(m_pColorData->m_strBkColor.c_str());
     if(dwBackColor.GetARGB() != 0) {
         int32_t nBorderSize = 0;
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
@@ -3099,14 +3132,14 @@ void Control::PaintBkColor(IRender* pRender)
         }
         else {            
             UiColor dwBackColor2;
-            if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-                dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+            if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+                dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
             }
             if (!dwBackColor2.IsEmpty()) {
                 //渐变背景色
                 int8_t nColor2Direction = 1;
-                if (m_pBkColorData != nullptr) {
-                    nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                if (m_pColorData != nullptr) {
+                    nColor2Direction = m_pColorData->m_nBkColor2Direction;
                 }
                 pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
             }
@@ -3119,7 +3152,7 @@ void Control::PaintBkColor(IRender* pRender)
 
 void Control::PaintForeColor(IRender* pRender)
 {
-    if ((m_pBkColorData == nullptr) || m_pBkColorData->m_strForeColor.empty()) {
+    if ((m_pColorData == nullptr) || m_pColorData->m_strForeColor.empty()) {
         return;
     }
     ASSERT(pRender != nullptr);
@@ -3127,7 +3160,7 @@ void Control::PaintForeColor(IRender* pRender)
         return;
     }
 
-    UiColor dwForeColor = GetUiColor(m_pBkColorData->m_strForeColor.c_str());
+    UiColor dwForeColor = GetUiColor(m_pColorData->m_strForeColor.c_str());
     if (dwForeColor.GetARGB() != 0) {
         int32_t nBorderSize = 0;
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
@@ -3555,14 +3588,14 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
                 AddRoundRectPath(path.get(), rc, rx, ry);
                 UiColor dwBackColor2;
-                if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-                    dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+                if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+                    dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
                 }
                 if (!dwBackColor2.IsEmpty()) {
                     //渐变背景色
                     int8_t nColor2Direction = 1;
-                    if (m_pBkColorData != nullptr) {
-                        nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                    if (m_pColorData != nullptr) {
+                        nColor2Direction = m_pColorData->m_nBkColor2Direction;
                     }
                     pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
                 }
@@ -3575,14 +3608,14 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
     }
     if (!isDrawOk) {
         UiColor dwBackColor2;
-        if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-            dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+        if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+            dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
         }
         if (!dwBackColor2.IsEmpty()) {
             //渐变背景色
             int8_t nColor2Direction = 1;
-            if (m_pBkColorData != nullptr) {
-                nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+            if (m_pColorData != nullptr) {
+                nColor2Direction = m_pColorData->m_nBkColor2Direction;
             }
             pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
         }
@@ -3633,8 +3666,8 @@ void Control::PaintText(IRender* /*pRender*/)
 
 void Control::PaintLoading(IRender* pRender, const UiRect& rcPaint)
 {
-    if (m_pLoading != nullptr) {
-        m_pLoading->PaintLoading(pRender, rcPaint);
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->PaintLoading(pRender, rcPaint);
     }
 }
 
@@ -3661,13 +3694,24 @@ void Control::SetTabStop(bool enable)
     m_bAllowTabstop = enable;
 }
 
+UiPoint Control::GetRenderOffset() const
+{
+    if (m_pAnimationData != nullptr) {
+        return m_pAnimationData->m_renderOffset;
+    }
+    return UiPoint();
+}
+
 void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         Dpi().ScalePoint(renderOffset);
-    }    
-    if (m_renderOffset != renderOffset) {
-        m_renderOffset = renderOffset;
+    }
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset != renderOffset) {
+        m_pAnimationData->m_renderOffset = renderOffset;
         Invalidate();
     }    
 }
@@ -3675,8 +3719,11 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 void Control::SetRenderOffsetX(int64_t renderOffsetX)
 {
     int32_t x = TruncateToInt32(renderOffsetX);
-    if (m_renderOffset.x != x) {
-        m_renderOffset.x = x;
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset.x != x) {
+        m_pAnimationData->m_renderOffset.x = x;
         Invalidate();
     }
 }
@@ -3684,8 +3731,11 @@ void Control::SetRenderOffsetX(int64_t renderOffsetX)
 void Control::SetRenderOffsetY(int64_t renderOffsetY)
 {
     int32_t y = TruncateToInt32(renderOffsetY);
-    if (m_renderOffset.y != y) {
-        m_renderOffset.y = y;
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset.y != y) {
+        m_pAnimationData->m_renderOffset.y = y;
         Invalidate();
     }
 }
@@ -4345,8 +4395,8 @@ DString Control::GetColorString(const UiColor& color) const
 
 bool Control::HasBoxShadow() const
 {
-    if (m_pBoxShadow != nullptr) {
-        return m_pBoxShadow->HasShadow();
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pBoxShadow != nullptr)) {
+        return m_pOtherData->m_pBoxShadow->HasShadow();
     }
     return false;
 }

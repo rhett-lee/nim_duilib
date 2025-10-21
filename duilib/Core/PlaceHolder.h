@@ -464,6 +464,38 @@ protected:
     virtual void OnInit();
 
 private:
+    /** 确保不常用是数据创建
+    */
+    void CheckPlaceHolderData();
+
+private:
+    /** 不常用数据
+    */
+    struct TPlaceHolderData
+    {
+        //构造函数
+        TPlaceHolderData();
+
+        //获取与父控件的相对位置(仅当控件为浮动控件时有效)
+        UiSize m_uiFloatPos;
+
+        //控件大小最小值
+        UiSize m_cxyMin;
+
+        //控件大小最大值
+        UiSize m_cxyMax;
+
+        //单元格合并属性（默认占1行），仅在GridLayout布局中生效
+        int16_t m_rowSpan;
+
+        //单元格合并属性（默认占1列），仅在GridLayout布局中生效
+        int16_t m_colSpan;
+
+        //当父控件位置和大小调整时，保持浮动控件相对父控件的位置不变
+        bool m_bKeepFloatPos;
+    };
+
+private:
     //控件名称，用于查找控件等操作
     UiString m_sName;
 
@@ -476,32 +508,20 @@ private:
     //控件位置与大小
     UiRect m_uiRect;
 
-    //获取与父控件的相对位置(仅当控件为浮动控件时有效)
-    UiSize m_uiFloatPos;
-
     //外部设置的控件大小
     UiFixedSize m_cxyFixed;
 
     //估算控件大小的结果(仅当控件的宽度或者高度为auto时，才会用到此值)
-    UiEstResult* m_pEstResult;
+    std::unique_ptr<UiEstResult> m_pEstResult;
 
-    //控件大小最小值
-    UiSize m_cxyMin;
-
-    //控件大小最大值
-    UiSize m_cxyMax;
+    //不常用数据
+    std::unique_ptr<TPlaceHolderData> m_pData;
 
     //控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
     UiMargin16 m_rcMargin;
 
     //内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
     UiPadding16 m_rcPadding;
-
-    //单元格合并属性（默认占1行），仅在GridLayout布局中生效
-    int16_t m_rowSpan;
-
-    //单元格合并属性（默认占1列），仅在GridLayout布局中生效
-    int16_t m_colSpan;
 
     //控件水平对齐方式(HorAlignType)
     HorAlignType m_horAlignType;
@@ -519,9 +539,6 @@ private:
 
     //控件是否为浮动属性
     bool m_bFloat;
-
-    //当父控件位置和大小调整时，保持浮动控件相对父控件的位置不变
-    bool m_bKeepFloatPos;
 
     //是否需要布局重排
     bool m_bIsArranged;
