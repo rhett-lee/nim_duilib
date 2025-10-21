@@ -11,7 +11,7 @@
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | giflib      | 2025-09-05 |v5.2.2 |无 |https://sourceforge.net/projects/giflib/||
 | libwebp     | 2025-03-11 |v1.5.0 |无 |https://github.com/webmproject/libwebp|tag/v1.5.0，使用了src目录下的子目录，覆盖后，删除不必要的文件即可（基本方法：新旧版本源码比较，然后看文件增删改，再同步，项目只使用了图片解码功能，没有用到图片编码功能，目前没有用到config.h文件）|
-| stb_image   | 2025-03-11 |v2.30  |无 |https://github.com/nothings/stb|无修改，直接取master的代码|
+| stb_image   | 2025-10-21 |stb_image v2.30 <br> stb_image_resize2 v2.15|无 |https://github.com/nothings/stb|无修改，直接取master的代码|
 | libjpeg-turbo| 2025-09-10 |v3.1.2|无 |https://github.com/libjpeg-turbo/libjpeg-turbo|无修改，直接取其release的代码和lib|
 | svg         | 2025-03-11 |无（2024-12-20）     |有 |https://github.com/memononen/nanosvg| 代码更新到2024-12-20，修改参见提交记录|
 | zlib        | 2025-03-11 |v1.3.1（2024-01-22） |有 |https://github.com/madler/zlib | 修改了zlib.h 和 CMakeLists.txt，并将zconf.h重命名为zconf_msvc.h<br>如果文件名或个数有变更，需要修改VC工程|
