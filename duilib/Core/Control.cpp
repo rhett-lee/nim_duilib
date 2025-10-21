@@ -143,6 +143,10 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         //第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
         SetBkColor2Direction(strValue);
     }
+    else if (strName == _T("fore_color")) {
+        //前景色
+        SetForeColor(strValue);
+    }
     else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
         //边线宽度
         DString nValue = strValue;
@@ -865,6 +869,34 @@ int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
         nColor2Direction = 4;
     }
     return nColor2Direction;
+}
+
+DString Control::GetForeColor() const
+{
+    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strForeColor.c_str() : DString();
+}
+
+void Control::SetForeColor(const DString& strColor)
+{
+    ASSERT(strColor.empty() || HasUiColor(strColor));
+    if (m_pBkColorData == nullptr) {
+        m_pBkColorData = std::make_unique<TBkColorData>();
+    }
+    if (m_pBkColorData->m_strForeColor == strColor) {
+        return;
+    }
+    m_pBkColorData->m_strForeColor = strColor;
+    Invalidate();
+}
+
+void Control::SetForeColor(const UiColor& color)
+{
+    if (color.IsEmpty()) {
+        SetForeColor(_T(""));
+    }
+    else {
+        SetForeColor(GetColorString(color));
+    }
 }
 
 DString Control::GetStateColor(ControlStateType stateType) const
@@ -2822,6 +2854,21 @@ void Control::ClearRender()
     }
 }
 
+std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const
+{
+    float fRoundWidth = 0;
+    float fRoundHeight = 0;
+    if (!bRoundClip || !GetBorderRound(fRoundWidth, fRoundHeight)) {
+        return nullptr;
+    }
+    return std::make_unique<AutoClip>(pRender, rc, fRoundWidth, fRoundHeight, bRoundClip);
+}
+
+void Control::SetPaintRect(const UiRect& rect)
+{
+    m_rcPaint = rect;
+}
+
 void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
     ASSERT(pRender != nullptr);
@@ -2901,9 +2948,10 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
                 //设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
                 PaintChild(pCacheRender, rcUnionRect);
                 if (IsBordersOnTop()) {
-                    PaintBorder(pCacheRender);     //绘制边框
+                    PaintBorder(pCacheRender);  //绘制边框
                 }
-                PaintLoading(pCacheRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+                PaintLoading(pCacheRender, rcPaint); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+                PaintForeColor(pCacheRender); //绘制前景色
             }
             pCacheRender->SetWindowOrg(ptOldOrg);
             SetCacheDirty(false);
@@ -2928,7 +2976,8 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             if (IsBordersOnTop()) {
                 PaintBorder(pRender);     //绘制边框
             }
-            PaintLoading(pRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+            PaintLoading(pRender, rcPaint); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+            PaintForeColor(pRender); //绘制前景色
         }
         if (isAlpha) {
             SetCacheDirty(true);
@@ -2956,24 +3005,10 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (IsBordersOnTop()) {
             PaintBorder(pRender);     //绘制边框
         }
-        PaintLoading(pRender, rcPaint);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+        PaintLoading(pRender, rcPaint); //绘制Loading状态，无状态，需要在绘制完子控件后再绘制
+        PaintForeColor(pRender); //绘制前景色
         pRender->SetWindowOrg(ptOldOrg);
     }
-}
-
-std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const
-{
-    float fRoundWidth = 0;
-    float fRoundHeight = 0;
-    if (!bRoundClip || !GetBorderRound(fRoundWidth, fRoundHeight)) {
-        return nullptr;
-    }
-    return std::make_unique<AutoClip>(pRender, rc, fRoundWidth, fRoundHeight, bRoundClip);
-}
-
-void Control::SetPaintRect(const UiRect& rect)
-{ 
-    m_rcPaint = rect; 
 }
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
@@ -2995,7 +3030,7 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     if (!IsBordersOnTop()) {
         PaintBorder(pRender);     //绘制边框
     }    
-    PaintFocusRect(pRender);      //绘制焦点状态    
+    PaintFocusRect(pRender);      //绘制焦点状态
 }
 
 void Control::PaintShadow(IRender* pRender)
@@ -3078,6 +3113,48 @@ void Control::PaintBkColor(IRender* pRender)
             else {
                 pRender->FillRect(fillRect, dwBackColor);
             }            
+        }
+    }
+}
+
+void Control::PaintForeColor(IRender* pRender)
+{
+    if ((m_pBkColorData == nullptr) || m_pBkColorData->m_strForeColor.empty()) {
+        return;
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+
+    UiColor dwForeColor = GetUiColor(m_pBkColorData->m_strForeColor.c_str());
+    if (dwForeColor.GetARGB() != 0) {
+        int32_t nBorderSize = 0;
+        if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.right) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.top) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.bottom)) {
+            //四个边都存在，且大小相同
+            nBorderSize = static_cast<int32_t>(m_pBorderData->m_rcBorderSize.left);//不做四舍五入
+        }
+        nBorderSize /= 2;
+
+        //背景填充矩形范围
+        UiRect fillRect = GetRect();
+        if (nBorderSize > 0) {
+            //如果存在边线，则填充的时候，不填充边线所在位置，避免出现背景色的锯齿现象
+            UiRect borderRect(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
+            fillRect.Deflate(borderRect.left, borderRect.top, borderRect.right, borderRect.bottom);
+        }
+        if (ShouldBeRoundRectFill()) {
+            //需要绘制圆角矩形，填充也需要填充圆角矩形
+            float fRoundWidth = 0;
+            float fRoundHeight = 0;
+            GetBorderRound(fRoundWidth, fRoundHeight);
+            FillRoundRect(pRender, fillRect, fRoundWidth, fRoundHeight, dwForeColor);
+        }
+        else {
+            pRender->FillRect(fillRect, dwForeColor);
         }
     }
 }

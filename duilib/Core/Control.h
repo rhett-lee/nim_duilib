@@ -44,7 +44,7 @@ public:
     virtual DString GetType() const override;
 
     /// 图形相关
-    /**@brief 获取背景颜色
+    /** 获取背景颜色
      * @return 返回背景颜色的字符串，该值在 global.xml 中定义
      */
     DString GetBkColor() const;
@@ -82,6 +82,21 @@ public:
     * @return 返回第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
      */
     DString GetBkColor2Direction() const;
+
+    /** 获取前景颜色(前景色一般设置半透明的颜色)
+     * @return 返回前景颜色的字符串，该值在 global.xml 中定义
+     */
+    DString GetForeColor() const;
+
+    /** 设置前景颜色(前景色一般设置半透明的颜色)
+     * @param [in] strColor 要设置的前景颜色值，该值必须在 global.xml 中存在
+     */
+    void SetForeColor(const DString& strColor);
+
+    /** 设置前景颜色(前景色一般设置半透明的颜色)
+     * @param [in] color 要设置的前景颜色值
+     */
+    void SetForeColor(const UiColor& color);
 
     /**
      * @brief 获取某个状态下的控件颜色
@@ -1150,15 +1165,16 @@ protected:
     virtual bool OnImeEndComposition(const EventArgs& msg);
 
     /// 绘制相关保护成员函数，不允许外部直接调用
-    virtual void PaintShadow(IRender* pRender);
-    virtual void PaintBkColor(IRender* pRender);
-    virtual void PaintBkImage(IRender* pRender);
-    virtual void PaintStateColors(IRender* pRender);
-    virtual void PaintStateImages(IRender* pRender);
-    virtual void PaintText(IRender* pRender);
-    virtual void PaintBorder(IRender* pRender);
-    virtual void PaintFocusRect(IRender* pRender);
-    virtual void PaintLoading(IRender* pRender, const UiRect& rcPaint);
+    virtual void PaintShadow(IRender* pRender);         //绘制BoxShadow
+    virtual void PaintBkColor(IRender* pRender);        //绘制背景色
+    virtual void PaintForeColor(IRender* pRender);      //绘制前景色
+    virtual void PaintBkImage(IRender* pRender);        //绘制背景图片
+    virtual void PaintStateColors(IRender* pRender);    //绘制状态颜色
+    virtual void PaintStateImages(IRender* pRender);    //绘制状态图片
+    virtual void PaintText(IRender* pRender);           //绘制文本
+    virtual void PaintBorder(IRender* pRender);         //绘制边框
+    virtual void PaintFocusRect(IRender* pRender);      //绘制焦点状态下的虚框
+    virtual void PaintLoading(IRender* pRender, const UiRect& rcPaint);//绘制控件loading状态
 
 protected:
     /** 是否状态图片, 只要含有任意状态图片，即返回true
@@ -1465,7 +1481,7 @@ private:
         UiString m_focusBorderColor;
     };
 
-    //背景色相关数据
+    //背景色/前景色相关数据
     struct TBkColorData
     {
         //控件的背景颜色
@@ -1476,6 +1492,9 @@ private:
 
         //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
         int8_t m_nBkColor2Direction = 1;
+
+        //控件的前景颜色
+        UiString m_strForeColor;
     };
 
     //拖放相关数据
