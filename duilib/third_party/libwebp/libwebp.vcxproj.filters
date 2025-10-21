@@ -150,6 +150,9 @@
     <ClCompile Include="src\utils\palette.c">
       <Filter>utilsdecode</Filter>
     </ClCompile>
+    <ClCompile Include="src\dsp\lossless_avx2.c">
+      <Filter>dspdecode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\dec\alphai_dec.h">
