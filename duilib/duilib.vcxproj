@@ -376,6 +376,7 @@
     <ClCompile Include="Image\Image_WEBP.cpp" />
     <ClCompile Include="Image\StateImage.cpp" />
     <ClCompile Include="Image\StateImageMap.cpp" />
+    <ClCompile Include="Layout\GridLayout.cpp" />
     <ClCompile Include="Layout\HFlowLayout.cpp" />
     <ClCompile Include="Layout\HLayout.cpp" />
     <ClCompile Include="Layout\HTileLayout.cpp" />
@@ -544,6 +545,7 @@
     <ClInclude Include="..\..\skia\tools\window\WindowContext.h" />
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
+    <ClInclude Include="Box\GridBox.h" />
     <ClInclude Include="Box\HBox.h" />
     <ClInclude Include="Box\ListBox.h" />
     <ClInclude Include="Box\ListBoxHelper.h" />
@@ -733,6 +735,7 @@
     <ClInclude Include="Image\Image_WEBP.h" />
     <ClInclude Include="Image\StateImage.h" />
     <ClInclude Include="Image\StateImageMap.h" />
+    <ClInclude Include="Layout\GridLayout.h" />
     <ClInclude Include="Layout\HFlowLayout.h" />
     <ClInclude Include="Layout\HLayout.h" />
     <ClInclude Include="Layout\HTileLayout.h" />

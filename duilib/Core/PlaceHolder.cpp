@@ -31,7 +31,9 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_bReEstimateSize(true),
     m_pEstResult(nullptr),
     m_uiFloatPos(INT32_MIN, INT32_MIN),
-    m_bKeepFloatPos(false)
+    m_bKeepFloatPos(false),
+    m_rowSpan(1),
+    m_colSpan(1)
 {
     //控件的高度和宽度值，默认设置为拉伸
     m_cxyFixed.cx.SetStretch();
@@ -604,6 +606,32 @@ void PlaceHolder::SetRect(const UiRect& rc)
     else {
         m_uiFloatPos = UiSize(INT32_MIN, INT32_MIN);
     }
+}
+
+void PlaceHolder::SetRowSpan(int32_t rowSpan)
+{
+    ASSERT(rowSpan > 0);
+    if (rowSpan > 0) {
+        m_rowSpan = ui::TruncateToInt16(rowSpan);
+    }
+}
+
+int32_t PlaceHolder::GetRowSpan() const
+{
+    return m_rowSpan;
+}
+
+void PlaceHolder::SetColumnSpan(int32_t colSpan)
+{
+    ASSERT(colSpan > 0);
+    if (colSpan > 0) {
+        m_colSpan = ui::TruncateToInt16(colSpan);
+    }
+}
+
+int32_t PlaceHolder::GetColumnSpan() const
+{
+    return m_colSpan;
 }
 
 UiSize PlaceHolder::GetFloatPos() const

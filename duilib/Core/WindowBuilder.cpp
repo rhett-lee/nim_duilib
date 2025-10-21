@@ -41,6 +41,7 @@
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/TabBox.h"
+#include "duilib/Box/GridBox.h"
 #include "duilib/Box/TileBox.h"
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Box/ListBox.h"
@@ -79,6 +80,8 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_VTILE_BOX, [](Window* pWindow) { return new VTileBox(pWindow); }},
         {DUI_CTR_HTILE_BOX, [](Window* pWindow) { return new HTileBox(pWindow); }},
         {DUI_CTR_TABBOX, [](Window* pWindow) { return new TabBox(pWindow); }},
+        {DUI_CTR_GRIDBOX, [](Window* pWindow) { return new GridBox(pWindow); }},
+        {DUI_CTR_GRID_SCROLLBOX, [](Window* pWindow) { return new GridScrollBox(pWindow); }},
 
         {DUI_CTR_SCROLLBOX, [](Window* pWindow) { return new ScrollBox(pWindow); }},
         {DUI_CTR_HSCROLLBOX, [](Window* pWindow) { return new HScrollBox(pWindow); }},

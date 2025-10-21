@@ -93,6 +93,8 @@
 | enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
 | enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
 | drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
+| row_span  | 1 | int | SetRowSpan  | 单元格合并属性，占几行（默认占1行），仅在GridLayout布局中生效|
+| col_span  | 1 | int | SetColumnSpan  | 单元格合并属性，占几列（默认占1列），仅在GridLayout布局中生效|
 
 ## ScrollBar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

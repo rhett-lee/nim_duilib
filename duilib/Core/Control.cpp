@@ -504,6 +504,14 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         //拖放文件的扩展名列表
         SetDropFileTypes(strValue);
     }
+    else if (strName == _T("row_span")) {
+        //设置单元格合并属性（占几行），仅在GridLayout布局中生效
+        SetRowSpan(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("col_span")) {
+        //设置单元格合并属性（占几列），仅在GridLayout布局中生效
+        SetColumnSpan(StringUtil::StringToInt32(strValue));
+    }
     else {
         ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
     }

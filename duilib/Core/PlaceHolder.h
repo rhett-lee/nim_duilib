@@ -343,6 +343,24 @@ public:
     */
     void SetRect(const UiRect& rc);
 
+    /** 设置单元格合并属性（占几行），仅在GridLayout布局中生效
+    */
+    void SetRowSpan(int32_t rowSpan);
+
+    /** 获取单元格合并属性（占几行），仅在GridLayout布局中生效
+    * @return 返回值 >= 1
+    */
+    int32_t GetRowSpan() const;
+
+    /** 设置单元格合并属性（占几列），仅在GridLayout布局中生效
+    */
+    void SetColumnSpan(int32_t colSpan);
+
+    /** 获取单元格合并属性（占几列），仅在GridLayout布局中生效
+    * @return 返回值 >= 1
+    */
+    int32_t GetColumnSpan() const;
+
     /** 重绘控件
     */
     virtual void Invalidate();
@@ -478,6 +496,12 @@ private:
 
     //内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
     UiPadding16 m_rcPadding;
+
+    //单元格合并属性（默认占1行），仅在GridLayout布局中生效
+    int16_t m_rowSpan;
+
+    //单元格合并属性（默认占1列），仅在GridLayout布局中生效
+    int16_t m_colSpan;
 
     //控件水平对齐方式(HorAlignType)
     HorAlignType m_horAlignType;

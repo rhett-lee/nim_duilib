@@ -77,6 +77,8 @@ namespace ui
     #define  DUI_CTR_VIRTUAL_VTILE_LISTBOX           (_T("VirtualVTileListBox"))
 
     #define  DUI_CTR_TABBOX                          (_T("TabBox"))
+    #define  DUI_CTR_GRIDBOX                         (_T("GridBox"))
+    #define  DUI_CTR_GRID_SCROLLBOX                  (_T("GridScrollBox"))
 
     #define  DUI_CTR_TREENODE                        (_T("TreeNode"))
     #define  DUI_CTR_TREEVIEW                        (_T("TreeView"))

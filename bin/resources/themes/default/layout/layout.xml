@@ -39,6 +39,8 @@
                 <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="12"/>
                 <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="13"/>
                 <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="14"/>
+                <TabCtrlItem class="tab_ctrl_item" title="GridBox" close_button_class="" tab_box_item_index="15"/>
+                <TabCtrlItem class="tab_ctrl_item" title="GridScrollBox" close_button_class="" tab_box_item_index="16"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
@@ -85,6 +87,12 @@
                 </VBox>
                 <VBox name="main_view_page_14">
                     <Include src="page_tabbox.xml"/>
+                </VBox>
+                <VBox name="main_view_page_15">
+                    <Include src="page_gridbox.xml"/>
+                </VBox>
+                <VBox name="main_view_page_16">
+                    <Include src="page_grid_scroll_box.xml"/>
                 </VBox>
             </TabBox>
         </VBox>

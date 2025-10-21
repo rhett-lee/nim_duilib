@@ -27,6 +27,8 @@ enum class LayoutType
     VirtualHTileLayout,     //虚表横向瓦片布局
     VirtualVTileLayout,     //虚表纵向瓦片布局
 
+    GridLayout,             //网格布局
+
     ListCtrlReportLayout    //ListCtrl控件的Report模式布局(仅内部使用)
 };
 
@@ -131,27 +133,27 @@ public:
     Box* GetOwner() const { return m_pOwner; }
 
     /** 获取子控件之间的额外边距（X轴方向）
-     * @return 返回额外间距的数值
+     * @return 返回额外间距的数值(已经做过DPI缩放)
      */
     int32_t GetChildMarginX() const { return m_nChildMarginX; }
 
     /** 获取子控件之间的额外边距（Y轴方向）
-     * @return 返回额外间距的数值
+     * @return 返回额外间距的数值(已经做过DPI缩放)
      */
     int32_t GetChildMarginY() const { return m_nChildMarginY; }
 
     /** 设置子控件之间的额外边距（X轴方向）
-     * @param [in] nMarginX 要设置的边距数值
+     * @param [in] nMarginX 要设置的边距数值(已经做过DPI缩放)
      */
     void SetChildMarginX(int32_t nMarginX);
 
     /** 设置子控件之间的额外边距（Y轴方向）
-     * @param [in] nMarginY 要设置的边距数值
+     * @param [in] nMarginY 要设置的边距数值(已经做过DPI缩放)
      */
     void SetChildMarginY(int32_t nMarginY);
 
     /** 设置子控件之间的额外边距（X轴方向和Y轴方向，均设置为同一个值）
-     * @param [in] nMargin 要设置的边距数值
+     * @param [in] nMargin 要设置的边距数值(已经做过DPI缩放)
      */
     void SetChildMargin(int32_t nMargin);
 

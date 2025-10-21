@@ -2,9 +2,9 @@
 <Window>
     <Class name="page_vflowbox" multi_line="true" margin="6,6,6,6" width="80" height="60" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
-        <Label text="布局VFlowBox测试" height="28" valign="center"/>
+        <Label text="VFlowBox容器布局测试" height="28" valign="center"/>
         <HBox height="28">            
-            <Label text="子控件水平对齐方式：" valign="center"/>
+            <Label text="容器内容水平对齐方式：" valign="center"/>
             <Option class="option_1" group="vflowbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_halign='left'" />
             </Option>
@@ -17,7 +17,7 @@
             <Label text="（仅当子控件总宽度小于显示区域宽度时生效）" valign="center"/>
         </HBox>
         <HBox height="28">            
-            <Label text="子控件垂直对齐方式：" valign="center"/>
+            <Label text="容器内容垂直对齐方式：" valign="center"/>
             <Option class="option_1" group="vflowbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_valign='top'" />
             </Option>

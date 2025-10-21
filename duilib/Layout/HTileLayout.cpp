@@ -730,7 +730,7 @@ void HTileLayout::SetRows(int32_t nRows)
         if (GetOwner() != nullptr) {
             GetOwner()->Arrange();
         }
-    }    
+    }
 }
 
 void HTileLayout::SetAutoCalcRows(bool bAutoCalcRows)

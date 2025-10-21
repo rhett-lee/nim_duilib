@@ -13,7 +13,7 @@
                 selected_disabled_image="file='public/CheckBox/checkbox-outline-checked.svg' valign='center' fade='80'"/>
    
     <VBox height="auto">
-        <Label text=" HListBox测试"/>
+        <Label text=" HListBox容器布局测试"/>
         <HListBox class="page_list_box" vscrollbar="false" hscrollbar="true" width="stretch" height="50">
             <ListBoxItem class="page_list_box_item" text="HListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
             <ListBoxItem class="page_list_box_item" text="HListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
@@ -36,7 +36,7 @@
     <HBox width="auto">
 
         <VBox width="auto" height="240">
-            <Label text=" VListBox测试"/>
+            <Label text=" VListBox容器布局测试"/>
             <VListBox class="page_list_box" width="auto" height="200">
                 <ListBoxItem class="page_list_box_item" text="VListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>
@@ -54,7 +54,7 @@
         </VBox>
 
         <VBox width="auto">
-            <Label text=" VTileListBox测试"/>
+            <Label text=" VTileListBox容器布局测试"/>
             <VTileListBox class="page_list_box" columns="1" width="auto" height="200">
                 <ListBoxItem class="page_list_box_item" text="VListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox测试02" text_align="left,vcenter" halign="left" valign="center"/>

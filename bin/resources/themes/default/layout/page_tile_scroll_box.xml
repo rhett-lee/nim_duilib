@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_tile_scroll_box" width="400" height="160" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
-    <Label text="布局VTileScrollBox测试"/>
+    <Label text="VTileScrollBox容器布局测试"/>
     <VTileScrollBox hscrollbar="true" vscrollbar="true" width="stretch" height="400" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_tile_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
         <Label class="page_tile_scroll_box" text="2 left,top" halign="left" valign="top"/>
@@ -20,7 +20,7 @@
         <Label class="page_tile_scroll_box" text="15 center,center" halign="center" valign="center"/>
         <Label class="page_tile_scroll_box" text="16 center,center" halign="center" valign="center"/>
    </VTileScrollBox>
-   <Label text="布局HTileScrollBox测试" margin="0,4,0,4"/>
+   <Label text="HTileScrollBox容器布局测试" margin="0,4,0,4"/>
    <HTileScrollBox hscrollbar="true" vscrollbar="false" width="stretch" height="380" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_tile_scroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top"/>
         <Label class="page_tile_scroll_box" text="2 left,top" halign="left" valign="top"/>

@@ -813,6 +813,9 @@
     <ClCompile Include="Box\VirtualListBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
+    <ClCompile Include="Layout\GridLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1684,6 +1687,12 @@
     </ClInclude>
     <ClInclude Include="Layout\VTileLayout.h">
       <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\GridLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\GridBox.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

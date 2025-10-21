@@ -47,7 +47,7 @@
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
     <tr><td align="left">3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
     <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
-    <tr><td align="left">5. 对布局进行了梳理，归类为：自由布局（浮动布局）、水平布局、垂直布局、水平流式布局、垂直流式布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
+    <tr><td align="left">5. 对布局进行了梳理，归类为：浮动布局、水平布局、垂直布局、水平流式布局、垂直流式布局、网格布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
     <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
@@ -76,7 +76,7 @@
     <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），可选值为：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影</td></tr>
     <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
     <tr>
-        <td rowspan="17">新增控件</td>
+        <td rowspan="19">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -95,6 +95,8 @@
     <tr><td align="left">15. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
     <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
     <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
+    <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
+    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

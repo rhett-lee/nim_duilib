@@ -111,7 +111,8 @@ bool Layout::LayoutByActualAreaSize() const
         (layoutType == LayoutType::HLayout) ||
         (layoutType == LayoutType::VLayout) ||
         (layoutType == LayoutType::HFlowLayout) ||
-        (layoutType == LayoutType::VFlowLayout)) {
+        (layoutType == LayoutType::VFlowLayout) ||
+        (layoutType == LayoutType::GridLayout)) {
         return true;
     }
     return false;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_scroll_box" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
-    <Label text="布局ScrollBox测试（容器本身不支持设置对齐方式，子控件的对齐方式需要在自身设置）"/>
+    <Label text="ScrollBox容器布局测试（容器内容不支持设置对齐方式，子控件的对齐方式需要在自身设置）"/>
     <ScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_scroll_box" text="1 default left,top" text_align="left,top" halign="left" valign="top" width="5000" height="2500" bkcolor="Cornsilk"/>
 

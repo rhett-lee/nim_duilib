@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_vscroll_box" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
-    <Label text="布局VScrollBox测试"/>
+    <Label text="VScrollBox容器布局测试"/>
     <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_vscroll_box" text="1 right,top" text_align="right,bottom" halign="right" valign="top" width="100" height="80"/>
 

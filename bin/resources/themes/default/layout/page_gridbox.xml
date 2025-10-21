@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_gridbox" multi_line="true" margin="0,0,0,0" width="90%" height="90%" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <Class name="page_gridbox_calculator" multi_line="false" text_align="center,hcenter" font="system_16" margin="0,0,0,0" width="100%" height="100%" halign="center" valign="center" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <VBox height="84" padding="6,0,6,0" >
+        <Label text="GridBox容器布局测试" height="28" valign="center"/>
+        <HBox height="28">            
+            <Label text="容器内容水平对齐方式：" valign="center"/>
+            <Option class="option_1" group="gridbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_halign='left'" />
+            </Option>
+            <Option class="option_1" group="gridbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_halign='center'" />
+            </Option>
+            <Option class="option_1" group="gridbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_halign='right'" />
+            </Option>
+            <Label text="（仅当容器内容总宽度小于显示区域宽度时生效）" valign="center"/>
+        </HBox>
+        <HBox height="28">            
+            <Label text="容器内容垂直对齐方式：" valign="center"/>
+            <Option class="option_1" group="gridbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_valign='top'" />
+            </Option>
+            <Option class="option_1" group="gridbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_valign='center'" />
+            </Option>
+            <Option class="option_1" group="gridbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="gridbox_test" apply_attribute="child_valign='bottom'" />
+            </Option>
+            <Label text="（仅当容器内容总高度小于显示区域高度时生效）" valign="center"/>
+        </HBox>
+    </VBox>
+    <HBox child_margin="2">
+        <GridBox name="gridbox_test" padding="8,8,8,8" width="70%" height="100%"
+                 grid_width="120" grid_height="90" rows="0" columns="0" scale_down="false"
+                 child_margin_x="1" child_margin_y="1" child_halign="center" child_valign="top" 
+                 bkcolor="gray" border_size="1" border_color="red">
+            <!-- 浮动控件 -->
+            <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
+            <Label text="minwidth/minheight: 200*200" float="true" text_align="top" width="100" height="100" minwidth="200" minheight="200" margin="64,60,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
+            <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,70,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
+            <!-- 非浮动控件 -->
+            <Label class="page_gridbox" text="1 top" halign="left" valign="top"/>
+            <Label class="page_gridbox" text="2 center" halign="left" valign="center" row_span="2"/>
+            <Label class="page_gridbox" text="3 bottom" halign="left" valign="bottom" col_span="2"/>
+            <Label class="page_gridbox" text="4 top" halign="center" valign="top"/>
+            <Label class="page_gridbox" text="5 center" halign="center" valign="center"/>
+            <Label class="page_gridbox" text="6 bottom" halign="center" valign="bottom"/>
+            <Label class="page_gridbox" text="7 top" halign="right" valign="top"/>
+            <Label class="page_gridbox" text="8 center" halign="right" valign="center"/>
+            <Label class="page_gridbox" text="9 bottom" halign="right" valign="bottom"/>
+            <Label class="page_gridbox" text="10 center" halign="left" valign="center"/>
+            <Label class="page_gridbox" text="11 center stretch: 100%" halign="left" valign="center" col_span="3"/>
+            <Label class="page_gridbox" text="12 bottom" halign="left" valign="bottom"/>
+            <Label class="page_gridbox" text="13 top stretch: 50%" halign="center" valign="top" row_span="3"/>
+            <Label class="page_gridbox" text="12 center" halign="center" valign="center"/>
+            <Label class="page_gridbox" text="15 bottom" halign="center" valign="bottom"/>
+            <Label class="page_gridbox" text="16 top" halign="right" valign="top"/>
+            <Label class="page_gridbox" text="17 center" halign="right" valign="center"/>
+            <Label class="page_gridbox" text="18 bottom" halign="right" valign="bottom"/>
+            <Label class="page_gridbox" text="19 center, width: 200" halign="right" valign="center"/>
+            <Label class="page_gridbox" text="20 top" halign="right" valign="top" col_span="3"/>
+            <Label class="page_gridbox" text="21 top" halign="right" valign="top"/>
+            <Label class="page_gridbox" text="22 top" halign="right" valign="top"/>
+        </GridBox>
+        
+        <GridBox width="30%" height="100%" bkcolor="Cornsilk" border_size="1" border_color="red"
+                 child_halign="center" child_valign="center"
+                 grid_width="80" grid_height="60" rows="6" columns="4" child_margin_x="1" child_margin_y="1">
+            <!-- 一个计算器的布局 -->
+            <Label class="page_gridbox_calculator" text="0" col_span="4" text_align="center,right" text_padding="0,0,6,0" bkcolor="Cornsilk"/>
+            <Label class="page_gridbox_calculator" text="清空" col_span="2"/>
+            <Label class="page_gridbox_calculator" text="回退" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="=" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="1" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="2" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="3" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="+" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="4" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="5" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="6" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="-" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="7" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="8" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="9" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="*" col_span="1"/>
+            <Label class="page_gridbox_calculator" text="0" col_span="2"/>
+            <Label class="page_gridbox_calculator" text="." col_span="1"/>
+            <Label class="page_gridbox_calculator" text="/" col_span="1"/>
+        </GridBox>
+    </HBox>
+</Window>
