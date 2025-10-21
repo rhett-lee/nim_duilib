@@ -148,15 +148,32 @@ protected:
     void DoPaintText(const UiRect& rc, IRender* pRender);
 
 private:
-    UiString m_sFontId;
-    UiString m_sAutoShowTooltipCache;
-    uint32_t m_uTextStyle;
-    bool m_bSingleLine;
-    bool m_bAutoShowToolTip;
-    UiPadding16    m_rcTextPadding;
+    //文本内容
     UiString m_sText;
+
+    //文本ID，用于支持多语言
     UiString m_sTextId;
-    StateColorMap* m_pTextColorMap;
+
+    //字体ID
+    UiString m_sFontId;
+
+    //自动显示Tooltip的缓存
+    UiString m_sAutoShowTooltipCache;
+
+    //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
+    std::unique_ptr<StateColorMap> m_pTextColorMap;
+
+    //文本内边距
+    UiPadding16 m_rcTextPadding;
+
+    //文本对齐属性
+    uint32_t m_uTextStyle;
+
+    //是否单行文本: true表示单行文本，false表示多行文本
+    bool m_bSingleLine;
+
+    //是否自动显示Tooltip
+    bool m_bAutoShowToolTip;
 };
 
 template<typename InheritType>
@@ -168,8 +185,7 @@ LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
     m_bAutoShowToolTip(false),
     m_rcTextPadding(),
     m_sText(),
-    m_sTextId(),
-    m_pTextColorMap(nullptr)
+    m_sTextId()
 {
     Box* pBox = dynamic_cast<Box*>(this);
     if (pBox != nullptr) {
@@ -185,10 +201,6 @@ LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
 template<typename InheritType>
 LabelTemplate<InheritType>::~LabelTemplate()
 {
-    if (m_pTextColorMap != nullptr) {
-        delete m_pTextColorMap;
-        m_pTextColorMap = nullptr;
-    }
 }
 
 template<typename InheritType>
@@ -612,7 +624,7 @@ void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, c
         this->GetAnimationManager().SetFadeHot(true);
     }
     if (m_pTextColorMap == nullptr) {
-        m_pTextColorMap = new StateColorMap;
+        m_pTextColorMap = std::make_unique<StateColorMap>();
         m_pTextColorMap->SetControl(this);
     }
     m_pTextColorMap->SetStateColor(stateType, dwTextColor);

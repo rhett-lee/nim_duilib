@@ -228,12 +228,6 @@ protected:
     virtual void OnPrivateSetChecked() {}
 
 private:
-    //选择状态
-    bool m_bSelected;
-
-    //是否优先绘制Normal状态
-    bool m_bPaintNormalFirst;
-
     //选择状态的文本颜色
     UiString m_dwSelectedTextColor;
 
@@ -243,6 +237,12 @@ private:
     //选择状态的背景颜色
     StateColorMap* m_pSelectedColorMap;
 
+    //选择状态
+    bool m_bSelected;
+
+    //是否优先绘制Normal状态
+    bool m_bPaintNormalFirst;
+
 private: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的变量）
 
     //是否为部分选择（只影响选择状态下绘制哪个图片，对业务无影响）
@@ -251,13 +251,13 @@ private: //（三态选择[全部选择、部分选择、未选择]/勾选模式
     //是否已经处于Check状态（仅当 SupportCheckedMode() 函数为true的时候，有意义）
     bool m_bChecked;
 
-    //CheckBox图标所在的矩形（仅当 SupportCheckedMode() 函数为true的时候，有意义）
-    UiRect* m_pCheckBoxImageRect;
-
     /** 当选择的时候，是否自动勾选，就是当m_bSelected变化的时候，同步修改m_bChecked，保持值相同
     *   但当m_bChecked变化的时候，不会同步给m_bSelected
     */
     bool m_bAutoCheckSelect;
+
+    //CheckBox图标所在的矩形（仅当 SupportCheckedMode() 函数为true的时候，有意义）
+    UiRect* m_pCheckBoxImageRect;
 };
 
 template<typename InheritType>
