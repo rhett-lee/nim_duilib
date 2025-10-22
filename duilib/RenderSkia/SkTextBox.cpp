@@ -183,9 +183,17 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
                     ++lineBreakSize;
                 }
             }
+            if (textEncoding == SkTextEncoding::kUTF16) {
+                //每个字符串占2个字节
+                lineBreakSize *= 2;
+            }
+            else if (textEncoding == SkTextEncoding::kUTF32) {
+                //每个字符串占4个字节
+                lineBreakSize *= 4;
+            }
             if (trailing) {
                 *trailing = lineBreakSize;
-            }
+            }            
             return ret;
         }
 
@@ -198,6 +206,14 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
                     ret = text - start;
                     ++lineBreakSize;
                 }
+            }
+            if (textEncoding == SkTextEncoding::kUTF16) {
+                //每个字符串占2个字节
+                lineBreakSize *= 2;
+            }
+            else if (textEncoding == SkTextEncoding::kUTF32) {
+                //每个字符串占4个字节
+                lineBreakSize *= 4;
             }
             if (trailing) {
                 *trailing = lineBreakSize;
