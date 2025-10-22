@@ -60,8 +60,7 @@ public:
                    bool bIconAsAnimation /*= false*/,
                    int32_t nIconFrameDelayMs /*= 1000*/,
                    uint32_t nIconSize /*= 0*/,
-                   float fPagMaxFrameRate /*= 30.0f*/,
-                   const DString& pagFilePwd);
+                   float fPagMaxFrameRate /*= 30.0f*/);
 
     /** 拷贝构造和复制
     */
@@ -115,10 +114,6 @@ public:
     /** PAG格式默认播放的最大帧率（仅限PAG格式）
     */
     float GetPagMaxFrameRate() const;
-
-    /** PAG格式解码文件所需的密码（仅限PAG格式）
-    */
-    DString GetPagFilePwd() const;
 
     /** 是否支持异步线程解码图片数据
     */
@@ -188,9 +183,6 @@ private:
 
     //PAG格式默认播放的最大帧率（仅限PAG格式）
     float m_fPagMaxFrameRate;
-
-    //PAG格式设置解码文件所需的密码（仅限PAG格式）
-    UiString m_pagFilePwd;
 
     //如果是ICO文件，用于指定需要加载的ICO图片的大小
     uint32_t m_nIconSize;

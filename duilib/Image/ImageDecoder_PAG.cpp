@@ -43,7 +43,6 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
     bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
     float fPagMaxFrameRate = decodeParam.m_fPagMaxFrameRate;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
-    const std::string& pagFilePwd = decodeParam.m_pagFilePwd;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
     Image_PAG* pImagePAG = new Image_PAG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePAG);
@@ -54,7 +53,6 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
                                             bLoadAllFrames,
                                             fPagMaxFrameRate,
                                             fImageSizeScale,
-                                            pagFilePwd,
                                             rcMaxDestRectSize)) {
             return nullptr;
         }
@@ -64,7 +62,6 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
                                           bLoadAllFrames,
                                           fPagMaxFrameRate,
                                           fImageSizeScale,
-                                          pagFilePwd,
                                           rcMaxDestRectSize)) {
             return nullptr;
         }

@@ -137,7 +137,6 @@ bool Image_PAG::LoadImageFromFile(const FilePath& filePath,
                                   bool bLoadAllFrames,
                                   float fPagMaxFrameRate,
                                   float fImageSizeScale,
-                                  const std::string& pagFilePwd,
                                   const UiSize& rcMaxDestRectSize)
 {
     //需要读取到内存中，然后再加载（不使用从文件路径加载的函数，因为这个函数有bug，返回失败）
@@ -146,14 +145,13 @@ bool Image_PAG::LoadImageFromFile(const FilePath& filePath,
     if (fileData.empty()) {
         return false;
     }
-    return LoadImageFromMemory(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, pagFilePwd, rcMaxDestRectSize);
+    return LoadImageFromMemory(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, rcMaxDestRectSize);
 }
 
 bool Image_PAG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                     bool bLoadAllFrames,
                                     float fPagMaxFrameRate,
                                     float fImageSizeScale,
-                                    const std::string& pagFilePwd,
                                     const UiSize& rcMaxDestRectSize)
 {
     ASSERT(!fileData.empty());
@@ -163,7 +161,7 @@ bool Image_PAG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
     //备注：libpag内部实际没实现支持密码的功能，只是接口支持了这个参数
-    m_impl->m_pagComposition = pag::PAGFile::Load(m_impl->m_fileData.data(), m_impl->m_fileData.size(), "", pagFilePwd);
+    m_impl->m_pagComposition = pag::PAGFile::Load(m_impl->m_fileData.data(), m_impl->m_fileData.size(), "");
     if (m_impl->m_pagComposition == nullptr) {
         m_impl->m_fileData.swap(fileData);
         return false;

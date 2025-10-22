@@ -4,7 +4,7 @@
 ```
 # 当前目录: %PAG_ROOT%
 git clone https://github.com/Tencent/libpag.git
-# 当时的HSHA-1: 6e0c1bbd03d968b13defe01c23d81c4ea51f3c6c
+# 当时的SHA-1: 7d4d2fd677cc53c55a189d828637cafcd8f29ad0
 ```
 
 ### 二、开发环境构建（需要已安装Visual Studio 2022）：
@@ -25,6 +25,10 @@ git clone https://github.com/Tencent/libpag.git
      修改内容：cmake_minimum_required的版本号改为3.18：`cmake_minimum_required(VERSION 3.18)`    
 
 ### 三、使用cmake在命令行编译
+同步接口头文件：    
+将`libpag\include` 复制到目录 `duilib\third_party\libpag\windows\` 目录中，覆盖原有头文件，确保接口一致。    
+
+### 四、使用cmake在命令行编译
 1. x64编译    
 （1）首先进入VS命令行：“x64 Native Tools Command Prompt for VS 2022”    
      这一步是必须的，否则使用cmake的时候，会报错

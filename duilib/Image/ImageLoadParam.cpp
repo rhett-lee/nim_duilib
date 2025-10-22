@@ -27,8 +27,7 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
                                bool bIconAsAnimation,
                                int32_t nIconFrameDelayMs,
                                uint32_t nIconSize,
-                               float fPagMaxFrameRate,
-                               const DString& pagFilePwd):
+                               float fPagMaxFrameRate):
     m_loadDpiScaleOption(loadDpiScaleOption),
     m_imageSizeDpiScaleOption(imageSizeDpiScaleOption),
     m_nLoadDpiScale(nLoadDpiScale),
@@ -36,8 +35,7 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
     m_bIconAsAnimation(bIconAsAnimation),
     m_nIconFrameDelayMs(nIconFrameDelayMs),
     m_nIconSize(nIconSize),
-    m_fPagMaxFrameRate(fPagMaxFrameRate),
-    m_pagFilePwd(pagFilePwd)
+    m_fPagMaxFrameRate(fPagMaxFrameRate)
 {
     StringUtil::Trim(srcWidth);
     StringUtil::Trim(srcHeight);
@@ -130,11 +128,6 @@ int32_t ImageLoadParam::GetIconFrameDelayMs() const
 float ImageLoadParam::GetPagMaxFrameRate() const
 {
     return m_fPagMaxFrameRate;
-}
-
-DString ImageLoadParam::GetPagFilePwd() const
-{
-    return m_pagFilePwd.c_str();
 }
 
 bool ImageLoadParam::IsAsyncDecodeEnabled() const

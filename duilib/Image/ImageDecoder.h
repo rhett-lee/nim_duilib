@@ -325,9 +325,6 @@ public:
 
     //PAG格式，解码动画的帧率
     float m_fPagMaxFrameRate = 30.0f;
-
-    //PAG格式，解码文件所需的密码
-    std::string m_pagFilePwd;
 };
 
 /** 图片解码器接口

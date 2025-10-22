@@ -58,7 +58,6 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_bIconAsAnimation = r.m_bIconAsAnimation;
     m_nIconFrameDelayMs = r.m_nIconFrameDelayMs;
     m_fPagMaxFrameRate = r.m_fPagMaxFrameRate;
-    m_pagFilePwd = r.m_pagFilePwd;
     m_bPaintEnabled = r.m_bPaintEnabled;
     m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
 
@@ -147,7 +146,6 @@ void ImageAttribute::Init()
     m_bIconAsAnimation = false;
     m_nIconFrameDelayMs = 1000;
     m_fPagMaxFrameRate = 30.0f;
-    m_pagFilePwd.clear();
     m_bPaintEnabled = true;
     m_bAdaptiveDestRect = false;
 
@@ -350,10 +348,6 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if (name == _T("pag_max_frame_rate")) {
             //如果是PAG文件，用于指定动画的帧率，默认为30.0f
             imageAttribute.m_fPagMaxFrameRate = (float)StringUtil::StringToInt32(value);
-        }
-        else if (name == _T("pag_password")) {
-            //如果是PAG文件，用于指定文件密码
-            imageAttribute.m_pagFilePwd = value;
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是动画图片，取值代表的含义
