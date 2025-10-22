@@ -56,41 +56,37 @@ public:
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 恢复默认的文本样式
+    * @param [in] bRedraw true表示重绘，false表示不重绘
     */
     void SetDefaultTextStyle(bool bRedraw);
 
-    /**
-     * @brief 设置文本样式
-     * @param[in] uStyle 要设置的样式
-     * @return 无
+    /** 设置文本样式
+     * @param [in] uStyle 要设置的样式
+     * @param [in] bRedraw true表示重绘，false表示不重绘
      */
     void SetTextStyle(uint32_t uStyle, bool bRedraw);
 
-    /**
-     * @brief 获取文本样式
+    /** 获取文本样式
      * @return 返回文本样式
      */
     uint32_t GetTextStyle() const;
 
-    /**
-     * @brief 获取指定状态下的文本颜色
-     * @param[in] stateType 要获取的状态标志
+    /** 获取指定状态下的文本颜色
+     * @param [in] stateType 要获取的状态标志
      * @return 返回指定状态下的文本颜色
      */
     DString GetStateTextColor(ControlStateType stateType) const;
 
-    /**
-     * @brief 设置指定状态下的文本颜色
-     * @param[in] stateType 要设置的状态标志
-     * @param[in] dwTextColor 要设置的状态颜色字符串，该值必须在 global.xml 中存在
+    /** 设置指定状态下的文本颜色
+     * @param [in] stateType 要设置的状态标志
+     * @param [in] dwTextColor 要设置的状态颜色字符串，该值必须在 global.xml 中存在
      * @return 无
      */
     void SetStateTextColor(ControlStateType stateType, const DString& dwTextColor);
 
-    /**
-     * @brief 获取指定状态下的实际被渲染文本颜色
-     * @param[in] buttonStateType 要获取何种状态下的颜色
-     * @param[out] stateType 实际被渲染的状态
+    /** 获取指定状态下的实际被渲染文本颜色
+     * @param [in] buttonStateType 要获取何种状态下的颜色
+     * @param [out] stateType 实际被渲染的状态
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
     DString GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
@@ -116,25 +112,34 @@ public:
      */
     void SetTextPadding(UiPadding padding, bool bNeedDpiScale);
 
-    /**
-     * @brief 判断是否是单行模式
+    /** 判断是否是单行模式
      * @return 返回 true 表示单行模式，否则为 false
      */
     bool IsSingleLine() const;
 
-    /**
-     * @brief 设置为单行输入模式
-     * @param[in] bSingleLine 为 true 时为单行模式，否则为 false
-     * @return 无
+    /** 设置为单行输入模式
+     * @param [in] bSingleLine 为 true 时为单行模式，否则为 false
      */
     void SetSingleLine(bool bSingleLine);
 
-    /**
-    * @brief 设置鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
-    * @param[in] bAutoShow true 省略号出现才显示 false 不做任何控制
-    * @return 无
+    /** 设置鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
+    * @param [in] bAutoShow true 省略号出现才显示 false 不做任何控制
     */
     void SetAutoToolTip(bool bAutoShow);
+
+    /** 获取鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
+    */
+    bool IsAutoToolTip() const;
+
+    /** 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    * @param [in] bReplaceNewline true表示替换，false表示不替换
+    */
+    void SetReplaceNewline(bool bReplaceNewline);
+
+    /** 获取是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    * @return true表示替换，false表示不替换
+    */
+    bool IsReplaceNewline() const;
 
 protected:
     /** 检查是否需要自动显示ToolTip
@@ -174,6 +179,9 @@ private:
 
     //是否自动显示Tooltip
     bool m_bAutoShowToolTip;
+
+    //是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    bool m_bReplaceNewline;
 };
 
 template<typename InheritType>
@@ -183,6 +191,7 @@ LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
     m_bSingleLine(true),
     m_bAutoShowToolTip(false),
+    m_bReplaceNewline(false),
     m_rcTextPadding(),
     m_sText(),
     m_sTextId()
@@ -310,6 +319,9 @@ void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding, true);
     }
+    else if (strName == _T("replace_newline")) {
+        SetReplaceNewline(strValue == _T("true"));
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -337,6 +349,10 @@ DString LabelTemplate<InheritType>::GetText() const
         strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId.c_str());
     }
 
+    if (IsReplaceNewline()) {
+        //将反斜杠+n这两个字符替换成换行符
+        StringUtil::ReplaceAll(_T("\\n"), _T("\n"), strText);
+    }
     return strText;
 }
 
@@ -345,6 +361,24 @@ void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 {
     m_bAutoShowToolTip = bAutoShow;
     CheckShowToolTip();
+}
+
+template<typename InheritType>
+bool LabelTemplate<InheritType>::IsAutoToolTip() const
+{
+    return m_bAutoShowToolTip;
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::SetReplaceNewline(bool bReplaceNewline)
+{
+    m_bReplaceNewline = bReplaceNewline;
+}
+
+template<typename InheritType>
+bool LabelTemplate<InheritType>::IsReplaceNewline() const
+{
+    return m_bReplaceNewline;
 }
 
 template<typename InheritType /*= Control*/>

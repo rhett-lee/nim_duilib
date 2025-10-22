@@ -17,7 +17,7 @@
  - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
  - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）
  - 支持多国语言：支持动态多种语言切换，易于实现国际化
- - 支持CEF控件：支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统
+ - 支持CEF控件：支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统
  - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）
  - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）
 
@@ -46,12 +46,12 @@
     </tr>
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
     <tr><td align="left">3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
-    <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
+    <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画/Lottie JSON动画/PAG动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
     <tr><td align="left">5. 重新实现各个布局的代码，并新增了常见的界面布局方案，总体归类为：浮动布局、水平布局、垂直布局、水平流式布局、垂直流式布局、网格布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
     <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
-    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>
+    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台、MacOS平台、FreeBSD平台）</td></tr>
     <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
@@ -69,7 +69,7 @@
     <tr><td align="left">10. 对树控件（TreeView）进行功能优化和扩展，丰富了较多常用功能，提升可用性</td></tr>
     <tr><td align="left">11. 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护</td></tr>
     <tr><td align="left">12. 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作</td></tr>
-    <tr><td align="left">13. 控件的背景色支持渐变色</td></tr>
+    <tr><td align="left">13. 控件的背景色支持渐变色，新增前景色功能</td></tr>
     <tr><td align="left">14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
     <tr><td align="left">15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
     <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>

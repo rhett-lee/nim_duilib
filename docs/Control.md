@@ -148,6 +148,7 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | single_line | true | bool | 是否单行输出文字 |
 | multi_line | false | bool | 是否多行输出文字，与single_line属性互斥 |
 | auto_tooltip | false | bool | 鼠标悬浮到控件显示的提示文本是否省略号出现时才显示|
+| replace_newline | false | bool | 是否替换文本中的换行符：将字符串"\\\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本，举例：原始字符串为"第一行\\\\n第二行"，当为true时，"\\\\n"这两个字符会被替换为换行符"\n"，最终字符串变成"第一行\n第二行" |
 
 Label 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
