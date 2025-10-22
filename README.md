@@ -12,7 +12,7 @@
  - 皮肤支持：通过XML文件定义皮肤结构，可以轻松改变界面风格
  - 性能优异：界面资源的内存占有率低，使用Skia引擎绘制，后台绘制配置使用CPU绘制或者GPU绘制
  - 多种图片格式：支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
- - 支持动画格式：支持GIF、APNG、WebP、LOTTIE、PAG动画文件格式
+ - 支持动画格式：支持GIF、APNG、WebP、Lottie JSON、PAG动画文件格式
  - 窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新
  - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
  - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）
@@ -47,7 +47,7 @@
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
     <tr><td align="left">3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
     <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
-    <tr><td align="left">5. 对布局进行了梳理，归类为：浮动布局、水平布局、垂直布局、水平流式布局、垂直流式布局、网格布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
+    <tr><td align="left">5. 重新实现各个布局的代码，并新增了常见的界面布局方案，总体归类为：浮动布局、水平布局、垂直布局、水平流式布局、垂直流式布局、网格布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展，详情可参考文档(docs/Box.md)</td></tr>
     <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
@@ -55,7 +55,7 @@
     <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
-        <td rowspan="18">功能完善</td>
+        <td rowspan="19">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
     <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
@@ -75,6 +75,7 @@
     <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>
     <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），可选值为：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影</td></tr>
     <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
+    <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
     <tr>
         <td rowspan="19">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
@@ -96,7 +97,7 @@
     <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
     <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
     <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
+    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>    
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -141,16 +142,26 @@
 |nanosvg   |duilib/third_party/svg      | 支持SVG图片格式                     |[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|zlib 许可协议|
 |pugixml   |duilib/third_party/xml      | 支持资源描述XML的解析               |[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|MIT 许可协议|
 |ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码转换         |[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|Apache License Version 2.0 为主，<br>LLVM 例外条款补充，<br>历史版本兼容 legacy 协议|
-|skia      |项目未包含skia源码          | 界面库渲染引擎<br>支持SVG图片格式<br>支持LOTTIE动画|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3条款许可协议|
+|skia      |项目未包含skia源码          | 界面库渲染引擎<br>支持SVG图片格式<br>支持Lottie JSON动画|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3条款许可协议|
 |SDL       |项目未包含SDL源码           | 跨平台窗口管理                     |[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|zlib 许可协议|
 |duilib    |                            | NIM_Duilib_Framework<br>是基于duilib开发  |[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|BSD 2条款许可协议|
 |NIM_Duilib<br>Framework|               | 本项目是基于<br>NIM_Duilib_Framework开发   |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT 许可协议|
 |libcef    |duilib/third_party/libcef   | 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|BSD 3条款许可协议|
 |udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度         |[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|BSD 2条款许可协议|
 |WebView2  |duilib/third_party/<br>Microsoft.Web.WebView2| 支持WebView2控件 |[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|BSD 3条款许可协议|
-|libpag    |duilib/third_party/libpag   | 支持PAG动画文件                    |[libpag.LICENSE.txt](licenses/libpag.LICENSE.txt)|Apache License Version 2.0(主体)<br>libpag依赖的第三方组件的<br>授权协议很多，详见目录:<br>`duilib/third_party/libpag/licenses`<br>中的文件。<br>如果介意libpag的授权协议<br>（包括主体协议/第三方组件协议），<br>可以通过编译开关来关闭PAG功能<br>（关闭后就不再使用libpag）。|
+|libpag    |duilib/third_party/libpag   | 支持PAG动画文件<br>（该功能默认未启用，详见后续文档） |[libpag.LICENSE.txt](licenses/libpag.LICENSE.txt)|Apache License Version 2.0(主体)<br>libpag依赖的第三方组件的<br>授权协议很多，详见目录:<br>`duilib/third_party/libpag/licenses`<br>中的文件。如果介意libpag的授权协议<br>（包括主体协议/第三方组件协议），<br>可以不启用libpag。|
+
 ## 界面效果预览
 使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
+
+## 关于PAG动画文件格式
+* 目前PAG动画文件格式仅在Window平台支持，其他平台暂未支持
+* 支持PAG动画文件格式功能默认关闭（因为需要自己编译libpag.lib和libpag.dll，放进项目才能正常编译运行）
+* 支持PAG动画格式的开启方法：    
+（1）使用文本编译器打开[`msvc/PropertySheets/LibPagSettings.props`](msvc/PropertySheets/LibPagSettings.props)文件，将`LibPagEnabled`变量的支持修改为`1`    
+（2）参照以下文档编译libpag库：[`duilib/third_party/libpag/windows/libpag-build.md`](duilib/third_party/libpag/windows/libpag-build.md)     
+* 编译nim_duilib的时候，需要使用`build/duilib.sln`或者`build/examples.sln`编译，其他方式编译不支持。
+* libpag库的主体授权协议为Apache License Version 2.0，其依赖的第三方组件的授权协议很多，<br>详见目录:`duilib/third_party/libpag/licenses`中的文件。<br>如果介意libpag的授权协议（包括主体协议/第三方组件协议），可以不启用libpag。
 
 ## 编程语言
 - C/C++: 编译器需要支持C++20

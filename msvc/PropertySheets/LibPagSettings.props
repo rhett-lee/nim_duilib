@@ -13,7 +13,7 @@
         <LibPagLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libpag\windows\lib-vc-x86</LibPagLibDir>
 
         <!-- 是否支持libpag的宏定义： 0表示不支持；1 表示支持 -->
-        <LibPagEnabled>1</LibPagEnabled>
+        <LibPagEnabled>0</LibPagEnabled>
 
         <!-- lib列表 -->
         <LibPagLibs Condition="'$(LibPagEnabled)' != '0'">libpag.lib</LibPagLibs>

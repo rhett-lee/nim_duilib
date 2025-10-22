@@ -8,6 +8,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
     #define OUTPUT_IMAGE_LOG 1
@@ -163,7 +164,20 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
 
         //加载图片     
         std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(decodeParam);
-        ASSERT(pImageData != nullptr);
+        bool bEnableAssert = true;
+#ifndef DUILIB_IMAGE_SUPPORT_LIB_PAG        
+        if (pImageData == nullptr) {
+            DString fileExt = FilePathUtil::GetFileExtension(decodeParam.m_imageFilePath.ToString());
+            StringUtil::MakeUpperString(fileExt);
+            if (fileExt == _T("PAG")) {
+                //当不支持PAG时，禁止断言报错
+                bEnableAssert = false;
+            }
+        }
+#endif
+        if (bEnableAssert) {
+            ASSERT(pImageData != nullptr); //图片加载失败时，断言
+        }        
         if (pImageData == nullptr) {
             //加载失败
             return nullptr;

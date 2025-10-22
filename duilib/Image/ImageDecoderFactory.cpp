@@ -102,7 +102,6 @@ std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const ImageDecodePara
             }
         }
     }
-    ASSERT(pImageData != nullptr);
     return pImageData;
 }
 
