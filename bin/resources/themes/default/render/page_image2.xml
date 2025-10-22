@@ -45,7 +45,7 @@
             </HBox>
         </VBox>
         <VBox>
-            <Control bkimage="file='jpg_test.jpg' width='60' tiled_margin='0' xtiled='true' fullxtiled='false' ytiled='true' fullytiled='false' tiled_margin='1'" border_size="1" border_color="green" margin="8"/>
+            <Control bkimage="file='autumn.png' width='60' tiled_margin='0' xtiled='true' fullxtiled='false' ytiled='true' fullytiled='false' tiled_margin='1'" border_size="1" border_color="green" margin="8"/>
         </VBox>    
     </HBox>
 </Window>
