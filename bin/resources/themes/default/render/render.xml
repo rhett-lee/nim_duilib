@@ -23,7 +23,7 @@
         
         <!-- 显示区域 --> 
         <VBox>
-            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="2">                
+            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">                
                 <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="0"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="1"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片3" close_button_class="" tab_box_item_index="2"/>
@@ -31,9 +31,10 @@
                 <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="4"/>
                 <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="5"/>
                 <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="6"/>                
-                <TabCtrlItem class="tab_ctrl_item" title="PropertyGrid" close_button_class="" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item" title="属性页" close_button_class="" tab_box_item_index="7"/>
+                <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="8"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="2">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
                     <Label text="页面1：用标准控件测试所有支持的图片格式"/>
                     <Include src="page_image1.xml"/>
@@ -61,10 +62,14 @@
                 <VBox name="main_view_page_06">
                     <Label text="页面7：DrawBoxShadow测试"/>
                     <Include src="page_boxshadow.xml"/>
-                </VBox>                
+                </VBox>
                 <VBox name="main_view_page_07">
                     <Include src="page_property_grid.xml"/>
                 </VBox>
+                <VBox name="main_view_page_08">
+                    <Label text="页面9：窗口阴影测试"/>
+                    <Include src="page_window_shadow.xml"/>
+                </VBox> 
             </TabBox>
         </VBox>
     </VBox>

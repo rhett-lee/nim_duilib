@@ -40,17 +40,7 @@
                     <Event type="mouseleave" receiver="" apply_attribute="stop_image_animation={}" />
                 </Control>
                 <Label width="100%" height="20" text="鼠标在图片上时播放动画" text_align="center" margin="8"/>
-            </VBox>
-            
-            <VBox width="200" height="220">
-                <Control width="200" height="100%" bkimage="file='public/shadow/shadow_big_round.svg' width='200' valign='center' halign='center'"/>
-                <Label width="100%" height="20" text="窗口阴影效果图big" text_align="center" margin="8"/>
-            </VBox>
-            
-            <VBox width="200" height="220">
-                <Control width="200" height="100%" bkimage="file='public/shadow/shadow_menu_round.svg' width='200' valign='center' halign='center'"/>
-                <Label width="100%" height="20" text="窗口阴影效果图menu" text_align="center" margin="8"/>
-            </VBox>            
+            </VBox>          
         </HBox>
     </HBox>
 </Window>
