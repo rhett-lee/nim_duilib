@@ -51,7 +51,7 @@
                     <Include src="page_text.xml"/>
                 </VBox>
                 <VBox name="main_view_page_04">
-                    <Label text="页面5：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
+                    <Label text="页面5：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend，九宫格绘制，平铺绘制等）"/>
                     <RenderTest1 />
                 </VBox>
                 <VBox name="main_view_page_05">

@@ -25,8 +25,8 @@ void RenderTest1::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
-    int marginLeft = 8;
-    int marginTop = 4;
+    int32_t marginLeft = 8;
+    int32_t marginTop = 4;
     Dpi().ScaleInt(marginLeft);
     Dpi().ScaleInt(marginTop);
 
@@ -35,19 +35,24 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left += marginLeft;
     rect.top += marginTop;
 
-    int nSize = 110;
-    int nTextLineHeight = 40;
+    int32_t nSize = 110;
+    int32_t nTextLineHeight = 40;
     Dpi().ScaleInt(nSize);
     Dpi().ScaleInt(nTextLineHeight);
 
     rect.right = rect.left + nSize;
     rect.bottom = rect.top + nSize;
-    int currentBottom = rect.bottom;//记录当前的bottom值
+    int32_t currentBottom = rect.bottom;//记录当前的bottom值
     
     //绘图相同接口
-    Image image;
-    image.SetImageString(_T("file='autumn.png' async_load='false'"), Dpi());
-    LoadImageInfo(image);
+    if (m_pImage == nullptr) {
+        //首次绘制时，加载图片
+        m_pImage = std::make_unique<Image>();
+        m_pImage->SetImageString(_T("file='autumn.png' async_load='false'"), Dpi());
+        LoadImageInfo(*m_pImage);
+    }
+    const Image& image = *m_pImage;
+    
     rect.right = rect.left + image.GetImageInfo()->GetWidth();
     rect.bottom = rect.top + image.GetImageInfo()->GetHeight();
 
@@ -99,21 +104,63 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left += marginLeft;
     rect.top = currentBottom + marginTop;
 
-    //平铺绘制
-    rect.right = rcPaint.right;
-    rect.bottom = rcPaint.bottom;
+    //平铺绘制, 使用小图
+    int32_t nTileSize = Dpi().GetScaleInt(32);
+    std::unique_ptr<IBitmap> pTiledBitmap = ui::ImageUtil::ResizeImageBitmap(pBitmap.get(), nTileSize, nTileSize);
+    if (pTiledBitmap != nullptr) {
+        UiRect rect1 = rect;
+        UiRect rect2 = rect;
+        UiRect rect3 = rect;
+        UiRect rect4 = rect;
+        rect1.right = rect1.left + rect.Width() / 2;
+        rect1.bottom = rect1.top + rect.Height() / 2;
 
-    bool bTiledX = true;
-    bool bTiledY = true;
-    bool bFullTiledX = false;
-    bool bFullTiledY = false; // 完整平铺，如果控件不够绘制完整图片，就不会绘制。如果为false，则只要有空间就绘制，但此时图片只是绘制一部分的。
-    int32_t nTiledMarginX = 0;
-    int32_t nTiledMarginY = 0;
+        rect2.left = rect1.right + Dpi().GetScaleInt(2);
+        rect2.right = rect.right - Dpi().GetScaleInt(4);
+        rect2.top = rect1.top;
+        rect2.bottom = rect1.bottom;
 
-    UiRect rcCorners(48, 48, 48, 48);
-    pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcCorners);
-    pRender->DrawImage(rcPaint, pBitmap.get(), rect, rcCorners, rcImageSource, rcCorners, 255,
-                       bTiledX, bTiledY, bFullTiledX, bFullTiledY, nTiledMarginX, nTiledMarginY);
+        rect3.left = rect1.left;
+        rect3.right = rect1.right;
+        rect3.top = rect1.bottom + Dpi().GetScaleInt(2);
+        rect3.bottom = rect.bottom - Dpi().GetScaleInt(4);
+
+        rect4.left = rect3.right + Dpi().GetScaleInt(2);
+        rect4.top = rect3.top;
+        rect4.right = rect.right - Dpi().GetScaleInt(4);
+        rect4.bottom = rect3.bottom;
+
+        rcImageSource.left = 0;
+        rcImageSource.top = 0;
+        rcImageSource.right = pTiledBitmap->GetWidth();
+        rcImageSource.bottom = pTiledBitmap->GetHeight();
+
+        UiRect rcCorners;
+        TiledDrawParam tiledParam;
+
+        //平铺绘制
+        tiledParam.m_bTiledX = true;
+        tiledParam.m_bTiledY = true;
+        pRender->DrawImage(rcPaint, pTiledBitmap.get(), rect1, rcCorners, rcImageSource, rcCorners, 255, &tiledParam);
+
+        tiledParam.m_nTiledMarginX = Dpi().GetScaleInt(2);
+        tiledParam.m_nTiledMarginY = Dpi().GetScaleInt(2);
+        pRender->DrawImage(rcPaint, pTiledBitmap.get(), rect2, rcCorners, rcImageSource, rcCorners, 255, &tiledParam);
+
+        //九宫格绘制
+        tiledParam = TiledDrawParam();
+        tiledParam.m_bTiledX = true;
+        tiledParam.m_bTiledY = true;
+        int32_t nCornerSize = Dpi().GetScaleInt(6);
+        rcCorners = UiRect(nCornerSize, nCornerSize, nCornerSize, nCornerSize);
+        pRender->DrawImage(rcPaint, pTiledBitmap.get(), rect3, rcCorners, rcImageSource, rcCorners, 255, &tiledParam);
+
+        int32_t nPaddingSize = Dpi().GetScaleInt(2);
+        tiledParam.m_nTiledMarginX = Dpi().GetScaleInt(2);
+        tiledParam.m_nTiledMarginY = Dpi().GetScaleInt(2);
+        tiledParam.m_rcTiledPadding = UiPadding(nPaddingSize, nPaddingSize, nPaddingSize, nPaddingSize);
+        pRender->DrawImage(rcPaint, pTiledBitmap.get(), rect4, rcCorners, rcImageSource, rcCorners, 255, &tiledParam);
+    }
 }
 
 void RenderTest1::PaintChild(IRender* pRender, const UiRect& rcPaint)

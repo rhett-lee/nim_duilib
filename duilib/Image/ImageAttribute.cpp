@@ -44,13 +44,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_vAlign = r.m_vAlign;
 
     m_bFade = r.m_bFade;
-    m_bTiledX = r.m_bTiledX;
-    m_bFullTiledX = r.m_bFullTiledX;
-    m_bTiledY = r.m_bTiledY;
-    m_bFullTiledY = r.m_bFullTiledY;
     m_bWindowShadowMode = r.m_bWindowShadowMode;
-    m_nTiledMarginX = r.m_nTiledMarginX;
-    m_nTiledMarginY = r.m_nTiledMarginY;
     m_bAutoPlay = r.m_bAutoPlay;
     m_bAsyncLoad = r.m_bAsyncLoad;
     m_nPlayCount = r.m_nPlayCount;
@@ -60,6 +54,16 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_fPagMaxFrameRate = r.m_fPagMaxFrameRate;
     m_bPaintEnabled = r.m_bPaintEnabled;
     m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
+
+    if (r.m_pTiledDrawParam != nullptr) {
+        if (m_pTiledDrawParam == nullptr) {
+            m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+        }
+        *m_pTiledDrawParam = *r.m_pTiledDrawParam;
+    }
+    else {
+        m_pTiledDrawParam.reset();
+    }
 
     if (r.m_rcDest != nullptr) {
         if (m_rcDest == nullptr) {
@@ -132,13 +136,7 @@ void ImageAttribute::Init()
     m_vAlign.clear();
 
     m_bFade = 0xFF;
-    m_bTiledX = false;
-    m_bFullTiledX = false;
-    m_bTiledY = false;
-    m_bFullTiledY = false;
     m_bWindowShadowMode = false;
-    m_nTiledMarginX = 0;
-    m_nTiledMarginY = 0;
     m_bAutoPlay = true;
     m_bAsyncLoad = GlobalManager::Instance().Image().IsImageAsyncLoad();
     m_nPlayCount = -1;    
@@ -148,6 +146,7 @@ void ImageAttribute::Init()
     m_fPagMaxFrameRate = 30.0f;
     m_bPaintEnabled = true;
     m_bAdaptiveDestRect = false;
+    m_pTiledDrawParam.reset();
 
     if (m_rcDest != nullptr) {
         delete m_rcDest;
@@ -186,6 +185,7 @@ ImageAttribute::~ImageAttribute()
         delete m_rcCorner;
         m_rcCorner = nullptr;
     }
+    m_pTiledDrawParam.reset();
 }
 
 void ImageAttribute::InitByImageString(const DString& strImageString, const DpiManager& dpi)
@@ -252,6 +252,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             imageAttribute.m_rcCorner->right = std::max(imageAttribute.m_rcCorner->right, 0);
             imageAttribute.m_rcCorner->bottom = std::max(imageAttribute.m_rcCorner->bottom, 0);
         }
+        else if (name == _T("window_shadow_mode")) {
+            //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
+            imageAttribute.m_bWindowShadowMode = (value == _T("true"));
+        }
         else if ((name == _T("dpi_scale")) || (name == _T("dpiscale"))) {
             //加载图片时，按照DPI缩放图片大小
             imageAttribute.m_bImageDpiScaleEnabled = (value == _T("true"));
@@ -310,36 +314,61 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if (name == _T("xtiled")) {
             //横向平铺
-            imageAttribute.m_bTiledX = (value == _T("true"));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_bTiledX = (value == _T("true"));
         }
         else if ((name == _T("full_xtiled")) || (name == _T("fullxtiled"))) {
             //横向平铺时，保证整张图片绘制
-            imageAttribute.m_bFullTiledX = (value == _T("true"));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_bFullTiledX = (value == _T("true"));
         }
         else if (name == _T("ytiled")) {
             //纵向平铺
-            imageAttribute.m_bTiledY = (value == _T("true"));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_bTiledY = (value == _T("true"));
         }
         else if ((name == _T("full_ytiled")) || (name == _T("fullytiled"))) {
             //纵向平铺时，保证整张图片绘制
-            imageAttribute.m_bFullTiledY = (value == _T("true"));
-        }
-        else if (name == _T("window_shadow_mode")) {
-            //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
-            imageAttribute.m_bWindowShadowMode = (value == _T("true"));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_bFullTiledY = (value == _T("true"));
         }
         else if ((name == _T("tiled_margin")) || (name == _T("tiledmargin"))) {
             //平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
-            imageAttribute.m_nTiledMarginX = ui::TruncateToInt16(StringUtil::StringToInt32(value));
-            imageAttribute.m_nTiledMarginY = imageAttribute.m_nTiledMarginX;
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_nTiledMarginX = StringUtil::StringToInt32(value);
+            imageAttribute.m_pTiledDrawParam->m_nTiledMarginY = imageAttribute.m_pTiledDrawParam->m_nTiledMarginX;
         }
         else if (name == _T("tiled_margin_x")) {
             //平铺绘制时，各平铺图片之间的间隔，横向平铺
-            imageAttribute.m_nTiledMarginX = ui::TruncateToInt16(StringUtil::StringToInt32(value));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_nTiledMarginX = StringUtil::StringToInt32(value);
         }
         else if (name == _T("tiled_margin_y")) {
             //平铺绘制时，各平铺图片之间的间隔，纵向平铺
-            imageAttribute.m_nTiledMarginY = ui::TruncateToInt16(StringUtil::StringToInt32(value));
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            imageAttribute.m_pTiledDrawParam->m_nTiledMarginY = StringUtil::StringToInt32(value);
+        }
+        else if (name == _T("tiled_padding")) {
+            if (m_pTiledDrawParam == nullptr) {
+                m_pTiledDrawParam = std::make_unique<TiledDrawParam>();
+            }
+            UiPadding rcPadding;
+            AttributeUtil::ParsePaddingValue(value.c_str(), rcPadding);
+            m_pTiledDrawParam->m_rcTiledPadding = rcPadding;
         }
         else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
@@ -463,6 +492,27 @@ void ImageAttribute::SetImageMargin(const UiMargin& newMargin, bool bNeedDpiScal
     m_rcMargin->right = TruncateToUInt16(rcMarginDpi.right);
     m_rcMargin->bottom = TruncateToUInt16(rcMarginDpi.bottom);
     m_rcMarginScale = TruncateToUInt16(dpi.GetScale());
+}
+
+bool ImageAttribute::IsTiledDraw() const
+{
+    if (m_pTiledDrawParam != nullptr) {
+        return m_pTiledDrawParam->m_bTiledX || m_pTiledDrawParam->m_bTiledY;
+    }
+    return false;
+}
+
+TiledDrawParam ImageAttribute::GetTiledDrawParam(const DpiManager& dpi) const
+{
+    TiledDrawParam tiledDrawParam;
+    if (m_pTiledDrawParam != nullptr) {
+        tiledDrawParam = *m_pTiledDrawParam;
+        //对部分值做DPI缩放
+        dpi.ScaleInt(tiledDrawParam.m_nTiledMarginX);
+        dpi.ScaleInt(tiledDrawParam.m_nTiledMarginY);
+        dpi.ScalePadding(tiledDrawParam.m_rcTiledPadding);
+    }
+    return tiledDrawParam;
 }
 
 UiRect ImageAttribute::GetImageCorner() const

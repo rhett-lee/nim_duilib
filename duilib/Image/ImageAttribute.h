@@ -89,6 +89,14 @@ public:
     */
     void SetImageMargin(const UiMargin& neMargin, bool bNeedDpiScale, const DpiManager& dpi);
 
+    /** 判断图片是否平铺绘制
+    */
+    bool IsTiledDraw() const;
+
+    /** 获取图片平铺绘制的属性
+    */
+    TiledDrawParam GetTiledDrawParam(const DpiManager& dpi) const;
+
 public:
     //图片文件属性字符串
     UiString m_sImageString;
@@ -111,6 +119,9 @@ public:
     //在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_vAlign;
 
+    //平铺绘制相关参数
+    std::unique_ptr<TiledDrawParam> m_pTiledDrawParam;
+
     //透明度（0 - 255）
     uint8_t m_bFade;
 
@@ -120,20 +131,11 @@ public:
     //rcDest属性是否支持DPI自适应，即按照DPI缩放（"dest_scale"）
     bool m_bDestDpiScaleEnabled;
 
-    //横向平铺
-    bool m_bTiledX;
-
-    //横向完全平铺，仅当bTiledX为true时有效
-    bool m_bFullTiledX;
-
-    //纵向平铺
-    bool m_bTiledY;
-
-    //纵向完全平铺，仅当bTiledY为true时有效
-    bool m_bFullTiledY;
-
     //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作）
     bool m_bWindowShadowMode;
+
+    //是否自动适应目标区域（等比例缩放图片）
+    bool m_bAdaptiveDestRect;
 
     //如果是动画图片，是否自动播放
     bool m_bAutoPlay;
@@ -146,12 +148,6 @@ public:
     //    0  : 表示无有效的播放次数，使用图片的默认值(或者预设值)
     //    > 0: 具体的播放次数，达到播放次数后，停止播放
     int32_t m_nPlayCount;
-
-    //平铺时的边距（仅当bTiledX为true时有效）(未进行DPI缩放)
-    int16_t m_nTiledMarginX;
-
-    //平铺时的边距（仅当bTiledY为true时有效）(未进行DPI缩放)
-    int16_t m_nTiledMarginY;
 
     //如果是PAG文件，用于指定动画的帧率，默认为30.0f
     float m_fPagMaxFrameRate;
@@ -169,11 +165,7 @@ public:
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
 
-    //是否自动适应目标区域（等比例缩放图片）
-    bool m_bAdaptiveDestRect;
-
 private:
-
     //rcMargin对应的DPI缩放百分比
     uint16_t m_rcMarginScale;
 

@@ -146,6 +146,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，同时设置tiled_margin_x和tiled_margin_y为相同的值 |
 | tiled_margin_x | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为横向平铺的间隔，仅当xtiled为true时有效 |
 | tiled_margin_y | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为纵向平铺的间隔，仅当ytiled为true时有效 |
+| tiled_padding |  | UiPadding | 平铺绘制时，在目标区域内的内边距（此内边距结合TiledMargin可用形成网格）， 仅当xtiled为true 或yxtiled为true时有效|
 | window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
 | icon_size | 32 | int | 如果是ICO文件，指定加载ICO文件的图片大小 |
 | icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
@@ -164,14 +165,14 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <!-- 使用相对目录+文件名：图片文件与XML文件不在相同目录，
      需要指定文件所在目录的相对目录（相对与XML文件所在目录） -->
-<Control bkimage="../public/animation/loading1.json"/>
+<Control bkimage="public/animation/loading1.json"/>
 ```
 
 ```xml
 <!-- 使用图片文件的属性：normal_image属性指定了一个图片，并且设置了图片属性 
      图片属性中的值，可用使用单引号"'"括起来（比如：width='24'）-->
 <Class name="btn_wnd_min_11" 
-       normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" 
+       normal_image="file='public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" 
        hot_color="AliceBlue" 
        pushed_color="Lavender"/>
 ```
@@ -201,10 +202,10 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <!-- name 是通用样式的名称，其他的是该通用样式中的属性 -->
 <Class name="btn_global_blue_80x30" font="system_bold_14" normal_text_color="white" 
-       normal_image="file='../public/button/btn_global_blue_80x30_normal.png'" 
-       hot_image="file='../public/button/btn_global_blue_80x30_hovered.png'" 
-       pushed_image="file='../public/button/btn_global_blue_80x30_pushed.png'" 
-       disabled_image="file='../public/button/btn_global_blue_80x30_normal.png' 
+       normal_image="file='public/button/btn_global_blue_80x30_normal.png'" 
+       hot_image="file='public/button/btn_global_blue_80x30_hovered.png'" 
+       pushed_image="file='public/button/btn_global_blue_80x30_pushed.png'" 
+       disabled_image="file='public/button/btn_global_blue_80x30_normal.png' 
        fade='80'"/>
 ```
 
@@ -212,7 +213,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 并分别设置了普通状态、焦点状态和按下状态不同的背景图片，最后还启用了动画效果。当我们需要给一个按钮应用这个通用样式时，可以这样写：
 
 ```xml
-<Button class="btn_global_blue_80x30" text="blue" tooltiptext="ui::Buttons"/>
+<Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
 ```
 
 要注意的是，**`class` 属性必须在所有属性最前面**，当你需要覆盖一个通用样式中指定过的属性时，只需要在 `class` 属性之后再重新定义这个属性就可以了。比如我希望我的按钮不使用通用样式的字体样色，可以这样写：
@@ -227,7 +228,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                     combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                     combo_tree_node_class="tree_node" 
-                    combo_icon_class="bkimage='../public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                    combo_icon_class="bkimage='public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
                     combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
                     combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
 ```

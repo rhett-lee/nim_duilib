@@ -490,8 +490,8 @@ static int32_t CalcDrawImageTimes(int32_t nAvailableSpace, int32_t nImageSize, i
 void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcDestCorners,
                             const UiRect& rcSource, const UiRect& rcSourceCorners,
-                            uint8_t uFade, bool bTiledX, bool bTiledY,
-                            bool bFullTiledX, bool bFullTiledY, int32_t nTiledMarginX, int32_t nTiledMarginY,
+                            uint8_t uFade,
+                            const TiledDrawParam* pTiledDrawParam,    
                             bool bWindowShadowMode)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -535,8 +535,26 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         skPaint.setAlpha(uFade);
     }
 
-    //默认值就是kSrcOver
+    // 默认值就是kSrcOver
     skPaint.setBlendMode(SkBlendMode::kSrcOver);
+
+    // 平铺绘制相关参数
+    bool bTiledX = false;
+    bool bTiledY = false;
+    bool bFullTiledX = false;
+    bool bFullTiledY = false;
+    int32_t nTiledMarginX = 0;
+    int32_t nTiledMarginY = 0;
+    UiPadding rcTiledPadding;
+    if (pTiledDrawParam != nullptr) {
+        bTiledX = pTiledDrawParam->m_bTiledX;
+        bTiledY = pTiledDrawParam->m_bTiledY;
+        bFullTiledX = pTiledDrawParam->m_bFullTiledX;
+        bFullTiledY = pTiledDrawParam->m_bFullTiledY;
+        nTiledMarginX = pTiledDrawParam->m_nTiledMarginX;
+        nTiledMarginY = pTiledDrawParam->m_nTiledMarginY;
+        rcTiledPadding = pTiledDrawParam->m_rcTiledPadding;
+    }
 
     // 绘制目标中间区域的矩形范围
     rcDrawDest.left = rcDest.left + rcDestCorners.left;
@@ -544,11 +562,22 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     rcDrawDest.right = rcDest.right - rcDestCorners.right;
     rcDrawDest.bottom = rcDest.bottom - rcDestCorners.bottom;
 
+    if (bTiledX || bTiledY) {
+        //中间部分，剪去平铺绘制的内边距
+        rcDrawDest.Deflate(rcTiledPadding);
+    }
+
     // 绘制图片的源区域（中间部分）
     rcDrawSource.left = rcSource.left + rcSourceCorners.left;
     rcDrawSource.top = rcSource.top + rcSourceCorners.top;
     rcDrawSource.right = rcSource.right - rcSourceCorners.right;
     rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
+
+    if (rcDestCorners.IsZero()) {
+        //不是九宫格绘制时，禁用，避免图片无法绘出
+        bWindowShadowMode = false;
+    }
+
     if (!bWindowShadowMode && UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
         //绘制中间部分
         if (!bTiledX && !bTiledY) {
@@ -813,9 +842,8 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 
 void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcSource,
-                            uint8_t uFade, bool bTiledX, bool bTiledY,
-                            bool bFullTiledX, bool bFullTiledY,
-                            int32_t nTiledMarginX, int32_t nTiledMarginY,
+                            uint8_t uFade,
+                            const TiledDrawParam* pTiledDrawParam,
                             bool bWindowShadowMode)
 {
     UiRect rcDestCorners;
@@ -823,8 +851,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     return DrawImage(rcPaint, pBitmap, 
                      rcDest, rcDestCorners,
                      rcSource, rcSourceCorners,
-                     uFade, bTiledX, bTiledY,
-                     bFullTiledX, bFullTiledY, nTiledMarginX, nTiledMarginY, bWindowShadowMode);
+                     uFade, pTiledDrawParam, bWindowShadowMode);
 }
 
 void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,

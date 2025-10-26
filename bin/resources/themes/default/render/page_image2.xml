@@ -609,7 +609,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -628,6 +628,28 @@
                 </HBox>
                 <Label class="page_image2_case" text="用例编号（4.10）" width="100%" />
                 <Label class="page_image2_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false' \ntiled_margin='1'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">
+                        <HBox>
+                            <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1' tiled_padding='1,1,1,1'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1' tiled_padding='1,1,1,1'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image2_case" text="用例编号（4.11）" width="100%" />
+                <Label class="page_image2_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false' \ntiled_margin='1' \ntiled_padding='1,1,1,1'" width="100%" />
             </VBox>
         </HFlowScrollBox>
     </VScrollBox>

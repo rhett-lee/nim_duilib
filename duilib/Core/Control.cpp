@@ -2808,7 +2808,7 @@ bool Control::PaintImage(IRender* pRender,
     else {
         //单帧图片
         bool bImageStretch = true;//绘制图片时会不会被拉伸
-        if (newImageAttribute.m_bTiledX || newImageAttribute.m_bTiledY) {
+        if (newImageAttribute.IsTiledDraw()) {
             //当设置平铺时，无需拉伸图片
             bImageStretch = false;
         }
@@ -2848,17 +2848,17 @@ bool Control::PaintImage(IRender* pRender,
         if (pMatrix != nullptr) {
             //矩阵绘制: 对不支持的属性，增加断言，避免出错
             ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
-            ASSERT(!newImageAttribute.m_bTiledX);
-            ASSERT(!newImageAttribute.m_bTiledY);
+            ASSERT(!newImageAttribute.IsTiledDraw());
             pRender->DrawImageRect(m_rcPaint, pBitmap.get(), rcDest, rcSource, iFade, pMatrix);
         }
         else {
-            int32_t nTiledMarginX = Dpi().GetScaleInt(newImageAttribute.m_nTiledMarginX);
-            int32_t nTiledMarginY = Dpi().GetScaleInt(newImageAttribute.m_nTiledMarginY);
+            TiledDrawParam tiledDrawParam;
+            if (newImageAttribute.m_pTiledDrawParam != nullptr) {
+                tiledDrawParam = newImageAttribute.GetTiledDrawParam(Dpi());
+            }
             pRender->DrawImage(m_rcPaint, pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
-                               iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
-                               newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
-                               nTiledMarginX, nTiledMarginY,
+                               iFade,
+                               newImageAttribute.IsTiledDraw() ? &tiledDrawParam : nullptr,
                                newImageAttribute.m_bWindowShadowMode);
         }
 
@@ -4106,8 +4106,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         //5. 如果绘制属性指定为自适应（adaptive_dest_rect="true"），那么关闭该项优化
         //6. 如果绘制属性指定为九宫格绘制（corner="left,top,right,bottom"），那么关闭该项优化
         bool bEnableImageLoadSizeOpt = bPaintImage;
-        if (duiImage.GetImageAttribute().m_bTiledX ||
-            duiImage.GetImageAttribute().m_bTiledY ||
+        if (duiImage.GetImageAttribute().IsTiledDraw() ||
             duiImage.GetImageAttribute().m_bWindowShadowMode ||
            !duiImage.GetImageAttribute().m_bImageDpiScaleEnabled ||
             duiImage.GetImageAttribute().m_bAdaptiveDestRect ||
