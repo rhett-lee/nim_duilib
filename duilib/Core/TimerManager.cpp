@@ -247,7 +247,30 @@ void TimerManager::WorkerThreadProc()
             m_bHasPenddingPoll = true;
             taskGuard.unlock();
 
-            bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0, nullptr);
+            uint32_t nErrorCode = 0;
+            bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0, &nErrorCode);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+            if (!bRet) {
+                if ((nErrorCode == ERROR_NOT_ENOUGH_QUOTA) && !GlobalManager::Instance().IsInUIThread()) {
+                    //在程序启动时，如果在子线程向主线程Post消息，会遇到此错误
+                    for (int32_t i = 0; i < 200; ++i) {
+                        ::Sleep(50);
+                        if (!m_bRunning) {
+                            break;
+                        }
+                        bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0, &nErrorCode);
+                        if (bRet || (nErrorCode != ERROR_NOT_ENOUGH_QUOTA)) {
+                            break;
+                        }
+                    }
+                }
+                if (m_bRunning) {
+                    ASSERT_UNUSED_VARIABLE(bRet);
+                }                
+            }
+#else
+            ASSERT_UNUSED_VARIABLE(bRet);
+#endif
             taskGuard.lock();
             if (m_bRunning) {
                 ASSERT_UNUSED_VARIABLE(bRet);
