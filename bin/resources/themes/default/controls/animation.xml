@@ -17,7 +17,7 @@
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox>
+        <VBox child_halign="center" child_valign="center">
             <HBox height="40" margin="8,0,0,0">
                 <Button class="btn_global_color_gray" name="animation_btn" text="播放/暂停" width="96" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
                 <Label text="当前帧/总帧数:" valign="center" margin="8,0,0,0"/>
@@ -27,7 +27,7 @@
                 <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true" width="80" min_number="0" max_number="10000" valign="center" text_align="vcenter" bkcolor="white" margin="8,0,0,0"/>
                 <Label text="帧" valign="center" margin="8,0,0,0"/>
             </HBox>
-            <Control name="animation_test" width="auto" halign="center" bkimage="file='D:/image/apng_test.png' name='bk_animation_test' auto_play='true' icon_as_animation='true' icon_frame_delay='2000' valign='top'" bkcolor="white" valign="center" margin="8,0,0,0"/>
+            <Control name="animation_test" halign="center" valign="center" bkimage="file='render/apng_test.png' name='bk_animation_test' auto_play='true' icon_as_animation='true' icon_frame_delay='2000' valign='center' halign='center'"/>
         </VBox>
     </VBox>
 </Window>

@@ -52,15 +52,6 @@ namespace ui
         uint32_t m_imageHeight = 0;
     };
 
-    /** DPI缩放选项
-    */
-    enum class DpiScaleOption: int8_t
-    {
-        kDefault,   //默认：未设置DPI缩放属性
-        kOn,        //开启DPI缩放
-        kOff        //关闭DPI缩放
-    };
-
     /** 估算图片大小的类型
     */
     enum class EstimateImageType

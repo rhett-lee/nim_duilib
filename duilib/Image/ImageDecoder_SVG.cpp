@@ -247,8 +247,7 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     }
     spMemStream.reset();
 
-    SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));
-    //使用NanoSvg计算图片的宽度和高度（Skia的Svg封装没有提供相关功能）
+    SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));    
     int32_t nSvgImageWidth = int32_t(svgSize.width() + 0.5f);
     int32_t nSvgImageHeight = int32_t(svgSize.height() + 0.5f);
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
@@ -266,7 +265,7 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
         }
     }
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
-        //如果图片中没有直接定义宽和高，利用NanoSvg库获取
+        //如果图片中没有直接定义宽和高，使用NanoSvg计算图片的宽度和高度（Skia的Svg封装没有提供相关功能）
         if (!NanoSvgDecoder::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
             ASSERT(0);
             return nullptr;

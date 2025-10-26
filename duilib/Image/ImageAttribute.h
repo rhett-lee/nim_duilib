@@ -61,6 +61,10 @@ public:
     */
     UiRect GetImageCorner() const;
 
+    /** 是否含有rcCorner属性
+    */
+    bool HasImageCorner() const;
+
     /** 获取rcDest(按配置决定是否进行DPI缩放)
     * @param [in] imageWidth 图像的宽度
     * @param [in] imageHeight 图像的高度
@@ -68,18 +72,22 @@ public:
     */
     UiRect GetImageDestRect(int32_t imageWidth, int32_t imageHeight, const DpiManager& dpi) const;
 
-    /** 获取图片属性的内边距
+    /** 是否含有rcDest属性
+    */
+    bool HasDestRect() const;
+
+    /** 获取图片属性的外边距
     * @param [in] dpi DPI缩放管理器
     * @return 返回按照传入DPI缩放管理器适应的内边距数据
     */
-    UiPadding GetImagePadding(const DpiManager& dpi) const;
+    UiMargin GetImageMargin(const DpiManager& dpi) const;
 
-    /** 设置图片属性的内边距
-    * @param [in] newPadding 需要设置的内边距
-    * @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
+    /** 设置图片属性的外边距
+    * @param [in] newMargin 需要设置的内边距
+    * @param [in] bNeedDpiScale 是否需要对newMargin进行DPI缩放
     * @param [in] dpi 与newPadding数据关联的DPI管理器
     */
-    void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
+    void SetImageMargin(const UiMargin& neMargin, bool bNeedDpiScale, const DpiManager& dpi);
 
 public:
     //图片文件属性字符串
@@ -97,15 +105,6 @@ public:
     //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
     UiString m_srcHeight;
 
-    //加载图片时，按照DPI缩放图片大小（"dpi_scale"，会影响width属性、height属性）
-    DpiScaleOption m_sizeDpiScale;
-
-    //加载图片时，按照DPI缩放图片大小（"load_scale"）
-    DpiScaleOption m_loadDpiScale;
-
-    //rcDest属性的DPI自适应属性（"dest_scale"）
-    DpiScaleOption m_destDpiScale;
-
     //在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_hAlign;
 
@@ -114,6 +113,12 @@ public:
 
     //透明度（0 - 255）
     uint8_t m_bFade;
+
+    //加载图片时是否支持DPI自适应，即按照DPI缩放图片大小（"dpi_scale"）
+    bool m_bImageDpiScaleEnabled;
+
+    //rcDest属性是否支持DPI自适应，即按照DPI缩放（"dest_scale"）
+    bool m_bDestDpiScaleEnabled;
 
     //横向平铺
     bool m_bTiledX;
@@ -142,8 +147,11 @@ public:
     //    > 0: 具体的播放次数，达到播放次数后，停止播放
     int32_t m_nPlayCount;
 
-    //平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
-    int32_t m_nTiledMargin;
+    //平铺时的边距（仅当bTiledX为true时有效）(未进行DPI缩放)
+    int16_t m_nTiledMarginX;
+
+    //平铺时的边距（仅当bTiledY为true时有效）(未进行DPI缩放)
+    int16_t m_nTiledMarginY;
 
     //如果是PAG文件，用于指定动画的帧率，默认为30.0f
     float m_fPagMaxFrameRate;
@@ -166,14 +174,14 @@ public:
 
 private:
 
-    //rcPadding对应的DPI缩放百分比
-    uint16_t m_rcPaddingScale;
+    //rcMargin对应的DPI缩放百分比
+    uint16_t m_rcMarginScale;
 
     //绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
     UiRect* m_rcDest;
 
-    //在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
-    UiPadding16* m_rcPadding;
+    //在绘制目标区域中的外边距(如果指定了rcDest值，则此选项无效)
+    UiMargin16* m_rcMargin;
 
     //图片源区域位置和大小(未进行DPI缩放)
     UiRect* m_rcSource;

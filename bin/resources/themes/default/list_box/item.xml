@@ -6,10 +6,10 @@
                 selected_normal_color="bk_listitem_selected" 
                 fade_hot="false"/>
     <Class name="list_box_item_checkbox_1" height="20" text_padding="20,0,0,0" font="system_14" 
-                normal_image="file='public/CheckBox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center'" 
-                disabled_image="file='public/CheckBox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                selected_normal_image="file='public/CheckBox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center'" 
-                selected_disabled_image="file='public/CheckBox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center' fade='80'"/>
+                normal_image="file='public/CheckBox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
+                disabled_image="file='public/CheckBox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                selected_normal_image="file='public/CheckBox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
+                selected_disabled_image="file='public/CheckBox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'"/>
     <ListBoxItem class="list_box_item_test list_box_item_checkbox_1" height="auto">
         <HBox height="auto" mouse="false" padding="18,5,10,5">
             <Control name="control_img" width="auto" height="auto" margin="0,0,10" mouse="false"/>

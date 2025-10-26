@@ -16,7 +16,8 @@ ImageInfo::ImageInfo():
     m_bHasCustomSizeScale(false),
     m_fCustomSizeScaleX(0),
     m_fCustomSizeScaleY(0),
-    m_nImageFileDpiScale(100)
+    m_nImageFileDpiScale(100),
+    m_fImageSizeScale(1.0f)
 {
 }
 
@@ -258,7 +259,7 @@ int32_t ImageInfo::GetFrameDelayMs(uint32_t nFrameIndex)
 
 bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
                              const std::shared_ptr<IImage>& pImageData,                             
-                             bool bEnableImageDpiScale,
+                             bool bImageDpiScaleEnabled,
                              uint32_t nImageFileDpiScale)
 {
     GlobalManager::Instance().AssertUIThread();
@@ -274,7 +275,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
     //计算ImageInfo的大小
     int32_t nImageInfoWidth = 0;
     int32_t nImageInfoHeight = 0;
-    CalcImageInfoSize(loadParam, pImageData, bEnableImageDpiScale, nImageFileDpiScale, nImageInfoWidth, nImageInfoHeight);
+    CalcImageInfoSize(loadParam, pImageData, bImageDpiScaleEnabled, nImageFileDpiScale, nImageInfoWidth, nImageInfoHeight);
 
     ASSERT((nImageInfoWidth > 0) && (nImageInfoHeight > 0));
     if ((nImageInfoWidth <= 0) || (nImageInfoHeight <= 0)) {
@@ -291,7 +292,8 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
     //设置宽度和高度
     m_nImageInfoWidth = nImageInfoWidth;
     m_nImageInfoHeight = nImageInfoHeight;
-    m_bEnableImageDpiScale = bEnableImageDpiScale;
+    m_fImageSizeScale = pImageData->GetImageSizeScale();
+    m_bEnableImageDpiScale = bImageDpiScaleEnabled;
     m_nImageFileDpiScale = nImageFileDpiScale;
 
     m_bHasCustomSizeScale = false;
@@ -345,7 +347,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
 
 void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
                                   const std::shared_ptr<IImage>& pImageData,
-                                  bool bEnableImageDpiScale,
+                                  bool bImageDpiScaleEnabled,
                                   uint32_t nImageFileDpiScale,
                                   int32_t& nImageInfoWidth,
                                   int32_t& nImageInfoHeight) const
@@ -360,7 +362,7 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
     if (nImageFileDpiScale == 0) {
         return;
     }
-    if (!bEnableImageDpiScale) {
+    if (!bImageDpiScaleEnabled) {
         ASSERT(nImageFileDpiScale == 100);
         if (nImageFileDpiScale != 100) {
             return;
@@ -376,38 +378,33 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
     if ((nImageInfoWidth <= 0) || (nImageInfoHeight <= 0)) {
         return;
     }    
-    if (bEnableImageDpiScale && (nImageFileDpiScale != 100) && ImageUtil::IsValidImageScale(pImageData->GetImageSizeScale())) {
+    if (bImageDpiScaleEnabled && (nImageFileDpiScale != 100) && ImageUtil::IsValidImageScale(pImageData->GetImageSizeScale())) {
         const float fRealImageSizeScale = pImageData->GetImageSizeScale(); //实际加载的缩放比例(此值与加载时传入的缩放比例不一定相同)
         //举例：原图文件为"autumn.png"，如果匹配到DPI自适应图文件名为"autumn@175.png"，此时nImageFileDpiScale的值就是175
         const float fSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / 100.0f;
         //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小
-        int32_t nCalcSize = static_cast<int32_t>(nImageInfoWidth * 1.0f / fRealImageSizeScale + 0.5f);
-        nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageFileDpiScale + 0.5f);//原图大小
-        nCalcSize = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
-        if (nCalcSize > 0) {
-            nImageInfoWidth = nCalcSize;
-        }
-        nCalcSize = static_cast<int32_t>(nImageInfoHeight * 1.0f / fRealImageSizeScale + 0.5f);
-        nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageFileDpiScale + 0.5f);//原图大小
-        nCalcSize = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);      //用原图大小，重新计算ImageInfo的大小
-        if (nCalcSize > 0) {
-            nImageInfoHeight = nCalcSize;
-        }
-    }
+        int32_t nImageOrgWidth = static_cast<int32_t>(nImageInfoWidth * 1.0f / fRealImageSizeScale + 0.5f);
+        nImageOrgWidth = static_cast<int32_t>(nImageOrgWidth * 100.0f / nImageFileDpiScale + 0.5f);    //原图大小
+        nImageOrgWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageOrgWidth, fSizeScale); //用原图大小，重新计算ImageInfo的大小
 
-    ASSERT((nImageInfoWidth > 0) && (nImageInfoHeight > 0));
-    if ((nImageInfoWidth <= 0) || (nImageInfoHeight <= 0)) {
-        return;
+        int32_t nImageOrgHeight = static_cast<int32_t>(nImageInfoHeight * 1.0f / fRealImageSizeScale + 0.5f);
+        nImageOrgHeight = static_cast<int32_t>(nImageOrgHeight * 100.0f / nImageFileDpiScale + 0.5f);    //原图大小
+        nImageOrgHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageOrgHeight, fSizeScale); //用原图大小，重新计算ImageInfo的大小
+
+        if ((nImageOrgWidth > 0) && (nImageOrgHeight > 0)) {
+            nImageInfoWidth = nImageOrgWidth;
+            nImageInfoHeight = nImageOrgHeight;
+        }
     }
 
     //计算设置的比例, 影响加载的缩放百分比（通过width='300'或者width='300%'这种形式设置的图片属性）
     uint32_t nImageFixedWidth = 0;
     uint32_t nImageFixedHeight = 0;
-    const bool bHasFixedSize = loadParam.GetImageFixedSize(nImageFixedWidth, nImageFixedHeight, true); //绝对数值，需要按配置执行DPI缩放
+    const bool bHasFixedSize = loadParam.GetImageFixedSize(nImageFixedWidth, nImageFixedHeight); //绝对数值，已经做过DPI自适应
 
     float fImageFixedWidthPercent = 1.0f;
     float fImageFixedHeightPercent = 1.0f;
-    const bool bHasFixedPercent = loadParam.GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent, !bEnableImageDpiScale);//百分比: DPI缩放逻辑与加载DPI缩放相反
+    const bool bHasFixedPercent = loadParam.GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent);//百分比
 
     if (bHasFixedSize || bHasFixedPercent) {
         //有设置图片属性：通过width='300'或者width='300%'这种形式设置的图片属性
@@ -454,12 +451,6 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
             nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fNewScale);
         }
     }
-    else if (!bEnableImageDpiScale) {
-        //当图片加载时未开启DPI自适应, ImageInfo大小需要按DPI缩放
-        float fImageScale = loadParam.GetLoadDpiScale() / 100.0f;
-        nImageInfoWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageScale);
-        nImageInfoHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageScale);
-    }
 }
 
 void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorners, UiRect& rcSource, UiRect& rcSourceCorners)
@@ -485,10 +476,6 @@ void ImageInfo::ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorner
     //对rcDestCorners进行处理：由rcSourceCorners赋值，边角保持一致，避免绘制图片的时候四个角有变形；
     //采用九宫格绘制的时候，四个角的存在，是为了避免绘制的时候四个角出现变形
     rcDestCorners = rcSourceCorners;
-    if (!m_bEnableImageDpiScale) {
-        //rcDestCorners必须做DPI自适应，rcSourceCorners可能不做DPI自适应（根据配置指定，跟随图片）
-        dpi.ScaleRect(rcDestCorners);
-    }
 
     // 如果源位图已经按照DPI缩放过，那么对应的rcImageSource也需要缩放
     if ((rcSource.left < 0) || (rcSource.top < 0) ||
@@ -534,6 +521,11 @@ int32_t ImageInfo::GetWidth() const
 int32_t ImageInfo::GetHeight() const
 {
     return m_nImageInfoHeight;
+}
+
+float ImageInfo::GetImageSizeScale() const
+{
+    return m_fImageSizeScale;
 }
 
 uint32_t ImageInfo::GetFrameCount() const

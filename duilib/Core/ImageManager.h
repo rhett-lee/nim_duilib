@@ -47,15 +47,6 @@ public:
     void ReleaseImage(const std::shared_ptr<IImage>& pImageData);
 
 public:
-    /** 设置是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
-       （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
-    */
-    void SetDpiScaleAllImages(bool bEnable);
-
-    /** 判断是否默认对所有图片在加载时根据DPI进行缩放
-    */
-    bool IsDpiScaleAllImages() const;
-
     /** 设置是否智能匹配临近的缩放百分比图片
     *   比如当dpiScale为120的时候，如果无图片匹配，但存在缩放百分比为125的图片，会自动匹配到
     *   这个功能可用减少各个DPI下的图片，降低适配DPI的工作量
@@ -164,11 +155,6 @@ private:
     DString GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const;
 
 private:
-    /** 是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片
-       （设置为true后，也可以通过在xml中，使用"dpiscale='false'"属性关闭某个图片的DPI自动缩放）
-    */
-    bool m_bDpiScaleAllImages;
-
     /** 是否智能匹配临近的缩放百分比图片
     */
     bool m_bAutoMatchScaleImage;

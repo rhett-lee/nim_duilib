@@ -1,0 +1,634 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_image3_image" width="128" height="100" border_size="1" border_color="green" />
+    <Class name="page_image3_text"  width="128" height="auto" multi_line="true" replace_newline="true" text_align="left,vcenter" />
+    <Class name="page_image3_case"  width="128" height="auto" multi_line="true" replace_newline="true" text_align="hcenter,vcenter" />
+    <VScrollBox vscrollbar="true" hscrollbar="false" bkcolor="white">
+        <Label class="page_image3_text" text="测试1：原图(宽48 高48)，控件宽auto 高为auto，图片无拉伸，主要测试dpi_scale对各个属性的影响" width="100%" margin="0,4,0,0" font="system_bold_14"/>
+        <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' dpi_scale='false' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（1.1）"/>
+                <Label class="page_image3_text" text="dpi_scale='false' halign='center' valign='center'" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' dpi_scale='true' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（1.2）"/>
+                <Label class="page_image3_text" text="dpi_scale='true' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto" bkimage="file='svg_test.png' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.3）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.4）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='56' height='40' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.5）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nwidth='56' height='40'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='56' height='40' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.6）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nwidth='56' height='40'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='56' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.7）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nwidth='56'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='56' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.8）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nwidth='56'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' height='40' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.9）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nheight='40'"/>
+            </VBox>            
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='40' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.10）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nheight='40'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='150%' height='200%' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.11）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nwidth='150%' \nheight='200%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='150%' height='200%' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.12）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nwidth='150%' \nheight='200%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='150%' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.13）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nwidth='150%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' width='150%' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.14）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nwidth='150%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' height='200%' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.15）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nheight='200%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' height='200%' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.16）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nheight='200%'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' src='5,6,42,36' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.17）"/>
+                <Label class="page_image3_text" text="dpi_scale='false'\nsrc='5,6,42,36'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' src='5,6,42,36' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.18）"/>
+                <Label class="page_image3_text" text="dpi_scale='true'\nsrc='5,6,42,36'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,55,46' dest_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.19）"/>
+                <Label class="page_image3_text" text="dest_scale='false'\ndest='5,6,55,46'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,55,46' dest_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.20）"/>
+                <Label class="page_image3_text" text="dest_scale='true'\ndest='5,6,55,46'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,45,46' dest_scale='false' src='5,6,42,36' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.21）"/>
+                <Label class="page_image3_text" text="dest_scale='false'\ndest='5,6,45,46' \nsrc='5,6,42,36' \ndpi_scale='false'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,45,46' dest_scale='true' src='5,6,42,36' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.22）"/>
+                <Label class="page_image3_text" text="dest_scale='true'\ndest='5,6,45,46' \nsrc='5,6,42,36' \ndpi_scale='true'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,45,46' dest_scale='false' src='2,2,48,48' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（1.23）"/>
+                <Label class="page_image3_text" text="dest_scale='false'\ndest='5,6,45,46' \nsrc='2,2,48,48' \ndpi_scale='false'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='svg_test.png' dest='5,6,45,46' dest_scale='true' src='2,2,48,48' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（1.24）"/>
+                <Label class="page_image3_text" text="dest_scale='true'\ndest='5,6,45,46' \nsrc='2,2,48,48' \ndpi_scale='true'"/>
+            </VBox>            
+        </HFlowScrollBox>
+        
+        <Line class="splitline_hor_level1" margin="4,4,4,4"/>
+        
+        <Label class="page_image3_text" text="测试2：原图(宽48 高48)，各种使用场景的组合测试" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
+        <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
+            <!-- 分组1 -->
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' dpi_scale='false' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.1）"/>
+                <Label class="page_image3_text" text="dpi_scale='false' halign='center' valign='center' \n无拉伸" text_align="center,vcenter" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' dpi_scale='true' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.2）"/>
+                <Label class="page_image3_text" text="dpi_scale='true' \nhalign='center' valign='center'\n无拉伸" text_align="center,vcenter" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（2.3）" text_align="center,vcenter" />
+                <Label class="page_image3_text" text="dpi_scale='true' \n原图(拉伸)" text_align="center,vcenter" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.4）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nhalign='center' \nvalign='center'\n无拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34'"/>
+                <Label class="page_image3_case" text="用例编号（2.5）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34'\n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dpi_scale='false' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.6）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndpi_scale='false' \nhalign='center' \nvalign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（2.7）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndpi_scale='false' \n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' margin='10,10,10,10'"/>
+                <Label class="page_image3_case" text="用例编号（2.8）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nmargin='10,10,10,10' \n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' margin='10,0,0,0'"/>
+                <Label class="page_image3_case" text="用例编号（2.9）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nmargin='10,0,0,0' \n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' margin='0,10,0,0'"/>
+                <Label class="page_image3_case" text="用例编号（2.10）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nmargin='0,10,0,0' \n拉伸"/>
+            </VBox>    
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' margin='0,0,10,0'"/>
+                <Label class="page_image3_case" text="用例编号（2.11）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nmargin='0,0,10,0' \n拉伸"/>
+            </VBox>     
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' margin='0,0,0,10'"/>
+                <Label class="page_image3_case" text="用例编号（2.12）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nmargin='0,0,0,10' \n拉伸"/>
+            </VBox>                
+
+            <!-- 分组2 -->
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' halign='left' valign='top'"/>
+                <Label class="page_image3_case" text="用例编号（2.13）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nhalign='left' \nvalign='top' \n无拉伸"/>
+            </VBox> 
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.14）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nhalign='center' \nvalign='center \n无拉伸'"/>
+            </VBox> 
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' halign='right' valign='bottom'"/>
+                <Label class="page_image3_case" text="用例编号（2.15）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nhalign='right' \nvalign='bottom' \n无拉伸"/>
+            </VBox> 
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dest='12,12,48,48'"/>
+                <Label class="page_image3_case" text="用例编号（2.16）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndest='12,12,48,48' \n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dest='12,12,48,48' dest_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（2.17）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndest='12,12,48,48' \ndest_scale='false' \n拉伸"/>
+            </VBox> 
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dest='24,24'"/>
+                <Label class="page_image3_case" text="用例编号（2.18）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndest='24,24' \n无拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dest='24,24' dest_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（2.19）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \ndest='24,24' \ndest_scale='false' \n无拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' src='12,10,36,34' dpi_scale='false' dest='24,24' dest_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（2.20）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' dpi_scale='false' \ndest='24,24' \ndest_scale='false' \n无拉伸"/>
+            </VBox> 
+
+            <!-- 分组3 -->
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.21）"/>
+                <Label class="page_image3_text" text="原图(无拉伸)" text_align="center,vcenter" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='96' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.22）"/>
+                <Label class="page_image3_text" text="width='96' \nhalign='center' \nvalign='center'"/>
+            </VBox>    
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' height='64' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.23）"/>
+                <Label class="page_image3_text" text="height='64' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='96' height='64' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.24）"/>
+                <Label class="page_image3_text" text="width='96' \nheight='64' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='150' height='150' dest='0,0'"/>
+                <Label class="page_image3_case" text="用例编号（2.25）"/>
+                <Label class="page_image3_text" text="width='150' \nheight='150' \ndest='0,0' 无拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='150' height='150'"/>
+                <Label class="page_image3_case" text="用例编号（2.26）"/>
+                <Label class="page_image3_text" text="width='150' \nheight='150' \n拉伸"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='500%' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.27）"/>
+                <Label class="page_image3_text" text="width='500%' \nhalign='center' \nvalign='center' \n大图片 自适应"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' height='200%' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.28）"/>
+                <Label class="page_image3_text" text="height='200%' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='500%' height='200%' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.29）"/>
+                <Label class="page_image3_text" text="width='500%' \nheight='200%' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='1000%' height='800%' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.30）"/>
+                <Label class="page_image3_text" text="width='1000%' \nheight='800%' halign='center' valign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='svg_test.png' width='1000%' height='800%''"/>
+                <Label class="page_image3_case" text="用例编号（2.31）"/>
+                <Label class="page_image3_text" text="width='1000%' \nheight='800%'" text_align="center,vcenter" />
+            </VBox>
+
+            <!-- 分组4 -->           
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="80" height="120" bkimage="file='svg_test.png' src='12,10,36,34'"/>
+                <Label class="page_image3_case" text="用例编号（2.32）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \n拉伸" text_align="center,vcenter" />
+            </VBox>
+            
+             <!-- 分组5 -->
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="80" height="120" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true'"/>
+                <Label class="page_image3_case" text="用例编号（2.33）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \n自适应"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="80" height="120" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.34）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nvalign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="80" height="120" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' valign='bottom'"/>    
+                <Label class="page_image3_case" text="用例编号（2.35）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nvalign='bottom'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="160" height="60" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true'"/>
+                <Label class="page_image3_case" text="用例编号（2.36）"/>
+                <Label class="page_image3_text" width="160" text="src='12,10,36,34' \nadaptive_dest_rect='true'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="160" height="60" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' halign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.37）"/>
+                <Label class="page_image3_text" width="160" text="src='12,10,36,34' \nadaptive_dest_rect='true'\nhalign='center'" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="160" height="60" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' halign='right'"/>
+                <Label class="page_image3_case" text="用例编号（2.38）"/>
+                <Label class="page_image3_text" width="160" text="src='12,10,36,34' \nadaptive_dest_rect='true'\nhalign='right'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="40" height="10" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' halign='left'"/>
+                <Label class="page_image3_case" text="用例编号（2.39）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nhalign='left'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="40" height="10" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' halign='center'"/>
+                <Label class="page_image3_case" text="用例编号（2.40）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nhalign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="40" height="10" bkimage="file='svg_test.png' src='12,10,36,34' adaptive_dest_rect='true' halign='right'"/>    
+                <Label class="page_image3_case" text="用例编号（2.41）"/>
+                <Label class="page_image3_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nhalign='right'"/>
+            </VBox>
+        </HFlowScrollBox>
+        
+        <Line class="splitline_hor_level1" margin="4,4,4,4"/>
+        
+        <Label class="page_image3_text" text="测试3：九宫格绘制，其他使用场景的组合测试" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
+        <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='nine-patch.png' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（3.1）"/>
+                <Label class="page_image3_text" text="原图: 宽100 高100 \ndpi_scale='false'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='nine-patch.png' dpi_scale='true'"/>
+                <Label class="page_image3_case" text="用例编号（3.2）"/>
+                <Label class="page_image3_text" text="原图: 宽100 高100 \ndpi_scale='true'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="auto" height="auto"  bkimage="file='nine-patch.png' dpi_scale='false' dest='0,0,180,180' dest_scale='false' corner='13,13,13,13'"/>
+                <Label class="page_image3_case" text="用例编号（3.3）"/>
+                <Label class="page_image3_text" text="九宫格绘图 \ndpi_scale='false' \ndest='0,0,180,180' \ndest_scale='false' \ncorner='13,13,13,13'" width="auto"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='false' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（3.4）"/>
+                <Label class="page_image3_text" text="原图(14*14) \n无拉伸 \ndpi_scale='false' \nhalign='center' \nvalign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='false' corner='6,6,6,6'"/>
+                <Label class="page_image3_case" text="用例编号（3.5）"/>
+                <Label class="page_image3_text" text="九宫格绘制 \n原图\ndpi_scale='false' \ncorner='6,6,6,6'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='true' halign='center' valign='center'"/>
+                <Label class="page_image3_case" text="用例编号（3.6）"/>
+                <Label class="page_image3_text" text="原图(14*14) \nDPI自适应 \ndpi_scale='true' \nhalign='center' \nvalign='center'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='true' corner='6,6,6,6'"/>
+                <Label class="page_image3_case" text="用例编号（3.7）"/>
+                <Label class="page_image3_text" text="九宫格绘制 \nDPI自适应图\ndpi_scale='true' \ncorner='6,6,6,6'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='false' width='28' corner='12,12,12,12'"/>
+                <Label class="page_image3_case" text="用例编号（3.8）"/>
+                <Label class="page_image3_text" text="九宫格绘制 \n手动放大\ndpi_scale='false' \nwidth='28' \ncorner='12,12,12,12'"/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" width="120" height="120" bkimage="file='libre-gui-frame.png' dpi_scale='false'"/>
+                <Label class="page_image3_case" text="用例编号（3.9）"/>
+                <Label class="page_image3_text" text="原图(14*14) 拉伸\ndpi_scale='false' "/>
+            </VBox>
+            <VBox width="auto" height="auto">
+                <Control class="page_image3_image" bkimage="file='autumn.png' fade='64'"/>
+                <Label class="page_image3_case" text="用例编号（3.10）"/>
+                <Label class="page_image3_text" text="fade='64' \n透明度为64" text_align="center,vcenter" />
+            </VBox> 
+        </HFlowScrollBox>
+        
+        <Line class="splitline_hor_level1" margin="4,4,4,4"/>
+        
+        <Label class="page_image3_text" text="测试4：九宫格绘制，中间部分拉伸和平铺的测试，只看中间部分即可" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
+        <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2" bkcolor='Cornsilk'>
+            <!-- 原图 48*48 中间部分宽度和高度都是20，边框大小为14-->
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.1）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 拉伸(默认)" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.2）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='true'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.3）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.4）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nytiled='true' \nfull_ytiled='true'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.5）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nytiled='true' \nfull_ytiled='false'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.6）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='true' \nytiled='true' \nfull_ytiled='true'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='true'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.7）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='true'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.8）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='true' \nytiled='true' \nfull_ytiled='false'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.9）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false'" width="100%" />
+            </VBox>
+            <VBox width="auto" height="auto">
+                <HBox width="auto" height="auto">
+                    <VBox width="212" height="200">                
+                        <HBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Control min_width="7" width="7"/>
+                        </HBox>                    
+                    </VBox>
+                    <VBox width="200" height="212">
+                        <VBox>
+                            <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1'"/>
+                            <!-- 纵向分割条，用于调整左右区域大小 -->
+                            <Split bkcolor="splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <Control min_height="7" height="7"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <Label class="page_image3_case" text="用例编号（4.10）" width="100%" />
+                <Label class="page_image3_case" text="九宫格绘图 平铺\nxtiled='true' \nfull_xtiled='false' \nytiled='true' \nfull_ytiled='false' \ntiled_margin='1'" width="100%" />
+            </VBox>
+        </HFlowScrollBox>
+    </VScrollBox>
+</Window>

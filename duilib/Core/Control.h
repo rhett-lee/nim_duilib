@@ -1211,22 +1211,22 @@ protected:
     */
     void ClearStateImages();
 
-    /** 设置状态图片的内边距left值(所有状态图片的内边距一起调整)
-    * @param [in] leftOffset 要设置的图片内边距偏移量，正数表示增加，负数表示减少
+    /** 设置状态图片的外边距left值(所有状态图片的外边距一起调整)
+    * @param [in] leftOffset 要设置的图片外边距偏移量，正数表示增加，负数表示减少
     * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
     * @return 成功返回true，失败返回false
     */
-    bool AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale);
+    bool AdjustStateImagesMarginLeft(int32_t leftOffset, bool bNeedDpiScale);
 
-    /** 获取背景图片的内边距
+    /** 获取背景图片的外边距
      */
-    UiPadding GetBkImagePadding() const;
+    UiMargin GetBkImageMargin() const;
 
-    /** 设置背景图片的内边距
-     * @param[in] rcPadding 要设置的图片内边距
+    /** 设置背景图片的外边距
+     * @param[in] rcMargin 要设置的图片外边距
      * @param[in] bNeedDpiScale 兼容 DPI 缩放
      */
-    bool SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale);
+    bool SetBkImageMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
     /** 判断是否禁用背景图片绘制
     */

@@ -42,8 +42,7 @@ public:
     /** 构造函数
     * @param [in] srcWidth 指定的图片宽度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
     * @param [in] srcHeight 指定的图片高度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
-    * @param [in] loadDpiScaleOption 加载图片时的DPI缩放的设置
-    * @param [in] imageSizeDpiScaleOption 设置图片大小时的DPI缩放的设置（针对srcWidth和srcHeight）
+    * @param [in] bImageDpiScaleEnabled 该图片是否支持屏幕DPI自适应
     * @param [in] nLoadDpiScale 绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
     * @param [in] bIconAsAnimation 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
@@ -53,8 +52,7 @@ public:
     */
     ImageLoadParam(DString srcWidth,
                    DString srcHeight,
-                   DpiScaleOption loadDpiScaleOption,
-                   DpiScaleOption imageSizeDpiScaleOption,
+                   bool bImageDpiScaleEnabled,
                    uint32_t nLoadDpiScale /*= 100*/,
                    bool bAsyncDecode /*= false*/,
                    bool bIconAsAnimation /*= false*/,
@@ -81,13 +79,13 @@ public:
     bool IsSvgImageFile() const;
 
 public:
-    /** 设置图片加载时的DPI缩放选项
+    /** 设置加载图片时是否支持DPI自适应，即按照DPI缩放图片大小
     */
-    void SetLoadDpiScaleOption(DpiScaleOption loadDpiScaleOption);
+    void SetImageDpiScaleEnabled(bool bImageDpiScaleEnabled);
 
-    /** 获取图片大小的DPI缩放选项
+    /** 设置加载图片时是否支持DPI自适应，即按照DPI缩放图片大小
     */
-    DpiScaleOption GetLoadDpiScaleOption() const;
+    bool IsImageDpiScaleEnabled() const;
 
     /** 设置绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100% ，无缩放）
     */
@@ -121,8 +119,7 @@ public:
 
 public:
     /** 获取加载图片的缓存KEY
-    *   完整的格式是：<图片完整路径>@<界面缩放百分比>@<宽度>:<高度>
-    *          举例: "C:\Test.jpg@200@80:40"
+    *   完整的格式是：<图片完整路径>@<界面缩放百分比>#<是否支持DPI自适应>$<宽度>:<高度>
     * @param [in] nLoadDpiScale 请求图片对应的DPI缩放百分比
     */
     DString GetLoadKey(uint32_t nLoadDpiScale) const;
@@ -135,7 +132,7 @@ public:
     * @param [out] nImageWidth 图片设置的宽度，如果返回0则无数据，比如：width='300'
     * @param [out] nImageHeight 图片设置的高度，如果返回0则无数据，比如：height='300'
     */
-    bool GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const;
+    bool GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight) const;
 
     /** 获取图片加载是否包含固定百分比设置大小的选项
     */
@@ -145,7 +142,7 @@ public:
     * @param [out] fImageWidthPercent 图片设置的宽度，如果返回1.0f则无数据，比如：width='300%'
     * @param [out] fImageHeightPercent 图片设置的高度，如果返回1.0f则无数据，比如：height='300%'
     */
-    bool GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent, bool bNeedDpiScale) const;
+    bool GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent) const;
 
     /** 设置该图片绘制目标区域大小(已做过DPI缩放)，用于优化加载性能
     * @param [in] rcMaxDestRectSize 区域的宽度和高度
@@ -159,11 +156,11 @@ public:
 private:
     /** 获取图片加载的固定设置大小
     */
-    bool GetScaledFixedSize(const DString& srcSize, uint32_t& nScaledSize, bool bNeedDpiScale) const;
+    bool GetScaledFixedSize(const DString& srcSize, uint32_t& nScaledSize) const;
 
     /** 获取图片加载的百分比设置大小
     */
-    bool GetScaledFixedPercent(const DString& srcSize, float& fScaledPercent, bool bNeedDpiScale) const;
+    bool GetScaledFixedPercent(const DString& srcSize, float& fScaledPercent) const;
 
 private:
     //(属性名称："file")本地绝对路径或者压缩包内的相对路径，不包含属性
@@ -197,11 +194,8 @@ private:
     //是否支持异步线程解码图片数据
     bool m_bAsyncDecode;
 
-    //图片加载的DPI缩放选项（加载图片时是否做DPI缩放，影响内存占有率）
-    DpiScaleOption m_loadDpiScaleOption;
-
-    //图片大小的DPI缩放选项
-    DpiScaleOption m_imageSizeDpiScaleOption;
+    //加载图片时是否支持DPI自适应，即按照DPI缩放图片大小（"dpi_scale"）
+    bool m_bImageDpiScaleEnabled;
 };
 
 } // namespace ui

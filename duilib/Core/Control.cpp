@@ -661,8 +661,8 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         SetToolTipWidth(nToolTipWidth, false);
     }
 
-    UiPadding rcBkImagePadding = GetBkImagePadding();
-    SetBkImagePadding(rcBkImagePadding, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
+    UiMargin rcBkImageMargin = GetBkImageMargin();
+    SetBkImageMargin(rcBkImageMargin, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
 
     UiFixedInt fixedWidth = GetFixedWidth();
     if (fixedWidth.IsInt32()) {
@@ -1120,7 +1120,7 @@ void Control::SetForeStateImage(ControlStateType stateType, const DString& strIm
     Invalidate();
 }
 
-bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
+bool Control::AdjustStateImagesMarginLeft(int32_t leftOffset, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         Dpi().ScaleInt(leftOffset);
@@ -1133,18 +1133,18 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
         m_pImageMap->GetAllImages(allImages);
     }
     bool bSetOk = false;
-    UiPadding rcPadding;
+    UiMargin rcMargin;
     for (Image* pImage : allImages) {
         if (pImage == nullptr) {
             continue;
         }
-        rcPadding = pImage->GetImagePadding(Dpi());
-        rcPadding.left += leftOffset;
-        if (rcPadding.left < 0) {
-            rcPadding.left = 0;
+        rcMargin = pImage->GetImageMargin(Dpi());
+        rcMargin.left += leftOffset;
+        if (rcMargin.left < 0) {
+            rcMargin.left = 0;
         }
-        if (!pImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
-            pImage->SetImagePadding(rcPadding, false, Dpi());
+        if (!pImage->GetImageMargin(Dpi()).Equals(rcMargin)) {
+            pImage->SetImageMargin(rcMargin, false, Dpi());
             bSetOk = true;
         }
     }
@@ -1154,24 +1154,24 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
     return bSetOk;
 }
 
-UiPadding Control::GetBkImagePadding() const
+UiMargin Control::GetBkImageMargin() const
 {
-    UiPadding rcPadding;
+    UiMargin rcMargin;
     if (m_pBkImage != nullptr) {
-        rcPadding = m_pBkImage->GetImagePadding(Dpi());
+        rcMargin = m_pBkImage->GetImageMargin(Dpi());
     }
-    return rcPadding;
+    return rcMargin;
 }
 
-bool Control::SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale)
+bool Control::SetBkImageMargin(UiMargin rcMargin, bool bNeedDpiScale)
 {
     bool bSetOk = false;
     if (m_pBkImage != nullptr) {
         if (bNeedDpiScale) {
-            Dpi().ScalePadding(rcPadding);
+            Dpi().ScaleMargin(rcMargin);
         }
-        if (!m_pBkImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
-            m_pBkImage->SetImagePadding(rcPadding, false, Dpi());
+        if (!m_pBkImage->GetImageMargin(Dpi()).Equals(rcMargin)) {
+            m_pBkImage->SetImageMargin(rcMargin, false, Dpi());
             bSetOk = true;
             Invalidate();
         }        
@@ -1937,9 +1937,9 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
     uint32_t nImageInfoWidth = 0;
     uint32_t nImageInfoHeight = 0;
     if (image != nullptr) {
-        bool bNeedLoadImage = true;
+        bool bNeedLoadImage = true;//是否需要加载图片
         ImageLoadParam loadParam = image->GetImageLoadParam();        
-        loadParam.GetImageFixedSize(nImageInfoWidth, nImageInfoHeight, true);
+        loadParam.GetImageFixedSize(nImageInfoWidth, nImageInfoHeight);
         if (estImageType == EstimateImageType::kWidthOnly) {
             if (nImageInfoWidth > 0) {
                 bNeedLoadImage = false;
@@ -1966,10 +1966,10 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
         }
         else {
             if (nImageInfoWidth == 0) {
-                nImageInfoWidth = nImageInfoHeight;
+                nImageInfoWidth = nImageInfoHeight;//冗余设置，实际上不需要宽度
             }
             if (nImageInfoHeight == 0) {
-                nImageInfoHeight = nImageInfoWidth;
+                nImageInfoHeight = nImageInfoWidth;//冗余设置，实际上不需要高度
             }
         }
     }
@@ -1982,7 +1982,7 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
         bool hasDestAttr = false;
         UiRect rcImageDestRect = imageAttribute.GetImageDestRect(nImageInfoWidth, nImageInfoHeight, Dpi());
         if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-            //使用配置中指定的目标区域
+            //使用配置中指定的目标区域（已按配置做好DPI自适应）：优先作为图片大小的依据
             rcDest = rcImageDestRect;
             if (rcDest.left < 0) {
                 rcDest.left = 0;
@@ -1993,7 +1993,10 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
             hasDestAttr = true;
         }
         UiRect rcSource = imageAttribute.GetImageSourceRect();
-        Dpi().ScaleRect(rcSource);
+        if (imageAttribute.m_bImageDpiScaleEnabled) {
+            //该图片支持DPI自适应
+            Dpi().ScaleRect(rcSource);
+        }        
         if (rcSource.right > (int32_t)nImageInfoWidth) {
             rcSource.right = (int32_t)nImageInfoWidth;
         }
@@ -2002,7 +2005,8 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
         }
 
         if (rcDest.Width() > 0) {
-            imageSize.cx = rcDest.Width();
+            //以0为基点，right为边界
+            imageSize.cx = rcDest.right;
         }
         else if (rcSource.Width() > 0) {
             imageSize.cx = rcSource.Width();
@@ -2012,7 +2016,8 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
         }
 
         if (rcDest.Height() > 0) {
-            imageSize.cy = rcDest.Height();
+            //以0为基点，bottom为边界
+            imageSize.cy = rcDest.bottom;
         }
         else if (rcSource.Height() > 0) {
             imageSize.cy = rcSource.Height();
@@ -2021,10 +2026,10 @@ UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType
             imageSize.cy = nImageInfoHeight;
         }
         if (!hasDestAttr) {
-            //如果没有rcDest属性，则需要增加图片的内边距（图片自身的内边距属性）
-            UiPadding rcImagePadding = imageAttribute.GetImagePadding(Dpi());
-            imageSize.cx += (rcImagePadding.left + rcImagePadding.right);
-            imageSize.cy += (rcImagePadding.top + rcImagePadding.bottom);
+            //如果没有rcDest属性，则需要增加图片的外边距（图片自身的外边距属性）
+            UiMargin rcImageMargin = imageAttribute.GetImageMargin(Dpi());
+            imageSize.cx += (rcImageMargin.left + rcImageMargin.right);
+            imageSize.cy += (rcImageMargin.top + rcImageMargin.bottom);
         }
         if (imageAttribute.m_bAdaptiveDestRect) {
             //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
@@ -2647,6 +2652,15 @@ bool Control::PaintImage(IRender* pRender,
         return false;
     }
 
+//#ifdef _DEBUG
+//    if (this->GetBkImagePtr() == &duiImage) {
+//        DString log = StringUtil::Printf(_T("BkImage: Width=%d, Height=%d, LoadScale=%d, fScale=%.02f"),
+//            imageInfo->GetWidth(), imageInfo->GetHeight(),
+//            imageInfo->GetLoadDpiScale(), imageInfo->GetImageSizeScale());
+//        const_cast<Control*>(this)->SetToolTipText(log);
+//    }
+//#endif
+
     ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
     if (!strModify.empty()) {
         newImageAttribute.ModifyAttribute(strModify, Dpi());
@@ -2659,7 +2673,7 @@ bool Control::PaintImage(IRender* pRender,
     }
     UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(imageInfo->GetWidth(), imageInfo->GetHeight(), Dpi());
     if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-        //使用配置中指定的目标区域
+        //使用配置中指定的目标区域(已按配置做过DPI自适应)
         rcDest = rcImageDestRect;
         rcDest.Offset(GetRect().left, GetRect().top);
     }
@@ -2669,8 +2683,8 @@ bool Control::PaintImage(IRender* pRender,
     UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
     imageInfo->ScaleImageSourceRect(Dpi(), rcDestCorners, rcSource, rcSourceCorners);
     
-    //运用rcPadding、hAlign、vAlign 三个图片属性
-    rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
+    //运用rcMargin、hAlign、vAlign 三个图片属性
+    rcDest.Deflate(newImageAttribute.GetImageMargin(Dpi()));
     rcDest.Validate();
     rcSource.Validate();
     const int32_t nImageWidth = rcSource.Width();
@@ -2839,10 +2853,13 @@ bool Control::PaintImage(IRender* pRender,
             pRender->DrawImageRect(m_rcPaint, pBitmap.get(), rcDest, rcSource, iFade, pMatrix);
         }
         else {
+            int32_t nTiledMarginX = Dpi().GetScaleInt(newImageAttribute.m_nTiledMarginX);
+            int32_t nTiledMarginY = Dpi().GetScaleInt(newImageAttribute.m_nTiledMarginY);
             pRender->DrawImage(m_rcPaint, pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
                                iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
                                newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
-                               newImageAttribute.m_nTiledMargin, newImageAttribute.m_bWindowShadowMode);
+                               nTiledMarginX, nTiledMarginY,
+                               newImageAttribute.m_bWindowShadowMode);
         }
 
         //绘制成功后，从延迟绘制列表中删除
@@ -4072,32 +4089,36 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
     }
 
     ImageLoadParam imageLoadParam = duiImage.GetImageLoadParam();
-    imageLoadParam.SetLoadDpiScale(nLoadDpiScale);//设置加载的DPI百分比
-    imageLoadParam.SetImageLoadPath(imageLoadPath);
-    if (imageLoadParam.GetLoadDpiScaleOption() == DpiScaleOption::kDefault) {
-        if (GlobalManager::Instance().Image().IsDpiScaleAllImages()) {
-            imageLoadParam.SetLoadDpiScaleOption(DpiScaleOption::kOn);
-        }
-        else {
-            imageLoadParam.SetLoadDpiScaleOption(DpiScaleOption::kOff);
-        }
-    }
+    imageLoadParam.SetLoadDpiScale(nLoadDpiScale);  //设置加载的DPI百分比
+    imageLoadParam.SetImageLoadPath(imageLoadPath); //设置图片资源的路径
     std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
     if ((imageInfo == nullptr) ||
         (imageInfo->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
         //第1种情况：如果图片没有加载则执行加载图片；
         //第2种情况：如果图片发生变化，则重新加载该图片
         bool bFromCache = false;
-        bool bEnableImageLoadSizeOpt = bPaintImage;//是否开启图片加载优化
+
+        //是否开启图片加载优化(以最小的比例加载图片，占有内存最少，绘制速度最快)，开启条件总结为：
+        //1. 仅当绘制时加载图片可以开启该项优化，因为此时加载的图片，改变加载比例时只影响图片的显示效果，并不影响控件和图片的布局
+        //2. 如果图片指定了不支持DPI自适应（dpi_scale="false"），那么关闭该项优化
+        //3. 如果绘制属性指定为平铺（xtiled="true" 或者 ytiled="true"），那么关闭该项优化
+        //4. 如果绘制属性指定为阴影（window_shadow_mode="true"），那么关闭该项优化
+        //5. 如果绘制属性指定为自适应（adaptive_dest_rect="true"），那么关闭该项优化
+        //6. 如果绘制属性指定为九宫格绘制（corner="left,top,right,bottom"），那么关闭该项优化
+        bool bEnableImageLoadSizeOpt = bPaintImage;
         if (duiImage.GetImageAttribute().m_bTiledX ||
             duiImage.GetImageAttribute().m_bTiledY ||
-            duiImage.GetImageAttribute().m_bWindowShadowMode) {
+            duiImage.GetImageAttribute().m_bWindowShadowMode ||
+           !duiImage.GetImageAttribute().m_bImageDpiScaleEnabled ||
+            duiImage.GetImageAttribute().m_bAdaptiveDestRect ||
+            duiImage.GetImageAttribute().HasImageCorner()) {
             bEnableImageLoadSizeOpt = false;
         }
-        //如果图片指定了宽度或者高度，则加载时，计算最适合的缩放比
+        
         uint32_t nImageSetWidth = 0;
         uint32_t nImageSetHeight = 0;
-        if (imageLoadParam.GetImageFixedSize(nImageSetWidth, nImageSetHeight, true)) {
+        if (imageLoadParam.GetImageFixedSize(nImageSetWidth, nImageSetHeight)) {
+            //如果图片指定了宽度或者高度(举例:width="100" 或 height="100"这种)，可以在加载时，计算最适合的缩放比，以提高效率，但不会有影响
             imageLoadParam.SetMaxDestRectSize(UiSize((int32_t)nImageSetWidth, (int32_t)nImageSetHeight));
         }
         else if (bEnableImageLoadSizeOpt) {

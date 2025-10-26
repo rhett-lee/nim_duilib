@@ -119,41 +119,41 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 <Label text="Hello Label" normal_text_color="0x00FFFF"/>
 ```
 
-## 5. 图片（包括动画）
+## 5. 图片（包括动画图片）
 
 ### 图片的所有可用属性
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| file | | string | 图片资源文件名，根据此设置去加载图片资源 |
-| name | | string | 图片资源名称（控件内唯一字符串，用于标识图片资源）|
-| width | | string | 图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%，如果不设置则使用图片的实际宽度 |
-| height | | string | 图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%，如果不设置则使用图片的实际高度 |
-| src | | rect | 图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源） |
-| corner | | rect | 图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制，比如'8,8,8,8' |
-| dest | | rect | 设置目标区域，该区域是指相对于所属控件的矩形区域（允许只设置顶点坐标，此时矩形区域大小与图片大小一致） |
-| dest_scale |true | bool | 加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）; 绘制时（内部使用），控制是否对dest属性进行DPI缩放 |
-| dpi_scale |true | bool | 是否按照DPI缩放后的大小来确定显示区域的大小（仅针对width属性、height属性） |
-| load_scale |true | bool | 加载图片时，是否直接按DPI自适应缩放后的大小加载图片，此选项意在内存占有率和绘制效率之前寻求平衡。<br>当图片的宽高很大时，高清屏下，开启该选项会占用较多内存<br>当图片的宽高较小时，该选项的开启和关闭影响不大 |
-| adaptive_dest_rect | false | bool | 自动适应目标区域（等比例缩放图片） |
-| padding | | rect | 在目标区域中设置内边距 |
+| file | | string | 图片资源文件名（含路径），根据此设置去加载图片资源，比如：<br>（1）`file="render/svg_test.png"`：使用相对路径指定图片资源，render目录应该在程序的资源目录`resources/themes/default`中<br>（2）`file="svg_test.png"`：不指定路径，该文件在与XML文件相同的目录中时，不需要指定路径 <br>（3）`file="public/button/window-minimize.svg"`：相对目录的方式，public目录是公共资源目录，该目录中有很多子目录，分类保存公共图片资源，此目录在程序的资源目录`resources/themes/default`中<br>（4）`file="D:/image/apng_test.png"`：使用绝对路径指定图片资源|
+| name | | string | 图片资源名称（控件内唯一字符串，用于标识图片资源）<br>设置以后，可以通过`Image* Control::FindImageByName(const DString& imageName) const`函数获取到该图片资源的接口|
+| width | | string | 图片宽度，可以放大或缩小图像：数值可以是像素或者百分比，比如:<br> width="300"：设置图片宽度为300像素<br>width="75%"：设置图片宽度为图片原宽度的75% <br>如果只设置了宽度，未设置高度，则图片的高度按宽度等比例缩放|
+| height | | string | 图片高度，可以放大或缩小图像：数值可以是像素或者百分比，比如:<br> height="300"：设置图片高度为300像素<br>height="75%"：设置图片高度为图片原高度的75% <br>如果只设置了高度，未设置宽度，则图片的宽度按高度等比例缩放| 
+| src | | rect | 图片源区域设置，格式为src="left,top,right,bottom"：可以用于仅包含源图片的部分图片内容（比如通过此机制，可以将按钮的各个状态图片整合到一张大图片上，然后通过src指定各个状态的图片资源）<br>src指定的区域，其基准是源图片的矩形范围(0,0,图片宽度,图片高度)<br>如果使用width和height指定了图片的宽度和高度属性，则src的基准是指定尺寸的矩形范围(0,0,width,height)<br>比如：源图片宽100，高100，指定`src="10,5,60,40"`代表取图片以"10,5"为原点，宽度60高度40的图片内容作为图片资源 |
+| corner | | rect | 图片的九宫格绘图属性，使用示例: corner="left,top,right,bottom"，图片示意图：<br> <img src="./Images/nine-patch.png"/> <br>采用九宫格绘制方式绘制图片时，图片共计分为九个区域：<br>四个角（区域：1、3、7、8）的图片绘制时不拉伸 <br>四个边（区域：2、4、6、9）的图片绘制时上下拉伸<br>中间（区域：5）的图片区域默认拉伸绘制，也可以设置xtiled="true"、ytiled="true"属性来选择平铺绘制 <br> corner属性指定的参数，就是设置区域（4、2、6、9）的宽度或者高度 <br>corner指定的区域，其基准是源图片的矩形范围(0,0,图片宽度,图片高度)<br>如果使用width和height指定了图片的宽度和高度属性，则corner的基准是指定尺寸的矩形范围(0,0,width,height)<br>比如：corner="4,2,6,9"，代表区域4的宽度为4像素，区域2的高度为2像素，区域6的宽度为6像素，区域9的高度为9像素 |
+| dest | | rect | 设置图片绘制目标区域，该区域是指相对于所属控(Control::GetRect())左上角的矩形区域<br>比如（假定控件的矩形宽度和高度均是100）：<br>（1）dest="10,20,60,70": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度均是50像素<br>（2）dest="10,20": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度为图片资源的宽度和高度（允许只设置顶点坐标，此时绘制目标矩形区域大小与图片资源大小一致） |
+| dest_scale |true | bool | 仅当设置了dest属性时有效，控制对dest属性是否按照DPI缩放<br>比如（假定当前屏幕的DPI缩放比为200%）：<br>（1）dest="10,20,60,70" dest_scale="true"：dest区域在绘制时，按DPI缩放后的实际区域为：dest="20,40,120,140" <br>（2）dest="10,20,60,70" dest_scale="false"：dest区域在绘制时，禁止DPI缩放，实际区域仍然为：dest="10,20,60,70" <br> 如果不设置，dest_scale的默认值为true<br>该选项的值一般不需要特殊指定，保持默认即可适配各种DPI的屏幕设置|
+| dpi_scale |true | bool | 该图片是否支持屏幕DPI自适应: <br> （1）dpi_scale="true": 支持DPI自适应，图片的显示尺寸按屏幕DPI缩放比等比例放大 <br>（2）dpi_scale="false": 不支持DPI自适应：图片的显示尺寸保持原图尺寸，不根据DPI调整 <br>如果设置了dpi_scale="false"，当屏幕的DPI变化时，图片的显示尺寸不会随着DPI变化，此时程序在不同DPI下，显示的布局效果会不同<br>该选项除了会影响图片加载后的显示区域大小，同时也会影响图片的width、height、src、corner几个属性值的DPI自适应功能<br>如果不设置dpi_scale选项，默认值为true，该选项一般不需要调整，保持默认值即可做到界面布局能够适应各种屏幕DPI|
+| adaptive_dest_rect | false | bool | 图片大小自动适应目标区域（等比例缩放图片），可使用halign/valign设置图片在目标区域中的对齐方式 |
+| margin | | rect | 在目标区域中设置图片的外边距 |
 | halign | | string | 横向对齐方式，可取值："left"、"center"、"right" |
 | valign | | string | 纵向对齐方式，可取值："top"、"center"、"bottom" |
 | fade | 255 | int | 图片的透明度，取值范围：0 - 255 |
 | xtiled | false | bool | 横向平铺绘制 |
-| full_xtiled | true | bool | 横向平铺绘制时，保证整张图片绘制, 仅当xtiled为true时有效 |
+| full_xtiled | false | bool | 横向平铺绘制时，保证整张图片绘制, 仅当xtiled为true时有效 |
 | ytiled | false| bool | 纵向平铺绘制 |
-| full_ytiled | true | bool | 纵向平铺绘制时，保证整张图片绘制, 仅当ytiled为true时有效 |
-| tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺仅当xtiled为true时或者ytiled为true时有效 |
+| full_ytiled | false | bool | 纵向平铺绘制时，保证整张图片绘制, 仅当ytiled为true时有效 |
+| tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，同时设置tiled_margin_x和tiled_margin_y为相同的值 |
+| tiled_margin_x | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为横向平铺的间隔，仅当xtiled为true时有效 |
+| tiled_margin_y | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为纵向平铺的间隔，仅当ytiled为true时有效 |
 | window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
-| icon_size | 32 | int | 指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效) |
+| icon_size | 32 | int | 如果是ICO文件，指定加载ICO文件的图片大小 |
 | icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
 | icon_frame_delay | 1000 | int | 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒 |
 | auto_play | true | bool | 如果是动画图片，是否自动播放 |
 | async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）， <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
-| pag_max_frame_rate | 30 | int | 用于指定动画的帧率(仅当图片文件是PAG文件时有效) |
-| pag_password | | string | PAG文件解码所需的密码(仅当图片文件是PAG文件时有效) |
+| pag_max_frame_rate | 30 | int | 如果是PAG文件，用于指定动画的帧率 |
 
 图片的使用示例：
 ```xml

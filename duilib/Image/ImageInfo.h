@@ -42,6 +42,10 @@ public:
     */
     int32_t GetHeight() const;
 
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    float GetImageSizeScale() const;
+
 public:
     /** 是否为SVG图片
     */
@@ -106,12 +110,12 @@ public:
     /** 设置原图数据接口
     * @param [in] loadParam 加载参数
     * @param [in] pImageData 原图数据接口
-    * @param [in] bEnableImageDpiScale 该图片是否支持DPI自适应
+    * @param [in] bImageDpiScaleEnabled 该图片是否支持DPI自适应
     * @param [in] nImageFileDpiScale DPI自适应图片的DPI缩放比
     */
     bool SetImageData(const ImageLoadParam& loadParam,
                       const std::shared_ptr<IImage>& pImageData,
-                      bool bEnableImageDpiScale,
+                      bool bImageDpiScaleEnabled,
                       uint32_t nImageFileDpiScale);
 
     /** 获取关联的原图的图片数据接口
@@ -121,8 +125,8 @@ public:
     /** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
     * @param [in] dpi DPI缩放接口
     * @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
-    * @param [in/out] rcSource 图片区域
-    * @param [in/out] rcSourceCorners 图片区域的圆角信息
+    * @param [in/out] rcSource 图片区域（传入值未作DPI缩放）
+    * @param [in/out] rcSourceCorners 图片区域的圆角信息（传入值未作DPI缩放）
     */
     void ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcDestCorners, UiRect& rcSource, UiRect& rcSourceCorners);
     void ScaleImageSourceRect(const DpiManager& dpi, UiRect& rcSource);
@@ -140,7 +144,7 @@ private:
     */
     void CalcImageInfoSize(const ImageLoadParam& loadParam,
                            const std::shared_ptr<IImage>& pImageData,
-                           bool bEnableImageDpiScale,
+                           bool bImageDpiScaleEnabled,
                            uint32_t nImageFileDpiScale,
                            int32_t& nImageInfoWidth,
                            int32_t& nImageInfoHeight) const;
@@ -205,6 +209,10 @@ private:
     /** 图片数据(单帧，缓存；但svg图片无缓存)
     */
     std::shared_ptr<IBitmap> m_pBitmap;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    float m_fImageSizeScale;
 };
 
 } // namespace ui

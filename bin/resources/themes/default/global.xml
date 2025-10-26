@@ -270,7 +270,7 @@
     <Class name="btn_wnd_restore_11" normal_image="file='public/button/window-restore.svg' 
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_fullscreen_11" normal_image="file='public/button/window-fullscreen.svg'
-                                 width='24' height='24' valign='center' halign='center' padding='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center' margin='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_settings_11" normal_image="file='public/button/btn_setting.svg' 
                                  width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
      
@@ -298,19 +298,19 @@
                                         selected_normal_color="bk_listitem_selected" 
                                         icon_image_right_space="4" 
                                         fadehot="false"/>
-    <Class name="tree_node_checkbox" normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="tree_node_checkbox" normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
+                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center' fade='80'"
                                      check_box_image_right_space="6"/>
-    <Class name="tree_node_expand" expand_normal_image="file='public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
-                                   expand_hot_image="file='public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
-                                   expand_disabled_image="file='public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                   collapse_normal_image="file='public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
-                                   collapse_hot_image="file='public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
-                                   collapse_disabled_image="file='public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="tree_node_expand" expand_normal_image="file='public/tree/expand_normal.svg' margin='2,0,0,0' valign='center'" 
+                                   expand_hot_image="file='public/tree/expand_hot.svg' margin='2,0,0,0' valign='center'" 
+                                   expand_disabled_image="file='public/tree/expand_normal.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                   collapse_normal_image="file='public/tree/collapse_normal.svg' margin='2,0,0,0' valign='center'" 
+                                   collapse_hot_image="file='public/tree/collapse_hot.svg' margin='2,0,0,0' valign='center'" 
+                                   collapse_disabled_image="file='public/tree/collapse_normal.svg' margin='2,0,0,0' valign='center' fade='80'"
                                    icon_image_right_space="4"/>
     <!--进度条通用样式-->
     <Class name="progress_horizontal_blue" valign="center" horizontal="true" height="3" width="stretch" value="0" max="100" min="0" 
@@ -442,12 +442,12 @@
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="0,4,0,2" bkcolor="splitline_level1" halign="right"/>
     <!--ListCtrl中的CheckBox样式，应用于Header和ListCtrl数据-->
     <Class name="list_ctrl_checkbox" valign="center" halign="left"
-                                     normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center' fade='80'"/>
+                                     normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
+                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center' fade='80'"/>
     <!--ListCtrl中的ReportView的样式-->
     <Class name="list_ctrl_report_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
                                       child_margin_y="0" paint_selected_colors="true"

@@ -55,14 +55,14 @@ DString Image::GetImagePath() const
     return m_imageAttribute.m_sImagePath.c_str();
 }
 
-void Image::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi)
+void Image::SetImageMargin(const UiMargin& newMargin, bool bNeedDpiScale, const DpiManager& dpi)
 {
-    m_imageAttribute.SetImagePadding(newPadding, bNeedDpiScale, dpi);
+    m_imageAttribute.SetImageMargin(newMargin, bNeedDpiScale, dpi);
 }
 
-UiPadding Image::GetImagePadding(const DpiManager& dpi) const
+UiMargin Image::GetImageMargin(const DpiManager& dpi) const
 {
-    return m_imageAttribute.GetImagePadding(dpi);
+    return m_imageAttribute.GetImageMargin(dpi);
 }
 
 bool Image::IsImagePaintEnabled() const
@@ -92,8 +92,6 @@ const ImageAttribute& Image::GetImageAttribute() const
 
 ImageLoadParam Image::GetImageLoadParam() const
 {
-    DpiScaleOption loadDpiScaleOption = m_imageAttribute.m_loadDpiScale;
-    DpiScaleOption imageSizeDpiScaleOption = m_imageAttribute.m_sizeDpiScale;
     uint32_t nLoadDpiScale = (m_pControl != nullptr) ? m_pControl->Dpi().GetScale() : 100;
     bool bAsyncDecode = m_imageAttribute.m_bAsyncLoad;
     bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
@@ -102,8 +100,7 @@ ImageLoadParam Image::GetImageLoadParam() const
     float fPagMaxFrameRate = m_imageAttribute.m_fPagMaxFrameRate;
     return ImageLoadParam(m_imageAttribute.m_srcWidth.c_str(),
                           m_imageAttribute.m_srcHeight.c_str(),
-                          loadDpiScaleOption,
-                          imageSizeDpiScaleOption,
+                          m_imageAttribute.m_bImageDpiScaleEnabled,
                           nLoadDpiScale,
                           bAsyncDecode,
                           bIconAsAnimation,

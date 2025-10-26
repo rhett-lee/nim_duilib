@@ -103,14 +103,17 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.right = rcPaint.right;
     rect.bottom = rcPaint.bottom;
 
-    bool xtiled = true;
-    bool ytiled = true;
-    bool fullxtiled = false;
-    bool fullytiled = false;//完整平铺，如果控件不够绘制完整图片，就不会绘制。如果为false，则只要有空间就绘制，但此时图片只是绘制一部分的。
-    int nTiledMargin = 0;
+    bool bTiledX = true;
+    bool bTiledY = true;
+    bool bFullTiledX = false;
+    bool bFullTiledY = false; // 完整平铺，如果控件不够绘制完整图片，就不会绘制。如果为false，则只要有空间就绘制，但此时图片只是绘制一部分的。
+    int32_t nTiledMarginX = 0;
+    int32_t nTiledMarginY = 0;
+
     UiRect rcCorners(48, 48, 48, 48);
     pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcCorners);
-    pRender->DrawImage(rcPaint, pBitmap.get(), rect, rcCorners, rcImageSource, rcCorners, 255, xtiled, ytiled, fullxtiled, fullytiled, nTiledMargin);
+    pRender->DrawImage(rcPaint, pBitmap.get(), rect, rcCorners, rcImageSource, rcCorners, 255,
+                       bTiledX, bTiledY, bFullTiledX, bFullTiledY, nTiledMarginX, nTiledMarginY);
 }
 
 void RenderTest1::PaintChild(IRender* pRender, const UiRect& rcPaint)

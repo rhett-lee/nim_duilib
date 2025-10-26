@@ -17,7 +17,6 @@
 namespace ui 
 {
 ImageManager::ImageManager():
-    m_bDpiScaleAllImages(true),
     m_bAutoMatchScaleImage(true),
     m_bImageAsyncLoad(true)
 {
@@ -47,10 +46,8 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     DString imageFullPath = imageLoadPath.m_imageFullPath.ToString();   //图片的路径（本地路径或者压缩包内相对路径）
     uint32_t nImageFileDpiScale = 100;                                  //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
-    const bool bEnableImageDpiScale = (IsDpiScaleAllImages() &&         //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-                                      (loadParam.GetLoadDpiScaleOption() != DpiScaleOption::kOff)) || //图片属性：load_scale="false"，只使用原图，不需要缩放
-                                      loadParam.IsSvgImageFile();       // SVG图片，始终开启DPI自适应（因关闭时，部分矢量缩放的逻辑失效，导致绘制异常）
-    if (bEnableImageDpiScale && 
+    const bool bImageDpiScaleEnabled = loadParam.IsImageDpiScaleEnabled();//图片属性：load_scale="false"，只使用原图，不需要缩放
+    if (bImageDpiScaleEnabled && 
         ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
          (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {
         //只有在资源目录下的文件，才执行查找适配DPI图片的功能
@@ -70,8 +67,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     float fImageSizeScale = 1.0f;
     //计算设置的比例, 影响加载的缩放百分比（通过width='300'或者width='300%'这种形式设置的图片属性）
     const bool bHasFixedSize = loadParam.HasImageFixedSize();
-    const bool bHasFixedPercent = loadParam.HasImageFixedPercent();
-    if (bEnableImageDpiScale && !bHasFixedSize && !bHasFixedPercent) {
+    if (bImageDpiScaleEnabled && !bHasFixedSize) {
         //加载的比例（按相对原图来计算，确保各个DPI适配图的显示效果相同）
         //1.如果图片宽高用于评估显示空间的大小：必须按照DPI缩放比来缩放，这样才能在不同DPI下界面显示效果相同
         //2.如果不需要用图片的宽度和高度评估显示空间大小，那么这个加载比例只影响图片显示效果，不影响布局
@@ -207,7 +203,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     if (spImageData != nullptr) {
         std::shared_ptr<ImageInfo> imageInfo(new ImageInfo, &ImageManager::CallImageInfoDestroy);
         imageInfo->SetImageKey(imageKey);
-        bool bRet = imageInfo->SetImageData(loadParam, spImageData, bEnableImageDpiScale, nImageFileDpiScale);
+        bool bRet = imageInfo->SetImageData(loadParam, spImageData, bImageDpiScaleEnabled, nImageFileDpiScale);
         ASSERT(bRet);
         if (bRet) {
             ASSERT(loadKey == imageInfo->GetLoadKey());
@@ -335,16 +331,6 @@ void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
         }
     };
     GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, nDelaySeconds * 1000);
-}
-
-void ImageManager::SetDpiScaleAllImages(bool bEnable)
-{
-    m_bDpiScaleAllImages = bEnable;
-}
-
-bool ImageManager::IsDpiScaleAllImages() const
-{
-    return m_bDpiScaleAllImages;
 }
 
 void ImageManager::SetAutoMatchScaleImage(bool bAutoMatchScaleImage)
