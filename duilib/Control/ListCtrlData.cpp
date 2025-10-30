@@ -1300,40 +1300,7 @@ bool ListCtrlData::SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32
         //索引号无效
         return false;
     }
-    int32_t nValidTextFormat = 0;
-    if (nTextFormat & TEXT_SINGLELINE) {
-        nValidTextFormat |= TEXT_SINGLELINE;
-    }
-
-    if (nTextFormat & TEXT_CENTER) {
-        nValidTextFormat |= TEXT_CENTER;
-    }
-    else if (nTextFormat & TEXT_RIGHT) {
-        nValidTextFormat |= TEXT_RIGHT;
-    }
-    else{
-        nValidTextFormat |= TEXT_LEFT;
-    }
-
-    if (nTextFormat & TEXT_VCENTER) {
-        nValidTextFormat |= TEXT_VCENTER;
-    }
-    else if (nTextFormat & TEXT_BOTTOM) {
-        nValidTextFormat |= TEXT_BOTTOM;
-    }
-    else {
-        nValidTextFormat |= TEXT_TOP;
-    }
-    if (nTextFormat & TEXT_END_ELLIPSIS) {
-        nValidTextFormat |= TEXT_END_ELLIPSIS;
-    }
-    if (nTextFormat & TEXT_PATH_ELLIPSIS) {
-        nValidTextFormat |= TEXT_PATH_ELLIPSIS;
-    }
-    if (nTextFormat & TEXT_NOCLIP) {
-        nValidTextFormat |= TEXT_NOCLIP;
-    }
-
+    int32_t nValidTextFormat = (int32_t)Label::GetValidTextStyle(nTextFormat);
     if (pStorage->nTextFormat != nValidTextFormat) {
         pStorage->nTextFormat = ui::TruncateToUInt16(nValidTextFormat);
         EmitDataChanged(itemIndex, itemIndex);

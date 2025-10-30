@@ -136,19 +136,25 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
 | text_id |  | string | 多语言功能的文本ID |
-| text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
-| text_padding | 0,0,0,0 | rect | 文字显示的边距, 如(2,2,2,2) |
+| text_align | "left,top" | string | 设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。<br>水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） <br>垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）|
+| text_padding | 0,0,0,0 | rect | 文字显示的内边距, 格式为"left,top,right,bottom"，分别代表在目标区域的左侧、上方、右侧、下方设置内边距值，如："2,2,2,2" |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
-| end_ellipsis | false | bool | 句末显示不完整是否使用...代替 |
-| path_ellipsis | false | bool | 对于路径，显示不完整时是否使用...代替中间路径 |
-| normal_text_color |  | string | 普通字体颜色,不指定则使用默认颜色,如(blue) |
-| hot_text_color |  | string | 鼠标悬浮字体颜色,不指定则使用默认颜色,如(blue) |
-| pushed_text_color |  | string | 鼠标按下字体颜色,不指定则使用默认颜色,如(blue) |
-| disabled_text_color |  | string | disabled字体颜色,不指定则使用默认颜色,如(blue) |
+| end_ellipsis | false | bool | 句末显示不完整是否使用 ... 代替 |
+| path_ellipsis | false | bool | 对于路径，显示不完整时是否使用 ... 代替中间路径 |
+| normal_text_color |  | string | 普通字体颜色,不指定则使用默认颜色，如 "blue" |
+| hot_text_color |  | string | 鼠标悬浮字体颜色,不指定则使用默认颜色，如 "blue" |
+| pushed_text_color |  | string | 鼠标按下字体颜色,不指定则使用默认颜色，如 "blue" |
+| disabled_text_color |  | string | disabled字体颜色,不指定则使用默认颜色，如 "blue" |
 | single_line | true | bool | 是否单行输出文字 |
 | multi_line | false | bool | 是否多行输出文字，与single_line属性互斥 |
 | auto_tooltip | false | bool | 鼠标悬浮到控件显示的提示文本是否省略号出现时才显示|
 | replace_newline | false | bool | 是否替换文本中的换行符：将字符串"\\\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本，举例：原始字符串为"第一行\\\\n第二行"，当为true时，"\\\\n"这两个字符会被替换为换行符"\n"，最终字符串变成"第一行\n第二行" |
+| spacing_mul | 1.0f | float | 行（列）间距的倍数, 是字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距 <br> 设置后，实际的行间距为：字体大小 * spacing_mul + spacing_add |
+| spacing_add | 0 | float | 行（列）间距附加量, 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移(像素) <br> 设置后，实际的行间距为：字体大小 * spacing_mul + spacing_add |
+| vertical_text | false | bool | 设置文本方向：true为纵向文本，false为横向文本 <br> 横向文本绘制方向：从左到右，从上到下 <br> 纵向文本绘制方向：从上到下，从右到左|
+| word_vertical_spacing | 0 | float | 当纵向绘制文本时，设置每个字在纵向的间隔（像素） |
+| use_font_height | true | bool | 当纵向绘制文本时，设置字间距使用该字体的默认高度，而不是每个字的实际高度（显示时所有字体等高） |
+| ascii_rotate_90 | true | bool | 当纵向绘制文本时，对于字母、数字等字符，顺时针旋转90度显示|
 
 Label 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

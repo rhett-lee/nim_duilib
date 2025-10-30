@@ -405,6 +405,7 @@
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkTextBox.cpp" />
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
+    <ClCompile Include="RenderSkia\VerticalDrawText.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
     <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp" />
@@ -767,6 +768,7 @@
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />
     <ClInclude Include="RenderSkia\SkUtils.h" />
+    <ClInclude Include="RenderSkia\VerticalDrawText.h" />
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
     <ClInclude Include="Render\IRender.h" />

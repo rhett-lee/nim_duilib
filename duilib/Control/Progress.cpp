@@ -20,7 +20,7 @@ Progress::Progress(Window* pWindow) :
     m_nMarqueePos(0),
     m_bReverse(false)
 {
-    SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
+    SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
     SetFixedHeight(UiFixedInt(12), true, true);
     SetMarqueeWidth(10, true);
     SetMarqueeStep(4, true);

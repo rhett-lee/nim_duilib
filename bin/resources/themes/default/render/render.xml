@@ -27,12 +27,13 @@
                 <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="0"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="1"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片3" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title="文字" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="6"/>                
-                <TabCtrlItem class="tab_ctrl_item" title="属性页" close_button_class="" tab_box_item_index="7"/>
-                <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title="文字-横排" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title="文字-竖排" close_button_class="" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="7"/>                
+                <TabCtrlItem class="tab_ctrl_item" title="属性页" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="9"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
@@ -48,25 +49,29 @@
                     <Include src="page_image3.xml"/>
                 </VBox>
                 <VBox name="main_view_page_03">
-                    <Label text="页面4：文字绘制测试"/>
-                    <Include src="page_text.xml"/>
+                    <Label text="页面4：文字绘制-横排文本"/>
+                    <Include src="page_text1.xml"/>
                 </VBox>
                 <VBox name="main_view_page_04">
-                    <Label text="页面5：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend，九宫格绘制，平铺绘制等）"/>
-                    <RenderTest1 />
+                    <Label text="页面5：文字绘制-竖排文本"/>
+                    <Include src="page_text2.xml"/>
                 </VBox>
                 <VBox name="main_view_page_05">
-                    <Label text="页面6：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
-                    <RenderTest2 />
+                    <Label text="页面6：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend，九宫格绘制，平铺绘制等）"/>
+                    <RenderTest1 />
                 </VBox>
                 <VBox name="main_view_page_06">
-                    <Label text="页面7：DrawBoxShadow测试"/>
-                    <Include src="page_boxshadow.xml"/>
+                    <Label text="页面7：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
+                    <RenderTest2 />
                 </VBox>
                 <VBox name="main_view_page_07">
-                    <Include src="page_property_grid.xml"/>
+                    <Label text="页面8：DrawBoxShadow测试"/>
+                    <Include src="page_boxshadow.xml"/>
                 </VBox>
                 <VBox name="main_view_page_08">
+                    <Include src="page_property_grid.xml"/>
+                </VBox>
+                <VBox name="main_view_page_09">
                     <Label text="页面9：窗口阴影测试"/>
                     <Include src="page_window_shadow.xml"/>
                 </VBox> 

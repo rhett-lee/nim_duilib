@@ -116,13 +116,8 @@ public:
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
     virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
-    virtual UiRect MeasureString(const DString& strText, IFont* pFont,
-                                 uint32_t uFormat, int32_t width = DUI_NOSET_VALUE) override;
-
-
-    virtual void DrawString(const UiRect& textRect, const DString& strText,
-                            UiColor dwTextColor, IFont* pFont,
-                            uint32_t uFormat, uint8_t uFade = 255) override;
+    virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
+    virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
 
     virtual void MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,

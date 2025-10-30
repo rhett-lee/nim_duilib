@@ -681,20 +681,25 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }
     this->SetTextStyle(uTextStyle, false);
 
+    DrawStringParam drawParam = this->GetDrawParam();//绘制参数
+    drawParam.textRect = rc;
+
     if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot)
             && !GetSelectedStateTextColor(kControlStateHot).empty()) {
             DString clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
             if (!clrStateColor.empty()) {
-                UiColor dwWinColor = this->GetUiColor(clrStateColor);
-                pRender->DrawString(rc, textValue, dwWinColor, this->GetIFontById(this->GetFontId()), this->GetTextStyle());
+                drawParam.dwTextColor = this->GetUiColor(clrStateColor);
+                drawParam.uFade = 255;
+                pRender->DrawString(textValue, drawParam);
             }
 
             if (this->GetHotAlpha() > 0) {
                 DString textColor = GetSelectedStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
-                    UiColor dwTextColor = this->GetUiColor(textColor);
-                    pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(this->GetFontId()), this->GetTextStyle(), (uint8_t)this->GetHotAlpha());
+                    drawParam.dwTextColor = this->GetUiColor(textColor);
+                    drawParam.uFade = (uint8_t)this->GetHotAlpha();
+                    pRender->DrawString(textValue, drawParam);
                 }
             }
 
@@ -702,7 +707,9 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
         }
     }
 
-    pRender->DrawString(rc, textValue, dwClrColor, this->GetIFontById(this->GetFontId()), this->GetTextStyle());
+    drawParam.dwTextColor = dwClrColor;
+    drawParam.uFade = 255;
+    pRender->DrawString(textValue, drawParam);
 }
 
 template<typename InheritType>

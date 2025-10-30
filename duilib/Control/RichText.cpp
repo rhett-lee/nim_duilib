@@ -149,7 +149,7 @@ uint16_t RichText::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     if (m_hAlignType == HorAlignType::kAlignCenter) {
-        uTextStyle |= TEXT_CENTER;
+        uTextStyle |= TEXT_HCENTER;
     }
     else if (m_hAlignType == HorAlignType::kAlignRight) {
         uTextStyle |= TEXT_RIGHT;
@@ -292,14 +292,14 @@ void RichText::PaintText(IRender* pRender)
 
     //如果设置了对齐方式，需要评估绘制位置
     const uint32_t uTextStyle = GetTextStyle();
-    if ((uTextStyle & (TEXT_CENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
+    if ((uTextStyle & (TEXT_HCENTER | TEXT_RIGHT | TEXT_VCENTER | TEXT_BOTTOM))) {
         //计算绘制所占的区域大小
         UiRect rect;
         CalcDestRect(pRender, rc, rect);
-        if ((rect.Width() < rc.Width()) && (uTextStyle & (TEXT_CENTER | TEXT_RIGHT))) {
+        if ((rect.Width() < rc.Width()) && (uTextStyle & (TEXT_HCENTER | TEXT_RIGHT))) {
             //水平方向
             int32_t diff = rc.Width() - rect.Width();
-            if (uTextStyle & TEXT_CENTER) {
+            if (uTextStyle & TEXT_HCENTER) {
                 rc.Offset(diff / 2, 0);
             }
             else if (uTextStyle & TEXT_RIGHT) {

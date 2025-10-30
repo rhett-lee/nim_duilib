@@ -12,7 +12,7 @@ Slider::Slider(Window* pWindow) :
     m_thumbStateImage(),
     m_rcProgressBarPadding()
 {
-    SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
+    SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
 }
 
 DString Slider::GetType() const { return DUI_CTR_SLIDER; }

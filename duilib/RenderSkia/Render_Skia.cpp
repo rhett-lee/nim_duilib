@@ -1,4 +1,5 @@
 #include "Render_Skia.h"
+#include "VerticalDrawText.h"
 #include "SkUtils.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
@@ -1597,21 +1598,29 @@ void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor,
     }
 }
 
-void Render_Skia::DrawString(const UiRect& textRect,
-                             const DString& strText,
-                             UiColor dwTextColor, 
-                             IFont* pFont, 
-                             uint32_t uFormat, 
-                             uint8_t uFade /*= 255*/)
+void Render_Skia::DrawString(const DString& strText, const DrawStringParam& drawParam)
 {
+    if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
+        //这种情况是窗口大小为0的情况，返回，不加断言
+        return;
+    }
+    if (drawParam.uFormat & TEXT_VERTICAL) {
+        //纵向绘制文本
+        VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
+        return drawTextUtil.DrawStringVertical(strText, drawParam);
+    }
+
     PerformanceStat statPerformance(_T("Render_Skia::DrawString"));
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(!strText.empty());
     if (strText.empty()) {
         return;
     }
-    ASSERT(pFont != nullptr);
-    if (pFont == nullptr) {
+    ASSERT(!drawParam.textRect.IsEmpty());
+    if (drawParam.textRect.IsEmpty()) {
+        return;
+    }
+    ASSERT(drawParam.pFont != nullptr);
+    if (drawParam.pFont == nullptr) {
         return;
     }
 
@@ -1624,7 +1633,7 @@ void Render_Skia::DrawString(const UiRect& textRect,
     const SkTextEncoding textEncoding = GetTextEncoding();
     
     //获取字体接口    
-    Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+    Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(drawParam.pFont);
     ASSERT(pSkiaFont != nullptr);
     if (pSkiaFont == nullptr) {
         return;
@@ -1637,51 +1646,58 @@ void Render_Skia::DrawString(const UiRect& textRect,
 
     //绘制属性设置
     SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(dwTextColor.GetA(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
-    if (uFade != 0xFF) {
-        skPaint.setAlpha(uFade);
+    skPaint.setARGB(drawParam.dwTextColor.GetA(),
+                    drawParam.dwTextColor.GetR(),
+                    drawParam.dwTextColor.GetG(),
+                    drawParam.dwTextColor.GetB());
+    if (drawParam.uFade != 0xFF) {
+        skPaint.setAlpha(drawParam.uFade);
     }
 
     //绘制区域
-    SkIRect rcSkDestI = { textRect.left, textRect.top, textRect.right, textRect.bottom };
+    SkIRect rcSkDestI = { drawParam.textRect.left, drawParam.textRect.top,
+                          drawParam.textRect.right, drawParam.textRect.bottom };
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
     //设置绘制属性
     SkTextBox skTextBox;
     skTextBox.setBox(rcSkDest);
-    if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) {
         //单行文本
         skTextBox.setLineMode(SkTextBox::kOneLine_Mode);
     }
 
+    //设置行间距
+    skTextBox.setSpacing(drawParam.fSpacingMul, drawParam.fSpacingAdd);
+
     //绘制区域不足时，自动在末尾绘制省略号
     bool bEndEllipsis = false;
-    if (uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_END_ELLIPSIS) {
         bEndEllipsis = true;
     }
     skTextBox.setEndEllipsis(bEndEllipsis);
 
     bool bPathEllipsis = false;
-    if (uFormat & DrawStringFormat::TEXT_PATH_ELLIPSIS) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_PATH_ELLIPSIS) {
         bPathEllipsis = true;
     }
     skTextBox.setPathEllipsis(bPathEllipsis);
 
     //绘制文字时，不使用裁剪区域（可能会导致文字绘制超出边界）
-    if (uFormat & DrawStringFormat::TEXT_NOCLIP) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_NOCLIP) {
         skTextBox.setClipBox(false);
     }
     //删除线
-    skTextBox.setStrikeOut(pFont->IsStrikeOut());
+    skTextBox.setStrikeOut(drawParam.pFont->IsStrikeOut());
     //下划线
-    skTextBox.setUnderline(pFont->IsUnderline());
+    skTextBox.setUnderline(drawParam.pFont->IsUnderline());
 
-    if (uFormat & DrawStringFormat::TEXT_CENTER) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_HCENTER) {
         //横向对齐：居中对齐
         skTextBox.setTextAlign(SkTextBox::kCenter_Align);
     }
-    else if (uFormat & DrawStringFormat::TEXT_RIGHT) {
+    else if (drawParam.uFormat & DrawStringFormat::TEXT_RIGHT) {
         //横向对齐：右对齐
         skTextBox.setTextAlign(SkTextBox::kRight_Align);
     }
@@ -1690,11 +1706,11 @@ void Render_Skia::DrawString(const UiRect& textRect,
         skTextBox.setTextAlign(SkTextBox::kLeft_Align);
     }
 
-    if (uFormat & DrawStringFormat::TEXT_VCENTER) {
+    if (drawParam.uFormat & DrawStringFormat::TEXT_VCENTER) {
         //纵向对齐：居中对齐
         skTextBox.setSpacingAlign(SkTextBox::kCenter_SpacingAlign);
     }
-    else if (uFormat & DrawStringFormat::TEXT_BOTTOM) {
+    else if (drawParam.uFormat & DrawStringFormat::TEXT_BOTTOM) {
         //纵向对齐：下对齐
         skTextBox.setSpacingAlign(SkTextBox::kEnd_SpacingAlign);
     }
@@ -1710,22 +1726,25 @@ void Render_Skia::DrawString(const UiRect& textRect,
                    skPaint);
 }
 
-UiRect Render_Skia::MeasureString(const DString& strText, 
-                                  IFont* pFont, 
-                                  uint32_t uFormat, 
-                                  int width /*= DUI_NOSET_VALUE*/)
+UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringParam& measureParam)
 {
-    PerformanceStat statPerformance(_T("Render_Skia::MeasureString"));
     if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
         //这种情况是窗口大小为0的情况，返回空，不加断言
         return UiRect();
     }
+    if (measureParam.uFormat & TEXT_VERTICAL) {
+        //纵向绘制文本
+        VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
+        return drawTextUtil.MeasureStringVertical(strText, measureParam);
+    }
+
+    PerformanceStat statPerformance(_T("Render_Skia::MeasureString"));    
     ASSERT(!strText.empty());
     if (strText.empty()) {
         return UiRect();
     }
-    ASSERT(pFont != nullptr);
-    if (pFont == nullptr) {
+    ASSERT(measureParam.pFont != nullptr);
+    if (measureParam.pFont == nullptr) {
         return UiRect();
     }
 
@@ -1736,7 +1755,7 @@ UiRect Render_Skia::MeasureString(const DString& strText,
     }
 
     //获取字体接口
-    Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+    Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(measureParam.pFont);
     ASSERT(pSkiaFont != nullptr);
     if (pSkiaFont == nullptr) {
         return UiRect();
@@ -1750,22 +1769,24 @@ UiRect Render_Skia::MeasureString(const DString& strText,
     //绘制属性设置
     SkPaint skPaint = *m_pSkPaint;
 
-    bool isSingleLineMode = false;
-    if (uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-        isSingleLineMode = true;
+    bool bSingleLineMode = false;
+    if (measureParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) {
+        bSingleLineMode = true;
     }
         
     //计算行高
     SkFontMetrics fontMetrics;
     SkScalar fontHeight = pSkFont->getMetrics(&fontMetrics);
 
-    if (isSingleLineMode || (width <= 0)) {
+    if (bSingleLineMode || (measureParam.rectSize <= 0)) {
         //单行模式, 或者没有限制宽度
+        SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
         SkScalar textWidth = pSkFont->measureText(strText.c_str(),
                                                   strText.size() * sizeof(DString::value_type),
                                                   GetTextEncoding(),
-                                                  nullptr,
+                                                  &bounds,
                                                   &skPaint);
+        textWidth = std::max(textWidth, bounds.width());
         int textIWidth = SkScalarTruncToInt(textWidth + 0.5f);
         if (textWidth > textIWidth) {
             textIWidth += 1;
@@ -1775,15 +1796,15 @@ UiRect Render_Skia::MeasureString(const DString& strText,
         }
         UiRect rc;
         rc.left = 0;
-        if (width <= 0) {
+        if (measureParam.rectSize <= 0) {
             rc.right = textIWidth;
         }
-        else if (textIWidth < width) {
+        else if (textIWidth < measureParam.rectSize) {
             rc.right = textIWidth;
         }
         else {
             //返回限制宽度
-            rc.right = width;
+            rc.right = measureParam.rectSize;
         }
         rc.top = 0;
         rc.bottom = SkScalarTruncToInt(fontHeight + 0.5f);
@@ -1794,14 +1815,14 @@ UiRect Render_Skia::MeasureString(const DString& strText,
     }
     else {
         //多行模式，并且限制宽度width为有效值
-        ASSERT(width > 0);
+        ASSERT(measureParam.rectSize > 0);
         std::vector<size_t> lineLenList; //每行文本数据的长度（字节）
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
                                                       strText.size() * sizeof(DString::value_type),
                                                       GetTextEncoding(),
                                                       *pSkFont,
                                                       skPaint,
-                                                      SkScalar(width),
+                                                      SkScalar(measureParam.rectSize),
                                                       SkTextBox::kWordBreak_Mode,
                                                       &lineLenList);
         //计算所需宽度
@@ -1818,11 +1839,13 @@ UiRect Render_Skia::MeasureString(const DString& strText,
             }
             for (const DString& lineText : lineTextList) {
                 //按单行评估每行文本，取最大宽度
+                SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
                 SkScalar lineTextLen = pSkFont->measureText(lineText.c_str(),
                                                             lineText.size() * sizeof(DString::value_type),
                                                             GetTextEncoding(),
-                                                            nullptr,
+                                                            &bounds,
                                                             &skPaint);
+                lineTextLen = std::max(lineTextLen, bounds.width());
                 int32_t lineTextIWidth = SkScalarTruncToInt(lineTextLen + 0.5f);
                 if (lineTextLen > lineTextIWidth) {
                     lineTextIWidth += 1;
@@ -3050,7 +3073,7 @@ void Render_Skia::DrawTextString(const UiRect& textRect,
     //下划线
     skTextBox.setUnderline(pSkiaFont->IsUnderline());
 
-    if (uFormat & DrawStringFormat::TEXT_CENTER) {
+    if (uFormat & DrawStringFormat::TEXT_HCENTER) {
         //横向对齐：居中对齐
         skTextBox.setTextAlign(SkTextBox::kCenter_Align);
     }

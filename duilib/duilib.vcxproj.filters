@@ -816,6 +816,9 @@
     <ClCompile Include="Layout\GridLayout.cpp">
       <Filter>Layout</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\VerticalDrawText.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1693,6 +1696,9 @@
     </ClInclude>
     <ClInclude Include="Box\GridBox.h">
       <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\VerticalDrawText.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

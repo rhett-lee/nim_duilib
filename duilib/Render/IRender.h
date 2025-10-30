@@ -463,16 +463,22 @@ enum class UILIB_API RopMode
 enum UILIB_API DrawStringFormat
 {
     TEXT_LEFT           = 0x0001,   //水平对齐方式：靠左
-    TEXT_CENTER         = 0x0002,   //水平对齐方式：居中
+    TEXT_HCENTER        = 0x0002,   //水平对齐方式：居中
     TEXT_RIGHT          = 0x0004,   //水平对齐方式：靠右
+    TEXT_HJUSTIFY       = 0x0008,   //水平对齐方式：两端对齐
+    TEXT_HALIGN_ALL     = TEXT_LEFT | TEXT_HCENTER | TEXT_RIGHT | TEXT_HJUSTIFY,
 
     TEXT_TOP            = 0x0010,   //垂直对齐方式：靠上
     TEXT_VCENTER        = 0x0020,   //垂直对齐方式：居中
     TEXT_BOTTOM         = 0x0040,   //垂直对齐方式：靠下
+    TEXT_VJUSTIFY       = 0x0080,   //垂直对齐方式：两端对齐
+    TEXT_VALIGN_ALL     = TEXT_TOP | TEXT_VCENTER | TEXT_BOTTOM | TEXT_VJUSTIFY,
 
     TEXT_SINGLELINE     = 0x0100,   //单行文本
     TEXT_NOCLIP         = 0x0200,   //绘制的时候，不设置剪辑区域
     TEXT_WORD_WRAP      = 0x0400,   //自动换行（仅在IRender::DrawRichText接口支持此属性，其他文字绘制函数不支持该属性）
+
+    TEXT_VERTICAL       = 0x0800,   //纵向绘制文本，文本绘制方向为从上到下，从右到左
 
     TEXT_PATH_ELLIPSIS  = 0x4000,   //如果绘制区域不足，按显示文件路径的方式，在中间加"..."省略部分文字
     TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
@@ -690,6 +696,38 @@ enum class RenderBackendType
     *   （3）使用OpenGL的窗口，每次绘制都是绘制整个窗口，不支持局部绘制，所以不一定比使用CPU绘制的情况下性能更好，最好根据实际情况评估使用最佳的绘制方式
     */
     kNativeGL_BackendType = 1
+};
+
+/** 计算指定文本字符串的宽度和高度使用的参数
+*/
+struct MeasureStringParam
+{
+    int32_t rectSize = DUI_NOSET_VALUE; //横向文本，表示当前区域的限制宽度；纵向文本，表示当前区域的限制高度
+
+    IFont* pFont = nullptr;             //文字的字体数据接口, 不可为nullptr
+    uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义
+    float fSpacingMul = 1.0f;           //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
+    float fSpacingAdd = 0;              //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+
+    float fWordVerticalSpacing = 0;     //纵向绘制时，设置每个字在纵向的间隔（像素）
+    bool bUseFontHeight = true;         //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
+    bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
+};
+
+struct DrawStringParam
+{
+    UiRect textRect;        //文字绘制的矩形区域
+    UiColor dwTextColor;    //文字颜色值
+    uint8_t uFade = 255;    //文字的透明度[0 - 255]
+
+    IFont* pFont = nullptr;             //文字的字体
+    uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义    
+    float fSpacingMul = 1.0f;           //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
+    float fSpacingAdd = 0;              //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+
+    float fWordVerticalSpacing = 0;     //纵向绘制时，设置每个字在纵向的间隔（像素）
+    bool bUseFontHeight = true;         //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
+    bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
 };
 
 /** 渲染接口
@@ -1050,29 +1088,16 @@ public:
 
     /** 计算指定文本字符串的宽度和高度
     * @param [in] strText 文字内容
-    * @param [in] pFont 文字的字体数据接口
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] width 当前区域的限制宽度
+    * @param [in] measureParam 评估相关的参数
     * @return 返回文本字符串的宽度和高度，以矩形表示结果
     */
-    virtual UiRect MeasureString(const DString& strText, 
-                                 IFont* pFont, 
-                                 uint32_t uFormat,
-                                 int32_t width = DUI_NOSET_VALUE) = 0;
+    virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) = 0;
+
     /** 绘制文字
-    * @param [in] textRect 文字绘制的矩形区域
     * @param [in] strText 文字内容
-    * @param [in] dwTextColor 文字颜色值
-    * @param [in] pFont 文字的字体数据接口
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] drawParam 文字绘制相关的参数
     */
-    virtual void DrawString(const UiRect& textRect,
-                            const DString& strText,
-                            UiColor dwTextColor,
-                            IFont* pFont, 
-                            uint32_t uFormat,
-                            uint8_t uFade = 255) = 0;
+    virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) = 0;
 
     /** 计算格式文本的宽度和高度
     * @param [in] textRect 绘制文本的矩形区域

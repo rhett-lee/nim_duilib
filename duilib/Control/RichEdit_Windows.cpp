@@ -2841,9 +2841,14 @@ void RichEdit::PaintPromptText(IRender* pRender)
 
     UiRect rc;
     m_pRichHost->GetControlRect(&rc);
-    UiColor dwClrColor = GetUiColor(m_sPromptColor.c_str());
-    UINT dwStyle = TEXT_NOCLIP;
-    pRender->DrawString(rc, strPrompt, dwClrColor, GetIFontById(m_sFontId.c_str()), dwStyle);
+
+    DrawStringParam drawParam;
+    drawParam.pFont = GetIFontById(m_sFontId.c_str());
+    drawParam.uFormat = TEXT_NOCLIP;
+    drawParam.textRect = rc;
+    drawParam.dwTextColor = GetUiColor(m_sPromptColor.c_str());
+
+    pRender->DrawString(strPrompt, drawParam);
 }
 
 DString RichEdit::GetFocusedImage()

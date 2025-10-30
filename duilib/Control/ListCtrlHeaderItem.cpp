@@ -195,7 +195,10 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     uint32_t textStyle = GetTextStyle();
-    UiRect measureRect = pRender->MeasureString(GetText(), GetIFontById(GetFontId()), textStyle);
+    MeasureStringParam measureParam;
+    measureParam.pFont = GetIFontById(GetFontId());
+    measureParam.uFormat = textStyle;
+    UiRect measureRect = pRender->MeasureString(GetText(), measureParam);
     UiRect rcItemRect = GetRect();
     rcItemRect.Deflate(GetControlPadding());
     if (nCheckBoxWidth > 0) {
@@ -215,7 +218,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         rc.left += nCheckBoxWidth;
         rc.Validate();
     }
-    if (textStyle & TEXT_CENTER) {
+    if (textStyle & TEXT_HCENTER) {
         //居中对齐
         UiRect textRect = GetRect();
         textRect.Deflate(GetControlPadding());
@@ -526,17 +529,17 @@ void ListCtrlHeaderItem::SetTextHorAlign(HorAlignType alignType)
     uint32_t textStyle = GetTextStyle();
     if (alignType == HorAlignType::kAlignCenter) {
         //文本：居中对齐
-        textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
-        textStyle |= TEXT_CENTER;
+        textStyle &= ~TEXT_HALIGN_ALL;
+        textStyle |= TEXT_HCENTER;
     }
     else if (alignType == HorAlignType::kAlignRight) {
         //文本：右对齐
-        textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
+        textStyle &= ~TEXT_HALIGN_ALL;
         textStyle |= TEXT_RIGHT;
     }
     else {
         //文本：左对齐
-        textStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
+        textStyle &= ~TEXT_HALIGN_ALL;
         textStyle |= TEXT_LEFT;
     }
     SetTextStyle(textStyle, true);
@@ -546,7 +549,7 @@ HorAlignType ListCtrlHeaderItem::GetTextHorAlign() const
 {
     HorAlignType alignType = HorAlignType::kAlignLeft;//文本：左对齐
     uint32_t textStyle = GetTextStyle();
-    if (textStyle & TEXT_CENTER) {
+    if (textStyle & TEXT_HCENTER) {
         //文本：居中对齐
         alignType = HorAlignType::kAlignCenter;
     }

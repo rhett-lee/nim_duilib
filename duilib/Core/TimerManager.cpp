@@ -269,7 +269,9 @@ void TimerManager::WorkerThreadProc()
                 }                
             }
 #else
-            ASSERT_UNUSED_VARIABLE(bRet);
+            if (m_bRunning) {
+                ASSERT_UNUSED_VARIABLE(bRet);
+            }
 #endif
             taskGuard.lock();
             if (m_bRunning) {

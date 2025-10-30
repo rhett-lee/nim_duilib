@@ -374,16 +374,16 @@ void MainForm::OnInitWindow()
             size_t nCount = pListCtrl->GetDataItemCount();
             for (size_t index = 0; index < nCount; ++index) {
                 int32_t nNewTextFormat = pListCtrl->GetSubItemTextFormat(index, nColumnIndex);
-                if (nTextFormat & ui::TEXT_CENTER) {
-                    nNewTextFormat &= ~(ui::TEXT_RIGHT | ui::TEXT_LEFT);
-                    nNewTextFormat |= ui::TEXT_CENTER;
+                if (nTextFormat & ui::TEXT_HCENTER) {
+                    nNewTextFormat &= ~(ui::TEXT_HALIGN_ALL);
+                    nNewTextFormat |= ui::TEXT_HCENTER;
                 }
                 else if (nTextFormat & ui::TEXT_RIGHT) {
-                    nNewTextFormat &= ~(ui::TEXT_CENTER | ui::TEXT_LEFT);
+                    nNewTextFormat &= ~(ui::TEXT_HALIGN_ALL);
                     nNewTextFormat |= ui::TEXT_RIGHT;
                 }
                 else {
-                    nNewTextFormat &= ~(ui::TEXT_CENTER | ui::TEXT_RIGHT);
+                    nNewTextFormat &= ~(ui::TEXT_HALIGN_ALL);
                     nNewTextFormat |= ui::TEXT_LEFT;
                 }
                 pListCtrl->SetSubItemTextFormat(index, nColumnIndex, nNewTextFormat);
@@ -395,7 +395,7 @@ void MainForm::OnInitWindow()
         return true;
         });
     pColumnTextAlignCenter->AttachSelect([this, OnColumnTextAlign](const ui::EventArgs&) {
-        OnColumnTextAlign(ui::TEXT_CENTER);
+        OnColumnTextAlign(ui::TEXT_HCENTER);
         return true;
         });
     pColumnTextAlignRight->AttachSelect([this, OnColumnTextAlign](const ui::EventArgs&) {
@@ -782,7 +782,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     }
 
     int32_t nTextFormat = pListCtrl->GetSubItemTextFormat(0, pListCtrl->GetColumnIndex(nColumnId));
-    if (nTextFormat & ui::TEXT_CENTER) {
+    if (nTextFormat & ui::TEXT_HCENTER) {
         pColumnTextAlignCenter->Selected(true, false);
     }
     else if (nTextFormat & ui::TEXT_RIGHT) {
@@ -910,7 +910,7 @@ void MainForm::RunListCtrlTest()
     subItemData.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
     subItemData.bShowCheckBox = false;
     subItemData.nImageId = 123;
-    subItemData.nTextFormat = ui::TEXT_CENTER | ui::TEXT_VCENTER;
+    subItemData.nTextFormat = ui::TEXT_HCENTER | ui::TEXT_VCENTER;
     pListCtrl->SetSubItemData(nDataItemIndex, nColumnIndex, subItemData);
 
     ui::ListCtrlSubItemData dataItem2;

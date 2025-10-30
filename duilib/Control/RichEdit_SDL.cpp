@@ -686,7 +686,9 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
     }
 
     //按字体高度设置光标的高度
-    UiRect fontRect = pRender->MeasureString(_T("T"), pFont, 0);
+    MeasureStringParam measureParam;
+    measureParam.pFont = pFont;
+    UiRect fontRect = pRender->MeasureString(_T("T"), measureParam);
     m_nRowHeight = fontRect.Height();
     ASSERT(m_nRowHeight > 0);
     int32_t nCaretHeight = fontRect.Height();
@@ -1833,14 +1835,20 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
                 dwClrColor = GetUiColor(GetDisabledTextColor());
             }
             ASSERT(!dwClrColor.IsEmpty());
-            uint32_t dwStyle = GetTextStyle();
+
+            DrawStringParam drawParam;
+            drawParam.pFont = GetIFontInternal(fontId);
+            drawParam.uFormat = GetTextStyle();
+            drawParam.textRect = rcDrawRect;
+            drawParam.dwTextColor = dwClrColor;
+
 #ifdef DUILIB_UNICODE
-            pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontInternal(fontId), dwStyle);
+            pRender->DrawString(passwordText, drawParam);
 #else
-            pRender->DrawString(rcDrawRect, StringConvert::WStringToUTF8(passwordText), dwClrColor, GetIFontInternal(fontId), dwStyle);
+            pRender->DrawString(StringConvert::WStringToUTF8(passwordText), drawParam);
 #endif
             
-        }        
+        }
     }
 
     //绘制光标
@@ -2315,10 +2323,12 @@ void RichEdit::PaintPromptText(IRender* pRender)
         return;
     }
 
-    UiRect rcDrawRect = GetRichTextDrawRect();
-    UiColor dwClrColor = GetUiColor(promptTextColor);
-    uint32_t dwStyle = GetTextStyle();
-    pRender->DrawString(rcDrawRect, promptText, dwClrColor, GetIFontInternal(fontId), dwStyle);
+    DrawStringParam drawParam;
+    drawParam.pFont = GetIFontInternal(fontId);
+    drawParam.uFormat = GetTextStyle();
+    drawParam.textRect = GetRichTextDrawRect();
+    drawParam.dwTextColor = GetUiColor(promptTextColor);
+    pRender->DrawString(promptText, drawParam);
 }
 
 DString RichEdit::GetFocusedImage()
@@ -2938,7 +2948,7 @@ uint16_t RichEdit::GetTextStyle() const
     uint32_t uTextStyle = 0;
     HorAlignType hAlignType = GetHAlignType();
     if (hAlignType == HorAlignType::kAlignCenter) {
-        uTextStyle |= TEXT_CENTER;
+        uTextStyle |= TEXT_HCENTER;
     }
     else if (hAlignType == HorAlignType::kAlignRight) {
         uTextStyle |= TEXT_RIGHT;
