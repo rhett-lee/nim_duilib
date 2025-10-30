@@ -390,6 +390,7 @@
     <ClCompile Include="Layout\VTileLayout.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
+    <ClCompile Include="RenderSkia\DrawRichText.cpp" />
     <ClCompile Include="RenderSkia\DrawSkiaImage.cpp" />
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp" />
     <ClCompile Include="RenderSkia\Font_Skia.cpp" />
@@ -752,6 +753,7 @@
     <ClInclude Include="Layout\VTileLayout.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
+    <ClInclude Include="RenderSkia\DrawRichText.h" />
     <ClInclude Include="RenderSkia\DrawSkiaImage.h" />
     <ClInclude Include="RenderSkia\FontMgr_Skia.h" />
     <ClInclude Include="RenderSkia\Font_Skia.h" />

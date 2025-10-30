@@ -213,33 +213,6 @@ private:
     */
     void SetPaintByPen(SkPaint& skPaint, const IPen* pen);
 
-    /** 按设置的属性，绘制文字，由外部指定字符编码
-    */
-    void DrawTextString(const UiRect& textRect,
-                        const char* text, size_t len, SkTextEncoding textEncoding,
-                        uint32_t uFormat, const SkPaint& skPaint, IFont* pFont) const;
-
-    /** 按设置的属性，绘制文字
-    */
-    void DrawTextString(const UiRect& textRect, const DString& strText, uint32_t uFormat,
-                        const SkPaint& skPaint, IFont* pFont) const;
-
-    /** 绘制格式文本
-    */
-    void InternalDrawRichText(const UiRect& rcTextRect,
-                              const UiSize& szScrollOffset,
-                              IRenderFactory* pRenderFactory, 
-                              const std::vector<RichTextData>& richTextData,                   
-                              uint8_t uFade,
-                              bool bMeasureOnly,
-                              RichTextLineInfoParam* pLineInfoParam,
-                              std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
-                              std::vector<std::vector<UiRect>>* pRichTextRects);
-
-    /** 将文本按照换行符（'\r'或者'\n'）切分为多行
-    */
-    void SplitLines(const std::wstring_view& lineText, std::vector<uint32_t>& lineSeprators, std::vector<std::wstring_view>& lineTextViewList);
-
     /** 获取当前字所占的UTF16字符个数(1个或者2个)
     */
     size_t GetUTF16CharCount(const DStringW::value_type* srcPtr, size_t textStartIndex) const;
@@ -261,21 +234,6 @@ private:
     /** 整数的DPI转换
     */
     float GetScaleFloat(float fValue) const;
-
-    /** 绘制一个字符，记录字符属性
-    * @param [in] pLineInfoParam 字符属性记录表
-    * @param [in] ch 当前绘制的字符, 仅当回车和换行符等特殊字符时有效
-    * @param [in] glyphChars 当前字对应的Unicode字符数（1或者2）
-    * @param [in] glyphCount 字符总个数
-    * @param [in] nLineTextIndex 文本物理行号（即换行符'\n'切分的行）
-    * @param [in] nLineTextRowIndex 物理行内的逻辑行号(每个物理行中，从0开始编号)
-    * @param [in] xPos 字符绘制的X坐标
-    * @param [in] yPos 字符绘制的Y坐标
-    * @param [in] glyphWidth 当前字符的绘制宽度
-    * @param [in] nRowHeight 当前行高
-    */
-    void OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam, DStringW::value_type ch, uint8_t glyphChars, size_t glyphCount,
-                           size_t nLineTextIndex, uint32_t nLineTextRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
 
 private:
     /** Canval保存的状态
