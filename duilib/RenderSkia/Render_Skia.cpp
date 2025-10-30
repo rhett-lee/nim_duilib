@@ -1,5 +1,6 @@
 #include "Render_Skia.h"
 #include "VerticalDrawText.h"
+#include "HorizontalDrawText.h"
 #include "SkUtils.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
@@ -1607,7 +1608,12 @@ void Render_Skia::DrawString(const DString& strText, const DrawStringParam& draw
     if (drawParam.uFormat & TEXT_VERTICAL) {
         //纵向绘制文本
         VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
-        return drawTextUtil.DrawStringVertical(strText, drawParam);
+        return drawTextUtil.DrawString(strText, drawParam);
+    }
+    else if ((drawParam.uFormat & TEXT_HJUSTIFY) || (drawParam.fWordSpacing > 0.0001f)) {
+        //当横向文本，对齐方式设置为两端对齐时，或者设置了字间距时，使用该实现方案（因为修改SkTextBox的实现比较困难，维护难度高）
+        HorizontalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
+        return drawTextUtil.DrawString(strText, drawParam);
     }
 
     PerformanceStat statPerformance(_T("Render_Skia::DrawString"));
@@ -1735,7 +1741,12 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
     if (measureParam.uFormat & TEXT_VERTICAL) {
         //纵向绘制文本
         VerticalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
-        return drawTextUtil.MeasureStringVertical(strText, measureParam);
+        return drawTextUtil.MeasureString(strText, measureParam);
+    }
+    else if ((measureParam.uFormat & TEXT_HJUSTIFY) || (measureParam.fWordSpacing > 0.0001f)) {
+        //当横向文本，对齐方式设置为两端对齐时，或者设置了字间距时，使用该实现方案（因为修改SkTextBox的实现比较困难，维护难度高）
+        HorizontalDrawText drawTextUtil(GetSkCanvas(), m_pSkPaint, m_pSkPointOrg);
+        return drawTextUtil.MeasureString(strText, measureParam);
     }
 
     PerformanceStat statPerformance(_T("Render_Skia::MeasureString"));    

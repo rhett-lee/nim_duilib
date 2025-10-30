@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <HBox>
-        <VBox width="300" margin="4">
+        <VBox width="50%" margin="4">
             <HBox height="56" bkcolor="blue">
                 <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" text_align="left,top"/>
             </HBox>
@@ -30,10 +30,19 @@
                 <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" text_align="right,bottom"/>
             </HBox>
             <HBox height="56" bkcolor="dark_gray">
-                <Label height="auto" width="auto" maxwidth="stretch" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" singleline="false" bkcolor="red" text_align="center,vcenter"/>
+                <Label height="auto" width="auto" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" single_line="false" bkcolor="red" text_align="hcenter,vcenter"/>
+            </HBox>
+            <HBox height="56" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向:两端对齐，纵向:居中)\n多行文本测试，换行符" text_align="hjustify,vcenter" multi_line="true" replace_newline="true"/>
+            </HBox>
+            <HBox height="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\n正常行间距" text_align="left,vcenter" multi_line="true" replace_newline="true"/>
+            </HBox>
+            <HBox height="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\nspacing_mul='1.2'" text_align="left,vcenter" multi_line="true" replace_newline="true" spacing_mul="1.2"/>
             </HBox>
         </VBox>
-        <VBox width="300" margin="4">                            
+        <VBox width="50%" margin="4">                            
             <HBox height="56" bkcolor="dark_gray">
                 <Label height="stretch" width="stretch" text="超长文字绘制\n测试, 单行文本，不自动增加点点点，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true" endellipsis="false"/>
             </HBox>
@@ -65,7 +74,13 @@
                 <Label height="stretch" width="stretch" text="文本绘制-斜体字" font="system_italic_14"/>
             </HBox>
             <HBox height="56" bkcolor="dark_gray">
-                <Label height="stretch" width="stretch" text="文本绘制-全部风格" font="system_fullstyle_20" normaltextcolor="green"/>
+                <Label height="stretch" width="stretch" text="文本绘制-全部风格\n第二列内容" font="system_fullstyle_20" normal_text_color="green" replace_newline="true" multi_line="true"/>
+            </HBox>
+            <HBox height="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\nword_spacing='6'" text_align="left,vcenter" multi_line="true" replace_newline="true" word_spacing="6"/>
+            </HBox>
+            <HBox height="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向:靠左，纵向:居中)\n这个用例设置了行间距。\nspacing_mul='1.2' spacing_add='6'" text_align="left,vcenter" multi_line="true" replace_newline="true" spacing_mul="1.2" spacing_add="6"/>
             </HBox>
         </VBox>
         <VBox width="260" margin="4">                            

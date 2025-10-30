@@ -16,7 +16,7 @@ namespace ui
 */
 struct TVerticalChar;
 
-/** 纵向文本绘制的实现封装
+/** 纵向文本绘制的实现封装（从上到下，从右到左）
 */
 class UILIB_API VerticalDrawText
 {
@@ -28,12 +28,16 @@ public:
 
 public:
     /** 纵向绘制文本的评估函数：文本绘制方向为从上到下，从右到左
+    * @param [in] strText 需要评估的文本内容
+    * @param [in] measureParam 评估所需的参数
     */
-    UiRect MeasureStringVertical(const DString& strText, const MeasureStringParam& measureParam);
+    UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam);
 
     /** 纵向绘制文本：文本绘制方向为从上到下，从右到左
+    * @param [in] strText 需要绘制的文本内容
+    * @param [in] measureParam 绘制所需的参数
     */
-    void DrawStringVertical(const DString& strText, const DrawStringParam& drawParam);
+    void DrawString(const DString& strText, const DrawStringParam& drawParam);
 
 private:
     /** 获取UTF16字符串，并做预处理（纵向绘制文本）

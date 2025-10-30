@@ -156,6 +156,14 @@ public:
      */
     void GetLineSpacing(float* mul, float* add) const;
 
+    /** 设置两个相邻的字符之间的间隔（像素）
+    */
+    void SetWordSpacing(float fWordSpacing, bool bNeedDpiScale);
+
+    /** 设置两个相邻的字符之间的间隔（像素, 已经完成DPI缩放）
+    */
+    float GetWordSpacing() const;
+
 public:
     /** 设置文本方向：true为纵向文本，false为横向文本
      *    横向文本：从左到右，从上到下
@@ -167,14 +175,6 @@ public:
     @return true为纵向文本，false为横向文本
     */
     bool IsVerticalText() const;
-
-    /** 设置当纵向绘制文本时，每个字在纵向的间隔（像素）
-    */
-    void SetWordVerticalSpacing(float fWordVerticalSpacing, bool bNeedDpiScale);
-
-    /** 获取当纵向绘制文本时，每个字在纵向的间隔（像素, 已经完成DPI缩放）
-    */
-    float GetWordVerticalSpacing() const;
 
     /** 当纵向绘制文本时，设置字间距使用该字体的默认高度，而不是每个字的实际高度（显示时所有字体等高）
     */
@@ -249,8 +249,8 @@ private:
     //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
     float m_fSpacingAdd;
 
-    //纵向绘制时，每个字在纵向的间隔（像素）
-    float m_fWordVerticalSpacing;
+    //每个字符之间的的间隔（像素）
+    float m_fWordSpacing;
 
     //是否单行文本: true表示单行文本，false表示多行文本
     bool m_bSingleLine;
@@ -283,7 +283,7 @@ LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
     m_bReplaceNewline(false),
     m_fSpacingMul(1.0f),
     m_fSpacingAdd(0),
-    m_fWordVerticalSpacing(0),
+    m_fWordSpacing(0),
     m_bVerticalText(false),
     m_bUseFontHeight(true),
     m_bRotate90ForAscii(true),
@@ -458,9 +458,9 @@ void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
         // 设置是否为纵向文本
         SetVerticalText(strValue == _T("true"));
     }
-    else if (strName == _T("word_vertical_spacing")) {
-        // 设置当纵向绘制文本时，纵向文字的字间距
-        SetWordVerticalSpacing(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
+    else if (strName == _T("word_spacing")) {
+        // 设置两个相邻的字符之间的间隔（像素）
+        SetWordSpacing(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
     }
     else if (strName == _T("use_font_height")) {
         // 设置当纵向绘制文本时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
@@ -492,9 +492,9 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     add = this->Dpi().GetScaleFloat(add, nOldDpiScale);
     SetLineSpacing(mul, add, false);
 
-    float fWordVerticalSpacing = GetWordVerticalSpacing();
-    fWordVerticalSpacing = this->Dpi().GetScaleFloat(fWordVerticalSpacing, nOldDpiScale);
-    SetWordVerticalSpacing(fWordVerticalSpacing, false);
+    float fWordSpacing = GetWordSpacing();
+    fWordSpacing = this->Dpi().GetScaleFloat(fWordSpacing, nOldDpiScale);
+    SetWordSpacing(fWordSpacing, false);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
@@ -645,16 +645,16 @@ void LabelTemplate<InheritType>::GetLineSpacing(float* mul, float* add) const
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetWordVerticalSpacing(float fWordVerticalSpacing, bool bNeedDpiScale)
+void LabelTemplate<InheritType>::SetWordSpacing(float fWordSpacing, bool bNeedDpiScale)
 {
-    if (fWordVerticalSpacing < 0) {
-        fWordVerticalSpacing = 0;
+    if (fWordSpacing < 0) {
+        fWordSpacing = 0;
     }
     if (bNeedDpiScale) {
-        fWordVerticalSpacing = this->Dpi().GetScaleFloat(fWordVerticalSpacing);
+        fWordSpacing = this->Dpi().GetScaleFloat(fWordSpacing);
     }
-    if (m_fWordVerticalSpacing != fWordVerticalSpacing) {
-        m_fWordVerticalSpacing = fWordVerticalSpacing;
+    if (m_fWordSpacing != fWordSpacing) {
+        m_fWordSpacing = fWordSpacing;
         if (IsVerticalText()) {
             this->Invalidate();
         }
@@ -662,9 +662,9 @@ void LabelTemplate<InheritType>::SetWordVerticalSpacing(float fWordVerticalSpaci
 }
 
 template<typename InheritType>
-float LabelTemplate<InheritType>::GetWordVerticalSpacing() const
+float LabelTemplate<InheritType>::GetWordSpacing() const
 {
-    return m_fWordVerticalSpacing;
+    return m_fWordSpacing;
 }
 
 template<typename InheritType>
@@ -709,7 +709,7 @@ MeasureStringParam LabelTemplate<InheritType>::GetMeasureParam() const
     measureParam.uFormat = m_uTextStyle;
     measureParam.fSpacingMul = m_fSpacingMul;
     measureParam.fSpacingAdd = m_fSpacingAdd;
-    measureParam.fWordVerticalSpacing = m_fWordVerticalSpacing;
+    measureParam.fWordSpacing = m_fWordSpacing;
     measureParam.bUseFontHeight = m_bUseFontHeight;
     measureParam.bRotate90ForAscii = m_bRotate90ForAscii;
     return measureParam;
@@ -723,7 +723,7 @@ DrawStringParam LabelTemplate<InheritType>::GetDrawParam() const
     drawParam.uFormat = m_uTextStyle;
     drawParam.fSpacingMul = m_fSpacingMul;
     drawParam.fSpacingAdd = m_fSpacingAdd;
-    drawParam.fWordVerticalSpacing = m_fWordVerticalSpacing;
+    drawParam.fWordSpacing = m_fWordSpacing;
     drawParam.bUseFontHeight = m_bUseFontHeight;
     drawParam.bRotate90ForAscii = m_bRotate90ForAscii;
     return drawParam;

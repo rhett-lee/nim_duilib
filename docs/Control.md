@@ -151,8 +151,8 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | replace_newline | false | bool | 是否替换文本中的换行符：将字符串"\\\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本，举例：原始字符串为"第一行\\\\n第二行"，当为true时，"\\\\n"这两个字符会被替换为换行符"\n"，最终字符串变成"第一行\n第二行" |
 | spacing_mul | 1.0f | float | 行（列）间距的倍数, 是字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距 <br> 设置后，实际的行间距为：字体大小 * spacing_mul + spacing_add |
 | spacing_add | 0 | float | 行（列）间距附加量, 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移(像素) <br> 设置后，实际的行间距为：字体大小 * spacing_mul + spacing_add |
+| word_spacing | 0 | float | 设置两个相邻的字符之间的间隔（像素）|
 | vertical_text | false | bool | 设置文本方向：true为纵向文本，false为横向文本 <br> 横向文本绘制方向：从左到右，从上到下 <br> 纵向文本绘制方向：从上到下，从右到左|
-| word_vertical_spacing | 0 | float | 当纵向绘制文本时，设置每个字在纵向的间隔（像素） |
 | use_font_height | true | bool | 当纵向绘制文本时，设置字间距使用该字体的默认高度，而不是每个字的实际高度（显示时所有字体等高） |
 | ascii_rotate_90 | true | bool | 当纵向绘制文本时，对于字母、数字等字符，顺时针旋转90度显示|
 

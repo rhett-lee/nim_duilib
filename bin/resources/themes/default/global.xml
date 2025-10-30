@@ -37,7 +37,12 @@
     <Font id="system_strikeout_18" name="system" size="18" strikeout="true"/>
     <Font id="system_strikeout_20" name="system" size="20" strikeout="true"/>
     <Font id="system_strikeout_22" name="system" size="22" strikeout="true"/>
+    <Font id="system_fullstyle_12" name="system" size="12" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_14" name="system" size="14" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_16" name="system" size="16" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_18" name="system" size="18" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_22" name="system" size="22" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="arial_12" name="arial" size="12"/>
     <Font id="arial_14" name="arial" size="14"/>
     <Font id="arial_16" name="arial" size="16"/>

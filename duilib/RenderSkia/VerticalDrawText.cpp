@@ -298,6 +298,7 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
                 for (size_t j = nColumnIndex + 1; j < nColumnCount; ++j) {
                     if (columnWidths[j] > fMinValue) {
                         columnWidth = columnWidths[j];
+                        break;
                     }
                 }
             }
@@ -307,7 +308,7 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
         }
     }
 
-    //如果都是空列，则重新计算
+    //如果都是空列，则重新计算(兜底处理)
     for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
         float& columnWidth = columnWidths[nColumnIndex];
         if (columnWidth < fMinValue) {
@@ -315,7 +316,8 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
         }
     }
 
-    SkScalar maxX = 0; //总的宽度
+    // 计算总宽度
+    SkScalar maxX = 0;
     for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
         float fWidth = columnWidths[nColumnIndex];
         if (nColumnIndex != 0) {
@@ -363,9 +365,9 @@ float VerticalDrawText::CalculateDefaultCharWidth(const SkFont* pSkFont, const S
     return fCharWidth;
 }
 
-UiRect VerticalDrawText::MeasureStringVertical(const DString& strText, const MeasureStringParam& measureParam)
+UiRect VerticalDrawText::MeasureString(const DString& strText, const MeasureStringParam& measureParam)
 {
-    PerformanceStat statPerformance(_T("VerticalDrawText::MeasureStringVertical"));
+    PerformanceStat statPerformance(_T("VerticalDrawText::MeasureString"));
     ASSERT((m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
         return UiRect();
@@ -394,12 +396,9 @@ UiRect VerticalDrawText::MeasureStringVertical(const DString& strText, const Mea
     //绘制属性设置
     SkPaint skPaint = *m_pSkPaint;
 
-    bool bSingleLineMode = false;
-    if (measureParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-        bSingleLineMode = true;
-    }
+    bool bSingleLineMode = (measureParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) != 0;
 
-    //计算字体的行高
+    // 计算字体高度
     SkFontMetrics fontMetrics;
     const SkScalar fFontHeight = pSkFont->getMetrics(&fontMetrics);
     ASSERT(fFontHeight > 0);
@@ -423,7 +422,7 @@ UiRect VerticalDrawText::MeasureStringVertical(const DString& strText, const Mea
     float fDefaultCharWidth = CalculateDefaultCharWidth(pSkFont, &skPaint);
     SkRect skTextBounds = CalculateVerticalTextBounds(charRects, measureParam.rectSize, bSingleLineMode,
                                                       measureParam.fSpacingMul, measureParam.fSpacingAdd,
-                                                      measureParam.fWordVerticalSpacing,
+                                                      measureParam.fWordSpacing,
                                                       fDefaultCharWidth, fFontHeight,
                                                       nullptr, nullptr, nullptr);
     int32_t nTextWidth = SkScalarTruncToInt(skTextBounds.width() + 0.5f);
@@ -437,11 +436,11 @@ UiRect VerticalDrawText::MeasureStringVertical(const DString& strText, const Mea
     return UiRect(0, 0, nTextWidth, nTextHeight);
 }
 
-void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStringParam& drawParam)
+void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam& drawParam)
 {
     // 备注：纵向文本绘制不支持以下功能
     // 1. 文本风格：DrawStringFormat::TEXT_PATH_ELLIPSIS 不支持，按DrawStringFormat::TEXT_END_ELLIPSIS处理
-    PerformanceStat statPerformance(_T("VerticalDrawText::DrawStringVertical"));
+    PerformanceStat statPerformance(_T("VerticalDrawText::DrawString"));
     ASSERT((m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
         return;
@@ -475,7 +474,7 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
         return;
     }
 
-    //绘制属性设置
+    // 设置绘制属性
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(drawParam.dwTextColor.GetA(), drawParam.dwTextColor.GetR(),
                     drawParam.dwTextColor.GetG(), drawParam.dwTextColor.GetB());
@@ -489,12 +488,9 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    bool bSingleLineMode = false;
-    if (drawParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) {
-        bSingleLineMode = true;
-    }
+    bool bSingleLineMode = (drawParam.uFormat & DrawStringFormat::TEXT_SINGLELINE) != 0;
 
-    //计算字体的行高
+    // 计算字体高度
     SkFontMetrics fontMetrics;
     const SkScalar fFontHeight = pSkFont->getMetrics(&fontMetrics);
     ASSERT(fFontHeight > 0);
@@ -502,10 +498,10 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
         return;
     }
 
-    //行间距相关变量
+    // 列间距设置
     float fSpacingMul = drawParam.fSpacingMul;
     float fSpacingAdd = drawParam.fSpacingAdd;
-    float fWordVerticalSpacing = drawParam.fWordVerticalSpacing;
+    float fWordVerticalSpacing = drawParam.fWordSpacing;
     if (fSpacingMul <= 0.01f) {
         fSpacingMul = 1.0f;
     }
@@ -528,7 +524,7 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
         return;
     }
 
-    //默认字符的宽度
+    // 默认字符宽度
     float fDefaultCharWidth = CalculateDefaultCharWidth(pSkFont, &skPaint);
 
     std::vector<std::vector<int32_t>> columnRows;
@@ -575,58 +571,59 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
         for (size_t nRowIndex = 0; nRowIndex < nRowCount; ++nRowIndex) {
             const size_t nCharIndex = (size_t)row[nRowIndex];
             ASSERT(nCharIndex < charRects.size());
-            if (nCharIndex < charRects.size()) {
-                //绘制一个字
-                TDrawCharPos& charPos = drawCharPos.emplace_back(); //新增一个字符                
-                const TVerticalChar& verticalChar = charRects[nCharIndex];
-                
-                //记录该字符的绘制位置，处理对齐方式以后再绘制
-                charPos.ch = verticalChar.ch;
-                charPos.nColumnIndex = (int32_t)nColumnIndex;
-                charPos.nRowIndex = (int32_t)nRowIndex;
-                charPos.bRotate90 = verticalChar.bRotate90;
-                charPos.chHeight = (int32_t)verticalChar.size.height();
-
-                if (charPos.bRotate90) { // 该字符需要旋转90度绘制                    
-                    charPos.xPos = xPos + fontMetrics.fAscent / fFontHeight * fColumnWidth;
-                    charPos.yPos = yPos;
-                }
-                else { //该字符正常绘制
-
-                    //该字实际占用的宽度
-                    SkScalar fCharWidth = verticalChar.size.width();
-                    SkScalar nWidthDiff = 0;
-                    if (verticalChar.bounds.fLeft < 0) {
-                        //斜体字左侧溢出
-                        nWidthDiff += -verticalChar.bounds.fLeft;
-                    }
-                    if (verticalChar.bounds.fRight > fCharWidth) {
-                        //斜体字右侧溢出
-                        nWidthDiff += verticalChar.bounds.fRight - fCharWidth;
-                    }
-                    fCharWidth += nWidthDiff;
-
-                    //字在同一列的对齐方式: 三选一(居中对齐最适合目前的逻辑，因为计算字符宽度的时候，考虑增加了溢出的fLeft和fRight值)
-                    //charPos.xPos = xPos - fCharWidth;                     //字在该列中靠右对齐
-                    //charPos.xPos = xPos - fColumnWidth;                   //靠左对齐
-                    charPos.xPos = xPos - (fColumnWidth + fCharWidth) / 2;  //居中对齐
-
-                    if (verticalChar.bounds.fLeft < 0) {
-                        charPos.xPos += -verticalChar.bounds.fLeft; //字体的最左侧在基点左方，需要平移基点
-                    }
-                    if (drawParam.bUseFontHeight) {
-                        //所有字体等高
-                        charPos.yPos = yPos - fontMetrics.fAscent;
-                    }
-                    else {
-                        //用实际高度
-                        charPos.yPos = yPos - verticalChar.bounds.top();
-                    }
-                }
-
-                //下一个字符的纵坐标更新(带纵向字间距)
-                yPos += (verticalChar.size.height() + fWordVerticalSpacing); //字体高度使用评估时确定的高度
+            if (nCharIndex >= charRects.size()) {
+                continue;
             }
+            //绘制一个字
+            TDrawCharPos& charPos = drawCharPos.emplace_back(); //新增一个字符
+            const TVerticalChar& verticalChar = charRects[nCharIndex];
+                
+            //记录该字符的绘制位置，处理对齐方式以后再绘制
+            charPos.ch = verticalChar.ch;
+            charPos.nColumnIndex = (int32_t)nColumnIndex;
+            charPos.nRowIndex = (int32_t)nRowIndex;
+            charPos.bRotate90 = verticalChar.bRotate90;
+            charPos.chHeight = (int32_t)verticalChar.size.height();
+
+            if (charPos.bRotate90) { // 该字符需要旋转90度绘制                    
+                charPos.xPos = xPos + fontMetrics.fAscent / fFontHeight * fColumnWidth;
+                charPos.yPos = yPos;
+            }
+            else { //该字符正常绘制
+
+                //该字实际占用的宽度（含溢出）
+                SkScalar fCharWidth = verticalChar.size.width();
+                SkScalar nWidthDiff = 0;
+                if (verticalChar.bounds.fLeft < 0) {
+                    //斜体字左侧溢出
+                    nWidthDiff += -verticalChar.bounds.fLeft;
+                }
+                if (verticalChar.bounds.fRight > fCharWidth) {
+                    //斜体字右侧溢出
+                    nWidthDiff += verticalChar.bounds.fRight - fCharWidth;
+                }
+                fCharWidth += nWidthDiff;
+
+                //字在同一列的对齐方式: 三选一(居中对齐最适合目前的逻辑，因为计算字符宽度的时候，考虑增加了溢出的fLeft和fRight值)
+                //charPos.xPos = xPos - fCharWidth;                     //字在该列中靠右对齐
+                //charPos.xPos = xPos - fColumnWidth;                   //靠左对齐
+                charPos.xPos = xPos - (fColumnWidth + fCharWidth) / 2;  //居中对齐
+
+                if (verticalChar.bounds.fLeft < 0) {
+                    charPos.xPos += -verticalChar.bounds.fLeft; //字体的最左侧在基点左方，需要平移基点
+                }
+                if (drawParam.bUseFontHeight) {
+                    //所有字体等高
+                    charPos.yPos = yPos - fontMetrics.fAscent;
+                }
+                else {
+                    //用实际高度
+                    charPos.yPos = yPos - verticalChar.bounds.top();
+                }
+            }
+
+            //下一个字符的纵坐标更新(带纵向字间距)
+            yPos += (verticalChar.size.height() + fWordVerticalSpacing); //字体高度使用评估时确定的高度
         }
 
         //下一列的坐标，带行间距
@@ -654,12 +651,12 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
                 charPos.xPos += nOffsetX;
             }
         }
-    }    
+    }
 
     //垂直方向对齐：按每列的占用的实际区域对齐
     std::vector<float> columnOffsets;    
     if (drawParam.uFormat & DrawStringFormat::TEXT_VCENTER) {
-        //纵向对齐：居中对齐        
+        //纵向对齐：居中对齐
         columnOffsets.resize(columnHeights.size(), 0.0f);
         int32_t textRectHeight = drawParam.textRect.Height();
         for (size_t nColumnIndex = 0; nColumnIndex < columnHeights.size(); ++nColumnIndex) {
@@ -733,9 +730,9 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
     }
 
     //绘制每个字符
-    SkRect skTextRect = SkRect::MakeLTRB((SkScalar)drawParam.textRect.left, (SkScalar)drawParam.textRect.top,
-                                         (SkScalar)drawParam.textRect.right, (SkScalar)drawParam.textRect.bottom);
+    
     //将范围扩大些，避免误判导致字无法绘制出来
+    SkRect skTextRect = rcSkDest;
     skTextRect.fLeft -= fFontHeight;
     skTextRect.fRight += fFontHeight;
     skTextRect.fTop -= fFontHeight;
@@ -769,12 +766,10 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
         autoClip.bCliped = true;
         autoClip.drawSaveCount = skCanvas->save();
         autoClip.skCanvas = skCanvas;
-
-        SkRect fBox = SkRect::MakeLTRB((SkScalar)drawParam.textRect.left, (SkScalar)drawParam.textRect.top,
-                                       (SkScalar)drawParam.textRect.right, (SkScalar)drawParam.textRect.bottom);
-        skCanvas->clipRect(fBox, true);
+        skCanvas->clipRect(rcSkDest, true);
     }
 
+    // 绘制字符
     const size_t drawCharCount = drawCharPos.size();
     for (size_t charIndex = 0; charIndex < drawCharCount; ++charIndex) {
         TDrawCharPos& charPos = drawCharPos[charIndex];
@@ -796,17 +791,18 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
                 if (nextCharPos.bRotate90) {
                     yPos += nextCharPos.chHeight;
                 }                
-                if ((yPos > (SkScalar)drawParam.textRect.bottom) && (bSingleLineMode || (charPos.xPos - fColumnWidth) < (SkScalar)drawParam.textRect.left)) {
+                if ((yPos > (SkScalar)rcSkDest.fBottom) &&
+                    (bSingleLineMode || (charPos.xPos - fColumnWidth) < (SkScalar)rcSkDest.fLeft)) {
                     //下个字符无法显示了
                     bNeedDrawEllipsis = true;
                 }
             }
-            else if (!bSingleLineMode && (charPos.xPos - fColumnWidth) < (SkScalar)drawParam.textRect.left) {
+            else if (!bSingleLineMode && (charPos.xPos - fColumnWidth) < (SkScalar)rcSkDest.fLeft) {
                 //左侧其他列的数据无法显示了
                 bNeedDrawEllipsis = true;
             }
             if (bNeedDrawEllipsis) {
-                //字符越界，绘制 "..."                    
+                //字符越界，绘制 "..."
                 std::string ellipsis = "...";
                 skCanvas->save();
                 skCanvas->translate(charPos.xPos, charPos.bRotate90 ? charPos.yPos : charPos.yPos - charPos.chHeight / 2);
@@ -863,24 +859,27 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
                 continue;
             }
             ASSERT(charPos.nColumnIndex < (int32_t)textColumnInfo.size());
-            if (charPos.nColumnIndex < (int32_t)textColumnInfo.size()) {
-                TextColumnInfo& textColumn = textColumnInfo[charPos.nColumnIndex];
-                if (!textColumn.bStartFlag) {
-                    textColumn.bStartRotate90 = charPos.bRotate90;
-                    textColumn.bStartFlag = true;
-                    textColumn.ptStart.x = (int32_t)charPos.xPos;
-                    textColumn.ptStart.y = (int32_t)(charPos.yPos + 0.5f);
-                    textColumn.chStartHeight = charPos.chHeight;
-                }
-                else {
-                    textColumn.bEndRotate90 = charPos.bRotate90;
-                    textColumn.bEndFlag = true;
-                    textColumn.ptEnd.x = (int32_t)charPos.xPos;
-                    textColumn.ptEnd.y = (int32_t)charPos.yPos;
-                    textColumn.chEndHeight = charPos.chHeight;
-                }
+            if (charPos.nColumnIndex >= (int32_t)textColumnInfo.size()) {
+                continue;
+            }
+            TextColumnInfo& textColumn = textColumnInfo[charPos.nColumnIndex];
+            if (!textColumn.bStartFlag) {
+                textColumn.bStartRotate90 = charPos.bRotate90;
+                textColumn.bStartFlag = true;
+                textColumn.ptStart.x = (int32_t)charPos.xPos;
+                textColumn.ptStart.y = (int32_t)(charPos.yPos + 0.5f);
+                textColumn.chStartHeight = charPos.chHeight;
+            }
+            else {
+                textColumn.bEndRotate90 = charPos.bRotate90;
+                textColumn.bEndFlag = true;
+                textColumn.ptEnd.x = (int32_t)charPos.xPos;
+                textColumn.ptEnd.y = (int32_t)charPos.yPos;
+                textColumn.chEndHeight = charPos.chHeight;
             }
         }
+
+        // 绘制线条
         for (size_t nColumnIndex = 0; nColumnIndex < textColumnInfo.size(); ++nColumnIndex) {
             const TextColumnInfo& textColumn = textColumnInfo[nColumnIndex];
             if (!textColumn.bStartFlag && !textColumn.bEndFlag) {
@@ -901,8 +900,8 @@ void VerticalDrawText::DrawStringVertical(const DString& strText, const DrawStri
             else {
                 top += fFontHeight * 1 / 9;
             }
-            if (top <= drawParam.textRect.top) {
-                top = drawParam.textRect.top + fFontHeight * 1 / 9;
+            if (top <= rcSkDest.fTop) {
+                top = rcSkDest.fTop + fFontHeight * 1 / 9;
             }
 
             SkScalar height = (SkScalar)textColumn.chStartHeight;
