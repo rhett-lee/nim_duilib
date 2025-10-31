@@ -26,7 +26,7 @@
 | libcef/libcef_macos  |2025-06-09|<div style="width: 160px">cef_binary_137.0.8+gaaaa0bf<br>chromium-137.0.7151.56</div>  |有  |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#macosx64:137</div>    | <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2 </div>|
 | libcef/libcef_macos  |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#macosarm64:137</div>| <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_macosarm64.tar.bz2 </div>|
 | WebView2      |2025-06-28|1.0.3296.44 |无 | 通过 NuGet 安装 WebView2 SDK: <br>Microsoft.Web.WebView2| |
-| libpag        |2025-10-22|main分支 |无 | https://github.com/Tencent/libpag| 无修改 |
+| libpag        |2025-10-31|main分支 |无 | https://github.com/Tencent/libpag| 无修改 |
 ## libpng 库更新说明
 1. 下载最新版本的压缩包：https://github.com/pnggroup/libpng/ 或者 https://sourceforge.net/projects/libpng/
 2. 下载压缩包后，解压，进入解压后的目录，按照INSTALL的说明，使用VS的命令行模式，运行：`nmake -f scripts\makefile.vcwin32`，会生成`pnglibconf.h`文件
