@@ -18,7 +18,7 @@ public:
 
     /** 获取图片宽度
     */
-    virtual uint32_t GetWidth() const
+    virtual uint32_t GetWidth() const override
     {
         if (m_pBitmap != nullptr) {
             return m_pBitmap->GetWidth();
@@ -31,7 +31,7 @@ public:
 
     /** 获取图片高度
     */
-    virtual uint32_t GetHeight() const
+    virtual uint32_t GetHeight() const override
     {
         if (m_pBitmap != nullptr) {
             return m_pBitmap->GetHeight();
@@ -44,14 +44,14 @@ public:
 
     /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
     */
-    virtual float GetImageSizeScale() const
+    virtual float GetImageSizeScale() const override
     {
         return m_fImageSizeScale;
     }
 
     /** 获取位图
     */
-    virtual std::shared_ptr<IBitmap> GetBitmap()
+    virtual std::shared_ptr<IBitmap> GetBitmap() override
     {
         if (m_pBitmap != nullptr) {
             return m_pBitmap;

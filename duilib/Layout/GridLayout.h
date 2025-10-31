@@ -82,7 +82,7 @@ public:
      * @param [in] nOldDpiScale 旧的DPI缩放百分比
      * @param [in] dpiManager DPI缩放管理器
      */
-    virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
+    virtual void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale) override;
 
     /** 按布局策略调整内部所有子控件的位置和大小
      * @param [in] items 子控件列表

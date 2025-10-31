@@ -1840,7 +1840,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
                                                       &lineLenList);
         //计算所需宽度
         int32_t textWidth = 0;
-        ASSERT(lineLenList.size() == lineCount);
+        ASSERT((int)lineLenList.size() == lineCount);
         if (!lineLenList.empty()) {
             std::vector<DString> lineTextList; //每行的文本
             size_t nTextPos = 0;

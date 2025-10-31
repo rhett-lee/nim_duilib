@@ -113,7 +113,6 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
         };
         std::vector<StretchInfo> stretchInfos;
         int32_t totalStretchMin = 0;  // 拉伸控件最小高度总和（自身）
-        int32_t totalStretchMax = 0;  // 拉伸控件最大高度总和（自身）
 
         for (auto pControl : stretchControls) {
             auto& estSize = stretchItemsMap[pControl];
@@ -126,7 +125,6 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
                 minH, maxH, 0
                 });
             totalStretchMin += minH;
-            totalStretchMax += maxH;
         }
 
         // 二、分场景分配高度（遵循所有规则）
@@ -422,8 +420,8 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
     // 计算最终返回的尺寸（含父容器内边距）
     UiPadding rcPadding = (GetOwner() != nullptr) ? GetOwner()->GetPadding() : UiPadding();
     UiSize64 resultSize(
-        std::max((int64_t)fullChildrenRect.Width() + rcPadding.left + rcPadding.right, 0LL),
-        std::max((int64_t)fullChildrenRect.Height() + rcPadding.top + rcPadding.bottom, 0LL)
+        (int64_t)std::max(fullChildrenRect.Width() + rcPadding.left + rcPadding.right, 0),
+        (int64_t)std::max(fullChildrenRect.Height() + rcPadding.top + rcPadding.bottom, 0)
     );
     return resultSize;
 }

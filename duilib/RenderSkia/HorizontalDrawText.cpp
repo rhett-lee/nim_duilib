@@ -136,7 +136,6 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
 
     // 行列计数
     int32_t currentRow = 0;      // 当前行索引
-    int32_t currentColumn = 0;   // 当前列索引
 
     bool bNextLine = false; // 标记是否换行
     const int32_t nCharCount = (int32_t)charRects.size();
@@ -149,8 +148,7 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
             currentRow++;             // 行索引+1
             rowColumns.emplace_back();  // 新增一行
             rowWidths.emplace_back(fDefaultCharWidth); // 行宽
-            currentColumn = 0;        // 新行从第0列开始
-
+  
             bNextLine = false;
             if (horizontalChar.bNewLine) {
                 continue;
@@ -200,7 +198,6 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
         if (!bNextLine) {
             // 不换行，更新X位置和列索引
             currentX = nextX;
-            currentColumn++;
         }
     }
 
@@ -637,7 +634,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     if (rowOffsets.size() == rowWidths.size()) {
         const size_t nOffsetCount = rowOffsets.size();
         for (TDrawCharPos& charPos : drawCharPos) {
-            if (charPos.nRowIndex < nOffsetCount) {
+            if (charPos.nRowIndex < (int32_t)nOffsetCount) {
                 charPos.xPos += rowOffsets[charPos.nRowIndex];
             }
         }
@@ -695,7 +692,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
         if (bNeedEllipsis && (charIndex < (drawCharCount - 1))) {// 是否绘制"..."的业务逻辑
             //判断下一个字符是否越界（横向）
             float fRowHeight = 0;
-            if (charPos.nRowIndex < rowHeights.size()) {
+            if (charPos.nRowIndex < (int32_t)rowHeights.size()) {
                 fRowHeight = rowHeights[charPos.nRowIndex]; //行高
             }
             bool bNeedDrawEllipsis = false;

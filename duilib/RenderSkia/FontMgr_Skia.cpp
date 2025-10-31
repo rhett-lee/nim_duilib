@@ -200,7 +200,7 @@ FontMgr_Skia::FontMgr_Skia()
     m_impl->m_pSkFontMgr = SkFontMgr_New_CoreText(nullptr);  // 使用nullptr表示系统默认字体集
 #else
     //Linux系统, FreeBSD系统
-    m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr);
+    m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr, SkFontScanner_Make_FreeType());
 #endif
 
     ASSERT(m_impl->m_pSkFontMgr != nullptr);

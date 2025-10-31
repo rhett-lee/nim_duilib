@@ -181,8 +181,7 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
 
     // 行列计数（从0开始，与vector索引一致）
     int32_t currentColumn = 0;   // 当前列索引（0-based）
-    int32_t currentRow = 0;      // 当前行索引（0-based）
-
+ 
     bool bNextRow = false; // 标记是否换行
     const int32_t nCharCount = (int32_t)charRects.size();
     for (int32_t nCharIndex = 0; nCharIndex < nCharCount; ++nCharIndex) {
@@ -195,7 +194,6 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
             currentColumn++;            // 列索引+1
             columnRows.emplace_back();  // 新增一列
             columnHeights.emplace_back(fDefaultCharHeight); //列高，新增1列
-            currentRow = 0;             // 新列从第0行开始
 
             bNextRow = false;
             if (verticalChar.bNewLine) {
@@ -246,7 +244,6 @@ SkRect VerticalDrawText::CalculateVerticalTextBounds(const std::vector<TVertical
         if (!bNextRow) {
             // 不换行，更新Y位置和行索引
             currentY = nextY;
-            currentRow++;
         }
     }
 
@@ -723,7 +720,7 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
     if (columnOffsets.size() == columnHeights.size()) {
         const size_t nOffsetCount = columnOffsets.size();
         for (TDrawCharPos& charPos : drawCharPos) {
-            if (charPos.nColumnIndex < nOffsetCount) {
+            if (charPos.nColumnIndex < (int32_t)nOffsetCount) {
                 charPos.yPos += columnOffsets[charPos.nColumnIndex];
             }
         }
@@ -781,7 +778,7 @@ void VerticalDrawText::DrawString(const DString& strText, const DrawStringParam&
         if (bNeedEllipsis && (charIndex < (drawCharCount - 1))) {// 是否绘制"..."的业务逻辑
             //判断下一个字符是否越界（纵向）
             float fColumnWidth = 0;
-            if (charPos.nColumnIndex < columnWidths.size()) {
+            if (charPos.nColumnIndex < (int32_t)columnWidths.size()) {
                 fColumnWidth = columnWidths[charPos.nColumnIndex]; //列宽
             }
             bool bNeedDrawEllipsis = false;

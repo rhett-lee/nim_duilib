@@ -375,20 +375,20 @@ bool GridLayout::CalcMergedCellRects(const std::vector<Control*>& controls,
             // 计算合并后单元格的原始尺寸（未考虑网格偏移）
             UiRect cellRect;
             cellRect.left = 0;
-            for (size_t c = 0; c < col; ++c) {
+            for (int32_t c = 0; c < col; ++c) {
                 cellRect.left += colWidths[c] + GetChildMarginX();
             }
             cellRect.right = cellRect.left;
-            for (size_t c = col; c < col + colSpan; ++c) {
+            for (int32_t c = col; c < col + colSpan; ++c) {
                 cellRect.right += colWidths[c] + (c == (col + colSpan - 1) ? 0 : GetChildMarginX());
             }
 
             cellRect.top = 0;
-            for (size_t r = 0; r < row; ++r) {
+            for (int32_t r = 0; r < row; ++r) {
                 cellRect.top += rowHeights[r] + GetChildMarginY();
             }
             cellRect.bottom = cellRect.top;
-            for (size_t r = row; r < row + rowSpan; ++r) {
+            for (int32_t r = row; r < row + rowSpan; ++r) {
                 cellRect.bottom += rowHeights[r] + (r == (row + rowSpan - 1) ? 0 : GetChildMarginY());
             }
 

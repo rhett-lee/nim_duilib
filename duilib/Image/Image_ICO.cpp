@@ -157,7 +157,7 @@ int32_t Image_ICO::GetLoopCount() const
 
 bool Image_ICO::IsFrameDataReady(uint32_t nFrameIndex)
 {
-    if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
+    if (nFrameIndex < (uint32_t)m_impl->m_frames.size()) {
         return true;
     }
     return false;

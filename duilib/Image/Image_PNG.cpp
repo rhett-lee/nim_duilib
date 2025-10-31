@@ -60,7 +60,7 @@ namespace ReadPngHeader
                 keep = 1; // 保留该块
             }
         }
-        return 0; // 返回1表示保留块，0表示不保留
+        return keep; // 返回1表示保留块，0表示不保留
     }
 
     // 从内存数据解析（重载版本）
@@ -546,7 +546,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
     m_impl->m_bAsyncDecoding = true;
 
     while (((IsAborted == nullptr) || !IsAborted()) &&
-           (nMinFrameIndex >= (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
+           (nMinFrameIndex >= (uint32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
            ((int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
         AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
         if (pNewAnimationFrame != nullptr) {
