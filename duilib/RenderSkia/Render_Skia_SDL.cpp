@@ -3,14 +3,13 @@
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
-#pragma warning (push)
-#pragma warning (disable: 4267 4244 4201 4100)
+#include "SkiaHeaderBegin.h"
 
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkRegion.h"
 
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 namespace ui {
 

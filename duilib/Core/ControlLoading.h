@@ -2,7 +2,7 @@
 #define UI_CORE_CONTROL_LOADING_H_
 
 #include "duilib/Core/UiTypes.h"
-#include "Core/ControlPtrT.h"
+#include "duilib/Core/ControlPtrT.h"
 #include <memory>
 #include <chrono>
 
