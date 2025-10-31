@@ -120,7 +120,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
         if (pRenderFactory != nullptr) {
             spBitmap.reset(pRenderFactory->CreateBitmap());
             if (spBitmap != nullptr) {
-                if (!spBitmap->Init(width, height, true, bitmap.data())) {
+                if (!spBitmap->Init(width, height, bitmap.data())) {
                     spBitmap.reset();
                 }
             }
