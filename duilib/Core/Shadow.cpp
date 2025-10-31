@@ -168,20 +168,7 @@ public:
         }
     }
 
-    virtual bool ButtonDown(const EventArgs& msg) override
-    {
-        OnMouseDown(msg.ptMouse);
-        return true;
-    }
-
-    virtual bool RButtonDown(const EventArgs& msg) override
-    {
-        OnMouseDown(msg.ptMouse);
-        return true;
-    }
-
-private:
-    /** 鼠标点击事件
+    /** 鼠标点击事件, 实现鼠标穿透功能
     */
     void OnMouseDown(UiPoint ptMouse)
     {
@@ -196,6 +183,7 @@ private:
         }
         UiRect rcRoot = pXmlRoot->GetPos();
         if (rcRoot.ContainsPt(pt)) {
+            //鼠标不在阴影上
             return;
         }
 
@@ -259,8 +247,9 @@ Box* Shadow::AttachShadow(Box* pXmlRoot)
     }
 
     m_pShadowBox = new ShadowBox(pXmlRoot->GetWindow(), this);
-    m_pShadowBox->SetMouseEnabled(false);
-    m_pShadowBox->SetKeyboardEnabled(false);
+    m_pShadowBox->SetMouseEnabled(false);    //阴影容器不接收鼠标消息
+    m_pShadowBox->SetNoFocus();              //阴影容器不获取焦点
+    m_pShadowBox->SetKeyboardEnabled(false); //阴影容器不接收键盘消息
     m_pShadowBox->AddItem(pXmlRoot);
     DoAttachShadow(m_pShadowBox, pXmlRoot, true, m_isMaximized);
     return m_pShadowBox;
@@ -719,6 +708,47 @@ void Shadow::UpdateWindowPosSnap()
             }
         }        
     }
+}
+
+void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
+{
+    if ((eventType != kEventMouseButtonDown) && (eventType != kEventMouseRButtonDown)) {
+        //只处理鼠标左键按下和右键按下事件
+        return;
+    }
+    Shadow::ShadowType shadowType = GetShadowType();
+    if ((shadowType == Shadow::ShadowType::kShadowNone) || (shadowType == Shadow::ShadowType::kShadowNoneRound)) {
+        //无阴影模式
+        return;
+    }
+
+    ShadowBox* pShadowBox = nullptr;
+    Box* pBox = GetShadowBox();
+    if (pBox != nullptr) {
+        pShadowBox = dynamic_cast<ShadowBox*>(pBox);
+    }
+    if (pShadowBox == nullptr) {
+        return;
+    }
+    UiRect rcShadowBox = pShadowBox->GetRect();
+    if (!rcShadowBox.ContainsPt(pt)) {
+        return;
+    }
+
+    UiPadding rcShadowCorner = GetShadowCorner();
+    if ((rcShadowCorner.left <= 1) && (rcShadowCorner.top <= 1) && (rcShadowCorner.right <= 1) && (rcShadowCorner.bottom <= 1)) {
+        //当前无阴影
+        return;
+    }
+    pShadowBox->Dpi().ScalePadding(rcShadowCorner);
+    rcShadowBox.Deflate(rcShadowCorner);
+    if (rcShadowBox.ContainsPt(pt)) {
+        //鼠标不在阴影范围内
+        return;
+    }
+
+    //鼠标确认点击在阴影上，处理阴影穿透逻辑
+    pShadowBox->OnMouseDown(pt);
 }
 
 } //namespace ui

@@ -2076,6 +2076,10 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             }
         }
     }
+    else if (!IsUseSystemCaption() && (m_shadow != nullptr) && IsShadowAttached()) {
+        //检查是否点击在窗口阴影区域(实现鼠标点击阴影，穿透到后面窗口的功能)
+        m_shadow->CheckMouseClickOnShadow(eventType, pt);
+    }
     if (!bWindowFocused && !windowFlag.expired()) {
         //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)
         CheckSetWindowFocus();
