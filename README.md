@@ -55,7 +55,7 @@
     <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
-        <td rowspan="19">功能完善</td>
+        <td rowspan="20">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
     <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
@@ -65,7 +65,7 @@
     <tr><td align="left">6. 对组合框（Combo）关联的控件（CheckCombo、FilterCombo）进行了优化，提升可用性</td></tr>
     <tr><td align="left">7. 对日期时间（DateTime）控件的编辑功能进行了完善</td></tr>
     <tr><td align="left">8. 对菜单（CMenuWnd）类的功能代码进行优化，按新的结构重新实现菜单，使得菜单内的控件完全兼容现有容器/控件体系，易于理解和维护</td></tr>
-    <tr><td align="left">9. 对富文本编辑控件（RichEdit）进行功能优化和扩展，丰富了较多常用功能</td></tr>
+    <tr><td align="left">9. 对文本编辑控件（RichEdit）进行功能优化和扩展，丰富了较多常用功能</td></tr>
     <tr><td align="left">10. 对树控件（TreeView）进行功能优化和扩展，丰富了较多常用功能，提升可用性</td></tr>
     <tr><td align="left">11. 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护</td></tr>
     <tr><td align="left">12. 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作</td></tr>
@@ -76,6 +76,7 @@
     <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），可选值为：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影</td></tr>
     <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
     <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
+    <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr>
         <td rowspan="19">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
@@ -169,6 +170,8 @@
 ## 支持的操作系统
 - Windows：Windows 7.0 版本及以上
 - Linux：OpenEuler、OpenKylin（开放麒麟）、UbuntuKylin（优麒麟）、中科方德、统信UOS、Ubuntu、Debian、Fedora、OpenSuse等
+- macOS
+- FreeBSD
 
 ## 支持的编译器
 - Visual Studio 2022（Windows）
@@ -177,8 +180,9 @@
 - gcc/g++（Linux）
 - clang/clang++（Linux）
 - clang/clang++（macOS）
+- clang/clang++（FreeBSD）
 
-## 获取代码和编译（Windows平台）
+## A. 编译过程（Windows平台）
 ### 一、准备工作：安装必备的软件
 1. 安装python3（python的主版本需要是3，需要添加到Path环境变量）    
 （1）首先安装python3    
@@ -187,11 +191,12 @@
 （4）在命令行验证：`> python3.exe --version` 可以查看python的版本号     
 2. 安装Git For Windows: 2.44版本，git需要添加到Path环境变量，确保命令行参数中可以访问到git.exe    
 3. 安装Visual Studio 2022社区版    
-4. 安装LLVM：20.1.0 Win64 版本    
+4. 安装LLVM：21.1.4 Win64 版本（其他版本也可以）    
 （1）安装目录：`C:\LLVM`    
 （2）注意事项：如果安装在其他目录，安装目录中不能有空格，否则编译会遇到问题。
 
-### 二、一键编译（推荐）
+### 二、使用脚本自动编译（推荐）
+该脚本自动完成相关源码下载和编译工作。    
 选定一个工作目录，创建一个脚本`build.bat`，将下面已经整理好脚本复制进去，保存文件。    
 脚本文件内容如下：    
 ```
@@ -227,7 +232,7 @@ if %errorlevel% neq 0 (
 （2）按照skia_compile目录中的[Windows下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)文档中的方法，编译出skia相关的.lib文件      
 3. 编译nim_duilib：进入 `build` 目录，打开 `examples.sln`，可执行编译，编译完成的示例程序位于bin目录中。
 
-## 获取代码和编译（Linux平台）
+## B. 编译过程（Linux平台）
 ### 一、准备工作：安装必备的软件
 不同的操作系统平台，可以按照以下列表安装必备的软件。
 | 操作系统平台            |桌面类型        |需要安装的模块及安装命令（必选） | 
@@ -242,7 +247,8 @@ if %errorlevel% neq 0 (
 |Fedora                   |GNOME（Wayland）|`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
 |OpenSuse                 |KDE（X11）      |`sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
 
-### 二、一键编译（推荐）
+### 二、使用脚本自动编译（推荐）
+该脚本自动完成相关源码下载和编译工作。    
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
 然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
 ```
@@ -314,7 +320,7 @@ chmod +x linux_build.sh
 编译完成后，在bin目录中生成了可执行文件。    
 如果希望支持CEF，可以参考相关文档[docs/CEF.md](docs/CEF.md)。
 
-## 获取代码和编译（macOS平台）
+## C. 编译过程（macOS平台）
 ### 一、准备工作：安装必备的软件
 安装完成系统后，需要做的工作：    
 #### 安装Xcode命令行工具
@@ -357,7 +363,8 @@ sudo cp out/gn /usr/local/bin/
 gn --version
 ```
 
-### 二、一键编译（推荐）
+### 二、使用脚本自动编译（推荐）
+该脚本自动完成相关源码下载和编译工作。    
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
 然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
 ```
@@ -420,12 +427,13 @@ chmod +x macos_build.sh
 编译完成后，在bin目录中生成了可执行文件。    
 如果希望支持CEF，可以参考相关文档[docs/CEF.md](docs/CEF.md)。
 
-## 获取代码和编译（FreeBSD平台）
+## D. 编译过程（FreeBSD平台）
 ### 一、准备工作：安装必备的软件
 ```
 sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2
 ```
-### 二、一键编译（推荐）
+### 二、使用脚本自动编译（推荐）
+该脚本自动完成相关源码下载和编译工作。    
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
 然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
 ```
@@ -489,7 +497,7 @@ chmod +x ./build/freebsd_build.sh
 编译完成后，在bin目录中生成了可执行文件。    
 
 ## 开发计划
- - 跨平台（Windows/Linux/macOS）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
+ - 跨平台（Windows/Linux/macOS/FreeBSD）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充

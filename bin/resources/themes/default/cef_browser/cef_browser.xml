@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
+<Window size="800,600" min_size="300,200" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
 <!--新建标签按钮：纯色按钮-->
 <Class name="tab_item_new_add_btn" font="system_18" text_align="hcenter,vcenter" valign="center" 
                                    normal_text_color="black" 
