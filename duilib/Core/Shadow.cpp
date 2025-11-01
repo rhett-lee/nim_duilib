@@ -38,7 +38,10 @@ public:
         //设置客户区剪辑区域，避免覆盖阴影
         AutoClip rectClip(pRender, rcRect, true);
 
-        UiSize borderRound = m_pShadow->GetShadowBorderRound();
+        UiSize borderRound;
+        if (m_pShadow != nullptr) {
+            borderRound = m_pShadow->GetShadowBorderRound();
+        }
         if (GetWindow() != nullptr) {
             GetWindow()->Dpi().ScaleSize(borderRound);
         }
