@@ -217,7 +217,7 @@ if ! is_windows || [ "$ENABLE_SDL" == "1" ]; then
     fi
 fi
 
-SKIA_PATCH_SRC_ZIP=skia.2025-10-08.src.zip
+SKIA_PATCH_SRC_ZIP=skia.2025-11-01.src.zip
 if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
     echo "./skia_compile/$SKIA_PATCH_SRC_ZIP not found!"
     cd "$CURRENT_DIR"
@@ -225,7 +225,7 @@ if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
 fi
 
 cd skia
-git checkout 8aab0865b45e3fd0563a4ab922fca89b6f6639d1
+git checkout c5cd862d6fa511be244f7c2db1fe05563ff8fc72
 if [ $? -ne 0 ]; then
     echo "git checkout skia failed!"
     cd "$CURRENT_DIR"
