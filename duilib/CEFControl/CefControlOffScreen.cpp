@@ -201,7 +201,11 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
                 m_pCefMemData->PaintData(pRender, rect);
             }
             else {
-                //如果区域不匹配，不绘制，再次触发一次绘制事件（避免绘制超出控件边界，覆盖其他控件）
+                //如果区域不匹配，按图像数据实际大小绘制，然后再次触发一次绘制事件（避免绘制超出控件边界，覆盖其他控件）
+                UiRect rc = rect;
+                rc.right = rc.left + m_pCefMemData->GetWidth();
+                rc.bottom = rc.top + m_pCefMemData->GetHeight();
+                m_pCefMemData->PaintData(pRender, rc);
                 m_pBrowserHandler->SetViewRect(rect);
             }
         }
