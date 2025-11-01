@@ -2866,6 +2866,23 @@ bool NativeWindow_Windows::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const
         break;
     }
 
+    UiRect rcSizeBox = m_pOwner->OnNativeGetSizeBox();
+    if ((rcSizeBox.left <= 0) && (rcSizeBox.top <= 0) && (rcSizeBox.right <= 0) && (rcSizeBox.bottom <= 0)) {
+        //禁止调整大小
+        SetMenuItemInfo(hSysMenu, SC_SIZE, FALSE, &mii);
+    }
+
+    UINT wndStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+    if (!(wndStyleValue & WS_MINIMIZEBOX)) {
+        //禁止最小化
+        SetMenuItemInfo(hSysMenu, SC_MINIMIZE, FALSE, &mii);
+    }
+    if (!(wndStyleValue & WS_MAXIMIZEBOX)) {
+        //禁止最大化和还原
+        SetMenuItemInfo(hSysMenu, SC_MAXIMIZE, FALSE, &mii);
+        SetMenuItemInfo(hSysMenu, SC_RESTORE, FALSE, &mii);
+    }
+
     // 在点击位置显示系统菜单
     int32_t nRet = ::TrackPopupMenu(hSysMenu, TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, nullptr);
     if (nRet != 0) {

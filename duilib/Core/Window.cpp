@@ -2015,6 +2015,25 @@ void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool&
 
 void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
 {
+    if (IsWindowMaximized() || IsWindowMinimized()) {
+        //窗口最大化或者最小化时，不处理
+        return;
+    }
+    UiRect rcSizeBox = GetSizeBox();
+
+    //没有窗口边框，不处理
+    if (rcSizeBox.left <= 0) {
+        bLeftSnap = false;
+    }
+    if (rcSizeBox.top <= 0) {
+        bTopSnap = false;
+    }
+    if (rcSizeBox.right <= 0) {
+        bRightSnap = false;
+    }
+    if (rcSizeBox.bottom <= 0) {
+        bBottomSnap = false;
+    }
     if (m_shadow != nullptr) {
         m_shadow->SetWindowPosSnap(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
     }
