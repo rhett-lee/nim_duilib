@@ -706,22 +706,22 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
 
 void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData)
 {
-    if ((pBrowserBox == nullptr) || imageData.empty()) {
+    if (pBrowserBox == nullptr) {
         return;
     }
-    if ((nWidth < 1) || (nHeight < 1)) {
-        return;
-    }
-    if (imageData.size() != nHeight * nWidth * 4) {
-        return;
-    }
-
     DString id = ui::StringConvert::UTF8ToT(pBrowserBox->GetBrowserId());
     TabCtrlItem* pTabItem = FindTabItem(id);
     if (pTabItem == nullptr) {
         return;
-    }    
-    pTabItem->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
+    }
+
+    if (!imageData.empty() && (nWidth > 0) && (nHeight > 0) && (imageData.size() == nHeight * nWidth * 4)) {
+        pTabItem->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
+    }
+    else {
+        //当图标资源无效时，删除图标资源，不显示图标
+        pTabItem->ClearIconData();
+    }
 }
 
 

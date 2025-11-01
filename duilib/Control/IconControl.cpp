@@ -58,6 +58,15 @@ bool IconControl::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pP
     return bRet;
 }
 
+void IconControl::ClearIconData()
+{
+    if (m_pBitmap != nullptr) {
+        m_pBitmap.reset();
+        //重绘图片
+        Invalidate();
+    }    
+}
+
 bool IconControl::HasIconData() const
 {
     return (m_pBitmap != nullptr) && (m_pBitmap->GetWidth() > 0) && (m_pBitmap->GetHeight() > 0);

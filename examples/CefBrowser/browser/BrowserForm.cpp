@@ -714,7 +714,7 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
 
 void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImage> image)
 {
-    if ((pBrowserBox == nullptr) || (image == nullptr)) {
+    if (pBrowserBox == nullptr) {
         return;
     }
 
@@ -724,18 +724,25 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImag
         return;
     }
 
+    if (image == nullptr) {
+        pTabItem->ClearIconData();
+    }
+
     int32_t nWidth = 0;
     int32_t nHeight = 0;    
     CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetScale() / 100.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
     if (cefImageData == nullptr) {
+        pTabItem->ClearIconData();
         return;
     }
     size_t nDataSize = cefImageData->GetSize();
     if (nDataSize == 0) {
+        pTabItem->ClearIconData();
         return;
     }
     ASSERT((int32_t)nDataSize == nHeight * nWidth * sizeof(uint32_t));
     if ((int32_t)nDataSize != nHeight * nWidth * sizeof(uint32_t)) {
+        pTabItem->ClearIconData();
         return;
     }
     std::vector<uint8_t> imageData;
@@ -743,6 +750,7 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImag
     nDataSize = cefImageData->GetData(imageData.data(), imageData.size(), 0);
     ASSERT(nDataSize == imageData.size());
     if (nDataSize != imageData.size()) {
+        pTabItem->ClearIconData();
         return;
     }
 

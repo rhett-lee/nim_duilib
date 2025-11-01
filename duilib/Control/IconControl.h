@@ -29,6 +29,10 @@ public:
     */
     bool SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pPixelBits, int32_t nPixelBitsSize);
 
+    /** 清除图标数据
+    */
+    void ClearIconData();
+
     /** 获取当前是否含有图标数据
     */
     bool HasIconData() const;

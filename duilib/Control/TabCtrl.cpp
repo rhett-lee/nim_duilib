@@ -839,6 +839,14 @@ bool TabCtrlItem::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pP
     return bRet;
 }
 
+void TabCtrlItem::ClearIconData()
+{
+    IconControl* pIconControl = GetIconControl();
+    if (pIconControl != nullptr) {
+        pIconControl->ClearIconData();
+    }
+}
+
 void TabCtrlItem::CheckIconVisible()
 {
     IconControl* pIconControl = GetIconControl();

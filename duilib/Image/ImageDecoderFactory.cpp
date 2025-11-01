@@ -114,12 +114,19 @@ std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeP
     std::shared_ptr<IImage> pImage = LoadImageData(newDecodeParam);
     ASSERT(pImage != nullptr);
     if (pImage != nullptr) {
-        ASSERT(pImage->GetImageType() == ImageType::kImageBitmap);
+        ASSERT((pImage->GetImageType() == ImageType::kImageBitmap) || (pImage->GetImageType() == ImageType::kImageSvg));
         if (pImage->GetImageType() == ImageType::kImageBitmap) {
             std::shared_ptr<IBitmapImage> pBitmapImage = pImage->GetImageBitmap();
             ASSERT(pBitmapImage != nullptr);
             if (pBitmapImage != nullptr) {
                 pBitmap = pBitmapImage->GetBitmap();
+            }
+        }
+        else if (pImage->GetImageType() == ImageType::kImageSvg) {
+            std::shared_ptr<ISvgImage> pSvgImage = pImage->GetImageSvg();
+            ASSERT(pSvgImage != nullptr);
+            if (pSvgImage != nullptr) {
+                pBitmap = pSvgImage->GetBitmap(UiSize(pImage->GetWidth(), pImage->GetHeight()));
             }
         }
     }

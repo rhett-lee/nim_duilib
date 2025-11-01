@@ -1483,16 +1483,31 @@ bool WebView2Control::Impl::DownloadFavIconImage()
                 int32_t nWidth = 0;
                 int32_t nHeight = 0;
                 std::vector<uint8_t> imageData;
-                if (ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
-                    if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
-                        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
-                                                                    m_pControl->ToWeakCallback([this, nWidth, nHeight, imageData]() {
+                if (!ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
+                    imageData.clear();
+                    nWidth = 0;
+                    nHeight = 0;
+                }
+                if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                        m_pControl->ToWeakCallback([this, nWidth, nHeight, imageData]() {
                                 //转到UI线程执行回调函数
                                 if (m_favIconChangedCallback) {
                                     m_favIconChangedCallback(nWidth, nHeight, imageData);
                                 }
                             }));
-                    }                    
+                }
+            }
+            else {
+                //下载图标失败，需要给回调
+                if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                        m_pControl->ToWeakCallback([this]() {
+                                //转到UI线程执行回调函数
+                                if (m_favIconChangedCallback) {
+                                    m_favIconChangedCallback(0, 0, std::vector<uint8_t>());
+                                }
+                            }));
                 }
             }
         }));
