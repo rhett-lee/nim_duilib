@@ -53,6 +53,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_nIconFrameDelayMs = r.m_nIconFrameDelayMs;
     m_fPagMaxFrameRate = r.m_fPagMaxFrameRate;
     m_bPaintEnabled = r.m_bPaintEnabled;
+    m_bAssertEnabled = r.m_bAssertEnabled;
     m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
 
     if (r.m_pTiledDrawParam != nullptr) {
@@ -145,6 +146,7 @@ void ImageAttribute::Init()
     m_nIconFrameDelayMs = 1000;
     m_fPagMaxFrameRate = 30.0f;
     m_bPaintEnabled = true;
+    m_bAssertEnabled = true;
     m_bAdaptiveDestRect = false;
     m_pTiledDrawParam.reset();
 
@@ -410,6 +412,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if (name == _T("adaptive_dest_rect")) {
             //自动适应目标区域（等比例缩放图片）
             imageAttribute.m_bAdaptiveDestRect = (value == _T("true"));
+        }
+        else if (name == _T("assert")) {
+            //图片加载失败时，是否允许断言（编译为debug模式时）
+            imageAttribute.m_bAssertEnabled = (value == _T("true"));
         }
         else {
             ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");

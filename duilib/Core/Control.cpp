@@ -2643,7 +2643,9 @@ bool Control::PaintImage(IRender* pRender,
 
     LoadImageInfo(duiImage, true);
     std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
-    ASSERT(imageInfo != nullptr);
+    if (duiImage.GetImageAttribute().m_bAssertEnabled) {
+        ASSERT(imageInfo != nullptr);
+    }
     if (imageInfo == nullptr) {
         return false;
     }

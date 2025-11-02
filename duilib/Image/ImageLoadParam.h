@@ -49,6 +49,7 @@ public:
     * @param [in] nIconFrameDelayMs 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒（仅当m_bIconAsAnimation为true时有效）
     * @param [in] nIconSize 如果是ICO文件，用于指定需要加载的ICO图片的大小
     * @param [in] fPagMaxFrameRate PAG格式默认播放的最大帧率（仅限PAG格式）
+    * @param [in] bAssertEnabled 图片加载失败时是否允许断言
     */
     ImageLoadParam(DString srcWidth,
                    DString srcHeight,
@@ -58,7 +59,8 @@ public:
                    bool bIconAsAnimation /*= false*/,
                    int32_t nIconFrameDelayMs /*= 1000*/,
                    uint32_t nIconSize /*= 0*/,
-                   float fPagMaxFrameRate /*= 30.0f*/);
+                   float fPagMaxFrameRate /*= 30.0f*/,
+                   bool bAssertEnabled /*= true*/);
 
     /** 拷贝构造和复制
     */
@@ -116,6 +118,10 @@ public:
     /** 是否支持异步线程解码图片数据
     */
     bool IsAsyncDecodeEnabled() const;
+
+    /** 当图片加载失败时，是否允许断言
+    */
+    bool IsAssertEnabled() const;
 
 public:
     /** 获取加载图片的缓存KEY
@@ -196,6 +202,9 @@ private:
 
     //加载图片时是否支持DPI自适应，即按照DPI缩放图片大小（"dpi_scale"）
     bool m_bImageDpiScaleEnabled;
+
+    //图片加载失败时，是否断言（debug编译时）
+    bool m_bAssertEnabled;
 };
 
 } // namespace ui

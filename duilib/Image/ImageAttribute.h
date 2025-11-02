@@ -165,6 +165,9 @@ public:
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
 
+    //图片加载失败时，是否断言（debug编译时）
+    bool m_bAssertEnabled;
+
 private:
     //rcMargin对应的DPI缩放百分比
     uint16_t m_rcMarginScale;

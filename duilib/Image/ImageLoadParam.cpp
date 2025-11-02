@@ -13,7 +13,8 @@ ImageLoadParam::ImageLoadParam():
     m_bIconAsAnimation(false),
     m_nIconFrameDelayMs(1000),
     m_nIconSize(0),
-    m_fPagMaxFrameRate(30.0f)
+    m_fPagMaxFrameRate(30.0f),
+    m_bAssertEnabled(true)
 {
 }
 
@@ -25,14 +26,16 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
                                bool bIconAsAnimation,
                                int32_t nIconFrameDelayMs,
                                uint32_t nIconSize,
-                               float fPagMaxFrameRate):
+                               float fPagMaxFrameRate,
+                               bool bAssertEnabled):
     m_bImageDpiScaleEnabled(bImageDpiScaleEnabled),
     m_nLoadDpiScale(nLoadDpiScale),
     m_bAsyncDecode(bAsyncDecode),
     m_bIconAsAnimation(bIconAsAnimation),
     m_nIconFrameDelayMs(nIconFrameDelayMs),
     m_nIconSize(nIconSize),
-    m_fPagMaxFrameRate(fPagMaxFrameRate)
+    m_fPagMaxFrameRate(fPagMaxFrameRate),
+    m_bAssertEnabled(bAssertEnabled)
 {
     StringUtil::Trim(srcWidth);
     StringUtil::Trim(srcHeight);
@@ -131,6 +134,11 @@ float ImageLoadParam::GetPagMaxFrameRate() const
 bool ImageLoadParam::IsAsyncDecodeEnabled() const
 {
     return m_bAsyncDecode;
+}
+
+bool ImageLoadParam::IsAssertEnabled() const
+{
+    return m_bAssertEnabled;
 }
 
 bool ImageLoadParam::HasImageFixedSize(void) const

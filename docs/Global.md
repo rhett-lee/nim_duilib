@@ -155,6 +155,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）， <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
 | pag_max_frame_rate | 30 | int | 如果是PAG文件，用于指定动画的帧率 |
+| assert | true | bool | 图片加载失败时，是否允许断言（编译为debug模式时）|
 
 图片的使用示例：
 ```xml

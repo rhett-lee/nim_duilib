@@ -33,9 +33,11 @@ public:
             if (!fileInfo.m_bFolder && IsImageFile(fileInfo.m_displayName)) {
                 //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
                 int32_t itemWidth = this->GetWidth() / 2;
+                //将宽度还原为未经DPI缩放的原值（因为图片加载时，会对width属性进行DPI缩放）
+                itemWidth = itemWidth * 100 / (int32_t)Dpi().GetScale();
                 DString imageString = fileInfo.m_filePath.ToString();
                 if (itemWidth > 0) {
-                    imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d'"), imageString.c_str(), itemWidth);
+                    imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d' assert='false'"), imageString.c_str(), itemWidth);
                 }
                 else {
                     imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), imageString.c_str());
@@ -84,7 +86,7 @@ private:
             (fileExt == _T(".ico"))) {
             return true;
         }
-        return true;
+        return false;
     }
 
 private:

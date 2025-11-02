@@ -119,7 +119,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
                 if (bReadFileData) {
                     //小文件/程序的resources目录文件等，读取文件全部数据
                     FileUtil::ReadFileData(imageFilePath, fileData);
-                    ASSERT(!fileData.empty());
+                    if (loadParam.IsAssertEnabled()) {
+                        ASSERT(!fileData.empty());
+                    }                    
                     if (fileData.empty()) {
                         //加载失败
                         return nullptr;
@@ -128,7 +130,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
                 else {
                     //大文件，只读取文件头的部分数据，用作签名校验(读取4KB数据)
                     FileUtil::ReadFileHeaderData(imageFilePath, 4 * 1024, fileHeaderData);
-                    ASSERT(!fileHeaderData.empty());
+                    if (loadParam.IsAssertEnabled()) {
+                        ASSERT(!fileHeaderData.empty());
+                    }
                     if (fileHeaderData.empty()) {
                         //加载失败
                         return nullptr;
@@ -171,25 +175,14 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             }
         }
 #endif
-        if (bEnableAssert) {
+        if (loadParam.IsAssertEnabled() && bEnableAssert) {
             ASSERT(pImageData != nullptr); //图片加载失败时，断言
         }        
         if (pImageData == nullptr) {
             //加载失败
             return nullptr;
         }
-        //////////////TODO
-#ifdef  OUTPUT_IMAGE_LOG
-        /*if (1) {
-            float fScale = pImageData->GetImageSizeScale();
-            int32_t w = pImageData->GetWidth();
-            int32_t h = pImageData->GetHeight();
-            int32_t ww = (int32_t)(w / fScale + 0.5f);
-            int32_t hh = (int32_t)(h / fScale + 0.5f);
-            fScale = 0;
-        }*/
-#endif
-        //////////////
+
         ASSERT((pImageData->GetWidth() > 0) && (pImageData->GetHeight() > 0));
         if ((pImageData->GetWidth() <= 0) || (pImageData->GetHeight() <= 0)) {
             //加载失败

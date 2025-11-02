@@ -106,7 +106,8 @@ ImageLoadParam Image::GetImageLoadParam() const
                           bIconAsAnimation,
                           nIconFrameDelayMs,
                           nIconSize,
-                          fPagMaxFrameRate);
+                          fPagMaxFrameRate,
+                          m_imageAttribute.m_bAssertEnabled);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const
