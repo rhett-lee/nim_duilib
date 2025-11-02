@@ -597,8 +597,9 @@ public:
     bool EnsureDataItemVisible(size_t itemIndex, bool bToTop);
 
     /** 刷新界面，保持数据与显示同步
+    * @param [in] bSync true表示同步刷新，立即重绘当前视图; false表示异步刷新，刷新动作为异步重绘，标记为脏区域，交给系统重绘界面
     */
-    void Refresh();
+    void Refresh(bool bSync = false);
 
     /** 刷新指定数据项
     * @param [in] dataItemIndexs 需要刷新的数据项索引号, 有效范围：[0, GetDataItemCount())

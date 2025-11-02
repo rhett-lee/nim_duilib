@@ -237,9 +237,10 @@ public:
     */
     void RefreshElements(const std::vector<size_t>& elementIndexs);
 
-    /** 刷新列表
+    /** 刷新界面，保持数据与显示同步
+    * @param [in] bSync true表示同步刷新，立即重绘当前视图; false表示异步刷新，刷新动作为异步重绘，标记为脏区域，交给系统重绘界面
     */
-    virtual void Refresh();
+    virtual void Refresh(bool bSync = false);
 
     /** 确保矩形区域可见
     * @param [in] rcItem 可见区域的矩形范围

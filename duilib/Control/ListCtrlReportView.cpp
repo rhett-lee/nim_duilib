@@ -62,7 +62,7 @@ void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
     }
 }
 
-void ListCtrlReportView::Refresh()
+void ListCtrlReportView::Refresh(bool bSync)
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
         //刷新功能已经禁止
@@ -81,6 +81,10 @@ void ListCtrlReportView::Refresh()
     if (GetElementCount() > 0) {
         ReArrangeChild(true);
         Arrange();
+    }
+    if (bSync) {
+        //立即重新布局
+        SetPos(GetPos());
     }
 }
 

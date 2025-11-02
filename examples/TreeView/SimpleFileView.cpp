@@ -149,41 +149,91 @@ size_t SimpleFileView::GetElementCount() const
 
 void SimpleFileView::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
-
+    if (nElementIndex < m_pathSelectList.size()) {
+        m_pathSelectList[nElementIndex] = bSelected;
+    }
 }
 
 bool SimpleFileView::IsElementSelected(size_t nElementIndex) const
 {
+    if (nElementIndex < m_pathSelectList.size()) {
+        return m_pathSelectList[nElementIndex];
+    }
     return false;
 }
 
 void SimpleFileView::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
 {
+    selectedIndexs.clear();
+    for (size_t nElementIndex = 0; nElementIndex < m_pathSelectList.size(); ++nElementIndex) {
+        if (m_pathSelectList[nElementIndex]) {
+            selectedIndexs.push_back(nElementIndex);
+        }
+    }
 }
 
 bool SimpleFileView::IsMultiSelect() const
 {
+    //不支持多选
     return false;
 }
 
 void SimpleFileView::SetMultiSelect(bool /*bMultiSelect*/)
 {
+    //禁止切换单选和多选，固定为单选模式
 }
 
-void SimpleFileView::SetFileList(const std::vector<PathInfo>& pathList)
+void SimpleFileView::SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath)
 {
+    m_currentPath = currentPath;
     std::vector<PathInfo> oldPathList;
     oldPathList.swap(m_pathList);
 
-    m_pathList.reserve(m_pathList.size() + pathList.size());
-    for (const PathInfo& fileInfo : pathList) {
-        m_pathList.emplace_back(fileInfo);
-    }
+    m_pathList = pathList;
+    m_pathSelectList.clear();
+    m_pathSelectList.resize(m_pathList.size(), false); //初始状态均为未选择
+
     // 通知ListBox数据总数变动
     EmitCountChanged();
 
     //清理原来的图标资源
     ui::DirectoryTree::ClearPathInfoList(oldPathList);
+
+    //选择子项
+    size_t nSelectedItemIndex = ui::Box::InvalidIndex;
+    if (!selectedPath.IsEmpty()) {
+        for (size_t nIndex = 0; nIndex < pathList.size(); ++nIndex) {
+            const ui::DirectoryTree::PathInfo& pathInfo = pathList[nIndex];
+            if (selectedPath == pathInfo.m_filePath) {
+                //保存选择状态
+                m_pathSelectList[nIndex] = true;
+                nSelectedItemIndex = nIndex;
+                break;
+            }
+        }
+    }
+
+    if ((nSelectedItemIndex != ui::Box::InvalidIndex) && (m_pListBox != nullptr)) {
+        m_pListBox->Refresh(true);
+        m_pListBox->EnsureVisible(nSelectedItemIndex, false);
+    }
+}
+
+void SimpleFileView::GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const
+{
+    currentPath = m_currentPath;
+    std::vector<size_t> selectedIndexs;
+    GetSelectedElements(selectedIndexs);
+    for (size_t nIndex : selectedIndexs) {
+        if (nIndex < m_pathList.size()) {
+            const ui::DirectoryTree::PathInfo& pathInfo = m_pathList[nIndex];
+            if (!pathInfo.m_filePath.IsEmpty()) {
+                //记录当前所选的目录
+                selectedPath = pathInfo.m_filePath;
+                break;
+            }
+        }
+    }
 }
 
 bool SimpleFileView::OnDoubleClickItem(const ui::EventArgs& args)

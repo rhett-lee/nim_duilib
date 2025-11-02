@@ -2027,7 +2027,7 @@ bool ListCtrl::EnsureDataItemVisible(size_t itemIndex, bool bToTop)
     return bRet;
 }
 
-void ListCtrl::Refresh()
+void ListCtrl::Refresh(bool bSync)
 {
     if (!IsInited()) {
         return;
@@ -2035,17 +2035,17 @@ void ListCtrl::Refresh()
     if (m_bEnableRefresh) {
         if (m_listCtrlType == ListCtrlType::Report) {
             if (m_pReportView != nullptr) {
-                m_pReportView->Refresh();
+                m_pReportView->Refresh(bSync);
             }
         }
         else if (m_listCtrlType == ListCtrlType::Icon) {
             if (m_pIconView != nullptr) {
-                m_pIconView->Refresh();
+                m_pIconView->Refresh(bSync);
             }
         }
         else if (m_listCtrlType == ListCtrlType::List) {
             if (m_pListView != nullptr) {
-                m_pListView->Refresh();
+                m_pListView->Refresh(bSync);
             }
         }
     }

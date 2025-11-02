@@ -27,8 +27,17 @@ public:
 
 public:
     /** 用新的文件列表，替换原来的列表
+    * @param [in] currentPath 当前显示内容所在路径
+    * @param [in] pathList 文件和文件夹列表
     */
-    void SetFileList(const std::vector<PathInfo>& pathList);
+    void SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath);
+
+    /** 获取当前显示内容所在路径和所选择的路径
+    * @param [out] currentPath 当前显示内容所在路径
+    * @param [out] selectedPath 当前视图中选择的路径
+    * @param [in] selectedPath 需要选择的路径
+    */
+    void GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const;
 
     /** 获取视图的列表接口
     */
@@ -114,6 +123,10 @@ private:
     /** 图标删除回调函数的ID
     */
     uint32_t m_nRemoveIconCallbackId;
+
+    /** 当前显示内容所在的路径
+    */
+    ui::FilePath m_currentPath;
 
     /** 路径列表（包含文件夹和文件）
     */

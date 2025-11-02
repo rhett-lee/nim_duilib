@@ -164,7 +164,7 @@ void ListCtrlListView::SetDataProvider(VirtualListBoxElement* pProvider)
     m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
 }
 
-void ListCtrlListView::Refresh()
+void ListCtrlListView::Refresh(bool bSync)
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
         //刷新功能已经禁止
@@ -176,7 +176,7 @@ void ListCtrlListView::Refresh()
     if ((GetWindow() == nullptr) || !HasDataProvider()) {
         return;
     }
-    BaseClass::Refresh();
+    BaseClass::Refresh(bSync);
 }
 
 Control* ListCtrlListView::CreateDataItem()
