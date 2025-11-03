@@ -231,6 +231,15 @@ private:
     /** 与主线程通信的机制
     */
     ThreadMessage m_threadMsg;
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+private:
+    /** 延迟发送的消息和容器锁（主线程）
+    */
+    std::vector<size_t> m_winTaskIds;
+    std::mutex m_winTaskMutex;
+
+#endif
 };
 
 }
