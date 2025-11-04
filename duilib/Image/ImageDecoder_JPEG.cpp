@@ -59,29 +59,22 @@ std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const ImageDecodeParam&
     bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
+    bool bAssertEnabled = decodeParam.m_bAssertEnabled;
+    std::vector<uint8_t> emptyFileData;
+    std::vector<uint8_t>& fileData = (decodeParam.m_pFileData != nullptr) ? *decodeParam.m_pFileData : emptyFileData;
+    const FilePath& imageFilePath = decodeParam.m_imageFilePath;
+
     Image_JPEG* pImageJPEG = new Image_JPEG;
     std::shared_ptr<IBitmapImage> pImage(pImageJPEG);
 
-    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
-        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
-        if (pImageJPEG->LoadImageFromMemory(fileData,
-                                            fImageSizeScale,
-                                            bAsyncDecode,
-                                            rcMaxDestRectSize)) {
-            return Image_Bitmap::MakeImage(pImage);
-        }
+    if (pImageJPEG->LoadImageFile(fileData,
+                                  imageFilePath,
+                                  fImageSizeScale,
+                                  bAsyncDecode,
+                                  rcMaxDestRectSize,
+                                  bAssertEnabled)) {
+        return Image_Bitmap::MakeImage(pImage);
     }
-    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
-        if (pImageJPEG->LoadImageFromFile(decodeParam.m_imageFilePath,
-                                          fImageSizeScale,
-                                          bAsyncDecode,
-                                          rcMaxDestRectSize)) {
-            return Image_Bitmap::MakeImage(pImage);
-        }
-    }
-    else {
-        ASSERT(0);
-    }    
     return nullptr;
 }
 

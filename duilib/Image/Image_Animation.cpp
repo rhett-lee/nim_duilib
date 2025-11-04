@@ -80,11 +80,11 @@ size_t Image_Animation::GetAsyncDecodeTaskId() const
     return m_nAsyncDecodeTaskId;
 }
 
-bool Image_Animation::AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+bool Image_Animation::AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted, bool* bDecodeError)
 {
     ASSERT(m_pAnimationImage != nullptr);
     if (m_pAnimationImage != nullptr) {
-        return m_pAnimationImage->DelayDecode(nMinFrameIndex, IsAborted);
+        return m_pAnimationImage->DelayDecode(nMinFrameIndex, IsAborted, bDecodeError);
     }
     return false;
 }

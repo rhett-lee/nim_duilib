@@ -47,7 +47,7 @@ uint32_t Image_ICO::GetDecodedFrameIndex() const
     return 0;
 }
 
-bool Image_ICO::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+bool Image_ICO::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* /*bDecodeError*/)
 {
     return false;
 }
@@ -184,6 +184,8 @@ bool Image_ICO::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     if (nFrameIndex < 0) {
         return false;
     }
+    pAnimationFrame->m_bDataPending = false;
+    pAnimationFrame->m_bDataError = false;
     bool bRet = false;
     if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
         AnimationFramePtr pFrameData = m_impl->m_frames[nFrameIndex];
@@ -194,6 +196,9 @@ bool Image_ICO::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
             pAnimationFrame->m_bDataPending = false;
             ASSERT(pAnimationFrame->m_pBitmap != nullptr);
             bRet = true;
+        }
+        else {
+            pAnimationFrame->m_bDataError = true;
         }
     }
     return bRet;

@@ -222,7 +222,9 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     }
     else if (!decodeParam.m_imageFilePath.IsEmpty()){
         FileUtil::ReadFileData(decodeParam.m_imageFilePath, fileData);
-        ASSERT(!fileData.empty());
+        if (decodeParam.m_bAssertEnabled) {
+            ASSERT(!fileData.empty());
+        }        
         if (fileData.empty()) {
             return nullptr;
         }
@@ -237,11 +239,15 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
         return nullptr;
     }
     sk_sp<SkSVGDOM> svgDom = SkSVGDOM::MakeFromStream(*spMemStream);
-    ASSERT(svgDom != nullptr);
+    if (decodeParam.m_bAssertEnabled) {
+        ASSERT(svgDom != nullptr);
+    }
     if (svgDom == nullptr) {
         return nullptr;
     }
-    ASSERT(svgDom->getRoot() != nullptr);
+    if (decodeParam.m_bAssertEnabled) {
+        ASSERT(svgDom->getRoot() != nullptr);
+    }
     if (svgDom->getRoot() == nullptr) {
         return nullptr;
     }
@@ -267,7 +273,9 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
         //如果图片中没有直接定义宽和高，使用NanoSvg计算图片的宽度和高度（Skia的Svg封装没有提供相关功能）
         if (!NanoSvgDecoder::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
-            ASSERT(0);
+            if (decodeParam.m_bAssertEnabled) {
+                ASSERT(0);
+            }
             return nullptr;
         }
     }

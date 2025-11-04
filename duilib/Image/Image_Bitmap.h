@@ -89,9 +89,12 @@ private:
     /** 异步解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
     * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual bool AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override;
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) override;
 
     /** 合并异步解码图片数据的结果
     */

@@ -22,6 +22,9 @@ namespace ui
 
 struct Image_PAG::TImpl
 {
+    //图片文件路径
+    FilePath m_imageFilePath;
+
     //文件数据
     std::vector<uint8_t> m_fileData;
 
@@ -40,6 +43,12 @@ struct Image_PAG::TImpl
     //是否加载所有帧
     bool m_bLoadAllFrames = true;
 
+    //图片数据出错时，是否允许断言
+    bool m_bAssertEnabled = true;
+
+    //是否存在图片数据解码错误
+    bool m_bDecodeError = false;
+
     //缩放比例
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
 
@@ -53,14 +62,12 @@ public:
 
 public:
     //从已经打开的文件初始化数据
-    bool InitImageData(std::vector<uint8_t>& fileData,
-                       bool bLoadAllFrames,
+    bool InitImageData(bool bLoadAllFrames,
                        float fPagMaxFrameRate,
                        float fImageSizeScale,
                        const UiSize& rcMaxDestRectSize)
     {
-        if (m_pagComposition == nullptr) {
-            m_fileData.swap(fileData);
+        if (m_pagComposition == nullptr) {            
             return false;
         }
 
@@ -68,15 +75,16 @@ public:
         m_bLoadAllFrames = bLoadAllFrames;        
         m_pagDecoder = pag::PAGDecoder::MakeFrom(m_pagComposition, fPagMaxFrameRate, 1.0f);
         if (m_pagDecoder == nullptr) {
-            m_fileData.swap(fileData);
             return false;
         }
 
         //计算合适的缩放比例
         int32_t nWidth = m_pagDecoder->width();
         int32_t nHeight = m_pagDecoder->height();
+        if (m_bAssertEnabled) {
+            ASSERT((nWidth > 0) && (nHeight > 0));
+        }
         if ((nWidth <= 0) || (nHeight <= 0)) {
-            m_fileData.swap(fileData);
             return false;
         }
         float fRealScale = fImageSizeScale;
@@ -84,7 +92,6 @@ public:
             m_fImageSizeScale = fRealScale;
             m_pagDecoder = pag::PAGDecoder::MakeFrom(m_pagComposition, fPagMaxFrameRate, fRealScale);
             if (m_pagDecoder == nullptr) {
-                m_fileData.swap(fileData);
                 return false;
             }
         }
@@ -94,7 +101,6 @@ public:
 
         pag::PAGDecoder& pagDecoder = *m_pagDecoder;
         if ((pagDecoder.width() <= 0) || (pagDecoder.height() <= 0) || (pagDecoder.numFrames() <= 0)) {
-            m_fileData.swap(fileData);
             return false;
         }
 
@@ -102,13 +108,14 @@ public:
         m_nHeight = (uint32_t)pagDecoder.height();
         m_nFrameCount = (int32_t)pagDecoder.numFrames();
 
-        ASSERT(m_nWidth > 0);
-        ASSERT(m_nHeight > 0);
-        ASSERT(m_nFrameCount > 0);
+        if (m_bAssertEnabled) {
+            ASSERT(m_nWidth > 0);
+            ASSERT(m_nHeight > 0);
+            ASSERT(m_nFrameCount > 0);
+        }
 
         if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
             //加载失败时，需要恢复原文件数据
-            m_fileData.swap(fileData);
             return false;
         }
         //循环播放固定为一直播放，因GIF格式无此设置
@@ -133,40 +140,47 @@ Image_PAG::~Image_PAG()
     
 }
 
-bool Image_PAG::LoadImageFromFile(const FilePath& filePath,
-                                  bool bLoadAllFrames,
-                                  float fPagMaxFrameRate,
-                                  float fImageSizeScale,
-                                  const UiSize& rcMaxDestRectSize)
+bool Image_PAG::LoadImageFile(std::vector<uint8_t>& fileData,
+                              const FilePath& imageFilePath,
+                              bool bLoadAllFrames,
+                              float fPagMaxFrameRate,
+                              float fImageSizeScale,
+                              const UiSize& rcMaxDestRectSize,
+                              bool bAssertEnabled)
 {
-    //需要读取到内存中，然后再加载（不使用从文件路径加载的函数，因为这个函数有bug，返回失败）
-    std::vector<uint8_t> fileData;
-    FileUtil::ReadFileData(filePath, fileData);
-    if (fileData.empty()) {
+    ASSERT(!fileData.empty() || !imageFilePath.IsEmpty());
+    if (fileData.empty() && imageFilePath.IsEmpty()) {
         return false;
     }
-    return LoadImageFromMemory(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, rcMaxDestRectSize);
-}
-
-bool Image_PAG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                                    bool bLoadAllFrames,
-                                    float fPagMaxFrameRate,
-                                    float fImageSizeScale,
-                                    const UiSize& rcMaxDestRectSize)
-{
-    ASSERT(!fileData.empty());
+    bool bNeedRestoreData = !fileData.empty();
     if (fileData.empty()) {
-        return false;
+        //需要读取到内存中，然后再加载（不使用从文件路径加载的函数，因为这个函数有bug，返回失败）
+        FileUtil::ReadFileData(imageFilePath, fileData);
+        if (fileData.empty()) {
+            return false;
+        }
     }
+    m_impl->m_bAssertEnabled = bAssertEnabled;
+    m_impl->m_imageFilePath = imageFilePath;
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
     //备注：libpag内部实际没实现支持密码的功能，只是接口支持了这个参数
     m_impl->m_pagComposition = pag::PAGFile::Load(m_impl->m_fileData.data(), m_impl->m_fileData.size(), "");
     if (m_impl->m_pagComposition == nullptr) {
-        m_impl->m_fileData.swap(fileData);
+        //加载失败时，还原数据
+        if (bNeedRestoreData) {
+            m_impl->m_fileData.swap(fileData);
+        }
         return false;
     }
-    return m_impl->InitImageData(fileData, bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, rcMaxDestRectSize);
+    bool bRet = m_impl->InitImageData(bLoadAllFrames, fPagMaxFrameRate, fImageSizeScale, rcMaxDestRectSize);
+    if (!bRet) {
+        //加载失败时，还原数据
+        if (bNeedRestoreData) {
+            m_impl->m_fileData.swap(fileData);
+        }        
+    }
+    return bRet;
 }
 
 bool Image_PAG::IsDelayDecodeEnabled() const
@@ -184,7 +198,7 @@ uint32_t Image_PAG::GetDecodedFrameIndex() const
     return 0;
 }
 
-bool Image_PAG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+bool Image_PAG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* /*bDecodeError*/)
 {
     return false;
 }
@@ -236,29 +250,43 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     if (pAnimationFrame == nullptr) {
         return false;
     }
-    pAnimationFrame->m_bDataPending = true;
     ASSERT((nFrameIndex >= 0) && (nFrameIndex < m_impl->m_nFrameCount));
     if ((nFrameIndex < 0) || (nFrameIndex >= m_impl->m_nFrameCount)) {
         return false;
     }
+
+    pAnimationFrame->m_bDataPending = false;
+    pAnimationFrame->m_bDataError = false;
     ASSERT(m_impl->m_nFrameCount > 0);
     if (m_impl->m_nFrameCount <= 0) {
+        pAnimationFrame->m_bDataError = true;
+        return false;
+    }
+
+    if (m_impl->m_bDecodeError) {
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
 
     ASSERT(m_impl->m_pagDecoder != nullptr);
     if (m_impl->m_pagDecoder == nullptr) {
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
 
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
     std::shared_ptr<IBitmap> pBitmap(pRenderFactory->CreateBitmap());
     ASSERT(pBitmap != nullptr);
     if (pBitmap == nullptr) {
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
 
@@ -266,13 +294,16 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     const uint32_t nImageWidth = (uint32_t)pagDecoder.width();
     const uint32_t nImageHeight = (uint32_t)pagDecoder.height();
     if (!pBitmap->Init(nImageWidth, nImageHeight, nullptr)) {
-        ASSERT(0);
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
     int32_t index = nFrameIndex;
     void* pixels = pBitmap->LockPixelBits();
     ASSERT(pixels != nullptr);
     if (pixels == nullptr) {
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
     size_t rowBytes = pBitmap->GetWidth() * 4;
@@ -291,9 +322,11 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         pAnimationFrame->m_bDataPending = false;
         pAnimationFrame->m_nFrameIndex = nFrameIndex;
         pAnimationFrame->SetDelayMs(m_impl->m_frameDelayMs);
+        pAnimationFrame->m_bDataError = false;
     }
     else {
-        ASSERT(0);
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         pAnimationFrame->m_pBitmap.reset();
     }
     return bRet;

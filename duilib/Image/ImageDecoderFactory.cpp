@@ -86,6 +86,10 @@ std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const ImageDecodePara
             if (pImageData != nullptr) {
                 break;
             }
+            else if (bHasFileData && decodeParam.m_pFileData->empty()) {
+                //使用文件数据加载图片文件时出错，不再尝试（一般是图片文件数据有问题）
+                return nullptr;
+            }
         }
         else {
             untriedDecoders.push_back(pImageDecoder);
@@ -97,6 +101,10 @@ std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const ImageDecodePara
             if (pImageDecoder->CanDecode(signatureData.data(), signatureData.size())) {
                 pImageData = pImageDecoder->LoadImageData(decodeParam);
                 if (pImageData != nullptr) {
+                    break;
+                }
+                else if (bHasFileData && decodeParam.m_pFileData->empty()) {
+                    //使用文件数据加载图片文件时出错，不再尝试（一般是图片文件数据有问题）
                     break;
                 }
             }
@@ -119,7 +127,7 @@ std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeP
             std::shared_ptr<IBitmapImage> pBitmapImage = pImage->GetImageBitmap();
             ASSERT(pBitmapImage != nullptr);
             if (pBitmapImage != nullptr) {
-                pBitmap = pBitmapImage->GetBitmap();
+                pBitmap = pBitmapImage->GetBitmap(nullptr);
             }
         }
         else if (pImage->GetImageType() == ImageType::kImageSvg) {

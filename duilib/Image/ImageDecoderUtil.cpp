@@ -74,7 +74,7 @@ namespace STBImageLoader
         }
 
         ASSERT( (channels_in_file == 3) || (channels_in_file == 4));
-        ASSERT((nWidth > 0) && (nHeight > 0));
+        //ASSERT((nWidth > 0) && (nHeight > 0));
         if (((channels_in_file == 3) || (channels_in_file == 4)) && 
             (nWidth > 0) && (nHeight > 0)) {
             argbData.resize((size_t)nHeight * nWidth * desired_channels);
@@ -172,7 +172,7 @@ namespace CxImageLoader
         cxImage.SetRetreiveAllFrames(true);
         bool isLoaded = cxImage.Decode(&stream, imagetype);
         int32_t frameCount = cxImage.GetNumFrames();
-        ASSERT(isLoaded && cxImage.IsValid() && (frameCount > 0));
+        //ASSERT(isLoaded && cxImage.IsValid() && (frameCount > 0));
         if (!isLoaded || !cxImage.IsValid() || (frameCount < 1)) {
             return false;
         }

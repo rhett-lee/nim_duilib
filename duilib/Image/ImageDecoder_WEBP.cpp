@@ -48,32 +48,24 @@ std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const ImageDecodeParam&
     bool bAsyncDecode = decodeParam.m_bAsyncDecode;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
+    bool bAssertEnabled = decodeParam.m_bAssertEnabled;
+    std::vector<uint8_t> emptyFileData;
+    std::vector<uint8_t>& fileData = (decodeParam.m_pFileData != nullptr) ? *decodeParam.m_pFileData : emptyFileData;
+    const FilePath& imageFilePath = decodeParam.m_imageFilePath;
+
     Image_WEBP* pImageWEBP = new Image_WEBP;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageWEBP);
 
-    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
-        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
-        if (!pImageWEBP->LoadImageFromMemory(fileData,
-                                             bLoadAllFrames,
-                                             bAsyncDecode,
-                                             fImageSizeScale,
-                                             rcMaxDestRectSize)) {
-            return nullptr;
-        }
-    }
-    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
-        if (!pImageWEBP->LoadImageFromFile(decodeParam.m_imageFilePath,
-                                           bLoadAllFrames,
-                                           bAsyncDecode,
-                                           fImageSizeScale,
-                                           rcMaxDestRectSize)) {
-            return nullptr;
-        }
-    }
-    else {
-        ASSERT(0);
+    if (!pImageWEBP->LoadImageFile(fileData,
+                                   imageFilePath,
+                                   bLoadAllFrames,
+                                   bAsyncDecode,
+                                   fImageSizeScale,
+                                   rcMaxDestRectSize,
+                                   bAssertEnabled)) {
         return nullptr;
     }
+
     if (!bLoadAllFrames || (pImageWEBP->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         return Image_Bitmap::MakeImage(pAnimationImage);

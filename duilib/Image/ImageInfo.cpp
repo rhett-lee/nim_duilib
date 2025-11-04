@@ -23,6 +23,8 @@ ImageInfo::ImageInfo():
 
 ImageInfo::~ImageInfo()
 {
+    //延迟释放原图
+    ReleaseImage();
 }
 
 void ImageInfo::ReleaseImage()
@@ -101,7 +103,7 @@ std::shared_ptr<IBitmap> ImageInfo::GetSvgBitmap(float fImageSizeScale)
     return pBitmap;
 }
 
-std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
+std::shared_ptr<IBitmap> ImageInfo::GetBitmap(bool* bDecodeError)
 {
     GlobalManager::Instance().AssertUIThread();
     if (m_imageType == ImageType::kImageBitmap) {
@@ -112,9 +114,18 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
     }
     else if (m_imageType == ImageType::kImageSvg) {
         //SVG图片
-        return GetSvgBitmap(IMAGE_SIZE_SCALE_NONE);
+        std::shared_ptr<IBitmap> pBitmap = GetSvgBitmap(IMAGE_SIZE_SCALE_NONE);
+        if (pBitmap == nullptr) {
+            if (bDecodeError != nullptr) {
+                *bDecodeError = true;
+            }
+        }
+        return pBitmap;
     }
     else {
+        if (bDecodeError != nullptr) {
+            *bDecodeError = true;
+        }
         ASSERT(0);
         return nullptr;
     }
@@ -123,6 +134,9 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
     std::shared_ptr<IImage> pImageData = m_pImageData;
     ASSERT(pImageData != nullptr);
     if (pImageData == nullptr) {
+        if (bDecodeError != nullptr) {
+            *bDecodeError = true;
+        }
         return nullptr;
     }
 
@@ -131,9 +145,12 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
         std::shared_ptr<IBitmapImage> pBitmapImage = pImageData->GetImageBitmap();
         ASSERT(pBitmapImage != nullptr);
         if (pBitmapImage == nullptr) {
+            if (bDecodeError != nullptr) {
+                *bDecodeError = true;
+            }
             return nullptr;
         }
-        std::shared_ptr<IBitmap> pBitmap = pBitmapImage->GetBitmap();
+        std::shared_ptr<IBitmap> pBitmap = pBitmapImage->GetBitmap(bDecodeError);
         if (pBitmap == nullptr) {
             return nullptr;
         }
@@ -143,12 +160,21 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
         else {
             //若大小不一致，生成缓存位图后，释放原图
             m_pBitmap = ImageUtil::ResizeImageBitmap(pBitmap.get(), m_nImageInfoWidth, m_nImageInfoHeight);
+            ASSERT(m_pBitmap != nullptr);
             ReleaseImage();
+            if (m_pBitmap == nullptr) {
+                if (bDecodeError != nullptr) {
+                    *bDecodeError = true;
+                }
+            }
         }
         return m_pBitmap;
     }
     else {
         //未知错误
+        if (bDecodeError != nullptr) {
+            *bDecodeError = true;
+        }
         ASSERT(0);
     }
     return nullptr;
@@ -214,22 +240,6 @@ AnimationFramePtr ImageInfo::GetFrame(uint32_t nFrameIndex, const UiSize& szDest
         }
         ASSERT(pAnimationFrame->GetDelayMs() > 0);
         ASSERT(pAnimationFrame->m_pBitmap != nullptr);
-        if (pAnimationFrame->m_pBitmap != nullptr) {
-            //如果图片属性修改了图片大小，需要跟随调整
-            /*uint32_t nNewWidth = pAnimationFrame->m_pBitmap->GetWidth();
-            uint32_t nNewHeight = pAnimationFrame->m_pBitmap->GetHeight();
-            if (m_bHasCustomSizeScale) {
-                nNewWidth = ImageUtil::GetScaledImageSize(nNewWidth, m_fCustomSizeScaleX);
-                nNewHeight = ImageUtil::GetScaledImageSize(nNewHeight, m_fCustomSizeScaleY);
-            }
-            if ((pAnimationFrame->m_pBitmap->GetWidth() != nNewWidth) ||
-                (pAnimationFrame->m_pBitmap->GetHeight() != nNewHeight)) {
-                pAnimationFrame->m_nOffsetX = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
-                pAnimationFrame->m_nOffsetY = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
-                pAnimationFrame->m_pBitmap = ImageUtil::ResizeImageBitmap(pAnimationFrame->m_pBitmap.get(), nNewWidth, nNewHeight);
-                ASSERT(pAnimationFrame->m_pBitmap != nullptr);
-            }*/
-        }
     }
     return pAnimationFrame;
 }

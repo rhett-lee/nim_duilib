@@ -134,14 +134,14 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | dest | | rect | 设置图片绘制目标区域，该区域是指相对于所属控(Control::GetRect())左上角的矩形区域<br>比如（假定控件的矩形宽度和高度均是100）：<br>（1）dest="10,20,60,70": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度均是50像素<br>（2）dest="10,20": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度为图片资源的宽度和高度（允许只设置顶点坐标，此时绘制目标矩形区域大小与图片资源大小一致） |
 | dest_scale |true | bool | 仅当设置了dest属性时有效，控制对dest属性是否按照DPI缩放<br>比如（假定当前屏幕的DPI缩放比为200%）：<br>（1）dest="10,20,60,70" dest_scale="true"：dest区域在绘制时，按DPI缩放后的实际区域为：dest="20,40,120,140" <br>（2）dest="10,20,60,70" dest_scale="false"：dest区域在绘制时，禁止DPI缩放，实际区域仍然为：dest="10,20,60,70" <br> 如果不设置，dest_scale的默认值为true<br>该选项的值一般不需要特殊指定，保持默认即可适配各种DPI的屏幕设置|
 | dpi_scale |true | bool | 该图片是否支持屏幕DPI自适应: <br> （1）dpi_scale="true": 支持DPI自适应，图片的显示尺寸按屏幕DPI缩放比等比例放大 <br>（2）dpi_scale="false": 不支持DPI自适应：图片的显示尺寸保持原图尺寸，不根据DPI调整 <br>如果设置了dpi_scale="false"，当屏幕的DPI变化时，图片的显示尺寸不会随着DPI变化，此时程序在不同DPI下，显示的布局效果会不同<br>该选项除了会影响图片加载后的显示区域大小，同时也会影响图片的width、height、src、corner几个属性值的DPI自适应功能<br>如果不设置dpi_scale选项，默认值为true，该选项一般不需要调整，保持默认值即可做到界面布局能够适应各种屏幕DPI|
-| adaptive_dest_rect | false | bool | 图片大小自动适应目标区域（等比例缩放图片），可使用halign/valign设置图片在目标区域中的对齐方式 |
+| adaptive_dest_rect | false | bool | 图片大小自动适应目标区域（等比例缩放图片），可使用halign/valign设置图片在目标区域中的对齐方式 <br> 用法：adaptive_dest_rect="true" 或者 adaptive_dest_rect="false"|
 | margin | | rect | 在目标区域中设置图片的外边距 |
 | halign | | string | 横向对齐方式，可取值："left"、"center"、"right" |
 | valign | | string | 纵向对齐方式，可取值："top"、"center"、"bottom" |
 | fade | 255 | int | 图片的透明度，取值范围：0 - 255 |
-| xtiled | false | bool | 横向平铺绘制 |
+| xtiled | false | bool | 横向平铺绘制，用法：xtiled="true" 或者 xtiled="false"  |
 | full_xtiled | false | bool | 横向平铺绘制时，保证整张图片绘制, 仅当xtiled为true时有效 |
-| ytiled | false| bool | 纵向平铺绘制 |
+| ytiled | false| bool | 纵向平铺绘制，用法：ytiled="true" 或者 ytiled="false" |
 | full_ytiled | false | bool | 纵向平铺绘制时，保证整张图片绘制, 仅当ytiled为true时有效 |
 | tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，同时设置tiled_margin_x和tiled_margin_y为相同的值 |
 | tiled_margin_x | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为横向平铺的间隔，仅当xtiled为true时有效 |
@@ -151,11 +151,11 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | icon_size | 32 | int | 如果是ICO文件，指定加载ICO文件的图片大小 |
 | icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
 | icon_frame_delay | 1000 | int | 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒 |
-| auto_play | true | bool | 如果是动画图片，是否自动播放 |
-| async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）， <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
+| auto_play | true | bool | 如果是动画图片，是否自动播放，用法：auto_play="true" 或者 auto_play="false" |
+| async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿），<br> 用法：async_load="true" 或者 async_load="false"  <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
 | pag_max_frame_rate | 30 | int | 如果是PAG文件，用于指定动画的帧率 |
-| assert | true | bool | 图片加载失败时，是否允许断言（编译为debug模式时）|
+| assert | true | bool | 图片加载失败时，是否允许断言（编译为debug模式时），用法：assert="true" 或者 assert="false"|
 
 图片的使用示例：
 ```xml

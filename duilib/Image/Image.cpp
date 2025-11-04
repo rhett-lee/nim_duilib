@@ -10,7 +10,8 @@ namespace ui
 Image::Image() :
     m_pControl(nullptr),
     m_pImagePlayer(nullptr),
-    m_nCurrentFrame(0)
+    m_nCurrentFrame(0),
+    m_bImageError(false)
 {
 }
 
@@ -28,6 +29,7 @@ void Image::InitImageAttribute()
 
 void Image::SetImageString(const DString& strImageString, const DpiManager& dpi)
 {
+    SetImageError(false);
     ClearImageCache();
     m_imageAttribute.InitByImageString(strImageString, dpi);
 }
@@ -107,7 +109,7 @@ ImageLoadParam Image::GetImageLoadParam() const
                           nIconFrameDelayMs,
                           nIconSize,
                           fPagMaxFrameRate,
-                          m_imageAttribute.m_bAssertEnabled);
+                          m_imageAttribute.IsAssertEnabled());
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const
@@ -197,7 +199,7 @@ AnimationFramePtr Image::GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource,
     return pAnimationFrame;
 }
 
-std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners) const
+std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners, bool* bDecodeError) const
 {
     PerformanceStat statPerformance(_T("Image::GetBitmapData"));
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
@@ -205,7 +207,7 @@ std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSource
         return nullptr;
     }
     //单帧图片
-    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetBitmap();
+    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetBitmap(bDecodeError);
     AdjustImageSourceRect(pBitmap, rcSource, rcSourceCorners);
     return pBitmap;
 }
@@ -277,7 +279,8 @@ void Image::AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRec
 std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
                                                  const UiRect& rcDest,
                                                  UiRect& rcSource,
-                                                 UiRect& rcSourceCorners) const
+                                                 UiRect& rcSourceCorners,
+                                                 bool* bDecodeError) const
 {
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
@@ -290,26 +293,29 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
 
     if (!bImageStretch) {
         //绘制时，不支持拉伸
-        return GetBitmapData(rcSource, rcSourceCorners);
+        return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
     else if (!m_imageInfo->IsSvgImage()) {
         //不是SVG图片，不支持矢量缩放
-        return GetBitmapData(rcSource, rcSourceCorners);
+        return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
     else if (!rcSourceCorners.IsZero()) {
         //如果设置了九宫格绘制，则按不拉伸处理(如果拉伸图片，四个角会变形)
-        return GetBitmapData(rcSource, rcSourceCorners);
+        return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
     else if ((rcDest.Width() == rcSource.Width()) ||
              (rcDest.Height() == rcSource.Height())) {
         //如果绘制目标区域和图片源区域大小一致，无需拉伸
-        return GetBitmapData(rcSource, rcSourceCorners);
+        return GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
     }
     else {
         //SVG图片：支持矢量缩放
         std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(rcDest, rcSource);
         if (pBitmap == nullptr) {
-            pBitmap = GetBitmapData(rcSource, rcSourceCorners);
+            pBitmap = GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
+            if ((pBitmap == nullptr) && (bDecodeError != nullptr)) {
+                *bDecodeError = true;
+            }
         }
         else {
             AdjustImageSourceRect(pBitmap, rcSource, rcSourceCorners);
@@ -405,6 +411,21 @@ void Image::StopImageAnimation(AnimationImagePos nStopFrame, bool bTriggerEvent)
     if (m_pImagePlayer != nullptr) {
         m_pImagePlayer->StopImageAnimation(nStopFrame, bTriggerEvent);
     }
+}
+
+DString Image::GetImageName() const
+{
+    return GetImageAttribute().GetImageName();
+}
+
+void Image::SetImageError(bool bImageError)
+{
+    m_bImageError = bImageError;
+}
+
+bool Image::HasImageError() const
+{
+    return m_bImageError;
 }
 
 }

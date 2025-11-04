@@ -33,18 +33,22 @@ public:
 public:
     /** 加载图片 ImageInfo 对象
      * @param [in] loadParam 图片的加载属性，包含图片路径等信息
-     * @param [out] bFromCache 返回true表示从缓存获取的ImageInfo，否则表示重新加载的ImageInfo
+     * @param [out] bImageDataFromCache 返回true表示从缓存获取的ImageData共享原图数据，否则表示重新加载的
      * @return 返回图片 ImageInfo 对象的智能指针
      */
-    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam, bool& bFromCache);
+    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam, bool& bImageDataFromCache);
 
     /** 从缓存中删除所有图片
      */
     void RemoveAllImages();
 
-    /** 从缓存中释放一个原图图片
+    /** 从缓存中释放一个原图图片（延迟释放）
     */
     void ReleaseImage(const std::shared_ptr<IImage>& pImageData);
+
+    /** 取消释放原图图片
+    */
+    void CancelReleaseImage(const std::shared_ptr<IImage>& pImageData);
 
 public:
     /** 设置是否智能匹配临近的缩放百分比图片

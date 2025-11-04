@@ -414,13 +414,23 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             imageAttribute.m_bAdaptiveDestRect = (value == _T("true"));
         }
         else if (name == _T("assert")) {
-            //图片加载失败时，是否允许断言（编译为debug模式时）
+            //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）
             imageAttribute.m_bAssertEnabled = (value == _T("true"));
         }
         else {
             ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");
         }
     }
+}
+
+bool ImageAttribute::IsAssertEnabled() const
+{
+    return m_bAssertEnabled;
+}
+
+DString ImageAttribute::GetImageName() const
+{
+    return m_sImageName.c_str();
 }
 
 bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)

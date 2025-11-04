@@ -59,8 +59,10 @@ public:
 
 public:
     /** 获取一个位图图片数据（单帧图片）
-    */
-    std::shared_ptr<IBitmap> GetBitmap();
+     * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
+     *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
+     */
+    std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError);
 
 public:
     /** 查询是某帧的图片数据是否有准备完成（多线程解码时，帧数据在后台线程解码）

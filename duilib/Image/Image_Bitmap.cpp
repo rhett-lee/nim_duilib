@@ -50,8 +50,11 @@ public:
     }
 
     /** 获取位图
+    * @param [out] bDecodeError 返回值代表是否遇到图片解码错误
+    * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
+    *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
     */
-    virtual std::shared_ptr<IBitmap> GetBitmap() override
+    virtual std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError) override
     {
         if (m_pBitmap != nullptr) {
             return m_pBitmap;
@@ -61,6 +64,9 @@ public:
             //单帧，加载位图图片
             IAnimationImage::AnimationFrame frame;
             if (m_pAnimationImage->ReadFrameData(0, UiSize(), &frame)) {
+                if (bDecodeError != nullptr) {
+                    *bDecodeError = frame.m_bDataError;
+                }
                 m_pBitmap = frame.m_pBitmap;
                 if (m_pBitmap != nullptr) {
                     //读取完成后，释放资源
@@ -68,7 +74,10 @@ public:
                 }
             }
             else {
-                ASSERT(0);
+                if (bDecodeError != nullptr) {
+                    *bDecodeError = true;
+                }
+                //ASSERT(0);
             }
         }
         return m_pBitmap;
@@ -94,7 +103,7 @@ public:
         if (m_pAnimationImage != nullptr) {
             return m_pAnimationImage->IsDelayDecodeFinished();
         }
-        return false;
+        return true;
     }
 
     /** 获取当前延迟解码完成的图片帧索引号（从0开始编号）
@@ -110,12 +119,15 @@ public:
     /** 延迟解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
     * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual bool DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override
+    virtual bool DelayDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) override
     {
         if (m_pAnimationImage != nullptr) {
-            return m_pAnimationImage->DelayDecode(nMinFrameIndex, IsAborted);
+            return m_pAnimationImage->DelayDecode(nMinFrameIndex, IsAborted, bDecodeError);
         }
         return false;
     }
@@ -313,11 +325,11 @@ size_t Image_Bitmap::GetAsyncDecodeTaskId() const
     return m_nAsyncDecodeTaskId;
 }
 
-bool Image_Bitmap::AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+bool Image_Bitmap::AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted, bool* bDecodeError)
 {
     ASSERT(m_pBitmapImage != nullptr);
     if (m_pBitmapImage != nullptr) {
-        return m_pBitmapImage->DelayDecode(nMinFrameIndex, IsAborted);
+        return m_pBitmapImage->DelayDecode(nMinFrameIndex, IsAborted, bDecodeError);
     }
     return false;
 }

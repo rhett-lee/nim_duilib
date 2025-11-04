@@ -63,6 +63,9 @@ static bool DecodeImage_LOTTIE(sk_sp<skottie::Animation>& pSkAnimation,
     pFrameData->m_nOffsetY = 0;
     pFrameData->m_bDataPending = false;
     pFrameData->m_pBitmap = pBitmap;
+    if (pBitmap == nullptr) {
+        pFrameData->m_bDataError = true;
+    }
     frame = pFrameData;
     return true;
 }
@@ -104,35 +107,17 @@ Image_LOTTIE::~Image_LOTTIE()
     m_impl->m_pSkAnimation.reset();
 }
 
-bool Image_LOTTIE::LoadImageFromFile(const FilePath& filePath,
-                                     float fImageSizeScale,
-                                     const UiSize& rcMaxDestRectSize)
+bool Image_LOTTIE::LoadImageFile(std::vector<uint8_t>& fileData,
+                                 const FilePath& imageFilePath,
+                                 float fImageSizeScale,
+                                 const UiSize& rcMaxDestRectSize,
+                                 bool bAssertEnabled)
 {
-    ASSERT(!filePath.IsEmpty());
-    if (filePath.IsEmpty()) {
+    ASSERT(!fileData.empty() || !imageFilePath.IsEmpty());
+    if (fileData.empty() && imageFilePath.IsEmpty()) {
         return false;
     }
-    std::vector<uint8_t> fileData;
-    return LoadImageFromMemoryOrFile(fileData, filePath, fImageSizeScale, rcMaxDestRectSize);
-}
 
-bool Image_LOTTIE::LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                                       float fImageSizeScale,
-                                       const UiSize& rcMaxDestRectSize)
-{
-    ASSERT(!fileData.empty());
-    if (fileData.empty()) {
-        return false;
-    }
-    FilePath filePath;
-    return LoadImageFromMemoryOrFile(fileData, filePath, fImageSizeScale, rcMaxDestRectSize);
-}
-
-bool Image_LOTTIE::LoadImageFromMemoryOrFile(std::vector<uint8_t>& fileData,
-                                             const FilePath& filePath,
-                                             float fImageSizeScale,
-                                             const UiSize& rcMaxDestRectSize)
-{
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
@@ -162,12 +147,9 @@ bool Image_LOTTIE::LoadImageFromMemoryOrFile(std::vector<uint8_t>& fileData,
     if (!m_impl->m_fileData.empty()) {
         m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).make((const char*)m_impl->m_fileData.data(), m_impl->m_fileData.size());
     }
-    else if (!filePath.IsEmpty()) {
-        std::string jsonFilePath = filePath.NativePathA();
-        m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).makeFromFile((const char*)jsonFilePath.c_str());
-    }
     else {
-        ASSERT(0);
+        std::string jsonFilePath = imageFilePath.NativePathA();
+        m_impl->m_pSkAnimation = skottie::Animation::Builder().setFontManager(*pSkFontMgr).makeFromFile((const char*)jsonFilePath.c_str());
     }
     if (!m_impl->m_pSkAnimation) {
         //加载失败时，需要恢复原文件数据
@@ -190,9 +172,11 @@ bool Image_LOTTIE::LoadImageFromMemoryOrFile(std::vector<uint8_t>& fileData,
     }
     m_impl->m_nFrameCount = static_cast<int32_t>(m_impl->m_pSkAnimation->duration() * m_impl->m_pSkAnimation->fps() + 0.5);
 
-    ASSERT(m_impl->m_nWidth > 0);
-    ASSERT(m_impl->m_nHeight > 0);
-    ASSERT(m_impl->m_nFrameCount > 0);
+    if (bAssertEnabled) {
+        ASSERT(m_impl->m_nWidth > 0);
+        ASSERT(m_impl->m_nHeight > 0);
+        ASSERT(m_impl->m_nFrameCount > 0);
+    }
     if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);
@@ -226,7 +210,7 @@ uint32_t Image_LOTTIE::GetDecodedFrameIndex() const
     return 0;
 }
 
-bool Image_LOTTIE::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+bool Image_LOTTIE::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* /*bDecodeError*/)
 {
     //不需要多线程解码图片数据
     return false;
@@ -284,8 +268,12 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSi
     if ((nFrameIndex < 0) || (nFrameIndex >= m_impl->m_nFrameCount)) {
         return false;
     }
+    pAnimationFrame->m_bDataPending = false;
+    pAnimationFrame->m_bDataError = false;
+
     ASSERT(m_impl->m_nFrameCount > 0);
     if (m_impl->m_nFrameCount <= 0) {
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
 
@@ -293,6 +281,7 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSi
     uint32_t nImageHeight = m_impl->m_nHeight;
     ASSERT((nImageWidth > 0) && (nImageHeight > 0));
     if ((nImageWidth == 0) || (nImageHeight == 0)) {
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
     if ((szDestRectSize.cx > 0) || (szDestRectSize.cy > 0)) {
@@ -329,6 +318,8 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSi
         }
     }
 
+    pAnimationFrame->m_bDataPending = false;
+    pAnimationFrame->m_bDataError = true;
     AnimationFramePtr frame;
     if (m_impl->m_pSkAnimation != nullptr) {
         if(DecodeImage_LOTTIE(m_impl->m_pSkAnimation,
@@ -338,10 +329,11 @@ bool Image_LOTTIE::ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSi
                               frame)) {
             if (frame != nullptr) {
                 *pAnimationFrame = *frame;
-                pAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
+                pAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));                
+                pAnimationFrame->m_bDataError = false; //确认成功，标记无错误
             }
         }
-    }    
+    }
     return frame != nullptr;
 }
 

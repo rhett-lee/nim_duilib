@@ -14,26 +14,19 @@ class Image_JPEG: public IBitmapImage
 {
 public:
     /** 加载图片数据
-     * @param [in] filePath 文件路径
+     * @param [in] fileData 图片文件数据(如果不为空，则优先使用文件数据)
+     * @param [in] imageFilePath 图片文件路径
      * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
      * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
      * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
+     * @param [in] bAssertEnabled 当遇到图片数据错误时，是否允许断言
      */
-    bool LoadImageFromFile(const FilePath& filePath,
-                           float fImageSizeScale,
-                           bool bAsyncDecode,
-                           const UiSize& rcMaxDestRectSize);
-
-    /** 加载图片数据
-     * @param [in] fileData 文件数据
-     * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
-     * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
-     * @param [in] rcMaxDestRectSize 目标区域大小，用于优化加载性能
-     */
-    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                             float fImageSizeScale,
-                             bool bAsyncDecode,
-                             const UiSize& rcMaxDestRectSize);
+    bool LoadImageFile(std::vector<uint8_t>& fileData,
+                       const FilePath& imageFilePath,
+                       float fImageSizeScale,
+                       bool bAsyncDecode,
+                       const UiSize& rcMaxDestRectSize,
+                       bool bAssertEnabled);
 
 public:
     Image_JPEG();
@@ -52,8 +45,11 @@ public:
     virtual float GetImageSizeScale() const override;
 
     /** 获取位图
+    * @param [out] bDecodeError 返回值代表是否遇到图片解码错误
+    * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
+    *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
     */
-    virtual std::shared_ptr<IBitmap> GetBitmap() override;
+    virtual std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError) override;
 
 public:
     /** 是否支持延迟解码数据
@@ -73,9 +69,12 @@ public:
     /** 延迟解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
     * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual bool DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) override;
+    virtual bool DelayDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) override;
 
     /** 合并延迟解码图片数据的结果
     */

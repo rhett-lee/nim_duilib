@@ -10,6 +10,9 @@ namespace ui
 {
 struct Image_JPEG::TImpl
 {
+    //图片文件路径
+    FilePath m_imageFilePath;
+
     //文件数据
     std::vector<uint8_t> m_fileData;
 
@@ -18,6 +21,12 @@ struct Image_JPEG::TImpl
 
     //是否支持异步线程解码图片数据
     bool m_bAsyncDecode = false;
+
+    //是否遇到解码错误
+    bool m_bDecodeError = false;
+
+    //图片数据出错时，是否允许断言
+    bool m_bAssertEnabled = true;
 
     //图片宽度
     uint32_t m_nWidth = 0;
@@ -110,32 +119,58 @@ static float FindClosestScale2(float fImageSizeScale)
     return closest;
 }
 
-bool Image_JPEG::LoadImageFromFile(const FilePath& filePath,
-                                   float fImageSizeScale,
-                                   bool bAsyncDecode,
-                                   const UiSize& rcMaxDestRectSize)
+bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
+                               const FilePath& imageFilePath,
+                               float fImageSizeScale,
+                               bool bAsyncDecode,
+                               const UiSize& rcMaxDestRectSize,
+                               bool bAssertEnabled)
 {
-    //没有直接支持传入文件路径的函数，需要自己读入到内存，然后再处理
-    std::vector<uint8_t> fileData;
-    FileUtil::ReadFileData(filePath, fileData);
-    return LoadImageFromMemory(fileData, fImageSizeScale, bAsyncDecode, rcMaxDestRectSize);
-}
-
-bool Image_JPEG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                                     float fImageSizeScale,
-                                     bool bAsyncDecode,
-                                     const UiSize& rcMaxDestRectSize)
-{
-    ASSERT(!fileData.empty());
-    if (fileData.empty()) {
+    ASSERT(!fileData.empty() || !imageFilePath.IsEmpty());
+    if (fileData.empty() && imageFilePath.IsEmpty()) {
         return false;
     }
+
+    //自动释放资源
+    struct TAutoReleaseJpeg
+    {
+        std::vector<uint8_t>* pFileData = nullptr;
+        tjhandle tjInstance = nullptr;
+        ~TAutoReleaseJpeg()
+        {
+            if (pFileData != nullptr) {
+                pFileData->clear();
+            }
+            if (tjInstance != nullptr) {
+                tjDestroy(tjInstance);
+                tjInstance = nullptr;
+            }
+        }
+    };
+    m_impl->m_bAssertEnabled = bAssertEnabled;
+    TAutoReleaseJpeg jpegData;
+
+    if (fileData.empty()) {
+        //没有直接支持传入文件路径的函数，需要自己读入到内存，然后再处理
+        FileUtil::ReadFileData(imageFilePath, fileData);
+        if (bAssertEnabled) {
+            ASSERT(!fileData.empty());
+        }
+        if (fileData.empty()) {
+            m_impl->m_bDecodeError = true;
+            return false;
+        }
+        jpegData.pFileData = &fileData; //失败时需要清空该数据
+    }
+
     // 初始化turbojpeg解码器
     tjhandle tjInstance = tjInitDecompress();
     ASSERT(tjInstance != nullptr);
     if (tjInstance == nullptr) {
         return false;
     }
+    jpegData.tjInstance = tjInstance;
+
     int width = 0;
     int height = 0;
     int jpegSubsamp = 0;
@@ -149,11 +184,13 @@ bool Image_JPEG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
                                   &jpegSubsamp,
                                   &jpegColorspace);
     if (ret != 0) {
-        tjDestroy(tjInstance);
         return false;
     }
+    if (bAssertEnabled) {
+        ASSERT((width > 0) && (height > 0));
+    }
     if ((width <= 0) || (height <= 0)) {
-        tjDestroy(tjInstance);
+        m_impl->m_bDecodeError = true;
         return false;
     }
     if (!ImageUtil::IsValidImageScale(fImageSizeScale)) {
@@ -184,15 +221,21 @@ bool Image_JPEG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_nHeight = ImageUtil::GetScaledImageSize((uint32_t)height, fRealImageSizeScale);
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
     if ((m_impl->m_nHeight <= 0) || (m_impl->m_nHeight <= 0)) {
-        tjDestroy(tjInstance);
+        m_impl->m_bDecodeError = true;
         return false;
     }
+
+    //加载成功
+    jpegData.tjInstance = nullptr;
+    jpegData.pFileData = nullptr;
+    m_impl->m_fileData.clear();
 
     m_impl->m_fImageSizeScale = fRealImageSizeScale;
     m_impl->m_tjInstance = tjInstance;
     m_impl->m_fileData.swap(fileData);
     m_impl->m_bAsyncDecode = bAsyncDecode;
-    fileData.clear();
+    m_impl->m_imageFilePath = imageFilePath;
+    m_impl->m_bDecodeError = false;
     return true;
 }
 
@@ -211,18 +254,26 @@ float Image_JPEG::GetImageSizeScale() const
     return m_impl->m_fImageSizeScale;
 }
 
-std::shared_ptr<IBitmap> Image_JPEG::GetBitmap()
+std::shared_ptr<IBitmap> Image_JPEG::GetBitmap(bool* bDecodeError)
 {
     GlobalManager::Instance().AssertUIThread();
+    std::shared_ptr<IBitmap> pBitmap;
     if (m_impl->m_bAsyncDecode || (m_impl->m_pBitmap != nullptr)) {
         //异步解码, 或者已经完成解码
-        return m_impl->m_pBitmap;
+        pBitmap = m_impl->m_pBitmap;
     }
     else {
         //延迟解码        
         m_impl->m_pBitmap = DecodeBitmap();
-        return m_impl->m_pBitmap;
-    }
+        pBitmap = m_impl->m_pBitmap;        
+        if (pBitmap == nullptr) {
+            m_impl->m_bDecodeError = true;
+            if (bDecodeError != nullptr) {
+                *bDecodeError = true;
+            }
+        }
+    }    
+    return pBitmap;
 }
 
 std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
@@ -268,7 +319,9 @@ std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
                                 (int)impl.m_nHeight,
                                 pixelFormat, // 输出格式为RGBA/BGRA
                                 TJFLAG_FASTDCT); // 使用快速DCT算法加速
-        ASSERT(ret == 0);
+        if (impl.m_bAssertEnabled) {
+            ASSERT(ret == 0);
+        }
         if (ret == 0) {
             pBitmap->UnLockPixelBits();
         }
@@ -286,7 +339,8 @@ bool Image_JPEG::IsDelayDecodeEnabled() const
         !m_impl->m_fileData.empty() &&
         (m_impl->m_nWidth > 0) &&
         (m_impl->m_nHeight > 0) &&
-        (m_impl->m_pDelayBitmap == nullptr)) {
+        (m_impl->m_pDelayBitmap == nullptr) &&
+        !m_impl->m_bDecodeError) {
         return true;
     }
     return false;
@@ -294,7 +348,7 @@ bool Image_JPEG::IsDelayDecodeEnabled() const
 
 bool Image_JPEG::IsDelayDecodeFinished() const
 {
-    return (m_impl->m_pBitmap != nullptr) || (m_impl->m_pDelayBitmap != nullptr);
+    return (m_impl->m_pBitmap != nullptr) || (m_impl->m_pDelayBitmap != nullptr) || m_impl->m_bDecodeError;
 }
 
 uint32_t Image_JPEG::GetDecodedFrameIndex() const
@@ -302,26 +356,38 @@ uint32_t Image_JPEG::GetDecodedFrameIndex() const
     return 0;
 }
 
-bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+bool Image_JPEG::DelayDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* bDecodeError)
 {
+    bool bRet = false;
     if (IsDelayDecodeEnabled()) {
         ASSERT(m_impl->m_pDelayBitmap == nullptr);
         if (m_impl->m_pDelayBitmap == nullptr) {
             m_impl->m_pDelayBitmap = DecodeBitmap();
-            return m_impl->m_pDelayBitmap != nullptr;
+            bRet = m_impl->m_pDelayBitmap != nullptr;
+            if (!bRet) {
+                m_impl->m_bDecodeError = true;
+                if (bDecodeError != nullptr) {
+                    *bDecodeError = true;
+                }
+            }
         }
-    }    
-    return false;
+    }
+    return bRet;
 }
 
 bool Image_JPEG::MergeDelayDecodeData()
 {
     GlobalManager::Instance().AssertUIThread();
-    ASSERT(m_impl->m_pBitmap == nullptr);
-    if (m_impl->m_pDelayBitmap != nullptr) {
+    bool bRet = false;
+    bool bDecodeFinished = m_impl->m_bDecodeError || (m_impl->m_pBitmap != nullptr);
+    if ((m_impl->m_pDelayBitmap != nullptr) && (m_impl->m_pBitmap == nullptr)) {
         m_impl->m_pBitmap = m_impl->m_pDelayBitmap;
         m_impl->m_pDelayBitmap.reset();
 
+        bDecodeFinished = true;
+        bRet = true;
+    }
+    if (bDecodeFinished) {
         //解码完成，释放原图资源
         if (m_impl->m_tjInstance != nullptr) {
             tjDestroy(m_impl->m_tjInstance);
@@ -329,9 +395,8 @@ bool Image_JPEG::MergeDelayDecodeData()
         }
         std::vector<uint8_t> fileData;
         m_impl->m_fileData.swap(fileData);
-        return true;
     }
-    return false;
+    return bRet;
 }
 
 } //namespace ui

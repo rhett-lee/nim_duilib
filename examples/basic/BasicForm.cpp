@@ -21,5 +21,14 @@ DString BasicForm::GetSkinFile()
 void BasicForm::OnInitWindow()
 {
     BaseClass::OnInitWindow();
+    ui::Control* p = FindControl(_T("test"));
+    p->AttachImageLoad([](const ui::EventArgs& args) {
+        ui::ImageDecodeResult* pImageDecodeResult = (ui::ImageDecodeResult*)args.wParam;
+        return true;
+        });
 
+    p->AttachImageDecode([](const ui::EventArgs& args) {
+        ui::ImageDecodeResult* pImageDecodeResult = (ui::ImageDecodeResult*)args.wParam;
+        return true;
+        });
 }

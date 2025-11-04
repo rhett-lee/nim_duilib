@@ -82,7 +82,7 @@ size_t Image_Svg::GetAsyncDecodeTaskId() const
     return 0;
 }
 
-bool Image_Svg::AsyncDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/)
+bool Image_Svg::AsyncDecode(uint32_t /*nMinFrameIndex*/, std::function<bool(void)> /*IsAborted*/, bool* /*bDecodeError*/)
 {
     return false;
 }

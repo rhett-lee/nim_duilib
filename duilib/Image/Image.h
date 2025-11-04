@@ -139,7 +139,9 @@ public:
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
     * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
     */
-    AnimationFramePtr GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource, UiRect& rcSourceCorners) const;
+    AnimationFramePtr GetCurrentFrame(const UiRect& rcDest,
+                                      UiRect& rcSource,
+                                      UiRect& rcSourceCorners) const;
 
 public:
     /** 获取图片数据(单帧图片，对于Svg等格式，支持矢量缩放图片)
@@ -147,11 +149,13 @@ public:
     * @param [in] rcDest 绘制目标区域, 用于矢量图的缩放
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
     * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
+    * @param [out] bDecodeError 返回true代表遇到图片解码错误
     */
     std::shared_ptr<IBitmap> GetCurrentBitmap(bool bImageStretch,
                                               const UiRect& rcDest,
                                               UiRect& rcSource,
-                                              UiRect& rcSourceCorners) const;
+                                              UiRect& rcSourceCorners,
+                                              bool* bDecodeError) const;
 
     /** @} */
 
@@ -201,6 +205,19 @@ public:
                             bool bTriggerEvent = false);
     /** @} */
 
+public:
+    /** 获取图片的名称（可作为图片的唯一ID）
+    */
+    DString GetImageName() const;
+
+    /** 设置加载图片时是否出现错误（出错后就不再继续加载该图片）
+    */
+    void SetImageError(bool bImageError);
+
+    /** 获取加载图片时是否出现错误（出错后就不再继续加载该图片）
+    */
+    bool HasImageError() const;
+
 private:
     /** 初始化动画播放器
     */
@@ -209,8 +226,9 @@ private:
     /** 获取当前图片帧的图片数据（单帧图片）
     * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
     * @param [in,out] rcSourceCorners 图片的九宫格圆角属性
+    * @param [out] bDecodeError 返回true代表遇到图片解码错误
     */
-    std::shared_ptr<IBitmap> GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners) const;
+    std::shared_ptr<IBitmap> GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners, bool* bDecodeError) const;
 
     /** 根据位图大小，调整绘制源区域
     * @param [in] pBitmap 位图接口
@@ -220,11 +238,6 @@ private:
     void AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRect& rcSource, UiRect& rcSourceCorners) const;
 
 private:
-
-    /** 当前正在播放的图片帧（仅当多帧图片时）
-    */
-    uint32_t m_nCurrentFrame;
-
     /** 关联的控件接口
     */
     Control* m_pControl;
@@ -233,10 +246,6 @@ private:
     */
     std::unique_ptr<ImagePlayer> m_pImagePlayer;
 
-    /** 图片属性
-    */
-    ImageAttribute m_imageAttribute;
-
     /** 图片信息
     */
     std::shared_ptr<ImageInfo> m_imageInfo;
@@ -244,6 +253,18 @@ private:
     /** 该图片绘制的目标区域
     */
     UiRect m_rcDrawDestRect;
+
+    /** 图片属性
+    */
+    ImageAttribute m_imageAttribute;
+
+    /** 当前正在播放的图片帧（仅当多帧图片时）
+    */
+    uint32_t m_nCurrentFrame;
+
+    /** 加载图片时是否出现错误（出错后就不再继续加载该图片）
+    */
+    bool m_bImageError;
 };
 
 } // namespace ui

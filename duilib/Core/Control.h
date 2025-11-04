@@ -810,6 +810,10 @@ public:
      */
     bool LoadImageInfo(Image& duiImage, bool bPaintImage = false) const;
 
+    /** 获取指定名称的图片资源接口
+    */
+    Image* FindImageByName(const DString& imageName) const;
+
     /** 清理图片缓存, 清理后，如果使用则会重新加载
      */
     virtual void ClearImageCache();
@@ -944,6 +948,16 @@ public:
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
     void AttachDropData(const EventCallback& callback) { AttachEvent(kEventDropData, callback); }
+
+    /** 监听控件图片加载完成事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachImageLoad(const EventCallback& callback) { AttachEvent(kEventImageLoad, callback); }
+
+    /** 监听控件图片解码完成事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachImageDecode(const EventCallback& callback) { AttachEvent(kEventImageDecode, callback); }
 
     /** 监听控件销毁事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -1351,6 +1365,10 @@ public:
     */
     IFont* GetIFontById(const DString& strFontId) const;
 
+    /** 获取颜色名称对应的颜色值
+    */
+    UiColor GetUiColorByName(const DString& colorName) const;
+
 protected:
     /** 设置可见状态事件
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
@@ -1363,11 +1381,6 @@ protected:
     virtual void OnSetEnabled(bool bChanged) override;
 
 private:
-
-    /** 获取颜色名称对应的颜色值
-    */
-    UiColor GetUiColorByName(const DString& colorName) const;
-
     /** 是否含有BoxShadow
     */
     bool HasBoxShadow() const;
@@ -1393,9 +1406,9 @@ private:
     */
     void ParseSetImageAnimationFrame(const DString& value);
 
-    /** 获取指定名称的图片资源接口
+    /** 触发图片加载完成和解码完成事件
     */
-    Image* FindImageByName(const DString& imageName) const;
+    void FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const;
 
 private:
     /** 获取AttachXXX接口的监听事件管理器
@@ -1417,6 +1430,12 @@ private:
     */
     EventMap& GetXmlBubbledEventMap();
     bool HasXmlBubbledEventMap() const;
+
+private:
+    /** 图片异步解码的实现函数
+    */
+    struct TAsyncImageDecode;
+    static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder);
 
 private:
     //回调事件管理

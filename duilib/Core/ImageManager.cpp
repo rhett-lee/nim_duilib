@@ -11,7 +11,7 @@
 #include "duilib/Utils/FilePathUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    #define OUTPUT_IMAGE_LOG 1
+    //#define OUTPUT_IMAGE_LOG 1
 #endif
 
 namespace ui 
@@ -26,17 +26,17 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, bool& bFromCache)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, bool& bImageDataFromCache)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
-    bFromCache = false;
+    bImageDataFromCache = false;
     const DString loadKey = loadParam.GetLoadKey(loadParam.GetLoadDpiScale());
     auto iter = m_imageInfoMap.find(loadKey);
     if (iter != m_imageInfoMap.end()) {
         std::shared_ptr<ImageInfo> spImageInfo = iter->second.lock();
         if (spImageInfo != nullptr) {
             //从缓存中，找到有效图片资源，直接返回
-            bFromCache = true;
+            bImageDataFromCache = true;
             return spImageInfo;
         }
     }
@@ -81,6 +81,10 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     auto iterImageData = m_imageDataMap.find(imageKey);
     if (iterImageData != m_imageDataMap.end()) {
         spImageData = iterImageData->second.m_pImage.lock();
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Lock ImageData(reuse): ") + imageKey + _T("\n");
+        ::OutputDebugString(log.c_str());
+#endif
         if (spImageData != nullptr) {
             if (!ImageUtil::IsSameImageScale(iterImageData->second.m_fImageSizeScale, fImageSizeScale)) {
                 //在动态切换DPI后，比例会发生变化，需要重新加载，不可共享原来加载的图片
@@ -89,7 +93,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             }
         }
     }
-
+    bImageDataFromCache = spImageData != nullptr ? true : false; //标记是否从缓存中获取的ImageData共享图片资源
     if (spImageData == nullptr) {
         //从内存数据加载图片
         ImageDecoderFactory& ImageDecoders = GlobalManager::Instance().ImageDecoders();
@@ -153,7 +157,6 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             decodeParam.m_rcMaxDestRectSize = loadParam.GetMaxDestRectSize();
         }
         decodeParam.m_fImageSizeScale = fImageSizeScale;
-        decodeParam.m_bExternalImagePath = (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) ? true : false;
 
         decodeParam.m_bAsyncDecode = loadParam.IsAsyncDecodeEnabled();    //是否支持多线程图片解码 
         decodeParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();   //ICO格式相关参数
@@ -161,6 +164,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         decodeParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
         decodeParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
         decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
+        decodeParam.m_bAssertEnabled = loadParam.IsAssertEnabled();       //加载图片失败时是否允许断言（一般只影响图片数据错误导致的问题）
 
         //加载图片     
         std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(decodeParam);
@@ -201,6 +205,11 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         if (bRet) {
             ASSERT(loadKey == imageInfo->GetLoadKey());
             OnImageInfoCreate(imageInfo);
+
+            if (bImageDataFromCache) {
+                //如果是重用缓存中的ImageData数据，需要移除待删除队列的数据
+                CancelReleaseImage(spImageData);
+            }
             return imageInfo;
         }
     }
@@ -299,6 +308,9 @@ void ImageManager::RemoveAllImages()
 
 void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
 {
+    //确保只有一个元素在队列中
+    CancelReleaseImage(pImageData);
+
     if (pImageData != nullptr) {
         TReleaseImageData imageData;
         imageData.m_pImage = pImageData;
@@ -324,6 +336,23 @@ void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
         }
     };
     GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, nDelaySeconds * 1000);
+}
+
+void ImageManager::CancelReleaseImage(const std::shared_ptr<IImage>& pImageData)
+{
+    if ((pImageData != nullptr) && !m_delayReleaseImageList.empty()) {
+        auto iter = m_delayReleaseImageList.begin();
+        while (iter != m_delayReleaseImageList.end()) {
+            const TReleaseImageData& imageData = *iter;
+            if (imageData.m_pImage == pImageData) {
+                iter = m_delayReleaseImageList.erase(iter);
+                break;
+            }
+            else {
+                ++iter;
+            }
+        }
+    }
 }
 
 void ImageManager::SetAutoMatchScaleImage(bool bAutoMatchScaleImage)

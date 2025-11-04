@@ -280,11 +280,12 @@ namespace ReadPngHeader
 
 struct Image_PNG::TImpl
 {
+public:
     //文件数据
     std::vector<uint8_t> m_fileData;
 
     //文件路径
-    FilePath m_filePath;
+    FilePath m_imageFilePath;
 
     //图片宽度(按照m_fImageSizeScale缩放过的值)
     uint32_t m_nWidth = 0;
@@ -300,6 +301,12 @@ struct Image_PNG::TImpl
 
     //是否加载所有帧
     bool m_bLoadAllFrames = true;
+
+    //图片数据出错时，是否允许断言
+    bool m_bAssertEnabled = true;
+
+    //是否存在图片数据解码错误
+    bool m_bDecodeError = false;
 
     //缩放比例
     float m_fImageSizeScale = IMAGE_SIZE_SCALE_NONE;
@@ -354,9 +361,11 @@ public:
         if (m_nLoops <= 0) {
             m_nLoops = -1;
         }
-        ASSERT(m_nWidth > 0);
-        ASSERT(m_nHeight > 0);
-        ASSERT(m_nFrameCount > 0);
+        if (m_bAssertEnabled) {
+            ASSERT(m_nWidth > 0);
+            ASSERT(m_nHeight > 0);
+            ASSERT(m_nFrameCount > 0);
+        }
 
         bool bLoaded = true;
         if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
@@ -393,50 +402,48 @@ Image_PNG::~Image_PNG()
 {
 }
 
-bool Image_PNG::LoadImageFromFile(const FilePath& filePath,
-                                  bool bLoadAllFrames,
-                                  bool bAsyncDecode,
-                                  float fImageSizeScale,
-                                  const UiSize& rcMaxDestRectSize)
+bool Image_PNG::LoadImageFile(std::vector<uint8_t>& fileData,
+                              const FilePath& imageFilePath,
+                              bool bLoadAllFrames,
+                              bool bAsyncDecode,
+                              float fImageSizeScale,
+                              const UiSize& rcMaxDestRectSize,
+                              bool bAssertEnabled)
 {
-    DStringA pngFileName = filePath.NativePathA();
-    ASSERT(!pngFileName.empty());
-    if (pngFileName.empty()) {
+    ASSERT(!fileData.empty() || !imageFilePath.IsEmpty());
+    if (fileData.empty() && imageFilePath.IsEmpty()) {
         return false;
     }
-    ReadPngHeader::PngImageInfo pngImageInfo;
-    bool bLoaded = ReadPngHeader::load_apng_image_info(pngFileName, pngImageInfo);
-    if (!bLoaded) {
-        return false;
-    }
-    m_impl->m_fileData.clear();
-    m_impl->m_filePath = filePath;
-    std::vector<uint8_t> fileData;
-    return m_impl->InitImageData(fileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
-}
-
-bool Image_PNG::LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                                    bool bLoadAllFrames,
-                                    bool bAsyncDecode,
-                                    float fImageSizeScale,
-                                    const UiSize& rcMaxDestRectSize)
-{
-    ASSERT(!fileData.empty());
-    if (fileData.empty()) {
-        return false;
-    }
-    m_impl->m_filePath.Clear();
+    m_impl->m_bDecodeError = false;
+    m_impl->m_bAssertEnabled = bAssertEnabled;
+    m_impl->m_imageFilePath = imageFilePath;
     m_impl->m_fileData.clear();
     m_impl->m_fileData.swap(fileData);
-    //只加载关键信息，不解码图片数据
-    ReadPngHeader::PngImageInfo pngImageInfo;
-    bool bLoaded = ReadPngHeader::load_apng_image_info(m_impl->m_fileData, pngImageInfo);
-    if (!bLoaded) {
-        //加载失败时，需要恢复原文件数据
-        m_impl->m_fileData.swap(fileData);
-        return false;
+
+    if (!m_impl->m_fileData.empty()) {
+        //只加载关键信息，不解码图片数据
+        ReadPngHeader::PngImageInfo pngImageInfo;
+        bool bLoaded = ReadPngHeader::load_apng_image_info(m_impl->m_fileData, pngImageInfo);
+        if (!bLoaded) {
+            //加载失败时，需要恢复原文件数据
+            m_impl->m_fileData.swap(fileData);
+            return false;
+        }
+        return m_impl->InitImageData(fileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
     }
-    return m_impl->InitImageData(fileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
+    else {
+        DStringA pngFileName = imageFilePath.NativePathA();
+        ASSERT(!pngFileName.empty());
+        ReadPngHeader::PngImageInfo pngImageInfo;
+        bool bLoaded = ReadPngHeader::load_apng_image_info(pngFileName, pngImageInfo);
+        if (!bLoaded) {
+            return false;
+        }
+        m_impl->m_fileData.clear();
+        m_impl->m_imageFilePath = imageFilePath;
+        std::vector<uint8_t> emptyFileData;
+        return m_impl->InitImageData(emptyFileData, pngImageInfo, bLoadAllFrames, bAsyncDecode, fImageSizeScale, rcMaxDestRectSize);
+    }
 }
 
 AnimationFramePtr Image_PNG::DecodeImageFrame()
@@ -444,65 +451,98 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
+        m_impl->m_bDecodeError = true;
         return nullptr;
     }
 
-    bool bLoaded = true;
     float fImageSizeScale = m_impl->m_fImageSizeScale;
     if (m_impl->m_pImageDecoder == nullptr) {
         m_impl->m_pImageDecoder = std::make_unique<APngDecoder>();
+        bool bLoaded = false;
         if (!m_impl->m_fileData.empty()) {
             bLoaded = m_impl->m_pImageDecoder->LoadFromMemory(m_impl->m_fileData.data(), m_impl->m_fileData.size(), m_impl->m_bLoadAllFrames);
         }
-        else if (!m_impl->m_filePath.IsEmpty()) {
-            bLoaded = m_impl->m_pImageDecoder->LoadFromFile(m_impl->m_filePath.NativePathA(), m_impl->m_bLoadAllFrames);
-        }
-        else {
-            ASSERT(0);
+        else if (!m_impl->m_imageFilePath.IsEmpty()) {
+            bLoaded = m_impl->m_pImageDecoder->LoadFromFile(m_impl->m_imageFilePath.NativePathA(), m_impl->m_bLoadAllFrames);
         }
         if (!bLoaded) {
             m_impl->m_pImageDecoder.reset();
-            std::vector<uint8_t> fileData;
-            m_impl->m_fileData.swap(fileData);
         }
     }
+    if (m_impl->m_pImageDecoder == nullptr) {
+        //清除数据，标记错误
+        m_impl->m_bDecodeError = true;
+        m_impl->m_pImageDecoder.reset();
+        std::vector<uint8_t> fileData;
+        m_impl->m_fileData.swap(fileData);
+        return nullptr;
+    }
     AnimationFramePtr pFrameData;
-    if (bLoaded) {
-        APngDecoder& pngDecoder = *(m_impl->m_pImageDecoder);
+    APngDecoder& pngDecoder = *(m_impl->m_pImageDecoder);
+    if (m_impl->m_bAssertEnabled) {
         ASSERT(m_impl->m_nWidth == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetWidth(), fImageSizeScale));
         ASSERT(m_impl->m_nHeight == ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetHeight(), fImageSizeScale));
+    }
+    if ((m_impl->m_nWidth != ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetWidth(), fImageSizeScale)) ||
+        (m_impl->m_nHeight != ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetHeight(), fImageSizeScale))) {
+        //清除数据，标记错误
+        m_impl->m_bDecodeError = true;
+        m_impl->m_pImageDecoder.reset();
+        std::vector<uint8_t> fileData;
+        m_impl->m_fileData.swap(fileData);
+        return nullptr;
+    }
 
-        if (pngDecoder.DecodeNextFrame()) {            
-            int32_t nCurFrame = 0;
-            int32_t nTotalFrames = 0;
-            pngDecoder.GetProgress(&nCurFrame, &nTotalFrames);
-            int32_t nFrameIndex = nCurFrame - 1;
+    if (pngDecoder.DecodeNextFrame()) {
+        int32_t nCurFrame = 0;
+        int32_t nTotalFrames = 0;
+        pngDecoder.GetProgress(&nCurFrame, &nTotalFrames);
+        int32_t nFrameIndex = nCurFrame - 1;
+        if (m_impl->m_bAssertEnabled) {
             ASSERT(nTotalFrames == m_impl->m_nFrameCount);
+        }
+        if (nTotalFrames != m_impl->m_nFrameCount) {
+            //数据错误，清除数据，标记错误
+            m_impl->m_bDecodeError = true;
+            m_impl->m_pImageDecoder.reset();
+            std::vector<uint8_t> fileData;
+            m_impl->m_fileData.swap(fileData);
+            return nullptr;
+        }
+        if (m_impl->m_bAssertEnabled) {
             ASSERT(nFrameIndex < m_impl->m_nFrameCount);
+        }
+        if (nFrameIndex >= m_impl->m_nFrameCount) {
+            //数据错误，清除数据，标记错误
+            m_impl->m_bDecodeError = true;
+            m_impl->m_pImageDecoder.reset();
+            std::vector<uint8_t> fileData;
+            m_impl->m_fileData.swap(fileData);
+            return nullptr;
+        }
 
-            pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
-            pFrameData->m_nFrameIndex = nFrameIndex;
-            pFrameData->SetDelayMs(pngDecoder.GetFrameDelay(nFrameIndex));
-            pFrameData->m_nOffsetX = 0;
-            pFrameData->m_nOffsetY = 0;
-            pFrameData->m_bDataPending = false;
-            pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
-            ASSERT(pFrameData->m_pBitmap != nullptr);
-            if (pFrameData->m_pBitmap != nullptr) {
-                std::vector<uint8_t> bitmapData;
-                bitmapData.resize(pngDecoder.GetHeight() * pngDecoder.GetWidth() * 4);
-                if (pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data())) {
-                    bool bRet = pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
-                    if (!bRet) {
-                        ASSERT(!"Init bitmap data failed!");
-                        pFrameData.reset();
-                    }
-                }
-                else {
-                    ASSERT(!"GetFrameDataPremultiplied failed!");
+        pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+        pFrameData->m_nFrameIndex = nFrameIndex;
+        pFrameData->SetDelayMs(pngDecoder.GetFrameDelay(nFrameIndex));
+        pFrameData->m_nOffsetX = 0;
+        pFrameData->m_nOffsetY = 0;
+        pFrameData->m_bDataPending = false;
+        pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
+        ASSERT(pFrameData->m_pBitmap != nullptr);
+        if (pFrameData->m_pBitmap != nullptr) {
+            std::vector<uint8_t> bitmapData;
+            bitmapData.resize(pngDecoder.GetHeight() * pngDecoder.GetWidth() * 4);
+            if (pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data())) {
+                bool bRet = pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
+                if (!bRet) {
+                    ASSERT(!"Init bitmap data failed!");
                     pFrameData.reset();
-                }                
+                }
             }
+            else {
+                ASSERT(!"GetFrameDataPremultiplied failed!");
+                pFrameData.reset();
+            }                
         }
     }
     return pFrameData;
@@ -510,7 +550,8 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
 
 bool Image_PNG::IsDelayDecodeEnabled() const
 {
-    if (m_impl->m_bAsyncDecode && (!m_impl->m_fileData.empty() || !m_impl->m_filePath.IsEmpty())) {
+    if ((m_impl->m_bAsyncDecode && !m_impl->m_bDecodeError) &&
+        (!m_impl->m_fileData.empty() || !m_impl->m_imageFilePath.IsEmpty())) {
         //仅多帧时支持多线程解码
         return true;
     }
@@ -521,6 +562,9 @@ bool Image_PNG::IsDelayDecodeFinished() const
 {
     if (m_impl->m_bAsyncDecoding) {
         return false;
+    }
+    if (m_impl->m_bDecodeError) {
+        return true;
     }
     return (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
 }
@@ -535,30 +579,48 @@ uint32_t Image_PNG::GetDecodedFrameIndex() const
     }
 }
 
-bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted)
+bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted, bool* bDecodeError)
 {
     if (!IsDelayDecodeEnabled()) {
+        ASSERT(0);
         return false;
     }
     if (m_impl->m_bAsyncDecoding) {
+        ASSERT(0);
+        return false;
+    }
+    if (m_impl->m_bDecodeError) {
+        if (bDecodeError != nullptr) {
+            *bDecodeError = true;
+        }
         return false;
     }
     m_impl->m_bAsyncDecoding = true;
 
+    bool bDecodeResult = false;
     while (((IsAborted == nullptr) || !IsAborted()) &&
            (nMinFrameIndex >= (uint32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
            ((int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
         AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
         if (pNewAnimationFrame != nullptr) {
+            bDecodeResult = true;
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
         }
         else {
+            //解码错误
+            m_impl->m_bDecodeError = true;
+            if (bDecodeError != nullptr) {
+                *bDecodeError = true;
+            }
             break;
         }
     }
 
     m_impl->m_bAsyncDecoding = false;
-    return true;
+    if (!bDecodeResult) {
+        ASSERT(m_impl->m_bDecodeError);
+    }
+    return bDecodeResult;
 }
 
 bool Image_PNG::MergeDelayDecodeData()
@@ -574,8 +636,8 @@ bool Image_PNG::MergeDelayDecodeData()
         bRet = true;
     }
     if (!m_impl->m_bAsyncDecoding) {
-        //如果解码完成，则释放图片资源
-        if ((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+        //如果解码完成或者解码错误，则释放图片资源
+        if (((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) || m_impl->m_bDecodeError) {
             m_impl->m_pImageDecoder.reset();
             std::vector<uint8_t> fileData;
             m_impl->m_fileData.swap(fileData);
@@ -638,14 +700,21 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
         return false;
-    }
-    pAnimationFrame->m_bDataPending = true;
+    }    
     ASSERT((nFrameIndex >= 0) && (nFrameIndex < m_impl->m_nFrameCount));
     if ((nFrameIndex < 0) || (nFrameIndex >= m_impl->m_nFrameCount)) {
         return false;
     }
+
+    pAnimationFrame->m_bDataPending = false;
+    pAnimationFrame->m_bDataError = false;
     ASSERT(m_impl->m_nFrameCount > 0);
     if (m_impl->m_nFrameCount <= 0) {
+        pAnimationFrame->m_bDataError = true;
+        return false;
+    }
+    if (m_impl->m_bDecodeError) {
+        pAnimationFrame->m_bDataError = true;
         return false;
     }
 
@@ -658,15 +727,18 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
                 m_impl->m_frames.push_back(pNewAnimationFrame);
             }
             else {
+                m_impl->m_bDecodeError = true;
+                pAnimationFrame->m_bDataError = true;
                 break;
             }
         }
 
         ASSERT((nFrameIndex < (int32_t)m_impl->m_frames.size()));
         if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
+            pAnimationFrame->m_bDataError = true;
             return false;
         }
-        if ((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) {
+        if (((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) || m_impl->m_bDecodeError) {
             //解码完成，释放资源
             if (m_impl->m_pImageDecoder != nullptr) {
                 m_impl->m_pImageDecoder.reset();
@@ -688,22 +760,32 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
             ASSERT(pFrameData->m_nFrameIndex == nFrameIndex);
             *pAnimationFrame = *pFrameData;
             pAnimationFrame->m_bDataPending = false;
+            pAnimationFrame->m_bDataError = false;
             ASSERT(pAnimationFrame->m_pBitmap != nullptr);
             bRet = true;
+        }
+        else {
+            m_impl->m_bDecodeError = true;
+            pAnimationFrame->m_bDataError = true;
         }
     }
     else if (m_impl->m_bAsyncDecode) {
         if ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount) {
             //尚未完成多帧解码
             pAnimationFrame->m_bDataPending = true;
+            pAnimationFrame->m_bDataError = false;
             pAnimationFrame->m_pBitmap.reset();
             bRet = true;
         }
         else {
+            m_impl->m_bDecodeError = true;
+            pAnimationFrame->m_bDataError = true;
             ASSERT(0);
         }
     }
     else {
+        m_impl->m_bDecodeError = true;
+        pAnimationFrame->m_bDataError = true;
         ASSERT(0);
     }
     return bRet;

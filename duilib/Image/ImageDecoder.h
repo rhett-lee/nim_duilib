@@ -35,9 +35,12 @@ public:
     /** 延迟解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
     * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual bool DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) = 0;
+    virtual bool DelayDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) = 0;
 
     /** 合并延迟解码图片数据的结果
     */
@@ -77,9 +80,12 @@ public:
     /** 异步解码图片数据（可以在多线程中调用）
     * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
     * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
     * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    virtual bool AsyncDecode(uint32_t nMinFrameIndex, std::function<bool(void)> IsAborted) = 0;
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) = 0;
 
     /** 合并异步解码图片数据的结果
     */
@@ -131,8 +137,11 @@ public:
     virtual float GetImageSizeScale() const = 0;
 
     /** 获取位图
+    * @param [out] bDecodeError 返回值代表是否遇到图片解码错误
+    * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
+    *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
     */
-    virtual std::shared_ptr<IBitmap> GetBitmap() = 0;
+    virtual std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError) = 0;
 };
 
 /** 动画图片默认的播放时间间隔（毫秒）
@@ -156,6 +165,7 @@ public:
     {
     public:
         bool m_bDataPending = false;        //数据是否处于待解码状态：true表示待解码，需要等待解码完成后再使用
+        bool m_bDataError = false;          //数据是否出现解码错误
         int32_t m_nFrameIndex = -1;         //图片帧的索引号        
         int32_t m_nOffsetX = 0;             //该帧图片在绘制区域的X轴偏移值，单位为像素
         int32_t m_nOffsetY = 0;             //该帧图片在绘制区域的Y轴偏移值，单位为像素
@@ -304,11 +314,11 @@ public:
     //请求加载的缩放比例
     float m_fImageSizeScale = 1.0f;
 
-    //是否为程序资源目录以外的外部图片(外部文件的尺寸可能很大，加载策略会有所不同；而程序资源目录内的图片尺寸一般不会很大)
-    bool m_bExternalImagePath = false;
-
     //是否支持异步线程解码图片数据
     bool m_bAsyncDecode = false;
+
+    //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）
+    bool m_bAssertEnabled = true;
 
 public:
     //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）

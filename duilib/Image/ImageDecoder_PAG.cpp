@@ -44,30 +44,21 @@ std::unique_ptr<IImage> ImageDecoder_PAG::LoadImageData(const ImageDecodeParam& 
     float fPagMaxFrameRate = decodeParam.m_fPagMaxFrameRate;
     float fImageSizeScale = decodeParam.m_fImageSizeScale;
     const UiSize& rcMaxDestRectSize = decodeParam.m_rcMaxDestRectSize;
+    bool bAssertEnabled = decodeParam.m_bAssertEnabled;
+    std::vector<uint8_t> emptyFileData;
+    std::vector<uint8_t>& fileData = (decodeParam.m_pFileData != nullptr) ? *decodeParam.m_pFileData : emptyFileData;
+    const FilePath& imageFilePath = decodeParam.m_imageFilePath;
+
     Image_PAG* pImagePAG = new Image_PAG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePAG);
 
-    if ((decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty()) {
-        std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;    
-        if (!pImagePAG->LoadImageFromMemory(fileData,
-                                            bLoadAllFrames,
-                                            fPagMaxFrameRate,
-                                            fImageSizeScale,
-                                            rcMaxDestRectSize)) {
-            return nullptr;
-        }
-    }
-    else if (!decodeParam.m_imageFilePath.IsEmpty()) {
-        if (!pImagePAG->LoadImageFromFile(decodeParam.m_imageFilePath,
-                                          bLoadAllFrames,
-                                          fPagMaxFrameRate,
-                                          fImageSizeScale,
-                                          rcMaxDestRectSize)) {
-            return nullptr;
-        }
-    }
-    else {
-        ASSERT(0);
+    if (!pImagePAG->LoadImageFile(fileData,
+                                  imageFilePath,
+                                  bLoadAllFrames,
+                                  fPagMaxFrameRate,
+                                  fImageSizeScale,
+                                  rcMaxDestRectSize,
+                                  bAssertEnabled)) {
         return nullptr;
     }
     

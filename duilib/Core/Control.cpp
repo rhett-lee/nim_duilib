@@ -2631,6 +2631,10 @@ bool Control::PaintImage(IRender* pRender,
     }
 
     Image& duiImage = *pImage;
+    if (duiImage.HasImageError()) {
+        //图片出现解码错误，不绘制
+        return false;
+    }
 
     if (duiImage.GetImagePath().empty()) {
         return false;
@@ -2643,14 +2647,17 @@ bool Control::PaintImage(IRender* pRender,
 
     LoadImageInfo(duiImage, true);
     std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
-    if (duiImage.GetImageAttribute().m_bAssertEnabled) {
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
         ASSERT(imageInfo != nullptr);
     }
     if (imageInfo == nullptr) {
+        //图片加载失败了
+        duiImage.SetImageError(true);
         return false;
     }
     ASSERT((imageInfo->GetWidth() > 0) && (imageInfo->GetHeight() > 0));
     if ((imageInfo->GetWidth() <= 0) || (imageInfo->GetHeight() <= 0)) {
+        duiImage.SetImageError(true);
         return false;
     }
 
@@ -2759,9 +2766,15 @@ bool Control::PaintImage(IRender* pRender,
     //设置动画图片的区域
     duiImage.SetDrawDestRect(rcImageDect);
 
-    //获取需要绘制的位图图片
+    //获取需要绘制的位图图片    
     std::shared_ptr<IBitmap> pBitmap;
+
+    //图片数据是否正在延迟解码中（多线程解码图片数据）
     bool bDataPending = false;
+
+    //是否遇到图片解码错误
+    bool bDecodeError = false;
+
     if (duiImage.IsMultiFrameImage()) {
         //多帧图片
         AnimationFramePtr pAnimationFrame = duiImage.GetCurrentFrame(rcImageDect, rcSource, rcSourceCorners);
@@ -2769,17 +2782,7 @@ bool Control::PaintImage(IRender* pRender,
         if (pAnimationFrame == nullptr) {
             return false;
         }
-        if (pAnimationFrame->m_bDataPending) {
-            //数据尚未准备好, 可忽略
-            ASSERT(pAnimationFrame->m_pBitmap == nullptr);
-            if (duiImage.GetImageAttribute().m_bAsyncLoad) {
-                bDataPending = true;
-            }
-            else {
-                ASSERT(!"pAnimationFrame->m_bDataPending is invalid!");
-            }
-        }
-        else if (pAnimationFrame->m_pBitmap != nullptr) {
+        if (pAnimationFrame->m_pBitmap != nullptr) {
             pBitmap = pAnimationFrame->m_pBitmap;
 
             //运用部分参数(rcDest需要等比例缩小)
@@ -2797,13 +2800,23 @@ bool Control::PaintImage(IRender* pRender,
                 rcDest.top += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, fRectScaleY);
                 rcDest.bottom = rcDest.top + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestHeight, fImageScaleY);
             }
-
-            //TODO:
-            //位图图片的宽高，不可以超过ImageInfo的宽高（多帧图片可以小于ImageInfo的宽高）
-            //ASSERT(pAnimationFrame->m_pBitmap->GetWidth() <= (uint32_t)imageInfo->GetWidth());
-            //ASSERT(pAnimationFrame->m_pBitmap->GetHeight() <= (uint32_t)imageInfo->GetHeight());
+        }
+        else if (pAnimationFrame->m_bDataPending) {
+            //数据尚未准备好, 可忽略
+            ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+            if (duiImage.GetImageAttribute().m_bAsyncLoad) {
+                bDataPending = true;
+            }
+            else {
+                ASSERT(!"pAnimationFrame->m_bDataPending is invalid!");
+            }
+        }
+        else if (pAnimationFrame->m_bDataError) {
+            //遇到图片解码错误
+            bDecodeError = true;
         }
         else {
+            //其他未知情况，流程有错误
             ASSERT(!"pAnimationFrame->m_pBitmap is invalid!");
         }
     }
@@ -2817,14 +2830,12 @@ bool Control::PaintImage(IRender* pRender,
         else if (newImageAttribute.m_bWindowShadowMode) {
             //阴影模式：不拉伸，避免四个角变形
             bImageStretch = false;
-        }
-        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcImageDect, rcSource, rcSourceCorners);
-        if (duiImage.GetImageAttribute().m_bAsyncLoad) {
-            bDataPending = true;            
-        }
-        else {
-            //异步加载时，可能会返回空的
-            ASSERT(pBitmap != nullptr);
+        }        
+        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcImageDect, rcSource, rcSourceCorners, &bDecodeError);
+        if (pBitmap == nullptr) {
+            if (!bDecodeError && duiImage.GetImageAttribute().m_bAsyncLoad) {
+                bDataPending = true;
+            }
         }
     }
 
@@ -2873,10 +2884,16 @@ bool Control::PaintImage(IRender* pRender,
         DString imageKey = imageInfo->GetImageKey();
         GlobalManager::Instance().Image().AddDelayPaintData(pControl, pImage, imageKey);
     }
-    //按需启动动画
-    if (duiImage.IsMultiFrameImage()) {
-        duiImage.CheckStartImageAnimation();
+    else if (bDecodeError) {
+        //遇到图片解码错误
+        duiImage.SetImageError(true);
     }
+    //按需启动动画
+    if (!duiImage.HasImageError()) {
+        if (duiImage.IsMultiFrameImage()) {
+            duiImage.CheckStartImageAnimation();
+        }
+    }    
     return bPainted;
 }
 
@@ -3894,16 +3911,27 @@ bool  Control::IsImageAnimationLoaded(const DString& imageName) const
 
 /** 多线程解码的数据结构(异步，在子线程解码)
 */
-struct TAsyncImageDecode
+struct Control::TAsyncImageDecode
 {
-    std::shared_ptr<IImage> m_pImageData; //图片数据接口
-    size_t m_nTaskId = 0;                 //在子线程中的任务ID
+    ControlPtr m_pControl;                //关联的控件接口
+    ControlPtrT<Image> m_pImage;          //关联的图片接口
+    DString m_imagePath;                  //加载图片的路径
+
+    std::shared_ptr<IImage> m_pImageData; //图片数据接口    
     DString m_imageKey;                   //图片数据的KEY，用于更新UI显示
+    size_t m_nTaskId = 0;                 //在子线程中的任务ID
+
+    uint32_t m_nFrameCount = 0;           //该图片共有多少帧
+    uint32_t m_nDecodeCount = 0;          //共执行多少次异步解码
+
+    bool m_bDecodeExecuted = false;       //释放执行过图片解码操作
+    bool m_bDecodeResult = false;         //异步解码是否成功
+    bool m_bDecodeError = false;          //异步解码是否遇到错误
 };
 
 /** 多线程解码的实现函数(参数使用TAsyncImageDecode智能指针，避免影响std::shared_ptr<IImage>的引用计数)
 */
-static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder)
+void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder)
 {
     //需要确保在UI线程中执行
     GlobalManager::Instance().AssertUIThread();
@@ -3922,14 +3950,6 @@ static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecode
             return;
         }
     }
-
-    auto IsAborted = [pAsyncDecoder]() {
-            if (pAsyncDecoder->m_pImageData.use_count() == 1) {
-                //已经释放：待完善细节
-                return true;
-            }
-            return false;
-        };
 
     //放在子线程中解码
     ThreadManager& threadManager = GlobalManager::Instance().Thread();
@@ -3954,24 +3974,60 @@ static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecode
         }
     }
     //异步解码完成的通知函数，在主线程中执行
-    auto AsyncDecodeImageFinishNotify = [pAsyncDecoder, IsAborted]() {
+    auto AsyncDecodeImageFinishNotify = [pAsyncDecoder]() {
             //需要确保在UI线程中执行
             GlobalManager::Instance().AssertUIThread();
-            if (!IsAborted()) {
-                //合并数据
-                pAsyncDecoder->m_pImageData->MergeAsyncDecodeData();
+            if (pAsyncDecoder == nullptr) {
+                return;
+            }
+            if (!pAsyncDecoder->m_bDecodeExecuted) {
+                //未执行图片解码操作，不需要再处理
+                return;
+            }
+            int32_t nUseCount = pAsyncDecoder->m_pImageData.use_count(); //资源引用计数
+            if (nUseCount == 1) {
+                //资源已经释放，不需要再处理
+                return;
+            }
 
-                //通知相关的控件，重绘界面
-                GlobalManager::Instance().Image().DelayPaintImage(pAsyncDecoder->m_imageKey);
+            //解码计数
+            pAsyncDecoder->m_nDecodeCount++;
 
-                bool bDecodeFinished = pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished();
-                if (!bDecodeFinished) {
-                    //如果未完成，则继续解码下一帧
-                    AsyncDecodeImageData(pAsyncDecoder);
-                }
-                else {
-                    //清除任务ID(仅在完成时清除)
-                    pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
+            //合并数据
+            pAsyncDecoder->m_pImageData->MergeAsyncDecodeData();
+
+            //通知相关的控件，重绘界面
+            GlobalManager::Instance().Image().DelayPaintImage(pAsyncDecoder->m_imageKey);
+
+            bool bDecodeFinished = pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished();
+            bool bDecodeEnabled = pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled();
+            ASSERT(pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount);
+            if (pAsyncDecoder->m_nDecodeCount == pAsyncDecoder->m_nFrameCount) {
+                ASSERT(bDecodeFinished);
+            }
+
+            if (!bDecodeFinished && bDecodeEnabled &&
+                pAsyncDecoder->m_bDecodeResult &&
+                !pAsyncDecoder->m_bDecodeError &&
+                (pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount)) {
+                //如果未完成，则继续解码下一帧
+                pAsyncDecoder->m_bDecodeExecuted = false;
+                AsyncDecodeImageData(pAsyncDecoder);
+            }
+            else {
+                //清除任务ID(仅在完成时清除)
+                pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
+
+                if ((pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
+                    bool bDecodeError = true; //默认为解码错误
+                    if (!pAsyncDecoder->m_bDecodeError && bDecodeFinished) {
+                        //解码完成
+                        bDecodeError = false;
+                    }
+                    if (pAsyncDecoder->m_bDecodeError) {
+                        pAsyncDecoder->m_pImage->SetImageError(true);
+                    }
+                    pAsyncDecoder->m_pControl->FireImageEvent(pAsyncDecoder->m_pImage.get(), pAsyncDecoder->m_imagePath, false, false, bDecodeError);
                 }
             }
         };
@@ -3997,14 +4053,27 @@ static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecode
     }
 
     //异步解码的函数，在子线程中执行
-    auto AsyncDecodeImageFunction = [pAsyncDecoder, nCurFrameIndex, IsAborted, AsyncDecodeImageFinishNotify]() {
-            if (!IsAborted() &&
+    auto AsyncDecodeImageFunction = [pAsyncDecoder, nCurFrameIndex, AsyncDecodeImageFinishNotify]() {
+            int32_t nUseCount = pAsyncDecoder->m_pImageData.use_count(); //资源引用计数(当计数为1时，表示资源已经释放，不需要再解码)
+            if ((nUseCount > 1) &&
                 !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished() &&
                 pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled()) {
-                bool bRet = pAsyncDecoder->m_pImageData->AsyncDecode(nCurFrameIndex, IsAborted);
-                ASSERT_UNUSED_VARIABLE(bRet);
+
+                //取消操作判断函数
+                auto IsAborted = [pAsyncDecoder]() {
+                        if (pAsyncDecoder->m_pImageData.use_count() == 1) {
+                            //已经释放：待完善细节
+                            return true;
+                        }
+                        return false;
+                    };
+                //对图片数据进行异步解码
+                pAsyncDecoder->m_bDecodeExecuted = true;
+                pAsyncDecoder->m_bDecodeResult = pAsyncDecoder->m_pImageData->AsyncDecode(nCurFrameIndex, IsAborted, &pAsyncDecoder->m_bDecodeError);
             }
-            //通知UI
+
+            // 通知UI（无论是否执行过图片解码操作，均需要通知UI，
+            // 主要目的是让pAsyncDecoder->m_pImageData这个智能指针对象在UI线程中释放，避免在子线程释放导致资源冲突，引发程序崩溃）
             size_t nTaskId = GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, AsyncDecodeImageFinishNotify);
             ASSERT_UNUSED_VARIABLE(nTaskId > 0);
         };
@@ -4032,8 +4101,19 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         return false;
     }
 
+    if (duiImage.HasImageError()) {
+        //如果图片加载失败，则不重新加载该图片
+        return false;
+    }
+
     DString sImagePath = duiImage.GetImagePath();
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
+        ASSERT(!sImagePath.empty());
+    }
     if (sImagePath.empty()) {
+        //图片资源路径为空，标记加载失败
+        duiImage.SetImageError(true);
+        FireImageEvent(&duiImage, sImagePath, true, true, false);
         return false;
     }
     ImageLoadPath imageLoadPath; //图片加载路径信息
@@ -4051,6 +4131,9 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             sImagePath = duiImage.GetImagePath();//更新图片路径为资源指定的路径
             ASSERT(!sImagePath.empty());
             if (sImagePath.empty()) {
+                //图片资源路径为空，标记加载失败
+                duiImage.SetImageError(true);
+                FireImageEvent(&duiImage, sImagePath, true, true, false);
                 return false;
             }
         }
@@ -4084,9 +4167,13 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             }
         }
     }
-    ASSERT(!imageLoadPath.m_imageFullPath.IsEmpty());
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
+        ASSERT(!imageLoadPath.m_imageFullPath.IsEmpty());
+    }
     if (imageLoadPath.m_imageFullPath.IsEmpty()) {
-        //图片资源文件不存在
+        //图片资源文件不存在, 标记加载失败
+        duiImage.SetImageError(true);
+        FireImageEvent(&duiImage, imageLoadPath.m_imageFullPath.NativePath(), true, true, false);
         return false;
     }
 
@@ -4097,8 +4184,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
     if ((imageInfo == nullptr) ||
         (imageInfo->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
         //第1种情况：如果图片没有加载则执行加载图片；
-        //第2种情况：如果图片发生变化，则重新加载该图片
-        bool bFromCache = false;
+        //第2种情况：如果图片发生变化，则重新加载该图片        
 
         //是否开启图片加载优化(以最小的比例加载图片，占有内存最少，绘制速度最快)，开启条件总结为：
         //1. 仅当绘制时加载图片可以开启该项优化，因为此时加载的图片，改变加载比例时只影响图片的显示效果，并不影响控件和图片的布局
@@ -4127,21 +4213,71 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             imageLoadParam.SetMaxDestRectSize(UiSize(GetRect().Width(), GetRect().Height()));
         }
 
-        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bFromCache);
+        bool bImageDataFromCache = false;
+        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bImageDataFromCache);
         duiImage.SetImageInfo(imageInfo);
-        if (!bFromCache && (imageInfo != nullptr)) {
+        if (imageInfo != nullptr) {
             //检查并启动多线程解码，在子线程中解码图片数据
             std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
             if (pImageData != nullptr) {
-                std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();
+                std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();                
+                pAsyncDecoder->m_nFrameCount = imageInfo->GetFrameCount();
+                pAsyncDecoder->m_nDecodeCount = 0;
                 pAsyncDecoder->m_nTaskId = 0;
                 pAsyncDecoder->m_pImageData = std::move(pImageData);
                 pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
-                AsyncDecodeImageData(pAsyncDecoder);
+                pAsyncDecoder->m_pControl = const_cast<Control*>(this);
+                pAsyncDecoder->m_pImage = &duiImage;
+                pAsyncDecoder->m_imagePath = imageLoadPath.m_imageFullPath.NativePath();
+
+                if (!bImageDataFromCache) {
+                    //重新加载的图片
+                    AsyncDecodeImageData(pAsyncDecoder);
+                }
+                else if (pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled() &&
+                         !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished()) {
+                    //从缓存中获取的图片，但尚未加载
+                    AsyncDecodeImageData(pAsyncDecoder);
+                }
             }
         }
     }
+    if (imageInfo == nullptr) {
+        //标记加载失败
+        duiImage.SetImageError(true);
+    }
+
+    //图片加载结果的回调事件（异步）
+    bool bLoadError = (imageInfo == nullptr);
+    FireImageEvent(&duiImage, imageLoadPath.m_imageFullPath.NativePath(), true, bLoadError, false);
     return imageInfo ? true : false;
+}
+
+void Control::FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const
+{
+    ControlPtr pControl(const_cast<Control*>(this));        //图片关联控件
+    ControlPtrT<Image> pImage(pImagePtr);                   //图片资源接口
+
+    ImageDecodeResult decodeResult;
+    decodeResult.m_pControl = pControl.get();               //图片关联控件
+    decodeResult.m_pImage = pImage.get();                   //图片资源接口
+    decodeResult.m_imageFilePath = imageFilePath;           //图片路径
+    decodeResult.m_imageName = pImage->GetImageName();      //图片名称，唯一ID
+    decodeResult.m_bBkImage = (GetBkImagePtr() == pImagePtr);   //该图片是否为背景图片
+    decodeResult.m_bLoadError = bLoadError;                     //该图片是否存在加载错误
+    decodeResult.m_bDecodeError = bDecodeError;                 //该图片是否存在数据解码错误
+
+    auto LoadImageCallback = [pControl, pImage, bLoadImage, decodeResult]() {
+            if ((pControl != nullptr) && (pImage != nullptr)) {
+                if (bLoadImage) {
+                    pControl->SendEvent(kEventImageLoad, (WPARAM)&decodeResult);
+                }
+                else {
+                    pControl->SendEvent(kEventImageDecode, (WPARAM)&decodeResult);
+                }
+            }
+        };
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, LoadImageCallback);
 }
 
 void Control::ClearImageCache()

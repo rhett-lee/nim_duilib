@@ -97,6 +97,14 @@ public:
     */
     TiledDrawParam GetTiledDrawParam(const DpiManager& dpi) const;
 
+    /** 是否启用图片加载失败时的断言错误
+    */
+    bool IsAssertEnabled() const;
+
+    /** 获取图片的名称（可作为图片的唯一ID）
+    */
+    DString GetImageName() const;
+
 public:
     //图片文件属性字符串
     UiString m_sImageString;
@@ -165,10 +173,10 @@ public:
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
 
-    //图片加载失败时，是否断言（debug编译时）
+private:
+    //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）
     bool m_bAssertEnabled;
 
-private:
     //rcMargin对应的DPI缩放百分比
     uint16_t m_rcMarginScale;
 

@@ -170,6 +170,9 @@ namespace ui
     #define  EVENTSTR_TAB                (_T("tab"))
     #define  EVENTSTR_WINDOWCLOSE        (_T("windowclose"))
 
+    class Control;
+    class Image;
+
     //水平对齐方式
     enum class HorAlignType: int8_t
     {
@@ -305,6 +308,18 @@ namespace ui
         std::vector<DString> m_fileList;    // 在拖放操作中包含的文本内容，每个元素代表一个文件路径
     };
 
+    //图片加载或者解码结果
+    struct ImageDecodeResult
+    {
+        Control* m_pControl;    //图片关联控件
+        Image* m_pImage;        //图片资源接口
+        DString m_imageFilePath;//图片路径
+        DString m_imageName;    //图片名称，唯一ID
+        bool m_bBkImage;        //该图片是否为背景图片
+        bool m_bLoadError;      //该图片是否存在加载错误
+        bool m_bDecodeError;    //该图片是否存在数据解码错误
+    };
+
     //定义所有消息类型
     enum EventType: int8_t
     {
@@ -421,7 +436,10 @@ namespace ui
         kEventLoading,                  //控件处于加载中状态，定时回调：             wParam 为数据指针：ui::ControlLoadingStatus*
         kEventLoadingStop,              //控件结束加载状态，此时控件变成Enabled状态： wParam 为数据指针：ui::ControlLoadingStatus*
 
-        kEventLast                  //无使用者
+        kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult
+        kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult
+
+        kEventLast                      //无使用者
     };
 
     /** 热键组合键标志位

@@ -59,20 +59,20 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     UiRect rcSourceCorner;
     UiRect rcImageSource(0, 0, image.GetImageInfo()->GetWidth(), image.GetImageInfo()->GetHeight());
 
-    std::shared_ptr<IBitmap> pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner);
+    std::shared_ptr<IBitmap> pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner, nullptr);
     pRender->DrawImage(rcPaint, pBitmap.get(), rect, UiRect(), rcImageSource, UiRect());
 
     //半透明绘制图片
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageInfo()->GetWidth();
-    pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner);
+    pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner, nullptr);
     pRender->DrawImage(rcPaint, pBitmap.get(), rect, UiRect(), rcImageSource, UiRect(), 100);
 
     //缩小绘制
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + image.GetImageInfo()->GetWidth() / 2;
     rect.bottom = rect.top + image.GetImageInfo()->GetHeight() / 2;
-    pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner);
+    pBitmap = image.GetCurrentBitmap(false, rect, rcImageSource, rcSourceCorner, nullptr);
     pRender->DrawImage(rcPaint, pBitmap.get(), rect, UiRect(), rcImageSource, UiRect());
 
     //BitBlt/StretchBlt/AlphaBlend三个绘制函数
