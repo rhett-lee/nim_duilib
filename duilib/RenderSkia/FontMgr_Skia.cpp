@@ -20,6 +20,7 @@
     #include "include/ports/SkTypeface_mac.h"
 #else
     #include "include/ports/SkFontMgr_fontconfig.h"
+    #include "include/ports/SkFontScanner_FreeType.h"
 #endif
 
 #include "SkiaHeaderEnd.h"
