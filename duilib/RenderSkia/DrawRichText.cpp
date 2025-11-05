@@ -16,6 +16,7 @@
 #include "SkiaHeaderEnd.h"
 
 #include <unordered_set>
+#include <unordered_map>
 
 namespace ui {
 
