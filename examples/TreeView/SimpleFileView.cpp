@@ -52,7 +52,7 @@ public:
                 if (errorImagePathSet.find(fileInfo.m_filePath.ToString()) == errorImagePathSet.end()) {
                     DString imageString = fileInfo.m_filePath.ToString();
                     if (itemWidth > 0) {
-                        imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d' async_load='false' assert='false'"), imageString.c_str(), itemWidth);
+                        imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d' assert='false'"), imageString.c_str(), itemWidth);
                     }
                     else {
                         imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), imageString.c_str());
