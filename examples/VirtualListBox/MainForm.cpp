@@ -177,6 +177,14 @@ void MainForm::OnInitWindow()
             pControl->SetEnabled(false);
         }
     }
+
+    //设置初始数据
+    if ((m_pDataProvider != nullptr) && (m_pEditTotal != nullptr)) {
+        int nTotal = ui::StringUtil::StringToInt32(m_pEditTotal->GetText().c_str());
+        if (nTotal > 0) {
+            m_pDataProvider->SetTotal(nTotal);
+        }
+    }
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& args)
