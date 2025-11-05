@@ -391,7 +391,6 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
                                         std::vector<int32_t>& outColumnWidths) const
 {
     ASSERT(!IsFreeLayout());
-    const UiRect rcBox = rect; //容器的矩形范围
     DeflatePadding(rect); //剪去内边距，剩下的是可用区域
     const UiRect& rc = rect;
 
