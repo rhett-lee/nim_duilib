@@ -3,6 +3,7 @@
 
 // duilib
 #include "duilib/duilib.h"
+#include <unordered_set>
 
 /** 文件信息
 */
@@ -102,6 +103,10 @@ private:
     /** 文件列表中元素的选择状态
     */
     std::vector<bool> m_pathSelectList;
+
+    /** 出错的图片路径（包括加载图片失败或者图片数据解码失败）
+    */
+    std::unordered_set<DString> m_errorImagePathSet;
 };
 
 #endif //EXAMPLES_SIMPLE_FILE_VIEW_H_

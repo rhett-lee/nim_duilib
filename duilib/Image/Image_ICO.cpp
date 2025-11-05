@@ -181,7 +181,7 @@ bool Image_ICO::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         return false;
     }
     ASSERT((nFrameIndex >= 0) && (nFrameIndex < (int32_t)m_impl->m_frames.size()));
-    if (nFrameIndex < 0) {
+    if ((nFrameIndex < 0) || (nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
         return false;
     }
     pAnimationFrame->m_bDataPending = false;

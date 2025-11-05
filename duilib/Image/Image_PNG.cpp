@@ -391,6 +391,25 @@ public:
         }
         return bLoaded;
     }
+
+    //清理资源
+    void ClearImageData()
+    {
+        m_pImageDecoder.reset();
+        if (!m_fileData.empty()) {
+            std::vector<uint8_t> fileData;
+            m_fileData.swap(fileData);
+        }
+    }
+
+    //解码是否完成
+    bool IsDecodeFinished() const
+    {
+        if (((int32_t)m_frames.size() == m_nFrameCount) || m_bDecodeError) {
+            return true;
+        }
+        return false;
+    }
 };
 
 Image_PNG::Image_PNG()
@@ -400,6 +419,7 @@ Image_PNG::Image_PNG()
 
 Image_PNG::~Image_PNG()
 {
+    m_impl->ClearImageData();
 }
 
 bool Image_PNG::LoadImageFile(std::vector<uint8_t>& fileData,
@@ -472,9 +492,7 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
     if (m_impl->m_pImageDecoder == nullptr) {
         //清除数据，标记错误
         m_impl->m_bDecodeError = true;
-        m_impl->m_pImageDecoder.reset();
-        std::vector<uint8_t> fileData;
-        m_impl->m_fileData.swap(fileData);
+        m_impl->ClearImageData();        
         return nullptr;
     }
     AnimationFramePtr pFrameData;
@@ -487,9 +505,7 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
         (m_impl->m_nHeight != ImageUtil::GetScaledImageSize((uint32_t)pngDecoder.GetHeight(), fImageSizeScale))) {
         //清除数据，标记错误
         m_impl->m_bDecodeError = true;
-        m_impl->m_pImageDecoder.reset();
-        std::vector<uint8_t> fileData;
-        m_impl->m_fileData.swap(fileData);
+        m_impl->ClearImageData();
         return nullptr;
     }
 
@@ -504,9 +520,7 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
         if (nTotalFrames != m_impl->m_nFrameCount) {
             //数据错误，清除数据，标记错误
             m_impl->m_bDecodeError = true;
-            m_impl->m_pImageDecoder.reset();
-            std::vector<uint8_t> fileData;
-            m_impl->m_fileData.swap(fileData);
+            m_impl->ClearImageData();
             return nullptr;
         }
         if (m_impl->m_bAssertEnabled) {
@@ -515,9 +529,7 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
         if (nFrameIndex >= m_impl->m_nFrameCount) {
             //数据错误，清除数据，标记错误
             m_impl->m_bDecodeError = true;
-            m_impl->m_pImageDecoder.reset();
-            std::vector<uint8_t> fileData;
-            m_impl->m_fileData.swap(fileData);
+            m_impl->ClearImageData();
             return nullptr;
         }
 
@@ -589,6 +601,10 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         ASSERT(0);
         return false;
     }
+    ASSERT(m_impl->m_nFrameCount > 0);
+    if (m_impl->m_nFrameCount <= 0) {
+        m_impl->m_bDecodeError = true;
+    }
     if (m_impl->m_bDecodeError) {
         if (bDecodeError != nullptr) {
             *bDecodeError = true;
@@ -596,11 +612,13 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         return false;
     }
     m_impl->m_bAsyncDecoding = true;
+    const size_t nFrameCount = (size_t)m_impl->m_nFrameCount;
 
     bool bDecodeResult = false;
     while (((IsAborted == nullptr) || !IsAborted()) &&
-           (nMinFrameIndex >= (uint32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
-           ((int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < m_impl->m_nFrameCount)) {
+           (nMinFrameIndex >= (m_impl->m_frames.size() + m_impl->m_delayFrames.size())) &&
+           ((m_impl->m_frames.size() + m_impl->m_delayFrames.size()) < nFrameCount)) {
+        //每次解码一帧图片
         AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
         if (pNewAnimationFrame != nullptr) {
             bDecodeResult = true;
@@ -608,6 +626,7 @@ bool Image_PNG::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         }
         else {
             //解码错误
+            bDecodeResult = false;
             m_impl->m_bDecodeError = true;
             if (bDecodeError != nullptr) {
                 *bDecodeError = true;
@@ -637,10 +656,8 @@ bool Image_PNG::MergeDelayDecodeData()
     }
     if (!m_impl->m_bAsyncDecoding) {
         //如果解码完成或者解码错误，则释放图片资源
-        if (((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) || m_impl->m_bDecodeError) {
-            m_impl->m_pImageDecoder.reset();
-            std::vector<uint8_t> fileData;
-            m_impl->m_fileData.swap(fileData);
+        if (m_impl->IsDecodeFinished()) {
+            m_impl->ClearImageData();
         }
     }
     return bRet;
@@ -722,6 +739,7 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         //同步解码的情况, 解码所需要的帧
         while ((nFrameIndex >= (int32_t)m_impl->m_frames.size()) &&
                ((int32_t)m_impl->m_frames.size() < m_impl->m_nFrameCount)) {
+
             AnimationFramePtr pNewAnimationFrame = DecodeImageFrame();
             if (pNewAnimationFrame != nullptr) {
                 m_impl->m_frames.push_back(pNewAnimationFrame);
@@ -732,21 +750,16 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
                 break;
             }
         }
-
-        ASSERT((nFrameIndex < (int32_t)m_impl->m_frames.size()));
-        if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
-            pAnimationFrame->m_bDataError = true;
-            return false;
-        }
-        if (((int32_t)m_impl->m_frames.size() == m_impl->m_nFrameCount) || m_impl->m_bDecodeError) {
+        if (m_impl->IsDecodeFinished()) {
             //解码完成，释放资源
-            if (m_impl->m_pImageDecoder != nullptr) {
-                m_impl->m_pImageDecoder.reset();
+            m_impl->ClearImageData();
+        }
+        else if (!m_impl->m_bDecodeError) {
+            ASSERT((nFrameIndex < (int32_t)m_impl->m_frames.size()));
+            if ((nFrameIndex >= (int32_t)m_impl->m_frames.size())) {
+                pAnimationFrame->m_bDataError = true;
+                return false;
             }
-            if (!m_impl->m_fileData.empty()) {
-                std::vector<uint8_t> fileData;
-                m_impl->m_fileData.swap(fileData);
-            }            
         }
     }
     else {
@@ -780,13 +793,11 @@ bool Image_PNG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         else {
             m_impl->m_bDecodeError = true;
             pAnimationFrame->m_bDataError = true;
-            ASSERT(0);
         }
     }
     else {
         m_impl->m_bDecodeError = true;
         pAnimationFrame->m_bDataError = true;
-        ASSERT(0);
     }
     return bRet;
 }

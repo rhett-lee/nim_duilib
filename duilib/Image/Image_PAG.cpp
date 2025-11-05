@@ -259,10 +259,8 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
     pAnimationFrame->m_bDataError = false;
     ASSERT(m_impl->m_nFrameCount > 0);
     if (m_impl->m_nFrameCount <= 0) {
-        pAnimationFrame->m_bDataError = true;
-        return false;
+        m_impl->m_bDecodeError = true;
     }
-
     if (m_impl->m_bDecodeError) {
         pAnimationFrame->m_bDataError = true;
         return false;

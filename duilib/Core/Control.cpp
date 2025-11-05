@@ -953,10 +953,16 @@ void Control::SetBkImage(const DString& strImage)
             m_pBkImage->SetControl(this);
         }
     }
+    bool bChanged = false;
     if (m_pBkImage != nullptr) {
-        m_pBkImage->SetImageString(strImage, Dpi());
+        if (m_pBkImage->GetImageString() != strImage) {
+            bChanged = true;
+            m_pBkImage->SetImageString(strImage, Dpi());
+        }
     }
-    RelayoutOrRedraw();
+    if (bChanged) {
+        RelayoutOrRedraw();
+    }
 }
 
 void Control::SetUTF8BkImage(const std::string& strImage)
@@ -2633,6 +2639,10 @@ bool Control::PaintImage(IRender* pRender,
     Image& duiImage = *pImage;
     if (duiImage.HasImageError()) {
         //图片出现解码错误，不绘制
+        if (!duiImage.IsDecodeEventFired()) {
+            //重用原图时，此事件需要补充
+            FireImageEvent(pImage, pImage->GetImagePath(), false, false, true);
+        }        
         return false;
     }
 
@@ -4255,6 +4265,13 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
 
 void Control::FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const
 {
+    if (pImagePtr == nullptr) {
+        return;
+    }
+    if (!bLoadImage) {
+        //标记解码完成事件已经通知
+        pImagePtr->SetDecodeEventFired(true);
+    }
     ControlPtr pControl(const_cast<Control*>(this));        //图片关联控件
     ControlPtrT<Image> pImage(pImagePtr);                   //图片资源接口
 

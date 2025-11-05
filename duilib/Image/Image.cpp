@@ -11,7 +11,8 @@ Image::Image() :
     m_pControl(nullptr),
     m_pImagePlayer(nullptr),
     m_nCurrentFrame(0),
-    m_bImageError(false)
+    m_bImageError(false),
+    m_bDecodeEventFired(false)
 {
 }
 
@@ -30,6 +31,7 @@ void Image::InitImageAttribute()
 void Image::SetImageString(const DString& strImageString, const DpiManager& dpi)
 {
     SetImageError(false);
+    SetDecodeEventFired(false);
     ClearImageCache();
     m_imageAttribute.InitByImageString(strImageString, dpi);
 }
@@ -426,6 +428,16 @@ void Image::SetImageError(bool bImageError)
 bool Image::HasImageError() const
 {
     return m_bImageError;
+}
+
+void Image::SetDecodeEventFired(bool bFired)
+{
+    m_bDecodeEventFired = bFired;
+}
+
+bool Image::IsDecodeEventFired() const
+{
+    return m_bDecodeEventFired;
 }
 
 }

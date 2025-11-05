@@ -16,7 +16,13 @@ public:
     virtual ~FileInfoItem() override
     {
     }
-    void InitSubControls(const ui::DirectoryTree::PathInfo& fileInfo, size_t nElementIndex)
+
+    /** 填充子控件信息
+    * @param [in] errorImagePathSet 错误图片路径保存容器
+    * @param [in] fileInfo 需要显示的路径信息
+    * @param [in] nElementIndex 数据元素下标值
+    */
+    void FillSubControls(std::unordered_set<DString>& errorImagePathSet,const ui::DirectoryTree::PathInfo& fileInfo, size_t nElementIndex)
     {
         m_nElementIndex = nElementIndex;
         if (m_pIconControl == nullptr) {
@@ -30,19 +36,58 @@ public:
             m_pTextControl->SetText(fileInfo.m_displayName);
         }
         if (m_pIconControl != nullptr) {
+            //删除图片加载和解码事件的响应函数
+            m_pIconControl->DetachEvent(ui::kEventImageLoad);
+            m_pIconControl->DetachEvent(ui::kEventImageDecode);
+
             if (!fileInfo.m_bFolder && IsImageFile(fileInfo.m_displayName)) {
                 //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
                 int32_t itemWidth = this->GetWidth() / 2;
                 //将宽度还原为未经DPI缩放的原值（因为图片加载时，会对width属性进行DPI缩放）
                 itemWidth = itemWidth * 100 / (int32_t)Dpi().GetScale();
-                DString imageString = fileInfo.m_filePath.ToString();
-                if (itemWidth > 0) {
-                    imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d' assert='false'"), imageString.c_str(), itemWidth);
+
+                //当出现错误（图片加载失败，或者图片解码失败）时，显示一张默认图片
+                const DString defaultImage = ui::StringUtil::Printf(_T("file='image-photo.svg' halign='center' valign='center' width='%d'"), itemWidth);
+
+                if (errorImagePathSet.find(fileInfo.m_filePath.ToString()) == errorImagePathSet.end()) {
+                    DString imageString = fileInfo.m_filePath.ToString();
+                    if (itemWidth > 0) {
+                        imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d' async_load='false' assert='false'"), imageString.c_str(), itemWidth);
+                    }
+                    else {
+                        imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), imageString.c_str());
+                    }
+                    m_pIconControl->SetBkImage(imageString);
                 }
                 else {
-                    imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), imageString.c_str());
+                    //这是一张有错误的图片, 直接显示错图（避免图片显示时，错误图片的闪烁问题）
+                    m_pIconControl->SetBkImage(defaultImage);
                 }
-                m_pIconControl->SetBkImage(imageString);
+
+                //图片加载失败时，显示一张默认图片
+                m_pIconControl->AttachImageLoad([this, defaultImage, &errorImagePathSet](const ui::EventArgs& args) {
+                    ui::ImageDecodeResult* pImageDecodeResult = (ui::ImageDecodeResult*)args.wParam;
+                    if ((pImageDecodeResult != nullptr) && pImageDecodeResult->m_bLoadError) {
+                        errorImagePathSet.insert(pImageDecodeResult->m_imageFilePath);
+                        ui::Control* pIconControl = FindSubControl(_T("control_img"));
+                        if (pIconControl != nullptr) {
+                            pIconControl->SetBkImage(defaultImage);
+                        }
+                    }
+                    return true;
+                    });
+
+                m_pIconControl->AttachImageDecode([this, defaultImage, &errorImagePathSet](const ui::EventArgs& args) {
+                    ui::ImageDecodeResult* pImageDecodeResult = (ui::ImageDecodeResult*)args.wParam;
+                    if ((pImageDecodeResult != nullptr) && pImageDecodeResult->m_bDecodeError) {
+                        errorImagePathSet.insert(pImageDecodeResult->m_imageFilePath);
+                        ui::Control* pIconControl = FindSubControl(_T("control_img"));
+                        if (pIconControl != nullptr) {
+                            pIconControl->SetBkImage(defaultImage);
+                        }
+                    }
+                    return true;
+                    });
             }
             else {
                 //非图片文件或者文件夹，显示图标
@@ -50,6 +95,9 @@ public:
                 if (!iconString.empty()) {
                     iconString = ui::StringUtil::Printf(_T("file='%s' width='64' height='64' halign='center' valign='center'"), iconString.c_str());
                     m_pIconControl->SetBkImage(iconString);
+                }
+                else {
+                    m_pIconControl->SetBkImage(_T(""));
                 }
             }
         }
@@ -139,7 +187,7 @@ bool SimpleFileView::FillElement(ui::Control* pControl, size_t nElementIndex)
         return false;
     }
     const PathInfo& fileInfo = m_pathList[nElementIndex];
-    pItem->InitSubControls(fileInfo, nElementIndex);
+    pItem->FillSubControls(m_errorImagePathSet, fileInfo, nElementIndex);
     pItem->SetUserDataID(nElementIndex);
     return true;
 }
@@ -187,6 +235,7 @@ void SimpleFileView::SetMultiSelect(bool /*bMultiSelect*/)
 
 void SimpleFileView::SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath)
 {
+    m_errorImagePathSet.clear(); //清除错误图片列表
     m_currentPath = currentPath;
     std::vector<PathInfo> oldPathList;
     oldPathList.swap(m_pathList);

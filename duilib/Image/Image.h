@@ -218,6 +218,14 @@ public:
     */
     bool HasImageError() const;
 
+    /** 设置图片解码完成的事件是否已经通知
+    */
+    void SetDecodeEventFired(bool bFired);
+
+    /** 获取图片解码完成的事件是否已经通知
+    */
+    bool IsDecodeEventFired() const;
+
 private:
     /** 初始化动画播放器
     */
@@ -265,6 +273,10 @@ private:
     /** 加载图片时是否出现错误（出错后就不再继续加载该图片）
     */
     bool m_bImageError;
+
+    /** 图片解码完成的事件是否已经通知(避免重用原图时，此事件不触发)
+    */
+    bool m_bDecodeEventFired;
 };
 
 } // namespace ui
