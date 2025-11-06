@@ -99,7 +99,8 @@ namespace ReadPngHeader
             return false;
         }
 
-        png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+        png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr,
+                                                 APngDecoder::PngErrorCallback, APngDecoder::PngWarningCallback);
         if (!png) {
             return false;
         }
@@ -203,7 +204,8 @@ namespace ReadPngHeader
         }
 
         // 创建 png_struct 和 png_info
-        png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+        png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr,
+                                                 APngDecoder::PngErrorCallback, APngDecoder::PngWarningCallback);
         if (!png) {
             return false;
         }

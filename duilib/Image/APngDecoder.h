@@ -112,6 +112,13 @@ public:
      */
     void Destroy();
 
+public:
+    // PNG警告回调函数
+    static void PngWarningCallback(png_structp png_ptr, png_const_charp message);
+
+    // PNG错误回调函数
+    static void PngErrorCallback(png_structp png_ptr, png_const_charp message);
+
 private:
     // 内部PNG读取器接口
     struct IPngReader
@@ -140,12 +147,6 @@ private:
         // 读取数据到libpng缓冲区
         virtual size_t read(png_bytep data, png_size_t length) override;
     };
-
-    // PNG警告回调函数
-    static void PngWarningCallback(png_structp png_ptr, png_const_charp message);
-
-    // PNG错误回调函数
-    static void PngErrorCallback(png_structp png_ptr, png_const_charp message);
 
     // libpng读取回调函数
     static void PngReadData(png_structp png_ptr, png_bytep data, png_size_t length);

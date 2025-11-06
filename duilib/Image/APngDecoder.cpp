@@ -51,22 +51,27 @@ size_t APngDecoder::FileReader::read(png_bytep data, png_size_t length)
 }
 
 // PNG警告回调
-void APngDecoder::PngWarningCallback(png_structp png_ptr, png_const_charp message)
+void APngDecoder::PngWarningCallback(png_structp /*png_ptr*/, png_const_charp message)
 {
-    (void)png_ptr;
-    char szMsg[256] = { 0 };
-    snprintf(szMsg, sizeof(szMsg), "libpng warning: %s\n", message);
-    DEBUG_OUTPUT(szMsg);
+   // (void)png_ptr;
+    std::string warningMsg;
+    if (message != nullptr) {
+        warningMsg = StringUtil::Printf("PNG decoding warning: %s", message);
+    }
+#if defined(_WIN32) || defined(_WIN64)
+    DEBUG_OUTPUT(warningMsg.c_str());
+#endif
 }
 
 // PNG错误回调
-void APngDecoder::PngErrorCallback(png_structp png_ptr, png_const_charp message)
+void APngDecoder::PngErrorCallback(png_structp /*png_ptr*/, png_const_charp message)
 {
-    (void)png_ptr;
-    char szMsg[256] = { 0 };
-    snprintf(szMsg, sizeof(szMsg), "libpng error: %s\n", message);
-    DEBUG_OUTPUT(szMsg);
-    throw std::runtime_error("PNG decoding error");
+    std::string errMsg;
+    if (message != nullptr) {
+        errMsg = StringUtil::Printf("PNG decoding error: %s", message);
+    }
+    DEBUG_OUTPUT(errMsg.c_str());
+    throw std::runtime_error(errMsg.c_str());
 }
 
 // libpng读取回调
