@@ -9,7 +9,7 @@ namespace ui
 class Window;
 class WindowBase;
 
-/** 窗口管理器，用于管理所有窗口的生命周期
+/** 用于管理所有窗口的生命周期
  */
 class UILIB_API WindowManager
 {

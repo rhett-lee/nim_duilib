@@ -1,37 +1,36 @@
 # nim duilib
 
-[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一个界面库，包含了一整套桌面软件的开发部件，使用C++语言开发。nim duilib是在NIM_Duilib_Framework库的基础上进行了代码功能完善和扩展，但由于代码结构和资源XML文件的格式均有调整，所以不能直接兼容基于NIM_Duilib_Framework开发的程序，但代码和资源XML迁移的难度不大。您可以直接使用nim_duilib界面库来开发常用的桌面应用，以简化应用程序的UI开发工作。
+[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
 
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 
-## 特色
+## 核心技术特性
 
- - 通用样式：支持以XML格式描述应用程序的窗口属性、布局属性、控件属性等，方便调整界面元素的位置和大小，较为灵活
- - 控件丰富：包含各种常见的窗口和控件，如图片控件、动画控件、按钮、文本框、列表控件、虚表控件、树控件、颜色选择控件、菜单等
- - 事件驱动：基于消息机制的事件处理，使得UI交互逻辑清晰
- - 皮肤支持：通过XML文件定义皮肤结构，可以轻松改变界面风格
- - 性能优异：界面资源的内存占有率低，使用Skia引擎绘制，后台绘制配置使用CPU绘制或者GPU绘制
- - 多种图片格式：支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
- - 支持动画格式：支持GIF、APNG、WebP、Lottie JSON、PAG动画文件格式
- - 窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新
- - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
- - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）
- - 支持多国语言：支持动态多种语言切换，易于实现国际化
- - 支持CEF控件：支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统
- - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）
- - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）
+ - XML布局驱动：采用 XML 文件定义界面结构，将界面布局与业务逻辑完全分离。开发者可通过修改 XML 快速调整控件位置、尺寸和样式，无需改动 C++ 核心代码，极大提升开发与迭代效率。
+ - 丰富的控件体系：内置按钮、文本框、列表视图、虚表控件、树形控件、滑块、进度条、菜单、颜色选择、属性页、标签页等基础控件，同时支持自定义控件开发，满足多样化界面设计需求。
+ - 高效的渲染机制：使用Skia作为渲染引擎，实现控件的无窗口绘制，减少系统资源占用，提升界面刷新速度。支持硬件加速渲染（后端绘制支持使用CPU绘制或者GPU绘制），确保复杂界面流畅运行。
+ - 事件驱动：基于消息机制的事件处理，使得UI交互逻辑清晰，支持在XML文件中配置事件响应代码。
+ - 多种图片格式：支持SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO图片格式。
+ - 支持动画格式：支持GIF、APNG、WebP、Lottie JSON、PAG动画文件格式。
+ - 多语言与国际化：支持动态多种语言切换，便于开发全球化的应用程序。
+ - 支持动态换肤：通过XML文件定义皮肤结构，可以轻松改变界面风格，支持动态换肤。
+ - 支持窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新。
+ - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）。
+ - 支持CEF控件：支持libcef 109 版本，以兼容Windows 7系统；支持libcef 137 版本，支持Windows 10及以上操作系统，支持Linux和MacOS平台。
+ - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）。
+ - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）。
 
 ## 目录结构
 | 目录          | 说明 |
 | :---          | :--- |
-| duilib        | 项目的核心代码|
-| docs          | 项目的说明文档|
+| duilib        | 项目的源代码|
+| docs          | 项目的说明文档，包括各个控件的功能介绍与属性列表说明文档|
 | bin           | 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖|
 | licenses      | 引用的其他开源代码对应的licenses文件|
 | cmake         | cmake编译时依赖的公共设置|
 | build         | 各个平台的编译脚本和编译工程（包括VC编译工程）|
 | msvc          | Windows平台的应用程序清单文件和VC工程公共配置|
-| examples      | 项目的示例程序源代码|
+| examples      | 项目的示例程序源代码，涵盖所有控件的基本用法示例|
 | duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
 
 ## 基于NIM_Duilib_Framework源码做的主要修改

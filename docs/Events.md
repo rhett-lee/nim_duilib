@@ -68,4 +68,12 @@
 |kEventDropOver             | ControlDropType|当wParam为kControlDropTypeWindows时，<br>lParam是ControlDropData_Windows的指针|     |     |       |     |  无参数   |
 |kEventDropLeave            |     |     |     |     |       |     |  无参数   |
 |kEventDropData             | ControlDropType | 当wParam为kControlDropTypeWindows时，<br>lParam是ControlDropData_Windows的指针; <br>当wParam为kControlDropTypeSDL时，<br>lParam是ControlDropData_SDL的指针|     |     |       |     |  无参数   |
+|kEventImageAnimationStart  | wParam 为数据指针：ui::ImageAnimationStatus*|     |     |     |       |     |  无参数   |
+|kEventImageAnimationPlayFrame  | wParam 为数据指针：ui::ImageAnimationStatus*|     |     |     |       |     |  无参数   |
+|kEventImageAnimationStop   | wParam 为数据指针：ui::ImageAnimationStatus*|     |     |     |       |     |  无参数   |
+|kEventLoadingStart         | wParam 为数据指针：ui::ControlLoadingStatus*|     |     |     |       |     |  无参数   |
+|kEventLoading              | wParam 为数据指针：ui::ControlLoadingStatus*|     |     |     |       |     |  无参数   |
+|kEventLoadingStop          | wParam 为数据指针：ui::ControlLoadingStatus*|     |     |     |       |     |  无参数   |
+|kEventImageLoad            | wParam 为数据指针：ui::ImageDecodeResult*   |     |     |     |       |     |  无参数   |
+|kEventImageDecode          | wParam 为数据指针：ui::ImageDecodeResult*   |     |     |     |       |     |  无参数   |
 |kEventLast                 |     |     |     |     |       |     |  无参数   |

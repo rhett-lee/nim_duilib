@@ -16,7 +16,12 @@
 #include "Utils/FileTime.h"
 
 #include "Image/Image.h"
+#include "Image/ImageAttribute.h"
+#include "Image/ImageInfo.h"
+#include "Image/ImageLoadParam.h"
+#include "Image/ImageDecoder.h"
 #include "Image/ImageDecoderFactory.h"
+
 #include "Animation/AnimationPlayer.h"
 #include "Animation/AnimationManager.h"
 
@@ -52,6 +57,9 @@
 #include "Box/ScrollBox.h"
 #include "Box/ListBox.h"
 #include "Box/VirtualListBox.h"
+#include "Box/GridBox.h"
+
+#include "Layout/Layout.h"
 
 #include "Control/Combo.h"
 #include "Control/ComboButton.h"

@@ -13,7 +13,7 @@ class Image;
 class Control;
 typedef std::map<int32_t, CEventSource> AnimationEventMap;
 
-/** 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）
+/** 控件图片动画播放的逻辑封装（支持GIF/WebP/APNG/Lottie-JSON/PAG动画）
 */
 class ImagePlayer: public SupportWeakCallback
 {

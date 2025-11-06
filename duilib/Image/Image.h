@@ -14,7 +14,7 @@ class Control;
 class ImagePlayer;
 class DpiManager;
 
-/** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
+/** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO/Lottie-JSON/PAG
 */
 class UILIB_API Image : public virtual SupportWeakCallback
 {

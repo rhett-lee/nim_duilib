@@ -436,8 +436,8 @@ namespace ui
         kEventLoading,                  //控件处于加载中状态，定时回调：             wParam 为数据指针：ui::ControlLoadingStatus*
         kEventLoadingStop,              //控件结束加载状态，此时控件变成Enabled状态： wParam 为数据指针：ui::ControlLoadingStatus*
 
-        kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult
-        kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult
+        kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult*
+        kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult*
 
         kEventLast                      //无使用者
     };
