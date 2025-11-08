@@ -19,7 +19,7 @@ public:
         
     /** 检查当前是否为Wayland桌面环境
     */
-    static bool IsWaylandEnvironment()
+    static bool IsWaylandEnvironment();
 };
 
 } // namespace ui
