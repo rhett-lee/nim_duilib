@@ -9,9 +9,35 @@
 #include <cassert>
 #include <stdexcept>
 #include <cstdint>
+#include <cstdlib> // 用于 getenv
 
 namespace ui
 {
+// 线程局部变量：存储X11错误状态（避免多线程冲突）
+static thread_local bool s_x11ErrorOccurred = false;
+
+// 自定义X11错误处理器
+static int X11ErrorHandler(Display* display, XErrorEvent* event)
+{
+    (void)display; // 未使用参数，避免编译警告
+    (void)event;   // 未使用参数，避免编译警告
+    
+    // 标记发生X11错误
+    s_x11ErrorOccurred = true;
+    return 0; // 返回0表示已处理错误，避免程序崩溃
+}
+
+// 辅助函数：检查当前是否为Wayland桌面环境
+static bool IsWaylandEnvironment()
+{
+    // Wayland环境下通常会设置以下环境变量
+    const char* waylandDisplay = getenv("WAYLAND_DISPLAY");
+    const char* xdgSessionType = getenv("XDG_SESSION_TYPE");
+    
+    return (waylandDisplay != nullptr && *waylandDisplay != '\0') ||
+           (xdgSessionType != nullptr && strcmp(xdgSessionType, "wayland") == 0);
+}
+
 // 辅助函数：计算掩码的有效位数（用于判断是否存在Alpha通道）
 static int MaskBitCount(uint32_t mask)
 {
@@ -73,80 +99,116 @@ static bool CaptureScreenBitmap(::Display* display, ::Window targetWindow, std::
         return false;
     }
 
-    // 获取目标窗口属性
-    ::XWindowAttributes attr;
-    if (!::XGetWindowAttributes(display, targetWindow, &attr)) {
+    // 保存原始错误处理器，并设置自定义错误处理器
+    XErrorHandler originalErrorHandler = XSetErrorHandler(X11ErrorHandler);
+    if (originalErrorHandler == nullptr) {
         return false;
     }
 
-    // 获取窗口所在的屏幕
-    ::Screen* screen = attr.screen;
-    if (!screen) {
-        return false;
-    }
+    // 重置错误状态
+    s_x11ErrorOccurred = false;
 
-    // 获取屏幕的根窗口（整个屏幕）
-    ::Window rootWindow = RootWindowOfScreen(screen);
-    width = static_cast<int32_t>(screen->width);    // 类型转换安全
-    height = static_cast<int32_t>(screen->height);  // 类型转换安全
-
-    if (width < 1 || height < 1) {
-        return false;
-    }
-
-    // 捕获屏幕内容（使用AllPlanes确保获取所有通道）
-    ::XImage* ximage = ::XGetImage(
-        display,
-        rootWindow,
-        0, 0,               // 捕获整个屏幕
-        width, height,      // 捕获区域大小
-        AllPlanes,          // 捕获所有颜色平面
-        ZPixmap             // 像素格式（32位对齐）
-    );
-
-    if (!ximage) {
-        return false;
-    }
-
-    // RAII管理XImage资源（确保异常安全）
-    struct ImageDestroyer {
-        XImage* img;
-        ~ImageDestroyer() { 
-            if (img) XDestroyImage(img);
+    bool result = false;
+    try {
+        // 获取目标窗口属性
+        ::XWindowAttributes attr;
+        if (s_x11ErrorOccurred || !::XGetWindowAttributes(display, targetWindow, &attr)) {
+            throw std::runtime_error("Failed to get window attributes");
         }
-    } imgDestroyer{ ximage };
 
-    // 验证XImage格式（必须是24位或32位）
-    if (ximage->depth != 24 && ximage->depth != 32) {
-        return false;
-    }
-
-    // 分配RGBA缓冲区（4字节/像素）
-    const size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
-    bitmap.resize(pixelCount * 4);
-
-    // 转换XImage数据到RGBA格式
-    for (int32_t y = 0; y < height; ++y) {
-        for (int32_t x = 0; x < width; ++x) {
-            // 获取像素值（XGetPixel兼容性最好，大图像可优化为直接访问data缓冲区）
-            const uint32_t pixel = XGetPixel(ximage, x, y);
-            const size_t index = (static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x)) * 4;
-
-            uint8_t r, g, b, a;
-            ExtractRGBA(ximage, pixel, r, g, b, a);
-
-            bitmap[index] = r;
-            bitmap[index + 1] = g;
-            bitmap[index + 2] = b;
-            bitmap[index + 3] = a;
+        // 获取窗口所在的屏幕
+        ::Screen* screen = attr.screen;
+        if (s_x11ErrorOccurred || !screen) {
+            throw std::runtime_error("Invalid screen");
         }
+
+        // 获取屏幕的根窗口（整个屏幕）
+        ::Window rootWindow = RootWindowOfScreen(screen);
+        width = static_cast<int32_t>(screen->width);    // 类型转换安全
+        height = static_cast<int32_t>(screen->height);  // 类型转换安全
+
+        if (width < 1 || height < 1) {
+            throw std::runtime_error("Invalid screen size");
+        }
+
+        // 捕获屏幕内容（使用AllPlanes确保获取所有通道）
+        ::XImage* ximage = ::XGetImage(
+            display,
+            rootWindow,
+            0, 0,               // 捕获整个屏幕
+            width, height,      // 捕获区域大小
+            AllPlanes,          // 捕获所有颜色平面
+            ZPixmap             // 像素格式（32位对齐）
+        );
+
+        if (s_x11ErrorOccurred || !ximage) {
+            throw std::runtime_error("Failed to get XImage");
+        }
+
+        // RAII管理XImage资源（确保异常安全）
+        struct ImageDestroyer {
+            XImage* img;
+            ~ImageDestroyer() { 
+                if (img) XDestroyImage(img);
+            }
+        } imgDestroyer{ ximage };
+
+        // 验证XImage格式（必须是24位或32位）
+        if (ximage->depth != 24 && ximage->depth != 32) {
+            throw std::runtime_error("Unsupported image depth");
+        }
+
+        // 分配RGBA缓冲区（4字节/像素）
+        const size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
+        bitmap.resize(pixelCount * 4);
+
+        // 转换XImage数据到RGBA格式
+        for (int32_t y = 0; y < height && !s_x11ErrorOccurred; ++y) {
+            for (int32_t x = 0; x < width && !s_x11ErrorOccurred; ++x) {
+                // 获取像素值（XGetPixel兼容性最好，大图像可优化为直接访问data缓冲区）
+                const uint32_t pixel = XGetPixel(ximage, x, y);
+                const size_t index = (static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x)) * 4;
+
+                uint8_t r, g, b, a;
+                ExtractRGBA(ximage, pixel, r, g, b, a);
+
+                bitmap[index] = r;
+                bitmap[index + 1] = g;
+                bitmap[index + 2] = b;
+                bitmap[index + 3] = a;
+            }
+        }
+
+        // 检查转换过程中是否发生错误
+        if (s_x11ErrorOccurred) {
+            throw std::runtime_error("Error during pixel conversion");
+        }
+
+        result = true;
+    }
+    catch (...) {
+        // 捕获所有异常，确保资源正确释放
+        bitmap.clear();
+        width = 0;
+        height = 0;
+        result = false;
     }
 
-    return true;
+    // 恢复原始错误处理器
+    XSetErrorHandler(originalErrorHandler);
+    // 重置错误状态
+    s_x11ErrorOccurred = false;
+
+    return result;
 }
 
 std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const ui::Window* pWindow)
 {
+    // 提前检测Wayland环境，直接返回失败
+    if (IsWaylandEnvironment()) {
+        return nullptr;
+    }
+
     if (pWindow == nullptr) {
         return nullptr;
     }
@@ -181,7 +243,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const ui::Window* pWindow)
     int32_t width = 0;
     int32_t height = 0;
 
-    // 捕获屏幕图像
+    // 捕获屏幕图像（内部已处理X11错误）
     if (!CaptureScreenBitmap(display, targetWindow, bitmapData, width, height)) {
         return nullptr;
     }
