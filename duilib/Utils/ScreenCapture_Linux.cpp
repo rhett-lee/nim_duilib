@@ -6,9 +6,54 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <cassert>
+#include <stdexcept>
+#include <cstdint>
 
 namespace ui
 {
+// 辅助函数：计算掩码的有效位数（用于判断是否存在Alpha通道）
+static int MaskBitCount(uint32_t mask)
+{
+    if (mask == 0) {
+        return 0;
+    }
+    return 32 - __builtin_clz(mask); // 计算掩码最高位1的位置（适用于GCC/Clang）
+}
+
+// 辅助函数：从X11像素中提取RGBA分量（兼容无alpha_mask的旧版Xlib）
+static void ExtractRGBA(XImage* ximage, uint32_t pixel, uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a)
+{
+    r = g = b = 0xFF;
+    a = 0xFF; // 默认完全不透明
+
+    if (ximage->depth >= 24) {
+        // 动态提取RGB分量（根据显示的颜色掩码）
+        r = (pixel & ximage->red_mask) >> ((ximage->red_mask != 0) ? __builtin_ctz(ximage->red_mask) : 0);
+        g = (pixel & ximage->green_mask) >> ((ximage->green_mask != 0) ? __builtin_ctz(ximage->green_mask) : 0);
+        b = (pixel & ximage->blue_mask) >> ((ximage->blue_mask != 0) ? __builtin_ctz(ximage->blue_mask) : 0);
+
+        // 处理Alpha通道（不依赖alpha_mask，通过深度和RGB掩码总位数推断）
+        if (ximage->depth == 32) {
+            // 计算RGB三个掩码的总位数
+            int rgbTotalBits = MaskBitCount(ximage->red_mask) + 
+                               MaskBitCount(ximage->green_mask) + 
+                               MaskBitCount(ximage->blue_mask);
+            
+            // 如果RGB总位数 < 32，说明存在Alpha通道（剩余位数为Alpha）
+            if (rgbTotalBits < 32) {
+                // 查找Alpha通道的位置（未被RGB占用的高位）
+                uint32_t alphaMask = ~(ximage->red_mask | ximage->green_mask | ximage->blue_mask) & 0xFFFFFFFF;
+                if (alphaMask != 0) {
+                    a = (pixel & alphaMask) >> __builtin_ctz(alphaMask);
+                }
+            }
+            // 否则（RGB占满32位），无Alpha通道，保持a=0xFF
+        }
+        // 24位深度：无Alpha通道，保持a=0xFF
+    }
+}
+
 // 捕获指定窗口所在屏幕的图像
 // 参数:
 //   display      - 与X服务器的连接
@@ -18,123 +63,152 @@ namespace ui
 //   height       - 输出图像的高度
 // 返回值:
 //   成功返回true，失败返回false
-static bool CaptureScreenBitmap(Display* display, ::Window targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+static bool CaptureScreenBitmap(::Display* display, ::Window targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
 {
     bitmap.clear();
+    width = 0;
     height = 0;
-    height = 0;
+
     if (display == nullptr) {
         return false;
     }
-    // 获取目标窗口所在的屏幕
-    XWindowAttributes attr;
-    if (!XGetWindowAttributes(display, targetWindow, &attr)) {
+
+    // 获取目标窗口属性
+    ::XWindowAttributes attr;
+    if (!::XGetWindowAttributes(display, targetWindow, &attr)) {
         return false;
     }
-    Screen* screen = attr.screen;
+
+    // 获取窗口所在的屏幕
+    ::Screen* screen = attr.screen;
     if (!screen) {
         return false;
     }
 
-    // 获取屏幕的根窗口
-    ::Window rootWindow = RootWindowOfScreen(screen);  // 从屏幕对象获取根窗口
-    width = screen->width;       // 屏幕宽度（直接从Screen结构体获取）
-    height = screen->height;     // 屏幕高度
-    if ((width < 1) || (height < 1)) {
+    // 获取屏幕的根窗口（整个屏幕）
+    ::Window rootWindow = RootWindowOfScreen(screen);
+    width = static_cast<int32_t>(screen->width);    // 类型转换安全
+    height = static_cast<int32_t>(screen->height);  // 类型转换安全
+
+    if (width < 1 || height < 1) {
         return false;
     }
-    
-    // 捕获屏幕内容到XImage（请求包含Alpha通道的格式）
-    XImage* ximage = XGetImage(
+
+    // 捕获屏幕内容（使用AllPlanes确保获取所有通道）
+    ::XImage* ximage = ::XGetImage(
         display,
         rootWindow,
-        0, 0,               // 捕获区域起始坐标（左上角）
-        width, height,      // 捕获区域宽度和高度
-        AllPlanes,          // 包含所有平面（包括Alpha）
-        ZPixmap             // 像素格式（通常为32位BGRA或ARGB）
+        0, 0,               // 捕获整个屏幕
+        width, height,      // 捕获区域大小
+        AllPlanes,          // 捕获所有颜色平面
+        ZPixmap             // 像素格式（32位对齐）
     );
 
     if (!ximage) {
         return false;
     }
 
-    // RAII管理XImage资源
+    // RAII管理XImage资源（确保异常安全）
     struct ImageDestroyer {
         XImage* img;
-        ~ImageDestroyer() { if (img) XDestroyImage(img); }
+        ~ImageDestroyer() { 
+            if (img) XDestroyImage(img);
+        }
     } imgDestroyer{ ximage };
 
-    // 为RGBA数据分配内存 (每个像素4字节: R, G, B, A)
-    bitmap.resize(width * height * 4);
+    // 验证XImage格式（必须是24位或32位）
+    if (ximage->depth != 24 && ximage->depth != 32) {
+        return false;
+    }
 
-    // 转换XImage数据为RGBA格式
-    // X11的ZPixmap通常是32位，格式为BGRA（字节顺序：蓝、绿、红、Alpha）
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // 获取32位像素值（包含Alpha通道）
-            uint32_t pixel = XGetPixel(ximage, x, y);
+    // 分配RGBA缓冲区（4字节/像素）
+    const size_t pixelCount = static_cast<size_t>(width) * static_cast<size_t>(height);
+    bitmap.resize(pixelCount * 4);
 
-            // 提取BGRA分量（根据X11实际像素格式调整）
-            uint8_t blue = (pixel >> 0) & 0xFF;    // 蓝色分量
-            uint8_t green = (pixel >> 8) & 0xFF;   // 绿色分量
-            uint8_t red = (pixel >> 16) & 0xFF;    // 红色分量
-            uint8_t alpha = (pixel >> 24) & 0xFF;  // Alpha分量（透明度）
+    // 转换XImage数据到RGBA格式
+    for (int32_t y = 0; y < height; ++y) {
+        for (int32_t x = 0; x < width; ++x) {
+            // 获取像素值（XGetPixel兼容性最好，大图像可优化为直接访问data缓冲区）
+            const uint32_t pixel = XGetPixel(ximage, x, y);
+            const size_t index = (static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x)) * 4;
 
-            // 对于没有Alpha通道的屏幕，强制设置为完全不透明
-            if (ximage->depth < 32) {
-                alpha = 0xFF;  // 255表示完全不透明
-            }
+            uint8_t r, g, b, a;
+            ExtractRGBA(ximage, pixel, r, g, b, a);
 
-            // 存储为RGBA格式（红、绿、蓝、Alpha）
-            size_t index = (y * width + x) * 4;
-            bitmap[index] = red;
-            bitmap[index + 1] = green;
-            bitmap[index + 2] = blue;
-            bitmap[index + 3] = alpha;
+            bitmap[index] = r;
+            bitmap[index + 1] = g;
+            bitmap[index + 2] = b;
+            bitmap[index + 3] = a;
         }
     }
+
     return true;
 }
 
-std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
+std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const ui::Window* pWindow)
 {
     if (pWindow == nullptr) {
         return nullptr;
     }
-    // 打开与X服务器的连接
-    Display* display = XOpenDisplay(nullptr);
+
+    // 获取原生窗口指针
+    const NativeWindow* pNativeWnd = pWindow->NativeWnd();
+    if (pNativeWnd == nullptr) {
+        return nullptr;
+    }
+
+    // 打开X服务器连接（使用环境变量DISPLAY）
+    ::Display* display = ::XOpenDisplay(nullptr);
     if (!display) {
         return nullptr;
     }
-    // RAII资源管理
+
+    // RAII自动关闭X连接
     struct DisplayCloser {
         Display* d;
-        ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-    } closer{ display };
+        ~DisplayCloser() { 
+            if (d) ::XCloseDisplay(d);
+        }
+    } displayCloser{ display };
 
-    ::Window targetWindow = pWindow->NativeWnd()->GetX11WindowNumber();
-
-    std::vector<uint8_t> bitmap;
-    int32_t width = 0;
-    int32_t height = 0;
-    if (!CaptureScreenBitmap(display, targetWindow, bitmap, width, height)) {
+    // 获取目标窗口的X11窗口ID（检查是否为无效窗口）
+    const ::Window targetWindow = pNativeWnd->GetX11WindowNumber();
+    if (targetWindow == BadWindow) {
         return nullptr;
     }
-    if ((width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
-        std::shared_ptr<IBitmap> spBitmap;
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            spBitmap.reset(pRenderFactory->CreateBitmap());
-            if (spBitmap != nullptr) {
-                if (!spBitmap->Init(width, height, bitmap.data())) {
-                    spBitmap.reset();
-                }
-            }
-        }
-        return spBitmap;
+
+    std::vector<uint8_t> bitmapData;
+    int32_t width = 0;
+    int32_t height = 0;
+
+    // 捕获屏幕图像
+    if (!CaptureScreenBitmap(display, targetWindow, bitmapData, width, height)) {
+        return nullptr;
     }
-    return nullptr;
+
+    // 验证捕获数据的有效性
+    const size_t expectedSize = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+    if (width <= 0 || height <= 0 || bitmapData.size() != expectedSize) {
+        return nullptr;
+    }
+
+    // 创建IBitmap对象
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+
+    std::shared_ptr<IBitmap> spBitmap(pRenderFactory->CreateBitmap());
+    if (spBitmap == nullptr) {
+        return nullptr;
+    }
+
+    // 初始化位图
+    if (!spBitmap->Init(width, height, bitmapData.data())) {
+        return nullptr;
+    }
+
+    return spBitmap;
 }
 
 } // namespace ui
