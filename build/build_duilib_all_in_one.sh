@@ -239,6 +239,184 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# download CEF
+# Function: Download HTTPS files with curl (supports auto-retry on failure)
+# Parameter 1: Target URL (required, HTTPS protocol)
+# Parameter 2: Save path (optional, default: current directory, filename extracted from URL)
+# Parameter 3: Max retry attempts (optional, default: 3 times)
+# Parameter 4: Single request timeout (optional, default: 15 seconds)
+curl_download_with_retry() {
+    # Validate required parameter
+    if [ -z "$1" ]; then
+        echo "Error: Target URL (1st parameter) not specified"
+        return 1
+    fi
+
+    # Initialize parameters with default values
+    local url="$1"
+    local save_path="${2:-$(basename "$url")}"  # Default: use filename from URL
+    local max_retries="${3:-3}"
+    local timeout="${4:-15}"
+    local retry_count=0
+
+    echo "=== Starting download(curl): $url ==="
+    echo "Save path: $save_path"
+    echo "Max retries: $max_retries, Timeout per attempt: $timeout seconds"
+
+    # Loop for download with retries
+    while [ $retry_count -le $max_retries ]; do
+        # Core curl parameters explanation:
+        # -L: Follow 301/302 redirects (common for HTTPS)
+        # -f: Return non-zero exit code on failure (for error checking)
+        # -sS: Silent mode (suppress redundant output, show progress only)
+        # -o: Specify output file path
+        # --retry: Number of retries (only for network errors)
+        # --connect-timeout: Timeout for establishing connection
+        # --max-time: Total timeout for entire download process
+        curl -L -f -sS -o "$save_path" \
+            --retry "$max_retries" \
+            --connect-timeout "$timeout" \
+            --max-time $((timeout * 2)) \
+            "$url"
+
+        # Check download result
+        if [ $? -eq 0 ]; then
+            echo "Download successful! File saved to: $save_path"
+            return 0
+        else
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -le $max_retries ]; then
+                echo "$retry_count-th download failed. $((max_retries - retry_count)) retries left. Retrying in 10 seconds..."
+                sleep 10
+            else
+                echo "All retries failed (total $max_retries attempts). Please check URL validity or network connection."
+                return 1
+            fi
+        fi
+    done
+}
+
+# Function: Download HTTPS files with wget (supports auto-retry on failure)
+# Parameter 1: Target URL (required, HTTPS protocol)
+# Parameter 2: Save path (optional, default: current directory, filename extracted from URL)
+# Parameter 3: Max retry attempts (optional, default: 3 times)
+# Parameter 4: Single request timeout (optional, default: 15 seconds)
+wget_download_with_retry() {
+    # Validate required parameter
+    if [ -z "$1" ]; then
+        echo "Error: Target URL (1st parameter) not specified"
+        return 1
+    fi
+
+    # Initialize parameters with default values
+    local url="$1"
+    local save_path="${2:-$(basename "$url")}"  # Default: use filename from URL
+    local max_retries="${3:-3}"
+    local timeout="${4:-15}"
+
+    echo "=== Starting download(wget): $url ==="
+    echo "Save path: $save_path"
+    echo "Max retries: $max_retries, Timeout per attempt: $timeout seconds"
+
+    # Core wget parameters explanation:
+    # -O: Specify output file path (uppercase O, distinguish from lowercase -o for logs)
+    # -t: Number of retries (0 = unlimited, here use max_retries)
+    # --timeout: Timeout for connection and data transfer (in seconds)
+    # --no-check-certificate: Optional (disable HTTPS certificate check, for test only)
+    # -q: Quiet mode (suppress redundant output)
+    # -c: Resume broken download (supports resuming if download is interrupted)
+    wget -O "$save_path" \
+         -t "$max_retries" \
+         --timeout "$timeout" \
+         -c \
+         "$url"
+
+    # Check download result
+    if [ $? -eq 0 ]; then
+        echo "Download successful! File saved to: $save_path"
+        return 0
+    else
+        echo "All retries failed (total $max_retries attempts). Please check URL validity or network connection."
+        return 1
+    fi
+}
+
+# flag
+has_curl=0
+has_wget=0
+has_linux=0
+has_macos=0
+
+# curl
+if command -v curl &> /dev/null; then
+    has_curl=1
+fi
+
+# wget
+if command -v wget &> /dev/null; then
+    has_wget=1
+fi
+
+if [ "$(uname -s)" == "Darwin" ]; then
+    has_macos=1
+elif [ "$(uname -s)" == "FreeBSD" ]; then
+    has_linux=0
+elif is_windows; then
+    has_linux=0
+else
+    has_linux=1
+fi
+
+if [ "$has_curl$has_wget" != "00" ] && [ "$has_linux$has_macos" != "00" ]; then
+    # download CEF on Linux and MacOS
+    libcef_linux_dest_dir=./nim_duilib/bin/libcef_linux
+    libcef_cef_binary_dir=./cef_binary
+    
+    # libcef file name prefix
+    libcef_file_name_prefix=cef_binary_141.0.11+g7e73ac4+chromium-141.0.7390.123
+    if [ "$has_linux" == "1" ]; then
+        if [ "$CPU_ARCH" == "arm64" ]; then
+            libcef_file_name="${libcef_file_name_prefix}_linuxarm64_minimal"
+        else
+            libcef_file_name="${libcef_file_name_prefix}_linux64_minimal"
+        fi
+    else
+        if [ "$CPU_ARCH" == "arm64" ]; then
+            libcef_file_name="${libcef_file_name_prefix}_macosarm64_minimal"
+        else
+            libcef_file_name="${libcef_file_name_prefix}_macosx64_minimal"
+        fi
+    fi
+
+    if [ "$libcef_file_name" != "" ]; then
+        # download .tar.bz2
+        libcef_local_file=${libcef_file_name}.tar.bz2
+        if [ "$has_curl" == "1" ]; then
+            curl_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 20
+        else
+            wget_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 20
+        fi
+        
+        if [ $? -eq 0 ]; then
+            if [ -f "$libcef_local_file" ]; then
+                # Linux and MacOS: extract .tar.bz2
+                echo "Extracting: ${libcef_local_file} ..."
+                tar -xjf "$libcef_local_file"
+                mv "$libcef_file_name" "$libcef_cef_binary_dir"
+                echo "Extracted: ${libcef_local_file}."
+                
+                if [ "$has_linux" == "1" ]; then
+                    # Linux
+                    mkdir -p $libcef_linux_dest_dir
+                    cp -rf $libcef_cef_binary_dir/Release/* $libcef_linux_dest_dir
+                    cp -rf $libcef_cef_binary_dir/Resources/* $libcef_linux_dest_dir
+                fi
+            fi
+        fi
+    fi
+fi
+# download CEF end
+
 echo "- Building skia ..."
 if [ "$has_clang" -eq 1 ]; then
     # clang/clang++

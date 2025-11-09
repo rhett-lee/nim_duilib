@@ -43,7 +43,7 @@
 8. 修改`duilib\third_party\libpng\pngstruct.h`，同步修改内容；
 
 ## libcef 库更新说明
-libcef对CMakeLists.txt文件和VC工程文件是有修改的，详情如下：    
+1. libcef对CMakeLists.txt文件和VC工程文件是有修改的，详情如下：    
  - libcef/libcef_win/CMakeLists.txt    
  - libcef/libcef_win_109/CMakeLists.txt    
  - libcef/libcef_linux/CMakeLists.txt    
@@ -51,3 +51,7 @@ libcef对CMakeLists.txt文件和VC工程文件是有修改的，详情如下：
  - libcef/libcef_win_109/libcef_dll_wrapper_109.vcxproj    
  - libcef/libcef_win/libcef_dll_wrapper.vcxproj    
 以上文件有修改，更新的时候注意对比。
+
+2. 项目中其他需要修改的内容
+ - `docs\CEF.md`
+ - `build\build_duilib_all_in_one.sh`
