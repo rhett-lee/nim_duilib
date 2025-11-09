@@ -373,14 +373,16 @@ if [ "$has_curl$has_wget" != "00" ] && [ "$has_linux$has_macos" != "00" ]; then
     libcef_cef_binary_dir=./cef_binary
     
     # libcef file name prefix
-    libcef_file_name_prefix=cef_binary_141.0.11+g7e73ac4+chromium-141.0.7390.123
+    libcef_file_name_prefix=cef_binary_137.0.19+g8a1c4ce+chromium-137.0.7151.121
     if [ "$has_linux" == "1" ]; then
+        # Linux
         if [ "$CPU_ARCH" == "arm64" ]; then
             libcef_file_name="${libcef_file_name_prefix}_linuxarm64_minimal"
         else
             libcef_file_name="${libcef_file_name_prefix}_linux64_minimal"
         fi
     else
+        # MacOS
         if [ "$CPU_ARCH" == "arm64" ]; then
             libcef_file_name="${libcef_file_name_prefix}_macosarm64_minimal"
         else
