@@ -542,6 +542,7 @@ set(LIBCEF_INCLUDE_BASE_SRCS
   ../include/base/cef_cancelable_callback.h
   ../include/base/cef_compiler_specific.h
   ../include/base/cef_dump_without_crashing.h
+  ../include/base/cef_immediate_crash.h
   ../include/base/cef_lock.h
   ../include/base/cef_logging.h
   ../include/base/cef_macros.h
@@ -776,6 +777,11 @@ set(LIBCEF_INCLUDE_WRAPPER_SRCS
 set(LIBCEF_INCLUDE_WRAPPER_SRCS_MAC
   ../include/wrapper/cef_library_loader.h
   )
+set(LIBCEF_INCLUDE_WRAPPER_SRCS_WINDOWS
+  ../include/wrapper/cef_certificate_util_win.h
+  ../include/wrapper/cef_library_loader.h
+  ../include/wrapper/cef_util_win.h
+  )
 LIBCEF_APPEND_PLATFORM_SOURCES(LIBCEF_INCLUDE_WRAPPER_SRCS)
 source_group(include\\\\wrapper FILES ${LIBCEF_INCLUDE_WRAPPER_SRCS})
 
@@ -795,8 +801,14 @@ set(LIBCEF_WRAPPER_SRCS
   wrapper/libcef_dll_wrapper2.cc
   )
 set(LIBCEF_WRAPPER_SRCS_MAC
-  wrapper/cef_library_loader_mac.mm
+  wrapper/cef_scoped_library_loader_mac.mm
+  wrapper/cef_scoped_sandbox_context_mac.mm
   wrapper/libcef_dll_dylib.cc
+  )
+set(LIBCEF_WRAPPER_SRCS_WINDOWS
+  wrapper/cef_certificate_util_win.cc
+  wrapper/cef_scoped_library_loader_win.cc
+  wrapper/cef_util_win.cc
   )
 LIBCEF_APPEND_PLATFORM_SOURCES(LIBCEF_WRAPPER_SRCS)
 source_group(libcef_dll\\\\wrapper FILES ${LIBCEF_WRAPPER_SRCS})

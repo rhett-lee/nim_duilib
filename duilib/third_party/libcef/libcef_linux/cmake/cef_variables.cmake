@@ -27,7 +27,6 @@ endif()
 # Determine the project architecture.
 if(NOT DEFINED PROJECT_ARCH)
   if(("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64") OR
-     ("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "aarch64") OR
      ("${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "ARM64"))
     set(PROJECT_ARCH "arm64")
   elseif(CMAKE_SIZEOF_VOID_P MATCHES 8)
@@ -327,7 +326,7 @@ if(OS_MAC)
 
   # Find the newest available base SDK.
   execute_process(COMMAND xcode-select --print-path OUTPUT_VARIABLE XCODE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
-  foreach(OS_VERSION 14.2 14.0 11.0)
+  foreach(OS_VERSION 15.5 15.4 14.2 14.0 12.0)
     set(SDK "${XCODE_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${OS_VERSION}.sdk")
     if(NOT "${CMAKE_OSX_SYSROOT}" AND EXISTS "${SDK}" AND IS_DIRECTORY "${SDK}")
       set(CMAKE_OSX_SYSROOT ${SDK})
@@ -335,7 +334,7 @@ if(OS_MAC)
   endforeach()
 
   # Target SDK.
-  set(CEF_TARGET_SDK               "11.0")
+  set(CEF_TARGET_SDK               "12.0")
   list(APPEND CEF_COMPILER_FLAGS
     -mmacosx-version-min=${CEF_TARGET_SDK}
   )
@@ -362,14 +361,6 @@ if(OS_MAC)
     list(APPEND CEF_COMPILER_DEFINES
       CEF_USE_SANDBOX   # Used by apps to test if the sandbox is enabled
       )
-
-    list(APPEND CEF_STANDARD_LIBS
-      -lsandbox
-      )
-
-    # CEF sandbox library paths.
-    set(CEF_SANDBOX_LIB_DEBUG "${CEF_BINARY_DIR_DEBUG}/cef_sandbox.a")
-    set(CEF_SANDBOX_LIB_RELEASE "${CEF_BINARY_DIR_RELEASE}/cef_sandbox.a")
   endif()
 
   # CEF Helper app suffixes.
@@ -395,15 +386,6 @@ if(OS_WINDOWS)
     set(CMAKE_CXX_FLAGS "")
     set(CMAKE_CXX_FLAGS_DEBUG "")
     set(CMAKE_CXX_FLAGS_RELEASE "")
-  endif()
-
-  if(USE_SANDBOX)
-    # Check if the current MSVC version is compatible with the cef_sandbox.lib
-    # static library. We require VS2015 or newer.
-    if(MSVC_VERSION LESS 1900)
-      message(WARNING "CEF sandbox is not compatible with the current MSVC version (${MSVC_VERSION})")
-      set(USE_SANDBOX OFF)
-    endif()
   endif()
 
   # Consumers who run into LNK4099 warnings can pass /Z7 instead (see issue #385).
@@ -450,18 +432,20 @@ if(OS_WINDOWS)
   list(APPEND CEF_LINKER_FLAGS_DEBUG
     /DEBUG        # Generate debug information
     )
-  list(APPEND CEF_EXE_LINKER_FLAGS
-    /MANIFEST:NO        # No default manifest (see ADD_WINDOWS_MANIFEST macro usage)
-    /LARGEADDRESSAWARE  # Allow 32-bit processes to access 3GB of RAM
 
-    # Delayload most libraries as the dlls are simply not required at startup (or
-    # at all, depending on the process type). Some dlls open handles when they are
-    # loaded, and we may not want them to be loaded in renderers or other sandboxed
-    # processes. Conversely, some dlls must be loaded before sandbox lockdown. In
-    # unsandboxed processes they will load when first needed. The linker will
-    # automatically ignore anything which is not linked to the binary at all (it is
-    # harmless to have an unmatched /delayload). This list should be kept in sync
-    # with Chromium's "delayloads" target from the //build/config/win/BUILD.gn file.
+  # Delayload most libraries as the dlls are simply not required at startup (or
+  # at all, depending on the process type). Some dlls open handles when they are
+  # loaded, and we may not want them to be loaded in renderers or other sandboxed
+  # processes. Conversely, some dlls must be loaded before sandbox lockdown. In
+  # unsandboxed processes they will load when first needed. The linker will
+  # automatically ignore anything which is not linked to the binary at all (it is
+  # harmless to have an unmatched /delayload). Lists should be kept in sync with
+  # targets from Chromium's //build/config/win/BUILD.gn file.
+  set(CEF_DELAYLOAD_FLAGS
+    # Required to support CefScopedLibraryLoader.
+    /DELAYLOAD:libcef.dll
+
+    # "delayloads" target.
     /DELAYLOAD:api-ms-win-core-winrt-error-l1-1-0.dll
     /DELAYLOAD:api-ms-win-core-winrt-l1-1-0.dll
     /DELAYLOAD:api-ms-win-core-winrt-string-l1-1-0.dll
@@ -503,6 +487,31 @@ if(OS_WINDOWS)
     /DELAYLOAD:winusb.dll
     /DELAYLOAD:wsock32.dll
     /DELAYLOAD:wtsapi32.dll
+
+    # "delayloads_not_for_child_dll" target.
+    /DELAYLOAD:crypt32.dll
+    /DELAYLOAD:dbghelp.dll
+    /DELAYLOAD:dhcpcsvc.dll
+    /DELAYLOAD:dwrite.dll
+    /DELAYLOAD:iphlpapi.dll
+    /DELAYLOAD:oleaut32.dll
+    /DELAYLOAD:secur32.dll
+    /DELAYLOAD:userenv.dll
+    /DELAYLOAD:winhttp.dll
+    /DELAYLOAD:winmm.dll
+    /DELAYLOAD:winspool.drv
+    /DELAYLOAD:wintrust.dll
+    /DELAYLOAD:ws2_32.dll
+    )
+  list(APPEND CEF_EXE_LINKER_FLAGS
+    # For executable targets.
+    /MANIFEST:NO        # No default manifest (see ADD_WINDOWS_MANIFEST macro usage)
+    /LARGEADDRESSAWARE  # Allow 32-bit processes to access 3GB of RAM
+    ${CEF_DELAYLOAD_FLAGS}
+    )
+  list(APPEND CEF_SHARED_LINKER_FLAGS
+    # For shared library targets.
+    ${CEF_DELAYLOAD_FLAGS}
     )
   list(APPEND CEF_COMPILER_DEFINES
     WIN32 _WIN32 _WINDOWS             # Windows platform
@@ -541,9 +550,12 @@ if(OS_WINDOWS)
   # Standard libraries.
   set(CEF_STANDARD_LIBS
     comctl32.lib
+    crypt32.lib
+    delayimp.lib
     gdi32.lib
     rpcrt4.lib
     shlwapi.lib
+    wintrust.lib
     ws2_32.lib
     )
 
@@ -588,36 +600,8 @@ if(OS_WINDOWS)
 
   if(USE_SANDBOX)
     list(APPEND CEF_COMPILER_DEFINES
-      PSAPI_VERSION=1   # Required by cef_sandbox.lib
-      CEF_USE_SANDBOX   # Used by apps to test if the sandbox is enabled
+      CEF_USE_BOOTSTRAP   # Used by apps to test if the bootstrap is enabled
       )
-    list(APPEND CEF_COMPILER_DEFINES_DEBUG
-      _HAS_ITERATOR_DEBUGGING=0   # Disable iterator debugging
-      )
-
-    # Libraries required by cef_sandbox.lib.
-    set(CEF_SANDBOX_STANDARD_LIBS
-      Advapi32.lib
-      dbghelp.lib
-      Delayimp.lib
-      ntdll.lib
-      OleAut32.lib
-      PowrProf.lib
-      Propsys.lib
-      psapi.lib
-      SetupAPI.lib
-      Shell32.lib
-      Shcore.lib
-      Userenv.lib
-      version.lib
-      wbemuuid.lib
-      WindowsApp.lib
-      winmm.lib
-      )
-
-    # CEF sandbox library paths.
-    set(CEF_SANDBOX_LIB_DEBUG "${CEF_BINARY_DIR_DEBUG}/cef_sandbox.lib")
-    set(CEF_SANDBOX_LIB_RELEASE "${CEF_BINARY_DIR_RELEASE}/cef_sandbox.lib")
   endif()
 
   # Configure use of ATL.

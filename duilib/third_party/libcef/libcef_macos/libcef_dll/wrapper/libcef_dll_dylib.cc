@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=684879a6c5e44abac8f05bdccacb12558aedde79$
+// $hash=5b8c18ce53b0d4fc0d251b1b1e981775e3cd561c$
 //
 
 
@@ -103,6 +103,9 @@ decltype(&cef_shutdown) cef_shutdown;
 decltype(&cef_do_message_loop_work) cef_do_message_loop_work;
 decltype(&cef_run_message_loop) cef_run_message_loop;
 decltype(&cef_quit_message_loop) cef_quit_message_loop;
+#if CEF_API_ADDED(14100)
+decltype(&cef_set_nestable_tasks_allowed) cef_set_nestable_tasks_allowed;
+#endif
 decltype(&cef_crash_reporting_enabled) cef_crash_reporting_enabled;
 decltype(&cef_set_crash_key_value) cef_set_crash_key_value;
 decltype(&cef_create_directory) cef_create_directory;
@@ -288,6 +291,7 @@ decltype(&cef_id_for_pack_resource_name) cef_id_for_pack_resource_name;
 decltype(&cef_id_for_pack_string_name) cef_id_for_pack_string_name;
 decltype(&cef_id_for_command_id_name) cef_id_for_command_id_name;
 decltype(&cef_version_info) cef_version_info;
+decltype(&cef_version_info_all) cef_version_info_all;
 decltype(&cef_dump_without_crashing) cef_dump_without_crashing;
 decltype(&cef_dump_without_crashing_unthrottled) cef_dump_without_crashing_unthrottled;
 decltype(&cef_get_min_log_level) cef_get_min_log_level;
@@ -375,6 +379,9 @@ INIT_ENTRY(cef_shutdown);
 INIT_ENTRY(cef_do_message_loop_work);
 INIT_ENTRY(cef_run_message_loop);
 INIT_ENTRY(cef_quit_message_loop);
+#if CEF_API_ADDED(14100)
+INIT_ENTRY(cef_set_nestable_tasks_allowed);
+#endif
 INIT_ENTRY(cef_crash_reporting_enabled);
 INIT_ENTRY(cef_set_crash_key_value);
 INIT_ENTRY(cef_create_directory);
@@ -560,6 +567,7 @@ INIT_ENTRY(cef_id_for_pack_resource_name);
 INIT_ENTRY(cef_id_for_pack_string_name);
 INIT_ENTRY(cef_id_for_command_id_name);
 INIT_ENTRY(cef_version_info);
+INIT_ENTRY(cef_version_info_all);
 INIT_ENTRY(cef_dump_without_crashing);
 INIT_ENTRY(cef_dump_without_crashing_unthrottled);
 INIT_ENTRY(cef_get_min_log_level);
@@ -697,6 +705,12 @@ NO_SANITIZE("cfi-icall") void cef_run_message_loop() {
 NO_SANITIZE("cfi-icall") void cef_quit_message_loop() {
   g_libcef_pointers.cef_quit_message_loop();
 }
+
+#if CEF_API_ADDED(14100)
+NO_SANITIZE("cfi-icall") void cef_set_nestable_tasks_allowed(int allowed) {
+  g_libcef_pointers.cef_set_nestable_tasks_allowed(allowed);
+}
+#endif
 
 NO_SANITIZE("cfi-icall") int cef_crash_reporting_enabled() {
   return g_libcef_pointers.cef_crash_reporting_enabled();
@@ -1340,6 +1354,10 @@ NO_SANITIZE("cfi-icall") int cef_id_for_command_id_name(const char* name) {
 
 NO_SANITIZE("cfi-icall") int cef_version_info(int entry) {
   return g_libcef_pointers.cef_version_info(entry);
+}
+
+NO_SANITIZE("cfi-icall") void cef_version_info_all(cef_version_info_t* info) {
+  g_libcef_pointers.cef_version_info_all(info);
 }
 
 NO_SANITIZE("cfi-icall") int cef_dump_without_crashing(long long mseconds_between_dumps, const char* function_name, const char* file_name, int line_number) {

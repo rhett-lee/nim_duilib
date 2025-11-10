@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=0a3dae00f9cb4824eea61dca1884cf74a6009c23$
+// $hash=e9d06b12ca631d207f5ebd213dbf9921ca8518b5$
 //
 
 #include "include/capi/cef_app_capi.h"
@@ -141,6 +141,16 @@ NO_SANITIZE("cfi-icall") CEF_GLOBAL void CefQuitMessageLoop() {
   // Execute
   cef_quit_message_loop();
 }
+
+#if CEF_API_ADDED(14100)
+NO_SANITIZE("cfi-icall") CEF_GLOBAL void CefSetNestableTasksAllowed(bool allowed) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Execute
+  cef_set_nestable_tasks_allowed(
+      allowed);
+}
+#endif  // CEF_API_ADDED(14100)
 
 NO_SANITIZE("cfi-icall") CEF_GLOBAL bool CefCrashReportingEnabled() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING

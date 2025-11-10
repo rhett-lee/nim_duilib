@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=bf1dd4b8e83fc885c5d035597b248fb1866ada9a$
+// $hash=f98a12929fbf9bb6be2c784de22a56f34863255d$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_COMMAND_LINE_CAPI_H_
@@ -201,6 +201,15 @@ typedef struct _cef_command_line_t {
   ///
   void(CEF_CALLBACK* prepend_wrapper)(struct _cef_command_line_t* self,
                                       const cef_string_t* wrapper);
+
+#if CEF_API_ADDED(14100)
+  ///
+  /// Remove a switch from the command line. If no such switch is present, this
+  /// has no effect.
+  ///
+  void(CEF_CALLBACK* remove_switch)(struct _cef_command_line_t* self,
+                                    const cef_string_t* name);
+#endif
 } cef_command_line_t;
 
 ///

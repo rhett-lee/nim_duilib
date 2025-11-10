@@ -32,25 +32,17 @@ libcef.dll/libcef.so是CEF的核心动态链接库，提供Chromium的浏览器�
 ### 后续文档中，假设nim_duilib的源码根目录为变量：`${NIM_DUILIB_ROOT}` 。   
 ## 四、CEF控件（CefControl）的使用说明(Windows平台)
 
-### 1. 使用libcef 109版本（适用于使用`CEFSettings.props`属性文件的VC工程)
-使用VS打开`${NIM_DUILIB_ROOT}\msvc\PropertySheets\CEFSettings.props`文件，将LibCefVersion109属性值改为`true`，重新编译代码即可。    
-通过`${NIM_DUILIB_ROOT}\examples\cef`和`${NIM_DUILIB_ROOT}\examples\CefBrowser`工程可以看到效果（访问一下可以查看UA的网站，显示一下UA可确认）。
-
-### 2. 使用libcef 最新版本（适用于使用`CEFSettings.props`属性文件的VC工程)
-使用VS打开`${NIM_DUILIB_ROOT}\msvc\PropertySheets\CEFSettings.props`文件，将LibCefVersion109属性值改为`false`，重新编译代码即可。    
-通过`${NIM_DUILIB_ROOT}\examples\cef`和`${NIM_DUILIB_ROOT}\examples\CefBrowser`工程可以看到效果（访问一下可以查看UA的网站，显示一下UA可确认）。
-
-### 3. libcef 137版本二进制文件和资源文件的下载（需要自己下载）
+### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
 将libcef的二进制文件和资源文件（libcef.dll等）放在以下目录中：    
 x64版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win\x64`目录，    
 Win32版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win\Win32`目录    
-* 64位版本的下载链接：[06/04/2025 - 137.0.10+g7e14fe1+chromium-137.0.7151.69 / Chromium 137.0.7151.69](https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_windows64.tar.bz2)
-* 32位版本的下载链接：[06/04/2025 - 137.0.10+g7e14fe1+chromium-137.0.7151.69 / Chromium 137.0.7151.69](https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_windows32.tar.bz2)    
+* 64位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_windows64.tar.bz2)
+* 32位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_windows32.tar.bz2)    
   下载压缩包后，解压。    
   对于64位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win\x64`目录即可，    
   对于32位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win\Win32`目录即可。
 
-### 4. libcef 109版本二进制文件和资源文件的下载（需要自己下载）
+### 2. libcef 109版本二进制文件和资源文件的下载（需要自己下载）
 将libcef 109版本的二进制文件和资源文件（libcef.dll等）放在以下目录中：    
 x64版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win_109\x64`目录，    
 Win32版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win_109\Win32`目录    
@@ -60,7 +52,7 @@ Win32版本的放在`${NIM_DUILIB_ROOT}\bin\libcef_win_109\Win32`目录
   对于64位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win_109\x64`目录即可，    
   对于32位版本，将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}\bin\libcef_win_109\Win32`目录即可。    
 
-### 5. libcef二进制文件和资源文件的组织结构说明
+### 3. libcef二进制文件和资源文件的组织结构说明
 libcef二进制文件和资源文件需要放在bin下的指定目录，libcef.dll才能被正常加载。    
 比如最新版本CEF，32位版本文件需放在`${NIM_DUILIB_ROOT}\bin\libcef_win\Win32`目录，64位版本文件需放在`${NIM_DUILIB_ROOT}\bin\libcef_win\x64`目录。    
 libcef二进制文件和资源文件的基本组织结构为（以64位版本为例）：
@@ -82,6 +74,15 @@ icudtl.dat
 resources.pak
 locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 ```
+
+### 4. 使用libcef 109版本（适用于使用`CEFSettings.props`属性文件的VC工程)
+使用VS打开`${NIM_DUILIB_ROOT}\msvc\PropertySheets\CEFSettings.props`文件，将LibCefVersion109属性值改为`true`，重新编译代码即可。    
+通过`${NIM_DUILIB_ROOT}\examples\cef`和`${NIM_DUILIB_ROOT}\examples\CefBrowser`工程可以看到效果（访问一下可以查看UA的网站，显示一下UA可确认）。
+
+### 5. 使用libcef 最新版本（适用于使用`CEFSettings.props`属性文件的VC工程)
+使用VS打开`${NIM_DUILIB_ROOT}\msvc\PropertySheets\CEFSettings.props`文件，将LibCefVersion109属性值改为`false`，重新编译代码即可。    
+通过`${NIM_DUILIB_ROOT}\examples\cef`和`${NIM_DUILIB_ROOT}\examples\CefBrowser`工程可以看到效果（访问一下可以查看UA的网站，显示一下UA可确认）。
+
 ### 6. 如何在自己项目的工程中手工设置libcef相关的属性（未使用`CEFSettings.props`属性文件的VC工程）
 #### （1）libcef 新版的支持
 libcef 的较新的版本（高于109版本），功能更完善。支持Win10及以上版本的操作系统（Win10/Win11等），不支持Win7等低于Win10的操作系统。    
@@ -111,9 +112,9 @@ libcef 109版本支持Win7及以上版本的操作系统（Win7/Win10/Win11等�
 
 ## 五、CEF控件（CefControl）的使用说明（Linux平台）
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录${NIM_DUILIB_ROOT}的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
-### 1. libcef 137版本二进制文件和资源文件的下载（需要自己下载）
-* x64位版本的下载链接：[06/04/2025 - 137.0.10+g7e14fe1+chromium-137.0.7151.69 / Chromium 137.0.7151.69](https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_linux64.tar.bz2)    
-* ARM64位版本的下载链接：[06/04/2025 - 137.0.10+g7e14fe1+chromium-137.0.7151.69 / Chromium 137.0.7151.69](https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_linuxarm64.tar.bz2)    
+### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
+* x64位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_linux64.tar.bz2)    
+* ARM64位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2)    
   下载压缩包后，解压。    
   然后将Release目录里的文件和Resources目录里面的文件复制到`${NIM_DUILIB_ROOT}/bin/libcef_linux/`目录即可（libcef_linux这个文件夹需要新建）。    
 ### 2. libcef二进制文件和资源文件的组织结构说明
@@ -140,9 +141,9 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 
 ## 六、CEF控件（CefControl）的使用说明（macOS平台）
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录${NIM_DUILIB_ROOT}的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
-### 1. libcef 137版本二进制文件和资源文件的下载（需要自己下载）
+### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
 * x64位版本的下载链接：[05/31/2025 - 137.0.8+gaaaa0bf+chromium-137.0.7151.56 / Chromium 137.0.7151.56](https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2)    
-* ARM64位版本的下载链接：[06/05/2025 - 137.0.10+g7e14fe1+chromium-137.0.7151.69 / Chromium 137.0.7151.69](https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_macosarm64.tar.bz2)    
+* ARM64位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_macosarm64.tar.bz2)    
   下载压缩包后，解压。    
   然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../cef_binary`目录即可（cef_binary这个文件夹需要新建，与nim_duilib目录是平级目录）。    
 ### 2. cef_binary里面内容列表

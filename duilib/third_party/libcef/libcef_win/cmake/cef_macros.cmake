@@ -36,11 +36,7 @@ macro(PRINT_CEF_CONFIG)
 
   message(STATUS "CEF sandbox:                  ${USE_SANDBOX}")
 
-  set(_libraries ${CEF_STANDARD_LIBS})
-  if(OS_WINDOWS AND USE_SANDBOX)
-    list(APPEND _libraries ${CEF_SANDBOX_STANDARD_LIBS})
-  endif()
-  message(STATUS "Standard libraries:           ${_libraries}")
+  message(STATUS "Standard libraries:           ${CEF_STANDARD_LIBS}")
 
   message(STATUS "Compile defines:              ${CEF_COMPILER_DEFINES}")
   message(STATUS "Compile defines (Debug):      ${CEF_COMPILER_DEFINES_DEBUG}")
@@ -207,6 +203,42 @@ endif(OS_LINUX)
 
 if(OS_MAC)
 
+# Copy the CEF framework into the Frameworks directory and create the necessary symlinks.
+# Resulting directory structure is:
+#   Chromium Embedded Framework.framework
+#   ├── Chromium Embedded Framework -> Versions/A/Chromium Embedded Framework
+#   ├── Libraries -> Versions/A/Libraries
+#   ├── Resources -> Versions/A/Resources
+#   └── Versions
+#       ├── A
+#       │   ├── Chromium Embedded Framework
+#       │   ├── Libraries
+#       │   └── Resources
+#       └── Current -> A
+macro(COPY_MAC_FRAMEWORK target binary_path app_path)
+  set(FRAMEWORK_DIR "${app_path}/Contents/Frameworks/Chromium Embedded Framework.framework")
+  add_custom_command(
+    TARGET ${target}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${binary_path}/Chromium Embedded Framework.framework"
+            "${FRAMEWORK_DIR}/Versions/A"
+    COMMAND cd "${FRAMEWORK_DIR}" && ln -sf
+            "Versions/A/Chromium Embedded Framework"
+            "Chromium Embedded Framework"
+    COMMAND cd "${FRAMEWORK_DIR}" && ln -sf
+            "Versions/A/Libraries"
+            "Libraries"
+    COMMAND cd "${FRAMEWORK_DIR}" && ln -sf
+            "Versions/A/Resources"
+            "Resources"
+    COMMAND cd "${FRAMEWORK_DIR}/Versions" && ln -sf
+            "A"
+            "Current"
+    VERBATIM
+    )
+endmacro()
+
 # Manually process and copy over resource files.
 macro(COPY_MAC_RESOURCES resource_list prefix_list target source_dir app_path)
   foreach(FILENAME ${resource_list})
@@ -304,7 +336,8 @@ endmacro()
 # SET_EXECUTABLE_TARGET_PROPERTIES() instead of calling this macro directly.
 macro(SET_COMMON_TARGET_PROPERTIES target)
   # Compile flags.
-  target_compile_options(${target} PRIVATE ${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS})
+  target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${CEF_COMPILER_FLAGS} ${CEF_C_COMPILER_FLAGS}>)
+  target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS}>)
   target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_DEBUG} ${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
   target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:${CEF_COMPILER_FLAGS_RELEASE} ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
 

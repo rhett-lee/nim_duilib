@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=27d8411693975d9d21b6a523a0a0524171524c7f$
+// $hash=9962bd12a9febd352ae0b1fb308bbb13f63720e8$
 //
 
 #include "libcef_dll/ctocpp/command_line_ctocpp.h"
@@ -361,6 +361,27 @@ void CefCommandLineCToCpp::AppendSwitchWithValue(const CefString& name,
   _struct->append_switch_with_value(_struct, name.GetStruct(),
                                     value.GetStruct());
 }
+
+#if CEF_API_ADDED(14100)
+NO_SANITIZE("cfi-icall")
+void CefCommandLineCToCpp::RemoveSwitch(const CefString& name) {
+  auto* _struct = GetStruct();
+  if (!_struct->remove_switch) {
+    return;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: name; type: string_byref_const
+  DCHECK(!name.empty());
+  if (name.empty()) {
+    return;
+  }
+
+  // Execute
+  _struct->remove_switch(_struct, name.GetStruct());
+}
+#endif  // CEF_API_ADDED(14100)
 
 NO_SANITIZE("cfi-icall") bool CefCommandLineCToCpp::HasArguments() {
   auto* _struct = GetStruct();

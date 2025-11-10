@@ -16,7 +16,7 @@
  - 支持动态换肤：通过XML文件定义皮肤结构，可以轻松改变界面风格，支持动态换肤。
  - 支持窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新。
  - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）。
- - 支持CEF控件：支持libcef 109 版本，以兼容Windows 7系统；支持libcef 137 版本，支持Windows 10及以上操作系统，支持Linux和MacOS平台。
+ - 支持CEF控件：支持libcef 109 版本，以兼容Windows 7系统；支持libcef 142 版本，支持Windows 10及以上操作系统，支持Linux和MacOS平台。
  - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）。
  - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）。
 
@@ -51,7 +51,7 @@
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
     <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台、MacOS平台、FreeBSD平台）</td></tr>
-    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 137 版本，支持Win10及以上操作系统）</td></tr>
+    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 142 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
         <td rowspan="20">功能完善</td>

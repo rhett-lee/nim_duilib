@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=241a28f354d2c0a3c1172096b36f16c52d4c7dee$
+// $hash=f8eba606c37434ad1f1007826e79bb553bc40c6d$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_COMMAND_LINE_CTOCPP_H_
@@ -53,6 +53,9 @@ class CefCommandLineCToCpp : public CefCToCppRefCounted<CefCommandLineCToCpp,
   void AppendSwitch(const CefString& name) override;
   void AppendSwitchWithValue(const CefString& name,
                              const CefString& value) override;
+#if CEF_API_ADDED(14100)
+  void RemoveSwitch(const CefString& name) override;
+#endif
   bool HasArguments() override;
   void GetArguments(ArgumentList& arguments) override;
   void AppendArgument(const CefString& argument) override;

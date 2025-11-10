@@ -19,12 +19,12 @@
 | convert_utf | 2025-03-11 |v20.1.0|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
 | udis86      | 2025-04-11 |v1.7.2 |有 |https://sourceforge.net/projects/udis86/      |  udint.h 有修改|
 | libcef/libcef_win_109|2025-03-10|<div style="width: 160px">cef_binary 109.1.18+gf1c41e4<br>chromium-109.0.5414.120</div>|有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:109 <br> Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:109</div>| <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64.tar.bz2 <br> Win32版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows32.tar.bz2</div>|
-| libcef/libcef_win    |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:137</div>| <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_windows64.tar.bz2 </div>|
-| libcef/libcef_win    |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:137</div> | <div style="width: 360px">Win32版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_windows32.tar.bz2 </div>|
-| libcef/libcef_linux  |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#linux64:137</div>     | <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_linux64.tar.bz2 </div>|
-| libcef/libcef_linux  |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#linuxarm64:137</div>| <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_linuxarm64.tar.bz2 </div>|
-| libcef/libcef_macos  |2025-06-09|<div style="width: 160px">cef_binary_137.0.8+gaaaa0bf<br>chromium-137.0.7151.56</div>  |有  |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#macosx64:137</div>    | <div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2 </div>|
-| libcef/libcef_macos  |2025-06-09|<div style="width: 160px">cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#macosarm64:137</div>| <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_macosarm64.tar.bz2 </div>|
+| libcef/libcef_win    |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:142</div>     | <div style="width: 360px">x64版本：  https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_windows64.tar.bz2 </div>|
+| libcef/libcef_win    |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:142</div>   | <div style="width: 360px">Win32版本：https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_windows32.tar.bz2 </div>|
+| libcef/libcef_linux  |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#linux64:142</div>       | <div style="width: 360px">x64版本：  https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_linux64.tar.bz2 </div>|
+| libcef/libcef_linux  |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#linuxarm64:142</div>  | <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2 </div>|
+| libcef/libcef_macos  |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div>  |有  |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#macosx64:142</div>    | <div style="width: 360px">x64版本：  https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2 </div>|
+| libcef/libcef_macos  |2025-11-09|<div style="width: 160px">cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#macosarm64:142</div>  | <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_macosarm64.tar.bz2 </div>|
 | WebView2      |2025-06-28|1.0.3296.44 |无 | 通过 NuGet 安装 WebView2 SDK: <br>Microsoft.Web.WebView2| |
 | libpag        |2025-10-31|main分支 |无 | https://github.com/Tencent/libpag| 无修改 |
 ## libpng 库更新说明
@@ -45,13 +45,17 @@
 ## libcef 库更新说明
 1. libcef对CMakeLists.txt文件和VC工程文件是有修改的，详情如下：    
  - libcef/libcef_win/CMakeLists.txt    
+ - libcef/libcef_win/libcef_dll_wrapper.vcxproj    
+ - libcef/libcef_win/libcef_dll_wrapper.vcxproj.filters    
  - libcef/libcef_win_109/CMakeLists.txt    
+ - libcef/libcef_win_109/libcef_dll_wrapper_109.vcxproj   
+ - libcef/libcef_win_109/libcef_dll_wrapper_109.vcxproj.filters     
  - libcef/libcef_linux/CMakeLists.txt    
  - libcef/libcef_macos/CMakeLists.txt    
- - libcef/libcef_win_109/libcef_dll_wrapper_109.vcxproj    
- - libcef/libcef_win/libcef_dll_wrapper.vcxproj    
+
 以上文件有修改，更新的时候注意对比。
 
 2. 项目中其他需要修改的内容
- - `docs\CEF.md`
- - `build\build_duilib_all_in_one.sh`
+ - `README.md` CEF版本号需要修改    
+ - `docs\CEF.md`    
+ - `build\build_duilib_all_in_one.sh`    

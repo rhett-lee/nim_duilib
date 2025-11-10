@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <PreferredToolArchitecture>x86</PreferredToolArchitecture>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -85,11 +85,11 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_HAS_ITERATOR_DEBUGGING=1;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_HAS_ITERATOR_DEBUGGING=1;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_HAS_ITERATOR_DEBUGGING=0;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_HAS_ITERATOR_DEBUGGING=0;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -121,11 +121,11 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_HAS_ITERATOR_DEBUGGING=1;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_HAS_ITERATOR_DEBUGGING=1;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_HAS_ITERATOR_DEBUGGING=0;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_HAS_ITERATOR_DEBUGGING=0;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -157,11 +157,11 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -193,11 +193,11 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level4</WarningLevel>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;PSAPI_VERSION=1;CEF_USE_SANDBOX;CEF_USE_ATL;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;__STDC_CONSTANT_MACROS;__STDC_FORMAT_MACROS;_WIN32;UNICODE;_UNICODE;WINVER=0x0A00;_WIN32_WINNT=0x0A00;NTDDI_VERSION=NTDDI_WIN10_FE;NOMINMAX;WIN32_LEAN_AND_MEAN;_HAS_EXCEPTIONS=0;CEF_USE_BOOTSTRAP;_NDEBUG;WRAPPING_CEF_SHARED;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>./;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
@@ -214,8 +214,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include=".\libcef_dll\shutdown_checker.cc" />
-    <ClCompile Include="libcef_dll\cpptoc\preference_observer_cpptoc.cc" />
-    <ClCompile Include="libcef_dll\cpptoc\setting_observer_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\shutdown_checker.h" />
     <ClInclude Include=".\libcef_dll\template_util.h" />
     <ClCompile Include=".\libcef_dll\transfer_util.cc" />
@@ -303,6 +301,8 @@
     <ClInclude Include=".\libcef_dll\cpptoc\pdf_print_callback_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\permission_handler_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\cpptoc\permission_handler_cpptoc.h" />
+    <ClCompile Include=".\libcef_dll\cpptoc\preference_observer_cpptoc.cc" />
+    <ClInclude Include=".\libcef_dll\cpptoc\preference_observer_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\print_handler_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\cpptoc\print_handler_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\read_handler_cpptoc.cc" />
@@ -333,6 +333,8 @@
     <ClInclude Include=".\libcef_dll\cpptoc\server_handler_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\set_cookie_callback_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\cpptoc\set_cookie_callback_cpptoc.h" />
+    <ClCompile Include=".\libcef_dll\cpptoc\setting_observer_cpptoc.cc" />
+    <ClInclude Include=".\libcef_dll\cpptoc\setting_observer_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\string_visitor_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\cpptoc\string_visitor_cpptoc.h" />
     <ClCompile Include=".\libcef_dll\cpptoc\task_cpptoc.cc" />
@@ -692,6 +694,7 @@
     <ClInclude Include=".\include\base\cef_cancelable_callback.h" />
     <ClInclude Include=".\include\base\cef_compiler_specific.h" />
     <ClInclude Include=".\include\base\cef_dump_without_crashing.h" />
+    <ClInclude Include=".\include\base\cef_immediate_crash.h" />
     <ClInclude Include=".\include\base\cef_lock.h" />
     <ClInclude Include=".\include\base\cef_logging.h" />
     <ClInclude Include=".\include\base\cef_macros.h" />
@@ -704,8 +707,6 @@
     <ClInclude Include=".\include\base\cef_weak_ptr.h" />
     <ClInclude Include=".\include\base\internal\cef_bind_internal.h" />
     <ClInclude Include=".\include\base\internal\cef_callback_internal.h" />
-    <ClInclude Include="libcef_dll\cpptoc\preference_observer_cpptoc.h" />
-    <ClInclude Include="libcef_dll\cpptoc\setting_observer_cpptoc.h" />
     <None Include=".\include\base\internal\cef_color_id_macros.inc">
     </None>
     <ClInclude Include=".\include\base\internal\cef_lock_impl.h" />
@@ -874,6 +875,9 @@
     <ClInclude Include=".\include\wrapper\cef_stream_resource_handler.h" />
     <ClInclude Include=".\include\wrapper\cef_xml_object.h" />
     <ClInclude Include=".\include\wrapper\cef_zip_archive.h" />
+    <ClInclude Include=".\include\wrapper\cef_certificate_util_win.h" />
+    <ClInclude Include=".\include\wrapper\cef_library_loader.h" />
+    <ClInclude Include=".\include\wrapper\cef_util_win.h" />
     <ClInclude Include=".\libcef_dll\wrapper\cef_browser_info_map.h" />
     <ClCompile Include=".\libcef_dll\wrapper\cef_byte_read_handler.cc" />
     <ClCompile Include=".\libcef_dll\wrapper\cef_closure_task.cc" />
@@ -887,6 +891,9 @@
     <ClCompile Include=".\libcef_dll\wrapper\cef_zip_archive.cc" />
     <ClCompile Include=".\libcef_dll\wrapper\libcef_dll_wrapper.cc" />
     <ClCompile Include=".\libcef_dll\wrapper\libcef_dll_wrapper2.cc" />
+    <ClCompile Include=".\libcef_dll\wrapper\cef_certificate_util_win.cc" />
+    <ClCompile Include=".\libcef_dll\wrapper\cef_scoped_library_loader_win.cc" />
+    <ClCompile Include=".\libcef_dll\wrapper\cef_util_win.cc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

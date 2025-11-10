@@ -142,6 +142,9 @@
     <ClCompile Include=".\libcef_dll\cpptoc\permission_handler_cpptoc.cc">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
+    <ClCompile Include=".\libcef_dll\cpptoc\preference_observer_cpptoc.cc">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClCompile>
     <ClCompile Include=".\libcef_dll\cpptoc\print_handler_cpptoc.cc">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
@@ -185,6 +188,9 @@
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
     <ClCompile Include=".\libcef_dll\cpptoc\set_cookie_callback_cpptoc.cc">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClCompile>
+    <ClCompile Include=".\libcef_dll\cpptoc\setting_observer_cpptoc.cc">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClCompile>
     <ClCompile Include=".\libcef_dll\cpptoc\string_visitor_cpptoc.cc">
@@ -613,11 +619,14 @@
     <ClCompile Include=".\libcef_dll\wrapper\libcef_dll_wrapper2.cc">
       <Filter>libcef_dll\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="libcef_dll\cpptoc\preference_observer_cpptoc.cc">
-      <Filter>libcef_dll\cpptoc</Filter>
+    <ClCompile Include=".\libcef_dll\wrapper\cef_certificate_util_win.cc">
+      <Filter>libcef_dll\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="libcef_dll\cpptoc\setting_observer_cpptoc.cc">
-      <Filter>libcef_dll\cpptoc</Filter>
+    <ClCompile Include=".\libcef_dll\wrapper\cef_scoped_library_loader_win.cc">
+      <Filter>libcef_dll\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include=".\libcef_dll\wrapper\cef_util_win.cc">
+      <Filter>libcef_dll\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -744,6 +753,9 @@
     <ClInclude Include=".\libcef_dll\cpptoc\permission_handler_cpptoc.h">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
+    <ClInclude Include=".\libcef_dll\cpptoc\preference_observer_cpptoc.h">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClInclude>
     <ClInclude Include=".\libcef_dll\cpptoc\print_handler_cpptoc.h">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
@@ -787,6 +799,9 @@
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\cpptoc\set_cookie_callback_cpptoc.h">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClInclude>
+    <ClInclude Include=".\libcef_dll\cpptoc\setting_observer_cpptoc.h">
       <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\cpptoc\string_visitor_cpptoc.h">
@@ -1473,6 +1488,9 @@
     <ClInclude Include=".\include\base\cef_dump_without_crashing.h">
       <Filter>include\base</Filter>
     </ClInclude>
+    <ClInclude Include=".\include\base\cef_immediate_crash.h">
+      <Filter>include\base</Filter>
+    </ClInclude>
     <ClInclude Include=".\include\base\cef_lock.h">
       <Filter>include\base</Filter>
     </ClInclude>
@@ -2007,18 +2025,24 @@
     <ClInclude Include=".\include\wrapper\cef_zip_archive.h">
       <Filter>include\wrapper</Filter>
     </ClInclude>
+    <ClInclude Include=".\include\wrapper\cef_certificate_util_win.h">
+      <Filter>include\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\wrapper\cef_library_loader.h">
+      <Filter>include\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include=".\include\wrapper\cef_util_win.h">
+      <Filter>include\wrapper</Filter>
+    </ClInclude>
     <ClInclude Include=".\libcef_dll\wrapper\cef_browser_info_map.h">
       <Filter>libcef_dll\wrapper</Filter>
     </ClInclude>
     <ClInclude Include=".\libcef_dll\wrapper\cef_message_router_utils.h">
       <Filter>libcef_dll\wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="libcef_dll\cpptoc\preference_observer_cpptoc.h">
-      <Filter>libcef_dll\cpptoc</Filter>
-    </ClInclude>
-    <ClInclude Include="libcef_dll\cpptoc\setting_observer_cpptoc.h">
-      <Filter>libcef_dll\cpptoc</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include=".\libcef_dll\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".\include\base\internal\cef_color_id_macros.inc">
@@ -2027,61 +2051,61 @@
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
-      <UniqueIdentifier>{8E9B0E39-B0E4-30AB-83F4-C43502D9CA9A}</UniqueIdentifier>
+      <UniqueIdentifier>{F141D3E7-AB20-3BCB-B40B-0F462AC7F68F}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\base">
-      <UniqueIdentifier>{9274FE62-0654-3CEF-9DF5-2BF32709DA7B}</UniqueIdentifier>
+      <UniqueIdentifier>{B8BBD768-6A99-379E-8243-C7EDA8A142B1}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\base\internal">
-      <UniqueIdentifier>{3C808A16-6C16-3D73-BA68-D602147C8508}</UniqueIdentifier>
+      <UniqueIdentifier>{F051EC05-677E-3059-9482-EDC514D6D7DD}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\capi">
-      <UniqueIdentifier>{F45B0A27-9ABD-3003-80D7-3785A17CB4F9}</UniqueIdentifier>
+      <UniqueIdentifier>{D55F3F4A-236B-3558-AA2A-C9A6CF0E5E92}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\capi\test">
-      <UniqueIdentifier>{51A0C0B7-26BE-3F1E-86B9-87F42E86AA7D}</UniqueIdentifier>
+      <UniqueIdentifier>{528F02EB-CEA7-3A82-9D89-3776D6F53C5A}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\capi\views">
-      <UniqueIdentifier>{DD3021A1-83FF-330B-8B4E-C8083906EC8C}</UniqueIdentifier>
+      <UniqueIdentifier>{1F579DDB-1BF7-369D-9EB7-19E075A79B87}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\internal">
-      <UniqueIdentifier>{A39569BA-E10F-36F7-BC52-0ADE49F14A3E}</UniqueIdentifier>
+      <UniqueIdentifier>{CAEA82DE-B30C-37E6-8C7F-D0BF2E63E815}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\test">
-      <UniqueIdentifier>{C7107029-DDA6-3FF9-B6DD-CD64611D9351}</UniqueIdentifier>
+      <UniqueIdentifier>{537CDBE9-6389-3D7D-A765-3C4CFF3144AD}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\views">
-      <UniqueIdentifier>{83D96FF5-5C3E-32CC-BF43-0AF45D8F6D08}</UniqueIdentifier>
+      <UniqueIdentifier>{919CC2F4-788B-36DF-8BF1-519A2AA231E5}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\wrapper">
-      <UniqueIdentifier>{B5E3670C-6766-3CAD-9BFD-6F0307B195A3}</UniqueIdentifier>
+      <UniqueIdentifier>{9957AD7D-AD56-3B71-9DBF-9E887B3C55BB}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll">
-      <UniqueIdentifier>{0E9B9E6A-5205-3906-9219-91BB3A46611B}</UniqueIdentifier>
+      <UniqueIdentifier>{5F42B323-EC42-35F9-9C88-058163BD0FA5}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\base">
-      <UniqueIdentifier>{3C7F3661-BF49-3636-BC6B-F45E9F18F766}</UniqueIdentifier>
+      <UniqueIdentifier>{B343BC0E-13B8-3603-871A-4C82897B8F85}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\cpptoc">
-      <UniqueIdentifier>{33CBCC18-21DA-35CA-B84C-0AB45A8E0743}</UniqueIdentifier>
+      <UniqueIdentifier>{EE091947-59A3-3747-A6B8-D8DF3BDABA99}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\cpptoc\test">
-      <UniqueIdentifier>{A35337E6-6645-35AE-9B9E-52213A973C81}</UniqueIdentifier>
+      <UniqueIdentifier>{CA766EC8-4F64-3A91-9100-B1924AEC1341}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\cpptoc\views">
-      <UniqueIdentifier>{A2981DCF-CF2E-398C-A68B-C56C8C17408A}</UniqueIdentifier>
+      <UniqueIdentifier>{7BE3547A-8C61-374C-BA9D-856F07B9DB88}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\ctocpp">
-      <UniqueIdentifier>{E5601C08-0CCA-314E-984E-24E644FCD2B2}</UniqueIdentifier>
+      <UniqueIdentifier>{FDE403A4-9903-37E2-84BF-807B97AC99F5}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\ctocpp\test">
-      <UniqueIdentifier>{862AFB4B-BA6A-3E02-8268-DCB8E4CE979A}</UniqueIdentifier>
+      <UniqueIdentifier>{64C4AEAE-1B24-3794-82AE-BD03DBE9AAC7}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\ctocpp\views">
-      <UniqueIdentifier>{557766C1-C64A-3996-B95B-A57EA34687D8}</UniqueIdentifier>
+      <UniqueIdentifier>{9D0A233C-C362-3328-9251-0269024E4DE0}</UniqueIdentifier>
     </Filter>
     <Filter Include="libcef_dll\wrapper">
-      <UniqueIdentifier>{00F2FD8D-322F-31FB-AE43-C792EBA2446A}</UniqueIdentifier>
+      <UniqueIdentifier>{29BFC105-2663-31EF-AB9A-5B53267E2519}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

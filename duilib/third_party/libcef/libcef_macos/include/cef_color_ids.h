@@ -228,6 +228,7 @@
   E_CPONLY(CEF_ColorSysStateRippleNeutralOnSubtle) \
   E_CPONLY(CEF_ColorSysStateRipplePrimary) \
   E_CPONLY(CEF_ColorSysStateFocusRing) \
+  E_CPONLY(CEF_ColorSysStateFocusRingInverse) \
   E_CPONLY(CEF_ColorSysStateTextHighlight) \
   E_CPONLY(CEF_ColorSysStateOnTextHighlight) \
   E_CPONLY(CEF_ColorSysStateFocusHighlight) \
@@ -245,6 +246,27 @@
   E_CPONLY(CEF_ColorSysShadow) \
   E_CPONLY(CEF_ColorSysGradientPrimary) \
   E_CPONLY(CEF_ColorSysGradientTertiary) \
+  /* Illustration */ \
+  E_CPONLY(CEF_ColorSysIlloPrimaryMin) \
+  E_CPONLY(CEF_ColorSysIlloPrimaryLow) \
+  E_CPONLY(CEF_ColorSysIlloPrimaryMid) \
+  E_CPONLY(CEF_ColorSysIlloPrimaryHigh) \
+  E_CPONLY(CEF_ColorSysIlloPrimaryMax) \
+  E_CPONLY(CEF_ColorSysIlloSecondaryMin) \
+  E_CPONLY(CEF_ColorSysIlloSecondaryLow) \
+  E_CPONLY(CEF_ColorSysIlloSecondaryMid) \
+  E_CPONLY(CEF_ColorSysIlloSecondaryHigh) \
+  E_CPONLY(CEF_ColorSysIlloSecondaryMax) \
+  E_CPONLY(CEF_ColorSysIlloTertiaryMin) \
+  E_CPONLY(CEF_ColorSysIlloTertiaryLow) \
+  E_CPONLY(CEF_ColorSysIlloTertiaryMid) \
+  E_CPONLY(CEF_ColorSysIlloTertiaryHigh) \
+  E_CPONLY(CEF_ColorSysIlloTertiaryMax) \
+  E_CPONLY(CEF_ColorSysIlloNeutralMin) \
+  E_CPONLY(CEF_ColorSysIlloNeutralLow) \
+  E_CPONLY(CEF_ColorSysIlloNeutralMid) \
+  E_CPONLY(CEF_ColorSysIlloNeutralHigh) \
+  E_CPONLY(CEF_ColorSysIlloNeutralMax) \
   /* AI. */ \
   E_CPONLY(CEF_ColorSysAiIllustrationShapeSurface1) \
   E_CPONLY(CEF_ColorSysAiIllustrationShapeSurface2) \
@@ -288,7 +310,6 @@
   E_CPONLY(CEF_ColorAppMenuRowBackgroundHovered) \
   E_CPONLY(CEF_ColorAppMenuUpgradeRowBackground) \
   E_CPONLY(CEF_ColorAppMenuUpgradeRowSubstringForeground) \
-  E_CPONLY(CEF_ColorAvatarHeaderArt) \
   E_CPONLY(CEF_ColorAvatarIconGuest) \
   E_CPONLY(CEF_ColorAvatarIconIncognito) \
   E_CPONLY(CEF_ColorBadgeBackground) \
@@ -568,8 +589,6 @@
   E_CPONLY(CEF_ColorWebNativeControlAccentHovered) \
   E_CPONLY(CEF_ColorWebNativeControlAccentPressed) \
   E_CPONLY(CEF_ColorWebNativeControlAutoCompleteBackground) \
-  E_CPONLY(CEF_ColorWebNativeControlBackground) \
-  E_CPONLY(CEF_ColorWebNativeControlBackgroundDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlBorder) \
   E_CPONLY(CEF_ColorWebNativeControlBorderDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlBorderHovered) \
@@ -582,24 +601,30 @@
   E_CPONLY(CEF_ColorWebNativeControlButtonFillDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlButtonFillHovered) \
   E_CPONLY(CEF_ColorWebNativeControlButtonFillPressed) \
+  E_CPONLY(CEF_ColorWebNativeControlCheckboxBackground) \
+  E_CPONLY(CEF_ColorWebNativeControlCheckboxBackgroundDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlFill) \
   E_CPONLY(CEF_ColorWebNativeControlFillDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlFillHovered) \
   E_CPONLY(CEF_ColorWebNativeControlFillPressed) \
   E_CPONLY(CEF_ColorWebNativeControlLightenLayer) \
   E_CPONLY(CEF_ColorWebNativeControlProgressValue) \
+  E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowBackgroundDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowBackgroundHovered) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowBackgroundPressed) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowForeground) \
+  E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowForegroundDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarArrowForegroundPressed) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarCorner) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarThumb) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarThumbHovered) \
-  E_CPONLY(CEF_ColorWebNativeControlScrollbarThumbInactive) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarThumbOverlayMinimalMode) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarThumbPressed) \
   E_CPONLY(CEF_ColorWebNativeControlScrollbarTrack) \
   E_CPONLY(CEF_ColorWebNativeControlSlider) \
+  E_CPONLY(CEF_ColorWebNativeControlSliderBorder) \
+  E_CPONLY(CEF_ColorWebNativeControlSliderBorderHovered) \
+  E_CPONLY(CEF_ColorWebNativeControlSliderBorderPressed) \
   E_CPONLY(CEF_ColorWebNativeControlSliderDisabled) \
   E_CPONLY(CEF_ColorWebNativeControlSliderHovered) \
   E_CPONLY(CEF_ColorWebNativeControlSliderPressed) \
@@ -684,35 +709,17 @@
   E_CPONLY(CEF_ColorNativeToolbarBackground)
 #elif defined(OS_WIN)
 #define PLATFORM_SPECIFIC_COLOR_IDS \
-  E_CPONLY(CEF_ColorNative3dDkShadow) \
-  E_CPONLY(CEF_ColorNative3dLight) \
-  E_CPONLY(CEF_ColorNativeActiveBorder) \
-  E_CPONLY(CEF_ColorNativeActiveCaption) \
-  E_CPONLY(CEF_ColorNativeAppWorkspace) \
-  E_CPONLY(CEF_ColorNativeBackground) \
   E_CPONLY(CEF_ColorNativeBtnFace) \
   E_CPONLY(CEF_ColorNativeBtnHighlight) \
   E_CPONLY(CEF_ColorNativeBtnShadow) \
   E_CPONLY(CEF_ColorNativeBtnText) \
-  E_CPONLY(CEF_ColorNativeCaptionText) \
-  E_CPONLY(CEF_ColorNativeGradientActiveCaption) \
-  E_CPONLY(CEF_ColorNativeGradientInactiveCaption) \
   E_CPONLY(CEF_ColorNativeGrayText) \
   E_CPONLY(CEF_ColorNativeHighlight) \
   E_CPONLY(CEF_ColorNativeHighlightText) \
   E_CPONLY(CEF_ColorNativeHotlight) \
-  E_CPONLY(CEF_ColorNativeInactiveBorder) \
-  E_CPONLY(CEF_ColorNativeInactiveCaption) \
-  E_CPONLY(CEF_ColorNativeInactiveCaptionText) \
-  E_CPONLY(CEF_ColorNativeInfoBk) \
-  E_CPONLY(CEF_ColorNativeInfoText) \
-  E_CPONLY(CEF_ColorNativeMenu) \
-  E_CPONLY(CEF_ColorNativeMenuBar) \
   E_CPONLY(CEF_ColorNativeMenuHilight) \
-  E_CPONLY(CEF_ColorNativeMenuText) \
   E_CPONLY(CEF_ColorNativeScrollbar) \
   E_CPONLY(CEF_ColorNativeWindow) \
-  E_CPONLY(CEF_ColorNativeWindowFrame) \
   E_CPONLY(CEF_ColorNativeWindowText)
 #else
 #define PLATFORM_SPECIFIC_COLOR_IDS
@@ -767,14 +774,14 @@
   /* TODO(crbug.com/40259490): Refactor the Avatar Button colors as Profile */ \
   /* Menu Button colors. */ \
   E_CPONLY(CEF_ColorAvatarButtonHighlightDefault) \
-  E_CPONLY(CEF_ColorAvatarButtonHighlightNormal) \
+  E_CPONLY(CEF_ColorAvatarButtonHighlightGuest) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightSyncError) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightSyncPaused) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightSigninPaused) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightExplicitText) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightIncognito) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightManagement) \
-  E_CPONLY(CEF_ColorAvatarButtonHighlightNormalForeground) \
+  E_CPONLY(CEF_ColorAvatarButtonHighlightGuestForeground) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightDefaultForeground) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightSyncErrorForeground) \
   E_CPONLY(CEF_ColorAvatarButtonHighlightIncognitoForeground) \
@@ -846,32 +853,16 @@
   E_CPONLY(CEF_ColorDesktopMediaTabListPreviewBackground) \
   /* Desktop to iOS promo bubble. */ \
   E_CPONLY(CEF_ColorDesktopToIOSPromoFooterSubtitleLabel) \
-  /* Common Download colors. */ \
+  /* Download bubble and toolbar button colors. */\
   E_CPONLY(CEF_ColorDownloadItemIconDangerous) \
   E_CPONLY(CEF_ColorDownloadItemTextDangerous) \
   E_CPONLY(CEF_ColorDownloadItemIconWarning) \
   E_CPONLY(CEF_ColorDownloadItemTextWarning) \
-  /* Download bubble colors. */\
   E_CPONLY(CEF_ColorDownloadBubbleInfoBackground) \
   E_CPONLY(CEF_ColorDownloadBubbleInfoIcon) \
   E_CPONLY(CEF_ColorDownloadBubbleRowHover) \
   E_CPONLY(CEF_ColorDownloadBubbleShowAllDownloadsIcon) \
   E_CPONLY(CEF_ColorDownloadBubblePrimaryIcon) \
-  /* Download shelf colors. */ \
-  E_CPONLY(CEF_ColorDownloadItemForeground) \
-  E_CPONLY(CEF_ColorDownloadItemForegroundDangerous) \
-  E_CPONLY(CEF_ColorDownloadItemForegroundDisabled) \
-  E_CPONLY(CEF_ColorDownloadItemForegroundSafe) \
-  E_CPONLY(CEF_ColorDownloadItemProgressRingBackground) \
-  E_CPONLY(CEF_ColorDownloadItemProgressRingForeground) \
-  E_CPONLY(CEF_ColorDownloadShelfBackground) \
-  E_CPONLY(CEF_ColorDownloadShelfButtonBackground) \
-  E_CPONLY(CEF_ColorDownloadShelfButtonText) \
-  E_CPONLY(CEF_ColorDownloadShelfButtonIcon) \
-  E_CPONLY(CEF_ColorDownloadShelfButtonIconDisabled) \
-  E_CPONLY(CEF_ColorDownloadShelfContentAreaSeparator) \
-  E_CPONLY(CEF_ColorDownloadShelfForeground) \
-  E_CPONLY(CEF_ColorDownloadStartedAnimationForeground) \
   E_CPONLY(CEF_ColorDownloadToolbarButtonActive) \
   E_CPONLY(CEF_ColorDownloadToolbarButtonAnimationBackground) \
   E_CPONLY(CEF_ColorDownloadToolbarButtonAnimationForeground) \
@@ -956,8 +947,10 @@
   E_CPONLY(CEF_ColorMediaRouterIconActive) \
   E_CPONLY(CEF_ColorMediaRouterIconWarning) \
   /* Multi contents view colors. */ \
-  E_CPONLY(CEF_ColorMulitContentsViewActiveContentOutline) \
-  E_CPONLY(CEF_ColorMulitContentsViewInactiveContentOutline) \
+  E_CPONLY(CEF_ColorMultiContentsViewActiveContentOutline) \
+  E_CPONLY(CEF_ColorMultiContentsViewInactiveContentOutline) \
+  E_CPONLY(CEF_ColorMultiContentsViewHighlightContentOutline) \
+  E_CPONLY(CEF_ColorMultiContentsViewMiniToolbarForeground) \
   /* New tab button colors. */ \
   E_CPONLY(CEF_ColorNewTabButtonForegroundFrameActive) \
   E_CPONLY(CEF_ColorNewTabButtonForegroundFrameInactive) \
@@ -994,15 +987,39 @@
   E_CPONLY(CEF_ColorNewTabPageCartModuleDiscountChipForeground) \
   E_CPONLY(CEF_ColorNewTabPageChipBackground) \
   E_CPONLY(CEF_ColorNewTabPageChipForeground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFont) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFontLight) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxCancelButton) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxCancelButtonLight) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxErrorScrimBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxErrorScrimButtonBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxErrorScrimButtonBackgroundHover) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxErrorScrimButtonText) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxErrorScrimForeground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxHover) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxInputIcon) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxLensButton) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxOutlineHcm) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxRecentTabChipOutline) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxResultsBackgroundHovered) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxScrimBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxSubmitButton) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxSuggestionActivity) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxTypeAhead) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxTypeAheadChip) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxUploadButton) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxUploadButtonDisabled) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFileChipBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFileChipFaviconBackground) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFileChipText) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxPdfChipIcon) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFileImageOverlay) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxFileCarouselDivider) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxContextEntrypointTextDisabled) \
+  E_CPONLY(CEF_ColorNewTabPageComposeboxContextEntrypointHoverBackground) \
   E_CPONLY(CEF_ColorNewTabPageControlBackgroundHovered) \
   E_CPONLY(CEF_ColorNewTabPageControlBackgroundSelected) \
-  E_CPONLY(CEF_ColorNewTabPageDialogBackground) \
-  E_CPONLY(CEF_ColorNewTabPageDialogBackgroundActive) \
-  E_CPONLY(CEF_ColorNewTabPageDialogBorder) \
-  E_CPONLY(CEF_ColorNewTabPageDialogBorderSelected) \
-  E_CPONLY(CEF_ColorNewTabPageDialogControlBackgroundHovered) \
-  E_CPONLY(CEF_ColorNewTabPageDialogForeground) \
-  E_CPONLY(CEF_ColorNewTabPageDialogSecondaryForeground) \
   E_CPONLY(CEF_ColorNewTabPageFirstRunBackground) \
   E_CPONLY(CEF_ColorNewTabPageFocusRing) \
   E_CPONLY(CEF_ColorNewTabPageHeader) \
@@ -1032,6 +1049,15 @@
   E_CPONLY(CEF_ColorNewTabPageModuleItemBackgroundHovered) \
   E_CPONLY(CEF_ColorNewTabPageModuleScrollButtonBackground) \
   E_CPONLY(CEF_ColorNewTabPageModuleScrollButtonBackgroundHovered) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsGrey) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsBlue) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsRed) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsYellow) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsGreen) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsPink) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsPurple) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsCyan) \
+  E_CPONLY(CEF_ColorNewTabPageModuleTabGroupsOrange) \
   E_CPONLY(CEF_ColorNewTabPageMostVisitedForeground) \
   E_CPONLY(CEF_ColorNewTabPageMostVisitedTileBackground) \
   E_CPONLY(CEF_ColorNewTabPageMostVisitedTileBackgroundThemed) \
@@ -1046,9 +1072,6 @@
   E_CPONLY(CEF_ColorNewTabPageSearchBoxResultsTextDimmedSelected) \
   E_CPONLY(CEF_ColorNewTabPageSecondaryForeground) \
   E_CPONLY(CEF_ColorNewTabPageSectionBorder) \
-  E_CPONLY(CEF_ColorNewTabPageSelectedBackground) \
-  E_CPONLY(CEF_ColorNewTabPageSelectedBorder) \
-  E_CPONLY(CEF_ColorNewTabPageSelectedForeground) \
   E_CPONLY(CEF_ColorNewTabPageTagBackground) \
   E_CPONLY(CEF_ColorNewTabPageText) \
   E_CPONLY(CEF_ColorNewTabPageTextUnthemed) \
@@ -1059,6 +1082,10 @@
   /* New Tab Page Colors for Doodle Share Button. */ \
   E_CPONLY(CEF_ColorNewTabPageDoodleShareButtonBackground) \
   E_CPONLY(CEF_ColorNewTabPageDoodleShareButtonIcon) \
+  /* New Tab Footer colors. */ \
+  E_CPONLY(CEF_ColorNewTabFooterBackground) \
+  E_CPONLY(CEF_ColorNewTabFooterText) \
+  E_CPONLY(CEF_ColorNewTabFooterLogoBackground) \
   /* Omnibox colors. */ \
   E_CPONLY(CEF_ColorOmniboxActionIcon) \
   E_CPONLY(CEF_ColorOmniboxActionIconHover) \
@@ -1089,7 +1116,7 @@
   E_CPONLY(CEF_ColorOmniboxResultsBackground) \
   E_CPONLY(CEF_ColorOmniboxResultsBackgroundHovered) \
   E_CPONLY(CEF_ColorOmniboxResultsBackgroundSelected) \
-  E_CPONLY(CEF_ColorOmniboxResultsBackgroundIPH) \
+  E_CPONLY(CEF_ColorOmniboxResultsBackgroundIph) \
   E_CPONLY(CEF_ColorOmniboxResultsButtonBorder) \
   E_CPONLY(CEF_ColorOmniboxResultsButtonIcon) \
   E_CPONLY(CEF_ColorOmniboxResultsButtonIconSelected) \
@@ -1104,6 +1131,7 @@
   E_CPONLY(CEF_ColorOmniboxResultsIcon) \
   E_CPONLY(CEF_ColorOmniboxResultsIconGM3Background) \
   E_CPONLY(CEF_ColorOmniboxResultsIconSelected) \
+  E_CPONLY(CEF_ColorOmniboxResultsIconHovered) \
   E_CPONLY(CEF_ColorOmniboxResultsStarterPackIcon) \
   E_CPONLY(CEF_ColorOmniboxResultsTextAnswer) \
   E_CPONLY(CEF_ColorOmniboxResultsTextDimmed) \
@@ -1198,10 +1226,10 @@
   E_CPONLY(CEF_ColorProductSpecificationsTonalButtonIcon) \
   /* Profile Menu colors. */ \
   E_CPONLY(CEF_ColorProfileMenuBackground) \
-  E_CPONLY(CEF_ColorProfileMenuHeaderBackground) \
   E_CPONLY(CEF_ColorProfileMenuIdentityInfoBackground) \
   E_CPONLY(CEF_ColorProfileMenuIdentityInfoTitle) \
   E_CPONLY(CEF_ColorProfileMenuIdentityInfoSubtitle) \
+  E_CPONLY(CEF_ColorProfileMenuPromoButtonsBackground) \
   /* Profiles colors. */ \
   E_CPONLY(CEF_ColorProfilesReauthDialogBorder) \
   /* PWA colors. */ \
@@ -1228,56 +1256,100 @@
   E_CPONLY(CEF_ColorReadAnythingBackgroundDark) \
   E_CPONLY(CEF_ColorReadAnythingBackgroundLight) \
   E_CPONLY(CEF_ColorReadAnythingBackgroundYellow) \
+  E_CPONLY(CEF_ColorReadAnythingBackgroundHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingBackgroundLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingBackgroundSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingBackgroundSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlight) \
   E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightBlue) \
   E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightDark) \
   E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightLight) \
   E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightYellow) \
+  E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingCurrentReadAloudHighlightSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingFocusRingBackground) \
   E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundBlue) \
   E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundDark) \
   E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundLight) \
   E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundYellow) \
+  E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingFocusRingBackgroundSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingForeground) \
   E_CPONLY(CEF_ColorReadAnythingForegroundBlue) \
   E_CPONLY(CEF_ColorReadAnythingForegroundDark) \
   E_CPONLY(CEF_ColorReadAnythingForegroundLight) \
   E_CPONLY(CEF_ColorReadAnythingForegroundYellow) \
+  E_CPONLY(CEF_ColorReadAnythingForegroundHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingForegroundLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingForegroundSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingForegroundSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingSeparator) \
   E_CPONLY(CEF_ColorReadAnythingSeparatorBlue) \
   E_CPONLY(CEF_ColorReadAnythingSeparatorDark) \
   E_CPONLY(CEF_ColorReadAnythingSeparatorLight) \
   E_CPONLY(CEF_ColorReadAnythingSeparatorYellow) \
+  E_CPONLY(CEF_ColorReadAnythingSeparatorHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingSeparatorLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingSeparatorSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingSeparatorSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingDropdownBackground) \
   E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundBlue) \
   E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundDark) \
   E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundLight) \
   E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundYellow) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownBackgroundSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingDropdownSelected) \
   E_CPONLY(CEF_ColorReadAnythingDropdownSelectedBlue) \
   E_CPONLY(CEF_ColorReadAnythingDropdownSelectedDark) \
   E_CPONLY(CEF_ColorReadAnythingDropdownSelectedLight) \
   E_CPONLY(CEF_ColorReadAnythingDropdownSelectedYellow) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownSelectedHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownSelectedLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownSelectedSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingDropdownSelectedSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingTextSelection) \
   E_CPONLY(CEF_ColorReadAnythingTextSelectionBlue) \
   E_CPONLY(CEF_ColorReadAnythingTextSelectionDark) \
   E_CPONLY(CEF_ColorReadAnythingTextSelectionLight) \
   E_CPONLY(CEF_ColorReadAnythingTextSelectionYellow) \
+  E_CPONLY(CEF_ColorReadAnythingTextSelectionHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingTextSelectionLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingTextSelectionSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingTextSelectionSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingLinkDefault) \
   E_CPONLY(CEF_ColorReadAnythingLinkDefaultBlue) \
   E_CPONLY(CEF_ColorReadAnythingLinkDefaultDark) \
   E_CPONLY(CEF_ColorReadAnythingLinkDefaultLight) \
   E_CPONLY(CEF_ColorReadAnythingLinkDefaultYellow) \
+  E_CPONLY(CEF_ColorReadAnythingLinkDefaultHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingLinkDefaultLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingLinkDefaultSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingLinkDefaultSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingLinkVisited) \
   E_CPONLY(CEF_ColorReadAnythingLinkVisitedBlue) \
   E_CPONLY(CEF_ColorReadAnythingLinkVisitedDark) \
   E_CPONLY(CEF_ColorReadAnythingLinkVisitedLight) \
   E_CPONLY(CEF_ColorReadAnythingLinkVisitedYellow) \
+  E_CPONLY(CEF_ColorReadAnythingLinkVisitedHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingLinkVisitedLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingLinkVisitedSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingLinkVisitedSepiaDark) \
   E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlight) \
   E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightBlue) \
   E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightDark) \
   E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightLight) \
   E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightYellow) \
+  E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightHighContrast) \
+  E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightLowContrast) \
+  E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightSepiaLight) \
+  E_CPONLY(CEF_ColorReadAnythingPreviousReadAloudHighlightSepiaDark) \
   /* Realbox colors. */ \
   E_CPONLY(CEF_ColorSearchboxAnswerIconBackground) \
   E_CPONLY(CEF_ColorSearchboxAnswerIconForeground) \
@@ -1343,6 +1415,8 @@
   E_CPONLY(CEF_ColorSidePanelBookmarksSelectedFolderBackground) \
   E_CPONLY(CEF_ColorSidePanelBookmarksSelectedFolderForeground) \
   E_CPONLY(CEF_ColorSidePanelBookmarksSelectedFolderIcon) \
+  E_CPONLY(CEF_ColorSidePanelBookmarksActiveFolderForeground) \
+  E_CPONLY(CEF_ColorSidePanelBookmarksActiveFolderBackground) \
   E_CPONLY(CEF_ColorSidePanelCardBackground) \
   E_CPONLY(CEF_ColorSidePanelCardPrimaryForeground) \
   E_CPONLY(CEF_ColorSidePanelCardSecondaryForeground) \
@@ -1397,7 +1471,7 @@
   E_CPONLY(CEF_ColorSidePanelWallpaperSearchErrorButtonBackground) \
   E_CPONLY(CEF_ColorSidePanelWallpaperSearchErrorButtonText) \
   E_CPONLY(CEF_ColorSidePanelWallpaperSearchInspirationDescriptors) \
-  /* Split view empty state colors. */ \
+  /* Split view colors. */ \
   E_CPONLY(CEF_ColorSplitViewBackground) \
   /* Star rating view colors. */ \
   E_CPONLY(CEF_ColorStarRatingFullIcon) \
