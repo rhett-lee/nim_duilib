@@ -142,7 +142,7 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 ## 六、CEF控件（CefControl）的使用说明（macOS平台）
 使用的基本步骤如下（所有目录只写了相对nim_duilib根目录${NIM_DUILIB_ROOT}的子目录，实际设置根据自己的项目组织结构可灵活调整）：    
 ### 1. libcef 最新版本二进制文件和资源文件的下载（需要自己下载）
-* x64位版本的下载链接：[05/31/2025 - 137.0.8+gaaaa0bf+chromium-137.0.7151.56 / Chromium 137.0.7151.56](https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2)    
+* x64位版本的下载链接：[11/10/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_macosx64.tar.bz2)    
 * ARM64位版本的下载链接：[11/09/2025 - 142.0.8+gaa285ed+chromium-142.0.7444.135 / Chromium 142.0.7444.135](https://cef-builds.spotifycdn.com/cef_binary_142.0.8%2Bgaa285ed%2Bchromium-142.0.7444.135_macosarm64.tar.bz2)    
   下载压缩包后，解压。    
   然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../cef_binary`目录即可（cef_binary这个文件夹需要新建，与nim_duilib目录是平级目录）。    
