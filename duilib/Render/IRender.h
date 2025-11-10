@@ -1300,16 +1300,16 @@ public:
 
     /** 将数据写入到位图中去（数据是复制一份到目标数据）
     * @param [in] srcPixels 源数据的缓冲区起始地址
-    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内
+    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
     */
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
 
     /** 将数据写入到位图中去(数据是复制一份到目标数据，仅复制绘制部分)
     * @param [in] srcPixels 源数据的缓冲区起始地址
     * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围
-    * @param [in] rcPaint 绘制的部分矩形范围，将绘制的位图数据写入到此矩形内
+    * @param [in] rc 在Render中的矩形范围，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
+    * @param [in] rcPaint 绘制的部分矩形范围，代表脏区域，仅绘制rcPaint与rc交集的部分区域
     */
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
 

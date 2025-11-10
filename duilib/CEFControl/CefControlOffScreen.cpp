@@ -4,13 +4,13 @@
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/internal/CefMemoryBlock.h"
 
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Box.h"
+
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/CEFControl/internal/Windows/util_win.h"
     #include "duilib/CEFControl/internal/Windows/osr_ime_handler_win.h"
 #endif
-
-#include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/Box.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     #include <SDL3/SDL.h>
@@ -198,13 +198,14 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 
         if (!rcPaint.IsEmpty()) {
             if (bRectValid) {
+                //区域匹配，与网页内容的大小刚好相同
                 m_pCefMemData->PaintData(pRender, rect);
             }
             else {
                 //如果区域不匹配，按图像数据实际大小绘制，然后再次触发一次绘制事件（避免绘制超出控件边界，覆盖其他控件）
                 UiRect rc = rect;
-                rc.right = rc.left + m_pCefMemData->GetWidth();
-                rc.bottom = rc.top + m_pCefMemData->GetHeight();
+                rc.right = std::min(rc.left + m_pCefMemData->GetWidth(), rect.right);
+                rc.bottom = std::min(rc.top + m_pCefMemData->GetHeight(), rect.bottom);
                 m_pCefMemData->PaintData(pRender, rc);
                 m_pBrowserHandler->SetViewRect(rect);
             }
@@ -213,11 +214,11 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
         // 绘制cef PET_POPUP类型的位图
         if (!m_rectPopup.IsEmpty() && m_pCefPopupMemData->IsValid()) {
             // 假如popup窗口位置在控件的范围外，则修正到控件范围内，指绘制控件范围内的popup窗口
-            UiRect dcPaint = GetRect();
+            UiRect dcPaint = rect;
             dcPaint.left += Dpi().GetScaleInt(m_rectPopup.x);
             dcPaint.top += Dpi().GetScaleInt(m_rectPopup.y);
-            dcPaint.right = dcPaint.left + m_pCefPopupMemData->GetWidth();
-            dcPaint.bottom = dcPaint.top + m_pCefPopupMemData->GetHeight();
+            dcPaint.right = std::min(dcPaint.left + m_pCefPopupMemData->GetWidth(), rect.right);
+            dcPaint.bottom = std::min(dcPaint.top + m_pCefPopupMemData->GetHeight(), rect.bottom);
             if (!rcPaint.IsEmpty()) {
                 m_pCefPopupMemData->PaintData(pRender, dcPaint);
             }

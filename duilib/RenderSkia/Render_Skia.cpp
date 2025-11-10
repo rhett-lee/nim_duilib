@@ -2123,8 +2123,8 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     if (rc.IsEmpty()) {
         return false;
     }
-    ASSERT(srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
-    if (srcPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+    ASSERT(srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t)));
+    if (srcPixelsLen != (rc.Width() * rc.Height() * sizeof(uint32_t))) {
         return false;
     }
 
@@ -2156,8 +2156,8 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     if (rc.IsEmpty()) {
         return false;
     }
-    ASSERT(srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
-    if (srcPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+    ASSERT(srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t)));
+    if (srcPixelsLen != (rc.Width() * rc.Height() * sizeof(uint32_t))) {
         return false;
     }
 
