@@ -3199,10 +3199,10 @@ UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
     return rcAvailable;
 }
 
-UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
+UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
 {
     //计算子控件的大小
-    UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc);
+    UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc, bEstimateOnly);
     if (requiredSize.cx > rc.Width()) {
         requiredSize.cx = 0;
     }

@@ -50,7 +50,7 @@ public:
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
-    virtual UiSize64 CalcRequiredSize(const UiRect& rc) override;
+    virtual UiSize64 CalcRequiredSize(const UiRect& rc, bool bEstimateOnly) override;
     virtual void OnScrollOffsetChanged(const UiSize& oldScrollOffset, const UiSize& newScrollOffset) override;
 
 public:

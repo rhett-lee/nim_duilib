@@ -161,7 +161,7 @@ void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
     UiSize64 requiredSize;
     if (pLayout->LayoutByActualAreaSize()) {
         //该布局在支持滚动条的容器中，拉伸类型的子控件的布局与目标区域大小相关，需要预先计算目标区域大小
-        requiredSize = CalcRequiredSize(rc);//只计算不调整
+        requiredSize = CalcRequiredSize(rc, true);//只计算子控件的大小和位置，不调整
         if ((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
             int32_t cx = TruncateToInt32(requiredSize.cx);
             int32_t cy = TruncateToInt32(requiredSize.cy);
@@ -173,13 +173,13 @@ void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
             }
             UiRect realRect(rc.left, rc.top, rc.left + cx, rc.top + cy);
             if ((realRect.Width() != rc.Width()) || (realRect.Height() != rc.Height())) {
-                requiredSize = DoArrangeChildren(realRect, false);
+                requiredSize = CalcRequiredSize(realRect, false); //计算子控件的大小和位置，并调整
                 bArrangedChildren = true;
             }
         }
     }
     if (!bArrangedChildren) {
-        requiredSize = DoArrangeChildren(rc, false);
+        requiredSize = CalcRequiredSize(rc, false);//计算子控件的大小和位置，并调整
     }
 
     //requiredSize需要剪去内边距，与ProcessVScrollBar/ProcessHScrollBar的逻辑保持一致
@@ -261,9 +261,9 @@ void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
     }
 }
 
-UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
+UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
 {
-    return DoArrangeChildren(rc, true);
+    return DoArrangeChildren(rc, bEstimateOnly);
 }
 
 UiSize64 ScrollBox::DoArrangeChildren(const UiRect& rc, bool bEstimateOnly)

@@ -265,11 +265,12 @@ public:
     void SetScrollVirtualOffsetX(int64_t xOffset);
 
 protected:
-    /** 计算所需的尺寸
-     * @param[in] rc 当前位置信息, 外部调用时，不需要剪去内边距
+    /** 调整/估算子控件的位置和大小
+     * @param [in] rc 当前位置信息, 外部调用时，不需要剪去内边距
+     * @param [in] bEstimateOnly true表示仅评估不调整控件的位置，false表示调整控件的位置
      * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
      */
-    virtual UiSize64 CalcRequiredSize(const UiRect& rc);
+    virtual UiSize64 CalcRequiredSize(const UiRect& rc, bool bEstimateOnly);
 
     /** 设置鼠标可用状态事件
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
