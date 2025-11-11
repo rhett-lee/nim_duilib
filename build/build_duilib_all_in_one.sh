@@ -272,11 +272,10 @@ curl_download_with_retry() {
         # -o: Specify output file path
         # --retry: Number of retries (only for network errors)
         # --connect-timeout: Timeout for establishing connection
-        # --max-time: Total timeout for entire download process
         curl -L -f -o "$save_path" \
             --retry "$max_retries" \
             --connect-timeout "$timeout" \
-            --max-time $((timeout * 2)) \
+            --retry-delay 30 --speed-limit 100 --speed-time 120 \
             "$url"
 
         # Check download result
@@ -394,9 +393,9 @@ if [ "$has_curl$has_wget" != "00" ] && [ "$has_linux$has_macos" != "00" ]; then
         # download .tar.bz2
         libcef_local_file=${libcef_file_name}.tar.bz2
         if [ "$has_curl" == "1" ]; then
-            curl_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 20
+            curl_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30
         else
-            wget_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 20
+            wget_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30
         fi
         
         if [ $? -eq 0 ]; then
