@@ -29,7 +29,8 @@ void CefClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, 
         command_line->AppendSwitch("process-per-site");
         command_line->AppendSwitch("disable-gpu");
         command_line->AppendSwitch("disable-gpu-compositing");
-        //command_line->AppendSwitchWithValue("proxy-server", "SOCKS5://127.0.0.1:1080");    
+        command_line->AppendSwitch("disable-gpu-sandbox");//关闭GPU的sandbox，该选项开启时，Linux平台会导致GPU进程无法正常启动
+        //command_line->AppendSwitchWithValue("proxy-server", "SOCKS5://127.0.0.1:1080");
 
         // 开启离屏渲染
         if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
