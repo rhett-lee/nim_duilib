@@ -69,11 +69,6 @@ if(OS_MAC)
     set(EXECUTABLE_NAME "${CEF_TARGET}")
     set(PRODUCT_NAME "${CEF_TARGET}")
 
-    if(USE_SANDBOX)
-        # Logical target used to link the cef_sandbox library.
-        ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
-    endif()
-
     # Main app bundle target.
     add_executable(${CEF_TARGET} MACOSX_BUNDLE ${CEF_PROJECT_RESOURCES_SRCS} ${CEF_PROJECT_SRCS})
     
@@ -132,13 +127,8 @@ if(OS_MAC)
     
     set_target_properties(${CEF_TARGET} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist.in)
 
-    # Copy the CEF framework into the Frameworks directory.
-    add_custom_command(TARGET ${CEF_TARGET} 
-                       POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory
-                               "${CEF_BINARY_DIR}/Chromium Embedded Framework.framework"
-                               "${CEF_APP}/Contents/Frameworks/Chromium Embedded Framework.framework"
-                       VERBATIM)
+    # Copy the CEF framework into the Frameworks directory and create the necessary symlinks.
+    COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${CEF_BINARY_DIR}" "${CEF_APP}")
 
     # temp build directory
     set(CEF_OLD_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR})
@@ -175,10 +165,6 @@ if(OS_MAC)
         set_target_properties(${_helper_target} PROPERTIES
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})
-
-        if(USE_SANDBOX)
-            target_link_libraries(${_helper_target} cef_sandbox_lib)
-        endif()
 
         # Add the Helper as a dependency of the main executable target.
         add_dependencies(${CEF_TARGET} "${_helper_target}")
