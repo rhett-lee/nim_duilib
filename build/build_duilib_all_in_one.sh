@@ -273,7 +273,7 @@ curl_download_with_retry() {
         # --retry: Number of retries (only for network errors)
         # --connect-timeout: Timeout for establishing connection
         # --max-time: Total timeout for entire download process
-        curl -L -f -sS -o "$save_path" \
+        curl -L -f -o "$save_path" \
             --retry "$max_retries" \
             --connect-timeout "$timeout" \
             --max-time $((timeout * 2)) \
