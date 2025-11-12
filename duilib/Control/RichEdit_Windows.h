@@ -408,6 +408,14 @@ public:
     */
     void SetUseControlCursor(bool bUseControlCursor);
 
+    /** 获取行间距倍数
+    */
+    float GetRowSpacingMul() const;
+
+    /** 设置行间距倍数(仅当IsRichText()为true时有效)
+    */
+    void SetRowSpacingMul(float fRowSpacingMul);
+
 public:
     /** 监听回车按键按下事件
      * @param[in] callback 回车被按下的自定义回调函数
@@ -1096,6 +1104,10 @@ private:
     */
     void CheckSelAllOnFocus();
 
+    /** 设置行间距倍数
+    */
+    void DoSetRowSpacingMul(float fRowSpacingMul);
+
 private:
     //RichEdit控制辅助工具类
     RichEditCtrl m_richCtrl;
@@ -1103,6 +1115,7 @@ private:
     //RichEdit Host类
     RichEditHost* m_pRichHost;
 
+    float m_fRowSpacingMul;     //行间距倍数
     bool m_bVScrollBarFixing;   //滚动条修正标志
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键

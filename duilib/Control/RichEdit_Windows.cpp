@@ -338,7 +338,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pSpinBox(nullptr),
     m_pClearButton(nullptr),
     m_pShowPasswordButton(nullptr),
-    m_nFocusBottomBorderSize(0)
+    m_nFocusBottomBorderSize(0),
+    m_fRowSpacingMul(1.0f)
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
@@ -563,6 +564,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("select_all_on_focus")) {
         //获取焦点的时候，是否全选
         SetSelAllOnFocus(strValue == _T("true"));
+    }
+    else if (strName == _T("row_spacing_mul")) {
+        SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -2901,6 +2905,33 @@ void RichEdit::SetNoCaretReadonly()
     m_bNoCaretReadonly = true;
 }
 
+float RichEdit::GetRowSpacingMul() const
+{
+    return m_fRowSpacingMul;
+}
+
+void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
+{
+    if (m_fRowSpacingMul != fRowSpacingMul) {
+        m_fRowSpacingMul = fRowSpacingMul;
+        if (m_fRowSpacingMul <= 0.01f) {
+            m_fRowSpacingMul = 1.0f;
+        }
+        DoSetRowSpacingMul(m_fRowSpacingMul);
+    }
+}
+
+void RichEdit::DoSetRowSpacingMul(float fRowSpacingMul)
+{
+    PARAFORMAT2 pf2;
+    GetParaFormat(pf2);
+    pf2.cbSize = sizeof(PARAFORMAT2);
+    pf2.dwMask = PFM_LINESPACING;            // 必须设置此掩码以启用行间距
+    pf2.bLineSpacingRule = 5;                // 多倍行距模式
+    pf2.dyLineSpacing = (LONG)(fRowSpacingMul * 20); // fRowSpacingMul 倍行距（fRowSpacingMul * 20）
+    SetParaFormat(pf2);
+}
+
 void RichEdit::ClearImageCache()
 {
     BaseClass::ClearImageCache();
@@ -3792,6 +3823,11 @@ void RichEdit::SetRichText(bool bRichText)
     TEXTMODE newTextMode2 = m_richCtrl.GetTextMode();
     ASSERT((uint32_t)textMode & (uint32_t)newTextMode2);
 #endif
+
+    if (IsRichText() && std::fabs(GetRowSpacingMul() - 1.0f) > 0.0001f) {
+        //初始化行间距
+        DoSetRowSpacingMul(GetRowSpacingMul());
+    }
 }
 
 bool RichEdit::GetAllowBeep() const

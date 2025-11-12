@@ -185,6 +185,14 @@ public:
     */
     DString GetInactiveCurrentRowBkColor() const;
 
+    /** 获取行间距倍数
+    */
+    float GetRowSpacingMul() const;
+
+    /** 设置行间距倍数
+    */
+    void SetRowSpacingMul(float fRowSpacingMul);
+
 public:
     /** 设置是否允许显示提示文字
      * @param[in] bPrompt 设置为 true 为显示，false 为不显示
@@ -1019,9 +1027,13 @@ private:
     */
     UiRect GetTextDrawRect(const UiRect& rc) const;
 
-    /** 重绘
+    /** 重绘（但不会重新计算布局）
     */
     void Redraw();
+
+    /** 清除绘制缓存，并重绘(当行间距、字体等导致布局变化时需要调用)
+    */
+    void ClearCacheAndRedraw();
 
     /** 检查是否需要滚动视图
     */
@@ -1135,7 +1147,8 @@ private:
     UiString m_sPromptTextId;           //提示文字ID
     bool m_bAllowPrompt;                //是否支持提示文字
 
-    uint8_t m_nFocusBottomBorderSize;    //焦点状态时，底部边框的大小
+    uint8_t m_nFocusBottomBorderSize;   //焦点状态时，底部边框的大小
+    float m_fRowSpacingMul;             //行间距倍数
 
 private:
     /** 是否使用Control设置的光标

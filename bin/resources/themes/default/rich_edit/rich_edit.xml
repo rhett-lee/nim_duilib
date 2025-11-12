@@ -182,6 +182,26 @@
                         <Label text="其他：" valign="center" margin="8,0,8,0"/>
                         <CheckBox class="checkbox_1" name="btn_word_wrap" text="自动换行" margin="4,0,0,0" selected="true" tooltiptext="是否自动换行"/>
                         <CheckBox class="checkbox_1" name="btn_rich_text" text="富文本模式" margin="12,0,0,0" selected="true" tooltiptext="是否支持富文本格式"/>
+                        <Label text="行间距：" valign="center" margin="12,0,0,0"/>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.0" margin="6,0,0,0" text_align="vcenter" selected="true">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.0'" />
+                        </Option>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.15" margin="6,0,0,0" text_align="vcenter">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.15'" />
+                        </Option>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.5" margin="6,0,0,0" text_align="vcenter">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.5'" />
+                        </Option>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="2.0" margin="6,0,0,0" text_align="vcenter">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.0'" />
+                        </Option>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="2.5" margin="6,0,0,0" text_align="vcenter">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.5'" />
+                        </Option>
+                        <Option class="option_1" group="richedit_row_spacing_group" text="3.0" margin="6,0,0,0" text_align="vcenter">
+                            <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='3.0'" />
+                        </Option>
+                        <Label name="row_spacing_tips" text="（行间距：仅在富文本模式下有效）" valign="center" margin="4,0,0,0"/>
                    </HBox>
                 </VBox>
                 <!-- 横向分割条，用于调整上下区域大小 -->

@@ -425,6 +425,7 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
 | enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
 | drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
+| row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距<br>Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距；<br>使用SDL时，始终有效，即其他平台时，行间距属性均有效|
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
@@ -458,7 +459,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | hover_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | mouse_down_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
 | link_font_underline | true | bool | 超级链接：是否使用带下划线的字体 |
-| row_spacing_mul | | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
+| row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性

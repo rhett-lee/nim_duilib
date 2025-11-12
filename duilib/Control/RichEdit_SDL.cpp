@@ -89,7 +89,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sInactiveSelectionBkColor(_T("DarkGray")),
     m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T("")),
-    m_nFocusBottomBorderSize(0)
+    m_nFocusBottomBorderSize(0),
+    m_fRowSpacingMul(1.0f)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -340,6 +341,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色
         SetInactiveCurrentRowBkColor(strValue);
     }
+    else if (strName == _T("row_spacing_mul")) {
+        SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
     else {
         ScrollBox::SetAttribute(strName, strValue);
     }
@@ -380,10 +384,10 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetTextPadding(rcTextPadding, false);
 
     //更新字体大小
-    m_pTextData->SetCacheDirty(true);
     SetFontIdInternal(GetCurrentFontId());
-    Redraw();
-    UpdateScrollRange();
+
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
@@ -614,9 +618,8 @@ void RichEdit::SetWordWrap(bool bWordWrap)
 {
     if (m_bWordWrap != bWordWrap) {
         m_bWordWrap = bWordWrap;
-        m_pTextData->SetCacheDirty(true);
-        Redraw();
-        UpdateScrollRange();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -630,8 +633,8 @@ void RichEdit::SetMultiLine(bool bMultiLine)
     bool bSingleLineMode = !bMultiLine;
     if (m_pTextData->IsSingleLineMode() != bSingleLineMode) {
         m_pTextData->SetSingleLineMode(bSingleLineMode);
-        Redraw();
-        UpdateScrollRange();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -771,10 +774,9 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
 
 void RichEdit::OnFontChanged(const DString& fontId)
 {
-    m_pTextData->SetCacheDirty(true);
     SetFontIdInternal(fontId);
-    Redraw();
-    UpdateScrollRange();
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 }
 
 void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomPercent)
@@ -791,10 +793,11 @@ void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomP
             GlobalManager::Instance().Font().RemoveIFont(fontId, nZoomPercent);
         }
     }
-    m_pTextData->SetCacheDirty(true);
+
     SetFontIdInternal(GetCurrentFontId());
-    Redraw();
-    UpdateScrollRange();
+
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 
     //触发kEventZoom事件
     SendEvent(kEventZoom, (WPARAM)nNewZoomPercent, 0);
@@ -887,6 +890,23 @@ void RichEdit::SetInactiveCurrentRowBkColor(const DString& currentRowBkColor)
 DString RichEdit::GetInactiveCurrentRowBkColor() const
 {
     return m_sInactiveCurrentRowBkColor.c_str();
+}
+
+float RichEdit::GetRowSpacingMul() const
+{
+    return m_fRowSpacingMul;
+}
+
+void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
+{
+    if (m_fRowSpacingMul != fRowSpacingMul) {
+        m_fRowSpacingMul = fRowSpacingMul;
+        if (m_fRowSpacingMul <= 0.01f) {
+            m_fRowSpacingMul = 1.0f;
+        }
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
+    }
 }
 
 int32_t RichEdit::GetLimitText() const
@@ -2910,7 +2930,8 @@ void RichEdit::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_pTextData->GetHAlignType() != alignType) {
         m_pTextData->SetTextHAlignType(alignType);
-        Redraw();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -2923,7 +2944,8 @@ void RichEdit::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_pTextData->GetVAlignType() != alignType) {
         m_pTextData->SetTextVAlignType(alignType);
-        Redraw();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -3033,6 +3055,9 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     richTextData.m_pFontInfo->m_bUnderline = pFont->IsUnderline();
     richTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
     richTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
+
+    //行间距倍数
+    richTextData.m_fRowSpacingMul = GetRowSpacingMul();
 
     if (nStartLine != (size_t)-1) {
         //增量绘制，只绘制变化的部分
@@ -3258,6 +3283,13 @@ void RichEdit::Redraw()
     m_nSelXPos = -1;
     m_pTextData->ClearDrawRichTextCache();
     Invalidate();
+}
+
+void RichEdit::ClearCacheAndRedraw()
+{
+    m_pTextData->SetCacheDirty(true);
+    Redraw();
+    UpdateScrollRange();
 }
 
 ////////////////////////////////////////////////////////////
