@@ -905,13 +905,15 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
         return false;
     }
     else {
-        //离屏渲染模式：需要设置光标
-        SetCefWindowCursor(GetCefWindowHandle(), cursor);
+        //离屏渲染模式：需要设置光标        
 #ifdef DUILIB_BUILD_FOR_SDL
         //由于SDL内部，未开放设置光标事件，所以需要主动设置SDL的光标，才能保证光标正确（SDL内部会设置光标，覆盖此处的光标）
         if (m_pHandlerDelegate && !m_bHostWindowClosed) {
             GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnCursorChange, m_pHandlerDelegate, type));
         }
+#else
+        //非SDL模式下，需要主动设置光标
+        SetCefWindowCursor(GetCefWindowHandle(), cursor);
 #endif
         return true;
     }

@@ -267,20 +267,21 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
 
 void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
 {
-    if ((cefWindow == 0) || (cursor == 0)) {
-        return;
-    }
-    Display* display = ::XOpenDisplay(nullptr);
-    if (display != nullptr) {
-        // RAII资源管理
-        struct DisplayCloser {
-            Display* d;
-            ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-        } closer{ display };
-
-        ::Window x11Window = cefWindow;
-        XDefineCursor(display, x11Window, cursor);
-    }
+    // 该函数暂时用不到，注释掉了
+    // if ((cefWindow == 0) || (cursor == 0)) {
+    //     return;
+    // }
+    // Display* display = ::XOpenDisplay(nullptr);
+    // if (display != nullptr) {
+    //     // RAII资源管理
+    //     struct DisplayCloser {
+    //         Display* d;
+    //         ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+    //     } closer{ display };
+    // 
+    //     ::Window x11Window = cefWindow;
+    //     XDefineCursor(display, x11Window, cursor);
+    // }
 }
 
 void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
