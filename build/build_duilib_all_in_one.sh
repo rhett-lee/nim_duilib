@@ -372,7 +372,7 @@ if [ "$has_curl$has_wget" != "00" ] && [ "$has_linux$has_macos" != "00" ]; then
     libcef_cef_binary_dir=./cef_binary
     
     # libcef file name prefix
-    libcef_file_name_prefix=cef_binary_142.0.8+gaa285ed+chromium-142.0.7444.135
+    libcef_file_name_prefix=cef_binary_142.0.10+g29548e2+chromium-142.0.7444.135
     if [ "$has_linux" == "1" ]; then
         # Linux
         if [ "$CPU_ARCH" == "arm64" ]; then
