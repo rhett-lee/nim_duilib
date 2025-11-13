@@ -4,7 +4,7 @@
 ```
 # 当前目录: %PAG_ROOT%
 git clone https://github.com/Tencent/libpag.git
-# 当时的SHA-1: 7d4d2fd677cc53c55a189d828637cafcd8f29ad0
+# 当时的SHA-1: 2aadc0260cc0106e064e4071e00a0432a71d978c
 ```
 
 ### 二、开发环境构建（需要已安装Visual Studio 2022）：
@@ -31,7 +31,7 @@ git clone https://github.com/Tencent/libpag.git
 ### 四、使用cmake在命令行编译
 1. x64编译    
 （1）首先进入VS命令行：“x64 Native Tools Command Prompt for VS 2022”    
-     这一步是必须的，否则使用cmake的时候，会报错
+     这一步是必须的，否则使用cmake的时候，会报错    
 （2）在VS命令行中运行以下命令完成编译：
 ```
 # 当前目录: %PAG_ROOT%
@@ -44,7 +44,7 @@ cmake --build ./build-libpag-x64 --config Release
 
 2. Win32编译    
 （1）首先进入VS命令行：“x86 Native Tools Command Prompt for VS 2022”    
-     这一步是必须的，否则使用cmake的时候，会报错
+     这一步是必须的，否则使用cmake的时候，会报错    
 （2）在VS命令行中运行以下命令完成编译：
 ```
 # 当前目录: %PAG_ROOT%
