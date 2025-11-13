@@ -21,7 +21,8 @@ bool CefManager_MacOS::Initialize(bool bEnableOffScreenRendering,
                                   const DString& appName,
                                   int argc,
                                   char** argv,
-                                  OnCefSettingsEvent callback)
+                                  OnCefSettingsEvent callback,
+                                  int32_t& nExitCode)
 {
     if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback)) {
         return false;
@@ -35,6 +36,7 @@ bool CefManager_MacOS::Initialize(bool bEnableOffScreenRendering,
 
     bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
     if (!bRet) {
+        nExitCode = 1;
         return false;
     }
     return true;

@@ -15,21 +15,12 @@ CefManager_Linux::~CefManager_Linux()
 {
 }
 
-DString CefManager_Linux::GetCefMoudlePath() const
-{
-    DString cefMoudlePath = BaseClass::GetCefMoudlePath();
-    if (cefMoudlePath.empty()) {
-        //使用默认规则
-        cefMoudlePath = _T("libcef_linux");
-    }
-    return cefMoudlePath;
-}
-
 bool CefManager_Linux::Initialize(bool bEnableOffScreenRendering,
                                   const DString& appName,
                                   int argc,
                                   char** argv,
-                                  OnCefSettingsEvent callback)
+                                  OnCefSettingsEvent callback,
+                                  int32_t& nExitCode)
 {
     if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback)) {
         return false;
@@ -42,6 +33,7 @@ bool CefManager_Linux::Initialize(bool bEnableOffScreenRendering,
     // 如果在Browser进程中调用，则立即返回-1
     int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
     if (exit_code >= 0) {
+        nExitCode = exit_code;
         return false;
     }
 
