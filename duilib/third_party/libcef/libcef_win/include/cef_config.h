@@ -35,6 +35,8 @@
 #ifndef CEF_INCLUDE_CEF_CONFIG_H_
 #define CEF_INCLUDE_CEF_CONFIG_H_
 
-#define CEF_V8_ENABLE_SANDBOX 1
+#if defined (_WIN64)
+    #define CEF_V8_ENABLE_SANDBOX 1
+#endif
 
 #endif  // CEF_INCLUDE_CEF_CONFIG_H_

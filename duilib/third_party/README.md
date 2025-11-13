@@ -44,6 +44,7 @@
 
 ## libcef 库更新说明
 1. libcef对CMakeLists.txt文件和VC工程文件是有修改的，详情如下：    
+ - libcef/libcef_win/include/cef_config.h（修改内容：CEF_V8_ENABLE_SANDBOX 这个宏，只有64位系统定义，32位系统不需要定义）
  - libcef/libcef_win/CMakeLists.txt    
  - libcef/libcef_win/libcef_dll_wrapper.vcxproj    
  - libcef/libcef_win/libcef_dll_wrapper.vcxproj.filters    
