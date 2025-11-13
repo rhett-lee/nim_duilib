@@ -22,7 +22,7 @@ bool CefManager_Linux::Initialize(bool bEnableOffScreenRendering,
                                   OnCefSettingsEvent callback,
                                   int32_t& nExitCode)
 {
-    if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback)) {
+    if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback, nExitCode)) {
         return false;
     }
 
