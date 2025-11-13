@@ -2439,16 +2439,25 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
 
     if (!clipRects.empty()) {
-        bool bHasIntersect = false;        
+        bool bHasIntersect = false;
+        std::vector<UiRect> intersectClipRects;
         for (const UiRect& clipRect : clipRects) {
             UiRect rcCheck = rcUpdate;
             if (rcCheck.Intersect(clipRect)) {
                 bHasIntersect = true;
-                break;
+                intersectClipRects.push_back(clipRect);
             }
         }
         if (!bHasIntersect) {
             //脏区域矩形与裁剪区域矩形无交集，无需绘制
+            return;
+        }
+
+        //去剪辑区域的交集，避免出现绘制溢出的现象
+        for (const UiRect& clipRect : intersectClipRects) {
+            rcUpdate.Intersect(clipRect);
+        }
+        if (rcUpdate.IsEmpty()) {
             return;
         }
     }
