@@ -20,7 +20,27 @@ TestApplication& TestApplication::Instance()
 
 int TestApplication::Run(int argc, char** argv)
 {
-    // 创建主线程
+    //CEF模块功能预初始化(准备加载CEF模块的基本环境)
+    ui::CefManager::GetInstance()->InitEnv();
+
+    // Parse command-line arguments.
+    CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
+#ifdef DUILIB_BUILD_FOR_WIN
+    command_line->InitFromString(::GetCommandLineW());
+#else
+    command_line->InitFromArgv(argc, argv);
+#endif
+    ui::CefManager::ProcessType processType = ui::CefManager::GetProcessType(command_line);
+    if (processType != ui::CefManager::BrowserProcess) {
+        //非Browser进程：不应带入Browser进程的代码
+        int32_t nExitCode = 1;
+        if (!ui::CefManager::GetInstance()->Initialize(true, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
+            return nExitCode;
+        }
+        return 0;
+    }
+
+    // Browser进程，创建主线程
     MainThread thread;
 
     //必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
@@ -29,8 +49,9 @@ int TestApplication::Run(int argc, char** argv)
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), thread.GetDpiInitParam());
 
     //初始化CEF: 必须在GlobalManager初始化完成之后，因为初始化CEF过程中，会用到GlobalManager
-    if (!ui::CefManager::GetInstance()->Initialize(true, _T("cef_browser"), argc, argv, nullptr)) {
-        return 1;
+    int32_t nExitCode = 1;
+    if (!ui::CefManager::GetInstance()->Initialize(true, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
+        return nExitCode;
     }
 
     //如果未启用CEF的消息循环，则需要启动一个定时器调用CEF的消息处理函数

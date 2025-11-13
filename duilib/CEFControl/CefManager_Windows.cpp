@@ -18,7 +18,8 @@
 namespace ui
 {
 CefManager_Windows::CefManager_Windows():
-    m_pfnAlreadyRunningAppRelaunch(nullptr)
+    m_pfnAlreadyRunningAppRelaunch(nullptr),
+    m_bAddedCefDllToPath(false)
 {
 }
 
@@ -64,18 +65,34 @@ static void FixContextMenuBug(HWND hwnd)
     ::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
+bool CefManager_Windows::InitEnv()
+{
+    if (!BaseClass::InitEnv()) {
+        return false;
+    }
+    if (!m_bAddedCefDllToPath) {
+        m_bAddedCefDllToPath = true;
+        AddCefDllToPath();
+    }
+    return true;
+}
+
 bool CefManager_Windows::Initialize(bool bEnableOffScreenRendering,
                                     const DString& appName,
                                     int argc,
                                     char** argv,
-                                    OnCefSettingsEvent callback)
+                                    OnCefSettingsEvent callback,
+                                    int32_t& nExitCode)
 {
-    if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback)) {
+    if (!BaseClass::Initialize(bEnableOffScreenRendering, appName, argc, argv, callback, nExitCode)) {
         return false;
     }
 
     //把libcef.dll文件的所在路径添加到程序的"path"环境变量中
-    AddCefDllToPath();
+    if (!m_bAddedCefDllToPath) {
+        m_bAddedCefDllToPath = true;
+        AddCefDllToPath();
+    }
 
 #if CEF_VERSION_MAJOR <= 109
     //CEF 109版本，控制进程单例
@@ -112,6 +129,7 @@ bool CefManager_Windows::Initialize(bool bEnableOffScreenRendering,
     // 如果在Browser进程中调用，则立即返回-1
     int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
     if (exit_code >= 0) {
+        nExitCode = exit_code;
         return false;
     }
 
