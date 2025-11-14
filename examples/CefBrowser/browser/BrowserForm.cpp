@@ -5,6 +5,10 @@
 #include "browser/DragDropManager.h"
 #include <chrono>
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include <iostream>
+#endif
+
 using namespace ui;
 
 namespace
@@ -214,6 +218,14 @@ void BrowserForm::OnInitWindow()
     if (pButton != nullptr) {
         pButton->SetVisible(false);
     }
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    //显示SDL的基本信息
+    DString driverName = GetVideoDriverName();
+    DString renderName = GetWindowRenderName();
+    DString logMsg = ui::StringUtil::Printf(_T("[SDL: VideoDriver:\"%s\", RenderName:\"%s\"]"), driverName.c_str(), renderName.c_str());
+    std::cout << logMsg << std::endl;
+#endif
 }
 
 void BrowserForm::OnPreCloseWindow()

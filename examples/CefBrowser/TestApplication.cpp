@@ -30,11 +30,13 @@ int TestApplication::Run(int argc, char** argv)
 #else
     command_line->InitFromArgv(argc, argv);
 #endif
+
+    const bool bEnableOSR = true; //是否启用离屏渲染
     ui::CefManager::ProcessType processType = ui::CefManager::GetProcessType(command_line);
     if (processType != ui::CefManager::BrowserProcess) {
         //非Browser进程：不应带入Browser进程的代码
         int32_t nExitCode = 1;
-        if (!ui::CefManager::GetInstance()->Initialize(true, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
+        if (!ui::CefManager::GetInstance()->Initialize(bEnableOSR, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
             return nExitCode;
         }
         return 0;
@@ -50,7 +52,7 @@ int TestApplication::Run(int argc, char** argv)
 
     //初始化CEF: 必须在GlobalManager初始化完成之后，因为初始化CEF过程中，会用到GlobalManager
     int32_t nExitCode = 1;
-    if (!ui::CefManager::GetInstance()->Initialize(true, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
+    if (!ui::CefManager::GetInstance()->Initialize(bEnableOSR, _T("cef_browser"), argc, argv, nullptr, nExitCode)) {
         return nExitCode;
     }
 

@@ -45,6 +45,28 @@ bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
     return bRet;
 }
 
+DString MessageLoop_SDL::GetCurrentVideoDriverName()
+{
+    CheckInitSDL();
+    DString videoDriverName;
+    const char* videoDriver = SDL_GetCurrentVideoDriver();
+    if (videoDriver != nullptr) {
+        videoDriverName = StringConvert::UTF8ToT(videoDriver);
+    }
+    return videoDriverName;
+}
+
+float MessageLoop_SDL::GetPrimaryDisplayContentScale()
+{
+    CheckInitSDL();
+    SDL_DisplayID displayID = SDL_GetPrimaryDisplay();
+    float scale = 1.0f;
+    if (displayID != 0) {
+        scale = SDL_GetDisplayContentScale(displayID);
+    }
+    return scale;
+}
+
 int32_t MessageLoop_SDL::Run()
 {
     //初始化SDL

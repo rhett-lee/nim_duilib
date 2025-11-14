@@ -79,6 +79,14 @@ public:
     */
     static bool CheckInitSDL(const DString& videoDriverName = _T(""));
 
+    /** 返回当前的VideoDriver名称
+    */
+    static DString GetCurrentVideoDriverName();
+
+    /** 获取主屏的内容显示比例
+    */
+    static float GetPrimaryDisplayContentScale();
+
 private:
     /** 处理用户自定义消息
     */

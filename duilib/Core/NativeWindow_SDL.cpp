@@ -1485,8 +1485,38 @@ HDC NativeWindow_SDL::GetPaintDC() const
 #endif //DUILIB_BUILD_FOR_WIN
 
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-/** 获取X11的窗口标识符
-*/
+bool NativeWindow_SDL::IsVideoDriverX11() const
+{
+    DString videoDriverName = StringUtil::MakeLowerString(GetVideoDriverName());
+    return videoDriverName == _T("x11");
+}
+
+bool NativeWindow_SDL::IsVideoDriverWayland() const
+{
+    DString videoDriverName = StringUtil::MakeLowerString(GetVideoDriverName());
+    return videoDriverName == _T("wayland");
+}
+
+size_t NativeWindow_SDL::GetX11DisplayPointer() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    size_t nWindowDisplay = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr);
+    return nWindowDisplay;
+}
+
+uint64_t NativeWindow_SDL::GetX11ScreenNumber() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    uint64_t nScreenNumber = (uint64_t)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_X11_SCREEN_NUMBER, 0);
+    return nScreenNumber;
+}
+
 uint64_t NativeWindow_SDL::GetX11WindowNumber() const
 {
     if (!IsWindow()) {
@@ -1494,8 +1524,17 @@ uint64_t NativeWindow_SDL::GetX11WindowNumber() const
     }
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     uint64_t nWindowNumber = (uint64_t)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-    ASSERT(nWindowNumber != 0);
     return nWindowNumber;
+}
+
+size_t NativeWindow_SDL::GetWaylandDisplayPointer() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    size_t nWaylandDisplay = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr);
+    return nWaylandDisplay;
 }
 
 #endif

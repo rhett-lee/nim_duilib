@@ -105,9 +105,30 @@ public:
 #endif
 
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    /** 获取X11的窗口标识符
+    /** 当前窗口后端引擎是否为X11
+    */
+    bool IsVideoDriverX11() const;
+
+    /** 当前窗口后端引擎是否为X11
+    */
+    bool IsVideoDriverWayland() const;
+
+    /** 获取X11的窗口所在Display指针（对应于X11的::Display*类型）
+    */
+    size_t GetX11DisplayPointer() const;
+
+    /** 获取X11的Screen标识符（对应于X11的Screen）
+    */
+    uint64_t GetX11ScreenNumber() const;
+
+    /** 获取X11的窗口标识符（对应于X11的::Window类型）
     */
     uint64_t GetX11WindowNumber() const;
+
+    /** 获取Wayland的窗口所在Display指针（对应于Wayland的wl_display*类型）
+    */
+    size_t GetWaylandDisplayPointer() const;
+
 #endif
 
 #if defined DUILIB_BUILD_FOR_MACOS

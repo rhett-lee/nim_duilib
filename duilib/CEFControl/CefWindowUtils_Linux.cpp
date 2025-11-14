@@ -7,15 +7,25 @@
 #include "include/cef_task.h"
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <iostream>
 
 namespace ui
 {
 //判断窗口是否有效
 static bool IsX11WindowValid(Display* display, ::Window window)
 {
+    if (!display || window == None) {
+        return false;
+    }
+    // 保存旧的错误处理器
+    XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+    
     // 尝试获取窗口属性
     XWindowAttributes attrs;        
     Status status = XGetWindowAttributes(display, window, &attrs);
+    
+    // 恢复旧的错误处理器
+    XSetErrorHandler(old_handler);
     return (status != 0);  // 返回1有效，0无效
 }
 
@@ -32,28 +42,27 @@ public:
 public:
     virtual void Execute() override
     {
-        if (m_pCefControlFlag.expired()) {
+        if (m_pCefControlFlag.expired() || (m_pCefControl == nullptr)) {
             return;
         }
-        CefWindowHandle hParentHandle = 0;
+
+        CefWindowHandle hParentWindow = 0;
         Window* pWindow = m_pCefControl->GetWindow();
         if (pWindow != nullptr) {
-            hParentHandle = pWindow->NativeWnd()->GetX11WindowNumber();
+            hParentWindow = (CefWindowHandle)pWindow->NativeWnd()->GetX11WindowNumber();
         }
-        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
-        if ((handle != 0) && (hParentHandle != 0)) {
-            Display* display = XOpenDisplay(nullptr);
-            // RAII资源管理
-            struct DisplayCloser {
-                Display* d;
-                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-            } closer{ display };
-        
-            if ((display != nullptr) && IsX11WindowValid(display, handle) && IsX11WindowValid(display, hParentHandle)) {
+        CefWindowHandle cefWindow = m_pCefControl->GetCefWindowHandle();
+        XDisplay* cefDisplay = cef_get_xdisplay();
+        if ((cefWindow != 0) && (cefDisplay != nullptr) && (hParentWindow != 0)) {
+            if (IsX11WindowValid(cefDisplay, cefWindow) && IsX11WindowValid(cefDisplay, hParentWindow)) {
                 UiRect rc = m_pCefControl->GetPos();
-                XReparentWindow(display, handle, hParentHandle, rc.left, rc.top);
-                XFlush(display);
-            }
+                XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+                XReparentWindow(cefDisplay, cefWindow, hParentWindow, rc.left, rc.top);
+                XFlush(cefDisplay);
+                XSetErrorHandler(old_handler);
+
+                //std::cout << "SetX11WindowParentWindowTask: Executed." << std::endl;
+             }
         }
     }
 private:
@@ -74,27 +83,23 @@ public:
 public:
     virtual void Execute() override
     {
-        if (m_pCefControlFlag.expired()) {
+        if (m_pCefControlFlag.expired() || (m_pCefControl == nullptr)) {
             return;
         }
-        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
-        if (handle != 0) {
-            Display* display = XOpenDisplay(nullptr);
-            // RAII资源管理
-            struct DisplayCloser {
-                Display* d;
-                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-            } closer{ display };
-            
-            if ((display != nullptr) && IsX11WindowValid(display, handle)){
-                if (m_pCefControl->IsVisible()) {
-                    XMapWindow(display, handle);
-                }
-                else {
-                    XUnmapWindow(display, handle);
-                }
-                XFlush(display);
+        CefWindowHandle cefWindow = m_pCefControl->GetCefWindowHandle();
+        XDisplay* cefDisplay = cef_get_xdisplay();
+        if ((cefWindow != 0) && (cefDisplay != nullptr) && IsX11WindowValid(cefDisplay, cefWindow)) {
+            XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+            if (m_pCefControl->IsVisible()) {
+                XMapWindow(cefDisplay, cefWindow);
             }
+            else {
+                XUnmapWindow(cefDisplay, cefWindow);
+            }
+            XFlush(cefDisplay);
+            XSetErrorHandler(old_handler);
+
+            //std::cout << "SetX11WindowVisibleTask: Executed." << std::endl;
         }
     }
 private:
@@ -115,24 +120,20 @@ public:
 public:
     virtual void Execute() override
     {
-        if (m_pCefControlFlag.expired() || !m_pCefControl->IsVisible()) {
+        if (m_pCefControlFlag.expired() || (m_pCefControl == nullptr) || !m_pCefControl->IsVisible()) {
             //窗口隐藏的时候，不需要设置；如果设置的话，会导致程序崩溃
             return;
         }
-        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
+        CefWindowHandle cefWindow = m_pCefControl->GetCefWindowHandle();
+        XDisplay* cefDisplay = cef_get_xdisplay();
         ui::UiRect rc = m_pCefControl->GetPos();
-        if (handle != 0) {
-            Display* display = XOpenDisplay(nullptr);
-            // RAII资源管理
-            struct DisplayCloser {
-                Display* d;
-                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-            } closer{ display };
+        if ((cefWindow != 0) && (cefDisplay != nullptr) && IsX11WindowValid(cefDisplay, cefWindow)) {
+            XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+            XMoveResizeWindow(cefDisplay, cefWindow, rc.left, rc.top, rc.Width(), rc.Height());
+            XFlush(cefDisplay);
+            XSetErrorHandler(old_handler);
 
-            if ((display != nullptr) && IsX11WindowValid(display, handle)){
-                XMoveResizeWindow(display, handle, rc.left, rc.top, rc.Width(), rc.Height());
-                XFlush(display);
-            }
+            //std::cout << "SetX11WindowPosTask: Executed." << std::endl;
         }
     }
 private:
@@ -178,7 +179,7 @@ void SetCefWindowParent(CefWindowHandle cefWindow, CefControl* pCefControl)
     CefPostTask(TID_UI, new SetX11WindowParentWindowTask(pCefControl));
 }
 
-bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+bool DoCaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
 {
     // 检查X11环境更加健壮
     const char* sessionType = std::getenv("XDG_SESSION_TYPE");
@@ -190,17 +191,10 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
         }
     }
 
-    Display* display = ::XOpenDisplay(nullptr);
+    XDisplay* display = cef_get_xdisplay();
     if (!display) {
         return false;
     }
-
-    // RAII资源管理
-    struct DisplayCloser {
-        Display* d;
-        ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-    } closer{ display };
-
     ::Window x11Window = cefWindow;
 
     // 获取窗口尺寸
@@ -265,23 +259,29 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     return true;
 }
 
+bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    // 保存旧的错误处理器
+    XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+    bool bRet = DoCaptureCefWindowBitmap(cefWindow, bitmap, width, height);
+    // 恢复旧的错误处理器
+    XSetErrorHandler(old_handler);
+    return bRet;
+}
+
 void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
 {
-    // 该函数暂时用不到，注释掉了
-    // if ((cefWindow == 0) || (cursor == 0)) {
-    //     return;
-    // }
-    // Display* display = ::XOpenDisplay(nullptr);
-    // if (display != nullptr) {
-    //     // RAII资源管理
-    //     struct DisplayCloser {
-    //         Display* d;
-    //         ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-    //     } closer{ display };
-    // 
-    //     ::Window x11Window = cefWindow;
-    //     XDefineCursor(display, x11Window, cursor);
-    // }
+     //// 该函数暂时用不到，注释掉了
+     //if ((cefWindow == 0) || (cursor == 0)) {
+     //    return;
+     //}
+     //XDisplay* cefDisplay = cef_get_xdisplay();
+     //if (cefDisplay != nullptr) {
+     //    XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
+     //    ::Window x11Window = cefWindow;
+     //    XDefineCursor(cefDisplay, x11Window, cursor);
+     //    XSetErrorHandler(old_handler);
+     //}
 }
 
 void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
