@@ -514,9 +514,12 @@ void Shadow::OnShadowAttached(Shadow::ShadowType nShadowType)
     UiPadding rcShadowCorner;
     DString shadowImage;
     if (GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage, this)) {
-        SetShadowCorner(rcShadowCorner);
-        SetShadowBorderRound(szBorderRound);
-        SetShadowImage(shadowImage);
+        //用户自定义类型：不覆盖原值，以用户设置的为准
+        if (nShadowType != Shadow::ShadowType::kShadowCustom) {
+            SetShadowCorner(rcShadowCorner);
+            SetShadowBorderRound(szBorderRound);
+            SetShadowImage(shadowImage);
+        }
     }
     UpdateShadow();
 }
