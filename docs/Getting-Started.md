@@ -292,9 +292,7 @@ void MainThread::OnInit()
 ```
 
 这样一个简单的带有最小化、最大化、还原和关闭按钮、全屏按钮，具有阴影效果和一行文字提示的窗口就创建出来了，你可以编译运行以下代码看一看窗口效果。
-
-<img src="./Images/MyDuilibApp.png"/>
-    
+   
 ## 在程序中使用libCEF
 可以参考相关的文档[CEF.md](CEF.md)
 
