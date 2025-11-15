@@ -148,7 +148,11 @@ void CefControlOffScreen::ReCreateBrowser()
         window_info.ex_style |= WS_EX_NOACTIVATE;
     }
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
+    CefWindowHandle hParenWindow = (CefWindowHandle)pWindow->NativeWnd()->GetX11WindowNumber();
+    if (pWindow->NativeWnd()->IsVideoDriverWayland()) {
+        hParenWindow = (CefWindowHandle)pWindow->NativeWnd()->GetWaylandDisplayPointer();
+    }
+    window_info.SetAsWindowless(hParenWindow);
 #elif defined DUILIB_BUILD_FOR_MACOS
     window_info.SetAsWindowless(pWindow->NativeWnd()->GetNSView());
 #endif
