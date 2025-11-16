@@ -268,11 +268,10 @@ curl_download_with_retry() {
         # Core curl parameters explanation:
         # -L: Follow 301/302 redirects (common for HTTPS)
         # -f: Return non-zero exit code on failure (for error checking)
-        # -sS: Silent mode (suppress redundant output, show progress only)
         # -o: Specify output file path
         # --retry: Number of retries (only for network errors)
         # --connect-timeout: Timeout for establishing connection
-        curl -L -f -o "$save_path" \
+        curl -L -f -C - -o "$save_path" \
             --retry "$max_retries" \
             --connect-timeout "$timeout" \
             --retry-delay 30 --speed-limit 100 --speed-time 120 \
@@ -321,8 +320,6 @@ wget_download_with_retry() {
     # -O: Specify output file path (uppercase O, distinguish from lowercase -o for logs)
     # -t: Number of retries (0 = unlimited, here use max_retries)
     # --timeout: Timeout for connection and data transfer (in seconds)
-    # --no-check-certificate: Optional (disable HTTPS certificate check, for test only)
-    # -q: Quiet mode (suppress redundant output)
     # -c: Resume broken download (supports resuming if download is interrupted)
     wget -O "$save_path" \
          -t "$max_retries" \
