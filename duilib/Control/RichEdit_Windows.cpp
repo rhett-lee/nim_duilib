@@ -2821,7 +2821,7 @@ void RichEdit::SetUTF8PromptText(const std::string& strText)
 
 void RichEdit::SetPromptTextId(const DString& strTextId)
 {
-    if (m_sPromptTextId == strTextId) {
+    if (m_sPromptTextId != strTextId) {
         m_sPromptTextId = strTextId;
         Invalidate();
     }
