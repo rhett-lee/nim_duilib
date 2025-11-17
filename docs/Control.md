@@ -496,6 +496,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | :---     | :---   | :---     | :--- |
 | tab_box_item_index | | int | 绑定的TabBox子项索引号（即点击这个标签页，切换到此索引号的TabBox页面） |
 | title | | string | 标签页的标题文字 |
+| title_id | | string | 标签页的标题文字ID（用于支持多语版） |
 | title_class | | string | 标签页的标题文字资源属性Class值|
 | icon | | string | 标签页的图标资源字符串 |
 | icon_class | | string | 标签页的图标资源属性Class值|
