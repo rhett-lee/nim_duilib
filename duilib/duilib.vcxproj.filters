@@ -825,6 +825,9 @@
     <ClCompile Include="RenderSkia\DrawRichText.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="Image\FrameSequence_gif.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1711,6 +1714,9 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\DrawRichText.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\FrameSequence_gif.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

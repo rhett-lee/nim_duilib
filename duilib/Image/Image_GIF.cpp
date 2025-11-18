@@ -1,4 +1,5 @@
 #include "Image_GIF.h"
+#include "FrameSequence_gif.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
 
@@ -101,180 +102,33 @@ struct UiGifRGBA {
     uint8_t r, g, b, a;
 };
 
-/** 提取GIF帧的透明色索引（遵循GIF89a规范第23节）
- * @param frame 目标帧数据，包含扩展块信息
- * @return 透明色索引（0-255），-1表示无透明色或未找到
- */
-static int UiGifGetTransparentIndex(const SavedImage& frame)
-{
-    // 定义透明色标志位掩码（第3字节最低位）
-    constexpr uint8_t TRANSPARENCY_FLAG = 0x01;
-
-    // 遍历帧的所有扩展块
-    for (int i = 0; i < frame.ExtensionBlockCount; ++i) {
-        const ExtensionBlock& ext = frame.ExtensionBlocks[i];
-
-        // 检查是否为图形控制扩展块（0xF9）且数据有效
-        if (ext.Function == GRAPHICS_EXT_FUNC_CODE &&  // 扩展块类型校验
-            ext.Bytes != nullptr &&                    // 数据指针非空校验
-            ext.ByteCount >= 5) {                      // 数据长度校验（至少5字节）
-
-            // 检查第3字节（索引2）的透明色标志位
-            // 根据GIF规范：第3字节最低位为1表示存在透明色
-            if (ext.Bytes[2] & TRANSPARENCY_FLAG) {
-                // 返回第5字节（索引4）的透明色索引值
-                return static_cast<int>(ext.Bytes[4]);
-            }
-        }
-    }
-
-    // 未找到有效的透明色信息
-    return -1;
-}
-
-/** 获取指定帧的有效调色板（局部优先，无则用全局）
-* @param gif: GifFileType 句柄
-* @param frame 目标帧数据，包含扩展块信息
-*/
-static const ColorMapObject* UiGifGetFrameColorMap(const GifFileType* gif, const SavedImage& frame)
-{
-    // 局部调色板：frame.ImageDesc.ColorMap（非空则优先）
-    if (frame.ImageDesc.ColorMap != nullptr) {
-        return frame.ImageDesc.ColorMap;
-    }
-    // 全局调色板：gif->SColorMap（若局部为空，用全局）
-    else if (gif->SColorMap != nullptr) {
-        return gif->SColorMap;
-    }
-    // 无调色板 → GIF 格式错误
-    ASSERT(0);
-    return nullptr;
-}
-
-/** 获取GIF帧的Disposal Method（帧间处理规则）
- *
- * 规范依据：GIF89a规范第23节（图形控制扩展块结构）
- * 数据格式：
- *   Byte[0] = 扩展标识(0x21)
- *   Byte[1] = 图形控制标签(0xF9)
- *   Byte[2] = 块大小(固定4字节)
- *   Byte[3] = 处理方式标志位（含disposal method）
- *   Byte[4+] = 附加数据
- *
- * @param frame 目标帧数据，需包含有效的ExtensionBlocks数组
- * @return 取值说明:
- *   0 - 不处理（保留当前帧）
- *   1 - 清除到背景色
- *   2 - 还原为先前状态
- *   3-7 - 保留值（应视为0处理）
- *   -1 - 数据错误（扩展块无效）
- */
-static int UiGifGetDisposalMethod(const SavedImage& frame)
-{
-    // 二进制掩码 00011100（用于提取第3字节的3-5位）
-    constexpr uint8_t DISPOSAL_METHOD_MASK = 0x1C;
-    // 默认处理方式（规范要求未指定时视为0）
-    constexpr int DEFAULT_DISPOSAL_METHOD = 0;
-
-    // 遍历帧的所有扩展块
-    for (int i = 0; i < frame.ExtensionBlockCount; ++i) {
-        const ExtensionBlock& ext = frame.ExtensionBlocks[i];
-
-        // 三重校验确保数据有效性：
-        // 1. 必须是图形控制扩展块（0xF9）
-        // 2. 数据指针非空
-        // 3. 数据长度至少4字节（含标志位）
-        if (ext.Function == GRAPHICS_EXT_FUNC_CODE &&
-            ext.Bytes != nullptr &&
-            ext.ByteCount >= 4) {
-
-            // 关键位操作：
-            // 1. 用掩码提取目标位 (xxxDDDxx -> 000DDD00)
-            // 2. 右移3位转换为0-7的整数值
-            return (ext.Bytes[2] & DISPOSAL_METHOD_MASK) >> 3;
-        }
-    }
-
-    // 未找到有效扩展块时返回默认值
-    return DEFAULT_DISPOSAL_METHOD;
-}
-
-/** 从 SavedImage 中获取当前帧的播放时间（毫秒），返回 - 1 表示无延迟信息
-* @param frame 目标帧数据，需包含有效的ExtensionBlocks数组
-*/
-static int32_t UiGifGetFrameDelayMs(const SavedImage& frame)
-{
-    // 遍历帧的所有扩展块
-    for (int i = 0; i < frame.ExtensionBlockCount; ++i) {
-        const ExtensionBlock& ext = frame.ExtensionBlocks[i];
-
-        // 筛选图形控制扩展块（0xF9）
-        if (ext.Function == GRAPHICS_EXT_FUNC_CODE) {
-            /* 图形控制扩展块标准结构：
-             * [0] 保留位 | 处置方法(3bit) | 用户输入标志(1bit) | 透明色标志(1bit)
-             * [1-2] 延迟时间（小端序，单位1/100秒）
-             * [3] 透明色索引（如果有）
-             * 最少需要3字节（不含块头）才能包含延迟时间
-             */
-            if (ext.ByteCount >= 3 && ext.Bytes != nullptr) {
-                // 正确的小端序转换（低字节在前）
-                uint16_t delay_centisecs = (static_cast<uint16_t>(ext.Bytes[2]) << 8) |
-                    static_cast<uint16_t>(ext.Bytes[1]);
-
-                // 特殊处理：当delay=0时按标准应视为100ms（GIF规范89a第23条）
-                return delay_centisecs == 0 ? 100 :
-                    static_cast<int32_t>(delay_centisecs * 10);
-            }
-        }
-    }
-
-    // 无有效图形控制块时返回-1（调用方决定是否使用默认值）
-    return -1;
-}
-
 /** 将GIF文件解析为逐帧RGBA数据
- * @param gif DGifSlurp成功后的GIF数据指针
+ * @param gif gif图片数据解码器
  * @param nFrameIndex 加载哪一帧
  * @param fImageSizeScale 图片的缩放比例
- * @param backgroundColor 背景色
  * @param canvas 画布
- * @param canvas_backup 备份的画布
- * @param nLastFrameIndex 上一帧的索引号
+ * @param nPrevFrameIndex 上一帧的索引号
  * @return 返回创建的帧数据
- *
- * 功能说明：
- * 1. 支持透明色处理（包括全局背景色和帧局部透明色）
- * 2. 正确处理GIF的Disposal Method（0-3）
- * 3. 支持多帧合成画布模式
- * 4. 跨平台颜色格式处理（Windows和其他平台不同）
  */
-static AnimationFramePtr UiGifToRgbaFrames(const GifFileType* gif,
+static AnimationFramePtr UiGifToRgbaFrames(FrameSequence_gif& gif,
                                            int32_t nFrameIndex,
                                            float fImageSizeScale,
-                                           UiGifRGBA& backgroundColor,
                                            std::vector<UiGifRGBA>& canvas,
-                                           std::vector<UiGifRGBA>& canvas_backup,
-                                           int32_t& nLastFrameIndex)
+                                           int32_t& nPrevFrameIndex)
 {
-    // 参数有效性检查
-    ASSERT((gif != nullptr) && (gif->SavedImages != nullptr) && (gif->ImageCount > 0));
-    if (gif == nullptr || gif->SavedImages == nullptr || gif->ImageCount <= 0) {
-        return nullptr;
-    }
-    ASSERT((nFrameIndex >= 0) && (nFrameIndex < gif->ImageCount));
-    if ((nFrameIndex < 0) || (nFrameIndex >= gif->ImageCount)) {
+    ASSERT((nFrameIndex >= 0) && (nFrameIndex < gif.GetFrameCount()));
+    if ((nFrameIndex < 0) || (nFrameIndex >= gif.GetFrameCount())) {
         return nullptr;
     }
 
-    ASSERT(nLastFrameIndex == (nFrameIndex - 1));
-    if (nLastFrameIndex != (nFrameIndex - 1)) {
-        //必须逐帧解码，无法跳过帧
+    ASSERT(nPrevFrameIndex == (nFrameIndex - 1));
+    if (nPrevFrameIndex != (nFrameIndex - 1)) {
         return nullptr;
     }
 
     // 检查GIF宽度和高度是否有效
-    ASSERT((gif->SWidth > 0) && (gif->SHeight > 0));
-    if ((gif->SWidth <= 0) || (gif->SHeight <= 0)) {
+    ASSERT((gif.GetWidth() > 0) && (gif.GetHeight() > 0));
+    if ((gif.GetWidth() <= 0) || (gif.GetHeight() <= 0)) {
         return nullptr;
     }
 
@@ -285,43 +139,15 @@ static AnimationFramePtr UiGifToRgbaFrames(const GifFileType* gif,
         return nullptr;
     }
 
-    const int nImageWidth = gif->SWidth;
-    const int nImageHeight = gif->SHeight;
+    const int nImageWidth = gif.GetWidth();
+    const int nImageHeight = gif.GetHeight();
+    const int outputPixelStride = nImageWidth;
     const int canvas_pixel_count = nImageWidth * nImageHeight;
-
-    // 初始化画布（考虑全局背景色）
-    if (canvas.empty()) {
-        backgroundColor = UiGifRGBA{ 0, 0, 0, 0 }; //背景色
-        canvas.resize(canvas_pixel_count);
-        if (gif->SColorMap != nullptr && gif->SBackGroundColor >= 0 &&
-            gif->SBackGroundColor < gif->SColorMap->ColorCount) {
-            // 使用全局背景色初始化画布
-            const GifColorType& bg_color = gif->SColorMap->Colors[gif->SBackGroundColor];
-#ifdef DUILIB_BUILD_FOR_WIN
-            UiGifRGBA init_color = {
-                static_cast<uint8_t>(bg_color.Blue),
-                static_cast<uint8_t>(bg_color.Green),
-                static_cast<uint8_t>(bg_color.Red),
-                0 // 初始背景设为透明
-            };
-#else
-            UiGifRGBA init_color = {
-                static_cast<uint8_t>(bg_color.Red),
-                static_cast<uint8_t>(bg_color.Green),
-                static_cast<uint8_t>(bg_color.Blue),
-                0 // 初始背景设为透明
-            };
-#endif
-            backgroundColor = init_color;
-            std::fill(canvas.begin(), canvas.end(), init_color);
-        }
-        else {
-            // 无有效背景色，初始化为全透明
-            std::fill(canvas.begin(), canvas.end(), UiGifRGBA{ 0, 0, 0, 0 });
-        }
+    if (canvas.size() != canvas_pixel_count) {
+        canvas.resize(canvas_pixel_count); // 初始化画布
     }
 
-    // 预创建所有帧的位图对象
+    // 预创建当前帧的位图对象
     std::shared_ptr<IBitmap> pBitmap(pRenderFactory->CreateBitmap());
     if (pBitmap == nullptr) {
         return nullptr;
@@ -329,98 +155,30 @@ static AnimationFramePtr UiGifToRgbaFrames(const GifFileType* gif,
 
     AnimationFramePtr pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
     pFrameData->m_nFrameIndex = nFrameIndex;
-    pFrameData->m_nOffsetX = 0; // OffsetX和OffsetY均不需要处理
+    pFrameData->m_nOffsetX = 0;
     pFrameData->m_nOffsetY = 0;
     pFrameData->m_bDataPending = false;
     pFrameData->m_pBitmap = pBitmap;
 
-    // 逐帧处理
-    const SavedImage& frame = gif->SavedImages[nFrameIndex];
-    const GifImageDesc& img_desc = frame.ImageDesc;
-
-    // 设置帧延迟时间
-    pFrameData->SetDelayMs(UiGifGetFrameDelayMs(frame));
-
-    // 获取帧信息
-    const ColorMapObject* colormap = UiGifGetFrameColorMap(gif, frame);
-    const int transparent_idx = UiGifGetTransparentIndex(frame);
-    const int disposal_method = UiGifGetDisposalMethod(frame);
-
-    // 备份画布（用于Disposal Method=3）
-    if (disposal_method == 3) {
-        canvas_backup = canvas;
-    }
-
-    // 处理当前帧像素
-    if (colormap != nullptr) {
-        const GifByteType* raster_bits = frame.RasterBits;
-        for (int y = 0; y < img_desc.Height; ++y) {
-            for (int x = 0; x < img_desc.Width; ++x) {
-                const int canvas_x = img_desc.Left + x;
-                const int canvas_y = img_desc.Top + y;
-
-                if (canvas_x < 0 || canvas_x >= nImageWidth ||
-                    canvas_y < 0 || canvas_y >= nImageHeight) {
-                    continue;
-                }
-
-                const int pixel_idx = canvas_y * nImageWidth + canvas_x;
-                const GifByteType color_idx = raster_bits[y * img_desc.Width + x];
-
-                if (color_idx >= colormap->ColorCount) {
-                    continue;
-                }
-
-                // 透明处理逻辑
-                const GifColorType& color = colormap->Colors[color_idx];
-                uint8_t alpha = 255;
-                if ((transparent_idx >= 0) && (color_idx == transparent_idx)) {
-                    alpha = 0; // 明确指定的透明色
-                }
-
-#ifdef DUILIB_BUILD_FOR_WIN
-                canvas[pixel_idx] = {
-                    static_cast<uint8_t>(color.Blue),
-                    static_cast<uint8_t>(color.Green),
-                    static_cast<uint8_t>(color.Red),
-                    alpha
-                };
-#else
-                canvas[pixel_idx] = {
-                    static_cast<uint8_t>(color.Red),
-                    static_cast<uint8_t>(color.Green),
-                    static_cast<uint8_t>(color.Blue),
-                    alpha
-                };
-#endif
-            }
-        }
-    }
-
-    // 处理Disposal Method
-    switch (disposal_method) {
-    case 2: // 清除当前帧区域, 恢复为背景色
-        for (int y = 0; y < img_desc.Height; ++y) {
-            for (int x = 0; x < img_desc.Width; ++x) {
-                const int canvas_x = img_desc.Left + x;
-                const int canvas_y = img_desc.Top + y;
-                if (canvas_x >= 0 && canvas_x < nImageWidth &&
-                    canvas_y >= 0 && canvas_y < nImageHeight) {
-                    canvas[canvas_y * nImageWidth + canvas_x] = backgroundColor;
-                }
-            }
-        }
-        break;
-    case 3: // 恢复上一帧画布
-        canvas = canvas_backup;
-        break;
-    default:
-        break;
-    }
+    // 获取当前帧的数据
+    gif.DrawFrame(nFrameIndex, (Color8888*)canvas.data(), outputPixelStride, nPrevFrameIndex);
 
     // 更新位图数据
+#ifdef DUILIB_BUILD_FOR_WIN
+    std::vector<UiGifRGBA> canvasWin = canvas;
+    //交换R和G，Windows平台使用ABGR格式
+    for (int y = 0; y < nImageHeight; y++) {
+        for (int x = 0; x < nImageWidth; x++) {
+            UiGifRGBA& pixelColor = canvasWin[y * outputPixelStride + x];
+            std::swap(pixelColor.b, pixelColor.r);
+        }
+    }
+    pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvasWin.data(), fImageSizeScale);
+#else
     pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
-    nLastFrameIndex = nFrameIndex;
+#endif
+    
+    nPrevFrameIndex = nFrameIndex;
     return pFrameData;
 }
 
@@ -475,14 +233,11 @@ public:
     //加载后的句柄
     GifFileType* m_gifDecoder = nullptr;
 
-    //GIF图片的背景色
-    UiGifRGBA m_backgroundColor;
+    //gif解码的实现封装
+    FrameSequence_gif m_gifFrameSequence;
 
     //GIF图片绘制的画布
     std::vector<UiGifRGBA> m_gifCanvas;
-
-    //GIF图片绘制的画布（备份）
-    std::vector<UiGifRGBA> m_gifCanvasBackup;
 
     //上一帧的索引号
     int32_t m_nLastFrameIndex = -1;
@@ -500,7 +255,8 @@ public:
         if (dec == nullptr) {
             return false;
         }
-        if (DGifSlurp(dec) != GIF_OK) {
+        if (!m_gifFrameSequence.Init(dec)) {
+            m_gifFrameSequence.Clear();
             UiGifFreeDecoder(dec, nullptr);
             //加载失败时，需要恢复原文件数据
             m_fileData.swap(fileData);
@@ -511,9 +267,9 @@ public:
         m_bLoadAllFrames = bLoadAllFrames;
         m_bAsyncDecode = bAsyncDecode;
 
-        m_nWidth = (uint32_t)dec->SWidth;
-        m_nHeight = (uint32_t)dec->SHeight;
-        m_nFrameCount = (int32_t)dec->ImageCount;
+        m_nWidth = (uint32_t)m_gifFrameSequence.GetWidth();
+        m_nHeight = (uint32_t)m_gifFrameSequence.GetHeight();
+        m_nFrameCount = (int32_t)m_gifFrameSequence.GetFrameCount();
 
         if (m_bAssertEnabled) {
             ASSERT(m_nWidth > 0);
@@ -524,6 +280,7 @@ public:
             //图片格式正确，但图片数据有错误(不还原图片数据)
             m_bDecodeError = true;
             UiGifFreeDecoder(dec, nullptr);
+            m_gifFrameSequence.Clear();
             return false;
         }
         
@@ -546,21 +303,26 @@ public:
             //加载失败
             m_bDecodeError = true;
             UiGifFreeDecoder(dec, nullptr);
+            m_gifFrameSequence.Clear();
             return false;
         }
-        //循环播放固定为一直播放，因GIF格式无此设置
-        m_nLoops = -1;
+        //循环播放次数
+        m_nLoops = m_gifFrameSequence.GetDefaultLoopCount();
+        if (m_nLoops < 1) {
+            m_nLoops = -1;
+        }
 
         //解出每一帧的播放时间
         m_framesDelayMs.clear();
         for (int frame_idx = 0; frame_idx < m_nFrameCount; ++frame_idx) {
-            const SavedImage& frame = dec->SavedImages[frame_idx];
-            m_framesDelayMs.push_back(UiGifGetFrameDelayMs(frame));
+            GraphicsControlBlock gcb;
+            memset(&gcb, 0, sizeof(GraphicsControlBlock));
+            DGifSavedExtensionToGCB(dec, frame_idx, &gcb);
+            m_framesDelayMs.push_back(gcb.DelayTime * 10);
         }
 
         m_gifDecoder = dec;
         m_gifCanvas.clear();
-        m_gifCanvasBackup.clear();
         m_nLastFrameIndex = -1;
         return true;
     }
@@ -572,14 +334,12 @@ public:
             UiGifFreeDecoder(m_gifDecoder, nullptr);
             m_gifDecoder = nullptr;
         }
+        m_gifFrameSequence.Clear();
         std::vector<uint8_t> fileData;
         m_fileData.swap(fileData);
 
         std::vector<UiGifRGBA> gifCanvas;
         m_gifCanvas.swap(gifCanvas);
-
-        std::vector<UiGifRGBA> gifCanvasBackup;
-        m_gifCanvasBackup.swap(gifCanvas);
     }
 
     //解码是否完成
@@ -700,14 +460,13 @@ bool Image_GIF::DelayDecode(uint32_t nMinFrameIndex, std::function<bool(void)> I
         //每次解码一帧图片
         const int32_t nFrameIndex = (int32_t)(m_impl->m_delayFrames.size() + m_impl->m_frames.size());
         AnimationFramePtr pNewAnimationFrame;
-        pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
+        pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifFrameSequence,
                                                nFrameIndex,
                                                fImageSizeScale,
-                                               m_impl->m_backgroundColor,
                                                m_impl->m_gifCanvas,
-                                               m_impl->m_gifCanvasBackup,
                                                m_impl->m_nLastFrameIndex);
         if (pNewAnimationFrame != nullptr) {
+            pNewAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
             m_impl->m_delayFrames.push_back(pNewAnimationFrame);
         }
         else {
@@ -835,15 +594,14 @@ bool Image_GIF::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
 
             //一次解码一帧图片
             AnimationFramePtr pNewAnimationFrame;
-            pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifDecoder,
+            pNewAnimationFrame = UiGifToRgbaFrames(m_impl->m_gifFrameSequence,
                                                    nInitFrameIndex,
                                                    fImageSizeScale,
-                                                   m_impl->m_backgroundColor,
                                                    m_impl->m_gifCanvas,
-                                                   m_impl->m_gifCanvasBackup,
                                                    m_impl->m_nLastFrameIndex);
 
             if (pNewAnimationFrame != nullptr) {
+                pNewAnimationFrame->SetDelayMs(GetFrameDelayMs(nFrameIndex));
                 m_impl->m_frames.push_back(pNewAnimationFrame);
             }
             else {
