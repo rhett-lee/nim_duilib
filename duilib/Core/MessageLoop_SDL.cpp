@@ -20,6 +20,9 @@ MessageLoop_SDL::~MessageLoop_SDL()
 
 bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
 {
+    //Linux Wayland下支持DPI自适应
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "true");
+
     //初始化SDL
     bool bRet = true;
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {

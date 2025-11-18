@@ -484,6 +484,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             GlobalManager::Instance().Dpi().ScaleInt(cy);
         }
         if (!bSizeContainShadow) {
+            GlobalManager::Instance().Dpi().ScalePadding(rcShadowCorner);
             if (!bPercentCX) {
                 cx += rcShadowCorner.left + rcShadowCorner.right;
             }
