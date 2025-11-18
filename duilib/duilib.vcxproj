@@ -346,6 +346,7 @@
     <ClCompile Include="Core\ZipStreamIO.cpp" />
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\APngDecoder.cpp" />
+    <ClCompile Include="Image\FrameSequence_gif.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageAttribute.cpp" />
     <ClCompile Include="Image\ImageDecoderFactory.cpp" />
@@ -707,6 +708,7 @@
     <ClInclude Include="duilib_string.h" />
     <ClInclude Include="duilib_webview2.h" />
     <ClInclude Include="Image\APngDecoder.h" />
+    <ClInclude Include="Image\FrameSequence_gif.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
