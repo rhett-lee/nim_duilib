@@ -34,6 +34,7 @@ public:
     virtual DString GetType() const override;
     virtual DString GetText() const;
     virtual std::string GetUTF8Text() const;
+    virtual DString GetTextId() const;
     virtual void SetText(const DString& strText);
     virtual void SetUTF8Text(const std::string& strText);
     virtual void SetTextId(const DString& strTextId);
@@ -566,6 +567,12 @@ DString LabelTemplate<InheritType>::GetText() const
         StringUtil::ReplaceAll(_T("\\n"), _T("\n"), strText);
     }
     return strText;
+}
+
+template<typename InheritType>
+DString LabelTemplate<InheritType>::GetTextId() const
+{
+    return m_sTextId.c_str();
 }
 
 template<typename InheritType>

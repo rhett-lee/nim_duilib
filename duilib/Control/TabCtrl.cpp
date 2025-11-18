@@ -254,6 +254,9 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("title")) {
         SetTitle(strValue);
     }
+    else if (strName == _T("title_id")) {
+        SetTitleId(strValue);
+    }
     else if (strName == _T("icon")) {
         SetIcon(strValue);
     }
@@ -391,6 +394,11 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
             AddItem(m_pLabel);
             if (!m_title.empty()) {
                 m_pLabel->SetText(m_title.c_str());
+                m_title.clear();
+            }
+            if (!m_titleId.empty()) {
+                m_pLabel->SetTextId(m_titleId.c_str());
+                m_titleId.clear();
             }
             AdjustSubItemIndex();
         }
@@ -884,6 +892,31 @@ DString TabCtrlItem::GetTitle() const
         title = m_title.c_str();
     }
     return title;
+}
+
+void TabCtrlItem::SetTitleId(const DString& titleId)
+{
+    Label* pLabel = GetTextLabel();
+    if (pLabel != nullptr) {
+        pLabel->SetTextId(titleId);
+        m_titleId.clear();
+    }
+    else {
+        m_titleId = titleId;
+    }
+}
+
+DString TabCtrlItem::GetTitleId() const
+{
+    DString titleId;
+    Label* pLabel = GetTextLabel();
+    if (pLabel != nullptr) {
+        titleId = pLabel->GetTextId();
+    }
+    else {
+        titleId = m_titleId.c_str();
+    }
+    return titleId;
 }
 
 void TabCtrlItem::SetTabBoxItemIndex(size_t nTabBoxItemIndex)
