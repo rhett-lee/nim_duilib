@@ -696,6 +696,12 @@ private:
     */
     UiSize m_szMaxWindow;
 
+    /** 窗口的初始化大小和窗口左上角的初始坐标值(Wayland模式下需要使用)
+    */
+    UiSize m_szInitWindow;
+    UiPoint m_ptInitWindow;
+    bool m_bInitWindowPosFlag;
+
     /** 鼠标所在位置
     */
     UiPoint m_ptLastMousePos;
