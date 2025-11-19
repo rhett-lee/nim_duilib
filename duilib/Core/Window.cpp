@@ -379,7 +379,12 @@ void Window::PostInitWindow()
     }
 
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
-    AutoResizeWindow(false);
+    if (AutoResizeWindow(false)) {
+        //调整大小后，需要再次进行窗口居中
+        if (NativeWnd()->NeedCenterWindowAfterCreated()) {
+            CenterWindow();
+        }
+    }
 
     //创建后，Render大小与客户区大小同步
     ResizeRenderToClientSize();
@@ -2445,35 +2450,36 @@ bool Window::PreparePaint(bool bArrange)
     return bRet;
 }
 
-void Window::AutoResizeWindow(bool bRepaint)
+bool Window::AutoResizeWindow(bool bRepaint)
 {
-    if ((m_pRoot != nullptr) && (m_pRoot->GetFixedWidth().IsAuto() || m_pRoot->GetFixedHeight().IsAuto())) {
+    bool bResized = false;
+    if ((m_pRoot != nullptr) && (!m_pRoot->GetFixedWidth().IsStretch() || !m_pRoot->GetFixedHeight().IsStretch())) {
+        //跟容器属性：如果宽度或者高度有不是拉伸类型的，根据跟容器的大小自动修改窗口大小
         UiSize maxSize(999999, 999999);
-        UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
-        if (!estSize.cx.IsStretch() && !estSize.cy.IsStretch()) {
-            UiSize needSize = MakeSize(estSize);
-            if (needSize.cx < m_pRoot->GetMinWidth()) {
-                needSize.cx = m_pRoot->GetMinWidth();
+        const UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
+        if (!estSize.cx.IsStretch() || !estSize.cy.IsStretch()) {
+            UiSize newSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+            newSize.cx = std::clamp(newSize.cx, m_pRoot->GetMinWidth(), m_pRoot->GetMaxWidth());
+            newSize.cy = std::clamp(newSize.cy, m_pRoot->GetMinHeight(), m_pRoot->GetMaxHeight());
+
+            UiRect rcWindow;
+            GetWindowRect(rcWindow);
+            if (estSize.cx.IsStretch()) {
+                newSize.cx = rcWindow.Width();
             }
-            if (needSize.cx > m_pRoot->GetMaxWidth()) {
-                needSize.cx = m_pRoot->GetMaxWidth();
+            if (estSize.cy.IsStretch()) {
+                newSize.cy = rcWindow.Height();
             }
-            if (needSize.cy < m_pRoot->GetMinHeight()) {
-                needSize.cy = m_pRoot->GetMinHeight();
-            }
-            if (needSize.cy > m_pRoot->GetMaxHeight()) {
-                needSize.cy = m_pRoot->GetMaxHeight();
-            }
-            UiRect rect;
-            GetWindowRect(rect);
-            if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
-                Resize(needSize.cx, needSize.cy, true, false);
+            if ((rcWindow.Width() != newSize.cx) || (rcWindow.Height() != newSize.cy)) {
+                Resize(newSize.cx, newSize.cy, true, false);
+                bResized = true;
                 if (bRepaint) {
                     InvalidateAll();
                 }
             }
         }
     }
+    return bResized;
 }
 
 void Window::ArrangeRoot()

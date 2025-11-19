@@ -941,8 +941,9 @@ private:
 
 private:
     /** 根据root自动调整窗口大小
+    * @return 如果调整了窗口大小返回true，否则返回false
     */
-    void AutoResizeWindow(bool bRepaint);
+    bool AutoResizeWindow(bool bRepaint);
 
     /** 对控件进行布局调整
     */

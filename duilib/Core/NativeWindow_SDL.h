@@ -573,6 +573,10 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
+    /** 创建窗口时，是否需要居中窗口
+    */
+    bool NeedCenterWindowAfterCreated() const;
+
 private:
     /** 创建窗口和渲染接口
     */
