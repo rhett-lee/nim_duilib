@@ -60,63 +60,131 @@ Image_JPEG::~Image_JPEG()
 }
 
 // 查找与fImageSizeScale最接近的数值(但需要保证返回的值不小于fImageSizeScale)
-static float FindClosestScale1(float fImageSizeScale)
+static bool FindClosestScale1(const std::vector<tjscalingfactor>& scalingFactorList,
+                              float fImageSizeScale,
+                              tjscalingfactor& selectedScalingfactor)
 {
-    // 存储所有可能的比例值
-    std::vector<float> scales = {
-        1.0f / 8, 1.0f / 4, 3.0f / 8, 1.0f / 2,
-        5.0f / 8, 3.0f / 4, 7.0f / 8, 1.0f / 1,
-        9.0f / 8, 5.0f / 4, 11.0f / 8, 3.0f / 2,
-        13.0f / 8, 7.0f / 4, 15.0f / 8, 2.0f / 1
+    if (scalingFactorList.empty()) {
+        return false;
+    }
+    //存储所有可能的比例值
+    struct TScalingfactor {
+        size_t index;
+        tjscalingfactor factor;
+        float value;
+        bool operator == (const TScalingfactor& r) const
+        {
+            return ImageUtil::IsSameImageScale(this->value, r.value);
+        }
+        bool operator < (const TScalingfactor& r) const
+        {
+            return this->value < r.value;
+        }
     };
+    std::vector<TScalingfactor> scales;
+    for (size_t index = 0; index < scalingFactorList.size(); ++index) {
+        const tjscalingfactor& factor = scalingFactorList[index];
+        if ((factor.num < 1) || (factor.denom < 1)) {
+            continue;
+        }
+        TScalingfactor scalingFactor;
+        scalingFactor.index = index;
+        scalingFactor.factor = factor;        
+        scalingFactor.value = factor.num * 1.0f / factor.denom;
+        scales.push_back(scalingFactor);
+    }
+    ASSERT(!scales.empty());
 
     // 首先检查是否有精确匹配的值
-    auto it = std::find(scales.begin(), scales.end(), fImageSizeScale);
-    if (it != scales.end()) {
-        return *it;
+    if (!scales.empty()) {
+        TScalingfactor dstFactor;
+        dstFactor.value = fImageSizeScale;
+        auto iter = std::find(scales.begin(), scales.end(), dstFactor);
+        if (iter != scales.end()) {
+            selectedScalingfactor = iter->factor;
+            return true;
+        }
     }
 
     // 找到所有大于等于目标值的元素
-    std::vector<float> candidates;
-    for (float scale : scales) {
-        if (scale >= fImageSizeScale) {
+    std::vector<TScalingfactor> candidates;
+    for (const TScalingfactor& scale : scales) {
+        if (scale.value >= fImageSizeScale) {
             candidates.push_back(scale);
         }
     }
 
     // 如果有符合条件的候选值，返回最小的那个（最接近目标值）
     if (!candidates.empty()) {
-        return *std::min_element(candidates.begin(), candidates.end());
+        auto iter = std::min_element(candidates.begin(), candidates.end());
+        if (iter != candidates.end()) {
+            selectedScalingfactor = iter->factor;
+            return true;
+        }
     }
 
     // 如果所有值都小于目标值，返回最大的元素
-    return *std::max_element(scales.begin(), scales.end());
+    if (!scales.empty()) {
+        auto iter = std::max_element(scales.begin(), scales.end());
+        if (iter != scales.end()) {
+            selectedScalingfactor = iter->factor;
+            return true;
+        }
+    }
+    return false;
 }
 
 // 查找与fImageSizeScale最接近的数值
-static float FindClosestScale2(float fImageSizeScale)
+static bool FindClosestScale2(const std::vector<tjscalingfactor>& scalingFactorList,
+                              float fImageSizeScale,
+                              tjscalingfactor& selectedScalingfactor)
 {
-    // 用vector存储数组
-    std::vector<float> scales = {
-        1.0f / 8, 1.0f / 4, 3.0f / 8, 1.0f / 2,
-        5.0f / 8, 3.0f / 4, 7.0f / 8, 1.0f / 1,
-        9.0f / 8, 5.0f / 4, 11.0f / 8, 3.0f / 2,
-        13.0f / 8, 7.0f / 4, 15.0f / 8, 2.0f / 1
+    if (scalingFactorList.empty()) {
+        return false;
+    }
+    //存储所有可能的比例值
+    struct TScalingfactor {
+        size_t index;
+        tjscalingfactor factor;
+        float value;
     };
+    std::vector<TScalingfactor> scales;
+    for (size_t index = 0; index < scalingFactorList.size(); ++index) {
+        const tjscalingfactor& factor = scalingFactorList[index];
+        if ((factor.num < 1) || (factor.denom < 1)) {
+            continue;
+        }
+
+        TScalingfactor scalingFactor;
+        scalingFactor.index = index;
+        scalingFactor.factor = factor;
+        scalingFactor.value = factor.num * 1.0f / factor.denom;
+        scales.push_back(scalingFactor);
+    }
+    ASSERT(!scales.empty());
+    if (scales.empty()) {
+        return false;
+    }
 
     // 初始化最接近的值和最小差值
-    float closest = scales[0];
+    size_t closestIndex = 0;
+    float closest = scales[0].value;
     float minDiff = std::abs(fImageSizeScale - closest);
 
     // 遍历vector查找最接近的值
     for (size_t i = 1; i < scales.size(); ++i) {
-        float currentDiff = std::abs(fImageSizeScale - scales[i]);
+        float currentDiff = std::abs(fImageSizeScale - scales[i].value);
         if (currentDiff < minDiff) {
             minDiff = currentDiff;
-            closest = scales[i];
+            closest = scales[i].value;
+            closestIndex = i;
         }
     }
-    return closest;
+    if (closestIndex < scales.size()) {
+        selectedScalingfactor = scales[closestIndex].factor;
+        return true;
+    }
+    return false;
 }
 
 bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
@@ -186,6 +254,7 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     if (ret != 0) {
         return false;
     }
+    //解析Header成功
     if (bAssertEnabled) {
         ASSERT((width > 0) && (height > 0));
     }
@@ -196,29 +265,42 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     if (!ImageUtil::IsValidImageScale(fImageSizeScale)) {
         fImageSizeScale = 1.0f;
     }
-    //libjpeg API: IDCT scaling extensions in decompressor
-    //libjpeg - turbo supports IDCT scaling with scaling factors of 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4, 15/8, and 2/1 (only 1/4 and 1/2 are SIMD - accelerated.)
-    //加载缩放时，只支持固定的锁定的比例，如果比例不符合要求，会导致解码失败
-
-    //解析Header成功
-    float fRealImageSizeScale = fImageSizeScale;
-    bool bFoundImageScale = false;
-    float fScale = fImageSizeScale;
-    if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fImageSizeScale, fScale)) {
-        fScale = FindClosestScale1(fScale);
-        if (ImageUtil::IsValidImageScale(fScale)) {
-            bFoundImageScale = true;
-            fRealImageSizeScale = fScale;
+    //加载缩放时，只支持固定的锁定的比例，如果比例不符合要求，会导致解码失败，该比例列表可以通过API查询到
+    int numscalingfactors = 0;
+    tjscalingfactor* pScalingFactors = tjGetScalingFactors(&numscalingfactors);
+    std::vector<tjscalingfactor> scalingFactorList;
+    if ((pScalingFactors != nullptr) && (numscalingfactors > 0)) {
+        for (int i = 0; i < numscalingfactors; ++i) {
+            const tjscalingfactor& factor = pScalingFactors[i];
+            if ((factor.num > 0) && factor.denom > 0) {
+                scalingFactorList.push_back(factor);
+            }
         }
     }
-    if (!bFoundImageScale) {
-        fRealImageSizeScale = FindClosestScale2(fImageSizeScale);
-        if (!ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
-            fRealImageSizeScale = 1.0f;
+    tjscalingfactor selectedScalingfactor = TJUNSCALED;//默认为原始图像大小，不缩放
+    ASSERT(selectedScalingfactor.num == 1);
+    ASSERT(selectedScalingfactor.denom == 1);
+    if (!scalingFactorList.empty()) {
+        //查询所选择的缩放比
+        bool bFoundImageScale = false;
+        float fScale = fImageSizeScale;
+        if (ImageUtil::GetBestImageScale(rcMaxDestRectSize, width, height, fImageSizeScale, fScale)) {
+            if (FindClosestScale1(scalingFactorList, fScale, selectedScalingfactor)) {
+                bFoundImageScale = true;
+            }
         }
-    }    
-    m_impl->m_nWidth = ImageUtil::GetScaledImageSize((uint32_t)width, fRealImageSizeScale);
-    m_impl->m_nHeight = ImageUtil::GetScaledImageSize((uint32_t)height, fRealImageSizeScale);
+        if (!bFoundImageScale) {
+            FindClosestScale2(scalingFactorList, fImageSizeScale, selectedScalingfactor);
+        }
+    }
+
+    //最终校验，确保值为有效值
+    if ((selectedScalingfactor.num < 1) || (selectedScalingfactor.denom < 1)) {
+        selectedScalingfactor.num = 1;
+        selectedScalingfactor.denom = 1;
+    }
+    m_impl->m_nWidth = TJSCALED(width, selectedScalingfactor);
+    m_impl->m_nHeight = TJSCALED(height, selectedScalingfactor);
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
     if ((m_impl->m_nHeight <= 0) || (m_impl->m_nHeight <= 0)) {
         m_impl->m_bDecodeError = true;
@@ -230,7 +312,7 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     jpegData.pFileData = nullptr;
     m_impl->m_fileData.clear();
 
-    m_impl->m_fImageSizeScale = fRealImageSizeScale;
+    m_impl->m_fImageSizeScale = selectedScalingfactor.num * 1.0f / selectedScalingfactor.denom;
     m_impl->m_tjInstance = tjInstance;
     m_impl->m_fileData.swap(fileData);
     m_impl->m_bAsyncDecode = bAsyncDecode;
