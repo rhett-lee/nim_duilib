@@ -71,8 +71,8 @@ namespace NanoSvgDecoder
         }
 
         std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
-        int width = (int)(svg->width + 0.5f);
-        int height = (int)(svg->height + 0.5f);
+        int width = (int)std::ceilf(svg->width);
+        int height = (int)std::ceilf(svg->height);
         if (width <= 0 || height <= 0) {
             return false;
         }
@@ -254,13 +254,13 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     spMemStream.reset();
 
     SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));    
-    int32_t nSvgImageWidth = int32_t(svgSize.width() + 0.5f);
-    int32_t nSvgImageHeight = int32_t(svgSize.height() + 0.5f);
+    int32_t nSvgImageWidth = int32_t(std::ceilf(svgSize.width()));
+    int32_t nSvgImageHeight = int32_t(std::ceilf(svgSize.height()));
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
         auto viewBox = svgDom->getRoot()->getViewBox();
         if (viewBox.has_value()) {
-            nSvgImageWidth = int32_t(viewBox->width() + 0.5f);
-            nSvgImageHeight = int32_t(viewBox->height() + 0.5f);
+            nSvgImageWidth = int32_t(std::ceilf(viewBox->width()));
+            nSvgImageHeight = int32_t(std::ceilf(viewBox->height()));
         }
     }
     else {
