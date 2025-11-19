@@ -488,6 +488,10 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
+    /** 创建窗口时，是否需要居中窗口
+    */
+    bool NeedCenterWindowAfterCreated() const;
+
 private:
     /** 窗口过程函数
     * @param [in] hWnd 窗口句柄
