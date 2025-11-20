@@ -303,7 +303,6 @@
     <ClCompile Include="Core\ControlLoading.cpp" />
     <ClCompile Include="Core\CursorManager_SDL.cpp" />
     <ClCompile Include="Core\CursorManager_Windows.cpp" />
-    <ClCompile Include="Core\DpiAwareness.cpp" />
     <ClCompile Include="Core\DpiAwareness_SDL.cpp" />
     <ClCompile Include="Core\DpiAwareness_Windows.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />

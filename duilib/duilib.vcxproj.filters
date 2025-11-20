@@ -384,9 +384,6 @@
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
-    <ClCompile Include="Core\DpiAwareness.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\FilePath.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
