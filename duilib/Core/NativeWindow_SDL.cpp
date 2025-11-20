@@ -2813,6 +2813,11 @@ Control* NativeWindow_SDL::FindControl(const UiPoint& pt) const
     return m_pOwner->OnNativeFindControl(pt);
 }
 
+bool NativeWindow_SDL::NeedCenterWindowAfterCreated() const
+{
+    return m_createParam.m_bCenterWindow;
+}
+
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
     //不支持该功能
