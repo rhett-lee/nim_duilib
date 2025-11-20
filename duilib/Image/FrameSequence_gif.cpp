@@ -32,10 +32,10 @@ static const Color8888 TRANSPARENT = 0x0;
 static Color8888 gifColorToColor8888(const GifColorType& color) {
     return ARGB_TO_COLOR8888(0xff, color.Red, color.Green, color.Blue);
 }
-
-static long getDelayMs(GraphicsControlBlock& gcb) {
-    return gcb.DelayTime * 10;
-}
+//
+//static long getDelayMs(GraphicsControlBlock& gcb) {
+//    return gcb.DelayTime * 10;
+//}
 
 static bool willBeCleared(const GraphicsControlBlock& gcb) {
     return gcb.DisposalMode == DISPOSE_BACKGROUND || gcb.DisposalMode == DISPOSE_PREVIOUS;
@@ -63,7 +63,6 @@ bool FrameSequence_gif::Init(GifFileType* gif)
         return false;
     }
 
-    long durationMs = 0;
     int lastUnclearedFrame = -1;
     mPreservedFrames = new bool[mGif->ImageCount];
     mRestoringFrames = new int[mGif->ImageCount];
@@ -89,9 +88,6 @@ bool FrameSequence_gif::Init(GifFileType* gif)
         }
 
         DGifSavedExtensionToGCB(mGif, i, &gcb);
-
-        // timing
-        durationMs += getDelayMs(gcb);
 
         // preserve logic
         mPreservedFrames[i] = false;
