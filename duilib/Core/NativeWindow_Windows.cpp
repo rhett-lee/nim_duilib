@@ -3006,6 +3006,12 @@ Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
     return m_pOwner->OnNativeFindControl(pt);
 }
 
+
+bool NativeWindow_Windows::NeedCenterWindowAfterCreated() const
+{
+    return m_createParam.m_bCenterWindow;
+}
+
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

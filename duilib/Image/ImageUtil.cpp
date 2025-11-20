@@ -33,8 +33,7 @@ bool ImageUtil::IsValidImageScale(float fImageSizeScale)
 uint32_t ImageUtil::GetScaledImageSize(uint32_t nImageSize, float fImageSizeScale)
 {
     if (NeedResizeImage(fImageSizeScale)) {
-        //计算后，进行四舍五入
-        nImageSize = static_cast<uint32_t>(nImageSize * fImageSizeScale + 0.5f);
+        nImageSize = static_cast<uint32_t>(std::ceilf(nImageSize * fImageSizeScale));
     }
     return nImageSize;
 }
@@ -43,7 +42,7 @@ int32_t ImageUtil::GetScaledImageOffset(int32_t nImageOffset, float fImageSizeSc
 {
     if (NeedResizeImage(fImageSizeScale)) {
         //计算后，进行四舍五入
-        nImageOffset = static_cast<int32_t>(nImageOffset * fImageSizeScale + 0.5f);
+        nImageOffset = static_cast<int32_t>(std::ceilf(nImageOffset * fImageSizeScale));
     }
     return nImageOffset;
 }
@@ -59,7 +58,7 @@ bool ImageUtil::IsSameImageScale(float fImageSizeScale1, float fImageSizeScale2)
 uint32_t ImageUtil::GetScaledImageSize(uint32_t nImageSize, uint32_t nNewDpiScale, uint32_t nOrgDpiScale)
 {
     if ((nNewDpiScale != nOrgDpiScale) && (nOrgDpiScale != 0)) {
-        nImageSize = static_cast<uint32_t>(nImageSize * static_cast<float>(nNewDpiScale) / static_cast<float>(nOrgDpiScale) + 0.5f);
+        nImageSize = static_cast<uint32_t>(std::ceilf(nImageSize * static_cast<float>(nNewDpiScale) / static_cast<float>(nOrgDpiScale)));
     }
     return nImageSize;
 }

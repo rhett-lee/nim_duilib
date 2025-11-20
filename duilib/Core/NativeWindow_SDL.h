@@ -573,6 +573,10 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
+    /** 创建窗口时，是否需要居中窗口
+    */
+    bool NeedCenterWindowAfterCreated() const;
+
 private:
     /** 创建窗口和渲染接口
     */
@@ -695,6 +699,12 @@ private:
     /** 窗口大小的最大值（宽度和高度）
     */
     UiSize m_szMaxWindow;
+
+    /** 窗口的初始化大小和窗口左上角的初始坐标值(Wayland模式下需要使用)
+    */
+    UiSize m_szInitWindow;
+    UiPoint m_ptInitWindow;
+    bool m_bInitWindowPosFlag;
 
     /** 鼠标所在位置
     */
