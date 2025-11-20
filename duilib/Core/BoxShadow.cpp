@@ -2,6 +2,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include <algorithm>
 
 namespace ui {
 
@@ -43,7 +44,7 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
             m_nBlurRadius = StringUtil::StringToInt32(value);
             ASSERT(m_nBlurRadius >= 0);
             if (m_nBlurRadius < 0) {
-                m_nBlurRadius = 2;
+                m_nBlurRadius = 0;
             }
             ASSERT(m_pControl != nullptr);
             if (m_pControl != nullptr) {
@@ -54,7 +55,7 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
             m_nSpreadRadius = StringUtil::StringToInt32(value);
             ASSERT(m_nSpreadRadius >= 0);
             if (m_nSpreadRadius < 0) {
-                m_nSpreadRadius = 2;
+                m_nSpreadRadius = 0;
             }
             ASSERT(m_pControl != nullptr);
             if (m_pControl != nullptr) {
@@ -69,7 +70,17 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
 
 bool BoxShadow::HasShadow() const
 {
-    return !m_strColor.empty();
+    return !m_strColor.empty() && ((m_nBlurRadius > 0) || (m_nSpreadRadius > 0));
+}
+
+UiRect BoxShadow::GetExpandedRect(const UiRect& controlRect) const
+{
+    int32_t expand = std::max(0, m_nBlurRadius + m_nSpreadRadius);
+    UiRect extendedRect(controlRect.left   - expand + std::min(0, m_cpOffset.x),
+                        controlRect.top    - expand + std::min(0, m_cpOffset.y),
+                        controlRect.right  + expand + std::max(0, m_cpOffset.x),
+                        controlRect.bottom + expand + std::max(0, m_cpOffset.y));
+    return extendedRect;
 }
 
 } // namespace ui

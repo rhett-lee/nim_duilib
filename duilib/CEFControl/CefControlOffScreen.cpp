@@ -40,8 +40,6 @@ void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHa
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     //只有离屏渲染才会走这个绘制接口
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
 
     if ((buffer == nullptr) || (width <= 0) || (height <= 0)) {
         return;
