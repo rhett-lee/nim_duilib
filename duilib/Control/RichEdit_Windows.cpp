@@ -341,9 +341,6 @@ RichEdit::RichEdit(Window* pWindow) :
     m_nFocusBottomBorderSize(0),
     m_fRowSpacingMul(1.0f)
 {
-    //这个标记必须为false，否则绘制有问题
-    SetUseCache(false);
-
     //创建RichEditHost接口
     m_pRichHost = new RichEditHost(this);
     ASSERT(m_pRichHost->GetTextServices() != nullptr);
@@ -2251,15 +2248,13 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pRender == nullptr) {
         return;
     }
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
 
     bool bNeedPaint = true;
     if (pRender->IsClipEmpty()) {
         bNeedPaint = false;
-    }    
-    UiRect rcTemp;
-    if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+    }
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         bNeedPaint = false;
     }
 
@@ -2398,8 +2393,6 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
         return;
     }
 
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
     UiRect rcTemp;
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
         return;

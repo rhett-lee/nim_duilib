@@ -90,7 +90,6 @@
 | stop_image_animation      | | string | StopImageAnimation    | 停止动画，最多3个参数，每个参数用','分割 ，详见函数的参数列表 |
 | set_image_animation_frame | | string | SetImageAnimationFrame| 设置动画当前帧，最多2个参数，每个参数用','分割，详见函数的参数列表|
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
-| cache | false | bool |SetUseCache |是否启用控件绘制缓存,如“true”|
 | enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
 | enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
 | drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|

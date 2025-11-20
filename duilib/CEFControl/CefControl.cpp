@@ -19,9 +19,6 @@ CefControl::CefControl(ui::Window* pWindow):
     m_bDownloadFaviconImage(false),
     m_bUrlIsLocalFile(false)
 {
-    //这个标记必须为false，否则绘制有问题
-    SetUseCache(false);
-
     //默认开启拖放操作
     BaseClass::SetEnableDragDrop(true);
 }
@@ -527,8 +524,6 @@ void CefControl::OnDevToolVisibleChanged(bool bAttachedDevTools, bool bPopup)
 
 void CefControl::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType /*type*/, const CefRenderHandler::RectList& /*dirtyRects*/, const void* /*buffer*/, int /*width*/, int /*height*/)
 {
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
 }
 
 void CefControl::ClientToControl(UiPoint&/*pt*/)

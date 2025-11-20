@@ -21,8 +21,6 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_bMouseEnabled(true),
     m_bKeyboardEnabled(true),
     m_bIsArranged(true),
-    m_bUseCache(false),
-    m_bCacheDirty(true),
     m_bClip(true),
     m_bEnableControlPadding(true),
     m_bInited(false),
@@ -514,7 +512,12 @@ void PlaceHolder::SetPadding(UiPadding rcPadding, bool bNeedDpiScale /*= true*/)
         m_rcPadding.top = TruncateToUInt16(rcPadding.top);
         m_rcPadding.right = TruncateToUInt16(rcPadding.right);
         m_rcPadding.bottom = TruncateToUInt16(rcPadding.bottom);
-        ArrangeAncestor();
+        if (!m_bFloat) {
+            ArrangeAncestor();
+        }
+        else {
+            Arrange();
+        }
     }
 }
 
@@ -589,16 +592,6 @@ void PlaceHolder::ArrangeSelf()
     }
 }
 
-void PlaceHolder::SetUseCache(bool bUseCache)
-{
-    m_bUseCache = bUseCache;
-}
-
-void PlaceHolder::SetCacheDirty(bool bCacheDirty)
-{
-    m_bCacheDirty = bCacheDirty;
-}
-
 void PlaceHolder::SetPos(UiRect rc)
 { 
     SetRect(rc);
@@ -612,10 +605,6 @@ void PlaceHolder::SetArranged(bool bArranged)
 void PlaceHolder::SetRect(const UiRect& rc)
 {
     //所有调整矩形区域的操作，最终都会通过这里设置
-    if (!m_uiRect.Equals(rc)) {
-        //区域变化，标注绘制缓存脏标记位
-        SetCacheDirty(true);
-    }
     m_uiRect = rc;
     if ((GetParent() != nullptr) && IsFloat()) {
         //浮动控件，则需要记录和父控件相对位置和大小
@@ -696,12 +685,14 @@ void PlaceHolder::Invalidate()
         return;
     }
 
-    SetCacheDirty(true);
-    UiRect rcInvalidate = GetPos();    
-    ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
-    rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
-    if (m_pWindow != nullptr) {
-        m_pWindow->Invalidate(rcInvalidate);
+    //如果包含box-shadow，则需要包括其绘制外展区域
+    UiRect rcInvalidate = GetBoxShadowExpandedRect(GetRect());
+    if (!rcInvalidate.IsEmpty()) {
+        ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+        rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+        if (m_pWindow != nullptr) {
+            m_pWindow->Invalidate(rcInvalidate);
+        }
     }
 }
 
@@ -711,17 +702,24 @@ void PlaceHolder::InvalidateRect(const UiRect& rc)
         return;
     }
 
-    SetCacheDirty(true);
-    UiRect rcInvalidate = GetPos();
+    //如果包含box-shadow，则需要包括其绘制外展区域
+    UiRect rcInvalidate = GetBoxShadowExpandedRect(GetRect());
     if (!rc.IsEmpty()) {
         //取交集
         rcInvalidate.Intersect(rc);
-    }    
-    ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
-    rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
-    if (m_pWindow != nullptr) {
-        m_pWindow->Invalidate(rcInvalidate);
     }
+    if (!rcInvalidate.IsEmpty()) {
+        ui::UiPoint scrollBoxOffset = GetScrollOffsetInScrollBox();
+        rcInvalidate.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+        if (m_pWindow != nullptr) {
+            m_pWindow->Invalidate(rcInvalidate);
+        }
+    }
+}
+
+UiRect PlaceHolder::GetBoxShadowExpandedRect(const UiRect& rc) const
+{
+    return rc;
 }
 
 void PlaceHolder::RelayoutOrRedraw()

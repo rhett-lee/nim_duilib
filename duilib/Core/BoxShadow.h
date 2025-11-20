@@ -1,7 +1,8 @@
-#ifndef UI_UTILS_BOXSHADOW_H_
-#define UI_UTILS_BOXSHADOW_H_
+#ifndef UI_CORE_BOX_SHADOW_H_
+#define UI_CORE_BOX_SHADOW_H_
 
 #include "duilib/Core/UiPoint.h"
+#include "duilib/Core/UiRect.h"
 #include <string>
 
 namespace ui {
@@ -18,19 +19,22 @@ public:
     */
     explicit BoxShadow(Control* pControl);
 
-    /**
-     * @brief 设置阴影属性
+    /** 设置阴影属性
      * @param[in] strBoxShadow 要设置的属性,如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
-     * @return 无
      */
     void SetBoxShadowString(const DString& strBoxShadow);
 
-    /**
-     * @brief 是否有阴影
-     * @return 是或否
+    /** 是否有box-shadow阴影
      */
     bool HasShadow() const;
 
+    /** 计算包含阴影的实际绘制矩形范围
+    * @param [in] controlRect 控件自身的矩形范围
+    * @return 返回包含box-shadow阴影后的矩形范围（该范围内均需要绘制）
+    */
+    UiRect GetExpandedRect(const UiRect& controlRect) const;
+
+public:
     // 阴影属性
     // 暂时仅仅支持 color offset blurSize
     // https://codersblock.com/blog/creating-glow-effects-with-css/
@@ -60,5 +64,5 @@ public:
 
 } // namespace ui
 
-#endif // !UI_UTILS_BOXSHADOW_H_
+#endif // UI_CORE_BOX_SHADOW_H_
 
