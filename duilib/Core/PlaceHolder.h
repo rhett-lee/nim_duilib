@@ -370,6 +370,11 @@ public:
     */
     virtual void InvalidateRect(const UiRect& rc);
 
+    /** 获取本控件包含box-shadow的绘制扩展区域
+    * @return 返回rc + box-shadow 扩展后的总区域，如果无box-shadow则返回rc
+    */
+    virtual UiRect GetBoxShadowExpandedRect(const UiRect& rc) const;
+
     /** 控件布局重排
      */
     virtual void Arrange();
@@ -389,22 +394,6 @@ public:
     /** 设置是否已经排列过
      */
     void SetArranged(bool bArranged);
-
-    /** 设置是否使用缓存
-     */
-    void SetUseCache(bool bUseCache);
-
-    /** 判断是否使用缓存
-     */
-    bool IsUseCache() { return m_bUseCache; }
-
-    /** 设置缓存脏标志位
-     */
-    void SetCacheDirty(bool bCacheDirty);
-
-    /** 判断缓存脏标志位值
-     */
-    bool IsCacheDirty() { return m_bCacheDirty; }
 
     /** 设置是否对绘制范围做剪裁限制
     * @param [in] clip 设置 true 为需要，否则为不需要，见绘制函数
@@ -542,15 +531,6 @@ private:
 
     //是否需要布局重排
     bool m_bIsArranged;
-
-    //是否使用绘制缓存
-    // 如果为true，每个控件自己保存一份绘制缓存，会占用较多内存，理论上会提升绘制性能，但实际未测试出效果）
-    // 如果为false，表示无绘制缓存，内存占用比较少。
-    // TODO: 这个模式下内存占有率很高，对绘制性能提升不明显，未来可能会删除掉这个逻辑，以简化代码。
-    bool m_bUseCache;
-
-    //缓存是否存在脏标志值
-    bool m_bCacheDirty;
 
     //是否对绘制范围做剪裁限制
     bool m_bClip;

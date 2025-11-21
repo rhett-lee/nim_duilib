@@ -165,6 +165,12 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
         m_hParentWnd = nullptr;
         return false;
     }
+    if (IsLayeredWindow() && IsWindowVisible()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
     return (m_hWnd != nullptr);
 }
 
@@ -763,6 +769,12 @@ bool NativeWindow_Windows::ShowWindow(ShowWindowCommands nCmdShow)
         break;
     }
     bRet = ::ShowWindow(m_hWnd, nWindowCmdShow) != FALSE;
+    if (IsLayeredWindow() && IsWindowVisible()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
     return bRet;
 }
 
@@ -1085,7 +1097,15 @@ bool NativeWindow_Windows::SetWindowPos(const NativeWindow_Windows* pInsertAfter
             hWndInsertAfter = (HWND)insertAfterFlag;
         }
     }
-    return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
+    bool bOldVisible = ::IsWindowVisible(m_hWnd);
+    bool bRet = ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
+    if ((kSWP_SHOWWINDOW & uFlags) && !bOldVisible && IsLayeredWindow()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
+    return bRet;
 }
 
 bool NativeWindow_Windows::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)

@@ -143,7 +143,7 @@ static AnimationFramePtr UiGifToRgbaFrames(FrameSequence_gif& gif,
     const int nImageHeight = gif.GetHeight();
     const int outputPixelStride = nImageWidth;
     const int canvas_pixel_count = nImageWidth * nImageHeight;
-    if (canvas.size() != canvas_pixel_count) {
+    if ((int)canvas.size() != canvas_pixel_count) {
         canvas.resize(canvas_pixel_count); // 初始化画布
     }
 

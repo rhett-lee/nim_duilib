@@ -662,7 +662,9 @@ bool TabCtrlItem::MouseEnter(const EventArgs& msg)
 bool TabCtrlItem::MouseLeave(const EventArgs& msg)
 {
     bool bRet = BaseClass::MouseLeave(msg);
-    if (!GetRect().ContainsPt(msg.ptMouse)) {
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
         if (IsAutoHideCloseButton() && (m_pCloseBtn != nullptr)) {
             m_pCloseBtn->SetFadeVisible(IsSelected());
         }

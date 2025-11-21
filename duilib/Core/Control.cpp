@@ -35,7 +35,7 @@ Control::Control(Window* pWindow) :
     m_controlState(kControlStateNormal),
     m_nAlpha(255),
     m_nHotAlpha(0),
-    m_isBoxShadowPainted(false),
+    m_bBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
     m_nPaintOrder(0),
@@ -417,7 +417,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetKeepFloatPos(strValue == _T("true"));
     }
     else if (strName == _T("cache")) {
-        SetUseCache(strValue == _T("true"));
+        //忽略该选项：对应功能已经删除
     }
     else if ((strName == _T("no_focus")) || (strName == _T("nofocus"))) {
         SetNoFocus();
@@ -1690,17 +1690,17 @@ void Control::OnSetVisible(bool bChanged)
     BaseClass::OnSetVisible(bChanged);
     const bool bVisible = IsVisible();
     if (!bVisible) {
+        // 确保本控件不再是焦点控件
         EnsureNoFocus();
-    }
 
-    if (bChanged) {
-        ArrangeAncestor();
-    }
-
-    if (!IsVisible()) {
+        // 暂停本控件的动画播放
         PauseImageAnimation();
     }
     if (bChanged) {
+        // 让父容器重现布局
+        ArrangeAncestor();
+
+        // 最后，触发可见状态变化事件，通知应用层
         WPARAM wParam = bVisible ? 1 : 0;
         SendEvent(kEventVisibleChange, wParam);
     }
@@ -1838,35 +1838,43 @@ void Control::SetPos(UiRect rc)
     SetArranged(false);
     bool isPosChanged = !GetRect().Equals(rc);
 
-    UiRect invalidateRc = GetRect();
-    if (invalidateRc.IsEmpty()) {
-        invalidateRc = rc;
+    UiRect rcOldRect = GetRect();
+    if (rcOldRect.IsEmpty()) {
+        rcOldRect = rc;//避免为空
     }
+    // 如果存在box-shadow，需要包含它扩展绘制的区域
+    rcOldRect = GetBoxShadowExpandedRect(rcOldRect);
 
     SetRect(rc);
     if (GetWindow() == nullptr) {
         return;
     }
-    invalidateRc.Union(GetRect());
+    UiRect rcNewRect = GetRect();
+    rcNewRect = GetBoxShadowExpandedRect(rcNewRect);
+
+    UiRect rcInvalidateRect = rcOldRect;
+    rcInvalidateRect.Union(rcNewRect);// 旧矩形范围和新矩形范围的合集，均需要标记为脏区域
+
     bool needInvalidate = true;
     UiRect rcTemp;
     UiRect rcParent;
     UiPoint offset = GetScrollOffsetInScrollBox();
-    invalidateRc.Offset(-offset.x, -offset.y);
+    rcInvalidateRect.Offset(-offset.x, -offset.y);// 转换为窗口内的客户区坐标
     Control* pParent = GetParent();
     while (pParent != nullptr) {
-        rcTemp = invalidateRc;
+        rcTemp = rcInvalidateRect;
         rcParent = pParent->GetPos();
+        rcParent = pParent->GetBoxShadowExpandedRect(rcParent);
         UiPoint offsetParent = pParent->GetScrollOffsetInScrollBox();
-        rcParent.Offset(-offsetParent.x, -offsetParent.y);
-        if (!UiRect::Intersect(invalidateRc, rcTemp, rcParent)) {
+        rcParent.Offset(-offsetParent.x, -offsetParent.y);// 转换为窗口内的客户区坐标
+        if (!UiRect::Intersect(rcInvalidateRect, rcTemp, rcParent)) {
             needInvalidate = false;
             break;
         }
         pParent = pParent->GetParent();
     }
     if (needInvalidate && (GetWindow() != nullptr)) {
-        GetWindow()->Invalidate(invalidateRc);
+        GetWindow()->Invalidate(rcInvalidateRect);
     }
 
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
@@ -2907,28 +2915,12 @@ bool Control::PaintImage(IRender* pRender,
     return bPainted;
 }
 
-IRender* Control::GetRender()
+std::unique_ptr<AutoClip> Control::CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const
 {
-    if (m_render == nullptr) {
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            ASSERT(GetWindow() != nullptr);
-            IRenderDpiPtr spRenderDpi;
-            if (GetWindow() != nullptr) {
-                spRenderDpi = GetWindow()->GetRenderDpi();
-            }
-            m_render.reset(pRenderFactory->CreateRender(spRenderDpi));
-        }
+    if (!bClip) {
+        return nullptr;
     }
-    return m_render.get();
-}
-
-void Control::ClearRender()
-{
-    if (m_render) {
-        m_render.reset();
-    }
+    return std::make_unique<AutoClip>(pRender, rc, bClip);
 }
 
 std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const
@@ -2946,156 +2938,169 @@ void Control::SetPaintRect(const UiRect& rect)
     m_rcPaint = rect;
 }
 
+std::unique_ptr<IRender> Control::CreateTempRender() const
+{
+    std::unique_ptr<IRender> spTempRender;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        ASSERT(GetWindow() != nullptr);
+        IRenderDpiPtr spRenderDpi;
+        if (GetWindow() != nullptr) {
+            spRenderDpi = GetWindow()->GetRenderDpi();
+        }
+        spTempRender.reset(pRenderFactory->CreateRender(spRenderDpi));
+    }
+    return spTempRender;
+}
+
 void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return;
     }
+    if (GetRect().IsEmpty()) {
+        return;
+    }    
     if (m_nAlpha == 0) {
         //控件完全透明，不绘制
         return;
     }
 
-    //绘制剪辑区域
-    UiRect rcUnion;
-    if (!UiRect::Intersect(rcUnion, rcPaint, GetRect())) {
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
     }
+    UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
 
-    //是否为圆角矩形区域裁剪
-    bool bRoundClip = ShouldBeRoundRectFill();
+    //是否为直角矩形区域设置为剪辑区域
+    const bool bRectClip = IsClip();
+
+    //是否为圆角矩形区域设置为剪辑区域
+    const bool bRoundClip = IsClip() && ShouldBeRoundRectFill();
 
     //当前控件是否设置了透明度（透明度值不是255）
-    const bool isAlpha = IsAlpha();
+    const bool bAlpha = IsAlpha();
 
-    //是否使用绘制缓存(如果存在box-shadow，就不能使用绘制缓存，因为box-shadow绘制的时候是超出GetRect来绘制外部阴影的)
-    const bool isUseCache = IsUseCache() && !HasBoxShadow();
+    //本控件是否设置了box-shadow（控件阴影效果）
+    const bool bPaintBoxShadow = HasBoxShadow();
 
-    if (isAlpha || isUseCache) {
-        //绘制区域（局部绘制）
-        UiRect rcUnionRect = rcUnion;
-        if (isUseCache) {
-            //如果使用绘制缓存，绘制的时候，必须绘制整个区域，因为局部绘制每次请求绘制的区域是不同的，缓存中保存的必须是完整的缓存图
-            rcUnionRect = GetRect();
+    //控件绘制的位置偏移（用于控件的动画效果）
+    const UiPoint renderOffset = GetRenderOffset();
+
+    if (bAlpha) {
+        //当设置了透明度时，该控件（若为容器则包含子控件）需要完整绘制
+        UiRect rcPaintRect = GetRect();
+        SetPaintRect(rcPaintRect);
+        if (m_pTempRender == nullptr) {
+            m_pTempRender = CreateTempRender();
         }
-        UiSize size{GetRect().Width(), GetRect().Height() };
-        IRender* pCacheRender = GetRender();
-        ASSERT(pCacheRender != nullptr);
-        if (pCacheRender == nullptr) {
+        IRender* pTempRender = m_pTempRender.get();
+        ASSERT(pTempRender != nullptr);
+        if (pTempRender == nullptr) {
             return;
         }
-        bool isSizeChanged = (size.cx != pCacheRender->GetWidth()) || (size.cy != pCacheRender->GetHeight());
-        if (!pCacheRender->Resize(size.cx, size.cy)) {
-            //存在错误，绘制失败
-            ASSERT(!"pCacheRender->Resize failed!");
-            return;
-        }
-        if (isSizeChanged) {
-            //Render画布大小发生变化，需要设置缓存脏标记
-            SetCacheDirty(true);
-        }            
-        if (IsCacheDirty()) {
-            //重新绘制，首先清楚原内容
-            pCacheRender->Clear(UiColor());
-
-            UiPoint renderOffset = GetRenderOffset();
-            UiPoint ptOffset(GetRect().left + renderOffset.x, GetRect().top + renderOffset.y);
-            UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-
-            bool hasBoxShadowPainted = HasBoxShadow();
-            if (hasBoxShadowPainted) {
-                //先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
-                m_isBoxShadowPainted = false;
-                PaintShadow(pCacheRender);
-                m_isBoxShadowPainted = true;
+        if ((pTempRender->GetWidth() != GetRect().Width()) || (pTempRender->GetHeight() != GetRect().Height())) {
+            if (!pTempRender->Resize(GetRect().Width(), GetRect().Height())) {
+                //存在错误，绘制失败
+                ASSERT(!"pTempRender->Resize failed!");
+                return;
             }
+        }
+        
+        if ((pTempRender->GetWidth() > 0) && (pTempRender->GetHeight() > 0)) {
+            // 将控件（如果是容器，则包含子控件），完整绘制到缓存新的render中
+            // 绘制前，首先清除原内容
+            pTempRender->Clear(UiColor());
 
-            UiRect rcClip = { 0, 0, size.cx,size.cy};
-            rcClip.Offset((GetRect().left + renderOffset.x), (GetRect().top + renderOffset.y));
-            AutoClip alphaClip(pCacheRender, rcClip, IsClip());
-            std::unique_ptr<AutoClip> roundAlphaClip = CreateRoundClip(pCacheRender, rcClip, bRoundClip);
+            const UiPoint ptOffset(GetRect().left, GetRect().top);
+            const UiPoint ptOldOrg = pTempRender->OffsetWindowOrg(ptOffset);
+
+            std::unique_ptr<AutoClip> rectCacheClip = CreateRectClip(pTempRender, GetRect(), bRectClip);
+            std::unique_ptr<AutoClip> roundCacheClip = CreateRoundClip(pTempRender, GetRect(), bRoundClip);
 
             //首先绘制自己
-            Paint(pCacheRender, rcUnionRect);
-            if (hasBoxShadowPainted) {
-                //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
-                m_isBoxShadowPainted = false;
+            Paint(pTempRender, rcPaintRect);
+
+            //设置了透明度，将子控件绘制到pTempRender上面，然后整体AlphaBlend到pRender
+            PaintChild(pTempRender, rcPaintRect);
+            if (IsBordersOnTop()) {
+                PaintBorder(pTempRender);  //绘制边框
             }
-            if (isAlpha) {
-                //设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
-                PaintChild(pCacheRender, rcUnionRect);
-                if (IsBordersOnTop()) {
-                    PaintBorder(pCacheRender);  //绘制边框
-                }
-                PaintLoading(pCacheRender, rcPaint); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
-                PaintForeColor(pCacheRender); //绘制前景色
-            }
-            pCacheRender->SetWindowOrg(ptOldOrg);
-            SetCacheDirty(false);
+            PaintLoading(pTempRender, rcPaintRect); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+            PaintForeColor(pTempRender); //绘制前景色
+
+            pTempRender->SetWindowOrg(ptOldOrg);
         }
 
-        UiRect rcClip = GetRect();
-        AutoClip clip(pRender, rcClip, IsClip());
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
-        pRender->AlphaBlend(rcUnionRect.left,
-                            rcUnionRect.top,
-                            rcUnionRect.Width(),
-                            rcUnionRect.Height(),
-                            pCacheRender,
-                            rcUnionRect.left - GetRect().left,
-                            rcUnionRect.top - GetRect().top,
-                            rcUnionRect.Width(),
-                            rcUnionRect.Height(),
+        //如果配置了box-shadow，先绘制，因为box-shadow会超出rect边界绘制(如果使用剪辑区域，会显示不全)        
+        if (bPaintBoxShadow) {
+            m_bBoxShadowPainted = false;
+            PaintShadow(pRender);
+            m_bBoxShadowPainted = true;
+        }
+        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
+        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+
+        int32_t xOffset = std::max(rcPaintRect.left - GetRect().left, 0);
+        int32_t yOffset = std::max(rcPaintRect.top - GetRect().top, 0);
+        pRender->AlphaBlend(rcPaintRect.left,
+                            rcPaintRect.top,
+                            rcPaintRect.Width() - xOffset,
+                            rcPaintRect.Height() - yOffset,
+                            pTempRender,
+                            xOffset,
+                            yOffset,
+                            rcPaintRect.Width() - xOffset,
+                            rcPaintRect.Height() - yOffset,
                             static_cast<uint8_t>(m_nAlpha));
-        if (!isAlpha) {
-            //没有设置透明度，后绘制子控件（直接绘制到pRender上面）
-            PaintChild(pRender, rcUnionRect);
-            if (IsBordersOnTop()) {
-                PaintBorder(pRender);     //绘制边框
-            }
-            PaintLoading(pRender, rcPaint); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
-            PaintForeColor(pRender); //绘制前景色
+        if (bPaintBoxShadow) {
+            //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
+            m_bBoxShadowPainted = false;
         }
-        if (isAlpha) {
-            SetCacheDirty(true);
-            m_render.reset();
-        }
+        pRender->SetWindowOrg(ptOldOrg);//恢复视图原点
+        UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
     }
     else {
-        UiPoint renderOffset = GetRenderOffset();
-        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);
-        bool hasBoxShadowPainted = HasBoxShadow();
-        if (hasBoxShadowPainted) {
-            //先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
-            m_isBoxShadowPainted = false;
+        //本控件未设置透明度，不使用缓存绘制，直接在目标render上绘制本控件（若为容器，则也包含子控件）        
+        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
+
+        //如果配置了box-shadow，先绘制，因为box-shadow会超出rect边界绘制(如果使用剪辑区域，会显示不全)        
+        if (bPaintBoxShadow) {
+            m_bBoxShadowPainted = false;
             PaintShadow(pRender);
-            m_isBoxShadowPainted = true;
+            m_bBoxShadowPainted = true;
         }
-        UiRect rcClip = GetRect();
-        AutoClip clip(pRender, rcClip, IsClip());
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
-        Paint(pRender, rcPaint);
-        if (hasBoxShadowPainted) {
+
+        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+        Paint(pRender, rcPaint);        //绘制控件自身
+        if (bPaintBoxShadow) {
             //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
-            m_isBoxShadowPainted = false;
+            m_bBoxShadowPainted = false;
         }
-        PaintChild(pRender, rcPaint);
+        PaintChild(pRender, rcPaint);   //绘制子控件
         if (IsBordersOnTop()) {
-            PaintBorder(pRender);     //绘制边框
+            PaintBorder(pRender);       //绘制边框
         }
         PaintLoading(pRender, rcPaint); //绘制Loading状态，无状态，需要在绘制完子控件后再绘制
-        PaintForeColor(pRender); //绘制前景色
-        pRender->SetWindowOrg(ptOldOrg);
+        PaintForeColor(pRender);        //绘制前景色
+
+        pRender->SetWindowOrg(ptOldOrg);//恢复视图原点
     }
 }
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    if (!UiRect::Intersect(m_rcPaint, rcPaint, GetRect())) {
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
-    }    
-    if (!m_isBoxShadowPainted) {
+    }
+    UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
+
+    if (!m_bBoxShadowPainted) {
         //绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
         PaintShadow(pRender);
     }    
@@ -3131,7 +3136,7 @@ void Control::PaintShadow(IRender* pRender)
             borderRound.cx = (int32_t)(fRoundWidth + 0.5f);
             borderRound.cy = (int32_t)(fRoundHeight + 0.5f);
         }
-        pRender->DrawBoxShadow(m_rcPaint,
+        pRender->DrawBoxShadow(GetRect(),
                                borderRound,
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
@@ -4576,6 +4581,16 @@ bool Control::HasBoxShadow() const
     return false;
 }
 
+UiRect Control::GetBoxShadowExpandedRect(const UiRect& rc) const
+{
+    if ((m_pOtherData != nullptr) &&
+        (m_pOtherData->m_pBoxShadow != nullptr) &&
+         m_pOtherData->m_pBoxShadow->HasShadow()) {
+        return m_pOtherData->m_pBoxShadow->GetExpandedRect(rc);
+    }
+    return rc;
+}
+
 bool Control::IsSelectableType() const
 {
     return false;
@@ -4625,11 +4640,6 @@ void Control::EnsureNoFocus()
         if (pWindow->GetFocusControl() == this) {
             pWindow->SetFocusControl(nullptr);
         }
-        /*
-        else if (IsChild(this, pWindow->GetFocus())) {
-            pWindow->SetFocusControl(nullptr);
-        }
-        */
     }
 }
 

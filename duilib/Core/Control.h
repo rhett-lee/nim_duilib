@@ -506,6 +506,11 @@ public:
      */
     virtual void SetPos(UiRect rc) override;
 
+    /** 获取本控件包含box-shadow的绘制扩展区域
+    * @return 返回rc + box-shadow 扩展后的总区域，如果无box-shadow则返回rc
+    */
+    virtual UiRect GetBoxShadowExpandedRect(const UiRect& rc) const override;
+
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -606,15 +611,6 @@ public:
                     IMatrix* pMatrix = nullptr,
                     const UiRect* pDestRect = nullptr,
                     UiRect* pPaintedRect = nullptr) const;
-
-    /** 获取绘制上下文对象
-    * @return 返回绘制上下文对象
-    */
-    IRender* GetRender();
-
-    /** 清理绘制上下文对象
-    */
-    void ClearRender();
 
     /** 绘制控件自身及子控件
      * @param[in] pRender 渲染接口
@@ -1332,6 +1328,10 @@ private:
     */
     bool ShouldBeRoundRectBorders() const;
 
+    /** 设置直角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
+
     /** 设置圆角的剪辑区域
     */
     std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
@@ -1409,6 +1409,10 @@ private:
     /** 触发图片加载完成和解码完成事件
     */
     void FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const;
+
+    /** 创建一个临时的Render对象
+    */
+    std::unique_ptr<IRender> CreateTempRender() const;
 
 private:
     /** 获取AttachXXX接口的监听事件管理器
@@ -1600,9 +1604,9 @@ private:
     */
     std::unique_ptr<StateImageMap> m_pImageMap;
 
-    /** 绘制渲染引擎接口(控件自身)
+    /** 绘制渲染引擎接口(控件自身，仅当设置透明度时使用)
     */
-    std::unique_ptr<IRender> m_render;
+    std::unique_ptr<IRender> m_pTempRender;
 
     /** 回调事件管理器
     */
@@ -1633,9 +1637,9 @@ private:
     size_t m_uUserDataID;
 
 private:
-    /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
+    /** box-shadow是否已经绘制（由于box-shadow绘制会超过GetRect()范围，所以需要特殊处理）
     */
-    bool m_isBoxShadowPainted;
+    bool m_bBoxShadowPainted;
 
     /** 控件状态(ControlStateType)
     */
