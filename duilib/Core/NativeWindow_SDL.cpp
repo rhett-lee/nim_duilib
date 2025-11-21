@@ -2442,7 +2442,7 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
     ASSERT(IsWindow());
     int nWidth = 0;
     int nHeight = 0;
-    bool nRet = SDL_GetWindowSizeInPixels(m_sdlWindow, &nWidth, &nHeight);
+    bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
     ASSERT(nRet);
     if (nRet) {
         rcClient.left = 0;
