@@ -68,6 +68,10 @@ public:
     */
     bool IsLoading() const;
 
+    /** 获取loading界面的根容器接口（在StartLoading成功以后才能够获取到, 在StopLoading结束以后也获取不到）
+    */
+    Box* GetLoadingUiRootBox() const;
+
     /** 更新loading控件的位置
     */
     void UpdateLoadingPos();
