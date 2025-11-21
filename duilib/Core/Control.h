@@ -495,6 +495,11 @@ public:
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint());
 
+    /** 根据名字查找控件, 查找范围：当前控件/容器，如果本身是容器，则在容器自身和子控件内查找
+    * @param [in] name 控件的名称（注意：不区分大小写，历史原因）
+    */
+    Control* FindControl(const DString& name);
+
     /// 位置相关
     /** 获取控件位置（子类可改变行为）
     * @return 返回控件的矩形区域，包含内边距，不包含外边距

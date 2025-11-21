@@ -251,6 +251,7 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
 Control* Box::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                           uint32_t uFlags, const UiPoint& ptMouse, const UiPoint& scrollPos)
 {
+    //在子控件和自身匹配查找
     return FindControlInItems(m_items, Proc, pProcData, uFlags, ptMouse, scrollPos);
 }
 

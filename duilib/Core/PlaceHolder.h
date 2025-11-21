@@ -49,6 +49,11 @@ public:
     */
     bool IsNameEquals(const DString& name) const;
 
+    /** 判断控件名称是否相等(不区分大小写)
+    */
+    bool IsNameEqualsNoCase(const DString& name) const;
+    bool IsNameEqualsNoCase(const DString::value_type* pName) const;
+
     /** 根据名称获取祖先容器指针
     * @param [in] strName 要获取的祖先容器名称
     */
