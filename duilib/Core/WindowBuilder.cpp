@@ -269,8 +269,20 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
     return true;
 }
 
-Control* WindowBuilder::CreateControls(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
+Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pCallback, Box* pParent, Box* pUserDefinedBox)
 {
+    //校验窗口：必须存在，否则DPI自适应功能等功能会失效，导致界面布局不正确
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    if ((pParent != nullptr) && (pParent->GetWindow() == nullptr)) {
+        pParent->SetWindow(pWindow);
+    }
+    if ((pUserDefinedBox != nullptr) && (pUserDefinedBox->GetWindow() == nullptr)) {
+        pUserDefinedBox->SetWindow(pWindow);
+    }
+
     m_createControlCallback = pCallback;
     pugi::xml_node root = m_xml->root().first_child();
     ASSERT(!root.empty());
@@ -1044,7 +1056,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
                 if (builder.ParseXmlFile(sourceXmlFilePath)) {
-                    pControl = builder.CreateControls(m_createControlCallback, pWindow, ToBox(pParent));
+                    pControl = builder.CreateControls(pWindow, m_createControlCallback, ToBox(pParent), nullptr);
                 }
                 else {
                     pControl = nullptr;

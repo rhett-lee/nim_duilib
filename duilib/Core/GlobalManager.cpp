@@ -402,7 +402,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
         WindowBuilder dialog_builder;
         Window paint_manager;
         if (dialog_builder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
-            dialog_builder.CreateControls(CreateControlCallback(), &paint_manager);
+            dialog_builder.CreateControls(&paint_manager);
         }        
     }
 
@@ -759,28 +759,52 @@ WindowManager& GlobalManager::Windows()
     return m_windowManager;
 }
 
-Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBox(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback)
 {
-    WindowBuilder builder;
-    if (builder.ParseXmlFile(strXmlPath)) {
-        Control* pControl = builder.CreateControls(callback);
-        ASSERT(pControl != nullptr);
-        return builder.ToBox(pControl);
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return nullptr;
     }
-    return nullptr;
+    Box* pBox = nullptr;
+    WindowBuilder builder;
+    if (builder.ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+        Control* pControl = builder.CreateControls(pWindow, callback);
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pBox = builder.ToBox(pControl);
+            ASSERT(pBox != nullptr);
+            if (pBox == nullptr) {
+                delete pControl;
+                pControl = nullptr;
+            }
+        }
+    }
+    return pBox;
 }
 
-Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBoxWithCache(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback)
 {
-    Box* box = nullptr;
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    Box* pBox = nullptr;
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* builder = new WindowBuilder();
-        if (builder->ParseXmlFile(strXmlPath)) {
-            Control* pControl = builder->CreateControls(callback);
-            box = builder->ToBox(pControl);
+        if (builder->ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+            Control* pControl = builder->CreateControls(pWindow, callback);
+            ASSERT(pControl != nullptr);
+            if (pControl != nullptr) {
+                pBox = builder->ToBox(pControl);
+                ASSERT(pBox != nullptr);
+                if (pBox == nullptr) {
+                    delete pControl;
+                    pControl = nullptr;
+                }
+            }            
         }        
-        if (box != nullptr) {
+        if (pBox != nullptr) {
             m_builderMap[strXmlPath].reset(builder);
         }
         else {
@@ -789,11 +813,19 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
         }
     }
     else {
-        Control* pControl = it->second->CreateControls(callback);
-        box = it->second->ToBox(pControl);
+        Control* pControl = it->second->CreateControls(pWindow, callback);
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pBox = it->second->ToBox(pControl);
+            ASSERT(pBox != nullptr);
+            if (pBox == nullptr) {
+                delete pControl;
+                pControl = nullptr;
+            }
+        }
     }
-    ASSERT(box != nullptr);
-    return box;
+    ASSERT(pBox != nullptr);
+    return pBox;
 }
 
 bool GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
@@ -801,13 +833,14 @@ bool GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, Cr
     bool bRet = false;
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
+        Window* pWindow = pUserDefinedBox->GetWindow();
+        ASSERT(pWindow != nullptr);
+        if (pWindow == nullptr) {
+            return false;
+        }
         WindowBuilder winBuilder;
-        FilePath windowResPath;
-        if (pUserDefinedBox->GetWindow() != nullptr) {
-            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
-        } 
-        if (winBuilder.ParseXmlFile(strXmlPath, windowResPath)) {
-            Control* pControl = winBuilder.CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        if (winBuilder.ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+            Control* pControl = winBuilder.CreateControls(pWindow, callback, nullptr, pUserDefinedBox);
             Box* box = winBuilder.ToBox(pControl);
             bRet = box != nullptr;
         }
@@ -821,20 +854,27 @@ bool GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
     if (pUserDefinedBox == nullptr) {
         return false;
     }
-    ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPI感知功能要求，必须先关联窗口
-    Box* box = nullptr;
+    Window* pWindow = pUserDefinedBox->GetWindow();
+    ASSERT(pWindow != nullptr); //DPI感知功能要求，必须先关联窗口
+    if (pWindow == nullptr) {
+        return false;
+    }    
+    Box* pBox = nullptr;
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        FilePath windowResPath;
-        if (pUserDefinedBox->GetWindow() != nullptr) {
-            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
-        }
-        if (winBuilder->ParseXmlFile(strXmlPath, windowResPath)) {
-            Control* pControl = winBuilder->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-            box = winBuilder->ToBox(pControl);
+        if (winBuilder->ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+            Control* pControl = winBuilder->CreateControls(pWindow, callback, nullptr, pUserDefinedBox);
+            ASSERT(pControl != nullptr);
+            if (pControl != nullptr) {
+                pBox = winBuilder->ToBox(pControl);
+                if (pBox == nullptr) {
+                    delete pControl;
+                    pControl = nullptr;
+                }
+            }
         }        
-        if (box != nullptr) {
+        if (pBox != nullptr) {
             m_builderMap[strXmlPath].reset(winBuilder);
         }
         else {
@@ -843,11 +883,19 @@ bool GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         }
     }
     else {
-        Control* pControl = it->second->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-        box = it->second->ToBox(pControl);
+        Control* pControl = it->second->CreateControls(pWindow, callback, nullptr, pUserDefinedBox);
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pBox = it->second->ToBox(pControl);
+            ASSERT(pBox != nullptr);
+            if (pBox == nullptr) {
+                delete pControl;
+                pControl = nullptr;
+            }
+        }        
     }
-    ASSERT(pUserDefinedBox == box);
-    return (box != nullptr);
+    ASSERT(pUserDefinedBox == pBox);
+    return (pBox != nullptr);
 }
 
 Control* GlobalManager::CreateControl(const DString& strControlName)

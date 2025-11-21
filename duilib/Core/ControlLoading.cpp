@@ -305,10 +305,12 @@ bool ControlLoading::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
         if (m_pLoadingAttribute->m_sXmlPath.empty()) {
             return false;
         }
-        m_pLoadingBox = std::make_unique<Box>(m_pControl->GetWindow());
-        if (!GlobalManager::Instance().FillBox(m_pLoadingBox.get(), FilePath(m_pLoadingAttribute->m_sXmlPath.c_str()))) {
+        Box* pLoadingBox = GlobalManager::Instance().CreateBox(m_pControl->GetWindow(), FilePath(m_pLoadingAttribute->m_sXmlPath.c_str()));
+        ASSERT(pLoadingBox != nullptr);
+        if (pLoadingBox == nullptr) {
             return false;
         }
+        m_pLoadingBox.reset(pLoadingBox);
         if (m_pLoadingAttribute->m_bFade != 255) {
             m_pLoadingBox->SetAlpha(m_pLoadingAttribute->m_bFade);
         }
@@ -385,6 +387,11 @@ void ControlLoading::StopLoading()
 bool ControlLoading::IsLoading() const
 {
     return m_bIsLoading;
+}
+
+Box* ControlLoading::GetLoadingUiRootBox() const
+{
+    return m_pLoadingBox.get();
 }
 
 }

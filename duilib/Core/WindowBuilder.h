@@ -54,14 +54,14 @@ public:
     bool ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath = FilePath());
 
     /** 使用缓存中已经解析过的XML文件或者数据创建窗口布局等（即CreateFromXmlData和CreateFromXmlFile解析后的结果）
+    * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
     * @param [in] pCallback 根据Class名称创建控件（或容器）的函数，适用于自定义控件
-    * @param [in] pWindow 关联的窗口
     * @param [in] pParent 父容器，将该XML文件解析的节点，作为pParent容器的子节点
     * @param [in] pUserDefinedBox 用户自定义的父容器，将该XML文件解析的节点，作为pUserDefinedBox容器的子节点
     * @return 如果pUserDefinedBox不为nullptr, 返回pUserDefinedBox，否则返回解析XML后，生成的第一个节点接口（可能是Control，也可能是Box）
     */
-    Control* CreateControls(CreateControlCallback pCallback = CreateControlCallback(),
-                            Window* pWindow = nullptr,
+    Control* CreateControls(Window* pWindow,
+                            CreateControlCallback pCallback = CreateControlCallback(),
                             Box* pParent = nullptr, 
                             Box* pUserDefinedBox = nullptr);
 

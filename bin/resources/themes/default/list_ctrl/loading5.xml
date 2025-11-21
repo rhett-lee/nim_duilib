@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Window>
+<Loading>
     <VBox height="auto" width="auto" mousechild="false">
-		<Control name="loading_animation" height="auto" width="auto" bkimage="file='public/animation/loading5.json' valign='center' halign='center' play_count='3' auto_play='true' width='120'" margin="0,4,0,0"/>
+		    <Control name="loading_animation" height="auto" width="auto" bkimage="file='public/animation/loading5.json' valign='center' halign='center' play_count='3' auto_play='true' width='120'" margin="0,4,0,0"/>
+        <Label text="Loading ... " width="100%" text_align="hcenter"/>
     </VBox>
-</Window>
+</Loading>

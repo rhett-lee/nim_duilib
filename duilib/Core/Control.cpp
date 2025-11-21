@@ -1009,6 +1009,7 @@ bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
     }
     if (bRet) {
         SetEnabled(false);
+        ASSERT(GetLoadingUiRootBox() != nullptr);
     }
     return bRet;
 }
@@ -1028,6 +1029,15 @@ bool Control::IsLoading() const
         bRet = m_pOtherData->m_pLoading->IsLoading();
     }
     return bRet;
+}
+
+Box* Control::GetLoadingUiRootBox() const
+{
+    Box* pLoadingUiRootBox = nullptr;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        pLoadingUiRootBox = m_pOtherData->m_pLoading->GetLoadingUiRootBox();
+    }
+    return pLoadingUiRootBox;
 }
 
 bool Control::HasStateImages(void) const
@@ -1824,6 +1834,16 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
         return nullptr;
     }
     return Proc(this, pProcData);
+}
+
+Control* Control::FindControl(const DString& name)
+{
+    Window* pWindow = GetWindow();
+    ASSERT(pWindow != nullptr);
+    if (pWindow != nullptr) {
+        return pWindow->FindSubControlByName(this, name);
+    }
+    return nullptr;
 }
 
 UiRect Control::GetPos() const
