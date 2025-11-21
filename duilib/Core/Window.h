@@ -303,7 +303,7 @@ public:
     Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
     /** 根据控件名称查找控件
-    * @param [in] strName 控件名称
+    * @param [in] strName 控件名称（注意：不区分大小写，历史原因）
     */
     Control* FindControl(const DString& strName) const;
 
@@ -315,7 +315,7 @@ public:
 
     /** 根据名字查找子控件
     * @param [in] pParent 要搜索的控件
-    * @param [in] strName 要查找的名称
+    * @param [in] strName 要查找的名称（注意：不区分大小写，历史原因）
     */
     Control* FindSubControlByName(Control* pParent, const DString& strName) const;
 

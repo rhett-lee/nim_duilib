@@ -187,11 +187,8 @@ Control* ControlFinder::FindControlFromName(Control* pThis, void* pData)
     if ((pstrName == nullptr) || (pThis == nullptr)) {
         return nullptr;
     }
-    const DString sName = pThis->GetName();
-    if (sName.empty()) {
-        return nullptr;
-    }
-    return (StringUtil::StringICompare(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
+    //比较控件的名称，不区分大小写
+    return (pThis->IsNameEqualsNoCase(pstrName)) ? pThis : nullptr;
 }
 
 Control* ControlFinder::FindContextMenuControl(Control* pThis, void* /*pData*/)

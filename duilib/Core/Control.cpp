@@ -1826,6 +1826,16 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     return Proc(this, pProcData);
 }
 
+Control* Control::FindControl(const DString& name)
+{
+    Window* pWindow = GetWindow();
+    ASSERT(pWindow != nullptr);
+    if (pWindow != nullptr) {
+        return pWindow->FindSubControlByName(this, name);
+    }
+    return nullptr;
+}
+
 UiRect Control::GetPos() const
 {
     return BaseClass::GetPos();
