@@ -2442,7 +2442,7 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
     ASSERT(IsWindow());
     int nWidth = 0;
     int nHeight = 0;
-    bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+    bool nRet = SDL_GetWindowSizeInPixels(m_sdlWindow, &nWidth, &nHeight);
     ASSERT(nRet);
     if (nRet) {
         rcClient.left = 0;
@@ -2816,6 +2816,46 @@ Control* NativeWindow_SDL::FindControl(const UiPoint& pt) const
 bool NativeWindow_SDL::NeedCenterWindowAfterCreated() const
 {
     return m_createParam.m_bCenterWindow;
+}
+
+bool NativeWindow_SDL::GetWindowSize(int32_t* w, int32_t* h) const
+{
+    if (m_sdlWindow != nullptr) {
+        return SDL_GetWindowSize(m_sdlWindow, w, h);
+    }
+    return false;
+}
+
+bool NativeWindow_SDL::GetWindowSizeInPixels(int32_t* w, int32_t* h) const
+{
+    if (m_sdlWindow != nullptr) {
+        return SDL_GetWindowSizeInPixels(m_sdlWindow, w, h);
+    }
+    return false;
+}
+
+float NativeWindow_SDL::GetDisplayContentScale() const
+{
+    if (m_sdlWindow != nullptr) {
+        return SDL_GetDisplayContentScale(SDL_GetDisplayForWindow(m_sdlWindow));
+    }
+    return 0.0f;    
+}
+
+float NativeWindow_SDL::GetWindowDisplayScale() const
+{
+    if (m_sdlWindow != nullptr) {
+        return SDL_GetWindowDisplayScale(m_sdlWindow);
+    }
+    return 0.0f;
+}
+
+float NativeWindow_SDL::GetWindowPixelDensity() const
+{
+    if (m_sdlWindow != nullptr) {
+        return SDL_GetWindowPixelDensity(m_sdlWindow);
+    }
+    return 0.0f;
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

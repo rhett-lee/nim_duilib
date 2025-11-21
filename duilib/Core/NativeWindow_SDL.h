@@ -577,6 +577,14 @@ public:
     */
     bool NeedCenterWindowAfterCreated() const;
 
+public:
+    //几组支持高分屏的API接口
+    bool GetWindowSize(int32_t* w, int32_t* h) const;
+    bool GetWindowSizeInPixels(int32_t* w, int32_t* h) const;
+    float GetDisplayContentScale() const;
+    float GetWindowDisplayScale() const;
+    float GetWindowPixelDensity() const;
+
 private:
     /** 创建窗口和渲染接口
     */

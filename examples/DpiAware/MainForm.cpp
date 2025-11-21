@@ -58,9 +58,16 @@ void MainForm::OnInitWindow()
     }
 }
 
-void MainForm::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
+void MainForm::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
 {
     UpdateUI();
+    ui::WindowImplBase::OnWindowDpiChanged(nOldDPI, nNewDPI);
+}
+
+LRESULT MainForm::OnSizeMsg(ui::WindowSizeType sizeType, const ui::UiSize& newWindowSize, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    UpdateUI();
+    return ui::WindowImplBase::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
 }
 
 void MainForm::UpdateUI()
@@ -92,7 +99,7 @@ void MainForm::UpdateUI()
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi_percent")));
     if (pLabel != nullptr) {
         uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetScale();
-        DString text = ui::StringUtil::UInt32ToString(nScale);
+        DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi")));
@@ -104,7 +111,63 @@ void MainForm::UpdateUI()
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi_percent")));
     if (pLabel != nullptr) {
         uint32_t nScale = Dpi().GetScale();
-        DString text = ui::StringUtil::UInt32ToString(nScale);
+        DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
         pLabel->SetText(text);
     }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_size")));
+    if (pLabel != nullptr) {
+        ui::UiRect rcWindow;
+        GetWindowRect(rcWindow);
+        DString text = ui::StringUtil::Printf(_T("W:%d, H:%d [Left:%d, Top:%d]"), rcWindow.Width(), rcWindow.Height(), rcWindow.left, rcWindow.top);
+        pLabel->SetText(text);
+    }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_client_size")));
+    if (pLabel != nullptr) {
+        ui::UiRect rcClient;
+        GetClientRect(rcClient);
+        DString text = ui::StringUtil::Printf(_T("W:%d, H:%d [Left:%d, Top:%d]"), rcClient.Width(), rcClient.Height(), rcClient.left, rcClient.top);
+        pLabel->SetText(text);
+    }
+#ifdef DUILIB_BUILD_FOR_SDL
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("SDL_GetWindowSize")));
+    if (pLabel != nullptr) {
+        int32_t w = 0;
+        int32_t h = 0;
+        NativeWnd()->GetWindowSize(&w, &h);
+        DString text = ui::StringUtil::Printf(_T("W:%d, H:%d"), w, h);
+        pLabel->SetText(text);
+    }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("SDL_GetWindowSizeInPixels")));
+    if (pLabel != nullptr) {
+        int32_t w = 0;
+        int32_t h = 0;
+        NativeWnd()->GetWindowSizeInPixels(&w, &h);
+        DString text = ui::StringUtil::Printf(_T("W:%d, H:%d"), w, h);
+        pLabel->SetText(text);
+    }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("SDL_GetDisplayContentScale")));
+    if (pLabel != nullptr) {
+        float scale = NativeWnd()->GetDisplayContentScale();
+        DString text = ui::StringUtil::Printf(_T("%.02f"), scale);
+        pLabel->SetText(text);
+    }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("SDL_GetWindowDisplayScale")));
+    if (pLabel != nullptr) {
+        float scale = NativeWnd()->GetWindowDisplayScale();
+        DString text = ui::StringUtil::Printf(_T("%.02f"), scale);
+        pLabel->SetText(text);
+    }
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("SDL_GetWindowPixelDensity")));
+    if (pLabel != nullptr) {
+        float scale = NativeWnd()->GetWindowPixelDensity();
+        DString text = ui::StringUtil::Printf(_T("%.02f"), scale);
+        pLabel->SetText(text);
+    }
+#else
+    ui::Control* pSDL = FindControl(_T("SDL"));
+    if (pSDL != nullptr) {
+        pSDL->SetVisible(false);
+    }
+#endif
+    
 }
