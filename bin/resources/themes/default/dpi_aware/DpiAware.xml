@@ -14,7 +14,7 @@
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
-            <GroupVBox valign="top" halign="center" valign="center" width="840" height="560">
+            <GroupVBox halign="center" valign="top" width="840" height="560">
                 <HBox height="40" width="100%" valign="center">
                     <Label text="支持DPI感知功能的应用程序示例（支持高分屏）" height="40" width="100%" text_align="hcenter,vcenter"/>
                 </HBox>
