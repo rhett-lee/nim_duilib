@@ -389,4 +389,9 @@ bool ControlLoading::IsLoading() const
     return m_bIsLoading;
 }
 
+Box* ControlLoading::GetLoadingUiRootBox() const
+{
+    return m_pLoadingBox.get();
+}
+
 }

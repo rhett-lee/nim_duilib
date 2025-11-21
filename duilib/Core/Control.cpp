@@ -1009,6 +1009,7 @@ bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
     }
     if (bRet) {
         SetEnabled(false);
+        ASSERT(GetLoadingUiRootBox() != nullptr);
     }
     return bRet;
 }
@@ -1028,6 +1029,15 @@ bool Control::IsLoading() const
         bRet = m_pOtherData->m_pLoading->IsLoading();
     }
     return bRet;
+}
+
+Box* Control::GetLoadingUiRootBox() const
+{
+    Box* pLoadingUiRootBox = nullptr;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        pLoadingUiRootBox = m_pOtherData->m_pLoading->GetLoadingUiRootBox();
+    }
+    return pLoadingUiRootBox;
 }
 
 bool Control::HasStateImages(void) const

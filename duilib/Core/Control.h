@@ -601,7 +601,6 @@ public:
     /** 绘制图片
      * @param [in] pRender 绘制上下文
      * @param [in] pImage 图片对象的接口
-     * @param [in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
      * @param [in] strModify 图片的附加属性
      * @param [in] nFade 控件的透明度，如果启用动画效果该值在绘制时是不断变化的
      * @param [in] pMatrix 绘制图片时使用的变换矩阵
@@ -720,6 +719,10 @@ public:
     /** 当前是否正在加载中
     */
     bool IsLoading() const;
+
+    /** 获取loading界面的根容器接口（在StartLoading成功以后才能够获取到, 在StopLoading结束以后也获取不到）
+    */
+    Box* GetLoadingUiRootBox() const;
 
     /** 监听loading开始的通知
      * @param[in] callback 监听事件的回调函数
