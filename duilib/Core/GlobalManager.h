@@ -238,35 +238,37 @@ public:
                                   bool& bResPath);
 
     /** 根据 XML 创建一个 Box
-     * @param[in] strXmlPath XML 文件路径
-     * @param[in] callback 自定义控件的回调处理函数
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] strXmlPath XML 文件路径
+     * @param [in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBox(const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBox(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 根据 XML 在缓存中查找指定 Box，如果没有则创建
-     * @param[in] strXmlPath XML 文件路径
-     * @param[in] callback 自定义控件的回调处理函数
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] strXmlPath XML 文件路径
+     * @param [in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBoxWithCache(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用 XML 填充指定 Box
-     * @param[in] pUserDefinedBox 要填充的 box 指针
-     * @param[in] strXmlPath XML 文件路径
-     * @param[in] callback 自定义控件的回调处理函数
+    /** 使用 XML 填充指定 Box (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+     * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
+     * @param [in] strXmlPath XML 文件路径
+     * @param [in] callback 自定义控件的回调处理函数
      */
     bool FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用构建过的缓存填充指定 Box，如果没有则重新构建
-     * @param[in] pUserDefinedBox 要填充的 box 指针
-     * @param[in] strXmlPath XML 文件路径
-     * @param[in] callback 自定义控件的回调处理函数
+    /** 使用构建过的缓存填充指定 Box，如果没有则重新构建 (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+     * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
+     * @param [in] strXmlPath XML 文件路径
+     * @param [in] callback 自定义控件的回调处理函数
      */
     bool FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 自定义控件创建后的全局回调函数
-     * @param[in] strControlName 自定义控件名称
+     * @param [in] strControlName 自定义控件名称
      * @return 返回一个自定义控件的对象指针
      */
     Control* CreateControl(const DString& strControlName);

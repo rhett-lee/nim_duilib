@@ -339,7 +339,7 @@ void Window::PreInitWindow()
     Box* pRoot = nullptr;
     if (m_windowBuilder != nullptr) {
         auto callback = UiBind(&Window::CreateControl, this, std::placeholders::_1);
-        Control* pControl = m_windowBuilder->CreateControls(callback, this);
+        Control* pControl = m_windowBuilder->CreateControls(this, callback);
         pRoot = m_windowBuilder->ToBox(pControl);
         ASSERT(pRoot != nullptr);
     }
