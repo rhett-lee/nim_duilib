@@ -186,7 +186,9 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
         return false;
     }
     bool bRet = false;
-    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath));
+    bool bLocalPath = true;
+    bool bResPath = true;
+    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath), bLocalPath, bResPath);
     ASSERT(!iconFullPath.IsEmpty());
     if (iconFullPath.IsEmpty()) {
         return false;
@@ -377,7 +379,12 @@ void Window::PostInitWindow()
     }
 
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
-    AutoResizeWindow(false);
+    if (AutoResizeWindow(false)) {
+        //调整大小后，需要再次进行窗口居中
+        if (NativeWnd()->NeedCenterWindowAfterCreated()) {
+            CenterWindow();
+        }
+    }
 
     //创建后，Render大小与客户区大小同步
     ResizeRenderToClientSize();
@@ -2013,6 +2020,25 @@ void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool&
 
 void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
 {
+    if (IsWindowMaximized() || IsWindowMinimized()) {
+        //窗口最大化或者最小化时，不处理
+        return;
+    }
+    UiRect rcSizeBox = GetSizeBox();
+
+    //没有窗口边框，不处理
+    if (rcSizeBox.left <= 0) {
+        bLeftSnap = false;
+    }
+    if (rcSizeBox.top <= 0) {
+        bTopSnap = false;
+    }
+    if (rcSizeBox.right <= 0) {
+        bRightSnap = false;
+    }
+    if (rcSizeBox.bottom <= 0) {
+        bBottomSnap = false;
+    }
     if (m_shadow != nullptr) {
         m_shadow->SetWindowPosSnap(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
     }
@@ -2073,6 +2099,10 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
                 return;
             }
         }
+    }
+    else if (!IsUseSystemCaption() && (m_shadow != nullptr) && IsShadowAttached()) {
+        //检查是否点击在窗口阴影区域(实现鼠标点击阴影，穿透到后面窗口的功能)
+        m_shadow->CheckMouseClickOnShadow(eventType, pt);
     }
     if (!bWindowFocused && !windowFlag.expired()) {
         //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)
@@ -2420,35 +2450,36 @@ bool Window::PreparePaint(bool bArrange)
     return bRet;
 }
 
-void Window::AutoResizeWindow(bool bRepaint)
+bool Window::AutoResizeWindow(bool bRepaint)
 {
-    if ((m_pRoot != nullptr) && (m_pRoot->GetFixedWidth().IsAuto() || m_pRoot->GetFixedHeight().IsAuto())) {
+    bool bResized = false;
+    if ((m_pRoot != nullptr) && (!m_pRoot->GetFixedWidth().IsStretch() || !m_pRoot->GetFixedHeight().IsStretch())) {
+        //跟容器属性：如果宽度或者高度有不是拉伸类型的，根据跟容器的大小自动修改窗口大小
         UiSize maxSize(999999, 999999);
-        UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
-        if (!estSize.cx.IsStretch() && !estSize.cy.IsStretch()) {
-            UiSize needSize = MakeSize(estSize);
-            if (needSize.cx < m_pRoot->GetMinWidth()) {
-                needSize.cx = m_pRoot->GetMinWidth();
+        const UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
+        if (!estSize.cx.IsStretch() || !estSize.cy.IsStretch()) {
+            UiSize newSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
+            newSize.cx = std::clamp(newSize.cx, m_pRoot->GetMinWidth(), m_pRoot->GetMaxWidth());
+            newSize.cy = std::clamp(newSize.cy, m_pRoot->GetMinHeight(), m_pRoot->GetMaxHeight());
+
+            UiRect rcWindow;
+            GetWindowRect(rcWindow);
+            if (estSize.cx.IsStretch()) {
+                newSize.cx = rcWindow.Width();
             }
-            if (needSize.cx > m_pRoot->GetMaxWidth()) {
-                needSize.cx = m_pRoot->GetMaxWidth();
+            if (estSize.cy.IsStretch()) {
+                newSize.cy = rcWindow.Height();
             }
-            if (needSize.cy < m_pRoot->GetMinHeight()) {
-                needSize.cy = m_pRoot->GetMinHeight();
-            }
-            if (needSize.cy > m_pRoot->GetMaxHeight()) {
-                needSize.cy = m_pRoot->GetMaxHeight();
-            }
-            UiRect rect;
-            GetWindowRect(rect);
-            if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
-                Resize(needSize.cx, needSize.cy, true, false);
+            if ((rcWindow.Width() != newSize.cx) || (rcWindow.Height() != newSize.cy)) {
+                Resize(newSize.cx, newSize.cy, true, false);
+                bResized = true;
                 if (bRepaint) {
                     InvalidateAll();
                 }
             }
         }
     }
+    return bResized;
 }
 
 void Window::ArrangeRoot()

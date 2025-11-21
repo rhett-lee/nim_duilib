@@ -171,7 +171,7 @@ size_t FrameworkThread::PostTask(const StdClosure& task, const StdClosure& unloc
 {
     ASSERT(task != nullptr);
     if (task == nullptr) {
-        return false;
+        return 0;
     }
     ScopedLock threadGuard(m_taskMutex);
     size_t nTaskId = GetNextTaskId();
@@ -278,7 +278,71 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId,
         UNUSED_VARIABLE(unlockClosure1);
         UNUSED_VARIABLE(unlockClosure2);
 #endif
-        return m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0);
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+        //优先处理延迟发送的消息
+        std::vector<size_t> winTaskIds;
+        {
+            ScopedLock threadGuard(m_winTaskMutex);
+            winTaskIds.swap(m_winTaskIds);
+        }
+        if (!winTaskIds.empty()) {
+            auto iter = winTaskIds.begin();
+            while (iter != winTaskIds.end()) {
+                bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, *iter, 0, nullptr);
+                if (bRet) {
+                    iter = winTaskIds.erase(iter);
+                }
+                else {
+                    ++iter;
+                }
+            }
+        }
+#endif
+
+        uint32_t nErrorCode = 0;
+        bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0, &nErrorCode);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+        if (!bRet) {
+            if (nErrorCode == ERROR_NOT_ENOUGH_QUOTA) {
+                if (!GlobalManager::Instance().IsInUIThread()) { //在子线程中执行
+                    //将外层的锁释放，避免SDL底层的锁反向调用产生死锁
+                    if (unlockClosure1) {
+                        unlockClosure1();
+                    }
+                    if (unlockClosure2) {
+                        unlockClosure2();
+                    }
+                    //在程序启动时，如果在子线程向主线程Post消息，会遇到此错误
+                    for (int32_t i = 0; i < 200; ++i) {
+                        ::Sleep(50);
+                        if (!IsRunning()) {
+                            break;
+                        }
+                        bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0, &nErrorCode);
+                        if (bRet || (nErrorCode != ERROR_NOT_ENOUGH_QUOTA)) {
+                            break;
+                        }
+                    }
+                }
+
+                if (!bRet) { //发送失败时，只能延迟发送消息
+                    winTaskIds.push_back(nTaskId);
+                    bRet = true;
+                }
+                if (!winTaskIds.empty()) {
+                    ScopedLock threadGuard(m_winTaskMutex);
+                    for (size_t nPenddingTaskId : winTaskIds) {
+                        m_winTaskIds.push_back(nPenddingTaskId);
+                    }                    
+                }
+            }
+            ASSERT_UNUSED_VARIABLE(bRet);
+        }
+#else
+        ASSERT_UNUSED_VARIABLE(bRet);
+#endif
+        return bRet;
     }
     else {
         //后台工作线程

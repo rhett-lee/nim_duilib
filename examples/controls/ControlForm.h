@@ -61,6 +61,10 @@ private:
     */
     void ShowTestWindow();
 
+    /** 显示控件测试窗口
+    */
+    void ShowAnimationWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

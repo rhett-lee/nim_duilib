@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <HBox>
+        <VBox width="auto" margin="4">
+            <HBox width="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：左，纵向：上)" text_align="left,top" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：左，纵向：中)" text_align="left,vcenter" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：左，纵向：下)" text_align="left,bottom" vertical_text="true"/>
+            </HBox>
+        </VBox>
+        <VBox width="auto" margin="4">
+            <HBox width="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：中，纵向：上)" text_align="center,top" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：中，纵向：中)" text_align="center,vcenter" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：中，纵向：下)" text_align="center,bottom" vertical_text="true"/>
+            </HBox>
+        </VBox>
+        <VBox width="auto" margin="4">
+            <HBox width="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：右，纵向：上)" text_align="right,top" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="dark_gray">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：右，纵向：中)" text_align="right,vcenter" vertical_text="true"/>
+            </HBox>
+            <HBox width="80" bkcolor="blue">
+                <Label height="stretch" width="stretch" text="文字对齐(横向：右，纵向：下)" text_align="right,bottom" vertical_text="true"/>
+            </HBox>
+        </VBox>
+        <VBox>
+            <HBox margin="4">
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向：居中，纵向：两端对齐)" text_align="hcenter,vjustify" vertical_text="true"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="超长文字绘制测试, 单列文本，1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." autotooltip="true" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="超长文字绘制测试, 多列文本，text is 1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" autotooltip="true" single_line="false" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文本绘制-正常字体" font="system_14" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文本绘制-粗体字" font="system_bold_14" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文本绘制-斜体字" font="system_italic_14" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="123文本绘制-删除线" font="system_strikeout_14" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="A文本绘制-带下划线的字" font="system_underline_14" vertical_text="true" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文本绘制-全部风格\n第二列内容" font="system_fullstyle_16" normal_text_color="white" vertical_text="true" text_align="right,top" replace_newline="true" multi_line="true"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向:靠右，纵向:居中)\n这个用例设置了行间距。\n正常行间距" text_align="right,vcenter" multi_line="true" replace_newline="true" vertical_text="true"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向:靠右，纵向:居中)\n这个用例设置了行间距。\nspacing_mul='1.2'" text_align="right,vcenter" multi_line="true" replace_newline="true" spacing_mul="1.2" vertical_text="true"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向:靠右，纵向:居中)\n这个用例设置了行间距。\nword_spacing='6'" text_align="right,vcenter" multi_line="true" replace_newline="true" word_spacing="6" vertical_text="true"/>
+                </HBox>
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向:靠右，纵向:居中)\n这个用例设置了行间距。\nspacing_mul='1.2' spacing_add='6'" text_align="right,vcenter" multi_line="true" replace_newline="true" spacing_mul="1.2" spacing_add="6" vertical_text="true"/>
+                </HBox>
+            </HBox>
+            <HBox margin="4,4,0,0">
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文字对齐(横向：居中，纵向：两端对齐)\n多行文本测试，换行符\n长文字绘制测试:1+2=3, 8/4=2多列文本结束。" text_align="hcenter,vjustify" multi_line="true" vertical_text="true" replace_newline="true"/>
+                </HBox>                       
+                <HBox width="80" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="字母数字等不旋转90度, 1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." single_line="false"  vertical_text="true" ascii_rotate_90="false" text_align="right,top"/>
+                </HBox>
+                <HBox width="80" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文本按实际高度显示，不使用固定字体高度：1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" single_line="false" vertical_text="true" use_font_height="false" text_align="right,top"/>
+                </HBox>
+                <HBox width="200" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文本按实际高度显示，不使用固定字体高度，设置竖排字间距：1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" single_line="false" vertical_text="true" use_font_height="false" word_spacing="3" text_align="right,top"/>
+                </HBox>
+                <HBox width="180" bkcolor="dark_gray">
+                    <Label height="stretch" width="stretch" text="文本按实际高度显示，不使用固定字体高度，设置竖排字间距，设置列间距：1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" single_line="false" vertical_text="true" use_font_height="false" word_spacing="3" spacing_mul="1.5" spacing_add="6" text_align="right,top"/>
+                </HBox>
+                <HBox width="180" bkcolor="blue">
+                    <Label height="stretch" width="stretch" text="文本按实际高度显示，不使用固定字体高度，设置竖排字间距，设置列间距：1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" single_line="false" vertical_text="true" use_font_height="false" word_spacing="3" spacing_mul="1.5" spacing_add="12" text_align="right,top"/>
+                </HBox>
+            </HBox>
+        </VBox>
+    </HBox>
+</Window>

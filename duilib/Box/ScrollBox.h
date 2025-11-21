@@ -1,10 +1,12 @@
 #ifndef UI_BOX_SCROLLBOX_H_
 #define UI_BOX_SCROLLBOX_H_
 
-#include "duilib/Box/HLayout.h"
-#include "duilib/Box/VLayout.h"
-#include "duilib/Box/HTileLayout.h"
-#include "duilib/Box/VTileLayout.h"
+#include "duilib/Layout/HLayout.h"
+#include "duilib/Layout/VLayout.h"
+#include "duilib/Layout/HFlowLayout.h"
+#include "duilib/Layout/VFlowLayout.h"
+#include "duilib/Layout/HTileLayout.h"
+#include "duilib/Layout/VTileLayout.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Animation/AnimationPlayer.h"
@@ -13,7 +15,7 @@ namespace ui
 {
 
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
- *   通过修改布局，形成 HScrollBox 和 VScrollBox 和 TileScrollBox三个子类
+ *   通过修改布局，形成 HScrollBox/VScrollBox/HFlowScrollBox/VFlowScrollBox/HTileScrollBox/VTileScrollBox六个子类
  */
 class UILIB_API ScrollBox : public Box
 {
@@ -263,11 +265,12 @@ public:
     void SetScrollVirtualOffsetX(int64_t xOffset);
 
 protected:
-    /** 计算所需的尺寸
-     * @param[in] rc 当前位置信息, 外部调用时，不需要剪去内边距
+    /** 调整/估算子控件的位置和大小
+     * @param [in] rc 当前位置信息, 外部调用时，不需要剪去内边距
+     * @param [in] bEstimateOnly true表示仅评估不调整控件的位置，false表示调整控件的位置
      * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
      */
-    virtual UiSize64 CalcRequiredSize(const UiRect& rc);
+    virtual UiSize64 CalcRequiredSize(const UiRect& rc, bool bEstimateOnly);
 
     /** 设置鼠标可用状态事件
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
@@ -286,6 +289,13 @@ private:
     * @param [in] bScrollProcess true表示内部递归调用，false表示外部调用
     */
     void SetPosInternally(const UiRect& rc, bool bScrollProcess);
+
+    /** 调整/估算子控件的位置和大小
+     * @param [in] rc 当前位置信息, 外部调用时，不需要剪去内边距
+     * @param [in] bEstimateOnly true表示仅评估不调整控件的位置，false表示调整控件的位置
+     * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
+     */
+    UiSize64 DoArrangeChildren(const UiRect& rc, bool bEstimateOnly);
 
     /** 设置纵向滚动条的位置
     */
@@ -365,6 +375,32 @@ public:
     }
 
     virtual DString GetType() const override { return DUI_CTR_VSCROLLBOX; }
+};
+
+/** 横向流式布局的ScrollBox
+*/
+class UILIB_API HFlowScrollBox : public ScrollBox
+{
+public:
+    explicit HFlowScrollBox(Window* pWindow):
+        ScrollBox(pWindow, new HFlowLayout)
+    {
+    }
+
+    virtual DString GetType() const override { return DUI_CTR_HFLOW_SCROLLBOX; }
+};
+
+/** 纵向流式布局的ScrollBox
+*/
+class UILIB_API VFlowScrollBox : public ScrollBox
+{
+public:
+    explicit VFlowScrollBox(Window* pWindow):
+        ScrollBox(pWindow, new VFlowLayout)
+    {
+    }
+
+    virtual DString GetType() const override { return DUI_CTR_VFLOW_SCROLLBOX; }
 };
 
 /** 瓦片布局的ScrollBox(横向布局)

@@ -97,6 +97,16 @@ bool FilePath::IsExistsDirectory() const noexcept
     return std::filesystem::is_directory(fileStatus);
 }
 
+uint64_t FilePath::GetFileSize() const noexcept
+{
+    std::error_code errorCode;
+    uintmax_t fileSize = std::filesystem::file_size(m_filePath, errorCode);
+    if (errorCode.value() != 0) {
+        return 0;
+    }
+    return (uint64_t)fileSize;
+}
+
 DString::value_type FilePath::GetPathSeparator()
 {
 #ifdef DUILIB_BUILD_FOR_WIN

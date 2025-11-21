@@ -3,6 +3,7 @@
 
 // duilib
 #include "duilib/duilib.h"
+#include <unordered_set>
 
 /** 文件信息
 */
@@ -63,8 +64,17 @@ public:
 
 public:
     /** 用新的文件列表，替换原来的列表
+    * @param [in] currentPath 当前显示内容所在路径
+    * @param [in] pathList 文件列表
+    * @param [in] selectedPath 需要选择的路径
     */
-    void SetFileList(const std::vector<PathInfo>& pathList);
+    void SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath);
+
+    /** 获取当前显示内容所在路径和所选择的路径
+    * @param [out] currentPath 当前显示内容所在路径
+    * @param [out] selectedPath 当前视图中选择的路径
+    */
+    void GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const;
 
 private:
     /** 子项被双击时触发
@@ -82,8 +92,21 @@ private:
     */
     ui::ControlPtrT<ui::VirtualListBox> m_pListBox;
 
-    //文件列表
+    /** 当前显示内容所在的路径
+    */
+    ui::FilePath m_currentPath;
+
+    /** 文件列表
+    */
     std::vector<PathInfo> m_pathList;
+
+    /** 文件列表中元素的选择状态
+    */
+    std::vector<bool> m_pathSelectList;
+
+    /** 出错的图片路径（包括加载图片失败或者图片数据解码失败）
+    */
+    std::unordered_set<DString> m_errorImagePathSet;
 };
 
 #endif //EXAMPLES_SIMPLE_FILE_VIEW_H_

@@ -5,30 +5,6 @@
     #include <objbase.h>
 #endif
 
-WorkerThread::WorkerThread()
-    : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)
-{
-}
-
-WorkerThread::~WorkerThread()
-{
-}
-
-void WorkerThread::OnInit()
-{
-#if defined (DUILIB_BUILD_FOR_WIN)
-    HRESULT hr = ::CoInitialize(nullptr);
-    ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
-#endif
-}
-
-void WorkerThread::OnCleanup()
-{
-#if defined (DUILIB_BUILD_FOR_WIN)
-    ::CoUninitialize();
-#endif
-}
-
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {
@@ -40,10 +16,6 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
-    //启动工作线程
-    m_workerThread.reset(new WorkerThread);
-    m_workerThread->Start();
-
     //初始化全局资源, 使用本地文件夹作为资源
     ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
@@ -58,9 +30,5 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
-    if (m_workerThread != nullptr) {
-        m_workerThread->Stop();
-        m_workerThread.reset(nullptr);
-    }
     ui::GlobalManager::Instance().Shutdown();
 }

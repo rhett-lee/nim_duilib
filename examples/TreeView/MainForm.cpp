@@ -190,7 +190,7 @@ void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
     m_bCanAddBackForward = true;
 }
 
-void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
+void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& currentPath,
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
@@ -205,7 +205,7 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         return;
     }
     if (m_pAddressBar != nullptr) {
-        m_pAddressBar->SetAddressPath(path.ToString());
+        m_pAddressBar->SetAddressPath(currentPath.ToString());
     }
     std::vector<ui::DirectoryTree::PathInfo> pathList;
     if (folderList != nullptr) {
@@ -228,13 +228,37 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
     if (m_dataViewType == kPictureView) {
         SwitchToTabBoxViewType(TabBoxViewType::kFileView);
         if (m_pSimpleFileView != nullptr) {
-            m_pSimpleFileView->SetFileList(pathList);
+            //保持当前视图的路径和所选择的路径
+            ui::FilePath oldCurrentPath;
+            ui::FilePath oldSelectedPath;
+            m_pSimpleFileView->GetCurrentPath(oldCurrentPath, oldSelectedPath);
+            if (!oldCurrentPath.IsEmpty()) {
+                m_selectedPathInfo[oldCurrentPath] = oldSelectedPath;
+            }
+            ui::FilePath selectedPath;
+            auto iter = m_selectedPathInfo.find(currentPath);
+            if (iter != m_selectedPathInfo.end()) {
+                selectedPath = iter->second;
+            }
+            m_pSimpleFileView->SetFileList(currentPath, pathList, selectedPath);
         }
     }
     else {
         SwitchToTabBoxViewType(TabBoxViewType::kExplorerView);
         if (m_pExplorerView != nullptr) {
-            m_pExplorerView->SetFileList(pathList);
+            //保持当前视图的路径和所选择的路径
+            ui::FilePath oldCurrentPath;
+            ui::FilePath oldSelectedPath;
+            m_pExplorerView->GetCurrentPath(oldCurrentPath, oldSelectedPath);
+            if (!oldCurrentPath.IsEmpty()) {
+                m_selectedPathInfo[oldCurrentPath] = oldSelectedPath;
+            }
+            ui::FilePath selectedPath;
+            auto iter = m_selectedPathInfo.find(currentPath);
+            if (iter != m_selectedPathInfo.end()) {
+                selectedPath = iter->second;
+            }
+            m_pExplorerView->SetFileList(currentPath, pathList, selectedPath);
         }
     }
     //更新界面状态

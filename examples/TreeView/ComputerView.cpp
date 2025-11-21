@@ -247,7 +247,7 @@ void ComputerView::ShowMyComputerContents_Win(ui::ImageListPtr pImageList, const
         m_pComputerListCtrl->SetSubItemUserDataSById(nItemIndex, nColumnId, diskInfo.m_filePath.ToString());
         m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
 
-        subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
+        subItemData.nTextFormat = ui::DrawStringFormat::TEXT_HCENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
         subItemData.text = diskInfo.m_volumeType;
         nColumnId = GetColumnId(ComputerViewColumn::kType);
@@ -370,7 +370,7 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
         nColumnId = GetColumnId(ComputerViewColumn::kName);
         m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //文件系统
 
-        subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
+        subItemData.nTextFormat = ui::DrawStringFormat::TEXT_HCENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
         subItemData.text = GetDeviceTypeString(diskInfo.m_deviceType);
         nColumnId = GetColumnId(ComputerViewColumn::kType);

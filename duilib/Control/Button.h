@@ -31,7 +31,7 @@ template<typename InheritType>
 ButtonTemplate<InheritType>::ButtonTemplate(Window* pWindow):
     LabelTemplate<InheritType>(pWindow)
 {
-    this->SetTextStyle(TEXT_VCENTER | TEXT_CENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
+    this->SetTextStyle(TEXT_VCENTER | TEXT_HCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, false);
 }
 
 template<typename InheritType>

@@ -41,6 +41,7 @@
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/TabBox.h"
+#include "duilib/Box/GridBox.h"
 #include "duilib/Box/TileBox.h"
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Box/ListBox.h"
@@ -74,13 +75,19 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BOX,  [](Window* pWindow) { return new Box(pWindow); }},
         {DUI_CTR_HBOX, [](Window* pWindow) { return new HBox(pWindow); }},
         {DUI_CTR_VBOX, [](Window* pWindow) { return new VBox(pWindow); }},
+        {DUI_CTR_HFLOWBOX, [](Window* pWindow) { return new HFlowBox(pWindow); }},
+        {DUI_CTR_VFLOWBOX, [](Window* pWindow) { return new VFlowBox(pWindow); }},
         {DUI_CTR_VTILE_BOX, [](Window* pWindow) { return new VTileBox(pWindow); }},
         {DUI_CTR_HTILE_BOX, [](Window* pWindow) { return new HTileBox(pWindow); }},
         {DUI_CTR_TABBOX, [](Window* pWindow) { return new TabBox(pWindow); }},
+        {DUI_CTR_GRIDBOX, [](Window* pWindow) { return new GridBox(pWindow); }},
+        {DUI_CTR_GRID_SCROLLBOX, [](Window* pWindow) { return new GridScrollBox(pWindow); }},
 
         {DUI_CTR_SCROLLBOX, [](Window* pWindow) { return new ScrollBox(pWindow); }},
         {DUI_CTR_HSCROLLBOX, [](Window* pWindow) { return new HScrollBox(pWindow); }},
         {DUI_CTR_VSCROLLBOX, [](Window* pWindow) { return new VScrollBox(pWindow); }},
+        {DUI_CTR_HFLOW_SCROLLBOX, [](Window* pWindow) { return new HFlowScrollBox(pWindow); }},
+        {DUI_CTR_VFLOW_SCROLLBOX, [](Window* pWindow) { return new VFlowScrollBox(pWindow); }},
         {DUI_CTR_HTILE_SCROLLBOX, [](Window* pWindow) { return new HTileScrollBox(pWindow); }},
         {DUI_CTR_VTILE_SCROLLBOX, [](Window* pWindow) { return new VTileScrollBox(pWindow); }},
 
@@ -210,7 +217,7 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
     return true;
 }
 
-bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
+bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath)
 {
     ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
     if (xmlFilePath.IsEmpty()) {
@@ -219,6 +226,11 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
     bool isLoaded = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+        if (!windowResPath.IsEmpty() && !GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
+            //在窗口目录查找
+            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+            sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
+        }
         std::vector<unsigned char> file_data;
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
@@ -233,6 +245,11 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
         FilePath xmlFileFullPath;
         if (xmlFilePath.IsRelativePath()) {
             xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+            if (!windowResPath.IsEmpty() && !xmlFileFullPath.IsExistsFile()) {
+                //在窗口目录查找
+                xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+                xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
+            }
         }
         else {
             xmlFileFullPath = xmlFilePath;
@@ -467,6 +484,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             GlobalManager::Instance().Dpi().ScaleInt(cy);
         }
         if (!bSizeContainShadow) {
+            GlobalManager::Instance().Dpi().ScalePadding(rcShadowCorner);
             if (!bPercentCX) {
                 cx += rcShadowCorner.left + rcShadowCorner.right;
             }

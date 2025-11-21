@@ -207,11 +207,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    <ClCompile Include="..\..\skia\tools\ganesh\gl\win\SkWGL_win.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
@@ -227,20 +227,11 @@
     </ClCompile>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
-    <ClCompile Include="Box\HLayout.cpp" />
-    <ClCompile Include="Box\HTileLayout.cpp" />
-    <ClCompile Include="Box\Layout.cpp" />
     <ClCompile Include="Box\ListBox.cpp" />
     <ClCompile Include="Box\ListBoxHelper.cpp" />
     <ClCompile Include="Box\ScrollBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
-    <ClCompile Include="Box\VirtualHLayout.cpp" />
-    <ClCompile Include="Box\VirtualHTileLayout.cpp" />
     <ClCompile Include="Box\VirtualListBox.cpp" />
-    <ClCompile Include="Box\VirtualVLayout.cpp" />
-    <ClCompile Include="Box\VirtualVTileLayout.cpp" />
-    <ClCompile Include="Box\VLayout.cpp" />
-    <ClCompile Include="Box\VTileLayout.cpp" />
     <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
@@ -354,19 +345,57 @@
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
     <ClCompile Include="duilib.cpp" />
+    <ClCompile Include="Image\APngDecoder.cpp" />
+    <ClCompile Include="Image\FrameSequence_gif.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageAttribute.cpp" />
-    <ClCompile Include="Image\ImageDecoder.cpp" />
-    <ClCompile Include="Image\ImageGif.cpp" />
+    <ClCompile Include="Image\ImageDecoderFactory.cpp" />
+    <ClCompile Include="Image\ImageDecoderUtil.cpp" />
+    <ClCompile Include="Image\ImageDecoder_Common.cpp" />
+    <ClCompile Include="Image\ImageDecoder_GIF.cpp" />
+    <ClCompile Include="Image\ImageDecoder_ICO.cpp" />
+    <ClCompile Include="Image\ImageDecoder_Icon.cpp" />
+    <ClCompile Include="Image\ImageDecoder_JPEG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_LOTTIE.cpp" />
+    <ClCompile Include="Image\ImageDecoder_PAG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_PNG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_SVG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_WEBP.cpp" />
     <ClCompile Include="Image\ImageInfo.cpp" />
-    <ClCompile Include="Image\ImageLoadAttribute.cpp" />
+    <ClCompile Include="Image\ImageLoadParam.cpp" />
+    <ClCompile Include="Image\ImagePlayer.cpp" />
+    <ClCompile Include="Image\ImageUtil.cpp" />
+    <ClCompile Include="Image\Image_Animation.cpp" />
+    <ClCompile Include="Image\Image_Bitmap.cpp" />
+    <ClCompile Include="Image\Image_GIF.cpp" />
+    <ClCompile Include="Image\Image_ICO.cpp" />
+    <ClCompile Include="Image\Image_JPEG.cpp" />
+    <ClCompile Include="Image\Image_LOTTIE.cpp" />
+    <ClCompile Include="Image\Image_PAG.cpp" />
+    <ClCompile Include="Image\Image_PNG.cpp" />
+    <ClCompile Include="Image\Image_Svg.cpp" />
+    <ClCompile Include="Image\Image_WEBP.cpp" />
     <ClCompile Include="Image\StateImage.cpp" />
     <ClCompile Include="Image\StateImageMap.cpp" />
+    <ClCompile Include="Layout\GridLayout.cpp" />
+    <ClCompile Include="Layout\HFlowLayout.cpp" />
+    <ClCompile Include="Layout\HLayout.cpp" />
+    <ClCompile Include="Layout\HTileLayout.cpp" />
+    <ClCompile Include="Layout\Layout.cpp" />
+    <ClCompile Include="Layout\VFlowLayout.cpp" />
+    <ClCompile Include="Layout\VirtualHLayout.cpp" />
+    <ClCompile Include="Layout\VirtualHTileLayout.cpp" />
+    <ClCompile Include="Layout\VirtualVLayout.cpp" />
+    <ClCompile Include="Layout\VirtualVTileLayout.cpp" />
+    <ClCompile Include="Layout\VLayout.cpp" />
+    <ClCompile Include="Layout\VTileLayout.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
+    <ClCompile Include="RenderSkia\DrawRichText.cpp" />
     <ClCompile Include="RenderSkia\DrawSkiaImage.cpp" />
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp" />
     <ClCompile Include="RenderSkia\Font_Skia.cpp" />
+    <ClCompile Include="RenderSkia\HorizontalDrawText.cpp" />
     <ClCompile Include="RenderSkia\Matrix_Skia.cpp" />
     <ClCompile Include="RenderSkia\Path_Skia.cpp" />
     <ClCompile Include="RenderSkia\Pen_Skia.cpp" />
@@ -379,10 +408,58 @@
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkTextBox.cpp" />
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
+    <ClCompile Include="RenderSkia\VerticalDrawText.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
-    <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp" />
+    <ClCompile Include="third_party\giflib\dgif_lib.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\egif_lib.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gifalloc.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_err.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_font.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_hash.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\openbsd-reallocarray.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\quantize.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
     <ClCompile Include="third_party\libudis86\decode.c">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
@@ -465,17 +542,15 @@
     <ClCompile Include="WebView2\WebView2Manager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h" />
+    <ClInclude Include="..\..\skia\tools\ganesh\gl\win\SkWGL.h" />
     <ClInclude Include="..\..\skia\tools\window\DisplayParams.h" />
     <ClInclude Include="..\..\skia\tools\window\GLWindowContext.h" />
     <ClInclude Include="..\..\skia\tools\window\RasterWindowContext.h" />
     <ClInclude Include="..\..\skia\tools\window\WindowContext.h" />
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
+    <ClInclude Include="Box\GridBox.h" />
     <ClInclude Include="Box\HBox.h" />
-    <ClInclude Include="Box\HLayout.h" />
-    <ClInclude Include="Box\HTileLayout.h" />
-    <ClInclude Include="Box\Layout.h" />
     <ClInclude Include="Box\ListBox.h" />
     <ClInclude Include="Box\ListBoxHelper.h" />
     <ClInclude Include="Box\ListBoxItem.h" />
@@ -483,14 +558,7 @@
     <ClInclude Include="Box\TabBox.h" />
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
-    <ClInclude Include="Box\VirtualHLayout.h" />
-    <ClInclude Include="Box\VirtualHTileLayout.h" />
-    <ClInclude Include="Box\VirtualLayout.h" />
     <ClInclude Include="Box\VirtualListBox.h" />
-    <ClInclude Include="Box\VirtualVLayout.h" />
-    <ClInclude Include="Box\VirtualVTileLayout.h" />
-    <ClInclude Include="Box\VLayout.h" />
-    <ClInclude Include="Box\VTileLayout.h" />
     <ClInclude Include="CEFControl\CefControl.h" />
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
@@ -639,19 +707,59 @@
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="duilib_string.h" />
     <ClInclude Include="duilib_webview2.h" />
+    <ClInclude Include="Image\APngDecoder.h" />
+    <ClInclude Include="Image\FrameSequence_gif.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
-    <ClInclude Include="Image\ImageGif.h" />
+    <ClInclude Include="Image\ImageDecoderFactory.h" />
+    <ClInclude Include="Image\ImageDecoderUtil.h" />
+    <ClInclude Include="Image\ImageDecoder_Common.h" />
+    <ClInclude Include="Image\ImageDecoder_GIF.h" />
+    <ClInclude Include="Image\ImageDecoder_ICO.h" />
+    <ClInclude Include="Image\ImageDecoder_Icon.h" />
+    <ClInclude Include="Image\ImageDecoder_JPEG.h" />
+    <ClInclude Include="Image\ImageDecoder_LOTTIE.h" />
+    <ClInclude Include="Image\ImageDecoder_PAG.h" />
+    <ClInclude Include="Image\ImageDecoder_PNG.h" />
+    <ClInclude Include="Image\ImageDecoder_SVG.h" />
+    <ClInclude Include="Image\ImageDecoder_WEBP.h" />
     <ClInclude Include="Image\ImageInfo.h" />
-    <ClInclude Include="Image\ImageLoadAttribute.h" />
+    <ClInclude Include="Image\ImageLoadParam.h" />
+    <ClInclude Include="Image\ImagePlayer.h" />
+    <ClInclude Include="Image\ImageUtil.h" />
+    <ClInclude Include="Image\Image_Animation.h" />
+    <ClInclude Include="Image\Image_Bitmap.h" />
+    <ClInclude Include="Image\Image_GIF.h" />
+    <ClInclude Include="Image\Image_ICO.h" />
+    <ClInclude Include="Image\Image_JPEG.h" />
+    <ClInclude Include="Image\Image_LOTTIE.h" />
+    <ClInclude Include="Image\Image_PAG.h" />
+    <ClInclude Include="Image\Image_PNG.h" />
+    <ClInclude Include="Image\Image_Svg.h" />
+    <ClInclude Include="Image\Image_WEBP.h" />
     <ClInclude Include="Image\StateImage.h" />
     <ClInclude Include="Image\StateImageMap.h" />
+    <ClInclude Include="Layout\GridLayout.h" />
+    <ClInclude Include="Layout\HFlowLayout.h" />
+    <ClInclude Include="Layout\HLayout.h" />
+    <ClInclude Include="Layout\HTileLayout.h" />
+    <ClInclude Include="Layout\Layout.h" />
+    <ClInclude Include="Layout\VFlowLayout.h" />
+    <ClInclude Include="Layout\VirtualHLayout.h" />
+    <ClInclude Include="Layout\VirtualHTileLayout.h" />
+    <ClInclude Include="Layout\VirtualLayout.h" />
+    <ClInclude Include="Layout\VirtualVLayout.h" />
+    <ClInclude Include="Layout\VirtualVTileLayout.h" />
+    <ClInclude Include="Layout\VLayout.h" />
+    <ClInclude Include="Layout\VTileLayout.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
+    <ClInclude Include="RenderSkia\DrawRichText.h" />
     <ClInclude Include="RenderSkia\DrawSkiaImage.h" />
     <ClInclude Include="RenderSkia\FontMgr_Skia.h" />
     <ClInclude Include="RenderSkia\Font_Skia.h" />
+    <ClInclude Include="RenderSkia\HorizontalDrawText.h" />
     <ClInclude Include="RenderSkia\Matrix_Skia.h" />
     <ClInclude Include="RenderSkia\Path_Skia.h" />
     <ClInclude Include="RenderSkia\Pen_Skia.h" />
@@ -666,11 +774,14 @@
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />
     <ClInclude Include="RenderSkia\SkUtils.h" />
+    <ClInclude Include="RenderSkia\VerticalDrawText.h" />
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
     <ClInclude Include="Render\IRender.h" />
-    <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\convert_utf\ConvertUTF.h" />
+    <ClInclude Include="third_party\giflib\gif_hash.h" />
+    <ClInclude Include="third_party\giflib\gif_lib.h" />
+    <ClInclude Include="third_party\giflib\gif_lib_private.h" />
     <ClInclude Include="third_party\libudis86\decode.h" />
     <ClInclude Include="third_party\libudis86\extern.h" />
     <ClInclude Include="third_party\libudis86\itab.h" />

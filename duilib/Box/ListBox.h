@@ -23,7 +23,7 @@ typedef int (CALLBACK *PFNCompareFunc)(Control* pControl1, Control* pControl2, v
 class ListBoxHelper;
 
 /** 列表容器，用于展示一组数据使用
-*   通过修改布局，形成 HListBox和VListBox和TileListBox三个子类
+*   通过修改布局，形成 HListBox/VListBox/HTileListBox/VTileListBox四个子类
 */
 class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
 {

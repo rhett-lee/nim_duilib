@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 该文件中设置 libpag 的 配置选项（可选项） -->
+    <PropertyGroup Label="Globals">
+
+        <!-- libpag的include目录 -->
+        <LibPagIncludeDir>$(SolutionDir)\..\duilib\third_party\libpag\windows\include</LibPagIncludeDir>
+        
+        <!-- libpag的lib目录 -->
+        <LibPagLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\duilib\third_party\libpag\windows\lib-vc-x64</LibPagLibDir>
+        <LibPagLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\duilib\third_party\libpag\windows\lib-vc-x64</LibPagLibDir>
+        <LibPagLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\duilib\third_party\libpag\windows\lib-vc-x86</LibPagLibDir>
+        <LibPagLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libpag\windows\lib-vc-x86</LibPagLibDir>
+
+        <!-- 是否支持libpag的宏定义： 0表示不支持；1 表示支持 -->
+        <LibPagEnabled>0</LibPagEnabled>
+
+        <!-- lib列表 -->
+        <LibPagLibs Condition="'$(LibPagEnabled)' != '0'">libpag.lib</LibPagLibs>
+        <LibPagLibs Condition="'$(LibPagEnabled)' == '0'"></LibPagLibs>
+
+    </PropertyGroup>
+
+</Project>

@@ -28,18 +28,17 @@ private:
 
 private:
     ui::VirtualListBox* m_pTileList;
-    DataProvider* m_DataProvider;
+    DataProvider* m_pDataProvider;
 
 private:
-    ui::RichEdit* m_EditColumn;
-    ui::CheckBox* m_CheckBoxItemCenter; 
-    ui::RichEdit* m_EditTotal;
-    ui::Option* m_OptionColumnFix;
-    ui::RichEdit* m_EditUpdate;
-    ui::RichEdit* m_EditTaskName;
-    ui::RichEdit* m_EditDelete;
-    ui::RichEdit* m_EditChildMarginX;
-    ui::RichEdit* m_EditChildMarginY;
+    ui::RichEdit* m_pEditColumn;
+    ui::RichEdit* m_pEditTotal;
+    ui::Option* m_pOptionColumnFix;
+    ui::RichEdit* m_pEditUpdate;
+    ui::RichEdit* m_pEditTaskName;
+    ui::RichEdit* m_pEditDelete;
+    ui::RichEdit* m_pEditChildMarginX;
+    ui::RichEdit* m_pEditChildMarginY;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

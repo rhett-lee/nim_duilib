@@ -5,12 +5,12 @@
     <TextColor name="property_grid_bkcolor" value="#FFCED4E1"/>
     <!-- 属性区域的背景色：包括编辑框等 -->
     <TextColor name="property_grid_propterty_bkcolor" value="white"/>
-    <Class name="property_grid_expand" expand_normal_image="file='public/property_grid/minus.svg' height='18' width='18' padding='2,0,0,0' valign='center'" 
-                                       expand_hot_image="file='public/property_grid/minus.svg' height='18' width='18' padding='2,0,0,0' valign='center'" 
-                                       expand_disabled_image="file='public/property_grid/minus.svg' height='18' width='18' padding='2,0,0,0' valign='center' fade='80'" 
-                                       collapse_normal_image="file='public/property_grid/plus.svg' height='18' width='18' padding='2,0,0,0' valign='center'" 
-                                       collapse_hot_image="file='public/property_grid/plus.svg' height='18' width='18' padding='2,0,0,0' valign='center'" 
-                                       collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="property_grid_expand" expand_normal_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
+                                       expand_hot_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
+                                       expand_disabled_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'" 
+                                       collapse_normal_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
+                                       collapse_hot_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
+                                       collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'"
                                        icon_image_right_space="4"/>
     <Class name="property_grid_header" bkcolor="property_grid_bkcolor" height="28" border_size="0,0,0,1" border_color="darkgray"/>
     <Class name="property_grid_group" height="28" bkcolor="property_grid_bkcolor" show_focus_rect="true"/>
@@ -27,7 +27,7 @@
 
     <!--下拉框-->
     <Class name="property_grid_combo" bkcolor="white" dropbox_size="0,200" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
@@ -35,7 +35,7 @@
     <!--颜色选择下拉框-->
     <Class name="property_grid_combo_button" height="100%" width="100%" dropbox_size="200,250"
                                padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
-                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} bkcolor={white} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={blue} pushed_border_color={blue} valign={center}" 
                                left_button_top_label_class="width={stretch} height={16} margin={1,0,1,0} font={system_12} text_align={bottom,hcenter}" 
                                left_button_bottom_label_class="width={stretch} height={stretch} margin={2,0,2,1} bkcolor={black}" 

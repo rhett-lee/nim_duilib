@@ -42,6 +42,7 @@
     <ClCompile Include="src\dsp\filters.c" />
     <ClCompile Include="src\dsp\filters_sse2.c" />
     <ClCompile Include="src\dsp\lossless.c" />
+    <ClCompile Include="src\dsp\lossless_avx2.c" />
     <ClCompile Include="src\dsp\lossless_sse2.c" />
     <ClCompile Include="src\dsp\lossless_sse41.c" />
     <ClCompile Include="src\dsp\rescaler.c" />

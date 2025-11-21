@@ -23,6 +23,8 @@ public:
     bool Init(const void* buffer, const std::vector<UiRect>& dirtyRectList, int32_t width, int32_t height);
 
     /** 将位图数据绘制到Render
+    * @param [in] pRender 渲染接口
+    * @param [in] rc 绘制的目标区域
     */
     void PaintData(IRender* pRender, const UiRect& rc);
 

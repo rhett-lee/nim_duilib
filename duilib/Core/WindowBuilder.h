@@ -48,9 +48,10 @@ public:
 
     /** 解析XML文件内容
     * @param [in] xmlFilePath XML文件的路径
+    * @param [in] windowResPath 窗口资源子目录, 用于查找XML文件（当不指定文件路径时）
     * @return 解析成功返回true，否则返回false
     */
-    bool ParseXmlFile(const FilePath& xmlFilePath);
+    bool ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath = FilePath());
 
     /** 使用缓存中已经解析过的XML文件或者数据创建窗口布局等（即CreateFromXmlData和CreateFromXmlFile解析后的结果）
     * @param [in] pCallback 根据Class名称创建控件（或容器）的函数，适用于自定义控件

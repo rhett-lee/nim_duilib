@@ -49,13 +49,22 @@ bool IconControl::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pP
         }
     }
     else {
-        bRet = m_pBitmap->Init(nWidth, nHeight, true, pPixelBits);
+        bRet = m_pBitmap->Init(nWidth, nHeight, pPixelBits);
     }
     if (bRet) {
         //重绘图片
         Invalidate();
     }
     return bRet;
+}
+
+void IconControl::ClearIconData()
+{
+    if (m_pBitmap != nullptr) {
+        m_pBitmap.reset();
+        //重绘图片
+        Invalidate();
+    }    
 }
 
 bool IconControl::HasIconData() const

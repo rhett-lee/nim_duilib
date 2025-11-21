@@ -37,9 +37,6 @@
     <Filter Include="third_party\stb_image">
       <UniqueIdentifier>{3f9265e5-a15a-4e95-9457-ac05cbf88a37}</UniqueIdentifier>
     </Filter>
-    <Filter Include="third_party\apng">
-      <UniqueIdentifier>{418af93b-1aa2-4345-8118-2af96f4691e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RenderSkia">
       <UniqueIdentifier>{0a39786a-5478-4647-b38c-4e57f94acfb4}</UniqueIdentifier>
     </Filter>
@@ -93,6 +90,12 @@
     </Filter>
     <Filter Include="WebView2">
       <UniqueIdentifier>{27c3f2eb-b279-490b-b0cc-ff9c309d4884}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third_party\giflib">
+      <UniqueIdentifier>{c409bb08-0a10-482a-8039-6a2bc02d859e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Layout">
+      <UniqueIdentifier>{73caecff-d534-4100-8a51-3543a4be751f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,11 +159,8 @@
     <ClCompile Include="Core\WindowBuilder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Image\ImageDecoder.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
-    <ClCompile Include="third_party\apng\decoder-apng.cpp">
-      <Filter>third_party\apng</Filter>
+    <ClCompile Include="Core\WindowManager.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\BoxShadow.cpp">
       <Filter>Core</Filter>
@@ -249,40 +249,10 @@
     <ClCompile Include="Utils\AttributeUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Box\Layout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\HLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
     <ClCompile Include="Box\ScrollBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Box\ListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualListBox.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualHLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualVLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\HTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualVTileLayout.cpp">
-      <Filter>Box</Filter>
-    </ClCompile>
-    <ClCompile Include="Box\VirtualHTileLayout.cpp">
       <Filter>Box</Filter>
     </ClCompile>
     <ClCompile Include="Core\ControlLoading.cpp">
@@ -378,16 +348,10 @@
     <ClCompile Include="Image\ImageAttribute.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Image\ImageLoadAttribute.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
     <ClCompile Include="Image\StateImageMap.cpp">
       <Filter>Image</Filter>
     </ClCompile>
     <ClCompile Include="Image\StateImage.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
-    <ClCompile Include="Image\ImageGif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
     <ClCompile Include="Core\FrameworkThread.cpp">
@@ -433,9 +397,6 @@
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
-      <Filter>RenderSkia\Skia</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
     <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp">
@@ -711,8 +672,161 @@
     <ClCompile Include="Core\ControlDropTargetUtils.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\WindowManager.cpp">
-      <Filter>Core</Filter>
+    <ClCompile Include="Image\ImageDecoderFactory.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_Icon.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_ICO.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_GIF.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_GIF.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageLoadParam.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageUtil.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_SVG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_PNG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_PNG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Svg.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Animation.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Bitmap.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImagePlayer.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_WEBP.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_WEBP.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\dgif_lib.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\egif_lib.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_err.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_font.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_hash.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gifalloc.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\openbsd-reallocarray.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\quantize.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_ICO.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoderUtil.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_Common.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_JPEG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_JPEG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_LOTTIE.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_LOTTIE.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\APngDecoder.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\skia\tools\ganesh\gl\win\SkWGL_win.cpp">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_PAG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_PAG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\HFlowLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\HLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\HTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\Layout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VFlowLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualHLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualHTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualVLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VirtualVTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\VTileLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Box\VirtualListBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
+    <ClCompile Include="Layout\GridLayout.cpp">
+      <Filter>Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\VerticalDrawText.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\HorizontalDrawText.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\DrawRichText.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\FrameSequence_gif.cpp">
+      <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -815,8 +929,8 @@
     <ClInclude Include="Core\WindowBuilder.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Image\ImageDecoder.h">
-      <Filter>Image</Filter>
+    <ClInclude Include="Core\WindowManager.h">
+      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="third_party\svg\nanosvg.h">
       <Filter>third_party\svg</Filter>
@@ -826,9 +940,6 @@
     </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image.h">
       <Filter>third_party\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="third_party\apng\decoder-apng.h">
-      <Filter>third_party\apng</Filter>
     </ClInclude>
     <ClInclude Include="Core\BoxShadow.h">
       <Filter>Core</Filter>
@@ -941,15 +1052,6 @@
     <ClInclude Include="Core\UiSize64.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Box\Layout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\HLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
     <ClInclude Include="Box\ScrollBox.h">
       <Filter>Box</Filter>
     </ClInclude>
@@ -972,27 +1074,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Box\VirtualListBox.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualHLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualVLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\HTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualVTileLayout.h">
-      <Filter>Box</Filter>
-    </ClInclude>
-    <ClInclude Include="Box\VirtualHTileLayout.h">
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Core\UiString.h">
@@ -1118,16 +1199,10 @@
     <ClInclude Include="Image\ImageAttribute.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Image\ImageLoadAttribute.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Image\StateImageMap.h">
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\StateImage.h">
-      <Filter>Image</Filter>
-    </ClInclude>
-    <ClInclude Include="Image\ImageGif.h">
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Core\ResourceParam.h">
@@ -1212,9 +1287,6 @@
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
     <ClInclude Include="..\..\skia\tools\window\RasterWindowContext.h">
-      <Filter>RenderSkia\Skia</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h">
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\Render_Skia_SDL.h">
@@ -1499,8 +1571,152 @@
     <ClInclude Include="Core\ControlDropTargetUtils.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\WindowManager.h">
-      <Filter>Core</Filter>
+    <ClInclude Include="Image\ImageDecoderFactory.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_Icon.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_ICO.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_GIF.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_GIF.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageLoadParam.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageUtil.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_SVG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_PNG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_PNG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Svg.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Animation.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Bitmap.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImagePlayer.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_WEBP.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_WEBP.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_hash.h">
+      <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_lib.h">
+      <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_lib_private.h">
+      <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_ICO.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoderUtil.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_Common.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_JPEG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_JPEG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_LOTTIE.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_LOTTIE.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\APngDecoder.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\tools\ganesh\gl\win\SkWGL.h">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_PAG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_PAG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\HFlowLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\HLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\HTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\Layout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VFlowLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualHLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualHTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualVLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VirtualVTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\VTileLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Layout\GridLayout.h">
+      <Filter>Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\GridBox.h">
+      <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\VerticalDrawText.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\HorizontalDrawText.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\DrawRichText.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\FrameSequence_gif.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

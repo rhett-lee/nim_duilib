@@ -18,7 +18,7 @@ class ImageLoadAttribute;
 class UILIB_API IconBitmapData
 {
 public:
-    /** 图标位图数据
+    /** 图标位图数据, 数据的长度是：m_nBitmapHeight * m_nBitmapWidth * 4
     */
     std::vector<uint8_t> m_bitmapData;
 
@@ -67,25 +67,6 @@ public:
     *@return 返回图标的大小，如果失败返回空
     */
     UiSize GetIconSize(const DString& str) const;
-
-    /** 将ICON资源字符串对应的HICON句柄，解码为位图数据（32位，ARGB位图）
-    * @param [in] str 资源字符串，正确形式例如："icon:1"
-    * @param [in] pWindow 绘制关联的窗口，如果为nullptr，则使用默认桌面DC（绘制图标的时候，需要用到窗口关联的设备上下文DC）
-    * @param [in] ImageLoadAttribute 图片属性信息，包含指定图标的宽度和高度，按这个尺寸生成图标位图（不同的DPI下，生成的位图大小不同，而ICON图源大小只有一个）
-    * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
-    * @param [out] bitmapData 成功时，返回位图的数据
-    * @param [out] bitmapWidth 成功时，返回位图的宽度
-    * @param [out] bitmapHeight 成功时，返回位图的高度
-    * @param [out] bDpiScaled 返回图片是否做过DPI缩放
-    */
-    bool LoadIconData(const DString& str,
-                      const Window* pWindow,
-                      const ImageLoadAttribute& loadAtrribute,
-                      bool bEnableDpiScale,
-                      std::vector<uint8_t>& bitmapData,
-                      uint32_t& bitmapWidth,
-                      uint32_t& bitmapHeight,
-                      bool& bDpiScaled) const;
 
 public:
 

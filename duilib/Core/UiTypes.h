@@ -15,10 +15,68 @@
 #include "duilib/Core/UiFixedInt.h"
 #include "duilib/Core/UiEstInt.h"
 #include "duilib/Core/UiString.h"
+#include <string>
+#include <memory>
+#include <vector>
 #include <cmath>
+#include <algorithm>
 
 namespace ui
 {
+    /** 加载后的图片数据类型
+    */
+    enum class UILIB_API UiImageDataType
+    {
+        kBGRA,  //格式为BGRA格式，位数顺序从高位到低位分别为[第3位:A，第2位:R，第1位:G,第0位:B]（Windows平台使用）
+        kRGBA   //格式为RGBA格式，位数顺序从高位到低位分别为[第3位:A，第2位:B，第1位:G,第0位:R]（其他平台使用）
+    };
+
+    /** 加载后的图片数据
+    */
+    struct UILIB_API UiImageData
+    {
+        /** 位图数据，每帧图片的数据长度固定为：图像数据长度为 (m_imageHeight*m_imageWidth*4)
+        */
+        std::vector<uint8_t> m_imageData;
+
+        /** 位图数据格式
+        */
+        UiImageDataType m_imageDataType;
+
+        /** 图像宽度
+        */
+        uint32_t m_imageWidth = 0;
+
+        /** 图像高度
+        */
+        uint32_t m_imageHeight = 0;
+    };
+
+    /** 绘制图片时，平铺绘制相关的参数
+    */
+    struct TiledDrawParam
+    {
+        bool m_bTiledX = false;       //是否横向平铺
+        bool m_bTiledY = false;       //是否纵向平铺
+
+        bool m_bFullTiledX = false;   //如果为true，横向平铺绘制时，确保是完整绘制图片，该参数仅当bTiledX为true时有效
+        bool m_bFullTiledY = false;   //如果为true，纵向平铺绘制时，确保是完整绘制图片，该参数仅当bTiledY为true时有效
+
+        int32_t m_nTiledMarginX = 0;  //平铺绘制时，图片的横向间隔，该参数仅当bTiledX有效(未经DPI缩放)
+        int32_t m_nTiledMarginY = 0;  //平铺绘制时，图片的纵向间隔，该参数仅当bTiledY有效(未经DPI缩放)
+
+        UiPadding m_rcTiledPadding;   //平铺绘制时，在目标区域内的内边距（内边距结合TiledMargin可用形成网格）(未经DPI缩放)
+    };
+
+    /** 估算图片大小的类型
+    */
+    enum class EstimateImageType
+    {
+        kBoth,          //同时估算宽度和高度
+        kWidthOnly,     //只估算宽度
+        kHeightOnly     //只估算高度
+    };
+
     /** 设置的控件大小
     */
     class UILIB_API UiFixedSize

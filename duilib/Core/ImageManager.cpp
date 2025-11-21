@@ -1,40 +1,24 @@
 #include "ImageManager.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //#define OUTPUT_IMAGE_LOG 1
+#endif
 
 namespace ui 
 {
-
-/** 加载多帧图片所需的参数(多线程加载多帧图片时复用这些参数)
-*/
-struct LoadImageParam
-{
-    explicit LoadImageParam(const ImageLoadAttribute& loadAtrribute):
-        m_nThreadIdentifier(-1),
-        m_nFrameCount(0),
-        m_imageLoadAtrribute(loadAtrribute),
-        m_bEnableImageDpiScale(false),
-        m_nImageDpiScale(0),
-        m_nWindowDpiScale(0)
-    {
-    }
-    int32_t m_nThreadIdentifier;
-    uint32_t m_nFrameCount;
-    std::vector<uint8_t> m_fileData;
-    ImageLoadAttribute m_imageLoadAtrribute;
-    bool m_bEnableImageDpiScale;
-    uint32_t m_nImageDpiScale;
-    uint32_t m_nWindowDpiScale;
-};
-
 ImageManager::ImageManager():
-    m_bDpiScaleAllImages(true),
-    m_bAutoMatchScaleImage(true)
+    m_bAutoMatchScaleImage(true),
+    m_bImageAsyncLoad(true)
 {
 }
 
@@ -42,316 +26,333 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
-                                                  const ImageLoadAttribute& loadAtrribute,
-                                                  StdClosure asyncLoadCallback)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, bool& bImageDataFromCache)
 {
-    const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
-    //查找对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
-    DString loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
-    auto iter = m_loadKeyMap.find(loadKey);
-    if (iter != m_loadKeyMap.end()) {
-        const DString& imageKey = iter->second;
-        auto it = m_imageMap.find(imageKey);
-        if (it != m_imageMap.end()) {
-            std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-            if (sharedImage) {
-                //从缓存中，找到有效图片资源，直接返回
-                return sharedImage;
-            }
+    ASSERT(ui::GlobalManager::Instance().IsInUIThread());
+    bImageDataFromCache = false;
+    const DString loadKey = loadParam.GetLoadKey(loadParam.GetLoadDpiScale());
+    auto iter = m_imageInfoMap.find(loadKey);
+    if (iter != m_imageInfoMap.end()) {
+        std::shared_ptr<ImageInfo> spImageInfo = iter->second.lock();
+        if (spImageInfo != nullptr) {
+            //从缓存中，找到有效图片资源，直接返回
+            bImageDataFromCache = true;
+            return spImageInfo;
         }
-    }    
-
-    //重新加载资源    
-    std::unique_ptr<ImageInfo> imageInfo;
-    bool isIcon = false;
-    if (GlobalManager::Instance().Icon().IsIconString(loadAtrribute.GetImageFullPath())) {
-        //加载ICON
-        isIcon = true;
-        LoadIconData(pWindow, loadAtrribute, imageInfo);
     }
 
-    //加载多帧图片所需的参数(多线程加载多帧图片时复用这些参数)
-    std::shared_ptr<LoadImageParam> spLoadImageParam;
-    bool isDpiScaledImageFile = false; //该图片是否为DPI自适应的图片（不是DPI为96的原始图片）
-    if (!isIcon) {
-        DString imageFullPath = loadAtrribute.GetImageFullPath();
-        bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
+    //重新加载资源
+    const ImageLoadPath& imageLoadPath = loadParam.GetImageLoadPath();
+    DString imageFullPath = imageLoadPath.m_imageFullPath.ToString();   //图片的路径（本地路径或者压缩包内相对路径）
+    uint32_t nImageFileDpiScale = 100;                                  //原始图片，未经DPI缩放时，DPI缩放比例是100
+    const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
+    const bool bImageDpiScaleEnabled = loadParam.IsImageDpiScaleEnabled();//图片属性：load_scale="false"，只使用原图，不需要缩放
+    if (bImageDpiScaleEnabled && 
+        ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
+         (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {
+        //只有在资源目录下的文件，才执行查找适配DPI图片的功能
         DString dpiImageFullPath;
-        uint32_t nImageDpiScale = 0;
-        //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-        const bool bEnableImageDpiScale = IsDpiScaleAllImages();
-        if (bEnableImageDpiScale && GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath, dpiImageFullPath, nImageDpiScale)) {
-            //标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
-            isDpiScaledImageFile = true;
-            imageFullPath = dpiImageFullPath;
-            ASSERT(!imageFullPath.empty());
-            ASSERT(nImageDpiScale > 100);
-        }
-        else {
-            nImageDpiScale = 100; //原始图片，未经DPI缩放
-            isDpiScaledImageFile = false;
-        }
-        //加载图片的KEY
-        ImageLoadAttribute realLoadAttribute = loadAtrribute;
-        realLoadAttribute.SetImageFullPath(imageFullPath);
-        DString imageKey;
-        if (isDpiScaledImageFile) {
-            //有对应DPI的图片文件
-            imageKey = realLoadAttribute.GetCacheKey(nImageDpiScale);
-        }
-        else {
-            //无对应DPI缩放比的图片文件
-            imageKey = realLoadAttribute.GetCacheKey(0);
-        }
-
-        //根据imageKey查询缓存
-        if (!imageKey.empty()) {
-            auto it = m_imageMap.find(imageKey);
-            if (it != m_imageMap.end()) {
-                std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
-                if ((sharedImage != nullptr) && (sharedImage->GetLoadDpiScale() == dpi.GetScale())) {
-                    //与请求的DPI缩放百分比相同
-                    return sharedImage;
-                }
+        uint32_t dpiImageDpiScale = nImageFileDpiScale;
+        if (GetDpiScaleImageFullPath(loadParam.GetLoadDpiScale(), isUseZip, imageFullPath, dpiImageFullPath, dpiImageDpiScale)) {
+            //标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件            
+            ASSERT((dpiImageDpiScale != 0) && !dpiImageFullPath.empty());
+            if ((dpiImageDpiScale != 0) && !dpiImageFullPath.empty()) {
+                imageFullPath = dpiImageFullPath;
+                nImageFileDpiScale = dpiImageDpiScale;
+                ASSERT(!imageFullPath.empty());
             }
         }
-
-        //从内存数据加载文件
-        std::vector<uint8_t> fileData;
-        FilePath imageFilePath(imageFullPath);
-        if (isUseZip && !imageFilePath.IsAbsolutePath()) {
-            GlobalManager::Instance().Zip().GetZipData(imageFilePath, fileData);
-        }
-        else {
-            FileUtil::ReadFileData(imageFilePath, fileData);
-        }
-        ASSERT(!fileData.empty());
-
-        imageInfo.reset();
-        if (!fileData.empty()) {
-            ImageDecoder imageDecoder;
-            ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
-            if (isDpiScaledImageFile) {
-                imageLoadAtrribute.SetNeedDpiScale(false);
-            }
-            const int32_t nThreadIdentifier = ThreadIdentifier::kThreadWorker;
-            bool bLoadAllFrames = true;
-            bool bHasWorkerThread = GlobalManager::Instance().Thread().HasThread(nThreadIdentifier);
-            if (bHasWorkerThread) {
-                //如果存在Worker线程，则采用多线程异步加载多帧图片（如GIF图片等）
-                bLoadAllFrames = false;
-            }
-            uint32_t nFrameCount = 0;
-            const uint32_t nWindowDpiScale = dpi.GetScale();
-            imageInfo = imageDecoder.LoadImageData(fileData, 
-                                                   imageLoadAtrribute, 
-                                                   bEnableImageDpiScale, nImageDpiScale, nWindowDpiScale,
-                                                   bLoadAllFrames, nFrameCount);
-            if (imageInfo != nullptr) {
-                imageInfo->SetImageKey(imageKey);
-                if (!bLoadAllFrames && (nFrameCount > 1)) {
-                    //启动多线程加载多帧图片时，设置参数
-                    spLoadImageParam = std::make_shared<LoadImageParam>(imageLoadAtrribute);
-                    spLoadImageParam->m_nThreadIdentifier = nThreadIdentifier;
-                    spLoadImageParam->m_nFrameCount = nFrameCount;
-                    spLoadImageParam->m_fileData.swap(fileData);
-                    spLoadImageParam->m_bEnableImageDpiScale = bEnableImageDpiScale;
-                    spLoadImageParam->m_nImageDpiScale = nImageDpiScale;
-                    spLoadImageParam->m_nWindowDpiScale = nWindowDpiScale;
-                }
-            }            
-        }
-    }    
-    std::shared_ptr<ImageInfo> sharedImage;
-    if (imageInfo != nullptr) {
-        DString imageKey = imageInfo->GetImageKey();
-        uint32_t nWindowDpiScale = dpi.GetScale();
-        sharedImage = SaveImageInfo(imageInfo.release(), loadKey, nWindowDpiScale, isDpiScaledImageFile);
-        if ((spLoadImageParam != nullptr) && (spLoadImageParam->m_nThreadIdentifier >= 0)) {
-            //启动多线程加载多帧图片, 在子线程中加载完成后，更新图片数据
-            auto loadImageTask = [this, spLoadImageParam, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile, asyncLoadCallback]() {
-                    //该函数的代码在子线程中执行
-                    uint32_t nFrameCount = 0;
-                    ImageDecoder imageDecoder;
-                    std::unique_ptr<ImageInfo> pNewImageInfo = nullptr;
-                    pNewImageInfo = imageDecoder.LoadImageData(spLoadImageParam->m_fileData,
-                                                               spLoadImageParam->m_imageLoadAtrribute,
-                                                               spLoadImageParam->m_bEnableImageDpiScale,
-                                                               spLoadImageParam->m_nImageDpiScale,
-                                                               spLoadImageParam->m_nWindowDpiScale,
-                                                               true, nFrameCount);
-                    if ((pNewImageInfo != nullptr) && (&GlobalManager::Instance().Image() == this)) {
-                        //发送到UI线程，更新图片数据，然后刷新界面显示
-                        std::shared_ptr<ImageInfo> spNewSharedImage;
-                        spNewSharedImage.reset(pNewImageInfo.release());
-                        auto updateUiTask = [this, spNewSharedImage, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile, asyncLoadCallback]() {
-                                //该函数的代码在UI线程中执行                                
-                                if (&GlobalManager::Instance().Image() == this) {
-                                    bool bUpdated = UpdateImageInfo(spNewSharedImage, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile);
-                                    //ASSERT_UNUSED_VARIABLE(bUpdated);
-                                    if (bUpdated && (asyncLoadCallback != nullptr)) {
-                                        //加载成功后，回调函数
-                                        asyncLoadCallback();
-                                    }
-                                }
-                            };
-
-                        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, updateUiTask);
-                    }
-                };
-            GlobalManager::Instance().Thread().PostTask(spLoadImageParam->m_nThreadIdentifier, loadImageTask);
-        }
-    }
-    return sharedImage;
-}
-
-std::shared_ptr<ImageInfo> ImageManager::SaveImageInfo(ImageInfo* pImageInfo, const DString& loadKey, uint32_t nWindowDpiScale, bool isDpiScaledImageFile)
-{
-    if (pImageInfo == nullptr) {
-        return nullptr;
-    }
-    std::shared_ptr<ImageInfo> sharedImage;
-    DString imageKey = pImageInfo->GetImageKey();
-    sharedImage.reset(pImageInfo, &OnImageInfoDestroy);
-    sharedImage->SetLoadKey(loadKey);
-    sharedImage->SetLoadDpiScale(nWindowDpiScale);
-    if (isDpiScaledImageFile) {
-        //使用了DPI自适应的图片，做标记（必须为true时才能修改这个值）
-        sharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
-    }
-    if (imageKey.empty()) {
-        imageKey = loadKey;
     }
 
-    //保存对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
-    m_loadKeyMap[loadKey] = imageKey;
-    m_imageMap[imageKey] = sharedImage;
+    float fImageSizeScale = 1.0f;
+    //计算设置的比例, 影响加载的缩放百分比（通过width='300'或者width='300%'这种形式设置的图片属性）
+    const bool bHasFixedSize = loadParam.HasImageFixedSize();
+    if (bImageDpiScaleEnabled && !bHasFixedSize) {
+        //加载的比例（按相对原图来计算，确保各个DPI适配图的显示效果相同）
+        //1.如果图片宽高用于评估显示空间的大小：必须按照DPI缩放比来缩放，这样才能在不同DPI下界面显示效果相同
+        //2.如果不需要用图片的宽度和高度评估显示空间大小，那么这个加载比例只影响图片显示效果，不影响布局
+        //3.如果设置了图片的width或者height属性，只使用原图，不需要缩放（因为加载后要执行缩放操作）
+        fImageSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / static_cast<float>(nImageFileDpiScale);
+    }
 
-#ifdef _DEBUG
-    //DString log = _T("Loaded Image: ") + imageKey + _T("\n");
-    //::OutputDebugString(log.c_str());
+    std::shared_ptr<IImage> spImageData;
+    //查询缓存，如果缓存存在，则可共享图片资源，无需重复加载
+    const DString imageKey = imageFullPath;
+    auto iterImageData = m_imageDataMap.find(imageKey);
+    if (iterImageData != m_imageDataMap.end()) {
+        spImageData = iterImageData->second.m_pImage.lock();
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Lock ImageData(reuse): ") + imageKey + _T("\n");
+        ::OutputDebugString(log.c_str());
 #endif
-    return sharedImage;
-}
-
-bool ImageManager::UpdateImageInfo(std::shared_ptr<ImageInfo> spNewSharedImage, const DString& loadKey, const DString& imageKey,
-                                   uint32_t nWindowDpiScale, bool isDpiScaledImageFile)
-{
-    GlobalManager::Instance().AssertUIThread();
-    //校验
-    if (spNewSharedImage->GetFrameCount() <= 1) {
-        return false;
-    }
-    auto iter = m_loadKeyMap.find(loadKey);
-    if ((iter == m_loadKeyMap.end()) || (iter->second != imageKey)) {
-        //KEY发生变化了，不更新
-        return false;
-    }
-
-    auto iterShared = m_imageMap.find(imageKey);
-    if (iterShared == m_imageMap.end()) {
-        //KEY发生变化了，不更新
-        return false;
-    }
-    std::shared_ptr<ImageInfo> spOldSharedImage = iterShared->second.lock();
-    if (spOldSharedImage == nullptr) {
-        //无数据，不更新
-        return false;
-    }
-
-    spNewSharedImage->SetLoadKey(loadKey);
-    spNewSharedImage->SetImageKey(imageKey);
-    spNewSharedImage->SetLoadDpiScale(nWindowDpiScale);
-    if (isDpiScaledImageFile) {
-        //使用了DPI自适应的图片，做标记（必须为true时才能修改这个值）
-        spNewSharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
-    }
-    //校验通过后，更新数据    
-    bool bUpdated = spOldSharedImage->SwapImageData(*spNewSharedImage);
-    spOldSharedImage.reset();
-    return bUpdated;
-}
-
-void ImageManager::LoadIconData(const Window* pWindow, 
-                                const ImageLoadAttribute& loadAtrribute,
-                                std::unique_ptr<ImageInfo>& imageInfo) const
-{
-    imageInfo.reset();
-    //加载HICON句柄，作为图片，仅在Windows平台有这个句柄
-    DString iconString = loadAtrribute.GetImageFullPath();
-    bool bEnableDpiScale = IsDpiScaleAllImages();
-    std::vector<uint8_t> bitmapData;
-    uint32_t imageWidth = 0;
-    uint32_t imageHeight = 0;
-    bool bDpiScaled = false;
-    if (GlobalManager::Instance().Icon().LoadIconData(iconString, 
-                                                      pWindow, loadAtrribute, bEnableDpiScale,
-                                                      bitmapData, 
-                                                      imageWidth, imageHeight, bDpiScaled)) {
-        ASSERT(bitmapData.size() == ((size_t)imageWidth * imageHeight * 4));
-        IBitmap* pBitmap = nullptr;
-        IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactroy != nullptr);
-        if (pRenderFactroy != nullptr) {
-            pBitmap = pRenderFactroy->CreateBitmap();
-        }
-        ASSERT(pBitmap != nullptr);
-        if (pBitmap != nullptr) {
-            pBitmap->Init(imageWidth, imageHeight, true, bitmapData.data());
-            std::vector<IBitmap*> frameBitmaps;
-            frameBitmaps.push_back(pBitmap);
-            imageInfo.reset(new ImageInfo);
-            imageInfo->SetFrameBitmap(frameBitmaps);
-            imageInfo->SetImageSize(imageWidth, imageHeight);
-            imageInfo->SetPlayCount(-1);
-            imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
+        if (spImageData != nullptr) {
+            if (!ImageUtil::IsSameImageScale(iterImageData->second.m_fImageSizeScale, fImageSizeScale)) {
+                //在动态切换DPI后，比例会发生变化，需要重新加载，不可共享原来加载的图片
+                m_imageDataMap.erase(iterImageData);
+                spImageData.reset();
+            }
         }
     }
-    ASSERT(imageInfo != nullptr);
+    bImageDataFromCache = spImageData != nullptr ? true : false; //标记是否从缓存中获取的ImageData共享图片资源
+    if (spImageData == nullptr) {
+        //从内存数据加载图片
+        ImageDecoderFactory& ImageDecoders = GlobalManager::Instance().ImageDecoders();
+        std::vector<uint8_t> fileData;
+        std::vector<uint8_t> fileHeaderData;
+        if (imageLoadPath.m_pathType != ImageLoadPathType::kVirtualPath) {
+            //实体图片文件，必须有图片数据用于解码图片
+            FilePath imageFilePath(imageFullPath);
+            if (isUseZip && !imageFilePath.IsAbsolutePath()) {
+                GlobalManager::Instance().Zip().GetZipData(imageFilePath, fileData);
+                ASSERT(!fileData.empty());
+                if (fileData.empty()) {
+                    //加载失败
+                    return nullptr;
+                }
+            }
+            else {
+                bool bReadFileData = true;//是否读取完整文件内容到内存（默认将图片文件的数据全部读取到内存，然后再加载并解码图片数据）
+                if (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) {
+                    //本地文件（非程序的resources目录，可能存在较大的文件，比如几MB或者更大的文件）
+                    uint64_t nFileSize = imageFilePath.GetFileSize();
+                    if (nFileSize > 128 * 1024) {//128KB
+                        //大文件
+                        bReadFileData = false;
+                    }
+                }
+                if (bReadFileData) {
+                    //小文件/程序的resources目录文件等，读取文件全部数据
+                    FileUtil::ReadFileData(imageFilePath, fileData);
+                    if (loadParam.IsAssertEnabled()) {
+                        ASSERT(!fileData.empty());
+                    }                    
+                    if (fileData.empty()) {
+                        //加载失败
+                        return nullptr;
+                    }
+                }
+                else {
+                    //大文件，只读取文件头的部分数据，用作签名校验(读取4KB数据)
+                    FileUtil::ReadFileHeaderData(imageFilePath, 4 * 1024, fileHeaderData);
+                    if (loadParam.IsAssertEnabled()) {
+                        ASSERT(!fileHeaderData.empty());
+                    }
+                    if (fileHeaderData.empty()) {
+                        //加载失败
+                        return nullptr;
+                    }
+                }
+            }           
+        }
+        ImageDecodeParam decodeParam;
+        decodeParam.m_imageFilePath = imageFullPath;//前面的流程，当是本地文件时，已经确保文件存在
+        if (!fileData.empty()) {
+            decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+            decodeParam.m_pFileData->swap(fileData);
+        }
+        else if (!fileHeaderData.empty()) {
+            decodeParam.m_fileHeaderData.swap(fileHeaderData);
+        }
+        if (nImageFileDpiScale == 100) {//针对DPI自适应的原图，不开启该项优化，避免计算原图大小时出现异常
+            decodeParam.m_rcMaxDestRectSize = loadParam.GetMaxDestRectSize();
+        }
+        decodeParam.m_fImageSizeScale = fImageSizeScale;
+
+        decodeParam.m_bAsyncDecode = loadParam.IsAsyncDecodeEnabled();    //是否支持多线程图片解码 
+        decodeParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();   //ICO格式相关参数
+        decodeParam.m_nIconSize = loadParam.GetIconSize();                //ICO格式相关参数
+        decodeParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
+        decodeParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
+        decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
+        decodeParam.m_bAssertEnabled = loadParam.IsAssertEnabled();       //加载图片失败时是否允许断言（一般只影响图片数据错误导致的问题）
+
+        //加载图片     
+        std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(decodeParam);
+        bool bEnableAssert = true;
+#ifndef DUILIB_IMAGE_SUPPORT_LIB_PAG        
+        if (pImageData == nullptr) {
+            DString fileExt = FilePathUtil::GetFileExtension(decodeParam.m_imageFilePath.ToString());
+            StringUtil::MakeUpperString(fileExt);
+            if (fileExt == _T("PAG")) {
+                //当不支持PAG时，禁止断言报错
+                bEnableAssert = false;
+            }
+        }
+#endif
+        if (loadParam.IsAssertEnabled() && bEnableAssert) {
+            ASSERT(pImageData != nullptr); //图片加载失败时，断言
+        }        
+        if (pImageData == nullptr) {
+            //加载失败
+            return nullptr;
+        }
+
+        ASSERT((pImageData->GetWidth() > 0) && (pImageData->GetHeight() > 0));
+        if ((pImageData->GetWidth() <= 0) || (pImageData->GetHeight() <= 0)) {
+            //加载失败
+            return nullptr;
+        }
+        //赋值, 添加到容器(替换删除函数)
+        ASSERT(imageKey == imageFullPath);
+        spImageData.reset(pImageData.release(), ImageManager::CallImageDataDestroy);//TODO：待验证，或许有平台兼容性问题
+        OnImageDataCreate(imageKey, spImageData, fImageSizeScale);        
+    }
+    if (spImageData != nullptr) {
+        std::shared_ptr<ImageInfo> imageInfo(new ImageInfo, &ImageManager::CallImageInfoDestroy);
+        imageInfo->SetImageKey(imageKey);
+        bool bRet = imageInfo->SetImageData(loadParam, spImageData, bImageDpiScaleEnabled, nImageFileDpiScale);
+        ASSERT(bRet);
+        if (bRet) {
+            ASSERT(loadKey == imageInfo->GetLoadKey());
+            OnImageInfoCreate(imageInfo);
+
+            if (bImageDataFromCache) {
+                //如果是重用缓存中的ImageData数据，需要移除待删除队列的数据
+                CancelReleaseImage(spImageData);
+            }
+            return imageInfo;
+        }
+    }
+    return nullptr;
+}
+
+void ImageManager::CallImageInfoDestroy(ImageInfo* pImageInfo)
+{
+    ImageManager& imageManager = GlobalManager::Instance().Image();
+    imageManager.OnImageInfoDestroy(pImageInfo);
+}
+
+void ImageManager::CallImageDataDestroy(IImage* pImage)
+{
+    ImageManager& imageManager = GlobalManager::Instance().Image();
+    imageManager.OnImageDataDestroy(pImage);
+}
+
+void ImageManager::OnImageInfoCreate(std::shared_ptr<ImageInfo>& pImageInfo)
+{
+    ASSERT(pImageInfo != nullptr);
+    if (pImageInfo != nullptr) {
+        DString loadKey = pImageInfo->GetLoadKey();
+        ASSERT(!loadKey.empty());
+        if (!loadKey.empty()) {
+            m_imageInfoMap[loadKey] = pImageInfo;
+#ifdef OUTPUT_IMAGE_LOG
+            DString log = _T("Created ImageInfo: ") + loadKey + _T("\n");
+            ::OutputDebugString(log.c_str());
+#endif
+        }
+    }
 }
 
 void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
+    ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     ASSERT(pImageInfo != nullptr);
-    ImageManager& imageManager = GlobalManager::Instance().Image();
     if (pImageInfo != nullptr) {
-        DString imageKey;
         DString loadKey = pImageInfo->GetLoadKey();
+        ASSERT(!loadKey.empty());
         if (!loadKey.empty()) {            
-            auto iter = imageManager.m_loadKeyMap.find(loadKey);
-            if (iter != imageManager.m_loadKeyMap.end()) {
-                imageKey = iter->second;
-                imageManager.m_loadKeyMap.erase(iter);
-            }
-            if (!imageKey.empty()) {
-                auto it = imageManager.m_imageMap.find(imageKey);
-                if (it != imageManager.m_imageMap.end()) {
-                    imageManager.m_imageMap.erase(it);
-                }
+            auto iter = m_imageInfoMap.find(loadKey);
+            if (iter != m_imageInfoMap.end()) {
+                m_imageInfoMap.erase(iter);
             }
         }
         delete pImageInfo;
-#ifdef _DEBUG
-        //DString log = _T("Removed Image: ") + imageKey + _T("\n");
-        //::OutputDebugString(log.c_str());
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Removed ImageInfo: ") + loadKey + _T("\n");
+        ::OutputDebugString(log.c_str());
 #endif
-    }    
+    }
+}
+
+void ImageManager::OnImageDataCreate(const DString& imageKey, std::shared_ptr<IImage>& pImage, float fImageSizeScale)
+{
+    ASSERT(!imageKey.empty() && (pImage != nullptr));
+    if (!imageKey.empty() && (pImage != nullptr)) {
+        m_imageDataMap[imageKey] = TImageData(pImage, fImageSizeScale);
+#ifdef OUTPUT_IMAGE_LOG
+        DString log = _T("Created ImageData: ") + imageKey + _T("\n");
+        ::OutputDebugString(log.c_str());
+#endif
+    }
+}
+
+void ImageManager::OnImageDataDestroy(IImage* pImage)
+{
+    ASSERT(ui::GlobalManager::Instance().IsInUIThread());
+    ASSERT(pImage != nullptr);
+    if (pImage != nullptr) {
+        auto iter = m_imageDataMap.begin();
+        while (iter != m_imageDataMap.end()) {
+            if (iter->second.m_pImage.expired()) {
+#ifdef OUTPUT_IMAGE_LOG
+                DString log = _T("Removed ImageData: ") + iter->first + _T("\n");
+                ::OutputDebugString(log.c_str());
+#endif
+                iter = m_imageDataMap.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+        delete pImage;
+    }
 }
 
 void ImageManager::RemoveAllImages()
 {
-    m_imageMap.clear();
+    m_imageDataMap.clear();
+    m_delayReleaseImageList.clear();
+    m_imageInfoMap.clear();
 }
 
-void ImageManager::SetDpiScaleAllImages(bool bEnable)
+void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
 {
-    m_bDpiScaleAllImages = bEnable;
+    //确保只有一个元素在队列中
+    CancelReleaseImage(pImageData);
+
+    if (pImageData != nullptr) {
+        TReleaseImageData imageData;
+        imageData.m_pImage = pImageData;
+        imageData.m_releaseTime = std::chrono::steady_clock::now();
+        m_delayReleaseImageList.push_back(imageData);
+    }
+
+    const int32_t nDelaySeconds = 35;
+    auto delayReleaseImage = []() {
+        ImageManager& imageManager = GlobalManager::Instance().Image();
+        auto nowTime = std::chrono::steady_clock::now();
+        auto iter = imageManager.m_delayReleaseImageList.begin();
+        while (iter != imageManager.m_delayReleaseImageList.end()) {
+            const TReleaseImageData& imageData = *iter;
+            //检查并释放图片资源(间隔：30秒，释放原图，以避免影响图片共享)
+            auto seconds = std::chrono::duration_cast<std::chrono::seconds>(nowTime - imageData.m_releaseTime);
+            if (seconds.count() > (nDelaySeconds - 5)) {
+                iter = imageManager.m_delayReleaseImageList.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+    };
+    GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, delayReleaseImage, nDelaySeconds * 1000);
 }
 
-bool ImageManager::IsDpiScaleAllImages() const
+void ImageManager::CancelReleaseImage(const std::shared_ptr<IImage>& pImageData)
 {
-    return m_bDpiScaleAllImages;
+    if ((pImageData != nullptr) && !m_delayReleaseImageList.empty()) {
+        auto iter = m_delayReleaseImageList.begin();
+        while (iter != m_delayReleaseImageList.end()) {
+            const TReleaseImageData& imageData = *iter;
+            if (imageData.m_pImage == pImageData) {
+                iter = m_delayReleaseImageList.erase(iter);
+                break;
+            }
+            else {
+                ++iter;
+            }
+        }
+    }
 }
 
 void ImageManager::SetAutoMatchScaleImage(bool bAutoMatchScaleImage)
@@ -364,15 +365,25 @@ bool ImageManager::IsAutoMatchScaleImage() const
     return m_bAutoMatchScaleImage;
 }
 
+void ImageManager::SetImageAsyncLoad(bool bImageAsyncLoad)
+{
+    m_bImageAsyncLoad = bImageAsyncLoad;
+}
+
+bool ImageManager::IsImageAsyncLoad() const
+{
+    return m_bImageAsyncLoad;
+}
+
 bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
                                             bool bIsUseZip,
                                             const DString& imageFullPath,
                                             DString& dpiImageFullPath,
-                                            uint32_t& nImageDpiScale) const
+                                            uint32_t& nImageFileDpiScale) const
 {
-    nImageDpiScale = 0;
+    nImageFileDpiScale = 0;
     if (FindDpiScaleImageFullPath(dpiScale, bIsUseZip, imageFullPath, dpiImageFullPath)) {
-        nImageDpiScale = dpiScale;
+        nImageFileDpiScale = dpiScale;
         return true;
     }
     dpiImageFullPath.clear();
@@ -399,7 +410,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
             if (index == 0) {
                 //第一个
                 dpiImageFullPath = sPath;
-                nImageDpiScale = nScale;
+                nImageFileDpiScale = nScale;
                 break;
             }
             else {
@@ -410,11 +421,11 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
                 float diffScale = ((float)nScale - (float)dpiScale) / (float)nScale;
                 if (diffScaleLast < diffScale) {
                     dpiImageFullPath = allDpiImagePath[index - 1].second;
-                    nImageDpiScale = allDpiImagePath[index - 1].first;
+                    nImageFileDpiScale = allDpiImagePath[index - 1].first;
                 }
                 else {
                     dpiImageFullPath = sPath;
-                    nImageDpiScale = nScale;
+                    nImageFileDpiScale = nScale;
                 }
                 break;
             }
@@ -422,7 +433,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
         else if (index == (nCount - 1)) {
             //最后一个
             dpiImageFullPath = sPath;
-            nImageDpiScale = nScale;
+            nImageFileDpiScale = nScale;
         }
     }
     return !dpiImageFullPath.empty();
@@ -484,5 +495,81 @@ DString ImageManager::GetDpiScaledPath(uint32_t dpiScale, const DString& imageFu
     return strNewFilePath;
 }
 
+void ImageManager::AddDelayPaintData(Control* pControl, Image* pImage, const DString& imageKey)
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT((pControl != nullptr) && (pImage != nullptr) && !imageKey.empty());
+    if ((pControl == nullptr) || (pImage == nullptr) || imageKey.empty()) {
+        return;
+    }
+    RemoveDelayPaintData(pImage); //一个Image资源，只保留一条记录
+
+    TImageDelayPaintData delayPaint;
+    delayPaint.m_pControl = pControl;
+    delayPaint.m_pImage = pImage;
+    delayPaint.m_imageKey = imageKey;
+    m_delayPaintImageList.push_back(delayPaint);
 }
 
+void ImageManager::RemoveDelayPaintData(Control* pControl)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pControl == pControl) || (iter->m_pControl == nullptr)) {
+            iter = m_delayPaintImageList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+void ImageManager::RemoveDelayPaintData(Image* pImage)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT((pImage != nullptr));
+    if (pImage == nullptr) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pImage == pImage) || (iter->m_pImage == nullptr)) {
+            iter = m_delayPaintImageList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+void ImageManager::DelayPaintImage(const DString& imageKey)
+{
+    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(!imageKey.empty());
+    if (imageKey.empty()) {
+        return;
+    }
+    auto iter = m_delayPaintImageList.begin();
+    while (iter != m_delayPaintImageList.end()) {
+        if ((iter->m_pControl == nullptr) || (iter->m_pImage == nullptr) || (iter->m_imageKey == imageKey)) {
+            ControlPtrT<Image> pImage = iter->m_pImage;
+            iter = m_delayPaintImageList.erase(iter);
+            if (pImage != nullptr) {
+                pImage->RedrawImage();
+            }
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+} //namespace ui

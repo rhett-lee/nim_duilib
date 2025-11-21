@@ -455,7 +455,7 @@ bool VirtualListBox::IsEnableUpdateProvider() const
     return m_bEnableUpdateProvider;
 }
 
-void VirtualListBox::Refresh()
+void VirtualListBox::Refresh(bool bSync)
 {
     if (!HasDataProvider()) {
         return;
@@ -499,6 +499,11 @@ void VirtualListBox::Refresh()
     if (nElementCount > 0) {
         ReArrangeChild(true);
         Arrange();
+    }
+
+    if (bSync) {
+        //立即重新布局
+        SetPos(GetPos());
     }
 }
 

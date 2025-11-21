@@ -76,6 +76,11 @@ public:
     */
     void DeleteSkFont(SkFont* pSkFont);
 
+public:
+    /** 返回sk_sp<SkFontMgr>的指针(&sk_sp<SkFontMgr>)
+    */
+    void* GetSkiaFontMgrPtr() const;
+
 private:
     /** 内部实现类
     */

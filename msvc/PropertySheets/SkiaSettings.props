@@ -3,11 +3,9 @@
     <!-- 该文件中设置 Skia 的 配置选项（必选项） -->
     <PropertyGroup Label="Globals">
 
-        <!-- Skia的宏定义：Release版 -->
-        <SkiaReleaseDefinitions>SK_GANESH;SK_GL;SK_RELEASE</SkiaReleaseDefinitions>
-
-        <!-- Skia的宏定义：Debug版（目前编译选项与Release相同(SK_RELEASE 或 SK_DEBUG)，以改进性能） -->
-        <SkiaDebugDefinitions>SK_GANESH;SK_GL;SK_RELEASE</SkiaDebugDefinitions>
+        <!-- Skia的宏定义 -->
+        <SkiaPreprocessorDefinitions Condition="'$(Configuration)'=='Release'">SK_GANESH;SK_GL;SK_RELEASE</SkiaPreprocessorDefinitions>
+        <SkiaPreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">SK_GANESH;SK_GL;SK_RELEASE</SkiaPreprocessorDefinitions>
 
         <!-- Skia的include目录 -->
         <SkiaIncludeDir>$(SolutionDir)\..\..\skia</SkiaIncludeDir>
@@ -19,7 +17,7 @@
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDir>
 
         <!-- Skia的lib列表 -->
-        <SkiaLibs>skia.lib;svg.lib;skshaper.lib</SkiaLibs>
+        <SkiaLibs>skia.lib;svg.lib;skshaper.lib;skottie.lib;sksg.lib;jsonreader.lib</SkiaLibs>
 
     </PropertyGroup>
 </Project>

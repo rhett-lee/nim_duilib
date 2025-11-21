@@ -91,19 +91,25 @@ public:
     */
     virtual cef_log_severity_t GetLogSeverity() const;
 
+    /** 初始化运行环境, 需要在使用CEF模块功能前调用
+    */
+    virtual bool InitEnv();
+
     /** 初始化cef组件
     * @param [in] bEnableOffScreenRendering 是否开启离屏渲染
     * @param [in] appName 产品名称标识符（必选参数，不可为空，用于生成CEF的缓存路径和控制进程唯一性）
     * @param [in] argc 程序启动时的参数个数(仅Linux环境使用，其他平台可传入0)
     * @param [in] argv 程序启动时的参数列表(仅Linux环境使用，其他平台可传入nullptr)
     * @param [in] callback CEF模块设置参数的回调函数，用于应用层修改初始化参数
+    * @param [in] nExitCode 当函数返回false时，进程的退出码
     * @return bool true 继续运行，false 应该结束程序
     */
     virtual bool Initialize(bool bEnableOffScreenRendering,
                             const DString& appName,
                             int argc,
                             char** argv,
-                            OnCefSettingsEvent callback);
+                            OnCefSettingsEvent callback,
+                            int32_t& nExitCode);
 
     /** 清理cef组件
     */
@@ -165,6 +171,20 @@ public:
     /** 在Cef浏览器对象销毁后发送QUIT消息，退出主进程的消息循环
     */
     void PostQuitMessage(int32_t nExitCode);
+
+public:
+    // CEF进程类型
+    enum ProcessType
+    {
+        BrowserProcess,
+        RendererProcess,
+        ZygoteProcess,
+        OtherProcess,
+    };
+
+    /** 解析命令行中的CEF进程类型
+    */
+    static ProcessType GetProcessType(CefRefPtr<CefCommandLine> commandLine);
 
 protected:
     /** 生成CEF配置数据

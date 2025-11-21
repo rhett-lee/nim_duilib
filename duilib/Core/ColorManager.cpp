@@ -1,7 +1,6 @@
 #include "ColorManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include <unordered_map>
 
 namespace ui 
 {

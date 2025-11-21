@@ -2,10 +2,10 @@
 #define UI_BOX_VIRTUAL_LISTBOX_H_
 
 #include "duilib/Box/ListBox.h"
-#include "duilib/Box/VirtualHLayout.h"
-#include "duilib/Box/VirtualVLayout.h"
-#include "duilib/Box/VirtualHTileLayout.h"
-#include "duilib/Box/VirtualVTileLayout.h"
+#include "duilib/Layout/VirtualHLayout.h"
+#include "duilib/Layout/VirtualVLayout.h"
+#include "duilib/Layout/VirtualHTileLayout.h"
+#include "duilib/Layout/VirtualVTileLayout.h"
 #include "duilib/Core/Callback.h"
 
 namespace ui {
@@ -103,7 +103,7 @@ private:
     CountChangedNotify m_pfnCountChangedNotify;
 };
 
-/** 虚表实现的ListBox，支持大数据量，只支持纵向滚动条
+/** 虚表实现的ListBox，支持大数据量，支持滚动条
 */
 class UILIB_API VirtualListBox : public ListBox
 {
@@ -237,9 +237,10 @@ public:
     */
     void RefreshElements(const std::vector<size_t>& elementIndexs);
 
-    /** 刷新列表
+    /** 刷新界面，保持数据与显示同步
+    * @param [in] bSync true表示同步刷新，立即重绘当前视图; false表示异步刷新，刷新动作为异步重绘，标记为脏区域，交给系统重绘界面
     */
-    virtual void Refresh();
+    virtual void Refresh(bool bSync = false);
 
     /** 确保矩形区域可见
     * @param [in] rcItem 可见区域的矩形范围

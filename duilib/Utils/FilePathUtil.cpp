@@ -1,5 +1,6 @@
 #include "FilePathUtil.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/StringUtil.h"
 #include <filesystem>
 
 #ifdef DUILIB_BUILD_FOR_LINUX
@@ -112,6 +113,27 @@ bool FilePathUtil::CreateDirectories(const DString& filePath)
     catch (...) {
     }
     return bCreated;
+}
+
+DString FilePathUtil::GetFileExtension(const DString& filePath)
+{
+    DString path = filePath;
+#ifdef DUILIB_BUILD_FOR_WIN
+    size_t pos = filePath.find_last_of(_T("/\\"));
+#else
+    size_t pos = filePath.find_last_of(_T("/"));
+#endif
+    if ((pos != DString::npos) && ((pos + 1) < filePath.size())) {
+        path = filePath.substr(pos + 1, DString::npos);
+    }
+
+    DString fileExt;
+    pos = path.rfind(_T("."));
+    if ((pos != DString::npos) && ((pos + 1) < path.size())) {
+        fileExt = path.substr(pos + 1, DString::npos);
+        fileExt = StringUtil::MakeUpperString(fileExt);
+    }
+    return fileExt;
 }
 
 FilePath FilePathUtil::GetCurrentModuleDirectory()

@@ -5,7 +5,7 @@
 #include "duilib/duilib.h"
 
 #include <stack>
-#include <map>
+#include <unordered_map>
 
 class ComputerView;
 class SimpleFileView;
@@ -35,11 +35,11 @@ public:
 private:
     /** 已获取指定目录的内容
     * @param [in] pTreeNode 当前的节点
-    * @param [in] path 路径
+    * @param [in] currentPath 当前显示内容所在路径
     * @param [in] folderList 返回path目录中的所有子目录列表
     * @param [in] fileList 返回path目录中的所有文件列表
     */
-    void OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
+    void OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& currentPath,
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList);
 
@@ -198,6 +198,10 @@ private:
     /** 前进列表
     */
     std::stack<ui::TreeNode*> m_forwardStack;
+
+    /** 保存每个路径下选择的文件或者目录，在前进后退时保持原选择，改善体验
+    */
+    std::unordered_map<ui::FilePath, ui::FilePath> m_selectedPathInfo;
 
     /** 是否可以添加到前进后退列表
     */

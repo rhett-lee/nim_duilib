@@ -445,8 +445,18 @@ void MainForm::OnInitWindow()
             }
             return true;
             });
+#else
+        //SDL实现的时候，不支持富文本格式
+        pCheckBox->SetEnabled(false);
 #endif
     }
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    ui::Control* pRowSpacingTips = FindControl(_T("row_spacing_tips"));
+    if (pRowSpacingTips != nullptr) {
+        pRowSpacingTips->SetVisible(false);
+    }
+#endif
 
     //更新字体按钮的状态
     UpdateFontStatus();

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_window_shadow_vbox"     width="180" height="200"/>
+    <Class name="page_window_shadow_control"  width="180" height="100%"/>
+    <Class name="page_window_shadow_label"    width="100%" height="20" text_align="hcenter" margin="8"/>
+    <VBox>
+        <HBox width="auto" height="auto">           
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_big.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:big"/>
+            </VBox>
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_big_round.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:big_round"/>
+            </VBox>
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_small.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:small"/>
+            </VBox>
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_small_round.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:small_round"/>
+            </VBox>
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_menu.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:menu"/>
+            </VBox>
+            <VBox class="page_window_shadow_vbox">
+                <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_menu_round.svg' width='180' valign='center' halign='center'"/>
+                <Label class="page_window_shadow_label" text="窗口阴影:menu_round"/>
+            </VBox>
+        </HBox>
+        <VBox>
+            <Label text="窗口阴影的功能测试：" valign="center" margin="12,30,10,0"/>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big, 阴影(大)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big_round, 阴影(大)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small, 阴影(小)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small_round, 阴影(小)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu, 阴影(小)，直角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu_round, 阴影(小)，圆角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none, 无阴影, 有边框, 直角" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none_round, 无阴影, 有边框, 圆角" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none_round}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="关闭阴影功能" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
+            </Option>
+        </VBox>
+    </VBox>
+</Window>

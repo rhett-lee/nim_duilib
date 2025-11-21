@@ -15,6 +15,22 @@
     //可以将msvc\PropertySheets\WebView2Settings.props文件中的WebView2Enabled改为1，以开启WebView2功能
     #define DUILIB_BUILD_FOR_WEBVIEW2   1
 #endif
+
+/** RichEdit控件绘制优化选项是否开启（Windows版本的RichEdit控件）
+*/
+#define DUILIB_RICH_EDIT_DRAW_OPT 1
+
+/** 是否支持libjpeg-turbo库来解码JPEG格式
+*/
+#if (DUILIB_JPEG_TURBO)
+    #define DUILIB_IMAGE_SUPPORT_JPEG_TURBO 1
+#endif
+
+/** 是否支持libpag库来解码PAG格式
+*/
+#if (DUILIB_LIB_PAG)
+    #define DUILIB_IMAGE_SUPPORT_LIB_PAG 1
+#endif
     
 #elif defined(linux) || defined(__linux) || defined(__linux__)
     #define DUILIB_BUILD_FOR_LINUX  1
@@ -40,10 +56,6 @@
     //MinGW-w64 编译器
     #define DUILIB_COMPILER_MINGW 1
 #endif
-
-/** RichEdit控件绘制优化选项是否开启
-*/
-#define DUILIB_RICH_EDIT_DRAW_OPT 1
 
 /** 64位操作系统标识
 */

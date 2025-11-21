@@ -39,20 +39,6 @@ public:
     */
     static bool HasValidImageRect(const UiRect& rcDest);
 
-    /** 对图片的源区域、目标区域、圆角大小进行校验修正和DPI自适应
-    * @param [in] imageWidth 图片的宽度
-    * @param [in] imageHeight 图片的高度
-    * @param [in] dpi DPI缩放接口
-    * @param [in] bImageDpiScaled 图片是否做过DPI自适应操作
-    * @param [out] rcDestCorners 绘制目标区域的圆角信息，传出参数，内部根据rcImageCorners来设置，然后传出
-    * @param [in/out] rcSource 图片区域
-    * @param [in/out] rcSourceCorners 图片区域的圆角信息
-    */
-    static void ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight, 
-                               const DpiManager& dpi, bool bImageDpiScaled,
-                               UiRect& rcDestCorners,
-                               UiRect& rcSource, UiRect& rcSourceCorners);
-
     /** 计算保持比例的自适应绘制区域
      * @param nImageWidth 原始图片宽度
      * @param nImageHeight 原始图片高度
@@ -75,6 +61,10 @@ public:
     */
     UiRect GetImageCorner() const;
 
+    /** 是否含有rcCorner属性
+    */
+    bool HasImageCorner() const;
+
     /** 获取rcDest(按配置决定是否进行DPI缩放)
     * @param [in] imageWidth 图像的宽度
     * @param [in] imageHeight 图像的高度
@@ -82,18 +72,38 @@ public:
     */
     UiRect GetImageDestRect(int32_t imageWidth, int32_t imageHeight, const DpiManager& dpi) const;
 
-    /** 获取图片属性的内边距
+    /** 是否含有rcDest属性
+    */
+    bool HasDestRect() const;
+
+    /** 获取图片属性的外边距
     * @param [in] dpi DPI缩放管理器
     * @return 返回按照传入DPI缩放管理器适应的内边距数据
     */
-    UiPadding GetImagePadding(const DpiManager& dpi) const;
+    UiMargin GetImageMargin(const DpiManager& dpi) const;
 
-    /** 设置图片属性的内边距(内部不做DPI自适应)
-    * @param [in] newPadding 需要设置的内边距
-    * @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
+    /** 设置图片属性的外边距
+    * @param [in] newMargin 需要设置的内边距
+    * @param [in] bNeedDpiScale 是否需要对newMargin进行DPI缩放
     * @param [in] dpi 与newPadding数据关联的DPI管理器
     */
-    void SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi);
+    void SetImageMargin(const UiMargin& neMargin, bool bNeedDpiScale, const DpiManager& dpi);
+
+    /** 判断图片是否平铺绘制
+    */
+    bool IsTiledDraw() const;
+
+    /** 获取图片平铺绘制的属性
+    */
+    TiledDrawParam GetTiledDrawParam(const DpiManager& dpi) const;
+
+    /** 是否启用图片加载失败时的断言错误
+    */
+    bool IsAssertEnabled() const;
+
+    /** 获取图片的名称（可作为图片的唯一ID）
+    */
+    DString GetImageName() const;
 
 public:
     //图片文件属性字符串
@@ -102,23 +112,14 @@ public:
     //图片文件文件名，含相对路径，不包含属性
     UiString m_sImagePath;
 
+    //图片名称（控件内唯一字符串，用于标识图片资源）
+    UiString m_sImageName;
+
     //设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
     UiString m_srcWidth;
 
     //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
     UiString m_srcHeight;
-
-    //rcSource的DPI自适应属性（仅当bHasSrcDpiScale为true时有效）
-    bool m_srcDpiScale;
-
-    //加载图片时，是否设置了DPI自适应属性（"dpi_scale"）
-    bool m_bHasSrcDpiScale;
-
-    //rcDest属性的DPI自适应属性（仅当bHasDestDpiScale时有效）
-    bool m_destDpiScale;
-
-    //rcDest是否设置了DPI自适应属性（"dest_scale"）
-    bool m_bHasDestDpiScale;
 
     //在绘制目标区域中横向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_hAlign;
@@ -126,50 +127,64 @@ public:
     //在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_vAlign;
 
+    //平铺绘制相关参数
+    std::unique_ptr<TiledDrawParam> m_pTiledDrawParam;
+
     //透明度（0 - 255）
     uint8_t m_bFade;
 
-    //横向平铺
-    bool m_bTiledX;
+    //加载图片时是否支持DPI自适应，即按照DPI缩放图片大小（"dpi_scale"）
+    bool m_bImageDpiScaleEnabled;
 
-    //横向完全平铺，仅当bTiledX为true时有效
-    bool m_bFullTiledX;
-
-    //纵向平铺
-    bool m_bTiledY;
-
-    //纵向完全平铺，仅当bTiledY为true时有效
-    bool m_bFullTiledY;
+    //rcDest属性是否支持DPI自适应，即按照DPI缩放（"dest_scale"）
+    bool m_bDestDpiScaleEnabled;
 
     //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作）
     bool m_bWindowShadowMode;
 
-    //平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
-    int32_t m_nTiledMargin;
+    //是否自动适应目标区域（等比例缩放图片）
+    bool m_bAdaptiveDestRect;
 
-    //如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
+    //如果是动画图片，是否自动播放
+    bool m_bAutoPlay;
+
+    //该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）
+    bool m_bAsyncLoad;
+
+    //如果是动画图片，可以指定播放次数
+    //    - 1: 表示一直播放
+    //    0  : 表示无有效的播放次数，使用图片的默认值(或者预设值)
+    //    > 0: 具体的播放次数，达到播放次数后，停止播放
     int32_t m_nPlayCount;
 
+    //如果是PAG文件，用于指定动画的帧率，默认为30.0f
+    float m_fPagMaxFrameRate;
+
     //如果是ICO文件，用于指定需要加载的ICO图片的大小
-    //(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
-    //目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
-    uint32_t m_iconSize;
+    uint32_t m_nIconSize;
+
+    //如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒
+    //仅当m_bIconAsAnimation为true时有效
+    int32_t m_nIconFrameDelayMs;
+
+    //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+    bool m_bIconAsAnimation;
 
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
 
-    //是否自动适应目标区域（等比例缩放图片）
-    bool m_bAdaptiveDestRect;
-
-    //rcPadding对应的DPI缩放百分比
-    uint16_t m_rcPaddingScale;
-
 private:
+    //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）
+    bool m_bAssertEnabled;
+
+    //rcMargin对应的DPI缩放百分比
+    uint16_t m_rcMarginScale;
+
     //绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
     UiRect* m_rcDest;
 
-    //在绘制目标区域中的内边距(如果指定了rcDest值，则此选项无效)
-    UiPadding16* m_rcPadding;
+    //在绘制目标区域中的外边距(如果指定了rcDest值，则此选项无效)
+    UiMargin16* m_rcMargin;
 
     //图片源区域位置和大小(未进行DPI缩放)
     UiRect* m_rcSource;

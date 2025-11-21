@@ -21,5 +21,4 @@ DString BasicForm::GetSkinFile()
 void BasicForm::OnInitWindow()
 {
     BaseClass::OnInitWindow();
-
 }

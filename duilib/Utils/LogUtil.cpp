@@ -25,9 +25,15 @@ DString LogUtil::GetTimeStamp()
     return StringUtil::Printf(_T("%02u:%02u:%02u.%03u "), nHH, nMM, nSS, nMS);
 }
 
-void LogUtil::Output(const DString& log)
+void LogUtil::Output(const DString& log, bool bPrintTime)
 {
-    DString logMsg = GetTimeStamp() + log;
+    DString logMsg;
+    if (bPrintTime) {
+        logMsg = GetTimeStamp() + log;
+    }
+    else {
+        logMsg = log;
+    }
 #ifdef DUILIB_BUILD_FOR_WIN
     ::OutputDebugString(logMsg.c_str());
 #elif defined (DUILIB_BUILD_FOR_SDL)
@@ -35,12 +41,12 @@ void LogUtil::Output(const DString& log)
 #endif
 }
 
-void LogUtil::OutputLine(const DString& log)
+void LogUtil::OutputLine(const DString& log, bool bPrintTime)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    Output(log + _T("\r\n"));
+    Output(log + _T("\r\n"), bPrintTime);
 #else
-    Output(log + _T("\n"));
+    Output(log + _T("\n"), bPrintTime);
 #endif
 }
 

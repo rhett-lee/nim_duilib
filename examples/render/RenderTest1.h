@@ -14,29 +14,28 @@ public:
     virtual ~RenderTest1() override;
 
 public:
-    /**
-    * @brief 待补充
-    * @param[in] 待补充
-    * @return 待补充
-    */
+    /** 绘制控件自身及子控件
+     * @param[in] pRender 渲染接口
+     * @param[in] rcPaint 指定绘制区域
+     */
     virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint) override;
 
-    /**
-    * @brief 绘制控件的入口函数
-    * @param[in] pRender 指定绘制区域
-    * @param[in] rcPaint 指定绘制坐标
-    * @return 无
+    /** 绘制控件自身
+    * @param[in] pRender 渲染接口
+    * @param[in] rcPaint 指定绘制区域
     */
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
-    /**
-    * @brief 绘制控件子项入口函数
-    * @param[in] pRender 指定绘制区域
-    * @param[in] rcPaint 指定绘制坐标
-    * @return 无
+    /** 绘制控件的子控件
+    * @param[in] pRender 渲染接口
+    * @param[in] rcPaint 指定绘制区域
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
+private:
+    /** 绘制的图片
+    */
+    std::unique_ptr<Image> m_pImage;
 };
 
 } //end of namespace ui

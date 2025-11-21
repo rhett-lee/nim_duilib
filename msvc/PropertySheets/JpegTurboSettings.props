@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 该文件中设置 libjpeg-turbo 的 配置选项（可选项） -->
+    <PropertyGroup Label="Globals">
+
+        <!-- libjpeg-turbo的include目录 -->
+        <JpegTurboIncludeDir Condition="'$(Platform)'=='x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\include</JpegTurboIncludeDir>
+        <JpegTurboIncludeDir Condition="'$(Platform)'=='Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\include</JpegTurboIncludeDir>
+        
+        <!-- libjpeg-turbo的lib目录 -->
+        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
+
+        <!-- 是否支持libjpeg-turbo的宏定义： 0表示不支持；1 表示支持 -->
+        <JpegTurboEnabled>1</JpegTurboEnabled>
+
+        <!-- lib列表 -->
+        <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0'">turbojpeg-static.lib</JpegTurboLibs>
+        <JpegTurboLibs Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboLibs>
+
+    </PropertyGroup>
+
+</Project>

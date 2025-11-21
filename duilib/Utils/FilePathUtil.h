@@ -35,6 +35,12 @@ public:
     */
     static bool CreateDirectories(const DString& filePath);
 
+    /** 获取当前路径中的文件名的后缀部分(UTF16编码/UTF8编码)
+    * @param [in] filePath 文件路径
+    * @return 返回文件的扩展名部分，不包含"."
+    */
+    static DString GetFileExtension(const DString& filePath);
+
     /** 获取当前进程的程序所在目录
     * @return 返回获取的目录
     */

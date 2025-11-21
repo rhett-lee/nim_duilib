@@ -1,15 +1,6 @@
 #include "IconManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Image/ImageLoadAttribute.h"
-#include "duilib/Image/Image.h"
-
-#define STBIR_DEFAULT_FILTER_UPSAMPLE STBIR_FILTER_TRIANGLE
-#pragma warning (push)
-#pragma warning (disable: 4505)
-    #include "duilib/third_party/stb_image/stb_image_resize2.h"
-#pragma warning (pop)
 
 namespace ui 
 {
@@ -69,109 +60,16 @@ UiSize IconManager::GetIconSize(const DString& str) const
     return iconSize;
 }
 
-bool IconManager::LoadIconData(const DString& str,
-                               const Window* pWindow,
-                               const ImageLoadAttribute& loadAtrribute,
-                               bool bEnableDpiScale,
-                               std::vector<uint8_t>& bitmapData,
-                               uint32_t& bitmapWidth,
-                               uint32_t& bitmapHeight,
-                               bool& bDpiScaled) const
-{
-    bitmapData.clear();
-    bitmapWidth = 0;
-    bitmapHeight = 0;
-    bDpiScaled = false;
-
-    uint32_t id = GetIconID(str);
-    IconBitmapData iconBitmapData;
-    if (!GetIconBitmapData(id, iconBitmapData)) {
-        ASSERT(!IsImageString(id));
-        return false;
-    }
-    if ((iconBitmapData.m_nBitmapHeight < 1) || (iconBitmapData.m_nBitmapWidth < 1) ||
-        iconBitmapData.m_bitmapData.empty() || ((int32_t)iconBitmapData.m_bitmapData.size() != iconBitmapData.m_nBitmapHeight * iconBitmapData.m_nBitmapWidth * 4)){
-        ASSERT(0);
-        return false;
-    }
-
-    int32_t nWidth = iconBitmapData.m_nBitmapWidth;
-    int32_t nHeight = iconBitmapData.m_nBitmapHeight;
-
-    uint32_t iconWidth = (uint32_t)nWidth;
-    uint32_t iconHeight = (uint32_t)nHeight;
-    //此处：如果只设置了宽度或者高度，那么会按锁定纵横比的方式对整个图片进行缩放
-    if (!loadAtrribute.CalcImageLoadSize(iconWidth, iconHeight)) {
-        iconWidth = (uint32_t)nWidth;
-        iconHeight = (uint32_t)nHeight;
-    }
-
-    //加载图片时，按需对图片大小进行DPI自适应
-    bool bNeedDpiScale = bEnableDpiScale;
-    if (loadAtrribute.HasSrcDpiScale()) {
-        //如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
-        bNeedDpiScale = loadAtrribute.NeedDpiScale();
-    }
-    if (bNeedDpiScale && (pWindow != nullptr)) {
-        uint32_t dpiScale = pWindow->Dpi().GetScale();
-        ASSERT(dpiScale > 0);
-        if (dpiScale != 0) {
-            float scaleRatio = (float)dpiScale / 100.0f;
-            iconWidth = static_cast<uint32_t>(iconWidth * scaleRatio);
-            iconHeight = static_cast<uint32_t>(iconHeight * scaleRatio);
-            bDpiScaled = true;
-        }
-    }
-
-    if ((iconWidth > 0) && (iconHeight > 0)) {
-        nWidth = (int32_t)iconWidth;
-        nHeight = (int32_t)iconHeight;
-    }
-
-    bool bRet = true;
-    if ((nWidth != iconBitmapData.m_nBitmapWidth) || (nHeight != iconBitmapData.m_nBitmapHeight)) {
-        //需要进行Resize
-        std::vector<uint8_t> resizedBitmapData;
-        resizedBitmapData.resize((size_t)nWidth * nHeight * 4);
-        const unsigned char* input_pixels = iconBitmapData.m_bitmapData.data();
-        int input_w = iconBitmapData.m_nBitmapWidth;
-        int input_h = iconBitmapData.m_nBitmapHeight;
-        int input_stride_in_bytes = 0;
-        unsigned char* output_pixels = resizedBitmapData.data();
-        int output_w = nWidth;
-        int output_h = nHeight;
-        int output_stride_in_bytes = 0;
-        stbir_pixel_layout num_channels = STBIR_RGBA;
-        unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
-                                                          output_pixels, output_w, output_h, output_stride_in_bytes,
-                                                          num_channels);
-        if (result != nullptr) {
-            bitmapData.swap(resizedBitmapData);
-        }
-        else {
-            //失败了
-            bRet = false;
-        }
-    }
-    else {
-        bitmapData = iconBitmapData.m_bitmapData;
-    }
-
-    if (bRet) {
-        bitmapWidth = nWidth;
-        bitmapHeight = nHeight;
-        ASSERT(bitmapData.size() == bitmapHeight * bitmapWidth * 4);
-    }
-    return bRet;
-}
-
 bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) const
 {
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
     auto iter = m_iconMap.find(id);
     if (iter != m_iconMap.end()) {
         bitmapData = iter->second;
-        return true;
+        if (!bitmapData.m_bitmapData.empty() && (bitmapData.m_nBitmapWidth > 0) && (bitmapData.m_nBitmapHeight > 0) &&
+            (bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4 == (int32_t)bitmapData.m_bitmapData.size())) {
+            return true;
+        }        
     }
     return false;
 }

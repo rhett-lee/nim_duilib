@@ -5,7 +5,8 @@
 
 namespace ui
 {
-
+/** 堆叠布局/卡片布局，内部的多个子控件，只有一个可见，其他是隐藏的，可动态切换，支持切换动画
+*/
 class UILIB_API TabBox : public Box
 {
     typedef Box BaseClass;

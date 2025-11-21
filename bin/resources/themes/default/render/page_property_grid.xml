@@ -56,7 +56,9 @@
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    </TabCtrl>                    
+                    </TabCtrl>
+                    <Label text="纵向文本测试，下面有个纵向文本需要显示出来：" text_align="hcenter,top"/>
+                    <Label height="120" width="stretch" text="纵向文本测试：\n测试在滚动条内是否能够正常显示。" text_align="hcenter,top" vertical_text="true" multi_line="true" replace_newline="true"/>
                 </VScrollBox>
             </VBox>
             <HBox bkcolor="white" margin="4,4,4,0">

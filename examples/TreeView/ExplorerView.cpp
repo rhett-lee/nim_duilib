@@ -170,7 +170,7 @@ size_t ExplorerView::GetColumnId(ExplorerViewColumn nOriginIndex) const
     return nColumnIndex;
 }
 
-void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
+void ExplorerView::SetFileList(const ui::FilePath& currentPath, const std::vector<PathInfo>& pathList, const ui::FilePath& selectedPath)
 {
     //在主线程中执行
     ui::GlobalManager::Instance().AssertUIThread();
@@ -181,6 +181,7 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
     if ((m_pMainForm == nullptr) || (m_pListCtrl == nullptr)) {
         return;
     }
+    m_currentPath = currentPath;
     //首先禁止刷新（避免每条数据更新均刷新，导致文件多的时候速度很慢）
     bool bOldEnableRefresh = m_pListCtrl->SetEnableRefresh(false);
     m_pListCtrl->DeleteAllDataItems();
@@ -191,6 +192,9 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
     if (pImageList != nullptr) {
         pImageList->Clear();
     }
+
+    //选择的子项元素索引号
+    size_t nSelectedItemIndex = ui::Box::InvalidIndex;
 
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
@@ -203,6 +207,11 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         }
         //记录关联关系
         m_pListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+
+        if ((nSelectedItemIndex == ui::Box::InvalidIndex) && !selectedPath.IsEmpty() && (selectedPath == pathInfo.m_filePath)) {
+            //保存选择状态
+            nSelectedItemIndex = nItemIndex;
+        }
 
         //设置图标
         if (pImageList != nullptr) {
@@ -252,8 +261,34 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, pathInfo.m_fileSize);
         m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::kSortByUserDataN | ui::kSortByGroup);
     }
+
     m_pListCtrl->SetEnableRefresh(bOldEnableRefresh);
-    m_pListCtrl->Refresh();
+    m_pListCtrl->Refresh(true);
+
+    if (nSelectedItemIndex != ui::Box::InvalidIndex) {
+        m_pListCtrl->SetDataItemSelected(nSelectedItemIndex, true);
+        m_pListCtrl->EnsureDataItemVisible(nSelectedItemIndex, false);
+    }
+}
+
+void ExplorerView::GetCurrentPath(ui::FilePath& currentPath, ui::FilePath& selectedPath) const
+{
+    currentPath = m_currentPath;
+    if (m_pListCtrl != nullptr) {
+        std::vector<size_t> itemIndexs;
+        m_pListCtrl->GetSelectedDataItems(itemIndexs);
+        for (size_t nItemIndex : itemIndexs) {
+            size_t nIndex = m_pListCtrl->GetDataItemUserData(nItemIndex);
+            if (nIndex < m_pathInfoList.size()) {
+                const ui::DirectoryTree::PathInfo& pathInfo = m_pathInfoList[nIndex];
+                if (!pathInfo.m_filePath.IsEmpty()) {
+                    //记录当前所选的目录
+                    selectedPath = pathInfo.m_filePath;
+                    break;
+                }
+            }
+        }
+    }       
 }
 
 DString ExplorerView::FormatFileSize(bool bFolder, uint64_t nFileSize) const

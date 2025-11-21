@@ -70,8 +70,8 @@ public:
     void SetMultiLine(bool bMultiLine);
 
     //文本横向和纵向对齐方式
-    void SetHAlignType(HorAlignType alignType);
-    void SetVAlignType(VerAlignType alignType);
+    void SetTextHAlignType(HorAlignType alignType);
+    void SetTextVAlignType(VerAlignType alignType);
 
     //横向和纵向滚动条设置
     void SetVScrollBar(bool bEnable);

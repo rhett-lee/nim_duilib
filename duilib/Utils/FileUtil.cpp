@@ -39,6 +39,48 @@ bool FileUtil::ReadFileData(const FilePath& filePath, std::vector<uint8_t>& file
     return isReadOk;
 }
 
+bool FileUtil::ReadFileHeaderData(const FilePath& filePath, uint32_t nReadSize, std::vector<uint8_t>& fileHeaderData)
+{
+    ASSERT(nReadSize > 0);
+    if (nReadSize == 0) {
+        return false;
+    }
+    bool isReadOk = false;
+    FILE* f = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
+#ifdef DUILIB_UNICODE
+    ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+#else
+    ::fopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+#endif
+#else
+    //Linux平台
+    f = fopen(filePath.NativePath().c_str(), _T("rb"));
+#endif
+
+    if (f != nullptr) {
+        isReadOk = true;
+        ::fseek(f, 0, SEEK_END);
+        int fileSize = ::ftell(f);
+        ::fseek(f, 0, SEEK_SET);
+        if (fileSize > 0) {
+            if (nReadSize > (uint32_t)fileSize) {
+                nReadSize = fileSize;
+            }
+            fileHeaderData.resize((size_t)nReadSize);
+            size_t readLen = ::fread(fileHeaderData.data(), 1, fileHeaderData.size(), f);
+            ASSERT_UNUSED_VARIABLE(readLen == fileHeaderData.size());
+            if (readLen != fileHeaderData.size()) {
+                fileHeaderData.clear();
+                isReadOk = false;
+            }
+        }
+        ::fclose(f);
+    }
+    return isReadOk;
+}
+
 bool FileUtil::WriteFileData(const FilePath& filePath, const std::vector<uint8_t>& fileData)
 {
     bool isWriteOk = false;

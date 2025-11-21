@@ -138,7 +138,7 @@ IBitmap* ColorControl::GetColorBitmap(const UiRect& rect)
     }
 
     if (m_spBitmap != nullptr) {            
-        m_spBitmap->Init(nWidth, nHeight, true, nullptr, kOpaque_SkAlphaType);
+        m_spBitmap->Init(nWidth, nHeight, nullptr, 1.0f, BitmapAlphaType::kOpaque_SkAlphaType);
         void* pPixelBits = m_spBitmap->LockPixelBits();
         if (pPixelBits != nullptr) {
             uint32_t* pData = (uint32_t*)pPixelBits;

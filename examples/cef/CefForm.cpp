@@ -1,5 +1,9 @@
 #include "CefForm.h"
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include <iostream>
+#endif
+
 CefForm::CefForm()
 {
 }
@@ -94,6 +98,13 @@ void CefForm::OnInitWindow()
             return true;
             });
     }
+#ifdef DUILIB_BUILD_FOR_SDL
+    //显示SDL的基本信息
+    DString driverName = GetVideoDriverName();
+    DString renderName = GetWindowRenderName();
+    DString logMsg = ui::StringUtil::Printf(_T("[SDL: VideoDriver:\"%s\", RenderName:\"%s\"]"), driverName.c_str(), renderName.c_str());
+    std::cout << logMsg << std::endl;
+#endif
 }
 
 void CefForm::OnPreCloseWindow()

@@ -351,3 +351,5 @@ healthchecksdb
 /bin/cef_cache
 /bin/webview2_cache
 /bin/WebView2Loader.dll
+/duilib/third_party/libpag/windows/lib-vc-x64
+/duilib/third_party/libpag/windows/lib-vc-x86

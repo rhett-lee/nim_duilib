@@ -38,7 +38,10 @@ public:
         //设置客户区剪辑区域，避免覆盖阴影
         AutoClip rectClip(pRender, rcRect, true);
 
-        UiSize borderRound = m_pShadow->GetShadowBorderRound();
+        UiSize borderRound;
+        if (m_pShadow != nullptr) {
+            borderRound = m_pShadow->GetShadowBorderRound();
+        }
         if (GetWindow() != nullptr) {
             GetWindow()->Dpi().ScaleSize(borderRound);
         }
@@ -74,7 +77,8 @@ public:
         }
 
         //子控件的大小，包含内边距，但不包含外边距; 包含了阴影本身的大小（即Box的内边距）
-        UiSize sizeByChild = GetLayout()->EstimateSizeByChild(m_items, szAvailable);
+        UiSize64 layoutSize = GetLayout()->EstimateLayoutSize(m_items, szAvailable);
+        UiSize sizeByChild(ui::TruncateToInt32(layoutSize.cx), ui::TruncateToInt32(layoutSize.cy));
 
         SetReEstimateSize(false);
         for (auto pControl : m_items) {
@@ -167,20 +171,7 @@ public:
         }
     }
 
-    virtual bool ButtonDown(const EventArgs& msg) override
-    {
-        OnMouseDown(msg.ptMouse);
-        return true;
-    }
-
-    virtual bool RButtonDown(const EventArgs& msg) override
-    {
-        OnMouseDown(msg.ptMouse);
-        return true;
-    }
-
-private:
-    /** 鼠标点击事件
+    /** 鼠标点击事件, 实现鼠标穿透功能
     */
     void OnMouseDown(UiPoint ptMouse)
     {
@@ -195,6 +186,7 @@ private:
         }
         UiRect rcRoot = pXmlRoot->GetPos();
         if (rcRoot.ContainsPt(pt)) {
+            //鼠标不在阴影上
             return;
         }
 
@@ -258,8 +250,9 @@ Box* Shadow::AttachShadow(Box* pXmlRoot)
     }
 
     m_pShadowBox = new ShadowBox(pXmlRoot->GetWindow(), this);
-    m_pShadowBox->SetMouseEnabled(false);
-    m_pShadowBox->SetKeyboardEnabled(false);
+    m_pShadowBox->SetMouseEnabled(false);    //阴影容器不接收鼠标消息
+    m_pShadowBox->SetNoFocus();              //阴影容器不获取焦点
+    m_pShadowBox->SetKeyboardEnabled(false); //阴影容器不接收键盘消息
     m_pShadowBox->AddItem(pXmlRoot);
     DoAttachShadow(m_pShadowBox, pXmlRoot, true, m_isMaximized);
     return m_pShadowBox;
@@ -521,9 +514,12 @@ void Shadow::OnShadowAttached(Shadow::ShadowType nShadowType)
     UiPadding rcShadowCorner;
     DString shadowImage;
     if (GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage, this)) {
-        SetShadowCorner(rcShadowCorner);
-        SetShadowBorderRound(szBorderRound);
-        SetShadowImage(shadowImage);
+        //用户自定义类型：不覆盖原值，以用户设置的为准
+        if (nShadowType != Shadow::ShadowType::kShadowCustom) {
+            SetShadowCorner(rcShadowCorner);
+            SetShadowBorderRound(szBorderRound);
+            SetShadowImage(shadowImage);
+        }
     }
     UpdateShadow();
 }
@@ -718,6 +714,47 @@ void Shadow::UpdateWindowPosSnap()
             }
         }        
     }
+}
+
+void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
+{
+    if ((eventType != kEventMouseButtonDown) && (eventType != kEventMouseRButtonDown)) {
+        //只处理鼠标左键按下和右键按下事件
+        return;
+    }
+    Shadow::ShadowType shadowType = GetShadowType();
+    if ((shadowType == Shadow::ShadowType::kShadowNone) || (shadowType == Shadow::ShadowType::kShadowNoneRound)) {
+        //无阴影模式
+        return;
+    }
+
+    ShadowBox* pShadowBox = nullptr;
+    Box* pBox = GetShadowBox();
+    if (pBox != nullptr) {
+        pShadowBox = dynamic_cast<ShadowBox*>(pBox);
+    }
+    if (pShadowBox == nullptr) {
+        return;
+    }
+    UiRect rcShadowBox = pShadowBox->GetRect();
+    if (!rcShadowBox.ContainsPt(pt)) {
+        return;
+    }
+
+    UiPadding rcShadowCorner = GetShadowCorner();
+    if ((rcShadowCorner.left <= 1) && (rcShadowCorner.top <= 1) && (rcShadowCorner.right <= 1) && (rcShadowCorner.bottom <= 1)) {
+        //当前无阴影
+        return;
+    }
+    pShadowBox->Dpi().ScalePadding(rcShadowCorner);
+    rcShadowBox.Deflate(rcShadowCorner);
+    if (rcShadowBox.ContainsPt(pt)) {
+        //鼠标不在阴影范围内
+        return;
+    }
+
+    //鼠标确认点击在阴影上，处理阴影穿透逻辑
+    pShadowBox->OnMouseDown(pt);
 }
 
 } //namespace ui

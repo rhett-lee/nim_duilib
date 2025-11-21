@@ -3,8 +3,8 @@
 
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
-#include "duilib/Utils/Delegate.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Utils/Delegate.h"
 #include <map>
 #include <memory>
 
@@ -28,6 +28,8 @@ namespace ui
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
+/** 控件基类(相当于Widget)
+*/
 class UILIB_API Control: public PlaceHolder
 {
     typedef PlaceHolder BaseClass;
@@ -42,7 +44,7 @@ public:
     virtual DString GetType() const override;
 
     /// 图形相关
-    /**@brief 获取背景颜色
+    /** 获取背景颜色
      * @return 返回背景颜色的字符串，该值在 global.xml 中定义
      */
     DString GetBkColor() const;
@@ -80,6 +82,21 @@ public:
     * @return 返回第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
      */
     DString GetBkColor2Direction() const;
+
+    /** 获取前景颜色(前景色一般设置半透明的颜色)
+     * @return 返回前景颜色的字符串，该值在 global.xml 中定义
+     */
+    DString GetForeColor() const;
+
+    /** 设置前景颜色(前景色一般设置半透明的颜色)
+     * @param [in] strColor 要设置的前景颜色值，该值必须在 global.xml 中存在
+     */
+    void SetForeColor(const DString& strColor);
+
+    /** 设置前景颜色(前景色一般设置半透明的颜色)
+     * @param [in] color 要设置的前景颜色值
+     */
+    void SetForeColor(const UiColor& color);
 
     /**
      * @brief 获取某个状态下的控件颜色
@@ -121,27 +138,6 @@ public:
      * @return 无
      */
     void SetUTF8BkImage(const std::string& strImage);
-
-public:
-    /** 设置loading图片
-    * @param[in] strImage 要设置的图片路径及属性
-    */
-    void SetLoadingImage(const DString& strImage);
-
-    /** 设置loading背景色
-    * @param[in] strColor 背景色
-    */
-    void SetLoadingBkColor(const DString& strColor);
-
-    /** 开启loading状态
-    * @param[in] start_angle loading图片旋转的角度
-    */
-    void StartLoading(int32_t fStartAngle = -1);
-
-    /** 关闭loading状态
-    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
-    */
-    void StopLoading(GifFrameType frame = kGifFrameFirst);
 
 public:
     /**
@@ -510,6 +506,11 @@ public:
      */
     virtual void SetPos(UiRect rc) override;
 
+    /** 获取本控件包含box-shadow的绘制扩展区域
+    * @return 返回rc + box-shadow 扩展后的总区域，如果无box-shadow则返回rc
+    */
+    virtual UiRect GetBoxShadowExpandedRect(const UiRect& rc) const override;
+
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -525,9 +526,10 @@ public:
 
     /** 计算图片区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
-     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     *  @param [in] estImageType 估算图片的类型
+     *  @return 控件的图片估算大小，包含内边距(Box)，不包含外边距
      */
-    virtual UiSize EstimateImage(UiSize szAvailable);
+    virtual UiSize EstimateImage(UiSize szAvailable, EstimateImageType estImageType);
 
     /**
      * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
@@ -602,21 +604,13 @@ public:
      * @param [out] pPaintedRect 返回图片绘制的最终目标矩形区域
      * @return 成功返回 true，失败返回 false
      */
-    bool PaintImage(IRender* pRender, Image* pImage,
+    bool PaintImage(IRender* pRender,
+                    Image* pImage,
                     const DString& strModify = _T(""),
                     int32_t nFade = DUI_NOSET_VALUE,
                     IMatrix* pMatrix = nullptr,
-                    UiRect* pDestRect = nullptr,
+                    const UiRect* pDestRect = nullptr,
                     UiRect* pPaintedRect = nullptr) const;
-
-    /** 获取绘制上下文对象
-    * @return 返回绘制上下文对象
-    */
-    IRender* GetRender();
-
-    /** 清理绘制上下文对象
-    */
-    void ClearRender();
 
     /** 绘制控件自身及子控件
      * @param[in] pRender 渲染接口
@@ -683,7 +677,7 @@ public:
      * @brief 获取控件绘制偏移量
      * @return 返回当前控件的绘制偏移量
      */
-    UiPoint GetRenderOffset() const { return m_renderOffset;    }
+    UiPoint GetRenderOffset() const;
 
     /** 设置控件绘制偏移量
      * @param [in] renderOffset 控件偏移数据
@@ -701,39 +695,126 @@ public:
      */
     void SetRenderOffsetY(int64_t renderOffsetY);
 
+public:
+    /// Loading状态管理
+    /** 设置loading的属性，根据属性中指定的XML文件创建显示界面，并设置界面属性
+    * @param [in] loadingAttribute loading的属性字符串
+    */
+    bool SetLoadingAttribute(const DString& loadingAttribute);
+
+    /** 开启loading状态
+    * @param [in] nIntervalMs 回调的时间间隔（毫秒），最小值为10毫秒
+    * @param [in] nMaxCount 设置最大回调次数，超过此值则自动停止，loading总时间为 nMaxCount * nIntervalMs 毫秒；如果为-1表示一值加载，等待手动停止
+    */
+    bool StartLoading(int32_t nIntervalMs, int32_t nMaxCount);
+
+    /** 关闭loading状态
+    */
+    void StopLoading();
+
+    /** 当前是否正在加载中
+    */
+    bool IsLoading() const;
+
+    /** 监听loading开始的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoadingStart(const EventCallback& callback) { AttachEvent(kEventLoadingStart, callback); }
+
+    /** 监听loading回调的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoading(const EventCallback& callback) { AttachEvent(kEventLoading, callback); }
+
+    /** 监听loading结束的通知
+     * @param[in] callback 监听事件的回调函数
+     */
+    void AttachLoadingStop(const EventCallback& callback) { AttachEvent(kEventLoadingStop, callback); }
+
+public:
     /// 动画图片
-    /** 播放 GIF/WebP/APNG 动画
-     * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
-     * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
+    /** 播放动画
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+     * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
+     * @param [in] nPlayCount 指定播放次数
+                   -1: 表示一直播放
+                    0: 表示无有效的播放次数，使用图片的默认值(或者预设值)
+                   >0: 具体的播放次数，达到播放次数后，停止播放
      */
-    bool StartGifPlay(GifFrameType nStartFrame = kGifFrameFirst, int32_t nPlayCount = -1);
+    bool StartImageAnimation(const DString& imageName = _T(""),
+                             AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent,
+                             int32_t nPlayCount = 0);
 
-    /** 停止播放 GIF/WebP/APNG 动画
-     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
-     * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+    /** 停止播放动画
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+     * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
+     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
      */
-    void StopGifPlay(bool bTriggerEvent = false, GifFrameType nStopFrame = kGifFrameCurrent);
+    bool StopImageAnimation(const DString& imageName = _T(""),
+                            AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent,
+                            bool bTriggerEvent = true);
 
-    /** 监听 GIF 播放完成通知
-     * @param[in] callback 要监听 GIF 停止播放的回调函数
+    /** 播放动画的当前帧
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+     * @param [in] nFrameIndex 从0开始的图片帧索引号
      */
-    void AttachGifPlayStop(const EventCallback& callback);
+    bool SetImageAnimationFrame(int32_t nFrameIndex);//背景图片
+    bool SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex);
 
-    /** @brief 获取动画管理器接口
+    /** 获取动画的当前帧的索引号
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    */
+    uint32_t GetImageAnimationFrameIndex() const;//背景图片
+    uint32_t GetImageAnimationFrameIndex(const DString& imageName) const;
+
+    /** 获取动画的总帧数
+    * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+    */
+    uint32_t GetImageAnimationFrameCount();//背景图片
+    uint32_t GetImageAnimationFrameCount(const DString& imageName);
+
+    /** 动画图片是否已经完成加载
+    */
+    bool IsImageAnimationLoaded() const;//背景图片
+    bool IsImageAnimationLoaded(const DString& imageName) const;
+
+    /** 监听动画播放开始通知(所有图片动画)
+     * @param[in] callback 要监听动画停止播放的回调函数
+     */
+    void AttachImageAnimationStart(const EventCallback& callback) { AttachEvent(kEventImageAnimationStart, callback); }
+
+    /** 监听动画播放图片帧的通知(所有图片动画)
+     * @param[in] callback 要监听动画停止播放的回调函数
+     */
+    void AttachImageAnimationPlayFrame(const EventCallback& callback) { AttachEvent(kEventImageAnimationPlayFrame, callback); }
+
+    /** 监听动画播放停止通知(所有图片动画)
+     * @param[in] callback 要监听动画停止播放的回调函数
+     */
+    void AttachImageAnimationStop(const EventCallback& callback) { AttachEvent(kEventImageAnimationStop, callback); }
+
+public:
+    /** 获取控件动画管理器接口(控件动画)
      */
     AnimationManager& GetAnimationManager();
 
-    /// 图片缓存
-    /**@brief 根据图片路径, 加载图片信息到缓存中。
-     *        加载策略：如果图片没有加载则执行加载图片；如果图片路径发生变化，则重新加载该图片。
-     * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+public:
+    /// 图片资源
+    /** 根据图片属性设置, 加载图片信息到缓存中
+     * @param [in,out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+     * @param [out] bPaintImage true表示在绘制时加载图片，false表示其他情况下加载图片
      */
-    bool LoadImageData(Image& duiImage) const;
+    bool LoadImageInfo(Image& duiImage, bool bPaintImage = false) const;
 
-    /**@brief 清理图片缓存
+    /** 获取指定名称的图片资源接口
+    */
+    Image* FindImageByName(const DString& imageName) const;
+
+    /** 清理图片缓存, 清理后，如果使用则会重新加载
      */
     virtual void ClearImageCache();
 
+public:
     /** 屏幕坐标转换为客户区坐标
     */
     virtual bool ScreenToClient(UiPoint& pt);
@@ -864,6 +945,16 @@ public:
     */
     void AttachDropData(const EventCallback& callback) { AttachEvent(kEventDropData, callback); }
 
+    /** 监听控件图片加载完成事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachImageLoad(const EventCallback& callback) { AttachEvent(kEventImageLoad, callback); }
+
+    /** 监听控件图片解码完成事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachImageDecode(const EventCallback& callback) { AttachEvent(kEventImageDecode, callback); }
+
     /** 监听控件销毁事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
@@ -874,7 +965,7 @@ public:
     /** 判断颜色定义是否有效
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF       
-    *            (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
     *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：参见ui::UiColors::UiColorConsts函数中的定义
     */
@@ -883,7 +974,7 @@ public:
     /** 获取某个颜色对应的值
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
-    *            (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
     *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：直接指定预定义的颜色别名，参见ui::UiColors::UiColorConsts函数中的定义
     * @return ARGB颜色值
@@ -1025,6 +1116,10 @@ public:
     */
     bool FireAllEvents(const EventArgs& msg);
 
+    /** 判断是否含有某个类型的事件回调函数(包含所有类型的事件，只要Attach过eventType这个类型就返回true)
+    */
+    bool HasEventCallback(EventType eventType) const;
+
     /** @} */
 
 protected:
@@ -1080,15 +1175,16 @@ protected:
     virtual bool OnImeEndComposition(const EventArgs& msg);
 
     /// 绘制相关保护成员函数，不允许外部直接调用
-    virtual void PaintShadow(IRender* pRender);
-    virtual void PaintBkColor(IRender* pRender);
-    virtual void PaintBkImage(IRender* pRender);
-    virtual void PaintStateColors(IRender* pRender);
-    virtual void PaintStateImages(IRender* pRender);
-    virtual void PaintText(IRender* pRender);
-    virtual void PaintBorder(IRender* pRender);
-    virtual void PaintFocusRect(IRender* pRender);
-    virtual void PaintLoading(IRender* pRender);
+    virtual void PaintShadow(IRender* pRender);         //绘制BoxShadow
+    virtual void PaintBkColor(IRender* pRender);        //绘制背景色
+    virtual void PaintForeColor(IRender* pRender);      //绘制前景色
+    virtual void PaintBkImage(IRender* pRender);        //绘制背景图片
+    virtual void PaintStateColors(IRender* pRender);    //绘制状态颜色
+    virtual void PaintStateImages(IRender* pRender);    //绘制状态图片
+    virtual void PaintText(IRender* pRender);           //绘制文本
+    virtual void PaintBorder(IRender* pRender);         //绘制边框
+    virtual void PaintFocusRect(IRender* pRender);      //绘制焦点状态下的虚框
+    virtual void PaintLoading(IRender* pRender, const UiRect& rcPaint);//绘制控件loading状态
 
 protected:
     /** 是否状态图片, 只要含有任意状态图片，即返回true
@@ -1125,22 +1221,22 @@ protected:
     */
     void ClearStateImages();
 
-    /** 设置状态图片的内边距left值(所有状态图片的内边距一起调整)
-    * @param [in] leftOffset 要设置的图片内边距偏移量，正数表示增加，负数表示减少
+    /** 设置状态图片的外边距left值(所有状态图片的外边距一起调整)
+    * @param [in] leftOffset 要设置的图片外边距偏移量，正数表示增加，负数表示减少
     * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
     * @return 成功返回true，失败返回false
     */
-    bool AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale);
+    bool AdjustStateImagesMarginLeft(int32_t leftOffset, bool bNeedDpiScale);
 
-    /** 获取背景图片的内边距
+    /** 获取背景图片的外边距
      */
-    UiPadding GetBkImagePadding() const;
+    UiMargin GetBkImageMargin() const;
 
-    /** 设置背景图片的内边距
-     * @param[in] rcPadding 要设置的图片内边距
+    /** 设置背景图片的外边距
+     * @param[in] rcMargin 要设置的图片外边距
      * @param[in] bNeedDpiScale 兼容 DPI 缩放
      */
-    bool SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale);
+    bool SetBkImageMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
     /** 判断是否禁用背景图片绘制
     */
@@ -1179,16 +1275,17 @@ protected:
     */
     void DoPaintFocusRect(IRender* pRender);
 
-    /** 停止播放GIF动画(背景图片的动画等)
+    /** 暂停该控件内的所有动画播放(背景图片的动画等)
     */
-    void CheckStopGifPlay();
+    void PauseImageAnimation();
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @param [in] estImageType 估算图片的类型
      *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
      */
-    UiSize EstimateControlSize(UiSize szAvailable);
+    UiSize EstimateControlSize(UiSize szAvailable, EstimateImageType estImageType);
 
     /** 画边框线
     */
@@ -1231,6 +1328,10 @@ private:
     */
     bool ShouldBeRoundRectBorders() const;
 
+    /** 设置直角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
+
     /** 设置圆角的剪辑区域
     */
     std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
@@ -1264,6 +1365,10 @@ public:
     */
     IFont* GetIFontById(const DString& strFontId) const;
 
+    /** 获取颜色名称对应的颜色值
+    */
+    UiColor GetUiColorByName(const DString& colorName) const;
+
 protected:
     /** 设置可见状态事件
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
@@ -1276,11 +1381,6 @@ protected:
     virtual void OnSetEnabled(bool bChanged) override;
 
 private:
-
-    /** 获取颜色名称对应的颜色值
-    */
-    UiColor GetUiColorByName(const DString& colorName) const;
-
     /** 是否含有BoxShadow
     */
     bool HasBoxShadow() const;
@@ -1293,6 +1393,26 @@ private:
     /** 获取渐变颜色的方向
     */
     int8_t GetColor2Direction(const UiString& bkColor2Direction) const;
+
+    /** 解析并处理动画播放属性
+    */
+    void ParseStartImageAnimation(const DString& value);
+
+    /** 解析并处理动画停止属性
+    */
+    void ParseStopImageAnimation(const DString& value);
+
+    /** 解析并处理动画设置当前帧属性
+    */
+    void ParseSetImageAnimationFrame(const DString& value);
+
+    /** 触发图片加载完成和解码完成事件
+    */
+    void FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const;
+
+    /** 创建一个临时的Render对象
+    */
+    std::unique_ptr<IRender> CreateTempRender() const;
 
 private:
     /** 获取AttachXXX接口的监听事件管理器
@@ -1314,6 +1434,12 @@ private:
     */
     EventMap& GetXmlBubbledEventMap();
     bool HasXmlBubbledEventMap() const;
+
+private:
+    /** 图片异步解码的实现函数
+    */
+    struct TAsyncImageDecode;
+    static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder);
 
 private:
     //回调事件管理
@@ -1376,10 +1502,16 @@ private:
 
         //焦点状态下的边框颜色
         UiString m_focusBorderColor;
+
+        /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
+            仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
+            其值为原始值，未经DPI缩放
+        */
+        UiSize16 m_borderRound;
     };
 
-    //背景色相关数据
-    struct TBkColorData
+    //背景色/前景色等颜色相关数据
+    struct TColorData
     {
         //控件的背景颜色
         UiString m_strBkColor;
@@ -1389,6 +1521,12 @@ private:
 
         //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
         int8_t m_nBkColor2Direction = 1;
+
+        //控件的前景颜色
+        UiString m_strForeColor;
+
+        //焦点状态虚线矩形的颜色
+        UiString m_focusRectColor;
     };
 
     //拖放相关数据
@@ -1415,10 +1553,40 @@ private:
 #endif
     };
 
-private:
-    /** 控件阴影，其圆角大小通过m_cxyBorderRound变量控制
+    /** 动画相关数据
     */
-    std::unique_ptr<BoxShadow> m_pBoxShadow;
+    struct TAnimationData
+    {
+        /** 控件动画播放管理器
+        */
+        std::unique_ptr<AnimationManager> m_animationManager;
+
+        /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+        */
+        UiPoint m_renderOffset;
+    };
+
+    /** 不常用的功能数据
+    */
+    struct TOtherData
+    {
+        /** 控件阴影，其圆角大小通过m_borderRound变量控制
+        */
+        std::unique_ptr<BoxShadow> m_pBoxShadow;
+
+        /** 控件"加载中"逻辑的实现接口
+        */
+        std::unique_ptr<ControlLoading> m_pLoading;
+
+        /** Tooltip数据
+        */
+        std::unique_ptr<TTooltipData> m_pTooltip;
+    };
+
+private:
+    /** 背景图片
+    */
+    std::unique_ptr<Image> m_pBkImage;
 
     /** 边框数据
     */
@@ -1426,11 +1594,7 @@ private:
 
     /** 背景色
     */
-    std::unique_ptr<TBkColorData> m_pBkColorData;
-
-    /** 背景图片
-    */
-    std::unique_ptr<Image> m_pBkImage;
+    std::unique_ptr<TColorData> m_pColorData;
 
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
@@ -1440,41 +1604,29 @@ private:
     */
     std::unique_ptr<StateImageMap> m_pImageMap;
 
-    /** 控件"加载中"逻辑的实现接口
+    /** 绘制渲染引擎接口(控件自身，仅当设置透明度时使用)
     */
-    std::unique_ptr<ControlLoading> m_pLoading;
-
-    /** 控件动画播放管理器
-    */
-    std::unique_ptr<AnimationManager> m_animationManager;
-
-    /** 绘制渲染引擎接口(控件自身)
-    */
-    std::unique_ptr<IRender> m_render;
+    std::unique_ptr<IRender> m_pTempRender;
 
     /** 回调事件管理器
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
 
-    /** Tooltip数据
+    /** 控件动画相关数据
     */
-    std::unique_ptr<TTooltipData> m_pTooltip;
+    std::unique_ptr<TAnimationData> m_pAnimationData;
 
     /** 拖放相关数据
     */
     std::unique_ptr<TDragDropData> m_pDragDropData;
 
-    /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+    /** 其他不常用的数据
     */
-    UiPoint m_renderOffset;
-    
+    std::unique_ptr<TOtherData> m_pOtherData;
+
     /** 控件的绘制区域
     */
     UiRect m_rcPaint;
-
-    /** 焦点状态虚线矩形的颜色
-    */
-    UiString m_focusRectColor;
    
     /** 用户数据ID(字符串)
     */
@@ -1485,15 +1637,9 @@ private:
     size_t m_uUserDataID;
 
 private:
-    /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
-        仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
-        其值为原始值，未经DPI缩放
+    /** box-shadow是否已经绘制（由于box-shadow绘制会超过GetRect()范围，所以需要特殊处理）
     */
-    UiSize16 m_borderRound;
-
-    /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
-    */
-    bool m_isBoxShadowPainted;
+    bool m_bBoxShadowPainted;
 
     /** 控件状态(ControlStateType)
     */

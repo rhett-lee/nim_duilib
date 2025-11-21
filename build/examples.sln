@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{B2
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic", "..\examples\basic\basic.vcxproj", "{F1A9371F-9A34-45A0-98EB-83FF371F067F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "layouts", "..\examples\layouts\layouts.vcxproj", "{2BFFA1EE-039D-479E-9BCC-2D12F8AEDD16}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chat", "..\examples\chat\chat.vcxproj", "{2BFFA1EE-039D-479E-9BCC-2D12F8AEDD16}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cef", "..\examples\cef\cef.vcxproj", "{B8588C07-9CE2-456C-83B1-86E4B65D4108}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -43,15 +43,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColorPicker", "..\examples\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ListCtrl", "..\examples\ListCtrl\ListCtrl.vcxproj", "{8CC94E80-DDB6-4CBC-9C8D-35971389D71A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyDuilibApp", "..\examples\MyDuilibApp\MyDuilibApp.vcxproj", "{0ED0315F-A900-45B1-B01F-FEAC4305DED3}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiLang", "..\examples\MultiLang\MultiLang.vcxproj", "{17BB871A-B630-4E42-95CE-C2789B102091}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DpiAware", "..\examples\DpiAware\DpiAware.vcxproj", "{B153E62E-29A4-435E-9150-E2C2CEA28524}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef_win\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef\libcef_win\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef_win_109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef\libcef_win_109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MoveControl", "..\examples\MoveControl\MoveControl.vcxproj", "{D31E3A5D-7AD3-41FF-B8CF-D02FB1D0412F}"
 EndProject
@@ -66,6 +64,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2", "..\examples\WebView2\WebView2.vcxproj", "{5C19133B-684C-4909-9729-EF2408ACF68A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2Browser", "..\examples\WebView2Browser\WebView2Browser.vcxproj", "{34272A88-EF1F-4AD2-8101-512A9A316757}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "layout", "..\examples\layout\layout.vcxproj", "{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -203,14 +203,6 @@ Global
 		{8CC94E80-DDB6-4CBC-9C8D-35971389D71A}.Release|Win32.Build.0 = Release|Win32
 		{8CC94E80-DDB6-4CBC-9C8D-35971389D71A}.Release|x64.ActiveCfg = Release|x64
 		{8CC94E80-DDB6-4CBC-9C8D-35971389D71A}.Release|x64.Build.0 = Release|x64
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Debug|Win32.ActiveCfg = Debug|Win32
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Debug|Win32.Build.0 = Debug|Win32
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Debug|x64.ActiveCfg = Debug|x64
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Debug|x64.Build.0 = Debug|x64
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Release|Win32.ActiveCfg = Release|Win32
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Release|Win32.Build.0 = Release|Win32
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Release|x64.ActiveCfg = Release|x64
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3}.Release|x64.Build.0 = Release|x64
 		{17BB871A-B630-4E42-95CE-C2789B102091}.Debug|Win32.ActiveCfg = Debug|Win32
 		{17BB871A-B630-4E42-95CE-C2789B102091}.Debug|Win32.Build.0 = Debug|Win32
 		{17BB871A-B630-4E42-95CE-C2789B102091}.Debug|x64.ActiveCfg = Debug|x64
@@ -283,6 +275,14 @@ Global
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|Win32.Build.0 = Release|Win32
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|x64.ActiveCfg = Release|x64
 		{34272A88-EF1F-4AD2-8101-512A9A316757}.Release|x64.Build.0 = Release|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|Win32.Build.0 = Debug|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|x64.ActiveCfg = Debug|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Debug|x64.Build.0 = Debug|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|Win32.ActiveCfg = Release|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|Win32.Build.0 = Release|Win32
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|x64.ActiveCfg = Release|x64
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -303,7 +303,6 @@ Global
 		{525C6C5A-08D6-414A-8251-F5C959BF07F4} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{912ACDBB-8DA4-4D85-A883-0797BF3AB523} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{8CC94E80-DDB6-4CBC-9C8D-35971389D71A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
-		{0ED0315F-A900-45B1-B01F-FEAC4305DED3} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{17BB871A-B630-4E42-95CE-C2789B102091} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{B153E62E-29A4-435E-9150-E2C2CEA28524} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{BA5C702F-BB68-37F9-A109-74F215FE14C5} = {1DA0A8E2-5832-42FC-83F7-2CDCAD379C90}
@@ -313,6 +312,7 @@ Global
 		{F1A9371F-9A34-45A0-98EB-83FF371F066A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{5C19133B-684C-4909-9729-EF2408ACF68A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{34272A88-EF1F-4AD2-8101-512A9A316757} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
+		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}

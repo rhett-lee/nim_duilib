@@ -12,7 +12,7 @@ Slider::Slider(Window* pWindow) :
     m_thumbStateImage(),
     m_rcProgressBarPadding()
 {
-    SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
+    SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
 }
 
 DString Slider::GetType() const { return DUI_CTR_SLIDER; }
@@ -206,28 +206,34 @@ void Slider::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void Slider::PaintBkColor(IRender* pRender)
 {
+    const UiRect rcOldPaintRect = GetPaintRect();
+    const UiRect rcOldRect = GetRect();
+
     UiRect rc = GetRect();
     const UiPadding& padding = m_rcProgressBarPadding;
     rc.Deflate(padding);
     SetRect(rc);
 
-    UiRect painttRect = GetPaintRect();
-    painttRect.Deflate(padding);
-    SetPaintRect(painttRect);
+    UiRect paintRect = GetPaintRect();
+    paintRect.Deflate(padding);
+    SetPaintRect(paintRect);
 
     Control::PaintBkColor(pRender);
 
-    painttRect = GetPaintRect();
-    painttRect.Inflate(padding);
-    SetPaintRect(painttRect);
+    paintRect = GetPaintRect();
+    paintRect.Inflate(padding);
+    SetPaintRect(paintRect);
 
-    rc = GetRect();
-    rc.Inflate(padding);
-    SetRect(rc);
+    //恢复原值
+    SetRect(rcOldRect);
+    SetPaintRect(rcOldPaintRect);
 }
 
 void Slider::PaintStateImages(IRender* pRender)
 {
+    const UiRect rcOldPaintRect = GetPaintRect();
+    const UiRect rcOldRect = GetRect();
+
     UiRect rc = GetRect();
     const UiPadding& padding = m_rcProgressBarPadding;
     rc.Deflate(padding);
@@ -235,9 +241,9 @@ void Slider::PaintStateImages(IRender* pRender)
 
     Progress::PaintStateImages(pRender);
 
-    rc = GetRect();
-    rc.Inflate(padding.left, padding.top, padding.right, padding.bottom);
-    SetRect(rc);
+    //恢复原值
+    SetRect(rcOldRect);
+    SetPaintRect(rcOldPaintRect);
 
     UiRect rcThumb = GetThumbRect();
     rcThumb.left -= GetRect().left;

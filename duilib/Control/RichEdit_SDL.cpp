@@ -89,7 +89,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sInactiveSelectionBkColor(_T("DarkGray")),
     m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T("")),
-    m_nFocusBottomBorderSize(0)
+    m_nFocusBottomBorderSize(0),
+    m_fRowSpacingMul(1.0f)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -151,24 +152,26 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
+        //水平方向对齐
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHAlignType(kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kAlignLeft);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetHAlignType(kHorAlignRight);
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHAlignType(kHorAlignCenter);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
+        //垂直方向对齐
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVAlignType(kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kAlignTop);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVAlignType(kVerAlignBottom);
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVAlignType(kVerAlignCenter);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -338,6 +341,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色
         SetInactiveCurrentRowBkColor(strValue);
     }
+    else if (strName == _T("row_spacing_mul")) {
+        SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
     else {
         ScrollBox::SetAttribute(strName, strValue);
     }
@@ -378,10 +384,10 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetTextPadding(rcTextPadding, false);
 
     //更新字体大小
-    m_pTextData->SetCacheDirty(true);
     SetFontIdInternal(GetCurrentFontId());
-    Redraw();
-    UpdateScrollRange();
+
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
@@ -612,9 +618,8 @@ void RichEdit::SetWordWrap(bool bWordWrap)
 {
     if (m_bWordWrap != bWordWrap) {
         m_bWordWrap = bWordWrap;
-        m_pTextData->SetCacheDirty(true);
-        Redraw();
-        UpdateScrollRange();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -628,8 +633,8 @@ void RichEdit::SetMultiLine(bool bMultiLine)
     bool bSingleLineMode = !bMultiLine;
     if (m_pTextData->IsSingleLineMode() != bSingleLineMode) {
         m_pTextData->SetSingleLineMode(bSingleLineMode);
-        Redraw();
-        UpdateScrollRange();
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -684,7 +689,9 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
     }
 
     //按字体高度设置光标的高度
-    UiRect fontRect = pRender->MeasureString(_T("T"), pFont, 0);
+    MeasureStringParam measureParam;
+    measureParam.pFont = pFont;
+    UiRect fontRect = pRender->MeasureString(_T("T"), measureParam);
     m_nRowHeight = fontRect.Height();
     ASSERT(m_nRowHeight > 0);
     int32_t nCaretHeight = fontRect.Height();
@@ -767,10 +774,9 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
 
 void RichEdit::OnFontChanged(const DString& fontId)
 {
-    m_pTextData->SetCacheDirty(true);
     SetFontIdInternal(fontId);
-    Redraw();
-    UpdateScrollRange();
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 }
 
 void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomPercent)
@@ -787,10 +793,11 @@ void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomP
             GlobalManager::Instance().Font().RemoveIFont(fontId, nZoomPercent);
         }
     }
-    m_pTextData->SetCacheDirty(true);
+
     SetFontIdInternal(GetCurrentFontId());
-    Redraw();
-    UpdateScrollRange();
+
+    //清除绘制缓存，并重绘
+    ClearCacheAndRedraw();
 
     //触发kEventZoom事件
     SendEvent(kEventZoom, (WPARAM)nNewZoomPercent, 0);
@@ -883,6 +890,23 @@ void RichEdit::SetInactiveCurrentRowBkColor(const DString& currentRowBkColor)
 DString RichEdit::GetInactiveCurrentRowBkColor() const
 {
     return m_sInactiveCurrentRowBkColor.c_str();
+}
+
+float RichEdit::GetRowSpacingMul() const
+{
+    return m_fRowSpacingMul;
+}
+
+void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
+{
+    if (m_fRowSpacingMul != fRowSpacingMul) {
+        m_fRowSpacingMul = fRowSpacingMul;
+        if (m_fRowSpacingMul <= 0.01f) {
+            m_fRowSpacingMul = 1.0f;
+        }
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
+    }
 }
 
 int32_t RichEdit::GetLimitText() const
@@ -1734,15 +1758,13 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pRender == nullptr) {
         return;
     }
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
-
+    
     bool bNeedPaint = true;
     if (pRender->IsClipEmpty()) {
         bNeedPaint = false;
     }    
-    UiRect rcTemp;
-    if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         bNeedPaint = false;
     }
 
@@ -1831,14 +1853,20 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
                 dwClrColor = GetUiColor(GetDisabledTextColor());
             }
             ASSERT(!dwClrColor.IsEmpty());
-            uint32_t dwStyle = GetTextStyle();
+
+            DrawStringParam drawParam;
+            drawParam.pFont = GetIFontInternal(fontId);
+            drawParam.uFormat = GetTextStyle();
+            drawParam.textRect = rcDrawRect;
+            drawParam.dwTextColor = dwClrColor;
+
 #ifdef DUILIB_UNICODE
-            pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontInternal(fontId), dwStyle);
+            pRender->DrawString(passwordText, drawParam);
 #else
-            pRender->DrawString(rcDrawRect, StringConvert::WStringToUTF8(passwordText), dwClrColor, GetIFontInternal(fontId), dwStyle);
+            pRender->DrawString(StringConvert::WStringToUTF8(passwordText), drawParam);
 #endif
             
-        }        
+        }
     }
 
     //绘制光标
@@ -2313,10 +2341,12 @@ void RichEdit::PaintPromptText(IRender* pRender)
         return;
     }
 
-    UiRect rcDrawRect = GetRichTextDrawRect();
-    UiColor dwClrColor = GetUiColor(promptTextColor);
-    uint32_t dwStyle = GetTextStyle();
-    pRender->DrawString(rcDrawRect, promptText, dwClrColor, GetIFontInternal(fontId), dwStyle);
+    DrawStringParam drawParam;
+    drawParam.pFont = GetIFontInternal(fontId);
+    drawParam.uFormat = GetTextStyle();
+    drawParam.textRect = GetRichTextDrawRect();
+    drawParam.dwTextColor = GetUiColor(promptTextColor);
+    pRender->DrawString(promptText, drawParam);
 }
 
 DString RichEdit::GetFocusedImage()
@@ -2894,11 +2924,12 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
     }
 }
 
-void RichEdit::SetHAlignType(HorAlignType alignType)
+void RichEdit::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_pTextData->GetHAlignType() != alignType) {
-        m_pTextData->SetHAlignType(alignType);
-        Redraw();
+        m_pTextData->SetTextHAlignType(alignType);
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -2907,11 +2938,12 @@ HorAlignType RichEdit::GetHAlignType() const
     return m_pTextData->GetHAlignType();
 }
 
-void RichEdit::SetVAlignType(VerAlignType alignType)
+void RichEdit::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_pTextData->GetVAlignType() != alignType) {
-        m_pTextData->SetVAlignType(alignType);
-        Redraw();
+        m_pTextData->SetTextVAlignType(alignType);
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
     }
 }
 
@@ -2935,10 +2967,10 @@ uint16_t RichEdit::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     HorAlignType hAlignType = GetHAlignType();
-    if (hAlignType == HorAlignType::kHorAlignCenter) {
-        uTextStyle |= TEXT_CENTER;
+    if (hAlignType == HorAlignType::kAlignCenter) {
+        uTextStyle |= TEXT_HCENTER;
     }
-    else if (hAlignType == HorAlignType::kHorAlignRight) {
+    else if (hAlignType == HorAlignType::kAlignRight) {
         uTextStyle |= TEXT_RIGHT;
     }
     else {
@@ -2946,10 +2978,10 @@ uint16_t RichEdit::GetTextStyle() const
     }
 
     VerAlignType vAlignType = GetVAlignType();
-    if (vAlignType == VerAlignType::kVerAlignCenter) {
+    if (vAlignType == VerAlignType::kAlignCenter) {
         uTextStyle |= TEXT_VCENTER;
     }
-    else if (vAlignType == VerAlignType::kVerAlignBottom) {
+    else if (vAlignType == VerAlignType::kAlignBottom) {
         uTextStyle |= TEXT_BOTTOM;
     }
     else {
@@ -3021,6 +3053,9 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     richTextData.m_pFontInfo->m_bUnderline = pFont->IsUnderline();
     richTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
     richTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
+
+    //行间距倍数
+    richTextData.m_fRowSpacingMul = GetRowSpacingMul();
 
     if (nStartLine != (size_t)-1) {
         //增量绘制，只绘制变化的部分
@@ -3187,10 +3222,10 @@ UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
     return rcAvailable;
 }
 
-UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
+UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc, bool bEstimateOnly)
 {
     //计算子控件的大小
-    UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc);
+    UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc, bEstimateOnly);
     if (requiredSize.cx > rc.Width()) {
         requiredSize.cx = 0;
     }
@@ -3203,7 +3238,7 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
     UiSize szAvailable(rcAvailable.Width(), rcAvailable.Height());
 
     //估算图片区域大小
-    UiSize imageSize = EstimateImage(szAvailable);
+    UiSize imageSize = EstimateImage(szAvailable, EstimateImageType::kBoth);
     if (imageSize.cx > rc.Width()) {
         imageSize.cx = 0;
     }
@@ -3248,6 +3283,13 @@ void RichEdit::Redraw()
     Invalidate();
 }
 
+void RichEdit::ClearCacheAndRedraw()
+{
+    m_pTextData->SetCacheDirty(true);
+    Redraw();
+    UpdateScrollRange();
+}
+
 ////////////////////////////////////////////////////////////
 bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
@@ -3255,6 +3297,11 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
         //使用Control设置的光标
         return BaseClass::OnSetCursor(msg);
     }
+    if (!IsEnabled()) {
+        //未启用状态下，使用默认光标
+        return BaseClass::OnSetCursor(msg);
+    }
+
     SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
     return true;
 }

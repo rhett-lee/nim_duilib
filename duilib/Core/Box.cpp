@@ -39,11 +39,11 @@ DString Box::GetType() const { return DUI_CTR_BOX; }
 
 void Box::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if ((strName == _T("mouse_child")) || (strName == _T("mousechild"))) {
-        SetMouseChildEnabled(strValue == _T("true"));
-    }
-    else if (m_pLayout->SetAttribute(strName, strValue, Dpi())) {
+    if (m_pLayout->SetAttribute(strName, strValue, Dpi())) {
         return;
+    }
+    else if ((strName == _T("mouse_child")) || (strName == _T("mousechild"))) {
+        SetMouseChildEnabled(strValue == _T("true"));
     }
     else if (strName == _T("drag_out_id")) {
         uint8_t nValue = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
@@ -101,7 +101,7 @@ void Box::SetPos(UiRect rc)
 {
     Control::SetPos(rc);
     if (m_pLayout != nullptr) {
-        m_pLayout->ArrangeChild(m_items, rc);    
+        m_pLayout->ArrangeChildren(m_items, rc);    
     }
 }
 
@@ -219,7 +219,8 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
     }
 
     //子控件的大小，包含内边距，但不包含外边距
-    UiSize sizeByChild = m_pLayout->EstimateSizeByChild(m_items, szAvailable);
+    UiSize64 layoutSize = m_pLayout->EstimateLayoutSize(m_items, szAvailable);
+    UiSize sizeByChild(ui::TruncateToInt32(layoutSize.cx), ui::TruncateToInt32(layoutSize.cy));
     
     SetReEstimateSize(false);
     for (auto pControl : m_items) {

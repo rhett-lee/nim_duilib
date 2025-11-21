@@ -47,14 +47,6 @@ private:
     */
     ui::ControlPtrT<MainForm> m_pMainForm;
 
-    /** 工作线程: 线程标识符为 ui::kThreadWorker
-    */
-    std::unique_ptr<WorkerThread> m_workerThread;
-
-    /** 杂事线程: 线程标识符为 ui::kThreadMisc
-    */
-    std::unique_ptr<WorkerThread> m_miscThread;
-
     /** 用户自定义线程池: 线程标识符为 ui::kThreadUser + vector的元素索引号
     */
     std::vector<std::shared_ptr<WorkerThread>> m_threadPools;

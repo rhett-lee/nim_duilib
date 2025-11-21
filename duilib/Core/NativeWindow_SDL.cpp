@@ -1,9 +1,7 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
 #include "WindowDropTarget_SDL.h"
-#include "duilib/Image/ImageDecoder.h"
-#include "duilib/Image/ImageLoadAttribute.h"
-#include "duilib/Image/ImageInfo.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
@@ -329,6 +327,21 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
         //异步窗口绘制消息: 系统发生的消息已经进行了同步绘制，此处不重新绘制
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+        if (!m_bInitWindowPosFlag) {
+            m_bInitWindowPosFlag = true;
+            if (IsVideoDriverWayland()) {
+                uint32_t uFlags = WindowPosFlags::kSWP_NOZORDER;
+                if ((m_ptInitWindow.x == kCW_USEDEFAULT) || (m_ptInitWindow.y == kCW_USEDEFAULT)) {
+                    uFlags |= WindowPosFlags::kSWP_NOMOVE;
+                }
+                SetWindowPos(nullptr, InsertAfterFlag::kHWND_DEFAULT,
+                             m_ptInitWindow.x, m_ptInitWindow.y,
+                             m_szInitWindow.cx, m_szInitWindow.cy,
+                             uFlags);
+            }
+        }
+#endif
         break;
     case WM_USER_PAINT_MSG:
         //主动发起的窗口绘制消息
@@ -643,7 +656,8 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bFakeModal(false),
     m_bDoModal(false),
     m_bFullScreen(false),
-    m_ptLastMousePos(-1, -1)
+    m_ptLastMousePos(-1, -1),
+    m_bInitWindowPosFlag(false)
 {
     ASSERT(m_pOwner != nullptr);    
 }
@@ -1192,6 +1206,12 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
         SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, cy);
     }
 
+    m_bInitWindowPosFlag = false;
+    m_ptInitWindow.x = x;
+    m_ptInitWindow.y = y;
+    m_szInitWindow.cx = cx;
+    m_szInitWindow.cy = cy;
+
     //父窗口
     if ((pParentWindow != nullptr) && (pParentWindow->m_sdlWindow != nullptr)) {
         SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_PARENT_POINTER, pParentWindow->m_sdlWindow);
@@ -1205,6 +1225,9 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
 
     //创建的时候，窗口保持隐藏状态，需要调用API显示窗口，避免创建窗口的时候闪烁
     windowFlags |= SDL_WINDOW_HIDDEN;
+
+    //支持Hight DPI，参见SDL文档：docs/README-highdpi.md
+    windowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     if (!m_bUseSystemCaption && m_bIsLayeredWindow) {
         //设置透明属性，这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
@@ -1487,8 +1510,38 @@ HDC NativeWindow_SDL::GetPaintDC() const
 #endif //DUILIB_BUILD_FOR_WIN
 
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-/** 获取X11的窗口标识符
-*/
+bool NativeWindow_SDL::IsVideoDriverX11() const
+{
+    DString videoDriverName = StringUtil::MakeLowerString(GetVideoDriverName());
+    return videoDriverName == _T("x11");
+}
+
+bool NativeWindow_SDL::IsVideoDriverWayland() const
+{
+    DString videoDriverName = StringUtil::MakeLowerString(GetVideoDriverName());
+    return videoDriverName == _T("wayland");
+}
+
+size_t NativeWindow_SDL::GetX11DisplayPointer() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    size_t nWindowDisplay = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr);
+    return nWindowDisplay;
+}
+
+uint64_t NativeWindow_SDL::GetX11ScreenNumber() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    uint64_t nScreenNumber = (uint64_t)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_X11_SCREEN_NUMBER, 0);
+    return nScreenNumber;
+}
+
 uint64_t NativeWindow_SDL::GetX11WindowNumber() const
 {
     if (!IsWindow()) {
@@ -1496,8 +1549,17 @@ uint64_t NativeWindow_SDL::GetX11WindowNumber() const
     }
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     uint64_t nWindowNumber = (uint64_t)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-    ASSERT(nWindowNumber != 0);
     return nWindowNumber;
+}
+
+size_t NativeWindow_SDL::GetWaylandDisplayPointer() const
+{
+    if (!IsWindow()) {
+        return 0;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    size_t nWaylandDisplay = (size_t)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr);
+    return nWaylandDisplay;
 }
 
 #endif
@@ -2074,6 +2136,12 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
     bool bModified = false;
     ASSERT(IsWindow());
     if (!(uFlags & kSWP_NOMOVE)) {
+        if (!m_bInitWindowPosFlag) {
+            m_ptInitWindow.x = X;
+            m_ptInitWindow.y = Y;
+        }
+        //Wayland:该函数无法修改窗口位置，内部不支持
+        //Wayland:不支持设置窗口的初始坐标值
         bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
@@ -2084,6 +2152,10 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
         }
     }
     if (!(uFlags & kSWP_NOSIZE)) {
+        if (!m_bInitWindowPosFlag) {
+            m_szInitWindow.cx = cx;
+            m_szInitWindow.cy = cy;
+        }
         bool nRet = SDL_SetWindowSize(m_sdlWindow, cx, cy);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
@@ -2681,20 +2753,19 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     if (!IsWindow()) {
         return false;
     }
-    ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
-    loadAttr.SetImageFullPath(iconFileName);
-    uint32_t nFrameCount = 0;
-    ImageDecoder imageDecoder;
-    std::vector<uint8_t> fileData(iconFileData);
-    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, m_pOwner->OnNativeGetDpi().GetScale(), true, nFrameCount);
-    ASSERT(imageInfo != nullptr);
-    if (imageInfo == nullptr) {
+    ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
+    float fImageSizeScale = (m_pOwner != nullptr) ? m_pOwner->OnNativeGetDpi().GetScale() / 100.0f : 1.0f;
+    ImageDecodeParam decodeParam;
+    decodeParam.m_imageFilePath = iconFileName;
+    decodeParam.m_fImageSizeScale = fImageSizeScale;
+    decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>(iconFileData);
+    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);
+    if (pBitmap == nullptr) {
         return false;
     }
-
-    IBitmap* pBitmap = imageInfo->GetBitmap(0);
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
+    uint32_t nWidth = pBitmap->GetWidth();
+    uint32_t nHeight = pBitmap->GetHeight();
+    if ((nWidth < 1) || (nHeight < 1)) {
         return false;
     }
 
@@ -2740,6 +2811,11 @@ bool NativeWindow_SDL::IsEnableDragDrop() const
 Control* NativeWindow_SDL::FindControl(const UiPoint& pt) const
 {
     return m_pOwner->OnNativeFindControl(pt);
+}
+
+bool NativeWindow_SDL::NeedCenterWindowAfterCreated() const
+{
+    return m_createParam.m_bCenterWindow;
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

@@ -603,7 +603,7 @@ private:
         if (spBitmap == nullptr) {
             return spBitmap;
         }
-        if (!spBitmap->Init(nPreviewWidth, nPreviewHeight, true, nullptr)) {
+        if (!spBitmap->Init(nPreviewWidth, nPreviewHeight, nullptr)) {
             return nullptr;
         }
         uint32_t* pDestPixelBits = (uint32_t*)spBitmap->LockPixelBits();

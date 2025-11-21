@@ -338,11 +338,9 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pSpinBox(nullptr),
     m_pClearButton(nullptr),
     m_pShowPasswordButton(nullptr),
-    m_nFocusBottomBorderSize(0)
+    m_nFocusBottomBorderSize(0),
+    m_fRowSpacingMul(1.0f)
 {
-    //这个标记必须为false，否则绘制有问题
-    SetUseCache(false);
-
     //创建RichEditHost接口
     m_pRichHost = new RichEditHost(this);
     ASSERT(m_pRichHost->GetTextServices() != nullptr);
@@ -441,24 +439,26 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
+        //水平方向对齐方式
         if (strValue.find(_T("left")) != DString::npos) {
-            SetHAlignType(kHorAlignLeft);
+            SetTextHAlignType(HorAlignType::kAlignLeft);
+        }        
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("right")) != DString::npos) {
-            SetHAlignType(kHorAlignRight);
-        }
-        if (strValue.find(_T("hcenter")) != DString::npos) {
-            SetHAlignType(kHorAlignCenter);
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetTextHAlignType(HorAlignType::kAlignRight);
         }
 
+        //垂直方向对齐方式
         if (strValue.find(_T("top")) != DString::npos) {
-            SetVAlignType(kVerAlignTop);
+            SetTextVAlignType(VerAlignType::kAlignTop);
+        }        
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignCenter);
         }
-        if (strValue.find(_T("bottom")) != DString::npos) {
-            SetVAlignType(kVerAlignBottom);
-        }
-        if (strValue.find(_T("vcenter")) != DString::npos) {
-            SetVAlignType(kVerAlignCenter);
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetTextVAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -561,6 +561,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("select_all_on_focus")) {
         //获取焦点的时候，是否全选
         SetSelAllOnFocus(strValue == _T("true"));
+    }
+    else if (strName == _T("row_spacing_mul")) {
+        SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -1827,13 +1830,13 @@ void RichEdit::SetPos(UiRect rc)
     }
 
     //排列子控件
-    ArrangeChild(m_items);
+    ArrangeChildren(m_items);
 }
 
-void RichEdit::ArrangeChild(const std::vector<Control*>& items) const
+void RichEdit::ArrangeChildren(const std::vector<Control*>& items) const
 {
     //使用默认布局的排布方式
-    GetLayout()->ArrangeChild(items, GetPos());
+    GetLayout()->ArrangeChildren(items, GetPos());
 }
 
 uint32_t RichEdit::GetControlFlags() const
@@ -1915,6 +1918,11 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
     if (m_bUseControlCursor) {
         //使用Control设置的光标
+        return BaseClass::OnSetCursor(msg);
+    }
+
+    if (!IsEnabled()) {
+        //未启用状态下，使用默认光标
         return BaseClass::OnSetCursor(msg);
     }
 
@@ -2240,15 +2248,13 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pRender == nullptr) {
         return;
     }
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
 
     bool bNeedPaint = true;
     if (pRender->IsClipEmpty()) {
         bNeedPaint = false;
-    }    
-    UiRect rcTemp;
-    if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+    }
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         bNeedPaint = false;
     }
 
@@ -2387,8 +2393,6 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
         return;
     }
 
-    //必须不使用缓存，否则绘制异常
-    ASSERT(IsUseCache() == false);
     UiRect rcTemp;
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
         return;
@@ -2428,16 +2432,25 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
 
     if (!clipRects.empty()) {
-        bool bHasIntersect = false;        
+        bool bHasIntersect = false;
+        std::vector<UiRect> intersectClipRects;
         for (const UiRect& clipRect : clipRects) {
             UiRect rcCheck = rcUpdate;
             if (rcCheck.Intersect(clipRect)) {
                 bHasIntersect = true;
-                break;
+                intersectClipRects.push_back(clipRect);
             }
         }
         if (!bHasIntersect) {
             //脏区域矩形与裁剪区域矩形无交集，无需绘制
+            return;
+        }
+
+        //去剪辑区域的交集，避免出现绘制溢出的现象
+        for (const UiRect& clipRect : intersectClipRects) {
+            rcUpdate.Intersect(clipRect);
+        }
+        if (rcUpdate.IsEmpty()) {
             return;
         }
     }
@@ -2801,7 +2814,7 @@ void RichEdit::SetUTF8PromptText(const std::string& strText)
 
 void RichEdit::SetPromptTextId(const DString& strTextId)
 {
-    if (m_sPromptTextId == strTextId) {
+    if (m_sPromptTextId != strTextId) {
         m_sPromptTextId = strTextId;
         Invalidate();
     }
@@ -2834,9 +2847,14 @@ void RichEdit::PaintPromptText(IRender* pRender)
 
     UiRect rc;
     m_pRichHost->GetControlRect(&rc);
-    UiColor dwClrColor = GetUiColor(m_sPromptColor.c_str());
-    UINT dwStyle = TEXT_NOCLIP;
-    pRender->DrawString(rc, strPrompt, dwClrColor, GetIFontById(m_sFontId.c_str()), dwStyle);
+
+    DrawStringParam drawParam;
+    drawParam.pFont = GetIFontById(m_sFontId.c_str());
+    drawParam.uFormat = TEXT_NOCLIP;
+    drawParam.textRect = rc;
+    drawParam.dwTextColor = GetUiColor(m_sPromptColor.c_str());
+
+    pRender->DrawString(strPrompt, drawParam);
 }
 
 DString RichEdit::GetFocusedImage()
@@ -2887,6 +2905,33 @@ void RichEdit::SetSelAllOnFocus(bool bSelAll)
 void RichEdit::SetNoCaretReadonly()
 {
     m_bNoCaretReadonly = true;
+}
+
+float RichEdit::GetRowSpacingMul() const
+{
+    return m_fRowSpacingMul;
+}
+
+void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
+{
+    if (m_fRowSpacingMul != fRowSpacingMul) {
+        m_fRowSpacingMul = fRowSpacingMul;
+        if (m_fRowSpacingMul <= 0.01f) {
+            m_fRowSpacingMul = 1.0f;
+        }
+        DoSetRowSpacingMul(m_fRowSpacingMul);
+    }
+}
+
+void RichEdit::DoSetRowSpacingMul(float fRowSpacingMul)
+{
+    PARAFORMAT2 pf2;
+    GetParaFormat(pf2);
+    pf2.cbSize = sizeof(PARAFORMAT2);
+    pf2.dwMask = PFM_LINESPACING;            // 必须设置此掩码以启用行间距
+    pf2.bLineSpacingRule = 5;                // 多倍行距模式
+    pf2.dyLineSpacing = (LONG)(fRowSpacingMul * 20); // fRowSpacingMul 倍行距（fRowSpacingMul * 20）
+    SetParaFormat(pf2);
 }
 
 void RichEdit::ClearImageCache()
@@ -3526,20 +3571,20 @@ void RichEdit::SetTextColorInternal(const UiColor& textColor)
     }
 }
 
-void RichEdit::SetHAlignType(HorAlignType alignType)
+void RichEdit::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->SetHAlignType(alignType);
+        m_pRichHost->SetTextHAlignType(alignType);
     }
     PARAFORMAT pf;
     ZeroMemory(&pf, sizeof(PARAFORMAT));
     pf.cbSize = sizeof(PARAFORMAT);
     m_richCtrl.GetParaFormat(pf);
     pf.dwMask |= PFM_ALIGNMENT;
-    if (alignType == HorAlignType::kHorAlignCenter) {
+    if (alignType == HorAlignType::kAlignCenter) {
         pf.wAlignment = PFA_CENTER;
     }        
-    else if (alignType == HorAlignType::kHorAlignRight) {
+    else if (alignType == HorAlignType::kAlignRight) {
         pf.wAlignment = PFA_RIGHT;
     }
     else {
@@ -3549,10 +3594,10 @@ void RichEdit::SetHAlignType(HorAlignType alignType)
     ASSERT_UNUSED_VARIABLE(bRet);
 }
 
-void RichEdit::SetVAlignType(VerAlignType alignType)
+void RichEdit::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->SetVAlignType(alignType);
+        m_pRichHost->SetTextVAlignType(alignType);
     }
 }
 
@@ -3780,6 +3825,11 @@ void RichEdit::SetRichText(bool bRichText)
     TEXTMODE newTextMode2 = m_richCtrl.GetTextMode();
     ASSERT((uint32_t)textMode & (uint32_t)newTextMode2);
 #endif
+
+    if (IsRichText() && std::fabs(GetRowSpacingMul() - 1.0f) > 0.0001f) {
+        //初始化行间距
+        DoSetRowSpacingMul(GetRowSpacingMul());
+    }
 }
 
 bool RichEdit::GetAllowBeep() const

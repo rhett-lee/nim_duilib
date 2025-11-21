@@ -93,7 +93,11 @@ void CefControlNative::ReCreateBrowser()
     window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     //Linux
-    window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
+    CefWindowHandle hParenWindow = (CefWindowHandle)pWindow->NativeWnd()->GetX11WindowNumber();
+    if (pWindow->NativeWnd()->IsVideoDriverWayland()) {
+        hParenWindow = (CefWindowHandle)pWindow->NativeWnd()->GetWaylandDisplayPointer();
+    }
+    window_info.SetAsChild(hParenWindow, rect);
 #elif defined DUILIB_BUILD_FOR_MACOS
     //MacOS
     window_info.SetAsChild(pWindow->NativeWnd()->GetNSView(), rect);
@@ -198,7 +202,7 @@ std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
         if (pRenderFactory != nullptr) {
             spBitmap.reset(pRenderFactory->CreateBitmap());
             if (spBitmap != nullptr) {
-                if (!spBitmap->Init(width, height, true, bitmap.data())) {
+                if (!spBitmap->Init(width, height, bitmap.data())) {
                     spBitmap.reset();
                 }
             }

@@ -66,7 +66,7 @@ include_directories("${SDL_SRC_ROOT_DIR}/include")
 
 # Conditionally include CEF directory
 if(CEF_LIB_DIR AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/${CEF_LIB_DIR}/" ABSOLUTE)
+    get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
     include_directories(${CEF_INCLUDE_ROOT_DIR})
 else()
     message(STATUS "CEF includes disabled - not supported on this platform")
@@ -80,6 +80,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Box BOX_SRC)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Layout LAYOUT_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Control CONTROL_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Core CORE_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Image IMAGE_SRC)
@@ -126,6 +127,23 @@ set(UNZIP_SRCS
     ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/unzip.c
 )
 
+set(GIFLIB_HDRS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_hash.h
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_lib.h
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_lib_private.h
+)
+
+set(GIFLIB_SRCS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/dgif_lib.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/egif_lib.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_err.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_font.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_hash.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gifalloc.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/openbsd-reallocarray.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/quantize.c
+)
+
 set(SKIA_HDRS
     ${SKIA_SRC_ROOT_DIR}/tools/window/DisplayParams.h
     ${SKIA_SRC_ROOT_DIR}/tools/window/RasterWindowContext.h
@@ -141,8 +159,8 @@ set(SKIA_SRCS
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows平台，单独依赖的几个Skia源码文件
     set(SKIA_WGL_SRCS
-        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL.h
-        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL_win.cpp
+        ${SKIA_SRC_ROOT_DIR}/tools/ganesh/gl/win/SkWGL.h
+        ${SKIA_SRC_ROOT_DIR}/tools/ganesh/gl/win/SkWGL_win.cpp
     )
 endif()
 
@@ -172,6 +190,7 @@ set(LIBRARY_SOURCES
     ${DIR_LIB_SRC}
     ${ANIMATION_SRC}
     ${BOX_SRC}
+    ${LAYOUT_SRC}    
     ${CONTROL_SRC}
     ${CORE_SRC}
     ${IMAGE_SRC}
@@ -185,6 +204,8 @@ set(LIBRARY_SOURCES
     ${XML_SRC}
     ${UNZIP_HDRS}
     ${UNZIP_SRCS}
+    ${GIFLIB_HDRS}
+    ${GIFLIB_SRCS}
     ${SKIA_HDRS}
     ${SKIA_SRCS}
     ${SKIA_WGL_SRCS}

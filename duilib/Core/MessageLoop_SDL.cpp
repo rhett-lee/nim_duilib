@@ -20,6 +20,9 @@ MessageLoop_SDL::~MessageLoop_SDL()
 
 bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
 {
+    //Linux Wayland下支持DPI自适应
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_SCALE_TO_DISPLAY, "true");
+
     //初始化SDL
     bool bRet = true;
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {
@@ -43,6 +46,28 @@ bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
         //4. SDL_EVENT_USER + 3:  duilib\Core\NativeWindow_SDL.cpp WM_USER_PAINT_MSG 占用
     }
     return bRet;
+}
+
+DString MessageLoop_SDL::GetCurrentVideoDriverName()
+{
+    CheckInitSDL();
+    DString videoDriverName;
+    const char* videoDriver = SDL_GetCurrentVideoDriver();
+    if (videoDriver != nullptr) {
+        videoDriverName = StringConvert::UTF8ToT(videoDriver);
+    }
+    return videoDriverName;
+}
+
+float MessageLoop_SDL::GetPrimaryDisplayContentScale()
+{
+    CheckInitSDL();
+    SDL_DisplayID displayID = SDL_GetPrimaryDisplay();
+    float scale = 1.0f;
+    if (displayID != 0) {
+        scale = SDL_GetDisplayContentScale(displayID);
+    }
+    return scale;
 }
 
 int32_t MessageLoop_SDL::Run()

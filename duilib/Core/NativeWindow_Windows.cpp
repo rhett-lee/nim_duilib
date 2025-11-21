@@ -165,6 +165,12 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
         m_hParentWnd = nullptr;
         return false;
     }
+    if (IsLayeredWindow() && IsWindowVisible()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
     return (m_hWnd != nullptr);
 }
 
@@ -763,6 +769,12 @@ bool NativeWindow_Windows::ShowWindow(ShowWindowCommands nCmdShow)
         break;
     }
     bRet = ::ShowWindow(m_hWnd, nWindowCmdShow) != FALSE;
+    if (IsLayeredWindow() && IsWindowVisible()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
     return bRet;
 }
 
@@ -1085,7 +1097,15 @@ bool NativeWindow_Windows::SetWindowPos(const NativeWindow_Windows* pInsertAfter
             hWndInsertAfter = (HWND)insertAfterFlag;
         }
     }
-    return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
+    bool bOldVisible = ::IsWindowVisible(m_hWnd);
+    bool bRet = ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
+    if ((kSWP_SHOWWINDOW & uFlags) && !bOldVisible && IsLayeredWindow()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }
+    return bRet;
 }
 
 bool NativeWindow_Windows::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
@@ -2866,6 +2886,23 @@ bool NativeWindow_Windows::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const
         break;
     }
 
+    UiRect rcSizeBox = m_pOwner->OnNativeGetSizeBox();
+    if ((rcSizeBox.left <= 0) && (rcSizeBox.top <= 0) && (rcSizeBox.right <= 0) && (rcSizeBox.bottom <= 0)) {
+        //禁止调整大小
+        SetMenuItemInfo(hSysMenu, SC_SIZE, FALSE, &mii);
+    }
+
+    UINT wndStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+    if (!(wndStyleValue & WS_MINIMIZEBOX)) {
+        //禁止最小化
+        SetMenuItemInfo(hSysMenu, SC_MINIMIZE, FALSE, &mii);
+    }
+    if (!(wndStyleValue & WS_MAXIMIZEBOX)) {
+        //禁止最大化和还原
+        SetMenuItemInfo(hSysMenu, SC_MAXIMIZE, FALSE, &mii);
+        SetMenuItemInfo(hSysMenu, SC_RESTORE, FALSE, &mii);
+    }
+
     // 在点击位置显示系统菜单
     int32_t nRet = ::TrackPopupMenu(hSysMenu, TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, nullptr);
     if (nRet != 0) {
@@ -2987,6 +3024,12 @@ bool NativeWindow_Windows::IsEnableDragDrop() const
 Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
 {
     return m_pOwner->OnNativeFindControl(pt);
+}
+
+
+bool NativeWindow_Windows::NeedCenterWindowAfterCreated() const
+{
+    return m_createParam.m_bCenterWindow;
 }
 
 } // namespace ui

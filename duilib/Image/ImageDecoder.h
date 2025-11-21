@@ -1,113 +1,370 @@
 #ifndef UI_IMAGE_IMAGE_DECODER_H_
 #define UI_IMAGE_IMAGE_DECODER_H_
 
-#include "duilib/duilib_defs.h"
-#include <memory>
-#include <vector>
-#include <string>
+#include "duilib/Core/UiTypes.h"
+#include "duilib/Core/Callback.h"
+#include "duilib/Utils/FilePath.h"
 
-namespace ui 
+namespace ui
 {
-class ImageInfo;
-class ImageLoadAttribute;
-
-/** 图片格式解码类
+/** 位图接口
 */
-class UILIB_API ImageDecoder
+class IBitmap;
+
+/** 支持多线程解码的接口（底层解码使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
+*/
+class UILIB_API IImageDelayDecode
 {
 public:
-    /** 从内存文件数据中加载图片并解码图片数据, 宽和高属性可以只设置一个，另外一个属性则默认按源图片等比计算得出
-    * @param [in] fileData 图片文件的数据，部分格式加载过程中内部有增加尾0的写操作
-    * @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
-    * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
-    * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
-    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
-    * @param [in] bLoadAllFrames 当遇到多帧图片时：true表示加载全部图片帧，false表示仅加载第一帧
-    * @param [out] nFrameCount 返回图片共有多少帧
+    virtual ~IImageDelayDecode() = default;
+
+    /** 是否支持延迟解码数据
+    * @return 返回true表示需要解码，返回false表示不需要解码
     */
-    std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,
-                                             const ImageLoadAttribute& imageLoadAttribute,                                             
-                                             bool bEnableDpiScale, uint32_t nImageDpiScale, uint32_t nWindowDpiScale,
-                                             bool bLoadAllFrames, uint32_t& nFrameCount);
+    virtual bool IsDelayDecodeEnabled() const = 0;
 
-public:
-    /** 加载后的图片数据
+    /** 延迟解码图片数据是否完成
+    * @return 延迟解码图片数据操作已经完成
     */
-    struct ImageData
-    {
-        /** 位图数据，每帧图片的数据长度固定为：图像数据长度为 (m_imageHeight*m_imageWidth*4)
-        *   每个像素数据固定占4个字节，格式为ARGB格式，位数顺序从高位到低位分别为[第3位:A，第2位:R，第1位:G,第0位:B]
-        */
-        std::vector<uint8_t> m_bitmapData;
+    virtual bool IsDelayDecodeFinished() const = 0;
 
-        /** 图像宽度
-        */
-        uint32_t m_imageWidth = 0;
-
-        /** 图像高度
-        */
-        uint32_t m_imageHeight = 0;
-
-        /** 动画播放时的延迟时间，单位为毫秒
-        */
-        uint32_t m_frameInterval = 0;
-
-        /** 创建位图的时候，是否需要翻转高度（不同加载引擎，此属性可能不同）
-        */
-        bool bFlipHeight = true;
-    };
-
-private:
-    /** 对图片数据进行解码，生成位图数据
-    * @param [in] fileData 原始图片数据
-    * @param [in] imageLoadAttribute 图片的加载属性信息
-    * @param [in] bLoadAllFrames 对于多帧图片，是否加载全部帧（true加载全部帧，false仅加载第1帧）
-    * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
-    * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
-    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
-    * @param [out] imageData 加载成功的图片数据，每个图片帧一个元素
-    * @param [out] nFrameCount 返回图片总的帧数
-    * @param [out] playCount 动画播放的循环次数(-1表示无效值；大于等于0时表示值有效，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)    
-    * @param [out] bDpiScaled 图片加载的时候，图片大小是否进行了DPI自适应操作
+    /** 获取当前延迟解码完成的图片帧索引号（从0开始编号）
     */
-    bool DecodeImageData(std::vector<uint8_t>& fileData, 
-                         const ImageLoadAttribute& imageLoadAttribute,
-                         bool bLoadAllFrames,
-                         bool bEnableDpiScale,
-                         uint32_t nImageDpiScale,
-                         uint32_t nWindowDpiScale,
-                         std::vector<ImageData>& imageData,
-                         uint32_t& nFrameCount,
-                         int32_t& playCount,
-                         bool& bDpiScaled);
+    virtual uint32_t GetDecodedFrameIndex() const = 0;
 
-    /** 对图片数据进行大小缩放
-    * @param [in] imageData 需要缩放的图片数据
-    * @param [in] nNewWidth 新的宽度
-    * @param [in] nNewHeight 新的高度
+    /** 延迟解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
     */
-    bool ResizeImageData(std::vector<ImageData>& imageData, 
-                         uint32_t nNewWidth,
-                         uint32_t nNewHeight);
+    virtual bool DelayDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) = 0;
 
-    /** 支持的图片文件格式
+    /** 合并延迟解码图片数据的结果
     */
-    enum class ImageFormat {
-        kUnknown,
-        kPNG,
-        kSVG,
-        kGIF,
-        kWEBP,
-        kJPEG,
-        kBMP,
-        kICO
-    };
-
-    /** 根据图片文件的扩展名获取图片格式
-    */
-    static ImageFormat GetImageFormat(const DString& path);
+    virtual bool MergeDelayDecodeData() = 0;
 };
 
-} // namespace ui
+/** 支持多线程解码的接口（应用层使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
+*/
+class UILIB_API IImageAsyncDecode
+{
+public:
+    virtual ~IImageAsyncDecode() = default;
 
-#endif // UI_IMAGE_IMAGE_DECODER_H_
+    /** 是否需要异步解码图片数据
+    * @return 返回true表示需要解码，返回false表示不需要解码
+    */
+    virtual bool IsAsyncDecodeEnabled() const = 0;
+
+    /** 异步解码图片数据是否完成
+    * @return 异步解码图片数据操作已经完成
+    */
+    virtual bool IsAsyncDecodeFinished() const = 0;
+
+    /** 获取当前异步解码完成的图片帧索引号（从0开始编号）
+    */
+    virtual uint32_t GetDecodedFrameIndex() const = 0;
+
+    /** 设置异步解码的任务ID
+    * @param [in] nTaskId 在子线程中的任务ID
+    */
+    virtual void SetAsyncDecodeTaskId(size_t nTaskId) = 0;
+
+    /** 获取异步解码的任务ID
+    */
+    virtual size_t GetAsyncDecodeTaskId() const = 0;
+
+    /** 异步解码图片数据（可以在多线程中调用）
+    * @param [in] nMinFrameIndex 至少需要解码到哪一帧（帧索引号，从0开始编号）
+    * @param [in] IsAborted 解码终止终止测试函数，返回true表示终止，否则表示正常操作
+    * @param [out] bDecodeError 返回true表示遇到图片解码错误
+    * @return 返回true表示成功，返回false表示解码失败或者外部终止
+    */
+    virtual bool AsyncDecode(uint32_t nMinFrameIndex,
+                             std::function<bool(void)> IsAborted,
+                             bool* bDecodeError) = 0;
+
+    /** 合并异步解码图片数据的结果
+    */
+    virtual bool MergeAsyncDecodeData() = 0;
+};
+
+/** SVG矢量图片接口
+*/
+class UILIB_API ISvgImage
+{
+public:
+    virtual ~ISvgImage() = default;
+
+    /** 获取图片宽度
+    */
+    virtual uint32_t GetWidth() const = 0;
+
+    /** 获取图片高度
+    */
+    virtual uint32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
+    /** 获取指定大小的位图，矢量缩放
+    * @param [in] szImageSize 代表获取图片的宽度(cx)和高度(cy)
+    */
+    virtual std::shared_ptr<IBitmap> GetBitmap(const UiSize& szImageSize) = 0;
+};
+
+/** 单帧位图图片接口
+*/
+class UILIB_API IBitmapImage : public IImageDelayDecode
+{
+public:
+    virtual ~IBitmapImage() = default;
+
+    /** 获取图片宽度
+    */
+    virtual uint32_t GetWidth() const = 0;
+
+    /** 获取图片高度
+    */
+    virtual uint32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
+    /** 获取位图
+    * @param [out] bDecodeError 返回值代表是否遇到图片解码错误
+    * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
+    *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
+    */
+    virtual std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError) = 0;
+};
+
+/** 动画图片默认的播放时间间隔（毫秒）
+*/
+#define IMAGE_ANIMATION_DELAY_MS        (100)
+
+/** 动画图片默认的播放时间间隔最小值（毫秒）
+*/
+#define IMAGE_ANIMATION_DELAY_MS_MIN    (20) 
+
+/** 动画图片接口
+*/
+class UILIB_API IAnimationImage: public IImageDelayDecode
+{
+public:
+    virtual ~IAnimationImage() = default;
+
+    /** 多帧图片的一帧图片数据
+    */
+    class UILIB_API AnimationFrame
+    {
+    public:
+        bool m_bDataPending = false;        //数据是否处于待解码状态：true表示待解码，需要等待解码完成后再使用
+        bool m_bDataError = false;          //数据是否出现解码错误
+        int32_t m_nFrameIndex = -1;         //图片帧的索引号        
+        int32_t m_nOffsetX = 0;             //该帧图片在绘制区域的X轴偏移值，单位为像素
+        int32_t m_nOffsetY = 0;             //该帧图片在绘制区域的Y轴偏移值，单位为像素
+        std::shared_ptr<IBitmap> m_pBitmap; //该帧图片的位图数据，用于绘制
+
+        /** 设置帧播放持续时间，毫秒
+        */
+        void SetDelayMs(int32_t nDelayMs)
+        {
+            if (nDelayMs <= 0) {
+                //未设置时，设置为默认值
+                nDelayMs = IMAGE_ANIMATION_DELAY_MS;
+            }
+            else if (nDelayMs < IMAGE_ANIMATION_DELAY_MS_MIN) {
+                //低于最小值时，设置为最小值
+                nDelayMs = IMAGE_ANIMATION_DELAY_MS_MIN;
+            }
+            m_nDelayMs = nDelayMs;
+        }
+
+        /** 获取帧播放持续时间，毫秒
+        */
+        int32_t GetDelayMs() const
+        {
+            return m_nDelayMs;
+        }
+
+    private:
+        int32_t m_nDelayMs = IMAGE_ANIMATION_DELAY_MS;  //图片帧的播放持续时间，单位为毫秒
+    };
+public:
+    /** 获取图片宽度
+    */
+    virtual uint32_t GetWidth() const = 0;
+
+    /** 获取图片高度
+    */
+    virtual uint32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
+    /** 获取图片的帧数
+    */
+    virtual int32_t GetFrameCount() const = 0;
+
+    /** 获取循环播放的次数
+    * @return 返回循环播放的次数，-1表示一直播放
+    */
+    virtual int32_t GetLoopCount() const = 0;
+
+    /** 查询是某帧的图片数据是否有准备完成（多线程解码时，帧数据在后台线程解码）
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    virtual bool IsFrameDataReady(uint32_t nFrameIndex) = 0;
+
+    /** 获取一个图片帧的播放持续时间，单位为毫秒
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    virtual int32_t GetFrameDelayMs(uint32_t nFrameIndex) = 0;
+
+    /** 读取一帧数据
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())    
+    * @param [in] szDestRectSize 目标区域的大小，用于矢量图的缩放
+    * @param [out] pAnimationFrame 返回该帧的图片位图数据
+    * @return 成功返回true，失败则返回false
+    */
+    virtual bool ReadFrameData(int32_t nFrameIndex, const UiSize& szDestRectSize, AnimationFrame* pAnimationFrame) = 0;
+};
+
+/** AnimationFrame 的智能指针
+*/
+typedef std::shared_ptr<IAnimationImage::AnimationFrame> AnimationFramePtr;
+
+/** 图片类型
+*/
+enum class UILIB_API ImageType
+{
+    kImageBitmap,       //位图类型，单帧，图片尺寸缩放时是有损缩放，显示效果会变差
+    kImageSvg,          //SVG矢量图，单帧，图片尺寸缩放时是矢量缩放，显示效果较好
+    kImageAnimation     //动画图片，多帧
+};
+
+/** 原图加载的宽度和高度缩放比例：无缩放的值
+*/
+#define IMAGE_SIZE_SCALE_NONE (1.0f) 
+
+/** 图片接口
+*/
+class UILIB_API IImage: public IImageAsyncDecode
+{
+public:
+    virtual ~IImage() = default;
+
+public:
+    /** 获取图片宽度
+    */
+    virtual int32_t GetWidth() const = 0;
+
+    /** 获取图片高度
+    */
+    virtual int32_t GetHeight() const = 0;
+
+    /** 原图加载的宽度和高度缩放比例(1.0f表示无缩放)
+    */
+    virtual float GetImageSizeScale() const = 0;
+
+    /** 获取图片的类型
+    */
+    virtual ImageType GetImageType() const = 0;
+
+    /** 获取图片数据
+    * @return 仅当ImageType==ImageType::kImageBitmap时返回图片数据
+    */
+    virtual std::shared_ptr<IBitmapImage> GetImageBitmap() const { return nullptr; }
+
+    /** 获取图片数据
+    * @return 仅当ImageType==ImageType::kImageSvg时返回图片数据
+    */
+    virtual std::shared_ptr<ISvgImage> GetImageSvg() const { return nullptr; }
+
+    /** 获取图片数据
+    * @return 仅当ImageType==ImageType::kImageAnimation时返回图片数据
+    */
+    virtual std::shared_ptr<IAnimationImage> GetImageAnimation() const { return nullptr; }
+};
+
+/** 图片解码的输入参数
+*/
+struct ImageDecodeParam
+{
+public:
+    //文件路径
+    FilePath m_imageFilePath;
+
+    //文件头数据(1KB数据，用于选择图片解码器)
+    std::vector<uint8_t> m_fileHeaderData;
+
+    //文件数据（如果为空表示未加载文件数据，需要根据文件路径去读取文件数据）
+    std::shared_ptr<std::vector<uint8_t>> m_pFileData;
+
+    //目标区域大小，用于优化加载性能
+    UiSize m_rcMaxDestRectSize;
+
+    //请求加载的缩放比例
+    float m_fImageSizeScale = 1.0f;
+
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode = false;
+
+    //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）
+    bool m_bAssertEnabled = true;
+
+public:
+    //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
+    bool m_bLoadAllFrames = true;
+
+    //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
+    bool m_bIconAsAnimation = false;
+
+    //ICO格式，加载图标的大小值
+    uint32_t m_nIconSize = 0;
+
+    //ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
+    uint32_t m_nIconFrameDelayMs = 1000;
+
+    //PAG格式，解码动画的帧率
+    float m_fPagMaxFrameRate = 30.0f;
+};
+
+/** 图片解码器接口
+*/
+class IImageDecoder
+{
+public:
+    virtual ~IImageDecoder() = default;
+        
+    /** 获取该解码器支持的格式名称
+    */
+    virtual DString GetFormatName() const = 0;
+
+    /** 检查该解码器是否支持给定的文件名
+    * @param [in] imageFilePath 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
+    */
+    virtual bool CanDecode(const DString& imageFilePath) const = 0;
+         
+    /** 检查该解码器是否支持给定的数据流
+    * @param [in] data 数据的起始地址
+    * @param [in] dataLen 数据的长度
+    */
+    virtual bool CanDecode(const uint8_t* data, size_t dataLen) const = 0;
+
+    /** 加载解码图片数据，返回解码后的图像数据
+    @param [in] decodeParam 图片解码的相关参数
+    */
+    virtual std::unique_ptr<IImage> LoadImageData(const ImageDecodeParam& decodeParam) = 0;
+};
+
+} //namespace ui
+
+#endif //UI_IMAGE_IMAGE_DECODER_H_

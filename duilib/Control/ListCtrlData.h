@@ -3,6 +3,7 @@
 
 #include "duilib/Box/VirtualListBox.h"
 #include "duilib/Control/ListCtrlDefs.h"
+#include <unordered_map>
 
 namespace ui
 {

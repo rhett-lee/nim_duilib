@@ -143,6 +143,10 @@ public:
     */
     bool SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pPixelBits, int32_t nPixelBitsSize);
 
+    /** 清除图标数据
+    */
+    void ClearIconData();
+
     /** 设置文字内容
     */
     void SetTitle(const DString& title);
@@ -150,6 +154,14 @@ public:
     /** 获取文字内容
     */
     DString GetTitle() const;
+
+    /** 设置文字内容ID（支持多语版）
+    */
+    void SetTitleId(const DString& titleId);
+
+    /** 获取文字内容（支持多语版）
+    */
+    DString GetTitleId() const;
 
 public:
     /** 设置绑定的TabBox子项索引号
@@ -385,6 +397,10 @@ private:
     /** 文本内容
     */
     UiString m_title;
+
+    /** 文本内容ID
+    */
+    UiString m_titleId;
 
     /** 图标资源字符串
     */

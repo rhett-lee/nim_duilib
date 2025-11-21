@@ -254,6 +254,9 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("title")) {
         SetTitle(strValue);
     }
+    else if (strName == _T("title_id")) {
+        SetTitleId(strValue);
+    }
     else if (strName == _T("icon")) {
         SetIcon(strValue);
     }
@@ -391,6 +394,11 @@ void TabCtrlItem::SetTitleClass(const DString& titleClass)
             AddItem(m_pLabel);
             if (!m_title.empty()) {
                 m_pLabel->SetText(m_title.c_str());
+                m_title.clear();
+            }
+            if (!m_titleId.empty()) {
+                m_pLabel->SetTextId(m_titleId.c_str());
+                m_titleId.clear();
             }
             AdjustSubItemIndex();
         }
@@ -654,7 +662,9 @@ bool TabCtrlItem::MouseEnter(const EventArgs& msg)
 bool TabCtrlItem::MouseLeave(const EventArgs& msg)
 {
     bool bRet = BaseClass::MouseLeave(msg);
-    if (!GetRect().ContainsPt(msg.ptMouse)) {
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
         if (IsAutoHideCloseButton() && (m_pCloseBtn != nullptr)) {
             m_pCloseBtn->SetFadeVisible(IsSelected());
         }
@@ -839,6 +849,14 @@ bool TabCtrlItem::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pP
     return bRet;
 }
 
+void TabCtrlItem::ClearIconData()
+{
+    IconControl* pIconControl = GetIconControl();
+    if (pIconControl != nullptr) {
+        pIconControl->ClearIconData();
+    }
+}
+
 void TabCtrlItem::CheckIconVisible()
 {
     IconControl* pIconControl = GetIconControl();
@@ -876,6 +894,31 @@ DString TabCtrlItem::GetTitle() const
         title = m_title.c_str();
     }
     return title;
+}
+
+void TabCtrlItem::SetTitleId(const DString& titleId)
+{
+    Label* pLabel = GetTextLabel();
+    if (pLabel != nullptr) {
+        pLabel->SetTextId(titleId);
+        m_titleId.clear();
+    }
+    else {
+        m_titleId = titleId;
+    }
+}
+
+DString TabCtrlItem::GetTitleId() const
+{
+    DString titleId;
+    Label* pLabel = GetTextLabel();
+    if (pLabel != nullptr) {
+        titleId = pLabel->GetTextId();
+    }
+    else {
+        titleId = m_titleId.c_str();
+    }
+    return titleId;
 }
 
 void TabCtrlItem::SetTabBoxItemIndex(size_t nTabBoxItemIndex)

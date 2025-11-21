@@ -8,6 +8,18 @@
 //渲染引擎
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 
+//图片解码接口
+#include "duilib/Image/ImageDecoder_ICO.h"
+#include "duilib/Image/ImageDecoder_Icon.h"
+#include "duilib/Image/ImageDecoder_GIF.h"
+#include "duilib/Image/ImageDecoder_PNG.h"
+#include "duilib/Image/ImageDecoder_PAG.h"
+#include "duilib/Image/ImageDecoder_SVG.h"
+#include "duilib/Image/ImageDecoder_WEBP.h"
+#include "duilib/Image/ImageDecoder_JPEG.h"
+#include "duilib/Image/ImageDecoder_LOTTIE.h"
+#include "duilib/Image/ImageDecoder_Common.h"
+
 #if defined (DUILIB_BUILD_FOR_WIN)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
     #include <commctrl.h>
@@ -18,6 +30,42 @@
 
 namespace ui 
 {
+/** 库内部的工作线程
+*/
+class UiWorkerThread : public ui::FrameworkThread
+{
+public:
+    struct Param
+    {
+        DString name;
+        int32_t nIdentifier;
+    };
+public:
+    UiWorkerThread(const DString& threadName, int32_t nThreadIdentifier):
+        FrameworkThread(threadName, nThreadIdentifier)
+    { }
+    virtual ~UiWorkerThread() override {}
+
+private:
+    /** 运行前初始化，在进入消息循环前调用
+    */
+    virtual void OnInit() override
+    {
+#if defined (DUILIB_BUILD_FOR_WIN)
+        HRESULT hr = ::CoInitialize(nullptr);
+        ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
+#endif
+    }
+
+    /** 退出时清理，在退出消息循环后调用
+    */
+    virtual void OnCleanup() override
+    {
+#if defined (DUILIB_BUILD_FOR_WIN)
+        ::CoUninitialize();
+#endif
+    }
+};
 
 GlobalManager::GlobalManager():
     m_platformData(nullptr)
@@ -91,6 +139,28 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     DpiManager& dpiManager = Dpi();
     dpiManager.InitDpiAwareness(dpiInitParam);
 
+    //初始化图片格式解码器
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_SVG>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PNG>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_GIF>());
+
+#ifdef DUILIB_IMAGE_SUPPORT_JPEG_TURBO
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_JPEG>());
+#endif
+
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_WEBP>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_ICO>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Icon>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_LOTTIE>());
+
+#ifdef DUILIB_IMAGE_SUPPORT_LIB_PAG
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PAG>());
+#endif
+
+    //通用解码器，放在最后
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Common>());
+    
+
     //初始化定时器
     m_timerManager.Initialize(m_platformData);
 
@@ -102,21 +172,34 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
         return false;
     }
 
+    //保存回调函数
+    if (callback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(callback);
+    }
+
+    //初始化线程池
+    StartInnerThread(ThreadIdentifier::kThreadWorker);
+    StartInnerThread(ThreadIdentifier::kThreadImage1);
+    StartInnerThread(ThreadIdentifier::kThreadImage2);
+
     //加载资源
     if (!ReloadResource(resParam, false)) {
         m_renderFactory.reset();
         return false;
-    }
-
-    //保存回调函数
-    if (callback != nullptr) {
-        m_pfnCreateControlCallbackList.push_back(callback);
     }
     return true;
 }
 
 void GlobalManager::Shutdown()
 {
+    //终止线程池
+    for (std::shared_ptr<FrameworkThread> pThread: m_threadList) {
+        if (pThread != nullptr) {
+            pThread->Stop();
+        }
+    }
+    m_threadList.clear();
+
     m_threadManager.Clear();
     m_timerManager.Clear();
     m_colorManager.Clear();    
@@ -150,6 +233,73 @@ void GlobalManager::Shutdown()
     ::CoUninitialize();
     ::OleUninitialize();
 #endif
+}
+
+bool GlobalManager::StopInnerThread(int32_t nThreadIdentifier)
+{
+    AssertUIThread();
+    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
+           (nThreadIdentifier == ui::kThreadNetwork) ||
+           (nThreadIdentifier == ui::kThreadImage1)  ||
+           (nThreadIdentifier == ui::kThreadImage2));
+    if ((nThreadIdentifier != ui::kThreadWorker)  &&
+        (nThreadIdentifier != ui::kThreadNetwork) &&
+        (nThreadIdentifier != ui::kThreadImage1)  &&
+        (nThreadIdentifier != ui::kThreadImage2)) {
+        return false;
+    }
+    bool bRet = false;
+    for (auto iter = m_threadList.begin(); iter != m_threadList.end(); ++iter) {
+        auto pThread = *iter;
+        if ((pThread != nullptr) && (nThreadIdentifier == pThread->GetThreadIdentifier())) {
+            m_threadList.erase(iter);
+            pThread->Stop();
+            bRet = true;
+            break;
+        }
+    }
+    return bRet;
+}
+
+bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
+{
+    AssertUIThread();
+    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
+           (nThreadIdentifier == ui::kThreadNetwork) ||
+           (nThreadIdentifier == ui::kThreadImage1)  ||
+           (nThreadIdentifier == ui::kThreadImage2));
+    if ((nThreadIdentifier != ui::kThreadWorker)  &&
+        (nThreadIdentifier != ui::kThreadNetwork) &&
+        (nThreadIdentifier != ui::kThreadImage1)  &&
+        (nThreadIdentifier != ui::kThreadImage2)) {
+        return false;
+    }
+    bool bRet = false;
+    for (auto iter = m_threadList.begin(); iter != m_threadList.end(); ++iter) {
+        auto pThread = *iter;
+        if ((pThread != nullptr) && (nThreadIdentifier == pThread->GetThreadIdentifier())) {
+            bRet = true;
+            break;
+        }
+    }
+    if (!bRet) {
+        //初始化线程池
+        std::vector<UiWorkerThread::Param> threadParams = { {_T("Worker"), ThreadIdentifier::kThreadWorker},
+                                                            {_T("Network"), ThreadIdentifier::kThreadNetwork},
+                                                            {_T("Image1"), ThreadIdentifier::kThreadImage1},
+                                                            {_T("Image2"), ThreadIdentifier::kThreadImage2} };
+        for (const UiWorkerThread::Param& param : threadParams) {
+            if (param.nIdentifier != nThreadIdentifier) {
+                continue;
+            }
+            auto pThread = std::make_shared<UiWorkerThread>(param.name, param.nIdentifier);
+            m_threadList.push_back(pThread);
+            pThread->Start();
+            bRet = true;
+            break;
+        }
+    }
+    return bRet;
 }
 
 const FilePath& GlobalManager::GetResourcePath() const
@@ -413,57 +563,94 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     return true;
 }
 
-FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
+void GlobalManager::CheckImagePath(FilePath& imageFullPath, bool& bLocalPath)
 {
-    if (resPath.IsEmpty() || !resPath.IsRelativePath()) {
+    imageFullPath.NormalizeFilePath();
+    if (m_zipManager.IsZipResExist(imageFullPath)) {
+        bLocalPath = false;
+    }
+    else if (imageFullPath.IsExistsFile()) {
+        bLocalPath = true;
+    }
+    else {
+        //如果文件不存在，返回空
+        imageFullPath.Clear();
+    }
+}
+
+FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
+                                             const FilePath& windowXmlPath,
+                                             const FilePath& resPath,
+                                             bool& bLocalPath,
+                                             bool& bResPath)
+{
+    bLocalPath = true;
+    bResPath = true;
+    ASSERT(!resPath.IsEmpty());
+    if (resPath.IsEmpty()) {
         return resPath;
     }
-
-    //首先在窗口的资源目录中查找（命中率高）
-    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
     FilePath imageFullPath;
-    DString resPathString = resPath.ToString();
-    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
-        //优先从公共目录匹配
-        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
-        }
-    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    const bool bOSWindows = true;
+#else
+    const bool bOSWindows = false;
+#endif
 
-    if (imageFullPath.IsEmpty()) {
-        //在窗口指定的目录中查找
-        imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+    bool bWindows = bOSWindows;//避免编译警告
+    if (bWindows && resPath.IsAbsolutePath()) {
+        //Windows平台的绝对路径: 外部文件
+        imageFullPath = resPath;
         imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
+        if (imageFullPath.IsExistsFile()) {
+            bLocalPath = true;
+            bResPath = false;
+        }
+        else {
             //如果文件不存在，返回空
             imageFullPath.Clear();
         }
     }
-
-    if (imageFullPath.IsEmpty()) {
-        //其次在公共目录中查找（命中率高）
-        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
+    else {
+        //相对路径：首先在窗口的资源目录中查找（命中率高）
+        const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);        
+        DString resPathString = resPath.ToString();
+        if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+            //优先从公共目录匹配
+            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty()) {
+            //在窗口指定的目录中查找
+            imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty()) {
+            //其次在公共目录中查找（命中率高）
+            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
+            //最后在XML文件所在目录中查找
+            const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
+            imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (!bWindows && imageFullPath.IsEmpty() && resPath.IsAbsolutePath()) {
+            //注意：非Windows的绝对路径与相对路径形式相同，都是以'/'开头，所以放在最后判断
+            imageFullPath = resPath;
+            imageFullPath.NormalizeFilePath();
+            if (imageFullPath.IsExistsFile()) {
+                bLocalPath = true;
+                bResPath = false;
+            }
+            else {
+                //如果文件不存在，返回空
+                imageFullPath.Clear();
+            }
         }
     }
-
-    if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
-        //最后在XML文件所在目录中查找
-        const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
-        imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
-        }
-    }
-    ASSERT(!imageFullPath.IsEmpty());
+    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
     return imageFullPath;
 }
 
@@ -525,6 +712,11 @@ FontManager& GlobalManager::Font()
 ImageManager& GlobalManager::Image()
 {
     return m_imageManager;
+}
+
+ImageDecoderFactory& GlobalManager::ImageDecoders()
+{
+    return m_imageDecoderFactory;
 }
 
 IconManager& GlobalManager::Icon()
@@ -604,31 +796,41 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
     return box;
 }
 
-void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
+bool GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
+    bool bRet = false;
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        if (winBuilder.ParseXmlFile(strXmlPath)) {
+        FilePath windowResPath;
+        if (pUserDefinedBox->GetWindow() != nullptr) {
+            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
+        } 
+        if (winBuilder.ParseXmlFile(strXmlPath, windowResPath)) {
             Control* pControl = winBuilder.CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
             Box* box = winBuilder.ToBox(pControl);
-            ASSERT_UNUSED_VARIABLE(box != nullptr);
+            bRet = box != nullptr;
         }
-    }    
+    }
+    return bRet;
 }
 
-void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
+bool GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox == nullptr) {
-        return;
+        return false;
     }
     ASSERT(pUserDefinedBox->GetWindow() != nullptr); //DPI感知功能要求，必须先关联窗口
     Box* box = nullptr;
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        if (winBuilder->ParseXmlFile(strXmlPath)) {
+        FilePath windowResPath;
+        if (pUserDefinedBox->GetWindow() != nullptr) {
+            windowResPath = pUserDefinedBox->GetWindow()->GetResourcePath();
+        }
+        if (winBuilder->ParseXmlFile(strXmlPath, windowResPath)) {
             Control* pControl = winBuilder->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
             box = winBuilder->ToBox(pControl);
         }        
@@ -645,7 +847,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         box = it->second->ToBox(pControl);
     }
     ASSERT(pUserDefinedBox == box);
-    ASSERT_UNUSED_VARIABLE(box != nullptr);
+    return (box != nullptr);
 }
 
 Control* GlobalManager::CreateControl(const DString& strControlName)

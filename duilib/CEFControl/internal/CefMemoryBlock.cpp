@@ -80,17 +80,26 @@ void CefMemoryBlock::Clear()
 
 void CefMemoryBlock::PaintData(IRender* pRender,const UiRect& rc)
 {
-    ASSERT(rc.Width() == GetWidth());
-    ASSERT(rc.Height() == GetHeight());
     std::lock_guard<std::mutex> threadGuard(m_memMutex);
     //通过直接写入数据的接口，性能最佳
-    UiRect dcPaint;
-    dcPaint.left = rc.left;
-    dcPaint.top = rc.top;
-    dcPaint.right = dcPaint.left + GetWidth();
-    dcPaint.bottom = dcPaint.top + GetHeight();
-    if (!dcPaint.IsEmpty() && IsValid()) {
-        bool bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), dcPaint);
+    if ((GetWidth() <= 0) || (GetHeight() <= 0) || rc.IsEmpty()) {
+        return;
+    }
+    UiRect rcMemory;
+    rcMemory.left = rc.left;
+    rcMemory.top = rc.top;
+    rcMemory.right = rcMemory.left + GetWidth();
+    rcMemory.bottom = rcMemory.top + GetHeight();
+    if (!rcMemory.IsEmpty() && IsValid()) {
+        bool bRet = false;
+        if ((rc.Width() == GetWidth()) && (rc.Height() == GetHeight())) {
+            //目标区域与图像数据的大小相同，直接写入
+            bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory);
+        }
+        else {
+            const UiRect& rcPaint = rc;//实际的脏区域（避免绘制越界，因为WritePixels函数会忽略Clip，导致越界绘制，覆盖其他控件）
+            bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory, rcPaint);
+        }        
         ASSERT_UNUSED_VARIABLE(bRet);
     }
 }

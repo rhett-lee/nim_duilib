@@ -12,6 +12,7 @@
 #include "include/core/SkFont.h"
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkTextBlob.h"
+#include "include/core/SkSpan.h"
 #include "SkiaHeaderEnd.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/utils/SkTextBox.cpp
@@ -182,9 +183,17 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
                     ++lineBreakSize;
                 }
             }
+            if (textEncoding == SkTextEncoding::kUTF16) {
+                //每个字符串占2个字节
+                lineBreakSize *= 2;
+            }
+            else if (textEncoding == SkTextEncoding::kUTF32) {
+                //每个字符串占4个字节
+                lineBreakSize *= 4;
+            }
             if (trailing) {
                 *trailing = lineBreakSize;
-            }
+            }            
             return ret;
         }
 
@@ -198,6 +207,14 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
                     ++lineBreakSize;
                 }
             }
+            if (textEncoding == SkTextEncoding::kUTF16) {
+                //每个字符串占2个字节
+                lineBreakSize *= 2;
+            }
+            else if (textEncoding == SkTextEncoding::kUTF32) {
+                //每个字符串占4个字节
+                lineBreakSize *= 4;
+            }
             if (trailing) {
                 *trailing = lineBreakSize;
             }
@@ -210,16 +227,20 @@ static size_t linebreak(const char text[], const char stop[], SkTextEncoding tex
 
 int SkTextLineBreaker::CountLines(const char text[], size_t len, SkTextEncoding textEncoding, 
                                   const SkFont& font, const SkPaint& paint, 
-                                  SkScalar width, SkTextBox::LineMode lineMode)
+                                  SkScalar width, SkTextBox::LineMode lineMode,
+                                  std::vector<size_t>* lineLenList)
 {
     const char* stop = text + len;
-    int         count = 0;
+    int count = 0;
 
-    if (width > 0)
-    {
+    if (width > 0) {
         do {
             count += 1;
-            text += linebreak(text, stop, textEncoding, font, paint, width, lineMode);
+            size_t lineLen = linebreak(text, stop, textEncoding, font, paint, width, lineMode);
+            if (lineLenList != nullptr) {
+                lineLenList->push_back(lineLen);
+            }
+            text += lineLen;
         } while (text < stop);
     }
     return count;
@@ -799,9 +820,11 @@ public:
                     SkScalar x, SkScalar y,
                     const SkFont& font, const SkPaint& /*paint*/,
                     bool /*hasMoreText*/, bool /*isLastLine*/) override {
-        const int count = font.countText(text, length, textEncoding);
+        const int count = (int)font.countText(text, length, textEncoding);
         SkTextBlobBuilder::RunBuffer runBuffer = fBuilder.allocRun(font, count, x, y);
-        font.textToGlyphs(text, length, textEncoding, runBuffer.glyphs, count);
+
+        SkSpan<SkGlyphID> glyphsSpan(runBuffer.glyphs, count);
+        font.textToGlyphs(text, length, textEncoding, glyphsSpan);
     }
 };
 
@@ -822,7 +845,8 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
 {
     glyphs.clear();
     glyphs.resize(byteLength, { 0, });
-    int glyphsCount = font.textToGlyphs(text, byteLength, textEncoding, glyphs.data(), (int)glyphs.size());
+    SkSpan<SkGlyphID> glyphsSpan(glyphs.data(), glyphs.size());
+    int glyphsCount = (int)font.textToGlyphs(text, byteLength, textEncoding, glyphsSpan);
     if (glyphsCount <= 0) {
         return false;
     }
@@ -960,7 +984,9 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 
     std::vector<SkScalar> glyphWidths;
     glyphWidths.resize(glyphs.size(), 0);
-    font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
+    font.getWidthsBounds(SkSpan<const SkGlyphID>(glyphs.data(), glyphs.size()),
+                         SkSpan<SkScalar>(glyphWidths.data(), glyphWidths.size()),
+                         SkSpan<SkRect>(), &paint);
 
     size_t breakByteLength = 0;//单位是字节
     SkScalar totalWidth = 0;
@@ -1029,7 +1055,9 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 
     glyphWidths.clear(); //保存每个glyphs字符的宽度
     glyphWidths.resize(glyphs.size(), 0);
-    font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
+    font.getWidthsBounds(SkSpan<const SkGlyphID>(glyphs.data(), glyphs.size()),
+                         SkSpan<SkScalar>(glyphWidths.data(), glyphWidths.size()),
+                         SkSpan<SkRect>(), &paint);
 
     if (bWantGlyphData && (width <= maxWidth)) {
         if (glyphCharList != nullptr) {

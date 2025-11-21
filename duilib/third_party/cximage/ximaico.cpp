@@ -93,13 +93,12 @@ bool CxImageICO::Decode(CxFile *hFile)
                 Create(icon_list[page].bWidth,icon_list[page].bHeight, c, CXIMAGE_FORMAT_ICO);    //image creation
 
                 // read the palette
-                RGBQUAD pal[256];
-                if (bih.biClrUsed)
-                    hFile->Read(pal,bih.biClrUsed*sizeof(RGBQUAD), 1);
-                else
-                    hFile->Read(pal,head.biClrUsed*sizeof(RGBQUAD), 1);
-
-                SetPalette(pal,head.biClrUsed);    //palette assign
+                RGBQUAD pal[256] = {0};
+                size_t palSize = bih.biClrUsed ? bih.biClrUsed : head.biClrUsed;
+                if ((palSize > 0) && (palSize < 256)) {
+                    hFile->Read(pal, palSize * sizeof(RGBQUAD), 1);
+                    SetPalette(pal, (uint32_t)palSize);    //palette assign
+                }
 
                 //read the icon
                 if (c<=24){

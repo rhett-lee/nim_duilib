@@ -94,7 +94,7 @@ public:
 
 /** Skia引擎需要传入Alpha类型
 */
-enum UILIB_API BitmapAlphaType: int
+enum class UILIB_API BitmapAlphaType: int
 {
     kUnknown_SkAlphaType,   //!< uninitialized
     kOpaque_SkAlphaType,    //!< pixel is opaque
@@ -110,13 +110,13 @@ public:
     /** 从数据初始化（ARGB格式）
     @param [in] nWidth 宽度
     @param [in] nHeight 高度
-    @param [in] flipHeight 是否翻转位图，如果为true，创建位图的时候，以左上角为圆点，图像方向是从上到下的；
-                           如果为false，则以左下角为圆点，图像方向是从下到上。
-    @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nWidth*4*nHeight
+    @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nHeight * nWidth * 4
+    @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
     @param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
     */
-    virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
-                      const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) = 0;
+    virtual bool Init(uint32_t nWidth, uint32_t nHeight,
+                      const void* pPixelBits, float fImageSizeScale = 1.0f,
+                      BitmapAlphaType alphaType = BitmapAlphaType::kPremul_SkAlphaType) = 0;
 
     /** 获取图片宽度
     */
@@ -463,16 +463,22 @@ enum class UILIB_API RopMode
 enum UILIB_API DrawStringFormat
 {
     TEXT_LEFT           = 0x0001,   //水平对齐方式：靠左
-    TEXT_CENTER         = 0x0002,   //水平对齐方式：居中
+    TEXT_HCENTER        = 0x0002,   //水平对齐方式：居中
     TEXT_RIGHT          = 0x0004,   //水平对齐方式：靠右
+    TEXT_HJUSTIFY       = 0x0008,   //水平对齐方式：两端对齐
+    TEXT_HALIGN_ALL     = TEXT_LEFT | TEXT_HCENTER | TEXT_RIGHT | TEXT_HJUSTIFY,
 
     TEXT_TOP            = 0x0010,   //垂直对齐方式：靠上
     TEXT_VCENTER        = 0x0020,   //垂直对齐方式：居中
     TEXT_BOTTOM         = 0x0040,   //垂直对齐方式：靠下
+    TEXT_VJUSTIFY       = 0x0080,   //垂直对齐方式：两端对齐
+    TEXT_VALIGN_ALL     = TEXT_TOP | TEXT_VCENTER | TEXT_BOTTOM | TEXT_VJUSTIFY,
 
     TEXT_SINGLELINE     = 0x0100,   //单行文本
     TEXT_NOCLIP         = 0x0200,   //绘制的时候，不设置剪辑区域
     TEXT_WORD_WRAP      = 0x0400,   //自动换行（仅在IRender::DrawRichText接口支持此属性，其他文字绘制函数不支持该属性）
+
+    TEXT_VERTICAL       = 0x0800,   //纵向绘制文本，文本绘制方向为从上到下，从右到左
 
     TEXT_PATH_ELLIPSIS  = 0x4000,   //如果绘制区域不足，按显示文件路径的方式，在中间加"..."省略部分文字
     TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
@@ -692,6 +698,38 @@ enum class RenderBackendType
     kNativeGL_BackendType = 1
 };
 
+/** 计算指定文本字符串的宽度和高度使用的参数
+*/
+struct MeasureStringParam
+{
+    int32_t rectSize = DUI_NOSET_VALUE; //横向文本，表示当前区域的限制宽度；纵向文本，表示当前区域的限制高度
+
+    IFont* pFont = nullptr;             //文字的字体数据接口, 不可为nullptr
+    uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义
+    float fSpacingMul = 1.0f;           //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
+    float fSpacingAdd = 0;              //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+    float fWordSpacing = 0;             //设置两个相邻的字符之间的间隔（像素）
+
+    bool bUseFontHeight = true;         //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
+    bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
+};
+
+struct DrawStringParam
+{
+    UiRect textRect;        //文字绘制的矩形区域
+    UiColor dwTextColor;    //文字颜色值
+    uint8_t uFade = 255;    //文字的透明度[0 - 255]
+
+    IFont* pFont = nullptr;             //文字的字体
+    uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义    
+    float fSpacingMul = 1.0f;           //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
+    float fSpacingAdd = 0;              //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+    float fWordSpacing = 0;             //设置两个相邻的字符之间的间隔（像素）
+
+    bool bUseFontHeight = true;         //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
+    bool bRotate90ForAscii = true;      //纵向绘制时，对于字母数字等，旋转90度显示
+};
+
 /** 渲染接口
 */
 class IRenderFactory;
@@ -821,25 +859,21 @@ public:
     * @param [in] rcSource 绘制的源图片区域
     * @param [in] rcSourceCorners 绘制源图片的边角信息，用于九宫格绘制
     * @param [in] uFade 透明度（0 - 255）
-    * @param [in] xtiled 横向平铺
-    * @param [in] ytiled 纵向平铺
-    * @param [in] fullxtiled 如果为true，横向平铺绘制时，确保是完整绘制图片，该参数仅当xtiled为true时有效
-    * @param [in] fullytiled 如果为true，纵向平铺绘制时，确保是完整绘制图片，该参数仅当ytiled为true时有效
-    * @param [in] nTiledMargin 平铺绘制时，图片的横向、纵向间隔，该参数仅当xtiled为true或者ytiled为true时有效
+    * @param [in] pTiledDrawParam 平铺相关参数，不平铺绘制时可传nullptr
     * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
     */
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
-                           uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0,
+                           uint8_t uFade = 255,
+                           const TiledDrawParam* pTiledDrawParam = nullptr,
                            bool bWindowShadowMode = false) = 0;
     /** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
     */
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
-                           uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0,
+                           uint8_t uFade = 255,
+                           const TiledDrawParam* pTiledDrawParam = nullptr,
                            bool bWindowShadowMode = false) = 0;
 
     /** 绘制图片
@@ -1054,29 +1088,16 @@ public:
 
     /** 计算指定文本字符串的宽度和高度
     * @param [in] strText 文字内容
-    * @param [in] pFont 文字的字体数据接口
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] width 当前区域的限制宽度
+    * @param [in] measureParam 评估相关的参数
     * @return 返回文本字符串的宽度和高度，以矩形表示结果
     */
-    virtual UiRect MeasureString(const DString& strText, 
-                                 IFont* pFont, 
-                                 uint32_t uFormat,
-                                 int32_t width = DUI_NOSET_VALUE) = 0;
+    virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) = 0;
+
     /** 绘制文字
-    * @param [in] textRect 文字绘制的矩形区域
     * @param [in] strText 文字内容
-    * @param [in] dwTextColor 文字颜色值
-    * @param [in] pFont 文字的字体数据接口
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] drawParam 文字绘制相关的参数
     */
-    virtual void DrawString(const UiRect& textRect,
-                            const DString& strText,
-                            UiColor dwTextColor,
-                            IFont* pFont, 
-                            uint32_t uFormat,
-                            uint8_t uFade = 255) = 0;
+    virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) = 0;
 
     /** 计算格式文本的宽度和高度
     * @param [in] textRect 绘制文本的矩形区域
@@ -1193,7 +1214,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
-    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
+    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                        const UiRect& textRect,
                                        const UiSize& szNewScrollOffset,
                                        const std::vector<int32_t>& rowXOffset,
@@ -1279,16 +1300,16 @@ public:
 
     /** 将数据写入到位图中去（数据是复制一份到目标数据）
     * @param [in] srcPixels 源数据的缓冲区起始地址
-    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内
+    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen == (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
     */
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
 
     /** 将数据写入到位图中去(数据是复制一份到目标数据，仅复制绘制部分)
     * @param [in] srcPixels 源数据的缓冲区起始地址
     * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
-    * @param [in] rc 在Render中的矩形范围
-    * @param [in] rcPaint 绘制的部分矩形范围，将绘制的位图数据写入到此矩形内
+    * @param [in] rc 在Render中的矩形范围，rc.Width()代表图像数据的宽度，rc.Height()代表图像数据的高度
+    * @param [in] rcPaint 绘制的部分矩形范围，代表脏区域，仅绘制rcPaint与rc交集的部分区域
     */
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
 

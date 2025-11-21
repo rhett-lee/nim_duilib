@@ -139,40 +139,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     pHeaderItem->SetColumnResizeable(columnInfo.bResizeable);
 
     if (columnInfo.nTextFormat >= 0) {
-        uint32_t textStyle = columnInfo.nTextFormat;
-        //水平对齐
-        if (columnInfo.nTextFormat & TEXT_CENTER) {
-            //文本：居中对齐
-            textStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
-            textStyle |= TEXT_CENTER;            
-        }
-        else if (columnInfo.nTextFormat & TEXT_RIGHT) {
-            //文本：右对齐
-            textStyle &= ~(TEXT_LEFT | TEXT_CENTER);
-            textStyle |= TEXT_RIGHT;
-        }
-        else {
-            //文本：左对齐
-            textStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
-            textStyle |= TEXT_LEFT;
-        }
-
-        //垂直对齐
-        if (columnInfo.nTextFormat & TEXT_VCENTER) {
-            //文本：居中对齐
-            textStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
-            textStyle |= TEXT_VCENTER;
-        }
-        else if (columnInfo.nTextFormat & TEXT_BOTTOM) {
-            //文本：底部对齐
-            textStyle &= ~(TEXT_TOP | TEXT_VCENTER);
-            textStyle |= TEXT_BOTTOM;
-        }
-        else {
-            //文本：顶部对齐
-            textStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
-            textStyle |= TEXT_TOP;
-        }
+        uint32_t textStyle = Label::GetValidTextStyle((uint32_t)columnInfo.nTextFormat);
         pHeaderItem->SetTextStyle(textStyle, true);
     }
 

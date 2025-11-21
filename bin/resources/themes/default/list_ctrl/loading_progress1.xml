@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window>
+    <VBox height="auto" width="auto" mousechild="false">
+		<Control name="loading_animation" height="auto" width="auto" bkimage="file='public/animation/loading_progress1.json' valign='center' halign='center' width='85%' play_count='1' auto_play='false'" margin="0,4,0,0"/>
+    </VBox>
+</Window>

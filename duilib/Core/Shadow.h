@@ -181,6 +181,12 @@ public:
     */
     bool IsEnableShadowSnap() const;
 
+    /** 检查是否点击在阴影上，如果点击在阴影上，处理相关业务逻辑（鼠标穿透等功能）
+    * @param [in] eventType 事件类型
+    * @param [in] pt 鼠标所在位置
+    */
+    void CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt);
+
 private:
     /** 将阴影附加到窗口
      */

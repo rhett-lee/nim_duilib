@@ -118,12 +118,20 @@
                         <CheckBox class="checkbox_1" name="checkbox_show_icon" text="在行首显示" margin="4,0,0,0" valign="center"/>
                     </HBox>
                 </GroupVBox>
-                <VBox>
-                    <GroupVBox text="Icon类型">
+                <HBox>
+                    <GroupVBox text="其他测试">
+                        <Button class="btn_global_color_gray" name="loading_progress_btn1" text="Loading功能测试（进度条1）" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_progress_btn2" text="Loading功能测试（进度条2）" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_btn1" text="Loading功能测试1" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_btn2" text="Loading功能测试2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                   </GroupVBox>
+                    <GroupVBox text="其他测试">
+                        <Button class="btn_global_color_gray" name="loading_btn3" text="Loading功能测试3" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_btn4" text="Loading功能测试4" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_btn5" text="Loading功能测试5" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global_color_gray" name="loading_btn6" text="Loading功能测试6" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                     </GroupVBox>
-                    <GroupVBox text="List类型">
-                    </GroupVBox>
-                </VBox>
+                </HBox>
             </HBox>
             <!-- 横向分割条，用于调整上下区域大小 -->
             <Split bkcolor="splitline_level1" height="2"/>
@@ -157,7 +165,7 @@
                           list_view_item_image_class="list_ctrl_list_view_item_image"
                           list_view_item_label_class="list_ctrl_list_view_item_label"
                           enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"
-                          loading_image="file='loading.svg' width='100'"/>
+                          loading="file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"/>
             </VBox>
         </VBox>
     </VBox>

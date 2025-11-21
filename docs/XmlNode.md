@@ -6,6 +6,8 @@
 | Box | "Box"| [duilib/Core/Box.h](../duilib/Core/Box.h) | |
 | VBox | "VBox"| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | |
 | HBox | "HBox"| [duilib/Box/HBox.h](../duilib/Box/HBox.h) | |
+| VFlowBox | "VFlowBox"| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | |
+| HFlowBox | "HFlowBox"| [duilib/Box/HBox.h](../duilib/Box/HBox.h) | |
 | BoxDragable | "BoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
 | HBoxDragable | "HBoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
 | VBoxDragable | "VBoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
@@ -15,6 +17,8 @@
 | ScrollBox | "ScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
 | VScrollBox | "VScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
 | HScrollBox | "HScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
+| VFlowScrollBox | "VFlowScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
+| HFlowScrollBox | "HFlowScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
 | VTileScrollBox | "VTileScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
 | HTileScrollBox | "HTileScrollBox"| [duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | |
 | ListBoxItem | "ListBoxItem"| [duilib/Box/ListBoxItem.h](../duilib/Box/ListBoxItem.h) | |
@@ -69,6 +73,7 @@
 | TreeNode | "TreeNode"| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | |
 | TreeView | "TreeView"| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | |
 | TreeNode | "TreeNode"| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | |
+| DirectoryTree | "DirectoryTree"| [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | |
 | ListCtrl | "ListCtrl"| [duilib/Control/ListCtrl.h](../duilib/Control/ListCtrl.h) | |
 | PropertyGrid | "PropertyGrid"| [duilib/Control/PropertyGrid.h](../duilib/Control/PropertyGrid.h) | |
 | ColorControl | "ColorControl"| [duilib/Control/ColorControl.h](../duilib/Control/ColorControl.h) | |
@@ -78,6 +83,7 @@
 | ColorPickerStatardGray | "ColorPickerStatardGray"| [duilib/Control/ColorPickerStatardGray.h](../duilib/Control/ColorPickerStatardGray.h) | |
 | ColorPickerCustom | "ColorPickerCustom"| [duilib/Control/ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h) | |
 | CefControl | "CefControl"| [duilib/CEFControl/CefControl.h](../duilib/CEFControl/CefControl.h) | |
+| WebView2Control | "WebView2Control"| [duilib/WebView2/WebView2Control.h](../duilib/WebView2/WebView2Control.h) | |
 
 ## XML文件中各窗口相关控件的节点名称
 | 类名称 | XML节点名称 |关联头文件| 备注 |

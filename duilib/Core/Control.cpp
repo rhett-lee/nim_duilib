@@ -13,6 +13,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
     #include "ControlDropTargetImpl_Windows.h"
@@ -34,7 +35,7 @@ Control::Control(Window* pWindow) :
     m_controlState(kControlStateNormal),
     m_nAlpha(255),
     m_nHotAlpha(0),
-    m_isBoxShadowPainted(false),
+    m_bBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
     m_nPaintOrder(0),
@@ -44,11 +45,16 @@ Control::Control(Window* pWindow) :
 
 Control::~Control()
 {
+    //从延迟绘制列表中删除
+    GlobalManager::Instance().Image().RemoveDelayPaintData(this);
+
     //清理动画相关资源，避免定时器再产生回调，引发错误
-    if (m_animationManager != nullptr) {
-        m_animationManager->Clear(this);
-    }    
-    m_animationManager.reset();
+    if (m_pAnimationData != nullptr) {
+        if (m_pAnimationData->m_animationManager != nullptr) {
+            m_pAnimationData->m_animationManager->Clear(this);
+        }
+        m_pAnimationData->m_animationManager.reset();
+    }
 
     Window* pWindow = GetWindow();
     if (pWindow) {
@@ -66,13 +72,13 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("halign")) {
         if (strValue == _T("left")) {
-            SetHorAlignType(kHorAlignLeft);
+            SetHorAlignType(HorAlignType::kAlignLeft);
         }
         else if (strValue == _T("center")) {
-            SetHorAlignType(kHorAlignCenter);
+            SetHorAlignType(HorAlignType::kAlignCenter);
         }
         else if (strValue == _T("right")) {
-            SetHorAlignType(kHorAlignRight);
+            SetHorAlignType(HorAlignType::kAlignRight);
         }
         else {
             ASSERT(0);
@@ -80,16 +86,38 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("valign")) {
         if (strValue == _T("top")) {
-            SetVerAlignType(kVerAlignTop);
+            SetVerAlignType(VerAlignType::kAlignTop);
         }
         else if (strValue == _T("center")) {
-            SetVerAlignType(kVerAlignCenter);
+            SetVerAlignType(VerAlignType::kAlignCenter);
         }
         else if (strValue == _T("bottom")) {
-            SetVerAlignType(kVerAlignBottom);
+            SetVerAlignType(VerAlignType::kAlignBottom);
         }
         else {
             ASSERT(0);
+        }
+    }
+    else if (strName == _T("align")) {
+        //水平方向对齐方式
+        if (strValue.find(_T("left")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kAlignLeft);
+        }
+        else if (strValue.find(_T("hcenter")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kAlignCenter);
+        }
+        else if (strValue.find(_T("right")) != DString::npos) {
+            SetHorAlignType(HorAlignType::kAlignRight);
+        }
+        //垂直方向对齐方式
+        if (strValue.find(_T("top")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kAlignTop);
+        }
+        else if (strValue.find(_T("vcenter")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kAlignCenter);
+        }
+        else if (strValue.find(_T("bottom")) != DString::npos) {
+            SetVerAlignType(VerAlignType::kAlignBottom);
         }
     }
     else if (strName == _T("margin")) {
@@ -116,6 +144,10 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("bkcolor2_direction")) {
         //第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
         SetBkColor2Direction(strValue);
+    }
+    else if (strName == _T("fore_color")) {
+        //前景色
+        SetForeColor(strValue);
     }
     else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
         //边线宽度
@@ -385,7 +417,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetKeepFloatPos(strValue == _T("true"));
     }
     else if (strName == _T("cache")) {
-        SetUseCache(strValue == _T("true"));
+        //忽略该选项：对应功能已经删除
     }
     else if ((strName == _T("no_focus")) || (strName == _T("nofocus"))) {
         SetNoFocus();
@@ -444,11 +476,8 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("tab_stop")) || (strName == _T("tabstop"))) {
         SetTabStop(strValue == _T("true"));
     }
-    else if ((strName == _T("loading_image")) || (strName == _T("loadingimage"))) {
-        SetLoadingImage(strValue);
-    }
-    else if ((strName == _T("loading_bkcolor")) || (strName == _T("loadingbkcolor"))) {
-        SetLoadingBkColor(strValue);
+    else if (strName == _T("loading")) {
+        SetLoadingAttribute(strValue);
     }
     else if (strName == _T("show_focus_rect")) {
         SetShowFocusRect(strValue == _T("true"));
@@ -460,13 +489,14 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         uint8_t nPaintOrder = TruncateToUInt8(StringUtil::StringToInt32(strValue));
         SetPaintOrder(nPaintOrder);
     }
-    else if (strName == _T("start_gif_play")) {
-        int32_t nPlayCount = StringUtil::StringToInt32(strValue);
-        StartGifPlay(kGifFrameCurrent, nPlayCount);
+    else if ((strName == _T("start_image_animation")) || (strName == _T("start_gif_play"))) {
+        ParseStartImageAnimation(strValue);
     }
-    else if (strName == _T("stop_gif_play")) {
-        GifFrameType nStopFrame = (GifFrameType)StringUtil::StringToInt32(strValue);
-        StopGifPlay(false, nStopFrame);
+    else if ((strName == _T("stop_image_animation")) || (strName == _T("stop_gif_play"))) {
+        ParseStopImageAnimation(strValue);
+    }
+    else if (strName == _T("set_image_animation_frame")) {
+        ParseSetImageAnimationFrame(strValue);
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
@@ -480,9 +510,100 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         //拖放文件的扩展名列表
         SetDropFileTypes(strValue);
     }
+    else if (strName == _T("row_span")) {
+        //设置单元格合并属性（占几行），仅在GridLayout布局中生效
+        SetRowSpan(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("col_span")) {
+        //设置单元格合并属性（占几列），仅在GridLayout布局中生效
+        SetColumnSpan(StringUtil::StringToInt32(strValue));
+    }
     else {
         ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
     }
+}
+
+void Control::ParseStartImageAnimation(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent;
+    int32_t nPlayCount = 0;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        int32_t nFrame = StringUtil::StringToInt32(paramList[1]);
+        if (nFrame == 0) {
+            nStartFrame = AnimationImagePos::kFrameFirst;
+        }
+        else if (nFrame == 2) {
+            nStartFrame = AnimationImagePos::kFrameLast;
+        }
+        else {
+            ASSERT(nFrame == 1);
+        }
+    }
+    if (paramList.size() > 2) {
+        nPlayCount = StringUtil::StringToInt32(paramList[2]);
+    }
+    StartImageAnimation(imageName, nStartFrame, nPlayCount);
+}
+
+void Control::ParseStopImageAnimation(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent;
+    bool bTriggerEvent = true;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        int32_t nFrame = StringUtil::StringToInt32(paramList[1]);
+        if (nFrame == 0) {
+            nStartFrame = AnimationImagePos::kFrameFirst;
+        }
+        else if (nFrame == 2) {
+            nStartFrame = AnimationImagePos::kFrameLast;
+        }
+        else {
+            ASSERT(nFrame == 1);
+        }
+    }
+    if (paramList.size() > 2) {
+        bTriggerEvent = (paramList[2] == _T("true")) || (paramList[2] == _T("1"));
+    }
+    StopImageAnimation(imageName, nStartFrame, bTriggerEvent);
+}
+
+void Control::ParseSetImageAnimationFrame(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    int32_t nFrameIndex = -1;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        nFrameIndex = StringUtil::StringToInt32(paramList[1]);        
+    }
+    SetImageAnimationFrame(imageName, nFrameIndex);
 }
 
 void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -540,8 +661,8 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         SetToolTipWidth(nToolTipWidth, false);
     }
 
-    UiPadding rcBkImagePadding = GetBkImagePadding();
-    SetBkImagePadding(rcBkImagePadding, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
+    UiMargin rcBkImageMargin = GetBkImageMargin();
+    SetBkImageMargin(rcBkImageMargin, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
 
     UiFixedInt fixedWidth = GetFixedWidth();
     if (fixedWidth.IsInt32()) {
@@ -644,28 +765,31 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
 
 AnimationManager& Control::GetAnimationManager()
 {
-    if (m_animationManager == nullptr) {
-        m_animationManager = std::make_unique<AnimationManager>(),
-        m_animationManager->Init(this);
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
     }
-    return *m_animationManager;
+    if (m_pAnimationData->m_animationManager == nullptr) {
+        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>();
+        m_pAnimationData->m_animationManager->Init(this);
+    }
+    return *m_pAnimationData->m_animationManager;
 }
 
 DString Control::GetBkColor() const
 {
-    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor.c_str() : DString();
+    return (m_pColorData != nullptr) ? m_pColorData->m_strBkColor.c_str() : DString();
 }
 
 void Control::SetBkColor(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_strBkColor == strColor) {
+    if (m_pColorData->m_strBkColor == strColor) {
         return;
     }
-    m_pBkColorData->m_strBkColor = strColor;
+    m_pColorData->m_strBkColor = strColor;
     Invalidate();
 }
 
@@ -682,13 +806,13 @@ void Control::SetBkColor(const UiColor& color)
 void Control::SetBkColor2(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_strBkColor2 == strColor) {
+    if (m_pColorData->m_strBkColor2 == strColor) {
         return;
     }
-    m_pBkColorData->m_strBkColor2 = strColor;
+    m_pColorData->m_strBkColor2 = strColor;
     Invalidate();
 }
 
@@ -704,17 +828,17 @@ void Control::SetBkColor2(const UiColor& color)
 
 DString Control::GetBkColor2() const
 {
-    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor2.c_str() : DString();
+    return (m_pColorData != nullptr) ? m_pColorData->m_strBkColor2.c_str() : DString();
 }
 
 void Control::SetBkColor2Direction(const DString& direction)
 {
     int8_t nDirection = GetColor2Direction(direction);
-    if (m_pBkColorData == nullptr) {
-        m_pBkColorData = std::make_unique<TBkColorData>();
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pBkColorData->m_nBkColor2Direction != nDirection) {
-        m_pBkColorData->m_nBkColor2Direction = nDirection;
+    if (m_pColorData->m_nBkColor2Direction != nDirection) {
+        m_pColorData->m_nBkColor2Direction = nDirection;
         Invalidate();
     }
 }
@@ -722,14 +846,14 @@ void Control::SetBkColor2Direction(const DString& direction)
 DString Control::GetBkColor2Direction() const
 {
     DString strBkColor2Direction = _T("1");
-    if (m_pBkColorData != nullptr) {
-        if (m_pBkColorData->m_nBkColor2Direction == 2) {
+    if (m_pColorData != nullptr) {
+        if (m_pColorData->m_nBkColor2Direction == 2) {
             strBkColor2Direction = _T("2");
         }
-        else if (m_pBkColorData->m_nBkColor2Direction == 3) {
+        else if (m_pColorData->m_nBkColor2Direction == 3) {
             strBkColor2Direction = _T("3");
         }
-        else if (m_pBkColorData->m_nBkColor2Direction == 4) {
+        else if (m_pColorData->m_nBkColor2Direction == 4) {
             strBkColor2Direction = _T("4");
         }
     }
@@ -750,6 +874,34 @@ int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
         nColor2Direction = 4;
     }
     return nColor2Direction;
+}
+
+DString Control::GetForeColor() const
+{
+    return (m_pColorData != nullptr) ? m_pColorData->m_strForeColor.c_str() : DString();
+}
+
+void Control::SetForeColor(const DString& strColor)
+{
+    ASSERT(strColor.empty() || HasUiColor(strColor));
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
+    }
+    if (m_pColorData->m_strForeColor == strColor) {
+        return;
+    }
+    m_pColorData->m_strForeColor = strColor;
+    Invalidate();
+}
+
+void Control::SetForeColor(const UiColor& color)
+{
+    if (color.IsEmpty()) {
+        SetForeColor(_T(""));
+    }
+    else {
+        SetForeColor(GetColorString(color));
+    }
 }
 
 DString Control::GetStateColor(ControlStateType stateType) const
@@ -795,17 +947,22 @@ std::string Control::GetUTF8BkImage() const
 
 void Control::SetBkImage(const DString& strImage)
 {
-    CheckStopGifPlay();
     if (!strImage.empty()) {
         if (m_pBkImage == nullptr) {
             m_pBkImage = std::make_unique<Image>();
             m_pBkImage->SetControl(this);
         }
     }
+    bool bChanged = false;
     if (m_pBkImage != nullptr) {
-        m_pBkImage->SetImageString(strImage, Dpi());
+        if (m_pBkImage->GetImageString() != strImage) {
+            bChanged = true;
+            m_pBkImage->SetImageString(strImage, Dpi());
+        }
     }
-    RelayoutOrRedraw();
+    if (bChanged) {
+        RelayoutOrRedraw();
+    }
 }
 
 void Control::SetUTF8BkImage(const std::string& strImage)
@@ -814,42 +971,63 @@ void Control::SetUTF8BkImage(const std::string& strImage)
     SetBkImage(strOut);
 }
 
-void Control::SetLoadingImage(const DString& strImage) 
+bool Control::SetLoadingAttribute(const DString& loadingAttribute)
 {
-    if (!strImage.empty()) {
-        if (m_pLoading == nullptr) {
-            m_pLoading = std::make_unique<ControlLoading>(this);
+    bool bRet = false;
+    if (!loadingAttribute.empty()) {
+        if (m_pOtherData == nullptr) {
+            m_pOtherData = std::make_unique<TOtherData>();
+        }
+        if (m_pOtherData->m_pLoading == nullptr) {
+            m_pOtherData->m_pLoading = std::make_unique<ControlLoading>(this);
+        }
+        else {
+            if (m_pOtherData->m_pLoading->IsLoading()) {
+                m_pOtherData->m_pLoading->StopLoading();
+            }
+        }
+        bRet = m_pOtherData->m_pLoading->SetLoadingAttribute(loadingAttribute);
+        if (!bRet) {
+            m_pOtherData->m_pLoading.reset();
         }
     }
-    if (m_pLoading != nullptr) {
-        if (m_pLoading->SetLoadingImage(strImage)) {
-            Invalidate();
-        }
+    else {
+        bRet = true;
+        if (m_pOtherData != nullptr) {
+            m_pOtherData->m_pLoading.reset();
+        }       
     }
+    return bRet;
 }
 
-void Control::SetLoadingBkColor(const DString& strColor) 
+bool Control::StartLoading(int32_t nIntervalMs, int32_t nMaxCount)
 {
-    if (m_pLoading != nullptr) {
-        if (m_pLoading->SetLoadingBkColor(strColor)) {
-            Invalidate();
-        }
-    }    
-}
-
-void Control::StartLoading(int32_t fStartAngle)
-{
-    if ((m_pLoading != nullptr) && m_pLoading->StartLoading(fStartAngle)) {
+    bool bRet = false;
+    ASSERT((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr));
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        bRet = m_pOtherData->m_pLoading->StartLoading(nIntervalMs, nMaxCount);
+    }
+    if (bRet) {
         SetEnabled(false);
     }
+    return bRet;
 }
 
-void Control::StopLoading(GifFrameType frame)
+void Control::StopLoading()
 {
-    if (m_pLoading != nullptr) {
-        m_pLoading->StopLoading(frame);
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->StopLoading();
     }
     SetEnabled(true);
+}
+
+bool Control::IsLoading() const
+{
+    bool bRet = false;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        bRet = m_pOtherData->m_pLoading->IsLoading();
+    }
+    return bRet;
 }
 
 bool Control::HasStateImages(void) const
@@ -904,8 +1082,8 @@ UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType sta
     }
     UiSize imageSize;
     if (pImage != nullptr) {
-        LoadImageData(*pImage);
-        std::shared_ptr<ImageInfo> imageInfo = pImage->GetImageCache();
+        LoadImageInfo(*pImage);
+        std::shared_ptr<ImageInfo> imageInfo = pImage->GetImageInfo();
         if (imageInfo != nullptr) {
             imageSize.cx = imageInfo->GetWidth();
             imageSize.cy = imageInfo->GetHeight();
@@ -948,7 +1126,7 @@ void Control::SetForeStateImage(ControlStateType stateType, const DString& strIm
     Invalidate();
 }
 
-bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScale)
+bool Control::AdjustStateImagesMarginLeft(int32_t leftOffset, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         Dpi().ScaleInt(leftOffset);
@@ -961,18 +1139,18 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
         m_pImageMap->GetAllImages(allImages);
     }
     bool bSetOk = false;
-    UiPadding rcPadding;
+    UiMargin rcMargin;
     for (Image* pImage : allImages) {
         if (pImage == nullptr) {
             continue;
         }
-        rcPadding = pImage->GetImagePadding(Dpi());
-        rcPadding.left += leftOffset;
-        if (rcPadding.left < 0) {
-            rcPadding.left = 0;
+        rcMargin = pImage->GetImageMargin(Dpi());
+        rcMargin.left += leftOffset;
+        if (rcMargin.left < 0) {
+            rcMargin.left = 0;
         }
-        if (!pImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
-            pImage->SetImagePadding(rcPadding, false, Dpi());
+        if (!pImage->GetImageMargin(Dpi()).Equals(rcMargin)) {
+            pImage->SetImageMargin(rcMargin, false, Dpi());
             bSetOk = true;
         }
     }
@@ -982,24 +1160,24 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
     return bSetOk;
 }
 
-UiPadding Control::GetBkImagePadding() const
+UiMargin Control::GetBkImageMargin() const
 {
-    UiPadding rcPadding;
+    UiMargin rcMargin;
     if (m_pBkImage != nullptr) {
-        rcPadding = m_pBkImage->GetImagePadding(Dpi());
+        rcMargin = m_pBkImage->GetImageMargin(Dpi());
     }
-    return rcPadding;
+    return rcMargin;
 }
 
-bool Control::SetBkImagePadding(UiPadding rcPadding, bool bNeedDpiScale)
+bool Control::SetBkImageMargin(UiMargin rcMargin, bool bNeedDpiScale)
 {
     bool bSetOk = false;
     if (m_pBkImage != nullptr) {
         if (bNeedDpiScale) {
-            Dpi().ScalePadding(rcPadding);
+            Dpi().ScaleMargin(rcMargin);
         }
-        if (!m_pBkImage->GetImagePadding(Dpi()).Equals(rcPadding)) {
-            m_pBkImage->SetImagePadding(rcPadding, false, Dpi());
+        if (!m_pBkImage->GetImageMargin(Dpi()).Equals(rcMargin)) {
+            m_pBkImage->SetImageMargin(rcMargin, false, Dpi());
             bSetOk = true;
             Invalidate();
         }        
@@ -1038,8 +1216,8 @@ UiSize Control::GetBkImageSize() const
 {
     UiSize imageSize;
     if (m_pBkImage != nullptr) {
-        LoadImageData(*m_pBkImage);
-        std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageCache();
+        LoadImageInfo(*m_pBkImage);
+        std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageInfo();
         if (imageInfo != nullptr) {
             imageSize.cx = imageInfo->GetWidth();
             imageSize.cy = imageInfo->GetHeight();
@@ -1288,9 +1466,9 @@ bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
 {
     fRoundWidth = 0.0f;
     fRoundHeight = 0.0f;
-    if (HasBorderRound()) {
-        fRoundWidth = Dpi().GetScaleFloat(m_borderRound.cx);
-        fRoundHeight = Dpi().GetScaleFloat(m_borderRound.cy);
+    if (HasBorderRound() && (m_pBorderData != nullptr)) {
+        fRoundWidth = Dpi().GetScaleFloat(m_pBorderData->m_borderRound.cx);
+        fRoundHeight = Dpi().GetScaleFloat(m_pBorderData->m_borderRound.cy);
         return true;
     }
     return false;
@@ -1298,7 +1476,7 @@ bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
 
 bool Control::HasBorderRound() const
 {
-    return (m_borderRound.cx > 0) && (m_borderRound.cy > 0);
+    return (m_pBorderData != nullptr) && (m_pBorderData->m_borderRound.cx > 0) && (m_pBorderData->m_borderRound.cy > 0);
 }
 
 void Control::SetBorderRound(UiSize borderRound)
@@ -1322,11 +1500,16 @@ void Control::SetBorderRound(UiSize borderRound)
             return;
         }
     }
-    if ((m_borderRound.cx != borderRound.cx) || (m_borderRound.cy != borderRound.cy)) {
-        m_borderRound.cx = ui::TruncateToInt16(borderRound.cx);
-        m_borderRound.cy = ui::TruncateToInt16(borderRound.cy);
+
+    if (m_pBorderData == nullptr) {
+        m_pBorderData = std::make_unique<TBorderData>();
+    }
+    UiSize16& borderRoundData = m_pBorderData->m_borderRound;
+    if ((borderRoundData.cx != borderRound.cx) || (borderRoundData.cy != borderRound.cy)) {
+        borderRoundData.cx = ui::TruncateToInt16(borderRound.cx);
+        borderRoundData.cy = ui::TruncateToInt16(borderRound.cy);
         Invalidate();
-    }    
+    }
 }
 
 void Control::SetBoxShadow(const DString& strShadow)
@@ -1334,10 +1517,13 @@ void Control::SetBoxShadow(const DString& strShadow)
     if (strShadow.empty()) {
         return;
     }
-    if (m_pBoxShadow == nullptr) {
-        m_pBoxShadow = std::make_unique<BoxShadow>(this);
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    m_pBoxShadow->SetBoxShadowString(strShadow);
+    if (m_pOtherData->m_pBoxShadow == nullptr) {
+        m_pOtherData->m_pBoxShadow = std::make_unique<BoxShadow>(this);
+    }
+    m_pOtherData->m_pBoxShadow->SetBoxShadowString(strShadow);
 }
 
 CursorType Control::GetCursorType() const
@@ -1353,10 +1539,10 @@ void Control::SetCursorType(CursorType cursorType)
 DString Control::GetToolTipText() const
 {
     DString strText;
-    if (m_pTooltip != nullptr) {
-        strText = m_pTooltip->m_sToolTipText.c_str();
-        if (strText.empty() && !m_pTooltip->m_sToolTipTextId.empty()) {
-            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pTooltip->m_sToolTipTextId.c_str());
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
+        strText = m_pOtherData->m_pTooltip->m_sToolTipText.c_str();
+        if (strText.empty() && !m_pOtherData->m_pTooltip->m_sToolTipTextId.empty()) {
+            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
         }
     }
     return strText;
@@ -1370,16 +1556,16 @@ std::string Control::GetUTF8ToolTipText() const
 
 void Control::SetToolTipText(const DString& strText)
 {
-    if (strText.empty() && (m_pTooltip == nullptr)) {
-        return;
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
     }
-    if (strText != m_pTooltip->m_sToolTipText) {
+    if (strText != m_pOtherData->m_pTooltip->m_sToolTipText) {
         DString strTemp(strText);
         StringUtil::ReplaceAll(_T("<n>"), _T("\r\n"), strTemp);
-        m_pTooltip->m_sToolTipText = strTemp;
+        m_pOtherData->m_pTooltip->m_sToolTipText = strTemp;
         Invalidate();
 
         if (GetWindow() != nullptr) {
@@ -1400,15 +1586,15 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
 
 void Control::SetToolTipTextId(const DString& strTextId)
 {
-    if (strTextId.empty() && (m_pTooltip == nullptr)) {
-        return;
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
     }
 
-    if (m_pTooltip->m_sToolTipTextId != strTextId) {
-        m_pTooltip->m_sToolTipTextId = strTextId;
+    if (m_pOtherData->m_pTooltip->m_sToolTipTextId != strTextId) {
+        m_pOtherData->m_pTooltip->m_sToolTipTextId = strTextId;
         Invalidate();
 
         if (GetWindow() != nullptr) {
@@ -1435,17 +1621,20 @@ void Control::SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nWidth);
     }
-    if (m_pTooltip == nullptr) {
-        m_pTooltip = std::make_unique<TTooltipData>();
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
     }
-    m_pTooltip->m_nTooltipWidth = nWidth;
+    if (m_pOtherData->m_pTooltip == nullptr) {
+        m_pOtherData->m_pTooltip = std::make_unique<TTooltipData>();
+    }
+    m_pOtherData->m_pTooltip->m_nTooltipWidth = nWidth;
 }
 
 int32_t Control::GetToolTipWidth(void) const
 {
     int32_t nTooltipWidth = 0;
-    if (m_pTooltip != nullptr) {
-        nTooltipWidth = m_pTooltip->m_nTooltipWidth;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
+        nTooltipWidth = m_pOtherData->m_pTooltip->m_nTooltipWidth;
     }
     return nTooltipWidth;
 }
@@ -1501,17 +1690,17 @@ void Control::OnSetVisible(bool bChanged)
     BaseClass::OnSetVisible(bChanged);
     const bool bVisible = IsVisible();
     if (!bVisible) {
+        // 确保本控件不再是焦点控件
         EnsureNoFocus();
-    }
 
+        // 暂停本控件的动画播放
+        PauseImageAnimation();
+    }
     if (bChanged) {
+        // 让父容器重现布局
         ArrangeAncestor();
-    }
 
-    if (!bVisible) {
-        CheckStopGifPlay();
-    }
-    if (bChanged) {
+        // 最后，触发可见状态变化事件，通知应用层
         WPARAM wParam = bVisible ? 1 : 0;
         SendEvent(kEventVisibleChange, wParam);
     }
@@ -1529,7 +1718,7 @@ void Control::OnSetEnabled(bool bChanged)
     }
 
     if (!IsEnabled()) {
-        CheckStopGifPlay();
+        PauseImageAnimation();
     }
     if (bChanged) {
         Invalidate();
@@ -1576,12 +1765,22 @@ bool Control::IsShowFocusRect() const
 
 void Control::SetFocusRectColor(const DString& focusRectColor)
 {
-    m_focusRectColor = focusRectColor;
+    if (m_pColorData == nullptr) {
+        m_pColorData = std::make_unique<TColorData>();
+    }
+    if (m_pColorData->m_focusRectColor == focusRectColor) {
+        return;
+    }
+    m_pColorData->m_focusRectColor = focusRectColor;
+    Invalidate();
 }
 
 DString Control::GetFocusRectColor() const
 {
-    return m_focusRectColor.c_str();
+    if (m_pColorData != nullptr) {
+        return m_pColorData->m_focusRectColor.c_str();
+    }
+    return DString();
 }
 
 void Control::Activate(const EventArgs* /*pMsg*/)
@@ -1639,35 +1838,47 @@ void Control::SetPos(UiRect rc)
     SetArranged(false);
     bool isPosChanged = !GetRect().Equals(rc);
 
-    UiRect invalidateRc = GetRect();
-    if (invalidateRc.IsEmpty()) {
-        invalidateRc = rc;
+    UiRect rcOldRect = GetRect();
+    if (rcOldRect.IsEmpty()) {
+        rcOldRect = rc;//避免为空
     }
+    // 如果存在box-shadow，需要包含它扩展绘制的区域
+    rcOldRect = GetBoxShadowExpandedRect(rcOldRect);
 
     SetRect(rc);
     if (GetWindow() == nullptr) {
         return;
     }
-    invalidateRc.Union(GetRect());
+    UiRect rcNewRect = GetRect();
+    rcNewRect = GetBoxShadowExpandedRect(rcNewRect);
+
+    UiRect rcInvalidateRect = rcOldRect;
+    rcInvalidateRect.Union(rcNewRect);// 旧矩形范围和新矩形范围的合集，均需要标记为脏区域
+
     bool needInvalidate = true;
     UiRect rcTemp;
     UiRect rcParent;
     UiPoint offset = GetScrollOffsetInScrollBox();
-    invalidateRc.Offset(-offset.x, -offset.y);
+    rcInvalidateRect.Offset(-offset.x, -offset.y);// 转换为窗口内的客户区坐标
     Control* pParent = GetParent();
     while (pParent != nullptr) {
-        rcTemp = invalidateRc;
+        rcTemp = rcInvalidateRect;
         rcParent = pParent->GetPos();
+        rcParent = pParent->GetBoxShadowExpandedRect(rcParent);
         UiPoint offsetParent = pParent->GetScrollOffsetInScrollBox();
-        rcParent.Offset(-offsetParent.x, -offsetParent.y);
-        if (!UiRect::Intersect(invalidateRc, rcTemp, rcParent)) {
+        rcParent.Offset(-offsetParent.x, -offsetParent.y);// 转换为窗口内的客户区坐标
+        if (!UiRect::Intersect(rcInvalidateRect, rcTemp, rcParent)) {
             needInvalidate = false;
             break;
         }
         pParent = pParent->GetParent();
     }
     if (needInvalidate && (GetWindow() != nullptr)) {
-        GetWindow()->Invalidate(invalidateRc);
+        GetWindow()->Invalidate(rcInvalidateRect);
+    }
+
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->UpdateLoadingPos();
     }
 
     if (isPosChanged) {
@@ -1688,7 +1899,17 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
         return GetEstimateSize();
     }
 
-    UiSize szControlSize = EstimateControlSize(szAvailable);
+    //设置估算图片宽高的类型，用于优化性能（有些属性设置后，图片可以延迟加载）
+    EstimateImageType estImageType = EstimateImageType::kBoth;
+    if (!fixedSize.cx.IsAuto() || !fixedSize.cy.IsAuto()) {
+        if (fixedSize.cx.IsAuto()) {
+            estImageType = EstimateImageType::kWidthOnly;
+        }
+        else {
+            estImageType = EstimateImageType::kHeightOnly;
+        }
+    }
+    UiSize szControlSize = EstimateControlSize(szAvailable, estImageType);
 
     //选取图片和文本区域高度和宽度的最大值
     if (fixedSize.cx.IsAuto()) {
@@ -1704,10 +1925,10 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
     return estSize;
 }
 
-UiSize Control::EstimateControlSize(UiSize szAvailable)
+UiSize Control::EstimateControlSize(UiSize szAvailable, EstimateImageType estImageType)
 {
     //估算图片区域大小
-    UiSize imageSize = EstimateImage(szAvailable);
+    UiSize imageSize = EstimateImage(szAvailable, estImageType);
 
     //估算文本区域大小, 函数计算时，已经包含了内边距
     UiSize textSize = EstimateText(szAvailable);
@@ -1723,26 +1944,59 @@ UiSize Control::EstimateText(UiSize /*szAvailable*/)
     return UiSize(0, 0);
 }
 
-UiSize Control::EstimateImage(UiSize szAvailable)
+UiSize Control::EstimateImage(UiSize szAvailable, EstimateImageType estImageType)
 {
     UiSize imageSize;
-    std::shared_ptr<ImageInfo> imageCache;
     Image* image = GetEstimateImage();
+    uint32_t nImageInfoWidth = 0;
+    uint32_t nImageInfoHeight = 0;
     if (image != nullptr) {
+        bool bNeedLoadImage = true;//是否需要加载图片
+        ImageLoadParam loadParam = image->GetImageLoadParam();        
+        loadParam.GetImageFixedSize(nImageInfoWidth, nImageInfoHeight);
+        if (estImageType == EstimateImageType::kWidthOnly) {
+            if (nImageInfoWidth > 0) {
+                bNeedLoadImage = false;
+            }
+        }
+        else if (estImageType == EstimateImageType::kHeightOnly) {
+            if (nImageInfoHeight > 0) {
+                bNeedLoadImage = false;
+            }
+        }
+        else {
+            if ((nImageInfoWidth > 0) && (nImageInfoHeight > 0)) {
+                bNeedLoadImage = false;
+            }
+        }
         //加载图片：需要获取图片的宽和高
-        LoadImageData(*image);
-        imageCache = image->GetImageCache();
+        if (bNeedLoadImage) {
+            LoadImageInfo(*image);
+            std::shared_ptr<ImageInfo> imageInfo = image->GetImageInfo();
+            if (imageInfo != nullptr) {
+                nImageInfoWidth = imageInfo->GetWidth();
+                nImageInfoHeight = imageInfo->GetHeight();
+            }
+        }
+        else {
+            if (nImageInfoWidth == 0) {
+                nImageInfoWidth = nImageInfoHeight;//冗余设置，实际上不需要宽度
+            }
+            if (nImageInfoHeight == 0) {
+                nImageInfoHeight = nImageInfoWidth;//冗余设置，实际上不需要高度
+            }
+        }
     }
     //控件自身的内边距
     const UiPadding rcControlPadding = GetControlPadding();
 
-    if ((imageCache != nullptr) && (image != nullptr)) {
+    if ((nImageInfoWidth > 0) && (nImageInfoHeight > 0) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
         bool hasDestAttr = false;
-        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(imageCache->GetWidth(), imageCache->GetHeight(), Dpi());
+        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(nImageInfoWidth, nImageInfoHeight, Dpi());
         if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-            //使用配置中指定的目标区域
+            //使用配置中指定的目标区域（已按配置做好DPI自适应）：优先作为图片大小的依据
             rcDest = rcImageDestRect;
             if (rcDest.left < 0) {
                 rcDest.left = 0;
@@ -1752,38 +2006,44 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             }
             hasDestAttr = true;
         }
-        UiRect rcDestCorners;
         UiRect rcSource = imageAttribute.GetImageSourceRect();
-        UiRect rcSourceCorners = imageAttribute.GetImageCorner();
-        ImageAttribute::ScaleImageRect(imageCache->GetWidth(), imageCache->GetHeight(),
-                                       Dpi(), imageCache->IsBitmapSizeDpiScaled(),
-                                       rcDestCorners,
-                                       rcSource,
-                                       rcSourceCorners);
+        if (imageAttribute.m_bImageDpiScaleEnabled) {
+            //该图片支持DPI自适应
+            Dpi().ScaleRect(rcSource);
+        }        
+        if (rcSource.right > (int32_t)nImageInfoWidth) {
+            rcSource.right = (int32_t)nImageInfoWidth;
+        }
+        if (rcSource.bottom > (int32_t)nImageInfoHeight) {
+            rcSource.bottom = (int32_t)nImageInfoHeight;
+        }
+
         if (rcDest.Width() > 0) {
-            imageSize.cx = rcDest.Width();
+            //以0为基点，right为边界
+            imageSize.cx = rcDest.right;
         }
         else if (rcSource.Width() > 0) {
             imageSize.cx = rcSource.Width();
         }
         else {
-            imageSize.cx = imageCache->GetWidth();
+            imageSize.cx = nImageInfoWidth;
         }
 
         if (rcDest.Height() > 0) {
-            imageSize.cy = rcDest.Height();
+            //以0为基点，bottom为边界
+            imageSize.cy = rcDest.bottom;
         }
         else if (rcSource.Height() > 0) {
             imageSize.cy = rcSource.Height();
         }
         else {
-            imageSize.cy = imageCache->GetHeight();
+            imageSize.cy = nImageInfoHeight;
         }
         if (!hasDestAttr) {
-            //如果没有rcDest属性，则需要增加图片的内边距（图片自身的内边距属性）
-            UiPadding rcImagePadding = imageAttribute.GetImagePadding(Dpi());
-            imageSize.cx += (rcImagePadding.left + rcImagePadding.right);
-            imageSize.cy += (rcImagePadding.top + rcImagePadding.bottom);
+            //如果没有rcDest属性，则需要增加图片的外边距（图片自身的外边距属性）
+            UiMargin rcImageMargin = imageAttribute.GetImageMargin(Dpi());
+            imageSize.cx += (rcImageMargin.left + rcImageMargin.right);
+            imageSize.cy += (rcImageMargin.top + rcImageMargin.bottom);
         }
         if (imageAttribute.m_bAdaptiveDestRect) {
             //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
@@ -1803,7 +2063,6 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             }
         }
     }
-    imageCache.reset();
 
     //图片大小，需要附加控件的内边距
     if (imageSize.cx > 0) {
@@ -2366,10 +2625,14 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
     return false;
 }
 
-bool Control::PaintImage(IRender* pRender, Image* pImage,
-                        const DString& strModify, int32_t nFade, 
-                        IMatrix* pMatrix, UiRect* pDestRect, UiRect* pPaintedRect) const
+bool Control::PaintImage(IRender* pRender,
+                         Image* pImage,
+                         const DString& strModify, int32_t nFade, 
+                         IMatrix* pMatrix,
+                         const UiRect* pDestRect,
+                         UiRect* pPaintedRect) const
 {
+    PerformanceStat statPerformance(_T("Control::PaintImage"));
     //注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
     //                   也有一个类传入了：_T(" corner='%d,%d,%d,%d'")。
     if (pImage == nullptr) {
@@ -2382,6 +2645,14 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     }
 
     Image& duiImage = *pImage;
+    if (duiImage.HasImageError()) {
+        //图片出现解码错误，不绘制
+        if (!duiImage.IsDecodeEventFired()) {
+            //重用原图时，此事件需要补充
+            FireImageEvent(pImage, pImage->GetImagePath(), false, false, true);
+        }        
+        return false;
+    }
 
     if (duiImage.GetImagePath().empty()) {
         return false;
@@ -2392,18 +2663,30 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         return false;
     }
 
-    LoadImageData(duiImage);
-    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
-    ASSERT(imageInfo != nullptr);
+    LoadImageInfo(duiImage, true);
+    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
+        ASSERT(imageInfo != nullptr);
+    }
     if (imageInfo == nullptr) {
+        //图片加载失败了
+        duiImage.SetImageError(true);
+        return false;
+    }
+    ASSERT((imageInfo->GetWidth() > 0) && (imageInfo->GetHeight() > 0));
+    if ((imageInfo->GetWidth() <= 0) || (imageInfo->GetHeight() <= 0)) {
+        duiImage.SetImageError(true);
         return false;
     }
 
-    IBitmap* pBitmap = duiImage.GetCurrentBitmap();
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
-        return false;
-    }
+//#ifdef _DEBUG
+//    if (this->GetBkImagePtr() == &duiImage) {
+//        DString log = StringUtil::Printf(_T("BkImage: Width=%d, Height=%d, LoadScale=%d, fScale=%.02f"),
+//            imageInfo->GetWidth(), imageInfo->GetHeight(),
+//            imageInfo->GetLoadDpiScale(), imageInfo->GetImageSizeScale());
+//        const_cast<Control*>(this)->SetToolTipText(log);
+//    }
+//#endif
 
     ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
     if (!strModify.empty()) {
@@ -2415,9 +2698,9 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         //使用外部传入的矩形区域绘制图片
         rcDest = *pDestRect;
     }
-    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(pBitmap->GetWidth(), pBitmap->GetHeight(), Dpi());
+    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(imageInfo->GetWidth(), imageInfo->GetHeight(), Dpi());
     if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
-        //使用配置中指定的目标区域
+        //使用配置中指定的目标区域(已按配置做过DPI自适应)
         rcDest = rcImageDestRect;
         rcDest.Offset(GetRect().left, GetRect().top);
     }
@@ -2425,19 +2708,25 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     UiRect rcDestCorners;
     UiRect rcSource = newImageAttribute.GetImageSourceRect();
     UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
-    ImageAttribute::ScaleImageRect(pBitmap->GetWidth(), pBitmap->GetHeight(), 
-                                   Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
-                                   rcDestCorners,
-                                   rcSource,
-                                   rcSourceCorners);
+    imageInfo->ScaleImageSourceRect(Dpi(), rcDestCorners, rcSource, rcSourceCorners);
     
-    //运用rcPadding、hAlign、vAlign 三个图片属性
-    rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
+    //运用rcMargin、hAlign、vAlign 三个图片属性
+    rcDest.Deflate(newImageAttribute.GetImageMargin(Dpi()));
     rcDest.Validate();
     rcSource.Validate();
     const int32_t nImageWidth = rcSource.Width();
     const int32_t nImageHeight = rcSource.Height();
-    if (newImageAttribute.m_bAdaptiveDestRect) {
+
+    bool bAdaptiveDestRect = newImageAttribute.m_bAdaptiveDestRect; //自动适应目标区域（等比例缩放后，按指定对齐方式绘制）
+    if (!bAdaptiveDestRect && (!newImageAttribute.m_hAlign.empty() || !newImageAttribute.m_vAlign.empty())) {
+        if (!newImageAttribute.m_hAlign.empty() && (nImageWidth > rcDest.Width())) {
+            bAdaptiveDestRect = true;
+        }
+        else if (!newImageAttribute.m_vAlign.empty() && (nImageHeight > rcDest.Height())) {
+            bAdaptiveDestRect = true;
+        }
+    }
+    if (bAdaptiveDestRect) {
         //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
         rcDest = ImageAttribute::CalculateAdaptiveRect(nImageWidth, nImageHeight,
                                                        rcDest,
@@ -2486,192 +2775,152 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         }
     }
 
+    //计算得到的rcDest备份，多帧情况下，会对rcDest修改
+    const UiRect rcImageDect = rcDest;
     if (pPaintedRect) {
         //返回绘制的目标区域
-        *pPaintedRect = rcDest;
+        *pPaintedRect = rcImageDect;
     }
+    //设置动画图片的区域
+    duiImage.SetDrawDestRect(rcImageDect);
 
-    //图片透明度属性
-    uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
-    if (pMatrix != nullptr) {
-        //矩阵绘制: 对不支持的属性，增加断言，避免出错
-        ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
-        ASSERT(!newImageAttribute.m_bTiledX);
-        ASSERT(!newImageAttribute.m_bTiledY);
-        pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
+    //获取需要绘制的位图图片    
+    std::shared_ptr<IBitmap> pBitmap;
+
+    //图片数据是否正在延迟解码中（多线程解码图片数据）
+    bool bDataPending = false;
+
+    //是否遇到图片解码错误
+    bool bDecodeError = false;
+
+    if (duiImage.IsMultiFrameImage()) {
+        //多帧图片
+        AnimationFramePtr pAnimationFrame = duiImage.GetCurrentFrame(rcImageDect, rcSource, rcSourceCorners);
+        ASSERT(pAnimationFrame != nullptr);
+        if (pAnimationFrame == nullptr) {
+            return false;
+        }
+        if (pAnimationFrame->m_pBitmap != nullptr) {
+            pBitmap = pAnimationFrame->m_pBitmap;
+
+            //运用部分参数(rcDest需要等比例缩小)
+            const int32_t nDestWidth = rcDest.Width();
+            const int32_t nDestHeight = rcDest.Height();
+            if (pAnimationFrame->m_nOffsetX != 0) {
+                float fImageScaleX = static_cast<float>(pAnimationFrame->m_pBitmap->GetWidth()) / imageInfo->GetWidth();
+                float fRectScaleX = static_cast<float>(nDestWidth) / imageInfo->GetWidth();
+                rcDest.left += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, fRectScaleX);
+                rcDest.right = rcDest.left + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestWidth, fImageScaleX);
+            }
+            if (pAnimationFrame->m_nOffsetY != 0) {
+                float fImageScaleY = static_cast<float>(pAnimationFrame->m_pBitmap->GetHeight()) / imageInfo->GetHeight();
+                float fRectScaleY = static_cast<float>(nDestHeight) / imageInfo->GetHeight();
+                rcDest.top += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, fRectScaleY);
+                rcDest.bottom = rcDest.top + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestHeight, fImageScaleY);
+            }
+        }
+        else if (pAnimationFrame->m_bDataPending) {
+            //数据尚未准备好, 可忽略
+            ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+            if (duiImage.GetImageAttribute().m_bAsyncLoad) {
+                bDataPending = true;
+            }
+            else {
+                ASSERT(!"pAnimationFrame->m_bDataPending is invalid!");
+            }
+        }
+        else if (pAnimationFrame->m_bDataError) {
+            //遇到图片解码错误
+            bDecodeError = true;
+        }
+        else {
+            //其他未知情况，流程有错误
+            ASSERT(!"pAnimationFrame->m_pBitmap is invalid!");
+        }
     }
     else {
-        pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
-                           iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
-                           newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
-                           newImageAttribute.m_nTiledMargin, newImageAttribute.m_bWindowShadowMode);
+        //单帧图片
+        bool bImageStretch = true;//绘制图片时会不会被拉伸
+        if (newImageAttribute.IsTiledDraw()) {
+            //当设置平铺时，无需拉伸图片
+            bImageStretch = false;
+        }
+        else if (newImageAttribute.m_bWindowShadowMode) {
+            //阴影模式：不拉伸，避免四个角变形
+            bImageStretch = false;
+        }        
+        pBitmap = duiImage.GetCurrentBitmap(bImageStretch, rcImageDect, rcSource, rcSourceCorners, &bDecodeError);
+        if (pBitmap == nullptr) {
+            if (!bDecodeError && duiImage.GetImageAttribute().m_bAsyncLoad) {
+                bDataPending = true;
+            }
+        }
+    }
+
+    bool bPainted = false;
+    if (pBitmap != nullptr) {
+        bPainted = true;
+        //校验rcSource(多帧的情况下，实际图片与总宽高可能不符，需要进一步校验)
+        if ((rcSource.left < 0) || (rcSource.left >= (int32_t)pBitmap->GetWidth())) {
+            rcSource.left = 0;
+        }
+        if ((rcSource.top < 0) || (rcSource.top >= (int32_t)pBitmap->GetHeight())) {
+            rcSource.top = 0;
+        }
+        if ((rcSource.right < 0) || (rcSource.right > (int32_t)pBitmap->GetWidth())) {
+            rcSource.right = (int32_t)pBitmap->GetWidth();
+        }
+        if ((rcSource.bottom < 0) || (rcSource.bottom > (int32_t)pBitmap->GetHeight())) {
+            rcSource.bottom = (int32_t)pBitmap->GetHeight();
+        }
+
+        //图片透明度属性
+        uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
+        if (pMatrix != nullptr) {
+            //矩阵绘制: 对不支持的属性，增加断言，避免出错
+            ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
+            ASSERT(!newImageAttribute.IsTiledDraw());
+            pRender->DrawImageRect(m_rcPaint, pBitmap.get(), rcDest, rcSource, iFade, pMatrix);
+        }
+        else {
+            TiledDrawParam tiledDrawParam;
+            if (newImageAttribute.m_pTiledDrawParam != nullptr) {
+                tiledDrawParam = newImageAttribute.GetTiledDrawParam(Dpi());
+            }
+            pRender->DrawImage(m_rcPaint, pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
+                               iFade,
+                               newImageAttribute.IsTiledDraw() ? &tiledDrawParam : nullptr,
+                               newImageAttribute.m_bWindowShadowMode);
+        }
+
+        //绘制成功后，从延迟绘制列表中删除
+        GlobalManager::Instance().Image().RemoveDelayPaintData(pImage);
+    }
+    else if (bDataPending) {
+        //当前为异步加载图片, 添加到延迟绘制列表        
+        Control* pControl = const_cast<Control*>(this);
+        DString imageKey = imageInfo->GetImageKey();
+        GlobalManager::Instance().Image().AddDelayPaintData(pControl, pImage, imageKey);
+    }
+    else if (bDecodeError) {
+        //遇到图片解码错误
+        duiImage.SetImageError(true);
     }
     //按需启动动画
-    duiImage.CheckStartGifPlay(rcDest);
-    return true;
+    if (!duiImage.HasImageError()) {
+        if (duiImage.IsMultiFrameImage()) {
+            duiImage.CheckStartImageAnimation();
+        }
+    }    
+    return bPainted;
 }
 
-IRender* Control::GetRender()
+std::unique_ptr<AutoClip> Control::CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const
 {
-    if (m_render == nullptr) {
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            ASSERT(GetWindow() != nullptr);
-            IRenderDpiPtr spRenderDpi;
-            if (GetWindow() != nullptr) {
-                spRenderDpi = GetWindow()->GetRenderDpi();
-            }
-            m_render.reset(pRenderFactory->CreateRender(spRenderDpi));
-        }
+    if (!bClip) {
+        return nullptr;
     }
-    return m_render.get();
-}
-
-void Control::ClearRender()
-{
-    if (m_render) {
-        m_render.reset();
-    }
-}
-
-void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
-{
-    ASSERT(pRender != nullptr);
-    if (pRender == nullptr) {
-        return;
-    }
-    if (m_nAlpha == 0) {
-        //控件完全透明，不绘制
-        return;
-    }
-
-    //绘制剪辑区域
-    UiRect rcUnion;
-    if (!UiRect::Intersect(rcUnion, rcPaint, GetRect())) {
-        return;
-    }
-
-    //是否为圆角矩形区域裁剪
-    bool bRoundClip = ShouldBeRoundRectFill();
-
-    //当前控件是否设置了透明度（透明度值不是255）
-    const bool isAlpha = IsAlpha();
-
-    //是否使用绘制缓存(如果存在box-shadow，就不能使用绘制缓存，因为box-shadow绘制的时候是超出GetRect来绘制外部阴影的)
-    const bool isUseCache = IsUseCache() && !HasBoxShadow();
-
-    if (isAlpha || isUseCache) {
-        //绘制区域（局部绘制）
-        UiRect rcUnionRect = rcUnion;
-        if (isUseCache) {
-            //如果使用绘制缓存，绘制的时候，必须绘制整个区域，因为局部绘制每次请求绘制的区域是不同的，缓存中保存的必须是完整的缓存图
-            rcUnionRect = GetRect();
-        }
-        UiSize size{GetRect().Width(), GetRect().Height() };
-        IRender* pCacheRender = GetRender();
-        ASSERT(pCacheRender != nullptr);
-        if (pCacheRender == nullptr) {
-            return;
-        }
-        bool isSizeChanged = (size.cx != pCacheRender->GetWidth()) || (size.cy != pCacheRender->GetHeight());
-        if (!pCacheRender->Resize(size.cx, size.cy)) {
-            //存在错误，绘制失败
-            ASSERT(!"pCacheRender->Resize failed!");
-            return;
-        }
-        if (isSizeChanged) {
-            //Render画布大小发生变化，需要设置缓存脏标记
-            SetCacheDirty(true);
-        }            
-        if (IsCacheDirty()) {
-            //重新绘制，首先清楚原内容
-            pCacheRender->Clear(UiColor());
-
-            UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
-            UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);
-
-            bool hasBoxShadowPainted = HasBoxShadow();
-            if (hasBoxShadowPainted) {
-                //先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
-                m_isBoxShadowPainted = false;
-                PaintShadow(pCacheRender);
-                m_isBoxShadowPainted = true;
-            }
-
-            UiRect rcClip = { 0, 0, size.cx,size.cy};
-            rcClip.Offset((GetRect().left + m_renderOffset.x), (GetRect().top + m_renderOffset.y));
-            AutoClip alphaClip(pCacheRender, rcClip, IsClip());
-            std::unique_ptr<AutoClip> roundAlphaClip = CreateRoundClip(pCacheRender, rcClip, bRoundClip);
-
-            //首先绘制自己
-            Paint(pCacheRender, rcUnionRect);
-            if (hasBoxShadowPainted) {
-                //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
-                m_isBoxShadowPainted = false;
-            }
-            if (isAlpha) {
-                //设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
-                PaintChild(pCacheRender, rcUnionRect);
-                if (IsBordersOnTop()) {
-                    PaintBorder(pCacheRender);     //绘制边框
-                }
-                PaintLoading(pCacheRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
-            }
-            pCacheRender->SetWindowOrg(ptOldOrg);
-            SetCacheDirty(false);
-        }
-
-        UiRect rcClip = GetRect();
-        AutoClip clip(pRender, rcClip, IsClip());
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
-        pRender->AlphaBlend(rcUnionRect.left,
-                            rcUnionRect.top,
-                            rcUnionRect.Width(),
-                            rcUnionRect.Height(),
-                            pCacheRender,
-                            rcUnionRect.left - GetRect().left,
-                            rcUnionRect.top - GetRect().top,
-                            rcUnionRect.Width(),
-                            rcUnionRect.Height(),
-                            static_cast<uint8_t>(m_nAlpha));
-        if (!isAlpha) {
-            //没有设置透明度，后绘制子控件（直接绘制到pRender上面）
-            PaintChild(pRender, rcUnionRect);
-            if (IsBordersOnTop()) {
-                PaintBorder(pRender);     //绘制边框
-            }
-            PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
-        }
-        if (isAlpha) {
-            SetCacheDirty(true);
-            m_render.reset();
-        }
-    }
-    else {
-        UiPoint ptOldOrg = pRender->OffsetWindowOrg(m_renderOffset);
-        bool hasBoxShadowPainted = HasBoxShadow();
-        if (hasBoxShadowPainted) {
-            //先绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
-            m_isBoxShadowPainted = false;
-            PaintShadow(pRender);
-            m_isBoxShadowPainted = true;
-        }
-        UiRect rcClip = GetRect();
-        AutoClip clip(pRender, rcClip, IsClip());
-        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
-        Paint(pRender, rcPaint);
-        if (hasBoxShadowPainted) {
-            //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
-            m_isBoxShadowPainted = false;
-        }
-        PaintChild(pRender, rcPaint);
-        if (IsBordersOnTop()) {
-            PaintBorder(pRender);     //绘制边框
-        }
-        PaintLoading(pRender);        //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
-        pRender->SetWindowOrg(ptOldOrg);
-    }
+    return std::make_unique<AutoClip>(pRender, rc, bClip);
 }
 
 std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const
@@ -2685,16 +2934,173 @@ std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRec
 }
 
 void Control::SetPaintRect(const UiRect& rect)
-{ 
-    m_rcPaint = rect; 
+{
+    m_rcPaint = rect;
+}
+
+std::unique_ptr<IRender> Control::CreateTempRender() const
+{
+    std::unique_ptr<IRender> spTempRender;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        ASSERT(GetWindow() != nullptr);
+        IRenderDpiPtr spRenderDpi;
+        if (GetWindow() != nullptr) {
+            spRenderDpi = GetWindow()->GetRenderDpi();
+        }
+        spTempRender.reset(pRenderFactory->CreateRender(spRenderDpi));
+    }
+    return spTempRender;
+}
+
+void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
+{
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    if (GetRect().IsEmpty()) {
+        return;
+    }    
+    if (m_nAlpha == 0) {
+        //控件完全透明，不绘制
+        return;
+    }
+
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
+        return;
+    }
+    UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
+
+    //是否为直角矩形区域设置为剪辑区域
+    const bool bRectClip = IsClip();
+
+    //是否为圆角矩形区域设置为剪辑区域
+    const bool bRoundClip = IsClip() && ShouldBeRoundRectFill();
+
+    //当前控件是否设置了透明度（透明度值不是255）
+    const bool bAlpha = IsAlpha();
+
+    //本控件是否设置了box-shadow（控件阴影效果）
+    const bool bPaintBoxShadow = HasBoxShadow();
+
+    //控件绘制的位置偏移（用于控件的动画效果）
+    const UiPoint renderOffset = GetRenderOffset();
+
+    if (bAlpha) {
+        //当设置了透明度时，该控件（若为容器则包含子控件）需要完整绘制
+        UiRect rcPaintRect = GetRect();
+        SetPaintRect(rcPaintRect);
+        if (m_pTempRender == nullptr) {
+            m_pTempRender = CreateTempRender();
+        }
+        IRender* pTempRender = m_pTempRender.get();
+        ASSERT(pTempRender != nullptr);
+        if (pTempRender == nullptr) {
+            return;
+        }
+        if ((pTempRender->GetWidth() != GetRect().Width()) || (pTempRender->GetHeight() != GetRect().Height())) {
+            if (!pTempRender->Resize(GetRect().Width(), GetRect().Height())) {
+                //存在错误，绘制失败
+                ASSERT(!"pTempRender->Resize failed!");
+                return;
+            }
+        }
+        
+        if ((pTempRender->GetWidth() > 0) && (pTempRender->GetHeight() > 0)) {
+            // 将控件（如果是容器，则包含子控件），完整绘制到缓存新的render中
+            // 绘制前，首先清除原内容
+            pTempRender->Clear(UiColor());
+
+            const UiPoint ptOffset(GetRect().left, GetRect().top);
+            const UiPoint ptOldOrg = pTempRender->OffsetWindowOrg(ptOffset);
+
+            std::unique_ptr<AutoClip> rectCacheClip = CreateRectClip(pTempRender, GetRect(), bRectClip);
+            std::unique_ptr<AutoClip> roundCacheClip = CreateRoundClip(pTempRender, GetRect(), bRoundClip);
+
+            //首先绘制自己
+            Paint(pTempRender, rcPaintRect);
+
+            //设置了透明度，将子控件绘制到pTempRender上面，然后整体AlphaBlend到pRender
+            PaintChild(pTempRender, rcPaintRect);
+            if (IsBordersOnTop()) {
+                PaintBorder(pTempRender);  //绘制边框
+            }
+            PaintLoading(pTempRender, rcPaintRect); //绘制Loading图片，无状态，需要在绘制完子控件后再绘制
+            PaintForeColor(pTempRender); //绘制前景色
+
+            pTempRender->SetWindowOrg(ptOldOrg);
+        }
+
+        //如果配置了box-shadow，先绘制，因为box-shadow会超出rect边界绘制(如果使用剪辑区域，会显示不全)        
+        if (bPaintBoxShadow) {
+            m_bBoxShadowPainted = false;
+            PaintShadow(pRender);
+            m_bBoxShadowPainted = true;
+        }
+        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
+        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+
+        int32_t xOffset = std::max(rcPaintRect.left - GetRect().left, 0);
+        int32_t yOffset = std::max(rcPaintRect.top - GetRect().top, 0);
+        pRender->AlphaBlend(rcPaintRect.left,
+                            rcPaintRect.top,
+                            rcPaintRect.Width() - xOffset,
+                            rcPaintRect.Height() - yOffset,
+                            pTempRender,
+                            xOffset,
+                            yOffset,
+                            rcPaintRect.Width() - xOffset,
+                            rcPaintRect.Height() - yOffset,
+                            static_cast<uint8_t>(m_nAlpha));
+        if (bPaintBoxShadow) {
+            //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
+            m_bBoxShadowPainted = false;
+        }
+        pRender->SetWindowOrg(ptOldOrg);//恢复视图原点
+        UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
+    }
+    else {
+        //本控件未设置透明度，不使用缓存绘制，直接在目标render上绘制本控件（若为容器，则也包含子控件）        
+        UiPoint ptOldOrg = pRender->OffsetWindowOrg(renderOffset);//控件的位置偏移，显示为动画效果
+
+        //如果配置了box-shadow，先绘制，因为box-shadow会超出rect边界绘制(如果使用剪辑区域，会显示不全)        
+        if (bPaintBoxShadow) {
+            m_bBoxShadowPainted = false;
+            PaintShadow(pRender);
+            m_bBoxShadowPainted = true;
+        }
+
+        std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, GetRect(), bRectClip);
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, GetRect(), bRoundClip);
+        Paint(pRender, rcPaint);        //绘制控件自身
+        if (bPaintBoxShadow) {
+            //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
+            m_bBoxShadowPainted = false;
+        }
+        PaintChild(pRender, rcPaint);   //绘制子控件
+        if (IsBordersOnTop()) {
+            PaintBorder(pRender);       //绘制边框
+        }
+        PaintLoading(pRender, rcPaint); //绘制Loading状态，无状态，需要在绘制完子控件后再绘制
+        PaintForeColor(pRender);        //绘制前景色
+
+        pRender->SetWindowOrg(ptOldOrg);//恢复视图原点
+    }
 }
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    if (!UiRect::Intersect(m_rcPaint, rcPaint, GetRect())) {
+    UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
-    }    
-    if (!m_isBoxShadowPainted) {
+    }
+    UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
+
+    if (!m_bBoxShadowPainted) {
         //绘制box-shadow，可能会超出rect边界绘制(如果使用裁剪，可能会显示不全)
         PaintShadow(pRender);
     }    
@@ -2708,7 +3114,7 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     if (!IsBordersOnTop()) {
         PaintBorder(pRender);     //绘制边框
     }    
-    PaintFocusRect(pRender);      //绘制焦点状态    
+    PaintFocusRect(pRender);      //绘制焦点状态
 }
 
 void Control::PaintShadow(IRender* pRender)
@@ -2717,8 +3123,8 @@ void Control::PaintShadow(IRender* pRender)
         return;
     }
     BoxShadow boxShadow(this);
-    if (m_pBoxShadow != nullptr) {
-        boxShadow = *m_pBoxShadow;
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pBoxShadow != nullptr)) {
+        boxShadow = *m_pOtherData->m_pBoxShadow;
     }
 
     ASSERT(pRender != nullptr);
@@ -2730,7 +3136,7 @@ void Control::PaintShadow(IRender* pRender)
             borderRound.cx = (int32_t)(fRoundWidth + 0.5f);
             borderRound.cy = (int32_t)(fRoundHeight + 0.5f);
         }
-        pRender->DrawBoxShadow(m_rcPaint,
+        pRender->DrawBoxShadow(GetRect(),
                                borderRound,
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
@@ -2741,7 +3147,7 @@ void Control::PaintShadow(IRender* pRender)
 
 void Control::PaintBkColor(IRender* pRender)
 {
-    if ((m_pBkColorData == nullptr) || m_pBkColorData->m_strBkColor.empty()) {
+    if ((m_pColorData == nullptr) || m_pColorData->m_strBkColor.empty()) {
         return;
     }
     ASSERT(pRender != nullptr);
@@ -2749,7 +3155,7 @@ void Control::PaintBkColor(IRender* pRender)
         return;
     }
 
-    UiColor dwBackColor = GetUiColor(m_pBkColorData->m_strBkColor.c_str());
+    UiColor dwBackColor = GetUiColor(m_pColorData->m_strBkColor.c_str());
     if(dwBackColor.GetARGB() != 0) {
         int32_t nBorderSize = 0;
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
@@ -2777,20 +3183,62 @@ void Control::PaintBkColor(IRender* pRender)
         }
         else {            
             UiColor dwBackColor2;
-            if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-                dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+            if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+                dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
             }
             if (!dwBackColor2.IsEmpty()) {
                 //渐变背景色
                 int8_t nColor2Direction = 1;
-                if (m_pBkColorData != nullptr) {
-                    nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                if (m_pColorData != nullptr) {
+                    nColor2Direction = m_pColorData->m_nBkColor2Direction;
                 }
                 pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
             }
             else {
                 pRender->FillRect(fillRect, dwBackColor);
             }            
+        }
+    }
+}
+
+void Control::PaintForeColor(IRender* pRender)
+{
+    if ((m_pColorData == nullptr) || m_pColorData->m_strForeColor.empty()) {
+        return;
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+
+    UiColor dwForeColor = GetUiColor(m_pColorData->m_strForeColor.c_str());
+    if (dwForeColor.GetARGB() != 0) {
+        int32_t nBorderSize = 0;
+        if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.right) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.top) &&
+            IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.bottom)) {
+            //四个边都存在，且大小相同
+            nBorderSize = static_cast<int32_t>(m_pBorderData->m_rcBorderSize.left);//不做四舍五入
+        }
+        nBorderSize /= 2;
+
+        //背景填充矩形范围
+        UiRect fillRect = GetRect();
+        if (nBorderSize > 0) {
+            //如果存在边线，则填充的时候，不填充边线所在位置，避免出现背景色的锯齿现象
+            UiRect borderRect(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
+            fillRect.Deflate(borderRect.left, borderRect.top, borderRect.right, borderRect.bottom);
+        }
+        if (ShouldBeRoundRectFill()) {
+            //需要绘制圆角矩形，填充也需要填充圆角矩形
+            float fRoundWidth = 0;
+            float fRoundHeight = 0;
+            GetBorderRound(fRoundWidth, fRoundHeight);
+            FillRoundRect(pRender, fillRect, fRoundWidth, fRoundHeight, dwForeColor);
+        }
+        else {
+            pRender->FillRect(fillRect, dwForeColor);
         }
     }
 }
@@ -3191,14 +3639,14 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
                 AddRoundRectPath(path.get(), rc, rx, ry);
                 UiColor dwBackColor2;
-                if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-                    dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+                if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+                    dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
                 }
                 if (!dwBackColor2.IsEmpty()) {
                     //渐变背景色
                     int8_t nColor2Direction = 1;
-                    if (m_pBkColorData != nullptr) {
-                        nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                    if (m_pColorData != nullptr) {
+                        nColor2Direction = m_pColorData->m_nBkColor2Direction;
                     }
                     pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
                 }
@@ -3211,14 +3659,14 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
     }
     if (!isDrawOk) {
         UiColor dwBackColor2;
-        if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
-            dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
+        if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+            dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
         }
         if (!dwBackColor2.IsEmpty()) {
             //渐变背景色
             int8_t nColor2Direction = 1;
-            if (m_pBkColorData != nullptr) {
-                nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+            if (m_pColorData != nullptr) {
+                nColor2Direction = m_pColorData->m_nBkColor2Direction;
             }
             pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
         }
@@ -3267,10 +3715,10 @@ void Control::PaintText(IRender* /*pRender*/)
     return;
 }
 
-void Control::PaintLoading(IRender* pRender)
+void Control::PaintLoading(IRender* pRender, const UiRect& rcPaint)
 {
-    if (m_pLoading != nullptr) {
-        m_pLoading->PaintLoading(pRender);
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
+        m_pOtherData->m_pLoading->PaintLoading(pRender, rcPaint);
     }
 }
 
@@ -3297,13 +3745,24 @@ void Control::SetTabStop(bool enable)
     m_bAllowTabstop = enable;
 }
 
+UiPoint Control::GetRenderOffset() const
+{
+    if (m_pAnimationData != nullptr) {
+        return m_pAnimationData->m_renderOffset;
+    }
+    return UiPoint();
+}
+
 void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
         Dpi().ScalePoint(renderOffset);
-    }    
-    if (m_renderOffset != renderOffset) {
-        m_renderOffset = renderOffset;
+    }
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset != renderOffset) {
+        m_pAnimationData->m_renderOffset = renderOffset;
         Invalidate();
     }    
 }
@@ -3311,8 +3770,11 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
 void Control::SetRenderOffsetX(int64_t renderOffsetX)
 {
     int32_t x = TruncateToInt32(renderOffsetX);
-    if (m_renderOffset.x != x) {
-        m_renderOffset.x = x;
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset.x != x) {
+        m_pAnimationData->m_renderOffset.x = x;
         Invalidate();
     }
 }
@@ -3320,54 +3782,331 @@ void Control::SetRenderOffsetX(int64_t renderOffsetX)
 void Control::SetRenderOffsetY(int64_t renderOffsetY)
 {
     int32_t y = TruncateToInt32(renderOffsetY);
-    if (m_renderOffset.y != y) {
-        m_renderOffset.y = y;
+    if (m_pAnimationData == nullptr) {
+        m_pAnimationData = std::make_unique<TAnimationData>();
+    }
+    if (m_pAnimationData->m_renderOffset.y != y) {
+        m_pAnimationData->m_renderOffset.y = y;
         Invalidate();
     }
 }
 
-void Control::CheckStopGifPlay()
+void Control::PauseImageAnimation()
 {
+    //停止该控件内的所有动画
     if (m_pBkImage != nullptr) {
-        m_pBkImage->CheckStopGifPlay();
+        m_pBkImage->PauseImageAnimation();
     }
     if (m_pImageMap != nullptr) {
-        m_pImageMap->StopGifPlay();
+        m_pImageMap->PauseImageAnimation();
     }
 }
 
-bool Control::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
+Image* Control::FindImageByName(const DString& imageName) const
 {
-    if (m_pBkImage == nullptr) {
+    Image* pImage = nullptr;
+    if (imageName.empty()) {
+        //为空则使用背景图片
+        pImage = m_pBkImage.get();
+    }
+    else if ((m_pBkImage != nullptr) && (m_pBkImage->GetImageAttribute().m_sImageName == imageName)) {
+        //背景图片
+        pImage = m_pBkImage.get();
+    }
+    else if (m_pImageMap != nullptr) {
+        //状态图片
+        pImage = m_pImageMap->FindImageByName(imageName);
+    }
+    return pImage;
+}
+
+bool Control::StartImageAnimation(const DString& imageName,
+                                  AnimationImagePos nStartFrame,
+                                  int32_t nPlayCount)
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
         return false;
     }
-    if (!LoadImageData(*m_pBkImage)) {
+    if (!LoadImageInfo(*pImage)) {
         return false;
     }
-    return m_pBkImage->StartGifPlay(nStartFrame, nPlayCount);
+    return pImage->StartImageAnimation(nStartFrame, nPlayCount);
 }
 
-void Control::StopGifPlay(bool bTriggerEvent, GifFrameType stopType)
+bool Control::StopImageAnimation(const DString& imageName,
+                                 AnimationImagePos nStopFrame,
+                                 bool bTriggerEvent)
 {
-    if (m_pBkImage != nullptr) {
-        m_pBkImage->StopGifPlay(bTriggerEvent, stopType);
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
     }
-}
-
-void Control::AttachGifPlayStop(const EventCallback& callback)
-{
-    if (m_pBkImage == nullptr) {
-        m_pBkImage = std::make_unique<Image>();
-        m_pBkImage->SetControl(this);
+    if (pImage != nullptr) {
+        pImage->StopImageAnimation(nStopFrame, bTriggerEvent);
+        return true;
     }
-    m_pBkImage->AttachGifPlayStop(callback);
+    return false;
 }
 
-bool Control::LoadImageData(Image& duiImage) const
+bool Control::SetImageAnimationFrame(int32_t nFrameIndex)
 {
-    if (duiImage.GetImageCache() != nullptr) {
+    return SetImageAnimationFrame(DString(), nFrameIndex);
+}
+
+bool Control::SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex)
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(nFrameIndex >= 0);
+    if (nFrameIndex < 0) {
+        return false;
+    }
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
+    }
+    if (pImage != nullptr) {
+        pImage->SetCurrentFrameIndex((uint32_t)nFrameIndex);
+        //重绘
+        Invalidate();
+        return true;
+    }
+    return false;
+}
+
+uint32_t Control::GetImageAnimationFrameIndex() const
+{
+    return GetImageAnimationFrameIndex(DString());
+}
+
+uint32_t Control::GetImageAnimationFrameIndex(const DString& imageName) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return 0;
+    }
+    return pImage->GetCurrentFrameIndex();
+}
+
+uint32_t Control::GetImageAnimationFrameCount()
+{
+    return GetImageAnimationFrameCount(DString());
+}
+
+uint32_t Control::GetImageAnimationFrameCount(const DString& imageName)
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return 0;
+    }
+    if (!LoadImageInfo(*pImage)) {
+        return 0;
+    }
+    return pImage->GetFrameCount();
+}
+
+bool  Control::IsImageAnimationLoaded() const
+{
+    return IsImageAnimationLoaded(DString());
+}
+
+bool  Control::IsImageAnimationLoaded(const DString& imageName) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
+    }
+    return pImage->GetImageInfo() != nullptr;
+}
+
+/** 多线程解码的数据结构(异步，在子线程解码)
+*/
+struct Control::TAsyncImageDecode
+{
+    ControlPtr m_pControl;                //关联的控件接口
+    ControlPtrT<Image> m_pImage;          //关联的图片接口
+    DString m_imagePath;                  //加载图片的路径
+
+    std::shared_ptr<IImage> m_pImageData; //图片数据接口    
+    DString m_imageKey;                   //图片数据的KEY，用于更新UI显示
+    size_t m_nTaskId = 0;                 //在子线程中的任务ID
+
+    uint32_t m_nFrameCount = 0;           //该图片共有多少帧
+    uint32_t m_nDecodeCount = 0;          //共执行多少次异步解码
+
+    bool m_bDecodeExecuted = false;       //释放执行过图片解码操作
+    bool m_bDecodeResult = false;         //异步解码是否成功
+    bool m_bDecodeError = false;          //异步解码是否遇到错误
+};
+
+/** 多线程解码的实现函数(参数使用TAsyncImageDecode智能指针，避免影响std::shared_ptr<IImage>的引用计数)
+*/
+void Control::AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder)
+{
+    //需要确保在UI线程中执行
+    GlobalManager::Instance().AssertUIThread();
+    if ((pAsyncDecoder == nullptr) || (pAsyncDecoder->m_pImageData == nullptr)) {
+        return;
+    }
+    std::shared_ptr<IImage>& pImageData = pAsyncDecoder->m_pImageData;
+    if (!pImageData->IsAsyncDecodeEnabled() || pImageData->IsAsyncDecodeFinished()) {
+        //不需要在线程中解码或者已经解码完成
+        return;
+    }
+
+    if (pAsyncDecoder->m_nTaskId == 0) {
+        if (pImageData->GetAsyncDecodeTaskId() != 0) {
+            //不能并行执行任务，已经有线程在解码了
+            return;
+        }
+    }
+
+    //放在子线程中解码
+    ThreadManager& threadManager = GlobalManager::Instance().Thread();
+    int32_t nThreadIdentifier = ui::kThreadUI;
+    std::vector<int32_t> threadIdentifiers;
+    if (pImageData->GetImageType() == ImageType::kImageAnimation) {
+        //多帧图片
+        threadIdentifiers.push_back(ui::kThreadImage2);
+        threadIdentifiers.push_back(ui::kThreadImage1);
+        threadIdentifiers.push_back(ui::kThreadWorker);
+    }
+    else {
+        //单帧图片
+        threadIdentifiers.push_back(ui::kThreadImage1);
+        threadIdentifiers.push_back(ui::kThreadImage2);
+        threadIdentifiers.push_back(ui::kThreadWorker);
+    }
+    for (int32_t nThread : threadIdentifiers) {
+        if (threadManager.HasThread(nThread)) {
+            nThreadIdentifier = nThread;
+            break;
+        }
+    }
+    //异步解码完成的通知函数，在主线程中执行
+    auto AsyncDecodeImageFinishNotify = [pAsyncDecoder]() {
+            //需要确保在UI线程中执行
+            GlobalManager::Instance().AssertUIThread();
+            if (pAsyncDecoder == nullptr) {
+                return;
+            }
+            if (!pAsyncDecoder->m_bDecodeExecuted) {
+                //未执行图片解码操作，不需要再处理
+                return;
+            }
+            int32_t nUseCount = pAsyncDecoder->m_pImageData.use_count(); //资源引用计数
+            if (nUseCount == 1) {
+                //资源已经释放，不需要再处理
+                return;
+            }
+
+            //解码计数
+            pAsyncDecoder->m_nDecodeCount++;
+
+            //合并数据
+            pAsyncDecoder->m_pImageData->MergeAsyncDecodeData();
+
+            //通知相关的控件，重绘界面
+            GlobalManager::Instance().Image().DelayPaintImage(pAsyncDecoder->m_imageKey);
+
+            bool bDecodeFinished = pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished();
+            bool bDecodeEnabled = pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled();
+            ASSERT(pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount);
+            if (pAsyncDecoder->m_nDecodeCount == pAsyncDecoder->m_nFrameCount) {
+                ASSERT(bDecodeFinished);
+            }
+
+            if (!bDecodeFinished && bDecodeEnabled &&
+                pAsyncDecoder->m_bDecodeResult &&
+                !pAsyncDecoder->m_bDecodeError &&
+                (pAsyncDecoder->m_nDecodeCount <= pAsyncDecoder->m_nFrameCount)) {
+                //如果未完成，则继续解码下一帧
+                pAsyncDecoder->m_bDecodeExecuted = false;
+                AsyncDecodeImageData(pAsyncDecoder);
+            }
+            else {
+                //清除任务ID(仅在完成时清除)
+                pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(0);
+
+                if ((pAsyncDecoder->m_pControl != nullptr) && (pAsyncDecoder->m_pImage != nullptr)) {
+                    bool bDecodeError = true; //默认为解码错误
+                    if (!pAsyncDecoder->m_bDecodeError && bDecodeFinished) {
+                        //解码完成
+                        bDecodeError = false;
+                    }
+                    if (pAsyncDecoder->m_bDecodeError) {
+                        pAsyncDecoder->m_pImage->SetImageError(true);
+                    }
+                    pAsyncDecoder->m_pControl->FireImageEvent(pAsyncDecoder->m_pImage.get(), pAsyncDecoder->m_imagePath, false, false, bDecodeError);
+                }
+            }
+        };
+
+    //确认需要解码的帧索引号
+    uint32_t nCurFrameIndex = 0;
+    if (pImageData->GetImageType() == ImageType::kImageAnimation) {
+        //多帧
+        std::shared_ptr<IAnimationImage> pAnimationImage = pImageData->GetImageAnimation();
+        if (pAnimationImage != nullptr) {
+            const int32_t nFrameCount = pAnimationImage->GetFrameCount();
+            if (nFrameCount > 1) {
+                nCurFrameIndex = pAnimationImage->GetDecodedFrameIndex() + 1;
+                if (nCurFrameIndex >= (uint32_t)nFrameCount) {
+                    nCurFrameIndex = nFrameCount - 1;
+                }
+            }
+        }
+    }
+    else {
+        //单帧
+        nCurFrameIndex = 0;
+    }
+
+    //异步解码的函数，在子线程中执行
+    auto AsyncDecodeImageFunction = [pAsyncDecoder, nCurFrameIndex, AsyncDecodeImageFinishNotify]() {
+            int32_t nUseCount = pAsyncDecoder->m_pImageData.use_count(); //资源引用计数(当计数为1时，表示资源已经释放，不需要再解码)
+            if ((nUseCount > 1) &&
+                !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished() &&
+                pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled()) {
+
+                //取消操作判断函数
+                auto IsAborted = [pAsyncDecoder]() {
+                        if (pAsyncDecoder->m_pImageData.use_count() == 1) {
+                            //已经释放：待完善细节
+                            return true;
+                        }
+                        return false;
+                    };
+                //对图片数据进行异步解码
+                pAsyncDecoder->m_bDecodeExecuted = true;
+                pAsyncDecoder->m_bDecodeResult = pAsyncDecoder->m_pImageData->AsyncDecode(nCurFrameIndex, IsAborted, &pAsyncDecoder->m_bDecodeError);
+            }
+
+            // 通知UI（无论是否执行过图片解码操作，均需要通知UI，
+            // 主要目的是让pAsyncDecoder->m_pImageData这个智能指针对象在UI线程中释放，避免在子线程释放导致资源冲突，引发程序崩溃）
+            size_t nTaskId = GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, AsyncDecodeImageFinishNotify);
+            ASSERT_UNUSED_VARIABLE(nTaskId > 0);
+        };
+
+    //放入子线程中，开始解码
+    size_t nTaskId = threadManager.PostTask(nThreadIdentifier, AsyncDecodeImageFunction);
+    pAsyncDecoder->m_nTaskId = nTaskId;
+    pAsyncDecoder->m_pImageData->SetAsyncDecodeTaskId(nTaskId);
+}
+
+bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    //DPI缩放百分比
+    const uint32_t nLoadDpiScale = Dpi().GetScale();
+    if (duiImage.GetImageInfo() != nullptr) {
         //如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
-        if (duiImage.GetImageCache()->GetLoadDpiScale() == Dpi().GetScale()) {
+        if (duiImage.GetImageInfo()->GetLoadDpiScale() == nLoadDpiScale) {
             return true;
         }        
     }
@@ -3377,55 +4116,190 @@ bool Control::LoadImageData(Image& duiImage) const
         return false;
     }
 
-    DString sImagePath = duiImage.GetImagePath();
-    if (sImagePath.empty()) {
+    if (duiImage.HasImageError()) {
+        //如果图片加载失败，则不重新加载该图片
         return false;
     }
-    FilePath imageFullPath;
+
+    DString sImagePath = duiImage.GetImagePath();
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
+        ASSERT(!sImagePath.empty());
+    }
+    if (sImagePath.empty()) {
+        //图片资源路径为空，标记加载失败
+        duiImage.SetImageError(true);
+        FireImageEvent(&duiImage, sImagePath, true, true, false);
+        return false;
+    }
+    ImageLoadPath imageLoadPath; //图片加载路径信息
+    imageLoadPath.m_pathType = ImageLoadPathType::kUnknownPath;    
     IconManager& iconManager = GlobalManager::Instance().Icon();
     if (iconManager.IsIconString(sImagePath)) {
         uint32_t nIconID = iconManager.GetIconID(sImagePath);
         if (iconManager.IsImageString(nIconID)) {
-            //资源图片路径
+            //资源图片路径（一次性更新，更新后iconManager.IsIconString就是false了）
             DString iconImageString = iconManager.GetImageString(nIconID);
             ASSERT(!iconImageString.empty());
             DString oldImageString = duiImage.GetImageString();
             duiImage.SetImageString(iconImageString, pWindow->Dpi());
             duiImage.UpdateImageAttribute(oldImageString, pWindow->Dpi());
-            sImagePath = duiImage.GetImagePath();
+            sImagePath = duiImage.GetImagePath();//更新图片路径为资源指定的路径
+            ASSERT(!sImagePath.empty());
             if (sImagePath.empty()) {
+                //图片资源路径为空，标记加载失败
+                duiImage.SetImageError(true);
+                FireImageEvent(&duiImage, sImagePath, true, true, false);
                 return false;
             }
         }
         else {
-            //ICON图标数据
-            imageFullPath = sImagePath;
+            //ICON图标数据，虚拟路径
+            imageLoadPath.m_pathType = ImageLoadPathType::kVirtualPath;
         }
     }
-
-    if(imageFullPath.IsEmpty()) {
-        imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), FilePath(sImagePath));
+    if (imageLoadPath.m_pathType == ImageLoadPathType::kVirtualPath) {
+        //ICON图标数据，虚拟路径
+        imageLoadPath.m_imageFullPath = sImagePath;
     }
-    if (imageFullPath.IsEmpty()) {
-        //资源文件不存在
+    else {
+        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）       
+        FilePath resPath(sImagePath);
+        bool bLocalPath = true;
+        bool bResPath = true;
+        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), resPath, bLocalPath, bResPath);
+        if (!imageFullPath.IsEmpty()) {
+            imageLoadPath.m_imageFullPath = imageFullPath.NativePath();
+            if (bLocalPath) {
+                if (bResPath) {
+                    imageLoadPath.m_pathType = ImageLoadPathType::kLocalResPath;
+                }
+                else {
+                    imageLoadPath.m_pathType = ImageLoadPathType::kLocalPath;
+                }
+            }
+            else {
+                imageLoadPath.m_pathType = ImageLoadPathType::kZipResPath;
+            }
+        }
+    }
+    if (duiImage.GetImageAttribute().IsAssertEnabled()) {
+        ASSERT(!imageLoadPath.m_imageFullPath.IsEmpty());
+    }
+    if (imageLoadPath.m_imageFullPath.IsEmpty()) {
+        //图片资源文件不存在, 标记加载失败
+        duiImage.SetImageError(true);
+        FireImageEvent(&duiImage, imageLoadPath.m_imageFullPath.NativePath(), true, true, false);
         return false;
     }
 
-    ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
-    imageLoadAttr.SetImageFullPath(imageFullPath.ToString());
-    std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-    if ((imageCache == nullptr) || 
-        (imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
-        //如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-        Control* pThis = const_cast<Control*>(this);
-        StdClosure asyncLoadCallback = pThis->ToWeakCallback([pThis]() {
-                //重绘该控件
-                pThis->Invalidate();
-            });
-        imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr, asyncLoadCallback);
-        duiImage.SetImageCache(imageCache);
+    ImageLoadParam imageLoadParam = duiImage.GetImageLoadParam();
+    imageLoadParam.SetLoadDpiScale(nLoadDpiScale);  //设置加载的DPI百分比
+    imageLoadParam.SetImageLoadPath(imageLoadPath); //设置图片资源的路径
+    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
+    if ((imageInfo == nullptr) ||
+        (imageInfo->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
+        //第1种情况：如果图片没有加载则执行加载图片；
+        //第2种情况：如果图片发生变化，则重新加载该图片        
+
+        //是否开启图片加载优化(以最小的比例加载图片，占有内存最少，绘制速度最快)，开启条件总结为：
+        //1. 仅当绘制时加载图片可以开启该项优化，因为此时加载的图片，改变加载比例时只影响图片的显示效果，并不影响控件和图片的布局
+        //2. 如果图片指定了不支持DPI自适应（dpi_scale="false"），那么关闭该项优化
+        //3. 如果绘制属性指定为平铺（xtiled="true" 或者 ytiled="true"），那么关闭该项优化
+        //4. 如果绘制属性指定为阴影（window_shadow_mode="true"），那么关闭该项优化
+        //5. 如果绘制属性指定为自适应（adaptive_dest_rect="true"），那么关闭该项优化
+        //6. 如果绘制属性指定为九宫格绘制（corner="left,top,right,bottom"），那么关闭该项优化
+        bool bEnableImageLoadSizeOpt = bPaintImage;
+        if (duiImage.GetImageAttribute().IsTiledDraw() ||
+            duiImage.GetImageAttribute().m_bWindowShadowMode ||
+           !duiImage.GetImageAttribute().m_bImageDpiScaleEnabled ||
+            duiImage.GetImageAttribute().m_bAdaptiveDestRect ||
+            duiImage.GetImageAttribute().HasImageCorner()) {
+            bEnableImageLoadSizeOpt = false;
+        }
+        
+        uint32_t nImageSetWidth = 0;
+        uint32_t nImageSetHeight = 0;
+        if (imageLoadParam.GetImageFixedSize(nImageSetWidth, nImageSetHeight)) {
+            //如果图片指定了宽度或者高度(举例:width="100" 或 height="100"这种)，可以在加载时，计算最适合的缩放比，以提高效率，但不会有影响
+            imageLoadParam.SetMaxDestRectSize(UiSize((int32_t)nImageSetWidth, (int32_t)nImageSetHeight));
+        }
+        else if (bEnableImageLoadSizeOpt) {
+            //绘制阶段加载的图片，不需要图片宽高来确定目标区域，可做加载优化（对于大图，可以加载一个小图，保证绘制质量的情况下，提高绘制速度，并减少内存占用）
+            imageLoadParam.SetMaxDestRectSize(UiSize(GetRect().Width(), GetRect().Height()));
+        }
+
+        bool bImageDataFromCache = false;
+        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bImageDataFromCache);
+        duiImage.SetImageInfo(imageInfo);
+        if (imageInfo != nullptr) {
+            //检查并启动多线程解码，在子线程中解码图片数据
+            std::shared_ptr<IImage> pImageData = imageInfo->GetImageData();
+            if (pImageData != nullptr) {
+                std::shared_ptr<TAsyncImageDecode> pAsyncDecoder = std::make_shared<TAsyncImageDecode>();                
+                pAsyncDecoder->m_nFrameCount = imageInfo->GetFrameCount();
+                pAsyncDecoder->m_nDecodeCount = 0;
+                pAsyncDecoder->m_nTaskId = 0;
+                pAsyncDecoder->m_pImageData = std::move(pImageData);
+                pAsyncDecoder->m_imageKey = imageInfo->GetImageKey();
+                pAsyncDecoder->m_pControl = const_cast<Control*>(this);
+                pAsyncDecoder->m_pImage = &duiImage;
+                pAsyncDecoder->m_imagePath = imageLoadPath.m_imageFullPath.NativePath();
+
+                if (!bImageDataFromCache) {
+                    //重新加载的图片
+                    AsyncDecodeImageData(pAsyncDecoder);
+                }
+                else if (pAsyncDecoder->m_pImageData->IsAsyncDecodeEnabled() &&
+                         !pAsyncDecoder->m_pImageData->IsAsyncDecodeFinished()) {
+                    //从缓存中获取的图片，但尚未加载
+                    AsyncDecodeImageData(pAsyncDecoder);
+                }
+            }
+        }
     }
-    return imageCache ? true : false;
+    if (imageInfo == nullptr) {
+        //标记加载失败
+        duiImage.SetImageError(true);
+    }
+
+    //图片加载结果的回调事件（异步）
+    bool bLoadError = (imageInfo == nullptr);
+    FireImageEvent(&duiImage, imageLoadPath.m_imageFullPath.NativePath(), true, bLoadError, false);
+    return imageInfo ? true : false;
+}
+
+void Control::FireImageEvent(Image* pImagePtr, const DString& imageFilePath, bool bLoadImage, bool bLoadError, bool bDecodeError) const
+{
+    if (pImagePtr == nullptr) {
+        return;
+    }
+    if (!bLoadImage) {
+        //标记解码完成事件已经通知
+        pImagePtr->SetDecodeEventFired(true);
+    }
+    ControlPtr pControl(const_cast<Control*>(this));        //图片关联控件
+    ControlPtrT<Image> pImage(pImagePtr);                   //图片资源接口
+
+    ImageDecodeResult decodeResult;
+    decodeResult.m_pControl = pControl.get();               //图片关联控件
+    decodeResult.m_pImage = pImage.get();                   //图片资源接口
+    decodeResult.m_imageFilePath = imageFilePath;           //图片路径
+    decodeResult.m_imageName = pImage->GetImageName();      //图片名称，唯一ID
+    decodeResult.m_bBkImage = (GetBkImagePtr() == pImagePtr);   //该图片是否为背景图片
+    decodeResult.m_bLoadError = bLoadError;                     //该图片是否存在加载错误
+    decodeResult.m_bDecodeError = bDecodeError;                 //该图片是否存在数据解码错误
+
+    auto LoadImageCallback = [pControl, pImage, bLoadImage, decodeResult]() {
+            if ((pControl != nullptr) && (pImage != nullptr)) {
+                if (bLoadImage) {
+                    pControl->SendEvent(kEventImageLoad, (WPARAM)&decodeResult);
+                }
+                else {
+                    pControl->SendEvent(kEventImageDecode, (WPARAM)&decodeResult);
+                }
+            }
+        };
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, LoadImageCallback);
 }
 
 void Control::ClearImageCache()
@@ -3609,6 +4483,38 @@ bool Control::FireAllEvents(const EventArgs& msg)
     return bRet && !weakflag.expired();
 }
 
+bool Control::HasEventCallback(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (!m_pEventMapData->m_attachEvent.empty()) {
+        const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+        if (eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pXmlEvent != nullptr){
+        const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pBubbledEvent != nullptr) {
+        const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent != nullptr) {
+        const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Control::HasUiColor(const DString& colorName) const
 {
     if (colorName.empty()) {
@@ -3669,10 +4575,20 @@ DString Control::GetColorString(const UiColor& color) const
 
 bool Control::HasBoxShadow() const
 {
-    if (m_pBoxShadow != nullptr) {
-        return m_pBoxShadow->HasShadow();
+    if ((m_pOtherData != nullptr) && (m_pOtherData->m_pBoxShadow != nullptr)) {
+        return m_pOtherData->m_pBoxShadow->HasShadow();
     }
     return false;
+}
+
+UiRect Control::GetBoxShadowExpandedRect(const UiRect& rc) const
+{
+    if ((m_pOtherData != nullptr) &&
+        (m_pOtherData->m_pBoxShadow != nullptr) &&
+         m_pOtherData->m_pBoxShadow->HasShadow()) {
+        return m_pOtherData->m_pBoxShadow->GetExpandedRect(rc);
+    }
+    return rc;
 }
 
 bool Control::IsSelectableType() const
@@ -3724,11 +4640,6 @@ void Control::EnsureNoFocus()
         if (pWindow->GetFocusControl() == this) {
             pWindow->SetFocusControl(nullptr);
         }
-        /*
-        else if (IsChild(this, pWindow->GetFocus())) {
-            pWindow->SetFocusControl(nullptr);
-        }
-        */
     }
 }
 

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="page_grid_scrollbox" multi_line="true" margin="0,0,0,0" width="90%" height="90%" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <VBox height="84" padding="6,0,6,0" >
+        <Label text="GridScrollBox容器布局测试" height="28" valign="center"/>
+        <HBox height="28">            
+            <Label text="容器内容水平对齐方式：" valign="center"/>
+            <Option class="option_1" group="grid_scrollbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_halign='left'" />
+            </Option>
+            <Option class="option_1" group="grid_scrollbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_halign='center'" />
+            </Option>
+            <Option class="option_1" group="grid_scrollbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_halign='right'" />
+            </Option>
+            <Label text="（仅当容器内容总宽度小于显示区域宽度时生效）" valign="center"/>
+        </HBox>
+        <HBox height="28">            
+            <Label text="容器内容垂直对齐方式：" valign="center"/>
+            <Option class="option_1" group="grid_scrollbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_valign='top'" />
+            </Option>
+            <Option class="option_1" group="grid_scrollbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_valign='center'" />
+            </Option>
+            <Option class="option_1" group="grid_scrollbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="grid_scrollbox_test" apply_attribute="child_valign='bottom'" />
+            </Option>
+            <Label text="（仅当容器内容总高度小于显示区域高度时生效）" valign="center"/>
+        </HBox>
+    </VBox>
+    <GridScrollBox name="grid_scrollbox_test" padding="8,8,8,8" width="100%" height="100%"
+                   grid_width="180" grid_height="120" rows="0" columns="0" scale_down="false"
+                   child_margin_x="1" child_margin_y="1" child_halign="center" child_valign="top" 
+                   bkcolor="gray" border_size="1" border_color="red"
+                   hscrollbar="true" vscrollbar="true">
+        <!-- 浮动控件 -->
+        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
+        <!-- 非浮动控件 -->
+        <Label class="page_grid_scrollbox" text="1 top" halign="left" valign="top"/>
+        <Label class="page_grid_scrollbox" text="2 center" halign="left" valign="center" row_span="2"/>
+        <Label class="page_grid_scrollbox" text="3 bottom" halign="left" valign="bottom" col_span="2"/>
+        <Label class="page_grid_scrollbox" text="4 top" halign="center" valign="top"/>
+        <Label class="page_grid_scrollbox" text="5 center" halign="center" valign="center"/>
+        <Label class="page_grid_scrollbox" text="6 bottom" halign="center" valign="bottom"/>
+        <Label class="page_grid_scrollbox" text="7 top" halign="right" valign="top"/>
+        <Label class="page_grid_scrollbox" text="8 center" halign="right" valign="center"/>
+        <Label class="page_grid_scrollbox" text="9 bottom" halign="right" valign="bottom"/>
+        <Label class="page_grid_scrollbox" text="10 center" halign="left" valign="center"/>
+        <Label class="page_grid_scrollbox" text="11 center stretch: 100%" halign="left" valign="center" col_span="3"/>
+        <Label class="page_grid_scrollbox" text="12 bottom" halign="left" valign="bottom"/>
+        <Label class="page_grid_scrollbox" text="13 top stretch: 50%" halign="center" valign="top" row_span="3"/>
+        <Label class="page_grid_scrollbox" text="12 center" halign="center" valign="center"/>
+        <Label class="page_grid_scrollbox" text="15 bottom" halign="center" valign="bottom"/>
+        <Label class="page_grid_scrollbox" text="16 top" halign="right" valign="top"/>
+        <Label class="page_grid_scrollbox" text="17 center" halign="right" valign="center"/>
+        <Label class="page_grid_scrollbox" text="18 bottom" halign="right" valign="bottom"/>
+        <Label class="page_grid_scrollbox" text="19 center, width: 200" halign="right" valign="center"/>
+        <Label class="page_grid_scrollbox" text="20 top" halign="right" valign="top" col_span="3"/>
+        <Label class="page_grid_scrollbox" text="21 top" halign="right" valign="top"/>
+        <Label class="page_grid_scrollbox" text="22 top" halign="right" valign="top"/>
+    </GridScrollBox>
+</Window>

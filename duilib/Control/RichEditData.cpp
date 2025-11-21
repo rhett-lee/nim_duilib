@@ -6,8 +6,8 @@ namespace ui
 {
 RichEditData::RichEditData(IRichTextData* pRichTextData):
     m_pRichText(pRichTextData),
-    m_hAlignType(HorAlignType::kHorAlignLeft),
-    m_vAlignType(VerAlignType::kVerAlignTop),
+    m_hAlignType(HorAlignType::kAlignLeft),
+    m_vAlignType(VerAlignType::kAlignTop),
     m_bSingleLineMode(true),
     m_pRender(nullptr),
     m_pRenderFactory(nullptr),
@@ -51,7 +51,7 @@ void RichEditData::SetScrollOffset(const UiSize& szScrollOffset)
     m_szScrollOffset = szScrollOffset;
 }
 
-void RichEditData::SetHAlignType(HorAlignType hAlignType)
+void RichEditData::SetTextHAlignType(HorAlignType hAlignType)
 {
     if (m_hAlignType != hAlignType) {
         m_hAlignType = hAlignType;
@@ -64,7 +64,7 @@ HorAlignType RichEditData::GetHAlignType() const
     return m_hAlignType;
 }
 
-void RichEditData::SetVAlignType(VerAlignType vAlignType)
+void RichEditData::SetTextVAlignType(VerAlignType vAlignType)
 {
     if (m_vAlignType != vAlignType) {
         m_vAlignType = vAlignType;
@@ -261,7 +261,7 @@ void RichEditData::UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int3
 void RichEditData::UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorAlignType hAlignType, std::vector<int32_t>& rowXOffset, bool& bTextRectXOffsetUpdated) const
 {
     rowXOffset.clear();
-    if (!bTextRectXOffsetUpdated && (hAlignType == HorAlignType::kHorAlignLeft)) {
+    if (!bTextRectXOffsetUpdated && (hAlignType == HorAlignType::kAlignLeft)) {
         //无需更新
         return;
     }
@@ -279,7 +279,7 @@ void RichEditData::UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorA
                 rowInfo.m_xOffset = 0;
             }
             if (rowRect.Width() < nDrawRectWidth) {
-                if (hAlignType == HorAlignType::kHorAlignCenter) {
+                if (hAlignType == HorAlignType::kAlignCenter) {
                     //居中对齐
                     float diff = nDrawRectWidth - rowRect.Width();
                     rowInfo.m_xOffset = (int32_t)(diff / 2);
@@ -288,7 +288,7 @@ void RichEditData::UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorA
                         bTextRectXOffsetUpdated = true;
                     }
                 }
-                else if (hAlignType == HorAlignType::kHorAlignRight) {
+                else if (hAlignType == HorAlignType::kAlignRight) {
                     //靠右对齐
                     float diff = nDrawRectWidth - rowRect.Width();
                     rowInfo.m_xOffset = (int32_t)diff;
@@ -313,12 +313,12 @@ int32_t RichEditData::GetTextRectOfssetY() const
     int32_t yOffset = 0;
     if (m_rcTextRect.Height() < m_rcTextDrawRect.Height()) {
         VerAlignType vAlignType = GetVAlignType();
-        if (vAlignType == VerAlignType::kVerAlignCenter) {
+        if (vAlignType == VerAlignType::kAlignCenter) {
             //居中对齐
             int32_t nDiff = m_rcTextDrawRect.Height() - m_rcTextRect.Height();
             yOffset = nDiff / 2;
         }
-        else if (vAlignType == VerAlignType::kVerAlignBottom) {
+        else if (vAlignType == VerAlignType::kAlignBottom) {
             //底部对齐
             int32_t nDiff = m_rcTextDrawRect.Height() - m_rcTextRect.Height();
             yOffset = nDiff;
@@ -578,7 +578,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     if (m_bTextRectYOffsetUpdated) {
         UpdateRowTextOffsetY(m_lineTextInfo, 0);
     }
-    UpdateRowTextOffsetX(m_lineTextInfo, HorAlignType::kHorAlignLeft, m_rowXOffset, m_bTextRectXOffsetUpdated);
+    UpdateRowTextOffsetX(m_lineTextInfo, HorAlignType::kAlignLeft, m_rowXOffset, m_bTextRectXOffsetUpdated);
     
     //更新绘制缓存
     if (m_spDrawRichTextCache != nullptr) {
@@ -678,11 +678,13 @@ bool RichEditData::SetText(const DStringW& text)
         return true;
     }
 
+    DStringW textLimit;
+    DStringW validText;
     std::vector<std::wstring_view> lineTextViewList;
     int32_t nLimitLength = m_pRichText->GetTextLimitLength();
     if ((nLimitLength > 0) && ((int32_t)text.size() > nLimitLength)){
         //截断字符串
-        DStringW textLimit = text;
+        textLimit = text;
         if (text.find(L'\0') != DStringW::npos) {
             //如果包含L'\0'字符，需要截断处理
             textLimit = text.c_str();
@@ -694,7 +696,7 @@ bool RichEditData::SetText(const DStringW& text)
     else {
         if (text.find(L'\0') != DStringW::npos) {
             //如果包含L'\0'字符，需要截断处理
-            DStringW validText = text.c_str();
+            validText = text.c_str();
             std::wstring_view textView = validText;
             SplitLines(textView, lineTextViewList);
         }
@@ -1381,17 +1383,17 @@ UiPoint RichEditData::PosForEmptyText() const
     HorAlignType hAlignType = GetHAlignType();
     VerAlignType vAlignType = GetVAlignType();
     UiPoint pt;
-    if (hAlignType == HorAlignType::kHorAlignCenter) {
+    if (hAlignType == HorAlignType::kAlignCenter) {
         pt.x = rcDrawRect.Width() / 2;
     }
-    else if (hAlignType == HorAlignType::kHorAlignRight) {
+    else if (hAlignType == HorAlignType::kAlignRight) {
         pt.x = rcDrawRect.Width();
     }
     else {
         pt.x = 0;
     }
 
-    if (vAlignType == VerAlignType::kVerAlignCenter) {
+    if (vAlignType == VerAlignType::kAlignCenter) {
         const int32_t nRowHeight = m_pRichText->GetTextRowHeight();
         if (rcDrawRect.Height() <= nRowHeight) {
             pt.y = 0;
@@ -1406,7 +1408,7 @@ UiPoint RichEditData::PosForEmptyText() const
             }
         }
     }
-    else if (vAlignType == VerAlignType::kVerAlignBottom) {
+    else if (vAlignType == VerAlignType::kAlignBottom) {
         const int32_t nRowHeight = m_pRichText->GetTextRowHeight();
         if (rcDrawRect.Height() <= nRowHeight) {
             pt.y = 0;
@@ -1441,7 +1443,7 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
     if (m_lineTextInfo.empty()) {
         //空文本
         cursorPos = PosForEmptyText();
-        if (GetHAlignType() == HorAlignType::kHorAlignRight) {
+        if (GetHAlignType() == HorAlignType::kAlignRight) {
             cursorPos.x -= m_pRichText->GetTextCaretWidth();
         }
     }

@@ -20,13 +20,13 @@ public:
     /** 从数据初始化（ARGB格式）
     @param [in] nWidth 宽度
     @param [in] nHeight 高度
-    @param [in] flipHeight 是否翻转位图，如果为true，创建位图的时候，以左上角为圆点，图像方向是从上到下的；
-                           如果为false，则以左下角为圆点，图像方向是从下到上。
-    @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nWidth*4*nHeight
+    @param [in] pPixelBits 位图数据, 如果为nullptr表示窗口空位图，如果不为nullptr，其数据长度为：nHeight * nWidth * 4
+    @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
     @param [in] alphaType 位图的Alpha类型，只有Skia引擎需要此参数
     */
-    virtual bool Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
-                 const void* pPixelBits, BitmapAlphaType alphaType = kPremul_SkAlphaType) override;
+    virtual bool Init(uint32_t nWidth, uint32_t nHeight,
+                      const void* pPixelBits, float fImageSizeScale = 1.0f,
+                      BitmapAlphaType alphaType = BitmapAlphaType::kPremul_SkAlphaType) override;
 
     /** 获取图片宽度
     */
@@ -64,9 +64,9 @@ private:
     */
     void UpdateAlphaFlag(uint8_t* pPixelBits);
 
-    /** 对图片数据进行垂直翻转
+    /** 执行数据初始化
     */
-    void FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint32_t nHeight, std::vector<uint8_t>& flipBits);
+    bool InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, BitmapAlphaType alphaType);
 
 private:
     /** Skia 位图

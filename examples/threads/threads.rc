@@ -60,11 +60,11 @@ END
 
 IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "关于 basic"
+CAPTION "关于 threads"
 FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "basic, 版本 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "threads, 版本 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "版权所有(c) 2019",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "确定",IDOK,113,41,50,14,WS_GROUP
 END
@@ -127,8 +127,8 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_APP_TITLE           "basic"
-    IDC_THREADS             "BASIC"
+    IDS_APP_TITLE           "thread"
+    IDC_THREADS             "THREAD"
 END
 
 #endif    // Chinese (Simplified, China) resources

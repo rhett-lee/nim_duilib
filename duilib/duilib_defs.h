@@ -40,6 +40,9 @@ namespace ui
     #define  DUI_CTR_BOX                             (_T("Box"))
     #define  DUI_CTR_HBOX                            (_T("HBox"))
     #define  DUI_CTR_VBOX                            (_T("VBox"))
+    #define  DUI_CTR_HFLOWBOX                        (_T("HFlowBox"))
+    #define  DUI_CTR_VFLOWBOX                        (_T("VFlowBox"))
+
     #define  DUI_CTR_VTILE_BOX                       (_T("VTileBox"))
     #define  DUI_CTR_HTILE_BOX                       (_T("HTileBox"))
 
@@ -54,6 +57,8 @@ namespace ui
     #define  DUI_CTR_SCROLLBOX                       (_T("ScrollBox"))
     #define  DUI_CTR_HSCROLLBOX                      (_T("HScrollBox"))
     #define  DUI_CTR_VSCROLLBOX                      (_T("VScrollBox"))
+    #define  DUI_CTR_HFLOW_SCROLLBOX                 (_T("HFlowScrollBox"))
+    #define  DUI_CTR_VFLOW_SCROLLBOX                 (_T("VFlowScrollBox"))
     #define  DUI_CTR_HTILE_SCROLLBOX                 (_T("HTileScrollBox"))
     #define  DUI_CTR_VTILE_SCROLLBOX                 (_T("VTileScrollBox"))
 
@@ -72,6 +77,8 @@ namespace ui
     #define  DUI_CTR_VIRTUAL_VTILE_LISTBOX           (_T("VirtualVTileListBox"))
 
     #define  DUI_CTR_TABBOX                          (_T("TabBox"))
+    #define  DUI_CTR_GRIDBOX                         (_T("GridBox"))
+    #define  DUI_CTR_GRID_SCROLLBOX                  (_T("GridScrollBox"))
 
     #define  DUI_CTR_TREENODE                        (_T("TreeNode"))
     #define  DUI_CTR_TREEVIEW                        (_T("TreeView"))
@@ -163,20 +170,23 @@ namespace ui
     #define  EVENTSTR_TAB                (_T("tab"))
     #define  EVENTSTR_WINDOWCLOSE        (_T("windowclose"))
 
+    class Control;
+    class Image;
+
     //水平对齐方式
-    enum HorAlignType: int8_t
+    enum class HorAlignType: int8_t
     {
-        kHorAlignLeft   = 0,    // 靠左对齐
-        kHorAlignCenter = 1,    // 水平居中
-        kHorAlignRight  = 2     // 靠右对齐
+        kAlignLeft   = 0,    // 靠左对齐
+        kAlignCenter = 1,    // 水平居中
+        kAlignRight  = 2     // 靠右对齐
     };
 
     //垂直对齐方式
-    enum VerAlignType: int8_t
+    enum class VerAlignType: int8_t
     {
-        kVerAlignTop    = 0,    // 顶端对齐
-        kVerAlignCenter = 1,    // 垂直居中
-        kVerAlignBottom = 2     // 底部对齐
+        kAlignTop    = 0,    // 顶端对齐
+        kAlignCenter = 1,    // 垂直居中
+        kAlignBottom = 2     // 底部对齐
     };
 
     //控件图片类型
@@ -213,12 +223,34 @@ namespace ui
         kAnimationInoutYFromBottom  = 8,    //控件的Y坐标变化动画，从下侧
     };
 
-    //GIF图片帧类型
-    enum GifFrameType: int8_t
+    //图片动画帧类型
+    enum class AnimationImagePos: int8_t
     {
-        kGifFrameFirst   = 0,   // 第一帧    
-        kGifFrameCurrent = 1,   // 当前帧        
-        kGifFrameLast    = 2    // 最后一帧
+        kFrameFirst   = 0,   // 第一帧    
+        kFrameCurrent = 1,   // 当前帧        
+        kFrameLast    = 2    // 最后一帧
+    };
+
+    //图片动画的播放状态
+    struct ImageAnimationStatus
+    {
+        //图片的名称：XML设置中，图片属性中的name字段值，用于区别是那张图片资源
+        DString m_name;
+
+        //当前动画图片是否为背景图片
+        bool m_bBkImage;
+
+        //图片总帧数
+        int32_t m_nFrameCount;
+
+        //图片当前播放帧索引号（从0开始的序号）
+        int32_t m_nFrameIndex;
+
+        //当前帧播放持续时间，毫秒
+        int32_t m_nFrameDelayMs;
+
+        //循环播放的次数(正整数表示循环播放的次数，-1表示一直循环播放)
+        int32_t m_nLoopCount;
     };
 
     //光标: Windows平台可参考：https://learn.microsoft.com/zh-cn/windows/win32/menurc/about-cursors
@@ -274,6 +306,18 @@ namespace ui
 
         DString m_source;                   // 当m_bTextData为false时有效
         std::vector<DString> m_fileList;    // 在拖放操作中包含的文本内容，每个元素代表一个文件路径
+    };
+
+    //图片加载或者解码结果
+    struct ImageDecodeResult
+    {
+        Control* m_pControl;    //图片关联控件
+        Image* m_pImage;        //图片资源接口
+        DString m_imageFilePath;//图片路径
+        DString m_imageName;    //图片名称，唯一ID
+        bool m_bBkImage;        //该图片是否为背景图片
+        bool m_bLoadError;      //该图片是否存在加载错误
+        bool m_bDecodeError;    //该图片是否存在数据解码错误
     };
 
     //定义所有消息类型
@@ -383,7 +427,19 @@ namespace ui
                                     //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
                                     //                   当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
 
-        kEventLast                  //无使用者
+        kEventImageAnimationStart,      // 开始播放图片动画(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+        kEventImageAnimationPlayFrame,  // 图片动画播放某帧(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+        kEventImageAnimationStop,       // 停止播放图片动画(背景图片)：wParam 为数据指针：ui::ImageAnimationStatus*
+
+                                        //ui::ControlLoadingStatus 在 "duilib/Core/ControlLoading.h"中定义
+        kEventLoadingStart,             //控件开始加载状态，此时控件变成Disabled状态：wParam 为数据指针：ui::ControlLoadingStatus*
+        kEventLoading,                  //控件处于加载中状态，定时回调：             wParam 为数据指针：ui::ControlLoadingStatus*
+        kEventLoadingStop,              //控件结束加载状态，此时控件变成Enabled状态： wParam 为数据指针：ui::ControlLoadingStatus*
+
+        kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult*
+        kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult*
+
+        kEventLast                      //无使用者
     };
 
     /** 热键组合键标志位

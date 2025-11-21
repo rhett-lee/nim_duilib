@@ -5,6 +5,10 @@
 #include "browser/DragDropManager.h"
 #include <chrono>
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include <iostream>
+#endif
+
 using namespace ui;
 
 namespace
@@ -58,14 +62,15 @@ public:
     virtual ~TitleBarHLayout() override = default;
 
 public:
-    /** 调整内部所有控件的位置信息
-     * @param[in] items 控件列表
-     * @param[in] rc 当前容器位置信息, 包含内边距，但不包含外边距
-     * @return 返回排列后最终盒子的宽度和高度信息，包含Owner Box的内边距，不包含外边距
+    /** 按布局策略调整内部所有子控件的位置和大小
+     * @param [in] items 子控件列表
+     * @param [in] rc 当前容器位置与大小信息, 包含内边距，但不包含外边距
+     * @param [in] bEstimateOnly true表示仅评估不调整控件的位置，false表示调整控件的位置
+     * @return 返回排列后最终布局的宽度和高度信息，包含Box容器的内边距，但不包含Box容器本身的外边距(当容器支持滚动条时使用该返回值)
      */
-    virtual UiSize64 ArrangeChild(const std::vector<Control*>& items, UiRect rc) override
+    virtual UiSize64 ArrangeChildren(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly = false) override
     {
-        UiSize64 szSize = HLayout::ArrangeChild(items, rc);
+        UiSize64 szSize = HLayout::ArrangeChildren(items, rc, bEstimateOnly);
         ASSERT(items.empty() || items.size() == 5);
         if (items.size() != 5) {
             return szSize;
@@ -119,34 +124,42 @@ public:
             int32_t nItemDiff = rcTabCtrl.Width() - nTabItemTotalWidth;
             //标签控件：长度缩短
             rcTabCtrl.right -= nItemDiff;
-            pTabCtrl->SetPos(rcTabCtrl);
+            if (!bEstimateOnly) {
+                pTabCtrl->SetPos(rcTabCtrl);
+            }
 
             //新建按钮控件：向左移动
             Control* pItem = items[items.size() - 2];
             if (pItem != nullptr) {
                 UiRect rcItem = pItem->GetPos();
                 rcItem.Offset(-nItemDiff, 0);
-                pItem->SetPos(rcItem);
+                if (!bEstimateOnly) {
+                    pItem->SetPos(rcItem);
+                }
             }
             //最后的控件：宽度增加
             pItem = items[items.size() - 1];
             if (pItem != nullptr) {
                 UiRect rcItem = pItem->GetPos();
                 rcItem.left -= nItemDiff;
-                pItem->SetPos(rcItem);
+                if (!bEstimateOnly) {
+                    pItem->SetPos(rcItem);
+                }
             }
         }
 
         //最后再校验
-        nTotalWidth = 0;
-        for (Control* pControl : items) {
-            if (pControl == nullptr) {
-                continue;
+        if (!bEstimateOnly) {
+            nTotalWidth = 0;
+            for (Control* pControl : items) {
+                if (pControl == nullptr) {
+                    continue;
+                }
+                ui::UiMargin margin = pControl->GetMargin();
+                nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
             }
-            ui::UiMargin margin = pControl->GetMargin();
-            nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
+            ASSERT(rc.Width() == nTotalWidth);
         }
-        ASSERT(rc.Width() == nTotalWidth);
         return szSize;
     }
 };
@@ -205,6 +218,14 @@ void BrowserForm::OnInitWindow()
     if (pButton != nullptr) {
         pButton->SetVisible(false);
     }
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    //显示SDL的基本信息
+    DString driverName = GetVideoDriverName();
+    DString renderName = GetWindowRenderName();
+    DString logMsg = ui::StringUtil::Printf(_T("[SDL: VideoDriver:\"%s\", RenderName:\"%s\"]"), driverName.c_str(), renderName.c_str());
+    std::cout << logMsg << std::endl;
+#endif
 }
 
 void BrowserForm::OnPreCloseWindow()
@@ -705,7 +726,7 @@ bool BrowserForm::ChangeToBox(const DString& browserId)
 
 void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImage> image)
 {
-    if ((pBrowserBox == nullptr) || (image == nullptr)) {
+    if (pBrowserBox == nullptr) {
         return;
     }
 
@@ -715,18 +736,25 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImag
         return;
     }
 
+    if (image == nullptr) {
+        pTabItem->ClearIconData();
+    }
+
     int32_t nWidth = 0;
     int32_t nHeight = 0;    
     CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetScale() / 100.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
     if (cefImageData == nullptr) {
+        pTabItem->ClearIconData();
         return;
     }
     size_t nDataSize = cefImageData->GetSize();
     if (nDataSize == 0) {
+        pTabItem->ClearIconData();
         return;
     }
     ASSERT((int32_t)nDataSize == nHeight * nWidth * sizeof(uint32_t));
     if ((int32_t)nDataSize != nHeight * nWidth * sizeof(uint32_t)) {
+        pTabItem->ClearIconData();
         return;
     }
     std::vector<uint8_t> imageData;
@@ -734,6 +762,7 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImag
     nDataSize = cefImageData->GetData(imageData.data(), imageData.size(), 0);
     ASSERT(nDataSize == imageData.size());
     if (nDataSize != imageData.size()) {
+        pTabItem->ClearIconData();
         return;
     }
 

@@ -12,8 +12,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
-#include "duilib/Image/ImageDecoder.h"
-#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/ImageInfo.h"
 
 #include <shlwapi.h>
@@ -1387,18 +1386,21 @@ void WebView2Control::Impl::SetFavIconChangedCallback(FavIconChangedCallback cal
     }
 }
 
-static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t nWindowDpi, const DString& fileName,
+static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_t nWindowDpi, const DString& fileName,
                                     int32_t& nWidth, int32_t& nHeight, std::vector<uint8_t>& imageData)
 {
-    ui::ImageLoadAttribute imageLoadAttribute(_T(""), _T(""), false, false, 32);
-    imageLoadAttribute.SetImageFullPath(fileName);
-    uint32_t nFrameCount = 0;
-    ui::ImageDecoder decoder;
-    auto imageInfo = decoder.LoadImageData(pngImageData, imageLoadAttribute, true, 100, nWindowDpi, true, nFrameCount);
-    if (imageInfo == nullptr) {
-        return false;
+    ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
+    float fImageSizeScale = 1.0f;
+    if (nWindowDpi > 0) {
+        //按DPI缩放图片尺寸
+        fImageSizeScale = static_cast<float>(nWindowDpi) / 100.0f;
     }
-    ui::IBitmap* pBitmap = imageInfo->GetBitmap(0);
+    ImageDecodeParam decodeParam;
+    decodeParam.m_imageFilePath = FilePath(fileName);
+    decodeParam.m_fImageSizeScale = fImageSizeScale;
+    decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+    decodeParam.m_pFileData->swap(imageFileData);
+    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);
     if (pBitmap == nullptr) {
         return false;
     }
@@ -1458,11 +1460,11 @@ bool WebView2Control::Impl::DownloadFavIconImage()
     }
 
     int32_t nThreadIdentifier = ui::kThreadUI;
-    if (GlobalManager::Instance().Thread().HasThread(ui::kThreadWorker)) {
-        nThreadIdentifier = ui::kThreadWorker;
+    if (!GlobalManager::Instance().Thread().HasThread(ui::kThreadNetwork)) {
+        GlobalManager::Instance().StartInnerThread(ui::kThreadNetwork);        
     }
-    else if (GlobalManager::Instance().Thread().HasThread(ui::kThreadMisc)) {
-        nThreadIdentifier = ui::kThreadMisc;
+    if (GlobalManager::Instance().Thread().HasThread(ui::kThreadNetwork)) {
+        nThreadIdentifier = ui::kThreadNetwork;
     }
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, m_pControl->ToWeakCallback([this, strUrl]() {
             //转到子线程中，下载图标
@@ -1481,16 +1483,31 @@ bool WebView2Control::Impl::DownloadFavIconImage()
                 int32_t nWidth = 0;
                 int32_t nHeight = 0;
                 std::vector<uint8_t> imageData;
-                if (ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
-                    if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
-                        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
-                                                                    m_pControl->ToWeakCallback([this, nWidth, nHeight, imageData]() {
+                if (!ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
+                    imageData.clear();
+                    nWidth = 0;
+                    nHeight = 0;
+                }
+                if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                        m_pControl->ToWeakCallback([this, nWidth, nHeight, imageData]() {
                                 //转到UI线程执行回调函数
                                 if (m_favIconChangedCallback) {
                                     m_favIconChangedCallback(nWidth, nHeight, imageData);
                                 }
                             }));
-                    }                    
+                }
+            }
+            else {
+                //下载图标失败，需要给回调
+                if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                        m_pControl->ToWeakCallback([this]() {
+                                //转到UI线程执行回调函数
+                                if (m_favIconChangedCallback) {
+                                    m_favIconChangedCallback(0, 0, std::vector<uint8_t>());
+                                }
+                            }));
                 }
             }
         }));

@@ -225,10 +225,10 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
         }
 
         if (imageSize.cx <= 0) {
-            imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+            imageSize.cx = pItemImage->GetImageInfo()->GetWidth();
         }
         if (imageSize.cy <= 0) {
-            imageSize.cy = pItemImage->GetImageCache()->GetHeight();
+            imageSize.cy = pItemImage->GetImageInfo()->GetHeight();
         }
 
         UiRect rc = GetRect();
@@ -260,8 +260,8 @@ ImagePtr ListCtrlItem::LoadItemImage() const
         }
     }
     if (pItemImage != nullptr) {
-        LoadImageData(*pItemImage);
-        std::shared_ptr<ImageInfo> pItemImageCache = pItemImage->GetImageCache();
+        LoadImageInfo(*pItemImage);
+        std::shared_ptr<ImageInfo> pItemImageCache = pItemImage->GetImageInfo();
         if (pItemImageCache == nullptr) {
             pItemImage = nullptr;
         }
@@ -332,7 +332,7 @@ int32_t ListCtrlItem::GetItemPaddingLeft()
             }
         }
         if (imageSize.cx <= 0) {
-            imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+            imageSize.cx = pItemImage->GetImageInfo()->GetWidth();
         }
         nPaddingLeft += imageSize.cx;
         nPaddingLeft += GetIconSpacing();

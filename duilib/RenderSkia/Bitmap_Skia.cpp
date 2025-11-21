@@ -1,4 +1,5 @@
 #include "Bitmap_Skia.h"
+#include "duilib/Image/ImageUtil.h"
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkBitmap.h"
@@ -17,25 +18,64 @@ Bitmap_Skia::~Bitmap_Skia()
     m_pSkBitmap.reset();
 }
 
-bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight, 
-                       const void* pPixelBits, BitmapAlphaType alphaType)
+bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits,
+                       float fImageSizeScale, BitmapAlphaType alphaType)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if ((nWidth == 0) || (nHeight == 0)) {
         return false;
     }
 
-    std::vector<uint8_t> flipPixelBits;
-    if (!flipHeight) {
-        //避免图像是倒着的，此处对图片数据进行翻转处理（Skia似乎不支持flipHeight的情况）
-        ASSERT(pPixelBits != nullptr);
-        if (pPixelBits != nullptr) {
-            //需要对图片数据进行垂直翻转，否则图片是倒着的
-            flipPixelBits.resize(nWidth * nHeight * sizeof(uint32_t));
-            FlipPixelBits((const uint8_t*)pPixelBits, nWidth, nHeight, flipPixelBits);
-            pPixelBits = flipPixelBits.data();
-            flipHeight = true;
+    if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
+        //调整图像大小
+        const uint32_t nNewWidth = ImageUtil::GetScaledImageSize(nWidth, fImageSizeScale);
+        const uint32_t nNewHeight = ImageUtil::GetScaledImageSize(nHeight, fImageSizeScale);
+        if (pPixelBits == nullptr) {
+            //无图像数据
+            return InitImage(nNewWidth, nNewHeight, nullptr, alphaType);
         }
+        else {
+            //有图像数据，执行图片大小调整（无多余数据拷贝）
+            size_t nPixelBitsLen = static_cast<size_t>(nHeight) * nWidth * 4;
+            size_t nOutPixelBitsLen = static_cast<size_t>(nNewHeight) * nNewWidth * 4;
+
+            m_pSkBitmap->reset();
+            m_pSkBitmap->setInfo(SkImageInfo::Make(nNewWidth, nNewHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
+            m_pSkBitmap->allocPixels();
+
+            void* pOutPixelBits = nullptr;
+            SkPixmap pixmap;
+            if (m_pSkBitmap->peekPixels(&pixmap)) {
+                pOutPixelBits = pixmap.writable_addr();
+            }
+            ASSERT(pOutPixelBits != nullptr);
+            if (pOutPixelBits == nullptr) {
+                m_pSkBitmap->reset();
+                return false;
+            }
+            bool bRet = ImageUtil::ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
+                                                   (uint8_t*)pOutPixelBits, nOutPixelBitsLen, nNewWidth, nNewHeight);
+            if (!bRet) {
+                m_pSkBitmap->reset();
+                return false;
+            }
+            else {
+                //更新图片的透明通道数据
+                UpdateAlphaFlag((uint8_t*)pOutPixelBits);
+                return true;
+            }            
+        }
+    }
+    else {
+        return InitImage(nWidth, nHeight, pPixelBits, alphaType);
+    }
+}
+
+bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits, BitmapAlphaType alphaType)
+{
+    ASSERT((nWidth > 0) && (nHeight > 0));
+    if ((nWidth == 0) || (nHeight == 0)) {
+        return false;
     }
 
     m_pSkBitmap->reset();
@@ -49,6 +89,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     }
     ASSERT(pBits != nullptr);
     if (pBits == nullptr) {
+        m_pSkBitmap->reset();
         return false;
     }
     //复制图片数据到位图
@@ -59,18 +100,6 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     //更新图片的透明通道数据
     UpdateAlphaFlag((uint8_t*)pBits);
     return true;
-}
-
-void Bitmap_Skia::FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint32_t nHeight, std::vector<uint8_t>& flipBits)
-{
-    ASSERT(flipBits.size() == nWidth* nHeight*4);
-
-    const uint32_t dwEffWidth = nWidth * 4;//每行数据字节数, 按行复制数据
-    for (uint32_t row = 0; row < nHeight; ++row) {
-        uint8_t* dest = flipBits.data() + row * dwEffWidth;
-        const uint8_t* src = pPixelBits + (nHeight - 1 - row) * dwEffWidth;
-        ::memcpy(dest, src, dwEffWidth);
-    }
 }
 
 uint32_t Bitmap_Skia::GetWidth() const
@@ -128,7 +157,7 @@ IBitmap* Bitmap_Skia::Clone()
     ASSERT(pPixelBits != nullptr);
        
     IBitmap* pBitmap = new Bitmap_Skia();
-    if (!pBitmap->Init(nWidth, nHeight, true, pPixelBits, static_cast<BitmapAlphaType>(m_pSkBitmap->info().alphaType()))) {
+    if (!pBitmap->Init(nWidth, nHeight, pPixelBits, 1.0f, static_cast<BitmapAlphaType>(m_pSkBitmap->info().alphaType()))) {
         delete pBitmap;
         pBitmap = nullptr;
     }

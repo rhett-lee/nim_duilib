@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+】、<?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
     <!-- 字体说明："微软雅黑","宋体" 是Windows使用 -->
@@ -37,7 +37,12 @@
     <Font id="system_strikeout_18" name="system" size="18" strikeout="true"/>
     <Font id="system_strikeout_20" name="system" size="20" strikeout="true"/>
     <Font id="system_strikeout_22" name="system" size="22" strikeout="true"/>
+    <Font id="system_fullstyle_12" name="system" size="12" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_14" name="system" size="14" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_16" name="system" size="16" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_18" name="system" size="18" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_22" name="system" size="22" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="arial_12" name="arial" size="12"/>
     <Font id="arial_14" name="arial" size="14"/>
     <Font id="arial_16" name="arial" size="16"/>
@@ -197,7 +202,7 @@
                              selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' width='18' height='18' valign='center' fade='80'"/>
     <!--下拉框-->
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                        combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                        combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
@@ -209,18 +214,18 @@
                                             normal_image={file='public/combo/arrow_normal.svg' valign='center'} 
                                             hot_image={file='public/combo/arrow_hot.svg' valign='center'}"/>
     <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
-                               combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
+                               combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                                combo_tree_node_class="tree_node" 
                                combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                                combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
-                              dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"
+                              dropbox="padding='0,0,0,0' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='0,0,0,0' vscrollbar='true'"
                               dropbox_item_class="width={stretch} height={24} text_padding={20,0,2,1} text_align={left,vcenter} 
                                                   normal_image={file='public/checkbox/checkbox-outline-unchecked.svg' valign='center'} 
                                                   selected_normal_image={file='public/checkbox/checkbox-outline-checked.svg' valign='center'}" 
                               selected_item_class="width={auto} height={22} margin={4,2,4,2} bkcolor={bk_menuitem_selected} text_padding={2,1,2,1}"/>
     <Class name="combo_button" padding="1,1,1,1" border_size="1" hot_border_color="blue" hot_color="#FFE5F3FF" pushed_color="#FFCCE8FF"
-                               combo_box_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray'" 
+                               combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray'" 
                                left_button_class="height={stretch} width={stretch} padding={0,0,1,0} border_size={0,0,1,0} valign={center} 
                                                   hot_border_color={blue} 
                                                   pushed_border_color={blue}                                                   
@@ -270,7 +275,7 @@
     <Class name="btn_wnd_restore_11" normal_image="file='public/button/window-restore.svg' 
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_fullscreen_11" normal_image="file='public/button/window-fullscreen.svg'
-                                 width='24' height='24' valign='center' halign='center' padding='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center' margin='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_settings_11" normal_image="file='public/button/btn_setting.svg' 
                                  width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
      
@@ -298,19 +303,19 @@
                                         selected_normal_color="bk_listitem_selected" 
                                         icon_image_right_space="4" 
                                         fadehot="false"/>
-    <Class name="tree_node_checkbox" normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="tree_node_checkbox" normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
+                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center' fade='80'"
                                      check_box_image_right_space="6"/>
-    <Class name="tree_node_expand" expand_normal_image="file='public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
-                                   expand_hot_image="file='public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
-                                   expand_disabled_image="file='public/tree/expand_normal.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                   collapse_normal_image="file='public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center'" 
-                                   collapse_hot_image="file='public/tree/collapse_hot.svg' padding='2,0,0,0' valign='center'" 
-                                   collapse_disabled_image="file='public/tree/collapse_normal.svg' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="tree_node_expand" expand_normal_image="file='public/tree/expand_normal.svg' margin='2,0,0,0' valign='center'" 
+                                   expand_hot_image="file='public/tree/expand_hot.svg' margin='2,0,0,0' valign='center'" 
+                                   expand_disabled_image="file='public/tree/expand_normal.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                   collapse_normal_image="file='public/tree/collapse_normal.svg' margin='2,0,0,0' valign='center'" 
+                                   collapse_hot_image="file='public/tree/collapse_hot.svg' margin='2,0,0,0' valign='center'" 
+                                   collapse_disabled_image="file='public/tree/collapse_normal.svg' margin='2,0,0,0' valign='center' fade='80'"
                                    icon_image_right_space="4"/>
     <!--进度条通用样式-->
     <Class name="progress_horizontal_blue" valign="center" horizontal="true" height="3" width="stretch" value="0" max="100" min="0" 
@@ -442,12 +447,12 @@
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="0,4,0,2" bkcolor="splitline_level1" halign="right"/>
     <!--ListCtrl中的CheckBox样式，应用于Header和ListCtrl数据-->
     <Class name="list_ctrl_checkbox" valign="center" halign="left"
-                                     normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' padding='2,0,0,0' valign='center' fade='80'"/>
+                                     normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
+                                     disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='public/checkbox/checkbox-outline-mixed.svg' margin='2,0,0,0' valign='center' fade='80'"/>
     <!--ListCtrl中的ReportView的样式-->
     <Class name="list_ctrl_report_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
                                       child_margin_y="0" paint_selected_colors="true"
@@ -495,7 +500,7 @@
                                 close_button_class="tab_ctrl_item_close"
                                 line_class="tab_ctrl_item_line"/>
     <Class name="tab_ctrl_item_icon" width="16" height="16" valign="center" mouse="false"/>
-    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,24,0" valign="center" font="system_12" auto_tooltip="true" mouse="false"/>
+    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,12,0" valign="center" font="system_12" auto_tooltip="true" mouse="false"/>
     <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,2,10,8"
                 float="true" halign="right" valign="center" visible="false" 
                 normal_image="file='public/button/btn_close.svg' height='16' width='16' halign='center' valign='center'"

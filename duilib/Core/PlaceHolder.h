@@ -343,6 +343,24 @@ public:
     */
     void SetRect(const UiRect& rc);
 
+    /** 设置单元格合并属性（占几行），仅在GridLayout布局中生效
+    */
+    void SetRowSpan(int32_t rowSpan);
+
+    /** 获取单元格合并属性（占几行），仅在GridLayout布局中生效
+    * @return 返回值 >= 1
+    */
+    int32_t GetRowSpan() const;
+
+    /** 设置单元格合并属性（占几列），仅在GridLayout布局中生效
+    */
+    void SetColumnSpan(int32_t colSpan);
+
+    /** 获取单元格合并属性（占几列），仅在GridLayout布局中生效
+    * @return 返回值 >= 1
+    */
+    int32_t GetColumnSpan() const;
+
     /** 重绘控件
     */
     virtual void Invalidate();
@@ -351,6 +369,11 @@ public:
     * @param [in] rc 需要重绘的区域
     */
     virtual void InvalidateRect(const UiRect& rc);
+
+    /** 获取本控件包含box-shadow的绘制扩展区域
+    * @return 返回rc + box-shadow 扩展后的总区域，如果无box-shadow则返回rc
+    */
+    virtual UiRect GetBoxShadowExpandedRect(const UiRect& rc) const;
 
     /** 控件布局重排
      */
@@ -371,22 +394,6 @@ public:
     /** 设置是否已经排列过
      */
     void SetArranged(bool bArranged);
-
-    /** 设置是否使用缓存
-     */
-    void SetUseCache(bool bUseCache);
-
-    /** 判断是否使用缓存
-     */
-    bool IsUseCache() { return m_bUseCache; }
-
-    /** 设置缓存脏标志位
-     */
-    void SetCacheDirty(bool bCacheDirty);
-
-    /** 判断缓存脏标志位值
-     */
-    bool IsCacheDirty() { return m_bCacheDirty; }
 
     /** 设置是否对绘制范围做剪裁限制
     * @param [in] clip 设置 true 为需要，否则为不需要，见绘制函数
@@ -446,6 +453,38 @@ protected:
     virtual void OnInit();
 
 private:
+    /** 确保不常用是数据创建
+    */
+    void CheckPlaceHolderData();
+
+private:
+    /** 不常用数据
+    */
+    struct TPlaceHolderData
+    {
+        //构造函数
+        TPlaceHolderData();
+
+        //获取与父控件的相对位置(仅当控件为浮动控件时有效)
+        UiSize m_uiFloatPos;
+
+        //控件大小最小值
+        UiSize m_cxyMin;
+
+        //控件大小最大值
+        UiSize m_cxyMax;
+
+        //单元格合并属性（默认占1行），仅在GridLayout布局中生效
+        int16_t m_rowSpan;
+
+        //单元格合并属性（默认占1列），仅在GridLayout布局中生效
+        int16_t m_colSpan;
+
+        //当父控件位置和大小调整时，保持浮动控件相对父控件的位置不变
+        bool m_bKeepFloatPos;
+    };
+
+private:
     //控件名称，用于查找控件等操作
     UiString m_sName;
 
@@ -458,20 +497,14 @@ private:
     //控件位置与大小
     UiRect m_uiRect;
 
-    //获取与父控件的相对位置(仅当控件为浮动控件时有效)
-    UiSize m_uiFloatPos;
-
     //外部设置的控件大小
     UiFixedSize m_cxyFixed;
 
     //估算控件大小的结果(仅当控件的宽度或者高度为auto时，才会用到此值)
-    UiEstResult* m_pEstResult;
+    std::unique_ptr<UiEstResult> m_pEstResult;
 
-    //控件大小最小值
-    UiSize m_cxyMin;
-
-    //控件大小最大值
-    UiSize m_cxyMax;
+    //不常用数据
+    std::unique_ptr<TPlaceHolderData> m_pData;
 
     //控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
     UiMargin16 m_rcMargin;
@@ -480,10 +513,10 @@ private:
     UiPadding16 m_rcPadding;
 
     //控件水平对齐方式(HorAlignType)
-    int8_t m_horAlignType;
+    HorAlignType m_horAlignType;
 
     //控件垂直对齐方式(VerAlignType)
-    int8_t m_verAlignType;
+    VerAlignType m_verAlignType;
 
     //是否需要重新评估大小
     bool m_bReEstimateSize;
@@ -496,20 +529,8 @@ private:
     //控件是否为浮动属性
     bool m_bFloat;
 
-    //当父控件位置和大小调整时，保持浮动控件相对父控件的位置不变
-    bool m_bKeepFloatPos;
-
     //是否需要布局重排
     bool m_bIsArranged;
-
-    //是否使用绘制缓存
-    // 如果为true，每个控件自己保存一份绘制缓存，会占用较多内存，理论上会提升绘制性能，但实际未测试出效果）
-    // 如果为false，表示无绘制缓存，内存占用比较少。
-    // TODO: 这个模式下内存占有率很高，对绘制性能提升不明显，未来可能会删除掉这个逻辑，以简化代码。
-    bool m_bUseCache;
-
-    //缓存是否存在脏标志值
-    bool m_bCacheDirty;
 
     //是否对绘制范围做剪裁限制
     bool m_bClip;

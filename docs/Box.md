@@ -1,80 +1,209 @@
-﻿## 布局的属性
-| 类名称 | 基类名称 |关联头文件| 用途 |
-| :--- | :--- |:--- | :--- |
-| Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 自由布局（浮动布局）|
-| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | 水平布局|
-| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | 垂直布局|
-| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | 水平瓦片布局|
-| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | 垂直瓦片布局|
-| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | 虚表水平布局|
-| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表垂直布局|
-| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局|
-| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
+﻿## 一、控件（Control）、容器（Box）与布局（Layout）的基本概念
+### 1. 控件（Control）    
+   控件是界面库中的最基础的组件，其类名是Control，其基类为PlaceHolder。    
+   控件(Control)包含如下基础属性：
+* 可见性：visible
+* 启用状态：enabled
+* 位置：x,y
+* 大小：width, height
+* 圆角大小：border_round
+* 边框大小：border_size
+* 边框样式：border_dash_style
+* 边框颜色：border_color
+* 对齐方式：halign/valign
+* 外边距：margin
+* 内边距：padding
+* 背景色：bkcolor
+* 背景图片：bkimage
+* 工具提示：tooltip_text
+* 光标样式：cursor_type
+* 透明度：alpha
+* 拖放操作：enable_drag_drop/enable_drop_file/drop_file_types
+* 图片动画操作：start_image_animation/stop_image_animation/set_image_animation_frame
+* 其他属性参见相关文档或者源代码
+   
+### 2. 容器（Box）    
+  容器（Box）是负责管理包含在容器中的子控件的位置大小等属性的类，包含一系列的子类（如：HBox/VBox等），其基类是控件（Control），具有控件的一切属性。    
+  每种容器有不同的布局方案，其布局功能的实现是由布局（Layout）类及其子类实现的，每个容器（Box）都聚合了一个布局（Layout）对象，负责实现具体的布局工作。    
+  按照布局方案不同，容器（Box）的分类如下：    
+| 类名称（容器） | 基类名称 |关联头文件| 默认布局方案 | 功能说明 |
+| :---     | :---   |:--- | :--- | :--- |
+| Box      | Control|[duilib/Core/Box.h](../duilib/Core/Box.h) | 浮动布局（Layout） | 容器基类(Container)，子控件按浮动布局排列|
+| HBox     | Box|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平布局（HLayout） | 子控件在水平方向上，依次排列，不换行|
+| VBox     | Box|[duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直布局（VLayout） | 子控件在垂直方向上，依次排列，不换行|
+| HFlowBox | Box|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平流式布局（HFlowLayout） | 子控件在水平方向上，依次排列，自动换行|
+| VFlowBox | Box|[duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直流式布局（VFlowLayout） | 子控件在垂直方向上，依次排列，自动换行|
+| HTileBox | Box|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 水平瓦片布局（HTileLayout） |水平瓦片布局的容器，支持设置行数|
+| VTileBox | Box|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 垂直瓦片布局（VTileLayout） |垂直瓦片布局的容器，支持设置列数|
+| ScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 浮动布局（Layout）     | 支持垂直或水平滚动条的Box容器 |
+| HScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局（HLayout）   | 支持垂直或水平滚动条的HBox容器 |
+| VScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局（VLayout）   | 支持垂直或水平滚动条的VBox容器 |
+| HFlowScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平流式布局（HFlowLayout）| 支持垂直或水平滚动条的HFlowBox容器 |
+| VFlowScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直流式布局（VFlowLayout）| 支持垂直或水平滚动条的VFlowBox容器 |
+| HTileScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局（HTileLayout）| 支持垂直或水平滚动条的HTileBox容器 |
+| VTileScrollBox | Box|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局（VTileLayout）| 支持垂直或水平滚动条的VTileBox容器 |
+| ListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 浮动布局（Layout）     | 支持垂直或水平滚动条的列表容器|
+| HListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局（HLayout）   | 支持垂直或水平滚动条的列表容器|
+| VListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直布局（VLayout）   | 支持垂直或水平滚动条的列表容器 |
+| HTileListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平瓦片布局（HTileLayout）| 支持垂直或水平滚动条的列表容器 |
+| VTileListBox | ScrollBox|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直瓦片布局（VTileLayout）| 支持垂直或水平滚动条的列表容器 |
+| VirtualListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 浮动布局（Layout）     | 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| VirtualHListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平布局（HLayout）   | 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| VirtualVListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 垂直布局（VLayout）   | 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| VirtualHTileListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 水平瓦片布局（HTileLayout）| 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| VirtualVTileListBox | ListBox|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 垂直瓦片布局（VTileLayout）| 虚表实现的ListBox，支持大数据量，支持滚动条 |
+| TabBox | Box|[duilib/Box/TabBox.h](../duilib/Box/TabBox.h) | 浮动布局（Layout） | 页管理容器，内部的多个子控件，只有一个可见，其他是隐藏的，可动态切换 |
+| GridBox | Box|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局（GridLayout） | 网格布局容器，支持单元格合并 |
+| GridScrollBox | ScrollBox|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局（GridLayout） | 网格布局容器，支持单元格合并，支持滚动条 |
+| BoxDragable | Box|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 浮动布局（Layout）    | 支持子控件的拖入/拖出操作的容器 |
+| HBoxDragable | HBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 水平布局（HLayout） | 支持子控件的拖入/拖出操作的容器 |
+| VBoxDragable | VBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 垂直布局（VLayout） | 支持子控件的拖入/拖出操作的容器 |
 
-1. 自由布局（Layout，浮动布局）
+容器（Box）包含如下基础属性：    
+* 子控件之间的间隔（X方向和Y方向）: child_margin_x/child_margin_y
+* 子控件的对齐方式（水平对齐与垂直对齐）：child_halign/child_valign
+* 外边距：margin
+* 内边距：padding
+* 子控件是否可以鼠标操作：mouse_child
+* 是否支持拖拽拖出该容器：drag_out_id
+* 是否支持拖拽投放进入该容器: drop_in_id
+* 其他属性：不同容器类型有不同的属性
+
+### 3. 布局（Layout）    
+  布局（Layout）是负责容器布局方案的具体实现代码，聚合在容器（Box）对象中使用，应用层一般不直接使用。    
+  布局可以继承基类，在子类中实现个性化的布局方案，通过使用`Layout* Box::ResetLayout(Layout* pNewLayout)`函数来替换原来容器的布局实现。    
+  按照布局方案不同，布局（Layout）的分类如下：    
+| 类名称（布局） | 基类名称 |关联头文件| 布局方案说明 |
+| :--- | :--- |:--- | :--- |
+| Layout | |[duilib/Layout/Layout.h](../duilib/Layout/Layout.h) | 浮动布局：子控件之间无关联，均使用自身的属性设置控件位置和大小 |
+| HLayout |Layout |[duilib/Layout/HLayout.h](../duilib/Layout/HLayout.h) | 水平布局：子控件在水平方向上，依次排列，不换行|
+| VLayout |Layout |[duilib/Layout/VLayout.h](../duilib/Layout/VLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，不换行|
+| HFlowLayout |Layout |[duilib/Layout/HFlowLayout.h](../duilib/Layout/HFlowLayout.h) | 水平布局：子控件在水平方向上，依次排列，自动换行|
+| VFlowLayout |Layout |[duilib/Layout/VFlowLayout.h](../duilib/Layout/VFlowLayout.h) | 垂直布局：子控件在垂直方向上，依次排列，自动换行|
+| HTileLayout |Layout| [duilib/Layout/HTileLayout.h](../duilib/Layout/HTileLayout.h) | 水平瓦片布局，支持设置行数|
+| VTileLayout |Layout| [duilib/Layout/VTileLayout.h](../duilib/Layout/VTileLayout.h) | 垂直瓦片布局，支持设置列数|
+| GridLayout  |Layout |[duilib/Layout/GridLayout.h](../duilib/Layout/GridLayout.h) | 网格布局|
+| VirtualHLayout |HLayout| [duilib/Layout/VirtualHLayout.h](../duilib/Layout/VirtualHLayout.h) | 虚表水平布局，单行|
+| VirtualVLayout |VLayout| [duilib/Layout/VirtualVLayout.h](../duilib/Layout/VirtualVLayout.h) | 虚表垂直布局，单列|
+| VirtualHTileLayout |HTileLayout| [duilib/Layout/VirtualHTileLayout.h](../duilib/Layout/VirtualHTileLayout.h) | 虚表水平瓦片布局，支持设置行数|
+| VirtualVTileLayout |VTileLayout| [duilib/Layout/VirtualVTileLayout.h](../duilib/Layout/VirtualVTileLayout.h) | 虚表垂直瓦片布局，支持设置列数|
+
+容器在布局子控件时，关联的子控件（可以是Control或者Box及其子类）属性主要有：    
+* 容器的内边距：padding
+* 容器关联布局（Layout）的属性：子控件之间的间隔（水平方向：child_margin_x、垂直方向：child_margin_y）
+* 容器关联布局（Layout）的属性：内容对齐方式（水平方向：child_halign、垂直方向：child_valign）
+* 子控件自身的对齐方式：水平方向（halign）、垂直方向（valign）
+* 子控件自身的外边距：margin
+* 子控件自身的单元格合并属性：row_span属性，单元格合并属性（占几行），仅在GridLayout布局中生效
+* 子控件自身的单元格合并属性：col_span属性，单元格合并属性（占几列），仅在GridLayout布局中生效
+
+## 二、布局（Layout）的属性
+### 1. 浮动布局（Layout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | 子控件之间的额外边距: X 轴方向 和 Y 轴方向同时设置为相同值|
-| child_margin_x | 0 | int | 子控件之间的额外边距: X 轴方向 |
-| child_margin_y | 0 | int | 子控件之间的额外边距: Y 轴方向|
-2. 水平布局（HLayout）：可用属性继承自由布局的属性
-3. 垂直布局（VLayout）：可用属性继承自由布局的属性
-4. 水平瓦片布局（HTileLayout）：可用属性继承自由布局的属性
+| child_margin   | 0 | int | 子控件之间的间隔: X 轴方向 和 Y 轴方向同时设置为相同值|
+| child_margin_x | 0 | int | 子控件之间的间隔: X 轴方向 |
+| child_margin_y | 0 | int | 子控件之间的间隔: Y 轴方向 |
+| child_valign   |   | string | 子控件的垂直方向对齐方式，可选值："top","center","bottom" |
+| child_halign   |   | string | 子控件的水平方向对齐方式，可选值："left","center","right" |
+| child_align    |   | string | 同时设置子控件的水平方向和垂直方向的对齐方式，功能与child_valign和child_halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
+
+### 2. 水平布局（HLayout）
+可用属性继承`浮动布局（Layout）`的属性
+
+### 3. 垂直布局（VLayout）
+可用属性继承`浮动布局（Layout）`的属性
+
+### 4. 水平流式布局（HFlowLayout）
+可用属性继承`浮动布局（Layout）`的属性
+
+### 5. 垂直流式布局（VFlowLayout）
+可用属性继承`浮动布局（Layout）`的属性
+
+### 6. 水平瓦片布局（HTileLayout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
 | rows | 0 | int | 如果设置为"auto"，表示自动计算行数，如果为数值，表示设置为固定行数|
 | scale_down | true | bool | 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内|
 | auto_calc_item_size | false | bool | 当设置固定行数时生效，根据容器的总高度自动计算瓦片高度|
-5. 垂直瓦片布局（VTileLayout）：可用属性继承自由布局的属性
+
+同时，可用属性继承`浮动布局（Layout）`的属性
+
+### 7. 垂直瓦片布局（VTileLayout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
 | columns | 0 | int | 如果设置为"auto"，表示自动计算列数，如果为数值，表示设置为固定列数|
 | scale_down | true | bool | 当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内|
 | auto_calc_item_size | false | bool | 当设置固定列数时生效，根据容器的总宽度自动计算瓦片宽度|
-6. 虚表水平布局（VirtualHLayout）：可用属性继承水平布局的属性
+
+同时，可用属性继承`浮动布局（Layout）`的属性
+
+### 8. 网格布局（GridLayout）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| rows | 0 | int | 网格行数(0表示自动计算)|
+| columns | 0 | int | 网格列数(0表示自动计算)|
+| grid_width | 0 | int | 网格单元格宽度(0表示自动计算) |
+| grid_height | 0 | int | 网格单元格高度(0表示自动计算) |
+| scale_down | false | bool | 当控件内容超出边界时，是否按比例缩小<br>true  使用子控件的大小，若超出网格大小，按比例缩小，以使控件内容完全显示在网格内<br>false 忽略子控件自身的大小，子控件的大小与网格大小一致 |
+
+同时，可用属性继承`浮动布局（Layout）`的属性
+
+### 9. 虚表水平布局（VirtualHLayout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
 | auto_calc_item_size | false | bool | 根据容器的总高度自动计算瓦片高度|
-7. 虚表垂直布局（VirtualVLayout）：可用属性继承垂直布局的属性
+
+同时，可用属性继承`水平布局（HLayout）`的属性
+
+### 10. 虚表垂直布局（VirtualVLayout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
 | auto_calc_item_size | false | bool | 根据容器的总宽度自动计算瓦片宽度|
-8. 虚表水平瓦片布局（VirtualHLayout）：可用属性继承水平瓦片布局的属性
-9. 虚表垂直瓦片布局（VirtualVLayout）：可用属性继承垂直瓦片布局的属性
 
-## Box的属性
+同时，可用属性继承`垂直布局（VLayout）`的属性
+
+### 11. 虚表水平瓦片布局（VirtualHTileLayout）
+可用属性继承`水平瓦片布局（HTileLayout）`的属性
+
+### 12. 虚表垂直瓦片布局（VirtualVTileLayout）
+可用属性继承`垂直瓦片布局（VTileLayout）`的属性
+
+## 三、各种容器的属性
+### 1. 容器（Box）的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | 子控件之间的额外边距: X 轴方向 和 Y 轴方向同时设置为相同值|
-| child_margin_x | 0 | int | 子控件之间的额外边距: X 轴方向 |
-| child_margin_y | 0 | int | 子控件之间的额外边距: Y 轴方向|
+| child_margin   | 0 | int | 布局属性，子控件之间的间隔: X 轴方向 和 Y 轴方向同时设置为相同值|
+| child_margin_x | 0 | int | 布局属性，子控件之间的间隔: X 轴方向 |
+| child_margin_y | 0 | int | 布局属性，子控件之间的间隔: Y 轴方向 |
+| child_valign   |   | string | 布局属性，子控件的垂直方向对齐方式，可选值："top","center","bottom" |
+| child_halign   |   | string | 布局属性，子控件的水平方向对齐方式，可选值："left","center","right" |
+| child_align    |   | string | 布局属性，同时设置子控件的水平方向和垂直方向的对齐方式，功能与child_valign和child_halign相同。<br>可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | margin | 0,0,0,0 | rect | 外边距,如(2,2,2,2) |
 | padding | 0,0,0,0 | rect | 内边距,如(2,2,2,2) |
-| mouse_child | true | bool | 本控件的子控件是否可以响应用户操作, true 或者 false|
+| mouse_child | true | bool | 子控件是否支持鼠标操作, true 或者 false|
 | drag_out_id | 0 | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
 | drop_in_id | 0 | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
 
 Box 控件继承了 `Control` 属性，更多可用属性请参考：基类[Control(基础控件)的属性](./Control.md)
 
-## VBox的属性
+### 2. VBox的属性
 VBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## HBox的属性
+### 3. HBox的属性
 HBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## TabBox的属性
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| fade_switch | false | bool | 当切换页面时是否使用动画效果, 如(false) |
-| selected_id | 0 | int | 默认选中的页面id, 如(0) |
+### 4. VFlowBox的属性
+VFlowBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-TabBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+### 5. HFlowBox的属性
+HFlowBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## VTileBox的属性
+### 6. VTileBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -83,7 +212,7 @@ TabBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
 VTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## HTileBox的属性
+### 7. HTileBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -92,7 +221,7 @@ VTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 
 HTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## ScrollBox的属性
+### 8. ScrollBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | vscrollbar | false | bool | 是否使用竖向滚动条,如(true) |
@@ -110,13 +239,19 @@ HTileBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 
 ScrollBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## VScrollBox的属性
+### 9. VScrollBox的属性
 VScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
-## HScrollBox的属性
+### 10. HScrollBox的属性
 HScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
-## VTileScrollBox的属性
+### 11. VFlowScrollBox的属性
+VFlowScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
+
+### 12. HFlowScrollBox的属性
+HFlowScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
+
+### 13. VTileScrollBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -125,7 +260,7 @@ HScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`Scro
 
 VTileScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
-## HTileScrollBox的属性
+### 14. HTileScrollBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -134,7 +269,7 @@ VTileScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`
 
 HTileScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
-## ListBox的属性
+### 15. ListBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | multi_select | false | bool | 是否支持多选 |
@@ -151,13 +286,13 @@ HTileScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`
 
 ListBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
-## VListBox的属性
+### 16. VListBox的属性
 VListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
-## HListBox的属性
+### 17. HListBox的属性
 HListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
-## VTileListBox的属性
+### 18. VTileListBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -166,7 +301,7 @@ HListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`
 
 VTileListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
-## HTileListBox的属性
+### 19. HTileListBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -175,16 +310,16 @@ VTileListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`List
 
 HTileListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
-## VirtualListBox的属性
+### 20. VirtualListBox的属性
 VirtualListBox 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
-## VirtualVListBox的属性
+### 21. VirtualVListBox的属性
 VirtualVListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`VirtualListBox`的属性
 
-## VirtualHListBox的属性
+### 22. VirtualHListBox的属性
 VirtualHListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`VirtualListBox`的属性
 
-## VirtualVTileListBox的属性
+### 23. VirtualVTileListBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -193,7 +328,7 @@ VirtualHListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请�
 
 VirtualVTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`VirtualListBox`的属性
 
-## VirtualHTileListBox的属性
+### 24. VirtualHTileListBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | item_size | 0,0 | size | 子项大小, 该宽度和高度，是包含了控件的外边距和内边距的，比如"100,40"|
@@ -202,7 +337,37 @@ VirtualVTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性
 
 VirtualHTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性请参考`VirtualListBox`的属性
 
-## BoxDragable的属性
+### 25. TabBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| fade_switch | false | bool | 当切换页面时是否使用动画效果, 取值："false" 或 "true" |
+| selected_id | 0 | int | 默认选中的页面id |
+
+TabBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+### 26. GridBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| rows | 0 | int | 网格行数(0表示自动计算)|
+| columns | 0 | int | 网格列数(0表示自动计算)|
+| grid_width | 0 | int | 网格单元格宽度(0表示自动计算) |
+| grid_height | 0 | int | 网格单元格高度(0表示自动计算) |
+| scale_down | false | bool | 当控件内容超出边界时，是否按比例缩小<br>true  使用子控件的大小，若超出网格大小，按比例缩小，以使控件内容完全显示在网格内<br>false 忽略子控件自身的大小，子控件的大小与网格大小一致 |
+
+GridBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+### 27. GridScrollBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| rows | 0 | int | 网格行数(0表示自动计算)|
+| columns | 0 | int | 网格列数(0表示自动计算)|
+| grid_width | 0 | int | 网格单元格宽度(0表示自动计算) |
+| grid_height | 0 | int | 网格单元格高度(0表示自动计算) |
+| scale_down | false | bool | 当控件内容超出边界时，是否按比例缩小<br>true  使用子控件的大小，若超出网格大小，按比例缩小，以使控件内容完全显示在网格内<br>false 忽略子控件自身的大小，子控件的大小与网格大小一致 |
+
+GridScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
+
+### 28. BoxDragable的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | drag_order | true | bool | 是否支持拖动调整顺序（在同一个容器内） |
@@ -211,11 +376,11 @@ VirtualHTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性
 
 BoxDragable 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
-## HBoxDragable的属性
+### 29. HBoxDragable的属性
 HBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
 HBoxDragable 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
-## VBoxDragable的属性
+### 30. VBoxDragable的属性
 VBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
 VBoxDragable 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 

@@ -188,32 +188,33 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
 
 void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
 {
-    if ((cefWindow == nullptr) || (cursor == nullptr)) {
-        return;
-    }
+    // 该函数暂时用不到，注释掉了
+    // if ((cefWindow == nullptr) || (cursor == nullptr)) {
+    //     return;
+    // }
     
-    // 将 CEF 窗口句柄转换为 NSView*
-    NSView* cefView = static_cast<NSView*>(cefWindow);
-    // 将 CEF 光标句柄转换为 NSCursor*
-    NSCursor* nsCursor = static_cast<NSCursor*>(cursor);
+    // // 将 CEF 窗口句柄转换为 NSView*
+    // NSView* cefView = static_cast<NSView*>(cefWindow);
+    // // 将 CEF 光标句柄转换为 NSCursor*
+    // NSCursor* nsCursor = static_cast<NSCursor*>(cursor);
     
-    // 获取视图所在的窗口
-    NSWindow* window = [cefView window];
-    if (!window) {
-        return;
-    }
+    // // 获取视图所在的窗口
+    // NSWindow* window = [cefView window];
+    // if (!window) {
+    //     return;
+    // }
     
-    // 确保在主线程操作 UI 元素
-    auto setCursorBlock = ^{        
-        // 对于视图范围的光标，可以使用 NSCursor 的 set 方法
-         [nsCursor set];
-    };
+    // // 确保在主线程操作 UI 元素
+    // auto setCursorBlock = ^{        
+    //     // 对于视图范围的光标，可以使用 NSCursor 的 set 方法
+    //      [nsCursor set];
+    // };
     
-    if ([NSThread isMainThread]) {
-        setCursorBlock();
-    } else {
-        dispatch_sync(dispatch_get_main_queue(), setCursorBlock);
-    }
+    // if ([NSThread isMainThread]) {
+    //     setCursorBlock();
+    // } else {
+    //     dispatch_sync(dispatch_get_main_queue(), setCursorBlock);
+    // }
 }
 
 void RemoveCefWindowFromParent(CefWindowHandle /*cefWindow*/)

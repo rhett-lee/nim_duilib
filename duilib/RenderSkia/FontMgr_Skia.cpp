@@ -20,6 +20,7 @@
     #include "include/ports/SkTypeface_mac.h"
 #else
     #include "include/ports/SkFontMgr_fontconfig.h"
+    #include "include/ports/SkFontScanner_FreeType.h"
 #endif
 
 #include "SkiaHeaderEnd.h"
@@ -200,7 +201,7 @@ FontMgr_Skia::FontMgr_Skia()
     m_impl->m_pSkFontMgr = SkFontMgr_New_CoreText(nullptr);  // 使用nullptr表示系统默认字体集
 #else
     //Linux系统, FreeBSD系统
-    m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr);
+    m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr, SkFontScanner_Make_FreeType());
 #endif
 
     ASSERT(m_impl->m_pSkFontMgr != nullptr);
@@ -427,6 +428,11 @@ void FontMgr_Skia::DeleteSkFont(SkFont* pSkFont)
     if (pSkFont != nullptr) {
         delete pSkFont;
     }
+}
+
+void* FontMgr_Skia::GetSkiaFontMgrPtr() const
+{
+    return &(m_impl->m_pSkFontMgr);
 }
 
 } // namespace ui

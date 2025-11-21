@@ -134,11 +134,17 @@ cef_log_severity_t CefManager::GetLogSeverity() const
     return m_logSeverity;
 }
 
+bool CefManager::InitEnv()
+{
+    return true;
+}
+
 bool CefManager::Initialize(bool bEnableOffScreenRendering,
                             const DString& appName,
                             int /*argc*/,
                             char** /*argv*/,
-                            OnCefSettingsEvent callback)
+                            OnCefSettingsEvent callback,
+                            int32_t& /*nExitCode*/)
 {
     ASSERT(!appName.empty());
     ASSERT(!m_bCefInit);
@@ -387,6 +393,37 @@ void CefManager::SetCefDoMessageLoopWorkDelayMs(int32_t nCefDoMessageLoopWorkDel
 int32_t CefManager::GetCefDoMessageLoopWorkDelayMs() const
 {
     return m_nCefDoMessageLoopWorkDelayMs;
+}
+
+namespace {
+
+    // These flags must match the Chromium values.
+    const char kProcessType[] = "type";
+    const char kRendererProcess[] = "renderer";
+#if defined(DUILIB_BUILD_FOR_LINUX)
+    const char kZygoteProcess[] = "zygote";
+#endif
+
+}  // namespace
+
+CefManager::ProcessType CefManager::GetProcessType(CefRefPtr<CefCommandLine> commandLine)
+{
+    // The command-line flag won't be specified for the browser process.
+    if ((commandLine == nullptr) || !commandLine->HasSwitch(kProcessType)) {
+        return BrowserProcess;
+    }
+
+    const std::string& processType = commandLine->GetSwitchValue(kProcessType);
+    if (processType == kRendererProcess) {
+        return RendererProcess;
+    }
+#if defined(DUILIB_BUILD_FOR_LINUX)
+    else if (processType == kZygoteProcess) {
+        return ZygoteProcess;
+    }
+#endif
+
+    return OtherProcess;
 }
 
 } //namespace ui

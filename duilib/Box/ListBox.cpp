@@ -2,8 +2,8 @@
 #include "ListBoxHelper.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Box/VirtualHTileLayout.h"
-#include "duilib/Box/VirtualVTileLayout.h"
+#include "duilib/Layout/VirtualHTileLayout.h"
+#include "duilib/Layout/VirtualVTileLayout.h"
 
 namespace ui 
 {
@@ -1844,15 +1844,7 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
 
 bool ListBox::IsHorizontalLayout() const
 {
-    LayoutType type = GetLayout()->GetLayoutType();
-    bool bHorizontal = false;
-    if ((type == LayoutType::HLayout) ||
-        (type == LayoutType::HTileLayout) ||
-        (type == LayoutType::VirtualHLayout) ||
-        (type == LayoutType::VirtualHTileLayout)) {
-        bHorizontal = true;
-    }
-    return bHorizontal;
+    return GetLayout()->IsHLayout();
 }
 
 bool ListBox::IsHorizontalScrollBar() const

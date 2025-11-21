@@ -62,57 +62,64 @@
 
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
-| Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 自由布局（浮动布局）|
-| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | 水平布局|
-| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | 垂直布局|
-| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | 水平瓦片布局|
-| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | 垂直瓦片布局|
-| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | 虚表水平布局|
-| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | 虚表垂直布局|
-| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | 虚表水平瓦片布局|
-| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
+| Layout | |[duilib/Layout/Layout.h](../duilib/Layout/Layout.h) | 浮动布局|
+| HLayout |Layout |[duilib/Layout/HLayout.h](../duilib/Layout/HLayout.h) | 水平布局|
+| VLayout |Layout |[duilib/Layout/VLayout.h](../duilib/Layout/VLayout.h) | 垂直布局|
+| HFlowLayout |Layout |[duilib/Layout/HFlowLayout.h](../duilib/Layout/HFlowLayout.h) | 水平流式布局|
+| VFlowLayout |Layout |[duilib/Layout/VFlowLayout.h](../duilib/Layout/VFlowLayout.h) | 垂直流式布局|
+| HTileLayout |Layout| [duilib/Layout/HTileLayout.h](../duilib/Layout/HTileLayout.h) | 水平瓦片布局|
+| VTileLayout |Layout| [duilib/Layout/VTileLayout.h](../duilib/Layout/VTileLayout.h) | 垂直瓦片布局|
+| VirtualHLayout |HLayout| [duilib/Layout/VirtualHLayout.h](../duilib/Layout/VirtualHLayout.h) | 虚表水平布局|
+| VirtualVLayout |VLayout| [duilib/Layout/VirtualVLayout.h](../duilib/Layout/VirtualVLayout.h) | 虚表垂直布局|
+| VirtualHTileLayout |HTileLayout| [duilib/Layout/VirtualHTileLayout.h](../duilib/Layout/VirtualHTileLayout.h) | 虚表水平瓦片布局|
+| VirtualVTileLayout |VTileLayout| [duilib/Layout/VirtualVTileLayout.h](../duilib/Layout/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
+| GridLayout |Layout |[duilib/Layout/GridLayout.h](../duilib/Layout/GridLayout.h) | 网格布局|
 
 * 容器
 
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |
 | :--- | :--- |:--- |:--- | :--- |
-| Box | Control|[Layout](../duilib/Box/Layout.h)|[duilib/Core/Box.h](../duilib/Core/Box.h) | 自由布局容器，所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
-| VBox | Box|[VLayout](../duilib/Box/VLayout.h)| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直布局容器 |
-| HBox | Box|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平布局容器 |
-| TabBox | Box|[Layout](../duilib/Box/Layout.h)|[duilib/Box/TabBox.h](../duilib/Box/TabBox.h) | 多标签布局容器 |
-| VTileBox | Box|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 垂直瓦片布局容器|
-| HTileBox | Box|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 水平瓦片布局容器|
-| ScrollBox | Box|[Layout](../duilib/Box/Layout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 自由布局可滚动容器，带有垂直或水平滚动条|
-| VScrollBox | ScrollBox|[VLayout](../duilib/Box/VLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局可滚动容器，带有垂直或水平滚动条|
-| HScrollBox | ScrollBox|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局可滚动容器，带有垂直或水平滚动条|
-| VTileScrollBox |ScrollBox|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局可滚动容器，带有垂直或水平滚动条|
-| HTileScrollBox |ScrollBox|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局可滚动容器，带有垂直或水平滚动条|
-| ListBox | ScrollBox|[Layout](../duilib/Box/Layout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 自由布局的列表容器|
-| VListBox | ListBox|[VLayout](../duilib/Box/VLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直布局的列表容器|
-| HListBox | ListBox|[HLayout](../duilib/Box/HLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局的列表容器|
-| VTileListBox | ListBox|[VTileLayout](../duilib/Box/VTileLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直瓦片布局的列表容器|
-| HTileListBox | ListBox|[HTileLayout](../duilib/Box/HTileLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局的列表容器|
-| VirtualListBox | ListBox|[Layout](../duilib/Box/Layout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的自由布局的列表容器|
-| VirtualVListBox | VirtualListBox|[VirtualVLayout](../duilib/Box/VirtualVLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的垂直布局的列表容器|
-| VirtualHListBox | VirtualListBox|[VirtualHLayout](../duilib/Box/VirtualHLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
-| VirtualVTileListBox | VirtualListBox|[VirtualVTileLayout](../duilib/Box/VirtualVTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的垂直瓦片布局的列表容器|
-| VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Box/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
+| Box | Control|[Layout](../duilib/Layout/Layout.h)|[duilib/Core/Box.h](../duilib/Core/Box.h) | 自由布局容器，所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
+| VBox | Box|[VLayout](../duilib/Layout/VLayout.h)| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直布局容器 |
+| HBox | Box|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平布局容器 |
+| VFlowBox | Box|[VFlowLayout](../duilib/Layout/VFlowLayout.h)| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | 垂直流式布局容器 |
+| HFlowBox | Box|[HFlowLayout](../duilib/Layout/HFlowLayout.h)|[duilib/Box/HBox.h](../duilib/Box/HBox.h) | 水平流式布局容器 |
+| TabBox | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/TabBox.h](../duilib/Box/TabBox.h) | 多标签布局容器 |
+| VTileBox | Box|[VTileLayout](../duilib/Layout/VTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 垂直瓦片布局容器|
+| HTileBox | Box|[HTileLayout](../duilib/Layout/HTileLayout.h)|[duilib/Box/TileBox.h](../duilib/Box/TileBox.h) | 水平瓦片布局容器|
+| ScrollBox | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 自由布局可滚动容器，带有垂直或水平滚动条|
+| VScrollBox | ScrollBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直布局可滚动容器，带有垂直或水平滚动条|
+| HScrollBox | ScrollBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平布局可滚动容器，带有垂直或水平滚动条|
+| VTileScrollBox |ScrollBox|[VTileLayout](../duilib/Layout/VTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 垂直瓦片布局可滚动容器，带有垂直或水平滚动条|
+| HTileScrollBox |ScrollBox|[HTileLayout](../duilib/Layout/HTileLayout.h)|[duilib/Box/ScrollBox.h](../duilib/Box/ScrollBox.h) | 水平瓦片布局可滚动容器，带有垂直或水平滚动条|
+| ListBox | ScrollBox|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 自由布局的列表容器|
+| VListBox | ListBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直布局的列表容器|
+| HListBox | ListBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局的列表容器|
+| VTileListBox | ListBox|[VTileLayout](../duilib/Layout/VTileLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 垂直瓦片布局的列表容器|
+| HTileListBox | ListBox|[HTileLayout](../duilib/Layout/HTileLayout.h)|[duilib/Box/ListBox.h](../duilib/Box/ListBox.h) | 水平布局的列表容器|
+| VirtualListBox | ListBox|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的自由布局的列表容器|
+| VirtualVListBox | VirtualListBox|[VirtualVLayout](../duilib/Layout/VirtualVLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的垂直布局的列表容器|
+| VirtualHListBox | VirtualListBox|[VirtualHLayout](../duilib/Layout/VirtualHLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
+| VirtualVTileListBox | VirtualListBox|[VirtualVTileLayout](../duilib/Layout/VirtualVTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的垂直瓦片布局的列表容器|
+| VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Layout/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
+| GridBox | Box|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器 |
+| GridScrollBox | ScrollBox|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器（支持滚动条） |
 
 * 图片
 
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
-| Image | [duilib/Image/Image.h](../duilib/Image/Image.h) | 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO|
+| Image | [duilib/Image/Image.h](../duilib/Image/Image.h) | 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO/Lottie-JSON/PAG|
 | ImageAttribute | [duilib/Image/ImageAttribute.h](../duilib/Image/ImageAttribute.h) | 图片属性|
-| ImageLoadAttribute | [duilib/Image/ImageLoadAttribute.h](../duilib/Image/ImageLoadAttribute.h) | 图片加载属性，用于加载一个图片|
-| ImageDecoder | [duilib/Image/ImageDecoder.h](../duilib/Image/ImageDecoder.h) | 图片格式解码类，负责图片的加载，图片大小调整等|
+| ImageLoadParam | [duilib/Image/ImageLoadParam.h](../duilib/Image/ImageLoadParam.h) | 图片加载属性，用于加载一个图片|
 | ImageInfo | [duilib/Image/ImageInfo.h](../duilib/Image/ImageInfo.h) | 图片信息|
+| ImageDecoder | [duilib/Image/ImageDecoder.h](../duilib/Image/ImageDecoder.h) | 支持多线程解码的接口（底层解码使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）|
+| ImagePlayer | [duilib/Image/ImagePlayer.h](../duilib/Image/ImagePlayer.h) | 控件图片动画播放的逻辑封装（支持GIF/WebP/APNG/Lottie-JSON/PAG动画）|
 | StateImage | [duilib/Image/StateImage.h](../duilib/Image/StateImage.h) | 控件状态与图片的映射|
 | StateImageMap | [duilib/Image/StateImageMap.h](../duilib/Image/StateImageMap.h) | 控件图片类型与状态图片的映射|
-| ImageGif | [duilib/Image/ImageGif.h](../duilib/Image/ImageGif.h) | 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）|
-| ImageList | [duilib/Core/ImageList.h](../duilib/Core/ImageList.h) | 图片列表|
 | ImageManager | [duilib/Core/ImageManager.h](../duilib/Core/ImageManager.h) | 图片资源管理器|
-| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器|
+| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager.h) | 图标资源管理器（线程安全，适合图标类的小图片资源），支持Windows平台的HICON句柄|
+| ImageList | [duilib/Core/ImageList.h](../duilib/Core/ImageList.h) | 图片列表|
 
 * 动画
 
@@ -140,7 +147,6 @@
 
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
-| 渲染引擎设置 | [duilib/Render/RenderConfig.h](../duilib/Render/RenderConfig.h) | 可设置使用哪个引擎（Skia引擎，或者GdiPlus引擎）|
 | IRenderFactory | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染工厂接口，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象 |
 | IFont | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 字体接口 |
 | IBitmap | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 位图接口 |
@@ -240,7 +246,7 @@
 | IRenderFactory | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染接口的管理类，渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象 |
 | FontManager | [duilib/Core/FontManager.h](../duilib/Core/FontManager.h) | 字体的管理类 |
 | ImageManager | [duilib/Core/ImageManager.h](../duilib/Core/ImageManager.h) | 图片的管理类 |
-| IconManager | [duilib/Core/IconManager_Windows.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器 |
+| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager.h) | 图标资源管理器（线程安全，适合图标类的小图片资源），支持Windows平台的HICON句柄 |
 | ZipManager | [duilib/Core/ZipManager.h](../duilib/Core/ZipManager.h) | ZIP压缩包管理器 |
 | DpiManager | [duilib/Core/DpiManager.h](../duilib/Core/DpiManager.h) | DPI管理器，用于支持DPI自适应等功能 |
 | TimerManager | [duilib/Core/TimerManager.h](../duilib/Core/TimerManager.h) | 定时器管理器 |
@@ -248,6 +254,8 @@
 | CursorManager | [duilib/Core/CursorManager.h](../duilib/Core/CursorManager.h) | 光标管理器 |
 | ThreadManager | [duilib/Core/ThreadManager.h](../duilib/Core/ThreadManager.h) | 线程管理器 |
 | ColorManager | [duilib/Core/ColorManager.h](../duilib/Core/ColorManager.h) | 颜色管理器 |
+| WindowManager | [duilib/Core/WindowManager.h](../duilib/Core/WindowManager.h) | 窗口管理器 |
+| ImageDecoderFactory | [duilib/Image/ImageDecoderFactory.h](../duilib/Image/ImageDecoderFactory.h) | 图片解码器的管理 |
 
 * libcef控件封装相关
 

@@ -1,14 +1,13 @@
 #ifndef UI_CORE_BOX_H_
 #define UI_CORE_BOX_H_
 
-#include "duilib/Box/Layout.h"
+#include "duilib/Layout/Layout.h"
 #include "duilib/Core/Control.h"
 
 namespace ui 
 {
-
-/////////////////////////////////////////////////////////////////////////////////////
-//
+/** 容器基类(Container)
+*/
 class UILIB_API Box : public Control
 {
     typedef Control BaseClass;

@@ -105,9 +105,30 @@ public:
 #endif
 
 #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    /** 获取X11的窗口标识符
+    /** 当前窗口后端引擎是否为X11
+    */
+    bool IsVideoDriverX11() const;
+
+    /** 当前窗口后端引擎是否为X11
+    */
+    bool IsVideoDriverWayland() const;
+
+    /** 获取X11的窗口所在Display指针（对应于X11的::Display*类型）
+    */
+    size_t GetX11DisplayPointer() const;
+
+    /** 获取X11的Screen标识符（对应于X11的Screen）
+    */
+    uint64_t GetX11ScreenNumber() const;
+
+    /** 获取X11的窗口标识符（对应于X11的::Window类型）
     */
     uint64_t GetX11WindowNumber() const;
+
+    /** 获取Wayland的窗口所在Display指针（对应于Wayland的wl_display*类型）
+    */
+    size_t GetWaylandDisplayPointer() const;
+
 #endif
 
 #if defined DUILIB_BUILD_FOR_MACOS
@@ -552,6 +573,10 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
+    /** 创建窗口时，是否需要居中窗口
+    */
+    bool NeedCenterWindowAfterCreated() const;
+
 private:
     /** 创建窗口和渲染接口
     */
@@ -674,6 +699,12 @@ private:
     /** 窗口大小的最大值（宽度和高度）
     */
     UiSize m_szMaxWindow;
+
+    /** 窗口的初始化大小和窗口左上角的初始坐标值(Wayland模式下需要使用)
+    */
+    UiSize m_szInitWindow;
+    UiPoint m_ptInitWindow;
+    bool m_bInitWindowPosFlag;
 
     /** 鼠标所在位置
     */

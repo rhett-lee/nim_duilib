@@ -33,6 +33,16 @@ private:
     /** 控制该列
     */
     void OnColumnChanged(size_t nColumnId);
+
+    /** 测试Loading功能
+    */
+    void OnTestLoadingProgress();
+
+
+private:
+    /** loading状态的加载进度（模拟值，实际应用可用按情况计算进度）
+    */
+    float m_fLoadingPercent;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

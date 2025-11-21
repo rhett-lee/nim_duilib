@@ -7,7 +7,7 @@
         <!-- libCEF 版本控制的开关变量，有两种值：true表示使用libCEF 109 版本，false：表示用libCEF最新版本 -->
         <LibCefVersion109>false</LibCefVersion109>
 
-        <!-- libCEF 最新 版本的源码子目录，位于duilib\third_party中 -->
+        <!-- libCEF 最新 版本的源码子目录，位于duilib\third_party\libcef中 -->
         <LibCefSrcDir Condition="'$(LibCefVersion109)' != 'true'">libcef_win</LibCefSrcDir>
         <LibCefSrcDir Condition="'$(LibCefVersion109)' == 'true'">libcef_win_109</LibCefSrcDir>
 
@@ -19,8 +19,8 @@
         <LibCefDllName>libcef.dll</LibCefDllName>
 
         <!-- libCEF的include/lib目录 -->
-        <LibCefIncludeDir>$(SolutionDir)\..\duilib\third_party\$(LibCefSrcDir)</LibCefIncludeDir>
-        <LibCefLibDir>$(SolutionDir)\..\duilib\third_party\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
+        <LibCefIncludeDir>$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)</LibCefIncludeDir>
+        <LibCefLibDir>$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
 
         <!-- libCEF的库的lib名称 -->
         <LibCefLibs Condition="'$(Configuration)' == 'Debug'">libcef.lib;$(LibCefDllWrapperName)_d.lib</LibCefLibs>
