@@ -452,8 +452,7 @@ void CheckCombo::Activate(const EventArgs* /*pMsg*/)
 
 void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
 

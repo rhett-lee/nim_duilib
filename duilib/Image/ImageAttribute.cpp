@@ -487,7 +487,7 @@ UiMargin ImageAttribute::GetImageMargin(const DpiManager& dpi) const
     UiMargin rc;
     if (m_rcMargin != nullptr) {
         rc = UiMargin(m_rcMargin->left, m_rcMargin->top, m_rcMargin->right, m_rcMargin->bottom);
-        if (m_rcMarginScale != dpi.GetScale()) {
+        if (m_rcMarginScale != dpi.GetDisplayScaleFactor()) {
             rc = dpi.GetScaleMargin(rc, m_rcMarginScale);
         }
     }
@@ -507,7 +507,7 @@ void ImageAttribute::SetImageMargin(const UiMargin& newMargin, bool bNeedDpiScal
     m_rcMargin->top = TruncateToUInt16(rcMarginDpi.top);
     m_rcMargin->right = TruncateToUInt16(rcMarginDpi.right);
     m_rcMargin->bottom = TruncateToUInt16(rcMarginDpi.bottom);
-    m_rcMarginScale = TruncateToUInt16(dpi.GetScale());
+    m_rcMarginScale = TruncateToUInt16(dpi.GetDisplayScaleFactor());
 }
 
 bool ImageAttribute::IsTiledDraw() const

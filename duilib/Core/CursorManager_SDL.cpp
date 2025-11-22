@@ -135,7 +135,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     }
     
     ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
-    float fImageSizeScale = pWindow->Dpi().GetScale() / 100.0f;
+    float fImageSizeScale = pWindow->Dpi().GetDisplayScale();
     ImageDecodeParam decodeParam;
     decodeParam.m_imageFilePath = imageFilePath;
     decodeParam.m_fImageSizeScale = fImageSizeScale;

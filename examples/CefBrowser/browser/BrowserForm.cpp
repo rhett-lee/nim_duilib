@@ -742,7 +742,7 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImag
 
     int32_t nWidth = 0;
     int32_t nHeight = 0;    
-    CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetScale() / 100.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
+    CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetDisplayScale(), CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
     if (cefImageData == nullptr) {
         pTabItem->ClearIconData();
         return;

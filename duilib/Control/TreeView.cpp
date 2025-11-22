@@ -86,8 +86,7 @@ void TreeNode::SetAttribute(const DString& strName, const DString& strValue)
 
 void TreeNode::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
 
@@ -1121,8 +1120,7 @@ void TreeView::SetAttribute(const DString& strName, const DString& strValue)
 
 void TreeView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     int32_t iValue = GetIndent();

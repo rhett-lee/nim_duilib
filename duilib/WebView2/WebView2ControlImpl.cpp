@@ -1386,14 +1386,14 @@ void WebView2Control::Impl::SetFavIconChangedCallback(FavIconChangedCallback cal
     }
 }
 
-static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_t nWindowDpi, const DString& fileName,
+static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_t nWindowScaleFactor, const DString& fileName,
                                     int32_t& nWidth, int32_t& nHeight, std::vector<uint8_t>& imageData)
 {
     ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
     float fImageSizeScale = 1.0f;
-    if (nWindowDpi > 0) {
+    if (nWindowScaleFactor > 0) {
         //按DPI缩放图片尺寸
-        fImageSizeScale = static_cast<float>(nWindowDpi) / 100.0f;
+        fImageSizeScale = static_cast<float>(nWindowScaleFactor) / 100.0f;
     }
     ImageDecodeParam decodeParam;
     decodeParam.m_imageFilePath = FilePath(fileName);
@@ -1470,9 +1470,9 @@ bool WebView2Control::Impl::DownloadFavIconImage()
             //转到子线程中，下载图标
             std::vector<uint8_t> iconData;
             if (DownloadFaviconToVector(strUrl.c_str(), iconData)) {
-                uint32_t nWindowDpi = 100;
+                uint32_t nWindowScaleFactor = 100;
                 if (m_pControl != nullptr) {
-                    nWindowDpi = m_pControl->Dpi().GetScale();
+                    nWindowScaleFactor = m_pControl->Dpi().GetDisplayScaleFactor();
                 }
                 DString fileName = StringConvert::WStringToT(strUrl);
                 size_t pos = fileName.rfind(_T("/"));
@@ -1483,7 +1483,7 @@ bool WebView2Control::Impl::DownloadFavIconImage()
                 int32_t nWidth = 0;
                 int32_t nHeight = 0;
                 std::vector<uint8_t> imageData;
-                if (!ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
+                if (!ConvertFavIconImageData(iconData, nWindowScaleFactor, fileName, nWidth, nHeight, imageData)) {
                     imageData.clear();
                     nWidth = 0;
                     nHeight = 0;

@@ -1,7 +1,7 @@
 #include "DpiAwareness.h"
 
-//仅限非Windows平台
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+//仅限Windows平台
+#if defined (DUILIB_BUILD_FOR_WIN)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <VersionHelpers.h>

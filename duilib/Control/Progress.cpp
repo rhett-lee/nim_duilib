@@ -183,8 +183,7 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue)
 
 void Progress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     int32_t iValue = GetMarqueeWidth();

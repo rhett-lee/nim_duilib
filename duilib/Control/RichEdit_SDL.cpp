@@ -375,8 +375,7 @@ void RichEdit::OnInit()
 
 void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();
@@ -710,7 +709,7 @@ IFont* RichEdit::GetIFontInternal(const DString& fontId) const
     const DpiManager& dpi = Dpi();
     uint32_t nZoomPercent = GetZoomPercent();
     ASSERT(nZoomPercent != 0);
-    nZoomPercent = DpiManager::MulDiv(nZoomPercent, dpi.GetScale(), 100);
+    dpi.ScaleInt(nZoomPercent);
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, nZoomPercent);
     ASSERT(pFont != nullptr);
     return pFont;
@@ -749,13 +748,13 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
     //添加字体信息(去除DPI缩放)
     UiFont orgFontInfo = fontInfo;
     const DpiManager& dpi = Dpi();
-    if (dpi.GetScale() > 0) {
-        orgFontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, 100, dpi.GetScale());
+    if (dpi.GetDisplayScaleFactor() > 0) {
+        dpi.UnscaleInt(orgFontInfo.m_fontSize);
         if (dpi.GetScaleInt(orgFontInfo.m_fontSize) != fontInfo.m_fontSize) {
             //计算原来的字体大小
             int32_t nFontSizeMax = fontInfo.m_fontSize;
-            if (dpi.GetScale() < 100) {
-                nFontSizeMax = DpiManager::MulDiv(fontInfo.m_fontSize, 100, dpi.GetScale()) + 1;
+            if (dpi.GetDisplayScaleFactor() < 100) {
+                nFontSizeMax = dpi.GetUnscaleInt(fontInfo.m_fontSize) + 1;
             }
             for (int32_t nFontSize = 1; nFontSize <= nFontSizeMax; ++nFontSize) {
                 int32_t nScaledFontSize = dpi.GetScaleInt(nFontSize);
@@ -783,7 +782,7 @@ void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomP
 {
     //删除旧的字体缓存，以释放内存
     if (nOldZoomPercent != 100) {
-        uint32_t nZoomPercent = DpiManager::MulDiv(nOldZoomPercent, Dpi().GetScale() , 100);
+        uint32_t nZoomPercent = Dpi().GetScaleInt(nOldZoomPercent);
         DString internalFontId = GetInternalFontId();
         if (GlobalManager::Instance().Font().HasFontId(internalFontId)) {
             GlobalManager::Instance().Font().RemoveIFont(internalFontId, nZoomPercent);

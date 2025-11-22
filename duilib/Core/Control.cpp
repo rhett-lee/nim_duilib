@@ -608,8 +608,7 @@ void Control::ParseSetImageAnimationFrame(const DString& value)
 
 void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiMargin rcMargin = GetMargin();
@@ -4123,7 +4122,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
 {
     GlobalManager::Instance().AssertUIThread();
     //DPI缩放百分比
-    const uint32_t nLoadDpiScale = Dpi().GetScale();
+    const uint32_t nLoadDpiScale = Dpi().GetDisplayScaleFactor();
     if (duiImage.GetImageInfo() != nullptr) {
         //如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
         if (duiImage.GetImageInfo()->GetLoadDpiScale() == nLoadDpiScale) {

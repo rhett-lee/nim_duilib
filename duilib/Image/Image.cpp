@@ -96,7 +96,7 @@ const ImageAttribute& Image::GetImageAttribute() const
 
 ImageLoadParam Image::GetImageLoadParam() const
 {
-    uint32_t nLoadDpiScale = (m_pControl != nullptr) ? m_pControl->Dpi().GetScale() : 100;
+    uint32_t nLoadDpiScale = (m_pControl != nullptr) ? m_pControl->Dpi().GetDisplayScaleFactor() : 100;
     bool bAsyncDecode = m_imageAttribute.m_bAsyncLoad;
     bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
     uint32_t nIconSize = m_imageAttribute.m_nIconSize;

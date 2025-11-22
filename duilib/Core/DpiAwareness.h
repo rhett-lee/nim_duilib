@@ -5,7 +5,7 @@
 
 namespace ui
 {
-/** DPI感知模式
+/** DPI感知模式（非Windows平台，统一使用kPerMonitorDpiAware_V2值）
 */
 enum class UILIB_API DpiAwarenessMode
 {

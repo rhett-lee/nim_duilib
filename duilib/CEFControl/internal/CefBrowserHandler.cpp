@@ -469,11 +469,8 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
         rect.height = rect_cef_control.bottom - rect_cef_control.top;
         if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-            uint32_t dpiScale = spWindow->Dpi().GetScale();
-            if (dpiScale > 100) {
-                rect.width = rect.width * 100 / dpiScale;
-                rect.height = rect.height * 100 / dpiScale;
-            }
+            spWindow->Dpi().UnscaleInt(rect.width);//TODO
+            spWindow->Dpi().UnscaleInt(rect.height);
         }
     }
     if (rect.width <= 0) {
@@ -499,11 +496,8 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     ui::UiPoint screen_pt = { viewX, viewY};
     if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-        uint32_t dpiScale = spWindow->Dpi().GetScale();
-        if (dpiScale > 100) {
-            screen_pt.x = screen_pt.x * dpiScale / 100;
-            screen_pt.y = screen_pt.y * dpiScale / 100;
-        }
+        spWindow->Dpi().ScaleInt(screen_pt.x);
+        spWindow->Dpi().ScaleInt(screen_pt.y);
     }
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
     UiRect rect_cef_control;
@@ -543,12 +537,11 @@ bool CefBrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenIn
     if ((spWindow == nullptr) || !spWindow->IsWindow()) {
         return false;
     }
-    uint32_t dpiScale = spWindow->Dpi().GetScale();
-    if (dpiScale == 100) {
+    if (!spWindow->Dpi().IsDisplayScaled()) {
         return false;
     }
     else {
-        screen_info.device_scale_factor = dpiScale / 100.0f;
+        screen_info.device_scale_factor = spWindow->Dpi().GetDisplayScale();
         return true;
     }    
 }

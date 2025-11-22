@@ -653,8 +653,7 @@ void Shadow::ClearImageCache()
 
 void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == dpi.GetScale());
-    if (nNewDpiScale != dpi.GetScale()) {
+    if (!dpi.CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     //更新阴影图片(触发图片重新加载，根据DPI适应响应DPI值的图片)

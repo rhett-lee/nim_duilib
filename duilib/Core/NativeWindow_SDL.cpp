@@ -259,6 +259,16 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 
     //派发消息到处理函数
     switch (sdlEvent.type) {
+    case SDL_EVENT_WINDOW_SHOWN:
+        {
+            lResult = pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_HIDDEN:
+        {
+            lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
+        }
+        break;
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
         {
             UiSize newWindowSize;
@@ -313,6 +323,23 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiSize newWindowSize;
             SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);
             lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESTORED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+        {
+            //窗口显示的DPI变化
+            float fNewDpiScale = SDL_GetWindowDisplayScale(m_sdlWindow);
+            if (fNewDpiScale > 0.01f) {
+                uint32_t nNewDPI = (uint32_t)(fNewDpiScale * 96 + 0.5);//新的DPI值
+                if (nNewDPI != pOwner->OnNativeGetDpi().GetDPI()) {
+                    //DPI发生变化
+                    uint32_t nOldDpiScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+                    pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, UiRect());
+                    if (!ownerFlag.expired() && (nOldDpiScale != pOwner->OnNativeGetDpi().GetDisplayScaleFactor())) {
+                        m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
+                    }
+                }
+            }
         }
         break;
     case SDL_EVENT_WINDOW_MOVED:
@@ -538,33 +565,6 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             if (!ownerFlag.expired()) {
                 OnFinalMessage();
             }
-        }
-        break;
-    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
-        {
-            //窗口显示的DPI变化
-            float fNewDpiScale = SDL_GetWindowDisplayScale(m_sdlWindow);
-            if (fNewDpiScale > 0.01f) {
-                uint32_t nNewDPI = (uint32_t)(fNewDpiScale * 96);//新的DPI值
-                if (nNewDPI != pOwner->OnNativeGetDpi().GetDPI()) {
-                    //DPI发生变化
-                    uint32_t nOldDpiScale = pOwner->OnNativeGetDpi().GetScale();
-                    pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, UiRect());
-                    if (!ownerFlag.expired() && (nOldDpiScale != pOwner->OnNativeGetDpi().GetScale())) {
-                        m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
-                    }
-                }
-            }            
-        }
-        break;
-    case SDL_EVENT_WINDOW_SHOWN:
-        {
-            lResult = pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
-        }
-        break;
-    case SDL_EVENT_WINDOW_HIDDEN:
-        {
-            lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_DROP_BEGIN:
@@ -2754,7 +2754,7 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
         return false;
     }
     ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
-    float fImageSizeScale = (m_pOwner != nullptr) ? m_pOwner->OnNativeGetDpi().GetScale() / 100.0f : 1.0f;
+    float fImageSizeScale = (m_pOwner != nullptr) ? m_pOwner->OnNativeGetDpi().GetDisplayScale() : 1.0f;
     ImageDecodeParam decodeParam;
     decodeParam.m_imageFilePath = iconFileName;
     decodeParam.m_fImageSizeScale = fImageSizeScale;

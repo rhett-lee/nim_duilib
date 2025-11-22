@@ -126,8 +126,7 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
 
 void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();

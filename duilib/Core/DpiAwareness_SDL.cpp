@@ -1,7 +1,7 @@
 #include "DpiAwareness.h"
 
 //仅限非Windows平台
-#ifdef DUILIB_BUILD_FOR_SDL
+#if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
 
 namespace ui
 {

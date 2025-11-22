@@ -101,8 +101,7 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
 
 void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcScrollbarPadding = GetScrollBarPadding();

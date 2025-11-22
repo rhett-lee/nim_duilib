@@ -839,7 +839,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
             }
         }
         if (!bFound) {
-            fontInfo.m_fontSize = Dpi().MulDiv(fontInfo.m_fontSize, 100, Dpi().GetScale());
+            Dpi().UnscaleInt(fontInfo.m_fontSize);
         }
     }
 

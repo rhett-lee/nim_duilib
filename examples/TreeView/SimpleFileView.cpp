@@ -44,7 +44,7 @@ public:
                 //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
                 int32_t itemWidth = this->GetWidth() / 2;
                 //将宽度还原为未经DPI缩放的原值（因为图片加载时，会对width属性进行DPI缩放）
-                itemWidth = itemWidth * 100 / (int32_t)Dpi().GetScale();
+                Dpi().UnscaleInt(itemWidth);
 
                 //当出现错误（图片加载失败，或者图片解码失败）时，显示一张默认图片
                 const DString defaultImage = ui::StringUtil::Printf(_T("file='image-photo.svg' halign='center' valign='center' width='%d'"), itemWidth);

@@ -195,8 +195,7 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
 template<typename InheritType>
 void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == this->Dpi().GetScale());
-    if (nNewDpiScale != this->Dpi().GetScale()) {
+    if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiSize cxyRound = this->GetCornerSize();

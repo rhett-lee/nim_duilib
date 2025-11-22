@@ -519,7 +519,7 @@ bool WindowBase::ChangeDpi(uint32_t nNewDPI)
     }
 
     uint32_t nOldDPI = Dpi().GetDPI();
-    uint32_t nOldDpiScale = Dpi().GetScale();
+    uint32_t nOldDpiScale = Dpi().GetDisplayScaleFactor();
     if (m_dpi == nullptr) {
         m_dpi = std::make_unique<DpiManager>();
     }
@@ -527,7 +527,7 @@ bool WindowBase::ChangeDpi(uint32_t nNewDPI)
     m_dpi->SetDPI(nNewDPI);
 
     ASSERT(nNewDPI == m_dpi->GetDPI());
-    uint32_t nNewDpiScale = m_dpi->GetScale();
+    uint32_t nNewDpiScale = m_dpi->GetDisplayScaleFactor();
 
     //按新的DPI更新窗口布局
     OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
@@ -548,12 +548,12 @@ void WindowBase::ProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& /*rcNewWin
     if ((m_dpi != nullptr) && dpiManager.IsPerMonitorDpiAware()) {
         //调整DPI值
         uint32_t nOldDPI = m_dpi->GetDPI();
-        uint32_t nOldDpiScale = m_dpi->GetScale();
+        uint32_t nOldDpiScale = m_dpi->GetDisplayScaleFactor();
 
         //更新窗口的DPI值为新值
         m_dpi->SetDPI(nNewDPI);
         ASSERT(nNewDPI == m_dpi->GetDPI());
-        uint32_t nNewDpiScale = m_dpi->GetScale();
+        uint32_t nNewDpiScale = m_dpi->GetDisplayScaleFactor();
 
         //按新的DPI更新窗口布局
         OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
@@ -566,16 +566,15 @@ void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
         return;
     }
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiSize szMinWindow = NativeWnd()->GetWindowMinimumSize();
     szMinWindow = Dpi().GetScaleSize(szMinWindow, nOldDpiScale);
     NativeWnd()->SetWindowMinimumSize(szMinWindow);
 
-    UiSize szMaxWindow = NativeWnd()->GetWindowMaximumSize();    
-    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldDpiScale);    
+    UiSize szMaxWindow = NativeWnd()->GetWindowMaximumSize();
+    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldDpiScale);
     NativeWnd()->SetWindowMaximumSize(szMaxWindow);
 
     m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);

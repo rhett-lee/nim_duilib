@@ -1048,8 +1048,7 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
         return;
     }
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     WindowBase::OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);

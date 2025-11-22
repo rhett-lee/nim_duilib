@@ -98,7 +98,7 @@ void MainForm::UpdateUI()
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi_percent")));
     if (pLabel != nullptr) {
-        uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetScale();
+        uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetDisplayScaleFactor();
         DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
         pLabel->SetText(text);
     }
@@ -110,7 +110,7 @@ void MainForm::UpdateUI()
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi_percent")));
     if (pLabel != nullptr) {
-        uint32_t nScale = Dpi().GetScale();
+        uint32_t nScale = Dpi().GetDisplayScaleFactor();
         DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
         pLabel->SetText(text);
     }

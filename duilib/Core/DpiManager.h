@@ -6,15 +6,9 @@
 
 namespace ui
 {
-/** @class DpiManager
-* @brief DPI适配管理类
-* @copyright (c) 2016, NetEase Inc. All rights reserved
-* @author Redrain
-* @date 2016/10/10
-*/
 class WindowBase;
 
-/** DPI感知功能的接口
+/** DPI感知功能的接口（支持高分屏）
 */
 class UILIB_API DpiManager
 {
@@ -75,65 +69,87 @@ public:
     */
     uint32_t GetDPI() const;
 
-    /** 获取当前界面缩放缩放百分比（举例：100代表缩放百分比为100%，无缩放）
-    * @return 缩放比，比如：如果返回缩放比为125，代表界面缩放百分比为125%，其对应的DPI值是120
-    */
-    uint32_t GetScale() const;
-
     /** 当前界面是否有DPI缩放
     * @return 如果当前界面缩放百分比为100返回false，否则返回true
     */
-    bool IsScaled() const;
+    bool IsDisplayScaled() const;
+
+    /** 获取当前界面缩放百分比因子（举例：100代表缩放百分比为100%，无缩放）
+    * @return 缩放比，比如：如果返回缩放比为125，代表界面缩放百分比为125%，其对应的DPI值是120
+    */
+    uint32_t GetDisplayScaleFactor() const;
+
+    /** 获取当前界面缩放缩放比（举例：1.0代表缩放百分比为100%，无缩放）
+    */
+    float GetDisplayScale() const;
+
+    /** 校验当前界面缩放百分比因子与目标缩放比是否一致，如果不一致进行断言报错
+    */
+    bool CheckDisplayScaleFactor(uint32_t nCheckScaleFactor) const;
+
+public:
+    /** 设置窗口像素密度, 1.0f表示无缩放
+    */
+    void SetWindowPixelDensity(float fPixelDensity);
+
+    /** 获取窗口像素密度, 1.0f表示无缩放
+    */
+    float GetWindowPixelDensity() const;
 
 public:
     /** 根据界面缩放比来缩放整数
-    * @param[in] iValue 整数
-    * @return int 缩放后的值
     */
-    int32_t ScaleInt(int32_t& iValue) const;
-    int32_t GetScaleInt(int32_t iValue) const;
-    uint32_t GetScaleInt(uint32_t iValue) const;
+    void ScaleInt(int32_t& nValue) const;
+    void ScaleInt(uint32_t& nValue) const;
+    int32_t GetScaleInt(int32_t nValue) const;
+    uint32_t GetScaleInt(uint32_t nValue) const;
 
-    int32_t GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const;
-    uint32_t GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const;
+    int32_t GetScaleInt(int32_t nValue, uint32_t nOldScaleFactor) const;
+    uint32_t GetScaleInt(uint32_t nValue, uint32_t nOldScaleFactor) const;
 
-    float GetScaleFloat(int32_t iValue) const;
-    float GetScaleFloat(uint32_t iValue) const;
+    float GetScaleFloat(int32_t nValue) const;
+    float GetScaleFloat(uint32_t nValue) const;
     float GetScaleFloat(float fValue) const;
 
-    float GetScaleFloat(float fValue, uint32_t nOldDpiScale) const;
+    float GetScaleFloat(float fValue, uint32_t nOldScaleFactor) const;
 
     /** 根据界面缩放比来缩放SIZE
-    * @param[in] size 需要缩放的Size引用
     */
     void ScaleSize(UiSize& size) const;
     UiSize GetScaleSize(UiSize size) const;
 
-    UiSize GetScaleSize(UiSize size, uint32_t nOldDpiScale) const;
+    UiSize GetScaleSize(UiSize size, uint32_t nOldScaleFactor) const;
 
-    /** 根据界面缩放比来缩放POINT
-    * @param[in] point 需要缩放的point引用
+    /** 根据界面缩放比来缩放UiPoint
     */
     void ScalePoint(UiPoint& point) const;
 
-    UiPoint GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const;
+    UiPoint GetScalePoint(UiPoint point, uint32_t nOldScaleFactor) const;
 
-    /** 根据界面缩放比来缩放RECT
-    * @param[in] rect 需要缩放的rect引用
-    * @return void    无返回值
+    /** 根据界面缩放比来缩放UiRect
     */
     void ScaleRect(UiRect& rect) const;
     void ScalePadding(UiPadding& padding) const;
     void ScaleMargin(UiMargin& margin) const;
 
-    UiRect GetScaleRect(UiRect rect, uint32_t nOldDpiScale) const;
-    UiPadding GetScalePadding(UiPadding padding, uint32_t nOldDpiScale) const;
-    UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const;
+    UiRect GetScaleRect(UiRect rect, uint32_t nOldScaleFactor) const;
+    UiPadding GetScalePadding(UiPadding padding, uint32_t nOldScaleFactor) const;
+    UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldScaleFactor) const;
 
+public:
+    /** 将已经做过DPI缩放的数值还原为原数值（即恢复到缩放比为1.0f条件下的原值）
+    */
+    void UnscaleInt(int32_t& nValue) const;
+    void UnscaleInt(uint32_t& nValue) const;
+    int32_t GetUnscaleInt(int32_t nValue) const;
+    uint32_t GetUnscaleInt(uint32_t nValue) const;
+
+public:
     /** MulDiv 函数封装
     * @return 如果nDenominator为0，返回-1；否则返回nNumber * nNumerator / nDenominator的运算结果, 可确保运算中间结果不越界，并且计算结果有四舍五入
     */
     static int32_t MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
+    static uint32_t MulDiv(uint32_t nNumber, uint32_t nNumerator, uint32_t nDenominator);
 
 private:
     /** 是否已经初始化过
@@ -155,6 +171,10 @@ private:
     /** DPI缩放因子，100表示无缩放
     */
     uint32_t m_nScaleFactor;
+
+    /** 窗口像素密度, 1.0f表示无缩放
+    */
+    float m_fPixelDensity;
 };
 }
 #endif //UI_CORE_DPI_MANAGER_H_
