@@ -754,6 +754,10 @@ private:
     /** 拖放功能的实现接口
     */
     WindowDropTarget* m_pWindowDropTarget;
+
+    /** 窗口的界面缩放比
+    */
+    uint32_t m_nWindowDpiScaleFactor;
 };
 
 /** 定义别名

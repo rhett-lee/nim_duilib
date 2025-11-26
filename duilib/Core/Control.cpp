@@ -60,6 +60,17 @@ Control::~Control()
     if (pWindow) {
         pWindow->ReapObjects(this);
     }
+
+    m_pAnimationData.reset();
+    m_pBkImage.reset();
+    m_pImageMap.reset();
+    m_pDragDropData.reset();
+    m_pOtherData.reset();
+    m_pEventMapData.reset();
+    m_pImageMap.reset();
+    m_pColorMap.reset();
+    m_pColorData.reset();
+    m_pBorderData.reset();
 }
 
 DString Control::GetType() const { return DUI_CTR_CONTROL; }
@@ -1855,7 +1866,9 @@ void Control::SetPos(UiRect rc)
     //有很多类似的代码：SetPos(GetPos()), 代表设置位置，并重新绘制
     rc.Validate();
     SetArranged(false);
-    bool isPosChanged = !GetRect().Equals(rc);
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+    bool bPosChanged = (GetRect().Left() != rc.Left()) || (GetRect().Top() != rc.Top());
+    bool bSizeChanged = (GetRect().Width() != rc.Width()) || (GetRect().Height() != rc.Height());
 
     UiRect rcOldRect = GetRect();
     if (rcOldRect.IsEmpty()) {
@@ -1899,10 +1912,12 @@ void Control::SetPos(UiRect rc)
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
         m_pOtherData->m_pLoading->UpdateLoadingPos();
     }
-
-    if (isPosChanged) {
-        SendEvent(kEventResize);
-    }    
+    if (bPosChanged && !weakFlag.expired()) {
+        SendEvent(kEventPosChanged);
+    }
+    if (bSizeChanged && !weakFlag.expired()) {
+        SendEvent(kEventSizeChanged);
+    }
 }
 
 UiEstSize Control::EstimateSize(UiSize szAvailable)

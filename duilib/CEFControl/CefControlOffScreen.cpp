@@ -881,7 +881,7 @@ void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*b
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     CefCurrentlyOn(TID_UI);
     if (m_imeHandler != nullptr) {
-        float device_scale_factor = Dpi().GetDPI() / 96.0f;
+        float device_scale_factor = Dpi().GetDisplayScale();
         // Convert from view coordinates to device coordinates.
         CefRenderHandler::RectList device_bounds;
         CefRenderHandler::RectList::const_iterator it = character_bounds.begin();

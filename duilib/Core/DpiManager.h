@@ -4,6 +4,11 @@
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/DpiAwareness.h"
 
+#if defined DUILIB_BUILD_FOR_WIN && defined DUILIB_BUILD_FOR_SDL
+    //定义测试专用宏（可以在Windows环境下，模拟高分屏，进行功能测试）
+    //#define DUILIB_HDPI_TEST_PIXEL_DENSITY (1.5f)
+#endif
+
 namespace ui
 {
 class WindowBase;
@@ -20,55 +25,49 @@ public:
 
 public:
     /** 初始化DPI感知模式和DPI值（该函数只可调用一次，后续调用被忽略）
-    * @param [in] dpiInitParam 初始化参数，详见参数说明
-    */
+     *   该函数在进程启动时用于初始化全局DPI管理器
+     * @param [in] dpiInitParam 初始化参数，详见参数说明
+     */
     void InitDpiAwareness(const DpiInitParam& dpiInitParam);
 
-    /** DPI值是否为用户自定义
-    */
-    bool IsUserDefineDpi() const;
-
     /** 获取进程的DPI感知模式
-    */
+     * 该属性为进程内属性，程序启动后设置一次，然后不可更改
+     * @return 返回当前进程的DPI感知模式
+     */
     DpiAwarenessMode GetDpiAwareness() const;
 
-    /** 是否DPI为每显示器模式
-    */
-    bool IsPerMonitorDpiAware() const;
-
-    /** 根据窗口的DPI值，初始化DPI管理器的DPI值
-        (Win10 以后，每个显示器可以有不同的DPI值，所以不同的窗口可能有不同的DPI值)
-     @param [in] pWindow 窗口的接口，如果为nullptr，则读取系统配置的DPI值
-    */
-    void SetDpiByWindow(const WindowBase* pWindow);
-
-    /** 设置DPI值，并更新界面缩放比
-    *   DPI值会影响界面缩放比，常用的值关系如下：
-    *   DPI 值    缩放百分比(Scale值)
-    * ---------------------------------------------
-    *   96        100%
-    *   120       125%
-    *   144       150%
-    *   168       175%
-    *   192       200%
-    *   216       225%
-    *   240       250%
-    *   288       300%
-    * ---------------------------------------------
-    * DPI与缩放百分比的关系：DPI = 缩放百分比 * 96
-    *                     结果保留整数，四舍五入
-    * 示例：
-    *     当缩放比例为150%时，DPI = 150% * 96 = 144
-    * ---------------------------------------------
-    * @param [in] uDPI DPI值，如果设置为96，则代表界面无缩放
-    */
-    void SetDPI(uint32_t uDPI);
+    /** 当前配置是否支持DPI感知，支持DPI感知的时候，同一个窗口在不同屏幕中，按所在屏幕的DPI显示，界面清晰
+     *  该属性为进程内属性，程序启动后设置一次，然后不可更改
+     *  实际是否支持DPI感知，需要组合判断：(!IsUserDefinedDpi() && IsDpiAware()) 是否为true
+     * @return 返回true表示支持DPI感知，返回false标志不支持DPI感知
+     */
+    bool IsDpiAware() const;
 
 public:
-    /** 获取DPI值
+    /** 设置窗口的DPI缩放比，初始化DPI管理器
+     @param [in] pWindow 窗口的接口，如果为nullptr，则读取系统配置的DPI值
     */
-    uint32_t GetDPI() const;
+    void SetDisplayScaleForWindow(const WindowBase* pWindow);
 
+    /** 设置窗口的DPI缩放比，初始化DPI管理器
+    */
+    void SetDisplayScale(float fDisplayScale, float fPixelDensity);
+
+    /** 比较DPI缩放比与现在的值相比是否变化
+    */
+    bool IsDisplayScaleChanged(float fDisplayScale, float fPixelDensity) const;
+
+    /** 是否为用户自定义的DPI
+    * @return true表示用户自定义DPI, 不支持DPI感知；false表示系统管理DPI，可支持DPI感知
+    */
+    bool IsUserDefinedDpi() const;
+
+    /** 设置是否为用户自定义的DPI，实际是否支持DPI感知，需要组合判断：(!IsUserDefinedDpi() && IsDpiAware()) 是否为true
+    * @param [in] bUserDefinedDpi true表示用户自定义DPI, 不支持DPI感知；false表示系统管理DPI，可支持DPI感知
+    */
+    void SetUserDefinedDpi(bool bUserDefinedDpi);
+
+public:
     /** 当前界面是否有DPI缩放
     * @return 如果当前界面缩放百分比为100返回false，否则返回true
     */
@@ -88,13 +87,17 @@ public:
     bool CheckDisplayScaleFactor(uint32_t nCheckScaleFactor) const;
 
 public:
-    /** 设置窗口像素密度, 1.0f表示无缩放
+    /** 是否支持窗口像素密度值（仅在使用SDL实现时支持）
     */
-    void SetWindowPixelDensity(float fPixelDensity);
+    bool IsPixelDensityEnabled() const;
+
+    /** 是否包含有效的窗口像素密度值
+    */
+    bool HasPixelDensity() const;
 
     /** 获取窗口像素密度, 1.0f表示无缩放
     */
-    float GetWindowPixelDensity() const;
+    float GetPixelDensity() const;
 
 public:
     /** 根据界面缩放比来缩放整数
@@ -113,7 +116,7 @@ public:
 
     float GetScaleFloat(float fValue, uint32_t nOldScaleFactor) const;
 
-    /** 根据界面缩放比来缩放SIZE
+    /** 根据界面缩放比来缩放UiSize
     */
     void ScaleSize(UiSize& size) const;
     UiSize GetScaleSize(UiSize size) const;
@@ -137,6 +140,41 @@ public:
     UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldScaleFactor) const;
 
 public:
+    /// 高分屏支持相关API接口
+
+    /** 根据界面缩放比来缩放窗口大小相关数值
+    */
+    void ScaleWindowSize(int32_t& windowSize) const;
+    void UnscaleWindowSize(int32_t& windowSize) const;
+
+    int32_t GetScaleWindowSize(int32_t windowSize) const;
+    int32_t GetUnscaleWindowSize(int32_t windowSize) const;
+
+    int32_t GetScaleWindowSize(int32_t windowSize, uint32_t nOldScaleFactor) const;
+
+    void ScaleWindowSize(UiSize& windowSize) const;
+    void UnscaleWindowSize(UiSize& windowSize) const;
+
+    UiSize GetScaleWindowSize(UiSize windowSize) const;
+    UiSize GetUnscaleWindowSize(UiSize windowSize) const;
+
+    //将客户区坐标转换为屏幕坐标(仅转换大小)
+    void ClientSizeToWindowSize(int32_t& pt) const;
+    void ClientSizeToWindowSize(UiPoint& pt) const;
+    void ClientSizeToWindowSize(UiSize& size) const;
+    void ClientSizeToWindowSize(UiRect& rc) const;
+    void ClientSizeToWindowSize(UiPadding& padding) const;
+    void ClientSizeToWindowSize(UiMargin& margin) const;
+
+    //将屏幕坐标转换为客户区坐标(仅转换大小)
+    void WindowSizeToClientSize(int32_t& pt) const;
+    void WindowSizeToClientSize(UiPoint& pt) const;
+    void WindowSizeToClientSize(UiSize& size) const;
+    void WindowSizeToClientSize(UiRect& rc) const;
+    void WindowSizeToClientSize(UiPadding& padding) const;
+    void WindowSizeToClientSize(UiMargin& margin) const;
+
+public:
     /** 将已经做过DPI缩放的数值还原为原数值（即恢复到缩放比为1.0f条件下的原值）
     */
     void UnscaleInt(int32_t& nValue) const;
@@ -156,18 +194,21 @@ private:
     */
     bool m_bDpiInited;
 
+    /** DPI值是否为用户自定义，如果为用户自定义，则不再支持DPI感知
+    */
+    bool m_bUserDefinedDpi;
+
+    /** 是否支持界面像素比例(该值只在开启SDL时有效, 且只在支持高分屏的系统环境中生效)
+     *  在macOS/Wayland桌面环境中：true表示支持高分屏，false表示不支持高分屏
+     *  在Windows/X11桌面环境中：该参数无效
+     */
+    bool m_bEnablePixelDensity;
+
     /** 当前进程的DPI感知模式
     */
     DpiAwarenessMode m_dpiAwarenessMode;
 
-    /** DPI值是否为用户自定义
-    */
-    bool m_bUserDefineDpi;
-
-    /** 当前的DPI值
-    */
-    uint32_t m_uDpi;
-
+private:
     /** DPI缩放因子，100表示无缩放
     */
     uint32_t m_nScaleFactor;

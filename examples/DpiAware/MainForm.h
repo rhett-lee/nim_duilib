@@ -29,11 +29,11 @@ public:
     */
     virtual void OnInitWindow() override;
 
-    /** 窗口的DPI发生了变化
-    * @param [in] nOldDPI 旧的DPI值
-    * @param [in] nNewDPI 新的DPI值
+    /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
+    * @param [in] nOldScaleFactor 旧的DPI缩放百分比
+    * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致，该值可能与nOldScaleFactor相同
     */
-    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
+    virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
 protected:
     /** 窗口大小发生改变(WM_SIZE)

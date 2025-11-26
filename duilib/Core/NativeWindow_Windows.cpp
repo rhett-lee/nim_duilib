@@ -1,5 +1,6 @@
 #include "NativeWindow_Windows.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Core/GlobalManager.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -60,7 +61,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bNCLButtonDownOnMaxButton(false),
     m_nSysMenuTimerId(0),
     m_hImc(nullptr),
-    m_pWindowDropTarget(nullptr)
+    m_pWindowDropTarget(nullptr),
+    m_nWindowDpiScaleFactor(100)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -473,6 +475,15 @@ void NativeWindow_Windows::InitNativeWindow()
 
     //关联拖放操作
     SetEnableDragDrop(IsEnableDragDrop());
+
+    //记录窗口的DPI缩放比
+    uint32_t uDPI = GetDpiForWnd(hWnd);
+    if (uDPI != 0) {
+        m_nWindowDpiScaleFactor = (uint32_t)::MulDiv((int32_t)uDPI, 100, 96);
+    }
+    else {
+        m_nWindowDpiScaleFactor = 0;
+    }
 }
 
 void NativeWindow_Windows::ClearNativeWindow()
@@ -1121,7 +1132,9 @@ bool NativeWindow_Windows::SetWindowIcon(const FilePath& iconFilePath)
         return false;
     }
 
-    uint32_t uDpi = m_pOwner->OnNativeGetDpi().GetDPI();
+    uint32_t uDpiScaleFactor = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+    uint32_t uDpi = m_pOwner->OnNativeGetDpi().MulDiv(uDpiScaleFactor, 96u, 100u);
+
     //大图标
     int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
     int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
@@ -1199,7 +1212,8 @@ bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileDat
         return false;
     }
 
-    uint32_t uDpi = m_pOwner->OnNativeGetDpi().GetDPI();
+    uint32_t uDpiScaleFactor = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+    uint32_t uDpi = m_pOwner->OnNativeGetDpi().MulDiv(uDpiScaleFactor, 96u, 100u);
     HICON hIcon = nullptr;
     //大图标
     int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
@@ -2242,9 +2256,15 @@ LRESULT NativeWindow_Windows::OnEraseBkGndMsg(UINT uMsg, WPARAM /*wParam*/, LPAR
 LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
-    bHandled = false;//需要重新测试
+    bHandled = false;
 
+    //窗口显示的DPI变化, 触发DPI发生变化的事件
     uint32_t nNewDPI = HIWORD(wParam);
+    uint32_t nOldWindowDpiScaleFactor = m_nWindowDpiScaleFactor;
+    m_nWindowDpiScaleFactor = DpiManager::MulDiv(nNewDPI, 100u, 96u);
+    float fNewDisplayScale = (float)DpiManager::MulDiv(nNewDPI, 100u, 96u) / 100.0f;
+    float fNewPixelDensity = 1.0f;
+
     UiRect rcNewWindow;
     const RECT* prcNewWindow = (RECT*)lParam;
     if (prcNewWindow != nullptr) {
@@ -2253,16 +2273,35 @@ LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM l
         rcNewWindow.right = prcNewWindow->right;
         rcNewWindow.bottom = prcNewWindow->bottom;
     }
-    uint32_t nOldDpiScale = m_pOwner->OnNativeGetDpi().GetScale();
-    m_pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, rcNewWindow);
-    if (nOldDpiScale != m_pOwner->OnNativeGetDpi().GetScale()) {
-        m_ptLastMousePos = m_pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
+    bool bDisplayScaleChanged = false;
+    uint32_t nOldDisplayScale = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+    m_pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+    if (nOldDisplayScale != m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor()) {
+        bDisplayScaleChanged = true;
+        m_ptLastMousePos = m_pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDisplayScale);
     }
     //更新窗口的位置和大小
     if (!rcNewWindow.IsEmpty()) {
-        SetWindowPos(nullptr, InsertAfterFlag::kHWND_DEFAULT,
-                     rcNewWindow.left, rcNewWindow.top, rcNewWindow.Width(), rcNewWindow.Height(),
-                     SWP_NOZORDER | SWP_NOACTIVATE);
+        uint32_t nNewDisplayScale = DpiManager::MulDiv(nNewDPI, 100u, 96u);
+        if (!bDisplayScaleChanged && (nNewDisplayScale != 0) && (nOldWindowDpiScaleFactor != 0) && (nNewDisplayScale != nOldWindowDpiScaleFactor)) {
+            //如果未响应DPI变化消息，则保持原大小（需要异步完成）
+            UiRect rcWindow = rcNewWindow;            
+            rcWindow.right = rcWindow.left + DpiManager::MulDiv((uint32_t)rcNewWindow.Width(), nOldWindowDpiScaleFactor, nNewDisplayScale);
+            rcWindow.bottom = rcWindow.top + DpiManager::MulDiv((uint32_t)rcNewWindow.Height(), nOldWindowDpiScaleFactor, nNewDisplayScale);
+            HWND hWnd = GetHWND();
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [hWnd, rcWindow]() {
+                    ::SetWindowPos(hWnd, nullptr,
+                                   rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height(),
+                                   SWP_NOZORDER | SWP_NOACTIVATE);
+                    return true;
+                });
+            bHandled = true;
+        }
+        else {
+            SetWindowPos(nullptr, InsertAfterFlag::kHWND_DEFAULT,
+                         rcNewWindow.left, rcNewWindow.top, rcNewWindow.Width(), rcNewWindow.Height(),
+                         SWP_NOZORDER | SWP_NOACTIVATE);
+        }        
     }
     return 0;
 }

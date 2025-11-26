@@ -7,21 +7,22 @@ namespace ui
 {
 class WindowBase;
 
-/** 显示器操作的辅助类
+/** 显示器显示比例辅助类
 */
 class UILIB_API MonitorUtil
 {
 public:
-    /** 获取窗口所在显示器的DPI值
+    /** 获取窗口所在显示器的DPI缩放比例, 如果pWindowBase为nullptr, 则获取主显示屏的DPI缩放比
     * @param [in] pWindowBase 窗口
-    * @return 返回该窗口的DPI值, 如果失败返回0
+    * @param [out] fWindowPixelDensity 返回窗口的像素密度值
+    * @return 返回该窗口的DPI缩放比例,1.0f表示显示比例为100%
     */
-    static uint32_t GetWindowDpi(const WindowBase* pWindowBase);
+    static float GetWindowDisplayScale(const WindowBase* pWindowBase, float& fWindowPixelDensity);
 
-    /** 获取主显示器DPI
-    * @return 返回 DPI值
+    /** 获取主显示器的DPI缩放比例
+    * @return 返回该主显示器的DPI缩放比例,1.0f表示显示比例为100%
     */
-    static uint32_t GetPrimaryMonitorDPI();
+    static float GetPrimaryMonitorDisplayScale();
 
 };
 

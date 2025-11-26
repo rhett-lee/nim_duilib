@@ -45,7 +45,7 @@ public:
     uint8_t m_nLayeredWindowOpacity = 255;
     bool m_bLayeredWindowOpacityDefined = false;//是否包含有效值
 
-    /** 窗口的初始大小
+    /** 窗口的初始大小(已完成DPI缩放)
     */
     UiSize m_szInitSize;
     bool m_bInitSizeDefined = false;//是否包含有效值

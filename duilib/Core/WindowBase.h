@@ -291,13 +291,13 @@ public:
     */
     const DpiManager& Dpi() const;
 
-    /** 主动调整窗口的DPI
-    *   注意事项：该函数可用改变窗口的显示DPI，从而改变窗口、控件的界面百分比；
-    *            但如果进程的DPI感知类型是kPerMonitorDpiAware/kPerMonitorDpiAware_V2时，
-    *            当系统DPI改变或者跨越不同DPI的多屏幕时，窗口的大小和DPI会被系统调整，进而会有冲突，导致窗口控件大小显示异常。
-    * @param [in] nNewDPI 新的DPI值，比如96代表界面DPI缩放比为100%
+    /** 主动调整窗口的界面显示比例
+    *   注意事项：该函数可用改变窗口的显示比例，从而改变窗口、控件的界面百分比。
+    * @param [in] nNewDisplayScaleFactor 新的界面显示比例值，比如100代表界面DPI缩放比为100%
+    * @param [in] bDisableDpiAware true表示禁止DPI感知，当显示器的DPI变化时，该窗口的DPI不再跟随其变化
+                                   false表示仍然保持DPI感知功能，当显示器的DPI变化时，仍然跟随其变化
     */
-    bool ChangeDpi(uint32_t nNewDPI);
+    bool ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisableDpiAware = true);
 
     /** 设置窗口的圆角RGN
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
@@ -465,10 +465,15 @@ public:
     */
     void ClientToScreen(UiPoint& pt) const;
 
-    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
+    /* 将rc坐标从客户区坐标转换为屏幕坐标
     * @param [out] rc 返回屏幕坐标
     */
     void ClientToScreen(UiRect& rc) const;
+
+    /* 将rc坐标从屏幕坐标转换为客户区坐标
+    * @param [out] rc 返回客户区坐标
+    */
+    void ScreenToClient(UiRect& rc) const;
 
     /** 获取当前鼠标所在坐标
     * @param [out] pt 返回屏幕坐标
@@ -617,11 +622,11 @@ protected:
     */
     virtual void OnWindowExitFullScreen() = 0;
 
-     /** 窗口的DPI发生了变化(供子类使用)
-    * @param [in] nOldDPI 旧的DPI值
-    * @param [in] nNewDPI 新的DPI值
+    /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
+    * @param [in] nOldScaleFactor 旧的DPI缩放百分比
+    * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致，该值可能与nOldScaleFactor相同
     */
-    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) = 0;
+    virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) = 0;
 
     /** 获取设置的窗口阴影的大小
     * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
@@ -652,11 +657,11 @@ protected:
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) = 0;
 
-    /** 窗口的DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    /** 窗口的DPI缩放比发生变化，更新控件大小和布局
+    * @param [in] nOldScaleFactor 旧的DPI缩放百分比
+    * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致
     */
-    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
+    virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor);
 
     /** 获取绘制引擎对象
     */
@@ -962,10 +967,10 @@ protected:
     WindowBase* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 处理DPI变化的系统通知消息
-    * @param [in] nNewDPI 新的DPI值
-    * @param [in] rcNewWindow 新的窗口位置（建议值）
+    * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
+    * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
-    void ProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow);
+    void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity);
 
     /** 清理窗口资源
     */
@@ -1000,7 +1005,7 @@ private:
 
     virtual void    OnNativeFinalMessage() override;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-    virtual void    OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow) override;
+    virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override;
     virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;

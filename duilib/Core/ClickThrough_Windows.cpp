@@ -35,7 +35,7 @@ bool ClickThrough::ClickThroughWindow(Window* pWindow, const UiPoint& ptMouse)
         }
         hWndUnder = hParentWnd;
     }
-    if (::IsWindow(hWnd) && ::IsWindow(hWndUnder)) {
+    if ((hWnd != hWndUnder) && ::IsWindow(hWnd) && ::IsWindow(hWndUnder)) {
         DWORD dwThreadId = ::GetWindowThreadProcessId(hWnd, nullptr);
         DWORD dwUnderThreadId = ::GetWindowThreadProcessId(hWndUnder, nullptr);
         ::AttachThreadInput(dwThreadId, dwUnderThreadId, TRUE);

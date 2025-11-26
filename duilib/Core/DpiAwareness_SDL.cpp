@@ -1,17 +1,10 @@
 #include "DpiAwareness.h"
 
-//仅限非Windows平台
+//仅限非Windows平台, 不支持DpiAwareness的各种模式，非Windows平台无此概念
 #if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
 
 namespace ui
 {
-DpiInitParam::DpiInitParam() :
-    m_dpiAwarenessFlag(DpiInitParam::DpiAwarenessFlag::kFromUserDefine),
-    m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2),
-    m_uDPI(0)
-{
-}
-
 DpiAwareness::DpiAwareness():
     m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2)
 {
@@ -21,27 +14,22 @@ DpiAwareness::~DpiAwareness()
 {
 }
 
-bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
+bool DpiAwareness::InitDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
 {
-    bool bRet = true;
-    if (initParam.m_dpiAwarenessFlag == DpiInitParam::DpiAwarenessFlag::kFromUserDefine) {
-        //设置一次 Dpi Awareness
-        SetDpiAwareness(initParam.m_dpiAwarenessMode);
-        DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
-        if (initParam.m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
-            bRet = (dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) ? true : false;
-        }
-        else {
-            bRet = (dpiAwarenessMode != DpiAwarenessMode::kDpiUnaware) ? true : false;
-        }
+    switch (dpiAwarenessMode) {
+    case DpiAwarenessMode::kFromManifest:
+    case DpiAwarenessMode::kPerMonitorDpiAware:
+    case DpiAwarenessMode::kPerMonitorDpiAware_V2:
+        m_dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware_V2;
+    default:
+        m_dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
     }
-    return bRet;
+    return true;
 }
 
-DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
+DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode /*dpiAwarenessMode*/)
 {
-    m_dpiAwarenessMode = dpiAwarenessMode;
-    return GetDpiAwareness();
+    return m_dpiAwarenessMode;
 }
 
 DpiAwarenessMode DpiAwareness::GetDpiAwareness() const

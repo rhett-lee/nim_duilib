@@ -264,8 +264,10 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventScrollChange");
     case kEventValueChange:
         return _T("kEventValueChange");
-    case kEventResize:
-        return _T("kEventResize");
+    case kEventPosChanged:
+        return _T("kEventPosChanged");
+    case kEventSizeChanged:
+        return _T("kEventSizeChanged");
     case kEventVisibleChange:
         return _T("kEventVisibleChange");
     case kEventStateChange:

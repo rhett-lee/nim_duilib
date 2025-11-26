@@ -41,33 +41,42 @@ void MainForm::OnInitWindow()
             });
     }
 
-    pButton = dynamic_cast<ui::Button*>(FindControl(_T("SetDPI")));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_display_scale_factor")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            //修改DPI值
-            ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("DPI")));
+            //修改界面显示比例
+            ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("display_scale_factor")));
             if (pRichEdit != nullptr) {
-                int32_t nNewDpi = ui::StringUtil::StringToInt32(pRichEdit->GetText());
-                if (nNewDpi > 0) {
-                    ChangeDpi((uint32_t)nNewDpi);
+                int32_t nNewDisplayScaleFactor = ui::StringUtil::StringToInt32(pRichEdit->GetText());
+                if (nNewDisplayScaleFactor > 0) {
+                    this->ChangeDisplayScale((uint32_t)nNewDisplayScaleFactor);
                     UpdateUI();
                 }
             }
             return true;
             });
     }
+
+    ui::Control* pGroupTest = FindControl(_T("group_box_test"));
+    if (pGroupTest != nullptr) {
+        pGroupTest->AttachPosChanged([this](const ui::EventArgs& /*args*/) {
+            UpdateUI();
+            return true;
+            });
+    }
 }
 
-void MainForm::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
+void MainForm::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
 {
+    ui::WindowImplBase::OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
     UpdateUI();
-    ui::WindowImplBase::OnWindowDpiChanged(nOldDPI, nNewDPI);
 }
 
 LRESULT MainForm::OnSizeMsg(ui::WindowSizeType sizeType, const ui::UiSize& newWindowSize, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
+    LRESULT lResult = ui::WindowImplBase::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     UpdateUI();
-    return ui::WindowImplBase::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    return lResult;
 }
 
 void MainForm::UpdateUI()
@@ -90,29 +99,32 @@ void MainForm::UpdateUI()
         }
         pLabel->SetText(text);
     }
-    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi")));
-    if (pLabel != nullptr) {
-        uint32_t nDPI = ui::GlobalManager::Instance().Dpi().GetDPI();
-        DString text = ui::StringUtil::UInt32ToString(nDPI);
+
+    const ui::Control* pGroupTest = FindControl(_T("group_box_test"));
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("group_box_pos")));
+    if ((pLabel != nullptr) && (pGroupTest != nullptr)) {
+        DString text = ui::StringUtil::Printf(_T("[left: %d, top: %d]"), pGroupTest->GetRect().left, pGroupTest->GetRect().top);
         pLabel->SetText(text);
     }
-    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi_percent")));
+    
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("primary_monitor_display_scale")));
     if (pLabel != nullptr) {
-        uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetDisplayScaleFactor();
-        DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
+        uint32_t nScaleFactor = ui::GlobalManager::Instance().Dpi().GetDisplayScaleFactor();
+        float fScale = ui::GlobalManager::Instance().Dpi().GetDisplayScale();
+        DString text = ui::StringUtil::Printf(_T("%d%% (DisplayScale: %.02f)"), nScaleFactor, fScale);
         pLabel->SetText(text);
     }
-    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi")));
+    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_display_scale")));
     if (pLabel != nullptr) {
-        uint32_t nDPI = Dpi().GetDPI();
-        DString text = ui::StringUtil::UInt32ToString(nDPI);
+        uint32_t nScaleFactor = Dpi().GetDisplayScaleFactor();
+        float fScale = Dpi().GetDisplayScale();
+        DString text = ui::StringUtil::Printf(_T("%d%% (DisplayScale: %.02f)"), nScaleFactor, fScale);
         pLabel->SetText(text);
     }
-    pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi_percent")));
-    if (pLabel != nullptr) {
-        uint32_t nScale = Dpi().GetDisplayScaleFactor();
-        DString text = ui::StringUtil::Printf(_T("%d%%"), nScale);
-        pLabel->SetText(text);
+    ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("display_scale_factor")));
+    if (pRichEdit != nullptr) {
+        uint32_t nScaleFactor = Dpi().GetDisplayScaleFactor();
+        pRichEdit->SetTextNumber((int64_t)nScaleFactor);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_size")));
     if (pLabel != nullptr) {
@@ -169,5 +181,22 @@ void MainForm::UpdateUI()
         pSDL->SetVisible(false);
     }
 #endif
-    
+
+    if (0) {
+        //TODO: 最大化和还原时，界面的图片显示有异常，原因待查
+        ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("title")));
+        const ui::Control* pTest = FindControl(_T("group_box_test"));
+        if (pTest && pTitle) {
+            DString text = ui::StringUtil::Printf(_T("[W:%d, H:%d]"), pTest->GetWidth(), pTest->GetHeight());
+            const ui::Box* pBox = dynamic_cast<const ui::Box*>(pTest);
+            for (size_t i = 0; i < pBox->GetItemCount(); ++i) {
+                ui::Control* p = pBox->GetItemAt(i);
+                if (p->IsVisible()) {
+                    text += ui::StringUtil::Printf(_T(" (%i)[T:%d, H:%d]"), (int)i, p->GetRect().top - pTest->GetRect().top, p->GetHeight());
+                }
+            }
+            pTitle->SetText(text);
+            ::OutputDebugString(text.c_str());
+        }
+    }
 }

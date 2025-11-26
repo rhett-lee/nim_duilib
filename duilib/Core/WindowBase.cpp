@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/MonitorUtil.h"
 #include <random>
 
 namespace ui
@@ -202,12 +203,8 @@ void WindowBase::InitWindowBase()
         return;
     }
     //初始化窗口自身的DPI管理器
-    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
-        //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
-        m_dpi = std::make_unique<DpiManager>();
-        m_dpi->SetDpiByWindow(this);
-    }
+    m_dpi = std::make_unique<DpiManager>();
+    m_dpi->SetDisplayScaleForWindow(this);
 }
 
 void WindowBase::GetClientRect(UiRect& rcClient) const
@@ -236,9 +233,33 @@ void WindowBase::ClientToScreen(UiRect& rc) const
     pt.x = rc.left;
     pt.y = rc.top;
     ClientToScreen(pt);
-    rc.right = pt.x + rc.Width();
+
+    int32_t cx = rc.Width();
+    Dpi().ClientSizeToWindowSize(cx);
+    int32_t cy = rc.Height();
+    Dpi().ClientSizeToWindowSize(cy);
+
+    rc.right = pt.x + cx;
     rc.left = pt.x;
-    rc.bottom = pt.y + rc.Height();
+    rc.bottom = pt.y + cy;
+    rc.top = pt.y;
+}
+
+void WindowBase::ScreenToClient(UiRect& rc) const
+{
+    UiPoint pt;
+    pt.x = rc.left;
+    pt.y = rc.top;
+    ScreenToClient(pt);
+
+    int32_t cx = rc.Width();
+    Dpi().WindowSizeToClientSize(cx);
+    int32_t cy = rc.Height();
+    Dpi().WindowSizeToClientSize(cy);
+
+    rc.right = pt.x + cx;
+    rc.left = pt.x;
+    rc.bottom = pt.y + cy;
     rc.top = pt.y;
 }
 
@@ -422,14 +443,17 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
         cy = 0;
     }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(cy);
-        Dpi().ScaleInt(cx);
+        Dpi().ScaleWindowSize(cy);
+        Dpi().ScaleWindowSize(cx);
     }
 
     if (!bContainShadow) {
         UiPadding rcShadow;
         GetShadowCorner(rcShadow);
-        Dpi().ScalePadding(rcShadow);
+        Dpi().ScaleWindowSize(rcShadow.left);
+        Dpi().ScaleWindowSize(rcShadow.top);
+        Dpi().ScaleWindowSize(rcShadow.right);
+        Dpi().ScaleWindowSize(rcShadow.bottom);
         cx += rcShadow.left + rcShadow.right;
         cy += rcShadow.top + rcShadow.bottom;
     }
@@ -506,80 +530,110 @@ const DpiManager& WindowBase::Dpi() const
     return (m_dpi != nullptr) ? *m_dpi : GlobalManager::Instance().Dpi();
 }
 
-bool WindowBase::ChangeDpi(uint32_t nNewDPI)
+bool WindowBase::ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisableDpiAware)
 {
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return false;
     }
-    //DPI值限制在60到300之间(小于50的时候，会出问题，比如原来是1的，经过DPI转换后，会变成0，导致很多逻辑失效)
-    ASSERT((nNewDPI >= 60) && (nNewDPI <= 300)) ;
-    if ((nNewDPI < 60) || (nNewDPI > 300)) {
+    //DPI缩放比值限制在60到300之间(小于50的时候，会出问题，比如原来是1的，经过DPI转换后，会变成0，导致很多逻辑失效)
+    const uint32_t nDisplayScaleFactorMin = (uint32_t)(DUILIB_DISPLAY_SCALE_MIN * 100 + 0.5f);
+    const uint32_t nDisplayScaleFactorMax = (uint32_t)(DUILIB_DISPLAY_SCALE_MAX * 100 + 0.5f);
+    ASSERT((nNewDisplayScaleFactor >= nDisplayScaleFactorMin) && (nNewDisplayScaleFactor <= nDisplayScaleFactorMax)) ;
+    if ((nNewDisplayScaleFactor < nDisplayScaleFactorMin) || (nNewDisplayScaleFactor > nDisplayScaleFactorMax)) {
         return false;
     }
 
-    uint32_t nOldDPI = Dpi().GetDPI();
-    uint32_t nOldDpiScale = Dpi().GetDisplayScaleFactor();
+    uint32_t nOldScaleFactor = Dpi().GetDisplayScaleFactor();
     if (m_dpi == nullptr) {
         m_dpi = std::make_unique<DpiManager>();
     }
     //更新窗口的DPI值为新值
-    m_dpi->SetDPI(nNewDPI);
+    m_dpi->SetDisplayScale(nNewDisplayScaleFactor / 100.0f, m_dpi->GetPixelDensity());
 
-    ASSERT(nNewDPI == m_dpi->GetDPI());
-    uint32_t nNewDpiScale = m_dpi->GetDisplayScaleFactor();
+    //标记为用户自定义DPI，不再跟随屏幕DPI变化
+    if (bDisableDpiAware) {
+        m_dpi->SetUserDefinedDpi(true);
+    }
+
+    uint32_t nNewScaleFactor = m_dpi->GetDisplayScaleFactor();
 
     //按新的DPI更新窗口布局
-    OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
+    OnDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
+    OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
 
     //更新窗口大小和位置
     UiRect rcOldWindow;
     GetWindowRect(rcOldWindow);
-    UiRect rcNewWindow = Dpi().GetScaleRect(rcOldWindow, nOldDpiScale);
-    m_pNativeWindow->MoveWindow(rcOldWindow.left, rcOldWindow.top, rcNewWindow.Width(), rcNewWindow.Height(), true);
-    OnWindowDpiChanged(nOldDPI, nNewDPI);
+    int32_t cx = Dpi().GetScaleWindowSize(rcOldWindow.Width(), nOldScaleFactor);
+    int32_t cy = Dpi().GetScaleWindowSize(rcOldWindow.Height(), nOldScaleFactor);
+    m_pNativeWindow->MoveWindow(rcOldWindow.left, rcOldWindow.top, cx, cy, true);
+
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    Invalidate(rcClient);
     return true;
 }
 
-void WindowBase::ProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& /*rcNewWindow*/)
+void WindowBase::OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
-    //此消息必须处理，否则窗口大小与界面的比例将失调
-    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if ((m_dpi != nullptr) && dpiManager.IsPerMonitorDpiAware()) {
-        //调整DPI值
-        uint32_t nOldDPI = m_dpi->GetDPI();
-        uint32_t nOldDpiScale = m_dpi->GetDisplayScaleFactor();
-
-        //更新窗口的DPI值为新值
-        m_dpi->SetDPI(nNewDPI);
-        ASSERT(nNewDPI == m_dpi->GetDPI());
-        uint32_t nNewDpiScale = m_dpi->GetDisplayScaleFactor();
-
-        //按新的DPI更新窗口布局
-        OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
-        OnWindowDpiChanged(nOldDPI, nNewDPI);
-    }
-}
-
-void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
-{
-    if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
+    if ((fNewDisplayScale < 0.9999f) || (fNewPixelDensity < 0.9999f)) {
+        //无效值
         return;
     }
-    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
+    //更新全局DPI管理器的DPI值
+    float fMonitorDisplayScale = MonitorUtil::GetPrimaryMonitorDisplayScale();
+    DpiManager& dpi = GlobalManager::Instance().Dpi();
+    if (!dpi.IsUserDefinedDpi() && dpi.IsDpiAware() && !IsFloatEqual(fMonitorDisplayScale, dpi.GetDisplayScale())) {
+        dpi.SetDisplayScale(fMonitorDisplayScale, dpi.GetPixelDensity());
+    }
+
+    //此消息必须处理，否则窗口大小与界面的比例将失调
+    uint32_t nOldScaleFactor = 0;
+    uint32_t nNewScaleFactor = 0;
+    if (m_dpi != nullptr) {
+        nOldScaleFactor = m_dpi->GetDisplayScaleFactor();
+        nNewScaleFactor = nOldScaleFactor;
+    }
+    if ((m_dpi != nullptr) && !m_dpi->IsUserDefinedDpi() && m_dpi->IsDpiAware()) {
+        if (!m_dpi->IsDisplayScaleChanged(fNewDisplayScale, fNewPixelDensity)) {
+            //无变化，不处理
+            return;
+        }
+        //更新窗口的DPI缩放比为新值
+        nOldScaleFactor = m_dpi->GetDisplayScaleFactor();
+        m_dpi->SetDisplayScale(fNewDisplayScale, fNewPixelDensity);
+        nNewScaleFactor = m_dpi->GetDisplayScaleFactor();
+
+        //按新的DPI更新窗口布局
+        if (nOldScaleFactor != nNewScaleFactor) {
+            OnDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);            
+        }
+    }
+
+    //该回调，无论是否变化，都需要通知应用层
+    OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
+}
+
+void WindowBase::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
+{
+    if ((nOldScaleFactor == nNewScaleFactor) || (nNewScaleFactor == 0)) {
+        return;
+    }
+    if (!Dpi().CheckDisplayScaleFactor(nNewScaleFactor)) {
         return;
     }
     UiSize szMinWindow = NativeWnd()->GetWindowMinimumSize();
-    szMinWindow = Dpi().GetScaleSize(szMinWindow, nOldDpiScale);
+    szMinWindow = Dpi().GetScaleSize(szMinWindow, nOldScaleFactor);
     NativeWnd()->SetWindowMinimumSize(szMinWindow);
 
     UiSize szMaxWindow = NativeWnd()->GetWindowMaximumSize();
-    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldDpiScale);
+    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldScaleFactor);
     NativeWnd()->SetWindowMaximumSize(szMaxWindow);
 
-    m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
-    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
-    m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
+    m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldScaleFactor);
+    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldScaleFactor);
+    m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldScaleFactor);
 }
 
 bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
@@ -714,7 +768,7 @@ void WindowBase::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
 void WindowBase::SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        NativeWnd()->SetWindowMaximumSize(Dpi().GetScaleSize(szMinWindow));
+        NativeWnd()->SetWindowMaximumSize(Dpi().GetScaleWindowSize(szMinWindow));
     }
     else {
         NativeWnd()->SetWindowMaximumSize(szMinWindow);
@@ -729,7 +783,7 @@ const UiSize& WindowBase::GetWindowMaximumSize() const
 void WindowBase::SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        NativeWnd()->SetWindowMinimumSize(Dpi().GetScaleSize(szMaxWindow));
+        NativeWnd()->SetWindowMinimumSize(Dpi().GetScaleWindowSize(szMaxWindow));
     }
     else {
         NativeWnd()->SetWindowMinimumSize(szMaxWindow);
@@ -884,9 +938,9 @@ IRender* WindowBase::OnNativeGetRender() const
     return GetRender();
 }
 
-void WindowBase::OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow)
+void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
-    ProcessDpiChangedMsg(nNewDPI, rcNewWindow);
+    OnDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
 }
 
 void WindowBase::OnNativeFinalMessage()

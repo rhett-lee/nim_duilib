@@ -350,10 +350,10 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
         cy = 0;
     }
     if (needScaleCX && (pWindow != nullptr)) {
-        pWindow->Dpi().ScaleInt(cx);
+        pWindow->Dpi().ScaleWindowSize(cx);
     }
     if (needScaleCY && (pWindow != nullptr)) {
-        pWindow->Dpi().ScaleInt(cy);
+        pWindow->Dpi().ScaleWindowSize(cy);
     }
     if (!rcWork.IsEmpty()) {
         if (cx > rcWork.Width()) {

@@ -344,8 +344,8 @@ public:
     void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale);
 
     /** 设置窗口初始大小, 对应XML文件中的 size 属性
-    * @param [in] cx 宽度
-    * @param [in] cy 高度
+    * @param [in] cx 宽度，已做过DPI缩放
+    * @param [in] cy 高度，已做过DPI缩放
     */
     void SetInitSize(int cx, int cy);
 
@@ -550,11 +550,11 @@ protected:
     */
     virtual void OnWindowExitFullScreen() override;
 
-    /** 窗口的DPI发生了变化(供子类使用)
-    * @param [in] nOldDPI 旧的DPI值
-    * @param [in] nNewDPI 新的DPI值
+    /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
+    * @param [in] nOldScaleFactor 旧的DPI缩放百分比
+    * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致
     */
-    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
+    virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
     /** 获取设置的窗口阴影的大小
     * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
@@ -894,11 +894,11 @@ private:
     */
     virtual void FinalMessage() override final;
 
-    /** 窗口的DPI发生变化，更新控件大小和布局(该函数不允许重写，如果需要此事件，可以重写OnWindowDpiChanged函数，实现功能)
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    /** 窗口的DPI缩放比发生变化，更新控件大小和布局(该函数不允许重写，如果需要此事件，可以重写OnWindowDisplayScaleChanged函数，实现功能)
+    * @param [in] nOldScaleFactor 旧的DPI缩放百分比
+    * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致
     */
-    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override final;
+    virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override final;
 
 private:
     //鼠标等按下消息处理函数

@@ -137,6 +137,7 @@ void ComboButtonWnd::UpdateComboWnd()
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
+        rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
     SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);

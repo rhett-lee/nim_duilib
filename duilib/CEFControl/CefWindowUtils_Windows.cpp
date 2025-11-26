@@ -17,6 +17,7 @@ void SetCefWindowPos(CefWindowHandle cefWindow, CefControl* pCefControl)
     HWND hwnd = (HWND)cefWindow;
     if (::IsWindow(hwnd)) {
         UiRect rc = pCefControl->GetPos();
+        pCefControl->Dpi().ClientSizeToWindowSize(rc);
         ::SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
     }
 }

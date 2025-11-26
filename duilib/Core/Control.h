@@ -903,10 +903,15 @@ public:
      */
     void AttachContextMenu(const EventCallback& callback) { AttachEvent(kEventContextMenu, callback); }
 
+    /** 监听控件位置改变事件
+     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     */
+    void AttachPosChanged(const EventCallback& callback) { AttachEvent(kEventPosChanged, callback); }
+
     /** 监听控件大小改变事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      */
-    void AttachResize(const EventCallback& callback) { AttachEvent(kEventResize, callback); }
+    void AttachSizeChanged(const EventCallback& callback) { AttachEvent(kEventSizeChanged, callback); }
 
     /** 监听双击事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

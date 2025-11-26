@@ -281,9 +281,9 @@ private:
     */
     std::vector<RichTextDataEx> m_textData;
 
-    /** 解析文本对应的DPI值
+    /** 解析文本对应的界面缩放比
     */
-    uint32_t m_nTextDataDPI;
+    uint32_t m_nTextDataDisplayScaleFactor;
 
     /** 超级链接的文本：常规文本颜色
     */

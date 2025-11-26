@@ -17,7 +17,7 @@ RichText::RichText(Window* pWindow) :
     m_vAlignType(VerAlignType::kAlignTop),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),
-    m_nTextDataDPI(0),
+    m_nTextDataDisplayScaleFactor(0),
     m_bWordWrap(true)
 {
 }
@@ -431,14 +431,14 @@ void RichText::CheckParseText()
     }
 
     //当DPI变化时，需要重新解析文本，更新字体大小
-    if (m_nTextDataDPI != Dpi().GetDPI()) {
+    if (m_nTextDataDisplayScaleFactor != Dpi().GetDisplayScaleFactor()) {
         m_textData.clear();
         m_spDrawRichTextCache.reset();
     }
 
     if (m_textData.empty()) {
         ParseText(m_textData);
-        m_nTextDataDPI = Dpi().GetDPI();
+        m_nTextDataDisplayScaleFactor = Dpi().GetDisplayScaleFactor();
         m_spDrawRichTextCache.reset();
     }
 }

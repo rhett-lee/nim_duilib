@@ -319,6 +319,8 @@ bool Menu::ResizeMenu()
     //点击在哪里，以哪里的屏幕为主
     ui::UiRect rcWork;
     GetMonitorWorkRect(m_menuPoint, rcWork);
+    Dpi().WindowSizeToClientSize(rcWork);
+    Dpi().WindowSizeToClientSize(m_menuPoint);
 
     ui::UiSize szMenuWindow = { rcWork.Width(), rcWork.Height()};
     UiEstSize estSize = pRoot->EstimateSize(szMenuWindow);   //这里返回的大小包含了阴影的大小
@@ -363,9 +365,15 @@ bool Menu::ResizeMenu()
             point.y = rcWork.bottom - szMenuClient.cy;
         }
     }
-   
+
+    int32_t x = point.x - rcShadowCorner.left;
+    int32_t y = point.y - rcShadowCorner.top;
+    Dpi().ClientSizeToWindowSize(x);
+    Dpi().ClientSizeToWindowSize(y);
+    Dpi().ClientSizeToWindowSize(szMenuWindow);
+    Dpi().ClientSizeToWindowSize(m_menuPoint);
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 point.x - rcShadowCorner.left, point.y - rcShadowCorner.top,
+                 x, y,
                  szMenuWindow.cx, szMenuWindow.cy,
                  kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
 
@@ -392,6 +400,7 @@ bool Menu::ResizeSubMenu()
     UiPadding rcCorner = GetCurrentShadowCorner();
     UiRect rcWindow;
     m_pOwner->GetWindow()->GetWindowRect(rcWindow);
+    Dpi().WindowSizeToClientSize(rcWindow);
 
     UiRect rcClient;
     GetClientRect(rcClient);
@@ -429,6 +438,7 @@ bool Menu::ResizeSubMenu()
     rcWindow.Deflate(rcCorner);
 
     m_pOwner->GetWindow()->ClientToScreen(rc);
+    Dpi().WindowSizeToClientSize(rc);
    
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;
@@ -444,6 +454,7 @@ bool Menu::ResizeSubMenu()
         Menu* pContextMenu = dynamic_cast<Menu*>(pReceiver);
         if (pContextMenu != nullptr) {
             pContextMenu->GetWindowRect(rcPreWindow);  //需要减掉阴影
+            Dpi().WindowSizeToClientSize(rcPreWindow);
 
             bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
             bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
@@ -466,6 +477,7 @@ bool Menu::ResizeSubMenu()
 
     UiRect rcWork;
     GetMonitorWorkRect(m_menuPoint, rcWork);
+    Dpi().WindowSizeToClientSize(rcWork);
 
     if (rc.bottom > rcWork.bottom) {
         rc.bottom = rc.top;
@@ -492,8 +504,15 @@ bool Menu::ResizeSubMenu()
     int32_t nNewHeight = rc.Height() + rcCorner.top + rcCorner.bottom;
     ASSERT(nNewWidth == rcClient.Width());
     ASSERT(nNewHeight == rcClient.Height());
+
+    int32_t x = rc.left - rcCorner.left;
+    int32_t y = rc.top - rcCorner.top;
+    Dpi().ClientSizeToWindowSize(x);
+    Dpi().ClientSizeToWindowSize(y);
+    Dpi().ClientSizeToWindowSize(nNewWidth);
+    Dpi().ClientSizeToWindowSize(nNewHeight);
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 rc.left - rcCorner.left, rc.top - rcCorner.top,
+                 x, y,
                  nNewWidth, nNewHeight,
                  kSWP_SHOWWINDOW | kSWP_NOSIZE | (m_noFocus ? kSWP_NOACTIVATE : 0));
 

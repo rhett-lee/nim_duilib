@@ -173,6 +173,7 @@ UiRect CComboWnd::GetComboWndRect() const
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
+        rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
     return rc;

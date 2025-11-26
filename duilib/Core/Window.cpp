@@ -782,7 +782,7 @@ void Window::OnWindowExitFullScreen()
 {
 }
 
-void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
+void Window::OnWindowDisplayScaleChanged(uint32_t /*nOldScaleFactor*/, uint32_t /*nNewScaleFactor*/)
 {
 }
 
@@ -1043,31 +1043,31 @@ void Window::SetInitSize(int cx, int cy)
     }
 }
 
-void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+void Window::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
 {
-    if ((nOldDpiScale == nNewDpiScale) || (nNewDpiScale == 0)) {
+    if ((nOldScaleFactor == nNewScaleFactor) || (nNewScaleFactor == 0)) {
         return;
     }
-    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewScaleFactor)) {
         return;
     }
-    WindowBase::OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
+    WindowBase::OnDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
 
     //窗口阴影
     if (m_shadow != nullptr) {
-        m_shadow->ChangeDpiScale(Dpi(), nOldDpiScale, nNewDpiScale);
+        m_shadow->ChangeDpiScale(Dpi(), nOldScaleFactor, nNewScaleFactor);
     }
 
     //更新窗口自身的DPI关联属性
-    m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldDpiScale);
-    m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldDpiScale);
+    m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldScaleFactor);
+    m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldScaleFactor);
 
     //更新布局和控件的DPI关联属性
     SetArrange(true);
 
     Box* pRoot = GetRoot();
     if (pRoot != nullptr) {
-        pRoot->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+        pRoot->ChangeDpiScale(nOldScaleFactor, nNewScaleFactor);
         pRoot->Arrange();
         Invalidate(pRoot->GetPos());
     }
@@ -1095,9 +1095,15 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
             GetWindowRect(rcWindow);
             UiRect rcClientRect;
             GetClientRect(rcClientRect);
-            //ASSERT(rcClientRect.Width() == rcWindow.Width());
-            //ASSERT(rcClientRect.Height() == rcWindow.Height());
-            if ((rcClientRect.Width() == rcWindow.Width()) && (rcClientRect.Height() == rcWindow.Height())) {
+            int32_t cxClient = rcClientRect.Width();
+            int32_t cyClient = rcClientRect.Height();
+            if (Dpi().HasPixelDensity()) {
+                Dpi().UnscaleInt(cxClient);
+                Dpi().UnscaleInt(cyClient);
+                Dpi().ScaleWindowSize(cxClient);
+                Dpi().ScaleWindowSize(cyClient);
+            }
+            if ((cxClient == rcWindow.Width()) && (cyClient == rcWindow.Height())) {
                 //全屏时，设置外边距，避免客户区的内容溢出屏幕
                 UiRect rcWork;
                 GetMonitorWorkRect(rcWork);
@@ -1114,6 +1120,12 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                 }
                 if (rcWindow.bottom > rcWork.bottom) {
                     rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
+                }
+                if (Dpi().HasPixelDensity()) {
+                    rcFullscreenMargin.left = (int32_t)std::round(rcFullscreenMargin.left * Dpi().GetPixelDensity());
+                    rcFullscreenMargin.top = (int32_t)std::round(rcFullscreenMargin.top * Dpi().GetPixelDensity());
+                    rcFullscreenMargin.right = (int32_t)std::round(rcFullscreenMargin.right * Dpi().GetPixelDensity());
+                    rcFullscreenMargin.bottom = (int32_t)std::round(rcFullscreenMargin.bottom * Dpi().GetPixelDensity());
                 }
                 bool bHasShadowBox = false;
                 Box* pRoot = GetXmlRoot();
@@ -2460,6 +2472,12 @@ bool Window::AutoResizeWindow(bool bRepaint)
             UiSize newSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
             newSize.cx = std::clamp(newSize.cx, m_pRoot->GetMinWidth(), m_pRoot->GetMaxWidth());
             newSize.cy = std::clamp(newSize.cy, m_pRoot->GetMinHeight(), m_pRoot->GetMaxHeight());
+
+            if (Dpi().HasPixelDensity()) {
+                //转换为窗口大小
+                newSize.cx = (int32_t)std::round(newSize.cx / Dpi().GetPixelDensity());
+                newSize.cy = (int32_t)std::round(newSize.cy / Dpi().GetPixelDensity());
+            }
 
             UiRect rcWindow;
             GetWindowRect(rcWindow);

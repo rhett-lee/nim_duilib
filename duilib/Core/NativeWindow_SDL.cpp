@@ -219,8 +219,12 @@ void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
     int y = 0;
     int w = 0;
     int h = 0;
-    SDL_GetWindowPosition(window, &x, &y);
-    SDL_GetWindowSize(window, &w, &h);
+    if (!SDL_GetWindowPosition(window, &x, &y)) {
+        return;
+    }
+    if (!SDL_GetWindowSize(window, &w, &h)) {
+        return;
+    }
 
     // 贴边检测逻辑
     bool bLeftSnap = (std::abs(x - displayBounds.x) < snapThreshold);
@@ -267,14 +271,6 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_WINDOW_HIDDEN:
         {
             lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
-        }
-        break;
-    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-        {
-            UiSize newWindowSize;
-            SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);
-            ASSERT(sdlEvent.window.data1 == newWindowSize.cx);
-            ASSERT(sdlEvent.window.data2 == newWindowSize.cy);
         }
         break;
     case SDL_EVENT_WINDOW_RESIZED:
@@ -327,17 +323,48 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
         {
-            //窗口显示的DPI变化
-            float fNewDpiScale = SDL_GetWindowDisplayScale(m_sdlWindow);
-            if (fNewDpiScale > 0.01f) {
-                uint32_t nNewDPI = (uint32_t)(fNewDpiScale * 96 + 0.5);//新的DPI值
-                if (nNewDPI != pOwner->OnNativeGetDpi().GetDPI()) {
-                    //DPI发生变化
-                    uint32_t nOldDpiScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
-                    pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, UiRect());
-                    if (!ownerFlag.expired() && (nOldDpiScale != pOwner->OnNativeGetDpi().GetDisplayScaleFactor())) {
-                        m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
+            //窗口显示的DPI变化, 触发DPI发生变化的事件
+            float fNewDisplayScale = SDL_GetWindowDisplayScale(m_sdlWindow);
+            float fNewPixelDensity = SDL_GetWindowPixelDensity(m_sdlWindow);
+#ifdef DUILIB_HDPI_TEST_PIXEL_DENSITY
+            //TEST ONLY
+            fNewPixelDensity = DUILIB_HDPI_TEST_PIXEL_DENSITY;
+#endif
+            uint32_t nOldDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+            pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+            uint32_t nNewDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+
+            if (!ownerFlag.expired() && (nOldDisplayScale != nNewDisplayScale)) {
+                //界面显示比例发生了变化
+                m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDisplayScale);
+
+                //需要按DPI比例调整窗口大小，避免界面显示比例失衡
+                if ((nNewDisplayScale != 0) && (nOldDisplayScale != 0)) {
+                    int w = 0;
+                    int h = 0;
+                    if (SDL_GetWindowSize(m_sdlWindow, &w, &h)) {
+                        w = pOwner->OnNativeGetDpi().MulDiv(w, (int)nNewDisplayScale, (int)nOldDisplayScale);
+                        h = pOwner->OnNativeGetDpi().MulDiv(h, (int)nNewDisplayScale, (int)nOldDisplayScale);
+                        SDL_SetWindowSize(m_sdlWindow, w, h);
                     }
+                }
+            }
+        }
+        break;
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        {
+            if (GlobalManager::Instance().Dpi().IsPixelDensityEnabled()) {
+                //窗口像素密度发生变化, 触发DPI发生变化的事件
+                float fNewDisplayScale = SDL_GetWindowDisplayScale(m_sdlWindow);
+                float fNewPixelDensity = SDL_GetWindowPixelDensity(m_sdlWindow);
+#ifdef DUILIB_HDPI_TEST_PIXEL_DENSITY
+                //TEST ONLY
+                fNewPixelDensity = DUILIB_HDPI_TEST_PIXEL_DENSITY;
+#endif
+                uint32_t nOldDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
+                pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+                if (!ownerFlag.expired() && (nOldDisplayScale != pOwner->OnNativeGetDpi().GetDisplayScaleFactor())) {
+                    m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDisplayScale);
                 }
             }
         }
@@ -388,6 +415,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.motion.x;
             pt.y = (int32_t)sdlEvent.motion.y;
+            pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             lResult = pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bHandled);
 
@@ -407,9 +435,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             #define WHEEL_DELTA     120
 #endif
             int32_t wheelDelta = (int32_t)(sdlEvent.wheel.y * WHEEL_DELTA);
+            pOwner->OnNativeGetDpi().WindowSizeToClientSize(wheelDelta);
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.wheel.mouse_x;
             pt.y = (int32_t)sdlEvent.wheel.mouse_y;
+            pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             lResult = pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_WHEEL, 0, 0), bHandled);
         }
@@ -419,6 +449,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
+            pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
 
 #if defined (DUILIB_BUILD_FOR_MACOS)
             //MacOS平台：当存在CEF子窗口时，先点击页面，然后再点击主界面，此时SDL给出的pt值不正确，所以进行修正
@@ -451,6 +482,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
+            pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             bool bDoubleClick = (sdlEvent.button.clicks == 2) ? true : false;//是否为双击
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
@@ -579,7 +611,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {
             bHandled = true;
             if (m_pWindowDropTarget != nullptr) {
-                m_pWindowDropTarget->OnDropPosition(UiPoint((uint32_t)sdlEvent.drop.x, (uint32_t)sdlEvent.drop.y));
+                UiPoint pt((uint32_t)sdlEvent.drop.x, (uint32_t)sdlEvent.drop.y);
+                pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
+                m_pWindowDropTarget->OnDropPosition(pt);
             }
         }
         break;
@@ -1291,6 +1325,7 @@ int32_t NativeWindow_SDL::SDL_HitTest(SDL_Window* win, const SDL_Point* area, vo
     UiPoint pt;
     pt.x = area->x;
     pt.y = area->y;
+    m_pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
 
     UiRect rcClient;
     GetClientRect(rcClient);
@@ -2294,7 +2329,11 @@ void NativeWindow_SDL::SetCapture()
     //ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
     if (SDL_GetMouseFocus() == m_sdlWindow) {
         bool nRet = SDL_CaptureMouse(true);
-        ASSERT_UNUSED_VARIABLE(nRet);
+        if (!nRet) {
+            const char* szErrorMsg = SDL_GetError();
+            ASSERT_UNUSED_VARIABLE(nRet);
+            UNUSED_VARIABLE(szErrorMsg);
+        }        
         if (nRet) {
             m_bMouseCapture = true;
         }
@@ -2442,7 +2481,14 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
     ASSERT(IsWindow());
     int nWidth = 0;
     int nHeight = 0;
-    bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+    bool nRet = false;
+    if (GlobalManager::Instance().Dpi().IsPixelDensityEnabled()) {
+        nRet = SDL_GetWindowSizeInPixels(m_sdlWindow, &nWidth, &nHeight);
+    }
+    else {
+        nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+    }
+    
     ASSERT(nRet);
     if (nRet) {
         rcClient.left = 0;
@@ -2450,6 +2496,12 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
         rcClient.right = rcClient.left + nWidth;
         rcClient.bottom = rcClient.top + nHeight;
     }
+
+#ifdef DUILIB_HDPI_TEST_PIXEL_DENSITY
+    //TEST ONLY
+    rcClient.right = (int32_t)std::round(rcClient.left + nWidth * DUILIB_HDPI_TEST_PIXEL_DENSITY);
+    rcClient.bottom = (int32_t)std::round(rcClient.top + nHeight * DUILIB_HDPI_TEST_PIXEL_DENSITY);
+#endif
 }
 
 void NativeWindow_SDL::GetWindowRect(UiRect& rcWindow) const
@@ -2468,14 +2520,21 @@ void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) co
     //窗口的左上角坐标值（屏幕坐标）
     int nXPos = 0;
     int nYPos = 0;
-    SDL_GetWindowPosition(sdlWindow, &nXPos, &nYPos);
+    bool bRet = SDL_GetWindowPosition(sdlWindow, &nXPos, &nYPos);
+    if (!bRet) {
+        //纯Wayland环境，该函数获取不到窗口的位置
+        nXPos = 0;
+        nYPos = 0;
+    }
 
     //边框大小
     int nTopBorder = 0;
     int nLeftBorder = 0;
     int nBottomBorder = 0;
     int nRightBorder = 0;
-    SDL_GetWindowBordersSize(sdlWindow, &nTopBorder, &nLeftBorder, &nBottomBorder, &nRightBorder);
+    if (bRet) {
+        SDL_GetWindowBordersSize(sdlWindow, &nTopBorder, &nLeftBorder, &nBottomBorder, &nRightBorder);
+    }    
 
     //客户区大小
     int nWidth = 0;
@@ -2507,9 +2566,6 @@ void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) co
 
 void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
 {
-//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-//    POINT ptWnd = { pt.x, pt.y };
-//#endif
     int nXPos = 0;
     int nYPos = 0;
     bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
@@ -2518,21 +2574,22 @@ void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
         pt.x -= nXPos;
         pt.y -= nYPos;
     }
-//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-//    {
-//        HWND hWnd = GetHWND();
-//        ::ScreenToClient(hWnd, &ptWnd);
-//        ASSERT(ptWnd.x == pt.x);
-//        ASSERT(ptWnd.y == pt.y);
-//    }
-//#endif
+
+    if ((m_pOwner != nullptr) && m_pOwner->OnNativeGetDpi().HasPixelDensity()) {
+        m_pOwner->OnNativeGetDpi().WindowSizeToClientSize(pt);
+    }
 }
 
 void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const
 {
+    if ((m_pOwner != nullptr) && m_pOwner->OnNativeGetDpi().HasPixelDensity()) {
+        m_pOwner->OnNativeGetDpi().ClientSizeToWindowSize(pt);
+    }
+
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
     POINT ptWnd = { pt.x, pt.y };
 #endif
+
     int nXPos = 0;
     int nYPos = 0;
     bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);

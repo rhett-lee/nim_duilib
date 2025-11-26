@@ -581,9 +581,9 @@ public:
     //几组支持高分屏的API接口
     bool GetWindowSize(int32_t* w, int32_t* h) const;
     bool GetWindowSizeInPixels(int32_t* w, int32_t* h) const;
-    float GetDisplayContentScale() const;
-    float GetWindowDisplayScale() const;
-    float GetWindowPixelDensity() const;
+    float GetDisplayContentScale() const;   //获取窗口所在屏幕的内容显示比例
+    float GetWindowDisplayScale() const;    //获取该窗口的内容显示比例（与窗口所在屏幕的内容显示比例不一定相同）
+    float GetWindowPixelDensity() const;    //获取该窗口的像素密度值
 
 private:
     /** 创建窗口和渲染接口

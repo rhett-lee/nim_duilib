@@ -7,10 +7,15 @@
 
 namespace ui
 {
+    //获取指定窗口的DPI值，如果失败则返回0
+    UINT GetDpiForWnd(HWND hWnd);
+
     // DPI适配
-    //Windows 10版本 1607
+    //Windows 10版本 1607(该API在进程启动后，如果修改系统DPI，该API返回的依旧是旧值)
     bool GetDpiForSystemWrapper(UINT& dpi);
+    //Windows 10版本 1607(该API在进程启动后，如果修改系统DPI，该API返回的依旧是旧值)
     bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi);
+    //Windows 10版本 1607
     int GetSystemMetricsForDpiWrapper(int nIndex, UINT dpi);
 
     //Windows 8.1 
