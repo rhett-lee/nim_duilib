@@ -41,7 +41,7 @@
                         <Label name="window_client_size" text="L:0,T:0,W:0,H:0" width="auto" text_align="left,vcenter"/>
                     </HBox>
                 </VBox>
-                <VBox name="SDL" height="auto" visible="false" width="100%" valign="center" padding="20,0,0,0" margin="0,4,0,0">
+                <VBox name="SDL" height="auto" visible="true" width="100%" valign="center" padding="20,0,0,0" margin="0,4,0,0">
                     <HBox height="auto" >
                         <Label text="SDL_GetWindowSize：" width="300" text_align="right,vcenter"/>
                         <Label name="SDL_GetWindowSize" text="W:0,H:0" width="auto" text_align="left,vcenter"/>

@@ -196,7 +196,7 @@ void MainForm::UpdateUI()
                 }
             }
             pTitle->SetText(text);
-            ::OutputDebugString(text.c_str());
+            //::OutputDebugString(text.c_str());
         }
     }
 }
