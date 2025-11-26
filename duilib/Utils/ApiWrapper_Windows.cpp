@@ -1,10 +1,11 @@
 #include "ApiWrapper_Windows.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #include <VersionHelpers.h>
 
 namespace ui
 {
-
-#ifdef DUILIB_BUILD_FOR_WIN
 
 UINT GetDpiForWnd(HWND hWnd)
 {
@@ -280,6 +281,6 @@ bool EnableMouseInPointerWrapper(BOOL fEnable)
     return false;
 }
 
-#endif //DUILIB_BUILD_FOR_WIN
+} //namespace ui
 
-}
+#endif //DUILIB_BUILD_FOR_WIN
