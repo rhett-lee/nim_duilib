@@ -562,13 +562,16 @@ bool WindowBase::ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisab
     OnDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
     OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
 
-    //更新窗口大小和位置
-    UiRect rcOldWindow;
-    GetWindowRect(rcOldWindow);
-    int32_t cx = Dpi().GetScaleWindowSize(rcOldWindow.Width(), nOldScaleFactor);
-    int32_t cy = Dpi().GetScaleWindowSize(rcOldWindow.Height(), nOldScaleFactor);
-    m_pNativeWindow->MoveWindow(rcOldWindow.left, rcOldWindow.top, cx, cy, true);
+    //更新窗口大小：需要按照显示比例大小同比例缩放，但不需要按窗口像素密度处理
+    if (nNewScaleFactor != nOldScaleFactor) {
+        UiRect rcOldWindow;
+        GetWindowRect(rcOldWindow);
+        int32_t cx = Dpi().GetScaleInt(rcOldWindow.Width(), nOldScaleFactor);
+        int32_t cy = Dpi().GetScaleInt(rcOldWindow.Height(), nOldScaleFactor);
+        m_pNativeWindow->MoveWindow(rcOldWindow.left, rcOldWindow.top, cx, cy, true);
+    }
 
+    //重绘窗口内容
     UiRect rcClient;
     GetClientRect(rcClient);
     Invalidate(rcClient);
