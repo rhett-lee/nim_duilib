@@ -21,6 +21,7 @@ bool DpiAwareness::InitDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
     case DpiAwarenessMode::kPerMonitorDpiAware:
     case DpiAwarenessMode::kPerMonitorDpiAware_V2:
         m_dpiAwarenessMode = DpiAwarenessMode::kPerMonitorDpiAware_V2;
+        break;
     default:
         m_dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
     }

@@ -125,23 +125,23 @@ void DpiManager::SetDisplayScale(float fDisplayScale, float fPixelDensity)
         m_bUserDefinedDpi = GlobalManager::Instance().Dpi().m_bUserDefinedDpi;
         m_bEnablePixelDensity = GlobalManager::Instance().Dpi().m_bEnablePixelDensity;
     }
-    if (fPixelDensity < 1.0f) {
-        //无效的界面像素密度
+    if ((fPixelDensity < 1.0f) || !IsPixelDensityEnabled()) {
+        //无效的界面像素密度, 或者不支持界面像素密度
         fPixelDensity = 1.0f;
     }
-    if (!IsPixelDensityEnabled()) {
-        //不支持界面像素密度
-        fPixelDensity = 1.0f;
-    }
-
 #ifdef DUILIB_HDPI_TEST_PIXEL_DENSITY
     //TEST ONLY
     fPixelDensity = DUILIB_HDPI_TEST_PIXEL_DENSITY;
     m_bEnablePixelDensity = true;
-#endif
 
+    //模拟，测试环境
     m_fPixelDensity = fPixelDensity;
-    m_nScaleFactor = (uint32_t)(fDisplayScale * fPixelDensity * 100 + 0.5f); //保存放大100倍的整型值，精度也只保留2个有效数字
+    m_nScaleFactor = (uint32_t)(fDisplayScale * fPixelDensity * 100 + 0.5f); 
+#else
+    //真实环境
+    m_fPixelDensity = fPixelDensity;
+    m_nScaleFactor = (uint32_t)(fDisplayScale * 100 + 0.5f); //保存放大100倍的整型值，精度也只保留2个有效数字
+#endif
 }
 
 bool DpiManager::IsDisplayScaleChanged(float fDisplayScale, float fPixelDensity) const
