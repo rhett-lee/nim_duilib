@@ -193,16 +193,12 @@ void Box::OnSetVisible(bool bChanged)
 
 UiEstSize Box::EstimateSize(UiSize szAvailable)
 {
-    UiFixedSize fixedSize = GetFixedSize();
-    if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-        //如果宽高都不是auto属性，则直接返回
-        return MakeEstSize(fixedSize);
+    UiFixedSize fixedSize;
+    UiEstSize returnEstSize;
+    if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+        return returnEstSize;
     }
-    szAvailable.Validate();
-    if (!IsReEstimateSize(szAvailable)) {
-        //使用缓存中的估算结果
-        return GetEstimateSize();
-    }
+
     //Box控件本身的大小，不包含外边距（本身也是一个控件，可以有文字/背景图片等）
     UiPadding rcPadding = GetPadding();
     UiSize szNewAvailable = szAvailable;

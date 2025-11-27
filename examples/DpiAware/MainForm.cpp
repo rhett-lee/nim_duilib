@@ -181,22 +181,4 @@ void MainForm::UpdateUI()
         pSDL->SetVisible(false);
     }
 #endif
-
-    if (0) {
-        //TODO: 最大化和还原时，界面的图片显示有异常，原因待查
-        ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("title")));
-        const ui::Control* pTest = FindControl(_T("group_box_test"));
-        if (pTest && pTitle) {
-            DString text = ui::StringUtil::Printf(_T("[W:%d, H:%d]"), pTest->GetWidth(), pTest->GetHeight());
-            const ui::Box* pBox = dynamic_cast<const ui::Box*>(pTest);
-            for (size_t i = 0; i < pBox->GetItemCount(); ++i) {
-                ui::Control* p = pBox->GetItemAt(i);
-                if (p->IsVisible()) {
-                    text += ui::StringUtil::Printf(_T(" (%i)[T:%d, H:%d]"), (int)i, p->GetRect().top - pTest->GetRect().top, p->GetHeight());
-                }
-            }
-            pTitle->SetText(text);
-            //::OutputDebugString(text.c_str());
-        }
-    }
 }

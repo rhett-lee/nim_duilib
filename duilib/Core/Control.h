@@ -1271,6 +1271,14 @@ protected:
     */
     Image* GetBkImagePtr() const;
 
+    /** 检查控件估算结果(含是否有缓存结果)，并对估算条件进行预处理
+    * @param [in,out] szAvailable 估算输入的可用宽度和高度值，函数内部会对其约束和调整
+    * @param [out] fixedSize 本控件的宽度和高度预设值
+    * @param [out] returnEstSize 返回估算结果，当本函数返回false时，需要作为EstimateSize的返回值
+    * @return 如果返回false，需要终止估算，如果返回true表示需要继续估算
+    */
+    bool PreEstimateSize(UiSize& szAvailable, UiFixedSize& fixedSize, UiEstSize& returnEstSize) const;
+
 protected:
     /** 绘制指定状态的颜色
     */

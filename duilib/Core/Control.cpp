@@ -1920,17 +1920,39 @@ void Control::SetPos(UiRect rc)
     }
 }
 
-UiEstSize Control::EstimateSize(UiSize szAvailable)
+bool Control::PreEstimateSize(UiSize& szAvailable, UiFixedSize& fixedSize, UiEstSize& returnEstSize) const
 {
-    UiFixedSize fixedSize = GetFixedSize();
+    fixedSize = GetFixedSize();
     if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
         //如果宽高都不是auto属性，则直接返回
-        return MakeEstSize(fixedSize);
+        returnEstSize = MakeEstSize(fixedSize);
+        return false;
+    }
+    if (fixedSize.cx.IsInt32()) {
+        //本控件的宽度为固定值: 设置为实际布局所用的值
+        int32_t cx = std::clamp(fixedSize.cx.GetInt32(), GetMinWidth(), GetMaxWidth());
+        szAvailable.cx = cx;
+    }
+    if (fixedSize.cy.IsInt32()) {
+        //本控件的高度为固定值: 设置为实际布局所用的值
+        int32_t cy = std::clamp(fixedSize.cy.GetInt32(), GetMinHeight(), GetMaxHeight());
+        szAvailable.cy = cy;
     }
     szAvailable.Validate();
     if (!IsReEstimateSize(szAvailable)) {
         //使用缓存中的估算结果
-        return GetEstimateSize();
+        returnEstSize = GetEstimateSize();
+        return false;
+    }
+    return true;
+}
+
+UiEstSize Control::EstimateSize(UiSize szAvailable)
+{
+    UiFixedSize fixedSize;
+    UiEstSize returnEstSize;
+    if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+        return returnEstSize;
     }
 
     //设置估算图片宽高的类型，用于优化性能（有些属性设置后，图片可以延迟加载）
