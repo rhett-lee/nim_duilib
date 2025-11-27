@@ -347,7 +347,7 @@ void ListCtrl::InitReportView()
                 msg.SetSender(this);
                 SendEventMsg(msg);
             }
-            else if (args.eventType == kEventSelChange) {
+            else if (args.eventType == kEventSelChanged) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEventMsg(msg);
@@ -359,7 +359,7 @@ void ListCtrl::InitReportView()
         OnReportViewEvent(args);
         return true;
         });
-    m_pReportView->AttachSelChange([this, OnReportViewEvent](const EventArgs& args) {
+    m_pReportView->AttachSelChanged([this, OnReportViewEvent](const EventArgs& args) {
         OnReportViewEvent(args);
         return true;
         });
@@ -404,7 +404,7 @@ void ListCtrl::InitIconView()
                 msg.SetSender(this);
                 SendEventMsg(msg);
             }
-            else if (args.eventType == kEventSelChange) {
+            else if (args.eventType == kEventSelChanged) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEventMsg(msg);
@@ -416,7 +416,7 @@ void ListCtrl::InitIconView()
         OnIconViewEvent(args);
         return true;
         });
-    m_pIconView->AttachSelChange([this, OnIconViewEvent](const EventArgs& args) {
+    m_pIconView->AttachSelChanged([this, OnIconViewEvent](const EventArgs& args) {
         OnIconViewEvent(args);
         return true;
         });
@@ -463,7 +463,7 @@ void ListCtrl::InitListView()
                 msg.SetSender(this);
                 SendEventMsg(msg);
             }
-            else if (args.eventType == kEventSelChange) {
+            else if (args.eventType == kEventSelChanged) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEventMsg(msg);
@@ -475,7 +475,7 @@ void ListCtrl::InitListView()
         OnListViewEvent(args);
         return true;
         });
-    m_pListView->AttachSelChange([this, OnListViewEvent](const EventArgs& args) {
+    m_pListView->AttachSelChanged([this, OnListViewEvent](const EventArgs& args) {
         OnListViewEvent(args);
         return true;
         });
@@ -2442,8 +2442,8 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->SetFocus();
 
     //文本变化的时候，自动调整编辑框的大小
-    m_pRichEdit->DetachEvent(kEventTextChange);
-    m_pRichEdit->AttachTextChange([this, pSubItem](const EventArgs&) {
+    m_pRichEdit->DetachEvent(kEventTextChanged);
+    m_pRichEdit->AttachTextChanged([this, pSubItem](const EventArgs&) {
         UpdateRichEditSize(pSubItem);
         return true;
         });
@@ -2628,7 +2628,7 @@ void ListCtrl::ClearEditEvents()
         m_pRichEdit->DetachEvent(kEventWindowKillFocus);
         m_pRichEdit->DetachEvent(kEventKillFocus);
         m_pRichEdit->DetachEvent(kEventReturn);
-        m_pRichEdit->DetachEvent(kEventTextChange);
+        m_pRichEdit->DetachEvent(kEventTextChanged);
         m_pRichEdit->DetachEvent(kEventKeyDown);
     }
 }

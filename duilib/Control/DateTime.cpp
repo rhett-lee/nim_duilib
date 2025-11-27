@@ -100,7 +100,7 @@ void DateTime::SetDateTime(const struct tm& dateTime)
         //更新显示文本
         SetText(GetDateTimeString());
         //触发变化事件
-        SendEvent(kEventValueChange);
+        SendEvent(kEventValueChanged);
     }
 }
 
@@ -252,7 +252,7 @@ void DateTime::SetStringFormat(const DString& sFormat)
         //更新显示文本
         SetText(GetDateTimeString());
         //触发变化事件
-        SendEvent(kEventValueChange);
+        SendEvent(kEventValueChanged);
     }
 }
 
@@ -303,7 +303,7 @@ void DateTime::SetEditFormat(EditFormat editFormat)
             //更新显示文本
             SetText(GetDateTimeString());
             //触发变化事件
-            SendEvent(kEventValueChange);
+            SendEvent(kEventValueChanged);
         }
     }
 }
@@ -347,7 +347,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.eventType == kEventScrollChange) {
+    else if (msg.eventType == kEventScrollPosChanged) {
         if (m_pDateWindow != nullptr) {
             return;
         }

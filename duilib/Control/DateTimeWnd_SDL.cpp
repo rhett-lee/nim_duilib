@@ -163,7 +163,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
 
     //挂载事件，控制日的范围（闰年等情况）
     if ((m_editList[EditType::YEAR] != nullptr) && (m_editList[EditType::MON] != nullptr) && (m_editList[EditType::MDAY] != nullptr)) {
-        m_editList[EditType::MON]->AttachTextChange([this](const EventArgs&) {
+        m_editList[EditType::MON]->AttachTextChanged([this](const EventArgs&) {
             UpdateDayRange();
             return true;
             });

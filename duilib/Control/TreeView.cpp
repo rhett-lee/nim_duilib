@@ -419,7 +419,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->AttachReturn(UiBind(&TreeNode::OnReturnKeyDown, pTreeNode, std::placeholders::_1));
     
     //监听勾选事件：用于多选时同步勾选子节点和同步父节点的三态选择状态
-    pTreeNode->AttachChecked(UiBind(&TreeNode::OnNodeCheckStatusChanged, pTreeNode, std::placeholders::_1));
+    pTreeNode->AttachCheck(UiBind(&TreeNode::OnNodeCheckStatusChanged, pTreeNode, std::placeholders::_1));
     pTreeNode->AttachUnCheck(UiBind(&TreeNode::OnNodeCheckStatusChanged, pTreeNode, std::placeholders::_1));
 
     UiPadding padding = GetPadding();

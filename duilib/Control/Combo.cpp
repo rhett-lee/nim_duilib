@@ -599,7 +599,7 @@ void Combo::OnInit()
         m_pEditControl->AttachKillFocus(UiBind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventWindowKillFocus, UiBind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventWindowMove, UiBind(&Combo::OnWindowMove, this, std::placeholders::_1));
-        m_pEditControl->AttachTextChange(UiBind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
+        m_pEditControl->AttachTextChanged(UiBind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
     }
     SetNoFocus();
     SetComboType(GetComboType());

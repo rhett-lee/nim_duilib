@@ -580,7 +580,7 @@ void ComboButton::OnInit()
         }
 
         m_pLeftButton->AttachClick(UiBind(&ComboButton::OnLeftButtonClicked, this, std::placeholders::_1));
-        m_pLeftButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pLeftButton->AttachStateChanged(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 
     if (m_pRightButton != nullptr) {
@@ -588,7 +588,7 @@ void ComboButton::OnInit()
         m_pRightButton->SetNoFocus();
         m_pRightButton->AttachButtonDown(UiBind(&ComboButton::OnRightButtonDown, this, std::placeholders::_1));
         m_pRightButton->AttachClick(UiBind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
-        m_pRightButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pRightButton->AttachStateChanged(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 }
 

@@ -80,7 +80,7 @@ public:
     /** 监听进度条进度改变事件
      * @param[in] callback 进度条进度改变后调用的回调函数
      */
-    void AttachValueChange(const EventCallback& callback) { AttachEvent(kEventValueChange, callback);    }
+    void AttachValueChanged(const EventCallback& callback) { AttachEvent(kEventValueChanged, callback);    }
 
 protected:
     int m_nStep;

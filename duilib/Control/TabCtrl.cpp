@@ -315,7 +315,7 @@ void TabCtrlItem::OnInit()
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
-    if ((msg.GetSender() == this) && (m_pLine != nullptr) && (msg.eventType == kEventStateChange)) {
+    if ((msg.GetSender() == this) && (m_pLine != nullptr) && (msg.eventType == kEventStateChanged)) {
         //处理分割线的状态
         AdjustItemLineStatus();
     }

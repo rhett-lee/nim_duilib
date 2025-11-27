@@ -132,7 +132,7 @@ public:
 
     /** 添加日期时间值变化监听事件
     */
-    void AttachTimeChange(const EventCallback& callback) { AttachEvent(kEventValueChange, callback); }
+    void AttachTimeChanged(const EventCallback& callback) { AttachEvent(kEventValueChanged, callback); }
 
 public:
     //基类的虚函数

@@ -475,7 +475,7 @@ void MainForm::OnInitWindow()
     }
     //RichEdit文本选择变化
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->AttachSelChange([this](const ui::EventArgs& args) {
+        m_pRichEdit->AttachSelChanged([this](const ui::EventArgs& args) {
             if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
                 UpdateFontStatus();
             }

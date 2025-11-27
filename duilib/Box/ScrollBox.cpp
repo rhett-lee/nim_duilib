@@ -792,7 +792,7 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
     }
 
     Invalidate();
-    SendEvent(kEventScrollChange, (cyOffset == 0) ? 0 : 1, (cxOffset == 0) ? 0 : 1);
+    SendEvent(kEventScrollPosChanged, (cyOffset == 0) ? 0 : 1, (cxOffset == 0) ? 0 : 1);
 }
 
 void ScrollBox::SetScrollPosY(int64_t y)

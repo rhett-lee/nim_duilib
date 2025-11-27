@@ -76,7 +76,7 @@ void MainForm::OnInitWindow()
     ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("header_height_edit")));
     if (pHeaderHeightEdit != nullptr) {
         pHeaderHeightEdit->SetText(ui::StringUtil::Printf(_T("%d"), pListCtrl->GetHeaderHeight()));
-        pHeaderHeightEdit->AttachTextChange([this, pHeaderHeightEdit, pListCtrl](const ui::EventArgs&) {
+        pHeaderHeightEdit->AttachTextChanged([this, pHeaderHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = ui::StringUtil::StringToInt32(pHeaderHeightEdit->GetText());
             if (height >= 0) {
                 pListCtrl->SetHeaderHeight(height, false);
@@ -89,7 +89,7 @@ void MainForm::OnInitWindow()
     ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("list_item_height_edit")));
     if (pItemHeightEdit != nullptr) {
         pItemHeightEdit->SetText(ui::StringUtil::Printf(_T("%d"), pListCtrl->GetDataItemHeight()));
-        pItemHeightEdit->AttachTextChange([this, pItemHeightEdit, pListCtrl](const ui::EventArgs&) {
+        pItemHeightEdit->AttachTextChanged([this, pItemHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = ui::StringUtil::StringToInt32(pItemHeightEdit->GetText());
             if (height >= 0) {
                 pListCtrl->SetDataItemHeight(height, false);
@@ -489,8 +489,8 @@ void MainForm::OnInitWindow()
                 DString sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
-            else if (args.eventType == ui::kEventSelChange) {
-                //::MessageBox(nullptr, _T("kEventSelChange"), _T(""), MB_OK);
+            else if (args.eventType == ui::kEventSelChanged) {
+                //::MessageBox(nullptr, _T("kEventSelChanged"), _T(""), MB_OK);
             }
             else if(args.eventType == ui::kEventMouseDoubleClick) {                
                 //::MessageBox(nullptr, _T("kEventMouseDoubleClick"), text.c_str(), MB_OK);
@@ -512,7 +512,7 @@ void MainForm::OnInitWindow()
         OnListCtrlEvent(args);
         return true;
         });
-    pListCtrl->AttachSelChange([this, OnListCtrlEvent](const ui::EventArgs& args) {
+    pListCtrl->AttachSelChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
         return true;
         });

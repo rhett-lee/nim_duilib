@@ -943,7 +943,7 @@ void PropertyGridProperty::OnInit()
     //滚动条滚动事件
     TreeView* pTreeView = GetTreeView();
     if (pTreeView != nullptr) {
-        pTreeView->AttachScrollChange([this](const EventArgs&) {
+        pTreeView->AttachScrollPosChanged([this](const EventArgs&) {
             OnScrollPosChanged();
             return true;
             });

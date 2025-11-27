@@ -203,7 +203,7 @@ public: //（三态选择[全部选择、部分选择、未选择]/勾选模式�
     /** 监听被勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 被选择时触发的回调函数
      */
-    void AttachChecked(const EventCallback& callback) { this->AttachEvent(kEventChecked, callback); }
+    void AttachCheck(const EventCallback& callback) { this->AttachEvent(kEventCheck, callback); }
 
     /** 监听取消勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 取消选择时触发的回调函数
@@ -440,7 +440,7 @@ void CheckBoxTemplate<InheritType>::SetChecked(bool bChecked, bool bTriggerEvent
     PrivateSetChecked(bChecked);
     if (bTriggerEvent) {
         if (bChecked) {
-            this->SendEvent(kEventChecked);
+            this->SendEvent(kEventCheck);
         }
         else {
             this->SendEvent(kEventUnCheck);

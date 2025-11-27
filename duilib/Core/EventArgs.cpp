@@ -106,7 +106,7 @@ EventType StringToEventType(const DString& messageType)
         return kEventUnSelect;
     }
     else if (messageType == EVENTSTR_CHECKED) {
-        return kEventChecked;
+        return kEventCheck;
     }
     else if (messageType == EVENTSTR_UNCHECK) {
         return kEventUnCheck;
@@ -127,10 +127,10 @@ EventType StringToEventType(const DString& messageType)
         return kEventMouseWheel;
     }
     else if (messageType == EVENTSTR_SCROLLCHANGE) {
-        return kEventScrollChange;
+        return kEventScrollPosChanged;
     }
     else if (messageType == EVENTSTR_VALUECHANGE) {
-        return kEventValueChange;
+        return kEventValueChanged;
     }
     else if (messageType == EVENTSTR_RETURN) {
         return kEventReturn;
@@ -238,8 +238,8 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventSelect");
     case kEventUnSelect:
         return _T("kEventUnSelect");
-    case kEventChecked:
-        return _T("kEventChecked");
+    case kEventCheck:
+        return _T("kEventCheck");
     case kEventUnCheck:
         return _T("kEventUnCheck");
     case kEventTabSelect:
@@ -250,28 +250,28 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventCollapse");
     case kEventZoom:
         return _T("kEventZoom");
-    case kEventTextChange:
-        return _T("kEventTextChange");
-    case kEventSelChange:
-        return _T("kEventSelChange");
+    case kEventTextChanged:
+        return _T("kEventTextChanged");
+    case kEventSelChanged:
+        return _T("kEventSelChanged");
     case kEventReturn:
         return _T("kEventReturn");
     case kEventTab:
         return _T("kEventTab");
     case kEventLinkClick:
         return _T("kEventLinkClick");
-    case kEventScrollChange:
-        return _T("kEventScrollChange");
-    case kEventValueChange:
-        return _T("kEventValueChange");
+    case kEventScrollPosChanged:
+        return _T("kEventScrollPosChanged");
+    case kEventValueChanged:
+        return _T("kEventValueChanged");
     case kEventPosChanged:
         return _T("kEventPosChanged");
     case kEventSizeChanged:
         return _T("kEventSizeChanged");
-    case kEventVisibleChange:
-        return _T("kEventVisibleChange");
-    case kEventStateChange:
-        return _T("kEventStateChange");
+    case kEventVisibleChanged:
+        return _T("kEventVisibleChanged");
+    case kEventStateChanged:
+        return _T("kEventStateChanged");
     case kEventSelectColor:
         return _T("kEventSelectColor");
     case kEventSplitDraged:

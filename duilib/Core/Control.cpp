@@ -1268,7 +1268,7 @@ void Control::PrivateSetState(ControlStateType controlState)
     if (GetState() != controlState) {
         ControlStateType oldState = GetState();
         m_controlState = TruncateToInt8(controlState);
-        SendEvent(kEventStateChange, controlState, oldState);
+        SendEvent(kEventStateChanged, controlState, oldState);
         Invalidate();
     }
 }
@@ -1722,7 +1722,7 @@ void Control::OnSetVisible(bool bChanged)
 
         // 最后，触发可见状态变化事件，通知应用层
         WPARAM wParam = bVisible ? 1 : 0;
-        SendEvent(kEventVisibleChange, wParam);
+        SendEvent(kEventVisibleChanged, wParam);
     }
 }
 

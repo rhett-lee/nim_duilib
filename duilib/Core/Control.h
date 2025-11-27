@@ -931,12 +931,12 @@ public:
     /** 监听控件显示或隐藏事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
-    void AttachVisibleChange(const EventCallback& callback) { AttachEvent(kEventVisibleChange, callback); }
+    void AttachVisibleChanged(const EventCallback& callback) { AttachEvent(kEventVisibleChanged, callback); }
 
     /** 监听控件状态变化事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
-    void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
+    void AttachStateChanged(const EventCallback& callback) { AttachEvent(kEventStateChanged, callback); }
 
     /** 监听控件拖放进入事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

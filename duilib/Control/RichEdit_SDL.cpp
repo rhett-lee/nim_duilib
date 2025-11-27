@@ -1173,7 +1173,7 @@ int32_t RichEdit::InternalSetSel(int32_t nStartChar, int32_t nEndChar)
         Invalidate();
 
         //触发文本选择变化事件
-        SendEvent(kEventSelChange);
+        SendEvent(kEventSelChanged);
     }
     return nStartChar;
 }
@@ -2435,9 +2435,9 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
     m_bUseControlCursor = bUseControlCursor;
 }
 
-void RichEdit::AttachSelChange(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback)
 { 
-    AttachEvent(kEventSelChange, callback); 
+    AttachEvent(kEventSelChanged, callback); 
 }
 
 void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
@@ -2643,7 +2643,7 @@ void RichEdit::OnTextChanged()
     //设置已修改标志
     SetModify(true);
     if (!m_bDisableTextChangeEvent) {
-        SendEvent(kEventTextChange);
+        SendEvent(kEventTextChanged);
     }
 }
 
