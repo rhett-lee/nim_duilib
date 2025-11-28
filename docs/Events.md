@@ -1,4 +1,5 @@
 ﻿## 控件的事件（EventArgs）说明文档
+控件的事件相关内容在[`duilib/Core/EventArgs.h`](../duilib/Core/EventArgs.h) 和 [`duilib/duilib_defs.h`](../duilib/duilib_defs.h) 文件中定义。
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |

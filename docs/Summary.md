@@ -8,8 +8,9 @@
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
 * [菜单的样式](Menu.md)
-* [XML文件中各控件的节点名称](XmlNode.md)
 * [控件的事件/消息](Events.md)
+* [XML文件中各控件的节点名称](XmlNode.md)
+* [XML文件中直接响应控件的事件](XmlEvents.md)
 * [CEF控件](CEF.md)
 * [项目编译相关文档和脚本](../build/build.md)
 

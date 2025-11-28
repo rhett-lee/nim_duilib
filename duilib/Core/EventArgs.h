@@ -73,7 +73,7 @@ private:
 
 /** 将字符串转换为事件类型
 */
-EventType StringToEventType(const DString& messageType);
+EventType StringToEventType(const DString& eventName);
 
 /** 将事件类型转换为字符串
 */

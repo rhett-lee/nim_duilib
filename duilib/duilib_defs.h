@@ -127,49 +127,6 @@ namespace ui
     #define  DUI_CTR_BUTTON_RESTORE                  (_T("restorebtn"))
     #define  DUI_CTR_BUTTON_FULLSCREEN               (_T("fullscreenbtn"))
 
-    //EventType事件类型对应的字符串定义
-    #define  EVENTSTR_ALL                (_T("all"))
-    #define  EVENTSTR_KEYDOWN            (_T("keydown"))
-    #define  EVENTSTR_KEYUP              (_T("keyup"))
-    #define  EVENTSTR_CHAR               (_T("char"))
-    
-    #define  EVENTSTR_SETFOCUS           (_T("setfocus"))
-    #define  EVENTSTR_KILLFOCUS          (_T("killfocus"))
-    #define  EVENTSTR_SETCURSOR          (_T("setcursor"))
-
-    #define  EVENTSTR_MOUSEMOVE          (_T("mousemove"))
-    #define  EVENTSTR_MOUSEENTER         (_T("mouseenter"))
-    #define  EVENTSTR_MOUSELEAVE         (_T("mouseleave"))
-    #define  EVENTSTR_MOUSEHOVER         (_T("mousehover"))
-
-    #define  EVENTSTR_BUTTONDOWN         (_T("buttondown"))
-    #define  EVENTSTR_BUTTONUP           (_T("buttonup"))
-    #define  EVENTSTR_DOUBLECLICK        (_T("doubleclick"))
-    #define  EVENTSTR_RBUTTONDOWN        (_T("rbuttondown"))
-    #define  EVENTSTR_RBUTTONUP          (_T("rbuttonup"))
-    #define  EVENTSTR_RDOUBLECLICK       (_T("rdoubleclick"))
-
-    #define  EVENTSTR_SELECT             (_T("select"))
-    #define  EVENTSTR_UNSELECT           (_T("unselect"))
-
-    #define  EVENTSTR_CHECKED            (_T("checked"))
-    #define  EVENTSTR_UNCHECK            (_T("uncheck"))
-    
-    #define  EVENTSTR_TAB_SELECT         (_T("tab_select"))
-
-    #define  EVENTSTR_MENU               (_T("menu"))
-
-    #define  EVENTSTR_EXPAND             (_T("expand"))
-    #define  EVENTSTR_COLLAPSE           (_T("collapse"))
-
-    #define  EVENTSTR_SCROLLWHEEL        (_T("scrollwheel"))
-    #define  EVENTSTR_SCROLLCHANGE       (_T("scrollchange"))
-
-    #define  EVENTSTR_VALUECHANGE        (_T("valuechange"))
-    #define  EVENTSTR_RETURN             (_T("return"))
-    #define  EVENTSTR_TAB                (_T("tab"))
-    #define  EVENTSTR_WINDOWCLOSE        (_T("windowclose"))
-
     class Control;
     class Image;
 
@@ -320,7 +277,7 @@ namespace ui
         bool m_bDecodeError;    //该图片是否存在数据解码错误
     };
 
-    //定义所有消息类型
+    //定义所有消息类型（注意事项：类型定义变化时，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
     enum EventType: int8_t
     {
         kEventNone,

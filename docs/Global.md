@@ -190,8 +190,8 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <!-- 以下代码，演示如何使用Event控制动画图片(render示例程序) -->
 <Control width="80" height="80" bkimage="file='fan.gif' width='80' height='80' playcount='0' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender">
-    <Event type="mouseenter" receiver="" apply_attribute="start_image_animation={}" />
-    <Event type="mouseleave" receiver="" apply_attribute="stop_image_animation={}" />
+    <Event type="mouse_enter" receiver="" apply_attribute="start_image_animation={}" />
+    <Event type="mouse_leave" receiver="" apply_attribute="stop_image_animation={}" />
 </Control>
 ```
 

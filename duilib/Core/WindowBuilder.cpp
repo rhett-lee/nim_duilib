@@ -1343,6 +1343,7 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
         }
         for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
             EventType eventType = StringToEventType(*itType);
+            ASSERT(eventType != EventType::kEventNone);//如果有断言，说明XML中配置的消息名称不正确
             if (eventType == EventType::kEventNone) {
                 continue;
             }
