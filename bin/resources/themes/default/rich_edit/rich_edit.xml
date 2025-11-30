@@ -175,7 +175,7 @@
                         <Label name="lavel_zoom_value" text="100.0%" font="system_bold_14" valign="center" margin="0,0,12,0"/>
                         <Button class="btn_font_class" name="btn_zoom_in" width="64" height="26" text="放大+" font="system_14" valign="center" margin="1,1,1,3" tooltiptext="增加字体的大小"/>
                         <Button class="btn_font_class" name="btn_zoom_out" width="64" height="26" text="缩小-" font="system_14" valign="center" margin="1,1,1,3" tooltiptext="减小字体的大小"/>
-                        <Button class="btn_font_class" name="btn_zoom_off" width="120" height="26" text="复原到100%" font="system_14" valign="center" margin="1,1,1,3" tooltiptext="减小字体的大小"/>
+                        <Button class="btn_font_class" name="btn_zoom_off" width="120" height="26" text="复原到100%" font="system_14" valign="center" margin="1,1,1,3" tooltiptext="字体大小复原到100%"/>
  
                    </HBox>
                    <HBox height="auto" margin="0,2,2,2">

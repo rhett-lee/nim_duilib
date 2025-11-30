@@ -30,6 +30,10 @@ public:
     bool m_bShadowAttached = true;
     bool m_bShadowAttachedDefined = false;//是否包含有效值
 
+    /** 阴影九宫格属性(未经DPI缩放)
+    */
+    UiPadding m_rcShadowCorner;
+
     /** 是否为层窗口
     */
     bool m_bIsLayeredWindow = true;

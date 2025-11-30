@@ -890,8 +890,15 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         }
         else if (this->GetFixedWidth().IsAuto()) {
             //宽度为自动时，不限制宽度
-            nWidth = INT_MAX;
-        }        
+            nWidth = this->GetMaxWidth();
+            if (nWidth != INT32_MAX) {
+                nWidth -= (rcPadding.left + rcPadding.right);
+                nWidth -= (rcTextPadding.left + rcTextPadding.right);
+            }
+            if (nWidth <= 0) {
+                nWidth = INT32_MAX;
+            }
+        }
         if (!this->GetFixedWidth().IsAuto()) {
             nWidth -= (rcPadding.left + rcPadding.right);
             nWidth -= (rcTextPadding.left + rcTextPadding.right);
@@ -911,7 +918,14 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         }
         else if (this->GetFixedHeight().IsAuto()) {
             //宽度为自动时，不限制宽度
-            nHeight = INT_MAX;
+            nHeight = this->GetMaxHeight();
+            if (nHeight != INT32_MAX) {
+                nHeight -= (rcPadding.top + rcPadding.bottom);
+                nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
+            }
+            if (nHeight <= 0) {
+                nHeight = INT32_MAX;
+            }
         }
         if (!this->GetFixedHeight().IsAuto()) {
             nHeight -= (rcPadding.top + rcPadding.bottom);
