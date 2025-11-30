@@ -2,6 +2,7 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include <cmath>
 
 namespace ui 
 {
