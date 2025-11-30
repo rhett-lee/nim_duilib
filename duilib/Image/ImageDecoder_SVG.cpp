@@ -4,6 +4,7 @@
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include <cmath>
 
 #if defined(__GNUC__) && !defined(__clang__)
     #pragma GCC diagnostic push

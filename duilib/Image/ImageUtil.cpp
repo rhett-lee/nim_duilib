@@ -1,6 +1,7 @@
 #include "ImageUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include <cmath>
 
 #pragma warning (push)
 #pragma warning (disable: 4505)
