@@ -196,10 +196,8 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
         return;
     }
     
-    //窗口的初始位置
+    //窗口的初始位置(客户区坐标)
     UiPoint windowPos = trackPos;
-    pParentWnd->ClientToScreen(windowPos);
-
     if ((m_pTooltipWnd == nullptr) || m_pTooltipWnd->IsClosingWnd()) {
         m_pTooltipWnd = new ToolTipWindow;
     }    
@@ -219,31 +217,31 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
     }
 
     WindowCreateParam createParam;
-    createParam.m_nX = windowPos.x + pParentWnd->Dpi().GetScaleWindowSize(10); //在鼠标点，向右的偏移
-    createParam.m_nY = windowPos.y + pParentWnd->Dpi().GetScaleWindowSize(10); //在鼠标点，向下的偏移
+    createParam.m_nX = windowPos.x + pParentWnd->Dpi().GetScaleInt(10); //在鼠标点，向右的偏移
+    createParam.m_nY = windowPos.y + pParentWnd->Dpi().GetScaleInt(10); //在鼠标点，向下的偏移
     //阴影的偏移
-    pParentWnd->Dpi().ScaleWindowSize(rcShadowCorner.left);
-    pParentWnd->Dpi().ScaleWindowSize(rcShadowCorner.top);
+    pParentWnd->Dpi().ScaleInt(rcShadowCorner.left);
+    pParentWnd->Dpi().ScaleInt(rcShadowCorner.top);
     createParam.m_nX -= rcShadowCorner.left;
     createParam.m_nY -= rcShadowCorner.top;
-    UiPoint pt;
-    pt.x = createParam.m_nX;
-    pt.y = createParam.m_nY;
-    pParentWnd->ScreenToClient(pt); //SDL内部，ToolTip窗口的坐标是客户区坐标
-    createParam.m_nX = pt.x;
-    createParam.m_nY = pt.y;
+    
+    //SDL内部，对Popup窗口的坐标，调整窗口位置时，使用的是客户区坐标，但其偏移值用的是窗口大小值(主要影响macOS, 高分屏的逻辑)
+    pParentWnd->Dpi().UnscaleInt(createParam.m_nX);
+    pParentWnd->Dpi().UnscaleInt(createParam.m_nY);
+    pParentWnd->Dpi().ScaleWindowSize(createParam.m_nX);
+    pParentWnd->Dpi().ScaleWindowSize(createParam.m_nY);
 
     if (!m_pTooltipWnd->IsWindow()) {
-        createParam.m_nWidth = pParentWnd->Dpi().GetScaleInt(200); //窗口创建或者显示后，会自动设置宽度和高度
-        createParam.m_nHeight = pParentWnd->Dpi().GetScaleInt(80);
+        createParam.m_nWidth = pParentWnd->Dpi().GetScaleWindowSize(200); //窗口创建或者显示后，会自动设置宽度和高度
+        createParam.m_nHeight = pParentWnd->Dpi().GetScaleWindowSize(80);
         createParam.m_dwStyle = kWS_POPUPWINDOW;
         createParam.m_dwExStyle = kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_TOOLTIP_WINDOW;
         m_pTooltipWnd->CreateWnd(pParentWnd, createParam);
     }
-    else {
-        //设置窗口位置
-        m_pTooltipWnd->SetWindowPos(InsertAfterWnd(), createParam.m_nX, createParam.m_nY, 0, 0, kSWP_NOSIZE | kSWP_NOZORDER);
-    }
+
+    //设置窗口位置
+    m_pTooltipWnd->SetWindowPos(InsertAfterWnd(), createParam.m_nX, createParam.m_nY, 0, 0, kSWP_NOSIZE | kSWP_NOZORDER);
+
     m_pTooltipWnd->SetToolTipMaxWidth((int32_t)maxWidth);
     m_pTooltipWnd->SetToolTipText(text);
     m_pTooltipWnd->ShowWindow(kSW_SHOW_NOACTIVATE);
