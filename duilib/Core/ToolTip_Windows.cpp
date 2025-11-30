@@ -220,6 +220,10 @@ void ToolTip::ClearMouseTracking()
     m_impl->ClearMouseTracking();
 }
 
+void ToolTip::DestroyToolTip()
+{
+}
+
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

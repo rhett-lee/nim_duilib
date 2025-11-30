@@ -394,6 +394,11 @@ void Window::PreCloseWindow()
 {
     ClearStatus();
     OnPreCloseWindow();
+
+    //销毁Tooltp窗口
+    if (m_toolTip != nullptr) {
+        m_toolTip->DestroyToolTip();
+    }
 }
 
 void Window::PostCloseWindow()
@@ -2487,6 +2492,9 @@ bool Window::AutoResizeWindow(bool bRepaint)
             if (estSize.cy.IsStretch()) {
                 newSize.cy = rcWindow.Height();
             }
+            //窗口的高度和宽度禁止设置为0（备注：SDL内部不支持）
+            newSize.cx = std::max(newSize.cx, 1);
+            newSize.cy = std::max(newSize.cy, 1);
             if ((rcWindow.Width() != newSize.cx) || (rcWindow.Height() != newSize.cy)) {
                 Resize(newSize.cx, newSize.cy, true, false);
                 bResized = true;

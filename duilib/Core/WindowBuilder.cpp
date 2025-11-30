@@ -391,7 +391,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcSizeBox);
             createAttributes.m_bSizeBoxDefined = true;
         }
-        if (strName == _T("caption")) {
+        else if (strName == _T("caption")) {
             AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcCaption);
             createAttributes.m_bCaptionDefined = true;
         }
@@ -463,6 +463,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         DString shadowImage;
         Shadow::GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage);
     }
+    createAttributes.m_rcShadowCorner = rcShadowCorner;
 
     if (createAttributes.m_bInitSizeDefined) {
         int32_t cx = createAttributes.m_szInitSize.cx;

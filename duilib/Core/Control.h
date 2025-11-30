@@ -1506,7 +1506,7 @@ private:
         UiString m_sToolTipTextId;
 
         //ToolTip的宽度
-        int32_t m_nTooltipWidth = 300;
+        int32_t m_nTooltipWidth = 500;
     };
 
     //边框相关数据

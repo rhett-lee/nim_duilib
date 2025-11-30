@@ -233,7 +233,7 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     }
     else if (GetFixedWidth().IsAuto()) {
         //宽度为自动时，不限制宽度
-        nWidth = INT_MAX;
+        nWidth = GetMaxWidth();
     }
 
     //最大高度，不限制

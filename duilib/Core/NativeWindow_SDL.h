@@ -45,6 +45,10 @@ public:
     */
     static NativeWindow_SDL* GetWindowFromID(SDL_WindowID id);
 
+    /** 获取模拟的Hover消息ID
+    */
+    static uint32_t GetHoverMsgId();
+
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] sdlEvent 消息数据
     * @return 如果内部处理了该消息返回true，否则返回false

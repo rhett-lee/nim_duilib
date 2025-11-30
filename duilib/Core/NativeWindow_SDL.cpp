@@ -21,6 +21,10 @@
 */
 #define WM_USER_PAINT_MSG (SDL_EVENT_USER + 3)
 
+/** 主动触发窗口的Hover消息
+*/
+#define WM_USER_HOVER_MSG (SDL_EVENT_USER + 4)
+
 namespace ui {
 
 //窗口指针与SDL窗口ID的映射关系，用于转接消息
@@ -87,6 +91,11 @@ NativeWindow_SDL* NativeWindow_SDL::GetWindowFromID(SDL_WindowID id)
         return iter->second;
     }
     return nullptr;
+}
+
+uint32_t NativeWindow_SDL::GetHoverMsgId()
+{
+    return WM_USER_HOVER_MSG;
 }
 
 SDL_WindowID NativeWindow_SDL::GetWindowIdFromEvent(const SDL_Event& sdlEvent)
@@ -400,6 +409,15 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     case WM_USER_PAINT_MSG:
         //主动发起的窗口绘制消息
         PaintWindow(false);
+        break;
+    case WM_USER_HOVER_MSG:
+        //主动触发的Hover消息
+        {
+            UiPoint pt;
+            GetCursorPos(pt);
+            ScreenToClient(pt);
+            lResult = pOwner->OnNativeMouseHoverMsg(pt, 0, NativeMsg(WM_USER_HOVER_MSG, 0, 0), bHandled);
+        }
         break;
     case SDL_EVENT_WINDOW_MOUSE_ENTER:
         //不需要处理，Windows没有这个消息
@@ -1285,6 +1303,14 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
     if (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE) {
         windowFlags |= SDL_WINDOW_NOT_FOCUSABLE;
+    }
+    if (m_createParam.m_dwExStyle & kWS_EX_TOOLTIP_WINDOW) {
+        //Tooltip窗口
+        windowFlags &= ~SDL_WINDOW_UTILITY;
+        windowFlags |= SDL_WINDOW_TOOLTIP;
+    }
+    if (m_createParam.m_dwExStyle & kWS_EX_TOPMOST) {
+        windowFlags |= SDL_WINDOW_ALWAYS_ON_TOP;
     }
 
 #ifdef DUILIB_BUILD_FOR_WIN
