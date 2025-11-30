@@ -262,7 +262,7 @@ namespace ui
         return static_cast<uint8_t>(x);
     }
 
-    /** 对std::ceilf的封装(负数的时候与std的实现不同)
+    /** 对std::ceil的封装(负数的时候与std的实现不同)
     */
     inline float CEILF(float fValue)
     {

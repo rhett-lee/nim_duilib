@@ -394,12 +394,12 @@ void ImageInfo::CalcImageInfoSize(const ImageLoadParam& loadParam,
         //举例：原图文件为"autumn.png"，如果匹配到DPI自适应图文件名为"autumn@175.png"，此时nImageFileDpiScale的值就是175
         const float fSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / 100.0f;
         //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小
-        int32_t nImageOrgWidth = static_cast<int32_t>(std::ceilf(nImageInfoWidth * 1.0f / fRealImageSizeScale));
-        nImageOrgWidth = static_cast<int32_t>(std::ceilf(nImageOrgWidth * 100.0f / nImageFileDpiScale));    //原图大小
+        int32_t nImageOrgWidth = static_cast<int32_t>(std::ceil(nImageInfoWidth * 1.0f / fRealImageSizeScale));
+        nImageOrgWidth = static_cast<int32_t>(std::ceil(nImageOrgWidth * 100.0f / nImageFileDpiScale));    //原图大小
         nImageOrgWidth = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageOrgWidth, fSizeScale); //用原图大小，重新计算ImageInfo的大小
 
-        int32_t nImageOrgHeight = static_cast<int32_t>(std::ceilf(nImageInfoHeight * 1.0f / fRealImageSizeScale));
-        nImageOrgHeight = static_cast<int32_t>(std::ceilf(nImageOrgHeight * 100.0f / nImageFileDpiScale));    //原图大小
+        int32_t nImageOrgHeight = static_cast<int32_t>(std::ceil(nImageInfoHeight * 1.0f / fRealImageSizeScale));
+        nImageOrgHeight = static_cast<int32_t>(std::ceil(nImageOrgHeight * 100.0f / nImageFileDpiScale));    //原图大小
         nImageOrgHeight = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nImageOrgHeight, fSizeScale); //用原图大小，重新计算ImageInfo的大小
 
         if ((nImageOrgWidth > 0) && (nImageOrgHeight > 0)) {
