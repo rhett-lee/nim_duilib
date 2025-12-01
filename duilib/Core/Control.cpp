@@ -3754,7 +3754,7 @@ void Control::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlSt
 void Control::PaintStateColors(IRender* pRender)
 {
     if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, m_rcPaint, GetState());
+        m_pColorMap->PaintStateColor(pRender, GetRect(), GetState());
     }    
 }
 

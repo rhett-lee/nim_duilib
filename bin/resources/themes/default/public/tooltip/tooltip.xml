@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window shadow_type="custom" shadow_image="file='shadow_tooltip_round.svg' window_shadow_mode='true' corner='16,16,18,18'" shadow_corner="12,12,14,14" shadow_border_round="4,4" shadow_border_size="0,0" shadow_attached="true" layered_window="true" shadow_snap="false">
+<Window shadow_type="custom" shadow_image="file='shadow_tooltip_round.svg' window_shadow_mode='true' corner='16,16,18,18'" shadow_corner="12,12,14,14" shadow_border_round="4,4" shadow_border_size="0" shadow_attached="true" layered_window="true" shadow_snap="false">
     <VBox width="auto" height="auto" visible="true" bkcolor="white">
         <Label name="tooltip_text" multi_line="true" valign="center" text_align="vcenter" text_padding="4,4,4,4" mouse="false"/>
     </VBox>
