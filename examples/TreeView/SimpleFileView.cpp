@@ -131,7 +131,8 @@ private:
             (fileExt == _T(".webp")) ||
             (fileExt == _T(".json")) ||
             (fileExt == _T(".pag")) ||
-            (fileExt == _T(".ico"))) {
+            (fileExt == _T(".ico")) ||
+            (fileExt == _T(".cur")) ) {
             return true;
         }
         return false;

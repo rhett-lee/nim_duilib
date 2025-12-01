@@ -157,11 +157,23 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     }
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
-#else
-    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
+    //交换R和G，Windows平台使用ABGR格式，需要转换为RGBA32格式
+    // RGBA 像素结构体
+    struct CurRGBA {
+        uint8_t r, g, b, a;
+    };
+    ASSERT(sizeof(CurRGBA) == 4);
+    CurRGBA* pPixelBitsRGBA = (CurRGBA*)pPixelBits;
+    const int32_t nImageHeight = pBitmap->GetHeight();
+    const int32_t nImageWidth = pBitmap->GetWidth();
+    for (int y = 0; y < nImageHeight; y++) {
+        for (int x = 0; x < nImageWidth; x++) {
+            CurRGBA& pixelColor = pPixelBitsRGBA[y * nImageWidth + x];
+            std::swap(pixelColor.b, pixelColor.r);
+        }
+    }
 #endif
-    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(nImageWidth, nImageHeight, SDL_PIXELFORMAT_RGBA32, pPixelBits, nImageWidth * sizeof(uint32_t));
     ASSERT(cursorSurface != nullptr);
     if (cursorSurface == nullptr) {
         return nullptr;
