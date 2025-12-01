@@ -931,8 +931,7 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
         }
     }
     if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap>();
-        m_pColorMap->SetControl(this);
+        m_pColorMap = std::make_unique<StateColorMap>(this);
     }
     m_pColorMap->SetStateColor(stateType, strColor);
     if (stateType == kControlStateHot) {
@@ -1301,8 +1300,7 @@ void Control::SetBorderColor(ControlStateType stateType, const DString& strBorde
         m_pBorderData = std::make_unique<TBorderData>();
     }
     if (m_pBorderData->m_pBorderColorMap == nullptr) {
-        m_pBorderData->m_pBorderColorMap = std::make_unique<StateColorMap>();
-        m_pBorderData->m_pBorderColorMap->SetControl(this);
+        m_pBorderData->m_pBorderColorMap = std::make_unique<StateColorMap>(this);
     }
     if (GetBorderColor(stateType) != strBorderColor) {
         m_pBorderData->m_pBorderColorMap->SetStateColor(stateType, strBorderColor);
@@ -3744,18 +3742,16 @@ Image* Control::GetBkImagePtr() const
     return m_pBkImage.get();
 }
 
-void Control::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const
+void Control::PaintStateColor(IRender* pRender, ControlStateType stateType) const
 {
     if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, rcPaint, stateType);
+        m_pColorMap->PaintStateColor(pRender, GetRect(), stateType);
     }
 }
 
 void Control::PaintStateColors(IRender* pRender)
 {
-    if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, GetRect(), GetState());
-    }    
+    PaintStateColor(pRender, GetState());
 }
 
 void Control::PaintStateImages(IRender* pRender)

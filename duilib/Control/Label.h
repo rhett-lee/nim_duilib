@@ -1065,8 +1065,7 @@ void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, c
         this->GetAnimationManager().SetFadeHot(true);
     }
     if (m_pTextColorMap == nullptr) {
-        m_pTextColorMap = std::make_unique<StateColorMap>();
-        m_pTextColorMap->SetControl(this);
+        m_pTextColorMap = std::make_unique<StateColorMap>(this);
     }
     m_pTextColorMap->SetStateColor(stateType, dwTextColor);
     this->Invalidate();

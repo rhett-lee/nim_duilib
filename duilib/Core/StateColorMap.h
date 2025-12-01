@@ -3,7 +3,6 @@
 
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/UiTypes.h"
-#include <map>
 
 namespace ui 
 {
@@ -14,11 +13,7 @@ class IRender;
 class UILIB_API StateColorMap
 {
 public:
-    StateColorMap();
-
-    /** 设置管理的控件接口
-    */
-    void SetControl(Control* control);
+    explicit StateColorMap(Control* pControl);
 
     /** 获取颜色值，如果不包含此颜色，则返回空
     */
@@ -28,6 +23,7 @@ public:
     */
     void SetStateColor(ControlStateType stateType, const DString& color);
 
+public:
     /** 是否包含Hot状态的颜色
     */
     bool HasHotColor() const;
@@ -40,6 +36,7 @@ public:
     */
     bool HasStateColors() const;
 
+public:
     /** 绘制指定状态的颜色
     */
     void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
@@ -51,7 +48,7 @@ private:
 
     /** 状态与颜色值的映射表
     */
-    std::map<ControlStateType, UiString> m_stateColorMap;
+    std::vector<UiString> m_stateColors;
 };
 
 } // namespace ui

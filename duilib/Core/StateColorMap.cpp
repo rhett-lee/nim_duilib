@@ -5,56 +5,53 @@
 
 namespace ui 
 {
-StateColorMap::StateColorMap() :
-    m_pControl(nullptr),
-    m_stateColorMap()
+StateColorMap::StateColorMap(Control* pControl):
+    m_pControl(pControl)
 {
-}
-
-void StateColorMap::SetControl(Control* control)
-{
-    m_pControl = control;
-}
-
-bool StateColorMap::HasHotColor() const
-{
-    return m_stateColorMap.find(kControlStateHot) != m_stateColorMap.end();
-}
-
-bool StateColorMap::HasStateColors() const
-{
-    return (m_stateColorMap.find(kControlStateNormal) != m_stateColorMap.end()) ||
-           (m_stateColorMap.find(kControlStateHot) != m_stateColorMap.end()) ||
-           (m_stateColorMap.find(kControlStatePushed) != m_stateColorMap.end()) ||
-           (m_stateColorMap.find(kControlStateDisabled) != m_stateColorMap.end());
-}
-
-bool StateColorMap::HasStateColor(ControlStateType stateType) const
-{
-    return m_stateColorMap.find(stateType) != m_stateColorMap.end();
-}
-
-DString StateColorMap::GetStateColor(ControlStateType stateType) const
-{
-    auto iter = m_stateColorMap.find(stateType);
-    if (iter != m_stateColorMap.end()) {
-        return iter->second.c_str();
-    }
-    return DString();
+    ASSERT(kControlStateCount > 0);
+    m_stateColors.resize(kControlStateCount);
 }
 
 void StateColorMap::SetStateColor(ControlStateType stateType, const DString& color)
 {
-    if (!color.empty()) {
-        m_stateColorMap[stateType] = color;
+    size_t nIndex = (size_t)stateType;
+    ASSERT(nIndex < m_stateColors.size());
+    if (nIndex < m_stateColors.size()) {
+        m_stateColors[nIndex] = color;
     }
-    else {
-        //确保颜色值不是空字符串
-        auto iter = m_stateColorMap.find(stateType);
-        if (iter != m_stateColorMap.end()) {
-            m_stateColorMap.erase(iter);
+}
+
+bool StateColorMap::HasHotColor() const
+{
+    return HasStateColor(kControlStateHot);
+}
+
+bool StateColorMap::HasStateColors() const
+{
+    for (const UiString& color : m_stateColors) {
+        if (!color.empty()) {
+            return true;
         }
     }
+    return false;
+}
+
+bool StateColorMap::HasStateColor(ControlStateType stateType) const
+{
+    size_t nIndex = (size_t)stateType;
+    if (nIndex < m_stateColors.size()) {
+        return !m_stateColors[nIndex].empty();
+    }
+    return false;
+}
+
+DString StateColorMap::GetStateColor(ControlStateType stateType) const
+{
+    size_t nIndex = (size_t)stateType;
+    if (nIndex < m_stateColors.size()) {
+        return m_stateColors[nIndex].c_str();
+    }
+    return DString();
 }
 
 void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const

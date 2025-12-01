@@ -163,7 +163,9 @@ namespace ui
         kControlStateNormal     = 0,    // 普通状态
         kControlStateHot        = 1,    // 悬停状态
         kControlStatePushed     = 2,    // 按下状态
-        kControlStateDisabled   = 3     // 禁用状态
+        kControlStateDisabled   = 3,    // 禁用状态
+
+        kControlStateCount      = 4     // 状态个数
     };
 
     //控件动画类型

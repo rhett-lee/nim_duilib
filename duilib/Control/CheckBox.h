@@ -574,15 +574,15 @@ void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 
     if (m_pSelectedColorMap == nullptr) {
         if (IsPaintNormalFirst()) {
-            this->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+            this->PaintStateColor(pRender, this->GetState());
         }
     }
     else {
         if (IsPaintNormalFirst() && !m_pSelectedColorMap->HasStateColors()) {
-            this->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+            this->PaintStateColor(pRender, this->GetState());
         }
         else {
-            m_pSelectedColorMap->PaintStateColor(pRender, this->GetPaintRect(), this->GetState());
+            m_pSelectedColorMap->PaintStateColor(pRender, this->GetRect(), this->GetState());
         }
     }
 }
@@ -790,8 +790,7 @@ template<typename InheritType /*= Control*/>
 void ui::CheckBoxTemplate<InheritType>::SetSelectedStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
     if (m_pSelectedTextColorMap == nullptr) {
-        m_pSelectedTextColorMap = new StateColorMap;
-        m_pSelectedTextColorMap->SetControl(this);
+        m_pSelectedTextColorMap = new StateColorMap(this);
     }
     m_pSelectedTextColorMap->SetStateColor(stateType, dwTextColor);
     this->Invalidate();
@@ -826,8 +825,7 @@ template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType stateType, const DString& stateColor)
 {
     if (m_pSelectedColorMap == nullptr) {
-        m_pSelectedColorMap = new StateColorMap;
-        m_pSelectedColorMap->SetControl(this);
+        m_pSelectedColorMap = new StateColorMap(this);
     }
     m_pSelectedColorMap->SetStateColor(stateType, stateColor);
     this->Invalidate();

@@ -1282,7 +1282,7 @@ protected:
 protected:
     /** 绘制指定状态的颜色
     */
-    void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
+    void PaintStateColor(IRender* pRender, ControlStateType stateType) const;
 
     /** @brief 获取控件的绘制区域
     */
