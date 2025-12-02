@@ -68,6 +68,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged() override;
+
 public:
     /** @name 操作子控件(item)相关的方法
     * @{

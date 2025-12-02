@@ -74,6 +74,17 @@ void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 }
 
+void Box::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    for (auto pControl : m_items) {
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pControl->OnLanguageChanged();
+        }
+    }
+}
+
 void Box::SetParent(Box* pParent)
 {
     Control::SetParent(pParent);
@@ -82,7 +93,7 @@ void Box::SetParent(Box* pParent)
         if (pControl != nullptr) {
             pControl->SetParent(this);
         }
-    }    
+    }
 }
 
 void Box::SetWindow(Window* pWindow)

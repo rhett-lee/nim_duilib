@@ -57,6 +57,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged() override;
+
     /** 恢复默认的文本样式
     * @param [in] bRedraw true表示重绘，false表示不重绘
     */
@@ -497,6 +501,15 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     SetWordSpacing(fWordSpacing, false);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
+    this->RelayoutOrRedraw();
+    CheckShowToolTip();
 }
 
 template<typename InheritType>
