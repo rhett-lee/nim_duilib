@@ -852,6 +852,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged();
+
 public:
     /** 监听控件所有事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

@@ -747,6 +747,12 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetReEstimateSize(true);
 }
 
+void Control::OnLanguageChanged()
+{
+    RelayoutOrRedraw();
+    Invalidate();
+}
+
 void Control::SetClass(const DString& strClass)
 {
     if (strClass.empty()) {

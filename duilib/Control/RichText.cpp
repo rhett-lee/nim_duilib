@@ -136,12 +136,19 @@ void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
+void RichText::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    Redraw();
+}
+
 void RichText::Redraw()
 {
     //重新绘制
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     Invalidate();
+    RelayoutOrRedraw();
 }
 
 uint16_t RichText::GetTextStyle() const

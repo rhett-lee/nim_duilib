@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Window shadow_type="menu_round" shadow_attached="true" layered_window="true">
-    <VListBox class="menu">       
+    <VListBox class="menu" padding="0,0,0,6">       
         <!-- 在菜单中插入普通控件，实现特定功能 -->
         <HBox class="menu_split_box" height="36" width="256">
-            <Label class="menu_text" textid="MULTI_LANG_SELECT_LANGUAGE" textpadding="0,0,6,0"/>     
+            <Label class="menu_text" textid="MULTI_LANG_SELECT_LANGUAGE" text_padding="0,0,6,0"/>     
         </HBox>
         
         <!-- 菜单项之间的分割线 -->
