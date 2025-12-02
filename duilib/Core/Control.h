@@ -15,6 +15,7 @@ namespace ui
     class Image;
     class IMatrix;
     class StateColorMap;
+    class StateColorMap2;
     class StateImageMap;
     class AnimationManager;
     class IRender;
@@ -98,20 +99,34 @@ public:
      */
     void SetForeColor(const UiColor& color);
 
-    /**
-     * @brief 获取某个状态下的控件颜色
-     * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+    /** 获取某个状态下的控件颜色
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
      * @return 指定状态下设定的颜色字符串，对应 global.xml 中指定色值
      */
     DString GetStateColor(ControlStateType stateType) const;
 
-    /**
-     * @brief 设置某个状态下的控件颜色
-     * @param[in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
-     * @param[in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
-     * @return 无
+    /** 获取某个状态下的控件颜色矩形外边距
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形外边距(已经做过DPI缩放)
+     */
+    UiMargin GetStateColorMargin(ControlStateType stateType) const;
+
+    /** 获取某个状态下的控件颜色矩形圆角大小
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形圆角大小(已经做过DPI缩放)
+     */
+    UiSize GetStateColorRound(ControlStateType stateType) const;
+
+    /** 设置某个状态下的控件颜色、颜色外边距、颜色矩形的圆角大小
+     * @param [in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
+     * @param [in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
+     * @param [in] colorMargin 要设置的颜色矩形外边距，如果不设置，则颜色矩形与控件矩形重合
+     * @param [in] colorRound 要设置的颜色矩形圆角大小，如果不设置，则颜色矩形跟随控件矩形的形状
+     * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
     void SetStateColor(ControlStateType stateType, const DString& strColor);
+    void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
+    void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
     /**
      * @brief 获取背景图片位置
@@ -1619,7 +1634,7 @@ private:
 
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
-    std::unique_ptr<StateColorMap> m_pColorMap;
+    std::unique_ptr<StateColorMap2> m_pColorMap;
 
     /** 控件图片类型与状态图片的MAP
     */

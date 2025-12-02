@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="2" shadow_border_color="#FFEDEDED">
-    <MenuListBox class="menu" name="main_menu">
+    <MenuListBox class="menu" name="main_menu" padding="0,4,0,4">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element" name="first" width="180">
           <Button name="button_01" width="auto" height="auto" bkimage="file='menu_settings.svg'valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>

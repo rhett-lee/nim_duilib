@@ -5,6 +5,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/StateColorMap.h"
+#include "duilib/Core/StateColorMap2.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
@@ -342,6 +343,46 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("disabled_color")) || (strName == _T("disabledcolor"))) {
         SetStateColor(kControlStateDisabled, strValue);
     }
+    else if (strName == _T("normal_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateNormal, rcMargin, true);
+    }
+    else if (strName == _T("hot_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateHot, rcMargin, true);
+    }
+    else if (strName == _T("pushed_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStatePushed, rcMargin, true);
+    }
+    else if (strName == _T("disabled_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateDisabled, rcMargin, true);
+    }
+    else if (strName == _T("normal_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateNormal, szRound, true);
+    }
+    else if (strName == _T("hot_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateHot, szRound, true);
+    }
+    else if (strName == _T("pushed_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStatePushed, szRound, true);
+    }
+    else if (strName == _T("disabled_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateDisabled, szRound, true);
+    }
     else if ((strName == _T("border_color")) || (strName == _T("bordercolor"))) {
         SetBorderColor(strValue);
     }
@@ -397,7 +438,6 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetToolTipTextId(strValue);
     }
     else if (strName == _T("tooltip_width")) {
-
         SetToolTipWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("data_id")) || (strName == _T("dataid"))) {
@@ -636,7 +676,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcBorder.right = Dpi().GetScaleFloat(rcBorder.right, nOldDpiScale);
     rcBorder.bottom = Dpi().GetScaleFloat(rcBorder.bottom, nOldDpiScale);
     SetBorderSize(rcBorder, false);
-   
+
     UiPoint renderOffset = GetRenderOffset();
     renderOffset = Dpi().GetScalePoint(renderOffset, nOldDpiScale);
     SetRenderOffset(renderOffset, false);
@@ -648,7 +688,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 
     int32_t nMaxWidth = GetMaxWidth();
-    if ((nMaxWidth >= 0) && (nMaxWidth != INT32_MAX)){
+    if ((nMaxWidth >= 0) && (nMaxWidth != INT32_MAX)) {
         nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
         SetMaxWidth(nMaxWidth, false);
     }
@@ -657,7 +697,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nMinHeight >= 0) {
         nMinHeight = Dpi().GetScaleInt(nMinHeight, nOldDpiScale);
         SetMinHeight(nMinHeight, false);
-    }    
+    }
 
     int32_t nMaxHeight = GetMaxHeight();
     if ((nMaxHeight >= 0) && (nMaxHeight != INT32_MAX)) {
@@ -683,6 +723,24 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (fixedHeight.IsInt32()) {
         int32_t nFixedHeight = Dpi().GetScaleInt(fixedHeight.GetInt32(), nOldDpiScale);
         SetFixedHeight(UiFixedInt(nFixedHeight), true, false);
+    }
+
+    if (m_pColorMap != nullptr) {
+        for (int32_t nStateType = 0; nStateType < kControlStateCount; ++nStateType) {
+            ControlStateType stateType = (ControlStateType)nStateType;
+
+            UiMargin colorMargin = m_pColorMap->GetStateColorMargin(stateType);
+            UiMargin newColorMargin = Dpi().GetScaleMargin(colorMargin, nOldDpiScale);
+            if (!newColorMargin.Equals(colorMargin)) {
+                m_pColorMap->SetStateColorMargin(stateType, newColorMargin);
+            }
+
+            UiSize colorRound = m_pColorMap->GetStateColorRound(stateType);
+            UiSize newColorRound = Dpi().GetScaleSize(colorRound, nOldDpiScale);
+            if (!newColorRound.Equals(colorRound)) {
+                m_pColorMap->SetStateColorRound(stateType, newColorRound);
+            }
+        }
     }
 
     //对于auto类型的控件，需要重新评估大小
@@ -922,6 +980,22 @@ DString Control::GetStateColor(ControlStateType stateType) const
     return DString();
 }
 
+UiMargin Control::GetStateColorMargin(ControlStateType stateType) const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMargin(stateType);
+    }
+    return UiMargin();
+}
+
+UiSize Control::GetStateColorRound(ControlStateType stateType) const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorRound(stateType);
+    }
+    return UiSize();
+}
+
 void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
@@ -931,9 +1005,49 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
         }
     }
     if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap>(this);
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
     }
     m_pColorMap->SetStateColor(stateType, strColor);
+    if (stateType == kControlStateHot) {
+        GetAnimationManager().SetFadeHot(true);
+    }
+    Invalidate();
+}
+
+void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        Dpi().ScaleMargin(colorMargin);
+    }
+    if (m_pColorMap != nullptr) {
+        if (m_pColorMap->GetStateColorMargin(stateType).Equals(colorMargin)) {
+            return;
+        }
+    }
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMargin(stateType, colorMargin);
+    if (stateType == kControlStateHot) {
+        GetAnimationManager().SetFadeHot(true);
+    }
+    Invalidate();
+}
+
+void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        Dpi().ScaleSize(colorRound);
+    }
+    if (m_pColorMap != nullptr) {
+        if (m_pColorMap->GetStateColorRound(stateType).Equals(colorRound)) {
+            return;
+        }
+    }
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorRound(stateType, colorRound);
     if (stateType == kControlStateHot) {
         GetAnimationManager().SetFadeHot(true);
     }

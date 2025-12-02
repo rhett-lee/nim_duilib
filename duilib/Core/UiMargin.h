@@ -62,6 +62,20 @@ public:
                right == r.right && bottom == r.bottom;
     }
 
+    /** 判断两个值是否相等
+    */
+    friend bool operator == (const UiMargin& a, const UiMargin& b)
+    {
+        return a.Equals(b);
+    }
+
+    /** 判断两个值是否不相等
+    */
+    friend bool operator != (const UiMargin& a, const UiMargin& b)
+    {
+        return !a.Equals(b);
+    }
+
 public:
     /** 矩形左侧的外边距
     */

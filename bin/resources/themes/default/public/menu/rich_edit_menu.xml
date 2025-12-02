@@ -1,20 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="2" shadow_border_color="#FFEDEDED">
     <Class name="my_menu_element" height="28" width="160" padding="10,0,10,0" />
-    <Class name="my_menu_text" margin="30,0,0,0"/>
-    <VListBox class="menu">
+    <Class name="my_menu_text" text_align="vcenter,left" margin="0,0,24,0"/>
+    <Class name="my_menu_shortcut" width="100%" text_align="vcenter,right"/>
+    <Class name="my_menu_text_hbox" margin="16,0,16,0"/>
+    <VListBox class="menu" padding="0,4,0,4">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element my_menu_element" name="edit_menu_copy">
-            <Label class="menu_text my_menu_text" text="复制(Ctrl+C)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="复制"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+C"/>
+            </HBox>
         </MenuItem>        
         <MenuItem class="menu_element my_menu_element" name="edit_menu_cut">
-            <Label class="menu_text my_menu_text" text="剪切(Ctrl+X)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="剪切"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+X"/>
+            </HBox>
         </MenuItem>        
         <MenuItem class="menu_element my_menu_element" name="edit_menu_paste">
-            <Label class="menu_text my_menu_text" text="粘贴(Ctrl+V)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="粘贴"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+V"/>
+            </HBox>
         </MenuItem>        
         <MenuItem class="menu_element my_menu_element" name="edit_menu_del">
-            <Label class="menu_text my_menu_text" text="删除(Del)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="删除"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Del"/>
+            </HBox>
         </MenuItem>
            
         <!-- 菜单项之间的分割线 -->
@@ -23,19 +37,23 @@
         </Box>
         
         <MenuItem class="menu_element my_menu_element" name="edit_menu_sel_all">
-            <Label class="menu_text my_menu_text" text="全选(Ctrl+A)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="全选"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+A"/>
+            </HBox>
         </MenuItem>
-        
-        <!-- 菜单项之间的分割线 -->
-        <Box class="menu_split_box">
-            <Control class="menu_split_line" />
-        </Box>
-        
+
         <MenuItem class="menu_element my_menu_element" name="edit_menu_undo">
-            <Label class="menu_text my_menu_text" text="撤销(Ctrl+Z)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="撤销"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+Z"/>
+            </HBox>
         </MenuItem>
         <MenuItem class="menu_element my_menu_element" name="edit_menu_redo">
-            <Label class="menu_text my_menu_text" text="重做(Ctrl+Y)"/>
+            <HBox class="my_menu_text_hbox">
+                <Label class="menu_text my_menu_text" text="重做"/>
+                <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+Y"/>
+            </HBox>
         </MenuItem>
         
   </VListBox>

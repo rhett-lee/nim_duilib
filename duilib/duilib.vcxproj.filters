@@ -825,6 +825,9 @@
     <ClCompile Include="Image\FrameSequence_gif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Core\StateColorMap2.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1714,6 +1717,9 @@
     </ClInclude>
     <ClInclude Include="Image\FrameSequence_gif.h">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StateColorMap2.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

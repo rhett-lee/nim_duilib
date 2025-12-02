@@ -2,6 +2,7 @@
 #define UI_CONTROL_CHECKBOX_H_
 
 #include "duilib/Control/Button.h"
+#include "duilib/Core/StateColorMap2.h"
 
 namespace ui {
 
@@ -24,6 +25,12 @@ public:
     virtual void PaintText(IRender* pRender) override;
     virtual bool HasHotState() override;
     virtual DString GetBorderColor(ControlStateType stateType) const override;
+
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 关闭CheckBox功能，清除CheckBox的所有图片属性(比如树节点，CheckBox功能是可用通过开关开启或者关闭的)
     */
@@ -117,11 +124,28 @@ public:
      */
     DString GetSelectStateColor(ControlStateType stateType) const;
 
+    /** 获取被选择时的控件颜色矩形外边距
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形外边距(已经做过DPI缩放)
+     */
+    UiMargin GetSelectStateColorMargin(ControlStateType stateType) const;
+
+    /** 获取被选择时的控件颜色矩形圆角大小
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形圆角大小(已经做过DPI缩放)
+     */
+    UiSize GetSelectStateColorRound(ControlStateType stateType) const;
+
     /** 设置被选择时的控件颜色
-     * @param[in] stateType 要设置何种状态下的颜色
-     * @param[in] stateColor 要设置的颜色
+     * @param [in] stateType 要设置何种状态下的颜色
+     * @param [in] stateColor 要设置的颜色
+     * @param [in] colorMargin 要设置的颜色矩形外边距，如果不设置，则颜色矩形与控件矩形重合
+     * @param [in] colorRound 要设置的颜色矩形圆角大小，如果不设置，则颜色矩形跟随控件矩形的形状
+     * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
     void SetSelectedStateColor(ControlStateType stateType, const DString& stateColor);
+    void SetSelectedStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
+    void SetSelectedStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
     /** 监听被选择时的事件
      * @param [in] callback 被选择时触发的回调函数
@@ -235,7 +259,7 @@ private:
     StateColorMap* m_pSelectedTextColorMap;
 
     //选择状态的背景颜色
-    StateColorMap* m_pSelectedColorMap;
+    StateColorMap2* m_pSelectedColorMap;
 
     //选择状态
     bool m_bSelected;
@@ -309,6 +333,12 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
 {
     if (strName == _T("selected")) {
         Selected(strValue == _T("true"), true);
+    }
+    else if ((strName == _T("switch_select")) || (strName == _T("switchselect"))) {
+        Selected(!IsSelected());
+    }
+    else if (strName == _T("auto_check_select")) {
+        SetAutoCheckSelect(strValue == _T("true"));
     }
     else if ((strName == _T("normal_first")) || (strName == _T("normalfirst"))) {
         SetPaintNormalFirst(strValue == _T("true"));
@@ -388,14 +418,71 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     else if ((strName == _T("selected_disabled_color")) || (strName == _T("selecteddisabledcolor"))) {
         SetSelectedStateColor(kControlStateDisabled, strValue);
     }
-    else if ((strName == _T("switch_select")) || (strName == _T("switchselect"))) {
-        Selected(!IsSelected());
+    else if (strName == _T("selected_normal_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetSelectedStateColorMargin(kControlStateNormal, rcMargin, true);
     }
-    else if (strName == _T("auto_check_select")) {
-        SetAutoCheckSelect(strValue == _T("true"));
+    else if (strName == _T("selected_hot_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetSelectedStateColorMargin(kControlStateHot, rcMargin, true);
+    }
+    else if (strName == _T("selected_pushed_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetSelectedStateColorMargin(kControlStatePushed, rcMargin, true);
+    }
+    else if (strName == _T("selected_disabled_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetSelectedStateColorMargin(kControlStateDisabled, rcMargin, true);
+    }
+    else if (strName == _T("selected_normal_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetSelectedStateColorRound(kControlStateNormal, szRound, true);
+    }
+    else if (strName == _T("selected_hot_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetSelectedStateColorRound(kControlStateHot, szRound, true);
+    }
+    else if (strName == _T("selected_pushed_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetSelectedStateColorRound(kControlStatePushed, szRound, true);
+    }
+    else if (strName == _T("selected_disabled_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetSelectedStateColorRound(kControlStateDisabled, szRound, true);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
+    }
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    if (m_pSelectedColorMap != nullptr) {
+        for (int32_t nStateType = 0; nStateType < kControlStateCount; ++nStateType) {
+            ControlStateType stateType = (ControlStateType)nStateType;
+
+            UiMargin colorMargin = m_pSelectedColorMap->GetStateColorMargin(stateType);
+            UiMargin newColorMargin = this->Dpi().GetScaleMargin(colorMargin, nOldDpiScale);
+            if (!newColorMargin.Equals(colorMargin)) {
+                m_pSelectedColorMap->SetStateColorMargin(stateType, newColorMargin);
+            }
+
+            UiSize colorRound = m_pSelectedColorMap->GetStateColorRound(stateType);
+            UiSize newColorRound = this->Dpi().GetScaleSize(colorRound, nOldDpiScale);
+            if (!newColorRound.Equals(colorRound)) {
+                m_pSelectedColorMap->SetStateColorRound(stateType, newColorRound);
+            }
+        }
     }
 }
 
@@ -822,13 +909,64 @@ DString CheckBoxTemplate<InheritType>::GetSelectStateColor(ControlStateType stat
 }
 
 template<typename InheritType>
+UiMargin CheckBoxTemplate<InheritType>::GetSelectStateColorMargin(ControlStateType stateType) const
+{
+    if (m_pSelectedColorMap != nullptr) {
+        return m_pSelectedColorMap->GetStateColorMargin(stateType);
+    }
+    return UiMargin();
+}
+
+template<typename InheritType>
+UiSize CheckBoxTemplate<InheritType>::GetSelectStateColorRound(ControlStateType stateType) const
+{
+    if (m_pSelectedColorMap != nullptr) {
+        return m_pSelectedColorMap->GetStateColorRound(stateType);
+    }
+    return UiSize();
+}
+
+template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType stateType, const DString& stateColor)
 {
     if (m_pSelectedColorMap == nullptr) {
-        m_pSelectedColorMap = new StateColorMap(this);
+        m_pSelectedColorMap = new StateColorMap2(this);
     }
-    m_pSelectedColorMap->SetStateColor(stateType, stateColor);
-    this->Invalidate();
+    if (m_pSelectedColorMap->GetStateColor(stateType) != stateColor) {
+        m_pSelectedColorMap->SetStateColor(stateType, stateColor);
+        this->Invalidate();
+    }
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetSelectedStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale)
+{
+
+    if (m_pSelectedColorMap == nullptr) {
+        m_pSelectedColorMap = new StateColorMap2(this);
+    }
+    if (bNeedDpiScale) {
+        this->Dpi().ScaleMargin(colorMargin);
+    }
+    if (m_pSelectedColorMap->GetStateColorMargin(stateType) != colorMargin) {
+        m_pSelectedColorMap->SetStateColorMargin(stateType, colorMargin);
+        this->Invalidate();
+    }
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetSelectedStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale)
+{
+    if (m_pSelectedColorMap == nullptr) {
+        m_pSelectedColorMap = new StateColorMap2(this);
+    }
+    if (bNeedDpiScale) {
+        this->Dpi().ScaleSize(colorRound);
+    }
+    if (m_pSelectedColorMap->GetStateColorRound(stateType) != colorRound) {
+        m_pSelectedColorMap->SetStateColorRound(stateType, colorRound);
+        this->Invalidate();
+    }
 }
 
 typedef CheckBoxTemplate<Control> CheckBox;

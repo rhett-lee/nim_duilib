@@ -327,6 +327,7 @@
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
+    <ClCompile Include="Core\StateColorMap2.cpp" />
     <ClCompile Include="Core\ThreadManager.cpp" />
     <ClCompile Include="Core\ThreadMessage_SDL.cpp" />
     <ClCompile Include="Core\ThreadMessage_Windows.cpp" />
@@ -668,6 +669,7 @@
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\SharePtr.h" />
     <ClInclude Include="Core\StateColorMap.h" />
+    <ClInclude Include="Core\StateColorMap2.h" />
     <ClInclude Include="Core\ThreadManager.h" />
     <ClInclude Include="Core\ThreadMessage.h" />
     <ClInclude Include="Core\TimerManager.h" />
