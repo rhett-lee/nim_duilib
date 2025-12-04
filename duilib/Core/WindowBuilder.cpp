@@ -37,6 +37,7 @@
 #include "duilib/Control/TabCtrl.h"
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/AddressBar.h"
+#include "duilib/Control/MenuBar.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -148,6 +149,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
         {DUI_CTR_ICON_CONTROL, [](Window* pWindow) { return new IconControl(pWindow); }},
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
+        {DUI_CTR_MENU_BAR, [](Window* pWindow) { return new MenuBar(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
         {DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},
@@ -1062,7 +1064,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             }
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                if (builder.ParseXmlFile(sourceXmlFilePath)) {
+                FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
+                if (builder.ParseXmlFile(sourceXmlFilePath, windowResPath)) {
                     pControl = builder.CreateControls(pWindow, m_createControlCallback, ToBox(pParent), nullptr);
                 }
                 else {

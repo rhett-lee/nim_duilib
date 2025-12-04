@@ -828,6 +828,9 @@
     <ClCompile Include="Core\StateColorMap2.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\MenuBar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1720,6 +1723,9 @@
     </ClInclude>
     <ClInclude Include="Core\StateColorMap2.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\MenuBar.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

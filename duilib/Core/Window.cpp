@@ -276,7 +276,7 @@ void Window::ParseWindowXml()
         skinXmlFileData = std::move(xmlFile);
     }
     else {
-        FilePath xmlFilePath(xmlFile);
+        const FilePath xmlFilePath(xmlFile);
         ASSERT(!xmlFilePath.IsAbsolutePath());
         if (xmlFilePath.IsAbsolutePath()) {
             return;
@@ -290,8 +290,7 @@ void Window::ParseWindowXml()
                 SetXmlPath(FilePath(xmlPath));
             }
         }
-        skinXmlFilePath = GetResourcePath();
-        skinXmlFilePath.JoinFilePath(xmlFilePath);
+        skinXmlFilePath = xmlFilePath;
     }
     //解析XML文件
     bool bRet = false;
@@ -301,7 +300,7 @@ void Window::ParseWindowXml()
     }
     else {
         ASSERT(!skinXmlFilePath.IsEmpty());
-        bRet = m_windowBuilder->ParseXmlFile(skinXmlFilePath);
+        bRet = m_windowBuilder->ParseXmlFile(skinXmlFilePath, GetResourcePath());
     }
     if (!bRet) {
         m_windowBuilder.reset();

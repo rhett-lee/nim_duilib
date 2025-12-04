@@ -349,6 +349,12 @@
                                 disabled_image="" 
                                 selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' valign='center'" 
                                 selected_disabled_image="file='public/checkbox/checkbox-outline-checked.svg' valign='center' fade='80'"/>
+    <!--菜单栏通用样式-->
+    <Class name="menu_bar_button" width="auto" height="auto" border_round="4,4" valign="center" text_align="vcenter" text_padding="8,4,8,4" 
+                                  normal_color="" 
+                                  hot_color="#FFB0B4B8" 
+                                  pushed_color="#FFB0B4B8"/>
+    
     <!--分割线通用样式-->
     <Class name="splitline_hor_level1" bkcolor="splitline_level1" height="1"/>
     <Class name="splitline_hor_level2" bkcolor="splitline_level2" height="1"/>

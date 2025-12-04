@@ -237,6 +237,10 @@ public:
                                   bool& bLocalPath,
                                   bool& bResPath);
 
+    /** 判断一个路径是否在public子目录中
+    */
+    bool IsResInPublicPath(const FilePath& resPath) const;
+
     /** 根据 XML 创建一个 Box
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
      * @param [in] strXmlPath XML 文件路径

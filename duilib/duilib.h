@@ -81,6 +81,7 @@
 #include "Control/RichEdit.h"
 #include "Control/RichText.h"
 #include "Control/Menu.h"
+#include "Control/MenuBar.h"
 #include "Control/DateTime.h"
 #include "Control/Line.h"
 #include "Control/IPAddress.h"
