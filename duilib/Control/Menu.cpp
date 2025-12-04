@@ -107,6 +107,13 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     createWndParam.m_nX = point.x;
     createWndParam.m_nY = point.y;
     CreateWnd(m_pParentWindow, createWndParam);
+
+    if (m_pMenuBar != nullptr) {
+        //如果显示在MenuBar中，避免上方阴影影响鼠标滑动切换菜单功能，需要设置padding.top为0
+        UiPadding rcShadowCorner = GetShadowCorner();
+        rcShadowCorner.top = 0;
+        SetShadowCorner(rcShadowCorner);
+    }
     
     bool bShown = false;
     if (m_pOwner) {

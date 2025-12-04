@@ -4,7 +4,7 @@
     <Class name="my_menu_text" text_align="vcenter,left" margin="0,0,24,0"/>
     <Class name="my_menu_shortcut" width="100%" text_align="vcenter,right"/>
     <Class name="my_menu_text_hbox" margin="16,0,16,0"/>
-    <VListBox class="menu" padding="0,4,0,4">
+    <VListBox class="menu" name="rich_edit_menu" padding="0,4,0,4">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element my_menu_element" name="edit_menu_copy">
             <HBox class="my_menu_text_hbox">

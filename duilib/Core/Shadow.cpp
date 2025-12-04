@@ -464,7 +464,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(1, 1, 1, 1);//设置一个像素，容纳边线
-        shadowImage.clear();        
+        shadowImage.clear();
     }
     else if (nShadowType == Shadow::ShadowType::kShadowNoneRound) {
         bRet = true;
