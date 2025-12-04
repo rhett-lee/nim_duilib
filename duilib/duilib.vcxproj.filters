@@ -204,9 +204,6 @@
     <ClCompile Include="third_party\xml\pugixml.cpp">
       <Filter>third_party\xml</Filter>
     </ClCompile>
-    <ClCompile Include="Control\RichText.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Core\ColorManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -829,6 +826,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Control\MenuBar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichTextImpl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1725,6 +1725,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Control\MenuBar.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichTextImpl.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

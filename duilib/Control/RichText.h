@@ -1,56 +1,23 @@
 #ifndef UI_CONTROL_RICHTEXT_H_
 #define UI_CONTROL_RICHTEXT_H_
 
-#include "duilib/Core/Control.h"
-#include "duilib/Render/IRender.h"
+#include "duilib/Control/RichTextImpl.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
 
 namespace ui 
 {
-/** XML解析后的格式化文本片段
-*/
-class RichTextSlice
-{
-public:   
-    /** 节点名称
-    */
-    UiString m_nodeName;
-
-    /** 文字内容(UTF16编码)
-    */
-    DStringW m_text;
-
-    /** 超链接的URL: "href"
-    */
-    UiString m_linkUrl;
-
-    /** 文字颜色: "color"
-    */
-    UiString m_textColor;
-
-    /** 背景颜色: "color"
-    */
-    UiString m_bgColor;
-
-    /** 字体信息
-    */
-    UiFont m_fontInfo;
-
-public:
-    /** 子节点
-    */
-    std::vector<RichTextSlice> m_childs;
-};
-
 /** 格式化文本（类HTML格式）
 */
-class UILIB_API RichText : public Control
+template<typename T = Control>
+class UILIB_API RichTextT: public T
 {
-    typedef Control BaseClass;
+    typedef T BaseClass;
 public:
-    explicit RichText(Window* pWindow);
-    RichText(const RichText& r) = delete;
-    RichText& operator=(const RichText& r) = delete;
-    virtual ~RichText() override;
+    explicit RichTextT(Window* pWindow);
+    RichTextT(const RichTextT& r) = delete;
+    RichTextT& operator=(const RichTextT& r) = delete;
+    virtual ~RichTextT() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
@@ -82,7 +49,7 @@ public:
      * @param [in] padding 矩形的四个边值分别代表对应的四个内边距值
      * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
-    void SetTextPadding(UiPadding padding, bool bNeedDpiScale = true);
+    void SetTextPadding(const UiPadding& padding, bool bNeedDpiScale = true);
 
     /** 获取当前字体ID
      * @return 返回字体ID，该编号在 global.xml 中标识
@@ -179,7 +146,11 @@ public:
     /** 监听超级链接被点击事件
      * @param[in] callback 超级链接被点击后的回调函数
      */
-    void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
+    void AttachLinkClick(const EventCallback& callback) { this->AttachEvent(kEventLinkClick, callback); }
+
+    /** 获取实现接口
+    */
+    RichTextImpl* GetRichTextImpl() const { return m_impl.get(); }
 
 private:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
@@ -191,149 +162,254 @@ private:
     virtual bool OnSetCursor(const EventArgs& msg) override;
 
 private:
-    /** 格式化文本，解析后的结构(内部使用)
-    */
-    class RichTextDataEx :
-        public RichTextData
-    {
-    public:
-        /** 对象绘制区域(输出参数)
-        */
-        std::vector<UiRect> m_textRects;
 
-        /** 超链接的URL
-        */
-        UiString m_linkUrl;
-
-        /** 鼠标是否按下
-        */
-        bool m_bMouseDown = false;
-
-        /** 是否处于鼠标悬停状态
-        */
-        bool m_bMouseHover = false;
-    };
-
-private:
-    /** 设置格式的文本, 但不重绘
-    * @param [in] richText 带有格式的文本内容
-    */
-    bool DoSetText(const DString& richText);
-
-    /** 解析格式化文本, 生成解析后的数据结构
-    */
-    bool ParseText(std::vector<RichTextDataEx>& outTextData) const;
-
-    /** 检查按需解析文本
-    */
-    void CheckParseText();
-
-    /** 文本片段解析为绘制结构
-    * @param [in] textSlice 文本片段
-    * @param [in] parentTextData 父对象信息
-    * @param [out] textData 解析后的文本结构
-    */
-    bool ParseTextSlice(const RichTextSlice& textSlice, 
-                        const RichTextDataEx& parentTextData,
-                        std::vector<RichTextDataEx>& textData) const;
-
-    /** 输出带格式化文本
-    */
-    DString ToString(const RichTextSlice& textSlice, const DString& indent) const;
-
-    /** 重绘
-    */
-    void Redraw();
-
-    /** 获取当前绘制文字的属性
-    */
-    uint16_t GetTextStyle() const;
-
-    /** 计算绘制后的目标区域大小
-    */
-    void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
-
-private:
-    /** 文本绘制的内边距(分别对应四个边的内边距大小)
-    */
-    UiPadding16 m_rcTextPadding;
-
-    /** 默认字体
-    */
-    UiString m_sFontId;
-
-    /** 默认文本颜色
-    */
-    UiString m_sTextColor;
-
-    /** 文本水平对齐方式
-    */
-    HorAlignType m_hAlignType;
-
-    /** 文本垂直对齐方式
-    */
-    VerAlignType m_vAlignType;
-
-    /** 行间距倍数
-    */
-    float m_fRowSpacingMul;
-
-    /** 绘制的文本内容（解析前）
-    */
-    std::vector<RichTextSlice> m_textSlice;
-
-    /** 绘制的文本内容（解析后）
-    */
-    std::vector<RichTextDataEx> m_textData;
-
-    /** 解析文本对应的界面缩放比
-    */
-    uint32_t m_nTextDataDisplayScaleFactor;
-
-    /** 超级链接的文本：常规文本颜色
-    */
-    UiString m_linkNormalTextColor;
-
-    /** 超级链接的文本：Hover文本颜色
-    */
-    UiString m_linkHoverTextColor;
-
-    /** 超级链接的文本：鼠标按下文本颜色
-    */
-    UiString m_linkMouseDownTextColor;
-
-    /** 是否显示下划线字体风格
-    */
-    bool m_bLinkUnderlineFont;
-
-    /** 文本ID
-    */
-    UiString m_richTextId;
-
-    /** 语言文件
-    */
-    UiString m_langFileName;
-
-    /** 文本的Trim策略
-    */
-    enum class TrimPolicy {
-        kNone    = 0, //不处理
-        kAll     = 1, //去掉所有空格
-        kKeepOne = 2, //去掉多余的空格，只保留一个空格
-    };
-
-    /** 文本的Trim策略
-    */
-    TrimPolicy m_trimPolicy = TrimPolicy::kAll;
-
-    /** 是否自动换行（默认为true）
-    */
-    bool m_bWordWrap;
-
-    /** 绘制缓存
-    */
-    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
+    //功能内部实现
+    std::unique_ptr<RichTextImpl> m_impl;
 };
+
+template<typename T>
+RichTextT<T>::RichTextT(Window* pWindow) :
+    T(pWindow)
+{
+    m_impl = std::make_unique<RichTextImpl>(this);
+}
+
+template<typename T>
+RichTextT<T>::~RichTextT()
+{
+    m_impl.reset();
+}
+
+template<typename T>
+inline DString RichTextT<T>::GetType() const { return DUI_CTR_RICHTEXT; }
+
+template<>
+inline DString RichTextT<Box>::GetType() const { return DUI_CTR_RICHTEXT_BOX; }
+
+template<>
+inline DString RichTextT<HBox>::GetType() const { return DUI_CTR_RICHTEXT_HBOX; }
+
+template<>
+inline DString RichTextT<VBox>::GetType() const { return DUI_CTR_RICHTEXT_VBOX; }
+
+template<typename T>
+void RichTextT<T>::SetAttribute(const DString& strName, const DString& strValue)
+{
+    if (!m_impl->SetAttribute(strName, strValue)) {
+        BaseClass::SetAttribute(strName, strValue);
+    }
+}
+
+template<typename T>
+void RichTextT<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+{
+    m_impl->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
+template<typename T>
+void RichTextT<T>::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    m_impl->Redraw();
+}
+
+template<typename T>
+UiSize RichTextT<T>::EstimateText(UiSize szAvailable)
+{
+    return m_impl->EstimateText(szAvailable);
+}
+
+template<typename T>
+void RichTextT<T>::PaintText(IRender* pRender)
+{
+    m_impl->PaintText(pRender);
+}
+
+template<typename T>
+UiPadding RichTextT<T>::GetTextPadding() const
+{
+    return m_impl->GetTextPadding();
+}
+
+template<typename T>
+void RichTextT<T>::SetTextPadding(const UiPadding& padding, bool bNeedDpiScale)
+{
+    m_impl->SetTextPadding(padding, bNeedDpiScale);
+}
+
+template<typename T>
+const DString& RichTextT<T>::TrimText(DString& text)
+{
+    return m_impl->TrimText(text);
+}
+
+template<typename T>
+DString RichTextT<T>::TrimText(const DString::value_type* text)
+{
+    return m_impl->TrimText(text);
+}
+
+template<typename T>
+bool RichTextT<T>::SetText(const DString& richText)
+{
+    return m_impl->SetText(richText);
+}
+
+template<typename T>
+bool RichTextT<T>::SetTextId(const DString& richTextId)
+{
+    return m_impl->SetTextId(richTextId);
+}
+
+template<typename T>
+void RichTextT<T>::Clear()
+{
+    m_impl->Clear();
+}
+
+template<typename T>
+DString RichTextT<T>::GetFontId() const
+{
+    return m_impl->GetFontId();
+}
+
+template<typename T>
+void RichTextT<T>::SetFontId(const DString& strFontId)
+{
+    m_impl->SetFontId(strFontId);
+}
+
+template<typename T>
+DString RichTextT<T>::GetTextColor() const
+{
+    return m_impl->GetTextColor();
+}
+
+template<typename T>
+void RichTextT<T>::SetTextColor(const DString& sTextColor)
+{
+    m_impl->SetTextColor(sTextColor);
+}
+
+template<typename T>
+float RichTextT<T>::GetRowSpacingMul() const
+{
+    return m_impl->GetRowSpacingMul();
+}
+
+template<typename T>
+void RichTextT<T>::SetRowSpacingMul(float fRowSpacingMul)
+{
+    m_impl->SetRowSpacingMul(fRowSpacingMul);
+}
+
+template<typename T>
+bool RichTextT<T>::IsWordWrap() const
+{
+    return m_impl->IsWordWrap();
+}
+
+template<typename T>
+void RichTextT<T>::SetWordWrap(bool bWordWrap)
+{
+    m_impl->SetWordWrap(bWordWrap);
+}
+
+template<typename T>
+void RichTextT<T>::SetTextHAlignType(HorAlignType alignType)
+{
+    m_impl->SetTextHAlignType(alignType);
+}
+
+template<typename T>
+HorAlignType RichTextT<T>::GetHAlignType() const
+{
+    return m_impl->GetHAlignType();
+}
+
+template<typename T>
+void RichTextT<T>::SetTextVAlignType(VerAlignType alignType)
+{
+    m_impl->SetTextVAlignType(alignType);
+}
+
+template<typename T>
+VerAlignType RichTextT<T>::GetVAlignType() const
+{
+    return m_impl->GetVAlignType();
+}
+
+template<typename T>
+void RichTextT<T>::AppendTextSlice(const RichTextSlice&& textSlice)
+{
+    m_impl->AppendTextSlice(textSlice);
+}
+
+template<typename T>
+void RichTextT<T>::AppendTextSlice(const RichTextSlice& textSlice)
+{
+    m_impl->AppendTextSlice(textSlice);
+}
+
+template<typename T>
+DString RichTextT<T>::ToString() const
+{
+    return m_impl->ToString();
+}
+
+template<typename T>
+bool RichTextT<T>::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonDown(msg);
+    m_impl->ButtonDown(msg);
+    return bRet;
+}
+
+template<typename T>
+bool RichTextT<T>::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonUp(msg);
+    m_impl->ButtonUp(msg);
+    return bRet;
+}
+
+template<typename T>
+bool RichTextT<T>::MouseMove(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseMove(msg);
+    m_impl->MouseMove(msg);
+    return bRet;
+}
+
+template<typename T>
+bool RichTextT<T>::MouseHover(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseHover(msg);
+    m_impl->MouseHover(msg);
+    return bRet;
+}
+
+template<typename T>
+bool RichTextT<T>::MouseLeave(const EventArgs& msg)
+{
+    m_impl->MouseLeave(msg);
+    return BaseClass::MouseLeave(msg);
+}
+
+template<typename T>
+bool RichTextT<T>::OnSetCursor(const EventArgs& msg)
+{
+    if (!m_impl->OnSetCursor(msg)) {
+        return BaseClass::OnSetCursor(msg);
+    }
+    return true;
+}
+
+typedef RichTextT<Control> RichText;
+typedef RichTextT<Box>     RichTextBox;
+typedef RichTextT<HBox>    RichTextHBox;
+typedef RichTextT<VBox>    RichTextVBox;
 
 } // namespace ui
 

@@ -133,6 +133,9 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_PROGRESS, [](Window* pWindow) { return new Progress(pWindow); }},
         {DUI_CTR_CIRCLEPROGRESS, [](Window* pWindow) { return new CircleProgress(pWindow); }},
         {DUI_CTR_RICHTEXT, [](Window* pWindow) { return new RichText(pWindow); }},
+        {DUI_CTR_RICHTEXT_BOX, [](Window* pWindow) { return new RichTextBox(pWindow); }},
+        {DUI_CTR_RICHTEXT_HBOX, [](Window* pWindow) { return new RichTextHBox(pWindow); }},
+        {DUI_CTR_RICHTEXT_VBOX, [](Window* pWindow) { return new RichTextVBox(pWindow); }},
         {DUI_CTR_RICHEDIT, [](Window* pWindow) { return new RichEdit(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
@@ -1151,16 +1154,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
         }
 
         if (strClass == DUI_CTR_RICHTEXT) {
+            //节点为：<RichText></RichText>，解析其子节点为RichText内容
             ParseRichTextXmlNode(node, pControl);
-#ifdef _DEBUG
-            //测试效果：反向生成带格式的文本，用于测试验证解析的正确性
-            RichText* pRichText = dynamic_cast<RichText*>(pControl);
-            DString richText;
-            if (pRichText) {
-                richText = pRichText->ToString();
-            }
-            richText.clear();
-#endif
         }
         else {
             // Add children
@@ -1225,9 +1220,42 @@ bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pContr
 
 bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice)
 {
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return false;
+    }
+    //获取实现接口
+    RichTextImpl* pRichTextImpl = nullptr;
     RichText* pRichText = dynamic_cast<RichText*>(pControl);
-    ASSERT(pRichText != nullptr);
-    if (pRichText == nullptr) {
+    if (pRichText != nullptr) {
+        pRichTextImpl = pRichText->GetRichTextImpl();
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextBox* pRichTextBox = dynamic_cast<RichTextBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextHBox* pRichTextBox = dynamic_cast<RichTextHBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextVBox* pRichTextBox = dynamic_cast<RichTextVBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    ASSERT(pRichTextImpl != nullptr);
+    return ParseRichTextXmlNode(xmlNode, pRichTextImpl, pTextSlice);
+}
+
+bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichTextImpl* pRichTextImpl, RichTextSlice* pTextSlice)
+{
+    ASSERT(pRichTextImpl != nullptr);
+    if (pRichTextImpl == nullptr) {
         return false;
     }
 
@@ -1241,7 +1269,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         if (nodeName.empty()) {            
             //无节点名称，只读取文本内容, 不需要递归遍历子节点
 #ifdef DUILIB_UNICODE
-            textSlice.m_text = pRichText->TrimText(node.value());
+            textSlice.m_text = pRichTextImpl->TrimText(node.value());
 #else
             textSlice.m_text = StringConvert::UTF8ToWString(pRichText->TrimText(node.value()));
 #endif
@@ -1249,7 +1277,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         }        
         else if (nodeName == _T("a")) {
 #ifdef DUILIB_UNICODE
-            textSlice.m_text = pRichText->TrimText(node.first_child().value());
+            textSlice.m_text = pRichTextImpl->TrimText(node.first_child().value());
 #else
             textSlice.m_text = StringConvert::UTF8ToWString(pRichText->TrimText(node.first_child().value()));
 #endif
@@ -1296,14 +1324,14 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         }
         if (bParseChildren) {
             //递归子节点
-            ParseRichTextXmlNode(node, pRichText, &textSlice);
+            ParseRichTextXmlNode(node, pRichTextImpl, &textSlice);
         }
         //将子节点添加到Control或者父节点(注意：std::move以后，textSlice对象失效)
         if (pTextSlice != nullptr) {
-            pTextSlice->m_childs.emplace_back(std::move(textSlice));
+            pTextSlice->m_children.emplace_back(std::move(textSlice));
         }
         else {
-            pRichText->AppendTextSlice(std::move(textSlice));
+            pRichTextImpl->AppendTextSlice(std::move(textSlice));
         }
     }
     return true;

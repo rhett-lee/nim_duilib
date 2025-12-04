@@ -1,4 +1,4 @@
-#include "RichText.h"
+#include "RichTextImpl.h"
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/WindowBuilder.h"
@@ -11,25 +11,24 @@
 namespace ui 
 {
 
-RichText::RichText(Window* pWindow) :
-    Control(pWindow),
+RichTextImpl::RichTextImpl(Control* pOwner) :
+    m_pOwner(pOwner),
     m_hAlignType(HorAlignType::kAlignLeft),
     m_vAlignType(VerAlignType::kAlignTop),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),
     m_nTextDataDisplayScaleFactor(0),
-    m_bWordWrap(true)
+    m_bWordWrap(true),
+    m_bReplaceBrace(true)
 {
 }
 
-RichText::~RichText()
+RichTextImpl::~RichTextImpl()
 {
     m_spDrawRichTextCache.reset();
 }
 
-DString RichText::GetType() const { return DUI_CTR_RICHTEXT; }
-
-void RichText::SetAttribute(const DString& strName, const DString& strValue)
+bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("text_align")) {
         //水平方向对齐方式
@@ -86,9 +85,14 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
         //超级链接：是否使用带下划线的字体
         m_bLinkUnderlineFont = (strValue == _T("true"));
     }
+    else if (strName == _T("replace_brace")) {
+        //对text属性，是否允许替换花括号
+        m_bReplaceBrace = strValue == _T("true");
+    }
     else if (strName == _T("text")) {
-        //允许使用'{'代替'<'，'}'代替'>'
-        if (((strValue.find(_T('<')) == DString::npos) && (strValue.find(_T('>')) == DString::npos)) &&
+        //允许使用'{'代替'<'，'}'代替'>' (m_bReplaceBrace变量为开关)
+        if (m_bReplaceBrace &&
+            ((strValue.find(_T('<')) == DString::npos) && (strValue.find(_T('>')) == DString::npos)) &&
             ((strValue.find(_T('{')) != DString::npos) && (strValue.find(_T('}')) != DString::npos))) {
             DString richText(strValue);
             StringUtil::ReplaceAll(_T("{"), _T("<"), richText);
@@ -120,38 +124,31 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
         SetWordWrap(strValue == _T("true"));
     }
     else {
-        BaseClass::SetAttribute(strName, strValue);
+        return false;
     }
+    return true;
 }
 
-void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+void RichTextImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
+    if (!m_pOwner->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();
-    rcTextPadding = Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
+    rcTextPadding = m_pOwner->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     SetTextPadding(rcTextPadding, false);
-
-    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void RichText::OnLanguageChanged()
-{
-    BaseClass::OnLanguageChanged();
-    Redraw();
-}
-
-void RichText::Redraw()
+void RichTextImpl::Redraw()
 {
     //重新绘制
     m_textData.clear();
     m_spDrawRichTextCache.reset();
-    Invalidate();
-    RelayoutOrRedraw();
+    m_pOwner->Invalidate();
+    m_pOwner->RelayoutOrRedraw();
 }
 
-uint16_t RichText::GetTextStyle() const
+uint16_t RichTextImpl::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     if (m_hAlignType == HorAlignType::kAlignCenter) {
@@ -187,7 +184,7 @@ uint16_t RichText::GetTextStyle() const
     return ui::TruncateToUInt16(uTextStyle);
 }
 
-void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
+void RichTextImpl::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
 {
     if (pRender == nullptr) {
         return;
@@ -219,28 +216,28 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
     }
 }
 
-UiSize RichText::EstimateText(UiSize szAvailable)
+UiSize RichTextImpl::EstimateText(UiSize szAvailable)
 {
     UiSize fixedSize;
     IRender* pRender = nullptr;
-    if (GetWindow() != nullptr) {
-        pRender = GetWindow()->GetRender();
+    if (m_pOwner->GetWindow() != nullptr) {
+        pRender = m_pOwner->GetWindow()->GetRender();
     }
     if (pRender == nullptr) {
         return fixedSize;
     }
 
     int32_t nWidth = szAvailable.cx;
-    if (GetFixedWidth().IsStretch()) {
+    if (m_pOwner->GetFixedWidth().IsStretch()) {
         //如果是拉伸类型，使用外部宽度
-        nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
+        nWidth = CalcStretchValue(m_pOwner->GetFixedWidth(), szAvailable.cx);
     }
-    else if (GetFixedWidth().IsInt32()) {
-        nWidth = GetFixedWidth().GetInt32();
+    else if (m_pOwner->GetFixedWidth().IsInt32()) {
+        nWidth = m_pOwner->GetFixedWidth().GetInt32();
     }
-    else if (GetFixedWidth().IsAuto()) {
+    else if (m_pOwner->GetFixedWidth().IsAuto()) {
         //宽度为自动时，不限制宽度
-        nWidth = GetMaxWidth();
+        nWidth = m_pOwner->GetMaxWidth();
     }
 
     //最大高度，不限制
@@ -253,7 +250,7 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     rc.bottom = rc.top + nHeight;
 
     const UiPadding rcTextPadding = GetTextPadding();
-    const UiPadding rcPadding = GetControlPadding();
+    const UiPadding rcPadding = m_pOwner->GetControlPadding();
     if (nWidth != INT_MAX) {
         rc.left += (rcPadding.left + rcTextPadding.left);
         rc.right -= (rcPadding.right + rcTextPadding.right);
@@ -284,13 +281,13 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     return fixedSize;
 }
 
-void RichText::PaintText(IRender* pRender)
+void RichTextImpl::PaintText(IRender* pRender)
 {
     if (pRender == nullptr) {
         return;
     }
-    UiRect rc = GetRect();
-    rc.Deflate(GetControlPadding());
+    UiRect rc = m_pOwner->GetRect();
+    rc.Deflate(m_pOwner->GetControlPadding());
     rc.Deflate(GetTextPadding());
 
     //检查并更新文本
@@ -327,15 +324,15 @@ void RichText::PaintText(IRender* pRender)
     if (!m_textData.empty()) {
         UiColor normalLinkTextColor;
         if (!m_linkNormalTextColor.empty()) {
-            normalLinkTextColor = GetUiColor(m_linkNormalTextColor.c_str());
+            normalLinkTextColor = m_pOwner->GetUiColor(m_linkNormalTextColor.c_str());
         }
         UiColor mouseDownLinkTextColor;
         if (!m_linkMouseDownTextColor.empty()) {
-            mouseDownLinkTextColor = GetUiColor(m_linkMouseDownTextColor.c_str());
+            mouseDownLinkTextColor = m_pOwner->GetUiColor(m_linkMouseDownTextColor.c_str());
         }
         UiColor linkHoverTextColor;
         if (!m_linkHoverTextColor.empty()) {
-            linkHoverTextColor = GetUiColor(m_linkHoverTextColor.c_str());
+            linkHoverTextColor = m_pOwner->GetUiColor(m_linkHoverTextColor.c_str());
         }
 
         std::vector<RichTextData> richTextData;
@@ -393,7 +390,7 @@ void RichText::PaintText(IRender* pRender)
         if (m_spDrawRichTextCache != nullptr) {
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
-            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, (uint8_t)GetAlpha(), &richTextRects);
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, (uint8_t)m_pOwner->GetAlpha(), &richTextRects);
 
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
@@ -418,7 +415,7 @@ void RichText::PaintText(IRender* pRender)
         }
         else {
             //不使用绘制缓存            
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRects);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)m_pOwner->GetAlpha(), &richTextRects);
         }
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {
@@ -429,7 +426,7 @@ void RichText::PaintText(IRender* pRender)
     }
 }
 
-void RichText::CheckParseText()
+void RichTextImpl::CheckParseText()
 {
     if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
         //多语言版：当语言发生变化时，更新文本内容
@@ -438,23 +435,23 @@ void RichText::CheckParseText()
     }
 
     //当DPI变化时，需要重新解析文本，更新字体大小
-    if (m_nTextDataDisplayScaleFactor != Dpi().GetDisplayScaleFactor()) {
+    if (m_nTextDataDisplayScaleFactor != m_pOwner->Dpi().GetDisplayScaleFactor()) {
         m_textData.clear();
         m_spDrawRichTextCache.reset();
     }
 
     if (m_textData.empty()) {
         ParseText(m_textData);
-        m_nTextDataDisplayScaleFactor = Dpi().GetDisplayScaleFactor();
+        m_nTextDataDisplayScaleFactor = m_pOwner->Dpi().GetDisplayScaleFactor();
         m_spDrawRichTextCache.reset();
     }
 }
 
-bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
+bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
 {
     //默认字体
     DString sFontId = GetFontId();
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, m_pOwner->Dpi());
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
         return false;
@@ -462,7 +459,7 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
 
     RichTextDataEx parentTextData;
     //默认文本颜色
-    parentTextData.m_textColor = GetUiColor(GetTextColor());
+    parentTextData.m_textColor = m_pOwner->GetUiColor(GetTextColor());
     if (parentTextData.m_textColor.IsEmpty()) {
         parentTextData.m_textColor = UiColor(UiColors::Black);
     }
@@ -487,7 +484,7 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
     return true;
 }
 
-bool RichText::ParseTextSlice(const RichTextSlice& textSlice, 
+bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice, 
                               const RichTextDataEx& parentTextData, 
                               std::vector<RichTextDataEx>& textData) const
 {
@@ -506,14 +503,14 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
 
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
     if (!textSlice.m_textColor.empty()) {
-        currentTextData.m_textColor = GetUiColor(textSlice.m_textColor.c_str());
+        currentTextData.m_textColor = m_pOwner->GetUiColor(textSlice.m_textColor.c_str());
     }
     if (textSlice.m_textColor.empty()) {
         currentTextData.m_textColor = parentTextData.m_textColor;
     }
 
     if (!textSlice.m_bgColor.empty()) {
-        currentTextData.m_bgColor = GetUiColor(textSlice.m_bgColor.c_str());
+        currentTextData.m_bgColor = m_pOwner->GetUiColor(textSlice.m_bgColor.c_str());
     }
     else {
         currentTextData.m_bgColor = parentTextData.m_bgColor;
@@ -528,7 +525,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_pFontInfo->m_fontName = textSlice.m_fontInfo.m_fontName;
     }
     if (textSlice.m_fontInfo.m_fontSize > 0) {
-        currentTextData.m_pFontInfo->m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
+        currentTextData.m_pFontInfo->m_fontSize = m_pOwner->Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
     }
     if (textSlice.m_fontInfo.m_bBold) {
         currentTextData.m_pFontInfo->m_bBold = textSlice.m_fontInfo.m_bBold;
@@ -546,9 +543,9 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         textData.push_back(currentTextData);
     }
         
-    if (!textSlice.m_childs.empty()) {
+    if (!textSlice.m_children.empty()) {
         //子节点
-        for (const RichTextSlice& childSlice : textSlice.m_childs) {
+        for (const RichTextSlice& childSlice : textSlice.m_children) {
             if (!ParseTextSlice(childSlice, currentTextData, textData)) {
                 return false;
             }
@@ -557,12 +554,12 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     return true;
 }
 
-UiPadding RichText::GetTextPadding() const
+UiPadding RichTextImpl::GetTextPadding() const
 {
     return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
 }
 
-void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
+void RichTextImpl::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
     ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
     if ((padding.left < 0) || (padding.top < 0) ||
@@ -570,18 +567,18 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
         return;
     }
     if (bNeedDpiScale) {
-        Dpi().ScalePadding(padding);
+        m_pOwner->Dpi().ScalePadding(padding);
     }
     if (!GetTextPadding().Equals(padding)) {
         m_rcTextPadding.left = TruncateToUInt16(padding.left);
         m_rcTextPadding.top = TruncateToUInt16(padding.top);
         m_rcTextPadding.right = TruncateToUInt16(padding.right);
         m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
-        RelayoutOrRedraw();
+        m_pOwner->RelayoutOrRedraw();
     }
 }
 
-const DString& RichText::TrimText(DString& text)
+const DString& RichTextImpl::TrimText(DString& text)
 {
     //回车/换行TAB键：替换为1个空格
     DString tempText;
@@ -623,7 +620,7 @@ const DString& RichText::TrimText(DString& text)
     return text;
 }
 
-DString RichText::TrimText(const DString::value_type* text)
+DString RichTextImpl::TrimText(const DString::value_type* text)
 {
     DString retText;
     if (text != nullptr) {
@@ -632,7 +629,7 @@ DString RichText::TrimText(const DString::value_type* text)
     return TrimText(retText);
 }
 
-bool RichText::DoSetText(const DString& richText)
+bool RichTextImpl::DoSetText(const DString& richText)
 {
     Clear();
     //XML解析的内容，全部封装在WindowBuilder这个类中，以避免到处使用XML解析器，从而降低代码维护复杂度
@@ -640,25 +637,25 @@ bool RichText::DoSetText(const DString& richText)
     if (!richText.empty()) {
         if (richText.find(_T("<RichText")) == DString::npos) {
             DString formatedText = _T("<RichText>") + richText + _T("</RichText>");
-            bResult = WindowBuilder::ParseRichTextXmlText(formatedText, this);
+            bResult = WindowBuilder::ParseRichTextXmlText(formatedText, m_pOwner);
         }
         else {
-            bResult = WindowBuilder::ParseRichTextXmlText(richText, this);
+            bResult = WindowBuilder::ParseRichTextXmlText(richText, m_pOwner);
         }
     }
     return bResult;
 }
 
-bool RichText::SetText(const DString& richText)
+bool RichTextImpl::SetText(const DString& richText)
 {
     bool bResult = DoSetText(richText);
     if (bResult) {
-        RelayoutOrRedraw();
+        m_pOwner->RelayoutOrRedraw();
     }
     return bResult;
 }
 
-bool RichText::SetTextId(const DString& richTextId)
+bool RichTextImpl::SetTextId(const DString& richTextId)
 {
     bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId));
     m_richTextId = richTextId;
@@ -671,22 +668,22 @@ bool RichText::SetTextId(const DString& richTextId)
     return bRet;
 }
 
-void RichText::Clear()
+void RichTextImpl::Clear()
 {
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     if (!m_textSlice.empty()) {
         m_textSlice.clear();
-        Invalidate();
+        m_pOwner->Invalidate();
     }
 }
 
-DString RichText::GetFontId() const
+DString RichTextImpl::GetFontId() const
 {
     return m_sFontId.c_str();
 }
 
-void RichText::SetFontId(const DString& strFontId)
+void RichTextImpl::SetFontId(const DString& strFontId)
 {
     if (m_sFontId != strFontId) {
         m_sFontId = strFontId;
@@ -694,12 +691,12 @@ void RichText::SetFontId(const DString& strFontId)
     }
 }
 
-DString RichText::GetTextColor() const
+DString RichTextImpl::GetTextColor() const
 {
     return m_sTextColor.c_str();
 }
 
-void RichText::SetTextColor(const DString& sTextColor)
+void RichTextImpl::SetTextColor(const DString& sTextColor)
 {
     if (m_sTextColor != sTextColor) {
         m_sTextColor = sTextColor;
@@ -707,12 +704,12 @@ void RichText::SetTextColor(const DString& sTextColor)
     }
 }
 
-float RichText::GetRowSpacingMul() const
+float RichTextImpl::GetRowSpacingMul() const
 {
     return m_fRowSpacingMul;
 }
 
-void RichText::SetRowSpacingMul(float fRowSpacingMul)
+void RichTextImpl::SetRowSpacingMul(float fRowSpacingMul)
 {
     if (m_fRowSpacingMul != fRowSpacingMul) {
         m_fRowSpacingMul = fRowSpacingMul;
@@ -723,12 +720,12 @@ void RichText::SetRowSpacingMul(float fRowSpacingMul)
     }
 }
 
-bool RichText::IsWordWrap() const
+bool RichTextImpl::IsWordWrap() const
 {
     return m_bWordWrap;
 }
 
-void RichText::SetWordWrap(bool bWordWrap)
+void RichTextImpl::SetWordWrap(bool bWordWrap)
 {
     if (m_bWordWrap != bWordWrap) {
         m_bWordWrap = bWordWrap;
@@ -736,7 +733,7 @@ void RichText::SetWordWrap(bool bWordWrap)
     }
 }
 
-void RichText::SetTextHAlignType(HorAlignType alignType)
+void RichTextImpl::SetTextHAlignType(HorAlignType alignType)
 {
     if (m_hAlignType != alignType) {
         m_hAlignType = alignType;
@@ -744,12 +741,12 @@ void RichText::SetTextHAlignType(HorAlignType alignType)
     }
 }
 
-HorAlignType RichText::GetHAlignType() const
+HorAlignType RichTextImpl::GetHAlignType() const
 {
     return m_hAlignType;
 }
 
-void RichText::SetTextVAlignType(VerAlignType alignType)
+void RichTextImpl::SetTextVAlignType(VerAlignType alignType)
 {
     if (m_vAlignType != alignType) {
         m_vAlignType = alignType;
@@ -757,27 +754,27 @@ void RichText::SetTextVAlignType(VerAlignType alignType)
     }
 }
 
-VerAlignType RichText::GetVAlignType() const
+VerAlignType RichTextImpl::GetVAlignType() const
 {
     return m_vAlignType;
 }
 
 
-void RichText::AppendTextSlice(const RichTextSlice&& textSlice)
+void RichTextImpl::AppendTextSlice(const RichTextSlice&& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
     m_spDrawRichTextCache.reset();
 }
 
-void RichText::AppendTextSlice(const RichTextSlice& textSlice)
+void RichTextImpl::AppendTextSlice(const RichTextSlice& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
     m_spDrawRichTextCache.reset();
 }
 
-DString RichText::ToString() const
+DString RichTextImpl::ToString() const
 {
     const DString indentValue = _T("    ");
     const DString lineBreak = _T("\r\n");
@@ -790,7 +787,7 @@ DString RichText::ToString() const
     return richText;
 }
 
-DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent) const
+DString RichTextImpl::ToString(const RichTextSlice& textSlice, const DString& indent) const
 {
     // 支持的标签列表(兼容HTML的标签):
     // 
@@ -844,7 +841,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
         attrList += _T("\"");
     }
 
-    if(!textSlice.m_childs.empty()) {
+    if(!textSlice.m_children.empty()) {
         //有子节点：节点开始
         richText += indent;
         richText += _T("<");
@@ -857,7 +854,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
         richText += lineBreak;
 
         //添加子节点
-        for (const RichTextSlice& childSlice : textSlice.m_childs) {
+        for (const RichTextSlice& childSlice : textSlice.m_children) {
             richText += ToString(childSlice, indent + indentValue);
         }
 
@@ -903,11 +900,10 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
     return richText;
 }
 
-bool RichText::ButtonDown(const EventArgs& msg)
+void RichTextImpl::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
-        return false;
+        return;
     }
     for (size_t index = 0; index < m_textData.size(); ++index) {
         RichTextDataEx& textData = m_textData[index];
@@ -919,18 +915,16 @@ bool RichText::ButtonDown(const EventArgs& msg)
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //在超级链接上
                 textData.m_bMouseDown = true;
-                Invalidate();
+                m_pOwner->Invalidate();
             }
         }
     }
-    return bRet;
 }
 
-bool RichText::ButtonUp(const EventArgs& msg)
+void RichTextImpl::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
-        return false;
+        return;
     }
     for (size_t index = 0; index < m_textData.size(); ++index) {
         RichTextDataEx& textData = m_textData[index];
@@ -942,10 +936,10 @@ bool RichText::ButtonUp(const EventArgs& msg)
                 //在超级链接上, 并且与按下鼠标时的相同，则触发点击事件
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
-                    Invalidate();
+                    m_pOwner->Invalidate();
                     DString url = textData.m_linkUrl.c_str();
-                    SendEvent(kEventLinkClick, (WPARAM)url.c_str());
-                    return bRet;
+                    m_pOwner->SendEvent(kEventLinkClick, (WPARAM)url.c_str());
+                    return;
                 }                
             }
         }
@@ -961,14 +955,12 @@ bool RichText::ButtonUp(const EventArgs& msg)
         }
     }
     if (bInvalidate) {
-        Invalidate();
+        m_pOwner->Invalidate();
     }
-    return bRet;
 }
 
-bool RichText::MouseMove(const EventArgs& msg)
+void RichTextImpl::MouseMove(const EventArgs& msg)
 {
-    bool bRet = BaseClass::MouseMove(msg);
     bool bOnLinkUrl = false;
     for (RichTextDataEx& textData : m_textData) {
         textData.m_bMouseHover = false;
@@ -979,22 +971,20 @@ bool RichText::MouseMove(const EventArgs& msg)
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //在超级链接上
                 textData.m_bMouseHover = true;
-                Invalidate();
-                if (textData.m_linkUrl == GetToolTipText()) {
+                m_pOwner->Invalidate();
+                if (textData.m_linkUrl == m_pOwner->GetToolTipText()) {
                     bOnLinkUrl = true;
                 }
             }
         }
     }
     if (!bOnLinkUrl) {
-        SetToolTipText(_T(""));
+        m_pOwner->SetToolTipText(_T(""));
     }
-    return bRet;
 }
 
-bool RichText::MouseHover(const EventArgs& msg)
+void RichTextImpl::MouseHover(const EventArgs& msg)
 {
-    bool bRet = BaseClass::MouseHover(msg);
     bool hasHover = false;
     for (const RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
@@ -1003,18 +993,17 @@ bool RichText::MouseHover(const EventArgs& msg)
         for (const UiRect& textRect : textData.m_textRects) {
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //超级链接, 显示ToolTip
-                SetToolTipText(textData.m_linkUrl.c_str());
+                m_pOwner->SetToolTipText(textData.m_linkUrl.c_str());
                 hasHover = true;
             }
         }        
     }
     if (!hasHover) {
-        SetToolTipText(_T(""));
+        m_pOwner->SetToolTipText(_T(""));
     }
-    return bRet;
 }
 
-bool RichText::MouseLeave(const EventArgs& msg)
+void RichTextImpl::MouseLeave(const EventArgs& /*msg*/)
 {
     bool bInvalidate = false;
     for (RichTextDataEx& textData : m_textData) {
@@ -1031,14 +1020,13 @@ bool RichText::MouseLeave(const EventArgs& msg)
         }
     }
     if (bInvalidate) {
-        Invalidate();
+        m_pOwner->Invalidate();
     }
-    return BaseClass::MouseLeave(msg);
 }
 
-bool RichText::OnSetCursor(const EventArgs& msg)
+bool RichTextImpl::OnSetCursor(const EventArgs& msg)
 {
-    if (IsEnabled() && IsVisible()) {
+    if (m_pOwner->IsEnabled() && m_pOwner->IsVisible()) {
         for (const RichTextDataEx& textData : m_textData) {
             if (textData.m_linkUrl.empty()) {
                 continue;
@@ -1046,13 +1034,13 @@ bool RichText::OnSetCursor(const EventArgs& msg)
             for (const UiRect& textRect : textData.m_textRects) {
                 if (textRect.ContainsPt(msg.ptMouse)) {
                     //超级链接，光标变成手型
-                    SetCursor(CursorType::kCursorHand);
+                    m_pOwner->SetCursor(CursorType::kCursorHand);
                     return true;
                 }
             }
         }
     }
-    return BaseClass::OnSetCursor(msg);
+    return false;
 }
 
 } // namespace ui

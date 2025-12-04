@@ -22,6 +22,7 @@ class Box;
 class Window;
 class Control;
 class RichTextSlice;
+class RichTextImpl;
 class WindowCreateAttributes;
 
 /** 创建控件的回调函数
@@ -87,6 +88,14 @@ public:
     * @param [in] pTextSlice 文本片段节点接口，如果pTextSlice不为nullptr，XML节点的解析结果将填充到pTextSlice中；否则填充到pControl中
     */
     static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice = nullptr);
+
+private:
+    /** 解析带格式的文本内容，并设置到RichText Control对象
+    * @param [in] xmlNode 带格式的文本内容对应的XML节点
+    * @param [in] pControl RichText控件的接口
+    * @param [in] pTextSlice 文本片段节点接口，如果pTextSlice不为nullptr，XML节点的解析结果将填充到pTextSlice中；否则填充到pControl中
+    */
+    static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichTextImpl* pRichTextImpl, RichTextSlice* pTextSlice = nullptr);
 
 private:
     /** 解析窗口的属性(根XML节点名称："Window")
