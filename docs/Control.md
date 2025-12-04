@@ -161,12 +161,28 @@ Label 控件继承了 `Control` 属性，更多可用属性请参考`Control`的
 LabelBox与Label是基于相同模板的类，请参考 `Label`的属性    
 LabelBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
+## LabelHBox的属性
+LabelHBox与Label是基于相同模板的类，请参考 `Label`的属性    
+LabelHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## LabelVBox的属性
+LabelVBox与Label是基于相同模板的类，请参考 `Label`的属性    
+LabelVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
 ## Button的属性
 Button 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
 ## ButtonBox的属性
 ButtonBox与Button是基于相同模板的类，请参考 `Button`的属性    
 ButtonBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## ButtonHBox的属性
+ButtonHBox与Button是基于相同模板的类，请参考 `Button`的属性    
+ButtonHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## ButtonVBox的属性
+ButtonVBox与Button是基于相同模板的类，请参考 `Button`的属性    
+ButtonVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
 ## CheckBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -201,6 +217,14 @@ CheckBox 控件继承了 `Button` 属性，更多可用属性请参考`Button`�
 CheckBoxBox与CheckBox是基于相同模板的类，请参考 `CheckBox`的属性    
 CheckBoxBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
+## CheckBoxHBox的属性
+CheckBoxHBox与CheckBox是基于相同模板的类，请参考 `CheckBox`的属性    
+CheckBoxHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## CheckBoxVBox的属性
+CheckBoxVBox与CheckBox是基于相同模板的类，请参考 `CheckBox`的属性    
+CheckBoxVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+
 ## Option的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
@@ -211,6 +235,14 @@ Option 控件继承了 `CheckBox` 属性，更多可用属性请参考`CheckBox`
 ## OptionBox的属性
 OptionBoxBox与OptionBox是基于相同模板的类，请参考 `OptionBox`的属性    
 OptionBoxBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## OptionHBox的属性
+OptionBoxHBox与OptionBox是基于相同模板的类，请参考 `OptionBox`的属性    
+OptionBoxHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## OptionVBox的属性
+OptionBoxVBox与OptionBox是基于相同模板的类，请参考 `OptionBox`的属性    
+OptionBoxVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
 ## GroupBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -451,6 +483,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | font | | string | 字体ID |
 | text_color | | string | 默认文本颜色 |
+| replace_brace | true | bool | 在设置text属性时，是否允许将'{'替换为'<' 和 将'}'替换为'>'，该属性需要放置在text属性前面才能生效，比如replace_brace="false"表示禁止替换 |
 | text | | string | 设置格式文本内容，其中允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
 | text_id | | string | 设置格式文本内容ID，其中对应的内容允许使用'{'代替'<'，'}'代替'>'，从而避免使用转移字符，便于阅读 |
 | trim_policy | "all" | string | 设置Trim文本的策略："all"表示去除全部空格；"none"表示不需要去除空格；"keep_one"表示只保留一个空格 |
@@ -462,6 +495,18 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## RichTextBox的属性
+RichTextBox与RichText是基于相同模板的类，请参考 `RichText`的属性    
+RichTextBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
+## RichTextHBox的属性
+RichTextHBox与RichText是基于相同模板的类，请参考 `RichText`的属性    
+RichTextHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+## RichTextVBox的属性
+RichTextVBox与RichText是基于相同模板的类，请参考 `RichText`的属性    
+RichTextVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
 ## Split的属性
 分割条控件，可以通过拖动分割条改变左右或者上下两个控件的宽度或者高度，应用方法:     

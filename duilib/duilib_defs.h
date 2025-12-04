@@ -23,6 +23,10 @@ namespace ui
     #define  DUI_CTR_LABELHBOX                       (_T("LabelHBox"))
     #define  DUI_CTR_LABELVBOX                       (_T("LabelVBox"))
 
+    #define  DUI_CTR_RICHTEXT_BOX                    (_T("RichTextBox"))
+    #define  DUI_CTR_RICHTEXT_HBOX                   (_T("RichTextHBox"))
+    #define  DUI_CTR_RICHTEXT_VBOX                   (_T("RichTextVBox"))
+
     #define  DUI_CTR_BUTTONBOX                       (_T("ButtonBox"))
     #define  DUI_CTR_BUTTONHBOX                      (_T("ButtonHBox"))
     #define  DUI_CTR_BUTTONVBOX                      (_T("ButtonVBox"))
