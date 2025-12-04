@@ -1,8 +1,9 @@
 #include "Menu.h"
 #include "MenuListBox.h"
+#include "duilib/Control/MenuBar.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui {
 
@@ -63,9 +64,10 @@ bool Menu::Receive(ContextMenuParam param)
     return true;
 }
 
-Menu::Menu(Window* pParentWindow, Control* pRelatedControl):
+Menu::Menu(Window* pParentWindow, Control* pRelatedControl, MenuBar* pMenuBar):
     m_pParentWindow(pParentWindow),
     m_pRelatedControl(pRelatedControl),
+    m_pMenuBar(pMenuBar),
     m_menuPoint({ 0, 0 }),
     m_popupPosType(MenuPopupPosType::RIGHT_TOP),
     m_noFocus(false),
@@ -231,22 +233,46 @@ LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativ
 
 LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    bHandled = true;
-    if (vkCode == kVK_ESCAPE || vkCode == kVK_LEFT) {
+    if (vkCode == kVK_ESCAPE) {
+        bHandled = true;
         CloseMenu();
     }
-    else if (vkCode == kVK_RIGHT) {
+    else if (vkCode == kVK_LEFT) {
+        if (m_pOwner != nullptr) {
+            //关闭子菜单
+            bHandled = true;
+            CloseMenu();
+        }
+        else {
+            //拦截该事件，并通知MenuBar
+            bHandled = true;
+            if (m_pMenuBar != nullptr) {
+                m_pMenuBar->OnMenuKeyDownMsg(this, vkCode, modifierKey);
+            }
+        }
+    }
+    else if (vkCode == kVK_RIGHT) {        
         ListBox* pLayoutListBox = Menu::GetLayoutListBox();
         if (pLayoutListBox != nullptr) {
             size_t index = pLayoutListBox->GetCurSel();
             MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(index));
             if (pItem != nullptr) {
-                pItem->CheckSubMenuItem();
+                if (pItem->CheckSubMenuItem()) {
+                    //展开了子菜单
+                    bHandled = true;
+                }
+            }
+        }
+        if (!bHandled) {
+            //拦截该事件，并通知MenuBar
+            bHandled = true;
+            if (m_pMenuBar != nullptr) {
+                m_pMenuBar->OnMenuKeyDownMsg(this, vkCode, modifierKey);
             }
         }
     }
-    else if (vkCode == kVK_RETURN || vkCode == kVK_SPACE)
-    {
+    else if (vkCode == kVK_RETURN || vkCode == kVK_SPACE) {
+        bHandled = true;
         ListBox* pLayoutListBox = Menu::GetLayoutListBox();
         if (pLayoutListBox != nullptr) {
             size_t index = pLayoutListBox->GetCurSel();
@@ -264,25 +290,94 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
         }
     }
     else if (vkCode == kVK_DOWN || vkCode == kVK_UP) {
+        bHandled = true;
         //支持键盘上下键切换当前菜单项
         ListBox* pLayoutListBox = Menu::GetLayoutListBox();
-        if (pLayoutListBox != nullptr) {
-            //默认选中当前处于hot状态的菜单项，以支持键盘操作            
-            if (!Box::IsValidItemIndex(pLayoutListBox->GetCurSel())) {
+        if ((pLayoutListBox != nullptr) && (pLayoutListBox->GetItemCount() > 0)) {
+            //默认选中当前处于hot状态的菜单项，以支持键盘操作
+            size_t nCurSel = pLayoutListBox->GetCurSel();
+            if (!Box::IsValidItemIndex(nCurSel)) {
+                bool bFoundItem = false;
                 for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
                     MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
-                    if (pItem != nullptr) {
+                    if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {
                         if (pItem->GetState() == ControlStateType::kControlStateHot) {
-                            pLayoutListBox->SetCurSel(nIndex);
+                            pLayoutListBox->SelectItem(nIndex, false, false);
+                            bFoundItem = true;
                             break;
                         }
                     }
-                }                
-            }            
+                }
+                if (!bFoundItem) {
+                    //如果未找到Hot状态的菜单项
+                    if (vkCode == kVK_DOWN) {
+                        //选中第一个
+                        for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
+                            MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
+                            if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {
+                                pLayoutListBox->SelectItem(nIndex, false, false);
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        //选中最后一个
+                        int32_t nIndex = (int32_t)pLayoutListBox->GetItemCount() - 1;
+                        for (; nIndex >= 0; --nIndex) {
+                            MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
+                            if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {
+                                pLayoutListBox->SelectItem(nIndex, false, false);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                //控制选中下一个菜单项
+                size_t nStartItemIndex = 0;
+                std::vector<size_t> validMenuItemIndexList;
+                for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
+                    MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
+                    if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {                        
+                        if (nCurSel == nIndex) {
+                            nStartItemIndex = validMenuItemIndexList.size();
+                        }
+                        validMenuItemIndexList.push_back(nIndex);
+                    }
+                }
+
+                if (vkCode == kVK_DOWN) {
+                    size_t nNextMenuItemIndex = nStartItemIndex + 1;
+                    if (nNextMenuItemIndex >= validMenuItemIndexList.size()) {
+                        nNextMenuItemIndex = 0;
+                    }
+                    if (nNextMenuItemIndex < validMenuItemIndexList.size()) {
+                        pLayoutListBox->SelectItem(validMenuItemIndexList[nNextMenuItemIndex], false, false);
+                    }
+                }
+                else {
+                    size_t nNextMenuItemIndex = nStartItemIndex - 1;
+                    if (nStartItemIndex == 0) {
+                        nNextMenuItemIndex = validMenuItemIndexList.size() - 1;
+                    }
+                    if (nNextMenuItemIndex >= validMenuItemIndexList.size()) {
+                        nNextMenuItemIndex = 0;
+                    }
+                    if (nNextMenuItemIndex < validMenuItemIndexList.size()) {
+                        pLayoutListBox->SelectItem(validMenuItemIndexList[nNextMenuItemIndex], false, false);
+                    }
+                }
+            }
         }
-        BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     }
-    return 0;
+    if (bHandled) {
+        //已经处理
+        return 0;
+    }
+    else {
+        return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    }
 }
 
 LRESULT Menu::OnContextMenuMsg(const UiPoint& /*pt*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
@@ -565,6 +660,11 @@ void Menu::PostInitWindow()
     BaseClass::PostInitWindow();
 }
 
+Control* Menu::GetRelatedControl() const
+{
+    return m_pRelatedControl.get();
+}
+
 ListBox* Menu::GetLayoutListBox() const
 {
     return m_pListBox.get();
@@ -597,6 +697,11 @@ void Menu::AttachMenuItemActivated(MenuItemActivatedEvent callback)
     }
 }
 
+void Menu::ClearMenuItemActivated()
+{
+    m_callbackList.clear();
+}
+
 void Menu::OnFinalMessage()
 {
     //发送回调，通知已经选择的事件
@@ -617,6 +722,24 @@ void Menu::OnCloseWindow()
 {
     RemoveObserver();
     DetachOwner();
+
+    if (m_pRelatedControl != nullptr) {
+        //恢复关联控件的状态
+        UiPoint pt;
+        GetCursorPos(pt);
+        m_pRelatedControl->ScreenToClient(pt);
+        pt.Offset(m_pRelatedControl->GetScrollOffsetInScrollBox());
+        if (m_pRelatedControl->GetRect().ContainsPt(pt)) {
+            if (m_pRelatedControl->GetState() != ui::kControlStateHot) {
+                m_pRelatedControl->SetState(ui::kControlStateHot);
+            }            
+        }
+        else {
+            if (m_pRelatedControl->GetState() != ui::kControlStateNormal) {
+                m_pRelatedControl->SetState(ui::kControlStateNormal);
+            }
+        }
+    }
     BaseClass::OnCloseWindow();
 }
 

@@ -14,19 +14,25 @@
                       propterty_class="property_grid_propterty"/>
         <Split bkcolor="splitline_level1" width="2"/>
         <VBox>
-            <HBox bkcolor="white">
+            <HBox bkcolor="white" height="80" margin="0,4,0,0">
                 <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                </TabCtrl>                
+                </TabCtrl>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                 </TabCtrl>
+            </HBox>
+            <HBox bkcolor="white" height="80">
+                <Label text="  MenuBar示例:" text_align="right,vcenter" height="36"/>
+                <MenuBar name="menu_bar_test" bkcolor="#FFE5E5E5" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
+                
+                </MenuBar>
             </HBox>
             <HBox bkcolor="white">
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">

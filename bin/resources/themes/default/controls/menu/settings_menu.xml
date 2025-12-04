@@ -14,7 +14,7 @@
         <!-- 在菜单中插入普通控件，实现特定功能 -->
         <HBox class="menu_split_box" height="36">
             <Label class="menu_text" text="音量" textpadding="0,0,6,0" mouse_enabled="false" keyboard_enabled="false"/>
-            <Control width="auto" height="auto" bkimage="file='set_speaker.svg' valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            <Control width="auto" height="auto" bkimage="file='menu_speaker.svg' valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             <Slider class="slider_horizontal_green" value="70" tooltip_text="ui::Slider"/>
         </HBox>
         

@@ -23,6 +23,30 @@ DString RenderForm::GetSkinFile()
 void RenderForm::OnInitWindow()
 {
     TestPropertyGrid();
+
+    //MenuBar测试
+    ui::MenuBar* pMenuBar = dynamic_cast<ui::MenuBar*>(FindControl(_T("menu_bar_test")));
+    if (pMenuBar != nullptr) {
+        pMenuBar->AddTopMenu(_T("1"), _T("File"),      _T(""), _T("public/menu/rich_edit_menu.xml"));
+        pMenuBar->AddTopMenu(_T("2"), _T("Edit"),      _T(""), _T("controls\\menu\\settings_menu.xml"));
+        pMenuBar->AddTopMenu(_T("3"), _T("Selection"), _T(""), _T("public/menu/rich_edit_menu.xml"));
+        pMenuBar->AddTopMenu(_T("4"), _T("View"),      _T(""), _T("controls/menu/settings_menu.xml"));
+        pMenuBar->AddTopMenu(_T("5"), _T("视图"),       _T(""), _T("public/menu/rich_edit_menu.xml"));
+        pMenuBar->AddTopMenu(_T("6"), _T("  ...  "),   _T(""), _T("public/menu/rich_edit_menu.xml"), _T(""), _T("text_padding='8,1,8,7'"));
+    }
+
+    //注册菜单命令激活的响应函数
+    ui::MenuBarItemActivatedEvent callback = [](const DString& menuItemId,
+                                                const DString& menuName, int32_t nMenuLevel,
+                                                const DString& itemName, size_t nItemIndex) {
+            (void)menuItemId;
+            (void)menuName;
+            (void)nMenuLevel;
+            (void)itemName;
+            (void)nItemIndex;
+            int ii = 0;
+        };
+    pMenuBar->AttachMenuBarItemActivated(callback);
 }
 
 void RenderForm::OnCloseWindow()

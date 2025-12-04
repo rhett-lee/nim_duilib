@@ -11,19 +11,19 @@
                 <Label class="menu_text my_menu_text" text="复制"/>
                 <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+C"/>
             </HBox>
-        </MenuItem>        
+        </MenuItem>
         <MenuItem class="menu_element my_menu_element" name="edit_menu_cut">
             <HBox class="my_menu_text_hbox">
                 <Label class="menu_text my_menu_text" text="剪切"/>
                 <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+X"/>
             </HBox>
-        </MenuItem>        
+        </MenuItem>
         <MenuItem class="menu_element my_menu_element" name="edit_menu_paste">
             <HBox class="my_menu_text_hbox">
                 <Label class="menu_text my_menu_text" text="粘贴"/>
                 <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+V"/>
             </HBox>
-        </MenuItem>        
+        </MenuItem>
         <MenuItem class="menu_element my_menu_element" name="edit_menu_del">
             <HBox class="my_menu_text_hbox">
                 <Label class="menu_text my_menu_text" text="删除"/>

@@ -579,6 +579,16 @@ void GlobalManager::CheckImagePath(FilePath& imageFullPath, bool& bLocalPath)
     }
 }
 
+bool GlobalManager::IsResInPublicPath(const FilePath& resPath) const
+{
+    DString resPathString = resPath.ToString();
+    StringUtil::ReplaceAll(_T("\\"), _T("/"), resPathString);
+    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+        return true;
+    }
+    return false;
+}
+
 FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
                                              const FilePath& windowXmlPath,
                                              const FilePath& resPath,
@@ -615,8 +625,7 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
     else {
         //相对路径：首先在窗口的资源目录中查找（命中率高）
         const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);        
-        DString resPathString = resPath.ToString();
-        if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+        if (IsResInPublicPath(resPath)) {
             //优先从公共目录匹配
             imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
             CheckImagePath(imageFullPath, bLocalPath);
@@ -636,6 +645,12 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
             const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
             imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
             CheckImagePath(imageFullPath, bLocalPath);
+
+            if (imageFullPath.IsEmpty()) {
+                const FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowXmlPath);
+                imageFullPath = FilePathUtil::JoinFilePath(xmlFullPath, resPath);
+                CheckImagePath(imageFullPath, bLocalPath);
+            }
         }
         if (!bWindows && imageFullPath.IsEmpty() && resPath.IsAbsolutePath()) {
             //注意：非Windows的绝对路径与相对路径形式相同，都是以'/'开头，所以放在最后判断
