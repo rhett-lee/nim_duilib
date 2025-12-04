@@ -41,29 +41,6 @@ public:
     std::vector<RichTextSlice> m_childs;
 };
 
-/** 格式化文本，解析后的结构
-*/
-class RichTextDataEx:
-    public RichTextData
-{
-public:
-    /** 对象绘制区域(输出参数)
-    */
-    std::vector<UiRect> m_textRects;
-
-    /** 超链接的URL
-    */
-    UiString m_linkUrl;
-
-    /** 鼠标是否按下
-    */
-    bool m_bMouseDown = false;
-
-    /** 是否处于鼠标悬停状态
-    */
-    bool m_bMouseHover = false;
-};
-
 /** 格式化文本（类HTML格式）
 */
 class UILIB_API RichText : public Control
@@ -205,6 +182,39 @@ public:
     void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
 
 private:
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool MouseHover(const EventArgs& msg) override;
+    virtual bool MouseLeave(const EventArgs& msg) override;
+    virtual bool OnSetCursor(const EventArgs& msg) override;
+
+private:
+    /** 格式化文本，解析后的结构(内部使用)
+    */
+    class RichTextDataEx :
+        public RichTextData
+    {
+    public:
+        /** 对象绘制区域(输出参数)
+        */
+        std::vector<UiRect> m_textRects;
+
+        /** 超链接的URL
+        */
+        UiString m_linkUrl;
+
+        /** 鼠标是否按下
+        */
+        bool m_bMouseDown = false;
+
+        /** 是否处于鼠标悬停状态
+        */
+        bool m_bMouseHover = false;
+    };
+
+private:
     /** 设置格式的文本, 但不重绘
     * @param [in] richText 带有格式的文本内容
     */
@@ -242,15 +252,6 @@ private:
     /** 计算绘制后的目标区域大小
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
-
-private:
-    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
-    virtual bool ButtonDown(const EventArgs& msg) override;
-    virtual bool ButtonUp(const EventArgs& msg) override;
-    virtual bool MouseMove(const EventArgs& msg) override;
-    virtual bool MouseHover(const EventArgs& msg) override;
-    virtual bool MouseLeave(const EventArgs& msg) override;
-    virtual bool OnSetCursor(const EventArgs& msg) override;
 
 private:
     /** 文本绘制的内边距(分别对应四个边的内边距大小)
