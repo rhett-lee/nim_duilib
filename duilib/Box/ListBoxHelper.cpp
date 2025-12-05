@@ -1,6 +1,7 @@
 #include "ListBoxHelper.h"
 #include "ListBox.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {

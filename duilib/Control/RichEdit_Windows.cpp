@@ -6,6 +6,7 @@
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"

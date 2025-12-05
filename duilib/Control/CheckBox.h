@@ -3,6 +3,10 @@
 
 #include "duilib/Control/Button.h"
 #include "duilib/Core/StateColorMap2.h"
+#include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/StateColorMap.h"
+#include "duilib/Animation/AnimationManager.h"
+#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui {
 

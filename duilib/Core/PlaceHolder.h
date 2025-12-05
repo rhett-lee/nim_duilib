@@ -3,8 +3,6 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
-#include <string>
-#include <memory>
 
 namespace ui 
 {

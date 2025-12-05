@@ -1,5 +1,6 @@
 #include "ColorSlider.h"
 #include "ColorConvert.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {

@@ -5,8 +5,6 @@
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/Delegate.h"
-#include <map>
-#include <memory>
 
 namespace ui 
 {
