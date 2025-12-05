@@ -276,7 +276,7 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
     if (nScrollPosY < 0) {
         return;
     }
-    ASSERT(maxCount != 0);
+    //ASSERT(maxCount != 0);
     if (maxCount == 0) {
         return;
     }
@@ -1527,6 +1527,7 @@ UiSize64 ListCtrlReportLayout::EstimateLayoutSize(const std::vector<Control*>& i
 
 void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 {
+    rc.Validate();
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
         ASSERT(0);
@@ -1547,17 +1548,14 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     }
 
     const size_t nItemCount = pDataView->GetItemCount();
-    ASSERT(nItemCount > 0);
-    if (nItemCount <= 1) {
-        //第一个元素是表头        
-        return;
-    }
-
-    //第一个元素是表头控件，设置其位置大小
-    ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(pDataView->GetItemAt(0));
-    if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
-        int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
-        if (nHeaderHeight > 0) {
+    if (nItemCount > 0) {
+        //第一个元素是表头控件，设置其位置大小
+        ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(pDataView->GetItemAt(0));
+        if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
+            int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
+            if (nHeaderHeight < 0) {
+                nHeaderHeight = 0;
+            }
             //表头的宽度
             int32_t nHeaderWidth = std::max(GetItemWidth(), rc.Width());
             if (nHeaderWidth <= 0) {
@@ -1568,7 +1566,6 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             rc.top += nHeaderHeight;
         }
     }
-
     int32_t nNormalItemTop = rc.top; //普通列表项（非Header、非置顶）的top坐标
 
     //记录可见的元素索引号列表
@@ -1578,7 +1575,10 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
 
     //计算当前区域能够显示多少条数据
-    int32_t nCalcItemCount = pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
+    int32_t nCalcItemCount = 0;
+    if (!rc.IsEmpty()) {
+        pDataView->GetMaxDataItemsToShow(nScrollPosY, rc.Height());
+    }
     if (nCalcItemCount > (int32_t)(nItemCount - 1)) {
         //UI控件的个数不足，重新调整
         pDataView->AjustItemCount();
@@ -1593,6 +1593,10 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     if (showItemIndexList.empty() && atTopItemIndexList.empty()) {
         //没有需要显示的数据
         pDataView->SetScrollVirtualOffsetY(nScrollPosY);
+        pDataView->SetTopElementIndex(0);
+        pDataView->SetAtTopControlIndex(std::vector<size_t>());
+        pDataView->SetDisplayDataItems(diplayItemIndexList);
+        pDataView->SetNormalItemTop(nNormalItemTop);
         return;
     }
 
@@ -1780,17 +1784,18 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
         Control* pHeaderCtrl = pDataView->GetItemAt(0);
         if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible()) {
             int32_t nHeaderHeight = pHeaderCtrl->GetFixedHeight().GetInt32();
-            if (nHeaderHeight > 0) {
-                int32_t nHeaderWidth = GetElementSize(rc.Width(), 0).cx;
-                if (nHeaderWidth <= 0) {
-                    nHeaderWidth = rc.Width();
-                }
-                ui::UiRect rcTile(rc.left, rc.top, rc.left + nHeaderWidth, rc.top + nHeaderHeight);
-                pHeaderCtrl->SetPos(rcTile);
-                rc.top += nHeaderHeight;
-                //记录表头的bottom值
-                pDataView->SetNormalItemTop(rc.top);
+            if (nHeaderHeight < 0) {
+                nHeaderHeight = 0;
             }
+            int32_t nHeaderWidth = GetElementSize(rc.Width(), 0).cx;
+            if (nHeaderWidth <= 0) {
+                nHeaderWidth = rc.Width();
+            }
+            ui::UiRect rcTile(rc.left, rc.top, rc.left + nHeaderWidth, rc.top + nHeaderHeight);
+            pHeaderCtrl->SetPos(rcTile);
+            rc.top += nHeaderHeight;
+            //记录表头的bottom值
+            pDataView->SetNormalItemTop(rc.top);
         }
     }
 

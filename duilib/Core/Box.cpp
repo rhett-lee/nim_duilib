@@ -133,6 +133,9 @@ UiRect Box::GetRectWithoutPadding() const
 
 void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
+    if (GetRect().IsEmpty()) {
+        return;
+    }
     UiRect rcTemp;
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
         return;
