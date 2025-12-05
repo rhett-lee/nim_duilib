@@ -1957,9 +1957,16 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
         }
     }
 #endif // _DEBUG
-    if ((uFlags & UIFIND_HITTEST) != 0 && 
-        (!IsMouseEnabled() || !GetRect().ContainsPt(pt))) {
-        return nullptr;
+    if ((uFlags & UIFIND_TOOLTIP) == 0) {
+        if ((uFlags & UIFIND_HITTEST) != 0 &&
+            (!IsMouseEnabled() || !GetRect().ContainsPt(pt))) {
+            return nullptr;
+        }
+    }
+    else {
+        if ((uFlags & UIFIND_HITTEST) != 0 && !GetRect().ContainsPt(pt)) {
+            return nullptr;
+        }
     }
     return Proc(this, pProcData);
 }

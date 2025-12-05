@@ -796,7 +796,7 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
         if (!GetRect().ContainsPt(boxPt)) {
             return nullptr;
         }
-        if (!IsMouseChildEnabled()) {
+        if (!IsMouseChildEnabled() && ((uFlags & UIFIND_TOOLTIP) == 0)) {
             Control* pResult = nullptr;            
             if (pVScrollBar != nullptr) {
                 pResult = pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);

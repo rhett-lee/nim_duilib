@@ -698,7 +698,7 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, void* pProcData,
         if (!GetRect().ContainsPt(boxPt)) {
             return nullptr;
         }
-        if (!IsMouseChildEnabled()) {
+        if (!IsMouseChildEnabled() && ((uFlags & UIFIND_TOOLTIP) == 0)) {
             Control* pResult = nullptr;
             if (m_pVScrollBar != nullptr) {
                 pResult = m_pVScrollBar->FindControl(Proc, pProcData, uFlags, boxPt);

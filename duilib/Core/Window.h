@@ -290,8 +290,11 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
-    /**
-    *  根据坐标查找可以响应WM_CONTEXTMENU的控件
+    /** 根据坐标查找支持ToolTip的控件
+    */
+    Control* FindToolTipControl(const UiPoint& pt) const;
+
+    /** 根据坐标查找可以响应WM_CONTEXTMENU的控件
     * @param [in] pt 指定坐标
     */
     Control* FindContextMenuControl(const UiPoint* pt) const;
@@ -991,8 +994,11 @@ private:
     //焦点控件
     ControlPtr m_pFocus;
 
-    //鼠标在悬停控件
+    //鼠标所在的悬停控件
     ControlPtr m_pEventHover;
+
+    //鼠标所在的ToolTip控件
+    ControlPtr m_pEventToolTip;
 
     /** 点击的控件：
         在 WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK 赋值

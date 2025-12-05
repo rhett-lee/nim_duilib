@@ -19,6 +19,7 @@ namespace ui
 #define UIFIND_HITTEST       0x00000004
 #define UIFIND_TOP_FIRST     0x00000008
 #define UIFIND_DRAG_DROP     0x00000010
+#define UIFIND_TOOLTIP       0x00000020
 #define UIFIND_ME_FIRST      0x80000000
 
 class Control;
@@ -45,15 +46,19 @@ public:
     */
     void SetRoot(Box* pRoot);
 
-    /**
-     * @brief 根据坐标查找指定控件
+    /** 根据坐标查找指定控件
      * @param[in] pt 指定坐标
      * @return 返回控件指针
      */
     Control* FindControl(const UiPoint& pt) const;
 
-    /**
-     * @brief 根据坐标查找可以响应WM_CONTEXTMENU的控件
+    /** 根据坐标查找支持ToolTip的控件(需要单独的函数支持，因为当控件的mouse_enabled="false" 或者 容器的mouse_child="false"时，FindControl函数查找不到这个控件)
+     * @param[in] pt 指定坐标
+     * @return 返回控件指针
+     */
+    Control* FindToolTipControl(const UiPoint& pt) const;
+
+    /** 根据坐标查找可以响应WM_CONTEXTMENU的控件
      * @param[in] pt 指定坐标
      * @return 返回控件指针
      */
