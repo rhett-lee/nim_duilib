@@ -1,12 +1,8 @@
 #ifndef UI_CORE_WINDOWBUILDER_H_
 #define UI_CORE_WINDOWBUILDER_H_
 
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/FilePath.h"
-#include <functional>
-#include <string>
-#include <memory>
 
 namespace pugi
 {

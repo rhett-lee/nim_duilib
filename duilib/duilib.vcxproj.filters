@@ -831,6 +831,9 @@
     <ClCompile Include="Control\RichTextImpl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\LabelImpl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1728,6 +1731,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\RichTextImpl.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\LabelImpl.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

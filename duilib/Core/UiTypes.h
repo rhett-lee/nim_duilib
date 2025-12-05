@@ -20,6 +20,11 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <functional>
+#include <map>
+#include <unordered_map>
+#include <set>
+#include <unordered_set>
 
 namespace ui
 {

@@ -272,6 +272,7 @@
     <ClCompile Include="Control\HotKey.cpp" />
     <ClCompile Include="Control\IconControl.cpp" />
     <ClCompile Include="Control\IPAddress.cpp" />
+    <ClCompile Include="Control\LabelImpl.cpp" />
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\ListCtrl.cpp" />
     <ClCompile Include="Control\ListCtrlData.cpp" />
@@ -603,6 +604,7 @@
     <ClInclude Include="Control\HyperLink.h" />
     <ClInclude Include="Control\IconControl.h" />
     <ClInclude Include="Control\IPAddress.h" />
+    <ClInclude Include="Control\LabelImpl.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\ListCtrl.h" />
     <ClInclude Include="Control\ListCtrlData.h" />

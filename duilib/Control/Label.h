@@ -1,31 +1,19 @@
 #ifndef UI_CONTROL_LABEL_H_
 #define UI_CONTROL_LABEL_H_
 
-#include "duilib/Core/Control.h"
-#include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/Box.h"
-#include "duilib/Core/Window.h"
-#include "duilib/Core/StateColorMap.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Control/LabelImpl.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
-#include "duilib/Image/Image.h"
-#include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/StringConvert.h"
-#include "duilib/Utils/AttributeUtil.h"
-#include "duilib/Render/IRender.h"
-#include "duilib/Animation/AnimationManager.h"
-#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui
 {
-
 /** 标签控件（模板），用于显示文本
 */
-template<typename InheritType = Control>
-class UILIB_API LabelTemplate : public InheritType
+template<typename T = Control>
+class UILIB_API LabelTemplate : public T
 {
-    typedef InheritType BaseClass;
+    typedef T BaseClass;
 public:
     explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate() override;
@@ -215,10 +203,6 @@ public:
     static uint32_t GetValidTextStyle(uint32_t nTextFormat);
 
 protected:
-    /** 检查是否需要自动显示ToolTip
-    */
-    void CheckShowToolTip();
-
     /** 绘制文字的实现函数
     * @param [in] rc 实际绘制区域，不包含内边距（需由调用方剪去内边距）
     * @param [in] pRender 渲染接口
@@ -226,94 +210,25 @@ protected:
     void DoPaintText(const UiRect& rc, IRender* pRender);
 
 private:
-    //文本内容
-    UiString m_sText;
-
-    //文本ID，用于支持多语言
-    UiString m_sTextId;
-
-    //字体ID
-    UiString m_sFontId;
-
-    //自动显示Tooltip的缓存
-    UiString m_sAutoShowTooltipCache;
-
-    //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
-    std::unique_ptr<StateColorMap> m_pTextColorMap;
-
-    //文本内边距
-    UiPadding16 m_rcTextPadding;
-
-    //文本对齐属性
-    uint32_t m_uTextStyle;
-
-    //实际行间距 = 字体大小 × m_fSpacingMul + m_fSpacingAdd
-    //行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
-    float m_fSpacingMul;
-
-    //行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
-    float m_fSpacingAdd;
-
-    //每个字符之间的的间隔（像素）
-    float m_fWordSpacing;
-
-    //是否单行文本: true表示单行文本，false表示多行文本
-    bool m_bSingleLine;
-
-    //是否自动显示Tooltip
-    bool m_bAutoShowToolTip;
-
-    //是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
-    bool m_bReplaceNewline;
-
-    //文本方向：true为纵向文本，false为横向文本
-    //    横向文本：从左到右，从上到下
-    //    纵向文本：从上到下，从右到左
-    bool m_bVerticalText;
-
-    //纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
-    bool m_bUseFontHeight;
-
-    //纵向绘制时，对于字母数字等，顺时针旋转90度显示
-    bool m_bRotate90ForAscii;
+    //功能内部实现
+    std::unique_ptr<LabelImpl> m_impl;
 };
 
-template<typename InheritType>
-LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
-    InheritType(pWindow),
-    m_sFontId(),
-    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
-    m_bSingleLine(true),
-    m_bAutoShowToolTip(false),
-    m_bReplaceNewline(false),
-    m_fSpacingMul(1.0f),
-    m_fSpacingAdd(0),
-    m_fWordSpacing(0),
-    m_bVerticalText(false),
-    m_bUseFontHeight(true),
-    m_bRotate90ForAscii(true),
-    m_rcTextPadding(),
-    m_sText(),
-    m_sTextId()
+template<typename T>
+LabelTemplate<T>::LabelTemplate(Window* pWindow) :
+    T(pWindow)
 {
-    Box* pBox = dynamic_cast<Box*>(this);
-    if (pBox != nullptr) {
-        this->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
-        this->SetFixedHeight(UiFixedInt::MakeStretch(), false, false);
-    }
-    else {
-        this->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
-        this->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-    }
+    m_impl = std::make_unique<LabelImpl>(this);
 }
 
-template<typename InheritType>
-LabelTemplate<InheritType>::~LabelTemplate()
+template<typename T>
+LabelTemplate<T>::~LabelTemplate()
 {
+    m_impl.reset();
 }
 
-template<typename InheritType>
-inline DString LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
+template<typename T>
+inline DString LabelTemplate<T>::GetType() const { return DUI_CTR_LABEL; }
 
 template<>
 inline DString LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
@@ -324,840 +239,304 @@ inline DString LabelTemplate<HBox>::GetType() const { return DUI_CTR_LABELHBOX; 
 template<>
 inline DString LabelTemplate<VBox>::GetType() const { return DUI_CTR_LABELVBOX; }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
+template<typename T>
+void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == _T("text_align")) {
-        bool bHCenter = false;        
-        size_t centerPos = strValue.find(_T("center"));
-        if (centerPos != DString::npos) {
-            //"center"这个属性有歧义，保留以保持兼容性，新的属性是"hcenter"
-            bHCenter = true;
-            size_t vCenterPos = strValue.find(_T("vcenter"));
-            if (vCenterPos != DString::npos) {
-                if ((vCenterPos + 1) == centerPos) {
-                    bHCenter = false;
-                }
-            }
-        }
-
-        //水平对齐方式
-        if (strValue.find(_T("hcenter")) != DString::npos) {            
-            bHCenter = true;
-        }
-        if (bHCenter) {
-            //水平对齐：居中
-            m_uTextStyle &= ~TEXT_HALIGN_ALL;
-            m_uTextStyle |= TEXT_HCENTER;
-        }
-        else if (strValue.find(_T("right")) != DString::npos) {
-            //水平对齐：靠右
-            m_uTextStyle &= ~TEXT_HALIGN_ALL;
-            m_uTextStyle |= TEXT_RIGHT;
-        }
-        else if (strValue.find(_T("left")) != DString::npos) {
-            //水平对齐：靠左
-            m_uTextStyle &= ~TEXT_HALIGN_ALL;
-            m_uTextStyle |= TEXT_LEFT;
-        }
-        else if (strValue.find(_T("hjustify")) != DString::npos) {
-            //水平对齐：两端对齐
-            m_uTextStyle &= ~TEXT_HALIGN_ALL;
-            m_uTextStyle |= TEXT_HJUSTIFY;
-        }
-
-        //垂直对齐方式
-        if (strValue.find(_T("top")) != DString::npos) {
-            //垂直对齐：靠上
-            m_uTextStyle &= ~TEXT_VALIGN_ALL;
-            m_uTextStyle |= TEXT_TOP;
-        }
-        else if (strValue.find(_T("vcenter")) != DString::npos) {
-            //垂直对齐：居中
-            m_uTextStyle &= ~TEXT_VALIGN_ALL;
-            m_uTextStyle |= TEXT_VCENTER;
-        }
-        else if (strValue.find(_T("bottom")) != DString::npos) {
-            //垂直对齐：靠下
-            m_uTextStyle &= ~TEXT_VALIGN_ALL;
-            m_uTextStyle |= TEXT_BOTTOM;
-        }
-        else if (strValue.find(_T("vjustify")) != DString::npos) {
-            //垂直对齐：靠下
-            m_uTextStyle &= ~TEXT_VALIGN_ALL;
-            m_uTextStyle |= TEXT_VJUSTIFY;
-        }
-    }
-    else if ((strName == _T("end_ellipsis")) || (strName == _T("endellipsis"))) {
-        if (strValue == _T("true")) {
-            m_uTextStyle |= TEXT_END_ELLIPSIS;
-        }
-        else {
-            m_uTextStyle &= ~TEXT_END_ELLIPSIS;
-        }
-    }
-    else if ((strName == _T("path_ellipsis")) || (strName == _T("pathellipsis"))) {
-        if (strValue == _T("true")) {
-            m_uTextStyle |= TEXT_PATH_ELLIPSIS;
-        }
-        else {
-            m_uTextStyle &= ~TEXT_PATH_ELLIPSIS;
-        }
-    }
-    else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
-        SetSingleLine(strValue == _T("true"));
-    }
-    else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
-        SetSingleLine(strValue != _T("true"));
-    }
-    else if (strName == _T("text")) {
-        SetText(strValue);
-    }
-    else if ((strName == _T("text_id")) || (strName == _T("textid"))){
-        SetTextId(strValue);
-    }
-    else if ((strName == _T("auto_tooltip")) || (strName == _T("autotooltip"))) {
-        SetAutoToolTip(strValue == _T("true"));
-    }
-    else if (strName == _T("font")) {
-        SetFontId(strValue);
-    }
-    else if ((strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
-        SetStateTextColor(kControlStateNormal, strValue);
-    }
-    else if ((strName == _T("hot_text_color")) || (strName == _T("hottextcolor"))) {
-        SetStateTextColor(kControlStateHot, strValue);
-    }
-    else if ((strName == _T("pushed_text_color")) || (strName == _T("pushedtextcolor"))) {
-        SetStateTextColor(kControlStatePushed, strValue);
-    }
-    else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
-        SetStateTextColor(kControlStateDisabled, strValue);
-    }
-    else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
-        UiPadding rcTextPadding;
-        AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
-        SetTextPadding(rcTextPadding, true);
-    }
-    else if (strName == _T("replace_newline")) {
-        // 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"
-        SetReplaceNewline(strValue == _T("true"));
-    }
-    else if (strName == _T("spacing_mul")) {
-        // 设置行间距倍数
-        float mul = 1.0f;
-        float add = 0;
-        GetLineSpacing(&mul, &add);
-        mul = StringUtil::StringToFloat(strValue.c_str(), nullptr);
-        SetLineSpacing(mul, add, false);
-    }
-    else if (strName == _T("spacing_add")) {
-        // 设置行间距固定的附加像素值
-        float mul = 1.0f;
-        float add = 0;
-        GetLineSpacing(&mul, &add);
-        add = StringUtil::StringToFloat(strValue.c_str(), nullptr);
-        SetLineSpacing(mul, add, true);
-    }
-    else if (strName == _T("vertical_text")) {
-        // 设置是否为纵向文本
-        SetVerticalText(strValue == _T("true"));
-    }
-    else if (strName == _T("word_spacing")) {
-        // 设置两个相邻的字符之间的间隔（像素）
-        SetWordSpacing(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
-    }
-    else if (strName == _T("use_font_height")) {
-        // 设置当纵向绘制文本时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
-        SetUseFontHeight(strValue == _T("true"));
-    }
-    else if (strName == _T("ascii_rotate_90")) {
-        // 设置当纵向绘制文本时，对于字母数字等，顺时针旋转90度显示
-        SetRotate90ForAscii(strValue == _T("true"));
-    }
-    else {
+    if (!m_impl->SetAttribute(strName, strValue)) {
         BaseClass::SetAttribute(strName, strValue);
     }
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+template<typename T>
+void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
     if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
-    UiPadding rcTextPadding = GetTextPadding();
+    UiPadding rcTextPadding = m_impl->GetTextPadding();
     rcTextPadding = this->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
-    this->SetTextPadding(rcTextPadding, false);
+    m_impl->SetTextPadding(rcTextPadding, false);
 
     float mul = 1.0f;
     float add = 0;
-    GetLineSpacing(&mul, &add);
+    m_impl->GetLineSpacing(&mul, &add);
     add = this->Dpi().GetScaleFloat(add, nOldDpiScale);
-    SetLineSpacing(mul, add, false);
+    m_impl->SetLineSpacing(mul, add, false);
 
-    float fWordSpacing = GetWordSpacing();
+    float fWordSpacing = m_impl->GetWordSpacing();
     fWordSpacing = this->Dpi().GetScaleFloat(fWordSpacing, nOldDpiScale);
-    SetWordSpacing(fWordSpacing, false);
+    m_impl->SetWordSpacing(fWordSpacing, false);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::OnLanguageChanged()
+template<typename T>
+void LabelTemplate<T>::OnLanguageChanged()
 {
     BaseClass::OnLanguageChanged();
     //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
     this->RelayoutOrRedraw();
-    CheckShowToolTip();
+    m_impl->CheckShowToolTip();
 }
 
-template<typename InheritType>
-uint32_t LabelTemplate<InheritType>::GetValidTextStyle(uint32_t nTextFormat)
+template<typename T>
+uint32_t LabelTemplate<T>::GetValidTextStyle(uint32_t nTextFormat)
 {
-    uint32_t nValidTextFormat = 0;
-    if (nTextFormat & TEXT_HCENTER) {
-        nValidTextFormat |= TEXT_HCENTER;
-    }
-    else if (nTextFormat & TEXT_RIGHT) {
-        nValidTextFormat |= TEXT_RIGHT;
-    }
-    else if (nTextFormat & TEXT_HJUSTIFY) {
-        nValidTextFormat |= TEXT_HJUSTIFY;
-    }
-    else {
-        nValidTextFormat |= TEXT_LEFT;
-    }
-
-    if (nTextFormat & TEXT_VCENTER) {
-        nValidTextFormat |= TEXT_VCENTER;
-    }
-    else if (nTextFormat & TEXT_BOTTOM) {
-        nValidTextFormat |= TEXT_BOTTOM;
-    }
-    else if (nTextFormat & TEXT_VJUSTIFY) {
-        nValidTextFormat |= TEXT_VJUSTIFY;
-    }
-    else {
-        nValidTextFormat |= TEXT_TOP;
-    }
-
-    if (nTextFormat & TEXT_SINGLELINE) {
-        nValidTextFormat |= TEXT_SINGLELINE;
-    }
-    if (nTextFormat & TEXT_END_ELLIPSIS) {
-        nValidTextFormat |= TEXT_END_ELLIPSIS;
-    }
-    if (nTextFormat & TEXT_PATH_ELLIPSIS) {
-        nValidTextFormat |= TEXT_PATH_ELLIPSIS;
-    }
-    if (nTextFormat & TEXT_NOCLIP) {
-        nValidTextFormat |= TEXT_NOCLIP;
-    }
-
-    if (nTextFormat & TEXT_WORD_WRAP) {
-        nValidTextFormat |= TEXT_WORD_WRAP;
-    }
-
-    if (nTextFormat & TEXT_VERTICAL) {
-        nValidTextFormat |= TEXT_VERTICAL;
-    }
-
-    return nValidTextFormat;
+    return LabelImpl::GetValidTextStyle(nTextFormat);
 }
 
-template<typename InheritType>
-DString LabelTemplate<InheritType>::GetText() const
+template<typename T>
+DString LabelTemplate<T>::GetText() const
 {
-    DString strText = m_sText.c_str();
-    if (strText.empty() && !m_sTextId.empty()) {
-        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId.c_str());
-    }
-
-    if (IsReplaceNewline()) {
-        //将反斜杠+n这两个字符替换成换行符
-        StringUtil::ReplaceAll(_T("\\n"), _T("\n"), strText);
-    }
-    return strText;
+    return m_impl->GetText();
 }
 
-template<typename InheritType>
-DString LabelTemplate<InheritType>::GetTextId() const
+template<typename T>
+DString LabelTemplate<T>::GetTextId() const
 {
-    return m_sTextId.c_str();
+    return m_impl->GetTextId();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
+template<typename T>
+void LabelTemplate<T>::SetAutoToolTip(bool bAutoShow)
 {
-    m_bAutoShowToolTip = bAutoShow;
-    CheckShowToolTip();
+    m_impl->SetAutoToolTip(bAutoShow);
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsAutoToolTip() const
+template<typename T>
+bool LabelTemplate<T>::IsAutoToolTip() const
 {
-    return m_bAutoShowToolTip;
+    return m_impl->IsAutoToolTip();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetReplaceNewline(bool bReplaceNewline)
+template<typename T>
+void LabelTemplate<T>::SetReplaceNewline(bool bReplaceNewline)
 {
-    m_bReplaceNewline = bReplaceNewline;
+    m_impl->SetReplaceNewline(bReplaceNewline);
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsReplaceNewline() const
+template<typename T>
+bool LabelTemplate<T>::IsReplaceNewline() const
 {
-    return m_bReplaceNewline;
+    return m_impl->IsReplaceNewline();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetVerticalText(bool bVerticalText)
+template<typename T>
+void LabelTemplate<T>::SetVerticalText(bool bVerticalText)
 {
-    if (m_bVerticalText != bVerticalText) {
-        m_bVerticalText = bVerticalText;
-        if (m_bVerticalText) {
-            m_uTextStyle |= TEXT_VERTICAL;
-        }
-        else {
-            m_uTextStyle &= ~TEXT_VERTICAL;
-        }
-        this->Invalidate();
-    }
+    m_impl->SetVerticalText(bVerticalText);
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsVerticalText() const
+template<typename T>
+bool LabelTemplate<T>::IsVerticalText() const
 {
-    return m_bVerticalText;
+    return m_impl->IsVerticalText();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetLineSpacing(float mul, float add, bool bNeedDpiScale)
+template<typename T>
+void LabelTemplate<T>::SetLineSpacing(float mul, float add, bool bNeedDpiScale)
 {
-    if (mul < 0) {
-        mul = 1.0f;
-    }
-    if (add < 0) {
-        add = 0;
-    }
-    if (bNeedDpiScale) {
-        add = this->Dpi().GetScaleFloat(add);
-    }
-    if ((mul != m_fSpacingMul) || (add != m_fSpacingAdd)) {
-        m_fSpacingMul = mul;
-        m_fSpacingAdd = add;
-        this->Invalidate();
-    }
+    m_impl->SetLineSpacing(mul, add, bNeedDpiScale);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::GetLineSpacing(float* mul, float* add) const
+template<typename T>
+void LabelTemplate<T>::GetLineSpacing(float* mul, float* add) const
 {
-    if (mul != nullptr) {
-        *mul = m_fSpacingMul;
-    }
-    if (add != nullptr) {
-        *add = m_fSpacingAdd;
-    }
+    m_impl->GetLineSpacing(mul, add);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetWordSpacing(float fWordSpacing, bool bNeedDpiScale)
+template<typename T>
+void LabelTemplate<T>::SetWordSpacing(float fWordSpacing, bool bNeedDpiScale)
 {
-    if (fWordSpacing < 0) {
-        fWordSpacing = 0;
-    }
-    if (bNeedDpiScale) {
-        fWordSpacing = this->Dpi().GetScaleFloat(fWordSpacing);
-    }
-    if (m_fWordSpacing != fWordSpacing) {
-        m_fWordSpacing = fWordSpacing;
-        if (IsVerticalText()) {
-            this->Invalidate();
-        }
-    }
+    m_impl->SetWordSpacing(fWordSpacing, bNeedDpiScale);
 }
 
-template<typename InheritType>
-float LabelTemplate<InheritType>::GetWordSpacing() const
+template<typename T>
+float LabelTemplate<T>::GetWordSpacing() const
 {
-    return m_fWordSpacing;
+    return m_impl->GetWordSpacing();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetUseFontHeight(bool bUseFontHeight)
+template<typename T>
+void LabelTemplate<T>::SetUseFontHeight(bool bUseFontHeight)
 {
-    if (m_bUseFontHeight != bUseFontHeight) {
-        m_bUseFontHeight = bUseFontHeight;
-        if (IsVerticalText()) {
-            this->Invalidate();
-        }
-    }
+    m_impl->SetUseFontHeight(bUseFontHeight);
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsUseFontHeight() const
+template<typename T>
+bool LabelTemplate<T>::IsUseFontHeight() const
 {
-    return m_bUseFontHeight;
+    return m_impl->IsUseFontHeight();
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetRotate90ForAscii(bool bRotate90ForAscii)
+template<typename T>
+void LabelTemplate<T>::SetRotate90ForAscii(bool bRotate90ForAscii)
 {
-    if (m_bRotate90ForAscii != bRotate90ForAscii) {
-        m_bRotate90ForAscii = bRotate90ForAscii;
-        if (IsVerticalText()) {
-            this->Invalidate();
-        }
-    }
+    m_impl->SetRotate90ForAscii(bRotate90ForAscii);
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsRotate90ForAscii() const
+template<typename T>
+bool LabelTemplate<T>::IsRotate90ForAscii() const
 {
-    return m_bRotate90ForAscii;
+    return m_impl->IsRotate90ForAscii();
 }
 
-template<typename InheritType>
-MeasureStringParam LabelTemplate<InheritType>::GetMeasureParam() const
+template<typename T>
+MeasureStringParam LabelTemplate<T>::GetMeasureParam() const
 {
-    MeasureStringParam measureParam;
-    measureParam.pFont = this->GetIFontById(this->GetFontId());
-    measureParam.uFormat = m_uTextStyle;
-    measureParam.fSpacingMul = m_fSpacingMul;
-    measureParam.fSpacingAdd = m_fSpacingAdd;
-    measureParam.fWordSpacing = m_fWordSpacing;
-    measureParam.bUseFontHeight = m_bUseFontHeight;
-    measureParam.bRotate90ForAscii = m_bRotate90ForAscii;
-    return measureParam;
+    return m_impl->GetMeasureParam();
 }
 
-template<typename InheritType>
-DrawStringParam LabelTemplate<InheritType>::GetDrawParam() const
+template<typename T>
+DrawStringParam LabelTemplate<T>::GetDrawParam() const
 {
-    DrawStringParam drawParam;
-    drawParam.pFont = this->GetIFontById(this->GetFontId());
-    drawParam.uFormat = m_uTextStyle;
-    drawParam.fSpacingMul = m_fSpacingMul;
-    drawParam.fSpacingAdd = m_fSpacingAdd;
-    drawParam.fWordSpacing = m_fWordSpacing;
-    drawParam.bUseFontHeight = m_bUseFontHeight;
-    drawParam.bRotate90ForAscii = m_bRotate90ForAscii;
-    return drawParam;
+    return m_impl->GetDrawParam();
 }
 
-template<typename InheritType /*= Control*/>
-void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
+template<typename T /*= Control*/>
+void ui::LabelTemplate<T>::SetPos(UiRect rc)
 {
     BaseClass::SetPos(rc);
-    CheckShowToolTip();
+    m_impl->CheckShowToolTip();
 }
 
-template<typename InheritType>
-DString LabelTemplate<InheritType>::GetToolTipText() const
+template<typename T>
+DString LabelTemplate<T>::GetToolTipText() const
 {
     DString toolTip = BaseClass::GetToolTipText();
-    if (!toolTip.empty()) {
-        return toolTip;
-    }
-    else if (m_bAutoShowToolTip) {
-        toolTip = m_sAutoShowTooltipCache.c_str();
+    if (toolTip.empty()) {
+        toolTip = m_impl->GetAutoToolTipText();
     }
     return toolTip;
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::CheckShowToolTip()
+template<typename T>
+std::string LabelTemplate<T>::GetUTF8Text() const
 {
-    m_sAutoShowTooltipCache.clear();
-    if (!m_bAutoShowToolTip || (this->GetWindow() == nullptr)) {
-        return;
-    }
-    auto pRender = this->GetWindow()->GetRender();
-    if (pRender == nullptr) {
-        return;
-    }    
-    DString sText = this->GetText();
-    if (sText.empty()) {
-        return;
-    }
-    UiRect rc = this->GetRect();
-    if (rc.IsEmpty()) {
-        return;
-    }
-    UiPadding rcPadding = this->GetControlPadding();
-    rc.Deflate(rcPadding);
-    rc.Deflate(this->GetTextPadding());
-
-    int32_t rectSize = 0;
-    if (!IsVerticalText()) {
-        int32_t width = this->GetFixedWidth().GetInt32();
-        if (this->GetFixedWidth().IsStretch()) {
-            width = 0;
-        }
-        if (width < 0) {
-            width = 0;
-        }
-        if (!m_bSingleLine && (width == 0)) {
-            //多行文本评估宽高的时候，必须指定宽度
-            width = rc.Width();
-        }
-        rectSize = width;
-    }
-    else {
-        int32_t height = this->GetFixedHeight().GetInt32();
-        if (this->GetFixedHeight().IsStretch()) {
-            height = 0;
-        }
-        if (height < 0) {
-            height = 0;
-        }
-        if (!m_bSingleLine && (height == 0)) {
-            //多行文本评估宽高的时候，必须指定高度
-            height = rc.Height();
-        }
-        rectSize = height;
-    }
-
-    MeasureStringParam measureParam = GetMeasureParam();
-    measureParam.rectSize = rectSize;
-    UiRect rcMessure = pRender->MeasureString(sText, measureParam);
-    if (rc.Width() < rcMessure.Width() || rc.Height() < rcMessure.Height()) {
-        m_sAutoShowTooltipCache = sText;
-    }
+    return m_impl->GetUTF8Text();
 }
 
-template<typename InheritType>
-std::string LabelTemplate<InheritType>::GetUTF8Text() const
+template<typename T>
+void LabelTemplate<T>::SetText(const DString& strText)
 {
-    DString strIn = GetText();
-    std::string strOut = StringConvert::TToUTF8(strIn);
-    return strOut;
+    m_impl->SetText(strText);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetText(const DString& strText)
+template<typename T>
+void LabelTemplate<T>::SetUTF8Text(const std::string& strText)
 {
-    if (m_sText == strText) {
-        return;
-    }
-    m_sText = strText;
-    this->RelayoutOrRedraw();
-    CheckShowToolTip();
+    m_impl->SetUTF8Text(strText);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetUTF8Text(const std::string& strText)
+template<typename T>
+void LabelTemplate<T>::SetTextId(const DString& strTextId)
 {
-    DString strOut = StringConvert::UTF8ToT(strText);
-    SetText(strOut);
+    m_impl->SetTextId(strTextId);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextId(const DString& strTextId)
+template<typename T>
+void LabelTemplate<T>::SetUTF8TextId(const std::string& strTextId)
 {
-    if (m_sTextId == strTextId) {
-        return;
-    }
-    m_sTextId = strTextId;
-    this->RelayoutOrRedraw();
-    CheckShowToolTip();
+    m_impl->SetUTF8TextId(strTextId);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
-{
-    DString strOut = StringConvert::UTF8ToT(strTextId);
-    SetTextId(strOut);
-}
-
-template<typename InheritType>
-bool LabelTemplate<InheritType>::HasHotState()
+template<typename T>
+bool LabelTemplate<T>::HasHotState()
 {
     if (BaseClass::HasHotState()) {
         return true;
     }
-    if (m_pTextColorMap != nullptr) {
-        return m_pTextColorMap->HasHotColor();
-    }
-    return false;
+    return m_impl->HasHotColorState();
 }
 
-template<typename InheritType>
-UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
+template<typename T>
+UiSize LabelTemplate<T>::EstimateText(UiSize szAvailable)
 {
-    int32_t nWidth = szAvailable.cx;
-    int32_t nHeight = szAvailable.cy;
-    const UiPadding rcTextPadding = this->GetTextPadding();
-    const UiPadding rcPadding = this->GetControlPadding();
-    if (!m_bVerticalText) {
-        //文本方向：横向
-        if (this->GetFixedWidth().IsStretch()) {
-            //如果是拉伸类型，使用外部宽度
-            nWidth = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
-        }
-        else if (this->GetFixedWidth().IsInt32()) {
-            nWidth = this->GetFixedWidth().GetInt32();
-        }
-        else if (this->GetFixedWidth().IsAuto()) {
-            //宽度为自动时，不限制宽度
-            nWidth = this->GetMaxWidth();
-            if (nWidth != INT32_MAX) {
-                nWidth -= (rcPadding.left + rcPadding.right);
-                nWidth -= (rcTextPadding.left + rcTextPadding.right);
-            }
-            if (nWidth <= 0) {
-                nWidth = INT32_MAX;
-            }
-        }
-        if (!this->GetFixedWidth().IsAuto()) {
-            nWidth -= (rcPadding.left + rcPadding.right);
-            nWidth -= (rcTextPadding.left + rcTextPadding.right);
-        }
-        if (nWidth < 0) {
-            nWidth = 0;
-        }
-    }
-    else {
-        //文本方向：纵向
-        if (this->GetFixedHeight().IsStretch()) {
-            //如果是拉伸类型，使用外部高度
-            nHeight = CalcStretchValue(this->GetFixedHeight(), szAvailable.cy);
-        }
-        else if (this->GetFixedHeight().IsInt32()) {
-            nHeight = this->GetFixedHeight().GetInt32();
-        }
-        else if (this->GetFixedHeight().IsAuto()) {
-            //宽度为自动时，不限制宽度
-            nHeight = this->GetMaxHeight();
-            if (nHeight != INT32_MAX) {
-                nHeight -= (rcPadding.top + rcPadding.bottom);
-                nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
-            }
-            if (nHeight <= 0) {
-                nHeight = INT32_MAX;
-            }
-        }
-        if (!this->GetFixedHeight().IsAuto()) {
-            nHeight -= (rcPadding.top + rcPadding.bottom);
-            nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
-        }
-        if (nHeight < 0) {
-            nHeight = 0;
-        }
-    }
-    UiSize fixedSize;
-    DString textValue = GetText();
-    if (!textValue.empty() && (this->GetWindow() != nullptr)) {
-        auto pRender = this->GetWindow()->GetRender();
-        if (pRender != nullptr) {
-            MeasureStringParam measureParam = GetMeasureParam();
-            measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
-            UiRect rect = pRender->MeasureString(textValue, measureParam);
-            fixedSize.cx = rect.Width();
-            if (fixedSize.cx > 0) {
-                fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
-                fixedSize.cx += (rcPadding.left + rcPadding.right);
-            }
-
-            fixedSize.cy = rect.Height();
-            if (fixedSize.cy) {
-                fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
-                fixedSize.cy += (rcPadding.top + rcPadding.bottom);
-            }
-        }
-    }
-    return fixedSize;
+    return m_impl->EstimateText(szAvailable);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::PaintText(IRender* pRender)
+template<typename T>
+void LabelTemplate<T>::PaintText(IRender* pRender)
 {
-    UiRect rc = this->GetRect();
-    rc.Deflate(this->GetControlPadding());
-    rc.Deflate(this->GetTextPadding());
-    DoPaintText(rc, pRender);
+    m_impl->PaintText(pRender);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRender)
+template<typename T>
+void LabelTemplate<T>::SetTextStyle(uint32_t uStyle, bool bRedraw)
 {
-    DString textValue = this->GetText();
-    if (textValue.empty() || (pRender == nullptr)) {
-        return;
-    }
-
-    ControlStateType stateType = this->GetState();
-    UiColor dwClrColor = this->GetUiColor(GetPaintStateTextColor(this->GetState(), stateType));
-
-    DrawStringParam drawParam = GetDrawParam();//绘制参数
-    drawParam.textRect = rc;
-
-    if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
-        if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
-            !GetStateTextColor(kControlStateHot).empty()) {
-            DString clrColor = GetStateTextColor(kControlStateNormal);
-            if (!clrColor.empty()) {                
-                drawParam.dwTextColor = this->GetUiColor(clrColor);
-                drawParam.uFade = 255;
-                pRender->DrawString(textValue, drawParam);
-            }
-
-            if (this->GetHotAlpha() > 0) {
-                DString textColor = GetStateTextColor(kControlStateHot);
-                if (!textColor.empty()) {
-                    drawParam.dwTextColor = this->GetUiColor(textColor);
-                    drawParam.uFade = (uint8_t)this->GetHotAlpha();
-                    pRender->DrawString(textValue, drawParam);
-                }
-            }
-            return;
-        }
-    }
-
-    drawParam.dwTextColor = dwClrColor;
-    drawParam.uFade = 255;
-    pRender->DrawString(textValue, drawParam);
+    m_impl->SetTextStyle(uStyle, bRedraw);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextStyle(uint32_t uStyle, bool bRedraw)
+template<typename T>
+void LabelTemplate<T>::SetDefaultTextStyle(bool bRedraw)
 {
-    m_uTextStyle = GetValidTextStyle(uStyle);
-    if (m_uTextStyle & TEXT_SINGLELINE) {
-        m_bSingleLine = true;
-    }
-    else {
-        m_bSingleLine = false;
-    }
-    if (m_uTextStyle & TEXT_VERTICAL) {
-        m_bVerticalText = true;
-    }
-    else {
-        m_bVerticalText = false;
-    }
-    if (bRedraw) {
-        this->Invalidate();
-    }
+    m_impl->SetDefaultTextStyle(bRedraw);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetDefaultTextStyle(bool bRedraw)
+template<typename T>
+uint32_t LabelTemplate<T>::GetTextStyle() const
 {
-    SetTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE, bRedraw);
+    return m_impl->GetTextStyle();
 }
 
-template<typename InheritType>
-uint32_t LabelTemplate<InheritType>::GetTextStyle() const
+template<typename T>
+DString LabelTemplate<T>::GetStateTextColor(ControlStateType stateType) const
 {
-    return m_uTextStyle;
+    return m_impl->GetStateTextColor(stateType);
 }
 
-template<typename InheritType>
-DString LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stateType) const
+template<typename T>
+void LabelTemplate<T>::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
-    DString stateColor;
-    if (m_pTextColorMap != nullptr) {
-        stateColor = m_pTextColorMap->GetStateColor(stateType);
-    }
-    if (stateColor.empty() && (stateType == kControlStateNormal)) {
-        stateColor = GlobalManager::Instance().Color().GetDefaultTextColor();
-    }
-    if (stateColor.empty() && (stateType == kControlStateDisabled)) {
-        stateColor = GlobalManager::Instance().Color().GetDefaultDisabledTextColor();
-    }
-    return stateColor;
+    m_impl->SetStateTextColor(stateType, dwTextColor);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
+template<typename T /*= Control*/>
+DString ui::LabelTemplate<T>::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
 {
-    if (stateType == kControlStateHot) {
-        this->GetAnimationManager().SetFadeHot(true);
-    }
-    if (m_pTextColorMap == nullptr) {
-        m_pTextColorMap = std::make_unique<StateColorMap>(this);
-    }
-    m_pTextColorMap->SetStateColor(stateType, dwTextColor);
-    this->Invalidate();
+    return m_impl->GetPaintStateTextColor(buttonStateType, stateType);
 }
 
-template<typename InheritType /*= Control*/>
-DString ui::LabelTemplate<InheritType>::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
+template<typename T>
+DString LabelTemplate<T>::GetFontId() const
 {
-    stateType = buttonStateType;
-    if (stateType == kControlStatePushed && GetStateTextColor(kControlStatePushed).empty()) {
-        stateType = kControlStateHot;
-    }
-    if (stateType == kControlStateHot && GetStateTextColor(kControlStateHot).empty()) {
-        stateType = kControlStateNormal;
-    }
-    if (stateType == kControlStateDisabled && GetStateTextColor(kControlStateDisabled).empty()) {
-        stateType = kControlStateNormal;
-    }
-    return GetStateTextColor(stateType);
+    return m_impl->GetFontId();
 }
 
-template<typename InheritType>
-DString LabelTemplate<InheritType>::GetFontId() const
+template<typename T>
+void LabelTemplate<T>::SetFontId(const DString& strFontId)
 {
-    return m_sFontId.c_str();
+    m_impl->SetFontId(strFontId);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetFontId(const DString& strFontId)
+template<typename T>
+UiPadding LabelTemplate<T>::GetTextPadding() const
 {
-    m_sFontId = strFontId;
-    this->Invalidate();
+    return m_impl->GetTextPadding();
 }
 
-template<typename InheritType>
-UiPadding LabelTemplate<InheritType>::GetTextPadding() const
+template<typename T>
+void LabelTemplate<T>::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 {
-    return UiPadding(m_rcTextPadding.left, m_rcTextPadding.top, m_rcTextPadding.right, m_rcTextPadding.bottom);
+    m_impl->SetTextPadding(padding, bNeedDpiScale);   
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
+template<typename T>
+bool LabelTemplate<T>::IsSingleLine() const
 {
-    ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
-    if ((padding.left < 0) || (padding.top < 0) ||
-        (padding.right < 0) || (padding.bottom < 0)) {
-        return;
-    }
-    if (bNeedDpiScale) {
-        this->Dpi().ScalePadding(padding);
-    }    
-    if (!this->GetTextPadding().Equals(padding)) {
-        m_rcTextPadding.left = TruncateToUInt16(padding.left);
-        m_rcTextPadding.top = TruncateToUInt16(padding.top);
-        m_rcTextPadding.right = TruncateToUInt16(padding.right);
-        m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
-        this->RelayoutOrRedraw();
-    }    
+    return m_impl->IsSingleLine();
 }
 
-template<typename InheritType>
-bool LabelTemplate<InheritType>::IsSingleLine() const
+template<typename T>
+void LabelTemplate<T>::SetSingleLine(bool bSingleLine)
 {
-    return m_bSingleLine;
+    m_impl->SetSingleLine(bSingleLine);
 }
 
-template<typename InheritType>
-void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
+template<typename T>
+void LabelTemplate<T>::DoPaintText(const UiRect& rc, IRender* pRender)
 {
-    if (m_bSingleLine != bSingleLine) {
-        m_bSingleLine = bSingleLine;
-        if (m_bSingleLine) {
-            m_uTextStyle |= TEXT_SINGLELINE;
-        }
-        else {
-            m_uTextStyle &= ~TEXT_SINGLELINE;
-        }
-        this->Invalidate();
-    }   
+    m_impl->DoPaintText(rc, pRender);
 }
 
 typedef LabelTemplate<Control> Label;

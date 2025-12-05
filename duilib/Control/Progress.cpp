@@ -1,4 +1,5 @@
 #include "Progress.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {

@@ -1,6 +1,9 @@
 #include "DateTimeWnd_Windows.h"
 #include "DateTime.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 

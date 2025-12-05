@@ -1,5 +1,7 @@
 #include "TreeView.h"
 #include "duilib/Core/ScrollBar.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Image/Image.h"
 
 namespace ui
 {

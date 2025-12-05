@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_attached="true" layered_window="true">
+<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="2" shadow_border_color="#FFEDEDED">
     <VListBox class="menu" padding="0,0,0,6">       
         <!-- 在菜单中插入普通控件，实现特定功能 -->
         <HBox class="menu_split_box" height="36" width="256">
