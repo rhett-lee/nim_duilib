@@ -300,13 +300,13 @@ DString LabelTemplate<T>::GetTextId() const
 template<typename T>
 void LabelTemplate<T>::SetAutoToolTip(bool bAutoShow)
 {
-    m_impl->SetAutoToolTip(bAutoShow);
+    m_impl->SetAutoShowToolTipEnabled(bAutoShow);
 }
 
 template<typename T>
 bool LabelTemplate<T>::IsAutoToolTip() const
 {
-    return m_impl->IsAutoToolTip();
+    return m_impl->IsAutoShowToolTipEnabled();
 }
 
 template<typename T>

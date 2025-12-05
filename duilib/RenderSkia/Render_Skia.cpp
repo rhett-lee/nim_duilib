@@ -1791,8 +1791,8 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
     SkFontMetrics fontMetrics;
     SkScalar fontHeight = pSkFont->getMetrics(&fontMetrics);
 
-    if (bSingleLineMode || (measureParam.rectSize <= 0)) {
-        //单行模式, 或者没有限制宽度
+    if (bSingleLineMode) {
+        //单行模式
         SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
         SkScalar textWidth = pSkFont->measureText(strText.c_str(),
                                                   strText.size() * sizeof(DString::value_type),
@@ -1809,16 +1809,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         }
         UiRect rc;
         rc.left = 0;
-        if (measureParam.rectSize <= 0) {
-            rc.right = textIWidth;
-        }
-        else if (textIWidth < measureParam.rectSize) {
-            rc.right = textIWidth;
-        }
-        else {
-            //返回限制宽度
-            rc.right = measureParam.rectSize;
-        }
+        rc.right = textIWidth;
         rc.top = 0;
         rc.bottom = SkScalarTruncToInt(fontHeight + 0.5f);
         if (fontHeight > rc.bottom) {
@@ -1827,15 +1818,18 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         return rc;
     }
     else {
-        //多行模式，并且限制宽度width为有效值
-        ASSERT(measureParam.rectSize > 0);
+        //多行模式
+        int32_t nRectWidth = measureParam.rectSize;
+        if (nRectWidth <= 0) {
+            nRectWidth = INT32_MAX;
+        }
         std::vector<size_t> lineLenList; //每行文本数据的长度（字节）
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
                                                       strText.size() * sizeof(DString::value_type),
                                                       GetTextEncoding(),
                                                       *pSkFont,
                                                       skPaint,
-                                                      SkScalar(measureParam.rectSize),
+                                                      SkScalar(nRectWidth),
                                                       SkTextBox::kWordBreak_Mode,
                                                       &lineLenList);
         //计算所需宽度
