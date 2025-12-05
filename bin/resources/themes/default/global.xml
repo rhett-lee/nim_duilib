@@ -505,13 +505,13 @@
                                 title_class="tab_ctrl_item_title"
                                 close_button_class="tab_ctrl_item_close"
                                 line_class="tab_ctrl_item_line"/>
-    <Class name="tab_ctrl_item_icon" width="16" height="16" valign="center" mouse="false"/>
-    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,12,0" valign="center" font="system_12" auto_tooltip="true" mouse="false"/>
+    <Class name="tab_ctrl_item_icon" width="16" height="16" valign="center" mouse_enabled="false"/>
+    <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,12,0" valign="center" font="system_12" auto_tooltip="true" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,2,10,8"
                 float="true" halign="right" valign="center" visible="false" 
                 normal_image="file='public/button/btn_close.svg' height='16' width='16' halign='center' valign='center'"
                 hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4" alpha="192"/>
-    <Class name="tab_ctrl_item_line" bkcolor="#FFA8C7FA" width="1" height="22" float="true" halign="right" valign="center" mouse="false"/>
+    <Class name="tab_ctrl_item_line" bkcolor="#FFA8C7FA" width="1" height="22" float="true" halign="right" valign="center" mouse_enabled="false"/>
     
     <!--AddressBar控件通用样式-->
     <Class name="address_bar" width="stretch" height="36" border_round="4,4" bkcolor="white"

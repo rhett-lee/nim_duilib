@@ -79,7 +79,7 @@
         </Box>
     
         <MenuItem class="menu_element" name="about" width="auto">
-            <Button name="button_06" width="auto" height="auto" bkimage="menu_about.svg" valign="center" mouse="false" mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="button_06" width="auto" height="auto" bkimage="menu_about.svg" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             <Label class="menu_text" text="关于" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
   </MenuListBox>
