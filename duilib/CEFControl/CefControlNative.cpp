@@ -87,7 +87,9 @@ void CefControlNative::ReCreateBrowser()
 #if CEF_VERSION_MAJOR > 109
     window_info.runtime_style = CEF_RUNTIME_STYLE_ALLOY;
 #endif
-    CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
+    UiRect rc = GetRect();
+    Dpi().ClientSizeToWindowSize(rc);
+    CefRect rect = { rc.left, rc.top, rc.right, rc.bottom};
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows
     window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);

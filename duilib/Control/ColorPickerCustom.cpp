@@ -61,7 +61,7 @@ void ColorPickerCustom::InitPicker()
         
     m_pNewColorEdit = dynamic_cast<RichEdit*>(pWindow->FindControl(_T("color_picker_new_color_edit")));
     if (m_pNewColorEdit != nullptr) {
-        m_pNewColorEdit->AttachTextChange([this](const ui::EventArgs& /*args*/) {
+        m_pNewColorEdit->AttachTextChanged([this](const ui::EventArgs& /*args*/) {
             //转发该事件给上层
             DString colorText = m_pNewColorEdit->GetText();
             if (IsValidColorString(colorText)) {
@@ -192,7 +192,7 @@ void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
     ColorSlider* pColorSlider = colorUI.m_pColorSlider;
     if (colorUI.m_pColorEdit != nullptr) {
         colorUI.m_pColorEdit->SetTextNoEvent(_T(""));
-        colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+        colorUI.m_pColorEdit->AttachTextChanged([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
                 if (pRichEdit != nullptr) {
                     DString text = pRichEdit->GetText();
                     int32_t nValue = StringUtil::StringToInt32(text);
@@ -217,7 +217,7 @@ void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
         colorUI.m_pColorSlider->SetMinValue(0);
         colorUI.m_pColorSlider->SetMaxValue(255);
         colorUI.m_pColorSlider->SetValue(0);
-        colorUI.m_pColorSlider->AttachValueChange([this, pRichEdit, reason](const ui::EventArgs& args) {
+        colorUI.m_pColorSlider->AttachValueChanged([this, pRichEdit, reason](const ui::EventArgs& args) {
                 int32_t value = (int32_t)args.wParam;
                 if (pRichEdit != nullptr) {
                     DString text = StringUtil::Printf(_T("%d"), value);
@@ -240,7 +240,7 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
     ColorSlider* pColorSlider = colorUI.m_pColorSlider;
     if (colorUI.m_pColorEdit != nullptr) {
         colorUI.m_pColorEdit->SetTextNoEvent(_T(""));
-        colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+        colorUI.m_pColorEdit->AttachTextChanged([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
                 if (pRichEdit != nullptr) {
                     DString text = pRichEdit->GetText();
                     int32_t nValue = StringUtil::StringToInt32(text);
@@ -275,7 +275,7 @@ void ColorPickerCustom::InitHSV(const ColorUI& colorUI, int32_t maxValue, Change
         colorUI.m_pColorSlider->SetMinValue(0);
         colorUI.m_pColorSlider->SetMaxValue(maxValue);
         colorUI.m_pColorSlider->SetValue(0);
-        colorUI.m_pColorSlider->AttachValueChange([this, pRichEdit, reason](const ui::EventArgs& args) {
+        colorUI.m_pColorSlider->AttachValueChanged([this, pRichEdit, reason](const ui::EventArgs& args) {
             int32_t value = (int32_t)args.wParam;
             if (pRichEdit != nullptr) {
                 DString text = StringUtil::Printf(_T("%d"), value);
@@ -298,7 +298,7 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
     ColorSlider* pColorSlider = colorUI.m_pColorSlider;
     if (colorUI.m_pColorEdit != nullptr) {
         colorUI.m_pColorEdit->SetTextNoEvent(_T(""));
-        colorUI.m_pColorEdit->AttachTextChange([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
+        colorUI.m_pColorEdit->AttachTextChanged([this, pRichEdit, pColorSlider, reason](const ui::EventArgs& /*args*/) {
                 if (pRichEdit != nullptr) {
                     DString text = pRichEdit->GetText();
                     int32_t nValue = StringUtil::StringToInt32(text);
@@ -333,7 +333,7 @@ void ColorPickerCustom::InitHSL(const ColorUI& colorUI, int32_t maxValue, Change
         colorUI.m_pColorSlider->SetMinValue(0);
         colorUI.m_pColorSlider->SetMaxValue(maxValue);
         colorUI.m_pColorSlider->SetValue(0);
-        colorUI.m_pColorSlider->AttachValueChange([this, pRichEdit, reason](const ui::EventArgs& args) {
+        colorUI.m_pColorSlider->AttachValueChanged([this, pRichEdit, reason](const ui::EventArgs& args) {
             int32_t value = (int32_t)args.wParam;
             if (pRichEdit != nullptr) {
                 DString text = StringUtil::Printf(_T("%d"), value);

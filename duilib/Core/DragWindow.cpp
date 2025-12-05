@@ -139,12 +139,17 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
     pBox->AddItem(pBitmapControl);
 
     //根据位图的大小，调整窗口大小
-    Resize(nImageWidth, nImageHeight + nExtraHeight, false, false);
+    int32_t cx = nImageWidth;
+    int32_t cy = nImageHeight + nExtraHeight;
+    Dpi().ClientSizeToWindowSize(cx);
+    Dpi().ClientSizeToWindowSize(cy);
+    Resize(cx, cy, false, false);
 }
 
 void DragWindow::AdjustPos()
 {
     UiPadding rcCorner = GetCurrentShadowCorner();
+    Dpi().ClientSizeToWindowSize(rcCorner);
     UiPoint ptCursor;
     GetCursorPos(ptCursor);
     ptCursor.x -= rcCorner.left;

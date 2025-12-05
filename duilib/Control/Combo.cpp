@@ -173,6 +173,7 @@ UiRect CComboWnd::GetComboWndRect() const
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
+        rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
     return rc;
@@ -396,8 +397,7 @@ Shadow::ShadowType Combo::GetComboWndShadowType() const
 
 void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
 
@@ -599,7 +599,7 @@ void Combo::OnInit()
         m_pEditControl->AttachKillFocus(UiBind(&Combo::OnEditKillFocus, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventWindowKillFocus, UiBind(&Combo::OnWindowKillFocus, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventWindowMove, UiBind(&Combo::OnWindowMove, this, std::placeholders::_1));
-        m_pEditControl->AttachTextChange(UiBind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
+        m_pEditControl->AttachTextChanged(UiBind(&Combo::OnEditTextChanged, this, std::placeholders::_1));
     }
     SetNoFocus();
     SetComboType(GetComboType());

@@ -475,7 +475,7 @@ void MainForm::OnInitWindow()
     }
     //RichEdit文本选择变化
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->AttachSelChange([this](const ui::EventArgs& args) {
+        m_pRichEdit->AttachSelChanged([this](const ui::EventArgs& args) {
             if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
                 UpdateFontStatus();
             }
@@ -839,7 +839,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
             }
         }
         if (!bFound) {
-            fontInfo.m_fontSize = Dpi().MulDiv(fontInfo.m_fontSize, 100, Dpi().GetScale());
+            Dpi().UnscaleInt(fontInfo.m_fontSize);
         }
     }
 

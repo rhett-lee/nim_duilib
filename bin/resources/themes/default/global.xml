@@ -1,4 +1,4 @@
-】、<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
     <!-- 字体说明："微软雅黑","宋体" 是Windows使用 -->
@@ -335,16 +335,16 @@
                                           bkimage="file='public/slider/slider_ver_bk.png' halign='center' width='3' height='1200'" 
                                           thumb_normal_image="file='public/slider/slider_thumb.svg' width='14' height='14'"/>
     <!--菜单通用样式-->
-    <Class name="menu" width="auto" height="auto" bkcolor="bk_wnd_lightcolor"/>
+    <Class name="menu" width="auto" height="auto" bkcolor="white"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 
-                                hot_color="bk_menuitem_hovered"
-                                pushed_color="bk_menuitem_selected" 
-                                selected_normal_color="bk_menuitem_selected"/>
-    <Class name="menu_text" normal_text_color="darkcolor" font="system_14" valign="center"/>
-    <Class name="menu_split_box" padding="16,0,16,0" height="auto" />
+                               hot_color="bk_menuitem_hovered" hot_color_margin="3,0,3,0" hot_color_round="4,4"
+                               pushed_color="bk_menuitem_selected" pushed_color_margin="3,0,3,0" pushed_color_round="4,4"
+                               selected_normal_color="bk_menuitem_selected" selected_normal_color_margin="3,0,3,0" selected_normal_color_round="4,4"/>
+    <Class name="menu_text" font="system_14" valign="center"/>
+    <Class name="menu_text_shortcut" font="system_14" valign="center"/>
+    <Class name="menu_split_box" height="auto" padding="16,0,16,0" margin="0,4,0,4"/>
     <Class name="menu_split_line" bkcolor="splitline_level1" height="1" />
     <Class name="menu_checkbox" height="auto" valign="center" text_padding="20,0,0,0" font="system_14" 
-                                normal_text_color="darkcolor" 
                                 normal_image="" 
                                 disabled_image="" 
                                 selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' valign='center'" 

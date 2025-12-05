@@ -69,8 +69,8 @@ void CefControlOffScreen::ClientToControl(UiPoint& pt)
     pt.y = pt.y + offset.y - GetRect().top;
 
     //传回的值，是未经DPI缩放的原始值(96 DPI)，然后CEF内部会进行DPI缩放
-    pt.x = DpiManager::MulDiv(pt.x, 96, Dpi().GetDPI());
-    pt.y = DpiManager::MulDiv(pt.y, 96, Dpi().GetDPI());
+    Dpi().UnscaleInt(pt.x);//TODO
+    Dpi().UnscaleInt(pt.y);
 }
 
 void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
@@ -242,13 +242,9 @@ void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
     if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-        uint32_t dpiScale = 100;
         if (GetWindow() != nullptr) {
-            dpiScale = GetWindow()->Dpi().GetScale();
-        }
-        if (dpiScale > 100) {
-            mouse_event.x = mouse_event.x * 100 / dpiScale;
-            mouse_event.y = mouse_event.y * 100 / dpiScale;
+            GetWindow()->Dpi().UnscaleInt(mouse_event.x);
+            GetWindow()->Dpi().UnscaleInt(mouse_event.y);
         }
     }
 }
@@ -885,7 +881,7 @@ void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*b
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     CefCurrentlyOn(TID_UI);
     if (m_imeHandler != nullptr) {
-        float device_scale_factor = Dpi().GetDPI() / 96.0f;
+        float device_scale_factor = Dpi().GetDisplayScale();
         // Convert from view coordinates to device coordinates.
         CefRenderHandler::RectList device_bounds;
         CefRenderHandler::RectList::const_iterator it = character_bounds.begin();

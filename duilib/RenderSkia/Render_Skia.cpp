@@ -1623,7 +1623,7 @@ void Render_Skia::DrawString(const DString& strText, const DrawStringParam& draw
     if (strText.empty()) {
         return;
     }
-    ASSERT(!drawParam.textRect.IsEmpty());
+    //ASSERT(!drawParam.textRect.IsEmpty());
     if (drawParam.textRect.IsEmpty()) {
         return;
     }

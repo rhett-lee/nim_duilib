@@ -153,7 +153,8 @@ static HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& f
 
     BOOL fIcon = TRUE; //按逻辑应该设置为FALSE, 但不知为何设置为FALSE时是失败的
     HICON hIcon = nullptr;
-    uint32_t uDpi = pWindow->Dpi().GetDPI();
+    uint32_t uDpiScaleFactor = pWindow->Dpi().GetDisplayScaleFactor();
+    uint32_t uDpi = pWindow->Dpi().MulDiv(uDpiScaleFactor, 96u, 100u);
     int32_t cxCursor = GetSystemMetricsForDpiWrapper(SM_CXCURSOR, uDpi);
     int32_t cyCursor = GetSystemMetricsForDpiWrapper(SM_CYCURSOR, uDpi);
     int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), fIcon, cxCursor, cyCursor, LR_DEFAULTCOLOR);

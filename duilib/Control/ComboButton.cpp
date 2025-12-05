@@ -137,6 +137,7 @@ void ComboButtonWnd::UpdateComboWnd()
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
+        rc.Inflate(rcPadding);
         pOwner->GetWindow()->ClientToScreen(rc);
     }
     SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
@@ -362,8 +363,7 @@ Shadow::ShadowType ComboButton::GetComboWndShadowType() const
 
 void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
 
@@ -580,7 +580,7 @@ void ComboButton::OnInit()
         }
 
         m_pLeftButton->AttachClick(UiBind(&ComboButton::OnLeftButtonClicked, this, std::placeholders::_1));
-        m_pLeftButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pLeftButton->AttachStateChanged(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 
     if (m_pRightButton != nullptr) {
@@ -588,7 +588,7 @@ void ComboButton::OnInit()
         m_pRightButton->SetNoFocus();
         m_pRightButton->AttachButtonDown(UiBind(&ComboButton::OnRightButtonDown, this, std::placeholders::_1));
         m_pRightButton->AttachClick(UiBind(&ComboButton::OnRightButtonClicked, this, std::placeholders::_1));
-        m_pRightButton->AttachStateChange(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
+        m_pRightButton->AttachStateChanged(UiBind(&ComboButton::OnButtonStateChanged, this, std::placeholders::_1));
     }
 }
 

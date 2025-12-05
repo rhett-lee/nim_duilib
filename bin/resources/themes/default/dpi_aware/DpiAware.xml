@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="700,540" min_size="80,50" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4">
+<Window size="900,640" min_size="80,50" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4">
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Control mouse="false"/>
+            <Label name="title" width="100%" height="100%" mouse="false" text_padding="10,0,0,0" text_align="vcenter"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
                 <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
@@ -14,32 +14,56 @@
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
-            <GroupVBox valign="top" halign="center" valign="center" width="680" height="480">
-                <HBox height="40" width="100%" valign="center">
-                    <Label name="" text="支持DPI感知功能的应用程序示例" height="40" width="100%" text_align="hcenter,vcenter"/>
+            <GroupVBox name="group_box_test" halign="center" valign="center" width="640" height="auto">
+                <HBox height="40" width="100%" valign="center" child_halign="center">
+                    <Label text="支持DPI感知功能的应用程序示例（支持高分屏）" height="40" width="auto" text_align="right,vcenter"/>
+                    <Label name="group_box_pos" text="[left: 0, top: 0]" height="40" width="auto" text_align="left,vcenter"/>
                 </HBox>
-                <HBox height="36" width="100%" valign="center">
-                    <Control width="40"/>
-                    <Label name="" text="当前进程的DPI感知模式：" width="180" text_align="right,vcenter"/>
+                <HBox height="auto" width="100%" valign="center" padding="20,0,0,0">
+                    <Label text="当前进程的DPI感知模式：" width="auto" text_align="left,vcenter"/>
                     <Label name="dpi_awareness" text="PROCESS_DPI_UNAWARE" width="100%" text_align="left,vcenter"/>
                 </HBox>
-                <HBox height="36" width="100%" valign="center">
-                    <Control width="40"/>
-                    <Label name="" text="启动时的DPI值：" width="180" text_align="right,vcenter"/>
-                    <Label name="system_dpi" text="192" width="64" text_align="left,vcenter"/>
-                    <Control width="4"/>
-                    <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
-                    <Label name="system_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
+                <HBox height="auto" width="100%" valign="center" padding="20,0,0,0">
+                    <Label text="主显示器的屏幕缩放百分比：" width="auto" text_align="left,vcenter"/>
+                    <Label name="primary_monitor_display_scale" text="200%" width="100%" text_align="left,vcenter"/>
                 </HBox>
-                <HBox height="36" width="100%" valign="center">
-                    <Control width="40"/>
-                    <Label name="" text="当前窗口的DPI值：" width="180" text_align="right,vcenter"/>
-                    <Label name="window_dpi" text="192" width="64" text_align="left,vcenter"/>
-                    <Control width="4"/>
-                    <Label name="" text="缩放百分比：" width="auto" text_align="right,vcenter"/>
-                    <Label name="window_dpi_percent" text="200%" width="64" text_align="left,vcenter"/>
+                <HBox height="auto" width="100%" valign="center" padding="20,0,0,0">
+                    <Label text="当前窗口的界面缩放百分比：" width="auto" text_align="left,vcenter"/>
+                    <Label name="window_display_scale" text="200%" width="100%" text_align="left,vcenter"/>
                 </HBox>
-                <HBox height="100" width="100%" valign="center">
+                <VBox height="auto" width="100%" valign="center" padding="20,0,0,0">
+                    <HBox height="auto">
+                        <Label text="当前窗口的位置大小：" width="auto" text_align="left,vcenter"/>
+                        <Label name="window_size" text="L:0,T:0,W:0,H:0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                    <HBox height="auto">
+                        <Label text="当前窗口客户区大小：" width="auto" text_align="left,vcenter"/>
+                        <Label name="window_client_size" text="L:0,T:0,W:0,H:0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                </VBox>
+                <VBox name="SDL" height="auto" visible="true" width="100%" valign="center" padding="20,0,0,0" margin="0,4,0,0">
+                    <HBox height="auto" >
+                        <Label text="SDL_GetWindowSize：" width="300" text_align="right,vcenter"/>
+                        <Label name="SDL_GetWindowSize" text="W:0,H:0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                    <HBox height="auto" >
+                        <Label text="SDL_GetWindowSizeInPixels：" width="300" text_align="right,vcenter"/>
+                        <Label name="SDL_GetWindowSizeInPixels" text="W:0,H:0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                    <HBox height="auto" >
+                        <Label text="SDL_GetDisplayContentScale：" width="300" text_align="right,vcenter"/>
+                        <Label name="SDL_GetDisplayContentScale" text="0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                    <HBox height="auto" >
+                        <Label text="SDL_GetWindowDisplayScale：" width="300" text_align="right,vcenter"/>
+                        <Label name="SDL_GetWindowDisplayScale" text="0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                    <HBox height="auto" >
+                        <Label text="SDL_GetWindowPixelDensity：" width="300" text_align="right,vcenter"/>
+                        <Label name="SDL_GetWindowPixelDensity" text="0" width="auto" text_align="left,vcenter"/>
+                    </HBox>
+                </VBox>
+                <HBox height="auto" width="100%" valign="center" margin="0,8,0,8">
                     <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto" margin="4,0,4,0">
                         RichText文本：<b>粗体，<font color="#FF0000">红色加粗，</font></b>
                         <font face="微软雅黑" size="16">微软雅黑16号字演示，</font>
@@ -50,33 +74,23 @@
                         <i>斜体号字演示，</i> 
                         <b>粗体号字演示，</b> 
                         <s>删除字演示，</s> 
-                        <u>下划线字演示，</u>             
-                        RichText文本内容。
+                        <u>下划线字演示</u>
                     </RichText>
                 </HBox>
-                <HBox>
-                    <VBox>
-                        <VBox height="64" margin="4,0,0,0">
-                            <Label text="DPI及缩放百分比对应关系："/>
-                            <Label text="  96(100%)、120(125%)、144(150%)、168(175%)"/>
-                            <Label text="192(200%)、216(225%)、240(250%)、288(300%)"/>
-                        </VBox>
-                        <HBox>
-                            <HBox valign="center">                        
-                                <Label text="调整窗口DPI值：" height="32" valign="center" text_align="left,vcenter" margin="4,0,0,0"/>
-                                <RichEdit class="simple simple_border" name="DPI" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="300" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
-                                <Button class="btn_global_blue_80x30" height="32" width="auto" valign="center" name="SetDPI" text="修改DPI" text_padding="10,0,10,0" />
-                            </HBox>                        
+                <HBox height="auto">
+                    <VBox height="auto">
+                        <HBox valign="center" height="auto">
+                            <Label text="调整窗口界面显示比例(60-500)：" height="32" valign="center" text_align="left,vcenter" margin="4,0,0,0"/>
+                            <RichEdit class="simple simple_border" name="display_scale_factor" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="500" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
+                            <Button class="btn_global_blue_80x30" height="32" width="auto" valign="center" name="set_display_scale_factor" text="修改界面显示比例" text_padding="10,0,10,0" />
+                        </HBox>
+                        <HBox height="40" valign="center" halign="center" margin="160,40,1,1" child_halign="left">
+                            <Button class="btn_global_blue_80x30" width="auto" name="NewWindow" text="创建新窗口" text_padding="10,0,10,0" />
                         </HBox>
                     </VBox>
-                    <VBox border_size="1" border_color="blue" width="auto" height="auto" margin="4,0,4,0">
+                    <VBox border_size="1" border_color="blue" width="auto" height="auto" margin="4,4,4,4">
                         <Control bkimage="autumn.png" width="auto" height="auto" halign="center" valign="center" margin="2,2,2,2" border_size="1" border_color="red"/>
                     </VBox>
-                </HBox>
-                <HBox height="40" width="100%" valign="center" halign="center" margin="1,1,1,1">
-                    <Control />
-                    <Button class="btn_global_blue_80x30" width="auto" name="NewWindow" text="创建新窗口" text_padding="10,0,10,0" />
-                    <Control />
                 </HBox>
             </GroupVBox>
         </Box>

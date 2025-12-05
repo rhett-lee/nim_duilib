@@ -117,6 +117,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lPar
             m_pWindow->GetWindowRect(rc);
             UiPadding rcShadow;
             GetCurrentShadowCorner(rcShadow);
+            Dpi().ClientSizeToWindowSize(rcShadow);
             rc.Inflate(rcShadow);
             //TODO: 由于SDL没有调整窗口Z-Order的功能，所以阴影窗口的位置不对，经常在其他窗口的后面，导致看不到阴影。
             SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);

@@ -790,7 +790,7 @@ public:
     /** 监听选择项发生变化的事件
      * @param[in] callback 选择子项时的回调函数
      */
-    void AttachSelChange(const EventCallback& callback) { AttachEvent(kEventSelChange, callback); }
+    void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
 
     /** 监听双击事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

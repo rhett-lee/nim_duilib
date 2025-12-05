@@ -18,7 +18,7 @@ void ListCtrlView::SendEventMsg(const EventArgs& msg)
 {
     BaseClass::SendEventMsg(msg);
     if ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
-        SendEvent(kEventSelChange);
+        SendEvent(kEventSelChanged);
     }
 }
 

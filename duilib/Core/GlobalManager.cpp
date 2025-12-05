@@ -488,7 +488,8 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                 pWindow->SetTextId(pWindow->GetTextId());
             }
             if (pBox != nullptr) {
-                pBox->Invalidate();
+                pBox->OnLanguageChanged();
+                pBox->SetPos(pBox->GetPos());
             }
         }
     }

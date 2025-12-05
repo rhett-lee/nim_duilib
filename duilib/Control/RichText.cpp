@@ -17,7 +17,7 @@ RichText::RichText(Window* pWindow) :
     m_vAlignType(VerAlignType::kAlignTop),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),
-    m_nTextDataDPI(0),
+    m_nTextDataDisplayScaleFactor(0),
     m_bWordWrap(true)
 {
 }
@@ -126,8 +126,7 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
 
 void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();
@@ -137,12 +136,19 @@ void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
+void RichText::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    Redraw();
+}
+
 void RichText::Redraw()
 {
     //重新绘制
     m_textData.clear();
     m_spDrawRichTextCache.reset();
     Invalidate();
+    RelayoutOrRedraw();
 }
 
 uint16_t RichText::GetTextStyle() const
@@ -234,7 +240,7 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     }
     else if (GetFixedWidth().IsAuto()) {
         //宽度为自动时，不限制宽度
-        nWidth = INT_MAX;
+        nWidth = GetMaxWidth();
     }
 
     //最大高度，不限制
@@ -432,14 +438,14 @@ void RichText::CheckParseText()
     }
 
     //当DPI变化时，需要重新解析文本，更新字体大小
-    if (m_nTextDataDPI != Dpi().GetDPI()) {
+    if (m_nTextDataDisplayScaleFactor != Dpi().GetDisplayScaleFactor()) {
         m_textData.clear();
         m_spDrawRichTextCache.reset();
     }
 
     if (m_textData.empty()) {
         ParseText(m_textData);
-        m_nTextDataDPI = Dpi().GetDPI();
+        m_nTextDataDisplayScaleFactor = Dpi().GetDisplayScaleFactor();
         m_spDrawRichTextCache.reset();
     }
 }

@@ -84,6 +84,10 @@ protected:
     */
     void ValidateRect(UiRect& rcPaint) const;
 
+    /** 清理资源
+    */
+    void Clear();
+
 private:
     /** 获取Skia的颜色值顺序
     */

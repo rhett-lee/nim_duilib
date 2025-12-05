@@ -1249,7 +1249,7 @@ bool VirtualListBox::OnListCtrlKeyDown(const EventArgs& msg)
         bool bRet = SetSelectAll();
         if (bRet) {
             OnSelectStatusChanged();
-            SendEvent(kEventSelChange);
+            SendEvent(kEventSelChanged);
         }
         return bHandled;
     }

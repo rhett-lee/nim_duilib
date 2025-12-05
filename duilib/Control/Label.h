@@ -57,6 +57,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged() override;
+
     /** 恢复默认的文本样式
     * @param [in] bRedraw true表示重绘，false表示不重绘
     */
@@ -479,8 +483,7 @@ void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
 template<typename InheritType>
 void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == this->Dpi().GetScale());
-    if (nNewDpiScale != this->Dpi().GetScale()) {
+    if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();
@@ -498,6 +501,15 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     SetWordSpacing(fWordSpacing, false);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+}
+
+template<typename InheritType>
+void LabelTemplate<InheritType>::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
+    this->RelayoutOrRedraw();
+    CheckShowToolTip();
 }
 
 template<typename InheritType>
@@ -891,8 +903,15 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         }
         else if (this->GetFixedWidth().IsAuto()) {
             //宽度为自动时，不限制宽度
-            nWidth = INT_MAX;
-        }        
+            nWidth = this->GetMaxWidth();
+            if (nWidth != INT32_MAX) {
+                nWidth -= (rcPadding.left + rcPadding.right);
+                nWidth -= (rcTextPadding.left + rcTextPadding.right);
+            }
+            if (nWidth <= 0) {
+                nWidth = INT32_MAX;
+            }
+        }
         if (!this->GetFixedWidth().IsAuto()) {
             nWidth -= (rcPadding.left + rcPadding.right);
             nWidth -= (rcTextPadding.left + rcTextPadding.right);
@@ -912,7 +931,14 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         }
         else if (this->GetFixedHeight().IsAuto()) {
             //宽度为自动时，不限制宽度
-            nHeight = INT_MAX;
+            nHeight = this->GetMaxHeight();
+            if (nHeight != INT32_MAX) {
+                nHeight -= (rcPadding.top + rcPadding.bottom);
+                nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
+            }
+            if (nHeight <= 0) {
+                nHeight = INT32_MAX;
+            }
         }
         if (!this->GetFixedHeight().IsAuto()) {
             nHeight -= (rcPadding.top + rcPadding.bottom);
@@ -1052,8 +1078,7 @@ void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, c
         this->GetAnimationManager().SetFadeHot(true);
     }
     if (m_pTextColorMap == nullptr) {
-        m_pTextColorMap = std::make_unique<StateColorMap>();
-        m_pTextColorMap->SetControl(this);
+        m_pTextColorMap = std::make_unique<StateColorMap>(this);
     }
     m_pTextColorMap->SetStateColor(stateType, dwTextColor);
     this->Invalidate();

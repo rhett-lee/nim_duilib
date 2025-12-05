@@ -60,8 +60,7 @@ void Box::SetAttribute(const DString& strName, const DString& strValue)
 
 void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     if (m_pLayout != nullptr) {
@@ -75,6 +74,17 @@ void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 }
 
+void Box::OnLanguageChanged()
+{
+    BaseClass::OnLanguageChanged();
+    for (auto pControl : m_items) {
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pControl->OnLanguageChanged();
+        }
+    }
+}
+
 void Box::SetParent(Box* pParent)
 {
     Control::SetParent(pParent);
@@ -83,7 +93,7 @@ void Box::SetParent(Box* pParent)
         if (pControl != nullptr) {
             pControl->SetParent(this);
         }
-    }    
+    }
 }
 
 void Box::SetWindow(Window* pWindow)
@@ -194,16 +204,12 @@ void Box::OnSetVisible(bool bChanged)
 
 UiEstSize Box::EstimateSize(UiSize szAvailable)
 {
-    UiFixedSize fixedSize = GetFixedSize();
-    if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-        //如果宽高都不是auto属性，则直接返回
-        return MakeEstSize(fixedSize);
+    UiFixedSize fixedSize;
+    UiEstSize returnEstSize;
+    if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+        return returnEstSize;
     }
-    szAvailable.Validate();
-    if (!IsReEstimateSize(szAvailable)) {
-        //使用缓存中的估算结果
-        return GetEstimateSize();
-    }
+
     //Box控件本身的大小，不包含外边距（本身也是一个控件，可以有文字/背景图片等）
     UiPadding rcPadding = GetPadding();
     UiSize szNewAvailable = szAvailable;

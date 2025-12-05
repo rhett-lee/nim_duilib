@@ -36,8 +36,8 @@
         <HBox width="auto" height="256" margin="20, 10, 0, 0">
             <VBox width="200" height="220">
                 <Control width="100%" height="100%" bkimage="file='fan.gif' width='190' height='190' auto_play='false' play_count='-1' valign='center' halign='center'">
-                    <Event type="mouseenter" receiver="" apply_attribute="start_image_animation={}" />
-                    <Event type="mouseleave" receiver="" apply_attribute="stop_image_animation={}" />
+                    <Event type="mouse_enter" receiver="" apply_attribute="start_image_animation={}" />
+                    <Event type="mouse_leave" receiver="" apply_attribute="stop_image_animation={}" />
                 </Control>
                 <Label width="100%" height="20" text="鼠标在图片上时播放动画" text_align="center" margin="8"/>
             </VBox>          

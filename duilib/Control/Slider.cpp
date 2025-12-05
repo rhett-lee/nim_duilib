@@ -102,7 +102,7 @@ void Slider::HandleEvent(const EventArgs& msg)
                 SetValue(newValue);
             }
         }
-        SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
+        SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
         Invalidate();
         return;
     }
@@ -111,12 +111,12 @@ void Slider::HandleEvent(const EventArgs& msg)
         int32_t detaValue = msg.eventData;
         if (detaValue > 0) {
             SetValue(GetValue() + GetChangeStep());
-            SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
+            SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
             return;
         }
         else {
             SetValue(GetValue() - GetChangeStep());
-            SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
+            SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
             return;
         }
     }
@@ -150,7 +150,7 @@ void Slider::HandleEvent(const EventArgs& msg)
                     SetValue(newValue);
                 }
             }
-            SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);
+            SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
             Invalidate();
         }
         return;
@@ -193,8 +193,7 @@ void Slider::SetAttribute(const DString& strName, const DString& strValue)
 
 void Slider::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiSize szThumbSize = GetThumbSize();

@@ -5,6 +5,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/StateColorMap.h"
+#include "duilib/Core/StateColorMap2.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
@@ -60,6 +61,17 @@ Control::~Control()
     if (pWindow) {
         pWindow->ReapObjects(this);
     }
+
+    m_pAnimationData.reset();
+    m_pBkImage.reset();
+    m_pImageMap.reset();
+    m_pDragDropData.reset();
+    m_pOtherData.reset();
+    m_pEventMapData.reset();
+    m_pImageMap.reset();
+    m_pColorMap.reset();
+    m_pColorData.reset();
+    m_pBorderData.reset();
 }
 
 DString Control::GetType() const { return DUI_CTR_CONTROL; }
@@ -331,6 +343,46 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("disabled_color")) || (strName == _T("disabledcolor"))) {
         SetStateColor(kControlStateDisabled, strValue);
     }
+    else if (strName == _T("normal_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateNormal, rcMargin, true);
+    }
+    else if (strName == _T("hot_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateHot, rcMargin, true);
+    }
+    else if (strName == _T("pushed_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStatePushed, rcMargin, true);
+    }
+    else if (strName == _T("disabled_color_margin")) {
+        UiMargin rcMargin;
+        AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
+        SetStateColorMargin(kControlStateDisabled, rcMargin, true);
+    }
+    else if (strName == _T("normal_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateNormal, szRound, true);
+    }
+    else if (strName == _T("hot_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateHot, szRound, true);
+    }
+    else if (strName == _T("pushed_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStatePushed, szRound, true);
+    }
+    else if (strName == _T("disabled_color_round")) {
+        UiSize szRound;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
+        SetStateColorRound(kControlStateDisabled, szRound, true);
+    }
     else if ((strName == _T("border_color")) || (strName == _T("bordercolor"))) {
         SetBorderColor(strValue);
     }
@@ -386,7 +438,6 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetToolTipTextId(strValue);
     }
     else if (strName == _T("tooltip_width")) {
-
         SetToolTipWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("data_id")) || (strName == _T("dataid"))) {
@@ -608,8 +659,7 @@ void Control::ParseSetImageAnimationFrame(const DString& value)
 
 void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiMargin rcMargin = GetMargin();
@@ -626,7 +676,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcBorder.right = Dpi().GetScaleFloat(rcBorder.right, nOldDpiScale);
     rcBorder.bottom = Dpi().GetScaleFloat(rcBorder.bottom, nOldDpiScale);
     SetBorderSize(rcBorder, false);
-   
+
     UiPoint renderOffset = GetRenderOffset();
     renderOffset = Dpi().GetScalePoint(renderOffset, nOldDpiScale);
     SetRenderOffset(renderOffset, false);
@@ -638,7 +688,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 
     int32_t nMaxWidth = GetMaxWidth();
-    if ((nMaxWidth >= 0) && (nMaxWidth != INT32_MAX)){
+    if ((nMaxWidth >= 0) && (nMaxWidth != INT32_MAX)) {
         nMaxWidth = Dpi().GetScaleInt(nMaxWidth, nOldDpiScale);
         SetMaxWidth(nMaxWidth, false);
     }
@@ -647,7 +697,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nMinHeight >= 0) {
         nMinHeight = Dpi().GetScaleInt(nMinHeight, nOldDpiScale);
         SetMinHeight(nMinHeight, false);
-    }    
+    }
 
     int32_t nMaxHeight = GetMaxHeight();
     if ((nMaxHeight >= 0) && (nMaxHeight != INT32_MAX)) {
@@ -675,8 +725,32 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         SetFixedHeight(UiFixedInt(nFixedHeight), true, false);
     }
 
+    if (m_pColorMap != nullptr) {
+        for (int32_t nStateType = 0; nStateType < kControlStateCount; ++nStateType) {
+            ControlStateType stateType = (ControlStateType)nStateType;
+
+            UiMargin colorMargin = m_pColorMap->GetStateColorMargin(stateType);
+            UiMargin newColorMargin = Dpi().GetScaleMargin(colorMargin, nOldDpiScale);
+            if (!newColorMargin.Equals(colorMargin)) {
+                m_pColorMap->SetStateColorMargin(stateType, newColorMargin);
+            }
+
+            UiSize colorRound = m_pColorMap->GetStateColorRound(stateType);
+            UiSize newColorRound = Dpi().GetScaleSize(colorRound, nOldDpiScale);
+            if (!newColorRound.Equals(colorRound)) {
+                m_pColorMap->SetStateColorRound(stateType, newColorRound);
+            }
+        }
+    }
+
     //对于auto类型的控件，需要重新评估大小
     SetReEstimateSize(true);
+}
+
+void Control::OnLanguageChanged()
+{
+    RelayoutOrRedraw();
+    Invalidate();
 }
 
 void Control::SetClass(const DString& strClass)
@@ -912,6 +986,22 @@ DString Control::GetStateColor(ControlStateType stateType) const
     return DString();
 }
 
+UiMargin Control::GetStateColorMargin(ControlStateType stateType) const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMargin(stateType);
+    }
+    return UiMargin();
+}
+
+UiSize Control::GetStateColorRound(ControlStateType stateType) const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorRound(stateType);
+    }
+    return UiSize();
+}
+
 void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
@@ -921,10 +1011,49 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
         }
     }
     if (m_pColorMap == nullptr) {
-        m_pColorMap = std::make_unique<StateColorMap>();
-        m_pColorMap->SetControl(this);
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
     }
     m_pColorMap->SetStateColor(stateType, strColor);
+    if (stateType == kControlStateHot) {
+        GetAnimationManager().SetFadeHot(true);
+    }
+    Invalidate();
+}
+
+void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        Dpi().ScaleMargin(colorMargin);
+    }
+    if (m_pColorMap != nullptr) {
+        if (m_pColorMap->GetStateColorMargin(stateType).Equals(colorMargin)) {
+            return;
+        }
+    }
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMargin(stateType, colorMargin);
+    if (stateType == kControlStateHot) {
+        GetAnimationManager().SetFadeHot(true);
+    }
+    Invalidate();
+}
+
+void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale)
+{
+    if (bNeedDpiScale) {
+        Dpi().ScaleSize(colorRound);
+    }
+    if (m_pColorMap != nullptr) {
+        if (m_pColorMap->GetStateColorRound(stateType).Equals(colorRound)) {
+            return;
+        }
+    }
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorRound(stateType, colorRound);
     if (stateType == kControlStateHot) {
         GetAnimationManager().SetFadeHot(true);
     }
@@ -1258,7 +1387,7 @@ void Control::PrivateSetState(ControlStateType controlState)
     if (GetState() != controlState) {
         ControlStateType oldState = GetState();
         m_controlState = TruncateToInt8(controlState);
-        SendEvent(kEventStateChange, controlState, oldState);
+        SendEvent(kEventStateChanged, controlState, oldState);
         Invalidate();
     }
 }
@@ -1291,8 +1420,7 @@ void Control::SetBorderColor(ControlStateType stateType, const DString& strBorde
         m_pBorderData = std::make_unique<TBorderData>();
     }
     if (m_pBorderData->m_pBorderColorMap == nullptr) {
-        m_pBorderData->m_pBorderColorMap = std::make_unique<StateColorMap>();
-        m_pBorderData->m_pBorderColorMap->SetControl(this);
+        m_pBorderData->m_pBorderColorMap = std::make_unique<StateColorMap>(this);
     }
     if (GetBorderColor(stateType) != strBorderColor) {
         m_pBorderData->m_pBorderColorMap->SetStateColor(stateType, strBorderColor);
@@ -1712,7 +1840,7 @@ void Control::OnSetVisible(bool bChanged)
 
         // 最后，触发可见状态变化事件，通知应用层
         WPARAM wParam = bVisible ? 1 : 0;
-        SendEvent(kEventVisibleChange, wParam);
+        SendEvent(kEventVisibleChanged, wParam);
     }
 }
 
@@ -1856,7 +1984,9 @@ void Control::SetPos(UiRect rc)
     //有很多类似的代码：SetPos(GetPos()), 代表设置位置，并重新绘制
     rc.Validate();
     SetArranged(false);
-    bool isPosChanged = !GetRect().Equals(rc);
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+    bool bPosChanged = (GetRect().Left() != rc.Left()) || (GetRect().Top() != rc.Top());
+    bool bSizeChanged = (GetRect().Width() != rc.Width()) || (GetRect().Height() != rc.Height());
 
     UiRect rcOldRect = GetRect();
     if (rcOldRect.IsEmpty()) {
@@ -1900,23 +2030,47 @@ void Control::SetPos(UiRect rc)
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pLoading != nullptr)) {
         m_pOtherData->m_pLoading->UpdateLoadingPos();
     }
-
-    if (isPosChanged) {
-        SendEvent(kEventResize);
-    }    
+    if (bPosChanged && !weakFlag.expired()) {
+        SendEvent(kEventPosChanged);
+    }
+    if (bSizeChanged && !weakFlag.expired()) {
+        SendEvent(kEventSizeChanged);
+    }
 }
 
-UiEstSize Control::EstimateSize(UiSize szAvailable)
+bool Control::PreEstimateSize(UiSize& szAvailable, UiFixedSize& fixedSize, UiEstSize& returnEstSize) const
 {
-    UiFixedSize fixedSize = GetFixedSize();
+    fixedSize = GetFixedSize();
     if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
         //如果宽高都不是auto属性，则直接返回
-        return MakeEstSize(fixedSize);
+        returnEstSize = MakeEstSize(fixedSize);
+        return false;
+    }
+    if (fixedSize.cx.IsInt32()) {
+        //本控件的宽度为固定值: 设置为实际布局所用的值
+        int32_t cx = std::clamp(fixedSize.cx.GetInt32(), GetMinWidth(), GetMaxWidth());
+        szAvailable.cx = cx;
+    }
+    if (fixedSize.cy.IsInt32()) {
+        //本控件的高度为固定值: 设置为实际布局所用的值
+        int32_t cy = std::clamp(fixedSize.cy.GetInt32(), GetMinHeight(), GetMaxHeight());
+        szAvailable.cy = cy;
     }
     szAvailable.Validate();
     if (!IsReEstimateSize(szAvailable)) {
         //使用缓存中的估算结果
-        return GetEstimateSize();
+        returnEstSize = GetEstimateSize();
+        return false;
+    }
+    return true;
+}
+
+UiEstSize Control::EstimateSize(UiSize szAvailable)
+{
+    UiFixedSize fixedSize;
+    UiEstSize returnEstSize;
+    if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+        return returnEstSize;
     }
 
     //设置估算图片宽高的类型，用于优化性能（有些属性设置后，图片可以延迟加载）
@@ -3708,18 +3862,16 @@ Image* Control::GetBkImagePtr() const
     return m_pBkImage.get();
 }
 
-void Control::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const
+void Control::PaintStateColor(IRender* pRender, ControlStateType stateType) const
 {
     if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, rcPaint, stateType);
+        m_pColorMap->PaintStateColor(pRender, GetRect(), stateType);
     }
 }
 
 void Control::PaintStateColors(IRender* pRender)
 {
-    if (m_pColorMap != nullptr) {
-        m_pColorMap->PaintStateColor(pRender, m_rcPaint, GetState());
-    }    
+    PaintStateColor(pRender, GetState());
 }
 
 void Control::PaintStateImages(IRender* pRender)
@@ -4123,7 +4275,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
 {
     GlobalManager::Instance().AssertUIThread();
     //DPI缩放百分比
-    const uint32_t nLoadDpiScale = Dpi().GetScale();
+    const uint32_t nLoadDpiScale = Dpi().GetDisplayScaleFactor();
     if (duiImage.GetImageInfo() != nullptr) {
         //如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
         if (duiImage.GetImageInfo()->GetLoadDpiScale() == nLoadDpiScale) {

@@ -47,7 +47,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     const int sep = DpiScaledInt(10);
     for (int32_t topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
         const int nLineWidth = 3;
-        const float fWidth = Dpi().GetScale() / 100.f * nLineWidth;
+        const float fWidth = Dpi().GetDisplayScale() * nLineWidth;
         if ((nLineIndex % 2) == 0) {
             pRender->DrawLine(UiPointF((float)rect.left, (float)topValue), UiPointF((float)rect.right, (float)topValue), UiColor(UiColors::DarkCyan), fWidth);
         }

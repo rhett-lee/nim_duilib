@@ -670,8 +670,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
 
 void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcTextPadding = GetTextPadding();
@@ -1423,7 +1422,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
         break;
     case EN_SELCHANGE:
         //选择变化
-        SendEvent(kEventSelChange);
+        SendEvent(kEventSelChanged);
         break;
     case EN_DROPFILES:   
     case EN_MSGFILTER:   
@@ -3002,9 +3001,9 @@ void RichEdit::GetClipboardText(DStringW& out )
     }
 }
 
-void RichEdit::AttachSelChange(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback)
 { 
-    AttachEvent(kEventSelChange, callback); 
+    AttachEvent(kEventSelChanged, callback); 
     uint32_t oldEventMask = m_richCtrl.GetEventMask();
     if (!(oldEventMask & ENM_SELCHANGE)) {
         m_richCtrl.SetEventMask(oldEventMask | ENM_SELCHANGE);
@@ -3205,7 +3204,7 @@ void RichEdit::OnTextChanged()
                 int32_t newValue = GetMinNumber();
                 SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
                 if (!m_bDisableTextChangeEvent) {
-                    SendEvent(kEventTextChange);
+                    SendEvent(kEventTextChanged);
                 }
                 return;
             }
@@ -3214,14 +3213,14 @@ void RichEdit::OnTextChanged()
                 int32_t newValue = GetMaxNumber();
                 SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
                 if (!m_bDisableTextChangeEvent) {
-                    SendEvent(kEventTextChange);
+                    SendEvent(kEventTextChanged);
                 }
                 return;
             }
         }
     }
     if (!m_bDisableTextChangeEvent) {
-        SendEvent(kEventTextChange);
+        SendEvent(kEventTextChanged);
     }
 }
 

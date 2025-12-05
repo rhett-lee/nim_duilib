@@ -78,7 +78,7 @@ DString FontManager::GetDpiFontId(const DString& fontId, uint32_t nZoomPercent) 
 
 IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
 {
-    return GetIFont(fontId, dpi.GetScale());
+    return GetIFont(fontId, dpi.GetDisplayScaleFactor());
 }
 
 IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
@@ -174,7 +174,7 @@ IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
     //对字体大小进行DPI缩放
     ASSERT(fontInfo.m_fontSize > 0);
     if (nZoomPercent != 100) {
-        fontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, nZoomPercent, 100);
+        fontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, (int32_t)nZoomPercent, 100);
         if (fontInfo.m_fontSize < 1) {
             fontInfo.m_fontSize = 1;
         }

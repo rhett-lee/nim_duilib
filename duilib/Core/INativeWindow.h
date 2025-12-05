@@ -120,10 +120,10 @@ public:
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
     /** 处理DPI变化的系统通知消息
-    * @param [in] nNewDPI 新的DPI值
-    * @param [in] rcNewWindow 新的窗口位置（建议值）
+    * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
+    * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
-    virtual void OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow) = 0;
+    virtual void OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) = 0;
 
     /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
     * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框

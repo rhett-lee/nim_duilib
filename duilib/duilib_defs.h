@@ -127,49 +127,6 @@ namespace ui
     #define  DUI_CTR_BUTTON_RESTORE                  (_T("restorebtn"))
     #define  DUI_CTR_BUTTON_FULLSCREEN               (_T("fullscreenbtn"))
 
-    //EventType事件类型对应的字符串定义
-    #define  EVENTSTR_ALL                (_T("all"))
-    #define  EVENTSTR_KEYDOWN            (_T("keydown"))
-    #define  EVENTSTR_KEYUP              (_T("keyup"))
-    #define  EVENTSTR_CHAR               (_T("char"))
-    
-    #define  EVENTSTR_SETFOCUS           (_T("setfocus"))
-    #define  EVENTSTR_KILLFOCUS          (_T("killfocus"))
-    #define  EVENTSTR_SETCURSOR          (_T("setcursor"))
-
-    #define  EVENTSTR_MOUSEMOVE          (_T("mousemove"))
-    #define  EVENTSTR_MOUSEENTER         (_T("mouseenter"))
-    #define  EVENTSTR_MOUSELEAVE         (_T("mouseleave"))
-    #define  EVENTSTR_MOUSEHOVER         (_T("mousehover"))
-
-    #define  EVENTSTR_BUTTONDOWN         (_T("buttondown"))
-    #define  EVENTSTR_BUTTONUP           (_T("buttonup"))
-    #define  EVENTSTR_DOUBLECLICK        (_T("doubleclick"))
-    #define  EVENTSTR_RBUTTONDOWN        (_T("rbuttondown"))
-    #define  EVENTSTR_RBUTTONUP          (_T("rbuttonup"))
-    #define  EVENTSTR_RDOUBLECLICK       (_T("rdoubleclick"))
-
-    #define  EVENTSTR_SELECT             (_T("select"))
-    #define  EVENTSTR_UNSELECT           (_T("unselect"))
-
-    #define  EVENTSTR_CHECKED            (_T("checked"))
-    #define  EVENTSTR_UNCHECK            (_T("uncheck"))
-    
-    #define  EVENTSTR_TAB_SELECT         (_T("tab_select"))
-
-    #define  EVENTSTR_MENU               (_T("menu"))
-
-    #define  EVENTSTR_EXPAND             (_T("expand"))
-    #define  EVENTSTR_COLLAPSE           (_T("collapse"))
-
-    #define  EVENTSTR_SCROLLWHEEL        (_T("scrollwheel"))
-    #define  EVENTSTR_SCROLLCHANGE       (_T("scrollchange"))
-
-    #define  EVENTSTR_VALUECHANGE        (_T("valuechange"))
-    #define  EVENTSTR_RETURN             (_T("return"))
-    #define  EVENTSTR_TAB                (_T("tab"))
-    #define  EVENTSTR_WINDOWCLOSE        (_T("windowclose"))
-
     class Control;
     class Image;
 
@@ -206,7 +163,9 @@ namespace ui
         kControlStateNormal     = 0,    // 普通状态
         kControlStateHot        = 1,    // 悬停状态
         kControlStatePushed     = 2,    // 按下状态
-        kControlStateDisabled   = 3     // 禁用状态
+        kControlStateDisabled   = 3,    // 禁用状态
+
+        kControlStateCount      = 4     // 状态个数
     };
 
     //控件动画类型
@@ -320,7 +279,7 @@ namespace ui
         bool m_bDecodeError;    //该图片是否存在数据解码错误
     };
 
-    //定义所有消息类型
+    //定义所有消息类型（注意事项：类型定义变化时，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
     enum EventType: int8_t
     {
         kEventNone,
@@ -384,7 +343,7 @@ namespace ui
         kEventUnSelect,             //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
         //勾选/取消勾选
-        kEventChecked,              //CheckBox类：当变成Checked状态时触发
+        kEventCheck,                //CheckBox类：当变成Checked状态时触发
         kEventUnCheck,              //CheckBox类：当变成UnCheck状态时触发
 
         //TAB页面选择
@@ -395,18 +354,19 @@ namespace ui
         kEventCollapse,             //TreeNode类：当树节点收起时触发
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
-        kEventTextChange,           //RichEdit类：当文本内容发生变化时触发
-        kEventSelChange,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
+        kEventTextChanged,           //RichEdit类：当文本内容发生变化时触发
+        kEventSelChanged,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit、AddressBar类：当收到回车键时触发
         kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
-        kEventScrollChange,         //ScrollBox类：当滚动条位置发生变化时触发
-        kEventValueChange,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
-        kEventResize,               //Control类：当控件的大小和位置发生变化时触发
-        kEventVisibleChange,        //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
-        kEventStateChange,          //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
+        kEventScrollPosChanged,         //ScrollBox类：当滚动条位置发生变化时触发
+        kEventValueChanged,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+        kEventPosChanged,           //Control类：当控件的位置发生变化时触发
+        kEventSizeChanged,          //Control类：当控件的大小发生变化时触发
+        kEventVisibleChanged,        //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
+        kEventStateChanged,          //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
         kEventSelectColor,          //ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
         kEventSplitDraged,          //Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口

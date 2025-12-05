@@ -47,6 +47,10 @@ public:
     */
     void ClearMouseTracking();
 
+    /** 销毁ToolTip窗口
+    */
+    void DestroyToolTip();
+
 private:
     //内部实现
     class TImpl;

@@ -15,28 +15,32 @@ SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std:
 {
     fWidth = 0;
     fHeight = 0;
-
-    if (m_sdlWindow != nullptr) {
-        UiRect rect;
-        GetClientRect(rect);
-        this->resize(rect.Width(), rect.Height());
-    }
 }
 
 SkRasterWindowContext_SDL::~SkRasterWindowContext_SDL()
+{
+    Clear();
+}
+
+void SkRasterWindowContext_SDL::Clear()
 {
     if (m_sdlTextrue != nullptr) {
         SDL_DestroyTexture(m_sdlTextrue);
         m_sdlTextrue = nullptr;
     }
+    m_fBackbufferSurface.reset();
+    m_fSurfaceMemory.reset();
 }
 
 void SkRasterWindowContext_SDL::setDisplayParams(std::unique_ptr<const skwindow::DisplayParams> params)
 {
+    int32_t nWidth = width();
+    int32_t nHeight = height();
     fDisplayParams = std::move(params);
-    UiRect rect;
-    GetClientRect(rect);
-    this->resize(rect.Width(), rect.Height());
+    Clear();
+    if ((nWidth > 0) && (nHeight > 0)) {
+        this->resize(nWidth, nHeight);
+    }   
 }
 
 void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
@@ -60,13 +64,10 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
         return;
     }
 
-
     fWidth = nWidth;
     fHeight = nHeight;
 
-    m_fSurfaceMemory.reset();
-    m_fBackbufferSurface.reset();
-    
+    Clear();
     if ((nWidth == 0) || (nHeight == 0)) {
         return;
     }
@@ -83,12 +84,6 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
 
     SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, pDisplayParams->colorType(), SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
     m_fBackbufferSurface = SkSurfaces::WrapPixels(info, pixels, sizeof(uint32_t) * nWidth);
-
-    if (m_sdlTextrue != nullptr) {
-        SDL_DestroyTexture(m_sdlTextrue);
-        m_sdlTextrue = nullptr;
-    }
-
     if (m_fBackbufferSurface == nullptr) {
         m_fSurfaceMemory.reset();
         fWidth = 0;
@@ -473,18 +468,12 @@ void SkRasterWindowContext_SDL::UpdateColorAlpha(void* surfacePixels, int32_t nS
 
 void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
 {
-    rcClient.Clear();
     ASSERT(m_sdlWindow != nullptr);
-    int nWidth = 0;
-    int nHeight = 0;
-    bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
-    ASSERT(nRet);
-    if (nRet) {
-        rcClient.left = 0;
-        rcClient.top = 0;
-        rcClient.right = rcClient.left + nWidth;
-        rcClient.bottom = rcClient.top + nHeight;
-    }
+    ASSERT((width() > 0) && (height() > 0));
+    rcClient.left = 0;
+    rcClient.top = 0;
+    rcClient.right = rcClient.left + width();
+    rcClient.bottom = rcClient.top + height();
 }
 
 void SkRasterWindowContext_SDL::ValidateRect(UiRect& rcPaint) const

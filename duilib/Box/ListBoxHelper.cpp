@@ -148,7 +148,7 @@ void ListBoxHelper::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_pMouseSender = nullptr;
     if (bClickedBlank) {
         if (m_pListBox->OnLButtonClickedBlank()) {
-            m_pListBox->SendEvent(kEventSelChange);
+            m_pListBox->SendEvent(kEventSelChanged);
         }
     }
 }
@@ -182,7 +182,7 @@ void ListBoxHelper::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_pMouseSender = nullptr;
     if (bClickedBlank) {
         if (m_pListBox->OnRButtonClickedBlank()) {
-            m_pListBox->SendEvent(kEventSelChange);
+            m_pListBox->SendEvent(kEventSelChanged);
         }
     }
 }
@@ -311,7 +311,7 @@ void ListBoxHelper::OnCheckScrollView()
     bool bRet = m_pListBox->OnFrameSelection(left, right, top, bottom);
     m_pListBox->Invalidate();
     if (bRet) {
-        m_pListBox->SendEvent(kEventSelChange);
+        m_pListBox->SendEvent(kEventSelChanged);
     }
 }
 

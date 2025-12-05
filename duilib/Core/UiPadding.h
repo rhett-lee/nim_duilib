@@ -64,6 +64,20 @@ public:
                right == r.right && bottom == r.bottom;
     }
 
+    /** 判断两个值是否相等
+    */
+    friend bool operator == (const UiPadding& a, const UiPadding& b)
+    {
+        return a.Equals(b);
+    }
+
+    /** 判断两个值是否不相等
+    */
+    friend bool operator != (const UiPadding& a, const UiPadding& b)
+    {
+        return !a.Equals(b);
+    }
+
 public:
     /** 矩形左侧的内边距
     */

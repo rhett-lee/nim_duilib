@@ -40,15 +40,10 @@ void ColorPickerStatardGray::Paint(IRender* pRender, const UiRect& rcPaint)
 
 UiEstSize ColorPickerStatardGray::EstimateSize(UiSize szAvailable)
 {
-    UiFixedSize fixedSize = GetFixedSize();
-    if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-        //如果宽高都不是auto属性，则直接返回
-        return MakeEstSize(fixedSize);
-    }
-    szAvailable.Validate();
-    if (!IsReEstimateSize(szAvailable)) {
-        //使用缓存中的估算结果
-        return GetEstimateSize();
+    UiFixedSize fixedSize;
+    UiEstSize returnEstSize;
+    if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+        return returnEstSize;
     }
 
     const UiPadding rcPadding = this->GetControlPadding(); //内边距

@@ -83,6 +83,7 @@ void SetCefWindowPos(CefWindowHandle cefWindow, CefControl* pCefControl)
         return;
     }
     UiRect rc = pCefControl->GetPos();
+    pCefControl->Dpi().ClientSizeToWindowSize(rc);
     UiRect rcWindow;
     pWindow->GetWindowRect(rcWindow);
     //macOS的窗口顶点坐标是左下角（Windows是左上角）

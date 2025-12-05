@@ -543,12 +543,12 @@ protected:
                                     bool bTriggerEvent, uint64_t vkFlag);
 
     /** 在视图空白处点击了鼠标左键(鼠标框选功能)
-    * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
+    * @return 如果选择项有变化返回true，此时会触发kEventSelChanged事件，否则返回false
     */
     virtual bool OnLButtonClickedBlank();
 
     /** 在视图空白处点击了鼠标右键(鼠标框选功能)
-    * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
+    * @return 如果选择项有变化返回true，此时会触发kEventSelChanged事件，否则返回false
     */
     virtual bool OnRButtonClickedBlank();
 

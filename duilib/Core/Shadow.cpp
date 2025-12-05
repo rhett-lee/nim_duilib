@@ -65,15 +65,10 @@ public:
      */
     virtual UiEstSize EstimateSize(UiSize szAvailable) override
     {
-        UiFixedSize fixedSize = GetFixedSize();
-        if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
-            //如果宽高都不是auto属性，则直接返回
-            return MakeEstSize(fixedSize);
-        }
-        szAvailable.Validate();
-        if (!IsReEstimateSize(szAvailable)) {
-            //使用缓存中的估算结果
-            return GetEstimateSize();
+        UiFixedSize fixedSize;
+        UiEstSize returnEstSize;
+        if (!PreEstimateSize(szAvailable, fixedSize, returnEstSize)) {
+            return returnEstSize;
         }
 
         //子控件的大小，包含内边距，但不包含外边距; 包含了阴影本身的大小（即Box的内边距）
@@ -653,8 +648,7 @@ void Shadow::ClearImageCache()
 
 void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == dpi.GetScale());
-    if (nNewDpiScale != dpi.GetScale()) {
+    if (!dpi.CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     //更新阴影图片(触发图片重新加载，根据DPI适应响应DPI值的图片)

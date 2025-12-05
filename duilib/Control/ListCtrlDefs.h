@@ -213,8 +213,7 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
     {
-        ASSERT(nNewDpiScale == Dpi().GetScale());
-        if (nNewDpiScale != Dpi().GetScale()) {
+        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
             return;
         }
         if (!m_textRect.IsZero()) {
@@ -313,8 +312,7 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
     {
-        ASSERT(nNewDpiScale == Dpi().GetScale());
-        if (nNewDpiScale != Dpi().GetScale()) {
+        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
             return;
         }
         if (m_nCheckBoxWidth > 0) {

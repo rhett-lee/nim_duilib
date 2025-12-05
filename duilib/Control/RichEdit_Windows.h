@@ -440,12 +440,12 @@ public:
     /* 监听文本被修改事件
      * @param[in] callback 文本被修改后的自定义回调函数
      */
-    void AttachTextChange(const EventCallback& callback) { AttachEvent(kEventTextChange, callback); }
+    void AttachTextChanged(const EventCallback& callback) { AttachEvent(kEventTextChanged, callback); }
 
     /* 监听文本选择变化事件
      * @param[in] callback 文本选择变化后的自定义回调函数
      */
-    void AttachSelChange(const EventCallback& callback);
+    void AttachSelChanged(const EventCallback& callback);
 
     /** 监听超级链接被点击事件
      * @param[in] callback 超级链接被点击后的回调函数

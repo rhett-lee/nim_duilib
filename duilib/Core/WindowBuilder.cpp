@@ -391,7 +391,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcSizeBox);
             createAttributes.m_bSizeBoxDefined = true;
         }
-        if (strName == _T("caption")) {
+        else if (strName == _T("caption")) {
             AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcCaption);
             createAttributes.m_bCaptionDefined = true;
         }
@@ -463,6 +463,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         DString shadowImage;
         Shadow::GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage);
     }
+    createAttributes.m_rcShadowCorner = rcShadowCorner;
 
     if (createAttributes.m_bInitSizeDefined) {
         int32_t cx = createAttributes.m_szInitSize.cx;
@@ -470,12 +471,12 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         UiSize minSize = szMinSize;
         UiSize maxSize = szMaxSize;
         if (bScaledCX) {
-            GlobalManager::Instance().Dpi().ScaleInt(minSize.cx);
-            GlobalManager::Instance().Dpi().ScaleInt(maxSize.cx);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(minSize.cx);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(maxSize.cx);
         }
         if (bScaledCY) {
-            GlobalManager::Instance().Dpi().ScaleInt(minSize.cy);
-            GlobalManager::Instance().Dpi().ScaleInt(maxSize.cy);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(minSize.cy);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(maxSize.cy);
         }
         if ((minSize.cx > 0) && (cx < minSize.cx)) {
             cx = minSize.cx;
@@ -490,23 +491,26 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             cy = maxSize.cy;
         }
         if (!bScaledCX) {
-            GlobalManager::Instance().Dpi().ScaleInt(cx);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(cx);
         }
         if (!bScaledCY) {
-            GlobalManager::Instance().Dpi().ScaleInt(cy);
+            GlobalManager::Instance().Dpi().ScaleWindowSize(cy);
         }
         if (!bSizeContainShadow) {
-            GlobalManager::Instance().Dpi().ScalePadding(rcShadowCorner);
             if (!bPercentCX) {
+                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.left);
+                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.right);
                 cx += rcShadowCorner.left + rcShadowCorner.right;
             }
             if (!bPercentCY) {
+                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.top);
+                GlobalManager::Instance().Dpi().ScaleWindowSize(rcShadowCorner.bottom);
                 cy += rcShadowCorner.top + rcShadowCorner.bottom;
             }
         }
         AttributeUtil::ValidateWindowSize(nullptr, cx, cy);
         createAttributes.m_szInitSize.cx = cx;
-        createAttributes.m_szInitSize.cy = cy;        
+        createAttributes.m_szInitSize.cy = cy;
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
@@ -757,12 +761,15 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
 
             if (!bSizeContainShadow) {
                 //XML配置中指定的窗口大小，如果设置的是固定值，则不包含阴影部分
-                UiPadding rcShadowCorner = pWindow->GetShadowCorner();
-                pWindow->Dpi().ScalePadding(rcShadowCorner);
+                UiPadding rcShadowCorner = pWindow->GetShadowCorner();                
                 if (!bPercentCX && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.left);
+                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.right);
                     cx += rcShadowCorner.left + rcShadowCorner.right;
                 }
                 if (!bPercentCY && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.top);
+                    pWindow->Dpi().ScaleWindowSize(rcShadowCorner.bottom);
                     cy += rcShadowCorner.top + rcShadowCorner.bottom;
                 }
             }
@@ -1337,6 +1344,7 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
         }
         for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
             EventType eventType = StringToEventType(*itType);
+            ASSERT(eventType != EventType::kEventNone);//如果有断言，说明XML中配置的消息名称不正确
             if (eventType == EventType::kEventNone) {
                 continue;
             }

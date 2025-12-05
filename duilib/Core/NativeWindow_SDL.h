@@ -45,6 +45,10 @@ public:
     */
     static NativeWindow_SDL* GetWindowFromID(SDL_WindowID id);
 
+    /** 获取模拟的Hover消息ID
+    */
+    static uint32_t GetHoverMsgId();
+
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] sdlEvent 消息数据
     * @return 如果内部处理了该消息返回true，否则返回false
@@ -576,6 +580,14 @@ public:
     /** 创建窗口时，是否需要居中窗口
     */
     bool NeedCenterWindowAfterCreated() const;
+
+public:
+    //几组支持高分屏的API接口
+    bool GetWindowSize(int32_t* w, int32_t* h) const;
+    bool GetWindowSizeInPixels(int32_t* w, int32_t* h) const;
+    float GetDisplayContentScale() const;   //获取窗口所在屏幕的内容显示比例
+    float GetWindowDisplayScale() const;    //获取该窗口的内容显示比例（与窗口所在屏幕的内容显示比例不一定相同）
+    float GetWindowPixelDensity() const;    //获取该窗口的像素密度值
 
 private:
     /** 创建窗口和渲染接口

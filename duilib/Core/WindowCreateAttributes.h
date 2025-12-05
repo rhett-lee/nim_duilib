@@ -30,6 +30,10 @@ public:
     bool m_bShadowAttached = true;
     bool m_bShadowAttachedDefined = false;//是否包含有效值
 
+    /** 阴影九宫格属性(未经DPI缩放)
+    */
+    UiPadding m_rcShadowCorner;
+
     /** 是否为层窗口
     */
     bool m_bIsLayeredWindow = true;
@@ -45,7 +49,7 @@ public:
     uint8_t m_nLayeredWindowOpacity = 255;
     bool m_bLayeredWindowOpacityDefined = false;//是否包含有效值
 
-    /** 窗口的初始大小
+    /** 窗口的初始大小(已完成DPI缩放)
     */
     UiSize m_szInitSize;
     bool m_bInitSizeDefined = false;//是否包含有效值

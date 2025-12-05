@@ -4,6 +4,7 @@
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include <cmath>
 
 #if defined(__GNUC__) && !defined(__clang__)
     #pragma GCC diagnostic push
@@ -71,8 +72,8 @@ namespace NanoSvgDecoder
         }
 
         std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
-        int width = (int)std::ceilf(svg->width);
-        int height = (int)std::ceilf(svg->height);
+        int width = (int)std::ceil(svg->width);
+        int height = (int)std::ceil(svg->height);
         if (width <= 0 || height <= 0) {
             return false;
         }
@@ -254,13 +255,13 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& 
     spMemStream.reset();
 
     SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));    
-    int32_t nSvgImageWidth = int32_t(std::ceilf(svgSize.width()));
-    int32_t nSvgImageHeight = int32_t(std::ceilf(svgSize.height()));
+    int32_t nSvgImageWidth = int32_t(std::ceil(svgSize.width()));
+    int32_t nSvgImageHeight = int32_t(std::ceil(svgSize.height()));
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
         auto viewBox = svgDom->getRoot()->getViewBox();
         if (viewBox.has_value()) {
-            nSvgImageWidth = int32_t(std::ceilf(viewBox->width()));
-            nSvgImageHeight = int32_t(std::ceilf(viewBox->height()));
+            nSvgImageWidth = int32_t(std::ceil(viewBox->width()));
+            nSvgImageHeight = int32_t(std::ceil(viewBox->height()));
         }
     }
     else {

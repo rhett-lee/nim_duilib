@@ -15,6 +15,7 @@ namespace ui
     class Image;
     class IMatrix;
     class StateColorMap;
+    class StateColorMap2;
     class StateImageMap;
     class AnimationManager;
     class IRender;
@@ -98,20 +99,34 @@ public:
      */
     void SetForeColor(const UiColor& color);
 
-    /**
-     * @brief 获取某个状态下的控件颜色
-     * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+    /** 获取某个状态下的控件颜色
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
      * @return 指定状态下设定的颜色字符串，对应 global.xml 中指定色值
      */
     DString GetStateColor(ControlStateType stateType) const;
 
-    /**
-     * @brief 设置某个状态下的控件颜色
-     * @param[in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
-     * @param[in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
-     * @return 无
+    /** 获取某个状态下的控件颜色矩形外边距
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形外边距(已经做过DPI缩放)
+     */
+    UiMargin GetStateColorMargin(ControlStateType stateType) const;
+
+    /** 获取某个状态下的控件颜色矩形圆角大小
+     * @param [in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
+     * @return 指定状态下设定的颜色矩形圆角大小(已经做过DPI缩放)
+     */
+    UiSize GetStateColorRound(ControlStateType stateType) const;
+
+    /** 设置某个状态下的控件颜色、颜色外边距、颜色矩形的圆角大小
+     * @param [in] stateType 要设置何种状态下的颜色值，参考 ControlStateType 枚举
+     * @param [in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
+     * @param [in] colorMargin 要设置的颜色矩形外边距，如果不设置，则颜色矩形与控件矩形重合
+     * @param [in] colorRound 要设置的颜色矩形圆角大小，如果不设置，则颜色矩形跟随控件矩形的形状
+     * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
     void SetStateColor(ControlStateType stateType, const DString& strColor);
+    void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
+    void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
     /**
      * @brief 获取背景图片位置
@@ -837,6 +852,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged();
+
 public:
     /** 监听控件所有事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -903,10 +922,15 @@ public:
      */
     void AttachContextMenu(const EventCallback& callback) { AttachEvent(kEventContextMenu, callback); }
 
+    /** 监听控件位置改变事件
+     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     */
+    void AttachPosChanged(const EventCallback& callback) { AttachEvent(kEventPosChanged, callback); }
+
     /** 监听控件大小改变事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      */
-    void AttachResize(const EventCallback& callback) { AttachEvent(kEventResize, callback); }
+    void AttachSizeChanged(const EventCallback& callback) { AttachEvent(kEventSizeChanged, callback); }
 
     /** 监听双击事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -926,12 +950,12 @@ public:
     /** 监听控件显示或隐藏事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
-    void AttachVisibleChange(const EventCallback& callback) { AttachEvent(kEventVisibleChange, callback); }
+    void AttachVisibleChanged(const EventCallback& callback) { AttachEvent(kEventVisibleChanged, callback); }
 
     /** 监听控件状态变化事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
-    void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
+    void AttachStateChanged(const EventCallback& callback) { AttachEvent(kEventStateChanged, callback); }
 
     /** 监听控件拖放进入事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
@@ -1266,10 +1290,18 @@ protected:
     */
     Image* GetBkImagePtr() const;
 
+    /** 检查控件估算结果(含是否有缓存结果)，并对估算条件进行预处理
+    * @param [in,out] szAvailable 估算输入的可用宽度和高度值，函数内部会对其约束和调整
+    * @param [out] fixedSize 本控件的宽度和高度预设值
+    * @param [out] returnEstSize 返回估算结果，当本函数返回false时，需要作为EstimateSize的返回值
+    * @return 如果返回false，需要终止估算，如果返回true表示需要继续估算
+    */
+    bool PreEstimateSize(UiSize& szAvailable, UiFixedSize& fixedSize, UiEstSize& returnEstSize) const;
+
 protected:
     /** 绘制指定状态的颜色
     */
-    void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
+    void PaintStateColor(IRender* pRender, ControlStateType stateType) const;
 
     /** @brief 获取控件的绘制区域
     */
@@ -1493,7 +1525,7 @@ private:
         UiString m_sToolTipTextId;
 
         //ToolTip的宽度
-        int32_t m_nTooltipWidth = 300;
+        int32_t m_nTooltipWidth = 500;
     };
 
     //边框相关数据
@@ -1606,7 +1638,7 @@ private:
 
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
-    std::unique_ptr<StateColorMap> m_pColorMap;
+    std::unique_ptr<StateColorMap2> m_pColorMap;
 
     /** 控件图片类型与状态图片的MAP
     */

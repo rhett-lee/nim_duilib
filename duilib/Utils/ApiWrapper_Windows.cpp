@@ -1,9 +1,42 @@
 #include "ApiWrapper_Windows.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
+#include <VersionHelpers.h>
+
 namespace ui
 {
 
-#ifdef DUILIB_BUILD_FOR_WIN
+UINT GetDpiForWnd(HWND hWnd)
+{
+    if (!::IsWindow(hWnd)) {
+        return 0;
+    }
+    uint32_t uDPI = 0;
+    if ((uDPI == 0) && ::IsWindows8OrGreater()) {
+        HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+        if (hMonitor != nullptr) {
+            uint32_t dpix = 96;
+            uint32_t dpiy = 96;
+            if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
+                uDPI = dpix;
+            }
+        }
+    }
+    if (uDPI == 0) {
+        HDC hDC = ::GetDC(hWnd);
+        if (hDC != nullptr) {
+            uDPI = (uint32_t)::GetDeviceCaps(hDC, LOGPIXELSX);
+            ::ReleaseDC(hWnd, hDC);
+        }
+    }
+    if ((uDPI == 0) && ::IsWindows10OrGreater()) {
+        if (!GetDpiForWindowWrapper(hWnd, uDPI)) {
+            uDPI = 0;
+        }
+    }
+    return uDPI;
+}
 
 bool GetDpiForSystemWrapper(UINT& dpi)
 {
@@ -248,6 +281,6 @@ bool EnableMouseInPointerWrapper(BOOL fEnable)
     return false;
 }
 
-#endif //DUILIB_BUILD_FOR_WIN
+} //namespace ui
 
-}
+#endif //DUILIB_BUILD_FOR_WIN

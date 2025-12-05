@@ -244,9 +244,9 @@ void WindowImplBase::OnUseSystemCaptionBarChanged()
     }
 }
 
-void WindowImplBase::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
+void WindowImplBase::OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor)
 {
-    BaseClass::OnWindowDpiChanged(nOldDPI, nNewDPI);
+    BaseClass::OnWindowDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
 }
 
 void WindowImplBase::ProcessMaxRestoreStatus()

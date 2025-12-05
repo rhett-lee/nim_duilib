@@ -127,6 +127,7 @@ public:
         CefWindowHandle cefWindow = m_pCefControl->GetCefWindowHandle();
         XDisplay* cefDisplay = cef_get_xdisplay();
         ui::UiRect rc = m_pCefControl->GetPos();
+        m_pCefControl->Dpi().ClientSizeToWindowSize(rc);
         if ((cefWindow != 0) && (cefDisplay != nullptr) && IsX11WindowValid(cefDisplay, cefWindow)) {
             XErrorHandler old_handler = XSetErrorHandler([](Display*, XErrorEvent*) { return 0; });
             XMoveResizeWindow(cefDisplay, cefWindow, rc.left, rc.top, rc.Width(), rc.Height());

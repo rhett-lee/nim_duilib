@@ -1,20 +1,13 @@
 #include "DpiAwareness.h"
 
-//仅限非Windows平台
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+//仅限Windows平台
+#if defined (DUILIB_BUILD_FOR_WIN)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <VersionHelpers.h>
 
 namespace ui
 {
-DpiInitParam::DpiInitParam() :
-    m_dpiAwarenessFlag(DpiInitParam::DpiAwarenessFlag::kFromUserDefine),
-    m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2),
-    m_uDPI(0)
-{
-}
-
 DpiAwareness::DpiAwareness():
     m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2)
 {
@@ -24,18 +17,18 @@ DpiAwareness::~DpiAwareness()
 {
 }
 
-bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
+bool DpiAwareness::InitDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
 {
     bool bRet = true;
-    if (initParam.m_dpiAwarenessFlag == DpiInitParam::DpiAwarenessFlag::kFromUserDefine) {
+    if (dpiAwarenessMode != DpiAwarenessMode::kFromManifest) {
         //设置一次 Dpi Awareness
-        SetDpiAwareness(initParam.m_dpiAwarenessMode);
-        DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
-        if (initParam.m_dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
-            bRet = (dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) ? true : false;
+        SetDpiAwareness(dpiAwarenessMode);
+        DpiAwarenessMode currentAwarenessMode = GetDpiAwareness();
+        if (dpiAwarenessMode == DpiAwarenessMode::kDpiUnaware) {
+            bRet = (currentAwarenessMode == DpiAwarenessMode::kDpiUnaware) ? true : false;
         }
         else {
-            bRet = (dpiAwarenessMode != DpiAwarenessMode::kDpiUnaware) ? true : false;
+            bRet = (currentAwarenessMode != DpiAwarenessMode::kDpiUnaware) ? true : false;
         }
     }
     return bRet;
@@ -43,6 +36,10 @@ bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
 
 DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
 {
+    if (dpiAwarenessMode == DpiAwarenessMode::kFromManifest) {
+        //定义为从exe的manifest中读取DPI感知功能，不需要代码设置
+        return dpiAwarenessMode;
+    }
     if (!::IsWindowsVistaOrGreater()) {
         //Vista以下版本系统，不支持DPI感知
         m_dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;

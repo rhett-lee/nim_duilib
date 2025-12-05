@@ -101,8 +101,7 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
 
 void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
-    ASSERT(nNewDpiScale == Dpi().GetScale());
-    if (nNewDpiScale != Dpi().GetScale()) {
+    if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
     UiPadding rcScrollbarPadding = GetScrollBarPadding();
@@ -793,7 +792,7 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
     }
 
     Invalidate();
-    SendEvent(kEventScrollChange, (cyOffset == 0) ? 0 : 1, (cxOffset == 0) ? 0 : 1);
+    SendEvent(kEventScrollPosChanged, (cyOffset == 0) ? 0 : 1, (cxOffset == 0) ? 0 : 1);
 }
 
 void ScrollBox::SetScrollPosY(int64_t y)
