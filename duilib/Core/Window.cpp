@@ -18,6 +18,7 @@ Window::Window() :
     m_pRoot(nullptr),
     m_pFocus(nullptr),
     m_pEventHover(nullptr),
+    m_pEventToolTip(nullptr),
     m_pEventClick(nullptr),
     m_pEventKey(nullptr),
     m_rcAlphaFix(0, 0, 0, 0),
@@ -464,6 +465,7 @@ bool Window::AttachBox(Box* pRoot)
     SetFocusControl(nullptr); //设置m_pFocus相关的状态
     m_pEventKey = nullptr;
     m_pEventHover = nullptr;
+    m_pEventToolTip = nullptr;
     m_pEventClick = nullptr;
     // Remove the existing control-tree. We might have gotten inside this function as
     // a result of an event fired or similar, so we cannot just delete the objects and
@@ -508,6 +510,9 @@ void Window::ReapObjects(Control* pControl)
     if (pControl == m_pEventHover) {
         m_pEventHover = nullptr;
     }
+    if (pControl == m_pEventToolTip) {
+        m_pEventToolTip = nullptr;
+    }    
     if (pControl == m_pEventClick) {
         m_pEventClick = nullptr;
     }
@@ -1776,11 +1781,21 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFr
 
 bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool bHideToolTip)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     ControlPtr pNewHover = ControlPtr(FindControl(pt));
     //设置为新的Hover控件
     ControlPtr pOldHover = m_pEventHover;
     m_pEventHover = pNewHover;
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+
+    ControlPtr pNewToolTip = ControlPtr(FindToolTipControl(pt));
+    //设置为新的ToolTip控件
+    ControlPtr pOldToolTip = m_pEventToolTip;
+    m_pEventToolTip = pNewToolTip;
+    if ((pNewToolTip != pOldToolTip) && (pOldToolTip != nullptr)) {
+        if (bHideToolTip) {
+            m_toolTip->HideToolTip();
+        }
+    }
 
     if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
         //Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
@@ -1790,9 +1805,6 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool
         pOldHover->SendEvent(kEventMouseLeave, msgData);
         if (windowFlag.expired()) {
             return false;
-        }
-        if (bHideToolTip) {
-            m_toolTip->HideToolTip();
         }
     }
     ASSERT(pNewHover == m_pEventHover);
@@ -1830,30 +1842,30 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const N
         //如果处于Capture状态，不显示ToolTip
         return lResult;
     }
-    Control* pHover = FindControl(pt);
-    if (pHover == nullptr) {
+    Control* pNewHover = FindControl(pt);
+    if (pNewHover == nullptr) {
+        return lResult;
+    }
+    std::weak_ptr<WeakFlag> hoverFlag = pNewHover->GetWeakFlag();
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    EventArgs msgData;
+    msgData.modifierKey = modifierKey;
+    msgData.ptMouse = pt;
+    msgData.wParam = nativeMsg.wParam;
+    msgData.lParam = nativeMsg.lParam;
+    pNewHover->SendEvent(kEventMouseHover, msgData);
+    if (hoverFlag.expired() || windowFlag.expired()) {
         return lResult;
     }
 
-    Control* pOldHover = GetHoverControl();
-    if (pHover != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        EventArgs msgData;
-        msgData.modifierKey = modifierKey;
-        msgData.ptMouse = pt;
-        msgData.wParam = nativeMsg.wParam;
-        msgData.lParam = nativeMsg.lParam;
-        pHover->SendEvent(kEventMouseHover, msgData);
-        if (windowFlag.expired()) {
-            return lResult;
-        }
-    }
-
-    if (pOldHover == GetHoverControl()) {
+    //显示ToolTip的控件
+    ControlPtr pOldToolTip = m_pEventToolTip;
+    Control* pNewToolTip = FindToolTipControl(pt);
+    if ((pNewToolTip != nullptr) && (pOldToolTip == pNewToolTip)) {
         //检查按需显示ToolTip信息    
-        UiRect rect = pHover->GetPos();
-        uint32_t maxWidth = pHover->GetToolTipWidth();
-        DString toolTipText = pHover->GetToolTipText();
+        UiRect rect = pNewToolTip->GetPos();
+        uint32_t maxWidth = pNewToolTip->GetToolTipWidth();
+        DString toolTipText = pNewToolTip->GetToolTipText();
         m_toolTip->ShowToolTip(this, rect, maxWidth, pt, toolTipText);
     }
     return lResult;
@@ -2154,13 +2166,14 @@ void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg&
 void Window::ClearStatus()
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    m_pEventToolTip = nullptr;
     if (m_pEventHover != nullptr) {
         m_pEventHover->SendEvent(kEventMouseLeave);
         if (windowFlag.expired()) {
             return;
         }
         m_pEventHover = nullptr;
-    }
+    }    
     if (m_pEventClick != nullptr) {
         m_pEventClick->SendEvent(kEventMouseLeave);
         if (windowFlag.expired()) {
@@ -2575,6 +2588,19 @@ Control* Window::FindControl(const UiPoint& pt) const
         return nullptr;
     }
     Control* pControl = m_controlFinder.FindControl(pt);
+    if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
+        ASSERT(0);
+        pControl = nullptr;
+    }
+    return pControl;
+}
+
+Control* Window::FindToolTipControl(const UiPoint& pt) const
+{
+    if (GetRoot() == nullptr) {
+        return nullptr;
+    }
+    Control* pControl = m_controlFinder.FindToolTipControl(pt);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
         ASSERT(0);
         pControl = nullptr;

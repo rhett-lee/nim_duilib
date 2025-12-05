@@ -279,7 +279,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
         if (!GetRect().ContainsPt(ptMouse)) {
             return nullptr;
         }
-        if (!IsMouseChildEnabled()) {
+        if (!IsMouseChildEnabled() && ((uFlags & UIFIND_TOOLTIP) == 0)) {
             Control* pResult = Control::FindControl(Proc, pProcData, uFlags, ptMouse);
             return pResult;
         }

@@ -35,6 +35,16 @@ Control* ControlFinder::FindControl(const UiPoint& pt) const
     return nullptr;
 }
 
+Control* ControlFinder::FindToolTipControl(const UiPoint& pt) const
+{
+    ASSERT(m_pRoot != nullptr);
+    if (m_pRoot != nullptr) {
+        UiPoint ptLocal = pt;
+        return m_pRoot->FindControl(FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST | UIFIND_TOOLTIP, pt);
+    }
+    return nullptr;
+}
+
 Control* ControlFinder::FindContextMenuControl(const UiPoint* pt) const
 {
     Control* pControl = nullptr;
