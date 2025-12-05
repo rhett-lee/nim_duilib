@@ -1050,6 +1050,7 @@ void ListCtrl::SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale)
     }
     if (m_pHeaderCtrl != nullptr) {
         m_pHeaderCtrl->SetFixedHeight(UiFixedInt(nHeaderHeight), true, false);
+        RelayoutOrRedraw();
     }
     m_nHeaderHeight = nHeaderHeight;
     Refresh();

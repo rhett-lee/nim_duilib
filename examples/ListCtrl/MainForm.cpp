@@ -451,7 +451,9 @@ void MainForm::OnInitWindow()
         });
 
     if (pShowIcon != nullptr) {
-        pShowIcon->Selected(pListCtrl->GetDataItemImageId(0) >= 0, false);
+        if (pListCtrl->GetDataItemCount() > 0) {
+            pShowIcon->Selected(pListCtrl->GetDataItemImageId(0) >= 0, false);
+        }
         auto OnShowDataItemIcon = [this, pListCtrl](bool bShow) {
                 size_t nItemCount = pListCtrl->GetDataItemCount();
                 pListCtrl->SetEnableRefresh(false);
@@ -709,6 +711,10 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
+        return;
+    }
+    if (pListCtrl->GetDataItemCount() == 0) {
+        //无数据
         return;
     }
 

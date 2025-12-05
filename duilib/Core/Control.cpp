@@ -3275,6 +3275,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+    if (GetRect().IsEmpty()) {
+        return;
+    }
     UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
     if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
