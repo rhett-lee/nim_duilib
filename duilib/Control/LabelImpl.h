@@ -25,8 +25,7 @@ public:
     bool HasHotColorState();
     bool SetAttribute(const DString& strName, const DString& strValue);
     void PaintText(IRender* pRender);
-    DString GetAutoToolTipText() const;
-
+    
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
@@ -103,11 +102,15 @@ public:
     /** 设置鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
     * @param [in] bAutoShow true 省略号出现才显示 false 不做任何控制
     */
-    void SetAutoToolTip(bool bAutoShow);
+    void SetAutoShowToolTipEnabled(bool bAutoShow);
 
     /** 获取鼠标悬浮到控件显示的提示文本是否省略号出现时才显示
     */
-    bool IsAutoToolTip() const;
+    bool IsAutoShowToolTipEnabled() const;
+
+    /** 获取自动显示的提示文本信息
+    */
+    DString GetAutoToolTipText() const;
 
     /** 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
     * @param [in] bReplaceNewline true表示替换，false表示不替换
@@ -210,9 +213,6 @@ private:
     //字体ID
     UiString m_sFontId;
 
-    //自动显示Tooltip的缓存
-    UiString m_sAutoShowTooltipCache;
-
     //各个状态（默认/悬停/按下/禁用）的文本颜色映射表
     std::unique_ptr<StateColorMap> m_pTextColorMap;
 
@@ -235,8 +235,11 @@ private:
     //是否单行文本: true表示单行文本，false表示多行文本
     bool m_bSingleLine;
 
-    //是否自动显示Tooltip
-    bool m_bAutoShowToolTip;
+    //是否开启自动显示Tooltip的功能
+    bool m_bAutoShowToolTipEnabled;
+
+    //当前是否应自动显示Tooltip
+    bool m_bAutoShowTooltip;
 
     //是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
     bool m_bReplaceNewline;

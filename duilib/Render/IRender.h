@@ -703,6 +703,7 @@ enum class RenderBackendType
 struct MeasureStringParam
 {
     int32_t rectSize = DUI_NOSET_VALUE; //横向文本，表示当前区域的限制宽度；纵向文本，表示当前区域的限制高度
+                                        //多行文本：应设置合理值，如果不设置则文本不会自动换行；单行文本：忽略该值)
 
     IFont* pFont = nullptr;             //文字的字体数据接口, 不可为nullptr
     uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义

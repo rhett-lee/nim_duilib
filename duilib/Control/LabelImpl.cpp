@@ -16,7 +16,8 @@ LabelImpl::LabelImpl(Control* pOwner):
     m_sFontId(),
     m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
     m_bSingleLine(true),
-    m_bAutoShowToolTip(false),
+    m_bAutoShowToolTipEnabled(false),
+    m_bAutoShowTooltip(false),
     m_bReplaceNewline(false),
     m_fSpacingMul(1.0f),
     m_fSpacingAdd(0),
@@ -135,7 +136,7 @@ bool LabelImpl::SetAttribute(const DString& strName, const DString& strValue)
         SetTextId(strValue);
     }
     else if ((strName == _T("auto_tooltip")) || (strName == _T("autotooltip"))) {
-        SetAutoToolTip(strValue == _T("true"));
+        SetAutoShowToolTipEnabled(strValue == _T("true"));
     }
     else if (strName == _T("font")) {
         SetFontId(strValue);
@@ -271,15 +272,15 @@ DString LabelImpl::GetTextId() const
     return m_sTextId.c_str();
 }
 
-void LabelImpl::SetAutoToolTip(bool bAutoShow)
+void LabelImpl::SetAutoShowToolTipEnabled(bool bAutoShow)
 {
-    m_bAutoShowToolTip = bAutoShow;
+    m_bAutoShowToolTipEnabled = bAutoShow;
     CheckShowToolTip();
 }
 
-bool LabelImpl::IsAutoToolTip() const
+bool LabelImpl::IsAutoShowToolTipEnabled() const
 {
-    return m_bAutoShowToolTip;
+    return m_bAutoShowToolTipEnabled;
 }
 
 void LabelImpl::SetReplaceNewline(bool bReplaceNewline)
@@ -419,23 +420,23 @@ DrawStringParam LabelImpl::GetDrawParam() const
 DString LabelImpl::GetAutoToolTipText() const
 {
     DString toolTip;
-    if (m_bAutoShowToolTip) {
-        toolTip = m_sAutoShowTooltipCache.c_str();
+    if (m_bAutoShowToolTipEnabled && m_bAutoShowTooltip) {
+        toolTip = GetText();
     }
     return toolTip;
 }
 
 void LabelImpl::CheckShowToolTip()
 {
-    m_sAutoShowTooltipCache.clear();
-    if (!m_bAutoShowToolTip || (m_pOwner->GetWindow() == nullptr)) {
+    m_bAutoShowTooltip = false;
+    if (!m_bAutoShowToolTipEnabled || (m_pOwner->GetWindow() == nullptr)) {
         return;
     }
     auto pRender = m_pOwner->GetWindow()->GetRender();
     if (pRender == nullptr) {
         return;
     }    
-    DString sText = this->GetText();
+    const DString sText = this->GetText();
     if (sText.empty()) {
         return;
     }
@@ -481,7 +482,7 @@ void LabelImpl::CheckShowToolTip()
     measureParam.rectSize = rectSize;
     UiRect rcMessure = pRender->MeasureString(sText, measureParam);
     if (rc.Width() < rcMessure.Width() || rc.Height() < rcMessure.Height()) {
-        m_sAutoShowTooltipCache = sText;
+        m_bAutoShowTooltip = true;
     }
 }
 
@@ -534,8 +535,14 @@ bool LabelImpl::HasHotColorState()
 
 UiSize LabelImpl::EstimateText(UiSize szAvailable)
 {
-    int32_t nWidth = szAvailable.cx;
-    int32_t nHeight = szAvailable.cy;
+    UiSize fixedSize;
+    const DString textValue = GetText();
+    if (textValue.empty()) {
+        //文本为空时，宽度和高度估算结果均为0
+        return fixedSize;
+    }
+    int32_t nWidth = szAvailable.cx;    //最终计算结果为最大宽度
+    int32_t nHeight = szAvailable.cy;   //最终计算结果为最大高度
     const UiPadding rcTextPadding = this->GetTextPadding();
     const UiPadding rcPadding = m_pOwner->GetControlPadding();
     if (!m_bVerticalText) {
@@ -594,21 +601,20 @@ UiSize LabelImpl::EstimateText(UiSize szAvailable)
             nHeight = 0;
         }
     }
-    UiSize fixedSize;
-    DString textValue = GetText();
+    
     if (!textValue.empty() && (m_pOwner->GetWindow() != nullptr)) {
         auto pRender = m_pOwner->GetWindow()->GetRender();
         if (pRender != nullptr) {
             MeasureStringParam measureParam = GetMeasureParam();
             measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
             UiRect rect = pRender->MeasureString(textValue, measureParam);
-            fixedSize.cx = rect.Width();
+            fixedSize.cx = std::min(rect.Width(), nWidth);
             if (fixedSize.cx > 0) {
                 fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
                 fixedSize.cx += (rcPadding.left + rcPadding.right);
             }
 
-            fixedSize.cy = rect.Height();
+            fixedSize.cy = std::min(rect.Height(), nHeight);
             if (fixedSize.cy) {
                 fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
                 fixedSize.cy += (rcPadding.top + rcPadding.bottom);

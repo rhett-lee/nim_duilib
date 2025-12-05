@@ -229,8 +229,12 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         drawTextRect = this->GetRect();
         drawTextRect.Deflate(rcPadding);
         drawTextRect.Deflate(this->GetTextPadding());
-        drawTextRect.right = drawTextRect.left + textRect.Width();
-        drawTextRect.bottom = drawTextRect.top + textRect.Height();
+
+        int32_t nTextRight = drawTextRect.left + textRect.Width();
+        int32_t nTextBottom = drawTextRect.top + textRect.Height();
+
+        drawTextRect.right = std::min(drawTextRect.right, nTextRight);
+        drawTextRect.bottom = std::min(drawTextRect.bottom, nTextBottom);
 
         //设置剪辑区域，避免绘制文字区域
         pRender->SetClip(drawTextRect, false);
