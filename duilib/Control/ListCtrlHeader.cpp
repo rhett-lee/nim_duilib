@@ -588,7 +588,7 @@ void ListCtrlHeader::GetHeaderSplitControlRect(std::vector<UiRect>& rcSplitContr
         ASSERT(dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2)) != nullptr);
         SplitBox* pSplitBox = dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1));
         ASSERT(pSplitBox != nullptr);
-        if (pSplitBox != nullptr) {
+        if ((pSplitBox != nullptr) && pSplitBox->IsVisible()){
             ASSERT(pSplitBox->GetItemCount() == 1);
             if (pSplitBox->GetItemCount() > 0) {
                 Control* pSplitControl = pSplitBox->GetItemAt(0);
