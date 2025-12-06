@@ -155,6 +155,8 @@ int32_t ListCtrlReportView::GetListCtrlWidth() const
             nToltalWidth += pHeaderItem->GetColumnWidth();
         }
     }
+    UiPadding rcReportViewPadding = GetPadding();
+    nToltalWidth += rcReportViewPadding.left + rcReportViewPadding.right;
     nToltalWidth += pHeaderCtrl->GetPadding().left;
     return nToltalWidth;
 }
@@ -667,6 +669,14 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
+
+    UiRect viewRect = GetRect();
+    viewRect.Deflate(GetPadding());
+    const bool bRectClip = IsClip();
+    const bool bRoundClip = IsClip() && ShouldBeRoundRectFill();
+    std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, viewRect, bRectClip);
+    std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, viewRect, bRoundClip);
+
     int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
     int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
     UiColor columnLineColor;
@@ -682,7 +692,6 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
 
     if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
         //绘制纵向网格线        
-        UiRect viewRect = GetRect();
         int32_t yTop = viewRect.top;
         std::vector<int32_t> xPosList;
         const size_t itemCount = GetItemCount();
@@ -737,7 +746,6 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     }
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
         //绘制横向网格线
-        UiRect viewRect = GetRect();
         const size_t itemCount = GetItemCount();
         for (size_t index = 0; index < itemCount; ++index) {
             ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
