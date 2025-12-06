@@ -933,6 +933,96 @@ bool ListCtrl::SetColumnWidthAutoById(size_t columnId)
     return false;
 }
 
+bool ListCtrl::SetColumnWidth(const std::vector<UiFixedInt>& columnWidthList, bool bNeedDpiScale)
+{
+    if (columnWidthList.empty()) {
+        return false;
+    }
+    bool bRet = true;
+    std::map<size_t, UiFixedInt> stretchWidthMap;
+    const size_t nColumnWidthCount = std::min(columnWidthList.size(), GetColumnCount());
+    if (nColumnWidthCount != columnWidthList.size()) {
+        bRet = false;
+    }
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnWidthCount; ++nColumnIndex) {
+        const UiFixedInt& fixedInt = columnWidthList[nColumnIndex];
+        if (fixedInt.IsInt32()) {
+            //固定类型
+            if (fixedInt.GetInt32() < 0) {
+                bRet = false;
+            }
+            else if (!SetColumnWidth(nColumnIndex, fixedInt.GetInt32(), bNeedDpiScale)) {
+                bRet = false;
+            }
+        }
+        else if (fixedInt.IsAuto()) {
+            //自动适应宽度
+            if (!SetColumnWidthAuto(nColumnIndex)) {
+                bRet = false;
+            }
+        }
+        else if (fixedInt.IsStretch()) {
+            //拉伸类型
+            stretchWidthMap[nColumnIndex] = fixedInt;
+        }
+    }
+
+    //计算拉伸类型的各个列的宽度
+    if (!stretchWidthMap.empty()) {
+        if ((m_pReportView != nullptr) && (m_pHeaderCtrl != nullptr)) {            
+            int32_t nToltalFixedWidth = 0;
+            const size_t nColumnCount = m_pHeaderCtrl->GetColumnCount();
+            for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+                if (stretchWidthMap.find(nColumnIndex) == stretchWidthMap.end()) {
+                    //非拉伸类型的列
+                    ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(nColumnIndex);
+                    if ((pHeaderItem != nullptr) && pHeaderItem->IsColumnVisible()) {
+                        nToltalFixedWidth += pHeaderItem->GetColumnWidth();
+                    }
+                }
+            }
+
+            UiRect rcViewRect = m_pReportView->GetRect();
+            UiPadding rcViewPadding = m_pReportView->GetPadding();
+            UiPadding rcHeaderPadding = m_pHeaderCtrl->GetPadding();
+            rcViewRect.Deflate(rcViewPadding);
+            rcViewRect.Deflate(rcHeaderPadding);
+            const int32_t nAvailableWidth = rcViewRect.Width() - nToltalFixedWidth; //可分配宽度            
+            if (nAvailableWidth >= stretchWidthMap.size()) {
+                //首先计算总的比例
+                int32_t nStretchTotal = 0;
+                for (const auto& iter : stretchWidthMap) {
+                    nStretchTotal += iter.second.GetStretchPercentValue();
+                }
+                const int32_t nStretchBase = std::max(100, nStretchTotal);
+                int32_t nAvailableSpace = nAvailableWidth;
+                int32_t nAvailableCount = (int32_t)stretchWidthMap.size();
+                for (const auto& iter : stretchWidthMap) {
+                    const size_t nColumnIndex = iter.first;
+                    int32_t nColunmWidth = iter.second.GetStretchPercentValue() * nAvailableWidth / nStretchBase;
+                    if ((nStretchTotal >= 100) && (nAvailableCount == 1)) {
+                        //需要完全分配，且是最后一个拉伸列时
+                        nColunmWidth = nAvailableSpace;
+                    }
+
+                    //调整列的宽度
+                    SetColumnWidth(nColumnIndex, nColunmWidth, false);
+
+                    nAvailableSpace -= nColunmWidth;
+                    --nAvailableCount;
+                }
+            }
+            else {
+                bRet = false;
+            }
+        }
+        else {
+            bRet = false;
+        }
+    }
+    return bRet;
+}
+
 ListCtrlHeaderItem* ListCtrl::GetColumn(size_t columnIndex) const
 {
     ASSERT(m_pHeaderCtrl != nullptr);

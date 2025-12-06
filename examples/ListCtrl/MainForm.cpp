@@ -424,6 +424,21 @@ void MainForm::OnInitWindow()
             });
     }
 
+    //按比例设置各个列的宽度，使其充满整个视图
+    ui::Button* pAutoStretchBtn = dynamic_cast<ui::Button*>(FindControl(_T("set_column_stretch")));
+    if (pAutoStretchBtn != nullptr) {
+        pAutoStretchBtn->AttachClick([pListCtrl, this](const ui::EventArgs& /*args*/) {
+            std::vector<ui::UiFixedInt> columnWidthList;
+            size_t nColumnCount = pListCtrl->GetColumnCount();
+            for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+                columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+            }
+            bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+            UNUSED_VARIABLE(bRet);
+            return true;
+            });
+    }
+
     //控制表头或者行首是否显示CheckBox
     if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible() && pHeaderCtrl->IsShowCheckBox()) {
         pHeaderCheckBox->Selected(true, false);
