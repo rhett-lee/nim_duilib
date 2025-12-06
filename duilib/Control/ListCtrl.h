@@ -140,6 +140,21 @@ public:
     bool SetColumnWidthAuto(size_t columnIndex);
     bool SetColumnWidthAutoById(size_t columnId);
 
+    /** 按设置的宽度值调整所有列的宽度
+    * @param [in] columnWidthList 容器的下标对应列表列的索引序号，容器的值代表各个列的期望宽度
+    *             列的宽度设置支持支持三种类型：固定数值、自动适应、拉伸。
+    *             固定数值时：与上面的SetColumnWidth函数功能相同
+    *             自动适应时：与上面的SetColumnWidthAuto函数功能相同
+    *             拉伸时，按以下规则操作：
+    *             （1）按照列表视图总宽度，所有拉伸类型的列，按指定的百分比进行分配所有可分配宽度（可分配宽度=列表视图总宽度-固定宽度-自动宽度）
+    *             （2）如果可分配宽度不足（即为0时），则保持相关列的原宽度，不做任何操作
+    *             （3）举例1：自定义比例，假定共计三列，columnWidthList里面有三个值：UiFixedInt::MakeStretch(30),UiFixedInt::MakeStretch(30),UiFixedInt::MakeStretch(40)
+    *                        表示三个列的宽度分别占列表视图总宽度的30%、30%、40%
+    *             （4）举例2：各列的宽度平均分配，可以直接设置拉伸值，不需要计算具体比例：columnWidthList里面有三个值：UiFixedInt::MakeStretch(),UiFixedInt::MakeStretch(),UiFixedInt::MakeStretch()
+    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应（仅当列宽度设置为固定数值时使用）
+    */
+    bool SetColumnWidth(const std::vector<UiFixedInt>& columnWidthList, bool bNeedDpiScale);
+    
     /** 设置是否支持列表头拖动改变列的顺序
     */
     void SetEnableHeaderDragOrder(bool bEnable);

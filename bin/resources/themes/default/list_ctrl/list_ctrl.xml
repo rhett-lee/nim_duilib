@@ -28,7 +28,7 @@
                 </CheckBox>
             </HBox>
             <HBox height="auto">                
-                <GroupVBox height="auto" width="764" text="Report类型">
+                <GroupVBox name="report_group" height="auto" width="770" text="Report类型">
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,18,4,0">
                         <Label text="表头控制：" valign="center" margin="2,0,2,0"/>
                         <Option class="option_2" group="show" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
@@ -48,6 +48,7 @@
                         <Line vertical="true" margin="0,8,4,8" width="2"/>
                         <Label text="表头高度：" valign="center" margin="2,0,2,0"/>
                         <RichEdit class="simple simple_border rich_edit_spin" name="header_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
+                        <Button class="btn_global_color_gray" name="set_column_stretch" text="按比例设置各列宽度" width="auto" height="30" border_round="3,3" text_padding="8,0,8,0" margin="4,0,0,0"/>
                     </HBox>
                     
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,4,0">
