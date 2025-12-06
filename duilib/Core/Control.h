@@ -1329,6 +1329,15 @@ protected:
     */
     void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
                         float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
+
+    /** 设置直角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
+
+    /** 设置圆角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
+
 private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
     */
@@ -1365,14 +1374,6 @@ private:
     /** 判断是否需要采用圆角矩形绘制边框
     */
     bool ShouldBeRoundRectBorders() const;
-
-    /** 设置直角的剪辑区域
-    */
-    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
-
-    /** 设置圆角的剪辑区域
-    */
-    std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
 
 public:
     /** 判断是否需要采用圆角矩形填充背景色
