@@ -280,8 +280,8 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
         IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
         ListCtrlLabel* pSubItem = pItemLabel;
         ASSERT(pItem != nullptr);
+        pItemLabel->SetEnableEdit(true);
         pItemLabel->SetListBoxItem(pControl);
-        pItemLabel->SetMouseEnabled(true);
         pItemLabel->DetachEvent(kEventEnterEdit);
         pItemLabel->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
             if (m_pListCtrl != nullptr) {
@@ -291,9 +291,9 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
             });
     }
     else {
+        pItemLabel->SetEnableEdit(false);
         pItemLabel->SetListBoxItem(nullptr);
         pItemLabel->DetachEvent(kEventEnterEdit);
-        pItemLabel->SetMouseEnabled(false);
     }
     return true;
 }
