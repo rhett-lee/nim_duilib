@@ -2082,7 +2082,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
 
     const bool bWindowFocused = IsWindowFocused();
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();    
-    if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
+    if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseMButtonDown) || (eventType == kEventMouseRButtonDown)) {
         SetCapture();
         if (windowFlag.expired()) {
             return;

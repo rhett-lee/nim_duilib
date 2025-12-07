@@ -469,7 +469,7 @@
     <Class name="list_ctrl_sub_item" icon_spacing="2" text_align="vcenter,left" text_padding="2,0,2,0" auto_tooltip="true" single_line="true"/>    
     <!--ListCtrl中的IconView的样式-->
     <Class name="list_ctrl_icon_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0" paint_selected_colors="true"
-                                      horizontal_layout="false" item_size="112,112" columns="auto" child_margin_x="8" child_margin_y="8"
+                                      horizontal_layout="false" item_size="112,112" columns="auto" child_margin_x="8" child_margin_y="8" child_halign="left"
                                       frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border_size="1" frame_selection_border_color="#FF0078D7"/>
@@ -478,7 +478,7 @@
     <Class name="list_ctrl_icon_view_item_label" width="100%" height="40" text_padding="2,0,2,0" text_align="hcenter,top" single_line="false" auto_tooltip="true"/>
     <!--ListCtrl中的ListView的样式-->
     <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="true" hscrollbar="true" height="100%" padding="0,0,0,0" paint_selected_colors="true"
-                                      horizontal_layout="false" item_size="240,36" rows="auto" child_margin_x="8" child_margin_y="8"
+                                      horizontal_layout="false" item_size="240,36" rows="auto" child_margin_x="8" child_margin_y="8" child_halign="left"
                                       frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border_size="1" frame_selection_border_color="#FF0078D7"/>

@@ -10,9 +10,16 @@ namespace ui
 {
 /** ListCtrl列表数据项UI控件（行）
 *    基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
-     附加说明: 1. ListCtrlItem 是HBox的子类;   
-              2. 每一列，放置一个ListCtrlSubItem控件
-              3. ListCtrlSubItem 是LabelBox的子类
+*    附加说明:
+*       1. ListCtrlItem 表示表格的某一行的UI控件
+*         (1) ListCtrlItem的父类的层级关系为：ListCtrlItemTemplate<HBox>: public ListBoxItemTemplate<HBox>: pubic OptionTemplate<HBox>)
+*         (2) ListCtrlItem中的子控件类型为ListCtrlSubItem，每个子控件代表一列中的一个格子
+*         (3) 当需要显示CheckBox的时候，ListCtrlItem设置自身的属性，显示CheckBox，因为它自身是OptionTemplate<HBox>的子类，有CheckBox的属性
+*       2. ListCtrlSubItem 表示表格的某行某列的一个格子的UI控件
+*         (1) ListCtrlSubItem的父类继承关系为：ListCtrlSubItem public : ListCtrlLabel: public LabelTemplate<HBox>
+*         (2) ListCtrlSubItem继承自LabelTemplate<HBox>，用于自身显示文本
+*         (3) 当需要显示CheckBox的时候，会添加一个子控件ListCtrlCheckBox，作为第一个元素
+*         (4) 当显示图标时，使用ListCtrl的ImageList资源，自绘的方式实现
 */
 class ListCtrl;
 class ListCtrlSubItem;

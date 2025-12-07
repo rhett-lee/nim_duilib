@@ -900,6 +900,8 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     //          2. 每一列，放置一个ListCtrlSubItem控件
     //          3. ListCtrlSubItem 是LabelBox的子类
 
+    // 详细的结构说明，参见：ListCtrlItem.h
+
     std::map<size_t, ListCtrlSubItemData2Ptr> subItemDataMap;
     for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
         subItemDataMap[dataPair.nColumnId] = dataPair.pSubItemData;
@@ -976,7 +978,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pItem->AddItem(pSubItem);
             if (!defaultSubItemClass.empty()) {
                 pSubItem->SetClass(defaultSubItemClass);
-            }            
+            }
         }
         //设置不获取焦点
         pSubItem->SetNoFocus();
@@ -985,7 +987,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         bool bEditable = (elementData.pStorage != nullptr) ? elementData.pStorage->bEditable : false;
         if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
             size_t nColumnId = elementData.nColumnId;
-            pSubItem->SetMouseEnabled(true);
+            pSubItem->SetEnableEdit(true);
             pSubItem->DetachEvent(kEventEnterEdit);
             pSubItem->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
                 if (m_pListCtrl != nullptr) {
@@ -995,8 +997,8 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 });
         }
         else {
+            pSubItem->SetEnableEdit(false);
             pSubItem->DetachEvent(kEventEnterEdit);
-            pSubItem->SetMouseEnabled(false);
         }
 
         //填充数据，设置属性        
@@ -1011,6 +1013,10 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
             }
             pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+            for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+                ControlStateType stateType = (ControlStateType)nState;
+                pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+            }
             if (!pStorage->textColor.IsEmpty()) {
                 pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
             }
@@ -1054,7 +1060,10 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
             pSubItem->SetText(defaultSubItem.GetText());
             pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+            for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+                ControlStateType stateType = (ControlStateType)nState;
+                pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+            }
             pSubItem->SetBkColor(defaultSubItem.GetBkColor());
             pSubItem->SetCheckBoxVisible(false);
             pSubItem->SetImageId(-1);

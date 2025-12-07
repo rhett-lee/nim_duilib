@@ -166,18 +166,23 @@ public:
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
+        Window* pWindow = GetWindow();
+        if (pWindow == nullptr) {
+            return;
+        }
+        const bool bWindowFocused = pWindow->IsWindowFocused();
         if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
             //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
+            auto labelFlag = GetWeakFlag();
+            auto windowFlag = pWindow->GetWeakFlag();
+            const Control* pFocus = pWindow->GetFocusControl();
             bool bButtonUpEvent = false;
-            if (IsEnabled() && IsMouseEnabled()) {
+            if (IsEnableEdit() && IsEnabled() && IsMouseEnabled()) {
                 if (msg.eventType == kEventMouseButtonDown) {
-                    m_bMouseDown = false;
-                    if (GetWindow() != nullptr) {
-                        const Control* pFocus = GetWindow()->GetFocusControl();
-                        if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
-                            //避免每次点击都进入编辑模式
-                            m_bMouseDown = true;
-                        }
+                    m_bMouseDown = false;                    
+                    if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
+                        //避免每次点击都进入编辑模式
+                        m_bMouseDown = true;
                     }
                 }
                 else if (msg.eventType == kEventMouseButtonUp) {
@@ -186,18 +191,32 @@ public:
                         bButtonUpEvent = true;
                     }                    
                 }
-            }
+            }            
             Box* pParent = GetParent();
             if (pParent != nullptr) {
+                //必须转发给父控件，否则ListBox的基本功能不正常                
                 pParent->SendEventMsg(msg);
+                if (labelFlag.expired() || windowFlag.expired()) {
+                    return;
+                }
+
+                //窗口焦点发生变化，不再传递该消息(比如弹出右键菜单等)
+                if (bWindowFocused != pWindow->IsWindowFocused()) {
+                    return;
+                }
             }
-            if (bButtonUpEvent) {
+            if (bButtonUpEvent && IsEnableEdit()) {
                 //进入编辑状态
                 OnItemEnterEditMode();
             }
-            return;
+            if (!IsDisabledEvents(msg)) {
+                BaseClass::HandleEvent(msg);
+            }
         }
-        BaseClass::HandleEvent(msg);
+        else {
+            //非鼠标消息，直接处理
+            BaseClass::HandleEvent(msg);
+        }        
     }
 
     /** 进入编辑状态
@@ -244,18 +263,26 @@ public:
 
     /** 设置关联的列表项
     */
-    /** 关联的列表项
-    */
     void SetListBoxItem(Control* pListBoxItem)
     {
         m_pListBoxItem = pListBoxItem;
     }
 
-private:
-    /** 是否鼠标点击在控件范围内
+    /** 设置是否支持文本编辑
     */
-    bool m_bMouseDown = false;
+    void SetEnableEdit(bool bEnableEdit)
+    {
+        m_bEnableEdit = bEnableEdit;
+    }
 
+    /** 获取是否支持文本编辑
+    */
+    bool IsEnableEdit() const
+    {
+        return m_bEnableEdit;
+    }
+
+private:
     /** 关联的列表项
     */
     Control* m_pListBoxItem = nullptr;
@@ -263,6 +290,14 @@ private:
     /** 文本所在位置的矩形区域
     */
     UiRect m_textRect;
+
+    /** 是否鼠标点击在控件范围内
+    */
+    bool m_bMouseDown = false;
+
+    /** 是否支持文本编辑
+    */
+    bool m_bEnableEdit = false;
 };
 
 /** 编辑状态的输入参数
