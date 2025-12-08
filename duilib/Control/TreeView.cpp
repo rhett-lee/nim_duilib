@@ -359,12 +359,12 @@ bool TreeNode::IsVisibleInternal() const
     return true;
 }
 
-bool TreeNode::SupportCheckedMode() const
+bool TreeNode::SupportCheckMode() const
 {
     bool bHasStateImages = HasStateImages();
     if (!bHasStateImages || (m_pTreeView == nullptr)) {
         //如果没有状态图片(CheckBox打勾的图片)，返回默认值
-        return BaseClass::SupportCheckedMode();
+        return BaseClass::SupportCheckMode();
     }
     //多选的时候，支持; 单选的时候，不支持
     return m_pTreeView->IsMultiCheckMode();
@@ -457,7 +457,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
     bool bAdded = m_pTreeView->ListBox::AddItemAt(pTreeNode, nInsertIndex);
     if (bAdded) {
-        if (SupportCheckedMode()) {
+        if (SupportCheckMode()) {
             //新添加的节点状态，跟随父节点
             pTreeNode->SetChecked(IsChecked());
             //更新节点的勾选状态
@@ -750,7 +750,7 @@ void TreeNode::SetEnableIcon(bool bEnable)
 
 void TreeNode::SetChildrenCheckStatus(bool bChecked)
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -764,7 +764,7 @@ void TreeNode::SetChildrenCheckStatus(bool bChecked)
 
 void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -778,7 +778,7 @@ void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 
 void TreeNode::UpdateSelfCheckStatus()
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -791,35 +791,35 @@ void TreeNode::UpdateSelfCheckStatus()
         else {
             //更新为：TreeNodeCheck::UnCheck
             SetChecked(false);
-            SetPartSelected(false);
+            SetPartChecked(false);
             Invalidate();
         }
     }
     else if (nodeCheck == TreeNodeCheck::CheckedAll) {
         //更新为：TreeNodeCheck::CheckedAll
         if (bChecked) {
-            if (IsPartSelected()) {
-                SetPartSelected(false);
+            if (IsPartChecked()) {
+                SetPartChecked(false);
                 Invalidate();
             }
         }
         else {            
             SetChecked(true);
-            SetPartSelected(false);
+            SetPartChecked(false);
             Invalidate();
         }
     }
     else if (nodeCheck == TreeNodeCheck::CheckedPart) {
         //更新为：TreeNodeCheck::CheckedPart
         SetChecked(true);
-        SetPartSelected(true);
+        SetPartChecked(true);
         Invalidate();
     }
 }
 
 TreeNodeCheck TreeNode::GetCheckStatus(void) const
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：只按当前节点状态判断结果
         return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
     }
@@ -862,7 +862,7 @@ TreeNodeCheck TreeNode::GetCheckStatus(void) const
 
 TreeNodeCheck TreeNode::GetChildrenCheckStatus(void) const
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：只按当前节点状态判断结果
         return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
     }
@@ -935,7 +935,7 @@ bool TreeNode::RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus)
     if (pTreeNode != nullptr) {
         bRemoved = pTreeNode->RemoveSelf();
     }
-    if (bUpdateCheckStatus && SupportCheckedMode()) {
+    if (bUpdateCheckStatus && SupportCheckMode()) {
         //更新节点的勾选状态
         UpdateSelfCheckStatus();
         UpdateParentCheckStatus(false);
@@ -1556,7 +1556,7 @@ void TreeView::OnNodeCheckStatusChanged(TreeNode* pTreeNode)
     if (pTreeNode == nullptr) {
         return;
     }
-    if (!pTreeNode->SupportCheckedMode()) {
+    if (!pTreeNode->SupportCheckMode()) {
         //单选或者不显示CheckBox：直接返回
         return;
     }

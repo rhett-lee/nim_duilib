@@ -10,6 +10,19 @@
 
 namespace ui {
 
+/** CheckBox功能的实现，功能要点如下：
+ *  1. CheckBox有两种状态：m_bSelected（选择状态） 和 m_bChecked（勾选状态）
+ *  2. 选择状态：鼠标点击CheckBox任何区域，都会触发m_bSelected（选择状态）的变化
+ *  3. 勾选状态：只有鼠标点击在CheckBox图标上时，才会触发m_bChecked（勾选状态）的变化，点击其他区域，勾选状态不变
+ *  4. 选择状态(m_bSelected)的变化，当 IsAutoCheckSelect() 函数返回true时，会导致勾选状态(m_bChecked)的变化，保持状态一致(Select -> Check)
+ *  5. 勾选状态(m_bChecked)的变化，当 IsAutoSelectCheck() 函数返回true时，会导致选择状态(m_bSelected)的变化，保持状态一致(Check - Select)
+ *  6. 默认情况下，勾选状态关闭，当 SupportCheckMode() 函数返回true时，开启勾选状态
+ *  7. m_bSelected（选择状态） 和 m_bChecked（勾选状态）共享图片资源和字体相关资源
+ *  8. m_bSelected（选择状态）支持三态：选择/部分选择/未选择
+ *  9. m_bChecked（勾选状态）支持三态：勾选/部分勾选/未勾选
+ * 10. CheckBox继承自Button类，不会触发按钮的kEventClick事件，但会执行Activate这个虚函数
+ */
+
 template<typename InheritType = Control>
 class UILIB_API CheckBoxTemplate : public ButtonTemplate<InheritType>
 {
@@ -36,41 +49,7 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
-    /** 关闭CheckBox功能，清除CheckBox的所有图片属性(比如树节点，CheckBox功能是可用通过开关开启或者关闭的)
-    */
-    void ClearStateImages();
-
-    /**
-     * @brief 选择状态下，没有设置背景色或背景图时，是否用非选择状态的对应属性来绘制
-     * @return 返回 true 为选择状态，否则为 false
-     */
-    bool IsPaintNormalFirst() const { return m_bPaintNormalFirst; }
-
-    /**
-     * @brief 设置控件选择状态下，没有设置背景色或背景图时，用非选择状态的对应属性来绘制
-     * @param[in] bFirst 为 true 绘制非选择状态属性，false 不绘制
-     * @return 无
-     */
-    void SetPaintNormalFirst(bool bFirst) { m_bPaintNormalFirst = bFirst; }
-
-    /**
-     * @brief 判断当前是否是选择状态
-     * @return 返回 true 为选择状态，否则为 false
-     */
-    bool IsSelected() const { return m_bSelected; }
-
-    /** 设置选择状态，但不触发事件，不更新界面
-    * @param [in] bSelected true为选择状态，false为非选择状态
-    */
-    virtual void SetSelected(bool bSelected);
-
-    /** 设置控件是否选择状态
-     * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
-     * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
-     */
-    virtual void Selected(bool bSelected, bool bTriggerEvent = false, uint64_t vkFlag = 0);
-
+public:
     /** 获取被选择时的图片
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 返回图片路径和属性
@@ -115,13 +94,6 @@ public:
      */
     void SetSelectedStateTextColor(ControlStateType stateType, const DString& dwTextColor);
 
-    /** 获取被选择时指定状态下的实际被渲染文本颜色
-     * @param [in] buttonStateType 要获取何种状态下的颜色
-     * @param [out] stateType 实际被渲染的状态
-     * @return 返回颜色字符串，该值在 global.xml 中定义
-     */
-    DString GetPaintSelectedStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType) const;
-
     /** 获取被选择时的控件颜色
      * @param [in] stateType 要获取何种状态下的颜色
      * @return 返回颜色字符串，该值在 global.xml 中定义
@@ -151,60 +123,7 @@ public:
     void SetSelectedStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
     void SetSelectedStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
-    /** 监听被选择时的事件
-     * @param [in] callback 被选择时触发的回调函数
-     */
-    void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
-
-    /** 监听取消选择时的事件
-     * @param [in] callback 取消选择时触发的回调函数
-     */
-    void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
-
-public: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的函数）
-
-    /** 鼠标按键弹起事件，用于判断是否点击在CheckBox图片上
-    */
-    virtual bool ButtonUp(const EventArgs& msg) override;
-
-    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
-   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
-    */
-    virtual bool CanPaintSelectedColors() const { return true; }
-
-    /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
-        勾选模式是指：
-        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
-        （2）勾选状态和选择状态分离，是两个不同的状态
-    */
-    virtual bool SupportCheckedMode() const { return false; }
-
-    /** 设置是否自动勾选选择的数据项(作用于Header与每行)
-    */
-    void SetAutoCheckSelect(bool bAutoCheckSelect) { m_bAutoCheckSelect = bAutoCheckSelect; }
-
-    /** 获取是否自动勾选选择的数据项
-    */
-    bool IsAutoCheckSelect() const { return m_bAutoCheckSelect; }
-
-    /** 是否处于勾选状态, 仅当 SupportCheckedMode() 函数为true的时候，有意义
-    */
-    bool IsChecked() const { return m_bChecked; }
-
-    /** 设置Check状态
-    * @param [in] bChecked 是否设置为Check状态
-    * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
-    */
-    void SetChecked(bool bChecked, bool bTriggerEvent = false);
-
-    /** 设置部分选择标志（支持三态选择标志：全部选择/部分选择/未选择）
-    */
-    void SetPartSelected(bool bPartSelected);
-
-    /** 当前是否为部分选择
-    */
-    bool IsPartSelected() const;
-
+public:
     /** 获取部分选择时的图片
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 返回图片路径和属性
@@ -228,24 +147,151 @@ public: //（三态选择[全部选择、部分选择、未选择]/勾选模式�
      */
     void SetPartSelectedForeStateImage(ControlStateType stateType, const DString& strImage);
 
-    /** 监听被勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
+public:
+    /** 判断当前是否是选择状态
+     * @return 返回 true 为选择状态，否则为 false
+     */
+    bool IsSelected() const { return m_bSelected; }
+
+    /** 设置选择状态，但不触发事件，不更新界面
+    * @param [in] bSelected true为选择状态，false为非选择状态
+    */
+    virtual void SetSelected(bool bSelected);
+
+    /** 设置控件是否选择状态
+     * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
+     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+     * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+     */
+    virtual void Selected(bool bSelected, bool bTriggerEvent = false, uint64_t vkFlag = 0);
+
+    /** 设置部分选择标志（支持三态选择标志：全部选择/部分选择/未选择）
+    * @return 如果状态变化返回true，否则返回false
+    */
+    bool SetPartSelected(bool bPartSelected);
+
+    /** 当前是否为部分选择
+    */
+    bool IsPartSelected() const { return m_bPartSelected; }
+
+    /** 设置当选择状态变化时，是否自动同步到勾选状态，保持勾选状态与选择状态一致(Select -> Check)
+    * @param [in] bAutoCheckSelect 如果为true，表示Check状态与Select状态保持同步
+    */
+    void SetAutoCheckSelect(bool bAutoCheckSelect) { m_bAutoCheckSelected = bAutoCheckSelect; }
+
+    /** 获取当选择状态变化时，是否自动同步到勾选状态 (Select -> Check)
+    */
+    bool IsAutoCheckSelect() const { return m_bAutoCheckSelected; }
+
+    /** 监听被选择时的事件
+     * @param [in] callback 被选择时触发的回调函数
+     */
+    void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
+
+    /** 监听取消选择时的事件
+     * @param [in] callback 取消选择时触发的回调函数
+     */
+    void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
+
+public:
+    ///（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的函数）
+
+    /** 是否处于勾选状态, 仅当 SupportCheckMode() 函数为true的时候，有意义
+    */
+    bool IsChecked() const { return m_bChecked; }
+
+    /** 设置Check状态
+    * @param [in] bChecked 是否设置为Check状态
+    * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+    */
+    void SetChecked(bool bChecked, bool bTriggerEvent = false);
+
+    /** 设置部分勾选标志（支持三态勾选标志：全部勾选/部分勾选/未勾选）
+    * @return 如果状态变化返回true，否则返回false
+    */
+    bool SetPartChecked(bool bPartChecked);
+
+    /** 当前是否为部分选择
+    */
+    bool IsPartChecked() const { return m_bPartChecked; }
+
+    /** 设置当勾选状态变化时，是否自动同步到选择状态，保持选择状态与勾选状态一致(Check -> Select)
+    * @param [in] bAutoSelectCheck 如果为true，表示Select状态与Check状态保持同步
+    */
+    void SetAutoSelectCheck(bool bAutoSelectCheck) { m_bAutoSelectChecked = bAutoSelectCheck; }
+
+    /** 获取当勾选状态变化时，是否自动同步到选择状态 (Check -> Select)
+    */
+    bool IsAutoSelectCheck() const { return m_bAutoSelectChecked; }
+
+    /** 监听被勾选时的事件（仅当 SupportCheckMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 被选择时触发的回调函数
      */
     void AttachCheck(const EventCallback& callback) { this->AttachEvent(kEventCheck, callback); }
 
-    /** 监听取消勾选时的事件（仅当 SupportCheckedMode() 函数为true的时候，会有这个事件）
+    /** 监听取消勾选时的事件（仅当 SupportCheckMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 取消选择时触发的回调函数
      */
     void AttachUnCheck(const EventCallback& callback) { this->AttachEvent(kEventUnCheck, callback); }
 
-protected:
-    /** 内部设置选择状态
+    /** 当前点击是否点击在CheckBox图标上（Check模式使用，用于在Activate函数中判断鼠标的点击位置）
     */
-    void PrivateSetSelected(bool bSelected);
+    bool IsCheckBoxImageClicked() const;
+
+    /** 设置是否支持勾选模式
+    */
+    void SetSupportCheckMode(bool bSupport) { m_bSupportCheckMode = bSupport; }
+
+    /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
+        勾选模式是指：
+        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
+        （2）勾选状态和选择状态分离，是两个不同的状态
+    */
+    virtual bool SupportCheckMode() const { return m_bSupportCheckMode; }
+
+    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+    *   （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+    */
+    virtual bool CanPaintSelectedColors() const { return true; }
+
+public:
+    /** 关闭CheckBox功能，清除CheckBox的所有图片属性(比如树节点，CheckBox功能是可用通过开关开启或者关闭的)
+    */
+    void ClearStateImages();
+
+    /** 选择状态下，没有设置背景色或背景图时，是否用非选择状态的对应属性来绘制
+     * @return 返回 true 为选择状态，否则为 false
+     */
+    bool IsPaintNormalFirst() const { return m_bPaintNormalFirst; }
+
+    /** 设置控件选择状态下，没有设置背景色或背景图时，用非选择状态的对应属性来绘制
+     * @param[in] bFirst 为 true 绘制非选择状态属性，false 不绘制
+     * @return 无
+     */
+    void SetPaintNormalFirst(bool bFirst) { m_bPaintNormalFirst = bFirst; }
+
+protected:
+    /** 鼠标按键弹起事件，用于判断是否点击在CheckBox图片上(实现勾选功能)
+    */
+    virtual bool ButtonUp(const EventArgs& msg) override;
+
+protected:
+    /** 获取被选择时指定状态下的实际被渲染文本颜色
+     * @param [in] buttonStateType 要获取何种状态下的颜色
+     * @param [out] stateType 实际被渲染的状态
+     * @return 返回颜色字符串，该值在 global.xml 中定义
+     */
+    DString GetPaintSelectedStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType) const;
+
+    /** 内部设置选择状态
+    * @return 返回true表示内部状态有变化，否则表示无变化
+    */
+    bool PrivateSetSelected(bool bSelected);
 
     /** 内部设置勾选状态
+    * @return 返回true表示内部状态有变化，否则表示无变化
     */
-    void PrivateSetChecked(bool bChecked);
+    bool PrivateSetChecked(bool bChecked);
 
     /** 选择状态变化事件(m_bSelected变量发生变化)
     */
@@ -268,23 +314,36 @@ private:
     //选择状态
     bool m_bSelected;
 
-    //是否优先绘制Normal状态
-    bool m_bPaintNormalFirst;
-
-private: //（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的变量）
-
     //是否为部分选择（只影响选择状态下绘制哪个图片，对业务无影响）
     bool m_bPartSelected;
 
-    //是否已经处于Check状态（仅当 SupportCheckedMode() 函数为true的时候，有意义）
+    /** 当选择的时候，是否自动勾选，就是当m_bSelected变化的时候，同步修改m_bChecked，保持值相同
+     */
+    bool m_bAutoCheckSelected;
+
+    //是否优先绘制Normal状态
+    bool m_bPaintNormalFirst;
+
+private:
+    ///（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的变量）
+
+    //是否支持勾选功能
+    bool m_bSupportCheckMode;
+
+    //是否已经处于Check状态（仅当 SupportCheckMode() 函数为true的时候，有意义）
     bool m_bChecked;
 
-    /** 当选择的时候，是否自动勾选，就是当m_bSelected变化的时候，同步修改m_bChecked，保持值相同
-    *   但当m_bChecked变化的时候，不会同步给m_bSelected
-    */
-    bool m_bAutoCheckSelect;
+    //是否为部分勾选（只影响勾选状态下绘制哪个图片，对业务无影响）
+    bool m_bPartChecked;
 
-    //CheckBox图标所在的矩形（仅当 SupportCheckedMode() 函数为true的时候，有意义）
+    /** 当勾选的时候，是否自动选择，就是当m_bChecked变化的时候，同步修改m_bSelected，保持值相同
+    */
+    bool m_bAutoSelectChecked;
+
+    //当前点击是否点击在CheckBox图标上
+    bool m_bCheckBoxImageClicked;
+
+    //CheckBox图标所在的矩形（仅当 SupportCheckMode() 函数为true的时候，有意义）
     UiRect* m_pCheckBoxImageRect;
 };
 
@@ -297,9 +356,13 @@ CheckBoxTemplate<InheritType>::CheckBoxTemplate(Window* pWindow) :
     m_pSelectedTextColorMap(nullptr),
     m_pSelectedColorMap(nullptr),
     m_bPartSelected(false),
+    m_bSupportCheckMode(false),
     m_bChecked(false),
+    m_bPartChecked(false),
     m_pCheckBoxImageRect(nullptr),
-    m_bAutoCheckSelect(false)
+    m_bAutoCheckSelected(false),
+    m_bAutoSelectChecked(false),
+    m_bCheckBoxImageClicked(false)
 {
 }
 
@@ -341,8 +404,16 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     else if ((strName == _T("switch_select")) || (strName == _T("switchselect"))) {
         Selected(!IsSelected());
     }
+    else if (strName == _T("support_check_Mode")) {
+        SetSupportCheckMode(strValue == _T("true"));
+    }
     else if (strName == _T("auto_check_select")) {
+        //设置当选择状态变化时，是否自动同步到勾选状态，保持勾选状态与选择状态一致(Select->Check)
         SetAutoCheckSelect(strValue == _T("true"));
+    }
+    else if (strName == _T("auto_select_check")) {
+        //设置当勾选状态变化时，是否自动同步到选择状态，保持选择状态与勾选状态一致(Check -> Select)
+        SetAutoSelectCheck(strValue == _T("true"));
     }
     else if ((strName == _T("normal_first")) || (strName == _T("normalfirst"))) {
         SetPaintNormalFirst(strValue == _T("true"));
@@ -470,6 +541,9 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
+    if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
+        return;
+    }
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     if (m_pSelectedColorMap != nullptr) {
         for (int32_t nStateType = 0; nStateType < kControlStateCount; ++nStateType) {
@@ -493,51 +567,40 @@ void CheckBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32
 template<typename InheritType>
 bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {
-    std::weak_ptr<WeakFlag> weakFlag;
-    if (this->GetWindow() != nullptr) {
-        weakFlag = this->GetWindow()->GetWeakFlag();
+    std::weak_ptr<WeakFlag> weakFlag = this->GetWeakFlag();
+    bool bSetChecked = false;
+    bool bCheckedMode = SupportCheckMode();
+    if (bCheckedMode && (m_pCheckBoxImageRect != nullptr)) {
+        if (this->IsEnabled()) {
+            UiRect pos = this->GetPos();
+            UiPoint pt(msg.ptMouse);
+            pt.Offset(this->GetScrollOffsetInScrollBox());
+            if (pos.ContainsPt(pt) && m_pCheckBoxImageRect->ContainsPt(pt)) {
+                //确认点击在CheckBox图标上面，改变勾选状态(开关属性)
+                SetChecked(!IsChecked(), true);
+                bSetChecked = true;
+                if (weakFlag.expired()) {
+                    return true;
+                }
+            }
+        }        
     }
-    else {
-        weakFlag = this->GetWeakFlag();
+    if (bSetChecked) {
+        //标记为点击在CheckBox图标上
+        m_bCheckBoxImageClicked = true;
     }
     bool bRet = BaseClass::ButtonUp(msg);
-    if (weakFlag.expired()) {
-        return true;
-    }
-    bool bCheckedMode = SupportCheckedMode();
-    if (bCheckedMode && (m_pCheckBoxImageRect != nullptr)) {
-        if (!this->IsEnabled()) {
-            return bRet;
-        }
-        UiRect pos = this->GetPos();
-        UiPoint pt(msg.ptMouse);
-        pt.Offset(this->GetScrollOffsetInScrollBox());
-        if (!pos.ContainsPt(pt) || !m_pCheckBoxImageRect->ContainsPt(pt)) {
-            return bRet;
-        }
-
-        //确认点击在CheckBox图标上面，改变勾选状态(开关属性)
-        SetChecked(!IsChecked(), true);
+    if (bSetChecked && !weakFlag.expired()) {
+        //取消标记为点击在CheckBox图标上
+        m_bCheckBoxImageClicked = false;
     }
     return bRet;
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::SetChecked(bool bChecked, bool bTriggerEvent)
+bool CheckBoxTemplate<InheritType>::IsCheckBoxImageClicked() const
 {
-    if (m_bChecked == bChecked) {
-        return;
-    }
-    PrivateSetChecked(bChecked);
-    if (bTriggerEvent) {
-        if (bChecked) {
-            this->SendEvent(kEventCheck);
-        }
-        else {
-            this->SendEvent(kEventUnCheck);
-        }
-    }
-    this->Invalidate();    
+    return m_bCheckBoxImageClicked;
 }
 
 template<typename InheritType>
@@ -550,72 +613,169 @@ void CheckBoxTemplate<InheritType>::Activate(const EventArgs* /*pMsg*/)
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::PrivateSetSelected(bool bSelected)
-{
-    bool bChanged = m_bSelected != bSelected;
-    if (bChanged) {
-        m_bSelected = bSelected;
-    }
-    if (!bSelected && m_bPartSelected) {
-        //非选择状态时，对部分选择标记复位
-        m_bPartSelected = false;
-    }
-    if (bChanged) {
-        OnPrivateSetSelected();
-    }
-    if (IsAutoCheckSelect()) {
-        //自动同步给Check变量
-        PrivateSetChecked(m_bSelected);
-    }
-}
-
-template<typename InheritType>
-void CheckBoxTemplate<InheritType>::PrivateSetChecked(bool bChecked)
-{
-    bool bChanged = m_bChecked != bChecked;
-    if (bChanged) {
-        m_bChecked = bChecked;
-        OnPrivateSetChecked();
-    }
-}
-
-template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetSelected(bool bSelected)
-{ 
+{
+    //只修改变量值，不触发事件，不更新界面
     PrivateSetSelected(bSelected);
 }
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
-    if (m_bSelected == bSelected) {
-        return;
-    }
-    PrivateSetSelected(bSelected);
-    if (bTriggerEvent) {
-        if (bSelected) {
+    bool bSelectChanged = m_bSelected != bSelected;
+    bool bChanged = PrivateSetSelected(bSelected);
+    if (bTriggerEvent && bSelectChanged) {
+        auto flag = this->GetWeakFlag();
+        if (m_bSelected) {
             this->SendEvent(kEventSelect);
         }
         else {
             this->SendEvent(kEventUnSelect);
         }
+        if (flag.expired()) {
+            return;
+        }
+        if (IsAutoCheckSelect()) {
+            //同步触发Check事件
+            if (m_bChecked) {
+                this->SendEvent(kEventCheck);
+            }
+            else {
+                this->SendEvent(kEventUnCheck);
+            }
+            if (flag.expired()) {
+                return;
+            }
+        }
     }
-    this->Invalidate();
+    if (bChanged) {
+        this->Invalidate();
+    }    
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::SetPartSelected(bool bPartSelected)
-{ 
+bool CheckBoxTemplate<InheritType>::PrivateSetSelected(bool bSelected)
+{
+    bool bChanged = false;
+    bool bSelectChanged = false;
+    if (m_bSelected != bSelected) {
+        m_bSelected = bSelected;
+        bSelectChanged = true;
+        bChanged = true;
+    }
+    if (!bSelected && m_bPartSelected) {
+        //非选择状态时，对部分选择标记复位
+        m_bPartSelected = false;
+        bChanged = true;
+    }
+    if (IsAutoCheckSelect()) {
+        //自动同步给Check变量
+        bChanged = PrivateSetChecked(m_bSelected);
+    }
+    if (bSelectChanged) {
+        OnPrivateSetSelected();
+    }
+    return bChanged;
+}
+
+template<typename InheritType>
+bool CheckBoxTemplate<InheritType>::SetPartSelected(bool bPartSelected)
+{
+    bool bChanged = false;
     if (m_bPartSelected != bPartSelected) {
-        m_bPartSelected = bPartSelected;
+        m_bPartSelected = bPartSelected;        
+        bChanged = true;
+    }
+    if (IsAutoCheckSelect()) {
+        //自动同步给PartChecked变量
+        if (m_bPartChecked != bPartSelected) {
+            m_bPartChecked = bPartSelected;
+            bChanged = true;
+        }
+    }
+    if (bChanged) {
+        this->Invalidate();
+    }
+    return bChanged;
+}
+
+template<typename InheritType>
+void CheckBoxTemplate<InheritType>::SetChecked(bool bChecked, bool bTriggerEvent)
+{
+    bool bCheckChanged = m_bChecked != bChecked;
+    bool bChanged = PrivateSetChecked(bChecked);
+    if (bTriggerEvent && bCheckChanged) {
+        auto flag = this->GetWeakFlag();
+        if (m_bChecked) {
+            this->SendEvent(kEventCheck);
+        }
+        else {
+            this->SendEvent(kEventUnCheck);
+        }
+        if (flag.expired()) {
+            return;
+        }
+        if (IsAutoSelectCheck()) {
+            if (m_bSelected) {
+                this->SendEvent(kEventSelect);
+            }
+            else {
+                this->SendEvent(kEventUnSelect);
+            }
+            if (flag.expired()) {
+                return;
+            }
+        }
+    }
+    if (bChanged) {
         this->Invalidate();
     }
 }
 
 template<typename InheritType>
-bool CheckBoxTemplate<InheritType>::IsPartSelected() const
+bool CheckBoxTemplate<InheritType>::SetPartChecked(bool bPartChecked)
 {
-    return m_bPartSelected;
+    bool bChanged = false;
+    if (m_bPartChecked != bPartChecked) {
+        m_bPartChecked = bPartChecked;
+        bChanged = true;
+    }
+    if (IsAutoSelectCheck()) {
+        //自动同步给PartSelected变量
+        if (m_bPartSelected != bPartChecked) {
+            m_bPartSelected = bPartChecked;
+            bChanged = true;
+        }
+    }
+    if (bChanged) {
+        this->Invalidate();
+    }
+    return bChanged;
+}
+
+template<typename InheritType>
+bool CheckBoxTemplate<InheritType>::PrivateSetChecked(bool bChecked)
+{
+    bool bChanged = false;
+    bool bCheckChanged = false;
+    if (m_bChecked != bChecked) {
+        m_bChecked = bChecked;
+        bChanged = true;
+        bCheckChanged = true;
+    }
+    if (!bChecked && m_bPartChecked) {
+        //非选择状态时，对部分选择标记复位
+        m_bPartChecked = false;
+        bChanged = true;
+    }    
+    if (IsAutoSelectCheck()) {
+        //自动同步给Select变量
+        bChanged = PrivateSetSelected(m_bChecked);
+    }
+    if (bCheckChanged) {
+        OnPrivateSetChecked();
+    }
+    return bChanged;
 }
 
 template<typename InheritType>
@@ -681,20 +841,20 @@ void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 {
-    bool bCheckedMode = SupportCheckedMode();
-    if (bCheckedMode && (m_pCheckBoxImageRect == nullptr)) {
+    bool bCheckMode = SupportCheckMode();
+    if (bCheckMode && (m_pCheckBoxImageRect == nullptr)) {
         m_pCheckBoxImageRect = new UiRect;
     }
 
     bool isSelectNone = false;
-    if (bCheckedMode) {
-        //如果SupportCheckedMode()为true，则按IsChecked()判断是否显示选择状态的图片
+    if (bCheckMode) {
+        //如果SupportCheckMode()为true，则按IsChecked()判断是否显示选择状态的图片
         if (!IsChecked()) {
             isSelectNone = true;
         }
     }
     else {
-        //如果SupportCheckedMode()为false，则按IsSelected()判断是否显示选择状态的图片
+        //如果SupportCheckMode()为false，则按IsSelected()判断是否显示选择状态的图片
         if (!IsSelected()) {
             isSelectNone = true;
         }
@@ -706,8 +866,8 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
         this->PaintStateImage(pRender, kStateImageFore, this->GetState(), _T(""), m_pCheckBoxImageRect);
         return;
     }
-
-    if (this->IsPartSelected()) {
+    bool bPartSelected = bCheckMode ? this->IsPartChecked() : this->IsPartSelected();
+    if (bPartSelected) {
         //部分选择状态
         bool bPainted = false;
         if (this->HasStateImage(kStateImagePartSelectedBk)) {

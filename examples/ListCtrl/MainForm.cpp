@@ -270,7 +270,7 @@ void MainForm::OnInitWindow()
         ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            pHeaderItem->SetCheckBoxVisible(bCheckBoxVisible);
+            pHeaderItem->SetShowCheckBox(bCheckBoxVisible);
         }
     };
     pColumnHeaderCheckBox->AttachSelect([this, OnSetCheckBoxVisible](const ui::EventArgs&) {
@@ -296,7 +296,7 @@ void MainForm::OnInitWindow()
         ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            bCheckBoxVisible = pHeaderItem->IsCheckBoxVisible();
+            bCheckBoxVisible = pHeaderItem->IsShowCheckBox();
         }
         pColumnShowCheckBox->Selected(bCheckBoxVisible, false);
         pColumnShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
@@ -769,7 +769,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 
     pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
     pColumnDragOrder->Selected(pHeaderItem->IsEnableDragOrder(), false);
-    pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
+    pColumnHeaderCheckBox->Selected(pHeaderItem->IsShowCheckBox(), false);
     pColumnHeaderIcon->SetSelected(pHeaderItem->GetImageId() >= 0);
 
     bool bColumnDataHasCheckBox = false;
@@ -779,7 +779,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     if (pItem != nullptr) {
         ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
         if (pSubItem != nullptr) {
-            bColumnDataHasCheckBox = pSubItem->IsCheckBoxVisible();
+            bColumnDataHasCheckBox = pSubItem->IsShowCheckBox();
             bColumnDataHasIcon = pSubItem->GetImageId() >= 0;
         }
     }

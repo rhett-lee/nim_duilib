@@ -1031,28 +1031,26 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             }
             if (pStorage->bShowCheckBox) {
                 //添加CheckBox
-                pSubItem->SetCheckBoxVisible(true);
-                CheckBox* pCheckBox = pSubItem->GetCheckBox();
-                ASSERT(pCheckBox != nullptr);
-
+                pSubItem->SetShowCheckBox(true);
                 //挂载CheckBox的事件处理
-                if (pCheckBox != nullptr) {
-                    pCheckBox->DetachEvent(kEventSelect);
-                    pCheckBox->DetachEvent(kEventUnSelect);
-                    pCheckBox->SetSelected(pStorage->bChecked);
-                    size_t nColumnId = elementData.nColumnId;
-                    pCheckBox->AttachSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnSubItemColumnChecked(nElementIndex, nColumnId, true);
-                        return true;
-                        });
-                    pCheckBox->AttachUnSelect([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                        OnSubItemColumnChecked(nElementIndex, nColumnId, false);
-                        return true;
-                        });
-                }
+                pSubItem->DetachEvent(kEventCheck);
+                pSubItem->DetachEvent(kEventUnCheck);
+                pSubItem->SetChecked(pStorage->bChecked, false);
+                size_t nColumnId = elementData.nColumnId;
+                pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                    OnSubItemColumnChecked(nElementIndex, nColumnId, true);
+                    return true;
+                    });
+                pSubItem->AttachUnCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                    OnSubItemColumnChecked(nElementIndex, nColumnId, false);
+                    return true;
+                    });
             }
             else {
-                pSubItem->SetCheckBoxVisible(false);
+                pSubItem->SetShowCheckBox(false);
+                pSubItem->DetachEvent(kEventCheck);
+                pSubItem->DetachEvent(kEventUnCheck);
+                pSubItem->SetChecked(false, false);
             }
             pSubItem->SetImageId(pStorage->nImageId);
         }
@@ -1065,7 +1063,10 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
             }
             pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            pSubItem->SetCheckBoxVisible(false);
+            pSubItem->SetShowCheckBox(false);
+            pSubItem->DetachEvent(kEventCheck);
+            pSubItem->DetachEvent(kEventUnCheck);
+            pSubItem->SetChecked(false, false);
             pSubItem->SetImageId(-1);
         }
     }
@@ -1109,7 +1110,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
             subItem.SetTextStyle(defaultSubItem.GetTextStyle(), false);
         }
         subItem.SetTextPadding(defaultSubItem.GetTextPadding(), false);
-        subItem.SetCheckBoxVisible(pStorage->bShowCheckBox);
+        subItem.SetShowCheckBox(pStorage->bShowCheckBox);
         subItem.SetImageId(pStorage->nImageId);
         subItem.SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
         subItem.SetFixedHeight(UiFixedInt::MakeAuto(), false, false);

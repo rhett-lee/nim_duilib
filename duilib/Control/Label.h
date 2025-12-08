@@ -1,8 +1,8 @@
 #ifndef UI_CONTROL_LABEL_H_
 #define UI_CONTROL_LABEL_H_
 
-#include "duilib/Core/DpiManager.h"
 #include "duilib/Control/LabelImpl.h"
+#include "duilib/Core/DpiManager.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 

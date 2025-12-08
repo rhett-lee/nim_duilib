@@ -148,7 +148,7 @@ bool ListCtrlItem::ButtonUp(const EventArgs& msg)
     }
 }
 
-bool ListCtrlItem::SupportCheckedMode() const
+bool ListCtrlItem::SupportCheckMode() const
 {
     return true;
 }
@@ -182,6 +182,11 @@ bool ListCtrlItem::IsShowCheckBox() const
 {
     //如果有CheckBox图片资源，则认为显示了CheckBox
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
+}
+
+bool ListCtrlItem::IsCheckBoxChecked() const
+{
+    return IsShowCheckBox() && IsChecked();
 }
 
 int32_t ListCtrlItem::GetCheckBoxImageWidth()
