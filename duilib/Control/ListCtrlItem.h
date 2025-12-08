@@ -18,7 +18,7 @@ namespace ui
 *       2. ListCtrlSubItem 表示表格的某行某列的一个格子的UI控件
 *         (1) ListCtrlSubItem的父类继承关系为：ListCtrlSubItem public : ListCtrlLabel: public LabelTemplate<HBox>
 *         (2) ListCtrlSubItem继承自LabelTemplate<HBox>，用于自身显示文本
-*         (3) 当需要显示CheckBox的时候，会添加一个子控件ListCtrlCheckBox，作为第一个元素
+*         (3) 当需要显示CheckBox的时候，ListCtrlSubItem设置自身的属性，显示CheckBox，因为它自身是CheckBoxTemplate<HBox>的子类，有CheckBox的属性
 *         (4) 当显示图标时，使用ListCtrl的ImageList资源，自绘的方式实现
 */
 class ListCtrl;
@@ -100,6 +100,10 @@ public:
     */
     bool IsShowCheckBox() const;
 
+    /** 判断当前行首的CheckBox是否处于勾选状态
+    */
+    bool IsCheckBoxChecked() const;
+
     /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
     void SetImageId(int32_t imageId);
@@ -144,7 +148,7 @@ protected:
         （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
         （2）勾选状态和选择状态分离，是两个不同的状态
     */
-    virtual bool SupportCheckedMode() const override;
+    virtual bool SupportCheckMode() const override;
 
     /** 绘制函数
     */

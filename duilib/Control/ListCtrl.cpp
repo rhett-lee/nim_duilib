@@ -1478,7 +1478,7 @@ void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
         const size_t columnCount = GetColumnCount();
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
-            if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
+            if ((pHeaderItem != nullptr) && (pHeaderItem->IsShowCheckBox())) {
                 columnIdList.push_back(pHeaderItem->GetColumnId());
             }
         }
@@ -1487,7 +1487,7 @@ void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
         size_t columnIndex = GetColumnIndex(nColumnId);
         if (columnIndex != Box::InvalidIndex) {
             ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
-            if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())){
+            if ((pHeaderItem != nullptr) && (pHeaderItem->IsShowCheckBox())){
                 columnIdList.push_back(nColumnId);
             }
         }
@@ -1497,7 +1497,7 @@ void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
         bool bPartChecked = false;
         m_pData->GetColumnCheckStatus(columnId, bChecked, bPartChecked);
         ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumnById(columnId);
-        if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
+        if ((pHeaderItem != nullptr) && (pHeaderItem->IsShowCheckBox())) {
             pHeaderItem->SetCheckBoxCheck(bChecked, bPartChecked);
         }
     }
@@ -1518,10 +1518,10 @@ void ListCtrl::UpdateHeaderCheckBox()
     bool bPartChecked = false;
     m_pData->GetDataItemsCheckStatus(bChecked, bPartChecked);
     if ((m_pHeaderCtrl->IsChecked() != bChecked) || 
-        (m_pHeaderCtrl->IsPartSelected() != bPartChecked)) {
+        (m_pHeaderCtrl->IsPartChecked() != bPartChecked)) {
         bool bOldValue = m_pHeaderCtrl->SetEnableCheckChangeEvent(false);
         m_pHeaderCtrl->SetChecked(bChecked, false);
-        m_pHeaderCtrl->SetPartSelected(bPartChecked);
+        m_pHeaderCtrl->SetPartChecked(bPartChecked);
         m_pHeaderCtrl->SetEnableCheckChangeEvent(bOldValue);
     }
 }

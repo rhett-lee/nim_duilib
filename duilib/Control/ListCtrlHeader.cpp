@@ -103,6 +103,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         pHeaderSplit->SetClass(m_pListCtrl->GetHeaderSplitBoxClass());
     }
 
+    //SplitBox用于拖动功能的实现，而里面的这个Control用于确定其显示的形状
     Control* pSplitCtrl = new Control(GetWindow());
     pSplitCtrl->SetMouseEnabled(false);
     pSplitCtrl->SetMouseFocused(false);
@@ -146,7 +147,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
     pHeaderItem->SetImageId(columnInfo.nImageId);
 
     //CheckBox属性
-    pHeaderItem->SetCheckBoxVisible(columnInfo.bShowCheckBox);
+    pHeaderItem->SetShowCheckBox(columnInfo.bShowCheckBox);
 
     //挂载拖动响应事件
     pHeaderSplit->AttachSplitDraged([this](const EventArgs& args) {
@@ -455,7 +456,7 @@ void ListCtrlHeader::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderI
     }
 }
 
-bool ListCtrlHeader::SupportCheckedMode() const
+bool ListCtrlHeader::SupportCheckMode() const
 {
     return true;
 }

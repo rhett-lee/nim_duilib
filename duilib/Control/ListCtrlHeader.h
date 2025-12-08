@@ -11,6 +11,16 @@ namespace ui
 class ListCtrl;
 class ListCtrlHeaderItem;
 struct ListCtrlColumn;
+
+/*表头控件的基本结构如下：
+*   <ListCtrlHeader>
+*       <ListCtrlHeaderItem/>
+*       <SplitBox> <Control/> </SplitBox> //SplitBox用于拖动功能的实现，而里面的Control用于确定其显示的形状
+*       ...
+*       <ListCtrlHeaderItem/>
+*       <SplitBox> <Control/> </SplitBox>
+*   </ListCtrlHeader>
+*/
 class ListCtrlHeader : public ListBoxItemH
 {
     typedef ListBoxItemH BaseClass;
@@ -40,17 +50,7 @@ public:
 
 public:
     /** 在指定位置添加一列
-    *  表头控件的基本结构如下：
-    * 
-    *   <ListCtrlHeader>
-    *       <ListCtrlHeaderItem> CheckBox[可选] </ListCtrlHeaderItem>
-    *       <SplitBox> <Control/> </SplitBox>
-    *       ..
-    *       <ListCtrlHeaderItem> CheckBox[可选] </ListCtrlHeaderItem>
-    *       <SplitBox> <Control/> </SplitBox>
-    *   </ListCtrlHeader>
-    * 
-    * @param [in] columnIndex 在第几列以后插入该列，如果是-1，表示在最后追加一列
+    * @param [in] columnIndex 在第几列以后插入该列，如果是 - 1，表示在最后追加一列
     * @param [in] columnInfo 列的基本属性
     * @return 返回这一列的表头控件接口
     */
@@ -221,7 +221,7 @@ protected:
         （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
         （2）勾选状态和选择状态分离，是两个不同的状态
     */
-    virtual bool SupportCheckedMode() const override;
+    virtual bool SupportCheckMode() const override;
 
     /** 勾选状态变化事件(m_bChecked变量发生变化)
     */

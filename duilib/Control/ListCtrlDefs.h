@@ -153,12 +153,12 @@ public:
 
 /** 列表中使用的Label控件，用于显示文本，并提供文本编辑功能
 */
-class ListCtrlLabel: public LabelTemplate<HBox>
+class ListCtrlLabel: public CheckBoxTemplate<HBox>
 {
-    typedef LabelTemplate<HBox> BaseClass;
+    typedef CheckBoxTemplate<HBox> BaseClass;
 public:
     explicit ListCtrlLabel(Window* pWindow):
-        LabelTemplate<HBox>(pWindow)
+        CheckBoxTemplate<HBox>(pWindow)
     {
     }
 
@@ -179,7 +179,7 @@ public:
             bool bButtonUpEvent = false;
             if (IsEnableEdit() && IsEnabled() && IsMouseEnabled()) {
                 if (msg.eventType == kEventMouseButtonDown) {
-                    m_bMouseDown = false;                    
+                    m_bMouseDown = false;
                     if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
                         //避免每次点击都进入编辑模式
                         m_bMouseDown = true;
@@ -189,7 +189,7 @@ public:
                     if (m_bMouseDown) {
                         m_bMouseDown = false;
                         bButtonUpEvent = true;
-                    }                    
+                    }
                 }
             }            
             Box* pParent = GetParent();
@@ -313,93 +313,6 @@ struct ListCtrlEditParam
 
     UiString sNewText;          //修改后的文本内容
     bool bCancelled = false;    //是否取消操作，如果设置为true，则取消编辑操作
-};
-
-/** 列表中使用的CheckBox
-*/
-class ListCtrlCheckBox: public CheckBox
-{
-    typedef CheckBox BaseClass;
-public:
-    explicit ListCtrlCheckBox(Window* pWindow):
-        CheckBox(pWindow)
-    {
-        //CheckBox本身不接收键盘消息
-        SetKeyboardEnabled(false);
-    }
-
-    /** 获取控件类型和设置属性
-    */
-    virtual DString GetType() const override { return _T("ListCtrlCheckBox"); }
-    virtual void SetAttribute(const DString& strName, const DString& strValue) override
-    {
-        if (strName == _T("check_box_width")) {
-            SetCheckBoxWidth(StringUtil::StringToInt32(strValue), true);
-        }
-        else {
-            BaseClass::SetAttribute(strName, strValue);
-        }
-    }
-
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
-    {
-        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
-            return;
-        }
-        if (m_nCheckBoxWidth > 0) {
-            int32_t iValue = Dpi().GetScaleInt(m_nCheckBoxWidth, nOldDpiScale);
-            SetCheckBoxWidth(iValue, false);
-        }
-
-        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-    }
-
-    /** 设置CheckBox所占的宽度值
-    */
-    void SetCheckBoxWidth(int32_t nWidth, bool bNeedDpiScale)
-    {
-        if (bNeedDpiScale) {
-            Dpi().ScaleInt(nWidth);
-        }
-        if (nWidth < 0) {
-            nWidth = 0;
-        }
-        m_nCheckBoxWidth = nWidth;
-    }
-
-    /** 获取CheckBox所占的宽度值
-    */
-    int32_t GetCheckBoxWidth()
-    {
-        if (m_nCheckBoxWidth > 0) {
-            return m_nCheckBoxWidth;
-        }
-        //如果没设置，查询图片的大小，并记住
-        UiEstSize sz;
-        if (GetWindow() != nullptr) {
-            sz = EstimateSize(UiSize(0, 0));
-        }
-        int32_t nWidth = sz.cx.GetInt32();
-        if (nWidth > 0) {
-            UiMargin rcMargin = GetMargin();
-            UiPadding rcPadding = GetPadding();
-            nWidth += rcMargin.left + rcMargin.right;
-            nWidth += rcPadding.left + rcPadding.right;
-            m_nCheckBoxWidth = nWidth;
-
-            m_nCheckBoxWidth += Dpi().GetScaleInt(2);
-        }
-        return m_nCheckBoxWidth;
-    }
-
-private:
-    /** 显示CheckBox所占的宽度，用于设置父控件的Padding值
-    */
-    int32_t m_nCheckBoxWidth = 0;
 };
 
 /** Icon视图的列表项类型(垂直布局)

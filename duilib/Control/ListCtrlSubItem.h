@@ -9,7 +9,6 @@ namespace ui
 /** 列表项的子项
 */
 class ListCtrlItem;
-class ListCtrlCheckBox;
 class ListCtrlSubItem : public ListCtrlLabel
 {
     typedef ListCtrlLabel BaseClass;
@@ -30,6 +29,13 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
+        勾选模式是指：
+        （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
+        （2）勾选状态和选择状态分离，是两个不同的状态
+    */
+    virtual bool SupportCheckMode() const override;
+
 public:
     /** 设置关联的Item接口
     */
@@ -39,31 +45,19 @@ public:
     */
     ListCtrlItem* GetListCtrlItem() const;
 
-    /** 设置是否显示CheckBox
-    * @param [in] bVisible true表示显示，false表示隐藏
+    /** 设置是否在该列的数据项显示CheckBox
+    * @param [in] bShow true表示在行首显示CheckBox，false表示不显示
     */
-    bool SetCheckBoxVisible(bool bVisible);
+    bool SetShowCheckBox(bool bShow);
 
-    /** 判断当前CheckBox是否处于显示状态
+    /** 判断当前该列的数据项CheckBox是否处于显示状态
     @return 返回true表示CheckBox存在，并且可见； 如果不含CheckBox，返回false
     */
-    bool IsCheckBoxVisible() const;
+    bool IsShowCheckBox() const;
 
-    /** 设置CheckBox的勾选状态
-    * @param [in] bSelected true表示勾选，false表示不勾选
-    * @param [in] 如果bSelected和bPartSelect同时为true，表示部分选择
+    /** 判断当前该列的数据项CheckBox是否处于勾选状态
     */
-    bool SetCheckBoxSelect(bool bSelected, bool bPartSelect);
-
-    /** 获取CheckBox的勾选状态
-    * @param [out] bSelected true表示勾选，false表示不勾选
-    * @param [out] 如果bSelected和bPartSelect同时为true，表示部分选择
-    */
-    bool GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const;
-
-    /** 获取CheckBox接口
-    */
-    ListCtrlCheckBox* GetCheckBox() const;
+    bool IsCheckBoxChecked() const;
 
     /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
@@ -99,6 +93,10 @@ protected:
     /** 使得目标区域纵向对齐
     */
     void VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageHeight);
+
+    /** 获取CheckBox的图片宽度
+    */
+    int32_t GetCheckBoxImageWidth();
 
 private:
     /** 关联的Item接口
