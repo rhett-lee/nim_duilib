@@ -173,7 +173,7 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
         }
     }
 #endif
-    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(nImageWidth, nImageHeight, SDL_PIXELFORMAT_RGBA32, pPixelBits, nImageWidth * sizeof(uint32_t));
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(nWidth, nHeight, SDL_PIXELFORMAT_RGBA32, pPixelBits, nWidth * sizeof(uint32_t));
     ASSERT(cursorSurface != nullptr);
     if (cursorSurface == nullptr) {
         return nullptr;
