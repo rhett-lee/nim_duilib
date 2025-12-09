@@ -531,7 +531,10 @@ void Shadow::UpdateShadow()
 
         //刷新，重绘
         m_pShadowBox->ArrangeAncestor();
-        m_pShadowBox->SetPos(m_pShadowBox->GetPos());
+        UiRect rcShadow = m_pShadowBox->GetPos();
+        if (!rcShadow.IsEmpty()) {
+            m_pShadowBox->SetPos(rcShadow);
+        }        
     }
 }
 
