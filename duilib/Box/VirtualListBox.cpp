@@ -621,7 +621,8 @@ void VirtualListBox::SetPos(ui::UiRect rc)
     }
     ListBox::SetPos(rc);
     if (bChange) {
-        Refresh();
+        //此处需要同步刷新，否则部分控件在初次显示时不绘制界面
+        Refresh(true);
     }
 }
 
