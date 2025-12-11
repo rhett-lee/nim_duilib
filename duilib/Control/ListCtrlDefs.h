@@ -2,10 +2,8 @@
 #define UI_CONTROL_LIST_CTRL_DEFS_H_
 
 #include "duilib/Control/ListCtrlView.h"
-#include "duilib/Control/CheckBox.h"
-#include "duilib/Control/Label.h"
-#include "duilib/Control/RichEdit.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Control/ListCtrlLabel.h"
+#include "duilib/Control/ListCtrlIcon.h"
 
 namespace ui
 {
@@ -151,155 +149,6 @@ public:
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
 };
 
-/** 列表中使用的Label控件，用于显示文本，并提供文本编辑功能
-*/
-class ListCtrlLabel: public CheckBoxTemplate<HBox>
-{
-    typedef CheckBoxTemplate<HBox> BaseClass;
-public:
-    explicit ListCtrlLabel(Window* pWindow):
-        CheckBoxTemplate<HBox>(pWindow)
-    {
-    }
-
-    /** 消息处理
-    */
-    virtual void HandleEvent(const EventArgs& msg) override
-    {
-        Window* pWindow = GetWindow();
-        if (pWindow == nullptr) {
-            return;
-        }
-        const bool bWindowFocused = pWindow->IsWindowFocused();
-        if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
-            //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-            auto labelFlag = GetWeakFlag();
-            auto windowFlag = pWindow->GetWeakFlag();
-            const Control* pFocus = pWindow->GetFocusControl();
-            bool bButtonUpEvent = false;
-            if (IsEnableEdit() && IsEnabled() && IsMouseEnabled()) {
-                if (msg.eventType == kEventMouseButtonDown) {
-                    m_bMouseDown = false;
-                    if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
-                        //避免每次点击都进入编辑模式
-                        m_bMouseDown = true;
-                    }
-                }
-                else if (msg.eventType == kEventMouseButtonUp) {
-                    if (m_bMouseDown) {
-                        m_bMouseDown = false;
-                        bButtonUpEvent = true;
-                    }
-                }
-            }            
-            Box* pParent = GetParent();
-            if (pParent != nullptr) {
-                //必须转发给父控件，否则ListBox的基本功能不正常                
-                pParent->SendEventMsg(msg);
-                if (labelFlag.expired() || windowFlag.expired()) {
-                    return;
-                }
-
-                //窗口焦点发生变化，不再传递该消息(比如弹出右键菜单等)
-                if (bWindowFocused != pWindow->IsWindowFocused()) {
-                    return;
-                }
-            }
-            if (bButtonUpEvent && IsEnableEdit()) {
-                //进入编辑状态
-                OnItemEnterEditMode();
-            }
-            if (!IsDisabledEvents(msg)) {
-                BaseClass::HandleEvent(msg);
-            }
-        }
-        else {
-            //非鼠标消息，直接处理
-            BaseClass::HandleEvent(msg);
-        }        
-    }
-
-    /** 进入编辑状态
-    */
-    virtual void OnItemEnterEditMode()
-    {
-        SendEvent(kEventEnterEdit, (WPARAM)this);
-    }
-
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
-    {
-        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
-            return;
-        }
-        if (!m_textRect.IsZero()) {
-            m_textRect = Dpi().GetScaleRect(m_textRect, nOldDpiScale);
-        }
-        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-    }
-
-    /** 设置文本所在位置的矩形区域
-    */
-    void SetTextRect(const UiRect& rect)
-    {
-        m_textRect = rect;
-    }
-
-    /** 获取文本所在位置的矩形区域
-    */
-    UiRect GetTextRect() const
-    {
-        UiRect rect = m_textRect;
-        if (rect.IsZero()) {
-            rect = GetRect();
-            rect.Deflate(GetControlPadding());
-            rect.Deflate(GetTextPadding());
-        }        
-        return rect;
-    }
-
-    /** 设置关联的列表项
-    */
-    void SetListBoxItem(Control* pListBoxItem)
-    {
-        m_pListBoxItem = pListBoxItem;
-    }
-
-    /** 设置是否支持文本编辑
-    */
-    void SetEnableEdit(bool bEnableEdit)
-    {
-        m_bEnableEdit = bEnableEdit;
-    }
-
-    /** 获取是否支持文本编辑
-    */
-    bool IsEnableEdit() const
-    {
-        return m_bEnableEdit;
-    }
-
-private:
-    /** 关联的列表项
-    */
-    Control* m_pListBoxItem = nullptr;
-
-    /** 文本所在位置的矩形区域
-    */
-    UiRect m_textRect;
-
-    /** 是否鼠标点击在控件范围内
-    */
-    bool m_bMouseDown = false;
-
-    /** 是否支持文本编辑
-    */
-    bool m_bEnableEdit = false;
-};
-
 /** 编辑状态的输入参数
 */
 struct ListCtrlEditParam
@@ -316,7 +165,7 @@ struct ListCtrlEditParam
 };
 
 /** Icon视图的列表项类型(垂直布局)
-*   基本结构：<ListCtrlIconViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   基本结构：<ListCtrlIconViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrl;
@@ -351,7 +200,7 @@ private:
 };
 
 /** List视图的列表项类型(水平布局)
-*   基本结构：<ListCtrlListViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   基本结构：<ListCtrlListViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrlListViewItem : public ListCtrlItemBaseH

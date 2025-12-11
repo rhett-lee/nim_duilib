@@ -171,6 +171,7 @@ class UILIB_API ListBoxItemTemplate:
     public OptionTemplate<InheritType>,
     public IListBoxItem
 {
+    typedef OptionTemplate<InheritType> BaseClass;
 public:
     explicit ListBoxItemTemplate(Window* pWindow);
 
@@ -299,11 +300,11 @@ DString ListBoxItemTemplate<InheritType>::GetType() const { return DUI_CTR_LISTB
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 {
-    if (OptionTemplate<InheritType>::IsSelected() == bSelected) {
+    if (BaseClass::IsSelected() == bSelected) {
         return;
     }
     //直接修改内部状态
-    OptionTemplate<InheritType>::SetSelected(bSelected);
+    BaseClass::SetSelected(bSelected);
     if (m_pOwner == nullptr) {
         return;
     }
@@ -330,7 +331,7 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTriggerEvent)
 {
-    return OptionTemplate<InheritType>::Selected(bSelect, bTriggerEvent);
+    return BaseClass::Selected(bSelect, bTriggerEvent);
 }
 
 template<typename InheritType>
@@ -353,7 +354,7 @@ void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEve
 template<typename InheritType>
 bool ListBoxItemTemplate<InheritType>::IsSelected() const
 {
-    return OptionTemplate<InheritType>::IsSelected();
+    return BaseClass::IsSelected();
 }
 
 template<typename InheritType>
@@ -379,7 +380,7 @@ bool ListBoxItemTemplate<InheritType>::CanPaintSelectedColors() const
     if (m_pOwner != nullptr) {
         return m_pOwner->CanPaintSelectedColors(bHasStateImages);
     }
-    return OptionTemplate<InheritType>::CanPaintSelectedColors();
+    return BaseClass::CanPaintSelectedColors();
 }
 
 template<typename InheritType>
@@ -391,7 +392,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
             m_pOwner->SendEventMsg(msg);
         }
         else {
-            OptionTemplate<InheritType>::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -420,7 +421,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    OptionTemplate<InheritType>::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 template<typename InheritType>

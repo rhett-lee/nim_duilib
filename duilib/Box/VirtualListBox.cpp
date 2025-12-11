@@ -140,6 +140,27 @@ Control* VirtualListBox::CreateElement()
     }
     if (pControl != nullptr) {
         //挂载鼠标事件，转接给List Box本身
+        pControl->AttachMouseEnter([this, pControl](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachMouseLeave([this, pControl](const EventArgs& args) {
+            {
+                Control* pNewHover = nullptr;
+                Window* pWindow = this->GetWindow();
+                if (pWindow != nullptr) {
+                    pNewHover = pWindow->GetHoverControl();
+                }
+                if (pNewHover != nullptr) {
+                    if ((pNewHover == pControl) || pControl->IsChild(pControl, pNewHover)) {
+                        //鼠标并未离开Item区域
+                        return true;
+                    }
+                }
+                VSendEvent(args, true);
+            }            
+            return true;
+            });
         pControl->AttachDoubleClick([this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
@@ -153,6 +174,14 @@ Control* VirtualListBox::CreateElement()
             return true;
             });
         pControl->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+            VSendEvent(args, true);
+            return true;
+            });
+        pControl->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
             });

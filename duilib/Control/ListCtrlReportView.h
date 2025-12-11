@@ -8,7 +8,13 @@ namespace ui
 //包含类：ListCtrlReportView / ListCtrlReportLayout
 
 /** 列表数据显示和布局功能(Report类型)
-*/
+ *  ReportView视图的数据基本结构:
+ *  <ListCtrlReportView>
+ *      <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/> </ListCtrlItem>
+ *      ...
+ *      <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/> </ListCtrlItem>
+ *  </ListCtrlReportView>
+ */
 class ListCtrl;
 class ListCtrlData;
 struct ListCtrlItemData;

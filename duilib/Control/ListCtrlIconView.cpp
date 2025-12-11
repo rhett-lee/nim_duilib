@@ -189,8 +189,10 @@ Control* ListCtrlIconView::CreateDataItem()
     ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem(GetWindow());
     pItem->SetListCtrl(m_pListCtrl);
     pItem->SetClass(m_pListCtrl->GetIconViewItemClass());
-    Control* pItemImage = new Control(GetWindow());
+    ListCtrlIcon* pItemImage = new ListCtrlIcon(GetWindow());
     ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
+    pItemImage->SetListBoxItem(pItem);
+    pItemLabel->SetListBoxItem(pItem);
     pItem->AddItem(pItemImage);
     pItem->AddItem(pItemLabel);
     return pItem;
@@ -221,14 +223,14 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         //如果列没有设置图标，则取行的
         nImageId = itemData.nImageId;
     }
-    Box* pItemBox = dynamic_cast<Box*>(pControl);
-    ASSERT(pItemBox != nullptr);
-    if (pItemBox == nullptr) {
+    Box* pViewItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
+    ASSERT(pViewItem != nullptr);
+    if (pViewItem == nullptr) {
         return false;
     }
 
-    Control* pItemImage = pItemBox->GetItemAt(0);
-    ListCtrlLabel* pItemLabel = dynamic_cast<ListCtrlLabel*>(pItemBox->GetItemAt(1));
+    ListCtrlIcon* pItemImage = dynamic_cast<ListCtrlIcon*>(pViewItem->GetItemAt(0));
+    ListCtrlLabel* pItemLabel = dynamic_cast<ListCtrlLabel*>(pViewItem->GetItemAt(1));
     ASSERT((pItemImage != nullptr) && (pItemLabel != nullptr));
     if ((pItemImage == nullptr) || (pItemLabel == nullptr)) {
         return false;
@@ -272,8 +274,6 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     pItemImage->SetNoFocus();
     pItemLabel->SetNoFocus();
 
-    pItemImage->SetMouseEnabled(false);
-
     //设置可编辑属性
     bool bEditable = (pSubItemData != nullptr) ? pSubItemData->bEditable : false;
     if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
@@ -281,7 +281,6 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         ListCtrlLabel* pSubItem = pItemLabel;
         ASSERT(pItem != nullptr);
         pItemLabel->SetEnableEdit(true);
-        pItemLabel->SetListBoxItem(pControl);
         pItemLabel->DetachEvent(kEventEnterEdit);
         pItemLabel->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
             if (m_pListCtrl != nullptr) {
@@ -292,9 +291,9 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
     else {
         pItemLabel->SetEnableEdit(false);
-        pItemLabel->SetListBoxItem(nullptr);
         pItemLabel->DetachEvent(kEventEnterEdit);
     }
+    SendEvent(kEventIconViewItemFilled, (WPARAM)pViewItem, (LPARAM)nElementIndex);
     return true;
 }
 

@@ -1070,6 +1070,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pSubItem->SetImageId(-1);
         }
     }
+    SendEvent(kEventReportViewItemFilled, (WPARAM)pItem, (LPARAM)nElementIndex);
     return true;
 }
 

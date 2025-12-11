@@ -797,7 +797,9 @@ public:
     /** 监听选择子项的事件
      * @param[in] callback 选择子项时的回调函数
      * 参数说明:
-     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount())
      */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
@@ -810,56 +812,130 @@ public:
     /** 监听双击事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      * 参数说明:
-     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未点击任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
     /** 绑定鼠标点击处理函数
      * @param[in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *     lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未点击任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
     /** 绑定鼠标右键点击处理函数
      * @param[in] callback 要绑定的回调函数
-     *  参数说明:
-     *   wParam: 点击的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     * 参数说明:
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未点击任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
      */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
+    /** 绑定鼠标进入控件的处理函数
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未关联任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
+
+    /** 绑定鼠标离开控件的处理函数
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未关联任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
+
     /** 监听回车事件
-     * @param[in] callback 收到回车时的回调函数
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   eventData: 列表类型，可能的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   wParam: 选择子项的界面控件接口指针，可能的类型为：0, ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *           如果未关联任何子项，则为wParam值为0
+     *           可将eventData的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   lParam: 选择的数据项索引号，有效范围：[0, GetDataItemCount()), 仅当wParam不为0时有效
+     */
+    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+
+    /** 监听键盘按下事件
+     * @param[in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
      *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
      */
-    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+    void AttachKeyDown(const EventCallback& callback) { this->AttachEvent(kEventKeyDown, callback); }
+
+    /** 监听键盘弹起事件
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*，如果未点击子项，则为0
+     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachKeyUp(const EventCallback& callback) { this->AttachEvent(kEventKeyUp, callback); }
 
     /** 监听开始编辑事件
-     * @param[in] callback 事件回调函数
+     * @param[in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
      */
     void AttachEnterEdit(const EventCallback& callback) { this->AttachEvent(kEventEnterEdit, callback); }
 
     /** 监听结束编辑事件
-     * @param[in] callback 事件回调函数
+     * @param[in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
      */
     void AttachLeaveEdit(const EventCallback& callback) { this->AttachEvent(kEventLeaveEdit, callback); }
 
     /** 监听数据项总个数变化事件
-     * @param[in] callback 事件回调函数
+     * @param[in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 是新的个数(size_t)
      *   lParam: 是旧的个数(size_t)
      */
     void AttachDataItemCountChanged(const EventCallback& callback) { this->AttachEvent(kEventDataItemCountChanged, callback); }
+
+    /** 监听Report视图数据项UI元素填充事件（虚表）
+     * @param [in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
+     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachReportViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewItemFilled, callback); }
+
+    /** 监听List视图数据项UI元素填充事件（虚表）
+     * @param [in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针，数据按行填充
+     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachListViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventListViewItemFilled, callback); }
+
+    /** 监听Icon视图数据项UI元素填充事件（虚表）
+     * @param [in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针，数据按行填充
+     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     */
+    void AttachIconViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventIconViewItemFilled, callback); }
 
 protected:
     /** 控件初始化
@@ -1019,6 +1095,10 @@ protected:
     void UpdateHeaderCheckBox();
 
 private:
+    /** 列表事件，转发给应用层
+    */
+    void OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& args);
+
     /** 进入编辑状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nColumnId 列的ID

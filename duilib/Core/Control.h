@@ -1140,11 +1140,27 @@ public:
      */
     void DetachXmlBubbledEvent(EventType eventType);
 
-    /** 触发事件，向所有容器的监听者发送事件（m_pOnEvent，m_pOnXmlEvent，m_pOnBubbledEvent， m_pOnXmlBubbledEvent）
-    * @param [in] msg 消息内容
-    * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
-    */
+    /** 触发所有事件，向所有容器的监听者发送事件（m_pOnEvent, m_pOnXmlEvent, m_pOnBubbledEvent, m_pOnXmlBubbledEvent）
+     *   对于m_pOnEvent，m_pOnXmlEvent容器中注册的事件：需要校验GetSender()是否为this, 如果不是this，则不触发事件
+     *   对于m_pOnBubbledEvent, m_pOnXmlBubbledEvent容器中注册的事件：不校验GetSender()是否为this, 直接触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
     bool FireAllEvents(const EventArgs& msg);
+
+    /** 触发普通事件，向以下容器的监听者发送事件（m_pOnEvent, m_pOnXmlEventt）
+     *  对于m_pOnEvent，m_pOnXmlEvent容器中注册的事件：需要校验GetSender()是否为this, 如果不是this，则不触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
+    bool FireNormalEvents(const EventArgs& msg);
+
+    /** 触发Bubbled事件，向以下容器的监听者发送事件（m_pOnBubbledEvent, m_pOnXmlBubbledEvent）
+     *   对于m_pOnBubbledEvent, m_pOnXmlBubbledEvent容器中注册的事件：不校验GetSender()是否为this, 直接触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
+    bool FireBubbledEvents(const EventArgs& msg);
 
     /** 判断是否含有某个类型的事件回调函数(包含所有类型的事件，只要Attach过eventType这个类型就返回true)
     */

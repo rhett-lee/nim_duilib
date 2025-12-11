@@ -278,8 +278,10 @@
     <ClCompile Include="Control\ListCtrlData.cpp" />
     <ClCompile Include="Control\ListCtrlHeader.cpp" />
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
+    <ClCompile Include="Control\ListCtrlIcon.cpp" />
     <ClCompile Include="Control\ListCtrlIconView.cpp" />
     <ClCompile Include="Control\ListCtrlItem.cpp" />
+    <ClCompile Include="Control\ListCtrlLabel.cpp" />
     <ClCompile Include="Control\ListCtrlListView.cpp" />
     <ClCompile Include="Control\ListCtrlReportView.cpp" />
     <ClCompile Include="Control\ListCtrlSubItem.cpp" />
@@ -611,8 +613,10 @@
     <ClInclude Include="Control\ListCtrlDefs.h" />
     <ClInclude Include="Control\ListCtrlHeader.h" />
     <ClInclude Include="Control\ListCtrlHeaderItem.h" />
+    <ClInclude Include="Control\ListCtrlIcon.h" />
     <ClInclude Include="Control\ListCtrlIconView.h" />
     <ClInclude Include="Control\ListCtrlItem.h" />
+    <ClInclude Include="Control\ListCtrlLabel.h" />
     <ClInclude Include="Control\ListCtrlListView.h" />
     <ClInclude Include="Control\ListCtrlReportView.h" />
     <ClInclude Include="Control\ListCtrlSubItem.h" />
