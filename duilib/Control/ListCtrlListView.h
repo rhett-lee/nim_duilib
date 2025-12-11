@@ -5,7 +5,14 @@
 
 namespace ui
 {
-/** 列表数据显示和布局功能(Icon类型)
+/** 列表数据显示和布局功能(List类型)
+*   基本结构：
+*       <ListCtrlListView>
+*           <ListCtrlListViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
+*           ...
+*           <ListCtrlListViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
+*       </ListCtrlListView>
+*   其中的ListCtrlIcon和ListCtrlLabel的属性，支持从配置文件读取
 */
 class ListCtrl;
 class ListCtrlData;

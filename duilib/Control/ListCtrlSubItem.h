@@ -6,7 +6,7 @@
 
 namespace ui
 {
-/** 列表项的子项
+/** Report视图中，列表项的子项
 */
 class ListCtrlItem;
 class ListCtrlSubItem : public ListCtrlLabel

@@ -97,6 +97,12 @@
     <Filter Include="Layout">
       <UniqueIdentifier>{73caecff-d534-4100-8a51-3543a4be751f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Control\ListCtrl">
+      <UniqueIdentifier>{27aac681-275c-4da3-9f6b-32821e798155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Control\ColorPicker">
+      <UniqueIdentifier>{2c09bd98-820a-4b70-9a57-080113e82e9c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -264,30 +270,6 @@
     <ClCompile Include="Control\ComboButton.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ColorControl.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorConvert.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorSlider.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPickerRegular.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPickerStatard.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPickerStatardGray.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPickerCustom.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPicker.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Control\Line.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -297,35 +279,8 @@
     <ClCompile Include="Control\HotKey.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ListCtrl.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlHeader.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlHeaderItem.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlItem.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlSubItem.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Core\ImageList.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlData.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlReportView.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlIconView.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ListCtrlView.cpp">
-      <Filter>Control</Filter>
     </ClCompile>
     <ClCompile Include="Control\PropertyGrid.cpp">
       <Filter>Control</Filter>
@@ -624,9 +579,6 @@
     <ClCompile Include="Utils\FileTime.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ListCtrlListView.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Box\ListBoxHelper.cpp">
       <Filter>Box</Filter>
     </ClCompile>
@@ -833,6 +785,66 @@
     </ClCompile>
     <ClCompile Include="Control\LabelImpl.cpp">
       <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrl.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlData.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlHeader.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlHeaderItem.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlIconView.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlItem.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlLabel.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlListView.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlReportView.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlSubItem.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlView.cpp">
+      <Filter>Control\ListCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorControl.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorConvert.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPicker.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerCustom.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerRegular.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStatard.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStatardGray.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorSlider.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ListCtrlIcon.cpp">
+      <Filter>Control\ListCtrl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1109,30 +1121,6 @@
     <ClInclude Include="Core\UiPointF.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ColorControl.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorConvert.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorSlider.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPickerRegular.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPickerStatard.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPickerStatardGray.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPickerCustom.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPicker.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Control\Line.h">
       <Filter>Control</Filter>
     </ClInclude>
@@ -1145,41 +1133,11 @@
     <ClInclude Include="Control\HyperLink.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ListCtrl.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Box\ListBoxItem.h">
       <Filter>Box</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ListCtrlHeader.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlHeaderItem.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlItem.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlSubItem.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlDefs.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ImageList.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlData.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlReportView.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlIconView.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ListCtrlView.h">
-      <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\PropertyGrid.h">
       <Filter>Control</Filter>
@@ -1508,9 +1466,6 @@
     <ClInclude Include="Control\MenuListBox.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ListCtrlListView.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ControlPtrT.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1735,6 +1690,69 @@
     </ClInclude>
     <ClInclude Include="Control\LabelImpl.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrl.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlData.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlDefs.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlHeader.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlHeaderItem.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlIconView.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlItem.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlLabel.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlListView.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlReportView.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlSubItem.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlView.h">
+      <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorControl.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorConvert.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPicker.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerCustom.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerRegular.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStatard.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStatardGray.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorSlider.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlIcon.h">
+      <Filter>Control\ListCtrl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

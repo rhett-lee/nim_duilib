@@ -379,6 +379,9 @@ namespace ui
         kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventDataItemCountChanged, //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
+        kEventReportViewItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlItem*指针, 关联的数据项索引号
+        kEventListViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, 关联的数据项索引号
+        kEventIconViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, 关联的数据项索引号
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发

@@ -177,6 +177,9 @@ if (msg.eventType == eventType) {
 |kEventEnterEdit|"EnterEdit"|"enter_edit"|
 |kEventLeaveEdit|"LeaveEdit"|"leave_edit"|
 |kEventDataItemCountChanged|"DataItemCountChanged"|"data_item_count_changed"|
+|kEventReportViewItemFilled|"ReportViewItemFilled"|"report_view_item_filled"|
+|kEventListViewItemFilled|"ListViewItemFilled"|"list_view_item_filled"|
+|kEventIconViewItemFilled|"IconViewItemFilled"|"icon_view_item_filled"|
 |kEventPathChanged|"PathChanged"|"path_changed"|
 |kEventPathClick|"PathClick"|"path_click"|
 |kEventDropEnter|"DropEnter"|"drop_enter"|

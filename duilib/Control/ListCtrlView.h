@@ -33,10 +33,6 @@ public:
      */
     void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
 
-    /** 发送事件的函数
-    */
-    virtual void SendEventMsg(const EventArgs& msg) override;
-
 public:
     /** 获取顶部元素的索引号
     */
@@ -64,10 +60,28 @@ protected:
     virtual void OnInit() override;
 };
 
+/** ListCtrlView中子项数据的功能接口
+*/
+class UILIB_API IListCtrlViewItem
+{
+public:
+    virtual ~IListCtrlViewItem() = default;
+
+    /** 鼠标事件(来源于子控件的消息转发)
+    * @param [in] msg 鼠标事件的内容
+    */
+    virtual void OnChildItemMouseEvent(const EventArgs& msg) = 0;
+
+    /** 触发鼠标相关回调事件(来源于子控件的消息转发)
+    * @param [in] msg 鼠标事件的内容
+    */
+    virtual void FireChildItemMouseEvent(const EventArgs& msg) = 0;
+};
+
 /** ListCtrl各个视图中数据项的基类模板
 */
 template<typename InheritType>
-class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>
+class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>, public IListCtrlViewItem
 {
     typedef ListBoxItemTemplate<InheritType> BaseClass;
 public:
@@ -155,6 +169,50 @@ protected:
             size_t nListBoxIndex = this->GetListBoxIndex();
             pOwner->SelectItem(nListBoxIndex, true, true, vkFlag);
         }
+    }
+
+    /** 鼠标事件(来源于子控件的消息转发)
+    * @param [in] msg 鼠标事件的内容
+    */
+    virtual void OnChildItemMouseEvent(const EventArgs& msg) override
+    {
+        if (msg.eventType == EventType::kEventMouseLeave) {
+            Control* pNewHover = nullptr;
+            Window* pWindow = this->GetWindow();
+            if (pWindow != nullptr) {
+                pNewHover = pWindow->GetHoverControl();
+            }
+            if (pNewHover != nullptr) {
+                if ((pNewHover == this) || this->IsChild(this, pNewHover)) {
+                    //鼠标并未离开ListCtrl Item区域
+                    return;
+                }
+            }
+        }
+        BaseClass::HandleEvent(msg);
+    }
+
+    /** 触发鼠标相关回调事件(来源于子控件的消息转发)
+    * @param [in] msg 鼠标事件的内容
+    */
+    virtual void FireChildItemMouseEvent(const EventArgs& msg) override
+    {
+        if (msg.eventType == EventType::kEventMouseLeave) {
+            Control* pNewHover = nullptr;
+            Window* pWindow = this->GetWindow();
+            if (pWindow != nullptr) {
+                pNewHover = pWindow->GetHoverControl();
+            }
+            if (pNewHover != nullptr) {
+                if ((pNewHover == this) || this->IsChild(this, pNewHover)) {
+                    //鼠标并未离开ListCtrl Item区域
+                    return;
+                }
+            }
+        }
+        EventArgs newMsg = msg;
+        newMsg.SetSender(this);//按Item控件触发回调
+        this->FireAllEvents(newMsg);
     }
 };
 

@@ -303,19 +303,24 @@ public:
 
     /** 监听选择子项的事件
     * @param[in] callback 选择子项时的回调函数
-    *            参数说明:
-    *                   wParam: 当前新选择的子项ID
-    *                    lParam: 原来旧选择的子项ID，可能为无效值Box::InvalidIndex
+    * 参数说明:
+    *   wParam: 当前新选择的子项ID
+    *   lParam: 原来旧选择的子项ID，可能为无效值Box::InvalidIndex
     */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
     /** 监听取消选择子项的事件
     * @param[in] callback 取消选择子项时的回调函数
-    *            参数说明:
-    *                   wParam: 取消选择的子项ID
-    *                    lParam: 无效值Box::InvalidIndex
+    * 参数说明:
+    *   wParam: 取消选择的子项ID
+    *   lParam: 无效值Box::InvalidIndex
     */
     void AttachUnSelect(const EventCallback& callback) { AttachEvent(kEventUnSelect, callback); }
+
+    /** 监听选择项发生变化的事件
+     * @param[in] callback 选择子项时的回调函数
+     */
+    void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
 
 protected:
     /** 当从多选切换为单选模式的时候，需要确保列表中只有一个选择项

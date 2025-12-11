@@ -2459,6 +2459,21 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
+    else if (msg.eventType == kEventMouseMButtonDown) {
+        if (MButtonDown(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseMButtonUp) {
+        if (MButtonUp(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseMDoubleClick) {
+        if (MButtonDoubleClick(msg)) {
+            return;
+        }
+    }
     else if (msg.eventType == kEventMouseMove) {
         if (MouseMove(msg)) {
             return;
@@ -4580,51 +4595,72 @@ bool Control::FireAllEvents(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
+    bool bRet = FireNormalEvents(msg);
+    if (bRet) {
+        bRet = FireBubbledEvents(msg);
+    }
+    return bRet;
+}
+
+bool Control::FireNormalEvents(const EventArgs & msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
+    if (msg.GetSender() != this) {
+        return true;
+    }
     std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
-
-    if (msg.GetSender() == this) {
-        //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
-        if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
-            const EventMap& attachEventMap = GetAttachEventMap();
-            auto callback = attachEventMap.find(msg.eventType);
-            if (callback != attachEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
-
-            callback = attachEventMap.find(kEventAll);
-            if (callback != attachEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
+    if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
+        const EventMap& attachEventMap = GetAttachEventMap();
+        auto callback = attachEventMap.find(msg.eventType);
+        if (callback != attachEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
         }
 
-        if (bRet && HasXmlEventMap() && !GetXmlEventMap().empty()) {
-            const EventMap& xmlEventMap = GetXmlEventMap();
-            auto callback = xmlEventMap.find(msg.eventType);
-            if (callback != xmlEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
-
-            callback = xmlEventMap.find(kEventAll);
-            if (callback != xmlEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
+        callback = attachEventMap.find(kEventAll);
+        if (callback != attachEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
         }
     }
 
+    if (bRet && HasXmlEventMap() && !GetXmlEventMap().empty()) {
+        const EventMap& xmlEventMap = GetXmlEventMap();
+        auto callback = xmlEventMap.find(msg.eventType);
+        if (callback != xmlEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
+        }
+
+        callback = xmlEventMap.find(kEventAll);
+        if (callback != xmlEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
+        }
+    }
+    return bRet && !weakflag.expired();
+}
+
+bool Control::FireBubbledEvents(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     //备注：BubbledEventMap 和 XmlBubbledEventMap里面的回调函数，不需要校验消息的发送者是否为控件自身
+    std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
+    bool bRet = true;//当值为false时，就不再调用回调函数和处理函数    
     if (bRet && HasBubbledEventMap() && !GetBubbledEventMap().empty()) {
         const EventMap& bubbledEventMap = GetBubbledEventMap();
         auto callback = bubbledEventMap.find(msg.eventType);

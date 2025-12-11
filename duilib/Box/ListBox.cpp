@@ -1292,7 +1292,12 @@ int32_t ListBox::CalcVTileRows(VTileLayout* pVTileLayout) const
 
 void ListBox::SendEventMsg(const EventArgs& msg)
 {
+    auto msgFlag = GetWeakFlag();
     ScrollBox::SendEventMsg(msg);
+    if (!msgFlag.expired() && (msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
+        //触发选择变化事件
+        SendEvent(kEventSelChanged);
+    }
 }
 
 size_t ListBox::GetCurSel() const
@@ -2335,7 +2340,7 @@ bool ListBox::OnListBoxItemMouseEvent(const EventArgs& msg)
             m_pHelper->OnRButtonDown(msg.ptMouse, msg.GetSender());
         }
         else if (msg.eventType == kEventMouseRButtonUp) {
-            m_pHelper->OnButtonUp(msg.ptMouse, msg.GetSender());
+            m_pHelper->OnRButtonUp(msg.ptMouse, msg.GetSender());
         }
         else if (msg.eventType == kEventMouseMove) {
             m_pHelper->OnMouseMove(msg.ptMouse, msg.GetSender());

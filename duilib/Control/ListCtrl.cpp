@@ -2,6 +2,7 @@
 #include "duilib/Control/ListCtrlReportView.h"
 #include "duilib/Control/ListCtrlIconView.h"
 #include "duilib/Control/ListCtrlListView.h"
+#include "duilib/Control/RichEdit.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Keyboard.h"
 #include <set>
@@ -332,51 +333,45 @@ void ListCtrl::InitReportView()
     }
     m_pReportView->SetMultiSelect(IsMultiSelect());
 
-    //事件转接函数
-    auto OnReportViewEvent = [this](const EventArgs& args) {
-            size_t nItemIndex = args.wParam;
-            Control* pControl = m_pReportView->GetItemAt(nItemIndex);
-            ListCtrlItem* pItem = nullptr;
-            if (pControl != nullptr) {
-                pItem = dynamic_cast<ListCtrlItem*>(pControl);
-            }
-            if (pItem != nullptr) {
-                EventArgs msg = args;
-                msg.wParam = (WPARAM)pItem;
-                msg.lParam = pItem->GetElementIndex();
-                msg.SetSender(this);
-                SendEventMsg(msg);
-            }
-            else if (args.eventType == kEventSelChanged) {
-                EventArgs msg = args;
-                msg.SetSender(this);
-                SendEventMsg(msg);
-            }
-        };
-
     //挂载事件，转接给外层
-    m_pReportView->AttachSelect([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachSelect([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachSelChanged([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachSelChanged([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachDoubleClick([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachMouseEnter([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachClick([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachMouseLeave([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachRClick([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachDoubleClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachReturn([this, OnReportViewEvent](const EventArgs& args) {
-        OnReportViewEvent(args);
+    m_pReportView->AttachClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
+        return true;
+        });
+    m_pReportView->AttachRClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
+        return true;
+        });
+    m_pReportView->AttachReturn([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
+        return true;
+        });
+    m_pReportView->AttachKeyDown([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
+        return true;
+        });
+    m_pReportView->AttachKeyUp([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
 }
@@ -389,51 +384,45 @@ void ListCtrl::InitIconView()
     }
     m_pIconView->SetMultiSelect(IsMultiSelect());
 
-    //事件转接函数
-    auto OnIconViewEvent = [this](const EventArgs& args) {
-            size_t nItemIndex = args.wParam;
-            Control* pControl = m_pIconView->GetItemAt(nItemIndex);
-            ListCtrlIconViewItem* pItem = nullptr;
-            if (pControl != nullptr) {
-                pItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
-            }
-            if (pItem != nullptr) {
-                EventArgs msg = args;
-                msg.wParam = (WPARAM)pItem;
-                msg.lParam = pItem->GetElementIndex();
-                msg.SetSender(this);
-                SendEventMsg(msg);
-            }
-            else if (args.eventType == kEventSelChanged) {
-                EventArgs msg = args;
-                msg.SetSender(this);
-                SendEventMsg(msg);
-            }
-        };
-
     //挂载事件，转接给外层
-    m_pIconView->AttachSelect([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachSelect([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachSelChanged([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachSelChanged([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachDoubleClick([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachMouseEnter([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachClick([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachMouseLeave([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachRClick([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachDoubleClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachReturn([this, OnIconViewEvent](const EventArgs& args) {
-        OnIconViewEvent(args);
+    m_pIconView->AttachClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
+        return true;
+        });
+    m_pIconView->AttachRClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
+        return true;
+        });
+    m_pIconView->AttachReturn([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
+        return true;
+        });
+    m_pIconView->AttachKeyDown([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
+        return true;
+        });
+    m_pIconView->AttachKeyUp([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
 }
@@ -447,9 +436,84 @@ void ListCtrl::InitListView()
     if (m_pIconView != nullptr) {
         m_pIconView->SetMultiSelect(IsMultiSelect());
     }
-    
-    //事件转接函数
-    auto OnListViewEvent = [this](const EventArgs& args) {
+
+    //挂载事件，转接给外层
+    m_pListView->AttachSelect([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachSelChanged([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachMouseEnter([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachMouseLeave([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachDoubleClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachRClick([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachReturn([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachKeyDown([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+    m_pListView->AttachKeyUp([this](const EventArgs& args) {
+        OnListCtrlViewEvent(ListCtrlType::List, args);
+        return true;
+        });
+}
+
+void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& args)
+{
+    EventArgs msg = args;
+    msg.SetSender(this);
+    msg.eventData = (int32_t)listCtrlType;
+    msg.wParam = 0;//默认为未点击任何子项
+    msg.lParam = 0;
+
+    if (args.eventType != kEventSelChanged) {
+        if (listCtrlType == ListCtrlType::Report) {
+            size_t nItemIndex = args.wParam;
+            Control* pControl = m_pReportView->GetItemAt(nItemIndex);
+            ListCtrlItem* pItem = nullptr;
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<ListCtrlItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                msg.wParam = (WPARAM)pItem;
+                msg.lParam = pItem->GetElementIndex();
+            }
+        }
+        else if (listCtrlType == ListCtrlType::Icon) {
+            size_t nItemIndex = args.wParam;
+            Control* pControl = m_pIconView->GetItemAt(nItemIndex);
+            ListCtrlIconViewItem* pItem = nullptr;
+            if (pControl != nullptr) {
+                pItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
+            }
+            if (pItem != nullptr) {
+                msg.wParam = (WPARAM)pItem;
+                msg.lParam = pItem->GetElementIndex();
+            }
+        }
+        else if (listCtrlType == ListCtrlType::List) {
             size_t nItemIndex = args.wParam;
             Control* pControl = m_pListView->GetItemAt(nItemIndex);
             ListCtrlListViewItem* pItem = nullptr;
@@ -457,44 +521,18 @@ void ListCtrl::InitListView()
                 pItem = dynamic_cast<ListCtrlListViewItem*>(pControl);
             }
             if (pItem != nullptr) {
-                EventArgs msg = args;
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
-                msg.SetSender(this);
-                SendEventMsg(msg);
             }
-            else if (args.eventType == kEventSelChanged) {
-                EventArgs msg = args;
-                msg.SetSender(this);
-                SendEventMsg(msg);
-            }
-        };
+        }
+        else {
+            ASSERT(0);
+            return;
+        }
+    }
 
-    //挂载事件，转接给外层
-    m_pListView->AttachSelect([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
-    m_pListView->AttachSelChanged([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
-    m_pListView->AttachDoubleClick([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
-    m_pListView->AttachClick([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
-    m_pListView->AttachRClick([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
-    m_pListView->AttachReturn([this, OnListViewEvent](const EventArgs& args) {
-        OnListViewEvent(args);
-        return true;
-        });
+    //触发事件给应用层
+    SendEventMsg(msg);
 }
 
 void ListCtrl::SetListCtrlType(ListCtrlType type)
