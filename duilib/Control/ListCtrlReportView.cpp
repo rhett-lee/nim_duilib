@@ -910,6 +910,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     //获取需要显示的各个列的属性
     struct ElementData
     {
+        size_t nColumnIndex = Box::InvalidIndex;
         size_t nColumnId = Box::InvalidIndex;
         int32_t nColumnWidth = 0;
         ListCtrlSubItemData2Ptr pStorage;
@@ -926,6 +927,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             nColumnWidth = 0;
         }
         ElementData data;
+        data.nColumnIndex = nColumnIndex;
         data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);        
         data.pStorage = subItemDataMap[data.nColumnId];
         if (nColumnIndex == 0) {
@@ -961,6 +963,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
 
+    std::vector<ControlPtrT<ListCtrlSubItem>> subItemPtrList;
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
         ListCtrlSubItem* pSubItem = nullptr;
@@ -980,6 +983,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetClass(defaultSubItemClass);
             }
         }
+        subItemPtrList.push_back(ControlPtrT<ListCtrlSubItem>(pSubItem));
         //设置不获取焦点
         pSubItem->SetNoFocus();
 
@@ -1070,7 +1074,35 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pSubItem->SetImageId(-1);
         }
     }
-    SendEvent(kEventReportViewItemFilled, (WPARAM)pItem, (LPARAM)nElementIndex);
+    auto viewFlag = GetWeakFlag();
+    //先给出各个列的数据填充回调
+    for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
+        const ElementData& elementData = elementDataList[nColumn];
+        ASSERT(nColumn < subItemPtrList.size());
+        if (nColumn >= subItemPtrList.size()) {
+            break;
+        }
+        const ControlPtrT<ListCtrlSubItem>& pSubItem = subItemPtrList[nColumn];
+        if (pSubItem.expired()) {
+            break;
+        }
+
+        if (viewFlag.expired()) {
+            break;
+        }
+
+        EventArgs args;
+        args.eventType = kEventReportViewSubItemFilled;
+        args.wParam = (WPARAM)pSubItem.get(); //UI控件的指针
+        args.lParam = (LPARAM)nElementIndex;  //数据元素的索引号，代表哪一行的数据
+        args.eventData = (int32_t)elementData.nColumnIndex; //数据列的索引号，代表哪一列的数据
+        SendEvent(kEventReportViewSubItemFilled, args);
+    }
+
+    //给出当前行的数据填充回调
+    if (!viewFlag.expired()) {
+        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem, (LPARAM)nElementIndex);
+    }    
     return true;
 }
 
