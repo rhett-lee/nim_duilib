@@ -7,7 +7,8 @@ ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
     ListCtrlLabel(pWindow),
     m_pItem(nullptr),
     m_imageId(-1),
-    m_nIconSpacing(0)
+    m_nIconSpacing(0),
+    m_nColumnId(Box::InvalidIndex)
 {
     SetIconSpacing(2, true);
 }
@@ -49,6 +50,35 @@ ListCtrlItem* ListCtrlSubItem::GetListCtrlItem() const
 {
     ASSERT(m_pItem != nullptr);
     return m_pItem;
+}
+
+size_t ListCtrlSubItem::GetDataItemIndex() const
+{
+    if (m_pItem != nullptr) {
+        return m_pItem->GetDataItemIndex();
+    }
+    return Box::InvalidIndex;
+}
+
+size_t ListCtrlSubItem::GetDataColumnIndex() const
+{
+    if (m_pItem != nullptr) {
+        ListCtrl* pListCtrl = m_pItem->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            return pListCtrl->GetColumnIndex(m_nColumnId);
+        }
+    }
+    return Box::InvalidIndex;
+}
+
+size_t ListCtrlSubItem::GetDataColumnId() const
+{
+    return m_nColumnId;
+}
+
+void ListCtrlSubItem::SetDataColumnId(size_t nColumnId)
+{
+    m_nColumnId = nColumnId;
 }
 
 bool ListCtrlSubItem::SetShowCheckBox(bool bShow)

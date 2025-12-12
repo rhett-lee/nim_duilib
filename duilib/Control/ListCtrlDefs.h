@@ -193,6 +193,11 @@ public:
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const { return GetElementIndex(); }
+
 private:
     /** 关联的ListCtrl接口
     */
@@ -226,6 +231,11 @@ public:
     /** 获取关联的ListCtrl接口
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
+
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const { return GetElementIndex(); }
 
 private:
     /** 关联的ListCtrl接口

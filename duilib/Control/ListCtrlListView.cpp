@@ -293,7 +293,7 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
         pItemLabel->SetEnableEdit(false);
         pItemLabel->DetachEvent(kEventEnterEdit);
     }
-    SendEvent(kEventListViewItemFilled, (WPARAM)pViewItem, (LPARAM)nElementIndex);
+    SendEvent(kEventListViewItemFilled, (WPARAM)pViewItem);
     return true;
 }
 
