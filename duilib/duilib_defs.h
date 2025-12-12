@@ -379,11 +379,10 @@ namespace ui
         kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventDataItemCountChanged, //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
-        kEventReportViewItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据, wParam是ListCtrlItem*指针, lParam是关联的数据项索引号
-        kEventReportViewSubItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据, wParam是ListCtrlSubItem*指针,
-                                       //            lParam是关联的数据项索引号（代表哪一行数据）, eventData是列索引号（从0开始的索引号，代表哪一列的数据）
-        kEventListViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, lParam是关联的数据项索引号
-        kEventIconViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, lParam是关联的数据项索引号
+        kEventReportViewItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据, wParam是ListCtrlItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventReportViewSubItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据, wParam是ListCtrlSubItem*指针, 通过该接口，可以获取数据元素索引号、哪一列的数据
+        kEventListViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventIconViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发

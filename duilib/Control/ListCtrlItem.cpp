@@ -75,6 +75,11 @@ ListCtrl* ListCtrlItem::GetListCtrl() const
     return m_pListCtrl;
 }
 
+size_t ListCtrlItem::GetDataItemIndex() const
+{
+    return GetElementIndex();
+}
+
 size_t ListCtrlItem::GetSubItemCount() const
 {
     return GetItemCount();

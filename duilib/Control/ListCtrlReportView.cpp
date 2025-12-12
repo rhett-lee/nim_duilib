@@ -987,10 +987,13 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         //设置不获取焦点
         pSubItem->SetNoFocus();
 
+        //设置关联的列ID
+        const size_t nColumnId = elementData.nColumnId;
+        pSubItem->SetDataColumnId(nColumnId);
+
         //设置可编辑属性
         bool bEditable = (elementData.pStorage != nullptr) ? elementData.pStorage->bEditable : false;
-        if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
-            size_t nColumnId = elementData.nColumnId;
+        if (bEditable && m_pListCtrl->IsEnableItemEdit()) {            
             pSubItem->SetEnableEdit(true);
             pSubItem->DetachEvent(kEventEnterEdit);
             pSubItem->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
@@ -1040,7 +1043,6 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->DetachEvent(kEventCheck);
                 pSubItem->DetachEvent(kEventUnCheck);
                 pSubItem->SetChecked(pStorage->bChecked, false);
-                size_t nColumnId = elementData.nColumnId;
                 pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
                     OnSubItemColumnChecked(nElementIndex, nColumnId, true);
                     return true;
@@ -1076,33 +1078,18 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     }
     auto viewFlag = GetWeakFlag();
     //先给出各个列的数据填充回调
-    for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
-        const ElementData& elementData = elementDataList[nColumn];
-        ASSERT(nColumn < subItemPtrList.size());
-        if (nColumn >= subItemPtrList.size()) {
+    for (size_t nIndex = 0; nIndex < subItemPtrList.size(); ++nIndex) {
+        const ControlPtrT<ListCtrlSubItem>& pSubItem = subItemPtrList[nIndex];
+        if (viewFlag.expired() || pSubItem.expired()) {
             break;
         }
-        const ControlPtrT<ListCtrlSubItem>& pSubItem = subItemPtrList[nColumn];
-        if (pSubItem.expired()) {
-            break;
-        }
-
-        if (viewFlag.expired()) {
-            break;
-        }
-
-        EventArgs args;
-        args.eventType = kEventReportViewSubItemFilled;
-        args.wParam = (WPARAM)pSubItem.get(); //UI控件的指针
-        args.lParam = (LPARAM)nElementIndex;  //数据元素的索引号，代表哪一行的数据
-        args.eventData = (int32_t)elementData.nColumnIndex; //数据列的索引号，代表哪一列的数据
-        SendEvent(kEventReportViewSubItemFilled, args);
+        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pSubItem.get());
     }
 
     //给出当前行的数据填充回调
     if (!viewFlag.expired()) {
-        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem, (LPARAM)nElementIndex);
-    }    
+        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem);
+    }
     return true;
 }
 

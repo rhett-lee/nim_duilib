@@ -916,8 +916,7 @@ public:
     /** 监听Report视图数据项UI元素填充事件（虚表，填充某行数据）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充，通过该接口可以获取到数据元素索引号
      */
     void AttachReportViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewItemFilled, callback); }
 
@@ -925,24 +924,21 @@ public:
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
      *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlSubItem*指针，代表某行某列数据的UI元素控件
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())，代表哪一行的数据
-     *   eventData是列索引号（取值范围是：[0, GetColumnCount())，从0开始的索引号，代表哪一列的数据）
+     *           通过该接口，可以获取数据元素索引号、哪一列的数据
      */
     void AttachReportViewSubItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewSubItemFilled, callback); }
 
     /** 监听List视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
      */
     void AttachListViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventListViewItemFilled, callback); }
 
     /** 监听Icon视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针
-     *   lParam: 关联的数据项索引号，有效范围：[0, GetDataItemCount())
+     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
      */
     void AttachIconViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventIconViewItemFilled, callback); }
 

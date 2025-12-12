@@ -67,6 +67,11 @@ public:
     */
     ListCtrl* GetListCtrl() const;
 
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const;
+
     /** 获取子控件的个数
     */
     size_t GetSubItemCount() const;

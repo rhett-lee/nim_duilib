@@ -12,6 +12,7 @@ class ListCtrlItem;
 class ListCtrlSubItem : public ListCtrlLabel
 {
     typedef ListCtrlLabel BaseClass;
+    friend class ListCtrlReportView;//允许调用SetDataColumnId函数
 public:
     explicit ListCtrlSubItem(Window* pWindow);
 
@@ -44,6 +45,22 @@ public:
     /** 获取关联的Item接口
     */
     ListCtrlItem* GetListCtrlItem() const;
+
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const;
+
+    /** 获取关联的列索引号, 代表关联哪一列的数据
+    * @return 返回数据项的列索引号, 有效范围：[0, ListCtrl::GetColumnCount())
+    *         可以通过传入ListCtrl::GetColumnId()函数，获取到对应的列ID
+    */
+    size_t GetDataColumnIndex() const;
+
+    /** 获取关联的列ID, 代表关联哪一列的数据
+    * @return 返回数据项的列列ID，可以通过传入ListCtrl::GetColumnIndex()函数，获取到对应的列索引号
+    */
+    size_t GetDataColumnId() const;
 
     /** 设置是否在该列的数据项显示CheckBox
     * @param [in] bShow true表示在行首显示CheckBox，false表示不显示
@@ -98,6 +115,10 @@ protected:
     */
     int32_t GetCheckBoxImageWidth();
 
+    /** 设置关联的列ID, 代表关联哪一列的数据
+    */
+    void SetDataColumnId(size_t nColumnId);
+
 private:
     /** 关联的Item接口
     */
@@ -110,6 +131,10 @@ private:
     /** 文字与图标之间的间隔
     */
     int32_t m_nIconSpacing;
+
+    /** 关联的列ID
+    */
+    size_t m_nColumnId;
 };
 
 }//namespace ui
