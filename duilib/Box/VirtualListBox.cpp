@@ -178,11 +178,11 @@ Control* VirtualListBox::CreateElement()
             return true;
             });
         pControl->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
-            VSendEvent(args, true);
+            VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
             return true;
             });
         pControl->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
-            VSendEvent(args, true);
+            VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
             return true;
             });
     }
@@ -666,7 +666,7 @@ void VirtualListBox::SendEventMsg(const EventArgs& msg)
     VSendEvent(msg, false);
 }
 
-void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
+void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
 {
     if (bFromItem) {
         EventArgs newMsg = msg;
@@ -680,7 +680,12 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
         }
-        BaseClass::SendEventMsg(newMsg);
+        if (bFireEventOnly) {
+            BaseClass::FireAllEvents(newMsg);
+        }
+        else {
+            BaseClass::SendEventMsg(newMsg);
+        }
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
@@ -692,13 +697,29 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
             BaseClass::SendEventMsg(newMsg);
+            if (bFireEventOnly) {
+                BaseClass::FireAllEvents(newMsg);
+            }
+            else {
+                BaseClass::SendEventMsg(newMsg);
+            }
+        }
+        else {
+            if (bFireEventOnly) {
+                BaseClass::FireAllEvents(msg);
+            }
+            else {
+                BaseClass::SendEventMsg(msg);
+            }
+        }
+    }
+    else {
+        if (bFireEventOnly) {
+            BaseClass::FireAllEvents(msg);
         }
         else {
             BaseClass::SendEventMsg(msg);
         }
-    }
-    else {
-        BaseClass::SendEventMsg(msg);
     }
 }
 

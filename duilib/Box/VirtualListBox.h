@@ -484,8 +484,9 @@ protected:
     /** 发送事件的函数
     * @param [in] msg 事件内容
     * @param [in] bFromItem true表示来自子控件，false表示来自自身
+    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
     */
-    void VSendEvent(const EventArgs& msg, bool bFromItem);
+    void VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly = false);
 
     /** 计算一个元素的矩形区域
     */

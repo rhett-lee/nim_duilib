@@ -12,7 +12,8 @@ EventArgs::EventArgs() :
     lParam(0),
     pSender(nullptr),
     modifierKey(0),
-    eventData(0)
+    eventData(0),
+    listCtrlType(-1)
 {
     ptMouse.x = 0;
     ptMouse.y = 0;
