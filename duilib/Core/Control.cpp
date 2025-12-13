@@ -2532,7 +2532,7 @@ bool Control::HasHotState()
 bool Control::MouseEnter(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if( IsEnabled() ) {
         if (GetState() == kControlStateNormal) {
@@ -2553,7 +2553,7 @@ bool Control::MouseEnter(const EventArgs& msg)
 bool Control::MouseLeave(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if( IsEnabled() ) {
         if (GetState() == kControlStateHot) {
@@ -2575,7 +2575,7 @@ bool Control::MouseLeave(const EventArgs& msg)
 bool Control::ButtonDown(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if( IsEnabled() ) {
         PrivateSetState(kControlStatePushed);
@@ -2588,7 +2588,7 @@ bool Control::ButtonDown(const EventArgs& msg)
 bool Control::ButtonUp(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
@@ -2618,7 +2618,7 @@ bool Control::ButtonDoubleClick(const EventArgs& /*msg*/)
 bool Control::RButtonDown(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if (IsEnabled()) {
         SetMouseFocused(true);
@@ -2629,7 +2629,7 @@ bool Control::RButtonDown(const EventArgs& msg)
 bool Control::RButtonUp(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if (IsMouseFocused()) {
         SetMouseFocused(false);
@@ -2651,7 +2651,7 @@ bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
 bool Control::MButtonDown(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if (IsEnabled()) {
         SetMouseFocused(true);
@@ -2662,7 +2662,7 @@ bool Control::MButtonDown(const EventArgs& msg)
 bool Control::MButtonUp(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
-        return false;
+        return true;
     }
     if (IsMouseFocused()) {
         SetMouseFocused(false);

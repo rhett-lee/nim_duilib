@@ -44,6 +44,10 @@ public:
     */
     int32_t eventData;
 
+    /** ListCtrl控件专用数据，用于表示该事件对应的视图类型
+    */
+    int32_t listCtrlType;
+
 public:
     /** 构造函数
     */

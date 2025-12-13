@@ -484,9 +484,9 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
 {
     EventArgs msg = args;
     msg.SetSender(this);
-    msg.eventData = (int32_t)listCtrlType;
-    msg.wParam = 0;//默认为未点击任何子项
-    msg.lParam = 0;
+    msg.wParam = 0;//默认为未关联任何子项
+    msg.lParam = 0;//未使用
+    msg.listCtrlType = (int32_t)listCtrlType;//列表视图类型
 
     if (args.eventType != kEventSelChanged) {
         if (listCtrlType == ListCtrlType::Report) {
@@ -498,7 +498,6 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             }
             if (pItem != nullptr) {
                 msg.wParam = (WPARAM)pItem;
-                msg.lParam = pItem->GetElementIndex();
             }
         }
         else if (listCtrlType == ListCtrlType::Icon) {
@@ -510,7 +509,6 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             }
             if (pItem != nullptr) {
                 msg.wParam = (WPARAM)pItem;
-                msg.lParam = pItem->GetElementIndex();
             }
         }
         else if (listCtrlType == ListCtrlType::List) {
@@ -522,7 +520,6 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             }
             if (pItem != nullptr) {
                 msg.wParam = (WPARAM)pItem;
-                msg.lParam = pItem->GetElementIndex();
             }
         }
         else {

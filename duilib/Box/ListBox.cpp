@@ -406,7 +406,7 @@ bool ListBox::OnListCtrlKeyDown(const EventArgs& msg)
         bool bRet = SetSelectAll();
         if (bRet) {
             OnSelectStatusChanged();
-            SendEvent(kEventSelChanged);
+            SendEvent(kEventSelChanged);//bRet返回true表示有变化
         }
         return bHandled;
     }
