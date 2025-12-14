@@ -40,7 +40,8 @@ Control::Control(Window* pWindow) :
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
     m_nPaintOrder(0),
-    m_bBordersOnTop(true)
+    m_bBordersOnTop(true),
+    m_bMouseEnter(false)
 {
 }
 
@@ -2323,7 +2324,8 @@ void Control::SendEventMsg(const EventArgs& msg)
 //#endif
 
     bool bRet = true;
-    if (!IsDisabledEvents(msg)) {
+    //鼠标的Enter和Leave消息处理走特殊流程，在处理函数自身触发事件
+    if (!IsDisabledEvents(msg) && (msg.eventType != kEventMouseEnter) && (msg.eventType != kEventMouseLeave)) {
         bRet = FireAllEvents(msg);
     }
     if(bRet) {
@@ -2410,8 +2412,9 @@ void Control::HandleEvent(const EventArgs& msg)
         }
     }
     else if( msg.eventType == kEventMouseEnter ) {
-        if (GetWindow()) {
-            if (!IsChild(this, GetWindow()->GetHoverControl())) {
+        if (GetWindow() != nullptr) {
+            //如果当前Hover控件不是相关控件(当前控件自身、当前控件的子孙控件)，则忽略此消息
+            if (!IsControlRelated(this, GetWindow()->GetHoverControl())) {
                 return;
             }
         }
@@ -2420,8 +2423,9 @@ void Control::HandleEvent(const EventArgs& msg)
         }
     }
     else if( msg.eventType == kEventMouseLeave ) {
-        if (GetWindow()) {
-            if (IsChild(this, GetWindow()->GetHoverControl())) {
+        if (GetWindow() != nullptr) {
+            //如果当前Hover控件是相关控件(当前控件自身、当前控件的子孙控件)，则忽略此消息
+            if (IsControlRelated(this, GetWindow()->GetHoverControl())) {
                 return;
             }
         }
@@ -2469,49 +2473,62 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.eventType == kEventMouseMDoubleClick) {
+    else if (msg.eventType == kEventMouseMDoubleClick) {        
         if (MButtonDoubleClick(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventMouseMove) {
+    else if (msg.eventType == kEventMouseMove) {        
         if (MouseMove(msg)) {
             return;
         }        
     }
-    else if (msg.eventType == kEventMouseHover) {
+    else if (msg.eventType == kEventMouseHover) {        
         if (MouseHover(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventMouseWheel) {
+    else if (msg.eventType == kEventMouseWheel) {        
         if (MouseWheel(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventContextMenu) {
+    else if (msg.eventType == kEventContextMenu) {        
         if (MouseMenu(msg)) {
             return;
         }        
     }
-    else if (msg.eventType == kEventChar) {
+    else if (msg.eventType == kEventChar) {        
         if (OnChar(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventKeyDown) {
+    else if (msg.eventType == kEventKeyDown) {        
         if (OnKeyDown(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventKeyUp) {
+    else if (msg.eventType == kEventKeyUp) {        
         if (OnKeyUp(msg)) {
             return;
         }
     }
     if (!weakFlag.expired() && (GetParent() != nullptr)) {
+        //在父控件这里，会触发BubbledEvent事件派发，并且会在父控件处理此消息
         GetParent()->SendEventMsg(msg);
     }
+}
+
+bool Control::CheckEventType(const EventArgs& msg, EventType eventType) const
+{
+    ASSERT(msg.eventType == eventType);
+    if (msg.eventType != eventType) {
+        return false;
+    }
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    return true;
 }
 
 bool Control::HasHotState()
@@ -2531,50 +2548,75 @@ bool Control::HasHotState()
 
 bool Control::MouseEnter(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    //MouseEnter的流程：祖先控件[MouseEnter] -> 父控件[MouseEnter] -> 子控件[MouseEnter]
+    if (!CheckEventType(msg, kEventMouseEnter)) {
         return true;
     }
-    if( IsEnabled() ) {
+    if(IsEnabled()) {
         if (GetState() == kControlStateNormal) {
             PrivateSetState(kControlStateHot);
             if (HasHotState()) {
                 GetAnimationManager().MouseEnter();
-                Invalidate();
             }
-            return false;
+            Invalidate();
         }
-        else {
-            return true;
+        if (!m_bMouseEnter) {
+            m_bMouseEnter = true;
+
+            //触发事件，应用层可以收到该消息的回调事件
+            EventArgs newMsg = msg;
+            newMsg.SetSender(this);
+            FireNormalEvents(newMsg);
         }
     }
-    return false;
+    else {
+        //恢复状态
+        m_bMouseEnter = false;
+        if (GetState() == kControlStateHot) {
+            PrivateSetState(kControlStateNormal);
+            Invalidate();
+        }
+    }
+    return false; //返回false时，父控件也会收到MouseEnter事件
 }
 
 bool Control::MouseLeave(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    //MouseLeave的流程：子控件[MouseLeave] -> 父控件[MouseLeave] -> 祖先控件[MouseLeave]
+    if (!CheckEventType(msg, kEventMouseLeave)) {
         return true;
     }
-    if( IsEnabled() ) {
+    if(IsEnabled()) {
         if (GetState() == kControlStateHot) {
             PrivateSetState(kControlStateNormal);
             if (HasHotState()) {
-                GetAnimationManager().MouseLeave();
-                Invalidate();
+                GetAnimationManager().MouseLeave();                
             }
-            return false;
+            Invalidate();
         }
-        else {
-            return true;
+        if (m_bMouseEnter) {
+            m_bMouseEnter = false;
+
+            //触发事件，应用层可以收到该消息的回调事件
+            EventArgs newMsg = msg;
+            newMsg.SetSender(this);
+            FireNormalEvents(newMsg);
         }
     }
-
-    return false;
+    else {
+        //恢复状态
+        m_bMouseEnter = false;
+        if (GetState() == kControlStateHot) {
+            PrivateSetState(kControlStateNormal);
+            Invalidate();
+        }
+    }
+    return false; //返回false时，父控件也会收到MouseLeave事件
 }
 
 bool Control::ButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseButtonDown)) {
         return true;
     }
     if( IsEnabled() ) {
@@ -2587,7 +2629,7 @@ bool Control::ButtonDown(const EventArgs& msg)
 
 bool Control::ButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseButtonUp)) {
         return true;
     }
     if( IsMouseFocused() ) {
@@ -2610,14 +2652,17 @@ bool Control::ButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::ButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::ButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
 bool Control::RButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseRButtonDown)) {
         return true;
     }
     if (IsEnabled()) {
@@ -2628,7 +2673,7 @@ bool Control::RButtonDown(const EventArgs& msg)
 
 bool Control::RButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseRButtonUp)) {
         return true;
     }
     if (IsMouseFocused()) {
@@ -2643,14 +2688,17 @@ bool Control::RButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::RButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseRDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
 bool Control::MButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseMButtonDown)) {
         return true;
     }
     if (IsEnabled()) {
@@ -2661,7 +2709,7 @@ bool Control::MButtonDown(const EventArgs& msg)
 
 bool Control::MButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
+    if (!CheckEventType(msg, kEventMouseMButtonUp)) {
         return true;
     }
     if (IsMouseFocused()) {
@@ -2670,54 +2718,86 @@ bool Control::MButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::MButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::MButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseMDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseMove(const EventArgs& /*msg*/)
+bool Control::MouseMove(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseMove)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseHover(const EventArgs& /*msg*/)
+bool Control::MouseHover(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseHover)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseWheel(const EventArgs& /*msg*/)
+bool Control::MouseWheel(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseWheel)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     //int32_t wheelDelta = msg.eventData;
     return false;
 }
 
-bool Control::MouseMenu(const EventArgs& /*msg*/)
+bool Control::MouseMenu(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventContextMenu)) {
+        return true;
+    }
+
     //按Shif + F10由系统产生上下文菜单, 或者点击右键触发菜单：默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnChar(const EventArgs& /*msg*/)
+bool Control::OnChar(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventChar)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnKeyDown(const EventArgs& /*msg*/)
+bool Control::OnKeyDown(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventKeyDown)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnKeyUp(const EventArgs& /*msg*/)
+bool Control::OnKeyUp(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventKeyUp)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnSetCursor(const EventArgs& /*msg*/)
+bool Control::OnSetCursor(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventSetCursor)) {
+        return true;
+    }
     switch (m_cursorType) {
     case CursorType::kCursorHand:
         {
@@ -2741,8 +2821,11 @@ void Control::SetCursor(CursorType cursorType)
     GlobalManager::Instance().Cursor().SetCursor(cursorType);
 }
 
-bool Control::OnSetFocus(const EventArgs& /*msg*/)
+bool Control::OnSetFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventSetFocus)) {
+        return true;
+    }
 #if defined (DUILIB_BUILD_FOR_WIN)
     //默认情况下，控件获得焦点时，关闭输入法
     Window* pWindow = GetWindow();
@@ -2760,8 +2843,8 @@ bool Control::OnSetFocus(const EventArgs& /*msg*/)
 
 bool Control::OnKillFocus(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventKillFocus)) {
+        return true;
     }
     if (GetState() == kControlStateHot) {
         SetState(kControlStateNormal);
@@ -2779,44 +2862,65 @@ bool Control::OnKillFocus(const EventArgs& msg)
     return true;
 }
 
-bool Control::OnWindowSetFocus(const EventArgs& /*msg*/)
+bool Control::OnWindowSetFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventWindowSetFocus)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
+bool Control::OnWindowKillFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventWindowKillFocus)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnCaptureChanged(const EventArgs& /*msg*/)
+bool Control::OnCaptureChanged(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventCaptureChanged)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeSetContext(const EventArgs& /*msg*/)
+bool Control::OnImeSetContext(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeSetContext)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
+bool Control::OnImeStartComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeStartComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeComposition(const EventArgs& /*msg*/)
+bool Control::OnImeComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
+bool Control::OnImeEndComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeEndComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }

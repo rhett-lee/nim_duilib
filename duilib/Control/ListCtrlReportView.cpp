@@ -982,6 +982,30 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             if (!defaultSubItemClass.empty()) {
                 pSubItem->SetClass(defaultSubItemClass);
             }
+            pSubItem->AttachMouseEnter([this, pSubItem](const EventArgs& args) {
+                if (m_pListCtrl != nullptr) {
+                    EventArgs msg = args;
+                    msg.SetSender(m_pListCtrl);
+                    msg.eventType = kEventSubItemMouseEnter;
+                    msg.listCtrlType = (int32_t)ListCtrlType::Report;
+                    msg.wParam = (WPARAM)pSubItem->GetListCtrlItem();
+                    msg.lParam = (LPARAM)pSubItem;
+                    m_pListCtrl->FireAllEvents(msg);
+                }
+                return true;
+                });
+            pSubItem->AttachMouseLeave([this, pSubItem](const EventArgs& args) {
+                if (m_pListCtrl != nullptr) {
+                    EventArgs msg = args;
+                    msg.SetSender(m_pListCtrl);
+                    msg.eventType = kEventSubItemMouseLeave;
+                    msg.listCtrlType = (int32_t)ListCtrlType::Report;
+                    msg.wParam = (WPARAM)pSubItem->GetListCtrlItem();
+                    msg.lParam = (LPARAM)pSubItem;
+                    m_pListCtrl->FireAllEvents(msg);
+                }
+                return true;
+                });
         }
         subItemPtrList.push_back(ControlPtrT<ListCtrlSubItem>(pSubItem));
         //设置不获取焦点

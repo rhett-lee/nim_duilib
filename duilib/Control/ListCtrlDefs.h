@@ -193,10 +193,51 @@ public:
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
+public:
     /** 获取关联的数据项索引号, 代表关联哪一行的数据
     * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
     */
     size_t GetDataItemIndex() const { return GetElementIndex(); }
+
+    /** 获取图标控件的接口
+    */
+    ListCtrlIcon* GetListCtrlIcon() const { return dynamic_cast<ListCtrlIcon*>(GetItemAt(0)); }
+
+    /** 获取文字控件的接口
+    */
+    ListCtrlLabel* GetListCtrlLabel() const { return dynamic_cast<ListCtrlLabel*>(GetItemAt(1)); }
+
+    /** 获取文字控件内的文本
+    */
+    DString GetLabelText() const
+    {
+        ListCtrlLabel* pLabel = GetListCtrlLabel();
+        if (pLabel != nullptr) {
+            return pLabel->GetText();
+        }
+        return DString();
+    }
+
+    /** 获取鼠标所在位置的子控件
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    Control* GetSubItem(const UiPoint& ptMouse) const
+    {
+        UiPoint pt(ptMouse);
+        pt.Offset(GetScrollOffsetInScrollBox());
+        Control* pFoundSubItem = nullptr;
+        size_t nItemCount = GetItemCount();
+        for (size_t index = 0; index < nItemCount; ++index) {
+            Control* pSubItem = GetItemAt(index);
+            if (pSubItem != nullptr) {
+                if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
+                    pFoundSubItem = pSubItem;
+                    break;
+                }
+            }
+        }
+        return pFoundSubItem;
+    }
 
 private:
     /** 关联的ListCtrl接口
@@ -232,10 +273,51 @@ public:
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
+public:
     /** 获取关联的数据项索引号, 代表关联哪一行的数据
     * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
     */
     size_t GetDataItemIndex() const { return GetElementIndex(); }
+
+    /** 获取图标控件的接口
+    */
+    ListCtrlIcon* GetListCtrlIcon() const { return dynamic_cast<ListCtrlIcon*>(GetItemAt(0)); }
+
+    /** 获取文字控件的接口
+    */
+    ListCtrlLabel* GetListCtrlLabel() const { return dynamic_cast<ListCtrlLabel*>(GetItemAt(1)); }
+
+    /** 获取文字控件内的文本
+    */
+    DString GetLabelText() const
+    {
+        ListCtrlLabel* pLabel = GetListCtrlLabel();
+        if (pLabel != nullptr) {
+            return pLabel->GetText();
+        }
+        return DString();
+    }
+
+    /** 获取鼠标所在位置的子控件
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    Control* GetSubItem(const UiPoint& ptMouse) const
+    {
+        UiPoint pt(ptMouse);
+        pt.Offset(GetScrollOffsetInScrollBox());
+        Control* pFoundSubItem = nullptr;
+        size_t nItemCount = GetItemCount();
+        for (size_t index = 0; index < nItemCount; ++index) {
+            Control* pSubItem = GetItemAt(index);
+            if (pSubItem != nullptr) {
+                if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
+                    pFoundSubItem = pSubItem;
+                    break;
+                }
+            }
+        }
+        return pFoundSubItem;
+    }
 
 private:
     /** 关联的ListCtrl接口

@@ -19,7 +19,8 @@ DString ListCtrlLabel::GetType() const { return _T("ListCtrlLabel"); }
 
 void ListCtrlLabel::HandleEvent(const EventArgs& msg)
 {
-    if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
+    if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd) &&
+        (msg.eventType != EventType::kEventMouseEnter) && (msg.eventType != EventType::kEventMouseLeave)) {
         //鼠标消息
         if (!IsDisabledEvents(msg) && (m_pListBoxItem != nullptr)) {
             //可处理鼠标消息

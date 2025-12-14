@@ -102,7 +102,7 @@ ListCtrlSubItem* ListCtrlItem::GetSubItem(const UiPoint& ptMouse) const
     for (size_t index = 0; index < nItemCount; ++index) {
         ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(index));
         if (pSubItem != nullptr) {
-            if (pSubItem->GetRect().ContainsPt(pt)) {
+            if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
                 pFoundSubItem = pSubItem;
                 break;
             }

@@ -839,7 +839,7 @@ public:
      */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
-    /** 绑定鼠标进入控件的处理函数
+    /** 绑定鼠标进入ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
@@ -847,9 +847,9 @@ public:
      *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
+    void AttachItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventItemMouseEnter, callback); }
 
-    /** 绑定鼠标离开控件的处理函数
+    /** 绑定鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
@@ -857,7 +857,25 @@ public:
      *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
+    void AttachItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventItemMouseLeave, callback); }
+
+    /** 绑定鼠标进入ListCtrlSubItem控件的处理函数
+     * @param [in] callback 事件处理的回调函数
+     * 参数说明:
+     *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
+     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*指针
+     *   lParam: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
+     */
+    void AttachSubItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventSubItemMouseEnter, callback); }
+
+    /** 绑定鼠标离开ListCtrlSubItem控件的处理函数
+     * @param [in] callback 事件处理的回调函数
+     * 参数说明:
+     *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
+     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*指针
+     *   lParam: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
+     */
+    void AttachSubItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventSubItemMouseLeave, callback); }
 
     /** 监听回车事件
      * 参数说明:

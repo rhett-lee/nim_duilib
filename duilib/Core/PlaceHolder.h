@@ -412,9 +412,12 @@ public:
      */
     UiPoint GetScrollOffsetInScrollBox() const;
 
-    /** 判断两个控件是否存在父子/子孙关系
+    /** 判断两个控件是否相等，是否存在父子或者子孙关系
+     * @param [in] pAncestor 父祖级别的控件
+     * @param [in] pChild 子孙级别的控件
+     * @return 如果两个控件相等，或者存在父子或者子孙关系时返回true，否则返回false
      */
-    bool IsChild(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const;
+    bool IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const;
 
     /** 获取该窗口对应的DPI管理器
     */

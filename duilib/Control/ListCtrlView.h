@@ -176,18 +176,9 @@ protected:
     */
     virtual void OnChildItemMouseEvent(const EventArgs& msg) override
     {
-        if (msg.eventType == EventType::kEventMouseLeave) {
-            Control* pNewHover = nullptr;
-            Window* pWindow = this->GetWindow();
-            if (pWindow != nullptr) {
-                pNewHover = pWindow->GetHoverControl();
-            }
-            if (pNewHover != nullptr) {
-                if ((pNewHover == this) || this->IsChild(this, pNewHover)) {
-                    //鼠标并未离开ListCtrl Item区域
-                    return;
-                }
-            }
+        if ((msg.eventType == EventType::kEventMouseEnter) || (msg.eventType == EventType::kEventMouseLeave)) {
+            //这两个事件不需要转发，子控件会自动转发给父控件
+            return;
         }
         BaseClass::HandleEvent(msg);
     }
@@ -197,18 +188,9 @@ protected:
     */
     virtual void FireChildItemMouseEvent(const EventArgs& msg) override
     {
-        if (msg.eventType == EventType::kEventMouseLeave) {
-            Control* pNewHover = nullptr;
-            Window* pWindow = this->GetWindow();
-            if (pWindow != nullptr) {
-                pNewHover = pWindow->GetHoverControl();
-            }
-            if (pNewHover != nullptr) {
-                if ((pNewHover == this) || this->IsChild(this, pNewHover)) {
-                    //鼠标并未离开ListCtrl Item区域
-                    return;
-                }
-            }
+        if ((msg.eventType == EventType::kEventMouseEnter) || (msg.eventType == EventType::kEventMouseLeave)) {
+            //这两个事件不需要转发，子控件会自动转发给父控件，并触发该消息对应的事件
+            return;
         }
         EventArgs newMsg = msg;
         newMsg.SetSender(this);//按Item控件触发回调

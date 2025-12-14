@@ -133,60 +133,48 @@ void VirtualListBox::SetMultiSelect(bool bMultiSelect)
 
 Control* VirtualListBox::CreateElement()
 {
-    Control* pControl = nullptr;
+    Control* pListBoxItem = nullptr;
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider != nullptr) {
-        pControl = m_pDataProvider->CreateElement(this);
+        pListBoxItem = m_pDataProvider->CreateElement(this);
+        ASSERT(dynamic_cast<IListBoxItem*>(pListBoxItem) != nullptr);
     }
-    if (pControl != nullptr) {
+    if (pListBoxItem != nullptr) {
         //挂载鼠标事件，转接给List Box本身
-        pControl->AttachMouseEnter([this, pControl](const EventArgs& args) {
+        pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
+            VFireMouseEnterLeaveEvent(args);
+            return true;
+            });
+        pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
+            VFireMouseEnterLeaveEvent(args);
+            return true;
+            });
+        pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
             });
-        pControl->AttachMouseLeave([this, pControl](const EventArgs& args) {
-            {
-                Control* pNewHover = nullptr;
-                Window* pWindow = this->GetWindow();
-                if (pWindow != nullptr) {
-                    pNewHover = pWindow->GetHoverControl();
-                }
-                if (pNewHover != nullptr) {
-                    if ((pNewHover == pControl) || pControl->IsChild(pControl, pNewHover)) {
-                        //鼠标并未离开Item区域
-                        return true;
-                    }
-                }
-                VSendEvent(args, true);
-            }            
-            return true;
-            });
-        pControl->AttachDoubleClick([this](const EventArgs& args) {
+        pListBoxItem->AttachClick([this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
             });
-        pControl->AttachClick([this](const EventArgs& args) {
+        pListBoxItem->AttachRClick([this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
             });
-        pControl->AttachRClick([this](const EventArgs& args) {
+        pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
             VSendEvent(args, true);
             return true;
             });
-        pControl->AttachEvent(kEventReturn, [this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pControl->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
             VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
             return true;
             });
-        pControl->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
+        pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
             VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
             return true;
             });
     }
-    return pControl;
+    return pListBoxItem;
 }
 
 void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
@@ -721,6 +709,32 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFire
             BaseClass::SendEventMsg(msg);
         }
     }
+}
+
+void VirtualListBox::VFireMouseEnterLeaveEvent(const EventArgs& msg)
+{
+    EventArgs newMsg = msg;
+    newMsg.SetSender(this);
+    if (msg.eventType == kEventMouseEnter) {
+        newMsg.eventType = kEventItemMouseEnter;
+    }
+    else if (msg.eventType == kEventMouseLeave) {
+        newMsg.eventType = kEventItemMouseLeave;
+    }
+    else {
+        ASSERT(0);
+        return;
+    }
+    size_t nItemIndex = GetItemIndex(msg.GetSender());
+    if (nItemIndex < GetItemCount()) {
+        newMsg.wParam = nItemIndex;
+        newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);
+    }
+    else {
+        newMsg.wParam = Box::InvalidIndex;
+        newMsg.lParam = Box::InvalidIndex;
+    }
+    BaseClass::FireAllEvents(newMsg);
 }
 
 bool VirtualListBox::RemoveItem(Control* pControl)
