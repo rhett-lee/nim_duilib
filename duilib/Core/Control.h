@@ -1469,6 +1469,11 @@ private:
     */
     std::unique_ptr<IRender> CreateTempRender() const;
 
+    /** 校验事件类型是否有效、是否匹配
+    * @return 返回true表示校验通过，返回false表示校验未通过
+    */
+    bool CheckEventType(const EventArgs& msg, EventType eventType) const;
+
 private:
     /** 获取AttachXXX接口的监听事件管理器
     */
@@ -1729,6 +1734,9 @@ private:
 
     //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
     bool m_bBordersOnTop;
+
+    //是否处于MouseEnter状态（用于触发事件的标志）
+    bool m_bMouseEnter;
 };
 
 } // namespace ui

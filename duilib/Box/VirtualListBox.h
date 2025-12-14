@@ -285,21 +285,21 @@ public:
      */
     void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
 
-    /** 监听鼠标进入控件的事件
+    /** 监听鼠标进入ListBoxItem控件的事件
      * @param[in] callback 要绑定的回调函数
      *  参数说明:
      *    wParam: 关联的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未关联任何子项
      *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
      */
-    void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
+    void AttachItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventItemMouseEnter, callback); }
 
-    /** 监听鼠标离开控件的事件
+    /** 监听鼠标离开ListBoxItem控件的事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      *  参数说明:
      *    wParam: 关联的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未关联任何子项
      *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
      */
-    void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
+    void AttachItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventItemMouseLeave, callback); }
 
     /** 监听双击事件
      * @param[in] callback 要绑定的回调函数
@@ -487,6 +487,13 @@ protected:
     * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
     */
     void VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly = false);
+
+    /** 发送事件的函数（鼠标进入和离开事件）
+    * @param [in] msg 事件内容
+    * @param [in] bFromItem true表示来自子控件，false表示来自自身
+    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
+    */
+    void VFireMouseEnterLeaveEvent(const EventArgs& msg);
 
     /** 计算一个元素的矩形区域
     */

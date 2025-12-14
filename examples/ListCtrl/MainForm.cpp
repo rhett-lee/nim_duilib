@@ -1143,12 +1143,20 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         OnListCtrlEvent(args);
         return true;
         });
-    pListCtrl->AttachMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        //OnListCtrlEvent(args);
+    pListCtrl->AttachItemMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
         return true;
         });
-    pListCtrl->AttachMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        //OnListCtrlEvent(args);
+    pListCtrl->AttachItemMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachSubItemMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachSubItemMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
         return true;
         });
     pListCtrl->AttachReturn([this, OnListCtrlEvent](const ui::EventArgs& args) {
@@ -1188,7 +1196,14 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
                     nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
                     labelText = pSubItem->GetText();
                 }
-            }            
+            }
+            else if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
+                ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.lParam;
+                if (pSubItem != nullptr) {
+                    nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
+                    labelText = pSubItem->GetText();
+                }
+            }
         }
     }
     else if (listCtrlType == ui::ListCtrlType::Icon) {
@@ -1196,7 +1211,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
         ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.wParam;
         if (pItem != nullptr) {
             nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
-            labelText = pItem->GetText();
+            labelText = pItem->GetLabelText();
         }
     }
     else if (listCtrlType == ui::ListCtrlType::List) {
@@ -1204,7 +1219,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
         ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.wParam;
         if (pItem != nullptr) {
             nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
-            labelText = pItem->GetText();
+            labelText = pItem->GetLabelText();
         }
     }
     else {
@@ -1236,11 +1251,21 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
             sInfo += _T(">");
             sInfo += _T(" ");
         }
-        if (nDataColumnIndex >= 0) {
-            sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d, LabelText='%s'"), nDataItemIndex, nDataColumnIndex, labelText.c_str());
+        if (labelText.empty()) {
+            if (nDataColumnIndex >= 0) {
+                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d"), nDataItemIndex, nDataColumnIndex);
+            }
+            else {
+                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d"), nDataItemIndex);
+            }
         }
         else {
-            sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, LabelText='%s'"), nDataItemIndex, labelText.c_str());
+            if (nDataColumnIndex >= 0) {
+                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d, LabelText='%s'"), nDataItemIndex, nDataColumnIndex, labelText.c_str());
+            }
+            else {
+                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, LabelText='%s'"), nDataItemIndex, labelText.c_str());
+            }
         }
     }
     

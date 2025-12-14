@@ -766,12 +766,12 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
     return scrollPos;
 }
 
-bool PlaceHolder::IsChild(const PlaceHolder* pAncestor, const PlaceHolder* pControl) const
+bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const
 {
-    while (pControl && pControl != pAncestor) {
-        pControl = pControl->GetParent();
+    while ((pChild != nullptr) && (pChild != pAncestor)) {
+        pChild = pChild->GetParent();
     }
-    return pControl != nullptr;
+    return pChild != nullptr;
 }
 
 const DpiManager& PlaceHolder::Dpi() const

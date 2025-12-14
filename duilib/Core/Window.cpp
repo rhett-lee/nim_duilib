@@ -1783,7 +1783,7 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     ControlPtr pNewHover = ControlPtr(FindControl(pt));
-    //设置为新的Hover控件
+    //设置为新的Hover控件（必须先设置m_pEventHover的值，否则在Control::HandleEvent函数中，对鼠标消息Enter/Leave消息处理逻辑有冲突）
     ControlPtr pOldHover = m_pEventHover;
     m_pEventHover = pNewHover;
 

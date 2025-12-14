@@ -344,7 +344,7 @@ namespace ui
         kEventMouseClickEsc,        //Window类：当收到键盘ESC键消息时触发，发送给鼠标按下时的控件
 
         //选择/取消选择
-        kEventSelect,               //CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
+        kEventSelect,               //CheckBox类、Option类、ListBox类、Combo类、ListCtrl类：当变成选中状态时触发
         kEventUnSelect,             //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
         //勾选/取消勾选
@@ -359,30 +359,35 @@ namespace ui
         kEventCollapse,             //TreeNode类：当树节点收起时触发
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
-        kEventTextChanged,           //RichEdit类：当文本内容发生变化时触发
-        kEventSelChanged,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
+        kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发
+        kEventSelChanged,           //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit、AddressBar类：当收到回车键时触发
         kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
-        kEventScrollPosChanged,         //ScrollBox类：当滚动条位置发生变化时触发
-        kEventValueChanged,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+        kEventScrollPosChanged,     //ScrollBox类：当滚动条位置发生变化时触发
+        kEventValueChanged,         //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
         kEventPosChanged,           //Control类：当控件的位置发生变化时触发
         kEventSizeChanged,          //Control类：当控件的大小发生变化时触发
-        kEventVisibleChanged,        //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
-        kEventStateChanged,          //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
+        kEventVisibleChanged,       //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
+        kEventStateChanged,         //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
         kEventSelectColor,          //ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
         kEventSplitDraged,          //Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
-        kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
-        kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
-        kEventDataItemCountChanged, //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
-        kEventReportViewItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据, wParam是ListCtrlItem*指针, 通过该接口可以获取到数据元素索引号
-        kEventReportViewSubItemFilled, //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据, wParam是ListCtrlSubItem*指针, 通过该接口，可以获取数据元素索引号、哪一列的数据
-        kEventListViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
-        kEventIconViewItemFilled,   //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventEnterEdit,                //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
+        kEventLeaveEdit,                //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
+        kEventDataItemCountChanged,     //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
+
+        kEventItemMouseEnter,           //ListCtrl/VirtualListBox类：鼠标进入ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem/ListBoxItem控件事件
+        kEventItemMouseLeave,           //ListCtrl/VirtualListBox类：鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem/ListBoxItem控件事件
+        kEventSubItemMouseEnter,        //ListCtrl类：Report视图，鼠标进入ListCtrlSubItem控件事件
+        kEventSubItemMouseLeave,        //ListCtrl类：Report视图，鼠标离开ListCtrlSubItem控件事件
+        kEventReportViewItemFilled,     //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据, wParam是ListCtrlItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventReportViewSubItemFilled,  //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据, wParam是ListCtrlSubItem*指针, 通过该接口，可以获取数据元素索引号、哪一列的数据
+        kEventListViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventIconViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发

@@ -342,11 +342,11 @@ void ListCtrl::InitReportView()
         OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachMouseEnter([this](const EventArgs& args) {
+    m_pReportView->AttachItemMouseEnter([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
-    m_pReportView->AttachMouseLeave([this](const EventArgs& args) {
+    m_pReportView->AttachItemMouseLeave([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
@@ -393,11 +393,11 @@ void ListCtrl::InitIconView()
         OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachMouseEnter([this](const EventArgs& args) {
+    m_pIconView->AttachItemMouseEnter([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
-    m_pIconView->AttachMouseLeave([this](const EventArgs& args) {
+    m_pIconView->AttachItemMouseLeave([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::Icon, args);
         return true;
         });
@@ -446,11 +446,11 @@ void ListCtrl::InitListView()
         OnListCtrlViewEvent(ListCtrlType::List, args);
         return true;
         });
-    m_pListView->AttachMouseEnter([this](const EventArgs& args) {
+    m_pListView->AttachItemMouseEnter([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::List, args);
         return true;
         });
-    m_pListView->AttachMouseLeave([this](const EventArgs& args) {
+    m_pListView->AttachItemMouseLeave([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::List, args);
         return true;
         });
