@@ -2002,7 +2002,9 @@ bool ListBox::AddItem(Control* pControl)
             pListItem->OptionSelected(false, false);
         }
     }
-    return ScrollBox::AddItem(pControl);
+    bool bRet = ScrollBox::AddItem(pControl);
+    OnNewItemAdded(pControl);
+    return bRet;
 }
 
 bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
@@ -2031,6 +2033,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
     if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
         m_iCurSel += 1;
     }
+    OnNewItemAdded(pControl);
     return true;
 }
 
@@ -2538,6 +2541,109 @@ void ListBox::SetLastNoShiftItem(size_t nLastNoShiftItem)
 size_t ListBox::GetLastNoShiftItem() const
 {
     return m_nLastNoShiftItem;
+}
+
+void ListBox::OnNewItemAdded(Control* pListBoxItem)
+{
+    if (pListBoxItem == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pListBoxItem) == nullptr) {
+        return;
+    }
+    //挂载鼠标事件，转接给ListBox本身，将事件分发到应用层
+    pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
+        ListBoxFireMouseEnterLeaveEvent(args);
+        return true;
+        });
+    pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
+        ListBoxFireMouseEnterLeaveEvent(args);
+        return true;
+        });
+    pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachRClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        });
+}
+
+void ListBox::ListBoxSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
+{
+    EventArgs newMsg = msg;
+    if (bFromItem) {
+        newMsg.SetSender(this);
+        size_t nItemIndex = GetItemIndex(msg.GetSender());
+        if (nItemIndex < GetItemCount()) {
+            newMsg.wParam = nItemIndex;
+            newMsg.lParam = 0;
+        }
+        else {
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = 0;
+        }
+    }
+    else if ((msg.eventType == kEventMouseDoubleClick) ||
+             (msg.eventType == kEventClick) ||
+             (msg.eventType == kEventRClick) ||
+             (msg.eventType == kEventKeyDown) ||
+             (msg.eventType == kEventKeyUp)) {
+        //需要设置wParam和lParam，按接口对应的Attach函数，设置这两个参数值
+        if (msg.GetSender() == this) {
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = 0;
+        }
+    }
+    if (bFireEventOnly) {
+        BaseClass::FireAllEvents(newMsg);
+    }
+    else {
+        BaseClass::SendEventMsg(newMsg);
+    }
+}
+
+void ListBox::ListBoxFireMouseEnterLeaveEvent(const EventArgs& msg)
+{
+    EventArgs newMsg = msg;
+    newMsg.SetSender(this);
+    if (msg.eventType == kEventMouseEnter) {
+        newMsg.eventType = kEventItemMouseEnter;
+    }
+    else if (msg.eventType == kEventMouseLeave) {
+        newMsg.eventType = kEventItemMouseLeave;
+    }
+    else {
+        ASSERT(0);
+        return;
+    }
+    size_t nItemIndex = GetItemIndex(msg.GetSender());
+    if (nItemIndex < GetItemCount()) {
+        newMsg.wParam = nItemIndex;
+        newMsg.lParam = 0;
+    }
+    else {
+        newMsg.wParam = Box::InvalidIndex;
+        newMsg.lParam = 0;
+    }
+    BaseClass::FireAllEvents(newMsg);
 }
 
 } // namespace ui
