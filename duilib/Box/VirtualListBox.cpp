@@ -140,7 +140,7 @@ Control* VirtualListBox::CreateElement()
         ASSERT(dynamic_cast<IListBoxItem*>(pListBoxItem) != nullptr);
     }
     if (pListBoxItem != nullptr) {
-        //挂载鼠标事件，转接给List Box本身
+        //挂载鼠标事件，转接给VirtualListBox本身，将事件分发到应用层
         pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
             VFireMouseEnterLeaveEvent(args);
             return true;

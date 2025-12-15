@@ -494,20 +494,6 @@ protected:
     */
     bool IsEnableUpdateProvider() const;
 
-    /** 发送事件的函数
-    * @param [in] msg 事件内容
-    * @param [in] bFromItem true表示来自子控件，false表示来自自身
-    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
-    */
-    void VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly = false);
-
-    /** 发送事件的函数（鼠标进入和离开事件）
-    * @param [in] msg 事件内容
-    * @param [in] bFromItem true表示来自子控件，false表示来自自身
-    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
-    */
-    void VFireMouseEnterLeaveEvent(const EventArgs& msg);
-
     /** 计算一个元素的矩形区域
     */
     void CalcTileElementRectV(size_t nElemenetIndex, const UiSize& szItem,
@@ -540,6 +526,18 @@ private:
     /** 纵向布局，计算列数
     */
     int32_t CalcColumns() const;
+
+    /** 发送事件的函数
+    * @param [in] msg 事件内容
+    * @param [in] bFromItem true表示来自子控件，false表示来自自身
+    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
+    */
+    void VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly = false);
+
+    /** 发送事件的函数（鼠标进入和离开事件）
+    * @param [in] msg 事件内容
+    */
+    void VFireMouseEnterLeaveEvent(const EventArgs& msg);
 
 private:
     /** 数据代理对象接口，提供展示数据

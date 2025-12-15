@@ -241,66 +241,66 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
     return true;
 }
 
-void MainForm::TestVirtualListBoxEvents(ui::VirtualListBox* pTileList)
+void MainForm::TestVirtualListBoxEvents(ui::VirtualListBox* pListBox)
 {
-    if (pTileList == nullptr) {
+    if (pListBox == nullptr) {
         return;
     }
     //事件挂载，测试事件接口
-    auto OnVirtualListBoxEvents = [this, pTileList](const ui::EventArgs& args) {
-        ASSERT(pTileList == args.GetSender());
-        DString sInfo = GetEventDisplayInfo(args, pTileList);
+    auto OnVirtualListBoxEvents = [this, pListBox](const ui::EventArgs& args) {
+        ASSERT(pListBox == args.GetSender());
+        DString sInfo = GetEventDisplayInfo(args, pListBox);
         OutputDebugLog(sInfo);
         };
 
-    //挂载事件，转接给外层
-    pTileList->AttachSelect([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    //挂载事件
+    pListBox->AttachSelect([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachSelChanged([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachSelChanged([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachDoubleClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachDoubleClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachRClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachRClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachItemMouseEnter([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachItemMouseEnter([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachItemMouseLeave([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachItemMouseLeave([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachReturn([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachReturn([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachKeyDown([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachKeyDown([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachKeyUp([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachKeyUp([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
-    pTileList->AttachElementFilled([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+    pListBox->AttachElementFilled([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
         OnVirtualListBoxEvents(args);
         return true;
         });
 }
 
-DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualListBox* pTileList)
+DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualListBox* pListBox)
 {
     DString sInfo = ui::EventTypeToString(args.eventType);
     while (sInfo.size() < 24) {
@@ -309,9 +309,9 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
     if (args.eventType == ui::kEventSelect) {
         size_t nNewItemIndex = (size_t)args.wParam;
         size_t nOldItemIndex = (size_t)args.lParam;
-        size_t nNewElementID = pTileList->GetDisplayItemElementIndex(nNewItemIndex);
+        size_t nNewElementID = pListBox->GetDisplayItemElementIndex(nNewItemIndex);
         if (nOldItemIndex != ui::Box::InvalidIndex) {
-            size_t nOldElementID = pTileList->GetDisplayItemElementIndex(nOldItemIndex);
+            size_t nOldElementID = pListBox->GetDisplayItemElementIndex(nOldItemIndex);
             sInfo += ui::StringUtil::Printf(_T("NewItemIndex=%zu, NewElementID=%zu; OldItemIndex=%zu, OldElementID=%zu"),
                                             nNewItemIndex, nNewElementID, nOldItemIndex, nOldElementID);
         }
@@ -334,7 +334,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
             sInfo += _T("no params");
         }
         else {
-            size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+            size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
             ASSERT(nElementID == nCalcElementID);
             sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
         }
@@ -370,7 +370,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
             sInfo += _T("no params");
         }
         else {
-            size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+            size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
             ASSERT(nElementID == nCalcElementID);
             sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
         }
@@ -378,7 +378,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
     else if (args.eventType == ui::kEventElementFilled) {
         size_t nItemIndex = (size_t)args.wParam;
         size_t nElementID = (size_t)args.lParam;
-        size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+        size_t nCalcElementID = pListBox->GetDisplayItemElementIndex(nItemIndex);
         ASSERT(nElementID == nCalcElementID);
         sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu, ListBoxItem: 0x%p"), nItemIndex, nElementID, args.pEventData);
         ui::IListBoxItem* pListBoxItem = dynamic_cast<ui::IListBoxItem*>((ui::Control*)args.pEventData);
