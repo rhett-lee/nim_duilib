@@ -376,6 +376,8 @@ namespace ui
 
         kEventSplitDraged,          //Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
+        kEventElementFilled,            //VirtualListBox类：视图数据项UI元素填充事件(虚表), wParam是Control*指针, lParam是数据元素索引号
+
         kEventEnterEdit,                //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,                //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventDataItemCountChanged,     //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)

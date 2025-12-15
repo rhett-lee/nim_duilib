@@ -26,6 +26,18 @@ public:
 private:
     bool OnClicked(const ui::EventArgs& args);
 
+    /** 测试虚表的事件
+    */
+    void TestVirtualListBoxEvents(ui::VirtualListBox* pTileList);
+
+    /** 获取消息的基本信息（用于显示日志）
+    */
+    DString GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualListBox* pTileList);
+
+    /** 输出测试日志
+    */
+    void OutputDebugLog(const DString& logMsg);
+
 private:
     ui::VirtualListBox* m_pTileList;
     DataProvider* m_pDataProvider;

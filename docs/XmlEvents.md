@@ -174,6 +174,7 @@ if (msg.eventType == eventType) {
 |kEventStateChanged|"StateChanged"|"state_changed"|
 |kEventSelectColor|"SelectColor"|"select_color"|
 |kEventSplitDraged|"SplitDraged"|"split_draged"|
+|kEventElementFilled|"kEventElementFilled"|"element_filled"|
 |kEventEnterEdit|"EnterEdit"|"enter_edit"|
 |kEventLeaveEdit|"LeaveEdit"|"leave_edit"|
 |kEventDataItemCountChanged|"DataItemCountChanged"|"data_item_count_changed"|

@@ -185,6 +185,9 @@ void MainForm::OnInitWindow()
             m_pDataProvider->SetTotal(nTotal);
         }
     }
+
+    //测试虚表的事件
+    TestVirtualListBoxEvents(m_pTileList);
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& args)
@@ -235,6 +238,166 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
         ASSERT(nIndex < m_pDataProvider->GetElementCount());
         m_pDataProvider->RemoveTask(nIndex);
     }
-    m_pTileList->SetFocus();
     return true;
 }
+
+void MainForm::TestVirtualListBoxEvents(ui::VirtualListBox* pTileList)
+{
+    if (pTileList == nullptr) {
+        return;
+    }
+    //事件挂载，测试事件接口
+    auto OnVirtualListBoxEvents = [this, pTileList](const ui::EventArgs& args) {
+        ASSERT(pTileList == args.GetSender());
+        DString sInfo = GetEventDisplayInfo(args, pTileList);
+        OutputDebugLog(sInfo);
+        };
+
+    //挂载事件，转接给外层
+    pTileList->AttachSelect([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachSelChanged([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachDoubleClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachRClick([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachItemMouseEnter([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachItemMouseLeave([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachReturn([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachKeyDown([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachKeyUp([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+    pTileList->AttachElementFilled([this, OnVirtualListBoxEvents](const ui::EventArgs& args) {
+        OnVirtualListBoxEvents(args);
+        return true;
+        });
+}
+
+DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualListBox* pTileList)
+{
+    DString sInfo = ui::EventTypeToString(args.eventType);
+    while (sInfo.size() < 24) {
+        sInfo += _T(" ");
+    }
+    if (args.eventType == ui::kEventSelect) {
+        size_t nNewItemIndex = (size_t)args.wParam;
+        size_t nOldItemIndex = (size_t)args.lParam;
+        size_t nNewElementID = pTileList->GetDisplayItemElementIndex(nNewItemIndex);
+        if (nOldItemIndex != ui::Box::InvalidIndex) {
+            size_t nOldElementID = pTileList->GetDisplayItemElementIndex(nOldItemIndex);
+            sInfo += ui::StringUtil::Printf(_T("NewItemIndex=%zu, NewElementID=%zu; OldItemIndex=%zu, OldElementID=%zu"),
+                                            nNewItemIndex, nNewElementID, nOldItemIndex, nOldElementID);
+        }
+        else {
+            sInfo += ui::StringUtil::Printf(_T("NewItemIndex=%zu, NewElementID=%zu"), nNewItemIndex, nNewElementID);
+        }
+    }
+    else if (args.eventType == ui::kEventSelChanged) {
+        //无参数
+    }
+    else if ((args.eventType == ui::kEventItemMouseEnter) ||
+             (args.eventType == ui::kEventItemMouseLeave) ||
+             (args.eventType == ui::kEventMouseDoubleClick) ||
+             (args.eventType == ui::kEventClick)  ||
+             (args.eventType == ui::kEventRClick) ||
+             (args.eventType == ui::kEventReturn)) {
+        size_t nItemIndex = (size_t)args.wParam;
+        size_t nElementID = (size_t)args.lParam;
+        if (nItemIndex == ui::Box::InvalidIndex) {
+            sInfo += _T("no params");
+        }
+        else {
+            size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+            ASSERT(nElementID == nCalcElementID);
+            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
+        }
+    }
+    else if ((args.eventType == ui::kEventKeyDown) || (args.eventType == ui::kEventKeyUp)) {
+        //键盘消息
+        DString keyName = ui::Keyboard::GetKeyName(args.vkCode, false);
+        DString modifierKey;
+        if (args.vkCode != ui::VirtualKeyCode::kVK_CONTROL) {
+            if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_CONTROL)) {
+                modifierKey += _T("Ctrl+");
+            }
+        }
+        if (args.vkCode != ui::VirtualKeyCode::kVK_SHIFT) {
+            if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_SHIFT)) {
+                modifierKey += _T("Shift+");
+            }
+        }
+        if (args.vkCode != ui::VirtualKeyCode::kVK_MENU) {
+            if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_MENU)) {
+                modifierKey += _T("Alt+");
+            }
+        }
+        sInfo += _T("<");
+        sInfo += modifierKey;
+        sInfo += keyName;
+        sInfo += _T(">");
+        sInfo += _T(" ");
+
+        size_t nItemIndex = (size_t)args.wParam;
+        size_t nElementID = (size_t)args.lParam;
+        if (nItemIndex == ui::Box::InvalidIndex) {
+            sInfo += _T("no params");
+        }
+        else {
+            size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+            ASSERT(nElementID == nCalcElementID);
+            sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu"), nItemIndex, nElementID);
+        }
+    }
+    else if (args.eventType == ui::kEventElementFilled) {
+        size_t nItemIndex = (size_t)args.wParam;
+        size_t nElementID = (size_t)args.lParam;
+        size_t nCalcElementID = pTileList->GetDisplayItemElementIndex(nItemIndex);
+        ASSERT(nElementID == nCalcElementID);
+        sInfo += ui::StringUtil::Printf(_T("ItemIndex=%zu, ElementID=%zu, ListBoxItem: 0x%p"), nItemIndex, nElementID, args.pEventData);
+        ui::IListBoxItem* pListBoxItem = dynamic_cast<ui::IListBoxItem*>((ui::Control*)args.pEventData);
+        ASSERT(pListBoxItem != nullptr);
+        if ((pListBoxItem != nullptr)) {
+            ASSERT(pListBoxItem->GetListBoxIndex() == nItemIndex);
+            ASSERT(pListBoxItem->GetElementIndex() == nElementID);
+        }
+    }
+    else {
+        ASSERT(0);
+    }
+    return sInfo;
+}
+
+void MainForm::OutputDebugLog(const DString& logMsg)
+{
+#if defined DUILIB_BUILD_FOR_WIN && defined _DEBUG
+    ::OutputDebugString(logMsg.c_str());
+#endif
+}
+
