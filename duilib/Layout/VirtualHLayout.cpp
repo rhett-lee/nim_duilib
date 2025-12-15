@@ -258,7 +258,7 @@ void VirtualHLayout::LazyArrangeChild(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            pOwnerBox->FillElement(pControl, nElementIndex);
+            pOwnerBox->FillElementData(pControl, nElementIndex);
             refreshData.nItemIndex = nItemIndex;
             refreshData.pControl = pControl;
             refreshData.nElementIndex = nElementIndex;
@@ -277,6 +277,7 @@ void VirtualHLayout::LazyArrangeChild(UiRect rc) const
     }
     if (!refreshDataList.empty()) {
         pOwnerBox->OnRefreshElements(refreshDataList);
+        pOwnerBox->OnFilledElements(refreshDataList);
     }
 }
 

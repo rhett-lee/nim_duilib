@@ -13,6 +13,7 @@ EventArgs::EventArgs() :
     pSender(nullptr),
     modifierKey(0),
     eventData(0),
+    pEventData(nullptr),
     listCtrlType(-1)
 {
     ptMouse.x = 0;
@@ -127,6 +128,7 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventStateChanged, _T("kEventStateChanged"), _T("StateChanged"), _T("state_changed")},
         {kEventSelectColor, _T("kEventSelectColor"), _T("SelectColor"), _T("select_color")},
         {kEventSplitDraged, _T("kEventSplitDraged"), _T("SplitDraged"), _T("split_draged")},
+        {kEventElementFilled, _T("kEventElementFilled"), _T("ElementFilled"), _T("element_filled")},
         {kEventEnterEdit, _T("kEventEnterEdit"), _T("EnterEdit"), _T("enter_edit")},
         {kEventLeaveEdit, _T("kEventLeaveEdit"), _T("LeaveEdit"), _T("leave_edit")},
         {kEventDataItemCountChanged, _T("kEventDataItemCountChanged"), _T("DataItemCountChanged"), _T("data_item_count_changed")},

@@ -44,6 +44,10 @@ public:
     */
     int32_t eventData;
 
+    /** 消息关联的指针数据
+    */
+    void* pEventData;
+
     /** ListCtrl控件专用数据，用于表示该事件对应的视图类型
     */
     int32_t listCtrlType;

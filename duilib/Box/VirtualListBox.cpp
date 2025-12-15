@@ -177,7 +177,7 @@ Control* VirtualListBox::CreateElement()
     return pListBoxItem;
 }
 
-void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
+void VirtualListBox::FillElementData(Control* pControl, size_t nElementIndex)
 {
     ASSERT(pControl != nullptr);
     if (pControl == nullptr) {
@@ -416,7 +416,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
         size_t nElementIndex = pListBoxItem->GetElementIndex();
         if (nElementIndex != Box::InvalidIndex) {
             if (indexSet.find(nElementIndex) != indexSet.end()) {                
-                FillElement(pControl, nElementIndex);
+                FillElementData(pControl, nElementIndex);
                 pControl->Invalidate();
 
                 refreshData.nItemIndex = nItemIndex;
@@ -428,6 +428,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     }
     if (!refreshDataList.empty()) {
         OnRefreshElements(refreshDataList);
+        OnFilledElements(refreshDataList);
     }
 }
 
@@ -446,7 +447,7 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
             size_t nElementIndex = pListBoxItem->GetElementIndex();
             if ((nElementIndex >= nStartElementIndex) &&
                 (nElementIndex <= nEndElementIndex)) {
-                FillElement(pControl, nElementIndex);
+                FillElementData(pControl, nElementIndex);
                 pControl->Invalidate();
 
                 refreshData.nItemIndex = nItemIndex;
@@ -458,6 +459,28 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
     }
     if (!refreshDataList.empty()) {
         OnRefreshElements(refreshDataList);
+        OnFilledElements(refreshDataList);
+    }
+}
+
+void VirtualListBox::OnFilledElements(const RefreshDataList& refreshDataList)
+{
+    if (!HasEventCallback(kEventElementFilled)) {
+        //本控件中未注册回调函数（不支持父祖控件中注册的Bubbled事件，避免影响效率）
+        return;
+    }
+    auto weakFLag = GetWeakFlag();
+    for (const VirtualListBox::RefreshData& itemData : refreshDataList) {
+        if (weakFLag.expired()) {
+            break;
+        }
+        EventArgs msg;
+        msg.eventType = kEventElementFilled;
+        msg.SetSender(this);
+        msg.wParam = (WPARAM)itemData.nItemIndex;
+        msg.lParam = (LPARAM)itemData.nElementIndex;
+        msg.pEventData = itemData.pControl;
+        FireAllEvents(msg);
     }
 }
 
@@ -656,8 +679,8 @@ void VirtualListBox::SendEventMsg(const EventArgs& msg)
 
 void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
 {
-    if (bFromItem) {
-        EventArgs newMsg = msg;
+    EventArgs newMsg = msg;
+    if (bFromItem) {        
         newMsg.SetSender(this);
         size_t nItemIndex = GetItemIndex(msg.GetSender());
         if (nItemIndex < GetItemCount()) {
@@ -667,47 +690,24 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFire
         else {
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-        }
-        if (bFireEventOnly) {
-            BaseClass::FireAllEvents(newMsg);
-        }
-        else {
-            BaseClass::SendEventMsg(newMsg);
-        }
+        }        
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
-             (msg.eventType == kEventRClick)) {
+             (msg.eventType == kEventRClick) ||
+             (msg.eventType == kEventKeyDown) ||
+             (msg.eventType == kEventKeyUp)) {
+        //需要设置wParam和lParam，按接口对应的Attach函数，设置这两个参数值
         if (msg.GetSender() == this) {
-            //ASSERT(msg.wParam == 0);
-            //ASSERT(msg.lParam == 0);
-            EventArgs newMsg = msg;
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-            BaseClass::SendEventMsg(newMsg);
-            if (bFireEventOnly) {
-                BaseClass::FireAllEvents(newMsg);
-            }
-            else {
-                BaseClass::SendEventMsg(newMsg);
-            }
-        }
-        else {
-            if (bFireEventOnly) {
-                BaseClass::FireAllEvents(msg);
-            }
-            else {
-                BaseClass::SendEventMsg(msg);
-            }
         }
     }
+    if (bFireEventOnly) {
+        BaseClass::FireAllEvents(newMsg);
+    }
     else {
-        if (bFireEventOnly) {
-            BaseClass::FireAllEvents(msg);
-        }
-        else {
-            BaseClass::SendEventMsg(msg);
-        }
+        BaseClass::SendEventMsg(newMsg);
     }
 }
 

@@ -1791,7 +1791,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             }
             // 填充数据
             //TODO: 优化代码，避免每次刷新都Fill
-            pDataView->FillElement(pControl, nElementIndex);
+            pDataView->FillElementData(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
 
             refreshData.nItemIndex = index;
@@ -1828,6 +1828,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 
     if (!refreshDataList.empty()) {
         pDataView->OnRefreshElements(refreshDataList);
+        pDataView->OnFilledElements(refreshDataList);
     }
 }
 
@@ -1918,7 +1919,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            pDataView->FillElement(pControl, nElementIndex);
+            pDataView->FillElementData(pControl, nElementIndex);
             diplayItemIndexList.push_back(nElementIndex);
 
             refreshData.nItemIndex = index;
@@ -1938,6 +1939,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
     pDataView->SetDisplayDataItems(diplayItemIndexList);
     if (!refreshDataList.empty()) {
         pDataView->OnRefreshElements(refreshDataList);
+        pDataView->OnFilledElements(refreshDataList);
     }
 }
 
