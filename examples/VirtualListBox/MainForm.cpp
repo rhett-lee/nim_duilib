@@ -397,7 +397,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualList
 void MainForm::OutputDebugLog(const DString& logMsg)
 {
 #if defined DUILIB_BUILD_FOR_WIN && defined _DEBUG
-    ::OutputDebugString(logMsg.c_str());
+    //::OutputDebugString(logMsg.c_str());
 #endif
 }
 

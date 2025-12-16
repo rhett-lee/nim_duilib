@@ -163,10 +163,12 @@ void VirtualListBox::FillElementData(Control* pControl, size_t nElementIndex)
     bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
     //先更新选择状态，再填充数据，从而避免与Check状态冲突
     pListBoxItem->SetItemSelected(bSelected);
+    //设置元素索引号
+    pListBoxItem->SetElementIndex(nElementIndex);
     bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);    
     ASSERT_UNUSED_VARIABLE(bFilled);
 
-    //更新元素索引号
+    //更新元素索引号（避免被更改）
     pListBoxItem->SetElementIndex(nElementIndex);
     ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
     ASSERT(pListBoxItem->IsSelected() == bSelected);
