@@ -1061,7 +1061,7 @@ bool ListCtrl::SetColumnWidth(const std::vector<UiFixedInt>& columnWidthList, bo
             rcViewRect.Deflate(rcViewPadding);
             rcViewRect.Deflate(rcHeaderPadding);
             const int32_t nAvailableWidth = rcViewRect.Width() - nToltalFixedWidth; //可分配宽度            
-            if (nAvailableWidth >= stretchWidthMap.size()) {
+            if (nAvailableWidth >= (int32_t)stretchWidthMap.size()) {
                 //首先计算总的比例
                 int32_t nStretchTotal = 0;
                 for (const auto& iter : stretchWidthMap) {
