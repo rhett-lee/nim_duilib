@@ -1,6 +1,6 @@
 #include "ListCtrlIcon.h"
 #include "duilib/Control/ListCtrlView.h"
-#include "Core/Window.h"
+#include "duilib/Core/Window.h"
 
 namespace ui
 {
