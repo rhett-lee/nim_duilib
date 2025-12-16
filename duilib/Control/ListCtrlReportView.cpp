@@ -371,7 +371,7 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
     if (nScrollPosY < 0) {
         return 0;
     }
-    ASSERT(nRectHeight > 0);
+    //ASSERT(nRectHeight > 0);
     if (nRectHeight <= 0) {
         return 0;
     }
