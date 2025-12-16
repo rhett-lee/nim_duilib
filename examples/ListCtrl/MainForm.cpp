@@ -1171,6 +1171,28 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         OnListCtrlEvent(args);
         return true;
         });
+
+    auto OnListCtrlItemFilledEvent = [this, pListCtrl](const ui::EventArgs& args) {
+        ASSERT(pListCtrl == args.GetSender());
+        DString sInfo = GetItemFilledEventDisplayInfo(args);
+        OutputDebugLog(sInfo);
+        };
+    pListCtrl->AttachReportViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+    pListCtrl->AttachReportViewSubItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+    pListCtrl->AttachListViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+    pListCtrl->AttachIconViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
 }
 
 DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
@@ -1186,7 +1208,19 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
     ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
     if (listCtrlType == ui::ListCtrlType::Report) {
         sInfo += _T("ListCtrlType::Report: ");
-        ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
+        ui::ListCtrlItem* pItem = nullptr;
+        if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
+            ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+            if (pSubItem != nullptr) {
+                pItem = pSubItem->GetListCtrlItem();
+
+                nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
+                labelText = pSubItem->GetText();
+            }
+        }
+        else {
+            pItem = (ui::ListCtrlItem*)args.pEventData;
+        }
         if (pItem != nullptr) {
             nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
             if ((args.eventType >= ui::kEventMouseBegin) && (args.eventType <= ui::kEventMouseEnd)) {
@@ -1197,18 +1231,11 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
                     labelText = pSubItem->GetText();
                 }
             }
-            else if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
-                ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.lParam;
-                if (pSubItem != nullptr) {
-                    nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
-                    labelText = pSubItem->GetText();
-                }
-            }
         }
     }
     else if (listCtrlType == ui::ListCtrlType::Icon) {
         sInfo += _T("ListCtrlType::Icon: ");
-        ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.wParam;
+        ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
         if (pItem != nullptr) {
             nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
             labelText = pItem->GetLabelText();
@@ -1216,7 +1243,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
     }
     else if (listCtrlType == ui::ListCtrlType::List) {
         sInfo += _T("ListCtrlType::List: ");
-        ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.wParam;
+        ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
         if (pItem != nullptr) {
             nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
             labelText = pItem->GetLabelText();
@@ -1270,6 +1297,60 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
     }
     
     sInfo += _T("\n");
+    return sInfo;
+}
+
+DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
+{
+    DString sInfo = ui::EventTypeToString(args.eventType);
+    while (sInfo.size() < 32) {
+        sInfo += _T(" ");
+    }
+
+    sInfo += ui::StringUtil::Printf(_T("ListBoxItemIndex=%zu "), (size_t)args.wParam);
+    sInfo += ui::StringUtil::Printf(_T("DataItemIndex=%zu "), (size_t)args.lParam);
+
+    if (args.eventType == ui::kEventReportViewItemFilled) {
+        ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+        }
+    }
+    else if (args.eventType == ui::kEventReportViewSubItemFilled) {
+        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+        ASSERT(pSubItem != nullptr);
+        if (pSubItem != nullptr) {
+            ASSERT(pSubItem->GetDataItemIndex() == (size_t)args.lParam);
+            ui::ListCtrlItem* pItem = pSubItem->GetListCtrlItem();
+            ASSERT(pItem != nullptr);
+            if (pItem != nullptr) {
+                ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+                ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            }
+            sInfo += ui::StringUtil::Printf(_T("DataColumnIndex='%zu' "), pSubItem->GetDataColumnIndex());
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s' "), pSubItem->GetText().c_str());
+        }        
+    }
+    else if (args.eventType == ui::kEventListViewItemFilled) {
+        ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s'"), pItem->GetLabelText().c_str());
+        }
+    }
+    else if (args.eventType == ui::kEventIconViewItemFilled) {
+        ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s'"), pItem->GetLabelText().c_str());
+        }
+    }
     return sInfo;
 }
 

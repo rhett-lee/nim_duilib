@@ -565,6 +565,14 @@ public:
 
     /** 控件的消息处理入口，将消息转换为自定义格式的消息
      * @param [in] eventType 消息类型
+     * @param [in] wParam 产生事件时的参数1
+     * @param [in] lParam 产生事件时的参数2
+     * @param [in] pEventData 产生事件时的指针参数
+     */
+    void SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, void* pEventData);
+
+    /** 控件的消息处理入口，将消息转换为自定义格式的消息
+     * @param [in] eventType 消息类型
      * @param [in] msg 消息内容，可不必设置eventType
      */
     void SendEvent(EventType eventType, EventArgs msg);

@@ -54,6 +54,10 @@ private:
     */
     DString GetEventDisplayInfo(const ui::EventArgs& args);
 
+    /** 获取消息的基本信息（用于显示日志）
+    */
+    DString GetItemFilledEventDisplayInfo(const ui::EventArgs& args);
+
     /** 输出测试日志
     */
     void OutputDebugLog(const DString& logMsg);

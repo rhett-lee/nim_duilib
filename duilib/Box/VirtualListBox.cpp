@@ -138,42 +138,7 @@ Control* VirtualListBox::CreateElement()
     if (m_pDataProvider != nullptr) {
         pListBoxItem = m_pDataProvider->CreateElement(this);
         ASSERT(dynamic_cast<IListBoxItem*>(pListBoxItem) != nullptr);
-    }
-    if (pListBoxItem != nullptr) {
-        //挂载鼠标事件，转接给VirtualListBox本身，将事件分发到应用层
-        pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
-            VFireMouseEnterLeaveEvent(args);
-            return true;
-            });
-        pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
-            VFireMouseEnterLeaveEvent(args);
-            return true;
-            });
-        pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pListBoxItem->AttachClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pListBoxItem->AttachRClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
-            VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
-            return true;
-            });
-        pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
-            VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
-            return true;
-            });
-    }
+    }    
     return pListBoxItem;
 }
 
@@ -207,6 +172,50 @@ void VirtualListBox::FillElementData(Control* pControl, size_t nElementIndex)
     ASSERT(pListBoxItem->IsSelected() == bSelected);
 
     m_bEnableUpdateProvider = bOldValue;
+}
+
+void VirtualListBox::OnNewItemAdded(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    Control* pListBoxItem = pControl;
+    //挂载鼠标事件，转接给VirtualListBox本身，将事件分发到应用层
+    pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
+        VFireMouseEnterLeaveEvent(args);
+        return true;
+        });
+    pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
+        VFireMouseEnterLeaveEvent(args);
+        return true;
+        });
+    pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachRClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        });
+    pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
+        VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        });
 }
 
 void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
@@ -680,7 +689,7 @@ void VirtualListBox::SendEventMsg(const EventArgs& msg)
 void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
 {
     EventArgs newMsg = msg;
-    if (bFromItem) {        
+    if (bFromItem) {
         newMsg.SetSender(this);
         size_t nItemIndex = GetItemIndex(msg.GetSender());
         if (nItemIndex < GetItemCount()) {
@@ -690,7 +699,7 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFire
         else {
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-        }        
+        }
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
@@ -699,6 +708,18 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFire
              (msg.eventType == kEventKeyUp)) {
         //需要设置wParam和lParam，按接口对应的Attach函数，设置这两个参数值
         if (msg.GetSender() == this) {
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = Box::InvalidIndex;
+        }
+    }
+    else if (msg.eventType == kEventSelect) {
+        size_t nItemIndex = (size_t)msg.wParam;
+        ASSERT(nItemIndex < GetItemCount());
+        if (nItemIndex < GetItemCount()) {
+            newMsg.wParam = nItemIndex;
+            newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);
+        }
+        else {
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
         }

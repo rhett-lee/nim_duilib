@@ -124,6 +124,25 @@ public:
     */
     int64_t GetDataItemTotalHeights(size_t itemIndex, bool bIncludeAtTops) const;
 
+    /** 监听Report视图数据项UI元素填充事件（虚表，填充某行数据）
+     * @param [in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
+     */
+    void AttachReportViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewItemFilled, callback); }
+
+    /** 监听Report视图数据项UI元素填充事件（虚表，填充某行某列数据）
+     * @param [in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlSubItem*指针，代表某行某列数据的UI元素控件
+     *               通过该接口，可以获取数据项索引号、哪一列的数据
+     */
+    void AttachReportViewSubItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewSubItemFilled, callback); }
+
 public:
     /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
     */
