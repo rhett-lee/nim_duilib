@@ -414,7 +414,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     }
     VirtualListBox::RefreshDataList refreshDataList;
     VirtualListBox::RefreshData refreshData;
-    size_t nItemCount = m_items.size();
+    const size_t nItemCount = m_items.size();
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = m_items[nItemIndex];
         if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -588,7 +588,7 @@ size_t VirtualListBox::GetDisplayItemIndex(size_t nElementIndex) const
     const size_t nItemCount = GetItemCount();
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = GetItemAt(nItemIndex);
-        if ((pControl == nullptr) || !pControl->IsVisible()) {
+        if (pControl == nullptr) {
             continue;
         }
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
@@ -606,7 +606,7 @@ size_t VirtualListBox::GetDisplayItemElementIndex(size_t nItemIndex) const
 {
     size_t nElementIndex = Box::InvalidIndex;
     Control* pControl = GetItemAt(nItemIndex);
-    if ((pControl != nullptr) && pControl->IsVisible()) {
+    if (pControl != nullptr) {
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             nElementIndex = pListBoxItem->GetElementIndex();

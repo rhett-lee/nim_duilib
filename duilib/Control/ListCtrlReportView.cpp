@@ -1817,6 +1817,10 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             if (pControl->IsVisible()) {
                 pControl->SetVisible(false);
             }
+            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
+            if (pListCtrlItem != nullptr) {
+                pListCtrlItem->SetElementIndex(Box::InvalidIndex);
+            }
         }
 
         //切换到下一行
@@ -1932,6 +1936,10 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
         else {
             if (pControl->IsVisible()) {
                 pControl->SetVisible(false);
+            }
+            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
+            if (pListCtrlItem != nullptr) {
+                pListCtrlItem->SetElementIndex(Box::InvalidIndex);
             }
         }
 

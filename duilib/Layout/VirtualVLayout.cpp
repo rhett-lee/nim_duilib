@@ -270,6 +270,11 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
             if (pControl->IsVisible()) {
                 pControl->SetVisible(false);
             }
+            //需要清除ElementIndex
+            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+            if (pListBoxItem != nullptr) {
+                pListBoxItem->SetElementIndex(Box::InvalidIndex);
+            }
         }
         ++iCount;
 
