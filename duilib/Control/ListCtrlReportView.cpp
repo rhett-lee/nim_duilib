@@ -982,26 +982,28 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             if (!defaultSubItemClass.empty()) {
                 pSubItem->SetClass(defaultSubItemClass);
             }
-            pSubItem->AttachMouseEnter([this, pSubItem](const EventArgs& args) {
+            pSubItem->AttachMouseEnter([this, pItem, pSubItem](const EventArgs& args) {
                 if (m_pListCtrl != nullptr) {
                     EventArgs msg = args;
                     msg.SetSender(m_pListCtrl);
                     msg.eventType = kEventSubItemMouseEnter;
                     msg.listCtrlType = (int32_t)ListCtrlType::Report;
-                    msg.wParam = (WPARAM)pSubItem->GetListCtrlItem();
-                    msg.lParam = (LPARAM)pSubItem;
+                    msg.wParam = (WPARAM)pItem->GetListBoxIndex();
+                    msg.lParam = (LPARAM)pSubItem->GetDataItemIndex();
+                    msg.pEventData = pSubItem;
                     m_pListCtrl->FireAllEvents(msg);
                 }
                 return true;
                 });
-            pSubItem->AttachMouseLeave([this, pSubItem](const EventArgs& args) {
+            pSubItem->AttachMouseLeave([this, pItem, pSubItem](const EventArgs& args) {
                 if (m_pListCtrl != nullptr) {
                     EventArgs msg = args;
                     msg.SetSender(m_pListCtrl);
                     msg.eventType = kEventSubItemMouseLeave;
                     msg.listCtrlType = (int32_t)ListCtrlType::Report;
-                    msg.wParam = (WPARAM)pSubItem->GetListCtrlItem();
-                    msg.lParam = (LPARAM)pSubItem;
+                    msg.wParam = (WPARAM)pItem->GetListBoxIndex();
+                    msg.lParam = (LPARAM)pSubItem->GetDataItemIndex();
+                    msg.pEventData = pSubItem;
                     m_pListCtrl->FireAllEvents(msg);
                 }
                 return true;
@@ -1107,12 +1109,12 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         if (viewFlag.expired() || pSubItem.expired()) {
             break;
         }
-        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pSubItem.get());
+        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pSubItem.get());
     }
 
     //给出当前行的数据填充回调
     if (!viewFlag.expired()) {
-        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem);
+        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pItem);
     }
     return true;
 }

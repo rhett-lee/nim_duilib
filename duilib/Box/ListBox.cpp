@@ -2543,14 +2543,15 @@ size_t ListBox::GetLastNoShiftItem() const
     return m_nLastNoShiftItem;
 }
 
-void ListBox::OnNewItemAdded(Control* pListBoxItem)
+void ListBox::OnNewItemAdded(Control* pControl)
 {
-    if (pListBoxItem == nullptr) {
+    if (pControl == nullptr) {
         return;
     }
-    if (dynamic_cast<IListBoxItem*>(pListBoxItem) == nullptr) {
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
         return;
     }
+    Control* pListBoxItem = pControl;
     //挂载鼠标事件，转接给ListBox本身，将事件分发到应用层
     pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
         ListBoxFireMouseEnterLeaveEvent(args);

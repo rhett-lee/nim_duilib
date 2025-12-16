@@ -797,10 +797,12 @@ public:
     /** 监听选择子项的事件
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
 
@@ -812,97 +814,115 @@ public:
     /** 监听双击事件
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
 
     /** 绑定鼠标点击处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
 
     /** 绑定鼠标右键点击处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
 
     /** 绑定鼠标进入ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventItemMouseEnter, callback); }
 
     /** 绑定鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventItemMouseLeave, callback); }
 
     /** 绑定鼠标进入ListCtrlSubItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
-     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*指针
-     *   lParam: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
+     *   pEventData: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
      */
     void AttachSubItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventSubItemMouseEnter, callback); }
 
     /** 绑定鼠标离开ListCtrlSubItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
-     *   wParam: 选择子项的界面控件接口指针，类型为：ListCtrlItem*指针
-     *   lParam: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
+     *   pEventData: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
      */
     void AttachSubItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventSubItemMouseLeave, callback); }
 
     /** 监听回车事件
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
 
     /** 监听键盘按下事件
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachKeyDown(const EventCallback& callback) { this->AttachEvent(kEventKeyDown, callback); }
 
     /** 监听键盘弹起事件
      * @param [in] callback 事件处理的回调函数
      * 参数说明:
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *                 如果listCtrlType为其他值，表示该事件未关联子项数据
-     *   wParam: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
-     *           可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
+     *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
+     *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
     void AttachKeyUp(const EventCallback& callback) { this->AttachEvent(kEventKeyUp, callback); }
 
@@ -931,29 +951,37 @@ public:
     /** 监听Report视图数据项UI元素填充事件（虚表，填充某行数据）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充，通过该接口可以获取到数据元素索引号
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
      */
     void AttachReportViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewItemFilled, callback); }
 
     /** 监听Report视图数据项UI元素填充事件（虚表，填充某行某列数据）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlSubItem*指针，代表某行某列数据的UI元素控件
-     *           通过该接口，可以获取数据元素索引号、哪一列的数据
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlSubItem*指针，代表某行某列数据的UI元素控件
+     *               通过该接口，可以获取数据项索引号、哪一列的数据
      */
     void AttachReportViewSubItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewSubItemFilled, callback); }
 
     /** 监听List视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针
      */
     void AttachListViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventListViewItemFilled, callback); }
 
     /** 监听Icon视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
      * 参数说明:
-     *   wParam: 关联的子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
+     *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
+     *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针
      */
     void AttachIconViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventIconViewItemFilled, callback); }
 

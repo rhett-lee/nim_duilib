@@ -223,7 +223,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         //如果列没有设置图标，则取行的
         nImageId = itemData.nImageId;
     }
-    Box* pViewItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
+    ListCtrlIconViewItem* pViewItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
     ASSERT(pViewItem != nullptr);
     if (pViewItem == nullptr) {
         return false;
@@ -293,7 +293,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         pItemLabel->SetEnableEdit(false);
         pItemLabel->DetachEvent(kEventEnterEdit);
     }
-    SendEvent(kEventIconViewItemFilled, (WPARAM)pViewItem);
+    SendEvent(kEventIconViewItemFilled, (WPARAM)pViewItem->GetListBoxIndex(), (LPARAM)pViewItem->GetDataItemIndex(), pViewItem);
     return true;
 }
 

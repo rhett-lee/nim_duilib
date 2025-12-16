@@ -374,6 +374,19 @@ void ListCtrl::InitReportView()
         OnListCtrlViewEvent(ListCtrlType::Report, args);
         return true;
         });
+
+    m_pReportView->AttachReportViewItemFilled([this](const EventArgs& args) {
+        EventArgs newMsg = args;
+        newMsg.SetSender(this);
+        SendEventMsg(newMsg);
+        return true;
+        });
+    m_pReportView->AttachReportViewSubItemFilled([this](const EventArgs& args) {
+        EventArgs newMsg = args;
+        newMsg.SetSender(this);
+        SendEventMsg(newMsg);
+        return true;
+        });
 }
 
 void ListCtrl::InitIconView()
@@ -423,6 +436,13 @@ void ListCtrl::InitIconView()
         });
     m_pIconView->AttachKeyUp([this](const EventArgs& args) {
         OnListCtrlViewEvent(ListCtrlType::Icon, args);
+        return true;
+        });
+
+    m_pIconView->AttachIconViewItemFilled([this](const EventArgs& args) {
+        EventArgs newMsg = args;
+        newMsg.SetSender(this);
+        SendEventMsg(newMsg);
         return true;
         });
 }
@@ -478,15 +498,21 @@ void ListCtrl::InitListView()
         OnListCtrlViewEvent(ListCtrlType::List, args);
         return true;
         });
+
+    m_pListView->AttachListViewItemFilled([this](const EventArgs& args) {
+        EventArgs newMsg = args;
+        newMsg.SetSender(this);
+        SendEventMsg(newMsg);
+        return true;
+        });
 }
 
 void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& args)
 {
     EventArgs msg = args;
     msg.SetSender(this);
-    msg.wParam = 0;//默认为未关联任何子项
-    msg.lParam = 0;//未使用
     msg.listCtrlType = (int32_t)listCtrlType;//列表视图类型
+    msg.pEventData = nullptr;
 
     if (args.eventType != kEventSelChanged) {
         if (listCtrlType == ListCtrlType::Report) {
@@ -496,8 +522,16 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             if (pControl != nullptr) {
                 pItem = dynamic_cast<ListCtrlItem*>(pControl);
             }
+            if ((pItem == nullptr) && (nItemIndex == 0)) {
+                if (dynamic_cast<ListCtrlHeader*>(pControl) != nullptr) {
+                    //在表头时，不触发事件
+                    return;
+                }
+            }
+            ASSERT(pItem != nullptr);
             if (pItem != nullptr) {
-                msg.wParam = (WPARAM)pItem;
+                ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
+                msg.pEventData = pItem;
             }
         }
         else if (listCtrlType == ListCtrlType::Icon) {
@@ -507,8 +541,10 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             if (pControl != nullptr) {
                 pItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
             }
+            ASSERT(pItem != nullptr);
             if (pItem != nullptr) {
-                msg.wParam = (WPARAM)pItem;
+                ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
+                msg.pEventData = pItem;
             }
         }
         else if (listCtrlType == ListCtrlType::List) {
@@ -518,8 +554,10 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             if (pControl != nullptr) {
                 pItem = dynamic_cast<ListCtrlListViewItem*>(pControl);
             }
+            ASSERT(pItem != nullptr);
             if (pItem != nullptr) {
-                msg.wParam = (WPARAM)pItem;
+                ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
+                msg.pEventData = pItem;
             }
         }
         else {

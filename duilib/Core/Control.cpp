@@ -2281,6 +2281,11 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 
 void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
 {
+    SendEvent(eventType, wParam, lParam, nullptr);
+}
+
+void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, void* pEventData)
+{
     EventArgs msg;
     msg.SetSender(this);
     msg.eventType = eventType;
@@ -2293,6 +2298,7 @@ void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
     }
     msg.modifierKey = 0;
     msg.eventData = 0;
+    msg.pEventData = pEventData;
 
     //派发消息
     SendEventMsg(msg);
