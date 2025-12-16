@@ -1153,10 +1153,12 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         });
     pListCtrl->AttachSubItemMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
+        OnReportViewSubItemMouseEnter(args);
         return true;
         });
     pListCtrl->AttachSubItemMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
+        OnReportViewSubItemMouseLeave(args);
         return true;
         });
     pListCtrl->AttachReturn([this, OnListCtrlEvent](const ui::EventArgs& args) {
@@ -1183,6 +1185,7 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         });
     pListCtrl->AttachReportViewSubItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
         OnListCtrlItemFilledEvent(args);
+        OnReportViewSubItemFilled(args);
         return true;
         });
     pListCtrl->AttachListViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
@@ -1331,7 +1334,7 @@ DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
             }
             sInfo += ui::StringUtil::Printf(_T("DataColumnIndex='%zu' "), pSubItem->GetDataColumnIndex());
             sInfo += ui::StringUtil::Printf(_T("LabelText='%s' "), pSubItem->GetText().c_str());
-        }        
+        }
     }
     else if (args.eventType == ui::kEventListViewItemFilled) {
         ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
@@ -1357,6 +1360,94 @@ DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
 void MainForm::OutputDebugLog(const DString& logMsg)
 {
 #if defined DUILIB_BUILD_FOR_WIN && defined _DEBUG
-    ::OutputDebugString(logMsg.c_str());
+    //::OutputDebugString(logMsg.c_str());
 #endif
+}
+
+void MainForm::OnReportViewSubItemFilled(const ui::EventArgs& args)
+{
+    //默认不开启该测试
+    return;
+
+    if (args.eventType != ui::kEventReportViewSubItemFilled) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+
+    if (pSubItem->GetItemCount() == 0) {
+        //功能演示：动态添加一个新按钮
+        ui::Button* pHoverButton = new ui::Button(pSubItem->GetWindow());
+        pHoverButton->SetClass(_T("btn_recycle"));
+        pHoverButton->SetAttribute(_T("width"), _T("auto"));
+        pHoverButton->SetAttribute(_T("height"), _T("auto"));
+        pHoverButton->SetAttribute(_T("halign"), _T("right"));
+        pHoverButton->SetAttribute(_T("valign"), _T("top"));
+        pHoverButton->SetAttribute(_T("margin"), _T("0,8,8,0"));
+        pHoverButton->SetToolTipText(_T("Hover Button"));
+
+        //浮动按钮
+        pHoverButton->SetFloat(true);
+        pHoverButton->SetVisible(false);
+        pSubItem->AddItem(pHoverButton);
+
+        //当前的行和列信息
+        size_t nDataItemIndex = pSubItem->GetDataItemIndex();
+        size_t nDataColumnIndex = pSubItem->GetDataColumnIndex();
+
+        //挂载事件
+        pHoverButton->AttachClick([this, nDataItemIndex, nDataColumnIndex](const ui::EventArgs& /*args*/){
+            DString title = _T("Hover Button Clicked");
+            DString content = ui::StringUtil::Printf(_T("DataItemIndex:%zu, DataColumnIndex:%zu"), nDataItemIndex, nDataColumnIndex);
+            ui::SystemUtil::ShowMessageBox(this, content, title);
+            return true;
+            });
+    }
+}
+
+void MainForm::OnReportViewSubItemMouseEnter(const ui::EventArgs& args)
+{
+    if (args.eventType != ui::kEventSubItemMouseEnter) {
+        return;
+    }
+    if ((ui::ListCtrlType)args.listCtrlType != ui::ListCtrlType::Report) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    if (pSubItem->GetItemCount() > 0) {
+        //鼠标划入时：如果存在子控件，则显示该子控件
+        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
+        if ((pDemoControl != nullptr) && !pDemoControl->IsVisible()) {
+            pDemoControl->SetVisible(true);
+        }
+    }
+}
+
+void MainForm::OnReportViewSubItemMouseLeave(const ui::EventArgs& args)
+{
+    if (args.eventType != ui::kEventSubItemMouseLeave) {
+        return;
+    }
+    if ((ui::ListCtrlType)args.listCtrlType != ui::ListCtrlType::Report) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    if (pSubItem->GetItemCount() > 0) {
+        //鼠标划出时：如果存在子控件，则隐藏该子控件
+        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
+        if ((pDemoControl != nullptr) && pDemoControl->IsVisible()) {
+            pDemoControl->SetVisible(false);
+        }
+    }
 }

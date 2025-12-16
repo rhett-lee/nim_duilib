@@ -63,6 +63,12 @@ private:
     void OutputDebugLog(const DString& logMsg);
 
 private:
+    //测试功能: 鼠标划入时显示子控件，鼠标移出时隐藏子控件
+    void OnReportViewSubItemFilled(const ui::EventArgs& args);
+    void OnReportViewSubItemMouseEnter(const ui::EventArgs& args);
+    void OnReportViewSubItemMouseLeave(const ui::EventArgs& args);
+
+private:
     /** loading状态的加载进度（模拟值，实际应用可用按情况计算进度）
     */
     float m_fLoadingPercent;
