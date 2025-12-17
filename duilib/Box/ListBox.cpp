@@ -1294,7 +1294,7 @@ void ListBox::SendEventMsg(const EventArgs& msg)
 {
     auto msgFlag = GetWeakFlag();
     ScrollBox::SendEventMsg(msg);
-    if (!msgFlag.expired() && (msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
+    if (!msgFlag.expired() && ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect))) {
         //触发选择变化事件
         SendEvent(kEventSelChanged);
     }
