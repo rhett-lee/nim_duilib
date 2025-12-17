@@ -178,6 +178,10 @@ if (msg.eventType == eventType) {
 |kEventEnterEdit|"EnterEdit"|"enter_edit"|
 |kEventLeaveEdit|"LeaveEdit"|"leave_edit"|
 |kEventDataItemCountChanged|"DataItemCountChanged"|"data_item_count_changed"|
+|kEventItemMouseEnter|"ItemMouseEnter"|"item_mouse_enter"|
+|kEventItemMouseLeave|"ItemMouseLeave"|"item_mouse_leave"|
+|kEventSubItemMouseEnter|"SubItemMouseEnter"|"sub_item_mouse_enter"|
+|kEventSubItemMouseLeave|"SubItemMouseLeave"|"sub_item_mouse_leave"|
 |kEventReportViewItemFilled|"ReportViewItemFilled"|"report_view_item_filled"|
 |kEventReportViewSubItemFilled|"ReportViewSubItemFilled"|"report_view_sub_item_filled"|
 |kEventListViewItemFilled|"ListViewItemFilled"|"list_view_item_filled"|
