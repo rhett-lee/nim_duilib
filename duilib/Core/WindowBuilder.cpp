@@ -49,6 +49,7 @@
 #include "duilib/Box/VirtualListBox.h"
 
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 
