@@ -21,6 +21,7 @@
                 <Label text_id="LANGUAGE_DISPLAY_NAME" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="AntiqueWhite"/>
                 <Label text_id="MULTI_LANG_LABEL_TEXT" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="LightCyan"/>
                 <RichText trim_policy="none" text_id="MULTI_LANG_RICH_TEXT" height="20%" width="100%" text_align="hcenter,vcenter" bkcolor="NavajoWhite"/>
+                <Label rich_text="true" text_id="MULTI_LANG_RICH_TEXT" height="auto" width="auto" text_align="hcenter,vcenter" text_padding="10,10,10,10" bkcolor="LightCyan"/>
             </VBox>
         </Box>
     </VBox>

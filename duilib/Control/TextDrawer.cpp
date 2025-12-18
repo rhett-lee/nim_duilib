@@ -24,7 +24,7 @@ void TextDrawer::UpdateTextDrawProps(uint32_t uFormat, float fSpacingMul, float 
         return;
     }
     m_pRichText->SetRowSpacingMul(fSpacingMul);
-    //m_pRichText->SetRowSpacingAdd(fSpacingAdd);
+    m_pRichText->SetRowSpacingAdd(fSpacingAdd);
     if (uFormat & TEXT_HCENTER) {
         m_pRichText->SetTextHAlignType(HorAlignType::kAlignCenter);
     }
@@ -68,6 +68,7 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
         //RichText文本
         if (m_pRichText == nullptr) {
             m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
+            m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
         m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
         UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, fontId);
@@ -111,6 +112,7 @@ void TextDrawer::DrawString(IRender* pRender,
         //RichText文本
         if (m_pRichText == nullptr) {
             m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
+            m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
         m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
         m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件

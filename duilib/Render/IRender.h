@@ -518,7 +518,7 @@ public:
 
     /** 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
     */
-    //float m_fRowSpacingAdd = 0.0f;
+    float m_fRowSpacingAdd = 0.0f;
 
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */

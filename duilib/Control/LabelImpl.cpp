@@ -212,6 +212,14 @@ void LabelImpl::OnWindowChanged()
     m_pTextDrawer->SetTextChanged();
 }
 
+void LabelImpl::OnLanguageChanged()
+{
+    CheckShowToolTip();
+
+    //RichText模式时，绘制缓存需要重新生成
+    m_pTextDrawer->SetTextChanged();
+}
+
 void LabelImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
 {
     UiPadding rcTextPadding = GetTextPadding();

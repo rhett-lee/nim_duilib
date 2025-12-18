@@ -135,6 +135,7 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 | :--- | :--- | :--- | :--- |
 | text |  | string | 显示文本 |
 | text_id |  | string | 多语言功能的文本ID |
+| rich_text | false | bool | 设置文本内容是否为RichText <br> 使用示例如下：`<Label rich_text="true" text="一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>" />` <br> 备注：在支持RichText的模式下，不支持如下功能：<br> （1）对齐方式不支持两端对齐<br> （2）不支持vertical_text属性（也不支持纵向文本相关属性）<br>（3）不支持end_ellipsis属性<br>（4）不支持path_ellipsis属性<br>（5）不支持auto_tooltip属性<br>（6）不支持word_spacing属性|
 | text_align | "left,top" | string | 设置文字的水平与垂直对齐方式，用半角逗号分隔，如"hcenter,vcenter" 。<br>水平对齐方式可取值：left（靠左对齐）、hcenter（居中对齐）、right（靠右对齐）、hjustify（两端对齐） <br>垂直对齐方式可取值：top（靠上对齐）、vcenter（居中对齐）、bottom（靠下对齐）、vjustify（两端对齐）|
 | text_padding | 0,0,0,0 | rect | 文字显示的内边距, 格式为"left,top,right,bottom"，分别代表在目标区域的左侧、上方、右侧、下方设置内边距值，如："2,2,2,2" |
 | font | | string | 字体ID，该字体ID必须在 global.xml 中存在 |
@@ -453,10 +454,11 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | select_all_on_focus |false| bool | 获取焦点的时候，是否全选 |
 | focus_bottom_border_size |0| int | 焦点状态时，底部边框的大小 |
 | focus_bottom_border_color || string | 焦点状态时，底部边框的颜色 |
-| enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
-| enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
-| drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
-| row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距<br>Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距；<br>使用SDL时，始终有效，即其他平台时，行间距属性均有效|
+| enable_drag_drop |false| bool   | 是否允许拖放操作|
+| enable_drop_file |false| bool   | 是否允许拖放文件操作|
+| drop_file_types  |     | string | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
+| row_spacing_mul  | 1.0 | float  | 行间距倍数, 比如1.5代表1.5倍行间距<br>Windows平台：仅当rich_text属性"true"时有效，因为Windows平台的RichEdit控件只有富文本模式时支持设置行间距；<br>使用SDL时，始终有效，即其他平台时，行间距属性均有效|
+| row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素），仅当使用SDL时有效|
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 
@@ -492,6 +494,7 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本�
 | mouse_down_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
 | link_font_underline | true | bool | 超级链接：是否使用带下划线的字体 |
 | row_spacing_mul | 1.0 | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
+| row_spacing_add  |0    | float  | 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）|
 | word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性

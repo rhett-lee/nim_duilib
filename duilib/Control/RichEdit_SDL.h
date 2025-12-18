@@ -189,9 +189,17 @@ public:
     */
     float GetRowSpacingMul() const;
 
-    /** 设置行间距倍数
+    /** 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
     */
     void SetRowSpacingMul(float fRowSpacingMul);
+
+    /** 获取行间距附加量
+    */
+    float GetRowSpacingAdd() const;
+
+    /** 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+    */
+    void SetRowSpacingAdd(float fRowSpacingAdd);
 
 public:
     /** 设置是否允许显示提示文字
@@ -1149,6 +1157,7 @@ private:
 
     uint8_t m_nFocusBottomBorderSize;   //焦点状态时，底部边框的大小
     float m_fRowSpacingMul;             //行间距倍数
+    float m_fRowSpacingAdd;             //行间距附加量
 
 private:
     /** 是否使用Control设置的光标

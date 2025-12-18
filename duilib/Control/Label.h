@@ -295,7 +295,7 @@ void LabelTemplate<T>::OnLanguageChanged()
     BaseClass::OnLanguageChanged();
     //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
     this->RelayoutOrRedraw();
-    m_impl->CheckShowToolTip();
+    m_impl->OnLanguageChanged();
 }
 
 template<typename T>

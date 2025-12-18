@@ -90,7 +90,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T("")),
     m_nFocusBottomBorderSize(0),
-    m_fRowSpacingMul(1.0f)
+    m_fRowSpacingMul(1.0f),
+    m_fRowSpacingAdd(0.0f)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -343,6 +344,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("row_spacing_add")) {
+        SetRowSpacingAdd(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -902,6 +906,23 @@ void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
         m_fRowSpacingMul = fRowSpacingMul;
         if (m_fRowSpacingMul <= 0.01f) {
             m_fRowSpacingMul = 1.0f;
+        }
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
+    }
+}
+
+float RichEdit::GetRowSpacingAdd() const
+{
+    return m_fRowSpacingAdd;
+}
+
+void RichEdit::SetRowSpacingAdd(float fRowSpacingAdd)
+{
+    if (m_fRowSpacingAdd != fRowSpacingAdd) {
+        m_fRowSpacingAdd = fRowSpacingAdd;
+        if (m_fRowSpacingAdd <= 0.0001f) {
+            m_fRowSpacingAdd = 0.0f;
         }
         //清除绘制缓存，并重绘
         ClearCacheAndRedraw();
@@ -3055,6 +3076,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
 
     //行间距倍数
     richTextData.m_fRowSpacingMul = GetRowSpacingMul();
+    richTextData.m_fRowSpacingAdd = GetRowSpacingAdd();
 
     if (nStartLine != (size_t)-1) {
         //增量绘制，只绘制变化的部分

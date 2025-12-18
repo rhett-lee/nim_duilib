@@ -16,6 +16,7 @@ RichTextImpl::RichTextImpl(Control* pOwner) :
     m_hAlignType(HorAlignType::kAlignLeft),
     m_vAlignType(VerAlignType::kAlignTop),
     m_fRowSpacingMul(1.0f),
+    m_fRowSpacingAdd(0.0f),
     m_bLinkUnderlineFont(true),
     m_nTextDataDisplayScaleFactor(0),
     m_bWordWrap(true),
@@ -68,6 +69,9 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("row_spacing_add")) {
+        SetRowSpacingAdd(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
     else if (strName == _T("default_link_font_color")) {
         //超级链接：常规文本颜色值
@@ -479,6 +483,7 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
     parentTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
     parentTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
     parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
+    parentTextData.m_fRowSpacingAdd = m_fRowSpacingAdd;
     parentTextData.m_textStyle = GetTextStyle();
 
     std::vector<RichTextDataEx> textData;
@@ -499,6 +504,7 @@ bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice,
     //当前节点
     RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = parentTextData.m_fRowSpacingMul;
+    currentTextData.m_fRowSpacingAdd = parentTextData.m_fRowSpacingAdd;
     currentTextData.m_textStyle = parentTextData.m_textStyle;
     currentTextData.m_textView = std::wstring_view(textSlice.m_text.c_str(), textSlice.m_text.size());
 
@@ -723,6 +729,22 @@ void RichTextImpl::SetRowSpacingMul(float fRowSpacingMul)
         m_fRowSpacingMul = fRowSpacingMul;
         if (m_fRowSpacingMul <= 0.01f) {
             m_fRowSpacingMul = 1.0f;
+        }
+        Redraw();
+    }
+}
+
+float RichTextImpl::GetRowSpacingAdd() const
+{
+    return m_fRowSpacingAdd;
+}
+
+void RichTextImpl::SetRowSpacingAdd(float fRowSpacingAdd)
+{
+    if (m_fRowSpacingAdd != fRowSpacingAdd) {
+        m_fRowSpacingAdd = fRowSpacingAdd;
+        if (m_fRowSpacingAdd <= 0.0001f) {
+            m_fRowSpacingAdd = 0.0f;
         }
         Redraw();
     }

@@ -566,6 +566,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
+    else if (strName == _T("row_spacing_add")) {
+        //不支持该属性，忽略
+    }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     else if (strName == _T("zoom")) {

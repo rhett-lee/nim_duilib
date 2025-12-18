@@ -32,6 +32,10 @@ public:
     */
     void OnWindowChanged();
 
+    /** 语言发生变化
+    */
+    void OnLanguageChanged();
+
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
