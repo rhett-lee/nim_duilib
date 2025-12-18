@@ -186,6 +186,9 @@ if (msg.eventType == eventType) {
 |kEventReportViewSubItemFilled|"ReportViewSubItemFilled"|"report_view_sub_item_filled"|
 |kEventListViewItemFilled|"ListViewItemFilled"|"list_view_item_filled"|
 |kEventIconViewItemFilled|"IconViewItemFilled"|"icon_view_item_filled"|
+|kEventViewTypeChanged|"ViewTypeChanged"|"view_type_changed"|
+|kEventViewPosChanged|"ViewPosChanged"|"view_pos_changed"|
+|kEventViewSizeChanged|"ViewSizeChanged"|"view_size_changed"|
 |kEventPathChanged|"PathChanged"|"path_changed"|
 |kEventPathClick|"PathClick"|"path_click"|
 |kEventDropEnter|"DropEnter"|"drop_enter"|

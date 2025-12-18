@@ -322,7 +322,7 @@ void ListCtrl::OnInit()
     m_pData->SetDefaultItemHeight(GetDataItemHeight());
 
     InitReportView();
-    SetListCtrlType(GetListCtrlType());
+    DoSetListCtrlType(GetListCtrlType(), true);
 }
 
 void ListCtrl::InitReportView()
@@ -387,6 +387,20 @@ void ListCtrl::InitReportView()
         SendEventMsg(newMsg);
         return true;
         });
+    m_pReportView->AttachPosChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::Report;
+        newMsg.pEventData = m_pReportView;
+        SendEvent(kEventViewPosChanged, newMsg);
+        return true;
+        });
+    m_pReportView->AttachSizeChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::Report;
+        newMsg.pEventData = m_pReportView;
+        SendEvent(kEventViewSizeChanged, newMsg);
+        return true;
+        });
 }
 
 void ListCtrl::InitIconView()
@@ -443,6 +457,20 @@ void ListCtrl::InitIconView()
         EventArgs newMsg = args;
         newMsg.SetSender(this);
         SendEventMsg(newMsg);
+        return true;
+        });
+    m_pIconView->AttachPosChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::Icon;
+        newMsg.pEventData = m_pIconView;
+        SendEvent(kEventViewPosChanged, newMsg);
+        return true;
+        });
+    m_pIconView->AttachSizeChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::Icon;
+        newMsg.pEventData = m_pIconView;
+        SendEvent(kEventViewSizeChanged, newMsg);
         return true;
         });
 }
@@ -503,6 +531,20 @@ void ListCtrl::InitListView()
         EventArgs newMsg = args;
         newMsg.SetSender(this);
         SendEventMsg(newMsg);
+        return true;
+        });
+    m_pListView->AttachPosChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::List;
+        newMsg.pEventData = m_pListView;
+        SendEvent(kEventViewPosChanged, newMsg);
+        return true;
+        });
+    m_pListView->AttachSizeChanged([this](const EventArgs&) {
+        EventArgs newMsg;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::List;
+        newMsg.pEventData = m_pListView;
+        SendEvent(kEventViewSizeChanged, newMsg);
         return true;
         });
 }
@@ -572,10 +614,17 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
 
 void ListCtrl::SetListCtrlType(ListCtrlType type)
 {
+    DoSetListCtrlType(type, false);
+}
+
+void ListCtrl::DoSetListCtrlType(ListCtrlType type, bool bInit)
+{
+    ListCtrlType oldListCtrlType = m_listCtrlType;
     m_listCtrlType = type;
     if (!IsInited()) {
         return;
     }
+    void* pEventData = nullptr;
     if (m_listCtrlType == ListCtrlType::Report) {
         //切换为Report视图
         ASSERT(m_pReportView != nullptr);
@@ -593,8 +642,9 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         }
         if (m_pListView != nullptr) {
             m_pListView->SetVisible(false);
-            m_pListView->SetDataProvider(nullptr);            
+            m_pListView->SetDataProvider(nullptr);
         }
+        pEventData = m_pReportView;
     }
     else if (m_listCtrlType == ListCtrlType::Icon) {
         //切换为Icon视图
@@ -619,6 +669,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
             m_pListView->SetVisible(false);
             m_pListView->SetDataProvider(nullptr);
         }
+        pEventData = m_pIconView;
     }
     else if (m_listCtrlType == ListCtrlType::List) {
         //切换为List视图
@@ -643,6 +694,18 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
             m_pIconView->SetVisible(false);
             m_pIconView->SetDataProvider(nullptr);
         }
+        pEventData = m_pListView;
+    }
+
+    //触发视图类型变化事件
+    ListCtrlType newListCtrlType = m_listCtrlType;
+    if (bInit || (oldListCtrlType != newListCtrlType)) {
+        EventArgs msg;
+        msg.wParam = (WPARAM)newListCtrlType;
+        msg.lParam = (LPARAM)oldListCtrlType;
+        msg.pEventData = pEventData;
+        msg.listCtrlType = (int32_t)newListCtrlType;
+        SendEvent(kEventViewTypeChanged, msg);
     }
 }
 

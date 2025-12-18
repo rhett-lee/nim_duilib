@@ -386,10 +386,13 @@ namespace ui
         kEventItemMouseLeave,           //ListCtrl/VirtualListBox类：鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem/ListBoxItem控件事件
         kEventSubItemMouseEnter,        //ListCtrl类：Report视图，鼠标进入ListCtrlSubItem控件事件
         kEventSubItemMouseLeave,        //ListCtrl类：Report视图，鼠标离开ListCtrlSubItem控件事件
-        kEventReportViewItemFilled,     //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据, wParam是ListCtrlItem*指针, 通过该接口可以获取到数据元素索引号
-        kEventReportViewSubItemFilled,  //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据, wParam是ListCtrlSubItem*指针, 通过该接口，可以获取数据元素索引号、哪一列的数据
-        kEventListViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlListViewItem*指针, 通过该接口可以获取到数据元素索引号
-        kEventIconViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表), wParam是ListCtrlIconViewItem*指针, 通过该接口可以获取到数据元素索引号
+        kEventReportViewItemFilled,     //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据
+        kEventReportViewSubItemFilled,  //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据
+        kEventListViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表)
+        kEventIconViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表)
+        kEventViewTypeChanged,          //ListCtrl类：当视图的类型发生变化时触发，wParam是当前视图类型，lParam是原来的视图类型，枚举值参见listCtrlType取值, pEventData为视图的指针
+        kEventViewPosChanged,           //ListCtrl类：当视图控件的位置发生变化时触发，视图类型参见listCtrlType取值
+        kEventViewSizeChanged,          //ListCtrl类：当视图控件的大小发生变化时触发，视图类型参见listCtrlType取值
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
