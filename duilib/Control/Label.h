@@ -33,6 +33,11 @@ public:
     virtual void SetPos(UiRect rc) override;
     virtual DString GetToolTipText() const override;
 
+    /** 设置容器所属窗口
+     * @param [in] pWindow 窗口指针
+     */
+    virtual void SetWindow(Window* pWindow) override;
+
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
@@ -185,6 +190,23 @@ public:
     */
     bool IsRotate90ForAscii() const;
 
+    /** 设置文本内容是否为RichText
+     * @param [in] bRichText 表示支持RichText模式，设置的文本内容可以是RichText格式
+     *             示例："一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>"
+     *             备注：RichText模式下，不支持如下功能：
+     *                  （1）对齐方式不支持两端对齐
+     *                  （2）不支持vertical_text属性（也不支持纵向文本相关属性）
+     *                  （3）不支持end_ellipsis属性
+     *                  （4）不支持path_ellipsis属性
+     *                  （5）不支持auto_tooltip属性
+     *                  （6）不支持word_spacing属性
+     */
+    void SetRichText(bool bRichText);
+
+    /** 获取文本内容是否为RichText
+    */
+    bool IsRichText() const;
+
 public:
     /** 获取当前评估绘制文字的参数
     * @return 返回当前设置的参数，不含rectSize字段的值
@@ -248,25 +270,22 @@ void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strVa
 }
 
 template<typename T>
+void LabelTemplate<T>::SetWindow(Window* pWindow)
+{
+    Window* pOldWindow = this->GetWindow();
+    BaseClass::SetWindow(pWindow);
+    if (pOldWindow != pWindow) {
+        m_impl->OnWindowChanged();
+    }
+}
+
+template<typename T>
 void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
     if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
-    UiPadding rcTextPadding = m_impl->GetTextPadding();
-    rcTextPadding = this->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
-    m_impl->SetTextPadding(rcTextPadding, false);
-
-    float mul = 1.0f;
-    float add = 0;
-    m_impl->GetLineSpacing(&mul, &add);
-    add = this->Dpi().GetScaleFloat(add, nOldDpiScale);
-    m_impl->SetLineSpacing(mul, add, false);
-
-    float fWordSpacing = m_impl->GetWordSpacing();
-    fWordSpacing = this->Dpi().GetScaleFloat(fWordSpacing, nOldDpiScale);
-    m_impl->SetWordSpacing(fWordSpacing, false);
-
+    m_impl->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -379,6 +398,18 @@ template<typename T>
 bool LabelTemplate<T>::IsRotate90ForAscii() const
 {
     return m_impl->IsRotate90ForAscii();
+}
+
+template<typename T>
+void LabelTemplate<T>::SetRichText(bool bRichText)
+{
+    m_impl->SetRichText(bRichText);
+}
+
+template<typename T>
+bool LabelTemplate<T>::IsRichText() const
+{
+    return m_impl->IsRichText();
 }
 
 template<typename T>

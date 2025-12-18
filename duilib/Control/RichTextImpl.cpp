@@ -129,6 +129,12 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
     return true;
 }
 
+void RichTextImpl::OnWindowChanged()
+{
+    //绑定的窗口变化时，DPI可能发生变化，需要重绘
+    Redraw();
+}
+
 void RichTextImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 {
     if (!m_pOwner->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
@@ -137,6 +143,8 @@ void RichTextImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     UiPadding rcTextPadding = GetTextPadding();
     rcTextPadding = m_pOwner->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     SetTextPadding(rcTextPadding, false);
+    //DPI变化时，需要重新绘制（字体大小等需要缩放）
+    Redraw();
 }
 
 void RichTextImpl::Redraw()
@@ -485,8 +493,8 @@ bool RichTextImpl::ParseText(std::vector<RichTextDataEx>& outTextData) const
 }
 
 bool RichTextImpl::ParseTextSlice(const RichTextSlice& textSlice, 
-                              const RichTextDataEx& parentTextData, 
-                              std::vector<RichTextDataEx>& textData) const
+                                  const RichTextDataEx& parentTextData, 
+                                  std::vector<RichTextDataEx>& textData) const
 {
     //当前节点
     RichTextDataEx currentTextData;

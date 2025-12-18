@@ -54,6 +54,10 @@ public:
     bool SetAttribute(const DString& strName, const DString& strValue);
     void PaintText(IRender* pRender);
 
+    /** 绑定的窗口发生了变化
+    */
+    void OnWindowChanged();
+
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致

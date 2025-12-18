@@ -6,6 +6,8 @@
 
 namespace ui
 {
+class TextDrawer;
+
 /** 标签控件的内部实现，用于显示文本
 */
 class UILIB_API LabelImpl
@@ -25,6 +27,16 @@ public:
     bool HasHotColorState();
     bool SetAttribute(const DString& strName, const DString& strValue);
     void PaintText(IRender* pRender);
+
+    /** 绑定的窗口发生了变化
+    */
+    void OnWindowChanged();
+
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
     
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -172,6 +184,14 @@ public:
     */
     bool IsRotate90ForAscii() const;
 
+    /** 设置文本内容是否为RichText
+    */
+    void SetRichText(bool bRichText);
+
+    /** 获取文本内容是否为RichText
+    */
+    bool IsRichText() const;
+
 public:
     /** 获取当前评估绘制文字的参数
     * @return 返回当前设置的参数，不含rectSize字段的值
@@ -203,6 +223,10 @@ private:
     /** 关联控件
     */
     Control* m_pOwner;
+
+    /** 文本绘制的实现（支持RichText文本绘制）
+    */
+    std::unique_ptr<TextDrawer> m_pTextDrawer;
 
     //文本内容
     UiString m_sText;
@@ -254,6 +278,9 @@ private:
 
     //纵向绘制时，对于字母数字等，顺时针旋转90度显示
     bool m_bRotate90ForAscii;
+
+    //文本内容是否为RichText
+    bool m_bRichText;
 };
 
 }

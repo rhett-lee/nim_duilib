@@ -24,6 +24,11 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
+    /** 设置容器所属窗口
+     * @param [in] pWindow 窗口指针
+     */
+    virtual void SetWindow(Window* pWindow) override;
+
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
@@ -198,6 +203,13 @@ void RichTextT<T>::SetAttribute(const DString& strName, const DString& strValue)
     if (!m_impl->SetAttribute(strName, strValue)) {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+template<typename T>
+void RichTextT<T>::SetWindow(Window* pWindow)
+{
+    BaseClass::SetWindow(pWindow);
+    m_impl->OnWindowChanged();
 }
 
 template<typename T>

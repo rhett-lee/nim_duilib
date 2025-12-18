@@ -846,6 +846,9 @@
     <ClCompile Include="Control\ListCtrlIcon.cpp">
       <Filter>Control\ListCtrl</Filter>
     </ClCompile>
+    <ClCompile Include="Control\TextDrawer.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1753,6 +1756,9 @@
     </ClInclude>
     <ClInclude Include="Control\ListCtrlIcon.h">
       <Filter>Control\ListCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\TextDrawer.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

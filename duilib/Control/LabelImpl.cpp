@@ -1,4 +1,5 @@
 #include "LabelImpl.h"
+#include "TextDrawer.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/Box.h"
@@ -14,7 +15,7 @@ namespace ui
 LabelImpl::LabelImpl(Control* pOwner):
     m_pOwner(pOwner),
     m_sFontId(),
-    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_NOCLIP | TEXT_SINGLELINE),
+    m_uTextStyle(TEXT_LEFT | TEXT_VCENTER | TEXT_END_ELLIPSIS | TEXT_SINGLELINE),
     m_bSingleLine(true),
     m_bAutoShowToolTipEnabled(false),
     m_bAutoShowTooltip(false),
@@ -26,8 +27,7 @@ LabelImpl::LabelImpl(Control* pOwner):
     m_bUseFontHeight(true),
     m_bRotate90ForAscii(true),
     m_rcTextPadding(),
-    m_sText(),
-    m_sTextId()
+    m_bRichText(false)
 {
     Box* pBox = dynamic_cast<Box*>(pOwner);
     if (pBox != nullptr) {
@@ -38,10 +38,12 @@ LabelImpl::LabelImpl(Control* pOwner):
         pOwner->SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
         pOwner->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
     }
+    m_pTextDrawer = std::make_unique<TextDrawer>();
 }
 
 LabelImpl::~LabelImpl()
 {
+    m_pTextDrawer.reset();
 }
 
 bool LabelImpl::SetAttribute(const DString& strName, const DString& strValue)
@@ -194,10 +196,40 @@ bool LabelImpl::SetAttribute(const DString& strName, const DString& strValue)
         // 设置当纵向绘制文本时，对于字母数字等，顺时针旋转90度显示
         SetRotate90ForAscii(strValue == _T("true"));
     }
+    else if (strName == _T("rich_text")) {
+        // 设置文本内容是否为RichText
+        SetRichText(strValue == _T("true"));
+    }
     else {
         return false;
     }
     return true;
+}
+
+void LabelImpl::OnWindowChanged()
+{
+    //RichText模式时，绘制缓存需要重新生成
+    m_pTextDrawer->SetTextChanged();
+}
+
+void LabelImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
+{
+    UiPadding rcTextPadding = GetTextPadding();
+    rcTextPadding = m_pOwner->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
+    SetTextPadding(rcTextPadding, false);
+
+    float mul = 1.0f;
+    float add = 0;
+    GetLineSpacing(&mul, &add);
+    add = m_pOwner->Dpi().GetScaleFloat(add, nOldDpiScale);
+    SetLineSpacing(mul, add, false);
+
+    float fWordSpacing = GetWordSpacing();
+    fWordSpacing = m_pOwner->Dpi().GetScaleFloat(fWordSpacing, nOldDpiScale);
+    SetWordSpacing(fWordSpacing, false);
+
+    //RichText模式时，绘制缓存需要重新生成
+    m_pTextDrawer->SetTextChanged();
 }
 
 uint32_t LabelImpl::GetValidTextStyle(uint32_t nTextFormat)
@@ -391,6 +423,19 @@ bool LabelImpl::IsRotate90ForAscii() const
     return m_bRotate90ForAscii;
 }
 
+void LabelImpl::SetRichText(bool bRichText)
+{
+    if (m_bRichText != bRichText) {
+        m_bRichText = bRichText;
+        m_pOwner->Invalidate();
+    }    
+}
+
+bool LabelImpl::IsRichText() const
+{
+    return m_bRichText;
+}
+
 MeasureStringParam LabelImpl::GetMeasureParam() const
 {
     MeasureStringParam measureParam;
@@ -480,7 +525,7 @@ void LabelImpl::CheckShowToolTip()
 
     MeasureStringParam measureParam = GetMeasureParam();
     measureParam.rectSize = rectSize;
-    UiRect rcMessure = pRender->MeasureString(sText, measureParam);
+    UiRect rcMessure = m_pTextDrawer->MeasureString(pRender, sText, measureParam, GetFontId(), IsRichText(), m_pOwner);
     if (rc.Width() < rcMessure.Width() || rc.Height() < rcMessure.Height()) {
         m_bAutoShowTooltip = true;
     }
@@ -500,6 +545,7 @@ void LabelImpl::SetText(const DString& strText)
     }
     m_sText = strText;
     m_pOwner->RelayoutOrRedraw();
+    m_pTextDrawer->SetTextChanged();
     CheckShowToolTip();
 }
 
@@ -516,6 +562,7 @@ void LabelImpl::SetTextId(const DString& strTextId)
     }
     m_sTextId = strTextId;
     m_pOwner->RelayoutOrRedraw();
+    m_pTextDrawer->SetTextChanged();
     CheckShowToolTip();
 }
 
@@ -607,7 +654,7 @@ UiSize LabelImpl::EstimateText(UiSize szAvailable)
         if (pRender != nullptr) {
             MeasureStringParam measureParam = GetMeasureParam();
             measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
-            UiRect rect = pRender->MeasureString(textValue, measureParam);
+            UiRect rect = m_pTextDrawer->MeasureString(pRender, textValue, measureParam, GetFontId(), IsRichText(), m_pOwner);
             fixedSize.cx = std::min(rect.Width(), nWidth);
             if (fixedSize.cx > 0) {
                 fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
@@ -632,7 +679,7 @@ void LabelImpl::PaintText(IRender* pRender)
     DoPaintText(rc, pRender);
 }
 
-void LabelImpl::DoPaintText(const UiRect & rc, IRender * pRender)
+void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
 {
     DString textValue = this->GetText();
     if (textValue.empty() || (pRender == nullptr)) {
@@ -652,7 +699,7 @@ void LabelImpl::DoPaintText(const UiRect & rc, IRender * pRender)
             if (!clrColor.empty()) {                
                 drawParam.dwTextColor = m_pOwner->GetUiColor(clrColor);
                 drawParam.uFade = 255;
-                pRender->DrawString(textValue, drawParam);
+                m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
             }
 
             if (m_pOwner->GetHotAlpha() > 0) {
@@ -660,7 +707,7 @@ void LabelImpl::DoPaintText(const UiRect & rc, IRender * pRender)
                 if (!textColor.empty()) {
                     drawParam.dwTextColor = m_pOwner->GetUiColor(textColor);
                     drawParam.uFade = (uint8_t)m_pOwner->GetHotAlpha();
-                    pRender->DrawString(textValue, drawParam);
+                    m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
                 }
             }
             return;
@@ -669,7 +716,7 @@ void LabelImpl::DoPaintText(const UiRect & rc, IRender * pRender)
 
     drawParam.dwTextColor = dwClrColor;
     drawParam.uFade = 255;
-    pRender->DrawString(textValue, drawParam);
+    m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
 }
 
 void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)

@@ -295,6 +295,7 @@
     <ClCompile Include="Control\RichEdit_Windows.cpp" />
     <ClCompile Include="Control\RichTextImpl.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
+    <ClCompile Include="Control\TextDrawer.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
@@ -637,6 +638,7 @@
     <ClInclude Include="Control\RichTextImpl.h" />
     <ClInclude Include="Control\Split.h" />
     <ClInclude Include="Control\TabCtrl.h" />
+    <ClInclude Include="Control\TextDrawer.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\Callback.h" />
