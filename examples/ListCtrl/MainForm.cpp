@@ -1173,6 +1173,18 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         OnListCtrlEvent(args);
         return true;
         });
+    pListCtrl->AttachViewTypeChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachViewPosChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachViewSizeChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
 
     auto OnListCtrlItemFilledEvent = [this, pListCtrl](const ui::EventArgs& args) {
         ASSERT(pListCtrl == args.GetSender());
@@ -1204,101 +1216,148 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
     while (sInfo.size() < 24) {
         sInfo += _T(" ");
     }
-
-    DString labelText;
-    int32_t nDataItemIndex = -1;
-    int32_t nDataColumnIndex = -1;
-    ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
-    if (listCtrlType == ui::ListCtrlType::Report) {
-        sInfo += _T("ListCtrlType::Report: ");
-        ui::ListCtrlItem* pItem = nullptr;
-        if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
-            ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
-            if (pSubItem != nullptr) {
-                pItem = pSubItem->GetListCtrlItem();
-
-                nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
-                labelText = pSubItem->GetText();
-            }
-        }
-        else {
-            pItem = (ui::ListCtrlItem*)args.pEventData;
-        }
-        if (pItem != nullptr) {
-            nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
-            if ((args.eventType >= ui::kEventMouseBegin) && (args.eventType <= ui::kEventMouseEnd)) {
-                //鼠标消息：获取当前列(根据当前鼠标所在的位置，获取列所在的子控件)
-                ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(args.ptMouse);
+    if ((args.eventType == ui::kEventSelect) ||
+        (args.eventType == ui::kEventSelChanged) ||
+        (args.eventType == ui::kEventMouseDoubleClick) ||
+        (args.eventType == ui::kEventClick) ||
+        (args.eventType == ui::kEventRClick) ||
+        (args.eventType == ui::kEventItemMouseEnter) ||
+        (args.eventType == ui::kEventItemMouseLeave) ||
+        (args.eventType == ui::kEventSubItemMouseEnter) ||
+        (args.eventType == ui::kEventSubItemMouseLeave) ||
+        (args.eventType == ui::kEventReturn) ||
+        (args.eventType == ui::kEventKeyDown) ||
+        (args.eventType == ui::kEventKeyUp)) {
+        DString labelText;
+        int32_t nDataItemIndex = -1;
+        int32_t nDataColumnIndex = -1;
+        ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
+        if (listCtrlType == ui::ListCtrlType::Report) {
+            sInfo += _T("ListCtrlType::Report: ");
+            ui::ListCtrlItem* pItem = nullptr;
+            if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
+                ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
                 if (pSubItem != nullptr) {
+                    pItem = pSubItem->GetListCtrlItem();
+
                     nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
                     labelText = pSubItem->GetText();
                 }
             }
-        }
-    }
-    else if (listCtrlType == ui::ListCtrlType::Icon) {
-        sInfo += _T("ListCtrlType::Icon: ");
-        ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
-        if (pItem != nullptr) {
-            nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
-            labelText = pItem->GetLabelText();
-        }
-    }
-    else if (listCtrlType == ui::ListCtrlType::List) {
-        sInfo += _T("ListCtrlType::List: ");
-        ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
-        if (pItem != nullptr) {
-            nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
-            labelText = pItem->GetLabelText();
-        }
-    }
-    else {
-        sInfo += _T("ListCtrl: ");
-    }
-    if (nDataItemIndex >= 0) {
-        if ((args.eventType >= ui::kEventKeyBegin) && (args.eventType <= ui::kEventKeyEnd)) {
-            //键盘消息
-            DString keyName = ui::Keyboard::GetKeyName(args.vkCode, false);
-            DString modifierKey;
-            if (args.vkCode != ui::VirtualKeyCode::kVK_CONTROL) {
-                if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_CONTROL)) {
-                    modifierKey += _T("Ctrl+");
-                }
-            }
-            if (args.vkCode != ui::VirtualKeyCode::kVK_SHIFT) {
-                if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_SHIFT)) {
-                    modifierKey += _T("Shift+");
-                }
-            }
-            if (args.vkCode != ui::VirtualKeyCode::kVK_MENU) {
-                if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_MENU)) {
-                    modifierKey += _T("Alt+");
-                }
-            }            
-            sInfo += _T("<");
-            sInfo += modifierKey;
-            sInfo += keyName;
-            sInfo += _T(">");
-            sInfo += _T(" ");
-        }
-        if (labelText.empty()) {
-            if (nDataColumnIndex >= 0) {
-                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d"), nDataItemIndex, nDataColumnIndex);
-            }
             else {
-                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d"), nDataItemIndex);
+                pItem = (ui::ListCtrlItem*)args.pEventData;
+            }
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                if ((args.eventType >= ui::kEventMouseBegin) && (args.eventType <= ui::kEventMouseEnd)) {
+                    //鼠标消息：获取当前列(根据当前鼠标所在的位置，获取列所在的子控件)
+                    ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(args.ptMouse);
+                    if (pSubItem != nullptr) {
+                        nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
+                        labelText = pSubItem->GetText();
+                    }
+                }
+            }
+        }
+        else if (listCtrlType == ui::ListCtrlType::Icon) {
+            sInfo += _T("ListCtrlType::Icon: ");
+            ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                labelText = pItem->GetLabelText();
+            }
+        }
+        else if (listCtrlType == ui::ListCtrlType::List) {
+            sInfo += _T("ListCtrlType::List: ");
+            ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                labelText = pItem->GetLabelText();
             }
         }
         else {
-            if (nDataColumnIndex >= 0) {
-                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d, LabelText='%s'"), nDataItemIndex, nDataColumnIndex, labelText.c_str());
+            sInfo += _T("ListCtrl: ");
+        }
+        if (nDataItemIndex >= 0) {
+            if ((args.eventType >= ui::kEventKeyBegin) && (args.eventType <= ui::kEventKeyEnd)) {
+                //键盘消息
+                DString keyName = ui::Keyboard::GetKeyName(args.vkCode, false);
+                DString modifierKey;
+                if (args.vkCode != ui::VirtualKeyCode::kVK_CONTROL) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_CONTROL)) {
+                        modifierKey += _T("Ctrl+");
+                    }
+                }
+                if (args.vkCode != ui::VirtualKeyCode::kVK_SHIFT) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_SHIFT)) {
+                        modifierKey += _T("Shift+");
+                    }
+                }
+                if (args.vkCode != ui::VirtualKeyCode::kVK_MENU) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_MENU)) {
+                        modifierKey += _T("Alt+");
+                    }
+                }
+                sInfo += _T("<");
+                sInfo += modifierKey;
+                sInfo += keyName;
+                sInfo += _T(">");
+                sInfo += _T(" ");
+            }
+            if (labelText.empty()) {
+                if (nDataColumnIndex >= 0) {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d"), nDataItemIndex, nDataColumnIndex);
+                }
+                else {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d"), nDataItemIndex);
+                }
             }
             else {
-                sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, LabelText='%s'"), nDataItemIndex, labelText.c_str());
+                if (nDataColumnIndex >= 0) {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d, LabelText='%s'"), nDataItemIndex, nDataColumnIndex, labelText.c_str());
+                }
+                else {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, LabelText='%s'"), nDataItemIndex, labelText.c_str());
+                }
             }
         }
     }
-    
+    else if ((args.eventType == ui::kEventViewTypeChanged) ||
+             (args.eventType == ui::kEventViewPosChanged)  ||
+             (args.eventType == ui::kEventViewSizeChanged)) {
+        ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
+        ui::Control* pControl = nullptr;
+        if (listCtrlType == ui::ListCtrlType::Report) {
+            sInfo += _T("ListCtrlType::Report: ");
+            ui::ListCtrlReportView* pView = (ui::ListCtrlReportView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        else if (listCtrlType == ui::ListCtrlType::Icon) {
+            sInfo += _T("ListCtrlType::Icon: ");
+            ui::ListCtrlIconView* pView = (ui::ListCtrlIconView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        else if (listCtrlType == ui::ListCtrlType::List) {
+            sInfo += _T("ListCtrlType::List: ");
+            ui::ListCtrlListView* pView = (ui::ListCtrlListView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        ASSERT(pControl != nullptr);
+        if (args.eventType == ui::kEventViewTypeChanged) {
+            //不展示
+            sInfo += _T("ViewTypeChanged");
+        }
+        else if (args.eventType == ui::kEventViewPosChanged) {
+            sInfo += ui::StringUtil::Printf(_T("left:%d, top: %d"), pControl->GetRect().left, pControl->GetRect().top);
+        }
+        else if (args.eventType == ui::kEventViewSizeChanged) {
+            sInfo += ui::StringUtil::Printf(_T("width:%d, height: %d"), pControl->GetRect().Width(), pControl->GetRect().Height());
+        }
+    }
+    else {
+        ASSERT(0);
+    }
+   
     sInfo += _T("\n");
     return sInfo;
 }
