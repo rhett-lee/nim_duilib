@@ -8,6 +8,32 @@ namespace ui
 {
 class TextDrawer;
 
+/** 获取文本的接口，支持虚函数
+*/
+class UILIB_API LabelOwner
+{
+public:
+    virtual ~LabelOwner() = default;
+
+    /** 获取文本内容
+    */
+    virtual DString GetText() const = 0;
+
+    /** 设置文本内容
+    * @param [in] strText 文本内容
+    */
+    virtual void SetText(const DString& strText) = 0;
+
+    /** 获取文本内容ID（支持多语言）
+    */
+    virtual DString GetTextId() const = 0;
+
+    /** 设置文本内容ID（支持多语言）
+    * @param [in] strTextId 文本内容的ID
+    */
+    virtual void SetTextId(const DString& strTextId) = 0;
+};
+
 /** 标签控件的内部实现，用于显示文本
 */
 class UILIB_API LabelImpl
@@ -17,16 +43,9 @@ public:
     ~LabelImpl();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    DString GetText() const;
-    std::string GetUTF8Text() const;
-    DString GetTextId() const;
-    void SetText(const DString& strText);
-    void SetUTF8Text(const std::string& strText);
-    void SetTextId(const DString& strTextId);
-    void SetUTF8TextId(const std::string& strTextId);
     bool HasHotColorState();
-    bool SetAttribute(const DString& strName, const DString& strValue);
-    void PaintText(IRender* pRender);
+    bool OnSetAttribute(const DString& strName, const DString& strValue);
+    void OnPaintText(IRender* pRender);
 
     /** 绑定的窗口发生了变化
     */
@@ -40,14 +59,59 @@ public:
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
     */
-    void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
+    void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
     
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
      */
-    UiSize EstimateText(UiSize szAvailable);
+    UiSize OnEstimateText(UiSize szAvailable);
 
+public:
+    /** 获取文本内容
+    */
+    DString GetText() const;
+
+    /** 设置文本内容
+    * @param [in] strText 文本内容
+    */
+    void SetText(const DString& strText);
+
+    /** 获取文本内容ID（支持多语言）
+    */
+    DString GetTextId() const;
+
+    /** 设置文本内容ID（支持多语言）
+    * @param [in] strTextId 文本内容的ID
+    */
+    void SetTextId(const DString& strTextId);
+
+    /** 获取文本内容（UTF8格式）
+    */
+    std::string GetUTF8Text() const;
+
+    /** 设置文本内容（UTF8格式）
+    * @param [in] strText UTF8格式的文本内容
+    */
+    void SetUTF8Text(const std::string& strText);
+
+    /** 获取文本内容ID（UTF8格式）
+    */
+    std::string GetUTF8TextId() const;
+
+    /** 设置文本内容ID（UTF8格式）
+    */
+    void SetUTF8TextId(const std::string& strTextId);
+
+    /** 设置文本内容是否为RichText
+    */
+    void SetRichText(bool bRichText);
+
+    /** 获取文本内容是否为RichText
+    */
+    bool IsRichText() const;
+
+public:
     /** 恢复默认的文本样式
     * @param [in] bRedraw true表示重绘，false表示不重绘
     */
@@ -188,14 +252,6 @@ public:
     */
     bool IsRotate90ForAscii() const;
 
-    /** 设置文本内容是否为RichText
-    */
-    void SetRichText(bool bRichText);
-
-    /** 获取文本内容是否为RichText
-    */
-    bool IsRichText() const;
-
 public:
     /** 获取当前评估绘制文字的参数
     * @return 返回当前设置的参数，不含rectSize字段的值
@@ -222,6 +278,11 @@ public:
     * @param [in] pRender 渲染接口
     */
     void DoPaintText(const UiRect& rc, IRender* pRender);
+
+private:
+    /** 从Owner获取文本（支持虚函数）
+    */
+    DString GetOwnerText() const;
 
 private:
     /** 关联控件

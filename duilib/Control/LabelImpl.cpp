@@ -46,7 +46,7 @@ LabelImpl::~LabelImpl()
     m_pTextDrawer.reset();
 }
 
-bool LabelImpl::SetAttribute(const DString& strName, const DString& strValue)
+bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("text_align")) {
         bool bHCenter = false;        
@@ -220,7 +220,7 @@ void LabelImpl::OnLanguageChanged()
     m_pTextDrawer->SetTextChanged();
 }
 
-void LabelImpl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
+void LabelImpl::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t /*nNewDpiScale*/)
 {
     UiPadding rcTextPadding = GetTextPadding();
     rcTextPadding = m_pOwner->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
@@ -307,9 +307,98 @@ DString LabelImpl::GetText() const
     return strText;
 }
 
+void LabelImpl::SetText(const DString& strText)
+{
+    if (m_sText == strText) {
+        return;
+    }
+    m_sText = strText;
+    m_pOwner->RelayoutOrRedraw();
+    m_pTextDrawer->SetTextChanged();
+    CheckShowToolTip();
+}
+
 DString LabelImpl::GetTextId() const
 {
     return m_sTextId.c_str();
+}
+
+void LabelImpl::SetTextId(const DString& strTextId)
+{
+    if (m_sTextId == strTextId) {
+        return;
+    }
+    m_sTextId = strTextId;
+    m_pOwner->RelayoutOrRedraw();
+    m_pTextDrawer->SetTextChanged();
+    CheckShowToolTip();
+}
+
+std::string LabelImpl::GetUTF8Text() const
+{
+    DString strIn = GetOwnerText();
+    return StringConvert::TToUTF8(strIn);
+}
+
+void LabelImpl::SetUTF8Text(const std::string& strText)
+{
+    DString strOut = StringConvert::UTF8ToT(strText);
+    LabelOwner* pLabelOwner = dynamic_cast<LabelOwner*>(m_pOwner);
+    if (pLabelOwner != nullptr) {
+        pLabelOwner->SetText(strOut);
+    }
+    else {
+        SetText(strOut);
+    }    
+}
+
+void LabelImpl::SetUTF8TextId(const std::string& strTextId)
+{
+    DString strOut = StringConvert::UTF8ToT(strTextId);
+    LabelOwner* pLabelOwner = dynamic_cast<LabelOwner*>(m_pOwner);
+    if (pLabelOwner != nullptr) {
+        pLabelOwner->SetTextId(strOut);
+    }
+    else {
+        SetTextId(strOut);
+    }    
+}
+
+std::string LabelImpl::GetUTF8TextId() const
+{
+    DString textId;
+    LabelOwner* pLabelOwner = dynamic_cast<LabelOwner*>(m_pOwner);
+    if (pLabelOwner != nullptr) {
+        textId = pLabelOwner->GetTextId();
+    }
+    else {
+        textId = GetTextId();
+    }
+    return StringConvert::TToUTF8(textId);
+}
+
+void LabelImpl::SetRichText(bool bRichText)
+{
+    if (m_bRichText != bRichText) {
+        m_bRichText = bRichText;
+        m_pOwner->Invalidate();
+    }
+}
+
+bool LabelImpl::IsRichText() const
+{
+    return m_bRichText;
+}
+
+DString LabelImpl::GetOwnerText() const
+{
+    LabelOwner* pLabelOwner = dynamic_cast<LabelOwner*>(m_pOwner);
+    if (pLabelOwner != nullptr) {
+        return pLabelOwner->GetText();
+    }
+    else {
+        return GetText();
+    }    
 }
 
 void LabelImpl::SetAutoShowToolTipEnabled(bool bAutoShow)
@@ -431,19 +520,6 @@ bool LabelImpl::IsRotate90ForAscii() const
     return m_bRotate90ForAscii;
 }
 
-void LabelImpl::SetRichText(bool bRichText)
-{
-    if (m_bRichText != bRichText) {
-        m_bRichText = bRichText;
-        m_pOwner->Invalidate();
-    }    
-}
-
-bool LabelImpl::IsRichText() const
-{
-    return m_bRichText;
-}
-
 MeasureStringParam LabelImpl::GetMeasureParam() const
 {
     MeasureStringParam measureParam;
@@ -474,7 +550,7 @@ DString LabelImpl::GetAutoToolTipText() const
 {
     DString toolTip;
     if (m_bAutoShowToolTipEnabled && m_bAutoShowTooltip) {
-        toolTip = GetText();
+        toolTip = GetOwnerText();
     }
     return toolTip;
 }
@@ -489,7 +565,7 @@ void LabelImpl::CheckShowToolTip()
     if (pRender == nullptr) {
         return;
     }    
-    const DString sText = this->GetText();
+    const DString sText = GetOwnerText();
     if (sText.empty()) {
         return;
     }
@@ -539,47 +615,6 @@ void LabelImpl::CheckShowToolTip()
     }
 }
 
-std::string LabelImpl::GetUTF8Text() const
-{
-    DString strIn = GetText();
-    std::string strOut = StringConvert::TToUTF8(strIn);
-    return strOut;
-}
-
-void LabelImpl::SetText(const DString& strText)
-{
-    if (m_sText == strText) {
-        return;
-    }
-    m_sText = strText;
-    m_pOwner->RelayoutOrRedraw();
-    m_pTextDrawer->SetTextChanged();
-    CheckShowToolTip();
-}
-
-void LabelImpl::SetUTF8Text(const std::string& strText)
-{
-    DString strOut = StringConvert::UTF8ToT(strText);
-    SetText(strOut);
-}
-
-void LabelImpl::SetTextId(const DString& strTextId)
-{
-    if (m_sTextId == strTextId) {
-        return;
-    }
-    m_sTextId = strTextId;
-    m_pOwner->RelayoutOrRedraw();
-    m_pTextDrawer->SetTextChanged();
-    CheckShowToolTip();
-}
-
-void LabelImpl::SetUTF8TextId(const std::string& strTextId)
-{
-    DString strOut = StringConvert::UTF8ToT(strTextId);
-    SetTextId(strOut);
-}
-
 bool LabelImpl::HasHotColorState()
 {
     if (m_pTextColorMap != nullptr) {
@@ -588,10 +623,10 @@ bool LabelImpl::HasHotColorState()
     return false;
 }
 
-UiSize LabelImpl::EstimateText(UiSize szAvailable)
+UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
 {
     UiSize fixedSize;
-    const DString textValue = GetText();
+    const DString textValue = GetOwnerText();
     if (textValue.empty()) {
         //文本为空时，宽度和高度估算结果均为0
         return fixedSize;
@@ -679,7 +714,7 @@ UiSize LabelImpl::EstimateText(UiSize szAvailable)
     return fixedSize;
 }
 
-void LabelImpl::PaintText(IRender* pRender)
+void LabelImpl::OnPaintText(IRender* pRender)
 {
     UiRect rc = m_pOwner->GetRect();
     rc.Deflate(m_pOwner->GetControlPadding());
@@ -689,7 +724,7 @@ void LabelImpl::PaintText(IRender* pRender)
 
 void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
 {
-    DString textValue = this->GetText();
+    DString textValue = GetOwnerText();
     if (textValue.empty() || (pRender == nullptr)) {
         return;
     }

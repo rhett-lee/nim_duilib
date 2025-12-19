@@ -3,9 +3,9 @@
 
 namespace ui
 {
-class MenuBarButton : public Button
+class MenuBarButton : public ButtonBox
 {
-    typedef Button BaseClass;
+    typedef ButtonBox BaseClass;
 public:
     explicit MenuBarButton(MenuBar* pMenuBar);
 public:
@@ -20,9 +20,11 @@ private:
 };
 
 MenuBarButton::MenuBarButton(MenuBar* pMenuBar) :
-    Button(pMenuBar->GetWindow()),
+    ButtonBox(pMenuBar->GetWindow()),
     m_pMenuBar(pMenuBar)
 {
+    //使用RichText模式
+    //SetRichText(true);
 }
 
 bool MenuBarButton::MouseEnter(const EventArgs& msg)
@@ -80,7 +82,7 @@ void MenuBar::OnInit()
 
 void MenuBar::AddTopMenuToUI(const TopMenuData& menuData, size_t nInsertItem)
 {
-    Button* pNewItem = new MenuBarButton(this);
+    MenuBarButton* pNewItem = new MenuBarButton(this);
     if (!menuData.m_menuTextId.empty()) {
         pNewItem->SetTextId(menuData.m_menuTextId.c_str());
     }
@@ -270,7 +272,7 @@ void MenuBar::ClearMenuBarItemActivated()
     m_callbackList.clear();
 }
 
-void MenuBar::CheckShowPopupMenu(Button* pButton)
+void MenuBar::CheckShowPopupMenu(MenuBarButton* pButton)
 {
     if (HasActivePopupMenu()) {
         bool bPopup = true;
@@ -287,7 +289,7 @@ void MenuBar::CheckShowPopupMenu(Button* pButton)
     }
 }
 
-void MenuBar::OnMenuMouseEnter(Button* pButton, const EventArgs& /*msg*/)
+void MenuBar::OnMenuMouseEnter(MenuBarButton* pButton, const EventArgs& /*msg*/)
 {
     if (pButton == nullptr) {
         return;
@@ -310,7 +312,7 @@ void MenuBar::OnMenuMouseEnter(Button* pButton, const EventArgs& /*msg*/)
     CheckShowPopupMenu(pButton);
 }
 
-void MenuBar::OnMenuMouseLeave(Button* pButton, const EventArgs& /*msg*/)
+void MenuBar::OnMenuMouseLeave(MenuBarButton* pButton, const EventArgs& /*msg*/)
 {
     if (HasActivePopupMenu()) {
         if ((m_pActiveMenu != nullptr) && (m_pActiveMenu->GetRelatedControl() == pButton)) {
@@ -322,7 +324,7 @@ void MenuBar::OnMenuMouseLeave(Button* pButton, const EventArgs& /*msg*/)
     }
 }
 
-void MenuBar::OnMenuMouseButtonDown(Button* pButton, const EventArgs& /*msg*/)
+void MenuBar::OnMenuMouseButtonDown(MenuBarButton* pButton, const EventArgs& /*msg*/)
 {
     m_bActiveState = !m_bActiveState;//鼠标按下时，开关效果
     if (m_bActiveState) {
@@ -335,11 +337,11 @@ void MenuBar::OnMenuMouseButtonDown(Button* pButton, const EventArgs& /*msg*/)
     }
 }
 
-void MenuBar::OnMenuMouseButtonUp(Button* /*pButton*/, const EventArgs& /*msg*/)
+void MenuBar::OnMenuMouseButtonUp(MenuBarButton* /*pButton*/, const EventArgs& /*msg*/)
 {
 }
 
-void MenuBar::ShowPopupMenu(Button* pButton)
+void MenuBar::ShowPopupMenu(MenuBarButton* pButton)
 {
     ASSERT(pButton != nullptr);
     if (pButton == nullptr) {
@@ -410,7 +412,7 @@ void MenuBar::ShowPopupMenu(Button* pButton)
         });
 }
 
-void MenuBar::HidePopupMenu(Button* /*pButton*/)
+void MenuBar::HidePopupMenu(MenuBarButton* /*pButton*/)
 {
     if ((m_pActiveMenu != nullptr) && m_pActiveMenu->IsWindow() && !m_pActiveMenu->IsClosingWnd()) {
         m_pActiveMenu->CloseMenu();        

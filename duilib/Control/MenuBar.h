@@ -145,19 +145,19 @@ private:
     friend class MenuBarButton;
     friend class Menu;
 
-    void OnMenuMouseEnter(Button* pButton, const EventArgs& msg);
-    void OnMenuMouseLeave(Button* pButton, const EventArgs& msg);
-    void OnMenuMouseButtonDown(Button* pButton, const EventArgs& msg);
-    void OnMenuMouseButtonUp(Button* pButton, const EventArgs& msg);
+    void OnMenuMouseEnter(MenuBarButton* pButton, const EventArgs& msg);
+    void OnMenuMouseLeave(MenuBarButton* pButton, const EventArgs& msg);
+    void OnMenuMouseButtonDown(MenuBarButton* pButton, const EventArgs& msg);
+    void OnMenuMouseButtonUp(MenuBarButton* pButton, const EventArgs& msg);
 
     //检查并按需显示子菜单
-    void CheckShowPopupMenu(Button* pButton);
+    void CheckShowPopupMenu(MenuBarButton* pButton);
 
     //在指定顶级菜单项中，弹出子菜单
-    void ShowPopupMenu(Button* pButton);
+    void ShowPopupMenu(MenuBarButton* pButton);
 
     //收起子菜单
-    void HidePopupMenu(Button* pButton);
+    void HidePopupMenu(MenuBarButton* pButton);
 
     //当前是否存在激活的菜单
     bool HasActivePopupMenu() const;

@@ -11,7 +11,7 @@ namespace ui
 /** 标签控件（模板），用于显示文本
 */
 template<typename T = Control>
-class UILIB_API LabelTemplate : public T
+class UILIB_API LabelTemplate : public T, public LabelOwner
 {
     typedef T BaseClass;
 public:
@@ -20,23 +20,14 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual DString GetText() const;
-    virtual std::string GetUTF8Text() const;
-    virtual DString GetTextId() const;
-    virtual void SetText(const DString& strText);
-    virtual void SetUTF8Text(const std::string& strText);
-    virtual void SetTextId(const DString& strTextId);
-    virtual void SetUTF8TextId(const std::string& strTextId);
-    virtual bool HasHotState() override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void PaintText(IRender* pRender) override;
     virtual void SetPos(UiRect rc) override;
-    virtual DString GetToolTipText() const override;
-
-    /** 设置容器所属窗口
-     * @param [in] pWindow 窗口指针
-     */
     virtual void SetWindow(Window* pWindow) override;
+    virtual void PaintText(IRender* pRender) override;
+    virtual bool HasHotState() override;
+    virtual DString GetToolTipText() const override;
+    virtual void OnLanguageChanged() override;
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -44,16 +35,60 @@ public:
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+public:
+    /** 获取文本内容
     */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+    virtual DString GetText() const override;
 
-    /** 语言发生变化，刷新界面文字显示相关的内容
+    /** 设置文本内容
+    * @param [in] strText 文本内容
     */
-    virtual void OnLanguageChanged() override;
+    virtual void SetText(const DString& strText) override;
 
+    /** 获取文本内容ID（支持多语言）
+    */
+    virtual DString GetTextId() const override;
+
+    /** 设置文本内容ID（支持多语言）
+    * @param [in] strTextId 文本内容的ID
+    */
+    virtual void SetTextId(const DString& strTextId) override;
+
+    /** 获取文本内容（UTF8格式）
+    */
+    std::string GetUTF8Text() const;
+
+    /** 设置文本内容（UTF8格式）
+    * @param [in] strText UTF8格式的文本内容
+    */
+    void SetUTF8Text(const std::string& strText);
+
+    /** 获取文本内容ID（UTF8格式）
+    */
+    std::string GetUTF8TextId() const;
+
+    /** 设置文本内容ID（UTF8格式）
+    */
+    void SetUTF8TextId(const std::string& strTextId);
+
+    /** 设置文本内容是否为RichText
+     * @param [in] bRichText 表示支持RichText模式，设置的文本内容可以是RichText格式
+     *             示例："一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>"
+     *             备注：RichText模式下，不支持如下功能：
+     *                  （1）对齐方式不支持两端对齐
+     *                  （2）不支持vertical_text属性（也不支持纵向文本相关属性）
+     *                  （3）不支持end_ellipsis属性
+     *                  （4）不支持path_ellipsis属性
+     *                  （5）不支持auto_tooltip属性
+     *                  （6）不支持word_spacing属性
+     */
+    void SetRichText(bool bRichText);
+
+    /** 获取文本内容是否为RichText
+    */
+    bool IsRichText() const;
+
+public:
     /** 恢复默认的文本样式
     * @param [in] bRedraw true表示重绘，false表示不重绘
     */
@@ -190,23 +225,6 @@ public:
     */
     bool IsRotate90ForAscii() const;
 
-    /** 设置文本内容是否为RichText
-     * @param [in] bRichText 表示支持RichText模式，设置的文本内容可以是RichText格式
-     *             示例："一个简单<b>窗口</b><br/>带有<u>标题栏</u>和<u>常规按钮</u>，<b>粗体，<font color='#FF0000'>红色字体</font></b>"
-     *             备注：RichText模式下，不支持如下功能：
-     *                  （1）对齐方式不支持两端对齐
-     *                  （2）不支持vertical_text属性（也不支持纵向文本相关属性）
-     *                  （3）不支持end_ellipsis属性
-     *                  （4）不支持path_ellipsis属性
-     *                  （5）不支持auto_tooltip属性
-     *                  （6）不支持word_spacing属性
-     */
-    void SetRichText(bool bRichText);
-
-    /** 获取文本内容是否为RichText
-    */
-    bool IsRichText() const;
-
 public:
     /** 获取当前评估绘制文字的参数
     * @return 返回当前设置的参数，不含rectSize字段的值
@@ -264,7 +282,7 @@ inline DString LabelTemplate<VBox>::GetType() const { return DUI_CTR_LABELVBOX; 
 template<typename T>
 void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (!m_impl->SetAttribute(strName, strValue)) {
+    if (!m_impl->OnSetAttribute(strName, strValue)) {
         BaseClass::SetAttribute(strName, strValue);
     }
 }
@@ -285,7 +303,7 @@ void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiSca
     if (!this->Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
         return;
     }
-    m_impl->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    m_impl->OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -302,18 +320,6 @@ template<typename T>
 uint32_t LabelTemplate<T>::GetValidTextStyle(uint32_t nTextFormat)
 {
     return LabelImpl::GetValidTextStyle(nTextFormat);
-}
-
-template<typename T>
-DString LabelTemplate<T>::GetText() const
-{
-    return m_impl->GetText();
-}
-
-template<typename T>
-DString LabelTemplate<T>::GetTextId() const
-{
-    return m_impl->GetTextId();
 }
 
 template<typename T>
@@ -401,18 +407,6 @@ bool LabelTemplate<T>::IsRotate90ForAscii() const
 }
 
 template<typename T>
-void LabelTemplate<T>::SetRichText(bool bRichText)
-{
-    m_impl->SetRichText(bRichText);
-}
-
-template<typename T>
-bool LabelTemplate<T>::IsRichText() const
-{
-    return m_impl->IsRichText();
-}
-
-template<typename T>
 MeasureStringParam LabelTemplate<T>::GetMeasureParam() const
 {
     return m_impl->GetMeasureParam();
@@ -442,9 +436,9 @@ DString LabelTemplate<T>::GetToolTipText() const
 }
 
 template<typename T>
-std::string LabelTemplate<T>::GetUTF8Text() const
+DString LabelTemplate<T>::GetText() const
 {
-    return m_impl->GetUTF8Text();
+    return m_impl->GetText();
 }
 
 template<typename T>
@@ -454,9 +448,9 @@ void LabelTemplate<T>::SetText(const DString& strText)
 }
 
 template<typename T>
-void LabelTemplate<T>::SetUTF8Text(const std::string& strText)
+DString LabelTemplate<T>::GetTextId() const
 {
-    m_impl->SetUTF8Text(strText);
+    return m_impl->GetTextId();
 }
 
 template<typename T>
@@ -466,9 +460,39 @@ void LabelTemplate<T>::SetTextId(const DString& strTextId)
 }
 
 template<typename T>
+std::string LabelTemplate<T>::GetUTF8Text() const
+{
+    return m_impl->GetUTF8Text();
+}
+
+template<typename T>
+void LabelTemplate<T>::SetUTF8Text(const std::string& strText)
+{
+    m_impl->SetUTF8Text(strText);
+}
+
+template<typename T>
 void LabelTemplate<T>::SetUTF8TextId(const std::string& strTextId)
 {
     m_impl->SetUTF8TextId(strTextId);
+}
+
+template<typename T>
+std::string LabelTemplate<T>::GetUTF8TextId() const
+{
+    return m_impl->GetUTF8TextId();
+}
+
+template<typename T>
+void LabelTemplate<T>::SetRichText(bool bRichText)
+{
+    m_impl->SetRichText(bRichText);
+}
+
+template<typename T>
+bool LabelTemplate<T>::IsRichText() const
+{
+    return m_impl->IsRichText();
 }
 
 template<typename T>
@@ -483,13 +507,13 @@ bool LabelTemplate<T>::HasHotState()
 template<typename T>
 UiSize LabelTemplate<T>::EstimateText(UiSize szAvailable)
 {
-    return m_impl->EstimateText(szAvailable);
+    return m_impl->OnEstimateText(szAvailable);
 }
 
 template<typename T>
 void LabelTemplate<T>::PaintText(IRender* pRender)
 {
-    m_impl->PaintText(pRender);
+    m_impl->OnPaintText(pRender);
 }
 
 template<typename T>
