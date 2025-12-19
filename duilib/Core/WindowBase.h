@@ -584,6 +584,10 @@ protected:
     */
     virtual void PostInitWindow() = 0;
 
+    /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化
+    */
+    virtual void OnInitLayout() = 0;
+
     /** 窗口正在关闭，处理内部状态
     */
     virtual void PreCloseWindow() = 0;

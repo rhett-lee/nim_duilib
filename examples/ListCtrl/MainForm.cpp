@@ -54,6 +54,37 @@ void MainForm::OnInitWindow()
 
     //测试loading功能
     TestListCtrlLoading(pListCtrl);
+
+    //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
+    //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
+    //        //视图大小变化时，自动调整列宽
+    //        std::vector<ui::UiFixedInt> columnWidthList;
+    //        size_t nColumnCount = pListCtrl->GetColumnCount();
+    //        for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+    //            columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+    //        }
+    //        bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+    //        UNUSED_VARIABLE(bRet);
+    //    }        
+    //    return true;
+    //    });
+}
+
+void MainForm::OnInitLayout()
+{
+    //测试自动调整列宽为等比例
+    /*ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    std::vector<ui::UiFixedInt> columnWidthList;
+    size_t nColumnCount = pListCtrl->GetColumnCount();
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+        columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+    }
+    bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+    UNUSED_VARIABLE(bRet);*/
 }
 
 void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)

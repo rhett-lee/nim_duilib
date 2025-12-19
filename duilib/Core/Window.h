@@ -511,6 +511,10 @@ protected:
     */
     virtual void PostInitWindow() override;
 
+    /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化
+    */
+    virtual void OnInitLayout() override {};
+
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
     virtual void OnPreCloseWindow() {};
@@ -959,7 +963,7 @@ private:
 
     /** 初始化布局
     */
-    void OnInitLayout();
+    void OnFirstLayout();
 
     /** 窗口显示或者隐藏
     */
@@ -1030,8 +1034,11 @@ private:
     //布局是否变化，如果变化(true)则需要重新计算布局
     bool m_bIsArranged;
 
-    //布局是否需要初始化
+    //布局是否已经初始化
     bool m_bFirstLayout;
+
+    //布局初始化回调函数是否已经调用
+    bool m_bInitLayout;
 
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
