@@ -22,7 +22,8 @@ Window::Window() :
     m_pEventClick(nullptr),
     m_pEventKey(nullptr),
     m_rcAlphaFix(0, 0, 0, 0),
-    m_bFirstLayout(true),
+    m_bFirstLayout(false),
+    m_bInitLayout(false),
     m_bWindowFirstShown(false),
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
@@ -483,7 +484,8 @@ bool Window::AttachBox(Box* pRoot)
     m_controlFinder.SetRoot(pRoot);
     // Go ahead...
     m_bIsArranged = true;
-    m_bFirstLayout = true;
+    m_bFirstLayout = false;
+    m_bInitLayout = false;
     // Initiate all control
     return InitControls(m_pRoot.get());
 }
@@ -1272,6 +1274,15 @@ bool Window::OnPreparePaint()
     if (!PreparePaint(true)) {
         return false;
     }
+
+    //完成界面布局的初始化的回调函数(在第一次绘制前调用)
+    if (!m_bInitLayout) {
+        m_bInitLayout = true;
+        OnInitLayout();
+
+        //进一步检查布局是否需要更新
+        PreparePaint(true);
+    }
     return true;
 }
 
@@ -1298,6 +1309,8 @@ LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/
     //首次绘制事件, 给一次回调
     if (!IsWindowFirstShown()) {
         m_bWindowFirstShown = true;
+
+        //触发第一次绘制事件
         SendNotify(kEventWindowFirstShown);
     }
     return 0;
@@ -2447,7 +2460,7 @@ bool Window::IsWindowAttributesApplied() const
 
 void Window::OnShowWindow(bool bShow)
 {
-    if (bShow && m_bFirstLayout && (m_pRoot != nullptr)) {
+    if (bShow && !m_bFirstLayout && (m_pRoot != nullptr)) {
         //首次显示
         PreparePaint(false);
     }
@@ -2541,9 +2554,9 @@ void Window::ArrangeRoot()
                 pControl = m_pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             }
         }
-        if (m_bFirstLayout) {
-            m_bFirstLayout = false;
-            OnInitLayout();
+        if (!m_bFirstLayout) {
+            m_bFirstLayout = true;
+            OnFirstLayout();
         }
     }
     else if (m_pRoot->GetPos() != rcClient) {
@@ -2570,7 +2583,7 @@ void Window::SetRenderOffsetY(int renderOffsetY)
     InvalidateAll();
 }
 
-void Window::OnInitLayout()
+void Window::OnFirstLayout()
 {
     if ((m_pRoot != nullptr) && m_pRoot->IsVisible()) {
         m_pRoot->SetFadeVisible(true);
