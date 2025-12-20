@@ -73,12 +73,13 @@ public:
     void InitColorMap();
 
     /** 监听选择颜色的事件
-    * @param[in] callback 选择颜色变化时的回调函数
-    *            参数说明:
-                        wParam: 当前新选择的颜色值，可以用UiColor((uint32_t)wParam)生成颜色
-                        lParam: 原来旧选择的颜色值，可以用UiColor((uint32_t)lParam)生成颜色
+    * @param [in] callback 选择颜色变化时的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    *  参数说明:
+    *    wParam: 当前新选择的颜色值，可以用UiColor((uint32_t)wParam)生成颜色
+    *    lParam: 原来旧选择的颜色值，可以用UiColor((uint32_t)lParam)生成颜色
     */
-    void AttachSelectColor(const EventCallback& callback) { AttachEvent(kEventSelectColor, callback); }
+    void AttachSelectColor(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelectColor, callback, callbackID); }
 
 private:
     /** 颜色表

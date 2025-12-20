@@ -157,9 +157,10 @@ public:
     DString ToString() const;
 
     /** 监听超级链接被点击事件
-     * @param[in] callback 超级链接被点击后的回调函数
+     * @param [in] callback 超级链接被点击后的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachLinkClick(const EventCallback& callback) { this->AttachEvent(kEventLinkClick, callback); }
+    void AttachLinkClick(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventLinkClick, callback, callbackID); }
 
     /** 获取实现接口
     */

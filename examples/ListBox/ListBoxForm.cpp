@@ -142,7 +142,7 @@ void ListBoxForm::TestListBoxEvents(ui::ListBox* pListBox)
 
 DString ListBoxForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::ListBox* pListBox)
 {
-    DString sInfo = ui::EventTypeToString(args.eventType);
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
     while (sInfo.size() < 24) {
         sInfo += _T(" ");
     }

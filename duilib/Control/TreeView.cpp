@@ -415,7 +415,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetWindow(GetWindow());
 
     //监听双击事件：用于展开子节点
-    pTreeNode->AttachEvent(kEventMouseDoubleClick, UiBind(&TreeNode::OnDoubleClickItem, pTreeNode, std::placeholders::_1));
+    pTreeNode->AttachDoubleClick(UiBind(&TreeNode::OnDoubleClickItem, pTreeNode, std::placeholders::_1));
 
     //监听回车事件：用于激活子节点
     pTreeNode->AttachReturn(UiBind(&TreeNode::OnReturnKeyDown, pTreeNode, std::placeholders::_1));

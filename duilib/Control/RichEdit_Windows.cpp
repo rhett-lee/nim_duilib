@@ -3005,9 +3005,9 @@ void RichEdit::GetClipboardText(DStringW& out )
     }
 }
 
-void RichEdit::AttachSelChanged(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID)
 { 
-    AttachEvent(kEventSelChanged, callback); 
+    AttachEvent(kEventSelChanged, callback, callbackID);
     uint32_t oldEventMask = m_richCtrl.GetEventMask();
     if (!(oldEventMask & ENM_SELCHANGE)) {
         m_richCtrl.SetEventMask(oldEventMask | ENM_SELCHANGE);

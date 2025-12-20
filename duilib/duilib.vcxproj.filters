@@ -905,9 +905,6 @@
     <ClInclude Include="Render\IRender.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Delegate.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\StringUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>

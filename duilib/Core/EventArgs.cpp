@@ -170,7 +170,7 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
     }
 }
 
-EventType StringToEventType(const DString& eventName)
+EventType EventUtils::StringToEventType(const DString& eventName)
 {
     static std::unordered_map<DString, EventType> nameMap;
     InitEventStringMap(nullptr, &nameMap);
@@ -182,7 +182,7 @@ EventType StringToEventType(const DString& eventName)
     return EventType::kEventNone;
 }
 
-DString EventTypeToString(EventType eventType)
+DString EventUtils::EventTypeToString(EventType eventType)
 {
     static std::unordered_map<EventType, DString> typeMap;
     InitEventStringMap(&typeMap, nullptr);
@@ -194,4 +194,128 @@ DString EventTypeToString(EventType eventType)
     return DString();
 }
 
+void EventSource::AddEventCallback(const EventCallback& callback, EventCallbackID callbackID)
+{
+    ASSERT(callback != nullptr);
+    if (callback != nullptr) {
+        m_callbackList.push_back({ callback, callbackID });
+    }
 }
+
+bool EventSource::RemoveEventCallbackByID(EventCallbackID callbackID)
+{
+    ASSERT(callbackID > 0);
+    if (callbackID == 0) {
+        return false;
+    }
+    bool bRet = false;
+    auto iter = m_callbackList.begin();
+    while (iter != m_callbackList.end()) {
+        if (iter->m_callbackID == callbackID) {
+            iter = m_callbackList.erase(iter);
+            bRet = true;
+        }
+        else {
+            ++iter;
+        }
+    }
+    return bRet;
+}
+
+bool EventSource::HasEventCallbackByID(EventCallbackID callbackID) const
+{
+    for (auto iter = m_callbackList.begin(); iter != m_callbackList.end(); ++iter) {
+        if (iter->m_callbackID == callbackID) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventSource::IsEmpty() const
+{
+    return m_callbackList.empty();
+}
+
+bool EventSource::operator() (const ui::EventArgs& args) const
+{
+    //支持在回调函数中，操作此容器
+    const size_t nMaxCallbackCount = m_callbackList.size(); //本次最大回调次数
+    for (size_t nIndex = 0; nIndex < nMaxCallbackCount; ++nIndex) {
+        if (args.IsSenderExpired()) {
+            //Sender控件已经失效，不再继续产生回调事件
+            return false;
+        }
+        //需要复制一个副本，避免在回调callback函数中操作该容器，导致容器中的内容失效，进而引发崩溃
+        EventCallback callback = m_callbackList.at(nIndex).m_callback;
+        if ((callback == nullptr) || !callback(args)) {
+            return false;
+        }
+        if (nIndex >= m_callbackList.size()) {
+            //避免在回调中从容器中删除回调函数，导致下标越界访问
+            break;
+        }
+    }
+    return true;
+}
+
+bool EventUtils::RemoveEventCallbackByID(EventMap& eventMap, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.begin();
+    while (iter != eventMap.end()) {
+        if (iter->second.RemoveEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+        if (iter->second.IsEmpty()) {
+            iter = eventMap.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+    return bRet;
+}
+
+bool EventUtils::RemoveEventCallbackByID(EventMap& eventMap, EventType eventType, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.find(eventType);
+    if (iter != eventMap.end()) {
+        if (iter->second.RemoveEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+        if (iter->second.IsEmpty()) {
+            iter = eventMap.erase(iter);
+        }
+    }
+    return bRet;
+}
+
+bool EventUtils::HasEventCallbackByID(const EventMap& eventMap, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.begin();
+    while (iter != eventMap.end()) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            bRet = true;
+            break;
+        }
+        ++iter;
+    }
+    return bRet;
+}
+
+bool EventUtils::HasEventCallbackByID(const EventMap& eventMap, EventType eventType, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.find(eventType);
+    if (iter != eventMap.end()) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
+} //namespace ui

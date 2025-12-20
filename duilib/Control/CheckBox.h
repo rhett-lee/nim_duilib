@@ -185,13 +185,15 @@ public:
 
     /** 监听被选择时的事件
      * @param [in] callback 被选择时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSelect(const EventCallback& callback) { this->AttachEvent(kEventSelect, callback); }
+    void AttachSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventSelect, callback, callbackID); }
 
     /** 监听取消选择时的事件
      * @param [in] callback 取消选择时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachUnSelect(const EventCallback& callback) { this->AttachEvent(kEventUnSelect, callback); }
+    void AttachUnSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventUnSelect, callback, callbackID); }
 
 public:
     ///（三态选择[全部选择、部分选择、未选择]/勾选模式两种功能的函数）
@@ -226,13 +228,15 @@ public:
 
     /** 监听被勾选时的事件（仅当 SupportCheckMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 被选择时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachCheck(const EventCallback& callback) { this->AttachEvent(kEventCheck, callback); }
+    void AttachCheck(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventCheck, callback, callbackID); }
 
     /** 监听取消勾选时的事件（仅当 SupportCheckMode() 函数为true的时候，会有这个事件）
      * @param [in] callback 取消选择时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachUnCheck(const EventCallback& callback) { this->AttachEvent(kEventUnCheck, callback); }
+    void AttachUnCheck(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventUnCheck, callback, callbackID); }
 
     /** 当前点击是否点击在CheckBox图标上（Check模式使用，用于在Activate函数中判断鼠标的点击位置）
     */

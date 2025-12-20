@@ -78,9 +78,10 @@ public:
     void SetProgressBarPadding(UiPadding padding, bool bNeedDpiScale);
 
     /** 监听进度条进度改变事件
-     * @param[in] callback 进度条进度改变后调用的回调函数
+     * @param [in] callback 进度条进度改变后调用的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachValueChanged(const EventCallback& callback) { AttachEvent(kEventValueChanged, callback);    }
+    void AttachValueChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID);    }
 
 protected:
     int m_nStep;

@@ -418,39 +418,46 @@ public:
 
 public:
     /** 监听回车按键按下事件
-     * @param[in] callback 回车被按下的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventReturn, callback, callbackID); }
 
     /** 监听ESC按键按下事件
-     * @param[in] callback 回车被按下的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachEsc(const EventCallback& callback) { AttachEvent(kEventEsc, callback); }
+    void AttachEsc(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventEsc, callback, callbackID); }
 
     /** 监听 TAB 按键按下事件
-     * @param[in] callback TAB 被按下的自定义回调函数
+     * @param [in] callback TAB 被按下的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachTab(const EventCallback& callback) { AttachEvent(kEventTab, callback); }
+    void AttachTab(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTab, callback, callbackID); }
 
     /* 监听缩放比例变化事件
-     * @param[in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachZoom(const EventCallback& callback) { AttachEvent(kEventZoom, callback); }
+    void AttachZoom(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventZoom, callback, callbackID); }
 
     /* 监听文本被修改事件
-     * @param[in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachTextChanged(const EventCallback& callback) { AttachEvent(kEventTextChanged, callback); }
+    void AttachTextChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTextChanged, callback, callbackID); }
 
     /* 监听文本选择变化事件
-     * @param[in] callback 文本选择变化后的自定义回调函数
+     * @param [in] callback 文本选择变化后的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachSelChanged(const EventCallback& callback);
+    void AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
 
     /** 监听超级链接被点击事件
-     * @param[in] callback 超级链接被点击后的回调函数
+     * @param [in] callback 超级链接被点击后的回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
      */
-    void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
+    void AttachLinkClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventLinkClick, callback, callbackID); }
 
 public:
     /** 获取修改标志

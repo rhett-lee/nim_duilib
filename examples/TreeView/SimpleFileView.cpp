@@ -174,7 +174,7 @@ ui::Control* SimpleFileView::CreateElement(ui::VirtualListBox* pVirtualListBox)
     }
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
     FileInfoItem* item = new FileInfoItem(pVirtualListBox->GetWindow());
-    item->AttachEvent(ui::kEventMouseDoubleClick, UiBind(&SimpleFileView::OnDoubleClickItem, this, std::placeholders::_1));
+    item->AttachDoubleClick(UiBind(&SimpleFileView::OnDoubleClickItem, this, std::placeholders::_1));
     ui::GlobalManager::Instance().FillBoxWithCache(item, ui::FilePath(_T("tree_view/tree_node.xml")));
     return item;
 }

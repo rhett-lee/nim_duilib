@@ -29,9 +29,10 @@ public:
 
 public:
     /** 监听选择项发生变化的事件
-     * @param[in] callback 选择子项时的回调函数
+     * @param [in] callback 选择子项时的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
+    void AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelChanged, callback, callbackID); }
 
 public:
     /** 获取顶部元素的索引号

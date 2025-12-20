@@ -109,14 +109,16 @@ public:
 
 public:
     /** 监听下拉窗创建事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
+    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowCreate, callback, callbackID); }
 
     /** 监听下拉窗关闭事件
-    * @param[in] callback 下拉窗关闭后触发的回调函数
+    * @param [in] callback 下拉窗关闭后触发的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
+    void AttachWindowClose(const ui::EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(ui::kEventWindowClose, callback, callbackID); }
 
 private:
     /** 默认的子项被选择处理函数

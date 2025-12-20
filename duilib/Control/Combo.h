@@ -212,19 +212,22 @@ public:
 
 public:
     /** 监听子项被选择事件
-     * @param[in] callback 子项被选择后触发的回调函数
+     * @param [in] callback 子项被选择后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback);}
+    void AttachSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelect, callback, callbackID);}
 
     /** 监听下拉窗创建事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
+    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowCreate, callback, callbackID); }
 
     /** 监听下拉窗关闭事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
+    void AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowClose, callback, callbackID); }
 
 protected:
     /** 显示下拉列表

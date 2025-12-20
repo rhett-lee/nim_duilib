@@ -2,7 +2,6 @@
 #define UI_IMAGE_IMAGE_PLAYER_H_
 
 #include "duilib/Core/UiTypes.h"
-#include "duilib/Utils/Delegate.h"
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/ControlPtrT.h"
 #include <map>
@@ -11,7 +10,6 @@ namespace ui
 {
 class Image;
 class Control;
-typedef std::map<int32_t, CEventSource> AnimationEventMap;
 
 /** 控件图片动画播放的逻辑封装（支持GIF/WebP/APNG/Lottie-JSON/PAG动画）
 */

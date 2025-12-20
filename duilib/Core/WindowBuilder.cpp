@@ -1375,17 +1375,17 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
             receiverList.push_back(_T(""));
         }
         for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
-            EventType eventType = StringToEventType(*itType);
+            EventType eventType = EventUtils::StringToEventType(*itType);
             ASSERT(eventType != EventType::kEventNone);//如果有断言，说明XML中配置的消息名称不正确
             if (eventType == EventType::kEventNone) {
                 continue;
             }
             auto callback = UiBind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
             if (!bBubbled) {
-                pParent->AttachXmlEvent(eventType, callback);
+                pParent->AttachXmlEvent(eventType, callback, 0);
             }
             else {
-                pParent->AttachXmlBubbledEvent(eventType, callback);
+                pParent->AttachXmlBubbledEvent(eventType, callback, 0);
             }
         }
     }

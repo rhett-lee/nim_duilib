@@ -24,7 +24,7 @@ void MainForm::OnInitWindow()
     BaseClass::OnInitWindow();
     //窗口初始化完成，可以进行本Form的初始化
 
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
     m_pWebView2Control = dynamic_cast<ui::WebView2Control*>(FindControl(_T("webview2_control")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
 

@@ -2456,9 +2456,9 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
     m_bUseControlCursor = bUseControlCursor;
 }
 
-void RichEdit::AttachSelChanged(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID)
 { 
-    AttachEvent(kEventSelChanged, callback); 
+    AttachEvent(kEventSelChanged, callback, callbackID);
 }
 
 void RichEdit::SetZoomPercent(uint32_t nZoomPercent)

@@ -43,7 +43,7 @@ void CefForm::OnInitWindow()
     }
 
     // 监听鼠标单击事件
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1), 0);
 
     // 从 XML 中查找指定控件
     m_pCefControl = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control")));

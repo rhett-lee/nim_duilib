@@ -2710,7 +2710,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         else {
             return true;
         }
-        });
+        }, 0);
 
     //控件失去焦点: 应用修改
     m_pRichEdit->DetachEvent(kEventKillFocus);

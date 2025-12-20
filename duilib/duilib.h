@@ -2,7 +2,6 @@
 #define DUILIB_HEADERS_H_
 
 #include "duilib_defs.h"
-#include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
 #include "Utils/StringConvert.h"
 #include "Utils/StringCharset.h"
@@ -28,6 +27,8 @@
 #include "Render/IRender.h"
 #include "Render/AutoClip.h"
 
+#include "Core/EventArgs.h"
+#include "Core/UiTypes.h"
 #include "Core/UiColor.h"
 #include "Core/UiFont.h"
 #include "Core/UiRect.h"

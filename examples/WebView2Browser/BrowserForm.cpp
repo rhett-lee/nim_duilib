@@ -168,7 +168,7 @@ void BrowserForm::OnInitWindow()
         return true;
         });
 
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1), 0);
 
     m_pEditUrl = static_cast<RichEdit*>(FindControl(_T("edit_url")));
     m_pEditUrl->AttachReturn(UiBind(&BrowserForm::OnReturn, this, std::placeholders::_1));

@@ -176,7 +176,7 @@ void VirtualListBox::FillElementData(Control* pControl, size_t nElementIndex)
     m_bEnableUpdateProvider = bOldValue;
 }
 
-void VirtualListBox::OnNewItemAdded(Control* pControl)
+void VirtualListBox::OnListBoxItemAdded(Control* pControl)
 {
     if (pControl == nullptr) {
         return;
@@ -184,40 +184,54 @@ void VirtualListBox::OnNewItemAdded(Control* pControl)
     if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
         return;
     }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
     Control* pListBoxItem = pControl;
+
     //挂载鼠标事件，转接给VirtualListBox本身，将事件分发到应用层
     pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
         VFireMouseEnterLeaveEvent(args);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
         VFireMouseEnterLeaveEvent(args);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
         VSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachClick([this](const EventArgs& args) {
         VSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachRClick([this](const EventArgs& args) {
         VSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
         VSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
         VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
         VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
         return true;
-        });
+        }, callbackID);
+}
+
+void VirtualListBox::OnListBoxItemRemoved(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    pControl->DetachEventByID(callbackID);
 }
 
 void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)

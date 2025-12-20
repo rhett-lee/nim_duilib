@@ -275,23 +275,24 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
     pItemLabel->SetNoFocus();
 
     //设置可编辑属性
+    const EventCallbackID callbackID = (EventCallbackID)this;
     bool bEditable = (pSubItemData != nullptr) ? pSubItemData->bEditable : false;
     if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
         IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
         ListCtrlLabel* pSubItem = pItemLabel;
         ASSERT(pItem != nullptr);
         pItemLabel->SetEnableEdit(true);
-        pItemLabel->DetachEvent(kEventEnterEdit);
+        pItemLabel->DetachEventByID(kEventEnterEdit, callbackID);
         pItemLabel->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
             if (m_pListCtrl != nullptr) {
                 m_pListCtrl->OnItemEnterEditMode(nElementIndex, nColumnId, pItem, pSubItem);
             }
             return true;
-            });
+            }, callbackID);
     }
     else {
         pItemLabel->SetEnableEdit(false);
-        pItemLabel->DetachEvent(kEventEnterEdit);
+        pItemLabel->DetachEventByID(kEventEnterEdit, callbackID);
     }
     SendEvent(kEventListViewItemFilled, (WPARAM)pViewItem->GetListBoxIndex(), (LPARAM)pViewItem->GetDataItemIndex(), pViewItem);
     return true;

@@ -172,14 +172,16 @@ public:
     void SetEnableIcon(bool bEnable);
 
     /** 监听子项展开事件
-     * @param[in] callback 子项展开时触发的回调函数
+     * @param [in] callback 子项展开时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
+    void AttachExpand(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventExpand, callback, callbackID); }
 
     /** 监听子项收缩事件
-     * @param[in] callback 子项收缩时触发的回调函数
+     * @param [in] callback 子项收缩时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
+    void AttachCollapse(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventCollapse, callback, callbackID); }
 
 private:
     /** 设置[未展开/展开]标志图片关联的Class，如果不为空表示开启展开标志功能，为空则关闭展开标志功能

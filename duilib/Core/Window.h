@@ -6,8 +6,8 @@
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/ControlPtrT.h"
+#include "duilib/Core/EventArgs.h"
 #include "duilib/Render/IRender.h"
-#include "duilib/Utils/Delegate.h"
 #include "duilib/Utils/FilePath.h"
 
 namespace ui
@@ -77,32 +77,6 @@ public:
     /** 界面是否完成首次显示
     */
     bool IsWindowFirstShown() const;
-
-    /** 监听窗口首次显示事件
-    * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
-    * @return 如果窗口已经完成第一次显示返回false，表示不会有回调函数；如果窗口未完成第一次显示，返回true
-    */
-    bool AttachWindowFirstShown(const EventCallback& callback);
-
-    /** 监听窗口创建并初始化完成事件
-    * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
-    */
-    void AttachWindowCreate(const EventCallback& callback);
-
-    /** 监听窗口关闭事件
-    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况, 参见enum WindowCloseParam
-    */
-    void AttachWindowClose(const EventCallback& callback);
-
-    /** 监听窗口获取焦点事件
-    * @param [in] callback 指定的回调函数
-    */
-    void AttachWindowSetFocus(const EventCallback& callback);
-
-    /** 监听窗口失去焦点事件
-    * @param [in] callback 指定的回调函数
-    */
-    void AttachWindowKillFocus(const EventCallback& callback);
 
     /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
     * @param [in] eventType 转化后的消息体
@@ -497,6 +471,58 @@ public:
     /** 注销一个拖放接口
     */
     bool IsEnableDragDrop() const;
+
+public:
+    /** 监听窗口首次显示事件
+    * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    * @return 如果窗口已经完成第一次显示返回false，表示不会有回调函数；如果窗口未完成第一次显示，返回true
+    */
+    bool AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口创建并初始化完成事件
+    * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口关闭事件
+    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况, 参见enum WindowCloseParam
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口获取焦点事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSetFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口失去焦点事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 本窗口是否含有回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    bool HasWindowEventCallback(EventType eventType) const;
+
+    /** 本窗口是否含有回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    bool HasWindowEventCallbackByID(EventCallbackID callbackID) const;
+
+    /** 删除回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    void DetachWindowEventCallback(EventType eventType);
+
+    /** 删除回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    void DetachWindowEventCallbackByID(EventCallbackID callbackID);
 
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)

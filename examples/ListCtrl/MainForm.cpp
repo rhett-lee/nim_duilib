@@ -1243,7 +1243,7 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
 
 DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
 {
-    DString sInfo = ui::EventTypeToString(args.eventType);
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
     while (sInfo.size() < 24) {
         sInfo += _T(" ");
     }
@@ -1395,7 +1395,7 @@ DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
 
 DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
 {
-    DString sInfo = ui::EventTypeToString(args.eventType);
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
     while (sInfo.size() < 32) {
         sInfo += _T(" ");
     }

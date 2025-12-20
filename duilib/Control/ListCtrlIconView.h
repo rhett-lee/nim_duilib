@@ -71,12 +71,13 @@ public:
 
     /** 监听Icon视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针
      */
-    void AttachIconViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventIconViewItemFilled, callback); }
+    void AttachIconViewItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventIconViewItemFilled, callback, callbackID); }
 
 protected:
     /** 创建一个数据项

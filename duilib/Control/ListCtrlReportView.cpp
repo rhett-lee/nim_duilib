@@ -1018,20 +1018,21 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         pSubItem->SetDataColumnId(nColumnId);
 
         //设置可编辑属性
+        const EventCallbackID callbackID = (EventCallbackID)this;
         bool bEditable = (elementData.pStorage != nullptr) ? elementData.pStorage->bEditable : false;
         if (bEditable && m_pListCtrl->IsEnableItemEdit()) {            
             pSubItem->SetEnableEdit(true);
-            pSubItem->DetachEvent(kEventEnterEdit);
+            pSubItem->DetachEventByID(kEventEnterEdit, callbackID);
             pSubItem->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
                 if (m_pListCtrl != nullptr) {
                     m_pListCtrl->OnItemEnterEditMode(nElementIndex, nColumnId, pItem, pSubItem);
                 }
                 return true;
-                });
+                }, callbackID);
         }
         else {
             pSubItem->SetEnableEdit(false);
-            pSubItem->DetachEvent(kEventEnterEdit);
+            pSubItem->DetachEventByID(kEventEnterEdit, callbackID);
         }
 
         //填充数据，设置属性        

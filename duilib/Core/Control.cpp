@@ -4619,26 +4619,26 @@ void Control::ClearImageCache()
     }
 }
 
-void Control::AttachEvent(EventType type, const EventCallback& callback)
+void Control::AttachEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& attachEventMap = GetAttachEventMap();
-    attachEventMap[type] += callback;
-    if ((type == kEventContextMenu) || (type == kEventAll)) {
+    attachEventMap[eventType].AddEventCallback(callback, callbackID);
+    if ((eventType == kEventContextMenu) || (eventType == kEventAll)) {
         SetContextMenuUsed(true);
     }
 }
 
-void Control::DetachEvent(EventType type)
+void Control::DetachEvent(EventType eventType)
 {
     if (!HasAttachEventMap()) {
         return;
     }
     EventMap& attachEventMap = GetAttachEventMap();
-    auto event = attachEventMap.find(type);
+    auto event = attachEventMap.find(eventType);
     if (event != attachEventMap.end()) {
         attachEventMap.erase(event);
     }
-    if ((type == kEventContextMenu) || (type == kEventAll)) {
+    if ((eventType == kEventContextMenu) || (eventType == kEventAll)) {
         if ((attachEventMap.find(kEventAll) == attachEventMap.end()) &&
             (attachEventMap.find(kEventContextMenu) == attachEventMap.end())) {
             SetContextMenuUsed(false);
@@ -4646,28 +4646,127 @@ void Control::DetachEvent(EventType type)
     }
 }
 
-void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachEventByID(EventCallbackID callbackID)
 {
-    EventMap& xmlEventMap = GetXmlEventMap();
-    xmlEventMap[eventType] += callback;
+    if (!HasAttachEventMap()) {
+        return;
+    }
+    EventMap& attachEventMap = GetAttachEventMap();
+    EventUtils::RemoveEventCallbackByID(attachEventMap, callbackID);
 }
 
-void Control::DetachXmlEvent(EventType type)
+void Control::DetachEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasAttachEventMap()) {
+        return;
+    }
+    EventMap& attachEventMap = GetAttachEventMap();
+    EventUtils::RemoveEventCallbackByID(attachEventMap, eventType, callbackID);
+}
+
+bool Control::HasEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
+{
+    EventMap& xmlEventMap = GetXmlEventMap();
+    xmlEventMap[eventType].AddEventCallback(callback, callbackID);
+}
+
+void Control::DetachXmlEvent(EventType eventType)
 {
     if (!HasXmlEventMap()) {
         return;
     }
     EventMap& xmlEventMap = GetXmlEventMap();
-    auto event = xmlEventMap.find(type);
+    auto event = xmlEventMap.find(eventType);
     if (event != xmlEventMap.end()) {
         xmlEventMap.erase(event);
     }
 }
 
-void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachXmlEventByID(EventCallbackID callbackID)
+{
+    if (!HasXmlEventMap()) {
+        return;
+    }
+    EventMap& xmlEventMap = GetXmlEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlEventMap, callbackID);
+}
+
+void Control::DetachXmlEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasXmlEventMap()) {
+        return;
+    }
+    EventMap& xmlEventMap = GetXmlEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlEventMap, eventType, callbackID);
+}
+
+bool Control::HasXmlEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasXmlEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasXmlEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& bubbledEventMap = GetBubbledEventMap();
-    bubbledEventMap[eventType] += callback;
+    bubbledEventMap[eventType].AddEventCallback(callback, callbackID);
 }
 
 void Control::DetachBubbledEvent(EventType eventType)
@@ -4682,10 +4781,64 @@ void Control::DetachBubbledEvent(EventType eventType)
     }
 }
 
-void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachBubbledEventByID(EventCallbackID callbackID)
+{
+    if (!HasBubbledEventMap()) {
+        return;
+    }
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(bubbledEventMap, callbackID);
+}
+
+void Control::DetachBubbledEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasBubbledEventMap()) {
+        return;
+    }
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(bubbledEventMap, eventType, callbackID);
+}
+
+bool Control::HasBubbledEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasBubbledEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasBubbledEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
-    xmlBubbledEventMap[eventType] += callback;
+    xmlBubbledEventMap[eventType].AddEventCallback(callback, callbackID);
 }
 
 void Control::DetachXmlBubbledEvent(EventType eventType)
@@ -4698,6 +4851,60 @@ void Control::DetachXmlBubbledEvent(EventType eventType)
     if (event != xmlBubbledEventMap.end())    {
         xmlBubbledEventMap.erase(eventType);
     }
+}
+
+void Control::DetachXmlBubbledEventByID(EventCallbackID callbackID)
+{
+    if (!HasXmlBubbledEventMap()) {
+        return;
+    }
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlBubbledEventMap, callbackID);
+}
+
+void Control::DetachXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasXmlBubbledEventMap()) {
+        return;
+    }
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlBubbledEventMap, eventType, callbackID);
+}
+
+bool Control::HasXmlBubbledEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasXmlBubbledEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
 }
 
 bool Control::FireAllEvents(const EventArgs& msg)

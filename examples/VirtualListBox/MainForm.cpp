@@ -42,7 +42,7 @@ void MainForm::OnInitWindow()
     m_pEditChildMarginX = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_child_margin_x")));
     m_pEditChildMarginY = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_child_margin_y")));
 
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
 
     // 设置提供者
     m_pDataProvider = new DataProvider;
@@ -302,7 +302,7 @@ void MainForm::TestVirtualListBoxEvents(ui::VirtualListBox* pListBox)
 
 DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args, ui::VirtualListBox* pListBox)
 {
-    DString sInfo = ui::EventTypeToString(args.eventType);
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
     while (sInfo.size() < 24) {
         sInfo += _T(" ");
     }

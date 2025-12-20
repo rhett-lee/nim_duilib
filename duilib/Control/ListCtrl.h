@@ -796,6 +796,7 @@ public:
 public:
     /** 监听选择子项的事件
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -804,15 +805,17 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+    void AttachSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelect, callback, callbackID); }
 
     /** 监听选择项发生变化的事件
      * @param[in] callback 选择子项时的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSelChanged(const EventCallback& callback) { AttachEvent(kEventSelChanged, callback); }
+    void AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelChanged, callback, callbackID); }
 
     /** 监听双击事件
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -821,10 +824,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
+    void AttachDoubleClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseDoubleClick, callback, callbackID); }
 
     /** 绑定鼠标点击处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -833,10 +837,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
+    void AttachClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventClick, callback, callbackID); }
 
     /** 绑定鼠标右键点击处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -845,10 +850,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+    void AttachRClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventRClick, callback, callbackID); }
 
     /** 绑定鼠标进入ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -857,10 +863,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventItemMouseEnter, callback); }
+    void AttachItemMouseEnter(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventItemMouseEnter, callback, callbackID); }
 
     /** 绑定鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
@@ -869,29 +876,33 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventItemMouseLeave, callback); }
+    void AttachItemMouseLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventItemMouseLeave, callback, callbackID); }
 
     /** 绑定鼠标进入ListCtrlSubItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
      *   pEventData: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
      */
-    void AttachSubItemMouseEnter(const EventCallback& callback) { AttachEvent(kEventSubItemMouseEnter, callback); }
+    void AttachSubItemMouseEnter(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSubItemMouseEnter, callback, callbackID); }
 
     /** 绑定鼠标离开ListCtrlSubItem控件的处理函数
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   listCtrlType: 列表类型，有效的取值应为: ListCtrlType::Report
      *   pEventData: 选择子项的界面控件接口指针，类型为：ListCtrlSubItem*指针
      */
-    void AttachSubItemMouseLeave(const EventCallback& callback) { AttachEvent(kEventSubItemMouseLeave, callback); }
+    void AttachSubItemMouseLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSubItemMouseLeave, callback, callbackID); }
 
     /** 监听回车事件
+     * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -900,10 +911,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReturn, callback, callbackID); }
 
     /** 监听键盘按下事件
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -912,10 +924,11 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachKeyDown(const EventCallback& callback) { this->AttachEvent(kEventKeyDown, callback); }
+    void AttachKeyDown(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventKeyDown, callback, callbackID); }
 
     /** 监听键盘弹起事件
      * @param [in] callback 事件处理的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项     
@@ -924,91 +937,101 @@ public:
      *   pEventData: 选择子项的界面控件接口指针，可能的类型为：ListCtrlItem*指针, ListCtrlIconViewItem*指针, ListCtrlListViewItem*指针
      *               可将listCtrlType的值转换为ListCtrlType，然后根据枚举值来判断具体应转换为哪种类型
      */
-    void AttachKeyUp(const EventCallback& callback) { this->AttachEvent(kEventKeyUp, callback); }
+    void AttachKeyUp(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventKeyUp, callback, callbackID); }
 
     /** 监听开始编辑事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
      */
-    void AttachEnterEdit(const EventCallback& callback) { this->AttachEvent(kEventEnterEdit, callback); }
+    void AttachEnterEdit(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventEnterEdit, callback, callbackID); }
 
     /** 监听结束编辑事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 是接口指针：ListCtrlEditParam*，可以通过设置bCancelled取消操作
      */
-    void AttachLeaveEdit(const EventCallback& callback) { this->AttachEvent(kEventLeaveEdit, callback); }
+    void AttachLeaveEdit(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventLeaveEdit, callback, callbackID); }
 
     /** 监听数据项总个数变化事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 是新的个数(size_t)
      *   lParam: 是旧的个数(size_t)
      */
-    void AttachDataItemCountChanged(const EventCallback& callback) { this->AttachEvent(kEventDataItemCountChanged, callback); }
+    void AttachDataItemCountChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventDataItemCountChanged, callback, callbackID); }
 
     /** 监听Report视图数据项UI元素填充事件（虚表，填充某行数据）
      * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
      */
-    void AttachReportViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewItemFilled, callback); }
+    void AttachReportViewItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReportViewItemFilled, callback, callbackID); }
 
     /** 监听Report视图数据项UI元素填充事件（虚表，填充某行某列数据）
      * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlSubItem*指针，代表某行某列数据的UI元素控件
      *               通过该接口，可以获取数据项索引号、哪一列的数据
      */
-    void AttachReportViewSubItemFilled(const EventCallback& callback) { this->AttachEvent(kEventReportViewSubItemFilled, callback); }
+    void AttachReportViewSubItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReportViewSubItemFilled, callback, callbackID); }
 
     /** 监听List视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlListViewItem*指针
      */
-    void AttachListViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventListViewItemFilled, callback); }
+    void AttachListViewItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventListViewItemFilled, callback, callbackID); }
 
     /** 监听Icon视图数据项UI元素填充事件（虚表）
      * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlIconViewItem*指针
      */
-    void AttachIconViewItemFilled(const EventCallback& callback) { this->AttachEvent(kEventIconViewItemFilled, callback); }
+    void AttachIconViewItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventIconViewItemFilled, callback, callbackID); }
 
     /** 监听列表类型变化事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 当前列表视图类型，参见listCtrlType的枚举值
      *   lParam: 原来的列表视图类型，参见listCtrlType的枚举值
      *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
      */
-    void AttachViewTypeChanged(const EventCallback& callback) { this->AttachEvent(kEventViewTypeChanged, callback); }
+    void AttachViewTypeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventViewTypeChanged, callback, callbackID); }
 
     /** 监听列表位置变化事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
      */
-    void AttachViewPosChanged(const EventCallback& callback) { this->AttachEvent(kEventViewPosChanged, callback); }
+    void AttachViewPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventViewPosChanged, callback, callbackID); }
 
     /** 监听列表大小变化事件
-     * @param[in] callback 要绑定的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
      *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
      */
-    void AttachViewSizeChanged(const EventCallback& callback) { this->AttachEvent(kEventViewSizeChanged, callback); }
+    void AttachViewSizeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventViewSizeChanged, callback, callbackID); }
 
 protected:
     /** 控件初始化

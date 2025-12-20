@@ -117,30 +117,58 @@ Window* Window::GetParentWindow() const
     }
 }
 
-bool Window::AttachWindowFirstShown(const EventCallback& callback)
+bool Window::AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID)
 {
-    m_OnEvent[kEventWindowFirstShown] += callback;
+    m_OnEvent[kEventWindowFirstShown].AddEventCallback(callback, callbackID);
     return !IsWindowFirstShown();
 }
 
-void Window::AttachWindowCreate(const EventCallback& callback)
+void Window::AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID)
 {
-    m_OnEvent[kEventWindowCreate] += callback;
+    m_OnEvent[kEventWindowCreate].AddEventCallback(callback, callbackID);
 }
 
-void Window::AttachWindowClose(const EventCallback& callback)
+void Window::AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID)
 {
-    m_OnEvent[kEventWindowClose] += callback;
+    m_OnEvent[kEventWindowClose].AddEventCallback(callback, callbackID);
 }
 
-void Window::AttachWindowSetFocus(const EventCallback& callback)
+void Window::AttachWindowSetFocus(const EventCallback& callback, EventCallbackID callbackID)
 {
-    m_OnEvent[kEventWindowSetFocus] += callback;
+    m_OnEvent[kEventWindowSetFocus].AddEventCallback(callback, callbackID);
 }
 
-void Window::AttachWindowKillFocus(const EventCallback& callback)
+void Window::AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID)
 {
-    m_OnEvent[kEventWindowKillFocus] += callback;
+    m_OnEvent[kEventWindowKillFocus].AddEventCallback(callback, callbackID);
+}
+
+bool Window::HasWindowEventCallback(EventType eventType) const
+{
+    return m_OnEvent.find(eventType) != m_OnEvent.end();
+}
+
+bool Window::HasWindowEventCallbackByID(EventCallbackID callbackID) const
+{
+    for (auto iter = m_OnEvent.begin(); iter != m_OnEvent.end(); ++iter) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Window::DetachWindowEventCallback(EventType eventType)
+{
+    auto iter = m_OnEvent.find(eventType);
+    if (iter != m_OnEvent.end()) {
+        m_OnEvent.erase(iter);
+    }
+}
+
+void Window::DetachWindowEventCallbackByID(EventCallbackID callbackID)
+{
+    EventUtils::RemoveEventCallbackByID(m_OnEvent, callbackID);
 }
 
 bool Window::SetRenderBackendType(RenderBackendType backendType)
@@ -2613,10 +2641,13 @@ Control* Window::FindToolTipControl(const UiPoint& pt) const
     if (GetRoot() == nullptr) {
         return nullptr;
     }
-    Control* pControl = m_controlFinder.FindToolTipControl(pt);
-    if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
-        ASSERT(0);
-        pControl = nullptr;
+    Control* pControl = m_controlFinder.FindToolTipControl(pt);    
+    if (pControl != nullptr) {
+        Window* pWindow = pControl->GetWindow();
+        if (pWindow != this) {
+            //ASSERT(0); 对于菜单，在弹出子菜单时，会遇到此情况
+            pControl = nullptr;
+        }
     }
     return pControl;
 }

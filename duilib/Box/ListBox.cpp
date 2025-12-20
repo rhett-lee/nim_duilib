@@ -33,6 +33,13 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
 
 ListBox::~ListBox()
 {
+    if (!IsAutoDestroyChild()) {
+        const size_t itemCount = GetItemCount();
+        for (size_t i = 0; i < itemCount; ++i) {
+            Control* p = GetItemAt(i);
+            OnListBoxItemRemoved(p);
+        }
+    }
 }
 
 DString ListBox::GetType() const { return _T("ListBox"); }
@@ -2003,7 +2010,7 @@ bool ListBox::AddItem(Control* pControl)
         }
     }
     bool bRet = ScrollBox::AddItem(pControl);
-    OnNewItemAdded(pControl);
+    OnListBoxItemAdded(pControl);
     return bRet;
 }
 
@@ -2033,7 +2040,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
     if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
         m_iCurSel += 1;
     }
-    OnNewItemAdded(pControl);
+    OnListBoxItemAdded(pControl);
     return true;
 }
 
@@ -2054,6 +2061,9 @@ bool ListBox::RemoveItemAt(size_t iIndex)
         if (pListItem != nullptr) {
             pListItem->SetOwner(nullptr);
         }
+    }
+    if (!IsAutoDestroyChild()) {
+        OnListBoxItemRemoved(GetItemAt(iIndex));
     }
     if (!ScrollBox::RemoveItemAt(iIndex)) {
         return false;
@@ -2079,7 +2089,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
         else if (iIndex < m_iCurSel) {
             m_iCurSel -= 1;
         }
-    }
+    }    
     return true;
 }
 
@@ -2093,6 +2103,7 @@ void ListBox::RemoveAllItems()
             if (pListItem != nullptr) {
                 pListItem->SetOwner(nullptr);
             }
+            OnListBoxItemRemoved(p);
         }
     }
     m_iCurSel = Box::InvalidIndex;
@@ -2543,7 +2554,7 @@ size_t ListBox::GetLastNoShiftItem() const
     return m_nLastNoShiftItem;
 }
 
-void ListBox::OnNewItemAdded(Control* pControl)
+void ListBox::OnListBoxItemAdded(Control* pControl)
 {
     if (pControl == nullptr) {
         return;
@@ -2551,40 +2562,54 @@ void ListBox::OnNewItemAdded(Control* pControl)
     if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
         return;
     }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
     Control* pListBoxItem = pControl;
+
     //挂载鼠标事件，转接给ListBox本身，将事件分发到应用层
     pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
         ListBoxFireMouseEnterLeaveEvent(args);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
         ListBoxFireMouseEnterLeaveEvent(args);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
         ListBoxSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachClick([this](const EventArgs& args) {
         ListBoxSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachRClick([this](const EventArgs& args) {
         ListBoxSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
         ListBoxSendEvent(args, true);
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
         ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
         return true;
-        });
+        }, callbackID);
     pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
         ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
         return true;
-        });
+        }, callbackID);
+}
+
+void ListBox::OnListBoxItemRemoved(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    pControl->DetachEventByID(callbackID);
 }
 
 void ListBox::ListBoxSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)

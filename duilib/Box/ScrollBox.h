@@ -242,9 +242,10 @@ public:
     void StopScrollAnimation();
 
     /** 监听滚动条位置变化事件
-     * @param[in] callback 有变化后通知的回调函数
+     * @param [in] callback 有变化后通知的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachScrollPosChanged(const EventCallback& callback) { AttachEvent(kEventScrollPosChanged, callback); }
+    void AttachScrollPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventScrollPosChanged, callback, callbackID); }
 
 public:
     /** 获取滚动条虚拟偏移量(cx代表横向滚动条的虚拟偏移量，cy代表纵向滚动条的虚拟偏移量)
