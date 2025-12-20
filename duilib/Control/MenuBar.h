@@ -32,6 +32,9 @@ typedef std::function<void (const DString& menuItemId,
                             const DString& menuName, int32_t nMenuLevel,
                             const DString& itemName, size_t nItemIndex)> MenuBarItemActivatedEvent;
 
+//MenuBar上的文字按钮
+class MenuBarButton;
+
 /** 菜单栏
 */
 class MenuBar: public HBox
