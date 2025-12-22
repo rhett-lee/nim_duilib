@@ -173,6 +173,18 @@ public:
     void PostQuitMessage(int32_t nExitCode);
 
 public:
+    /** 添加CEF模块额外的启动参数(功能参见CEF的头文件：CefCommandLine::AppendSwitchWithValue函数)
+    *   该函数需要在CefManager::Initialize函数前调用
+    * @param [in] name 参数的名称
+    * @param [in] value 参数的取值
+    */
+    void AppendSwitchWithValue(const DString& name, const DString& value);
+
+    /** 获取CEF模块额外的启动参数
+    */
+    const std::vector<std::pair<DString, DString>>& GetSwitchWithValues() const;
+
+public:
     // CEF进程类型
     enum ProcessType
     {
@@ -212,6 +224,10 @@ private:
     /** CEF配置的回调函数
     */
     OnCefSettingsEvent m_cefSettingCallback;
+
+    /** CEF模块的额外启动参数
+    */
+    std::vector<std::pair<DString, DString>> m_cefSwitchWithValues;
 
     /** CEF的日志级别
     */
