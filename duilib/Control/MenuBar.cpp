@@ -445,27 +445,6 @@ void MenuBar::OnMenuKeyDownMsg(Menu* pMenu, VirtualKeyCode vkCode, uint32_t /*mo
         }
     }
     if (vkCode == kVK_RIGHT) {
-
-        //TODO: 测试代码，完成
-        //InsertTopMenu(100, _T("  1...1  "), _T("public/menu/rich_edit_menu.xml"));
-
-        ////TODO: 测试代码，完成
-        //DString menuText;
-        //DString menuXmlPath;
-        //DString menuTextButtonClass;
-        //DString menuTextButtonAttributes;
-        //bool bRet = GetTopMenu(5, menuText, menuXmlPath, menuTextButtonClass, menuTextButtonAttributes);
-
-        //TODO: 测试代码，完成
-        //RemoveTopMenu(3);
-        //return;
-
-        //TODO: 测试代码，完成
-        //SetActiveTopMenuIndex(3);
-        //int32_t n = GetActiveTopMenuIndex();
-        //ASSERT(n == 3);
-        //return;
-
         size_t nNextMenuIndex = nStartItemIndex + 1;
         if (nNextMenuIndex >= itemIndexList.size()) {
             nNextMenuIndex = 0;
