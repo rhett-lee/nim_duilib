@@ -77,7 +77,7 @@
     <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr>
-        <td rowspan="19">新增控件</td>
+        <td rowspan="20">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -97,7 +97,8 @@
     <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
     <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
     <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>    
+    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
+    <tr><td align="left">20. MenuBar：菜单栏控件</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
