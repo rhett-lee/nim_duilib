@@ -467,11 +467,11 @@ void Window::ClearWindow(bool bSendClose)
             return;
         }
     }
-    
     //回收控件
     GlobalManager::Instance().Windows().RemoveWindow(this);
     ReapObjects(GetRoot());
 
+    m_controlFinder.Clear();
     Box* pRoot = m_pRoot.get();
     m_pRoot.reset();
     if (pRoot != nullptr) {
@@ -484,8 +484,7 @@ void Window::ClearWindow(bool bSendClose)
 
     m_toolTip.reset();
     m_shadow.reset();
-    m_render.reset();
-    m_controlFinder.Clear();
+    m_render.reset();    
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -516,6 +515,23 @@ bool Window::AttachBox(Box* pRoot)
     m_bInitLayout = false;
     // Initiate all control
     return InitControls(m_pRoot.get());
+}
+
+Box* Window::GetRoot() const
+{
+    return m_pRoot.get();
+}
+
+Box* Window::GetXmlRoot() const
+{
+    Box* pXmlRoot = nullptr;
+    if (m_shadow != nullptr) {
+        pXmlRoot = m_shadow->GetAttachedXmlRoot();
+    }
+    if (pXmlRoot == nullptr) {
+        pXmlRoot = m_pRoot.get();
+    }
+    return pXmlRoot;
 }
 
 bool Window::InitControls(Control* pControl)
@@ -1073,7 +1089,7 @@ UiSize Window::GetShadowBorderRound() const
 void Window::SetInitSize(int cx, int cy)
 {
     ASSERT(IsWindow());
-    if (m_pRoot == nullptr) {
+    if (GetRoot() == nullptr) {
         m_szInitSize.cx = cx;
         m_szInitSize.cy = cy;
     }
@@ -1123,9 +1139,10 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
     bHandled = false;
     //调整Render的大小, 与客户区大小保持一致
     ResizeRenderToClientSize();
-    
-    if (m_pRoot != nullptr) {
-        m_pRoot->Arrange();
+
+    Box* pRoot = GetRoot();
+    if (pRoot != nullptr) {
+        pRoot->Arrange();
     }
     if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
         //最大化
@@ -1167,30 +1184,30 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                     rcFullscreenMargin.bottom = (int32_t)std::round(rcFullscreenMargin.bottom * Dpi().GetPixelDensity());
                 }
                 bool bHasShadowBox = false;
-                Box* pRoot = GetXmlRoot();
+                Box* pXmlRoot = GetXmlRoot();
                 if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
                     bHasShadowBox = true;                    
                 }
-                if (pRoot != nullptr) {
+                if (pXmlRoot != nullptr) {
                     if (bHasShadowBox) {
                         //有阴影Box
-                        UiMargin rcMargin = pRoot->GetMargin();
+                        UiMargin rcMargin = pXmlRoot->GetMargin();
                         rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
                         rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
                         rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
                         rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
                         m_rcFullscreenMargin = rcFullscreenMargin;
-                        pRoot->SetMargin(rcMargin, false);
+                        pXmlRoot->SetMargin(rcMargin, false);
                     }
                     else {
                         //无阴影Box
-                        UiPadding rcPadding = pRoot->GetPadding();
+                        UiPadding rcPadding = pXmlRoot->GetPadding();
                         rcPadding.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
                         rcPadding.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
                         rcPadding.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
                         rcPadding.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
                         m_rcFullscreenMargin = rcFullscreenMargin;
-                        pRoot->SetPadding(rcPadding, false);
+                        pXmlRoot->SetPadding(rcPadding, false);
                     }                    
                 }
             }
@@ -1207,28 +1224,28 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         //还原时，恢复外边距
         if (!m_rcFullscreenMargin.IsEmpty()) {
             bool bHasShadowBox = false;
-            Box* pRoot = GetXmlRoot();
+            Box* pXmlRoot = GetXmlRoot();
             if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
                 bHasShadowBox = true;
             }
-            if (pRoot != nullptr) {
+            if (pXmlRoot != nullptr) {
                 if (bHasShadowBox) {
                     //有阴影Box
-                    UiMargin rcMargin = pRoot->GetMargin();
+                    UiMargin rcMargin = pXmlRoot->GetMargin();
                     rcMargin.left -= m_rcFullscreenMargin.left;
                     rcMargin.top -= m_rcFullscreenMargin.top;
                     rcMargin.right -= m_rcFullscreenMargin.right;
                     rcMargin.bottom -= m_rcFullscreenMargin.right;
-                    pRoot->SetMargin(rcMargin, false);
+                    pXmlRoot->SetMargin(rcMargin, false);
                 }
                 else {
                     //无阴影Box
-                    UiPadding rcPadding = pRoot->GetPadding();
+                    UiPadding rcPadding = pXmlRoot->GetPadding();
                     rcPadding.left -= m_rcFullscreenMargin.left;
                     rcPadding.top -= m_rcFullscreenMargin.top;
                     rcPadding.right -= m_rcFullscreenMargin.right;
                     rcPadding.bottom -= m_rcFullscreenMargin.right;
-                    pRoot->SetPadding(rcPadding, false);
+                    pXmlRoot->SetPadding(rcPadding, false);
                 }
                 m_rcFullscreenMargin.Clear();
             }
@@ -1295,7 +1312,7 @@ bool Window::OnPreparePaint()
     if (m_render == nullptr) {
         return false;
     }
-    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
+    if (IsWindowMinimized() || (GetRoot() == nullptr)) {
         return false;
     }
     //更新状态，并创建Render等
@@ -1359,18 +1376,22 @@ bool Window::Paint(const UiRect& rcPaint)
         pRender->ClearAlpha(rcPaint);
     }
 
-    // 绘制    
-    if (m_pRoot->IsVisible()) {
+    // 绘制
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return false;
+    }
+    if (pRoot->IsVisible()) {
         PerformanceStat statPerformance(_T("PaintWindow, Window::Paint Paint/PaintChild"));
         AutoClip rectClip(pRender, rcPaint, true);
         UiPoint ptOldWindOrg = pRender->OffsetWindowOrg(m_renderOffset);
-        m_pRoot->AlphaPaint(pRender, rcPaint);
+        pRoot->AlphaPaint(pRender, rcPaint);
         pRender->SetWindowOrg(ptOldWindOrg);
     }
     else {
         UiColor bkColor = UiColor(UiColors::LightGray);
-        if (!m_pRoot->GetBkColor().empty()) {
-            bkColor = m_pRoot->GetUiColor(m_pRoot->GetBkColor());
+        if (!pRoot->GetBkColor().empty()) {
+            bkColor = pRoot->GetUiColor(pRoot->GetBkColor());
         }
         pRender->FillRect(rcPaint, bkColor);
     }
@@ -1383,8 +1404,8 @@ bool Window::Paint(const UiRect& rcPaint)
             (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
             //补救由于Gdi绘制造成的alpha通道为0
             UiRect rcNewPaint = rcPaint;
-            rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
-            UiPadding rcRootPadding = m_pRoot->GetPadding();
+            rcNewPaint.Intersect(pRoot->GetPosWithoutPadding());
+            UiPadding rcRootPadding = pRoot->GetPadding();
 
             //考虑圆角
             rcRootPadding.left += 1;
@@ -1398,7 +1419,7 @@ bool Window::Paint(const UiRect& rcPaint)
             if ((rcAlphaFixCorner.left > 0) || (rcAlphaFixCorner.top > 0) ||
                 (rcAlphaFixCorner.right > 0) || (rcAlphaFixCorner.bottom > 0)) {
                 UiRect rcNewPaint = rcPaint;
-                UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
+                UiRect rcRootPaddingPos = pRoot->GetPosWithoutPadding();
                 rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
                                          rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
                 rcNewPaint.Intersect(rcRootPaddingPos);
@@ -2349,21 +2370,22 @@ Control* Window::GetHoverControl() const
 
 bool Window::SetNextTabControl(bool bForward)
 {
-    if (m_pRoot == nullptr) {
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
         return false;
     }
     // Find next/previous tabbable control
     FINDTABINFO info1 = { 0 };
     info1.pFocus = m_pFocus.get();
     info1.bForward = bForward;
-    Control* pControl = m_pRoot->FindControl(ControlFinder::FindControlFromTab, &info1, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
+    Control* pControl = pRoot->FindControl(ControlFinder::FindControlFromTab, &info1, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
     if (pControl == nullptr) {
         if (bForward) {
             // Wrap around
             FINDTABINFO info2 = { 0 };
             info2.pFocus = bForward ? nullptr : info1.pLast;
             info2.bForward = bForward;
-            pControl = m_pRoot->FindControl(ControlFinder::FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
+            pControl = pRoot->FindControl(ControlFinder::FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
         }
         else {
             pControl = info1.pLast;
@@ -2373,23 +2395,6 @@ bool Window::SetNextTabControl(bool bForward)
         SetFocusControl(pControl);
     }
     return true;
-}
-
-Box* Window::GetRoot() const
-{
-    return m_pRoot.get();
-}
-
-Box* Window::GetXmlRoot() const
-{
-    Box* pXmlRoot = nullptr;
-    if (m_shadow != nullptr) {
-        pXmlRoot = m_shadow->GetAttachedXmlRoot();
-    }
-    if (pXmlRoot == nullptr) {
-        pXmlRoot = m_pRoot.get();
-    }
-    return pXmlRoot;
 }
 
 void Window::SetArrange(bool bArrange)
@@ -2488,7 +2493,7 @@ bool Window::IsWindowAttributesApplied() const
 
 void Window::OnShowWindow(bool bShow)
 {
-    if (bShow && !m_bFirstLayout && (m_pRoot != nullptr)) {
+    if (bShow && !m_bFirstLayout && (GetRoot() != nullptr)) {
         //首次显示
         PreparePaint(false);
     }
@@ -2498,9 +2503,13 @@ bool Window::PreparePaint(bool bArrange)
 {
     //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
     bool bRet = ResizeRenderToClientSize();
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return false;
+    }
 
     bool bUpdated = false;
-    if (m_bIsArranged && m_pRoot->IsArranged()) {
+    if (m_bIsArranged && pRoot->IsArranged()) {
         //如果root配置的宽度和高度是auto类型的，自动调整窗口大小
         AutoResizeWindow(true);
         bUpdated = true;
@@ -2521,15 +2530,19 @@ bool Window::PreparePaint(bool bArrange)
 
 bool Window::AutoResizeWindow(bool bRepaint)
 {
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return false;
+    }
     bool bResized = false;
-    if ((m_pRoot != nullptr) && (!m_pRoot->GetFixedWidth().IsStretch() || !m_pRoot->GetFixedHeight().IsStretch())) {
+    if ((pRoot != nullptr) && (!pRoot->GetFixedWidth().IsStretch() || !pRoot->GetFixedHeight().IsStretch())) {
         //跟容器属性：如果宽度或者高度有不是拉伸类型的，根据跟容器的大小自动修改窗口大小
         UiSize maxSize(999999, 999999);
-        const UiEstSize estSize = m_pRoot->EstimateSize(maxSize);
+        const UiEstSize estSize = pRoot->EstimateSize(maxSize);
         if (!estSize.cx.IsStretch() || !estSize.cy.IsStretch()) {
             UiSize newSize(estSize.cx.GetInt32(), estSize.cy.GetInt32());
-            newSize.cx = std::clamp(newSize.cx, m_pRoot->GetMinWidth(), m_pRoot->GetMaxWidth());
-            newSize.cy = std::clamp(newSize.cy, m_pRoot->GetMinHeight(), m_pRoot->GetMaxHeight());
+            newSize.cx = std::clamp(newSize.cx, pRoot->GetMinWidth(), pRoot->GetMaxWidth());
+            newSize.cy = std::clamp(newSize.cy, pRoot->GetMinHeight(), pRoot->GetMaxHeight());
 
             if (Dpi().HasPixelDensity()) {
                 //转换为窗口大小
@@ -2567,19 +2580,23 @@ void Window::ArrangeRoot()
     if (rcClient.IsEmpty()) {
         return;
     }
-    if (m_bIsArranged && (m_pRoot != nullptr)) {
+    Box* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return;
+    }
+    if (m_bIsArranged) {
         m_bIsArranged = false;
-        if (m_pRoot->IsArranged() || (m_pRoot->GetPos() != rcClient)) {
+        if (pRoot->IsArranged() || (pRoot->GetPos() != rcClient)) {
             //所有控件的布局全部重排
-            m_pRoot->SetPos(rcClient);
+            pRoot->SetPos(rcClient);
         }
         else {
             //仅对有更新的控件的布局全部重排
-            Control* pControl = m_pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+            Control* pControl = pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             while (pControl != nullptr) {
                 pControl->SetPos(pControl->GetPos());
                 //ASSERT(!pControl->IsArranged());
-                pControl = m_pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+                pControl = pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             }
         }
         if (!m_bFirstLayout) {
@@ -2587,9 +2604,9 @@ void Window::ArrangeRoot()
             OnFirstLayout();
         }
     }
-    else if (m_pRoot->GetPos() != rcClient) {
+    else if (pRoot->GetPos() != rcClient) {
         //所有控件的布局全部重排
-        m_pRoot->SetPos(rcClient);
+        pRoot->SetPos(rcClient);
     }
 }
 
@@ -2613,8 +2630,9 @@ void Window::SetRenderOffsetY(int renderOffsetY)
 
 void Window::OnFirstLayout()
 {
-    if ((m_pRoot != nullptr) && m_pRoot->IsVisible()) {
-        m_pRoot->SetFadeVisible(true);
+    Box* pRoot = GetRoot();
+    if ((pRoot != nullptr) && pRoot->IsVisible()) {
+        pRoot->SetFadeVisible(true);
     }
 }
 
@@ -2674,7 +2692,7 @@ Box* Window::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
 
 Control* Window::FindControl(const DString& strName) const
 {
-    return m_controlFinder.FindSubControlByName(m_pRoot.get(), strName);
+    return m_controlFinder.FindSubControlByName(GetRoot(), strName);
 }
 
 Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) const
