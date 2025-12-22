@@ -426,4 +426,17 @@ CefManager::ProcessType CefManager::GetProcessType(CefRefPtr<CefCommandLine> com
     return OtherProcess;
 }
 
+void CefManager::AppendSwitchWithValue(const DString& name, const DString& value)
+{
+    ASSERT(!value.empty());
+    if (!value.empty()) {
+        m_cefSwitchWithValues.push_back(std::pair<DString, DString>(name, value));
+    }
+}
+
+const std::vector<std::pair<DString, DString>>& CefManager::GetSwitchWithValues() const
+{
+    return m_cefSwitchWithValues;
+}
+
 } //namespace ui
