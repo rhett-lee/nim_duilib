@@ -1033,6 +1033,31 @@ public:
      */
     void AttachViewSizeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventViewSizeChanged, callback, callbackID); }
 
+    /** 监听列表类型变化事件
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   wParam: 当前列表视图类型，参见listCtrlType的枚举值
+     *   lParam: 原来的列表视图类型，参见listCtrlType的枚举值
+     *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
+     */
+    void AttachViewTypeChanged(const EventCallback& callback) { this->AttachEvent(kEventViewTypeChanged, callback); }
+
+    /** 监听列表位置变化事件
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
+     */
+    void AttachViewPosChanged(const EventCallback& callback) { this->AttachEvent(kEventViewPosChanged, callback); }
+
+    /** 监听列表大小变化事件
+     * @param[in] callback 要绑定的回调函数
+     * 参数说明:
+     *   listCtrlType: 列表类型，有效的取值为: ListCtrlType::Report, ListCtrlType::Icon, ListCtrlType::List
+     *   pEventData: 当前列表视图的指针：ListCtrlReportView*, ListCtrlIconView*, ListCtrlListView*
+     */
+    void AttachViewSizeChanged(const EventCallback& callback) { this->AttachEvent(kEventViewSizeChanged, callback); }
+
 protected:
     /** 控件初始化
     */
