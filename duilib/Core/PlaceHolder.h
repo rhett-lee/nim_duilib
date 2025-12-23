@@ -47,10 +47,9 @@ public:
     */
     bool IsNameEquals(const DString& name) const;
 
-    /** 判断控件名称是否相等(不区分大小写)
+    /** 判断是否有名称
     */
-    bool IsNameEqualsNoCase(const DString& name) const;
-    bool IsNameEqualsNoCase(const DString::value_type* pName) const;
+    bool HasName() const;
 
     /** 根据名称获取祖先容器指针
     * @param [in] strName 要获取的祖先容器名称
@@ -417,7 +416,7 @@ public:
      * @param [in] pChild 子孙级别的控件
      * @return 如果两个控件相等，或者存在父子或者子孙关系时返回true，否则返回false
      */
-    bool IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const;
+    static bool IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild);
 
     /** 获取该窗口对应的DPI管理器
     */

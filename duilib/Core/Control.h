@@ -509,7 +509,7 @@ public:
                                  const UiPoint& scrollPos = UiPoint());
 
     /** 根据名字查找控件, 查找范围：当前控件/容器，如果本身是容器，则在容器自身和子控件内查找
-    * @param [in] name 控件的名称（注意：不区分大小写，历史原因）
+    * @param [in] name 控件的名称（区分大小写）
     */
     Control* FindControl(const DString& name);
 

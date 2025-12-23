@@ -541,7 +541,7 @@ bool Window::InitControls(Control* pControl)
         return false;
     }
     m_controlFinder.AddControl(pControl);
-    pControl->SetWindow(this);   
+    pControl->SetWindow(this);
     return true;
 }
 
@@ -567,10 +567,12 @@ void Window::ReapObjects(Control* pControl)
         bFocusChanged = (m_pFocus != nullptr) ? true : false;
         m_pFocus = nullptr;        
     }
-    m_controlFinder.RemoveControl(pControl);
-    if (bFocusChanged) {
-        OnFocusControlChanged();
-    }
+    if (!IsClosingWnd()) {
+        m_controlFinder.RemoveControl(pControl);
+        if (bFocusChanged) {
+            OnFocusControlChanged();
+        }
+    }    
 }
 
 void Window::SetResourcePath(const FilePath& strPath)

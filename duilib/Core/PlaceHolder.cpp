@@ -80,14 +80,9 @@ bool PlaceHolder::IsNameEquals(const DString& name) const
     return StringUtil::StringCompare(m_sName.c_str(), name.c_str()) == 0;
 }
 
-bool PlaceHolder::IsNameEqualsNoCase(const DString& name) const
+bool PlaceHolder::HasName() const
 {
-    return StringUtil::StringICompare(m_sName.c_str(), name.c_str()) == 0;
-}
-
-bool PlaceHolder::IsNameEqualsNoCase(const DString::value_type* pName) const
-{
-    return StringUtil::StringICompare(m_sName.c_str(), pName) == 0;
+    return !m_sName.empty();
 }
 
 void PlaceHolder::SetName(const DString& strName)
@@ -766,7 +761,7 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
     return scrollPos;
 }
 
-bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const
+bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild)
 {
     while ((pChild != nullptr) && (pChild != pAncestor)) {
         pChild = pChild->GetParent();
