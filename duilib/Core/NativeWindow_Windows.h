@@ -725,6 +725,10 @@ private:
     */
     bool m_bFullScreen;
 
+    /** 是否正在退出全屏
+    */
+    bool m_bFullScreenExiting;
+
     /** 全屏前的窗口风格
     */
     DWORD m_dwLastStyle;

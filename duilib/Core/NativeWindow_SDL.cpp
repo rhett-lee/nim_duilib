@@ -207,7 +207,7 @@ void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
         return;
     }
     SDL_WindowFlags flags = SDL_GetWindowFlags(window);
-    if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED)) {
+    if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED) || (flags & SDL_WINDOW_FULLSCREEN) ) {
         return;
     }
 
@@ -708,6 +708,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bFakeModal(false),
     m_bDoModal(false),
     m_bFullScreen(false),
+    m_bFullScreenExiting(false),
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false)
 {
@@ -1799,6 +1800,10 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     if (m_sdlWindow == nullptr) {
         return false;
     }
+    if (m_bFullScreen) {
+        //先退出全屏
+        ExitFullScreen();
+    }
     bool nRet = false;
     switch(nCmdShow)
     {
@@ -2105,6 +2110,7 @@ bool NativeWindow_SDL::EnterFullScreen()
         return true;
     }
     m_bFullScreen = true;
+    m_bFullScreenExiting = false;
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2128,6 +2134,10 @@ bool NativeWindow_SDL::ExitFullScreen()
     if (!m_bFullScreen) {
         return false;
     }
+    if (m_bFullScreenExiting) {
+        return false;
+    }
+    m_bFullScreenExiting = true;//避免重复进入退出流程
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2139,6 +2149,7 @@ bool NativeWindow_SDL::ExitFullScreen()
 
     m_bFullScreen = false;
     m_pOwner->OnNativeWindowExitFullScreen();
+    m_bFullScreenExiting = false;
     return true;
 }
 
