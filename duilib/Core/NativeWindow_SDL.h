@@ -704,6 +704,10 @@ private:
     */
     bool m_bFullScreen;
 
+    /** 是否正在退出全屏
+    */
+    bool m_bFullScreenExiting;
+
     /** 窗口大小的最小值（宽度和高度）
     */
     UiSize m_szMinWindow;
