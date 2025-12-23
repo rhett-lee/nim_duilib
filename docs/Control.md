@@ -11,7 +11,7 @@
 | 属性名称 | 默认值 | 参数类型 |关联[Control.h](../duilib/Core/Control.h)中的函数| 用途 |
 | :--- | :--- | :--- | :---| :--- |
 | class |  | string | SetClass|控件样式,用样式里面的属性值来设置本控件的属性,如(btn_default),可以同时指定多个样式,各个样式之间用空格分隔,需要写在第一个属性位置 |
-| name |  | string | SetName|控件名字,同一窗口内必须唯一,如(testbtn) |
+| name |  | string | SetName|控件名字,同一窗口建议保持唯一，否则影响查询效率，也可能查询不到正确的结果 |
 | width | stretch | int / string | SetFixedWidth|可以设置int或string类型的值.当值为int是则设置控件的宽度值,如(100);当值为string时,stretch代表由父容器计算控件宽度,auto代表根据内容情况自动计算宽度,如果为百分比值"50%"，代表该控件的宽度期望值为父控件宽度的50% |
 | height | stretch | int / string | SetFixedHeight|可以设置int或string类型的值.当值为int是则设置控件的高度值,如(100);当值为string时,stretch代表由父容器计算控件高度,auto代表根据内容情况自动计算高度,如果为百分比值"30%"，代表该控件的宽度期望值为父控件高度的30%  |
 | min_width | -1 | int | SetMinWidth|控件的最小宽度,如(30) |
