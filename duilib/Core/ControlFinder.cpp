@@ -119,13 +119,21 @@ Control* ControlFinder::FindControlInCache(Control* pAncestor, const DString& st
     if (iter != m_controlNameMap.end()) {
         const std::vector<ControlPtr>& controlList = iter->second;
         for (const ControlPtr& spControl : controlList) {
-            if ((spControl != nullptr) &&
-                (pAncestor->GetWindow() == spControl->GetWindow()) &&
-                spControl->IsNameEquals(strName) &&
-                PlaceHolder::IsControlRelated(pAncestor, spControl.get())) {
-                //在同一个窗口下，并且与pAncestor是父祖关系
-                pFindedControl = spControl.get();
-                break;
+            if (pAncestor != nullptr) {
+                if ((spControl != nullptr) &&
+                    (pAncestor->GetWindow() == spControl->GetWindow()) &&
+                    spControl->IsNameEquals(strName) &&
+                    PlaceHolder::IsControlRelated(pAncestor, spControl.get())) {
+                    //在同一个窗口下，并且与pAncestor是父祖关系
+                    pFindedControl = spControl.get();
+                    break;
+                }
+            }
+            else {
+                if ((spControl != nullptr) && spControl->IsNameEquals(strName)) {
+                    pFindedControl = spControl.get();
+                    break;
+                }
             }
         }
     }

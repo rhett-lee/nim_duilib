@@ -1069,8 +1069,8 @@ bool NativeWindow_Windows::ExitFullScreen()
         ::ShowWindow(m_hWnd, SW_RESTORE);
     }
     m_bFullScreen = false;
-    m_pOwner->OnNativeWindowExitFullScreen();
     m_bFullScreenExiting = false;
+    m_pOwner->OnNativeWindowExitFullScreen();    
     return true;
 }
 
