@@ -1017,6 +1017,10 @@ private:
     */
     void OnFocusControlChanged();
 
+    /** 获取阴影操作接口
+    */
+    Shadow* GetShadow() const;
+
 private:
     //事件回调管理器
     EventMap m_OnEvent;

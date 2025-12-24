@@ -339,6 +339,12 @@ void Window::ParseWindowXml()
     }
 }
 
+Shadow* Window::GetShadow() const
+{
+    ASSERT(m_shadow != nullptr);
+    return m_shadow.get();
+}
+
 void Window::PreInitWindow()
 {
     if (!IsWindow()) {
@@ -525,8 +531,9 @@ Box* Window::GetRoot() const
 Box* Window::GetXmlRoot() const
 {
     Box* pXmlRoot = nullptr;
-    if (m_shadow != nullptr) {
-        pXmlRoot = m_shadow->GetAttachedXmlRoot();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pXmlRoot = pShadow->GetAttachedXmlRoot();
     }
     if (pXmlRoot == nullptr) {
         pXmlRoot = m_pRoot.get();
@@ -789,9 +796,9 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
 void Window::ClearImageCache()
 {
     Control* pRoot = nullptr;
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        pRoot = m_shadow->GetShadowBox();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pRoot = pShadow->GetShadowBox();
     }
     if (pRoot) {
         pRoot->ClearImageCache();
@@ -812,9 +819,10 @@ void Window::OnUseSystemCaptionBarChanged()
 void Window::OnLayeredWindowChanged()
 {
     //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
-    if ((m_shadow != nullptr) && m_shadow->IsUseDefaultShadowAttached()) {
-        m_shadow->SetShadowAttached(IsLayeredWindow());
-        m_shadow->SetUseDefaultShadowAttached(true);
+    Shadow* pShadow = GetShadow();
+    if ((pShadow != nullptr) && pShadow->IsUseDefaultShadowAttached()) {
+        pShadow->SetShadowAttached(IsLayeredWindow());
+        pShadow->SetUseDefaultShadowAttached(true);
     }
     InvalidateAll();
 }
@@ -846,16 +854,18 @@ void Window::OnWindowDisplayScaleChanged(uint32_t /*nOldScaleFactor*/, uint32_t 
 void Window::GetShadowCorner(UiPadding& rcShadow) const
 {
     rcShadow.Clear();
-    if (m_shadow != nullptr) {
-        rcShadow = m_shadow->GetShadowCorner();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        rcShadow = pShadow->GetShadowCorner();
     }
 }
 
 void Window::GetCurrentShadowCorner(UiPadding& rcShadow) const
 {
     rcShadow.Clear();
-    if (m_shadow != nullptr) {
-        rcShadow = m_shadow->GetCurrentShadowCorner();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        rcShadow = pShadow->GetCurrentShadowCorner();
     }
 }
 
@@ -899,9 +909,9 @@ void Window::SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale)
 Box* Window::AttachShadow(Box* pRoot)
 {
     //将阴影附加到窗口
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        return m_shadow->AttachShadow(pRoot);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        return pShadow->AttachShadow(pRoot);
     }
     else {
         return pRoot;
@@ -910,18 +920,18 @@ Box* Window::AttachShadow(Box* pRoot)
 
 void Window::SetShadowAttached(bool bShadowAttached)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowAttached(bShadowAttached);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowAttached(bShadowAttached);
         OnWindowShadowTypeChanged();
     }
 }
 
 void Window::SetShadowType(Shadow::ShadowType nShadowType)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowType(nShadowType);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowType(nShadowType);
         //重绘窗口，否则会有绘制异常
         InvalidateAll();
         OnWindowShadowTypeChanged();
@@ -931,18 +941,18 @@ void Window::SetShadowType(Shadow::ShadowType nShadowType)
 Shadow::ShadowType Window::GetShadowType() const
 {
     Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowDefault;
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        nShadowType = m_shadow->GetShadowType();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        nShadowType = pShadow->GetShadowType();
     }
     return nShadowType;
 }
 
 DString Window::GetShadowImage() const
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        return m_shadow->GetShadowImage();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        return pShadow->GetShadowImage();
     }
     else {
         return DString();
@@ -951,53 +961,53 @@ DString Window::GetShadowImage() const
 
 void Window::SetShadowImage(const DString& shadowImage)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowImage(shadowImage);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowImage(shadowImage);
     }
 }
 
 void Window::SetShadowBorderSize(int32_t nShadowBorderSize)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowBorderSize(nShadowBorderSize);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowBorderSize(nShadowBorderSize);
     }
 }
 
 int32_t Window::GetShadowBorderSize() const
 {
-    ASSERT(m_shadow != nullptr);
+    Shadow* pShadow = GetShadow();
     int32_t nShadowBorderSize = 0;    
-    if (m_shadow != nullptr) {
-        nShadowBorderSize = m_shadow->GetShadowBorderSize();
+    if (pShadow != nullptr) {
+        nShadowBorderSize = pShadow->GetShadowBorderSize();
     }
     return nShadowBorderSize;
 }
 
 void Window::SetShadowBorderColor(const DString& shadowBorderColor)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowBorderColor(shadowBorderColor);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowBorderColor(shadowBorderColor);
     }
 }
 
 DString Window::GetShadowBorderColor() const
 {
-    ASSERT(m_shadow != nullptr);
+    Shadow* pShadow = GetShadow();
     DString shadowBorderColor;
-    if (m_shadow != nullptr) {
-        shadowBorderColor = m_shadow->GetShadowBorderColor();
+    if (pShadow != nullptr) {
+        shadowBorderColor = pShadow->GetShadowBorderColor();
     }
     return shadowBorderColor;
 }
 
 UiPadding Window::GetCurrentShadowCorner() const
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        return m_shadow->GetCurrentShadowCorner();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        return pShadow->GetCurrentShadowCorner();
     }
     else {
         return UiPadding();
@@ -1006,9 +1016,9 @@ UiPadding Window::GetCurrentShadowCorner() const
 
 bool Window::IsShadowAttached() const
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        return m_shadow->IsShadowAttached();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        return pShadow->IsShadowAttached();
     }
     else {
         return false;
@@ -1017,9 +1027,9 @@ bool Window::IsShadowAttached() const
 
 bool Window::IsUseDefaultShadowAttached() const
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        return m_shadow->IsUseDefaultShadowAttached();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        return pShadow->IsUseDefaultShadowAttached();
     } 
     else {
         return false;
@@ -1028,52 +1038,52 @@ bool Window::IsUseDefaultShadowAttached() const
 
 void Window::SetUseDefaultShadowAttached(bool bDefault)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetUseDefaultShadowAttached(bDefault);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetUseDefaultShadowAttached(bDefault);
     }
 }
 
 UiPadding Window::GetShadowCorner() const
 {
     UiPadding rcShadowCorner;
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        rcShadowCorner = m_shadow->GetShadowCorner();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        rcShadowCorner = pShadow->GetShadowCorner();
     }
     return rcShadowCorner;
 }
 
 void Window::SetShadowCorner(const UiPadding& rcShadowCorner)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowCorner(rcShadowCorner);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowCorner(rcShadowCorner);
     }
 }
 
 void Window::SetShadowBorderRound(UiSize szBorderRound)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetShadowBorderRound(szBorderRound);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetShadowBorderRound(szBorderRound);
     }
 }
 
 void Window::SetEnableShadowSnap(bool bEnable)
 {
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        m_shadow->SetEnableShadowSnap(bEnable);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetEnableShadowSnap(bEnable);
     }
 }
 
 bool Window::IsEnableShadowSnap() const
 {
     bool bRet = false;
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        bRet = m_shadow->IsEnableShadowSnap();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        bRet = pShadow->IsEnableShadowSnap();
     }
     return bRet;
 }
@@ -1081,9 +1091,9 @@ bool Window::IsEnableShadowSnap() const
 UiSize Window::GetShadowBorderRound() const
 {
     UiSize szBorderRound;
-    ASSERT(m_shadow != nullptr);
-    if (m_shadow != nullptr) {
-        szBorderRound = m_shadow->GetShadowBorderRound();
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        szBorderRound = pShadow->GetShadowBorderRound();
     }
     return szBorderRound;
 }
@@ -1111,8 +1121,9 @@ void Window::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleF
     WindowBase::OnDisplayScaleChanged(nOldScaleFactor, nNewScaleFactor);
 
     //窗口阴影
-    if (m_shadow != nullptr) {
-        m_shadow->ChangeDpiScale(Dpi(), nOldScaleFactor, nNewScaleFactor);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->ChangeDpiScale(Dpi(), nOldScaleFactor, nNewScaleFactor);
     }
 
     //更新窗口自身的DPI关联属性
@@ -1187,7 +1198,8 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                 }
                 bool bHasShadowBox = false;
                 Box* pXmlRoot = GetXmlRoot();
-                if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
+                Shadow* pShadow = GetShadow();
+                if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
                     bHasShadowBox = true;                    
                 }
                 if (pXmlRoot != nullptr) {
@@ -1214,20 +1226,22 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                 }
             }
         }
-        if (m_shadow != nullptr) {
-            m_shadow->MaximizedOrRestored(true);
+        Shadow* pShadow = GetShadow();
+        if (pShadow != nullptr) {
+            pShadow->MaximizedOrRestored(true);
         }
     }
     else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
         //还原
-        if (m_shadow != nullptr) {
-            m_shadow->MaximizedOrRestored(false);
+        Shadow* pShadow = GetShadow();
+        if (pShadow != nullptr) {
+            pShadow->MaximizedOrRestored(false);
         }
         //还原时，恢复外边距
         if (!m_rcFullscreenMargin.IsEmpty()) {
             bool bHasShadowBox = false;
             Box* pXmlRoot = GetXmlRoot();
-            if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
+            if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
                 bHasShadowBox = true;
             }
             if (pXmlRoot != nullptr) {
@@ -1402,7 +1416,8 @@ bool Window::Paint(const UiRect& rcPaint)
     //开始绘制前，进行alpha通道修复
     if (IsLayeredWindow()) {
         PerformanceStat statPerformance(_T("PaintWindow, Window::Paint RestoreAlpha"));
-        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() &&
+        Shadow* pShadow = GetShadow();
+        if ((pShadow != nullptr) && pShadow->IsShadowAttached() &&
             (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
             //补救由于Gdi绘制造成的alpha通道为0
             UiRect rcNewPaint = rcPaint;
@@ -2130,8 +2145,9 @@ void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, 
     if (rcSizeBox.bottom <= 0) {
         bBottomSnap = false;
     }
-    if (m_shadow != nullptr) {
-        m_shadow->SetWindowPosSnap(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->SetWindowPosSnap(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
     }
 }
 
@@ -2152,6 +2168,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             return;
         }
     }
+    Shadow* pShadow = GetShadow();
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
@@ -2191,9 +2208,9 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             }
         }
     }
-    else if (!IsUseSystemCaption() && (m_shadow != nullptr) && IsShadowAttached()) {
+    else if (!IsUseSystemCaption() && (pShadow != nullptr) && IsShadowAttached()) {
         //检查是否点击在窗口阴影区域(实现鼠标点击阴影，穿透到后面窗口的功能)
-        m_shadow->CheckMouseClickOnShadow(eventType, pt);
+        pShadow->CheckMouseClickOnShadow(eventType, pt);
     }
     if (!bWindowFocused && !windowFlag.expired()) {
         //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)

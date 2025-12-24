@@ -2148,8 +2148,8 @@ bool NativeWindow_SDL::ExitFullScreen()
     }
 
     m_bFullScreen = false;
-    m_pOwner->OnNativeWindowExitFullScreen();
     m_bFullScreenExiting = false;
+    m_pOwner->OnNativeWindowExitFullScreen();    
     return true;
 }
 

@@ -110,7 +110,7 @@ bool FrameworkThread::Stop()
     if (m_pWorkerThread != nullptr) {
         //停止线程
         m_bRunning = false;
-        m_cv.notify_one();
+        m_cv.notify_all();
         m_pWorkerThread->join();
         m_pWorkerThread.reset();
     }
