@@ -502,7 +502,14 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetForeStateImage(kControlStateDisabled, strValue);
     }
     else if ((strName == _T("fade_alpha")) || (strName == _T("fadealpha"))) {
-        GetAnimationManager().SetFadeAlpha(strValue == _T("true"));
+        bool bFadeVisible = strValue != _T("false");
+        int32_t nEndAlpha = GetAlpha();
+        if (bFadeVisible) {
+            if (strValue != _T("true")) {
+                nEndAlpha = StringUtil::StringToInt32(strValue);
+            }
+        }
+        GetAnimationManager().SetFadeAlpha(bFadeVisible, nEndAlpha);
     }
     else if ((strName == _T("fade_hot")) || (strName == _T("fadehot"))) {
         GetAnimationManager().SetFadeHot(strValue == _T("true"));

@@ -72,11 +72,11 @@
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
 | show_focus_rect | false| bool | SetShowFocusRect| 是否显示焦点状态(一个虚线构成的矩形) |
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
-| alpha | 255 | int | SetAlpha|控件的整体透明度,如(128)，有效值为 0-255 |
+| alpha | 255 | int | SetAlpha|控件的整体透明度,如alpha="128"，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hot、pushed、disabled状态 |
 | cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: <br>"arrow"：箭头<br>"hand"：手型<br>"wait"：忙碌<br>"cross"：十字线<br>"ibeam"：I型光标,文本光标<br>"size_we"：水平调整<br>"size_ns"：垂直调整<br>"size_nwse"：对角线调整，西北-东南调整<br>"size_nesw"：对角线调整，东北-西南调整<br>"size_all"：移动，四向调整<br>"no"：禁止光标<br>"progress"：进度，应用启动光标|
 | render_offset | 0,0 | size | SetRenderOffset|控件绘制时的偏移量,如(10,10),一般用于绘制动画 |
-| fade_alpha | false | bool | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画,如“true”|
+| fade_alpha | false | bool/int | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画。有效值如下：<br>fade_alpha="false"：不启用控件透明渐变动画 <br>fade_alpha="true"：启用控件透明渐变动画，最终控件的Alpha值设置为255 <br>fade_alpha="128"：启用控件透明渐变动画，最终控件的Alpha值设置为128，这种情况下的有效值为1-255。|
 | fade_hot | false | bool |GetAnimationManager(). SetFadeHot |是否启用控件悬浮状态下 的透明渐变动画,如“true”|
 | fade_width | false | bool | GetAnimationManager(). SetFadeWidth|是否启用控件宽度渐变动画,如“true”|
 | fade_height | false | bool | GetAnimationManager(). SetFadeHeight|是否启用控件高度渐变动画,如“true”|

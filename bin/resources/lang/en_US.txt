@@ -1,12 +1,12 @@
 ﻿;String resources in English 
-;Example:
-;STRID_MAINWINDOW_BUTTON_LOGIN = Login
-;TIPID_MAINWINDOW_BUTTON_LOGIN = Click to login
 ;comment symbol：“;”
-;rule：Every window uses its own strings. One windows is not permitted to use strings of other windows'.
 
 ;Language display name
 LANGUAGE_DISPLAY_NAME = English(English)
+
+;global.xml
+STRID_EXIT_FULLSCREEN = Exit Fullscreen
+TIPID_EXIT_FULLSCREEN = Click button or press ESC to exit fullscreen
 
 ;Common
 STRING_OK = OK

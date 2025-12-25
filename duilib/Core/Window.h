@@ -473,6 +473,20 @@ public:
     bool IsEnableDragDrop() const;
 
 public:
+    /** 设置全屏显示的控件，全屏显示控件以后，可以使用ExitFullScreen()函数退出全屏状态
+    * @param [in] pFullscreenControl 需要全屏显示的控件
+    * @param [in] exitButtonClass 退出全屏按钮的Class名称，如果为空则表示不支持显示"退出全屏"按钮
+    *             默认的退出全屏Class名称为"btn_exit_fullscreen"，在globlal.xml中定义
+    */
+    bool SetFullscreenControl(Control* pFullscreenControl,
+                              const DString& exitButtonClass = _T("btn_exit_fullscreen"));
+
+    /** 获取全屏显示的控件
+    * @return 返回全屏显示的控件接口，如果无全屏显示的控件返回nullptr
+    */
+    Control* GetFullscreenControl() const;
+
+public:
     /** 监听窗口首次显示事件
     * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -933,6 +947,14 @@ private:
     */
     virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override final;
 
+    /** 进入全屏状态
+    */
+    virtual void NotifyWindowEnterFullScreen() override final;
+
+    /** 退出全屏状态
+    */
+    virtual void NotifyWindowExitFullScreen() override final;
+
 private:
     //鼠标等按下消息处理函数
     void OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey);
@@ -1021,6 +1043,10 @@ private:
     */
     Shadow* GetShadow() const;
 
+    /** 处理全屏按钮的动态显示
+    */
+    void ProcessFullscreenButtonMouseMove(const UiPoint& pt);
+
 private:
     //事件回调管理器
     EventMap m_OnEvent;
@@ -1054,8 +1080,13 @@ private:
     */
     BoxPtr m_pRoot;
 
-    //窗口阴影
+    /** 窗口阴影
+    */
     std::unique_ptr<Shadow> m_shadow;
+
+    /** 当前是否处于控件全屏状态
+    */
+    bool m_bControlFullscreen;
 
 private:
     //透明通道修补范围的的九宫格描述

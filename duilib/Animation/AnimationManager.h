@@ -37,9 +37,10 @@ public:
 
     /** 设置或清除播放动画，对应动画类型为：kAnimationHot
     * @param [in] bFadeVisible true表示设置动画，false表示清除动画
+    * @param [in] nEndAlpha 结束时的Alpha值（仅当bFadeVisible为true时使用）
     * @return 设置时返回动画播放接口，清除时返回nullptr
     */
-    AnimationPlayer* SetFadeAlpha(bool bFadeVisible);
+    AnimationPlayer* SetFadeAlpha(bool bFadeVisible, int32_t nEndAlpha);
 
     /** 设置或清除播放动画，对应动画类型为：kAnimationWidth
     * @param [in] bFadeWidth true表示设置动画，false表示清除动画
