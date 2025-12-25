@@ -85,6 +85,7 @@
                               text_align="vcenter" text_padding="8,4,8,4" default_context_menu="true"
                               prompt_text="ui::RichEdit: 单行文本" />
                     <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltip_text="nim_comp::CheckCombo"/>
+                    <Button class="btn_global_color_gray" text="全屏显示RichEdit" name="rich_edit_fullscreen_btn" width="160" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 
                 <!-- 一些基本控件 -->

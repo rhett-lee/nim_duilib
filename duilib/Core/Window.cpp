@@ -6,6 +6,7 @@
 #include "duilib/Core/ToolTip.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowMessage.h"
+#include "duilib/Control/Button.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
@@ -29,7 +30,8 @@ Window::Window() :
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
     m_bWindowAttributesApplied(false),
-    m_bCheckSetWindowFocus(false)
+    m_bCheckSetWindowFocus(false),
+    m_bControlFullscreen(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -339,12 +341,6 @@ void Window::ParseWindowXml()
     }
 }
 
-Shadow* Window::GetShadow() const
-{
-    ASSERT(m_shadow != nullptr);
-    return m_shadow.get();
-}
-
 void Window::PreInitWindow()
 {
     if (!IsWindow()) {
@@ -458,7 +454,7 @@ void Window::OnFinalMessage()
 {
     if (!IsDoModal()) {
         delete this;
-    }    
+    }
 }
 
 void Window::ClearWindow(bool bSendClose)
@@ -478,6 +474,10 @@ void Window::ClearWindow(bool bSendClose)
     ReapObjects(GetRoot());
 
     m_controlFinder.Clear();
+    m_toolTip.reset();
+    m_shadow.reset();
+    m_render.reset();
+
     Box* pRoot = m_pRoot.get();
     m_pRoot.reset();
     if (pRoot != nullptr) {
@@ -487,10 +487,6 @@ void Window::ClearWindow(bool bSendClose)
 
     RemoveAllClass();
     RemoveAllOptionGroups();
-
-    m_toolTip.reset();
-    m_shadow.reset();
-    m_render.reset();    
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -1843,6 +1839,11 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFr
         return lResult;
     }
 
+    //全屏按钮的动态显示
+    if (m_bControlFullscreen) {
+        ProcessFullscreenButtonMouseMove(pt);
+    }
+
     EventArgs msgData;
     msgData.modifierKey = modifierKey;
     msgData.ptMouse = pt;
@@ -2722,6 +2723,242 @@ Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) cons
 Control* Window::FindSubControlByName(Control* pParent, const DString& strName) const
 {
     return m_controlFinder.FindSubControlByName(pParent, strName);
+}
+
+class FullscreenBox : public Box
+{
+    typedef Box BaseClass;
+public:
+    FullscreenBox(Window* pWindow) :
+        Box(pWindow),
+        m_nOldItemIndex(0)
+    {
+        //关闭控件自身的内边距
+        SetEnableControlPadding(false);
+    }
+    virtual ~FullscreenBox() override
+    {
+        //从全屏直接退出窗口时，需要手动释放原来的root
+        Box* pOldRoot = m_pOldRoot.get();
+        if (pOldRoot != nullptr) {
+            delete pOldRoot;
+            pOldRoot = nullptr;
+        }
+    }
+    virtual DString GetType() const override { return _T("FullscreenBox"); }
+
+public:
+    /** 进入全屏
+    */
+    bool EnterControlFullScreen(Box* pOldRoot, Control* pFullscreenControl, const DString& exitButtonClass)
+    {
+        ASSERT((pOldRoot != nullptr) && (pFullscreenControl != nullptr));
+        if ((pOldRoot == nullptr) || (pFullscreenControl == nullptr)) {
+            return false;
+        }
+        ASSERT(pFullscreenControl->IsVisible());
+        if (!pFullscreenControl->IsVisible()) {
+            return false;
+        }
+        if (m_pFullscreenControl != nullptr) {
+            //先将原控件退出全屏
+            ExitControlFullScreen();
+        }
+
+        m_pOldParent = pFullscreenControl->GetParent();
+        if (m_pOldParent != nullptr) {
+            //记录在父容器中的索引号
+            m_nOldItemIndex = m_pOldParent->GetItemIndex(pFullscreenControl);
+
+            //从原来的父容器中移除
+            bool bOldAutoDestroyChild = m_pOldParent->IsAutoDestroyChild();
+            m_pOldParent->SetAutoDestroyChild(false);
+            m_pOldParent->Box::RemoveItem(pFullscreenControl);
+            m_pOldParent->SetAutoDestroyChild(bOldAutoDestroyChild);
+        }
+
+        //原来的控件隐藏
+        pOldRoot->SetVisible(false);
+        m_pOldRoot = pOldRoot;
+        m_pFullscreenControl = pFullscreenControl;
+
+        //添加到全屏容器中
+        AddItem(pFullscreenControl);
+
+        //设置"退出全屏"按钮
+        if (!exitButtonClass.empty()) {
+            Button* pButton = new Button(GetWindow());
+            m_pExitFullscreenBtn = pButton;
+            AddItem(pButton);
+            pButton->SetClass(exitButtonClass);
+
+            pButton->AttachClick([this](const EventArgs&) {
+                //退出全屏
+                if (GetWindow()) {
+                    GetWindow()->ExitFullScreen();
+                }
+                return true;
+                });
+        }
+        else if (m_pExitFullscreenBtn != nullptr){
+            RemoveItem(m_pExitFullscreenBtn.get());
+            m_pExitFullscreenBtn.reset();
+        }
+        return true;
+    }
+
+    /** 退出全屏
+    */
+    void ExitControlFullScreen()
+    {
+        if ((m_pOldParent != nullptr) && (m_pFullscreenControl != nullptr)) {
+            SetAutoDestroyChild(false);
+            RemoveItem(m_pFullscreenControl.get());
+            SetAutoDestroyChild(true);
+
+            //回复到原容器中
+            m_pOldParent->Box::AddItemAt(m_pFullscreenControl.get(), m_nOldItemIndex);
+        }
+        m_pOldRoot.reset();        
+        m_pFullscreenControl.reset();
+        m_pExitFullscreenBtn.reset();
+        m_pOldParent.reset();
+        m_nOldItemIndex = 0;
+    }
+
+public:
+    /** 原来的Root容器
+    */
+    BoxPtr m_pOldRoot;
+
+    /** 当前全屏状态的控件
+    */
+    ControlPtr m_pFullscreenControl;
+
+    /** 退出全屏按钮
+    */
+    ControlPtr m_pExitFullscreenBtn;
+
+private:
+    /** 原来的父控件
+    */
+    BoxPtr m_pOldParent;
+
+    /** 原来在父控件中的索引号
+    */
+    size_t m_nOldItemIndex;
+};
+
+void Window::ProcessFullscreenButtonMouseMove(const UiPoint& pt)
+{
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if ((pFullscreenBox != nullptr) && (pFullscreenBox->m_pExitFullscreenBtn != nullptr)) {
+        Control* pExitFullscreenBtn = pFullscreenBox->m_pExitFullscreenBtn.get();
+        if (pExitFullscreenBtn->GetRect().ContainsPt(pt)) {
+            pExitFullscreenBtn->SetFadeVisible(true);
+        }
+        else if (pExitFullscreenBtn->GetAlpha() > 0) {
+            pExitFullscreenBtn->SetFadeVisible(false);
+        }
+    }
+}
+
+Shadow* Window::GetShadow() const
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_bControlFullscreen) {
+        //控件全屏时，禁止访问阴影相关操作
+        FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+        if (pFullscreenBox != nullptr) {
+            return nullptr;
+        }
+    }
+    return m_shadow.get();
+}
+
+void Window::NotifyWindowEnterFullScreen()
+{
+    //窗口进入全屏状态
+}
+
+void Window::NotifyWindowExitFullScreen()
+{
+    //窗口退出全屏状态
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if (pFullscreenBox != nullptr) {
+        //退出控件全屏状态
+        m_pRoot = pFullscreenBox->m_pOldRoot;
+        ASSERT(m_pRoot != nullptr);
+        m_controlFinder.SetRoot(m_pRoot.get());
+        pFullscreenBox->ExitControlFullScreen();
+        if (m_pRoot != nullptr) {
+            m_pRoot->SetVisible(true);
+        }
+        delete pFullscreenBox;
+        pFullscreenBox = nullptr;
+    }
+    m_bControlFullscreen = false;
+}
+
+bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& exitButtonClass)
+{
+    ASSERT(pFullscreenControl != nullptr);
+    if (pFullscreenControl == nullptr) {
+        return false;
+    }
+    ASSERT(m_pRoot != nullptr);
+    if (m_pRoot == nullptr) {
+        return false;
+    }
+    ASSERT(m_pRoot.get() != pFullscreenControl);
+    if (m_pRoot.get() == pFullscreenControl) {
+        return false;
+    }
+
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if (pFullscreenBox != nullptr) {
+        //当前已经是全屏状态
+        if (pFullscreenBox->m_pFullscreenControl == pFullscreenControl) {
+            return true;
+        }
+    }
+    else {
+        pFullscreenBox = new FullscreenBox(this);
+    }
+    if (IsWindowMaximized()) {
+        //如果当前窗口是最大化状态，先还原然后再进入全屏状态
+        ShowWindow(ShowWindowCommands::kSW_RESTORE);
+    }
+    bool bRet = false;
+    if (pFullscreenBox->EnterControlFullScreen(m_pRoot.get(), pFullscreenControl, exitButtonClass)) {
+        //成功进入控件全屏状态
+        m_controlFinder.SetRoot(pFullscreenBox);
+        m_pRoot = pFullscreenBox;
+        m_bControlFullscreen = true;
+
+        //窗口进入全屏状态
+        this->EnterFullScreen(); 
+
+        //复位控件的状态
+        ClearStatus();
+        bRet = true;
+    }
+    else {
+        delete pFullscreenBox;
+        pFullscreenBox = nullptr;
+    }   
+    return bRet;
+}
+
+Control* Window::GetFullscreenControl() const
+{
+    if (m_bControlFullscreen) {
+        FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+        if (pFullscreenBox != nullptr) {
+            return pFullscreenBox->m_pFullscreenControl.get();
+        }
+    }
+    return nullptr;
 }
 
 } // namespace ui

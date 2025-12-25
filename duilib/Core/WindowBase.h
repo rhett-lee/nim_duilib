@@ -601,6 +601,15 @@ protected:
     virtual void FinalMessage() = 0;
 
 protected:
+    /** 进入全屏状态
+    */
+    virtual void NotifyWindowEnterFullScreen() = 0;
+
+    /** 退出全屏状态
+    */
+    virtual void NotifyWindowExitFullScreen() = 0;
+
+protected:
     /** 切换系统标题栏与自绘标题栏
     */
     virtual void OnUseSystemCaptionBarChanged() = 0;

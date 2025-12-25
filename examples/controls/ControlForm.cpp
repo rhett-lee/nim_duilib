@@ -147,8 +147,8 @@ void ControlForm::OnInitWindow()
     }
 
     //注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
-    AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit"))));
-    AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit2"))));
+    AttachRichEditEvents(dynamic_cast<ui::RichEdit*>(FindControl(_T("edit"))));
+    AttachRichEditEvents(dynamic_cast<ui::RichEdit*>(FindControl(_T("edit2"))));
 
     //显示模态对话框的拾色器
     ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
@@ -332,6 +332,18 @@ void ControlForm::AttachRichEditEvents(ui::RichEdit* edit)
         }
         return true;
         });
+
+    //全屏显示RichEdit
+    ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("rich_edit_fullscreen_btn")));
+    if (pFullscreenBtn != nullptr) {
+        pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
+            ui::Control* pControl = FindControl(_T("edit"));
+            if (pControl != nullptr) {
+                this->SetFullscreenControl(pControl);
+            }
+            return true;
+            });
+    }
 }
 
 void ControlForm::ShowColorPicker(bool bDoModal)

@@ -42,14 +42,17 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
     return animationArgs;
 }
 
-AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible)
+AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, int32_t nEndAlpha)
 {
+    if ((nEndAlpha < 1) || (nEndAlpha > 255)) {
+        nEndAlpha = 255;
+    }
     AnimationPlayer* animationArgs = nullptr;
     if (bFadeVisible) {
         animationArgs = new AnimationPlayer();
         animationArgs->SetAnimationType(AnimationType::kAnimationAlpha);
         animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(255);
+        animationArgs->SetEndValue(nEndAlpha);
         animationArgs->SetSpeedUpRatio(0.3);
         animationArgs->SetSpeedDownRatio(0.7);
         animationArgs->SetTotalMillSeconds(250);
@@ -60,7 +63,6 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible)
     }
     else {
         m_animationMap.erase(AnimationType::kAnimationAlpha);
-        m_pControl->SetAlpha(255);
     }
 
     return animationArgs;

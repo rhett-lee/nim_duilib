@@ -371,6 +371,10 @@ void WindowBase::CheckSetWindowFocus()
 
 bool WindowBase::EnterFullScreen()
 {
+    if (!IsWindowFullScreen() && IsWindowMaximized()) {
+        //如果当前窗口是最大化状态，先还原然后再进入全屏状态
+        ShowWindow(ShowWindowCommands::kSW_RESTORE);
+    }
     return m_pNativeWindow->EnterFullScreen();
 }
 
@@ -866,12 +870,14 @@ void WindowBase::OnWindowSize(WindowSizeType sizeType)
 
 void WindowBase::OnNativeWindowEnterFullScreen()
 {
-    OnWindowEnterFullScreen();
+    NotifyWindowEnterFullScreen(); //供Window子类处理业务
+    OnWindowEnterFullScreen();     //供应用层处理业务
 }
 
 void WindowBase::OnNativeWindowExitFullScreen()
 {
-    OnWindowExitFullScreen();
+    NotifyWindowExitFullScreen();   //供Window子类处理业务
+    OnWindowExitFullScreen();       //供应用层处理业务
 }
 
 UiRect WindowBase::OnNativeGetSizeBox() const
