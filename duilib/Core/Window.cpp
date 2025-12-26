@@ -2941,6 +2941,9 @@ bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& ex
 
         //复位控件的状态
         ClearStatus();
+
+        //设置焦点
+        pFullscreenControl->SetFocus();
         bRet = true;
     }
     else {
