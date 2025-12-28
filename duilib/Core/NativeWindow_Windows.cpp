@@ -1065,12 +1065,13 @@ bool NativeWindow_Windows::ExitFullScreen()
     //恢复窗口位置/大小信息
     ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    if (IsWindowMaximized()) {
-        ::ShowWindow(m_hWnd, SW_RESTORE);
-    }
     m_bFullScreen = false;
     m_bFullScreenExiting = false;
-    m_pOwner->OnNativeWindowExitFullScreen();    
+
+    //触发位置和大小变化事件
+    ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
+
+    m_pOwner->OnNativeWindowExitFullScreen();
     return true;
 }
 

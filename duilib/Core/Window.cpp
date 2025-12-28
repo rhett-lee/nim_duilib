@@ -1155,113 +1155,11 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
     }
     if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
         //最大化
-        if (!IsUseSystemCaption() && !IsWindowFullScreen()) {
-            UiRect rcWindow;
-            GetWindowRect(rcWindow);
-            UiRect rcClientRect;
-            GetClientRect(rcClientRect);
-            int32_t cxClient = rcClientRect.Width();
-            int32_t cyClient = rcClientRect.Height();
-            if (Dpi().HasPixelDensity()) {
-                Dpi().UnscaleInt(cxClient);
-                Dpi().UnscaleInt(cyClient);
-                Dpi().ScaleWindowSize(cxClient);
-                Dpi().ScaleWindowSize(cyClient);
-            }
-            if ((cxClient == rcWindow.Width()) && (cyClient == rcWindow.Height())) {
-                //全屏时，设置外边距，避免客户区的内容溢出屏幕
-                UiRect rcWork;
-                GetMonitorWorkRect(rcWork);
-
-                UiMargin rcFullscreenMargin;
-                if (rcWindow.left < rcWork.left) {
-                    rcFullscreenMargin.left = rcWork.left - rcWindow.left;
-                }
-                if (rcWindow.top < rcWork.top) {
-                    rcFullscreenMargin.top = rcWork.top - rcWindow.top;
-                }
-                if (rcWindow.right > rcWork.right) {
-                    rcFullscreenMargin.right = rcWindow.right - rcWork.right;
-                }
-                if (rcWindow.bottom > rcWork.bottom) {
-                    rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
-                }
-                if (Dpi().HasPixelDensity()) {
-                    rcFullscreenMargin.left = (int32_t)std::round(rcFullscreenMargin.left * Dpi().GetPixelDensity());
-                    rcFullscreenMargin.top = (int32_t)std::round(rcFullscreenMargin.top * Dpi().GetPixelDensity());
-                    rcFullscreenMargin.right = (int32_t)std::round(rcFullscreenMargin.right * Dpi().GetPixelDensity());
-                    rcFullscreenMargin.bottom = (int32_t)std::round(rcFullscreenMargin.bottom * Dpi().GetPixelDensity());
-                }
-                bool bHasShadowBox = false;
-                Box* pXmlRoot = GetXmlRoot();
-                Shadow* pShadow = GetShadow();
-                if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
-                    bHasShadowBox = true;                    
-                }
-                if (pXmlRoot != nullptr) {
-                    if (bHasShadowBox) {
-                        //有阴影Box
-                        UiMargin rcMargin = pXmlRoot->GetMargin();
-                        rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
-                        rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
-                        rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
-                        rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
-                        m_rcFullscreenMargin = rcFullscreenMargin;
-                        pXmlRoot->SetMargin(rcMargin, false);
-                    }
-                    else {
-                        //无阴影Box
-                        UiPadding rcPadding = pXmlRoot->GetPadding();
-                        rcPadding.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
-                        rcPadding.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
-                        rcPadding.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
-                        rcPadding.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
-                        m_rcFullscreenMargin = rcFullscreenMargin;
-                        pXmlRoot->SetPadding(rcPadding, false);
-                    }                    
-                }
-            }
-        }
-        Shadow* pShadow = GetShadow();
-        if (pShadow != nullptr) {
-            pShadow->MaximizedOrRestored(true);
-        }
+        ProcessWindowMaximized();        
     }
     else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
         //还原
-        Shadow* pShadow = GetShadow();
-        if (pShadow != nullptr) {
-            pShadow->MaximizedOrRestored(false);
-        }
-        //还原时，恢复外边距
-        if (!m_rcFullscreenMargin.IsEmpty()) {
-            bool bHasShadowBox = false;
-            Box* pXmlRoot = GetXmlRoot();
-            if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
-                bHasShadowBox = true;
-            }
-            if (pXmlRoot != nullptr) {
-                if (bHasShadowBox) {
-                    //有阴影Box
-                    UiMargin rcMargin = pXmlRoot->GetMargin();
-                    rcMargin.left -= m_rcFullscreenMargin.left;
-                    rcMargin.top -= m_rcFullscreenMargin.top;
-                    rcMargin.right -= m_rcFullscreenMargin.right;
-                    rcMargin.bottom -= m_rcFullscreenMargin.right;
-                    pXmlRoot->SetMargin(rcMargin, false);
-                }
-                else {
-                    //无阴影Box
-                    UiPadding rcPadding = pXmlRoot->GetPadding();
-                    rcPadding.left -= m_rcFullscreenMargin.left;
-                    rcPadding.top -= m_rcFullscreenMargin.top;
-                    rcPadding.right -= m_rcFullscreenMargin.right;
-                    rcPadding.bottom -= m_rcFullscreenMargin.right;
-                    pXmlRoot->SetPadding(rcPadding, false);
-                }
-                m_rcFullscreenMargin.Clear();
-            }
-        }
+        ProcessWindowRestored();
     }
     if (m_pFocus != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
@@ -2730,14 +2628,6 @@ Control* Window::FindSubControlByName(Control* pParent, const DString& strName) 
     return m_controlFinder.FindSubControlByName(pParent, strName);
 }
 
-void Window::ProcessFullscreenButtonMouseMove(const UiPoint& pt)
-{
-    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
-    if (pFullscreenBox != nullptr) {
-        pFullscreenBox->ProcessFullscreenButtonMouseMove(pt);
-    }
-}
-
 Shadow* Window::GetShadow() const
 {
     ASSERT(m_shadow != nullptr);
@@ -2754,11 +2644,147 @@ Shadow* Window::GetShadow() const
 void Window::NotifyWindowEnterFullScreen()
 {
     //窗口进入全屏状态
+    ProcessWindowEnterFullScreen();
 }
 
 void Window::NotifyWindowExitFullScreen()
 {
     //窗口退出全屏状态
+    ProcessWindowExitFullScreen();
+}
+
+void Window::ProcessWindowMaximized()
+{
+    if (!IsUseSystemCaption() && !IsWindowFullScreen()) {
+        //最大化时，保存并设置全屏状态下的容器外边距
+        SetWindowMaximizedMargin();        
+    }
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->MaximizedOrRestored(true);
+    }
+}
+
+void Window::ProcessWindowRestored()
+{
+    Shadow* pShadow = GetShadow();
+    if (pShadow != nullptr) {
+        pShadow->MaximizedOrRestored(false);
+    }
+    //还原时，恢复外边距
+    RestoreWindowMaximizedMargin();
+}
+
+void Window::SetWindowMaximizedMargin()
+{
+    UiRect rcWindow;
+    GetWindowRect(rcWindow);
+    UiRect rcClientRect;
+    GetClientRect(rcClientRect);
+    int32_t cxClient = rcClientRect.Width();
+    int32_t cyClient = rcClientRect.Height();
+    if (Dpi().HasPixelDensity()) {
+        Dpi().UnscaleInt(cxClient);
+        Dpi().UnscaleInt(cyClient);
+        Dpi().ScaleWindowSize(cxClient);
+        Dpi().ScaleWindowSize(cyClient);
+    }
+    if ((cxClient == rcWindow.Width()) && (cyClient == rcWindow.Height())) {
+        //全屏时，设置外边距，避免客户区的内容溢出屏幕
+        UiRect rcWork;
+        GetMonitorWorkRect(rcWork);
+
+        UiMargin rcFullscreenMargin;
+        if (rcWindow.left < rcWork.left) {
+            rcFullscreenMargin.left = rcWork.left - rcWindow.left;
+        }
+        if (rcWindow.top < rcWork.top) {
+            rcFullscreenMargin.top = rcWork.top - rcWindow.top;
+        }
+        if (rcWindow.right > rcWork.right) {
+            rcFullscreenMargin.right = rcWindow.right - rcWork.right;
+        }
+        if (rcWindow.bottom > rcWork.bottom) {
+            rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
+        }
+        if (Dpi().HasPixelDensity()) {
+            rcFullscreenMargin.left = (int32_t)std::round(rcFullscreenMargin.left * Dpi().GetPixelDensity());
+            rcFullscreenMargin.top = (int32_t)std::round(rcFullscreenMargin.top * Dpi().GetPixelDensity());
+            rcFullscreenMargin.right = (int32_t)std::round(rcFullscreenMargin.right * Dpi().GetPixelDensity());
+            rcFullscreenMargin.bottom = (int32_t)std::round(rcFullscreenMargin.bottom * Dpi().GetPixelDensity());
+        }
+        bool bHasShadowBox = false;
+        Box* pXmlRoot = GetXmlRoot();
+        Shadow* pShadow = GetShadow();
+        if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
+            bHasShadowBox = true;
+        }
+        if (pXmlRoot != nullptr) {
+            if (bHasShadowBox) {
+                //有阴影Box
+                UiMargin rcMargin = pXmlRoot->GetMargin();
+                rcMargin.left += (rcFullscreenMargin.left - m_rcWindowMaximizedMargin.left);
+                rcMargin.top += (rcFullscreenMargin.top - m_rcWindowMaximizedMargin.top);
+                rcMargin.right += (rcFullscreenMargin.right - m_rcWindowMaximizedMargin.right);
+                rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcWindowMaximizedMargin.bottom);
+                m_rcWindowMaximizedMargin = rcFullscreenMargin;
+                pXmlRoot->SetMargin(rcMargin, false);
+            }
+            else {
+                //无阴影Box
+                UiPadding rcPadding = pXmlRoot->GetPadding();
+                rcPadding.left += (rcFullscreenMargin.left - m_rcWindowMaximizedMargin.left);
+                rcPadding.top += (rcFullscreenMargin.top - m_rcWindowMaximizedMargin.top);
+                rcPadding.right += (rcFullscreenMargin.right - m_rcWindowMaximizedMargin.right);
+                rcPadding.bottom += (rcFullscreenMargin.bottom - m_rcWindowMaximizedMargin.bottom);
+                m_rcWindowMaximizedMargin = rcFullscreenMargin;
+                pXmlRoot->SetPadding(rcPadding, false);
+            }
+        }
+    }
+}
+
+void Window::RestoreWindowMaximizedMargin()
+{
+    if (!m_rcWindowMaximizedMargin.IsEmpty()) {
+        bool bHasShadowBox = false;
+        Box* pXmlRoot = GetXmlRoot();
+        Shadow* pShadow = GetShadow();
+        if ((pShadow != nullptr) && pShadow->HasShadowBox()) {
+            bHasShadowBox = true;
+        }
+        if (pXmlRoot != nullptr) {
+            if (bHasShadowBox) {
+                //有阴影Box
+                UiMargin rcMargin = pXmlRoot->GetMargin();
+                rcMargin.left -= m_rcWindowMaximizedMargin.left;
+                rcMargin.top -= m_rcWindowMaximizedMargin.top;
+                rcMargin.right -= m_rcWindowMaximizedMargin.right;
+                rcMargin.bottom -= m_rcWindowMaximizedMargin.right;
+                pXmlRoot->SetMargin(rcMargin, false);
+            }
+            else {
+                //无阴影Box
+                UiPadding rcPadding = pXmlRoot->GetPadding();
+                rcPadding.left -= m_rcWindowMaximizedMargin.left;
+                rcPadding.top -= m_rcWindowMaximizedMargin.top;
+                rcPadding.right -= m_rcWindowMaximizedMargin.right;
+                rcPadding.bottom -= m_rcWindowMaximizedMargin.right;
+                pXmlRoot->SetPadding(rcPadding, false);
+            }
+        }
+        m_rcWindowMaximizedMargin.Clear();
+    }
+}
+
+void Window::ProcessWindowEnterFullScreen()
+{
+    //全屏时，需要还原最大化时设置的外边距
+    RestoreWindowMaximizedMargin();
+}
+
+void Window::ProcessWindowExitFullScreen()
+{
     FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
     if (pFullscreenBox != nullptr) {
         //退出控件全屏状态
@@ -2773,6 +2799,14 @@ void Window::NotifyWindowExitFullScreen()
         pFullscreenBox = nullptr;
     }
     m_bControlFullscreen = false;
+}
+
+void Window::ProcessFullscreenButtonMouseMove(const UiPoint& pt)
+{
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if (pFullscreenBox != nullptr) {
+        pFullscreenBox->ProcessFullscreenButtonMouseMove(pt);
+    }
 }
 
 bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& exitButtonClass)
