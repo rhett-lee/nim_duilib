@@ -849,6 +849,9 @@
     <ClCompile Include="Control\TextDrawer.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\FullscreenBox.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1756,6 +1759,9 @@
     </ClInclude>
     <ClInclude Include="Control\TextDrawer.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FullscreenBox.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
