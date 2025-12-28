@@ -1185,6 +1185,17 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg
             return 0;
         }
     }
+    //如果窗口溢出屏幕，需要绘制整个窗口，避免溢出窗口外部的内容移入屏幕时无法正常绘制
+    UiRect rcWindow;
+    GetWindowRect(rcWindow);
+    UiRect rcMonitor;
+    GetMonitorWorkRect(rcMonitor);
+    if ((rcWindow.left < rcMonitor.left) ||
+        (rcWindow.top < rcMonitor.top) ||
+        (rcWindow.right > rcMonitor.right) ||
+        (rcWindow.bottom > rcMonitor.bottom)) {
+        InvalidateAll();
+    }
     return 0;
 }
 
