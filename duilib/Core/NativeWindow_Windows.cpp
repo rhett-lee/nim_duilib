@@ -2254,11 +2254,18 @@ LRESULT NativeWindow_Windows::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, L
     if (GetWindowMaximumSize().cy != 0) {
         lpMMI->ptMaxTrackSize.y = GetWindowMaximumSize().cy;
     }
-    if (GetWindowMinimumSize().cx != 0) {
-        lpMMI->ptMinTrackSize.x = GetWindowMinimumSize().cx;
+
+    UiPadding rcShadow;
+    m_pOwner->OnNativeGetShadowCorner(rcShadow);
+    UiSize minSize = GetWindowMinimumSize();
+    minSize.cx = std::max(minSize.cx, rcShadow.left + rcShadow.right + m_pOwner->OnNativeGetDpi().GetScaleInt(16));
+    minSize.cy = std::max(minSize.cy, rcShadow.top + rcShadow.bottom + m_pOwner->OnNativeGetDpi().GetScaleInt(16));
+
+    if (minSize.cx > 0) {
+        lpMMI->ptMinTrackSize.x = minSize.cx;
     }
-    if (GetWindowMinimumSize().cy != 0) {
-        lpMMI->ptMinTrackSize.y = GetWindowMinimumSize().cy;
+    if (minSize.cy > 0) {
+        lpMMI->ptMinTrackSize.y = minSize.cy;
     }
     return 0;
 }
