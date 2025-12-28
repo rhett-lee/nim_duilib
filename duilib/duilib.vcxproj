@@ -316,6 +316,7 @@
     <ClCompile Include="Core\EventArgs.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\FrameworkThread.cpp" />
+    <ClCompile Include="Core\FullscreenBox.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
     <ClCompile Include="Core\IconManager.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
@@ -661,6 +662,7 @@
     <ClInclude Include="Core\EventArgs.h" />
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\FrameworkThread.h" />
+    <ClInclude Include="Core\FullscreenBox.h" />
     <ClInclude Include="Core\GlobalManager.h" />
     <ClInclude Include="Core\IconManager.h" />
     <ClInclude Include="Core\ImageList.h" />
