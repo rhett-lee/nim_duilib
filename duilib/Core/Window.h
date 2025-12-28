@@ -1047,9 +1047,34 @@ private:
     */
     Shadow* GetShadow() const;
 
+private:
+    /** 处理窗口最大化事件
+    */
+    void ProcessWindowMaximized();
+
+    /** 处理窗口还原事件
+    */
+    void ProcessWindowRestored();
+
+    /** 处理窗口进入全屏事件
+    */
+    void ProcessWindowEnterFullScreen();
+
+    /** 处理窗口退出全屏事件
+    */
+    void ProcessWindowExitFullScreen();
+
     /** 处理全屏按钮的动态显示
     */
     void ProcessFullscreenButtonMouseMove(const UiPoint& pt);
+
+    /** 保存并设置全屏状态下的容器外边距
+    */
+    void SetWindowMaximizedMargin();
+
+    /** 恢复全屏状态下的容器外边距
+    */
+    void RestoreWindowMaximizedMargin();
 
 private:
     //事件回调管理器
@@ -1114,8 +1139,8 @@ private:
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 
-    //全屏状态下的外边距
-    UiMargin m_rcFullscreenMargin;
+    //窗口最大化状态下的外边距（Windows平台，窗口最大化时，窗口的区域是溢出屏幕区域的，所以需要增加外边距，避免窗口的内容也溢出屏幕）
+    UiMargin m_rcWindowMaximizedMargin;
 
     //绘制引擎
     std::unique_ptr<IRender> m_render;

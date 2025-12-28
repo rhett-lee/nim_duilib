@@ -371,10 +371,6 @@ void WindowBase::CheckSetWindowFocus()
 
 bool WindowBase::EnterFullScreen()
 {
-    if (!IsWindowFullScreen() && IsWindowMaximized()) {
-        //如果当前窗口是最大化状态，先还原然后再进入全屏状态
-        ShowWindow(ShowWindowCommands::kSW_RESTORE);
-    }
     return m_pNativeWindow->EnterFullScreen();
 }
 
