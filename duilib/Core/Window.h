@@ -486,6 +486,10 @@ public:
     */
     Control* GetFullscreenControl() const;
 
+    /** 退出控件的全屏显示状态，恢复到原来控件全屏前的状态
+    */
+    void ExitControlFullscreen();
+
 public:
     /** 监听窗口首次显示事件
     * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）

@@ -19,6 +19,11 @@ void ControlFinder::SetRoot(Box* pRoot)
     m_pRoot = pRoot;
 }
 
+Box* ControlFinder::GetRoot() const
+{
+    return m_pRoot;
+}
+
 void ControlFinder::Clear()
 {
     m_pRoot = nullptr;

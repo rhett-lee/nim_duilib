@@ -47,6 +47,10 @@ public:
     */
     void SetRoot(Box* pRoot);
 
+    /** 获取关联的Box根节点
+    */
+    Box* GetRoot() const;
+
     /** 根据坐标查找指定控件
      * @param[in] pt 指定坐标
      * @return 返回控件指针
