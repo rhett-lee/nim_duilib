@@ -2545,8 +2545,18 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     switch (uMsg)
     {
     case WM_WINDOWPOSCHANGED:
+    {
         CheckWindowSnap(m_hWnd);
+        static bool bDragWindowContentsEnabled = IsDragWindowContentsEnabled(); //只读取一次，避免影响性能
+        if (!bDragWindowContentsEnabled) {
+            // 如果"拖动窗口时显示内容"这个选项未开启，窗口移动过程中不会发送WM_MOVE消息，
+            // 需要重绘整个窗口，从而避免窗口从屏幕外移动到屏幕内时窗口不绘制的问题
+            UiRect rc;
+            GetClientRect(rc);
+            Invalidate(rc);
+        }
         break;
+    }
     case WM_SIZE:
     {        
         WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);

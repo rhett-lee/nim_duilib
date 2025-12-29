@@ -47,6 +47,9 @@ namespace ui
     bool GetPointerTouchInfoWrapper(UINT32 pointerId, POINTER_TOUCH_INFO *touchInfo);
     bool GetPointerPenInfoWrapper(UINT32 pointerId, POINTER_PEN_INFO *penInfo);
     bool EnableMouseInPointerWrapper(BOOL fEnable);
+
+    // 检测「拖动窗口时显示窗口内容」是否开启
+    bool IsDragWindowContentsEnabled();
 }
 
 #endif //DUILIB_BUILD_FOR_WIN
