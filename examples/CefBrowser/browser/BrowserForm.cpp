@@ -291,7 +291,6 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
         size_t nNextItem = m_pTabCtrl->GetCurSel();
         nNextItem = (nNextItem + 1) % m_pTabCtrl->GetItemCount();
         m_pTabCtrl->SelectItem(nNextItem, true, true);
-        return 0;
     }
     else if ((vkCode == VirtualKeyCode::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON)) {
         //按ESC键时，取消标签拖出
@@ -299,7 +298,61 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
             DragDropManager::GetInstance()->EndDragBorwserBox(false);
         }
     }
+    else if (vkCode == ui::kVK_F11) {
+        if (ui::CefManager::GetInstance()->IsEnableF11()) {
+            //页面全屏或者退出全屏
+            if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+                bHandled = true;
+                ExitControlFullscreen();
+            }
+            else {
+                //当前页面，全屏显示
+                bHandled = true;
+                ShowCurrentPageFullscreen();
+            }
+        }
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (ui::CefManager::GetInstance()->IsEnableF12()) {
+            //显示或者隐藏开发者工具
+            bHandled = true;
+            SwitchShowDevTools();
+        }
+    }
+    if (bHandled) {
+        return 0;
+    }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+void BrowserForm::SwitchShowDevTools()
+{
+    ui::CefControl* pCefControl = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pCefControl = m_pActiveBrowserBox->GetCefControl();
+    }
+    if (pCefControl != nullptr) {
+        if (pCefControl->IsAttachedDevTools()) {
+            pCefControl->DettachDevTools();
+            if (pCefControl != nullptr) {
+                pCefControl->SetFadeVisible(false);
+            }
+        }
+        else {
+            pCefControl->AttachDevTools();
+        }
+    }
+}
+
+void BrowserForm::ShowCurrentPageFullscreen()
+{
+    ui::CefControl* pCefControl = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pCefControl = m_pActiveBrowserBox->GetCefControl();
+    }
+    if (pCefControl != nullptr) {
+        SetFullscreenControl(pCefControl);
+    }
 }
 
 LRESULT BrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
@@ -773,6 +826,12 @@ void BrowserForm::OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBro
 {
     if (pTabItem != nullptr) {
         pTabItem->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
+    }
+    if ((pBrowserBox != nullptr) && (pBrowserBox->GetCefControl() != nullptr)) {
+        if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+            //当前是控件全屏状态，设置新标签页的控件为全屏控件
+            SetFullscreenControl(pBrowserBox->GetCefControl());
+        }
     }
 }
 

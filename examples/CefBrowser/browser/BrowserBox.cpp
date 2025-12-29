@@ -264,25 +264,39 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         //自动弹窗，直接拦截
         return true;
     }
+    ui::Window* pWindow = GetWindow();
 #if CEF_VERSION_MAJOR > 109
     if (param.target_disposition == CEF_WOD_NEW_POPUP) {
 #else
     if (param.target_disposition == WOD_NEW_POPUP) {
 #endif
-        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
-        if (GetWindow() != nullptr) {
-            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.height);
-            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.width);
+        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）        
+        if (pWindow != nullptr) {
+            pWindow->Dpi().ScaleInt(windowInfo.bounds.height);
+            pWindow->Dpi().ScaleInt(windowInfo.bounds.width);
         }
         //不拦截
         return false;
     }
     else if (!target_url.empty()) {
+        bool bCreateNewTab = false;
 #if CEF_VERSION_MAJOR > 109
         if ((param.target_disposition == CEF_WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == CEF_WOD_NEW_BACKGROUND_TAB)) {
 #else
         if ((param.target_disposition == WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == WOD_NEW_BACKGROUND_TAB)) {
 #endif
+            bCreateNewTab = true;
+        }
+        
+        if (pWindow != nullptr) {
+            if (pWindow->IsWindowFullScreen() &&
+                (pWindow->GetFullscreenControl() != nullptr) &&
+                (dynamic_cast<ui::CefControl*>(pWindow->GetFullscreenControl()) != nullptr)) {
+                //页面全屏状态，不开启多标签，直接在当前页面打开
+                bCreateNewTab = false;
+            }
+        }
+        if (bCreateNewTab) {
             //新标签中打开（需要在UI线程中完成）
             DString url = ui::StringConvert::WStringToT(target_url);
             ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, this->ToWeakCallback([this, url]() {
@@ -294,6 +308,9 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         else if ((browser != nullptr) && (browser->GetMainFrame() != nullptr)) {
             //导航到弹出网址
             browser->GetMainFrame()->LoadURL(target_url);
+        }
+        else {
+            ASSERT(0);
         }
     }
     //拦截

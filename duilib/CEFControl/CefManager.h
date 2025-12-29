@@ -198,6 +198,23 @@ public:
     */
     static ProcessType GetProcessType(CefRefPtr<CefCommandLine> commandLine);
 
+public:
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
+
+    /** 设置是否允许F11快捷键(全屏/退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(全屏/退出全屏)
+    */
+    bool IsEnableF11() const;
+
 protected:
     /** 生成CEF配置数据
     */
@@ -260,6 +277,14 @@ private:
     /** CEF消息队列是否为空
     */
     bool m_bCefMessageLoopEmpty;
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool m_bEnableF12;
+
+    /** 是否允许F11快捷键(全屏 / 退出全屏)
+    */
+    bool m_bEnableF11;
 
 #ifdef DUILIB_BUILD_FOR_MACOS
     /** 开始退出的时间戳

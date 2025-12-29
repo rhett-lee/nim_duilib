@@ -172,6 +172,14 @@ public:
     */
     bool IsEnableF12() const;
 
+    /** 设置是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    bool IsEnableF11() const;
+
     /** 设置是否下载网站的FavIcon图标
     * @param [in] bDownload true表示下载，false表示不下载
     */
@@ -688,6 +696,9 @@ private:
 
     //是否允许F12快捷键(开发者工具)
     bool m_bEnableF12;
+
+    //是否允许F11快捷键(页面全屏/页面退出全屏)
+    bool m_bEnableF11;
 
     //是否下载网站的FavIcon图标
     bool m_bDownloadFaviconImage;

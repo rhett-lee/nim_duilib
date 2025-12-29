@@ -16,11 +16,16 @@ CefControl::CefControl(ui::Window* pWindow):
     m_bDevToolsPopup(false),
     m_pDevToolsView(nullptr),
     m_bEnableF12(true),
+    m_bEnableF11(true),
     m_bDownloadFaviconImage(false),
     m_bUrlIsLocalFile(false)
 {
     //默认开启拖放操作
     BaseClass::SetEnableDragDrop(true);
+
+    //默认F11和F12快捷键是否开启
+    m_bEnableF11 = CefManager::GetInstance()->IsEnableF11();
+    m_bEnableF12 = CefManager::GetInstance()->IsEnableF12();
 }
 
 CefControl::~CefControl(void)
@@ -42,6 +47,10 @@ void CefControl::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("F12")) {
         //是否允许按F12打开开发者工具
         SetEnableF12(strValue == _T("true"));
+    }
+    else if (strName == _T("F11")) {
+        //是否允许F11快捷键(页面全屏/页面退出全屏)
+        SetEnableF11(strValue == _T("true"));
     }
     else if (strName == _T("download_favicon_image")) {
         //是否下载网站的FavIcon图标
@@ -342,6 +351,16 @@ void CefControl::SetEnableF12(bool bEnableF12)
 bool CefControl::IsEnableF12() const
 {
     return m_bEnableF12;
+}
+
+void CefControl::SetEnableF11(bool bEnableF11)
+{
+    m_bEnableF11 = bEnableF11;
+}
+
+bool CefControl::IsEnableF11() const
+{
+    return m_bEnableF11;
 }
 
 void CefControl::SetDownloadFaviconImage(bool bDownload)
@@ -1042,6 +1061,58 @@ bool CefControl::OnPreKeyEvent(CefRefPtr<CefBrowser> /*browser*/,
             }
             //拦截该快捷键
             return true;
+        }
+        else if (event.windows_key_code == kVK_ESCAPE) {
+            //ESC键退出全屏
+            Window* pWindow = GetWindow();
+            if ((pWindow != nullptr) && pWindow->IsWindowFullScreen()) {
+                //退出全屏，并且拦截该快捷键(投递到UI线程执行)
+                auto flag = GetWeakFlag();
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [this, flag]() {
+                    if (!flag.expired()) {
+                        Window* pWindow = GetWindow();
+                        if ((pWindow != nullptr) && pWindow->IsWindowFullScreen()) {
+                            if (pWindow->GetFullscreenControl() != nullptr) {
+                                pWindow->ExitControlFullscreen();
+                            }
+                            else {
+                                pWindow->ExitFullScreen();
+                            }
+                        }
+                    }
+                    });
+                return true;
+            }
+        }
+        else if (m_bEnableF11 && (event.windows_key_code == kVK_F11)) {
+            //F11功能处理页面全屏和退出页面全屏
+            Window* pWindow = GetWindow();
+            if ((pWindow != nullptr) && pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == this)) {
+                //退出页面全屏，并且拦截该快捷键(投递到UI线程执行)
+                auto flag = GetWeakFlag();
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [this, flag]() {
+                    if (!flag.expired()) {
+                        Window* pWindow = GetWindow();
+                        if ((pWindow != nullptr) && pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == this)) {
+                            pWindow->ExitControlFullscreen();
+                        }
+                    }
+                    });
+                return true;
+            }
+            else if ((pWindow != nullptr) && (pWindow->GetFullscreenControl() != this)) {
+                //按F11，进入页面全屏状态，并且拦截该快捷键(投递到UI线程执行)
+                auto flag = GetWeakFlag();
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [this, flag]() {
+                    if (!flag.expired()) {
+                        Window* pWindow = GetWindow();
+                        if (pWindow != nullptr) {
+                            pWindow->SetFullscreenControl(this);
+                        }
+                    }
+                    });
+                return true;
+            }
         }
     }
     return false;
