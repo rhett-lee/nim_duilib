@@ -200,4 +200,14 @@ Box* FullscreenBox::GetOldRoot() const
     return m_pOldRoot.get();
 }
 
+bool FullscreenBox::IsWindowOldMaximized() const
+{
+    return m_bWindowMaximized;
+}
+
+bool FullscreenBox::IsWindowOldFullScreen() const
+{
+    return m_bWindowFullScreen;
+}
+
 } // namespace ui

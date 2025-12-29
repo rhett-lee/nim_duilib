@@ -2688,6 +2688,10 @@ void Window::ProcessWindowRestored()
 
 void Window::SetWindowMaximizedMargin()
 {
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if (pFullscreenBox != nullptr) {
+        return;
+    }
     UiRect rcWindow;
     GetWindowRect(rcWindow);
     UiRect rcClientRect;
@@ -2757,6 +2761,10 @@ void Window::SetWindowMaximizedMargin()
 
 void Window::RestoreWindowMaximizedMargin()
 {
+    FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+    if (pFullscreenBox != nullptr) {
+        return;
+    }
     if (!m_rcWindowMaximizedMargin.IsEmpty()) {
         bool bHasShadowBox = false;
         Box* pXmlRoot = GetXmlRoot();
@@ -2861,11 +2869,7 @@ bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& ex
     }
     else {
         //原来不是控件全屏状态
-        pFullscreenBox = new FullscreenBox(this);        
-        if (IsWindowMaximized() && !IsWindowFullScreen()) {
-            //如果当前窗口是最大化状态，先还原然后再进入全屏状态
-            ShowWindow(ShowWindowCommands::kSW_RESTORE);
-        }
+        pFullscreenBox = new FullscreenBox(this);
         if (pFullscreenBox->EnterControlFullScreen(m_pRoot.get(), pFullscreenControl, exitButtonClass)) {
             //成功进入控件全屏状态
             m_controlFinder.SetRoot(pFullscreenBox);
@@ -2890,6 +2894,25 @@ bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& ex
     return bRet;
 }
 
+void Window::ExitControlFullscreen()
+{
+    if (m_bControlFullscreen) {
+        FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
+        if (pFullscreenBox != nullptr) {
+            //退出控件全屏
+            bool bWindowOldFullScreen = pFullscreenBox->IsWindowOldFullScreen();
+            ProcessWindowExitFullScreen();
+            if (bWindowOldFullScreen) {
+                //窗口原来就是全屏，不需要退出窗口全屏状态
+                return;
+            }
+        }
+    }
+
+    //退出窗口全屏
+    ExitFullScreen();
+}
+
 Control* Window::GetFullscreenControl() const
 {
     if (m_bControlFullscreen) {
@@ -2899,11 +2922,6 @@ Control* Window::GetFullscreenControl() const
         }
     }
     return nullptr;
-}
-
-void Window::ExitControlFullscreen()
-{
-    ExitFullScreen();
 }
 
 } // namespace ui

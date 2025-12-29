@@ -52,6 +52,14 @@ public:
     */
     Box* GetOldRoot() const;
 
+    /** 获取窗口原来的状态是最大化
+    */
+    bool IsWindowOldMaximized() const;
+
+    /** 获取窗口原来的状态是全屏状态
+    */
+    bool IsWindowOldFullScreen() const;
+
 private:
     /** 将控件从原来的容器中提取出来
     */
