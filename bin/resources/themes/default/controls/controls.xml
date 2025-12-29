@@ -8,7 +8,8 @@
             <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
             <Label name="window_title" text="Controls" valign="center" margin="8" mouse_enabled="false"/>
             <Control mouse_enabled="false"/>
-            <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2" tooltip_text="设置"/>            
+            <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2" tooltip_text="设置"/>
+            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="窗口全屏，按ESC键可退出全屏"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
                 <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
