@@ -4,7 +4,7 @@
 
 // duilib
 #include "duilib/duilib.h"
-#include "duilib/WebView2/WebView2Control.h"
+#include "duilib/duilib_webview2.h"
 
 /** 应用程序的主窗口实现
 */
@@ -27,9 +27,19 @@ public:
     */
     virtual DString GetSkinFile() override;
 
+protected:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+
+    /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
 private:
     bool OnClicked(const ui::EventArgs& msg);

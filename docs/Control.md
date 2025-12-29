@@ -678,6 +678,17 @@ ControlDragable 控件继承了 `Control` 属性，更多可用属性请参考`C
 
 CefControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
+## WebView2Control的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| url |  | string | 控件创建成功后，导航到此URL网址 |
+| url_is_local_file |  | string | url指定的URL网址否为本地文件，如果是本地文件并且指定的是相对路径，则根目录是可执行程序所在目录 |
+| F11 | true | bool | 是否允许F11快捷键(页面全屏/页面退出全屏) |
+| F12 | true | bool | 是否允许F12快捷键(显示/隐藏开发者工具) |
+| devtools_enabled | true | bool | 是否允许打开开发者工具 |
+
+WebView2Control 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
 ## IconControl的属性
 IconControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

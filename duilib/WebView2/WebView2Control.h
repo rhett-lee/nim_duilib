@@ -312,6 +312,14 @@ public:
     */
     bool IsEnableF12() const;
 
+    /** 设置是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    bool IsEnableF11() const;
+
     /** 设置初始加载的URL(仅在控件初始化前调用有效)
     */
     void SetInitURL(const DString& url);

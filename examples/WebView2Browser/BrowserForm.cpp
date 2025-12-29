@@ -273,7 +273,6 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
         size_t nNextItem = m_pTabCtrl->GetCurSel();
         nNextItem = (nNextItem + 1) % m_pTabCtrl->GetItemCount();
         m_pTabCtrl->SelectItem(nNextItem, true, true);
-        return 0;
     }
     else if ((vkCode == VirtualKeyCode::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON)) {
         //按ESC键时，取消标签拖出
@@ -281,7 +280,56 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
             DragDropManager::GetInstance()->EndDragBorwserBox(false);
         }
     }
+    else if (vkCode == ui::kVK_F11) {
+        if (ui::WebView2Manager::GetInstance().IsEnableF11()) {
+            //页面全屏或者退出全屏
+            if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+                bHandled = true;
+                ExitControlFullscreen();
+            }
+            else {
+                //当前页面，全屏显示
+                bHandled = true;
+                ShowCurrentPageFullscreen();
+            }
+        }
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (ui::WebView2Manager::GetInstance().IsEnableF12()) {
+            //显示或者隐藏开发者工具
+            bHandled = true;
+            SwitchShowDevTools();
+        }
+    }
+    if (bHandled) {
+        return 0;
+    }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+void BrowserForm::SwitchShowDevTools()
+{
+    ui::WebView2Control* pWebView2Control = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
+    }
+    if (pWebView2Control != nullptr) {
+        //只有打开功能，没有关闭功能
+        if (pWebView2Control->AreDevToolsEnabled()) {
+            pWebView2Control->OpenDevToolsWindow();
+        }
+    }
+}
+
+void BrowserForm::ShowCurrentPageFullscreen()
+{
+    ui::WebView2Control* pWebView2Control = nullptr;
+    if (m_pActiveBrowserBox != nullptr) {
+        pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
+    }
+    if (pWebView2Control != nullptr) {
+        SetFullscreenControl(pWebView2Control);
+    }
 }
 
 LRESULT BrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
