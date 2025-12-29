@@ -334,9 +334,6 @@ void BrowserForm::SwitchShowDevTools()
     if (pCefControl != nullptr) {
         if (pCefControl->IsAttachedDevTools()) {
             pCefControl->DettachDevTools();
-            if (pCefControl != nullptr) {
-                pCefControl->SetFadeVisible(false);
-            }
         }
         else {
             pCefControl->AttachDevTools();

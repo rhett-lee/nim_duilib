@@ -42,8 +42,12 @@ WebView2Control::Impl::Impl(Control* pControl)
     , m_bWebMessageEnabledSet(false)
     , m_bZoomControlEnabled(true)
     , m_bZoomControlEnabledSet(false)
+    , m_bEnableF12(true)
+    , m_bEnableF11(true)
 {
     ASSERT(m_pControl != nullptr);
+    m_bEnableF12 = WebView2Manager::GetInstance().IsEnableF12();
+    m_bEnableF11 = WebView2Manager::GetInstance().IsEnableF11();
 }
 
 WebView2Control::Impl::~Impl()
@@ -284,22 +288,11 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
     //初始化各个选项
     InitializeSettings();
 
-    //初始化焦点事件
-    if (m_spWebView2Controller != nullptr) {
-        HRESULT hr = m_spWebView2Controller->add_GotFocus(
-            ui::ComCallback<ICoreWebView2FocusChangedEventHandler,
-                            IID_ICoreWebView2FocusChangedEventHandler>(
-                [this](ICoreWebView2Controller* sender, IUnknown* /*args*/) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2Controller.Get());
-                    ASSERT(GlobalManager::Instance().IsInUIThread());
-                    //页面获取焦点时，同步设置关联控件的焦点
-                    if (m_pControl != nullptr) {
-                        m_pControl->SetFocus();
-                    }
-                    return S_OK;
-                }).Get(), &m_gotFocusToken);
-        ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
-    }
+    //初始化焦点变化响应事件
+    InitializeFocusChanged();    
+
+    //初始化快捷键事件：F11/F12的支持
+    InitializeAcceleratorKeyPressed();
 
     //初始化控件的位置
     if ((m_pControl != nullptr) && (m_spWebView2Controller != nullptr)) {
@@ -415,6 +408,90 @@ void WebView2Control::Impl::InitializeSettings()
             settings2->put_UserAgent(StringConvert::TToWString(userAgent).c_str());
         }
     }
+}
+
+void WebView2Control::Impl::InitializeFocusChanged()
+{
+    if (m_spWebView2Controller == nullptr) {
+        return;
+    }
+    HRESULT hr = m_spWebView2Controller->add_GotFocus(
+        ui::ComCallback<ICoreWebView2FocusChangedEventHandler,
+        IID_ICoreWebView2FocusChangedEventHandler>(
+            [this](ICoreWebView2Controller* sender, IUnknown* /*args*/) -> HRESULT {
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView2Controller.Get());
+                ASSERT(GlobalManager::Instance().IsInUIThread());
+                //页面获取焦点时，同步设置关联控件的焦点
+                if (m_pControl != nullptr) {
+                    m_pControl->SetFocus();
+                }
+                return S_OK;
+            }).Get(), &m_gotFocusToken);
+    ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
+}
+
+void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
+{
+    if (m_spWebView2Controller == nullptr) {
+        return;
+    }
+    HRESULT hr = m_spWebView2Controller->add_AcceleratorKeyPressed(
+        ui::ComCallback<ICoreWebView2AcceleratorKeyPressedEventHandler,
+        IID_ICoreWebView2AcceleratorKeyPressedEventHandler>(
+            [this](ICoreWebView2Controller* sender, ICoreWebView2AcceleratorKeyPressedEventArgs* args) -> HRESULT {
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView2Controller.Get());
+                ASSERT(GlobalManager::Instance().IsInUIThread());
+                if ((args == nullptr) || (m_pControl == nullptr)) {
+                    return S_OK;
+                }
+                Window* pWindow = m_pControl->GetWindow();
+                if (pWindow == nullptr) {
+                    return S_OK;
+                }
+                // 页面快捷键事件：获取按下的快捷键的虚拟键码
+                COREWEBVIEW2_KEY_EVENT_KIND keyKind = COREWEBVIEW2_KEY_EVENT_KIND_KEY_UP;
+                args->get_KeyEventKind(&keyKind);
+                UINT32 virtualKey = 0;
+                args->get_VirtualKey(&virtualKey);
+
+                if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_ESCAPE) {
+                    //ESC键：退出全屏                    
+                    if (pWindow->IsWindowFullScreen()) {
+                        if (pWindow->GetFullscreenControl() != nullptr) {
+                            pWindow->ExitControlFullscreen();
+                        }
+                        else {
+                            pWindow->ExitFullScreen();
+                        }
+                        // 阻止WebView2将事件传递给网页，避免网页自己处理
+                        args->put_Handled(TRUE);
+                    }
+                }
+                else if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_F11) {
+                    if (IsEnableF11()) {
+                        // 阻止WebView2将事件传递给网页，避免网页自己处理
+                        args->put_Handled(TRUE);
+
+                        // 执行全屏切换逻辑
+                        if (pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == m_pControl)) {
+                            //退出页面全屏
+                            pWindow->ExitControlFullscreen();
+                        }
+                        else if (pWindow->GetFullscreenControl() != m_pControl) {
+                            //进入页面全屏状态
+                            pWindow->SetFullscreenControl(m_pControl);
+                        }
+                    }
+                }
+                else if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_F12) {
+                    if (!IsEnableF12()) {
+                        //设置不支持F12，拦截F12快捷键
+                        args->put_Handled(TRUE);
+                    }
+                }
+                return S_OK;
+            }).Get(), &m_myAcceleratorKeyPressedToken);
+    ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
 }
 
 HRESULT WebView2Control::Impl::Navigate(const DString& url)
@@ -1181,6 +1258,7 @@ void WebView2Control::Impl::Resize(RECT rect)
 {
     if (m_spWebView2Controller) {
         m_spWebView2Controller->put_Bounds(rect);
+        m_spWebView2Controller->NotifyParentWindowPositionChanged();
     }
 }
 
@@ -1242,6 +1320,10 @@ void WebView2Control::Impl::Cleanup()
         if (m_gotFocusToken.value) {
             m_spWebView2Controller->remove_GotFocus(m_gotFocusToken);
             m_gotFocusToken.value = 0;
+        }
+        if (m_myAcceleratorKeyPressedToken.value) {
+            m_spWebView2Controller->remove_AcceleratorKeyPressed(m_myAcceleratorKeyPressedToken);
+            m_myAcceleratorKeyPressedToken.value = 0;
         }
     }
 
@@ -1512,6 +1594,26 @@ bool WebView2Control::Impl::DownloadFavIconImage()
             }
         }));
     return true;
+}
+
+void WebView2Control::Impl::SetEnableF12(bool bEnableF12)
+{
+    m_bEnableF12 = bEnableF12;
+}
+
+bool WebView2Control::Impl::IsEnableF12() const
+{
+    return m_bEnableF12;
+}
+
+void WebView2Control::Impl::SetEnableF11(bool bEnableF11)
+{
+    m_bEnableF11 = bEnableF11;
+}
+
+bool WebView2Control::Impl::IsEnableF11() const
+{
+    return m_bEnableF11;
 }
 
 } //namespace ui

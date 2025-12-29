@@ -211,7 +211,7 @@ public:
     */
     void SetEnableF11(bool bEnableF11);
 
-    /** 是否允许F11快捷键(全屏/退出全屏)
+    /** 是否允许F11快捷键(页面全屏/退出页面全屏)
     */
     bool IsEnableF11() const;
 
@@ -282,7 +282,7 @@ private:
     */
     bool m_bEnableF12;
 
-    /** 是否允许F11快捷键(全屏 / 退出全屏)
+    /** 是否允许F11快捷键(页面全屏 / 退出页面全屏)
     */
     bool m_bEnableF11;
 

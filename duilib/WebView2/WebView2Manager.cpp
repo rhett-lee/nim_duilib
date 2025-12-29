@@ -25,7 +25,9 @@ WebView2Manager::WebView2Manager():
     m_bAreDefaultScriptDialogsEnabled(true),
     m_bAreDefaultContextMenusEnabled(true),
     m_bZoomControlEnabled(true),
-    m_bAreDevToolsEnabled(true)
+    m_bAreDevToolsEnabled(true),
+    m_bEnableF12(true),
+    m_bEnableF11(true)
 {
 }
 
@@ -181,6 +183,26 @@ void WebView2Manager::SetAreDevToolsEnabled(bool bAreDevToolsEnabled)
 bool WebView2Manager::AreDevToolsEnabled() const
 {
     return m_bAreDevToolsEnabled;
+}
+
+void WebView2Manager::SetEnableF12(bool bEnableF12)
+{
+    m_bEnableF12 = bEnableF12;
+}
+
+bool WebView2Manager::IsEnableF12() const
+{
+    return m_bEnableF12;
+}
+
+void WebView2Manager::SetEnableF11(bool bEnableF11)
+{
+    m_bEnableF11 = bEnableF11;
+}
+
+bool WebView2Manager::IsEnableF11() const
+{
+    return m_bEnableF11;
 }
 
 } //namespace ui
