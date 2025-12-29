@@ -241,6 +241,15 @@ protected:
     */
     virtual LRESULT OnCaptureChangedMsg(const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
+private:
+    /** 显示或者隐藏开发者工具
+    */
+    void SwitchShowDevTools();
+
+    /** 以全屏显示当前页面
+    */
+    void ShowCurrentPageFullscreen();
+
 protected:
     /** 地址栏控件（用于显示和输入URL）
     */

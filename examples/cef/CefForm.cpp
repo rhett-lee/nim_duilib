@@ -98,6 +98,19 @@ void CefForm::OnInitWindow()
             return true;
             });
     }
+
+    //页面全屏
+    ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("cef_full_screen_btn")));
+    if (pFullscreenBtn != nullptr) {
+        pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
+            ui::Control* pCefControl = FindControl(_T("cef_control"));
+            if (pCefControl != nullptr) {
+                this->SetFullscreenControl(pCefControl);
+            }
+            return true;
+            });
+    }
+
 #ifdef DUILIB_BUILD_FOR_SDL
     //显示SDL的基本信息
     DString driverName = GetVideoDriverName();
@@ -117,6 +130,52 @@ void CefForm::OnCloseWindow()
 {   
     //关闭窗口后，退出主线程的消息循环，关闭程序    
     ui::CefManager::GetInstance()->PostQuitMessage(0L);
+}
+
+LRESULT CefForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    if (vkCode == ui::kVK_F11) {
+        if (ui::CefManager::GetInstance()->IsEnableF11()) {
+            //页面全屏或者退出全屏
+            if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+                bHandled = true;
+                ExitControlFullscreen();
+            }
+            else {
+                //当前页面，全屏显示
+                if (m_pCefControl != nullptr) {
+                    bHandled = true;
+                    SetFullscreenControl(m_pCefControl);
+                }
+            }
+        }
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (ui::CefManager::GetInstance()->IsEnableF12()) {
+            //显示或者隐藏开发者工具
+            bHandled = true;
+            SwitchShowDevTools();
+        }
+    }
+    if (bHandled) {
+        return 0;
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+void CefForm::SwitchShowDevTools()
+{
+    if (m_pCefControl != nullptr) {
+        if (m_pCefControl->IsAttachedDevTools()) {
+            m_pCefControl->DettachDevTools();
+            if (m_pCefControlDev != nullptr) {
+                m_pCefControlDev->SetFadeVisible(false);
+            }
+        }
+        else {
+            m_pCefControl->AttachDevTools();
+        }
+    }
 }
 
 void CefForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
@@ -144,17 +203,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
-        if (m_pCefControl != nullptr) {
-            if (m_pCefControl->IsAttachedDevTools()) {
-                m_pCefControl->DettachDevTools();
-                if (m_pCefControlDev != nullptr) {
-                    m_pCefControlDev->SetFadeVisible(false);
-                }
-            }
-            else {
-                m_pCefControl->AttachDevTools();
-            }
-        }
+        SwitchShowDevTools();
     }
     else if (name == _T("btn_back")) {
         if (m_pCefControl != nullptr) {

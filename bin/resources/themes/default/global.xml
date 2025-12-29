@@ -276,6 +276,8 @@
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_fullscreen_11" normal_image="file='public/button/window-fullscreen.svg'
                                  width='24' height='24' valign='center' halign='center' margin='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_view_fullscreen_11" normal_image="file='public/button/view-fullscreen.svg'
+                                 width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_settings_11" normal_image="file='public/button/btn_setting.svg' 
                                  width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
      
