@@ -708,6 +708,10 @@ private:
     */
     bool m_bFullScreenExiting;
 
+    /** 进入全屏状态时，是否处于最大化状态
+    */
+    bool m_bFullscreenMaximized;
+
     /** 窗口大小的最小值（宽度和高度）
     */
     UiSize m_szMinWindow;

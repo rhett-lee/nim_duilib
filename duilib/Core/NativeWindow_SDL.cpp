@@ -709,6 +709,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bDoModal(false),
     m_bFullScreen(false),
     m_bFullScreenExiting(false),
+    m_bFullscreenMaximized(false),
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false)
 {
@@ -2111,6 +2112,11 @@ bool NativeWindow_SDL::EnterFullScreen()
     }
     m_bFullScreen = true;
     m_bFullScreenExiting = false;
+    m_bFullscreenMaximized = IsWindowMaximized();
+    if (m_bFullscreenMaximized) {
+        //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
+        SDL_RestoreWindow(m_sdlWindow);
+    }
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2149,7 +2155,13 @@ bool NativeWindow_SDL::ExitFullScreen()
 
     m_bFullScreen = false;
     m_bFullScreenExiting = false;
-    m_pOwner->OnNativeWindowExitFullScreen();    
+
+    if (m_bFullscreenMaximized) {
+        m_bFullscreenMaximized = false;
+        //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
+        SDL_MaximizeWindow(m_sdlWindow);
+    }
+    m_pOwner->OnNativeWindowExitFullScreen();
     return true;
 }
 
