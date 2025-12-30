@@ -105,7 +105,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
             }
             //创建新标签
             if (m_pBrowserForm != nullptr) {
-                if (m_pBrowserForm->IsWindowFullScreen() &&
+                if (m_pBrowserForm->IsWindowFullscreen() &&
                     (m_pBrowserForm->GetFullscreenControl() != nullptr) &&
                     (dynamic_cast<ui::WebView2Control*>(m_pBrowserForm->GetFullscreenControl()) != nullptr)) {
                     //页面全屏状态，不开启多标签，直接在当前页面打开

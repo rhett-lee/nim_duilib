@@ -48,8 +48,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
-    m_bFullScreen(false),
-    m_bFullScreenExiting(false),
+    m_bFullscreen(false),
+    m_bFullscreenExiting(false),
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
     m_pfnOldWndProc(nullptr),
@@ -742,9 +742,9 @@ bool NativeWindow_Windows::ShowWindow(ShowWindowCommands nCmdShow)
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         //先退出全屏
-        ExitFullScreen();
+        ExitFullscreen();
     }
     bool bRet = false;
     int nWindowCmdShow = SW_SHOWNORMAL;
@@ -1007,7 +1007,7 @@ void NativeWindow_Windows::PostQuitMsg(int32_t nExitCode)
     ::PostQuitMessage(nExitCode);
 }
 
-bool NativeWindow_Windows::EnterFullScreen()
+bool NativeWindow_Windows::EnterFullscreen()
 {
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
@@ -1017,11 +1017,11 @@ bool NativeWindow_Windows::EnterFullScreen()
         //最小化的时候，不允许激活全屏
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         return true;
     }
-    m_bFullScreen = true;
-    m_bFullScreenExiting = false;
+    m_bFullscreen = true;
+    m_bFullscreenExiting = false;
 
     //保存窗口风格
     m_dwLastStyle = ::GetWindowLong(m_hWnd, GWL_STYLE);
@@ -1034,27 +1034,27 @@ bool NativeWindow_Windows::EnterFullScreen()
     GetMonitorRect(rcMonitor);
 
     // 去掉标题栏、边框
-    DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
-    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
+    DWORD dwFullscreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullscreenStyle);
     ::SetWindowPos(m_hWnd, nullptr, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
     
-    m_pOwner->OnNativeWindowEnterFullScreen();
+    m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
 
-bool NativeWindow_Windows::ExitFullScreen()
+bool NativeWindow_Windows::ExitFullscreen()
 {
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
-    if (!m_bFullScreen) {
+    if (!m_bFullscreen) {
         return false;
     }
-    if (m_bFullScreenExiting) {
+    if (m_bFullscreenExiting) {
         return false;
     }
-    m_bFullScreenExiting = true; //避免重复进入退出流程
+    m_bFullscreenExiting = true; //避免重复进入退出流程
     
     //恢复窗口风格
     if (m_dwLastStyle != 0) {
@@ -1065,13 +1065,13 @@ bool NativeWindow_Windows::ExitFullScreen()
     //恢复窗口位置/大小信息
     ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    m_bFullScreen = false;
-    m_bFullScreenExiting = false;
+    m_bFullscreen = false;
+    m_bFullscreenExiting = false;
 
     //触发位置和大小变化事件
     ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
 
-    m_pOwner->OnNativeWindowExitFullScreen();
+    m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
 
@@ -1085,9 +1085,9 @@ bool NativeWindow_Windows::IsWindowMinimized() const
     return ::IsWindow(m_hWnd) && ::IsIconic(m_hWnd);
 }
 
-bool NativeWindow_Windows::IsWindowFullScreen() const
+bool NativeWindow_Windows::IsWindowFullscreen() const
 {
-    return m_bFullScreen;
+    return m_bFullscreen;
 }
 
 bool NativeWindow_Windows::EnableWindow(bool bEnable)
@@ -2121,7 +2121,7 @@ LRESULT NativeWindow_Windows::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARA
     }
 
     bHandled = true;
-    if (IsWindowFullScreen()) {
+    if (IsWindowFullscreen()) {
         //全屏状态下，整个窗口在工作区中
         return HTCLIENT;
     }

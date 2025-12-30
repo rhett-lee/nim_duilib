@@ -369,14 +369,14 @@ void WindowBase::CheckSetWindowFocus()
     return m_pNativeWindow->CheckSetWindowFocus();
 }
 
-bool WindowBase::EnterFullScreen()
+bool WindowBase::EnterFullscreen()
 {
-    return m_pNativeWindow->EnterFullScreen();
+    return m_pNativeWindow->EnterFullscreen();
 }
 
-bool WindowBase::ExitFullScreen()
+bool WindowBase::ExitFullscreen()
 {
-    return m_pNativeWindow->ExitFullScreen();
+    return m_pNativeWindow->ExitFullscreen();
 }
 
 bool WindowBase::IsWindowMaximized() const
@@ -389,9 +389,9 @@ bool WindowBase::IsWindowMinimized() const
     return m_pNativeWindow->IsWindowMinimized();
 }
 
-bool WindowBase::IsWindowFullScreen() const
+bool WindowBase::IsWindowFullscreen() const
 {
-    return m_pNativeWindow->IsWindowFullScreen();
+    return m_pNativeWindow->IsWindowFullscreen();
 }
 
 bool WindowBase::EnableWindow(bool bEnable)
@@ -864,16 +864,16 @@ void WindowBase::OnWindowSize(WindowSizeType sizeType)
     }
 }
 
-void WindowBase::OnNativeWindowEnterFullScreen()
+void WindowBase::OnNativeWindowEnterFullscreen()
 {
-    NotifyWindowEnterFullScreen(); //供Window子类处理业务
-    OnWindowEnterFullScreen();     //供应用层处理业务
+    NotifyWindowEnterFullscreen(); //供Window子类处理业务
+    OnWindowEnterFullscreen();     //供应用层处理业务
 }
 
-void WindowBase::OnNativeWindowExitFullScreen()
+void WindowBase::OnNativeWindowExitFullscreen()
 {
-    NotifyWindowExitFullScreen();   //供Window子类处理业务
-    OnWindowExitFullScreen();       //供应用层处理业务
+    NotifyWindowExitFullscreen();   //供Window子类处理业务
+    OnWindowExitFullscreen();       //供应用层处理业务
 }
 
 UiRect WindowBase::OnNativeGetSizeBox() const

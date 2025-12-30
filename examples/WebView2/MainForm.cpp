@@ -139,7 +139,7 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     if (vkCode == ui::kVK_F11) {
         if (ui::WebView2Manager::GetInstance().IsEnableF11()) {
             //页面全屏或者退出全屏
-            if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+            if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
                 bHandled = true;
                 ExitControlFullscreen();
             }

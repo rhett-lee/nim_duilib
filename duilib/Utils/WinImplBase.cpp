@@ -144,7 +144,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
     else if (sCtrlName == DUI_CTR_BUTTON_FULLSCREEN) {
         //全屏按钮
-        EnterFullScreen();
+        EnterFullscreen();
     }
 
     return true;
@@ -180,26 +180,26 @@ LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWind
     }
     if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
         //窗口最大化
-        if (!IsWindowFullScreen()) {
+        if (!IsWindowFullscreen()) {
             OnWindowMaximized();
         }
     }
     else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
         //窗口还原
-        if (!IsWindowFullScreen()) {
+        if (!IsWindowFullscreen()) {
             OnWindowRestored();
         }
     }
     else if (sizeType == WindowSizeType::kSIZE_MINIMIZED) {
         //窗口最小化
-        if (!IsWindowFullScreen()) {
+        if (!IsWindowFullscreen()) {
             OnWindowMinimized();
         }
     }
     return lResult;
 }
 
-void WindowImplBase::OnWindowEnterFullScreen()
+void WindowImplBase::OnWindowEnterFullscreen()
 {
     if (!IsUseSystemCaption()) {
         Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);
@@ -209,7 +209,7 @@ void WindowImplBase::OnWindowEnterFullScreen()
     }
 }
 
-void WindowImplBase::OnWindowExitFullScreen()
+void WindowImplBase::OnWindowExitFullscreen()
 {
     if (!IsUseSystemCaption()) {
         Control* pCaptionBar = FindControl(DUI_CTR_CAPTION_BAR);

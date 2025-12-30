@@ -715,9 +715,9 @@ public:
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override
+    virtual void OnWindowExitFullscreen() override
     {
-        BaseClass::OnWindowExitFullScreen();
+        BaseClass::OnWindowExitFullscreen();
         CloseWnd();
     }
 
@@ -787,7 +787,7 @@ void ColorPicker::OnPickColorFromScreen()
     createWndParam.m_bCenterWindow = true;
     pScreenColorPicker->CreateWnd(nullptr, createWndParam);
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
-    pScreenColorPicker->EnterFullScreen();
+    pScreenColorPicker->EnterFullscreen();
     pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
         //更新选择的颜色值
         UiColor selectedColor = pScreenColorPicker->GetSelColor();

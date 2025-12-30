@@ -473,7 +473,7 @@ public:
     bool IsEnableDragDrop() const;
 
 public:
-    /** 设置全屏显示的控件，全屏显示控件以后，可以使用ExitFullScreen()函数退出全屏状态
+    /** 设置全屏显示的控件，全屏显示控件以后，可以使用ExitFullscreen()函数退出全屏状态
     * @param [in] pFullscreenControl 需要全屏显示的控件
     * @param [in] exitButtonClass 退出全屏按钮的Class名称，如果为空则表示不支持显示"退出全屏"按钮
     *             默认的退出全屏Class名称为"btn_exit_fullscreen"，在globlal.xml中定义
@@ -595,11 +595,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() override;
+    virtual void OnWindowEnterFullscreen() override;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override;
+    virtual void OnWindowExitFullscreen() override;
 
     /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
     * @param [in] nOldScaleFactor 旧的DPI缩放百分比
@@ -953,11 +953,11 @@ private:
 
     /** 进入全屏状态
     */
-    virtual void NotifyWindowEnterFullScreen() override final;
+    virtual void NotifyWindowEnterFullscreen() override final;
 
     /** 退出全屏状态
     */
-    virtual void NotifyWindowExitFullScreen() override final;
+    virtual void NotifyWindowExitFullscreen() override final;
 
 private:
     //鼠标等按下消息处理函数
@@ -1058,11 +1058,11 @@ private:
 
     /** 处理窗口进入全屏事件
     */
-    void ProcessWindowEnterFullScreen();
+    void ProcessWindowEnterFullscreen();
 
     /** 处理窗口退出全屏事件
     */
-    void ProcessWindowExitFullScreen();
+    void ProcessWindowExitFullscreen();
 
     /** 处理全屏按钮的动态显示
     */

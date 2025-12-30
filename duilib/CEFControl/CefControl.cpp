@@ -1065,18 +1065,18 @@ bool CefControl::OnPreKeyEvent(CefRefPtr<CefBrowser> /*browser*/,
         else if (event.windows_key_code == kVK_ESCAPE) {
             //ESC键退出全屏
             Window* pWindow = GetWindow();
-            if ((pWindow != nullptr) && pWindow->IsWindowFullScreen()) {
+            if ((pWindow != nullptr) && pWindow->IsWindowFullscreen()) {
                 //退出全屏，并且拦截该快捷键(投递到UI线程执行)
                 auto flag = GetWeakFlag();
                 GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [this, flag]() {
                     if (!flag.expired()) {
                         Window* pWindow = GetWindow();
-                        if ((pWindow != nullptr) && pWindow->IsWindowFullScreen()) {
+                        if ((pWindow != nullptr) && pWindow->IsWindowFullscreen()) {
                             if (pWindow->GetFullscreenControl() != nullptr) {
                                 pWindow->ExitControlFullscreen();
                             }
                             else {
-                                pWindow->ExitFullScreen();
+                                pWindow->ExitFullscreen();
                             }
                         }
                     }
@@ -1087,13 +1087,13 @@ bool CefControl::OnPreKeyEvent(CefRefPtr<CefBrowser> /*browser*/,
         else if (m_bEnableF11 && (event.windows_key_code == kVK_F11)) {
             //F11功能处理页面全屏和退出页面全屏
             Window* pWindow = GetWindow();
-            if ((pWindow != nullptr) && pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == this)) {
+            if ((pWindow != nullptr) && pWindow->IsWindowFullscreen() && (pWindow->GetFullscreenControl() == this)) {
                 //退出页面全屏，并且拦截该快捷键(投递到UI线程执行)
                 auto flag = GetWeakFlag();
                 GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [this, flag]() {
                     if (!flag.expired()) {
                         Window* pWindow = GetWindow();
-                        if ((pWindow != nullptr) && pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == this)) {
+                        if ((pWindow != nullptr) && pWindow->IsWindowFullscreen() && (pWindow->GetFullscreenControl() == this)) {
                             pWindow->ExitControlFullscreen();
                         }
                     }

@@ -76,11 +76,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() override;
+    virtual void OnWindowEnterFullscreen() override;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override;
+    virtual void OnWindowExitFullscreen() override;
 
     /** 切换系统标题栏与自绘标题栏
     */

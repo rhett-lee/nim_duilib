@@ -75,11 +75,11 @@ public:
 
     /** 进入全屏状态
     */
-    virtual void OnNativeWindowEnterFullScreen() = 0;
+    virtual void OnNativeWindowEnterFullscreen() = 0;
 
     /** 退出全屏状态
     */
-    virtual void OnNativeWindowExitFullScreen() = 0;
+    virtual void OnNativeWindowExitFullscreen() = 0;
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */

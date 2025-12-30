@@ -835,11 +835,11 @@ void Window::OnWindowAlphaChanged()
     InvalidateAll();
 }
 
-void Window::OnWindowEnterFullScreen()
+void Window::OnWindowEnterFullscreen()
 {
 }
 
-void Window::OnWindowExitFullScreen()
+void Window::OnWindowExitFullscreen()
 {
 }
 
@@ -1569,13 +1569,13 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
         return lResult;
     }
 
-    if ((vkCode == kVK_ESCAPE) && IsWindowFullScreen()) {
+    if ((vkCode == kVK_ESCAPE) && IsWindowFullscreen()) {
         //按ESC键时，退出全屏
         if (GetFullscreenControl() != nullptr) {
             ExitControlFullscreen();
         }
         else {
-            ExitFullScreen();
+            ExitFullscreen();
         }
         return lResult;
     }
@@ -2652,21 +2652,21 @@ Shadow* Window::GetShadow() const
     return m_shadow.get();
 }
 
-void Window::NotifyWindowEnterFullScreen()
+void Window::NotifyWindowEnterFullscreen()
 {
     //窗口进入全屏状态
-    ProcessWindowEnterFullScreen();
+    ProcessWindowEnterFullscreen();
 }
 
-void Window::NotifyWindowExitFullScreen()
+void Window::NotifyWindowExitFullscreen()
 {
     //窗口退出全屏状态
-    ProcessWindowExitFullScreen();
+    ProcessWindowExitFullscreen();
 }
 
 void Window::ProcessWindowMaximized()
 {
-    if (!IsUseSystemCaption() && !IsWindowFullScreen()) {
+    if (!IsUseSystemCaption() && !IsWindowFullscreen()) {
         //最大化时，保存并设置全屏状态下的容器外边距
         SetWindowMaximizedMargin();        
     }
@@ -2796,13 +2796,13 @@ void Window::RestoreWindowMaximizedMargin()
     }
 }
 
-void Window::ProcessWindowEnterFullScreen()
+void Window::ProcessWindowEnterFullscreen()
 {
     //全屏时，需要还原最大化时设置的外边距
     RestoreWindowMaximizedMargin();
 }
 
-void Window::ProcessWindowExitFullScreen()
+void Window::ProcessWindowExitFullscreen()
 {
     FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
     if (pFullscreenBox != nullptr) {
@@ -2810,7 +2810,7 @@ void Window::ProcessWindowExitFullScreen()
         m_pRoot = pFullscreenBox->GetOldRoot();
         ASSERT(m_pRoot != nullptr);
         m_controlFinder.SetRoot(m_pRoot.get());
-        pFullscreenBox->ExitControlFullScreen();
+        pFullscreenBox->ExitControlFullscreen();
         if (m_pRoot != nullptr) {
             m_pRoot->SetVisible(true);
         }
@@ -2851,13 +2851,13 @@ bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& ex
             return true;
         }
         ASSERT(m_bControlFullscreen);
-        ASSERT(IsWindowFullScreen());
+        ASSERT(IsWindowFullscreen());
         ASSERT(m_pRoot == pFullscreenBox);
         ASSERT(m_controlFinder.GetRoot() == pFullscreenBox);
-        if (m_bControlFullscreen && IsWindowFullScreen() &&
+        if (m_bControlFullscreen && IsWindowFullscreen() &&
             (m_pRoot == pFullscreenBox) && (m_controlFinder.GetRoot() == pFullscreenBox)) {
             //仅切换全屏控件，不改变全屏状态
-            if (pFullscreenBox->UpdateControlFullScreen(pFullscreenControl, exitButtonClass)) {
+            if (pFullscreenBox->UpdateControlFullscreen(pFullscreenControl, exitButtonClass)) {
                 //复位控件的状态
                 ClearStatus();
 
@@ -2870,14 +2870,14 @@ bool Window::SetFullscreenControl(Control* pFullscreenControl, const DString& ex
     else {
         //原来不是控件全屏状态
         pFullscreenBox = new FullscreenBox(this);
-        if (pFullscreenBox->EnterControlFullScreen(m_pRoot.get(), pFullscreenControl, exitButtonClass)) {
+        if (pFullscreenBox->EnterControlFullscreen(m_pRoot.get(), pFullscreenControl, exitButtonClass)) {
             //成功进入控件全屏状态
             m_controlFinder.SetRoot(pFullscreenBox);
             m_pRoot = pFullscreenBox;
             m_bControlFullscreen = true;
 
             //窗口进入全屏状态
-            this->EnterFullScreen();
+            this->EnterFullscreen();
 
             //复位控件的状态
             ClearStatus();
@@ -2900,9 +2900,9 @@ void Window::ExitControlFullscreen()
         FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(m_pRoot.get());
         if (pFullscreenBox != nullptr) {
             //退出控件全屏
-            bool bWindowOldFullScreen = pFullscreenBox->IsWindowOldFullScreen();
-            ProcessWindowExitFullScreen();
-            if (bWindowOldFullScreen) {
+            bool bWindowOldFullscreen = pFullscreenBox->IsWindowOldFullscreen();
+            ProcessWindowExitFullscreen();
+            if (bWindowOldFullscreen) {
                 //窗口原来就是全屏，不需要退出窗口全屏状态
                 return;
             }
@@ -2910,7 +2910,7 @@ void Window::ExitControlFullscreen()
     }
 
     //退出窗口全屏
-    ExitFullScreen();
+    ExitFullscreen();
 }
 
 Control* Window::GetFullscreenControl() const

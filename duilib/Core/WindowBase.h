@@ -181,11 +181,11 @@ public:
 
     /** 使窗口进入全屏状态
     */
-    bool EnterFullScreen();
+    bool EnterFullscreen();
 
     /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
     */
-    bool ExitFullScreen();
+    bool ExitFullscreen();
 
     /** 窗口是否为最大化状态
     */
@@ -197,7 +197,7 @@ public:
 
     /** 窗口是否为全屏状态
     */
-    bool IsWindowFullScreen() const;
+    bool IsWindowFullscreen() const;
 
      /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
@@ -603,11 +603,11 @@ protected:
 protected:
     /** 进入全屏状态
     */
-    virtual void NotifyWindowEnterFullScreen() = 0;
+    virtual void NotifyWindowEnterFullscreen() = 0;
 
     /** 退出全屏状态
     */
-    virtual void NotifyWindowExitFullScreen() = 0;
+    virtual void NotifyWindowExitFullscreen() = 0;
 
 protected:
     /** 切换系统标题栏与自绘标题栏
@@ -629,11 +629,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() = 0;
+    virtual void OnWindowEnterFullscreen() = 0;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() = 0;
+    virtual void OnWindowExitFullscreen() = 0;
 
     /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
     * @param [in] nOldScaleFactor 旧的DPI缩放百分比
@@ -1000,8 +1000,8 @@ private:
 
 private:
     //来自实现窗口的事件
-    virtual void OnNativeWindowEnterFullScreen() override;
-    virtual void OnNativeWindowExitFullScreen() override;
+    virtual void OnNativeWindowEnterFullscreen() override;
+    virtual void OnNativeWindowExitFullscreen() override;
     virtual UiRect OnNativeGetSizeBox() const override;
     virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override;
     virtual const DpiManager& OnNativeGetDpi() const override;

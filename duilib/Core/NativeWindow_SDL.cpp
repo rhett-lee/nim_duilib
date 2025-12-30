@@ -707,8 +707,8 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bEnableDragDrop(true),
     m_bFakeModal(false),
     m_bDoModal(false),
-    m_bFullScreen(false),
-    m_bFullScreenExiting(false),
+    m_bFullscreen(false),
+    m_bFullscreenExiting(false),
     m_bFullscreenMaximized(false),
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false)
@@ -1346,7 +1346,7 @@ int32_t NativeWindow_SDL::SDL_HitTest(SDL_Window* win, const SDL_Point* area, vo
     }
 
     //全屏模式, 只返回客户区域属性
-    if (IsWindowFullScreen()) {
+    if (IsWindowFullscreen()) {
         return SDL_HITTEST_NORMAL;
     }
 
@@ -1801,9 +1801,9 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     if (m_sdlWindow == nullptr) {
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         //先退出全屏
-        ExitFullScreen();
+        ExitFullscreen();
     }
     bool nRet = false;
     switch(nCmdShow)
@@ -2097,7 +2097,7 @@ void NativeWindow_SDL::PostQuitMsg(int32_t /*nExitCode*/)
     ASSERT_UNUSED_VARIABLE(nRet);
 }
 
-bool NativeWindow_SDL::EnterFullScreen()
+bool NativeWindow_SDL::EnterFullscreen()
 {
     ASSERT(IsWindow());
     if (m_sdlWindow == nullptr) {
@@ -2107,11 +2107,11 @@ bool NativeWindow_SDL::EnterFullScreen()
         //最小化的时候，不允许激活全屏
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         return true;
     }
-    m_bFullScreen = true;
-    m_bFullScreenExiting = false;
+    m_bFullscreen = true;
+    m_bFullscreenExiting = false;
     m_bFullscreenMaximized = IsWindowMaximized();
     if (m_bFullscreenMaximized) {
         //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
@@ -2127,23 +2127,23 @@ bool NativeWindow_SDL::EnterFullScreen()
         SDL_SetWindowResizable(m_sdlWindow, false);
     }
     
-    m_pOwner->OnNativeWindowEnterFullScreen();
+    m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
 
-bool NativeWindow_SDL::ExitFullScreen()
+bool NativeWindow_SDL::ExitFullscreen()
 {
     ASSERT(IsWindow());
     if (m_sdlWindow == nullptr) {
         return false;
     }
-    if (!m_bFullScreen) {
+    if (!m_bFullscreen) {
         return false;
     }
-    if (m_bFullScreenExiting) {
+    if (m_bFullscreenExiting) {
         return false;
     }
-    m_bFullScreenExiting = true;//避免重复进入退出流程
+    m_bFullscreenExiting = true;//避免重复进入退出流程
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2153,15 +2153,15 @@ bool NativeWindow_SDL::ExitFullScreen()
         SDL_SetWindowResizable(m_sdlWindow, true);
     }
 
-    m_bFullScreen = false;
-    m_bFullScreenExiting = false;
+    m_bFullscreen = false;
+    m_bFullscreenExiting = false;
 
     if (m_bFullscreenMaximized) {
         m_bFullscreenMaximized = false;
         //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
         SDL_MaximizeWindow(m_sdlWindow);
     }
-    m_pOwner->OnNativeWindowExitFullScreen();
+    m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
 
@@ -2187,15 +2187,15 @@ bool NativeWindow_SDL::IsWindowMinimized() const
     return bWindowMinimized;
 }
 
-bool NativeWindow_SDL::IsWindowFullScreen() const
+bool NativeWindow_SDL::IsWindowFullscreen() const
 {
     ASSERT(IsWindow());
-    bool bFullScreen = false;
+    bool bFullscreen = false;
     if (m_sdlWindow != nullptr) {
         SDL_WindowFlags nFlags = SDL_GetWindowFlags(m_sdlWindow);
-        bFullScreen = nFlags & SDL_WINDOW_FULLSCREEN;
+        bFullscreen = nFlags & SDL_WINDOW_FULLSCREEN;
     }
-    return bFullScreen;
+    return bFullscreen;
 }
 
 bool NativeWindow_SDL::IsWindowVisible() const

@@ -289,7 +289,7 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         }
         
         if (pWindow != nullptr) {
-            if (pWindow->IsWindowFullScreen() &&
+            if (pWindow->IsWindowFullscreen() &&
                 (pWindow->GetFullscreenControl() != nullptr) &&
                 (dynamic_cast<ui::CefControl*>(pWindow->GetFullscreenControl()) != nullptr)) {
                 //页面全屏状态，不开启多标签，直接在当前页面打开
