@@ -1060,17 +1060,25 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
                     }
                     else {
                         if (bUserInitiated) {
+                            //手动点击，允许弹窗
                             bAllow = true;
                         }
                     }
 
                     if (bAllow) {
                         //覆盖当前页面(暂时不支持弹出新窗口或者创建新标签)
-                        args->put_NewWindow(m_spWebView2.Get());
-                    }
+                        //args->put_NewWindow(m_spWebView2.Get());
+                        //args->put_Handled(FALSE);
+                        //上述方法打开的页面，没有前进后退历史，不符合预期
 
-                    // 默认取消新窗口，由应用程序处理
-                    args->put_Handled(!bAllow);
+                        //直接导航，这样能够保留前进后退历史，但不能支持网页脚本能正常交互（如window.opener）
+                        m_spWebView2->Navigate(targetUrl.c_str());
+                        args->put_Handled(TRUE);
+                    }
+                    else {
+                        //拦截弹窗
+                        args->put_Handled(TRUE);
+                    }                   
                     return S_OK;
                 }).Get(), &m_newWindowRequestedToken);
         ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));

@@ -54,8 +54,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
         if (m_pBrowserForm != nullptr) {
             m_pBrowserForm->OnLoadingStateChange(this);
         }
-        if (m_pWebView2Control != nullptr)
-        {
+        if (m_pWebView2Control != nullptr) {
             //测试代码
             if (state == WebView2Control::NavigationState::Completed) {
                // m_pWebView2Control->PostWebMessageAsString(_T("hello world!"));               
@@ -87,6 +86,36 @@ void BrowserBox::InitBrowserBox(const DString& url)
         ui::GlobalManager::Instance().AssertUIThread();
         //发送回复给HTML页面
         m_pWebView2Control->PostWebMessageAsString(_T("Hello from C++!"));
+        });
+
+    //新窗口请求回调函数
+    m_pWebView2Control->SetNewWindowRequestedCallback([this](const DString& sourceUrl, const DString& sourceFrame,
+                                                             const DString& targetUrl, const DString& targetFrame,
+                                                             bool bUserInitiated) {
+            // 返回true表示允许创建弹窗页面，但新的页面在当前页面中导航，不会弹出新窗口；
+            // 返回false表示拦截页面弹窗页面，由回调函数内托管新页面的显示逻辑
+            ui::GlobalManager::Instance().AssertUIThread();
+            if (!bUserInitiated) {
+                //如果不是手工触发的弹窗页面，直接拦截
+                return false;
+            }
+            if (targetUrl.empty()) {
+                //目标URL为空，直接拦截
+                return false;
+            }
+            //创建新标签
+            if (m_pBrowserForm != nullptr) {
+                if (m_pBrowserForm->IsWindowFullScreen() &&
+                    (m_pBrowserForm->GetFullscreenControl() != nullptr) &&
+                    (dynamic_cast<ui::WebView2Control*>(m_pBrowserForm->GetFullscreenControl()) != nullptr)) {
+                    //页面全屏状态，不开启多标签，直接在当前页面打开
+                    return true;
+                }
+
+                //在新标签中打开
+                m_pBrowserForm->OpenLinkUrl(targetUrl, false);
+            }
+            return false;
         });
 
     m_pWebView2Control->InitializeAsync(_T(""), [this](HRESULT result) {

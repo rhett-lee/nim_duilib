@@ -66,7 +66,7 @@ public:
      * @param targetUrl 请求的URL
      * @param targetFrame 目标框架名称
      * @param bUserInitiated 是否由用户触发的弹窗
-     * @return 是否允许创建弹窗页面
+     * @return 返回true表示允许创建弹窗页面，但新的页面在当前页面中导航，不会弹出新窗口；返回false表示拦截页面弹窗页面，由回调函数内托管新页面的显示逻辑
      */
     using NewWindowRequestedCallback = std::function<bool(const DString& sourceUrl, const DString& sourceFrame,
                                                           const DString& targetUrl, const DString& targetFrame,
