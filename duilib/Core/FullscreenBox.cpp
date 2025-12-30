@@ -8,7 +8,7 @@ FullscreenBox::FullscreenBox(Window* pWindow) :
     Box(pWindow),
     m_nOldItemIndex(0),
     m_bWindowMaximized(false),
-    m_bWindowFullScreen(false)
+    m_bWindowFullscreen(false)
 {
     //关闭控件自身的内边距
     SetEnableControlPadding(false);
@@ -19,7 +19,7 @@ FullscreenBox::FullscreenBox(Window* pWindow) :
     //保存窗口原来的状态
     if (pWindow != nullptr) {
         m_bWindowMaximized = pWindow->IsWindowMaximized();
-        m_bWindowFullScreen = pWindow->IsWindowFullScreen();
+        m_bWindowFullscreen = pWindow->IsWindowFullscreen();
     }
 }
 
@@ -35,7 +35,7 @@ FullscreenBox::~FullscreenBox()
 
 DString FullscreenBox::GetType() const { return _T("FullscreenBox"); }
 
-bool FullscreenBox::EnterControlFullScreen(Box* pOldRoot, Control* pFullscreenControl, const DString& exitButtonClass)
+bool FullscreenBox::EnterControlFullscreen(Box* pOldRoot, Control* pFullscreenControl, const DString& exitButtonClass)
 {
     ASSERT((pOldRoot != nullptr) && (pFullscreenControl != nullptr));
     if ((pOldRoot == nullptr) || (pFullscreenControl == nullptr)) {
@@ -71,7 +71,7 @@ bool FullscreenBox::EnterControlFullScreen(Box* pOldRoot, Control* pFullscreenCo
     return true;
 }
 
-bool FullscreenBox::UpdateControlFullScreen(Control* pFullscreenControl, const DString& exitButtonClass)
+bool FullscreenBox::UpdateControlFullscreen(Control* pFullscreenControl, const DString& exitButtonClass)
 {
     if (pFullscreenControl == nullptr) {
         return false;
@@ -91,7 +91,7 @@ bool FullscreenBox::UpdateControlFullScreen(Control* pFullscreenControl, const D
     return true;
 }
 
-void FullscreenBox::ExitControlFullScreen()
+void FullscreenBox::ExitControlFullscreen()
 {
     //还原旧的全屏控件
     RestoreControlToBox();
@@ -208,9 +208,9 @@ bool FullscreenBox::IsWindowOldMaximized() const
     return m_bWindowMaximized;
 }
 
-bool FullscreenBox::IsWindowOldFullScreen() const
+bool FullscreenBox::IsWindowOldFullscreen() const
 {
-    return m_bWindowFullScreen;
+    return m_bWindowFullscreen;
 }
 
 } // namespace ui

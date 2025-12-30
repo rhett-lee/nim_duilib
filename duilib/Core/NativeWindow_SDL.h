@@ -281,11 +281,11 @@ public:
 public:
     /** 使窗口进入全屏状态
     */
-    bool EnterFullScreen();
+    bool EnterFullscreen();
 
     /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
     */
-    bool ExitFullScreen();
+    bool ExitFullscreen();
 
     /** 窗口是否为最大化状态
     */
@@ -297,7 +297,7 @@ public:
 
     /** 窗口是否为全屏状态
     */
-    bool IsWindowFullScreen() const;
+    bool IsWindowFullscreen() const;
 
     /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
@@ -702,11 +702,11 @@ private:
 
     /** 窗口是否为全屏状态
     */
-    bool m_bFullScreen;
+    bool m_bFullscreen;
 
     /** 是否正在退出全屏
     */
-    bool m_bFullScreenExiting;
+    bool m_bFullscreenExiting;
 
     /** 进入全屏状态时，是否处于最大化状态
     */

@@ -301,7 +301,7 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
     else if (vkCode == ui::kVK_F11) {
         if (ui::CefManager::GetInstance()->IsEnableF11()) {
             //页面全屏或者退出全屏
-            if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+            if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
                 bHandled = true;
                 ExitControlFullscreen();
             }
@@ -825,7 +825,7 @@ void BrowserForm::OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBro
         pTabItem->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
     }
     if ((pBrowserBox != nullptr) && (pBrowserBox->GetCefControl() != nullptr)) {
-        if (IsWindowFullScreen() && (GetFullscreenControl() != nullptr)) {
+        if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
             //当前是控件全屏状态，设置新标签页的控件为全屏控件
             SetFullscreenControl(pBrowserBox->GetCefControl());
         }

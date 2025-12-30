@@ -26,17 +26,17 @@ public:
     * @param [in] pFullscreenControl 需要全屏的控件接口
     * @param [in] exitButtonClass 退出全屏按钮的Class名称，如果为空表示不显示退出全屏按钮
     */
-    bool EnterControlFullScreen(Box* pOldRoot, Control* pFullscreenControl, const DString& exitButtonClass);
+    bool EnterControlFullscreen(Box* pOldRoot, Control* pFullscreenControl, const DString& exitButtonClass);
 
     /** 更新全屏控件(在已经是控件全屏的状态下)
     * @param [in] pFullscreenControl 需要全屏的控件接口
     * @param [in] exitButtonClass 退出全屏按钮的Class名称，如果为空表示不显示退出全屏按钮
     */
-    bool UpdateControlFullScreen(Control* pFullscreenControl, const DString& exitButtonClass);
+    bool UpdateControlFullscreen(Control* pFullscreenControl, const DString& exitButtonClass);
 
     /** 退出控件全屏
     */
-    void ExitControlFullScreen();
+    void ExitControlFullscreen();
 
     /** 处理全屏按钮的动态显示
     * @param [in] pt 当前鼠标所在位置，客户区坐标
@@ -58,7 +58,7 @@ public:
 
     /** 获取窗口原来的状态是全屏状态
     */
-    bool IsWindowOldFullScreen() const;
+    bool IsWindowOldFullscreen() const;
 
 private:
     /** 将控件从原来的容器中提取出来
@@ -111,7 +111,7 @@ private:
 
     /** 窗口原来的状态是全屏状态
     */
-    bool m_bWindowFullScreen;
+    bool m_bWindowFullscreen;
 };
 
 } // namespace ui

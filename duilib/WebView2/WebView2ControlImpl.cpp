@@ -456,12 +456,12 @@ void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
 
                 if (keyKind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN && virtualKey == VK_ESCAPE) {
                     //ESC键：退出全屏                    
-                    if (pWindow->IsWindowFullScreen()) {
+                    if (pWindow->IsWindowFullscreen()) {
                         if (pWindow->GetFullscreenControl() != nullptr) {
                             pWindow->ExitControlFullscreen();
                         }
                         else {
-                            pWindow->ExitFullScreen();
+                            pWindow->ExitFullscreen();
                         }
                         // 阻止WebView2将事件传递给网页，避免网页自己处理
                         args->put_Handled(TRUE);
@@ -473,7 +473,7 @@ void WebView2Control::Impl::InitializeAcceleratorKeyPressed()
                         args->put_Handled(TRUE);
 
                         // 执行全屏切换逻辑
-                        if (pWindow->IsWindowFullScreen() && (pWindow->GetFullscreenControl() == m_pControl)) {
+                        if (pWindow->IsWindowFullscreen() && (pWindow->GetFullscreenControl() == m_pControl)) {
                             //退出页面全屏
                             pWindow->ExitControlFullscreen();
                         }
