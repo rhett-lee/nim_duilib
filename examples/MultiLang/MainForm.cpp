@@ -23,7 +23,7 @@ void MainForm::OnInitWindow()
     //窗口初始化完成，可以进行本Form的初始化
 
     /* Show select language menu */
-    ui::Button* select = static_cast<ui::Button*>(FindControl(_T("language")));
+    ui::Button* select = dynamic_cast<ui::Button*>(FindControl(_T("language")));
     ASSERT(select != nullptr);
     if (select == nullptr) {
         return;

@@ -34,6 +34,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    */
+    virtual void OnLanguageChanged() override;
+
 protected:
     virtual void OnInit() override;
 
@@ -130,11 +134,22 @@ public:
     */
     DString GetItemText(size_t iIndex) const;
 
+    /** 获取子项的文本ID（支持多语言版）
+    * @param [in] iIndex 子项索引号
+    */
+    DString GetItemTextId(size_t iIndex) const;
+
     /** 设置子项的文本
     * @param [in] iIndex 子项索引号
     * @param [in] itemText 子项的文本内容
     */
     bool SetItemText(size_t iIndex, const DString& itemText);
+
+    /** 设置子项的文本ID（支持多语言版）
+    * @param [in] iIndex 子项索引号
+    * @param [in] itemTextId 子项的文本内容ID
+    */
+    bool SetItemTextId(size_t iIndex, const DString& itemTextId);
 
     /** 添加一个子项字符串
     * @param [in] itemText 子项的文本内容
@@ -142,11 +157,23 @@ public:
     */
     size_t AddTextItem(const DString& itemText);
 
+    /** 添加一个子项字符串ID
+    * @param [in] itemTextId 子项的文本内容（支持多语言版）
+    * @return 返回新添加的子项索引号
+    */
+    size_t AddTextIdItem(const DString& itemTextId);
+
     /** 在指定索引号位置, 插入一个子项字符串, 返回新添加的子项索引号
     * @param [in] iIndex 子项索引号
     * @param [in] itemText 子项的文本内容
     */
     size_t InsertTextItem(size_t iIndex, const DString& itemText);
+
+    /** 在指定索引号位置, 插入一个子项字符串, 返回新添加的子项索引号
+    * @param [in] iIndex 子项索引号
+    * @param [in] itemText 子项的文本内容ID（支持多语言版）
+    */
+    size_t InsertTextIdItem(size_t iIndex, const DString& itemTextId);
 
     /** 删除一个子项
     * @param [in] iIndex 子项索引号
@@ -336,12 +363,21 @@ private:
     void RemoveControl(Control* pControl);
 
     /** 创建一个新的树节点
+    * @param [in] itemText 子项的文本内容
+    * @param [in] bTextId itemText的文本内容是否为文本ID（支持多语言版）
     */
-    TreeNode* CreateTreeNode(const DString& itemText);
+    TreeNode* CreateTreeNode(const DString& itemText, bool bTextId);
 
     /** 挂载该控件的鼠标事件，设置焦点
     */
     void AttachMouseEvents(Control* pControl);
+
+    /** 在指定索引号位置, 插入一个子项字符串, 返回新添加的子项索引号
+    * @param [in] iIndex 子项索引号
+    * @param [in] itemText 子项的文本内容
+    * @param [in] bTextId itemText的文本内容是否为文本ID（支持多语言版）
+    */
+    size_t PrivateInsertTextItem(size_t iIndex, const DString& itemText, bool bTextId);
 
 private:
     /** Combo类型

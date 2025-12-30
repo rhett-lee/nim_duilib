@@ -43,8 +43,14 @@ public:
     virtual size_t GetItemCount() const override;
 
     /** 添加一个下拉框的列表项
+    * @param [in] itemText 文本内容
     */
     bool AddTextItem(const DString& itemText);
+
+    /** 添加一个下拉框的列表项
+    * @param [in] itemTextId 文本内容ID（支持多语言版）
+    */
+    bool AddTextIdItem(const DString& itemTextId);
 
     /** 获取选择的文本列表
     */

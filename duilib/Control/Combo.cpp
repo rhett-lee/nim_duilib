@@ -731,6 +731,19 @@ DString Combo::GetItemText(size_t iIndex) const
     return DString();
 }
 
+DString Combo::GetItemTextId(size_t iIndex) const
+{
+    Control* pControl = m_treeView.GetItemAt(iIndex);
+    if (pControl != nullptr) {
+        TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+        ASSERT(pTreeNode != nullptr);
+        if (pTreeNode != nullptr) {
+            return pTreeNode->GetTextId();
+        }
+    }
+    return DString();
+}
+
 bool Combo::SetItemText(size_t iIndex, const DString& itemText)
 {
     Control* pControl = m_treeView.GetItemAt(iIndex);
@@ -746,12 +759,42 @@ bool Combo::SetItemText(size_t iIndex, const DString& itemText)
     return false;
 }
 
+bool Combo::SetItemTextId(size_t iIndex, const DString& itemTextId)
+{
+    Control* pControl = m_treeView.GetItemAt(iIndex);
+    if (pControl != nullptr) {
+        TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pControl);
+        ASSERT(pTreeNode != nullptr);
+        if (pTreeNode != nullptr) {
+            pTreeNode->SetTextId(itemTextId);
+            OnSelectedItemChanged();
+            return true;
+        }
+    }
+    return false;
+}
+
 size_t Combo::AddTextItem(const DString& itemText)
 {
     return InsertTextItem(GetCount(), itemText);
 }
 
+size_t Combo::AddTextIdItem(const DString& itemTextId)
+{
+    return PrivateInsertTextItem(GetCount(), itemTextId, true);
+}
+
 size_t Combo::InsertTextItem(size_t iIndex, const DString& itemText)
+{
+    return PrivateInsertTextItem(iIndex, itemText, false);
+}
+
+size_t Combo::InsertTextIdItem(size_t iIndex, const DString& itemTextId)
+{
+    return PrivateInsertTextItem(iIndex, itemTextId, true);
+}
+
+size_t Combo::PrivateInsertTextItem(size_t iIndex, const DString& itemText, bool bTextId)
 {
     ASSERT(iIndex <= GetCount());
     if (iIndex > GetCount()) {
@@ -760,7 +803,7 @@ size_t Combo::InsertTextItem(size_t iIndex, const DString& itemText)
     size_t newIndex = Box::InvalidIndex;
     if (iIndex == GetCount()) {
         //在最后面插入新的节点
-        TreeNode* pNewNode = CreateTreeNode(itemText);
+        TreeNode* pNewNode = CreateTreeNode(itemText, bTextId);
         m_treeView.GetRootNode()->AddChildNode(pNewNode);
         newIndex = m_treeView.GetItemIndex(pNewNode);
     }
@@ -775,7 +818,7 @@ size_t Combo::InsertTextItem(size_t iIndex, const DString& itemText)
                 ASSERT(pParentNode != nullptr);
                 if (pParentNode != nullptr) {
                     size_t iChildIndex = pParentNode->GetChildNodeIndex(pTreeNode);
-                    TreeNode* pNewNode = CreateTreeNode(itemText);
+                    TreeNode* pNewNode = CreateTreeNode(itemText, bTextId);
                     pParentNode->AddChildNodeAt(pNewNode, iChildIndex);
                     newIndex = m_treeView.GetItemIndex(pNewNode);
                 }
@@ -837,13 +880,18 @@ size_t Combo::SelectTextItem(const DString& itemText, bool bTriggerEvent)
     return nSelIndex;
 }
 
-TreeNode* Combo::CreateTreeNode(const DString& itemText)
+TreeNode* Combo::CreateTreeNode(const DString& itemText, bool bTextId)
 {
     TreeNode* pNewNode = new TreeNode(GetWindow());
     if (!m_treeNodeClass.empty()) {
         SetAttributeList(pNewNode, m_treeNodeClass.c_str());
     }
-    pNewNode->SetText(itemText);
+    if (bTextId) {
+        pNewNode->SetTextId(itemText);
+    }
+    else {
+        pNewNode->SetText(itemText);
+    }    
     return pNewNode;
 }
 
@@ -1057,10 +1105,29 @@ void Combo::OnSelectedItemChanged()
     if (m_pEditControl != nullptr) {
         size_t nSelIndex = GetCurSel();
         if (Box::IsValidItemIndex(nSelIndex)) {
-            m_pEditControl->SetText(GetItemText(nSelIndex));
+            m_pEditControl->SetTextNoEvent(GetItemText(nSelIndex));
         }
         else {
-            m_pEditControl->SetText(DString());
+            m_pEditControl->SetTextNoEvent(DString());
+        }
+    }
+}
+
+void Combo::OnLanguageChanged()
+{
+    //语言发生变化
+    ComboType comboType = GetComboType();
+    if (comboType == ComboType::kCombo_DropList) {
+        //不可编辑时，直接覆盖编辑框
+        OnSelectedItemChanged();
+    }
+    else {
+        //可编辑时，也直接覆盖编辑框（后续有好的策略时，考虑修改）
+        if (m_pEditControl != nullptr) {
+            size_t nSelIndex = GetCurSel();
+            if (Box::IsValidItemIndex(nSelIndex)) {
+                m_pEditControl->SetTextNoEvent(GetItemText(nSelIndex));
+            }
         }
     }
 }

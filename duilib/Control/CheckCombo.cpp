@@ -429,6 +429,28 @@ bool CheckCombo::AddTextItem(const DString& itemText)
     return AddItem(item);
 }
 
+bool CheckCombo::AddTextIdItem(const DString& itemTextId)
+{
+    if (itemTextId.empty()) {
+        return false;
+    }
+    //避免重复名称
+    size_t itemCount = GetItemCount();
+    for (size_t index = 0; index < itemCount; ++index) {
+        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
+        if (pCheckBox != nullptr) {
+            if (itemTextId == pCheckBox->GetTextId()) {
+                return false;
+            }
+        }
+    }
+
+    CheckBox* item = new CheckBox(GetWindow());
+    SetAttributeList(item, m_dropboxItemClass.c_str());
+    item->SetTextId(itemTextId);
+    return AddItem(item);
+}
+
 void CheckCombo::Activate(const EventArgs* /*pMsg*/)
 {
     if (!IsActivatable()) {
