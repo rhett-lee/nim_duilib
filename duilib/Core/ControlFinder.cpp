@@ -1,6 +1,7 @@
 #include "ControlFinder.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/FullscreenBox.h"
 
 namespace ui
 {
@@ -97,16 +98,40 @@ Control* ControlFinder::FindSubControlByName(Control* pParent, const DString& st
         return nullptr;
     }
     //优先从缓存中查找
+    Box* pOldRoot = nullptr;
     Control* pFindControl = FindControlInCache(pParent, strName);
     if (pFindControl != nullptr) {
         return pFindControl;
+    }
+    else if (pParent != nullptr) {
+        FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(pParent);
+        if (pFullscreenBox != nullptr) {
+            //控件全屏状态，使用窗口原来的根容器查找
+            pOldRoot = pFullscreenBox->GetOldRoot();
+        }
+        if (pOldRoot != nullptr) {
+            pFindControl = FindControlInCache(pOldRoot, strName);
+            if (pFindControl != nullptr) {
+                return pFindControl;
+            }
+        }
     }
     if (pParent == nullptr) {
         pParent = m_pRoot;
     }
     ASSERT(pParent != nullptr);
     if (pParent != nullptr) {
-        return pParent->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+        pFindControl = pParent->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+        if (pFindControl != nullptr) {
+            return pFindControl;
+        }
+        if (pOldRoot != nullptr) {
+            //控件全屏状态，使用窗口原来的根容器查找
+            pFindControl = pOldRoot->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+            if (pFindControl != nullptr) {
+                return pFindControl;
+            }
+        }
     }
     return nullptr;
 }
