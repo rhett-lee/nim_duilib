@@ -31,7 +31,8 @@ ImageInfo::~ImageInfo()
 void ImageInfo::ReleaseImage()
 {
     if (m_pImageData != nullptr) {
-        GlobalManager::Instance().Image().ReleaseImage(m_pImageData);
+        DString imageFullPath = m_loadParam.GetImageLoadPath().m_imageFullPath.ToString();
+        GlobalManager::Instance().Image().ReleaseImage(m_pImageData, imageFullPath);
         m_pImageData.reset();
     }
 }

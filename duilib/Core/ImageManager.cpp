@@ -18,7 +18,8 @@ namespace ui
 {
 ImageManager::ImageManager():
     m_bAutoMatchScaleImage(true),
-    m_bImageAsyncLoad(true)
+    m_bImageAsyncLoad(true),
+    m_releaseImageCallback(nullptr)
 {
 }
 
@@ -306,10 +307,18 @@ void ImageManager::RemoveAllImages()
     m_imageInfoMap.clear();
 }
 
-void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData)
+void ImageManager::ReleaseImage(const std::shared_ptr<IImage>& pImageData, const DString& imageFullPath)
 {
-    //确保只有一个元素在队列中
+    //先移除队列中的元素，从而确保只有一个元素在队列中
     CancelReleaseImage(pImageData);
+
+    //通过回调函数，可以避免放入延迟释放队列
+    if (m_releaseImageCallback != nullptr) {
+        bool bAllowRelease = m_releaseImageCallback(pImageData, imageFullPath);
+        if (!bAllowRelease) {
+            return;
+        }
+    }
 
     if (pImageData != nullptr) {
         TReleaseImageData imageData;
@@ -353,6 +362,11 @@ void ImageManager::CancelReleaseImage(const std::shared_ptr<IImage>& pImageData)
             }
         }
     }
+}
+
+void ImageManager::SetReleaseImageCallback(ReleaseImageCallback callback)
+{
+    m_releaseImageCallback = callback;
 }
 
 void ImageManager::SetAutoMatchScaleImage(bool bAutoMatchScaleImage)
