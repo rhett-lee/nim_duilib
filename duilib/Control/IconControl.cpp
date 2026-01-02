@@ -19,6 +19,7 @@ DString IconControl::GetType() const { return DUI_CTR_ICON_CONTROL; }
 
 bool IconControl::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pPixelBits, int32_t nPixelBitsSize)
 {
+    GlobalManager::Instance().AssertUIThread();
     ASSERT((pPixelBits != nullptr) && (nPixelBitsSize > 0) && (nWidth > 0) && (nHeight > 0));
     if ((pPixelBits == nullptr) || (nPixelBitsSize <= 0) || (nWidth <= 0) || (nHeight <= 0)) {
         return false;
@@ -60,6 +61,7 @@ bool IconControl::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pP
 
 void IconControl::ClearIconData()
 {
+    GlobalManager::Instance().AssertUIThread();
     if (m_pBitmap != nullptr) {
         m_pBitmap.reset();
         //重绘图片
@@ -69,6 +71,7 @@ void IconControl::ClearIconData()
 
 bool IconControl::HasIconData() const
 {
+    GlobalManager::Instance().AssertUIThread();
     return (m_pBitmap != nullptr) && (m_pBitmap->GetWidth() > 0) && (m_pBitmap->GetHeight() > 0);
 }
 

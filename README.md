@@ -78,7 +78,7 @@
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr>
-        <td rowspan="20">新增控件</td>
+        <td rowspan="21">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -100,6 +100,7 @@
     <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
     <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
     <tr><td align="left">20. MenuBar：菜单栏控件</td></tr>
+    <tr><td align="left">21. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

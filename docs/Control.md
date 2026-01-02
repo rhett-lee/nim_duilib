@@ -692,6 +692,21 @@ WebView2Control 控件继承了 `Control` 属性，更多可用属性请参考`C
 ## IconControl的属性
 IconControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
+## BitmapControl的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| bitmap_halign  | left | string | 图片的水平对齐方式，可取值: "left"、"center"、"right" |
+| bitmap_valign  | top | string | 图片的垂直对齐方式，可取值: "top"、"center"、"bottom" |
+| bitmap_alpha  | 255 | int | 图片绘制时的透明度，可取值: 0 - 255 |
+| bitmap_dest  |  | rect | 图片绘制目标区域位置和大小(相对于控件区域的位置)|
+| bitmap_src  |  | rect | 图片绘制源区域位置和大小|
+| bitmap_margin  |  | rect | 绘制目标区域中的外边距(如果指定了dest值，此值无效)|
+| bitmap_adaptive_dest_rect  | false | bool | 绘制时是否自动适应目标区域（等比例缩放图片）|
+| bitmap_stretch  | false | bool | 绘制时是否拉伸绘制图片（与IsAdaptiveDestRect()互斥，优先级低于IsAdaptiveDestRect()）|
+| bitmap_multi_thread  | true | bool | 是否支持多线程操作位图数据（如果无调用，则默认为true，默认是支持多线程操作位图数据的）|
+
+BitmapControl 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+
 ## AddressBar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

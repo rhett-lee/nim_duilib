@@ -852,6 +852,9 @@
     <ClCompile Include="Core\FullscreenBox.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\BitmapControl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1762,6 +1765,9 @@
     </ClInclude>
     <ClInclude Include="Core\FullscreenBox.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\BitmapControl.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
