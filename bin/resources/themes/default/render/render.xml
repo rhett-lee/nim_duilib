@@ -34,6 +34,7 @@
                 <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="7"/>                
                 <TabCtrlItem class="tab_ctrl_item" title="属性页" close_button_class="" tab_box_item_index="8"/>
                 <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title="位图控件" close_button_class="" tab_box_item_index="10"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
@@ -74,6 +75,10 @@
                 <VBox name="main_view_page_09">
                     <Label text="页面9：窗口阴影测试"/>
                     <Include src="page_window_shadow.xml"/>
+                </VBox>
+                <VBox name="main_view_page_10">
+                    <Label text="页面10：位图控件测试"/>
+                    <Include src="page_bitmap_control.xml"/>
                 </VBox> 
             </TabBox>
         </VBox>

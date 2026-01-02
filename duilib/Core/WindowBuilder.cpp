@@ -36,6 +36,7 @@
 #include "duilib/Control/PropertyGrid.h"
 #include "duilib/Control/TabCtrl.h"
 #include "duilib/Control/IconControl.h"
+#include "duilib/Control/BitmapControl.h"
 #include "duilib/Control/AddressBar.h"
 #include "duilib/Control/MenuBar.h"
 
@@ -152,6 +153,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_TAB_CTRL, [](Window* pWindow) { return new TabCtrl(pWindow); }},
         {DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
         {DUI_CTR_ICON_CONTROL, [](Window* pWindow) { return new IconControl(pWindow); }},
+        {DUI_CTR_BITMAP_CONTROL, [](Window* pWindow) { return new BitmapControl(pWindow); }},
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
         {DUI_CTR_MENU_BAR, [](Window* pWindow) { return new MenuBar(pWindow); }},
 

@@ -251,6 +251,7 @@
     <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
     <ClCompile Include="Control\AddressBar.cpp" />
+    <ClCompile Include="Control\BitmapControl.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\ColorControl.cpp" />
@@ -587,6 +588,7 @@
     <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
     <ClInclude Include="Control\AddressBar.h" />
+    <ClInclude Include="Control\BitmapControl.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ColorControl.h" />
     <ClInclude Include="Control\ColorConvert.h" />

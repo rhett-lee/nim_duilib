@@ -91,6 +91,7 @@
 #include "Control/PropertyGrid.h"
 #include "Control/TabCtrl.h"
 #include "Control/IconControl.h"
+#include "Control/BitmapControl.h"
 #include "Control/AddressBar.h"
 
 #include "Control/ListCtrl.h"
