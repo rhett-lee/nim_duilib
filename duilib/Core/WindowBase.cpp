@@ -943,6 +943,11 @@ IRender* WindowBase::OnNativeGetRender() const
     return GetRender();
 }
 
+Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const
+{
+    return OnFindControl(pt);
+}
+
 void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
     OnDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);

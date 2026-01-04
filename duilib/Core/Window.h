@@ -408,6 +408,11 @@ public:
     */
     virtual IRender* GetRender() const override;
 
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnFindControl(const UiPoint& pt) const override;
+
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
     std::shared_ptr<IRenderDpi> GetRenderDpi();
@@ -635,11 +640,6 @@ protected:
     * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
-
-    /** 获取指定坐标点的控件接口
-    * @param [in] pt 客户区坐标点
-    */
-    virtual Control* OnNativeFindControl(const UiPoint& pt) const override;
 
     /** @name 窗口消息处理相关
         * @{
