@@ -2570,7 +2570,7 @@ void Window::OnFirstLayout()
     }
 }
 
-Control* Window::OnNativeFindControl(const UiPoint& pt) const
+Control* Window::OnFindControl(const UiPoint& pt) const
 {
     return FindControl(pt);
 }
