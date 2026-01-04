@@ -144,13 +144,15 @@ public:
 public:
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
+    * @param [in] bRedraw true表示触发重绘，false表示不触发重绘
     */
-    bool SetText(const DString& richText);
+    bool SetText(const DString& richText, bool bRedraw = true);
 
     /** 设置格式的文本ID
     * @param [in] richTextId 带有格式的文本内容ID
+    * @param [in] bRedraw true表示触发重绘，false表示不触发重绘
     */
-    bool SetTextId(const DString& richTextId);
+    bool SetTextId(const DString& richTextId, bool bRedraw = true);
 
     /** 清空原来的格式文本
     */
@@ -176,6 +178,15 @@ public:
     */
     DString TrimText(const DString::value_type* text);
 
+    /** 设置是否允许重绘
+    * @param [in] bEnable true表示允许重绘，false表示禁止重绘
+    */
+    void SetEnableRedraw(bool bEnable);
+
+    /** 获取是否允许重绘
+    */
+    bool IsEnableRedraw() const;
+
 public:
     /** 输出带格式化文本
     */
@@ -185,6 +196,10 @@ public:
     /** 重绘
     */
     void Redraw();
+
+    /** 重绘
+    */
+    void Invalidate();
 
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     void ButtonDown(const EventArgs& msg);
@@ -345,6 +360,10 @@ private:
     /** 设置text属性时，是否替换花括号
     */
     bool m_bReplaceBrace;
+
+    /** 是否允许重绘
+    */
+    bool m_bEnableRedraw;
 };
 
 } // namespace ui

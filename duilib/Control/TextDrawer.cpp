@@ -70,14 +70,16 @@ UiRect TextDrawer::MeasureString(IRender* pRender,
             m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
             m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
+        m_pRichText->SetEnableRedraw(false);
         m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
         UpdateTextDrawProps(measureParam.uFormat, measureParam.fSpacingMul, measureParam.fSpacingAdd, fontId);
 
         m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
         if (m_bRichTextChanged) {
-            m_pRichText->SetText(strText);
+            m_pRichText->SetText(strText, false);
             m_bRichTextChanged = false;
         }
+        m_pRichText->SetEnableRedraw(true);
 
         UiSize szAvailable;
         szAvailable.cx = measureParam.rectSize;
@@ -114,6 +116,7 @@ void TextDrawer::DrawString(IRender* pRender,
             m_pRichText = std::make_unique<RichText>(pOwner->GetWindow());
             m_pRichText->SetAttribute(_T("trim_policy"), _T("none")); //对空格不执行trim操作
         }
+        m_pRichText->SetEnableRedraw(false);
         m_pRichText->SetWindow(nullptr); //不设置关联窗口，避免产生Invalidate调用
         m_pRichText->SetRect(drawParam.textRect);//不调用SetPos函数，避免产生回调等事件
         m_pRichText->SetAlpha(drawParam.uFade);
@@ -122,9 +125,10 @@ void TextDrawer::DrawString(IRender* pRender,
 
         m_pRichText->SetWindow(pOwner->GetWindow()); //绘制过程中和解析RichText的时候，需要关联窗口（需要Dpi缩放等操作）
         if (m_bRichTextChanged) {
-            m_pRichText->SetText(strText);
+            m_pRichText->SetText(strText, false);
             m_bRichTextChanged = false;
-        }        
+        }
+        m_pRichText->SetEnableRedraw(true);
         m_pRichText->PaintText(pRender);
     }
     else {
