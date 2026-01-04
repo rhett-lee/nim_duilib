@@ -527,6 +527,25 @@ public:
     */
     void AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口位置大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSize(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMove(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型
     */
@@ -652,6 +671,13 @@ protected:
     * @return 返回消息的处理结果
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+
+    /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
