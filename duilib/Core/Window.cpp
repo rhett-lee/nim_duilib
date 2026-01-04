@@ -145,6 +145,21 @@ void Window::AttachWindowKillFocus(const EventCallback& callback, EventCallbackI
     m_OnEvent[kEventWindowKillFocus].AddEventCallback(callback, callbackID);
 }
 
+void Window::AttachWindowPosChanged(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_OnEvent[kEventWindowPosChanged].AddEventCallback(callback, callbackID);
+}
+
+void Window::AttachWindowSize(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_OnEvent[kEventWindowSize].AddEventCallback(callback, callbackID);
+}
+
+void Window::AttachWindowMove(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_OnEvent[kEventWindowMove].AddEventCallback(callback, callbackID);
+}
+
 bool Window::HasWindowEventCallback(EventType eventType) const
 {
     return m_OnEvent.find(eventType) != m_OnEvent.end();
@@ -1143,9 +1158,25 @@ LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
     return 0;
 }
 
+LRESULT Window::OnWindowPosChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
+{
+    bHandled = false;
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (m_pFocus != nullptr) {
+        m_pFocus->SendEvent(kEventWindowPosChanged);
+        if (windowFlag.expired()) {
+            return 0;
+        }
+    }
+    SendNotify(kEventWindowPosChanged);
+    return 0;
+}
+
 LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+
     //调整Render的大小, 与客户区大小保持一致
     ResizeRenderToClientSize();
 
@@ -1161,8 +1192,7 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         //还原
         ProcessWindowRestored();
     }
-    if (m_pFocus != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (m_pFocus != nullptr) {        
         EventArgs msgData;
         msgData.eventData = (int32_t)sizeType;
         m_pFocus->SendEvent(kEventWindowSize, msgData);
@@ -1170,14 +1200,17 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
             return 0;
         }
     }
+    if (!windowFlag.expired()) {
+        SendNotify(kEventWindowSize, (WPARAM)sizeType);
+    }
     return 0;
 }
 
 LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-    if (m_pFocus != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (m_pFocus != nullptr) {        
         EventArgs msgData;
         msgData.ptMouse = ptTopLeft;
         m_pFocus->SendEvent(kEventWindowMove, msgData);
@@ -1195,6 +1228,9 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg
         (rcWindow.right > rcMonitor.right) ||
         (rcWindow.bottom > rcMonitor.bottom)) {
         InvalidateAll();
+    }
+    if (!windowFlag.expired()) {
+        SendNotify(kEventWindowMove);
     }
     return 0;
 }
@@ -1768,7 +1804,7 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFr
     }
     else if (m_pEventHover != nullptr) {
         m_pEventHover->SendEvent(kEventMouseMove, msgData);
-    }
+    }    
     return lResult;
 }
 
