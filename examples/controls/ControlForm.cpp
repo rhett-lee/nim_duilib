@@ -574,16 +574,6 @@ void ControlForm::OnProgressValueChagned(float value)
         circleprogress->SetValue(value);
         circleprogress->SetText(ui::StringUtil::Printf(_T("%.0f%%"), value));
     }
-
-    if (progress != nullptr) {
-        if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {
-            //进度达到最大值，停止加载动画
-            auto control_edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
-            if (control_edit) {
-                control_edit->StopLoading();
-            }
-        }
-    }
 }
 
 LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
