@@ -32,7 +32,9 @@ class RichEditDropTarget : public ControlDropTarget_Windows
 public:
     RichEditDropTarget(RichEdit* pRichEdit, ITextServices* pTextServices):
         m_pRichEdit(pRichEdit),
-        m_pTextServices(pTextServices)
+        m_pTextServices(pTextServices),
+        m_nStartChar(0),
+        m_nEndChar(0)
     {
     }
 
@@ -45,6 +47,12 @@ public:
         }
         m_dropTextList.clear();
         m_dropFileList.clear();
+
+        //记录选择项和滚动条位置（在取消操作时恢复原状态）
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->GetSel(m_nStartChar, m_nEndChar);
+            m_scrollPos = m_pRichEdit->GetScrollPos();
+        }
 
         ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_dropTextList, m_dropFileList);
         if ((m_pRichEdit != nullptr) && !m_dropFileList.empty()){
@@ -200,6 +208,12 @@ public:
             hr = pDropTarget->DragLeave();
             pDropTarget->Release();
         }
+
+        //拖动离开时，恢复原来的状态
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetSel(m_nStartChar, m_nEndChar);
+            m_pRichEdit->SetScrollPos(m_scrollPos);
+        }
         return hr;
     }
 
@@ -298,6 +312,12 @@ private:
     /** 文件路径数据
     */
     std::vector<DString> m_dropFileList;
+
+    /** 原来的选择状态
+    */
+    int32_t m_nStartChar;
+    int32_t m_nEndChar;
+    UiSize64 m_scrollPos;
 };
 
 RichEdit::RichEdit(Window* pWindow) :
