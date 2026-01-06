@@ -56,7 +56,7 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
         SetShadowAttached(strValue == _T("true"));
     }
     else if (strName == _T("drag_drop")) {
-        //是否开启阴影
+        //是否允许拖放操作
         SetEnableDragDrop(strValue == _T("true"));
     }
 }

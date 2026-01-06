@@ -90,8 +90,8 @@
 | stop_image_animation      | | string | StopImageAnimation    | 停止动画，最多3个参数，每个参数用','分割 ，详见函数的参数列表 |
 | set_image_animation_frame | | string | SetImageAnimationFrame| 设置动画当前帧，最多2个参数，每个参数用','分割，详见函数的参数列表|
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
-| enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
-| enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
+| enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作，包括拖入文件和拖入文本|
+| enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖入文件操作|
 | drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
 | row_span  | 1 | int | SetRowSpan  | 单元格合并属性，占几行（默认占1行），仅在GridLayout布局中生效|
 | col_span  | 1 | int | SetColumnSpan  | 单元格合并属性，占几列（默认占1列），仅在GridLayout布局中生效|

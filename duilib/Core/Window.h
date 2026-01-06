@@ -468,7 +468,7 @@ public:
      */
     void ApplyAttributeList(const DString& strList);
 
-    /** 设置是否允许拖放操作
+    /** 设置是否允许拖放操作（拖入文本和拖入文件操作）
     * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
     */
     void SetEnableDragDrop(bool bEnable);
