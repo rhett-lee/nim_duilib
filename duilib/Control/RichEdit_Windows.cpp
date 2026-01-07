@@ -3110,7 +3110,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     }
     //菜单关闭事件
     std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
-    menu->AttachWindowClose([this, richEditFlag](const ui::EventArgs&) {
+    menu->AttachWindowCloseMsg([this, richEditFlag](const ui::EventArgs&) {
         if (!richEditFlag.expired()) {
             m_bContextMenuShown = false;
             //恢复HideSelection属性

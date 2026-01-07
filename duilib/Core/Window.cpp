@@ -25,7 +25,6 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(false),
     m_bInitLayout(false),
-    m_bWindowFirstShown(false),
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
@@ -39,7 +38,7 @@ Window::Window() :
 Window::~Window()
 {
     ASSERT(!IsWindow());
-    ClearWindow(false);
+    ClearWindow();
 }
 
 void Window::SetAttribute(const DString& strName, const DString& strValue)
@@ -117,75 +116,6 @@ Window* Window::GetParentWindow() const
     else {
         return nullptr;
     }
-}
-
-bool Window::AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowFirstShown].AddEventCallback(callback, callbackID);
-    return !IsWindowFirstShown();
-}
-
-void Window::AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowCreate].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowClose].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowSetFocus(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowSetFocus].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowKillFocus].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowPosChanged(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowPosChanged].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowSize(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowSize].AddEventCallback(callback, callbackID);
-}
-
-void Window::AttachWindowMove(const EventCallback& callback, EventCallbackID callbackID)
-{
-    m_OnEvent[kEventWindowMove].AddEventCallback(callback, callbackID);
-}
-
-bool Window::HasWindowEventCallback(EventType eventType) const
-{
-    return m_OnEvent.find(eventType) != m_OnEvent.end();
-}
-
-bool Window::HasWindowEventCallbackByID(EventCallbackID callbackID) const
-{
-    for (auto iter = m_OnEvent.begin(); iter != m_OnEvent.end(); ++iter) {
-        if (iter->second.HasEventCallbackByID(callbackID)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void Window::DetachWindowEventCallback(EventType eventType)
-{
-    auto iter = m_OnEvent.find(eventType);
-    if (iter != m_OnEvent.end()) {
-        m_OnEvent.erase(iter);
-    }
-}
-
-void Window::DetachWindowEventCallbackByID(EventCallbackID callbackID)
-{
-    EventUtils::RemoveEventCallbackByID(m_OnEvent, callbackID);
 }
 
 bool Window::SetRenderBackendType(RenderBackendType backendType)
@@ -458,7 +388,7 @@ void Window::PostCloseWindow()
 void Window::FinalMessage()
 {
     //按倒序清理资源
-    ClearWindow(true);
+    ClearWindow();
     ClearWindowBase();
 
     //回调Final接口
@@ -472,18 +402,8 @@ void Window::OnFinalMessage()
     }
 }
 
-void Window::ClearWindow(bool bSendClose)
+void Window::ClearWindow()
 {
-    bool bHasWindow = GlobalManager::Instance().Windows().HasWindow(this);
-    if (bSendClose && bHasWindow) {
-        //发送关闭事件
-        WPARAM wParam = (WPARAM)GetCloseParam();
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        SendNotify(kEventWindowClose, wParam);
-        if (windowFlag.expired()) {
-            return;
-        }
-    }
     //回收控件
     GlobalManager::Instance().Windows().RemoveWindow(this);
     ReapObjects(GetRoot());
@@ -1168,7 +1088,6 @@ LRESULT Window::OnWindowPosChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHan
             return 0;
         }
     }
-    SendNotify(kEventWindowPosChanged);
     return 0;
 }
 
@@ -1200,9 +1119,6 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
             return 0;
         }
     }
-    if (!windowFlag.expired()) {
-        SendNotify(kEventWindowSize, (WPARAM)sizeType);
-    }
     return 0;
 }
 
@@ -1228,9 +1144,6 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg
         (rcWindow.right > rcMonitor.right) ||
         (rcWindow.bottom > rcMonitor.bottom)) {
         InvalidateAll();
-    }
-    if (!windowFlag.expired()) {
-        SendNotify(kEventWindowMove);
     }
     return 0;
 }
@@ -1288,11 +1201,6 @@ bool Window::OnPreparePaint()
     return true;
 }
 
-bool Window::IsWindowFirstShown() const
-{
-    return m_bWindowFirstShown;
-}
-
 LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     PerformanceStat statPerformance(_T("PaintWindow, Window::OnPaintMsg"));
@@ -1306,14 +1214,6 @@ LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/
     else {
         //非首次绘制时，只绘制脏区域
         bHandled = Paint(rcPaint);
-    }
-
-    //首次绘制事件, 给一次回调
-    if (!IsWindowFirstShown()) {
-        m_bWindowFirstShown = true;
-
-        //触发第一次绘制事件
-        SendNotify(kEventWindowFirstShown);
     }
     return 0;
 }
@@ -1420,10 +1320,6 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     else {
         NativeWnd()->SetImeOpenStatus(false);
     }
-
-    if (!windowFlag.expired()) {
-        SendNotify(kEventWindowSetFocus, nativeMsg.wParam);
-    }
     return 0;
 }
 
@@ -1451,10 +1347,6 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
         if (windowFlag.expired()) {
             return 0;
         }
-    }
-
-    if (!windowFlag.expired()) {
-        SendNotify(kEventWindowKillFocus, nativeMsg.wParam);
     }
     return 0;
 }
@@ -2071,8 +1963,6 @@ LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, const NativeMsg& /*nativeM
 void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-    //给应用层发一个事件
-    SendNotify(kEventWindowCreate, bDoModal ? 1 : 0);
 }
 
 void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
@@ -2370,32 +2260,6 @@ bool Window::SetNextTabControl(bool bForward)
 void Window::SetArrange(bool bArrange)
 {
     m_bIsArranged = bArrange;
-}
-
-bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
-{
-    EventArgs msg;
-    msg.SetSender(nullptr);
-    msg.eventType = eventType;
-    msg.ptMouse = GetLastMousePos();
-    msg.wParam = wParam;
-    msg.lParam = lParam;
-
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    auto callback = m_OnEvent.find(msg.eventType);
-    if (callback != m_OnEvent.end()) {
-        callback->second(msg);
-    }
-    if (windowFlag.expired()) {
-        return false;
-    }
-
-    callback = m_OnEvent.find(kEventAll);
-    if (callback != m_OnEvent.end()) {
-        callback->second(msg);
-    }
-
-    return true;
 }
 
 void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)

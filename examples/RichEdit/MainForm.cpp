@@ -1026,7 +1026,7 @@ void MainForm::OnFindText()
         createParam.m_bCenterWindow = true;
         m_pFindForm->CreateWnd(this, createParam);
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
-        m_pFindForm->AttachWindowClose([this](const ui::EventArgs& args) {
+        m_pFindForm->AttachWindowCloseMsg([this](const ui::EventArgs& args) {
                 m_pFindForm = nullptr;
                 return true;
             });
@@ -1057,7 +1057,7 @@ void MainForm::OnReplaceText()
         createParam.m_bCenterWindow = true;
         m_pReplaceForm->CreateWnd(this, createParam);
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
-        m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
+        m_pReplaceForm->AttachWindowCloseMsg([this](const ui::EventArgs& args) {
                 m_pReplaceForm = nullptr;
                 return true;
             });

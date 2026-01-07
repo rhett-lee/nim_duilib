@@ -42,12 +42,14 @@ Control* EventArgs::GetSender() const
     }
 }
 
+void EventArgs::SetSenderWeakFlag(std::weak_ptr<WeakFlag> senderFlag)
+{
+    m_senderFlag = senderFlag;
+}
+
 bool EventArgs::IsSenderExpired() const
 {
-    if (pSender != nullptr) {
-        return m_senderFlag.expired();
-    }
-    return false;
+    return m_senderFlag.expired();
 }
 
 //EventType 与 String 相互转换的数据结构
@@ -102,7 +104,6 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventWindowMove, _T("kEventWindowMove"), _T("WindowMove"), _T("window_move")},
         {kEventWindowCreate, _T("kEventWindowCreate"), _T("WindowCreate"), _T("window_create")},
         {kEventWindowClose, _T("kEventWindowClose"), _T("WindowClose"), _T("window_close")},
-        {kEventWindowFirstShown, _T("kEventWindowFirstShown"), _T("WindowFirstShown"), _T("window_first_shown")},
         {kEventClick, _T("kEventClick"), _T("Click"), _T("click")},
         {kEventRClick, _T("kEventRClick"), _T("RClick"), _T("rclick")},
         {kEventMouseClickChanged, _T("kEventMouseClickChanged"), _T("MouseClickChanged"), _T("mouse_click_changed")},

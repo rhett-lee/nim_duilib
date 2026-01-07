@@ -404,7 +404,7 @@ void MenuBar::ShowPopupMenu(MenuBarButton* pButton)
     pMenu->AttachMenuItemActivated(callback);
 
     //菜单关闭时，复位激活状态
-    pMenu->AttachWindowClose([this, pMenu, menuBarFlag](const EventArgs& /*args*/) {
+    pMenu->AttachWindowCloseMsg([this, pMenu, menuBarFlag](const EventArgs& /*args*/) {
             if (!menuBarFlag.expired() && (m_pActiveMenu == pMenu)) {
                 m_bActiveState = false;
             }

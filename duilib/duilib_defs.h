@@ -124,6 +124,7 @@ namespace ui
     #define  DUI_CTR_ADDRESS_BAR                     (_T("AddressBar"))
     #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))
     #define  DUI_CTR_BITMAP_CONTROL                  (_T("BitmapControl"))
+    #define  DUI_CTR_CHILD_WINDOW                    (_T("ChildWindow"))
 
     // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
     #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))
@@ -285,12 +286,14 @@ namespace ui
         bool m_bDecodeError;    //该图片是否存在数据解码错误
     };
 
-    //定义所有消息类型（注意事项：类型定义变化时，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
-    enum EventType: int8_t
+    //控件/窗口相关的消息类型（注意事项：类型定义变化时，除了窗口消息外，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
+    enum EventType: uint8_t
     {
-        kEventNone,
-        kEventAll,                  //代表所有消息（无参数关联数据）
-        kEventDestroy,              //控件销毁（最后一个消息）
+        /** 控件相关的消息
+        */
+        kEventNone,                 //空消息，控件消息的起始值
+        kEventAll,                  //代表所有控件消息（无参数关联数据）
+        kEventDestroy,              //控件销毁（控件生命周期内的最后一个消息）
 
         //键盘消息
         kEventKeyBegin,
@@ -335,7 +338,6 @@ namespace ui
         kEventWindowMove,           //Window类：发送给Focus控件，当窗口位置发生变化时触发事件        
         kEventWindowCreate,         //Window类，当窗口创建完成时触发，wParam为1表示DoModal对话框，为0表示普通窗口
         kEventWindowClose,          //Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发，wParam参数表示窗口关闭参数，参见enum WindowCloseParam
-        kEventWindowFirstShown,     //Window类，当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
 
         //左键点击/右键点击事件
         kEventClick,                //Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
@@ -420,7 +422,39 @@ namespace ui
         kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult*
         kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult*
 
-        kEventLast                      //无使用者
+        kEventLast,                     //控件的最后一个消息
+
+        /** 窗口相关的事件，这些事件不会发给任何控件，直接发给应用层
+        */
+        kWindowMsgBegin,            //窗口消息的开始
+        kWindowCreateMsg,           //窗口创建消息
+        kWindowCloseMsg,            //窗口关闭消息
+        kWindowFirstShown,          //窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
+        kWindowPosChangedMsg,       //窗口位置大小发生改变
+        kWindowSizeMsg,             //窗口大小发生改变
+        kWindowMoveMsg,             //窗口位置发生改变
+        kWindowShowWindowMsg,       //窗口显示或者隐藏
+        kWindowPaintMsg,            //窗口绘制
+        kWindowSetFocusMsg,         //窗口获得焦点
+        kWindowKillFocusMsg,        //窗口失去焦点
+        kWindowSetCursorMsg,        //窗口设置光标
+        kWindowKeyDownMsg,          //窗口中键盘按下
+        kWindowKeyUpMsg,            //窗口中键盘弹起
+        kWindowMouseWheelMsg,       //窗口中鼠标滚轮消息
+        kWindowMouseMoveMsg,        //窗口中鼠标移动消息
+        kWindowMouseHoverMsg,       //窗口中鼠标悬停消息
+        kWindowMouseLeaveMsg,       //窗口中鼠标离开消息
+        kWindowLButtonDownMsg,      //窗口中鼠标左键按下消息
+        kWindowLButtonUpMsg,        //窗口中鼠标左键弹起消息
+        kWindowLButtonDbClickMsg,   //窗口中鼠标左键双击消息
+        kWindowMButtonDownMsg,      //窗口中鼠标中键按下消息
+        kWindowMButtonUpMsg,        //窗口中鼠标中键弹起消息
+        kWindowMButtonDbClickMsg,   //窗口中鼠标中键双击消息
+        kWindowRButtonDownMsg,      //窗口中鼠标右键按下消息
+        kWindowRButtonUpMsg,        //窗口中鼠标右键弹起消息
+        kWindowRButtonDbClickMsg,   //窗口中鼠标右键双击消息
+        kWindowCaptureChangedMsg,   //窗口丢失鼠标捕获
+        kWindowMsgEnd               //窗口消息的结束
     };
 
     /** 热键组合键标志位
@@ -442,7 +476,6 @@ namespace ui
         kVkShift    = 0x0004, //MK_SHIFT,       //按下了 SHIFT 键
         kVkControl  = 0x0008  //MK_CONTROL,     //按下了 CTRL 键
     };
-
 }// namespace ui
 
 #endif //DUILIB_DEFS_H_

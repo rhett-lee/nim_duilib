@@ -167,7 +167,7 @@ public:
 void BrowserForm::OnInitWindow()
 {
     TestApplication::Instance().AddMainWindow(this);
-    AttachWindowSetFocus([this](const ui::EventArgs&) {
+    AttachWindowSetFocusMsg([this](const ui::EventArgs&) {
         TestApplication::Instance().SetActiveMainWindow(this);
         return true;
         });
