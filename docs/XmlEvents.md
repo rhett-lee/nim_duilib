@@ -148,7 +148,6 @@ if (msg.eventType == eventType) {
 |kEventWindowMove|"WindowMove"|"window_move"|
 |kEventWindowCreate|"WindowCreate"|"window_create"|
 |kEventWindowClose|"WindowClose"|"window_close"|
-|kEventWindowFirstShown|"WindowFirstShown"|"window_first_shown"|
 |kEventClick|"Click"|"click"|
 |kEventRClick|"RClick"|"rclick"|
 |kEventMouseClickChanged|"MouseClickChanged"|"mouse_click_changed"|

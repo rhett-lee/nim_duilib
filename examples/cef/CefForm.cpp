@@ -92,7 +92,7 @@ void CefForm::OnInitWindow()
 
     if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //处理控件多焦点问题（由于cef控件是子窗口模式，duilib内部无法自己完成这个功能）
-        AttachWindowKillFocus([this](const ui::EventArgs& args) {
+        AttachWindowKillFocusMsg([this](const ui::EventArgs& args) {
             //当窗口失去焦点的时候，让界面中的控件失去焦点，避免出现网页与界面控件同时处于焦点状态的问题
             KillFocusControl();
             return true;

@@ -6,7 +6,6 @@
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/ControlPtrT.h"
-#include "duilib/Core/EventArgs.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/FilePath.h"
 
@@ -73,17 +72,6 @@ public:
     /** 获取父窗口
     */
     Window* GetParentWindow() const;
-
-    /** 界面是否完成首次显示
-    */
-    bool IsWindowFirstShown() const;
-
-    /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
-    * @param [in] eventType 转化后的消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    */
-    bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
 
     /** 窗口关闭的时候，发送退出消息循环的请求
     * @param [in] bPostQuitMsg 如果为true，表示窗口关闭的时候，发送退出消息循环请求
@@ -495,77 +483,6 @@ public:
     */
     void ExitControlFullscreen();
 
-public:
-    /** 监听窗口首次显示事件
-    * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    * @return 如果窗口已经完成第一次显示返回false，表示不会有回调函数；如果窗口未完成第一次显示，返回true
-    */
-    bool AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口创建并初始化完成事件
-    * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口关闭事件
-    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况, 参见enum WindowCloseParam
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口获取焦点事件
-    * @param [in] callback 指定的回调函数
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowSetFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口失去焦点事件
-    * @param [in] callback 指定的回调函数
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口位置大小变化事件
-    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口大小变化事件
-    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowSize(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口位置变化事件
-    * @param [in] callback 指定的回调函数
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowMove(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-public:
-    /** 本窗口是否含有回调函数（根据回调事件类型）
-    * @param [in] eventType 回调事件类型
-    */
-    bool HasWindowEventCallback(EventType eventType) const;
-
-    /** 本窗口是否含有回调函数（根据回调函数ID）
-    * @param [in] callbackID 该回调函数对应的ID
-    */
-    bool HasWindowEventCallbackByID(EventCallbackID callbackID) const;
-
-    /** 删除回调函数（根据回调事件类型）
-    * @param [in] eventType 回调事件类型
-    */
-    void DetachWindowEventCallback(EventType eventType);
-
-    /** 删除回调函数（根据回调函数ID）
-    * @param [in] callbackID 该回调函数对应的ID
-    */
-    void DetachWindowEventCallbackByID(EventCallbackID callbackID);
-
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -696,7 +613,7 @@ protected:
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
 
-    /** 窗口绘制(WM_SHOWWINDOW)
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
     * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -1035,9 +952,8 @@ private:
     void ArrangeRoot();
 
     /** 清理窗口资源
-    * @param [in] bSendClose 是否发送关闭事件
     */
-    void ClearWindow(bool bSendClose);
+    void ClearWindow();
 
     /** 初始化布局
     */
@@ -1103,9 +1019,6 @@ private:
     void RestoreWindowMaximizedMargin();
 
 private:
-    //事件回调管理器
-    EventMap m_OnEvent;
-
     //焦点控件
     ControlPtr m_pFocus;
 
@@ -1155,9 +1068,6 @@ private:
 
     //布局初始化回调函数是否已经调用
     bool m_bInitLayout;
-
-    //界面是否完成首次显示
-    bool m_bWindowFirstShown;
 
     //设置控件焦点时，是否同时设置窗口焦点
     bool m_bCheckSetWindowFocus;

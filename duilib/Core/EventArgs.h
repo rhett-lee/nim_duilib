@@ -6,7 +6,7 @@
 #include <functional>
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 namespace ui
@@ -14,7 +14,7 @@ namespace ui
 class Control;
 class WeakFlag;
 
-/** 事件通知的参数
+/** 控件的事件通知的参数
 */
 struct UILIB_API EventArgs
 {
@@ -67,6 +67,10 @@ public:
     /** 获取发送事件的控件
     */
     Control* GetSender() const;
+
+    /** 设置发送事件的的WeakFlag（在不设置Sender时使用）
+    */
+    void SetSenderWeakFlag(std::weak_ptr<WeakFlag> senderFlag);
 
     /** 判断发送事件的控件是否失效
     */
@@ -141,7 +145,7 @@ private:
 
 /** 事件类型回调的map容器
 */
-typedef std::map<EventType, EventSource> EventMap;
+typedef std::unordered_map<EventType, EventSource> EventMap;
 
 /** 辅助函数
 */

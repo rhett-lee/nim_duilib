@@ -390,7 +390,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
         }
         return true;
         };
-    pColorPicker->AttachWindowCreate(OnInitColorPicker);
+    pColorPicker->AttachWindowCreateMsg(OnInitColorPicker);
 
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;

@@ -461,13 +461,21 @@ void CheckCombo::Activate(const EventArgs* /*pMsg*/)
     }
 
     m_pCheckComboWnd = new CCheckComboWnd();
-    m_pCheckComboWnd->AttachWindowCreate(ToWeakCallback([this](const ui::EventArgs& msg) {
-        FireAllEvents(msg);
+    m_pCheckComboWnd->AttachWindowCreateMsg(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
+        //触发消息到应用层(下拉窗口创建)
+        EventArgs msg;
+        msg.SetSender(this);
+        msg.eventType = kEventWindowCreate;
+        FireNormalEvents(msg);
         return true;
         }));
     m_pCheckComboWnd->InitComboWnd(this);
-    m_pCheckComboWnd->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
-        FireAllEvents(msg);
+    m_pCheckComboWnd->AttachWindowCloseMsg(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
+        //触发消息到应用层(下拉窗口销毁)
+        EventArgs msg;
+        msg.SetSender(this);
+        msg.eventType = kEventWindowClose;
+        FireNormalEvents(msg);
         return true;
     }));
     Invalidate();

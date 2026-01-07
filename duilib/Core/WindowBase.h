@@ -4,6 +4,7 @@
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/ControlPtrT.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Core/EventArgs.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/Core/NativeWindow_SDL.h"
@@ -53,6 +54,10 @@ public:
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
+
+    /** 当前窗口是不是子窗口（非弹出窗口类型的子窗口, 对于Windows系统，是只含有WS_CHILD风格的窗口）
+    */
+    bool IsChildWindow() const;
 
     /** 获取父窗口
     */
@@ -571,6 +576,196 @@ public:
     DString GetWindowRenderName() const;
 #endif
 
+    /** 界面是否完成首次显示
+    */
+    bool IsWindowFirstShown() const;
+
+public:
+    /** 监听窗口创建事件
+    * @param [in] callback 指定的回调函数，wParam是1表示为通过DoModal函数显示的模态对话框，wParam为0表示为普通窗口
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCreateMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口关闭事件
+    * @param [in] callback 指定的回调函数，wParam是窗口关闭时的退出码
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCloseMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口第一次显示事件（已完成界面布局设置）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置大小变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPosChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSizeMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMoveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口显示属性事件
+    * @param [in] callback 指定的回调函数, wParam为1表示显示，wParam为0表示隐藏
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowShowWindowMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口绘制事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPaintMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口获取焦点事件
+    * @param [in] callback 指定的回调函数, wParam是失去焦点的窗口的指针(WindowBase*)
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSetFocusMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口失去焦点事件
+    * @param [in] callback 指定的回调函数, wParam是获取焦点的窗口的指针(WindowBase*)
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKillFocusMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口设置光标事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSetCursorMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口键盘按下事件
+    * @param [in] callback 指定的回调函数: vkCode 虚拟键盘代码，modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKeyDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口键盘弹起事件
+    * @param [in] callback 指定的回调函数: vkCode 虚拟键盘代码，modifierKey 按键标志位，有效值：ModifierKey::kAlt
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKeyUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标滚轮事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置
+    *                                    modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    *                                    eventData  滚轮旋转的距离，正值表示滚轮向前旋转（远离用户）；负值表示滚轮向后旋转（朝向用户）
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseWheelMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标移动事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseMoveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标悬停事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseHoverMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标离开事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseLeaveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口丢失鼠标捕获事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCaptureChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+public:
+    /** 本窗口是否含有回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    bool HasWindowEventCallback(EventType eventType) const;
+
+    /** 本窗口是否含有回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    bool HasWindowEventCallbackByID(EventCallbackID callbackID) const;
+
+    /** 删除回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    void DetachWindowEventCallback(EventType eventType);
+
+    /** 删除回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    void DetachWindowEventCallbackByID(EventCallbackID callbackID);
+
 protected:
     /** 正在初始化窗口数据
     */
@@ -722,7 +917,7 @@ protected:
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
-    /** 窗口绘制(WM_SHOWWINDOW)
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
     * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -1001,6 +1196,18 @@ protected:
     */
     void ClearWindowBase();
 
+    /** 主动发起一个消息(kWindowMsgBegin - kWindowMsgEnd), 发送给该窗口的事件回调管理器中注册的消息处理函数
+    * @param [in] eventType 转化后的消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param [in] pt 鼠标事件对应的坐标点
+    * @param [in] modifierKey 鼠标事件对应的键盘按键状态（有效值：ModifierKey::kControl, ModifierKey::kShift）
+    * @param [in] msg 消息内容
+    */
+    bool SendWindowEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+    bool SendWindowMouseEvent(EventType eventType, const UiPoint& pt, uint32_t modifierKey);
+    bool SendWindowEvent(const EventArgs& msg);
+
 private:
     /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
     */
@@ -1103,6 +1310,13 @@ private:
     /** 窗口的实现类
     */
     NativeWindow* m_pNativeWindow;
+
+    /** 窗口的事件
+    */
+    EventMap m_windowEventMap;
+
+    //界面是否完成首次显示
+    bool m_bWindowFirstShown;
 };
 
 } // namespace ui
