@@ -1094,7 +1094,12 @@ void Control::SetBkImage(const DString& strImage)
     if (m_pBkImage != nullptr) {
         if (m_pBkImage->GetImageString() != strImage) {
             bChanged = true;
-            m_pBkImage->SetImageString(strImage, Dpi());
+            if (!strImage.empty()) {
+                m_pBkImage->SetImageString(strImage, Dpi());
+            }
+            else {
+                m_pBkImage.reset();
+            }
         }
     }
     if (bChanged) {

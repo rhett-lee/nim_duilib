@@ -1350,7 +1350,17 @@ bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSi
     }
     HRGN hRgn = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom, szRoundCorner.cx, szRoundCorner.cy);
     int nRet = ::SetWindowRgn(GetHWND(), hRgn, bRedraw ? TRUE : FALSE);
-    ::DeleteObject(hRgn);//TODO: 检查是否需要删除，按MSDN说法，是不需要删除的。
+    return nRet != 0;
+}
+
+bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return false;
+    }
+    HRGN hRgn = ::CreateRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom);
+    int nRet = ::SetWindowRgn(GetHWND(), hRgn, bRedraw ? TRUE : FALSE);
     return nRet != 0;
 }
 

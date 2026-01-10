@@ -2997,6 +2997,12 @@ bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSi
     return false;
 }
 
+bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& /*rcWnd*/, bool /*bRedraw*/)
+{
+    //没有此功能
+    return false;
+}
+
 void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
 {
     //没有此功能
