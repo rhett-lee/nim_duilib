@@ -644,6 +644,11 @@ bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoun
     return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, szRoundCorner, bRedraw);
 }
 
+bool WindowBase::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    return m_pNativeWindow->SetWindowRectRgn(rcWnd, bRedraw);
+}
+
 void WindowBase::ClearWindowRgn(bool bRedraw)
 {
     m_pNativeWindow->ClearWindowRgn(bRedraw);
@@ -845,22 +850,34 @@ DString WindowBase::GetWindowRenderName() const
 }
 #endif
 
-void WindowBase::OnWindowSize(WindowSizeType sizeType)
+void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
 {
-    UiSize szRoundCorner = GetRoundCorner();
-    bool isIconic = IsWindowMinimized();
-    if (!isIconic && (sizeType != WindowSizeType::kSIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
-        //最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
-        UiRect rcWnd;
-        GetWindowRect(rcWnd);
-        rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-        rcWnd.right++;
-        rcWnd.bottom++;
-        SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
-    }
-    else if (!isIconic) {
-        //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
+    if (IsUseSystemCaption() || IsWindowMinimized() || IsWindowMaximized()) {
+        //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
         ClearWindowRgn(true);
+    }
+    else {
+        //未使用系统标题栏的情况下
+        UiSize szRoundCorner = GetRoundCorner();
+        if (szRoundCorner.cx > 0 && szRoundCorner.cy > 0) {
+            //配置为圆角窗口
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            rcWnd.right++;
+            rcWnd.bottom++;
+            SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
+        }
+        else {
+            //配置为直角窗口
+            //不需要设置RGN的时候，使用与窗口大小相同的矩形RGN，而不是使用默认值（因为默认情况下，窗口的左上角和右上角是圆角，左下角和右下角是直角）
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            rcWnd.right++;
+            rcWnd.bottom++;
+            SetWindowRectRgn(rcWnd, true);
+        }
     }
 }
 

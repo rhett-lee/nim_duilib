@@ -311,14 +311,20 @@ public:
     */
     bool IsCaptured() const;
 
-    /** 设置窗口的圆角RGN
+    /** 设置窗口的圆角矩形RGN
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
     * @param [in] szRoundCorner 圆角大小，其值不能为0
     * @param [in] bRedraw 是否重绘
     */
     bool SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw);
 
-    /** 清除窗口的RGN
+    /** 设置窗口的矩形RGN
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
+
+    /** 清除窗口的RGN, 回复系统默认值
     * @param [in] bRedraw 是否重绘
     */
     void ClearWindowRgn(bool bRedraw);

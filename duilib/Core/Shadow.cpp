@@ -106,7 +106,7 @@ public:
         if (pRender == nullptr) {
             return;
         }
-        if ((m_pShadow == nullptr) || !m_pShadow->IsEnableShadowSnap() || !m_pShadow->IsShadowAttached()) {
+        if ((m_pShadow == nullptr) || !m_pShadow->IsShadowAttached()) {
             BaseClass::PaintBkImage(pRender);
         }
         else {
@@ -114,22 +114,24 @@ public:
             Window* pWindow = GetWindow();
             if ((pBkImage != nullptr) && (pWindow != nullptr)) {
                 UiRect destRect = GetRect();
-                UiPadding rcShadowCorner = pWindow->GetCurrentShadowCorner();
-                UiPadding rcRealCorner = m_pShadow->GetShadowCorner();
-                pWindow->Dpi().ScalePadding(rcRealCorner);
+                if (m_pShadow->IsEnableShadowSnap()) {
+                    UiPadding rcShadowCorner = pWindow->GetCurrentShadowCorner();
+                    UiPadding rcRealCorner = m_pShadow->GetShadowCorner();
+                    pWindow->Dpi().ScalePadding(rcRealCorner);
 
-                //窗口贴边时，阴影需要拉伸到窗口边缘
-                if (rcShadowCorner.top == 0) {
-                    destRect.top -= rcRealCorner.top;
-                }
-                if (rcShadowCorner.left == 0) {
-                    destRect.left -= rcRealCorner.left;
-                }
-                if (rcShadowCorner.right == 0) {
-                    destRect.right += rcRealCorner.right;
-                }
-                if (rcShadowCorner.bottom == 0) {
-                    destRect.bottom += rcRealCorner.bottom;
+                    //窗口贴边时，阴影需要拉伸到窗口边缘
+                    if (rcShadowCorner.top == 0) {
+                        destRect.top -= rcRealCorner.top;
+                    }
+                    if (rcShadowCorner.left == 0) {
+                        destRect.left -= rcRealCorner.left;
+                    }
+                    if (rcShadowCorner.right == 0) {
+                        destRect.right += rcRealCorner.right;
+                    }
+                    if (rcShadowCorner.bottom == 0) {
+                        destRect.bottom += rcRealCorner.bottom;
+                    }
                 }
                 PaintImage(pRender, pBkImage, _T(""), DUI_NOSET_VALUE, nullptr, &destRect);
             }
@@ -463,13 +465,13 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowNone) {
         bRet = true;
         szBorderRound = UiSize(0, 0);
-        rcShadowCorner = UiPadding(1, 1, 1, 1);//设置一个像素，容纳边线
+        rcShadowCorner = UiPadding(0, 0, 0, 0);//设置一个像素，容纳边线（参考后续代码）
         shadowImage.clear();
     }
     else if (nShadowType == Shadow::ShadowType::kShadowNoneRound) {
         bRet = true;
         szBorderRound = UiSize(6, 6);
-        rcShadowCorner = UiPadding(1, 1, 1, 1);//设置一个像素，容纳边线
+        rcShadowCorner = UiPadding(0, 0, 0, 0);//设置一个像素，容纳边线（参考后续代码）
         shadowImage.clear();
     }
     else if (nShadowType == Shadow::ShadowType::kShadowCustom) {
@@ -484,7 +486,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         shadowImage.clear();
     }
 
-    if ((pShadowObj != nullptr) && ((nShadowType == Shadow::ShadowType::kShadowNone) || (nShadowType == Shadow::ShadowType::kShadowNoneRound))) {
+    if ((pShadowObj != nullptr) && ((nShadowType == Shadow::ShadowType::kShadowNone) ||
+                                    (nShadowType == Shadow::ShadowType::kShadowNoneRound))) {
         int32_t nShadowBorderSize = pShadowObj->GetShadowBorderSize();
         if (pShadowObj->GetShadowBorderColor().empty()) {
             nShadowBorderSize = 0;
