@@ -960,6 +960,11 @@ IRender* WindowBase::OnNativeGetRender() const
     return GetRender();
 }
 
+Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const
+{
+    return OnFindControl(pt);
+}
+
 void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
     OnDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
@@ -990,6 +995,11 @@ LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
         lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
     return lResult;
+}
+
+LRESULT WindowBase::OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnWindowPosChangedMsg(nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)

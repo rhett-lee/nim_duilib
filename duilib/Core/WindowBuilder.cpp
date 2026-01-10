@@ -729,6 +729,10 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 pWindow->SetLayeredWindowAlpha(nAlpha);
             }
         }
+        else if (strName == _T("drag_drop")) {
+            knownNames.insert(strName);
+            pWindow->SetEnableDragDrop(strValue == _T("true"));
+        }
     }
 
     if (bHasShadowAttached) {

@@ -408,6 +408,11 @@ public:
     */
     virtual IRender* GetRender() const override;
 
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnFindControl(const UiPoint& pt) const override;
+
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
     std::shared_ptr<IRenderDpi> GetRenderDpi();
@@ -463,7 +468,7 @@ public:
      */
     void ApplyAttributeList(const DString& strList);
 
-    /** 设置是否允许拖放操作
+    /** 设置是否允许拖放操作（拖入文本和拖入文件操作）
     * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
     */
     void SetEnableDragDrop(bool bEnable);
@@ -522,6 +527,25 @@ public:
     */
     void AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口位置大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSize(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMove(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型
     */
@@ -636,11 +660,6 @@ protected:
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
 
-    /** 获取指定坐标点的控件接口
-    * @param [in] pt 客户区坐标点
-    */
-    virtual Control* OnNativeFindControl(const UiPoint& pt) const override;
-
     /** @name 窗口消息处理相关
         * @{
     */
@@ -652,6 +671,13 @@ protected:
     * @return 返回消息的处理结果
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+
+    /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型

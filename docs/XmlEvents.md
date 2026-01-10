@@ -143,6 +143,7 @@ if (msg.eventType == eventType) {
 |kEventImeEndComposition|"ImeEndComposition"|"ime_end_composition"|
 |kEventWindowSetFocus|"WindowSetFocus"|"window_set_focus"|
 |kEventWindowKillFocus|"WindowKillFocus"|"window_kill_focus"|
+|kEventWindowPosChanged|"WindowPosChanged"|"window_pos_changed"|
 |kEventWindowSize|"WindowSize"|"window_size"|
 |kEventWindowMove|"WindowMove"|"window_move"|
 |kEventWindowCreate|"WindowCreate"|"window_create"|

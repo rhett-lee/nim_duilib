@@ -20,7 +20,8 @@ RichTextImpl::RichTextImpl(Control* pOwner) :
     m_bLinkUnderlineFont(true),
     m_nTextDataDisplayScaleFactor(0),
     m_bWordWrap(true),
-    m_bReplaceBrace(true)
+    m_bReplaceBrace(true),
+    m_bEnableRedraw(true)
 {
 }
 
@@ -156,8 +157,17 @@ void RichTextImpl::Redraw()
     //重新绘制
     m_textData.clear();
     m_spDrawRichTextCache.reset();
-    m_pOwner->Invalidate();
-    m_pOwner->RelayoutOrRedraw();
+    if (IsEnableRedraw()) {
+        m_pOwner->Invalidate();
+        m_pOwner->RelayoutOrRedraw();
+    }    
+}
+
+void RichTextImpl::Invalidate()
+{
+    if (IsEnableRedraw()) {
+        m_pOwner->Invalidate();
+    }
 }
 
 uint16_t RichTextImpl::GetTextStyle() const
@@ -588,7 +598,9 @@ void RichTextImpl::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
         m_rcTextPadding.top = TruncateToUInt16(padding.top);
         m_rcTextPadding.right = TruncateToUInt16(padding.right);
         m_rcTextPadding.bottom = TruncateToUInt16(padding.bottom);
-        m_pOwner->RelayoutOrRedraw();
+        if (IsEnableRedraw()) {
+            m_pOwner->RelayoutOrRedraw();
+        }        
     }
 }
 
@@ -643,6 +655,16 @@ DString RichTextImpl::TrimText(const DString::value_type* text)
     return TrimText(retText);
 }
 
+void RichTextImpl::SetEnableRedraw(bool bEnable)
+{
+    m_bEnableRedraw = bEnable;
+}
+
+bool RichTextImpl::IsEnableRedraw() const
+{
+    return m_bEnableRedraw;
+}
+
 bool RichTextImpl::DoSetText(const DString& richText)
 {
     Clear();
@@ -660,18 +682,20 @@ bool RichTextImpl::DoSetText(const DString& richText)
     return bResult;
 }
 
-bool RichTextImpl::SetText(const DString& richText)
+bool RichTextImpl::SetText(const DString& richText, bool bRedraw)
 {
     bool bResult = DoSetText(richText);
-    if (bResult) {
-        m_pOwner->RelayoutOrRedraw();
+    if (bResult && bRedraw) {
+        if (IsEnableRedraw()) {
+            m_pOwner->RelayoutOrRedraw();
+        }
     }
     return bResult;
 }
 
-bool RichTextImpl::SetTextId(const DString& richTextId)
+bool RichTextImpl::SetTextId(const DString& richTextId, bool bRedraw)
 {
-    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId));
+    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId), bRedraw);
     m_richTextId = richTextId;
     if (!m_richTextId.empty()) {
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();
@@ -688,7 +712,7 @@ void RichTextImpl::Clear()
     m_spDrawRichTextCache.reset();
     if (!m_textSlice.empty()) {
         m_textSlice.clear();
-        m_pOwner->Invalidate();
+        Invalidate();
     }
 }
 
@@ -945,7 +969,7 @@ void RichTextImpl::ButtonDown(const EventArgs& msg)
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //在超级链接上
                 textData.m_bMouseDown = true;
-                m_pOwner->Invalidate();
+                Invalidate();
             }
         }
     }
@@ -966,7 +990,7 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
                 //在超级链接上, 并且与按下鼠标时的相同，则触发点击事件
                 if (textData.m_bMouseDown) {
                     textData.m_bMouseDown = false;
-                    m_pOwner->Invalidate();
+                    Invalidate();
                     DString url = textData.m_linkUrl.c_str();
                     m_pOwner->SendEvent(kEventLinkClick, (WPARAM)url.c_str());
                     return;
@@ -985,7 +1009,7 @@ void RichTextImpl::ButtonUp(const EventArgs& msg)
         }
     }
     if (bInvalidate) {
-        m_pOwner->Invalidate();
+        Invalidate();
     }
 }
 
@@ -1001,7 +1025,7 @@ void RichTextImpl::MouseMove(const EventArgs& msg)
             if (textRect.ContainsPt(msg.ptMouse)) {
                 //在超级链接上
                 textData.m_bMouseHover = true;
-                m_pOwner->Invalidate();
+                Invalidate();
                 if (textData.m_linkUrl == m_pOwner->GetToolTipText()) {
                     bOnLinkUrl = true;
                 }
@@ -1050,7 +1074,7 @@ void RichTextImpl::MouseLeave(const EventArgs& /*msg*/)
         }
     }
     if (bInvalidate) {
-        m_pOwner->Invalidate();
+        Invalidate();
     }
 }
 

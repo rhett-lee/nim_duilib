@@ -2565,6 +2565,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
             GetClientRect(rc);
             Invalidate(rc);
         }
+        lResult = m_pOwner->OnNativeWindowPosChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_SIZE:

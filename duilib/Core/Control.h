@@ -1101,7 +1101,7 @@ public:
     */
     virtual void SetEnableDragDrop(bool bEnable);
 
-    /** 判断是否已经允许拖放功能
+    /** 判断是否已经允许拖放功能（拖入文本和拖入文件）
     */
     virtual bool IsEnableDragDrop() const;
 
