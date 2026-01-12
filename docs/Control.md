@@ -563,6 +563,16 @@ TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参
 | drag_out    | true| bool | 是否支持拖出操作（在相同窗口的不同容器内），默认是开启的 |
 | drag_alpha  | 216 | uint8_t | 拖动顺序时，控件的透明度 |
 
+## ListBoxItem的属性
+ListBoxItem是模板ListBoxItemTemplate类的一个具体实现，在`duilib/Box/ListBoxItem.h`文件中定义，相关的类型定义有三个：    
+```
+typedef ListBoxItemTemplate<Box> ListBoxItem;
+typedef ListBoxItemTemplate<HBox> ListBoxItemH;
+typedef ListBoxItemTemplate<VBox> ListBoxItemV;
+```
+ListBoxItem作为ListBox容器中的子项，其本身没有定义任何属性。
+ListBoxItem 继承了 `Option` 的属性，更多可用属性请参考`Option`的属性
+
 ## TreeView的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
