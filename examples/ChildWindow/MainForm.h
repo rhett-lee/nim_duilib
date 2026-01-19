@@ -32,6 +32,11 @@ public:
     */
     virtual bool PaintNextChildWindow(ui::ChildWindow* pChildWindow) override;
 
+public:
+    /** 立即绘制该子窗口的下一个子窗口（按顺序依次绘制每个子窗口）
+    */
+    bool PaintNextChildWindow();
+
 protected:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -54,10 +59,19 @@ private:
     */
     void CloseChildWindows();
 
+    /** 立即绘制该子窗口的下一个子窗口（按顺序依次绘制每个子窗口）
+    * @param [in] pChildWindow 子窗口的指针
+    */
+    bool DoPaintNextChildWindow(ui::ChildWindow* pChildWindow);
+
 private:
     /** 子窗口关联的事件
     */
     std::vector<MyChildWindowEvents*> m_childWindowEvents;
+
+    /** 当前绘制的子窗口
+    */
+    ui::ChildWindow* m_pChildWindow;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

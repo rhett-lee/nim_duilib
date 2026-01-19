@@ -4,6 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
+class MainForm;
 /** 主线程
 */
 class MainThread : public ui::FrameworkThread
@@ -20,6 +21,15 @@ private:
     /** 退出时清理，在退出消息循环后调用
     */
     virtual void OnCleanup() override;
+
+    /** 主线程：消息循环处于Idle状态
+    */
+    virtual void OnMessageLoopIdle()  override;
+
+private:
+    /** 主窗口
+    */
+    ui::ControlPtrT<MainForm> m_pMainForm;
 };
 
 #endif // EXAMPLES_MAIN_THREAD_H_

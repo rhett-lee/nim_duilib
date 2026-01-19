@@ -47,8 +47,10 @@ public:
 
 public:
     /** 执行UI主线程的消息循环（阻塞直到消息循环退出）
+    * @param [in] bSupportIdle true表示支持Idle功能，当消息队列为空时，会调用OnMessageLoopIdle虚函数，供应用层处理业务
+    *                          false表示不支持Idle功能，不会调用OnMessageLoopIdle虚函数
     */
-    bool RunMessageLoop();
+    bool RunMessageLoop(bool bSupportIdle = false);
 
     /** 启动子线程
     */
@@ -124,6 +126,10 @@ protected:
     /** 退出时清理，在退出消息循环后调用
     */
     virtual void OnCleanup();
+
+    /** 主线程：消息循环处于Idle状态
+    */
+    virtual void OnMessageLoopIdle();
 
 private:
     /** 主线程完成初始化
@@ -210,6 +216,10 @@ private:
     /** 是否正在运行中
     */
     volatile bool m_bRunning;
+
+    /** true表示支持Idle功能，当消息队列为空时，会调用OnMessageLoopIdle虚函数，供应用层处理业务
+    */
+    bool m_bSupportIdle;
 
 private:
     /** 后台线程
