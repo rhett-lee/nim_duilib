@@ -1173,6 +1173,108 @@ bool NativeWindow_Windows::SetWindowIcon(const FilePath& iconFilePath)
     return true;
 }
 
+/** 从图标数据中，查找指定大小的图标资源所在位置
+* @param [in] pIconData ico图标数据起始地址（对应于*.ico文件的数据）
+* @param [in] nDataSize 图标数据的长度
+* @param [in] targetWidth 目标图标的宽度
+* @param [in] targetHeight 目标图标的高度
+* @param [out] outResSize 返回图标数据的长度
+* @return 返回图标资源数据的起始地址
+*/
+static const BYTE* ExtractIconResource(const BYTE* pIconData, DWORD nDataSize,
+                                       int32_t targetWidth, int32_t targetHeight, DWORD& outResSize)
+{
+#pragma pack(push, 1)
+    typedef struct
+    {
+        WORD idReserved;   // 保留字段，必须为0
+        WORD idType;       // 资源类型：1=图标，2=光标
+        WORD idCount;      // 图标/光标数量
+    } ICONDIR;
+
+    typedef struct
+    {
+        BYTE bWidth;       // 图标宽度（0表示256px）
+        BYTE bHeight;      // 图标高度（0表示256px）
+        BYTE bColorCount;  // 颜色数（0表示>=8bpp）
+        BYTE bReserved;    // 保留字段，必须为0
+        WORD wPlanes;      // 位面数（图标固定为1）
+        WORD wBitCount;    // 每像素位数
+        DWORD dwBytesInRes;// 该图标资源的字节大小
+        DWORD dwImageOffset;// 该图标资源在文件中的偏移量
+    } ICONDIRENTRY;
+#pragma pack(pop)
+
+    outResSize = 0;
+    if ((pIconData == nullptr) || (nDataSize == 0)) {
+        return nullptr;
+    }
+
+    // 解析ICO文件头
+    const ICONDIR* pIconDir = (const ICONDIR*)pIconData;
+    if ((pIconDir->idReserved != 0 || pIconDir->idType != 1 || pIconDir->idCount == 0)) {
+        return nullptr;
+    }
+
+    // 遍历所有图标项，筛选最优项（尺寸≥目标+位深最大）
+    const ICONDIRENTRY* pFirstEntry = (const ICONDIRENTRY*)(pIconData + sizeof(ICONDIR));
+    const ICONDIRENTRY* pBestEntry = pFirstEntry;
+
+    int bestBitCount = pBestEntry->wBitCount;
+    int bestWidth = (pBestEntry->bWidth == 0) ? 256 : pBestEntry->bWidth;
+    int bestHeight = (pBestEntry->bHeight == 0) ? 256 : pBestEntry->bHeight;
+
+    for (UINT i = 0; i < pIconDir->idCount; i++) {
+        const ICONDIRENTRY* pEntry = &pFirstEntry[i];
+        int entryWidth = (pEntry->bWidth == 0) ? 256 : pEntry->bWidth;
+        int entryHeight = (pEntry->bHeight == 0) ? 256 : pEntry->bHeight;
+        int entryBitCount = pEntry->wBitCount;
+
+        // 判断尺寸是否达标
+        bool isSizeQualified = (entryWidth >= targetWidth) && (entryHeight >= targetHeight);
+
+        // 筛选最优项（优先级：尺寸达标 > 位深更大 > 尺寸更大）
+        if (isSizeQualified) {
+            if (entryBitCount > bestBitCount) {
+                pBestEntry = pEntry;
+                bestBitCount = entryBitCount;
+                bestWidth = entryWidth;
+                bestHeight = entryHeight;
+            }
+            else if (entryBitCount == bestBitCount) {
+                int bestTotal = bestWidth * bestHeight;
+                int entryTotal = entryWidth * entryHeight;
+                if (entryTotal > bestTotal) {
+                    pBestEntry = pEntry;
+                    bestWidth = entryWidth;
+                    bestHeight = entryHeight;
+                }
+            }
+        }
+        else {
+            // 无达标项时，保留位深最大的兜底项
+            if (!((bestWidth >= targetWidth) && (bestHeight >= targetHeight))) {
+                if (entryBitCount > bestBitCount) {
+                    pBestEntry = pEntry;
+                    bestBitCount = entryBitCount;
+                    bestWidth = entryWidth;
+                    bestHeight = entryHeight;
+                }
+            }
+        }
+    }
+    // 校验资源偏移和大小
+    if ((pBestEntry->dwImageOffset + pBestEntry->dwBytesInRes) > nDataSize) {
+        return nullptr;
+    }
+    // 输出结果
+    outResSize = pBestEntry->dwBytesInRes;
+    if (outResSize == 0) {
+        return nullptr;
+    }
+    return pIconData + pBestEntry->dwImageOffset;
+}
+
 bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& /*iconFileName*/)
 {
     //Little Endian Only
@@ -1226,37 +1328,48 @@ bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileDat
 
     uint32_t uDpiScaleFactor = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
     uint32_t uDpi = m_pOwner->OnNativeGetDpi().MulDiv(uDpiScaleFactor, 96u, 100u);
-    HICON hIcon = nullptr;
+
+    struct TWinIconInfo
+    {
+        BOOL bLargeIcon;
+        int32_t cxIcon;
+        int32_t cyIcon;
+    };
+    std::vector<TWinIconInfo> iconInfos;
+
     //大图标
-    int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
-    int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
-    int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-    if (offset > 0) {
-        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-        ASSERT(hIcon != nullptr);
-        if (hIcon != nullptr) {
-            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-        }
-        else {
-            return false;
-        }
-    }
+    int32_t cxBestIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
+    int32_t cyBestIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
+    iconInfos.push_back({TRUE, cxBestIcon, cyBestIcon});
 
     //小图标
-    cxIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
-    cyIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
-    offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-    if (offset > 0) {
-        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-        ASSERT(hIcon != nullptr);
-        if (hIcon != nullptr) {
-            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+    cxBestIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
+    cyBestIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
+    iconInfos.push_back({ FALSE, cxBestIcon, cyBestIcon });
+
+    bool bRet = true;
+    for (const TWinIconInfo& iconInfo : iconInfos) {
+        DWORD nIconDataSize = 0;
+        const BYTE* pIconData = ExtractIconResource((const BYTE*)fileData.data(), (DWORD)fileData.size(), iconInfo.cxIcon, iconInfo.cyIcon, nIconDataSize);
+        if (pIconData == nullptr) {
+            int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, iconInfo.cxIcon, iconInfo.cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+            if (offset > 0) {
+                pIconData = (PBYTE)fileData.data() + offset;
+                nIconDataSize = (DWORD)fileData.size() - (DWORD)offset;
+            }
         }
-        else {
-            return false;
+        if (pIconData != nullptr) {
+            HICON hIcon = ::CreateIconFromResourceEx((PBYTE)pIconData, nIconDataSize, TRUE, 0x00030000, iconInfo.cxIcon, iconInfo.cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+            ASSERT(hIcon != nullptr);
+            if (hIcon != nullptr) {
+                ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)iconInfo.bLargeIcon, (LPARAM)hIcon);
+            }
+            else {
+                bRet = false;
+            }
         }
     }
-    return true;
+    return bRet;
 }
 
 void NativeWindow_Windows::SetText(const DString& strText)
