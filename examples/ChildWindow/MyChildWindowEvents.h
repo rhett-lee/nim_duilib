@@ -22,7 +22,7 @@ class MyChildWindowEvents : public ui::ChildWindowEvents
 {
 public:
     MyChildWindowEvents(ui::ChildWindow* pChildWindow, size_t nChildWindowIndex, ChildWindowPaintScheduler* pPaintScheduler);
-    virtual ~MyChildWindowEvents() override = default;
+    virtual ~MyChildWindowEvents() override;
 
     /** 获取关联的子窗口
     */
