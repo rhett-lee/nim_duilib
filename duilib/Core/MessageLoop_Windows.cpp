@@ -15,6 +15,7 @@ MessageLoop_Windows::~MessageLoop_Windows()
 int32_t MessageLoop_Windows::Run(MessageLoopIdleCallback idleCallback)
 {
     if (idleCallback == nullptr) {
+        //普通消息循环，不支持Idle函数
         MSG msg = { 0, };
         BOOL bRet = FALSE;
         while ((bRet = ::GetMessage(&msg, 0, 0, 0)) != 0) {
@@ -30,6 +31,7 @@ int32_t MessageLoop_Windows::Run(MessageLoopIdleCallback idleCallback)
         return (int32_t)msg.wParam;
     }
     else {
+        //需要支持Idle函数
         return RunWithIdle(idleCallback);
     }
 }

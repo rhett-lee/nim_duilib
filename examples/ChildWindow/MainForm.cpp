@@ -97,13 +97,8 @@ bool MainForm::PaintChildWindow(ui::ChildWindow* pChildWindow)
 
 bool MainForm::PaintNextChildWindow(ui::ChildWindow* pChildWindow)
 {
-#if defined(DUILIB_BUILD_FOR_SDL)
-    //SDL时，直接绘制，不会导致界面卡顿
-    return DoPaintNextChildWindow(pChildWindow);
-#else
-    //Windows SDK实现时，需要在idle函数中触发连续绘制，否则界面会卡死
+    //需要在idle函数中触发连续绘制，否则界面会卡死
     m_pChildWindow = pChildWindow;
-#endif
     return true;
 }
 

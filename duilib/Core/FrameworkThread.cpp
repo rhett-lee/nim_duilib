@@ -437,25 +437,25 @@ void FrameworkThread::OnRunMessageLoop()
 #if defined (DUILIB_BUILD_FOR_SDL)
     MessageLoop_SDL msgLoop;
     MessageLoop_SDL::CheckInitSDL();
-    OnMainThreadInited();    
-    msgLoop.Run();
-    OnMainThreadExit();
 #elif defined (DUILIB_BUILD_FOR_WIN)
     MessageLoop_Windows msgLoop;
+#else
+    ASSERT(0);
+    return;
+#endif
+
     OnMainThreadInited();
     if (m_bSupportIdle) {
+        //支持Idle函数
         msgLoop.Run([this]() {
             return OnMessageLoopIdle();
             });
     }
     else {
+        //不支持Idle函数
         msgLoop.Run(nullptr);
     }
-    
     OnMainThreadExit();
-#else
-    ASSERT(0);
-#endif
 }
 
 void FrameworkThread::OnCleanup()

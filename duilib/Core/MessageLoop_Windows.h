@@ -26,6 +26,7 @@ public:
 
 public:
     /** 运行消息循环
+    * @param [in] idleCallback Idle状态的回调函数，可以为nullptr
     */
     int32_t Run(MessageLoopIdleCallback idleCallback);
 
