@@ -10,7 +10,8 @@ namespace ui
 WindowBase::WindowBase():
     m_pParentWindow(nullptr), 
     m_pNativeWindow(nullptr),
-    m_bWindowFirstShown(false)
+    m_bWindowFirstShown(false),
+    m_windowSizeState(WindowSizeState::kUnknown)
 {
     m_pNativeWindow = new NativeWindow(this);
 }
@@ -51,6 +52,14 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
     return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCloseByEsc, bCloseByEnter);
 }
 
+bool WindowBase::CreateChildWnd(WindowBase* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight)
+{
+    SetWindowId(_T(""));
+    m_pParentWindow = pParentWindow;
+    NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
+    return m_pNativeWindow->CreateChildWnd(pNativeWindow, nX, nY, nWidth, nHeight);
+}
+
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
@@ -68,7 +77,7 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
     OnInitWindow();
 
     if (!windowFlag.expired()) {
-        OnCreateWndMsg(bDoModal, nativeMsg, bHandled);
+        OnWindowCreateMsg(bDoModal, nativeMsg, bHandled);
     }    
     if (!windowFlag.expired()) {
         //给应用层回调
@@ -201,6 +210,16 @@ WindowBase* WindowBase::GetParentWindow() const
     return m_pParentWindow.get();
 }
 
+bool WindowBase::SetParentWindow(WindowBase* pParentWindow)
+{
+    ASSERT((pParentWindow != nullptr) && pParentWindow->IsWindow());
+    if ((pParentWindow == nullptr) || !pParentWindow->IsWindow()) {
+        return false;
+    }
+    m_pParentWindow = pParentWindow;
+    return m_pNativeWindow->SetParentWindow(pParentWindow->NativeWnd());
+}
+
 bool WindowBase::IsWindow() const
 {
     return m_pNativeWindow->IsWindow();
@@ -208,8 +227,7 @@ bool WindowBase::IsWindow() const
 
 bool WindowBase::IsChildWindow() const
 {
-    return false;
-    //return m_pNativeWindow->IsChildWindow();
+    return m_pNativeWindow->IsChildWindow();
 }
 
 void WindowBase::InitWindowBase()
@@ -901,12 +919,16 @@ void WindowBase::OnNativeWindowEnterFullscreen()
 {
     NotifyWindowEnterFullscreen(); //供Window子类处理业务
     OnWindowEnterFullscreen();     //供应用层处理业务
+
+    m_windowSizeState = WindowSizeState::kFullscreen;
+    SendWindowEvent(kWindowEnterFullscreenMsg);
 }
 
 void WindowBase::OnNativeWindowExitFullscreen()
 {
     NotifyWindowExitFullscreen();   //供Window子类处理业务
     OnWindowExitFullscreen();       //供应用层处理业务
+    SendWindowEvent(kWindowExitFullscreenMsg);
 }
 
 UiRect WindowBase::OnNativeGetSizeBox() const
@@ -1034,6 +1056,33 @@ LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWi
     OnWindowSize(sizeType);
     LRESULT lResult = OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     SendWindowEvent(kWindowSizeMsg, (WPARAM)sizeType);
+
+    //窗口大小改变时，主动触发重绘（避免分层窗口的情况下，窗口不绘制的现象出现）
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    Invalidate(rcClient);
+
+    //通知最终的窗口状态事件
+    if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
+        //最大化
+        if (!IsWindowFullscreen()) {
+            //非全屏状态
+            m_windowSizeState = WindowSizeState::kMaximized;
+            SendWindowEvent(kWindowMaximizedMsg);
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
+        //还原
+        if (m_windowSizeState != WindowSizeState::kRestored) {
+            m_windowSizeState = WindowSizeState::kRestored;
+            SendWindowEvent(kWindowRestoredMsg);
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_MINIMIZED) {
+        //最小化
+        m_windowSizeState = WindowSizeState::kMinimized;
+        SendWindowEvent(kWindowMaximizedMsg);
+    }
     return lResult;
 }
 
@@ -1359,6 +1408,31 @@ void WindowBase::AttachWindowFirstShown(const EventCallback& callback, EventCall
 {
     ASSERT(!IsWindowFirstShown());
     m_windowEventMap[kWindowFirstShown].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowEnterFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowEnterFullscreenMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowExitFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowExitFullscreenMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMaximizedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMaximizedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMinimizedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMinimizedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowRestoredMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowRestoredMsg].AddEventCallback(callback, callbackID);
 }
 
 void WindowBase::AttachWindowPosChangedMsg(const EventCallback& callback, EventCallbackID callbackID)

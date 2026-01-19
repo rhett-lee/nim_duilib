@@ -78,6 +78,15 @@ public:
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 获取本地实现的窗口句柄
     */
     void* GetWindowHandle() const;
@@ -93,6 +102,14 @@ public:
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
+
+    /** 是否为子窗口
+    */
+    bool IsChildWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(NativeWindow_SDL* pParentWindow);
 
 #ifdef DUILIB_BUILD_FOR_WIN
     /** 获取窗口句柄
@@ -693,6 +710,10 @@ private:
     /** SDL窗口渲染接口
     */
     SDL_Renderer* m_sdlRenderer;
+
+    /** 是否为子窗口
+    */
+    bool m_bChildWindow;
 
     /** 窗口已经延迟关闭
     */

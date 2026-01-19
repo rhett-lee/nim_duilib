@@ -429,12 +429,17 @@ namespace ui
         kWindowMsgBegin,            //窗口消息的开始
         kWindowCreateMsg,           //窗口创建消息
         kWindowCloseMsg,            //窗口关闭消息
+        kWindowShowWindowMsg,       //窗口显示或者隐藏
         kWindowFirstShown,          //窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
+        kWindowPaintMsg,            //窗口绘制
+        kWindowEnterFullscreenMsg,  //窗口进入全屏状态
+        kWindowExitFullscreenMsg,   //窗口退出全屏状态
+        kWindowMaximizedMsg,        //窗口进入最大化状态
+        kWindowMinimizedMsg,        //窗口进入最小化状态
+        kWindowRestoredMsg,         //窗口进入还原状态
         kWindowPosChangedMsg,       //窗口位置大小发生改变
         kWindowSizeMsg,             //窗口大小发生改变
         kWindowMoveMsg,             //窗口位置发生改变
-        kWindowShowWindowMsg,       //窗口显示或者隐藏
-        kWindowPaintMsg,            //窗口绘制
         kWindowSetFocusMsg,         //窗口获得焦点
         kWindowKillFocusMsg,        //窗口失去焦点
         kWindowSetCursorMsg,        //窗口设置光标

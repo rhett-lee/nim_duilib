@@ -39,6 +39,7 @@
 #include "duilib/Control/BitmapControl.h"
 #include "duilib/Control/AddressBar.h"
 #include "duilib/Control/MenuBar.h"
+#include "duilib/Control/ChildWindow.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -156,6 +157,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BITMAP_CONTROL, [](Window* pWindow) { return new BitmapControl(pWindow); }},
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
         {DUI_CTR_MENU_BAR, [](Window* pWindow) { return new MenuBar(pWindow); }},
+        {DUI_CTR_CHILD_WINDOW, [](Window* pWindow) { return new ChildWindow(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
         {DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},

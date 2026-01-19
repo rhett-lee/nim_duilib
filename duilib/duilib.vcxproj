@@ -253,6 +253,8 @@
     <ClCompile Include="Control\AddressBar.cpp" />
     <ClCompile Include="Control\BitmapControl.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
+    <ClCompile Include="Control\ChildWindow.cpp" />
+    <ClCompile Include="Control\ChildWindowImpl.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\ColorControl.cpp" />
     <ClCompile Include="Control\ColorConvert.cpp" />
@@ -590,6 +592,9 @@
     <ClInclude Include="Control\AddressBar.h" />
     <ClInclude Include="Control\BitmapControl.h" />
     <ClInclude Include="Control\CheckCombo.h" />
+    <ClInclude Include="Control\ChildWindow.h" />
+    <ClInclude Include="Control\ChildWindowEvents.h" />
+    <ClInclude Include="Control\ChildWindowImpl.h" />
     <ClInclude Include="Control\ColorControl.h" />
     <ClInclude Include="Control\ColorConvert.h" />
     <ClInclude Include="Control\ColorPicker.h" />
