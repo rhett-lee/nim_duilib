@@ -589,6 +589,40 @@ protected:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual void OnWindowCreateMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口关闭消息（WM_CLOSE）
+     * @param [in] wParam 消息的wParam参数
+     * @param [in] nativeMsg 从系统接收到的原始消息内容
+     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+     */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
+    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口绘制(SDL_EVENT_WINDOW_EXPOSED/WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    *             SDL实现：nativeMsg.uMsg值为SDL_EVENT_WINDOW_EXPOSED，nativeMsg.wParam的值为SDL_Window*指针
+    *             Windows实现：nativeMsg.uMsg值为WM_PAINT，nativeMsg.wParam的值为窗口的HWND句柄
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -612,22 +646,6 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
-    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口绘制(WM_PAINT)
-    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
@@ -848,22 +866,6 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口关闭消息（WM_CLOSE）
-    * @param [in] wParam 消息的wParam参数
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
-    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口位置的贴边操作
     * @param [in] bLeftSnap 窗口左侧贴边

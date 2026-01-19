@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="75%,75%" min_size="240,100" 
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
+        alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
+    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+        <!-- 标题栏区域 -->  
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <!-- 标题栏：窗口左上角显示区域 -->  
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
+                <Label text="子窗口控件(ChildWindow)测试程序" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                
+                <CheckBox class="checkbox_1" height="28" width="auto" text="分层窗口" valign="center" selected="true">
+                    <Event type="select" receiver="#window#" apply_attribute="layered_window='true'" />
+                    <Event type="unselect" receiver="#window#" apply_attribute="layered_window='false'" />
+                </CheckBox>
+                
+            </HBox>
+            <Control mouse_enabled="false"/>            
+            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            </HBox>
+        </HBox> <!-- 标题栏区域结束 --> 
+        
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
+        <Box>
+            <GridBox name="child_window_box" valign="center" rows="3" columns="3" bkcolor="#FFF0F0F0" > 
+                <Include src="child_window_item.xml" count="9"/>
+            </GridBox>
+        </Box>
+    </VBox>
+</Window>

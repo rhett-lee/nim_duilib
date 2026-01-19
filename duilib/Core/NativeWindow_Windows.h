@@ -48,6 +48,15 @@ public:
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(NativeWindow_Windows* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 获取窗口所属的 Windows 句柄
     */
     HWND GetHWND() const;
@@ -59,6 +68,14 @@ public:
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
+
+    /** 当前窗口是不是子窗口（非弹出窗口类型的子窗口, 对于Windows系统，是只含有WS_CHILD风格的窗口）
+    */
+    bool IsChildWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(NativeWindow_Windows* pParentWindow);
 
     /** 获取资源的句柄
     * @return 默认返回当前进程exe的句柄
@@ -768,6 +785,10 @@ private:
     /** 窗口的界面缩放比
     */
     uint32_t m_nWindowDpiScaleFactor;
+
+    /** 是否为子窗口（含有WS_CHILD风格）
+    */
+    bool m_bChildWindow;
 };
 
 /** 定义别名

@@ -93,6 +93,7 @@
 #include "Control/IconControl.h"
 #include "Control/BitmapControl.h"
 #include "Control/AddressBar.h"
+#include "Control/ChildWindow.h"
 
 #include "Control/ListCtrl.h"
 #include "Control/ListCtrlReportView.h"

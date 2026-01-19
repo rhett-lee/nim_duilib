@@ -51,6 +51,15 @@ public:
     int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
                     bool bCloseByEsc = true, bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(WindowBase* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
@@ -62,6 +71,10 @@ public:
     /** 获取父窗口
     */
     WindowBase* GetParentWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(WindowBase* pParentWindow);
 
     /** 获取窗口的实现接口
     */
@@ -605,6 +618,48 @@ public:
     */
     void AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口显示属性事件
+    * @param [in] callback 指定的回调函数, wParam为1表示显示，wParam为0表示隐藏
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowShowWindowMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口绘制事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPaintMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口进入全屏事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowEnterFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口退出全屏事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowExitFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口最大化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMaximizedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口最小化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMinimizedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口还原事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRestoredMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
     /** 监听窗口位置大小变化事件
     * @param [in] callback 指定的回调函数
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -622,18 +677,6 @@ public:
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
     void AttachWindowMoveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口显示属性事件
-    * @param [in] callback 指定的回调函数, wParam为1表示显示，wParam为0表示隐藏
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowShowWindowMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
-
-    /** 监听窗口绘制事件
-    * @param [in] callback 指定的回调函数
-    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
-    */
-    void AttachWindowPaintMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
 
     /** 监听窗口获取焦点事件
     * @param [in] callback 指定的回调函数, wParam是失去焦点的窗口的指针(WindowBase*)
@@ -899,6 +942,38 @@ protected:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+     * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+     * @param [in] nativeMsg 从系统接收到的原始消息内容
+     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+     */
+    virtual void OnWindowCreateMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口关闭消息（WM_CLOSE）
+    * @param [in] wParam 消息的wParam参数
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
+    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口绘制(WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -922,22 +997,6 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
-    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口绘制(WM_PAINT)
-    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
@@ -1159,22 +1218,6 @@ protected:
     */
     virtual LRESULT OnCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
-    /** 窗口关闭消息（WM_CLOSE）
-    * @param [in] wParam 消息的wParam参数
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
-    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
     /** 窗口位置的贴边操作
     * @param [in] bLeftSnap 窗口左侧贴边
     * @param [in] bRightSnap 窗口右侧贴边
@@ -1281,6 +1324,18 @@ private:
     virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override final;
 
 private:
+    /** 窗口大小改变的类型（内部值）
+    */
+    enum class WindowSizeState: uint8_t
+    {
+        kUnknown    = 0,
+        kMinimized  = 1,  //窗口已最小化
+        kRestored   = 2,  //窗口为还原状态
+        kMaximized  = 3,  //窗口已最大化
+        kFullscreen = 4   //窗口已全屏
+    };
+
+private:
     //父窗口
     ControlPtrT<WindowBase> m_pParentWindow;
 
@@ -1323,6 +1378,9 @@ private:
 
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
+
+    //窗口的状态
+    WindowSizeState m_windowSizeState;
 };
 
 } // namespace ui

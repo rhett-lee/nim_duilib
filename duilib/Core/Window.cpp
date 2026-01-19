@@ -58,6 +58,14 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
         //是否允许拖放操作
         SetEnableDragDrop(strValue == _T("true"));
     }
+    else if (strName == _T("layered_window")) {
+        //是否为分层窗口
+        SetLayeredWindow(strValue == _T("true"), true);
+    }
+    else if (strName == _T("layered_window_alpha")) {
+        //分层窗口的透明度
+        SetLayeredWindowAlpha(StringUtil::StringToInt32(strValue));
+    }
 }
 
 void Window::SetEnableDragDrop(bool bEnable)
@@ -1290,7 +1298,7 @@ bool Window::Paint(const UiRect& rcPaint)
     return true;
 }
 
-LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     //获得焦点时，如果无焦点控件，则关闭输入法
@@ -1323,7 +1331,7 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     return 0;
 }
 
-LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     ControlPtr pEventClick = m_pEventClick;
@@ -1960,7 +1968,7 @@ LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, const NativeMsg& /*nativeM
     return 0;
 }
 
-void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+void Window::OnWindowCreateMsg(bool /*bDoModal*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
 }

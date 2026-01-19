@@ -855,6 +855,12 @@
     <ClCompile Include="Control\BitmapControl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ChildWindow.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ChildWindowImpl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1767,6 +1773,15 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Control\BitmapControl.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ChildWindow.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ChildWindowImpl.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ChildWindowEvents.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
