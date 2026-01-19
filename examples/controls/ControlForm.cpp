@@ -561,11 +561,9 @@ void ControlForm::OnResourceFileLoaded(const DString& xml)
 void ControlForm::OnProgressValueChagned(float value)
 {
     //回调给的进度范围是：[0, 99), 转换为[0, 100]
-    int lastValue = 0;
     value = value * 100 / 99 + 0.5f;
     auto progress = static_cast<ui::Progress*>(FindControl(_T("progress")));
     if (progress) {
-        lastValue = (int)progress->GetValue();
         progress->SetValue(value);
     }
 
