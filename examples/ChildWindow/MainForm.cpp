@@ -2,7 +2,8 @@
 #include "ChildWindowPaint.h"
 #include "MyChildWindowEvents.h"
 
-MainForm::MainForm()
+MainForm::MainForm():
+    m_pChildWindow(nullptr)
 {
 }
 
@@ -87,18 +88,6 @@ void MainForm::CloseChildWindows()
 
 bool MainForm::PaintChildWindow(ui::ChildWindow* pChildWindow)
 {
-    if (pChildWindow == nullptr) {
-        return false;
-    }
-    std::weak_ptr<ui::WeakFlag> weakFlag = pChildWindow->GetWeakFlag();
-    ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, [weakFlag, pChildWindow]() {
-        if (!weakFlag.expired()) {
-            pChildWindow->InvalidateChildWindow();
-        }
-        }, 10);
-
-    return true;
-    //////////////////////////////////////////////
     if (pChildWindow != nullptr) {
         pChildWindow->InvalidateChildWindow();
         return true;
@@ -108,10 +97,27 @@ bool MainForm::PaintChildWindow(ui::ChildWindow* pChildWindow)
 
 bool MainForm::PaintNextChildWindow(ui::ChildWindow* pChildWindow)
 {
+#if defined(DUILIB_BUILD_FOR_SDL)
+    //SDL时，直接绘制，不会导致界面卡顿
+    return DoPaintNextChildWindow(pChildWindow);
+#else
+    //Windows SDK实现时，需要在idle函数中触发连续绘制，否则界面会卡死
+    m_pChildWindow = pChildWindow;
+#endif
+    return true;
+}
+
+bool MainForm::PaintNextChildWindow()
+{
+    return DoPaintNextChildWindow(m_pChildWindow);
+}
+
+bool MainForm::DoPaintNextChildWindow(ui::ChildWindow * pChildWindow)
+{
     if (pChildWindow == nullptr) {
         return false;
     }
-    if (m_childWindowEvents.empty()) {
+    if ((pChildWindow == nullptr) || m_childWindowEvents.empty()) {
         return false;
     }
     size_t nStartItemIndex = 0;
@@ -130,8 +136,7 @@ bool MainForm::PaintNextChildWindow(ui::ChildWindow* pChildWindow)
             pChildWindowEvents->GetChildWindow()->IsVisible() &&
             pChildWindowEvents->IsPaintFps()) {
             //确定绘制该窗口
-            PaintChildWindow(pChildWindowEvents->GetChildWindow());
-            return true;
+            return PaintChildWindow(pChildWindowEvents->GetChildWindow());
         }
     }
     if (nStartItemIndex >= m_childWindowEvents.size()) {
@@ -144,8 +149,7 @@ bool MainForm::PaintNextChildWindow(ui::ChildWindow* pChildWindow)
             pChildWindowEvents->GetChildWindow()->IsVisible() &&
             pChildWindowEvents->IsPaintFps()) {
             //确定绘制该窗口
-            PaintChildWindow(pChildWindowEvents->GetChildWindow());
-            return true;
+            return PaintChildWindow(pChildWindowEvents->GetChildWindow());
         }
     }
     return PaintChildWindow(pChildWindow);

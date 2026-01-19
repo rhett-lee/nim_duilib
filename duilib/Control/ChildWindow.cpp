@@ -233,9 +233,12 @@ void ChildWindow::GetChildWindowRect(UiRect& rect) const
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
         rc.Deflate(GetChildWindowMargin());
-        m_pChildWnd->GetClientRect(rect);
-        rect.left = rc.left;
+        UiRect rcClient;
+        m_pChildWnd->GetClientRect(rcClient);
+        rect.left = rc.left;        
+        rect.right = rect.left + rcClient.Width();
         rect.top = rc.top;
+        rect.bottom = rect.top + rcClient.Height();
     }
 }
 

@@ -25,6 +25,7 @@ namespace ui
 FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdentifier):
     m_bThreadUI(false),
     m_bRunning(false),
+    m_bSupportIdle(false),
     m_threadName(threadName),
     m_nThreadIdentifier(nThreadIdentifier)
 {
@@ -55,7 +56,7 @@ FrameworkThread::~FrameworkThread()
     }
 }
 
-bool FrameworkThread::RunMessageLoop()
+bool FrameworkThread::RunMessageLoop(bool bSupportIdle)
 {
     ASSERT(m_nThreadIdentifier == kThreadUI);
     ASSERT(!m_bRunning);
@@ -63,6 +64,7 @@ bool FrameworkThread::RunMessageLoop()
         return false;
     }
     m_bRunning = true;
+    m_bSupportIdle = bSupportIdle;
     OnInit();
     OnRunMessageLoop();
     OnCleanup();
@@ -441,7 +443,15 @@ void FrameworkThread::OnRunMessageLoop()
 #elif defined (DUILIB_BUILD_FOR_WIN)
     MessageLoop_Windows msgLoop;
     OnMainThreadInited();
-    msgLoop.Run();
+    if (m_bSupportIdle) {
+        msgLoop.Run([this]() {
+            return OnMessageLoopIdle();
+            });
+    }
+    else {
+        msgLoop.Run(nullptr);
+    }
+    
     OnMainThreadExit();
 #else
     ASSERT(0);
@@ -449,6 +459,10 @@ void FrameworkThread::OnRunMessageLoop()
 }
 
 void FrameworkThread::OnCleanup()
+{
+}
+
+void FrameworkThread::OnMessageLoopIdle()
 {
 }
 

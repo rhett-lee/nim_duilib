@@ -35,6 +35,7 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
+    m_pMainForm = window;
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("ChildWindow"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
@@ -43,4 +44,11 @@ void MainThread::OnInit()
 void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
+}
+
+void MainThread::OnMessageLoopIdle()
+{
+    if (m_pMainForm != nullptr) {
+        m_pMainForm->PaintNextChildWindow();
+    }
 }
