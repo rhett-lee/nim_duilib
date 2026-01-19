@@ -129,7 +129,6 @@ void ChildWindow::AdjustChildWindowPos()
         //SDL使用的是屏幕坐标，Windows SDK使用的是客户区坐标
         this->ClientToScreen(pt);
 #endif
-        Dpi().ClientSizeToWindowSize(pt);
         int32_t nWidth = rc.Width();
         int32_t nHeight = rc.Height();
         Dpi().ClientSizeToWindowSize(nWidth);
