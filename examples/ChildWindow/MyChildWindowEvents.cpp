@@ -115,6 +115,10 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
     }
 }
 
+MyChildWindowEvents::~MyChildWindowEvents()
+{
+}
+
 ui::ChildWindow* MyChildWindowEvents::GetChildWindow() const
 {
     return m_pChildWindow.get();
