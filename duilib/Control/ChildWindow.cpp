@@ -127,7 +127,13 @@ void ChildWindow::AdjustChildWindowPos()
         pt.y = rc.top;
 #if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
         //SDL使用的是屏幕坐标，Windows SDK使用的是客户区坐标
-        this->ClientToScreen(pt);
+        UiRect rcWindow;
+        if (GetWindow() != nullptr) {
+            GetWindow()->GetWindowRect(rcWindow);
+        }
+        Dpi().ClientSizeToWindowSize(pt);
+        pt.x += rcWindow.left;
+        pt.y += rcWindow.top;
 #endif
         int32_t nWidth = rc.Width();
         int32_t nHeight = rc.Height();
