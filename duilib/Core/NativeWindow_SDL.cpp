@@ -955,6 +955,10 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
     if (m_sdlWindow != nullptr) {
         return false;
     }
+    ASSERT(m_sdlRenderer == nullptr);
+    if (m_sdlRenderer != nullptr) {
+        return false;
+    }
     SDL_Window* sdlParentWindow = nullptr;
     if (pParentWindow != nullptr) {
         sdlParentWindow = pParentWindow->m_sdlWindow;
@@ -1039,6 +1043,16 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
 
     if (m_sdlWindow != nullptr) {
         m_bChildWindow = true;
+
+        //创建SDL渲染接口（这是必要的，否则在Linux下会出现子窗口无法正常显示的现象）
+        m_sdlRenderer = CreateSdlRenderer(_T(""));
+        ASSERT(m_sdlRenderer != nullptr);
+        if (m_sdlRenderer == nullptr) {
+            SDL_DestroyWindow(m_sdlWindow);
+            m_sdlWindow = nullptr;
+            return false;
+        }
+
         SDL_WindowID id = SDL_GetWindowID(m_sdlWindow);
         SetWindowFromID(id, this);
 
