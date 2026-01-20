@@ -317,24 +317,6 @@ public:
     */
     bool ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisableDpiAware = true);
 
-    /** 设置窗口的圆角矩形RGN
-    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
-    * @param [in] szRoundCorner 圆角大小，其值不能为0
-    * @param [in] bRedraw 是否重绘
-    */
-    bool SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw);
-
-    /** 设置窗口的矩形RGN
-    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
-    * @param [in] bRedraw 是否重绘
-    */
-    bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
-
-    /** 清除窗口的RGN, 回复系统默认值
-    * @param [in] bRedraw 是否重绘
-    */
-    void ClearWindowRgn(bool bRedraw);
-
     /** 发出重绘消息
     * @param [in] rcItem 重绘范围，为客户区坐标
     */
@@ -928,6 +910,31 @@ protected:
     * @param [in] pt 客户区坐标点
     */
     virtual Control* OnFindControl(const UiPoint& pt) const = 0;
+
+protected:
+    /** 在窗口大小改变时，是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
+    *   默认情况下，子窗口不自动设置，顶层窗口自动设置
+    */
+    virtual bool NeedSetWindowRgnOnWindowResized();
+
+    /** 设置窗口的形状为圆角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw);
+
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void ClearWindowRgn(bool bRedraw);
 
 protected:
     /** @name 窗口消息处理相关

@@ -3682,15 +3682,25 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         return;
     }
 
-    //绘制边线：确保边线在矩形范围内
+    // 绘制边线
     UiRectF rcDrawF((float)rcDraw.left, (float)rcDraw.top, (float)rcDraw.right, (float)rcDraw.bottom);
-    float fHalfBorderSize = fBorderSize / 2;
-    rcDrawF.left += fHalfBorderSize;
-    rcDrawF.top += fHalfBorderSize;
-    rcDrawF.right -= fHalfBorderSize;
-    rcDrawF.bottom -= fHalfBorderSize;
 
-    if (ShouldBeRoundRectBorders()) {
+    const bool bRoundRectBorders = ShouldBeRoundRectBorders();
+    const bool bRootBoxRoundCorner = IsRootBox() && IsWindowRoundRect(); //窗口为圆角，并且该控件为根容器
+    if (bRoundRectBorders && bRootBoxRoundCorner) {
+        // 在圆角窗口中，跟容器也是圆角，需要保持根容器的圆角与窗口的圆角大小一致，避免圆角出现黑边现象
+        fBorderSize *= 2;//放大为2倍，以窗口边缘为中心线绘制时，实际显示的线条刚好与设置的相同
+    }
+    else {
+        // 确保边线在矩形范围内
+        float fHalfBorderSize = fBorderSize / 2;
+        rcDrawF.left += fHalfBorderSize;
+        rcDrawF.top += fHalfBorderSize;
+        rcDrawF.right -= fHalfBorderSize;
+        rcDrawF.bottom -= fHalfBorderSize;
+    }
+
+    if (bRoundRectBorders) {
         float fRoundWidth = 0;
         float fRoundHeight = 0;
         GetBorderRound(fRoundWidth, fRoundHeight);        
@@ -3841,41 +3851,6 @@ bool Control::IsWindowRoundRect() const
     return isWindowRoundRect;
 }
 
-void Control::AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const
-{
-    UiRect rcI((int32_t)(rc.left + 0.5f), (int32_t)(rc.top + 0.5f), (int32_t)(rc.right + 0.5f), (int32_t)(rc.bottom + 0.5f));
-    AddRoundRectPath(path, rcI, rx, ry);
-}
-
-void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const
-{
-    ASSERT(path != nullptr);
-    if (path == nullptr) {
-        return;
-    }
-    //确保圆角宽度和高度都是偶数
-    UiSize roundSize;
-    roundSize.cx = (int32_t)(rx + 0.5f);
-    roundSize.cy = (int32_t)(ry + 0.5f);
-    
-    if ((roundSize.cx % 2) != 0) {
-        roundSize.cx += 1;
-    }
-    if ((roundSize.cy % 2) != 0) {
-        roundSize.cy += 1;
-    }
-    //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-    path->AddArc(UiRect(rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
-    path->AddLine(rc.left + roundSize.cx / 2, rc.top, rc.right - roundSize.cx / 2, rc.top);
-    path->AddArc(UiRect(rc.right - roundSize.cx, rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
-    path->AddLine(rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
-    path->AddArc(UiRect(rc.right - roundSize.cx, rc.bottom - roundSize.cy, rc.right, rc.bottom), 0, 90);
-    path->AddLine(rc.right - roundSize.cx / 2, rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
-    path->AddArc(UiRect(rc.left, rc.bottom - roundSize.cy, rc.left + roundSize.cx, rc.bottom), 90, 90);
-    path->AddLine(rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
-    path->Close();
-}
-
 void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
                             UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
@@ -3892,46 +3867,20 @@ void Control::DrawRoundRect(IRender* pRender, const UiRectF& rc, float rx, float
     if (pRender == nullptr) {
         return;
     }
-    if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
-        ASSERT(0);//目前没有其他类型的绘制引擎，代码走不到这里了。
+    if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
+        //普通实线
         pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
-        return;
     }
-    bool isDrawOk = false;
-    if (IsRootBox() && IsWindowRoundRect()) {
-        //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
+    else {
+        //其他线形
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
             std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
-            std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-            if (pen && path) {
-                if (borderDashStyle != IPen::DashStyle::kDashStyleSolid) {
-                    pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                }
-                //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, rx, ry);
-                pRender->DrawPath(path.get(), pen.get());
-                isDrawOk = true;
-            }
-        }
-    }
-    if(!isDrawOk) {
-        if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
-            //普通实线
-            pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
+            pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
+            pRender->DrawRoundRect(rc, rx, ry, pen.get());
         }
         else {
-            //其他线形
-            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-            if (pRenderFactory != nullptr) {
-                std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
-                pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                pRender->DrawRoundRect(rc, rx, ry, pen.get());
-            }
-            else {
-                pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
-            }
+            pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
         }
     }
 }
@@ -3942,59 +3891,21 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
     if (pRender == nullptr) {
         return;
     }
-    if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
-        //非Skia引擎
+    UiColor dwBackColor2;
+    if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+        dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
+    }
+    if (!dwBackColor2.IsEmpty()) {
+        //渐变背景色
+        int8_t nColor2Direction = 1;
+        if (m_pColorData != nullptr) {
+            nColor2Direction = m_pColorData->m_nBkColor2Direction;
+        }
+        pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
+    }
+    else {
         pRender->FillRoundRect(rc, rx, ry, dwColor);
-        return;
-    }
-
-    bool isDrawOk = false;
-    if (IsRootBox() && IsWindowRoundRect()) {
-        //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        if (pRenderFactory != nullptr) {
-            std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));
-            std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-            if (brush && path) {
-                //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, rx, ry);
-                UiColor dwBackColor2;
-                if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
-                    dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
-                }
-                if (!dwBackColor2.IsEmpty()) {
-                    //渐变背景色
-                    int8_t nColor2Direction = 1;
-                    if (m_pColorData != nullptr) {
-                        nColor2Direction = m_pColorData->m_nBkColor2Direction;
-                    }
-                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
-                }
-                else {
-                    pRender->FillPath(path.get(), brush.get());
-                }                
-                isDrawOk = true;
-            }
-        }
-    }
-    if (!isDrawOk) {
-        UiColor dwBackColor2;
-        if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
-            dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
-        }
-        if (!dwBackColor2.IsEmpty()) {
-            //渐变背景色
-            int8_t nColor2Direction = 1;
-            if (m_pColorData != nullptr) {
-                nColor2Direction = m_pColorData->m_nBkColor2Direction;
-            }
-            pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
-        }
-        else {
-            pRender->FillRoundRect(rc, rx, ry, dwColor);
-        }
-    }    
+    }  
 }
 
 void Control::PaintBkImage(IRender* pRender)

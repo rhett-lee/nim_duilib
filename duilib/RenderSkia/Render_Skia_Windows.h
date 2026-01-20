@@ -52,6 +52,25 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) override;
 
+    /** 设置窗口的形状为圆角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw) override;
+
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw) override;
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void ClearWindowRgn(bool bRedraw) override;
+
     /** 获取SkSurface接口
     */
     virtual SkSurface* GetSkSurface() const override;

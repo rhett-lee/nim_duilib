@@ -1574,36 +1574,33 @@ bool NativeWindow_Windows::IsCaptured() const
     return ::GetCapture() == m_hWnd;
 }
 
-bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
+bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
-    ASSERT((szRoundCorner.cx > 0) && (szRoundCorner.cy > 0));
-    if ((szRoundCorner.cx <= 0) || (szRoundCorner.cy <= 0)) {
-        return false;
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
     }
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
-        return false;
-    }
-    HRGN hRgn = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom, szRoundCorner.cx, szRoundCorner.cy);
-    int nRet = ::SetWindowRgn(GetHWND(), hRgn, bRedraw ? TRUE : FALSE);
-    return nRet != 0;
+    return false;
 }
 
 bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
-        return false;
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        return pRender->SetWindowRectRgn(rcWnd, bRedraw);
     }
-    HRGN hRgn = ::CreateRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom);
-    int nRet = ::SetWindowRgn(GetHWND(), hRgn, bRedraw ? TRUE : FALSE);
-    return nRet != 0;
+    return false;
 }
 
 void NativeWindow_Windows::ClearWindowRgn(bool bRedraw)
 {
-    ASSERT(IsWindow());
-    ::SetWindowRgn(GetHWND(), nullptr, bRedraw ? TRUE : FALSE);
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        pRender->ClearWindowRgn(bRedraw);
+    }
 }
 
 void NativeWindow_Windows::Invalidate(const UiRect& rcItem)
