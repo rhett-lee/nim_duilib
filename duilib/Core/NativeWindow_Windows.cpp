@@ -405,7 +405,11 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
     m_createParam.m_dwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     if (pParentWindow->IsLayeredWindow()) {
         //父窗口是分层窗口时，子窗口也需要带有分层窗口属性，否则绘制流程有问题
-        m_createParam.m_dwExStyle = WS_EX_LAYERED;
+        if (::IsWindows8OrGreater()) {
+            // Windows 8： 顶级窗口和子窗口支持 WS_EX_LAYERED 样式。
+            // 以前的 Windows 版本仅支持顶级窗口 WS_EX_LAYERED。
+            m_createParam.m_dwExStyle = WS_EX_LAYERED;
+        }        
     }
 
     //父窗口句柄
