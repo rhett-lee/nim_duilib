@@ -173,6 +173,24 @@ SkCanvas* Render_Skia_SDL::GetSkCanvas() const
     return backbuffer->getCanvas();
 }
 
+bool Render_Skia_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, float /*rx*/, float /*ry*/, bool /*bRedraw*/)
+{
+    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
+    return false;
+}
+
+bool Render_Skia_SDL::SetWindowRectRgn(const UiRect& /*rcWnd*/, bool /*bRedraw*/)
+{
+    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
+    return false;
+}
+
+void Render_Skia_SDL::ClearWindowRgn(bool /*bRedraw*/)
+{
+    //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
+    return;
+}
+
 #ifdef DUILIB_BUILD_FOR_WIN
 
 HDC Render_Skia_SDL::GetRenderDC(HWND /*hWnd*/)

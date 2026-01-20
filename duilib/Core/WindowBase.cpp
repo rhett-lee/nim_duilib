@@ -673,9 +673,18 @@ void WindowBase::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewSc
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldScaleFactor);
 }
 
-bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
+bool WindowBase::NeedSetWindowRgnOnWindowResized()
 {
-    return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, szRoundCorner, bRedraw);
+    if (IsChildWindow()) {
+        //子窗口，不自动设置RGN
+        return false;
+    }
+    return true;
+}
+
+bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
 }
 
 bool WindowBase::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
@@ -886,21 +895,24 @@ DString WindowBase::GetWindowRenderName() const
 
 void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
 {
+    //此函数的主要功能：设置窗口的RGN，从而实现窗口的圆角或者直角功能
+    if (!NeedSetWindowRgnOnWindowResized()) {
+        //不支持，立即返回
+        return;
+    }
     if (IsUseSystemCaption() || IsWindowMinimized() || IsWindowMaximized()) {
         //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
         ClearWindowRgn(true);
     }
     else {
-        //未使用系统标题栏的情况下
+        //其他情况下
         UiSize szRoundCorner = GetRoundCorner();
         if (szRoundCorner.cx > 0 && szRoundCorner.cy > 0) {
-            //配置为圆角窗口
+            //该窗口的配置为圆角窗口
             UiRect rcWnd;
             GetWindowRect(rcWnd);
             rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-            rcWnd.right++;
-            rcWnd.bottom++;
-            SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
+            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, true);
         }
         else {
             //配置为直角窗口

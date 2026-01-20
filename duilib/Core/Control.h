@@ -1466,11 +1466,6 @@ private:
     /** 填充圆角矩形
     */
     void FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry, UiColor dwColor) const;
-  
-    /** 填充路径, 形成圆角矩形
-    */
-    void AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const;
-    void AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const;
 
     /** 当前控件是否为窗口的Root节点
     */

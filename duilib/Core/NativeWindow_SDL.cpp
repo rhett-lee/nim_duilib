@@ -3163,6 +3163,35 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
     return true;
 }
 
+bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
+    }
+    return false;
+}
+
+bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        return pRender->SetWindowRectRgn(rcWnd, bRedraw);
+    }
+    return false;
+}
+
+void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        pRender->ClearWindowRgn(bRedraw);
+    }
+}
+
 bool NativeWindow_SDL::KillWindowFocus()
 {
     //不支持此功能
@@ -3179,23 +3208,6 @@ bool NativeWindow_SDL::IsWindowEnabled() const
 {
     //未能提供此功能
     return true;
-}
-
-bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSize& /*szRoundCorner*/, bool /*bRedraw*/)
-{
-    //没有此功能
-    return false;
-}
-
-bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& /*rcWnd*/, bool /*bRedraw*/)
-{
-    //没有此功能
-    return false;
-}
-
-void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
-{
-    //没有此功能
 }
 
 bool NativeWindow_SDL::UpdateWindow() const
