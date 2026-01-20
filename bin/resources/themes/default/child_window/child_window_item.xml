@@ -6,7 +6,7 @@
             <Label name="child_window_name" text="ChildWindow1" margin="2,0,2,0" valign="center" mouse_enabled="false"/>
             <Label text="帧率FPS:" valign="center" mouse_enabled="false"/>
             <Label name="label_fps" text="0000" width="42" margin="4,0,4,0" valign="center" mouse_enabled="false"/>
-            <CheckBox class="checkbox_1" name="fps_paint" height="28" width="auto" text="动态绘制" valign="center" selected="true"/>
+            <CheckBox class="checkbox_1" name="fps_paint" height="28" width="auto" text="绘制" valign="center" selected="true"/>
             <CheckBox class="checkbox_1" name="child_fullscreen" height="28" width="auto" text="全屏显示" valign="center" margin="8,0,0,0" selected="false"/>
         </HBox>
     </ChildWindow>
