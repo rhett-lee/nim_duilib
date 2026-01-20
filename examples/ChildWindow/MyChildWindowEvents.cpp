@@ -50,7 +50,7 @@ MyChildWindowEvents::MyChildWindowEvents(ui::ChildWindow* pChildWindow,
     //更新子窗口名称
     ui::Label* pChildWindowName = dynamic_cast<ui::Label*>(pChildWindow->FindSubControl(_T("child_window_name")));
     if (pChildWindowName != nullptr) {
-        DString childWindowName = ui::StringUtil::Printf(_T("ChildWindow%d"), (int32_t)nChildWindowIndex);
+        DString childWindowName = ui::StringUtil::Printf(_T("ChildWnd%d"), (int32_t)nChildWindowIndex);
         pChildWindowName->SetText(childWindowName);
     }
 
