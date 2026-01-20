@@ -980,7 +980,7 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
 
     //窗口属性
     SDL_WindowFlags windowFlags = 0;
-    
+
     //创建的时候，窗口保持隐藏状态，需要调用API显示窗口，避免创建窗口的时候闪烁
     windowFlags |= SDL_WINDOW_HIDDEN;
 
@@ -990,8 +990,11 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
     //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
     windowFlags |= SDL_WINDOW_BORDERLESS;
 
-    //设置透明属性，这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
-    windowFlags |= SDL_WINDOW_TRANSPARENT;
+    SDL_WindowFlags sdlParentFlag = SDL_GetWindowFlags(sdlParentWindow);
+    if (sdlParentFlag & SDL_WINDOW_TRANSPARENT) {
+        //设置透明属性（跟随父窗口），这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
+        windowFlags |= SDL_WINDOW_TRANSPARENT;
+    }
 
     //该窗口不需要焦点
     windowFlags |= SDL_WINDOW_NOT_FOCUSABLE; //SDL_WINDOW_INPUT_FOCUS
