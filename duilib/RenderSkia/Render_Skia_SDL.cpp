@@ -11,6 +11,11 @@
 
 #include "SkiaHeaderEnd.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "WindowRgn_Windows.h"
+    #include "SDL3/SDL.h"
+#endif
+
 namespace ui {
 
 /** 创建Raster实现的WindowContext
@@ -173,22 +178,58 @@ SkCanvas* Render_Skia_SDL::GetSkCanvas() const
     return backbuffer->getCanvas();
 }
 
-bool Render_Skia_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, float /*rx*/, float /*ry*/, bool /*bRedraw*/)
+bool Render_Skia_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            return WindowRgn::SetWindowRoundRectRgn(hWnd, rcWnd, rx, ry, bRedraw);
+        }
+    }
+#else
     //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
+    (void)rcWnd;
+    (void)rx;
+    (void)ry;
+    (void)bRedraw;
+#endif
     return false;
 }
 
-bool Render_Skia_SDL::SetWindowRectRgn(const UiRect& /*rcWnd*/, bool /*bRedraw*/)
+bool Render_Skia_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            return WindowRgn::SetWindowRectRgn(hWnd, rcWnd, bRedraw);
+        }
+    }
+#else
     //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
+    (void)rcWnd;
+    (void)bRedraw;
+#endif
     return false;
 }
 
-void Render_Skia_SDL::ClearWindowRgn(bool /*bRedraw*/)
+void Render_Skia_SDL::ClearWindowRgn(bool bRedraw)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (m_sdlWindow != nullptr) {
+        SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+        HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (::IsWindow(hWnd)) {
+            return WindowRgn::ClearWindowRgn(hWnd, bRedraw);
+        }
+    }
+#else
     //不需要支持，使用SDL时，可以设置窗口为支持透明，可以规避RGN的设置
-    return;
+    (void)bRedraw;
+#endif
 }
 
 #ifdef DUILIB_BUILD_FOR_WIN
