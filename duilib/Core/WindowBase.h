@@ -1269,9 +1269,10 @@ private:
     */
     void InitWindowBase();
 
-    /** 窗口大小变化，处理内部业务
+    /** 窗口大小变化，处理内部业务（设置RGN）
+    * @param [in] bRedraw 是否重绘
     */
-    void OnWindowSize(WindowSizeType sizeType);
+    void OnWindowSized(bool bRedraw);
 
 private:
     //来自实现窗口的事件
@@ -1385,6 +1386,9 @@ private:
 
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
+
+    //窗口大小变化事件是否触发
+    bool m_bWindowSized;
 
     //窗口的状态
     WindowSizeState m_windowSizeState;

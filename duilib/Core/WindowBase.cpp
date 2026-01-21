@@ -11,6 +11,7 @@ WindowBase::WindowBase():
     m_pParentWindow(nullptr), 
     m_pNativeWindow(nullptr),
     m_bWindowFirstShown(false),
+    m_bWindowSized(false),
     m_windowSizeState(WindowSizeState::kUnknown)
 {
     m_pNativeWindow = new NativeWindow(this);
@@ -893,8 +894,9 @@ DString WindowBase::GetWindowRenderName() const
 }
 #endif
 
-void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
+void WindowBase::OnWindowSized(bool bRedraw)
 {
+    m_bWindowSized = true;
     //此函数的主要功能：设置窗口的RGN，从而实现窗口的圆角或者直角功能
     if (!NeedSetWindowRgnOnWindowResized()) {
         //不支持，立即返回
@@ -902,7 +904,7 @@ void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
     }
     if (IsUseSystemCaption() || IsWindowMinimized() || IsWindowMaximized()) {
         //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
-        ClearWindowRgn(true);
+        ClearWindowRgn(bRedraw);
     }
     else {
         //其他情况下
@@ -912,7 +914,7 @@ void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
             UiRect rcWnd;
             GetWindowRect(rcWnd);
             rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, true);
+            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, bRedraw);
         }
         else {
             //配置为直角窗口
@@ -922,7 +924,7 @@ void WindowBase::OnWindowSize(WindowSizeType /*sizeType*/)
             rcWnd.Offset(-rcWnd.left, -rcWnd.top);
             rcWnd.right++;
             rcWnd.bottom++;
-            SetWindowRectRgn(rcWnd, true);
+            SetWindowRectRgn(rcWnd, bRedraw);
         }
     }
 }
@@ -1065,7 +1067,7 @@ LRESULT WindowBase::OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool
 
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    OnWindowSize(sizeType);
+    OnWindowSized(true);
     LRESULT lResult = OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     SendWindowEvent(kWindowSizeMsg, (WPARAM)sizeType);
 
@@ -1123,6 +1125,12 @@ LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nat
 
         //触发第一次绘制事件
         SendWindowEvent(kWindowFirstShown);
+
+        //如果未触发窗口大小变化，则触发一次(设置RGN等)
+        if (!m_bWindowSized) {
+            m_bWindowSized = true;
+            OnWindowSized(false);
+        }
     }
     return lResult;
 }
