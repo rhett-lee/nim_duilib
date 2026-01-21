@@ -409,11 +409,12 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
             // Windows 8： 顶级窗口和子窗口支持 WS_EX_LAYERED 样式。
             // 以前的 Windows 版本仅支持顶级窗口 WS_EX_LAYERED。
             m_createParam.m_dwExStyle = WS_EX_LAYERED;
-        }        
+        }
     }
 
     //父窗口句柄
     m_hParentWnd = pParentWindow->GetHWND();
+    m_bChildWindow = true;
 
     //窗口标题
     DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
@@ -432,8 +433,7 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
     if (m_hWnd == nullptr) {
         m_hParentWnd = nullptr;
         return false;
-    }
-    m_bChildWindow = true;
+    }    
     if (IsLayeredWindow() && IsWindowVisible()) {
         //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
         UiRect rcClient;
@@ -1577,7 +1577,9 @@ bool NativeWindow_Windows::IsCaptured() const
 bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
     }
@@ -1587,7 +1589,9 @@ bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, 
 bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         return pRender->SetWindowRectRgn(rcWnd, bRedraw);
     }
@@ -1597,7 +1601,9 @@ bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 void NativeWindow_Windows::ClearWindowRgn(bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         pRender->ClearWindowRgn(bRedraw);
     }
