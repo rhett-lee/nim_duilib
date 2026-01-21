@@ -861,6 +861,9 @@
     <ClCompile Include="Control\ChildWindowImpl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\WindowRgn_Windows.cpp">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1783,6 +1786,9 @@
     </ClInclude>
     <ClInclude Include="Control\ChildWindowEvents.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\WindowRgn_Windows.h">
+      <Filter>RenderSkia\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
