@@ -1041,12 +1041,11 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
 
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
 
+    m_bChildWindow = true;
     m_sdlWindow = SDL_CreateWindowWithProperties(props);
     SDL_DestroyProperties(props);
 
     if (m_sdlWindow != nullptr) {
-        m_bChildWindow = true;
-
         //创建SDL渲染接口（这是必要的，否则在Linux下会出现子窗口无法正常显示的现象）
         m_sdlRenderer = CreateSdlRenderer(_T(""));
         ASSERT(m_sdlRenderer != nullptr);
@@ -3166,7 +3165,9 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
     }
@@ -3176,7 +3177,9 @@ bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, floa
 bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         return pRender->SetWindowRectRgn(rcWnd, bRedraw);
     }
@@ -3186,7 +3189,9 @@ bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
 {
     IRender* pRender = m_pOwner->OnNativeGetRender();
-    ASSERT(pRender != nullptr);
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
     if (pRender != nullptr) {
         pRender->ClearWindowRgn(bRedraw);
     }
