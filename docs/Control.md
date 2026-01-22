@@ -733,3 +733,10 @@ BitmapControl 控件继承了 `Box` 属性，更多可用属性请参考`Box`的
 
 AddressBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
+## ChildWindow的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| child_window_margin | rect | UiMargin | 设置子窗口的外边距，外边距的空间可以放置其他控件 |
+
+ChildWindow 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+

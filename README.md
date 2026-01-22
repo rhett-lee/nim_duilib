@@ -78,7 +78,7 @@
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr>
-        <td rowspan="21">新增控件</td>
+        <td rowspan="22">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -101,6 +101,7 @@
     <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
     <tr><td align="left">20. MenuBar：菜单栏控件</td></tr>
     <tr><td align="left">21. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
+    <tr><td align="left">22. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -108,7 +109,7 @@
     <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
     <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
-        <td rowspan="12">示例程序完善</td>
+        <td rowspan="13">示例程序完善</td>
         <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
@@ -121,7 +122,8 @@
     <tr><td align="left">9. examples/WebView2：提供了WebView2控件的功能演示</td></tr>
     <tr><td align="left">10. examples/WebView2Browser：提供了WebView2控件的功能演示（多标签）</td></tr>
     <tr><td align="left">11. examples/layout：所有布局和容器的功能演示</td></tr>
-    <tr><td align="left">12. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">12. examples/ChildWindow：子窗口控件的功能演示</td></tr>
+    <tr><td align="left">13. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
