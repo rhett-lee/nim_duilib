@@ -10,6 +10,7 @@ class ChildWindowImpl;
 
 /** 子窗口控件，控件自身是一个操作系统的子窗口，界面库内部负责子窗口的创建和销毁，但界面库内部不执行子窗口的绘制
  *  由应用层自己负责子窗口的绘制
+ *  子窗口的实现：Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口
  */
 class ChildWindow : public Box
 {
