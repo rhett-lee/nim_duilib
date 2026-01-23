@@ -5262,7 +5262,7 @@ ControlDropTarget_Windows* Control::GetControlDropTarget()
 {
 #ifdef DUILIB_BUILD_FOR_WIN
     if (IsEnableDragDrop() && IsEnabled()) {
-        if (m_pDragDropData != nullptr) {
+        if (m_pDragDropData == nullptr) {
             m_pDragDropData = std::make_unique<TDragDropData>();
             m_pDragDropData->m_bDragDropEnabled = true;
         }
