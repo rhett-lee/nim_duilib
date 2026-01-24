@@ -1296,6 +1296,15 @@ bool NativeWindow_Windows::SetWindowIcon(const FilePath& iconFilePath)
     return true;
 }
 
+// 辅助函数：将宽度和高度转为唯一键（处理0表示256px的情况）
+static DWORD GetIconSizeKey(BYTE bWidth, BYTE bHeight)
+{
+    // 高位存宽度，低位存高度；0转为256
+    UINT width = (bWidth == 0) ? 256 : bWidth;
+    UINT height = (bHeight == 0) ? 256 : bHeight;
+    return (width << 16) | height;
+}
+
 /** 从图标数据中，查找指定大小的图标资源所在位置
 * @param [in] pIconData ico图标数据起始地址（对应于*.ico文件的数据）
 * @param [in] nDataSize 图标数据的长度
@@ -1339,63 +1348,94 @@ static const BYTE* ExtractIconResource(const BYTE* pIconData, DWORD nDataSize,
         return nullptr;
     }
 
-    // 遍历所有图标项，筛选最优项（尺寸≥目标+位深最大）
+    // 遍历所有图标项，初步筛选图标数据：相同尺寸的图标，只保留位深(wBitCount)最大的图标
     const ICONDIRENTRY* pFirstEntry = (const ICONDIRENTRY*)(pIconData + sizeof(ICONDIR));
-    const ICONDIRENTRY* pBestEntry = pFirstEntry;
-
-    int bestBitCount = pBestEntry->wBitCount;
-    int bestWidth = (pBestEntry->bWidth == 0) ? 256 : pBestEntry->bWidth;
-    int bestHeight = (pBestEntry->bHeight == 0) ? 256 : pBestEntry->bHeight;
-
+    // 用map分组：key=宽度+高度的组合键，value=该尺寸下的所有图标条目
+    std::map<DWORD, std::vector<ICONDIRENTRY>> iconGroups;
     for (UINT i = 0; i < pIconDir->idCount; i++) {
         const ICONDIRENTRY* pEntry = &pFirstEntry[i];
-        int entryWidth = (pEntry->bWidth == 0) ? 256 : pEntry->bWidth;
-        int entryHeight = (pEntry->bHeight == 0) ? 256 : pEntry->bHeight;
-        int entryBitCount = pEntry->wBitCount;
-
-        // 判断尺寸是否达标
-        bool isSizeQualified = (entryWidth >= targetWidth) && (entryHeight >= targetHeight);
-
-        // 筛选最优项（优先级：尺寸达标 > 位深更大 > 尺寸更大）
-        if (isSizeQualified) {
-            if (entryBitCount > bestBitCount) {
-                pBestEntry = pEntry;
-                bestBitCount = entryBitCount;
-                bestWidth = entryWidth;
-                bestHeight = entryHeight;
-            }
-            else if (entryBitCount == bestBitCount) {
-                int bestTotal = bestWidth * bestHeight;
-                int entryTotal = entryWidth * entryHeight;
-                if (entryTotal > bestTotal) {
-                    pBestEntry = pEntry;
-                    bestWidth = entryWidth;
-                    bestHeight = entryHeight;
-                }
-            }
+        if ((pEntry->bWidth < 0) || (pEntry->bHeight < 0)) {
+            continue;
         }
-        else {
-            // 无达标项时，保留位深最大的兜底项
-            if (!((bestWidth >= targetWidth) && (bestHeight >= targetHeight))) {
-                if (entryBitCount > bestBitCount) {
-                    pBestEntry = pEntry;
-                    bestBitCount = entryBitCount;
-                    bestWidth = entryWidth;
-                    bestHeight = entryHeight;
-                }
-            }
+        DWORD sizeKey = GetIconSizeKey(pEntry->bWidth, pEntry->bHeight);
+        iconGroups[sizeKey].push_back(*pEntry);
+    }
+    //遍历每个分组，筛选位深最大的图标，剔除其他图标数据，图标按尺寸由小到大排序
+    std::vector<ICONDIRENTRY> allIconList;
+    for (auto& group : iconGroups) {
+        auto& entries = group.second;
+        // 找到该分组中wBitCount最大的条目
+        auto maxEntryIt = std::max_element(entries.begin(), entries.end(),
+            [](const ICONDIRENTRY& a, const ICONDIRENTRY& b) {
+                return a.wBitCount < b.wBitCount;
+            });
+
+        // 将最大位深的条目加入结果容器
+        if (maxEntryIt != entries.end()) {
+            allIconList.push_back(*maxEntryIt);
         }
     }
+    if (allIconList.empty()) {
+        return nullptr;
+    }
+
+    //筛选出匹配度最高的那个图标
+    ICONDIRENTRY bestEntry = allIconList.back(); //默认选择尺寸最大的图标
+    for (size_t nIndex = 0; nIndex < allIconList.size(); ++nIndex) {
+        const ICONDIRENTRY& entry = allIconList[nIndex];
+        int entryWidth = (entry.bWidth == 0) ? 256 : entry.bWidth;
+        int entryHeight = (entry.bHeight == 0) ? 256 : entry.bHeight;
+        bool isSizeQualified = (entryWidth >= targetWidth) && (entryHeight >= targetHeight);
+        if (!isSizeQualified) {
+            continue;
+        }
+        //尺寸达标
+        if ((entryWidth == targetWidth) && (entryHeight == targetHeight)) {
+            //尺寸精确满足需要：直接选择
+            bestEntry = allIconList[nIndex];
+        }
+        else if (nIndex == 0) {
+            //首个图标满足需要：直接选择
+            bestEntry = allIconList[nIndex];
+        }
+        else {
+            //非首个图标满足需要：比较哪个更合适（缩放时图标失真度更小）
+            const ICONDIRENTRY& preEntry = allIconList[nIndex - 1];
+            int preEntryWidth = (preEntry.bWidth == 0) ? 256 : preEntry.bWidth;
+            int preEntryHeight = (preEntry.bHeight == 0) ? 256 : preEntry.bHeight;
+            float wRatio = (float)(targetWidth - preEntryWidth) / (float)preEntryWidth;
+            float hRatio = (float)(targetHeight - preEntryHeight) / (float)preEntryHeight;
+            float preRatio = std::max(wRatio, hRatio);
+
+            wRatio = (float)(entryWidth - targetWidth) / (float)entryWidth;
+            hRatio = (float)(entryHeight - targetHeight) / (float)entryHeight;
+            float curRatio = std::max(wRatio, hRatio);
+            if (curRatio < preRatio) {
+                bestEntry = allIconList[nIndex];            //选择尺寸大的
+            }
+            else {
+                const float minRatio = 0.20f; //设置最小放大比例
+                if (preRatio < minRatio) {
+                    bestEntry = allIconList[nIndex - 1];    //选择尺寸小的
+                }
+                else {
+                    bestEntry = allIconList[nIndex];        //选择尺寸大的
+                }
+            }
+        }
+        break;
+    }
+
     // 校验资源偏移和大小
-    if ((pBestEntry->dwImageOffset + pBestEntry->dwBytesInRes) > nDataSize) {
+    if ((bestEntry.dwImageOffset + bestEntry.dwBytesInRes) > nDataSize) {
         return nullptr;
     }
     // 输出结果
-    outResSize = pBestEntry->dwBytesInRes;
+    outResSize = bestEntry.dwBytesInRes;
     if (outResSize == 0) {
         return nullptr;
     }
-    return pIconData + pBestEntry->dwImageOffset;
+    return pIconData + bestEntry.dwImageOffset;
 }
 
 bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& /*iconFileName*/)
