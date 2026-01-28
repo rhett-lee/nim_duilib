@@ -78,7 +78,7 @@
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr>
-        <td rowspan="22">新增控件</td>
+        <td rowspan="23">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -93,15 +93,16 @@
     <tr><td align="left">11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
     <tr><td align="left">12. ComboButton：带有下拉组合框的按钮</td></tr>
     <tr><td align="left">13. ShadowWnd：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 kWS_EX_LAYERED 属性的窗口阴影</td></tr>
-    <tr><td align="left">14. ControlDragableT：支持相同Box内的子控件通过拖动来调整顺序</td></tr>
-    <tr><td align="left">15. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
-    <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
-    <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
-    <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
-    <tr><td align="left">20. MenuBar：菜单栏控件</td></tr>
-    <tr><td align="left">21. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
-    <tr><td align="left">22. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
+    <tr><td align="left">14. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
+    <tr><td align="left">15. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
+    <tr><td align="left">16. WebView2Control：封装了WebView2控件的基本功能</td></tr>
+    <tr><td align="left">17. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
+    <tr><td align="left">18. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
+    <tr><td align="left">19. MenuBar：菜单栏控件</td></tr>
+    <tr><td align="left">20. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
+    <tr><td align="left">21. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
+    <tr><td align="left">22. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
+    <tr><td align="left">23. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

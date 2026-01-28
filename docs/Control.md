@@ -563,6 +563,37 @@ TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参
 | drag_out    | true| bool | 是否支持拖出操作（在相同窗口的不同容器内），默认是开启的 |
 | drag_alpha  | 216 | uint8_t | 拖动顺序时，控件的透明度 |
 
+## ControlDragable的属性
+ControlDragable 控件继承了`ControlDragableT`和`Control`属性，更多可用属性请参考`ControlDragableT`和`Control`的属性
+
+## BoxDragable的属性
+BoxDragable 控件继承了`ControlDragableT`和`Box`属性，更多可用属性请参考`ControlDragableT`和`Box`的属性
+
+## HBoxDragable的属性
+HBoxDragable 控件继承了`ControlDragableT`和`HBox`属性，更多可用属性请参考`ControlDragableT`和`HBox`的属性
+
+## VBoxDragable的属性
+VBoxDragable 控件继承了`ControlDragableT`和`VBox`属性，更多可用属性请参考`ControlDragableT`和`VBox`的属性
+
+## ControlMovableT的属性(模板类)
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| enable_move_pos  | true | bool    | 是否支持拖动调整控件的位置，默认是开启的 |
+| move_parent_pos  | false| bool    | 执行拖动调整控件位置操作时，是否调整父容器的位置，"true"表示调整父容器的位置，"false"表示调整控件自身的位置 |
+| move_pos_alpha   | 216  | uint8_t | 拖动调整位置时，控件的透明度 |
+
+## ControlMovable的属性
+ControlMovable 控件继承了`ControlMovableT`和`Control`属性，更多可用属性请参考`ControlMovableT`和`Control`的属??
+
+## BoxMovable的属性
+BoxMovable 控件继承了`ControlMovableT`和`Box`属性，更多可用属性请参考`ControlMovableT`和`Box`的属性
+
+## HBoxMovable的属性
+HBoxMovable 控件继承了`ControlMovableT`和`HBox`属性，更多可用属性请参考`ControlMovableT`和`HBox`的属性
+
+## VBoxMovable的属性
+VBoxMovable 控件继承了`ControlMovableT`和`VBox`属性，更多可用属性请参考`ControlMovableT`和`VBox`的属性
+
 ## ListBoxItem的属性
 ListBoxItem是模板ListBoxItemTemplate类的一个具体实现，在`duilib/Box/ListBoxItem.h`文件中定义，相关的类型定义有三个：    
 ```

@@ -661,6 +661,7 @@
     <ClInclude Include="Core\ControlDropTargetUtils.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlLoading.h" />
+    <ClInclude Include="Core\ControlMovable.h" />
     <ClInclude Include="Core\ControlPtrT.h" />
     <ClInclude Include="Core\CursorManager.h" />
     <ClInclude Include="Core\DpiAwareness.h" />

@@ -4,6 +4,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlDragable.h"
+#include "duilib/Core/ControlMovable.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 
@@ -110,6 +111,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
 
         {DUI_CTR_CONTROL, [](Window* pWindow) { return new Control(pWindow); }},
         {DUI_CTR_CONTROL_DRAGABLE, [](Window* pWindow) { return new ControlDragable(pWindow); }},
+        {DUI_CTR_CONTROL_MOVABLE, [](Window* pWindow) { return new ControlMovable(pWindow); }},
         {DUI_CTR_SCROLLBAR, [](Window* pWindow) { return new ScrollBar(pWindow); }},
         {DUI_CTR_LABEL, [](Window* pWindow) { return new Label(pWindow); }},
         {DUI_CTR_LABELBOX, [](Window* pWindow) { return new LabelBox(pWindow); }},
@@ -168,6 +170,10 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BOX_DRAGABLE, [](Window* pWindow) { return new BoxDragable(pWindow); }},
         {DUI_CTR_HBOX_DRAGABLE, [](Window* pWindow) { return new HBoxDragable(pWindow); }},
         {DUI_CTR_VBOX_DRAGABLE, [](Window* pWindow) { return new VBoxDragable(pWindow); }},
+
+        {DUI_CTR_BOX_MOVABLE, [](Window* pWindow) { return new BoxMovable(pWindow); }},
+        {DUI_CTR_HBOX_MOVABLE, [](Window* pWindow) { return new HBoxMovable(pWindow); }},
+        {DUI_CTR_VBOX_MOVABLE, [](Window* pWindow) { return new VBoxMovable(pWindow); }},
     };
     Control* pControl = nullptr;
     auto iter = createControlMap.find(strControlClass);
