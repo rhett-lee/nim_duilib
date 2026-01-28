@@ -1790,6 +1790,9 @@
     <ClInclude Include="RenderSkia\WindowRgn_Windows.h">
       <Filter>RenderSkia\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ControlMovable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

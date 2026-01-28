@@ -44,6 +44,7 @@
 #include "Core/Box.h"
 #include "Core/ScrollBar.h"
 #include "Core/ControlDragable.h"
+#include "Core/ControlMovable.h"
 #include "Core/Callback.h"
 
 #include "Core/Keycode.h"
