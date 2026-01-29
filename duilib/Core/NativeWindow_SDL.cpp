@@ -300,7 +300,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             newWindowSize.cx = sdlEvent.window.data1;
             newWindowSize.cy = sdlEvent.window.data2;
             lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESIZED, 0, 0), bHandled);
-            CheckWindowSnap(m_sdlWindow);
+            if (!ownerFlag.expired()) {
+                CheckWindowSnap(m_sdlWindow);
+            }            
         }
         break;
     case SDL_EVENT_WINDOW_MINIMIZED:
@@ -385,7 +387,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             ptTopLeft.x = sdlEvent.window.data1;
             ptTopLeft.y = sdlEvent.window.data2;
             lResult = pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(SDL_EVENT_WINDOW_MOVED, 0, 0), bHandled);
-            CheckWindowSnap(m_sdlWindow);
+            if (!ownerFlag.expired()) {
+                CheckWindowSnap(m_sdlWindow);
+            }
         }
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
@@ -506,7 +510,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键: 先触发左键弹起消息，然后再触发左键双击消息，避免左键弹起消息丢失的现象
                 lResult = pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                if (!bHandled && bDoubleClick) {
+                if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
                     lResult = pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
@@ -525,7 +529,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             else if (sdlEvent.button.button == SDL_BUTTON_MIDDLE) {
                 //鼠标中键: 先触发中键弹起消息，然后再触发中键双击消息，避免中键弹起消息丢失的现象
                 lResult = pOwner->OnNativeMouseMButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                if (!bHandled && bDoubleClick) {
+                if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
                     lResult = pOwner->OnNativeMouseMButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
