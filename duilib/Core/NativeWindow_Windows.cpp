@@ -520,7 +520,11 @@ LRESULT NativeWindow_Windows::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lPara
     InitNativeWindow();
 
     if (m_pOwner != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
 
     //更新最大化/最小化按钮的风格
@@ -539,7 +543,11 @@ LRESULT NativeWindow_Windows::OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM l
     InitNativeWindow();
 
     if (m_pOwner != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         m_pOwner->OnNativeCreateWndMsg(true, NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
 
     //更新最大化/最小化按钮的风格
@@ -2742,10 +2750,11 @@ LRESULT NativeWindow_Windows::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
         lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, NativeMsg(WM_LBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
     }
     else if (dwFlags & TOUCHEVENTF_MOVE) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         UiPoint lastMousePos = m_ptLastMousePos;
         lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, false, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         int wheelDelta = pt.y - lastMousePos.y;
-        if (wheelDelta != 0) {
+        if ((wheelDelta != 0) && !windowFlag.expired()) {
             //触发滚轮功能
             lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, 0, NativeMsg(WM_MOUSEWHEEL, MAKEWPARAM(0, wheelDelta), MAKELPARAM(pt.x, pt.y)), bHandled);
         }

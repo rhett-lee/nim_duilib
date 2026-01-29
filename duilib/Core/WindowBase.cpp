@@ -69,14 +69,19 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
     InitWindowBase();
 
     //回调，让子类解析XML文件并与窗口绑定（内部使用，子类可重写）
-    PreInitWindow();
+    if (!windowFlag.expired()) {
+        PreInitWindow();
+    }
 
     //内部初始化（内部使用）
-    PostInitWindow();
+    if (!windowFlag.expired()) {
+        PostInitWindow();
+    }
 
     //调用子类的初始化函数
-    OnInitWindow();
-
+    if (!windowFlag.expired()) {
+        OnInitWindow();
+    }
     if (!windowFlag.expired()) {
         OnWindowCreateMsg(bDoModal, nativeMsg, bHandled);
     }    
@@ -1039,20 +1044,21 @@ void WindowBase::OnNativeFinalMessage()
 LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = 0;
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
     for (auto filter : m_aMessageFilters) {
         if (filter == nullptr) {
             continue;
         }
         lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
-        if (bHandled) {
+        if (bHandled || windowFlag.expired()) {
             //过滤器处理后截获此消息，不再进行派发
             return lResult;
         }
     }
 
     //第二优先级：派发给子类回调函数（子类可以通过设置bHandled为true来截获消息处理）   
-    if (!bHandled) {
+    if (!bHandled && !windowFlag.expired()) {
         lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
     return lResult;
@@ -1060,16 +1066,26 @@ LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 LRESULT WindowBase::OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnWindowPosChangedMsg(nativeMsg, bHandled);
-    SendWindowEvent(kWindowPosChangedMsg);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowPosChangedMsg);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     OnWindowSized(true);
     LRESULT lResult = OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
     SendWindowEvent(kWindowSizeMsg, (WPARAM)sizeType);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
 
     //窗口大小改变时，主动触发重绘（避免分层窗口的情况下，窗口不绘制的现象出现）
     UiRect rcClient;
@@ -1102,22 +1118,35 @@ LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWi
 
 LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMoveMsg(ptTopLeft, nativeMsg, bHandled);
-    SendWindowEvent(kWindowMoveMsg);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowMoveMsg);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnShowWindowMsg(bShow, nativeMsg, bHandled);
-    SendWindowEvent(kWindowShowWindowMsg, bShow ? 1 : 0);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowShowWindowMsg, bShow ? 1 : 0);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnPaintMsg(rcPaint, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
     SendWindowEvent(kWindowPaintMsg);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
 
     //首次绘制事件, 给一次回调
     if (!IsWindowFirstShown()) {
@@ -1125,6 +1154,9 @@ LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nat
 
         //触发第一次绘制事件
         SendWindowEvent(kWindowFirstShown);
+        if (windowFlag.expired()) {
+            return lResult;
+        }
 
         //如果未触发窗口大小变化，则触发一次(设置RGN等)
         if (!m_bWindowSized) {
@@ -1141,8 +1173,11 @@ LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const N
     if (pLostFocusWindow != nullptr) {
         pLostFocusWindowBase = dynamic_cast<WindowBase*>(pLostFocusWindow);
     }
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnSetFocusMsg(pLostFocusWindowBase, nativeMsg, bHandled);
-    SendWindowEvent(kWindowSetFocusMsg, (WPARAM)pLostFocusWindowBase);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowSetFocusMsg, (WPARAM)pLostFocusWindowBase);
+    }    
     return lResult;
 }
 
@@ -1152,8 +1187,11 @@ LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const N
     if (pSetFocusWindow != nullptr) {
         pSetFocusWindowBase = dynamic_cast<WindowBase*>(pSetFocusWindow);
     }
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
-    SendWindowEvent(kWindowKillFocusMsg, (WPARAM)pSetFocusWindowBase);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowKillFocusMsg, (WPARAM)pSetFocusWindowBase);
+    }
     return lResult;
 }
 
@@ -1179,8 +1217,11 @@ LRESULT WindowBase::OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, boo
 
 LRESULT WindowBase::OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnSetCursorMsg(nativeMsg, bHandled);
-    SendWindowEvent(kWindowSetCursorMsg);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowSetCursorMsg);
+    }    
     return lResult;
 }
 
@@ -1191,7 +1232,11 @@ LRESULT WindowBase::OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& n
 
 LRESULT WindowBase::OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
     if (!m_windowEventMap.empty()) {
         EventArgs msg;
         msg.SetSenderWeakFlag(GetWeakFlag());
@@ -1205,7 +1250,11 @@ LRESULT WindowBase::OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierK
 
 LRESULT WindowBase::OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
     if (!m_windowEventMap.empty()) {
         EventArgs msg;
         msg.SetSenderWeakFlag(GetWeakFlag());
@@ -1229,7 +1278,11 @@ LRESULT WindowBase::OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, u
 
 LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseWheelMsg(wheelDelta, pt, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
     if (!m_windowEventMap.empty()) {
         EventArgs msg;
         msg.SetSenderWeakFlag(GetWeakFlag());
@@ -1244,92 +1297,131 @@ LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt,
 
 LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowMouseMoveMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMouseMoveMsg, pt, modifierKey);
+    }    
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseHoverMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowMouseHoverMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMouseHoverMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseLeaveMsg(nativeMsg, bHandled);
-    SendWindowEvent(kWindowMouseLeaveMsg);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowMouseLeaveMsg);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseLButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowLButtonDownMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonDownMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowLButtonUpMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonUpMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseLButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowLButtonDbClickMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonDbClickMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseRButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowRButtonDownMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonDownMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseRButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowRButtonUpMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonUpMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowRButtonDbClickMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonDbClickMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseMButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowMButtonDownMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonDownMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseMButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowMButtonUpMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonUpMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnMouseMButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
-    SendWindowMouseEvent(kWindowMButtonDbClickMsg, pt, modifierKey);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonDbClickMsg, pt, modifierKey);
+    }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     LRESULT lResult = OnCaptureChangedMsg(nativeMsg, bHandled);
-    SendWindowEvent(kWindowCaptureChangedMsg);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowCaptureChangedMsg);
+    }
     return lResult;
 }
 
