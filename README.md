@@ -78,7 +78,7 @@
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr>
-        <td rowspan="23">新增控件</td>
+        <td rowspan="24">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -103,6 +103,7 @@
     <tr><td align="left">21. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
     <tr><td align="left">22. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
     <tr><td align="left">23. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
+    <tr><td align="left">24. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

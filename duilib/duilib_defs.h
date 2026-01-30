@@ -12,6 +12,7 @@ namespace ui
     #define  DUI_CTR_CONTROL                         (_T("Control"))
     #define  DUI_CTR_CONTROL_DRAGABLE                (_T("ControlDragable"))
     #define  DUI_CTR_CONTROL_MOVABLE                 (_T("ControlMovable"))
+    #define  DUI_CTR_CONTROL_RESIZABLE               (_T("ControlResizable"))
     #define  DUI_CTR_LABEL                           (_T("Label"))
     #define  DUI_CTR_RICHTEXT                        (_T("RichText"))
     #define  DUI_CTR_HYPER_LINK                      (_T("HyperLink"))
@@ -58,6 +59,10 @@ namespace ui
     #define  DUI_CTR_BOX_MOVABLE                     (_T("BoxMovable"))
     #define  DUI_CTR_HBOX_MOVABLE                    (_T("HBoxMovable"))
     #define  DUI_CTR_VBOX_MOVABLE                    (_T("VBoxMovable"))
+
+    #define  DUI_CTR_BOX_RESIZABLE                   (_T("BoxResizable"))
+    #define  DUI_CTR_HBOX_RESIZABLE                  (_T("HBoxResizable"))
+    #define  DUI_CTR_VBOX_RESIZABLE                  (_T("VBoxResizable"))
 
     #define  DUI_CTR_GROUP_BOX                       (_T("GroupBox"))
     #define  DUI_CTR_GROUP_HBOX                      (_T("GroupHBox"))

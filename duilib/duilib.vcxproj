@@ -663,6 +663,7 @@
     <ClInclude Include="Core\ControlLoading.h" />
     <ClInclude Include="Core\ControlMovable.h" />
     <ClInclude Include="Core\ControlPtrT.h" />
+    <ClInclude Include="Core\ControlResizable.h" />
     <ClInclude Include="Core\CursorManager.h" />
     <ClInclude Include="Core\DpiAwareness.h" />
     <ClInclude Include="Core\DpiManager.h" />

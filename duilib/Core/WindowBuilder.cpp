@@ -5,6 +5,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlDragable.h"
 #include "duilib/Core/ControlMovable.h"
+#include "duilib/Core/ControlResizable.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 
@@ -112,6 +113,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_CONTROL, [](Window* pWindow) { return new Control(pWindow); }},
         {DUI_CTR_CONTROL_DRAGABLE, [](Window* pWindow) { return new ControlDragable(pWindow); }},
         {DUI_CTR_CONTROL_MOVABLE, [](Window* pWindow) { return new ControlMovable(pWindow); }},
+        {DUI_CTR_CONTROL_RESIZABLE, [](Window* pWindow) { return new ControlResizable(pWindow); }},
         {DUI_CTR_SCROLLBAR, [](Window* pWindow) { return new ScrollBar(pWindow); }},
         {DUI_CTR_LABEL, [](Window* pWindow) { return new Label(pWindow); }},
         {DUI_CTR_LABELBOX, [](Window* pWindow) { return new LabelBox(pWindow); }},
@@ -174,6 +176,10 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BOX_MOVABLE, [](Window* pWindow) { return new BoxMovable(pWindow); }},
         {DUI_CTR_HBOX_MOVABLE, [](Window* pWindow) { return new HBoxMovable(pWindow); }},
         {DUI_CTR_VBOX_MOVABLE, [](Window* pWindow) { return new VBoxMovable(pWindow); }},
+
+        {DUI_CTR_BOX_RESIZABLE, [](Window* pWindow) { return new BoxResizable(pWindow); }},
+        {DUI_CTR_HBOX_RESIZABLE, [](Window* pWindow) { return new HBoxResizable(pWindow); }},
+        {DUI_CTR_VBOX_RESIZABLE, [](Window* pWindow) { return new VBoxResizable(pWindow); }},
     };
     Control* pControl = nullptr;
     auto iter = createControlMap.find(strControlClass);
@@ -617,7 +623,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
             knownNames.insert(strName);
             UiRect rcSizeBox;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
+            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox, false);
             pWindow->SetSizeBox(rcSizeBox, true);
         }
         else if (strName == _T("caption")) {

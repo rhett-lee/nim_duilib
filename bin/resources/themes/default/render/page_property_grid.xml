@@ -27,13 +27,7 @@
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                 </TabCtrl>
-            </HBox>
-            <HBox bkcolor="white" height="80">
-                <Label text="  MenuBar示例:" text_align="right,vcenter" height="36"/>
-                <MenuBar name="menu_bar_test" bkcolor="#FFE5E5E5" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4">
-                
-                </MenuBar>
-            </HBox>
+            </HBox>            
             <HBox bkcolor="white">
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
                     <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -74,7 +68,7 @@
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
             </HBox>
             <HBox bkcolor="white" margin="4,4,4,4">
-                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
+                <Label width="stretch" height="stretch" text_align="hcenter,vcenter" text="这里演示的是渐变背景色功能" border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />

@@ -29,11 +29,11 @@ public:
 
     /** 从配置中解析一个Rect结构，输入格式如："80,50,60,70"
     */
-    static void ParseRectValue(const wchar_t* strValue, UiRect& rect);
+    static void ParseRectValue(const wchar_t* strValue, UiRect& rect, bool bCheckSize = true);
     static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
     static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
-    static void ParseRectValue(const char* strValue, UiRect& rect);
+    static void ParseRectValue(const char* strValue, UiRect& rect, bool bCheckSize = true);
     static void ParsePaddingValue(const char* strValue, UiPadding& padding);
     static void ParseMarginValue(const char* strValue, UiMargin& margin);
 
