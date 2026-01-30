@@ -850,6 +850,13 @@ public:
     virtual void ClearImageCache();
 
 public:
+    /** 计算鼠标在某个控件上的相对位置（相对于控件左上角）
+     * @param [in] ptMouse 当前鼠标的位置，客户区坐标
+     * @param [out] ptLayoutPos 返回鼠标在客户区内的相对坐标，相对于当前控件的左上角坐标值
+     * @return true表示鼠标在控件范围内，false表示鼠标不在控件范围内
+     */
+    bool MousePosToLayoutPos(const UiPoint& ptMouse, UiPoint& ptLayoutPos);
+
     /** 屏幕坐标转换为客户区坐标
     */
     virtual bool ScreenToClient(UiPoint& pt);

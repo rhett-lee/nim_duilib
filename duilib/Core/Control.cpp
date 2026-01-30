@@ -5101,6 +5101,22 @@ void Control::EnsureNoFocus()
     }
 }
 
+bool Control::MousePosToLayoutPos(const UiPoint& ptMouse, UiPoint& ptLayoutPos)
+{
+    ptLayoutPos.x = 0;
+    ptLayoutPos.y = 0;
+    UiPoint pt(ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox()); //将鼠标的客户区坐标转换为控件坐标
+    UiRect rcRect = GetRect();
+    if (rcRect.ContainsPt(pt)) {
+        //表示鼠标在控件范围内
+        ptLayoutPos.x = pt.x - rcRect.left;
+        ptLayoutPos.y = pt.y - rcRect.top;
+        return true;
+    }
+    return false;
+}
+
 bool Control::ScreenToClient(UiPoint& pt)
 {
     Window* pWindow = GetWindow();
