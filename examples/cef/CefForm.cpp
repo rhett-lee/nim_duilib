@@ -323,8 +323,14 @@ bool CefForm::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> 
 {
     m_dropFileList.clear();
     if ((dragData != nullptr) && dragData->IsFile()){
-        //拖入文件操作        
+        //拖入文件操作
+#if CEF_VERSION_MAJOR > 109
+        //CEF高于109版本时，支持获取文件的完整路径
+        dragData->GetFilePaths(m_dropFileList);
+#else
+        //CEF 109版本时，只支持获取文件名，不支持获取文件的完整路径
         dragData->GetFileNames(m_dropFileList);
+#endif
     }
     return false;
 }
