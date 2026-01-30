@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Box>
+    <VBox>
+        <HBox bkcolor="white" height="80" margin="0,10,0,0">
+            <Label text="  MenuBar示例:" text_align="right,vcenter" height="36"/>
+            <MenuBar name="menu_bar_test" bkcolor="#FFE5E5E5" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4" />
+        </HBox>
+        <HBox bkcolor="Gainsboro" height="300" margin="10,10,10,10" padding="4,4,4,4">
+            <Label text="可以拖动改变位置的控件和容器" mouse_enabled="false"/>
+            <ControlMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,40,8,8" valign="top" halign="left" 
+                            move_pos_reserve_width="40" move_pos_reserve_height="40"
+                            move_pos_keep_within_parent="true"/>
+            <BoxMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,8,8,8" valign="top" halign="right">
+                <Label text="可以拖动的容器" valign="center" halign="center" mouse_enabled="false"/>
+            </BoxMovable>
+        </HBox>
+        <HBox bkcolor="Gainsboro" height="300" margin="10,10,10,10">
+            <Label text="可以拖动改变变大小/可以拖动改变位置的控件和容器" mouse_enabled="false"/>
+            <ControlResizable bkcolor="Salmon" width="160" height="160" border_round="8,8" border_size="1" border_color="gray"
+                              margin="40,40,8,8" valign="top" halign="left"
+                              min_width="40" min_height="40" max_width="300" max_height="240"
+                              resize_size_box="8,8,8,8" resize_reserve_width="20" resize_reserve_height="20"
+                              enable_move_pos="true"/>
+            <ControlResizable bkcolor="Salmon" width="160" height="160" border_round="8,8" border_size="1" border_color="gray"
+                              margin="40,40,8,8" valign="top" halign="center"
+                              resize_size_box="8,8,8,8" 
+                              enable_move_pos="true" move_pos_keep_within_parent="true"
+                              resize_keep_within_parent="true"/>
+            <BoxResizable bkcolor="Salmon" width="200" height="200" border_round="8,8" margin="8,8,8,8" valign="top" halign="right"
+                          border_size="1" border_color="gray" 
+                          resize_size_box="8,8,8,8"
+                          enable_move_pos="true">
+                <Label text="可以拖动改变位置的容器\n可以拖动改变大小的容器" multi_line="true" replace_newline="true" 
+                       valign="center" halign="center" mouse_enabled="false"/>
+            </BoxResizable>
+        </HBox>
+    </VBox>
+</Box>

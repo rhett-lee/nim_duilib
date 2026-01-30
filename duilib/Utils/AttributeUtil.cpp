@@ -138,7 +138,7 @@ void AttributeUtil::ParseMarginValue(const char* strValue, UiMargin& margin)
     margin.Validate();
 }
 
-void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
+void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect, bool bCheckSize)
 {
     rect.Clear();
     if ((strValue == nullptr) || (*strValue == L'\0')) {
@@ -152,10 +152,12 @@ void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
     rect.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
     rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
-    ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
+    if (bCheckSize) {
+        ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
+    }    
 }
 
-void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect)
+void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect, bool bCheckSize)
 {
     rect.Clear();
     if ((strValue == nullptr) || (*strValue == '\0')) {
@@ -169,7 +171,9 @@ void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect)
     rect.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
     rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
-    ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
+    if (bCheckSize) {
+        ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
+    }
 }
 
 void AttributeUtil::ParseAttributeList(const DString& strList,

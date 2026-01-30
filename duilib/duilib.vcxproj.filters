@@ -1793,6 +1793,9 @@
     <ClInclude Include="Core\ControlMovable.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ControlResizable.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />
