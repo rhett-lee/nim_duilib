@@ -485,7 +485,7 @@ void ControlResizableT<T>::ResizeMouseUp(const EventArgs& msg)
 }
 
 template<typename T>
-ControlResizableT<T>::SizeType ControlResizableT<T>::GetCurrentSizeType(const UiPoint& ptMouse) const
+typename ControlResizableT<T>::SizeType ControlResizableT<T>::GetCurrentSizeType(const UiPoint& ptMouse) const
 {
     UiPoint pt(ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
