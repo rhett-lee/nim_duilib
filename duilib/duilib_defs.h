@@ -266,10 +266,11 @@ namespace ui
     {
         void* m_pDataObj;       //IDataObject*
         uint32_t m_grfKeyState; //键盘状态
-        int32_t m_screenX;      //鼠标所在点的X坐标，屏幕坐标
-        int32_t m_screenY;      //鼠标所在点的Y坐标，屏幕坐标
+        int32_t m_ptClientX;    //鼠标所在点的X坐标，客户区坐标
+        int32_t m_ptClientY;    //鼠标所在点的Y坐标，客户区坐标
         uint32_t m_dwEffect;    //参数返回值
         int32_t m_hResult;      //函数返回值
+        bool m_bHandled;        //该事件是否已处理完成，如果返回true表示处理完成，不再派发给UI控件处理
         std::vector<DString> m_textList;    // 在m_pDataObj中包含的文本内容，每个元素代表一行
         std::vector<DString> m_fileList;    // 在m_pDataObj中包含的文本内容，每个元素代表一个文件路径
     };
@@ -277,7 +278,11 @@ namespace ui
     //SDL的拖放数据
     struct ControlDropData_SDL
     {
-        bool m_bTextData;                   //true表示m_textList为有效数据，false表示m_fileList为有效数据
+        bool m_bHandled;                    // 该事件是否已处理完成，如果返回true表示处理完成，不再派发给UI控件处理
+        bool m_bTextData;                   // true表示m_textList为有效数据，false表示m_fileList为有效数据
+        int32_t m_ptClientX;                // 鼠标所在点的X坐标，客户区坐标
+        int32_t m_ptClientY;                // 鼠标所在点的Y坐标，客户区坐标
+
         std::vector<DString> m_textList;    // 在拖放操作中包含的文本内容，每个元素代表一行
 
         DString m_source;                   // 当m_bTextData为false时有效
@@ -469,6 +474,16 @@ namespace ui
         kWindowRButtonUpMsg,        //窗口中鼠标右键弹起消息
         kWindowRButtonDbClickMsg,   //窗口中鼠标右键双击消息
         kWindowCaptureChangedMsg,   //窗口丢失鼠标捕获
+        kWindowDropEnterMsg,        //窗口拖放操作：拖入, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropOverMsg,         //窗口拖放操作：拖动经过, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropMsg,             //窗口拖放操作：拖放操作, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropLeaveMsg,        //窗口拖放操作：离开, 无参数
         kWindowMsgEnd               //窗口消息的结束
     };
 
@@ -476,10 +491,10 @@ namespace ui
     */
     enum HotKeyModifiers
     {
-        kHotKey_Shift = 0x01,   //Shift键
-        kHotKey_Contrl = 0x02,  //Contrl键
-        kHotKey_Alt = 0x04,     //Alt键
-        kHotKey_Ext = 0x08      //扩展键
+        kHotKey_Shift   = 0x01, //Shift键
+        kHotKey_Contrl  = 0x02, //Contrl键
+        kHotKey_Alt     = 0x04, //Alt键
+        kHotKey_Ext     = 0x08  //扩展键
     };
 
     /** 鼠标操作的标志

@@ -776,6 +776,15 @@ public:
     */
     void AttachWindowCaptureChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口拖放相关的操作事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowDropEnterMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropOverMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
 public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型
@@ -1233,6 +1242,19 @@ protected:
     */
     virtual void OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) = 0;
 
+    /** 窗口拖放相关的操作接口(接口参数是与实现方式相关的)
+    * @param [in] dropType 拖放操作的来源类型
+    * @param [in,out] pDropData 具体类型根据dropType判断：
+    *                 当dropType为kControlDropTypeWindows时（代表Windows平台SDK实现），pDropData的类型是ControlDropData_Windows*
+    *                 当dropType为kControlDropTypeSDL时（代表SDL实现），pDropData的类型是ControlDropData_SDL*
+    *                 pDropData->m_bHandled是消息处理标志，如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理，相当于截获此消息
+    *                 pDropData->m_hResult是消息处理后的返回值，最终返回给操作系统，Windows平台成功是返回S_OK
+    */
+    virtual void OnDropEnterMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropOverMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropLeaveMsg() = 0;
+
     /** @}*/
 
 protected:
@@ -1330,6 +1352,10 @@ private:
     virtual LRESULT OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override final;
+    virtual void OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropOverMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropLeaveMsg() override final;
 
 private:
     /** 窗口大小改变的类型（内部值）
@@ -1392,6 +1418,9 @@ private:
 
     //窗口的状态
     WindowSizeState m_windowSizeState;
+
+    //是否发送了DragEnter消息，确保DragLeave消息匹配
+    bool m_bSendDragEnterMsg;
 };
 
 } // namespace ui

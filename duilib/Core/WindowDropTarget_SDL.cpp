@@ -26,11 +26,22 @@ void WindowDropTarget::OnDropBegin()
     m_textList.clear();
     m_fileList.clear();
     m_fileSource.clear();
+
+    //窗口：拖放开始
+    m_pNativeWindow->OnDropBegin();
 }
 
 void WindowDropTarget::OnDropPosition(const UiPoint& pt)
 {
     m_dropPt = pt;
+
+    //优先在窗口处理，如果窗口已处理，则截获此事件，不再传递给UI控件
+    bool bHandled = false;
+    m_pNativeWindow->OnDropPosition(pt, bHandled);
+    if (bHandled) {
+        return;
+    }
+
     ControlPtrT<ControlDropTarget_SDL> pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
     if (pHoverDropTarget == nullptr) {
         if (m_pHoverDropTarget != nullptr) {
@@ -73,21 +84,43 @@ void WindowDropTarget::OnDropFile(const DStringA& utf8Source, const DStringA& ut
 
 void WindowDropTarget::OnDropComplete()
 {
+    //优先在窗口处理，如果窗口已处理，则截获此事件，不再传递给UI控件
+    bool bSendDropMsg = false;
     if (!m_fileList.empty()) {
-        if (m_pHoverDropTarget != nullptr) {
-            DString fileSource = m_fileSource;
-            std::vector<DString> fileList = m_fileList;
-            m_pHoverDropTarget->OnDropFiles(fileSource, fileList, m_dropPt);
-            m_pHoverDropTarget = nullptr;
+        bSendDropMsg = true;
+        bool bHandled = false;
+        DString fileSource = m_fileSource;
+        std::vector<DString> fileList = m_fileList;        
+        m_pNativeWindow->OnDropFiles(fileSource, fileList, m_dropPt, bHandled);
+        if (!bHandled) {
+            if (m_pHoverDropTarget != nullptr) {
+                m_pHoverDropTarget->OnDropFiles(fileSource, fileList, m_dropPt);
+                m_pHoverDropTarget = nullptr;
+            }
         }
     }
     else if (!m_textList.empty()) {
-        if (m_pHoverDropTarget != nullptr) {
-            std::vector<DString> textList = m_textList;
-            m_pHoverDropTarget->OnDropTexts(textList, m_dropPt);
-            m_pHoverDropTarget = nullptr;
+        bSendDropMsg = true;
+        bool bHandled = false;
+        std::vector<DString> textList = m_textList;
+        m_pNativeWindow->OnDropTexts(textList, m_dropPt, bHandled);
+        if (!bHandled) {
+            if (m_pHoverDropTarget != nullptr) {
+                m_pHoverDropTarget->OnDropTexts(textList, m_dropPt);
+                m_pHoverDropTarget = nullptr;
+            }
         }
     }
+    ClearDropStatus();
+
+    //窗口：拖放离开
+    if (!bSendDropMsg) {
+        m_pNativeWindow->OnDropLeave();
+    }
+}
+
+void WindowDropTarget::ClearDropStatus()
+{
     m_dropPt.SetXY(0, 0);
     m_textList.clear();
     m_fileList.clear();

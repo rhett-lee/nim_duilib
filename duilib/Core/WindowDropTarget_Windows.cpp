@@ -104,6 +104,17 @@ HRESULT WindowDropTarget::DragEnter(IDataObject* pDataObj, DWORD grfKeyState, PO
     if (m_pDataObj != nullptr) {
         m_pDataObj->AddRef();
     }
+    //优先在窗口处理该事件
+    if (m_pNativeWindow != nullptr) {
+        bool bHandled = false;
+        HRESULT hr = m_pNativeWindow->OnDragEnter(pDataObj, grfKeyState, pt, pdwEffect, bHandled);
+        if (bHandled) {
+            //已处理，截获
+            return hr;
+        }
+    }
+
+    //在控件中处理该事件
     OnDragOver(grfKeyState, pt, pdwEffect);
     //需要返回S_OK, 否则本次拖放就终止了，无法再继续拖放操作
     return S_OK;
@@ -111,11 +122,25 @@ HRESULT WindowDropTarget::DragEnter(IDataObject* pDataObj, DWORD grfKeyState, PO
 
 HRESULT WindowDropTarget::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
 {
+    //优先在窗口处理该事件
+    if (m_pNativeWindow != nullptr) {
+        bool bHandled = false;
+        HRESULT hr = m_pNativeWindow->OnDragOver(m_pDataObj, grfKeyState, pt, pdwEffect, bHandled);
+        if (bHandled) {
+            //已处理，截获
+            return hr;
+        }
+    }
+
     return OnDragOver(grfKeyState, pt, pdwEffect);
 }
 
 HRESULT STDMETHODCALLTYPE WindowDropTarget::DragLeave(void)
 {
+    //优先在窗口处理该事件
+    if (m_pNativeWindow != nullptr) {
+        m_pNativeWindow->OnDragLeave();
+    }
     if (m_pDataObj != nullptr) {
         m_pDataObj->Release();
         m_pDataObj = nullptr;
@@ -175,6 +200,16 @@ HRESULT WindowDropTarget::OnDragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEff
 
 HRESULT WindowDropTarget::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
 {
+    //优先在窗口处理该事件
+    if (m_pNativeWindow != nullptr) {
+        bool bHandled = false;
+        HRESULT hr = m_pNativeWindow->OnDrop(pDataObj, grfKeyState, pt, pdwEffect, bHandled);
+        if (bHandled) {
+            //已处理，截获
+            return hr;
+        }
+    }
+
     if (pdwEffect == nullptr) {
         return S_FALSE;
     }

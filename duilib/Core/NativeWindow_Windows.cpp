@@ -7,6 +7,7 @@
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include "duilib/Utils/InlineHook_Windows.h"
 #include "duilib/Core/WindowDropTarget_Windows.h"
+#include "duilib/Core/ControlDropTargetImpl_Windows.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -64,7 +65,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_hImc(nullptr),
     m_pWindowDropTarget(nullptr),
     m_nWindowDpiScaleFactor(100),
-    m_bChildWindow(false)
+    m_bChildWindow(false),
+    m_pDataObj(nullptr)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -3415,6 +3417,105 @@ Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
 bool NativeWindow_Windows::NeedCenterWindowAfterCreated() const
 {
     return m_createParam.m_bCenterWindow;
+}
+
+HRESULT NativeWindow_Windows::OnDragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if (pDataObj == nullptr) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+
+    m_textList.clear();
+    m_fileList.clear();
+    m_pDataObj = pDataObj;
+
+    ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_textList, m_fileList);
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropEnterMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
+}
+
+HRESULT NativeWindow_Windows::OnDragOver(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if ((pDataObj == nullptr) || (m_pDataObj != pDataObj)) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropOverMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
+}
+
+HRESULT NativeWindow_Windows::OnDragLeave()
+{
+    m_pDataObj = nullptr;
+    m_textList.clear();
+    m_fileList.clear();
+    m_pOwner->OnNativeDropLeaveMsg();
+    return S_OK;
+}
+
+HRESULT NativeWindow_Windows::OnDrop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if ((pDataObj == nullptr) || (m_pDataObj != pDataObj)) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
 }
 
 } // namespace ui

@@ -12,7 +12,8 @@ WindowBase::WindowBase():
     m_pNativeWindow(nullptr),
     m_bWindowFirstShown(false),
     m_bWindowSized(false),
-    m_windowSizeState(WindowSizeState::kUnknown)
+    m_windowSizeState(WindowSizeState::kUnknown),
+    m_bSendDragEnterMsg(false)
 {
     m_pNativeWindow = new NativeWindow(this);
 }
@@ -1435,6 +1436,73 @@ void WindowBase::OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool 
     OnWindowPosSnapped(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
 }
 
+/** 辅助函数，判断消息是否已经处理
+*/
+static bool IsDragDropMsgHandled(ControlDropType dropType, void* pDropData)
+{
+    bool bHandled = false;
+    if (dropType == ui::kControlDropTypeWindows) {
+        const ui::ControlDropData_Windows* dropData = (const ui::ControlDropData_Windows*)pDropData;
+        if (dropData != nullptr) {
+            bHandled = dropData->m_bHandled;
+        }
+    }
+    else if (dropType == ui::kControlDropTypeSDL) {
+        const ui::ControlDropData_SDL* dropData = (const ui::ControlDropData_SDL*)pDropData;
+        if (dropData != nullptr) {
+            bHandled = dropData->m_bHandled;
+        }
+    }
+    return bHandled;
+}
+
+void WindowBase::OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropEnterMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        m_bSendDragEnterMsg = true;
+        SendWindowEvent(kWindowDropEnterMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+}
+void WindowBase::OnNativeDropOverMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropOverMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        SendWindowEvent(kWindowDropOverMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+}
+
+void WindowBase::OnNativeDropMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        SendWindowEvent(kWindowDropMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+    if (!windowFlag.expired()) {
+        //如果已经发送了Drop事件，就不需要DropLeave事件了
+        m_bSendDragEnterMsg = false;
+    }
+}
+
+void WindowBase::OnNativeDropLeaveMsg()
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropLeaveMsg();
+    if (!windowFlag.expired()) {
+        if (m_bSendDragEnterMsg) {
+            //有Enter才发Leave
+            m_bSendDragEnterMsg = false;
+            SendWindowEvent(kWindowDropLeaveMsg);
+        }
+    }
+}
+
 bool WindowBase::IsWindowFirstShown() const
 {
     return m_bWindowFirstShown;
@@ -1665,6 +1733,26 @@ void WindowBase::AttachWindowMButtonDbClickMsg(const EventCallback& callback, Ev
 void WindowBase::AttachWindowCaptureChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
 {
     m_windowEventMap[kWindowCaptureChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropEnterMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropEnterMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropOverMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropOverMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropLeaveMsg].AddEventCallback(callback, callbackID);
 }
 
 } // namespace ui

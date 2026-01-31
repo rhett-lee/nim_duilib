@@ -3201,6 +3201,57 @@ void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
     }
 }
 
+void NativeWindow_SDL::OnDropBegin()
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = 0;
+    data.m_ptClientY = 0;
+    data.m_bTextData = false;
+    m_pOwner->OnNativeDropEnterMsg(kControlDropTypeSDL, &data);
+}
+
+void NativeWindow_SDL::OnDropPosition(const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = false;
+    m_pOwner->OnNativeDropOverMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = true;
+    data.m_textList = textList;
+    m_pOwner->OnNativeDropMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = false;
+    data.m_source = source;
+    data.m_fileList = fileList;
+    m_pOwner->OnNativeDropMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropLeave()
+{
+    m_pOwner->OnNativeDropLeaveMsg();
+}
+
 bool NativeWindow_SDL::KillWindowFocus()
 {
     //不支持此功能

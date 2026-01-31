@@ -48,6 +48,10 @@ protected:
     */
     ControlPtrT<ControlDropTarget_SDL> GetControlDropTarget(const UiPoint& clientPt) const;
 
+    /** 拖动操作完成清理状态
+    */
+    void ClearDropStatus();
+
 private:
     /** 当前Hover状态的控件接口
     */

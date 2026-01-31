@@ -9,6 +9,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/duilib_config_windows.h"
+#include <oleidl.h>
 
 namespace ui {
 
@@ -660,6 +661,20 @@ private:
     */
     void CheckWindowSnap(HWND hWnd);
 
+private:    
+    /** @name 拖拽相关的接口
+    * @{ */
+    friend class WindowDropTarget;
+
+    /** 拖拽相关接口的方法（与IDropTarget接口基本相同）
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    HRESULT OnDragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+    HRESULT OnDragOver(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+    HRESULT OnDragLeave();
+    HRESULT OnDrop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+
+    /** @} */
 private:
     /** 接收窗口事件的接口
     */
@@ -790,6 +805,19 @@ private:
     /** 是否为子窗口（含有WS_CHILD风格）
     */
     bool m_bChildWindow;
+
+private:
+    /** 拖拽操作关联的IDataObject对象
+    */
+    IDataObject* m_pDataObj;
+
+    /** 拖拽关联的文本数据
+    */
+    std::vector<DString> m_textList;
+
+    /** 拖拽关联的文件数据
+    */
+    std::vector<DString> m_fileList;
 };
 
 /** 定义别名

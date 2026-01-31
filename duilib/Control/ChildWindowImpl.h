@@ -447,6 +447,19 @@ protected:
     */
     virtual void OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override;
 
+    /** 窗口拖放相关的操作接口(接口参数是与实现方式相关的)
+    * @param [in] dropType 拖放操作的来源类型
+    * @param [in,out] pDropData 具体类型根据dropType判断：
+    *                 当dropType为kControlDropTypeWindows时（代表Windows平台SDK实现），pDropData的类型是ControlDropData_Windows*
+    *                 当dropType为kControlDropTypeSDL时（代表SDL实现），pDropData的类型是ControlDropData_SDL*
+    *                 pDropData->m_bHandled是消息处理标志，如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理，相当于截获此消息
+    *                 pDropData->m_hResult是消息处理后的返回值，最终返回给操作系统，Windows平台成功是返回S_OK
+    */
+    virtual void OnDropEnterMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropOverMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropLeaveMsg() override;
+
     /** @}*/
 
 private:

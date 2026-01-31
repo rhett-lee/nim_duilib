@@ -438,4 +438,24 @@ void ChildWindowImpl::OnWindowPosSnapped(bool /*bLeftSnap*/, bool /*bRightSnap*/
     // 空实现
 }
 
+void ChildWindowImpl::OnDropEnterMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+    // 空实现
+}
+
+void ChildWindowImpl::OnDropOverMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+    // 空实现
+}
+
+void ChildWindowImpl::OnDropMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+    // 空实现
+}
+
+void ChildWindowImpl::OnDropLeaveMsg()
+{
+    // 空实现
+}
+
 }//namespace ui

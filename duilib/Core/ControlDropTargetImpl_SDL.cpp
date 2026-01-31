@@ -19,12 +19,18 @@ ControlDropTargetImpl_SDL::~ControlDropTargetImpl_SDL()
 int32_t ControlDropTargetImpl_SDL::OnDropBegin(const UiPoint& pt)
 {
     if (m_pControl != nullptr) {
+        ControlDropData_SDL data;
+        data.m_bHandled = false;
+        data.m_ptClientX = pt.x;
+        data.m_ptClientY = pt.y;
+        data.m_bTextData = false;
+
         EventArgs msg;
         msg.SetSender(m_pControl.get());
         msg.eventType = EventType::kEventDropEnter;
         msg.vkCode = VirtualKeyCode::kVK_None;
         msg.wParam = kControlDropTypeSDL;
-        msg.lParam = 0;
+        msg.lParam = (LPARAM)&data;
         msg.ptMouse = pt;
         msg.modifierKey = 0;
         msg.eventData = 0;
@@ -37,12 +43,18 @@ int32_t ControlDropTargetImpl_SDL::OnDropBegin(const UiPoint& pt)
 void ControlDropTargetImpl_SDL::OnDropPosition(const UiPoint& pt)
 {
     if (m_pControl != nullptr) {
+        ControlDropData_SDL data;
+        data.m_bHandled = false;
+        data.m_ptClientX = pt.x;
+        data.m_ptClientY = pt.y;
+        data.m_bTextData = false;
+
         EventArgs msg;
         msg.SetSender(m_pControl.get());
         msg.eventType = EventType::kEventDropOver;
         msg.vkCode = VirtualKeyCode::kVK_None;
         msg.wParam = kControlDropTypeSDL;
-        msg.lParam = 0;
+        msg.lParam = (LPARAM)&data;
         msg.ptMouse = pt;
         msg.modifierKey = 0;
         msg.eventData = 0;
@@ -55,6 +67,9 @@ void ControlDropTargetImpl_SDL::OnDropTexts(const std::vector<DString>& textList
 {
     if (m_pControl != nullptr) {
         ControlDropData_SDL data;
+        data.m_bHandled = false;
+        data.m_ptClientX = pt.x;
+        data.m_ptClientY = pt.y;
         data.m_bTextData = true;
         data.m_textList = textList;
 
@@ -90,6 +105,9 @@ void ControlDropTargetImpl_SDL::OnDropFiles(const DString& source, const std::ve
         }
 
         ControlDropData_SDL data;
+        data.m_bHandled = false;
+        data.m_ptClientX = pt.x;
+        data.m_ptClientY = pt.y;
         data.m_bTextData = false;
         data.m_source = source;
         data.m_fileList = fileList;

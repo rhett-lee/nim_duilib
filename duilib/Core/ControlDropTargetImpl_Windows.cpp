@@ -1,6 +1,6 @@
 #include "ControlDropTargetImpl_Windows.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlDropTargetUtils.h"
@@ -113,6 +113,14 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
                         }
                         DStringW fileNameW = fileName;
                         if (!fileNameW.empty()) {
+                            //如果返回的是短文件路径，则转换为长文件路径
+                            DWORD ret = ::GetLongPathNameW(fileNameW.c_str(), fileName, kMaxFilenameLen);
+                            // 校验转换结果：ret>0且<=缓冲区长度表示成功
+                            if (ret > 0 && ret < kMaxFilenameLen) {
+                                fileNameW = fileName;
+                            }
+                        }
+                        if (!fileNameW.empty()) {
                             fileList.push_back(StringConvert::WStringToT(fileNameW));
                         }
                     }
@@ -165,10 +173,13 @@ int32_t ControlDropTargetImpl_Windows::DragEnter(void* pDataObj, uint32_t grfKey
         ControlDropData_Windows data;
         data.m_pDataObj = pDataObj;
         data.m_grfKeyState = grfKeyState;
-        data.m_screenX = pt.x;
-        data.m_screenY = pt.y;
+        UiPoint ptClient(pt);
+        m_pControl->ScreenToClient(ptClient);
+        data.m_ptClientX = ptClient.x;
+        data.m_ptClientY = ptClient.y;
         data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
         data.m_hResult = S_OK;
+        data.m_bHandled = false;
 
         data.m_textList = m_textList;
         data.m_fileList = m_fileList;
@@ -213,12 +224,15 @@ int32_t ControlDropTargetImpl_Windows::DragOver(uint32_t grfKeyState, const UiPo
         ControlDropData_Windows data;
         data.m_pDataObj = m_pDataObj;
         data.m_grfKeyState = grfKeyState;
-        data.m_screenX = pt.x;
-        data.m_screenY = pt.y;
+        UiPoint ptClient(pt);
+        m_pControl->ScreenToClient(ptClient);
+        data.m_ptClientX = ptClient.x;
+        data.m_ptClientY = ptClient.y;
         data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
         data.m_hResult = S_OK;
+        data.m_bHandled = false;
 
-        data.m_textList = m_textList;        
+        data.m_textList = m_textList;
         data.m_fileList = m_fileList;
 
         EventArgs msg;
@@ -277,10 +291,13 @@ int32_t ControlDropTargetImpl_Windows::Drop(void* pDataObj, uint32_t grfKeyState
         ControlDropData_Windows data;
         data.m_pDataObj = m_pDataObj;
         data.m_grfKeyState = grfKeyState;
-        data.m_screenX = pt.x;
-        data.m_screenY = pt.y;
+        UiPoint ptClient(pt);
+        m_pControl->ScreenToClient(ptClient);
+        data.m_ptClientX = ptClient.x;
+        data.m_ptClientY = ptClient.y;
         data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
         data.m_hResult = S_OK;
+        data.m_bHandled = false;
 
         data.m_textList = m_textList;
         data.m_fileList = m_fileList;

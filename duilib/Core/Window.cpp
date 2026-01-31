@@ -2832,4 +2832,20 @@ Control* Window::GetFullscreenControl() const
     return nullptr;
 }
 
+void Window::OnDropEnterMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+}
+
+void Window::OnDropOverMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+}
+
+void Window::OnDropMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
+{
+}
+
+void Window::OnDropLeaveMsg()
+{
+}
+
 } // namespace ui

@@ -16,7 +16,7 @@
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "ControlDropTargetImpl_Windows.h"
 #endif
 
@@ -5276,7 +5276,7 @@ DString Control::GetDropFileTypes() const
 
 ControlDropTarget_Windows* Control::GetControlDropTarget()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (IsEnableDragDrop() && IsEnabled()) {
         if (m_pDragDropData == nullptr) {
             m_pDragDropData = std::make_unique<TDragDropData>();

@@ -251,10 +251,13 @@ public:
                 ControlDropData_Windows data;
                 data.m_pDataObj = pDataObj;
                 data.m_grfKeyState = grfKeyState;
-                data.m_screenX = pt.x;
-                data.m_screenY = pt.y;
+                UiPoint ptClient(pt);
+                m_pRichEdit->ScreenToClient(ptClient);
+                data.m_ptClientX = ptClient.x;
+                data.m_ptClientY = ptClient.y;
                 data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
                 data.m_hResult = S_OK;
+                data.m_bHandled = false;
 
                 data.m_fileList = dropFileList;
 

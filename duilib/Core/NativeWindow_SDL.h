@@ -696,6 +696,40 @@ private:
     static uint32_t GetModifiers(SDL_Keymod keymod);
 
 private:
+    /** @name 拖拽相关的接口
+    * @{ */
+    friend class WindowDropTarget;
+
+    /** SDL_EVENT_DROP_BEGIN
+    */
+    void OnDropBegin();
+
+    /** SDL_EVENT_DROP_POSITION
+    * @param [in] pt 客户区坐标
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropPosition(const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_TEXT
+    * @param [in] textList 文本内容，容器中每个元素调用代表一行文本
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_FILE
+    * @param [in] source 拖放源
+    * @param [in] fileList 文件路径，容器中每个元素调用代表一个文件
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_COMPLETE 或者 其他导致离开的消息
+    */
+    void OnDropLeave();
+
+    /** @} */
+
+private:
     /** 窗口指针与SDL窗口ID的映射关系，用于转接消息
     */
     static std::unordered_map<SDL_WindowID, NativeWindow_SDL*> s_windowIDMap;
