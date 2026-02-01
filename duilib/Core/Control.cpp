@@ -4396,7 +4396,9 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         FilePath resPath(sImagePath);
         bool bLocalPath = true;
         bool bResPath = true;
-        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), resPath, bLocalPath, bResPath);
+        const FilePath windowResPath = pWindow->GetResourcePath();
+        const FilePath windowXmlPath = pWindow->GetXmlPath();
+        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(windowResPath, windowXmlPath, resPath, this, bLocalPath, bResPath);
         if (!imageFullPath.IsEmpty()) {
             imageLoadPath.m_imageFullPath = imageFullPath.NativePath();
             if (bLocalPath) {

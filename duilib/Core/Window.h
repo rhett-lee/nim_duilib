@@ -363,6 +363,11 @@ public:
     */
     UiColor GetTextColor(const DString& strName) const;
 
+    /** 删除指定名称的颜色属性
+    * @param [in] strName 要删除的颜色名称
+    */
+    void RemoveTextColor(const DString& strName);
+
     /** 添加一个选项组
     * @param [in] strGroupName 组名称
     * @param [in] pControl 控件指针

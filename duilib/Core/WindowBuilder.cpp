@@ -45,6 +45,7 @@
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
+#include "duilib/Box/XmlBox.h"
 #include "duilib/Box/TabBox.h"
 #include "duilib/Box/GridBox.h"
 #include "duilib/Box/TileBox.h"
@@ -83,6 +84,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_VBOX, [](Window* pWindow) { return new VBox(pWindow); }},
         {DUI_CTR_HFLOWBOX, [](Window* pWindow) { return new HFlowBox(pWindow); }},
         {DUI_CTR_VFLOWBOX, [](Window* pWindow) { return new VFlowBox(pWindow); }},
+        {DUI_CTR_XMLBOX,  [](Window* pWindow) { return new XmlBox(pWindow); }},
         {DUI_CTR_VTILE_BOX, [](Window* pWindow) { return new VTileBox(pWindow); }},
         {DUI_CTR_HTILE_BOX, [](Window* pWindow) { return new HTileBox(pWindow); }},
         {DUI_CTR_TABBOX, [](Window* pWindow) { return new TabBox(pWindow); }},
@@ -842,7 +844,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
 #endif
 }
 
-void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const
+void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root)
 {
     ASSERT((pWindow != nullptr) && pWindow->IsWindow());
     if ((pWindow == nullptr) || !pWindow->IsWindow()) {
@@ -874,6 +876,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                 ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty()); 
                 StringUtil::TrimLeft(strAttribute);
                 pWindow->AddClass(strClassName, strAttribute);
+                m_windowClassList.push_back(strClassName);
             }
         }
         else if (strClass == _T("TextColor")) {
@@ -891,6 +894,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
             }
             if (!strColorName.empty()) {
                 pWindow->AddTextColor(strColorName, strColor);
+                m_windowTextColorList.push_back(strColorName);
             }
         }
         else if (strClass == _T("Font")) {
@@ -900,7 +904,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
     }
 }
 
-void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root) const
+void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
 {
     DString strClass;
     DString strName;
@@ -978,7 +982,7 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root) const
     }
 }
 
-void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
+void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
 {
     DString strName;
     DString strValue;
@@ -1028,7 +1032,9 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
         fontInfo.m_bItalic = italic;
         fontInfo.m_bUnderline = underline;
         fontInfo.m_bStrikeOut = strikeout;
-        GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
+        if (GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault)) {
+            m_globalFontIdList.push_back(strFontId);
+        }
     }
 }
 
@@ -1419,6 +1425,42 @@ Box* WindowBuilder::ToBox(Control* pControl) const
     Box* pBox = dynamic_cast<Box*>(pControl);
     ASSERT(pBox != nullptr);
     return pBox;
+}
+
+bool WindowBuilder::ParseWindowAttributes(std::map<DString, DString>& windowAttributes) const
+{
+    if (m_xml == nullptr) {
+        return false;
+    }
+    pugi::xml_node root = m_xml->root().first_child();
+    ASSERT(!root.empty());
+    if (root.empty()) {
+        return false;
+    }
+
+    DString strClass = root.name();
+    if (strClass == _T("Window")) {
+        for (pugi::xml_attribute attr : root.attributes()) {
+            windowAttributes[attr.name()] = attr.value();            
+        }
+        return true;
+    }
+    return false;
+}
+
+const std::vector<DString>& WindowBuilder::GetWindowClassList() const
+{
+    return m_windowClassList;
+}
+
+const std::vector<DString>& WindowBuilder::GetWindowTextColorList() const
+{
+    return m_windowTextColorList;
+}
+
+const std::vector<DString>& WindowBuilder::GetGlobalFontIdList() const
+{
+    return m_globalFontIdList;
 }
 
 } // namespace ui

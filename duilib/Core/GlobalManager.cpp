@@ -589,11 +589,47 @@ bool GlobalManager::IsResInPublicPath(const FilePath& resPath) const
     return false;
 }
 
+FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
+{
+    bool bLocalPath = false;
+    bool bResPath = false;
+    return GetExistsResFullPath(windowResPath, windowXmlPath, resPath, nullptr, bLocalPath, bResPath);
+}
+
 FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
                                              const FilePath& windowXmlPath,
                                              const FilePath& resPath,
+                                             const Control* pControl,
                                              bool& bLocalPath,
                                              bool& bResPath)
+{
+    FilePath imageFullPath = FindExistsResFullPath(windowResPath, windowXmlPath, resPath, bLocalPath, bResPath);
+    if (imageFullPath.IsEmpty()) {
+        //图片资源加载失败，通过回调函数给出修正一次的机会
+        std::vector<ResNotFoundCallbackData> resNotFoundCallbacks = m_resNotFoundCallbacks;
+        for (const ResNotFoundCallbackData& callbackData : resNotFoundCallbacks) {
+            FilePath newWindowResPath = windowResPath;
+            FilePath newWindowXmlPath = windowXmlPath;
+            if (callbackData.m_callback(pControl, resPath, newWindowResPath, newWindowXmlPath)) {
+                if ((newWindowResPath != windowResPath) || (newWindowXmlPath != windowXmlPath)) {
+                    imageFullPath = FindExistsResFullPath(newWindowResPath, newWindowXmlPath, resPath, bLocalPath, bResPath);
+                    if (!imageFullPath.IsEmpty()) {
+                        //查找资源成功，终止尝试
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
+    return imageFullPath;
+}
+
+FilePath GlobalManager::FindExistsResFullPath(const FilePath& windowResPath,
+                                              const FilePath& windowXmlPath,
+                                              const FilePath& resPath,
+                                              bool& bLocalPath,
+                                              bool& bResPath)
 {
     bLocalPath = true;
     bResPath = true;
@@ -666,8 +702,30 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
             }
         }
     }
-    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
     return imageFullPath;
+}
+
+void GlobalManager::AddResNotFoundCallback(ResNotFoundCallback callback, size_t callbackId)
+{
+    if (callback != nullptr) {
+        ResNotFoundCallbackData data;
+        data.m_callback = callback;
+        data.m_callbackId = callbackId;
+        m_resNotFoundCallbacks.push_back(data);
+    }
+}
+
+void GlobalManager::RemoveResNotFoundCallback(size_t callbackId)
+{
+    auto iter = m_resNotFoundCallbacks.begin();
+    while (iter != m_resNotFoundCallbacks.end()) {
+        if (iter->m_callbackId == callbackId) {
+            iter = m_resNotFoundCallbacks.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
 }
 
 void GlobalManager::RemoveAllImages()
@@ -933,6 +991,36 @@ void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCre
     if (pfnCreateControlCallback != nullptr) {
         m_pfnCreateControlCallbackList.push_back(pfnCreateControlCallback);
     }
+}
+
+Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow, const FilePath& strXmlPath, XmlPreviewAttributes& xmlPreviewAttributes)
+{
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    Box* pBox = nullptr;
+    WindowBuilder builder;
+    if (builder.ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+        Control* pControl = builder.CreateControls(pWindow, nullptr);
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pBox = builder.ToBox(pControl);
+            ASSERT(pBox != nullptr);
+            if (pBox == nullptr) {
+                delete pControl;
+                pControl = nullptr;
+            }
+        }
+        if (pBox != nullptr) {
+            xmlPreviewAttributes.m_windowAttributes.clear();
+            builder.ParseWindowAttributes(xmlPreviewAttributes.m_windowAttributes);
+            xmlPreviewAttributes.m_windowClassList = builder.GetWindowClassList();
+            xmlPreviewAttributes.m_windowTextColorList = builder.GetWindowTextColorList();
+            xmlPreviewAttributes.m_globalFontIdList = builder.GetGlobalFontIdList();
+        }
+    }
+    return pBox;
 }
 
 bool GlobalManager::IsInUIThread() const

@@ -174,9 +174,7 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     }
 
     //设置窗口图标
-    bool bLocalPath = true;
-    bool bResPath = true;
-    FilePath cursorFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), curImagePath, bLocalPath, bResPath);
+    FilePath cursorFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), curImagePath);
     ASSERT(!cursorFullPath.IsEmpty());
     if (cursorFullPath.IsEmpty()) {
         return false;

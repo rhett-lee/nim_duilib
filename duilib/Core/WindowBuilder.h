@@ -25,6 +25,27 @@ class WindowCreateAttributes;
 */
 typedef std::function<Control* (const DString&)> CreateControlCallback;
 
+/** 用于支持XML预览的属性列表，部分属性在预览后需要从关联的窗口对象中删除，以恢复原始状态
+*/
+struct XmlPreviewAttributes
+{
+    /** XML中窗口标签（Window）的属性列表
+    */
+    std::map<DString, DString> m_windowAttributes;
+
+    /** 本次解析在窗口下添加的Class属性列表
+    */
+    std::vector<DString> m_windowClassList;
+
+    /** 本次解析在窗口下添加的TextColor属性列表
+    */
+    std::vector<DString> m_windowTextColorList;
+
+    /** 本次解析在全局属性中添加的FontId属性列表
+    */
+    std::vector<DString> m_globalFontIdList;
+};
+
 /** 根据XML文件，解析并创建控件和布局
 */
 class UILIB_API WindowBuilder
@@ -72,6 +93,23 @@ public:
     bool ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes);
 
 public:
+    /** 解析出窗口的属性(属性名称保存在Map的Key中，属性的值保存在属性的Value中)
+    */
+    bool ParseWindowAttributes(std::map<DString, DString>& windowAttributes) const;
+
+    /** 获取本次解析在窗口下添加的Class属性列表
+    */
+    const std::vector<DString>& GetWindowClassList() const;
+
+    /** 获取本次解析在窗口下添加的TextColor属性列表
+    */
+    const std::vector<DString>& GetWindowTextColorList() const;
+
+    /** 获取本次解析在全局属性中添加的FontId属性列表
+    */
+    const std::vector<DString>& GetGlobalFontIdList() const;
+
+public:
     /** 解析带格式的文本内容，并设置到RichText Control对象
     * @param [in] xmlText 带格式的文本内容
     * @param [in] pControl RichText控件的接口
@@ -100,11 +138,11 @@ private:
 
     /** 解析窗口下的共享资源属性(根XML节点名称："Window")，这些属性只有本窗口能使用
     */
-    void ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const;
+    void ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root);
 
     /** 解析全局资源的属性(根XML节点名称："Global")，这些属性，所有窗口都可以使用
     */
-    void ParseGlobalAttributes(const pugi::xml_node& root) const;
+    void ParseGlobalAttributes(const pugi::xml_node& root);
 
     /** 解析XML节点的子节点
     * @param [in] xmlNode xml节点
@@ -131,7 +169,7 @@ private:
 
     /** 解析字体节点
     */
-    void ParseFontXmlNode(const pugi::xml_node& xmlNode) const;
+    void ParseFontXmlNode(const pugi::xml_node& xmlNode);
 
 private:
     
@@ -146,6 +184,19 @@ private:
     /** 当前解析的XML文件路径
     */
     FilePath m_xmlFilePath;
+
+private:
+    /** 本次解析在窗口下添加的Class属性列表
+    */
+    std::vector<DString> m_windowClassList;
+
+    /** 本次解析在窗口下添加的TextColor属性列表
+    */
+    std::vector<DString> m_windowTextColorList;
+
+    /** 本次解析在全局属性中添加的FontId属性列表
+    */
+    std::vector<DString> m_globalFontIdList;
 };
 
 } // namespace ui

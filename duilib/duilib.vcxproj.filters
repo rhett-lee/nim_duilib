@@ -864,6 +864,9 @@
     <ClCompile Include="RenderSkia\WindowRgn_Windows.cpp">
       <Filter>RenderSkia\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Box\XmlBox.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1795,6 +1798,9 @@
     </ClInclude>
     <ClInclude Include="Core\ControlResizable.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\XmlBox.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

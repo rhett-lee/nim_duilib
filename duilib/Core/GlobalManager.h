@@ -224,6 +224,7 @@ public:
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
      * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+     * @param [in] pControl 该资源关联的Control控件接口
      * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
      * @param [out] bResPath 返回true表示文件在程序资源路径内，返回false表示文件不在程序资源路径内
      * @return 返回可用的完整的资源路径，如果资源路径不存在，则返回空
@@ -231,11 +232,32 @@ public:
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    FilePath GetExistsResFullPath(const FilePath& windowResPath,
-                                  const FilePath& windowXmlPath,
-                                  const FilePath& resPath,
-                                  bool& bLocalPath,
-                                  bool& bResPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
+                                  const FilePath& resPath, const Control* pControl,
+                                  bool& bLocalPath, bool& bResPath);
+
+    /** 加载资源失败的回调函数，可以在回调函数中提供新的资源搜索路径，再次尝试查找资源
+     * @param [in] pControl 该资源关联的Control控件接口
+     * @param [in] resPath 资源文件路径，比如："btn_wnd_gray_min_hovered.png"
+     * @param [in,out] windowResPath 窗口对应的资源相对目录，可返回新的路径
+     * @param [in,out] windowXmlPath 窗口对应XML所在的相对目录，可返回新的路径     
+     * @return true表示已提供新的资源搜索路径，需要再次尝试查找资源，返回false表示不再尝试查找资源
+     */
+    using ResNotFoundCallback = std::function<bool(const Control* pControl,
+                                                   const FilePath& resPath,
+                                                   FilePath& windowResPath,
+                                                   FilePath& windowXmlPath)>;
+    /** 添加一个加载资源失败的回调函数
+    * @param [in] callback 回调函数
+    * @param [in] callbackId 回调函数的ID，删除回调函数时使用，由调用方确保ID的唯一性
+    */
+    void AddResNotFoundCallback(ResNotFoundCallback callback, size_t callbackId);
+
+    /** 删除一个加载资源失败的回调函数
+    * @param [in] callbackId 待删除回调函数的ID
+    */
+    void RemoveResNotFoundCallback(size_t callbackId);
 
     /** 判断一个路径是否在public子目录中
     */
@@ -307,6 +329,14 @@ public:
     */
     void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
 
+    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] strXmlPath XML 文件路径
+     * @param [in] callback 自定义控件的回调处理函数
+     * @return 指定布局模块的对象指针
+     */
+    Box* CreateBoxForXmlPreview(Window* pWindow, const FilePath& strXmlPath, XmlPreviewAttributes& xmlPreviewAttributes);
+
 public:
     /** 判断当前是否在UI线程
     */
@@ -331,7 +361,20 @@ private:
     */
     void CheckImagePath(FilePath& imageFullPath, bool& bLocalPath);
 
+    /** 根据资源加载方式，返回对应的资源路径
+    */
+    FilePath FindExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
+                                   const FilePath& resPath, bool& bLocalPath, bool& bResPath);
+
 private:
+    /** 资源加载失败的回调函数相关数据
+    */
+    struct ResNotFoundCallbackData
+    {
+        ResNotFoundCallback m_callback;
+        size_t m_callbackId;
+    };
+    std::vector<ResNotFoundCallbackData> m_resNotFoundCallbacks;
 
     /** 渲染引擎管理接口
     */

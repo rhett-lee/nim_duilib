@@ -39,6 +39,14 @@ UiColor ColorMap::GetColor(const DString& strName) const
     return UiColor();
 }
 
+void ColorMap::RemoveColor(const DString& strName)
+{
+    auto it = m_colorMap.find(strName);
+    if (it != m_colorMap.end()) {
+        m_colorMap.erase(it);
+    }
+}
+
 void ColorMap::RemoveAllColors()
 {
     m_colorMap.clear();

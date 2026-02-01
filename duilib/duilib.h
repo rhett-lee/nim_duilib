@@ -55,6 +55,7 @@
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"
+#include "Box/XmlBox.h"
 #include "Box/TileBox.h"
 #include "Box/TabBox.h"
 #include "Box/ScrollBox.h"

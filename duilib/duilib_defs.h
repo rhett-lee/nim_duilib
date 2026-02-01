@@ -48,6 +48,7 @@ namespace ui
     #define  DUI_CTR_VBOX                            (_T("VBox"))
     #define  DUI_CTR_HFLOWBOX                        (_T("HFlowBox"))
     #define  DUI_CTR_VFLOWBOX                        (_T("VFlowBox"))
+    #define  DUI_CTR_XMLBOX                          (_T("XmlBox"))
 
     #define  DUI_CTR_VTILE_BOX                       (_T("VTileBox"))
     #define  DUI_CTR_HTILE_BOX                       (_T("HTileBox"))
