@@ -1,5 +1,5 @@
-#ifndef UI_CORE_TABBOX_H_
-#define UI_CORE_TABBOX_H_
+#ifndef UI_BOX_TABBOX_H_
+#define UI_BOX_TABBOX_H_
 
 #include "duilib/Core/Box.h"
 
@@ -107,4 +107,4 @@ private:
 };
 
 }
-#endif // UI_CORE_TABBOX_H_
+#endif // UI_BOX_TABBOX_H_

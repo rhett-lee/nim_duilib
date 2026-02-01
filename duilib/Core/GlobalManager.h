@@ -241,7 +241,30 @@ public:
     */
     bool IsResInPublicPath(const FilePath& resPath) const;
 
-    /** 根据 XML 创建一个 Box
+public:
+    /** CreateBox/CreateBoxWithCache 和 FillBox/FillBoxWithCache 函数的使用说明
+     *  假设传入的XML文件的基本结构如下：
+     *  <Window>
+     *      <VBox bkcolor="white">
+     *          <HBox height="30" margin="0,10,0,0">
+     *              <Label text="Test"/>
+     *          </HBox>
+     *      </VBox>
+     *  </Window>
+     *  1. XML文件的根节点可以是Global、Window或者其他名称：
+     *           如果是Global：可以包含与"global.xml"相似的公共资源定义（比如Class等），这些资源是全局有效
+     *           如果是Window：可以包含与Window相似的窗口内公共资源定义（比如Class等），这些资源是窗口内有效，Window标签的属性不解析
+     *           如果是其他名称，则无特殊逻辑
+     *  2. CreateBoxWithCache和FillBoxWithCache：解析后XML文件解析结果会被缓存，适合XML文件被重复调用的场景，可以提高性能（节省XML解析的时间）
+     *  3. XML文件的第二级节点（上述XML文件中的Window节点下的节点）：需要是容器，不能是Control
+     *  3. CreateBox/CreateBoxWithCache: 解析XML，创建并返回相应的二级容器节点（即XML中Window下的VBox节点）：
+     *                                   上述XML文件中，是会创建VBox节点，函数返回的是VBox指针，包含了XML中VBox的属性
+     *  4. FillBox/FillBoxWithCache：解析XML文件，解析并创建三级节点，将三级节点（HBox）及子节点填充到函数参数传入的pUserDefinedBox容器中，
+     *                               同时将解析二级节点（VBox）节点的属性并设置到pUserDefinedBox容器中
+     *                               该函数不会创建二级节点的容器（即上述XML中的VBox节点），函数认为pUserDefinedBox传入这个节点就是对应的VBox节点，由外部创建
+     */
+
+    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器）
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -249,7 +272,7 @@ public:
      */
     Box* CreateBox(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 根据 XML 在缓存中查找指定 Box，如果没有则创建
+    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），XML文件解析结果保存在缓存中，下次调用时不重新解析XML，以改善性能
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -257,14 +280,17 @@ public:
      */
     Box* CreateBoxWithCache(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用 XML 填充指定 Box (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+    /** 根据 XML 解析结果，将三级节点的内容追加到pUserDefinedBox里面，但不会创建二级节点对应的容器，函数认为三级节点对应的容器就是pUserDefinedBox，由外部创建
+     *  (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
      * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
      */
     bool FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用构建过的缓存填充指定 Box，如果没有则重新构建 (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+    /** 根据 XML 解析结果，将三级节点的内容追加到pUserDefinedBox里面，但不会创建二级节点对应的容器，函数认为三级节点对应的容器就是pUserDefinedBox，由外部创建
+     *  (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+     *  XML文件解析结果保存在缓存中，下次调用时不重新解析XML，以改善性能
      * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -281,6 +307,7 @@ public:
     */
     void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
 
+public:
     /** 判断当前是否在UI线程
     */
     bool IsInUIThread() const;

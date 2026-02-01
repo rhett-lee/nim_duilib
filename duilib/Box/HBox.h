@@ -1,5 +1,5 @@
-#ifndef UI_CORE_HBOX_H_
-#define UI_CORE_HBOX_H_
+#ifndef UI_BOX_HBOX_H_
+#define UI_BOX_HBOX_H_
 
 #include "duilib/Core/Box.h"
 #include "duilib/Layout/HLayout.h"
@@ -35,4 +35,4 @@ public:
 };
 
 }
-#endif // UI_CORE_HBOX_H_
+#endif // UI_BOX_HBOX_H_

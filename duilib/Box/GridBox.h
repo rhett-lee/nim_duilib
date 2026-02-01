@@ -1,5 +1,5 @@
-#ifndef UI_CORE_GRIDBOX_H_
-#define UI_CORE_GRIDBOX_H_
+#ifndef UI_BOX_GRIDBOX_H_
+#define UI_BOX_GRIDBOX_H_
 
 #include "duilib/Core/Box.h"
 #include "duilib/Box/ScrollBox.h"
@@ -181,4 +181,4 @@ public:
 };
 
 } //namespace ui
-#endif // UI_CORE_GRIDBOX_H_
+#endif // UI_BOX_GRIDBOX_H_
