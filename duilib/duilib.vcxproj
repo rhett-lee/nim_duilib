@@ -232,6 +232,7 @@
     <ClCompile Include="Box\ScrollBox.cpp" />
     <ClCompile Include="Box\TabBox.cpp" />
     <ClCompile Include="Box\VirtualListBox.cpp" />
+    <ClCompile Include="Box\XmlBox.cpp" />
     <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
@@ -569,6 +570,7 @@
     <ClInclude Include="Box\TileBox.h" />
     <ClInclude Include="Box\VBox.h" />
     <ClInclude Include="Box\VirtualListBox.h" />
+    <ClInclude Include="Box\XmlBox.h" />
     <ClInclude Include="CEFControl\CefControl.h" />
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />

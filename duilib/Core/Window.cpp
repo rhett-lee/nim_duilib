@@ -171,9 +171,7 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
         return false;
     }
     bool bRet = false;
-    bool bLocalPath = true;
-    bool bResPath = true;
-    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath), bLocalPath, bResPath);
+    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath));
     ASSERT(!iconFullPath.IsEmpty());
     if (iconFullPath.IsEmpty()) {
         return false;
@@ -594,6 +592,11 @@ void Window::AddTextColor(const DString& strName, UiColor argb)
 UiColor Window::GetTextColor(const DString& strName) const
 {
     return m_colorMap.GetColor(strName);
+}
+
+void Window::RemoveTextColor(const DString& strName)
+{
+    m_colorMap.RemoveColor(strName);
 }
 
 bool Window::AddOptionGroup(const DString& strGroupName, Control* pControl)
