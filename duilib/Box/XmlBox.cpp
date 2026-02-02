@@ -19,6 +19,7 @@ XmlBox::~XmlBox()
 {
     size_t callbackId = (size_t)this;
     GlobalManager::Instance().RemoveResNotFoundCallback(callbackId);
+    m_pShadow.reset();
 }
 
 DString XmlBox::GetType() const { return DUI_CTR_XMLBOX; }
@@ -175,6 +176,8 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
         }
         if (bShadowAttached) {
             m_pShadow = std::make_unique<Shadow>(GetWindow());
+            m_pShadow->SetEnableShadowSnap(false);
+            m_pShadow->SetEnableClickThroughWindow(false);
             m_pShadow->SetShadowType(nShadowType);
             pSubBox = m_pShadow->AttachShadow(pSubBox);
         }
