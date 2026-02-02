@@ -329,13 +329,25 @@ public:
     */
     void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
 
-    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
+    /** 根据 XML的路径 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
-     * @param [in] strXmlPath XML 文件路径
-     * @param [in] callback 自定义控件的回调处理函数
+     * @param [in] xmlFilePath XML 文件路径
+     * @param [in] xmlPreviewAttributes 解析XML文件时，新增加的窗口共享属性和全局属性
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBoxForXmlPreview(Window* pWindow, const FilePath& strXmlPath, XmlPreviewAttributes& xmlPreviewAttributes);
+    Box* CreateBoxForXmlPreview(Window* pWindow, const FilePath& xmlFilePath, XmlPreviewAttributes& xmlPreviewAttributes);
+
+    /** 根据 XML的数据 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] xmlFileData XML文件数据，如果为空则使用xmlFilePath
+     * @param [in] xmlPreviewAttributes 解析XML文件时，新增加的窗口共享属性和全局属性
+     * @param [in] xmlFilePath 当xmlFileData不为空时为可选参数，提供XML文件路径，当XML数据中含有Include标签时会按XML路径查找被包含的XML文件
+     * @return 指定布局模块的对象指针
+     */
+    Box* CreateBoxForXmlPreview(Window* pWindow,
+                                const std::vector<unsigned char>& xmlFileData,
+                                XmlPreviewAttributes& xmlPreviewAttributes,
+                                const FilePath& xmlFilePath = FilePath());
 
 public:
     /** 判断当前是否在UI线程

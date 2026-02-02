@@ -213,7 +213,7 @@ bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
     return bExists;
 }
 
-bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
+bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath)
 {
     ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
     if (xmlFileData.empty()) {
@@ -234,10 +234,29 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
         isLoaded = result.status == pugi::status_ok;
     }
     if (!isLoaded) {
-        ASSERT(!_T("WindowBuilder::Create load xmlFileData failed!"));
+        ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
         return false;
     }
-    m_xmlFilePath.Clear();
+    m_xmlFilePath = xmlFilePath;
+    return true;
+}
+
+bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath)
+{
+    ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
+    if (xmlFileData.empty()) {
+        return false;
+    }
+    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_auto;
+    pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.data(),
+                                                       xmlFileData.size(),
+                                                       pugi::parse_default, encoding);
+    bool isLoaded = result.status == pugi::status_ok;
+    if (!isLoaded) {
+        ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
+        return false;
+    }
+    m_xmlFilePath = xmlFilePath;
     return true;
 }
 
@@ -259,7 +278,7 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
             if (result.status != pugi::status_ok) {
-                ASSERT(!_T("WindowBuilder::Create load xml from zip data failed!"));
+                ASSERT(!_T("WindowBuilder::ParseXmlFile load xml from zip data failed!"));
                 return false;
             }
             isLoaded = true;
@@ -280,13 +299,13 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         }
         pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
         if (result.status != pugi::status_ok) {
-            ASSERT(!_T("WindowBuilder::Create load xml file failed!"));
+            ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
             return false;
         }
         isLoaded = true;
     }
     if (!isLoaded) {
-        ASSERT(!_T("WindowBuilder::Create load xmlFilePath failed!"));
+        ASSERT(!_T("WindowBuilder::ParseXmlFile load xmlFilePath failed!"));
         return false;
     }
     m_xmlFilePath = xmlFilePath;

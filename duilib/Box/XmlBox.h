@@ -2,6 +2,7 @@
 #define UI_BOX_XMLBOX_H_
 
 #include "duilib/Core/Box.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui
 {
@@ -25,19 +26,19 @@ public:
     /** 设置XML文件的路径
     * @param [in] xmlPath XML文件的路径
     */
-    void SetXmlPath(const DString& xmlPath);
+    void SetXmlPath(const FilePath& xmlPath);
 
     /** 获取XML文件的路
     */
-    const DString& GetXmlPath() const;
+    const FilePath& GetXmlPath() const;
 
     /** 设置图片资源所在路径（XML文件对应的资源根目录）
     */
-    void SetResPath(const DString& resPath);
+    void SetResPath(const FilePath& resPath);
 
     /** 获取图片资源所在路径（XML文件对应的资源根目录）
     */
-    const DString& GetResPath() const;
+    const FilePath& GetResPath() const;
 
     /** 清除界面的预览控件内容
     */
@@ -47,7 +48,7 @@ public:
      * @param [in] xmlPath XML文件的路径
      * @param [in] bSuccess true表示加载XML成功，false表示加载XML失败
      */
-    using LoadXmlCallback = std::function<bool(const DString& xmlPath, bool bSuccess)>;
+    using LoadXmlCallback = std::function<bool(const FilePath& xmlPath, bool bSuccess)>;
 
     /** 添加一个加载XML完成事件的回调函数
     * @param [in] callback 回调函数
@@ -67,11 +68,11 @@ protected:
 private:
     /** 加载并填充XML中定义的控件
     */
-    bool LoadXmlData(const DString& xmlPath);
+    bool LoadXmlData(const FilePath& xmlPath);
 
     /** 加载XML完成通知
     */
-    void OnXmlDataLoaded(const DString& xmlPath, bool bSuccess);
+    void OnXmlDataLoaded(const FilePath& xmlPath, bool bSuccess);
 
     /** 清除已经加载的XML数据和界面的预览控件内容
     * @param [in] xmlPreviewAttributesNew 最新的窗口预览公共属性
@@ -82,14 +83,36 @@ private:
     */
     void RemoveValuesInNewList(std::vector<DString>& oldList, const std::vector<DString>& newList) const;
 
+    /** 获取XML数据和XML路径
+    * @param [in] xmlInputPath 输入的XML路径
+    * @param [in] windowResPath 窗口的资源路径
+    * @param [out] xmlFileData 读取的XML文件数据
+    * @param [out] xmlOutputPath 输出的XML路径，解析时用于查找Include的XML文件路径
+    * @param [out] xmlResPath XML文件对应的资源文件路径
+    */
+    bool ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windowResPath,
+                         std::vector<unsigned char>& xmlFileData, FilePath& xmlOutputPath, FilePath& xmlResPath) const;
+
+    /** 从相对路径中，解析出第一级目录
+    */
+    FilePath GetFirstDirectory(const FilePath& resPath) const;
+
+    /** 从绝对路径中解析出资源路径
+    */
+    FilePath GetResDirectory(FilePath xmlFilePath, const FilePath& windowResPath) const;
+
 private:
     /** XML文件的路径
     */
-    DString m_xmlPath;
+    FilePath m_xmlPath;
 
     /** 图片资源所在路径（XML文件对应的资源根目录）
     */
-    DString m_resPath;
+    FilePath m_resPath;
+
+    /** 当前XML文件对应的图片资源所在路径（XML文件对应的资源根目录）
+    */
+    FilePath m_xmlResPath;
 
     /** 关联的窗口公共属性和全局属性，切换XML时需要从窗口对象中移除这些属性，避免相互干扰
     */

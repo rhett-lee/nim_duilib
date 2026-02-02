@@ -60,9 +60,11 @@ public:
 public:
     /** 解析XML文件内容
     * @param [in] xmlFileData 是文件文本内容，字符串需要以字符 '<'开头;
+    * @param [in] xmlFilePath 可选参数，提供XML文件路径，当XML数据中含有Include标签时会按XML路径查找被包含的XML文件
     * @return 解析成功返回true，否则返回false
     */
-    bool ParseXmlData(const DString& xmlFileData);
+    bool ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath = FilePath());
+    bool ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath = FilePath());
 
     /** 解析XML文件内容
     * @param [in] xmlFilePath XML文件的路径

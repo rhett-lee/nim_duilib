@@ -49,12 +49,13 @@ void MainThread::OnInit()
         return;
     }
 
-    // 创建一个默认带有阴影的居中窗口
+    //在下面加入启动窗口代码
+    //
+    //创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic"), true));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("XmlPreview"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
-    // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
 }
 
 void MainThread::OnCleanup()
