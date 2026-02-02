@@ -288,7 +288,7 @@ FilePath XmlBox::GetFirstDirectory(const FilePath& resPath) const
     FilePath firstDir;
     if (!resPath.IsEmpty() && resPath.IsRelativePath()) {
         DStringW resPathW = resPath.ToStringW();
-        DStringW::size_type pos = resPathW.find_first_of(_T("/\\"));
+        DStringW::size_type pos = resPathW.find_first_of(L"/\\");
         if (pos != DStringW::npos) {
             firstDir = FilePath(resPathW.substr(0, pos));
         }
