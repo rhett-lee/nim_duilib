@@ -1,15 +1,15 @@
-#ifndef EXAMPLES_BASIC_FORM_H_
-#define EXAMPLES_BASIC_FORM_H_
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
 
-class BasicForm : public ui::WindowImplBase
+class MainForm : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
 public:
-    BasicForm();
-    virtual ~BasicForm() override;
+    MainForm();
+    virtual ~MainForm() override;
 
     /** 资源相关接口
      * GetSkinFolder 接口设置你要绘制的窗口皮肤资源路径
@@ -23,4 +23,4 @@ public:
     virtual void OnInitWindow() override;
 };
 
-#endif //EXAMPLES_BASIC_FORM_H_
+#endif //EXAMPLES_MAIN_FORM_H_

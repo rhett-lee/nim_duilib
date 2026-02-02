@@ -112,7 +112,7 @@
     <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
     <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
-        <td rowspan="13">示例程序完善</td>
+        <td rowspan="14">示例程序完善</td>
         <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
@@ -126,7 +126,8 @@
     <tr><td align="left">10. examples/WebView2Browser：提供了WebView2控件的功能演示（多标签）</td></tr>
     <tr><td align="left">11. examples/layout：所有布局和容器的功能演示</td></tr>
     <tr><td align="left">12. examples/ChildWindow：子窗口控件的功能演示</td></tr>
-    <tr><td align="left">13. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">12. examples/XmlPreview：XML文件的界面效果预览功能测试（测试XmlBox容器）</td></tr>
+    <tr><td align="left">14. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>

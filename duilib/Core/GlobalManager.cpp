@@ -993,15 +993,35 @@ void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCre
     }
 }
 
-Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow, const FilePath& strXmlPath, XmlPreviewAttributes& xmlPreviewAttributes)
+Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow, const FilePath& xmlFilePath, XmlPreviewAttributes& xmlPreviewAttributes)
+{
+    const std::vector<unsigned char> xmlFileData;
+    return CreateBoxForXmlPreview(pWindow, xmlFileData, xmlPreviewAttributes, xmlFilePath);
+}
+
+Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow,
+                                           const std::vector<unsigned char>& xmlFileData,
+                                           XmlPreviewAttributes& xmlPreviewAttributes,
+                                           const FilePath& xmlFilePath)
 {
     ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
         return nullptr;
     }
+    bool bParseXmlResult = false;
     Box* pBox = nullptr;
     WindowBuilder builder;
-    if (builder.ParseXmlFile(strXmlPath, pWindow->GetResourcePath())) {
+    if (!xmlFileData.empty()) {
+        if (builder.ParseXmlData(xmlFileData, xmlFilePath)) {
+            bParseXmlResult = true;
+        }
+    }
+    else if (!xmlFilePath.IsEmpty()) {
+        if (builder.ParseXmlFile(xmlFilePath, pWindow->GetResourcePath())) {
+            bParseXmlResult = true;
+        }
+    }
+    if (bParseXmlResult) {
         Control* pControl = builder.CreateControls(pWindow, nullptr);
         ASSERT(pControl != nullptr);
         if (pControl != nullptr) {
