@@ -196,6 +196,9 @@ public:
     */
     void OnMouseClickShadow(UiPoint ptMouse) const
     {
+        if (!m_pShadow->IsEnableClickThroughWindow()) {
+            return;
+        }
         ClickThrough shadowClick;
         shadowClick.ClickThroughWindow(GetWindow(), ptMouse);
     }
@@ -211,6 +214,7 @@ Shadow::Shadow(Window* pWindow):
     m_isMaximized(false),
     m_pShadowBox(nullptr),
     m_pWindow(pWindow),
+    m_bEnableClickThroughWindow(true),
     m_bEnableShadowSnap(true),
     m_bLeftSnap(false),
     m_bTopSnap(false),
@@ -722,6 +726,9 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
         //只处理鼠标左键按下和右键按下事件
         return;
     }
+    if (!IsEnableClickThroughWindow()) {
+        return;
+    }
     Shadow::ShadowType shadowType = GetShadowType();
     if ((shadowType == Shadow::ShadowType::kShadowNone) || (shadowType == Shadow::ShadowType::kShadowNoneRound)) {
         //无阴影模式
@@ -755,6 +762,16 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
 
     //鼠标确认点击在阴影上，处理阴影穿透逻辑
     pShadowBox->OnMouseDown(pt);
+}
+
+void Shadow::SetEnableClickThroughWindow(bool bEnable)
+{
+    m_bEnableClickThroughWindow = bEnable;
+}
+
+bool Shadow::IsEnableClickThroughWindow() const
+{
+    return m_bEnableClickThroughWindow;
 }
 
 } //namespace ui

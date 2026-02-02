@@ -187,6 +187,14 @@ public:
     */
     void CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt);
 
+    /** 设置是否支持阴影的点击穿透功能
+    */
+    void SetEnableClickThroughWindow(bool bEnable);
+
+    /** 获取是否支持阴影的点击穿透功能
+    */
+    bool IsEnableClickThroughWindow() const;
+
 private:
     /** 将阴影附加到窗口
      */
@@ -213,6 +221,10 @@ private:
 
     //当前是否为最大化状态
     bool m_isMaximized;
+
+    /** 设置是否支持阴影的点击穿透功能
+    */
+    bool m_bEnableClickThroughWindow;
 
     /** 阴影是否支持窗口贴边操作
     */
