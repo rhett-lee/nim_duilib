@@ -1072,7 +1072,8 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
                         //上述方法打开的页面，没有前进后退历史，不符合预期
 
                         //直接导航，这样能够保留前进后退历史，但不能支持网页脚本能正常交互（如window.opener）
-                        m_spWebView2->Navigate(targetUrl.c_str());
+                        DStringW urlW = StringConvert::TToWString(targetUrl);
+                        m_spWebView2->Navigate(urlW.c_str());
                         args->put_Handled(TRUE);
                     }
                     else {
