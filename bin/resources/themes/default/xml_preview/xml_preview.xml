@@ -23,8 +23,30 @@
         </HBox> <!-- 标题栏区域结束 --> 
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <Box padding="10,10,10,10" bkcolor="green">
-            <XmlBox res_path="controls" xml_path="controls.xml" />
-        </Box>
+        <VBox padding="10,10,10,10">
+            <VBox height="auto">
+                <HBox height="auto">
+                    <Label text="XML文件路径：" valign="center"/>
+                    <Label name="xml_file_path" text="" valign="center" width="100%" path_ellipsis="true" single_line="true" auto_tooltip="true"/>                    
+                </HBox>
+                <HBox height="auto">
+                    <Label text="XML加载结果：" valign="center"/>
+                    <Label name="xml_file_load_result" text="" valign="center" width="100%" />
+                </HBox>
+                <HBox height="auto">
+                    <Label name="xml_file_path" text="可以将XML文件拖入下面的显示区域进行预览" text_align="vcenter" valign="center" height="30"/>
+                    <Control />
+                    <CheckBox class="checkbox_2" name="checkbox_auto_refresh" text="自动刷新" margin="0,0,8,0" selected="false"/>
+                    <Label text="时间间隔(秒)：" text_align="vcenter" valign="center"/>
+                    <RichEdit class="simple simple_border rich_edit_spin" name="auto_refresh_interval" min_number="1" max_number="60" limit_text="2" text="5" height="30" margin="0,0,8,0"/>
+                    <Button class="btn_global_color_gray" name="btn_clear_xml_file" text="清空预览" width="120" height="30" border_round="3,3" margin="0,0,8,0"/>
+                    <Button class="btn_global_color_gray" name="btn_browse_xml_file" text="打开XML文件..." width="120" height="30" border_round="3,3" margin="0,0,10,0"/>
+                </HBox>
+            </VBox>
+            <XmlBox name="xml_box_test" bkcolor="white" border_color="blue" border_size="1" border_dash_style="dash" margin="4,4,4,4"
+                    mouse_child="true"
+                    res_path="controls" 
+                    xml_file_path="controls.xml"/>
+        </VBox>
     </VBox>
 </Window>
