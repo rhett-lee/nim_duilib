@@ -26,8 +26,8 @@ DString XmlBox::GetType() const { return DUI_CTR_XMLBOX; }
 
 void XmlBox::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == _T("xml_path")) {
-        SetXmlPath(FilePath(strValue));
+    if (strName == _T("xml_file_path")) {
+        SetXmlFilePath(FilePath(strValue));
     }
     else if (strName == _T("res_path")) {
         SetResPath(FilePath(strValue));
@@ -37,21 +37,24 @@ void XmlBox::SetAttribute(const DString& strName, const DString& strValue)
     }
 }
 
-void XmlBox::SetXmlPath(const FilePath& xmlPath)
+bool XmlBox::SetXmlFilePath(const FilePath& xmlPath)
 {
     if (IsInited()) {
         bool bRet = LoadXmlData(xmlPath);
         if (bRet) {
             m_xmlPath = xmlPath;
         }
-        OnXmlDataLoaded(xmlPath, bRet);
+        FilePath xmlFileFullPath = bRet ? m_xmlFileFullPath : xmlPath;
+        OnXmlDataLoaded(xmlFileFullPath, bRet);
+        return bRet;
     }
     else {
         m_xmlPath = xmlPath;
+        return true;
     }
 }
 
-const FilePath& XmlBox::GetXmlPath() const
+const FilePath& XmlBox::GetXmlFilePath() const
 {
     return m_xmlPath;
 }
@@ -121,7 +124,8 @@ void XmlBox::OnInit()
         }, callbackId);
 
     bool bRet = LoadXmlData(m_xmlPath);
-    OnXmlDataLoaded(m_xmlPath, bRet);
+    FilePath xmlFileFullPath = bRet ? m_xmlFileFullPath : m_xmlPath;
+    OnXmlDataLoaded(xmlFileFullPath, bRet);
 }
 
 bool XmlBox::LoadXmlData(const FilePath& xmlPath)
@@ -147,8 +151,8 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
         //读取XML文件数据失败
         return bRet;
     }
+    FilePath oldXmlResPath = m_xmlResPath;
     m_xmlResPath = xmlResPath;
-
     XmlPreviewAttributes xmlPreviewAttributes;
     Box* pSubBox = ui::GlobalManager::Instance().CreateBoxForXmlPreview(GetWindow(), xmlFileData, xmlPreviewAttributes, xmlOutputPath);
     if (pSubBox != nullptr) {
@@ -185,7 +189,11 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
         AddItem(pSubBox);
         m_pSubBox = pSubBox;
         *m_pXmlPreviewAttributes = xmlPreviewAttributes;
+        m_xmlFileFullPath = xmlOutputPath;
         bRet = true;
+    }
+    else {
+        m_xmlResPath.Swap(oldXmlResPath);
     }
     return bRet;
 }
@@ -343,6 +351,8 @@ void XmlBox::ClearLoadedXmlData(const XmlPreviewAttributes& xmlPreviewAttributes
         m_pSubBox = nullptr;
     }
     m_pShadow.reset();
+    m_xmlFileFullPath.Clear();
+    m_xmlResPath.Clear();
     
     //删除上次加载在窗口下的公共属性，避免相互干扰
     Window* pWindow = GetWindow();
@@ -396,6 +406,11 @@ void XmlBox::OnXmlDataLoaded(const FilePath& xmlPath, bool bSuccess)
     for (const LoadXmlCallbackData& callbackData : loadXmlCallbacks) {
         callbackData.m_callback(xmlPath, bSuccess);
     }
+}
+
+const FilePath& XmlBox::GetXmlFileFullPath() const
+{
+    return m_xmlFileFullPath;
 }
 
 } //namespace ui

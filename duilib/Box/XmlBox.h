@@ -25,12 +25,13 @@ public:
 public:
     /** 设置XML文件的路径
     * @param [in] xmlPath XML文件的路径
+    * @return 如果加载XML数据成功返回true，否则返回false
     */
-    void SetXmlPath(const FilePath& xmlPath);
+    bool SetXmlFilePath(const FilePath& xmlPath);
 
     /** 获取XML文件的路
     */
-    const FilePath& GetXmlPath() const;
+    const FilePath& GetXmlFilePath() const;
 
     /** 设置图片资源所在路径（XML文件对应的资源根目录）
     */
@@ -44,17 +45,22 @@ public:
     */
     void ClearXmlBox();
 
+    /** 获取已加载XML文件的完整路径（如果为磁盘文件，则为绝对路径）
+    */
+    const FilePath& GetXmlFileFullPath() const;
+
+public:
     /** 加载XML完成事件的回调函数
      * @param [in] xmlPath XML文件的路径
      * @param [in] bSuccess true表示加载XML成功，false表示加载XML失败
      */
-    using LoadXmlCallback = std::function<bool(const FilePath& xmlPath, bool bSuccess)>;
+    using LoadXmlCallback = std::function<void (const ui::FilePath& xmlPath, bool bSuccess)>;
 
     /** 添加一个加载XML完成事件的回调函数
     * @param [in] callback 回调函数
     * @param [in] callbackId 回调函数的ID，删除回调函数时使用，由调用方确保ID的唯一性
     */
-    void AddLoadXmlCallback(LoadXmlCallback callback, size_t callbackId);
+    void AddLoadXmlCallback(LoadXmlCallback callback, size_t callbackId = 0);
 
     /** 删除一个加载XML完成事件的回调函数
     * @param [in] callbackId 待删除回调函数的ID
@@ -113,6 +119,10 @@ private:
     /** 当前XML文件对应的图片资源所在路径（XML文件对应的资源根目录）
     */
     FilePath m_xmlResPath;
+
+    /** 已加载XML文件的完整路径（如果为磁盘文件，则为绝对路径）
+    */
+    FilePath m_xmlFileFullPath;
 
     /** 关联的窗口公共属性和全局属性，切换XML时需要从窗口对象中移除这些属性，避免相互干扰
     */

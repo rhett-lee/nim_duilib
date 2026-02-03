@@ -374,13 +374,58 @@ GridScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`S
 | drag_alpha | 216 | int | 设置拖动顺序时，控件的透明度（0 - 255） |
 | drag_out | true | bool | 是否支持拖出操纵（在相同窗口的不同容器内） |
 
-BoxDragable 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
+BoxDragable 控件继承了`ControlDragableT`和`Box`属性，更多可用属性请参考`ControlDragableT`和`Box`的属性
 
 ### 29. HBoxDragable的属性
-HBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
+HBoxDragable 与 BoxDragable是一个模板类（ControlDragableT）实现的，属性请参考`BoxDragable`的属性    
 HBoxDragable 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
 ### 30. VBoxDragable的属性
-VBoxDragable 与 BoxDragable是一个模板类实现的，属性请参考`BoxDragable`的属性    
+VBoxDragable 与 BoxDragable是一个模板类（ControlDragableT）实现的，属性请参考`BoxDragable`的属性    
 VBoxDragable 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
 
+### 31. BoxMovable的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| enable_move_pos  | true | bool    | 是否支持拖动调整控件的位置，默认是开启的 |
+| move_pos_draggable_border |   | UiPadding | 控件可移动矩形的边框范围（四周可点击拖动，但中心区域不可拖动） |
+| move_pos_non_draggable_margin |  | UiMargin | 控件可移动矩形的外边距（外边距定义的四周区域不可点击拖动，仅中心区域可拖动） |
+| move_parent_pos  | false| bool    | 执行拖动调整控件位置操作时，是否调整父容器的位置，"true"表示调整父容器的位置，"false"表示调整控件自身的位置 |
+| move_pos_alpha   | 216  | uint8_t | 拖动调整位置时，控件的透明度 |
+| move_pos_reserve_width   | 20  | int | 横向移动时，在父容器内保留的高度，避免控件完全溢出父容器(未经DPI缩放) |
+| move_pos_reserve_height   | 20  | int | 纵向移动时，在父容器内保留的宽度，避免控件完全溢出父容器(未经DPI缩放) |
+| move_pos_keep_within_parent   | false  | bool | 移动控件时，确保子控件位于父容器内，无溢出 |
+
+ControlMovable 控件继承了`ControlMovableT`和`Control`属性，更多可用属性请参考`ControlMovableT`和`Control`的属性
+
+### 32. HBoxMovable的属性
+HBoxMovable 控件继承了`ControlMovableT`和`HBox`属性，更多可用属性请参考`ControlMovableT`和`HBox`的属性
+
+### 33. VBoxMovable的属性
+VBoxMovable 控件继承了`ControlMovableT`和`VBox`属性，更多可用属性请参考`ControlMovableT`和`VBox`的属性
+
+### 34. BoxResizable的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| enable_resize   | true  | bool | 是否支持鼠标拖动改变控件的大小 |
+| enable_move_pos  | false | bool    | 是否支持拖动调整控件的位置，默认是关闭的；若开启，则相关属性可参考`ControlMovableT`的属性 |
+| resize_size_box   | | UiRect | 设置控件四边调整大小时的可拉伸范围的大小 |
+| resize_reserve_width   | 10| int | 设置调整大小时，保留的最小宽度(未经DPI缩放) |
+| resize_reserve_height   | 10| int | 设置调整大小时，保留的最小高度(未经DPI缩放) |
+| resize_keep_within_parent| false | bool | 设置调整控件大小时，是否确保子控件位于父容器内，无溢出 |
+
+BoxResizable 控件继承了`ControlResizableT`、`ControlMovableT`和`Box`属性，更多可用属性请参考`ControlResizableT`、`ControlMovableT`和`Box`的属性
+
+### 35. HBoxResizable的属性
+HBoxResizable 控件继承了`ControlResizableT`和`HBox`属性，更多可用属性请参考`ControlResizableT`和`HBox`的属性
+
+### 36. VBoxResizable的属性
+VBoxResizable 控件继承了`ControlResizableT`和`VBox`属性，更多可用属性请参考`ControlResizableT`和`VBox`的属性
+
+### 37. XmlBox的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| xml_file_path | | string | 设置XML文件的路径 |
+| res_path      | | string | 设置图片资源所在路径（XML文件对应的资源根目录） |
+
+XmlBox 控件继承了`Box`属性，更多可用属性请参考`Box`的属性

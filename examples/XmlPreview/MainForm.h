@@ -29,6 +29,36 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+
+private:
+    /** 启动自动刷新的定时器
+    */
+    void StartRefreshTimer(int32_t nIntervalSeconds);
+
+    /** 停止自动刷新的定时器
+    */
+    void StopRefreshTimer();
+
+    /** 检查并刷新XML文件的预览结果
+    */
+    void CheckXmlPreview();
+
+private:
+    /** 当前预览的XML文件路径
+    */
+    ui::FilePath m_xmlFilePath;
+
+    /** XML文件内容，用于比较是否有变化
+    */
+    std::vector<uint8_t> m_xmlFileData;
+
+    /** 当前自动刷新的定时器事件间隔
+    */
+    int32_t m_nIntervalSeconds;
+
+    /** 当前定时器的ID
+    */
+    size_t m_timerId;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_
