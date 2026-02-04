@@ -867,6 +867,9 @@
     <ClCompile Include="Box\XmlBox.cpp">
       <Filter>Box</Filter>
     </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefRegisteredFunctions.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1801,6 +1804,9 @@
     </ClInclude>
     <ClInclude Include="Box\XmlBox.h">
       <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefRegisteredFunctions.h">
+      <Filter>CEFControl\internal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
