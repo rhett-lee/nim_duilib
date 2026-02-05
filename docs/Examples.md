@@ -79,3 +79,11 @@ examples 目录中包含了一些示例程序，可以参考这些示例程序�
 ## 19. examples/WebView2Browser
 基于 WebView2 的自定义多标签可拖曳浏览器示例。    
 <img width="800" src="./Images/WebView2Browser.png"/>
+    
+## 20. examples/ChildWindow    
+子窗口控件的功能演示示例。    
+<img width="800" src="./Images/ChildWindow.png"/>
+    
+## 21. examples/XmlPreview    
+XML文件的界面效果预览功能演示示例。    
+<img width="800" src="./Images/XmlPreview.png"/>
