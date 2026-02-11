@@ -5,6 +5,7 @@
 #include "SkiaHeaderBegin.h"
 
 #include "include/core/SkPath.h"
+#include "include/core/SkPathBuilder.h"
 #include "include/core/SkPathMeasure.h"
 
 #include "SkiaHeaderEnd.h"
@@ -15,12 +16,12 @@ namespace ui
 static HRGN CreateHRGNFromSkiaRoundRect(const SkRect& skRect, SkScalar rx, SkScalar ry)
 {
     // 创建Skia圆角路径（确保路径闭合）
-    SkPath path;
-    path.addRoundRect(skRect, rx, ry);
-    path.close(); // 显式闭合路径，避免端点缺失
+    SkPathBuilder pathBuilder;
+    pathBuilder.addRRect(SkRRect::MakeRectXY(skRect, rx, ry));
+    pathBuilder.close(); // 显式闭合路径，避免端点缺失
 
     // 使用SkPathMeasure离散化路径为密集点集
-    SkPathMeasure pathMeasure(path, true); // true表示闭合路径
+    SkPathMeasure pathMeasure(pathBuilder.snapshot(), true); // true表示闭合路径
     std::vector<POINT> points;
 
     // 路径总长度
