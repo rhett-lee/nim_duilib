@@ -1388,9 +1388,9 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     SkRect ovalRect = SkRect::Make(rcSkDestI);
     ovalRect.offset(*m_pSkPointOrg);
 
-    if((gradientColor != nullptr) && (gradientRect != nullptr)) {        
-        SkColor4f colors[2] = {0};
+    if((gradientColor != nullptr) && (gradientRect != nullptr)) {
         UiColor dwColor = pen->GetColor();
+        SkColor4f colors[2];        
         colors[0] = SkColor4f::FromColor(SkColorSetARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB()));
         colors[1] = SkColor4f::FromColor(SkColorSetARGB(gradientColor->GetA(), gradientColor->GetR(), gradientColor->GetG(), gradientColor->GetB()));
         
