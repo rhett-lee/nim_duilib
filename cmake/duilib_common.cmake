@@ -148,7 +148,7 @@ else()
     # 外部指定的子目录名
     set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}")
 endif()
-set(DUILIB_SKIA_LIBS svg skia skshaper skottie sksg jsonreader)
+set(DUILIB_SKIA_LIBS svg skia skshaper skottie skia sksg jsonreader)
 
 #SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）
 if(DUILIB_ENABLE_SDL)

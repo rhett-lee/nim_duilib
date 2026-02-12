@@ -2,6 +2,7 @@
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wformat"
     #pragma GCC diagnostic ignored "-Wformat-extra-args"
+    #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
 #if defined (_MSC_VER)

@@ -287,8 +287,8 @@ VerAlignType BitmapControl::GetBitmapVAlignType() const
 
 void BitmapControl::SetBitmapAlpha(uint8_t nBitmapAlpha)
 {
-    ASSERT((nBitmapAlpha >= 0) && (nBitmapAlpha <= 255));
-    if ((nBitmapAlpha < 0) || (nBitmapAlpha > 255)) {
+    ASSERT(nBitmapAlpha <= 255);
+    if (nBitmapAlpha > 255) {
         return;
     }
     if (m_nBitmapAlpha != nBitmapAlpha) {

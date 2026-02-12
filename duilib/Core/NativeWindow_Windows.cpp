@@ -1364,9 +1364,6 @@ static const BYTE* ExtractIconResource(const BYTE* pIconData, DWORD nDataSize,
     std::map<DWORD, std::vector<ICONDIRENTRY>> iconGroups;
     for (UINT i = 0; i < pIconDir->idCount; i++) {
         const ICONDIRENTRY* pEntry = &pFirstEntry[i];
-        if ((pEntry->bWidth < 0) || (pEntry->bHeight < 0)) {
-            continue;
-        }
         DWORD sizeKey = GetIconSizeKey(pEntry->bWidth, pEntry->bHeight);
         iconGroups[sizeKey].push_back(*pEntry);
     }
