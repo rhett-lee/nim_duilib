@@ -1,6 +1,6 @@
-# nim duilib
+# nim_duilib
 
-[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
+[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，支持的Linux系统包括OpenEuler、OpenKylin、UbuntuKylin、统信UOS、中科方德、Ubuntu、Fedora、Debian等，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
 
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -527,6 +527,6 @@ chmod +x ./build/freebsd_build.sh
  - [参考文档](docs/Summary.md)
 
 ## 相关链接
-1. Skia的编译文档库，点击访问：[skia compile](https://github.com/rhett-lee/skia_compile) ：    
+1. Skia的编译文档库，点击访问：[skia_compile](https://github.com/rhett-lee/skia_compile) ：    
 2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
 3. NIM_Duilib_Framework项目是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
