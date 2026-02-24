@@ -4,9 +4,15 @@
 namespace ui 
 {
 
-AnimationManager::AnimationManager() :
-    m_pControl(nullptr)
+AnimationManager::AnimationManager(Control* pControl) :
+    m_pControl(pControl)
 {
+}
+
+bool AnimationManager::HasAnimationPlayer(AnimationType animationType) const
+{
+    auto it = m_animationMap.find(animationType);
+    return (it != m_animationMap.end());
 }
 
 AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationType) const
@@ -200,31 +206,31 @@ void AnimationManager::Appear()
     if (m_pControl != nullptr) {
         m_pControl->SetVisible(true);
     }    
-    if (GetAnimationPlayer(AnimationType::kAnimationAlpha)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationAlpha)) {
         m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationAlpha]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationWidth)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationWidth)) {
         m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationWidth]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationHeight)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationHeight)) {
         m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationHeight]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
         m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationInoutXFromLeft]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
         m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationInoutXFromRight]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
         m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationInoutYFromTop]->Continue();
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
         m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(AnimationCompleteCallback());
         m_animationMap[AnimationType::kAnimationInoutYFromBottom]->Continue();
     }
@@ -239,37 +245,37 @@ void AnimationManager::Disappear()
     }
 
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
-    if (GetAnimationPlayer(AnimationType::kAnimationAlpha)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationAlpha)) {
         m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationAlpha]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationWidth)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationWidth)) {
         m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationWidth]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationHeight)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationHeight)) {
         m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationHeight]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
         m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationInoutXFromLeft]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
         m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationInoutXFromRight]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
         m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationInoutYFromTop]->ReverseContinue();
         handled = true;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
+    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
         m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(completeCallback);
         m_animationMap[AnimationType::kAnimationInoutYFromBottom]->ReverseContinue();
         handled = true;

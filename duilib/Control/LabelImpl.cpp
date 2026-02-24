@@ -735,7 +735,7 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
     DrawStringParam drawParam = GetDrawParam();//绘制参数
     drawParam.textRect = rc;
 
-    if (m_pOwner->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
+    if (m_pOwner->HasAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
             !GetStateTextColor(kControlStateHot).empty()) {
             DString clrColor = GetStateTextColor(kControlStateNormal);

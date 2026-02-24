@@ -127,7 +127,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
                                  const DString& sImageModify, UiRect* pDestRect)
 {
     if (m_pControl != nullptr) {
-        bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot) != nullptr;
+        bool bFadeHot = m_pControl->HasAnimationPlayer(AnimationType::kAnimationHot);
         int32_t nHotAlpha = m_pControl->GetHotAlpha();
         if (bFadeHot) {
             if (stateType == kControlStateNormal || stateType == kControlStateHot) {

@@ -104,7 +104,7 @@ bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
 
     if (m_iCurSel != iIndex) {
         //如果不是选择页面，则隐藏
-        pControl->SetFadeVisible(false);
+        pControl->SetVisible(false);
         OnHideTabItem(iIndex);
     }
     return ret;

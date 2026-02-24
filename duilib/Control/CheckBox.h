@@ -939,7 +939,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
     DrawStringParam drawParam = this->GetDrawParam();//绘制参数
     drawParam.textRect = rc;
 
-    if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
+    if (this->HasAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot)
             && !GetSelectedStateTextColor(kControlStateHot).empty()) {
             DString clrStateColor = GetSelectedStateTextColor(kControlStateNormal);

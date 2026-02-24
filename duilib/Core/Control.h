@@ -829,6 +829,10 @@ public:
     void AttachImageAnimationStop(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageAnimationStop, callback, callbackID); }
 
 public:
+    /** 判断是否包含指定类型的动画播放接口
+    */
+    bool HasAnimationPlayer(AnimationType animationType) const;
+
     /** 获取控件动画管理器接口(控件动画)
      */
     AnimationManager& GetAnimationManager();
