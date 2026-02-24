@@ -1622,14 +1622,14 @@ void RichEdit::SetWindow(Window* pWindow)
     }
 }
 
-void RichEdit::LineUp(int32_t deltaValue, bool withAnimation)
+void RichEdit::LineUp(int32_t deltaValue)
 {
-    BaseClass::LineUp(deltaValue, withAnimation);
+    BaseClass::LineUp(deltaValue);
 }
 
-void RichEdit::LineDown(int32_t deltaValue, bool withAnimation)
+void RichEdit::LineDown(int32_t deltaValue)
 {
-    BaseClass::LineDown(deltaValue, withAnimation);
+    BaseClass::LineDown(deltaValue);
 }
 
 void RichEdit::PageUp()
@@ -1653,9 +1653,9 @@ void RichEdit::HomeUp()
     BaseClass::HomeUp();
 }
 
-void RichEdit::EndDown(bool arrange, bool withAnimation)
+void RichEdit::EndDown(bool arrange)
 {
-    BaseClass::EndDown(arrange, withAnimation);
+    BaseClass::EndDown(arrange);
 }
 
 void RichEdit::LineLeft(int32_t deltaValue)
@@ -3602,10 +3602,10 @@ bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
     if ((pVScrollBar != nullptr) && pVScrollBar->IsValid() && pVScrollBar->IsEnabled()) {
         switch (msg.vkCode) {
         case kVK_DOWN:
-            LineDown(GetLineScrollDeltaValue(true), false);
+            LineDown(GetLineScrollDeltaValue(true));
             break;
         case kVK_UP:
-            LineUp(GetLineScrollDeltaValue(false), false);
+            LineUp(GetLineScrollDeltaValue(false));
             break;
         case kVK_NEXT:
             PageDown();
@@ -3617,7 +3617,7 @@ bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
             HomeUp();
             break;
         case kVK_END:
-            EndDown(false, false);
+            EndDown(false);
             break;
         default:
             break;
@@ -4397,12 +4397,12 @@ void RichEdit::OnCheckScrollView()
         }
         if (pt.cy <= viewRect.top) {
             //向上滚动视图
-            LineUp(nVScrollValue, false);
+            LineUp(nVScrollValue);
             bScrollView = true;
         }
         else if (pt.cy >= viewRect.bottom) {
             //向下滚动视图
-            LineDown(nVScrollValue, false);
+            LineDown(nVScrollValue);
             bScrollView = true;
         }
     }

@@ -625,15 +625,13 @@ public:
 public:
     /** 向上滚动滚动条
      * @param[in] deltaValue 未使用
-     * @param[in] withAnimation 未使用
      */
-    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向下滚动滚动条
      * @param[in] deltaValue 未使用
-     * @param[in] withAnimation 未使用
      */
-    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向上翻页
      */
@@ -649,9 +647,8 @@ public:
 
     /** 滚动到最下方位置
      * @param[in] arrange 未使用
-     * @param[in] withAnimation 未使用
      */
-    virtual void EndDown(bool arrange = true, bool withAnimation = true) override;
+    virtual void EndDown(bool arrange = true) override;
 
     /** 向左滚动滚动条
      * @param[in] deltaValue 未使用

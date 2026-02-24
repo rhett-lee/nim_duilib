@@ -759,15 +759,13 @@ public:
 public:
     /** 向上一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向下一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向上翻页
      */
@@ -783,9 +781,8 @@ public:
 
     /** 滚动到最底部
      * @param[in] arrange 是否重置滚动条位置，默认为 true
-     * @param[in] withAnimation 是否包含动画特效，默认为 true
      */
-    virtual void EndDown(bool arrange = true, bool withAnimation = true) override;
+    virtual void EndDown(bool arrange = true) override;
 
     /** 水平向左滚动
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE

@@ -274,7 +274,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
                 EndRight();
             }
             else {
-                EndDown(false, false);
+                EndDown(false);
             }
             bHandled = true;
         }
@@ -1836,7 +1836,6 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 
 void ListBox::StopScroll()
 {
-    StopScrollAnimation();
 }
 
 bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
