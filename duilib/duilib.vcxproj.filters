@@ -870,6 +870,9 @@
     <ClCompile Include="CEFControl\internal\CefRegisteredFunctions.cpp">
       <Filter>CEFControl\internal</Filter>
     </ClCompile>
+    <ClCompile Include="Animation\EasingFunctions.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1807,6 +1810,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\CefRegisteredFunctions.h">
       <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation\EasingFunctions.h">
+      <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

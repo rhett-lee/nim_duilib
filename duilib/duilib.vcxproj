@@ -227,6 +227,7 @@
     </ClCompile>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
+    <ClCompile Include="Animation\EasingFunctions.cpp" />
     <ClCompile Include="Box\ListBox.cpp" />
     <ClCompile Include="Box\ListBoxHelper.cpp" />
     <ClCompile Include="Box\ScrollBox.cpp" />
@@ -561,6 +562,7 @@
     <ClInclude Include="..\..\skia\tools\window\WindowContext.h" />
     <ClInclude Include="Animation\AnimationManager.h" />
     <ClInclude Include="Animation\AnimationPlayer.h" />
+    <ClInclude Include="Animation\EasingFunctions.h" />
     <ClInclude Include="Box\GridBox.h" />
     <ClInclude Include="Box\HBox.h" />
     <ClInclude Include="Box\ListBox.h" />

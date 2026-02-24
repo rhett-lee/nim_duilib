@@ -75,10 +75,17 @@ protected:
      */
     void OnHideTabItem(size_t index);
 
-    /** 动画播放结束
-    *@param [in] it TAB 项索引
+    /** 开始播放动画
+    * @param [in] pItemControl 标签页的接口
+    * @param [in] bNewSelectedItem true表示该标签页的接口为当前最新选择的标签页，否则表示为原来选择的标签页
+    * @param [in] iOldSel 原来选择的标签页接口索引号
     */
-    void OnAnimationComplete(size_t index);
+    virtual void StartSwitchItemAnimation(Control* pItemControl, bool bNewSelectedItem, size_t iOldSel);
+
+    /** 动画播放结束
+    * @param [in] pItemControl 标签页的接口
+    */
+    virtual void OnSwitchItemAnimationComplete(Control* pItemControl);
 
 protected:
     /** 设置可见状态事件

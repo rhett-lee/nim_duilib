@@ -1,299 +1,154 @@
 #include "AnimationPlayer.h"
+#include "duilib/Animation/EasingFunctions.h"
 #include "duilib/Core/GlobalManager.h"
 
 #define AP_NO_VALUE -1
 
 namespace ui 
 {
-
-static bool IsZeroValue(double value) {
-    return std::abs(value - 0) < 0.00001;
-}
-
-AnimationPlayerBase::AnimationPlayerBase():
+AnimationPlayer::AnimationPlayer():
     m_animationType(AnimationType::kAnimationNone),
-    m_bFirstRun(true),
     m_playCallback(nullptr),
     m_completeCallback(nullptr)
 {
-    InitBaseData();
-}
-
-AnimationPlayerBase::~AnimationPlayerBase()
-{
-}
-
-void AnimationPlayerBase::Reset()
-{
-    m_weakFlagOwner.Cancel();
     Init();
-}
-
-void AnimationPlayerBase::Clear()
-{
-    m_weakFlagOwner.Cancel();
-    m_playCallback = nullptr;
-    m_completeCallback = nullptr;
-}
-
-void AnimationPlayerBase::InitBaseData()
-{
-    m_startValue = 0;
-    m_endValue = 0;
-    m_currentValue = 0;
-    m_totalMillSeconds = AP_NO_VALUE;
-    m_palyedMillSeconds = 0;
-    m_elapseMillSeconds = 0;
-    m_reverseStart = false;
-    m_bPlaying = false;
-    m_startTime = std::chrono::steady_clock::now();
-}
-
-void AnimationPlayerBase::Init()
-{
-    InitBaseData();
-}
-
-void AnimationPlayerBase::Start()
-{
-    m_weakFlagOwner.Cancel();
-    m_palyedMillSeconds = 0;
-    m_reverseStart = false;
-    StartTimer();
-}
-
-void AnimationPlayerBase::Stop()
-{
-    m_weakFlagOwner.Cancel();
-}
-
-void AnimationPlayerBase::Continue()
-{
-    m_weakFlagOwner.Cancel();
-    if (m_reverseStart) {
-        ReverseAllValue();
-    }    
-
-    m_reverseStart = false;
-    StartTimer();
-    m_bFirstRun = false;
-}
-
-void AnimationPlayerBase::ReverseContinue()
-{
-    m_weakFlagOwner.Cancel();
-    if (!m_reverseStart) {
-        ReverseAllValue();
-    }        
-
-    if (m_bFirstRun) {
-        m_palyedMillSeconds = 0;
-    }        
-
-    m_reverseStart = true;
-    StartTimer();
-    m_bFirstRun = false;
-}
-
-void AnimationPlayerBase::StartTimer()
-{
-    m_startTime = std::chrono::steady_clock::now();
-    m_bPlaying = true;
-    if (m_endValue - m_startValue == 0) {
-        Complete();
-        return;
-    }
-
-    m_elapseMillSeconds = m_totalMillSeconds / std::abs(m_endValue - m_startValue);
-    if (m_elapseMillSeconds == 0) {
-        m_elapseMillSeconds = 1;
-    }
-
-    Play();
-    auto playCallback = UiBind(&AnimationPlayerBase::Play, this);
-    ASSERT(m_elapseMillSeconds <= INT32_MAX);
-    GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)m_elapseMillSeconds);
-}
-
-void AnimationPlayerBase::Play()
-{
-    std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
-    auto thisTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - m_startTime); //播放耗时：毫秒
-    m_palyedMillSeconds += thisTime.count(); //累计到已播放时间（毫秒）
-    m_startTime = std::chrono::steady_clock::now();
-
-    int64_t newCurrentValue = GetCurrentValue();
-    if (m_playCallback) {
-        if (( (m_endValue > m_startValue) && (newCurrentValue >= m_endValue) ) ||
-            ( (m_endValue < m_startValue) && (newCurrentValue <= m_endValue) ) ) {
-            //播放完成
-            newCurrentValue = m_endValue;
-            m_playCallback(newCurrentValue);
-            Complete();
-        }
-        else {
-            if (newCurrentValue != m_currentValue) {
-                m_playCallback(newCurrentValue);
-            }
-        }
-    }
-    else {
-        ASSERT(0);
-    }
-
-    m_currentValue = newCurrentValue;
-}
-
-void AnimationPlayerBase::ReverseAllValue()
-{
-    std::swap(m_startValue, m_endValue);
-    m_currentValue = m_startValue;
-    m_palyedMillSeconds = m_totalMillSeconds - m_palyedMillSeconds;
-    if (m_palyedMillSeconds < 0) {
-        m_palyedMillSeconds = 0;
-    }
-}
-
-void AnimationPlayerBase::Complete()
-{
-    if (m_completeCallback) {
-        m_completeCallback();
-    }        
-
-    m_weakFlagOwner.Cancel();
-    m_bPlaying = false;
-}
-
-AnimationPlayer::AnimationPlayer()
-{
-    InitData();
 }
 
 AnimationPlayer::~AnimationPlayer()
 {
 }
 
-void AnimationPlayer::InitData()
+void AnimationPlayer::Reset()
 {
-    m_speedUpRatio = 0;
-    m_speedDownRatio = 0;
-    m_speedUpMillSeconds = 0;
-    m_speedDownMillSeconds = 0;
-    m_linerMillSeconds = 0;
-    m_linearSpeed = 0;
-    m_speedUpfactorA = 0;
-    m_speedDownfactorA = 0;
-    m_speedDownfactorB = 0;
-    m_maxTotalMillSeconds = 1000000;
+    m_weakFlagOwner.Cancel();
+    Init();
+}
+
+void AnimationPlayer::Clear()
+{
+    m_weakFlagOwner.Cancel();
+    m_bPlaying = false;
+    m_playCallback = nullptr;
+    m_completeCallback = nullptr;
+    m_pEasingFunctions.reset();
 }
 
 void AnimationPlayer::Init()
 {
-    BaseClass::Init();
-    InitData();
+    m_startValue = 0;
+    m_endValue = 0;
+    m_currentValue = 0;
+    m_totalMillSeconds = -1;
+    m_frameIntervalMillSeconds = -1;
+    m_reverseStart = false;
+    m_bPlaying = false;
+    m_frameIndex = 0;
+    m_pEasingFunctions.reset();
+    m_easingFunctionType = EasingFunctionType::EaseInOutCubic;
+}
+
+void AnimationPlayer::Start()
+{
+    m_weakFlagOwner.Cancel();
+    if (m_reverseStart) {
+        ReverseAllValue();
+        m_reverseStart = false;
+    }
+    StartTimer();
+}
+
+void AnimationPlayer::Stop()
+{
+    m_weakFlagOwner.Cancel();
+    m_bPlaying = false;
+}
+
+void AnimationPlayer::Continue()
+{
+    m_weakFlagOwner.Cancel();
+    if (m_reverseStart) {
+        ReverseAllValue();
+        m_reverseStart = false;
+    }
+    StartTimer();
+}
+
+void AnimationPlayer::ReverseContinue()
+{
+    m_weakFlagOwner.Cancel();
+    if (!m_reverseStart) {
+        ReverseAllValue();
+        m_reverseStart = true;
+    }
+    StartTimer();
 }
 
 void AnimationPlayer::StartTimer()
 {
-    InitFactor();
-    BaseClass::StartTimer();
+    if (m_endValue == m_startValue) {
+        Complete();
+        return;
+    }
+
+    int32_t timerIntervalMs = m_frameIntervalMillSeconds;
+    if (timerIntervalMs <= 0) {
+        timerIntervalMs = 1000 / 60;//默认按每秒60帧播放
+    }
+
+    int64_t totalMillSeconds = m_totalMillSeconds;
+    if (totalMillSeconds <= 0) {
+        totalMillSeconds = 180; //默认按动画总时常为180毫秒播放
+    }
+
+    //计算帧数
+    int32_t frameCount = static_cast<int32_t>(totalMillSeconds / timerIntervalMs);
+    if (frameCount < 1) {
+        frameCount = 1;
+    }
+    m_frameIndex = 0;
+    m_pEasingFunctions = std::make_unique<EasingFunctions>(m_startValue, m_endValue, frameCount, m_easingFunctionType);
+    m_currentValue = m_startValue;
+
+    auto playCallback = UiBind(&AnimationPlayer::Play, this);
+    GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)timerIntervalMs);
 }
 
-int64_t AnimationPlayer::GetCurrentValue() const
+void AnimationPlayer::Play()
 {
-    if (m_palyedMillSeconds >= m_totalMillSeconds) {
-        return m_endValue;
+    if (m_pEasingFunctions == nullptr) {
+        m_weakFlagOwner.Cancel();
+        return;
     }
-
-    int64_t detaValue = 0;
-    if (m_palyedMillSeconds <= m_speedUpMillSeconds) {
-        detaValue = int64_t(m_speedUpfactorA * m_palyedMillSeconds * m_palyedMillSeconds);
+    ++m_frameIndex;
+    if (m_frameIndex > m_pEasingFunctions->GetFrameCount()) {
+        m_frameIndex = m_pEasingFunctions->GetFrameCount();
     }
-    else if (m_palyedMillSeconds <= (m_speedUpMillSeconds + m_linerMillSeconds)) {
-        double linerTime = m_palyedMillSeconds - m_speedUpMillSeconds;
-        detaValue = int64_t(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * linerTime);
+    int64_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
+    if (m_playCallback) {
+        if (newCurrentValue != m_currentValue) {
+            m_playCallback(newCurrentValue);
+        }
     }
-    else if (m_palyedMillSeconds <= m_totalMillSeconds) {
-        double speedDownTime = m_palyedMillSeconds - m_speedUpMillSeconds - m_linerMillSeconds;
-        detaValue = int64_t(m_speedUpfactorA * m_speedUpMillSeconds * m_speedUpMillSeconds + m_linearSpeed * m_linerMillSeconds
-            + m_speedDownfactorA * speedDownTime * speedDownTime + m_speedDownfactorB * speedDownTime);
+    m_currentValue = newCurrentValue;
+    if (m_frameIndex == m_pEasingFunctions->GetFrameCount()) {
+        //播放完成
+        Complete();
     }
-    else {
-        ASSERT(0); 
-    }
-
-    int64_t currentValue = 0;
-    if (m_endValue > m_startValue) {
-        currentValue = m_startValue + detaValue;
-    }
-    else {
-        currentValue = m_startValue - detaValue;
-    }
-    
-    return currentValue;
 }
 
-void AnimationPlayer::InitFactor()
+void AnimationPlayer::ReverseAllValue()
 {
-    int64_t s = std::abs(m_endValue - m_startValue);
-    if (m_speedUpRatio == 0 && m_speedDownRatio == 0) {    //liner
-        ASSERT(m_totalMillSeconds == AP_NO_VALUE && !IsZeroValue(m_linearSpeed) || 
-               m_totalMillSeconds != AP_NO_VALUE && IsZeroValue(m_linearSpeed));
-        if (m_totalMillSeconds == AP_NO_VALUE) {
-            m_totalMillSeconds = static_cast<int64_t>(s / m_linearSpeed);
-        }
-        else {
-            m_linearSpeed = 1.0 * s / m_totalMillSeconds;
-        }
-        m_linerMillSeconds = static_cast<double>(m_totalMillSeconds);
-    }
-    else {
-        if (m_totalMillSeconds != AP_NO_VALUE) {
-            if (!IsZeroValue(m_speedUpRatio)) {
-                m_speedUpfactorA = s / ((m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio)*2*m_speedUpRatio + m_speedUpRatio*m_speedDownRatio)
-                    *m_totalMillSeconds*m_totalMillSeconds);
-            }
-            else if (m_speedDownRatio != 0) {
-                m_speedDownfactorA = -s / ((m_speedDownRatio*m_speedDownRatio + (1 - m_speedUpRatio - m_speedDownRatio)*2*m_speedDownRatio + m_speedUpRatio*m_speedDownRatio)
-                    *m_totalMillSeconds*m_totalMillSeconds);
-            }
-            else {
-                ASSERT(0);
-            }
+    std::swap(m_startValue, m_endValue);
+    m_currentValue = m_startValue;
+}
 
-        }
-        double tmpValue = 0;
-        if (!IsZeroValue(m_speedUpfactorA) && !IsZeroValue(m_speedUpRatio)) {
-            tmpValue = m_speedUpfactorA * m_speedUpRatio;
-            if (!IsZeroValue(m_speedDownRatio)) {
-                m_speedDownfactorA = -m_speedUpfactorA * m_speedUpRatio / m_speedDownRatio;
-            }
-        }
-        else if (!IsZeroValue(m_speedDownfactorA) && !IsZeroValue(m_speedDownRatio)) {
-            tmpValue = -m_speedDownfactorA * m_speedDownRatio;
-            if (!IsZeroValue(m_speedUpRatio)) {
-                m_speedUpfactorA = -m_speedDownfactorA * m_speedDownRatio / m_speedUpRatio;
-            }
-        }
-        else {
-            ASSERT(0);
-        }
-        if (m_totalMillSeconds == AP_NO_VALUE) {
-            m_totalMillSeconds = int(std::sqrt(s / (m_speedUpfactorA*m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio) * 2 * tmpValue
-                - m_speedDownfactorA*m_speedDownRatio*m_speedDownRatio) ));
-            if (m_totalMillSeconds > m_maxTotalMillSeconds) {
-                m_totalMillSeconds = m_maxTotalMillSeconds;
-                InitFactor();
-                return;
-            }
-        }
-
-        m_linearSpeed = 2 * tmpValue * m_totalMillSeconds;
-        m_speedDownfactorB = m_linearSpeed;
-
-        m_speedUpMillSeconds = m_totalMillSeconds * m_speedUpRatio;
-        m_speedDownMillSeconds = m_totalMillSeconds * m_speedDownRatio;
-        m_linerMillSeconds = m_totalMillSeconds - m_speedUpMillSeconds - m_speedDownMillSeconds;
+void AnimationPlayer::Complete()
+{
+    m_weakFlagOwner.Cancel();
+    m_bPlaying = false;
+    m_currentValue = m_endValue;
+    if (m_completeCallback) {
+        m_completeCallback();
     }
 }
 
