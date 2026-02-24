@@ -1614,12 +1614,12 @@ void RichEdit::SetScrollPos(UiSize64 szPos)
     }
 }
 
-void RichEdit::LineUp(int32_t /*deltaValue*/, bool /*withAnimation*/)
+void RichEdit::LineUp(int32_t /*deltaValue*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_LINEUP, 0L);
 }
 
-void RichEdit::LineDown(int32_t /*deltaValue*/, bool /*withAnimation*/)
+void RichEdit::LineDown(int32_t /*deltaValue*/)
 {
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     bool bRichText = IsRichText();
@@ -1655,7 +1655,7 @@ void RichEdit::HomeUp()
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_TOP, 0L);
 }
 
-void RichEdit::EndDown(bool /*arrange*/, bool /*withAnimation*/)
+void RichEdit::EndDown(bool /*arrange*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_BOTTOM, 0L);
 }
