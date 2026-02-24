@@ -36,6 +36,7 @@
                 <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="9"/>
                 <TabCtrlItem class="tab_ctrl_item" title="位图控件" close_button_class="" tab_box_item_index="10"/>
                 <TabCtrlItem class="tab_ctrl_item" title="控件测试" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title="控件动画" close_button_class="" tab_box_item_index="12"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
                 <VBox name="main_view_page_00">
@@ -84,7 +85,11 @@
                 <VBox name="main_view_page_11">
                     <Label text="页面12：控件综合测试"/>
                     <Include src="page_control_test.xml"/>
-                </VBox> 
+                </VBox>
+                <VBox name="main_view_page_12">
+                    <Label text="页面13：控件动画测试"/>
+                    <Include src="page_control_animation.xml"/>
+                </VBox>
             </TabBox>
         </VBox>
     </VBox>

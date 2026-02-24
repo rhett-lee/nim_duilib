@@ -178,6 +178,10 @@ bool TabBox::DoSelectItem(size_t iIndex, bool bFadeSwith, bool bCheckChanged)
             return true;
         }
     }
+    if (iIndex == m_iCurSel) {
+        //如果选择项未变化，则不启用切换动画
+        bFadeSwith = false;
+    }
 
     const size_t iOldSel = m_iCurSel;
     m_iCurSel = iIndex;
@@ -188,60 +192,19 @@ bool TabBox::DoSelectItem(size_t iIndex, bool bFadeSwith, bool bCheckChanged)
         if (it == iIndex) {
             //当前选择的TAB Item
             OnShowTabItem(it);
-
             if (!bFadeSwith) {
                 pItemControl->SetFadeVisible(true);
             }
-            else {
-                pItemControl->SetVisible(true);
-                int startValue = 0;
-                int endValue = 0;
-                if (m_iCurSel < iOldSel) {
-                    startValue = GetPos().Width();
-                    endValue = 0;
-                }
-                else {
-                    startValue = -GetPos().Width();
-                    endValue = 0;
-                }
-
-                auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
-                if (player != nullptr) {
-                    player->SetStartValue(startValue);
-                    player->SetEndValue(endValue);
-                    player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, (size_t)it);
-                    player->SetCompleteCallback(compelteCallback);
-                    player->Start();
-                }                
+            else {                
+                StartSwitchItemAnimation(pItemControl, true, iOldSel);
             }
         }
         else {
             //不是当前选择的TAB页面
             OnHideTabItem(it);
             if ((it == iOldSel) && bFadeSwith) {
-                //对于原来选择的TAB页面，出发动画效果
-                pItemControl->SetVisible(true);
-                int startValue = 0;
-                int endValue = 0;
-                if (m_iCurSel < iOldSel) {
-                    startValue = 0;
-                    endValue = -GetPos().Width();
-                }
-                else {
-                    startValue = 0;
-                    endValue = GetPos().Width();
-                }
-
-                auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
-                if (player != nullptr) {
-                    player->SetStartValue(startValue);
-                    player->SetEndValue(endValue);
-                    player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, it);
-                    player->SetCompleteCallback(compelteCallback);
-                    player->Start();
-                }                
+                //对于原来选择的TAB页面，触发动画效果                
+                StartSwitchItemAnimation(pItemControl, false, iOldSel);
             }
             else {                
                 pItemControl->SetFadeVisible(false);
@@ -290,18 +253,65 @@ void TabBox::OnShowTabItem(size_t index)
     }
 }
 
-void TabBox::OnAnimationComplete(size_t index)
+void TabBox::StartSwitchItemAnimation(Control* pItemControl, bool bNewSelectedItem, size_t iOldSel)
 {
-    ASSERT(index < m_items.size());
-    if (index >= m_items.size()) {
+    ASSERT(pItemControl != nullptr);
+    if (pItemControl == nullptr) {
         return;
     }
-    Control* pContol = m_items.at(index);
-    ASSERT(pContol != nullptr);
-    if (pContol != nullptr) {
-        pContol->SetRenderOffsetX(0);
-        if (m_iCurSel != index) {
-            pContol->SetVisible(false);
+
+    int32_t startValue = 0;
+    int32_t endValue = 0;
+    if (bNewSelectedItem) {
+        //最新的选择项
+        ASSERT(GetItemIndex(pItemControl) == m_iCurSel);
+        pItemControl->SetVisible(true);
+        if (m_iCurSel < iOldSel) {
+            startValue = GetPos().Width();
+            endValue = 0;
+        }
+        else {
+            startValue = -GetPos().Width();
+            endValue = 0;
+        }
+    }
+    else {
+        //旧的选择项
+        ASSERT(GetItemIndex(pItemControl) != m_iCurSel);
+        pItemControl->SetVisible(true);
+        if (m_iCurSel < iOldSel) {
+            startValue = 0;
+            endValue = -GetPos().Width();
+        }
+        else {
+            startValue = 0;
+            endValue = GetPos().Width();
+        }
+    }
+    auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
+    if (player != nullptr) {
+        player->SetStartValue(startValue);
+        player->SetEndValue(endValue);
+        player->SetTotalMillSeconds(300);
+        player->SetEasingFunctionType(EasingFunctionType::EaseOutCubic);
+        AnimationCompleteCallback compelteCallback = UiBind(&TabBox::OnSwitchItemAnimationComplete, this, pItemControl);
+        player->SetCompleteCallback(compelteCallback);
+        player->Start();
+    }
+}
+
+void TabBox::OnSwitchItemAnimationComplete(Control* pItemControl)
+{
+    size_t itemIndex = GetItemIndex(pItemControl);
+    if (itemIndex >= m_items.size()) {
+        return;
+    }
+    ASSERT(pItemControl != nullptr);
+    if (pItemControl != nullptr) {
+        pItemControl->SetRenderOffsetX(0);
+        pItemControl->SetRenderOffsetY(0);
+        if (m_iCurSel != itemIndex) {
+            pItemControl->SetVisible(false);
         }
     }
 }
