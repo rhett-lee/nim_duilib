@@ -14,14 +14,14 @@ class Control;
 class UILIB_API AnimationManager
 {
 public:
-    AnimationManager();
+    explicit AnimationManager(Control* pControl);
     AnimationManager(const AnimationManager& r) = delete;
     AnimationManager& operator=(const AnimationManager& r) = delete;
 
-    /** 初始化
-    * @param [in] pControl 动画关联控件的接口
+public:
+    /** 判断是否包含指定类型的动画播放接口
     */
-    void Init(Control* pControl)    { m_pControl = pControl;    }
+    bool HasAnimationPlayer(AnimationType animationType) const;
 
     /** 获取指定动画类型的播放接口
     * @param [in] animationType 播放类型
@@ -29,6 +29,7 @@ public:
     */
     AnimationPlayer* GetAnimationPlayer(AnimationType animationType) const;
 
+public:
     /** 设置或清除播放动画，对应动画类型为：kAnimationAlpha
     * @param [in] bFadeHot true表示设置动画，false表示清除动画
     * @return 设置时返回动画播放接口，清除时返回nullptr
@@ -68,6 +69,7 @@ public:
     */
     AnimationPlayer* SetFadeInOutY(bool bFade, bool bIsFromBottom);
 
+public:
     /** 按设置的动画，显示控件
     */
     void Appear();

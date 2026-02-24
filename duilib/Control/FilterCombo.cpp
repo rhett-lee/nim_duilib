@@ -70,10 +70,10 @@ void FilterCombo::FilterComboList(const DString& filterText)
             if (pTreeNode != nullptr) {
                 pTreeNode->SetExpand(true, false);
                 if (IsFilterText(filterText, pTreeNode->GetText())) {
-                    pTreeNode->SetFadeVisible(true);
+                    pTreeNode->SetVisible(true);
                 }
                 else {
-                    pTreeNode->SetFadeVisible(false);
+                    pTreeNode->SetVisible(false);
                 }
             }
         }

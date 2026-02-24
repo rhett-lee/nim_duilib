@@ -845,14 +845,23 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
     }
 }
 
+bool Control::HasAnimationPlayer(AnimationType animationType) const
+{
+    if (m_pAnimationData != nullptr) {
+        if (m_pAnimationData->m_animationManager != nullptr) {
+            return m_pAnimationData->m_animationManager->HasAnimationPlayer(animationType);
+        }
+    }
+    return false;
+}
+
 AnimationManager& Control::GetAnimationManager()
 {
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_animationManager == nullptr) {
-        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>();
-        m_pAnimationData->m_animationManager->Init(this);
+        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>(this);
     }
     return *m_pAnimationData->m_animationManager;
 }
