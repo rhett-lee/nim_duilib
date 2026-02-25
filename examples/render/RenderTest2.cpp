@@ -394,7 +394,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     Dpi().ScaleSize(roundSize2);
     roundSize2.cx = (roundSize2.cx / 2) * 2;
     roundSize2.cy = (roundSize2.cy / 2) * 2;
-    pRender->DrawBoxShadow(rect, roundSize2, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+    pRender->DrawBoxShadow(rect, roundSize2, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535), 255);
 
     textRect = rect;
     textRect.top = rect.bottom;
@@ -409,7 +409,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.right = rect.left + nSize;
     nBlurRadius = DpiScaledInt(6);
     nSpreadRadius = DpiScaledInt(4);
-    pRender->DrawBoxShadow(rect, UiSize(0, 0), UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+    pRender->DrawBoxShadow(rect, UiSize(0, 0), UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535), 255);
 
     textRect = rect;
     textRect.top = rect.bottom;
@@ -426,7 +426,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     UiPoint cpOffset;
     cpOffset.x = DpiScaledInt(2);
     cpOffset.y = DpiScaledInt(3);
-    pRender->DrawBoxShadow(rect, UiSize(0, 0), cpOffset, nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+    pRender->DrawBoxShadow(rect, UiSize(0, 0), cpOffset, nBlurRadius, nSpreadRadius, UiColor(0xffC63535), 255);
 
     textRect = rect;
     textRect.top = rect.bottom;

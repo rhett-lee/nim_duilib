@@ -2015,7 +2015,8 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
                                 const UiPoint& cpOffset, 
                                 int32_t nBlurRadius, 
                                 int32_t nSpreadRadius,
-                                UiColor dwColor)
+                                UiColor dwColor,
+                                uint8_t uAlpha)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(dwColor.GetARGB() != 0);
@@ -2076,7 +2077,9 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     SkMatrix mat;
     mat.postTranslate(offsetX, offsetY);
     shadowPath.transform(mat);
-
+    if (uAlpha != 0xFF) {
+        paint.setAlpha(uAlpha);
+    }
     skCanvas->drawPath(shadowPath.snapshot(), paint);
 }
 

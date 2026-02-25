@@ -3471,7 +3471,8 @@ void Control::PaintShadow(IRender* pRender)
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
                                boxShadow.m_nSpreadRadius,
-                               GlobalManager::Instance().Color().GetColor(boxShadow.m_strColor));
+                               GlobalManager::Instance().Color().GetColor(boxShadow.m_strColor),
+                               m_nAlpha);//控件阴影的透明度跟随控件的透明度
     }    
 }
 
