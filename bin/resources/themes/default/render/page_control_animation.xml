@@ -32,11 +32,6 @@
                     <Button class="btn_global_white_80x30" text="white"/>
                     <Button class="btn_global_red_80x30" text="red"/>
                 </HBox>
-                <HBox child_margin_x="8" padding="10,10,10,10">
-                    <Button class="btn_global_blue_80x30" text="blue" border_round="3,3"/>
-                    <Button class="btn_global_white_80x30" text="white" border_round="3,3"/>
-                    <Button class="btn_global_red_80x30" text="red" border_round="3,3"/>
-                </HBox>
             </VBox>
         </HBox>
     </VBox>
