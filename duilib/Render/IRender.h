@@ -1236,13 +1236,15 @@ public:
     * @param [in] nSpreadRadius 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
     *                           取正值时，阴影扩大；取负值时，阴影收缩。
     * @param [in] dwColor 阴影的颜色值
+    * @param [in] uAlpha 透明度（0 - 255）
     */
     virtual void DrawBoxShadow(const UiRect& rc, 
                                const UiSize& roundSize, 
                                const UiPoint& cpOffset, 
                                int32_t nBlurRadius, 
                                int32_t nSpreadRadius,
-                               UiColor dwColor) = 0;
+                               UiColor dwColor,
+                               uint8_t uAlpha) = 0;
 
 
     /** 分离位图

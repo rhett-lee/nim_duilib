@@ -3,7 +3,6 @@
 
 #include "duilib/Animation/EasingFunctions.h"
 #include "duilib/Core/Callback.h"
-#include <chrono>
 
 namespace ui 
 {

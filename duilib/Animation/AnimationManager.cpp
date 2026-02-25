@@ -34,7 +34,6 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
         animationArgs->SetAnimationType(AnimationType::kAnimationHot);
         animationArgs->SetStartValue(0);
         animationArgs->SetEndValue(255);
-        //animationArgs->SetTotalMillSeconds(180);//控件处于焦点状态时，动画效果的总时长
         AnimationPlayCallback playCallback = UiBind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
         animationArgs->SetPlayCallback(playCallback);
         m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);

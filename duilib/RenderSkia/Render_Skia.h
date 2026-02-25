@@ -176,7 +176,7 @@ public:
                                        uint8_t uFade,
                                        std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
-    virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
+    virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor, uint8_t uAlpha) override;
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;

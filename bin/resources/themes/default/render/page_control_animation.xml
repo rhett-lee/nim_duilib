@@ -1,13 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Box>
     <VBox bkcolor="white">
-        <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray">            
-            <Button class="btn_global_color_gray" text="鼠标划入显示下面的控件" width="180" height="32" border_round="3,3" halign="center" valign='center'>
-                <Event type="mouse_enter" receiver="fade_visible_test" apply_attribute="fade_visible='true'" />
-                <Event type="mouse_leave" receiver="fade_visible_test" apply_attribute="fade_visible='false'" />
-            </Button>
-            <!-- Control halign="center" margin="30,30,30,30" width="100" height="60" name="fade_visible_test" bkcolor="red" border_round="4,4" box_shadow="color='gray' offset='1,1' blur_radius='3' spread_radius='3'" visible="false" fade_alpha="255"/ -->
-            <Control halign="center" margin="30,30,30,30" width="160" height="100" name="fade_visible_test" bkcolor="red" border_round="4,4" visible="false" fade_alpha="255"/>
-        </VBox>
+        <HBox>
+            <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray">
+                <Button class="btn_global_color_gray" text="鼠标划入显示下面的控件" width="180" height="32" border_round="3,3" halign="center" valign='center'>
+                    <Event type="mouse_enter" receiver="fade_visible_test1" apply_attribute="fade_visible='true'" />
+                    <Event type="mouse_leave" receiver="fade_visible_test1" apply_attribute="fade_visible='false'" />
+                </Button>
+                <Control name="fade_visible_test1"  halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_alpha="255"/>
+            </VBox>
+            <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray">
+                <Button class="btn_global_color_gray" text="鼠标划入显示下面的控件" width="180" height="32" border_round="3,3" halign="center" valign='center'>
+                    <Event type="mouse_enter" receiver="fade_visible_test2" apply_attribute="fade_visible='true'" />
+                    <Event type="mouse_leave" receiver="fade_visible_test2" apply_attribute="fade_visible='false'" />
+                </Button>
+                <Control name="fade_visible_test2"  halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" border_size="2" border_color="blue" visible="false" fade_alpha="255"/>
+            </VBox>
+            <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray">
+                <Button class="btn_global_color_gray" text="鼠标划入显示下面的控件" width="180" height="32" border_round="3,3" halign="center" valign='center'>
+                    <Event type="mouse_enter" receiver="fade_visible_test3" apply_attribute="fade_visible='true'" />
+                    <Event type="mouse_leave" receiver="fade_visible_test3" apply_attribute="fade_visible='false'" />
+                </Button>
+                <Control name="fade_visible_test3" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" box_shadow="color='gray' offset='1,1' blur_radius='3' spread_radius='3'" visible="false" fade_alpha="255"/>
+            </VBox>            
+        </HBox>
+        <HBox>
+            <VBox margin="4,0,0,0" bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray">
+                <Label text="控件的Hot状态动画" halign="center"/>
+                <HBox child_margin_x="8" padding="10,10,10,10">
+                    <Button class="btn_global_blue_80x30" text="blue"/>
+                    <Button class="btn_global_white_80x30" text="white"/>
+                    <Button class="btn_global_red_80x30" text="red"/>
+                </HBox>
+                <HBox child_margin_x="8" padding="10,10,10,10">
+                    <Button class="btn_global_blue_80x30" text="blue" border_round="3,3"/>
+                    <Button class="btn_global_white_80x30" text="white" border_round="3,3"/>
+                    <Button class="btn_global_red_80x30" text="red" border_round="3,3"/>
+                </HBox>
+            </VBox>
+        </HBox>
     </VBox>
 </Box>
