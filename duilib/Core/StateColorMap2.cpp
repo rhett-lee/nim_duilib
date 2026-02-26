@@ -114,7 +114,7 @@ void StateColorMap2::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Co
     }
     if (m_pControl != nullptr) {
         bool bFadeHot = m_pControl->HasAnimationPlayer(AnimationType::kAnimationHot);
-        int32_t nHotAlpha = m_pControl->GetHotAlpha();
+        uint8_t nHotAlpha = m_pControl->GetHotAlpha();
         if (bFadeHot) {
             if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
                 DString strColor = GetStateColor(kControlStateNormal);
@@ -146,7 +146,7 @@ void StateColorMap2::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Co
     }
 }
 
-void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, int32_t nAlpha) const
+void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha) const
 {
     if ((pRender == nullptr) || rcPaint.IsEmpty() || (nAlpha == 0) || colorValue.IsEmpty()) {
         return;
@@ -162,11 +162,11 @@ void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, Control
     UiSize szRound = GetStateColorRound(stateType);
     if (!szRound.IsEmpty()) {
         //圆角矩形
-        pRender->FillRoundRect(rcPaint, (float)szRound.cx, (float)szRound.cy, colorValue, static_cast<uint8_t>(nAlpha));
+        pRender->FillRoundRect(rcPaint, (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
     }
     else {
         //直角矩形
-        pRender->FillRect(rcPaint, colorValue, static_cast<uint8_t>(nAlpha));
+        pRender->FillRect(rcPaint, colorValue, nAlpha);
     }
 }
 

@@ -62,7 +62,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Con
     }
     if (m_pControl != nullptr) {
         bool bFadeHot = m_pControl->HasAnimationPlayer(AnimationType::kAnimationHot);
-        int32_t nHotAlpha = m_pControl->GetHotAlpha();
+        uint8_t nHotAlpha = m_pControl->GetHotAlpha();
         if (bFadeHot) {
             if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
                 DString strColor = GetStateColor(kControlStateNormal);
@@ -70,7 +70,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Con
                     pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor));
                 }
                 if (nHotAlpha > 0) {
-                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), static_cast<uint8_t>(nHotAlpha));
+                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
                 }
                 return;
             }

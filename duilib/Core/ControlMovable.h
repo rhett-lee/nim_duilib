@@ -553,7 +553,7 @@ bool ControlMovableT<T>::MovePosMouseMove(const EventArgs& msg)
         }
 
         m_bMovingPos = true;
-        m_nOldAlpha = (uint8_t)pControl->GetAlpha();
+        m_nOldAlpha = pControl->GetAlpha();
         //设置为半透明的效果
         pControl->SetAlpha(m_nMovePosAlpha);
     }

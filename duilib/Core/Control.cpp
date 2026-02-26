@@ -475,7 +475,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetNoFocus();
     }
     else if (strName == _T("alpha")) {
-        SetAlpha(StringUtil::StringToInt32(strValue));
+        SetAlpha(ui::TruncateToUInt8(StringUtil::StringToInt32(strValue)));
     }
     else if ((strName == _T("normal_image")) || (strName == _T("normalimage"))) {
         SetStateImage(kControlStateNormal, strValue);
@@ -503,10 +503,10 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("fade_alpha")) || (strName == _T("fadealpha"))) {
         bool bFadeVisible = strValue != _T("false");
-        int32_t nEndAlpha = GetAlpha();
+        uint8_t nEndAlpha = GetAlpha();
         if (bFadeVisible) {
             if (strValue != _T("true")) {
-                nEndAlpha = StringUtil::StringToInt32(strValue);
+                nEndAlpha = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
             }
         }
         GetAnimationManager().SetFadeAlpha(bFadeVisible, nEndAlpha);
@@ -3962,20 +3962,18 @@ void Control::PaintLoading(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-void Control::SetAlpha(int64_t alpha)
+void Control::SetAlpha(uint8_t nAlpha)
 {
-    ASSERT(alpha >= 0 && alpha <= 255);
-    if (m_nAlpha != (uint8_t)alpha) {
-        m_nAlpha = (uint8_t)alpha;
+    if (m_nAlpha != nAlpha) {
+        m_nAlpha = nAlpha;
         Invalidate();
     }
 }
 
-void Control::SetHotAlpha(int64_t nHotAlpha)
+void Control::SetHotAlpha(uint8_t nHotAlpha)
 {
-    ASSERT(nHotAlpha >= 0 && nHotAlpha <= 255);
-    if (m_nHotAlpha != (uint8_t)nHotAlpha) {
-        m_nHotAlpha = (uint8_t)nHotAlpha;
+    if (m_nHotAlpha != nHotAlpha) {
+        m_nHotAlpha = nHotAlpha;
         Invalidate();
     }
 }
@@ -4007,9 +4005,9 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
     }    
 }
 
-void Control::SetRenderOffsetX(int64_t renderOffsetX)
+void Control::SetRenderOffsetX(int32_t renderOffsetX)
 {
-    int32_t x = TruncateToInt32(renderOffsetX);
+    int32_t x = renderOffsetX;
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
@@ -4027,9 +4025,9 @@ void Control::SetRenderOffsetX(int64_t renderOffsetX)
     }
 }
 
-void Control::SetRenderOffsetY(int64_t renderOffsetY)
+void Control::SetRenderOffsetY(int32_t renderOffsetY)
 {
-    int32_t y = TruncateToInt32(renderOffsetY);
+    int32_t y = renderOffsetY;
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }

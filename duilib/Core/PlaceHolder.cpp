@@ -235,11 +235,6 @@ void PlaceHolder::SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale
     }
 }
 
-void PlaceHolder::SetFixedWidth64(int64_t cx64)
-{
-    SetFixedWidth(UiFixedInt(TruncateToInt32(cx64)), true, false);
-}
-
 void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale)
 {
     ASSERT(cy.IsValid());
@@ -261,11 +256,6 @@ void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScal
             SetReEstimateSize(true);
         }
     }
-}
-
-void PlaceHolder::SetFixedHeight64(int64_t cy64)
-{
-    SetFixedHeight(UiFixedInt(TruncateToInt32(cy64)), true, true);
 }
 
 bool PlaceHolder::IsReEstimateSize(const UiSize& szAvailable) const

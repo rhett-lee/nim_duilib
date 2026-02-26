@@ -70,5 +70,23 @@
                 <Control name="fade_in_out_y_from_bottom_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_in_out_y_from_bottom="true"/>
             </VBox>
         </HBox>
+        <HBox child_margin_x="8">
+            <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray" padding="2,2,2,2">
+                <Button class="btn_global_color_gray" width="260" height="32" border_round="3,3" halign="center" valign='center'
+                        text="鼠标划入显示下面的控件(宽度渐变)" tooltip_text="fade_width='true'">
+                    <Event type="mouse_enter" receiver="fade_width_1" apply_attribute="fade_visible='true'" />
+                    <Event type="mouse_leave" receiver="fade_width_1" apply_attribute="fade_visible='false'" />
+                </Button>
+                <Control name="fade_width_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_width="true"/>
+            </VBox>
+            <VBox bkcolor="white" height="auto" border_size="1" width="300" height="200" border_color="gray" padding="2,2,2,2">
+                <Button class="btn_global_color_gray" width="260" height="32" border_round="3,3" halign="center" valign='center'
+                        text="鼠标划入显示下面的控件(高度渐变)" tooltip_text="fade_height='true'">
+                    <Event type="mouse_enter" receiver="fade_height_1" apply_attribute="fade_visible='true'" />
+                    <Event type="mouse_leave" receiver="fade_height_1" apply_attribute="fade_visible='false'" />
+                </Button>
+                <Control name="fade_height_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_height="true"/>
+            </VBox>
+        </HBox>
     </VBox>
 </Box>
