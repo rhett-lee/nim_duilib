@@ -77,13 +77,13 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
     if (it != m_stateImageMap.end()) {
         bRet = it->second.PaintStateImage(pRender, stateType, sImageModify, pDestRect);
     }
-    //停止其他状态图片的动画
+    //暂停其他状态图片的动画
     if ((stateImageType == kStateImageBk) || (stateImageType == kStateImageFore)) {
         for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
             if ((iter->first == kStateImageBk) || (iter->first == kStateImageFore)) {
                 continue;
             }
-            iter->second.StopImageAnimation();
+            iter->second.PauseImageAnimation();
         }
     }
     else if ((stateImageType == kStateImageSelectedBk) || (stateImageType == kStateImageSelectedFore)) {
@@ -91,7 +91,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
             if ((iter->first == kStateImageSelectedBk) || (iter->first == kStateImageSelectedFore)) {
                 continue;
             }
-            iter->second.StopImageAnimation();
+            iter->second.PauseImageAnimation();
         }
     }
     else if ((stateImageType == kStateImagePartSelectedBk) || (stateImageType == kStateImagePartSelectedFore)) {
@@ -99,7 +99,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
             if ((iter->first == kStateImagePartSelectedBk) || (iter->first == kStateImagePartSelectedFore)) {
                 continue;
             }
-            iter->second.StopImageAnimation();
+            iter->second.PauseImageAnimation();
         }
     }
     return bRet;

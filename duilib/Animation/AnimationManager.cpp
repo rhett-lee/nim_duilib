@@ -39,6 +39,12 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    if (nNewValue > 255) {
+                        nNewValue = 255;
+                    }
                     pControl->SetHotAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
                 }
             };
@@ -64,6 +70,12 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndA
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    if (nNewValue > 255) {
+                        nNewValue = 255;
+                    }
                     pControl->SetAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
                 }
             };
