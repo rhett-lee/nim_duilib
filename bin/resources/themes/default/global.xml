@@ -257,14 +257,36 @@
                                        hot_image="file='public/button/btn_global_red_80x30_hovered.svg'" 
                                        pushed_image="file='public/button/btn_global_red_80x30_pushed.svg'" 
                                        disabled_image="file='public/button/btn_global_red_80x30_normal.svg' fade='80'"/>
+    <Class name="btn_global_gray_80x30" font="system_bold_14" normal_text_color="dark_gray" 
+                                         normal_image="file='public/button/btn_global_gray_80x30_normal.svg'" 
+                                         hot_image="file='public/button/btn_global_gray_80x30_hovered.svg'" 
+                                         pushed_image="file='public/button/btn_global_gray_80x30_pushed.svg'" 
+                                         disabled_image="file='public/button/btn_global_gray_80x30_normal.svg' fade='128'"/>
     <!--按钮：纯色按钮-->
     <Class name="btn_global_color_gray" font="system_14" text_align="hcenter,vcenter" 
-                                        normal_text_color="black" 
+                                        normal_text_color="dark_gray" 
                                         disabled_text_color="gray" 
-                                        normal_color="#FFD7DCE0" 
-                                        hot_color="#FFFAFCFF" 
-                                        pushed_color="#FFB0B4B8"/>
-    
+                                        normal_color="#E1E1E1" 
+                                        hot_color="#D0D0D0" 
+                                        pushed_color="#BFBFBF"/>                                        
+    <Class name="btn_global_color_white" font="system_14" text_align="hcenter,vcenter" 
+                                        normal_text_color="dark_gray" 
+                                        disabled_text_color="gray" 
+                                        normal_color="#F3F2F1" 
+                                        hot_color="#E5E5E5" 
+                                        pushed_color="#D3D2D1"/>
+    <Class name="btn_global_color_blue" font="system_14" text_align="hcenter,vcenter" 
+                                        normal_text_color="white" 
+                                        disabled_text_color="gray" 
+                                        normal_color="#0078D4" 
+                                        hot_color="#1089E0" 
+                                        pushed_color="#005A9E"/>
+    <Class name="btn_global_color_red" font="system_14" text_align="hcenter,vcenter" 
+                                        normal_text_color="white" 
+                                        disabled_text_color="gray" 
+                                        normal_color="#D12329" 
+                                        hot_color="#E0393E" 
+                                        pushed_color="#B71D22"/>
     <!--窗口右上角按钮 -->
     <Class name="btn_wnd_min_11" normal_image="file='public/button/window-minimize.svg' 
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>

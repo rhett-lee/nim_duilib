@@ -4014,8 +4014,16 @@ void Control::SetRenderOffsetX(int64_t renderOffsetX)
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_renderOffset.x != x) {
+        int32_t nOldOffsetX = m_pAnimationData->m_renderOffset.x;
         m_pAnimationData->m_renderOffset.x = x;
         Invalidate();
+
+        //父控件也需要重绘(被覆盖的部分)
+        if ((nOldOffsetX != 0) && (GetParent() != nullptr)) {
+            UiRect rcInvalid = GetRect();
+            rcInvalid.Offset(-nOldOffsetX, 0);
+            GetParent()->InvalidateRect(rcInvalid);
+        }
     }
 }
 
@@ -4026,8 +4034,16 @@ void Control::SetRenderOffsetY(int64_t renderOffsetY)
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_renderOffset.y != y) {
+        int32_t nOldOffsetY = m_pAnimationData->m_renderOffset.y;
         m_pAnimationData->m_renderOffset.y = y;
         Invalidate();
+
+        //父控件也需要重绘(被覆盖的部分)
+        if ((nOldOffsetY != 0) && (GetParent() != nullptr)) {
+            UiRect rcInvalid = GetRect();
+            rcInvalid.Offset(0, -nOldOffsetY);
+            GetParent()->InvalidateRect(rcInvalid);
+        }
     }
 }
 
