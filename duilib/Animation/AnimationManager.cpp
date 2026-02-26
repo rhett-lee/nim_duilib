@@ -29,56 +29,56 @@ AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationTyp
 
 AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     if (bFadeHot) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationHot);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(255);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHot);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(255);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetHotAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[AnimationType::kAnimationHot].reset(pAnimationPlayer);
     }
     else {
         m_animationMap.erase(AnimationType::kAnimationHot);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndAlpha)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     if (bFadeVisible) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationAlpha);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue((int64_t)nEndAlpha);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationAlpha);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue((int64_t)nEndAlpha);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationAlpha].reset(animationArgs);
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[AnimationType::kAnimationAlpha].reset(pAnimationPlayer);
         m_pControl->SetAlpha(0);
     }
     else {
         m_animationMap.erase(AnimationType::kAnimationAlpha);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFadeWidth) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -86,29 +86,29 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
         ASSERT(cx > 0);
     }
     if (bFadeWidth && (cx > 0)) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationWidth);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(cx);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationWidth);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(cx);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetFixedWidth(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationWidth].reset(animationArgs);
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[AnimationType::kAnimationWidth].reset(pAnimationPlayer);
     }
     else {
         m_animationMap.erase(AnimationType::kAnimationWidth);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFadeHeight) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -116,29 +116,29 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
         ASSERT(cy > 0);
     }
     if (bFadeHeight && (cy > 0)) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationHeight);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(cy);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHeight);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(cy);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetFixedHeight(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHeight].reset(animationArgs);
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[AnimationType::kAnimationHeight].reset(pAnimationPlayer);
     }
     else {
         m_animationMap.erase(AnimationType::kAnimationHeight);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFade) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -148,25 +148,25 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
         }
     }
     if (bFade) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetEndValue(0);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetEndValue(0);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetRenderOffsetX(TruncateToInt32(nNewValue));
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
+        pAnimationPlayer->SetPlayCallback(playCallback);
 
         if (bIsFromRight) {
-            animationArgs->SetStartValue(-cx);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutXFromRight);
-            m_animationMap[AnimationType::kAnimationInoutXFromRight].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(-cx);
+            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutXFromRight);
+            m_animationMap[AnimationType::kAnimationInoutXFromRight].reset(pAnimationPlayer);
         }
         else {
-            animationArgs->SetStartValue(cx);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutXFromLeft);
-            m_animationMap[AnimationType::kAnimationInoutXFromLeft].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(cx);
+            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutXFromLeft);
+            m_animationMap[AnimationType::kAnimationInoutXFromLeft].reset(pAnimationPlayer);
         }
     }
     else{
@@ -178,12 +178,12 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
         }
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFade) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -193,25 +193,25 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
         }
     }
     if (bFade) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetEndValue(0);
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetEndValue(0);
         ControlPtr pControl(m_pControl);
         AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
                 if (pControl != nullptr) {
                     pControl->SetRenderOffsetY(TruncateToInt32(nNewValue));
                 }
             };
-        animationArgs->SetPlayCallback(playCallback);
+        pAnimationPlayer->SetPlayCallback(playCallback);
 
         if (bIsFromBottom) {
-            animationArgs->SetStartValue(-cy);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutYFromBottom);
-            m_animationMap[AnimationType::kAnimationInoutYFromBottom].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(-cy);
+            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutYFromBottom);
+            m_animationMap[AnimationType::kAnimationInoutYFromBottom].reset(pAnimationPlayer);
         }
         else {
-            animationArgs->SetStartValue(cy);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutYFromTop);
-            m_animationMap[AnimationType::kAnimationInoutYFromTop].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(cy);
+            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutYFromTop);
+            m_animationMap[AnimationType::kAnimationInoutYFromTop].reset(pAnimationPlayer);
         }
     }
     else{
@@ -223,7 +223,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
         }
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 void AnimationManager::Appear()
