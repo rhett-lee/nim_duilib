@@ -412,12 +412,12 @@ void RichTextImpl::PaintText(IRender* pRender)
         if (m_spDrawRichTextCache != nullptr) {
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
-            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, (uint8_t)m_pOwner->GetAlpha(), &richTextRects);
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, m_pOwner->GetAlpha(), &richTextRects);
 
 #if 0
             //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
             std::vector<std::vector<UiRect>> richTextRectsOld;
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRectsOld);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, GetAlpha(), &richTextRectsOld);
             ASSERT(richTextRects.size() == m_textData.size());
             ASSERT(richTextRectsOld.size() == m_textData.size());
             if (richTextRectsOld.size() == richTextRects.size()) {
@@ -437,7 +437,7 @@ void RichTextImpl::PaintText(IRender* pRender)
         }
         else {
             //不使用绘制缓存            
-            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)m_pOwner->GetAlpha(), &richTextRects);
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, m_pOwner->GetAlpha(), &richTextRects);
         }
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {

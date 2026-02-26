@@ -953,7 +953,7 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
                 DString textColor = GetSelectedStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     drawParam.dwTextColor = this->GetUiColor(textColor);
-                    drawParam.uFade = (uint8_t)this->GetHotAlpha();
+                    drawParam.uFade = this->GetHotAlpha();
                     pRender->DrawString(textValue, drawParam);
                 }
             }

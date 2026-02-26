@@ -1,5 +1,6 @@
 #include "AnimationManager.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui 
 {
@@ -34,7 +35,12 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
         animationArgs->SetAnimationType(AnimationType::kAnimationHot);
         animationArgs->SetStartValue(0);
         animationArgs->SetEndValue(255);
-        AnimationPlayCallback playCallback = UiBind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetHotAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
         m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);
     }
@@ -45,19 +51,20 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
     return animationArgs;
 }
 
-AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, int32_t nEndAlpha)
+AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndAlpha)
 {
-    if ((nEndAlpha < 1) || (nEndAlpha > 255)) {
-        nEndAlpha = 255;
-    }
     AnimationPlayer* animationArgs = nullptr;
     if (bFadeVisible) {
         animationArgs = new AnimationPlayer();
         animationArgs->SetAnimationType(AnimationType::kAnimationAlpha);
         animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(nEndAlpha);
-        //animationArgs->SetTotalMillSeconds(180);
-        auto playCallback = UiBind(&Control::SetAlpha, m_pControl, std::placeholders::_1);
+        animationArgs->SetEndValue((int64_t)nEndAlpha);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
         m_animationMap[AnimationType::kAnimationAlpha].reset(animationArgs);
         m_pControl->SetAlpha(0);
@@ -83,7 +90,12 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
         animationArgs->SetAnimationType(AnimationType::kAnimationWidth);
         animationArgs->SetStartValue(0);
         animationArgs->SetEndValue(cx);
-        auto playCallback = UiBind(&Control::SetFixedWidth64, m_pControl, std::placeholders::_1);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetFixedWidth(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
         m_animationMap[AnimationType::kAnimationWidth].reset(animationArgs);
     }
@@ -108,7 +120,12 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
         animationArgs->SetAnimationType(AnimationType::kAnimationHeight);
         animationArgs->SetStartValue(0);
         animationArgs->SetEndValue(cy);
-        auto playCallback = UiBind(&Control::SetFixedHeight64, m_pControl, std::placeholders::_1);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetFixedHeight(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
         m_animationMap[AnimationType::kAnimationHeight].reset(animationArgs);
     }
@@ -133,7 +150,12 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
     if (bFade) {
         animationArgs = new AnimationPlayer();
         animationArgs->SetEndValue(0);
-        auto playCallback = UiBind(&Control::SetRenderOffsetX, m_pControl, std::placeholders::_1);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetRenderOffsetX(TruncateToInt32(nNewValue));
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
 
         if (bIsFromRight) {
@@ -173,7 +195,12 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
     if (bFade) {
         animationArgs = new AnimationPlayer();
         animationArgs->SetEndValue(0);
-        auto playCallback = UiBind(&Control::SetRenderOffsetY, m_pControl, std::placeholders::_1);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetRenderOffsetY(TruncateToInt32(nNewValue));
+                }
+            };
         animationArgs->SetPlayCallback(playCallback);
 
         if (bIsFromBottom) {

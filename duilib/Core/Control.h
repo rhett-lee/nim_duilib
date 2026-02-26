@@ -656,28 +656,29 @@ public:
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
 
     /** 设置控件透明度
-     * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
+     * @param [in] nAlpha 0 ~ 255 的透明度值，255 为不透明
      */
-    void SetAlpha(int64_t alpha);
+    void SetAlpha(uint8_t nAlpha);
 
-    /**
-     * @brief 获取控件透明度
+    /** 获取控件透明度
      * @return 返回控件的透明度
      */
-    int32_t GetAlpha() const { return m_nAlpha;    }
+    uint8_t GetAlpha() const { return m_nAlpha; }
 
-    /**
-     * @brief 检查控件是否有透明属性
+    /** 检查控件是否有透明属性
      * @return 返回控件是否透明，true 控件当前有透明属性，false 控件没有透明属性
      */
     bool IsAlpha() const { return m_nAlpha != 255; }
 
-    /**
-     * @brief 设置焦点状态透明度
-     * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
-     * @return 无
+    /** 设置焦点状态透明度
+     * @param [in] alpha 0 ~ 255 的透明度值，255 为不透明
      */
-    void SetHotAlpha(int64_t nHotAlpha);
+    void SetHotAlpha(uint8_t nHotAlpha);
+
+    /** 获取焦点状态透明度
+     * @return 返回控件焦点状态的透明度
+     */
+    uint8_t GetHotAlpha() const { return m_nHotAlpha; }
 
     /**
      * @brief 设置是否接受TAB键切换焦点
@@ -692,14 +693,7 @@ public:
      */
     bool IsAllowTabStop() const { return m_bAllowTabstop; }
 
-    /**
-     * @brief 获取焦点状态透明度
-     * @return 返回控件焦点状态的透明度
-     */
-    int32_t GetHotAlpha() const { return m_nHotAlpha; }
-
-    /**
-     * @brief 获取控件绘制偏移量
+    /** 获取控件绘制偏移量(其值已完成DPI缩放)
      * @return 返回当前控件的绘制偏移量
      */
     UiPoint GetRenderOffset() const;
@@ -711,14 +705,14 @@ public:
     void SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale);
 
     /** 设置控件偏移的 X 坐标
-     * @param[in] renderOffsetX X 坐标值
+     * @param [in] renderOffsetX X 坐标值(其值已完成DPI缩放)
      */
-    void SetRenderOffsetX(int64_t renderOffsetX);
+    void SetRenderOffsetX(int32_t renderOffsetX);
 
     /** 设置控件偏移的 Y 坐标
-     * @param[in] renderOffsetY Y 坐标值
+     * @param [in] renderOffsetY Y 坐标值(其值已完成DPI缩放)
      */
-    void SetRenderOffsetY(int64_t renderOffsetY);
+    void SetRenderOffsetY(int32_t renderOffsetY);
 
 public:
     /// Loading状态管理

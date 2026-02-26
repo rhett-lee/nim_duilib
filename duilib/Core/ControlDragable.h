@@ -1129,7 +1129,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     if (!m_bInDraggingOrder) {
         bRet = true;
         m_bInDraggingOrder = true;
-        m_nOldAlpha = (uint8_t)this->GetAlpha();
+        m_nOldAlpha = this->GetAlpha();
         //设置为半透明的效果
         this->SetAlpha(m_nDragAlpha);
     }
