@@ -30,9 +30,10 @@ AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationTyp
 AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 {
     AnimationPlayer* pAnimationPlayer = nullptr;
+    const AnimationType animationType = AnimationType::kAnimationHot;
     if (bFadeHot) {
         pAnimationPlayer = new AnimationPlayer();
-        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHot);
+        pAnimationPlayer->SetAnimationType(animationType);
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(255);
         ControlPtr pControl(m_pControl);
@@ -42,10 +43,10 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHot].reset(pAnimationPlayer);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationHot);
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -54,9 +55,10 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
 AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndAlpha)
 {
     AnimationPlayer* pAnimationPlayer = nullptr;
+    const AnimationType animationType = AnimationType::kAnimationAlpha;
     if (bFadeVisible) {
         pAnimationPlayer = new AnimationPlayer();
-        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationAlpha);
+        pAnimationPlayer->SetAnimationType(animationType);
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue((int64_t)nEndAlpha);
         ControlPtr pControl(m_pControl);
@@ -66,11 +68,11 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndA
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationAlpha].reset(pAnimationPlayer);
+        m_animationMap[animationType].reset(pAnimationPlayer);
         m_pControl->SetAlpha(0);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationAlpha);
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -85,9 +87,10 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
         cx = estSize.cx.GetInt32();
         ASSERT(cx > 0);
     }
+    const AnimationType animationType = AnimationType::kAnimationWidth;
     if (bFadeWidth && (cx > 0)) {
         pAnimationPlayer = new AnimationPlayer();
-        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationWidth);
+        pAnimationPlayer->SetAnimationType(animationType);
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(cx);
         ControlPtr pControl(m_pControl);
@@ -97,10 +100,10 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationWidth].reset(pAnimationPlayer);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationWidth);
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -115,9 +118,10 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
         cy = estSize.cy.GetInt32();
         ASSERT(cy > 0);
     }
+    const AnimationType animationType = AnimationType::kAnimationHeight;
     if (bFadeHeight && (cy > 0)) {
         pAnimationPlayer = new AnimationPlayer();
-        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHeight);
+        pAnimationPlayer->SetAnimationType(animationType);
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(cy);
         ControlPtr pControl(m_pControl);
@@ -127,10 +131,10 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHeight].reset(pAnimationPlayer);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationHeight);
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -147,6 +151,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
             cx = 100;
         }
     }
+    const AnimationType animationType = bIsFromRight ? AnimationType::kAnimationInoutXFromRight : AnimationType::kAnimationInoutXFromLeft;
     if (bFade) {
         pAnimationPlayer = new AnimationPlayer();
         pAnimationPlayer->SetEndValue(0);
@@ -159,23 +164,16 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
         pAnimationPlayer->SetPlayCallback(playCallback);
 
         if (bIsFromRight) {
-            pAnimationPlayer->SetStartValue(-cx);
-            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutXFromRight);
-            m_animationMap[AnimationType::kAnimationInoutXFromRight].reset(pAnimationPlayer);
+            pAnimationPlayer->SetStartValue(-cx);            
         }
         else {
             pAnimationPlayer->SetStartValue(cx);
-            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutXFromLeft);
-            m_animationMap[AnimationType::kAnimationInoutXFromLeft].reset(pAnimationPlayer);
         }
+        pAnimationPlayer->SetAnimationType(animationType);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else{
-        if (bIsFromRight) {
-            m_animationMap.erase(AnimationType::kAnimationInoutXFromRight);
-        }
-        else {
-            m_animationMap.erase(AnimationType::kAnimationInoutXFromLeft);
-        }
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -192,6 +190,7 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
             cy = 100;
         }
     }
+    const AnimationType animationType = bIsFromBottom ? AnimationType::kAnimationInoutYFromBottom : AnimationType::kAnimationInoutYFromTop;
     if (bFade) {
         pAnimationPlayer = new AnimationPlayer();
         pAnimationPlayer->SetEndValue(0);
@@ -205,22 +204,15 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 
         if (bIsFromBottom) {
             pAnimationPlayer->SetStartValue(-cy);
-            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutYFromBottom);
-            m_animationMap[AnimationType::kAnimationInoutYFromBottom].reset(pAnimationPlayer);
         }
         else {
             pAnimationPlayer->SetStartValue(cy);
-            pAnimationPlayer->SetAnimationType(AnimationType::kAnimationInoutYFromTop);
-            m_animationMap[AnimationType::kAnimationInoutYFromTop].reset(pAnimationPlayer);
         }
+        pAnimationPlayer->SetAnimationType(animationType);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else{
-        if (bIsFromBottom) {
-            m_animationMap.erase(AnimationType::kAnimationInoutYFromBottom);
-        }
-        else {
-            m_animationMap.erase(AnimationType::kAnimationInoutYFromTop);
-        }
+        m_animationMap.erase(animationType);
     }
 
     return pAnimationPlayer;
@@ -231,34 +223,24 @@ void AnimationManager::Appear()
     ASSERT(m_pControl != nullptr);
     if (m_pControl != nullptr) {
         m_pControl->SetVisible(true);
-    }    
-    if (HasAnimationPlayer(AnimationType::kAnimationAlpha)) {
-        m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationAlpha]->Continue();
     }
-    if (HasAnimationPlayer(AnimationType::kAnimationWidth)) {
-        m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationWidth]->Continue();
+    static std::vector<AnimationType> animationList;
+    if (animationList.empty()) {
+        animationList.push_back(AnimationType::kAnimationAlpha);
+        animationList.push_back(AnimationType::kAnimationWidth);
+        animationList.push_back(AnimationType::kAnimationHeight);
+        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
+        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
+        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
+        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
     }
-    if (HasAnimationPlayer(AnimationType::kAnimationHeight)) {
-        m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationHeight]->Continue();
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->Continue();
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->Continue();
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->Continue();
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(AnimationCompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->Continue();
+    if (!m_animationMap.empty()) {
+        for (AnimationType animationType : animationList) {
+            if (HasAnimationPlayer(animationType)) {
+                m_animationMap[animationType]->SetCompleteCallback(AnimationCompleteCallback());
+                m_animationMap[animationType]->Continue();
+            }
+        }
     }
 }
 
@@ -271,42 +253,26 @@ void AnimationManager::Disappear()
     }
 
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
-    if (HasAnimationPlayer(AnimationType::kAnimationAlpha)) {
-        m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationAlpha]->ReverseContinue();
-        handled = true;
+    static std::vector<AnimationType> animationList;
+    if (animationList.empty()) {
+        animationList.push_back(AnimationType::kAnimationAlpha);
+        animationList.push_back(AnimationType::kAnimationWidth);
+        animationList.push_back(AnimationType::kAnimationHeight);
+        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
+        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
+        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
+        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
     }
-    if (HasAnimationPlayer(AnimationType::kAnimationWidth)) {
-        m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationWidth]->ReverseContinue();
-        handled = true;
+    if (!m_animationMap.empty()) {
+        for (AnimationType animationType : animationList) {
+            if (HasAnimationPlayer(animationType)) {
+                m_animationMap[animationType]->SetCompleteCallback(completeCallback);
+                m_animationMap[animationType]->ReverseContinue();
+                handled = true;
+            }
+        }
     }
-    if (HasAnimationPlayer(AnimationType::kAnimationHeight)) {
-        m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationHeight]->ReverseContinue();
-        handled = true;
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->ReverseContinue();
-        handled = true;
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->ReverseContinue();
-        handled = true;
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->ReverseContinue();
-        handled = true;
-    }
-    if (HasAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->ReverseContinue();
-        handled = true;
-    }
-
+    
     if (!handled) {
         m_pControl->SetVisible(false);
     }
