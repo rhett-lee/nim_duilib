@@ -939,26 +939,30 @@ void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
     DrawStringParam drawParam = this->GetDrawParam();//绘制参数
     drawParam.textRect = rc;
 
-    if (this->HasAnimationPlayer(AnimationType::kAnimationHot)) {
-        if ((stateType == kControlStateNormal || stateType == kControlStateHot)
-            && !GetSelectedStateTextColor(kControlStateHot).empty()) {
+    if (this->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
+        if ((stateType == kControlStateNormal || stateType == kControlStateHot) &&
+            !GetSelectedStateTextColor(kControlStateHot).empty()) {
+            //先绘制默认的文本
+            const uint8_t nHotAlpha = this->GetHotAlpha();
+            bool bPainted = false;
             DString clrStateColor = GetSelectedStateTextColor(kControlStateNormal);
             if (!clrStateColor.empty()) {
                 drawParam.dwTextColor = this->GetUiColor(clrStateColor);
-                drawParam.uFade = 255;
+                drawParam.uFade = 255 - nHotAlpha;
                 pRender->DrawString(textValue, drawParam);
+                bPainted = true;
             }
-
-            if (this->GetHotAlpha() > 0) {
-                DString textColor = GetSelectedStateTextColor(kControlStateHot);
-                if (!textColor.empty()) {
-                    drawParam.dwTextColor = this->GetUiColor(textColor);
-                    drawParam.uFade = this->GetHotAlpha();
-                    pRender->DrawString(textValue, drawParam);
-                }
+            //绘制Hot状态的文本（半透明）
+            DString textColor = GetSelectedStateTextColor(kControlStateHot);
+            if (!textColor.empty()) {
+                drawParam.dwTextColor = this->GetUiColor(textColor);
+                drawParam.uFade = nHotAlpha;
+                pRender->DrawString(textValue, drawParam);
+                bPainted = true;
             }
-
-            return;
+            if (bPainted) {
+                return;
+            }
         }
     }
 

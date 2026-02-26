@@ -60,18 +60,17 @@ void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Con
     if (pRender == nullptr) {
         return;
     }
-    if (m_pControl != nullptr) {
-        bool bFadeHot = m_pControl->HasAnimationPlayer(AnimationType::kAnimationHot);
-        uint8_t nHotAlpha = m_pControl->GetHotAlpha();
-        if (bFadeHot) {
+    if (m_pControl != nullptr) {        
+        if (m_pControl->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
             if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
+                const uint8_t nHotAlpha = m_pControl->GetHotAlpha();
+                //先绘制默认的颜色
                 DString strColor = GetStateColor(kControlStateNormal);
                 if (!strColor.empty()) {
-                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor));
+                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor), 255 - nHotAlpha);
                 }
-                if (nHotAlpha > 0) {
-                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
-                }
+                //绘制Hot状态的颜色（半透明）
+                pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
                 return;
             }
         }

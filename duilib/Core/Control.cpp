@@ -855,6 +855,17 @@ bool Control::HasAnimationPlayer(AnimationType animationType) const
     return false;
 }
 
+bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
+{
+    if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
+        AnimationPlayer* pAnimationPlayer = m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
+        if (pAnimationPlayer != nullptr) {
+            return pAnimationPlayer->IsPlaying();
+        }
+    }
+    return false;
+}
+
 AnimationManager& Control::GetAnimationManager()
 {
     if (m_pAnimationData == nullptr) {
@@ -2580,12 +2591,11 @@ bool Control::MouseEnter(const EventArgs& msg)
         return true;
     }
     if(IsEnabled()) {
-        if (GetState() == kControlStateNormal) {
-            PrivateSetState(kControlStateHot);
+        if (GetState() == kControlStateNormal) {            
             if (HasHotState()) {
                 GetAnimationManager().MouseEnter();
             }
-            Invalidate();
+            PrivateSetState(kControlStateHot);
         }
         if (!m_bMouseEnter) {
             m_bMouseEnter = true;
@@ -2601,7 +2611,6 @@ bool Control::MouseEnter(const EventArgs& msg)
         m_bMouseEnter = false;
         if (GetState() == kControlStateHot) {
             PrivateSetState(kControlStateNormal);
-            Invalidate();
         }
     }
     return false; //返回false时，父控件也会收到MouseEnter事件

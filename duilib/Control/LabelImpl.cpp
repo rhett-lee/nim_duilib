@@ -735,25 +735,30 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
     DrawStringParam drawParam = GetDrawParam();//绘制参数
     drawParam.textRect = rc;
 
-    if (m_pOwner->HasAnimationPlayer(AnimationType::kAnimationHot)) {
+    if (m_pOwner->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
             !GetStateTextColor(kControlStateHot).empty()) {
+            //先绘制默认的文本
+            const uint8_t nHotAlpha = m_pOwner->GetHotAlpha();
+            bool bPainted = false;
             DString clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {                
                 drawParam.dwTextColor = m_pOwner->GetUiColor(clrColor);
-                drawParam.uFade = 255;
+                drawParam.uFade = 255 - nHotAlpha;
                 m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
+                bPainted = true;
             }
-
-            if (m_pOwner->GetHotAlpha() > 0) {
-                DString textColor = GetStateTextColor(kControlStateHot);
-                if (!textColor.empty()) {
-                    drawParam.dwTextColor = m_pOwner->GetUiColor(textColor);
-                    drawParam.uFade = (uint8_t)m_pOwner->GetHotAlpha();
-                    m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
-                }
+            //绘制Hot状态的文本（半透明）
+            DString textColor = GetStateTextColor(kControlStateHot);
+            if (!textColor.empty()) {
+                drawParam.dwTextColor = m_pOwner->GetUiColor(textColor);
+                drawParam.uFade = nHotAlpha;
+                m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
+                bPainted = true;
             }
-            return;
+            if (bPainted) {
+                return;
+            }
         }
     }
 
@@ -764,6 +769,11 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
 
 void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)
 {
+    //旧状态
+    uint32_t uOldStyle = m_uTextStyle;
+    bool bOldSingleLine = m_bSingleLine;
+    bool bOldVerticalText = m_bVerticalText;
+
     m_uTextStyle = GetValidTextStyle(uStyle);
     if (m_uTextStyle & TEXT_SINGLELINE) {
         m_bSingleLine = true;
@@ -778,7 +788,11 @@ void LabelImpl::SetTextStyle(uint32_t uStyle, bool bRedraw)
         m_bVerticalText = false;
     }
     if (bRedraw) {
-        m_pOwner->Invalidate();
+        bool bChanged = (uOldStyle != m_uTextStyle) || (bOldSingleLine != m_bSingleLine) || (bOldVerticalText != m_bVerticalText);
+        if (bChanged) {
+            //仅在状态变化时重绘
+            m_pOwner->Invalidate();
+        }        
     }
 }
 

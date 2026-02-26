@@ -827,6 +827,10 @@ public:
     */
     bool HasAnimationPlayer(AnimationType animationType) const;
 
+    /** 判断指定类型的控件动画是否正在播放中
+    */
+    bool IsAnimationPlayerPlaying(AnimationType animationType) const;
+
     /** 获取控件动画管理器接口(控件动画)
      */
     AnimationManager& GetAnimationManager();

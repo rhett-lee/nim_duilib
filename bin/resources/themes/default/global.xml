@@ -289,19 +289,19 @@
                                         pushed_color="#B71D22"/>
     <!--窗口右上角按钮 -->
     <Class name="btn_wnd_min_11" normal_image="file='public/button/window-minimize.svg' 
-                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
     <Class name="btn_wnd_close_11" normal_image="file='public/button/window-close.svg' 
-                                 width='24' height='24' valign='center' halign='center'" hot_color="red" pushed_color="OrangeRed"/>
+                                 width='24' height='24' valign='center' halign='center'" hot_color="red" pushed_color="OrangeRed" fade_hot="true"/>
     <Class name="btn_wnd_max_11" normal_image="file='public/button/window-maximize.svg' 
-                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
     <Class name="btn_wnd_restore_11" normal_image="file='public/button/window-restore.svg' 
-                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
     <Class name="btn_wnd_fullscreen_11" normal_image="file='public/button/window-fullscreen.svg'
-                                 width='24' height='24' valign='center' halign='center' margin='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='24' height='24' valign='center' halign='center' margin='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
     <Class name="btn_view_fullscreen_11" normal_image="file='public/button/view-fullscreen.svg'
-                                 width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
     <Class name="btn_wnd_settings_11" normal_image="file='public/button/btn_setting.svg' 
-                                 width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+                                 width='20' height='20' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender" fade_hot="true"/>
      
     <!-- 退出全屏按钮：控件全屏显示时，悬浮在窗口上方的退出全屏按钮 -->
     <Class name="btn_exit_fullscreen" width="180" height="30" border_round="3,3" valign="top" halign="center" 

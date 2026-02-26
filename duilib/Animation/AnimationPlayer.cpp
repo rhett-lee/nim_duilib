@@ -105,6 +105,7 @@ void AnimationPlayer::StartTimer()
     if (frameCount < 1) {
         frameCount = 1;
     }
+    m_bPlaying = true;
     m_frameIndex = 0;
     m_pEasingFunctions = std::make_unique<EasingFunctions>(m_startValue, m_endValue, frameCount, m_easingFunctionType);
     m_currentValue = m_startValue;
