@@ -266,7 +266,7 @@
     <Class name="btn_global_color_gray" font="system_14" text_align="hcenter,vcenter" 
                                         normal_text_color="dark_gray" 
                                         disabled_text_color="gray" 
-                                        normal_color="#E1E1E1" 
+                                        normal_color="#D7DCE0" 
                                         hot_color="#D0D0D0" 
                                         pushed_color="#BFBFBF"/>                                        
     <Class name="btn_global_color_white" font="system_14" text_align="hcenter,vcenter" 
