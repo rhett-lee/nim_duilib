@@ -824,7 +824,7 @@ DString LabelImpl::GetStateTextColor(ControlStateType stateType) const
 void LabelImpl::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
     if (stateType == kControlStateHot) {
-        m_pOwner->GetAnimationManager().SetFadeHot(true);
+        m_pOwner->SetFadeHot(true);
     }
     if (m_pTextColorMap == nullptr) {
         m_pTextColorMap = std::make_unique<StateColorMap>(m_pOwner);

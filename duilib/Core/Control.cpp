@@ -512,7 +512,16 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         GetAnimationManager().SetFadeAlpha(bFadeVisible, nEndAlpha);
     }
     else if ((strName == _T("fade_hot")) || (strName == _T("fadehot"))) {
-        GetAnimationManager().SetFadeHot(strValue == _T("true"));
+        SetFadeHot(strValue == _T("true"));
+    }
+    else if (strName == _T("fade_hot_frame_interval_ms")) {
+        SetFadeHotFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_hot_total_ms")) {
+        SetFadeHotTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_hot_easing_function")) {
+        SetFadeHotEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("fade_width")) || (strName == _T("fadewidth"))) {
         GetAnimationManager().SetFadeWidth(strValue == _T("true"));
@@ -857,9 +866,102 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
     }
 }
 
+void Control::SetFadeHot(bool bFadeHot)
+{
+    if (bFadeHot) {
+        AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHot);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(255);
+        ControlPtr pControl(this);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    if (nNewValue > 255) {
+                        nNewValue = 255;
+                    }
+                    pControl->SetHotAlpha(TruncateToUInt8(nNewValue));
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        if (m_pHotAnimationPlayer != nullptr) {
+            //同步属性
+            pAnimationPlayer->SetTotalMillSeconds(m_pHotAnimationPlayer->GetTotalMillSeconds());
+            pAnimationPlayer->SetFrameIntervalMillSeconds(m_pHotAnimationPlayer->GetFrameIntervalMillSeconds());
+            pAnimationPlayer->SetEasingFunctionType(m_pHotAnimationPlayer->GetEasingFunctionType());
+        }
+        m_pHotAnimationPlayer.reset(pAnimationPlayer);
+    }
+    else {
+        m_pHotAnimationPlayer.reset();
+    }
+}
+
+void Control::SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
+    }
+}
+
+int32_t Control::GetFadeHotFrameIntervalMillSeconds() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetFrameIntervalMillSeconds();
+    }
+    return -1;
+}
+
+void Control::SetFadeHotTotalMillSeconds(int32_t totalMillSeconds)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
+    }
+}
+
+int32_t Control::GetFadeHotTotalMillSeconds() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetTotalMillSeconds();
+    }
+    return -1;
+}
+
+void Control::SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetEasingFunctionType(easingFunctionType);
+    }
+}
+
+EasingFunctionType Control::GetFadeHotEasingFunctionType() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetEasingFunctionType();
+    }
+    return EasingFunctionType::EaseInOutCubic;
+}
+
 bool Control::HasAnimationPlayer(AnimationType animationType) const
 {
-    if (m_pAnimationData != nullptr) {
+    if (animationType == AnimationType::kAnimationHot) {
+        return m_pHotAnimationPlayer != nullptr;
+    }
+    else if (m_pAnimationData != nullptr) {
         if (m_pAnimationData->m_animationManager != nullptr) {
             return m_pAnimationData->m_animationManager->HasAnimationPlayer(animationType);
         }
@@ -869,7 +971,10 @@ bool Control::HasAnimationPlayer(AnimationType animationType) const
 
 bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
 {
-    if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
+    if (animationType == AnimationType::kAnimationHot) {
+        return (m_pHotAnimationPlayer != nullptr) && m_pHotAnimationPlayer->IsPlaying();
+    }
+    else if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
         AnimationPlayer* pAnimationPlayer = m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
         if (pAnimationPlayer != nullptr) {
             return pAnimationPlayer->IsPlaying();
@@ -1055,7 +1160,7 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
     }
     m_pColorMap->SetStateColor(stateType, strColor);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1075,7 +1180,7 @@ void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMarg
     }
     m_pColorMap->SetStateColorMargin(stateType, colorMargin);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1095,7 +1200,7 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
     }
     m_pColorMap->SetStateColorRound(stateType, colorRound);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1290,7 +1395,7 @@ DString Control::GetStateImage(ControlStateType stateType) const
 void Control::SetStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     SetStateImage(kStateImageBk, stateType, strImage);
     RelayoutOrRedraw();
@@ -1304,7 +1409,7 @@ DString Control::GetForeStateImage(ControlStateType stateType) const
 void Control::SetForeStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     SetStateImage(kStateImageFore, stateType, strImage);
     Invalidate();
@@ -2606,7 +2711,10 @@ bool Control::MouseEnter(const EventArgs& msg)
     if(IsEnabled()) {
         if (GetState() == kControlStateNormal) {            
             if (HasHotState()) {
-                GetAnimationManager().MouseEnter();
+                //Hot状态动画
+                if (m_pHotAnimationPlayer != nullptr) {
+                    m_pHotAnimationPlayer->Continue();
+                }
             }
             PrivateSetState(kControlStateHot);
         }
@@ -2639,7 +2747,10 @@ bool Control::MouseLeave(const EventArgs& msg)
         if (GetState() == kControlStateHot) {
             PrivateSetState(kControlStateNormal);
             if (HasHotState()) {
-                GetAnimationManager().MouseLeave();                
+                //Hot状态动画
+                if (m_pHotAnimationPlayer != nullptr) {
+                    m_pHotAnimationPlayer->ReverseContinue();
+                }
             }
             Invalidate();
         }
@@ -2683,9 +2794,9 @@ bool Control::ButtonUp(const EventArgs& msg)
     }
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
-        auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
-        if (player != nullptr) {
-            player->Stop();
+        //停止Hot状态动画
+        if (m_pHotAnimationPlayer != nullptr) {
+            m_pHotAnimationPlayer->Stop();
         }
         Invalidate();
         if( IsPointInWithScrollOffset(msg.ptMouse) ) {
@@ -2901,9 +3012,9 @@ bool Control::OnKillFocus(const EventArgs& msg)
     else if (GetState() == kControlStatePushed) {
         //失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
         SetMouseFocused(false);
-        auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
-        if (player != nullptr) {
-            player->Stop();
+        //停止Hot状态动画
+        if (m_pHotAnimationPlayer != nullptr) {
+            m_pHotAnimationPlayer->Stop();
         }
         SetState(kControlStateNormal);
     }

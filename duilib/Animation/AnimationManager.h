@@ -31,12 +31,6 @@ public:
 
 public:
     /** 设置或清除播放动画，对应动画类型为：kAnimationAlpha
-    * @param [in] bFadeHot true表示设置动画，false表示清除动画
-    * @return 设置时返回动画播放接口，清除时返回nullptr
-    */
-    AnimationPlayer* SetFadeHot(bool bFadeHot);
-
-    /** 设置或清除播放动画，对应动画类型为：kAnimationHot
     * @param [in] bFadeVisible true表示设置动画，false表示清除动画
     * @param [in] nEndAlpha 结束时的Alpha值（仅当bFadeVisible为true时使用）
     * @return 设置时返回动画播放接口，清除时返回nullptr
@@ -83,14 +77,6 @@ public:
     /** 按设置的动画，隐藏控件
     */
     void Disappear();
-
-    /** 鼠标移入时，按设置执行动画
-    */
-    void MouseEnter();
-
-    /** 鼠标移出时，按设置执行动画
-    */
-    void MouseLeave();
 
     /** 清理所有动画资源
     */
