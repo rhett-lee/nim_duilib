@@ -66,7 +66,7 @@ public:
     /** 根据缓动函数的字符串名称，获取缓动函数类型
     * @param [in] easingFunctionName 缓动函数的名称，字符串名称与EasingFunctionType的枚举值定义完全一致
     */
-    static EasingFunctionType GetEasingFunctionType(const DString& easingFunctionName);
+    static EasingFunctionType GetEasingFunctionType(DString easingFunctionName);
 
 public:
     /** 构造函数

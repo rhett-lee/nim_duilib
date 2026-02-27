@@ -96,15 +96,58 @@ public:
     */
     void Clear(Control* control);
 
+public:
+    /** 设置播放动画的定时器时间间隔（毫秒）
+    * @param [in] frameIntervalMillSeconds 播放动画的定时器时间间隔（毫秒）
+    */
+    void SetFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds);
+
+    /** 获取动画播放的定时器时间间隔（毫秒）
+    */
+    int32_t GetFrameIntervalMillSeconds() const;
+
+    /** 设置动画总的播放时间（毫秒）
+    * @param [in] totalMillSeconds 动画总的播放时间（毫秒）
+    */
+    void SetTotalMillSeconds(int32_t totalMillSeconds);
+
+    /** 获取动画总的播放时间（毫秒）
+    */
+    int32_t GetTotalMillSeconds() const;
+
+    /** 设置缓动函数类型
+    */
+    void SetEasingFunctionType(EasingFunctionType easingFunctionType);
+
+    /** 获取缓动函数类型
+    */
+    EasingFunctionType GetEasingFunctionType() const;
+
 private:
     /** 初始化显示/隐藏的动画类型列表
     */
     void InitAppearAnimationList(std::vector<AnimationType>& animationList) const;
 
+    /** 创建一个动画实例对象，并初始化默认属性
+    */
+    AnimationPlayer* CreateAnimationPlayer(AnimationType animationType) const;
+
 private:
     /** 动画所属控件的接口
     */
     Control* m_pControl;
+
+    /** 播放动画的定时器时间间隔（毫秒）
+    */
+    int32_t m_frameIntervalMillSeconds;
+
+    /** 播放总的时间（毫秒）
+    */
+    int32_t m_totalMillSeconds;
+
+    /** 缓动函数类型
+    */
+    EasingFunctionType m_easingFunctionType;
 
     /** 当前可见值
     */

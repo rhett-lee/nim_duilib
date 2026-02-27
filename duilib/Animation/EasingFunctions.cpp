@@ -478,7 +478,7 @@ EasingFunction EasingFunctions::GetEasingFunction(EasingFunctionType function)
     return it == easingFunctions.end() ? nullptr : it->second;
 }
 
-EasingFunctionType EasingFunctions::GetEasingFunctionType(const DString& easingFunctionName)
+EasingFunctionType EasingFunctions::GetEasingFunctionType(DString easingFunctionName)
 {
     // 静态map：只初始化一次，提升性能
     static std::map<DString, EasingFunctionType> easingFunctions;
@@ -517,6 +517,12 @@ EasingFunctionType EasingFunctions::GetEasingFunctionType(const DString& easingF
         easingFunctions.insert(std::make_pair(_T("EaseInOutBounce"), EaseInOutBounce));
     }
 
+    if (!easingFunctionName.empty()) {
+        if ((easingFunctionName[0] >= _T('a')) && (easingFunctionName[0] <= _T('z'))) {
+            //首字母转换为大写(允许传入参数的首字母为小写)
+            easingFunctionName[0] = easingFunctionName[0] - (_T('a') - _T('A'));
+        }
+    }
     // 查找对应函数
     auto it = easingFunctions.find(easingFunctionName);
     return it == easingFunctions.end() ? EaseLinear : it->second;
