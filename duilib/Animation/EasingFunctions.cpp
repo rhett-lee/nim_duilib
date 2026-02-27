@@ -566,14 +566,6 @@ static double InterpolateFunction(double start, double end, double t, EasingFunc
     else {
         // 有缓动函数时，先计算缓动后的t值，再映射到[start, end]范围
         double easedT = func(t);
-        ASSERT(easedT <= 1.0);
-        ASSERT(easedT >= 0.0);
-        if (easedT > 1.0) {
-            easedT = 1.0;
-        }
-        if (easedT < 0.0) {
-            easedT = 0.0;
-        }
         result = start + (end - start) * easedT;
     }
 
@@ -581,13 +573,16 @@ static double InterpolateFunction(double start, double end, double t, EasingFunc
     if (t >= 1.0) {
         result = end;
     }
+    else if (t <= 0.0) {
+        result = start;
+    }
     return result;
 }
 
 int64_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
 {
     int64_t nEasingValue = m_nEndValue;
-    ASSERT(nCurrentFrame > 0);
+    ASSERT(nCurrentFrame >= 0);
     if (nCurrentFrame < 0) {
         return nEasingValue;
     }
