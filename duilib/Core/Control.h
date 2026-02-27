@@ -5,6 +5,7 @@
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/EventArgs.h"
+#include "duilib/Animation/EasingFunctions.h"
 
 namespace ui 
 {
@@ -16,6 +17,7 @@ namespace ui
     class StateColorMap2;
     class StateImageMap;
     class AnimationManager;
+    class AnimationPlayer;
     class IRender;
     class IPath;
     class IFont;
@@ -823,6 +825,39 @@ public:
     void AttachImageAnimationStop(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageAnimationStop, callback, callbackID); }
 
 public:
+    /// 控件动画相关接口
+
+    /** 设置或清除Hot状态的播放动画（对应动画类型为：kAnimationHot）
+    * @param [in] bFadeHot true表示设置动画，false表示清除动画
+    */
+    void SetFadeHot(bool bFadeHot);
+
+    /** 设置播放Hot状态动画的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    * @param [in] frameIntervalMillSeconds 播放动画的定时器时间间隔（毫秒）
+    */
+    void SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds);
+
+    /** 获取Hot状态动画播放的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    */
+    int32_t GetFadeHotFrameIntervalMillSeconds() const;
+
+    /** 设置Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    * @param [in] totalMillSeconds 动画总的播放时间（毫秒）
+    */
+    void SetFadeHotTotalMillSeconds(int32_t totalMillSeconds);
+
+    /** 获取Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    */
+    int32_t GetFadeHotTotalMillSeconds() const;
+
+    /** 设置Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    */
+    void SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType);
+
+    /** 获取Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    */
+    EasingFunctionType GetFadeHotEasingFunctionType() const;
+
     /** 判断是否包含指定类型的动画播放接口
     */
     bool HasAnimationPlayer(AnimationType animationType) const;
@@ -1780,6 +1815,10 @@ private:
     /** 其他不常用的数据
     */
     std::unique_ptr<TOtherData> m_pOtherData;
+
+    /** Hot动画的播放接口
+    */
+    std::unique_ptr<AnimationPlayer> m_pHotAnimationPlayer;
 
     /** 控件的绘制区域
     */

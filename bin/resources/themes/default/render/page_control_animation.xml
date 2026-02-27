@@ -84,7 +84,8 @@
                     <Event type="mouse_enter" receiver="fade_size_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_size_1" apply_attribute="fade_visible='false'" />
                 </Button>
-                <Control name="fade_size_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" fade_size="true"/>
+                <Control name="fade_size_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" 
+                         fade_size="true" fade_total_ms="200" fade_frame_interval_ms="16" fade_easing_function="EaseInOutCubic"/>
             </VBox>            
         </HBox>
         <HBox child_margin_x="8">
@@ -116,7 +117,7 @@
                                   fade_hot="true"/>                                  
                         <Control margin="0,3,0,3" width="80" height="30"
                                   normal_image="autumn.png" hot_image="svg_test.svg"
-                                  fade_hot="true"/>
+                                  fade_hot="true" fade_hot_total_ms="200" fade_hot_frame_interval_ms="16" fade_hot_easing_function="EaseInOutCubic"/>
                     </VBox>
                 </HBox>
             </VBox>

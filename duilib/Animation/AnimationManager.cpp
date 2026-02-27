@@ -34,36 +34,6 @@ AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationTyp
     }
 }
 
-AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
-{
-    AnimationPlayer* pAnimationPlayer = nullptr;
-    const AnimationType animationType = AnimationType::kAnimationHot;
-    if (bFadeHot) {
-        pAnimationPlayer = CreateAnimationPlayer(animationType);
-        pAnimationPlayer->SetStartValue(0);
-        pAnimationPlayer->SetEndValue(255);
-        ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
-                if (pControl != nullptr) {
-                    if (nNewValue < 0) {
-                        nNewValue = 0;
-                    }
-                    if (nNewValue > 255) {
-                        nNewValue = 255;
-                    }
-                    pControl->SetHotAlpha(TruncateToUInt8(nNewValue));
-                }
-            };
-        pAnimationPlayer->SetPlayCallback(playCallback);
-        m_animationMap[animationType].reset(pAnimationPlayer);
-    }
-    else {
-        m_animationMap.erase(animationType);
-    }
-
-    return pAnimationPlayer;
-}
-
 AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndAlpha)
 {
     AnimationPlayer* pAnimationPlayer = nullptr;
@@ -383,22 +353,6 @@ void AnimationManager::Disappear()
     }
     m_bControlVisibleInited = true;
     m_bControlVisible = false;
-}
-
-void AnimationManager::MouseEnter()
-{
-    AnimationPlayer* pPlayer = GetAnimationPlayer(AnimationType::kAnimationHot);
-    if (pPlayer) {
-        pPlayer->Continue();
-    }
-}
-
-void AnimationManager::MouseLeave()
-{
-    AnimationPlayer* pPlayer = GetAnimationPlayer(AnimationType::kAnimationHot);
-    if (pPlayer) {
-        pPlayer->ReverseContinue();
-    }
 }
 
 void AnimationManager::Clear(Control* control)
