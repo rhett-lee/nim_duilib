@@ -110,13 +110,13 @@ void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
         timerIntervalMs = 1000 / 60;//默认按每秒60帧播放
     }
 
-    int64_t totalMillSeconds = m_totalMillSeconds;
+    int32_t totalMillSeconds = m_totalMillSeconds;
     if (totalMillSeconds <= 0) {
         totalMillSeconds = 180; //默认按动画总时常为180毫秒播放
     }
 
     //计算帧数
-    int32_t frameCount = static_cast<int32_t>(totalMillSeconds / timerIntervalMs);
+    int32_t frameCount = totalMillSeconds / timerIntervalMs;
     if (frameCount < 1) {
         frameCount = 1;
     }
@@ -126,8 +126,8 @@ void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
         bContinueMode = false;
     }
     if (bContinueMode && (m_pEasingFunctions != nullptr)) {
-        int64_t nStartValue = m_startValue;
-        int64_t nEndValue = m_endValue;
+        int32_t nStartValue = m_startValue;
+        int32_t nEndValue = m_endValue;
         if (bOldReversePlay != m_bReversePlay) {
             std::swap(nStartValue, nEndValue);
         }
@@ -171,7 +171,7 @@ void AnimationPlayer::Play()
     if (m_frameIndex > m_pEasingFunctions->GetFrameCount()) {
         m_frameIndex = m_pEasingFunctions->GetFrameCount();
     }
-    int64_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
+    int32_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
     if (m_playCallback) {
         if (newCurrentValue != m_currentValue) {
             m_playCallback(newCurrentValue);

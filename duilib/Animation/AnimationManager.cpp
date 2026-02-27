@@ -43,7 +43,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(255);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
                     if (nNewValue < 0) {
                         nNewValue = 0;
@@ -51,7 +51,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
                     if (nNewValue > 255) {
                         nNewValue = 255;
                     }
-                    pControl->SetHotAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
+                    pControl->SetHotAlpha(TruncateToUInt8(nNewValue));
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -71,9 +71,9 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndA
     if (bFadeVisible) {
         pAnimationPlayer = CreateAnimationPlayer(animationType);
         pAnimationPlayer->SetStartValue(0);
-        pAnimationPlayer->SetEndValue((int64_t)nEndAlpha);
+        pAnimationPlayer->SetEndValue((int32_t)nEndAlpha);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
                     if (nNewValue < 0) {
                         nNewValue = 0;
@@ -81,7 +81,7 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndA
                     if (nNewValue > 255) {
                         nNewValue = 255;
                     }
-                    pControl->SetAlpha(TruncateToUInt8(TruncateToInt32(nNewValue)));
+                    pControl->SetAlpha(TruncateToUInt8(nNewValue));
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -110,12 +110,12 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(cx);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
                     if (nNewValue < 0) {
                         nNewValue = 0;
                     }
-                    pControl->SetFixedWidth(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
+                    pControl->SetFixedWidth(UiFixedInt(nNewValue), true, false);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -143,12 +143,12 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(cy);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
                     if (nNewValue < 0) {
                         nNewValue = 0;
                     }
-                    pControl->SetFixedHeight(UiFixedInt(TruncateToInt32(nNewValue)), true, false);
+                    pControl->SetFixedHeight(UiFixedInt(nNewValue), true, false);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -179,11 +179,11 @@ AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(100);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl, cx, cy](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl, cx, cy](int32_t nNewValue) {
             if (pControl != nullptr) {
                 if (nNewValue > 0) {
-                    int32_t cxNow = TruncateToInt32(cx * nNewValue / 100);
-                    int32_t cyNow = TruncateToInt32(cy * nNewValue / 100);
+                    int32_t cxNow = TruncateToInt32((int64_t)cx * nNewValue / 100);
+                    int32_t cyNow = TruncateToInt32((int64_t)cy * nNewValue / 100);
                     pControl->SetFixedWidth(UiFixedInt(cxNow), true, false);
                     pControl->SetFixedHeight(UiFixedInt(cyNow), true, false);
                 }
@@ -215,9 +215,9 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
         pAnimationPlayer = CreateAnimationPlayer(animationType);
         pAnimationPlayer->SetEndValue(0);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
-                    pControl->SetRenderOffsetX(TruncateToInt32(nNewValue));
+                    pControl->SetRenderOffsetX(nNewValue);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -253,9 +253,9 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
         pAnimationPlayer = CreateAnimationPlayer(animationType);
         pAnimationPlayer->SetEndValue(0);
         ControlPtr pControl(m_pControl);
-        AnimationPlayCallback playCallback = [pControl](int64_t nNewValue) {
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
-                    pControl->SetRenderOffsetY(TruncateToInt32(nNewValue));
+                    pControl->SetRenderOffsetY(nNewValue);
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);

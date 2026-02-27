@@ -75,7 +75,7 @@ public:
     * @param [in] nFrameCount 动画总的帧数
     * @param [in] easingFunctionType 使用的缓动函数类型
     */
-    EasingFunctions(int64_t nStartValue, int64_t nEndValue, int32_t nFrameCount, EasingFunctionType easingFunctionType);
+    EasingFunctions(int32_t nStartValue, int32_t nEndValue, int32_t nFrameCount, EasingFunctionType easingFunctionType);
     ~EasingFunctions();
 
 public:
@@ -83,15 +83,15 @@ public:
     * @param [in] nCurrentFrame 当前帧的序号，序号从0开始，有效值的范围是[0, nFrameCount]，闭区间
     * @return 返回缓动的值，有效值的范围是[nStartValue, nEndValue]，闭区间
     */
-    int64_t GetEasingValue(int32_t nCurrentFrame) const;
+    int32_t GetEasingValue(int32_t nCurrentFrame) const;
 
     /** 获取动画播放起始值
     */
-    int64_t GetStartValue() const;
+    int32_t GetStartValue() const;
 
     /** 获取动画播放结束值
     */
-    int64_t GetEndValue() const;
+    int32_t GetEndValue() const;
 
     /** 获取动画总的帧数
     */
@@ -100,11 +100,11 @@ public:
 private:
     /** 起始值（可能是宽度、高度、透明度等）
     */
-    int64_t m_nStartValue;
+    int32_t m_nStartValue;
 
     /** 结束值（可能是宽度、高度、透明度等）
     */
-    int64_t m_nEndValue;
+    int32_t m_nEndValue;
 
     /** 动画总的帧数
     */
