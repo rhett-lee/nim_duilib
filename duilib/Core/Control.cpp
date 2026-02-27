@@ -520,6 +520,9 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("fade_height")) || (strName == _T("fadeheight"))) {
         GetAnimationManager().SetFadeHeight(strValue == _T("true"));
     }
+    else if (strName == _T("fade_size")) {
+        GetAnimationManager().SetFadeSize(strValue == _T("true"));
+    }
     else if ((strName == _T("fade_in_out_x_from_left")) || (strName == _T("fadeinoutxfromleft"))) {
         GetAnimationManager().SetFadeInOutX(strValue == _T("true"), false);
     }

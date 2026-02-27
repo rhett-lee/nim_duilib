@@ -55,6 +55,12 @@ public:
     */
     AnimationPlayer* SetFadeHeight(bool bFadeHeight);
 
+    /** 设置或清除播放动画，对应动画类型为：kAnimationSize
+    * @param [in] bFadeSize true表示设置动画，false表示清除动画
+    * @return 设置时返回动画播放接口，清除时返回nullptr
+    */
+    AnimationPlayer* SetFadeSize(bool bFadeSize);
+
     /** 设置或清除播放动画
     * @param [in] bFade true表示设置动画，false表示清除动画
     * @param [in] bIsFromRight true表示从右侧动画（kAnimationInoutXFromRight），false表示从左侧动画（kAnimationInoutXFromLeft）
@@ -91,6 +97,11 @@ public:
     void Clear(Control* control);
 
 private:
+    /** 初始化显示/隐藏的动画类型列表
+    */
+    void InitAppearAnimationList(std::vector<AnimationType>& animationList) const;
+
+private:
     /** 动画所属控件的接口
     */
     Control* m_pControl;
@@ -106,6 +117,10 @@ private:
     /** 每个动画类型下的动画播放接口
     */
     std::map<AnimationType, std::unique_ptr<AnimationPlayer>> m_animationMap;
+
+    /** 显示/隐藏的动画类型列表
+    */
+    static std::vector<AnimationType> s_animationList;
 };
 
 } // namespace ui
