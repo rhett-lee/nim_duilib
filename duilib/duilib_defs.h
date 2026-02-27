@@ -190,14 +190,15 @@ namespace ui
     enum class AnimationType: int8_t
     {
         kAnimationNone              = 0,    //无动画
-        kAnimationAlpha             = 1,    //透明度渐变动画
-        kAnimationHeight            = 2,    //控件高度变化动画
-        kAnimationWidth             = 3,    //控件宽度变化动画
-        kAnimationHot               = 4,    //鼠标悬停状态的动画
-        kAnimationInoutXFromLeft    = 5,    //控件的X坐标变化动画，从左侧
-        kAnimationInoutXFromRight   = 6,    //控件的X坐标变化动画，从右侧
-        kAnimationInoutYFromTop     = 7,    //控件的Y坐标变化动画，从上侧
-        kAnimationInoutYFromBottom  = 8,    //控件的Y坐标变化动画，从下侧
+        kAnimationHot               = 1,    //鼠标悬停状态的动画
+        kAnimationAlpha             = 2,    //透明度渐变动画
+        kAnimationHeight            = 3,    //控件高度变化动画（高度不能是拉伸类型）
+        kAnimationWidth             = 4,    //控件宽度变化动画（宽度不能是拉伸类型）
+        kAnimationSize              = 5,    //控件大小变化动画（高度和宽度不能是拉伸类型）
+        kAnimationInoutXFromLeft    = 6,    //控件的X坐标变化动画，从左侧
+        kAnimationInoutXFromRight   = 7,    //控件的X坐标变化动画，从右侧
+        kAnimationInoutYFromTop     = 8,    //控件的Y坐标变化动画，从上方
+        kAnimationInoutYFromBottom  = 9,    //控件的Y坐标变化动画，从底部
     };
 
     //图片动画帧类型

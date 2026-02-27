@@ -4,6 +4,8 @@
 
 namespace ui 
 {
+// 显示 / 隐藏的动画类型列表
+std::vector<AnimationType> AnimationManager::s_animationList;
 
 AnimationManager::AnimationManager(Control* pControl) :
     m_pControl(pControl),
@@ -154,6 +156,45 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
     return pAnimationPlayer;
 }
 
+AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
+{
+    AnimationPlayer* pAnimationPlayer = nullptr;
+    int32_t cx = 0;
+    int32_t cy = 0;
+    if (bFadeSize) {
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        cx = estSize.cx.GetInt32();
+        cy = estSize.cy.GetInt32();
+        ASSERT(cy > 0);
+        ASSERT(cx > 0);
+    }
+    const AnimationType animationType = AnimationType::kAnimationHeight;
+    if (bFadeSize && (cx > 0) && (cy > 0)) {
+        pAnimationPlayer = new AnimationPlayer();
+        pAnimationPlayer->SetAnimationType(animationType);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(100);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl, cx, cy](int64_t nNewValue) {
+            if (pControl != nullptr) {
+                if (nNewValue > 0) {
+                    int32_t cxNow = TruncateToInt32(cx * nNewValue / 100);
+                    int32_t cyNow = TruncateToInt32(cy * nNewValue / 100);
+                    pControl->SetFixedWidth(UiFixedInt(cxNow), true, false);
+                    pControl->SetFixedHeight(UiFixedInt(cyNow), true, false);
+                }
+            }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[animationType].reset(pAnimationPlayer);
+    }
+    else {
+        m_animationMap.erase(animationType);
+    }
+
+    return pAnimationPlayer;
+}
+
 AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 {
     AnimationPlayer* pAnimationPlayer = nullptr;
@@ -232,6 +273,20 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
     return pAnimationPlayer;
 }
 
+void AnimationManager::InitAppearAnimationList(std::vector<AnimationType>& animationList) const
+{
+    if (animationList.empty()) {
+        animationList.push_back(AnimationType::kAnimationAlpha);
+        animationList.push_back(AnimationType::kAnimationWidth);
+        animationList.push_back(AnimationType::kAnimationHeight);
+        animationList.push_back(AnimationType::kAnimationSize);
+        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
+        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
+        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
+        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
+    }
+}
+
 void AnimationManager::Appear()
 {
     //仅当可见属性发生变化时，才触发控件动画
@@ -245,16 +300,8 @@ void AnimationManager::Appear()
 
     m_pControl->SetVisible(true);
 
-    static std::vector<AnimationType> animationList;
-    if (animationList.empty()) {
-        animationList.push_back(AnimationType::kAnimationAlpha);
-        animationList.push_back(AnimationType::kAnimationWidth);
-        animationList.push_back(AnimationType::kAnimationHeight);
-        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
-        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
-        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
-        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
-    }
+    std::vector<AnimationType>& animationList = s_animationList;
+    InitAppearAnimationList(animationList);
     if (!m_animationMap.empty()) {
         for (AnimationType animationType : animationList) {
             if (HasAnimationPlayer(animationType)) {
@@ -299,16 +346,8 @@ void AnimationManager::Disappear()
     const bool bNewVisible = false;
 
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
-    static std::vector<AnimationType> animationList;
-    if (animationList.empty()) {
-        animationList.push_back(AnimationType::kAnimationAlpha);
-        animationList.push_back(AnimationType::kAnimationWidth);
-        animationList.push_back(AnimationType::kAnimationHeight);
-        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
-        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
-        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
-        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
-    }
+    std::vector<AnimationType>& animationList = s_animationList;
+    InitAppearAnimationList(animationList);
     if (!m_animationMap.empty()) {
         for (AnimationType animationType : animationList) {
             if (HasAnimationPlayer(animationType)) {
