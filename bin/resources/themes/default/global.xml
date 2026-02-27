@@ -242,35 +242,35 @@
                                                    hot_image={file='public/combo/arrow_hot.svg' valign='center'}"/>
 
     <!--按钮：图片按钮-->
-    <Class name="btn_global_blue_80x30" font="system_bold_14" normal_text_color="white" 
+    <Class name="btn_global_blue_80x30" font="system_14" normal_text_color="white" 
                                         normal_image="file='public/button/btn_global_blue_80x30_normal.svg'" 
                                         hot_image="file='public/button/btn_global_blue_80x30_hovered.svg'" 
                                         pushed_image="file='public/button/btn_global_blue_80x30_pushed.svg'" 
                                         disabled_image="file='public/button/btn_global_blue_80x30_normal.svg' fade='80'"/>
-    <Class name="btn_global_white_80x30" font="system_bold_14" normal_text_color="dark_gray" 
+    <Class name="btn_global_white_80x30" font="system_14" normal_text_color="black" 
                                          normal_image="file='public/button/btn_global_white_80x30_normal.svg'" 
                                          hot_image="file='public/button/btn_global_white_80x30_hovered.svg'" 
                                          pushed_image="file='public/button/btn_global_white_80x30_pushed.svg'" 
                                          disabled_image="file='public/button/btn_global_white_80x30_normal.svg' fade='128'"/>
-    <Class name="btn_global_red_80x30" font="system_bold_14" normal_text_color="white" 
+    <Class name="btn_global_red_80x30" font="system_14" normal_text_color="white" 
                                        normal_image="file='public/button/btn_global_red_80x30_normal.svg'" 
                                        hot_image="file='public/button/btn_global_red_80x30_hovered.svg'" 
                                        pushed_image="file='public/button/btn_global_red_80x30_pushed.svg'" 
                                        disabled_image="file='public/button/btn_global_red_80x30_normal.svg' fade='80'"/>
-    <Class name="btn_global_gray_80x30" font="system_bold_14" normal_text_color="dark_gray" 
+    <Class name="btn_global_gray_80x30" font="system_14" normal_text_color="black" 
                                          normal_image="file='public/button/btn_global_gray_80x30_normal.svg'" 
                                          hot_image="file='public/button/btn_global_gray_80x30_hovered.svg'" 
                                          pushed_image="file='public/button/btn_global_gray_80x30_pushed.svg'" 
                                          disabled_image="file='public/button/btn_global_gray_80x30_normal.svg' fade='128'"/>
     <!--按钮：纯色按钮-->
     <Class name="btn_global_color_gray" font="system_14" text_align="hcenter,vcenter" 
-                                        normal_text_color="dark_gray" 
+                                        normal_text_color="black" 
                                         disabled_text_color="gray" 
                                         normal_color="#D7DCE0" 
                                         hot_color="#D0D0D0" 
                                         pushed_color="#BFBFBF"/>                                        
     <Class name="btn_global_color_white" font="system_14" text_align="hcenter,vcenter" 
-                                        normal_text_color="dark_gray" 
+                                        normal_text_color="black" 
                                         disabled_text_color="gray" 
                                         normal_color="#F3F2F1" 
                                         hot_color="#E5E5E5" 
