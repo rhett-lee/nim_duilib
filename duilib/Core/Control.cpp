@@ -535,6 +535,15 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("fade_in_out_y_from_bottom")) || (strName == _T("fadeinoutyfrombottom"))) {
         GetAnimationManager().SetFadeInOutY(strValue == _T("true"), true);
     }
+    else if (strName == _T("fade_frame_interval_ms")) {
+        GetAnimationManager().SetFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_total_ms")) {
+        GetAnimationManager().SetTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_easing_function")) {        
+        GetAnimationManager().SetEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
+    }
     else if ((strName == _T("tab_stop")) || (strName == _T("tabstop"))) {
         SetTabStop(strValue == _T("true"));
     }
