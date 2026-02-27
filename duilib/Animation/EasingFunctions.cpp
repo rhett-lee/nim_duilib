@@ -528,7 +528,7 @@ EasingFunctionType EasingFunctions::GetEasingFunctionType(DString easingFunction
     return it == easingFunctions.end() ? EaseLinear : it->second;
 }
 
-EasingFunctions::EasingFunctions(int64_t nStartValue, int64_t nEndValue, int32_t nFrameCount, EasingFunctionType easingFunctionType) :
+EasingFunctions::EasingFunctions(int32_t nStartValue, int32_t nEndValue, int32_t nFrameCount, EasingFunctionType easingFunctionType) :
     m_nStartValue(nStartValue),
     m_nEndValue(nEndValue),
     m_nFrameCount(nFrameCount)
@@ -585,9 +585,9 @@ static double InterpolateFunction(double start, double end, double t, EasingFunc
     return result;
 }
 
-int64_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
+int32_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
 {
-    int64_t nEasingValue = m_nEndValue;
+    int32_t nEasingValue = m_nEndValue;
     ASSERT(nCurrentFrame >= 0);
     if (nCurrentFrame < 0) {
         return nEasingValue;
@@ -599,34 +599,22 @@ int64_t EasingFunctions::GetEasingValue(int32_t nCurrentFrame) const
         return nEasingValue;
     }
 
-    // 定义double能精确表示的int64_t上下限（2^53）
-    const int64_t DOUBLE_INT_PRECISION_MAX = 9007199254740992LL;
-    const int64_t DOUBLE_INT_PRECISION_MIN = -9007199254740992LL;
-    ASSERT((m_nStartValue >= DOUBLE_INT_PRECISION_MIN) && (m_nStartValue <= DOUBLE_INT_PRECISION_MAX));
-    ASSERT((m_nEndValue >= DOUBLE_INT_PRECISION_MIN) && (m_nEndValue <= DOUBLE_INT_PRECISION_MAX));
-    if (m_nStartValue > DOUBLE_INT_PRECISION_MAX || m_nStartValue < DOUBLE_INT_PRECISION_MIN) {
-        return nEasingValue;
-    }
-    if (m_nEndValue > DOUBLE_INT_PRECISION_MAX || m_nEndValue < DOUBLE_INT_PRECISION_MIN) {
-        return nEasingValue;
-    }
-
     double start = static_cast<double>(m_nStartValue);
     double end = static_cast<double>(m_nEndValue);
     double t = static_cast<double>(nCurrentFrame) / static_cast<double>(m_nFrameCount);
     double fValue = InterpolateFunction(start, end, t, m_easingFunction);
     if (!std::isnan(fValue) && !std::isinf(fValue)) {
-        nEasingValue = static_cast<int64_t>(std::round(fValue));
+        nEasingValue = static_cast<int32_t>(std::round(fValue));
     }
     return nEasingValue;
 }
 
-int64_t EasingFunctions::GetStartValue() const
+int32_t EasingFunctions::GetStartValue() const
 {
     return m_nStartValue;
 }
 
-int64_t EasingFunctions::GetEndValue() const
+int32_t EasingFunctions::GetEndValue() const
 {
     return m_nEndValue;
 }

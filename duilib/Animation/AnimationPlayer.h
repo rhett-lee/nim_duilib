@@ -7,7 +7,7 @@
 namespace ui 
 {
 
-typedef std::function<void (int64_t)> AnimationPlayCallback;     //播放回调函数
+typedef std::function<void (int32_t)> AnimationPlayCallback;     //播放回调函数
 typedef std::function<void (void)> AnimationCompleteCallback;    //播放完成回调函数
 
 //缓动函数的实现
@@ -45,20 +45,20 @@ public:
     /** 设置动画播放起始值
     * @param [in] startValue 动画播放的起始值
     */
-    void SetStartValue(int64_t startValue) { m_startValue = startValue; }
+    void SetStartValue(int32_t startValue) { m_startValue = startValue; }
 
     /** 获取动画播放起始值
     */
-    int64_t GetStartValue() const { return m_startValue; }
+    int32_t GetStartValue() const { return m_startValue; }
 
     /** 设置动画播放结束值
     * @param [in] endValue 动画播放的结束值
     */
-    void SetEndValue(int64_t endValue) { m_endValue = endValue; }
+    void SetEndValue(int32_t endValue) { m_endValue = endValue; }
 
     /** 获取动画播放结束值
     */
-    int64_t GetEndValue() const { return m_endValue; }
+    int32_t GetEndValue() const { return m_endValue; }
 
     /** 设置播放动画的定时器时间间隔（毫秒）
     * @param [in] frameIntervalMillSeconds 播放动画的定时器时间间隔（毫秒）
@@ -114,7 +114,7 @@ public:
 public:
     /** 获取动画当前值
     */
-    int64_t GetCurrentValue() { return m_currentValue; }
+    int32_t GetCurrentValue() { return m_currentValue; }
 
     /** 是否正在播放中
     */
@@ -146,11 +146,11 @@ private:
 private:
     /** 起始值
     */
-    int64_t m_startValue;
+    int32_t m_startValue;
 
     /** 结束值
     */
-    int64_t m_endValue;
+    int32_t m_endValue;
 
     /** 播放动画的定时器时间间隔（毫秒）
     */
@@ -171,7 +171,11 @@ private:
 private:
     /** 当前值
     */
-    int64_t m_currentValue;
+    int32_t m_currentValue;
+
+    /** 当前播放的帧序号
+    */
+    int32_t m_frameIndex;
 
     /** 定时器终止标志
     */
@@ -180,10 +184,6 @@ private:
     /** 缓动函数的实现
     */
     std::unique_ptr<EasingFunctions> m_pEasingFunctions;
-
-    /** 当前播放的帧序号
-    */
-    int32_t m_frameIndex;
 
     /** 动画类型
     */
