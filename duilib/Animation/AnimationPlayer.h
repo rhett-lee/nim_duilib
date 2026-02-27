@@ -91,33 +91,34 @@ public:
     */
     void Start();
 
-    /** 是否正在播放中
-    */
-    bool IsPlaying() const { return m_bPlaying; }
-
-    /** 动画结束
-    */
-    void Stop();
-
     /** 动画继续（从起始值 到 结束值）
     */
     void Continue();
+
+    /** 动画反向开始
+    */
+    void ReverseStart();
 
     /** 动画反向继续（从结束值 到 起始值，反向动画）
     */
     void ReverseContinue();
 
-    /** 获取动画当前值
+    /** 动画结束
     */
-    int64_t GetCurrentValue() { return m_currentValue; }
+    void Stop();
 
     /** 停止并清理资源
     */
     void Clear();
 
-    /** 重置状态
+public:
+    /** 获取动画当前值
     */
-    void Reset();
+    int64_t GetCurrentValue() { return m_currentValue; }
+
+    /** 是否正在播放中
+    */
+    bool IsPlaying() const { return m_bPlaying; }
 
 private:
     /** 初始化
@@ -125,8 +126,10 @@ private:
     void Init();
 
     /** 启动动画定时器
+    * @param [in] bContinueMode true表示为继续模式（不重新开始，接着原来的进度继续），false表示重新开始
+    * @param [in] bOldReversePlay 原来的播放模式是否为逆向播放, 该参数仅当bContinueMode为true的时候有效
     */
-    void StartTimer();
+    void StartTimer(bool bContinueMode, bool bOldReversePlay);
 
     /** 播放一次动画（在定时器中触发调用）
     */
@@ -196,7 +199,7 @@ private:
 
     /** 是否正在反向播放
     */
-    bool m_reverseStart;
+    bool m_bReversePlay;
 };
 
 } // namespace ui

@@ -95,6 +95,14 @@ private:
     */
     Control* m_pControl;
 
+    /** 当前可见值
+    */
+    bool m_bControlVisible;
+
+    /** 当前可见值是否已经初始化
+    */
+    bool m_bControlVisibleInited;
+
     /** 每个动画类型下的动画播放接口
     */
     std::map<AnimationType, std::unique_ptr<AnimationPlayer>> m_animationMap;

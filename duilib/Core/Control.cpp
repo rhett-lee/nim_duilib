@@ -1848,18 +1848,12 @@ size_t Control::GetUserDataID() const
 
 void Control::SetFadeVisible(bool bVisible)
 {
-    if (IsVisible() == bVisible) {
-        //可见属性未发生变化，不触发动画
-        SetVisible(bVisible);
+    //动画形式显示或者隐藏控件
+    if (bVisible) {
+        GetAnimationManager().Appear();
     }
     else {
-        //可见属性发生变化，触发动画
-        if (bVisible) {
-            GetAnimationManager().Appear();
-        }
-        else {
-            GetAnimationManager().Disappear();
-        }
+        GetAnimationManager().Disappear();
     }
 }
 

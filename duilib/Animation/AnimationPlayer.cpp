@@ -18,12 +18,6 @@ AnimationPlayer::~AnimationPlayer()
 {
 }
 
-void AnimationPlayer::Reset()
-{
-    m_weakFlagOwner.Cancel();
-    Init();
-}
-
 void AnimationPlayer::Clear()
 {
     m_weakFlagOwner.Cancel();
@@ -40,7 +34,7 @@ void AnimationPlayer::Init()
     m_currentValue = 0;
     m_totalMillSeconds = -1;
     m_frameIntervalMillSeconds = -1;
-    m_reverseStart = false;
+    m_bReversePlay = false;
     m_bPlaying = false;
     m_frameIndex = 0;
     m_pEasingFunctions.reset();
@@ -50,40 +44,61 @@ void AnimationPlayer::Init()
 void AnimationPlayer::Start()
 {
     m_weakFlagOwner.Cancel();
-    if (m_reverseStart) {
+    if (m_bReversePlay) {
         ReverseAllValue();
-        m_reverseStart = false;
+        m_bReversePlay = false;
     }
-    StartTimer();
+    StartTimer(false, false);
 }
 
 void AnimationPlayer::Stop()
 {
     m_weakFlagOwner.Cancel();
+    if (m_bReversePlay) {
+        ReverseAllValue();
+        m_bReversePlay = false;
+    }
+    m_pEasingFunctions.reset();
+    m_frameIndex = 0;
+    m_currentValue = m_startValue;
     m_bPlaying = false;
 }
 
 void AnimationPlayer::Continue()
 {
+    const bool bContinueMode = IsPlaying();
+    const bool bOldReversePlay = m_bReversePlay;
     m_weakFlagOwner.Cancel();
-    if (m_reverseStart) {
+    if (m_bReversePlay) {
         ReverseAllValue();
-        m_reverseStart = false;
+        m_bReversePlay = false;
+    }    
+    StartTimer(bContinueMode, bOldReversePlay);
+}
+
+void AnimationPlayer::ReverseStart()
+{
+    m_weakFlagOwner.Cancel();
+    if (!m_bReversePlay) {
+        ReverseAllValue();
+        m_bReversePlay = true;
     }
-    StartTimer();
+    StartTimer(false, false);
 }
 
 void AnimationPlayer::ReverseContinue()
 {
+    const bool bContinueMode = IsPlaying();
+    const bool bOldReversePlay = m_bReversePlay;
     m_weakFlagOwner.Cancel();
-    if (!m_reverseStart) {
+    if (!m_bReversePlay) {
         ReverseAllValue();
-        m_reverseStart = true;
-    }
-    StartTimer();
+        m_bReversePlay = true;
+    }    
+    StartTimer(bContinueMode, bOldReversePlay);
 }
 
-void AnimationPlayer::StartTimer()
+void AnimationPlayer::StartTimer(bool bContinueMode, bool bOldReversePlay)
 {
     if (m_endValue == m_startValue) {
         Complete();
@@ -105,13 +120,45 @@ void AnimationPlayer::StartTimer()
     if (frameCount < 1) {
         frameCount = 1;
     }
-    m_bPlaying = true;
-    m_frameIndex = 0;
-    m_pEasingFunctions = std::make_unique<EasingFunctions>(m_startValue, m_endValue, frameCount, m_easingFunctionType);
-    m_currentValue = m_startValue;
 
+    //检查是否应继续操作（不重新开始播放，而是继续操作）
+    if (m_pEasingFunctions == nullptr) {
+        bContinueMode = false;
+    }
+    if (bContinueMode && (m_pEasingFunctions != nullptr)) {
+        int64_t nStartValue = m_startValue;
+        int64_t nEndValue = m_endValue;
+        if (bOldReversePlay != m_bReversePlay) {
+            std::swap(nStartValue, nEndValue);
+        }
+        if ((m_pEasingFunctions->GetFrameCount() != frameCount) ||
+            (m_pEasingFunctions->GetStartValue() != nStartValue) ||
+            (m_pEasingFunctions->GetEndValue() != nEndValue)) {
+            //重要的参数已经变化，重新开始
+            bContinueMode = false;
+        }
+    }
+    m_bPlaying = true;
+    m_pEasingFunctions = std::make_unique<EasingFunctions>(m_startValue, m_endValue, frameCount, m_easingFunctionType);
+    if (bContinueMode && (m_frameIndex >= 0) && (m_frameIndex <= frameCount)) {
+        //继续上次的开始播放
+        if (bOldReversePlay != m_bReversePlay) {
+            m_frameIndex = frameCount - m_frameIndex;
+        }
+        m_currentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
+    }
+    else {
+        //重新开始
+        m_frameIndex = 0;
+        m_currentValue = m_startValue;
+    }
     auto playCallback = UiBind(&AnimationPlayer::Play, this);
     GlobalManager::Instance().Timer().AddTimer(m_weakFlagOwner.GetWeakFlag(), playCallback, (uint32_t)timerIntervalMs);
+
+    //首次调用，初始化当前的值（避免延迟调用导致的错误，比如设置控件大小、位置时，必须做初始化，否则会出现异常）
+    if (m_playCallback) {
+        m_playCallback(m_currentValue);
+    }
 }
 
 void AnimationPlayer::Play()
@@ -153,4 +200,4 @@ void AnimationPlayer::Complete()
     }
 }
 
-}
+} //namespace ui

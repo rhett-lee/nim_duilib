@@ -6,7 +6,9 @@ namespace ui
 {
 
 AnimationManager::AnimationManager(Control* pControl) :
-    m_pControl(pControl)
+    m_pControl(pControl),
+    m_bControlVisible(false),
+    m_bControlVisibleInited(false)
 {
 }
 
@@ -232,10 +234,17 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 
 void AnimationManager::Appear()
 {
+    //仅当可见属性发生变化时，才触发控件动画
     ASSERT(m_pControl != nullptr);
-    if (m_pControl != nullptr) {
-        m_pControl->SetVisible(true);
+    if (m_pControl == nullptr) {
+        return;
     }
+    const bool bOldVisible = m_bControlVisible;
+    const bool bOldVisibleInited = m_bControlVisibleInited;
+    const bool bNewVisible = true;
+
+    m_pControl->SetVisible(true);
+
     static std::vector<AnimationType> animationList;
     if (animationList.empty()) {
         animationList.push_back(AnimationType::kAnimationAlpha);
@@ -249,11 +258,32 @@ void AnimationManager::Appear()
     if (!m_animationMap.empty()) {
         for (AnimationType animationType : animationList) {
             if (HasAnimationPlayer(animationType)) {
-                m_animationMap[animationType]->SetCompleteCallback(AnimationCompleteCallback());
-                m_animationMap[animationType]->Continue();
+                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
+                pAnimationPlayer->SetCompleteCallback(AnimationCompleteCallback());
+                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
+                    //可见属性未发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->Continue();
+                    }
+                    else {
+                        pAnimationPlayer->Stop();
+                    }
+                }
+                else {
+                    //可见属性发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->Continue();
+                    }
+                    else {
+                        pAnimationPlayer->Start();
+                    }
+                }
             }
         }
     }
+
+    m_bControlVisibleInited = true;
+    m_bControlVisible = true;
 }
 
 void AnimationManager::Disappear()
@@ -263,6 +293,10 @@ void AnimationManager::Disappear()
     if (m_pControl == nullptr) {
         return;
     }
+    //仅当可见属性发生变化时，才触发控件动画
+    const bool bOldVisible = m_bControlVisible;
+    const bool bOldVisibleInited = m_bControlVisibleInited;
+    const bool bNewVisible = false;
 
     AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
     static std::vector<AnimationType> animationList;
@@ -278,8 +312,26 @@ void AnimationManager::Disappear()
     if (!m_animationMap.empty()) {
         for (AnimationType animationType : animationList) {
             if (HasAnimationPlayer(animationType)) {
-                m_animationMap[animationType]->SetCompleteCallback(completeCallback);
-                m_animationMap[animationType]->ReverseContinue();
+                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
+                pAnimationPlayer->SetCompleteCallback(completeCallback);
+                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
+                    //可见属性未发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->ReverseContinue();
+                    }
+                    else {
+                        pAnimationPlayer->Stop();
+                    }
+                }
+                else {
+                    //可见属性发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->ReverseContinue();
+                    }
+                    else {
+                        pAnimationPlayer->ReverseStart();
+                    }
+                }
                 handled = true;
             }
         }
@@ -288,6 +340,8 @@ void AnimationManager::Disappear()
     if (!handled) {
         m_pControl->SetVisible(false);
     }
+    m_bControlVisibleInited = true;
+    m_bControlVisible = false;
 }
 
 void AnimationManager::MouseEnter()
