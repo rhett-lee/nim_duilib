@@ -340,8 +340,12 @@ VirtualHTileListBox 控件继承了 `VirtualListBox` 属性，更多可用属性
 ### 25. TabBox的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| fade_switch | false | bool | 当切换页面时是否使用动画效果, 取值："false" 或 "true" |
 | selected_id | 0 | int | 默认选中的页面id |
+| fade_switch | true | bool | 当切换页面时是否使用动画效果, 取值："false" 或 "true" |
+| fade_switch_type | "FadeInOut" | string | 页面切换的动画类型，取值："FadeInOut" 表示淡入淡出，"FadeInOutX" 表示内容区横向滑动 |
+| fade_switch_frame_interval_ms | 16 | int | 播放切换动画的定时器时间间隔（毫秒）|
+| fade_switch_total_ms | 200 | int | 切换动画总的播放时间（毫秒）|
+| fade_switch_easing_function | "EaseOutCubic" | string | 切换动画缓动函数类型 |
 
 TabBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 

@@ -83,9 +83,17 @@ public:
     */
     void SetPlayCallback(const AnimationPlayCallback& playCallback) { m_playCallback = playCallback; }
 
+    /** 获取播放回调函数
+    */
+    AnimationPlayCallback GetPlayCallback() const { return m_playCallback; }
+
     /** 设置播放完成回调函数
     */
     void SetCompleteCallback(const AnimationCompleteCallback& completeCallback) { m_completeCallback = completeCallback; }
+
+    /** 获取播放完成回调函数
+    */
+    AnimationCompleteCallback GetCompleteCallback() const { return m_completeCallback; }
 
     /** 动画开始
     */
