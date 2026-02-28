@@ -506,10 +506,9 @@ chmod +x ./build/freebsd_build.sh
 编译完成后，在bin目录中生成了可执行文件。    
 
 ## 开发计划
- - 跨平台（Windows/Linux/macOS/FreeBSD）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
- - 动画功能的加强
- - 不断测试发现缺陷并修复，不断完善代码
- - 其他待补充
+ - 继续丰富界面库的控件，完善界面库的功能
+ - 跨平台（Windows/Linux/macOS/FreeBSD）窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）的不断测试与完善（目前X11/XWayland桌面环境下较稳定，但纯Wayland桌面环境下问题较多）
+ - 测试界面库，发现缺陷并修复，不断完善代码
 
 ## 参考文档
 

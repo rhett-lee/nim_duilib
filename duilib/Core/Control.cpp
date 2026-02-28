@@ -899,6 +899,14 @@ void Control::SetFadeHot(bool bFadeHot)
     }
 }
 
+AnimationPlayer* Control::GetHotAnimationPlayer() const
+{
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return nullptr;
+    }
+    return m_pHotAnimationPlayer.get();
+}
+
 void Control::SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
 {
     if (m_pHotAnimationPlayer == nullptr) {
@@ -958,6 +966,9 @@ EasingFunctionType Control::GetFadeHotEasingFunctionType() const
 
 bool Control::HasAnimationPlayer(AnimationType animationType) const
 {
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return false;
+    }
     if (animationType == AnimationType::kAnimationHot) {
         return m_pHotAnimationPlayer != nullptr;
     }
@@ -971,6 +982,9 @@ bool Control::HasAnimationPlayer(AnimationType animationType) const
 
 bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
 {
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return false;
+    }
     if (animationType == AnimationType::kAnimationHot) {
         return (m_pHotAnimationPlayer != nullptr) && m_pHotAnimationPlayer->IsPlaying();
     }
@@ -1966,11 +1980,18 @@ size_t Control::GetUserDataID() const
 void Control::SetFadeVisible(bool bVisible)
 {
     //动画形式显示或者隐藏控件
-    if (bVisible) {
-        GetAnimationManager().Appear();
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        // 动画功能关闭
+        SetVisible(bVisible);
     }
     else {
-        GetAnimationManager().Disappear();
+        // 动画功能开启
+        if (bVisible) {
+            GetAnimationManager().Appear();
+        }
+        else {
+            GetAnimationManager().Disappear();
+        }
     }
 }
 
@@ -2712,8 +2733,9 @@ bool Control::MouseEnter(const EventArgs& msg)
         if (GetState() == kControlStateNormal) {            
             if (HasHotState()) {
                 //Hot状态动画
-                if (m_pHotAnimationPlayer != nullptr) {
-                    m_pHotAnimationPlayer->Continue();
+                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+                if (pHotAnimationPlayer != nullptr) {
+                    pHotAnimationPlayer->Continue();
                 }
             }
             PrivateSetState(kControlStateHot);
@@ -2748,8 +2770,9 @@ bool Control::MouseLeave(const EventArgs& msg)
             PrivateSetState(kControlStateNormal);
             if (HasHotState()) {
                 //Hot状态动画
-                if (m_pHotAnimationPlayer != nullptr) {
-                    m_pHotAnimationPlayer->ReverseContinue();
+                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+                if (pHotAnimationPlayer != nullptr) {
+                    pHotAnimationPlayer->ReverseContinue();
                 }
             }
             Invalidate();
@@ -2795,8 +2818,9 @@ bool Control::ButtonUp(const EventArgs& msg)
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
         //停止Hot状态动画
-        if (m_pHotAnimationPlayer != nullptr) {
-            m_pHotAnimationPlayer->Stop();
+        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+        if (pHotAnimationPlayer != nullptr) {
+            pHotAnimationPlayer->Stop();
         }
         Invalidate();
         if( IsPointInWithScrollOffset(msg.ptMouse) ) {
@@ -3013,8 +3037,9 @@ bool Control::OnKillFocus(const EventArgs& msg)
         //失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
         SetMouseFocused(false);
         //停止Hot状态动画
-        if (m_pHotAnimationPlayer != nullptr) {
-            m_pHotAnimationPlayer->Stop();
+        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+        if (pHotAnimationPlayer != nullptr) {
+            pHotAnimationPlayer->Stop();
         }
         SetState(kControlStateNormal);
     }
