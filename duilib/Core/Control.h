@@ -1628,6 +1628,11 @@ private:
     bool HasXmlBubbledEventMap() const;
 
 private:
+    /** 获取Hot动画的播放接口
+    */
+    AnimationPlayer* GetHotAnimationPlayer() const;
+
+private:
     /** 图片异步解码的实现函数
     */
     struct TAsyncImageDecode;

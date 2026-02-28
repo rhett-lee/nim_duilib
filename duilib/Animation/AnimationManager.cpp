@@ -56,7 +56,6 @@ AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndA
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
         m_animationMap[animationType].reset(pAnimationPlayer);
-        m_pControl->SetAlpha(0);
     }
     else {
         m_animationMap.erase(animationType);

@@ -68,7 +68,8 @@ private:
 };
 
 GlobalManager::GlobalManager():
-    m_platformData(nullptr)
+    m_platformData(nullptr),
+    m_bAnimationEnabled(true)
 {
 }
 
@@ -1059,6 +1060,16 @@ void GlobalManager::AddAtExitFunction(std::function<void()> atExitFunction)
     if (atExitFunction != nullptr) {
         m_atExitFunctions.push_back(atExitFunction);
     }
+}
+
+void GlobalManager::SetAnimationEnabled(bool bEnable)
+{
+    m_bAnimationEnabled = bEnable;
+}
+
+bool GlobalManager::IsAnimationEnabled() const
+{
+    return m_bAnimationEnabled;
 }
 
 } // namespace ui

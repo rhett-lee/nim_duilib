@@ -362,6 +362,16 @@ public:
     */
     void AddAtExitFunction(std::function<void()> atExitFunction);
 
+public:
+    /** 设置是否开启控件动画（比如淡入淡出等动画）
+    * @param [in] bEnable true表示开启控件动画，false表示不开启控件动画
+    */
+    void SetAnimationEnabled(bool bEnable);
+
+    /** 获取是否开启控件动画（比如淡入淡出等动画）
+    */
+    bool IsAnimationEnabled() const;
+
 private:
     /** 从缓存中删除所有图片
      */
@@ -484,6 +494,10 @@ private:
     /** 库内部使用的线程池
     */
     std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
+
+    /** 是否开启控件动画（比如淡入淡出等动画）
+    */
+    bool m_bAnimationEnabled;
 };
 
 } // namespace ui
