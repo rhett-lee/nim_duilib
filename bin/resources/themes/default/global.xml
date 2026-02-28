@@ -97,41 +97,17 @@
     <TextColor name="bk_menuitem_selected" value="#ffced4db"/>
     <TextColor name="bk_listitem_hovered" value="#fff0f2f5"/>
     <TextColor name="bk_listitem_selected" value="#ffe4e7eb"/>
-    <!--置顶项的背景颜色-->
-    <TextColor name="bk_topitem_normal" value="#ffffffe0"/>
-    <TextColor name="bk_topitem_hovered" value="#ffffffeb"/>
-    <TextColor name="bk_topitem_selected" value="#fffafacd"/>
     <!--进度条专用-->
-    <TextColor name="bk_progress_bk" value="#ffe3ecf5"/>
-    <TextColor name="bk_progress_progress" value="#ff2aceae"/>
-    <!--背景色值，半透明-->
-    <TextColor name="transbkblack" value="#80000000"/>
-    <TextColor name="maskbkblack" value="#81000000"/>
+    <TextColor name="bk_progress_progress" value="#ff2aceae"/>    
     <!--第一级分割线，较深-->
     <TextColor name="splitline_level1" value="#ffd2d4d6"/>
     <!--第二级分割线，较浅-->
     <TextColor name="splitline_level2" value="#ffebedf0"/>
-    <!--调色板色值-->
-    <TextColor name="color_palette1" value="#ffff2600"/>
-    <TextColor name="color_palette2" value="#ffffeb00"/>
-    <TextColor name="color_palette3" value="#ff61ed00"/>
-    <TextColor name="color_palette4" value="#ff00b4ff"/>
-    <TextColor name="color_palette5" value="#ffa100ff"/>
-    <TextColor name="color_palette6" value="#ff000000"/>
-    <TextColor name="color_palette7" value="#ff545454"/>
-    <TextColor name="color_palette8" value="#ffa8a8a8"/>
-    <TextColor name="color_palette9" value="#ffffffff"/>
-    <!--duilib控件相关颜色-->
-    <TextColor name="grid_line" value="#ffcccccc"/>
-    <TextColor name="grid_sel_fore" value="#ff20b0fb"/>
-    
+    <!--编辑框专用-->
     <TextColor name="richedit_border_color" value="#AAA8A8A8"/>
     <TextColor name="richedit_hot_border_color" value="CornflowerBlue"/>
     <TextColor name="richedit_focus_border_color" value="#FF8591A2"/>
     <TextColor name="richedit_focus_bottom_border_color" value="#FF1D6978"/>
-
-    <!--字体大小-->
-    <Class name="font_title" font="system_14"/>
     <!--滚动条: 简约风格，为默认滚动条样式，不可删除-->
     <Class name="vscrollbar" width="12" fade_alpha="true" 
                              thumb_normal_image="file='public/scrollbar01/vscrollbar/thumb_normal.svg' width='12' corner='0,8,0,8'" 
@@ -316,24 +292,19 @@
                               hot_image="file='public/button/btn_recycle_hovered.svg'" 
                               pushed_image="file='public/button/btn_recycle_pushed.svg'" 
                               disabled_image="file='public/button/btn_recycle_normal.svg' fade='80'"/>
-    <!--列表通用样式-->
+    <!--列表ListBox通用样式-->
     <Class name="list" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
     <Class name="listitem" hot_color="bk_listitem_hovered" 
                            pushed_color="bk_listitem_selected" 
-                           selected_normal_color="bk_listitem_selected" 
-                           fadehot="false"/>
-    <Class name="list_topitem" normal_color="bk_topitem_normal" 
-                               hot_color="bk_topitem_hovered" 
-                               pushed_color="bk_topitem_selected" 
-                               selected_normal_color="bk_topitem_selected" 
-                               fadehot="false"/>
+                           selected_normal_color="bk_listitem_selected"
+                           fade_hot="false"/>
     <!--TreeView通用样式-->
     <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
     <Class name="tree_node" height="28" hot_color="bk_listitem_hovered" 
                                         pushed_color="bk_listitem_selected" 
                                         selected_normal_color="bk_listitem_selected" 
                                         icon_image_right_space="4" 
-                                        fadehot="false"/>
+                                        fade_hot="false"/>
     <Class name="tree_node_checkbox" normal_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
                                      disabled_image="file='public/checkbox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
                                      selected_normal_image="file='public/checkbox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 
