@@ -874,6 +874,7 @@ void Control::SetFadeHot(bool bFadeHot)
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(255);
         ControlPtr pControl(this);
+
         AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
                 if (pControl != nullptr) {
                     if (nNewValue < 0) {
@@ -886,6 +887,15 @@ void Control::SetFadeHot(bool bFadeHot)
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
+
+        //完成动画以后，需要重绘一次
+        AnimationCompleteCallback completeCallback = [pControl]() {
+                if (pControl != nullptr) {
+                    pControl->Invalidate();
+                }
+            };
+        pAnimationPlayer->SetCompleteCallback(completeCallback);
+
         if (m_pHotAnimationPlayer != nullptr) {
             //同步属性
             pAnimationPlayer->SetTotalMillSeconds(m_pHotAnimationPlayer->GetTotalMillSeconds());

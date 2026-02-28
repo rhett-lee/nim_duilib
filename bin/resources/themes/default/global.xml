@@ -528,8 +528,8 @@
     <!--TabCtrl控件通用样式-->
     <Class name="tab_ctrl" width="stretch" height="36" border_round="4,4" bkcolor="#FFD3E3FD" vscrollbar="true"/>
     <Class name="tab_ctrl_item" margin="0,4,0,0" height="32"  padding="10,0,0,0"
-                                hot_color="#FFA8C7FA" pushed_color="#FFA8C7FA" 
-                                selected_normal_color="white" selected_round_corner="12,12" fadehot="false"                                
+                                hot_color="#FFA8C7FA" pushed_color="#FFA8C7FA" fade_hot_total_ms="150"
+                                selected_normal_color="white" selected_round_corner="12,12"
                                 hot_round_corner="5,5" hot_padding="3,0,3,3"
                                 auto_hide_close_button="true"
                                 icon_class="tab_ctrl_item_icon"
@@ -541,7 +541,7 @@
     <Class name="tab_ctrl_item_close" width="16" height="16" margin="0,2,10,8"
                 float="true" halign="right" valign="center" visible="false" 
                 normal_image="file='public/button/btn_close.svg' height='16' width='16' halign='center' valign='center'"
-                hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4" alpha="192"/>
+                hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4" alpha="192" fade_alpha="true"/>
     <Class name="tab_ctrl_item_line" bkcolor="#FFA8C7FA" width="1" height="22" float="true" halign="right" valign="center" mouse_enabled="false"/>
     
     <!--AddressBar控件通用样式-->
