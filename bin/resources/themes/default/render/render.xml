@@ -38,7 +38,11 @@
                 <TabCtrlItem class="tab_ctrl_item" title="控件测试" close_button_class="" tab_box_item_index="11"/>
                 <TabCtrlItem class="tab_ctrl_item" title="控件动画" close_button_class="" tab_box_item_index="12"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
+            <TabBox name="main_view_tab" bkcolor="white" selected_id="0"
+                    fade_switch_type="FadeInOut" 
+                    fade_switch_frame_interval_ms="16" 
+                    fade_switch_total_ms="180"
+                    fade_switch_easing_function="EaseOutCubic">
                 <VBox name="main_view_page_00">
                     <Label text="页面1：用标准控件测试所有支持的图片格式"/>
                     <Include src="page_image1.xml"/>

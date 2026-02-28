@@ -42,7 +42,11 @@
                 <TabCtrlItem class="tab_ctrl_item" title="GridBox" close_button_class="" tab_box_item_index="15"/>
                 <TabCtrlItem class="tab_ctrl_item" title="GridScrollBox" close_button_class="" tab_box_item_index="16"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
+            <TabBox name="main_view_tab" bkcolor="white" selected_id="0"
+                    fade_switch_type="FadeInOutX" 
+                    fade_switch_frame_interval_ms="16" 
+                    fade_switch_total_ms="220"
+                    fade_switch_easing_function="EaseOutCubic">
                 <VBox name="main_view_page_00">
                     <Include src="page_box.xml"/>
                 </VBox>
