@@ -336,10 +336,12 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
         };
     if (pColumnShowCheckBox != nullptr) {
         bool bCheckBoxVisible = false;
-        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
-        ASSERT(pHeaderItem != nullptr);
-        if (pHeaderItem != nullptr) {
-            bCheckBoxVisible = pHeaderItem->IsShowCheckBox();
+        if (pListCtrl->GetColumnCount() > 0) {
+            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
+            ASSERT(pHeaderItem != nullptr);
+            if (pHeaderItem != nullptr) {
+                bCheckBoxVisible = pHeaderItem->IsShowCheckBox();
+            }
         }
         pColumnShowCheckBox->Selected(bCheckBoxVisible, false);
         pColumnShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {

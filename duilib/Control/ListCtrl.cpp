@@ -570,7 +570,9 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
                     return;
                 }
             }
-            ASSERT(pItem != nullptr);
+            if (nItemIndex != Box::InvalidIndex) {
+                ASSERT(pItem != nullptr);
+            }
             if (pItem != nullptr) {
                 ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
                 msg.pEventData = pItem;
@@ -583,7 +585,9 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             if (pControl != nullptr) {
                 pItem = dynamic_cast<ListCtrlIconViewItem*>(pControl);
             }
-            ASSERT(pItem != nullptr);
+            if (nItemIndex != Box::InvalidIndex) {
+                ASSERT(pItem != nullptr);
+            }
             if (pItem != nullptr) {
                 ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
                 msg.pEventData = pItem;
@@ -596,7 +600,9 @@ void ListCtrl::OnListCtrlViewEvent(ListCtrlType listCtrlType, const EventArgs& a
             if (pControl != nullptr) {
                 pItem = dynamic_cast<ListCtrlListViewItem*>(pControl);
             }
-            ASSERT(pItem != nullptr);
+            if (nItemIndex != Box::InvalidIndex) {
+                ASSERT(pItem != nullptr);
+            }
             if (pItem != nullptr) {
                 ASSERT(pItem->GetDataItemIndex() == (size_t)msg.lParam);
                 msg.pEventData = pItem;
