@@ -120,10 +120,24 @@ public:
      */
     size_t GetChildNodeIndex(TreeNode* pTreeNode) const;
 
-    /** 获取子节点列表
+    /** 获取子节点列表（只获取一级子节点，不递归获取孙节点）
     * @param [out] childNodes 返回当前树节点的所有子节点列表
     */
     void GetChildNodes(std::vector<TreeNode*>& childNodes) const;
+
+    /** 根据子节点的控件名称(Name)，查找子节点
+    * @param [in] name 被查找的子节点的控件名称（即Control::GetName()的值）
+    * @param [in] bRecursive true表示递归查找，false表示不递归查找，只在当前节点的一级子节点查找
+    * @return 返回匹配的树节点指针，如果名称有重复的，只返回第一个
+    */
+    TreeNode* FindChildNodeByName(const DString& name, bool bRecursive) const;
+
+    /** 根据子节点的显示文本(Text)，查找子节点
+    * @param [in] name 被查找的子节点的显示文本（即LabelTemplate::GetText()的值）
+    * @return 返回匹配的树节点指针，如果显示文本有重复的，只返回第一个
+    * @param [in] bRecursive true表示递归查找，false表示不递归查找，只在当前节点的一级子节点查找
+    */
+    TreeNode* FindChildNodeByText(const DString& text, bool bRecursive) const;
 
     /** 判断是否展开状态
      * @return 返回 true 为展开状态，否则为 false

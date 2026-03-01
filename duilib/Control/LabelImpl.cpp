@@ -390,6 +390,16 @@ bool LabelImpl::IsRichText() const
     return m_bRichText;
 }
 
+bool LabelImpl::IsTextEquals(const DString& text) const
+{
+    if (m_sText.empty() && !m_sTextId.empty()) {
+        return StringUtil::StringCompare(GetText().c_str(), text.c_str()) == 0;
+    }
+    else {
+        return StringUtil::StringCompare(m_sText.c_str(), text.c_str()) == 0;
+    }
+}
+
 DString LabelImpl::GetOwnerText() const
 {
     LabelOwner* pLabelOwner = dynamic_cast<LabelOwner*>(m_pOwner);
