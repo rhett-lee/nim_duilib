@@ -1046,6 +1046,54 @@ void TreeNode::GetChildNodes(std::vector<TreeNode*>& childNodes) const
     }
 }
 
+TreeNode* TreeNode::FindChildNodeByName(const DString& name, bool bRecursive) const
+{
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            if (pNode->IsNameEquals(name)) {
+                return pNode;
+            }
+        }
+    }
+    if (!bRecursive) {
+        return nullptr;
+    }
+    //递归查找，孙节点等多级子节点
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            TreeNode* pFoundNode = pNode->FindChildNodeByName(name, bRecursive);
+            if (pFoundNode != nullptr) {
+                return pFoundNode;
+            }
+        }
+    }
+    return nullptr;
+}
+
+TreeNode* TreeNode::FindChildNodeByText(const DString& text, bool bRecursive) const
+{
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            if (pNode->IsTextEquals(text)) {
+                return pNode;
+            }
+        }
+    }
+    if (!bRecursive) {
+        return nullptr;
+    }
+    //递归查找，孙节点等多级子节点
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            TreeNode* pFoundNode = pNode->FindChildNodeByText(text, bRecursive);
+            if (pFoundNode != nullptr) {
+                return pFoundNode;
+            }
+        }
+    }
+    return nullptr;
+}
+
 bool TreeNode::IsExpand() const
 {
     return m_bExpand;

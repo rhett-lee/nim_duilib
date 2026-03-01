@@ -111,6 +111,10 @@ public:
     */
     bool IsRichText() const;
 
+    /** 判断文本是否相等
+    */
+    bool IsTextEquals(const DString& text) const;
+
 public:
     /** 恢复默认的文本样式
     * @param [in] bRedraw true表示重绘，false表示不重绘
