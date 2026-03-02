@@ -76,13 +76,7 @@ public:
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth) override;
-
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) override;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth) override;
-
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) override;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen) override;
 
     virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) override;

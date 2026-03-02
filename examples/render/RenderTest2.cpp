@@ -195,7 +195,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     roundSize.cx = (roundSize.cx / 2) * 2;
     roundSize.cy = (roundSize.cy / 2) * 2;
 
-    pRender->DrawRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(0xffC63535), DpiScaledFloat(2));
+    pRender->DrawRoundRect(UiRectF::MakeFromRect(rect), (float)roundSize.cx, (float)roundSize.cy, UiColor(0xffC63535), DpiScaledFloat(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -225,7 +225,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
         else if (style == 4) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
         }
-        pRender->DrawRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, pen.get());
+        pRender->DrawRoundRect(UiRectF::MakeFromRect(rect), (float)roundSize.cx, (float)roundSize.cy, pen.get());
     }
 
     //填充圆角矩形
