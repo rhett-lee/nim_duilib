@@ -480,8 +480,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 {
     if (hIcon == nullptr) {
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        ClearBkIcon();
         return;
     }
     uint32_t nIconID = GlobalManager::Instance().Icon().AddIcon(hIcon);
@@ -494,8 +493,7 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
     IconManager& iconManager = GlobalManager::Instance().Icon();
     DString iconString = iconManager.GetIconString(nIconID);
     if (iconString.empty()) {
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        ClearBkIcon();
         return;
     }
 
@@ -535,9 +533,8 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
         return;
     }
     if (!oldIconString.empty()) {
-        //旧图标存在，并且图标大小不同，首先清除原来的图标
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        //旧图标存在，首先隐藏原来的图标
+        ClearBkIcon();
     }
 
     SetBkImage(iconString);
@@ -547,6 +544,14 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
     if (m_pTreeView != nullptr) {
         SetEnableIcon(m_pTreeView->IsEnableIcon());
     }
+}
+
+void TreeNode::ClearBkIcon()
+{
+    SetBkImage(_T(""));
+    m_expandIconPadding = 0;
+    m_checkBoxIconPadding = 0;
+    AdjustIconPadding();
 }
 
 void TreeNode::SetExpandImageClass(const DString& expandClass)

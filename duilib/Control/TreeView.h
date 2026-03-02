@@ -181,6 +181,10 @@ public:
      */
     void SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiScale);
 
+    /** 清除节点的图标，不显示节点图标
+    */
+    void ClearBkIcon();
+
     /** 设置是否显示图标
     */
     void SetEnableIcon(bool bEnable);
