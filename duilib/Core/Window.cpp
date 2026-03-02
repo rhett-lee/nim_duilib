@@ -1261,7 +1261,7 @@ bool Window::Paint(const UiRect& rcPaint)
         if (!pRoot->GetBkColor().empty()) {
             bkColor = pRoot->GetUiColor(pRoot->GetBkColor());
         }
-        pRender->FillRect(rcPaint, bkColor);
+        pRender->FillRect(UiRectF::MakeFromRect(rcPaint), bkColor);
     }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)

@@ -166,7 +166,7 @@ void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, Control
     }
     else {
         //直角矩形
-        pRender->FillRect(rcPaint, colorValue, nAlpha);
+        pRender->FillRect(UiRectF::MakeFromRect(rcPaint), colorValue, nAlpha);
     }
 }
 

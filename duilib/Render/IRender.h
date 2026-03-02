@@ -928,7 +928,6 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用渐变颜色填充矩形（支持渐变颜色）
@@ -938,7 +937,6 @@ public:
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
     /** 绘制圆角矩形

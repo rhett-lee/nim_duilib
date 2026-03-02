@@ -220,7 +220,7 @@ void Progress::PaintStateImages(IRender* pRender)
             else {
                 rcProgressColor.top = rcProgressColor.top + rc.top;
             }
-            pRender->FillRect(rcProgressColor, dwProgressColor);
+            pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor);
         }
     }
     if (rc.IsEmpty() || (m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
@@ -358,7 +358,7 @@ void Progress::PaintMarquee(IRender* pRender)
                 rc.top = std::max(m_nMarqueePos, 0) + rc.top;
                 rc.bottom = rc.top + (m_nMarqueePos >= 0 ? GetMarqueeWidth() : (GetMarqueeWidth() + m_nMarqueePos));
             }
-            pRender->FillRect(rc, dwProgressColor);
+            pRender->FillRect(UiRectF::MakeFromRect(rc), dwProgressColor);
         }
     }
 }

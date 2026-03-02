@@ -159,7 +159,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     //填充矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRect(rect, UiColor(UiColors::Brown));
+    pRender->FillRect(UiRectF::MakeFromRect(rect), UiColor(UiColors::Brown));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -169,7 +169,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRect(rect, UiColor(UiColors::Brown), 128);
+    pRender->FillRect(UiRectF::MakeFromRect(rect), UiColor(UiColors::Brown), 128);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;

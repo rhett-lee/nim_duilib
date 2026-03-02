@@ -3691,10 +3691,10 @@ void Control::PaintBkColor(IRender* pRender)
                 if (m_pColorData != nullptr) {
                     nColor2Direction = m_pColorData->m_nBkColor2Direction;
                 }
-                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
+                pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwBackColor, dwBackColor2, nColor2Direction);
             }
             else {
-                pRender->FillRect(fillRect, dwBackColor);
+                pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwBackColor);
             }            
         }
     }
@@ -3737,7 +3737,7 @@ void Control::PaintForeColor(IRender* pRender)
             FillRoundRect(pRender, fillRect, fRoundWidth, fRoundHeight, dwForeColor);
         }
         else {
-            pRender->FillRect(fillRect, dwForeColor);
+            pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwForeColor);
         }
     }
 }
