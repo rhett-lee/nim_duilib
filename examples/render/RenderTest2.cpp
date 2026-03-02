@@ -231,7 +231,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     //填充圆角矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue));
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rect), (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -242,7 +242,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue), 128);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rect), (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue), 128);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;

@@ -1142,12 +1142,6 @@ void Render_Skia::DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen
     }
 }
 
-void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    FillRoundRect(rcF, rx, ry, dwColor, uFade);
-}
-
 void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1166,12 +1160,6 @@ void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor d
     if (skCanvas != nullptr) {
         skCanvas->drawRoundRect(rcSkDest, rx, ry, skPaint);
     }
-}
-
-void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    FillRoundRect(rcF, rx, ry, dwColor, dwColor2, nColor2Direction, uFade);
 }
 
 void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)

@@ -4079,10 +4079,10 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
         if (m_pColorData != nullptr) {
             nColor2Direction = m_pColorData->m_nBkColor2Direction;
         }
-        pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rc), rx, ry, dwColor, dwBackColor2, nColor2Direction);
     }
     else {
-        pRender->FillRoundRect(rc, rx, ry, dwColor);
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rc), rx, ry, dwColor);
     }  
 }
 
