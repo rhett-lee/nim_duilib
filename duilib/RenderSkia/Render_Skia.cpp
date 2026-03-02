@@ -1062,23 +1062,6 @@ void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen)
     }
 }
 
-void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    DrawRect(rcF, penColor, nWidth, bLineInRect);
-}
-
-void Render_Skia::DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
-{
-    DrawRect(rc, penColor, (float)nWidth, bLineInRect);
-}
-
-void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    DrawRect(rcF, penColor, fWidth, bLineInRect);
-}
-
 void Render_Skia::DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1103,12 +1086,6 @@ void Render_Skia::DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bo
     if (skCanvas != nullptr) {
         skCanvas->drawRect(rcSkDest, skPaint);
     }
-}
-
-void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    DrawRect(rcF, pen, bLineInRect);
 }
 
 void Render_Skia::DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect)

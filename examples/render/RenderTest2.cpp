@@ -123,7 +123,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     //画矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->DrawRect(rect, UiColor(UiColors::Fuchsia), DpiScaledInt(2));
+    pRender->DrawRect(UiRectF::MakeFromRect(rect), UiColor(UiColors::Fuchsia), (float)DpiScaledInt(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -152,7 +152,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
         else if (style == 4) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
         }
-        pRender->DrawRect(rect, pen.get());
+        pRender->DrawRect(UiRectF::MakeFromRect(rect), pen.get());
     }
     
 

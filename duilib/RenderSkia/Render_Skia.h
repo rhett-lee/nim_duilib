@@ -70,13 +70,7 @@ public:
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
 
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
-    virtual void DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
-
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect) override;
     virtual void DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect) override;
-
-    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect) override;
     virtual void DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect) override;
 
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;

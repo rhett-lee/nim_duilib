@@ -911,19 +911,9 @@ public:
     /** 绘制矩形
     * @param [in] rc 矩形区域
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
-    */
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
-    virtual void DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
-
-    /** 绘制矩形
-    * @param [in] rc 矩形区域
-    * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
     virtual void DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
 
     /** 绘制矩形，支持各种线形
@@ -931,7 +921,6 @@ public:
     * @param [in] pen 画笔的接口
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
-    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect = false) = 0;
     virtual void DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect = false) = 0;
 
     /** 用颜色填充矩形

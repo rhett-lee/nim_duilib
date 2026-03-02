@@ -763,7 +763,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
 
             UiPointF pt1(viewRect.left, yPos);
             UiPointF pt2(viewRect.right, yPos);
-            pRender->DrawLine(pt1, pt2, rowLineColor, nRowLineWidth);
+            pRender->DrawLine(pt1, pt2, rowLineColor, (float)nRowLineWidth);
         }
     }
 }

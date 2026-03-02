@@ -282,10 +282,10 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
-            pRender->DrawRect(fadeRect, fadeColor, nLineWidth);
+            pRender->DrawRect(UiRectF::MakeFromRect(fadeRect), fadeColor, (float)nLineWidth);
         }
         //绘制矩形边框
-        pRender->DrawRect(rc, lineColor, nLineWidth);
+        pRender->DrawRect(UiRectF::MakeFromRect(rc), lineColor, (float)nLineWidth);
     }
 
     if (hasClip) {
