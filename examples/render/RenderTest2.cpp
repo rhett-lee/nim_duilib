@@ -565,7 +565,7 @@ bool RenderTest2::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt,
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
         if (spMatrix != nullptr) {
             float angle = 2 * degree * i;
-            spMatrix->RotateAt(angle, UiPoint(0, 0));
+            spMatrix->RotateAt(angle, 0.0f, 0.0f);
             path->Transform(spMatrix.get());
         }        
         if (brushColor.GetARGB() != 0) {

@@ -170,7 +170,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
         if ((spMatrix != nullptr) && ((nMax - nMin) != 0)){
             float angle = direction * 360 * ((float)fValue - nMin) / (nMax - nMin);
-            spMatrix->RotateAt(angle, UiPoint(center.x, center.y));
+            spMatrix->RotateAt(angle, (float)center.x, (float)center.y);
         }
 
         UiRect imageRect;
