@@ -395,22 +395,45 @@ public:
     */
     virtual void Translate(float offsetX, float offsetY) = 0;
 
-    /** 缩放操作
+    /** 缩放操作（以原点为中心）
     * @param [in] scaleX X轴方向缩放比例
     * @param [in] scaleY Y轴方向缩放比例
     */
     virtual void Scale(float scaleX, float scaleY) = 0;
 
-    /** 旋转操作，以源点坐标(0,0)为中心点做旋转操作
+    /** 缩放操作（以 (px, py) 为中心）
+    * @param [in] scaleX X轴方向缩放比例
+    * @param [in] scaleY Y轴方向缩放比例
+    * @param [in] px X轴方向的中心点
+    * @param [in] py Y轴方向的中心点
+    */
+    virtual void Scale(float scaleX, float scaleY, float px, float py) = 0;
+
+    /** 旋转操作（以原点为中心）
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
     */
     virtual void Rotate(float angle) = 0;
 
-    /** 旋转操作，以坐标(center)为中心点做旋转操作
+    /** 旋转操作，以坐标(px,py)为中心点做旋转操作
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
-    * @param [in] center 旋转的中心点坐标值
+    * @param [in] px 旋转的中心点X坐标值
+    * @param [in] py 旋转的中心点Y坐标值
     */
-    virtual void RotateAt(float angle, const UiPoint& center) = 0;
+    virtual void RotateAt(float angle, float px, float py) = 0;
+
+    /** 错切操作（以原点为中心）
+    * @param [in] kx X 轴错切因子
+    * @param [in] ky Y 轴错切因子
+    */
+    virtual void Skew(float kx, float ky) = 0;
+
+    /** 错切操作（以 (px, py) 为中心）
+    * @param [in] kx X 轴错切因子
+    * @param [in] ky Y 轴错切因子
+    * @param [in] px X轴方向的中心点
+    * @param [in] py Y轴方向的中心点
+    */
+    virtual void Skew(float kx, float ky, float px, float py) = 0;
 };
 
 /** 渲染接口中使用的DPI转换辅助接口
