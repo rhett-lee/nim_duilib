@@ -993,24 +993,16 @@ public:
     * @param [in] centerPt 圆心坐标点
     * @param [in] radius 圆的半径
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) = 0;
-
-    /** 绘制圆形
-    * @param [in] centerPt 圆心坐标点
-    * @param [in] radius 圆的半径
-    * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) = 0;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆形，支持各种线形
     * @param [in] centerPt 圆心坐标点
     * @param [in] radius 圆的半径
     * @param [in] pen 画笔的接口
     */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) = 0;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) = 0;
 
     /** 填充圆形
     * @param [in] centerPt 圆心坐标点
@@ -1018,7 +1010,7 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) = 0;
+    virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 绘制路径
     * @param [in] path 路径的接口
