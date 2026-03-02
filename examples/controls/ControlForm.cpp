@@ -31,7 +31,7 @@ void ControlForm::OnInitWindow()
 {
 #ifdef DUILIB_BUILD_FOR_SDL
     //显示SDL的基本信息
-    ui::Label* pTitle = static_cast<ui::Label*>(FindControl(_T("window_title")));
+    ui::Label* pTitle = dynamic_cast<ui::Label*>(FindControl(_T("window_title")));
     if (pTitle != nullptr) {
         DString title = pTitle->GetText();
         DString driverName = GetVideoDriverName();
@@ -41,14 +41,8 @@ void ControlForm::OnInitWindow()
     }
 #endif
 
-    /**
-     * 为了让代码看起来相对容易理解，不需要频繁跟进才能看明白示例代码
-     * 我们将一些控件储存为局部变量，正确的使用应该是将他们作为成员变量
-     * 不要在每次使用的时候都需要 FindControl，否则会影响性能代码不易读
-     */
-
     /* Initialize ListBox data */
-    ui::ListBox* list = static_cast<ui::ListBox*>(FindControl(_T("list")));
+    ui::ListBox* list = dynamic_cast<ui::ListBox*>(FindControl(_T("list")));
     if (list != nullptr) {
         for (auto i = 0; i < 30; i++)
         {
@@ -60,8 +54,34 @@ void ControlForm::OnInitWindow()
         }
     }
 
+    ui::TreeView* pTree = dynamic_cast<ui::TreeView*>(FindControl(_T("tree")));
+    if (pTree != nullptr) {
+        ui::TreeNode* pRootNode = pTree->GetRootNode();
+        ASSERT(pRootNode != nullptr);
+        if (pRootNode != nullptr) {
+            ui::TreeNode* pTestNode = pRootNode->FindChildNodeByText(_T("ui::TreeView Parent Node 2"), true);
+            ASSERT(pTestNode != nullptr);
+            if (pTestNode != nullptr) {
+                ui::TreeNode* pNode0 = new ui::TreeNode(this);
+                pNode0->SetClass(_T("tree_node"));
+                pNode0->SetText(_T("Dynamic Node 0(top)"));
+                pTestNode->AddChildNodeAt(pNode0, 0);
+
+                ui::TreeNode* pNode2 = new ui::TreeNode(this);
+                pNode2->SetClass(_T("tree_node"));
+                pNode2->SetText(_T("Dynamic Node 1(end)"));
+                pTestNode->AddChildNode(pNode2);
+
+                ui::TreeNode* pNode1 = new ui::TreeNode(this);
+                pNode1->SetClass(_T("tree_node"));
+                pNode1->SetText(_T("Dynamic Node 2(at index 2)"));
+                pTestNode->AddChildNodeAt(pNode1, 2);
+            }
+        }
+    }
+
     //初始化Combo的数据
-    ui::Combo* combo = static_cast<ui::Combo*>(FindControl(_T("combo")));
+    ui::Combo* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo")));
     if (combo != nullptr) {
         ui::TreeView* pTreeView = combo->GetTreeView();
         ui::TreeNode* pTreeNode = pTreeView->GetRootNode();
@@ -95,14 +115,14 @@ void ControlForm::OnInitWindow()
 //    ASSERT(combo->GetText() == _T("Test"));
 //#endif
 
-    ui::FilterCombo* filterCombo = static_cast<ui::FilterCombo*>(FindControl(_T("filter_combo")));
+    ui::FilterCombo* filterCombo = dynamic_cast<ui::FilterCombo*>(FindControl(_T("filter_combo")));
     if (filterCombo != nullptr) {
         for (auto i = 0; i < 100; i++) {
             filterCombo->AddTextItem(ui::StringUtil::Printf(_T("Item %d FilterCombo"), i));
         }
     }
 
-    ui::CheckCombo* check_combo = static_cast<ui::CheckCombo*>(FindControl(_T("check_combo")));
+    ui::CheckCombo* check_combo = dynamic_cast<ui::CheckCombo*>(FindControl(_T("check_combo")));
     if (check_combo != nullptr) {
         check_combo->AddTextItem(_T("星期一"));
         check_combo->AddTextItem(_T("星期二"));
@@ -131,7 +151,7 @@ void ControlForm::OnInitWindow()
         300);
 
     /* Show settings menu */
-    ui::Button* settings = static_cast<ui::Button*>(FindControl(_T("settings")));
+    ui::Button* settings = dynamic_cast<ui::Button*>(FindControl(_T("settings")));
     if (settings != nullptr) {
         settings->AttachClick([this, settings](const ui::EventArgs& args) {
             ui::UiRect rect = args.GetSender()->GetPos();
