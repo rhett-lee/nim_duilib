@@ -510,7 +510,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
             }
 
             //绘制文字的背景色
-            m_pRender->FillRect(rcDestRect, textData.m_bgColor, uFade);
+            m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
 
             if (textColor != textData.m_textColor) {
                 const UiColor& color = textData.m_textColor;
@@ -1093,7 +1093,7 @@ void DrawRichText::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache
 
         //绘制文字的背景色
         if (!textData.m_bgColor.IsEmpty()) {
-            m_pRender->FillRect(rcDestRect, textData.m_bgColor, uFade);
+            m_pRender->FillRect(UiRectF::MakeFromRect(rcDestRect), textData.m_bgColor, uFade);
         }
 
         //设置文本颜色

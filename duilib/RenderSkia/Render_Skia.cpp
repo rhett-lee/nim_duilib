@@ -921,12 +921,6 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
     }
 }
 
-void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    FillRect(rcF, dwColor, uFade);
-}
-
 void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -986,12 +980,6 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor
     SkGradient::Colors skColors(SkSpan<const SkColor4f>(colors, 2), SkTileMode::kClamp);
     sk_sp<SkShader> shader(SkShaders::LinearGradient(pts, SkGradient(skColors, SkGradient::Interpolation())));
     skPaint.setShader(shader);
-}
-
-void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    FillRect(rcF, dwColor, dwColor2, nColor2Direction, uFade);
 }
 
 void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)

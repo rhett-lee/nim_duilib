@@ -41,10 +41,10 @@ public:
                 rect.right = rect.left + nGridSize;
                 rect.bottom = rect.top + nGridSize;
                 if (j % 2) {
-                    pRender->FillRect(rect, (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                    pRender->FillRect(UiRectF::MakeFromRect(rect), (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
                 }
                 else {
-                    pRender->FillRect(rect, (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                    pRender->FillRect(UiRectF::MakeFromRect(rect), (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
                 }
             }
         }
