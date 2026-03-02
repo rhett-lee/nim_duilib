@@ -1,8 +1,7 @@
 #ifndef UI_CORE_UIPOINTF_H_
 #define UI_CORE_UIPOINTF_H_
 
-#include "duilib/duilib_defs.h"
-#include <cstdint>
+#include "duilib/Core/UiPoint.h"
 
 namespace ui 
 {
@@ -11,6 +10,14 @@ namespace ui
 */
 class UILIB_API UiPointF
 {
+public:
+    /** 从UiPoint构造
+    */
+    static UiPointF MakeFromPoint(const UiPoint& pt)
+    {
+        return UiPointF((float)pt.x, (float)pt.y);
+    }
+
 public:
     UiPointF()
     {
@@ -21,6 +28,12 @@ public:
     {
         x = xValue;
         y = yValue;
+    }
+
+    UiPointF(int32_t xValue, int32_t yValue)
+    {
+        x = (float)xValue;
+        y = (float)yValue;
     }
 
     /** 设置新的X和Y值

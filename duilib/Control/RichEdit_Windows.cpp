@@ -2796,7 +2796,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
         if (!m_sCaretColor.empty()) {
             dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
         }
-        pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, m_iCaretWidth);
+        pRender->DrawLine(UiPointF(rect.left, rect.top), UiPointF(rect.right, rect.bottom), dwClrColor, m_iCaretWidth);
     }
 }
 

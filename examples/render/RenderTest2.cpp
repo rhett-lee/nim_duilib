@@ -52,7 +52,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
             pRender->DrawLine(UiPointF((float)rect.left, (float)topValue), UiPointF((float)rect.right, (float)topValue), UiColor(UiColors::DarkCyan), fWidth);
         }
         else {
-            pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(nLineWidth));
+            pRender->DrawLine(UiPointF(rect.left, topValue), UiPointF(rect.right, topValue), UiColor(UiColors::DarkCyan), (float)DpiScaledInt(nLineWidth));
         }
         ++nLineIndex;
     }
@@ -89,7 +89,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
             else if (style == 4) {
                 pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
             }
-            pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), pen.get());
+            pRender->DrawLine(UiPointF(rect.left, topValue), UiPointF(rect.right, topValue), pen.get());
             ++style;
             if (style > 4) {
                 style = 0;

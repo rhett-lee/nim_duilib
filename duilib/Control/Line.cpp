@@ -181,14 +181,14 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
     rc.Deflate(GetControlPadding());
     if (!m_bLineVertical) {
         //水平
-        UiPoint pt1(rc.left, rc.CenterY());
-        UiPoint pt2(rc.right, rc.CenterY());
+        UiPointF pt1(rc.left, rc.CenterY());
+        UiPointF pt2(rc.right, rc.CenterY());
         pRender->DrawLine(pt1, pt2, pLinePen);
     }
     else {
         //垂直
-        UiPoint pt1(rc.CenterX(), rc.top);
-        UiPoint pt2(rc.CenterX(), rc.bottom);
+        UiPointF pt1(rc.CenterX(), rc.top);
+        UiPointF pt2(rc.CenterX(), rc.bottom);
         pRender->DrawLine(pt1, pt2, pLinePen);
     }
 }

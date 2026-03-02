@@ -761,8 +761,8 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
             }
             yPos += nChildMarginY / 2;
 
-            UiPoint pt1(viewRect.left, yPos);
-            UiPoint pt2(viewRect.right, yPos);
+            UiPointF pt1(viewRect.left, yPos);
+            UiPointF pt2(viewRect.right, yPos);
             pRender->DrawLine(pt1, pt2, rowLineColor, nRowLineWidth);
         }
     }
