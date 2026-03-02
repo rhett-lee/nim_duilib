@@ -295,9 +295,10 @@ private:
     int32_t GetExpandImagePadding(void) const;
 
     /** 获取包含自己、自己的子孙节点中，ListBox索引号最大值，用于计算新添加节点的插入位置
-    *   如果没有有效元素，则返回 Box::InvalidIndex
-    */
-    size_t GetDescendantNodeMaxListBoxIndex() const;
+     * @param [in] nInsertIndex 新的节点插入位置, 如果为Box::InvalidIndex，表示插入在最后
+     *   如果没有有效元素，则返回 Box::InvalidIndex
+     */
+    size_t GetDescendantNodeMaxListBoxIndex(size_t nInsertIndex) const;
 
     /** 设置[展开/收起]按钮后面的间隔
     */

@@ -444,7 +444,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetEnableIcon(m_pTreeView->IsEnableIcon());
 
     //添加到ListBox容器中
-    size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex();
+    size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex(iIndex);
     if (!Box::IsValidItemIndex(nInsertIndex)) {
         //第一个节点
         nInsertIndex = 0;
@@ -1000,7 +1000,7 @@ size_t TreeNode::GetChildNodeCount() const
     return m_aTreeNodes.size();
 }
 
-size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
+size_t TreeNode::GetDescendantNodeMaxListBoxIndex(size_t nInsertIndex) const
 {
     size_t maxListBoxIndex = GetListBoxIndex();
     if (!Box::IsValidItemIndex(maxListBoxIndex)) {
@@ -1009,9 +1009,13 @@ size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
         }
         maxListBoxIndex = 0;
     }
-    for (TreeNode* pTreeNode : m_aTreeNodes) {
+    for (size_t nIndex = 0; nIndex < nInsertIndex; ++nIndex) {
+        if (nIndex >= m_aTreeNodes.size()) {
+            break;
+        }
+        TreeNode* pTreeNode = m_aTreeNodes[nIndex];
         if (pTreeNode != nullptr) {
-            maxListBoxIndex = std::max(pTreeNode->GetDescendantNodeMaxListBoxIndex(), maxListBoxIndex);
+            maxListBoxIndex = std::max(pTreeNode->GetDescendantNodeMaxListBoxIndex(Box::InvalidIndex), maxListBoxIndex);
         }
     }
     return maxListBoxIndex;
