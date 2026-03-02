@@ -92,7 +92,7 @@ public:
 
     virtual void DrawPath(const IPath* path, const IPen* pen) override;
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
-    virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
+    virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
@@ -197,7 +197,6 @@ private:
 
     /** 设置颜色渐变的绘制属性
     */
-    void InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
     void InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
 
     /** 获取文本编码

@@ -1031,7 +1031,7 @@ public:
     * @param [in] dwColor2 填充路径使用的第二个颜色
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     */
-    virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
+    virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
 
     /** 计算指定文本字符串的宽度和高度
     * @param [in] strText 文字内容
