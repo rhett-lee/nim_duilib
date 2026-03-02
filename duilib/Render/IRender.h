@@ -944,19 +944,8 @@ public:
     * @param [in] rx 圆角的宽度
     * @param [in] ry 圆角的高度
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
-    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
-
-    /** 绘制圆角矩形
-    * @param [in] rc 矩形区域
-    * @param [in] rx 圆角的宽度
-    * @param [in] ry 圆角的高度
-    * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆角矩形，支持各种线形
@@ -965,7 +954,6 @@ public:
     * @param [in] ry 圆角的高度
     * @param [in] pen 画笔的接口
     */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) = 0;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen) = 0;
 
     /** 用颜色填充圆角矩形
