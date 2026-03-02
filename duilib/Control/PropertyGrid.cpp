@@ -219,7 +219,7 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
             //横坐标位置放在每个子项控件的右侧部            
             UiPointF pt1(xPos, yTop);
             UiPointF pt2(xPos, viewRect.bottom);
-            pRender->DrawLine(pt1, pt2, columnLineColor, nColumnLineWidth);
+            pRender->DrawLine(pt1, pt2, columnLineColor, (float)nColumnLineWidth);
         }
     }
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
@@ -270,7 +270,7 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
             }
             UiPointF pt1(leftRect.left, yPos);
             UiPointF pt2(rightRect.right, yPos);
-            pRender->DrawLine(pt1, pt2, rowLineColor, nRowLineWidth);
+            pRender->DrawLine(pt1, pt2, rowLineColor, (float)nRowLineWidth);
         }
     }
 }

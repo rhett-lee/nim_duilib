@@ -107,8 +107,8 @@ void ListBoxHelper::PaintFrameSelection(IRender* pRender)
         }
     }
 
-    UiRect rect(TruncateToInt32(left), TruncateToInt32(top),
-                TruncateToInt32(right), TruncateToInt32(bottom));
+    UiRectF rect(TruncateToInt32(left), TruncateToInt32(top),
+                 TruncateToInt32(right), TruncateToInt32(bottom));
 
     int32_t frameSelectionBorderSize = GetFrameSelectionBorderSize();    
     if ((frameSelectionBorderSize > 0) && !m_frameSelectionBorderColor.empty()) {

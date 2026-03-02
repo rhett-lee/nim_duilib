@@ -327,7 +327,7 @@ public:
         if (pBitmap != nullptr) {        
             pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
             if (GetTopBorderSize() > 0) {
-                pRender->DrawRect(rcDest, GetUiColor(GetBorderColor(kControlStateNormal)), GetTopBorderSize());
+                pRender->DrawRect(UiRectF::MakeFromRect(rcDest), GetUiColor(GetBorderColor(kControlStateNormal)), GetTopBorderSize());
             }
         }
 
