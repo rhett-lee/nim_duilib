@@ -812,7 +812,7 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
     if (IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
         uFade = GetHotAlpha();
     }
-    pRender->FillRoundRect(rc, (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
+    pRender->FillRoundRect(UiRectF::MakeFromRect(rc), (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
 }
 
 void TabCtrlItem::SetIcon(const DString& iconImageString)

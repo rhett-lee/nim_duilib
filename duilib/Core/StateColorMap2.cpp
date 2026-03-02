@@ -162,7 +162,7 @@ void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, Control
     UiSize szRound = GetStateColorRound(stateType);
     if (!szRound.IsEmpty()) {
         //圆角矩形
-        pRender->FillRoundRect(rcPaint, (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rcPaint), (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
     }
     else {
         //直角矩形
