@@ -23,7 +23,7 @@ public:
 
     /** 获取字体大小(字体高度)
     */
-    virtual int FontSize() const = 0;
+    virtual int32_t FontSize() const = 0;
 
     /** 是否为粗体
     */
@@ -291,7 +291,8 @@ public:
     * @param [in] x2 线条终点的 x 坐标
     * @param [in] y2 线条终点的 y 坐标
     */
-    virtual void AddLine(int x1, int y1, int x2, int y2) = 0;
+    virtual void AddLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) = 0;
+    virtual void AddLine(float x1, float y1, float x2, float y2) = 0;
 
     /** 向此路径的当前图添加一系列连接线
     * @param [in] points 线条起点和终点的点数组, 数组中的第一个点是第一行的起点，
@@ -299,7 +300,8 @@ public:
                          其他每个点都用作一行的终点，下一行的起点。
     * @param [in] count 点数组中的元素数
     */
-    virtual void AddLines(const UiPoint* points, int count) = 0;
+    virtual void AddLines(const UiPoint* points, int32_t count) = 0;
+    virtual void AddLines(const UiPointF* points, int32_t count) = 0;
 
     /** 将贝塞尔(Bézier)曲线样条添加到此路径的当前图中
     *    贝塞尔自由绘制曲线是一条由四个点指定的曲线：
@@ -314,9 +316,9 @@ public:
     * @param [in] y3 第二个控制点的 y 坐标
     * @param [in] x4 终点的 x 坐标
     * @param [in] y4 终点的 y 坐标
-    *
     */
-    virtual void AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
+    virtual void AddBezier(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t x4, int32_t y4) = 0;
+    virtual void AddBezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) = 0;
 
     /** 将连接的 Bézier 样条序列添加到此路径的当前图中
     * @param [in] points 指向连接的样条的起始点、结束点和控制点数组的指针。 
@@ -325,12 +327,14 @@ public:
     *                    前一个样条的终点用作起点，序列中的下两个点是控制点，第三个点是终点。
     * @param [in] count 数组中的元素数
     */
-    virtual void AddBeziers(const UiPoint* points, int count) = 0;
+    virtual void AddBeziers(const UiPoint* points, int32_t count) = 0;
+    virtual void AddBeziers(const UiPointF* points, int32_t count) = 0;
 
     /** 将矩形添加到此路径
     * @param [in] rect 矩形区域
     */
     virtual void AddRect(const UiRect& rect) = 0;
+    virtual void AddRect(const UiRectF& rect) = 0;
 
     /** 将椭圆添加到此路径
     * @param [in] 椭圆的矩形区域 
@@ -340,6 +344,7 @@ public:
     *             bottom top + 椭圆边界矩形的高度
     */
     virtual void AddEllipse(const UiRect& rect) = 0;
+    virtual void AddEllipse(const UiRectF& rect) = 0;
 
     /** 将椭圆弧添加到此路径
     * @param [in] 椭圆的矩形区域 
@@ -347,13 +352,14 @@ public:
     * @param [in] sweepAngle 起点 (startAngle) 和弧的终点之间的顺时针角度（以度为单位）
     */
     virtual void AddArc(const UiRect& rect, float startAngle, float sweepAngle) = 0;
+    virtual void AddArc(const UiRectF& rect, float startAngle, float sweepAngle) = 0;
 
     /** 将多边形添加到此路径
     * @param [in] points 指定多边形顶点的点数组
     * @param [in] count 数组中的元素数
     */
-    virtual void AddPolygon(const UiPoint* points, int count) = 0;
-    virtual void AddPolygon(const UiPointF* points, int count) = 0;
+    virtual void AddPolygon(const UiPoint* points, int32_t count) = 0;
+    virtual void AddPolygon(const UiPointF* points, int32_t count) = 0;
 
     /** 对路径进行矩阵变换，可以进行旋转等操作
     * @param [in] pMatrix 矩阵接口
@@ -387,7 +393,7 @@ public:
     * @param [in] offsetX X轴方向平移的偏移量
     * @param [in] offsetY Y轴方向平移的偏移量
     */
-    virtual void Translate(int offsetX, int offsetY) = 0;
+    virtual void Translate(float offsetX, float offsetY) = 0;
 
     /** 缩放操作
     * @param [in] scaleX X轴方向缩放比例
