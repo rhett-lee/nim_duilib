@@ -261,8 +261,8 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     //画圆形/填充圆形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    int32_t radius = std::min(rect.Width(), rect.Height()) / 2;//圆的半径
-    pRender->DrawCircle(rect.Center(), radius, UiColor(UiColors::Blue), DpiScaledFloat(2));
+    float fRadius = std::min(rect.Width(), rect.Height()) / 2.0f;//圆的半径
+    pRender->DrawCircle(UiPointF::MakeFromPoint(rect.Center()), fRadius, UiColor(UiColors::Blue), DpiScaledFloat(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -291,12 +291,12 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
         else if (style == 4) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
         }
-        pRender->DrawCircle(rect.Center(), radius, pen.get());
+        pRender->DrawCircle(UiPointF::MakeFromPoint(rect.Center()), fRadius, pen.get());
     }
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillCircle(rect.Center(), radius, UiColor(UiColors::CadetBlue), 255);
+    pRender->FillCircle(UiPointF::MakeFromPoint(rect.Center()), fRadius, UiColor(UiColors::CadetBlue), 255);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -306,7 +306,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillCircle(rect.Center(), radius, UiColor(UiColors::CadetBlue), 96);
+    pRender->FillCircle(UiPointF::MakeFromPoint(rect.Center()), fRadius, UiColor(UiColors::CadetBlue), 96);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;

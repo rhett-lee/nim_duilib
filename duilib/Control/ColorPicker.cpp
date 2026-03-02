@@ -333,10 +333,10 @@ public:
 
         //画预览中心点的圆圈
         UiPoint centerPt = rcDest.Center();
-        int32_t radius = Dpi().GetScaleInt(6);
+        float fRadius = Dpi().GetScaleFloat(6);
         UiColor penColor = UiColor(UiColors::Brown);
-        int32_t nWidth = Dpi().GetScaleInt(2);
-        pRender->DrawCircle(centerPt, radius, penColor, nWidth);
+        float fWidth = Dpi().GetScaleFloat(2);
+        pRender->DrawCircle(UiPointF::MakeFromPoint(centerPt), fRadius, penColor, fWidth);
     }
 
     /** 获取预览位图抓取的大小（宽度和高度）

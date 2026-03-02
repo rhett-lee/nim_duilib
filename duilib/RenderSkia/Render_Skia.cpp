@@ -1187,30 +1187,25 @@ void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor d
     }
 }
 
-void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth)
-{
-    DrawCircle(centerPt, radius, penColor, (float)nWidth);
-}
-
-void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth)
+void Render_Skia::DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
-    skPaint.setStrokeWidth(SkIntToScalar(fWidth));
+    skPaint.setStrokeWidth(fWidth);
     skPaint.setStyle(SkPaint::kStroke_Style);
 
-    SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
+    SkPoint rcSkPoint = SkPoint::Make(centerPt.x, centerPt.y);
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, radius, skPaint);
     }
 }
 
-void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen)
+void Render_Skia::DrawCircle(const UiPointF& centerPt, float radius, IPen* pen)
 {
     ASSERT(pen != nullptr);
     if (pen == nullptr) {
@@ -1220,17 +1215,17 @@ void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen)
     SkPaint skPaint = *m_pSkPaint;
     SetPaintByPen(skPaint, pen);
 
-    SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
+    SkPoint rcSkPoint = SkPoint::Make(centerPt.x, centerPt.y);
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, radius, skPaint);
     }
 }
 
-void Render_Skia::FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade)
+void Render_Skia::FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1240,13 +1235,13 @@ void Render_Skia::FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dw
         skPaint.setAlpha(uFade);
     }
 
-    SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
+    SkPoint rcSkPoint = SkPoint::Make(centerPt.x, centerPt.y);
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, radius, skPaint);
     }
 }
 

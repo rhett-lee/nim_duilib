@@ -82,10 +82,9 @@ public:
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) override;
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) override;
-    virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth) override;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) override;
+    virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) override;
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
                          const IPen* pen, 

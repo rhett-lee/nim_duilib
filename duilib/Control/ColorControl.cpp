@@ -41,10 +41,10 @@ void ColorControl::PaintBkImage(IRender* pRender)
     //画选择位置的显示标志
     if ((m_lastPt.x >= 0) && m_lastPt.y >= 0) {
         UiPoint centerPt = m_lastPt;
-        int32_t radius = Dpi().GetScaleInt(6);
+        float fRadius = Dpi().GetScaleFloat(6);
         UiColor penColor = UiColor(UiColors::Brown);
-        int32_t nWidth = Dpi().GetScaleInt(2);
-        pRender->DrawCircle(centerPt, radius, penColor, nWidth);
+        float fWidth = Dpi().GetScaleFloat(2);
+        pRender->DrawCircle(UiPointF::MakeFromPoint(centerPt), fRadius, penColor, fWidth);
     }        
 }
 
