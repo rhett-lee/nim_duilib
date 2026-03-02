@@ -3977,26 +3977,26 @@ void Control::DoPaintFocusRect(IRender* pRender)
 
     if (rcBorderSize.left > 0) {
         //左边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.left, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.left, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.top > 0) {
         //上边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.top);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.top);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.right > 0) {
         //右边线
-        UiPoint pt1(rcFocusRect.right, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.right, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.bottom > 0) {
         //下边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.bottom);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.bottom);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
 }

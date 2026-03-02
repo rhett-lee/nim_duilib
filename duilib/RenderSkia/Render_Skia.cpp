@@ -1018,34 +1018,6 @@ void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2,
     }
 }
 
-void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
-{
-    DrawLine(pt1, pt2, penColor, (float)nWidth);
-}
-
-void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth)
-{
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    SkPaint skPaint = *m_pSkPaint;
-    skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
-    skPaint.setStyle(SkPaint::kStroke_Style);
-    skPaint.setStrokeWidth(SkScalar(fWidth));
-
-    SkPoint skPt1;
-    skPt1.iset(pt1.x, pt1.y);
-    skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-
-    SkPoint skPt2;
-    skPt2.iset(pt2.x, pt2.y);
-    skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas != nullptr) {
-        skCanvas->drawLine(skPt1, skPt2, skPaint);
-    }
-}
-
 void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1081,31 +1053,6 @@ void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen)
     skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkPoint skPt2 = SkPoint::Make(pt2.x, pt2.y);
-    skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-
-    SkCanvas* skCanvas = GetSkCanvas();
-    ASSERT(skCanvas != nullptr);
-    if (skCanvas != nullptr) {
-        skCanvas->drawLine(skPt1, skPt2, skPaint);
-    }
-}
-
-void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
-{
-    ASSERT(pen != nullptr);
-    if (pen == nullptr) {
-        return;
-    }
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    SkPaint skPaint = *m_pSkPaint;
-    SetPaintByPen(skPaint, pen);
-
-    SkPoint skPt1;
-    skPt1.iset(pt1.x, pt1.y);
-    skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
-
-    SkPoint skPt2;
-    skPt2.iset(pt2.x, pt2.y);
     skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     SkCanvas* skCanvas = GetSkCanvas();
