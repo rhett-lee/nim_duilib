@@ -940,12 +940,6 @@ void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
     }
 }
 
-void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const
-{
-    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
-    InitGradientColor(skPaint, rcF, dwColor, dwColor2, nColor2Direction);
-}
-
 void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const
 {
     if ((nColor2Direction != 2) && (nColor2Direction != 3) && (nColor2Direction != 4)) {
@@ -1450,7 +1444,7 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
     }
 }
 
-void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction)
+void Render_Skia::FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction)
 {
     ASSERT(path != nullptr);
     if (path == nullptr){
