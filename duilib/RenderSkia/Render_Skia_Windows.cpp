@@ -4,6 +4,7 @@
 
 #include "SkRasterWindowContext_Windows.h"
 #include "SkGLWindowContext_Windows.h"
+#include "WindowRgn_Windows.h"
 
 #include "SkiaHeaderBegin.h"
 
@@ -305,6 +306,21 @@ void Render_Skia_Windows::DeleteDC()
         ::DeleteDC(m_hDC);
         m_hDC = nullptr;
     }
+}
+
+bool Render_Skia_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    return WindowRgn::SetWindowRoundRectRgn(m_hWnd, rcWnd, rx, ry, bRedraw);
+}
+
+bool Render_Skia_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    return WindowRgn::SetWindowRectRgn(m_hWnd, rcWnd, bRedraw);
+}
+
+void Render_Skia_Windows::ClearWindowRgn(bool bRedraw)
+{
+    return WindowRgn::ClearWindowRgn(m_hWnd, bRedraw);
 }
 
 } // namespace ui

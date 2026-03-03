@@ -90,7 +90,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T("")),
     m_nFocusBottomBorderSize(0),
-    m_fRowSpacingMul(1.0f)
+    m_fRowSpacingMul(1.0f),
+    m_fRowSpacingAdd(0.0f)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -343,6 +344,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("row_spacing_add")) {
+        SetRowSpacingAdd(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -902,6 +906,23 @@ void RichEdit::SetRowSpacingMul(float fRowSpacingMul)
         m_fRowSpacingMul = fRowSpacingMul;
         if (m_fRowSpacingMul <= 0.01f) {
             m_fRowSpacingMul = 1.0f;
+        }
+        //清除绘制缓存，并重绘
+        ClearCacheAndRedraw();
+    }
+}
+
+float RichEdit::GetRowSpacingAdd() const
+{
+    return m_fRowSpacingAdd;
+}
+
+void RichEdit::SetRowSpacingAdd(float fRowSpacingAdd)
+{
+    if (m_fRowSpacingAdd != fRowSpacingAdd) {
+        m_fRowSpacingAdd = fRowSpacingAdd;
+        if (m_fRowSpacingAdd <= 0.0001f) {
+            m_fRowSpacingAdd = 0.0f;
         }
         //清除绘制缓存，并重绘
         ClearCacheAndRedraw();
@@ -1601,14 +1622,14 @@ void RichEdit::SetWindow(Window* pWindow)
     }
 }
 
-void RichEdit::LineUp(int32_t deltaValue, bool withAnimation)
+void RichEdit::LineUp(int32_t deltaValue)
 {
-    BaseClass::LineUp(deltaValue, withAnimation);
+    BaseClass::LineUp(deltaValue);
 }
 
-void RichEdit::LineDown(int32_t deltaValue, bool withAnimation)
+void RichEdit::LineDown(int32_t deltaValue)
 {
-    BaseClass::LineDown(deltaValue, withAnimation);
+    BaseClass::LineDown(deltaValue);
 }
 
 void RichEdit::PageUp()
@@ -1632,9 +1653,9 @@ void RichEdit::HomeUp()
     BaseClass::HomeUp();
 }
 
-void RichEdit::EndDown(bool arrange, bool withAnimation)
+void RichEdit::EndDown(bool arrange)
 {
-    BaseClass::EndDown(arrange, withAnimation);
+    BaseClass::EndDown(arrange);
 }
 
 void RichEdit::LineLeft(int32_t deltaValue)
@@ -1819,7 +1840,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         if (spDrawRichTextCache != nullptr) {
             //通过缓存绘制
             rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
+            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), GetAlpha());
         }
         else if (!richTextDataList.empty()) {
             spDrawRichTextCache.reset();
@@ -1832,7 +1853,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
                 ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
                 //通过缓存绘制
                 rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-                pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
+                pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), GetAlpha());
                 m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
             }
         }
@@ -2435,9 +2456,9 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
     m_bUseControlCursor = bUseControlCursor;
 }
 
-void RichEdit::AttachSelChanged(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID)
 { 
-    AttachEvent(kEventSelChanged, callback); 
+    AttachEvent(kEventSelChanged, callback, callbackID);
 }
 
 void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
@@ -2535,7 +2556,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 
     //菜单关闭事件
     std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
-    menu->AttachWindowClose([this, richEditFlag, bOldHideSelection](const ui::EventArgs&) {
+    menu->AttachWindowCloseMsg([this, richEditFlag, bOldHideSelection](const ui::EventArgs&) {
         if (!richEditFlag.expired()) {
             //恢复HideSelection属性
             SetHideSelection(bOldHideSelection);
@@ -3055,6 +3076,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
 
     //行间距倍数
     richTextData.m_fRowSpacingMul = GetRowSpacingMul();
+    richTextData.m_fRowSpacingAdd = GetRowSpacingAdd();
 
     if (nStartLine != (size_t)-1) {
         //增量绘制，只绘制变化的部分
@@ -3098,7 +3120,7 @@ UiRect RichEdit::GetRichTextDrawRect() const
 
 uint8_t RichEdit::GetDrawAlpha() const
 {
-    return (uint8_t)GetAlpha();
+    return GetAlpha();
 }
 
 void RichEdit::OnTextRectsChanged()
@@ -3580,10 +3602,10 @@ bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
     if ((pVScrollBar != nullptr) && pVScrollBar->IsValid() && pVScrollBar->IsEnabled()) {
         switch (msg.vkCode) {
         case kVK_DOWN:
-            LineDown(GetLineScrollDeltaValue(true), false);
+            LineDown(GetLineScrollDeltaValue(true));
             break;
         case kVK_UP:
-            LineUp(GetLineScrollDeltaValue(false), false);
+            LineUp(GetLineScrollDeltaValue(false));
             break;
         case kVK_NEXT:
             PageDown();
@@ -3595,7 +3617,7 @@ bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
             HomeUp();
             break;
         case kVK_END:
-            EndDown(false, false);
+            EndDown(false);
             break;
         default:
             break;
@@ -4375,12 +4397,12 @@ void RichEdit::OnCheckScrollView()
         }
         if (pt.cy <= viewRect.top) {
             //向上滚动视图
-            LineUp(nVScrollValue, false);
+            LineUp(nVScrollValue);
             bScrollView = true;
         }
         else if (pt.cy >= viewRect.bottom) {
             //向下滚动视图
-            LineDown(nVScrollValue, false);
+            LineDown(nVScrollValue);
             bScrollView = true;
         }
     }

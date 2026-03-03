@@ -1,12 +1,26 @@
 #include "AnimationManager.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui 
 {
+// 显示 / 隐藏的动画类型列表
+std::vector<AnimationType> AnimationManager::s_animationList;
 
-AnimationManager::AnimationManager() :
-    m_pControl(nullptr)
+AnimationManager::AnimationManager(Control* pControl) :
+    m_pControl(pControl),
+    m_bControlVisible(false),
+    m_bControlVisibleInited(false),
+    m_frameIntervalMillSeconds(-1),
+    m_totalMillSeconds(-1),
+    m_easingFunctionType(EasingFunctionType::EaseInOutCubic)
 {
+}
+
+bool AnimationManager::HasAnimationPlayer(AnimationType animationType) const
+{
+    auto it = m_animationMap.find(animationType);
+    return (it != m_animationMap.end());
 }
 
 AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationType) const
@@ -20,111 +34,143 @@ AnimationPlayer* AnimationManager::GetAnimationPlayer(AnimationType animationTyp
     }
 }
 
-AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
+AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible, uint8_t nEndAlpha)
 {
-    AnimationPlayer* animationArgs = nullptr;
-    if (bFadeHot) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationHot);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(255);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedDownRatio(0.7);
-        animationArgs->SetTotalMillSeconds(50);//控件处于焦点状态时，动画效果的总时长
-        PlayCallback playCallback = UiBind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);
-    }
-    else {
-        m_animationMap.erase(AnimationType::kAnimationHot);
-    }
-
-    return animationArgs;
-}
-
-AnimationPlayer* AnimationManager::SetFadeAlpha(bool bFadeVisible)
-{
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
+    const AnimationType animationType = AnimationType::kAnimationAlpha;
     if (bFadeVisible) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationAlpha);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(255);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedDownRatio(0.7);
-        animationArgs->SetTotalMillSeconds(250);
-        auto playCallback = UiBind(&Control::SetAlpha, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationAlpha].reset(animationArgs);
-        m_pControl->SetAlpha(0);
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue((int32_t)nEndAlpha);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    if (nNewValue > 255) {
+                        nNewValue = 255;
+                    }
+                    pControl->SetAlpha(TruncateToUInt8(nNewValue));
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationAlpha);
-        m_pControl->SetAlpha(255);
+        m_animationMap.erase(animationType);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFadeWidth) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
         cx = estSize.cx.GetInt32();
         ASSERT(cx > 0);
     }
+    const AnimationType animationType = AnimationType::kAnimationWidth;
     if (bFadeWidth && (cx > 0)) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationWidth);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(cx);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedUpfactorA(0.00084);
-        animationArgs->SetSpeedDownRatio(0.7);
-        auto playCallback = UiBind(&Control::SetFixedWidth64, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationWidth].reset(animationArgs);
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(cx);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    pControl->SetFixedWidth(UiFixedInt(nNewValue), true, false);
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationWidth);
+        m_animationMap.erase(animationType);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFadeHeight) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
         cy = estSize.cy.GetInt32();
         ASSERT(cy > 0);
     }
+    const AnimationType animationType = AnimationType::kAnimationHeight;
     if (bFadeHeight && (cy > 0)) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetAnimationType(AnimationType::kAnimationHeight);
-        animationArgs->SetStartValue(0);
-        animationArgs->SetEndValue(cy);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedUpfactorA(0.00084);
-        animationArgs->SetSpeedDownRatio(0.7);
-        auto playCallback = UiBind(&Control::SetFixedHeight64, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
-        m_animationMap[AnimationType::kAnimationHeight].reset(animationArgs);
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(cy);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    pControl->SetFixedHeight(UiFixedInt(nNewValue), true, false);
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else {
-        m_animationMap.erase(AnimationType::kAnimationHeight);
+        m_animationMap.erase(animationType);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
+}
+
+AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
+{
+    AnimationPlayer* pAnimationPlayer = nullptr;
+    int32_t cx = 0;
+    int32_t cy = 0;
+    if (bFadeSize) {
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        cx = estSize.cx.GetInt32();
+        cy = estSize.cy.GetInt32();
+        ASSERT(cy > 0);
+        ASSERT(cx > 0);
+    }
+    const AnimationType animationType = AnimationType::kAnimationSize;
+    if (bFadeSize && (cx > 0) && (cy > 0)) {
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(100);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl, cx, cy](int32_t nNewValue) {
+            if (pControl != nullptr) {
+                if (nNewValue > 0) {
+                    int32_t cxNow = TruncateToInt32((int64_t)cx * nNewValue / 100);
+                    int32_t cyNow = TruncateToInt32((int64_t)cy * nNewValue / 100);
+                    pControl->SetFixedWidth(UiFixedInt(cxNow), true, false);
+                    pControl->SetFixedHeight(UiFixedInt(cyNow), true, false);
+                }
+            }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+        m_animationMap[animationType].reset(pAnimationPlayer);
+    }
+    else {
+        m_animationMap.erase(animationType);
+    }
+
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFade) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -133,41 +179,36 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
             cx = 100;
         }
     }
+    const AnimationType animationType = bIsFromRight ? AnimationType::kAnimationInoutXFromRight : AnimationType::kAnimationInoutXFromLeft;
     if (bFade) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetEndValue(0);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedUpfactorA(0.006);
-        animationArgs->SetSpeedDownRatio(0.7);
-        auto playCallback = UiBind(&Control::SetRenderOffsetX, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetEndValue(0);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetRenderOffsetX(nNewValue);
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
 
         if (bIsFromRight) {
-            animationArgs->SetStartValue(-cx);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutXFromRight);
-            m_animationMap[AnimationType::kAnimationInoutXFromRight].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(-cx);            
         }
         else {
-            animationArgs->SetStartValue(cx);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutXFromLeft);
-            m_animationMap[AnimationType::kAnimationInoutXFromLeft].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(cx);
         }
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else{
-        if (bIsFromRight) {
-            m_animationMap.erase(AnimationType::kAnimationInoutXFromRight);
-        }
-        else {
-            m_animationMap.erase(AnimationType::kAnimationInoutXFromLeft);
-        }
+        m_animationMap.erase(animationType);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
 }
 
 AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
 {
-    AnimationPlayer* animationArgs = nullptr;
+    AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFade) {
         UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
@@ -176,72 +217,91 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
             cy = 100;
         }
     }
+    const AnimationType animationType = bIsFromBottom ? AnimationType::kAnimationInoutYFromBottom : AnimationType::kAnimationInoutYFromTop;
     if (bFade) {
-        animationArgs = new AnimationPlayer();
-        animationArgs->SetEndValue(0);
-        animationArgs->SetSpeedUpRatio(0.3);
-        animationArgs->SetSpeedUpfactorA(0.006);
-        animationArgs->SetSpeedDownRatio(0.7);
-        auto playCallback = UiBind(&Control::SetRenderOffsetY, m_pControl, std::placeholders::_1);
-        animationArgs->SetCallback(playCallback);
+        pAnimationPlayer = CreateAnimationPlayer(animationType);
+        pAnimationPlayer->SetEndValue(0);
+        ControlPtr pControl(m_pControl);
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    pControl->SetRenderOffsetY(nNewValue);
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
 
         if (bIsFromBottom) {
-            animationArgs->SetStartValue(-cy);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutYFromBottom);
-            m_animationMap[AnimationType::kAnimationInoutYFromBottom].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(-cy);
         }
         else {
-            animationArgs->SetStartValue(cy);
-            animationArgs->SetAnimationType(AnimationType::kAnimationInoutYFromTop);
-            m_animationMap[AnimationType::kAnimationInoutYFromTop].reset(animationArgs);
+            pAnimationPlayer->SetStartValue(cy);
         }
+        m_animationMap[animationType].reset(pAnimationPlayer);
     }
     else{
-        if (bIsFromBottom) {
-            m_animationMap.erase(AnimationType::kAnimationInoutYFromBottom);
-        }
-        else {
-            m_animationMap.erase(AnimationType::kAnimationInoutYFromTop);
-        }
+        m_animationMap.erase(animationType);
     }
 
-    return animationArgs;
+    return pAnimationPlayer;
+}
+
+void AnimationManager::InitAppearAnimationList(std::vector<AnimationType>& animationList) const
+{
+    if (animationList.empty()) {
+        animationList.push_back(AnimationType::kAnimationAlpha);
+        animationList.push_back(AnimationType::kAnimationWidth);
+        animationList.push_back(AnimationType::kAnimationHeight);
+        animationList.push_back(AnimationType::kAnimationSize);
+        animationList.push_back(AnimationType::kAnimationInoutXFromLeft);
+        animationList.push_back(AnimationType::kAnimationInoutXFromRight);
+        animationList.push_back(AnimationType::kAnimationInoutYFromTop);
+        animationList.push_back(AnimationType::kAnimationInoutYFromBottom);
+    }
 }
 
 void AnimationManager::Appear()
 {
+    //仅当可见属性发生变化时，才触发控件动画
     ASSERT(m_pControl != nullptr);
-    if (m_pControl != nullptr) {
-        m_pControl->SetVisible(true);
-    }    
-    if (GetAnimationPlayer(AnimationType::kAnimationAlpha)) {
-        m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationAlpha]->Continue();
+    if (m_pControl == nullptr) {
+        return;
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationWidth)) {
-        m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationWidth]->Continue();
+    const bool bOldVisible = m_bControlVisible;
+    const bool bOldVisibleInited = m_bControlVisibleInited;
+    const bool bNewVisible = true;
+
+    m_pControl->SetVisible(true);
+
+    std::vector<AnimationType>& animationList = s_animationList;
+    InitAppearAnimationList(animationList);
+    if (!m_animationMap.empty()) {
+        for (AnimationType animationType : animationList) {
+            if (HasAnimationPlayer(animationType)) {
+                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
+                pAnimationPlayer->SetCompleteCallback(AnimationCompleteCallback());
+                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
+                    //可见属性未发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->Continue();
+                    }
+                    else {
+                        pAnimationPlayer->Stop();
+                    }
+                }
+                else {
+                    //可见属性发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->Continue();
+                    }
+                    else {
+                        pAnimationPlayer->Start();
+                    }
+                }
+            }
+        }
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationHeight)) {
-        m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationHeight]->Continue();
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->Continue();
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->Continue();
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->Continue();
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(CompleteCallback());
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->Continue();
-    }
+
+    m_bControlVisibleInited = true;
+    m_bControlVisible = true;
 }
 
 void AnimationManager::Disappear()
@@ -251,63 +311,47 @@ void AnimationManager::Disappear()
     if (m_pControl == nullptr) {
         return;
     }
+    //仅当可见属性发生变化时，才触发控件动画
+    const bool bOldVisible = m_bControlVisible;
+    const bool bOldVisibleInited = m_bControlVisibleInited;
+    const bool bNewVisible = false;
 
-    CompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
-    if (GetAnimationPlayer(AnimationType::kAnimationAlpha)) {
-        m_animationMap[AnimationType::kAnimationAlpha]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationAlpha]->ReverseContinue();
-        handled = true;
+    AnimationCompleteCallback completeCallback = UiBind(&Control::SetVisible, m_pControl, false);
+    std::vector<AnimationType>& animationList = s_animationList;
+    InitAppearAnimationList(animationList);
+    if (!m_animationMap.empty()) {
+        for (AnimationType animationType : animationList) {
+            if (HasAnimationPlayer(animationType)) {
+                AnimationPlayer* pAnimationPlayer = m_animationMap[animationType].get();
+                pAnimationPlayer->SetCompleteCallback(completeCallback);
+                if (bOldVisibleInited && (bOldVisible == bNewVisible)) {
+                    //可见属性未发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->ReverseContinue();
+                    }
+                    else {
+                        pAnimationPlayer->Stop();
+                    }
+                }
+                else {
+                    //可见属性发生变化
+                    if (pAnimationPlayer->IsPlaying()) {
+                        pAnimationPlayer->ReverseContinue();
+                    }
+                    else {
+                        pAnimationPlayer->ReverseStart();
+                    }
+                }
+                handled = true;
+            }
+        }
     }
-    if (GetAnimationPlayer(AnimationType::kAnimationWidth)) {
-        m_animationMap[AnimationType::kAnimationWidth]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationWidth]->ReverseContinue();
-        handled = true;
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationHeight)) {
-        m_animationMap[AnimationType::kAnimationHeight]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationHeight]->ReverseContinue();
-        handled = true;
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromLeft)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutXFromLeft]->ReverseContinue();
-        handled = true;
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutXFromRight)) {
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutXFromRight]->ReverseContinue();
-        handled = true;
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromTop)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutYFromTop]->ReverseContinue();
-        handled = true;
-    }
-    if (GetAnimationPlayer(AnimationType::kAnimationInoutYFromBottom)) {
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->SetCompleteCallback(completeCallback);
-        m_animationMap[AnimationType::kAnimationInoutYFromBottom]->ReverseContinue();
-        handled = true;
-    }
-
+    
     if (!handled) {
         m_pControl->SetVisible(false);
     }
-}
-
-void AnimationManager::MouseEnter()
-{
-    AnimationPlayer* pPlayer = GetAnimationPlayer(AnimationType::kAnimationHot);
-    if (pPlayer) {
-        pPlayer->Continue();
-    }
-}
-
-void AnimationManager::MouseLeave()
-{
-    AnimationPlayer* pPlayer = GetAnimationPlayer(AnimationType::kAnimationHot);
-    if (pPlayer) {
-        pPlayer->ReverseContinue();
-    }
+    m_bControlVisibleInited = true;
+    m_bControlVisible = false;
 }
 
 void AnimationManager::Clear(Control* control)
@@ -324,6 +368,61 @@ void AnimationManager::Clear(Control* control)
 
     m_pControl = nullptr;
     m_animationMap.clear();
+}
+
+AnimationPlayer* AnimationManager::CreateAnimationPlayer(AnimationType animationType) const
+{
+    AnimationPlayer* pAnimationPlayer = new AnimationPlayer();
+    pAnimationPlayer->SetAnimationType(animationType);
+    pAnimationPlayer->SetFrameIntervalMillSeconds(GetFrameIntervalMillSeconds());
+    pAnimationPlayer->SetTotalMillSeconds(GetTotalMillSeconds());
+    pAnimationPlayer->SetEasingFunctionType(GetEasingFunctionType());
+    return pAnimationPlayer;
+}
+
+void AnimationManager::SetFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
+{
+    m_frameIntervalMillSeconds = frameIntervalMillSeconds;
+    for (auto& iter : m_animationMap) {
+        if (iter.second != nullptr) {
+            iter.second->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
+        }
+    }
+}
+
+int32_t AnimationManager::GetFrameIntervalMillSeconds() const
+{
+    return m_frameIntervalMillSeconds;
+}
+
+void AnimationManager::SetTotalMillSeconds(int32_t totalMillSeconds)
+{
+    m_totalMillSeconds = totalMillSeconds;
+    for (auto& iter : m_animationMap) {
+        if (iter.second != nullptr) {
+            iter.second->SetTotalMillSeconds(totalMillSeconds);
+        }
+    }
+}
+
+int32_t AnimationManager::GetTotalMillSeconds() const
+{
+    return m_totalMillSeconds;
+}
+
+void AnimationManager::SetEasingFunctionType(EasingFunctionType easingFunctionType)
+{
+    m_easingFunctionType = easingFunctionType;
+    for (auto& iter : m_animationMap) {
+        if (iter.second != nullptr) {
+            iter.second->SetEasingFunctionType(easingFunctionType);
+        }
+    }
+}
+
+EasingFunctionType AnimationManager::GetEasingFunctionType() const
+{
+    return m_easingFunctionType;
 }
 
 }

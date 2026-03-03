@@ -272,45 +272,102 @@ public:
 
 public:
     /** 监听选择子项的事件
-    * @param[in] callback 选择子项时的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     * 参数说明:
-    *   wParam: 当前新选择的子项ID，有效范围：[0, GetItemCount())
-    *    lParam: 原来旧选择的子项ID，有效范围：[0, GetItemCount())，可能为无效值Box::InvalidIndex
+    *   wParam: 当前新选择的子项索引号，有效范围：[0, GetItemCount())
+    *   lParam: 原来旧选择的子项索引号，有效范围：[0, GetItemCount())，可能为无效值Box::InvalidIndex
     *   可以通过 GetDisplayItemElementIndex 函数得到关联的数据元素索引号
     */
-    void AttachSelect(const EventCallback& callback) { AttachEvent(kEventSelect, callback); }
+    void AttachSelect(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelect, callback, callbackID); }
+
+    /** 监听选择项发生变化的事件
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSelChanged, callback, callbackID); }
+
+    /** 监听鼠标进入ListBoxItem控件的事件
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     *  参数说明:
+     *    wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachItemMouseEnter(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventItemMouseEnter, callback, callbackID); }
+
+    /** 监听鼠标离开ListBoxItem控件的事件
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     *  参数说明:
+     *    wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachItemMouseLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventItemMouseLeave, callback, callbackID); }
 
     /** 监听双击事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      *  参数说明:
-     *    wParam: 双击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
-     *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+     *    wParam: 双击的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
      */
-    void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
+    void AttachDoubleClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseDoubleClick, callback, callbackID); }
 
     /** 绑定鼠标点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     *  参数说明:
-    *    wParam: 点击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
-    *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+    *    wParam: 点击的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+    *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
     */
-    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
+    void AttachClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventClick, callback, callbackID); }
 
     /** 绑定鼠标右键点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     *  参数说明:
-    *    wParam: 点击的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
-    *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+    *    wParam: 点击的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+    *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
     */
-    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+    void AttachRClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventRClick, callback, callbackID); }
 
     /** 监听回车事件
-     * @param[in] callback 收到回车时的回调函数
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      *  参数说明:
-     *    wParam: 关联的子项ID，有效范围：[0, GetItemCount())，如果值Box::InvalidIndex，表示未双击任何子项
-     *    lParam: 关联的子项ID对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值Box::InvalidIndex，表示无关联的数据元素
+     *    wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
      */
-    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReturn, callback, callbackID); }
+
+    /** 监听键盘按下事件
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     *  参数说明:
+     *    wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachKeyDown(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventKeyDown, callback, callbackID); }
+
+    /** 监听键盘弹起事件
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     *  参数说明:
+     *    wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *    lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
+     */
+    void AttachKeyUp(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventKeyUp, callback, callbackID); }
+
+    /** 监听数据项UI元素填充事件（虚表，填充元素数据）
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * 参数说明:
+     *   wParam: 关联的子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
+     *   lParam: 关联的子项索引号对应的数据元素索引号，有效范围：[0, GetElementCount())，如果值为Box::InvalidIndex，表示无关联的数据元素
+     *   pEventData: 关联的子项的界面控件接口指针，类型为：Control*指针，控件为IListBoxItem/ListBoxItem/ListBoxItemH/ListBoxItemV的子类
+     */
+    void AttachElementFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventElementFilled, callback, callbackID); }
 
 public:
     /// 重写父类接口，提供个性化功能
@@ -415,17 +472,21 @@ public:
     */
     virtual void OnRefreshElements(const RefreshDataList& /*refreshDataList*/) {}
 
+    /** 执行了界面控件填充操作, 触发界面控件填充事件
+    */
+    virtual void OnFilledElements(const RefreshDataList& refreshDataList);
+
 protected:
     /** 创建一个子项
     * @return 返回创建后的子项指针
     */
     Control* CreateElement();
 
-    /** 填充指定数据项
+    /** 填充指定数据项: 调用方负责触发kEventElementFilled事件
     * @param[in] pControl 数据项控件指针
     * @param[in] nElementIndex 数据元素的索引ID，范围：[0, GetElementCount())
     */
-    void FillElement(Control* pControl, size_t nElementIndex);
+    void FillElementData(Control* pControl, size_t nElementIndex);
 
     /** 重新布局子项
     * @param[in] bForce 是否强制重新布局
@@ -443,12 +504,6 @@ protected:
     /** 是否允许从界面状态同步到存储状态
     */
     bool IsEnableUpdateProvider() const;
-
-    /** 发送事件的函数
-    * @param [in] msg 事件内容
-    * @param [in] bFromItem true表示来自子控件，false表示来自自身
-    */
-    void VSendEvent(const EventArgs& msg, bool bFromItem);
 
     /** 计算一个元素的矩形区域
     */
@@ -474,6 +529,16 @@ protected:
     */
     size_t GetLastNoShiftIndex() const;
 
+    /** 新的子项添加到容器，可在此函数中挂载事件等操作
+    * @param [in] pControl 新添加的子项接口
+    */
+    virtual void OnListBoxItemAdded(Control* pControl) override;
+
+    /** 子项从容器中删除，可在此函数中移除已经挂载的事件等操作
+    * @param [in] pControl 子项接口
+    */
+    virtual void OnListBoxItemRemoved(Control* pControl) override;
+
 private:
     /** 横向布局，计算行数
     */
@@ -482,6 +547,18 @@ private:
     /** 纵向布局，计算列数
     */
     int32_t CalcColumns() const;
+
+    /** 发送事件的函数
+    * @param [in] msg 事件内容
+    * @param [in] bFromItem true表示来自子控件，false表示来自自身
+    * @param [in] bFireEventOnly 如果为true表示只派发事件，不处理事件
+    */
+    void VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly = false);
+
+    /** 发送事件的函数（鼠标进入和离开事件）
+    * @param [in] msg 事件内容
+    */
+    void VFireMouseEnterLeaveEvent(const EventArgs& msg);
 
 private:
     /** 数据代理对象接口，提供展示数据

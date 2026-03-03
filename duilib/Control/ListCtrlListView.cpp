@@ -189,8 +189,10 @@ Control* ListCtrlListView::CreateDataItem()
     ListCtrlListViewItem* pItem = new ListCtrlListViewItem(GetWindow());
     pItem->SetListCtrl(m_pListCtrl);
     pItem->SetClass(m_pListCtrl->GetListViewItemClass());
-    Control* pItemImage = new Control(GetWindow());
+    ListCtrlIcon* pItemImage = new ListCtrlIcon(GetWindow());
     ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
+    pItemImage->SetListBoxItem(pItem);
+    pItemLabel->SetListBoxItem(pItem);
     pItem->AddItem(pItemImage);
     pItem->AddItem(pItemLabel);
     return pItem;
@@ -221,14 +223,14 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
         //如果列没有设置图标，则取行的
         nImageId = itemData.nImageId;
     }
-    Box* pItemBox = dynamic_cast<Box*>(pControl);
-    ASSERT(pItemBox != nullptr);
-    if (pItemBox == nullptr) {
+    ListCtrlListViewItem* pViewItem = dynamic_cast<ListCtrlListViewItem*>(pControl);
+    ASSERT(pViewItem != nullptr);
+    if (pViewItem == nullptr) {
         return false;
     }
 
-    Control* pItemImage = pItemBox->GetItemAt(0);
-    ListCtrlLabel* pItemLabel = dynamic_cast<ListCtrlLabel*>(pItemBox->GetItemAt(1));
+    ListCtrlIcon* pItemImage = dynamic_cast<ListCtrlIcon*>(pViewItem->GetItemAt(0));
+    ListCtrlLabel* pItemLabel = dynamic_cast<ListCtrlLabel*>(pViewItem->GetItemAt(1));
     ASSERT((pItemImage != nullptr) && (pItemLabel != nullptr));
     if ((pItemImage == nullptr) || (pItemLabel == nullptr)) {
         return false;
@@ -272,29 +274,27 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
     pItemImage->SetNoFocus();
     pItemLabel->SetNoFocus();
 
-    pItemImage->SetMouseEnabled(false);
-
     //设置可编辑属性
+    const EventCallbackID callbackID = (EventCallbackID)this;
     bool bEditable = (pSubItemData != nullptr) ? pSubItemData->bEditable : false;
     if (bEditable && m_pListCtrl->IsEnableItemEdit()) {
         IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
         ListCtrlLabel* pSubItem = pItemLabel;
         ASSERT(pItem != nullptr);
-        pItemLabel->SetListBoxItem(pControl);
-        pItemLabel->SetMouseEnabled(true);
-        pItemLabel->DetachEvent(kEventEnterEdit);
+        pItemLabel->SetEnableEdit(true);
+        pItemLabel->DetachEventByID(kEventEnterEdit, callbackID);
         pItemLabel->AttachEvent(kEventEnterEdit, [this, nElementIndex, nColumnId, pItem, pSubItem](const EventArgs& /*args*/) {
             if (m_pListCtrl != nullptr) {
                 m_pListCtrl->OnItemEnterEditMode(nElementIndex, nColumnId, pItem, pSubItem);
             }
             return true;
-            });
+            }, callbackID);
     }
     else {
-        pItemLabel->SetListBoxItem(nullptr);
-        pItemLabel->DetachEvent(kEventEnterEdit);
-        pItemLabel->SetMouseEnabled(false);
+        pItemLabel->SetEnableEdit(false);
+        pItemLabel->DetachEventByID(kEventEnterEdit, callbackID);
     }
+    SendEvent(kEventListViewItemFilled, (WPARAM)pViewItem->GetListBoxIndex(), (LPARAM)pViewItem->GetDataItemIndex(), pViewItem);
     return true;
 }
 

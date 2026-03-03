@@ -30,6 +30,11 @@ public:
     */
     UiColor GetColor(const DString& strName) const;
 
+    /** 删除指定的颜色属性
+    * @param [in] strName 要删除的颜色名称
+    */
+    void RemoveColor(const DString& strName);
+
     /** 删除所有颜色属性
     */
     void RemoveAllColors();

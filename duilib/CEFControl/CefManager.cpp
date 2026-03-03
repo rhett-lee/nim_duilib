@@ -51,7 +51,9 @@ CefManager::CefManager():
     m_bHasCefCachePath(false),
     m_bEnableOffScreenRendering(true),
     m_bCefInit(false),
-    m_bCefMessageLoopEmpty(false)
+    m_bCefMessageLoopEmpty(false),
+    m_bEnableF12(true),
+    m_bEnableF11(true)
 {
 #ifdef DUILIB_BUILD_FOR_MACOS
     m_bExiting = false;
@@ -424,6 +426,39 @@ CefManager::ProcessType CefManager::GetProcessType(CefRefPtr<CefCommandLine> com
 #endif
 
     return OtherProcess;
+}
+
+void CefManager::AppendSwitchWithValue(const DString& name, const DString& value)
+{
+    ASSERT(!value.empty());
+    if (!value.empty()) {
+        m_cefSwitchWithValues.push_back(std::pair<DString, DString>(name, value));
+    }
+}
+
+const std::vector<std::pair<DString, DString>>& CefManager::GetSwitchWithValues() const
+{
+    return m_cefSwitchWithValues;
+}
+
+void CefManager::SetEnableF12(bool bEnableF12)
+{
+    m_bEnableF12 = bEnableF12;
+}
+
+bool CefManager::IsEnableF12() const
+{
+    return m_bEnableF12;
+}
+
+void CefManager::SetEnableF11(bool bEnableF11)
+{
+    m_bEnableF11 = bEnableF11;
+}
+
+bool CefManager::IsEnableF11() const
+{
+    return m_bEnableF11;
 }
 
 } //namespace ui

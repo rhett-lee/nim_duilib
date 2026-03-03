@@ -7,7 +7,8 @@ ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
     ListCtrlLabel(pWindow),
     m_pItem(nullptr),
     m_imageId(-1),
-    m_nIconSpacing(0)
+    m_nIconSpacing(0),
+    m_nColumnId(Box::InvalidIndex)
 {
     SetIconSpacing(2, true);
 }
@@ -35,6 +36,11 @@ void ListCtrlSubItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScal
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
+bool ListCtrlSubItem::SupportCheckMode() const
+{
+    return true;
+}
+
 void ListCtrlSubItem::SetListCtrlItem(ListCtrlItem* pItem)
 {
     m_pItem = pItem;
@@ -46,111 +52,82 @@ ListCtrlItem* ListCtrlSubItem::GetListCtrlItem() const
     return m_pItem;
 }
 
-bool ListCtrlSubItem::SetCheckBoxVisible(bool bVisible)
+size_t ListCtrlSubItem::GetDataItemIndex() const
 {
-    bool bRet = false;
-    if (bVisible) {
-        ListCtrlItem* pItem = GetListCtrlItem();
-        if (pItem == nullptr) {
-            return false;
-        }
-        ListCtrlCheckBox* pCheckBox = nullptr;
-        if (GetItemCount() > 0) {
-            pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-        }
-        if (pCheckBox == nullptr) {
-            pCheckBox = new ListCtrlCheckBox(GetWindow());
-            AddItem(pCheckBox);
-            ListCtrl* pListCtrl = pItem->GetListCtrl();            
-            DString checkBoxClass;
-            if (pListCtrl != nullptr) {
-                checkBoxClass = pListCtrl->GetCheckBoxClass();
-            }
-            ASSERT(!checkBoxClass.empty());
-            pCheckBox->SetClass(checkBoxClass);
-        }
-        //设置内边距，避免与文字重叠
-        UiPadding textPadding = GetTextPadding();
-        int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
-        if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
-            textPadding.left = nCheckBoxWidth;
-            SetTextPadding(textPadding, false);
-        }
-        pCheckBox->SetVisible(true);
+    if (m_pItem != nullptr) {
+        return m_pItem->GetDataItemIndex();
     }
-    else if (GetItemCount() > 0) {
-        ListCtrlCheckBox* pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            UiPadding textPadding = GetTextPadding();
-            int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
-            if ((nCheckBoxWidth > 0) && (textPadding.left >= nCheckBoxWidth)) {
-                textPadding.left -= nCheckBoxWidth;
-                SetTextPadding(textPadding, false);
-            }
-            RemoveItemAt(0);
-            bRet = true;
+    return Box::InvalidIndex;
+}
+
+size_t ListCtrlSubItem::GetDataColumnIndex() const
+{
+    if (m_pItem != nullptr) {
+        ListCtrl* pListCtrl = m_pItem->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            return pListCtrl->GetColumnIndex(m_nColumnId);
         }
+    }
+    return Box::InvalidIndex;
+}
+
+size_t ListCtrlSubItem::GetDataColumnId() const
+{
+    return m_nColumnId;
+}
+
+void ListCtrlSubItem::SetDataColumnId(size_t nColumnId)
+{
+    m_nColumnId = nColumnId;
+}
+
+bool ListCtrlSubItem::SetShowCheckBox(bool bShow)
+{
+    ListCtrlItem* pItem = GetListCtrlItem();
+    if (pItem == nullptr) {
+        return false;
+    }
+    bool bRet = false;
+    if (bShow) {
+        if (IsShowCheckBox()) {
+            return true;
+        }
+        ListCtrl* pListCtrl = pItem->GetListCtrl();
+        if (pListCtrl != nullptr) {
+            DString checkBoxClass = pListCtrl->GetCheckBoxClass();
+            if (!checkBoxClass.empty()) {
+                SetClass(checkBoxClass);
+                bRet = IsShowCheckBox();
+            }
+        }
+    }
+    else {
+        //清除CheckBox图片资源，就不显示了
+        ClearStateImages();
+        ASSERT(!IsShowCheckBox());
+        bRet = true;
     }
     return bRet;
 }
 
-bool ListCtrlSubItem::IsCheckBoxVisible() const
+bool ListCtrlSubItem::IsShowCheckBox() const
 {
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            return pCheckBox->IsVisible();
-        }
-    }
-    return false;
+    //如果有CheckBox图片资源，则认为显示了CheckBox
+    return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
 }
 
-bool ListCtrlSubItem::SetCheckBoxSelect(bool bSelected, bool bPartSelect)
+bool ListCtrlSubItem::IsCheckBoxChecked() const
 {
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            bool bChanged = pCheckBox->IsSelected() != bSelected;
-            pCheckBox->SetSelected(bSelected);
-            if (bSelected) {
-                if (pCheckBox->IsPartSelected() != bPartSelect) {
-                    pCheckBox->SetPartSelected(bPartSelect);
-                    bChanged = true;
-                }
-            }
-            if (bChanged) {
-                pCheckBox->Invalidate();
-            }
-            return true;
-        }
-    }
-    return false;
+    return IsShowCheckBox() && IsChecked();
 }
 
-bool ListCtrlSubItem::GetCheckBoxSelect(bool& bSelected, bool& bPartSelect) const
+int32_t ListCtrlSubItem::GetCheckBoxImageWidth()
 {
-    bSelected = false;
-    bPartSelect = false;
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            bSelected = pCheckBox->IsSelected();
-            if (bSelected) {
-                bPartSelect = pCheckBox->IsPartSelected();
-            }
-            return true;
-        }
+    if (GetWindow() == nullptr) {
+        return 0;
     }
-    return false;
-}
-
-ListCtrlCheckBox* ListCtrlSubItem::GetCheckBox() const
-{
-    ListCtrlCheckBox* pCheckBox = nullptr;
-    if (GetItemCount() > 0) {
-        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-    }
-    return pCheckBox;
+    UiSize sz = GetStateImageSize(kStateImageBk, kControlStateNormal);
+    return sz.cx;
 }
 
 void ListCtrlSubItem::SetImageId(int32_t imageId)
@@ -232,10 +209,8 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
 
     //CheckBox的宽度，需要留出来
     int32_t nCheckBoxWidth = 0;
-    ListCtrlCheckBox* pCheckBox = GetCheckBox();
-    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
-        UiSize sz = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
-        nCheckBoxWidth += sz.cx;
+    if (IsShowCheckBox()) {
+        nCheckBoxWidth += GetCheckBoxImageWidth();
         nCheckBoxWidth += nIconTextSpacing;
     }
 
@@ -308,10 +283,8 @@ UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
 
     //CheckBox的宽度，需要留出来
     int32_t nCheckBoxWidth = 0;
-    ListCtrlCheckBox* pCheckBox = GetCheckBox();
-    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
-        UiSize imageSize = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
-        nCheckBoxWidth += imageSize.cx;
+    if (IsShowCheckBox()) {
+        nCheckBoxWidth += GetCheckBoxImageWidth();
         nCheckBoxWidth += nIconTextSpacing;
     }
 

@@ -11,6 +11,8 @@ namespace ui
     //定义所有控件类型
     #define  DUI_CTR_CONTROL                         (_T("Control"))
     #define  DUI_CTR_CONTROL_DRAGABLE                (_T("ControlDragable"))
+    #define  DUI_CTR_CONTROL_MOVABLE                 (_T("ControlMovable"))
+    #define  DUI_CTR_CONTROL_RESIZABLE               (_T("ControlResizable"))
     #define  DUI_CTR_LABEL                           (_T("Label"))
     #define  DUI_CTR_RICHTEXT                        (_T("RichText"))
     #define  DUI_CTR_HYPER_LINK                      (_T("HyperLink"))
@@ -22,6 +24,10 @@ namespace ui
     #define  DUI_CTR_LABELBOX                        (_T("LabelBox"))
     #define  DUI_CTR_LABELHBOX                       (_T("LabelHBox"))
     #define  DUI_CTR_LABELVBOX                       (_T("LabelVBox"))
+
+    #define  DUI_CTR_RICHTEXT_BOX                    (_T("RichTextBox"))
+    #define  DUI_CTR_RICHTEXT_HBOX                   (_T("RichTextHBox"))
+    #define  DUI_CTR_RICHTEXT_VBOX                   (_T("RichTextVBox"))
 
     #define  DUI_CTR_BUTTONBOX                       (_T("ButtonBox"))
     #define  DUI_CTR_BUTTONHBOX                      (_T("ButtonHBox"))
@@ -42,6 +48,7 @@ namespace ui
     #define  DUI_CTR_VBOX                            (_T("VBox"))
     #define  DUI_CTR_HFLOWBOX                        (_T("HFlowBox"))
     #define  DUI_CTR_VFLOWBOX                        (_T("VFlowBox"))
+    #define  DUI_CTR_XMLBOX                          (_T("XmlBox"))
 
     #define  DUI_CTR_VTILE_BOX                       (_T("VTileBox"))
     #define  DUI_CTR_HTILE_BOX                       (_T("HTileBox"))
@@ -49,6 +56,14 @@ namespace ui
     #define  DUI_CTR_BOX_DRAGABLE                    (_T("BoxDragable"))
     #define  DUI_CTR_HBOX_DRAGABLE                   (_T("HBoxDragable"))
     #define  DUI_CTR_VBOX_DRAGABLE                   (_T("VBoxDragable"))
+
+    #define  DUI_CTR_BOX_MOVABLE                     (_T("BoxMovable"))
+    #define  DUI_CTR_HBOX_MOVABLE                    (_T("HBoxMovable"))
+    #define  DUI_CTR_VBOX_MOVABLE                    (_T("VBoxMovable"))
+
+    #define  DUI_CTR_BOX_RESIZABLE                   (_T("BoxResizable"))
+    #define  DUI_CTR_HBOX_RESIZABLE                  (_T("HBoxResizable"))
+    #define  DUI_CTR_VBOX_RESIZABLE                  (_T("VBoxResizable"))
 
     #define  DUI_CTR_GROUP_BOX                       (_T("GroupBox"))
     #define  DUI_CTR_GROUP_HBOX                      (_T("GroupHBox"))
@@ -98,6 +113,7 @@ namespace ui
     #define  DUI_CTR_SUB_MENU                        (_T("SubMenu"))
     #define  DUI_CTR_MENU_ITEM                       (_T("MenuItem"))
     #define  DUI_CTR_MENU_LISTBOX                    (_T("MenuListBox"))
+    #define  DUI_CTR_MENU_BAR                        (_T("MenuBar"))
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
@@ -115,9 +131,11 @@ namespace ui
     #define  DUI_CTR_IPADDRESS                       (_T("IPAddress"))
     #define  DUI_CTR_HOTKEY                          (_T("HotKey"))
     #define  DUI_CTR_TAB_CTRL                        (_T("TabCtrl"))
-    #define  DUI_CTR_TAB_CTRL_ITEM                   (_T("TabCtrlItem"))
-    #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))
+    #define  DUI_CTR_TAB_CTRL_ITEM                   (_T("TabCtrlItem"))    
     #define  DUI_CTR_ADDRESS_BAR                     (_T("AddressBar"))
+    #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))
+    #define  DUI_CTR_BITMAP_CONTROL                  (_T("BitmapControl"))
+    #define  DUI_CTR_CHILD_WINDOW                    (_T("ChildWindow"))
 
     // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
     #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))
@@ -172,14 +190,15 @@ namespace ui
     enum class AnimationType: int8_t
     {
         kAnimationNone              = 0,    //无动画
-        kAnimationAlpha             = 1,    //透明度渐变动画
-        kAnimationHeight            = 2,    //控件高度变化动画
-        kAnimationWidth             = 3,    //控件宽度变化动画
-        kAnimationHot               = 4,    //鼠标悬停状态的动画
-        kAnimationInoutXFromLeft    = 5,    //控件的X坐标变化动画，从左侧
-        kAnimationInoutXFromRight   = 6,    //控件的X坐标变化动画，从右侧
-        kAnimationInoutYFromTop     = 7,    //控件的Y坐标变化动画，从上侧
-        kAnimationInoutYFromBottom  = 8,    //控件的Y坐标变化动画，从下侧
+        kAnimationHot               = 1,    //鼠标悬停状态的动画
+        kAnimationAlpha             = 2,    //透明度渐变动画
+        kAnimationHeight            = 3,    //控件高度变化动画（高度不能是拉伸类型）
+        kAnimationWidth             = 4,    //控件宽度变化动画（宽度不能是拉伸类型）
+        kAnimationSize              = 5,    //控件大小变化动画（高度和宽度不能是拉伸类型）
+        kAnimationInoutXFromLeft    = 6,    //控件的X坐标变化动画，从左侧
+        kAnimationInoutXFromRight   = 7,    //控件的X坐标变化动画，从右侧
+        kAnimationInoutYFromTop     = 8,    //控件的Y坐标变化动画，从上方
+        kAnimationInoutYFromBottom  = 9,    //控件的Y坐标变化动画，从底部
     };
 
     //图片动画帧类型
@@ -249,10 +268,11 @@ namespace ui
     {
         void* m_pDataObj;       //IDataObject*
         uint32_t m_grfKeyState; //键盘状态
-        int32_t m_screenX;      //鼠标所在点的X坐标，屏幕坐标
-        int32_t m_screenY;      //鼠标所在点的Y坐标，屏幕坐标
+        int32_t m_ptClientX;    //鼠标所在点的X坐标，客户区坐标
+        int32_t m_ptClientY;    //鼠标所在点的Y坐标，客户区坐标
         uint32_t m_dwEffect;    //参数返回值
         int32_t m_hResult;      //函数返回值
+        bool m_bHandled;        //该事件是否已处理完成，如果返回true表示处理完成，不再派发给UI控件处理
         std::vector<DString> m_textList;    // 在m_pDataObj中包含的文本内容，每个元素代表一行
         std::vector<DString> m_fileList;    // 在m_pDataObj中包含的文本内容，每个元素代表一个文件路径
     };
@@ -260,7 +280,11 @@ namespace ui
     //SDL的拖放数据
     struct ControlDropData_SDL
     {
-        bool m_bTextData;                   //true表示m_textList为有效数据，false表示m_fileList为有效数据
+        bool m_bHandled;                    // 该事件是否已处理完成，如果返回true表示处理完成，不再派发给UI控件处理
+        bool m_bTextData;                   // true表示m_textList为有效数据，false表示m_fileList为有效数据
+        int32_t m_ptClientX;                // 鼠标所在点的X坐标，客户区坐标
+        int32_t m_ptClientY;                // 鼠标所在点的Y坐标，客户区坐标
+
         std::vector<DString> m_textList;    // 在拖放操作中包含的文本内容，每个元素代表一行
 
         DString m_source;                   // 当m_bTextData为false时有效
@@ -279,12 +303,14 @@ namespace ui
         bool m_bDecodeError;    //该图片是否存在数据解码错误
     };
 
-    //定义所有消息类型（注意事项：类型定义变化时，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
-    enum EventType: int8_t
+    //控件/窗口相关的消息类型（注意事项：类型定义变化时，除了窗口消息外，需要同步EventArgs.cpp中的InitEventStringMap函数，同步消息类型与消息名称的映射关系）
+    enum EventType: uint8_t
     {
-        kEventNone,
-        kEventAll,                  //代表所有消息（无参数关联数据）
-        kEventDestroy,              //控件销毁（最后一个消息）
+        /** 控件相关的消息
+        */
+        kEventNone,                 //空消息，控件消息的起始值
+        kEventAll,                  //代表所有控件消息（无参数关联数据）
+        kEventDestroy,              //控件销毁（控件生命周期内的最后一个消息）
 
         //键盘消息
         kEventKeyBegin,
@@ -324,11 +350,11 @@ namespace ui
 
         kEventWindowSetFocus,       //Window类：发送给焦点控件，当窗口获得焦点时触发事件；发送给接收者的回调函数（wParam: 已失去键盘焦点的窗口的句柄）
         kEventWindowKillFocus,      //Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）；发送给接收者的回调函数（wParam: 接收键盘焦点的窗口的句柄）
+        kEventWindowPosChanged,     //Window类：发送给Focus控件，当窗口位置/大小发生变化时触发事件
         kEventWindowSize,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件
-        kEventWindowMove,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件        
+        kEventWindowMove,           //Window类：发送给Focus控件，当窗口位置发生变化时触发事件        
         kEventWindowCreate,         //Window类，当窗口创建完成时触发，wParam为1表示DoModal对话框，为0表示普通窗口
         kEventWindowClose,          //Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发，wParam参数表示窗口关闭参数，参见enum WindowCloseParam
-        kEventWindowFirstShown,     //Window类，当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
 
         //左键点击/右键点击事件
         kEventClick,                //Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发
@@ -339,7 +365,7 @@ namespace ui
         kEventMouseClickEsc,        //Window类：当收到键盘ESC键消息时触发，发送给鼠标按下时的控件
 
         //选择/取消选择
-        kEventSelect,               //CheckBox类、Option类、ListBox类、Combo类：当变成选中状态时触发
+        kEventSelect,               //CheckBox类、Option类、ListBox类、Combo类、ListCtrl类：当变成选中状态时触发
         kEventUnSelect,             //CheckBox类、Option类、ListBox类、Combo类：当变成非选中状态时触发
 
         //勾选/取消勾选
@@ -354,26 +380,40 @@ namespace ui
         kEventCollapse,             //TreeNode类：当树节点收起时触发
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
-        kEventTextChanged,           //RichEdit类：当文本内容发生变化时触发
-        kEventSelChanged,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
+        kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发
+        kEventSelChanged,           //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit、AddressBar类：当收到回车键时触发
         kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
-        kEventScrollPosChanged,         //ScrollBox类：当滚动条位置发生变化时触发
-        kEventValueChanged,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+        kEventScrollPosChanged,     //ScrollBox类：当滚动条位置发生变化时触发
+        kEventValueChanged,         //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
         kEventPosChanged,           //Control类：当控件的位置发生变化时触发
         kEventSizeChanged,          //Control类：当控件的大小发生变化时触发
-        kEventVisibleChanged,        //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
-        kEventStateChanged,          //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
+        kEventVisibleChanged,       //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
+        kEventStateChanged,         //Control类：当控件的State属性发生变化时触发, WPARAM是新状态，LPARAM是旧状态
         kEventSelectColor,          //ColorPicker类：当选择了新颜色时触发, WPARAM是新的颜色值，LPARAM是旧的颜色值
 
         kEventSplitDraged,          //Split类：通过拖动操作调整了控件的大小，WPARAM是第一个控件接口，LPARAM是第二个控件接口
 
-        kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
-        kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
-        kEventDataItemCountChanged, //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
+        kEventElementFilled,            //VirtualListBox类：视图数据项UI元素填充事件(虚表), wParam是Control*指针, lParam是数据元素索引号
+
+        kEventEnterEdit,                //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
+        kEventLeaveEdit,                //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
+        kEventDataItemCountChanged,     //ListCtrl类：数据项个数发生变化, wParam是新的个数(size_t), lParam是旧的个数(size_t)
+
+        kEventItemMouseEnter,           //ListCtrl/VirtualListBox类：鼠标进入ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem/ListBoxItem控件事件
+        kEventItemMouseLeave,           //ListCtrl/VirtualListBox类：鼠标离开ListCtrlItem/ListCtrlListViewItem/ListCtrlIconViewItem/ListBoxItem控件事件
+        kEventSubItemMouseEnter,        //ListCtrl类：Report视图，鼠标进入ListCtrlSubItem控件事件
+        kEventSubItemMouseLeave,        //ListCtrl类：Report视图，鼠标离开ListCtrlSubItem控件事件
+        kEventReportViewItemFilled,     //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行数据
+        kEventReportViewSubItemFilled,  //ListCtrl类：视图数据项UI元素填充事件(虚表), 某行某列数据
+        kEventListViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表)
+        kEventIconViewItemFilled,       //ListCtrl类：视图数据项UI元素填充事件(虚表)
+        kEventViewTypeChanged,          //ListCtrl类：当视图的类型发生变化时触发，wParam是当前视图类型，lParam是原来的视图类型，枚举值参见listCtrlType取值, pEventData为视图的指针
+        kEventViewPosChanged,           //ListCtrl类：当视图控件的位置发生变化时触发，视图类型参见listCtrlType取值
+        kEventViewSizeChanged,          //ListCtrl类：当视图控件的大小发生变化时触发，视图类型参见listCtrlType取值
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
@@ -399,17 +439,64 @@ namespace ui
         kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult*
         kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult*
 
-        kEventLast                      //无使用者
+        kEventLast,                     //控件的最后一个消息
+
+        /** 窗口相关的事件，这些事件不会发给任何控件，直接发给应用层
+        */
+        kWindowMsgBegin,            //窗口消息的开始
+        kWindowCreateMsg,           //窗口创建消息
+        kWindowCloseMsg,            //窗口关闭消息
+        kWindowShowWindowMsg,       //窗口显示或者隐藏
+        kWindowFirstShown,          //窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
+        kWindowPaintMsg,            //窗口绘制
+        kWindowEnterFullscreenMsg,  //窗口进入全屏状态
+        kWindowExitFullscreenMsg,   //窗口退出全屏状态
+        kWindowMaximizedMsg,        //窗口进入最大化状态
+        kWindowMinimizedMsg,        //窗口进入最小化状态
+        kWindowRestoredMsg,         //窗口进入还原状态
+        kWindowPosChangedMsg,       //窗口位置大小发生改变
+        kWindowSizeMsg,             //窗口大小发生改变
+        kWindowMoveMsg,             //窗口位置发生改变
+        kWindowSetFocusMsg,         //窗口获得焦点
+        kWindowKillFocusMsg,        //窗口失去焦点
+        kWindowSetCursorMsg,        //窗口设置光标
+        kWindowKeyDownMsg,          //窗口中键盘按下
+        kWindowKeyUpMsg,            //窗口中键盘弹起
+        kWindowMouseWheelMsg,       //窗口中鼠标滚轮消息
+        kWindowMouseMoveMsg,        //窗口中鼠标移动消息
+        kWindowMouseHoverMsg,       //窗口中鼠标悬停消息
+        kWindowMouseLeaveMsg,       //窗口中鼠标离开消息
+        kWindowLButtonDownMsg,      //窗口中鼠标左键按下消息
+        kWindowLButtonUpMsg,        //窗口中鼠标左键弹起消息
+        kWindowLButtonDbClickMsg,   //窗口中鼠标左键双击消息
+        kWindowMButtonDownMsg,      //窗口中鼠标中键按下消息
+        kWindowMButtonUpMsg,        //窗口中鼠标中键弹起消息
+        kWindowMButtonDbClickMsg,   //窗口中鼠标中键双击消息
+        kWindowRButtonDownMsg,      //窗口中鼠标右键按下消息
+        kWindowRButtonUpMsg,        //窗口中鼠标右键弹起消息
+        kWindowRButtonDbClickMsg,   //窗口中鼠标右键双击消息
+        kWindowCaptureChangedMsg,   //窗口丢失鼠标捕获
+        kWindowDropEnterMsg,        //窗口拖放操作：拖入, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropOverMsg,         //窗口拖放操作：拖动经过, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropMsg,             //窗口拖放操作：拖放操作, wParam 是ControlDropType，代表来源类型
+                                    //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+        kWindowDropLeaveMsg,        //窗口拖放操作：离开, 无参数
+        kWindowMsgEnd               //窗口消息的结束
     };
 
     /** 热键组合键标志位
     */
     enum HotKeyModifiers
     {
-        kHotKey_Shift = 0x01,   //Shift键
-        kHotKey_Contrl = 0x02,  //Contrl键
-        kHotKey_Alt = 0x04,     //Alt键
-        kHotKey_Ext = 0x08      //扩展键
+        kHotKey_Shift   = 0x01, //Shift键
+        kHotKey_Contrl  = 0x02, //Contrl键
+        kHotKey_Alt     = 0x04, //Alt键
+        kHotKey_Ext     = 0x08  //扩展键
     };
 
     /** 鼠标操作的标志
@@ -421,7 +508,6 @@ namespace ui
         kVkShift    = 0x0004, //MK_SHIFT,       //按下了 SHIFT 键
         kVkControl  = 0x0008  //MK_CONTROL,     //按下了 CTRL 键
     };
-
 }// namespace ui
 
 #endif //DUILIB_DEFS_H_

@@ -68,7 +68,8 @@ private:
 };
 
 GlobalManager::GlobalManager():
-    m_platformData(nullptr)
+    m_platformData(nullptr),
+    m_bAnimationEnabled(true)
 {
 }
 
@@ -579,11 +580,57 @@ void GlobalManager::CheckImagePath(FilePath& imageFullPath, bool& bLocalPath)
     }
 }
 
+bool GlobalManager::IsResInPublicPath(const FilePath& resPath) const
+{
+    DString resPathString = resPath.ToString();
+    StringUtil::ReplaceAll(_T("\\"), _T("/"), resPathString);
+    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+        return true;
+    }
+    return false;
+}
+
+FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
+{
+    bool bLocalPath = false;
+    bool bResPath = false;
+    return GetExistsResFullPath(windowResPath, windowXmlPath, resPath, nullptr, bLocalPath, bResPath);
+}
+
 FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
                                              const FilePath& windowXmlPath,
                                              const FilePath& resPath,
+                                             const Control* pControl,
                                              bool& bLocalPath,
                                              bool& bResPath)
+{
+    FilePath imageFullPath = FindExistsResFullPath(windowResPath, windowXmlPath, resPath, bLocalPath, bResPath);
+    if (imageFullPath.IsEmpty()) {
+        //图片资源加载失败，通过回调函数给出修正一次的机会
+        std::vector<ResNotFoundCallbackData> resNotFoundCallbacks = m_resNotFoundCallbacks;
+        for (const ResNotFoundCallbackData& callbackData : resNotFoundCallbacks) {
+            FilePath newWindowResPath = windowResPath;
+            FilePath newWindowXmlPath = windowXmlPath;
+            if (callbackData.m_callback(pControl, resPath, newWindowResPath, newWindowXmlPath)) {
+                if ((newWindowResPath != windowResPath) || (newWindowXmlPath != windowXmlPath)) {
+                    imageFullPath = FindExistsResFullPath(newWindowResPath, newWindowXmlPath, resPath, bLocalPath, bResPath);
+                    if (!imageFullPath.IsEmpty()) {
+                        //查找资源成功，终止尝试
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
+    return imageFullPath;
+}
+
+FilePath GlobalManager::FindExistsResFullPath(const FilePath& windowResPath,
+                                              const FilePath& windowXmlPath,
+                                              const FilePath& resPath,
+                                              bool& bLocalPath,
+                                              bool& bResPath)
 {
     bLocalPath = true;
     bResPath = true;
@@ -615,8 +662,7 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
     else {
         //相对路径：首先在窗口的资源目录中查找（命中率高）
         const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);        
-        DString resPathString = resPath.ToString();
-        if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+        if (IsResInPublicPath(resPath)) {
             //优先从公共目录匹配
             imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
             CheckImagePath(imageFullPath, bLocalPath);
@@ -636,6 +682,12 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
             const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
             imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
             CheckImagePath(imageFullPath, bLocalPath);
+
+            if (imageFullPath.IsEmpty()) {
+                const FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowXmlPath);
+                imageFullPath = FilePathUtil::JoinFilePath(xmlFullPath, resPath);
+                CheckImagePath(imageFullPath, bLocalPath);
+            }
         }
         if (!bWindows && imageFullPath.IsEmpty() && resPath.IsAbsolutePath()) {
             //注意：非Windows的绝对路径与相对路径形式相同，都是以'/'开头，所以放在最后判断
@@ -651,8 +703,30 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
             }
         }
     }
-    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
     return imageFullPath;
+}
+
+void GlobalManager::AddResNotFoundCallback(ResNotFoundCallback callback, size_t callbackId)
+{
+    if (callback != nullptr) {
+        ResNotFoundCallbackData data;
+        data.m_callback = callback;
+        data.m_callbackId = callbackId;
+        m_resNotFoundCallbacks.push_back(data);
+    }
+}
+
+void GlobalManager::RemoveResNotFoundCallback(size_t callbackId)
+{
+    auto iter = m_resNotFoundCallbacks.begin();
+    while (iter != m_resNotFoundCallbacks.end()) {
+        if (iter->m_callbackId == callbackId) {
+            iter = m_resNotFoundCallbacks.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
 }
 
 void GlobalManager::RemoveAllImages()
@@ -920,6 +994,56 @@ void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCre
     }
 }
 
+Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow, const FilePath& xmlFilePath, XmlPreviewAttributes& xmlPreviewAttributes)
+{
+    const std::vector<unsigned char> xmlFileData;
+    return CreateBoxForXmlPreview(pWindow, xmlFileData, xmlPreviewAttributes, xmlFilePath);
+}
+
+Box* GlobalManager::CreateBoxForXmlPreview(Window* pWindow,
+                                           const std::vector<unsigned char>& xmlFileData,
+                                           XmlPreviewAttributes& xmlPreviewAttributes,
+                                           const FilePath& xmlFilePath)
+{
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    bool bParseXmlResult = false;
+    Box* pBox = nullptr;
+    WindowBuilder builder;
+    if (!xmlFileData.empty()) {
+        if (builder.ParseXmlData(xmlFileData, xmlFilePath)) {
+            bParseXmlResult = true;
+        }
+    }
+    else if (!xmlFilePath.IsEmpty()) {
+        if (builder.ParseXmlFile(xmlFilePath, pWindow->GetResourcePath())) {
+            bParseXmlResult = true;
+        }
+    }
+    if (bParseXmlResult) {
+        Control* pControl = builder.CreateControls(pWindow, nullptr);
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pBox = builder.ToBox(pControl);
+            ASSERT(pBox != nullptr);
+            if (pBox == nullptr) {
+                delete pControl;
+                pControl = nullptr;
+            }
+        }
+        if (pBox != nullptr) {
+            xmlPreviewAttributes.m_windowAttributes.clear();
+            builder.ParseWindowAttributes(xmlPreviewAttributes.m_windowAttributes);
+            xmlPreviewAttributes.m_windowClassList = builder.GetWindowClassList();
+            xmlPreviewAttributes.m_windowTextColorList = builder.GetWindowTextColorList();
+            xmlPreviewAttributes.m_globalFontIdList = builder.GetGlobalFontIdList();
+        }
+    }
+    return pBox;
+}
+
 bool GlobalManager::IsInUIThread() const
 {
     return (m_dwUiThreadId == std::this_thread::get_id()) ? true : false;
@@ -936,6 +1060,16 @@ void GlobalManager::AddAtExitFunction(std::function<void()> atExitFunction)
     if (atExitFunction != nullptr) {
         m_atExitFunctions.push_back(atExitFunction);
     }
+}
+
+void GlobalManager::SetAnimationEnabled(bool bEnable)
+{
+    m_bAnimationEnabled = bEnable;
+}
+
+bool GlobalManager::IsAnimationEnabled() const
+{
+    return m_bAnimationEnabled;
 }
 
 } // namespace ui

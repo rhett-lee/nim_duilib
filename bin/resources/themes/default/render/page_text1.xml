@@ -116,9 +116,9 @@
                 <bgcolor color="#802378">背景颜色演示</bgcolor>                
                 RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
             </RichText>
-            <ScrollBox vscrollbar="true" hscrollbar="true" width="260" height="200" bkcolor="white" border_size="2" border_color="red" padding="4,4,4,4">
+            <ScrollBox vscrollbar="true" hscrollbar="true" width="260" height="100" bkcolor="white" border_size="2" border_color="red" padding="4,4,4,4">
                 <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="auto" height="auto" word_wrap="false">
-                    第1行: RichText文本<br/>
+                    第1行: RichText in ScrollBox<br/>
                     第2行: RichText文本<br/>
                     第3行: RichText文本<br/>
                     第4行: RichText文本<br/>
@@ -130,6 +130,15 @@
                     第10行: RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10<br/>
                 </RichText>
             </ScrollBox>
+            <RichTextBox text="{u}RichTextBox{/u}" bkcolor="blue">
+                <Label text="Label in RichTextBox" valign="center"/>
+            </RichTextBox>
+            <RichTextHBox text="{s}RichTextHBox{/s}" bkcolor="dark_gray">
+                <Label text="Label in RichTextHBox" valign="center"/>
+            </RichTextHBox>
+            <RichTextVBox text="{i}RichTextVBox{/i}" bkcolor="blue" child_valign="center">
+                <Label text="Label in RichTextVBox" valign="center"/>
+            </RichTextVBox>
         </VBox>
         <VBox width="300" margin="4">
             <HBox height="60" bkcolor="blue">

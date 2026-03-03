@@ -5,11 +5,11 @@
         <!-- 标题栏区域 -->  
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <!-- 标题栏：窗口左上角显示区域 -->  
-            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse="false">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="容器布局测试" valign="center" margin="8,0,0,0" mouse="false"/>
+                <Label text="容器布局测试" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
-            <Control mouse="false"/>            
+            <Control mouse_enabled="false"/>            
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -42,7 +42,11 @@
                 <TabCtrlItem class="tab_ctrl_item" title="GridBox" close_button_class="" tab_box_item_index="15"/>
                 <TabCtrlItem class="tab_ctrl_item" title="GridScrollBox" close_button_class="" tab_box_item_index="16"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
+            <TabBox name="main_view_tab" bkcolor="white" selected_id="0"
+                    fade_switch_type="FadeInOutX" 
+                    fade_switch_frame_interval_ms="16" 
+                    fade_switch_total_ms="220"
+                    fade_switch_easing_function="EaseOutCubic">
                 <VBox name="main_view_page_00">
                     <Include src="page_box.xml"/>
                 </VBox>

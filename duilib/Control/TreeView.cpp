@@ -1,5 +1,7 @@
 #include "TreeView.h"
 #include "duilib/Core/ScrollBar.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Image/Image.h"
 
 namespace ui
 {
@@ -357,12 +359,12 @@ bool TreeNode::IsVisibleInternal() const
     return true;
 }
 
-bool TreeNode::SupportCheckedMode() const
+bool TreeNode::SupportCheckMode() const
 {
     bool bHasStateImages = HasStateImages();
     if (!bHasStateImages || (m_pTreeView == nullptr)) {
         //如果没有状态图片(CheckBox打勾的图片)，返回默认值
-        return BaseClass::SupportCheckedMode();
+        return BaseClass::SupportCheckMode();
     }
     //多选的时候，支持; 单选的时候，不支持
     return m_pTreeView->IsMultiCheckMode();
@@ -413,7 +415,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetWindow(GetWindow());
 
     //监听双击事件：用于展开子节点
-    pTreeNode->AttachEvent(kEventMouseDoubleClick, UiBind(&TreeNode::OnDoubleClickItem, pTreeNode, std::placeholders::_1));
+    pTreeNode->AttachDoubleClick(UiBind(&TreeNode::OnDoubleClickItem, pTreeNode, std::placeholders::_1));
 
     //监听回车事件：用于激活子节点
     pTreeNode->AttachReturn(UiBind(&TreeNode::OnReturnKeyDown, pTreeNode, std::placeholders::_1));
@@ -442,7 +444,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetEnableIcon(m_pTreeView->IsEnableIcon());
 
     //添加到ListBox容器中
-    size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex();
+    size_t nInsertIndex = GetDescendantNodeMaxListBoxIndex(iIndex);
     if (!Box::IsValidItemIndex(nInsertIndex)) {
         //第一个节点
         nInsertIndex = 0;
@@ -455,7 +457,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     m_aTreeNodes.insert(m_aTreeNodes.begin() + iIndex, pTreeNode);
     bool bAdded = m_pTreeView->ListBox::AddItemAt(pTreeNode, nInsertIndex);
     if (bAdded) {
-        if (SupportCheckedMode()) {
+        if (SupportCheckMode()) {
             //新添加的节点状态，跟随父节点
             pTreeNode->SetChecked(IsChecked());
             //更新节点的勾选状态
@@ -478,8 +480,7 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 {
     if (hIcon == nullptr) {
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        ClearBkIcon();
         return;
     }
     uint32_t nIconID = GlobalManager::Instance().Icon().AddIcon(hIcon);
@@ -492,8 +493,7 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
     IconManager& iconManager = GlobalManager::Instance().Icon();
     DString iconString = iconManager.GetIconString(nIconID);
     if (iconString.empty()) {
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        ClearBkIcon();
         return;
     }
 
@@ -533,9 +533,8 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
         return;
     }
     if (!oldIconString.empty()) {
-        //旧图标存在，并且图标大小不同，首先清除原来的图标
-        SetBkImage(_T(""));
-        AdjustIconPadding();
+        //旧图标存在，首先隐藏原来的图标
+        ClearBkIcon();
     }
 
     SetBkImage(iconString);
@@ -545,6 +544,14 @@ void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiSc
     if (m_pTreeView != nullptr) {
         SetEnableIcon(m_pTreeView->IsEnableIcon());
     }
+}
+
+void TreeNode::ClearBkIcon()
+{
+    SetBkImage(_T(""));
+    m_expandIconPadding = 0;
+    m_checkBoxIconPadding = 0;
+    AdjustIconPadding();
 }
 
 void TreeNode::SetExpandImageClass(const DString& expandClass)
@@ -748,7 +755,7 @@ void TreeNode::SetEnableIcon(bool bEnable)
 
 void TreeNode::SetChildrenCheckStatus(bool bChecked)
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -762,7 +769,7 @@ void TreeNode::SetChildrenCheckStatus(bool bChecked)
 
 void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -776,7 +783,7 @@ void TreeNode::UpdateParentCheckStatus(bool bUpdateSelf)
 
 void TreeNode::UpdateSelfCheckStatus()
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：忽略
         return;
     }
@@ -789,35 +796,35 @@ void TreeNode::UpdateSelfCheckStatus()
         else {
             //更新为：TreeNodeCheck::UnCheck
             SetChecked(false);
-            SetPartSelected(false);
+            SetPartChecked(false);
             Invalidate();
         }
     }
     else if (nodeCheck == TreeNodeCheck::CheckedAll) {
         //更新为：TreeNodeCheck::CheckedAll
         if (bChecked) {
-            if (IsPartSelected()) {
-                SetPartSelected(false);
+            if (IsPartChecked()) {
+                SetPartChecked(false);
                 Invalidate();
             }
         }
         else {            
             SetChecked(true);
-            SetPartSelected(false);
+            SetPartChecked(false);
             Invalidate();
         }
     }
     else if (nodeCheck == TreeNodeCheck::CheckedPart) {
         //更新为：TreeNodeCheck::CheckedPart
         SetChecked(true);
-        SetPartSelected(true);
+        SetPartChecked(true);
         Invalidate();
     }
 }
 
 TreeNodeCheck TreeNode::GetCheckStatus(void) const
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：只按当前节点状态判断结果
         return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
     }
@@ -860,7 +867,7 @@ TreeNodeCheck TreeNode::GetCheckStatus(void) const
 
 TreeNodeCheck TreeNode::GetChildrenCheckStatus(void) const
 {
-    if (!SupportCheckedMode()) {
+    if (!SupportCheckMode()) {
         //单选或者不显示CheckBox：只按当前节点状态判断结果
         return IsSelected() ? TreeNodeCheck::CheckedAll : TreeNodeCheck::UnCheck;
     }
@@ -933,7 +940,7 @@ bool TreeNode::RemoveChildNodeAt(size_t iIndex, bool bUpdateCheckStatus)
     if (pTreeNode != nullptr) {
         bRemoved = pTreeNode->RemoveSelf();
     }
-    if (bUpdateCheckStatus && SupportCheckedMode()) {
+    if (bUpdateCheckStatus && SupportCheckMode()) {
         //更新节点的勾选状态
         UpdateSelfCheckStatus();
         UpdateParentCheckStatus(false);
@@ -998,7 +1005,7 @@ size_t TreeNode::GetChildNodeCount() const
     return m_aTreeNodes.size();
 }
 
-size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
+size_t TreeNode::GetDescendantNodeMaxListBoxIndex(size_t nInsertIndex) const
 {
     size_t maxListBoxIndex = GetListBoxIndex();
     if (!Box::IsValidItemIndex(maxListBoxIndex)) {
@@ -1007,9 +1014,13 @@ size_t TreeNode::GetDescendantNodeMaxListBoxIndex() const
         }
         maxListBoxIndex = 0;
     }
-    for (TreeNode* pTreeNode : m_aTreeNodes) {
+    for (size_t nIndex = 0; nIndex < nInsertIndex; ++nIndex) {
+        if (nIndex >= m_aTreeNodes.size()) {
+            break;
+        }
+        TreeNode* pTreeNode = m_aTreeNodes[nIndex];
         if (pTreeNode != nullptr) {
-            maxListBoxIndex = std::max(pTreeNode->GetDescendantNodeMaxListBoxIndex(), maxListBoxIndex);
+            maxListBoxIndex = std::max(pTreeNode->GetDescendantNodeMaxListBoxIndex(Box::InvalidIndex), maxListBoxIndex);
         }
     }
     return maxListBoxIndex;
@@ -1042,6 +1053,54 @@ void TreeNode::GetChildNodes(std::vector<TreeNode*>& childNodes) const
             childNodes.push_back(pChildNode);
         }
     }
+}
+
+TreeNode* TreeNode::FindChildNodeByName(const DString& name, bool bRecursive) const
+{
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            if (pNode->IsNameEquals(name)) {
+                return pNode;
+            }
+        }
+    }
+    if (!bRecursive) {
+        return nullptr;
+    }
+    //递归查找，孙节点等多级子节点
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            TreeNode* pFoundNode = pNode->FindChildNodeByName(name, bRecursive);
+            if (pFoundNode != nullptr) {
+                return pFoundNode;
+            }
+        }
+    }
+    return nullptr;
+}
+
+TreeNode* TreeNode::FindChildNodeByText(const DString& text, bool bRecursive) const
+{
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            if (pNode->IsTextEquals(text)) {
+                return pNode;
+            }
+        }
+    }
+    if (!bRecursive) {
+        return nullptr;
+    }
+    //递归查找，孙节点等多级子节点
+    for (TreeNode* pNode : m_aTreeNodes) {
+        if (pNode != nullptr) {
+            TreeNode* pFoundNode = pNode->FindChildNodeByText(text, bRecursive);
+            if (pFoundNode != nullptr) {
+                return pFoundNode;
+            }
+        }
+    }
+    return nullptr;
 }
 
 bool TreeNode::IsExpand() const
@@ -1554,7 +1613,7 @@ void TreeView::OnNodeCheckStatusChanged(TreeNode* pTreeNode)
     if (pTreeNode == nullptr) {
         return;
     }
-    if (!pTreeNode->SupportCheckedMode()) {
+    if (!pTreeNode->SupportCheckMode()) {
         //单选或者不显示CheckBox：直接返回
         return;
     }

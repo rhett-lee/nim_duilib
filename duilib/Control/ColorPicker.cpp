@@ -101,7 +101,7 @@ void ColorPicker::AttachSelectColor(const EventCallback& callback)
 
 void ColorPicker::AttachWindowClose(const EventCallback& callback)
 {
-    BaseClass::AttachWindowClose(callback);
+    BaseClass::AttachWindowCloseMsg(callback);
 }
 
 Control* ColorPicker::CreateControl(const DString& strClass)
@@ -715,9 +715,9 @@ public:
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override
+    virtual void OnWindowExitFullscreen() override
     {
-        BaseClass::OnWindowExitFullScreen();
+        BaseClass::OnWindowExitFullscreen();
         CloseWnd();
     }
 
@@ -787,8 +787,8 @@ void ColorPicker::OnPickColorFromScreen()
     createWndParam.m_bCenterWindow = true;
     pScreenColorPicker->CreateWnd(nullptr, createWndParam);
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
-    pScreenColorPicker->EnterFullScreen();
-    pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
+    pScreenColorPicker->EnterFullscreen();
+    pScreenColorPicker->AttachWindowCloseMsg([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
         //更新选择的颜色值
         UiColor selectedColor = pScreenColorPicker->GetSelColor();
         if (!selectedColor.IsEmpty()) {

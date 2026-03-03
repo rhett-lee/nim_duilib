@@ -4,6 +4,7 @@
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/ControlPtrT.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Core/EventArgs.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/Core/NativeWindow_SDL.h"
@@ -50,13 +51,30 @@ public:
     int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
                     bool bCloseByEsc = true, bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(WindowBase* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
 
+    /** 当前窗口是不是子窗口（非弹出窗口类型的子窗口, 对于Windows系统，是只含有WS_CHILD风格的窗口）
+    */
+    bool IsChildWindow() const;
+
     /** 获取父窗口
     */
     WindowBase* GetParentWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(WindowBase* pParentWindow);
 
     /** 获取窗口的实现接口
     */
@@ -181,11 +199,11 @@ public:
 
     /** 使窗口进入全屏状态
     */
-    bool EnterFullScreen();
+    bool EnterFullscreen();
 
     /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
     */
-    bool ExitFullScreen();
+    bool ExitFullscreen();
 
     /** 窗口是否为最大化状态
     */
@@ -197,7 +215,7 @@ public:
 
     /** 窗口是否为全屏状态
     */
-    bool IsWindowFullScreen() const;
+    bool IsWindowFullscreen() const;
 
      /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
@@ -298,18 +316,6 @@ public:
                                    false表示仍然保持DPI感知功能，当显示器的DPI变化时，仍然跟随其变化
     */
     bool ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisableDpiAware = true);
-
-    /** 设置窗口的圆角RGN
-    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
-    * @param [in] szRoundCorner 圆角大小，其值不能为0
-    * @param [in] bRedraw 是否重绘
-    */
-    bool SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw);
-
-    /** 清除窗口的RGN
-    * @param [in] bRedraw 是否重绘
-    */
-    void ClearWindowRgn(bool bRedraw);
 
     /** 发出重绘消息
     * @param [in] rcItem 重绘范围，为客户区坐标
@@ -571,6 +577,235 @@ public:
     DString GetWindowRenderName() const;
 #endif
 
+    /** 界面是否完成首次显示
+    */
+    bool IsWindowFirstShown() const;
+
+public:
+    /** 监听窗口创建事件
+    * @param [in] callback 指定的回调函数，wParam是1表示为通过DoModal函数显示的模态对话框，wParam为0表示为普通窗口
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCreateMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口关闭事件
+    * @param [in] callback 指定的回调函数，wParam是窗口关闭时的退出码
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCloseMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口第一次显示事件（已完成界面布局设置）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口显示属性事件
+    * @param [in] callback 指定的回调函数, wParam为1表示显示，wParam为0表示隐藏
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowShowWindowMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口绘制事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPaintMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口进入全屏事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowEnterFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口退出全屏事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowExitFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口最大化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMaximizedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口最小化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMinimizedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口还原事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRestoredMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置大小变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowPosChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口大小变化事件
+    * @param [in] callback 指定的回调函数, wParam是WindowSizeType类型的值
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSizeMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口位置变化事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMoveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口获取焦点事件
+    * @param [in] callback 指定的回调函数, wParam是失去焦点的窗口的指针(WindowBase*)
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSetFocusMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口失去焦点事件
+    * @param [in] callback 指定的回调函数, wParam是获取焦点的窗口的指针(WindowBase*)
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKillFocusMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口设置光标事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowSetCursorMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口键盘按下事件
+    * @param [in] callback 指定的回调函数: vkCode 虚拟键盘代码，modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKeyDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口键盘弹起事件
+    * @param [in] callback 指定的回调函数: vkCode 虚拟键盘代码，modifierKey 按键标志位，有效值：ModifierKey::kAlt
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowKeyUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标滚轮事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置
+    *                                    modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    *                                    eventData  滚轮旋转的距离，正值表示滚轮向前旋转（远离用户）；负值表示滚轮向后旋转（朝向用户）
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseWheelMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标移动事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseMoveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标悬停事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseHoverMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标离开事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMouseLeaveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标左键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标右键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowRButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键按下事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键弹起事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口鼠标中键双击事件
+    * @param [in] callback 指定的回调函数：ptMouse是鼠标所在位置，modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowMButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口丢失鼠标捕获事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowCaptureChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口拖放相关的操作事件
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowDropEnterMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropOverMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+    void AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+public:
+    /** 本窗口是否含有回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    bool HasWindowEventCallback(EventType eventType) const;
+
+    /** 本窗口是否含有回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    bool HasWindowEventCallbackByID(EventCallbackID callbackID) const;
+
+    /** 删除回调函数（根据回调事件类型）
+    * @param [in] eventType 回调事件类型
+    */
+    void DetachWindowEventCallback(EventType eventType);
+
+    /** 删除回调函数（根据回调函数ID）
+    * @param [in] callbackID 该回调函数对应的ID
+    */
+    void DetachWindowEventCallbackByID(EventCallbackID callbackID);
+
 protected:
     /** 正在初始化窗口数据
     */
@@ -584,6 +819,10 @@ protected:
     */
     virtual void PostInitWindow() = 0;
 
+    /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化
+    */
+    virtual void OnInitLayout() = 0;
+
     /** 窗口正在关闭，处理内部状态
     */
     virtual void PreCloseWindow() = 0;
@@ -595,6 +834,15 @@ protected:
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */
     virtual void FinalMessage() = 0;
+
+protected:
+    /** 进入全屏状态
+    */
+    virtual void NotifyWindowEnterFullscreen() = 0;
+
+    /** 退出全屏状态
+    */
+    virtual void NotifyWindowExitFullscreen() = 0;
 
 protected:
     /** 切换系统标题栏与自绘标题栏
@@ -616,11 +864,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() = 0;
+    virtual void OnWindowEnterFullscreen() = 0;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() = 0;
+    virtual void OnWindowExitFullscreen() = 0;
 
     /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
     * @param [in] nOldScaleFactor 旧的DPI缩放百分比
@@ -667,6 +915,36 @@ protected:
     */
     virtual IRender* GetRender() const = 0;
 
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnFindControl(const UiPoint& pt) const = 0;
+
+protected:
+    /** 在窗口大小改变时，是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
+    *   默认情况下，子窗口不自动设置，顶层窗口自动设置
+    */
+    virtual bool NeedSetWindowRgnOnWindowResized();
+
+    /** 设置窗口的形状为圆角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw);
+
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void ClearWindowRgn(bool bRedraw);
+
 protected:
     /** @name 窗口消息处理相关
      * @{
@@ -679,6 +957,45 @@ protected:
     * @return 返回消息的处理结果
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
+
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+     * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+     * @param [in] nativeMsg 从系统接收到的原始消息内容
+     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+     */
+    virtual void OnWindowCreateMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口关闭消息（WM_CLOSE）
+    * @param [in] wParam 消息的wParam参数
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
+    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口绘制(WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
@@ -696,22 +1013,6 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口绘制(WM_SHOWWINDOW)
-    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口绘制(WM_PAINT)
-    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
@@ -933,22 +1234,6 @@ protected:
     */
     virtual LRESULT OnCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
-    /** 窗口关闭消息（WM_CLOSE）
-    * @param [in] wParam 消息的wParam参数
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
-    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
-    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
-
     /** 窗口位置的贴边操作
     * @param [in] bLeftSnap 窗口左侧贴边
     * @param [in] bRightSnap 窗口右侧贴边
@@ -956,6 +1241,19 @@ protected:
     * @param [in] bBottomSnap 窗口下侧贴边
     */
     virtual void OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) = 0;
+
+    /** 窗口拖放相关的操作接口(接口参数是与实现方式相关的)
+    * @param [in] dropType 拖放操作的来源类型
+    * @param [in,out] pDropData 具体类型根据dropType判断：
+    *                 当dropType为kControlDropTypeWindows时（代表Windows平台SDK实现），pDropData的类型是ControlDropData_Windows*
+    *                 当dropType为kControlDropTypeSDL时（代表SDL实现），pDropData的类型是ControlDropData_SDL*
+    *                 pDropData->m_bHandled是消息处理标志，如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理，相当于截获此消息
+    *                 pDropData->m_hResult是消息处理后的返回值，最终返回给操作系统，Windows平台成功是返回S_OK
+    */
+    virtual void OnDropEnterMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropOverMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnDropLeaveMsg() = 0;
 
     /** @}*/
 
@@ -976,69 +1274,100 @@ protected:
     */
     void ClearWindowBase();
 
+    /** 主动发起一个消息(kWindowMsgBegin - kWindowMsgEnd), 发送给该窗口的事件回调管理器中注册的消息处理函数
+    * @param [in] eventType 转化后的消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param [in] pt 鼠标事件对应的坐标点
+    * @param [in] modifierKey 鼠标事件对应的键盘按键状态（有效值：ModifierKey::kControl, ModifierKey::kShift）
+    * @param [in] msg 消息内容
+    */
+    bool SendWindowEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+    bool SendWindowMouseEvent(EventType eventType, const UiPoint& pt, uint32_t modifierKey);
+    bool SendWindowEvent(const EventArgs& msg);
+
 private:
     /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
     */
     void InitWindowBase();
 
-    /** 窗口大小变化，处理内部业务
+    /** 窗口大小变化，处理内部业务（设置RGN）
+    * @param [in] bRedraw 是否重绘
     */
-    void OnWindowSize(WindowSizeType sizeType);
+    void OnWindowSized(bool bRedraw);
 
 private:
     //来自实现窗口的事件
-    virtual void OnNativeWindowEnterFullScreen() override;
-    virtual void OnNativeWindowExitFullScreen() override;
-    virtual UiRect OnNativeGetSizeBox() const override;
-    virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override;
-    virtual const DpiManager& OnNativeGetDpi() const override;
-    virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override;
-    virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const override;
-    virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
-    virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
-    virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
-    virtual void OnNativePreCloseWindow() override;
-    virtual void OnNativePostCloseWindow() override;
-    virtual void OnNativeUseSystemCaptionBarChanged() override;
-    virtual bool OnNativePreparePaint() override;
-    virtual IRender* OnNativeGetRender() const override;
+    virtual void OnNativeWindowEnterFullscreen() override final;
+    virtual void OnNativeWindowExitFullscreen() override final;
+    virtual UiRect OnNativeGetSizeBox() const override final;
+    virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override final;
+    virtual const DpiManager& OnNativeGetDpi() const override final;
+    virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override final;
+    virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const override final;
+    virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override final;
+    virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override final;
+    virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override final;
+    virtual void OnNativePreCloseWindow() override final;
+    virtual void OnNativePostCloseWindow() override final;
+    virtual void OnNativeUseSystemCaptionBarChanged() override final;
+    virtual bool OnNativePreparePaint() override final;
+    virtual IRender* OnNativeGetRender() const override final;
+    virtual Control* OnNativeFindControl(const UiPoint& pt) const override final;
 
-    virtual void    OnNativeFinalMessage() override;
-    virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-    virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override;
+    virtual void    OnNativeFinalMessage() override final;
+    virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
+    virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
-    virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override;
+    virtual LRESULT OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override final;
+    virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override final;
+    virtual void OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropOverMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropMsg(ControlDropType dropType, void* pDropData) override final;
+    virtual void OnNativeDropLeaveMsg() override final;
+
+private:
+    /** 窗口大小改变的类型（内部值）
+    */
+    enum class WindowSizeState: uint8_t
+    {
+        kUnknown    = 0,
+        kMinimized  = 1,  //窗口已最小化
+        kRestored   = 2,  //窗口为还原状态
+        kMaximized  = 3,  //窗口已最大化
+        kFullscreen = 4   //窗口已全屏
+    };
 
 private:
     //父窗口
@@ -1076,6 +1405,22 @@ private:
     /** 窗口的实现类
     */
     NativeWindow* m_pNativeWindow;
+
+    /** 窗口的事件
+    */
+    EventMap m_windowEventMap;
+
+    //界面是否完成首次显示
+    bool m_bWindowFirstShown;
+
+    //窗口大小变化事件是否触发
+    bool m_bWindowSized;
+
+    //窗口的状态
+    WindowSizeState m_windowSizeState;
+
+    //是否发送了DragEnter消息，确保DragLeave消息匹配
+    bool m_bSendDragEnterMsg;
 };
 
 } // namespace ui

@@ -401,7 +401,9 @@ bool Image::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCoun
     ImagePlayer* pImagePlayer = InitImagePlayer();
     if (pImagePlayer != nullptr) {
         if (pImagePlayer->IsAnimationPlaying()) {
+            bool bAutoPlay = pImagePlayer->IsAutoPlay();
             pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+            pImagePlayer->SetAutoPlay(bAutoPlay);
         }
         bRet = pImagePlayer->StartImageAnimation(nStartFrame, nPlayCount);
     }

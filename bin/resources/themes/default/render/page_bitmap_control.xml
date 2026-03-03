@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Class name="bitmap_control_image" width="200" height="200" border_size="1" border_color="green" />
+    <Class name="bitmap_control_text" width="200" height="auto" multi_line="true" replace_newline="true" text_align="left,vcenter" />
+    <Class name="bitmap_control_case" width="200" height="auto" multi_line="true" replace_newline="true" text_align="hcenter,vcenter" />
+    <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png"/>
+            <Label class="bitmap_control_case" text="用例编号（1.1）"/>
+            <Label class="bitmap_control_text" text="默认:大区域" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="100" height="100" bitmap_file="render/autumn.png"/>
+            <Label class="bitmap_control_case" text="用例编号（1.1）"/>
+            <Label class="bitmap_control_text" text="默认:小区域" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="auto" height="auto" bitmap_file="render/autumn.png"/>
+            <Label class="bitmap_control_case" text="用例编号（1.1）"/>
+            <Label class="bitmap_control_text" text="默认:auto" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_halign="left" bitmap_valign="top"/>
+            <Label class="bitmap_control_case" text="用例编号（1.2）"/>
+            <Label class="bitmap_control_text" text="bitmap_halign='left'\nbitmap_valign='top'"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_halign="center" bitmap_valign="center"/>
+            <Label class="bitmap_control_case" text="用例编号（1.3）"/>
+            <Label class="bitmap_control_text" text="bitmap_halign='center'\nbitmap_valign='center'"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_halign="right" bitmap_valign="bottom"/>
+            <Label class="bitmap_control_case" text="用例编号（1.4）"/>
+            <Label class="bitmap_control_text" text="bitmap_halign='right'\nbitmap_valign='bottom'"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_halign="center" bitmap_valign="center" bitmap_alpha="128"/>
+            <Label class="bitmap_control_case" text="用例编号（1.5）"/>
+            <Label class="bitmap_control_text" text="bitmap_alpha='128'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_halign="center" bitmap_valign="center" bitmap_margin="10,20,40,60"/>
+            <Label class="bitmap_control_case" text="用例编号（1.6）"/>
+            <Label class="bitmap_control_text" text="bitmap_margin='10,20,40,60'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_stretch="true"/>
+            <Label class="bitmap_control_case" text="用例编号（1.7）"/>
+            <Label class="bitmap_control_text" text="bitmap_stretch='true'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_adaptive_dest_rect="true"/>
+            <Label class="bitmap_control_case" text="用例编号（1.8）"/>
+            <Label class="bitmap_control_text" text="bitmap_adaptive_dest_rect='true'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="160" height="160" bitmap_file="render/autumn.png" bitmap_adaptive_dest_rect="true"/>
+            <Label class="bitmap_control_case" text="用例编号（1.9）"/>
+            <Label class="bitmap_control_text" text="bitmap_adaptive_dest_rect='true'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="160" height="160" bitmap_file="render/autumn.png" bitmap_adaptive_dest_rect="true" bitmap_halign="center"/>
+            <Label class="bitmap_control_case" text="用例编号（1.10）"/>
+            <Label class="bitmap_control_text" text="bitmap_adaptive_dest_rect='true'\nbitmap_halign='center'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="160" height="160" bitmap_file="render/autumn.png" bitmap_adaptive_dest_rect="true" bitmap_halign="right"/>
+            <Label class="bitmap_control_case" text="用例编号（1.11）"/>
+            <Label class="bitmap_control_text" text="bitmap_adaptive_dest_rect='true'\nbitmap_halign='right'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_src="80,80,160,160"/>
+            <Label class="bitmap_control_case" text="用例编号（1.12）"/>
+            <Label class="bitmap_control_text" text="bitmap_src='80,80,160,160'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="auto" height="auto" bitmap_file="render/autumn.png" bitmap_src="80,80,160,160"/>
+            <Label class="bitmap_control_case" text="用例编号（1.12）"/>
+            <Label class="bitmap_control_text" text="bitmap_src='80,80,160,160' auto" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" bitmap_file="render/autumn.png" bitmap_dest="80,80,160,160"/>
+            <Label class="bitmap_control_case" text="用例编号（1.13）"/>
+            <Label class="bitmap_control_text" text="bitmap_dest='80,80,160,160'" text_align="hcenter,vcenter"/>
+        </VBox>
+        <VBox width="auto" height="auto">
+            <BitmapControl class="bitmap_control_image" width="auto" height="auto" bitmap_file="render/autumn.png" bitmap_dest="80,80,160,160"/>
+            <Label class="bitmap_control_case" text="用例编号（1.13）"/>
+            <Label class="bitmap_control_text" text="bitmap_dest='80,80,160,160' auto" text_align="hcenter,vcenter"/>
+        </VBox>
+    </HFlowScrollBox>
+</Window>

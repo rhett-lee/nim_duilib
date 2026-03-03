@@ -1,6 +1,7 @@
 #include "ListBoxHelper.h"
 #include "ListBox.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui 
 {
@@ -268,12 +269,12 @@ void ListBoxHelper::OnCheckScrollView()
         }
         if (pt.cy <= viewRect.top) {
             //向上滚动视图
-            m_pListBox->LineUp(nVScrollValue, false);
+            m_pListBox->LineUp(nVScrollValue);
             bScrollView = true;
         }
         else if (pt.cy >= viewRect.bottom) {
             //向下滚动视图
-            m_pListBox->LineDown(nVScrollValue, false);
+            m_pListBox->LineDown(nVScrollValue);
             bScrollView = true;
         }
     }

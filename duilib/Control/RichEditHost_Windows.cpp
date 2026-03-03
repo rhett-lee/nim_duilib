@@ -1001,14 +1001,18 @@ void RichEditHost::GetControlRect(UiRect* prc)
     if ((m_dwStyle & UI_ES_VCENTER) || (m_dwStyle & UI_ES_BOTTOM)) {        
         UiSize szNaturalSize = m_pRichEdit->GetNaturalSize(rc.Width(), 0);
         if (m_dwStyle & UI_ES_VCENTER) {
-            //纵向居中对齐
+            //纵向居中对齐(仅当文本高度小于目标区域高度时运用)
             int32_t yOffset = (rc.Height() - szNaturalSize.cy) / 2;
-            rc.Offset(0, yOffset);
+            if (yOffset > 0) {
+                rc.Offset(0, yOffset);
+            }            
         }
         else if (m_dwStyle & UI_ES_BOTTOM) {
-            //纵向底端对齐
+            //纵向底端对齐(仅当文本高度小于目标区域高度时运用)
             int32_t yOffset = rc.Height() - szNaturalSize.cy;
-            rc.Offset(0, yOffset);
+            if (yOffset > 0) {
+                rc.Offset(0, yOffset);
+            }
         }
     }
     prc->left = rc.left;

@@ -5,8 +5,6 @@
 #include "duilib/Image/ImageAttribute.h"
 #include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/StateImageMap.h"
-#include "duilib/Utils/Delegate.h"
-#include <memory>
 
 namespace ui 
 {

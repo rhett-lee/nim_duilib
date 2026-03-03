@@ -14,14 +14,6 @@ ListCtrlView::~ListCtrlView()
 {
 }
 
-void ListCtrlView::SendEventMsg(const EventArgs& msg)
-{
-    BaseClass::SendEventMsg(msg);
-    if ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
-        SendEvent(kEventSelChanged);
-    }
-}
-
 size_t ListCtrlView::GetTopElementIndex() const
 {
     std::vector<size_t> itemIndexList;

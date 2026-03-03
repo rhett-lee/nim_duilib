@@ -1,6 +1,7 @@
 #include "ControlFinder.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/FullscreenBox.h"
 
 namespace ui
 {
@@ -19,10 +20,15 @@ void ControlFinder::SetRoot(Box* pRoot)
     m_pRoot = pRoot;
 }
 
+Box* ControlFinder::GetRoot() const
+{
+    return m_pRoot;
+}
+
 void ControlFinder::Clear()
 {
     m_pRoot = nullptr;
-    m_mNameHash.clear();
+    m_controlNameMap.clear();
 }
 
 Control* ControlFinder::FindControl(const UiPoint& pt) const
@@ -31,6 +37,16 @@ Control* ControlFinder::FindControl(const UiPoint& pt) const
     if (m_pRoot != nullptr) {
         UiPoint ptLocal = pt;
         return m_pRoot->FindControl(FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST, pt);
+    }
+    return nullptr;
+}
+
+Control* ControlFinder::FindToolTipControl(const UiPoint& pt) const
+{
+    ASSERT(m_pRoot != nullptr);
+    if (m_pRoot != nullptr) {
+        UiPoint ptLocal = pt;
+        return m_pRoot->FindControl(FindControlFromPoint, &ptLocal, UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST | UIFIND_TOOLTIP, pt);
     }
     return nullptr;
 }
@@ -63,16 +79,6 @@ Box* ControlFinder::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
     return nullptr;
 }
 
-Control* ControlFinder::FindControl2(const DString& strName) const
-{
-    Control* pFindedControl = nullptr;
-    auto it = m_mNameHash.find(strName);
-    if (it != m_mNameHash.end()) {
-        pFindedControl = it->second;
-    }
-    return pFindedControl;
-}
-
 Control* ControlFinder::FindSubControlByPoint(Control* pParent, const UiPoint& pt) const
 {
     if (pParent == nullptr) {
@@ -88,26 +94,98 @@ Control* ControlFinder::FindSubControlByPoint(Control* pParent, const UiPoint& p
 
 Control* ControlFinder::FindSubControlByName(Control* pParent, const DString& strName) const
 {
+    if (strName.empty()) {
+        return nullptr;
+    }
+    //优先从缓存中查找
+    Box* pOldRoot = nullptr;
+    Control* pFindControl = FindControlInCache(pParent, strName);
+    if (pFindControl != nullptr) {
+        return pFindControl;
+    }
+    else if (pParent != nullptr) {
+        FullscreenBox* pFullscreenBox = dynamic_cast<FullscreenBox*>(pParent);
+        if (pFullscreenBox != nullptr) {
+            //控件全屏状态，使用窗口原来的根容器查找
+            pOldRoot = pFullscreenBox->GetOldRoot();
+        }
+        if (pOldRoot != nullptr) {
+            pFindControl = FindControlInCache(pOldRoot, strName);
+            if (pFindControl != nullptr) {
+                return pFindControl;
+            }
+        }
+    }
     if (pParent == nullptr) {
         pParent = m_pRoot;
     }
-    ASSERT(pParent);
-    if (pParent) {
-        return pParent->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+    ASSERT(pParent != nullptr);
+    if (pParent != nullptr) {
+        pFindControl = pParent->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+        if (pFindControl != nullptr) {
+            return pFindControl;
+        }
+        if (pOldRoot != nullptr) {
+            //控件全屏状态，使用窗口原来的根容器查找
+            pFindControl = pOldRoot->FindControl(FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
+            if (pFindControl != nullptr) {
+                return pFindControl;
+            }
+        }
     }
     return nullptr;
 }
 
+Control* ControlFinder::FindControlInCache(Control* pAncestor, const DString& strName) const
+{
+    if (strName.empty()) {
+        return nullptr;
+    }
+    if ((pAncestor != nullptr) && pAncestor->IsNameEquals(strName)) {
+        return pAncestor;
+    }
+    Control* pFindedControl = nullptr;
+    auto iter = m_controlNameMap.find(strName);
+    if (iter != m_controlNameMap.end()) {
+        const std::vector<ControlPtr>& controlList = iter->second;
+        for (const ControlPtr& spControl : controlList) {
+            if (pAncestor != nullptr) {
+                if ((spControl != nullptr) &&
+                    (pAncestor->GetWindow() == spControl->GetWindow()) &&
+                    spControl->IsNameEquals(strName) &&
+                    PlaceHolder::IsControlRelated(pAncestor, spControl.get())) {
+                    //在同一个窗口下，并且与pAncestor是父祖关系
+                    pFindedControl = spControl.get();
+                    break;
+                }
+            }
+            else {
+                if ((spControl != nullptr) && spControl->IsNameEquals(strName)) {
+                    pFindedControl = spControl.get();
+                    break;
+                }
+            }
+        }
+    }
+    return pFindedControl;
+}
+
 void ControlFinder::RemoveControl(Control* pControl)
 {
-    if (pControl == nullptr) {
+    if ((pControl == nullptr) || !pControl->HasName()) {
         return;
     }
     const DString sName = pControl->GetName();
     if (!sName.empty()) {
-        auto it = m_mNameHash.find(sName);
-        if (it != m_mNameHash.end()) {
-            m_mNameHash.erase(it);
+        auto iter = m_controlNameMap.find(sName);
+        if (iter != m_controlNameMap.end()) {
+            std::vector<ControlPtr>& controlList = iter->second;
+            for (auto pos = controlList.begin(); pos != controlList.end(); ++pos) {
+                if (pControl == *pos) {
+                    controlList.erase(pos);
+                    break;
+                }
+            }
         }
     }
 }
@@ -121,15 +199,26 @@ void ControlFinder::AddControl(Control* pControl)
     if (sName.empty()) {
         return;
     }
-    auto iter = m_mNameHash.find(sName);
-    if (iter != m_mNameHash.end()) {
-        if (iter->second != pControl) {
-            //控件名称相同的，覆盖
-            iter->second = pControl;
+    //控件的名字允许重复(Control的name属性), 但查找时，相同父控件下只命中第一个控件
+    auto iter = m_controlNameMap.find(sName);
+    if (iter != m_controlNameMap.end()) {
+        std::vector<ControlPtr>& controlList = iter->second;
+        for (auto pos = controlList.begin(); pos != controlList.end(); ++pos) {
+            if (pControl == *pos) {
+                controlList.erase(pos);
+                break;
+            }
+        }
+        const size_t nMaxControlCount = (size_t)10; //名字重复的控件，最多只保存10个，避免过多导致性能降低
+        if (controlList.size() < nMaxControlCount) {
+            controlList.push_back(ControlPtr(pControl));
+        }
+        else {
+            //超过数量，不添加
         }
     }
     else {
-        m_mNameHash[sName] = pControl;
+        m_controlNameMap[sName].push_back(ControlPtr(pControl));
     }
 }
 
@@ -187,8 +276,9 @@ Control* ControlFinder::FindControlFromName(Control* pThis, void* pData)
     if ((pstrName == nullptr) || (pThis == nullptr)) {
         return nullptr;
     }
-    //比较控件的名称，不区分大小写
-    return (pThis->IsNameEqualsNoCase(pstrName)) ? pThis : nullptr;
+    
+    //比较控件的名称，区分大小写
+    return (pThis->IsNameEquals(pstrName)) ? pThis : nullptr;
 }
 
 Control* ControlFinder::FindContextMenuControl(Control* pThis, void* /*pData*/)

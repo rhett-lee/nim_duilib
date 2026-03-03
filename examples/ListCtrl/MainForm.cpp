@@ -46,6 +46,49 @@ void MainForm::OnInitWindow()
     //填充数据
     InsertItemData(400, 9, (int32_t)imageId);
 
+    //初始化本程序的测试功能相关UI事件
+    InitListCtrlEvents(pListCtrl);
+
+    //事件挂载，测试事件接口
+    TestListCtrlEvents(pListCtrl);
+
+    //测试loading功能
+    TestListCtrlLoading(pListCtrl);
+
+    //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
+    //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
+    //        //视图大小变化时，自动调整列宽
+    //        std::vector<ui::UiFixedInt> columnWidthList;
+    //        size_t nColumnCount = pListCtrl->GetColumnCount();
+    //        for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+    //            columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+    //        }
+    //        bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+    //        UNUSED_VARIABLE(bRet);
+    //    }        
+    //    return true;
+    //    });
+}
+
+void MainForm::OnInitLayout()
+{
+    //测试自动调整列宽为等比例
+    /*ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    std::vector<ui::UiFixedInt> columnWidthList;
+    size_t nColumnCount = pListCtrl->GetColumnCount();
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+        columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+    }
+    bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+    UNUSED_VARIABLE(bRet);*/
+}
+
+void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
+{
     // 表格类型
     ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("list_ctrl_type_combo")));
     if (pTypeCombo != nullptr) {
@@ -56,7 +99,7 @@ void MainForm::OnInitWindow()
             if (nType == 0) {
                 if (pListCtrl) {
                     pListCtrl->SetListCtrlType(ui::ListCtrlType::Report);
-                }                
+                }
             }
             else if (nType == 1) {
                 if (pListCtrl) {
@@ -148,16 +191,16 @@ void MainForm::OnInitWindow()
     ui::CheckBox* pHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_header_checkbox")));
     ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_checkbox")));
 
-    ui::CheckBox* pShowIcon= dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_icon")));
+    ui::CheckBox* pShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_icon")));
 
     //实现显示该列
     auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-            ASSERT(pHeaderItem != nullptr);
-            if (pHeaderItem != nullptr) {
-                pHeaderItem->SetColumnVisible(bColumnVisible);
-            }
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            pHeaderItem->SetColumnVisible(bColumnVisible);
+        }
         };
     pColumnShow->AttachSelect([this, OnColumnShowHide](const ui::EventArgs&) {
         OnColumnShowHide(true);
@@ -170,12 +213,12 @@ void MainForm::OnInitWindow()
 
     //是否支持列宽调整
     auto OnColumnResizeable = [this, pColumnCombo, pListCtrl](bool bResizeable) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-            ASSERT(pHeaderItem != nullptr);
-            if (pHeaderItem != nullptr) {
-                pHeaderItem->SetColumnResizeable(bResizeable);
-            }
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            pHeaderItem->SetColumnResizeable(bResizeable);
+        }
         };
     pColumnWidth->AttachSelect([this, OnColumnResizeable](const ui::EventArgs&) {
         OnColumnResizeable(true);
@@ -188,17 +231,17 @@ void MainForm::OnInitWindow()
 
     //是否支持排序
     auto OnColumnSort = [this, pColumnCombo, pListCtrl](bool bSort) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-            ASSERT(pHeaderItem != nullptr);
-            if (pHeaderItem != nullptr) {
-                if (bSort) {
-                    pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kUp, true);
-                }
-                else {
-                    pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kNone);
-                }                
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            if (bSort) {
+                pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kUp, true);
             }
+            else {
+                pHeaderItem->SetSortMode(ui::ListCtrlHeaderItem::SortMode::kNone);
+            }
+        }
         };
     pColumnSort->AttachSelect([this, OnColumnSort](const ui::EventArgs&) {
         OnColumnSort(true);
@@ -211,12 +254,12 @@ void MainForm::OnInitWindow()
 
     //是否图标显示在上方
     auto OnColumnShowIconOnTop = [this, pColumnCombo, pListCtrl](bool bShowIconAtTop) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-            ASSERT(pHeaderItem != nullptr);
-            if (pHeaderItem != nullptr) {
-                pHeaderItem->SetShowIconAtTop(bShowIconAtTop);
-            }
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            pHeaderItem->SetShowIconAtTop(bShowIconAtTop);
+        }
         };
     pColumnIcon->AttachSelect([this, OnColumnShowIconOnTop](const ui::EventArgs&) {
         OnColumnShowIconOnTop(true);
@@ -270,9 +313,9 @@ void MainForm::OnInitWindow()
         ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            pHeaderItem->SetCheckBoxVisible(bCheckBoxVisible);
+            pHeaderItem->SetShowCheckBox(bCheckBoxVisible);
         }
-    };
+        };
     pColumnHeaderCheckBox->AttachSelect([this, OnSetCheckBoxVisible](const ui::EventArgs&) {
         OnSetCheckBoxVisible(true);
         return true;
@@ -284,19 +327,21 @@ void MainForm::OnInitWindow()
 
     //列级CheckBox：在每列显示CheckBox
     auto OnShowCheckBox = [this, pColumnCombo, pListCtrl](bool bShowCheckBox) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
-            size_t nItemCount = pListCtrl->GetDataItemCount();
-            for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-                pListCtrl->SetSubItemShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
-            }
-        };    
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+        size_t nItemCount = pListCtrl->GetDataItemCount();
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            pListCtrl->SetSubItemShowCheckBox(nItemIndex, nColumnIndex, bShowCheckBox);
+        }
+        };
     if (pColumnShowCheckBox != nullptr) {
         bool bCheckBoxVisible = false;
-        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
-        ASSERT(pHeaderItem != nullptr);
-        if (pHeaderItem != nullptr) {
-            bCheckBoxVisible = pHeaderItem->IsCheckBoxVisible();
+        if (pListCtrl->GetColumnCount() > 0) {
+            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumn(0);
+            ASSERT(pHeaderItem != nullptr);
+            if (pHeaderItem != nullptr) {
+                bCheckBoxVisible = pHeaderItem->IsShowCheckBox();
+            }
         }
         pColumnShowCheckBox->Selected(bCheckBoxVisible, false);
         pColumnShowCheckBox->AttachSelect([this, OnShowCheckBox](const ui::EventArgs&) {
@@ -311,12 +356,12 @@ void MainForm::OnInitWindow()
 
     if (pColumnHeaderIcon != nullptr) {
         auto OnSetHeaderShowIcon = [this, pColumnCombo, pListCtrl](bool bShow) {
-                size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-                ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-                ASSERT(pHeaderItem != nullptr);
-                if (pHeaderItem != nullptr) {
-                    pHeaderItem->SetImageId(bShow ? 0 : -1);
-                }
+            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+            ASSERT(pHeaderItem != nullptr);
+            if (pHeaderItem != nullptr) {
+                pHeaderItem->SetImageId(bShow ? 0 : -1);
+            }
             };
         pColumnHeaderIcon->AttachSelect([this, OnSetHeaderShowIcon](const ui::EventArgs&) {
             OnSetHeaderShowIcon(true);
@@ -329,12 +374,12 @@ void MainForm::OnInitWindow()
     }
     if (pColumnShowIcon != nullptr) {
         auto OnShowColumnIcon = [this, pColumnCombo, pListCtrl](bool bShow) {
-                size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-                size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
-                size_t nItemCount = pListCtrl->GetDataItemCount();
-                for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-                    pListCtrl->SetSubItemImageId(nItemIndex, nColumnIndex, bShow ? 0 : -1);
-                }
+            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+            size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+            size_t nItemCount = pListCtrl->GetDataItemCount();
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+                pListCtrl->SetSubItemImageId(nItemIndex, nColumnIndex, bShow ? 0 : -1);
+            }
             };
         pColumnShowIcon->AttachSelect([this, OnShowColumnIcon](const ui::EventArgs&) {
             OnShowColumnIcon(true);
@@ -347,12 +392,12 @@ void MainForm::OnInitWindow()
     }
 
     auto OnHeaderTextAlign = [this, pColumnCombo, pListCtrl](ui::HorAlignType alignType) {
-            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
-            ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
-            ASSERT(pHeaderItem != nullptr);
-            if (pHeaderItem != nullptr) {
-                pHeaderItem->SetTextHorAlign(alignType);
-            }
+        size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+        ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
+        ASSERT(pHeaderItem != nullptr);
+        if (pHeaderItem != nullptr) {
+            pHeaderItem->SetTextHorAlign(alignType);
+        }
         };
     pColumnHeaderTextAlignLeft->AttachSelect([this, OnHeaderTextAlign](const ui::EventArgs&) {
         OnHeaderTextAlign(ui::HorAlignType::kAlignLeft);
@@ -424,6 +469,21 @@ void MainForm::OnInitWindow()
             });
     }
 
+    //按比例设置各个列的宽度，使其充满整个视图
+    ui::Button* pAutoStretchBtn = dynamic_cast<ui::Button*>(FindControl(_T("set_column_stretch")));
+    if (pAutoStretchBtn != nullptr) {
+        pAutoStretchBtn->AttachClick([pListCtrl, this](const ui::EventArgs& /*args*/) {
+            std::vector<ui::UiFixedInt> columnWidthList;
+            size_t nColumnCount = pListCtrl->GetColumnCount();
+            for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; nColumnIndex++) {
+                columnWidthList.push_back(ui::UiFixedInt::MakeStretch());
+            }
+            bool bRet = pListCtrl->SetColumnWidth(columnWidthList, true);
+            UNUSED_VARIABLE(bRet);
+            return true;
+            });
+    }
+
     //控制表头或者行首是否显示CheckBox
     if ((pHeaderCtrl != nullptr) && pHeaderCtrl->IsVisible() && pHeaderCtrl->IsShowCheckBox()) {
         pHeaderCheckBox->Selected(true, false);
@@ -451,15 +511,17 @@ void MainForm::OnInitWindow()
         });
 
     if (pShowIcon != nullptr) {
-        pShowIcon->Selected(pListCtrl->GetDataItemImageId(0) >= 0, false);
+        if (pListCtrl->GetDataItemCount() > 0) {
+            pShowIcon->Selected(pListCtrl->GetDataItemImageId(0) >= 0, false);
+        }
         auto OnShowDataItemIcon = [this, pListCtrl](bool bShow) {
-                size_t nItemCount = pListCtrl->GetDataItemCount();
-                pListCtrl->SetEnableRefresh(false);
-                for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
-                    pListCtrl->SetDataItemImageId(nItemIndex, bShow ? 0 : -1);
-                }
-                pListCtrl->SetEnableRefresh(true);
-                pListCtrl->Refresh();
+            size_t nItemCount = pListCtrl->GetDataItemCount();
+            pListCtrl->SetEnableRefresh(false);
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+                pListCtrl->SetDataItemImageId(nItemIndex, bShow ? 0 : -1);
+            }
+            pListCtrl->SetEnableRefresh(true);
+            pListCtrl->Refresh();
             };
         pShowIcon->AttachSelect([this, OnShowDataItemIcon](const ui::EventArgs&) {
             OnShowDataItemIcon(true);
@@ -470,69 +532,10 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
+}
 
-    //事件挂载，测试事件接口
-    auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
-            ASSERT(pListCtrl == args.GetSender());
-            ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
-            size_t itemIndex = args.lParam;
-            ui::UiPoint mousePt = args.ptMouse;
-            DString text;
-            if (pItem != nullptr) {
-                size_t columnIndex = pItem->GetSubItemIndex(mousePt);
-                if (columnIndex != ui::Box::InvalidIndex) {
-                    text = pListCtrl->GetSubItemText(itemIndex, columnIndex);
-                }                
-            }
-
-            if (args.eventType == ui::kEventSelect) {
-                DString sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
-                //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
-            }
-            else if (args.eventType == ui::kEventSelChanged) {
-                //::MessageBox(nullptr, _T("kEventSelChanged"), _T(""), MB_OK);
-            }
-            else if(args.eventType == ui::kEventMouseDoubleClick) {                
-                //::MessageBox(nullptr, _T("kEventMouseDoubleClick"), text.c_str(), MB_OK);
-            }
-            else if (args.eventType == ui::kEventClick) {
-                //::MessageBox(nullptr, _T("kEventClick"), text.c_str(), MB_OK);
-            }
-            else if (args.eventType == ui::kEventRClick) {
-                //::MessageBox(nullptr, _T("kEventRClick"), text.c_str(), MB_OK);
-            }
-            else if (args.eventType == ui::kEventReturn) {
-                DStringW sInfo = ui::StringUtil::Printf(L"kEventReturn，数据索引号：%d", (int32_t)itemIndex);
-                //::MessageBoxW(nullptr, sInfo.c_str(), L"", MB_OK);
-            }
-        };
-
-    //挂载事件，转接给外层
-    pListCtrl->AttachSelect([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-    pListCtrl->AttachSelChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-    pListCtrl->AttachDoubleClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-    pListCtrl->AttachClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-    pListCtrl->AttachRClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-    pListCtrl->AttachReturn([this, OnListCtrlEvent](const ui::EventArgs& args) {
-        OnListCtrlEvent(args);
-        return true;
-        });
-
+void MainForm::TestListCtrlLoading(ui::ListCtrl* pListCtrl)
+{
     //测试loading功能
     ui::Button* pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_progress_btn1")));
     if (pLoadingBtn != nullptr) {
@@ -562,7 +565,7 @@ void MainForm::OnInitWindow()
             if (!pListCtrl->IsLoading()) {
                 pListCtrl->SetLoadingAttribute(_T("file='loading1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"));
                 //实际应用中，事件处理可参考OnTestLoadingProgress的逻辑
-                pListCtrl->StartLoading(100, -1);                
+                pListCtrl->StartLoading(100, -1);
             }
             return true;
             });
@@ -711,6 +714,10 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     if (pListCtrl == nullptr) {
         return;
     }
+    if (pListCtrl->GetDataItemCount() == 0) {
+        //无数据
+        return;
+    }
 
     ui::ListCtrlHeaderItem* pHeaderItem = pListCtrl->GetColumnById(nColumnId);
     ASSERT(pHeaderItem != nullptr);
@@ -748,7 +755,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 
     pColumnIcon->Selected(pHeaderItem->IsShowIconAtTop(), false);
     pColumnDragOrder->Selected(pHeaderItem->IsEnableDragOrder(), false);
-    pColumnHeaderCheckBox->Selected(pHeaderItem->IsCheckBoxVisible(), false);
+    pColumnHeaderCheckBox->Selected(pHeaderItem->IsShowCheckBox(), false);
     pColumnHeaderIcon->SetSelected(pHeaderItem->GetImageId() >= 0);
 
     bool bColumnDataHasCheckBox = false;
@@ -758,7 +765,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     if (pItem != nullptr) {
         ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
         if (pSubItem != nullptr) {
-            bColumnDataHasCheckBox = pSubItem->IsCheckBoxVisible();
+            bColumnDataHasCheckBox = pSubItem->IsShowCheckBox();
             bColumnDataHasIcon = pSubItem->GetImageId() >= 0;
         }
     }
@@ -1139,3 +1146,400 @@ void MainForm::RunListCtrlTest()
 #endif
 }
 
+void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
+{
+    //事件挂载，测试事件接口
+    auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
+        ASSERT(pListCtrl == args.GetSender());
+        DString sInfo = GetEventDisplayInfo(args);
+        OutputDebugLog(sInfo);
+        };
+
+    //挂载事件，转接给外层
+    pListCtrl->AttachSelect([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachSelChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachDoubleClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachRClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachItemMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachItemMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachSubItemMouseEnter([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        OnReportViewSubItemMouseEnter(args);
+        return true;
+        });
+    pListCtrl->AttachSubItemMouseLeave([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        OnReportViewSubItemMouseLeave(args);
+        return true;
+        });
+    pListCtrl->AttachReturn([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachKeyDown([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachKeyUp([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachViewTypeChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachViewPosChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+    pListCtrl->AttachViewSizeChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+        OnListCtrlEvent(args);
+        return true;
+        });
+
+    auto OnListCtrlItemFilledEvent = [this, pListCtrl](const ui::EventArgs& args) {
+        ASSERT(pListCtrl == args.GetSender());
+        DString sInfo = GetItemFilledEventDisplayInfo(args);
+        OutputDebugLog(sInfo);
+        };
+    pListCtrl->AttachReportViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+    pListCtrl->AttachReportViewSubItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        OnReportViewSubItemFilled(args);
+        return true;
+        });
+    pListCtrl->AttachListViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+    pListCtrl->AttachIconViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
+        OnListCtrlItemFilledEvent(args);
+        return true;
+        });
+}
+
+DString MainForm::GetEventDisplayInfo(const ui::EventArgs& args)
+{
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
+    while (sInfo.size() < 24) {
+        sInfo += _T(" ");
+    }
+    if ((args.eventType == ui::kEventSelect) ||
+        (args.eventType == ui::kEventSelChanged) ||
+        (args.eventType == ui::kEventMouseDoubleClick) ||
+        (args.eventType == ui::kEventClick) ||
+        (args.eventType == ui::kEventRClick) ||
+        (args.eventType == ui::kEventItemMouseEnter) ||
+        (args.eventType == ui::kEventItemMouseLeave) ||
+        (args.eventType == ui::kEventSubItemMouseEnter) ||
+        (args.eventType == ui::kEventSubItemMouseLeave) ||
+        (args.eventType == ui::kEventReturn) ||
+        (args.eventType == ui::kEventKeyDown) ||
+        (args.eventType == ui::kEventKeyUp)) {
+        DString labelText;
+        int32_t nDataItemIndex = -1;
+        int32_t nDataColumnIndex = -1;
+        ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
+        if (listCtrlType == ui::ListCtrlType::Report) {
+            sInfo += _T("ListCtrlType::Report: ");
+            ui::ListCtrlItem* pItem = nullptr;
+            if ((args.eventType == ui::kEventSubItemMouseEnter) || (args.eventType == ui::kEventSubItemMouseLeave)) {
+                ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+                if (pSubItem != nullptr) {
+                    pItem = pSubItem->GetListCtrlItem();
+
+                    nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
+                    labelText = pSubItem->GetText();
+                }
+            }
+            else {
+                pItem = (ui::ListCtrlItem*)args.pEventData;
+            }
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                if ((args.eventType >= ui::kEventMouseBegin) && (args.eventType <= ui::kEventMouseEnd)) {
+                    //鼠标消息：获取当前列(根据当前鼠标所在的位置，获取列所在的子控件)
+                    ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(args.ptMouse);
+                    if (pSubItem != nullptr) {
+                        nDataColumnIndex = (int32_t)pSubItem->GetDataColumnIndex();
+                        labelText = pSubItem->GetText();
+                    }
+                }
+            }
+        }
+        else if (listCtrlType == ui::ListCtrlType::Icon) {
+            sInfo += _T("ListCtrlType::Icon: ");
+            ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                labelText = pItem->GetLabelText();
+            }
+        }
+        else if (listCtrlType == ui::ListCtrlType::List) {
+            sInfo += _T("ListCtrlType::List: ");
+            ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
+            if (pItem != nullptr) {
+                nDataItemIndex = (int32_t)pItem->GetDataItemIndex();
+                labelText = pItem->GetLabelText();
+            }
+        }
+        else {
+            sInfo += _T("ListCtrl: ");
+        }
+        if (nDataItemIndex >= 0) {
+            if ((args.eventType >= ui::kEventKeyBegin) && (args.eventType <= ui::kEventKeyEnd)) {
+                //键盘消息
+                DString keyName = ui::Keyboard::GetKeyName(args.vkCode, false);
+                DString modifierKey;
+                if (args.vkCode != ui::VirtualKeyCode::kVK_CONTROL) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_CONTROL)) {
+                        modifierKey += _T("Ctrl+");
+                    }
+                }
+                if (args.vkCode != ui::VirtualKeyCode::kVK_SHIFT) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_SHIFT)) {
+                        modifierKey += _T("Shift+");
+                    }
+                }
+                if (args.vkCode != ui::VirtualKeyCode::kVK_MENU) {
+                    if (ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_MENU)) {
+                        modifierKey += _T("Alt+");
+                    }
+                }
+                sInfo += _T("<");
+                sInfo += modifierKey;
+                sInfo += keyName;
+                sInfo += _T(">");
+                sInfo += _T(" ");
+            }
+            if (labelText.empty()) {
+                if (nDataColumnIndex >= 0) {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d"), nDataItemIndex, nDataColumnIndex);
+                }
+                else {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d"), nDataItemIndex);
+                }
+            }
+            else {
+                if (nDataColumnIndex >= 0) {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, nDataColumnIndex=%d, LabelText='%s'"), nDataItemIndex, nDataColumnIndex, labelText.c_str());
+                }
+                else {
+                    sInfo += ui::StringUtil::Printf(_T("nDataItemIndex=%d, LabelText='%s'"), nDataItemIndex, labelText.c_str());
+                }
+            }
+        }
+    }
+    else if ((args.eventType == ui::kEventViewTypeChanged) ||
+             (args.eventType == ui::kEventViewPosChanged)  ||
+             (args.eventType == ui::kEventViewSizeChanged)) {
+        ui::ListCtrlType listCtrlType = (ui::ListCtrlType)args.listCtrlType;
+        ui::Control* pControl = nullptr;
+        if (listCtrlType == ui::ListCtrlType::Report) {
+            sInfo += _T("ListCtrlType::Report: ");
+            ui::ListCtrlReportView* pView = (ui::ListCtrlReportView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        else if (listCtrlType == ui::ListCtrlType::Icon) {
+            sInfo += _T("ListCtrlType::Icon: ");
+            ui::ListCtrlIconView* pView = (ui::ListCtrlIconView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        else if (listCtrlType == ui::ListCtrlType::List) {
+            sInfo += _T("ListCtrlType::List: ");
+            ui::ListCtrlListView* pView = (ui::ListCtrlListView*)args.pEventData;
+            pControl = dynamic_cast<ui::Control*>(pView);
+        }
+        ASSERT(pControl != nullptr);
+        if (args.eventType == ui::kEventViewTypeChanged) {
+            //不展示
+            sInfo += _T("ViewTypeChanged");
+        }
+        else if (args.eventType == ui::kEventViewPosChanged) {
+            sInfo += ui::StringUtil::Printf(_T("left:%d, top: %d"), pControl->GetRect().left, pControl->GetRect().top);
+        }
+        else if (args.eventType == ui::kEventViewSizeChanged) {
+            sInfo += ui::StringUtil::Printf(_T("width:%d, height: %d"), pControl->GetRect().Width(), pControl->GetRect().Height());
+        }
+    }
+    else {
+        ASSERT(0);
+    }
+   
+    sInfo += _T("\n");
+    return sInfo;
+}
+
+DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
+{
+    DString sInfo = ui::EventUtils::EventTypeToString(args.eventType);
+    while (sInfo.size() < 32) {
+        sInfo += _T(" ");
+    }
+
+    sInfo += ui::StringUtil::Printf(_T("ListBoxItemIndex=%zu "), (size_t)args.wParam);
+    sInfo += ui::StringUtil::Printf(_T("DataItemIndex=%zu "), (size_t)args.lParam);
+
+    if (args.eventType == ui::kEventReportViewItemFilled) {
+        ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+        }
+    }
+    else if (args.eventType == ui::kEventReportViewSubItemFilled) {
+        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+        ASSERT(pSubItem != nullptr);
+        if (pSubItem != nullptr) {
+            ASSERT(pSubItem->GetDataItemIndex() == (size_t)args.lParam);
+            ui::ListCtrlItem* pItem = pSubItem->GetListCtrlItem();
+            ASSERT(pItem != nullptr);
+            if (pItem != nullptr) {
+                ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+                ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            }
+            sInfo += ui::StringUtil::Printf(_T("DataColumnIndex='%zu' "), pSubItem->GetDataColumnIndex());
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s' "), pSubItem->GetText().c_str());
+        }
+    }
+    else if (args.eventType == ui::kEventListViewItemFilled) {
+        ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s'"), pItem->GetLabelText().c_str());
+        }
+    }
+    else if (args.eventType == ui::kEventIconViewItemFilled) {
+        ui::ListCtrlIconViewItem* pItem = (ui::ListCtrlIconViewItem*)args.pEventData;
+        ASSERT(pItem != nullptr);
+        if (pItem != nullptr) {
+            ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+            ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+            sInfo += ui::StringUtil::Printf(_T("LabelText='%s'"), pItem->GetLabelText().c_str());
+        }
+    }
+    return sInfo;
+}
+
+void MainForm::OutputDebugLog(const DString& logMsg)
+{
+#if defined DUILIB_BUILD_FOR_WIN && defined _DEBUG
+    //::OutputDebugString(logMsg.c_str());
+#endif
+}
+
+void MainForm::OnReportViewSubItemFilled(const ui::EventArgs& args)
+{
+    //默认不开启该测试
+    return;
+
+    if (args.eventType != ui::kEventReportViewSubItemFilled) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+
+    if (pSubItem->GetItemCount() == 0) {
+        //功能演示：动态添加一个新按钮
+        ui::Button* pHoverButton = new ui::Button(pSubItem->GetWindow());
+        pHoverButton->SetClass(_T("btn_recycle"));
+        pHoverButton->SetAttribute(_T("width"), _T("auto"));
+        pHoverButton->SetAttribute(_T("height"), _T("auto"));
+        pHoverButton->SetAttribute(_T("halign"), _T("right"));
+        pHoverButton->SetAttribute(_T("valign"), _T("top"));
+        pHoverButton->SetAttribute(_T("margin"), _T("0,8,8,0"));
+        pHoverButton->SetToolTipText(_T("Hover Button"));
+
+        //浮动按钮
+        pHoverButton->SetFloat(true);
+        pHoverButton->SetVisible(false);
+        pSubItem->AddItem(pHoverButton);
+
+        //当前的行和列信息
+        size_t nDataItemIndex = pSubItem->GetDataItemIndex();
+        size_t nDataColumnIndex = pSubItem->GetDataColumnIndex();
+
+        //挂载事件
+        pHoverButton->AttachClick([this, nDataItemIndex, nDataColumnIndex](const ui::EventArgs& /*args*/){
+            DString title = _T("Hover Button Clicked");
+            DString content = ui::StringUtil::Printf(_T("DataItemIndex:%zu, DataColumnIndex:%zu"), nDataItemIndex, nDataColumnIndex);
+            ui::SystemUtil::ShowMessageBox(this, content, title);
+            return true;
+            });
+    }
+}
+
+void MainForm::OnReportViewSubItemMouseEnter(const ui::EventArgs& args)
+{
+    if (args.eventType != ui::kEventSubItemMouseEnter) {
+        return;
+    }
+    if ((ui::ListCtrlType)args.listCtrlType != ui::ListCtrlType::Report) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    if (pSubItem->GetItemCount() > 0) {
+        //鼠标划入时：如果存在子控件，则显示该子控件
+        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
+        if ((pDemoControl != nullptr) && !pDemoControl->IsVisible()) {
+            pDemoControl->SetVisible(true);
+        }
+    }
+}
+
+void MainForm::OnReportViewSubItemMouseLeave(const ui::EventArgs& args)
+{
+    if (args.eventType != ui::kEventSubItemMouseLeave) {
+        return;
+    }
+    if ((ui::ListCtrlType)args.listCtrlType != ui::ListCtrlType::Report) {
+        return;
+    }
+    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    if (pSubItem->GetItemCount() > 0) {
+        //鼠标划出时：如果存在子控件，则隐藏该子控件
+        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
+        if ((pDemoControl != nullptr) && pDemoControl->IsVisible()) {
+            pDemoControl->SetVisible(false);
+        }
+    }
+}

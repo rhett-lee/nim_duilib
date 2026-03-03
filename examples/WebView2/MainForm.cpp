@@ -24,7 +24,7 @@ void MainForm::OnInitWindow()
     BaseClass::OnInitWindow();
     //窗口初始化完成，可以进行本Form的初始化
 
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1), 0);
     m_pWebView2Control = dynamic_cast<ui::WebView2Control*>(FindControl(_T("webview2_control")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
 
@@ -77,6 +77,18 @@ void MainForm::OnInitWindow()
             }
             });
     }
+
+    //页面全屏
+    ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("webview2_full_screen_btn")));
+    if (pFullscreenBtn != nullptr) {
+        pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
+            ui::Control* pWebView2Control = FindControl(_T("webview2_control"));
+            if (pWebView2Control != nullptr) {
+                this->SetFullscreenControl(pWebView2Control);
+            }
+            return true;
+            });
+    }
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& msg)
@@ -119,4 +131,41 @@ bool MainForm::OnNavigate(const ui::EventArgs& /*msg*/)
         }
     }
     return true;
+}
+
+
+LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    if (vkCode == ui::kVK_F11) {
+        if (ui::WebView2Manager::GetInstance().IsEnableF11()) {
+            //页面全屏或者退出全屏
+            if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
+                bHandled = true;
+                ExitControlFullscreen();
+            }
+            else {
+                //当前页面，全屏显示
+                if (m_pWebView2Control != nullptr) {
+                    bHandled = true;
+                    SetFullscreenControl(m_pWebView2Control);
+                }
+            }
+        }
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (ui::WebView2Manager::GetInstance().IsEnableF12()) {
+            //显示或者隐藏开发者工具
+            bHandled = true;
+            if (m_pWebView2Control != nullptr) {
+                //只有打开功能，没有关闭功能
+                if (m_pWebView2Control->AreDevToolsEnabled()) {
+                    m_pWebView2Control->OpenDevToolsWindow();
+                }
+            }
+        }
+    }
+    if (bHandled) {
+        return 0;
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }

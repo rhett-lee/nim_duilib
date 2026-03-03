@@ -12,6 +12,8 @@ CefJSBridge::CefJSBridge()
 
 CefJSBridge::~CefJSBridge()
 {
+    m_renderRegisteredFunctions.ClearAllJsFunctions();
+    m_browserRegisteredFunctions.ClearAllCppFunctions();
 }
 
 bool CefJSBridge::CallCppFunction(const CefString& function_name, const CefString& params, CefRefPtr<CefV8Value> callback)
@@ -115,21 +117,7 @@ bool CefJSBridge::RegisterJSFunc(const CefString& function_name, CefRefPtr<CefV8
     CefString frameId = frame->GetIdentifier();
 #endif
 
-    if (replace) {
-        m_renderRegisteredFunction.emplace(std::make_pair(function_name, frameId), function);
-        return true;
-    }
-    else {
-        auto it = m_renderRegisteredFunction.find(std::make_pair(function_name, frameId));
-        if (it == m_renderRegisteredFunction.cend()) {
-            m_renderRegisteredFunction.emplace(std::make_pair(function_name, frameId), function);
-            return true;
-        }
-
-        return false;
-    }
-    
-    return false;
+    return m_renderRegisteredFunctions.AddJsFunction(function_name, frameId, function, replace);
 }
 
 void CefJSBridge::UnRegisterJSFunc(const CefString& function_name, CefRefPtr<CefFrame> frame)
@@ -145,42 +133,12 @@ void CefJSBridge::UnRegisterJSFunc(const CefString& function_name, CefRefPtr<Cef
     //CEF 高版本
     CefString frameId = frame->GetIdentifier();
 #endif
-    m_renderRegisteredFunction.erase(std::make_pair(function_name, frameId));
+    m_renderRegisteredFunctions.RemoveJsFunction(function_name, frameId);
 }
 
 void CefJSBridge::UnRegisterJSFuncWithFrame(CefRefPtr<CefFrame> frame)
 {
-    ASSERT(frame != nullptr);
-    if (frame == nullptr) {
-        return;
-    }
-
-    // 由于本类中每一个 render 和 browser 进程都独享一份实例，而不是单例模式
-    // 所以这里获取的 browser 都是全局唯一的，可以根据这个 browser 获取所有 frame 和 context
-    auto browser = frame->GetBrowser();
-    ASSERT(browser != nullptr);
-    if (browser == nullptr) {
-        return;
-    }
-
-    if (!m_renderRegisteredFunction.empty()) {
-        for (auto it = m_renderRegisteredFunction.begin(); it != m_renderRegisteredFunction.end();) {
-#if CEF_VERSION_MAJOR <= 109
-            //CEF 109版本
-            int64 identifier = StringUtil::StringToInt64(it->first.second.c_str());
-            auto child_frame = browser->GetFrame(identifier);
-#else
-            //CEF 高版本
-            auto child_frame = browser->GetFrameByIdentifier(it->first.second);
-#endif
-            if (child_frame.get() && child_frame->GetV8Context()->IsSame(frame->GetV8Context())) {
-                it = m_renderRegisteredFunction.erase(it);
-            }
-            else {
-                ++it;
-            }
-        }
-    }
+    m_renderRegisteredFunctions.RemoveJsFunctionByFrame(frame);
 }
 
 bool CefJSBridge::ExecuteJSFunc(const CefString& function_name, const CefString& json_params, CefRefPtr<CefFrame> frame, int cpp_callback_id)
@@ -196,14 +154,10 @@ bool CefJSBridge::ExecuteJSFunc(const CefString& function_name, const CefString&
     //CEF 高版本
     CefString frameId = frame->GetIdentifier();
 #endif
-
-    auto it = m_renderRegisteredFunction.find(std::make_pair(function_name, frameId));
-    if (it != m_renderRegisteredFunction.cend()) {
-
+    CefRefPtr<CefV8Value> function = m_renderRegisteredFunctions.FindJsFunction(function_name, frameId);
+    if (function != nullptr) {
         auto context = frame->GetV8Context();
-        auto function = it->second;
-
-        if (context.get() && function.get()) {
+        if (context.get() != nullptr) {
             context->Enter();
 
             CefV8ValueList arguments;
@@ -291,31 +245,19 @@ bool CefJSBridge::ExecuteCppCallbackFunc(int cpp_callback_id, const CefString& j
         // 执行完成后从缓存中移除
         m_browserCallbackMap.erase(cpp_callback_id);
     }
-
     return false;
 }
 
 bool CefJSBridge::RegisterCppFunc(const CefString& function_name, CppFunction function, CefRefPtr<CefBrowser> browser, bool replace /*= false*/)
 {
-    if (replace) {
-        m_browserRegisteredFunction.emplace(std::make_pair(function_name, browser ? browser->GetIdentifier() : -1), function);// = ;
-        return true;
-    }
-    else {
-        auto it = m_browserRegisteredFunction.find(std::make_pair(function_name, browser ? browser->GetIdentifier() : -1));
-        if (it == m_browserRegisteredFunction.cend()) {
-            m_browserRegisteredFunction.emplace(std::make_pair(function_name, browser ? browser->GetIdentifier() : -1), function);
-            return true;
-        }
-        return false;
-    }
-
-    return false;
+    int64_t browser_id = browser ? browser->GetIdentifier() : -1;
+    return m_browserRegisteredFunctions.AddCppFunction(function_name, browser_id, function, replace);
 }
 
 void CefJSBridge::UnRegisterCppFunc(const CefString& function_name, CefRefPtr<CefBrowser> browser)
 {
-    m_browserRegisteredFunction.erase(std::make_pair(function_name, browser ? browser->GetIdentifier() : -1));
+    int64_t browser_id = browser ? browser->GetIdentifier() : -1;
+    m_browserRegisteredFunctions.RemoveCppFunction(function_name, browser_id);
 }
 
 bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
@@ -326,12 +268,14 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
     CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kExecuteJsCallbackMessage);
     CefRefPtr<CefListValue> args = message->GetArgumentList();
 
-    auto it = m_browserRegisteredFunction.find(std::make_pair(function_name, browser->GetIdentifier()));
-    if (it != m_browserRegisteredFunction.cend()) {
-        auto function = it->second;
+    int64_t browser_id = browser ? browser->GetIdentifier() : -1;
+    CppFunction function = m_browserRegisteredFunctions.FindCppFunction(function_name, browser_id);//Browser相关函数
+    if ((function == nullptr) && (browser_id != -1)) {
+        function = m_browserRegisteredFunctions.FindCppFunction(function_name, -1);//全局函数
+    }
+    if (function != nullptr) {
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [=]() {
             function(params, [=](bool has_error, const std::string& json_result) {
-                // 测试代码，需要封装到管理器中
                 args->SetInt(0, js_callback_id);
                 args->SetBool(1, has_error);
                 args->SetString(2, json_result);
@@ -342,26 +286,9 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
         });
         return true;
     }
-
-    it = m_browserRegisteredFunction.find(std::make_pair(function_name, -1));
-    if (it != m_browserRegisteredFunction.cend()) {
-        auto function = it->second;
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [=]() {
-            function(params, [=](bool has_error, const std::string& json_result) {
-                // 测试代码，需要封装到管理器中
-                args->SetInt(0, js_callback_id);
-                args->SetBool(1, has_error);
-                args->SetString(2, json_result);
-                if (frame != nullptr) {
-                    frame->SendProcessMessage(PID_RENDERER, message);
-                }
-            });
-        });
-        return true;
-    }
     else {
         args->SetInt(0, js_callback_id);
-        args->SetBool(1, true);
+        args->SetBool(1, true);//true表示有错误
         args->SetString(2, R"({"message":"Function does not exist."})");
         if (frame != nullptr) {
             frame->SendProcessMessage(PID_RENDERER, message);

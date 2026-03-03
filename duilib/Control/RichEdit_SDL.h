@@ -189,9 +189,17 @@ public:
     */
     float GetRowSpacingMul() const;
 
-    /** 设置行间距倍数
+    /** 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
     */
     void SetRowSpacingMul(float fRowSpacingMul);
+
+    /** 获取行间距附加量
+    */
+    float GetRowSpacingAdd() const;
+
+    /** 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+    */
+    void SetRowSpacingAdd(float fRowSpacingAdd);
 
 public:
     /** 设置是否允许显示提示文字
@@ -492,39 +500,45 @@ public:
 
 public:
     /** 监听回车按键按下事件
-     * @param[in] callback 回车被按下的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventReturn, callback, callbackID); }
 
     /** 监听ESC按键按下事件
-     * @param[in] callback 回车被按下的自定义回调函数
+     * @param [in] callback 回车被按下的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachEsc(const EventCallback& callback) { AttachEvent(kEventEsc, callback); }
+    void AttachEsc(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventEsc, callback, callbackID); }
 
     /** 监听 TAB 按键按下事件
-     * @param[in] callback TAB 被按下的自定义回调函数
+     * @param [in] callback TAB 被按下的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachTab(const EventCallback& callback) { AttachEvent(kEventTab, callback); }
+    void AttachTab(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTab, callback, callbackID); }
 
     /* 监听缩放比例变化事件
-     * @param[in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 文本被修改后的自定义回调函数
      */
-    void AttachZoom(const EventCallback& callback) { AttachEvent(kEventZoom, callback); }
+    void AttachZoom(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventZoom, callback, callbackID); }
 
     /* 监听文本被修改事件
-     * @param[in] callback 文本被修改后的自定义回调函数
+     * @param [in] callback 文本被修改后的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachTextChanged(const EventCallback& callback) { AttachEvent(kEventTextChanged, callback); }
+    void AttachTextChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventTextChanged, callback, callbackID); }
 
     /* 监听文本选择变化事件
-     * @param[in] callback 文本选择变化后的自定义回调函数
+     * @param [in] callback 文本选择变化后的自定义回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSelChanged(const EventCallback& callback);
+    void AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
 
     /** 监听超级链接被点击事件
-     * @param[in] callback 超级链接被点击后的回调函数
+     * @param [in] callback 超级链接被点击后的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachLinkClick(const EventCallback& callback) { AttachEvent(kEventLinkClick, callback); }
+    void AttachLinkClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventLinkClick, callback, callbackID); }
 
 public:
     /** 获取修改标志
@@ -745,15 +759,13 @@ public:
 public:
     /** 向上一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向下一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 向上翻页
      */
@@ -769,9 +781,8 @@ public:
 
     /** 滚动到最底部
      * @param[in] arrange 是否重置滚动条位置，默认为 true
-     * @param[in] withAnimation 是否包含动画特效，默认为 true
      */
-    virtual void EndDown(bool arrange = true, bool withAnimation = true) override;
+    virtual void EndDown(bool arrange = true) override;
 
     /** 水平向左滚动
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
@@ -1149,6 +1160,7 @@ private:
 
     uint8_t m_nFocusBottomBorderSize;   //焦点状态时，底部边框的大小
     float m_fRowSpacingMul;             //行间距倍数
+    float m_fRowSpacingAdd;             //行间距附加量
 
 private:
     /** 是否使用Control设置的光标

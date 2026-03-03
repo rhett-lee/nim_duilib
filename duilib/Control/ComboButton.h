@@ -112,19 +112,22 @@ public:
 
 public:
     /** 监听子项按钮点击事件（左侧的按钮被点击）
-     * @param[in] callback 触发的回调函数
+     * @param [in] callback 触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
+    void AttachClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventClick, callback, callbackID);}
 
     /** 监听下拉窗创建事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
+    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowCreate, callback, callbackID); }
 
     /** 监听下拉窗关闭事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数，wParam 为1表示取消，为0表示正常关闭
+     * @param [in] callback 下拉窗关闭后触发的回调函数，wParam 为1表示取消，为0表示正常关闭
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
+    void AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowClose, callback, callbackID); }
 
 protected:
     /** 显示下拉列表

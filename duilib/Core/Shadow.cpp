@@ -106,7 +106,7 @@ public:
         if (pRender == nullptr) {
             return;
         }
-        if ((m_pShadow == nullptr) || !m_pShadow->IsEnableShadowSnap() || !m_pShadow->IsShadowAttached()) {
+        if ((m_pShadow == nullptr) || !m_pShadow->IsShadowAttached()) {
             BaseClass::PaintBkImage(pRender);
         }
         else {
@@ -114,22 +114,24 @@ public:
             Window* pWindow = GetWindow();
             if ((pBkImage != nullptr) && (pWindow != nullptr)) {
                 UiRect destRect = GetRect();
-                UiPadding rcShadowCorner = pWindow->GetCurrentShadowCorner();
-                UiPadding rcRealCorner = m_pShadow->GetShadowCorner();
-                pWindow->Dpi().ScalePadding(rcRealCorner);
+                if (m_pShadow->IsEnableShadowSnap()) {
+                    UiPadding rcShadowCorner = pWindow->GetCurrentShadowCorner();
+                    UiPadding rcRealCorner = m_pShadow->GetShadowCorner();
+                    pWindow->Dpi().ScalePadding(rcRealCorner);
 
-                //窗口贴边时，阴影需要拉伸到窗口边缘
-                if (rcShadowCorner.top == 0) {
-                    destRect.top -= rcRealCorner.top;
-                }
-                if (rcShadowCorner.left == 0) {
-                    destRect.left -= rcRealCorner.left;
-                }
-                if (rcShadowCorner.right == 0) {
-                    destRect.right += rcRealCorner.right;
-                }
-                if (rcShadowCorner.bottom == 0) {
-                    destRect.bottom += rcRealCorner.bottom;
+                    //窗口贴边时，阴影需要拉伸到窗口边缘
+                    if (rcShadowCorner.top == 0) {
+                        destRect.top -= rcRealCorner.top;
+                    }
+                    if (rcShadowCorner.left == 0) {
+                        destRect.left -= rcRealCorner.left;
+                    }
+                    if (rcShadowCorner.right == 0) {
+                        destRect.right += rcRealCorner.right;
+                    }
+                    if (rcShadowCorner.bottom == 0) {
+                        destRect.bottom += rcRealCorner.bottom;
+                    }
                 }
                 PaintImage(pRender, pBkImage, _T(""), DUI_NOSET_VALUE, nullptr, &destRect);
             }
@@ -194,6 +196,9 @@ public:
     */
     void OnMouseClickShadow(UiPoint ptMouse) const
     {
+        if (!m_pShadow->IsEnableClickThroughWindow()) {
+            return;
+        }
         ClickThrough shadowClick;
         shadowClick.ClickThroughWindow(GetWindow(), ptMouse);
     }
@@ -209,6 +214,7 @@ Shadow::Shadow(Window* pWindow):
     m_isMaximized(false),
     m_pShadowBox(nullptr),
     m_pWindow(pWindow),
+    m_bEnableClickThroughWindow(true),
     m_bEnableShadowSnap(true),
     m_bLeftSnap(false),
     m_bTopSnap(false),
@@ -463,13 +469,13 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowNone) {
         bRet = true;
         szBorderRound = UiSize(0, 0);
-        rcShadowCorner = UiPadding(1, 1, 1, 1);//设置一个像素，容纳边线
-        shadowImage.clear();        
+        rcShadowCorner = UiPadding(0, 0, 0, 0);//设置一个像素，容纳边线（参考后续代码）
+        shadowImage.clear();
     }
     else if (nShadowType == Shadow::ShadowType::kShadowNoneRound) {
         bRet = true;
         szBorderRound = UiSize(6, 6);
-        rcShadowCorner = UiPadding(1, 1, 1, 1);//设置一个像素，容纳边线
+        rcShadowCorner = UiPadding(0, 0, 0, 0);//设置一个像素，容纳边线（参考后续代码）
         shadowImage.clear();
     }
     else if (nShadowType == Shadow::ShadowType::kShadowCustom) {
@@ -484,7 +490,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         shadowImage.clear();
     }
 
-    if ((pShadowObj != nullptr) && ((nShadowType == Shadow::ShadowType::kShadowNone) || (nShadowType == Shadow::ShadowType::kShadowNoneRound))) {
+    if ((pShadowObj != nullptr) && ((nShadowType == Shadow::ShadowType::kShadowNone) ||
+                                    (nShadowType == Shadow::ShadowType::kShadowNoneRound))) {
         int32_t nShadowBorderSize = pShadowObj->GetShadowBorderSize();
         if (pShadowObj->GetShadowBorderColor().empty()) {
             nShadowBorderSize = 0;
@@ -531,7 +538,10 @@ void Shadow::UpdateShadow()
 
         //刷新，重绘
         m_pShadowBox->ArrangeAncestor();
-        m_pShadowBox->SetPos(m_pShadowBox->GetPos());
+        UiRect rcShadow = m_pShadowBox->GetPos();
+        if (!rcShadow.IsEmpty()) {
+            m_pShadowBox->SetPos(rcShadow);
+        }        
     }
 }
 
@@ -716,6 +726,9 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
         //只处理鼠标左键按下和右键按下事件
         return;
     }
+    if (!IsEnableClickThroughWindow()) {
+        return;
+    }
     Shadow::ShadowType shadowType = GetShadowType();
     if ((shadowType == Shadow::ShadowType::kShadowNone) || (shadowType == Shadow::ShadowType::kShadowNoneRound)) {
         //无阴影模式
@@ -749,6 +762,16 @@ void Shadow::CheckMouseClickOnShadow(EventType eventType, const UiPoint& pt)
 
     //鼠标确认点击在阴影上，处理阴影穿透逻辑
     pShadowBox->OnMouseDown(pt);
+}
+
+void Shadow::SetEnableClickThroughWindow(bool bEnable)
+{
+    m_bEnableClickThroughWindow = bEnable;
+}
+
+bool Shadow::IsEnableClickThroughWindow() const
+{
+    return m_bEnableClickThroughWindow;
 }
 
 } //namespace ui

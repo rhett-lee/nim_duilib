@@ -133,34 +133,16 @@ void VirtualListBox::SetMultiSelect(bool bMultiSelect)
 
 Control* VirtualListBox::CreateElement()
 {
-    Control* pControl = nullptr;
+    Control* pListBoxItem = nullptr;
     ASSERT(m_pDataProvider != nullptr);
     if (m_pDataProvider != nullptr) {
-        pControl = m_pDataProvider->CreateElement(this);
-    }
-    if (pControl != nullptr) {
-        //挂载鼠标事件，转接给List Box本身
-        pControl->AttachDoubleClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pControl->AttachClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pControl->AttachRClick([this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-        pControl->AttachEvent(kEventReturn, [this](const EventArgs& args) {
-            VSendEvent(args, true);
-            return true;
-            });
-    }
-    return pControl;
+        pListBoxItem = m_pDataProvider->CreateElement(this);
+        ASSERT(dynamic_cast<IListBoxItem*>(pListBoxItem) != nullptr);
+    }    
+    return pListBoxItem;
 }
 
-void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
+void VirtualListBox::FillElementData(Control* pControl, size_t nElementIndex)
 {
     ASSERT(pControl != nullptr);
     if (pControl == nullptr) {
@@ -181,15 +163,75 @@ void VirtualListBox::FillElement(Control* pControl, size_t nElementIndex)
     bool bSelected = m_pDataProvider->IsElementSelected(nElementIndex);
     //先更新选择状态，再填充数据，从而避免与Check状态冲突
     pListBoxItem->SetItemSelected(bSelected);
+    //设置元素索引号
+    pListBoxItem->SetElementIndex(nElementIndex);
     bool bFilled = m_pDataProvider->FillElement(pControl, nElementIndex);    
     ASSERT_UNUSED_VARIABLE(bFilled);
 
-    //更新元素索引号
+    //更新元素索引号（避免被更改）
     pListBoxItem->SetElementIndex(nElementIndex);
     ASSERT(GetItemIndex(pControl) == pListBoxItem->GetListBoxIndex());
     ASSERT(pListBoxItem->IsSelected() == bSelected);
 
     m_bEnableUpdateProvider = bOldValue;
+}
+
+void VirtualListBox::OnListBoxItemAdded(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    Control* pListBoxItem = pControl;
+
+    //挂载鼠标事件，转接给VirtualListBox本身，将事件分发到应用层
+    pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
+        VFireMouseEnterLeaveEvent(args);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
+        VFireMouseEnterLeaveEvent(args);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachRClick([this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+        VSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
+        VSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        }, callbackID);
+}
+
+void VirtualListBox::OnListBoxItemRemoved(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    pControl->DetachEventByID(callbackID);
 }
 
 void VirtualListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* pListBoxItem)
@@ -386,7 +428,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     }
     VirtualListBox::RefreshDataList refreshDataList;
     VirtualListBox::RefreshData refreshData;
-    size_t nItemCount = m_items.size();
+    const size_t nItemCount = m_items.size();
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = m_items[nItemIndex];
         if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -399,7 +441,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
         size_t nElementIndex = pListBoxItem->GetElementIndex();
         if (nElementIndex != Box::InvalidIndex) {
             if (indexSet.find(nElementIndex) != indexSet.end()) {                
-                FillElement(pControl, nElementIndex);
+                FillElementData(pControl, nElementIndex);
                 pControl->Invalidate();
 
                 refreshData.nItemIndex = nItemIndex;
@@ -411,6 +453,7 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
     }
     if (!refreshDataList.empty()) {
         OnRefreshElements(refreshDataList);
+        OnFilledElements(refreshDataList);
     }
 }
 
@@ -429,7 +472,7 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
             size_t nElementIndex = pListBoxItem->GetElementIndex();
             if ((nElementIndex >= nStartElementIndex) &&
                 (nElementIndex <= nEndElementIndex)) {
-                FillElement(pControl, nElementIndex);
+                FillElementData(pControl, nElementIndex);
                 pControl->Invalidate();
 
                 refreshData.nItemIndex = nItemIndex;
@@ -441,6 +484,28 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
     }
     if (!refreshDataList.empty()) {
         OnRefreshElements(refreshDataList);
+        OnFilledElements(refreshDataList);
+    }
+}
+
+void VirtualListBox::OnFilledElements(const RefreshDataList& refreshDataList)
+{
+    if (!HasEventCallback(kEventElementFilled)) {
+        //本控件中未注册回调函数（不支持父祖控件中注册的Bubbled事件，避免影响效率）
+        return;
+    }
+    auto weakFLag = GetWeakFlag();
+    for (const VirtualListBox::RefreshData& itemData : refreshDataList) {
+        if (weakFLag.expired()) {
+            break;
+        }
+        EventArgs msg;
+        msg.eventType = kEventElementFilled;
+        msg.SetSender(this);
+        msg.wParam = (WPARAM)itemData.nItemIndex;
+        msg.lParam = (LPARAM)itemData.nElementIndex;
+        msg.pEventData = itemData.pControl;
+        FireAllEvents(msg);
     }
 }
 
@@ -537,7 +602,7 @@ size_t VirtualListBox::GetDisplayItemIndex(size_t nElementIndex) const
     const size_t nItemCount = GetItemCount();
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = GetItemAt(nItemIndex);
-        if ((pControl == nullptr) || !pControl->IsVisible()) {
+        if (pControl == nullptr) {
             continue;
         }
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
@@ -555,7 +620,7 @@ size_t VirtualListBox::GetDisplayItemElementIndex(size_t nItemIndex) const
 {
     size_t nElementIndex = Box::InvalidIndex;
     Control* pControl = GetItemAt(nItemIndex);
-    if ((pControl != nullptr) && pControl->IsVisible()) {
+    if (pControl != nullptr) {
         IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
         if (pListBoxItem != nullptr) {
             nElementIndex = pListBoxItem->GetElementIndex();
@@ -621,7 +686,8 @@ void VirtualListBox::SetPos(ui::UiRect rc)
     }
     ListBox::SetPos(rc);
     if (bChange) {
-        Refresh();
+        //此处需要同步刷新，否则部分控件在初次显示时不绘制界面
+        Refresh(true);
     }
 }
 
@@ -636,10 +702,10 @@ void VirtualListBox::SendEventMsg(const EventArgs& msg)
     VSendEvent(msg, false);
 }
 
-void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
+void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
 {
+    EventArgs newMsg = msg;
     if (bFromItem) {
-        EventArgs newMsg = msg;
         newMsg.SetSender(this);
         size_t nItemIndex = GetItemIndex(msg.GetSender());
         if (nItemIndex < GetItemCount()) {
@@ -650,26 +716,62 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
         }
-        BaseClass::SendEventMsg(newMsg);
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
-             (msg.eventType == kEventRClick)) {
+             (msg.eventType == kEventRClick) ||
+             (msg.eventType == kEventKeyDown) ||
+             (msg.eventType == kEventKeyUp)) {
+        //需要设置wParam和lParam，按接口对应的Attach函数，设置这两个参数值
         if (msg.GetSender() == this) {
-            //ASSERT(msg.wParam == 0);
-            //ASSERT(msg.lParam == 0);
-            EventArgs newMsg = msg;
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-            BaseClass::SendEventMsg(newMsg);
+        }
+    }
+    else if (msg.eventType == kEventSelect) {
+        size_t nItemIndex = (size_t)msg.wParam;
+        ASSERT(nItemIndex < GetItemCount());
+        if (nItemIndex < GetItemCount()) {
+            newMsg.wParam = nItemIndex;
+            newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);
         }
         else {
-            BaseClass::SendEventMsg(msg);
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = Box::InvalidIndex;
         }
     }
-    else {
-        BaseClass::SendEventMsg(msg);
+    if (bFireEventOnly) {
+        BaseClass::FireAllEvents(newMsg);
     }
+    else {
+        BaseClass::SendEventMsg(newMsg);
+    }
+}
+
+void VirtualListBox::VFireMouseEnterLeaveEvent(const EventArgs& msg)
+{
+    EventArgs newMsg = msg;
+    newMsg.SetSender(this);
+    if (msg.eventType == kEventMouseEnter) {
+        newMsg.eventType = kEventItemMouseEnter;
+    }
+    else if (msg.eventType == kEventMouseLeave) {
+        newMsg.eventType = kEventItemMouseLeave;
+    }
+    else {
+        ASSERT(0);
+        return;
+    }
+    size_t nItemIndex = GetItemIndex(msg.GetSender());
+    if (nItemIndex < GetItemCount()) {
+        newMsg.wParam = nItemIndex;
+        newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);
+    }
+    else {
+        newMsg.wParam = Box::InvalidIndex;
+        newMsg.lParam = Box::InvalidIndex;
+    }
+    BaseClass::FireAllEvents(newMsg);
 }
 
 bool VirtualListBox::RemoveItem(Control* pControl)

@@ -203,11 +203,11 @@ public:
 void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
 {
     // 检查窗口是否最大化或最小化
-    if (window == nullptr) {
+    if ((window == nullptr) || IsChildWindow()) {
         return;
     }
     SDL_WindowFlags flags = SDL_GetWindowFlags(window);
-    if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED)) {
+    if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED) || (flags & SDL_WINDOW_FULLSCREEN) ) {
         return;
     }
 
@@ -300,7 +300,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             newWindowSize.cx = sdlEvent.window.data1;
             newWindowSize.cy = sdlEvent.window.data2;
             lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESIZED, 0, 0), bHandled);
-            CheckWindowSnap(m_sdlWindow);
+            if (!ownerFlag.expired()) {
+                CheckWindowSnap(m_sdlWindow);
+            }            
         }
         break;
     case SDL_EVENT_WINDOW_MINIMIZED:
@@ -385,7 +387,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             ptTopLeft.x = sdlEvent.window.data1;
             ptTopLeft.y = sdlEvent.window.data2;
             lResult = pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(SDL_EVENT_WINDOW_MOVED, 0, 0), bHandled);
-            CheckWindowSnap(m_sdlWindow);
+            if (!ownerFlag.expired()) {
+                CheckWindowSnap(m_sdlWindow);
+            }
         }
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
@@ -506,7 +510,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键: 先触发左键弹起消息，然后再触发左键双击消息，避免左键弹起消息丢失的现象
                 lResult = pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                if (!bHandled && bDoubleClick) {
+                if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
                     lResult = pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
@@ -525,7 +529,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             else if (sdlEvent.button.button == SDL_BUTTON_MIDDLE) {
                 //鼠标中键: 先触发中键弹起消息，然后再触发中键双击消息，避免中键弹起消息丢失的现象
                 lResult = pOwner->OnNativeMouseMButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                if (!bHandled && bDoubleClick) {
+                if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
                     lResult = pOwner->OnNativeMouseMButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
@@ -703,11 +707,14 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
     m_bCloseing(false),
+    m_bChildWindow(false),
     m_closeParam(kWindowCloseNormal),
     m_bEnableDragDrop(true),
     m_bFakeModal(false),
     m_bDoModal(false),
-    m_bFullScreen(false),
+    m_bFullscreen(false),
+    m_bFullscreenExiting(false),
+    m_bFullscreenMaximized(false),
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false)
 {
@@ -946,6 +953,141 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     return m_closeParam;
 }
 
+bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight)
+{
+    ASSERT(m_sdlWindow == nullptr);
+    if (m_sdlWindow != nullptr) {
+        return false;
+    }
+    ASSERT(m_sdlRenderer == nullptr);
+    if (m_sdlRenderer != nullptr) {
+        return false;
+    }
+    SDL_Window* sdlParentWindow = nullptr;
+    if (pParentWindow != nullptr) {
+        sdlParentWindow = pParentWindow->m_sdlWindow;
+    }
+    ASSERT(sdlParentWindow != nullptr);
+    if (sdlParentWindow == nullptr) {
+        return false;
+    }
+
+    SDL_PropertiesID props = SDL_CreateProperties();
+
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, nX);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, nY);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, nWidth);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, nHeight);
+
+    //父窗口
+    SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_PARENT_POINTER, sdlParentWindow);
+
+    //窗口属性
+    SDL_WindowFlags windowFlags = 0;
+
+    //创建的时候，窗口保持隐藏状态，需要调用API显示窗口，避免创建窗口的时候闪烁
+    windowFlags |= SDL_WINDOW_HIDDEN;
+
+    //支持Hight DPI，参见SDL文档：docs/README-highdpi.md
+    windowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+    //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
+    windowFlags |= SDL_WINDOW_BORDERLESS;
+
+    SDL_WindowFlags sdlParentFlag = SDL_GetWindowFlags(sdlParentWindow);
+    if (sdlParentFlag & SDL_WINDOW_TRANSPARENT) {
+        //设置透明属性（跟随父窗口），这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
+        windowFlags |= SDL_WINDOW_TRANSPARENT;
+    }
+
+    //该窗口不需要焦点
+    windowFlags |= SDL_WINDOW_NOT_FOCUSABLE; //SDL_WINDOW_INPUT_FOCUS
+
+    //添加OpenGL标志
+    windowFlags |= SDL_WINDOW_OPENGL;
+
+    //不能包含此标志，否则子窗口会跑到主窗口后面去（SDL内部实现时，未真正使用父子窗口关系）
+    windowFlags &= ~SDL_WINDOW_UTILITY;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台，使用外部创建的子窗口句柄关联SDL窗口
+    SDL_PropertiesID propID = SDL_GetWindowProperties(sdlParentWindow);
+    HMODULE hModule = (HMODULE)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, nullptr);
+    ASSERT(hModule != nullptr);
+    if (hModule == nullptr) {
+        hModule = ::GetModuleHandle(nullptr);
+    }
+    HWND hChild = nullptr;
+    HWND hParent = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    if (hParent != nullptr) {
+        const DString className = _T("duilib_child_window");
+        WNDCLASS wc = { 0 };
+        wc.lpfnWndProc = ::DefWindowProc;
+        wc.hInstance = hModule;
+        wc.lpszClassName = className.c_str();
+        RegisterClass(&wc);
+
+        // 创建Windows子窗口（WS_CHILD样式）
+        hChild = ::CreateWindowEx( 0,
+                                   className.c_str(),
+                                   0,
+                                   WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                                   nX, nY, nWidth, nHeight,
+                                   hParent,
+                                   nullptr,
+                                   hModule,
+                                   nullptr);
+    }
+    if (hChild != nullptr) {
+        SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, hChild);
+    }
+#endif
+
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
+
+    m_bChildWindow = true;
+    m_sdlWindow = SDL_CreateWindowWithProperties(props);
+    SDL_DestroyProperties(props);
+
+    if (m_sdlWindow != nullptr) {
+        //创建SDL渲染接口（这是必要的，否则在Linux下会出现子窗口无法正常显示的现象）
+        m_sdlRenderer = CreateSdlRenderer(_T(""));
+        ASSERT(m_sdlRenderer != nullptr);
+        if (m_sdlRenderer == nullptr) {
+            SDL_DestroyWindow(m_sdlWindow);
+            m_sdlWindow = nullptr;
+            return false;
+        }
+
+        SDL_WindowID id = SDL_GetWindowID(m_sdlWindow);
+        SetWindowFromID(id, this);
+
+        //SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "true");
+
+        //设置watchers，以实现同步绘制窗口
+        bool bRet = SDL_AddEventWatch(OnNativeWindowExposedEvent, this);
+        ASSERT_UNUSED_VARIABLE(bRet);
+
+        //关联拖放操作
+        SetEnableDragDrop(IsEnableDragDrop());
+
+        if (m_pOwner != nullptr) {
+            bool bHandled = false;
+            m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+        }
+        return true;
+    }
+    else {
+#ifdef DUILIB_BUILD_FOR_WIN
+        if (hChild != nullptr) {
+            ::DestroyWindow(hChild);
+            hChild = nullptr;
+        }
+#endif
+        return false;
+    }    
+}
+
 SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer(const DString& sdlRenderName) const
 {
     std::vector<DString> renderNames;
@@ -1159,7 +1301,7 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     bSupportTransparent = true;
 #endif
 
-    if (m_bUseSystemCaption) {
+    if (IsUseSystemCaption()) {
         //使用系统标题栏
         if (m_createParam.m_dwStyle & kWS_POPUP) {
             //弹出式窗口
@@ -1186,7 +1328,7 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     }
 
     //如果使用系统标题栏，关闭层窗口
-    if (m_bUseSystemCaption) {
+    if (IsUseSystemCaption()) {
         m_bIsLayeredWindow = false;
         m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
     }
@@ -1281,14 +1423,14 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     //支持Hight DPI，参见SDL文档：docs/README-highdpi.md
     windowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-    if (!m_bUseSystemCaption && m_bIsLayeredWindow) {
+    if (!IsUseSystemCaption() && IsLayeredWindow()) {
         //设置透明属性，这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
         windowFlags |= SDL_WINDOW_TRANSPARENT;
     }
 
     //如果是弹出窗口，并且无阴影和标题栏，则默认为无边框
     const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
-    if (!m_bUseSystemCaption) {
+    if (!IsUseSystemCaption()) {
         //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
         windowFlags |= SDL_WINDOW_BORDERLESS;
     }
@@ -1344,7 +1486,7 @@ int32_t NativeWindow_SDL::SDL_HitTest(SDL_Window* win, const SDL_Point* area, vo
     }
 
     //全屏模式, 只返回客户区域属性
-    if (IsWindowFullScreen()) {
+    if (IsWindowFullscreen()) {
         return SDL_HITTEST_NORMAL;
     }
 
@@ -1526,6 +1668,27 @@ DString NativeWindow_SDL::GetWindowRenderName() const
 bool NativeWindow_SDL::IsWindow() const
 {
     return (m_sdlWindow != nullptr);
+}
+
+bool NativeWindow_SDL::IsChildWindow() const
+{
+    return m_bChildWindow;
+}
+
+bool NativeWindow_SDL::SetParentWindow(NativeWindow_SDL* pParentWindow)
+{
+    ASSERT((pParentWindow != nullptr) && pParentWindow->IsWindow());
+    if ((pParentWindow == nullptr) || !pParentWindow->IsWindow()) {
+        return false;
+    }
+    if (!IsWindow()) {
+        return false;
+    }
+    bool bRet = SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
+#ifdef DUILIB_BUILD_FOR_WIN
+    ::SetParent(GetHWND(), pParentWindow->GetHWND());
+#endif
+    return bRet;
 }
 
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -1748,6 +1911,11 @@ uint8_t NativeWindow_SDL::GetLayeredWindowOpacity() const
 
 void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 {
+    ASSERT(!IsChildWindow());
+    if (IsChildWindow()) {
+        //子窗口模式下，不支持系统标题栏
+        return;
+    }
     m_bUseSystemCaption = bUseSystemCaption;
 
 #ifndef DUILIB_BUILD_FOR_WIN
@@ -1798,6 +1966,16 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     ASSERT(IsWindow());
     if (m_sdlWindow == nullptr) {
         return false;
+    }
+    if (m_bFullscreen) {
+        //先退出全屏
+        ExitFullscreen();
+    }
+    if (IsChildWindow()) {
+        //子窗口：只支持显示和隐藏
+        if (nCmdShow != kSW_HIDE) {
+            nCmdShow = kSW_SHOW;
+        }
     }
     bool nRet = false;
     switch(nCmdShow)
@@ -1862,6 +2040,10 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
 {
     ASSERT(IsWindow());
     if (!IsWindow()) {
+        return;
+    }
+    ASSERT(!IsChildWindow());
+    if (IsChildWindow()) {
         return;
     }
     if ((pParentWindow != nullptr) && !pParentWindow->IsWindow()) {
@@ -1973,8 +2155,8 @@ bool NativeWindow_SDL::CalculateCenterWindowPos(SDL_Window* pCenterWindow, int32
 
 void NativeWindow_SDL::SetWindowAlwaysOnTop(bool bOnTop)
 {
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
+    ASSERT(IsWindow() && !IsChildWindow());
+    if (!IsWindow() || IsChildWindow()) {
         return;
     }
     bool nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, bOnTop ? true : false);
@@ -2057,7 +2239,7 @@ void NativeWindow_SDL::CheckSetWindowFocus()
 
 LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    ASSERT(IsWindow());
+    //ASSERT(IsWindow());
     if (!IsWindow()) {
         return -1;
     }
@@ -2091,20 +2273,26 @@ void NativeWindow_SDL::PostQuitMsg(int32_t /*nExitCode*/)
     ASSERT_UNUSED_VARIABLE(nRet);
 }
 
-bool NativeWindow_SDL::EnterFullScreen()
+bool NativeWindow_SDL::EnterFullscreen()
 {
     ASSERT(IsWindow());
     if (m_sdlWindow == nullptr) {
         return false;
     }
-    if (IsWindowMinimized()) {
-        //最小化的时候，不允许激活全屏
+    if (IsWindowMinimized() || IsChildWindow()) {
+        //最小化或者子窗口，不允许激活全屏
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         return true;
     }
-    m_bFullScreen = true;
+    m_bFullscreen = true;
+    m_bFullscreenExiting = false;
+    m_bFullscreenMaximized = IsWindowMaximized();
+    if (m_bFullscreenMaximized) {
+        //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
+        SDL_RestoreWindow(m_sdlWindow);
+    }
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2115,19 +2303,23 @@ bool NativeWindow_SDL::EnterFullScreen()
         SDL_SetWindowResizable(m_sdlWindow, false);
     }
     
-    m_pOwner->OnNativeWindowEnterFullScreen();
+    m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
 
-bool NativeWindow_SDL::ExitFullScreen()
+bool NativeWindow_SDL::ExitFullscreen()
 {
     ASSERT(IsWindow());
     if (m_sdlWindow == nullptr) {
         return false;
     }
-    if (!m_bFullScreen) {
+    if (!m_bFullscreen) {
         return false;
     }
+    if (m_bFullscreenExiting) {
+        return false;
+    }
+    m_bFullscreenExiting = true;//避免重复进入退出流程
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
     ASSERT_UNUSED_VARIABLE(nRet);
@@ -2137,8 +2329,15 @@ bool NativeWindow_SDL::ExitFullScreen()
         SDL_SetWindowResizable(m_sdlWindow, true);
     }
 
-    m_bFullScreen = false;
-    m_pOwner->OnNativeWindowExitFullScreen();
+    m_bFullscreen = false;
+    m_bFullscreenExiting = false;
+
+    if (m_bFullscreenMaximized) {
+        m_bFullscreenMaximized = false;
+        //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
+        SDL_MaximizeWindow(m_sdlWindow);
+    }
+    m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
 
@@ -2164,15 +2363,15 @@ bool NativeWindow_SDL::IsWindowMinimized() const
     return bWindowMinimized;
 }
 
-bool NativeWindow_SDL::IsWindowFullScreen() const
+bool NativeWindow_SDL::IsWindowFullscreen() const
 {
     ASSERT(IsWindow());
-    bool bFullScreen = false;
+    bool bFullscreen = false;
     if (m_sdlWindow != nullptr) {
         SDL_WindowFlags nFlags = SDL_GetWindowFlags(m_sdlWindow);
-        bFullScreen = nFlags & SDL_WINDOW_FULLSCREEN;
+        bFullscreen = nFlags & SDL_WINDOW_FULLSCREEN;
     }
-    return bFullScreen;
+    return bFullscreen;
 }
 
 bool NativeWindow_SDL::IsWindowVisible() const
@@ -2275,7 +2474,7 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
     return bRet;
 }
 
-bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool /*bRepaint*/)
+bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
 {
     ASSERT(IsWindow());
     bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
@@ -2284,8 +2483,13 @@ bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t 
     ASSERT_UNUSED_VARIABLE(nRet);
     if (!nRet) {
         bRet = false;
-    }    
+    }
     SDL_SyncWindow(m_sdlWindow);
+    if (bRepaint) {
+        UiRect rect;
+        GetClientRect(rect);
+        Invalidate(rect);
+    }
     return nRet;
 }
 
@@ -2447,15 +2651,27 @@ void NativeWindow_SDL::PaintWindow(bool bPaintAll)
     std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
     bool bPaint = pOwner->OnNativePreparePaint();
     if (bPaint && !ownerFlag.expired()) {
-        IRender* pRender = pOwner->OnNativeGetRender();
-        ASSERT(pRender != nullptr);
-        if ((pRender != nullptr) && !ownerFlag.expired()) {
-            NativeWindowRenderPaint renderPaint;
-            renderPaint.m_pNativeWindow = this;
-            renderPaint.m_pOwner = pOwner;
-            renderPaint.m_nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, 0, 0);
-            renderPaint.m_bHandled = false;
-            bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
+        if (IsChildWindow()) {
+            //子窗口模式，完全由应用层负责绘制
+            if (pOwner != nullptr) {
+                UiRect rcPaint = GetUpdateRect();
+                bool bHandled = false;
+                NativeMsg nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, (WPARAM)m_sdlWindow, 0);
+                pOwner->OnNativePaintMsg(rcPaint, nativeMsg, bHandled);
+            }
+        }
+        else {
+            //正常模式，由内部负责绘制流程管理
+            IRender* pRender = pOwner->OnNativeGetRender();
+            ASSERT(pRender != nullptr);
+            if ((pRender != nullptr) && !ownerFlag.expired()) {
+                NativeWindowRenderPaint renderPaint;
+                renderPaint.m_pNativeWindow = this;
+                renderPaint.m_pOwner = pOwner;
+                renderPaint.m_nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, 0, 0);
+                renderPaint.m_bHandled = false;
+                bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
+            }
         }
     }
     m_rcUpdateRect.Clear();
@@ -2950,6 +3166,92 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
     return true;
 }
 
+bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
+    if (pRender != nullptr) {
+        return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
+    }
+    return false;
+}
+
+bool NativeWindow_SDL::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
+    if (pRender != nullptr) {
+        return pRender->SetWindowRectRgn(rcWnd, bRedraw);
+    }
+    return false;
+}
+
+void NativeWindow_SDL::ClearWindowRgn(bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
+    if (pRender != nullptr) {
+        pRender->ClearWindowRgn(bRedraw);
+    }
+}
+
+void NativeWindow_SDL::OnDropBegin()
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = 0;
+    data.m_ptClientY = 0;
+    data.m_bTextData = false;
+    m_pOwner->OnNativeDropEnterMsg(kControlDropTypeSDL, &data);
+}
+
+void NativeWindow_SDL::OnDropPosition(const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = false;
+    m_pOwner->OnNativeDropOverMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = true;
+    data.m_textList = textList;
+    m_pOwner->OnNativeDropMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt, bool& bHandled)
+{
+    ControlDropData_SDL data;
+    data.m_bHandled = false;
+    data.m_ptClientX = pt.x;
+    data.m_ptClientY = pt.y;
+    data.m_bTextData = false;
+    data.m_source = source;
+    data.m_fileList = fileList;
+    m_pOwner->OnNativeDropMsg(kControlDropTypeSDL, &data);
+    bHandled = data.m_bHandled;
+}
+
+void NativeWindow_SDL::OnDropLeave()
+{
+    m_pOwner->OnNativeDropLeaveMsg();
+}
+
 bool NativeWindow_SDL::KillWindowFocus()
 {
     //不支持此功能
@@ -2966,17 +3268,6 @@ bool NativeWindow_SDL::IsWindowEnabled() const
 {
     //未能提供此功能
     return true;
-}
-
-bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSize& /*szRoundCorner*/, bool /*bRedraw*/)
-{
-    //没有此功能
-    return false;
-}
-
-void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
-{
-    //没有此功能
 }
 
 bool NativeWindow_SDL::UpdateWindow() const

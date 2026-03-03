@@ -29,7 +29,7 @@ public:
     int32_t value;
 
 public:
-    /** 构造一个拉伸类型的值
+    /** 构造一个拉伸类型的值，取值为100
     */
     static UiFixedInt MakeStretch()
     {
@@ -39,6 +39,7 @@ public:
     }
 
     /** 构造一个拉伸类型的值, 并指定值
+    * @param [in] iValue 拉伸百分比值，举例：25代表25%，表示按由父容器按25%百分比分配
     */
     static UiFixedInt MakeStretch(int32_t iValue)
     {
@@ -53,6 +54,14 @@ public:
     {
         UiFixedInt fixedInt;
         fixedInt.SetAuto();
+        return fixedInt;
+    }
+
+    /** 构造一个整型的值
+    */
+    static UiFixedInt MakeInt(int32_t iValue)
+    {
+        UiFixedInt fixedInt(iValue);
         return fixedInt;
     }
 

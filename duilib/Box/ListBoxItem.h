@@ -171,6 +171,7 @@ class UILIB_API ListBoxItemTemplate:
     public OptionTemplate<InheritType>,
     public IListBoxItem
 {
+    typedef OptionTemplate<InheritType> BaseClass;
 public:
     explicit ListBoxItemTemplate(Window* pWindow);
 
@@ -239,24 +240,28 @@ public:
 
 public:
     /** 绑定鼠标点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachClick(const EventCallback& callback) { this->AttachEvent(kEventClick, callback); }
+    void AttachClick(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventClick, callback, callbackID); }
 
     /** 绑定鼠标右键点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachRClick(const EventCallback& callback) { this->AttachEvent(kEventRClick, callback); }
+    void AttachRClick(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventRClick, callback, callbackID); }
 
     /** 监听控件双击事件
-     * @param[in] callback 收到双击消息时的回调函数
+     * @param [in] callback 收到双击消息时的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachDoubleClick(const EventCallback& callback) { this->AttachEvent(kEventMouseDoubleClick, callback); }
+    void AttachDoubleClick(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventMouseDoubleClick, callback, callbackID); }
 
     /** 监听回车事件
-     * @param[in] callback 收到回车时的回调函数
+     * @param [in] callback 收到回车时的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachReturn(const EventCallback& callback) { this->AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReturn, callback, callbackID); }
 
 protected:
     /** 选择状态变化事件(m_bSelected变量发生变化)
@@ -299,11 +304,11 @@ DString ListBoxItemTemplate<InheritType>::GetType() const { return DUI_CTR_LISTB
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 {
-    if (OptionTemplate<InheritType>::IsSelected() == bSelected) {
+    if (BaseClass::IsSelected() == bSelected) {
         return;
     }
     //直接修改内部状态
-    OptionTemplate<InheritType>::SetSelected(bSelected);
+    BaseClass::SetSelected(bSelected);
     if (m_pOwner == nullptr) {
         return;
     }
@@ -330,7 +335,7 @@ void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTriggerEvent)
 {
-    return OptionTemplate<InheritType>::Selected(bSelect, bTriggerEvent);
+    return BaseClass::Selected(bSelect, bTriggerEvent);
 }
 
 template<typename InheritType>
@@ -353,7 +358,7 @@ void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEve
 template<typename InheritType>
 bool ListBoxItemTemplate<InheritType>::IsSelected() const
 {
-    return OptionTemplate<InheritType>::IsSelected();
+    return BaseClass::IsSelected();
 }
 
 template<typename InheritType>
@@ -379,7 +384,7 @@ bool ListBoxItemTemplate<InheritType>::CanPaintSelectedColors() const
     if (m_pOwner != nullptr) {
         return m_pOwner->CanPaintSelectedColors(bHasStateImages);
     }
-    return OptionTemplate<InheritType>::CanPaintSelectedColors();
+    return BaseClass::CanPaintSelectedColors();
 }
 
 template<typename InheritType>
@@ -391,7 +396,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
             m_pOwner->SendEventMsg(msg);
         }
         else {
-            OptionTemplate<InheritType>::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -420,7 +425,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    OptionTemplate<InheritType>::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 template<typename InheritType>

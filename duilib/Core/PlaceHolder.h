@@ -3,8 +3,6 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
-#include <string>
-#include <memory>
 
 namespace ui 
 {
@@ -49,10 +47,9 @@ public:
     */
     bool IsNameEquals(const DString& name) const;
 
-    /** 判断控件名称是否相等(不区分大小写)
+    /** 判断是否有名称
     */
-    bool IsNameEqualsNoCase(const DString& name) const;
-    bool IsNameEqualsNoCase(const DString::value_type* pName) const;
+    bool HasName() const;
 
     /** 根据名称获取祖先容器指针
     * @param [in] strName 要获取的祖先容器名称
@@ -185,20 +182,12 @@ public:
      */
     void SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale);
 
-    /** 设置控件的宽度（包含内边距，不包含外边距），供动画使用的接口
-    */
-    void SetFixedWidth64(int64_t cx64);
-
     /** 设置控件的高度
      * @param [in] cy 要设置的固定高度（包含内边距，不包含外边距）
      * @param [in] bArrange 是否重新排列，默认为 true
      * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
     void SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale);
-
-    /** 设置控件的高度（包含内边距，不包含外边距），供动画使用的接口
-    */
-    void SetFixedHeight64(int64_t cy64);
 
 public:
     /** 判断是否需要重新评估大小
@@ -414,9 +403,12 @@ public:
      */
     UiPoint GetScrollOffsetInScrollBox() const;
 
-    /** 判断两个控件是否存在父子/子孙关系
+    /** 判断两个控件是否相等，是否存在父子或者子孙关系
+     * @param [in] pAncestor 父祖级别的控件
+     * @param [in] pChild 子孙级别的控件
+     * @return 如果两个控件相等，或者存在父子或者子孙关系时返回true，否则返回false
      */
-    bool IsChild(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const;
+    static bool IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild);
 
     /** 获取该窗口对应的DPI管理器
     */

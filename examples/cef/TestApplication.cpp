@@ -49,6 +49,9 @@ int TestApplication::Run(int argc, char** argv)
     ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), thread.GetDpiInitParam());
 
+    //初始化CEF模块的附加启动参数
+    //ui::CefManager::GetInstance()->AppendSwitchWithValue(_T("proxy-server"), _T("socks5://127.0.0.1:1080"));
+
     //初始化CEF: 必须在GlobalManager初始化完成之后，因为初始化CEF过程中，会用到GlobalManager
     int32_t nExitCode = 1;
     if (!ui::CefManager::GetInstance()->Initialize(kEnableOffScreenRendering, _T("cef"), argc, argv, nullptr, nExitCode)) {

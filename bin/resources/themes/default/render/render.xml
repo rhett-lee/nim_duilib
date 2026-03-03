@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="80%,95%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4" text="渲染引擎测试程序">
+<Window size="85%,95%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4" text="渲染引擎测试程序">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <!-- 标题栏：窗口左上角显示区域 -->  
-            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse="false">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="渲染引擎测试" valign="center" margin="8,0,0,0" mouse="false"/>
+                <Label text="渲染引擎测试" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
-            <Control mouse="false"/>            
+            <Control mouse_enabled="false"/>            
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -32,10 +32,17 @@
                 <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="5"/>
                 <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="6"/>
                 <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="7"/>                
-                <TabCtrlItem class="tab_ctrl_item" title="属性页" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title="属性页和标签页" close_button_class="" tab_box_item_index="8"/>
                 <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title="位图控件" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title="控件测试" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title="控件动画" close_button_class="" tab_box_item_index="12"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="0">
+            <TabBox name="main_view_tab" bkcolor="white" selected_id="0"
+                    fade_switch_type="FadeInOut" 
+                    fade_switch_frame_interval_ms="16" 
+                    fade_switch_total_ms="180"
+                    fade_switch_easing_function="EaseOutCubic">
                 <VBox name="main_view_page_00">
                     <Label text="页面1：用标准控件测试所有支持的图片格式"/>
                     <Include src="page_image1.xml"/>
@@ -72,9 +79,21 @@
                     <Include src="page_property_grid.xml"/>
                 </VBox>
                 <VBox name="main_view_page_09">
-                    <Label text="页面9：窗口阴影测试"/>
+                    <Label text="页面10：窗口阴影测试"/>
                     <Include src="page_window_shadow.xml"/>
+                </VBox>
+                <VBox name="main_view_page_10">
+                    <Label text="页面11：位图控件测试"/>
+                    <Include src="page_bitmap_control.xml"/>
                 </VBox> 
+                <VBox name="main_view_page_11">
+                    <Label text="页面12：控件综合测试"/>
+                    <Include src="page_control_test.xml"/>
+                </VBox>
+                <VBox name="main_view_page_12">
+                    <Label text="页面13：控件动画测试"/>
+                    <Include src="page_control_animation.xml"/>
+                </VBox>
             </TabBox>
         </VBox>
     </VBox>

@@ -71,46 +71,38 @@ float MessageLoop_SDL::GetPrimaryDisplayContentScale()
     return scale;
 }
 
-int32_t MessageLoop_SDL::Run()
+int32_t MessageLoop_SDL::Run(MessageLoopIdleCallback idleCallback)
 {
     //初始化SDL
     if (!MessageLoop_SDL::CheckInitSDL()) {
         return -1;
     }
-    
-    //进入消息循环
+
     bool bKeepGoing = true;
     SDL_Event sdlEvent;
     memset(&sdlEvent, 0, sizeof(sdlEvent));
-    /* run the program until told to stop. */
-    while (bKeepGoing) {
 
-        /* run through all pending events until we run out. */
-        while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
-            switch (sdlEvent.type) {
-            case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
-                bKeepGoing = false;
-                break;
-            default:
-                {
-                    //将事件派发到窗口
-                    NativeWindow_SDL* pWindow = nullptr;
-                    SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                    if (windowID != 0) {
-                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
-                    }
-                    if (pWindow != nullptr) {
-                        pWindow->OnSDLWindowEvent(sdlEvent);
-                    }
-                    else {
-                        //其他消息，除了注册的自定义消息，不处理
-                        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
-                            //用户自定义消息
-                            OnUserEvent(sdlEvent);
-                        }
-                    }
+    if (idleCallback == nullptr) {
+        //普通消息循环，不支持Idle函数
+        while (bKeepGoing) {
+            while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
+                ProcessSDLEvent(sdlEvent, bKeepGoing);
+            }
+        }
+    }
+    else {
+        //需要支持Idle函数
+        while (bKeepGoing) {
+            while (bKeepGoing && SDL_PollEvent(&sdlEvent)) {
+                ProcessSDLEvent(sdlEvent, bKeepGoing);
+            }
+            if (bKeepGoing) {
+                idleCallback();
+
+                //等待队列中放入消息，避免一直循环导致CPU占有率很高
+                if (SDL_WaitEvent(&sdlEvent)) {
+                    ProcessSDLEvent(sdlEvent, bKeepGoing);
                 }
-                break;
             }
         }
     }
@@ -118,6 +110,19 @@ int32_t MessageLoop_SDL::Run()
     //退出SDL
     SDL_Quit();
     return 0;
+}
+
+void MessageLoop_SDL::ProcessSDLEvent(const SDL_Event& sdlEvent, bool& bKeepGoing)
+{
+    switch (sdlEvent.type) {
+    case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
+        bKeepGoing = false;
+        break;
+    default:
+        //将事件派发到窗口
+        DispatchSDLEvent(sdlEvent);
+        break;
+    }
 }
 
 void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEsc, bool bCloseByEnter)
@@ -149,22 +154,9 @@ void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEs
             default:
                 {
                     //将事件派发到窗口
-                    NativeWindow_SDL* pWindow = nullptr;
-                    const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                    if (windowID != 0) {
-                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
-                    }
-                    if (pWindow != nullptr) {
-                        pWindow->OnSDLWindowEvent(sdlEvent);
-                    }
-                    else {
-                        //其他消息，除了注册的自定义消息，不处理
-                        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
-                            //用户自定义消息
-                            OnUserEvent(sdlEvent);
-                        }
-                    }
+                    DispatchSDLEvent(sdlEvent);
 
+                    SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
                     if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
                         //窗口已经退出，退出消息循环
                         bKeepGoing = false;
@@ -215,21 +207,7 @@ void MessageLoop_SDL::RunUserLoop(bool& bTerminate)
             default:
                 {
                     //将事件派发到窗口
-                    NativeWindow_SDL* pWindow = nullptr;
-                    const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                    if (windowID != 0) {
-                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
-                    }
-                    if (pWindow != nullptr) {
-                        pWindow->OnSDLWindowEvent(sdlEvent);
-                    }
-                    else {
-                        //其他消息，除了注册的自定义消息，不处理
-                        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
-                            //用户自定义消息
-                            OnUserEvent(sdlEvent);
-                        }
-                    }
+                    DispatchSDLEvent(sdlEvent);
 
                     if (bTerminate) {
                         //已经标记退出，退出该消息循环
@@ -302,6 +280,25 @@ void MessageLoop_SDL::RemoveUserMessageCallback(uint32_t msgId)
     auto iter = s_userMsgCallbacks.find(msgId);
     if (iter != s_userMsgCallbacks.end()) {
         s_userMsgCallbacks.erase(iter);
+    }
+}
+
+void MessageLoop_SDL::DispatchSDLEvent(const SDL_Event& sdlEvent)
+{
+    NativeWindow_SDL* pWindow = nullptr;
+    SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+    if (windowID != 0) {
+        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
+    }
+    if (pWindow != nullptr) {
+        pWindow->OnSDLWindowEvent(sdlEvent);
+    }
+    else {
+        //其他消息，除了注册的自定义消息，不处理
+        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
+            //用户自定义消息
+            OnUserEvent(sdlEvent);
+        }
     }
 }
 

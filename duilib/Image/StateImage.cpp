@@ -126,28 +126,49 @@ bool StateImage::HasImage() const
 bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, 
                                  const DString& sImageModify, UiRect* pDestRect)
 {
-    if (m_pControl != nullptr) {
-        bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot) != nullptr;
-        int32_t nHotAlpha = m_pControl->GetHotAlpha();
-        if (bFadeHot) {
-            if (stateType == kControlStateNormal || stateType == kControlStateHot) {
-                DString strNormalImagePath = GetImagePath(kControlStateNormal);
-                DString strHotImagePath = GetImagePath(kControlStateHot);
-                if (strNormalImagePath.empty() || 
-                    strHotImagePath.empty()    || 
-                    (strNormalImagePath != strHotImagePath) || 
-                    !AreImageSourceRectsEqual(kControlStateNormal, kControlStateHot)) {
-                    m_pControl->PaintImage(pRender, GetStateImage(kControlStateNormal), sImageModify, -1, nullptr, nullptr, pDestRect);
-                    int32_t nHotFade = GetImageFade(kControlStateHot);
-                    nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);
-                    return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nHotFade);
+    if (m_pControl != nullptr) {        
+        if (((stateType == kControlStateNormal) || (stateType == kControlStateHot)) &&
+            m_pControl->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
+            //正在播放Hot状态动画
+            uint8_t nHotAlpha = m_pControl->GetHotAlpha();
+            Image* pNormalImage = GetStateImage(kControlStateNormal);
+            Image* pHotImage = GetStateImage(kControlStateHot);
+            for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+                ASSERT(iter->second != nullptr);
+                bool bNeedPause = true;
+                if ((pNormalImage != nullptr) && (iter->second == pNormalImage)) {
+                    bNeedPause = false;
                 }
-                else {
-                    int32_t nNormalFade = GetImageFade(kControlStateNormal);
-                    int32_t nHotFade = GetImageFade(kControlStateHot);
-                    int32_t nBlendFade = int32_t((1 - (double)nHotAlpha / 255) * nNormalFade + (double)nHotAlpha / 255 * nHotFade);
-                    return m_pControl->PaintImage(pRender, GetStateImage(kControlStateHot), sImageModify, nBlendFade, nullptr, nullptr, pDestRect);
+                if ((pHotImage != nullptr) && (iter->second == pHotImage)) {
+                    bNeedPause = false;
                 }
+                if (bNeedPause) {
+                    //暂停其他状态图片的动画
+                    iter->second->PauseImageAnimation();
+                }
+            }
+            bool bNormalPaintd = false;
+            bool bHotPaintd = false;
+
+            //先绘制Normal图片
+            if (pNormalImage != nullptr) {
+                int32_t nNormalFade = GetImageFade(kControlStateNormal);
+                nNormalFade = int32_t(nNormalFade * (double)(255 - nHotAlpha) / 255);
+                if (pHotImage == nullptr) {
+                    nNormalFade = -1;
+                }
+                bNormalPaintd = m_pControl->PaintImage(pRender, pNormalImage, sImageModify, nNormalFade, nullptr, nullptr, pDestRect);
+            }
+
+            //绘制Hot图片
+            if (pHotImage != nullptr) {
+                int32_t nHotFade = GetImageFade(kControlStateHot);
+                nHotFade = int32_t(nHotFade * (double)nHotAlpha / 255);
+                bHotPaintd = m_pControl->PaintImage(pRender, pHotImage, sImageModify, nHotFade);                
+            }
+
+            if (bNormalPaintd || bHotPaintd) {
+                return true;
             }
         }
     }
@@ -166,14 +187,19 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
         stateType = kControlStateNormal;
     }
     Image* pImage = GetStateImage(stateType);
+    if ((pImage == nullptr) && (stateType != kControlStateNormal)) {
+        //正常状态的图片，作为保底图片
+        stateType = kControlStateNormal;
+        pImage = GetStateImage(stateType);
+    }
     if (pImage == nullptr) {
         return false;
     }
     for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
         ASSERT(iter->second != nullptr);
         if (iter->second != pImage) {
-            //停止其他状态图片的动画
-            iter->second->StopImageAnimation();
+            //暂停其他状态图片的动画
+            iter->second->PauseImageAnimation();
         }
     }
     if (m_pControl != nullptr) {

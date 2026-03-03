@@ -43,7 +43,7 @@ void CefForm::OnInitWindow()
     }
 
     // 监听鼠标单击事件
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1));
+    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1), 0);
 
     // 从 XML 中查找指定控件
     m_pCefControl = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control")));
@@ -92,12 +92,25 @@ void CefForm::OnInitWindow()
 
     if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //处理控件多焦点问题（由于cef控件是子窗口模式，duilib内部无法自己完成这个功能）
-        AttachWindowKillFocus([this](const ui::EventArgs& args) {
+        AttachWindowKillFocusMsg([this](const ui::EventArgs& args) {
             //当窗口失去焦点的时候，让界面中的控件失去焦点，避免出现网页与界面控件同时处于焦点状态的问题
             KillFocusControl();
             return true;
             });
     }
+
+    //页面全屏
+    ui::Button* pFullscreenBtn = dynamic_cast<ui::Button*>(FindControl(_T("cef_full_screen_btn")));
+    if (pFullscreenBtn != nullptr) {
+        pFullscreenBtn->AttachClick([this](const ui::EventArgs&) {
+            ui::Control* pCefControl = FindControl(_T("cef_control"));
+            if (pCefControl != nullptr) {
+                this->SetFullscreenControl(pCefControl);
+            }
+            return true;
+            });
+    }
+
 #ifdef DUILIB_BUILD_FOR_SDL
     //显示SDL的基本信息
     DString driverName = GetVideoDriverName();
@@ -117,6 +130,52 @@ void CefForm::OnCloseWindow()
 {   
     //关闭窗口后，退出主线程的消息循环，关闭程序    
     ui::CefManager::GetInstance()->PostQuitMessage(0L);
+}
+
+LRESULT CefForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    if (vkCode == ui::kVK_F11) {
+        if (ui::CefManager::GetInstance()->IsEnableF11()) {
+            //页面全屏或者退出全屏
+            if (IsWindowFullscreen() && (GetFullscreenControl() != nullptr)) {
+                bHandled = true;
+                ExitControlFullscreen();
+            }
+            else {
+                //当前页面，全屏显示
+                if (m_pCefControl != nullptr) {
+                    bHandled = true;
+                    SetFullscreenControl(m_pCefControl);
+                }
+            }
+        }
+    }
+    else if (vkCode == ui::kVK_F12) {
+        if (ui::CefManager::GetInstance()->IsEnableF12()) {
+            //显示或者隐藏开发者工具
+            bHandled = true;
+            SwitchShowDevTools();
+        }
+    }
+    if (bHandled) {
+        return 0;
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+void CefForm::SwitchShowDevTools()
+{
+    if (m_pCefControl != nullptr) {
+        if (m_pCefControl->IsAttachedDevTools()) {
+            m_pCefControl->DettachDevTools();
+            if (m_pCefControlDev != nullptr) {
+                m_pCefControlDev->SetFadeVisible(false);
+            }
+        }
+        else {
+            m_pCefControl->AttachDevTools();
+        }
+    }
 }
 
 void CefForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
@@ -144,17 +203,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
-        if (m_pCefControl != nullptr) {
-            if (m_pCefControl->IsAttachedDevTools()) {
-                m_pCefControl->DettachDevTools();
-                if (m_pCefControlDev != nullptr) {
-                    m_pCefControlDev->SetFadeVisible(false);
-                }
-            }
-            else {
-                m_pCefControl->AttachDevTools();
-            }
-        }
+        SwitchShowDevTools();
     }
     else if (name == _T("btn_back")) {
         if (m_pCefControl != nullptr) {
@@ -274,8 +323,14 @@ bool CefForm::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> 
 {
     m_dropFileList.clear();
     if ((dragData != nullptr) && dragData->IsFile()){
-        //拖入文件操作        
+        //拖入文件操作
+#if CEF_VERSION_MAJOR > 109
+        //CEF高于109版本时，支持获取文件的完整路径
+        dragData->GetFilePaths(m_dropFileList);
+#else
+        //CEF 109版本时，只支持获取文件名，不支持获取文件的完整路径
         dragData->GetFileNames(m_dropFileList);
+#endif
     }
     return false;
 }

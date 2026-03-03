@@ -7,7 +7,7 @@
                                    normal_color="#FFD3E3FD" 
                                    hot_color="#FFA8C7FA" 
                                    pushed_color="#FF9DB9E8"/>
-<Class name="tab_ctrl_left_line" bkcolor="#FFA8C7FA" width="1" height="22" halign="center" valign="center" mouse="false"/>
+<Class name="tab_ctrl_left_line" bkcolor="#FFA8C7FA" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
 
 <VBox bkcolor="bk_wnd_lightcolor">
     <HBox name="title_bar" width="stretch" height="36" bkcolor="#FFD3E3FD">
@@ -25,8 +25,8 @@
 		
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
-            <Control mouse="false"/>
-            <Control width="36" mouse="false"/>
+            <Control mouse_enabled="false"/>
+            <Control width="36" mouse_enabled="false"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
                 <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>

@@ -273,7 +273,7 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            pOwnerBox->FillElement(pControl, nElementIndex);
+            pOwnerBox->FillElementData(pControl, nElementIndex);
             refreshData.nItemIndex = nItemIndex;
             refreshData.pControl = pControl;
             refreshData.nElementIndex = nElementIndex;
@@ -282,6 +282,11 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
         else {
             if (pControl->IsVisible()) {
                 pControl->SetVisible(false);
+            }
+            //需要清除ElementIndex
+            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+            if (pListBoxItem != nullptr) {
+                pListBoxItem->SetElementIndex(Box::InvalidIndex);
             }
         }
 
@@ -295,6 +300,7 @@ void VirtualVTileLayout::LazyArrangeChild(UiRect rc) const
     }
     if (!refreshDataList.empty()) {
         pOwnerBox->OnRefreshElements(refreshDataList);
+        pOwnerBox->OnFilledElements(refreshDataList);
     }
 }
 

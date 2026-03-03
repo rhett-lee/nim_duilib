@@ -30,7 +30,7 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual bool SupportCheckedMode() const override;
+    virtual bool SupportCheckMode() const override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -120,10 +120,24 @@ public:
      */
     size_t GetChildNodeIndex(TreeNode* pTreeNode) const;
 
-    /** 获取子节点列表
+    /** 获取子节点列表（只获取一级子节点，不递归获取孙节点）
     * @param [out] childNodes 返回当前树节点的所有子节点列表
     */
     void GetChildNodes(std::vector<TreeNode*>& childNodes) const;
+
+    /** 根据子节点的控件名称(Name)，查找子节点
+    * @param [in] name 被查找的子节点的控件名称（即Control::GetName()的值）
+    * @param [in] bRecursive true表示递归查找，false表示不递归查找，只在当前节点的一级子节点查找
+    * @return 返回匹配的树节点指针，如果名称有重复的，只返回第一个
+    */
+    TreeNode* FindChildNodeByName(const DString& name, bool bRecursive) const;
+
+    /** 根据子节点的显示文本(Text)，查找子节点
+    * @param [in] name 被查找的子节点的显示文本（即LabelTemplate::GetText()的值）
+    * @return 返回匹配的树节点指针，如果显示文本有重复的，只返回第一个
+    * @param [in] bRecursive true表示递归查找，false表示不递归查找，只在当前节点的一级子节点查找
+    */
+    TreeNode* FindChildNodeByText(const DString& text, bool bRecursive) const;
 
     /** 判断是否展开状态
      * @return 返回 true 为展开状态，否则为 false
@@ -167,19 +181,25 @@ public:
      */
     void SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiScale);
 
+    /** 清除节点的图标，不显示节点图标
+    */
+    void ClearBkIcon();
+
     /** 设置是否显示图标
     */
     void SetEnableIcon(bool bEnable);
 
     /** 监听子项展开事件
-     * @param[in] callback 子项展开时触发的回调函数
+     * @param [in] callback 子项展开时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachExpand(const EventCallback& callback) { AttachEvent(kEventExpand, callback); }
+    void AttachExpand(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventExpand, callback, callbackID); }
 
     /** 监听子项收缩事件
-     * @param[in] callback 子项收缩时触发的回调函数
+     * @param [in] callback 子项收缩时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachCollapse(const EventCallback& callback) { AttachEvent(kEventCollapse, callback); }
+    void AttachCollapse(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventCollapse, callback, callbackID); }
 
 private:
     /** 设置[未展开/展开]标志图片关联的Class，如果不为空表示开启展开标志功能，为空则关闭展开标志功能
@@ -279,9 +299,10 @@ private:
     int32_t GetExpandImagePadding(void) const;
 
     /** 获取包含自己、自己的子孙节点中，ListBox索引号最大值，用于计算新添加节点的插入位置
-    *   如果没有有效元素，则返回 Box::InvalidIndex
-    */
-    size_t GetDescendantNodeMaxListBoxIndex() const;
+     * @param [in] nInsertIndex 新的节点插入位置, 如果为Box::InvalidIndex，表示插入在最后
+     *   如果没有有效元素，则返回 Box::InvalidIndex
+     */
+    size_t GetDescendantNodeMaxListBoxIndex(size_t nInsertIndex) const;
 
     /** 设置[展开/收起]按钮后面的间隔
     */

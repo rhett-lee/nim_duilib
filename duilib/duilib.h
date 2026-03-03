@@ -2,7 +2,6 @@
 #define DUILIB_HEADERS_H_
 
 #include "duilib_defs.h"
-#include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
 #include "Utils/StringConvert.h"
 #include "Utils/StringCharset.h"
@@ -28,6 +27,8 @@
 #include "Render/IRender.h"
 #include "Render/AutoClip.h"
 
+#include "Core/EventArgs.h"
+#include "Core/UiTypes.h"
 #include "Core/UiColor.h"
 #include "Core/UiFont.h"
 #include "Core/UiRect.h"
@@ -43,6 +44,8 @@
 #include "Core/Box.h"
 #include "Core/ScrollBar.h"
 #include "Core/ControlDragable.h"
+#include "Core/ControlMovable.h"
+#include "Core/ControlResizable.h"
 #include "Core/Callback.h"
 
 #include "Core/Keycode.h"
@@ -52,6 +55,7 @@
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"
+#include "Box/XmlBox.h"
 #include "Box/TileBox.h"
 #include "Box/TabBox.h"
 #include "Box/ScrollBox.h"
@@ -81,11 +85,19 @@
 #include "Control/RichEdit.h"
 #include "Control/RichText.h"
 #include "Control/Menu.h"
+#include "Control/MenuBar.h"
 #include "Control/DateTime.h"
 #include "Control/Line.h"
 #include "Control/IPAddress.h"
 #include "Control/HotKey.h"
 #include "Control/HyperLink.h"
+#include "Control/PropertyGrid.h"
+#include "Control/TabCtrl.h"
+#include "Control/IconControl.h"
+#include "Control/BitmapControl.h"
+#include "Control/AddressBar.h"
+#include "Control/ChildWindow.h"
+
 #include "Control/ListCtrl.h"
 #include "Control/ListCtrlReportView.h"
 #include "Control/ListCtrlIconView.h"
@@ -94,10 +106,9 @@
 #include "Control/ListCtrlHeaderItem.h"
 #include "Control/ListCtrlItem.h"
 #include "Control/ListCtrlSubItem.h"
-#include "Control/PropertyGrid.h"
-#include "Control/TabCtrl.h"
-#include "Control/IconControl.h"
-#include "Control/AddressBar.h"
+#include "Control/ListCtrlDefs.h"
+#include "Control/ListCtrlLabel.h"
+#include "Control/ListCtrlIcon.h"
 
 #include "Control/ColorPicker.h"
 #include "Control/ColorControl.h"

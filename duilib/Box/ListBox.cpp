@@ -33,6 +33,13 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
 
 ListBox::~ListBox()
 {
+    if (!IsAutoDestroyChild()) {
+        const size_t itemCount = GetItemCount();
+        for (size_t i = 0; i < itemCount; ++i) {
+            Control* p = GetItemAt(i);
+            OnListBoxItemRemoved(p);
+        }
+    }
 }
 
 DString ListBox::GetType() const { return _T("ListBox"); }
@@ -267,7 +274,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
                 EndRight();
             }
             else {
-                EndDown(false, false);
+                EndDown(false);
             }
             bHandled = true;
         }
@@ -406,7 +413,7 @@ bool ListBox::OnListCtrlKeyDown(const EventArgs& msg)
         bool bRet = SetSelectAll();
         if (bRet) {
             OnSelectStatusChanged();
-            SendEvent(kEventSelChanged);
+            SendEvent(kEventSelChanged);//bRet返回true表示有变化
         }
         return bHandled;
     }
@@ -1292,7 +1299,12 @@ int32_t ListBox::CalcVTileRows(VTileLayout* pVTileLayout) const
 
 void ListBox::SendEventMsg(const EventArgs& msg)
 {
+    auto msgFlag = GetWeakFlag();
     ScrollBox::SendEventMsg(msg);
+    if (!msgFlag.expired() && ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect))) {
+        //触发选择变化事件
+        SendEvent(kEventSelChanged);
+    }
 }
 
 size_t ListBox::GetCurSel() const
@@ -1824,7 +1836,6 @@ void ListBox::EnsureVisible(const UiRect& rcItem,
 
 void ListBox::StopScroll()
 {
-    StopScrollAnimation();
 }
 
 bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
@@ -1997,7 +2008,9 @@ bool ListBox::AddItem(Control* pControl)
             pListItem->OptionSelected(false, false);
         }
     }
-    return ScrollBox::AddItem(pControl);
+    bool bRet = ScrollBox::AddItem(pControl);
+    OnListBoxItemAdded(pControl);
+    return bRet;
 }
 
 bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
@@ -2026,6 +2039,7 @@ bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
     if (Box::IsValidItemIndex(m_iCurSel) && (m_iCurSel >= iIndex)) {
         m_iCurSel += 1;
     }
+    OnListBoxItemAdded(pControl);
     return true;
 }
 
@@ -2046,6 +2060,9 @@ bool ListBox::RemoveItemAt(size_t iIndex)
         if (pListItem != nullptr) {
             pListItem->SetOwner(nullptr);
         }
+    }
+    if (!IsAutoDestroyChild()) {
+        OnListBoxItemRemoved(GetItemAt(iIndex));
     }
     if (!ScrollBox::RemoveItemAt(iIndex)) {
         return false;
@@ -2071,7 +2088,7 @@ bool ListBox::RemoveItemAt(size_t iIndex)
         else if (iIndex < m_iCurSel) {
             m_iCurSel -= 1;
         }
-    }
+    }    
     return true;
 }
 
@@ -2085,6 +2102,7 @@ void ListBox::RemoveAllItems()
             if (pListItem != nullptr) {
                 pListItem->SetOwner(nullptr);
             }
+            OnListBoxItemRemoved(p);
         }
     }
     m_iCurSel = Box::InvalidIndex;
@@ -2335,7 +2353,7 @@ bool ListBox::OnListBoxItemMouseEvent(const EventArgs& msg)
             m_pHelper->OnRButtonDown(msg.ptMouse, msg.GetSender());
         }
         else if (msg.eventType == kEventMouseRButtonUp) {
-            m_pHelper->OnButtonUp(msg.ptMouse, msg.GetSender());
+            m_pHelper->OnRButtonUp(msg.ptMouse, msg.GetSender());
         }
         else if (msg.eventType == kEventMouseMove) {
             m_pHelper->OnMouseMove(msg.ptMouse, msg.GetSender());
@@ -2533,6 +2551,124 @@ void ListBox::SetLastNoShiftItem(size_t nLastNoShiftItem)
 size_t ListBox::GetLastNoShiftItem() const
 {
     return m_nLastNoShiftItem;
+}
+
+void ListBox::OnListBoxItemAdded(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    Control* pListBoxItem = pControl;
+
+    //挂载鼠标事件，转接给ListBox本身，将事件分发到应用层
+    pListBoxItem->AttachMouseEnter([this](const EventArgs& args) {
+        ListBoxFireMouseEnterLeaveEvent(args);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachMouseLeave([this](const EventArgs& args) {
+        ListBoxFireMouseEnterLeaveEvent(args);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachDoubleClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachRClick([this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventReturn, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true);
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventKeyDown, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        }, callbackID);
+    pListBoxItem->AttachEvent(kEventKeyUp, [this](const EventArgs& args) {
+        ListBoxSendEvent(args, true, true); //键盘消息只触发消息事件，但不处理该事件，避免重复处理
+        return true;
+        }, callbackID);
+}
+
+void ListBox::OnListBoxItemRemoved(Control* pControl)
+{
+    if (pControl == nullptr) {
+        return;
+    }
+    if (dynamic_cast<IListBoxItem*>(pControl) == nullptr) {
+        return;
+    }
+    const EventCallbackID callbackID = (EventCallbackID)(Control*)this;
+    pControl->DetachEventByID(callbackID);
+}
+
+void ListBox::ListBoxSendEvent(const EventArgs& msg, bool bFromItem, bool bFireEventOnly)
+{
+    EventArgs newMsg = msg;
+    if (bFromItem) {
+        newMsg.SetSender(this);
+        size_t nItemIndex = GetItemIndex(msg.GetSender());
+        if (nItemIndex < GetItemCount()) {
+            newMsg.wParam = nItemIndex;
+            newMsg.lParam = 0;
+        }
+        else {
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = 0;
+        }
+    }
+    else if ((msg.eventType == kEventMouseDoubleClick) ||
+             (msg.eventType == kEventClick) ||
+             (msg.eventType == kEventRClick) ||
+             (msg.eventType == kEventKeyDown) ||
+             (msg.eventType == kEventKeyUp)) {
+        //需要设置wParam和lParam，按接口对应的Attach函数，设置这两个参数值
+        if (msg.GetSender() == this) {
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = 0;
+        }
+    }
+    if (bFireEventOnly) {
+        BaseClass::FireAllEvents(newMsg);
+    }
+    else {
+        BaseClass::SendEventMsg(newMsg);
+    }
+}
+
+void ListBox::ListBoxFireMouseEnterLeaveEvent(const EventArgs& msg)
+{
+    EventArgs newMsg = msg;
+    newMsg.SetSender(this);
+    if (msg.eventType == kEventMouseEnter) {
+        newMsg.eventType = kEventItemMouseEnter;
+    }
+    else if (msg.eventType == kEventMouseLeave) {
+        newMsg.eventType = kEventItemMouseLeave;
+    }
+    else {
+        ASSERT(0);
+        return;
+    }
+    size_t nItemIndex = GetItemIndex(msg.GetSender());
+    if (nItemIndex < GetItemCount()) {
+        newMsg.wParam = nItemIndex;
+        newMsg.lParam = 0;
+    }
+    else {
+        newMsg.wParam = Box::InvalidIndex;
+        newMsg.lParam = 0;
+    }
+    BaseClass::FireAllEvents(newMsg);
 }
 
 } // namespace ui

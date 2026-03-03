@@ -125,24 +125,28 @@ public:
 
 public:
     /** 监听地址栏上的路径变化事件（当回车或者失去焦点时，地址栏编辑框数据会应用）
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachPathChanged(const EventCallback& callback) { AttachEvent(kEventPathChanged, callback); }
+    void AttachPathChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventPathChanged, callback, callbackID); }
 
     /** 监听地址栏上用户在子路径按钮上的点击事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachPathClick(const EventCallback& callback) { AttachEvent(kEventPathClick, callback); }
+    void AttachPathClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventPathClick, callback, callbackID); }
 
     /** 监听地址栏上的回车事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
+    void AttachReturn(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventReturn, callback, callbackID); }
 
     /** 监听地址栏上的ESC事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachEsc(const EventCallback& callback) { AttachEvent(kEventEsc, callback); }
+    void AttachEsc(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventEsc, callback, callbackID); }
 
 protected:
     /** 初始化

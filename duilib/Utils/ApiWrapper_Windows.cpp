@@ -281,6 +281,114 @@ bool EnableMouseInPointerWrapper(BOOL fEnable)
     return false;
 }
 
+// 检测「拖动窗口时显示窗口内容」是否开启 - 动态加载注册表API版本
+bool IsDragWindowContentsEnabled()
+{
+    typedef LONG(WINAPI* PFUNC_RegOpenKeyExW)(
+        HKEY hKey,
+        LPCWSTR lpSubKey,
+        DWORD ulOptions,
+        REGSAM samDesired,
+        PHKEY phkResult
+        );
+
+    typedef LONG(WINAPI* PFUNC_RegQueryValueExW)(
+        HKEY hKey,
+        LPCWSTR lpValueName,
+        LPDWORD lpReserved,
+        LPDWORD lpType,
+        LPBYTE lpData,
+        LPDWORD lpcbData
+        );
+
+    typedef LONG(WINAPI* PFUNC_RegCloseKey)(
+        HKEY hKey
+        );
+
+    HMODULE hModAdvapi32 = LoadLibraryW(L"Advapi32.dll");
+    if (NULL == hModAdvapi32) {
+        return false;
+    }
+
+    // 获取注册表API的函数地址
+    PFUNC_RegOpenKeyExW pfnRegOpenKeyExW = (PFUNC_RegOpenKeyExW)GetProcAddress(hModAdvapi32, "RegOpenKeyExW");
+    PFUNC_RegQueryValueExW pfnRegQueryValueExW = (PFUNC_RegQueryValueExW)GetProcAddress(hModAdvapi32, "RegQueryValueExW");
+    PFUNC_RegCloseKey pfnRegCloseKey = (PFUNC_RegCloseKey)GetProcAddress(hModAdvapi32, "RegCloseKey");
+
+    if (NULL == pfnRegOpenKeyExW || NULL == pfnRegQueryValueExW || NULL == pfnRegCloseKey) {
+        FreeLibrary(hModAdvapi32);
+        return false;
+    }
+
+    HKEY hKey = NULL;
+    LONG lResult = ERROR_SUCCESS;
+    DWORD dwValueType = 0;
+    wchar_t szValueBuffer[8] = { 0 };
+    DWORD dwValueBuffer = 0;
+    DWORD dwBufferSize = 0;
+
+    // 打开注册表项
+    lResult = pfnRegOpenKeyExW(
+        HKEY_CURRENT_USER,
+        L"Control Panel\\Desktop",
+        0,
+        KEY_READ,
+        &hKey
+    );
+
+    if (lResult != ERROR_SUCCESS) {
+        if (hKey) {
+            pfnRegCloseKey(hKey);
+        }
+        FreeLibrary(hModAdvapi32);      // 释放DLL句柄
+        return false;
+    }
+
+    bool bEnabled = false;
+    // 先尝试读取为字符串类型（Win10/11主流场景）
+    dwBufferSize = sizeof(szValueBuffer);
+    lResult = pfnRegQueryValueExW(
+        hKey,
+        L"DragFullWindows",
+        NULL,
+        &dwValueType,
+        (LPBYTE)szValueBuffer,
+        &dwBufferSize
+    );
+
+    if (lResult == ERROR_SUCCESS) {
+        if (dwValueType == REG_SZ) {
+            bEnabled = (wcscmp(szValueBuffer, L"1") == 0);
+        }
+        else if (dwValueType == REG_DWORD) {
+            dwValueBuffer = *(DWORD*)szValueBuffer;
+            bEnabled = (dwValueBuffer == 1);
+        }
+    }
+    else {
+        // 字符串读取失败，尝试按DWORD类型读取（兼容Win7）
+        dwBufferSize = sizeof(dwValueBuffer);
+        lResult = pfnRegQueryValueExW(
+            hKey,
+            L"DragFullWindows",
+            NULL,
+            NULL,
+            (LPBYTE)&dwValueBuffer,
+            &dwBufferSize
+        );
+        if (lResult == ERROR_SUCCESS) {
+            bEnabled = (dwValueBuffer == 1);
+        }
+    }
+
+    // 关闭注册表句柄
+    pfnRegCloseKey(hKey);
+
+    //释放已加载的DLL
+    FreeLibrary(hModAdvapi32);
+    return bEnabled;
+}
+
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

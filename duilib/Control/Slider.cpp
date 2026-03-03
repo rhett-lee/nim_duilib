@@ -1,5 +1,6 @@
 #include "Slider.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {

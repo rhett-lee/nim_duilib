@@ -242,7 +242,7 @@ void DrawRichText::InternalDrawRichText(const UiRect& rcTextRect,
         const SkFont& skFont = *pSkFont;
         SkFontMetrics metrics;
         SkScalar fFontHeight = skFont.getMetrics(&metrics);     //字体高度，换行时使用
-        fFontHeight *= textData.m_fRowSpacingMul;               //运用行间距
+        fFontHeight = textData.m_fRowSpacingMul * fFontHeight + textData.m_fRowSpacingAdd; //运用行间距倍数和行间距附加量
         const int32_t nFontHeight = SkScalarCeilToInt(fFontHeight);   //行高对齐到像素
         nRowHeight = std::max(nRowHeight, nFontHeight);
         if (nRowHeight <= 0) {
@@ -731,6 +731,9 @@ bool DrawRichText::IsValidDrawRichTextCache(const UiRect& textRect,
         else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
             bValid = false;
         }
+        else if (textData.m_fRowSpacingAdd != textDataCache.m_fRowSpacingAdd) {
+            bValid = false;
+        }
         else if (textData.m_textStyle != textDataCache.m_textStyle) {
             bValid = false;
         }
@@ -938,6 +941,10 @@ bool DrawRichText::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, cons
         }
         ASSERT(v1.m_fRowSpacingMul == v2.m_fRowSpacingMul);
         if (v1.m_fRowSpacingMul != v2.m_fRowSpacingMul) {
+            return false;
+        }
+        ASSERT(v1.m_fRowSpacingAdd == v2.m_fRowSpacingAdd);
+        if (v1.m_fRowSpacingAdd != v2.m_fRowSpacingAdd) {
             return false;
         }
         ASSERT(v1.m_textStyle == v2.m_textStyle);

@@ -20,7 +20,15 @@ class Window;
 class Control;
 class Image;
 
-/** 图片管理器
+/** 延迟释放图片的回调函数类型
+ * @param [in] pImageData 原图的图像数据接口
+ * @param [in] imageFullPath 该图片的完整路径
+ * @return 返回true表示允许放入延迟释放队列，返回false表示组织放入延迟释放队列
+ */
+using ReleaseImageCallback = std::function<bool (const std::shared_ptr<ui::IImage>& pImageData,
+                                                 const DString& imageFullPath)>;
+
+/** 图片管理器（对于图片资源的释放：延迟释放，内部有个原图图片队列，如果需要立即释放图片，则需要ReleaseImageCallback回调函数阻止放入延迟释放队列）
  */
 class UILIB_API ImageManager
 {
@@ -43,12 +51,20 @@ public:
     void RemoveAllImages();
 
     /** 从缓存中释放一个原图图片（延迟释放）
+    * @param [in] pImageData 原图的图像数据接口
+    * @param [in] imageFullPath 该图片的完整路径
     */
-    void ReleaseImage(const std::shared_ptr<IImage>& pImageData);
+    void ReleaseImage(const std::shared_ptr<IImage>& pImageData, const DString& imageFullPath);
 
     /** 取消释放原图图片
     */
     void CancelReleaseImage(const std::shared_ptr<IImage>& pImageData);
+
+    /** 设置延迟释放图片的回调函数，可以用来阻止图片资源放入延迟释放队列，立即释放图片资源
+     *   备注：如果图片资源是在虚表的子项中使用，立即释放原图资源会导致性能降低，因为虚表的元素是每次刷新都重新填充
+     * @param [in] callback 延迟释放图片的回调函数
+     */
+    void SetReleaseImageCallback(ReleaseImageCallback callback);
 
 public:
     /** 设置是否智能匹配临近的缩放百分比图片
@@ -210,6 +226,10 @@ private:
         std::chrono::steady_clock::time_point m_releaseTime;
     };
     std::vector<TReleaseImageData> m_delayReleaseImageList;
+
+    /** 延迟释放图片的回调函数
+    */
+    ReleaseImageCallback m_releaseImageCallback;
 
 private:
     /** 图片延迟绘制相关数据（图片资源在子线程加载完成后，需要通知界面重新绘制该图片）

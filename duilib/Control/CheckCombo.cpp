@@ -429,6 +429,28 @@ bool CheckCombo::AddTextItem(const DString& itemText)
     return AddItem(item);
 }
 
+bool CheckCombo::AddTextIdItem(const DString& itemTextId)
+{
+    if (itemTextId.empty()) {
+        return false;
+    }
+    //避免重复名称
+    size_t itemCount = GetItemCount();
+    for (size_t index = 0; index < itemCount; ++index) {
+        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
+        if (pCheckBox != nullptr) {
+            if (itemTextId == pCheckBox->GetTextId()) {
+                return false;
+            }
+        }
+    }
+
+    CheckBox* item = new CheckBox(GetWindow());
+    SetAttributeList(item, m_dropboxItemClass.c_str());
+    item->SetTextId(itemTextId);
+    return AddItem(item);
+}
+
 void CheckCombo::Activate(const EventArgs* /*pMsg*/)
 {
     if (!IsActivatable()) {
@@ -439,13 +461,21 @@ void CheckCombo::Activate(const EventArgs* /*pMsg*/)
     }
 
     m_pCheckComboWnd = new CCheckComboWnd();
-    m_pCheckComboWnd->AttachWindowCreate(ToWeakCallback([this](const ui::EventArgs& msg) {
-        FireAllEvents(msg);
+    m_pCheckComboWnd->AttachWindowCreateMsg(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
+        //触发消息到应用层(下拉窗口创建)
+        EventArgs msg;
+        msg.SetSender(this);
+        msg.eventType = kEventWindowCreate;
+        FireNormalEvents(msg);
         return true;
         }));
     m_pCheckComboWnd->InitComboWnd(this);
-    m_pCheckComboWnd->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
-        FireAllEvents(msg);
+    m_pCheckComboWnd->AttachWindowCloseMsg(ToWeakCallback([this](const ui::EventArgs& /*args*/) {
+        //触发消息到应用层(下拉窗口销毁)
+        EventArgs msg;
+        msg.SetSender(this);
+        msg.eventType = kEventWindowClose;
+        FireNormalEvents(msg);
         return true;
     }));
     Invalidate();

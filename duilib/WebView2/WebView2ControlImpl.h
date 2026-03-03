@@ -127,6 +127,22 @@ public:
     */
     bool DownloadFavIconImage();
 
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
+
+    /** 设置是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(页面全屏/页面退出全屏)
+    */
+    bool IsEnableF11() const;
+
 public:
     /** 获取ICoreWebView2Environment接口
     */
@@ -153,6 +169,8 @@ private:
     HRESULT CreateEnvironmentAsync();
     HRESULT CreateControllerAsync();
     void InitializeSettings();
+    void InitializeFocusChanged();//焦点变化事件
+    void InitializeAcceleratorKeyPressed();//F11/F12/ESC快捷键的支持
     void OnInitializationCompleted(HRESULT result);
 
     //添加新窗口回调函数
@@ -178,6 +196,9 @@ private:
     EventRegistrationToken m_zoomFactorChangedToken = { 0 };
     EventRegistrationToken m_faviconChangedToken = { 0 };
     EventRegistrationToken m_gotFocusToken = { 0 };
+
+    // 事件令牌，内部使用
+    EventRegistrationToken m_myAcceleratorKeyPressedToken = { 0 };
 
     // 回调函数
     InitializeCompletedCallback m_initializeCompletedCallback = nullptr;
@@ -229,6 +250,12 @@ private:
     //是否允许页面缩放
     bool m_bZoomControlEnabled;
     bool m_bZoomControlEnabledSet;
+
+    //是否允许F12快捷键(开发者工具)
+    bool m_bEnableF12;
+
+    //是否允许F11快捷键(页面全屏/页面退出全屏)
+    bool m_bEnableF11;
 
 #ifdef DUILIB_USE_WEBVIEW2_LOADER_DLL
 private:

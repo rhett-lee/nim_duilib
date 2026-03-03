@@ -6,7 +6,7 @@
 namespace ui
 {
 ListCtrlHeaderItem::ListCtrlHeaderItem(Window* pWindow) :
-    ControlDragableT<ButtonBox>(pWindow),
+    ControlDragableT<CheckBoxHBox>(pWindow),
     m_pSortedDownImage(nullptr),
     m_pSortedUpImage(nullptr),
     m_sortMode(SortMode::kDown),
@@ -183,13 +183,8 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     int32_t nIconTextSpacing = GetIconSpacing();
     //CheckBox的宽度，需要留出来
     int32_t nCheckBoxWidth = 0;
-    ListCtrlCheckBox* pCheckBox = nullptr;
-    if (GetItemCount() > 0) {
-        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-    }
-    if ((pCheckBox != nullptr) && pCheckBox->IsVisible()) {
-        UiSize sz = pCheckBox->GetStateImageSize(kStateImageBk, kControlStateNormal);
-        nCheckBoxWidth += sz.cx;
+    if (IsShowCheckBox()) {
+        nCheckBoxWidth += GetCheckBoxImageWidth();
         nCheckBoxWidth += nIconTextSpacing;
     }
 
@@ -338,7 +333,8 @@ void ListCtrlHeaderItem::Activate(const EventArgs* pMsg)
         //处于拖动改变列顺序的状态
         return;
     }
-    if (!this->IsActivatable()) {
+    if (!this->IsActivatable() || this->IsCheckBoxImageClicked()) {
+        //如果点击在CheckBox上，不触发排序功能
         return;
     }
     bool bSortChanged = false;
@@ -584,123 +580,117 @@ bool ListCtrlHeaderItem::IsEnableDragOrder() const
     return BaseClass::IsEnableDragOrder();
 }
 
-bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
+bool ListCtrlHeaderItem::SetShowCheckBox(bool bShow)
 {
+    ListCtrlHeader* pHeader = GetHeaderCtrl();
+    if (pHeader == nullptr) {
+        return false;
+    }
     bool bRet = false;
-    if (bVisible) {
-        ListCtrlHeader* pHeader = GetHeaderCtrl();
-        if (pHeader == nullptr) {
-            return false;
+    if (bShow) {
+        if (IsShowCheckBox()) {
+            return true;
         }
         ListCtrl* pListCtrl = pHeader->GetListCtrl();
-        ListCtrlCheckBox* pCheckBox = nullptr;
-        if (GetItemCount() > 0) {
-            pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-        }
-        if (pCheckBox == nullptr) {
-            pCheckBox = new ListCtrlCheckBox(GetWindow());
-            AddItem(pCheckBox);
-            DString checkBoxClass;
-            if (pListCtrl != nullptr) {
-                checkBoxClass = pListCtrl->GetCheckBoxClass();
-            }
-            ASSERT(!checkBoxClass.empty());
-            pCheckBox->SetClass(checkBoxClass);
-        }
+        if (pListCtrl != nullptr) {
+            DString checkBoxClass = pListCtrl->GetCheckBoxClass();
+            if (!checkBoxClass.empty()) {
+                SetClass(checkBoxClass);
+                bRet = IsShowCheckBox();
+                if (bRet) {
+                    //设置内边距，避免与文字重叠
+                    UiPadding textPadding = GetTextPadding();
+                    int32_t nCheckBoxWidth = this->GetCheckBoxImageWidth();
+                    if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
+                        textPadding.left += nCheckBoxWidth;
+                        SetTextPadding(textPadding, false);
+                    }
 
-        //设置内边距，避免与文字重叠
+                    //挂载CheckBox的事件处理
+                    this->DetachEvent(kEventCheck);
+                    this->DetachEvent(kEventUnCheck);
+                    //同步数据
+                    if (pListCtrl != nullptr) {
+                        pListCtrl->UpdateHeaderColumnCheckBox(GetColumnId());
+                    }
+                    this->AttachCheck([this, pHeader](const EventArgs& /*args*/) {
+                        pHeader->OnHeaderColumnCheckStateChanged(this, true);
+                        return true;
+                        });
+                    this->AttachUnCheck([this, pHeader](const EventArgs& /*args*/) {
+                        pHeader->OnHeaderColumnCheckStateChanged(this, false);
+                        return true;
+                        });
+                }
+            }
+        }
+    }
+    else {
+        if (!IsShowCheckBox()) {
+            return true;
+        }
+        //清除CheckBox图片资源，就不显示了
+        ClearStateImages();
+        ASSERT(!IsShowCheckBox());
         UiPadding textPadding = GetTextPadding();
-        int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
-        if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
-            textPadding.left += nCheckBoxWidth;
+        int32_t nCheckBoxWidth = this->GetCheckBoxImageWidth();
+        if ((nCheckBoxWidth > 0) && (textPadding.left >= nCheckBoxWidth)) {
+            textPadding.left -= nCheckBoxWidth;
             SetTextPadding(textPadding, false);
         }
-        pCheckBox->SetVisible(true);
-
-        //挂载CheckBox的事件处理
-        pCheckBox->DetachEvent(kEventSelect);
-        pCheckBox->DetachEvent(kEventUnSelect);
-        //同步数据
-        if (pListCtrl != nullptr) {
-            pListCtrl->UpdateHeaderColumnCheckBox(GetColumnId());
-        }
-        pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            pCheckBox->AttachSelect([this, pHeader](const EventArgs& /*args*/) {
-                pHeader->OnHeaderColumnCheckStateChanged(this, true);
-                return true;
-                });
-            pCheckBox->AttachUnSelect([this, pHeader](const EventArgs& /*args*/) {
-                pHeader->OnHeaderColumnCheckStateChanged(this, false);
-                return true;
-                });
-        }        
+        //取消挂载CheckBox的事件处理
+        this->DetachEvent(kEventCheck);
+        this->DetachEvent(kEventUnCheck);
         bRet = true;
-    }
-    else if(GetItemCount() > 0) {
-        ListCtrlCheckBox* pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            UiPadding textPadding = GetTextPadding();
-            int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
-            if ((nCheckBoxWidth > 0) && (textPadding.left >= nCheckBoxWidth)) {
-                textPadding.left -= nCheckBoxWidth;
-                SetTextPadding(textPadding, false);
-            }
-            RemoveItemAt(0);
-            bRet = true;
-        }
     }
     return bRet;
 }
 
-bool ListCtrlHeaderItem::IsCheckBoxVisible() const
+bool ListCtrlHeaderItem::IsShowCheckBox() const
 {
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            return pCheckBox->IsVisible();
-        }
+    //如果有CheckBox图片资源，则认为显示了CheckBox
+    return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
+}
+
+int32_t ListCtrlHeaderItem::GetCheckBoxImageWidth()
+{
+    if (GetWindow() == nullptr) {
+        return 0;
     }
-    return false;
+    UiSize sz = GetStateImageSize(kStateImageBk, kControlStateNormal);
+    return sz.cx;
 }
 
 bool ListCtrlHeaderItem::SetCheckBoxCheck(bool bChecked, bool bPartChecked)
 {
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            bool bChanged = pCheckBox->IsSelected() != bChecked;
-            pCheckBox->SetSelected(bChecked);
-            if (bChecked) {
-                if (pCheckBox->IsPartSelected() != bPartChecked) {
-                    pCheckBox->SetPartSelected(bPartChecked);
-                    bChanged = true;
-                }
-            }
-            if (bChanged) {
-                pCheckBox->Invalidate();
-            }            
-            return true;
+    bool bChanged = this->IsChecked() != bChecked;
+    this->SetChecked(bChecked);
+    if (bChecked) {
+        if (this->IsPartChecked() != bPartChecked) {
+            this->SetPartChecked(bPartChecked);
+            bChanged = true;
         }
     }
-    return false;
+    if (bChanged) {
+        this->Invalidate();
+    }            
+    return true;
 }
 
 bool ListCtrlHeaderItem::GetCheckBoxCheck(bool& bChecked, bool& bPartChecked) const
 {
     bChecked = false;
     bPartChecked = false;
-    if (GetItemCount() > 0) {
-        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(0));
-        if (pCheckBox != nullptr) {
-            bChecked = pCheckBox->IsSelected();
-            if (bChecked) {
-                bPartChecked = pCheckBox->IsPartSelected();
-            }
-            return true;
-        }
+    bChecked = this->IsChecked();
+    if (bChecked) {
+        bPartChecked = this->IsPartChecked();
     }
-    return false;
+    return true;
+}
+
+bool ListCtrlHeaderItem::SupportCheckMode() const
+{
+    return true;
 }
 
 void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)

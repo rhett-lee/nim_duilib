@@ -25,6 +25,7 @@ namespace ui
 FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdentifier):
     m_bThreadUI(false),
     m_bRunning(false),
+    m_bSupportIdle(false),
     m_threadName(threadName),
     m_nThreadIdentifier(nThreadIdentifier)
 {
@@ -55,7 +56,7 @@ FrameworkThread::~FrameworkThread()
     }
 }
 
-bool FrameworkThread::RunMessageLoop()
+bool FrameworkThread::RunMessageLoop(bool bSupportIdle)
 {
     ASSERT(m_nThreadIdentifier == kThreadUI);
     ASSERT(!m_bRunning);
@@ -63,6 +64,7 @@ bool FrameworkThread::RunMessageLoop()
         return false;
     }
     m_bRunning = true;
+    m_bSupportIdle = bSupportIdle;
     OnInit();
     OnRunMessageLoop();
     OnCleanup();
@@ -110,7 +112,7 @@ bool FrameworkThread::Stop()
     if (m_pWorkerThread != nullptr) {
         //停止线程
         m_bRunning = false;
-        m_cv.notify_one();
+        m_cv.notify_all();
         m_pWorkerThread->join();
         m_pWorkerThread.reset();
     }
@@ -435,20 +437,32 @@ void FrameworkThread::OnRunMessageLoop()
 #if defined (DUILIB_BUILD_FOR_SDL)
     MessageLoop_SDL msgLoop;
     MessageLoop_SDL::CheckInitSDL();
-    OnMainThreadInited();    
-    msgLoop.Run();
-    OnMainThreadExit();
 #elif defined (DUILIB_BUILD_FOR_WIN)
     MessageLoop_Windows msgLoop;
-    OnMainThreadInited();
-    msgLoop.Run();
-    OnMainThreadExit();
 #else
     ASSERT(0);
+    return;
 #endif
+
+    OnMainThreadInited();
+    if (m_bSupportIdle) {
+        //支持Idle函数
+        msgLoop.Run([this]() {
+            return OnMessageLoopIdle();
+            });
+    }
+    else {
+        //不支持Idle函数
+        msgLoop.Run(nullptr);
+    }
+    OnMainThreadExit();
 }
 
 void FrameworkThread::OnCleanup()
+{
+}
+
+void FrameworkThread::OnMessageLoopIdle()
 {
 }
 

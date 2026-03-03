@@ -3,8 +3,7 @@
 
 #include "duilib/Control/Label.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Box/HBox.h"
-#include "duilib/Box/VBox.h"
+#include "duilib/Core/Window.h"
 
 namespace ui {
 

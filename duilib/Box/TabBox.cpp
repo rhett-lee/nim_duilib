@@ -1,5 +1,4 @@
 #include "TabBox.h"
-#include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
@@ -7,13 +6,15 @@
 namespace ui
 {
 
-TabBox::TabBox(Window* pWindow, Layout* pLayout)
-: Box(pWindow, pLayout)
-, m_iCurSel(Box::InvalidIndex)
-, m_iInitSel(Box::InvalidIndex)
-, m_bFadeSwith(false)
+TabBox::TabBox(Window* pWindow, Layout* pLayout):
+    Box(pWindow, pLayout),
+    m_nCurSel(Box::InvalidIndex),
+    m_nInitSel(Box::InvalidIndex),
+    m_fadeSwithType(FadeSwitchType::kFadeInOut),
+    m_frameIntervalMillSeconds(1000 / 60),
+    m_totalMillSeconds(200),
+    m_easingFunctionType(EasingFunctionType::EaseOutCubic)
 {
-
 }
 
 DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
@@ -26,11 +27,31 @@ void TabBox::SetAttribute(const DString& strName, const DString& strValue)
             SelectItem(iSel);
         }
         else {
-            m_iInitSel = iSel;
+            m_nInitSel = iSel;
         }
     }
     else if ((strName == _T("fade_switch")) || (strName == _T("fadeswitch"))) {
-        SetFadeSwitch(strValue == _T("true"));
+        if (strValue == _T("true")) {
+            SetFadeSwitch(true);
+        }
+        else if (strValue == _T("false")) {
+            SetFadeSwitch(false);
+        }
+        else {
+            SetFadeSwitchTypeByString(strValue);
+        }
+    }
+    else if (strName == _T("fade_switch_type")) {
+        SetFadeSwitchTypeByString(strValue);
+    }
+    else if (strName == _T("fade_switch_frame_interval_ms")) {
+        SetFadeSwitchFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_switch_total_ms")) {
+        SetFadeSwitchTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_switch_easing_function")) {
+        SetFadeSwitchEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else {
         Box::SetAttribute(strName, strValue);
@@ -65,11 +86,11 @@ void TabBox::OnInit()
     }
     BaseClass::OnInit();
     bool bSelected = false;
-    if (Box::IsValidItemIndex(m_iInitSel)) {
-        bSelected = DoSelectItem(m_iInitSel, false, true);
+    if (Box::IsValidItemIndex(m_nInitSel)) {
+        bSelected = DoSelectItem(m_nInitSel, false, true);
     }
 
-    if (!bSelected && (GetItemCount() > 0) && (m_iCurSel > GetItemCount())) {
+    if (!bSelected && (GetItemCount() > 0) && (m_nCurSel > GetItemCount())) {
         //初始化时，默认选择第一个页面，避免所有页面都同时显示出来
         DoSelectItem(0, false, true);
     }
@@ -91,20 +112,20 @@ bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
         return ret;
     }        
 
-    if(!Box::IsValidItemIndex(m_iCurSel) && pControl->IsVisible()) {
+    if(!Box::IsValidItemIndex(m_nCurSel) && pControl->IsVisible()) {
         //如果当前无选择页，则选择新插入的页面
         size_t iCurSel = GetItemIndex(pControl);
         ASSERT(iCurSel == iIndex);
         ret = SelectItem(iCurSel);
     }
-    else if(Box::IsValidItemIndex(m_iCurSel) && (iIndex <= m_iCurSel)) {
+    else if(Box::IsValidItemIndex(m_nCurSel) && (iIndex <= m_nCurSel)) {
         //在当前选择页面前面插入一个新的页面
-        m_iCurSel += 1;
+        m_nCurSel += 1;
     }
 
-    if (m_iCurSel != iIndex) {
+    if (m_nCurSel != iIndex) {
         //如果不是选择页面，则隐藏
-        pControl->SetFadeVisible(false);
+        pControl->SetVisible(false);
         OnHideTabItem(iIndex);
     }
     return ret;
@@ -123,25 +144,25 @@ bool TabBox::RemoveItem(Control* pControl)
         return false;
     }
 
-    if( m_iCurSel == index)    {
+    if(m_nCurSel == index)    {
         if (GetItemCount() > 0) {
             //移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
-            size_t newSel = m_iCurSel > 0 ? m_iCurSel - 1 : 0;
+            size_t newSel = m_nCurSel > 0 ? m_nCurSel - 1 : 0;
             if (newSel >= GetItemCount()) {
                 newSel = Box::InvalidIndex;
             }
-            m_iCurSel = Box::InvalidIndex;
+            m_nCurSel = Box::InvalidIndex;
             ret = DoSelectItem(newSel, false, true);
         }
         else {
             //当前只有一个TAB页，被移除以后，更新选择为未选择
-            m_iCurSel = Box::InvalidIndex;
+            m_nCurSel = Box::InvalidIndex;
         }
         ArrangeAncestor();
     }
-    else if( m_iCurSel > index ) {
+    else if(m_nCurSel > index ) {
         //更新当前选择页面的下标值，使其保持不变
-        m_iCurSel -= 1;
+        m_nCurSel -= 1;
     }
     return ret;
 }
@@ -157,99 +178,84 @@ bool TabBox::RemoveItemAt(size_t iIndex)
 
 void TabBox::RemoveAllItems()
 {
-    m_iCurSel = Box::InvalidIndex;
+    m_nCurSel = Box::InvalidIndex;
     Box::RemoveAllItems();
     ArrangeAncestor();
 }
 
 size_t TabBox::GetCurSel() const
 {
-    return m_iCurSel;
+    return m_nCurSel;
 }
     
-bool TabBox::DoSelectItem(size_t iIndex, bool bFadeSwith, bool bCheckChanged)
+bool TabBox::DoSelectItem(size_t nItemIndex, bool bFadeSwith, bool bCheckChanged)
 {
-    ASSERT(iIndex < m_items.size());
-    if (!Box::IsValidItemIndex(iIndex) || (iIndex >= m_items.size())) {
+    ASSERT(nItemIndex < m_items.size());
+    if (!Box::IsValidItemIndex(nItemIndex) || (nItemIndex >= m_items.size())) {
         return false;
     }
     if (bCheckChanged) {
-        if (iIndex == m_iCurSel) {
+        if (nItemIndex == m_nCurSel) {
             return true;
         }
     }
+    if (nItemIndex == m_nCurSel) {
+        //如果选择项未变化，则不启用切换动画
+        bFadeSwith = false;
+    }
+    if (m_nCurSel >= m_items.size()) {
+        //没有旧的选择项，不启用切换动画
+        bFadeSwith = false;
+    }
 
-    const size_t iOldSel = m_iCurSel;
-    m_iCurSel = iIndex;
+    const size_t nOldSelIndex = m_nCurSel;
+    Control* pNewItemControl = nullptr;
+    Control* pOldItemControl = nullptr;
+
+    m_nCurSel = nItemIndex;
     const size_t itemCount = m_items.size();
     for(size_t it = 0; it < itemCount; ++it ){
         Control* pItemControl = m_items.at(it);
         ASSERT(pItemControl != nullptr);
-        if (it == iIndex) {
+        if (it == nItemIndex) {
             //当前选择的TAB Item
             OnShowTabItem(it);
-
-            if (!bFadeSwith) {
-                pItemControl->SetFadeVisible(true);
+            if (bFadeSwith) {
+                // 触发动画效果
+                pNewItemControl = pItemControl;
             }
             else {
-                pItemControl->SetVisible(true);
-                int startValue = 0;
-                int endValue = 0;
-                if (m_iCurSel < iOldSel) {
-                    startValue = GetPos().Width();
-                    endValue = 0;
-                }
-                else {
-                    startValue = -GetPos().Width();
-                    endValue = 0;
-                }
-
-                auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
-                if (player != nullptr) {
-                    player->SetStartValue(startValue);
-                    player->SetEndValue(endValue);
-                    player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, (size_t)it);
-                    player->SetCompleteCallback(compelteCallback);
-                    player->Start();
-                }                
+                pItemControl->SetFadeVisible(true);
             }
         }
         else {
             //不是当前选择的TAB页面
             OnHideTabItem(it);
-            if ((it == iOldSel) && bFadeSwith) {
-                //对于原来选择的TAB页面，出发动画效果
-                pItemControl->SetVisible(true);
-                int startValue = 0;
-                int endValue = 0;
-                if (m_iCurSel < iOldSel) {
-                    startValue = 0;
-                    endValue = -GetPos().Width();
-                }
-                else {
-                    startValue = 0;
-                    endValue = GetPos().Width();
-                }
-
-                auto player = pItemControl->GetAnimationManager().SetFadeInOutX(true, true);
-                if (player != nullptr) {
-                    player->SetStartValue(startValue);
-                    player->SetEndValue(endValue);
-                    player->SetSpeedUpfactorA(0.015);
-                    CompleteCallback compelteCallback = UiBind(&TabBox::OnAnimationComplete, this, it);
-                    player->SetCompleteCallback(compelteCallback);
-                    player->Start();
-                }                
+            if ((it == nOldSelIndex) && bFadeSwith) {
+                // 触发动画效果
+                pOldItemControl = pItemControl;
             }
             else {                
                 pItemControl->SetFadeVisible(false);
             }
         }
     }
-    if (bCheckChanged && (iOldSel != m_iCurSel)) {
-        SendEvent(kEventTabSelect, m_iCurSel, iOldSel);
+
+    //触发标签切换动画
+    bool bSwitchResult = false;
+    if (bFadeSwith && (pNewItemControl != nullptr) && (pOldItemControl != nullptr)) {
+        bSwitchResult = StartSwitchItemAnimation(pNewItemControl, pOldItemControl);
+    }
+    if (!bSwitchResult) {
+        if (pOldItemControl != nullptr) {
+            pOldItemControl->SetFadeVisible(false);
+        }
+        if (pNewItemControl != nullptr) {
+            pNewItemControl->SetFadeVisible(true);
+        }
+    }
+    if (bCheckChanged && (nOldSelIndex != m_nCurSel)) {
+        SendEvent(kEventTabSelect, m_nCurSel, nOldSelIndex);
     }    
     return true;
 }
@@ -290,36 +296,20 @@ void TabBox::OnShowTabItem(size_t index)
     }
 }
 
-void TabBox::OnAnimationComplete(size_t index)
-{
-    ASSERT(index < m_items.size());
-    if (index >= m_items.size()) {
-        return;
-    }
-    Control* pContol = m_items.at(index);
-    ASSERT(pContol != nullptr);
-    if (pContol != nullptr) {
-        pContol->SetRenderOffsetX(0);
-        if (m_iCurSel != index) {
-            pContol->SetVisible(false);
-        }
-    }
-}
-
 bool TabBox::SelectItem(size_t iIndex)
 {
     return DoSelectItem(iIndex, IsFadeSwitch(), true);
 }
 
-bool TabBox::SelectItem( Control* pControl )
+bool TabBox::SelectItem(Control* pControl)
 {
     size_t iIndex = GetItemIndex(pControl);
     if (!Box::IsValidItemIndex(iIndex)) {
         return false;
-    }        
+    }
     else {
         return SelectItem(iIndex);
-    }        
+    }
 }
 
 bool TabBox::SelectItem(const DString& pControlName)
@@ -331,7 +321,278 @@ bool TabBox::SelectItem(const DString& pControlName)
 
 void TabBox::SetFadeSwitch(bool bFadeSwitch)
 {
-    m_bFadeSwith = bFadeSwitch;
+    if (bFadeSwitch) {
+        if (m_fadeSwithType == FadeSwitchType::kNone) {
+            //默认动画效果为淡入淡出
+            m_fadeSwithType = FadeSwitchType::kFadeInOut;
+        }
+    }
+    else {
+        m_fadeSwithType = FadeSwitchType::kNone;
+    }
 }
 
+bool TabBox::IsFadeSwitch() const
+{
+    return m_fadeSwithType != FadeSwitchType::kNone;
 }
+
+void TabBox::SetFadeSwitchType(FadeSwitchType fadeSwitchType)
+{
+    m_fadeSwithType = fadeSwitchType;
+}
+
+TabBox::FadeSwitchType TabBox::GetFadeSwitchType() const
+{
+    return m_fadeSwithType;
+}
+
+void TabBox::SetFadeSwitchTypeByString(const DString& fadeSwitchType)
+{
+    if (fadeSwitchType == _T("FadeInOutX")) {
+        SetFadeSwitchType(FadeSwitchType::kFadeInOutX);
+    }
+    else if (fadeSwitchType == _T("FadeInOut")) {
+        SetFadeSwitchType(FadeSwitchType::kFadeInOut);
+    }
+}
+
+void TabBox::SetFadeSwitchFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
+{
+    m_frameIntervalMillSeconds = frameIntervalMillSeconds;
+}
+
+int32_t TabBox::GetFadeSwitchFrameIntervalMillSeconds() const
+{
+    return m_frameIntervalMillSeconds;
+}
+
+void TabBox::SetFadeSwitchTotalMillSeconds(int32_t totalMillSeconds)
+{
+    m_totalMillSeconds = totalMillSeconds;
+}
+
+int32_t TabBox::GetFadeSwitchTotalMillSeconds() const
+{
+    return m_totalMillSeconds;
+}
+
+void TabBox::SetFadeSwitchEasingFunctionType(EasingFunctionType easingFunctionType)
+{
+    m_easingFunctionType = easingFunctionType;
+}
+
+EasingFunctionType TabBox::GetFadeSwitchEasingFunctionType() const
+{
+    return m_easingFunctionType;
+}
+
+bool TabBox::StartSwitchItemAnimation(Control* pNewItemControl, Control* pOldItemControl)
+{
+    switch (GetFadeSwitchType()) {
+    case FadeSwitchType::kFadeInOutX:
+        return StartSwitchItemAnimationFadeInOutX(pNewItemControl, pOldItemControl);
+    case FadeSwitchType::kFadeInOut:
+        return StartSwitchItemAnimationFadeInOut(pNewItemControl, pOldItemControl);
+    default:
+        break;
+    }
+    return false;
+}
+
+bool TabBox::StartSwitchItemAnimationFadeInOutX(Control* pNewItemControl, Control* pOldItemControl)
+{
+    //动态切换X坐标，内容区横向滑动
+    if ((pNewItemControl == nullptr) || (pOldItemControl == nullptr)) {
+        return false;
+    }
+    size_t nNewSelIndex = GetItemIndex(pNewItemControl);
+    size_t nOldSelIndex = GetItemIndex(pOldItemControl);
+    if ((nNewSelIndex == Box::InvalidIndex) || (nOldSelIndex == Box::InvalidIndex)) {
+        return false;
+    }
+
+    //先停止旧的动画播放
+    if ((m_pAnimationPlayer != nullptr) && m_pAnimationPlayer->IsPlaying()) {
+        AnimationCompleteCallback completeCallback = m_pAnimationPlayer->GetCompleteCallback();
+        if (completeCallback != nullptr) {
+            completeCallback();
+        }
+        m_pAnimationPlayer->SetCompleteCallback(nullptr);
+        m_pAnimationPlayer->Stop();        
+    }
+    AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
+    m_pAnimationPlayer.reset(pAnimationPlayer);
+
+    pAnimationPlayer->SetAnimationType(AnimationType::kAnimationNone);
+    pAnimationPlayer->SetTotalMillSeconds(GetFadeSwitchTotalMillSeconds());
+    pAnimationPlayer->SetFrameIntervalMillSeconds(GetFadeSwitchFrameIntervalMillSeconds());
+    pAnimationPlayer->SetEasingFunctionType(GetFadeSwitchEasingFunctionType());
+
+    //起始值和结束值
+    const int32_t nMaxValue = 255;
+    pAnimationPlayer->SetStartValue(0);
+    pAnimationPlayer->SetEndValue(nMaxValue);
+
+    ControlPtrT<TabBox> pTabBox(this);
+    ControlPtr pNewItem(pNewItemControl);
+    ControlPtr pOldItem(pOldItemControl);
+    bool bRightToLeft = nNewSelIndex > nOldSelIndex; //是否从右向左滑动
+
+    AnimationPlayCallback playCallback = [pTabBox, pNewItem, pOldItem, nMaxValue, bRightToLeft](int32_t nNewValue) {
+            if ((pTabBox == nullptr) || (pNewItem == nullptr) || (pOldItem == nullptr)) {
+                return;
+            }
+            //确保两个页面都显示
+            if (!pOldItem->IsVisible()) {
+                pOldItem->SetVisible(true);
+            }
+            if (!pNewItem->IsVisible()) {
+                pNewItem->SetVisible(true);
+            }
+
+            //计算当前偏移量，并更新
+            const int32_t nBoxWidth = pTabBox->GetPos().Width(); //总的宽度
+            const int32_t nBoxItemOffset = static_cast<int32_t>((int64_t)nBoxWidth * nNewValue / nMaxValue);
+            if (bRightToLeft) {
+                pNewItem->SetRenderOffsetX(-(nBoxWidth - nBoxItemOffset));
+                pOldItem->SetRenderOffsetX(nBoxItemOffset);
+            }
+            else {
+                pNewItem->SetRenderOffsetX(nBoxWidth - nBoxItemOffset);
+                pOldItem->SetRenderOffsetX(-nBoxItemOffset);
+            }
+        };
+    pAnimationPlayer->SetPlayCallback(playCallback);
+
+    AnimationCompleteCallback compelteCallback = [pTabBox, pNewItem, pOldItem]() {
+            //动画结束
+            if ((pTabBox != nullptr) && (pOldItem != nullptr)) {
+                size_t itemIndex = pTabBox->GetItemIndex(pOldItem.get());
+                if (itemIndex < pTabBox->GetItemCount()) {
+                    pOldItem->SetRenderOffsetX(0);
+                    pOldItem->SetRenderOffsetY(0);
+                    if (pTabBox->GetCurSel() != itemIndex) {
+                        pOldItem->SetVisible(false);
+                    }
+                }
+            }
+            if ((pTabBox != nullptr) && (pNewItem != nullptr)) {
+                size_t itemIndex = pTabBox->GetItemIndex(pNewItem.get());
+                if (itemIndex < pTabBox->GetItemCount()) {
+                    pNewItem->SetRenderOffsetX(0);
+                    pNewItem->SetRenderOffsetY(0);
+                    if (pTabBox->GetCurSel() == itemIndex) {
+                        pNewItem->SetVisible(true);
+                    }
+                }
+            }
+        };
+    pAnimationPlayer->SetCompleteCallback(compelteCallback);    
+    pAnimationPlayer->Start();
+    return true;
+}
+
+bool TabBox::StartSwitchItemAnimationFadeInOut(Control* pNewItemControl, Control* pOldItemControl)
+{
+    //内容区淡入淡出
+    if ((pNewItemControl == nullptr) || (pOldItemControl == nullptr)) {
+        return false;
+    }
+    size_t nNewSelIndex = GetItemIndex(pNewItemControl);
+    size_t nOldSelIndex = GetItemIndex(pOldItemControl);
+    if ((nNewSelIndex == Box::InvalidIndex) || (nOldSelIndex == Box::InvalidIndex)) {
+        return false;
+    }
+
+    //先停止旧的动画播放
+    if ((m_pAnimationPlayer != nullptr) && m_pAnimationPlayer->IsPlaying()) {
+        AnimationCompleteCallback completeCallback = m_pAnimationPlayer->GetCompleteCallback();
+        if (completeCallback != nullptr) {
+            completeCallback();
+        }
+        m_pAnimationPlayer->SetCompleteCallback(nullptr);
+        m_pAnimationPlayer->Stop();
+    }
+    AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
+    m_pAnimationPlayer.reset(pAnimationPlayer);
+
+    pAnimationPlayer->SetAnimationType(AnimationType::kAnimationNone);
+    pAnimationPlayer->SetTotalMillSeconds(GetFadeSwitchTotalMillSeconds());
+    pAnimationPlayer->SetFrameIntervalMillSeconds(GetFadeSwitchFrameIntervalMillSeconds());
+    pAnimationPlayer->SetEasingFunctionType(GetFadeSwitchEasingFunctionType());
+
+    //起始值和结束值
+    const int32_t nMaxValue = 255;
+    pAnimationPlayer->SetStartValue(0);
+    pAnimationPlayer->SetEndValue(nMaxValue);
+
+    ControlPtrT<TabBox> pTabBox(this);
+    ControlPtr pNewItem(pNewItemControl);
+    ControlPtr pOldItem(pOldItemControl);
+
+    uint8_t nNewItemAlpha = pNewItem->GetAlpha();
+    uint8_t nOldItemAlpha = pOldItem->GetAlpha();
+
+    //新选中的标签页，最后绘制，避免被旧页面覆盖
+    pNewItem->SetPaintOrder(1);
+
+    AnimationPlayCallback playCallback = [pTabBox, pNewItem, pOldItem, nMaxValue, nNewItemAlpha, nOldItemAlpha](int32_t nNewValue) {
+            if ((pTabBox == nullptr) || (pNewItem == nullptr) || (pOldItem == nullptr)) {
+                return;
+            }
+            //确保两个页面都显示
+            if (!pOldItem->IsVisible()) {
+                pOldItem->SetVisible(true);
+            }
+            if (!pNewItem->IsVisible()) {
+                pNewItem->SetVisible(true);
+            }
+            if (nNewValue < 0) {
+                nNewValue = 0;
+            }
+            if (nNewValue > nMaxValue) {
+                nNewValue = nMaxValue;
+            }
+
+            //计算当前的Alpha值，并更新
+            uint8_t nCurrentNewItemAlpha = static_cast<uint8_t>(nNewItemAlpha * nNewValue / nMaxValue);
+            uint8_t nCurrentOldItemAlpha = static_cast<uint8_t>(nOldItemAlpha * (nMaxValue - nNewValue) / nMaxValue);
+
+            pNewItem->SetAlpha(nCurrentNewItemAlpha);
+            pOldItem->SetAlpha(nCurrentOldItemAlpha);
+        };
+    pAnimationPlayer->SetPlayCallback(playCallback);
+
+    AnimationCompleteCallback compelteCallback = [pTabBox, pNewItem, pOldItem, nNewItemAlpha, nOldItemAlpha]() {
+            //动画结束
+            if ((pTabBox != nullptr) && (pOldItem != nullptr)) {
+                size_t itemIndex = pTabBox->GetItemIndex(pOldItem.get());
+                if (itemIndex < pTabBox->GetItemCount()) {
+                    pOldItem->SetRenderOffsetX(0);
+                    pOldItem->SetRenderOffsetY(0);
+                    pOldItem->SetAlpha(nOldItemAlpha);
+                    if (pTabBox->GetCurSel() != itemIndex) {
+                        pOldItem->SetVisible(false);
+                    }
+                }
+            }
+            if ((pTabBox != nullptr) && (pNewItem != nullptr)) {
+                size_t itemIndex = pTabBox->GetItemIndex(pNewItem.get());
+                if (itemIndex < pTabBox->GetItemCount()) {
+                    pNewItem->SetRenderOffsetX(0);
+                    pNewItem->SetRenderOffsetY(0);
+                    pNewItem->SetAlpha(nNewItemAlpha);
+                    pNewItem->SetPaintOrder(0); //恢复绘制顺序为正常绘制
+                    if (pTabBox->GetCurSel() == itemIndex) {
+                        pNewItem->SetVisible(true);
+                    }
+                }
+            }
+        };
+    pAnimationPlayer->SetCompleteCallback(compelteCallback);
+    pAnimationPlayer->Start();
+    return true;
+}
+
+} //namespace ui

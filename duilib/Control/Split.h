@@ -40,8 +40,9 @@ public:
 
     /** 监听拖动的事件
      * @param [in] callback 被选择时触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSplitDraged(const EventCallback& callback) { this->AttachEvent(kEventSplitDraged, callback); }
+    void AttachSplitDraged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventSplitDraged, callback, callbackID); }
 
 protected:
     virtual bool MouseEnter(const EventArgs& msg) override;

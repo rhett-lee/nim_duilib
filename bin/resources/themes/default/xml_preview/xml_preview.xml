@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="75%,85%" min_size="300,200" 
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
+        alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
+    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+        <!-- 标题栏区域 -->  
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <!-- 标题栏：窗口左上角显示区域 -->  
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Label text="XML文件的界面效果预览功能测试" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control mouse_enabled="false"/>            
+            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            </HBox>
+        </HBox> <!-- 标题栏区域结束 --> 
+        
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
+        <VBox padding="10,10,10,10">
+            <VBox height="auto">
+                <HBox height="auto">
+                    <Label text="XML文件路径：" valign="center"/>
+                    <Label name="xml_file_path" text="" valign="center" width="100%" path_ellipsis="true" single_line="true" auto_tooltip="true"/>                    
+                </HBox>
+                <HBox height="auto">
+                    <Label text="XML加载结果：" valign="center"/>
+                    <Label name="xml_file_load_result" text="" valign="center" width="100%" />
+                </HBox>
+                <HBox height="auto">
+                    <Label name="xml_file_path" text="可以将XML文件拖入下面的显示区域进行预览" text_align="vcenter" valign="center" height="30"/>
+                    <Control />
+                    <CheckBox class="checkbox_2" name="checkbox_auto_refresh" text="自动刷新" margin="0,0,8,0" selected="false"/>
+                    <Label text="时间间隔(秒)：" text_align="vcenter" valign="center"/>
+                    <RichEdit class="simple simple_border rich_edit_spin" name="auto_refresh_interval" min_number="1" max_number="60" limit_text="2" text="5" height="30" margin="0,0,8,0"/>
+                    <Button class="btn_global_color_gray" name="btn_clear_xml_file" text="清空预览" width="120" height="30" border_round="3,3" margin="0,0,8,0"/>
+                    <Button class="btn_global_color_gray" name="btn_browse_xml_file" text="打开XML文件..." width="120" height="30" border_round="3,3" margin="0,0,10,0"/>
+                </HBox>
+            </VBox>
+            <XmlBox name="xml_box_test" bkcolor="white" border_color="blue" border_size="1" border_dash_style="dash" margin="4,4,4,4"
+                    mouse_child="true"
+                    res_path="controls" 
+                    xml_file_path="controls.xml"/>
+        </VBox>
+    </VBox>
+</Window>

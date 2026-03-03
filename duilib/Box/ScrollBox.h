@@ -9,11 +9,9 @@
 #include "duilib/Layout/VTileLayout.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui 
 {
-
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
  *   通过修改布局，形成 HScrollBox/VScrollBox/HFlowScrollBox/VFlowScrollBox/HTileScrollBox/VTileScrollBox六个子类
  */
@@ -84,15 +82,13 @@ public:
     
     /** 向上滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE);
     
     /** 向下滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE);
     
     /** 向左滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
@@ -118,9 +114,8 @@ public:
 
     /** 滚动到最下方位置
      * @param[in] arrange 是否重置滚动条位置，默认为 true
-     * @param[in] withAnimation 是否包含动画特效，默认为 true
      */
-    virtual void EndDown(bool arrange = true, bool withAnimation = true);
+    virtual void EndDown(bool arrange = true);
 
     /** 向左滚动一个页面大小的距离
      */
@@ -169,10 +164,6 @@ public:
     /** 判断水平滚动条是否有效
      */
     bool IsHScrollBarValid() const;
-
-    /** 播放动画
-     */
-    void PlayRenderOffsetYAnimation(int64_t nRenderY);
 
     /** 是否已经在底部
      */
@@ -237,14 +228,11 @@ public:
      */
     void SetScrollBarPadding(UiPadding rcScrollBarPadding, bool bNeedDpiScale);
 
-    /** 停止滚动条动画
-    */
-    void StopScrollAnimation();
-
     /** 监听滚动条位置变化事件
-     * @param[in] callback 有变化后通知的回调函数
+     * @param [in] callback 有变化后通知的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachScrollPosChanged(const EventCallback& callback) { AttachEvent(kEventScrollPosChanged, callback); }
+    void AttachScrollPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventScrollPosChanged, callback, callbackID); }
 
 public:
     /** 获取滚动条虚拟偏移量(cx代表横向滚动条的虚拟偏移量，cy代表纵向滚动条的虚拟偏移量)
@@ -326,12 +314,6 @@ private:
     UiSize64 m_scrollVirtualOffset;
 
 private:
-    //滚动条动画效果支持
-    AnimationPlayer* m_pScrollAnimation;
-
-    //滚动条动画效果支持
-    AnimationPlayer* m_pRenderOffsetYAnimation;
-
     //滚动条的外边距
     UiPadding m_rcScrollBarPadding;
 

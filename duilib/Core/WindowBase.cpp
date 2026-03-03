@@ -9,7 +9,11 @@ namespace ui
 {
 WindowBase::WindowBase():
     m_pParentWindow(nullptr), 
-    m_pNativeWindow(nullptr)
+    m_pNativeWindow(nullptr),
+    m_bWindowFirstShown(false),
+    m_bWindowSized(false),
+    m_windowSizeState(WindowSizeState::kUnknown),
+    m_bSendDragEnterMsg(false)
 {
     m_pNativeWindow = new NativeWindow(this);
 }
@@ -50,20 +54,42 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
     return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCloseByEsc, bCloseByEnter);
 }
 
+bool WindowBase::CreateChildWnd(WindowBase* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight)
+{
+    SetWindowId(_T(""));
+    m_pParentWindow = pParentWindow;
+    NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
+    return m_pNativeWindow->CreateChildWnd(pNativeWindow, nX, nY, nWidth, nHeight);
+}
+
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+
     //窗口完成创建，初始化（内部使用）
     InitWindowBase();
 
     //回调，让子类解析XML文件并与窗口绑定（内部使用，子类可重写）
-    PreInitWindow();
+    if (!windowFlag.expired()) {
+        PreInitWindow();
+    }
 
     //内部初始化（内部使用）
-    PostInitWindow();
+    if (!windowFlag.expired()) {
+        PostInitWindow();
+    }
 
     //调用子类的初始化函数
-    OnInitWindow();    
-    OnCreateWndMsg(bDoModal, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        OnInitWindow();
+    }
+    if (!windowFlag.expired()) {
+        OnWindowCreateMsg(bDoModal, nativeMsg, bHandled);
+    }    
+    if (!windowFlag.expired()) {
+        //给应用层回调
+        SendWindowEvent(kWindowCreateMsg, (WPARAM)bDoModal ? 1 : 0);
+    }
 }
 
 void WindowBase::ClearWindowBase()
@@ -191,9 +217,24 @@ WindowBase* WindowBase::GetParentWindow() const
     return m_pParentWindow.get();
 }
 
+bool WindowBase::SetParentWindow(WindowBase* pParentWindow)
+{
+    ASSERT((pParentWindow != nullptr) && pParentWindow->IsWindow());
+    if ((pParentWindow == nullptr) || !pParentWindow->IsWindow()) {
+        return false;
+    }
+    m_pParentWindow = pParentWindow;
+    return m_pNativeWindow->SetParentWindow(pParentWindow->NativeWnd());
+}
+
 bool WindowBase::IsWindow() const
 {
     return m_pNativeWindow->IsWindow();
+}
+
+bool WindowBase::IsChildWindow() const
+{
+    return m_pNativeWindow->IsChildWindow();
 }
 
 void WindowBase::InitWindowBase()
@@ -369,14 +410,14 @@ void WindowBase::CheckSetWindowFocus()
     return m_pNativeWindow->CheckSetWindowFocus();
 }
 
-bool WindowBase::EnterFullScreen()
+bool WindowBase::EnterFullscreen()
 {
-    return m_pNativeWindow->EnterFullScreen();
+    return m_pNativeWindow->EnterFullscreen();
 }
 
-bool WindowBase::ExitFullScreen()
+bool WindowBase::ExitFullscreen()
 {
-    return m_pNativeWindow->ExitFullScreen();
+    return m_pNativeWindow->ExitFullscreen();
 }
 
 bool WindowBase::IsWindowMaximized() const
@@ -389,9 +430,9 @@ bool WindowBase::IsWindowMinimized() const
     return m_pNativeWindow->IsWindowMinimized();
 }
 
-bool WindowBase::IsWindowFullScreen() const
+bool WindowBase::IsWindowFullscreen() const
 {
-    return m_pNativeWindow->IsWindowFullScreen();
+    return m_pNativeWindow->IsWindowFullscreen();
 }
 
 bool WindowBase::EnableWindow(bool bEnable)
@@ -639,9 +680,23 @@ void WindowBase::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewSc
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldScaleFactor);
 }
 
-bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
+bool WindowBase::NeedSetWindowRgnOnWindowResized()
 {
-    return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, szRoundCorner, bRedraw);
+    if (IsChildWindow()) {
+        //子窗口，不自动设置RGN
+        return false;
+    }
+    return true;
+}
+
+bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
+{
+    return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
+}
+
+bool WindowBase::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    return m_pNativeWindow->SetWindowRectRgn(rcWnd, bRedraw);
 }
 
 void WindowBase::ClearWindowRgn(bool bRedraw)
@@ -845,33 +900,55 @@ DString WindowBase::GetWindowRenderName() const
 }
 #endif
 
-void WindowBase::OnWindowSize(WindowSizeType sizeType)
+void WindowBase::OnWindowSized(bool bRedraw)
 {
-    UiSize szRoundCorner = GetRoundCorner();
-    bool isIconic = IsWindowMinimized();
-    if (!isIconic && (sizeType != WindowSizeType::kSIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
-        //最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
-        UiRect rcWnd;
-        GetWindowRect(rcWnd);
-        rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-        rcWnd.right++;
-        rcWnd.bottom++;
-        SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
+    m_bWindowSized = true;
+    //此函数的主要功能：设置窗口的RGN，从而实现窗口的圆角或者直角功能
+    if (!NeedSetWindowRgnOnWindowResized()) {
+        //不支持，立即返回
+        return;
     }
-    else if (!isIconic) {
-        //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
-        ClearWindowRgn(true);
+    if (IsUseSystemCaption() || IsWindowMinimized() || IsWindowMaximized()) {
+        //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
+        ClearWindowRgn(bRedraw);
+    }
+    else {
+        //其他情况下
+        UiSize szRoundCorner = GetRoundCorner();
+        if (szRoundCorner.cx > 0 && szRoundCorner.cy > 0) {
+            //该窗口的配置为圆角窗口
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, bRedraw);
+        }
+        else {
+            //配置为直角窗口
+            //不需要设置RGN的时候，使用与窗口大小相同的矩形RGN，而不是使用默认值（因为默认情况下，窗口的左上角和右上角是圆角，左下角和右下角是直角）
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            rcWnd.right++;
+            rcWnd.bottom++;
+            SetWindowRectRgn(rcWnd, bRedraw);
+        }
     }
 }
 
-void WindowBase::OnNativeWindowEnterFullScreen()
+void WindowBase::OnNativeWindowEnterFullscreen()
 {
-    OnWindowEnterFullScreen();
+    NotifyWindowEnterFullscreen(); //供Window子类处理业务
+    OnWindowEnterFullscreen();     //供应用层处理业务
+
+    m_windowSizeState = WindowSizeState::kFullscreen;
+    SendWindowEvent(kWindowEnterFullscreenMsg);
 }
 
-void WindowBase::OnNativeWindowExitFullScreen()
+void WindowBase::OnNativeWindowExitFullscreen()
 {
-    OnWindowExitFullScreen();
+    NotifyWindowExitFullscreen();   //供Window子类处理业务
+    OnWindowExitFullscreen();       //供应用层处理业务
+    SendWindowEvent(kWindowExitFullscreenMsg);
 }
 
 UiRect WindowBase::OnNativeGetSizeBox() const
@@ -941,6 +1018,11 @@ IRender* WindowBase::OnNativeGetRender() const
     return GetRender();
 }
 
+Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const
+{
+    return OnFindControl(pt);
+}
+
 void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
     OnDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
@@ -948,50 +1030,142 @@ void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fN
 
 void WindowBase::OnNativeFinalMessage()
 {
+    if (IsChildWindow() || GlobalManager::Instance().Windows().HasWindowBase(this)) {
+        //发送一个窗口关闭事件
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        WPARAM wParam = (WPARAM)GetCloseParam();
+        SendWindowEvent(kWindowCloseMsg, wParam);
+        if (windowFlag.expired()) {
+            return;
+        }
+    }
     FinalMessage();
 }
 
 LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = 0;
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
     for (auto filter : m_aMessageFilters) {
         if (filter == nullptr) {
             continue;
         }
         lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
-        if (bHandled) {
+        if (bHandled || windowFlag.expired()) {
             //过滤器处理后截获此消息，不再进行派发
             return lResult;
         }
     }
 
     //第二优先级：派发给子类回调函数（子类可以通过设置bHandled为true来截获消息处理）   
-    if (!bHandled) {
+    if (!bHandled && !windowFlag.expired()) {
         lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    }
+    return lResult;
+}
+
+LRESULT WindowBase::OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnWindowPosChangedMsg(nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowPosChangedMsg);
     }
     return lResult;
 }
 
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    OnWindowSize(sizeType);
-    return OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnWindowSized(true);
+    LRESULT lResult = OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    SendWindowEvent(kWindowSizeMsg, (WPARAM)sizeType);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+
+    //窗口大小改变时，主动触发重绘（避免分层窗口的情况下，窗口不绘制的现象出现）
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    Invalidate(rcClient);
+
+    //通知最终的窗口状态事件
+    if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
+        //最大化
+        if (!IsWindowFullscreen()) {
+            //非全屏状态
+            m_windowSizeState = WindowSizeState::kMaximized;
+            SendWindowEvent(kWindowMaximizedMsg);
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
+        //还原
+        if (m_windowSizeState != WindowSizeState::kRestored) {
+            m_windowSizeState = WindowSizeState::kRestored;
+            SendWindowEvent(kWindowRestoredMsg);
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_MINIMIZED) {
+        //最小化
+        m_windowSizeState = WindowSizeState::kMinimized;
+        SendWindowEvent(kWindowMaximizedMsg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMoveMsg(ptTopLeft, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMoveMsg(ptTopLeft, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowMoveMsg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnShowWindowMsg(bShow, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnShowWindowMsg(bShow, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowShowWindowMsg, bShow ? 1 : 0);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnPaintMsg(rcPaint, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnPaintMsg(rcPaint, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    SendWindowEvent(kWindowPaintMsg);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+
+    //首次绘制事件, 给一次回调
+    if (!IsWindowFirstShown()) {
+        m_bWindowFirstShown = true;
+
+        //触发第一次绘制事件
+        SendWindowEvent(kWindowFirstShown);
+        if (windowFlag.expired()) {
+            return lResult;
+        }
+
+        //如果未触发窗口大小变化，则触发一次(设置RGN等)
+        if (!m_bWindowSized) {
+            m_bWindowSized = true;
+            OnWindowSized(false);
+        }
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
@@ -1000,7 +1174,12 @@ LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const N
     if (pLostFocusWindow != nullptr) {
         pLostFocusWindowBase = dynamic_cast<WindowBase*>(pLostFocusWindow);
     }
-    return OnSetFocusMsg(pLostFocusWindowBase, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnSetFocusMsg(pLostFocusWindowBase, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowSetFocusMsg, (WPARAM)pLostFocusWindowBase);
+    }    
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
@@ -1009,7 +1188,12 @@ LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const N
     if (pSetFocusWindow != nullptr) {
         pSetFocusWindowBase = dynamic_cast<WindowBase*>(pSetFocusWindow);
     }
-    return OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowKillFocusMsg, (WPARAM)pSetFocusWindowBase);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
@@ -1034,7 +1218,12 @@ LRESULT WindowBase::OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, boo
 
 LRESULT WindowBase::OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnSetCursorMsg(nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnSetCursorMsg(nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowSetCursorMsg);
+    }    
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled)
@@ -1044,12 +1233,38 @@ LRESULT WindowBase::OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& n
 
 LRESULT WindowBase::OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    if (!m_windowEventMap.empty()) {
+        EventArgs msg;
+        msg.SetSenderWeakFlag(GetWeakFlag());
+        msg.eventType = kWindowKeyDownMsg;
+        msg.vkCode = vkCode;
+        msg.modifierKey = modifierKey;
+        SendWindowEvent(msg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    if (!m_windowEventMap.empty()) {
+        EventArgs msg;
+        msg.SetSenderWeakFlag(GetWeakFlag());
+        msg.eventType = kWindowKeyUpMsg;
+        msg.vkCode = vkCode;
+        msg.modifierKey = modifierKey;
+        SendWindowEvent(msg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
@@ -1064,72 +1279,151 @@ LRESULT WindowBase::OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, u
 
 LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseWheelMsg(wheelDelta, pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseWheelMsg(wheelDelta, pt, modifierKey, nativeMsg, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    if (!m_windowEventMap.empty()) {
+        EventArgs msg;
+        msg.SetSenderWeakFlag(GetWeakFlag());
+        msg.eventType = kWindowMouseWheelMsg;
+        msg.ptMouse = pt;
+        msg.modifierKey = modifierKey;
+        msg.eventData = wheelDelta;
+        SendWindowEvent(msg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMouseMoveMsg, pt, modifierKey);
+    }    
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseHoverMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseHoverMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMouseHoverMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLeaveMsg(nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseLeaveMsg(nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowMouseLeaveMsg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseLButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonDownMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonUpMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseLButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowLButtonDbClickMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseRButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonDownMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseRButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonUpMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowRButtonDbClickMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseMButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonDownMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseMButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonUpMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnMouseMButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowMouseEvent(kWindowMButtonDbClickMsg, pt, modifierKey);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnCaptureChangedMsg(nativeMsg, bHandled);
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = OnCaptureChangedMsg(nativeMsg, bHandled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowCaptureChangedMsg);
+    }
+    return lResult;
 }
 
 LRESULT WindowBase::OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled)
@@ -1140,6 +1434,325 @@ LRESULT WindowBase::OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nat
 void WindowBase::OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
 {
     OnWindowPosSnapped(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+}
+
+/** 辅助函数，判断消息是否已经处理
+*/
+static bool IsDragDropMsgHandled(ControlDropType dropType, void* pDropData)
+{
+    bool bHandled = false;
+    if (dropType == ui::kControlDropTypeWindows) {
+        const ui::ControlDropData_Windows* dropData = (const ui::ControlDropData_Windows*)pDropData;
+        if (dropData != nullptr) {
+            bHandled = dropData->m_bHandled;
+        }
+    }
+    else if (dropType == ui::kControlDropTypeSDL) {
+        const ui::ControlDropData_SDL* dropData = (const ui::ControlDropData_SDL*)pDropData;
+        if (dropData != nullptr) {
+            bHandled = dropData->m_bHandled;
+        }
+    }
+    return bHandled;
+}
+
+void WindowBase::OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropEnterMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        m_bSendDragEnterMsg = true;
+        SendWindowEvent(kWindowDropEnterMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+}
+void WindowBase::OnNativeDropOverMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropOverMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        SendWindowEvent(kWindowDropOverMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+}
+
+void WindowBase::OnNativeDropMsg(ControlDropType dropType, void* pDropData)
+{
+    ASSERT(!IsDragDropMsgHandled(dropType, pDropData));
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropMsg(dropType, pDropData);
+    if (!windowFlag.expired() && !IsDragDropMsgHandled(dropType, pDropData)) {
+        SendWindowEvent(kWindowDropMsg, (WPARAM)dropType, (LPARAM)pDropData);
+    }
+    if (!windowFlag.expired()) {
+        //如果已经发送了Drop事件，就不需要DropLeave事件了
+        m_bSendDragEnterMsg = false;
+    }
+}
+
+void WindowBase::OnNativeDropLeaveMsg()
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDropLeaveMsg();
+    if (!windowFlag.expired()) {
+        if (m_bSendDragEnterMsg) {
+            //有Enter才发Leave
+            m_bSendDragEnterMsg = false;
+            SendWindowEvent(kWindowDropLeaveMsg);
+        }
+    }
+}
+
+bool WindowBase::IsWindowFirstShown() const
+{
+    return m_bWindowFirstShown;
+}
+
+bool WindowBase::SendWindowEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
+{
+    if (m_windowEventMap.empty()) {
+        return true;
+    }
+    EventArgs msg;
+    msg.SetSenderWeakFlag(GetWeakFlag());
+    msg.eventType = eventType;
+    msg.ptMouse = GetLastMousePos();
+    msg.wParam = wParam;
+    msg.lParam = lParam;
+    return SendWindowEvent(msg);
+}
+
+bool WindowBase::SendWindowMouseEvent(EventType eventType, const UiPoint& pt, uint32_t modifierKey)
+{
+    if (m_windowEventMap.empty()) {
+        return true;
+    }
+    EventArgs msg;
+    msg.SetSenderWeakFlag(GetWeakFlag());
+    msg.eventType = eventType;
+    msg.ptMouse = pt;
+    msg.modifierKey = modifierKey;
+    return SendWindowEvent(msg);
+}
+
+bool WindowBase::SendWindowEvent(const EventArgs& msg)
+{
+    if (!m_windowEventMap.empty()) {
+        auto callback = m_windowEventMap.find(msg.eventType);
+        if (callback != m_windowEventMap.end()) {
+            callback->second(msg);
+        }
+    }
+    return true;
+}
+
+bool WindowBase::HasWindowEventCallback(EventType eventType) const
+{
+    return m_windowEventMap.find(eventType) != m_windowEventMap.end();
+}
+
+bool WindowBase::HasWindowEventCallbackByID(EventCallbackID callbackID) const
+{
+    for (auto iter = m_windowEventMap.begin(); iter != m_windowEventMap.end(); ++iter) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void WindowBase::DetachWindowEventCallback(EventType eventType)
+{
+    auto iter = m_windowEventMap.find(eventType);
+    if (iter != m_windowEventMap.end()) {
+        m_windowEventMap.erase(iter);
+    }
+}
+
+void WindowBase::DetachWindowEventCallbackByID(EventCallbackID callbackID)
+{
+    EventUtils::RemoveEventCallbackByID(m_windowEventMap, callbackID);
+}
+
+void WindowBase::AttachWindowCreateMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowCreateMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowCloseMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowCloseMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowFirstShown(const EventCallback& callback, EventCallbackID callbackID)
+{
+    ASSERT(!IsWindowFirstShown());
+    m_windowEventMap[kWindowFirstShown].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowEnterFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowEnterFullscreenMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowExitFullscreenMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowExitFullscreenMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMaximizedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMaximizedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMinimizedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMinimizedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowRestoredMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowRestoredMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowPosChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowPosChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowSizeMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowSizeMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMoveMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMoveMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowShowWindowMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowShowWindowMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowPaintMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowPaintMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowSetFocusMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowSetFocusMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowKillFocusMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowKillFocusMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowSetCursorMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowSetCursorMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowKeyDownMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowKeyDownMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowKeyUpMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowKeyUpMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMouseWheelMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMouseWheelMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMouseMoveMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMouseMoveMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMouseHoverMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMouseHoverMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMouseLeaveMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMouseLeaveMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowLButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowLButtonDownMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowLButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowLButtonUpMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowLButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowLButtonDbClickMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowRButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowRButtonDownMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowRButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowRButtonUpMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowRButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowRButtonDbClickMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMButtonDownMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMButtonDownMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMButtonUpMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMButtonUpMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowMButtonDbClickMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowMButtonDbClickMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowCaptureChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowCaptureChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropEnterMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropEnterMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropOverMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropOverMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDropLeaveMsg].AddEventCallback(callback, callbackID);
 }
 
 } // namespace ui

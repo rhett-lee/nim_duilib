@@ -22,7 +22,17 @@ public:
     virtual void OnInitWindow() override;
 
 private:
-    bool OnSelected(const ui::EventArgs& args);
+    /** 测试列表的事件
+    */
+    void TestListBoxEvents(ui::ListBox* pListBox);
+
+    /** 获取消息的基本信息（用于显示日志）
+    */
+    DString GetEventDisplayInfo(const ui::EventArgs& args, ui::ListBox* pListBox);
+
+    /** 输出测试日志
+    */
+    void OutputDebugLog(const DString& logMsg);
 
 private:
     ui::ListBox* m_pListBox;

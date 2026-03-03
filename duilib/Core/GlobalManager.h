@@ -224,6 +224,7 @@ public:
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
      * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+     * @param [in] pControl 该资源关联的Control控件接口
      * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
      * @param [out] bResPath 返回true表示文件在程序资源路径内，返回false表示文件不在程序资源路径内
      * @return 返回可用的完整的资源路径，如果资源路径不存在，则返回空
@@ -231,13 +232,61 @@ public:
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    FilePath GetExistsResFullPath(const FilePath& windowResPath,
-                                  const FilePath& windowXmlPath,
-                                  const FilePath& resPath,
-                                  bool& bLocalPath,
-                                  bool& bResPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
+                                  const FilePath& resPath, const Control* pControl,
+                                  bool& bLocalPath, bool& bResPath);
 
-    /** 根据 XML 创建一个 Box
+    /** 加载资源失败的回调函数，可以在回调函数中提供新的资源搜索路径，再次尝试查找资源
+     * @param [in] pControl 该资源关联的Control控件接口
+     * @param [in] resPath 资源文件路径，比如："btn_wnd_gray_min_hovered.png"
+     * @param [in,out] windowResPath 窗口对应的资源相对目录，可返回新的路径
+     * @param [in,out] windowXmlPath 窗口对应XML所在的相对目录，可返回新的路径     
+     * @return true表示已提供新的资源搜索路径，需要再次尝试查找资源，返回false表示不再尝试查找资源
+     */
+    using ResNotFoundCallback = std::function<bool(const Control* pControl,
+                                                   const FilePath& resPath,
+                                                   FilePath& windowResPath,
+                                                   FilePath& windowXmlPath)>;
+    /** 添加一个加载资源失败的回调函数
+    * @param [in] callback 回调函数
+    * @param [in] callbackId 回调函数的ID，删除回调函数时使用，由调用方确保ID的唯一性
+    */
+    void AddResNotFoundCallback(ResNotFoundCallback callback, size_t callbackId);
+
+    /** 删除一个加载资源失败的回调函数
+    * @param [in] callbackId 待删除回调函数的ID
+    */
+    void RemoveResNotFoundCallback(size_t callbackId);
+
+    /** 判断一个路径是否在public子目录中
+    */
+    bool IsResInPublicPath(const FilePath& resPath) const;
+
+public:
+    /** CreateBox/CreateBoxWithCache 和 FillBox/FillBoxWithCache 函数的使用说明
+     *  假设传入的XML文件的基本结构如下：
+     *  <Window>
+     *      <VBox bkcolor="white">
+     *          <HBox height="30" margin="0,10,0,0">
+     *              <Label text="Test"/>
+     *          </HBox>
+     *      </VBox>
+     *  </Window>
+     *  1. XML文件的根节点可以是Global、Window或者其他名称：
+     *           如果是Global：可以包含与"global.xml"相似的公共资源定义（比如Class等），这些资源是全局有效
+     *           如果是Window：可以包含与Window相似的窗口内公共资源定义（比如Class等），这些资源是窗口内有效，Window标签的属性不解析
+     *           如果是其他名称，则无特殊逻辑
+     *  2. CreateBoxWithCache和FillBoxWithCache：解析后XML文件解析结果会被缓存，适合XML文件被重复调用的场景，可以提高性能（节省XML解析的时间）
+     *  3. XML文件的第二级节点（上述XML文件中的Window节点下的节点）：需要是容器，不能是Control
+     *  3. CreateBox/CreateBoxWithCache: 解析XML，创建并返回相应的二级容器节点（即XML中Window下的VBox节点）：
+     *                                   上述XML文件中，是会创建VBox节点，函数返回的是VBox指针，包含了XML中VBox的属性
+     *  4. FillBox/FillBoxWithCache：解析XML文件，解析并创建三级节点，将三级节点（HBox）及子节点填充到函数参数传入的pUserDefinedBox容器中，
+     *                               同时将解析二级节点（VBox）节点的属性并设置到pUserDefinedBox容器中
+     *                               该函数不会创建二级节点的容器（即上述XML中的VBox节点），函数认为pUserDefinedBox传入这个节点就是对应的VBox节点，由外部创建
+     */
+
+    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器）
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -245,7 +294,7 @@ public:
      */
     Box* CreateBox(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 根据 XML 在缓存中查找指定 Box，如果没有则创建
+    /** 根据 XML 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），XML文件解析结果保存在缓存中，下次调用时不重新解析XML，以改善性能
      * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -253,14 +302,17 @@ public:
      */
     Box* CreateBoxWithCache(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用 XML 填充指定 Box (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+    /** 根据 XML 解析结果，将三级节点的内容追加到pUserDefinedBox里面，但不会创建二级节点对应的容器，函数认为三级节点对应的容器就是pUserDefinedBox，由外部创建
+     *  (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
      * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
      */
     bool FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
-    /** 使用构建过的缓存填充指定 Box，如果没有则重新构建 (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+    /** 根据 XML 解析结果，将三级节点的内容追加到pUserDefinedBox里面，但不会创建二级节点对应的容器，函数认为三级节点对应的容器就是pUserDefinedBox，由外部创建
+     *  (注意事项：该函数会跳过XML文件的根节点和一级子节点，直接将三级节点的内容解析后追加到pUserDefinedBox里面，作为其子节点)
+     *  XML文件解析结果保存在缓存中，下次调用时不重新解析XML，以改善性能
      * @param [in] pUserDefinedBox 要填充的 box 指针，不允许为nullptr，并且该控件必须关联窗口
      * @param [in] strXmlPath XML 文件路径
      * @param [in] callback 自定义控件的回调处理函数
@@ -277,6 +329,27 @@ public:
     */
     void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
 
+    /** 根据 XML的路径 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] xmlFilePath XML 文件路径
+     * @param [in] xmlPreviewAttributes 解析XML文件时，新增加的窗口共享属性和全局属性
+     * @return 指定布局模块的对象指针
+     */
+    Box* CreateBoxForXmlPreview(Window* pWindow, const FilePath& xmlFilePath, XmlPreviewAttributes& xmlPreviewAttributes);
+
+    /** 根据 XML的数据 创建一个 Box（创建二级节点对应的容器，返回的是二级节点对应的容器），用于生成XML效果的预览
+     * @param [in] pWindow 关联的窗口, 不允许为nullptr, 因DPI自适应需要对控件的大小等进行DPI缩放
+     * @param [in] xmlFileData XML文件数据，如果为空则使用xmlFilePath
+     * @param [in] xmlPreviewAttributes 解析XML文件时，新增加的窗口共享属性和全局属性
+     * @param [in] xmlFilePath 当xmlFileData不为空时为可选参数，提供XML文件路径，当XML数据中含有Include标签时会按XML路径查找被包含的XML文件
+     * @return 指定布局模块的对象指针
+     */
+    Box* CreateBoxForXmlPreview(Window* pWindow,
+                                const std::vector<unsigned char>& xmlFileData,
+                                XmlPreviewAttributes& xmlPreviewAttributes,
+                                const FilePath& xmlFilePath = FilePath());
+
+public:
     /** 判断当前是否在UI线程
     */
     bool IsInUIThread() const;
@@ -289,6 +362,16 @@ public:
     */
     void AddAtExitFunction(std::function<void()> atExitFunction);
 
+public:
+    /** 设置是否开启控件动画（比如淡入淡出等动画）
+    * @param [in] bEnable true表示开启控件动画，false表示不开启控件动画
+    */
+    void SetAnimationEnabled(bool bEnable);
+
+    /** 获取是否开启控件动画（比如淡入淡出等动画）
+    */
+    bool IsAnimationEnabled() const;
+
 private:
     /** 从缓存中删除所有图片
      */
@@ -300,7 +383,20 @@ private:
     */
     void CheckImagePath(FilePath& imageFullPath, bool& bLocalPath);
 
+    /** 根据资源加载方式，返回对应的资源路径
+    */
+    FilePath FindExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
+                                   const FilePath& resPath, bool& bLocalPath, bool& bResPath);
+
 private:
+    /** 资源加载失败的回调函数相关数据
+    */
+    struct ResNotFoundCallbackData
+    {
+        ResNotFoundCallback m_callback;
+        size_t m_callbackId;
+    };
+    std::vector<ResNotFoundCallbackData> m_resNotFoundCallbacks;
 
     /** 渲染引擎管理接口
     */
@@ -398,6 +494,10 @@ private:
     /** 库内部使用的线程池
     */
     std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
+
+    /** 是否开启控件动画（比如淡入淡出等动画）
+    */
+    bool m_bAnimationEnabled;
 };
 
 } // namespace ui

@@ -1,5 +1,7 @@
 #include "DateTime.h"
+#include "duilib/Core/Window.h"
 #include <sstream>
+#include <iomanip>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "DateTimeWnd_Windows.h"

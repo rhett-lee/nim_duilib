@@ -43,8 +43,14 @@ public:
     virtual size_t GetItemCount() const override;
 
     /** 添加一个下拉框的列表项
+    * @param [in] itemText 文本内容
     */
     bool AddTextItem(const DString& itemText);
+
+    /** 添加一个下拉框的列表项
+    * @param [in] itemTextId 文本内容ID（支持多语言版）
+    */
+    bool AddTextIdItem(const DString& itemTextId);
 
     /** 获取选择的文本列表
     */
@@ -109,14 +115,16 @@ public:
 
 public:
     /** 监听下拉窗创建事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callback 下拉窗关闭后触发的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
+    void AttachWindowCreate(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowCreate, callback, callbackID); }
 
     /** 监听下拉窗关闭事件
-    * @param[in] callback 下拉窗关闭后触发的回调函数
+    * @param [in] callback 下拉窗关闭后触发的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachWindowClose(const ui::EventCallback& callback) { AttachEvent(ui::kEventWindowClose, callback); }
+    void AttachWindowClose(const ui::EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(ui::kEventWindowClose, callback, callbackID); }
 
 private:
     /** 默认的子项被选择处理函数

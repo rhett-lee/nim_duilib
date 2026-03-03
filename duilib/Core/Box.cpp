@@ -133,6 +133,9 @@ UiRect Box::GetRectWithoutPadding() const
 
 void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
+    if (GetRect().IsEmpty()) {
+        return;
+    }
     UiRect rcTemp;
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
         return;
@@ -279,7 +282,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
         if (!GetRect().ContainsPt(ptMouse)) {
             return nullptr;
         }
-        if (!IsMouseChildEnabled()) {
+        if (!IsMouseChildEnabled() && ((uFlags & UIFIND_TOOLTIP) == 0)) {
             Control* pResult = Control::FindControl(Proc, pProcData, uFlags, ptMouse);
             return pResult;
         }

@@ -202,18 +202,29 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
     if (pRender == nullptr) {
         return false;
     }
+    //渲染器的DC
+    HDC hRenderDC = pRender->GetRenderDC(m_hWnd);
+    ASSERT(hRenderDC != nullptr);
+    if (hRenderDC == nullptr) {
+        return false;
+    }
 
     // 渲染到窗口
-    bool bRet = false;
     bool bPainted = false;
     if (::GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) {
         //分层窗口
         COLORREF crKey = 0;
-        BYTE bAlpha = 0;
-        DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
+        BYTE bAlpha = 255;
+        DWORD dwFlags = 0;
         //当返回true的时候，不能按分层窗口绘制，必须按普通的窗口模式绘制
-        bool bAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
-        if (!bAttributes) {
+        bool bLayeredWindowAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
+        if (bLayeredWindowAttributes) {
+            if ((bAlpha == 255) || (crKey == 0)) {
+                //这种情况下，需要按照分层窗口绘制（当切换分层窗口后，会出现这个现象）
+                bLayeredWindowAttributes = false;
+            }
+        }
+        if (!bLayeredWindowAttributes) {
             UiRect rcWindow;
             GetWindowRect(rcWindow);
             UiRect rcClient;
@@ -222,29 +233,18 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
             SIZE szWindow = { rcClient.Width(), rcClient.Height() };
             POINT ptSrc = { 0, 0 };
             BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_ALPHA };
-            HDC hdc = pRender->GetRenderDC(m_hWnd);
-            ASSERT(hdc != nullptr);
-            if (hdc != nullptr) {
-                //按分层窗口模式绘制
-                bRet = ::UpdateLayeredWindow(m_hWnd, nullptr, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
-                bPainted = true;
-                ASSERT(bRet);
-                pRender->ReleaseRenderDC(hdc);
-            }
+            //按分层窗口模式绘制
+            bPainted = ::UpdateLayeredWindow(m_hWnd, nullptr, &pt, &szWindow, hRenderDC, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
         }        
     }
     if (!bPainted) {
         //按普通窗口模式绘制
-        ASSERT(hPaintDC != nullptr);
-        HDC hdc = pRender->GetRenderDC(m_hWnd);
-        ASSERT(hdc != nullptr);
-        if (hdc != nullptr) {
-            bRet = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-                            hdc, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
-            pRender->ReleaseRenderDC(hdc);
-        }
+        bPainted = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
+                            hRenderDC, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
     }
-    return bRet;
+    pRender->ReleaseRenderDC(hRenderDC);
+    ASSERT(bPainted);
+    return bPainted;
 }
 
 HBITMAP SkRasterWindowContext_Windows::GetHBitmap() const

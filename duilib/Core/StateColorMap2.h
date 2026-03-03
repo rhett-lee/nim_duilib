@@ -64,7 +64,7 @@ public:
 private:
     /** 绘制指定状态的颜色(使用预先获取的颜色值)
     */
-    void DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, int32_t nAlpha = 255) const;
+    void DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha = 255) const;
 
 private:
     /** 每个颜色的基本属性

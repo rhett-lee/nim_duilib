@@ -1,12 +1,8 @@
 #ifndef UI_CORE_WINDOWBUILDER_H_
 #define UI_CORE_WINDOWBUILDER_H_
 
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/FilePath.h"
-#include <functional>
-#include <string>
-#include <memory>
 
 namespace pugi
 {
@@ -22,11 +18,33 @@ class Box;
 class Window;
 class Control;
 class RichTextSlice;
+class RichTextImpl;
 class WindowCreateAttributes;
 
 /** 创建控件的回调函数
 */
 typedef std::function<Control* (const DString&)> CreateControlCallback;
+
+/** 用于支持XML预览的属性列表，部分属性在预览后需要从关联的窗口对象中删除，以恢复原始状态
+*/
+struct XmlPreviewAttributes
+{
+    /** XML中窗口标签（Window）的属性列表
+    */
+    std::map<DString, DString> m_windowAttributes;
+
+    /** 本次解析在窗口下添加的Class属性列表
+    */
+    std::vector<DString> m_windowClassList;
+
+    /** 本次解析在窗口下添加的TextColor属性列表
+    */
+    std::vector<DString> m_windowTextColorList;
+
+    /** 本次解析在全局属性中添加的FontId属性列表
+    */
+    std::vector<DString> m_globalFontIdList;
+};
 
 /** 根据XML文件，解析并创建控件和布局
 */
@@ -42,9 +60,11 @@ public:
 public:
     /** 解析XML文件内容
     * @param [in] xmlFileData 是文件文本内容，字符串需要以字符 '<'开头;
+    * @param [in] xmlFilePath 可选参数，提供XML文件路径，当XML数据中含有Include标签时会按XML路径查找被包含的XML文件
     * @return 解析成功返回true，否则返回false
     */
-    bool ParseXmlData(const DString& xmlFileData);
+    bool ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath = FilePath());
+    bool ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath = FilePath());
 
     /** 解析XML文件内容
     * @param [in] xmlFilePath XML文件的路径
@@ -75,6 +95,23 @@ public:
     bool ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes);
 
 public:
+    /** 解析出窗口的属性(属性名称保存在Map的Key中，属性的值保存在属性的Value中)
+    */
+    bool ParseWindowAttributes(std::map<DString, DString>& windowAttributes) const;
+
+    /** 获取本次解析在窗口下添加的Class属性列表
+    */
+    const std::vector<DString>& GetWindowClassList() const;
+
+    /** 获取本次解析在窗口下添加的TextColor属性列表
+    */
+    const std::vector<DString>& GetWindowTextColorList() const;
+
+    /** 获取本次解析在全局属性中添加的FontId属性列表
+    */
+    const std::vector<DString>& GetGlobalFontIdList() const;
+
+public:
     /** 解析带格式的文本内容，并设置到RichText Control对象
     * @param [in] xmlText 带格式的文本内容
     * @param [in] pControl RichText控件的接口
@@ -89,17 +126,25 @@ public:
     static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice = nullptr);
 
 private:
+    /** 解析带格式的文本内容，并设置到RichText Control对象
+    * @param [in] xmlNode 带格式的文本内容对应的XML节点
+    * @param [in] pControl RichText控件的接口
+    * @param [in] pTextSlice 文本片段节点接口，如果pTextSlice不为nullptr，XML节点的解析结果将填充到pTextSlice中；否则填充到pControl中
+    */
+    static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichTextImpl* pRichTextImpl, RichTextSlice* pTextSlice = nullptr);
+
+private:
     /** 解析窗口的属性(根XML节点名称："Window")
     */
     void ParseWindowAttributes(Window* pWindow, const pugi::xml_node& root) const;
 
     /** 解析窗口下的共享资源属性(根XML节点名称："Window")，这些属性只有本窗口能使用
     */
-    void ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const;
+    void ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root);
 
     /** 解析全局资源的属性(根XML节点名称："Global")，这些属性，所有窗口都可以使用
     */
-    void ParseGlobalAttributes(const pugi::xml_node& root) const;
+    void ParseGlobalAttributes(const pugi::xml_node& root);
 
     /** 解析XML节点的子节点
     * @param [in] xmlNode xml节点
@@ -126,7 +171,7 @@ private:
 
     /** 解析字体节点
     */
-    void ParseFontXmlNode(const pugi::xml_node& xmlNode) const;
+    void ParseFontXmlNode(const pugi::xml_node& xmlNode);
 
 private:
     
@@ -141,6 +186,19 @@ private:
     /** 当前解析的XML文件路径
     */
     FilePath m_xmlFilePath;
+
+private:
+    /** 本次解析在窗口下添加的Class属性列表
+    */
+    std::vector<DString> m_windowClassList;
+
+    /** 本次解析在窗口下添加的TextColor属性列表
+    */
+    std::vector<DString> m_windowTextColorList;
+
+    /** 本次解析在全局属性中添加的FontId属性列表
+    */
+    std::vector<DString> m_globalFontIdList;
 };
 
 } // namespace ui

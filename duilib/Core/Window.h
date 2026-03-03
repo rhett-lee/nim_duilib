@@ -7,7 +7,6 @@
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/ControlPtrT.h"
 #include "duilib/Render/IRender.h"
-#include "duilib/Utils/Delegate.h"
 #include "duilib/Utils/FilePath.h"
 
 namespace ui
@@ -73,43 +72,6 @@ public:
     /** 获取父窗口
     */
     Window* GetParentWindow() const;
-
-    /** 界面是否完成首次显示
-    */
-    bool IsWindowFirstShown() const;
-
-    /** 监听窗口首次显示事件
-    * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
-    * @return 如果窗口已经完成第一次显示返回false，表示不会有回调函数；如果窗口未完成第一次显示，返回true
-    */
-    bool AttachWindowFirstShown(const EventCallback& callback);
-
-    /** 监听窗口创建并初始化完成事件
-    * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
-    */
-    void AttachWindowCreate(const EventCallback& callback);
-
-    /** 监听窗口关闭事件
-    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况, 参见enum WindowCloseParam
-    */
-    void AttachWindowClose(const EventCallback& callback);
-
-    /** 监听窗口获取焦点事件
-    * @param [in] callback 指定的回调函数
-    */
-    void AttachWindowSetFocus(const EventCallback& callback);
-
-    /** 监听窗口失去焦点事件
-    * @param [in] callback 指定的回调函数
-    */
-    void AttachWindowKillFocus(const EventCallback& callback);
-
-    /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
-    * @param [in] eventType 转化后的消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    */
-    bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
 
     /** 窗口关闭的时候，发送退出消息循环的请求
     * @param [in] bPostQuitMsg 如果为true，表示窗口关闭的时候，发送退出消息循环请求
@@ -290,8 +252,11 @@ public:
     */
     Control* FindControl(const UiPoint& pt) const;
 
-    /**
-    *  根据坐标查找可以响应WM_CONTEXTMENU的控件
+    /** 根据坐标查找支持ToolTip的控件
+    */
+    Control* FindToolTipControl(const UiPoint& pt) const;
+
+    /** 根据坐标查找可以响应WM_CONTEXTMENU的控件
     * @param [in] pt 指定坐标
     */
     Control* FindContextMenuControl(const UiPoint* pt) const;
@@ -303,7 +268,7 @@ public:
     Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
     /** 根据控件名称查找控件
-    * @param [in] strName 控件名称（注意：不区分大小写，历史原因）
+    * @param [in] strName 控件名称（注意：区分大小写）
     */
     Control* FindControl(const DString& strName) const;
 
@@ -315,7 +280,7 @@ public:
 
     /** 根据名字查找子控件
     * @param [in] pParent 要搜索的控件
-    * @param [in] strName 要查找的名称（注意：不区分大小写，历史原因）
+    * @param [in] strName 要查找的名称（注意：区分大小写）
     */
     Control* FindSubControlByName(Control* pParent, const DString& strName) const;
 
@@ -398,6 +363,11 @@ public:
     */
     UiColor GetTextColor(const DString& strName) const;
 
+    /** 删除指定名称的颜色属性
+    * @param [in] strName 要删除的颜色名称
+    */
+    void RemoveTextColor(const DString& strName);
+
     /** 添加一个选项组
     * @param [in] strGroupName 组名称
     * @param [in] pControl 控件指针
@@ -430,6 +400,11 @@ public:
     /** 获取绘制引擎对象
     */
     virtual IRender* GetRender() const override;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnFindControl(const UiPoint& pt) const override;
 
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
@@ -486,7 +461,7 @@ public:
      */
     void ApplyAttributeList(const DString& strList);
 
-    /** 设置是否允许拖放操作
+    /** 设置是否允许拖放操作（拖入文本和拖入文件操作）
     * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
     */
     void SetEnableDragDrop(bool bEnable);
@@ -494,6 +469,24 @@ public:
     /** 注销一个拖放接口
     */
     bool IsEnableDragDrop() const;
+
+public:
+    /** 设置全屏显示的控件，全屏显示控件以后，可以使用ExitFullscreen()函数退出全屏状态
+    * @param [in] pFullscreenControl 需要全屏显示的控件
+    * @param [in] exitButtonClass 退出全屏按钮的Class名称，如果为空则表示不支持显示"退出全屏"按钮
+    *             默认的退出全屏Class名称为"btn_exit_fullscreen"，在globlal.xml中定义
+    */
+    bool SetFullscreenControl(Control* pFullscreenControl,
+                              const DString& exitButtonClass = _T("btn_exit_fullscreen"));
+
+    /** 获取全屏显示的控件
+    * @return 返回全屏显示的控件接口，如果无全屏显示的控件返回nullptr
+    */
+    Control* GetFullscreenControl() const;
+
+    /** 退出控件的全屏显示状态，恢复到原来控件全屏前的状态
+    */
+    void ExitControlFullscreen();
 
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
@@ -507,6 +500,10 @@ protected:
     /** 完成初始化窗口数据
     */
     virtual void PostInitWindow() override;
+
+    /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化
+    */
+    virtual void OnInitLayout() override {};
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
@@ -544,11 +541,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() override;
+    virtual void OnWindowEnterFullscreen() override;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override;
+    virtual void OnWindowExitFullscreen() override;
 
     /** 窗口的DPI缩放比发生变化，更新控件大小和布局(供子类使用)
     * @param [in] nOldScaleFactor 旧的DPI缩放百分比
@@ -585,11 +582,6 @@ protected:
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
 
-    /** 获取指定坐标点的控件接口
-    * @param [in] pt 客户区坐标点
-    */
-    virtual Control* OnNativeFindControl(const UiPoint& pt) const override;
-
     /** @name 窗口消息处理相关
         * @{
     */
@@ -601,6 +593,47 @@ protected:
     * @return 返回消息的处理结果
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual void OnWindowCreateMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口关闭消息（WM_CLOSE）
+     * @param [in] wParam 消息的wParam参数
+     * @param [in] nativeMsg 从系统接收到的原始消息内容
+     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+     */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
+    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口绘制(SDL_EVENT_WINDOW_EXPOSED/WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    *             SDL实现：nativeMsg.uMsg值为SDL_EVENT_WINDOW_EXPOSED，nativeMsg.wParam的值为SDL_Window*指针
+    *             Windows实现：nativeMsg.uMsg值为WM_PAINT，nativeMsg.wParam的值为窗口的HWND句柄
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
@@ -618,22 +651,6 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口绘制(WM_SHOWWINDOW)
-    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口绘制(WM_PAINT)
-    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
@@ -855,22 +872,6 @@ protected:
     */
     virtual LRESULT OnCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
 
-    /** 窗口关闭消息（WM_CLOSE）
-    * @param [in] wParam 消息的wParam参数
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
-
-    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
-    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
-
     /** 窗口位置的贴边操作
     * @param [in] bLeftSnap 窗口左侧贴边
     * @param [in] bRightSnap 窗口右侧贴边
@@ -878,6 +879,19 @@ protected:
     * @param [in] bBottomSnap 窗口下侧贴边
     */
     virtual void OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override;
+
+    /** 窗口拖放相关的操作接口(接口参数是与实现方式相关的)
+    * @param [in] dropType 拖放操作的来源类型
+    * @param [in,out] pDropData 具体类型根据dropType判断：
+    *                 当dropType为kControlDropTypeWindows时（代表Windows平台SDK实现），pDropData的类型是ControlDropData_Windows*
+    *                 当dropType为kControlDropTypeSDL时（代表SDL实现），pDropData的类型是ControlDropData_SDL*
+    *                 pDropData->m_bHandled是消息处理标志，如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理，相当于截获此消息
+    *                 pDropData->m_hResult是消息处理后的返回值，最终返回给操作系统，Windows平台成功是返回S_OK
+    */
+    virtual void OnDropEnterMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropOverMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) override;
+    virtual void OnDropLeaveMsg() override;
 
     /** @}*/
 
@@ -899,6 +913,14 @@ private:
     * @param [in] nNewScaleFactor 新的DPI缩放百分比，与Dpi().GetDisplayScaleFactor()的值一致
     */
     virtual void OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override final;
+
+    /** 进入全屏状态
+    */
+    virtual void NotifyWindowEnterFullscreen() override final;
+
+    /** 退出全屏状态
+    */
+    virtual void NotifyWindowExitFullscreen() override final;
 
 private:
     //鼠标等按下消息处理函数
@@ -950,13 +972,12 @@ private:
     void ArrangeRoot();
 
     /** 清理窗口资源
-    * @param [in] bSendClose 是否发送关闭事件
     */
-    void ClearWindow(bool bSendClose);
+    void ClearWindow();
 
     /** 初始化布局
     */
-    void OnInitLayout();
+    void OnFirstLayout();
 
     /** 窗口显示或者隐藏
     */
@@ -984,15 +1005,48 @@ private:
     */
     void OnFocusControlChanged();
 
-private:
-    //事件回调管理器
-    EventMap m_OnEvent;
+    /** 获取阴影操作接口
+    */
+    Shadow* GetShadow() const;
 
+private:
+    /** 处理窗口最大化事件
+    */
+    void ProcessWindowMaximized();
+
+    /** 处理窗口还原事件
+    */
+    void ProcessWindowRestored();
+
+    /** 处理窗口进入全屏事件
+    */
+    void ProcessWindowEnterFullscreen();
+
+    /** 处理窗口退出全屏事件
+    */
+    void ProcessWindowExitFullscreen();
+
+    /** 处理全屏按钮的动态显示
+    */
+    void ProcessFullscreenButtonMouseMove(const UiPoint& pt);
+
+    /** 保存并设置全屏状态下的容器外边距
+    */
+    void SetWindowMaximizedMargin();
+
+    /** 恢复全屏状态下的容器外边距
+    */
+    void RestoreWindowMaximizedMargin();
+
+private:
     //焦点控件
     ControlPtr m_pFocus;
 
-    //鼠标在悬停控件
+    //鼠标所在的悬停控件
     ControlPtr m_pEventHover;
+
+    //鼠标所在的ToolTip控件
+    ControlPtr m_pEventToolTip;
 
     /** 点击的控件：
         在 WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK 赋值
@@ -1014,8 +1068,13 @@ private:
     */
     BoxPtr m_pRoot;
 
-    //窗口阴影
+    /** 窗口阴影
+    */
     std::unique_ptr<Shadow> m_shadow;
+
+    /** 当前是否处于控件全屏状态
+    */
+    bool m_bControlFullscreen;
 
 private:
     //透明通道修补范围的的九宫格描述
@@ -1024,11 +1083,11 @@ private:
     //布局是否变化，如果变化(true)则需要重新计算布局
     bool m_bIsArranged;
 
-    //布局是否需要初始化
+    //布局是否已经初始化
     bool m_bFirstLayout;
 
-    //界面是否完成首次显示
-    bool m_bWindowFirstShown;
+    //布局初始化回调函数是否已经调用
+    bool m_bInitLayout;
 
     //设置控件焦点时，是否同时设置窗口焦点
     bool m_bCheckSetWindowFocus;
@@ -1036,8 +1095,8 @@ private:
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 
-    //全屏状态下的外边距
-    UiMargin m_rcFullscreenMargin;
+    //窗口最大化状态下的外边距（Windows平台，窗口最大化时，窗口的区域是溢出屏幕区域的，所以需要增加外边距，避免窗口的内容也溢出屏幕）
+    UiMargin m_rcWindowMaximizedMargin;
 
     //绘制引擎
     std::unique_ptr<IRender> m_render;

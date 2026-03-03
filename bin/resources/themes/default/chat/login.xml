@@ -2,7 +2,7 @@
 <Window caption="0,0,0,160" use_system_caption="false" shadow_attached="false" layered_window="true" shadow_corner="20,70,20,20">
   <Box width="304" height="auto">
     <Box width="130" height="130" margin="0,10,0,0" halign="center">
-      <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse="false"/>
+      <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse_enabled="false"/>
     </Box>
     <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='bk_shadow.png' corner='30,30,30,30'">
       <VBox height="auto" bkcolor="bk_wnd_lightcolor" borderround="3,3,3,3">
@@ -45,10 +45,10 @@
       </VBox>
     </Box>
     <!--头像-->
-    <Box margin="0,10,0,0" mouse="false" width="130" height="130" halign="center">
+    <Box margin="0,10,0,0" mouse_enabled="false" width="130" height="130" halign="center">
       <Control width="auto" height="auto" halign="center" valign="center" bkimage="logo.png"/>
-      <Button name="headicon" width="106" height="106" borderround="106,106,106,106" halign="center" valign="center" mouse="false" fadealpha="true"/>
-      <Control width="auto" height="auto" bkimage="mask.png" halign="center" valign="center" mouse="false"/>
+      <Button name="headicon" width="106" height="106" border_round="106,106,106,106" halign="center" valign="center" mouse_enabled="false" fade_alpha="true"/>
+      <Control width="auto" height="auto" bkimage="mask.png" halign="center" valign="center" mouse_enabled="false"/>
     </Box>
   </Box>
 </Window>

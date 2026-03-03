@@ -4,6 +4,7 @@
 #include "duilib/Control/Label.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Box/VBox.h"
+#include "duilib/Core/GlobalManager.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
 

@@ -80,14 +80,9 @@ bool PlaceHolder::IsNameEquals(const DString& name) const
     return StringUtil::StringCompare(m_sName.c_str(), name.c_str()) == 0;
 }
 
-bool PlaceHolder::IsNameEqualsNoCase(const DString& name) const
+bool PlaceHolder::HasName() const
 {
-    return StringUtil::StringICompare(m_sName.c_str(), name.c_str()) == 0;
-}
-
-bool PlaceHolder::IsNameEqualsNoCase(const DString::value_type* pName) const
-{
-    return StringUtil::StringICompare(m_sName.c_str(), pName) == 0;
+    return !m_sName.empty();
 }
 
 void PlaceHolder::SetName(const DString& strName)
@@ -240,11 +235,6 @@ void PlaceHolder::SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale
     }
 }
 
-void PlaceHolder::SetFixedWidth64(int64_t cx64)
-{
-    SetFixedWidth(UiFixedInt(TruncateToInt32(cx64)), true, false);
-}
-
 void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale)
 {
     ASSERT(cy.IsValid());
@@ -266,11 +256,6 @@ void PlaceHolder::SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScal
             SetReEstimateSize(true);
         }
     }
-}
-
-void PlaceHolder::SetFixedHeight64(int64_t cy64)
-{
-    SetFixedHeight(UiFixedInt(TruncateToInt32(cy64)), true, true);
 }
 
 bool PlaceHolder::IsReEstimateSize(const UiSize& szAvailable) const
@@ -766,12 +751,12 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
     return scrollPos;
 }
 
-bool PlaceHolder::IsChild(const PlaceHolder* pAncestor, const PlaceHolder* pControl) const
+bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild)
 {
-    while (pControl && pControl != pAncestor) {
-        pControl = pControl->GetParent();
+    while ((pChild != nullptr) && (pChild != pAncestor)) {
+        pChild = pChild->GetParent();
     }
-    return pControl != nullptr;
+    return pChild != nullptr;
 }
 
 const DpiManager& PlaceHolder::Dpi() const

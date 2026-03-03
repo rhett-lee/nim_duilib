@@ -2,10 +2,8 @@
 #define UI_CONTROL_LIST_CTRL_DEFS_H_
 
 #include "duilib/Control/ListCtrlView.h"
-#include "duilib/Control/CheckBox.h"
-#include "duilib/Control/Label.h"
-#include "duilib/Control/RichEdit.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Control/ListCtrlLabel.h"
+#include "duilib/Control/ListCtrlIcon.h"
 
 namespace ui
 {
@@ -151,120 +149,6 @@ public:
     virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
 };
 
-/** 列表中使用的Label控件，用于显示文本，并提供文本编辑功能
-*/
-class ListCtrlLabel: public LabelTemplate<HBox>
-{
-    typedef LabelTemplate<HBox> BaseClass;
-public:
-    explicit ListCtrlLabel(Window* pWindow):
-        LabelTemplate<HBox>(pWindow)
-    {
-    }
-
-    /** 消息处理
-    */
-    virtual void HandleEvent(const EventArgs& msg) override
-    {
-        if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
-            //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
-            bool bButtonUpEvent = false;
-            if (IsEnabled() && IsMouseEnabled()) {
-                if (msg.eventType == kEventMouseButtonDown) {
-                    m_bMouseDown = false;
-                    if (GetWindow() != nullptr) {
-                        const Control* pFocus = GetWindow()->GetFocusControl();
-                        if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
-                            //避免每次点击都进入编辑模式
-                            m_bMouseDown = true;
-                        }
-                    }
-                }
-                else if (msg.eventType == kEventMouseButtonUp) {
-                    if (m_bMouseDown) {
-                        m_bMouseDown = false;
-                        bButtonUpEvent = true;
-                    }                    
-                }
-            }
-            Box* pParent = GetParent();
-            if (pParent != nullptr) {
-                pParent->SendEventMsg(msg);
-            }
-            if (bButtonUpEvent) {
-                //进入编辑状态
-                OnItemEnterEditMode();
-            }
-            return;
-        }
-        BaseClass::HandleEvent(msg);
-    }
-
-    /** 进入编辑状态
-    */
-    virtual void OnItemEnterEditMode()
-    {
-        SendEvent(kEventEnterEdit, (WPARAM)this);
-    }
-
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
-    {
-        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
-            return;
-        }
-        if (!m_textRect.IsZero()) {
-            m_textRect = Dpi().GetScaleRect(m_textRect, nOldDpiScale);
-        }
-        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-    }
-
-    /** 设置文本所在位置的矩形区域
-    */
-    void SetTextRect(const UiRect& rect)
-    {
-        m_textRect = rect;
-    }
-
-    /** 获取文本所在位置的矩形区域
-    */
-    UiRect GetTextRect() const
-    {
-        UiRect rect = m_textRect;
-        if (rect.IsZero()) {
-            rect = GetRect();
-            rect.Deflate(GetControlPadding());
-            rect.Deflate(GetTextPadding());
-        }        
-        return rect;
-    }
-
-    /** 设置关联的列表项
-    */
-    /** 关联的列表项
-    */
-    void SetListBoxItem(Control* pListBoxItem)
-    {
-        m_pListBoxItem = pListBoxItem;
-    }
-
-private:
-    /** 是否鼠标点击在控件范围内
-    */
-    bool m_bMouseDown = false;
-
-    /** 关联的列表项
-    */
-    Control* m_pListBoxItem = nullptr;
-
-    /** 文本所在位置的矩形区域
-    */
-    UiRect m_textRect;
-};
-
 /** 编辑状态的输入参数
 */
 struct ListCtrlEditParam
@@ -280,95 +164,8 @@ struct ListCtrlEditParam
     bool bCancelled = false;    //是否取消操作，如果设置为true，则取消编辑操作
 };
 
-/** 列表中使用的CheckBox
-*/
-class ListCtrlCheckBox: public CheckBox
-{
-    typedef CheckBox BaseClass;
-public:
-    explicit ListCtrlCheckBox(Window* pWindow):
-        CheckBox(pWindow)
-    {
-        //CheckBox本身不接收键盘消息
-        SetKeyboardEnabled(false);
-    }
-
-    /** 获取控件类型和设置属性
-    */
-    virtual DString GetType() const override { return _T("ListCtrlCheckBox"); }
-    virtual void SetAttribute(const DString& strName, const DString& strValue) override
-    {
-        if (strName == _T("check_box_width")) {
-            SetCheckBoxWidth(StringUtil::StringToInt32(strValue), true);
-        }
-        else {
-            BaseClass::SetAttribute(strName, strValue);
-        }
-    }
-
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override
-    {
-        if (!Dpi().CheckDisplayScaleFactor(nNewDpiScale)) {
-            return;
-        }
-        if (m_nCheckBoxWidth > 0) {
-            int32_t iValue = Dpi().GetScaleInt(m_nCheckBoxWidth, nOldDpiScale);
-            SetCheckBoxWidth(iValue, false);
-        }
-
-        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-    }
-
-    /** 设置CheckBox所占的宽度值
-    */
-    void SetCheckBoxWidth(int32_t nWidth, bool bNeedDpiScale)
-    {
-        if (bNeedDpiScale) {
-            Dpi().ScaleInt(nWidth);
-        }
-        if (nWidth < 0) {
-            nWidth = 0;
-        }
-        m_nCheckBoxWidth = nWidth;
-    }
-
-    /** 获取CheckBox所占的宽度值
-    */
-    int32_t GetCheckBoxWidth()
-    {
-        if (m_nCheckBoxWidth > 0) {
-            return m_nCheckBoxWidth;
-        }
-        //如果没设置，查询图片的大小，并记住
-        UiEstSize sz;
-        if (GetWindow() != nullptr) {
-            sz = EstimateSize(UiSize(0, 0));
-        }
-        int32_t nWidth = sz.cx.GetInt32();
-        if (nWidth > 0) {
-            UiMargin rcMargin = GetMargin();
-            UiPadding rcPadding = GetPadding();
-            nWidth += rcMargin.left + rcMargin.right;
-            nWidth += rcPadding.left + rcPadding.right;
-            m_nCheckBoxWidth = nWidth;
-
-            m_nCheckBoxWidth += Dpi().GetScaleInt(2);
-        }
-        return m_nCheckBoxWidth;
-    }
-
-private:
-    /** 显示CheckBox所占的宽度，用于设置父控件的Padding值
-    */
-    int32_t m_nCheckBoxWidth = 0;
-};
-
 /** Icon视图的列表项类型(垂直布局)
-*   基本结构：<ListCtrlIconViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   基本结构：<ListCtrlIconViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrl;
@@ -396,6 +193,52 @@ public:
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
 
+public:
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const { return GetElementIndex(); }
+
+    /** 获取图标控件的接口
+    */
+    ListCtrlIcon* GetListCtrlIcon() const { return dynamic_cast<ListCtrlIcon*>(GetItemAt(0)); }
+
+    /** 获取文字控件的接口
+    */
+    ListCtrlLabel* GetListCtrlLabel() const { return dynamic_cast<ListCtrlLabel*>(GetItemAt(1)); }
+
+    /** 获取文字控件内的文本
+    */
+    DString GetLabelText() const
+    {
+        ListCtrlLabel* pLabel = GetListCtrlLabel();
+        if (pLabel != nullptr) {
+            return pLabel->GetText();
+        }
+        return DString();
+    }
+
+    /** 获取鼠标所在位置的子控件
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    Control* GetSubItem(const UiPoint& ptMouse) const
+    {
+        UiPoint pt(ptMouse);
+        pt.Offset(GetScrollOffsetInScrollBox());
+        Control* pFoundSubItem = nullptr;
+        size_t nItemCount = GetItemCount();
+        for (size_t index = 0; index < nItemCount; ++index) {
+            Control* pSubItem = GetItemAt(index);
+            if (pSubItem != nullptr) {
+                if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
+                    pFoundSubItem = pSubItem;
+                    break;
+                }
+            }
+        }
+        return pFoundSubItem;
+    }
+
 private:
     /** 关联的ListCtrl接口
     */
@@ -403,7 +246,7 @@ private:
 };
 
 /** List视图的列表项类型(水平布局)
-*   基本结构：<ListCtrlListViewItem> <Control/><ListCtrlLabel/> </ListCtrlListViewItem>
+*   基本结构：<ListCtrlListViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrlListViewItem : public ListCtrlItemBaseH
@@ -429,6 +272,52 @@ public:
     /** 获取关联的ListCtrl接口
     */
     ListCtrl* GetListCtrl() const { return m_pListCtrl; }
+
+public:
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const { return GetElementIndex(); }
+
+    /** 获取图标控件的接口
+    */
+    ListCtrlIcon* GetListCtrlIcon() const { return dynamic_cast<ListCtrlIcon*>(GetItemAt(0)); }
+
+    /** 获取文字控件的接口
+    */
+    ListCtrlLabel* GetListCtrlLabel() const { return dynamic_cast<ListCtrlLabel*>(GetItemAt(1)); }
+
+    /** 获取文字控件内的文本
+    */
+    DString GetLabelText() const
+    {
+        ListCtrlLabel* pLabel = GetListCtrlLabel();
+        if (pLabel != nullptr) {
+            return pLabel->GetText();
+        }
+        return DString();
+    }
+
+    /** 获取鼠标所在位置的子控件
+    * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点
+    */
+    Control* GetSubItem(const UiPoint& ptMouse) const
+    {
+        UiPoint pt(ptMouse);
+        pt.Offset(GetScrollOffsetInScrollBox());
+        Control* pFoundSubItem = nullptr;
+        size_t nItemCount = GetItemCount();
+        for (size_t index = 0; index < nItemCount; ++index) {
+            Control* pSubItem = GetItemAt(index);
+            if (pSubItem != nullptr) {
+                if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
+                    pFoundSubItem = pSubItem;
+                    break;
+                }
+            }
+        }
+        return pFoundSubItem;
+    }
 
 private:
     /** 关联的ListCtrl接口

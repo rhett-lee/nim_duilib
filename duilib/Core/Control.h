@@ -4,9 +4,8 @@
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Utils/Delegate.h"
-#include <map>
-#include <memory>
+#include "duilib/Core/EventArgs.h"
+#include "duilib/Animation/EasingFunctions.h"
 
 namespace ui 
 {
@@ -18,6 +17,7 @@ namespace ui
     class StateColorMap2;
     class StateImageMap;
     class AnimationManager;
+    class AnimationPlayer;
     class IRender;
     class IPath;
     class IFont;
@@ -511,7 +511,7 @@ public:
                                  const UiPoint& scrollPos = UiPoint());
 
     /** 根据名字查找控件, 查找范围：当前控件/容器，如果本身是容器，则在容器自身和子控件内查找
-    * @param [in] name 控件的名称（注意：不区分大小写，历史原因）
+    * @param [in] name 控件的名称（区分大小写）
     */
     Control* FindControl(const DString& name);
 
@@ -564,6 +564,14 @@ public:
      * @param [in] lParam 产生事件时的参数2
      */
     void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+
+    /** 控件的消息处理入口，将消息转换为自定义格式的消息
+     * @param [in] eventType 消息类型
+     * @param [in] wParam 产生事件时的参数1
+     * @param [in] lParam 产生事件时的参数2
+     * @param [in] pEventData 产生事件时的指针参数
+     */
+    void SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, void* pEventData);
 
     /** 控件的消息处理入口，将消息转换为自定义格式的消息
      * @param [in] eventType 消息类型
@@ -650,28 +658,29 @@ public:
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
 
     /** 设置控件透明度
-     * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
+     * @param [in] nAlpha 0 ~ 255 的透明度值，255 为不透明
      */
-    void SetAlpha(int64_t alpha);
+    void SetAlpha(uint8_t nAlpha);
 
-    /**
-     * @brief 获取控件透明度
+    /** 获取控件透明度
      * @return 返回控件的透明度
      */
-    int32_t GetAlpha() const { return m_nAlpha;    }
+    uint8_t GetAlpha() const { return m_nAlpha; }
 
-    /**
-     * @brief 检查控件是否有透明属性
+    /** 检查控件是否有透明属性
      * @return 返回控件是否透明，true 控件当前有透明属性，false 控件没有透明属性
      */
     bool IsAlpha() const { return m_nAlpha != 255; }
 
-    /**
-     * @brief 设置焦点状态透明度
-     * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
-     * @return 无
+    /** 设置焦点状态透明度
+     * @param [in] alpha 0 ~ 255 的透明度值，255 为不透明
      */
-    void SetHotAlpha(int64_t nHotAlpha);
+    void SetHotAlpha(uint8_t nHotAlpha);
+
+    /** 获取焦点状态透明度
+     * @return 返回控件焦点状态的透明度
+     */
+    uint8_t GetHotAlpha() const { return m_nHotAlpha; }
 
     /**
      * @brief 设置是否接受TAB键切换焦点
@@ -686,14 +695,7 @@ public:
      */
     bool IsAllowTabStop() const { return m_bAllowTabstop; }
 
-    /**
-     * @brief 获取焦点状态透明度
-     * @return 返回控件焦点状态的透明度
-     */
-    int32_t GetHotAlpha() const { return m_nHotAlpha; }
-
-    /**
-     * @brief 获取控件绘制偏移量
+    /** 获取控件绘制偏移量(其值已完成DPI缩放)
      * @return 返回当前控件的绘制偏移量
      */
     UiPoint GetRenderOffset() const;
@@ -705,14 +707,14 @@ public:
     void SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale);
 
     /** 设置控件偏移的 X 坐标
-     * @param[in] renderOffsetX X 坐标值
+     * @param [in] renderOffsetX X 坐标值(其值已完成DPI缩放)
      */
-    void SetRenderOffsetX(int64_t renderOffsetX);
+    void SetRenderOffsetX(int32_t renderOffsetX);
 
     /** 设置控件偏移的 Y 坐标
-     * @param[in] renderOffsetY Y 坐标值
+     * @param [in] renderOffsetY Y 坐标值(其值已完成DPI缩放)
      */
-    void SetRenderOffsetY(int64_t renderOffsetY);
+    void SetRenderOffsetY(int32_t renderOffsetY);
 
 public:
     /// Loading状态管理
@@ -740,19 +742,22 @@ public:
     Box* GetLoadingUiRootBox() const;
 
     /** 监听loading开始的通知
-     * @param[in] callback 监听事件的回调函数
+     * @param [in] callback 监听事件的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachLoadingStart(const EventCallback& callback) { AttachEvent(kEventLoadingStart, callback); }
+    void AttachLoadingStart(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventLoadingStart, callback, callbackID); }
 
     /** 监听loading回调的通知
      * @param[in] callback 监听事件的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachLoading(const EventCallback& callback) { AttachEvent(kEventLoading, callback); }
+    void AttachLoading(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventLoading, callback, callbackID); }
 
     /** 监听loading结束的通知
-     * @param[in] callback 监听事件的回调函数
+     * @param [in] callback 监听事件的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachLoadingStop(const EventCallback& callback) { AttachEvent(kEventLoadingStop, callback); }
+    void AttachLoadingStop(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventLoadingStop, callback, callbackID); }
 
 public:
     /// 动画图片
@@ -802,21 +807,65 @@ public:
     bool IsImageAnimationLoaded(const DString& imageName) const;
 
     /** 监听动画播放开始通知(所有图片动画)
-     * @param[in] callback 要监听动画停止播放的回调函数
+     * @param [in] callback 要监听动画停止播放的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachImageAnimationStart(const EventCallback& callback) { AttachEvent(kEventImageAnimationStart, callback); }
+    void AttachImageAnimationStart(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageAnimationStart, callback, callbackID); }
 
     /** 监听动画播放图片帧的通知(所有图片动画)
-     * @param[in] callback 要监听动画停止播放的回调函数
+     * @param [in] callback 要监听动画停止播放的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachImageAnimationPlayFrame(const EventCallback& callback) { AttachEvent(kEventImageAnimationPlayFrame, callback); }
+    void AttachImageAnimationPlayFrame(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageAnimationPlayFrame, callback, callbackID); }
 
     /** 监听动画播放停止通知(所有图片动画)
-     * @param[in] callback 要监听动画停止播放的回调函数
+     * @param [in] callback 要监听动画停止播放的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachImageAnimationStop(const EventCallback& callback) { AttachEvent(kEventImageAnimationStop, callback); }
+    void AttachImageAnimationStop(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageAnimationStop, callback, callbackID); }
 
 public:
+    /// 控件动画相关接口
+
+    /** 设置或清除Hot状态的播放动画（对应动画类型为：kAnimationHot）
+    * @param [in] bFadeHot true表示设置动画，false表示清除动画
+    */
+    void SetFadeHot(bool bFadeHot);
+
+    /** 设置播放Hot状态动画的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    * @param [in] frameIntervalMillSeconds 播放动画的定时器时间间隔（毫秒）
+    */
+    void SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds);
+
+    /** 获取Hot状态动画播放的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    */
+    int32_t GetFadeHotFrameIntervalMillSeconds() const;
+
+    /** 设置Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    * @param [in] totalMillSeconds 动画总的播放时间（毫秒）
+    */
+    void SetFadeHotTotalMillSeconds(int32_t totalMillSeconds);
+
+    /** 获取Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    */
+    int32_t GetFadeHotTotalMillSeconds() const;
+
+    /** 设置Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    */
+    void SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType);
+
+    /** 获取Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    */
+    EasingFunctionType GetFadeHotEasingFunctionType() const;
+
+    /** 判断是否包含指定类型的动画播放接口
+    */
+    bool HasAnimationPlayer(AnimationType animationType) const;
+
+    /** 判断指定类型的控件动画是否正在播放中
+    */
+    bool IsAnimationPlayerPlaying(AnimationType animationType) const;
+
     /** 获取控件动画管理器接口(控件动画)
      */
     AnimationManager& GetAnimationManager();
@@ -838,6 +887,13 @@ public:
     virtual void ClearImageCache();
 
 public:
+    /** 计算鼠标在某个控件上的相对位置（相对于控件左上角）
+     * @param [in] ptMouse 当前鼠标的位置，客户区坐标
+     * @param [out] ptLayoutPos 返回鼠标在客户区内的相对坐标，相对于当前控件的左上角坐标值
+     * @return true表示鼠标在控件范围内，false表示鼠标不在控件范围内
+     */
+    bool MousePosToLayoutPos(const UiPoint& ptMouse, UiPoint& ptLayoutPos);
+
     /** 屏幕坐标转换为客户区坐标
     */
     virtual bool ScreenToClient(UiPoint& pt);
@@ -858,139 +914,166 @@ public:
 
 public:
     /** 监听控件所有事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachAllEvents(const EventCallback& callback)    { AttachEvent(kEventAll, callback); }
+    void AttachAllEvents(const EventCallback& callback, EventCallbackID callbackID = 0)    { AttachEvent(kEventAll, callback, callbackID); }
 
     /** 监听鼠标进入事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachMouseEnter(const EventCallback& callback) { AttachEvent(kEventMouseEnter, callback); }
+    void AttachMouseEnter(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseEnter, callback, callbackID); }
 
     /** 监听鼠标离开事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachMouseLeave(const EventCallback& callback) { AttachEvent(kEventMouseLeave, callback); }
+    void AttachMouseLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseLeave, callback, callbackID); }
 
     /** 监听鼠标悬浮事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachMouseHover(const EventCallback& callback) { AttachEvent(kEventMouseHover, callback); }
+    void AttachMouseHover(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseHover, callback, callbackID); }
 
     /** 监听鼠标移动事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachMouseMove(const EventCallback& callback) { AttachEvent(kEventMouseMove, callback); }
+    void AttachMouseMove(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseMove, callback, callbackID); }
 
     /** 监听鼠标按下事件(左键)
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseButtonDown, callback); }
+    void AttachButtonDown(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseButtonDown, callback, callbackID); }
 
     /** 监听鼠标弹起事件(左键)
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseButtonUp, callback); }
+    void AttachButtonUp(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseButtonUp, callback, callbackID); }
 
     /** 监听鼠标按下事件(右键)
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachRButtonDown(const EventCallback& callback) { AttachEvent(kEventMouseRButtonDown, callback); }
+    void AttachRButtonDown(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseRButtonDown, callback, callbackID); }
 
     /** 监听鼠标弹起事件(右键)
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachRButtonUp(const EventCallback& callback) { AttachEvent(kEventMouseRButtonUp, callback); }
+    void AttachRButtonUp(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseRButtonUp, callback, callbackID); }
 
     /** 监听获得焦点事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSetFocus(const EventCallback& callback) { AttachEvent(kEventSetFocus, callback); }
+    void AttachSetFocus(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSetFocus, callback, callbackID); }
 
     /** 监听失去焦点事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachKillFocus(const EventCallback& callback) { AttachEvent(kEventKillFocus, callback); }
+    void AttachKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventKillFocus, callback, callbackID); }
 
     /** 监听窗口失去焦点事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachWindowKillFocus(const EventCallback& callback) { AttachEvent(kEventWindowKillFocus, callback); }
+    void AttachWindowKillFocus(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowKillFocus, callback, callbackID); }
 
     /** 监听右键菜单事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachContextMenu(const EventCallback& callback) { AttachEvent(kEventContextMenu, callback); }
+    void AttachContextMenu(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventContextMenu, callback, callbackID); }
 
     /** 监听控件位置改变事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachPosChanged(const EventCallback& callback) { AttachEvent(kEventPosChanged, callback); }
+    void AttachPosChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventPosChanged, callback, callbackID); }
 
     /** 监听控件大小改变事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachSizeChanged(const EventCallback& callback) { AttachEvent(kEventSizeChanged, callback); }
+    void AttachSizeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventSizeChanged, callback, callbackID); }
 
     /** 监听双击事件
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachDoubleClick(const EventCallback& callback) { AttachEvent(kEventMouseDoubleClick, callback); }
+    void AttachDoubleClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventMouseDoubleClick, callback, callbackID); }
 
     /** 绑定鼠标点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback); }
+    void AttachClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventClick, callback, callbackID); }
 
     /** 绑定鼠标右键点击处理函数
-    * @param[in] callback 要绑定的回调函数
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachRClick(const EventCallback& callback) { AttachEvent(kEventRClick, callback); }
+    void AttachRClick(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventRClick, callback, callbackID); }
 
     /** 监听控件显示或隐藏事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachVisibleChanged(const EventCallback& callback) { AttachEvent(kEventVisibleChanged, callback); }
+    void AttachVisibleChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventVisibleChanged, callback, callbackID); }
 
     /** 监听控件状态变化事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachStateChanged(const EventCallback& callback) { AttachEvent(kEventStateChanged, callback); }
+    void AttachStateChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventStateChanged, callback, callbackID); }
 
     /** 监听控件拖放进入事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachDropEnter(const EventCallback& callback) { AttachEvent(kEventDropEnter, callback); }
+    void AttachDropEnter(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDropEnter, callback, callbackID); }
 
     /** 监听控件拖放移动事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachDropOver(const EventCallback& callback) { AttachEvent(kEventDropOver, callback); }
+    void AttachDropOver(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDropOver, callback, callbackID); }
 
     /** 监听控件拖放离开事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachDropLeave(const EventCallback& callback) { AttachEvent(kEventDropLeave, callback); }
+    void AttachDropLeave(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDropLeave, callback, callbackID); }
 
     /** 监听控件拖放数据事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachDropData(const EventCallback& callback) { AttachEvent(kEventDropData, callback); }
+    void AttachDropData(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDropData, callback, callbackID); }
 
     /** 监听控件图片加载完成事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachImageLoad(const EventCallback& callback) { AttachEvent(kEventImageLoad, callback); }
+    void AttachImageLoad(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageLoad, callback, callbackID); }
 
     /** 监听控件图片解码完成事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachImageDecode(const EventCallback& callback) { AttachEvent(kEventImageDecode, callback); }
+    void AttachImageDecode(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventImageDecode, callback, callbackID); }
 
     /** 监听控件销毁事件
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachDestroy(const EventCallback& callback) { AttachEvent(kEventDestroy, callback); }
+    void AttachDestroy(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDestroy, callback, callbackID); }
     bool HasDestroyEventCallback() const;
 
 public:
@@ -1062,7 +1145,7 @@ public:
     */
     virtual void SetEnableDragDrop(bool bEnable);
 
-    /** 判断是否已经允许拖放功能
+    /** 判断是否已经允许拖放功能（拖入文本和拖入文件）
     */
     virtual bool IsEnableDragDrop() const;
 
@@ -1098,55 +1181,123 @@ public:
     * @{
     */
 
-    /**@brief (m_pOnEvent)监听指定事件
-     * @param[in] type 事件类型，见 EventType 枚举
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    /** (m_pOnEvent)监听指定事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void AttachEvent(EventType type, const EventCallback& callback);
+    void AttachEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID);
 
-    /**@brief (m_pOnEvent)取消监听指定事件
-     * @param[in] type 事件类型，见 EventType 枚举
+    /** (m_pOnEvent)取消监听指定事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
      */
-    void DetachEvent(EventType type);
+    void DetachEvent(EventType eventType);
+    void DetachEventByID(EventCallbackID callbackID);
+    void DetachEventByID(EventType eventType, EventCallbackID callbackID);
 
-    /**@brief (m_pOnXmlEvent)通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-     * @param[in] type 事件类型，见 EventType 枚举
-     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    /** (m_pOnEvent)是否含有指定事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
      */
-    void AttachXmlEvent(EventType eventType, const EventCallback& callback);
+    bool HasEvent(EventType eventType) const;
+    bool HasEventByID(EventCallbackID callbackID) const;
+    bool HasEventByID(EventType eventType, EventCallbackID callbackID) const;
 
-    /**@brief (m_pOnXmlEvent)取消监听指定事件
-     * @param[in] type 事件类型，见 EventType 枚举
+public:
+    /** (m_pOnXmlEvent)通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
-    void DetachXmlEvent(EventType type);
+    void AttachXmlEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID);
 
-    /**@brief (m_pOnBubbledEvent)绑定事件处理函数
-     * @param[in] eventType 事件类型
-     * @param[in] callback 指定回调函数
+    /** (m_pOnXmlEvent)取消监听指定事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
      */
-    void AttachBubbledEvent(EventType eventType, const EventCallback& callback);
+    void DetachXmlEvent(EventType eventType);
+    void DetachXmlEventByID(EventCallbackID callbackID);
+    void DetachXmlEventByID(EventType eventType, EventCallbackID callbackID);
 
-    /**@brief (m_pOnBubbledEvent)解绑事件处理函数
-     * @param[in] eventType 事件类型
+    /** (m_pOnXmlEvent)是否含有指定事件
+     * @param [in] eventType 事件类型，见 EventType 枚举
+     * @param [in] callbackID 该回调函数对应的ID
+     */
+    bool HasXmlEvent(EventType eventType) const;
+    bool HasXmlEventByID(EventCallbackID callbackID) const;
+    bool HasXmlEventByID(EventType eventType, EventCallbackID callbackID) const;
+
+public:
+    /** (m_pOnBubbledEvent)绑定事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callback 指定回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID);
+
+    /** (m_pOnBubbledEvent)解绑事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachBubbledEvent(EventType eventType);
+    void DetachBubbledEventByID(EventCallbackID callbackID);
+    void DetachBubbledEventByID(EventType eventType, EventCallbackID callbackID);
 
-    /** @brief 绑定 XML 中编写的 Event 和 BubbleEvent 事件的处理函数
-     * @param[in] eventType 事件类型
-     * @param[in] callback 指定回调函数
+    /** (m_pOnBubbledEvent)是否含有指定类型的事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
      */
-    void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback);
+    bool HasBubbledEvent(EventType eventType) const;
+    bool HasBubbledEventByID(EventCallbackID callbackID) const;
+    bool HasBubbledEventByID(EventType eventType, EventCallbackID callbackID) const;
 
-    /** @brief 解绑XML事件处理函数
-     * @param[in] eventType 事件类型
+public:
+    /** 绑定 XML 中编写的 Event 和 BubbleEvent 事件的处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callback 指定回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     */
+    void AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID);
+
+    /** 解绑XML事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
      */
     void DetachXmlBubbledEvent(EventType eventType);
+    void DetachXmlBubbledEventByID(EventCallbackID callbackID);
+    void DetachXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID);
 
-    /** 触发事件，向所有容器的监听者发送事件（m_pOnEvent，m_pOnXmlEvent，m_pOnBubbledEvent， m_pOnXmlBubbledEvent）
-    * @param [in] msg 消息内容
-    * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
-    */
+    /** 是否含有指定的事件处理函数
+     * @param [in] eventType 事件类型
+     * @param [in] callbackID 该回调函数对应的ID
+     */
+    bool HasXmlBubbledEvent(EventType eventType) const;
+    bool HasXmlBubbledEventByID(EventCallbackID callbackID) const;
+    bool HasXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID) const;
+
+public:
+    /** 触发所有事件，向所有容器的监听者发送事件（m_pOnEvent, m_pOnXmlEvent, m_pOnBubbledEvent, m_pOnXmlBubbledEvent）
+     *   对于m_pOnEvent，m_pOnXmlEvent容器中注册的事件：需要校验GetSender()是否为this, 如果不是this，则不触发事件
+     *   对于m_pOnBubbledEvent, m_pOnXmlBubbledEvent容器中注册的事件：不校验GetSender()是否为this, 直接触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
     bool FireAllEvents(const EventArgs& msg);
+
+    /** 触发普通事件，向以下容器的监听者发送事件（m_pOnEvent, m_pOnXmlEventt）
+     *  对于m_pOnEvent，m_pOnXmlEvent容器中注册的事件：需要校验GetSender()是否为this, 如果不是this，则不触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
+    bool FireNormalEvents(const EventArgs& msg);
+
+    /** 触发Bubbled事件，向以下容器的监听者发送事件（m_pOnBubbledEvent, m_pOnXmlBubbledEvent）
+     *   对于m_pOnBubbledEvent, m_pOnXmlBubbledEvent容器中注册的事件：不校验GetSender()是否为this, 直接触发事件
+     * @param [in] msg 消息内容
+     * @return 如果所有监听者回调函数返回true，则该函数返回true；否则返回false
+     */
+    bool FireBubbledEvents(const EventArgs& msg);
 
     /** 判断是否含有某个类型的事件回调函数(包含所有类型的事件，只要Attach过eventType这个类型就返回true)
     */
@@ -1331,6 +1482,15 @@ protected:
     */
     void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
                         float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
+
+    /** 设置直角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
+
+    /** 设置圆角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
+
 private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
     */
@@ -1350,11 +1510,6 @@ private:
     /** 填充圆角矩形
     */
     void FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry, UiColor dwColor) const;
-  
-    /** 填充路径, 形成圆角矩形
-    */
-    void AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const;
-    void AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const;
 
     /** 当前控件是否为窗口的Root节点
     */
@@ -1367,14 +1522,6 @@ private:
     /** 判断是否需要采用圆角矩形绘制边框
     */
     bool ShouldBeRoundRectBorders() const;
-
-    /** 设置直角的剪辑区域
-    */
-    std::unique_ptr<AutoClip> CreateRectClip(IRender* pRender, const UiRect& rc, bool bClip) const;
-
-    /** 设置圆角的剪辑区域
-    */
-    std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
 
 public:
     /** 判断是否需要采用圆角矩形填充背景色
@@ -1454,6 +1601,11 @@ private:
     */
     std::unique_ptr<IRender> CreateTempRender() const;
 
+    /** 校验事件类型是否有效、是否匹配
+    * @return 返回true表示校验通过，返回false表示校验未通过
+    */
+    bool CheckEventType(const EventArgs& msg, EventType eventType) const;
+
 private:
     /** 获取AttachXXX接口的监听事件管理器
     */
@@ -1474,6 +1626,11 @@ private:
     */
     EventMap& GetXmlBubbledEventMap();
     bool HasXmlBubbledEventMap() const;
+
+private:
+    /** 获取Hot动画的播放接口
+    */
+    AnimationPlayer* GetHotAnimationPlayer() const;
 
 private:
     /** 图片异步解码的实现函数
@@ -1664,6 +1821,10 @@ private:
     */
     std::unique_ptr<TOtherData> m_pOtherData;
 
+    /** Hot动画的播放接口
+    */
+    std::unique_ptr<AnimationPlayer> m_pHotAnimationPlayer;
+
     /** 控件的绘制区域
     */
     UiRect m_rcPaint;
@@ -1714,6 +1875,9 @@ private:
 
     //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
     bool m_bBordersOnTop;
+
+    //是否处于MouseEnter状态（用于触发事件的标志）
+    bool m_bMouseEnter;
 };
 
 } // namespace ui

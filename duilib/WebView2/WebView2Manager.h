@@ -101,6 +101,23 @@ public:
     bool AreDevToolsEnabled() const;
 
 public:
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
+
+    /** 设置是否允许F11快捷键(全屏/退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(页面全屏/退出页面全屏)
+    */
+    bool IsEnableF11() const;
+
+private:
     /** WebView2模块所在目录
     */
     DString m_browserExecutableFolder;
@@ -144,6 +161,14 @@ public:
     /** 是否启用开发者工具
     */
     bool m_bAreDevToolsEnabled;
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool m_bEnableF12;
+
+    /** 是否允许F11快捷键(页面全屏 / 退出页面全屏)
+    */
+    bool m_bEnableF11;
 };
 
 } //namespace ui

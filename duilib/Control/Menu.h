@@ -57,7 +57,7 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 /** 选择菜单项的回调函数原型: 在菜单消失后，用于获取用户点击了哪个菜单项(鼠标点击或者键盘回车激活)
 * @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
 * @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
-* @param [in] itemName 菜单项的名称(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] itemName 菜单项的名称，相当于命令ID(即XML里面的的name属性，这代表菜单项的ID)
 * @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
 */
 typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
@@ -66,6 +66,7 @@ typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
 /** 菜单类
 */
 class MenuItem;
+class MenuBar;
 class Menu : public WindowImplBase, public ContextMenuReceiver
 {
     typedef WindowImplBase BaseClass;
@@ -73,8 +74,11 @@ public:
     /** 构造函数，初始化菜单的父窗口句柄
     * @param [in] pParentWindow 菜单的父窗口
     * @param [in] pRelatedControl 菜单的关联控件，菜单弹出时，设置关联控件的状态为Pushed
+    * @param [in] pMenuBar 关联的菜单栏控件接口
     */
-    explicit Menu(Window* pParentWindow, Control* pRelatedControl = nullptr);
+    explicit Menu(Window* pParentWindow,
+                  Control* pRelatedControl = nullptr,
+                  MenuBar* pMenuBar = nullptr);
 
     /** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
     *   XML文件中的资源（图片、XML等），均在这个文件夹中查找
@@ -90,7 +94,7 @@ public:
     /** 初始化菜单配置，并且显示菜单
     *   返回后，可以通过FindControl函数来找到菜单项，进行后续操作
     * @param [in] xml 菜单XML资源文件名，内部会与GetSkinFolder()拼接成完整路径
-    * @param [in] point 菜单弹出位置
+    * @param [in] point 菜单弹出位置, 屏幕坐标
     * @param [in] popupPosType 菜单弹出位置类型
     * @param [in] noFocus 菜单弹出后，不激活窗口，避免抢焦点
     * @Param [in] pOwner 父菜单的接口，如果这个值不是nullptr，则这个菜单是多级菜单模式
@@ -110,6 +114,10 @@ public:
     */
     void AttachMenuItemActivated(MenuItemActivatedEvent callback);
 
+    /** 清空所有回调函数
+    */
+    void ClearMenuItemActivated();
+
 public:
     //添加子菜单项
     bool AddMenuItem(MenuItem* pMenuItem);
@@ -125,6 +133,9 @@ public:
     //获取菜单项接口
     MenuItem* GetMenuItemAt(size_t iIndex) const;
     MenuItem* GetMenuItemByName(const DString& name) const;
+
+    //获取菜单关联的控件
+    Control* GetRelatedControl() const;
 
 private:
     friend MenuItem; //需要访问部分私有成员函数
@@ -225,6 +236,9 @@ private:
 
     //关联的控件
     ControlPtrT<Control> m_pRelatedControl;
+
+    //关联的菜单栏控件接口
+    ControlPtrT<MenuBar> m_pMenuBar;
 
 private:
     //菜单项激活回调函数

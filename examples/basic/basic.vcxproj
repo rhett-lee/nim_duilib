@@ -168,14 +168,14 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BasicForm.h" />
+    <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BasicForm.cpp" />
+    <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />

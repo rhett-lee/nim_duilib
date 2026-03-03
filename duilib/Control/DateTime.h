@@ -131,8 +131,10 @@ public:
     DString GetSpinClass() const;
 
     /** 添加日期时间值变化监听事件
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
     */
-    void AttachTimeChanged(const EventCallback& callback) { AttachEvent(kEventValueChanged, callback); }
+    void AttachTimeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
 
 public:
     //基类的虚函数

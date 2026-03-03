@@ -12,7 +12,9 @@ EventArgs::EventArgs() :
     lParam(0),
     pSender(nullptr),
     modifierKey(0),
-    eventData(0)
+    eventData(0),
+    pEventData(nullptr),
+    listCtrlType(-1)
 {
     ptMouse.x = 0;
     ptMouse.y = 0;
@@ -40,12 +42,14 @@ Control* EventArgs::GetSender() const
     }
 }
 
+void EventArgs::SetSenderWeakFlag(std::weak_ptr<WeakFlag> senderFlag)
+{
+    m_senderFlag = senderFlag;
+}
+
 bool EventArgs::IsSenderExpired() const
 {
-    if (pSender != nullptr) {
-        return m_senderFlag.expired();
-    }
-    return false;
+    return m_senderFlag.expired();
 }
 
 //EventType 与 String 相互转换的数据结构
@@ -95,11 +99,11 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventImeEndComposition, _T("kEventImeEndComposition"), _T("ImeEndComposition"), _T("ime_end_composition")},
         {kEventWindowSetFocus, _T("kEventWindowSetFocus"), _T("WindowSetFocus"), _T("window_set_focus")},
         {kEventWindowKillFocus, _T("kEventWindowKillFocus"), _T("WindowKillFocus"), _T("window_kill_focus")},
+        {kEventWindowPosChanged, _T("kEventWindowPosChanged"), _T("WindowPosChanged"), _T("window_pos_changed")},
         {kEventWindowSize, _T("kEventWindowSize"), _T("WindowSize"), _T("window_size")},
         {kEventWindowMove, _T("kEventWindowMove"), _T("WindowMove"), _T("window_move")},
         {kEventWindowCreate, _T("kEventWindowCreate"), _T("WindowCreate"), _T("window_create")},
         {kEventWindowClose, _T("kEventWindowClose"), _T("WindowClose"), _T("window_close")},
-        {kEventWindowFirstShown, _T("kEventWindowFirstShown"), _T("WindowFirstShown"), _T("window_first_shown")},
         {kEventClick, _T("kEventClick"), _T("Click"), _T("click")},
         {kEventRClick, _T("kEventRClick"), _T("RClick"), _T("rclick")},
         {kEventMouseClickChanged, _T("kEventMouseClickChanged"), _T("MouseClickChanged"), _T("mouse_click_changed")},
@@ -126,9 +130,21 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventStateChanged, _T("kEventStateChanged"), _T("StateChanged"), _T("state_changed")},
         {kEventSelectColor, _T("kEventSelectColor"), _T("SelectColor"), _T("select_color")},
         {kEventSplitDraged, _T("kEventSplitDraged"), _T("SplitDraged"), _T("split_draged")},
+        {kEventElementFilled, _T("kEventElementFilled"), _T("ElementFilled"), _T("element_filled")},
         {kEventEnterEdit, _T("kEventEnterEdit"), _T("EnterEdit"), _T("enter_edit")},
         {kEventLeaveEdit, _T("kEventLeaveEdit"), _T("LeaveEdit"), _T("leave_edit")},
         {kEventDataItemCountChanged, _T("kEventDataItemCountChanged"), _T("DataItemCountChanged"), _T("data_item_count_changed")},
+        {kEventItemMouseEnter, _T("kEventItemMouseEnter"), _T("ItemMouseEnter"), _T("item_mouse_enter")},
+        {kEventItemMouseLeave, _T("kEventItemMouseLeave"), _T("ItemMouseLeave"), _T("item_mouse_leave")},
+        {kEventSubItemMouseEnter, _T("kEventSubItemMouseEnter"), _T("SubItemMouseEnter"), _T("sub_item_mouse_enter")},
+        {kEventSubItemMouseLeave, _T("kEventSubItemMouseLeave"), _T("SubItemMouseLeave"), _T("sub_item_mouse_leave")},
+        {kEventReportViewItemFilled, _T("kEventReportViewItemFilled"), _T("ReportViewItemFilled"), _T("report_view_item_filled")},
+        {kEventReportViewSubItemFilled, _T("kEventReportViewSubItemFilled"), _T("ReportViewSubItemFilled"), _T("report_view_sub_item_filled")},
+        {kEventListViewItemFilled, _T("kEventListViewItemFilled"), _T("ListViewItemFilled"), _T("list_view_item_filled")},
+        {kEventIconViewItemFilled, _T("kEventIconViewItemFilled"), _T("IconViewItemFilled"), _T("icon_view_item_filled")},
+        {kEventViewTypeChanged, _T("kEventViewTypeChanged"), _T("ViewTypeChanged"), _T("view_type_changed")},
+        {kEventViewPosChanged, _T("kEventViewPosChanged"), _T("ViewPosChanged"), _T("view_pos_changed")},
+        {kEventViewSizeChanged, _T("kEventViewSizeChanged"), _T("ViewSizeChanged"), _T("view_size_changed")},
         {kEventPathChanged, _T("kEventPathChanged"), _T("PathChanged"), _T("path_changed")},
         {kEventPathClick, _T("kEventPathClick"), _T("PathClick"), _T("path_click")},
         {kEventDropEnter, _T("kEventDropEnter"), _T("DropEnter"), _T("drop_enter")},
@@ -156,7 +172,7 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
     }
 }
 
-EventType StringToEventType(const DString& eventName)
+EventType EventUtils::StringToEventType(const DString& eventName)
 {
     static std::unordered_map<DString, EventType> nameMap;
     InitEventStringMap(nullptr, &nameMap);
@@ -168,7 +184,7 @@ EventType StringToEventType(const DString& eventName)
     return EventType::kEventNone;
 }
 
-DString EventTypeToString(EventType eventType)
+DString EventUtils::EventTypeToString(EventType eventType)
 {
     static std::unordered_map<EventType, DString> typeMap;
     InitEventStringMap(&typeMap, nullptr);
@@ -180,4 +196,128 @@ DString EventTypeToString(EventType eventType)
     return DString();
 }
 
+void EventSource::AddEventCallback(const EventCallback& callback, EventCallbackID callbackID)
+{
+    ASSERT(callback != nullptr);
+    if (callback != nullptr) {
+        m_callbackList.push_back({ callback, callbackID });
+    }
 }
+
+bool EventSource::RemoveEventCallbackByID(EventCallbackID callbackID)
+{
+    ASSERT(callbackID > 0);
+    if (callbackID == 0) {
+        return false;
+    }
+    bool bRet = false;
+    auto iter = m_callbackList.begin();
+    while (iter != m_callbackList.end()) {
+        if (iter->m_callbackID == callbackID) {
+            iter = m_callbackList.erase(iter);
+            bRet = true;
+        }
+        else {
+            ++iter;
+        }
+    }
+    return bRet;
+}
+
+bool EventSource::HasEventCallbackByID(EventCallbackID callbackID) const
+{
+    for (auto iter = m_callbackList.begin(); iter != m_callbackList.end(); ++iter) {
+        if (iter->m_callbackID == callbackID) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EventSource::IsEmpty() const
+{
+    return m_callbackList.empty();
+}
+
+bool EventSource::operator() (const ui::EventArgs& args) const
+{
+    //支持在回调函数中，操作此容器
+    const size_t nMaxCallbackCount = m_callbackList.size(); //本次最大回调次数
+    for (size_t nIndex = 0; nIndex < nMaxCallbackCount; ++nIndex) {
+        if (args.IsSenderExpired()) {
+            //Sender控件已经失效，不再继续产生回调事件
+            return false;
+        }
+        //需要复制一个副本，避免在回调callback函数中操作该容器，导致容器中的内容失效，进而引发崩溃
+        EventCallback callback = m_callbackList.at(nIndex).m_callback;
+        if ((callback == nullptr) || !callback(args)) {
+            return false;
+        }
+        if (nIndex >= m_callbackList.size()) {
+            //避免在回调中从容器中删除回调函数，导致下标越界访问
+            break;
+        }
+    }
+    return true;
+}
+
+bool EventUtils::RemoveEventCallbackByID(EventMap& eventMap, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.begin();
+    while (iter != eventMap.end()) {
+        if (iter->second.RemoveEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+        if (iter->second.IsEmpty()) {
+            iter = eventMap.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+    return bRet;
+}
+
+bool EventUtils::RemoveEventCallbackByID(EventMap& eventMap, EventType eventType, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.find(eventType);
+    if (iter != eventMap.end()) {
+        if (iter->second.RemoveEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+        if (iter->second.IsEmpty()) {
+            iter = eventMap.erase(iter);
+        }
+    }
+    return bRet;
+}
+
+bool EventUtils::HasEventCallbackByID(const EventMap& eventMap, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.begin();
+    while (iter != eventMap.end()) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            bRet = true;
+            break;
+        }
+        ++iter;
+    }
+    return bRet;
+}
+
+bool EventUtils::HasEventCallbackByID(const EventMap& eventMap, EventType eventType, EventCallbackID callbackID)
+{
+    bool bRet = false;
+    auto iter = eventMap.find(eventType);
+    if (iter != eventMap.end()) {
+        if (iter->second.HasEventCallbackByID(callbackID)) {
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
+} //namespace ui

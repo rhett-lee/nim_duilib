@@ -4,6 +4,8 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlDragable.h"
+#include "duilib/Core/ControlMovable.h"
+#include "duilib/Core/ControlResizable.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 
@@ -36,10 +38,14 @@
 #include "duilib/Control/PropertyGrid.h"
 #include "duilib/Control/TabCtrl.h"
 #include "duilib/Control/IconControl.h"
+#include "duilib/Control/BitmapControl.h"
 #include "duilib/Control/AddressBar.h"
+#include "duilib/Control/MenuBar.h"
+#include "duilib/Control/ChildWindow.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
+#include "duilib/Box/XmlBox.h"
 #include "duilib/Box/TabBox.h"
 #include "duilib/Box/GridBox.h"
 #include "duilib/Box/TileBox.h"
@@ -48,6 +54,7 @@
 #include "duilib/Box/VirtualListBox.h"
 
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 
@@ -77,6 +84,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_VBOX, [](Window* pWindow) { return new VBox(pWindow); }},
         {DUI_CTR_HFLOWBOX, [](Window* pWindow) { return new HFlowBox(pWindow); }},
         {DUI_CTR_VFLOWBOX, [](Window* pWindow) { return new VFlowBox(pWindow); }},
+        {DUI_CTR_XMLBOX,  [](Window* pWindow) { return new XmlBox(pWindow); }},
         {DUI_CTR_VTILE_BOX, [](Window* pWindow) { return new VTileBox(pWindow); }},
         {DUI_CTR_HTILE_BOX, [](Window* pWindow) { return new HTileBox(pWindow); }},
         {DUI_CTR_TABBOX, [](Window* pWindow) { return new TabBox(pWindow); }},
@@ -106,6 +114,8 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
 
         {DUI_CTR_CONTROL, [](Window* pWindow) { return new Control(pWindow); }},
         {DUI_CTR_CONTROL_DRAGABLE, [](Window* pWindow) { return new ControlDragable(pWindow); }},
+        {DUI_CTR_CONTROL_MOVABLE, [](Window* pWindow) { return new ControlMovable(pWindow); }},
+        {DUI_CTR_CONTROL_RESIZABLE, [](Window* pWindow) { return new ControlResizable(pWindow); }},
         {DUI_CTR_SCROLLBAR, [](Window* pWindow) { return new ScrollBar(pWindow); }},
         {DUI_CTR_LABEL, [](Window* pWindow) { return new Label(pWindow); }},
         {DUI_CTR_LABELBOX, [](Window* pWindow) { return new LabelBox(pWindow); }},
@@ -132,6 +142,9 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_PROGRESS, [](Window* pWindow) { return new Progress(pWindow); }},
         {DUI_CTR_CIRCLEPROGRESS, [](Window* pWindow) { return new CircleProgress(pWindow); }},
         {DUI_CTR_RICHTEXT, [](Window* pWindow) { return new RichText(pWindow); }},
+        {DUI_CTR_RICHTEXT_BOX, [](Window* pWindow) { return new RichTextBox(pWindow); }},
+        {DUI_CTR_RICHTEXT_HBOX, [](Window* pWindow) { return new RichTextHBox(pWindow); }},
+        {DUI_CTR_RICHTEXT_VBOX, [](Window* pWindow) { return new RichTextVBox(pWindow); }},
         {DUI_CTR_RICHEDIT, [](Window* pWindow) { return new RichEdit(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
@@ -147,7 +160,10 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_TAB_CTRL, [](Window* pWindow) { return new TabCtrl(pWindow); }},
         {DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
         {DUI_CTR_ICON_CONTROL, [](Window* pWindow) { return new IconControl(pWindow); }},
+        {DUI_CTR_BITMAP_CONTROL, [](Window* pWindow) { return new BitmapControl(pWindow); }},
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
+        {DUI_CTR_MENU_BAR, [](Window* pWindow) { return new MenuBar(pWindow); }},
+        {DUI_CTR_CHILD_WINDOW, [](Window* pWindow) { return new ChildWindow(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
         {DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},
@@ -158,6 +174,14 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BOX_DRAGABLE, [](Window* pWindow) { return new BoxDragable(pWindow); }},
         {DUI_CTR_HBOX_DRAGABLE, [](Window* pWindow) { return new HBoxDragable(pWindow); }},
         {DUI_CTR_VBOX_DRAGABLE, [](Window* pWindow) { return new VBoxDragable(pWindow); }},
+
+        {DUI_CTR_BOX_MOVABLE, [](Window* pWindow) { return new BoxMovable(pWindow); }},
+        {DUI_CTR_HBOX_MOVABLE, [](Window* pWindow) { return new HBoxMovable(pWindow); }},
+        {DUI_CTR_VBOX_MOVABLE, [](Window* pWindow) { return new VBoxMovable(pWindow); }},
+
+        {DUI_CTR_BOX_RESIZABLE, [](Window* pWindow) { return new BoxResizable(pWindow); }},
+        {DUI_CTR_HBOX_RESIZABLE, [](Window* pWindow) { return new HBoxResizable(pWindow); }},
+        {DUI_CTR_VBOX_RESIZABLE, [](Window* pWindow) { return new VBoxResizable(pWindow); }},
     };
     Control* pControl = nullptr;
     auto iter = createControlMap.find(strControlClass);
@@ -189,7 +213,7 @@ bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
     return bExists;
 }
 
-bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
+bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath)
 {
     ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
     if (xmlFileData.empty()) {
@@ -210,10 +234,29 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
         isLoaded = result.status == pugi::status_ok;
     }
     if (!isLoaded) {
-        ASSERT(!_T("WindowBuilder::Create load xmlFileData failed!"));
+        ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
         return false;
     }
-    m_xmlFilePath.Clear();
+    m_xmlFilePath = xmlFilePath;
+    return true;
+}
+
+bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath)
+{
+    ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
+    if (xmlFileData.empty()) {
+        return false;
+    }
+    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_auto;
+    pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.data(),
+                                                       xmlFileData.size(),
+                                                       pugi::parse_default, encoding);
+    bool isLoaded = result.status == pugi::status_ok;
+    if (!isLoaded) {
+        ASSERT(!_T("WindowBuilder::ParseXmlData load xmlFileData failed!"));
+        return false;
+    }
+    m_xmlFilePath = xmlFilePath;
     return true;
 }
 
@@ -235,7 +278,7 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
             if (result.status != pugi::status_ok) {
-                ASSERT(!_T("WindowBuilder::Create load xml from zip data failed!"));
+                ASSERT(!_T("WindowBuilder::ParseXmlFile load xml from zip data failed!"));
                 return false;
             }
             isLoaded = true;
@@ -256,13 +299,13 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
         }
         pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
         if (result.status != pugi::status_ok) {
-            ASSERT(!_T("WindowBuilder::Create load xml file failed!"));
+            ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
             return false;
         }
         isLoaded = true;
     }
     if (!isLoaded) {
-        ASSERT(!_T("WindowBuilder::Create load xmlFilePath failed!"));
+        ASSERT(!_T("WindowBuilder::ParseXmlFile load xmlFilePath failed!"));
         return false;
     }
     m_xmlFilePath = xmlFilePath;
@@ -601,7 +644,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
             knownNames.insert(strName);
             UiRect rcSizeBox;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
+            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox, false);
             pWindow->SetSizeBox(rcSizeBox, true);
         }
         else if (strName == _T("caption")) {
@@ -721,6 +764,10 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 pWindow->SetLayeredWindowAlpha(nAlpha);
             }
         }
+        else if (strName == _T("drag_drop")) {
+            knownNames.insert(strName);
+            pWindow->SetEnableDragDrop(strValue == _T("true"));
+        }
     }
 
     if (bHasShadowAttached) {
@@ -816,7 +863,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
 #endif
 }
 
-void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const
+void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root)
 {
     ASSERT((pWindow != nullptr) && pWindow->IsWindow());
     if ((pWindow == nullptr) || !pWindow->IsWindow()) {
@@ -848,6 +895,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                 ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty()); 
                 StringUtil::TrimLeft(strAttribute);
                 pWindow->AddClass(strClassName, strAttribute);
+                m_windowClassList.push_back(strClassName);
             }
         }
         else if (strClass == _T("TextColor")) {
@@ -865,6 +913,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
             }
             if (!strColorName.empty()) {
                 pWindow->AddTextColor(strColorName, strColor);
+                m_windowTextColorList.push_back(strColorName);
             }
         }
         else if (strClass == _T("Font")) {
@@ -874,7 +923,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
     }
 }
 
-void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root) const
+void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
 {
     DString strClass;
     DString strName;
@@ -952,7 +1001,7 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root) const
     }
 }
 
-void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
+void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
 {
     DString strName;
     DString strValue;
@@ -1002,7 +1051,9 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
         fontInfo.m_bItalic = italic;
         fontInfo.m_bUnderline = underline;
         fontInfo.m_bStrikeOut = strikeout;
-        GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault);
+        if (GlobalManager::Instance().Font().AddFont(strFontId, fontInfo, isDefault)) {
+            m_globalFontIdList.push_back(strFontId);
+        }
     }
 }
 
@@ -1062,7 +1113,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             }
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                if (builder.ParseXmlFile(sourceXmlFilePath)) {
+                FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
+                if (builder.ParseXmlFile(sourceXmlFilePath, windowResPath)) {
                     pControl = builder.CreateControls(pWindow, m_createControlCallback, ToBox(pParent), nullptr);
                 }
                 else {
@@ -1148,16 +1200,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
         }
 
         if (strClass == DUI_CTR_RICHTEXT) {
+            //节点为：<RichText></RichText>，解析其子节点为RichText内容
             ParseRichTextXmlNode(node, pControl);
-#ifdef _DEBUG
-            //测试效果：反向生成带格式的文本，用于测试验证解析的正确性
-            RichText* pRichText = dynamic_cast<RichText*>(pControl);
-            DString richText;
-            if (pRichText) {
-                richText = pRichText->ToString();
-            }
-            richText.clear();
-#endif
         }
         else {
             // Add children
@@ -1222,9 +1266,42 @@ bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pContr
 
 bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice)
 {
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return false;
+    }
+    //获取实现接口
+    RichTextImpl* pRichTextImpl = nullptr;
     RichText* pRichText = dynamic_cast<RichText*>(pControl);
-    ASSERT(pRichText != nullptr);
-    if (pRichText == nullptr) {
+    if (pRichText != nullptr) {
+        pRichTextImpl = pRichText->GetRichTextImpl();
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextBox* pRichTextBox = dynamic_cast<RichTextBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextHBox* pRichTextBox = dynamic_cast<RichTextHBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    if (pRichTextImpl == nullptr) {
+        RichTextVBox* pRichTextBox = dynamic_cast<RichTextVBox*>(pControl);
+        if (pRichTextBox != nullptr) {
+            pRichTextImpl = pRichTextBox->GetRichTextImpl();
+        }
+    }
+    ASSERT(pRichTextImpl != nullptr);
+    return ParseRichTextXmlNode(xmlNode, pRichTextImpl, pTextSlice);
+}
+
+bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichTextImpl* pRichTextImpl, RichTextSlice* pTextSlice)
+{
+    ASSERT(pRichTextImpl != nullptr);
+    if (pRichTextImpl == nullptr) {
         return false;
     }
 
@@ -1238,17 +1315,17 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         if (nodeName.empty()) {            
             //无节点名称，只读取文本内容, 不需要递归遍历子节点
 #ifdef DUILIB_UNICODE
-            textSlice.m_text = pRichText->TrimText(node.value());
+            textSlice.m_text = pRichTextImpl->TrimText(node.value());
 #else
-            textSlice.m_text = StringConvert::UTF8ToWString(pRichText->TrimText(node.value()));
+            textSlice.m_text = StringConvert::UTF8ToWString(pRichTextImpl->TrimText(node.value()));
 #endif
             bParseChildren = false;
         }        
         else if (nodeName == _T("a")) {
 #ifdef DUILIB_UNICODE
-            textSlice.m_text = pRichText->TrimText(node.first_child().value());
+            textSlice.m_text = pRichTextImpl->TrimText(node.first_child().value());
 #else
-            textSlice.m_text = StringConvert::UTF8ToWString(pRichText->TrimText(node.first_child().value()));
+            textSlice.m_text = StringConvert::UTF8ToWString(pRichTextImpl->TrimText(node.first_child().value()));
 #endif
             textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
             //超级链接节点, 不需要递归遍历子节点
@@ -1293,14 +1370,14 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         }
         if (bParseChildren) {
             //递归子节点
-            ParseRichTextXmlNode(node, pRichText, &textSlice);
+            ParseRichTextXmlNode(node, pRichTextImpl, &textSlice);
         }
         //将子节点添加到Control或者父节点(注意：std::move以后，textSlice对象失效)
         if (pTextSlice != nullptr) {
-            pTextSlice->m_childs.emplace_back(std::move(textSlice));
+            pTextSlice->m_children.emplace_back(std::move(textSlice));
         }
         else {
-            pRichText->AppendTextSlice(std::move(textSlice));
+            pRichTextImpl->AppendTextSlice(std::move(textSlice));
         }
     }
     return true;
@@ -1343,17 +1420,17 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
             receiverList.push_back(_T(""));
         }
         for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
-            EventType eventType = StringToEventType(*itType);
+            EventType eventType = EventUtils::StringToEventType(*itType);
             ASSERT(eventType != EventType::kEventNone);//如果有断言，说明XML中配置的消息名称不正确
             if (eventType == EventType::kEventNone) {
                 continue;
             }
             auto callback = UiBind(&Control::OnApplyAttributeList, pParent, *itReceiver, strApplyAttribute, std::placeholders::_1);
             if (!bBubbled) {
-                pParent->AttachXmlEvent(eventType, callback);
+                pParent->AttachXmlEvent(eventType, callback, 0);
             }
             else {
-                pParent->AttachXmlBubbledEvent(eventType, callback);
+                pParent->AttachXmlBubbledEvent(eventType, callback, 0);
             }
         }
     }
@@ -1367,6 +1444,42 @@ Box* WindowBuilder::ToBox(Control* pControl) const
     Box* pBox = dynamic_cast<Box*>(pControl);
     ASSERT(pBox != nullptr);
     return pBox;
+}
+
+bool WindowBuilder::ParseWindowAttributes(std::map<DString, DString>& windowAttributes) const
+{
+    if (m_xml == nullptr) {
+        return false;
+    }
+    pugi::xml_node root = m_xml->root().first_child();
+    ASSERT(!root.empty());
+    if (root.empty()) {
+        return false;
+    }
+
+    DString strClass = root.name();
+    if (strClass == _T("Window")) {
+        for (pugi::xml_attribute attr : root.attributes()) {
+            windowAttributes[attr.name()] = attr.value();            
+        }
+        return true;
+    }
+    return false;
+}
+
+const std::vector<DString>& WindowBuilder::GetWindowClassList() const
+{
+    return m_windowClassList;
+}
+
+const std::vector<DString>& WindowBuilder::GetWindowTextColorList() const
+{
+    return m_windowTextColorList;
+}
+
+const std::vector<DString>& WindowBuilder::GetGlobalFontIdList() const
+{
+    return m_globalFontIdList;
 }
 
 } // namespace ui

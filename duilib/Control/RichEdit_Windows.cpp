@@ -6,6 +6,7 @@
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"
@@ -31,7 +32,9 @@ class RichEditDropTarget : public ControlDropTarget_Windows
 public:
     RichEditDropTarget(RichEdit* pRichEdit, ITextServices* pTextServices):
         m_pRichEdit(pRichEdit),
-        m_pTextServices(pTextServices)
+        m_pTextServices(pTextServices),
+        m_nStartChar(0),
+        m_nEndChar(0)
     {
     }
 
@@ -44,6 +47,12 @@ public:
         }
         m_dropTextList.clear();
         m_dropFileList.clear();
+
+        //记录选择项和滚动条位置（在取消操作时恢复原状态）
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->GetSel(m_nStartChar, m_nEndChar);
+            m_scrollPos = m_pRichEdit->GetScrollPos();
+        }
 
         ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_dropTextList, m_dropFileList);
         if ((m_pRichEdit != nullptr) && !m_dropFileList.empty()){
@@ -199,6 +208,12 @@ public:
             hr = pDropTarget->DragLeave();
             pDropTarget->Release();
         }
+
+        //拖动离开时，恢复原来的状态
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetSel(m_nStartChar, m_nEndChar);
+            m_pRichEdit->SetScrollPos(m_scrollPos);
+        }
         return hr;
     }
 
@@ -236,10 +251,13 @@ public:
                 ControlDropData_Windows data;
                 data.m_pDataObj = pDataObj;
                 data.m_grfKeyState = grfKeyState;
-                data.m_screenX = pt.x;
-                data.m_screenY = pt.y;
+                UiPoint ptClient(pt);
+                m_pRichEdit->ScreenToClient(ptClient);
+                data.m_ptClientX = ptClient.x;
+                data.m_ptClientY = ptClient.y;
                 data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
                 data.m_hResult = S_OK;
+                data.m_bHandled = false;
 
                 data.m_fileList = dropFileList;
 
@@ -297,6 +315,12 @@ private:
     /** 文件路径数据
     */
     std::vector<DString> m_dropFileList;
+
+    /** 原来的选择状态
+    */
+    int32_t m_nStartChar;
+    int32_t m_nEndChar;
+    UiSize64 m_scrollPos;
 };
 
 RichEdit::RichEdit(Window* pWindow) :
@@ -564,6 +588,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("row_spacing_add")) {
+        //不支持该属性，忽略
     }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -1587,12 +1614,12 @@ void RichEdit::SetScrollPos(UiSize64 szPos)
     }
 }
 
-void RichEdit::LineUp(int32_t /*deltaValue*/, bool /*withAnimation*/)
+void RichEdit::LineUp(int32_t /*deltaValue*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_LINEUP, 0L);
 }
 
-void RichEdit::LineDown(int32_t /*deltaValue*/, bool /*withAnimation*/)
+void RichEdit::LineDown(int32_t /*deltaValue*/)
 {
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     bool bRichText = IsRichText();
@@ -1628,7 +1655,7 @@ void RichEdit::HomeUp()
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_TOP, 0L);
 }
 
-void RichEdit::EndDown(bool /*arrange*/, bool /*withAnimation*/)
+void RichEdit::EndDown(bool /*arrange*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_BOTTOM, 0L);
 }
@@ -3001,9 +3028,9 @@ void RichEdit::GetClipboardText(DStringW& out )
     }
 }
 
-void RichEdit::AttachSelChanged(const EventCallback& callback)
+void RichEdit::AttachSelChanged(const EventCallback& callback, EventCallbackID callbackID)
 { 
-    AttachEvent(kEventSelChanged, callback); 
+    AttachEvent(kEventSelChanged, callback, callbackID);
     uint32_t oldEventMask = m_richCtrl.GetEventMask();
     if (!(oldEventMask & ENM_SELCHANGE)) {
         m_richCtrl.SetEventMask(oldEventMask | ENM_SELCHANGE);
@@ -3086,7 +3113,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     }
     //菜单关闭事件
     std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
-    menu->AttachWindowClose([this, richEditFlag](const ui::EventArgs&) {
+    menu->AttachWindowCloseMsg([this, richEditFlag](const ui::EventArgs&) {
         if (!richEditFlag.expired()) {
             m_bContextMenuShown = false;
             //恢复HideSelection属性

@@ -2,9 +2,10 @@
 #define UI_CORE_CONTROL_FINDER_H_
 
 #include "duilib/Core/UiPoint.h"
+#include "duilib/Core/ControlPtrT.h"
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 namespace ui 
 {
@@ -19,6 +20,7 @@ namespace ui
 #define UIFIND_HITTEST       0x00000004
 #define UIFIND_TOP_FIRST     0x00000008
 #define UIFIND_DRAG_DROP     0x00000010
+#define UIFIND_TOOLTIP       0x00000020
 #define UIFIND_ME_FIRST      0x80000000
 
 class Control;
@@ -45,15 +47,23 @@ public:
     */
     void SetRoot(Box* pRoot);
 
-    /**
-     * @brief 根据坐标查找指定控件
+    /** 获取关联的Box根节点
+    */
+    Box* GetRoot() const;
+
+    /** 根据坐标查找指定控件
      * @param[in] pt 指定坐标
      * @return 返回控件指针
      */
     Control* FindControl(const UiPoint& pt) const;
 
-    /**
-     * @brief 根据坐标查找可以响应WM_CONTEXTMENU的控件
+    /** 根据坐标查找支持ToolTip的控件(需要单独的函数支持，因为当控件的mouse_enabled="false" 或者 容器的mouse_child="false"时，FindControl函数查找不到这个控件)
+     * @param[in] pt 指定坐标
+     * @return 返回控件指针
+     */
+    Control* FindToolTipControl(const UiPoint& pt) const;
+
+    /** 根据坐标查找可以响应WM_CONTEXTMENU的控件
      * @param[in] pt 指定坐标
      * @return 返回控件指针
      */
@@ -65,25 +75,23 @@ public:
     */
     Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
 
-    /**
-     * @brief 根据控件名称查找控件
-     * @param[in] strName 控件名称
+    /** 根据控件名称查找控件
+     * @param [in] pAncestor 父祖级别的控件
+     * @param [in] strName 控件名称
      * @return 返回控件指针
      */
-    Control* FindControl2(const DString& strName) const;
+    Control* FindControlInCache(Control* pAncestor, const DString& strName) const;
 
-    /**
-     * @brief 根据坐标查找子控件
-     * @param[in] pParent 要搜索的控件
-     * @param[in] pt 要查找的坐标
+    /** 根据坐标查找子控件
+     * @param [in] pParent 要搜索的控件
+     * @param [in] pt 要查找的坐标
      * @return 返回控件指针
      */
     Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
 
-    /**
-     * @brief 根据名字查找子控件
-     * @param[in] pParent 要搜索的控件
-     * @param[in] strName 要查找的名称
+    /** 根据名字查找子控件
+     * @param [in] pParent 要搜索的控件
+     * @param [in] strName 要查找的名称
      * @return 返回控件指针
      */
     Control* FindSubControlByName(Control* pParent, const DString& strName) const;
@@ -114,9 +122,9 @@ private:
     */
     Box* m_pRoot;
 
-    /** 控件的name与接口之间的映射
+    /** 控件的name与控件之间的映射，用于快速查找控件
     */
-    std::map<DString, Control*> m_mNameHash;
+    std::unordered_map<DString, std::vector<ControlPtr>> m_controlNameMap;
 };
 
 } // namespace ui

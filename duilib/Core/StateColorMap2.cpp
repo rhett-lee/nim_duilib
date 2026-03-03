@@ -112,18 +112,18 @@ void StateColorMap2::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Co
     if (pRender == nullptr) {
         return;
     }
-    if (m_pControl != nullptr) {
-        bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot) != nullptr;
-        int32_t nHotAlpha = m_pControl->GetHotAlpha();
-        if (bFadeHot) {
+    if (m_pControl != nullptr) {        
+        if (m_pControl->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
             if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
+                const uint8_t nHotAlpha = m_pControl->GetHotAlpha();
+                //先绘制默认的颜色
                 DString strColor = GetStateColor(kControlStateNormal);
                 if (!strColor.empty()) {
-                    DoPaintStateColor(pRender, rcPaint, kControlStateNormal, m_pControl->GetUiColor(strColor));
+                    DoPaintStateColor(pRender, rcPaint, kControlStateNormal, m_pControl->GetUiColor(strColor), 255 - nHotAlpha);
                 }
-                if (nHotAlpha > 0) {
-                    DoPaintStateColor(pRender, rcPaint, kControlStateHot, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
-                }
+
+                //绘制Hot状态的颜色（半透明）
+                DoPaintStateColor(pRender, rcPaint, kControlStateHot, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
                 return;
             }
         }
@@ -146,7 +146,7 @@ void StateColorMap2::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Co
     }
 }
 
-void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, int32_t nAlpha) const
+void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha) const
 {
     if ((pRender == nullptr) || rcPaint.IsEmpty() || (nAlpha == 0) || colorValue.IsEmpty()) {
         return;
@@ -162,11 +162,11 @@ void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, Control
     UiSize szRound = GetStateColorRound(stateType);
     if (!szRound.IsEmpty()) {
         //圆角矩形
-        pRender->FillRoundRect(rcPaint, (float)szRound.cx, (float)szRound.cy, colorValue, static_cast<uint8_t>(nAlpha));
+        pRender->FillRoundRect(rcPaint, (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
     }
     else {
         //直角矩形
-        pRender->FillRect(rcPaint, colorValue, static_cast<uint8_t>(nAlpha));
+        pRender->FillRect(rcPaint, colorValue, nAlpha);
     }
 }
 

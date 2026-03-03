@@ -1,6 +1,6 @@
-# nim duilib
+# nim_duilib
 
-[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
+[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，支持的Linux系统包括OpenEuler、OpenKylin、UbuntuKylin、统信UOS、中科方德、Ubuntu、Fedora、Debian等，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
 
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -54,7 +54,7 @@
     <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 142 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr>
-        <td rowspan="20">功能完善</td>
+        <td rowspan="22">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
     <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
@@ -76,8 +76,10 @@
     <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
     <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
+    <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
+    <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr>
-        <td rowspan="19">新增控件</td>
+        <td rowspan="25">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -92,12 +94,18 @@
     <tr><td align="left">11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
     <tr><td align="left">12. ComboButton：带有下拉组合框的按钮</td></tr>
     <tr><td align="left">13. ShadowWnd：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 kWS_EX_LAYERED 属性的窗口阴影</td></tr>
-    <tr><td align="left">14. ControlDragableT：支持相同Box内的子控件通过拖动来调整顺序</td></tr>
-    <tr><td align="left">15. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
-    <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
-    <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
-    <tr><td align="left">18. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">19. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>    
+    <tr><td align="left">14. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
+    <tr><td align="left">15. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
+    <tr><td align="left">16. WebView2Control：封装了WebView2控件的基本功能</td></tr>
+    <tr><td align="left">17. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
+    <tr><td align="left">18. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
+    <tr><td align="left">19. MenuBar：菜单栏控件</td></tr>
+    <tr><td align="left">20. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
+    <tr><td align="left">21. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
+    <tr><td align="left">22. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
+    <tr><td align="left">23. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
+    <tr><td align="left">24. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
+    <tr><td align="left">25. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -105,7 +113,7 @@
     <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
     <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
-        <td rowspan="12">示例程序完善</td>
+        <td rowspan="14">示例程序完善</td>
         <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
@@ -118,7 +126,9 @@
     <tr><td align="left">9. examples/WebView2：提供了WebView2控件的功能演示</td></tr>
     <tr><td align="left">10. examples/WebView2Browser：提供了WebView2控件的功能演示（多标签）</td></tr>
     <tr><td align="left">11. examples/layout：所有布局和容器的功能演示</td></tr>
-    <tr><td align="left">12. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">12. examples/ChildWindow：子窗口控件的功能演示</td></tr>
+    <tr><td align="left">12. examples/XmlPreview：XML文件的界面效果预览功能测试（测试XmlBox容器）</td></tr>
+    <tr><td align="left">14. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
@@ -496,10 +506,9 @@ chmod +x ./build/freebsd_build.sh
 编译完成后，在bin目录中生成了可执行文件。    
 
 ## 开发计划
- - 跨平台（Windows/Linux/macOS/FreeBSD）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
- - 动画功能的加强
- - 不断测试发现缺陷并修复，不断完善代码
- - 其他待补充
+ - 继续丰富界面库的控件，完善界面库的功能
+ - 跨平台（Windows/Linux/macOS/FreeBSD）窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）的不断测试与完善（目前X11/XWayland桌面环境下较稳定，但纯Wayland桌面环境下问题较多）
+ - 测试界面库，发现缺陷并修复，不断完善代码
 
 ## 参考文档
 
@@ -518,6 +527,6 @@ chmod +x ./build/freebsd_build.sh
  - [参考文档](docs/Summary.md)
 
 ## 相关链接
-1. Skia的编译文档库，点击访问：[skia compile](https://github.com/rhett-lee/skia_compile) ：    
+1. Skia的编译文档库，点击访问：[skia_compile](https://github.com/rhett-lee/skia_compile) ：    
 2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
 3. NIM_Duilib_Framework项目是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)

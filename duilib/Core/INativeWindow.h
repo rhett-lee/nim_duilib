@@ -21,7 +21,7 @@ public:
     * @param [in] uMsg 消息内容
     * @param [in] wParam 消息附加参数
     * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 返回 false 则继续派发该消息，返回 true 表示不再派发该消息
+    * @param [out] bHandled 返回 false 则继续派发该消息，返回 true 表示不再派发该消息
     * @return 返回消息处理结果
     */
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
@@ -75,11 +75,11 @@ public:
 
     /** 进入全屏状态
     */
-    virtual void OnNativeWindowEnterFullScreen() = 0;
+    virtual void OnNativeWindowEnterFullscreen() = 0;
 
     /** 退出全屏状态
     */
-    virtual void OnNativeWindowExitFullScreen() = 0;
+    virtual void OnNativeWindowExitFullscreen() = 0;
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
@@ -133,6 +133,13 @@ public:
     */
     virtual void OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 窗口位置大小发生改变(WM_WINDOWPOSCHANGED)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
     * @param [in] newWindowSize 新的窗口大小（宽度和高度）
@@ -150,16 +157,18 @@ public:
     */
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
-    /** 窗口绘制(WM_SHOWWINDOW)
+    /** 窗口显示或者隐藏(WM_SHOWWINDOW)
     * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
-    /** 窗口绘制(WM_PAINT)
+    /** 窗口绘制(SDL_EVENT_WINDOW_EXPOSED/WM_PAINT)
     * @param [in] rcPaint 本次绘制，需要更新的矩形区域
     * @param [in] nativeMsg 从系统接收到的原始消息内容
+    *             SDL实现：nativeMsg.uMsg值为SDL_EVENT_WINDOW_EXPOSED，nativeMsg.wParam的值为SDL_Window*指针
+    *             Windows实现：nativeMsg.uMsg值为WM_PAINT，nativeMsg.wParam的值为窗口的HWND句柄
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */    
@@ -400,6 +409,19 @@ public:
     * @param [in] bBottomSnap 窗口下侧贴边
     */
     virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) = 0;
+
+    /** 窗口拖放相关的操作接口(接口参数是与实现方式相关的)
+    * @param [in] dropType 拖放操作的来源类型
+    * @param [in,out] pDropData 具体类型根据dropType判断：
+    *                 当dropType为kControlDropTypeWindows时（代表Windows平台SDK实现），pDropData的类型是ControlDropData_Windows*
+    *                 当dropType为kControlDropTypeSDL时（代表SDL实现），pDropData的类型是ControlDropData_SDL*
+    *                 pDropData->m_bHandled是消息处理标志，如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理，相当于截获此消息
+    *                 pDropData->m_hResult是消息处理后的返回值，最终返回给操作系统，Windows平台成功是返回S_OK
+    */
+    virtual void OnNativeDropEnterMsg(ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnNativeDropOverMsg(ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnNativeDropMsg(ControlDropType dropType, void* pDropData) = 0;
+    virtual void OnNativeDropLeaveMsg() = 0;
 
     /** @}*/
 

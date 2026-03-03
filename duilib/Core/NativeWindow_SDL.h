@@ -78,6 +78,15 @@ public:
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 获取本地实现的窗口句柄
     */
     void* GetWindowHandle() const;
@@ -93,6 +102,14 @@ public:
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
+
+    /** 是否为子窗口
+    */
+    bool IsChildWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(NativeWindow_SDL* pParentWindow);
 
 #ifdef DUILIB_BUILD_FOR_WIN
     /** 获取窗口句柄
@@ -281,11 +298,11 @@ public:
 public:
     /** 使窗口进入全屏状态
     */
-    bool EnterFullScreen();
+    bool EnterFullscreen();
 
     /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
     */
-    bool ExitFullScreen();
+    bool ExitFullscreen();
 
     /** 窗口是否为最大化状态
     */
@@ -297,7 +314,7 @@ public:
 
     /** 窗口是否为全屏状态
     */
-    bool IsWindowFullScreen() const;
+    bool IsWindowFullscreen() const;
 
     /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
@@ -387,14 +404,21 @@ public:
     */
     bool IsCaptured() const;
 
-    /** 设置窗口的圆角RGN
+    /** 设置窗口的形状为圆角矩形
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
-    * @param [in] szRoundCorner 圆角大小，其值不能为0
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
     * @param [in] bRedraw 是否重绘
     */
-    bool SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw);
+    bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw);
 
-    /** 清除窗口的RGN
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
     * @param [in] bRedraw 是否重绘
     */
     void ClearWindowRgn(bool bRedraw);
@@ -672,6 +696,40 @@ private:
     static uint32_t GetModifiers(SDL_Keymod keymod);
 
 private:
+    /** @name 拖拽相关的接口
+    * @{ */
+    friend class WindowDropTarget;
+
+    /** SDL_EVENT_DROP_BEGIN
+    */
+    void OnDropBegin();
+
+    /** SDL_EVENT_DROP_POSITION
+    * @param [in] pt 客户区坐标
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropPosition(const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_TEXT
+    * @param [in] textList 文本内容，容器中每个元素调用代表一行文本
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_FILE
+    * @param [in] source 拖放源
+    * @param [in] fileList 文件路径，容器中每个元素调用代表一个文件
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    void OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt, bool& bHandled);
+
+    /** SDL_EVENT_DROP_COMPLETE 或者 其他导致离开的消息
+    */
+    void OnDropLeave();
+
+    /** @} */
+
+private:
     /** 窗口指针与SDL窗口ID的映射关系，用于转接消息
     */
     static std::unordered_map<SDL_WindowID, NativeWindow_SDL*> s_windowIDMap;
@@ -688,6 +746,10 @@ private:
     */
     SDL_Renderer* m_sdlRenderer;
 
+    /** 是否为子窗口
+    */
+    bool m_bChildWindow;
+
     /** 窗口已经延迟关闭
     */
     bool m_bCloseing;
@@ -702,7 +764,15 @@ private:
 
     /** 窗口是否为全屏状态
     */
-    bool m_bFullScreen;
+    bool m_bFullscreen;
+
+    /** 是否正在退出全屏
+    */
+    bool m_bFullscreenExiting;
+
+    /** 进入全屏状态时，是否处于最大化状态
+    */
+    bool m_bFullscreenMaximized;
 
     /** 窗口大小的最小值（宽度和高度）
     */

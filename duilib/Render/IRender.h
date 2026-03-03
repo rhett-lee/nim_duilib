@@ -512,9 +512,13 @@ public:
     */
     SharePtr<UiFontEx> m_pFontInfo;
 
-    /** 行间距
+    /** 行间距倍数: 字体大小的倍数比例（默认值通常为 1.0，即 100% 字体大小），用于按比例调整行间距
     */
     float m_fRowSpacingMul = 1.0f;
+
+    /** 行间距附加量: 是固定的附加像素值（默认值通常为 0），用于在比例调整的基础上增加固定偏移（像素）
+    */
+    float m_fRowSpacingAdd = 0.0f;
 
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
@@ -703,6 +707,7 @@ enum class RenderBackendType
 struct MeasureStringParam
 {
     int32_t rectSize = DUI_NOSET_VALUE; //横向文本，表示当前区域的限制宽度；纵向文本，表示当前区域的限制高度
+                                        //多行文本：应设置合理值，如果不设置则文本不会自动换行；单行文本：忽略该值)
 
     IFont* pFont = nullptr;             //文字的字体数据接口, 不可为nullptr
     uint32_t uFormat = 0;               //文字的格式，参见 enum DrawStringFormat 类型定义
@@ -1231,13 +1236,15 @@ public:
     * @param [in] nSpreadRadius 扩展半径，即模糊区域距离rc矩形边缘多少个像素。
     *                           取正值时，阴影扩大；取负值时，阴影收缩。
     * @param [in] dwColor 阴影的颜色值
+    * @param [in] uAlpha 透明度（0 - 255）
     */
     virtual void DrawBoxShadow(const UiRect& rc, 
                                const UiSize& roundSize, 
                                const UiPoint& cpOffset, 
                                int32_t nBlurRadius, 
                                int32_t nSpreadRadius,
-                               UiColor dwColor) = 0;
+                               UiColor dwColor,
+                               uint8_t uAlpha) = 0;
 
 
     /** 分离位图
@@ -1337,6 +1344,25 @@ public:
     * @param [in] pRenderPaint 界面绘制所需的回调接口
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) = 0;
+
+    /** 设置窗口的形状为圆角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw) = 0;
+
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw) = 0;
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void ClearWindowRgn(bool bRedraw) = 0;
 
 };
 

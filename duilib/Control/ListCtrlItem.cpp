@@ -75,6 +75,11 @@ ListCtrl* ListCtrlItem::GetListCtrl() const
     return m_pListCtrl;
 }
 
+size_t ListCtrlItem::GetDataItemIndex() const
+{
+    return GetElementIndex();
+}
+
 size_t ListCtrlItem::GetSubItemCount() const
 {
     return GetItemCount();
@@ -97,7 +102,7 @@ ListCtrlSubItem* ListCtrlItem::GetSubItem(const UiPoint& ptMouse) const
     for (size_t index = 0; index < nItemCount; ++index) {
         ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(index));
         if (pSubItem != nullptr) {
-            if (pSubItem->GetRect().ContainsPt(pt)) {
+            if (pSubItem->IsVisible() && pSubItem->GetRect().ContainsPt(pt)) {
                 pFoundSubItem = pSubItem;
                 break;
             }
@@ -148,7 +153,7 @@ bool ListCtrlItem::ButtonUp(const EventArgs& msg)
     }
 }
 
-bool ListCtrlItem::SupportCheckedMode() const
+bool ListCtrlItem::SupportCheckMode() const
 {
     return true;
 }
@@ -182,6 +187,11 @@ bool ListCtrlItem::IsShowCheckBox() const
 {
     //如果有CheckBox图片资源，则认为显示了CheckBox
     return !GetStateImage(kControlStateNormal).empty() && !GetSelectedStateImage(kControlStateNormal).empty();
+}
+
+bool ListCtrlItem::IsCheckBoxChecked() const
+{
+    return IsShowCheckBox() && IsChecked();
 }
 
 int32_t ListCtrlItem::GetCheckBoxImageWidth()

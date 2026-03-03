@@ -1,6 +1,7 @@
 #include "CefClientApp.h" 
 #include "duilib/CEFControl/CefManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_LINUX) && defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/Core/MessageLoop_SDL.h"
@@ -78,12 +79,26 @@ void CefClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, 
 
 #endif //DUILIB_BUILD_FOR_LINUX && DUILIB_BUILD_FOR_SDL
 
-        //command_line->AppendSwitchWithValue("proxy-server", "SOCKS5://127.0.0.1:1080");
-
         // 开启离屏渲染
         if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             command_line->AppendSwitch("disable-surfaces");
             command_line->AppendSwitch("enable-begin-frame-scheduling");
+        }
+
+        //添加额外的参数（应用层配置）
+        const std::vector<std::pair<DString, DString>>& cefSwitchWithValues = CefManager::GetInstance()->GetSwitchWithValues();
+        if (!cefSwitchWithValues.empty()) {
+            for (const std::pair<DString, DString>& switchWithValue : cefSwitchWithValues) {
+                if (switchWithValue.first.empty()) {
+                    DStringA value = StringConvert::TToUTF8(switchWithValue.second);
+                    command_line->AppendSwitch(value.c_str());
+                }
+                else {
+                    DStringA name = StringConvert::TToUTF8(switchWithValue.first);
+                    DStringA value = StringConvert::TToUTF8(switchWithValue.second);
+                    command_line->AppendSwitchWithValue(name.c_str(), value.c_str());
+                }
+            }
         }
     }
 }

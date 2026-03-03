@@ -48,6 +48,10 @@ protected:
     */
     virtual void OnInitWindow() override;
 
+    /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化，供子类在界面启动后调整界面布局等操作
+    */
+    virtual void OnInitLayout() override;
+
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
     virtual void OnPreCloseWindow() override;
@@ -72,11 +76,11 @@ protected:
 
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() override;
+    virtual void OnWindowEnterFullscreen() override;
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() override;
+    virtual void OnWindowExitFullscreen() override;
 
     /** 切换系统标题栏与自绘标题栏
     */

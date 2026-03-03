@@ -10,9 +10,16 @@ namespace ui
 {
 /** ListCtrl列表数据项UI控件（行）
 *    基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
-     附加说明: 1. ListCtrlItem 是HBox的子类;   
-              2. 每一列，放置一个ListCtrlSubItem控件
-              3. ListCtrlSubItem 是LabelBox的子类
+*    附加说明:
+*       1. ListCtrlItem 表示表格的某一行的UI控件
+*         (1) ListCtrlItem的父类的层级关系为：ListCtrlItemTemplate<HBox>: public ListBoxItemTemplate<HBox>: pubic OptionTemplate<HBox>)
+*         (2) ListCtrlItem中的子控件类型为ListCtrlSubItem，每个子控件代表一列中的一个格子
+*         (3) 当需要显示CheckBox的时候，ListCtrlItem设置自身的属性，显示CheckBox，因为它自身是OptionTemplate<HBox>的子类，有CheckBox的属性
+*       2. ListCtrlSubItem 表示表格的某行某列的一个格子的UI控件
+*         (1) ListCtrlSubItem的父类继承关系为：ListCtrlSubItem public : ListCtrlLabel: public CheckBoxTemplate<HBox>
+*         (2) ListCtrlSubItem继承自CheckBoxTemplate<HBox>，用于自身显示文本
+*         (3) 当需要显示CheckBox的时候，ListCtrlSubItem设置自身的属性，显示CheckBox，因为它自身是CheckBoxTemplate<HBox>的子类，有CheckBox的属性
+*         (4) 当显示图标时，使用ListCtrl的ImageList资源，自绘的方式实现
 */
 class ListCtrl;
 class ListCtrlSubItem;
@@ -60,6 +67,11 @@ public:
     */
     ListCtrl* GetListCtrl() const;
 
+    /** 获取关联的数据项索引号, 代表关联哪一行的数据
+    * @return 返回数据项的索引号, 有效范围：[0, ListCtrl::GetDataItemCount())
+    */
+    size_t GetDataItemIndex() const;
+
     /** 获取子控件的个数
     */
     size_t GetSubItemCount() const;
@@ -92,6 +104,10 @@ public:
     /** 判断是否行首显示了CheckBox
     */
     bool IsShowCheckBox() const;
+
+    /** 判断当前行首的CheckBox是否处于勾选状态
+    */
+    bool IsCheckBoxChecked() const;
 
     /** 设置关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
@@ -137,7 +153,7 @@ protected:
         （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
         （2）勾选状态和选择状态分离，是两个不同的状态
     */
-    virtual bool SupportCheckedMode() const override;
+    virtual bool SupportCheckMode() const override;
 
     /** 绘制函数
     */

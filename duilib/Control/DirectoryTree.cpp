@@ -1,6 +1,7 @@
 #include "DirectoryTree.h"
 #include "DirectoryTreeImpl.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Core/GlobalManager.h"
 #include <set>
 
 /** 计算机虚拟节点的识别字符串

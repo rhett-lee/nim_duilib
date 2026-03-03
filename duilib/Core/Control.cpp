@@ -16,7 +16,7 @@
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "ControlDropTargetImpl_Windows.h"
 #endif
 
@@ -40,7 +40,8 @@ Control::Control(Window* pWindow) :
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
     m_nPaintOrder(0),
-    m_bBordersOnTop(true)
+    m_bBordersOnTop(true),
+    m_bMouseEnter(false)
 {
 }
 
@@ -474,7 +475,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetNoFocus();
     }
     else if (strName == _T("alpha")) {
-        SetAlpha(StringUtil::StringToInt32(strValue));
+        SetAlpha(ui::TruncateToUInt8(StringUtil::StringToInt32(strValue)));
     }
     else if ((strName == _T("normal_image")) || (strName == _T("normalimage"))) {
         SetStateImage(kControlStateNormal, strValue);
@@ -501,16 +502,35 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetForeStateImage(kControlStateDisabled, strValue);
     }
     else if ((strName == _T("fade_alpha")) || (strName == _T("fadealpha"))) {
-        GetAnimationManager().SetFadeAlpha(strValue == _T("true"));
+        bool bFadeVisible = strValue != _T("false");
+        uint8_t nEndAlpha = GetAlpha();
+        if (bFadeVisible) {
+            if (strValue != _T("true")) {
+                nEndAlpha = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
+            }
+        }
+        GetAnimationManager().SetFadeAlpha(bFadeVisible, nEndAlpha);
     }
     else if ((strName == _T("fade_hot")) || (strName == _T("fadehot"))) {
-        GetAnimationManager().SetFadeHot(strValue == _T("true"));
+        SetFadeHot(strValue == _T("true"));
+    }
+    else if (strName == _T("fade_hot_frame_interval_ms")) {
+        SetFadeHotFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_hot_total_ms")) {
+        SetFadeHotTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_hot_easing_function")) {
+        SetFadeHotEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("fade_width")) || (strName == _T("fadewidth"))) {
         GetAnimationManager().SetFadeWidth(strValue == _T("true"));
     }
     else if ((strName == _T("fade_height")) || (strName == _T("fadeheight"))) {
         GetAnimationManager().SetFadeHeight(strValue == _T("true"));
+    }
+    else if (strName == _T("fade_size")) {
+        GetAnimationManager().SetFadeSize(strValue == _T("true"));
     }
     else if ((strName == _T("fade_in_out_x_from_left")) || (strName == _T("fadeinoutxfromleft"))) {
         GetAnimationManager().SetFadeInOutX(strValue == _T("true"), false);
@@ -523,6 +543,15 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("fade_in_out_y_from_bottom")) || (strName == _T("fadeinoutyfrombottom"))) {
         GetAnimationManager().SetFadeInOutY(strValue == _T("true"), true);
+    }
+    else if (strName == _T("fade_frame_interval_ms")) {
+        GetAnimationManager().SetFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_total_ms")) {
+        GetAnimationManager().SetTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("fade_easing_function")) {        
+        GetAnimationManager().SetEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("tab_stop")) || (strName == _T("tabstop"))) {
         SetTabStop(strValue == _T("true"));
@@ -837,14 +866,154 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
     }
 }
 
+void Control::SetFadeHot(bool bFadeHot)
+{
+    if (bFadeHot) {
+        AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHot);
+        pAnimationPlayer->SetStartValue(0);
+        pAnimationPlayer->SetEndValue(255);
+        ControlPtr pControl(this);
+
+        AnimationPlayCallback playCallback = [pControl](int32_t nNewValue) {
+                if (pControl != nullptr) {
+                    if (nNewValue < 0) {
+                        nNewValue = 0;
+                    }
+                    if (nNewValue > 255) {
+                        nNewValue = 255;
+                    }
+                    pControl->SetHotAlpha(TruncateToUInt8(nNewValue));
+                }
+            };
+        pAnimationPlayer->SetPlayCallback(playCallback);
+
+        //完成动画以后，需要重绘一次
+        AnimationCompleteCallback completeCallback = [pControl]() {
+                if (pControl != nullptr) {
+                    pControl->Invalidate();
+                }
+            };
+        pAnimationPlayer->SetCompleteCallback(completeCallback);
+
+        if (m_pHotAnimationPlayer != nullptr) {
+            //同步属性
+            pAnimationPlayer->SetTotalMillSeconds(m_pHotAnimationPlayer->GetTotalMillSeconds());
+            pAnimationPlayer->SetFrameIntervalMillSeconds(m_pHotAnimationPlayer->GetFrameIntervalMillSeconds());
+            pAnimationPlayer->SetEasingFunctionType(m_pHotAnimationPlayer->GetEasingFunctionType());
+        }
+        m_pHotAnimationPlayer.reset(pAnimationPlayer);
+    }
+    else {
+        m_pHotAnimationPlayer.reset();
+    }
+}
+
+AnimationPlayer* Control::GetHotAnimationPlayer() const
+{
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return nullptr;
+    }
+    return m_pHotAnimationPlayer.get();
+}
+
+void Control::SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
+    }
+}
+
+int32_t Control::GetFadeHotFrameIntervalMillSeconds() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetFrameIntervalMillSeconds();
+    }
+    return -1;
+}
+
+void Control::SetFadeHotTotalMillSeconds(int32_t totalMillSeconds)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
+    }
+}
+
+int32_t Control::GetFadeHotTotalMillSeconds() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetTotalMillSeconds();
+    }
+    return -1;
+}
+
+void Control::SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType)
+{
+    if (m_pHotAnimationPlayer == nullptr) {
+        SetFadeHot(true);
+    }
+    ASSERT(m_pHotAnimationPlayer != nullptr);
+    if (m_pHotAnimationPlayer != nullptr) {
+        m_pHotAnimationPlayer->SetEasingFunctionType(easingFunctionType);
+    }
+}
+
+EasingFunctionType Control::GetFadeHotEasingFunctionType() const
+{
+    if (m_pHotAnimationPlayer != nullptr) {
+        return m_pHotAnimationPlayer->GetEasingFunctionType();
+    }
+    return EasingFunctionType::EaseInOutCubic;
+}
+
+bool Control::HasAnimationPlayer(AnimationType animationType) const
+{
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return false;
+    }
+    if (animationType == AnimationType::kAnimationHot) {
+        return m_pHotAnimationPlayer != nullptr;
+    }
+    else if (m_pAnimationData != nullptr) {
+        if (m_pAnimationData->m_animationManager != nullptr) {
+            return m_pAnimationData->m_animationManager->HasAnimationPlayer(animationType);
+        }
+    }
+    return false;
+}
+
+bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
+{
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        return false;
+    }
+    if (animationType == AnimationType::kAnimationHot) {
+        return (m_pHotAnimationPlayer != nullptr) && m_pHotAnimationPlayer->IsPlaying();
+    }
+    else if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
+        AnimationPlayer* pAnimationPlayer = m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
+        if (pAnimationPlayer != nullptr) {
+            return pAnimationPlayer->IsPlaying();
+        }
+    }
+    return false;
+}
+
 AnimationManager& Control::GetAnimationManager()
 {
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_animationManager == nullptr) {
-        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>();
-        m_pAnimationData->m_animationManager->Init(this);
+        m_pAnimationData->m_animationManager = std::make_unique<AnimationManager>(this);
     }
     return *m_pAnimationData->m_animationManager;
 }
@@ -1015,7 +1184,7 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
     }
     m_pColorMap->SetStateColor(stateType, strColor);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1035,7 +1204,7 @@ void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMarg
     }
     m_pColorMap->SetStateColorMargin(stateType, colorMargin);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1055,7 +1224,7 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
     }
     m_pColorMap->SetStateColorRound(stateType, colorRound);
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     Invalidate();
 }
@@ -1086,7 +1255,12 @@ void Control::SetBkImage(const DString& strImage)
     if (m_pBkImage != nullptr) {
         if (m_pBkImage->GetImageString() != strImage) {
             bChanged = true;
-            m_pBkImage->SetImageString(strImage, Dpi());
+            if (!strImage.empty()) {
+                m_pBkImage->SetImageString(strImage, Dpi());
+            }
+            else {
+                m_pBkImage.reset();
+            }
         }
     }
     if (bChanged) {
@@ -1245,7 +1419,7 @@ DString Control::GetStateImage(ControlStateType stateType) const
 void Control::SetStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     SetStateImage(kStateImageBk, stateType, strImage);
     RelayoutOrRedraw();
@@ -1259,7 +1433,7 @@ DString Control::GetForeStateImage(ControlStateType stateType) const
 void Control::SetForeStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
-        GetAnimationManager().SetFadeHot(true);
+        SetFadeHot(true);
     }
     SetStateImage(kStateImageFore, stateType, strImage);
     Invalidate();
@@ -1815,11 +1989,19 @@ size_t Control::GetUserDataID() const
 
 void Control::SetFadeVisible(bool bVisible)
 {
-    if (bVisible) {
-        GetAnimationManager().Appear();
+    //动画形式显示或者隐藏控件
+    if (!GlobalManager::Instance().IsAnimationEnabled()) {
+        // 动画功能关闭
+        SetVisible(bVisible);
     }
     else {
-        GetAnimationManager().Disappear();
+        // 动画功能开启
+        if (bVisible) {
+            GetAnimationManager().Appear();
+        }
+        else {
+            GetAnimationManager().Disappear();
+        }
     }
 }
 
@@ -1957,9 +2139,16 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
         }
     }
 #endif // _DEBUG
-    if ((uFlags & UIFIND_HITTEST) != 0 && 
-        (!IsMouseEnabled() || !GetRect().ContainsPt(pt))) {
-        return nullptr;
+    if ((uFlags & UIFIND_TOOLTIP) == 0) {
+        if ((uFlags & UIFIND_HITTEST) != 0 &&
+            (!IsMouseEnabled() || !GetRect().ContainsPt(pt))) {
+            return nullptr;
+        }
+    }
+    else {
+        if ((uFlags & UIFIND_HITTEST) != 0 && !GetRect().ContainsPt(pt)) {
+            return nullptr;
+        }
     }
     return Proc(this, pProcData);
 }
@@ -2273,6 +2462,11 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
 
 void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
 {
+    SendEvent(eventType, wParam, lParam, nullptr);
+}
+
+void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, void* pEventData)
+{
     EventArgs msg;
     msg.SetSender(this);
     msg.eventType = eventType;
@@ -2285,6 +2479,7 @@ void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
     }
     msg.modifierKey = 0;
     msg.eventData = 0;
+    msg.pEventData = pEventData;
 
     //派发消息
     SendEventMsg(msg);
@@ -2316,7 +2511,8 @@ void Control::SendEventMsg(const EventArgs& msg)
 //#endif
 
     bool bRet = true;
-    if (!IsDisabledEvents(msg)) {
+    //鼠标的Enter和Leave消息处理走特殊流程，在处理函数自身触发事件
+    if (!IsDisabledEvents(msg) && (msg.eventType != kEventMouseEnter) && (msg.eventType != kEventMouseLeave)) {
         bRet = FireAllEvents(msg);
     }
     if(bRet) {
@@ -2403,8 +2599,9 @@ void Control::HandleEvent(const EventArgs& msg)
         }
     }
     else if( msg.eventType == kEventMouseEnter ) {
-        if (GetWindow()) {
-            if (!IsChild(this, GetWindow()->GetHoverControl())) {
+        if (GetWindow() != nullptr) {
+            //如果当前Hover控件不是相关控件(当前控件自身、当前控件的子孙控件)，则忽略此消息
+            if (!IsControlRelated(this, GetWindow()->GetHoverControl())) {
                 return;
             }
         }
@@ -2413,8 +2610,9 @@ void Control::HandleEvent(const EventArgs& msg)
         }
     }
     else if( msg.eventType == kEventMouseLeave ) {
-        if (GetWindow()) {
-            if (IsChild(this, GetWindow()->GetHoverControl())) {
+        if (GetWindow() != nullptr) {
+            //如果当前Hover控件是相关控件(当前控件自身、当前控件的子孙控件)，则忽略此消息
+            if (IsControlRelated(this, GetWindow()->GetHoverControl())) {
                 return;
             }
         }
@@ -2452,44 +2650,72 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.eventType == kEventMouseMove) {
+    else if (msg.eventType == kEventMouseMButtonDown) {
+        if (MButtonDown(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseMButtonUp) {
+        if (MButtonUp(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseMDoubleClick) {        
+        if (MButtonDoubleClick(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseMove) {        
         if (MouseMove(msg)) {
             return;
         }        
     }
-    else if (msg.eventType == kEventMouseHover) {
+    else if (msg.eventType == kEventMouseHover) {        
         if (MouseHover(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventMouseWheel) {
+    else if (msg.eventType == kEventMouseWheel) {        
         if (MouseWheel(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventContextMenu) {
+    else if (msg.eventType == kEventContextMenu) {        
         if (MouseMenu(msg)) {
             return;
         }        
     }
-    else if (msg.eventType == kEventChar) {
+    else if (msg.eventType == kEventChar) {        
         if (OnChar(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventKeyDown) {
+    else if (msg.eventType == kEventKeyDown) {        
         if (OnKeyDown(msg)) {
             return;
         }
     }
-    else if (msg.eventType == kEventKeyUp) {
+    else if (msg.eventType == kEventKeyUp) {        
         if (OnKeyUp(msg)) {
             return;
         }
     }
     if (!weakFlag.expired() && (GetParent() != nullptr)) {
+        //在父控件这里，会触发BubbledEvent事件派发，并且会在父控件处理此消息
         GetParent()->SendEventMsg(msg);
     }
+}
+
+bool Control::CheckEventType(const EventArgs& msg, EventType eventType) const
+{
+    ASSERT(msg.eventType == eventType);
+    if (msg.eventType != eventType) {
+        return false;
+    }
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    return true;
 }
 
 bool Control::HasHotState()
@@ -2509,51 +2735,82 @@ bool Control::HasHotState()
 
 bool Control::MouseEnter(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    //MouseEnter的流程：祖先控件[MouseEnter] -> 父控件[MouseEnter] -> 子控件[MouseEnter]
+    if (!CheckEventType(msg, kEventMouseEnter)) {
+        return true;
     }
-    if( IsEnabled() ) {
-        if (GetState() == kControlStateNormal) {
-            PrivateSetState(kControlStateHot);
+    if(IsEnabled()) {
+        if (GetState() == kControlStateNormal) {            
             if (HasHotState()) {
-                GetAnimationManager().MouseEnter();
-                Invalidate();
+                //Hot状态动画
+                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+                if (pHotAnimationPlayer != nullptr) {
+                    pHotAnimationPlayer->Continue();
+                }
             }
-            return false;
+            PrivateSetState(kControlStateHot);
         }
-        else {
-            return true;
+        if (!m_bMouseEnter) {
+            m_bMouseEnter = true;
+
+            //触发事件，应用层可以收到该消息的回调事件
+            EventArgs newMsg = msg;
+            newMsg.SetSender(this);
+            FireNormalEvents(newMsg);
         }
     }
-    return false;
+    else {
+        //恢复状态
+        m_bMouseEnter = false;
+        if (GetState() == kControlStateHot) {
+            PrivateSetState(kControlStateNormal);
+        }
+    }
+    return false; //返回false时，父控件也会收到MouseEnter事件
 }
 
 bool Control::MouseLeave(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    //MouseLeave的流程：子控件[MouseLeave] -> 父控件[MouseLeave] -> 祖先控件[MouseLeave]
+    if (!CheckEventType(msg, kEventMouseLeave)) {
+        return true;
     }
-    if( IsEnabled() ) {
+    if(IsEnabled()) {
         if (GetState() == kControlStateHot) {
             PrivateSetState(kControlStateNormal);
             if (HasHotState()) {
-                GetAnimationManager().MouseLeave();
-                Invalidate();
+                //Hot状态动画
+                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+                if (pHotAnimationPlayer != nullptr) {
+                    pHotAnimationPlayer->ReverseContinue();
+                }
             }
-            return false;
+            Invalidate();
         }
-        else {
-            return true;
+        if (m_bMouseEnter) {
+            m_bMouseEnter = false;
+
+            //触发事件，应用层可以收到该消息的回调事件
+            EventArgs newMsg = msg;
+            newMsg.SetSender(this);
+            FireNormalEvents(newMsg);
         }
     }
-
-    return false;
+    else {
+        //恢复状态
+        m_bMouseEnter = false;
+        if (GetState() == kControlStateHot) {
+            PrivateSetState(kControlStateNormal);
+            Invalidate();
+        }
+    }
+    return false; //返回false时，父控件也会收到MouseLeave事件
 }
 
 bool Control::ButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseButtonDown)) {
+        return true;
     }
     if( IsEnabled() ) {
         PrivateSetState(kControlStatePushed);
@@ -2565,14 +2822,15 @@ bool Control::ButtonDown(const EventArgs& msg)
 
 bool Control::ButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseButtonUp)) {
+        return true;
     }
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
-        auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
-        if (player != nullptr) {
-            player->Stop();
+        //停止Hot状态动画
+        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+        if (pHotAnimationPlayer != nullptr) {
+            pHotAnimationPlayer->Stop();
         }
         Invalidate();
         if( IsPointInWithScrollOffset(msg.ptMouse) ) {
@@ -2588,15 +2846,18 @@ bool Control::ButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::ButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::ButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
 bool Control::RButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseRButtonDown)) {
+        return true;
     }
     if (IsEnabled()) {
         SetMouseFocused(true);
@@ -2606,8 +2867,8 @@ bool Control::RButtonDown(const EventArgs& msg)
 
 bool Control::RButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseRButtonUp)) {
+        return true;
     }
     if (IsMouseFocused()) {
         SetMouseFocused(false);
@@ -2621,15 +2882,18 @@ bool Control::RButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::RButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseRDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
 bool Control::MButtonDown(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseMButtonDown)) {
+        return true;
     }
     if (IsEnabled()) {
         SetMouseFocused(true);
@@ -2639,8 +2903,8 @@ bool Control::MButtonDown(const EventArgs& msg)
 
 bool Control::MButtonUp(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventMouseMButtonUp)) {
+        return true;
     }
     if (IsMouseFocused()) {
         SetMouseFocused(false);
@@ -2648,54 +2912,86 @@ bool Control::MButtonUp(const EventArgs& msg)
     return true;
 }
 
-bool Control::MButtonDoubleClick(const EventArgs& /*msg*/)
+bool Control::MButtonDoubleClick(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseMDoubleClick)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseMove(const EventArgs& /*msg*/)
+bool Control::MouseMove(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseMove)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseHover(const EventArgs& /*msg*/)
+bool Control::MouseHover(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseHover)) {
+        return true;
+    }
     return true;
 }
 
-bool Control::MouseWheel(const EventArgs& /*msg*/)
+bool Control::MouseWheel(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventMouseWheel)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     //int32_t wheelDelta = msg.eventData;
     return false;
 }
 
-bool Control::MouseMenu(const EventArgs& /*msg*/)
+bool Control::MouseMenu(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventContextMenu)) {
+        return true;
+    }
+
     //按Shif + F10由系统产生上下文菜单, 或者点击右键触发菜单：默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnChar(const EventArgs& /*msg*/)
+bool Control::OnChar(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventChar)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnKeyDown(const EventArgs& /*msg*/)
+bool Control::OnKeyDown(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventKeyDown)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnKeyUp(const EventArgs& /*msg*/)
+bool Control::OnKeyUp(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventKeyUp)) {
+        return true;
+    }
+
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnSetCursor(const EventArgs& /*msg*/)
+bool Control::OnSetCursor(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventSetCursor)) {
+        return true;
+    }
     switch (m_cursorType) {
     case CursorType::kCursorHand:
         {
@@ -2719,8 +3015,11 @@ void Control::SetCursor(CursorType cursorType)
     GlobalManager::Instance().Cursor().SetCursor(cursorType);
 }
 
-bool Control::OnSetFocus(const EventArgs& /*msg*/)
+bool Control::OnSetFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventSetFocus)) {
+        return true;
+    }
 #if defined (DUILIB_BUILD_FOR_WIN)
     //默认情况下，控件获得焦点时，关闭输入法
     Window* pWindow = GetWindow();
@@ -2738,8 +3037,8 @@ bool Control::OnSetFocus(const EventArgs& /*msg*/)
 
 bool Control::OnKillFocus(const EventArgs& msg)
 {
-    if (msg.IsSenderExpired()) {
-        return false;
+    if (!CheckEventType(msg, kEventKillFocus)) {
+        return true;
     }
     if (GetState() == kControlStateHot) {
         SetState(kControlStateNormal);
@@ -2747,9 +3046,10 @@ bool Control::OnKillFocus(const EventArgs& msg)
     else if (GetState() == kControlStatePushed) {
         //失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
         SetMouseFocused(false);
-        auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
-        if (player != nullptr) {
-            player->Stop();
+        //停止Hot状态动画
+        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
+        if (pHotAnimationPlayer != nullptr) {
+            pHotAnimationPlayer->Stop();
         }
         SetState(kControlStateNormal);
     }
@@ -2757,44 +3057,65 @@ bool Control::OnKillFocus(const EventArgs& msg)
     return true;
 }
 
-bool Control::OnWindowSetFocus(const EventArgs& /*msg*/)
+bool Control::OnWindowSetFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventWindowSetFocus)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
+bool Control::OnWindowKillFocus(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventWindowKillFocus)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnCaptureChanged(const EventArgs& /*msg*/)
+bool Control::OnCaptureChanged(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventCaptureChanged)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeSetContext(const EventArgs& /*msg*/)
+bool Control::OnImeSetContext(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeSetContext)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
+bool Control::OnImeStartComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeStartComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeComposition(const EventArgs& /*msg*/)
+bool Control::OnImeComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
 
-bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
+bool Control::OnImeEndComposition(const EventArgs& msg)
 {
+    if (!CheckEventType(msg, kEventImeEndComposition)) {
+        return true;
+    }
     //默认不处理，交由父控件处理
     return false;
 }
@@ -3268,6 +3589,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 
 void Control::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+    if (GetRect().IsEmpty()) {
+        return;
+    }
     UiRect rcTemp; //本控件范围内的脏区域，本次需要绘制的区域
     if (!UiRect::Intersect(rcTemp, rcPaint, GetBoxShadowExpandedRect(GetRect()))) {//如果包含box-shadow的区域内为脏区域，就需要进行绘制
         return;
@@ -3315,7 +3639,8 @@ void Control::PaintShadow(IRender* pRender)
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
                                boxShadow.m_nSpreadRadius,
-                               GlobalManager::Instance().Color().GetColor(boxShadow.m_strColor));
+                               GlobalManager::Instance().Color().GetColor(boxShadow.m_strColor),
+                               m_nAlpha);//控件阴影的透明度跟随控件的透明度
     }    
 }
 
@@ -3535,15 +3860,25 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         return;
     }
 
-    //绘制边线：确保边线在矩形范围内
+    // 绘制边线
     UiRectF rcDrawF((float)rcDraw.left, (float)rcDraw.top, (float)rcDraw.right, (float)rcDraw.bottom);
-    float fHalfBorderSize = fBorderSize / 2;
-    rcDrawF.left += fHalfBorderSize;
-    rcDrawF.top += fHalfBorderSize;
-    rcDrawF.right -= fHalfBorderSize;
-    rcDrawF.bottom -= fHalfBorderSize;
 
-    if (ShouldBeRoundRectBorders()) {
+    const bool bRoundRectBorders = ShouldBeRoundRectBorders();
+    const bool bRootBoxRoundCorner = IsRootBox() && IsWindowRoundRect(); //窗口为圆角，并且该控件为根容器
+    if (bRoundRectBorders && bRootBoxRoundCorner) {
+        // 在圆角窗口中，跟容器也是圆角，需要保持根容器的圆角与窗口的圆角大小一致，避免圆角出现黑边现象
+        fBorderSize *= 2;//放大为2倍，以窗口边缘为中心线绘制时，实际显示的线条刚好与设置的相同
+    }
+    else {
+        // 确保边线在矩形范围内
+        float fHalfBorderSize = fBorderSize / 2;
+        rcDrawF.left += fHalfBorderSize;
+        rcDrawF.top += fHalfBorderSize;
+        rcDrawF.right -= fHalfBorderSize;
+        rcDrawF.bottom -= fHalfBorderSize;
+    }
+
+    if (bRoundRectBorders) {
         float fRoundWidth = 0;
         float fRoundHeight = 0;
         GetBorderRound(fRoundWidth, fRoundHeight);        
@@ -3694,41 +4029,6 @@ bool Control::IsWindowRoundRect() const
     return isWindowRoundRect;
 }
 
-void Control::AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const
-{
-    UiRect rcI((int32_t)(rc.left + 0.5f), (int32_t)(rc.top + 0.5f), (int32_t)(rc.right + 0.5f), (int32_t)(rc.bottom + 0.5f));
-    AddRoundRectPath(path, rcI, rx, ry);
-}
-
-void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const
-{
-    ASSERT(path != nullptr);
-    if (path == nullptr) {
-        return;
-    }
-    //确保圆角宽度和高度都是偶数
-    UiSize roundSize;
-    roundSize.cx = (int32_t)(rx + 0.5f);
-    roundSize.cy = (int32_t)(ry + 0.5f);
-    
-    if ((roundSize.cx % 2) != 0) {
-        roundSize.cx += 1;
-    }
-    if ((roundSize.cy % 2) != 0) {
-        roundSize.cy += 1;
-    }
-    //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-    path->AddArc(UiRect(rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
-    path->AddLine(rc.left + roundSize.cx / 2, rc.top, rc.right - roundSize.cx / 2, rc.top);
-    path->AddArc(UiRect(rc.right - roundSize.cx, rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
-    path->AddLine(rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
-    path->AddArc(UiRect(rc.right - roundSize.cx, rc.bottom - roundSize.cy, rc.right, rc.bottom), 0, 90);
-    path->AddLine(rc.right - roundSize.cx / 2, rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
-    path->AddArc(UiRect(rc.left, rc.bottom - roundSize.cy, rc.left + roundSize.cx, rc.bottom), 90, 90);
-    path->AddLine(rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
-    path->Close();
-}
-
 void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
                             UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
@@ -3745,46 +4045,20 @@ void Control::DrawRoundRect(IRender* pRender, const UiRectF& rc, float rx, float
     if (pRender == nullptr) {
         return;
     }
-    if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
-        ASSERT(0);//目前没有其他类型的绘制引擎，代码走不到这里了。
+    if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
+        //普通实线
         pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
-        return;
     }
-    bool isDrawOk = false;
-    if (IsRootBox() && IsWindowRoundRect()) {
-        //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
+    else {
+        //其他线形
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
             std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
-            std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-            if (pen && path) {
-                if (borderDashStyle != IPen::DashStyle::kDashStyleSolid) {
-                    pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                }
-                //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, rx, ry);
-                pRender->DrawPath(path.get(), pen.get());
-                isDrawOk = true;
-            }
-        }
-    }
-    if(!isDrawOk) {
-        if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
-            //普通实线
-            pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
+            pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
+            pRender->DrawRoundRect(rc, rx, ry, pen.get());
         }
         else {
-            //其他线形
-            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-            if (pRenderFactory != nullptr) {
-                std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
-                pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                pRender->DrawRoundRect(rc, rx, ry, pen.get());
-            }
-            else {
-                pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
-            }
+            pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
         }
     }
 }
@@ -3795,59 +4069,21 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
     if (pRender == nullptr) {
         return;
     }
-    if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
-        //非Skia引擎
+    UiColor dwBackColor2;
+    if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
+        dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
+    }
+    if (!dwBackColor2.IsEmpty()) {
+        //渐变背景色
+        int8_t nColor2Direction = 1;
+        if (m_pColorData != nullptr) {
+            nColor2Direction = m_pColorData->m_nBkColor2Direction;
+        }
+        pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
+    }
+    else {
         pRender->FillRoundRect(rc, rx, ry, dwColor);
-        return;
-    }
-
-    bool isDrawOk = false;
-    if (IsRootBox() && IsWindowRoundRect()) {
-        //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        if (pRenderFactory != nullptr) {
-            std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));
-            std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-            if (brush && path) {
-                //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, rx, ry);
-                UiColor dwBackColor2;
-                if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
-                    dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
-                }
-                if (!dwBackColor2.IsEmpty()) {
-                    //渐变背景色
-                    int8_t nColor2Direction = 1;
-                    if (m_pColorData != nullptr) {
-                        nColor2Direction = m_pColorData->m_nBkColor2Direction;
-                    }
-                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
-                }
-                else {
-                    pRender->FillPath(path.get(), brush.get());
-                }                
-                isDrawOk = true;
-            }
-        }
-    }
-    if (!isDrawOk) {
-        UiColor dwBackColor2;
-        if ((m_pColorData != nullptr) && !m_pColorData->m_strBkColor2.empty()) {
-            dwBackColor2 = GetUiColor(m_pColorData->m_strBkColor2.c_str());
-        }
-        if (!dwBackColor2.IsEmpty()) {
-            //渐变背景色
-            int8_t nColor2Direction = 1;
-            if (m_pColorData != nullptr) {
-                nColor2Direction = m_pColorData->m_nBkColor2Direction;
-            }
-            pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
-        }
-        else {
-            pRender->FillRoundRect(rc, rx, ry, dwColor);
-        }
-    }    
+    }  
 }
 
 void Control::PaintBkImage(IRender* pRender)
@@ -3894,20 +4130,18 @@ void Control::PaintLoading(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-void Control::SetAlpha(int64_t alpha)
+void Control::SetAlpha(uint8_t nAlpha)
 {
-    ASSERT(alpha >= 0 && alpha <= 255);
-    if (m_nAlpha != (uint8_t)alpha) {
-        m_nAlpha = (uint8_t)alpha;
+    if (m_nAlpha != nAlpha) {
+        m_nAlpha = nAlpha;
         Invalidate();
     }
 }
 
-void Control::SetHotAlpha(int64_t nHotAlpha)
+void Control::SetHotAlpha(uint8_t nHotAlpha)
 {
-    ASSERT(nHotAlpha >= 0 && nHotAlpha <= 255);
-    if (m_nHotAlpha != (uint8_t)nHotAlpha) {
-        m_nHotAlpha = (uint8_t)nHotAlpha;
+    if (m_nHotAlpha != nHotAlpha) {
+        m_nHotAlpha = nHotAlpha;
         Invalidate();
     }
 }
@@ -3939,27 +4173,43 @@ void Control::SetRenderOffset(UiPoint renderOffset, bool bNeedDpiScale)
     }    
 }
 
-void Control::SetRenderOffsetX(int64_t renderOffsetX)
+void Control::SetRenderOffsetX(int32_t renderOffsetX)
 {
-    int32_t x = TruncateToInt32(renderOffsetX);
+    int32_t x = renderOffsetX;
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_renderOffset.x != x) {
+        int32_t nOldOffsetX = m_pAnimationData->m_renderOffset.x;
         m_pAnimationData->m_renderOffset.x = x;
         Invalidate();
+
+        //父控件也需要重绘(被覆盖的部分)
+        if ((nOldOffsetX != 0) && (GetParent() != nullptr)) {
+            UiRect rcInvalid = GetRect();
+            rcInvalid.Offset(-nOldOffsetX, 0);
+            GetParent()->InvalidateRect(rcInvalid);
+        }
     }
 }
 
-void Control::SetRenderOffsetY(int64_t renderOffsetY)
+void Control::SetRenderOffsetY(int32_t renderOffsetY)
 {
-    int32_t y = TruncateToInt32(renderOffsetY);
+    int32_t y = renderOffsetY;
     if (m_pAnimationData == nullptr) {
         m_pAnimationData = std::make_unique<TAnimationData>();
     }
     if (m_pAnimationData->m_renderOffset.y != y) {
+        int32_t nOldOffsetY = m_pAnimationData->m_renderOffset.y;
         m_pAnimationData->m_renderOffset.y = y;
         Invalidate();
+
+        //父控件也需要重绘(被覆盖的部分)
+        if ((nOldOffsetY != 0) && (GetParent() != nullptr)) {
+            UiRect rcInvalid = GetRect();
+            rcInvalid.Offset(0, -nOldOffsetY);
+            GetParent()->InvalidateRect(rcInvalid);
+        }
     }
 }
 
@@ -4338,7 +4588,9 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         FilePath resPath(sImagePath);
         bool bLocalPath = true;
         bool bResPath = true;
-        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), resPath, bLocalPath, bResPath);
+        const FilePath windowResPath = pWindow->GetResourcePath();
+        const FilePath windowXmlPath = pWindow->GetXmlPath();
+        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(windowResPath, windowXmlPath, resPath, this, bLocalPath, bResPath);
         if (!imageFullPath.IsEmpty()) {
             imageLoadPath.m_imageFullPath = imageFullPath.NativePath();
             if (bLocalPath) {
@@ -4484,26 +4736,26 @@ void Control::ClearImageCache()
     }
 }
 
-void Control::AttachEvent(EventType type, const EventCallback& callback)
+void Control::AttachEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& attachEventMap = GetAttachEventMap();
-    attachEventMap[type] += callback;
-    if ((type == kEventContextMenu) || (type == kEventAll)) {
+    attachEventMap[eventType].AddEventCallback(callback, callbackID);
+    if ((eventType == kEventContextMenu) || (eventType == kEventAll)) {
         SetContextMenuUsed(true);
     }
 }
 
-void Control::DetachEvent(EventType type)
+void Control::DetachEvent(EventType eventType)
 {
     if (!HasAttachEventMap()) {
         return;
     }
     EventMap& attachEventMap = GetAttachEventMap();
-    auto event = attachEventMap.find(type);
+    auto event = attachEventMap.find(eventType);
     if (event != attachEventMap.end()) {
         attachEventMap.erase(event);
     }
-    if ((type == kEventContextMenu) || (type == kEventAll)) {
+    if ((eventType == kEventContextMenu) || (eventType == kEventAll)) {
         if ((attachEventMap.find(kEventAll) == attachEventMap.end()) &&
             (attachEventMap.find(kEventContextMenu) == attachEventMap.end())) {
             SetContextMenuUsed(false);
@@ -4511,28 +4763,127 @@ void Control::DetachEvent(EventType type)
     }
 }
 
-void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachEventByID(EventCallbackID callbackID)
 {
-    EventMap& xmlEventMap = GetXmlEventMap();
-    xmlEventMap[eventType] += callback;
+    if (!HasAttachEventMap()) {
+        return;
+    }
+    EventMap& attachEventMap = GetAttachEventMap();
+    EventUtils::RemoveEventCallbackByID(attachEventMap, callbackID);
 }
 
-void Control::DetachXmlEvent(EventType type)
+void Control::DetachEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasAttachEventMap()) {
+        return;
+    }
+    EventMap& attachEventMap = GetAttachEventMap();
+    EventUtils::RemoveEventCallbackByID(attachEventMap, eventType, callbackID);
+}
+
+bool Control::HasEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
+{
+    EventMap& xmlEventMap = GetXmlEventMap();
+    xmlEventMap[eventType].AddEventCallback(callback, callbackID);
+}
+
+void Control::DetachXmlEvent(EventType eventType)
 {
     if (!HasXmlEventMap()) {
         return;
     }
     EventMap& xmlEventMap = GetXmlEventMap();
-    auto event = xmlEventMap.find(type);
+    auto event = xmlEventMap.find(eventType);
     if (event != xmlEventMap.end()) {
         xmlEventMap.erase(event);
     }
 }
 
-void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachXmlEventByID(EventCallbackID callbackID)
+{
+    if (!HasXmlEventMap()) {
+        return;
+    }
+    EventMap& xmlEventMap = GetXmlEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlEventMap, callbackID);
+}
+
+void Control::DetachXmlEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasXmlEventMap()) {
+        return;
+    }
+    EventMap& xmlEventMap = GetXmlEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlEventMap, eventType, callbackID);
+}
+
+bool Control::HasXmlEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasXmlEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasXmlEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& bubbledEventMap = GetBubbledEventMap();
-    bubbledEventMap[eventType] += callback;
+    bubbledEventMap[eventType].AddEventCallback(callback, callbackID);
 }
 
 void Control::DetachBubbledEvent(EventType eventType)
@@ -4547,10 +4898,64 @@ void Control::DetachBubbledEvent(EventType eventType)
     }
 }
 
-void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
+void Control::DetachBubbledEventByID(EventCallbackID callbackID)
+{
+    if (!HasBubbledEventMap()) {
+        return;
+    }
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(bubbledEventMap, callbackID);
+}
+
+void Control::DetachBubbledEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasBubbledEventMap()) {
+        return;
+    }
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(bubbledEventMap, eventType, callbackID);
+}
+
+bool Control::HasBubbledEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasBubbledEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasBubbledEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
+void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback, EventCallbackID callbackID)
 {
     EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
-    xmlBubbledEventMap[eventType] += callback;
+    xmlBubbledEventMap[eventType].AddEventCallback(callback, callbackID);
 }
 
 void Control::DetachXmlBubbledEvent(EventType eventType)
@@ -4565,56 +4970,131 @@ void Control::DetachXmlBubbledEvent(EventType eventType)
     }
 }
 
+void Control::DetachXmlBubbledEventByID(EventCallbackID callbackID)
+{
+    if (!HasXmlBubbledEventMap()) {
+        return;
+    }
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlBubbledEventMap, callbackID);
+}
+
+void Control::DetachXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID)
+{
+    if (!HasXmlBubbledEventMap()) {
+        return;
+    }
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    EventUtils::RemoveEventCallbackByID(xmlBubbledEventMap, eventType, callbackID);
+}
+
+bool Control::HasXmlBubbledEvent(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return eventMap.find(eventType) != eventMap.end();
+}
+
+bool Control::HasXmlBubbledEventByID(EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, callbackID);
+}
+
+bool Control::HasXmlBubbledEventByID(EventType eventType, EventCallbackID callbackID) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+    return EventUtils::HasEventCallbackByID(eventMap, eventType, callbackID);
+}
+
 bool Control::FireAllEvents(const EventArgs& msg)
 {
     if (msg.IsSenderExpired()) {
         return false;
     }
+    bool bRet = FireNormalEvents(msg);
+    if (bRet) {
+        bRet = FireBubbledEvents(msg);
+    }
+    return bRet;
+}
+
+bool Control::FireNormalEvents(const EventArgs & msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
+    if (msg.GetSender() != this) {
+        return true;
+    }
     std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
-
-    if (msg.GetSender() == this) {
-        //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
-        if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
-            const EventMap& attachEventMap = GetAttachEventMap();
-            auto callback = attachEventMap.find(msg.eventType);
-            if (callback != attachEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
-
-            callback = attachEventMap.find(kEventAll);
-            if (callback != attachEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
+    if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
+        const EventMap& attachEventMap = GetAttachEventMap();
+        auto callback = attachEventMap.find(msg.eventType);
+        if (callback != attachEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
         }
 
-        if (bRet && HasXmlEventMap() && !GetXmlEventMap().empty()) {
-            const EventMap& xmlEventMap = GetXmlEventMap();
-            auto callback = xmlEventMap.find(msg.eventType);
-            if (callback != xmlEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
-
-            callback = xmlEventMap.find(kEventAll);
-            if (callback != xmlEventMap.end()) {
-                bRet = callback->second(msg);
-            }
-            if (weakflag.expired() || msg.IsSenderExpired()) {
-                return false;
-            }
+        callback = attachEventMap.find(kEventAll);
+        if (callback != attachEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
         }
     }
 
+    if (bRet && HasXmlEventMap() && !GetXmlEventMap().empty()) {
+        const EventMap& xmlEventMap = GetXmlEventMap();
+        auto callback = xmlEventMap.find(msg.eventType);
+        if (callback != xmlEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
+        }
+
+        callback = xmlEventMap.find(kEventAll);
+        if (callback != xmlEventMap.end()) {
+            bRet = callback->second(msg);
+        }
+        if (weakflag.expired() || msg.IsSenderExpired()) {
+            return false;
+        }
+    }
+    return bRet && !weakflag.expired();
+}
+
+bool Control::FireBubbledEvents(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     //备注：BubbledEventMap 和 XmlBubbledEventMap里面的回调函数，不需要校验消息的发送者是否为控件自身
+    std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
+    bool bRet = true;//当值为false时，就不再调用回调函数和处理函数    
     if (bRet && HasBubbledEventMap() && !GetBubbledEventMap().empty()) {
         const EventMap& bubbledEventMap = GetBubbledEventMap();
         auto callback = bubbledEventMap.find(msg.eventType);
@@ -4815,6 +5295,22 @@ void Control::EnsureNoFocus()
     }
 }
 
+bool Control::MousePosToLayoutPos(const UiPoint& ptMouse, UiPoint& ptLayoutPos)
+{
+    ptLayoutPos.x = 0;
+    ptLayoutPos.y = 0;
+    UiPoint pt(ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox()); //将鼠标的客户区坐标转换为控件坐标
+    UiRect rcRect = GetRect();
+    if (rcRect.ContainsPt(pt)) {
+        //表示鼠标在控件范围内
+        ptLayoutPos.x = pt.x - rcRect.left;
+        ptLayoutPos.y = pt.y - rcRect.top;
+        return true;
+    }
+    return false;
+}
+
 bool Control::ScreenToClient(UiPoint& pt)
 {
     Window* pWindow = GetWindow();
@@ -4974,9 +5470,9 @@ DString Control::GetDropFileTypes() const
 
 ControlDropTarget_Windows* Control::GetControlDropTarget()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (IsEnableDragDrop() && IsEnabled()) {
-        if (m_pDragDropData != nullptr) {
+        if (m_pDragDropData == nullptr) {
             m_pDragDropData = std::make_unique<TDragDropData>();
             m_pDragDropData->m_bDragDropEnabled = true;
         }

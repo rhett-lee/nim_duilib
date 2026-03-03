@@ -7,7 +7,7 @@
         <TabCtrlItem class="tab_ctrl_item" title="标签3" close_button_class="" tab_box_item_index="2"/>
     </TabCtrl>
     <TabBox name="main_view_tab_test" bkcolor="white" selected_id="0">
-        <VBox name="main_view_page_01" bkcolor="white">
+        <VBox bkcolor="white">
             <Label text="页面1：这里是页面1"/>
             <Label text="窗口阴影的功能测试：" valign="center" margin="12,30,10,0"/>
             <Option class="checkbox_2" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
@@ -41,10 +41,10 @@
                 <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
             </Option>
         </VBox>
-        <VBox name="main_view_page_02" bkcolor="blue">
+        <VBox bkcolor="blue">
             <Label text="页面2：这里是页面2"/>
         </VBox>
-        <VBox name="main_view_page_03" bkcolor="green">
+        <VBox bkcolor="green">
             <Label text="页面3：这里是页面3"/>
             <TabBox name="sub_view_tab" selected_id="2" bkcolor="Cornsilk">
                 <VBox name="sub_view_tab_page1" height="200" bkcolor="LightBlue">

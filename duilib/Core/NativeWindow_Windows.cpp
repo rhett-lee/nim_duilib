@@ -7,6 +7,7 @@
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include "duilib/Utils/InlineHook_Windows.h"
 #include "duilib/Core/WindowDropTarget_Windows.h"
+#include "duilib/Core/ControlDropTargetImpl_Windows.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -48,7 +49,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
-    m_bFullScreen(false),
+    m_bFullscreen(false),
+    m_bFullscreenExiting(false),
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
     m_pfnOldWndProc(nullptr),
@@ -62,7 +64,9 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_nSysMenuTimerId(0),
     m_hImc(nullptr),
     m_pWindowDropTarget(nullptr),
-    m_nWindowDpiScaleFactor(100)
+    m_nWindowDpiScaleFactor(100),
+    m_bChildWindow(false),
+    m_pDataObj(nullptr)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -154,7 +158,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
                                  className.c_str(),
                                  windowTitle.c_str(),
-                                 m_createParam.m_dwStyle,
+                                 m_createParam.m_dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
                                  m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
                                  m_hParentWnd, nullptr, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
@@ -286,7 +290,7 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 
     // 创建对话框资源结构体（对话框初始状态为可见状态）
     DLGTEMPLATE dlgTemplate = {
-        WS_VISIBLE | m_createParam.m_dwStyle,
+        WS_VISIBLE | m_createParam.m_dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
         m_createParam.m_dwExStyle,
         0,
         x, y, cx, cy
@@ -352,6 +356,113 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
     return (int32_t)nRet;
 }
 
+bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight)
+{
+    ASSERT(m_hWnd == nullptr);
+    if (m_hWnd != nullptr) {
+        return false;
+    }
+    ASSERT(pParentWindow != nullptr);
+    if (pParentWindow == nullptr) {
+        return false;
+    }
+
+    m_hResModule = pParentWindow->m_hResModule;
+    if (m_hResModule == nullptr) {
+        m_hResModule = ::GetModuleHandle(nullptr);
+    }
+
+    //注册窗口类
+    DString className = StringConvert::TToLocal(pParentWindow->m_createParam.m_className);
+    WNDCLASSEX wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = pParentWindow->m_createParam.m_dwClassStyle;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.lpfnWndProc = NativeWindow_Windows::__WndProc;
+    wc.hInstance = GetResModuleHandle();
+    wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = nullptr;
+    wc.lpszMenuName = nullptr;
+    wc.lpszClassName = className.c_str();
+    wc.hIcon = nullptr;
+    wc.hIconSm = nullptr;
+
+    ATOM ret = ::RegisterClassEx(&wc);
+    bool bRet = (ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+    ASSERT(bRet);
+    if (!bRet) {
+        return false;
+    }
+
+    //保存参数
+    m_createParam.m_className = pParentWindow->m_createParam.m_className;
+    m_createParam.m_dwClassStyle = pParentWindow->m_createParam.m_dwClassStyle;
+
+    m_createParam.m_nX = nX;
+    m_createParam.m_nY = nY;
+    m_createParam.m_nWidth = nWidth;
+    m_createParam.m_nHeight = nHeight;
+    m_createParam.m_dwExStyle = 0;
+    m_createParam.m_dwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+    if (pParentWindow->IsLayeredWindow()) {
+        //父窗口是分层窗口时，子窗口也需要带有分层窗口属性，否则绘制流程有问题
+        if (::IsWindows8OrGreater()) {
+            // Windows 8： 顶级窗口和子窗口支持 WS_EX_LAYERED 样式。
+            // 以前的 Windows 版本仅支持顶级窗口 WS_EX_LAYERED。
+            m_createParam.m_dwExStyle = WS_EX_LAYERED;
+        }
+    }
+
+    //父窗口句柄
+    m_hParentWnd = pParentWindow->GetHWND();
+    m_bChildWindow = true;
+
+    //窗口标题
+    DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
+    HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
+                                 className.c_str(),
+                                 windowTitle.c_str(),
+                                 m_createParam.m_dwStyle,
+                                 m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
+                                 m_hParentWnd, nullptr, GetResModuleHandle(), this);
+    ASSERT(::IsWindow(hWnd));
+    ASSERT(hWnd == m_hWnd);
+    if (hWnd != m_hWnd) {
+        m_hWnd = hWnd;
+    }
+    ASSERT(m_hWnd != nullptr);
+    if (m_hWnd == nullptr) {
+        m_hParentWnd = nullptr;
+        return false;
+    }    
+    if (IsLayeredWindow() && IsWindowVisible()) {
+        //层窗口，需要手动触发绘制，否则窗口创建后可能不绘制
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        Invalidate(rcClient);
+    }    
+    return true;
+}
+
+bool NativeWindow_Windows::IsChildWindow() const
+{
+    return m_bChildWindow;
+}
+
+bool NativeWindow_Windows::SetParentWindow(NativeWindow_Windows* pParentWindow)
+{
+    ASSERT((pParentWindow != nullptr) && pParentWindow->IsWindow());
+    if ((pParentWindow == nullptr) || !pParentWindow->IsWindow()) {
+        return false;
+    }
+    if (!IsWindow()) {
+        return false;
+    }
+    ::SetParent(GetHWND(), pParentWindow->GetHWND());
+    return true;
+}
+
 void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
 {
     m_bUseSystemCaption = false;
@@ -411,7 +522,11 @@ LRESULT NativeWindow_Windows::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lPara
     InitNativeWindow();
 
     if (m_pOwner != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
 
     //更新最大化/最小化按钮的风格
@@ -430,7 +545,11 @@ LRESULT NativeWindow_Windows::OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM l
     InitNativeWindow();
 
     if (m_pOwner != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         m_pOwner->OnNativeCreateWndMsg(true, NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
 
     //更新最大化/最小化按钮的风格
@@ -578,7 +697,8 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
     SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
     if (bRedraw && bChanged && IsWindow()) {
         // 强制窗口重绘
-        ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+        ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
     return true;
 }
@@ -694,6 +814,10 @@ uint8_t NativeWindow_Windows::GetLayeredWindowOpacity() const
 
 void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
 {
+    ASSERT(!IsChildWindow());
+    if (IsChildWindow()) {
+        return;
+    }
     m_bUseSystemCaption = bUseSystemCaption;
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
@@ -740,6 +864,16 @@ bool NativeWindow_Windows::ShowWindow(ShowWindowCommands nCmdShow)
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return false;
+    }
+    if (m_bFullscreen) {
+        //先退出全屏
+        ExitFullscreen();
+    }
+    if (IsChildWindow()) {
+        //子窗口：只支持显示和隐藏
+        if (nCmdShow != kSW_HIDE) {
+            nCmdShow = kSW_SHOW;
+        }
     }
     bool bRet = false;
     int nWindowCmdShow = SW_SHOWNORMAL;
@@ -792,6 +926,10 @@ bool NativeWindow_Windows::ShowWindow(ShowWindowCommands nCmdShow)
 void NativeWindow_Windows::ShowModalFake(NativeWindow_Windows* pParentWindow)
 {
     ASSERT(::IsWindow(m_hWnd));
+    ASSERT(!IsChildWindow());
+    if (IsChildWindow()) {
+        return;
+    }
     ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
     if (pParentWindow != nullptr) {
         auto hOwnerWnd = GetWindowOwner();
@@ -915,8 +1053,8 @@ bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t&
 
 void NativeWindow_Windows::SetWindowAlwaysOnTop(bool bOnTop)
 {
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
+    ASSERT(IsWindow() && !IsChildWindow());
+    if (!IsWindow() || IsChildWindow()) {
         return;
     }
     if (bOnTop) {
@@ -1002,20 +1140,21 @@ void NativeWindow_Windows::PostQuitMsg(int32_t nExitCode)
     ::PostQuitMessage(nExitCode);
 }
 
-bool NativeWindow_Windows::EnterFullScreen()
+bool NativeWindow_Windows::EnterFullscreen()
 {
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
-    if (IsWindowMinimized()) {
-        //最小化的时候，不允许激活全屏
+    if (IsWindowMinimized() || IsChildWindow()) {
+        //最小化或者子窗口，不允许激活全屏
         return false;
     }
-    if (m_bFullScreen) {
+    if (m_bFullscreen) {
         return true;
     }
-    m_bFullScreen = true;
+    m_bFullscreen = true;
+    m_bFullscreenExiting = false;
 
     //保存窗口风格
     m_dwLastStyle = ::GetWindowLong(m_hWnd, GWL_STYLE);
@@ -1028,23 +1167,27 @@ bool NativeWindow_Windows::EnterFullScreen()
     GetMonitorRect(rcMonitor);
 
     // 去掉标题栏、边框
-    DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
-    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
+    DWORD dwFullscreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
+    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullscreenStyle);
     ::SetWindowPos(m_hWnd, nullptr, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
     
-    m_pOwner->OnNativeWindowEnterFullScreen();
+    m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
 
-bool NativeWindow_Windows::ExitFullScreen()
+bool NativeWindow_Windows::ExitFullscreen()
 {
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
-    if (!m_bFullScreen) {
+    if (!m_bFullscreen) {
         return false;
     }
+    if (m_bFullscreenExiting) {
+        return false;
+    }
+    m_bFullscreenExiting = true; //避免重复进入退出流程
     
     //恢复窗口风格
     if (m_dwLastStyle != 0) {
@@ -1055,11 +1198,13 @@ bool NativeWindow_Windows::ExitFullScreen()
     //恢复窗口位置/大小信息
     ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    if (IsWindowMaximized()) {
-        ::ShowWindow(m_hWnd, SW_RESTORE);
-    }
-    m_bFullScreen = false;
-    m_pOwner->OnNativeWindowExitFullScreen();
+    m_bFullscreen = false;
+    m_bFullscreenExiting = false;
+
+    //触发位置和大小变化事件
+    ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
+
+    m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
 
@@ -1073,9 +1218,9 @@ bool NativeWindow_Windows::IsWindowMinimized() const
     return ::IsWindow(m_hWnd) && ::IsIconic(m_hWnd);
 }
 
-bool NativeWindow_Windows::IsWindowFullScreen() const
+bool NativeWindow_Windows::IsWindowFullscreen() const
 {
-    return m_bFullScreen;
+    return m_bFullscreen;
 }
 
 bool NativeWindow_Windows::EnableWindow(bool bEnable)
@@ -1161,6 +1306,145 @@ bool NativeWindow_Windows::SetWindowIcon(const FilePath& iconFilePath)
     return true;
 }
 
+// 辅助函数：将宽度和高度转为唯一键（处理0表示256px的情况）
+static DWORD GetIconSizeKey(BYTE bWidth, BYTE bHeight)
+{
+    // 高位存宽度，低位存高度；0转为256
+    UINT width = (bWidth == 0) ? 256 : bWidth;
+    UINT height = (bHeight == 0) ? 256 : bHeight;
+    return (width << 16) | height;
+}
+
+/** 从图标数据中，查找指定大小的图标资源所在位置
+* @param [in] pIconData ico图标数据起始地址（对应于*.ico文件的数据）
+* @param [in] nDataSize 图标数据的长度
+* @param [in] targetWidth 目标图标的宽度
+* @param [in] targetHeight 目标图标的高度
+* @param [out] outResSize 返回图标数据的长度
+* @return 返回图标资源数据的起始地址
+*/
+static const BYTE* ExtractIconResource(const BYTE* pIconData, DWORD nDataSize,
+                                       int32_t targetWidth, int32_t targetHeight, DWORD& outResSize)
+{
+#pragma pack(push, 1)
+    typedef struct
+    {
+        WORD idReserved;   // 保留字段，必须为0
+        WORD idType;       // 资源类型：1=图标，2=光标
+        WORD idCount;      // 图标/光标数量
+    } ICONDIR;
+
+    typedef struct
+    {
+        BYTE bWidth;       // 图标宽度（0表示256px）
+        BYTE bHeight;      // 图标高度（0表示256px）
+        BYTE bColorCount;  // 颜色数（0表示>=8bpp）
+        BYTE bReserved;    // 保留字段，必须为0
+        WORD wPlanes;      // 位面数（图标固定为1）
+        WORD wBitCount;    // 每像素位数
+        DWORD dwBytesInRes;// 该图标资源的字节大小
+        DWORD dwImageOffset;// 该图标资源在文件中的偏移量
+    } ICONDIRENTRY;
+#pragma pack(pop)
+
+    outResSize = 0;
+    if ((pIconData == nullptr) || (nDataSize == 0)) {
+        return nullptr;
+    }
+
+    // 解析ICO文件头
+    const ICONDIR* pIconDir = (const ICONDIR*)pIconData;
+    if ((pIconDir->idReserved != 0 || pIconDir->idType != 1 || pIconDir->idCount == 0)) {
+        return nullptr;
+    }
+
+    // 遍历所有图标项，初步筛选图标数据：相同尺寸的图标，只保留位深(wBitCount)最大的图标
+    const ICONDIRENTRY* pFirstEntry = (const ICONDIRENTRY*)(pIconData + sizeof(ICONDIR));
+    // 用map分组：key=宽度+高度的组合键，value=该尺寸下的所有图标条目
+    std::map<DWORD, std::vector<ICONDIRENTRY>> iconGroups;
+    for (UINT i = 0; i < pIconDir->idCount; i++) {
+        const ICONDIRENTRY* pEntry = &pFirstEntry[i];
+        DWORD sizeKey = GetIconSizeKey(pEntry->bWidth, pEntry->bHeight);
+        iconGroups[sizeKey].push_back(*pEntry);
+    }
+    //遍历每个分组，筛选位深最大的图标，剔除其他图标数据，图标按尺寸由小到大排序
+    std::vector<ICONDIRENTRY> allIconList;
+    for (auto& group : iconGroups) {
+        auto& entries = group.second;
+        // 找到该分组中wBitCount最大的条目
+        auto maxEntryIt = std::max_element(entries.begin(), entries.end(),
+            [](const ICONDIRENTRY& a, const ICONDIRENTRY& b) {
+                return a.wBitCount < b.wBitCount;
+            });
+
+        // 将最大位深的条目加入结果容器
+        if (maxEntryIt != entries.end()) {
+            allIconList.push_back(*maxEntryIt);
+        }
+    }
+    if (allIconList.empty()) {
+        return nullptr;
+    }
+
+    //筛选出匹配度最高的那个图标
+    ICONDIRENTRY bestEntry = allIconList.back(); //默认选择尺寸最大的图标
+    for (size_t nIndex = 0; nIndex < allIconList.size(); ++nIndex) {
+        const ICONDIRENTRY& entry = allIconList[nIndex];
+        int entryWidth = (entry.bWidth == 0) ? 256 : entry.bWidth;
+        int entryHeight = (entry.bHeight == 0) ? 256 : entry.bHeight;
+        bool isSizeQualified = (entryWidth >= targetWidth) && (entryHeight >= targetHeight);
+        if (!isSizeQualified) {
+            continue;
+        }
+        //尺寸达标
+        if ((entryWidth == targetWidth) && (entryHeight == targetHeight)) {
+            //尺寸精确满足需要：直接选择
+            bestEntry = allIconList[nIndex];
+        }
+        else if (nIndex == 0) {
+            //首个图标满足需要：直接选择
+            bestEntry = allIconList[nIndex];
+        }
+        else {
+            //非首个图标满足需要：比较哪个更合适（缩放时图标失真度更小）
+            const ICONDIRENTRY& preEntry = allIconList[nIndex - 1];
+            int preEntryWidth = (preEntry.bWidth == 0) ? 256 : preEntry.bWidth;
+            int preEntryHeight = (preEntry.bHeight == 0) ? 256 : preEntry.bHeight;
+            float wRatio = (float)(targetWidth - preEntryWidth) / (float)preEntryWidth;
+            float hRatio = (float)(targetHeight - preEntryHeight) / (float)preEntryHeight;
+            float preRatio = std::max(wRatio, hRatio);
+
+            wRatio = (float)(entryWidth - targetWidth) / (float)entryWidth;
+            hRatio = (float)(entryHeight - targetHeight) / (float)entryHeight;
+            float curRatio = std::max(wRatio, hRatio);
+            if (curRatio < preRatio) {
+                bestEntry = allIconList[nIndex];            //选择尺寸大的
+            }
+            else {
+                const float minRatio = 0.20f; //设置最小放大比例
+                if (preRatio < minRatio) {
+                    bestEntry = allIconList[nIndex - 1];    //选择尺寸小的
+                }
+                else {
+                    bestEntry = allIconList[nIndex];        //选择尺寸大的
+                }
+            }
+        }
+        break;
+    }
+
+    // 校验资源偏移和大小
+    if ((bestEntry.dwImageOffset + bestEntry.dwBytesInRes) > nDataSize) {
+        return nullptr;
+    }
+    // 输出结果
+    outResSize = bestEntry.dwBytesInRes;
+    if (outResSize == 0) {
+        return nullptr;
+    }
+    return pIconData + bestEntry.dwImageOffset;
+}
+
 bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& /*iconFileName*/)
 {
     //Little Endian Only
@@ -1214,37 +1498,48 @@ bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileDat
 
     uint32_t uDpiScaleFactor = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
     uint32_t uDpi = m_pOwner->OnNativeGetDpi().MulDiv(uDpiScaleFactor, 96u, 100u);
-    HICON hIcon = nullptr;
+
+    struct TWinIconInfo
+    {
+        BOOL bLargeIcon;
+        int32_t cxIcon;
+        int32_t cyIcon;
+    };
+    std::vector<TWinIconInfo> iconInfos;
+
     //大图标
-    int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
-    int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
-    int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-    if (offset > 0) {
-        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-        ASSERT(hIcon != nullptr);
-        if (hIcon != nullptr) {
-            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-        }
-        else {
-            return false;
-        }
-    }
+    int32_t cxBestIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
+    int32_t cyBestIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
+    iconInfos.push_back({TRUE, cxBestIcon, cyBestIcon});
 
     //小图标
-    cxIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
-    cyIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
-    offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-    if (offset > 0) {
-        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
-        ASSERT(hIcon != nullptr);
-        if (hIcon != nullptr) {
-            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+    cxBestIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
+    cyBestIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
+    iconInfos.push_back({ FALSE, cxBestIcon, cyBestIcon });
+
+    bool bRet = true;
+    for (const TWinIconInfo& iconInfo : iconInfos) {
+        DWORD nIconDataSize = 0;
+        const BYTE* pIconData = ExtractIconResource((const BYTE*)fileData.data(), (DWORD)fileData.size(), iconInfo.cxIcon, iconInfo.cyIcon, nIconDataSize);
+        if (pIconData == nullptr) {
+            int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, iconInfo.cxIcon, iconInfo.cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+            if (offset > 0) {
+                pIconData = (PBYTE)fileData.data() + offset;
+                nIconDataSize = (DWORD)fileData.size() - (DWORD)offset;
+            }
         }
-        else {
-            return false;
+        if (pIconData != nullptr) {
+            HICON hIcon = ::CreateIconFromResourceEx((PBYTE)pIconData, nIconDataSize, TRUE, 0x00030000, iconInfo.cxIcon, iconInfo.cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+            ASSERT(hIcon != nullptr);
+            if (hIcon != nullptr) {
+                ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)iconInfo.bLargeIcon, (LPARAM)hIcon);
+            }
+            else {
+                bRet = false;
+            }
         }
     }
-    return true;
+    return bRet;
 }
 
 void NativeWindow_Windows::SetText(const DString& strText)
@@ -1326,26 +1621,39 @@ bool NativeWindow_Windows::IsCaptured() const
     return ::GetCapture() == m_hWnd;
 }
 
-bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
+bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
-    ASSERT((szRoundCorner.cx > 0) && (szRoundCorner.cy > 0));
-    if ((szRoundCorner.cx <= 0) || (szRoundCorner.cy <= 0)) {
-        return false;
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
     }
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
-        return false;
+    if (pRender != nullptr) {
+        return pRender->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
     }
-    HRGN hRgn = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom, szRoundCorner.cx, szRoundCorner.cy);
-    int nRet = ::SetWindowRgn(GetHWND(), hRgn, bRedraw ? TRUE : FALSE);
-    ::DeleteObject(hRgn);//TODO: 检查是否需要删除，按MSDN说法，是不需要删除的。
-    return nRet != 0;
+    return false;
+}
+
+bool NativeWindow_Windows::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
+{
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
+    if (pRender != nullptr) {
+        return pRender->SetWindowRectRgn(rcWnd, bRedraw);
+    }
+    return false;
 }
 
 void NativeWindow_Windows::ClearWindowRgn(bool bRedraw)
 {
-    ASSERT(IsWindow());
-    ::SetWindowRgn(GetHWND(), nullptr, bRedraw ? TRUE : FALSE);
+    IRender* pRender = m_pOwner->OnNativeGetRender();
+    if (!IsChildWindow()) {
+        ASSERT(pRender != nullptr);
+    }
+    if (pRender != nullptr) {
+        pRender->ClearWindowRgn(bRedraw);
+    }
 }
 
 void NativeWindow_Windows::Invalidate(const UiRect& rcItem)
@@ -1386,7 +1694,8 @@ public:
     virtual bool DoPaint(const UiRect& rcPaint) override
     {
         if (m_pOwner != nullptr) {
-            m_pOwner->OnNativePaintMsg(rcPaint, m_nativeMsg, m_bHandled);
+            NativeMsg nativeMsg = NativeMsg(WM_PAINT, (WPARAM)m_pNativeWindow->GetHWND(), 0);
+            m_pOwner->OnNativePaintMsg(rcPaint, nativeMsg, m_bHandled);
             return true;
         }
         return false;
@@ -1430,16 +1739,28 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
         bPaint = false;
     }
     if (bPaint) {
-        IRender* pRender = m_pOwner->OnNativeGetRender();
-        ASSERT(pRender != nullptr);
-        if (pRender != nullptr) {
-            NativeWindowRenderPaint renderPaint;
-            renderPaint.m_pNativeWindow = this;
-            renderPaint.m_pOwner = m_pOwner;
-            renderPaint.m_nativeMsg = NativeMsg(uMsg, wParam, lParam);
-            renderPaint.m_bHandled = bHandled;
-            bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
-            bHandled = renderPaint.m_bHandled;
+        if (IsChildWindow()) {
+            //子窗口模式，完全由应用层负责绘制
+            if (m_pOwner != nullptr) {
+                UiRect rcPaint(rectUpdate.left, rectUpdate.top, rectUpdate.right, rectUpdate.bottom);
+                NativeMsg nativeMsg = NativeMsg(WM_PAINT, (WPARAM)m_hWnd, 0);
+                m_pOwner->OnNativePaintMsg(rcPaint, nativeMsg, bHandled);
+                bPaint = true;
+            }
+        }
+        else {
+            //正常模式，由内部负责绘制流程管理
+            IRender* pRender = m_pOwner->OnNativeGetRender();
+            ASSERT(pRender != nullptr);
+            if (pRender != nullptr) {
+                NativeWindowRenderPaint renderPaint;
+                renderPaint.m_pNativeWindow = this;
+                renderPaint.m_pOwner = m_pOwner;
+                renderPaint.m_nativeMsg = NativeMsg(uMsg, wParam, lParam);
+                renderPaint.m_bHandled = bHandled;
+                bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
+                bHandled = renderPaint.m_bHandled;
+            }
         }
     }
     if (!bPaint) {
@@ -2109,6 +2430,11 @@ LRESULT NativeWindow_Windows::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARA
     }
 
     bHandled = true;
+    if (IsWindowFullscreen()) {
+        //全屏状态下，整个窗口在工作区中
+        return HTCLIENT;
+    }
+
     UiPoint pt;
     pt.x = GET_X_LPARAM(lParam);
     pt.y = GET_Y_LPARAM(lParam);
@@ -2237,11 +2563,18 @@ LRESULT NativeWindow_Windows::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, L
     if (GetWindowMaximumSize().cy != 0) {
         lpMMI->ptMaxTrackSize.y = GetWindowMaximumSize().cy;
     }
-    if (GetWindowMinimumSize().cx != 0) {
-        lpMMI->ptMinTrackSize.x = GetWindowMinimumSize().cx;
+
+    UiPadding rcShadow;
+    m_pOwner->OnNativeGetShadowCorner(rcShadow);
+    UiSize minSize = GetWindowMinimumSize();
+    minSize.cx = std::max(minSize.cx, rcShadow.left + rcShadow.right + m_pOwner->OnNativeGetDpi().GetScaleInt(16));
+    minSize.cy = std::max(minSize.cy, rcShadow.top + rcShadow.bottom + m_pOwner->OnNativeGetDpi().GetScaleInt(16));
+
+    if (minSize.cx > 0) {
+        lpMMI->ptMinTrackSize.x = minSize.cx;
     }
-    if (GetWindowMinimumSize().cy != 0) {
-        lpMMI->ptMinTrackSize.y = GetWindowMinimumSize().cy;
+    if (minSize.cy > 0) {
+        lpMMI->ptMinTrackSize.y = minSize.cy;
     }
     return 0;
 }
@@ -2416,10 +2749,11 @@ LRESULT NativeWindow_Windows::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
         lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, NativeMsg(WM_LBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
     }
     else if (dwFlags & TOUCHEVENTF_MOVE) {
+        std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
         UiPoint lastMousePos = m_ptLastMousePos;
         lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, false, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         int wheelDelta = pt.y - lastMousePos.y;
-        if (wheelDelta != 0) {
+        if ((wheelDelta != 0) && !windowFlag.expired()) {
             //触发滚轮功能
             lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, 0, NativeMsg(WM_MOUSEWHEEL, MAKEWPARAM(0, wheelDelta), MAKELPARAM(pt.x, pt.y)), bHandled);
         }
@@ -2486,8 +2820,8 @@ LRESULT NativeWindow_Windows::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lPa
 
 void NativeWindow_Windows::CheckWindowSnap(HWND hWnd)
 {
-    if (::IsZoomed(hWnd) || ::IsIconic(hWnd)) {
-        //最大化或者最小化时，不处理
+    if (::IsZoomed(hWnd) || ::IsIconic(hWnd) || IsChildWindow()) {
+        //最大化/最小化/子窗口时，不处理
         return;
     }
     // 获取窗口所在显示器信息
@@ -2521,8 +2855,19 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     switch (uMsg)
     {
     case WM_WINDOWPOSCHANGED:
+    {
         CheckWindowSnap(m_hWnd);
+        static bool bDragWindowContentsEnabled = IsDragWindowContentsEnabled(); //只读取一次，避免影响性能
+        if (!bDragWindowContentsEnabled) {
+            // 如果"拖动窗口时显示内容"这个选项未开启，窗口移动过程中不会发送WM_MOVE消息，
+            // 需要重绘整个窗口，从而避免窗口从屏幕外移动到屏幕内时窗口不绘制的问题
+            UiRect rc;
+            GetClientRect(rc);
+            Invalidate(rc);
+        }
+        lResult = m_pOwner->OnNativeWindowPosChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
+    }
     case WM_SIZE:
     {        
         WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);
@@ -3069,6 +3414,105 @@ Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
 bool NativeWindow_Windows::NeedCenterWindowAfterCreated() const
 {
     return m_createParam.m_bCenterWindow;
+}
+
+HRESULT NativeWindow_Windows::OnDragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if (pDataObj == nullptr) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+
+    m_textList.clear();
+    m_fileList.clear();
+    m_pDataObj = pDataObj;
+
+    ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_textList, m_fileList);
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropEnterMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
+}
+
+HRESULT NativeWindow_Windows::OnDragOver(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if ((pDataObj == nullptr) || (m_pDataObj != pDataObj)) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropOverMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
+}
+
+HRESULT NativeWindow_Windows::OnDragLeave()
+{
+    m_pDataObj = nullptr;
+    m_textList.clear();
+    m_fileList.clear();
+    m_pOwner->OnNativeDropLeaveMsg();
+    return S_OK;
+}
+
+HRESULT NativeWindow_Windows::OnDrop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled)
+{
+    if ((pDataObj == nullptr) || (m_pDataObj != pDataObj)) {
+        return S_FALSE;
+    }
+    ControlDropData_Windows data;
+    data.m_pDataObj = pDataObj;
+    data.m_grfKeyState = grfKeyState;
+    UiPoint ptClient;
+    ptClient.x = pt.x;
+    ptClient.y = pt.y;
+    ScreenToClient(ptClient);
+    data.m_ptClientX = ptClient.x;
+    data.m_ptClientY = ptClient.y;
+    data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+    data.m_hResult = S_OK;
+    data.m_bHandled = false;
+    data.m_textList = m_textList;
+    data.m_fileList = m_fileList;
+
+    m_pOwner->OnNativeDropMsg(kControlDropTypeWindows, &data);
+    bHandled = data.m_bHandled;
+    if (pdwEffect != nullptr) {
+        *pdwEffect = data.m_dwEffect;
+    }
+    return data.m_hResult;
 }
 
 } // namespace ui

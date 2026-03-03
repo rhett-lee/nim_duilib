@@ -14,20 +14,20 @@
                       propterty_class="property_grid_propterty"/>
         <Split bkcolor="splitline_level1" width="2"/>
         <VBox>
-            <HBox bkcolor="white">
+            <HBox bkcolor="white" height="80" margin="0,4,0,0">
                 <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                </TabCtrl>                
+                </TabCtrl>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                 </TabCtrl>
-            </HBox>
+            </HBox>            
             <HBox bkcolor="white">
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
                     <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -68,7 +68,7 @@
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
             </HBox>
             <HBox bkcolor="white" margin="4,4,4,4">
-                <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
+                <Label width="stretch" height="stretch" text_align="hcenter,vcenter" text="这里演示的是渐变背景色功能" border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />

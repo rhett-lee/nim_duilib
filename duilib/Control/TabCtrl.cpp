@@ -640,7 +640,7 @@ void TabCtrlItem::SetAutoHideCloseButton(bool bAutoHideCloseBtn)
     if (m_bAutoHideCloseBtn != bAutoHideCloseBtn) {
         m_bAutoHideCloseBtn = bAutoHideCloseBtn;
         if (m_pCloseBtn != nullptr) {
-            m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
+            m_pCloseBtn->SetFadeVisible(!IsAutoHideCloseButton() || IsSelected());
         }
     }
 }
@@ -707,8 +707,9 @@ void TabCtrlItem::PaintStateColors(IRender* pRender)
     if (IsSelected()) {
         PaintTabItemSelected(pRender);
     }
-    else if ((GetState() == ControlStateType::kControlStateHot) ||
-             (GetState() == ControlStateType::kControlStatePushed)) {
+    else if ((GetState() == ControlStateType::kControlStateHot)    ||
+             (GetState() == ControlStateType::kControlStatePushed) ||
+             IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
         //鼠标悬停状态
         PaintTabItemHot(pRender);
     }
@@ -807,7 +808,11 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
         return;
     }
     UiColor dwColor = GetUiColor(color);
-    pRender->FillRoundRect(rc, (float)roundSize.cx, (float)roundSize.cy, dwColor);
+    uint8_t uFade = 255;
+    if (IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
+        uFade = GetHotAlpha();
+    }
+    pRender->FillRoundRect(rc, (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
 }
 
 void TabCtrlItem::SetIcon(const DString& iconImageString)

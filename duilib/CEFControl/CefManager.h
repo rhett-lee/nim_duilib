@@ -173,6 +173,18 @@ public:
     void PostQuitMessage(int32_t nExitCode);
 
 public:
+    /** 添加CEF模块额外的启动参数(功能参见CEF的头文件：CefCommandLine::AppendSwitchWithValue函数)
+    *   该函数需要在CefManager::Initialize函数前调用
+    * @param [in] name 参数的名称
+    * @param [in] value 参数的取值
+    */
+    void AppendSwitchWithValue(const DString& name, const DString& value);
+
+    /** 获取CEF模块额外的启动参数
+    */
+    const std::vector<std::pair<DString, DString>>& GetSwitchWithValues() const;
+
+public:
     // CEF进程类型
     enum ProcessType
     {
@@ -185,6 +197,23 @@ public:
     /** 解析命令行中的CEF进程类型
     */
     static ProcessType GetProcessType(CefRefPtr<CefCommandLine> commandLine);
+
+public:
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
+
+    /** 设置是否允许F11快捷键(全屏/退出全屏)
+    */
+    void SetEnableF11(bool bEnableF11);
+
+    /** 是否允许F11快捷键(页面全屏/退出页面全屏)
+    */
+    bool IsEnableF11() const;
 
 protected:
     /** 生成CEF配置数据
@@ -212,6 +241,10 @@ private:
     /** CEF配置的回调函数
     */
     OnCefSettingsEvent m_cefSettingCallback;
+
+    /** CEF模块的额外启动参数
+    */
+    std::vector<std::pair<DString, DString>> m_cefSwitchWithValues;
 
     /** CEF的日志级别
     */
@@ -244,6 +277,14 @@ private:
     /** CEF消息队列是否为空
     */
     bool m_bCefMessageLoopEmpty;
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool m_bEnableF12;
+
+    /** 是否允许F11快捷键(页面全屏 / 退出页面全屏)
+    */
+    bool m_bEnableF11;
 
 #ifdef DUILIB_BUILD_FOR_MACOS
     /** 开始退出的时间戳

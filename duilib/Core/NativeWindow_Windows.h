@@ -9,6 +9,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/duilib_config_windows.h"
+#include <oleidl.h>
 
 namespace ui {
 
@@ -48,6 +49,15 @@ public:
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
+    /** 创建子窗口（非弹出式子窗口）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] nX 子窗口的X坐标点（相对于父窗口）
+    * @param [in] nY 子窗口的Y坐标点（相对于父窗口）
+    * @param [in] nWidth 子窗口的宽度
+    * @param [in] nHeight 子窗口的高度
+    */
+    bool CreateChildWnd(NativeWindow_Windows* pParentWindow, int32_t nX, int32_t nY, int32_t nWidth, int32_t nHeight);
+
     /** 获取窗口所属的 Windows 句柄
     */
     HWND GetHWND() const;
@@ -59,6 +69,14 @@ public:
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
+
+    /** 当前窗口是不是子窗口（非弹出窗口类型的子窗口, 对于Windows系统，是只含有WS_CHILD风格的窗口）
+    */
+    bool IsChildWindow() const;
+
+    /** 设置或者修改父窗口
+    */
+    bool SetParentWindow(NativeWindow_Windows* pParentWindow);
 
     /** 获取资源的句柄
     * @return 默认返回当前进程exe的句柄
@@ -205,11 +223,11 @@ public:
 public:
     /** 使窗口进入全屏状态
     */
-    bool EnterFullScreen();
+    bool EnterFullscreen();
 
     /** 使窗口退出全屏状态 (默认按ESC键时，退出全屏)
     */
-    bool ExitFullScreen();
+    bool ExitFullscreen();
 
     /** 窗口是否为最大化状态
     */
@@ -221,7 +239,7 @@ public:
 
     /** 窗口是否为全屏状态
     */
-    bool IsWindowFullScreen() const;
+    bool IsWindowFullscreen() const;
 
     /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
@@ -311,14 +329,21 @@ public:
     */
     bool IsCaptured() const;
 
-    /** 设置窗口的圆角RGN
+    /** 设置窗口的形状为圆角矩形
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
-    * @param [in] szRoundCorner 圆角大小，其值不能为0
+    * @param [in] rx 圆角的宽度，其值不能为0
+    * @param [in] ry 圆角的高度，其值不能为0
     * @param [in] bRedraw 是否重绘
     */
-    bool SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw);
+    bool SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw);
 
-    /** 清除窗口的RGN
+    /** 设置窗口的形状为直角矩形
+    * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
+    * @param [in] bRedraw 是否重绘
+    */
+    bool SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw);
+
+    /** 清除窗口的形状设置, 恢复为系统默认形状
     * @param [in] bRedraw 是否重绘
     */
     void ClearWindowRgn(bool bRedraw);
@@ -636,6 +661,20 @@ private:
     */
     void CheckWindowSnap(HWND hWnd);
 
+private:    
+    /** @name 拖拽相关的接口
+    * @{ */
+    friend class WindowDropTarget;
+
+    /** 拖拽相关接口的方法（与IDropTarget接口基本相同）
+    * @param [out] bHandled 如果返回true表示该事件已经处理，不再转发给界面中的其他UI控件处理
+    */
+    HRESULT OnDragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+    HRESULT OnDragOver(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+    HRESULT OnDragLeave();
+    HRESULT OnDrop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect, bool& bHandled);
+
+    /** @} */
 private:
     /** 接收窗口事件的接口
     */
@@ -723,7 +762,11 @@ private:
 
     /** 窗口是否为全屏状态
     */
-    bool m_bFullScreen;
+    bool m_bFullscreen;
+
+    /** 是否正在退出全屏
+    */
+    bool m_bFullscreenExiting;
 
     /** 全屏前的窗口风格
     */
@@ -758,6 +801,23 @@ private:
     /** 窗口的界面缩放比
     */
     uint32_t m_nWindowDpiScaleFactor;
+
+    /** 是否为子窗口（含有WS_CHILD风格）
+    */
+    bool m_bChildWindow;
+
+private:
+    /** 拖拽操作关联的IDataObject对象
+    */
+    IDataObject* m_pDataObj;
+
+    /** 拖拽关联的文本数据
+    */
+    std::vector<DString> m_textList;
+
+    /** 拖拽关联的文件数据
+    */
+    std::vector<DString> m_fileList;
 };
 
 /** 定义别名

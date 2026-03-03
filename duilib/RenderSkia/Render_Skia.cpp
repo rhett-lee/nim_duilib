@@ -26,6 +26,7 @@
 #include "include/core/SkSurface.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPath.h"
+#include "include/core/SkPathBuilder.h"
 #include "include/core/SkRegion.h"
 #include "include/core/SkTypeface.h"
 #include "include/core/SkFont.h"
@@ -33,7 +34,7 @@
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkPathEffect.h"
 #include "include/effects/SkDashPathEffect.h"
-#include "include/effects/SkGradientShader.h"
+#include "include/effects/SkGradient.h"
 #include "include/effects/SkImageFilters.h"
 
 #include "SkiaHeaderEnd.h"
@@ -255,8 +256,7 @@ void Render_Skia::SetRoundClip(const UiRect& rc, float rx, float ry, bool bInter
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSk = SkRect::Make(rcSkI);
 
-    SkPath skPath;
-    skPath.addRoundRect(rcSk, rx, ry);
+    SkPath skPath = SkPath::RRect(rcSk, rx, ry);
     SkRegion clip;
     clip.setRect(rcSkI);
     SkRegion rgn;
@@ -980,11 +980,11 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor
         pts[1].set(rcSkDest.fRight, rcSkDest.fTop);
     }
 
-    SkColor colors[2];
-    colors[0] = SkColorSetRGB(dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
-    colors[1] = SkColorSetRGB(dwColor2.GetR(), dwColor2.GetG(), dwColor2.GetB());
-
-    sk_sp<SkShader> shader(SkGradientShader::MakeLinear(pts, colors, nullptr, 2, SkTileMode::kClamp));
+    SkColor4f colors[2];
+    colors[0] = SkColor4f::FromColor(SkColorSetARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB()));
+    colors[1] = SkColor4f::FromColor(SkColorSetARGB(dwColor2.GetA(), dwColor2.GetR(), dwColor2.GetG(), dwColor2.GetB()));
+    SkGradient::Colors skColors(SkSpan<const SkColor4f>(colors, 2), SkTileMode::kClamp);
+    sk_sp<SkShader> shader(SkShaders::LinearGradient(pts, SkGradient(skColors, SkGradient::Interpolation())));
     skPaint.setShader(shader);
 }
 
@@ -1388,10 +1388,11 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     SkRect ovalRect = SkRect::Make(rcSkDestI);
     ovalRect.offset(*m_pSkPointOrg);
 
-    if((gradientColor != nullptr) && (gradientRect != nullptr)) {        
-        SkColor colors[2] = {0};
-        colors[0] = pen->GetColor().GetARGB();
-        colors[1] = gradientColor->GetARGB();
+    if((gradientColor != nullptr) && (gradientRect != nullptr)) {
+        UiColor dwColor = pen->GetColor();
+        SkColor4f colors[2];        
+        colors[0] = SkColor4f::FromColor(SkColorSetARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB()));
+        colors[1] = SkColor4f::FromColor(SkColorSetARGB(gradientColor->GetA(), gradientColor->GetR(), gradientColor->GetG(), gradientColor->GetB()));
         
         SkIRect rcGradientDestI = { gradientRect->left, gradientRect->top, gradientRect->right, gradientRect->bottom };
         SkRect rcGradientDest = SkRect::Make(rcGradientDestI);
@@ -1400,8 +1401,9 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
         SkPoint pts[2] = { {0, 0}, {0, 0} };
         pts[0].set(rcGradientDest.fLeft, rcGradientDest.fTop);
         pts[1].set(rcGradientDest.fRight, rcGradientDest.fBottom);
-        
-        sk_sp<SkShader> shaderA = SkGradientShader::MakeLinear(pts, colors, nullptr, 2, SkTileMode::kClamp);
+
+        SkGradient::Colors skColors(SkSpan<const SkColor4f>(colors), SkTileMode::kClamp);
+        sk_sp<SkShader> shaderA(SkShaders::LinearGradient(pts, SkGradient(skColors, SkGradient::Interpolation())));
         paint.setShader(shaderA);
     }
 
@@ -1428,9 +1430,9 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
     SkPaint paint = *m_pSkPaint;
     SetPaintByPen(paint, pen);
 
-    SkPath skPath;
-    pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
-
+    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
+    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    SkPath skPath = skPathBuilder.snapshot();
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
@@ -1564,8 +1566,9 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
     paint.setColor(brush->GetColor().GetARGB());
     paint.setStyle(SkPaint::kFill_Style);
 
-    SkPath skPath;
-    pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
+    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    SkPath skPath = skPathBuilder.snapshot();
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
@@ -1591,8 +1594,9 @@ void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor,
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
     
-    SkPath skPath;
-    pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+    SkPathBuilder skPathBuilder = *pSkiaPath->GetSkPathBuilder();
+    skPathBuilder.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    SkPath skPath = skPathBuilder.snapshot();
 
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
@@ -1791,8 +1795,8 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
     SkFontMetrics fontMetrics;
     SkScalar fontHeight = pSkFont->getMetrics(&fontMetrics);
 
-    if (bSingleLineMode || (measureParam.rectSize <= 0)) {
-        //单行模式, 或者没有限制宽度
+    if (bSingleLineMode) {
+        //单行模式
         SkRect bounds; //斜体字时，这个宽度包含了外延的宽度
         SkScalar textWidth = pSkFont->measureText(strText.c_str(),
                                                   strText.size() * sizeof(DString::value_type),
@@ -1809,16 +1813,7 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         }
         UiRect rc;
         rc.left = 0;
-        if (measureParam.rectSize <= 0) {
-            rc.right = textIWidth;
-        }
-        else if (textIWidth < measureParam.rectSize) {
-            rc.right = textIWidth;
-        }
-        else {
-            //返回限制宽度
-            rc.right = measureParam.rectSize;
-        }
+        rc.right = textIWidth;
         rc.top = 0;
         rc.bottom = SkScalarTruncToInt(fontHeight + 0.5f);
         if (fontHeight > rc.bottom) {
@@ -1827,15 +1822,18 @@ UiRect Render_Skia::MeasureString(const DString& strText, const MeasureStringPar
         return rc;
     }
     else {
-        //多行模式，并且限制宽度width为有效值
-        ASSERT(measureParam.rectSize > 0);
+        //多行模式
+        int32_t nRectWidth = measureParam.rectSize;
+        if (nRectWidth <= 0) {
+            nRectWidth = INT32_MAX;
+        }
         std::vector<size_t> lineLenList; //每行文本数据的长度（字节）
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
                                                       strText.size() * sizeof(DString::value_type),
                                                       GetTextEncoding(),
                                                       *pSkFont,
                                                       skPaint,
-                                                      SkScalar(measureParam.rectSize),
+                                                      SkScalar(nRectWidth),
                                                       SkTextBox::kWordBreak_Mode,
                                                       &lineLenList);
         //计算所需宽度
@@ -2017,7 +2015,8 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
                                 const UiPoint& cpOffset, 
                                 int32_t nBlurRadius, 
                                 int32_t nSpreadRadius,
-                                UiColor dwColor)
+                                UiColor dwColor,
+                                uint8_t uAlpha)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(dwColor.GetARGB() != 0);
@@ -2045,11 +2044,11 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     SkRect excludeRc;
     excludeRc.setXYWH((SkScalar)rc.left, (SkScalar)rc.top, (SkScalar)rc.Width(), (SkScalar)rc.Height());
 
-    SkPath shadowPath;
-    shadowPath.addRoundRect(srcRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy);
+    SkPathBuilder shadowPath;
+    shadowPath.addRRect(SkRRect::MakeRectXY(srcRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy));
 
-    SkPath excludePath;    
-    excludePath.addRoundRect(excludeRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy);
+    SkPathBuilder excludePath;
+    excludePath.addRRect(SkRRect::MakeRectXY(excludeRc, (SkScalar)roundSize.cx, (SkScalar)roundSize.cy));
 
     SkPaint paint = *m_pSkPaint;
     paint.setColor(dwColor.GetARGB());
@@ -2058,12 +2057,10 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     SkAutoCanvasRestore autoCanvasRestore(skCanvas, true);
 
     //裁剪中间区域
-    SkPath skPathExclude;
-    excludePath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPathExclude);
-    skCanvas->clipPath(skPathExclude, SkClipOp::kDifference);
+    excludePath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+    skCanvas->clipPath(excludePath.snapshot(), SkClipOp::kDifference);
 
-    SkPath skPath;
-    shadowPath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
+    shadowPath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
     //设置绘制阴影的属性
     const SkScalar sigmaX = (SkScalar)nBlurRadius;
@@ -2079,9 +2076,11 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     const SkScalar offsetY = (SkScalar)cpOffset.y;
     SkMatrix mat;
     mat.postTranslate(offsetX, offsetY);
-    skPath.transform(mat);
-
-    skCanvas->drawPath(skPath, paint);
+    shadowPath.transform(mat);
+    if (uAlpha != 0xFF) {
+        paint.setAlpha(uAlpha);
+    }
+    skCanvas->drawPath(shadowPath.snapshot(), paint);
 }
 
 bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen)

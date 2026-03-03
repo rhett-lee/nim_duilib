@@ -28,10 +28,18 @@ public:
     ~MessageLoop_SDL();
 
 public:
-    /** 运行消息循环
+    /** Idle函数的声明
+    * @return 返回true表示向消息队列中发送了消息，需要立即处理; 返回false表示未向消息队列中发送消息
     */
-    int32_t Run();
+    using MessageLoopIdleCallback = std::function<void()>;
 
+public:
+    /** 运行消息循环
+    * @param [in] idleCallback Idle状态的回调函数，可以为nullptr
+    */
+    int32_t Run(MessageLoopIdleCallback idleCallback);
+
+public:
     /** 运行模态窗口的消息循环，直到窗口退出
     * @param [in] nativeWindow 需要等待退出的窗口
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
@@ -88,6 +96,14 @@ public:
     static float GetPrimaryDisplayContentScale();
 
 private:
+    /** 处理一条队列中的SDL事件(消息循环中的一个子功能)
+    */
+    static void ProcessSDLEvent(const SDL_Event& sdlEvent, bool& bKeepGoing);
+
+    /** 派发SDL事件
+    */
+    static void DispatchSDLEvent(const SDL_Event& sdlEvent);
+
     /** 处理用户自定义消息
     */
     static void OnUserEvent(const SDL_Event& sdlEvent);

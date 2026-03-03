@@ -3,6 +3,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
 #include "WebView2ControlImpl.h"
+#include "duilib/WebView2/WebView2Manager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Render/IRender.h"
@@ -32,13 +33,41 @@ void WebView2Control::SetAttribute(const DString& strName, const DString& strVal
         //初始化加载的URL是否为本地文件
         SetInitUrlIsLocalFile(strValue == _T("true"));
     }
+    else if (strName == _T("devtools_enabled")) {
+        //是否允许打开开发者工具
+        SetAreDevToolsEnabled(strValue == _T("true"));
+    }
     else if (strName == _T("F12")) {
         //是否允许按F12打开开发者工具
-        SetAreDevToolsEnabled(strValue == _T("true"));
+        SetEnableF12(strValue == _T("true"));
+    }
+    else if (strName == _T("F11")) {
+        //是否允许F11快捷键(页面全屏/页面退出全屏)
+        SetEnableF11(strValue == _T("true"));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void WebView2Control::SetEnableF12(bool bEnableF12)
+{
+    m_pImpl->SetEnableF12(bEnableF12);
+}
+
+bool WebView2Control::IsEnableF12() const
+{
+    return m_pImpl->IsEnableF12();
+}
+
+void WebView2Control::SetEnableF11(bool bEnableF11)
+{
+    m_pImpl->SetEnableF11(bEnableF11);
+}
+
+bool WebView2Control::IsEnableF11() const
+{
+    return m_pImpl->IsEnableF11();
 }
 
 void WebView2Control::OnInit()
