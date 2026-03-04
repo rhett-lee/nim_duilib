@@ -2162,7 +2162,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
             if (!m_sCaretColor.empty()) {
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
             }
-            pRender->DrawLine(UiPoint(xPos + 1, yPos), UiPoint(xPos + 1, yPos + yHeight), dwClrColor, xWidth);
+            pRender->DrawLine(UiPointF(xPos + 1, yPos), UiPointF(xPos + 1, yPos + yHeight), dwClrColor, (float)xWidth);
         }
     }
 }
@@ -2199,7 +2199,7 @@ void RichEdit::PaintCurrentRowBkColor(IRender* pRender, const UiRect& /*rcPaint*
     GetSel(nStartChar, nEndChar);
     UiRect rowRect = m_pTextData->GetCharRowRect(nEndChar);
     if (!rowRect.IsEmpty()) {
-        pRender->FillRect(rowRect, currentRowBkColor);
+        pRender->FillRect(UiRectF::MakeFromRect(rowRect), currentRowBkColor);
     }
 }
 
@@ -2271,7 +2271,7 @@ void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
             rowRect.bottom = (int32_t)ui::CEILF(rectF.bottom);
         }
         if (UiRect::Intersect(rcTemp, rcDrawText, rowRect)) {
-            pRender->FillRect(rowRect, selectionColor);
+            pRender->FillRect(UiRectF::MakeFromRect(rowRect), selectionColor);
         }
     }
 }

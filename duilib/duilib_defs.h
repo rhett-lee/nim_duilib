@@ -291,6 +291,21 @@ namespace ui
         std::vector<DString> m_fileList;    // 在拖放操作中包含的文本内容，每个元素代表一个文件路径
     };
 
+    //窗口所在屏幕的DPI发生变化，相关数据
+    struct WindowDisplayScaleData
+    {
+        float m_fNewDisplayScale;   //新的窗口的界面显示比例值，1.0f时表示无缩放
+        float m_fNewPixelDensity;   //新的窗口的像素密度值（仅SDL实现时使用）
+    };
+
+    //窗口所在屏幕的分辨率发生变化，相关数据
+    struct WindowDisplayResolutionData
+    {
+        int32_t m_nColorDepth;      //显示的新图像深度，以每像素位数为单位
+        int32_t m_nScreenWidth;     //屏幕的水平分辨率
+        int32_t m_nScreenHeight;    //屏幕的垂直分辨率
+    };
+
     //图片加载或者解码结果
     struct ImageDecodeResult
     {
@@ -457,6 +472,8 @@ namespace ui
         kWindowPosChangedMsg,       //窗口位置大小发生改变
         kWindowSizeMsg,             //窗口大小发生改变
         kWindowMoveMsg,             //窗口位置发生改变
+        kWindowDisplayScaleChangedMsg,      //窗口的DPI属性发生改变
+        kWindowDisplayResolutionChangedMsg, //窗口所在的屏幕分辨率属性发生改变
         kWindowSetFocusMsg,         //窗口获得焦点
         kWindowKillFocusMsg,        //窗口失去焦点
         kWindowSetCursorMsg,        //窗口设置光标

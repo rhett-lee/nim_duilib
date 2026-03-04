@@ -619,7 +619,7 @@ bool WindowBase::ChangeDisplayScale(uint32_t nNewDisplayScaleFactor, bool bDisab
     return true;
 }
 
-void WindowBase::OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
+void WindowBase::OnProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
     if ((fNewDisplayScale < 0.9999f) || (fNewPixelDensity < 0.9999f)) {
         //无效值
@@ -1023,9 +1023,34 @@ Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const
     return OnFindControl(pt);
 }
 
+void WindowBase::OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight)
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDisplayResolutionChangedMsg(nColorDepth, nScreenWidth, nScreenHeight);
+    if (!windowFlag.expired()) {
+        WindowDisplayResolutionData displayResolution;
+        displayResolution.m_nColorDepth = nColorDepth;
+        displayResolution.m_nScreenWidth = nScreenWidth;
+        displayResolution.m_nScreenHeight = nScreenHeight;
+        SendWindowEvent(kWindowDisplayResolutionChangedMsg, (WPARAM)&displayResolution);
+    }
+}
+
 void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     OnDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+    if (!windowFlag.expired()) {
+        WindowDisplayScaleData displayScale;
+        displayScale.m_fNewDisplayScale = fNewDisplayScale;
+        displayScale.m_fNewPixelDensity = fNewPixelDensity;
+        SendWindowEvent(kWindowDisplayScaleChangedMsg, (WPARAM)&displayScale);
+    }
+}
+
+void WindowBase::OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
+{
+    OnProcessDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
 }
 
 void WindowBase::OnNativeFinalMessage()

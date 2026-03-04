@@ -2851,4 +2851,12 @@ void Window::OnDropLeaveMsg()
 {
 }
 
+void Window::OnDisplayResolutionChangedMsg(int32_t /*nColorDepth*/, int32_t /*nScreenWidth*/, int32_t /*nScreenHeight*/)
+{
+}
+
+void Window::OnDisplayScaleChangedMsg(float /*fNewDisplayScale*/, float /*fNewPixelDensity*/)
+{
+}
+
 } // namespace ui

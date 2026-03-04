@@ -119,7 +119,20 @@ public:
     */
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
-    /** 处理DPI变化的系统通知消息
+    /** 处理屏幕分辨率变化的系统通知消息(WM_DISPLAYCHANGE)
+    * @param [in] nColorDepth 显示的新图像深度，以每像素位数为单位
+    * @param [in] nScreenWidth 屏幕的水平分辨率
+    * @param [in] nScreenHeight 屏幕的垂直分辨率
+    */
+    virtual void OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) = 0;
+
+    /** 处理DPI变化的系统通知消息(WM_DPICHANGED)，用于内部处理
+    * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
+    * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
+    */
+    virtual void OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) = 0;
+
+    /** 处理DPI变化的系统通知消息(WM_DPICHANGED)，用于通知应用层
     * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
     * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
