@@ -22,10 +22,17 @@
 
 PAG_C_PLUS_PLUS_BEGIN_GUARD
 
-PAG_API size_t pag_disk_cache_get_max_disk_size();
+/**
+ * Sets the disk cache directory. This should be called before any disk cache operations.
+ * @param dir The absolute path of the cache directory. Pass NULL or empty string to use the
+ * platform default cache directory.
+ */
+PAG_EXPORT void pag_disk_cache_set_cache_dir(const char* dir);
 
-PAG_API void pag_disk_cache_set_max_disk_size(size_t maxDiskSize);
+PAG_EXPORT size_t pag_disk_cache_get_max_disk_size();
 
-PAG_API void pag_disk_cache_remove_all();
+PAG_EXPORT void pag_disk_cache_set_max_disk_size(size_t maxDiskSize);
+
+PAG_EXPORT void pag_disk_cache_remove_all();
 
 PAG_C_PLUS_PLUS_END_GUARD

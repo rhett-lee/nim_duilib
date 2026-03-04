@@ -18,9 +18,20 @@
 
 #pragma once
 
-#include "stddef.h"
-#include "stdint.h"
-#include "pag/defines.h"
+#include <cstddef>
+#include <cstdint>
+
+#if !defined(PAG_EXPORT)
+#if defined(PAG_DLL)
+#if defined(_MSC_VER)
+#define PAG_EXPORT __declspec(dllexport)
+#else
+#define PAG_EXPORT __attribute__((visibility("default")))
+#endif
+#else
+#define PAG_EXPORT
+#endif
+#endif
 
 #ifdef __cplusplus
 #define PAG_C_PLUS_PLUS_BEGIN_GUARD extern "C" {
@@ -74,6 +85,11 @@ typedef enum {
   pag_layer_type_pre_compose,
   pag_layer_type_camera,
 } pag_layer_type;
+
+typedef enum {
+  pag_image_origin_top_left,
+  pag_image_origin_bottom_left,
+} pag_image_origin;
 
 typedef struct pag_gl_texture_info {
   unsigned id = 0;
@@ -148,8 +164,8 @@ typedef struct pag_animator_listener {
 /**
  * Release a pag_object.
  */
-PAG_API void pag_release(pag_object object);
+PAG_EXPORT void pag_release(pag_object object);
 
-PAG_API void pag_display_link_set_functions(pag_display_link_functions* functions);
+PAG_EXPORT void pag_display_link_set_functions(pag_display_link_functions* functions);
 
 PAG_C_PLUS_PLUS_END_GUARD

@@ -33,6 +33,7 @@ class ImageInfo;
 }  // namespace tgfx
 
 namespace pag {
+class Composition;
 class Recorder;
 
 class RenderCache;
@@ -534,6 +535,8 @@ class PAG_API PAGLayer : public Content {
   friend class ContentVersion;
 
   friend class PAGDecoder;
+
+  friend class VideoInfoManager;
 };
 
 class SolidLayer;
@@ -1018,6 +1021,8 @@ class PAG_API PAGComposition : public PAGLayer {
   friend class AudioClip;
 
   friend class PAGDecoder;
+
+  friend class VideoInfoManager;
 };
 
 class PAG_API PAGFile : public PAGComposition {
@@ -1164,13 +1169,13 @@ class PAG_API PAGFile : public PAGComposition {
   friend class AudioClip;
 
   friend class HardwareDecoder;
+
+  friend class VideoInfoManager;
 };
 
 class Composition;
 
 class PAGPlayer;
-
-class GLRestorer;
 
 class PAG_API PAGSurface {
  public:
@@ -1210,7 +1215,7 @@ class PAG_API PAGSurface {
    */
   static std::shared_ptr<PAGSurface> MakeFrom(HardwareBufferRef hardwareBuffer);
 
-  virtual ~PAGSurface() = default;
+  virtual ~PAGSurface();
 
   /**
    * Returns the width in pixels of the surface.
@@ -1264,7 +1269,7 @@ class PAG_API PAGSurface {
   std::shared_ptr<std::mutex> rootLocker = nullptr;
   std::shared_ptr<Drawable> drawable = nullptr;
   bool externalContext = false;
-  GLRestorer* glRestorer = nullptr;
+  void* glRestorer = nullptr;
 
   bool draw(RenderCache* cache, std::shared_ptr<Graphic> graphic, BackendSemaphore* signalSemaphore,
             bool autoClear = true);
@@ -1637,6 +1642,7 @@ class PAG_API PAGDecoder {
   int _numFrames = 0;
   float _frameRate = 30.0f;
   float maxFrameRate = 30.0f;
+  void* sharedContext = nullptr;
   int lastReadIndex = -1;
   tgfx::ImageInfo* lastImageInfo = nullptr;
   uint32_t lastContentVersion = 0;
@@ -1654,7 +1660,7 @@ class PAG_API PAGDecoder {
                                                    int numFrames);
 
   PAGDecoder(std::shared_ptr<PAGComposition> composition, int width, int height, int numFrames,
-             float frameRate, float maxFrameRate);
+             float frameRate, float maxFrameRate, void* sharedContext = nullptr);
 
   bool readFrameInternal(int index, std::shared_ptr<BitmapBuffer> bitmap);
   bool renderFrame(std::shared_ptr<PAGComposition> composition, int index,
@@ -1673,6 +1679,16 @@ class PAG_API PAGDecoder {
  */
 class PAG_API PAGDiskCache {
  public:
+  /**
+   * Sets the disk cache directory. This should be called before any disk cache operations.
+   * If the directory does not exist, it will be created automatically.
+   * Note: Changing the cache directory after cache operations have started may cause
+   * existing cached files to become inaccessible.
+   * @param dir The absolute path of the cache directory. Pass an empty string to use the
+   * platform default cache directory.
+   */
+  static void SetCacheDir(const std::string& dir);
+
   /**
    * Returns the size limit of the disk cache in bytes. The default value is 1 GB.
    */
