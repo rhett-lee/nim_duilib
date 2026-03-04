@@ -26,28 +26,42 @@ PAG_C_PLUS_PLUS_BEGIN_GUARD
  * Create a new pag_surface for double-buffered off-screen rendering.
  * Release it by pag_release.
  */
-PAG_API pag_surface* pag_surface_make_offscreen_double_buffered(int width, int height,
+PAG_EXPORT pag_surface* pag_surface_make_offscreen_double_buffered(int width, int height,
                                                                 bool tryHardware,
                                                                 void* sharedContext);
 
 /**
  * Returns the front texture of the surface.
  */
-PAG_API pag_backend_texture* pag_surface_get_front_texture(pag_surface* surface);
+PAG_EXPORT pag_backend_texture* pag_surface_get_front_texture(pag_surface* surface);
 
 /**
  * Returns the back texture of the surface.
  */
-PAG_API pag_backend_texture* pag_surface_get_back_texture(pag_surface* surface);
+PAG_EXPORT pag_backend_texture* pag_surface_get_back_texture(pag_surface* surface);
 
 /**
  * Returns the front hardware buffer of the surface.
  */
-PAG_API void* pag_surface_get_front_hardware_buffer(pag_surface* surface);
+PAG_EXPORT void* pag_surface_get_front_hardware_buffer(pag_surface* surface);
 
 /**
  * Returns the back hardware buffer of the surface.
  */
-PAG_API void* pag_surface_get_back_hardware_buffer(pag_surface* surface);
+PAG_EXPORT void* pag_surface_get_back_hardware_buffer(pag_surface* surface);
+
+/**
+ * Creates a new PAGSurface from specified backend texture and origin. Note, the texture must not
+ * be bound to any frame buffer. This allows PAG to render directly into an externally provided texture.
+ * Passes true in the forAsyncThread parameter if the returned PAGSurface needs to be used for
+ * asynchronous rendering. If passing true, the PAGSurface internally creates an independent GPU
+ * context, and the caller can use semaphore objects to synchronize content, otherwise, it uses the
+ * GPU context on the calling thread directly.
+ * Returns null if the texture is invalid.
+ * Release it by pag_release.
+ */
+PAG_EXPORT pag_surface* pag_surface_make_from_texture(pag_backend_texture* texture,
+                                                      pag_image_origin origin,
+                                                      bool forAsyncThread);
 
 PAG_C_PLUS_PLUS_END_GUARD
