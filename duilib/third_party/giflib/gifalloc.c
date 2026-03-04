@@ -377,18 +377,36 @@ SavedImage *GifMakeSavedImage(GifFileType *GifFile,
 
 			/* finally, the extension blocks */
 			if (CopyFrom->ExtensionBlocks != NULL) {
+				int k;
 				sp->ExtensionBlocks =
-				    (ExtensionBlock *)reallocarray(
-				        NULL, CopyFrom->ExtensionBlockCount,
+				    (ExtensionBlock *)calloc(
+				        CopyFrom->ExtensionBlockCount,
 				        sizeof(ExtensionBlock));
 				if (sp->ExtensionBlocks == NULL) {
 					FreeLastSavedImage(GifFile);
 					return (SavedImage *)(NULL);
 				}
-				memcpy(sp->ExtensionBlocks,
-				       CopyFrom->ExtensionBlocks,
-				       sizeof(ExtensionBlock) *
-				           CopyFrom->ExtensionBlockCount);
+				for (k = 0; k < CopyFrom->ExtensionBlockCount;
+				     k++) {
+					ExtensionBlock *dst =
+					    &sp->ExtensionBlocks[k];
+					ExtensionBlock *src =
+					    &CopyFrom->ExtensionBlocks[k];
+					dst->Function = src->Function;
+					dst->ByteCount = src->ByteCount;
+					if (src->ByteCount > 0) {
+						dst->Bytes =
+						    (GifByteType *)malloc(
+						        src->ByteCount);
+						if (dst->Bytes == NULL) {
+							FreeLastSavedImage(
+							    GifFile);
+							return (SavedImage *)(NULL);
+						}
+						memcpy(dst->Bytes, src->Bytes,
+						       src->ByteCount);
+					}
+				}
 			}
 		} else {
 			memset((char *)sp, '\0', sizeof(SavedImage));
