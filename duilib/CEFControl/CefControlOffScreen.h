@@ -107,6 +107,10 @@ protected:
     virtual bool OnImeComposition(const EventArgs& msg) override;
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
 
+    /** 页面获得了焦点
+    */
+    virtual void OnGotFocus() override;
+
 private:
     void SendButtonDownEvent(const EventArgs& msg);
     void SendButtonUpEvent(const EventArgs& msg);
@@ -186,9 +190,13 @@ private:
 
 private:
     //焦点元素的属性
-    bool m_bHasFocusNode;
-    bool m_bFocusNodeEditable;
     CefRect m_focusNodeRect;
+    bool m_bHasFocusNode;
+    bool m_bFocusNodeEditable;    
+
+    /** 当前是否处于OnGotFocus回调函数中
+    */
+    bool m_bInGotFocusEvent;
 };
 
 }

@@ -586,10 +586,6 @@ protected:
     */
     virtual void OnCursorChange(cef_cursor_type_t type) override;
 
-    /** 页面获得了焦点
-    */
-    virtual void OnGotFocus() override;
-
     /** 获取关联的CEF控件接口
     */
     virtual Control* GetCefControl() override;

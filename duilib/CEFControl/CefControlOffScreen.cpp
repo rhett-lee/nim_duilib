@@ -21,7 +21,8 @@ namespace ui {
 CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
     CefControl(pWindow),
     m_bHasFocusNode(false),
-    m_bFocusNodeEditable(false)
+    m_bFocusNodeEditable(false),
+    m_bInGotFocusEvent(false)
 {
     m_pCefMemData = std::make_unique<CefMemoryBlock>();
     m_pCefPopupMemData = std::make_unique<CefMemoryBlock>();
@@ -622,13 +623,21 @@ void CefControlOffScreen::SendButtonDoubleClickEvent(const EventArgs& msg)
     host->SendMouseClickEvent(mouse_event, btnType, true, 2);
 }
 
+void CefControlOffScreen::OnGotFocus()
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+    if (!IsFocused()) {
+        //避免双焦点控件的出现
+        m_bInGotFocusEvent = true;
+        SetFocus();
+        m_bInGotFocusEvent = false;
+    }
+}
+
 bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
 {
-    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
-    if (browserHost != nullptr) {
-        browserHost->SetFocus(true);
-    }
-
     //不调用基类的方法(基类的方法会关闭输入法)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
@@ -646,6 +655,14 @@ bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
         }
     }
     Invalidate();
+
+    if (!m_bInGotFocusEvent) {
+        //避免在OnGotFocus回调函数中调用CefBrowserHost::SetFocus，容易产生死循环
+        CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+        if (browserHost != nullptr) {
+            browserHost->SetFocus(true);
+        }
+    }
     return true;
 }
 
