@@ -68,6 +68,10 @@ private:
     /** CEF窗口的父子关系是否已经解除
     */
     bool m_bSetCefWindowParentNull;
+
+    /** 当前是否处于OnGotFocus回调函数中
+    */
+    bool m_bInGotFocusEvent;
 };
 }
 
