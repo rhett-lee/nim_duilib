@@ -1072,4 +1072,29 @@ bool GlobalManager::IsAnimationEnabled() const
     return m_bAnimationEnabled;
 }
 
+void GlobalManager::AddAlias(const DString& name, const DString& value)
+{
+    if (!name.empty() && !value.empty()) {
+        m_aliasMap[name] = value;
+    }    
+}
+
+void GlobalManager::RemoveAlias(const DString& name)
+{
+    if (!m_aliasMap.empty() && !name.empty()) {
+        m_aliasMap.erase(name);
+    }
+}
+
+DString GlobalManager::GetAliasValue(const DString& name) const
+{
+    if (!m_aliasMap.empty()) {
+        auto iter = m_aliasMap.find(name);
+        if (iter != m_aliasMap.end()) {
+            return iter->second;
+        }
+    }
+    return DString();
+}
+
 } // namespace ui

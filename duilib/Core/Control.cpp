@@ -789,15 +789,23 @@ void Control::SetClass(const DString& strClass)
     }
     std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
-        DString pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
+        DString classAttributes = GlobalManager::Instance().GetClassAttributes(*it);
         Window* pWindow = GetWindow();
-        if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
-            pDefaultAttributes = pWindow->GetClassAttributes(*it);
+        if (classAttributes.empty() && (pWindow != nullptr)) {
+            classAttributes = pWindow->GetClassAttributes(*it);
         }
 
-        ASSERT(!pDefaultAttributes.empty());
-        if (!pDefaultAttributes.empty()) {
-            ApplyAttributeList(pDefaultAttributes);
+        if (classAttributes.empty()) {
+            //尝试别名
+            DString aliasValue = GlobalManager::Instance().GetAliasValue(strClass);
+            if (!aliasValue.empty()) {
+                classAttributes = GlobalManager::Instance().GetClassAttributes(aliasValue);
+            }
+        }
+
+        ASSERT(!classAttributes.empty());
+        if (!classAttributes.empty()) {
+            ApplyAttributeList(classAttributes);
         }
     }
 }
@@ -5210,6 +5218,13 @@ UiColor Control::GetUiColorByName(const DString& colorName) const
     if (color.GetARGB() == 0) {
         //优先级4：直接指定预定义的颜色别名
         color = GlobalManager::Instance().Color().GetStandardColor(colorName);
+    }
+    if (color.GetARGB() == 0) {
+        //优先级5：按别名获取
+        DString aliasValue = GlobalManager::Instance().GetAliasValue(colorName);
+        if (!aliasValue.empty()) {
+            color = GlobalManager::Instance().Color().GetColor(aliasValue);
+        }
     }
     ASSERT(color.GetARGB() != 0);
     return color;

@@ -32,10 +32,12 @@ void ColorMap::AddColor(const DString& strName, UiColor argb)
 
 UiColor ColorMap::GetColor(const DString& strName) const
 {
-    auto it = m_colorMap.find(strName);
-    if (it != m_colorMap.end()) {
-        return it->second;
-    }
+    if (!strName.empty()) {
+        auto it = m_colorMap.find(strName);
+        if (it != m_colorMap.end()) {
+            return it->second;
+        }
+    }    
     return UiColor();
 }
 
@@ -72,6 +74,12 @@ UiColor ColorManager::ConvertToUiColor(const DString& strColor)
     if (strColor.at(0) != _T('#')) {
         //按标准颜色值获取
         color = GlobalManager::Instance().Color().GetStandardColor(strColor);
+        if (!color.IsEmpty()) {
+            return color;
+        }
+
+        //按已定义颜色获取
+        color = GlobalManager::Instance().Color().GetColor(strColor);
         if (!color.IsEmpty()) {
             return color;
         }
@@ -123,6 +131,9 @@ UiColor ColorManager::GetColor(const DString& strName) const
 UiColor ColorManager::GetStandardColor(const DString& strName) const
 {
     //名称不区分大小写
+    if (strName.empty()) {
+        return UiColor();
+    }
     return m_standardColorMap.GetColor(StringUtil::MakeLowerString(strName));
 }
 

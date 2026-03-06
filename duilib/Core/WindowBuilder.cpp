@@ -990,13 +990,18 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
             if (!colorName.empty() && !colorValue.empty()) {
                 ColorManager& colorManager = GlobalManager::Instance().Color();
                 colorManager.AddColor(colorName, colorValue);
-                if (colorName == _T("default_font_color")) {
+                if ((colorName == _T("default_font")) || (colorName == _T("default_font_color"))) {
                     colorManager.SetDefaultTextColor(colorName);
                 }
-                else if (colorName == _T("disabled_font_color")) {
+                else if ((colorName == _T("disabled_font")) || (colorName == _T("disabled_font_color"))) {
                     colorManager.SetDefaultDisabledTextColor(colorName);
                 }
             }
+        }
+        else if (strClass == _T("Alias")) {
+            DString aliasName = node.attribute(_T("name")).as_string();
+            DString aliasValue = node.attribute(_T("value")).as_string();
+            GlobalManager::Instance().AddAlias(aliasName, aliasValue);
         }
     }
 }
@@ -1066,11 +1071,12 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
     for (pugi::xml_node node : xmlNode.children()) {
         DString strClass = node.name();
         if( (strClass == _T("DefaultFontFamilyNames")) ||
-            (strClass == _T("Font")) ||
+            (strClass == _T("Font"))      ||
             (strClass == _T("FontFile"))  ||
-            (strClass == _T("Class")) || 
-            (strClass == _T("TextColor")) ) {
-                continue;
+            (strClass == _T("Class"))     || 
+            (strClass == _T("TextColor")) ||
+            (strClass == _T("Alias")) ) {
+            continue;
         }
 
         Control* pControl = nullptr;

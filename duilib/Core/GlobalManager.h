@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <thread>
 
 namespace ui 
@@ -372,6 +373,23 @@ public:
     */
     bool IsAnimationEnabled() const;
 
+public:
+    /** 别名管理：为了兼容旧版本程序，避免改名后导致旧版本程序无法运行
+    * @param [in] name 名字
+    * @param [in] value 别名的实际取值
+    */
+    void AddAlias(const DString& name, const DString& value);
+
+    /** 删除别名
+    * @param [in] name 名字
+    */
+    void RemoveAlias(const DString& name);
+
+    /** 获取别名对应的值
+    * @param [in] name 名字
+    */
+    DString GetAliasValue(const DString& name) const;
+
 private:
     /** 从缓存中删除所有图片
      */
@@ -494,6 +512,10 @@ private:
     /** 库内部使用的线程池
     */
     std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
+
+    /** 别名管理
+    */
+    std::unordered_map<DString, DString> m_aliasMap;
 
     /** 是否开启控件动画（比如淡入淡出等动画）
     */
