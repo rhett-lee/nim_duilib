@@ -98,6 +98,10 @@ IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
     }
     if (pFont == nullptr) {
         auto iter = m_fontIdMap.find(fontId);
+#ifdef _DEBUG
+        //如果字体ID不存在，则给出断言，便于在开发阶段发现配置错误
+        ASSERT(fontId.empty() || (iter != m_fontIdMap.end()));
+#endif
         if ((iter == m_fontIdMap.end()) && !m_defaultFontId.empty()) {
             //没有这个字体ID，使用默认的字体ID
             DString dpiFontId = GetDpiFontId(m_defaultFontId, nZoomPercent);

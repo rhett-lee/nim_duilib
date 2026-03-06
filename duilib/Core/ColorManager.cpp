@@ -125,7 +125,14 @@ void ColorManager::AddColor(const DString& strName, UiColor argb)
 
 UiColor ColorManager::GetColor(const DString& strName) const
 {
-    return m_colorMap.GetColor(strName);
+    UiColor color = m_colorMap.GetColor(strName);
+    if (color.GetARGB() == 0) {
+        DString aliasName = ui::GlobalManager::Instance().GetAliasValue(strName);
+        if (!aliasName.empty()) {
+            color = m_colorMap.GetColor(aliasName);
+        }
+    }
+    return color;
 }
 
 UiColor ColorManager::GetStandardColor(const DString& strName) const

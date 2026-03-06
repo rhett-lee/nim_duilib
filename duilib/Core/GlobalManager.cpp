@@ -1076,7 +1076,7 @@ void GlobalManager::AddAlias(const DString& name, const DString& value)
 {
     if (!name.empty() && !value.empty()) {
         m_aliasMap[name] = value;
-    }    
+    }
 }
 
 void GlobalManager::RemoveAlias(const DString& name)
@@ -1095,6 +1095,84 @@ DString GlobalManager::GetAliasValue(const DString& name) const
         }
     }
     return DString();
+}
+
+void GlobalManager::ClearAlias()
+{
+    m_aliasMap.clear();
+}
+
+void GlobalManager::AddDefine(const DString& name, const DString& value)
+{
+    if (!name.empty() && !value.empty()) {
+        m_defineMap[name] = value;
+    }
+}
+
+void GlobalManager::RemoveDefine(const DString& name)
+{
+    if (!m_defineMap.empty() && !name.empty()) {
+        m_defineMap.erase(name);
+    }
+}
+
+DString GlobalManager::GetDefineValue(const DString& name) const
+{
+    if (!m_defineMap.empty()) {
+        auto iter = m_defineMap.find(name);
+        if (iter != m_defineMap.end()) {
+            return iter->second;
+        }
+    }
+    return DString();
+}
+
+void GlobalManager::ClearDefine()
+{
+    m_defineMap.clear();
+}
+
+void GlobalManager::ExpandDefinePlaceholders(DString& varValue) const
+{
+    if (m_defineMap.empty() || varValue.empty()) {
+        return;
+    }
+
+    bool hasPlaceholder = true;
+    size_t currentPos = 0; // 记录当前查找位置，避免重复扫描
+    while (hasPlaceholder) {
+        hasPlaceholder = false;
+        size_t start = varValue.find(_T("${"), currentPos); // 从当前位置开始查找
+
+        // 1. 无占位符 → 退出循环
+        if (start == DString::npos) {
+            break;
+        }
+
+        // 2. 有占位符，但无闭合} → 标记为无占位符，退出（避免死循环）
+        size_t end = varValue.find(_T('}'), start + 2);
+        if (end == DString::npos) {
+            break;
+        }
+
+        // 3. 提取变量名并查找映射表
+        DString varName(varValue, start + 2, end - start - 2);
+        auto it = m_defineMap.find(varName);
+        if (it != m_defineMap.end()) {
+            // 4. 执行替换（支持空值替换）
+            const DString& replaceValue = it->second;
+            varValue.replace(start, end - start + 1, replaceValue);
+
+            // 5. 重置查找位置：替换后从当前start位置继续查找（处理新插入的占位符）
+            currentPos = start;
+            hasPlaceholder = true; // 标记有替换，继续循环
+        }
+        else {
+            // 6. 未找到变量 → 跳过当前占位符，从end+1开始查找下一个
+            currentPos = end + 1;
+            hasPlaceholder = true; // 仍有占位符未处理，继续循环
+        }
+    }
 }
 
 } // namespace ui

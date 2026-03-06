@@ -374,7 +374,8 @@ public:
     bool IsAnimationEnabled() const;
 
 public:
-    /** 别名管理：为了兼容旧版本程序，避免改名后导致旧版本程序无法运行
+    /** 添加别名：<Alias name="bk_menuitem_hovered" value="bg_menu_item_hover"/>
+    *   为了兼容旧版本程序，避免改名后导致旧版本程序无法运行
     * @param [in] name 名字
     * @param [in] value 别名的实际取值
     */
@@ -389,6 +390,37 @@ public:
     * @param [in] name 名字
     */
     DString GetAliasValue(const DString& name) const;
+
+    /** 清除所有别名
+    */
+    void ClearAlias();
+
+public:
+    /** 添加变量: <Define name="SIZE_SCROLLBAR_WIDTH" value="12"/>
+    * @param [in] name 变量名称
+    * @param [in] value 变量对应的取值
+    */
+    void AddDefine(const DString& name, const DString& value);
+
+    /** 删除变量
+    * @param [in] name 变量名称
+    */
+    void RemoveDefine(const DString& name);
+
+    /** 获取变量定义的值
+    * @param [in] name 变量名称
+    * @return 返回变量的取值，如果不包含变量则返回空
+    */
+    DString GetDefineValue(const DString& name) const;
+
+    /** 清除所有变量定义
+    */
+    void ClearDefine();
+
+    /** 函数功能：如果varValue中有Define定义的变量，替换为对应的值
+    * @param [in,out] varValue 需要展开变量的字符串
+    */
+    void ExpandDefinePlaceholders(DString& varValue) const;
 
 private:
     /** 从缓存中删除所有图片
@@ -516,6 +548,10 @@ private:
     /** 别名管理
     */
     std::unordered_map<DString, DString> m_aliasMap;
+
+    /** 变量管理（用于解析配置文件，比如global.xml等）
+    */
+    std::unordered_map<DString, DString> m_defineMap;
 
     /** 是否开启控件动画（比如淡入淡出等动画）
     */
