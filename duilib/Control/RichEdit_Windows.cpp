@@ -563,7 +563,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("clear_btn_class")) {
         SetClearBtnClass(strValue);
     }
-    else if (strName == _T("show_passowrd_btn_class")) {
+    else if (strName == _T("show_password_btn_class")) {
         SetShowPasswordBtnClass(strValue);
     }
     else if (strName == _T("wheel_zoom")) {

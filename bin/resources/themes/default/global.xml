@@ -43,18 +43,6 @@
     <Font id="system_fullstyle_18" name="system" size="18" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_22" name="system" size="22" italic="true" strikeout="true" underline="true" bold="true"/>
-    <Font id="arial_12" name="arial" size="12"/>
-    <Font id="arial_14" name="arial" size="14"/>
-    <Font id="arial_16" name="arial" size="16"/>
-    <Font id="arial_18" name="arial" size="18"/>
-    <Font id="arial_20" name="arial" size="20"/>
-    <Font id="arial_22" name="arial" size="22"/>
-    <Font id="arial_bold_12" name="arial" size="12" bold="true"/>
-    <Font id="arial_bold_14" name="arial" size="14" bold="true"/>
-    <Font id="arial_bold_16" name="arial" size="16" bold="true"/>
-    <Font id="arial_bold_18" name="arial" size="18" bold="true"/>
-    <Font id="arial_bold_20" name="arial" size="20" bold="true"/>
-    <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
@@ -506,7 +494,7 @@
                                             pushed_color="richedit_btn_push"/>
 
     <!--RichEdit上的显示密码按钮样式-->
-    <Class name="rich_edit_show_password_btn" password="true" show_password="false" show_passowrd_btn_class="rich_edit_show_password_btn_class" text_align="vcenter"/>
+    <Class name="rich_edit_show_password_btn" password="true" show_password="false" show_password_btn_class="rich_edit_show_password_btn_class" text_align="vcenter"/>
     <Class name="rich_edit_show_password_btn_class" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center" 
                                                     normal_image="file='public/button/icon_visibility.svg' width='14' height='14' valign='center' halign='center'" 
                                                     normal_color="richedit_btn_normal" 
