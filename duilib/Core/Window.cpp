@@ -1221,6 +1221,9 @@ LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/
         UiRect rc;
         GetClientRect(rc);
         bHandled = Paint(rc);
+
+        //程序启动时间统计，统计到首次绘制完成
+        PerformanceUtil::Instance().EndStat(_T("Startup"));
     }
     else {
         //非首次绘制时，只绘制脏区域

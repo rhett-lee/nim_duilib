@@ -1,6 +1,7 @@
 #include "GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
@@ -114,6 +115,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
                             DpiInitParam dpiInitParam,
                             const CreateControlCallback& callback)
 {
+    PerformanceUtil::Instance().BeginStat(_T("Startup"));//程序启动时间统计
     ASSERT(m_renderFactory == nullptr);
     if (m_renderFactory != nullptr) {
         return false;
@@ -400,6 +402,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     //解析全局资源信息(默认是"global.xml"文件)
     ASSERT(!resParam.globalXmlFileName.empty());
     if (!resParam.globalXmlFileName.empty()) {
+        PerformanceStat statPerformance(_T("ParseXml, GlobalManager::ReloadResource(global.xml)"));
         WindowBuilder dialog_builder;
         Window paint_manager;
         if (dialog_builder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
