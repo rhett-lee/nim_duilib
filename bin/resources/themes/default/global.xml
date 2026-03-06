@@ -130,7 +130,7 @@
     <TextColor name="bg_richedit" value="color_white"/>
     <TextColor name="text_richedit_prompt" value="color_gray_light"/>
     <TextColor name="border_richedit_normal" value="#AAA8A8A8"/>
-    <TextColor name="border_richedit_hover" value="CornflowerBlue"/>
+    <TextColor name="border_richedit_hover" value="#FF6495ED"/>
     <TextColor name="border_richedit_focus" value="#FF8591A2"/>
     <TextColor name="border_richedit_focus_bottom" value="#FF1D6978"/>
     <TextColor name="bg_richedit_btn_normal" value="bg_window_dark"/>
@@ -139,10 +139,10 @@
     <TextColor name="border_richedit_btn" value="color_gray_light"/>
     
     <!-- 窗口按钮颜色 -->
-    <TextColor name="bg_btn_window_hover" value="AliceBlue"/>
-    <TextColor name="bg_btn_window_pressed" value="Lavender"/>
+    <TextColor name="bg_btn_window_hover" value="#FFF0F8FF"/>
+    <TextColor name="bg_btn_window_pressed" value="#FFE6E6FA"/>
     <TextColor name="bg_btn_window_close_hover" value="color_red"/>
-    <TextColor name="bg_btn_window_close_pressed" value="OrangeRed"/>
+    <TextColor name="bg_btn_window_close_pressed" value="#FFFF4500"/>
     
     <!-- 全屏按钮颜色 -->
     <TextColor name="bg_btn_exit_fullscreen" value="color_black"/>
@@ -151,7 +151,7 @@
     <!-- 下拉框颜色 -->
     <TextColor name="bg_combo" value="color_white"/>
     <TextColor name="border_combo_normal" value="color_gray_light"/>
-    <TextColor name="border_combo_hover" value="CornflowerBlue"/>
+    <TextColor name="border_combo_hover" value="#FF6495ED"/>
     <TextColor name="bg_combo_btn_hover" value="#FFE5F3FF"/>
     <TextColor name="bg_combo_btn_pressed" value="#FFCCE8FF"/>
     
@@ -163,7 +163,7 @@
     <TextColor name="bg_list_ctrl_view" value="color_white"/>
     <TextColor name="bg_list_ctrl_frame_selected" value="#FFAACCEE"/>
     <TextColor name="border_list_ctrl_frame_selected" value="#FF0078D7"/>
-    <TextColor name="bg_list_ctrl_item_hover" value="Wheat"/>
+    <TextColor name="bg_list_ctrl_item_hover" value="#FFF5DEB3"/>
     <TextColor name="bg_list_ctrl_item_pressed" value="#FFD9EEFF"/>
     <TextColor name="bg_list_ctrl_item_selected" value="#FFCCE8FF"/>
     
