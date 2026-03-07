@@ -133,12 +133,13 @@ void ControlForm::OnInitWindow()
         check_combo->AddTextItem(_T("星期日"));
     }
 
-    int32_t nThreadIdentifier = ui::ThreadIdentifier::kThreadWorker;
-    if (!ui::GlobalManager::Instance().Thread().HasThread(nThreadIdentifier)) {
-        nThreadIdentifier = ui::ThreadIdentifier::kThreadUI;
+    //如果是zip模式，需要在主线程中执行
+    int32_t nThreadIdentifier = ui::ThreadIdentifier::kThreadUI;
+    if (!ui::GlobalManager::Instance().Zip().IsUseZip()) {
+        if (ui::GlobalManager::Instance().Thread().HasThread(ui::ThreadIdentifier::kThreadWorker)) {
+            nThreadIdentifier = ui::ThreadIdentifier::kThreadWorker;
+        }
     }
-
-    /* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
     ui::GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, UiBind(&ControlForm::LoadRichEditData, this));
 
     /* Post repeat task to update progress value 200 milliseconds once */
@@ -541,16 +542,21 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
 
 void ControlForm::LoadRichEditData()
 {
-    std::streamoff length = 0;
-    
-    ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
-    controls_xml += GetResourcePath();
-    controls_xml += GetSkinFile();
+    std::streamoff length = 0;    
+    ui::FilePath controlsXml = ui::GlobalManager::Instance().GetResourcePath();
+    controlsXml += GetResourcePath();
+    controlsXml += GetSkinFile();
 
     //XML 文件按UTF8编码加载
-    std::string xml;
     std::vector<uint8_t> xmlData;
-    ui::FileUtil::ReadFileData(controls_xml, xmlData);
+    if (ui::GlobalManager::Instance().Zip().IsUseZip()) {
+        //使用Zip模式
+        ui::GlobalManager::Instance().Zip().GetZipData(controlsXml, xmlData);
+    }
+    else {
+        ui::FileUtil::ReadFileData(controlsXml, xmlData);
+    }
+    std::string xml;
     if (!xmlData.empty()) {
         xml.append((const char*)xmlData.data(), xmlData.size());
     }

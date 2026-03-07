@@ -11,7 +11,6 @@
 #define IDI_THREADS                     107
 #define IDC_THREADS                     109
 #define IDR_MAINFRAME                   128
-#define IDR_THEME1                      129
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

@@ -355,9 +355,15 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     FilePath strResourcePath = resParam.resourcePath;
     if (resParam.GetResType() == ResourceType::kLocalFiles) {
         //本地文件的形式，所有资源都已本地文件的形式存在
-        //const LocalFilesResParam& param = static_cast<const LocalFilesResParam&>(resParam);
         ASSERT(!strResourcePath.IsEmpty());
         if (strResourcePath.IsEmpty()) {
+            ASSERT(!"Resource path is empty!");
+            return false;
+        }
+        FilePath themePath = FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath);
+        themePath.NormalizeDirectoryPath();
+        if (!themePath.IsExistsDirectory()) {
+            ASSERT(!"Theme path not exists!");
             return false;
         }
     }
@@ -386,12 +392,14 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
         return false;
     }
 
-    //清空原有资源数据（字体、颜色、Class定义、图片资源等）
+    //清空原有资源数据（字体、颜色、Class定义、图片资源、别名、变量定义等）
     m_fontManager.RemoveAllFonts();
     m_fontManager.RemoveAllFontFiles();
     m_colorManager.RemoveAllColors();
     RemoveAllImages();
     RemoveAllClasss();
+    ClearAlias();
+    ClearDefine();
 
     //保存资源路径
     SetResourcePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath));
@@ -402,11 +410,11 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     //解析全局资源信息(默认是"global.xml"文件)
     ASSERT(!resParam.globalXmlFileName.empty());
     if (!resParam.globalXmlFileName.empty()) {
-        PerformanceStat statPerformance(_T("ParseXml, GlobalManager::ReloadResource(global.xml)"));
-        WindowBuilder dialog_builder;
-        Window paint_manager;
-        if (dialog_builder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
-            dialog_builder.CreateControls(&paint_manager);
+        PerformanceStat statPerformance(_T("ParseXml, GlobalManager load global.xml"));
+        WindowBuilder globalbuilder;
+        Window tempWnd;
+        if (globalbuilder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
+            globalbuilder.CreateControls(&tempWnd);
         }        
     }
 
@@ -426,9 +434,10 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
             if (pWindow != nullptr) {
                 Box* pBox = pWindow->GetRoot();
                 if (pBox != nullptr) {
-                    pBox->Invalidate();
+                    pBox->SetPos(pBox->GetPos());
                 }
-            }            
+                pWindow->InvalidateAll();
+            }
         }
     }
     return true;
@@ -495,6 +504,7 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                 pBox->OnLanguageChanged();
                 pBox->SetPos(pBox->GetPos());
             }
+            pWindow->InvalidateAll();
         }
     }
     return bReadOk;

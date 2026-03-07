@@ -6,11 +6,10 @@
 #define IDD_CONTROLS_DIALOG             102
 #define IDS_APP_TITLE                   103
 #define IDD_ABOUTBOX                    103
-#define IDM_ABOUT                       104
-#define IDM_EXIT                        105
 #define IDI_CONTROLS                    107
 #define IDC_CONTROLS                    109
 #define IDR_MAINFRAME                   128
+#define IDR_THEME                       129
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

@@ -18,7 +18,6 @@
 
 #include <string>
 #include <vector>
-#include <map>
 #include <unordered_map>
 #include <thread>
 
@@ -475,7 +474,7 @@ private:
     
     /** 窗口构建管理接口，KEY是XML文件路径，VALUE是窗口构建管理接口（已经解析后的XML，可避免重复解析）
     */
-    std::map<FilePath, std::unique_ptr<WindowBuilder>> m_builderMap;
+    std::unordered_map<FilePath, std::unique_ptr<WindowBuilder>> m_builderMap;
 
     /** 控件创建函数，用于用户自定义控件的创建
     */
@@ -483,7 +482,7 @@ private:
 
     /** 每个Class的名称(KEY)和属性列表(VALUE)（比如global.xml中定义的Class）
     */
-    std::map<DString, DString> m_globalClass;
+    std::unordered_map<DString, DString> m_globalClass;
 
     /** 主线程ID
     */
