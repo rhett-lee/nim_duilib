@@ -907,8 +907,8 @@ void PropertyGridProperty::OnInit()
 
     m_pHBox = new HBox(GetWindow());
     AddItem(m_pHBox);
-    //背景色：在property_grid.xml中定义
-    m_pHBox->SetBkColor(_T("property_grid_propterty_bkcolor"));
+    //背景色：在global.xml中定义
+    m_pHBox->SetBkColor(_T("bg_property_grid_header"));
 
     m_pHBox->SetMouseEnabled(false);
     m_pHBox->SetNoFocus();

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <ListBoxItem class="listitem">
+    <ListBoxItem class="list_item">
         <HBox mouse_enabled="false" padding="10,5,10,5">
             <Control name="control_img" width="auto" height="auto" margin="0,0,10,0" mouse_enabled="false"/>
             <VBox margin="0,3,0,5" mouse_enabled="false">

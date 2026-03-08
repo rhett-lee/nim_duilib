@@ -46,7 +46,7 @@
                     <Label height="stretch" width="stretch" text="超长文字绘制测试, 多列文本，text is 1234567890-。长文字绘制测试: 1+2=3, 8/4=2 , 多列文本 qwertyuiopasdfghjkl-v. 长文字绘制测试, 多列文本结束。" autotooltip="true" single_line="false" vertical_text="true" text_align="right,top"/>
                 </HBox>
                 <HBox width="80" bkcolor="dark_gray">
-                    <Label height="stretch" width="stretch" text="文本绘制-正常字体" font="system_14" vertical_text="true" text_align="right,top"/>
+                    <Label height="stretch" width="stretch" text="文本绘制-正常字体" font="system_regular_14" vertical_text="true" text_align="right,top"/>
                 </HBox>
                 <HBox width="80" bkcolor="blue">
                     <Label height="stretch" width="stretch" text="文本绘制-粗体字" font="system_bold_14" vertical_text="true" text_align="right,top"/>

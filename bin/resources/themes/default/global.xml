@@ -83,103 +83,149 @@
     <FontFile file="RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
     <FontFile file="RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
     
-    <!-- ===================== 颜色配置 ===================== -->
-    <!-- 基础颜色（通用） -->
-    <TextColor name="color_white" value="#FFFFFFFF"/>
-    <TextColor name="color_black" value="#FF000000"/>
-    <TextColor name="color_gray" value="#FF8E99A6"/>
-    <TextColor name="color_gray_light" value="#FFA8A8A8"/>
-    <TextColor name="color_gray_dark" value="#FF72797F"/>
-    <TextColor name="color_gray_deep" value="#FF333333"/>
-    <TextColor name="color_gray_light_deep" value="#FF888888"/>
+    <!-- ===================== 颜色配置（Win11 25H2 Light） ===================== -->
+    <!-- 基础颜色（通用）- 系统级基础灰度，适配所有控件底层样式 -->
+    <TextColor name="color_white" value="#FFFFFFFF"/>        <!-- 纯白：通用高亮文本/按钮背景 -->
+    <TextColor name="color_black" value="#FF000000"/>        <!-- 纯黑：系统默认文本底色 -->
+    <TextColor name="color_gray" value="#FF6B7280"/>         <!-- 中性灰：次要文本/辅助说明 -->
+    <TextColor name="color_gray_light" value="#FFE5E7EB"/>   <!-- 浅灰：默认边框/分割线基础色 -->
+    <TextColor name="color_gray_dark" value="#FF4B5563"/>    <!-- 深灰：次要背景/禁用控件底色 -->
+    <TextColor name="color_gray_deep" value="#FF374151"/>    <!-- 极深灰：重度强调背景/阴影 -->
+    <TextColor name="color_gray_light_deep" value="#FF9CA3AF"/> <!-- 浅深灰：禁用文本/提示文本 -->
+
+    <!-- 主题颜色 - Win11 25H2 默认强调色体系，仅用于关键交互状态 -->
+    <TextColor name="color_green" value="#FF059669"/>        <!-- 系统绿：成功状态/完成进度 -->
+    <TextColor name="color_green_light" value="#FF34D399"/>  <!-- 浅绿：绿色系hover状态 -->
+    <TextColor name="color_blue" value="#FF0078D4"/>         <!-- 系统主蓝：聚焦/选中/强调色 -->
+    <TextColor name="color_red" value="#FFDC2626"/>          <!-- 系统红：错误/警告/关闭按钮 -->
+    <TextColor name="color_red_light" value="#FFF87171"/>    <!-- 浅红：红色系hover状态 -->
+    <TextColor name="color_red_deep" value="#FFB91C1C"/>     <!-- 深红：红色系pressed状态 -->
+    <TextColor name="color_blue_light" value="#FF3D9EFF"/>   <!-- 浅蓝：蓝色系hover状态 -->
+    <TextColor name="color_blue_deep" value="#FF005A9E"/>    <!-- 深蓝：蓝色系pressed状态 -->
+
+    <!-- 文本颜色 - 严格遵循Win11 25H2文本层级规范 -->
+    <TextColor name="text_default" value="#FF1E1E1E"/>       <!-- 主要文本：正文/标题/控件默认文本 -->
+    <TextColor name="text_disabled" value="#FF888888"/>      <!-- 禁用文本：不可交互控件文本 -->
+    <TextColor name="text_link_normal" value="#FF0078D4"/>   <!-- 链接默认：未点击链接文本 -->
+    <TextColor name="text_link_hover" value="#FF005A9E"/>    <!-- 链接hover：鼠标悬浮链接 -->
+    <TextColor name="text_link_pressed" value="#FF004578"/>  <!-- 链接pressed：点击中链接 -->
+
+    <!-- 背景颜色 - 按层级划分，从浅到深适配不同容器 -->
+    <TextColor name="bg_window_dark" value="#FFF7F7F7"/>     <!-- 窗口深色背景：主窗口/面板底色 -->
+    <TextColor name="bg_window_light" value="#FFFFFFFF"/>    <!-- 窗口浅色背景：卡片/弹窗底色 -->    
+    <TextColor name="bg_titlebar" value="#FFEFEFEF"/>        <!-- 窗口标题栏背景色: 浅色 -->
+    <TextColor name="bg_menu" value="#FFFFFFFF"/>            <!-- 菜单背景：下拉菜单/右键菜单底色 -->
+    <TextColor name="bg_menu_item_hover" value="#FFE6F0FF"/> <!-- 菜单项hover：鼠标悬浮菜单项 -->
+    <TextColor name="bg_menu_item_selected" value="#FFCCE5FF"/> <!-- 菜单项选中：激活/选中菜单项 -->
+    <TextColor name="bg_list_item_hover" value="#FFE6F0FF"/> <!-- 列表项hover：鼠标悬浮列表项 -->
+    <TextColor name="bg_list_item_selected" value="#FFCCE5FF"/> <!-- 列表项选中：选中列表项 -->
+    <TextColor name="bg_menu_bar_hover" value="#FFE6F0FF"/>  <!-- 菜单栏hover：悬浮菜单栏项 -->
+    <TextColor name="bg_menu_bar_pressed" value="#FFCCE5FF"/> <!-- 菜单栏pressed：点击菜单栏项 -->
+
+    <!-- 控件专用颜色 - 全局通用控件样式 -->
+    <TextColor name="color_progress" value="#FF0078D4"/>     <!-- 进度条：进度条填充/滑块主色 -->
+    <TextColor name="color_splitline_level1" value="#FFE5E7EB"/> <!-- 一级分割线：主要区域分隔 -->
+    <TextColor name="color_splitline_level2" value="#FFF5F5F5"/> <!-- 二级分割线：次要区域分隔 -->
+
+    <!-- 编辑框颜色（Win11 25H2 核心规范：灰边框 + 聚焦蓝下划线） -->
+    <TextColor name="bg_richedit" value="#FFFFFFFF"/>        <!-- 编辑框背景：输入框默认背景 -->
+    <TextColor name="text_richedit_prompt" value="#FF888888"/> <!-- 提示文本：placeholder占位符 -->
+    <TextColor name="border_richedit_normal" value="#FFD1D5DB"/> <!-- 默认边框：未交互时边框 -->
+    <TextColor name="border_richedit_hover" value="#FF9CA3AF"/> <!-- hover边框：鼠标悬浮边框 -->
+    <TextColor name="border_richedit_focus" value="#FFD1D5DB"/> <!-- 聚焦外框：保持浅灰不变 -->
+    <TextColor name="border_richedit_focus_bottom" value="#FF0078D4"/> <!-- 聚焦下划线：仅底部蓝线 -->
+    <TextColor name="bg_richedit_btn_normal" value="#FFF5F5F5"/> <!-- 编辑框按钮默认：按钮底色 -->
+    <TextColor name="bg_richedit_btn_hover" value="#FFE6F0FF"/> <!-- 编辑框按钮hover：悬浮底色 -->
+    <TextColor name="bg_richedit_btn_pressed" value="#FFCCE5FF"/> <!-- 编辑框按钮pressed：点击底色 -->
+    <TextColor name="border_richedit_btn" value="#FFD1D5DB"/> <!-- 编辑框按钮边框：按钮边框 -->
+
+    <!-- 窗口按钮颜色 - 标题栏最小化/最大化/关闭按钮 -->
+    <TextColor name="bg_btn_window_hover" value="#FFE6F0FF"/> <!-- 窗口按钮hover：悬浮底色 -->
+    <TextColor name="bg_btn_window_pressed" value="#FFCCE5FF"/> <!-- 窗口按钮pressed：点击底色 -->
+    <TextColor name="bg_btn_window_close_hover" value="#FFDC2626"/> <!-- 关闭按钮hover：悬浮红 -->
+    <TextColor name="bg_btn_window_close_pressed" value="#FFB91C1C"/> <!-- 关闭按钮pressed：点击红 -->
     
-    <!-- 主题颜色 -->
-    <TextColor name="color_green" value="#FF00BB96"/>
-    <TextColor name="color_green_light" value="#FF21C7A6"/>
-    <TextColor name="color_blue" value="#FF006DD9"/>
-    <TextColor name="color_red" value="#FFC63535"/>
-    <TextColor name="color_red_light" value="#FFFF0000"/>
-    <TextColor name="color_red_deep" value="#FFD12329"/>
-    <TextColor name="color_blue_light" value="#FF0078D4"/>
-    <TextColor name="color_blue_deep" value="#FF005A9E"/>
-    
-    <!-- 文本颜色 -->
-    <TextColor name="text_default" value="color_black"/>
-    <TextColor name="text_disabled" value="#FFA1AEBC"/>
-    <TextColor name="text_link_normal" value="#FF0000FF"/>
-    <TextColor name="text_link_hover" value="#FFD3215F"/>
-    <TextColor name="text_link_pressed" value="color_red_light"/>
-    
-    <!-- 背景颜色 -->
-    <TextColor name="bg_window_dark" value="#FFF0F2F5"/>
-    <TextColor name="bg_window_light" value="color_white"/>
-    <TextColor name="bg_menu" value="color_white"/>
-    <TextColor name="bg_menu_item_hover" value="#FFE1E6EB"/>
-    <TextColor name="bg_menu_item_selected" value="#FFCED4DB"/>
-    <TextColor name="bg_list_item_hover" value="#FFF0F2F5"/>
-    <TextColor name="bg_list_item_selected" value="#FFE4E7EB"/>
-    <TextColor name="bg_menu_bar_hover" value="#FFB0B4B8"/>
-    <TextColor name="bg_menu_bar_pressed" value="#FFB0B4B8"/>
-    
-    <!-- 控件专用颜色 -->
-    <TextColor name="color_progress" value="#FF2ACEAE"/>
-    <TextColor name="color_splitline_level1" value="#FFD2D4D6"/>
-    <TextColor name="color_splitline_level2" value="#FFEBEDF0"/>
-    
-    <!-- 编辑框颜色 -->
-    <TextColor name="bg_richedit" value="color_white"/>
-    <TextColor name="text_richedit_prompt" value="color_gray_light"/>
-    <TextColor name="border_richedit_normal" value="#AAA8A8A8"/>
-    <TextColor name="border_richedit_hover" value="#FF6495ED"/>
-    <TextColor name="border_richedit_focus" value="#FF8591A2"/>
-    <TextColor name="border_richedit_focus_bottom" value="#FF1D6978"/>
-    <TextColor name="bg_richedit_btn_normal" value="bg_window_dark"/>
-    <TextColor name="bg_richedit_btn_hover" value="#FFE5F3FF"/>
-    <TextColor name="bg_richedit_btn_pressed" value="#FFCCE8FF"/>
-    <TextColor name="border_richedit_btn" value="color_gray_light"/>
-    
-    <!-- 窗口按钮颜色 -->
-    <TextColor name="bg_btn_window_hover" value="#FFF0F8FF"/>
-    <TextColor name="bg_btn_window_pressed" value="#FFE6E6FA"/>
-    <TextColor name="bg_btn_window_close_hover" value="color_red"/>
-    <TextColor name="bg_btn_window_close_pressed" value="#FFFF4500"/>
-    
+    <!-- 次要按钮（无强调色，默认按钮）- 加深底色版 | Win11 25H2 Light -->
+    <!-- 文本色：微调对比度，保证可读性 -->
+    <TextColor name="text_btn_normal" value="#FF000000"/>    <!-- 次要按钮正常文本：近黑（保持不变，保证对比度） -->
+    <TextColor name="text_btn_disabled" value="#FF909090"/>   <!-- 次要按钮禁用文本：加深浅灰（比原配置深，更易识别） -->
+
+    <!-- 背景色：核心调整 - 加深底色，强化按钮存在感 -->
+    <TextColor name="bg_btn_normal" value="#FFEEEEEE"/>    <!-- 次要按钮默认：浅灰（比原#FFF5F5F5深，突出按钮轮廓） -->
+    <TextColor name="bg_btn_hover" value="#FFDCEAFF"/>     <!-- 次要按钮hover：浅蓝（比原#FFE6F0FF深，悬浮反馈更明显） -->
+    <TextColor name="bg_btn_pressed" value="#FFBFD7FF"/>   <!-- 次要按钮pressed：中蓝（比原#FFCCE5FF深，点击反馈更强） -->
+    <TextColor name="bg_btn_disabled" value="#FFEEEEEE"/>  <!-- 次要按钮禁用背景：与正常背景一致（仅文本变灰，符合Win11规范） -->
+
+    <!-- 可选添加按钮边框（进一步强化存在感） -->
+    <Define name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
+    <TextColor name="border_btn_normal" value="#FFD1D5DB"/> <!-- 次要按钮默认边框：浅灰边框（新增，强化按钮轮廓） -->
+    <TextColor name="border_btn_hover" value="#FF94BFFF"/>  <!-- 次要按钮hover边框：浅蓝边框（新增，悬浮时边框变色） -->
+    <TextColor name="border_btn_pressed" value="#FF60A5FA"/> <!-- 次要按钮pressed边框：中蓝边框（新增，点击时边框加深） -->
+    <TextColor name="border_btn_disabled" value="#FFE0E0E0"/> <!-- 次要按钮禁用边框：浅灰边框（新增，比正常边框浅） -->
+
+    <!-- 主要按钮（强调色按钮，带默认边框）-->
+    <TextColor name="text_primary_btn_normal" value="#FFFFFFFF"/>    <!-- 主要按钮正常文本：纯白 -->
+    <TextColor name="text_primary_btn_disabled" value="#FFBFD7FF"/>   <!-- 主要按钮禁用文本：浅蓝白 -->
+
+    <TextColor name="bg_primary_btn_normal" value="#FF0078D4"/>    <!-- 主要按钮默认背景：系统主蓝 -->
+    <TextColor name="bg_primary_btn_hover" value="#FF1084E3"/>     <!-- 主要按钮hover：稍亮蓝 -->
+    <TextColor name="bg_primary_btn_pressed" value="#FF0066B2"/>   <!-- 主要按钮pressed：稍深蓝 -->
+    <TextColor name="bg_primary_btn_disabled" value="#FF78A3D1"/>  <!-- 主要按钮禁用背景：低饱和浅蓝 -->
+
+    <!-- 主要按钮默认边框（Win11 25H2 规范：细深色边框，增强精致感）-->
+    <Define name="border_primary_btn_size" value="0"/> <!-- 主要按默认边框：边框大小 -->
+    <TextColor name="border_primary_btn_normal" value="#FF005A9E"/>   <!-- 主要按钮默认边框：深一点的蓝 -->
+    <TextColor name="border_primary_btn_hover" value="#FF0063B0"/>    <!-- 主要按钮hover边框 -->
+    <TextColor name="border_primary_btn_pressed" value="#FF004F8A"/>  <!-- 主要按钮pressed边框 -->
+    <TextColor name="border_primary_btn_disabled" value="#FF78A3D1"/> <!-- 主要按钮禁用边框 -->
+
     <!-- 全屏按钮颜色 -->
-    <TextColor name="bg_btn_exit_fullscreen" value="color_black"/>
-    <TextColor name="text_btn_exit_fullscreen" value="color_white"/>
+    <TextColor name="bg_btn_exit_fullscreen" value="#FF0078D4"/> <!-- 退出全屏背景：按钮底色 -->
+    <TextColor name="text_btn_exit_fullscreen" value="#FFFFFFFF"/> <!-- 退出全屏文本：按钮文字 -->
+
+    <!-- 下拉框颜色 - ComboBox下拉选择框 -->
+    <TextColor name="bg_combo" value="#FFFFFFFF"/>           <!-- 下拉框背景：下拉框底色 -->
+    <TextColor name="border_combo_normal" value="#FFD1D5DB"/> <!-- 下拉框默认边框：未交互边框 -->
+    <TextColor name="border_combo_hover" value="#FF9CA3AF"/> <!-- 下拉框hover边框：悬浮边框 -->
+    <TextColor name="bg_combo_btn_hover" value="#FFE6F0FF"/> <!-- 下拉按钮hover：箭头按钮悬浮 -->
+    <TextColor name="bg_combo_btn_pressed" value="#FFCCE5FF"/> <!-- 下拉按钮pressed：箭头按钮点击 -->
+
+    <!-- ListCtrl颜色 - 列表控件专用 -->
+    <TextColor name="bg_list_ctrl_header" value="#FFF5F5F5"/> <!-- 列表表头：表头背景 -->
+    <TextColor name="bg_list_ctrl_header_hover" value="#FFE6F0FF"/> <!-- 表头hover：悬浮表头 -->
+    <TextColor name="bg_list_ctrl_header_pressed" value="#FFCCE5FF"/> <!-- 表头pressed：点击表头 -->
+    <TextColor name="bg_list_ctrl_header_split" value="#FFE5E7EB"/> <!-- 表头分割线：列分隔线 -->
+    <TextColor name="bg_list_ctrl_view" value="#FFFFFFFF"/>   <!-- 列表视图：列表区域背景 -->
+    <TextColor name="bg_list_ctrl_frame_selected" value="#FF88BDEE"/> <!-- 选中框背景：选中项外框 -->
+    <TextColor name="border_list_ctrl_frame_selected" value="#FF0078D4"/> <!-- 选中框边框：外框蓝边 -->
+    <TextColor name="bg_list_ctrl_item_hover" value="#FFE6F0FF"/> <!-- 列表项hover：悬浮列表项 -->
+    <TextColor name="bg_list_ctrl_item_pressed" value="#FFCCE5FF"/> <!-- 列表项pressed：点击列表项 -->
+    <TextColor name="bg_list_ctrl_item_selected" value="#FFCCE5FF"/> <!-- 列表项选中：选中项底色 -->
+
+    <!-- TabCtrl颜色 - 标签页控件 -->
+    <TextColor name="bg_tab_ctrl" value="#FFF2F2F2"/>        <!-- 标签页背景：标签栏底色 -->
+    <TextColor name="bg_tab_ctrl_item_hover" value="#FFE6F0FF"/> <!-- 标签项hover：悬浮标签 -->
+    <TextColor name="bg_tab_ctrl_item_pressed" value="#FFCCE5FF"/> <!-- 标签项pressed：点击标签 -->
+    <TextColor name="bg_tab_ctrl_item_selected" value="#FFFFFFFF"/> <!-- 选中标签：激活标签底色 -->
+    <TextColor name="bg_tab_ctrl_item_close_hover" value="#FFE6F0FF"/> <!-- 关闭按钮hover：悬浮关闭 -->
+    <TextColor name="bg_tab_ctrl_item_close_pressed" value="#FFCCE5FF"/> <!-- 关闭按钮pressed：点击关闭 -->
+    <TextColor name="border_tab_ctrl_item" value="#FFD1D5DB"/> <!-- 标签项边框：标签分隔边框 -->
+
+    <!-- AddressBar颜色 - 地址栏控件 -->
+    <TextColor name="bg_address_bar" value="#FFFFFFFF"/>     <!-- 地址栏背景：地址栏底色 -->
+    <TextColor name="bg_address_bar_btn_hover" value="#FFE6F0FF"/> <!-- 地址栏按钮hover：悬浮按钮 -->
+    <TextColor name="bg_address_bar_btn_pressed" value="#FFCCE5FF"/> <!-- 地址栏按钮pressed：点击按钮 -->
     
-    <!-- 下拉框颜色 -->
-    <TextColor name="bg_combo" value="color_white"/>
-    <TextColor name="border_combo_normal" value="color_gray_light"/>
-    <TextColor name="border_combo_hover" value="#FF6495ED"/>
-    <TextColor name="bg_combo_btn_hover" value="#FFE5F3FF"/>
-    <TextColor name="bg_combo_btn_pressed" value="#FFCCE8FF"/>
+    <!-- Property Grid（属性页）- Windows 11 浅色主题 官方标准 -->
+    <TextColor name="bg_property_grid" value="#FFEEEEF2"/>    <!-- 属性网格主背景 -->
+    <TextColor name="text_property_grid" value="#FF000000"/>  <!-- 文本色（与你已加深的按钮文本一致） -->
+    <TextColor name="text_property_grid_disabled" value="#FF707070"/> <!-- 禁用文本 -->
+    <TextColor name="border_property_grid" value="#FFE0E0E0"/> <!-- 边框色，匹配次要按钮禁用态 -->
+    <TextColor name="bg_property_grid_header" value="#FFFEFEFE"/> <!-- 分组标题背景，轻微区分 -->
+    <TextColor name="text_property_grid_header" value="#FF000000"/> <!-- 分组标题文本 -->
+    <TextColor name="bg_property_grid_split" value="#FFA9A9A9"/>    <!-- 分组分割线 -->
     
-    <!-- ListCtrl颜色 -->
-    <TextColor name="bg_list_ctrl_header" value="bg_window_dark"/>
-    <TextColor name="bg_list_ctrl_header_hover" value="#FFE5F3FF"/>
-    <TextColor name="bg_list_ctrl_header_pressed" value="#FFD9EEFF"/>
-    <TextColor name="bg_list_ctrl_header_split" value="color_splitline_level1"/>
-    <TextColor name="bg_list_ctrl_view" value="color_white"/>
-    <TextColor name="bg_list_ctrl_frame_selected" value="#FFAACCEE"/>
-    <TextColor name="border_list_ctrl_frame_selected" value="#FF0078D7"/>
-    <TextColor name="bg_list_ctrl_item_hover" value="#FFF5DEB3"/>
-    <TextColor name="bg_list_ctrl_item_pressed" value="#FFD9EEFF"/>
-    <TextColor name="bg_list_ctrl_item_selected" value="#FFCCE8FF"/>
-    
-    <!-- TabCtrl颜色 -->
-    <TextColor name="bg_tab_ctrl" value="#FFD3E3FD"/>
-    <TextColor name="bg_tab_ctrl_item_hover" value="#FFA8C7FA"/>
-    <TextColor name="bg_tab_ctrl_item_pressed" value="#FFA8C7FA"/>
-    <TextColor name="bg_tab_ctrl_item_selected" value="color_white"/>
-    <TextColor name="bg_tab_ctrl_item_close_hover" value="#FFDCDCDD"/>
-    <TextColor name="bg_tab_ctrl_item_close_pressed" value="#FFC2C2C3"/>
-    <TextColor name="border_tab_ctrl_item" value="#FFA8C7FA"/>
-    
-    <!-- AddressBar颜色 -->
-    <TextColor name="bg_address_bar" value="color_white"/>
-    <TextColor name="bg_address_bar_btn_hover" value="#FFD7DCE0"/>
-    <TextColor name="bg_address_bar_btn_pressed" value="#FFB0B4B8"/>
+    <!-- ===================== 颜色配置（Windows 11 浅色主题）结束 ===================== -->
     
     <!-- ===================== 完整兼容别名（旧属性名 → 新属性名） ===================== -->
     <!-- 1. 颜色属性兼容别名 -->
@@ -342,7 +388,23 @@
                                                    normal_image={file='${PATH_COMBO}/arrow_normal.svg' valign='center'} 
                                                    hot_image={file='${PATH_COMBO}/arrow_hot.svg' valign='center'}"/>
     
-    <!-- 全局图片按钮，颜色固定，不跟随主题变化 -->
+    <!-- 全局纯色按钮，颜色跟随主题变化 -->
+    <Class name="btn_global" text_align="hcenter,vcenter" 
+                             normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled" 
+                             normal_color="bg_btn_normal" hot_color="bg_btn_hover" 
+                             pushed_color="bg_btn_pressed" disabled_color="bg_btn_disabled"
+                             border_size="${border_btn_size}"
+                             normal_border_color="border_btn_normal" hot_border_color="border_btn_hover"
+                             pushed_border_color="border_btn_pressed" disabled_border_color="border_btn_disabled"/>
+    <Class name="btn_primary_global" text_align="hcenter,vcenter" 
+                                     normal_text_color="text_primary_btn_normal" disabled_text_color="text_primary_btn_disabled" 
+                                     normal_color="bg_primary_btn_normal" hot_color="bg_primary_btn_hover" 
+                                     pushed_color="bg_primary_btn_pressed" disabled_color="bg_primary_btn_disabled"
+                                     border_size="${border_primary_btn_size}"
+                                     normal_border_color="border_primary_btn_normal" hot_border_color="border_primary_btn_hover"
+                                     pushed_border_color="border_primary_btn_pressed" disabled_border_color="border_primary_btn_disabled"/>
+
+    <!-- 全局图片按钮 -->
     <Class name="btn_global_blue_80x30" normal_text_color="color_white" 
                                         normal_image="file='${PATH_BUTTON}/btn_global_blue_${SIZE_BTN_GLOBAL_DEFAULT}_normal.svg'" 
                                         hot_image="file='${PATH_BUTTON}/btn_global_blue_${SIZE_BTN_GLOBAL_DEFAULT}_hovered.svg'" 
@@ -486,15 +548,15 @@
                                selected_normal_color="bg_menu_item_selected" 
                                selected_normal_color_margin="3,0,3,0" 
                                selected_normal_color_round="4,4"/>
-    <Class name="menu_text" valign="center"/>
-    <Class name="menu_text_shortcut" valign="center"/>
+    <Class name="menu_text" valign="center" text_align="vcenter"/>
+    <Class name="menu_text_shortcut" valign="center" text_align="vcenter"/>
     <Class name="menu_split_box" height="auto" padding="16,0,16,0" margin="0,4,0,4"/>
     <Class name="menu_split_line" bkcolor="color_splitline_level1" height="1" />
-    <Class name="menu_checkbox" height="auto" valign="center" text_padding="20,0,0,0" 
+    <Class name="menu_checkbox" height="auto" valign="center" text_padding="20,0,0,0"
                                 normal_image="" 
                                 disabled_image="" 
-                                selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center'" 
-                                selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' fade='80'"/>
+                                selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' margin='0,1,0,0'" 
+                                selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' margin='0,1,0,0' fade='80'"/>
     
     <!-- 菜单栏 -->
     <Class name="menu_bar_button" width="auto" height="auto" border_round="4,4" valign="center" text_align="vcenter" text_padding="8,4,8,4" 

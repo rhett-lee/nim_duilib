@@ -67,7 +67,6 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
         pMenuItem->SetClass(_T("menu_element"));
         ui::CheckBox* pCheckBox = new ui::CheckBox(this);
         pCheckBox->SetClass(_T("menu_checkbox"));
-        pCheckBox->SetAttribute(_T("margin"), _T("0,5,0,10"));
         pCheckBox->SetText(!displayName.empty() ? displayName : fileName);
         pMenuItem->AddItem(pCheckBox);
         menu->AddMenuItem(pMenuItem);

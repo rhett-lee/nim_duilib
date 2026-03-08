@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_gridbox" multi_line="true" margin="0,0,0,0" width="90%" height="90%" bkcolor="Sienna" border_size="1" border_color="green"/>
-    <Class name="page_gridbox_calculator" multi_line="false" text_align="center,hcenter" font="system_16" margin="0,0,0,0" width="100%" height="100%" halign="center" valign="center" bkcolor="Sienna" border_size="1" border_color="green"/>
+    <Class name="page_gridbox_calculator" multi_line="false" text_align="center,hcenter" font="system_regular_16" margin="0,0,0,0" width="100%" height="100%" halign="center" valign="center" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
         <Label text="GridBox容器布局测试" height="28" valign="center"/>
         <HBox height="28">            

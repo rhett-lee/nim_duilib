@@ -60,7 +60,7 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if (strName == _T("text_color")) {
+    else if ((strName == _T("text_color")) || (strName == _T("normal_text_color"))) {
         SetTextColor(strValue);
     }    
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {

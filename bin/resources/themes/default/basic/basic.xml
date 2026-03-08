@@ -3,9 +3,9 @@
         caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
         shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
         alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+    <VBox bkcolor="bg_window_dark" visible="true">    
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Control mouse_enabled="false"/>
             <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="全屏，按ESC键可退出全屏"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -17,7 +17,7 @@
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <Box>
+        <Box bkcolor="bg_window_light">
             <VBox margin="0,0,0,0" valign="center" halign="center">
                 <Label name="tooltip" text="一个简单窗口，带有标题栏和常规按钮。" height="100%" width="100%" text_align="hcenter,vcenter"/>        
             </VBox>

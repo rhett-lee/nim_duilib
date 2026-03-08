@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="list_box_item_test" 
-                hot_color="bk_listitem_hovered" 
-                pushed_color="bk_listitem_selected" 
-                selected_normal_color="bk_listitem_selected" 
+                hot_color="bg_list_item_hover" 
+                pushed_color="bg_list_item_selected" 
+                selected_normal_color="bg_list_item_selected" 
                 fade_hot="false"/>
-    <Class name="list_box_item_checkbox_1" height="20" text_padding="20,0,0,0" font="system_14" 
+    <Class name="list_box_item_checkbox_1" height="20" text_padding="20,0,0,0" font="system_regular_14" 
                 normal_image="file='public/CheckBox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center'" 
                 disabled_image="file='public/CheckBox/checkbox-outline-unchecked.svg' margin='2,0,0,0' valign='center' fade='80'" 
                 selected_normal_image="file='public/CheckBox/checkbox-outline-checked.svg' margin='2,0,0,0' valign='center'" 

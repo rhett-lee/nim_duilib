@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" min_size="80,60" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+    <VBox bkcolor="bg_window_dark" visible="true">    
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Label text="duilib 多线程使用示例程序" height="32" text_align="vcenter" margin="10,0,0,0" mouse_enabled="false"/>
             <Control mouse_enabled="false"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -16,17 +16,17 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <VBox padding="6,6,6,6">
             <HBox margin="0,0,0,0" valign="center" halign="center" height="48">
-                <Button class="btn_global_blue_80x30" name="start_threads" text="启动子线程" margin="2,8,2,2"/>
-                <Button class="btn_global_blue_80x30" name="stop_threads" text="停止子线程" margin="2,8,2,2"/>
+                <Button class="btn_global" width="100" height="30" name="start_threads" text="启动子线程" margin="2,8,2,2"/>
+                <Button class="btn_global" width="100" height="30" name="stop_threads" text="停止子线程" margin="2,8,2,2"/>
                 <Label text="在以下线程中执行任务，线程标识符：" height="100%" width="auto" text_align="right,vcenter" margin="8,0,0,0"/>
                 <RichEdit class="rich_edit_spin simple_border" name="threads_identifier" text="1" bkcolor="white" valign="center"/>
-                <Button class="btn_global_blue_80x30" name="run_task_in_threads" width="180" text="在子线程中执行任务" margin="8,8,2,2"/>
+                <Button class="btn_global" name="run_task_in_threads" width="180" height="30" text="在子线程中执行任务" margin="8,8,2,2"/>
                 <Label text="00:00:00" name="running_time" height="100%" width="100%" text_align="hcenter,vcenter" margin="8,0,0,0"/>
             </HBox>
-            <Line height="1"/>
-            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" bkcolor="white" width="stretch" height="stretch"
+            <Line height="1" margin="0,0,0,2"/>
+            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" bkcolor="bg_window_light" width="stretch" height="stretch"
                         hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false"
-                        normal_text_color="darkcolor" want_return_msg="true" rich_text="false" default_context_menu="true"/>
+                        normal_text_color="text_default" want_return_msg="true" rich_text="false" default_context_menu="true"/>
         </VBox>
     </VBox>
 </Window>

@@ -67,10 +67,10 @@
         
         <!-- 带勾选项的菜单项 -->
         <MenuItem class="menu_element" name="menu_check_01" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="排序方式：递增" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="排序方式：递增" selected="true" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_check_02" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="排序方式：递减" margin="0,5,0,10" selected="false" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="排序方式：递减" selected="false" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         
         <!-- 菜单项之间的分割线 -->

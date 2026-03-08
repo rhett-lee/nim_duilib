@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" min_size="300,200" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
 <!--新建标签按钮：纯色按钮-->
-<Class name="tab_item_new_add_btn" font="system_18" text_align="hcenter,vcenter" valign="center" 
-                                   normal_text_color="black" 
-                                   disabled_text_color="gray" 
-                                   normal_color="#FFD3E3FD" 
-                                   hot_color="#FFA8C7FA" 
-                                   pushed_color="#FF9DB9E8"/>
-<Class name="tab_ctrl_left_line" bkcolor="#FFA8C7FA" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
+<Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center" 
+                                   normal_text_color="text_default" 
+                                   disabled_text_color="text_disabled" 
+                                   normal_color="" 
+                                   hot_color="bg_tab_ctrl_item_close_hover" 
+                                   pushed_color="bg_tab_ctrl_item_close_pressed"/>
+<Class name="tab_ctrl_left_line" bkcolor="border_tab_ctrl_item" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
 
-<VBox bkcolor="bk_wnd_lightcolor">
-    <HBox name="title_bar" width="stretch" height="36" bkcolor="#FFD3E3FD">
+<VBox bkcolor="bg_window_light">
+    <HBox name="title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
         <!-- 图标区域 -->
         <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
         
@@ -21,10 +21,12 @@
         <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
         
         <!-- 顶部标签列表后面放一个新建标签按钮 -->
-        <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
+        <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" 
+                width="24" height="24" border_round="6,6" 
+                text_padding="0,0,0,2" margin="2,0,0,0"/>
 		
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
+        <HBox name="window_caption_bar" width="auto" height="36">
             <Control mouse_enabled="false"/>
             <Control width="36" mouse_enabled="false"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -37,20 +39,20 @@
     </HBox>
     <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
     <HBox height="30" margin="10,2,10,2" child_margin="3">
-        <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
-        <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
-        <Box width="50" height="30" valign="center">
-            <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
-            <Button class="btn_global_blue_80x30" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_12" />
+        <Button class="btn_global" name="btn_back" width="60" height="30" border_round="3,3" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_regular_14" />
+        <Button class="btn_global" name="btn_forward" width="60" height="30" border_round="3,3" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_regular_14" />
+        <Box width="60" height="30" valign="center">
+            <Button class="btn_global" name="btn_refresh" width="60" height="30" border_round="3,3" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_regular_14" />
+            <Button class="btn_global" name="btn_stop" width="60" height="30" border_round="3,3" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_regular_14" />
         </Box>
         <!-- 地址栏 -->
         <RichEdit class="simple prompt" name="edit_url" width="stretch" height="30" 
                                         text_padding="5,2,5,0" 
                                         text_align="vcenter" 
                                         valign="center" 
-                                        border_color="gray" 
+                                        border_color="border_richedit_normal" 
                                         border_size="1" 
-                                        font="system_14"
+                                        font="system_regular_14"
                                         prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
                                         default_context_menu="true" 
                                         vscrollbar="false" 

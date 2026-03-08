@@ -3,9 +3,9 @@
         caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
         shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
         alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+    <VBox bkcolor="bg_window_dark" visible="true">    
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Control mouse_enabled="false"/>
             <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="全屏，按ESC键可退出全屏"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
@@ -19,10 +19,10 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <VBox child_halign="center" child_valign="center">
             <HBox height="40" margin="8,0,0,0">
-                <Button class="btn_global_color_gray" name="animation_btn" text="播放/暂停" width="96" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
+                <Button class="btn_global" name="animation_btn" text="播放/暂停" width="96" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
                 <Label text="当前帧/总帧数:" valign="center" margin="8,0,0,0"/>
                 <Label name="animation_frame" text="[000/100]" width="120" valign="center" margin="8,0,0,0"/>
-                <Button class="btn_global_color_gray" name="goto_frame_btn" text="跳至" width="56" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
+                <Button class="btn_global" name="goto_frame_btn" text="跳至" width="56" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
                 <Label text="第" valign="center" margin="8,0,0,0"/>
                 <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true" width="80" min_number="0" max_number="10000" valign="center" text_align="vcenter" bkcolor="white" margin="8,0,0,0"/>
                 <Label text="帧" valign="center" margin="8,0,0,0"/>

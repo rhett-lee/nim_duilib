@@ -2,6 +2,6 @@
 <Window>
     <VBox height="90" width="90" mousechild="false" bkcolor="white">
 		<Control name="app_icon" halign="center" width="35" height="35" margin="0,10"/>
-	    <Label  name="app_name" font="system_14" halign="center" margin="0,5"/>
+	    <Label  name="app_name" font="system_regular_14" halign="center" margin="0,5"/>
     </VBox>
 </Window>

@@ -12,7 +12,7 @@
                       header_class="property_grid_header"
                       group_class="property_grid_group"
                       propterty_class="property_grid_propterty"/>
-        <Split bkcolor="splitline_level1" width="2"/>
+        <Split bkcolor="color_splitline_level1" width="2"/>
         <VBox>
             <HBox bkcolor="white" height="80" margin="0,4,0,0">
                 <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">

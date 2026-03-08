@@ -20,7 +20,7 @@ DateTime::DateTime(Window* pWindow):
 {
     //设置默认属性
     SetAttribute(_T("border_size"), _T("1"));
-    SetAttribute(_T("border_color"), _T("gray"));
+    SetAttribute(_T("border_color"), _T("border_richedit_normal"));
     SetAttribute(_T("text_align"), _T("vcenter"));
     SetAttribute(_T("text_padding"), _T("2,0,0,0"));
 #ifdef DUILIB_BUILD_FOR_SDL

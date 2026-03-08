@@ -1,7 +1,7 @@
 <Window size="80%,80%" shadow_attached="true" layered_window="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" size_box="4,4,4,4" text="TreeView控件测试程序">
     <!-- 该窗口下的Class定义 --> 
     <Class name="btn_view_common" width="32" height="24" border_round="4,4" valign="center" 
-                                  normal_color="" hot_color="#FFE4E7EB" pushed_color="#FFB0B4B8"/>
+                                  normal_color="" hot_color="bg_btn_hover" pushed_color="bg_btn_pressed"/>
     <Class name="btn_view_up" normal_image="file='../tree_view/arrow-up.svg' width='16' height='16' valign='center' halign='center'"
                               disabled_image="file='../tree_view/arrow-up.svg' width='16' height='16' valign='center' halign='center' fade='128'"/>
     <Class name="btn_view_left" normal_image="file='../tree_view/arrow-left.svg' width='16' height='16' valign='center' halign='center'"
@@ -12,9 +12,9 @@
                                    disabled_image="file='../tree_view/refresh.svg' width='16' height='16' valign='center' halign='center' fade='128'"/>
                 
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
-    <VBox bkcolor="bk_wnd_darkcolor">
+    <VBox bkcolor="bg_window_dark">
         <!-- 标题栏区域 -->  
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 标题栏：窗口左上角显示区域 -->  
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
@@ -33,8 +33,8 @@
         </HBox> <!-- 标题栏区域结束 --> 
         
         <!-- 显示区域 --> 
-        <VBox>            
-            <HBox minheight="18" bkcolor="#FFCCD5F0" height="auto">
+        <VBox bkcolor="bg_window_dark">            
+            <HBox minheight="18" height="auto">
                 <Label text="功能控制：" valign="center" margin="12,0,10,0"/>
                 <CheckBox class="checkbox_2" text="显示展开标志" selected="true" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="expand_image_class={tree_node_expand}" />
@@ -61,32 +61,32 @@
                     <Event type="unselect" receiver="tree" apply_attribute="show_system_files={false}" />
                 </CheckBox>
             </HBox>
-            <HBox width="stretch" height="32" bkcolor="#FFF8F8F8">
+            <HBox width="stretch" height="32">
                         <Button class="btn_view_common btn_view_up" name="btn_view_up" margin="4,0,0,0" tooltip_text="上移到父目录"/>
-                        <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text="返回"/>
-                        <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text="前进"/>
-                        <Button class="btn_view_common btn_view_refresh" name="btn_view_refresh" tooltip_text="刷新左侧的目录树和文件显示区"/>
-                        <ButtonHBox name="btn_view_sort" width="auto" height="26" border_round="5,5" padding="6,0,6,0" valign="center" halign="center" tooltip_text="排序方式" hot_color="#AAB2B4B8" pushed_color="#FFB2B4B8">
+                        <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text="返回" margin="2,0,0,0"/>
+                        <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text="前进" margin="2,0,0,0"/>
+                        <Button class="btn_view_common btn_view_refresh" name="btn_view_refresh" margin="2,0,0,0" tooltip_text="刷新左侧的目录树和文件显示区"/>
+                        <ButtonHBox name="btn_view_sort" width="auto" height="26" border_round="5,5" padding="6,0,6,0" margin="2,0,0,0" valign="center" halign="center" tooltip_text="排序方式" hot_color="bg_btn_hover" pushed_color="bg_btn_pressed">
                             <Control width="auto" bkimage="file='../tree_view/view-sort.svg' width='16' height='16' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                            <Label text="排序" width="auto" height="28" margin="4,0,4,0" font="system_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Label text="排序" width="auto" height="28" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
                             <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
                         </ButtonHBox>
-                        <ButtonHBox name="btn_view_list_type" width="auto" height="26" border_round="5,5" padding="6,0,6,0" valign="center" halign="center" tooltip_text="切换视图模式" hot_color="#AAB2B4B8" pushed_color="#FFB2B4B8">
+                        <ButtonHBox name="btn_view_list_type" width="auto" height="26" border_round="5,5" padding="6,0,6,0" margin="2,0,0,0" valign="center" halign="center" tooltip_text="切换视图模式" hot_color="bg_btn_hover" pushed_color="bg_btn_pressed">
                             <Control width="auto" bkimage="file='../tree_view/view-list-symbolic.svg' width='16' height='16' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
-                            <Label text="查看" width="auto" height="28" margin="4,0,4,0" font="system_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Label text="查看" width="auto" height="28" margin="4,0,4,0" font="system_regular_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
                             <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
                         </ButtonHBox>
                         <Label text="当前路径：" valign="center" margin="10,0,0,0"/>
                         <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" 
                                                         kill_focus_update_ui="false"/>
             </HBox>
-            <HBox minheight="60" bkcolor="white" border_size="0,2,0,0" border_color="splitline_level2" padding="0,4,0,0">
+            <HBox minheight="60" bkcolor="bg_window_light" border_size="0,2,0,0" border_color="color_splitline_level2" padding="0,4,0,0">
                 <HBox width="300" minwidth="60">
                     <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->
-                <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>                
-                <TabBox name="main_view_tab_box" bkcolor="white" selected_id="0">
+                <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>                
+                <TabBox name="main_view_tab_box" bkcolor="bg_window_light" selected_id="0">
                     <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
                     <ListCtrl name="explorer_view" bkcolor="YellowGreen"
                                                   type="report"
