@@ -1261,7 +1261,7 @@ bool Window::Paint(const UiRect& rcPaint)
         if (!pRoot->GetBkColor().empty()) {
             bkColor = pRoot->GetUiColor(pRoot->GetBkColor());
         }
-        pRender->FillRect(rcPaint, bkColor);
+        pRender->FillRect(UiRectF::MakeFromRect(rcPaint), bkColor);
     }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
@@ -2848,6 +2848,14 @@ void Window::OnDropMsg(ControlDropType /*dropType*/, void* /*pDropData*/)
 }
 
 void Window::OnDropLeaveMsg()
+{
+}
+
+void Window::OnDisplayResolutionChangedMsg(int32_t /*nColorDepth*/, int32_t /*nScreenWidth*/, int32_t /*nScreenHeight*/)
+{
+}
+
+void Window::OnDisplayScaleChangedMsg(float /*fNewDisplayScale*/, float /*fNewPixelDensity*/)
 {
 }
 

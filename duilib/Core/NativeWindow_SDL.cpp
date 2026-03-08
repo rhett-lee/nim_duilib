@@ -342,7 +342,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             fNewPixelDensity = DUILIB_HDPI_TEST_PIXEL_DENSITY;
 #endif
             uint32_t nOldDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
-            pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+            pOwner->OnNativeProcessDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
             uint32_t nNewDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
 
             if (!ownerFlag.expired() && (nOldDisplayScale != nNewDisplayScale)) {
@@ -360,6 +360,9 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                     }
                 }
             }
+            if (!ownerFlag.expired()) {
+                pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+            }
         }
         break;
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
@@ -373,9 +376,12 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 fNewPixelDensity = DUILIB_HDPI_TEST_PIXEL_DENSITY;
 #endif
                 uint32_t nOldDisplayScale = pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
-                pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+                pOwner->OnNativeProcessDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
                 if (!ownerFlag.expired() && (nOldDisplayScale != pOwner->OnNativeGetDpi().GetDisplayScaleFactor())) {
                     m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDisplayScale);
+                }                
+                if (!ownerFlag.expired()) {
+                    pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
                 }
             }
         }

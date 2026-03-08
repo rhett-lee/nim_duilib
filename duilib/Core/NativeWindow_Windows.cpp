@@ -2292,6 +2292,7 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
 
     case WM_GETMINMAXINFO:      lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_ERASEBKGND:         lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_DISPLAYCHANGE:      lResult = OnDisplayChangedMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_DPICHANGED:         lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_WINDOWPOSCHANGING:  lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
 
@@ -2300,7 +2301,6 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
     case WM_CTLCOLOREDIT:       lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLORSTATIC:     lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
     case WM_TOUCH:              lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
-
     case WM_POINTERDOWN:
     case WM_POINTERUP:
     case WM_POINTERUPDATE:
@@ -2586,10 +2586,23 @@ LRESULT NativeWindow_Windows::OnEraseBkGndMsg(UINT uMsg, WPARAM /*wParam*/, LPAR
     return 1;
 }
 
+LRESULT NativeWindow_Windows::OnDisplayChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_DISPLAYCHANGE);
+    bHandled = false;
+    // 解析WM_DISPLAYCHANGE消息参数
+    int32_t nColorDepth = (int)wParam;                  // 颜色深度（每像素位数）
+    int32_t nScreenWidth = LOWORD(lParam);              // 屏幕水平分辨率（宽度）
+    int32_t nScreenHeight = HIWORD(lParam);             // 屏幕垂直分辨率（高度）
+    m_pOwner->OnNativeDisplayResolutionChangedMsg(nColorDepth, nScreenWidth, nScreenHeight);
+    return 0;
+}
+
 LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
     bHandled = false;
+    std::weak_ptr<WeakFlag> windowFlag = m_pOwner->GetWeakFlag();
 
     //窗口显示的DPI变化, 触发DPI发生变化的事件
     uint32_t nNewDPI = HIWORD(wParam);
@@ -2608,7 +2621,10 @@ LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM l
     }
     bool bDisplayScaleChanged = false;
     uint32_t nOldDisplayScale = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor();
-    m_pOwner->OnNativeDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+    m_pOwner->OnNativeProcessDisplayScaleChangedMsg(fNewDisplayScale, fNewPixelDensity);
+    if (windowFlag.expired()) {
+        return 0;
+    }
     if (nOldDisplayScale != m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor()) {
         bDisplayScaleChanged = true;
         m_ptLastMousePos = m_pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDisplayScale);
@@ -2634,7 +2650,11 @@ LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM l
             SetWindowPos(nullptr, InsertAfterFlag::kHWND_DEFAULT,
                          rcNewWindow.left, rcNewWindow.top, rcNewWindow.Width(), rcNewWindow.Height(),
                          SWP_NOZORDER | SWP_NOACTIVATE);
-        }        
+        }
+        if (!windowFlag.expired()) {
+            float fRealDisplayScale = m_pOwner->OnNativeGetDpi().GetDisplayScaleFactor() / 100.0f;
+            m_pOwner->OnNativeDisplayScaleChangedMsg(fRealDisplayScale, fNewPixelDensity);
+        }
     }
     return 0;
 }

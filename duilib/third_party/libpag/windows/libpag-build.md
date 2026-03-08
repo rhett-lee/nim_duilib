@@ -4,7 +4,7 @@
 ```
 # 当前目录: %PAG_ROOT%
 git clone https://github.com/Tencent/libpag.git
-# 当时的SHA-1: 2aadc0260cc0106e064e4071e00a0432a71d978c
+# 当时的SHA-1: 3ebe074de5eb990a0448ae236d75cf6e90f96107
 ```
 
 ### 二、开发环境构建（需要已安装Visual Studio 2022）：

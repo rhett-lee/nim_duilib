@@ -785,6 +785,18 @@ public:
     void AttachWindowDropMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
     void AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口DPI变化事件
+    * @param [in] callback 指定的回调函数，wParam的值是指针类型：WindowDisplayScaleData*，包含DPI数据
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowDisplayScaleChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口所在屏幕的分辨率变化事件
+    * @param [in] callback 指定的回调函数，wParam的值是指针类型：WindowDisplayResolutionData*，包含屏幕分辨率数据
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowDisplayResolutionChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
 public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型
@@ -1255,6 +1267,19 @@ protected:
     virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) = 0;
     virtual void OnDropLeaveMsg() = 0;
 
+    /** 处理屏幕分辨率变化的系统通知消息(WM_DISPLAYCHANGE)
+    * @param [in] nColorDepth 显示的新图像深度，以每像素位数为单位
+    * @param [in] nScreenWidth 屏幕的水平分辨率
+    * @param [in] nScreenHeight 屏幕的垂直分辨率
+    */
+    virtual void OnDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) = 0;
+
+    /** 处理DPI变化的系统通知消息(WM_DPICHANGED)
+    * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
+    * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
+    */
+    virtual void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) = 0;
+
     /** @}*/
 
 protected:
@@ -1268,7 +1293,7 @@ protected:
     * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
     * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
-    void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity);
+    void OnProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity);
 
     /** 清理窗口资源
     */
@@ -1317,6 +1342,8 @@ private:
 
     virtual void    OnNativeFinalMessage() override final;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
+    virtual void    OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) override final;
+    virtual void    OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;

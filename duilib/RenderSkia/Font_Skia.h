@@ -29,7 +29,7 @@ public:
 
     /**@brief 获取字体大小
      */
-    virtual int FontSize() const override { return m_uiFont.m_fontSize; }
+    virtual int32_t FontSize() const override { return m_uiFont.m_fontSize; }
 
     /**@brief 是否为粗体
      */

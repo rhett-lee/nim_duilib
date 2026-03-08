@@ -10,7 +10,8 @@ namespace ui {
 CefControlNative::CefControlNative(ui::Window* pWindow):
     CefControl(pWindow),
     m_bWindowFirstShown(false),
-    m_bSetCefWindowParentNull(false)
+    m_bSetCefWindowParentNull(false),
+    m_bInGotFocusEvent(false)
 {
 }
 
@@ -119,11 +120,35 @@ void CefControlNative::SetPos(ui::UiRect rc)
     SetCefWindowPos(GetCefWindowHandle(), this);
 }
 
+void CefControlNative::OnGotFocus()
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        //页面获取焦点时，禁止主界面输入文字（解决的问题：macOS下：在页面输入文字，按键一次，会触发多次输入，应该是SDL内部又触发了输入）
+        pWindow->NativeWnd()->SetImeOpenStatus(false);
+        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+    }
+
+    if (!IsFocused()) {
+        //避免双焦点控件的出现
+        m_bInGotFocusEvent = true;
+        SetFocus();
+        m_bInGotFocusEvent = false;
+    }
+}
+
 bool CefControlNative::OnSetFocus(const EventArgs& msg)
 {
-    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
-    if (browserHost != nullptr) {
-        browserHost->SetFocus(true);
+    if (!m_bInGotFocusEvent) {
+        //避免在OnGotFocus回调函数中调用CefBrowserHost::SetFocus，容易产生死循环
+        CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+        if (browserHost != nullptr) {
+            browserHost->SetFocus(true);
+        }
     }
     return BaseClass::OnSetFocus(msg);
 }
@@ -217,18 +242,6 @@ std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
 bool CefControlNative::IsCefNative() const
 {
     return true;
-}
-
-void CefControlNative::OnGotFocus()
-{
-    Window* pWindow = GetWindow();
-    if (pWindow != nullptr) {
-        //页面获取焦点时，禁止主界面输入文字（解决的问题：macOS下：在页面输入文字，按键一次，会触发多次输入，应该是SDL内部又触发了输入）
-        pWindow->NativeWnd()->SetImeOpenStatus(false);
-        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
-    }
-
-    BaseClass::OnGotFocus();
 }
 
 } //namespace ui

@@ -67,10 +67,10 @@ void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Con
                 //先绘制默认的颜色
                 DString strColor = GetStateColor(kControlStateNormal);
                 if (!strColor.empty()) {
-                    pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor), 255 - nHotAlpha);
+                    pRender->FillRect(UiRectF::MakeFromRect(rcPaint), m_pControl->GetUiColor(strColor), 255 - nHotAlpha);
                 }
                 //绘制Hot状态的颜色（半透明）
-                pRender->FillRect(rcPaint, m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
+                pRender->FillRect(UiRectF::MakeFromRect(rcPaint), m_pControl->GetUiColor(GetStateColor(kControlStateHot)), nHotAlpha);
                 return;
             }
         }
@@ -89,7 +89,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Con
     if (!strColor.empty()) {
         UiColor color = m_pControl ? m_pControl->GetUiColor(strColor) :
                                      GlobalManager::Instance().Color().GetColor(strColor);
-        pRender->FillRect(rcPaint, color);
+        pRender->FillRect(UiRectF::MakeFromRect(rcPaint), color);
     }
 }
 } // namespace ui

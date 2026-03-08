@@ -80,7 +80,7 @@ IPath::FillType Path_Skia::GetFillType()
     return fillType;
 }
 
-void Path_Skia::MoveToPoint(int x1, int y1)
+void Path_Skia::MoveToPoint(int32_t x1, int32_t y1)
 {
     std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
     if (lastPt != SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1))) {
@@ -89,13 +89,28 @@ void Path_Skia::MoveToPoint(int x1, int y1)
     }
 }
 
-void Path_Skia::AddLine(int x1, int y1, int x2, int y2)
+void Path_Skia::MoveToPoint(float x1, float y1)
+{
+    std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
+    if (lastPt != SkPoint::Make(x1, y1)) {
+        //如果不相等才调用moveTo函数，否则影响路径的闭合逻辑
+        m_skPathBuilder->moveTo(SkPoint::Make(x1, y1));
+    }
+}
+
+void Path_Skia::AddLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     MoveToPoint(x1, y1);
     m_skPathBuilder->lineTo(SkPoint::Make(static_cast<float>(x2), static_cast<float>(y2)));
 }
 
-void Path_Skia::AddLines(const UiPoint* points, int count)
+void Path_Skia::AddLine(float x1, float y1, float x2, float y2)
+{
+    MoveToPoint(x1, y1);
+    m_skPathBuilder->lineTo(SkPoint::Make(x2, y2));
+}
+
+void Path_Skia::AddLines(const UiPoint* points, int32_t count)
 {
     SkASSERT(points != nullptr);
     SkASSERT(count >= 2);
@@ -103,12 +118,25 @@ void Path_Skia::AddLines(const UiPoint* points, int count)
         return;
     }
     MoveToPoint(points[0].x, points[0].y);
-    for (int i = 1; i < count; ++i) {
+    for (int32_t i = 1; i < count; ++i) {
         m_skPathBuilder->lineTo(SkPoint::Make(static_cast<float>(points[i].x), static_cast<float>(points[i].y)));
     }
 }
 
-void Path_Skia::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
+void Path_Skia::AddLines(const UiPointF* points, int32_t count)
+{
+    SkASSERT(points != nullptr);
+    SkASSERT(count >= 2);
+    if ((count < 2) || (points == nullptr)) {
+        return;
+    }
+    MoveToPoint(points[0].x, points[0].y);
+    for (int32_t i = 1; i < count; ++i) {
+        m_skPathBuilder->lineTo(SkPoint::Make(points[i].x, points[i].y));
+    }
+}
+
+void Path_Skia::AddBezier(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t x4, int32_t y4)
 {
     MoveToPoint(x1, y1);
     m_skPathBuilder->cubicTo(SkPoint::Make(static_cast<float>(x2), static_cast<float>(y2)),
@@ -116,7 +144,15 @@ void Path_Skia::AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4
                              SkPoint::Make(static_cast<float>(x4), static_cast<float>(y4)));
 }
 
-void Path_Skia::AddBeziers(const UiPoint* points, int count)
+void Path_Skia::AddBezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
+{
+    MoveToPoint(x1, y1);
+    m_skPathBuilder->cubicTo(SkPoint::Make(x2, y2),
+                             SkPoint::Make(x3, y3),
+                             SkPoint::Make(x4, y4));
+}
+
+void Path_Skia::AddBeziers(const UiPoint* points, int32_t count)
 {
     SkASSERT(points != nullptr);
     SkASSERT(count >= 4);
@@ -124,11 +160,28 @@ void Path_Skia::AddBeziers(const UiPoint* points, int count)
         return;
     }
     MoveToPoint(points[0].x, points[0].y);
-    int i = 1;
+    int32_t i = 1;
     for (; i < count; i += 3) {
         m_skPathBuilder->cubicTo(SkPoint::Make(static_cast<float>(points[i].x), static_cast<float>(points[i].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y)));
+    }
+    SkASSERT(i == (count - 1));
+}
+
+void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
+{
+    SkASSERT(points != nullptr);
+    SkASSERT(count >= 4);
+    if ((count < 4) || (points == nullptr)) {
+        return;
+    }
+    MoveToPoint(points[0].x, points[0].y);
+    int32_t i = 1;
+    for (; i < count; i += 3) {
+        m_skPathBuilder->cubicTo(SkPoint::Make(points[i].x, points[i].y),
+                                 SkPoint::Make(points[i + 1].x, points[i + 1].y),
+                                 SkPoint::Make(points[i + 2].x, points[i + 2].y));
     }
     SkASSERT(i == (count - 1));
 }
@@ -139,16 +192,32 @@ void Path_Skia::AddRect(const UiRect& rect)
                                               static_cast<float>(rect.right), static_cast<float>(rect.bottom)));
 }
 
+void Path_Skia::AddRect(const UiRectF& rect)
+{
+    m_skPathBuilder->addRect(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom));
+}
+
 void Path_Skia::AddEllipse(const UiRect& rect)
 {
     m_skPathBuilder->addOval(SkRect::MakeLTRB(static_cast<float>(rect.left), static_cast<float>(rect.top),
                                               static_cast<float>(rect.right), static_cast<float>(rect.bottom)));
 }
 
+void Path_Skia::AddEllipse(const UiRectF& rect)
+{
+    m_skPathBuilder->addOval(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom));
+}
+
 void Path_Skia::AddArc(const UiRect& rect, float startAngle, float sweepAngle)
 {
     m_skPathBuilder->arcTo(SkRect::MakeLTRB(static_cast<float>(rect.left), static_cast<float>(rect.top),
                                             static_cast<float>(rect.right), static_cast<float>(rect.bottom)), 
+                           startAngle, sweepAngle, false);
+}
+
+void Path_Skia::AddArc(const UiRectF& rect, float startAngle, float sweepAngle)
+{
+    m_skPathBuilder->arcTo(SkRect::MakeLTRB(rect.left, rect.top, rect.right, rect.bottom),
                            startAngle, sweepAngle, false);
 }
 
@@ -160,7 +229,7 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
         return;
     }
     SkPoint* skPts = new SkPoint[count];
-    for (int i = 0; i < count; ++i)    {
+    for (int32_t i = 0; i < count; ++i)    {
         skPts[i].fX = (float)points[i].x;
         skPts[i].fY = (float)points[i].y;
     }
@@ -168,7 +237,7 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
     delete[] skPts;
 }
 
-void Path_Skia::AddPolygon(const UiPointF* points, int count)
+void Path_Skia::AddPolygon(const UiPointF* points, int32_t count)
 {
     SkASSERT(points != nullptr);
     SkASSERT(count >= 1);
@@ -176,7 +245,7 @@ void Path_Skia::AddPolygon(const UiPointF* points, int count)
         return;
     }
     SkPoint* skPts = new SkPoint[count];
-    for (int i = 0; i < count; ++i) {
+    for (int32_t i = 0; i < count; ++i) {
         skPts[i].fX = points[i].x;
         skPts[i].fY = points[i].y;
     }

@@ -67,46 +67,24 @@ public:
                                const UiRect& rcDest, const UiRect& rcSource,
                                uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;
 
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
 
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
-    virtual void DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
-
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect) override;
     virtual void DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect) override;
-
-    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect) override;
     virtual void DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect) override;
 
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) override;
-
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth) override;
-
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) override;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth) override;
-
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) override;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen) override;
 
-    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) override;
-
-    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) override;
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) override;
-    virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth) override;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) override;
+    virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) override;
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
                          const IPen* pen, 
@@ -114,7 +92,7 @@ public:
 
     virtual void DrawPath(const IPath* path, const IPen* pen) override;
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
-    virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
+    virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
     virtual UiRect MeasureString(const DString& strText, const MeasureStringParam& measureParam) override;
     virtual void DrawString(const DString& strText, const DrawStringParam& drawParam) override;
@@ -219,7 +197,6 @@ private:
 
     /** 设置颜色渐变的绘制属性
     */
-    void InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
     void InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
 
     /** 获取文本编码

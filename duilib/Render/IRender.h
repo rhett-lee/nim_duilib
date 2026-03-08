@@ -23,7 +23,7 @@ public:
 
     /** 获取字体大小(字体高度)
     */
-    virtual int FontSize() const = 0;
+    virtual int32_t FontSize() const = 0;
 
     /** 是否为粗体
     */
@@ -291,7 +291,8 @@ public:
     * @param [in] x2 线条终点的 x 坐标
     * @param [in] y2 线条终点的 y 坐标
     */
-    virtual void AddLine(int x1, int y1, int x2, int y2) = 0;
+    virtual void AddLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2) = 0;
+    virtual void AddLine(float x1, float y1, float x2, float y2) = 0;
 
     /** 向此路径的当前图添加一系列连接线
     * @param [in] points 线条起点和终点的点数组, 数组中的第一个点是第一行的起点，
@@ -299,7 +300,8 @@ public:
                          其他每个点都用作一行的终点，下一行的起点。
     * @param [in] count 点数组中的元素数
     */
-    virtual void AddLines(const UiPoint* points, int count) = 0;
+    virtual void AddLines(const UiPoint* points, int32_t count) = 0;
+    virtual void AddLines(const UiPointF* points, int32_t count) = 0;
 
     /** 将贝塞尔(Bézier)曲线样条添加到此路径的当前图中
     *    贝塞尔自由绘制曲线是一条由四个点指定的曲线：
@@ -314,9 +316,9 @@ public:
     * @param [in] y3 第二个控制点的 y 坐标
     * @param [in] x4 终点的 x 坐标
     * @param [in] y4 终点的 y 坐标
-    *
     */
-    virtual void AddBezier(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) = 0;
+    virtual void AddBezier(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, int32_t x4, int32_t y4) = 0;
+    virtual void AddBezier(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4) = 0;
 
     /** 将连接的 Bézier 样条序列添加到此路径的当前图中
     * @param [in] points 指向连接的样条的起始点、结束点和控制点数组的指针。 
@@ -325,12 +327,14 @@ public:
     *                    前一个样条的终点用作起点，序列中的下两个点是控制点，第三个点是终点。
     * @param [in] count 数组中的元素数
     */
-    virtual void AddBeziers(const UiPoint* points, int count) = 0;
+    virtual void AddBeziers(const UiPoint* points, int32_t count) = 0;
+    virtual void AddBeziers(const UiPointF* points, int32_t count) = 0;
 
     /** 将矩形添加到此路径
     * @param [in] rect 矩形区域
     */
     virtual void AddRect(const UiRect& rect) = 0;
+    virtual void AddRect(const UiRectF& rect) = 0;
 
     /** 将椭圆添加到此路径
     * @param [in] 椭圆的矩形区域 
@@ -340,6 +344,7 @@ public:
     *             bottom top + 椭圆边界矩形的高度
     */
     virtual void AddEllipse(const UiRect& rect) = 0;
+    virtual void AddEllipse(const UiRectF& rect) = 0;
 
     /** 将椭圆弧添加到此路径
     * @param [in] 椭圆的矩形区域 
@@ -347,13 +352,14 @@ public:
     * @param [in] sweepAngle 起点 (startAngle) 和弧的终点之间的顺时针角度（以度为单位）
     */
     virtual void AddArc(const UiRect& rect, float startAngle, float sweepAngle) = 0;
+    virtual void AddArc(const UiRectF& rect, float startAngle, float sweepAngle) = 0;
 
     /** 将多边形添加到此路径
     * @param [in] points 指定多边形顶点的点数组
     * @param [in] count 数组中的元素数
     */
-    virtual void AddPolygon(const UiPoint* points, int count) = 0;
-    virtual void AddPolygon(const UiPointF* points, int count) = 0;
+    virtual void AddPolygon(const UiPoint* points, int32_t count) = 0;
+    virtual void AddPolygon(const UiPointF* points, int32_t count) = 0;
 
     /** 对路径进行矩阵变换，可以进行旋转等操作
     * @param [in] pMatrix 矩阵接口
@@ -387,24 +393,47 @@ public:
     * @param [in] offsetX X轴方向平移的偏移量
     * @param [in] offsetY Y轴方向平移的偏移量
     */
-    virtual void Translate(int offsetX, int offsetY) = 0;
+    virtual void Translate(float offsetX, float offsetY) = 0;
 
-    /** 缩放操作
+    /** 缩放操作（以原点为中心）
     * @param [in] scaleX X轴方向缩放比例
     * @param [in] scaleY Y轴方向缩放比例
     */
     virtual void Scale(float scaleX, float scaleY) = 0;
 
-    /** 旋转操作，以源点坐标(0,0)为中心点做旋转操作
+    /** 缩放操作（以 (px, py) 为中心）
+    * @param [in] scaleX X轴方向缩放比例
+    * @param [in] scaleY Y轴方向缩放比例
+    * @param [in] px X轴方向的中心点
+    * @param [in] py Y轴方向的中心点
+    */
+    virtual void Scale(float scaleX, float scaleY, float px, float py) = 0;
+
+    /** 旋转操作（以原点为中心）
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
     */
     virtual void Rotate(float angle) = 0;
 
-    /** 旋转操作，以坐标(center)为中心点做旋转操作
+    /** 旋转操作，以坐标(px,py)为中心点做旋转操作
     * @param [in] angle 旋转的角度，正数为顺时针操作，负数为逆时针操作
-    * @param [in] center 旋转的中心点坐标值
+    * @param [in] px 旋转的中心点X坐标值
+    * @param [in] py 旋转的中心点Y坐标值
     */
-    virtual void RotateAt(float angle, const UiPoint& center) = 0;
+    virtual void RotateAt(float angle, float px, float py) = 0;
+
+    /** 错切操作（以原点为中心）
+    * @param [in] kx X 轴错切因子
+    * @param [in] ky Y 轴错切因子
+    */
+    virtual void Skew(float kx, float ky) = 0;
+
+    /** 错切操作（以 (px, py) 为中心）
+    * @param [in] kx X 轴错切因子
+    * @param [in] ky Y 轴错切因子
+    * @param [in] px X轴方向的中心点
+    * @param [in] py Y轴方向的中心点
+    */
+    virtual void Skew(float kx, float ky, float px, float py) = 0;
 };
 
 /** 渲染接口中使用的DPI转换辅助接口
@@ -899,30 +928,7 @@ public:
     * @param [in] penColor 画笔的颜色值
     * @param [in] nWidth 画笔的宽度
     */
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) = 0;
-
-    /** 绘制直线
-    * @param [in] pt1 起始点坐标
-    * @param [in] pt2 终止点坐标
-    * @param [in] penColor 画笔的颜色值
-    * @param [in] fWidth 画笔的宽度
-    */
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth) = 0;
-
-    /** 绘制直线
-    * @param [in] pt1 起始点坐标
-    * @param [in] pt2 终止点坐标
-    * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    */
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) = 0;
-
-    /** 绘制直线，支持各种线形
-    * @param [in] pt1 起始点坐标
-    * @param [in] pt2 终止点坐标
-    * @param [in] pen 画笔的接口
-    */
-    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) = 0;
 
     /** 绘制直线，支持各种线形
     * @param [in] pt1 起始点坐标
@@ -934,19 +940,9 @@ public:
     /** 绘制矩形
     * @param [in] rc 矩形区域
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
-    */
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
-    virtual void DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
-
-    /** 绘制矩形
-    * @param [in] rc 矩形区域
-    * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
-    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
     virtual void DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
 
     /** 绘制矩形，支持各种线形
@@ -954,7 +950,6 @@ public:
     * @param [in] pen 画笔的接口
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
-    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect = false) = 0;
     virtual void DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect = false) = 0;
 
     /** 用颜色填充矩形
@@ -962,7 +957,6 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用渐变颜色填充矩形（支持渐变颜色）
@@ -972,18 +966,7 @@ public:
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
     virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
-
-    /** 绘制圆角矩形
-    * @param [in] rc 矩形区域
-    * @param [in] rx 圆角的宽度
-    * @param [in] ry 圆角的高度
-    * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
-    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
 
     /** 绘制圆角矩形
     * @param [in] rc 矩形区域
@@ -992,7 +975,6 @@ public:
     * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆角矩形，支持各种线形
@@ -1001,7 +983,6 @@ public:
     * @param [in] ry 圆角的高度
     * @param [in] pen 画笔的接口
     */
-    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) = 0;
     virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen) = 0;
 
     /** 用颜色填充圆角矩形
@@ -1011,7 +992,6 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用颜色填充圆角矩形(支持渐变颜色)
@@ -1023,7 +1003,6 @@ public:
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
     virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
     /** 绘制曲线（椭圆的一部分）
@@ -1043,24 +1022,16 @@ public:
     * @param [in] centerPt 圆心坐标点
     * @param [in] radius 圆的半径
     * @param [in] penColor 画笔的颜色值
-    * @param [in] nWidth 画笔的宽度
-    */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) = 0;
-
-    /** 绘制圆形
-    * @param [in] centerPt 圆心坐标点
-    * @param [in] radius 圆的半径
-    * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) = 0;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆形，支持各种线形
     * @param [in] centerPt 圆心坐标点
     * @param [in] radius 圆的半径
     * @param [in] pen 画笔的接口
     */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) = 0;
+    virtual void DrawCircle(const UiPointF& centerPt, float radius, IPen* pen) = 0;
 
     /** 填充圆形
     * @param [in] centerPt 圆心坐标点
@@ -1068,7 +1039,7 @@ public:
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) = 0;
+    virtual void FillCircle(const UiPointF& centerPt, float radius, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 绘制路径
     * @param [in] path 路径的接口
@@ -1089,7 +1060,7 @@ public:
     * @param [in] dwColor2 填充路径使用的第二个颜色
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     */
-    virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
+    virtual void FillPath(const IPath* path, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) = 0;
 
     /** 计算指定文本字符串的宽度和高度
     * @param [in] strText 文字内容

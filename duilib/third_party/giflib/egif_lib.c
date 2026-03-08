@@ -276,7 +276,7 @@ int EGifPutScreenDesc(GifFileType *GifFile, const int Width, const int Height,
 	GifByteType Buf[3];
 	GifFilePrivateType *Private = (GifFilePrivateType *)GifFile->Private;
 	const char *write_version;
-	GifFile->SColorMap = NULL;
+	ColorMapObject *old_map = GifFile->SColorMap;
 
 	if (Private->FileState & FILE_STATE_SCREEN) {
 		/* If already has screen descriptor - something is wrong! */
@@ -302,15 +302,24 @@ int EGifPutScreenDesc(GifFileType *GifFile, const int Width, const int Height,
 	GifFile->SHeight = Height;
 	GifFile->SColorResolution = ColorRes;
 	GifFile->SBackGroundColor = BackGround;
-	if (ColorMap) {
+	if (ColorMap == NULL) {
+		if (old_map != NULL) {
+			GifFreeMapObject(old_map);
+		}
+		GifFile->SColorMap = NULL;
+	} else if (ColorMap == old_map) {
+		/* Reuse existing map to avoid a redundant copy. */
+		GifFile->SColorMap = old_map;
+	} else {
+		if (old_map != NULL) {
+			GifFreeMapObject(old_map);
+		}
 		GifFile->SColorMap =
 		    GifMakeMapObject(ColorMap->ColorCount, ColorMap->Colors);
 		if (GifFile->SColorMap == NULL) {
 			GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
 			return GIF_ERROR;
 		}
-	} else {
-		GifFile->SColorMap = NULL;
 	}
 
 	/*
@@ -400,6 +409,9 @@ int EGifPutImageDesc(GifFileType *GifFile, const int Left, const int Top,
 				return GIF_ERROR;
 			}
 		} else {
+			if (GifFile->Image.ColorMap != NULL) {
+				GifFreeMapObject(GifFile->Image.ColorMap);
+			}
 			GifFile->Image.ColorMap = NULL;
 		}
 	}
@@ -1085,14 +1097,18 @@ static int EGifWriteExtensions(GifFileType *GifFileOut,
 	return (GIF_OK);
 }
 
-int EGifSpew(GifFileType *GifFileOut) {
+int EGifSpew(GifFileType *GifFileOut, int *ErrorCode) {
 	int i, j;
+	int status = GIF_OK;
+	int err = E_GIF_SUCCEEDED;
 
 	if (EGifPutScreenDesc(GifFileOut, GifFileOut->SWidth,
 	                      GifFileOut->SHeight, GifFileOut->SColorResolution,
 	                      GifFileOut->SBackGroundColor,
 	                      GifFileOut->SColorMap) == GIF_ERROR) {
-		return (GIF_ERROR);
+		status = GIF_ERROR;
+		err = GifFileOut->Error;
+		goto cleanup;
 	}
 
 	for (i = 0; i < GifFileOut->ImageCount; i++) {
@@ -1107,14 +1123,18 @@ int EGifSpew(GifFileType *GifFileOut) {
 
 		if (EGifWriteExtensions(GifFileOut, sp->ExtensionBlocks,
 		                        sp->ExtensionBlockCount) == GIF_ERROR) {
-			return (GIF_ERROR);
+			status = GIF_ERROR;
+			err = GifFileOut->Error;
+			goto cleanup;
 		}
 
 		if (EGifPutImageDesc(GifFileOut, sp->ImageDesc.Left,
 		                     sp->ImageDesc.Top, SavedWidth, SavedHeight,
 		                     sp->ImageDesc.Interlace,
 		                     sp->ImageDesc.ColorMap) == GIF_ERROR) {
-			return (GIF_ERROR);
+			status = GIF_ERROR;
+			err = GifFileOut->Error;
+			goto cleanup;
 		}
 
 		if (sp->ImageDesc.Interlace) {
@@ -1133,7 +1153,9 @@ int EGifSpew(GifFileType *GifFileOut) {
 					        GifFileOut,
 					        sp->RasterBits + j * SavedWidth,
 					        SavedWidth) == GIF_ERROR) {
-						return (GIF_ERROR);
+						status = GIF_ERROR;
+						err = GifFileOut->Error;
+						goto cleanup;
 					}
 				}
 			}
@@ -1142,7 +1164,9 @@ int EGifSpew(GifFileType *GifFileOut) {
 				if (EGifPutLine(GifFileOut,
 				                sp->RasterBits + j * SavedWidth,
 				                SavedWidth) == GIF_ERROR) {
-					return (GIF_ERROR);
+					status = GIF_ERROR;
+					err = GifFileOut->Error;
+					goto cleanup;
 				}
 			}
 		}
@@ -1150,14 +1174,31 @@ int EGifSpew(GifFileType *GifFileOut) {
 
 	if (EGifWriteExtensions(GifFileOut, GifFileOut->ExtensionBlocks,
 	                        GifFileOut->ExtensionBlockCount) == GIF_ERROR) {
-		return (GIF_ERROR);
+		status = GIF_ERROR;
+		err = GifFileOut->Error;
+		goto cleanup;
 	}
 
-	if (EGifCloseFile(GifFileOut, NULL) == GIF_ERROR) {
-		return (GIF_ERROR);
+cleanup:
+	GifFreeSavedImages(GifFileOut);
+	GifFreeExtensions(&GifFileOut->ExtensionBlockCount,
+	                  &GifFileOut->ExtensionBlocks);
+
+	{
+		int close_error = E_GIF_SUCCEEDED;
+		if (EGifCloseFile(GifFileOut, &close_error) == GIF_ERROR) {
+			status = GIF_ERROR;
+			if (err == E_GIF_SUCCEEDED) {
+				err = close_error;
+			}
+		}
 	}
 
-	return (GIF_OK);
+	if (ErrorCode != NULL) {
+		*ErrorCode = (status == GIF_OK) ? E_GIF_SUCCEEDED : err;
+	}
+
+	return status;
 }
 
 /* end */

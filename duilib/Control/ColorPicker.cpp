@@ -41,10 +41,10 @@ public:
                 rect.right = rect.left + nGridSize;
                 rect.bottom = rect.top + nGridSize;
                 if (j % 2) {
-                    pRender->FillRect(rect, (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                    pRender->FillRect(UiRectF::MakeFromRect(rect), (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
                 }
                 else {
-                    pRender->FillRect(rect, (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                    pRender->FillRect(UiRectF::MakeFromRect(rect), (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
                 }
             }
         }
@@ -327,16 +327,16 @@ public:
         if (pBitmap != nullptr) {        
             pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
             if (GetTopBorderSize() > 0) {
-                pRender->DrawRect(rcDest, GetUiColor(GetBorderColor(kControlStateNormal)), GetTopBorderSize());
+                pRender->DrawRect(UiRectF::MakeFromRect(rcDest), GetUiColor(GetBorderColor(kControlStateNormal)), GetTopBorderSize());
             }
         }
 
         //画预览中心点的圆圈
         UiPoint centerPt = rcDest.Center();
-        int32_t radius = Dpi().GetScaleInt(6);
+        float fRadius = Dpi().GetScaleFloat(6);
         UiColor penColor = UiColor(UiColors::Brown);
-        int32_t nWidth = Dpi().GetScaleInt(2);
-        pRender->DrawCircle(centerPt, radius, penColor, nWidth);
+        float fWidth = Dpi().GetScaleFloat(2);
+        pRender->DrawCircle(UiPointF::MakeFromPoint(centerPt), fRadius, penColor, fWidth);
     }
 
     /** 获取预览位图抓取的大小（宽度和高度）

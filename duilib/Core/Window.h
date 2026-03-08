@@ -893,6 +893,19 @@ protected:
     virtual void OnDropMsg(ui::ControlDropType dropType, void* pDropData) override;
     virtual void OnDropLeaveMsg() override;
 
+    /** 处理屏幕分辨率变化的系统通知消息(WM_DISPLAYCHANGE)
+    * @param [in] nColorDepth 显示的新图像深度，以每像素位数为单位
+    * @param [in] nScreenWidth 屏幕的水平分辨率
+    * @param [in] nScreenHeight 屏幕的垂直分辨率
+    */
+    virtual void OnDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) override;
+
+    /** 处理DPI变化的系统通知消息(WM_DPICHANGED)
+    * @param [in] fNewDisplayScale 新的窗口的界面显示比例值，1.0f时表示无缩放
+    * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
+    */
+    virtual void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override;
+
     /** @}*/
 
 private:

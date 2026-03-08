@@ -1,11 +1,7 @@
 #ifndef UI_CORE_UIRECTF_H_
 #define UI_CORE_UIRECTF_H_
 
-#include "duilib/Core/UiPoint.h"
-#include "duilib/Core/UiSize.h"
-#include "duilib/Core/UiPadding.h"
-#include "duilib/Core/UiMargin.h"
-#include <algorithm>
+#include "duilib/Core/UiRect.h"
 
 namespace ui 
 {
@@ -13,6 +9,14 @@ namespace ui
 */
 class UILIB_API UiRectF
 {
+public:
+    /** 从UiRect构造
+    */
+    static UiRectF MakeFromRect(const UiRect& rect)
+    {
+        return UiRectF((float)rect.left, (float)rect.top, (float)rect.right, (float)rect.bottom);
+    }
+
 public:
     UiRectF()
     {
@@ -25,6 +29,14 @@ public:
         top = nTop;
         right = nRight;
         bottom = nBottom;
+    }
+
+    UiRectF(int32_t nLeft, int32_t nTop, int32_t nRight, int32_t nBottom)
+    {
+        left = (float)nLeft;
+        top = (float)nTop;
+        right = (float)nRight;
+        bottom = (float)nBottom;
     }
 
     /** 获取left值

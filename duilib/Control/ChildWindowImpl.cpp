@@ -458,4 +458,14 @@ void ChildWindowImpl::OnDropLeaveMsg()
     // 空实现
 }
 
+void ChildWindowImpl::OnDisplayResolutionChangedMsg(int32_t /*nColorDepth*/, int32_t /*nScreenWidth*/, int32_t /*nScreenHeight*/)
+{
+    // 空实现
+}
+
+void ChildWindowImpl::OnDisplayScaleChangedMsg(float /*fNewDisplayScale*/, float /*fNewPixelDensity*/)
+{
+    // 空实现
+}
+
 }//namespace ui

@@ -3691,10 +3691,10 @@ void Control::PaintBkColor(IRender* pRender)
                 if (m_pColorData != nullptr) {
                     nColor2Direction = m_pColorData->m_nBkColor2Direction;
                 }
-                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
+                pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwBackColor, dwBackColor2, nColor2Direction);
             }
             else {
-                pRender->FillRect(fillRect, dwBackColor);
+                pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwBackColor);
             }            
         }
     }
@@ -3737,7 +3737,7 @@ void Control::PaintForeColor(IRender* pRender)
             FillRoundRect(pRender, fillRect, fRoundWidth, fRoundHeight, dwForeColor);
         }
         else {
-            pRender->FillRect(fillRect, dwForeColor);
+            pRender->FillRect(UiRectF::MakeFromRect(fillRect), dwForeColor);
         }
     }
 }
@@ -3977,26 +3977,26 @@ void Control::DoPaintFocusRect(IRender* pRender)
 
     if (rcBorderSize.left > 0) {
         //左边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.left, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.left, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.top > 0) {
         //上边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.top);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.top);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.right > 0) {
         //右边线
-        UiPoint pt1(rcFocusRect.right, rcFocusRect.top);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.right, rcFocusRect.top);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
     if (rcBorderSize.bottom > 0) {
         //下边线
-        UiPoint pt1(rcFocusRect.left, rcFocusRect.bottom);
-        UiPoint pt2(rcFocusRect.right, rcFocusRect.bottom);
+        UiPointF pt1(rcFocusRect.left, rcFocusRect.bottom);
+        UiPointF pt2(rcFocusRect.right, rcFocusRect.bottom);
         pRender->DrawLine(pt1, pt2, pPen.get());
     }
 }
@@ -4079,10 +4079,10 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float 
         if (m_pColorData != nullptr) {
             nColor2Direction = m_pColorData->m_nBkColor2Direction;
         }
-        pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rc), rx, ry, dwColor, dwBackColor2, nColor2Direction);
     }
     else {
-        pRender->FillRoundRect(rc, rx, ry, dwColor);
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rc), rx, ry, dwColor);
     }  
 }
 
