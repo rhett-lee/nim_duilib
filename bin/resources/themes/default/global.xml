@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!-- 主题名称和主题类型 -->
-    <Threme name="Light" type="Dark"/>
+    <Threme name="Light" type="Light"/>
         
     <!-- ===================== 全局变量定义 ===================== -->
     <!-- 尺寸变量 -->
@@ -465,27 +465,21 @@
                                         pushed_color="#B71D22"/>
     
     <!-- 窗口按钮 -->
-    <Class name="btn_wnd_min_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/window-minimize.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_wnd_close_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/window-close.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_close_hover" pushed_color="bg_btn_window_close_pressed"/>
-    <Class name="btn_wnd_max_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/window-maximize.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_wnd_restore_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/window-restore.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_wnd_fullscreen_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/window-fullscreen.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center' margin='0,4,0,0'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_view_fullscreen_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/view-fullscreen.svg' width='${SIZE_ICON_SMALL}' height='${SIZE_ICON_SMALL}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_wnd_settings_11" class="btn_global_base"
-                                 normal_image="file='${PATH_BUTTON}/btn_setting.svg' width='${SIZE_ICON_SMALL}' height='${SIZE_ICON_SMALL}' valign='center' halign='center'" 
-                                 hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
+    <Class name="btn_wnd_base" class="btn_global_base" hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
+    <Class name="btn_wnd_min_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/window-minimize.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'"/>
+    <Class name="btn_wnd_close_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/window-close.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'"/>
+    <Class name="btn_wnd_max_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/window-maximize.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'"/>
+    <Class name="btn_wnd_restore_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/window-restore.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center'"/>
+    <Class name="btn_wnd_fullscreen_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/window-fullscreen.svg' width='${SIZE_ICON_LARGE}' height='${SIZE_ICON_LARGE}' valign='center' halign='center' margin='0,4,0,0'"/>
+    <Class name="btn_view_fullscreen_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/view-fullscreen.svg' width='${SIZE_ICON_SMALL}' height='${SIZE_ICON_SMALL}' valign='center' halign='center'"/>
+    <Class name="btn_wnd_settings_11" class="btn_wnd_base"
+                                 normal_image="file='${PATH_BUTTON}/btn_setting.svg' width='${SIZE_ICON_SMALL}' height='${SIZE_ICON_SMALL}' valign='center' halign='center'"/>
      
     <!-- 退出全屏按钮 -->
     <Class name="btn_exit_fullscreen" width="${SIZE_BTN_EXIT_FULLSCREEN_WIDTH}" height="${SIZE_BTN_EXIT_FULLSCREEN_HEIGHT}" border_round="3,3" valign="top" halign="center" 
