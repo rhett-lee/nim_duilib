@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window>
+<Global>
     <!-- 通用的Class 定义 -->
     <!-- 属性区域的背景色：包括编辑框等 -->
     <Class name="property_grid_expand" expand_normal_image="file='public/property_grid/minus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
@@ -9,21 +9,38 @@
                                        collapse_hot_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center'" 
                                        collapse_disabled_image="file='public/property_grid/plus.svg' height='18' width='18' margin='2,0,0,0' valign='center' fade='80'"
                                        icon_image_right_space="4"/>
-    <Class name="property_grid_header" bkcolor="bg_property_grid" height="28" border_size="0,0,0,1" border_color="darkgray"/>
-    <Class name="property_grid_group" height="28" bkcolor="bg_property_grid" show_focus_rect="true"/>
-    <Class name="property_grid_propterty" height="28" bkcolor="bg_property_grid"/>
-    <Class name="property_grid_propterty_edit" bkcolor="bg_richedit" width="100%" height="100%" text_align="vcenter,left" default_context_menu="true" text_padding="2,0,2,0" multi_line="false" auto_hscroll="true" want_return_msg="true" want_tab="false" rich_text="false" normal_text_color="text_property_grid" disabled_text_color="text_property_grid_disabled"/>
-    <!-- 属性文本显示的字体：如果有修改，则用粗体显示 -->
-    <Font id="property_grid_propterty_font_normal" name="system" size="14"/>
-    <Font id="property_grid_propterty_font_bold" name="system" size="14" bold="true"/>
+    <!-- 属性页的表头 -->
+    <Class name="property_grid_header" bkcolor="bg_property_grid_header" height="28" border_size="0,0,0,1" border_color="border_property_grid_header"/>
+    
+    <Class name="property_grid_group" height="28" bkcolor="bg_property_grid_group" show_focus_rect="true"/>
+    <Class name="property_grid_group_label" normal_text_color="text_default" disabled_text_color="text_disabled"/>
+    <Class name="property_grid_propterty" height="28" bkcolor="bg_property_grid_propterty"/>
+    <Class name="property_grid_propterty_name_label" bkcolor="bg_property_grid_propterty_name"/>
+    <Class name="property_grid_propterty_value_label" bkcolor="bg_property_grid_propterty_value"/>
+    <Class name="property_grid_propterty_edit" bkcolor="bg_richedit" width="100%" height="100%" 
+                                               text_align="vcenter,left" text_padding="2,0,2,0" multi_line="false" 
+                                               auto_hscroll="true" want_return_msg="true" want_tab="false" 
+                                               rich_text="false" default_context_menu="true" 
+                                               normal_text_color="text_default" disabled_text_color="text_disabled"/>
     
     <!--RichEdit上的Spin按钮样式: 四周都有边线-->
     <Class name="property_grid_spin_box" width="18" halign="right" nofocus="true"/>
-    <Class name="property_grid_spin_btn_up" height="50%" width="100%" nofocus="true" padding="1,1,1,1" border_size="1,1,1,1" border_color="border_richedit_btn" normal_image="file='public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" normal_color="bg_window_dark" hot_color="bg_richedit_btn_hover" pushed_color="bg_richedit_btn_pressed"/>
-    <Class name="property_grid_spin_btn_down" height="50%" width="100%" nofocus="true" padding="1,0,1,1" border_size="1,0,1,1" border_color="border_richedit_btn" normal_image="file='public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" normal_color="bg_window_dark" hot_color="bg_richedit_btn_hover" pushed_color="bg_richedit_btn_pressed"/>
-
+    <Class name="property_grid_spin_btn_up" height="50%" width="100%" nofocus="true" padding="1,1,1,1"
+                                            border_size="1,1,1,1" border_color="border_richedit_btn" 
+                                            normal_image="file='public/button/arrow-up.svg' width='10' height='10' valign='center' halign='center'" 
+                                            normal_color="bg_window_dark" 
+                                            hot_color="bg_richedit_btn_hover" 
+                                            pushed_color="bg_richedit_btn_pressed"/>
+    <Class name="property_grid_spin_btn_down" height="50%" width="100%" nofocus="true" padding="1,0,1,1" 
+                                            border_size="1,0,1,1" border_color="border_richedit_btn" 
+                                            normal_image="file='public/button/arrow-down.svg' width='10' height='10' valign='center' halign='center'" 
+                                            normal_color="bg_window_dark" 
+                                            hot_color="bg_richedit_btn_hover" 
+                                            pushed_color="bg_richedit_btn_pressed"/>
     <!--下拉框-->
-    <Class name="property_grid_combo" bkcolor="bg_combo" dropbox_size="0,200" padding="1,1,1,1" border_size="1" border_color="border_combo_normal" hot_border_color="border_combo_hover" 
+    <Class name="property_grid_combo" bkcolor="bg_combo" dropbox_size="0,200" padding="1,1,1,1" 
+                        border_size="1" border_color="border_combo_normal" 
+                        hot_border_color="border_combo_hover" 
                         combo_tree_view_class="padding='0,0,0,0' bkcolor='bg_window_light' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
                         combo_icon_class="" 
@@ -52,15 +69,23 @@
     <PropertyGrid>
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">
-            <Label name="duilib_property_grid_header_left" text="属性" width="45%" height="100%" text_padding="4" text_align="vcenter,hcenter"/>
-            <Split name="duilib_property_grid_header_split" bkcolor="bg_property_grid_split" width="1" margin="0,1,0,1"/>
-            <Label name="duilib_property_grid_header_right" text="取值" width="55%" height="100%" text_padding="4" text_align="vcenter,hcenter"/>
+            <Label name="duilib_property_grid_header_left" text_id="STRID_PROPERTY_NAME" width="45%" height="100%" 
+                                                           text_padding="4" text_align="vcenter,hcenter"
+                                                           normal_text_color="text_property_grid_header"
+                                                           disabled_text_color="text_property_grid_header_disabled"/>
+            <Split name="duilib_property_grid_header_split" bkcolor="bg_property_grid_header_split" width="1" margin="0,1,0,1"/>
+            <Label name="duilib_property_grid_header_right" text_id="STRID_PROPERTY_VALUE" width="55%" height="100%" 
+                                                            text_padding="4" text_align="vcenter,hcenter"
+                                                            normal_text_color="text_property_grid_header"
+                                                            disabled_text_color="text_property_grid_header_disabled"/>
         </HBox>
         <!-- 分组和属性 -->
         <TreeView class="tree_view" name="duilib_property_grid_tree" expand_image_class="property_grid_expand" indent="20" multi_select="false"/>
         <!-- 分割条 -->
-        <Split name="duilib_property_grid_description_area_split" bkcolor="bg_property_grid_split" height="1" margin="1,0,1,0"/>
+        <Split name="duilib_property_grid_description_area_split" bkcolor="bg_property_grid_split" height="2" margin="0,1,0,1"/>
         <!-- 底部描述区域 -->
-        <RichText name="duilib_property_grid_description_area" width="100%" height="64" text_padding="4" bkcolor="white" text_align="vcenter" border_size="1" border_color="lightgray"/>
+        <RichText name="duilib_property_grid_description_area" width="100%" height="64" 
+                                        text_padding="2,2,0,0" bkcolor="bg_richedit" text_align="top,left" 
+                                        border_size="1" border_color="border_richedit_normal"/>
     </PropertyGrid>
-</Window>
+</Global>

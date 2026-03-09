@@ -217,13 +217,20 @@
     <TextColor name="bg_address_bar_btn_pressed" value="#FFCCE5FF"/> <!-- 地址栏按钮pressed：点击按钮 -->
     
     <!-- Property Grid（属性页）- Windows 11 浅色主题 官方标准 -->
-    <TextColor name="bg_property_grid" value="#FFEEEEF2"/>    <!-- 属性网格主背景 -->
-    <TextColor name="text_property_grid" value="#FF000000"/>  <!-- 文本色（与你已加深的按钮文本一致） -->
-    <TextColor name="text_property_grid_disabled" value="#FF707070"/> <!-- 禁用文本 -->
-    <TextColor name="border_property_grid" value="#FFE0E0E0"/> <!-- 边框色，匹配次要按钮禁用态 -->
-    <TextColor name="bg_property_grid_header" value="#FFFEFEFE"/> <!-- 分组标题背景，轻微区分 -->
-    <TextColor name="text_property_grid_header" value="#FF000000"/> <!-- 分组标题文本 -->
-    <TextColor name="bg_property_grid_split" value="#FFA9A9A9"/>    <!-- 分组分割线 -->
+    <!-- Property Grid表头-->
+    <TextColor name="bg_property_grid_header" value="#FFE0E0E0"/>            <!-- 分组表头背景：浅灰，区分内容区 -->    
+    <TextColor name="bg_property_grid_header_split" value="#FFA9A9A9"/>      <!-- 分组表头分割线：中灰，清晰分隔 -->
+    <TextColor name="border_property_grid_header" value="#FFD1D5DB"/>        <!-- 分组表头边框：浅灰边框，匹配控件风格 -->    
+    <TextColor name="text_property_grid_header" value="#FF000000"/>          <!-- 分组表头文本，正常：纯黑（与你按钮文本一致） -->
+    <TextColor name="text_property_grid_header_disabled" value="#FF707070"/> <!-- 分组表头文本，禁用：中性灰 -->
+
+    <!-- Property Grid分组属性-->
+    <TextColor name="bg_property_grid_group" value="#FFEEEEF2"/>             <!-- 分组背景：属性页主背景，官方标准 -->
+    <TextColor name="bg_property_grid_propterty" value="#FFFFFFFF"/>         <!-- 属性背景：纯白，突出可编辑区域 -->    
+    <TextColor name="bg_property_grid_propterty_name" value="#FFFFFFFF"/>    <!-- 属性名列背景：纯白，与值列统一 -->    
+    <TextColor name="bg_property_grid_propterty_value" value="#FFFFFFFF"/>   <!-- 属性值列背景：纯白，可编辑区域底色 -->    
+    <TextColor name="bg_property_grid_split" value="#FFA9A9A9"/>             <!-- 分组分割线：中灰，与表头分割线一致 -->
+    <TextColor name="bg_property_grid_line" value="#FFA9A9A9"/>              <!-- 网格分割线：中灰，与表头分割线一致 -->
     
     <!-- ===================== 颜色配置（Windows 11 浅色主题）结束 ===================== -->
     
@@ -779,4 +786,20 @@
                                             bkimage="file='${PATH_ADDRESS_BAR}/folder-root.svg' width='22' height='22' halign='center' valign='center'"/>
     <Class name="address_bar_path_separator" width="auto" height="100%" margin="0,0,0,0"
                                              bkimage="file='${PATH_ADDRESS_BAR}/filename-slash.svg' width='22' height='22' halign='center' valign='center'"/>
+
+    <!-- Property Grid控件，部分属性在default/public/property_grid/property_grid.xml中定义-->
+    <Class name="property_grid" left_column_width="130"
+                                row_grid_line_width="1"
+                                row_grid_line_color="bg_property_grid_line"
+                                column_grid_line_width="1"
+                                column_grid_line_color="bg_property_grid_line"
+                                header_class="property_grid_header"
+                                group_class="property_grid_group"
+                                group_label_class="property_grid_group_label"
+                                propterty_class="property_grid_propterty"
+                                propterty_name_label_class="property_grid_propterty_name_label"
+                                propterty_value_label_class="property_grid_propterty_value_label"
+                                propterty_font_normal="system_regular_14"
+                                propterty_font_modified="system_bold_14"/>
+    
 </Global>

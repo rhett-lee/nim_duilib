@@ -26,6 +26,10 @@ PropertyGrid::PropertyGrid(Window* pWindow):
     SetLeftColumnWidth(130, true);
     SetRowGridLineWidth(1, true);
     SetColumnGridLineWidth(1, true);
+
+    //设置属性值默认字体
+    m_proptertyNormalFontId = _T("system_regular_14");
+    m_proptertyModifiedFontId = _T("system_bold_14");
 }
 
 DString PropertyGrid::GetType() const { return DUI_CTR_PROPERTY_GRID; }
@@ -55,11 +59,26 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("group_class")) {
         SetGroupClass(strValue);
     }
+    else if (strName == _T("group_label_class")) {
+        SetGroupLabelClass(strValue);
+    }
     else if (strName == _T("propterty_class")) {
         SetPropertyClass(strValue);
     }
+    else if (strName == _T("propterty_name_label_class")) {
+        SetPropertyNameLabelClass(strValue);
+    }
+    else if (strName == _T("propterty_value_label_class")) {
+        SetPropertyValueLabelClass(strValue);
+    }
     else if (strName == _T("left_column_width")) {
         SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
+    }
+    else if (strName == _T("propterty_font_normal")) {
+        SetProptertyNormalFontId(strValue);
+    }
+    else if (strName == _T("propterty_font_modified")) {
+        SetProptertyModifiedFontId(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -483,6 +502,25 @@ DString PropertyGrid::GetGroupClass() const
     return m_groupClass.c_str();
 }
 
+void PropertyGrid::SetGroupLabelClass(const DString& groupLabelClass)
+{
+    if (m_groupLabelClass != groupLabelClass) {
+        m_groupLabelClass = groupLabelClass;
+        std::vector<PropertyGridGroup*> groups;
+        GetGroups(groups);
+        for (PropertyGridGroup* pGroup : groups) {
+            if ((pGroup != nullptr) && (pGroup->GetLabelBox() != nullptr)) {
+                pGroup->GetLabelBox()->SetClass(groupLabelClass);
+            }
+        }
+    }
+}
+
+DString PropertyGrid::GetGroupLabelClass() const
+{
+    return m_groupLabelClass.c_str();
+}
+
 void PropertyGrid::SetPropertyClass(const DString& propertyClass)
 {
     if (m_propertyClass != propertyClass) {
@@ -509,6 +547,58 @@ DString PropertyGrid::GetPropertyClass() const
     return m_propertyClass.c_str();
 }
 
+void PropertyGrid::SetPropertyNameLabelClass(const DString& propertyNameLabelClass)
+{
+    if (m_propertyNameLabelClass != propertyNameLabelClass) {
+        m_propertyNameLabelClass = propertyNameLabelClass;
+
+        std::vector<PropertyGridProperty*> properties;
+        std::vector<PropertyGridGroup*> groups;
+        GetGroups(groups);
+        for (PropertyGridGroup* pGroup : groups) {
+            if (pGroup != nullptr) {
+                pGroup->GetProperties(properties);
+                for (PropertyGridProperty* pProperty : properties) {
+                    if ((pProperty != nullptr) && (pProperty->GetLabelBoxLeft() != nullptr)) {
+                        pProperty->GetLabelBoxLeft()->SetClass(propertyNameLabelClass);
+                    }
+                }
+            }
+        }
+    }
+}
+
+DString PropertyGrid::GetPropertyNameLabelClass() const
+{
+    return m_propertyNameLabelClass.c_str();
+}
+
+void PropertyGrid::SetPropertyValueLabelClass(const DString& propertyValueLabelClass)
+{
+    if (m_propertyValueLabelClass != propertyValueLabelClass) {
+        m_propertyValueLabelClass = propertyValueLabelClass;
+
+        std::vector<PropertyGridProperty*> properties;
+        std::vector<PropertyGridGroup*> groups;
+        GetGroups(groups);
+        for (PropertyGridGroup* pGroup : groups) {
+            if (pGroup != nullptr) {
+                pGroup->GetProperties(properties);
+                for (PropertyGridProperty* pProperty : properties) {
+                    if ((pProperty != nullptr) && (pProperty->GetLabelBoxRight() != nullptr)) {
+                        pProperty->GetLabelBoxRight()->SetClass(propertyValueLabelClass);
+                    }
+                }
+            }
+        }
+    }
+}
+
+DString PropertyGrid::GetPropertyValueLabelClass() const
+{
+    return m_propertyValueLabelClass.c_str();
+}
+
 PropertyGridGroup* PropertyGrid::AddGroup(const DString& groupName,
                                           const DString& description,
                                           size_t nGroupData)
@@ -520,6 +610,7 @@ PropertyGridGroup* PropertyGrid::AddGroup(const DString& groupName,
     PropertyGridGroup* pGroup = new PropertyGridGroup(GetWindow(), groupName, description, nGroupData);
     pGroup->SetWindow(GetWindow());
     pGroup->SetClass(GetGroupClass());
+    pGroup->SetPropertyGrid(this);
     m_pTreeView->GetRootNode()->AddChildNode(pGroup);    
     pGroup->SetExpand(true);
     return pGroup;
@@ -535,6 +626,7 @@ void PropertyGrid::GetGroups(std::vector<PropertyGridGroup*>& groups) const
     for (size_t i = 0; i < nCount; ++i) {
         PropertyGridGroup* pGroup = dynamic_cast<PropertyGridGroup*>(m_pTreeView->GetItemAt(i));
         if (pGroup != nullptr) {
+            ASSERT(pGroup->GetPropertyGrid() == this);
             groups.push_back(pGroup);
         }
     }
@@ -568,6 +660,7 @@ bool PropertyGrid::AddProperty(PropertyGridGroup* pGroup, PropertyGridProperty* 
     }
     pProperty->SetWindow(GetWindow());
     pProperty->SetClass(GetPropertyClass());
+    pProperty->SetPropertyGrid(this);
     pGroup->AddChildNode(pProperty);
     int32_t nLeftColumnWidth = GetLeftColumnWidth();
     if (nLeftColumnWidth >= 0) {
@@ -772,6 +865,26 @@ int32_t PropertyGrid::GetLeftColumnWidthValue() const
     return m_nLeftColumnWidth;
 }
 
+void PropertyGrid::SetProptertyNormalFontId(const DString& fontId)
+{
+    m_proptertyNormalFontId = fontId;
+}
+
+DString PropertyGrid::GetProptertyNormalFontId() const
+{
+    return m_proptertyNormalFontId.c_str();
+}
+
+void PropertyGrid::SetProptertyModifiedFontId(const DString& fontId)
+{
+    m_proptertyModifiedFontId = fontId;
+}
+
+DString PropertyGrid::GetProptertyModifiedFontId() const
+{
+    return m_proptertyModifiedFontId.c_str();
+}
+
 ////////////////////////////////////////////////////////////////////////////
 ///
 
@@ -781,7 +894,8 @@ PropertyGridGroup::PropertyGridGroup(Window* pWindow,
                                      size_t nGroupData) :
     TreeNode(pWindow),
     m_pLabelBox(nullptr),
-    m_nGroupData(nGroupData)
+    m_nGroupData(nGroupData),
+    m_pPropertyGrid(nullptr)
 {
     m_groupName = groupName;
     m_description = description;
@@ -803,6 +917,13 @@ void PropertyGridGroup::OnInit()
 
     m_pLabelBox = new LabelBox(GetWindow());
     pHBox->AddItem(m_pLabelBox);
+    ASSERT(m_pPropertyGrid != nullptr);
+    if (m_pPropertyGrid != nullptr) {
+        DString groupLabelClass = m_pPropertyGrid->GetGroupLabelClass();
+        if (!groupLabelClass.empty()) {
+            m_pLabelBox->SetClass(groupLabelClass);
+        }
+    }
     m_pLabelBox->SetMouseEnabled(false);
     m_pLabelBox->SetNoFocus();
     m_pLabelBox->SetText(m_groupName.c_str());
@@ -839,6 +960,16 @@ bool PropertyGridGroup::RemoveProperty(PropertyGridProperty* pProperty)
 void PropertyGridGroup::RemoveAllProperties()
 {
     RemoveAllChildNodes();
+}
+
+void PropertyGridGroup::SetPropertyGrid(PropertyGrid* pPropertyGrid)
+{
+    m_pPropertyGrid = pPropertyGrid;
+}
+
+PropertyGrid* PropertyGridGroup::GetPropertyGrid() const
+{
+    return m_pPropertyGrid;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -890,7 +1021,8 @@ PropertyGridProperty::PropertyGridProperty(Window* pWindow,
     m_pLabelBoxLeft(nullptr),
     m_pLabelBoxRight(nullptr),
     m_nPropertyData(nPropertyData),
-    m_bReadOnly(false)
+    m_bReadOnly(false),
+    m_pPropertyGrid(nullptr)
 {
     m_propertyName = propertyName;
     m_propertyValue = propertyValue;
@@ -907,21 +1039,39 @@ void PropertyGridProperty::OnInit()
 
     m_pHBox = new HBox(GetWindow());
     AddItem(m_pHBox);
-    //背景色：在global.xml中定义
-    m_pHBox->SetBkColor(_T("bg_property_grid_header"));
 
     m_pHBox->SetMouseEnabled(false);
     m_pHBox->SetNoFocus();
 
     m_pLabelBoxLeft = new PropertyGridLabelBox(GetWindow());
     m_pHBox->AddItem(m_pLabelBoxLeft);
+    ASSERT(m_pPropertyGrid != nullptr);
+    if (m_pPropertyGrid != nullptr) {
+        DString nameLabelClass = m_pPropertyGrid->GetPropertyNameLabelClass();
+        if (!nameLabelClass.empty()) {
+            m_pLabelBoxLeft->SetClass(nameLabelClass);
+        }
+    }
     m_pLabelBoxLeft->SetText(m_propertyName.c_str());
 
     m_pLabelBoxRight = new PropertyGridLabelBox(GetWindow());
     m_pHBox->AddItem(m_pLabelBoxRight);
+    if (m_pPropertyGrid != nullptr) {
+        DString valueLabelClass = m_pPropertyGrid->GetPropertyValueLabelClass();
+        if (!valueLabelClass.empty()) {
+            m_pLabelBoxRight->SetClass(valueLabelClass);
+        }
+    }
     m_pLabelBoxRight->SetText(m_propertyValue.c_str());
-    //属性值的正常字体：在property_grid.xml中定义
-    m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_normal"));
+
+    DString proptertyNormalFontId;
+    ASSERT(m_pPropertyGrid != nullptr);
+    if (m_pPropertyGrid != nullptr) {
+        proptertyNormalFontId = m_pPropertyGrid->GetProptertyNormalFontId();
+    }
+    if (!proptertyNormalFontId.empty()) {
+        m_pLabelBoxRight->SetFontId(proptertyNormalFontId.c_str());
+    }    
 
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
@@ -973,10 +1123,24 @@ void PropertyGridProperty::SetPropertyText(const DString& text, bool bChanged)
     if (m_pLabelBoxRight != nullptr) {
         m_pLabelBoxRight->SetText(text);
         if (bChanged) {
-            m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_bold"));
+            DString proptertyModifiedFontId;
+            ASSERT(m_pPropertyGrid != nullptr);
+            if (m_pPropertyGrid != nullptr) {
+                proptertyModifiedFontId = m_pPropertyGrid->GetProptertyModifiedFontId();
+            }
+            if (!proptertyModifiedFontId.empty()) {
+                m_pLabelBoxRight->SetFontId(proptertyModifiedFontId);
+            }
         }
         else {
-            m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_normal"));
+            DString proptertyNormalFontId;
+            ASSERT(m_pPropertyGrid != nullptr);
+            if (m_pPropertyGrid != nullptr) {
+                proptertyNormalFontId = m_pPropertyGrid->GetProptertyNormalFontId();
+            }
+            if (!proptertyNormalFontId.empty()) {
+                m_pLabelBoxRight->SetFontId(proptertyNormalFontId);
+            }            
         }
     }
 }
@@ -1055,6 +1219,16 @@ void PropertyGridProperty::SetReadOnly(bool bReadOnly)
 DString PropertyGridProperty::GetPropertyNewValue() const
 {
     return GetPropertyValue();
+}
+
+void PropertyGridProperty::SetPropertyGrid(PropertyGrid* pPropertyGrid)
+{
+    m_pPropertyGrid = pPropertyGrid;
+}
+
+PropertyGrid* PropertyGridProperty::GetPropertyGrid() const
+{
+    return m_pPropertyGrid;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1581,11 +1755,11 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
     }
     Label* pLabelColor = m_pComboButton->GetLabelBottom();
     if (pLabelColor != nullptr) {
-        pLabelColor->SetBkColor(GetPropertyText());
+        pLabelColor->SetBkColor(GetPropertyText());//文本值就是颜色字符串
     }
 
     //更新字体颜色
-    SetPropertyTextColor(GetPropertyText());
+    SetPropertyTextColor(GetPropertyText());//文本值就是颜色字符串
 
     m_pComboButton->SetVisible(false);
 

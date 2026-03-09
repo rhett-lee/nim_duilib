@@ -268,6 +268,22 @@ public:
     */
     int32_t GetLeftColumnWidth() const;
 
+    /** 设置属性值的字体Id（正常状态）
+    */
+    void SetProptertyNormalFontId(const DString& fontId);
+
+    /** 获取属性值的字体ID（正常状态）
+    */
+    DString GetProptertyNormalFontId() const;
+
+    /** 设置属性值的字体Id（已修改状态）
+    */
+    void SetProptertyModifiedFontId(const DString& fontId);
+
+    /** 获取属性值的字体ID（已修改状态）
+    */
+    DString GetProptertyModifiedFontId() const;
+
 public:
     /** 设置是否显示描述区域
     */
@@ -336,10 +352,25 @@ public:
     void SetGroupClass(const DString& groupClass);
     DString GetGroupClass() const;
 
+    /** 分组的文本控件Class
+    */
+    void SetGroupLabelClass(const DString& groupLabelClass);
+    DString GetGroupLabelClass() const;
+
     /** 属性的Class
     */
     void SetPropertyClass(const DString& propertyClass);
     DString GetPropertyClass() const;
+
+    /** 属性的名称文本控件Class
+    */
+    void SetPropertyNameLabelClass(const DString& propertyNameLabelClass);
+    DString GetPropertyNameLabelClass() const;
+
+    /** 属性的值文本控件Class
+    */
+    void SetPropertyValueLabelClass(const DString& propertyValueLabelClass);
+    DString GetPropertyValueLabelClass() const;
 
 protected:
     /** 初始化函数
@@ -423,9 +454,30 @@ private:
     */
     UiString m_groupClass;
 
+    /** 分组的Class
+    */
+    UiString m_groupLabelClass;
+
     /** 属性的Class
     */
     UiString m_propertyClass;
+
+    /** 属性的名称文本控件Class
+    */
+    UiString m_propertyNameLabelClass;
+
+    /** 属性的值文本控件Class
+    */
+    UiString m_propertyValueLabelClass;
+
+private:
+    /** 属性值的字体Id（正常状态）
+    */
+    UiString m_proptertyNormalFontId;
+
+    /** 属性值的字体Id（已修改状态）
+    */
+    UiString m_proptertyModifiedFontId;
 
 private:
     /** 横向网格线的宽度
@@ -501,12 +553,24 @@ public:
     */
     void RemoveAllProperties();
 
+    /** 设置关联的属性页接口
+    */
+    void SetPropertyGrid(PropertyGrid* pPropertyGrid);
+
+    /** 获取关联的属性页接口
+    */
+    PropertyGrid* GetPropertyGrid() const;
+
 protected:
     /** 初始化函数
      */
     virtual void OnInit() override;
 
 private:
+    /** 关联的属性页接口
+    */
+    PropertyGrid* m_pPropertyGrid;
+
     /** 分组的名称
     */
     UiString m_groupName;
@@ -618,6 +682,14 @@ public:
     */
     virtual DString GetPropertyNewValue() const;
 
+    /** 设置关联的属性页接口
+    */
+    void SetPropertyGrid(PropertyGrid* pPropertyGrid);
+
+    /** 获取关联的属性页接口
+    */
+    PropertyGrid* GetPropertyGrid() const;
+
 protected:
     /** 初始化函数
      */
@@ -675,6 +747,10 @@ protected:
     bool HasPropertySubItem(Control* pControl) const;
 
 private:
+    /** 关联的属性页接口
+    */
+    PropertyGrid* m_pPropertyGrid;
+
     /** 属性的名称
     */
     UiString m_propertyName;

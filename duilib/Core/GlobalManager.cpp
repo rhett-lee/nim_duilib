@@ -392,14 +392,11 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
         return false;
     }
 
-    //清空原有资源数据（字体、颜色、Class定义、图片资源、别名、变量定义等）
+    //清空原有资源数据（字体、颜色、图片资源等，这些资源在使用中会重新生成）
     m_fontManager.RemoveAllFonts();
     m_fontManager.RemoveAllFontFiles();
     m_colorManager.RemoveAllColors();
     RemoveAllImages();
-    RemoveAllClasss();
-    ClearAlias();
-    ClearDefine();
 
     //保存资源路径
     SetResourcePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath));
@@ -767,8 +764,13 @@ void GlobalManager::AddClass(const DString& strClassName, const DString& strCont
     AssertUIThread();
     ASSERT(!strClassName.empty() && !strControlAttrList.empty());
     if (!strClassName.empty() && !strControlAttrList.empty()) {
+        //auto it = m_globalClass.find(strClassName);
+        //if (it != m_globalClass.end()) {
+        //    //如果出现覆盖的情况，给予断言
+        //    ASSERT(m_globalClass[strClassName] == strControlAttrList);
+        //}
         m_globalClass[strClassName] = strControlAttrList;
-    }    
+    }
 }
 
 DString GlobalManager::GetClassAttributes(const DString& strClassName) const

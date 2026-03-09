@@ -8,10 +8,16 @@ LANGUAGE_DISPLAY_NAME = English(English)
 STRID_EXIT_FULLSCREEN = Exit Fullscreen
 TIPID_EXIT_FULLSCREEN = Click button or press ESC to exit fullscreen
 
+;PropertyGrid
+STRID_PROPERTY_NAME  = Name
+STRID_PROPERTY_VALUE = Value
+
 ;Common
 STRING_OK = OK
 STRING_CANCEL = Cancel
 
+;The following are the texts used by each example program
+;--------------------------------------------------------
 ;cef Browser
 STRID_CEF_BROWSER_WINDOW_MODE        =    Window Mode Cef Browser Component Test
 STRID_CEF_BROWSER_BACKWARD           =    Back

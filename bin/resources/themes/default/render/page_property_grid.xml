@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Box>
     <HBox>
-        <PropertyGrid name="property_grid_test" 
-                      bkcolor="YellowGreen" 
-                      width="320"
-                      left_column_width="130"
-                      row_grid_line_width="1"
-                      row_grid_line_color="darkgray"
-                      column_grid_line_width="1"
-                      column_grid_line_color="darkgray"
-                      header_class="property_grid_header"
-                      group_class="property_grid_group"
-                      propterty_class="property_grid_propterty"/>
+        <PropertyGrid class="property_grid" name="property_grid_test" width="320" margin="1,1,1,1"/>
         <Split bkcolor="color_splitline_level1" width="2"/>
         <VBox>
             <HBox bkcolor="white" height="80" margin="0,4,0,0">
