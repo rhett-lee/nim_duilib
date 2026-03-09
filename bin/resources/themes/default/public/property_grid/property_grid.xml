@@ -16,7 +16,7 @@
     <Class name="property_grid_group_label" normal_text_color="text_default" disabled_text_color="text_disabled"/>
     <Class name="property_grid_propterty" height="28" bkcolor="bg_property_grid_propterty"/>
     <Class name="property_grid_propterty_name_label" bkcolor="bg_property_grid_propterty_name"/>
-    <Class name="property_grid_propterty_value_label" bkcolor="bg_property_grid_propterty_value"/>
+    <Class name="property_grid_propterty_value_label" bkcolor="bg_property_grid_propterty_value" text_padding="2,0,0,0"/>
     <Class name="property_grid_propterty_edit" bkcolor="bg_richedit" width="100%" height="100%" 
                                                text_align="vcenter,left" text_padding="2,0,2,0" multi_line="false" 
                                                auto_hscroll="true" want_return_msg="true" want_tab="false" 
@@ -50,9 +50,9 @@
     <Class name="property_grid_combo_button" height="100%" width="100%" dropbox_size="200,250"
                                padding="1,1,1,1" border_size="1" hot_border_color="border_combo_hover" hot_color="bg_combo_btn_hover" pushed_color="bg_combo_btn_pressed"
                                combo_box_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='bg_combo'" 
-                               left_button_class="height={stretch} width={stretch} bkcolor={white} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={border_combo_hover} pushed_border_color={border_combo_hover} valign={center}" 
+                               left_button_class="height={stretch} width={stretch} bkcolor={bg_combo} padding={0,0,1,0} border_size={0,0,1,0} hot_border_color={border_combo_hover} pushed_border_color={border_combo_hover} valign={center}" 
                                left_button_top_label_class="width={stretch} height={16} margin={1,0,1,0} font={system_regular_12} text_align={bottom,hcenter}" 
-                               left_button_bottom_label_class="width={stretch} height={stretch} margin={2,0,2,1} bkcolor={black}" 
+                               left_button_bottom_label_class="width={stretch} height={stretch} margin={2,0,2,1} bkcolor={bg_combo}" 
                                right_button_class="height={stretch} width={auto} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={border_combo_hover} pushed_border_color={border_combo_hover} valign={center} hot_color={bg_combo_btn_hover} pushed_color={bg_combo_btn_pressed} normal_image={file='public/combo/arrow_normal.svg' valign='center'} hot_image={file='public/combo/arrow_hot.svg' valign='center'}"/>
 
     <!--日期时间-->
@@ -85,7 +85,8 @@
         <Split name="duilib_property_grid_description_area_split" bkcolor="bg_property_grid_split" height="2" margin="0,1,0,1"/>
         <!-- 底部描述区域 -->
         <RichText name="duilib_property_grid_description_area" width="100%" height="64" 
-                                        text_padding="2,2,0,0" bkcolor="bg_richedit" text_align="top,left" 
+                                        text_padding="2,2,0,0" text_align="top,left" 
+                                        bkcolor="bg_richedit" text_color="text_default"
                                         border_size="1" border_color="border_richedit_normal"/>
     </PropertyGrid>
 </Global>

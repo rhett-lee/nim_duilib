@@ -286,6 +286,16 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
                 UiPoint scrollOffset = pItem->GetLabelBoxRight()->GetScrollOffsetInScrollBox();
                 rcRect.Offset(-scrollOffset.x, -scrollOffset.y);
                 rightRect = rcRect;
+
+                //横向网格线的右侧：如果滚动条正在显示，则不覆盖滚动条
+                if (m_pTreeView != nullptr) {
+                    ScrollBar* pVScrollBar = m_pTreeView->GetVScrollBar();
+                    if ((pVScrollBar != nullptr) && !m_pTreeView->IsVScrollBarAtLeft()) {
+                        if (pVScrollBar->IsVisible()) {
+                            rightRect.right -= pVScrollBar->GetWidth();
+                        }
+                    }
+                }
             }
             UiPointF pt1(leftRect.left, yPos);
             UiPointF pt2(rightRect.right, yPos);
