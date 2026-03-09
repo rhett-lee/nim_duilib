@@ -2158,9 +2158,20 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
         UiRect rcCaret(xPos, yPos, xPos + xWidth, yPos + yHeight);
         if(rcCaret.Intersect(rcDrawText)) {
             //光标在文字显示区域范围内时，绘制光标
-            UiColor dwClrColor(0xFF000000);
+            UiColor dwClrColor;
             if (!m_sCaretColor.empty()) {
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
+            }
+            if (dwClrColor.IsEmpty()) {
+                //默认光标颜色
+                if (GlobalManager::Instance().GetThemeType() == ThemeType::kThemeDark) {
+                    //深色主题
+                    dwClrColor = UiColor(UiColors::White);
+                }
+                else {
+                    //浅色主题
+                    dwClrColor = UiColor(UiColors::Black);
+                }
             }
             pRender->DrawLine(UiPointF(xPos + 1, yPos), UiPointF(xPos + 1, yPos + yHeight), dwClrColor, (float)xWidth);
         }

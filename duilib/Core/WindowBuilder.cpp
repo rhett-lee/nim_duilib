@@ -358,6 +358,7 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
              (strClass == _T("Font"))           ||
              (strClass == _T("Class"))          ||
              (strClass == _T("TextColor"))      ||
+             (strClass == _T("Threme"))         ||
              (strClass == _T("Alias"))          ||
              (strClass == _T("Define")) ) {
             //忽略这几个属性
@@ -1015,6 +1016,21 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
             DString defineValue = node.attribute(_T("value")).as_string();
             GlobalManager::Instance().AddDefine(defineName, defineValue);
         }
+        else if (strClass == _T("Threme")) {
+            DString themeName = node.attribute(_T("name")).as_string();
+            DString themeType = node.attribute(_T("type")).as_string();
+            GlobalManager::Instance().SetThemeName(themeName);
+            themeType = StringUtil::MakeLowerString(themeType);
+            if (themeType == _T("dark")) {
+                GlobalManager::Instance().SetThemeType(ThemeType::kThemeDark);
+            }
+            else if (themeType == _T("light")) {
+                GlobalManager::Instance().SetThemeType(ThemeType::kThemeLight);
+            }
+            else {
+                GlobalManager::Instance().SetThemeType(ThemeType::kThemeUnknown);
+            }
+        }
     }
 }
 
@@ -1086,7 +1102,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             (strClass == _T("FontFile"))  ||
             (strClass == _T("Class"))     || 
             (strClass == _T("TextColor")) ||
-            (strClass == _T("Alias")) ||
+            (strClass == _T("Threme"))     ||
+            (strClass == _T("Alias"))     ||
             (strClass == _T("Define"))) {
             continue;
         }

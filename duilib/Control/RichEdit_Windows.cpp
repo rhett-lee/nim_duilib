@@ -2792,9 +2792,20 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 
     if (m_bIsCaretVisiable && !m_bIsComposition) {
         UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
-        UiColor dwClrColor(0xff000000);
+        UiColor dwClrColor;
         if (!m_sCaretColor.empty()) {
             dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
+        }
+        if (dwClrColor.IsEmpty()) {
+            //默认光标颜色
+            if (GlobalManager::Instance().GetThemeType() == ThemeType::kThemeDark) {
+                //深色主题
+                dwClrColor = UiColor(UiColors::White);
+            }
+            else {
+                //浅色主题
+                dwClrColor = UiColor(UiColors::Black);
+            }
         }
         pRender->DrawLine(UiPointF(rect.left, rect.top), UiPointF(rect.right, rect.bottom), dwClrColor, (float)m_iCaretWidth);
     }

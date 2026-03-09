@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
+    <!-- 主题名称和主题类型 -->
+    <Threme name="Light" type="Light"/>
+        
     <!-- ===================== 全局变量定义 ===================== -->
     <!-- 尺寸变量 -->
     <Define name="SIZE_SCROLLBAR_WIDTH" value="12"/>
@@ -129,6 +132,7 @@
 
     <!-- 编辑框颜色（Win11 25H2 核心规范：灰边框 + 聚焦蓝下划线） -->
     <TextColor name="bg_richedit" value="#FFFFFFFF"/>        <!-- 编辑框背景：输入框默认背景 -->
+    <TextColor name="bg_richedit_caret" value="#FF000000"/>  <!-- 编辑框光标颜色 -->
     <TextColor name="text_richedit_prompt" value="#FF888888"/> <!-- 提示文本：placeholder占位符 -->
     <TextColor name="border_richedit_normal" value="#FFD1D5DB"/> <!-- 默认边框：未交互时边框 -->
     <TextColor name="border_richedit_hover" value="#FF9CA3AF"/> <!-- hover边框：鼠标悬浮边框 -->
@@ -276,7 +280,7 @@
     <Class name="btn_global_base" fade_hot="true"/>
     
     <!-- 编辑框基类 -->
-    <Class name="richedit_base" bkcolor="bg_richedit" multi_line="false" auto_hscroll="true" rich_text="false"
+    <Class name="richedit_base" bkcolor="bg_richedit" caret_color="bg_richedit_caret" multi_line="false" auto_hscroll="true" rich_text="false"
                                 want_return="false" want_ctrl_return="false" want_tab="false" 
                                 text_align="left,vcenter" disabled_text_color="text_disabled"/>
     

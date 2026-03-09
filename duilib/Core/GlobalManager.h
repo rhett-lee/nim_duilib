@@ -104,6 +104,22 @@ public:
     */
     const FilePath& GetFontFilePath() const;
 
+    /** 获取主题类型
+    */
+    ThemeType GetThemeType() const;
+
+    /** 设置主题类型
+    */
+    void SetThemeType(ThemeType themeType);
+
+    /** 获取当前主题名称
+    */
+    const DString& GetThemeName() const;
+
+    /** 设置当前主题名称
+    */
+    void SetThemeName(const DString& themeName);
+
 public:
     /** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
@@ -555,6 +571,14 @@ private:
     /** 是否开启控件动画（比如淡入淡出等动画）
     */
     bool m_bAnimationEnabled;
+
+    /** 主题类型
+    */
+    ThemeType m_themeType;
+
+    /** 主题名称
+    */
+    DString m_themeName;
 };
 
 } // namespace ui

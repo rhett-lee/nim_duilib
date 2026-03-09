@@ -70,7 +70,8 @@ private:
 
 GlobalManager::GlobalManager():
     m_platformData(nullptr),
-    m_bAnimationEnabled(true)
+    m_bAnimationEnabled(true),
+    m_themeType(ThemeType::kThemeLight)
 {
 }
 
@@ -330,6 +331,26 @@ void GlobalManager::SetFontFilePath(const FilePath& strPath)
 const FilePath& GlobalManager::GetFontFilePath() const
 {
     return m_fontFilePath;
+}
+
+ThemeType GlobalManager::GetThemeType() const
+{
+    return m_themeType;
+}
+
+void GlobalManager::SetThemeType(ThemeType themeType)
+{
+    m_themeType = themeType;
+}
+
+const DString& GlobalManager::GetThemeName() const
+{
+    return m_themeName;
+}
+
+void GlobalManager::SetThemeName(const DString& themeName)
+{
+    m_themeName = themeName;
 }
 
 void GlobalManager::SetLanguagePath(const FilePath& strPath)

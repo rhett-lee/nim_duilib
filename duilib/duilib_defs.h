@@ -148,6 +148,14 @@ namespace ui
     class Control;
     class Image;
 
+    //主题类型
+    enum class ThemeType
+    {
+        kThemeUnknown,  //未知主题
+        kThemeLight,    //浅色主题
+        kThemeDark      //深色主题
+    };
+
     //水平对齐方式
     enum class HorAlignType: int8_t
     {
