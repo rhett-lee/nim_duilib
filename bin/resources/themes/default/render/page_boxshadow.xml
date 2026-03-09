@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <VBox bkcolor="white" alpha="255">
+    <VBox bkcolor="bg_window_light" alpha="255">
         <HBox height="40"/>
         <HBox height="auto" padding="0,0,0,18">
             <Control margin="50,40" width="100" height="60" name="box_shadow_test" bkcolor="red" border_round="4,4" box_shadow="color='gray' offset='1,1' blur_radius='3' spread_radius='3'" visible="false"/>

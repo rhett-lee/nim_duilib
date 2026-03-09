@@ -81,7 +81,7 @@
                     <VBox height="auto">
                         <HBox valign="center" height="auto">
                             <Label text="调整窗口界面显示比例(60-500)：" height="32" valign="center" text_align="left,vcenter" margin="4,0,0,0"/>
-                            <RichEdit class="simple simple_border" name="display_scale_factor" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="500" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
+                            <RichEdit class="simple simple_border" name="display_scale_factor" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="500" valign="center" text_align="hcenter,vcenter" margin="1,0,4,0"/>
                             <Button class="btn_global_blue_80x30" height="32" width="auto" valign="center" name="set_display_scale_factor" text="修改界面显示比例" text_padding="10,0,10,0" />
                         </HBox>
                         <HBox height="40" valign="center" halign="center" margin="160,40,1,1" child_halign="left">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" use_system_caption="true">
-    <VBox bkcolor="white">
+    <VBox bkcolor="bg_window_light">
         <HBox height="30" margin="0,10,0,0">
             <Label text="当前进度："/>
             <Label name="progress_text" text="0%"/>

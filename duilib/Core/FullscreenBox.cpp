@@ -14,7 +14,7 @@ FullscreenBox::FullscreenBox(Window* pWindow) :
     SetEnableControlPadding(false);
 
     //背景色默认为白色(如果不设置背景色，在某些情况下会出现窗口透明的现象，比如WebView2控件的网页全屏时)
-    SetBkColor(_T("white"));
+    SetBkColor(_T("bg_window_fullscreen"));
 
     //保存窗口原来的状态
     if (pWindow != nullptr) {

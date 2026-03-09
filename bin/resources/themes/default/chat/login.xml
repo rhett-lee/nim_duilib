@@ -18,18 +18,18 @@
             <Button name="enter_login" margin="0,5,15,10" halign="right" text="直接登录" cursortype="hand" font="system_underline_12" normaltextcolor="light_green" visible="false"/>
           </HBox>
           <!--帐号和密码-->
-          <VBox name="enter_panel" width="240" height="auto" margin="20,0,20,0" bkimage="user_password.png">
+          <VBox name="enter_panel" width="240" height="auto" margin="20,0,20,0" bkimage="">
             <HBox height="41" padding="14,1,10,0">
               <Control name="usericon" width="16" height="16" valign="center" normalimage="user_1.png" disabledimage="user_2.png"/>
-              <RichEdit class="simple prompt" name="username" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" prompttext="帐号"/>
+              <RichEdit class="simple simple_border prompt" name="username" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" prompttext="帐号"/>
             </HBox>
             <HBox name="nick_name_panel" height="40" padding="14,1,0,0" visible="false" margin="0,0,0,0">
               <Control name="nick_name_icon" width="16" height="16" valign="center" normalimage="nickname.png" disabledimage="nickname.png"/>
-              <RichEdit class="simple prompt" name="nickname" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" prompttext="昵称"/>
+              <RichEdit class="simple simple_border prompt" name="nickname" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" prompttext="昵称"/>
             </HBox>
             <HBox height="41" padding="14,0,10,1" margin="0,2,0,0">
               <Control name="passwordicon" width="16" height="16" valign="center" normalimage="password_1.png" disabledimage="password_2.png"/>
-              <RichEdit class="simple prompt" name="password" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" password="true" prompttext="密码"/>
+              <RichEdit class="simple simple_border prompt" name="password" width="stretch" height="auto" margin="10,0,10,0" valign="center" font="system_regular_14" password="true" prompttext="密码"/>
             </HBox>
           </VBox>
         </VBox>

@@ -69,7 +69,7 @@
                  child_halign="center" child_valign="center"
                  grid_width="80" grid_height="60" rows="6" columns="4" child_margin_x="1" child_margin_y="1">
             <!-- 一个计算器的布局 -->
-            <Label class="page_gridbox_calculator" text="0" col_span="4" text_align="center,right" text_padding="0,0,6,0" bkcolor="Cornsilk"/>
+            <Label class="page_gridbox_calculator" text="0" col_span="4" text_align="center,right" text_padding="0,0,6,0" bkcolor="Cornsilk" normal_text_color="black"/>
             <Label class="page_gridbox_calculator" text="清空" col_span="2"/>
             <Label class="page_gridbox_calculator" text="回退" col_span="1"/>
             <Label class="page_gridbox_calculator" text="=" col_span="1"/>

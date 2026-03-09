@@ -3,8 +3,8 @@
     <HBox>
         <PropertyGrid class="property_grid" name="property_grid_test" width="320" margin="1,1,1,1"/>
         <Split bkcolor="color_splitline_level1" width="2"/>
-        <VBox>
-            <HBox bkcolor="white" height="80" margin="0,4,0,0">
+        <VBox bkcolor="bg_window_light" >
+            <HBox height="80" margin="0,4,0,0">
                 <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -18,7 +18,7 @@
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                 </TabCtrl>
             </HBox>            
-            <HBox bkcolor="white">
+            <HBox>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
                     <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -33,7 +33,7 @@
                 </VListBox>
             </HBox>
             <VBox>
-                <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" padding="20,20,20,20">
+                <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" padding="20,20,20,20">
                     <TabCtrl class="tab_ctrl" margin="10,10,10,10">
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -51,13 +51,13 @@
                     <Label height="120" width="stretch" text="纵向文本测试：\n测试在滚动条内是否能够正常显示。" text_align="hcenter,top" vertical_text="true" multi_line="true" replace_newline="true"/>
                 </VScrollBox>
             </VBox>
-            <HBox bkcolor="white" margin="4,4,4,0">
+            <HBox margin="4,4,4,0">
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
             </HBox>
-            <HBox bkcolor="white" margin="4,4,4,4">
+            <HBox margin="4,4,4,4">
                 <Label width="stretch" height="stretch" text_align="hcenter,vcenter" text="这里演示的是渐变背景色功能" border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>

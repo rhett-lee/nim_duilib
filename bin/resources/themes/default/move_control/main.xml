@@ -18,14 +18,14 @@
 	        <HBox bkcolor="bg_window_dark" height="35" >
                 <Label text="常用应用" font="system_regular_14" margin="10,10"/>
             </HBox>
-            <VTileBox name="frequent_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="white"/>
+            <VTileBox name="frequent_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_window_light"/>
         </VBox>
         <Control class="splitline_hor_level1"/>
         <VBox bkcolor="bg_window_light">
             <HBox bkcolor="bg_window_dark" height="35" >
                 <Label text="我的应用" font="system_regular_14" margin="10,10"/>
             </HBox>
-            <VTileBox name="my_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="white"/>
+            <VTileBox name="my_app" child_halign="left" drop_in_id="1" drag_out_id="1" bkcolor="bg_window_light"/>
         </VBox>
     </VBox>
 </Window>

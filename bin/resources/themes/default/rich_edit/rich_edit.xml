@@ -2,8 +2,21 @@
     <!-- 该窗口下的Class定义 --> 
     <Font id="btn_font_bold_14" name="Elephant" size="14" bold="true"/>
     <Font id="btn_font_italic_14" name="Elephant" size="14" bold="true" italic="true"/>
-    <Class name="checkbox_font_class" font="system_regular_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" border_size="1" hot_border_color="#FFB3D0EE" pushed_border_color="#FF82B4E8" selected_normal_color="#FFC9E0F7" hot_color="#FFE8EFF7" selected_hot_color="#FFE8EFF7" pushed_color="#FFC9E0F7" selected_pushed_color="#FFC9E0F7"/>
-    <Class name="btn_font_class" font="system_regular_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" border_size="1" hot_border_color="#FFB3D0EE" pushed_border_color="#FF82B4E8" hot_color="#FFE8EFF7" pushed_color="#FFC9E0F7" />
+    <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter" 
+                                      border_size="1" 
+                                      hot_border_color="border_btn_hover" 
+                                      pushed_border_color="border_btn_pressed" 
+                                      selected_normal_color="bg_btn_pressed" 
+                                      hot_color="border_btn_hover" 
+                                      selected_hot_color="border_btn_hover" 
+                                      pushed_color="bg_btn_pressed" 
+                                      selected_pushed_color="bg_btn_pressed"/>
+    <Class name="btn_font_class" font="system_regular_14" text_align="hcenter,vcenter" 
+                                      border_size="1" 
+                                      hot_border_color="border_btn_hover" 
+                                      pushed_border_color="border_btn_pressed" 
+                                      hot_color="border_btn_hover" 
+                                      pushed_color="bg_btn_pressed" />
     
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bg_window_dark">
@@ -29,29 +42,29 @@
         <!-- 显示区域 --> 
         <HBox>
             <!-- 左侧区域 -->
-            <VScrollBox width="360" vscrollbar="true" minwidth="60" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
+            <VScrollBox width="360" vscrollbar="true" minwidth="60" bkcolor="bg_window_light" border_size="1,1,0,1" border_color="blue">
                 <GroupVBox margin="6,6,6,6" text="密码相关功能" height="auto" corner_size="4,4">
                     <HBox height="36" margin="8,16,8,0">
                         <Label text="密码输入:  " valign="center"/>
-                        <RichEdit class="simple" text="This is password!" password="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="This is password!" password="true" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="显示密码:  " valign="center"/>
-                        <RichEdit class="simple" text="This is password!" password="true" show_password="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple" text="This is password!" password="true" show_password="true" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="闪现密码字符:  " valign="center"/>
-                        <RichEdit class="simple" text="This is password!" password="true" flash_password_char="true" show_password="false" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple" text="This is password!" password="true" flash_password_char="true" show_password="false" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,8">
                         <Label text="密码字符为#:  " valign="center"/>
-                        <RichEdit class="simple" text="This is password!" password="true" password_char="#" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple" text="This is password!" password="true" password_char="#" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                 </GroupVBox>
                 <GroupVBox margin="6,6,6,6" text="基本功能" height="auto" corner_size="4,4">
                     <HBox height="36" margin="8,16,8,0">
                         <Label text="单行编辑:  " valign="center"/>
-                        <RichEdit class="simple simple_border" text="RichEdit: simple" default_context_menu="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: simple" default_context_menu="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="44" margin="8,0,8,0">
                         <Label text="单行编辑:  " valign="center"/>
@@ -59,39 +72,39 @@
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="提示模式:  " valign="center"/>
-                        <RichEdit class="prompt simple simple_border_bottom" prompttext="在这里可以输入文字" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="prompt simple simple_border_bottom" prompttext="在这里可以输入文字" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="数字模式:  " valign="center"/>
-                        <RichEdit class="simple" text="0123456789" number="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="0123456789" number="true" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="只读模式:  " valign="center"/>
-                        <RichEdit class="simple" text="RichEdit: readonly" readonly="true" no_caret_readonly="true" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: readonly" readonly="true" no_caret_readonly="true" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="禁用模式:  " valign="center"/>
-                        <RichEdit class="simple" enabled="false" text="RichEdit: disabled" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" enabled="false" text="RichEdit: disabled" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="超级链接:  " valign="center"/>
-                        <RichEdit name="test_url" auto_detect_url="true" text="访问网址：http://www.baidu.com" readonly="true" no_caret_readonly="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit name="test_url" auto_detect_url="true" text="访问网址：http://www.baidu.com" readonly="true" no_caret_readonly="true" valign="center" text_align="vcenter" text_padding="2,0,0,0" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="文本颜色:  " valign="center"/>
-                        <RichEdit class="simple" text="RichEdit: 文本颜色为红色" normal_text_color="red" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: 文本颜色为红色" normal_text_color="red" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="光标颜色:  " valign="center"/>
-                        <RichEdit class="simple" text="RichEdit: 光标颜色为红色" caret_color="red" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: 光标颜色为红色" caret_color="red" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="48" margin="8,0,8,0">
                         <Label text="文本对齐:  " valign="center"/>
-                        <RichEdit class="simple" text="text_align={left/hcenter/right,top/vcenter/bottom}" text_align="hcenter,vcenter" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="text_align={left/hcenter/right,top/vcenter/bottom}" text_align="hcenter,vcenter" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,8">
                         <Label text="最大字符数为8:  " valign="center"/>
-                        <RichEdit class="simple" text="最大字符数为8" max_char="8" valign="center" text_align="vcenter" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="最大字符数为8" max_char="8" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                 </GroupVBox>
                 
@@ -114,15 +127,15 @@
                 <GroupVBox margin="6,6,6,6" text="滚动条相关" height="auto" corner_size="4,4">
                     <HBox height="48" margin="8,16,8,0">
                         <Label text="横向滚动条:  " valign="center"/>
-                        <RichEdit text="横向测试0横向测试1横向测试2横向测试3横向测试4横向测试5横向测试6横向测试7横向测试8" multi_line="true" word_wrap="false" hscrollbar="true" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple_border" text="横向测试0横向测试1横向测试2横向测试3横向测试4横向测试5横向测试6横向测试7横向测试8" multi_line="true" word_wrap="false" hscrollbar="true" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="48" margin="8,0,8,0">
                         <Label text="纵向滚动条:  " valign="center"/>
-                        <RichEdit text="纵向测试0纵向测试1纵向测试2纵向测试3纵向测试4纵向测试5纵向测试6纵向测试7纵向测试8纵向测试9纵向测试10纵向测试11纵向测试12纵向测试13纵向测试14" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple_border" text="纵向测试0纵向测试1纵向测试2纵向测试3纵向测试4纵向测试5纵向测试6纵向测试7纵向测试8纵向测试9纵向测试10纵向测试11纵向测试12纵向测试13纵向测试14" multi_line="true" want_return="true" word_wrap="true" vscrollbar="true" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="48" margin="8,0,8,8">
                         <Label text="同时横向与纵向滚动条:  " valign="center"/>
-                        <RichEdit text="纵向测试0纵向测试1纵向测试2纵向测试3纵向测试4纵向测试5纵向测试6纵向测试7纵向测试8纵向测试9纵向测试10纵向测试11纵向测试12纵向测试13纵向测试14" multi_line="true" want_return="true" word_wrap="false" vscrollbar="true" hscrollbar="true" bkcolor="white" margin="4,6,4,4"/>
+                        <RichEdit class="simple_border" text="纵向测试0纵向测试1纵向测试2纵向测试3纵向测试4纵向测试5纵向测试6纵向测试7纵向测试8纵向测试9纵向测试10纵向测试11纵向测试12纵向测试13纵向测试14" multi_line="true" want_return="true" word_wrap="false" vscrollbar="true" hscrollbar="true" margin="4,6,4,4"/>
                     </HBox> 
                 </GroupVBox>
                 
@@ -207,7 +220,7 @@
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split bkcolor="color_splitline_level1" height="2"/>
                 <HBox bkcolor="Pink" border_size="1" border_color="blue" minwidth="60">
-                    <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="white"/>
+                    <RichEdit name="rich_edit" enable_drag_drop="true" zoom="0,0" wheel_zoom="true" multi_line="true" want_return="true" word_wrap="true" rich_text="false" default_context_menu="true" save_selection="true" hide_selection="false" word_wrap="true" vscrollbar="true" auto_vscroll="true" bkcolor="bg_window_light"/>
                 </HBox>
             </VBox>
         </HBox>

@@ -7,7 +7,7 @@
         <TabCtrlItem class="tab_ctrl_item" title="标签3" close_button_class="" tab_box_item_index="2"/>
     </TabCtrl>
     <TabBox name="main_view_tab_test" bkcolor="white" selected_id="0">
-        <VBox bkcolor="white">
+        <VBox bkcolor="bg_window_light">
             <Label text="页面1：这里是页面1"/>
             <Label text="窗口阴影的功能测试：" valign="center" margin="12,30,10,0"/>
             <Option class="checkbox_2" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
@@ -55,9 +55,9 @@
                     <Label text="内嵌页面2：这里是内嵌页面2"/>
                 </VBox>
                 <VBox name="sub_view_tab_page3" height="600" bkcolor="LightCyan">
-                    <Label text="内嵌页面3：这里是内嵌页面3"/>
-                    <Label text="内嵌页面3：这里是内嵌页面3"/>
-                    <Label text="内嵌页面3：这里是内嵌页面3"/>
+                    <Label text="内嵌页面3：这里是内嵌页面3" normal_text_color="black"/>
+                    <Label text="内嵌页面3：这里是内嵌页面3"  normal_text_color="black"/>
+                    <Label text="内嵌页面3：这里是内嵌页面3"  normal_text_color="black"/>
                 </VBox>
             </TabBox>
         </VBox>

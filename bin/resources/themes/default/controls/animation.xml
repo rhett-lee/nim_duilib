@@ -24,7 +24,7 @@
                 <Label name="animation_frame" text="[000/100]" width="120" valign="center" margin="8,0,0,0"/>
                 <Button class="btn_global" name="goto_frame_btn" text="跳至" width="56" height="30" border_round="3,3" margin="8,0,0,0" valign="center"/>
                 <Label text="第" valign="center" margin="8,0,0,0"/>
-                <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true" width="80" min_number="0" max_number="10000" valign="center" text_align="vcenter" bkcolor="white" margin="8,0,0,0"/>
+                <RichEdit class="simple simple_border rich_edit_spin" name="goto_frame_number" number="true" width="80" min_number="0" max_number="10000" valign="center" text_align="vcenter" margin="8,0,0,0"/>
                 <Label text="帧" valign="center" margin="8,0,0,0"/>
             </HBox>
             <Control name="animation_test" halign="center" valign="center" bkimage="file='render/apng_test.png' name='bk_animation_test' auto_play='true' icon_as_animation='true' icon_frame_delay='2000' valign='center' halign='center'"/>

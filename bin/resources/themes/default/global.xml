@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!-- 主题名称和主题类型 -->
-    <Threme name="Light" type="Light"/>
+    <Threme name="Light" type="Dark"/>
         
     <!-- ===================== 全局变量定义 ===================== -->
     <!-- 尺寸变量 -->
@@ -86,9 +86,9 @@
     <FontFile file="RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
     <FontFile file="RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
     
-    <!-- ===================== 颜色配置（Win11 25H2 Light） ===================== -->
-    <!-- 基础颜色（通用）- 系统级基础灰度，适配所有控件底层样式 -->
-    <TextColor name="color_white" value="#FFFFFFFF"/>        <!-- 纯白：通用高亮文本/按钮背景 -->
+    <!-- ===================== 颜色配置（Win11 25H2 Dark） ===================== -->
+    <!-- 基础颜色（通用）- 系统级深色基础灰度，适配暗夜模式所有控件 -->
+    <TextColor name="color_white" value="#FFFFFFFF"/>        <!-- 纯白：高亮文本/按钮文字 -->
     <TextColor name="color_black" value="#FF000000"/>        <!-- 纯黑：系统默认文本底色 -->
     <TextColor name="color_gray" value="#FF6B7280"/>         <!-- 中性灰：次要文本/辅助说明 -->
     <TextColor name="color_gray_light" value="#FFE5E7EB"/>   <!-- 浅灰：默认边框/分割线基础色 -->
@@ -122,6 +122,7 @@
     <TextColor name="bg_menu_item_selected" value="#FFCCE5FF"/> <!-- 菜单项选中：激活/选中菜单项 -->
     <TextColor name="bg_list_item_hover" value="#FFE6F0FF"/> <!-- 列表项hover：鼠标悬浮列表项 -->
     <TextColor name="bg_list_item_selected" value="#FFCCE5FF"/> <!-- 列表项选中：选中列表项 -->
+    <TextColor name="bg_menu_bar" value="#FFF7F7F7"/>  <!-- 菜单栏背景 -->
     <TextColor name="bg_menu_bar_hover" value="#FFE6F0FF"/>  <!-- 菜单栏hover：悬浮菜单栏项 -->
     <TextColor name="bg_menu_bar_pressed" value="#FFCCE5FF"/> <!-- 菜单栏pressed：点击菜单栏项 -->
 
@@ -282,7 +283,7 @@
     <!-- 编辑框基类 -->
     <Class name="richedit_base" bkcolor="bg_richedit" caret_color="bg_richedit_caret" multi_line="false" auto_hscroll="true" rich_text="false"
                                 want_return="false" want_ctrl_return="false" want_tab="false" 
-                                text_align="left,vcenter" disabled_text_color="text_disabled"/>
+                                text_align="left,vcenter" normal_text_color="text_default" disabled_text_color="text_disabled"/>
     
     <!-- ===================== 具体控件样式 ===================== -->
     <!-- 滚动条：简约风格（默认） -->
