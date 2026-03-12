@@ -1,0 +1,9 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- 左侧矩形块（代表当前主题） -->
+  <rect x="4" y="7" width="6" height="10" stroke="#222222" stroke-width="1.6" fill="none" rx="1"/>
+  <!-- 右侧矩形块（代表切换后的主题） -->
+  <rect x="14" y="7" width="6" height="10" stroke="#222222" stroke-width="1.6" fill="none" rx="1"/>
+  <!-- 双向切换箭头（核心交互符号） -->
+  <path d="M10 10 L12 12 L10 14 M14 14 L12 12 L14 10" 
+        stroke="#222222" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

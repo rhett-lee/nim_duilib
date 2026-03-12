@@ -1,0 +1,13 @@
+<svg viewBox="0 0 24 24" width="24" height="24" role="img" xmlns="http://www.w3.org/2000/svg" aria-labelledby="languageIconTitle" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+  <g id="SVGRepo_iconCarrier">
+    <title id="languageIconTitle">Language</title>
+    <!-- 外层圆形（微调半径，视觉更居中） -->
+    <circle cx="12" cy="12" r="9.5"></circle>
+    <!-- 内层圆环（优化曲线比例，更顺滑） -->
+    <path d="M12,21.5 C14.8,19.2 16,15.8 16,12 C16,8.2 14.8,4.8 12,2.5 C9.2,4.8 8,8.2 8,12 C8,15.8 9.2,19.2 12,21.5 Z"></path>
+    <!-- 横线（端点圆角，长度微调更适配圆形） -->
+    <path d="M4 9L20 9M4 15L20 15"></path>
+  </g>
+</svg>

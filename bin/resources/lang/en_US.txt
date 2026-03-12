@@ -4,6 +4,17 @@
 ;Language display name
 LANGUAGE_DISPLAY_NAME = English(English)
 
+;Title Bar Buttons
+STRID_TIP_WND_BTN_CLOSE = Close
+STRID_TIP_WND_BTN_MIN = Minimize
+STRID_TIP_WND_BTN_MAX = Maximize
+STRID_TIP_WND_BTN_RESTORE = Restore
+STRID_TIP_WND_BTN_FULLSCREEN = Full Screen (Press ESC to exit)
+STRID_TIP_BTN_PAGE_FULLSCREEN = Page Full Screen (Press ESC to exit)
+STRID_TIP_BTN_LANGUAGE = Select Language
+STRID_TIP_BTN_THEME = Select Theme
+STRID_TIP_BTN_SETTINGS = Settings
+
 ;global.xml
 STRID_EXIT_FULLSCREEN = Exit Fullscreen
 TIPID_EXIT_FULLSCREEN = Click button or press ESC to exit fullscreen
@@ -18,6 +29,9 @@ STRING_CANCEL = Cancel
 
 ;The following are the texts used by each example program
 ;--------------------------------------------------------
+;examples/basic
+STRID_BASIC_TEXT = A simple window with a title bar and standard control buttons.
+
 ;cef Browser
 STRID_CEF_BROWSER_WINDOW_MODE        =    Window Mode Cef Browser Component Test
 STRID_CEF_BROWSER_BACKWARD           =    Back
