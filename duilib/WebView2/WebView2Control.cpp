@@ -103,7 +103,7 @@ DString WebView2Control::GetInitURL() const
             }
             else {
                 //相对路径: 直接拼接
-                cefHtml = GlobalManager::GetDefaultResourcePath(true);
+                cefHtml = GlobalManager::GetResourceRootPath(true);
                 cefHtml.NormalizeDirectoryPath();
                 cefHtml += initUrl;
                 if (!cefHtml.IsExistsFile()) {

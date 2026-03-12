@@ -129,7 +129,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
         navigateUrl = _T("www.baidu.com");
 
         ////测试JS与C++通信
-        //ui::FilePath webViewHtml = GlobalManager::GetDefaultResourcePath(true);
+        //ui::FilePath webViewHtml = GlobalManager::GetResourceRootPath(true);
         //webViewHtml.NormalizeDirectoryPath();
         //webViewHtml += _T("themes/default/webview2_browser/WebView2Demo.html");
         //webViewHtml.NormalizeFilePath();

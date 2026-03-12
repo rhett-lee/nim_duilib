@@ -44,10 +44,16 @@ public:
     */
     static GlobalManager& Instance();
 
-    /** 获取默认的资源目录
-    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle 
+    /** 获取资源目录的根路径（绝对路径）
+    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle（目前仅在使用CEF模块时需要传入true，其他均传入false）
+    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources/
     */
-    static FilePath GetDefaultResourcePath(bool bMacOsAppBundle);
+    static FilePath GetResourceRootPath(bool bMacOsAppBundle);
+
+    /** 获取资源压缩包的路径（绝对路径）
+    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources.zip
+    */
+    static FilePath GetResourceZipPath();
 
 public:
     /** 初始化全局设置函数

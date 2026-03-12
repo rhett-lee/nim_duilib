@@ -86,7 +86,7 @@ GlobalManager& GlobalManager::Instance()
     return self;
 }
 
-FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
+FilePath GlobalManager::GetResourceRootPath(bool bMacOsAppBundle)
 {
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
@@ -106,9 +106,17 @@ FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
 #endif
     if (resourcePath.IsEmpty()) {
         resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resourcePath += _T("resources/");
+        resourcePath += DUILIB_RESOURCE_DIR;
     }
     resourcePath.NormalizeDirectoryPath();
+    return resourcePath;
+}
+
+FilePath GlobalManager::GetResourceZipPath()
+{
+    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+    resourcePath += DUILIB_RESOURCE_ZIP;
+    resourcePath.NormalizeFilePath();
     return resourcePath;
 }
 

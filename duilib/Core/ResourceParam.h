@@ -22,6 +22,14 @@ enum class ResourceType
     kResZipFile
 };
 
+/** 默认的资源目录名（内部有使用，如修改，需要重新编译本库代码）
+*/
+#define DUILIB_RESOURCE_DIR _T("resources/")
+
+/** 默认的资源压缩包名（内部有使用，如修改，需要重新编译本库代码）
+*/
+#define DUILIB_RESOURCE_ZIP _T("resources.zip")
+
 /** 加载全局资源所需的基本参数（基类，使用时需要使用子类，见下方定义）
 */
 class UILIB_API ResourceParam
