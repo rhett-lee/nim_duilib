@@ -199,18 +199,22 @@ bool XmlBox::LoadXmlData(const FilePath& xmlPath)
 }
 
 bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windowResPath,
-                             std::vector<unsigned char>& xmlFileData, FilePath& xmlOutputPath, FilePath& xmlResPath) const
+                             std::vector<uint8_t>& xmlFileData, FilePath& xmlOutputPath, FilePath& xmlResPath) const
 {
     xmlFileData.clear();
     xmlOutputPath.Clear();
     xmlResPath.Clear();
+    FilePath defaultThemeRootPath = GlobalManager::Instance().Theme().GetThemeRootPath();
+    if (!GlobalManager::Instance().Theme().GetDefaultThemePath().IsEmpty()) {
+        defaultThemeRootPath /= GlobalManager::Instance().Theme().GetDefaultThemePath();
+    }
     const FilePath xmlFilePath(xmlInputPath);
     if (xmlFilePath.IsRelativePath() && GlobalManager::Instance().Zip().IsUseZip()) {
         bool bFoundXmlFile = false;
         FilePath sFile;
         if (!windowResPath.IsEmpty()) {
             //在窗口目录查找
-            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+            sFile = FilePathUtil::JoinFilePath(defaultThemeRootPath, windowResPath);
             sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
             if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
                 //在窗口资源目录查找成功
@@ -220,7 +224,7 @@ bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windo
         }
         if (!bFoundXmlFile && !m_resPath.IsEmpty()) {
             //在设置的资源路径中查找
-            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), m_resPath);
+            sFile = FilePathUtil::JoinFilePath(defaultThemeRootPath, m_resPath);
             sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
             if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
                 //在窗口资源目录查找成功
@@ -229,7 +233,7 @@ bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windo
             }
         }
         if (!bFoundXmlFile) {
-            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+            sFile = FilePathUtil::JoinFilePath(defaultThemeRootPath, xmlFilePath);
             if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
                 //在资源根目录查找成功
                 bFoundXmlFile = true;
@@ -250,7 +254,7 @@ bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windo
         FilePath xmlFileFullPath;
         if (!windowResPath.IsEmpty()) {
             //在窗口目录查找
-            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
+            xmlFileFullPath = FilePathUtil::JoinFilePath(defaultThemeRootPath, windowResPath);
             xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
             if (xmlFileFullPath.IsExistsFile()) {
                 //在窗口资源目录查找成功
@@ -260,7 +264,7 @@ bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windo
         }        
         if (!bFoundXmlFile && !m_resPath.IsEmpty()) {
             //在设置的资源路径中查找
-            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), m_resPath);
+            xmlFileFullPath = FilePathUtil::JoinFilePath(defaultThemeRootPath, m_resPath);
             xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
             if (xmlFileFullPath.IsExistsFile()) {
                 //在窗口资源目录查找成功
@@ -269,7 +273,7 @@ bool XmlBox::ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windo
             }
         }
         if (!bFoundXmlFile) {
-            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+            xmlFileFullPath = FilePathUtil::JoinFilePath(defaultThemeRootPath, xmlFilePath);
             if (xmlFileFullPath.IsExistsFile()) {
                 //在资源根目录查找成功
                 bFoundXmlFile = true;
@@ -310,11 +314,16 @@ FilePath XmlBox::GetFirstDirectory(const FilePath& resPath) const
 FilePath XmlBox::GetResDirectory(FilePath xmlFilePath, const FilePath& windowResPath) const
 {
     FilePath resPath;
-    if (!xmlFilePath.IsEmpty() && xmlFilePath.IsAbsolutePath()) {
-        xmlFilePath.NormalizeFilePath();
-        const DString xmlFilePathString = xmlFilePath.ToString();
+    if (xmlFilePath.IsEmpty() || !xmlFilePath.IsAbsolutePath()) {
+        return resPath;
+    }
+    xmlFilePath.NormalizeFilePath();
+    const DString xmlFilePathString = xmlFilePath.ToString();
+    std::vector<FilePath> resFileSearchPathList;
+    GlobalManager::Instance().Theme().GetResFileSearchPath(windowResPath, resFileSearchPathList);
+    for (const FilePath& resFileSearchPath : resFileSearchPathList) {
         if (!windowResPath.IsEmpty()) {
-            FilePath globalResPath = GlobalManager::Instance().GetResourcePath();
+            FilePath globalResPath = resFileSearchPath;
             globalResPath.NormalizeDirectoryPath();
             FilePath windowResPathFull = globalResPath;
             windowResPathFull.JoinFilePath(windowResPath);
@@ -324,9 +333,8 @@ FilePath XmlBox::GetResDirectory(FilePath xmlFilePath, const FilePath& windowRes
                 resPath = windowResPath;
             }
         }
-
         if (resPath.IsEmpty()) {
-            FilePath globalResPath = GlobalManager::Instance().GetResourcePath();
+            FilePath globalResPath = resFileSearchPath;
             globalResPath.NormalizeDirectoryPath();
             const DString globalResPathString = globalResPath.ToString();
             DString::size_type pos = xmlFilePathString.find(globalResPathString);
@@ -338,6 +346,9 @@ FilePath XmlBox::GetResDirectory(FilePath xmlFilePath, const FilePath& windowRes
                     resPath = GetFirstDirectory(FilePath(resSubPath));
                 }
             }
+        }
+        if (!resPath.IsEmpty()) {
+            break;
         }
     }
     return resPath;

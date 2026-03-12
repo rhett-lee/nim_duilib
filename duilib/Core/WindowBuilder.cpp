@@ -191,28 +191,6 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
     return pControl;
 }
 
-bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
-{
-    if (xmlFilePath.IsEmpty()) {
-        return false;
-    }
-    bool bExists = false;
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-        bExists = GlobalManager::Instance().Zip().IsZipResExist(sFile);
-    }
-    else {
-        if (xmlFilePath.IsAbsolutePath()) {
-            bExists = xmlFilePath.IsExistsFile();
-        }
-        else {
-            FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-            bExists = xmlFullPath.IsExistsFile();
-        }
-    }
-    return bExists;
-}
-
 bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath)
 {
     ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
@@ -266,43 +244,28 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
     if (xmlFilePath.IsEmpty()) {
         return false;
     }
+
     bool isLoaded = false;
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-        if (!windowResPath.IsEmpty() && !GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
-            //在窗口目录查找
-            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
-            sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
-        }
-        std::vector<unsigned char> file_data;
-        if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
-            pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
+    FilePath xmlFileFullPath;
+    std::vector<uint8_t> xmlFileData;
+    const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+    if (themeMgr.GetResFile(xmlFilePath, windowResPath, xmlFileFullPath, xmlFileData)) {
+        if (!xmlFileData.empty()) {
+            pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.data(), xmlFileData.size());
             if (result.status != pugi::status_ok) {
                 ASSERT(!_T("WindowBuilder::ParseXmlFile load xml from zip data failed!"));
                 return false;
             }
             isLoaded = true;
         }
-    }
-    else {
-        FilePath xmlFileFullPath;
-        if (xmlFilePath.IsRelativePath()) {
-            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-            if (!windowResPath.IsEmpty() && !xmlFileFullPath.IsExistsFile()) {
-                //在窗口目录查找
-                xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
-                xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
+        else if (!xmlFileFullPath.IsEmpty()) {
+            pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
+            if (result.status != pugi::status_ok) {
+                ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
+                return false;
             }
+            isLoaded = true;
         }
-        else {
-            xmlFileFullPath = xmlFilePath;
-        }
-        pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
-        if (result.status != pugi::status_ok) {
-            ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
-            return false;
-        }
-        isLoaded = true;
     }
     if (!isLoaded) {
         ASSERT(!_T("WindowBuilder::ParseXmlFile load xmlFilePath failed!"));
@@ -358,7 +321,7 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
              (strClass == _T("Font"))           ||
              (strClass == _T("Class"))          ||
              (strClass == _T("TextColor"))      ||
-             (strClass == _T("Threme"))         ||
+             (strClass == _T("Theme"))         ||
              (strClass == _T("Alias"))          ||
              (strClass == _T("Define")) ) {
             //忽略这几个属性
@@ -1016,22 +979,32 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
             DString defineValue = node.attribute(_T("value")).as_string();
             GlobalManager::Instance().AddDefine(defineName, defineValue);
         }
-        else if (strClass == _T("Threme")) {
-            DString themeName = node.attribute(_T("name")).as_string();
-            DString themeType = node.attribute(_T("type")).as_string();
-            GlobalManager::Instance().SetThemeName(themeName);
-            themeType = StringUtil::MakeLowerString(themeType);
-            if (themeType == _T("dark")) {
-                GlobalManager::Instance().SetThemeType(ThemeType::kThemeDark);
-            }
-            else if (themeType == _T("light")) {
-                GlobalManager::Instance().SetThemeType(ThemeType::kThemeLight);
-            }
-            else {
-                GlobalManager::Instance().SetThemeType(ThemeType::kThemeUnknown);
-            }
+        else if (strClass == _T("Theme")) {
+            //跳过
         }
     }
+}
+
+bool WindowBuilder::ParseThemeInfo(DString& themeName, DString& themeType, DString& themeStyle) const
+{
+    pugi::xml_node root = m_xml->root().first_child();
+    if (root.empty()) {
+        return false;
+    }
+    DString strClass = root.name();
+    if (strClass != _T("Global")) {
+        return false;
+    }
+    for (pugi::xml_node node : root.children()) {
+        strClass = node.name();
+        if (strClass == _T("Theme")) {
+            themeName = node.attribute(_T("name")).as_string();
+            themeType = node.attribute(_T("type")).as_string();
+            themeStyle = node.attribute(_T("style")).as_string();
+            return true;
+        }
+    }
+    return false;
 }
 
 void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
@@ -1102,7 +1075,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             (strClass == _T("FontFile"))  ||
             (strClass == _T("Class"))     || 
             (strClass == _T("TextColor")) ||
-            (strClass == _T("Threme"))     ||
+            (strClass == _T("Theme"))     ||
             (strClass == _T("Alias"))     ||
             (strClass == _T("Define"))) {
             continue;
@@ -1125,18 +1098,19 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
                 sourceAttr = node.attribute(_T("source"));
                 sourceValue = sourceAttr.as_string();                
             }
+            const FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
             FilePath sourceXmlFilePath(sourceValue);
             if (!sourceValue.empty()) {
                 StringUtil::ReplaceAll(_T("/"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
                 StringUtil::ReplaceAll(_T("\\"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
                 if (!m_xmlFilePath.IsEmpty()) {
                     //优先尝试在原XML文件相同目录加载
-                    DString xmlFilePath = m_xmlFilePath.NativePath();
+                    DString xmlFilePath = m_xmlFilePath.ToString();
                     size_t pos = xmlFilePath.find_last_of(_T("\\/"));
                     if (pos != DString::npos) {
                         FilePath srcFilePath(xmlFilePath.substr(0, pos));
                         srcFilePath.JoinFilePath(FilePath(sourceValue));
-                        if (IsXmlFileExists(srcFilePath)) {
+                        if (GlobalManager::Instance().Theme().IsResFileExists(srcFilePath, windowResPath)) {
                             sourceXmlFilePath = srcFilePath;
                         }
                     }
@@ -1147,8 +1121,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
                 continue;
             }
             for ( int i = 0; i < nCount; i++ ) {
-                WindowBuilder builder;
-                FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
+                WindowBuilder builder;                
                 if (builder.ParseXmlFile(sourceXmlFilePath, windowResPath)) {
                     pControl = builder.CreateControls(pWindow, m_createControlCallback, ToBox(pParent), nullptr);
                 }

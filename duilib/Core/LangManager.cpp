@@ -7,12 +7,12 @@ namespace ui
 {
 LangManager::LangManager()
 {
-};
+}
 
 LangManager::~LangManager()
 {
     m_stringTable.clear();
-};
+}
 
 bool LangManager::LoadStringTable(const FilePath& strFilePath)
 {

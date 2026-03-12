@@ -542,26 +542,34 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
 
 void ControlForm::LoadRichEditData()
 {
-    std::streamoff length = 0;    
-    ui::FilePath controlsXml = ui::GlobalManager::Instance().GetResourcePath();
-    controlsXml += GetResourcePath();
-    controlsXml += GetSkinFile();
+    ui::FilePath resFileFullPath;
+    std::vector<uint8_t> resFileData;
+    ui::FilePath windowResPath = GetResourcePath();
+    ui::FilePath xmlFilePath = ui::FilePath(GetSkinFile());
+    if (!ui::GlobalManager::Instance().Theme().GetResFile(xmlFilePath, windowResPath, resFileFullPath, resFileData)) {
+        return;
+    }
 
-    //XML 文件按UTF8编码加载
-    std::vector<uint8_t> xmlData;
-    if (ui::GlobalManager::Instance().Zip().IsUseZip()) {
-        //使用Zip模式
-        ui::GlobalManager::Instance().Zip().GetZipData(controlsXml, xmlData);
+    DString xmlU;
+    if (resFileData.empty()) {
+        std::string xml;
+        std::ifstream ifs(resFileFullPath.NativePath().c_str(), std::ios::binary);
+        if (ifs.is_open()) {
+            ifs.seekg(0, std::ios_base::end);
+            std::streamoff length = ifs.tellg();
+            ifs.seekg(0, std::ios_base::beg);
+
+            xml.resize(static_cast<unsigned int>(length));
+            ifs.read(&xml[0], length);
+            ifs.close();
+        }
+        xmlU = ui::StringConvert::UTF8ToT(xml);
     }
     else {
-        ui::FileUtil::ReadFileData(controlsXml, xmlData);
+        resFileData.push_back(0);
+        resFileData.push_back(0);
+        xmlU = ui::StringConvert::UTF8ToT((const char*)resFileData.data());
     }
-    std::string xml;
-    if (!xmlData.empty()) {
-        xml.append((const char*)xmlData.data(), xmlData.size());
-    }
-    DString xmlU = ui::StringConvert::UTF8ToT(xml);
-
     // Post task to UI thread
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));
 }

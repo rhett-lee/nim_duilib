@@ -221,8 +221,26 @@ Shadow::Shadow(Window* pWindow):
     m_bRightSnap(false),
     m_bBottomSnap(false),
     m_nShadowBorderSize(2),
-    m_shadowBorderColor(_T("#FFA3A3A3"))
+    m_shadowBorderColor(_T(""))
 {
+    //默认阴影边框的颜色
+    const DString borderWindow = _T("border_window");
+    if (!GlobalManager::Instance().Color().GetColor(borderWindow).IsEmpty()) {
+        m_shadowBorderColor = borderWindow;
+    }
+    else {
+        //若无配置，则设置默认值
+        if (GlobalManager::Instance().Theme().GetCurrentThemeStyle() == ThemeStyle::kDark) {
+            //深色主题
+            m_shadowBorderColor = _T("#FF444444");
+        }
+        else {
+            //浅色主题
+            m_shadowBorderColor = _T("#FFB5B5B5");
+        }
+    }
+
+    //设置默认的阴影类型
     SetShadowType(Shadow::ShadowType::kShadowDefault);
 }
 

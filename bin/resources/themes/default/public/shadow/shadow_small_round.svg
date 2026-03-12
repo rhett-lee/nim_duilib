@@ -17,11 +17,11 @@
 
   <!-- 带阴影的主体矩形（使用x/y定位更直观），rx代表圆角半径，ry可以省略，默认与rx相同 -->
   <rect x="24" y="24" width="200" height="200" rx="6"
-        fill="#FFFF00" filter="url(#naturalShadow)"/>
+        fill="#B5B5B5" filter="url(#naturalShadow)"/>
   
   <!-- 描边层（与主体分离，避免阴影干扰描边） -->
   <rect x="24" y="24" width="200" height="200" rx="6"
-        fill="white" stroke="none" stroke-width="1.6"/>
+        fill="#B5B5B5" stroke="none" stroke-width="1.6"/>
 </svg>
 
 <!-- 图片尺寸的计算方法 -->

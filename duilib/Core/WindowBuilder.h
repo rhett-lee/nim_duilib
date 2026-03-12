@@ -94,6 +94,13 @@ public:
     */
     bool ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes);
 
+    /** 从当前XML中解析出主题相关数据
+    * @param [out] themeName 主题名称
+    * @param [out] themeType 主题类型
+    * @param [out] themeStyle 主题风格
+    */
+    bool ParseThemeInfo(DString& themeName, DString& themeType, DString& themeStyle) const;
+
 public:
     /** 解析出窗口的属性(属性名称保存在Map的Key中，属性的值保存在属性的Value中)
     */
@@ -164,10 +171,6 @@ private:
     *   </Option>
     */
     void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
-
-    /** 判断XML文件是否存在
-    */
-    bool IsXmlFileExists(const FilePath& xmlFilePath) const;
 
     /** 解析字体节点
     */

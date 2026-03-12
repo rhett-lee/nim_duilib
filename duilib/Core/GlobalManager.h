@@ -14,6 +14,7 @@
 #include "duilib/Core/CursorManager.h"
 #include "duilib/Core/IconManager.h"
 #include "duilib/Core/WindowManager.h"
+#include "duilib/Core/ThemeManager.h"
 #include "duilib/Image/ImageDecoderFactory.h"
 
 #include <string>
@@ -69,28 +70,6 @@ public:
     void Shutdown();
 
 public:
-    /** 设置皮肤资源所在路径
-     *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
-     *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
-     */
-    void SetResourcePath(const FilePath& strPath);
-
-    /** 获取当前资源所在路径
-     */
-    const FilePath& GetResourcePath() const;
-
-    /** 重新加载皮肤资源（可通过此接口实现动态换肤功能）
-    * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
-     *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
-     *                         使用 LocalFilesResParam 类型作为参数
-     *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
-     *                         使用 ZipFileResParam 类型作为参数
-     *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
-     *                         使用 ResZipFileResParam 类型作为参数
-     * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
-    */
-    bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
-
     /** 获取平台相关数据（可选参数，如不填写则使用默认值：nullptr）
     *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
     */
@@ -103,22 +82,6 @@ public:
     /** 获取字体文件所在路径
     */
     const FilePath& GetFontFilePath() const;
-
-    /** 获取主题类型
-    */
-    ThemeType GetThemeType() const;
-
-    /** 设置主题类型
-    */
-    void SetThemeType(ThemeType themeType);
-
-    /** 获取当前主题名称
-    */
-    const DString& GetThemeName() const;
-
-    /** 设置当前主题名称
-    */
-    void SetThemeName(const DString& themeName);
 
 public:
     /** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
@@ -234,9 +197,12 @@ public:
     */
     WindowManager& Windows();
 
+    /** 主题管理器
+    */
+    ThemeManager& Theme();
+
 public:
     /** 根据资源加载方式，返回对应的资源路径
-     * @param[in] path 要获取的资源路径
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
      * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
@@ -274,10 +240,6 @@ public:
     * @param [in] callbackId 待删除回调函数的ID
     */
     void RemoveResNotFoundCallback(size_t callbackId);
-
-    /** 判断一个路径是否在public子目录中
-    */
-    bool IsResInPublicPath(const FilePath& resPath) const;
 
 public:
     /** CreateBox/CreateBoxWithCache 和 FillBox/FillBoxWithCache 函数的使用说明
@@ -438,20 +400,20 @@ public:
     void ExpandDefinePlaceholders(DString& varValue) const;
 
 private:
+    /** 加载全局资源
+    * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
+    *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
+    *                         使用 LocalFilesResParam 类型作为参数
+    *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
+    *                         使用 ZipFileResParam 类型作为参数
+    *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
+    *                         使用 ResZipFileResParam 类型作为参数
+    */
+    bool LoadGlobalResource(const ResourceParam& resParam);
+
     /** 从缓存中删除所有图片
      */
     void RemoveAllImages();
-
-    /** 检查图片文件路径是否存在
-    * @param [in,out] imageFullPath 如果不存在清空，如果存在保留
-    * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
-    */
-    void CheckImagePath(FilePath& imageFullPath, bool& bLocalPath);
-
-    /** 根据资源加载方式，返回对应的资源路径
-    */
-    FilePath FindExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
-                                   const FilePath& resPath, bool& bLocalPath, bool& bResPath);
 
 private:
     /** 资源加载失败的回调函数相关数据
@@ -466,10 +428,6 @@ private:
     /** 渲染引擎管理接口
     */
     std::unique_ptr<IRenderFactory> m_renderFactory;
-
-    /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
-    */
-    FilePath m_resourcePath;
 
     /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
     *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
@@ -506,7 +464,7 @@ private:
 
     /** 颜色管理器
     */
-    ColorManager m_colorManager;
+    std::unique_ptr<ColorManager> m_pColorManager;
 
     /** 字体管理器
     */
@@ -552,6 +510,10 @@ private:
     */
     WindowManager m_windowManager;
 
+    /** 主题管理器
+    */
+    ThemeManager m_themeManager;
+
     /** 退出时要执行的函数
     */
     std::vector<std::function<void()>> m_atExitFunctions;
@@ -572,13 +534,9 @@ private:
     */
     bool m_bAnimationEnabled;
 
-    /** 主题类型
+    /** 是否已经初始化
     */
-    ThemeType m_themeType;
-
-    /** 主题名称
-    */
-    DString m_themeName;
+    bool m_bStartup;
 };
 
 } // namespace ui

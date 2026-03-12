@@ -52,18 +52,34 @@ public:
     void* platformData = nullptr;
 
 public:
-    /** 主题路径名称（相对路径）
+    /** 主题资源所在的根路径（在资源目录resourcePath中的相对路径），不可为空
     */
-#if defined (DUILIB_BUILD_FOR_WIN)
-    FilePath themePath = FilePath(_T("themes\\default"));
-#else
-    FilePath themePath = FilePath(_T("themes/default"));
-#endif
+    FilePath themeRootPath = FilePath(_T("themes"));
 
-    /** 外部字体文件所在路径
+public:
+    /** 主题的默认资源路径（在themeRootPath中的相对路径），不可为空，设置后不可修改
+     *  该目录中保存各个主题公用的资源，比如图片，XML布局等
+     */
+    FilePath defaultThemePath = FilePath(_T("default"));
+
+    /** 全局资源描述XML文件的文件名，默认为："global.xml"
+    *   该文件应该放置在每个主题目录中
     */
-    FilePath fontFilePath = FilePath(_T("fonts"));
+    DString globalXmlFileName = _T("global.xml");
 
+    /** 颜色主题资源路径（在themeRootPath中的相对路径）
+     *  当需要切换主题风格时（比如浅色主题或者深色主题），可以通过切换颜色主题来实现；
+     *  该值可以为空
+     */
+    FilePath colorThemePath = FilePath(_T("color_dark"));
+
+    /** 图标主题资源路径（在themeRootPath中的相对路径）
+     *  当需要切换界面中的图标时（比如菜单图标、按钮图标等），可以通过切换图标主题来实现；
+     *  该值可以为空
+     */
+    FilePath iconThemePath;
+
+public:
     /** 语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
     *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
@@ -74,9 +90,10 @@ public:
     */
     DString languageFileName = _T("zh_CN.txt");
 
-    /** 全局资源描述XML文件的文件名，默认为："global.xml"
+public:
+    /** 外部字体文件所在路径（在资源目录中的相对路径）
     */
-    DString globalXmlFileName = _T("global.xml");
+    FilePath fontFilePath = FilePath(_T("fonts"));
 };
 
 /** 加载全局资源所需的参数（本地文件形式，对应资源类型：kLocalFiles）

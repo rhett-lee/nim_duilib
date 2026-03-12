@@ -30,13 +30,15 @@ bool FontManager::AddFont(const DString& fontId, const UiFont& fontInfo, bool bD
     if (fontInfo.m_fontSize <= 0) {
         return false;
     }
-
-    auto iter = m_fontIdMap.find(fontId);
-    ASSERT(iter == m_fontIdMap.end());
-    if (iter != m_fontIdMap.end()) {
-        //避免相同的字体ID重复添加
-        return false;
+#ifdef _DEBUG
+    if (!GlobalManager::Instance().Theme().IsSwitchingTheme()) {
+        //在切换主题的时候，允许覆盖，其他情况下覆盖时断言
+        auto iter = m_fontIdMap.find(fontId);
+        if (iter != m_fontIdMap.end()) {
+            ASSERT(iter->second == fontInfo);
+        }
     }
+#endif
 
     //保存字体信息，但不创建字体数据
     m_fontIdMap[fontId] = fontInfo;

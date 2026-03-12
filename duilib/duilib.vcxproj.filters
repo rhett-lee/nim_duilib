@@ -873,6 +873,9 @@
     <ClCompile Include="Animation\EasingFunctions.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ThemeManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1813,6 +1816,9 @@
     </ClInclude>
     <ClInclude Include="Animation\EasingFunctions.h">
       <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ThemeManager.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

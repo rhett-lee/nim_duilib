@@ -97,7 +97,7 @@ private:
     * @param [out] xmlResPath XML文件对应的资源文件路径
     */
     bool ReadXmlFileData(const FilePath& xmlInputPath, const FilePath& windowResPath,
-                         std::vector<unsigned char>& xmlFileData, FilePath& xmlOutputPath, FilePath& xmlResPath) const;
+                         std::vector<uint8_t>& xmlFileData, FilePath& xmlOutputPath, FilePath& xmlResPath) const;
 
     /** 从相对路径中，解析出第一级目录
     */

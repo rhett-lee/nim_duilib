@@ -988,30 +988,41 @@ void MainForm::UpdateSaveStatus()
 
 void MainForm::LoadRichEditData()
 {
-    std::streamoff length = 0;
-    std::string xml;
-    ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
-    controls_xml += GetResourcePath();
-    controls_xml += GetSkinFile();
-
-    std::ifstream ifs(controls_xml.NativePath().c_str(), std::ios::binary);
-    if (ifs.is_open()) {
-        ifs.seekg(0, std::ios_base::end);
-        length = ifs.tellg();
-        ifs.seekg(0, std::ios_base::beg);
-
-        xml.resize(static_cast<unsigned int>(length));
-        ifs.read(&xml[0], length);
-        ifs.close();
+    ui::FilePath resFileFullPath;
+    std::vector<uint8_t> resFileData;
+    ui::FilePath windowResPath = GetResourcePath();
+    ui::FilePath xmlFilePath = ui::FilePath(GetSkinFile());
+    if (!ui::GlobalManager::Instance().Theme().GetResFile(xmlFilePath, windowResPath, resFileFullPath, resFileData)) {
+        return;
     }
-    DString xmlU = ui::StringConvert::UTF8ToT(xml);
+
+    DString xmlU;
+    if (resFileData.empty()) {        
+        std::string xml;
+        std::ifstream ifs(resFileFullPath.NativePath().c_str(), std::ios::binary);
+        if (ifs.is_open()) {
+            ifs.seekg(0, std::ios_base::end);
+            std::streamoff length = ifs.tellg();
+            ifs.seekg(0, std::ios_base::beg);
+
+            xml.resize(static_cast<unsigned int>(length));
+            ifs.read(&xml[0], length);
+            ifs.close();
+        }
+        xmlU = ui::StringConvert::UTF8ToT(xml);
+    }
+    else {
+        resFileData.push_back(0);
+        resFileData.push_back(0);
+        xmlU = ui::StringConvert::UTF8ToT((const char*)resFileData.data());
+    }
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);
         m_pRichEdit->SetFocus();
         m_pRichEdit->HomeUp();
         m_pRichEdit->SetModify(false);
-        m_filePath = controls_xml;
+        m_filePath = resFileFullPath;
     }
 }
 

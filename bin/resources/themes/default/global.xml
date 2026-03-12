@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!-- 主题名称和主题类型 -->
-    <Threme name="Light" type="Light"/>
+    <Theme name="Default" type="Combined" style="Light"/>
         
     <!-- ===================== 全局变量定义 ===================== -->
     <!-- 尺寸变量 -->
@@ -115,6 +115,7 @@
     <TextColor name="text_menu_bar" value="#FF1E1E1E"/>      <!-- 补充：菜单栏文本，与主要文本一致 -->
 
     <!-- 背景颜色 - 按层级划分，从浅到深适配不同容器 -->
+    <TextColor name="border_window" value="#FFB5B5B5"/>      <!-- 中性浅灰，不刺眼、不突兀 -->
     <TextColor name="bg_window_dark" value="#FFF2F2F2"/>     <!-- 窗口深色背景：主窗口/面板底色（加深，区分层级） -->
     <TextColor name="bg_window_light" value="#FFFFFFFF"/>    <!-- 窗口浅色背景：卡片/弹窗底色 -->    
     <TextColor name="bg_titlebar" value="#FFEFEFEF"/>        <!-- 窗口标题栏背景色: 浅色 -->
@@ -162,8 +163,7 @@
     <TextColor name="bg_btn_pressed" value="#FFBFD7FF"/>   <!-- 次要按钮pressed：中蓝（比原#FFCCE5FF深，点击反馈更强） -->
     <TextColor name="bg_btn_disabled" value="#FFEEEEEE"/>  <!-- 次要按钮禁用背景：与正常背景一致（仅文本变灰，符合Win11规范） -->
 
-    <!-- 可选添加按钮边框（进一步强化存在感） -->
-    <Define name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
+    <!-- 可选添加按钮边框（进一步强化存在感） -->    
     <TextColor name="border_btn_normal" value="#FFD1D5DB"/> <!-- 次要按钮默认边框：浅灰边框（新增，强化按钮轮廓） -->
     <TextColor name="border_btn_hover" value="#FF94BFFF"/>  <!-- 次要按钮hover边框：浅蓝边框（新增，悬浮时边框变色） -->
     <TextColor name="border_btn_pressed" value="#FF60A5FA"/> <!-- 次要按钮pressed边框：中蓝边框（新增，点击时边框加深） -->
@@ -179,7 +179,6 @@
     <TextColor name="bg_primary_btn_disabled" value="#FF78A3D1"/>  <!-- 主要按钮禁用背景：低饱和浅蓝 -->
 
     <!-- 主要按钮默认边框（Win11 25H2 规范：细深色边框，增强精致感）-->
-    <Define name="border_primary_btn_size" value="0"/> <!-- 主要按默认边框：边框大小 -->
     <TextColor name="border_primary_btn_normal" value="#FF005A9E"/>   <!-- 主要按钮默认边框：深一点的蓝 -->
     <TextColor name="border_primary_btn_hover" value="#FF0063B0"/>    <!-- 主要按钮hover边框 -->
     <TextColor name="border_primary_btn_pressed" value="#FF004F8A"/>  <!-- 主要按钮pressed边框 -->
@@ -238,6 +237,9 @@
     <TextColor name="bg_property_grid_split" value="#FFA9A9A9"/>             <!-- 分组分割线：中灰，与表头分割线一致 -->
     <TextColor name="bg_property_grid_line" value="#FFA9A9A9"/>              <!-- 网格分割线：中灰，与表头分割线一致 -->
     <!-- ===================== 颜色配置（Windows 11 浅色主题）结束 ===================== -->
+    
+    <Define name="border_primary_btn_size" value="0"/> <!-- 主要按默认边框：边框大小 -->
+    <Define name="border_btn_size" value="1"/> <!-- 次要按钮默认边框：边框大小 -->
     
     <!-- ===================== 完整兼容别名（旧属性名 → 新属性名） ===================== -->
     <!-- 1. 颜色属性兼容别名 -->

@@ -1,6 +1,7 @@
 #include "BitmapControl.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/FileUtil.h"
@@ -447,14 +448,27 @@ void BitmapControl::CheckLoadBitmapFile()
 {
     if (!m_bitmapFile.empty() && (m_pBitmap == nullptr)) {
         //加载指定的图片: 加载图片数据时无优化，仅供测试功能时使用
-        ImageDecodeParam decodeParam;
-        FilePath resPath = ui::GlobalManager::Instance().GetResourcePath();
-        resPath += m_bitmapFile.c_str();
-        decodeParam.m_imageFilePath = resPath;
-        decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
-        decodeParam.m_fImageSizeScale = Dpi().GetDisplayScale();
-        FileUtil::ReadFileData(decodeParam.m_imageFilePath, *decodeParam.m_pFileData);
-        std::shared_ptr<IBitmap> pBitmap = GlobalManager::Instance().ImageDecoders().DecodeImageData(decodeParam);
+        FilePath bitmapFileFullPath;
+        std::vector<uint8_t> bitmapFileData;
+        const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+        FilePath windowResPath;
+        if (GetWindow() != nullptr) {
+            windowResPath = GetWindow()->GetResourcePath();
+        }
+        std::shared_ptr<IBitmap> pBitmap;
+        if (themeMgr.GetResFile(FilePath(m_bitmapFile.c_str()), windowResPath, bitmapFileFullPath, bitmapFileData)) {
+            ImageDecodeParam decodeParam;
+            decodeParam.m_imageFilePath = bitmapFileFullPath;
+            decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+            decodeParam.m_fImageSizeScale = Dpi().GetDisplayScale();
+            if (bitmapFileData.empty()) {
+                FileUtil::ReadFileData(decodeParam.m_imageFilePath, *decodeParam.m_pFileData);
+            }
+            else {
+                decodeParam.m_pFileData->swap(bitmapFileData);
+            }            
+            pBitmap = GlobalManager::Instance().ImageDecoders().DecodeImageData(decodeParam);
+        }        
         ASSERT(pBitmap != nullptr);
         if (pBitmap != nullptr) {
             SetBitmapDataWithCopy(pBitmap.get());

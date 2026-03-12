@@ -71,7 +71,7 @@ private:
 GlobalManager::GlobalManager():
     m_platformData(nullptr),
     m_bAnimationEnabled(true),
-    m_themeType(ThemeType::kThemeLight)
+    m_bStartup(false)
 {
 }
 
@@ -88,6 +88,7 @@ GlobalManager& GlobalManager::Instance()
 
 FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
 {
+    //TODO：Check
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
     //MacOS平台，优先使用bundle的资源目录
@@ -117,6 +118,10 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
                             const CreateControlCallback& callback)
 {
     PerformanceUtil::Instance().BeginStat(_T("Startup"));//程序启动时间统计
+    ASSERT(!m_bStartup);
+    if (m_bStartup) {
+        return false;//禁止重复初始化
+    }
     ASSERT(m_renderFactory == nullptr);
     if (m_renderFactory != nullptr) {
         return false;
@@ -187,7 +192,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     StartInnerThread(ThreadIdentifier::kThreadImage2);
 
     //加载资源
-    if (!ReloadResource(resParam, false)) {
+    if (!LoadGlobalResource(resParam)) {
         m_renderFactory.reset();
         return false;
     }
@@ -206,24 +211,29 @@ void GlobalManager::Shutdown()
 
     m_threadManager.Clear();
     m_timerManager.Clear();
-    m_colorManager.Clear();    
+    if (m_pColorManager != nullptr) {
+        m_pColorManager->Clear();
+    }    
     m_fontManager.RemoveAllFonts();
     m_fontManager.RemoveAllFontFiles();
     m_imageManager.RemoveAllImages();
     m_zipManager.CloseResZip();    
     m_langManager.ClearStringTable();
     m_windowManager.Clear();
+    m_themeManager.Clear();
     
     m_renderFactory.reset();
     m_renderFactory = nullptr;
     m_pfnCreateControlCallbackList.clear();
     m_globalClass.clear();    
     m_dwUiThreadId = std::thread::id();
-    m_resourcePath.Clear();
     m_languagePath.Clear();
     m_fontFilePath.Clear();
     m_builderMap.clear();
     m_platformData = nullptr;
+
+    m_aliasMap.clear();
+    m_defineMap.clear();
 
     //执行退出时清理资源的函数
     for (std::function<void()> atExitFunction : m_atExitFunctions) {
@@ -237,6 +247,7 @@ void GlobalManager::Shutdown()
     ::CoUninitialize();
     ::OleUninitialize();
 #endif
+    m_bStartup = false;
 }
 
 bool GlobalManager::StopInnerThread(int32_t nThreadIdentifier)
@@ -306,17 +317,6 @@ bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
     return bRet;
 }
 
-const FilePath& GlobalManager::GetResourcePath() const
-{
-    return m_resourcePath;
-}
-
-void GlobalManager::SetResourcePath(const FilePath& strPath)
-{
-    m_resourcePath = strPath;
-    m_resourcePath.NormalizeDirectoryPath();
-}
-
 void* GlobalManager::GetPlatformData() const
 {
     return m_platformData;
@@ -331,26 +331,6 @@ void GlobalManager::SetFontFilePath(const FilePath& strPath)
 const FilePath& GlobalManager::GetFontFilePath() const
 {
     return m_fontFilePath;
-}
-
-ThemeType GlobalManager::GetThemeType() const
-{
-    return m_themeType;
-}
-
-void GlobalManager::SetThemeType(ThemeType themeType)
-{
-    m_themeType = themeType;
-}
-
-const DString& GlobalManager::GetThemeName() const
-{
-    return m_themeName;
-}
-
-void GlobalManager::SetThemeName(const DString& themeName)
-{
-    m_themeName = themeName;
 }
 
 void GlobalManager::SetLanguagePath(const FilePath& strPath)
@@ -369,22 +349,41 @@ const DString& GlobalManager::GetLanguageFileName() const
     return m_languageFileName;
 }
 
-bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalidate)
+bool GlobalManager::LoadGlobalResource(const ResourceParam& resParam)
 {
     AssertUIThread();
     //校验输入参数
-    FilePath strResourcePath = resParam.resourcePath;
+    ASSERT(!resParam.themeRootPath.IsEmpty());
+    if (resParam.themeRootPath.IsEmpty()) {
+        return false;
+    }
+    ASSERT(!resParam.defaultThemePath.IsEmpty());
+    if (resParam.defaultThemePath.IsEmpty()) {
+        return false;
+    }
+    ASSERT(!resParam.globalXmlFileName.empty());
+    if (resParam.globalXmlFileName.empty()) {
+        return false;
+    }
+
+    const FilePath resourcePath = resParam.resourcePath;        //资源根目录: resources（使用zip时是相对路径，使用文件系统是是本地绝对路径）
+    FilePath themeRootFullPath = resourcePath;
+    themeRootFullPath /= resParam.themeRootPath;                        //主题根目录：resources/themes
+
+    FilePath globalXmlFileNameFullPath = themeRootFullPath;             //主题根目录：resources/themes
+    globalXmlFileNameFullPath /= resParam.defaultThemePath;             //默认主题目录：resources/themes/default
+    globalXmlFileNameFullPath /= FilePath(resParam.globalXmlFileName);  //配置文件：resources/themes/default/global.xml
+    globalXmlFileNameFullPath.NormalizeFilePath();                      //默认取值示例：resources/themes/default/global.xml
+
     if (resParam.GetResType() == ResourceType::kLocalFiles) {
         //本地文件的形式，所有资源都已本地文件的形式存在
-        ASSERT(!strResourcePath.IsEmpty());
-        if (strResourcePath.IsEmpty()) {
+        ASSERT(!resourcePath.IsEmpty());
+        if (resourcePath.IsEmpty()) {
             ASSERT(!"Resource path is empty!");
             return false;
         }
-        FilePath themePath = FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath);
-        themePath.NormalizeDirectoryPath();
-        if (!themePath.IsExistsDirectory()) {
-            ASSERT(!"Theme path not exists!");
+        if (!globalXmlFileNameFullPath.IsExistsFile()) {
+            ASSERT(!"global xml file not exists!");
             return false;
         }
     }
@@ -394,6 +393,10 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
         bool bZipOpenOk = Zip().OpenZipFile(param.zipFilePath, param.zipPassword);
         if (!bZipOpenOk) {
             ASSERT(!"OpenZipFile failed!");
+            return false;
+        }
+        if (!Zip().IsZipResExist(globalXmlFileNameFullPath)) {
+            ASSERT(!"global xml file not exists!");
             return false;
         }
     }
@@ -406,6 +409,10 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
             ASSERT(!"OpenResZip failed!");
             return false;
         }
+        if (!Zip().IsZipResExist(globalXmlFileNameFullPath)) {
+            ASSERT(!"global xml file not exists!");
+            return false;
+        }
     }
 #endif
     else {
@@ -413,49 +420,44 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
         return false;
     }
 
-    //清空原有资源数据（字体、颜色、图片资源等，这些资源在使用中会重新生成）
+    //清空原有资源数据（字体、颜色、Class定义、图片资源、别名、变量定义等）
     m_fontManager.RemoveAllFonts();
     m_fontManager.RemoveAllFontFiles();
-    m_colorManager.RemoveAllColors();
+    if (m_pColorManager != nullptr) {
+        m_pColorManager->RemoveAllColors();
+    }
     RemoveAllImages();
-
-    //保存资源路径
-    SetResourcePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath));
+    RemoveAllClasss();
+    ClearAlias();
+    ClearDefine();
 
     //保存字体文件所在路径
-    SetFontFilePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.fontFilePath));
-
-    //解析全局资源信息(默认是"global.xml"文件)
-    ASSERT(!resParam.globalXmlFileName.empty());
-    if (!resParam.globalXmlFileName.empty()) {
-        PerformanceStat statPerformance(_T("ParseXml, GlobalManager load global.xml"));
-        WindowBuilder globalbuilder;
-        Window tempWnd;
-        if (globalbuilder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
-            globalbuilder.CreateControls(&tempWnd);
-        }        
-    }
+    SetFontFilePath(FilePathUtil::JoinFilePath(resourcePath, resParam.fontFilePath));
 
     //加载多语言文件(可选)
     if (!resParam.languagePath.IsEmpty() && !resParam.languageFileName.empty()) {
-        FilePath languagePath = FilePathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
+        FilePath languagePath = FilePathUtil::JoinFilePath(resourcePath, resParam.languagePath);
         ReloadLanguage(languagePath, resParam.languageFileName, false);
     }
     else if (!resParam.languagePath.IsEmpty()) {
-        SetLanguagePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.languagePath));
+        SetLanguagePath(FilePathUtil::JoinFilePath(resourcePath, resParam.languagePath));
     }
 
-    //更新窗口中的所有子控件状态
-    if (bInvalidate) {
-        std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
-        for (const WindowPtr& pWindow : windowList) {
-            if (pWindow != nullptr) {
-                Box* pBox = pWindow->GetRoot();
-                if (pBox != nullptr) {
-                    pBox->SetPos(pBox->GetPos());
-                }
-                pWindow->InvalidateAll();
-            }
+    //加载默认主题资源
+    if (!Theme().InitTheme(themeRootFullPath, resParam.defaultThemePath, resParam.globalXmlFileName)) {
+        ASSERT(!"InitTheme failed!");
+        return false;
+    }
+    if (!resParam.iconThemePath.IsEmpty()) {
+        //加载图标主题资源
+        if (!Theme().SwitchIconTheme(resParam.iconThemePath)) {
+            ASSERT(!"Load icon theme failed!");
+        }
+    }
+    if (!resParam.colorThemePath.IsEmpty()) {
+        //加载颜色主题资源
+        if (!Theme().SwitchColorTheme(resParam.colorThemePath)) {
+            ASSERT(!"Load color theme failed!");
         }
     }
     return true;
@@ -568,7 +570,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     else if(m_zipManager.IsUseZip()){
         //相对路径，语言文件应该都在压缩包内
         std::vector<DString> fileList;
-        m_zipManager.GetZipFileList(languagePath, fileList);
+        m_zipManager.GetZipFileList(languagePath, &fileList, nullptr);
         for (auto const& file : fileList) {
             languageList.push_back({ file, _T("") });
         }
@@ -596,31 +598,6 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     return true;
 }
 
-void GlobalManager::CheckImagePath(FilePath& imageFullPath, bool& bLocalPath)
-{
-    imageFullPath.NormalizeFilePath();
-    if (m_zipManager.IsZipResExist(imageFullPath)) {
-        bLocalPath = false;
-    }
-    else if (imageFullPath.IsExistsFile()) {
-        bLocalPath = true;
-    }
-    else {
-        //如果文件不存在，返回空
-        imageFullPath.Clear();
-    }
-}
-
-bool GlobalManager::IsResInPublicPath(const FilePath& resPath) const
-{
-    DString resPathString = resPath.ToString();
-    StringUtil::ReplaceAll(_T("\\"), _T("/"), resPathString);
-    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
-        return true;
-    }
-    return false;
-}
-
 FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
 {
     bool bLocalPath = false;
@@ -635,7 +612,7 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
                                              bool& bLocalPath,
                                              bool& bResPath)
 {
-    FilePath imageFullPath = FindExistsResFullPath(windowResPath, windowXmlPath, resPath, bLocalPath, bResPath);
+    FilePath imageFullPath = Theme().FindExistsResFullPath(windowResPath, windowXmlPath, resPath, bLocalPath, bResPath);
     if (imageFullPath.IsEmpty()) {
         //图片资源加载失败，通过回调函数给出修正一次的机会
         std::vector<ResNotFoundCallbackData> resNotFoundCallbacks = m_resNotFoundCallbacks;
@@ -644,7 +621,7 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
             FilePath newWindowXmlPath = windowXmlPath;
             if (callbackData.m_callback(pControl, resPath, newWindowResPath, newWindowXmlPath)) {
                 if ((newWindowResPath != windowResPath) || (newWindowXmlPath != windowXmlPath)) {
-                    imageFullPath = FindExistsResFullPath(newWindowResPath, newWindowXmlPath, resPath, bLocalPath, bResPath);
+                    imageFullPath = Theme().FindExistsResFullPath(newWindowResPath, newWindowXmlPath, resPath, bLocalPath, bResPath);
                     if (!imageFullPath.IsEmpty()) {
                         //查找资源成功，终止尝试
                         break;
@@ -654,86 +631,6 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
         }
     }
     ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
-    return imageFullPath;
-}
-
-FilePath GlobalManager::FindExistsResFullPath(const FilePath& windowResPath,
-                                              const FilePath& windowXmlPath,
-                                              const FilePath& resPath,
-                                              bool& bLocalPath,
-                                              bool& bResPath)
-{
-    bLocalPath = true;
-    bResPath = true;
-    ASSERT(!resPath.IsEmpty());
-    if (resPath.IsEmpty()) {
-        return resPath;
-    }
-    FilePath imageFullPath;
-#ifdef DUILIB_BUILD_FOR_WIN
-    const bool bOSWindows = true;
-#else
-    const bool bOSWindows = false;
-#endif
-
-    bool bWindows = bOSWindows;//避免编译警告
-    if (bWindows && resPath.IsAbsolutePath()) {
-        //Windows平台的绝对路径: 外部文件
-        imageFullPath = resPath;
-        imageFullPath.NormalizeFilePath();
-        if (imageFullPath.IsExistsFile()) {
-            bLocalPath = true;
-            bResPath = false;
-        }
-        else {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
-        }
-    }
-    else {
-        //相对路径：首先在窗口的资源目录中查找（命中率高）
-        const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);        
-        if (IsResInPublicPath(resPath)) {
-            //优先从公共目录匹配
-            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-            CheckImagePath(imageFullPath, bLocalPath);
-        }
-        if (imageFullPath.IsEmpty()) {
-            //在窗口指定的目录中查找
-            imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
-            CheckImagePath(imageFullPath, bLocalPath);
-        }
-        if (imageFullPath.IsEmpty()) {
-            //其次在公共目录中查找（命中率高）
-            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-            CheckImagePath(imageFullPath, bLocalPath);
-        }
-        if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
-            //最后在XML文件所在目录中查找
-            const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
-            imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
-            CheckImagePath(imageFullPath, bLocalPath);
-
-            if (imageFullPath.IsEmpty()) {
-                const FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowXmlPath);
-                imageFullPath = FilePathUtil::JoinFilePath(xmlFullPath, resPath);
-                CheckImagePath(imageFullPath, bLocalPath);
-            }
-        }
-        if (!bWindows && imageFullPath.IsEmpty() && resPath.IsAbsolutePath()) {
-            //注意：非Windows的绝对路径与相对路径形式相同，都是以'/'开头，所以放在最后判断
-            imageFullPath = resPath;
-            imageFullPath.NormalizeFilePath();
-            if (imageFullPath.IsExistsFile()) {
-                bLocalPath = true;
-                bResPath = false;
-            }
-            else {
-                //如果文件不存在，返回空
-                imageFullPath.Clear();
-            }
-        }
-    }
     return imageFullPath;
 }
 
@@ -785,11 +682,16 @@ void GlobalManager::AddClass(const DString& strClassName, const DString& strCont
     AssertUIThread();
     ASSERT(!strClassName.empty() && !strControlAttrList.empty());
     if (!strClassName.empty() && !strControlAttrList.empty()) {
-        //auto it = m_globalClass.find(strClassName);
-        //if (it != m_globalClass.end()) {
-        //    //如果出现覆盖的情况，给予断言
-        //    ASSERT(m_globalClass[strClassName] == strControlAttrList);
-        //}
+#ifdef _DEBUG
+        if (!Theme().IsSwitchingTheme()) {
+            //在切换主题的时候，允许覆盖，其他情况下覆盖时断言
+            auto it = m_globalClass.find(strClassName);
+            if (it != m_globalClass.end()) {
+                //如果出现覆盖的情况，给予断言
+                ASSERT(m_globalClass[strClassName] == strControlAttrList);
+            }
+        }
+#endif
         m_globalClass[strClassName] = strControlAttrList;
     }
 }
@@ -812,7 +714,10 @@ void GlobalManager::RemoveAllClasss()
 
 ColorManager& GlobalManager::Color()
 {
-    return m_colorManager;
+    if (m_pColorManager == nullptr) {
+        m_pColorManager = std::make_unique<ColorManager>();
+    }
+    return *m_pColorManager.get();
 }
 
 FontManager& GlobalManager::Font()
@@ -868,6 +773,11 @@ CursorManager& GlobalManager::Cursor()
 WindowManager& GlobalManager::Windows()
 {
     return m_windowManager;
+}
+
+ThemeManager& GlobalManager::Theme()
+{
+    return m_themeManager;
 }
 
 Box* GlobalManager::CreateBox(Window* pWindow, const FilePath& strXmlPath, CreateControlCallback callback)
