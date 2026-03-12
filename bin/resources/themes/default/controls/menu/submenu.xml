@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="2" shadow_border_color="#FFEDEDED">
+<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="1" shadow_border_color="border_window">
   <MenuListBox class="menu" name="submenu" padding="0,4,0,4">
    
   </MenuListBox>

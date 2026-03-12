@@ -4592,7 +4592,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         imageLoadPath.m_imageFullPath = sImagePath;
     }
     else {
-        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）       
+        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）
         FilePath resPath(sImagePath);
         bool bLocalPath = true;
         bool bResPath = true;

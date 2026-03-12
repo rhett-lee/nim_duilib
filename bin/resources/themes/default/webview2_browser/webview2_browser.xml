@@ -9,7 +9,15 @@
                                        pushed_color="bg_tab_ctrl_item_close_pressed"/>
     <Class name="tab_ctrl_left_line" bkcolor="border_tab_ctrl_item" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
 
-    <VBox bkcolor="bg_window_dark">
+    <Class name="btn_webview2_browser" text_align="hcenter,vcenter" 
+                              normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled" 
+                              normal_color="" hot_color="bg_btn_hover" 
+                              pushed_color="bg_btn_pressed" disabled_color=""
+                              border_size="${border_btn_size}"
+                              normal_border_color="" hot_border_color="border_btn_hover"
+                              pushed_border_color="border_btn_pressed" disabled_border_color=""/>
+                              
+    <VBox bkcolor="bg_tab_ctrl_item_selected">
         <HBox name="title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 图标区域 -->
             <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
@@ -37,19 +45,17 @@
         </HBox>
         <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
         <HBox height="30" margin="10,2,10,2" child_margin="3">
-            <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_regular_12" />
-            <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_regular_12" />
+            <Button class="btn_webview2_browser" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_regular_12" />
+            <Button class="btn_webview2_browser" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_regular_12" />
             <Box width="50" height="30" valign="center">
-                <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_regular_12" />
-                <Button class="btn_global_blue_80x30" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_regular_12" />
+                <Button class="btn_webview2_browser" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_regular_12" />
+                <Button class="btn_webview2_browser" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_regular_12" />
             </Box>
             <!-- 地址栏 -->
-            <RichEdit class="simple prompt" name="edit_url" width="stretch" height="30" 
+            <RichEdit class="simple simple_border prompt" name="edit_url" width="stretch" height="30" border_round="3,3"
                                             text_padding="5,2,5,0" 
                                             text_align="vcenter" 
                                             valign="center" 
-                                            border_color="border_richedit_normal" 
-                                            border_size="1" 
                                             font="system_regular_14"
                                             prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
                                             default_context_menu="true" 

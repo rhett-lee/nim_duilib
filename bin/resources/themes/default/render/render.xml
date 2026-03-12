@@ -22,7 +22,7 @@
         </HBox> <!-- 标题栏区域结束 --> 
         
         <!-- 显示区域 --> 
-        <VBox>
+        <VBox bkcolor="bg_tab_ctrl_item_selected">
             <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">                
                 <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="0"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="1"/>
@@ -38,7 +38,8 @@
                 <TabCtrlItem class="tab_ctrl_item" title="控件测试" close_button_class="" tab_box_item_index="11"/>
                 <TabCtrlItem class="tab_ctrl_item" title="控件动画" close_button_class="" tab_box_item_index="12"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="bg_window_light" selected_id="0"
+            <TabBox name="main_view_tab" bkcolor="bg_window_light" selected_id="0" margin="4,4,4,4" padding="3,3,3,3"
+                    border_size="1" border_color="border_window" border_round="3,3"
                     fade_switch_type="FadeInOut" 
                     fade_switch_frame_interval_ms="16" 
                     fade_switch_total_ms="180"

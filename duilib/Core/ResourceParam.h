@@ -77,7 +77,7 @@ public:
      *  当需要切换界面中的图标时（比如菜单图标、按钮图标等），可以通过切换图标主题来实现；
      *  该值可以为空
      */
-    FilePath iconThemePath;
+    FilePath iconThemePath = FilePath(_T(""));
 
 public:
     /** 语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）

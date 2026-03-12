@@ -1,10 +1,10 @@
 <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
   <path d="M11 5 L11 17 M5 11 L17 11" 
-        stroke="#666666" 
+        stroke="#E0E0E0" 
         stroke-width="1.6" 
         stroke-linecap="round" 
         fill="none"/>
   <style>
-    path:hover { stroke: #333333; }
+    path:hover { stroke: #F5F5F5; }
   </style>
 </svg>

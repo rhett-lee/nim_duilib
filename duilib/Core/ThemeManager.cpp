@@ -562,51 +562,84 @@ void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
         // 1. 在颜色主题目录查找
         // 2. 在图标主题目录查找
         // 3. 在默认主题目录查找
-        // 4. 首先在窗口对应的资源目录下查找（windowResPath目录）
-        // 5. 在窗口XML对应的资源目录下查找（windowXmlPath目录）
+        // 4. 在窗口XML对应的资源目录下查找（windowXmlPath目录）
+        // 5. 在窗口对应的资源目录下查找（windowResPath目录）
         for (const FilePath& themeDir : themeDirList) {
             tempPath = themeRootPath;
             tempPath /= themeDir;
             resFileSearchPathList.push_back(tempPath);
         }
-
+        if (!windowXmlPath.IsEmpty()) {
+            if (windowXmlPath.ToString().find(windowResPath.ToString()) == 0) {
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+            }
+            else {
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowResPath;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+            }
+        }
         if (!windowResPath.IsEmpty()) {
             for (const FilePath& themeDir : themeDirList) {
                 tempPath = themeRootPath;
                 tempPath /= themeDir;
                 tempPath /= windowResPath;
-                resFileSearchPathList.push_back(tempPath);
-            }
-        }
-        if (!windowXmlPath.IsEmpty()) {
-            for (const FilePath& themeDir : themeDirList) {
-                tempPath = themeRootPath;
-                tempPath /= themeDir;
-                tempPath /= windowXmlPath;
                 resFileSearchPathList.push_back(tempPath);
             }
         }
     }
     else {
         // 资源查找顺序：
-        // 1. 在窗口对应的资源目录下查找（windowResPath目录）
-        // 2. 在窗口XML对应的资源目录下查找（windowXmlPath目录）
+        // 1. 在窗口XML对应的资源目录下查找（windowXmlPath目录）
+        // 2. 在窗口对应的资源目录下查找（windowResPath目录）
         // 3. 在颜色主题目录查找
         // 4. 在图标主题目录查找
         // 5. 在默认主题目录查找
+        if (!windowXmlPath.IsEmpty()) {
+            if (windowXmlPath.ToString().find(windowResPath.ToString()) == 0) {
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+            }
+            else {
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowResPath;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+                for (const FilePath& themeDir : themeDirList) {
+                    tempPath = themeRootPath;
+                    tempPath /= themeDir;
+                    tempPath /= windowXmlPath;
+                    resFileSearchPathList.push_back(tempPath);
+                }
+            }
+        }
         if (!windowResPath.IsEmpty()) {
             for (const FilePath& themeDir : themeDirList) {
                 tempPath = themeRootPath;
                 tempPath /= themeDir;
                 tempPath /= windowResPath;
-                resFileSearchPathList.push_back(tempPath);
-            }
-        }
-        if (!windowXmlPath.IsEmpty()) {
-            for (const FilePath& themeDir : themeDirList) {
-                tempPath = themeRootPath;
-                tempPath /= themeDir;
-                tempPath /= windowXmlPath;
                 resFileSearchPathList.push_back(tempPath);
             }
         }
