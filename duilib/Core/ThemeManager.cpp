@@ -741,7 +741,9 @@ bool ThemeManager::IsResInPublicPath(const FilePath& resPath) const
 {
     DString resPathString = resPath.ToString();
     StringUtil::ReplaceAll(_T("\\"), _T("/"), resPathString);
-    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+    const DString publicDir1 = DString(DUILIB_PUBLIC_RES_DIR) + _T("/");
+    const DString publicDir2 = _T("/") + DString(DUILIB_PUBLIC_RES_DIR) + _T("/");
+    if ((resPathString.find(publicDir1) == 0) || ((resPathString.find(publicDir2) == 0))) {
         return true;
     }
     return false;

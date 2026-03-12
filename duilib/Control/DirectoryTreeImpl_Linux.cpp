@@ -86,7 +86,8 @@ DString DirectoryTreeImplGetImageString(DirectoryTree* pTree, bool bLargeFile, c
         nLargeIconSize = 32;
     }
     int32_t nIconSize = bLargeFile ? nLargeIconSize : nSmallIconSize;
-    DString imageString = StringUtil::Printf(_T("file='public/filesystem/%s' width='%d' height='%d' valign='center'"), imageFileName.c_str(), nIconSize, nIconSize);
+    DString imageString = StringUtil::Printf(_T("file='%s/filesystem/%s' width='%d' height='%d' valign='center'"),
+                                             DUILIB_PUBLIC_RES_DIR, imageFileName.c_str(), nIconSize, nIconSize);
     return imageString;
 }
 

@@ -428,7 +428,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(30, 30, 34, 36);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_big.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                             DUILIB_PUBLIC_RES_DIR,
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -438,7 +439,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(30, 30, 34, 36);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_big_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                         DUILIB_PUBLIC_RES_DIR,
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,
@@ -448,7 +450,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(24, 24, 28, 30);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_small.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                             DUILIB_PUBLIC_RES_DIR,
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -458,7 +461,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(24, 24, 28, 30);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_small_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                         DUILIB_PUBLIC_RES_DIR,
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,
@@ -468,7 +472,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(24, 24, 28, 30);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_menu.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                             DUILIB_PUBLIC_RES_DIR,
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -478,7 +483,8 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(24, 24, 28, 30);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='%s/shadow/shadow_menu_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
+                                         DUILIB_PUBLIC_RES_DIR,
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,

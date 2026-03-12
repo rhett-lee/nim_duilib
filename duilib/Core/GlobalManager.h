@@ -211,7 +211,7 @@ public:
     /** 根据资源加载方式，返回对应的资源路径
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
-     * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+     * @param [in] resPath 资源文件路径，比如："public/button/btn_wnd_gray_min_hovered.png"
      * @param [in] pControl 该资源关联的Control控件接口
      * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
      * @param [out] bResPath 返回true表示文件在程序资源路径内，返回false表示文件不在程序资源路径内

@@ -3,6 +3,7 @@
 #include "duilib/Control/MenuBar.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
 
 namespace ui {
@@ -74,7 +75,7 @@ Menu::Menu(Window* pParentWindow, Control* pRelatedControl, MenuBar* pMenuBar):
     m_pOwner(nullptr),
     m_pListBox(nullptr)
 {
-    m_skinFolder = DString(_T("public/menu/"));
+    m_skinFolder = DString(DUILIB_PUBLIC_RES_DIR) + DString(_T("/menu/"));
     m_submenuXml = DString(_T("submenu.xml"));
     m_submenuNodeName = DString(_T("submenu"));
 }

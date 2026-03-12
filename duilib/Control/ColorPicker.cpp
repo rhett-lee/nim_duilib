@@ -684,7 +684,7 @@ public:
      * GetSkinFolder        接口设置你要绘制的窗口皮肤资源路径
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      */
-    virtual DString GetSkinFolder() override { return _T("public");}
+    virtual DString GetSkinFolder() override { return DUILIB_PUBLIC_RES_DIR;}
     virtual DString GetSkinFile() override { return _T("color/screen_color_picker.xml"); }
 
     /** 当要创建的控件不是标准的控件名称时会调用该函数

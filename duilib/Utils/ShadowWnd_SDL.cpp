@@ -1,6 +1,7 @@
 #include "ShadowWnd.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"
+#include "duilib/Core/GlobalManager.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
@@ -50,7 +51,7 @@ DString ShadowWndBase::GetSkinFolder()
 
 DString ShadowWndBase::GetSkinFile()
 {
-    return _T("public/shadow/shadow.xml");
+    return DString(DUILIB_PUBLIC_RES_DIR) + _T("/shadow/shadow.xml");
 }
 //
 //int SDLCALL ShadowWndBaseEventFilter(void* userdata, SDL_Event* event)

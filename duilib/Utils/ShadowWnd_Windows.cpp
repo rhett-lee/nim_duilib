@@ -1,6 +1,7 @@
 #include "ShadowWnd.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"
+#include "duilib/Core/GlobalManager.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -40,7 +41,7 @@ DString ShadowWndBase::GetSkinFolder()
 
 DString ShadowWndBase::GetSkinFile()
 {
-    return _T("public/shadow/shadow.xml");
+    return DString(DUILIB_PUBLIC_RES_DIR) + _T("/shadow/shadow.xml");
 }
 
 bool ShadowWndBase::Create(Window* window)

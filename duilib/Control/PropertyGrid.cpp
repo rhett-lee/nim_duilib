@@ -116,7 +116,7 @@ void PropertyGrid::OnInit()
     //初始化基本结构
     if (m_configXml.empty()) {
         //默认的配置文件
-        m_configXml = _T("public/property_grid/property_grid.xml");
+        m_configXml = DString(DUILIB_PUBLIC_RES_DIR) + _T("/property_grid/property_grid.xml");
     }
     ui::GlobalManager::Instance().FillBoxWithCache(this, FilePath(m_configXml.c_str()));
     m_pHeaderCtrl = FindSubControl(_T("duilib_property_grid_header"));
@@ -1825,7 +1825,7 @@ void PropertyGridColorProperty::InitColorCombo()
         return;
     }
     pComboBox->SetWindow(GetWindow());
-    GlobalManager::Instance().FillBoxWithCache(pComboBox, FilePath(_T("public/property_grid/color_combox.xml")));
+    GlobalManager::Instance().FillBoxWithCache(pComboBox, FilePath(DString(DUILIB_PUBLIC_RES_DIR) + _T("/property_grid/color_combox.xml")));
     pComboBox->SetFixedHeight(UiFixedInt(boxSize.cy), false, false);
     pComboBox->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
 
