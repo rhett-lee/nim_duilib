@@ -386,15 +386,45 @@ DString CefControl::GetInitURL() const
         DString url = StringUtil::MakeLowerString(initUrl);
         if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
             //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
-            FilePath cefHtml = GlobalManager::GetDefaultResourcePath(true);
-            cefHtml.NormalizeDirectoryPath();
-            cefHtml += initUrl;            
-            cefHtml.NormalizeFilePath();
+            FilePath cefHtml(initUrl);
+            if (cefHtml.IsAbsolutePath() && cefHtml.IsExistsFile()) {
+                //绝对路径, 并且文件存在
+                cefHtml.NormalizeFilePath();
+            }
+            else {
+                //相对路径: 直接拼接
+                cefHtml = GlobalManager::GetDefaultResourcePath(true);
+                cefHtml.NormalizeDirectoryPath();
+                cefHtml += initUrl;
+                if (!cefHtml.IsExistsFile()) {
+                    //直接拼接的文件不存在，则尝试按规则在资源目录查找
+                    FilePath windowResPath;
+                    if (GetWindow() != nullptr) {
+                        windowResPath = GetWindow()->GetResourcePath();
+                    }
+                    bool bFound = false;
+                    std::vector<FilePath> resFileSearchPathList;
+                    GlobalManager::Instance().Theme().GetResFileSearchPath(windowResPath, resFileSearchPathList);
+                    for (const FilePath& searchPath : resFileSearchPathList) {
+                        cefHtml = searchPath;
+                        cefHtml /= FilePath(initUrl);
+                        if (cefHtml.IsExistsFile()) {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    if (!bFound) {
+                        cefHtml = FilePath(initUrl);
+                    }
+                }
+            }            
             initUrl = _T("file:///");
             initUrl += cefHtml.ToString();
-            StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
         }
     }
+    if (!initUrl.empty()) {
+        StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
+    }    
     return initUrl;
 }
 

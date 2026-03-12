@@ -5,6 +5,7 @@
 #include "WebView2ControlImpl.h"
 #include "duilib/WebView2/WebView2Manager.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Render/IRender.h"
 
@@ -95,14 +96,44 @@ DString WebView2Control::GetInitURL() const
         DString url = StringUtil::MakeLowerString(initUrl);
         if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
             //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
-            FilePath webViewHtml = GlobalManager::GetDefaultResourcePath(true);
-            webViewHtml.NormalizeDirectoryPath();
-            webViewHtml += initUrl;
-            webViewHtml.NormalizeFilePath();
+            FilePath cefHtml(initUrl);
+            if (cefHtml.IsAbsolutePath() && cefHtml.IsExistsFile()) {
+                //绝对路径, 并且文件存在
+                cefHtml.NormalizeFilePath();
+            }
+            else {
+                //相对路径: 直接拼接
+                cefHtml = GlobalManager::GetDefaultResourcePath(true);
+                cefHtml.NormalizeDirectoryPath();
+                cefHtml += initUrl;
+                if (!cefHtml.IsExistsFile()) {
+                    //直接拼接的文件不存在，则尝试按规则在资源目录查找
+                    FilePath windowResPath;
+                    if (GetWindow() != nullptr) {
+                        windowResPath = GetWindow()->GetResourcePath();
+                    }
+                    bool bFound = false;
+                    std::vector<FilePath> resFileSearchPathList;
+                    GlobalManager::Instance().Theme().GetResFileSearchPath(windowResPath, resFileSearchPathList);
+                    for (const FilePath& searchPath : resFileSearchPathList) {
+                        cefHtml = searchPath;
+                        cefHtml /= FilePath(initUrl);
+                        if (cefHtml.IsExistsFile()) {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    if (!bFound) {
+                        cefHtml = FilePath(initUrl);
+                    }
+                }
+            }
             initUrl = _T("file:///");
-            initUrl += webViewHtml.ToString();
-            StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
+            initUrl += cefHtml.ToString();
         }
+    }
+    if (!initUrl.empty()) {
+        StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
     }
     return initUrl;
 }

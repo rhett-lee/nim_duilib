@@ -83,9 +83,13 @@ void BrowserBox::InitBrowserBox(const DString& url)
     // 加载默认网页
     DString html_path = url;
     if (html_path.empty()) {
-        ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
+        ui::FilePath resourcePath = ui::GlobalManager::Instance().Theme().GetThemeRootPath();
+        resourcePath /= ui::GlobalManager::Instance().Theme().GetDefaultThemePath();
+        if (GetWindow() != nullptr) {
+            resourcePath /= ui::FilePath(GetWindow()->GetResourcePath());
+        }        
         resourcePath.NormalizeDirectoryPath();
-        resourcePath += _T("themes/default/cef_browser/cef.html");
+        resourcePath += _T("cef.html");
         html_path = resourcePath.ToString();
         html_path = _T("file:///") + html_path;
     }

@@ -88,7 +88,6 @@ GlobalManager& GlobalManager::Instance()
 
 FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
 {
-    //TODO：Check
     ui::FilePath resourcePath;
 #ifdef DUILIB_BUILD_FOR_MACOS
     //MacOS平台，优先使用bundle的资源目录

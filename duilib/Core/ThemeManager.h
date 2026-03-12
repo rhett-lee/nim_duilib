@@ -77,15 +77,15 @@ public:
                    const FilePath& defaultThemePath,
                    const DString& globalXmlFileName);
 
-    /** 获取主题资源的根目录
+    /** 获取主题资源的根目录: 返回绝对路径
     */
     const FilePath& GetThemeRootPath() const;
 
-    /** 获取默认资源路径
+    /** 获取默认资源路径: 返回值示例"default"
     */
     const FilePath& GetDefaultThemePath() const;
 
-    /** 获取默认资源路径
+    /** 获取默认资源路径：返回值示例：global.xml
     */
     const DString& GetGlobalXmlFileName() const;
 
