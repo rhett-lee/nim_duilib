@@ -279,6 +279,19 @@ void FontManager::RemoveAllFonts()
     }
 }
 
+void FontManager::ClearFontCache()
+{
+    m_fontMap.clear();
+    IFontMgr* pFontMgr = nullptr;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        pFontMgr = pRenderFactory->GetFontMgr();
+    }
+    if (pFontMgr != nullptr) {
+        pFontMgr->ClearFontCache();
+    }
+}
+
 bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFontDesc*/)
 {
     FilePath fontFilePath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetFontFilePath(), FilePath(strFontFile));

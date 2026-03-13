@@ -207,6 +207,10 @@ bool ThemeManager::SwitchTheme(const FilePath& themePath, ThemeType destThemeTyp
     m_bSwitchingTheme = true;
     globalbuilder.CreateControls(&tempWnd);
     m_bSwitchingTheme = false;
+
+    //主题变化后，更新界面显示
+    GlobalManager::Instance().ClearThemeCache();
+
     if (m_themeChangedCallback) {
         m_themeChangedCallback(themeInfo);
     }
@@ -261,6 +265,23 @@ bool ThemeManager::GetAllThemes(const std::vector<FilePath>& themePathList,
         if (ParseXmlThemeInfo(configXmlFile, configXmlData, themePath, themeInfo)) {
             themeInfoList.push_back(themeInfo);
         }
+    }
+    if (!themeInfoList.empty()) {
+        //排序
+        std::sort(themeInfoList.begin(), themeInfoList.end(), [](const ThemeInfo& left, const ThemeInfo& right) {
+            if (left.m_themeStyle == right.m_themeStyle) {
+                if (left.m_themeType == right.m_themeType) {
+                    return left.m_themeName < right.m_themeName;
+                }
+                else {
+                    return left.m_themeType < right.m_themeType;
+                }
+            }
+            else {
+                return left.m_themeStyle < right.m_themeStyle;
+            }
+            return true;
+            });
     }
     return !themeInfoList.empty();
 }
@@ -503,10 +524,12 @@ void ThemeManager::GetResFileSearchPath(const FilePath& windowResPath, std::vect
     // 3. 在图标主题目录查找
     // 4. 在默认主题目录查找
     std::vector<FilePath> themeDirList;
-    if (!GetCurrentColorThemeInfo().m_themePath.IsEmpty()) {
+    if (GetCurrentColorThemeInfo().m_bSelectedTheme &&
+        !GetCurrentColorThemeInfo().m_themePath.IsEmpty()) {
         themeDirList.push_back(GetCurrentColorThemeInfo().m_themePath);
     }
-    if (!GetCurrentIconThemeInfo().m_themePath.IsEmpty()) {
+    if (GetCurrentIconThemeInfo().m_bSelectedTheme &&
+        !GetCurrentIconThemeInfo().m_themePath.IsEmpty()) {
         themeDirList.push_back(GetCurrentIconThemeInfo().m_themePath);
     }
     if (!GetDefaultThemePath().IsEmpty()) {
@@ -545,10 +568,12 @@ void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
                                           std::vector<FilePath>& resFileSearchPathList) const
 {
     std::vector<FilePath> themeDirList;
-    if (!GetCurrentColorThemeInfo().m_themePath.IsEmpty()) {
+    if (GetCurrentColorThemeInfo().m_bSelectedTheme &&
+        !GetCurrentColorThemeInfo().m_themePath.IsEmpty()) {
         themeDirList.push_back(GetCurrentColorThemeInfo().m_themePath);
     }
-    if (!GetCurrentIconThemeInfo().m_themePath.IsEmpty()) {
+    if (GetCurrentIconThemeInfo().m_bSelectedTheme &&
+        !GetCurrentIconThemeInfo().m_themePath.IsEmpty()) {
         themeDirList.push_back(GetCurrentIconThemeInfo().m_themePath);
     }
     if (!GetDefaultThemePath().IsEmpty()) {

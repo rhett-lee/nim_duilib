@@ -405,6 +405,11 @@ public:
     */
     void ExpandDefinePlaceholders(DString& varValue) const;
 
+public:
+    /** 清除主题相关的缓存（切换主题后，立即生效）
+    */
+    void ClearThemeCache();
+
 private:
     /** 加载全局资源
     * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项

@@ -137,13 +137,15 @@ namespace ui
     #define  DUI_CTR_BITMAP_CONTROL                  (_T("BitmapControl"))
     #define  DUI_CTR_CHILD_WINDOW                    (_T("ChildWindow"))
 
-    // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
-    #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))
-    #define  DUI_CTR_BUTTON_CLOSE                    (_T("closebtn"))
-    #define  DUI_CTR_BUTTON_MIN                      (_T("minbtn"))
-    #define  DUI_CTR_BUTTON_MAX                      (_T("maxbtn"))
-    #define  DUI_CTR_BUTTON_RESTORE                  (_T("restorebtn"))
-    #define  DUI_CTR_BUTTON_FULLSCREEN               (_T("fullscreenbtn"))
+    // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口、选择主题、选择语言，代码中写死，XML需要用这个名称
+    #define  DUI_CTR_WINDOW_TITLE_BAR                       (_T("window_title_bar"))
+    #define  DUI_CTR_WINDOW_BUTTON_CLOSE                    (_T("btn_window_close"))
+    #define  DUI_CTR_WINDOW_BUTTON_MIN                      (_T("btn_window_min"))
+    #define  DUI_CTR_WINDOW_BUTTON_MAX                      (_T("btn_window_max"))
+    #define  DUI_CTR_WINDOW_BUTTON_RESTORE                  (_T("btn_window_restore"))
+    #define  DUI_CTR_WINDOW_BUTTON_FULLSCREEN               (_T("btn_window_fullscreen"))
+    #define  DUI_CTR_WINDOW_BUTTON_LANGUAGE                 (_T("btn_window_language"))
+    #define  DUI_CTR_WINDOW_BUTTON_THEME                    (_T("btn_window_theme"))
 
     class Control;
     class Image;

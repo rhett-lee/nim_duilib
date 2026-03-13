@@ -470,6 +470,15 @@ bool GlobalManager::LoadGlobalResource(const ResourceParam& resParam)
     return true;
 }
 
+void GlobalManager::ClearThemeCache()
+{
+    //图片资源缓存
+    RemoveAllImages();
+
+    //字体缓存
+    m_fontManager.ClearFontCache();
+}
+
 bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                                    const DString& languageFileName,
                                    bool bInvalidate)

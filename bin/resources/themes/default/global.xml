@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!-- 主题名称和主题类型 -->
-    <Theme name="Default" type="Combined" style="Light"/>
+    <Theme name="Light (Default)" type="Combined" style="Light"/>
         
     <!-- ===================== 全局变量定义 ===================== -->
     <!-- 尺寸变量 -->
@@ -26,6 +26,7 @@
     <Define name="PATH_SLIDER" value="public/slider"/>
     <Define name="PATH_CAPTION" value="public/caption"/>
     <Define name="PATH_COMBO" value="public/combo"/>
+    <Define name="PATH_MENU" value="public/menu"/>
     
     <!-- ===================== 字体配置 ===================== -->
     <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
@@ -573,7 +574,27 @@
                                 disabled_image="" 
                                 selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' margin='0,1,0,0'" 
                                 selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' margin='0,1,0,0' fade='80'"/>
-    
+    <Class name="menu_selected_dot" height="auto" valign="center" text_padding="20,0,0,0"
+                                normal_image="" 
+                                disabled_image="" 
+                                selected_normal_image="file='${PATH_MENU}/menu_selected_dot.svg' valign='center' margin='0,1,0,0'" 
+                                selected_disabled_image="file='${PATH_MENU}/menu_selected_dot.svg' valign='center' margin='0,1,0,0' fade='80'"/>
+    <Class name="menu_selected_square" height="auto" valign="center" text_padding="20,0,0,0"
+                                normal_image="" 
+                                disabled_image="" 
+                                selected_normal_image="file='${PATH_MENU}/menu_selected_square.svg' valign='center' margin='0,1,0,0'" 
+                                selected_disabled_image="file='${PATH_MENU}/menu_selected_square.svg' valign='center' margin='0,1,0,0' fade='80'"/>
+    <Class name="menu_selected_circle_dot" height="auto" valign="center" text_padding="20,0,0,0"
+                                normal_image="" 
+                                disabled_image="" 
+                                selected_normal_image="file='${PATH_MENU}/menu_selected_circle_dot.svg' valign='center' margin='0,1,0,0'" 
+                                selected_disabled_image="file='${PATH_MENU}/menu_selected_circle_dot.svg' valign='center' margin='0,1,0,0' fade='80'"/>
+    <Class name="menu_selected_check_line" height="auto" valign="center" text_padding="20,0,0,0"
+                                normal_image="" 
+                                disabled_image="" 
+                                selected_normal_image="file='${PATH_MENU}/menu_selected_check_line.svg' valign='center' margin='0,1,0,0'" 
+                                selected_disabled_image="file='${PATH_MENU}/menu_selected_check_line.svg' valign='center' margin='0,1,0,0' fade='80'"/>
+
     <!-- 菜单栏 -->
     <Class name="menu_bar_button" width="auto" height="auto" border_round="4,4" valign="center" 
                                   text_align="vcenter" text_padding="8,4,8,4" normal_text_color="text_menu_bar"

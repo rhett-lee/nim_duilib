@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="1" shadow_border_color="border_window">
+    <!-- 选中的主题菜单项前面的勾选图标样式 -->
+    <Class name="menu_theme_select_class" class="menu_selected_check_line"/>
+    <VListBox class="menu" padding="0,0,0,6">
+        <!-- 在菜单中插入普通控件，实现特定功能 -->
+        <HBox class="menu_split_box" height="36" width="256">
+            <Label class="menu_text" text_id="STRID_MENU_TEXT_SELECT_THEME" text_padding="0,0,6,0"/>
+        </HBox>
+        
+        <!-- 菜单项之间的分割线 -->
+        <Box class="menu_split_box">
+            <Control class="menu_split_line" />
+        </Box>
+    </VListBox>
+</Window>

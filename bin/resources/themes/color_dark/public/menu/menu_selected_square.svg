@@ -1,0 +1,4 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- 居中小方块，4×4尺寸，微圆角更精致 -->
+  <rect x="6" y="6" width="4" height="4" rx="0.5" fill="#E0E0E0"/>
+</svg>

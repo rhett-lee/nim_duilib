@@ -83,7 +83,7 @@ public:
      *  当需要切换主题风格时（比如浅色主题或者深色主题），可以通过切换颜色主题来实现；
      *  该值可以为空
      */
-    FilePath colorThemePath = FilePath(_T(""));
+    FilePath colorThemePath = FilePath(_T(""));//比如："color_dark" 为启动时默认设置为深色主题
 
     /** 图标主题资源路径（在themeRootPath中的相对路径）
      *  当需要切换界面中的图标时（比如菜单图标、按钮图标等），可以通过切换图标主题来实现；

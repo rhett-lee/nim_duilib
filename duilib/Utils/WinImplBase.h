@@ -65,15 +65,6 @@ protected:
     virtual void OnFinalMessage() override;
 
 protected:
-    /** 窗口大小发生改变(WM_SIZE)
-    * @param [in] sizeType 触发窗口大小改变的类型
-    * @param [in] newWindowSize 新的窗口大小（宽度和高度）
-    * @param [in] nativeMsg 从系统接收到的原始消息内容
-    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
-    */
-    virtual LRESULT OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
-
     /** 进入全屏状态
     */
     virtual void OnWindowEnterFullscreen() override;
@@ -105,6 +96,27 @@ protected:
     */
     virtual void OnWindowMinimized();
 
+protected:
+    /** 选择语言
+    * @param [in] pBtnSelectLanguage 选择语言按钮的接口
+    */
+    virtual void OnSelectLanguage(Control* pBtnSelectLanguage);
+
+    /** 选择主题
+    * @param [in] pBtnSelectTheme 选择主题按钮的接口
+    */
+    virtual void OnSelectTheme(Control* pBtnSelectTheme);
+
+protected:
+    /** 窗口大小发生改变(WM_SIZE)
+    * @param [in] sizeType 触发窗口大小改变的类型
+    * @param [in] newWindowSize 新的窗口大小（宽度和高度）
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 判断是否含有最大化和最小化按钮
     * @param [out] bMinimizeBox 返回true表示含有最小化按钮
     * @param [out] bMaximizeBox 返回true表示含有最大化按钮
@@ -115,18 +127,51 @@ protected:
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
 
-protected:
     /** 正在初始化窗口数据（内部函数）
     */
     virtual void PreInitWindow() override;
 
-private:
-    /** 窗口功能按钮被点击时调用
-    * @param [in] param 携带的参数
-    * @return 始终返回 true
+protected:
+    /** 获取窗口标题栏控件
     */
-    bool OnButtonClick(const EventArgs& param);
+    Control* GetWindowTitleBar() const;
 
+    /** 获取窗口最大化按钮
+    */
+    Control* GetBtnWindowMax() const;
+
+    /** 获取窗口还原按钮
+    */
+    Control* GetBtnWindowRestore() const;
+
+    /** 获取窗口最小化按钮
+    */
+    Control* GetBtnWindowMin() const;
+
+    /** 获取窗口关闭按钮
+    */
+    Control* GetBtnWindowClose() const;
+
+    /** 获取窗口全屏按钮
+    */
+    Control* GetBtnWindowFullscreen() const;
+
+    /** 获取选择语言按钮
+    */
+    Control* GetBtnSelectLanguage() const;
+
+    /** 获取选择主题按钮
+    */
+    Control* GetBtnSelectTheme() const;
+
+private:
+    /** 获取窗口按钮
+    * @param [in] newCtrlName 控件最新的名称
+    * @param [in] oldCtrlName 控件旧的名称（为了保持兼容性）
+    */
+    Control* GetBtnWindowByName(const DString& newCtrlName, const DString& oldCtrlName) const;
+
+private:
     /** 标题栏被双击时调用
     * @param [in] param 携带的参数
     * @return 始终返回 true
@@ -138,21 +183,22 @@ private:
     void ProcessMaxRestoreStatus();
 
 private:
+    /** 标题栏的接口
+    */
+    ControlPtr m_pTitleBar;
+
     /** 最大化按钮的接口
     */
-    Control* m_pMaxButton;
-    std::weak_ptr<WeakFlag> m_maxButtonFlag;
+    ControlPtr m_pMaxButton;
 
     /** 最小化按钮的接口
     */
-    Control* m_pMinButton;
-    std::weak_ptr<WeakFlag> m_minButtonFlag;
+    ControlPtr m_pMinButton;
 
     /** 还原按钮的接口
     */
-    Control* m_pRestoreButton;
-    std::weak_ptr<WeakFlag> m_restoreButtonFlag;
+    ControlPtr m_pRestoreButton;
 };
-}
+} // namespace ui
 
 #endif // UI_UTILS_WINIMPLBASE_H_

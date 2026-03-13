@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" stroke="#E0E0E0" stroke-width="1" fill="none">
+  <!-- 外层空心圆 + 内层实心点 -->
+  <circle cx="8" cy="8" r="3" stroke="#E0E0E0"/>
+  <circle cx="8" cy="8" r="1.5" fill="#E0E0E0"/>
+</svg>

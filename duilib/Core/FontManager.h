@@ -95,6 +95,11 @@ public:
     void RemoveAllFontFiles();
 
 public:
+    /** 清除字体的缓存（切换主题后，立即生效）
+    */
+    void ClearFontCache();
+
+public:
     /** 获取可用的字体名称列表
     * @param [out] fontNameList 返回可用的字体名称列表
     */

@@ -3,16 +3,17 @@
     <Class name="btn_language" normal_image="file='language.svg' width='18' height='18' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <VBox bkcolor="bg_window_dark" visible="true">    
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Label text_id="MULTI_LANG_WINDOW_TEXT" height="32" width="stretch" margin="8,2,0,2" text_align="vcenter,left" mouse_enabled="false"/>
             <Control width="40" mouse_enabled="false"/>
-            <Button class="btn_language" height="32" width="40" name="language" margin="0,2,0,2" tooltip_textid="MULTI_LANG_SELECT_LANGUAGE"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_textid="MULTI_LANG_SELECT_WINDOW_MIN"/>
+            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_textid="MULTI_LANG_SELECT_WINDOW_MAX"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_textid="MULTI_LANG_SELECT_WINDOW_RESTORE"/>
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_textid="MULTI_LANG_SELECT_WINDOW_CLOSE"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
