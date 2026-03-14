@@ -213,7 +213,7 @@
 
     <!-- TabCtrl颜色 - 标签页控件 -->
     <TextColor name="bg_tab_ctrl" value="#FFF0F0F0"/>        <!-- 标签页背景：比窗口背景稍深，强化层级 -->
-    <TextColor name="bg_tab_ctrl_item_hover" value="#FFE6F0FF"/> <!-- 标签项hover：悬浮标签 -->
+    <TextColor name="bg_tab_ctrl_item_hover" value="#FFB7B7B7"/> <!-- 标签项hover：悬浮标签 -->
     <TextColor name="bg_tab_ctrl_item_pressed" value="#FFCCE5FF"/> <!-- 标签项pressed：点击标签 -->
     <TextColor name="bg_tab_ctrl_item_selected" value="#FFFFFFFF"/> <!-- 选中标签：激活标签底色 -->
     <TextColor name="bg_tab_ctrl_item_close_hover" value="#FFE6F0FF"/> <!-- 关闭按钮hover：悬浮关闭 -->
