@@ -35,8 +35,9 @@ public:
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 语言发生变化，刷新界面文字显示相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
     */
-    virtual void OnLanguageChanged() override;
+    virtual void OnLanguageChanged(bool bRedraw) override;
 
 protected:
     virtual void OnInit() override;

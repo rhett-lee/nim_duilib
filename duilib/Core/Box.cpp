@@ -74,13 +74,24 @@ void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 }
 
-void Box::OnLanguageChanged()
+void Box::OnLanguageChanged(bool bRedraw)
 {
-    BaseClass::OnLanguageChanged();
+    BaseClass::OnLanguageChanged(bRedraw);
     for (auto pControl : m_items) {
         ASSERT(pControl != nullptr);
         if (pControl != nullptr) {
-            pControl->OnLanguageChanged();
+            pControl->OnLanguageChanged(bRedraw);
+        }
+    }
+}
+
+void Box::OnThemeChanged(bool bRedraw)
+{
+    BaseClass::OnThemeChanged(bRedraw);
+    for (auto pControl : m_items) {
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pControl->OnThemeChanged(bRedraw);
         }
     }
 }

@@ -12,7 +12,7 @@
         <VBox bkcolor="bg_window_dark">
             <!-- 常用颜色 -->
             <ColorPickerRegular name="color_combo_picker" color_type="default" item_size="40,20" columns="10" child_margin="2" padding="2,2,2,2" halign="center" valign="center"/>
-            <Button class="color_combo_picker_btn" name="color_combo_picker_more" text="  更多颜色 ...  " width="auto" height="30" margin="2,0,2,2" halign="center"/>
+            <Button class="color_combo_picker_btn" name="color_combo_picker_more" text_id="STRID_PROPERTY_MORE_COLOR" width="auto" height="30" padding="8,0,8,0" margin="2,0,2,2" halign="center"/>
         </VBox>
     </Box>
 </Window>

@@ -25,6 +25,7 @@ TIPID_EXIT_FULLSCREEN = 点击按钮或者按ESC键，可退出全屏
 ;PropertyGrid
 STRID_PROPERTY_NAME  = 属性
 STRID_PROPERTY_VALUE = 取值
+STRID_PROPERTY_MORE_COLOR  = 更多颜色 ...
 
 ;通用
 STRID_STRING_OK = 确定
@@ -80,7 +81,6 @@ STRID_CEF_BROWSER_SEND_TO_JS        =    发送给JS
 STRID_CEF_BROWSER_OFF_SCREEN_MODE   =    离屏渲染Cef浏览器组件测试
 STRID_CEF_BROWSER_RECEIVE_JS_MSG    =    收到来自JS的消息：%s
 STRID_CEF_BROWSER_MULTI_TAB         =    可拖拽多标签浏览器
-STRID_CEF_BROWSER_CLOSING           =    当前窗口包含多个标签页，确定要关闭吗？
 
 ;WebView2/WebView2Browser 浏览器
 STRID_WEBVIEW2_BROWSER_DEV_TOOL          =    开发者工具

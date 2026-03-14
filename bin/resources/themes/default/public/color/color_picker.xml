@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="600,520" min_size="80,50" caption="0,0,0,35" use_system_caption="false" shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4">
-  
-  <TextColor name="color_picker_bkcolor" value="bg_window_light"/>
-  <TextColor name="color_picker_box_bkcolor" value="bg_window_light"/>
-  <Class name="color_picker_tab_option" width="72" height="32" font="system_regular_14" text_align="hcenter,vcenter" normal_color="bg_tab_ctrl" hot_color="bg_tab_ctrl_item_hover" selected_normal_color="color_picker_box_bkcolor"/>
-  <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="36" margin="2,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
-  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="21" margin="4,0,4,0" bkcolor="bg_window_light" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='public/color/slider_thumb.svg' valign='center'"/>
+<Window size="600,520" min_size="80,50" caption="0,0,0,35" use_system_caption="false" 
+        shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4">
+  <Class name="color_picker_tab_option" width="72" height="32" font="system_regular_14" text_align="hcenter,vcenter" 
+                                        normal_color="bg_tab_ctrl" 
+                                        hot_color="bg_tab_ctrl_item_hover" 
+                                        selected_normal_color="bg_tab_ctrl_item_selected"/>
+  <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="36" margin="2,0,0,0" default_context_menu="true" 
+                                        number_only="true" limit_text="3" valign="center" text_align="vcenter" 
+                                        bkcolor="bg_richedit" border_size="1" border_color="border_richedit_normal"/>
+  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="21" margin="4,0,4,0" 
+                                        bkcolor="bg_window_light" value="0" valign="center" 
+                                        thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" 
+                                        thumb_normal_image="file='public/color/slider_thumb.svg' valign='center'"/>
     
   <VBox bkcolor="bg_window_dark" visible="true">    
     <!-- 标题栏区域 -->
@@ -23,9 +29,9 @@
     </HBox>
     
     <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-    <Box bkcolor="color_picker_bkcolor">
+    <Box bkcolor="bg_window_light">
         <VBox>
-            <HBox height="32">
+            <HBox height="32" bkcolor="bg_window_dark">
                  <Option class="color_picker_tab_option" group="color_picker_option_group" text_id="STRID_COLORPICKER_COMMON">
                     <Event type="select" receiver="color_picker_tab" applyattribute="selected_id={0}" />
                  </Option>
@@ -38,7 +44,7 @@
             </HBox>
             <HBox>
                 <VBox>
-                    <TabBox name="color_picker_tab" bkcolor="color_picker_box_bkcolor" fade_switch="true" margin="1,1,1,1" selected_id="2">
+                    <TabBox name="color_picker_tab" bkcolor="bg_window_light" fade_switch="true" margin="1,1,1,1" selected_id="2">
                         <VBox name="color_picker_tab_page_1">
                             <!-- 常用颜色 -->
                             <ColorPickerRegular name="color_picker_regular" color_type="default" item_size="40,20" columns="10" child_margin="2" padding="2,2,2,2" halign="center" valign="center"/>

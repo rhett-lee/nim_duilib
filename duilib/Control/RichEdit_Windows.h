@@ -58,6 +58,11 @@ public:
     virtual UiEstSize EstimateSize(UiSize szAvailable) override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
+    /** 主题发生变化，刷新界面颜色相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnThemeChanged(bool bRedraw);
+
 public:
     /** 设置控件的文本, 会触发文本变化事件
      * @param [in] strText 要设置的文本内容

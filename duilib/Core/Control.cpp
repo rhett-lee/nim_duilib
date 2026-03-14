@@ -776,10 +776,22 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetReEstimateSize(true);
 }
 
-void Control::OnLanguageChanged()
+void Control::OnLanguageChanged(bool bRedraw)
 {
-    RelayoutOrRedraw();
-    Invalidate();
+    if ((GetFixedWidth().IsAuto()) || (GetFixedHeight().IsAuto())) {
+        //如果当前控件的宽高有的是AUTO的，需要父控件Box进行布局重排（一般在可能引起布局变化时调用），布局重排后会进行重绘
+        ArrangeAncestor();
+    }
+    if (bRedraw) {
+        Invalidate();
+    }
+}
+
+void Control::OnThemeChanged(bool bRedraw)
+{
+    if (bRedraw) {
+        Invalidate();
+    }
 }
 
 void Control::SetClass(const DString& strClass)

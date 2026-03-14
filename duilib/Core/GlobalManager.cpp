@@ -215,6 +215,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
             if (pWindow != nullptr) {
                 Box* pBox = pWindow->GetRoot();
                 if (pBox != nullptr) {
+                    pBox->OnThemeChanged(false);
                     pBox->SetPos(pBox->GetPos());
                 }
             }
@@ -558,7 +559,7 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                 pWindow->SetTextId(pWindow->GetTextId());
             }
             if (pBox != nullptr) {
-                pBox->OnLanguageChanged();
+                pBox->OnLanguageChanged(false);
                 pBox->SetPos(pBox->GetPos());
             }
             if (pWindow != nullptr) {

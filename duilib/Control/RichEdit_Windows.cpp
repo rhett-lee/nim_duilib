@@ -1726,6 +1726,20 @@ void RichEdit::OnInit()
     }
 }
 
+void RichEdit::OnThemeChanged(bool bRedraw)
+{
+    BaseClass::OnThemeChanged(bRedraw);
+    //更新文本颜色
+    if (IsEnabled()) {
+        UiColor dwTextColor = GetUiColor(GetTextColor());
+        SetTextColorInternal(dwTextColor);
+    }
+    else {
+        UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
+        SetTextColorInternal(dwTextColor);
+    }
+}
+
 void RichEdit::OnSetEnabled(bool bChanged)
 {
     BaseClass::OnSetEnabled(bChanged);

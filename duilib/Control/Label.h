@@ -26,7 +26,7 @@ public:
     virtual void PaintText(IRender* pRender) override;
     virtual bool HasHotState() override;
     virtual DString GetToolTipText() const override;
-    virtual void OnLanguageChanged() override;
+    virtual void OnLanguageChanged(bool bRedraw) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 计算文本区域大小（宽和高）
@@ -312,9 +312,9 @@ void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiSca
 }
 
 template<typename T>
-void LabelTemplate<T>::OnLanguageChanged()
+void LabelTemplate<T>::OnLanguageChanged(bool bRedraw)
 {
-    BaseClass::OnLanguageChanged();
+    BaseClass::OnLanguageChanged(bRedraw);
     //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
     this->RelayoutOrRedraw();
     m_impl->OnLanguageChanged();

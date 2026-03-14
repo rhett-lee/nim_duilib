@@ -1114,8 +1114,9 @@ void Combo::OnSelectedItemChanged()
     }
 }
 
-void Combo::OnLanguageChanged()
+void Combo::OnLanguageChanged(bool bRedraw)
 {
+    BaseClass::OnLanguageChanged(bRedraw);
     //语言发生变化
     ComboType comboType = GetComboType();
     if (comboType == ComboType::kCombo_DropList) {
