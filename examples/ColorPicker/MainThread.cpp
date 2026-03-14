@@ -20,7 +20,14 @@ void MainThread::OnInit()
     pColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
 
     //设置选择前的颜色
-    pColorPicker->SetSelectedColor(ui::UiColor(ui::UiColors::White));
+    if (ui::GlobalManager::Instance().Theme().GetCurrentThemeStyle() == ui::ThemeStyle::kDark) {
+        //深色主题
+        pColorPicker->SetSelectedColor(ui::UiColor(ui::UiColors::Black));
+    }
+    else {
+        //浅色主题
+        pColorPicker->SetSelectedColor(ui::UiColor(ui::UiColors::White));
+    }
 
     //关闭窗口后，退出主线程
     pColorPicker->PostQuitMsgWhenClosed(true);

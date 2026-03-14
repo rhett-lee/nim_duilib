@@ -49,6 +49,8 @@
     <TextColor name="color_progress" value="#FF3B82F6"/>     <!-- 进度条 -->
     <TextColor name="color_splitline_level1" value="#FF2D2D30"/> <!-- 一级分割线 -->
     <TextColor name="color_splitline_level2" value="#FF202020"/> <!-- 二级分割线 -->
+    <TextColor name="color_splitline_group_box" value="#FF444444"/> <!-- GroupBox分割线 -->
+    <TextColor name="color_split_line" value="#FF444444"/> <!-- Split控件分割线 -->
 
     <!-- 编辑框颜色 -->
     <TextColor name="bg_richedit" value="#FF252525"/>        <!-- 编辑框背景 -->
@@ -112,7 +114,8 @@
     <TextColor name="bg_list_ctrl_header" value="#FF202020"/> <!-- 列表表头 -->
     <TextColor name="bg_list_ctrl_header_hover" value="#FF333333"/> <!-- 表头hover -->
     <TextColor name="bg_list_ctrl_header_pressed" value="#FF3A3A3A"/> <!-- 表头pressed -->
-    <TextColor name="bg_list_ctrl_header_split" value="#FF2D2D30"/> <!-- 表头分割线 -->
+    <TextColor name="bg_list_ctrl_header_split" value="#FF444444"/> <!-- 表头分割线 -->
+    <TextColor name="bg_list_ctrl_view_split" value="#FF444444"/> <!-- 表格分割线 -->
     <TextColor name="bg_list_ctrl_view" value="#FF252525"/>   <!-- 列表视图 -->
     <TextColor name="bg_list_ctrl_frame_selected" value="#FF416385"/> <!-- 选中框背景 -->
     <TextColor name="border_list_ctrl_frame_selected" value="#FF3B82F6"/> <!-- 选中框边框 -->
@@ -130,6 +133,7 @@
     <TextColor name="border_tab_ctrl_item" value="#FF2D2D30"/> <!-- 标签项边框 -->
 
     <!-- AddressBar颜色 -->
+    <TextColor name="border_address_bar" value="#FF2D2D30"/>     <!-- 地址栏边框颜色 -->
     <TextColor name="bg_address_bar" value="#FF252525"/>     <!-- 地址栏背景 -->
     <TextColor name="bg_address_bar_btn_hover" value="#FF333333"/> <!-- 地址栏按钮hover -->
     <TextColor name="bg_address_bar_btn_pressed" value="#FF3A3A3A"/> <!-- 地址栏按钮pressed -->

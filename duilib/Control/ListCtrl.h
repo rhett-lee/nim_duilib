@@ -756,11 +756,11 @@ public:
 
 public:
     /** 横向网格线的宽度
-    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示横向网格线
+    * @param [in] fLineWidth 网格线的宽度，如果为0表示不显示横向网格线
     * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
     */
-    void SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
-    int32_t GetRowGridLineWidth() const;
+    void SetRowGridLineWidth(float fLineWidth, bool bNeedDpiScale);
+    float GetRowGridLineWidth() const;
 
     /** 横向网格线的颜色
     * @param [in] color 横向网格线的颜色
@@ -769,11 +769,11 @@ public:
     DString GetRowGridLineColor() const;
 
     /** 纵向网格线的宽度
-    * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
+    * @param [in] fLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
     * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应
     */
-    void SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
-    int32_t GetColumnGridLineWidth() const;
+    void SetColumnGridLineWidth(float fLineWidth, bool bNeedDpiScale);
+    float GetColumnGridLineWidth() const;
 
     /** 纵向网格线的颜色
     * @param [in] color 纵向网格线的颜色

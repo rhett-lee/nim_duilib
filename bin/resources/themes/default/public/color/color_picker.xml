@@ -142,10 +142,10 @@
                     </VBox>
                     <VBox margin="2,6,2,2">                        
                         <Label text_id="STRID_TIP_COLORPICKER_NEW_COLOR" width="120" height="28" text_align="hcenter"/>
-                        <Box height="50%" bkcolor="white">
+                        <Box height="50%" bkcolor="bg_window_light">
                             <ColorPreviewLabel name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,bottom"/>
                         </Box>
-                        <Box height="50%" bkcolor="white">
+                        <Box height="50%" bkcolor="bg_window_light">
                             <ColorPreviewLabel name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,top"/>
                         </Box>
                         <Label text_id="STRID_TIP_COLORPICKER_OLD_COLOR" width="120" height="28" text_align="hcenter"/>

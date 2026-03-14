@@ -83,7 +83,7 @@
                         <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" 
                                                         kill_focus_update_ui="false"/>
             </HBox>
-            <HBox minheight="60" bkcolor="bg_window_light" border_size="0,2,0,0" border_color="color_splitline_level2" padding="0,4,0,0">
+            <HBox minheight="60" bkcolor="bg_window_light" border_size="0,1,0,0" border_color="border_address_bar" padding="0,2,0,0">
                 <HBox width="300" minwidth="60">
                     <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
                 </HBox>

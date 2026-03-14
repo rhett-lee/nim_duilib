@@ -74,10 +74,10 @@
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_MODIFY"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="color_splitline_level1" auto_hscroll="true"/>                  
+                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true"/>                  
                     </Box>
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_NAME" prompt_color="color_splitline_level1" auto_hscroll="true" />                  
+                        <RichEdit name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_NAME" prompt_color="text_richedit_prompt" auto_hscroll="true" />                  
                     </Box>
                 </HBox>
             
@@ -90,7 +90,7 @@
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_DELETE"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" multi_line="false" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="color_splitline_level1" auto_hscroll="true"/>                    
+                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" multi_line="false" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="text_richedit_prompt" auto_hscroll="true"/>                    
                     </Box>   
                     <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text_id="STRID_VIRTUALLISTBOX_BTN_DELETE" />            
                 </HBox>

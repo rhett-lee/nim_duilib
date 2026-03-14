@@ -29,7 +29,7 @@
             <Button class="btn_global" name="btn_navigate" text_id="STRID_CEF_BROWSER_BROWSE_TO" width="60" height="28" border_round="3,3" margin="4,1,0,0"/>
             <Button class="btn_global" name="btn_refresh" text_id="STRID_CEF_BROWSER_REFRESH" width="60" height="28" border_round="3,3" margin="4,1,4,0"/>
         </HBox>
-        <VBox bkcolor="bg_window_light">
+        <VBox bkcolor="bg_window_light" margin="0,2,0,0">
             <CefControl name="cef_control" url_is_local_file="true" url="cef.html" margin="2,0,2,2"/>
             <CefControl name="cef_control_dev" margin="2,0,2,2"/>
         </VBox>

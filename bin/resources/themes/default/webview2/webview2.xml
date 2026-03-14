@@ -19,7 +19,7 @@
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->   
-        <HBox height="auto">
+        <HBox height="auto" margin="2,0,2,0">
             <Button class="btn_global_blue_80x30" name="btn_back" text_id="STRID_WEBVIEW2_BROWSER_BACKWARD" width="60"/>
             <Button class="btn_global_blue_80x30" name="btn_forward" text_id="STRID_WEBVIEW2_BROWSER_FORWARD" width="60" margin="5,0,5"/>
             <RichEdit class="simple simple_border prompt" name="edit_url" 
@@ -29,7 +29,7 @@
             <Button class="btn_global_blue_80x30" name="btn_navigate" text_id="STRID_WEBVIEW2_BROWSER_BROWSE_TO" width="60" margin="5"/>
             <Button class="btn_global_blue_80x30" name="btn_refresh" text_id="STRID_WEBVIEW2_BROWSER_REFRESH" width="60" margin="5"/>
         </HBox>
-        <VBox bkcolor="bg_window_light">
+        <VBox bkcolor="bg_window_light" margin="0,2,0,0">
             <WebView2Control name="webview2_control" url="https://www.baidu.com" F12="true" margin="2,0,2,2"/>
         </VBox>
     </VBox>

@@ -133,6 +133,8 @@
     <TextColor name="color_progress" value="#FF0078D4"/>     <!-- 进度条：进度条填充/滑块主色 -->
     <TextColor name="color_splitline_level1" value="#FFE5E7EB"/> <!-- 一级分割线：主要区域分隔（与color_gray_light统一） -->
     <TextColor name="color_splitline_level2" value="#FFF5F5F5"/> <!-- 二级分割线：次要区域分隔 -->
+    <TextColor name="color_splitline_group_box" value="#FFE0E0E0"/> <!-- GroupBox分割线 -->
+    <TextColor name="color_split_line" value="#FFE0E0E0"/> <!-- Split控件分割线 -->
 
     <!-- 编辑框颜色（Win11 25H2 核心规范：灰边框 + 聚焦蓝下划线） -->
     <TextColor name="bg_richedit" value="#FFFFFFFF"/>        <!-- 编辑框背景：输入框默认背景 -->
@@ -201,6 +203,7 @@
     <TextColor name="bg_list_ctrl_header_hover" value="#FFE6F0FF"/> <!-- 表头hover：悬浮表头 -->
     <TextColor name="bg_list_ctrl_header_pressed" value="#FFCCE5FF"/> <!-- 表头pressed：点击表头 -->
     <TextColor name="bg_list_ctrl_header_split" value="#FFE5E7EB"/> <!-- 表头分割线：列分隔线 -->
+    <TextColor name="bg_list_ctrl_view_split" value="#FFE5E7EB"/> <!-- 表格分割线 -->
     <TextColor name="bg_list_ctrl_view" value="#FFFFFFFF"/>   <!-- 列表视图：列表区域背景 -->
     <TextColor name="bg_list_ctrl_frame_selected" value="#FF88BDEE"/> <!-- 选中框背景：选中项外框 -->
     <TextColor name="border_list_ctrl_frame_selected" value="#FF0078D4"/> <!-- 选中框边框：外框蓝边 -->
@@ -218,7 +221,8 @@
     <TextColor name="border_tab_ctrl_item" value="#FFD1D5DB"/> <!-- 标签项边框：标签分隔边框 -->
 
     <!-- AddressBar颜色 - 地址栏控件 -->
-    <TextColor name="bg_address_bar" value="#FFFFFFFF"/>     <!-- 地址栏背景：地址栏底色 -->
+    <TextColor name="border_address_bar" value="#FFD1D5DB"/>     <!-- 地址栏边框颜色 -->
+    <TextColor name="bg_address_bar" value="#FFFFFFFF"/>     <!-- 地址栏背景：地址栏底色 -->    
     <TextColor name="bg_address_bar_btn_hover" value="#FFE6F0FF"/> <!-- 地址栏按钮hover：悬浮按钮 -->
     <TextColor name="bg_address_bar_btn_pressed" value="#FFCCE5FF"/> <!-- 地址栏按钮pressed：点击按钮 -->
 
@@ -607,6 +611,10 @@
     <Class name="splitline_hor_level2" bkcolor="color_splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="color_splitline_level1" width="1"/>
     
+    <!-- 分组框 -->
+    <Class name="group_box" line_width="1.0" line_color="color_splitline_group_box"/>
+    <Class name="group_box_round" line_width="1.0" line_color="color_splitline_group_box" corner_size="3,3"/>
+    
     <!-- 富文本编辑框 -->
     <Class name="simple" class="richedit_base"/>
     <Class name="simple_border" padding="1,1,1,1" border_size="1" 
@@ -692,6 +700,34 @@
                              pushed_text_color="text_link_pressed"/>
     
     <!-- ListCtrl控件 -->
+    <Class name="list_ctrl" type="report"
+                            show_header="true" header_height="32" enable_header_drag_order="true" 
+                            data_item_height="32"
+                            row_grid_line_width="1"
+                            row_grid_line_color="bg_list_ctrl_view_split"
+                            column_grid_line_width="1"
+                            column_grid_line_color="bg_list_ctrl_view_split"
+                            multi_select="true"
+                            auto_check_select="false" show_header_checkbox="true" show_data_item_checkbox="true"
+                            enable_item_edit="true"                            
+                            header_class="list_ctrl_header" 
+                            header_item_class="list_ctrl_header_item"
+                            header_split_box_class="list_ctrl_header_split_box"
+                            header_split_control_class="list_ctrl_header_split_control"
+                            check_box_class="list_ctrl_checkbox"
+                            data_item_class="list_ctrl_item"
+                            data_sub_item_class="list_ctrl_sub_item"
+                            report_view_class="list_ctrl_report_view"
+                            icon_view_class="list_ctrl_icon_view"
+                            icon_view_item_class="list_ctrl_icon_view_item"
+                            icon_view_item_image_class="list_ctrl_icon_view_item_image"
+                            icon_view_item_label_class="list_ctrl_icon_view_item_label"
+                            list_view_class="list_ctrl_list_view"
+                            list_view_item_class="list_ctrl_list_view_item"
+                            list_view_item_image_class="list_ctrl_list_view_item_image"
+                            list_view_item_label_class="list_ctrl_list_view_item_label"
+                            list_ctrl_richedit_class="list_ctrl_richedit"/>
+        
     <!-- ListCtrl表头 -->
     <Class name="list_ctrl_header" icon_spacing="4" bkcolor="bg_list_ctrl_header" width="100%"/>
     <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" text_padding="2,0,2,0" 
@@ -792,7 +828,7 @@
                                      halign="right" valign="center" mouse_enabled="false"/>
     
     <!-- AddressBar控件 -->
-    <Class name="address_bar" width="stretch" height="36" border_round="4,4" bkcolor="bg_address_bar"
+    <Class name="address_bar" width="stretch" height="36" border_size="1" border_color="border_address_bar" border_round="4,4" bkcolor="bg_address_bar"
                               path_tooltip="true" return_update_ui="true" esc_update_ui="true" kill_focus_update_ui="true"
                               rich_edit_class="address_bar_edit" 
                               rich_edit_clear_btn_class="rich_edit_clear_btn"

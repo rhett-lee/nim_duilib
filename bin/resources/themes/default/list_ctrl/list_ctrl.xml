@@ -39,7 +39,7 @@
                 </CheckBox>
             </HBox>
             <HBox height="auto">                
-                <GroupVBox name="report_group" height="auto" width="820" text_id="STRID_LISTCTRL_REPORT_TYPE">
+                <GroupVBox class="group_box_round" name="report_group" height="auto" width="820" margin="2,0,0,0" text_id="STRID_LISTCTRL_REPORT_TYPE">
                     <HBox minheight="18" height="auto" margin="4,18,4,0">
                         <Label text_id="STRID_LISTCTRL_HEADER_CONTROL" valign="center" margin="2,0,2,0"/>
                         <Option class="option_2" group="show" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" borderround="2,2" valign="center">
@@ -131,13 +131,13 @@
                     </HBox>
                 </GroupVBox>
                 <HBox>
-                    <GroupVBox text_id="STRID_LISTCTRL_OTHER_TESTS">
+                    <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="2,0,2,0">
                         <Button class="btn_global" name="loading_progress_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS1" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
                         <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                         <Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                         <Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                    </GroupVBox>
-                    <GroupVBox text_id="STRID_LISTCTRL_OTHER_TESTS">
+                    <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="0,0,2,0">
                         <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
                         <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                         <Button class="btn_global" name="loading_btn5" text_id="STRID_LISTCTRL_LOADING_TEST5" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
@@ -146,37 +146,9 @@
                 </HBox>
             </HBox>
             <!-- 横向分割条，用于调整上下区域大小 -->
-            <Split bkcolor="color_splitline_level1" height="2"/>
-            <VBox margin="0,0,0,0" valign="center" halign="center">
-                <ListCtrl name="list_ctrl" bkcolor="YellowGreen"
-                          type="report"
-                          show_header="true"
-                          header_class="list_ctrl_header" 
-                          header_item_class="list_ctrl_header_item"
-                          header_split_box_class="list_ctrl_header_split_box"
-                          header_split_control_class="list_ctrl_header_split_control"
-                          header_height="32"                          
-                          enable_header_drag_order="true" 
-                          check_box_class="list_ctrl_checkbox"
-                          data_item_class="list_ctrl_item"
-                          data_sub_item_class="list_ctrl_sub_item"
-                          report_view_class="list_ctrl_report_view"
-                          data_item_height="46"
-                          row_grid_line_width="1"
-                          row_grid_line_color="lightgray"
-                          column_grid_line_width="1"
-                          column_grid_line_color="lightgray"
-                          multi_select="true"
-                          auto_check_select="false" show_header_checkbox="true" show_data_item_checkbox="true"
-                          icon_view_class="list_ctrl_icon_view"
-                          icon_view_item_class="list_ctrl_icon_view_item"
-                          icon_view_item_image_class="list_ctrl_icon_view_item_image"
-                          icon_view_item_label_class="list_ctrl_icon_view_item_label"
-                          list_view_class="list_ctrl_list_view"
-                          list_view_item_class="list_ctrl_list_view_item"
-                          list_view_item_image_class="list_ctrl_list_view_item_image"
-                          list_view_item_label_class="list_ctrl_list_view_item_label"
-                          enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"
+            <Split bkcolor="color_splitline_level1" height="2" margin="0,2,0,2" />
+            <VBox valign="center" halign="center">
+                <ListCtrl class="list_ctrl" name="list_ctrl" bkcolor="YellowGreen"                          
                           loading="file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"/>
             </VBox>
         </VBox>

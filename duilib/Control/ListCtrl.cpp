@@ -134,13 +134,15 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetDataSubItemClass(strValue);
     }
     else if (strName == _T("row_grid_line_width")) {
-        SetRowGridLineWidth(StringUtil::StringToInt32(strValue), true);
+        ASSERT(StringUtil::StringToFloat(strValue.c_str(), nullptr) >= 0);
+        SetRowGridLineWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
     }
     else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
     else if (strName == _T("column_grid_line_width")) {
-        SetColumnGridLineWidth(StringUtil::StringToInt32(strValue), true);
+        ASSERT(StringUtil::StringToFloat(strValue.c_str(), nullptr) >= 0);
+        SetColumnGridLineWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
     }
     else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
@@ -226,19 +228,19 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
     //首先禁止界面刷新
     bool bOldValue = SetEnableRefresh(false);
-    int32_t iValue = GetRowGridLineWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetRowGridLineWidth(iValue, false);
+    float fValue = GetRowGridLineWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetRowGridLineWidth(fValue, false);
 
-    iValue = GetColumnGridLineWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetColumnGridLineWidth(iValue, false);
+    fValue = GetColumnGridLineWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetColumnGridLineWidth(fValue, false);
 
     if (m_nHeaderHeight > 0) {
         m_nHeaderHeight = Dpi().GetScaleInt(m_nHeaderHeight, nOldDpiScale);
     }
 
-    iValue = GetDataItemHeight();
+    int32_t iValue = GetDataItemHeight();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetDataItemHeight(iValue, false);
 
@@ -937,12 +939,12 @@ DString ListCtrl::GetRichEditClass() const
     return m_listCtrlRichEditClass.c_str();
 }
 
-void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrl::SetRowGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    m_pReportView->SetRowGridLineWidth(nLineWidth, bNeedDpiScale);
+    m_pReportView->SetRowGridLineWidth(fLineWidth, bNeedDpiScale);
 }
 
-int32_t ListCtrl::GetRowGridLineWidth() const
+float ListCtrl::GetRowGridLineWidth() const
 {
     return m_pReportView->GetRowGridLineWidth();
 }
@@ -957,12 +959,12 @@ DString ListCtrl::GetRowGridLineColor() const
     return m_pReportView->GetRowGridLineColor();
 }
 
-void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrl::SetColumnGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    m_pReportView->SetColumnGridLineWidth(nLineWidth, bNeedDpiScale);
+    m_pReportView->SetColumnGridLineWidth(fLineWidth, bNeedDpiScale);
 }
 
-int32_t ListCtrl::GetColumnGridLineWidth() const
+float ListCtrl::GetColumnGridLineWidth() const
 {
     return m_pReportView->GetColumnGridLineWidth();
 }

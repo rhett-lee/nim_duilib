@@ -27,7 +27,8 @@ void Line::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("line_width")) {
         if (!strValue.empty()) {
-            SetLineWidth((float)StringUtil::StringToInt32(strValue), true);
+            ASSERT(StringUtil::StringToFloat(strValue.c_str(), nullptr) >= 0);
+            SetLineWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
         }
     }
     else if (strName == _T("dash_style")) {

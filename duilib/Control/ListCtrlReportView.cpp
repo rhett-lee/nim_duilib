@@ -11,8 +11,8 @@ ListCtrlReportView::ListCtrlReportView(Window* pWindow) :
     m_pListCtrl(nullptr),
     m_pData(nullptr),
     m_nTopElementIndex(0),
-    m_nRowGridLineWidth(0),
-    m_nColumnGridLineWidth(0)
+    m_fRowGridLineWidth(0),
+    m_fColumnGridLineWidth(0)
 {
     ListCtrlReportLayout* pDataLayout = dynamic_cast<ListCtrlReportLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -677,8 +677,8 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     std::unique_ptr<AutoClip> rectClip = CreateRectClip(pRender, viewRect, bRectClip);
     std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, viewRect, bRoundClip);
 
-    int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
-    int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
+    float fColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
+    float fRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
     UiColor columnLineColor;
     UiColor rowLineColor;
     DString color = GetColumnGridLineColor();
@@ -690,7 +690,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
         rowLineColor = GetUiColor(color);
     }
 
-    if ((nColumnLineWidth > 0) && !columnLineColor.IsEmpty()) {
+    if ((fColumnLineWidth > 0.001f) && !columnLineColor.IsEmpty()) {
         //绘制纵向网格线        
         int32_t yTop = viewRect.top;
         std::vector<int32_t> xPosList;
@@ -738,13 +738,13 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
 
         for (int32_t xPos : xPosList) {
             //横坐标位置放在每个子项控件的右侧部
-            float fXPos = (float)xPos - (float)nColumnLineWidth/2;
+            float fXPos = (float)xPos - (float)fColumnLineWidth / 2;
             UiPointF pt1(fXPos, (float)yTop);
             UiPointF pt2(fXPos, (float)viewRect.bottom);
-            pRender->DrawLine(pt1, pt2, columnLineColor, (float)nColumnLineWidth);
+            pRender->DrawLine(pt1, pt2, columnLineColor, fColumnLineWidth);
         }
     }
-    if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {
+    if ((fRowLineWidth > 0.001f) && !rowLineColor.IsEmpty()) {
         //绘制横向网格线
         const size_t itemCount = GetItemCount();
         for (size_t index = 0; index < itemCount; ++index) {
@@ -763,7 +763,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
 
             UiPointF pt1(viewRect.left, yPos);
             UiPointF pt2(viewRect.right, yPos);
-            pRender->DrawLine(pt1, pt2, rowLineColor, (float)nRowLineWidth);
+            pRender->DrawLine(pt1, pt2, rowLineColor, fRowLineWidth);
         }
     }
 }
@@ -1433,23 +1433,23 @@ void ListCtrlReportView::OnSelectStatusChanged()
     }
 }
 
-void ListCtrlReportView::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrlReportView::SetRowGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nLineWidth);
+        fLineWidth = Dpi().GetScaleFloat(fLineWidth);
     }
-    if (nLineWidth < 0) {
-        nLineWidth = 0;
+    if (fLineWidth < 0) {
+        fLineWidth = 0;
     }
-    if (m_nRowGridLineWidth != nLineWidth) {
-        m_nRowGridLineWidth = nLineWidth;
+    if (m_fRowGridLineWidth != fLineWidth) {
+        m_fRowGridLineWidth = fLineWidth;
         Invalidate();
     }
 }
 
-int32_t ListCtrlReportView::GetRowGridLineWidth() const
+float ListCtrlReportView::GetRowGridLineWidth() const
 {   
-    return m_nRowGridLineWidth;
+    return m_fRowGridLineWidth;
 }
 
 void ListCtrlReportView::SetRowGridLineColor(const DString& color)
@@ -1465,23 +1465,23 @@ DString ListCtrlReportView::GetRowGridLineColor() const
     return m_rowGridLineColor.c_str();
 }
 
-void ListCtrlReportView::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrlReportView::SetColumnGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nLineWidth);
+        fLineWidth = Dpi().GetScaleFloat(fLineWidth);
     }
-    if (nLineWidth < 0) {
-        nLineWidth = 0;
+    if (fLineWidth < 0) {
+        fLineWidth = 0;
     }
-    if (m_nColumnGridLineWidth != nLineWidth) {
-        m_nColumnGridLineWidth = nLineWidth;
+    if (m_fColumnGridLineWidth != fLineWidth) {
+        m_fColumnGridLineWidth = fLineWidth;
         Invalidate();
     }
 }
 
-int32_t ListCtrlReportView::GetColumnGridLineWidth() const
+float ListCtrlReportView::GetColumnGridLineWidth() const
 {
-    return m_nColumnGridLineWidth;
+    return m_fColumnGridLineWidth;
 }
 
 void ListCtrlReportView::SetColumnGridLineColor(const DString& color)

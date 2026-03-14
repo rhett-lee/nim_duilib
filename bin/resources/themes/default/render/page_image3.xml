@@ -415,15 +415,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -437,15 +437,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='true'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -459,15 +459,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='false'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -481,15 +481,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='true'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -503,15 +503,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='false'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -525,15 +525,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='true'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -547,15 +547,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='true'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -569,15 +569,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='false'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -591,15 +591,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -613,15 +613,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>
@@ -635,15 +635,15 @@
                         <HBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1' tiled_padding='1,1,1,1'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
+                            <Split bkcolor="color_split_line" width="2" margin="2,0,2,0"/>
                             <Control min_width="7" width="7"/>
                         </HBox>                    
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>
                             <Control class="page_image3_image" width="100%" height="100%" bkimage="file='svg_test.png' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false' tiled_margin='1' tiled_padding='1,1,1,1'"/>
-                            <!-- 纵向分割条，用于调整左右区域大小 -->
-                            <Split bkcolor="color_splitline_level1" height="5" border_color="white" border_size="0,2,0,2"/>
+                            <!-- 横向分割条，用于调整上下区域大小 -->
+                            <Split bkcolor="color_split_line" height="2" margin="0,2,0,2"/>
                             <Control min_height="7" height="7"/>
                         </VBox>
                     </VBox>

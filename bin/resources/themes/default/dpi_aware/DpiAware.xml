@@ -17,7 +17,7 @@
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box>
-            <GroupVBox name="group_box_test" halign="center" valign="center" width="640" height="auto">
+            <GroupVBox class="group_box_round" name="group_box_test" halign="center" valign="center" width="640" height="auto">
                 <HBox height="40" width="100%" valign="center" child_halign="center">
                     <Label text_id="STRID_DPIAWARE_TITLE" height="40" width="auto" text_align="right,vcenter"/>
                     <Label name="group_box_pos" text="[left: 0, top: 0]" height="40" width="auto" text_align="left,vcenter"/>

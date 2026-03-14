@@ -39,11 +39,11 @@ public:
 
     /** 设置线条宽度
     */
-    void SetLineWidth(int32_t nLineWidth, bool bNeedDpiScale);
+    void SetLineWidth(float fLineWidth, bool bNeedDpiScale);
 
     /** 获取线条宽度
     */
-    int32_t GetLineWidth() const;
+    float GetLineWidth() const;
 
     /** 设置线条颜色
     */
@@ -56,7 +56,7 @@ private:
 
 private:
     //线条宽度
-    int32_t m_nLineWidth;
+    float m_fLineWidth;
 
     //圆角大小（默认为直角, 无圆角）
     UiSize m_cornerSize;
@@ -68,7 +68,7 @@ private:
 template<typename InheritType>
 GroupBoxTemplate<InheritType>::GroupBoxTemplate(Window* pWindow):
     LabelTemplate<InheritType>(pWindow),
-    m_nLineWidth(0)
+    m_fLineWidth(0)
 {
     SetAttribute(_T("text_align"), _T("top,left"));
     SetAttribute(_T("text_padding"), _T("8,0,0,0"));
@@ -129,24 +129,24 @@ const UiSize& GroupBoxTemplate<InheritType>::GetCornerSize() const
 }
 
 template<typename InheritType>
-void GroupBoxTemplate<InheritType>::SetLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void GroupBoxTemplate<InheritType>::SetLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    if (nLineWidth < 0) {
-        nLineWidth = 0;
+    if (fLineWidth < 0) {
+        fLineWidth = 0;
     }
     if (bNeedDpiScale) {
-        this->Dpi().ScaleInt(nLineWidth);
+        fLineWidth = this->Dpi().GetScaleFloat(fLineWidth);
     }
-    if (m_nLineWidth != nLineWidth) {
-        m_nLineWidth = nLineWidth;
+    if (m_fLineWidth != fLineWidth) {
+        m_fLineWidth = fLineWidth;
         this->Invalidate();
     }
 }
 
 template<typename InheritType>
-int32_t GroupBoxTemplate<InheritType>::GetLineWidth() const
+float GroupBoxTemplate<InheritType>::GetLineWidth() const
 {
-    return m_nLineWidth;
+    return m_fLineWidth;
 }
 
 template<typename InheritType>
@@ -176,8 +176,8 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     }
     else if (strName == _T("line_width")) {
         //线条宽度
-        ASSERT(StringUtil::StringToInt32(strValue) >= 0);
-        this->SetLineWidth(StringUtil::StringToInt32(strValue), true);
+        ASSERT(StringUtil::StringToFloat(strValue.c_str(), nullptr) >= 0);
+        this->SetLineWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
     }
     else if (strName == _T("line_color")) {
         //线条颜色
@@ -202,9 +202,9 @@ void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32
     cxyRound = this->Dpi().GetScaleSize(cxyRound, nOldDpiScale);
     this->SetCornerSize(cxyRound, false);
 
-    int32_t iValue = this->GetLineWidth();
-    iValue = this->Dpi().GetScaleInt(iValue, nOldDpiScale);
-    this->SetLineWidth(iValue, false);
+    float fValue = this->GetLineWidth();
+    fValue = this->Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    this->SetLineWidth(fValue, false);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -242,9 +242,9 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }
 
     //在文字底部绘制边框
-    int32_t nLineWidth = m_nLineWidth;
-    if (nLineWidth <= 0) {
-        nLineWidth = this->Dpi().GetScaleInt(1);
+    float fLineWidth = m_fLineWidth;
+    if (fLineWidth <= 0) {
+        fLineWidth = this->Dpi().GetScaleFloat(1.0f);
     }
     UiSize cornerSize = m_cornerSize;
     UiColor lineColor;
@@ -252,17 +252,26 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
         lineColor = this->GetUiColor(m_lineColor.c_str());
     }
     if (lineColor.GetARGB() == 0) {
-        lineColor = GetFadeColor(UiColor(UiColors::Gray), 96);
+        if (GlobalManager::Instance().Theme().GetCurrentThemeStyle() == ThemeStyle::kDark) {
+            //深色主题
+            lineColor = GetFadeColor(UiColor(UiColors::White), 96);
+        }
+        else {
+            //浅色主题
+            lineColor = GetFadeColor(UiColor(UiColors::Gray), 96);
+        }        
     }
 
     int32_t nShadowOffset = 1;//阴影偏移
     UiRect rc = this->GetRect();
     rc.Deflate(rcPadding);
-    rc.Deflate(nLineWidth / 2 + nShadowOffset, nLineWidth/2 + nShadowOffset);
+
+    int32_t nLineWidthHalf = (int32_t)(std::round(fLineWidth / 2));
+    rc.Deflate(nLineWidthHalf + nShadowOffset, nLineWidthHalf + nShadowOffset);
 
     if (drawTextRect.Height() > 0) {
         //让线条在文本中间
-        rc.top += (drawTextRect.Height() / 2 - nLineWidth / 2);
+        rc.top += (drawTextRect.Height() / 2 - nLineWidthHalf);
     }
 
     if ((cornerSize.cx > 0) && (cornerSize.cy > 0)) {
@@ -271,10 +280,10 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
-            pRender->DrawRoundRect(UiRectF::MakeFromRect(fadeRect), (float)cornerSize.cx, (float)cornerSize.cy, fadeColor, (float)nLineWidth);
+            pRender->DrawRoundRect(UiRectF::MakeFromRect(fadeRect), (float)cornerSize.cx, (float)cornerSize.cy, fadeColor, fLineWidth);
         }
         //绘制圆角矩形边框
-        pRender->DrawRoundRect(UiRectF::MakeFromRect(rc), (float)cornerSize.cx, (float)cornerSize.cy, lineColor, (float)nLineWidth);
+        pRender->DrawRoundRect(UiRectF::MakeFromRect(rc), (float)cornerSize.cx, (float)cornerSize.cy, lineColor, fLineWidth);
     }
     else {
         //先绘制个阴影效果
@@ -282,10 +291,10 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
-            pRender->DrawRect(UiRectF::MakeFromRect(fadeRect), fadeColor, (float)nLineWidth);
+            pRender->DrawRect(UiRectF::MakeFromRect(fadeRect), fadeColor, fLineWidth);
         }
         //绘制矩形边框
-        pRender->DrawRect(UiRectF::MakeFromRect(rc), lineColor, (float)nLineWidth);
+        pRender->DrawRect(UiRectF::MakeFromRect(rc), lineColor, fLineWidth);
     }
 
     if (hasClip) {
