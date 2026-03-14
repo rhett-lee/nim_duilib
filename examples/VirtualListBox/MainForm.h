@@ -8,6 +8,7 @@
 
 class MainForm : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     MainForm();
     virtual ~MainForm() override;
@@ -22,6 +23,12 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+
+protected:
+    /** 语言切换事件（当前语言可通过GlobalManager获取）
+    * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnLanguageChanged() override;
 
 private:
     bool OnClicked(const ui::EventArgs& args);

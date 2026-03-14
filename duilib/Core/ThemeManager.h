@@ -92,12 +92,15 @@ public:
 public:
     /** 设置主题切换回调函数（供UI控件刷新使用）
     * @param [in] callback 主题变化回调函数
+    * @param [in] callbackId 回调函数ID，用于删除回调函数
     */
-    void SetThemeChangeCallback(ThemeChangedCallback callback);
+    void AddThemeChangeCallback(ThemeChangedCallback callback, size_t callbackId = 0);
 
-    /** 获取主题切换回调函数
+    /** 删除主题切换回调函数
+    * @param [in] callback 主题变化回调函数
+    * @param [in] callbackId 回调函数ID，用于删除回调函数
     */
-    ThemeChangedCallback GetThemeChangeCallback() const;
+    void RemoveThemeChangeCallback(ThemeChangedCallback callback, size_t callbackId = 0);
 
     /** 获取主题资源信息列表
     * @param [in] themePathList 需要获取的主题路径（比如"color_dark"）列表，如果为空则获取主题根目录下的所有可用主题列表
@@ -261,9 +264,19 @@ private:
     */
     DString m_globalXmlFileName;
 
+    //回调函数关联数据
+    struct ThemeChangedEventData
+    {
+        ThemeChangedCallback m_callback;
+        size_t m_callbackId;
+
+        //比较操作符
+        bool operator == (const ThemeChangedEventData& r) const { return m_callbackId == r.m_callbackId; }
+    };
+
     /** 主题切换回调函数
     */
-    ThemeChangedCallback m_themeChangedCallback;
+    std::vector<ThemeChangedEventData> m_themeChangedCallbacks;
 
 private:
     /** 当前默认主题信息

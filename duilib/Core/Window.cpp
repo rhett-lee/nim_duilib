@@ -2863,4 +2863,29 @@ void Window::OnDisplayScaleChangedMsg(float /*fNewDisplayScale*/, float /*fNewPi
 {
 }
 
+void Window::NotifyLanguageChanged()
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (OnLanguageChanged() && !windowFlag.expired()) {
+        SendWindowEvent(kWindowLanguageChangedMsg);
+    }
+}
+
+void Window::NotifyThemeChanged()
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (OnThemeChanged() && !windowFlag.expired()) {
+        SendWindowEvent(kWindowThemeChangedMsg);
+    }
+}
+
+bool Window::OnLanguageChanged()
+{
+    return true;
+}
+bool Window::OnThemeChanged()
+{
+    return true;
+}
+
 } // namespace ui

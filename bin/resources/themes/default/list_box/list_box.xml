@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="540,720" min_size="400,100" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_dark">
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text="列表（VTileListBox | HTileListBox | VListBox | HListBox）" font="system_regular_14" valign="center" margin="8" width="stretch" mouse_enabled="false"/>
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Label text_id="STRID_LISTBOX_TITLE" font="system_regular_14" valign="center" margin="8" width="stretch" mouse_enabled="false"/>
             <HBox width="auto">
-                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
                 <Box height="stretch" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
                 </Box>
-                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox>
         <Box>

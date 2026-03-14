@@ -111,9 +111,13 @@ void MainForm::ExecuteTaskInThread()
     int32_t nUIThreadIdentifier = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
 
     //执行具体的计算任务，此处只是显示一条日志（也是通过线程间通信，让主线程更新日志数据到界面）
-    DString log = ui::StringUtil::Printf(_T("[操作系统线程ID:%s][界面库线程标识符:%d]: MainForm::ExecuteTaskInThread 在子线程中执行"),
-                                         systemThreadId.c_str(),
-                                         nUIThreadIdentifier);
+    //_T("[操作系统线程ID:%s][界面库线程标识符:%d]: MainForm::ExecuteTaskInThread 在子线程中执行
+    DString log = ui::StringUtil::Printf(_T("[%s:%s][%s:%d]: MainForm::ExecuteTaskInThread %s"),
+        ui::GlobalManager::Instance().Lang().GetStringViaID(_T("STRID_THREADS_EXECUTE_LOG_01_1")).c_str(),
+        systemThreadId.c_str(),
+        ui::GlobalManager::Instance().Lang().GetStringViaID(_T("STRID_THREADS_EXECUTE_LOG_01_2")).c_str(),
+        nUIThreadIdentifier,
+        ui::GlobalManager::Instance().Lang().GetStringViaID(_T("STRID_THREADS_EXECUTE_LOG_01_3")).c_str());
     PrintLog(log);
 }
 

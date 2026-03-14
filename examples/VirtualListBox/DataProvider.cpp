@@ -99,17 +99,29 @@ void DataProvider::SetMultiSelect(bool bMultiSelect)
 
 void DataProvider::SetTotal(int nTotal)
 {
-    if (nTotal == m_nTotal) return;
-    if (nTotal <= 0) return;
+    if (nTotal == m_nTotal) {
+        return;
+    }
+    if (nTotal <= 0) {
+        return;
+    }
     m_nTotal = nTotal;
+    Refresh();
+}
 
+void DataProvider::Refresh()
+{
     // 加锁
+    if (m_nTotal < 1) {
+        m_nTotal = 1;
+    }
+    int nTotal = m_nTotal;
     m_lock.lock();
     for (auto task : m_vTasks) {
         delete [] task.sName;
     }
     m_vTasks.clear();
-    DString name = _T("任务名称");
+    DString name = ui::GlobalManager::Instance().Lang().GetStringViaID(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
     m_vTasks.reserve(nTotal);
     for (auto i=0; i < nTotal; i++)
     {

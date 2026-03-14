@@ -2,29 +2,31 @@
 <Window size="75%,75%" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" min_size="750,500" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_dark">
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <Label text="虚表（VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox）" font="system_regular_14" valign="center" margin="8" mouse_enabled="false"/>
-            <Control mouse_enabled="false"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Label text_id="STRID_VIRTUALLISTBOX_TITLE" font="system_regular_14" valign="center" margin="8" mouse_enabled="false" width="stretch"/>
+            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
     
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <HBox height="30">
-            <Label text="当前虚表容器类型为：" font="system_regular_14" valign="center" margin="8,0,8,0"/>
+            <Label text_id="STRID_VIRTUALLISTBOX_BOX_TYPE" font="system_regular_14" valign="center" margin="8,0,8,0"/>
             <Label name="list_box_type" text="VirtualHTileListBox" font="system_regular_14" valign="center"/>
         </HBox>
         <HBox child_margin="5" padding="5,5,5,10" bkcolor="bg_window_light">
             <VBox width="300" border_size="1" border_color="color_splitline_level1" padding="5,10,5,10" child_margin="10">
                 <VBox height="80">
-                    <Label name="label_column_row" font="system_bold_14" text="行/列设置:"  width="auto" height="auto" valign="center" />
-                    <Option class="option_1" name="option_column_auto" group="option_group" text="自动计算" height="28" margin="80,0,0,0" selected="true"/>
+                    <Label name="label_column_row" font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ROW_COLS"  width="auto" height="auto" valign="center" />
+                    <Option class="option_1" name="option_column_auto" group="option_group" text_id="STRID_VIRTUALLISTBOX_AUTO_CALC" height="28" margin="80,0,0,0" selected="true"/>
                     <HBox height="30" >
-                        <Option class="option_1" name="option_column_fix" group="option_group" text="固定列数" margin="80,0,0,0">
+                        <Option class="option_1" name="option_column_fix" group="option_group" text_id="STRID_VIRTUALLISTBOX_FIX_COLS" margin="80,0,0,0">
                             <Event type="select" receiver="edit_column" apply_attribute="visible='true'" />
                             <Event type="unselect" receiver="edit_column" apply_attribute="visible='false'" />
                         </Option>
@@ -34,63 +36,63 @@
                 <Control height="1" bkcolor="color_splitline_level1" />
                 
                 <VBox height="auto">
-                    <Label font="system_bold_14" text="对齐方式:"  width="auto" height="auto" valign="center" />
-                    <Option class="option_1" name="option_align1" group="option_group_align" text="靠左对齐(left)" height="28" margin="80,0,0,0" selected="true"/>
-                    <Option class="option_1" name="option_align2" group="option_group_align" text="居中对齐(center)" height="28" margin="80,0,0,0" selected="false"/>
-                    <Option class="option_1" name="option_align3" group="option_group_align" text="靠右对齐(right)" height="28" margin="80,0,0,0" selected="false"/>
+                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_ALIGN_TYPE"  width="auto" height="auto" valign="center" />
+                    <Option class="option_1" name="option_align1" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_LEFT" height="28" margin="80,0,0,0" selected="true"/>
+                    <Option class="option_1" name="option_align2" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_CENTER" height="28" margin="80,0,0,0" selected="false"/>
+                    <Option class="option_1" name="option_align3" group="option_group_align" text_id="STRID_VIRTUALLISTBOX_ALIGN_RIGHT" height="28" margin="80,0,0,0" selected="false"/>
                 </VBox>
                 
                 <Control height="1" bkcolor="color_splitline_level1" />
                 <VBox height="auto">
                     <HBox height="30" child_margin="10">
-                        <Label name="label_child_margin_x" font="system_bold_14" text="子项间隙X:"  width="auto" height="auto" valign="center" />
+                        <Label name="label_child_margin_x" font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_X"  width="auto" height="auto" valign="center" />
                         <Box border_size="1" border_color="color_splitline_level1" width="90" height="26" valign="center">
-                            <RichEdit name="edit_child_margin_x" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="子项间隙X" text_align="vcenter" text="" text_padding="2,0,0,0" prompt_color="color_splitline_level1" auto_hscroll="true" />                  
+                            <RichEdit name="edit_child_margin_x" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="2,0,0,0" auto_hscroll="true" />                  
                         </Box>           
                     </HBox> 
                     <HBox height="30" child_margin="10">
-                        <Label font="system_bold_14" name="label_child_margin_y" text="子项间隙Y:"  width="auto" height="auto" valign="center" />
+                        <Label font="system_bold_14" name="label_child_margin_y" text_id="STRID_VIRTUALLISTBOX_CHILD_MARGIN_Y"  width="auto" height="auto" valign="center" />
                         <Box border_size="1" border_color="color_splitline_level1" width="90" height="26" valign="center">
-                            <RichEdit name="edit_child_margin_y" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="子项间隙Y" text_align="vcenter" text="" text_padding="2,0,0,0" prompt_color="color_splitline_level1" auto_hscroll="true" />                  
+                            <RichEdit name="edit_child_margin_y" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text="" text_padding="2,0,0,0" auto_hscroll="true" />                  
                         </Box>           
                     </HBox> 
                 </VBox>
                      
                 <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text="总数据:"  width="auto" height="auto" valign="center" />
+                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_COUNT" width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="color_splitline_level1" width="180" height="26" valign="center">
-                        <RichEdit name="edit_total" bkcolor="bg_richedit" text="10000" number_only="true" min_number="1" font="system_regular_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="总数据" text_align="vcenter" text_padding="2,0,0,0" prompt_color="color_splitline_level1" auto_hscroll="true"  />                    
+                    <RichEdit name="edit_total" bkcolor="bg_richedit" text="10000" number_only="true" min_number="1" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0"  auto_hscroll="true"  />                    
                     </Box>                   
                 </HBox>
             
                 <Box height="30" child_margin="10" width="stretch">
-                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_set_total" text="更改/设置" />
+                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_set_total" text_id="STRID_VIRTUALLISTBOX_CHANGE" />
                 </Box>
             
                 <Control height="1" bkcolor="color_splitline_level1" />
             
                 <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text="改变数据:"  width="auto" height="auto" valign="center" />
+                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_MODIFY"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="序号(下标)" prompt_color="color_splitline_level1" auto_hscroll="true"/>                  
+                        <RichEdit name="edit_update" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="color_splitline_level1" auto_hscroll="true"/>                  
                     </Box>
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" normal_text_color="black" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text="新的任务名称" prompt_color="color_splitline_level1" auto_hscroll="true" />                  
-                    </Box>           
+                        <RichEdit name="edit_task_name" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" multi_line="false" text_align="vcenter" text_padding="2,0,0,0" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_NAME" prompt_color="color_splitline_level1" auto_hscroll="true" />                  
+                    </Box>
                 </HBox>
             
                 <Box height="30" child_margin="10" width="stretch">
-                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_update" text="更新数据" />
+                    <Button class="btn_global_blue_80x30" halign="center" valign="center" name="btn_update" text_id="STRID_VIRTUALLISTBOX_DATA_UPDATE" />
                 </Box>
             
                 <Control height="1" bkcolor="color_splitline_level1" />        
 
                 <HBox height="30" child_margin="10">
-                    <Label font="system_bold_14" text="删除数据:"  width="auto" height="auto" valign="center" />
+                    <Label font="system_bold_14" text_id="STRID_VIRTUALLISTBOX_DATA_DELETE"  width="auto" height="auto" valign="center" />
                     <Box border_size="1" border_color="color_splitline_level1" height="26" valign="center">
-                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" normal_text_color="black" multi_line="false" prompt_mode="true" prompt_text="序号(下标)" prompt_color="color_splitline_level1" auto_hscroll="true"/>                    
+                        <RichEdit name="edit_delete" number_only="true" min_number="0" bkcolor="bg_richedit" font="system_regular_14" width="stretch" height="stretch" valign="center" text_align="vcenter" text_padding="2,0,0,0" multi_line="false" prompt_mode="true" prompt_text_id="STRID_VIRTUALLISTBOX_INPUT_INDEX" prompt_color="color_splitline_level1" auto_hscroll="true"/>                    
                     </Box>   
-                    <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text="删除数据" />            
+                    <Button class="btn_global_red_80x30" halign="center" valign="center" name="btn_delete" text_id="STRID_VIRTUALLISTBOX_BTN_DELETE" />            
                 </HBox>
             </VBox>
             <Box>

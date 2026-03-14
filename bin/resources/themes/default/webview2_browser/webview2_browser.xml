@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
+<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_WEBVIEW2_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
     <!--新建标签按钮：纯色按钮-->
     <Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center" 
                                        normal_text_color="text_default" 
@@ -29,27 +29,30 @@
             <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
             
             <!-- 顶部标签列表后面放一个新建标签按钮 -->
-            <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
+            <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text_id="STRID_WEBVIEW2_BROWSER_NEW_TAB" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
     		
             <!-- 标题栏区域 -->
-            <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
+            <HBox name="window_title_bar" width="auto" height="36" bkcolor="">
                 <Control mouse_enabled="false"/>
                 <Control width="36" mouse_enabled="false"/>
-                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
                 <Box height="stretch" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
                 </Box>
-                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox>
         <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
         <HBox height="30" margin="10,2,10,2" child_margin="3">
-            <Button class="btn_webview2_browser" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_regular_12" />
-            <Button class="btn_webview2_browser" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_regular_12" />
+            <Button class="btn_webview2_browser" name="btn_back" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_BACKWARD" valign="center" font="system_regular_12" />
+            <Button class="btn_webview2_browser" name="btn_forward" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_FORWARD" valign="center" font="system_regular_12" />
             <Box width="50" height="30" valign="center">
-                <Button class="btn_webview2_browser" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_regular_12" />
-                <Button class="btn_webview2_browser" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_regular_12" />
+                <Button class="btn_webview2_browser" name="btn_refresh" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_REFRESH" valign="center" font="system_regular_12" />
+                <Button class="btn_webview2_browser" name="btn_stop" width="50" height="30" textid="STRID_WEBVIEW2_BROWSER_STOP" valign="center" font="system_regular_12" />
             </Box>
             <!-- 地址栏 -->
             <RichEdit class="simple simple_border prompt" name="edit_url" width="stretch" height="30" border_round="3,3"
@@ -57,7 +60,7 @@
                                             text_align="vcenter" 
                                             valign="center" 
                                             font="system_regular_14"
-                                            prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
+                                            prompt_textid="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS" 
                                             default_context_menu="true" 
                                             vscrollbar="false" 
                                             auto_vscroll="false" 

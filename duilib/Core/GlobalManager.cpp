@@ -203,6 +203,27 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
         m_renderFactory.reset();
         return false;
     }
+
+    //挂载主题变化事件
+    m_themeManager.AddThemeChangeCallback([this](const ThemeInfo&) {
+        //刷新界面显示
+        std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
+        for (const WindowPtr& pWindow : windowList) {
+            if (pWindow != nullptr) {
+                pWindow->NotifyThemeChanged();
+            }
+            if (pWindow != nullptr) {
+                Box* pBox = pWindow->GetRoot();
+                if (pBox != nullptr) {
+                    pBox->SetPos(pBox->GetPos());
+                }
+            }
+            if (pWindow != nullptr) {
+                pWindow->InvalidateAll();
+            }
+        }
+        }, (size_t)this);
+
     return true;
 }
 
@@ -540,7 +561,12 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                 pBox->OnLanguageChanged();
                 pBox->SetPos(pBox->GetPos());
             }
-            pWindow->InvalidateAll();
+            if (pWindow != nullptr) {
+                pWindow->NotifyLanguageChanged();
+            }
+            if (pWindow != nullptr) {
+                pWindow->InvalidateAll();
+            }
         }
     }
     return bReadOk;

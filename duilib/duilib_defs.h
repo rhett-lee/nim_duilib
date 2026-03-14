@@ -505,6 +505,8 @@ namespace ui
                                     //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
                                     //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
         kWindowDropLeaveMsg,        //窗口拖放操作：离开, 无参数
+        kWindowLanguageChangedMsg,  //窗口的语言切换事件（支持多国语言版）, 无参数
+        kWindowThemeChangedMsg,     //窗口的主题切换事件（支持深色、浅色等主题）, 无参数
         kWindowMsgEnd               //窗口消息的结束
     };
 

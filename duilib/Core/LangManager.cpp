@@ -80,8 +80,8 @@ bool LangManager::AnalyzeStringTable(const std::vector<DString>& list)
     DString strResource;
     for (int i = 0; i < nCount; ++i) {
         const DString& strSrc = list[i];
-        if (strSrc.empty() || strSrc.at(0) == _T(';')) {
-            //注释以";"开头
+        if (strSrc.empty() || strSrc.at(0) == _T(';') || strSrc.at(0) == _T('#')) {
+            //注释以";" 或者 "#" 开头
             continue;
         }
         size_t pos = strSrc.find(_T('='));
@@ -119,7 +119,7 @@ DString LangManager::GetStringViaID(const DString& id)
     }
     auto it = m_stringTable.find(id);
     if (it == m_stringTable.end()) {
-        ASSERT(!"MultiLang::GetStringViaID failed!");
+        ASSERT(!"LangManager::GetStringViaID failed!");
         return text;
     }
     else {

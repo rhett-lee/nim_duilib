@@ -2,30 +2,32 @@
 <Window size="700,500" caption="0,0,0,36" shadow_type="default" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
     <VBox bkcolor="bg_window_dark">
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0" mouse_enabled="false"/>
             <Button class="btn_wnd_base" name="btn_dev_tool" height="32" width="40" margin="0,2,4,2" valign="center" 
-                          tooltip_text="开发者工具" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"/>
-            <Button class="btn_view_fullscreen_11" height="32" width="40" name="webview2_full_screen_btn" margin="0,2,0,2" tooltip_text="页面全屏，按ESC键可退出全屏"/>
-            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="窗口全屏，按ESC键可退出全屏"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                          tooltip_text_id="STRID_WEBVIEW2_BROWSER_DEV_TOOL" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"/>
+            <Button class="btn_view_fullscreen_11" height="32" width="40" name="cef_full_screen_btn" margin="0,2,0,2"/>
+            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->   
         <HBox height="auto">
-            <Button class="btn_global_blue_80x30" name="btn_back" text="后退" width="60"/>
-            <Button class="btn_global_blue_80x30" name="btn_forward" text="前进" width="60" margin="5,0,5"/>
+            <Button class="btn_global_blue_80x30" name="btn_back" text_id="STRID_WEBVIEW2_BROWSER_BACKWARD" width="60"/>
+            <Button class="btn_global_blue_80x30" name="btn_forward" text_id="STRID_WEBVIEW2_BROWSER_FORWARD" width="60" margin="5,0,5"/>
             <RichEdit class="simple simple_border prompt" name="edit_url" 
                                                   width="stretch" height="28" valign="center" text_padding="5,0,5,0" 
-                                                  prompt_text="请输入网址"
+                                                  prompt_text_id="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
                                                   default_context_menu="true"/>
-            <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
-            <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
+            <Button class="btn_global_blue_80x30" name="btn_navigate" text_id="STRID_WEBVIEW2_BROWSER_BROWSE_TO" width="60" margin="5"/>
+            <Button class="btn_global_blue_80x30" name="btn_refresh" text_id="STRID_WEBVIEW2_BROWSER_REFRESH" width="60" margin="5"/>
         </HBox>
         <VBox bkcolor="bg_window_light">
             <WebView2Control name="webview2_control" url="https://www.baidu.com" F12="true" margin="2,0,2,2"/>

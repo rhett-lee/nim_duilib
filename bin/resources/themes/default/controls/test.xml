@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" use_system_caption="true">
     <VBox bkcolor="bg_window_light">
-        <HBox height="30" margin="0,10,0,0">
-            <Label text="当前进度："/>
+        <HBox height="30" margin="10,10,0,0">
+            <Label text="Progress: "/>
             <Label name="progress_text" text="0%"/>
         </HBox>
         <HBox margin="0,10,0,0">

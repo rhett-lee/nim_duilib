@@ -491,4 +491,14 @@ Control* WindowImplBase::GetBtnSelectTheme() const
     return GetBtnWindowByName(DUI_CTR_WINDOW_BUTTON_THEME, DString());
 }
 
+bool WindowImplBase::OnLanguageChanged()
+{
+    return BaseClass::OnLanguageChanged();
+}
+
+bool WindowImplBase::OnThemeChanged()
+{
+    return BaseClass::OnThemeChanged();
+}
+
 } // namespace ui

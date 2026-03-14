@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="400,220" caption="0,0,0,35" use_system_caption="true" shadow_attached="true" layered_window="true">
   <VBox bkcolor="bg_window_dark" width="100%" height="100%">
-    <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bg_titlebar">
+    <HBox name="window_title_bar" width="stretch" height="35" bkcolor="bg_titlebar">
       <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
       <Label text="Controls" valign="center" margin="8" mouse_enabled="false"/>
       <Control mouse_enabled="false"/>

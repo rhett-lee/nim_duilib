@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="85%,95%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4" text="渲染引擎测试程序">
+<Window size="85%,95%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4" text_id="STRID_RENDER_WINDOW_TITLE">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bg_window_dark">
         <!-- 标题栏区域 -->  
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 标题栏：窗口左上角显示区域 -->  
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="渲染引擎测试" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                <Label text_id="STRID_RENDER_TITLE_BAR" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
             <Control mouse_enabled="false"/>            
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
                 <Box height="stretch" width="40" margin="0,2,0,2">
-                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
                 </Box>
-                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
         </HBox> <!-- 标题栏区域结束 --> 
         
         <!-- 显示区域 --> 
         <VBox bkcolor="bg_tab_ctrl_item_selected">
             <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="0">                
-                <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="0"/>
-                <TabCtrlItem class="tab_ctrl_item" title="图片2" close_button_class="" tab_box_item_index="1"/>
-                <TabCtrlItem class="tab_ctrl_item" title="图片3" close_button_class="" tab_box_item_index="2"/>
-                <TabCtrlItem class="tab_ctrl_item" title="文字-横排" close_button_class="" tab_box_item_index="3"/>
-                <TabCtrlItem class="tab_ctrl_item" title="文字-竖排" close_button_class="" tab_box_item_index="4"/>
-                <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="5"/>
-                <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="6"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE1" close_button_class="" tab_box_item_index="0"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE2" close_button_class="" tab_box_item_index="1"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_IMAGE3" close_button_class="" tab_box_item_index="2"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_TEXT_HORIZONTAL" close_button_class="" tab_box_item_index="3"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_TEXT_VERTICAL" close_button_class="" tab_box_item_index="4"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_DRAW" close_button_class="" tab_box_item_index="5"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_PAINT" close_button_class="" tab_box_item_index="6"/>
                 <TabCtrlItem class="tab_ctrl_item" title="BoxShadow" close_button_class="" tab_box_item_index="7"/>                
-                <TabCtrlItem class="tab_ctrl_item" title="属性页和标签页" close_button_class="" tab_box_item_index="8"/>
-                <TabCtrlItem class="tab_ctrl_item" title="窗口阴影" close_button_class="" tab_box_item_index="9"/>
-                <TabCtrlItem class="tab_ctrl_item" title="位图控件" close_button_class="" tab_box_item_index="10"/>
-                <TabCtrlItem class="tab_ctrl_item" title="控件测试" close_button_class="" tab_box_item_index="11"/>
-                <TabCtrlItem class="tab_ctrl_item" title="控件动画" close_button_class="" tab_box_item_index="12"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_PROPERTY_TAB" close_button_class="" tab_box_item_index="8"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_WINDOW_SHADOW" close_button_class="" tab_box_item_index="9"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_BITMAP_CTRL" close_button_class="" tab_box_item_index="10"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_CONTROL_TEST" close_button_class="" tab_box_item_index="11"/>
+                <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_TAB_CONTROL_ANI" close_button_class="" tab_box_item_index="12"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="bg_window_light" selected_id="0" margin="4,4,4,4" padding="3,3,3,3"
                     border_size="1" border_color="border_window" border_round="3,3"
@@ -45,54 +48,54 @@
                     fade_switch_total_ms="180"
                     fade_switch_easing_function="EaseOutCubic">
                 <VBox name="main_view_page_00">
-                    <Label text="页面1：用标准控件测试所有支持的图片格式"/>
+                    <Label text_id="STRID_RENDER_PAGE1_DESC" />
                     <Include src="page_image1.xml"/>
                 </VBox>
                 <VBox name="main_view_page_01">
-                    <Label text="页面2：用标准控件测试支持的图片属性(svg格式，在等比例缩放时，支持矢量缩放)"/>
+                    <Label text_id="STRID_RENDER_PAGE2_DESC" />
                     <Include src="page_image2.xml"/>
                 </VBox>
                 <VBox name="main_view_page_02">
-                    <Label text="页面3：用标准控件测试支持的图片属性(非svg格式，其他图片格式不支持矢量缩放)"/>
+                    <Label text_id="STRID_RENDER_PAGE3_DESC" />
                     <Include src="page_image3.xml"/>
                 </VBox>
                 <VBox name="main_view_page_03">
-                    <Label text="页面4：文字绘制-横排文本"/>
+                    <Label text_id="STRID_RENDER_PAGE4_DESC" />
                     <Include src="page_text1.xml"/>
                 </VBox>
                 <VBox name="main_view_page_04">
-                    <Label text="页面5：文字绘制-竖排文本"/>
+                    <Label text_id="STRID_RENDER_PAGE5_DESC" />
                     <Include src="page_text2.xml"/>
                 </VBox>
                 <VBox name="main_view_page_05">
-                    <Label text="页面6：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend，九宫格绘制，平铺绘制等）"/>
+                    <Label text_id="STRID_RENDER_PAGE6_DESC" />
                     <RenderTest1 />
                 </VBox>
                 <VBox name="main_view_page_06">
-                    <Label text="页面7：IRender接口的画线、画矩形、填充矩形等基本图形绘制测试"/>
+                    <Label text_id="STRID_RENDER_PAGE7_DESC" />
                     <RenderTest2 />
                 </VBox>
                 <VBox name="main_view_page_07">
-                    <Label text="页面8：DrawBoxShadow测试"/>
+                    <Label text_id="STRID_RENDER_PAGE8_DESC" />
                     <Include src="page_boxshadow.xml"/>
                 </VBox>
                 <VBox name="main_view_page_08">
                     <Include src="page_property_grid.xml"/>
                 </VBox>
                 <VBox name="main_view_page_09">
-                    <Label text="页面10：窗口阴影测试"/>
+                    <Label text_id="STRID_RENDER_PAGE10_DESC" />
                     <Include src="page_window_shadow.xml"/>
                 </VBox>
                 <VBox name="main_view_page_10">
-                    <Label text="页面11：位图控件测试"/>
+                    <Label text_id="STRID_RENDER_PAGE11_DESC" />
                     <Include src="page_bitmap_control.xml"/>
                 </VBox> 
                 <VBox name="main_view_page_11">
-                    <Label text="页面12：控件综合测试"/>
+                    <Label text_id="STRID_RENDER_PAGE12_DESC" />
                     <Include src="page_control_test.xml"/>
                 </VBox>
                 <VBox name="main_view_page_12">
-                    <Label text="页面13：控件动画测试"/>
+                    <Label text_id="STRID_RENDER_PAGE13_DESC" />
                     <Include src="page_control_animation.xml"/>
                 </VBox>
             </TabBox>

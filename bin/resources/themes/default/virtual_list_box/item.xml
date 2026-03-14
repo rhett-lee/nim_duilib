@@ -6,7 +6,7 @@
             <VBox margin="0,3,0,5" mouse_enabled="false">
                 <HBox height="auto" mouse_enabled="false">
                     <Label name="label_title" width="stretch" mouse_enabled="false"/>
-                    <Button class="btn_recycle" name="btn_del" width="auto" height="auto" tooltip_text="删除"/>
+                    <Button class="btn_recycle" name="btn_del" width="auto" height="auto" tooltip_text_id="STRID_VIRTUALLISTBOX_DELETE"/>
                 </HBox>
                 <Control height="stretch" mouse_enabled="false"/>
                 <Progress class="progress_horizontal_blue" name="progress" value="30" mouse_enabled="false"/>

@@ -31,7 +31,7 @@ void AppItemUi::OnInit()
     }
     m_app_name = static_cast<ui::Label*>(FindSubControl(_T("app_name")));
     if (m_app_name) {
-        m_app_name->SetText(m_app_data.m_name);
+        m_app_name->SetTextId(m_app_data.m_name);
     }
 
     //绑定事件
@@ -45,7 +45,7 @@ void AppItemUi::SetAppdata(const AppItem& item, bool refresh)
             m_app_icon->SetBkImage(m_app_data.m_icon);
         }
         if (m_app_name) {
-            m_app_name->SetText(m_app_data.m_name);
+            m_app_name->SetTextId(m_app_data.m_name);
         }
     }
 }

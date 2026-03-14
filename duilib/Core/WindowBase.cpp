@@ -1780,4 +1780,24 @@ void WindowBase::AttachWindowDropLeaveMsg(const EventCallback& callback, EventCa
     m_windowEventMap[kWindowDropLeaveMsg].AddEventCallback(callback, callbackID);
 }
 
+void WindowBase::AttachWindowDisplayScaleChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDisplayScaleChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDisplayResolutionChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDisplayResolutionChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowLanguageChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowLanguageChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowThemeChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowThemeChangedMsg].AddEventCallback(callback, callbackID);
+}
+
 } // namespace ui

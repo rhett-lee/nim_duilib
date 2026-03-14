@@ -2,24 +2,24 @@
 <Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="2" shadow_border_color="border_window">
     <MenuListBox class="menu" name="main_menu">
         <!-- 一级菜单 -->
-        <MenuItem class="menu_element" name="menu_item_file_name" width="160">
+        <MenuItem class="menu_element" name="menu_item_file_name" width="170">
           <Button name="btn_file_name" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="文件名称" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_NAME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
     
         <MenuItem class="menu_element" name="menu_item_file_modify_time" width="160">
           <Button name="btn_file_modify_time" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="修改日期" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_MODIFY_TIME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         
         <MenuItem class="menu_element" name="menu_item_file_type" width="160">
           <Button name="btn_file_type" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="文件类型" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_TYPE" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         
         <MenuItem class="menu_element" name="menu_item_file_size" width="160">
           <Button name="btn_file_size" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="文件大小" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_SIZE" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
                
         <!-- 菜单项之间的分割线 -->
@@ -29,12 +29,12 @@
 
         <MenuItem class="menu_element" name="menu_item_sort_ascending" width="160">
           <Button name="btn_sort_ascending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="递增排序" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_ASCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         
         <MenuItem class="menu_element" name="menu_item_sort_descending" width="160">
           <Button name="btn_sort_descending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text="递减排序" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_DESCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>        
   </MenuListBox>
 </Window>

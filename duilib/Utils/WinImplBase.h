@@ -131,6 +131,16 @@ protected:
     */
     virtual void PreInitWindow() override;
 
+    /** 语言切换事件（当前语言可通过GlobalManager获取）
+    * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnLanguageChanged() override;
+
+    /** 主题切换事件（当前主题可通过ThemeManager获取）
+    * @return 返回false表示不再触发窗口的kWindowThemeChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnThemeChanged() override;
+
 protected:
     /** 获取窗口标题栏控件
     */

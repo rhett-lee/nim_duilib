@@ -5,6 +5,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/ThemeManager.h"
 #include "duilib/Core/ControlPtrT.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/FilePath.h"
@@ -443,8 +444,7 @@ public:
     */
     virtual Control* CreateControl(const DString& strClass);
 
-public:
-    // 窗口的属性设置
+public:   
     /** 设置窗口指定属性
      * @param[in] strName 要设置的属性名称（如 width）
      * @param[in] strValue 要设置的属性值（如 100）
@@ -488,6 +488,15 @@ public:
     */
     void ExitControlFullscreen();
 
+public:
+    /** 语言发生变化
+    */
+    void NotifyLanguageChanged();
+
+    /** 主题发生变化
+    */
+    void NotifyThemeChanged();
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -520,6 +529,16 @@ protected:
     /** 窗口的阴影类型发生了变化
     */
     virtual void OnWindowShadowTypeChanged() {};
+
+    /** 语言切换事件（当前语言可通过GlobalManager获取）
+    * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnLanguageChanged();
+
+    /** 主题切换事件（当前主题可通过ThemeManager获取）
+    * @return 返回false表示不再触发窗口的kWindowThemeChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnThemeChanged();
 
 protected:
     /** 切换系统标题栏与自绘标题栏

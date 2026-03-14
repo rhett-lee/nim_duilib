@@ -10,13 +10,13 @@
         <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>               
     </HBox>
     <HBox width="auto" height="auto">
-        <Label width="140" height="auto" text="BMP格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="WEBP格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="JPG格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="ICO格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="PNG格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="SVG格式" text_align="center" margin="8"/>
-        <Label width="140" height="auto" text="GIF格式" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_BMP" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_WEBP" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_JPG" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_ICO" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_PNG" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_SVG" text_align="center" margin="8"/>
+        <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_GIF" text_align="center" margin="8"/>
     </HBox>
     <HBox width="auto" height="auto">           
         <Control width="150" height="auto" bkimage="file='gif_test.gif' width='90' playcount='-1' halign='center' valign='center'" valign="center" margin="8"/>            
@@ -26,11 +26,11 @@
         <Control width="auto" height="auto" bkimage="file='pag_logo.pag' width='150' playcount='-1'" valign="center" margin="8"/>
     </HBox>
     <HBox width="auto" height="auto">
-        <Label width="150" height="auto" text="GIF格式动画" text_align="center" margin="8"/>
-        <Label width="150" height="auto" text="APNG格式动画" text_align="center" margin="8"/>
-        <Label width="150" height="auto" text="WEBP格式动画" text_align="center" margin="8"/>
-        <Label width="150" height="auto" text="Lottie JSON格式动画" text_align="center" margin="8"/>
-        <Label width="150" height="auto" text="PAG格式动画" text_align="center" margin="8"/>
+        <Label width="150" height="auto" text_id="STRID_RENDER_P1_ANI_GIF" text_align="center" margin="8"/>
+        <Label width="150" height="auto" text_id="STRID_RENDER_P1_ANI_APNG" text_align="center" margin="8"/>
+        <Label width="150" height="auto" text_id="STRID_RENDER_P1_ANI_WEBP" text_align="center" margin="8"/>
+        <Label width="150" height="auto" text_id="STRID_RENDER_P1_ANI_LOTTIE" text_align="center" margin="8"/>
+        <Label width="150" height="auto" text_id="STRID_RENDER_P1_ANI_PAG" text_align="center" margin="8"/>
     </HBox>
     <HBox>
         <HBox width="auto" height="256" margin="20, 10, 0, 0">
@@ -39,7 +39,7 @@
                     <Event type="mouse_enter" receiver="" apply_attribute="start_image_animation={}" />
                     <Event type="mouse_leave" receiver="" apply_attribute="stop_image_animation={}" />
                 </Control>
-                <Label width="100%" height="20" text="鼠标在图片上时播放动画" text_align="center" margin="8"/>
+                <Label width="100%" height="20" text_id="STRID_RENDER_P1_HOVER_PLAY" text_align="center" margin="8"/>
             </VBox>          
         </HBox>
     </HBox>

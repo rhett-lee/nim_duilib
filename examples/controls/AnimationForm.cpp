@@ -94,7 +94,7 @@ void AnimationForm::OnAnimationEvents(ui::EventType eventType, const ui::ImageAn
         m_bImagePlaying = true;
         ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("animation_btn")));
         if (pButton != nullptr) {
-            pButton->SetText(_T("暂停"));
+            pButton->SetTextId(_T("STRID_CONTROLS_ANI_PAUSE"));
         }
         ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("goto_frame_number")));
         if (pRichEdit != nullptr) {
@@ -107,7 +107,7 @@ void AnimationForm::OnAnimationEvents(ui::EventType eventType, const ui::ImageAn
         m_bImagePlaying = false;
         ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("animation_btn")));
         if (pButton != nullptr) {
-            pButton->SetText(_T("播放"));
+            pButton->SetTextId(_T("STRID_CONTROLS_ANI_PLAY"));
         }
     }
     else if (eventType == ui::EventType::kEventImageAnimationPlayFrame) {
@@ -115,7 +115,7 @@ void AnimationForm::OnAnimationEvents(ui::EventType eventType, const ui::ImageAn
         m_bImagePlaying = true;
         ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("animation_btn")));
         if (pButton != nullptr) {
-            pButton->SetText(_T("暂停"));
+            pButton->SetTextId(_T("STRID_CONTROLS_ANI_PAUSE"));
         }
 
         ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("animation_frame")));

@@ -131,16 +131,16 @@ void MainForm::OnInitWindow()
     m_pTree->SetRefreshFinishCallback(finishCallback);
 
     //显示虚拟路径
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kUserHome, _T("主文件夹"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDesktop, _T("桌面"));
-    ui::TreeNode* pDocumentsNode = m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDocuments, _T("文档"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kPictures, _T("图片"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kMusic, _T("音乐"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kVideos, _T("视频"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDownloads, _T("下载"));
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kUserHome, _T("STRID_TREEVIEW_NODE_USER_HOME"), true);
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDesktop, _T("STRID_TREEVIEW_NODE_DESKTOP"));
+    ui::TreeNode* pDocumentsNode = m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDocuments, _T("STRID_TREEVIEW_NODE_DOCUMENTS"), true);
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kPictures, _T("STRID_TREEVIEW_NODE_PICTURES"), true);
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kMusic, _T("STRID_TREEVIEW_NODE_MUSIC"), true);
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kVideos, _T("STRID_TREEVIEW_NODE_VIDEOS"), true);
+    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDownloads, _T("STRID_TREEVIEW_NODE_DOWNLOADS"), true);
 
     //显示磁盘
-    ui::TreeNode* pComputerNode = m_pTree->ShowAllDiskNodes(_T("计算机"), _T("文件系统"));
+    ui::TreeNode* pComputerNode = m_pTree->ShowAllDiskNodes(_T("STRID_TREEVIEW_NODE_MYCOMPUTER"), _T("STRID_TREEVIEW_NODE_FILESYSTEM"), true);
     if (pComputerNode != nullptr) {
         //在磁盘前面，放一个横线分隔符
         m_pTree->InsertLineBeforeNode(pComputerNode);
@@ -295,9 +295,9 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
 {
     if (!filePath.IsExistsDirectory()) {
         //如果文件夹不存在，报错
-        DString errMsg = _T("路径不存在：");
+        DString errMsg = _T("Path not exists:");
         errMsg += filePath.ToString();
-        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("错误信息"));
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("Error"));
         return;
     }
 
@@ -365,9 +365,9 @@ bool MainForm::OnShowAddressPath(const DString& newFilePath)
     }
     else {
         //如果文件夹不存在，报错
-        DString errMsg = _T("输入的路径不存在：");
+        DString errMsg = _T("Path not exists:");
         errMsg += text;
-        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("错误信息"));
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("Error"));
         return false;
     }
 }

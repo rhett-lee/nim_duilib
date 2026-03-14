@@ -797,6 +797,18 @@ public:
     */
     void AttachWindowDisplayResolutionChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听窗口窗口的语言切换事件（支持多国语言版）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLanguageChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口窗口的主题切换事件（支持深色、浅色等主题）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowThemeChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
 public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型

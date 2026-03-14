@@ -9,7 +9,6 @@
 namespace ui 
 {
 ThemeManager::ThemeManager():
-    m_themeChangedCallback(nullptr),
     m_bSwitchingTheme(false)
 {
     m_defaultThemeInfo.m_bDefaultTheme = true;
@@ -211,8 +210,9 @@ bool ThemeManager::SwitchTheme(const FilePath& themePath, ThemeType destThemeTyp
     //主题变化后，更新界面显示
     GlobalManager::Instance().ClearThemeCache();
 
-    if (m_themeChangedCallback) {
-        m_themeChangedCallback(themeInfo);
+    std::vector<ThemeChangedEventData> themeChangedCallbacks(m_themeChangedCallbacks);
+    for (ThemeChangedEventData callbackData : themeChangedCallbacks) {
+        callbackData.m_callback(themeInfo);
     }
     return true;
 }
@@ -280,7 +280,6 @@ bool ThemeManager::GetAllThemes(const std::vector<FilePath>& themePathList,
             else {
                 return left.m_themeStyle < right.m_themeStyle;
             }
-            return true;
             });
     }
     return !themeInfoList.empty();
@@ -789,19 +788,39 @@ const DString& ThemeManager::GetGlobalXmlFileName() const
     return m_globalXmlFileName;
 }
 
-void ThemeManager::SetThemeChangeCallback(ThemeChangedCallback callback)
+void ThemeManager::AddThemeChangeCallback(ThemeChangedCallback callback, size_t callbackId)
 {
-    m_themeChangedCallback = callback;
+    if (callback != nullptr) {
+        ThemeChangedEventData callbackData;
+        callbackData.m_callback = callback;
+        callbackData.m_callbackId = callbackId;
+        if (!m_themeChangedCallbacks.empty() && (callbackId != 0)) {
+            auto iter = std::find(m_themeChangedCallbacks.begin(), m_themeChangedCallbacks.end(), callbackData);
+            if (iter != m_themeChangedCallbacks.end()) {
+                //避免重复添加
+                return;
+            }
+        }
+        m_themeChangedCallbacks.push_back(callbackData);
+    }
 }
 
-ThemeChangedCallback ThemeManager::GetThemeChangeCallback() const
+void ThemeManager::RemoveThemeChangeCallback(ThemeChangedCallback callback, size_t callbackId)
 {
-    return m_themeChangedCallback;
+    if (!m_themeChangedCallbacks.empty() && (callbackId != 0)) {
+        ThemeChangedEventData callbackData;
+        callbackData.m_callback = callback;
+        callbackData.m_callbackId = callbackId;
+        auto iter = std::find(m_themeChangedCallbacks.begin(), m_themeChangedCallbacks.end(), callbackData);
+        if (iter != m_themeChangedCallbacks.end()) {
+            m_themeChangedCallbacks.erase(iter);
+        }
+    }
 }
 
 void ThemeManager::Clear()
 {
-    m_themeChangedCallback = nullptr;
+    m_themeChangedCallbacks.clear();
 }
 
 } // namespace ui
