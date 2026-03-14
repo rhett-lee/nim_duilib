@@ -146,7 +146,7 @@
                 </HBox>
             </HBox>
             <!-- 横向分割条，用于调整上下区域大小 -->
-            <Split bkcolor="color_splitline_level1" height="2" margin="0,2,0,2" />
+            <Split class="split_horizontal"/>
             <VBox valign="center" halign="center">
                 <ListCtrl class="list_ctrl" name="list_ctrl" bkcolor="YellowGreen"                          
                           loading="file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"/>

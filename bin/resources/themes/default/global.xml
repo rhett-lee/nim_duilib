@@ -134,7 +134,12 @@
     <TextColor name="color_splitline_level1" value="#FFE5E7EB"/> <!-- 一级分割线：主要区域分隔（与color_gray_light统一） -->
     <TextColor name="color_splitline_level2" value="#FFF5F5F5"/> <!-- 二级分割线：次要区域分隔 -->
     <TextColor name="color_splitline_group_box" value="#FFE0E0E0"/> <!-- GroupBox分割线 -->
-    <TextColor name="color_split_line" value="#FFE0E0E0"/> <!-- Split控件分割线 -->
+    
+    <!-- Split 分割线 / 拖动条 -->
+    <TextColor name="bg_split_normal"          value="#FFE5E7EB"/>    <!-- 静态分割线 -->
+    <TextColor name="bg_split_hover"           value="#FFD1D5DB"/>    <!-- 鼠标悬浮 -->
+    <TextColor name="bg_split_pressed"         value="#FF9CA3AF"/>    <!-- 拖动中（中灰） -->
+    <TextColor name="bg_split_disabled"        value="#FFE5E7EB"/>    <!-- 禁用状态 -->
 
     <!-- 编辑框颜色（Win11 25H2 核心规范：灰边框 + 聚焦蓝下划线） -->
     <TextColor name="bg_richedit" value="#FFFFFFFF"/>        <!-- 编辑框背景：输入框默认背景 -->
@@ -239,7 +244,6 @@
     <TextColor name="bg_property_grid_propterty" value="#FFFFFFFF"/>         <!-- 属性背景：纯白，突出可编辑区域 -->    
     <TextColor name="bg_property_grid_propterty_name" value="#FFFFFFFF"/>    <!-- 属性名列背景：纯白，与值列统一 -->    
     <TextColor name="bg_property_grid_propterty_value" value="#FFFFFFFF"/>   <!-- 属性值列背景：纯白，可编辑区域底色 -->    
-    <TextColor name="bg_property_grid_split" value="#FFA9A9A9"/>             <!-- 分组分割线：中灰，与表头分割线一致 -->
     <TextColor name="bg_property_grid_line" value="#FFA9A9A9"/>              <!-- 网格分割线：中灰，与表头分割线一致 -->
     <!-- ===================== 颜色配置（Windows 11 浅色主题）结束 ===================== -->
     
@@ -611,6 +615,18 @@
     <Class name="splitline_hor_level2" bkcolor="color_splitline_level2" height="1"/>
     <Class name="splitline_ver_level1" bkcolor="color_splitline_level1" width="1"/>
     
+    <!-- Split 分割线 -->
+    <Class name="split_vertical" width="5"
+                                   normal_color_margin="2,0,2,0" normal_color="bg_split_normal" 
+                                   hot_color_margin="1,0,1,0" hot_color="bg_split_hover" 
+                                   pushed_color_margin="1,0,1,0" pushed_color="bg_split_pressed" 
+                                   disabled_color_margin="2,0,2,0" disabled_color="bg_split_disabled" />
+    <Class name="split_horizontal" height="5"
+                                   normal_color_margin="0,2,0,2" normal_color="bg_split_normal" 
+                                   hot_color_margin="0,1,0,1" hot_color="bg_split_hover" 
+                                   pushed_color_margin="0,1,0,1" pushed_color="bg_split_pressed" 
+                                   disabled_color_margin="0,2,0,2" disabled_color="bg_split_disabled" />
+
     <!-- 分组框 -->
     <Class name="group_box" line_width="1.0" line_color="color_splitline_group_box"/>
     <Class name="group_box_round" line_width="1.0" line_color="color_splitline_group_box" corner_size="3,3"/>

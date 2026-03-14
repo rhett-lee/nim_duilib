@@ -82,7 +82,7 @@
         <!-- 分组和属性 -->
         <TreeView class="tree_view" name="duilib_property_grid_tree" expand_image_class="property_grid_expand" indent="20" multi_select="false"/>
         <!-- 分割条 -->
-        <Split name="duilib_property_grid_description_area_split" bkcolor="bg_property_grid_split" height="2" margin="0,1,0,1"/>
+        <Split class="split_horizontal" name="duilib_property_grid_description_area_split"/>
         <!-- 底部描述区域 -->
         <RichText name="duilib_property_grid_description_area" width="100%" height="64" 
                                         text_padding="2,2,0,0" text_align="top,left" 

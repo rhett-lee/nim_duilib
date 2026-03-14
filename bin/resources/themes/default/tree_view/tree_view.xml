@@ -88,7 +88,7 @@
                     <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->
-                <Split bkcolor="color_splitline_level1" width="5" border_color="bg_window_light" border_size="2,0,2,0"/>                
+                <Split class="split_vertical"/>
                 <TabBox name="main_view_tab_box" bkcolor="bg_window_light" selected_id="0">
                     <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" child_halign="left"/>
                     <ListCtrl name="explorer_view" bkcolor="YellowGreen"

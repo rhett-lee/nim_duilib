@@ -50,7 +50,12 @@
     <TextColor name="color_splitline_level1" value="#FF2D2D30"/> <!-- 一级分割线 -->
     <TextColor name="color_splitline_level2" value="#FF202020"/> <!-- 二级分割线 -->
     <TextColor name="color_splitline_group_box" value="#FF444444"/> <!-- GroupBox分割线 -->
-    <TextColor name="color_split_line" value="#FF444444"/> <!-- Split控件分割线 -->
+
+    <!-- Split 分割线 / 拖动条 -->
+    <TextColor name="bg_split_normal"          value="#FF2D2D30"/>    <!-- 静态分割线 -->
+    <TextColor name="bg_split_hover"           value="#FF444444"/>    <!-- 鼠标悬浮 -->
+    <TextColor name="bg_split_pressed"         value="#FF555555"/>    <!-- 拖动中（浅灰） -->
+    <TextColor name="bg_split_disabled"        value="#FF2D2D30"/>    <!-- 禁用状态 -->
 
     <!-- 编辑框颜色 -->
     <TextColor name="bg_richedit" value="#FF252525"/>        <!-- 编辑框背景 -->
@@ -151,7 +156,6 @@
     <TextColor name="bg_property_grid_propterty" value="#FF252525"/>     <!-- 属性背景 -->
     <TextColor name="bg_property_grid_propterty_name" value="#FF252525"/> <!-- 属性名背景 -->
     <TextColor name="bg_property_grid_propterty_value" value="#FF252525"/> <!-- 属性值背景 -->
-    <TextColor name="bg_property_grid_split" value="#FF3D3D3D"/>         <!-- 分组分割线 -->
     <TextColor name="bg_property_grid_line" value="#FF3D3D3D"/>          <!-- 网格线 -->
     <!-- ===================== 颜色配置（Windows 11 浅色主题）结束 ===================== -->
     
