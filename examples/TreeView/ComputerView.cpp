@@ -176,37 +176,37 @@ void ComputerView::InitComputerViewHeader_Win()
     }
     ui::ListCtrlHeaderItem* pHeaderItem = nullptr;
     ui::ListCtrlColumn columnInfo;
-    columnInfo.text = _T("名称");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_NAME");//名称
     columnInfo.nColumnWidth = 200;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kName] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("磁盘类型");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_DISK_TYPE");//磁盘类型
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kType] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("分区类型");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_PARTITION_TYPE");//分区类型
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kPartitionType] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("总大小");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_TOTAL_SIZE");//总大小
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kTotalSpace] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("可用空间");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_FREE_SPACE");//可用空间
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kFreeSpace] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("已用");
+    columnInfo.textId = _T("STRID_TREEVIEW_WIN_USED_SPACE");//已用
     columnInfo.nColumnWidth = 80;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
@@ -297,43 +297,43 @@ void ComputerView::InitComputerViewHeader_Linux()
     }
     ui::ListCtrlHeaderItem* pHeaderItem = nullptr;
     ui::ListCtrlColumn columnInfo;
-    columnInfo.text = _T("文件系统");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_FILE_SYSTEM");//文件系统
     columnInfo.nColumnWidth = 200;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kName] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("设备类型");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_DEVICE_TYPE");//设备类型
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kType] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("分区类型");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_PARTITION_TYPE");//分区类型
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kPartitionType] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("总大小");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_TOTAL_SIZE");//总大小
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kTotalSpace] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("可用空间");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_FREE_SPACE");//可用空间
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kFreeSpace] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("已用");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_USED_SPACE");//已用
     columnInfo.nColumnWidth = 80;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ComputerViewColumn::kUsedPercent] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("挂载点");
+    columnInfo.textId = _T("STRID_TREEVIEW_LINUX_MOUNT_POINT");//挂载点
     columnInfo.nColumnWidth = 200;
     pHeaderItem = m_pComputerListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
@@ -372,7 +372,7 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_HCENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
-        subItemData.text = GetDeviceTypeString(diskInfo.m_deviceType);
+        subItemData.text = GlobalManager::GetTextById(GetDeviceTypeStringId(diskInfo.m_deviceType));
         nColumnId = GetColumnId(ComputerViewColumn::kType);
         m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //设备类型
 
@@ -415,42 +415,42 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
     }
 }
 
-DString ComputerView::GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const
+DString ComputerView::GetDeviceTypeStringId(ui::DirectoryTree::DeviceType deviceType) const
 {
-    DString deviceTypeString = _T("未知");
+    DString deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_UNKNOWN");//未知
     switch (deviceType) {
     case ui::DirectoryTree::DeviceType::HDD:
-        deviceTypeString = _T("机械硬盘");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_HDD");//机械硬盘
         break;
     case ui::DirectoryTree::DeviceType::SSD:
-        deviceTypeString = _T("SATA固态硬盘");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_SSD");//SATA固态硬盘
         break;
     case ui::DirectoryTree::DeviceType::NVME:
-        deviceTypeString = _T("NVMe固态硬盘");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_NVME");//NVMe固态硬盘
         break;
     case ui::DirectoryTree::DeviceType::USB:
-        deviceTypeString = _T("USB存储");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_USB");//USB存储
         break;
     case ui::DirectoryTree::DeviceType::SD_CARD:
-        deviceTypeString = _T("SD卡");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_SD_CARD");//SD卡
         break;
     case ui::DirectoryTree::DeviceType::CDROM:
-        deviceTypeString = _T("CD/DVD");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_CDROM");//CD/DVD
         break;
     case ui::DirectoryTree::DeviceType::LOOP:
-        deviceTypeString = _T("LOOP虚拟存储");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_LOOP");//LOOP虚拟存储
         break;
     case ui::DirectoryTree::DeviceType::VIRT_DISK:
-        deviceTypeString = _T("虚拟存储");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_VIRT_DISK");//虚拟存储
         break;
     case ui::DirectoryTree::DeviceType::RAMDISK:
-        deviceTypeString = _T("内存盘");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_RAMDISK");//内存盘
         break;
     case ui::DirectoryTree::DeviceType::NFS:
-        deviceTypeString = _T("NFS");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_NFS");//NFS
         break;
     case ui::DirectoryTree::DeviceType::SHARE:
-        deviceTypeString = _T("共享文件夹");
+        deviceTypeString = _T("STRID_TREEVIEW_LINUX_DEVICE_SHARE");//共享文件夹
         break;
     default:
         break;

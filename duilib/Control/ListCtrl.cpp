@@ -1237,6 +1237,17 @@ bool ListCtrl::DeleteColumnById(size_t columnId)
     }
 }
 
+void ListCtrl::DeleteAllColumns()
+{
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl != nullptr) {
+        size_t nColumnCount = m_pHeaderCtrl->GetColumnCount();
+        for (size_t nColumn = 0; nColumn < nColumnCount; ++nColumn) {
+            m_pHeaderCtrl->DeleteColumn(0);
+        }
+    }
+}
+
 ListCtrlHeader* ListCtrl::GetHeaderCtrl() const
 {
     return m_pHeaderCtrl;

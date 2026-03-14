@@ -117,6 +117,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         pHeaderItem->SetClass(m_pListCtrl->GetHeaderItemClass());
     }
     pHeaderItem->SetText(columnInfo.text);
+    pHeaderItem->SetTextId(columnInfo.textId);
 
     //保存关联的Split控件接口
     pHeaderItem->SetSplitBox(pHeaderSplit);

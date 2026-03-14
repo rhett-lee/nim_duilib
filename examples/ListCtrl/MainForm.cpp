@@ -2,7 +2,8 @@
 #include "MainThread.h"
 
 MainForm::MainForm():
-    m_fLoadingPercent(0)
+    m_fLoadingPercent(0),
+    m_imageId(0)
 {
 }
 
@@ -39,12 +40,12 @@ void MainForm::OnInitWindow()
     pIconImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
 
     //添加图片资源
-    uint32_t imageId = pReportImageList->AddImageString(_T("file='display-color.svg' width='22' height='22'"), Dpi());
+    m_imageId = pReportImageList->AddImageString(_T("file='display-color.svg' width='22' height='22'"), Dpi());
     pListImageList->AddImageString(_T("file='display-color.svg' width='32' height='32' valign='center' halign='center'"), Dpi());
     pIconImageList->AddImageString(_T("file='display-color.svg' width='64' height='64' valign='center' halign='center'"), Dpi());
 
     //填充数据
-    InsertItemData(400, 9, (int32_t)imageId);
+    InsertItemData(400, 9, (int32_t)m_imageId);
 
     //初始化本程序的测试功能相关UI事件
     InitListCtrlEvents(pListCtrl);
@@ -68,6 +69,22 @@ void MainForm::OnInitWindow()
     //    }        
     //    return true;
     //    });
+}
+
+bool MainForm::OnLanguageChanged()
+{
+    bool bRet = BaseClass::OnLanguageChanged();
+    //语言变化时，需要更新列表中的数据
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl != nullptr) {
+        pListCtrl->SetEnableRefresh(false);
+        pListCtrl->DeleteAllColumns();
+        pListCtrl->DeleteAllDataItems();
+        InsertItemData(400, 9, (int32_t)m_imageId);
+        pListCtrl->SetEnableRefresh(true);
+    }    
+    return bRet;
 }
 
 void MainForm::OnInitLayout()
@@ -811,11 +828,12 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     const size_t rowCount = nRows;
     bool bShowCheckBox = true; //是否显示CheckBox
     //添加列
+    const DString fmtHeader = ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_DATA_COLUMN"));
     for (size_t i = 0; i < columnCount; ++i) {
         ui::ListCtrlColumn columnInfo;
         columnInfo.nColumnWidth = 200;
-        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-        columnInfo.text = ui::StringUtil::Printf(_T("第 %d 列"), i);
+        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;        
+        columnInfo.text = ui::StringUtil::Printf(fmtHeader.c_str(), i);//_T("第 %d 列")
         columnInfo.bShowCheckBox = bShowCheckBox;
         columnInfo.nImageId = nImageId;
         pListCtrl->InsertColumn(-1, columnInfo);
@@ -823,14 +841,15 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
+    const DString fmtData = ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_DATA_ROW_COLUMN"));
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ui::ListCtrlSubItemData subItemData;
-            subItemData.text = ui::StringUtil::Printf(_T("第 %03d 行/第 %02d 列"), itemIndex, columnIndex);
+            subItemData.text = ui::StringUtil::Printf(fmtData.c_str(), itemIndex, columnIndex);
             subItemData.bShowCheckBox = bShowCheckBox;
             subItemData.nImageId = nImageId;
             if (columnIndex == 0) {
-                subItemData.text += _T("-测试1234567890-测试1234567890-测试1234567890-测试1234567890");
+                subItemData.text += _T("-1234567890-ABCDEFG-1234567890-abcdefg");
             }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }
@@ -1140,9 +1159,10 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetMultiSelect(bOldMultiSelect);
     pListCtrl->SetSelectedDataItems(oldSelectedIndexs, true);
 
+    pListCtrl->DeleteAllColumns();
     pListCtrl->DeleteAllDataItems();
 
-    InsertItemData((int32_t)nRows, (int32_t)nColumns, -1);
+    InsertItemData((int32_t)nRows, (int32_t)nColumns, m_imageId);
 #endif
 }
 

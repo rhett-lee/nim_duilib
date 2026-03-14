@@ -74,9 +74,9 @@ private:
     */
     void ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
-    /** 设备类型转换为字符串
+    /** 设备类型转换为字符串（返回资源字符串Id，支持多国语言版）
     */
-    DString GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const;
+    DString GetDeviceTypeStringId(ui::DirectoryTree::DeviceType deviceType) const;
 
 #endif
 

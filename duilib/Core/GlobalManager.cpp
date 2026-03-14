@@ -120,6 +120,11 @@ FilePath GlobalManager::GetResourceZipPath()
     return resourcePath;
 }
 
+DString GlobalManager::GetTextById(const DString& textId)
+{
+    return Instance().Lang().GetStringViaID(textId);
+}
+
 bool GlobalManager::Startup(const ResourceParam& resParam,
                             DpiInitParam dpiInitParam,
                             const CreateControlCallback& callback)

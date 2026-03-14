@@ -117,6 +117,10 @@ public:
     bool DeleteColumn(size_t columnIndex);
     bool DeleteColumnById(size_t columnId);
 
+    /** 删除所有列
+    */
+    void DeleteAllColumns();
+
     /** 获取列宽度
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取

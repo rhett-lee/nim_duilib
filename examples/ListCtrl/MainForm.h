@@ -6,6 +6,7 @@
 
 class MainForm : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     MainForm();
     virtual ~MainForm() override;
@@ -24,6 +25,11 @@ public:
     /** 完成界面布局的初始化，各个控件的位置大小等布局信息完成初始化，供子类在界面启动后调整界面布局等操作
     */
     virtual void OnInitLayout() override;
+
+    /** 语言切换事件（当前语言可通过GlobalManager获取）
+    * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnLanguageChanged() override;
 
 private:
     /** 填充数据
@@ -76,6 +82,10 @@ private:
     /** loading状态的加载进度（模拟值，实际应用可用按情况计算进度）
     */
     float m_fLoadingPercent;
+
+    /** 图标ID
+    */
+    uint32_t m_imageId;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

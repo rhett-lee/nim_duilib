@@ -20,7 +20,8 @@ enum class ListCtrlType: int8_t
 */
 struct ListCtrlColumn
 {
-    DString text;                   //表头的文本
+    DString text;                   //表头的文本(静态文本，不支持多国语言版)
+    DString textId;                 //表头的文本Id(支持多国语言版)
     int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理

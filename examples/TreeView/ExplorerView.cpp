@@ -135,25 +135,25 @@ void ExplorerView::InitViewHeader()
     }
     ui::ListCtrlHeaderItem* pHeaderItem = nullptr;
     ui::ListCtrlColumn columnInfo;
-    columnInfo.text = _T("文件名称");
+    columnInfo.textId = _T("STRID_TREEVIEW_EXPLORER_FILE_NAME");//文件名称
     columnInfo.nColumnWidth = 360;
     pHeaderItem = m_pListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ExplorerViewColumn::kName] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("修改日期");
+    columnInfo.textId = _T("STRID_TREEVIEW_EXPLORER_MODIFY_DATE");//修改日期
     columnInfo.nColumnWidth = 160;
     pHeaderItem = m_pListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ExplorerViewColumn::kModifyDateTime] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("文件类型");
+    columnInfo.textId = _T("STRID_TREEVIEW_EXPLORER_FILE_TYPE");//文件类型
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
     m_columnIdMap[ExplorerViewColumn::kType] = pHeaderItem->GetColumnId();
 
-    columnInfo.text = _T("文件大小");
+    columnInfo.textId = _T("STRID_TREEVIEW_EXPLORER_FILE_SIZE");//文件大小
     columnInfo.nColumnWidth = 120;
     pHeaderItem = m_pListCtrl->InsertColumn(-1, columnInfo);
     ASSERT(pHeaderItem != nullptr);
