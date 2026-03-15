@@ -7,29 +7,29 @@
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
         <HBox height="28">            
-            <Label text="容器内容垂直对齐方式（child_valign）: " valign="center"/>
-            <Option class="option_1" group="vbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+            <Label text_id="STRID_LAYOUT_PAGE_25" valign="center"/>
+            <Option class="option_1" group="vbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vbox_test" apply_attribute="child_valign='top'" />
             </Option>
-            <Option class="option_1" group="vbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vbox_group_valign" text_id="STRID_LAYOUT_PAGE_5" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vbox_test" apply_attribute="child_valign='center'" />
             </Option>
-            <Option class="option_1" group="vbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vbox_group_valign" text_id="STRID_LAYOUT_PAGE_10" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vbox_test" apply_attribute="child_valign='bottom'" />
             </Option>
-            <Label text="（仅当子控件总高度小于容器高度时生效）" valign="center"/>
+            <Label text_id="STRID_LAYOUT_PAGE_26" valign="center"/>
         </HBox>
         <HBox height="28">            
-            <Label text="容器内容水平对齐方式（child_halign）: 不支持，水平对齐方式需要在子控件本身设置" valign="center"/>
+            <Label text_id="STRID_LAYOUT_PAGE_27" valign="center"/>
         </HBox>
-        <Label text="子控件自身设置的对齐方式: 水平对齐方式（halign）：支持，垂直对齐方式（valign）：不支持" valign="center"/>
+        <Label text_id="STRID_LAYOUT_PAGE_28" valign="center"/>
     </VBox>
     <HBox>
         <VBox name="vbox_test" bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" width="60%">
             <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
             <Label text="minwidth/minheight: 100*100" float="true" text_align="top" width="50" height="50" minwidth="100" minheight="100" margin="64,60,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
             <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,160,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
-            <LabelBox text="布局测试" float="true" single_line="false" width="100" height="100" margin="300,100,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
+            <LabelBox text_id="STRID_LAYOUT_PAGE_18" float="true" single_line="false" width="100" height="100" margin="300,100,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
                 <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
             </LabelBox>
             

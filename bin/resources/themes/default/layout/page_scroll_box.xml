@@ -4,7 +4,7 @@
     <HBox width="auto" height="auto">
         <Label text="ScrollBox " height="28" valign="center"/>
         <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
-        <Label text="（容器内容不支持设置对齐方式，子控件的对齐方式需要在自身设置）" height="28" valign="center"/>
+        <Label text_id="STRID_LAYOUT_PAGE_22" height="28" valign="center"/>
     </HBox>
     <ScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_scroll_box" text="1 default left,top" text_align="left,top" halign="left" valign="top" width="5000" height="2500" bkcolor="Cornsilk"/>

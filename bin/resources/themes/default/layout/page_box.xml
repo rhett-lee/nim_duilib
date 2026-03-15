@@ -4,9 +4,9 @@
     <HBox width="auto" height="auto">
         <Label text="Box "/>
         <Label text_id="STRID_LAYOUT_TEST_TITLE"/>
-        <Label text="：容器本身不支持设置对齐方式"/>
+        <Label text_id="STRID_LAYOUT_PAGE_1"/>
         <Label text="(child_halign/child_valign),"/>
-        <Label text="子控件的对齐方式需要在自身设置"/>
+        <Label text_id="STRID_LAYOUT_PAGE_2"/>
         <Label text="(halign/valign)"/>
     </HBox>
     <Box bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8">

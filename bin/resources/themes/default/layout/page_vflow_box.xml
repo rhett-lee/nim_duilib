@@ -7,30 +7,30 @@
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
         <HBox height="28">            
-            <Label text="容器内容水平对齐方式：" valign="center"/>
-            <Option class="option_1" group="vflowbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">
+            <Label text_id="STRID_LAYOUT_PAGE_3" valign="center"/>
+            <Option class="option_1" group="vflowbox_group_halign" text_id="STRID_LAYOUT_PAGE_4" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_halign='left'" />
             </Option>
-            <Option class="option_1" group="vflowbox_group_halign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vflowbox_group_halign" text_id="STRID_LAYOUT_PAGE_5" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_halign='center'" />
             </Option>
-            <Option class="option_1" group="vflowbox_group_halign" text="靠右对齐(right)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vflowbox_group_halign" text_id="STRID_LAYOUT_PAGE_6" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_halign='right'" />
             </Option>
-            <Label text="（仅当子控件总宽度小于显示区域宽度时生效）" valign="center"/>
+            <Label text_id="STRID_LAYOUT_PAGE_29" valign="center"/>
         </HBox>
         <HBox height="28">            
-            <Label text="容器内容垂直对齐方式：" valign="center"/>
-            <Option class="option_1" group="vflowbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
+            <Label text_id="STRID_LAYOUT_PAGE_8" valign="center"/>
+            <Option class="option_1" group="vflowbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_valign='top'" />
             </Option>
-            <Option class="option_1" group="vflowbox_group_valign" text="居中对齐(center)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vflowbox_group_valign" text_id="STRID_LAYOUT_PAGE_5" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_valign='center'" />
             </Option>
-            <Option class="option_1" group="vflowbox_group_valign" text="靠下对齐(bottom)" height="28" valign="center" margin="8,0,0,0" selected="false">
+            <Option class="option_1" group="vflowbox_group_valign" text_id="STRID_LAYOUT_PAGE_10" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_valign='bottom'" />
             </Option>
-            <Label text="（在同一列内对齐）" valign="center"/>
+            <Label text_id="STRID_LAYOUT_PAGE_30" valign="center"/>
         </HBox>
     </VBox>
     <VBox>
