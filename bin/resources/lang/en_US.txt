@@ -1,10 +1,10 @@
-﻿;String resources in English 
-;comment symbol：“;”
+﻿# String resources in English 
+# comment symbol："#"
 
-;Language display name
+# Language display name
 LANGUAGE_DISPLAY_NAME = English(English)
 
-;Title Bar Buttons
+# Title Bar Buttons
 STRID_PUBLIC_TIP_WND_BTN_CLOSE = Close
 STRID_PUBLIC_TIP_WND_BTN_MIN = Minimize
 STRID_PUBLIC_TIP_WND_BTN_MAX = Maximize
@@ -18,21 +18,21 @@ STRID_PUBLIC_TIP_BTN_SETTINGS = Settings
 STRID_PUBLIC_MENU_TEXT_SELECT_LANGUAGE = Select Language
 STRID_PUBLIC_MENU_TEXT_SELECT_THEME    = Select Theme
 
-;global.xml
+# global.xml
 STRID_PUBLIC_EXIT_FULLSCREEN = Exit Fullscreen
 STRID_PUBLIC_EXIT_FULLSCREEN = Click button or press ESC to exit fullscreen
 
-;PropertyGrid
+# PropertyGrid
 STRID_PUBLIC_PROPERTY_NAME  = Name
 STRID_PUBLIC_PROPERTY_VALUE = Value
 STRID_PUBLIC_PROPERTY_MORE_COLOR  = More ...
 
-;Common
+# Common
 STRID_PUBLIC_STRING_OK = OK
 STRID_PUBLIC_STRING_CANCEL = Cancel
 STRID_PUBLIC_STRING_CHOOSE = Choose
 
-;ColorPicker
+# ColorPicker
 STRID_PUBLIC_COLORPICKER_CHOOSE_COLOR = Choose color
 STRID_PUBLIC_COLORPICKER_COMMON = Common
 STRID_PUBLIC_COLORPICKER_STANDARD = Standard
@@ -60,12 +60,12 @@ STRID_PUBLIC_MENU_TEXT_UNDO = Undo
 STRID_PUBLIC_MENU_TEXT_REDO = Redo
 
 =====================================================================
-;The following are the texts used by each example program
-;--------------------------------------------------------
-;examples/basic
+# The following are the texts used by each example program
+# --------------------------------------------------------
+# examples/basic
 STRID_BASIC_TEXT = A simple window with a title bar and standard control buttons.
 
-;cef/cef_browser Browser
+# cef/cef_browser Browser
 STRID_CEF_BROWSER_DEV_TOOL           =    Developer Tools
 STRID_CEF_BROWSER_WINDOW_MODE        =    Window Mode Cef Browser Component Test
 STRID_CEF_BROWSER_BACKWARD           =    Back
@@ -82,7 +82,7 @@ STRID_CEF_BROWSER_OFF_SCREEN_MODE    =    Off-screen Rendering Cef Browser Compo
 STRID_CEF_BROWSER_RECEIVE_JS_MSG     =    Received Msg From JS: %s
 STRID_CEF_BROWSER_MULTI_TAB          =    Multi Tab Browser
 
-;WebView2/WebView2Browser 浏览器
+# WebView2/WebView2Browser 浏览器
 STRID_WEBVIEW2_BROWSER_DEV_TOOL          =    Developer Tools
 STRID_WEBVIEW2_BROWSER_BACKWARD          =    Back
 STRID_WEBVIEW2_BROWSER_FORWARD           =    Forward
@@ -93,24 +93,24 @@ STRID_WEBVIEW2_BROWSER_STOP              =    Stop
 STRID_WEBVIEW2_BROWSER_NEW_TAB           =    New Tab
 STRID_WEBVIEW2_BROWSER_MULTI_TAB         =    Multi Tab Browser
 
-;examples/MultiLang
+# examples/MultiLang
 MULTI_LANG_WINDOW_TEXT               =   Support for multilingual windows
 MULTI_LANG_LABEL_TEXT                =   This is a program that supports multiple languages.
 MULTI_LANG_RICH_TEXT                 =   <font color="#8B0000">This is</font> a <b>program </b>that <bgcolor color="#6495ED">supports multiple languages </bgcolor>.
 
-;examples/chat
+# examples/chat
 STRID_CHAT_SIGN_UP  = Sign Up
 STRID_CHAT_SIGN_IN  = Sign In
 STRID_CHAT_ACCOUNT  = Account
 STRID_CHAT_PASSORD  = Passorw
 
-;examples/ChildWindow
+# examples/ChildWindow
 STRID_CHILDWINDOW_TITLE  = ChildWindow Test Program
 STRID_CHILDWINDOW_FPS    = FPS
 STRID_CHILDWINDOW_PAINT  = Paint
 STRID_CHILDWINDOW_FULLSCREEN  = Fullscreen
 
-;examples/DpiAware
+# examples/DpiAware
 STRID_DPIAWARE_TITLE  = Examples of applications that support DPI awareness
 STRID_DPIAWARE_CURRENT_AWARENESS  = Current DPI awareness:
 STRID_DPIAWARE_CURRENT_DPI_SCALE  = Primary monitor display scale:
@@ -122,11 +122,11 @@ STRID_DPIAWARE_MODIFY_DPI  = Adjust DPI scale (60-500):
 STRID_DPIAWARE_MODIFY_DPI_BTN  = DPI Scale
 STRID_DPIAWARE_NEW_WINDOW  = New Window
 
-;examples/ListBox
+# examples/ListBox
 STRID_LISTBOX_TITLE  = ListBox（VTileListBox | HTileListBox | VListBox | HListBox）
 STRID_LISTBOX_DELETE  = Delete
 
-;examples/MoveControl
+# examples/MoveControl
 STRID_MOVECONTROL_APP_LIST  = Application List
 STRID_MOVECONTROL_APP_COMMON  = Common Applications
 STRID_MOVECONTROL_MY_APP  = My Applications
@@ -141,7 +141,7 @@ STRID_MOVECONTROL_TEST_08  = Test08
 STRID_MOVECONTROL_TEST_09  = Test09
 STRID_MOVECONTROL_TEST_10  = Test10
 
-;examples/threads
+# examples/threads
 STRID_THREADS_TITLE  = Duilib multithreading example program
 STRID_THREADS_START  = Start Threads
 STRID_THREADS_STOP  = Stop Threads
@@ -155,7 +155,7 @@ STRID_THREADS_EXECUTE_LOG_02_2  = TID
 STRID_THREADS_EXECUTE_LOG_02_3  = ThreadName
 STRID_THREADS_EXECUTE_LOG_02_4  = Thread Identifier
 
-;examples/VirtualListBox
+# examples/VirtualListBox
 STRID_VIRTUALLISTBOX_TITLE  = VirtualListBox（VirtualHTileListBox | VirtualVTileListBox | VirtualHListBox | VirtualVListBox）
 STRID_VIRTUALLISTBOX_DELETE  = Delete
 STRID_VIRTUALLISTBOX_BOX_TYPE  = VirtualListBox Type:
@@ -181,7 +181,7 @@ STRID_VIRTUALLISTBOX_DATA_DELETE  = Delete:
 STRID_VIRTUALLISTBOX_BTN_DELETE  = Delete
 STRID_VIRTUALLISTBOX_TASK_NAME  = Task
 
-;examples/XmlPreview
+# examples/XmlPreview
 STRID_XMLPREVIEW_TITLE  = XML file preview function test
 STRID_XMLPREVIEW_XML_PATH  = XML Path:
 STRID_XMLPREVIEW_XML_LOAD_RESULT  = XML Load Result:
@@ -191,7 +191,7 @@ STRID_XMLPREVIEW_XML_REFRESH_MS  = Refresh Interval(ms):
 STRID_XMLPREVIEW_XML_CLEAR_PREVIEW  = Clear Preview
 STRID_XMLPREVIEW_XML_OPEN_XML  = Open Xml ...
 
-;examples/TreeView
+# examples/TreeView
 STRID_TREEVIEW_WIN_NAME = Name
 STRID_TREEVIEW_WIN_DISK_TYPE = Disk Type
 STRID_TREEVIEW_WIN_PARTITION_TYPE = Partition Type
@@ -263,22 +263,22 @@ STRID_TREEVIEW_FILE_SIZE = File Size
 STRID_TREEVIEW_SORT_ASCENDING = Sort Ascending
 STRID_TREEVIEW_SORT_DESCENDING = Sort Descending
 
-;examples/RichEdit
-; Window Title/Basic Controls
+# examples/RichEdit
+# Window Title/Basic Controls
 STRID_RICHEDIT_TEST_TITLE = RichEdit Control Test Program
 STRID_RICHEDIT_MINIMIZE = Minimize
 STRID_RICHEDIT_MAXIMIZE = Maximize
 STRID_RICHEDIT_RESTORE = Restore
 STRID_RICHEDIT_CLOSE = Close
 
-; Password Related
+# Password Related
 STRID_RICHEDIT_PASSWORD_FUNC = Password Related Functions
 STRID_RICHEDIT_PASSWORD_INPUT = Password Input:  
 STRID_RICHEDIT_SHOW_PASSWORD = Show Password:  
 STRID_RICHEDIT_FLASH_PASSWORD_CHAR = Flash Password Char:  
-STRID_RICHEDIT_PASSWORD_CHAR_HASH = Password Char is ;:  
+STRID_RICHEDIT_PASSWORD_CHAR_HASH = Password Char is # :  
 
-; Basic Functions
+# Basic Functions
 STRID_RICHEDIT_BASIC_FUNC = Basic Functions
 STRID_RICHEDIT_SINGLE_LINE_EDIT = Single Line Edit:  
 STRID_RICHEDIT_PROMPT_MODE = Prompt Mode:  
@@ -292,25 +292,25 @@ STRID_RICHEDIT_CARET_COLOR = Caret Color:
 STRID_RICHEDIT_TEXT_ALIGN = Text Align:  
 STRID_RICHEDIT_MAX_CHAR_8 = Max Chars: 8:  
 
-; Common Functions
+# Common Functions
 STRID_RICHEDIT_COMMON_FUNC = Common Functions
 STRID_RICHEDIT_SPIN_FUNC = Spin Function:  
 STRID_RICHEDIT_NUMBER_RANGE_64 = (Number Range: -64 - 64)
 STRID_RICHEDIT_CLEAR_TEXT = Clear Text:  
 
-; Scrollbar Related
+# Scrollbar Related
 STRID_RICHEDIT_SCROLLBAR_FUNC = Scrollbar Related
 STRID_RICHEDIT_HORIZONTAL_SCROLLBAR = Horizontal Scrollbar:  
 STRID_RICHEDIT_VERTICAL_SCROLLBAR = Vertical Scrollbar:  
 STRID_RICHEDIT_HORIZONTAL_VERTICAL_SCROLLBAR = Horizontal & Vertical Scrollbar:  
 
-; File Operations
+# File Operations
 STRID_RICHEDIT_FILE = File:
 STRID_RICHEDIT_OPEN_FILE = Open(Ctrl+O)
 STRID_RICHEDIT_SAVE_FILE = Save(Ctrl+S)
 STRID_RICHEDIT_SAVE_AS_FILE = Save As(Ctrl+Shift+S)
 
-; Edit Operations
+# Edit Operations
 STRID_RICHEDIT_EDIT = Edit:
 STRID_RICHEDIT_COPY = Copy(Ctrl+C)
 STRID_RICHEDIT_CUT = Cut(Ctrl+X)
@@ -321,13 +321,13 @@ STRID_RICHEDIT_DESELECT = Deselect
 STRID_RICHEDIT_UNDO = Undo(Ctrl+Z)
 STRID_RICHEDIT_REDO = Redo(Ctrl+Y)
 
-; Find & Replace
+# Find & Replace
 STRID_RICHEDIT_FIND = Find:
 STRID_RICHEDIT_FIND_TEXT = Find(Ctrl+F)
 STRID_RICHEDIT_FIND_NEXT_TEXT = Find Next(F3)
 STRID_RICHEDIT_REPLACE_TEXT = Replace(Ctrl+H)
 
-; Font Settings
+# Font Settings
 STRID_RICHEDIT_FONT = Font:
 STRID_RICHEDIT_SET_FONT = Set Font
 STRID_RICHEDIT_SELECT_FONT = Select Font
@@ -338,9 +338,9 @@ STRID_RICHEDIT_FONT_STRIKEOUT = Strikeout: Draw a line through text
 STRID_RICHEDIT_INCREASE_FONT_SIZE = Increase font size
 STRID_RICHEDIT_DECREASE_FONT_SIZE = Decrease font size
 STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS = (Rich text mode sets format for selected text)
-STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL = Rich text mode sets format for selected text; plain text mode sets format for all text.
+STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL = Rich text mode sets format for selected text# plain text mode sets format for all text.
 
-; Zoom Settings
+# Zoom Settings
 STRID_RICHEDIT_ZOOM = Zoom:
 STRID_RICHEDIT_CURRENT_ZOOM_RATIO = Current Zoom Ratio:
 STRID_RICHEDIT_ZOOM_100_PERCENT = 100.0%
@@ -349,7 +349,7 @@ STRID_RICHEDIT_ZOOM_OUT = Zoom Out-
 STRID_RICHEDIT_RESET_ZOOM = Reset to 100%
 STRID_RICHEDIT_RESET_FONT_SIZE = Reset font size to 100%
 
-; Other Settings
+# Other Settings
 STRID_RICHEDIT_OTHER = Other:
 STRID_RICHEDIT_AUTO_WRAP = Auto Wrap
 STRID_RICHEDIT_AUTO_WRAP_TIPS = Whether to auto wrap text
@@ -388,8 +388,8 @@ STRID_RICHEDIT_FIND_CASE_SENSITIVE = Match Case
 STRID_RICHEDIT_FIND_MATCH_WHOLE_WORD = Match Whole Word
 STRID_RICHEDIT_FIND_CANCEL = Cancel
 
-;examples/ListCtrl
-; Window Basic
+# examples/ListCtrl
+# Window Basic
 STRID_LISTCTRL_TEST_TITLE = ListCtrl Test
 STRID_LISTCTRL_TABLE_TYPE = Table Type:
 STRID_LISTCTRL_REPORT = Report
@@ -397,7 +397,7 @@ STRID_LISTCTRL_ICON = Icon
 STRID_LISTCTRL_LIST = List
 STRID_LISTCTRL_SUPPORT_MULTI_SELECT = Multi-Select
 
-; Report Type Core Config
+# Report Type Core Config
 STRID_LISTCTRL_REPORT_TYPE = Report Type
 STRID_LISTCTRL_HEADER_CONTROL = Header Ctrl:
 STRID_LISTCTRL_HIDE = Hide
@@ -408,7 +408,7 @@ STRID_LISTCTRL_ENABLE = Enabled
 STRID_LISTCTRL_HEADER_HEIGHT = Header H:
 STRID_LISTCTRL_SET_COLUMN_WIDTH_BY_RATIO = Set Col Width Ratio
 
-; Column Control
+# Column Control
 STRID_LISTCTRL_COLUMN_CONTROL = Column Ctrl:
 STRID_LISTCTRL_SHOW_THIS_COLUMN = Show Col
 STRID_LISTCTRL_RESIZABLE_COLUMN_WIDTH = Resizable
@@ -417,7 +417,7 @@ STRID_LISTCTRL_SORT_ICON_AT_TOP = Sort Icon Top
 STRID_LISTCTRL_DRAG_REORDERABLE = Drag Reorder
 STRID_LISTCTRL_EDITABLE_TEXT = Editable
 
-; Column-Level CheckBox/Icon
+# Column-Level CheckBox/Icon
 STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX = Col CheckBox:
 STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX_TIPS = Col header/table show CheckBox
 STRID_LISTCTRL_SHOW_IN_HEADER = ShowInHeader
@@ -425,27 +425,27 @@ STRID_LISTCTRL_SHOW_IN_EACH_COLUMN = ShowInCol
 STRID_LISTCTRL_COLUMN_LEVEL_ICON = Col Icon:
 STRID_LISTCTRL_COLUMN_LEVEL_ICON_TIPS = Col header/table show Icon
 
-; Text Alignment
+# Text Alignment
 STRID_LISTCTRL_HEADER_TEXT = Header Text:
 STRID_LISTCTRL_ALIGN_LEFT = Left
 STRID_LISTCTRL_ALIGN_CENTER = Center
 STRID_LISTCTRL_ALIGN_RIGHT = Right
 STRID_LISTCTRL_TABLE_TEXT = Table Text:
 
-; Table Properties
+# Table Properties
 STRID_LISTCTRL_TABLE_PROPERTIES = Table Attr:
 STRID_LISTCTRL_HORIZONTAL_GRID = H Grid:
 STRID_LISTCTRL_VERTICAL_GRID = V Grid:
 STRID_LISTCTRL_ROW_HEIGHT = Row H:
 
-; Row-Level CheckBox/Icon
+# Row-Level CheckBox/Icon
 STRID_LISTCTRL_ROW_LEVEL_CHECKBOX = Row CheckBox:
 STRID_LISTCTRL_ROW_LEVEL_CHECKBOX_TIPS = Row header/start show CheckBox
 STRID_LISTCTRL_SHOW_AT_ROW_START = Show at Row Start
 STRID_LISTCTRL_ROW_LEVEL_ICON = Row Icon:
 STRID_LISTCTRL_ROW_LEVEL_ICON_TIPS = Row start show Icon
 
-; Other Tests
+# Other Tests
 STRID_LISTCTRL_OTHER_TESTS = Other Tests
 STRID_LISTCTRL_LOADING_TEST_PROGRESS1 = Loading Test (Bar1)
 STRID_LISTCTRL_LOADING_TEST_PROGRESS2 = Loading Test (Bar2)
@@ -459,7 +459,7 @@ STRID_LISTCTRL_LOADING_TEST6 = Loading Test 6
 STRID_LISTCTRL_DATA_COLUMN = Column %d
 STRID_LISTCTRL_DATA_ROW_COLUMN = Row %03d / Column %02d
 
-;examples/controls
+# examples/controls
 
 STRID_CONTROLS_CONTROL_TEST = Ctrl Test
 STRID_CONTROLS_ANIMATION_TEST = Anim Test
@@ -485,7 +485,7 @@ STRID_CONTROLS_NONE = None
 STRID_CONTROLS_SET_WINDOW_HOTKEY = SetWinHotkey
 STRID_CONTROLS_SET_SYSTEM_HOTKEY = SetSysHotkey
 
-; 超链接/RichText
+# 超链接/RichText
 STRID_CONTROLS_BAIDU_HOME = Baidu Home
 STRID_CONTROLS_TEXT_BUTTON = Text Button
 STRID_CONTROLS_HYPERLINK_CONTROL = A HyperLink control
@@ -527,7 +527,7 @@ STRID_CONTROLS_MENU_SORT_DESC = Sort: Descending
 # About
 STRID_CONTROLS_MENU_ABOUT = About
 
-;examples/render
+# examples/render
 # Window core title
 STRID_RENDER_WINDOW_TITLE = Render Engine Test
 STRID_RENDER_TITLE_BAR = Render Engine Test
