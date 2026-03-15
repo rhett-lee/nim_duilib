@@ -3,65 +3,34 @@
     <HBox width="auto" height="auto">
         <Label text="TabBox " height="28" valign="center"/>
         <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
-        <Label text=": TabBox中包含了一个内嵌的TabBox控件" height="28" valign="center"/>
+        <Label text_id="STRID_LAYOUT_TABBOX_DESC" height="28" valign="center"/>
     </HBox>
     <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab_test" selected_id="0">
-        <TabCtrlItem class="tab_ctrl_item" title="标签1" close_button_class="" tab_box_item_index="0"/>
-        <TabCtrlItem class="tab_ctrl_item" title="标签2" close_button_class="" tab_box_item_index="1"/>
-        <TabCtrlItem class="tab_ctrl_item" title="标签3" close_button_class="" tab_box_item_index="2"/>
+        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_LAYOUT_TAB_ITEM1" close_button_class="" tab_box_item_index="0"/>
+        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_LAYOUT_TAB_ITEM2" close_button_class="" tab_box_item_index="1"/>
+        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_LAYOUT_TAB_ITEM3" close_button_class="" tab_box_item_index="2"/>
     </TabCtrl>
     <TabBox name="main_view_tab_test" bkcolor="white" selected_id="0">
         <VBox bkcolor="bg_window_light">
-            <Label text="页面1：这里是页面1"/>
-            <Label text="窗口阴影的功能测试：" valign="center" margin="12,30,10,0"/>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big, 阴影(大)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big_round, 阴影(大)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small, 阴影(小)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small_round, 阴影(小)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu, 阴影(小)，直角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu_round, 阴影(小)，圆角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none, 无阴影, 有边框, 直角" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none_round, 无阴影, 有边框, 圆角" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none_round}" />
-            </Option>
-            <Option class="checkbox_2" group="shadow_type" text="关闭阴影功能" selected="false" valign="center" margin="30,4,0,2">
-                <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
-            </Option>
+            <Label text_id="STRID_LAYOUT_PAGE1_CONTENT"/>
         </VBox>
         <VBox bkcolor="blue">
-            <Label text="页面2：这里是页面2"/>
+            <Label text_id="STRID_LAYOUT_PAGE2_CONTENT"/>
         </VBox>
         <VBox bkcolor="green">
-            <Label text="页面3：这里是页面3"/>
+            <Label text_id="STRID_LAYOUT_PAGE3_CONTENT"/>
             <TabBox name="sub_view_tab" selected_id="2" bkcolor="Cornsilk">
                 <VBox name="sub_view_tab_page1" height="200" bkcolor="LightBlue">
-                    <Label text="内嵌页面1：这里是内嵌页面1"/>                    
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE1_CONTENT"/>                    
                 </VBox>
                 <VBox name="sub_view_tab_page2" height="400" bkcolor="LightCoral">
-                    <Label text="内嵌页面2：这里是内嵌页面2"/>
-                    <Label text="内嵌页面2：这里是内嵌页面2"/>
+                      <Label text_id="STRID_LAYOUT_SUB_PAGE2_CONTENT"/>
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE2_CONTENT"/>
                 </VBox>
                 <VBox name="sub_view_tab_page3" height="600" bkcolor="LightCyan">
-                    <Label text="内嵌页面3：这里是内嵌页面3" normal_text_color="black"/>
-                    <Label text="内嵌页面3：这里是内嵌页面3"  normal_text_color="black"/>
-                    <Label text="内嵌页面3：这里是内嵌页面3"  normal_text_color="black"/>
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE3_CONTENT" normal_text_color="black"/>
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE3_CONTENT"  normal_text_color="black"/>
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE3_CONTENT"  normal_text_color="black"/>
                 </VBox>
             </TabBox>
         </VBox>

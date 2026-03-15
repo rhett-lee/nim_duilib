@@ -581,4 +581,14 @@ STRID_RENDER_P1_HOVER_PLAY = Play on mouse hover
 
 # examples/layout
 STRID_LAYOUT_TEST_TITLE = Container Layout Test
+STRID_LAYOUT_TABBOX_DESC = : The TabBox contains an embedded TabBox control
+STRID_LAYOUT_TAB_ITEM1 = Tab 1
+STRID_LAYOUT_TAB_ITEM2 = Tab 2
+STRID_LAYOUT_TAB_ITEM3 = Tab 3
+STRID_LAYOUT_PAGE1_CONTENT = Page 1: This is Page 1
+STRID_LAYOUT_PAGE2_CONTENT = Page 2: This is Page 2
+STRID_LAYOUT_PAGE3_CONTENT = Page 3: This is Page 3
+STRID_LAYOUT_SUB_PAGE1_CONTENT = Embedded Page 1: This is Embedded Page 1
+STRID_LAYOUT_SUB_PAGE2_CONTENT = Embedded Page 2: This is Embedded Page 2
+STRID_LAYOUT_SUB_PAGE3_CONTENT = Embedded Page 3: This is Embedded Page 3
 
