@@ -579,6 +579,47 @@ STRID_RENDER_P1_ANI_PAG = PAG Animation
 # Interactive prompt text
 STRID_RENDER_P1_HOVER_PLAY = Play on mouse hover
 
+STRID_RENDER_SHADOW_BIG = Shadow:big
+STRID_RENDER_SHADOW_BIG_ROUND = Shadow:big_round
+STRID_RENDER_SHADOW_SMALL = Shadow:small
+STRID_RENDER_SHADOW_SMALL_ROUND = Shadow:small_round
+STRID_RENDER_SHADOW_MENU = Shadow:menu
+STRID_RENDER_SHADOW_MENU_ROUND = Shadow:menu_round
+STRID_RENDER_SHADOW_TEST_TITLE = Window shadow function test:
+STRID_RENDER_SHADOW_TYPE_DEFAULT = Shadow type: default, Default shadow
+STRID_RENDER_SHADOW_TYPE_BIG = Shadow type: big, Big shadow (right angle, suitable for normal windows)
+STRID_RENDER_SHADOW_TYPE_BIG_ROUND = Shadow type: big_round, Big shadow (rounded corner, suitable for normal windows)
+STRID_RENDER_SHADOW_TYPE_SMALL = Shadow type: small, Small shadow (right angle, suitable for normal windows)
+STRID_RENDER_SHADOW_TYPE_SMALL_ROUND = Shadow type: small_round, Small shadow (rounded corner, suitable for normal windows)
+STRID_RENDER_SHADOW_TYPE_MENU = Shadow type: menu, Small shadow (right angle, suitable for pop-up windows like menus)
+STRID_RENDER_SHADOW_TYPE_MENU_ROUND = Shadow type: menu_round, Small shadow (rounded corner, suitable for pop-up windows like menus)
+STRID_RENDER_SHADOW_TYPE_NONE = Shadow type: none, No shadow (with border, right angle)
+STRID_RENDER_SHADOW_TYPE_NONE_ROUND = Shadow type: none_round, No shadow (with border, rounded corner)
+STRID_RENDER_SHADOW_CLOSE_FUNC = Turn off shadow function
+
+STRID_RENDER_CTRL_TEST_MENUBAR_DESC =  MenuBar Example:
+STRID_RENDER_CTRL_TEST_MOVABLE_DESC = Draggable controls and containers
+STRID_RENDER_CTRL_TEST_MOVABLE_BOX = Draggable container
+STRID_RENDER_CTRL_TEST_RESIZABLE_MOVABLE_DESC = Resizable/draggable controls and containers
+STRID_RENDER_CTRL_TEST_RESIZABLE_MOVABLE_BOX = Draggable container \nResizable container
+
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL = Show ctrl on mouse enter
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_LEFT_SLIDE = Show ctrl (slide left)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_RIGHT_SLIDE = Show ctrl (slide right)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_TOP_SLIDE = Show ctrl (slide top)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_BOTTOM_SLIDE = Show ctrl (slide bottom)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_WIDTH_FADE = Show ctrl (width fade)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_HEIGHT_FADE = Show ctrl (height fade)
+STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_SIZE_FADE = Show ctrl (size fade)
+STRID_RENDER_CTRL_ANI_HOT_STATE_ANIM = Ctrl Hot-state anim
+STRID_RENDER_CTRL_ANI_CHECKBOX = Checkbox
+STRID_RENDER_CTRL_ANI_TEXT_LABEL = Text Label
+STRID_RENDER_CTRL_ANI_NORMAL_CTRL = Normal Ctrl
+
+STRID_RENDER_BOX_SHADOW_TRANSPARENT_CTRL = Transparent ctrl
+STRID_RENDER_BOX_SHADOW_NOTES = box-shadow Notes:\n(1) X/Y extend: blur+spread+offset\n(2) Shadow beyond ctrl area as above\n(3) Reserve space (e.g. margin) to avoid shadow cover
+STRID_RENDER_BOX_SHADOW_SHOW_CTRL = Show ctrl on mouse enter
+
 # examples/layout
 STRID_LAYOUT_TEST_TITLE = Container Layout Test
 STRID_LAYOUT_TABBOX_DESC = : The TabBox contains an embedded TabBox control

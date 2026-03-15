@@ -2,20 +2,20 @@
 <Box>
     <VBox bkcolor="bg_window_light" >
         <HBox height="80" margin="0,10,0,0">
-            <Label text="  MenuBar示例:" text_align="right,vcenter" height="36"/>
+            <Label text_id="STRID_RENDER_CTRL_TEST_MENUBAR_DESC" text_align="right,vcenter" height="36"/>
             <MenuBar name="menu_bar_test" bkcolor="bg_menu_bar" height="36" margin="6,0,20,0" padding="4,0,0,0" border_round="4,4" />
         </HBox>
         <HBox height="300" margin="10,10,10,10" padding="4,4,4,4"  border_size="1" border_color="border_richedit_normal">
-            <Label text="可以拖动改变位置的控件和容器" mouse_enabled="false"/>
+            <Label text_id="STRID_RENDER_CTRL_TEST_MOVABLE_DESC" mouse_enabled="false"/>
             <ControlMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,40,8,8" valign="top" halign="left"
                             move_pos_reserve_width="40" move_pos_reserve_height="40"
                             move_pos_keep_within_parent="true"/>
             <BoxMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,8,8,8" valign="top" halign="right">
-                <Label text="可以拖动的容器" valign="center" halign="center" mouse_enabled="false"/>
+                <Label text_id="STRID_RENDER_CTRL_TEST_MOVABLE_BOX" valign="center" halign="center" mouse_enabled="false"/>
             </BoxMovable>
         </HBox>
         <HBox height="300" margin="10,10,10,10" border_size="1" border_color="border_richedit_normal">
-            <Label text="可以拖动改变变大小/可以拖动改变位置的控件和容器" mouse_enabled="false"/>
+            <Label text_id="STRID_RENDER_CTRL_TEST_RESIZABLE_MOVABLE_DESC" mouse_enabled="false"/>
             <ControlResizable bkcolor="Salmon" width="160" height="160" border_round="8,8" border_size="1" border_color="gray"
                               margin="40,40,8,8" valign="top" halign="left"
                               min_width="40" min_height="40" max_width="300" max_height="240"
@@ -30,7 +30,7 @@
                           border_size="1" border_color="gray"
                           resize_size_box="8,8,8,8"
                           enable_move_pos="true">
-                <Label text="可以拖动改变位置的容器\n可以拖动改变大小的容器" multi_line="true" replace_newline="true"
+                <Label text_id="STRID_RENDER_CTRL_TEST_RESIZABLE_MOVABLE_BOX" multi_line="true" replace_newline="true"
                        valign="center" halign="center" mouse_enabled="false"/>
             </BoxResizable>
         </HBox>

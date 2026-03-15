@@ -4,7 +4,7 @@
         <HBox child_margin_x="8">
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件" tooltip_text="fade_alpha='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_alpha_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -12,7 +12,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件" tooltip_text="fade_alpha='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_2" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_alpha_2" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -20,7 +20,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="180" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件" tooltip_text="fade_alpha='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL" tooltip_text="fade_alpha='true'">
                     <Event type="mouse_enter" receiver="fade_alpha_3" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_alpha_3" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -30,7 +30,7 @@
         <HBox child_margin_x="8">
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(左侧滑入)" tooltip_text="fade_in_out_x_from_left='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_LEFT_SLIDE" tooltip_text="fade_in_out_x_from_left='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_x_from_left_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_in_out_x_from_left_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -38,7 +38,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(右侧滑入)" tooltip_text="fade_in_out_x_from_right='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_RIGHT_SLIDE" tooltip_text="fade_in_out_x_from_right='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_x_from_right_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_in_out_x_from_right_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -46,7 +46,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(上方滑入)" tooltip_text="fade_in_out_y_from_top='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_TOP_SLIDE" tooltip_text="fade_in_out_y_from_top='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_y_from_top_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_in_out_y_from_top_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -54,7 +54,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(底部滑入)" tooltip_text="fade_in_out_y_from_bottom='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_BOTTOM_SLIDE" tooltip_text="fade_in_out_y_from_bottom='true'">
                     <Event type="mouse_enter" receiver="fade_in_out_y_from_bottom_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_in_out_y_from_bottom_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -64,7 +64,7 @@
         <HBox child_margin_x="8">
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(宽度渐变)" tooltip_text="fade_width='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_WIDTH_FADE" tooltip_text="fade_width='true'">
                     <Event type="mouse_enter" receiver="fade_width_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_width_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -72,7 +72,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(高度渐变)" tooltip_text="fade_height='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_HEIGHT_FADE" tooltip_text="fade_height='true'">
                     <Event type="mouse_enter" receiver="fade_height_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_height_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -80,7 +80,7 @@
             </VBox>
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
                 <Button class="btn_global" width="260" height="32" border_round="3,3" halign="center" valign='center'
-                        text="鼠标划入显示下面的控件(大小渐变)" tooltip_text="fade_size='true'">
+                        text_id="STRID_RENDER_CTRL_ANI_MOUSE_ENTER_SHOW_CTRL_SIZE_FADE" tooltip_text="fade_size='true'">
                     <Event type="mouse_enter" receiver="fade_size_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_size_1" apply_attribute="fade_visible='false'" />
                 </Button>
@@ -90,7 +90,7 @@
         </HBox>
         <HBox child_margin_x="8">
             <VBox margin="4,0,0,0" height="auto" border_size="1" width="320" height="184" border_color="gray" padding="2,2,2,2">
-                <Label halign="center" text="控件的Hot状态动画" tooltip_text="fade_hot='true'"/>
+                <Label halign="center" text_id="STRID_RENDER_CTRL_ANI_HOT_STATE_ANIM" tooltip_text="fade_hot='true'"/>
                 <HBox>
                     <VBox child_margin_y="8" padding="10,6,10,6">
                         <Button class="btn_global_blue_80x30" text="blue"/>
@@ -105,14 +105,14 @@
                         <Button class="btn_global_color_gray" width="80" height="30" text="gray"/>
                     </VBox>
                     <VBox child_margin_y="8" padding="10,6,10,6">
-                        <CheckBox class="checkbox_1" text="多选框" margin="0,3,0,3" selected="true"
+                        <CheckBox class="checkbox_1" text_id="STRID_RENDER_CTRL_ANI_CHECKBOX" margin="0,3,0,3" selected="true"
                                   normal_text_color="red" hot_text_color="blue"
                                   selected_normal_text_color="red" selected_hot_text_color="blue"
                                   fade_hot="true"/>
-                        <Label text="文本标签" margin="0,3,0,3"
+                        <Label text_id="STRID_RENDER_CTRL_ANI_TEXT_LABEL" margin="0,3,0,3"
                                   normal_text_color="red" hot_text_color="blue"
                                   fade_hot="true"/>
-                        <Label text="普通控件" margin="0,3,0,3" width="80" height="30" text_align="vcenter,hcenter"
+                        <Label text_id="STRID_RENDER_CTRL_ANI_NORMAL_CTRL" margin="0,3,0,3" width="80" height="30" text_align="vcenter,hcenter"
                                   normal_color="" hot_color="blue"
                                   fade_hot="true"/>
                         <Control margin="0,3,0,3" width="80" height="30"
