@@ -32,7 +32,7 @@
         <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text_id="STRID_CEF_BROWSER_NEW_TAB" 
                 width="24" height="24" border_round="6,6" 
                 text_padding="0,0,0,2" margin="2,0,0,0"/>
-		
+        
         <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="auto" height="36">
             <Control mouse_enabled="false"/>
@@ -67,13 +67,13 @@
                                         vscrollbar="false" 
                                         auto_vscroll="false" 
                                         hscrollbar="false" 
-                                        auto_hscroll="true"/>		
+                                        auto_hscroll="true"/>        
     </HBox>
     
     <!-- 一条分割线 -->
     <Control class="splitline_hor_level1" margin="0,0,0,0" />
     
-	<!-- 网页显示区域：浏览器盒子列表 -->
-	<TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
+    <!-- 网页显示区域：浏览器盒子列表 -->
+    <TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
 </VBox>
 </Window>
