@@ -1,4 +1,6 @@
-<Window size="80%,80%" shadow_attached="true" layered_window="true" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" size_box="4,4,4,4" text="TreeView控件测试程序">
+<Window size="80%,80%" shadow_attached="true" layered_window="true" 
+        snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
+        caption="0,0,0,36" size_box="4,4,4,4" text_id="STRID_TREEVIEW_TITLE">
     <!-- 该窗口下的Class定义 -->
     <Class name="btn_view_common" width="32" height="24" border_round="4,4" valign="center"
                                   normal_color="" hot_color="bg_btn_hover" pushed_color="bg_btn_pressed"/>
