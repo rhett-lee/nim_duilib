@@ -616,12 +616,12 @@
     <Class name="splitline_ver_level1" bkcolor="color_splitline_level1" width="1"/>
     
     <!-- Split 分割线 -->
-    <Class name="split_vertical" width="5"
+    <Class name="split_vertical" width="5"  state_color_min_width="1"
                                    normal_color_margin="2,0,2,0" normal_color="bg_split_normal" 
                                    hot_color_margin="1,0,1,0" hot_color="bg_split_hover" 
                                    pushed_color_margin="1,0,1,0" pushed_color="bg_split_pressed" 
                                    disabled_color_margin="2,0,2,0" disabled_color="bg_split_disabled" />
-    <Class name="split_horizontal" height="5"
+    <Class name="split_horizontal" height="5" state_color_min_height="1"
                                    normal_color_margin="0,2,0,2" normal_color="bg_split_normal" 
                                    hot_color_margin="0,1,0,1" hot_color="bg_split_hover" 
                                    pushed_color_margin="0,1,0,1" pushed_color="bg_split_pressed" 

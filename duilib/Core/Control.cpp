@@ -364,6 +364,14 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
         SetStateColorMargin(kControlStateDisabled, rcMargin, true);
     }
+    else if (strName == _T("state_color_min_width")) {
+        //状态颜色区域的最小宽度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+        SetStateColorMinWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("state_color_min_height")) {
+        //状态颜色区域的最小高度（解决DPI缩放后的运算精度损失导致线条高度失真问题）
+        SetStateColorMinHeight(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
     else if (strName == _T("normal_color_round")) {
         UiSize szRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
@@ -1247,6 +1255,40 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
         SetFadeHot(true);
     }
     Invalidate();
+}
+
+void Control::SetStateColorMinWidth(float fMinWidth)
+{
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMinWidth(fMinWidth);
+    Invalidate();
+}
+
+void Control::SetStateColorMinHeight(float fMinHeight)
+{
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMinHeight(fMinHeight);
+    Invalidate();
+}
+
+float Control::GetStateColorMinWidth() const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMinWidth();
+    }
+    return 0.0f;
+}
+
+float Control::GetStateColorMinHeight() const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMinHeight();
+    }
+    return 0.0f;
 }
 
 DString Control::GetBkImage() const

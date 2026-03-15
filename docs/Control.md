@@ -34,6 +34,16 @@
 | hot_color |  | string | SetStateColor|悬浮状态颜色,如(white) |
 | pushed_color |  | string | SetStateColor|按下状态颜色,如(white) |
 | disabled_color |  | string | SetStateColor|禁用状态颜色,如(white) |
+| normal_color_margin |  | UiMargin | SetStateColorMargin|设置普通状态下的控件颜色外边距 |
+| hot_color_margin |  | UiMargin | SetStateColorMargin|设置悬浮状态下的控件颜色外边距 |
+| pushed_color_margin |  | UiMargin | SetStateColorMargin|设置按下状态下的控件颜色外边距 |
+| disabled_color_margin |  | UiMargin | SetStateColorMargin|设置禁用状态下的控件颜色外边距 |
+| state_color_min_width |  | float | SetStateColorMinWidth|设置状态颜色区域的最小宽度（解决设置Margin后，DPI缩放运算精度损失导致线条宽度失真问题） |
+| state_color_min_height |  | float | SetStateColorMinHeight|设置状态颜色区域的最小高度（解决设置Margin后，DPI缩放运算精度损失导致线条宽度失真问题） |
+| normal_color_round |  | UiSize | SetStateColorRound|设置普通状态下的控件颜色圆角大小 |
+| hot_color_round |  | UiSize | SetStateColorRound|设置悬浮状态下的控件颜色圆角大小 |
+| pushed_color_round |  | UiSize | SetStateColorRound|设置按下状态下的控件颜色圆角大小 |
+| disabled_color_round |  | UiSize | SetStateColorRound|设置禁用状态下的控件颜色圆角大小 |
 | border_color |  | string | SetBorderColor|设置所有状态下的边框颜色,如(blue) |
 | normal_border_color |  | string | SetBorderColor|正常状态的边框颜色,如(blue) |
 | hot_border_color |  | string | SetBorderColor|悬浮状态的边框颜色,如(blue) |

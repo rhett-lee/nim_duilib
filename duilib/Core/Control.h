@@ -128,6 +128,18 @@ public:
     void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
     void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
+    /** 设置状态颜色区域的最小宽度或者最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+    * @param [in] fMinWidth 设置状态颜色区域的最小宽度，未经DPI缩放
+    * @param [in] fMinHeight 设置状态颜色区域的最小高度，未经DPI缩放
+    */
+    void SetStateColorMinWidth(float fMinWidth);
+    void SetStateColorMinHeight(float fMinHeight);
+
+    /** 获取状态颜色区域的最小宽度或者最小高度（未经DPI缩放）
+    */
+    float GetStateColorMinWidth() const;
+    float GetStateColorMinHeight() const;
+
     /**
      * @brief 获取背景图片位置
      * @return 背景图片位置  

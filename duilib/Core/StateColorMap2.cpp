@@ -5,8 +5,10 @@
 
 namespace ui 
 {
-    StateColorMap2::StateColorMap2(Control* pControl):
-    m_pControl(pControl)
+StateColorMap2::StateColorMap2(Control* pControl):
+    m_pControl(pControl),
+    m_fStateColorMinWidth(0.0f),
+    m_fStateColorMinHeight(0.0f)
 {
     ASSERT(kControlStateCount > 0);
     m_stateColors.resize(kControlStateCount);
@@ -146,28 +148,90 @@ void StateColorMap2::PaintStateColor(IRender* pRender, const UiRect& rcPaint, Co
     }
 }
 
-void StateColorMap2::DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha) const
+void StateColorMap2::DoPaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha) const
 {
     if ((pRender == nullptr) || rcPaint.IsEmpty() || (nAlpha == 0) || colorValue.IsEmpty()) {
         return;
     }
-    UiMargin rcMargin = GetStateColorMargin(stateType);
+    UiRect rcStatePaint = rcPaint;
+    const UiMargin rcMargin = GetStateColorMargin(stateType);
     if (!rcMargin.IsEmpty()) {
-        rcPaint.Deflate(rcMargin);//剪去外边距
-        if (rcPaint.IsEmpty()) {
+        rcStatePaint.Deflate(rcMargin);//剪去外边距        
+    }
+
+    constexpr float fMinSize = 0.1f;
+    const float fConfigStateColorMinWidth = !rcMargin.IsEmpty() ? m_fStateColorMinWidth : 0.0f;
+    const float fConfigStateColorMinHeight = !rcMargin.IsEmpty() ? m_fStateColorMinHeight : 0.0f;
+    if ((fConfigStateColorMinWidth < fMinSize) && (fConfigStateColorMinHeight < fMinSize)) {
+        //未设置最小宽度和最小高度限制
+        if (rcStatePaint.IsEmpty()) {
             return;
+        }
+    }
+    else if (fConfigStateColorMinWidth < fMinSize) {
+        //未设置最小宽度限制
+        if (rcStatePaint.Width() <= 0) {
+            return;
+        }
+    }
+    else if (fConfigStateColorMinHeight < fMinSize) {
+        //未设置最小高度限制
+        if (rcStatePaint.Height() <= 0) {
+            return;
+        }
+    }
+
+    UiRectF rcStatePaintF = UiRectF::MakeFromRect(rcStatePaint);
+    if (fConfigStateColorMinWidth >= fMinSize) {
+        //设置了最小宽度限制
+        float fStateColorMinWidth = (m_pControl != nullptr) ? m_pControl->Dpi().GetScaleFloat(fConfigStateColorMinWidth) : fConfigStateColorMinWidth;
+        fStateColorMinWidth = std::min(fStateColorMinWidth, (float)rcPaint.Width());
+        if (rcStatePaintF.Width() < fStateColorMinWidth) {
+            float diff = fStateColorMinWidth - rcStatePaintF.Width();
+            rcStatePaintF.left -= diff / 2;
+            rcStatePaintF.right += diff / 2;
+        }
+    }
+    if (fConfigStateColorMinHeight >= fMinSize) {
+        //设置了最小高度限制
+        float fStateColorMinHeight = (m_pControl != nullptr) ? m_pControl->Dpi().GetScaleFloat(fConfigStateColorMinHeight) : fConfigStateColorMinHeight;
+        fStateColorMinHeight = std::min(fStateColorMinHeight, (float)rcPaint.Height());
+        if (rcStatePaintF.Height() < fStateColorMinHeight) {
+            float diff = fStateColorMinHeight - rcStatePaintF.Height();
+            rcStatePaintF.top -= diff / 2;
+            rcStatePaintF.bottom += diff / 2;
         }
     }
 
     UiSize szRound = GetStateColorRound(stateType);
     if (!szRound.IsEmpty()) {
         //圆角矩形
-        pRender->FillRoundRect(UiRectF::MakeFromRect(rcPaint), (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
+        pRender->FillRoundRect(rcStatePaintF, (float)szRound.cx, (float)szRound.cy, colorValue, nAlpha);
     }
     else {
         //直角矩形
-        pRender->FillRect(UiRectF::MakeFromRect(rcPaint), colorValue, nAlpha);
+        pRender->FillRect(rcStatePaintF, colorValue, nAlpha);
     }
+}
+
+void StateColorMap2::SetStateColorMinWidth(float fMinWidth)
+{
+    m_fStateColorMinWidth = fMinWidth;
+}
+
+void StateColorMap2::SetStateColorMinHeight(float fMinHeight)
+{
+    m_fStateColorMinHeight = fMinHeight;
+}
+
+float StateColorMap2::GetStateColorMinWidth() const
+{
+    return m_fStateColorMinWidth;
+}
+
+float StateColorMap2::GetStateColorMinHeight() const
+{
+    return m_fStateColorMinHeight;
 }
 
 } // namespace ui
