@@ -199,22 +199,22 @@
                         <CheckBox class="checkbox_1" name="btn_word_wrap" text_id="STRID_RICHEDIT_AUTO_WRAP" margin="4,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_AUTO_WRAP_TIPS"/>
                         <CheckBox class="checkbox_1" name="btn_rich_text" text_id="STRID_RICHEDIT_RICH_TEXT_MODE" margin="12,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_MODE_TIPS"/>
                         <Label text_id="STRID_RICHEDIT_LINE_SPACING" valign="center" margin="12,0,0,0"/>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_1_0" margin="6,0,0,0" text_align="vcenter" selected="true">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.0" margin="6,0,0,0" text_align="vcenter" selected="true">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.0'" />
                         </Option>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_1_15" margin="6,0,0,0" text_align="vcenter">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.15" margin="6,0,0,0" text_align="vcenter">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.15'" />
                         </Option>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_1_5" margin="6,0,0,0" text_align="vcenter">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="1.5" margin="6,0,0,0" text_align="vcenter">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='1.5'" />
                         </Option>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_2_0" margin="6,0,0,0" text_align="vcenter">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="2.0" margin="6,0,0,0" text_align="vcenter">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.0'" />
                         </Option>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_2_5" margin="6,0,0,0" text_align="vcenter">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="2.5" margin="6,0,0,0" text_align="vcenter">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='2.5'" />
                         </Option>
-                        <Option class="option_1" group="richedit_row_spacing_group" text_id="STRID_RICHEDIT_LINE_SPACING_3_0" margin="6,0,0,0" text_align="vcenter">
+                        <Option class="option_1" group="richedit_row_spacing_group" text="3.0" margin="6,0,0,0" text_align="vcenter">
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='3.0'" />
                         </Option>
                         <Label name="row_spacing_tips" text_id="STRID_RICHEDIT_LINE_SPACING_RICH_TEXT_ONLY" valign="center" margin="4,0,0,0"/>
