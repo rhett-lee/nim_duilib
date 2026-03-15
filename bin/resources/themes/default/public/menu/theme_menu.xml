@@ -5,7 +5,7 @@
     <VListBox class="menu" padding="0,0,0,6">
         <!-- 在菜单中插入普通控件，实现特定功能 -->
         <HBox class="menu_split_box" height="36" width="256">
-            <Label class="menu_text" text_id="STRID_MENU_TEXT_SELECT_THEME" text_padding="0,0,6,0"/>
+            <Label class="menu_text" text_id="STRID_PUBLIC_MENU_TEXT_SELECT_THEME" text_padding="0,0,6,0"/>
         </HBox>
 
         <!-- 菜单项之间的分割线 -->

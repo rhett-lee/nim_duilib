@@ -69,12 +69,12 @@
     <PropertyGrid>
         <!-- 表头 -->
         <HBox name="duilib_property_grid_header">
-            <Label name="duilib_property_grid_header_left" text_id="STRID_PROPERTY_NAME" width="45%" height="100%"
+            <Label name="duilib_property_grid_header_left" text_id="STRID_PUBLIC_PROPERTY_NAME" width="45%" height="100%"
                                                            text_padding="4" text_align="vcenter,hcenter"
                                                            normal_text_color="text_property_grid_header"
                                                            disabled_text_color="text_property_grid_header_disabled"/>
             <Split name="duilib_property_grid_header_split" bkcolor="bg_property_grid_header_split" width="1" margin="0,1,0,1"/>
-            <Label name="duilib_property_grid_header_right" text_id="STRID_PROPERTY_VALUE" width="55%" height="100%"
+            <Label name="duilib_property_grid_header_right" text_id="STRID_PUBLIC_PROPERTY_VALUE" width="55%" height="100%"
                                                             text_padding="4" text_align="vcenter,hcenter"
                                                             normal_text_color="text_property_grid_header"
                                                             disabled_text_color="text_property_grid_header_disabled"/>

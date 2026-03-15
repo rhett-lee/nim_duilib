@@ -478,33 +478,33 @@
     <!-- 窗口按钮 -->
     <Define name="SIZE_WND_ICON" value="20"/>
     <Class name="btn_wnd_base" class="btn_global_base" hot_color="bg_btn_window_hover" pushed_color="bg_btn_window_pressed"/>
-    <Class name="btn_wnd_min_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_WND_BTN_MIN"
+    <Class name="btn_wnd_min_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_MIN"
                                  normal_image="file='${PATH_BUTTON}/window-minimize.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>
-    <Class name="btn_wnd_close_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_WND_BTN_CLOSE"
+    <Class name="btn_wnd_close_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_CLOSE"
                                  hot_color="bg_btn_window_close_hover" pushed_color="bg_btn_window_close_pressed"
                                  normal_image="file='${PATH_BUTTON}/window-close.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"
                                  hot_image="file='${PATH_BUTTON}/window-close_hover.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>
-    <Class name="btn_wnd_max_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_WND_BTN_MAX"
+    <Class name="btn_wnd_max_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_MAX"
                                  normal_image="file='${PATH_BUTTON}/window-maximize.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>
-    <Class name="btn_wnd_restore_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_WND_BTN_RESTORE"
+    <Class name="btn_wnd_restore_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_RESTORE"
                                  normal_image="file='${PATH_BUTTON}/window-restore.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>
-    <Class name="btn_wnd_fullscreen_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_WND_BTN_FULLSCREEN"
+    <Class name="btn_wnd_fullscreen_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_WND_BTN_FULLSCREEN"
                                  normal_image="file='${PATH_BUTTON}/window-fullscreen.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center' margin='0,4,0,0'"/>
-    <Class name="btn_view_fullscreen_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_BTN_PAGE_FULLSCREEN"
+    <Class name="btn_view_fullscreen_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_BTN_PAGE_FULLSCREEN"
                                  normal_image="file='${PATH_BUTTON}/view-fullscreen.svg' valign='center' halign='center' margin='0,2,0,0'"/>
-    <Class name="btn_wnd_settings_11" class="btn_wnd_base" tooltip_text_id="STRID_TIP_BTN_SETTINGS"
+    <Class name="btn_wnd_settings_11" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_BTN_SETTINGS"
                                  normal_image="file='${PATH_BUTTON}/btn_setting.svg' width='18' height='18' valign='center' halign='center' margin='0,2,0,0'"/>
-    <Class name="btn_switch_theme" class="btn_wnd_base" tooltip_text_id="STRID_TIP_BTN_THEME"
+    <Class name="btn_switch_theme" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_BTN_THEME"
                                    normal_image="file='${PATH_BUTTON}/switch_theme.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"
                                    hot_image="file='${PATH_BUTTON}/switch_theme_hover.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>
-    <Class name="btn_switch_lang" class="btn_wnd_base" tooltip_text_id="STRID_TIP_BTN_LANGUAGE"
+    <Class name="btn_switch_lang" class="btn_wnd_base" tooltip_text_id="STRID_PUBLIC_TIP_BTN_LANGUAGE"
                                    normal_image="file='${PATH_BUTTON}/switch_lang.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"
                                    hot_image="file='${PATH_BUTTON}/switch_lang_hover.svg' width='${SIZE_WND_ICON}' height='${SIZE_WND_ICON}' valign='center' halign='center'"/>     
     <!-- 退出全屏按钮 -->
     <Class name="btn_exit_fullscreen" width="${SIZE_BTN_EXIT_FULLSCREEN_WIDTH}" height="${SIZE_BTN_EXIT_FULLSCREEN_HEIGHT}" border_round="3,3" valign="top" halign="center" 
                                       bkcolor="bg_btn_exit_fullscreen" normal_text_color="text_btn_exit_fullscreen" 
                                       font="system_bold_14" text_align="vcenter,hcenter" 
-                                      text_id="STRID_EXIT_FULLSCREEN" tooltip_text_id="TIPID_EXIT_FULLSCREEN" 
+                                      text_id="STRID_PUBLIC_EXIT_FULLSCREEN" tooltip_text_id="STRID_PUBLIC_EXIT_FULLSCREEN" 
                                       float="true" keyboard_enabled="false" no_focus="true" 
                                       alpha="0" fade_alpha="128" fade_in_out_y_from_top="true"/>
         
