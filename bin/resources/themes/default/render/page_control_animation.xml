@@ -25,7 +25,7 @@
                     <Event type="mouse_leave" receiver="fade_alpha_3" apply_attribute="fade_visible='false'" />
                 </Button>
                 <Control name="fade_alpha_3" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" box_shadow="color='gray' offset='1,1' blur_radius='3' spread_radius='3'" visible="false" fade_alpha="true"/>
-            </VBox>            
+            </VBox>
         </HBox>
         <HBox child_margin_x="8">
             <VBox height="auto" border_size="1" width="300" height="180" border_color="gray" padding="2,2,2,2">
@@ -84,9 +84,9 @@
                     <Event type="mouse_enter" receiver="fade_size_1" apply_attribute="fade_visible='true'" />
                     <Event type="mouse_leave" receiver="fade_size_1" apply_attribute="fade_visible='false'" />
                 </Button>
-                <Control name="fade_size_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false" 
+                <Control name="fade_size_1" halign="center" margin="30,30,30,30" width="160" height="100" bkcolor="red" border_round="4,4" visible="false"
                          fade_size="true" fade_total_ms="200" fade_frame_interval_ms="16" fade_easing_function="EaseInOutCubic"/>
-            </VBox>            
+            </VBox>
         </HBox>
         <HBox child_margin_x="8">
             <VBox margin="4,0,0,0" height="auto" border_size="1" width="320" height="184" border_color="gray" padding="2,2,2,2">
@@ -114,7 +114,7 @@
                                   fade_hot="true"/>
                         <Label text="普通控件" margin="0,3,0,3" width="80" height="30" text_align="vcenter,hcenter"
                                   normal_color="" hot_color="blue"
-                                  fade_hot="true"/>                                  
+                                  fade_hot="true"/>
                         <Control margin="0,3,0,3" width="80" height="30"
                                   normal_image="autumn.png" hot_image="svg_test.svg"
                                   fade_hot="true" fade_hot_total_ms="200" fade_hot_frame_interval_ms="16" fade_hot_easing_function="EaseInOutCubic"/>

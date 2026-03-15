@@ -17,7 +17,7 @@
         <Label class="page_scroll_box" text="7 center,bottom" halign="center" valign="bottom" width="100" height="80"/>
         <Label class="page_scroll_box" text="8 right,top" halign="right" valign="top" width="100" height="80" margin="0,10,10,0"/>
         <Label class="page_scroll_box" text="9 right,center" halign="right" valign="center" width="100" height="80"/>
-        
+
         <Label class="page_scroll_box" text="10 width:70%" halign="center" valign="center" width="70%" height="40" alpha="128" margin="10,200,10,10"/>
         <Label class="page_scroll_box" text="11 height:70%" halign="center" valign="center" width="200" height="70%" alpha="128" margin="300,10,10,10"/>
 
@@ -25,5 +25,5 @@
         <Label text="float 301*301 center,center" float="true" halign="center" valign="center" single_line="false" width="301" height="301" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
         <Label text="float 302*302 center,bottom" float="true" halign="center" valign="bottom" single_line="false" width="302" height="302" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
 
-   </ScrollBox>
+    </ScrollBox>
 </Window>

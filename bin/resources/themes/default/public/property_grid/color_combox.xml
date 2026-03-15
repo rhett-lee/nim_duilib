@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Class name="color_combo_picker_btn" font="system_regular_14" 
-                                    normal_text_color="text_default" disabled_text_color="text_disabled" 
-                                    text_align="hcenter,vcenter" border_size="1" 
-                                    hot_border_color="border_btn_hover" 
-                                    pushed_border_color="border_btn_pressed" 
-                                    hot_color="bg_btn_hover" 
+    <Class name="color_combo_picker_btn" font="system_regular_14"
+                                    normal_text_color="text_default" disabled_text_color="text_disabled"
+                                    text_align="hcenter,vcenter" border_size="1"
+                                    hot_border_color="border_btn_hover"
+                                    pushed_border_color="border_btn_pressed"
+                                    hot_color="bg_btn_hover"
                                     pushed_color="bg_btn_pressed" />
     <!-- 第一个节点会被跳过解析 -->
     <Box>

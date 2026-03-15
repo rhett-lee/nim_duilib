@@ -3,30 +3,30 @@
     <MenuListBox class="menu" name="main_menu" padding="0,4,0,4">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element" name="first" width="180">
-          <Button name="button_01" width="auto" height="auto" bkimage="file='menu_settings.svg'valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_CONTROLS_MENU_FIRST_LEVEL_1" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="button_01" width="auto" height="auto" bkimage="file='menu_settings.svg'valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_MENU_FIRST_LEVEL_1" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-    
+
         <MenuItem class="menu_element" name="second" width="180">
-          <Label class="menu_text" text_id="STRID_CONTROLS_MENU_FIRST_LEVEL_2" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_MENU_FIRST_LEVEL_2" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <!-- 在菜单中插入普通控件，实现特定功能 -->
         <HBox class="menu_split_box" height="36">
             <Label class="menu_text" text_id="STRID_CONTROLS_MENU_VOLUME" textpadding="0,0,6,0" mouse_enabled="false" keyboard_enabled="false"/>
             <Control width="auto" height="auto" bkimage="file='menu_speaker.svg' valign='center' halign='center'" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             <Slider class="slider_horizontal_green" value="70" tooltip_text="ui::Slider"/>
         </HBox>
-        
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" />
         </Box>
-        
+
         <MenuItem class="menu_element" name="third" width="180">
             <Label class="menu_text" text_id="STRID_CONTROLS_MENU_FIRST_LEVEL_3" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <MenuItem class="menu_element" name="fourth" width="180">
             <Button name="button_04" width="auto" height="auto" bkimage="sub_menu.svg" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             <Label class="menu_text" text_id="STRID_CONTROLS_MENU_SECOND_LEVEL" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
@@ -59,12 +59,12 @@
                 </MenuItem>
             </SubMenu>
         </MenuItem>
-        
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
         </Box>
-        
+
         <!-- 带勾选项的菜单项 -->
         <MenuItem class="menu_element" name="menu_check_01" width="180">
             <CheckBox class="menu_checkbox" name="menu_checkbox_01" text_id="STRID_CONTROLS_MENU_SORT_ASC" selected="true" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
@@ -72,15 +72,15 @@
         <MenuItem class="menu_element" name="menu_check_02" width="180">
             <CheckBox class="menu_checkbox" name="menu_checkbox_02" text_id="STRID_CONTROLS_MENU_SORT_DESC" selected="false" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
         </Box>
-    
+
         <MenuItem class="menu_element" name="about" width="auto">
             <Button name="button_06" width="auto" height="auto" bkimage="menu_about.svg" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
             <Label class="menu_text" text_id="STRID_CONTROLS_MENU_ABOUT" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-  </MenuListBox>
+    </MenuListBox>
 </Window>

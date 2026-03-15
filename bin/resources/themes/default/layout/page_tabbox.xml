@@ -21,10 +21,10 @@
             <Label text_id="STRID_LAYOUT_PAGE3_CONTENT"/>
             <TabBox name="sub_view_tab" selected_id="2" bkcolor="Cornsilk">
                 <VBox name="sub_view_tab_page1" height="200" bkcolor="LightBlue">
-                    <Label text_id="STRID_LAYOUT_SUB_PAGE1_CONTENT"/>                    
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE1_CONTENT"/>
                 </VBox>
                 <VBox name="sub_view_tab_page2" height="400" bkcolor="LightCoral">
-                      <Label text_id="STRID_LAYOUT_SUB_PAGE2_CONTENT"/>
+                    <Label text_id="STRID_LAYOUT_SUB_PAGE2_CONTENT"/>
                     <Label text_id="STRID_LAYOUT_SUB_PAGE2_CONTENT"/>
                 </VBox>
                 <VBox name="sub_view_tab_page3" height="600" bkcolor="LightCyan">

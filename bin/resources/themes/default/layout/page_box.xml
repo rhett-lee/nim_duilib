@@ -16,7 +16,7 @@
         <LabelBox text="Layout Test" float="true" single_line="false" width="200" height="200" margin="800,160,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
             <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
         </LabelBox>
-        
+
         <Label class="page_box" text="1 left,top" halign="left" valign="top" minwidth="300" maxheight="60"/>
         <Label class="page_box" text="2 left,center" halign="left" valign="center"/>
         <Label class="page_box" text="3 left,bottom" halign="left" valign="bottom"/>

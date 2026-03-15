@@ -3,38 +3,38 @@
     <MenuListBox class="menu" name="main_menu">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element" name="menu_item_file_name" width="170">
-          <Button name="btn_file_name" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_NAME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="btn_file_name" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_NAME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-    
+
         <MenuItem class="menu_element" name="menu_item_file_modify_time" width="160">
-          <Button name="btn_file_modify_time" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_MODIFY_TIME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="btn_file_modify_time" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_MODIFY_TIME" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <MenuItem class="menu_element" name="menu_item_file_type" width="160">
-          <Button name="btn_file_type" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_TYPE" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="btn_file_type" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_TYPE" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <MenuItem class="menu_element" name="menu_item_file_size" width="160">
-          <Button name="btn_file_size" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_SIZE" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="btn_file_size" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_FILE_SIZE" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-               
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box" margin="0,4,0,4">
             <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
         </Box>
 
         <MenuItem class="menu_element" name="menu_item_sort_ascending" width="160">
-          <Button name="btn_sort_ascending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_ASCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Button name="btn_sort_ascending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_ASCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <MenuItem class="menu_element" name="menu_item_sort_descending" width="160">
-          <Button name="btn_sort_descending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
-          <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_DESCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
-        </MenuItem>        
-  </MenuListBox>
+            <Button name="btn_sort_descending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_TREEVIEW_SORT_DESCENDING" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    </MenuListBox>
 </Window>

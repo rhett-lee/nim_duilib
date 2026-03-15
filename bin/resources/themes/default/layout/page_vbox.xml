@@ -6,7 +6,7 @@
             <Label text="VBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_25" valign="center"/>
             <Option class="option_1" group="vbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vbox_test" apply_attribute="child_valign='top'" />
@@ -19,7 +19,7 @@
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_26" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_27" valign="center"/>
         </HBox>
         <Label text_id="STRID_LAYOUT_PAGE_28" valign="center"/>
@@ -32,7 +32,7 @@
             <LabelBox text_id="STRID_LAYOUT_PAGE_18" float="true" single_line="false" width="100" height="100" margin="300,100,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
                 <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
             </LabelBox>
-            
+
             <Label class="page_vbox" text="1 left,top" halign="left" valign="top" min_width="400" max_height="30"/>
             <Label class="page_vbox" text="2 left,center" halign="left" valign="center" max_height="30"/>
             <Label class="page_vbox" text="3 left,bottom: width=stretch" halign="left" valign="bottom" width="stretch"/>
@@ -43,17 +43,17 @@
             <Label class="page_vbox" text="8 right,center" halign="right" valign="center"/>
             <Label class="page_vbox" text="9 right,bottom" halign="right" valign="bottom" width="stretch" height="stretch" max_height="50"/>
         </VBox>
-        <VBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" width="20%">           
+        <VBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" width="20%">
             <Label class="page_hbox" text="1 left,top min_height:80" halign="left" valign="top" max_height="80"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center" height="80"/>
-            <Label class="page_hbox" text="3 left,bottom width 70%" halign="left" valign="bottom" width="70%"/>           
+            <Label class="page_hbox" text="3 left,bottom width 70%" halign="left" valign="bottom" width="70%"/>
             <Label class="page_hbox" text="4 right,bottom height 20%" halign="right" valign="bottom" height="20%" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="5 right,top" halign="right" valign="top" width="80"/>
             <Label class="page_hbox" text="6 right,bottom 30%" halign="right" valign="bottom" height="30%" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="7 right,center" halign="right" valign="center" height="20%"/>
             <Label class="page_hbox" text="8 right,bottom 40%" halign="right" valign="bottom" height="40%" bkcolor="Cornsilk"/>
         </VBox>
-        <VBox bkcolor="gray" child_margin_y="8" border_size="1" border_color="red" width="20%">           
+        <VBox bkcolor="gray" child_margin_y="8" border_size="1" border_color="red" width="20%">
             <Label class="page_hbox" text="1 left,top" halign="left" valign="top" width="stretch" height="100%" margin="6,6,6,0"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center" width="stretch" height="100%" margin="6,0,6,0"/>
             <Label class="page_hbox" text="3 left,bottom" halign="left" valign="bottom" width="stretch" height="100%" margin="6,0,6,6"/>

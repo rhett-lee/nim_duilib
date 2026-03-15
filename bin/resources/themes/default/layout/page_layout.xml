@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window> 
+<Window>
     <VBox>
         <Box bkcolor="red" padding="1,1,1,1" border_size="1" border_color="white">
             <Label width="80%" height="80%" text="Box: Label 1 width='80%' height='80%'" bkcolor="yellow" text_align="bottom"/>

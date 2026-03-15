@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="85%,85%" min_size="80,50" use_system_caption="false" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
-    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_dark">
-        <!-- 标题栏区域 -->  
+        <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->  
+            <!-- 标题栏：窗口左上角显示区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Label text_id="STRID_LISTCTRL_TEST_TITLE" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
@@ -21,9 +21,10 @@
                 </Box>
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
-        </HBox> <!-- 标题栏区域结束 --> 
-        
-        
+        </HBox>
+        <!-- 标题栏区域结束 -->
+
+
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <VBox bkcolor="bg_window_light" >
             <HBox height="auto">
@@ -38,7 +39,7 @@
                     <Event type="unselect" receiver="list_ctrl" applyattribute="multi_select={false}" />
                 </CheckBox>
             </HBox>
-            <HBox height="auto">                
+            <HBox height="auto">
                 <GroupVBox class="group_box_round" name="report_group" height="auto" width="820" margin="2,0,0,0" text_id="STRID_LISTCTRL_REPORT_TYPE">
                     <HBox minheight="18" height="auto" margin="4,18,4,0">
                         <Label text_id="STRID_LISTCTRL_HEADER_CONTROL" valign="center" margin="2,0,2,0"/>
@@ -61,10 +62,10 @@
                         <RichEdit class="simple simple_border rich_edit_spin" name="header_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
                         <Button class="btn_primary_global" name="set_column_stretch" text_id="STRID_LISTCTRL_SET_COLUMN_WIDTH_BY_RATIO" width="auto" height="30" border_round="3,3" text_padding="8,0,8,0" margin="4,0,0,0"/>
                     </HBox>
-                    
+
                     <HBox minheight="18" height="auto" margin="4,0,4,0">
-                        <Label text_id="STRID_LISTCTRL_COLUMN_CONTROL" valign="center" margin="2,0,2,0"/>                
-                        <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,1" valign="center"/>              
+                        <Label text_id="STRID_LISTCTRL_COLUMN_CONTROL" valign="center" margin="2,0,2,0"/>
+                        <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,1" valign="center"/>
                         <Line vertical="true" margin="8,4,4,4" width="2"/>
                         <CheckBox class="checkbox_1" name="checkbox_column_show" text_id="STRID_LISTCTRL_SHOW_THIS_COLUMN" margin="4,0,0,0" valign="center"/>
                         <CheckBox class="checkbox_1" name="checkbox_column_width" text_id="STRID_LISTCTRL_RESIZABLE_COLUMN_WIDTH" margin="4,0,0,0" valign="center"/>
@@ -97,7 +98,7 @@
                         <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" borderround="2,2" valign="center"/>
                         <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" borderround="2,2" valign="center"/>
                     </HBox>
-                                
+
                     <HBox minheight="18" height="auto" margin="4,0,4,0">
                         <Label text_id="STRID_LISTCTRL_TABLE_PROPERTIES" valign="center" margin="2,0,2,0"/>
                         <Label text_id="STRID_LISTCTRL_HORIZONTAL_GRID" valign="center" margin="2,0,2,0"/>
@@ -136,7 +137,7 @@
                         <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                         <Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
                         <Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
-                   </GroupVBox>
+                    </GroupVBox>
                     <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="0,0,2,0">
                         <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
                         <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
@@ -148,7 +149,7 @@
             <!-- 横向分割条，用于调整上下区域大小 -->
             <Split class="split_horizontal"/>
             <VBox valign="center" halign="center">
-                <ListCtrl class="list_ctrl" name="list_ctrl" bkcolor="YellowGreen"                          
+                <ListCtrl class="list_ctrl" name="list_ctrl" bkcolor="YellowGreen"
                           loading="file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"/>
             </VBox>
         </VBox>

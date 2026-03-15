@@ -50,7 +50,7 @@
                 <Control class="page_image2_image" width="auto" height="auto"  bkimage="file='svg_test.svg' height='40' dpi_scale='false'"/>
                 <Label class="page_image2_case" text="用例编号（1.9）"/>
                 <Label class="page_image2_text" text="dpi_scale='false'\nheight='40'"/>
-            </VBox>            
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" width="auto" height="auto"  bkimage="file='svg_test.svg' width='40' dpi_scale='true'"/>
                 <Label class="page_image2_case" text="用例编号（1.10）"/>
@@ -125,11 +125,11 @@
                 <Control class="page_image2_image" width="auto" height="auto"  bkimage="file='svg_test.svg' dest='5,6,45,46' dest_scale='true' src='2,2,48,48' dpi_scale='true'"/>
                 <Label class="page_image2_case" text="用例编号（1.24）"/>
                 <Label class="page_image2_text" text="dest_scale='true'\ndest='5,6,45,46' \nsrc='2,2,48,48' \ndpi_scale='true'"/>
-            </VBox>            
+            </VBox>
         </HFlowScrollBox>
-        
+
         <Line class="splitline_hor_level1" margin="4,4,4,4"/>
-        
+
         <Label class="page_image2_text" text="测试2：原图(宽48 高48)，各种使用场景的组合测试" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
         <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
             <!-- 分组1 -->
@@ -182,34 +182,34 @@
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' margin='0,10,0,0'"/>
                 <Label class="page_image2_case" text="用例编号（2.10）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nmargin='0,10,0,0' \n拉伸"/>
-            </VBox>    
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' margin='0,0,10,0'"/>
                 <Label class="page_image2_case" text="用例编号（2.11）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nmargin='0,0,10,0' \n拉伸"/>
-            </VBox>     
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' margin='0,0,0,10'"/>
                 <Label class="page_image2_case" text="用例编号（2.12）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nmargin='0,0,0,10' \n拉伸"/>
-            </VBox>                
+            </VBox>
 
             <!-- 分组2 -->
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' halign='left' valign='top'"/>
                 <Label class="page_image2_case" text="用例编号（2.13）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nhalign='left' \nvalign='top' \n无拉伸"/>
-            </VBox> 
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' halign='center' valign='center'"/>
                 <Label class="page_image2_case" text="用例编号（2.14）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nhalign='center' \nvalign='center \n无拉伸'"/>
-            </VBox> 
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' halign='right' valign='bottom'"/>
                 <Label class="page_image2_case" text="用例编号（2.15）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nhalign='right' \nvalign='bottom' \n无拉伸"/>
-            </VBox> 
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' dest='12,12,48,48'"/>
                 <Label class="page_image2_case" text="用例编号（2.16）"/>
@@ -219,7 +219,7 @@
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' dest='12,12,48,48' dest_scale='false'"/>
                 <Label class="page_image2_case" text="用例编号（2.17）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \ndest='12,12,48,48' \ndest_scale='false' \n拉伸"/>
-            </VBox> 
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' dest='24,24'"/>
                 <Label class="page_image2_case" text="用例编号（2.18）"/>
@@ -234,7 +234,7 @@
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' src='12,10,36,34' dpi_scale='false' dest='24,24' dest_scale='false'"/>
                 <Label class="page_image2_case" text="用例编号（2.20）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' dpi_scale='false' \ndest='24,24' \ndest_scale='false' \n无拉伸"/>
-            </VBox> 
+            </VBox>
 
             <!-- 分组3 -->
             <VBox width="auto" height="auto">
@@ -246,7 +246,7 @@
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' width='96' halign='center' valign='center'"/>
                 <Label class="page_image2_case" text="用例编号（2.22）"/>
                 <Label class="page_image2_text" text="width='96' \nhalign='center' \nvalign='center'"/>
-            </VBox>    
+            </VBox>
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" bkimage="file='svg_test.svg' height='64' halign='center' valign='center'"/>
                 <Label class="page_image2_case" text="用例编号（2.23）"/>
@@ -293,14 +293,14 @@
                 <Label class="page_image2_text" text="width='1000%' \nheight='800%'" text_align="center,vcenter" />
             </VBox>
 
-            <!-- 分组4 -->           
+            <!-- 分组4 -->
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34'"/>
                 <Label class="page_image2_case" text="用例编号（2.32）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \n拉伸" text_align="center,vcenter" />
             </VBox>
-            
-             <!-- 分组5 -->
+
+            <!-- 分组5 -->
             <VBox width="auto" height="auto">
                 <Control class="page_image2_image" width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true'"/>
                 <Label class="page_image2_case" text="用例编号（2.33）"/>
@@ -312,7 +312,7 @@
                 <Label class="page_image2_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nvalign='center'"/>
             </VBox>
             <VBox width="auto" height="auto">
-                <Control class="page_image2_image" width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' valign='bottom'"/>    
+                <Control class="page_image2_image" width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' valign='bottom'"/>
                 <Label class="page_image2_case" text="用例编号（2.35）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nvalign='bottom'"/>
             </VBox>
@@ -342,14 +342,14 @@
                 <Label class="page_image2_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nhalign='center'"/>
             </VBox>
             <VBox width="auto" height="auto">
-                <Control class="page_image2_image" width="40" height="10" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='right'"/>    
+                <Control class="page_image2_image" width="40" height="10" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='right'"/>
                 <Label class="page_image2_case" text="用例编号（2.41）"/>
                 <Label class="page_image2_text" text="src='12,10,36,34' \nadaptive_dest_rect='true' \nhalign='right'"/>
             </VBox>
         </HFlowScrollBox>
-        
+
         <Line class="splitline_hor_level1" margin="4,4,4,4"/>
-        
+
         <Label class="page_image2_text" text="测试3：九宫格绘制，其他使用场景的组合测试" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
         <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2">
             <VBox width="auto" height="auto">
@@ -401,17 +401,17 @@
                 <Control class="page_image2_image" bkimage="file='autumn.png' fade='64'"/>
                 <Label class="page_image2_case" text="用例编号（3.10）"/>
                 <Label class="page_image2_text" text="fade='64' \n透明度为64" text_align="center,vcenter" />
-            </VBox> 
+            </VBox>
         </HFlowScrollBox>
-        
+
         <Line class="splitline_hor_level1" margin="4,4,4,4"/>
-        
+
         <Label class="page_image2_text" text="测试4：九宫格绘制，中间部分拉伸和平铺的测试，只看中间部分即可" width="100%" margin="0,4,0,0"  font="system_bold_14"/>
         <HFlowScrollBox width="auto" height="auto" child_margin_x="2" child_margin_y="2" padding="2,2,2,2" bkcolor='bg_window_light'>
             <!-- 原图 48*48 中间部分宽度和高度都是20，边框大小为14-->
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -433,7 +433,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -455,7 +455,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' full_xtiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -477,7 +477,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -499,7 +499,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' ytiled='true' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -521,7 +521,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -543,7 +543,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='true'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -565,7 +565,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='true' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -587,7 +587,7 @@
             </VBox>
             <VBox width="auto" height="auto">
                 <HBox width="auto" height="auto">
-                    <VBox width="212" height="200">                
+                    <VBox width="212" height="200">
                         <HBox>
                             <Control class="page_image2_image" width="100%" height="100%" bkimage="file='svg_test.svg' dpi_scale='false' corner='14,14,14,14' xtiled='true' ytiled='true' full_xtiled='false' full_ytiled='false'"/>
                             <!-- 纵向分割条，用于调整左右区域大小 -->
@@ -637,7 +637,7 @@
                             <!-- 纵向分割条，用于调整左右区域大小 -->
                             <Split class="split_vertical"/>
                             <Control min_width="7" width="7"/>
-                        </HBox>    
+                        </HBox>
                     </VBox>
                     <VBox width="200" height="212">
                         <VBox>

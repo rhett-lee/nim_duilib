@@ -7,7 +7,7 @@
         <Control width="auto" height="auto" bkimage="file='icon_test.ico' width='140' icon_size='256'" valign="center" margin="8"/>
         <Control width="auto" height="auto" bkimage="file='autumn.png' width='140'" valign="center" margin="8"/>
         <Control width="auto" height="auto" bkimage="file='svg_test.svg' width='140'" valign="center" margin="8"/>
-        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>               
+        <Control width="auto" height="auto" bkimage="file='gif_test2.gif' width='140'" valign="center" margin="8"/>
     </HBox>
     <HBox width="auto" height="auto">
         <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_BMP" text_align="center" margin="8"/>
@@ -18,8 +18,8 @@
         <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_SVG" text_align="center" margin="8"/>
         <Label width="140" height="auto" text_id="STRID_RENDER_P1_FORMAT_GIF" text_align="center" margin="8"/>
     </HBox>
-    <HBox width="auto" height="auto">           
-        <Control width="150" height="auto" bkimage="file='gif_test.gif' width='90' playcount='-1' halign='center' valign='center'" valign="center" margin="8"/>            
+    <HBox width="auto" height="auto">
+        <Control width="150" height="auto" bkimage="file='gif_test.gif' width='90' playcount='-1' halign='center' valign='center'" valign="center" margin="8"/>
         <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150' playcount='-1'" valign="center" margin="8"/>
         <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150' playcount='-1'" valign="center" margin="8"/>
         <Control width="auto" height="auto" bkimage="file='lottie.json' width='150' playcount='-1'" valign="center" margin="8"/>
@@ -40,7 +40,7 @@
                     <Event type="mouse_leave" receiver="" apply_attribute="stop_image_animation={}" />
                 </Control>
                 <Label width="100%" height="20" text_id="STRID_RENDER_P1_HOVER_PLAY" text_align="center" margin="8"/>
-            </VBox>          
+            </VBox>
         </HBox>
     </HBox>
 </Window>

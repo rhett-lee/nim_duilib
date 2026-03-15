@@ -7,7 +7,7 @@
             <Label text="GridBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_3" valign="center"/>
             <Option class="option_1" group="gridbox_group_halign" text_id="STRID_LAYOUT_PAGE_4" height="28" valign="center" margin="8,0,0,0" selected="false">
                 <Event type="select" receiver="gridbox_test" apply_attribute="child_halign='left'" />
@@ -20,7 +20,7 @@
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_7" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_8" valign="center"/>
             <Option class="option_1" group="gridbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="gridbox_test" apply_attribute="child_valign='top'" />
@@ -37,7 +37,7 @@
     <HBox child_margin="2">
         <GridBox name="gridbox_test" padding="8,8,8,8" width="70%" height="100%"
                  grid_width="120" grid_height="90" rows="0" columns="0" scale_down="false"
-                 child_margin_x="1" child_margin_y="1" child_halign="center" child_valign="top" 
+                 child_margin_x="1" child_margin_y="1" child_halign="center" child_valign="top"
                  bkcolor="gray" border_size="1" border_color="red">
             <!-- 浮动控件 -->
             <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
@@ -67,7 +67,7 @@
             <Label class="page_gridbox" text="21 top" halign="right" valign="top"/>
             <Label class="page_gridbox" text="22 top" halign="right" valign="top"/>
         </GridBox>
-        
+
         <GridBox width="30%" height="100%" bkcolor="Cornsilk" border_size="1" border_color="red"
                  child_halign="center" child_valign="center"
                  grid_width="80" grid_height="60" rows="6" columns="4" child_margin_x="1" child_margin_y="1">

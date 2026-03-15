@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_WEBVIEW2_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
     <!--新建标签按钮：纯色按钮-->
-    <Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center" 
-                                       normal_text_color="text_default" 
-                                       disabled_text_color="text_disabled" 
-                                       normal_color="" 
-                                       hot_color="bg_tab_ctrl_item_close_hover" 
+    <Class name="tab_item_new_add_btn" font="system_regular_18" text_align="hcenter,vcenter" valign="center"
+                                       normal_text_color="text_default"
+                                       disabled_text_color="text_disabled"
+                                       normal_color=""
+                                       hot_color="bg_tab_ctrl_item_close_hover"
                                        pushed_color="bg_tab_ctrl_item_close_pressed"/>
     <Class name="tab_ctrl_left_line" bkcolor="border_tab_ctrl_item" width="1" height="22" halign="center" valign="center" mouse_enabled="false"/>
 
-    <Class name="btn_webview2_browser" text_align="hcenter,vcenter" 
-                              normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled" 
-                              normal_color="" hot_color="bg_btn_hover" 
+    <Class name="btn_webview2_browser" text_align="hcenter,vcenter"
+                              normal_text_color="text_btn_normal" disabled_text_color="text_btn_disabled"
+                              normal_color="" hot_color="bg_btn_hover"
                               pushed_color="bg_btn_pressed" disabled_color=""
                               border_size="${border_btn_size}"
                               normal_border_color="" hot_border_color="border_btn_hover"
                               pushed_border_color="border_btn_pressed" disabled_border_color=""/>
-                              
+
     <VBox bkcolor="bg_tab_ctrl_item_selected">
         <HBox name="title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <!-- 图标区域 -->
             <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
-            
+
             <!-- 竖线区域 -->
             <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
-            
+
             <!-- 顶部标签列表 -->
             <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
-            
+
             <!-- 顶部标签列表后面放一个新建标签按钮 -->
             <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text_id="STRID_WEBVIEW2_BROWSER_NEW_TAB" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
-            
+
             <!-- 标题栏区域 -->
             <HBox name="window_title_bar" width="auto" height="36" bkcolor="">
                 <Control mouse_enabled="false"/>
@@ -56,21 +56,21 @@
             </Box>
             <!-- 地址栏 -->
             <RichEdit class="simple simple_border prompt" name="edit_url" width="stretch" height="30" border_round="3,3"
-                                            text_padding="5,2,5,0" 
-                                            text_align="vcenter" 
-                                            valign="center" 
+                                            text_padding="5,2,5,0"
+                                            text_align="vcenter"
+                                            valign="center"
                                             font="system_regular_14"
-                                            prompt_textid="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS" 
-                                            default_context_menu="true" 
-                                            vscrollbar="false" 
-                                            auto_vscroll="false" 
-                                            hscrollbar="false" 
-                                            auto_hscroll="true"/>        
+                                            prompt_textid="STRID_WEBVIEW2_BROWSER_INPUT_ADDRESS"
+                                            default_context_menu="true"
+                                            vscrollbar="false"
+                                            auto_vscroll="false"
+                                            hscrollbar="false"
+                                            auto_hscroll="true"/>
         </HBox>
-        
+
         <!-- 一条分割线 -->
         <Control class="splitline_hor_level1" margin="0,0,0,0" />
-        
+
         <!-- 网页显示区域：浏览器盒子列表 -->
         <TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
     </VBox>

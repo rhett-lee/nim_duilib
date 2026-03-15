@@ -16,8 +16,5 @@
         <Label class="page_hscroll_box" text="7 center,bottom" halign="center" valign="bottom" width="500" height="280"/>
         <Label class="page_hscroll_box" text="8 right,top" halign="right" valign="top" width="500" height="280"/>
         <Label class="page_hscroll_box" text="9 right,center" halign="right" valign="center" width="500" height="4000"/>
-<!--
-        <Label text="float 301*301 center,center" float="true" halign="center" valign="center" single_line="false" width="301" height="301" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
--->
-   </HScrollBox>
+    </HScrollBox>
 </Window>

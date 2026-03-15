@@ -79,7 +79,7 @@
             <HBox margin="4,4,0,0">
                 <HBox width="80" bkcolor="dark_gray">
                     <Label height="stretch" width="stretch" text="文字对齐(横向：居中，纵向：两端对齐)\n多行文本测试，换行符\n长文字绘制测试:1+2=3, 8/4=2多列文本结束。" text_align="hcenter,vjustify" multi_line="true" vertical_text="true" replace_newline="true"/>
-                </HBox>                       
+                </HBox>
                 <HBox width="80" bkcolor="blue">
                     <Label height="stretch" width="stretch" text="字母数字等不旋转90度, 1234567890-。qwertyuiopasdfghjkl;lmnozxccvb.NBVCXZASDFGHJKLPOIUYTREWQ." single_line="false"  vertical_text="true" ascii_rotate_90="false" text_align="right,top"/>
                 </HBox>

@@ -7,7 +7,7 @@
         <Label text_id="STRID_LAYOUT_PAGE_23" height="28" valign="center"/>
     </HBox>
     <VTileBox child_halign="left" columns="0" item_size="0,0" scale_down="true" width="stretch" height="auto" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
-        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>       
+        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
         <Label class="page_tile_box" text="1 left,top" halign="left" valign="top"/>
         <Label class="page_tile_box" text="2 left,center" halign="left" valign="center"/>
         <Label class="page_tile_box" text="3 left,bottom" halign="left" valign="bottom"/>
@@ -25,7 +25,7 @@
         <Label text_id="STRID_LAYOUT_PAGE_24" height="28" valign="center"/>
     </HBox>
     <HTileBox child_valign="top" rows="0" item_size="200,0" scale_down="true" width="stretch" height="stretch" padding="10,10,10,10" bkcolor="gray" border_size="1" border_color="red">
-        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>    
+        <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
         <Label class="page_tile_box" text="1 left,top" halign="left" valign="top"/>
         <Label class="page_tile_box" text="2 left,center" halign="left" valign="center"/>
         <Label class="page_tile_box" text="3 left,bottom" halign="left" valign="bottom"/>

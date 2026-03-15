@@ -4,7 +4,7 @@
     <Class name="page_window_shadow_control"  width="180" height="100%"/>
     <Class name="page_window_shadow_label"    width="100%" height="20" text_align="hcenter" margin="8"/>
     <VBox>
-        <HBox width="auto" height="auto">           
+        <HBox width="auto" height="auto">
             <VBox class="page_window_shadow_vbox">
                 <Control class="page_window_shadow_control" bkimage="file='public/shadow/shadow_big.svg' width='180' valign='center' halign='center'"/>
                 <Label class="page_window_shadow_label" text="窗口阴影:big"/>

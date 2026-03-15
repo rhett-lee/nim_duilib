@@ -27,7 +27,7 @@
         <Box class="menu_split_box" margin="0,4,0,4">
             <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
         </Box>
-        
+
         <MenuItem class="menu_element" name="menu_item_list_big" width="220">
             <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
                 <Button name="btn_menu_item_list_big" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
@@ -49,7 +49,7 @@
             </HBox>
             <Label class="menu_text" text_id="STRID_TREEVIEW_LIST_VIEW_SMALL" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
-        
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box" margin="0,4,0,4">
             <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>

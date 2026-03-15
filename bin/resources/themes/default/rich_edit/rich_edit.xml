@@ -1,28 +1,28 @@
 <Window size="90%,80%" size_box="4,4,4,4" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" text_id="STRID_RICHEDIT_TEST_TITLE">
-    <!-- 该窗口下的Class定义 --> 
+    <!-- 该窗口下的Class定义 -->
     <Font id="btn_font_bold_14" name="Elephant" size="14" bold="true"/>
     <Font id="btn_font_italic_14" name="Elephant" size="14" bold="true" italic="true"/>
-    <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter" 
-                                      border_size="1" 
-                                      hot_border_color="border_btn_hover" 
-                                      pushed_border_color="border_btn_pressed" 
-                                      selected_normal_color="bg_btn_pressed" 
-                                      hot_color="border_btn_hover" 
-                                      selected_hot_color="border_btn_hover" 
-                                      pushed_color="bg_btn_pressed" 
+    <Class name="checkbox_font_class" font="system_regular_14" text_align="hcenter,vcenter"
+                                      border_size="1"
+                                      hot_border_color="border_btn_hover"
+                                      pushed_border_color="border_btn_pressed"
+                                      selected_normal_color="bg_btn_pressed"
+                                      hot_color="border_btn_hover"
+                                      selected_hot_color="border_btn_hover"
+                                      pushed_color="bg_btn_pressed"
                                       selected_pushed_color="bg_btn_pressed"/>
-    <Class name="btn_font_class" font="system_regular_14" text_align="hcenter,vcenter" 
-                                      border_size="1" 
-                                      hot_border_color="border_btn_hover" 
-                                      pushed_border_color="border_btn_pressed" 
-                                      hot_color="border_btn_hover" 
+    <Class name="btn_font_class" font="system_regular_14" text_align="hcenter,vcenter"
+                                      border_size="1"
+                                      hot_border_color="border_btn_hover"
+                                      pushed_border_color="border_btn_pressed"
+                                      hot_color="border_btn_hover"
                                       pushed_color="bg_btn_pressed" />
-    
-    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
+
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_dark">
-        <!-- 标题栏区域 -->  
+        <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->  
+            <!-- 标题栏：窗口左上角显示区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
                 <Label text_id="STRID_RICHEDIT_TEST_TITLE" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
@@ -40,9 +40,10 @@
                 </Box>
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
-        </HBox> <!-- 标题栏区域结束 --> 
-        
-        <!-- 显示区域 --> 
+        </HBox>
+        <!-- 标题栏区域结束 -->
+
+        <!-- 显示区域 -->
         <HBox>
             <!-- 左侧区域 -->
             <VScrollBox width="360" vscrollbar="true" minwidth="60" bkcolor="bg_window_light" border_size="1,1,1,1" border_color="border_window" border_round="4,4">
@@ -110,7 +111,7 @@
                         <RichEdit class="simple simple_border" text="Max ch 8" max_char="8" valign="center" text_align="vcenter" margin="4,6,4,4"/>
                     </HBox>
                 </GroupVBox>
-                
+
                 <GroupVBox margin="6,6,6,6" text_id="STRID_RICHEDIT_COMMON_FUNC" height="auto" corner_size="4,4">
                     <HBox height="36" margin="8,16,8,0">
                         <Label text_id="STRID_RICHEDIT_SPIN_FUNC" valign="center"/>
@@ -126,7 +127,7 @@
                         <RichEdit class="simple simple_border rich_edit_show_password_btn" margin="4,6,4,4"/>
                     </HBox>
                 </GroupVBox>
-                
+
                 <GroupVBox margin="6,6,6,6" text_id="STRID_RICHEDIT_SCROLLBAR_FUNC" height="auto" corner_size="4,4">
                     <HBox height="48" margin="8,16,8,0">
                         <Label text_id="STRID_RICHEDIT_HORIZONTAL_SCROLLBAR" valign="center"/>
@@ -139,9 +140,9 @@
                     <HBox height="48" margin="8,0,8,8">
                         <Label text_id="STRID_RICHEDIT_HORIZONTAL_VERTICAL_SCROLLBAR" valign="center"/>
                         <RichEdit class="simple_border" text="0123456789abcdefghigklmn0123456789abcdefghigklmn0123456789abcdefghigklmn0123456789abcdefghigklmn" multi_line="true" want_return="true" word_wrap="false" vscrollbar="true" hscrollbar="true" margin="4,6,4,4"/>
-                    </HBox> 
+                    </HBox>
                 </GroupVBox>
-                
+
             </VScrollBox>
             <!-- 纵向分割条，用于调整左右区域大小 -->
             <Split class="split_vertical"/>
@@ -170,8 +171,8 @@
                         <Button class="btn_global" name="btn_find_text" width="100" height="28" text_id="STRID_RICHEDIT_FIND_TEXT" borderround="2,2" valign="center" margin="4,0,4,0"/>
                         <Button class="btn_global" name="btn_find_next" width="100" height="28" text_id="STRID_RICHEDIT_FIND_NEXT_TEXT" borderround="2,2" valign="center" margin="4,0,4,0"/>
                         <Button class="btn_global" name="btn_replace_text" width="100" height="28" text_id="STRID_RICHEDIT_REPLACE_TEXT" borderround="2,2" valign="center" margin="4,0,4,0"/>
-                   </HBox>
-                   <HBox height="auto" margin="0,2,2,0">
+                    </HBox>
+                    <HBox height="auto" margin="0,2,2,0">
                         <Label text_id="STRID_RICHEDIT_FONT" valign="center" margin="8,0,8,0"/>
                         <Button class="btn_global" name="set_font" width="100" height="28" text_id="STRID_RICHEDIT_SET_FONT" borderround="2,2" valign="center" margin="4,0,4,2"/>
                         <Combo class="combo" name="combo_font_name" combo_icon_class="" combo_type="drop_down" dropbox_size="0,300" height="28" width="160" tooltip_text_id="STRID_RICHEDIT_SELECT_FONT" margin="2,0,2,2"/>
@@ -184,16 +185,16 @@
                         <Button class="btn_font_class" name="btn_font_size_decrease" width="32" height="26" text="A-" font="btn_font_bold_14" valign="center" margin="1,1,1,3" tooltip_text_id="STRID_RICHEDIT_DECREASE_FONT_SIZE"/>
                         <ComboButton class="combo_button" name="color_combo_button" height="28" width="48" dropbox_size="240,300" left_button_top_label_text="A" left_button_bottom_label_bkcolor="skyblue"/>
                         <Label text_id="STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS" font="system_regular_12" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_FORMAT_TIPS_DETAIL"/>
-                   </HBox>
-                   <HBox height="auto" margin="0,2,2,0">
+                    </HBox>
+                    <HBox height="auto" margin="0,2,2,0">
                         <Label text_id="STRID_RICHEDIT_ZOOM" valign="center" margin="8,0,8,0"/>
                         <Label text_id="STRID_RICHEDIT_CURRENT_ZOOM_RATIO" valign="center"/>
                         <Label name="lavel_zoom_value" text_id="STRID_RICHEDIT_ZOOM_100_PERCENT" font="system_bold_14" valign="center" margin="0,0,12,0"/>
                         <Button class="btn_font_class" name="btn_zoom_in" width="64" height="26" text_id="STRID_RICHEDIT_ZOOM_IN" font="system_regular_14" valign="center" margin="1,1,1,3" tooltip_text_id="STRID_RICHEDIT_INCREASE_FONT_SIZE"/>
                         <Button class="btn_font_class" name="btn_zoom_out" width="64" height="26" text_id="STRID_RICHEDIT_ZOOM_OUT" font="system_regular_14" valign="center" margin="1,1,1,3" tooltip_text_id="STRID_RICHEDIT_DECREASE_FONT_SIZE"/>
                         <Button class="btn_font_class" name="btn_zoom_off" width="120" height="26" text_id="STRID_RICHEDIT_RESET_ZOOM" font="system_regular_14" valign="center" margin="1,1,1,3" tooltip_text_id="STRID_RICHEDIT_RESET_FONT_SIZE"/>
-                   </HBox>
-                   <HBox height="auto" margin="0,2,2,2">
+                    </HBox>
+                    <HBox height="auto" margin="0,2,2,2">
                         <Label text_id="STRID_RICHEDIT_OTHER" valign="center" margin="8,0,8,0"/>
                         <CheckBox class="checkbox_1" name="btn_word_wrap" text_id="STRID_RICHEDIT_AUTO_WRAP" margin="4,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_AUTO_WRAP_TIPS"/>
                         <CheckBox class="checkbox_1" name="btn_rich_text" text_id="STRID_RICHEDIT_RICH_TEXT_MODE" margin="12,0,0,0" selected="true" tooltip_text_id="STRID_RICHEDIT_RICH_TEXT_MODE_TIPS"/>
@@ -217,7 +218,7 @@
                             <Event type="select" receiver="rich_edit" apply_attribute="row_spacing_mul='3.0'" />
                         </Option>
                         <Label name="row_spacing_tips" text_id="STRID_RICHEDIT_LINE_SPACING_RICH_TEXT_ONLY" valign="center" margin="4,0,0,0"/>
-                   </HBox>
+                    </HBox>
                 </VBox>
                 <!-- 横向分割条，用于调整上下区域大小 -->
                 <Split class="split_horizontal"/>

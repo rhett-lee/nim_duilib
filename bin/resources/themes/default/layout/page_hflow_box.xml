@@ -6,7 +6,7 @@
             <Label text="HFlowBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_3" valign="center"/>
             <Option class="option_1" group="hflowbox_group_halign" text_id="STRID_LAYOUT_PAGE_4" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="hflowbox_test" apply_attribute="child_halign='left'" />
@@ -19,7 +19,7 @@
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_19" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_8" valign="center"/>
             <Option class="option_1" group="hflowbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="hflowbox_test" apply_attribute="child_valign='top'" />
@@ -34,11 +34,11 @@
         </HBox>
     </VBox>
     <VBox>
-        <HFlowBox name="hflowbox_test" child_halign="left" child_valign="top" bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" height="100%">           
+        <HFlowBox name="hflowbox_test" child_halign="left" child_valign="top" bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" height="100%">
             <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
             <Label text="minwidth/minheight: 200*200" float="true" text_align="top" width="100" height="100" minwidth="200" minheight="200" margin="64,60,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
             <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,70,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
- 
+
             <Label class="page_hflowbox" text="1 top" halign="left" valign="top" minwidth="300" maxheight="60"/>
             <Label class="page_hflowbox" text="2 center" halign="left" valign="center"/>
             <Label class="page_hflowbox" text="3 bottom" halign="left" valign="bottom" height="40"/>

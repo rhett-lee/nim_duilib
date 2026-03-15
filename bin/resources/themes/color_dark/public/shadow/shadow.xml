@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-  <Box bkcolor="bg_window_dark">
-  </Box>
+    <Box bkcolor="bg_window_dark">
+    </Box>
 </Window>

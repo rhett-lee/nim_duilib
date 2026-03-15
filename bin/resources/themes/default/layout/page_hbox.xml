@@ -6,7 +6,7 @@
             <Label text="HBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_14" valign="center"/>
             <Option class="option_1" group="hbox_group_halign" text_id="STRID_LAYOUT_PAGE_4" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="hbox_test" apply_attribute="child_halign='left'" />
@@ -19,7 +19,7 @@
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_15" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_16" valign="center"/>
         </HBox>
         <Label text_id="STRID_LAYOUT_PAGE_17" valign="center"/>
@@ -32,7 +32,7 @@
             <LabelBox text_id="STRID_LAYOUT_PAGE_18" float="true" single_line="false" width="200" height="200" margin="800,50,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
                 <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
             </LabelBox>
-            
+
             <Label class="page_hbox" text="1 left,top minwidth:200" multi_line="true" halign="left" valign="top" max_height="44"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center"/>
             <Label class="page_hbox" text="3 left,bottom 50%" halign="left" valign="bottom" height="50%" width="150"/>
@@ -43,22 +43,22 @@
             <Label class="page_hbox" text="8 right,center" halign="right" valign="center"/>
             <Label class="page_hbox" text="9 right,bottom" halign="right" valign="bottom"/>
         </HBox>
-        <HBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">           
+        <HBox bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">
             <Label class="page_hbox" text="1 left,top minwidth:200" halign="left" valign="top" max_height="44"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center" width="80"/>
-            <Label class="page_hbox" text="3 left,bottom height:70%" halign="left" valign="bottom" height="70%"/>           
+            <Label class="page_hbox" text="3 left,bottom height:70%" halign="left" valign="bottom" height="70%"/>
             <Label class="page_hbox" text="4 right,bottom 20%" halign="right" valign="bottom" width="20%" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="5 right,top" halign="right" valign="top" width="80"/>
             <Label class="page_hbox" text="6 right,bottom 30%" halign="right" valign="bottom" width="30%" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="7 right,center" halign="right" valign="center" width="80"/>
             <Label class="page_hbox" text="8 right,bottom 40%" halign="right" valign="bottom" width="40%" bkcolor="Cornsilk"/>
         </HBox>
-        <HBox bkcolor="gray" child_margin_x="8" border_size="1" border_color="red" margin="0,4,0,0" height="10%">           
+        <HBox bkcolor="gray" child_margin_x="8" border_size="1" border_color="red" margin="0,4,0,0" height="10%">
             <Label class="page_hbox" text="1 left,top" halign="left" valign="top" width="stretch" height="100%" margin="0,6,0,6"/>
             <Label class="page_hbox" text="2 left,center" halign="left" valign="center" width="stretch" height="100%" margin="0,6,0,6"/>
             <Label class="page_hbox" text="3 left,bottom" halign="left" valign="bottom" width="stretch" height="100%" margin="0,6,0,6"/>
         </HBox>
-        <HBox child_margin_x="2"  bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">           
+        <HBox child_margin_x="2"  bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8" margin="0,4,0,0" height="15%">
             <Label class="page_hbox" text="1 left,top minwidth:100"    halign="left"   valign="top"    width="100%" height="70" min_width="100" max_height="60" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="2 left,center maxwidth:100" halign="left"   valign="center" width="100%" height="50" max_width="100" bkcolor="Cornsilk"/>
             <Label class="page_hbox" text="3 left,bottom fixed"        halign="left"   valign="bottom" width="140"  height="40" />

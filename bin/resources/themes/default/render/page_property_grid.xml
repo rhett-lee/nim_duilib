@@ -17,7 +17,7 @@
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                 </TabCtrl>
-            </HBox>            
+            </HBox>
             <HBox>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
                     <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
@@ -40,7 +40,7 @@
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                     </TabCtrl>
-                    <Control height="300"/>                    
+                    <Control height="300"/>
                     <TabCtrl class="tab_ctrl" margin="10,10,10,10">
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
                         <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>

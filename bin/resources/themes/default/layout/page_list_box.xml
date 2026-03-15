@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_list_box" margin="4,4,4,4" padding="0,4,0,4" bkcolor="bg_window_light" vscrollbar="true" hscrollbar="true" scroll_select="false" border_size="1" border_color="red"/>
-    <Class name="page_list_box_item" margin="8,2,8,2" 
-                text_padding="20,6,10,6" 
-                hot_color="bg_list_item_hover" 
-                pushed_color="bg_list_item_selected" 
-                selected_normal_color="bg_list_item_selected" 
-                fade_hot="false" width="auto" height="auto" font="system_regular_14" 
-                normal_image="file='public/CheckBox/checkbox-outline-unchecked.svg' valign='center'" 
-                disabled_image="file='public/CheckBox/checkbox-outline-unchecked.svg' valign='center' fade='80'" 
-                selected_normal_image="file='public/CheckBox/checkbox-outline-checked.svg' valign='center'" 
+    <Class name="page_list_box_item" margin="8,2,8,2"
+                text_padding="20,6,10,6"
+                hot_color="bg_list_item_hover"
+                pushed_color="bg_list_item_selected"
+                selected_normal_color="bg_list_item_selected"
+                fade_hot="false" width="auto" height="auto" font="system_regular_14"
+                normal_image="file='public/CheckBox/checkbox-outline-unchecked.svg' valign='center'"
+                disabled_image="file='public/CheckBox/checkbox-outline-unchecked.svg' valign='center' fade='80'"
+                selected_normal_image="file='public/CheckBox/checkbox-outline-checked.svg' valign='center'"
                 selected_disabled_image="file='public/CheckBox/checkbox-outline-checked.svg' valign='center' fade='80'"/>
-   
+
     <VBox height="auto">
         <HBox width="auto" height="auto">
             <Label text=" HListBox " height="28" valign="center"/>
@@ -34,15 +34,15 @@
             <ListBoxItem class="page_list_box_item" text="HListBox14" text_align="left,vcenter" halign="left" valign="center"/>
             <ListBoxItem class="page_list_box_item" text="HListBox15" text_align="left,vcenter" halign="left" valign="center"/>
         </HListBox>
-    </VBox>    
- 
+    </VBox>
+
     <HBox width="auto">
 
         <VBox width="auto" height="240">
-        <HBox width="auto" height="auto">
-            <Label text=" VListBox " height="28" valign="center"/>
-            <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
-        </HBox>
+            <HBox width="auto" height="auto">
+                <Label text=" VListBox " height="28" valign="center"/>
+                <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+            </HBox>
             <VListBox class="page_list_box" width="auto" height="200">
                 <ListBoxItem class="page_list_box_item" text="VListBox01_Test" text_align="left,vcenter" halign="left" valign="center"/>
                 <ListBoxItem class="page_list_box_item" text="VListBox02" text_align="left,vcenter" halign="left" valign="center"/>

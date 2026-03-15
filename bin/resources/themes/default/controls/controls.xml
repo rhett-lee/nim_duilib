@@ -2,11 +2,11 @@
 <Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" size_box="2,2,2,2" min_size="400,320" icon="public/caption/logo.ico">
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
-    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_dark">
-        <!-- 标题栏区域 -->  
+        <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->  
+            <!-- 标题栏：窗口左上角显示区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
                 <Label text="Controls" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
@@ -24,8 +24,9 @@
                 </Box>
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
-        </HBox> <!-- 标题栏区域结束 --> 
-        
+        </HBox>
+        <!-- 标题栏区域结束 -->
+
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
@@ -91,13 +92,13 @@
                 <VBox width="300" margin="0,0,10">
                     <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::Combo"/>
                     <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::FilterCombo"/>
-                    <RichEdit class="simple prompt simple_border_bottom" height="30" margin="0,3" font="system_regular_14" 
+                    <RichEdit class="simple prompt simple_border_bottom" height="30" margin="0,3" font="system_regular_14"
                               text_align="vcenter" text_padding="8,4,8,4" default_context_menu="true"
                               prompt_text_id="STRID_CONTROLS_RICHEDIT_SINGLE_LINE"/>
                     <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltip_text="nim_comp::CheckCombo"/>
                     <Button class="btn_global" text_id="STRID_CONTROLS_FULLSCREEN_RICHEDIT" name="rich_edit_fullscreen_btn" width="160" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
-                
+
                 <!-- 一些基本控件 -->
                 <VBox height="240">
                     <HBox>
@@ -133,7 +134,7 @@
                         </VBox>
                     </HBox>
                     <!-- IPAddress / RichEdit With Spin -->
-                    <HBox>                        
+                    <HBox>
                         <VBox margin="10,0,0,0">
                             <HBox child_margin="10">
                                 <Label text_id="STRID_CONTROLS_IP_ADDRESS" height="28" text_align="vcenter"/>
@@ -189,22 +190,22 @@
                     </HBox>
                 </VBox>
             </HBox>
-            
+
             <!-- 分割线 -->
             <Control class="splitline_hor_level1" margin="0,8,0,4"/>
             <!-- RichEdit -->
             <HBox>
                 <RichEdit class="prompt" name="edit" bkcolor="bg_window_light" width="stretch" height="stretch"
                             hide_selection="false" multi_line="true" auto_vscroll="true"
-                            vscrollbar="true" hscrollbar="true" 
-                            want_return_msg="true" rich="false" 
+                            vscrollbar="true" hscrollbar="true"
+                            want_return_msg="true" rich="false"
                             enable_drag_drop="true" enable_drop_file="true" drop_file_types=".txt;.md"/>
                 <RichEdit class="prompt" name="edit2" bkcolor="bg_window_light" width="stretch" height="stretch"
                             hide_selection="false" multi_line="true" auto_vscroll="true"
                             vscrollbar="true" hscrollbar="true" scrollbar_float="true"
                             vscrollbar_class="vscrollbar2" hscrollbar_class="hscrollbar2"
                             vscrollbar_style="auto_hide_scroll='false'" hscrollbar_style="auto_hide_scroll='false'"
-                            want_return_msg="true" rich="false" 
+                            want_return_msg="true" rich="false"
                             margin="4,0,0,0"
                             enable_drag_drop="true" enable_drop_file="false"/>
             </HBox>

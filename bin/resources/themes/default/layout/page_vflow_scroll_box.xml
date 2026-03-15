@@ -6,7 +6,7 @@
             <Label text="VFlowScrollBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_3" valign="center"/>
             <Option class="option_1" group="vflow_scrollbox_group_halign" text_id="STRID_LAYOUT_PAGE_4" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_halign='left'" />
@@ -19,7 +19,7 @@
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_21" valign="center"/>
         </HBox>
-        <HBox height="28">            
+        <HBox height="28">
             <Label text_id="STRID_LAYOUT_PAGE_8" valign="center"/>
             <Option class="option_1" group="vflow_scrollbox_group_valign" text_id="STRID_LAYOUT_PAGE_9" height="28" valign="center" margin="8,0,0,0" selected="true">
                 <Event type="select" receiver="vflow_scrollbox_test" apply_attribute="child_valign='top'" />
@@ -34,7 +34,7 @@
         </HBox>
     </VBox>
     <VBox>
-        <VFlowScrollBox name="vflow_scrollbox_test" vscrollbar="true" hscrollbar="true" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" margin="8,8,8,8" height="70%">           
+        <VFlowScrollBox name="vflow_scrollbox_test" vscrollbar="true" hscrollbar="true" child_halign="left" child_valign="top" bkcolor="Cornsilk" border_size="1" border_color="red" padding="8,8,8,8" margin="8,8,8,8" height="70%">
             <Label class="page_vflow_scrollbox" text="1 left" halign="left" valign="top" minwidth="300" maxheight="60"/>
             <Label class="page_vflow_scrollbox" text="2 center" halign="center" valign="top"/>
             <Label class="page_vflow_scrollbox" text="3 right" halign="right" valign="top" height="40"/>

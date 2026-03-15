@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,85%" min_size="300,200" 
-        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
-        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
+<Window size="75%,85%" min_size="300,200"
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true"
         alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <VBox bkcolor="bg_window_dark" visible="true">    
-        <!-- 标题栏区域 -->  
+    <VBox bkcolor="bg_window_dark" visible="true">
+        <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->  
+            <!-- 标题栏：窗口左上角显示区域 -->
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Label text_id="STRID_XMLPREVIEW_TITLE" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
-            <Control mouse_enabled="false"/>            
+            <Control mouse_enabled="false"/>
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
@@ -23,14 +23,15 @@
                 </Box>
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
-        </HBox> <!-- 标题栏区域结束 --> 
-        
+        </HBox>
+        <!-- 标题栏区域结束 -->
+
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <VBox padding="10,10,10,10" bkcolor="bg_window_light">
             <VBox height="auto">
                 <HBox height="auto">
                     <Label text_id="STRID_XMLPREVIEW_XML_PATH" valign="center"/>
-                    <Label name="xml_file_path" text="" valign="center" width="100%" path_ellipsis="true" single_line="true" auto_tooltip="true"/>                    
+                    <Label name="xml_file_path" text="" valign="center" width="100%" path_ellipsis="true" single_line="true" auto_tooltip="true"/>
                 </HBox>
                 <HBox height="auto">
                     <Label text_id="STRID_XMLPREVIEW_XML_LOAD_RESULT" valign="center"/>
@@ -48,7 +49,7 @@
             </VBox>
             <XmlBox name="xml_box_test" bkcolor="bg_window_light" border_color="blue" border_size="1" border_dash_style="dash" margin="4,4,4,4"
                     mouse_child="true"
-                    res_path="controls" 
+                    res_path="controls"
                     xml_file_path="controls.xml"/>
         </VBox>
     </VBox>

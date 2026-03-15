@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,75%" min_size="240,100" 
-        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
-        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true" 
+<Window size="75%,75%" min_size="240,100"
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_attached="true" shadow_snap="true" layered_window="true"
         alpha="255" size_box="4,4,4,4" icon="public/caption/logo.ico">
-    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_dark">
-        <!-- 标题栏区域 -->  
+        <!-- 标题栏区域 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
-            <!-- 标题栏：窗口左上角显示区域 -->  
+            <!-- 标题栏：窗口左上角显示区域 -->
             <Control mouse_enabled="false"/>
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
@@ -21,12 +21,13 @@
                 </Box>
                 <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
             </HBox>
-        </HBox> <!-- 标题栏区域结束 --> 
-        
+        </HBox>
+        <!-- 标题栏区域结束 -->
+
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
         <Box bkcolor="bg_window_light">
             <VBox margin="0,0,0,0" valign="center" halign="center">
-                <Label name="tooltip" text_id="STRID_BASIC_TEXT" height="100%" width="100%" text_align="hcenter,vcenter"/>        
+                <Label name="tooltip" text_id="STRID_BASIC_TEXT" height="100%" width="100%" text_align="hcenter,vcenter"/>
             </VBox>
         </Box>
     </VBox>

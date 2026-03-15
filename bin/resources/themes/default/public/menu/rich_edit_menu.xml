@@ -30,12 +30,12 @@
                 <Label class="menu_text_shortcut my_menu_shortcut" text="Del"/>
             </HBox>
         </MenuItem>
-           
+
         <!-- 菜单项之间的分割线 -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" />
         </Box>
-        
+
         <MenuItem class="menu_element my_menu_element" name="edit_menu_sel_all">
             <HBox class="my_menu_text_hbox">
                 <Label class="menu_text my_menu_text" text_id="STRID_MENU_TEXT_SEL_ALL"/>
@@ -55,6 +55,6 @@
                 <Label class="menu_text_shortcut my_menu_shortcut" text="Ctrl+Y"/>
             </HBox>
         </MenuItem>
-        
-  </VListBox>
+
+    </VListBox>
 </Window>
