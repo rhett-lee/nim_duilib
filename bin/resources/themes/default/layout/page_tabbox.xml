@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Label text="TabBox测试: TabBox中包含了一个内嵌的TabBox控件"/>
+    <HBox width="auto" height="auto">
+        <Label text="TabBox " height="28" valign="center"/>
+        <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+        <Label text=": TabBox中包含了一个内嵌的TabBox控件" height="28" valign="center"/>
+    </HBox>
     <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab_test" selected_id="0">
         <TabCtrlItem class="tab_ctrl_item" title="标签1" close_button_class="" tab_box_item_index="0"/>
         <TabCtrlItem class="tab_ctrl_item" title="标签2" close_button_class="" tab_box_item_index="1"/>

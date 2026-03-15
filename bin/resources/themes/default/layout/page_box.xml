@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_box" margin="6,6,6,6" width="200" height="100" bkcolor="Sienna" border_size="1" border_color="green"/>
-    <Label text="Box容器布局测试：容器本身不支持设置对齐方式（child_halign/child_valign），子控件的对齐方式需要在自身设置（halign/valign）"/>
+    <HBox width="auto" height="auto">
+        <Label text="Box "/>
+        <Label text_id="STRID_LAYOUT_TEST_TITLE"/>
+        <Label text="：容器本身不支持设置对齐方式"/>
+        <Label text="(child_halign/child_valign),"/>
+        <Label text="子控件的对齐方式需要在自身设置"/>
+        <Label text="(halign/valign)"/>
+    </HBox>
     <Box bkcolor="gray" border_size="1" border_color="red" padding="8,8,8,8">
         <Control float="true" width="stretch" height="stretch" border_size="1" border_color="green" bkcolor="Cornsilk"/>
         <Label text="minwidth/minheight: 300*300" float="true" text_align="top" width="200" height="100" minwidth="300" minheight="300" margin="64,160,6,6" border_size="1" border_color="green" bkcolor="Olive"/>
         <Label text="maxwidth/maxheight: 80*80" float="true" single_line="false" width="200" height="100" maxwidth="80" maxheight="80" margin="600,160,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
-        <LabelBox text="布局测试" float="true" single_line="false" width="200" height="200" margin="800,160,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
+        <LabelBox text="Layout Test" float="true" single_line="false" width="200" height="200" margin="800,160,6,6" padding="6,6,6,6" border_size="1" border_color="green" bkcolor="LemonChiffon">
             <Control margin="6,6,6,6" width="stretch" height="stretch" border_size="2" border_color="red" bkcolor="Sienna"/>
         </LabelBox>
         

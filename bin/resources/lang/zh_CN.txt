@@ -582,3 +582,5 @@ STRID_RENDER_P1_ANI_PAG = PAG格式动画
 # 交互提示文本
 STRID_RENDER_P1_HOVER_PLAY = 鼠标在图片上时播放动画
 
+# examples/layout
+STRID_LAYOUT_TEST_TITLE = 容器布局测试

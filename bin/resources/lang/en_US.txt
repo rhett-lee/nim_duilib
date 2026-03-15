@@ -579,3 +579,6 @@ STRID_RENDER_P1_ANI_PAG = PAG Animation
 # Interactive prompt text
 STRID_RENDER_P1_HOVER_PLAY = Play on mouse hover
 
+# examples/layout
+STRID_LAYOUT_TEST_TITLE = Container Layout Test
+

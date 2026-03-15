@@ -2,7 +2,10 @@
 <Window>
     <Class name="page_grid_scrollbox" multi_line="true" margin="0,0,0,0" width="90%" height="90%" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
-        <Label text="GridScrollBox容器布局测试" height="28" valign="center"/>
+        <HBox width="auto" height="auto">
+            <Label text="GridScrollBox " height="28" valign="center"/>
+            <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+        </HBox>
         <HBox height="28">            
             <Label text="容器内容水平对齐方式：" valign="center"/>
             <Option class="option_1" group="grid_scrollbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="false">

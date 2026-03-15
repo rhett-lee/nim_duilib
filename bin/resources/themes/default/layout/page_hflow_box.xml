@@ -2,7 +2,10 @@
 <Window>
     <Class name="page_hflowbox" multi_line="true" margin="6,6,6,6" width="100" height="60" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="84" padding="6,0,6,0" >
-        <Label text="HFlowBox容器布局测试" height="28" valign="center"/>
+        <HBox width="auto" height="auto">
+            <Label text="HFlowBox " height="28" valign="center"/>
+            <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+        </HBox>
         <HBox height="28">            
             <Label text="容器内容水平对齐方式：" valign="center"/>
             <Option class="option_1" group="hflowbox_group_halign" text="靠左对齐(left)" height="28" valign="center" margin="8,0,0,0" selected="true">

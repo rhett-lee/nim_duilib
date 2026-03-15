@@ -2,7 +2,10 @@
 <Window>
     <Class name="page_vbox" margin="6,6,6,6" width="auto" height="40" multi_line="true" bkcolor="Sienna" border_size="1" border_color="green"/>
     <VBox height="auto" padding="6,0,6,6" >
-        <Label text="VBox容器布局测试" height="28" valign="center"/>
+        <HBox width="auto" height="auto">
+            <Label text="VBox " height="28" valign="center"/>
+            <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+        </HBox>
         <HBox height="28">            
             <Label text="容器内容垂直对齐方式（child_valign）: " valign="center"/>
             <Option class="option_1" group="vbox_group_valign" text="靠上对齐(top)" height="28" valign="center" margin="8,0,0,0" selected="true">
