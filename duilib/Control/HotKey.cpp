@@ -204,7 +204,7 @@ public:
             return m_defaultText.c_str();
         }
         else if (!m_defaultTextId.empty()) {
-            return GlobalManager::Instance().Lang().GetStringViaID(m_defaultTextId.c_str());
+            return GlobalManager::Instance().Lang().GetStringByID(m_defaultTextId.c_str());
         }
         return DString();
     }

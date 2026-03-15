@@ -1087,7 +1087,7 @@ void RichEdit::SetTextNoEvent(const DString& strText)
 
 void RichEdit::SetTextId(const DString& strTextId)
 {
-    DString strText = GlobalManager::Instance().Lang().GetStringViaID(strTextId);
+    DString strText = GlobalManager::Instance().Lang().GetStringByID(strTextId);
     SetText(strText);
 }
 
@@ -2304,7 +2304,7 @@ DString RichEdit::GetPromptText() const
 {
     DString strText = m_sPromptText.c_str();
     if (strText.empty() && !m_sPromptTextId.empty()) {
-        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sPromptTextId.c_str());
+        strText = GlobalManager::Instance().Lang().GetStringByID(m_sPromptTextId.c_str());
     }
     return strText;
 }

@@ -452,7 +452,7 @@ void RichTextImpl::CheckParseText()
 {
     if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
         //多语言版：当语言发生变化时，更新文本内容
-        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        DoSetText(GlobalManager::Instance().Lang().GetStringByID(m_richTextId.c_str()));
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();
     }
 
@@ -695,7 +695,7 @@ bool RichTextImpl::SetText(const DString& richText, bool bRedraw)
 
 bool RichTextImpl::SetTextId(const DString& richTextId, bool bRedraw)
 {
-    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId), bRedraw);
+    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringByID(richTextId), bRedraw);
     m_richTextId = richTextId;
     if (!m_richTextId.empty()) {
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();

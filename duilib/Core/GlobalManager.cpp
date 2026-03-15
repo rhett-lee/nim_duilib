@@ -122,7 +122,7 @@ FilePath GlobalManager::GetResourceZipPath()
 
 DString GlobalManager::GetTextById(const DString& textId)
 {
-    return Instance().Lang().GetStringViaID(textId);
+    return Instance().Lang().GetStringByID(textId);
 }
 
 bool GlobalManager::Startup(const ResourceParam& resParam,
@@ -610,7 +610,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
                 ui::LangManager langManager;
                 if (langManager.LoadStringTable(filePath)) {
-                    displayName = langManager.GetStringViaID(languageNameID);
+                    displayName = langManager.GetStringByID(languageNameID);
                 }
             }
         }
@@ -633,7 +633,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 if (m_zipManager.GetZipData(filePath, fileData)) {
                     ui::LangManager langManager;
                     if (langManager.LoadStringTable(fileData)) {
-                        displayName = langManager.GetStringViaID(languageNameID);
+                        displayName = langManager.GetStringByID(languageNameID);
                     }
                 }
             }

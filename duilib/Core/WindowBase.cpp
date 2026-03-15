@@ -526,7 +526,7 @@ void WindowBase::SetTextId(const DString& strTextId)
 {
     ASSERT(IsWindow());
     m_textId = strTextId;
-    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId));  
+    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringByID(strTextId));  
 }
 
 const DString& WindowBase::GetTextId() const

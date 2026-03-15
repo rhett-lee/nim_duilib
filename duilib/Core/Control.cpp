@@ -1916,7 +1916,7 @@ DString Control::GetToolTipText() const
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
         strText = m_pOtherData->m_pTooltip->m_sToolTipText.c_str();
         if (strText.empty() && !m_pOtherData->m_pTooltip->m_sToolTipTextId.empty()) {
-            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
+            strText = GlobalManager::Instance().Lang().GetStringByID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
         }
     }
     return strText;

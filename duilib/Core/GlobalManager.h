@@ -56,7 +56,7 @@ public:
     static FilePath GetResourceZipPath();
 
     /** 根据语言文件的资源ID获取对应的实际文字（支持多国语言版）
-    *   该函数是对GlobalManager::Instance().Lang().GetStringViaID(const DString& textId)的二次封装，方便使用
+    *   该函数是对GlobalManager::Instance().Lang().GetStringByID(const DString& textId)的二次封装，方便使用
     */
     static DString GetTextById(const DString& textId);
 

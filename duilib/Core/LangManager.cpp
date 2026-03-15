@@ -113,7 +113,7 @@ bool LangManager::AnalyzeStringTable(const std::vector<DString>& list)
     return true;
 }
 
-DString LangManager::GetStringViaID(const DString& id)
+DString LangManager::GetStringByID(const DString& id)
 {
     DString text;
     if (id.empty()) {
@@ -121,7 +121,7 @@ DString LangManager::GetStringViaID(const DString& id)
     }
     auto it = m_stringTable.find(id);
     if (it == m_stringTable.end()) {
-        ASSERT(!"LangManager::GetStringViaID failed!");
+        ASSERT(!"LangManager::GetStringByID failed!");
         return text;
     }
     else {

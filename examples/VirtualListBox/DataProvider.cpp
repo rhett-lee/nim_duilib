@@ -121,7 +121,7 @@ void DataProvider::Refresh()
         delete [] task.sName;
     }
     m_vTasks.clear();
-    DString name = ui::GlobalManager::Instance().Lang().GetStringViaID(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
+    DString name = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_VIRTUALLISTBOX_TASK_NAME"));
     m_vTasks.reserve(nTotal);
     for (auto i=0; i < nTotal; i++)
     {

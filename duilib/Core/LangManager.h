@@ -39,7 +39,7 @@ public:
      * @param[in] id 指定字符串 ID
      * @return 返回 ID 对应的语言字符串
      */
-    DString GetStringViaID(const DString& id);
+    DString GetStringByID(const DString& id);
 
 private:
     /** 分析语言映射表内容

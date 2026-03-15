@@ -297,7 +297,7 @@ DString LabelImpl::GetText() const
 {
     DString strText = m_sText.c_str();
     if (strText.empty() && !m_sTextId.empty()) {
-        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId.c_str());
+        strText = GlobalManager::Instance().Lang().GetStringByID(m_sTextId.c_str());
     }
 
     if (IsReplaceNewline()) {
