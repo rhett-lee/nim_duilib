@@ -2,6 +2,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 namespace ui 
 {
@@ -16,6 +17,7 @@ LangManager::~LangManager()
 
 bool LangManager::LoadStringTable(const FilePath& strFilePath)
 {
+    PerformanceStat perfStat(_T("LangManager::LoadStringTable"));
     m_stringTable.clear();
     std::vector<uint8_t> fileData;
     FileUtil::ReadFileData(strFilePath, fileData);
