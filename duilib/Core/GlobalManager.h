@@ -427,6 +427,12 @@ private:
     */
     bool LoadGlobalResource(const ResourceParam& resParam);
 
+    /** 加载一个语言文件
+    * @param [in] languagePath 语言文件所在目录
+    * @param [in] languageFileName 语言文件名（不含路径）
+    */
+    bool LoadLanguageFile(const FilePath& languagePath, const DString& languageFileName);
+
     /** 从缓存中删除所有图片
      */
     void RemoveAllImages();

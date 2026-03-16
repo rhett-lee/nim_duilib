@@ -28,6 +28,7 @@
 #endif
 
 #include <filesystem>
+#include <unordered_set>
 
 namespace ui 
 {
@@ -252,7 +253,7 @@ void GlobalManager::Shutdown()
     m_fontManager.RemoveAllFontFiles();
     m_imageManager.RemoveAllImages();
     m_zipManager.CloseResZip();    
-    m_langManager.ClearStringTable();
+    m_langManager.ClearStringTable(false);
     m_windowManager.Clear();
     m_themeManager.Clear();
     
@@ -506,6 +507,34 @@ void GlobalManager::ClearThemeCache()
     m_fontManager.ClearFontCache();
 }
 
+/** 读取包含的语言文件列表
+*/
+static void ReadIncludeLanguageFiles(const LangManager& langManager, std::list<DString>& includeLangFileList)
+{
+    includeLangFileList.clear();
+    DString includeLangFiles;
+    const DString includeLangId = _T("INCLUDE_LANGUAGE_FILES");
+    if (langManager.HasStringByID(includeLangId)) {
+        includeLangFiles = langManager.GetStringByID(includeLangId);
+    }    
+    if (!includeLangFiles.empty()) {
+        includeLangFileList = StringUtil::Split(includeLangFiles, _T(";"));
+    }
+    for (DString& includeLangFileName : includeLangFileList) {
+        StringUtil::Trim(includeLangFileName);
+    }
+    //移除空的数据
+    auto iter = includeLangFileList.begin();
+    while (iter != includeLangFileList.end()) {
+        if (iter->empty()) {
+            iter = includeLangFileList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
 bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                                    const DString& languageFileName,
                                    bool bInvalidate)
@@ -515,38 +544,40 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
     if (languageFileName.empty()) {
         return false;
     }
-
+    PerformanceStat perfStat(_T("GlobalManager::ReloadLanguage"));
     FilePath newLanguagePath = GetLanguagePath();
     if (!languagePath.IsEmpty()) {
         newLanguagePath = languagePath;
         newLanguagePath.NormalizeDirectoryPath();
     }
 
-    //加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件
-    bool bReadOk = false;
-    if ( (newLanguagePath.IsEmpty() || !newLanguagePath.IsAbsolutePath()) &&
-         m_zipManager.IsUseZip() ) {
-        std::vector<unsigned char> fileData;
-        FilePath filePath = FilePathUtil::JoinFilePath(newLanguagePath, FilePath(languageFileName));
-        if (m_zipManager.GetZipData(filePath, fileData)) {
-            bReadOk = m_langManager.LoadStringTable(fileData);
+    //加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件    
+    m_langManager.ClearStringTable(true);//需要备份，切换失败后应该保证能用
+    bool bReadOk = LoadLanguageFile(newLanguagePath, languageFileName);
+    if (bReadOk) {
+        //加载包含的语言文件
+        std::list<DString> includeLangFileList;
+        ReadIncludeLanguageFiles(m_langManager, includeLangFileList);
+        for (DString& includeLangFileName : includeLangFileList) {
+            if (!LoadLanguageFile(newLanguagePath, includeLangFileName)) {
+                ASSERT(!"LoadLanguageFile failed!");
+                bReadOk = false;
+                break;
+            }
         }
-        else {
-            ASSERT(!"GetZipData failed!");
-        }
-    }
-    else {
-        FilePath filePath = FilePathUtil::JoinFilePath(newLanguagePath, FilePath(languageFileName));
-        bReadOk = m_langManager.LoadStringTable(filePath);
     }
 
     if (bReadOk) {
-        //保存语言文件路径
+        //加载成功，保存语言文件路径
         if (!newLanguagePath.IsEmpty() && (newLanguagePath != GetLanguagePath())) {
             SetLanguagePath(newLanguagePath);
         }
         //保存语言文件名
         m_languageFileName = languageFileName;
+    }
+    else {
+        //失败后，恢复原来的语言文件
+        m_langManager.RestoreStringTable();
     }
 
     ASSERT(bReadOk && "ReloadLanguage");
@@ -578,12 +609,54 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
     return bReadOk;
 }
 
+bool GlobalManager::LoadLanguageFile(const FilePath& languagePath, const DString& languageFileName)
+{
+    if (languageFileName.empty()) {
+        return false;
+    }
+    bool bLoadOk = false;
+    if ((languagePath.IsEmpty() || !languagePath.IsAbsolutePath()) && m_zipManager.IsUseZip()) {
+        //使用Zip压缩包的情况
+        std::vector<uint8_t> fileData;
+        FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(languageFileName));
+        if (m_zipManager.GetZipData(filePath, fileData)) {
+            fileData.push_back('\0');
+            bLoadOk = m_langManager.LoadStringTable(fileData);
+        }
+        else {
+            ASSERT(!"GetZipData failed!");
+        }
+    }
+    else {
+        //使用本地资源的情况
+        FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(languageFileName));
+        bLoadOk = m_langManager.LoadStringTable(filePath);
+    }
+    return bLoadOk;
+}
+
+/** 对语言文件名排序(将主语言文件放在最前面)
+*/
+void static SortLanguageFileNameList(std::vector<std::pair<DString, DString>>& languageList)
+{
+    if (!languageList.empty()) {
+        std::sort(languageList.begin(), languageList.end(), [](const std::pair<DString, DString>& l,
+            const std::pair<DString, DString>& r) {
+                return l.first.size() < r.first.size();
+            });
+    }
+}
+
 bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& languageList,
                                     const DString& languageNameID) const
 {
     FilePath languagePath = GetLanguagePath();
     ASSERT(!languagePath.IsEmpty());
     if (languagePath.IsEmpty()) {
+        return false;
+    }
+    ASSERT(!languageNameID.empty());
+    if (languageNameID.empty()) {
         return false;
     }
 
@@ -595,6 +668,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     //Windows: 路径字符串用的是char，UTF8
     const std::filesystem::path path{ languagePath.ToStringA() };
 #endif
+    std::unordered_set<DString> includeLangFileSet; //被包含的语言文件，不需要加载
     if (path.is_absolute()) {
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
@@ -602,15 +676,25 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 languageList.push_back({ FilePath(dir_entry.path().filename()).ToString(), _T("")});
             }
         }
-        if (!languageNameID.empty()) {
-            for (auto& lang : languageList) {
-                const DString& fileName = lang.first;
-                DString& displayName = lang.second;
-
-                FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
-                ui::LangManager langManager;
-                if (langManager.LoadStringTable(filePath)) {
+        //排序: 对语言文件名排序(将主语言文件放在最前面)
+        SortLanguageFileNameList(languageList);
+        for (auto& lang : languageList) {
+            const DString& fileName = lang.first;
+            if (includeLangFileSet.find(fileName) != includeLangFileSet.end()) {
+                //不是主语言文件，不加载
+                continue;
+            }
+            DString& displayName = lang.second;
+            FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
+            LangManager langManager;
+            if (langManager.LoadStringTable(filePath)) {
+                if (langManager.HasStringByID(languageNameID)) {
                     displayName = langManager.GetStringByID(languageNameID);
+                }
+                std::list<DString> includeLangFileList;
+                ReadIncludeLanguageFiles(langManager, includeLangFileList);
+                for (DString& includeLangFileName : includeLangFileList) {
+                    includeLangFileSet.insert(includeLangFileName);
                 }
             }
         }
@@ -622,18 +706,27 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
         for (auto const& file : fileList) {
             languageList.push_back({ file, _T("") });
         }
-
-        if (!languageNameID.empty()) {
-            for (auto& lang : languageList) {
-                const DString& fileName = lang.first;
-                DString& displayName = lang.second;
-
-                FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
-                std::vector<unsigned char> fileData;
-                if (m_zipManager.GetZipData(filePath, fileData)) {
-                    ui::LangManager langManager;
-                    if (langManager.LoadStringTable(fileData)) {
+        //排序: 对语言文件名排序(将主语言文件放在最前面)
+        SortLanguageFileNameList(languageList);
+        for (auto& lang : languageList) {
+            const DString& fileName = lang.first;
+            if (includeLangFileSet.find(fileName) != includeLangFileSet.end()) {
+                //不是主语言文件，不加载
+                continue;
+            }
+            DString& displayName = lang.second;
+            FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
+            std::vector<uint8_t> fileData;
+            if (m_zipManager.GetZipData(filePath, fileData)) {
+                LangManager langManager;
+                if (langManager.LoadStringTable(fileData)) {
+                    if (langManager.HasStringByID(languageNameID)) {
                         displayName = langManager.GetStringByID(languageNameID);
+                    }
+                    std::list<DString> includeLangFileList;
+                    ReadIncludeLanguageFiles(langManager, includeLangFileList);
+                    for (DString& includeLangFileName : includeLangFileList) {
+                        includeLangFileSet.insert(includeLangFileName);
                     }
                 }
             }
@@ -642,6 +735,16 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     else {
         ASSERT(false);
         return false;
+    }
+    //移除包含的语言文件
+    auto iter = languageList.begin();
+    while (iter != languageList.end()) {
+        if (iter->second.empty()) {
+            iter = languageList.erase(iter);
+        }
+        else {
+            ++iter;
+        }
     }
     return true;
 }
