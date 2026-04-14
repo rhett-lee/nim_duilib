@@ -59,10 +59,10 @@ if not exist %MSVC_PATH% (
     exit /b 1
 )
 
-if %VS_MAJOR_VERSION% LSS 17 (
+if %VS_MAJOR_VERSION% LSS 15 (
     echo.
     echo ==============================================
-    echo "ERROR: Visual Studio 2022 (version 17.0) or newer is required!"
+    echo "ERROR: Visual Studio 2017 (version 15.0) or newer is required!"
     echo "Detected VS Major Version: %VS_MAJOR_VERSION%"
     echo ==============================================
     echo.
@@ -187,7 +187,11 @@ if %errorlevel% equ 0 (
     exit /b 1
 )
 
-devenv "./nim_duilib/build/examples.sln" /Build "Debug|x64"
+if "%VS_VERSION%"=="vs2017" (
+    devenv "./nim_duilib/build/examples_vs2017.sln" /Build "Debug|x64"
+) else (
+    devenv "./nim_duilib/build/examples.sln" /Build "Debug|x64"
+)
 
 cd /d %CURRENT_DIR%
 echo.
