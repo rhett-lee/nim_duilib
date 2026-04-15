@@ -557,6 +557,81 @@ chmod +x ./build/freebsd_build.sh
  - 跨平台（Windows/Linux/macOS/FreeBSD）窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）的不断测试与完善（目前X11/XWayland桌面环境下较稳定，但纯Wayland桌面环境下问题较多）
  - 测试界面库，发现缺陷并修复，不断完善代码
 
+## AI 辅助开发（Claude Code 集成）
+
+nim_duilib 提供了 AI 友好的文档和技能（Skills），可配合 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 实现 AI 辅助界面开发。
+
+### 功能说明
+注册后，Claude Code 在**任何项目**中都可以使用以下 nim_duilib 专属技能：
+
+| 指令 / 技能 | 说明 |
+| :--- | :--- |
+| `/nim-init` | 为当前项目初始化 nim_duilib 开发环境（复制 LLM 参考文档、更新 CLAUDE.md） |
+| `/nim-duilib-create-window` | 创建新窗口（自动生成 C++ 类 + XML 布局文件） |
+| `/nim-duilib-xml-layout` | 设计 XML 界面布局（表单、分栏、工具栏、卡片网格等模板） |
+| `/nim-duilib-add-control` | 添加控件（15+ 种控件的 XML 片段和 C++ 事件绑定代码） |
+| `/nim-duilib-event-handler` | 事件处理（XML 内联事件和 C++ Attach 绑定） |
+| `/nim-duilib-theme` | 主题定制（预定义颜色、字体、100+ 通用样式 Class 速查） |
+| `/nim-duilib-resource-pack` | 资源打包与部署（ZIP 打包、嵌入 EXE 单文件发布） |
+
+### 快速开始
+
+**前提条件：** 已安装 [Claude Code](https://docs.anthropic.com/en/docs/claude-code)
+
+**第一步：注册（只需执行一次）**
+
+在 nim_duilib 根目录下执行：
+```bash
+# Windows (CMD / PowerShell)
+.claude\register.bat
+
+# Linux / macOS
+bash .claude/register.sh
+```
+注册脚本会将所有技能安装到 `~/.claude/skills/`，全局生效。
+
+**第二步：在你的应用项目中使用**
+
+在任何需要使用 nim_duilib 的项目中打开 Claude Code，输入：
+```
+/nim-init
+```
+AI 会自动为该项目配置 LLM 参考文档和 CLAUDE.md。之后即可直接用自然语言指示 Claude 完成界面开发，例如：
+- "创建一个设置窗口，包含用户名输入框和保存按钮"
+- "设计一个左侧导航栏 + 右侧内容区的布局"
+- "给这个按钮添加点击事件"
+- "把资源打包成单个 EXE"
+
+### 更新技能
+当 nim_duilib 的 AI 技能文件（`.claude/skills/`）有更新时，重新执行注册脚本即可：
+```bash
+cd nim_duilib
+.claude\register.bat   # Windows
+# bash .claude/register.sh  # Linux / macOS
+```
+
+### 注销
+如需移除所有全局技能：
+```bash
+bash nim_duilib/.claude/unregister.sh
+```
+
+### 文件结构
+```
+nim_duilib/.claude/
+├── register.bat / register.ps1 / register.sh   # 全局注册脚本
+├── unregister.sh                                # 注销脚本
+├── docs/
+│   └── nim-duilib-llm-reference.md              # LLM 完整参考手册
+└── skills/                                      # AI 技能定义
+    ├── nim-duilib-create-window.md
+    ├── nim-duilib-xml-layout.md
+    ├── nim-duilib-add-control.md
+    ├── nim-duilib-event-handler.md
+    ├── nim-duilib-theme.md
+    └── nim-duilib-resource-pack.md
+```
+
 ## 参考文档
 
  - [快速上手](docs/Getting-Started.md)
