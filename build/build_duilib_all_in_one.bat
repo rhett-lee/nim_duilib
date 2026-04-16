@@ -98,6 +98,14 @@ if not exist ".\nim_duilib\.git" (
     exit /b 1
 )
 
+:retry_pull_duilib
+git -C ./nim_duilib checkout develop-cpp17
+git -C ./nim_duilib pull
+if %errorlevel% neq 0 (
+    timeout /t %retry_delay% >nul
+    goto retry_pull_duilib
+)
+
 :retry_clone_skia_compile
 if not exist ".\skia_compile\.git" (
     git clone https://github.com/rhett-lee/skia_compile
@@ -113,6 +121,14 @@ if not exist ".\skia_compile\.git" (
     echo clone retry_clone_skia_compile failed!
     cd /d %CURRENT_DIR%
     exit /b 1
+)
+
+:retry_pull_skia_compile
+git -C ./skia_compile checkout develop-cpp17
+git -C ./skia_compile pull
+if %errorlevel% neq 0 (
+    timeout /t %retry_delay% >nul
+    goto retry_pull_skia_compile
 )
 
 :retry_clone_skia
