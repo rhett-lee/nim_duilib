@@ -7,6 +7,8 @@
 
         <!-- 是否支持LibCefEnabled的宏定义： 0表示不支持；1 表示支持 -->
         <LibCefEnabled>1</LibCefEnabled>
+        <!-- VS2017的情况下： 默认不支持CEF，因为CEF模块编译不过 -->
+        <LibCefEnabled Condition="'$(VisualStudioVersion)' == '15.0'">0</LibCefEnabled>
         
         <!-- libCEF 版本控制的开关变量，有两种值：1表示使用libCEF 109 版本，0：表示用libCEF最新版本 -->
         <LibCefVersion109>0</LibCefVersion109>
