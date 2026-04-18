@@ -4,14 +4,16 @@
 /** Windows SDK 实现(内部采用Windows API实现部分功能)
 *   最低支持的系统平台：Win7
 */
-#if defined(UILIB_DLL)
-    #if defined(UILIB_EXPORTS)
-        #define UILIB_API __declspec(dllexport)
+
+//当使用动态链接库时，需要在应用层的VS工程中定义DUILIB_DLL这个宏
+#if defined(DUILIB_DLL)
+    #if defined(DUILIB_EXPORTS)
+        #define DUILIB_API __declspec(dllexport)
     #else
-        #define UILIB_API __declspec(dllimport)
+        #define DUILIB_API __declspec(dllimport)
     #endif
 #else
-    #define UILIB_API
+    #define DUILIB_API
 #endif
 
 #ifndef VC_EXTRALEAN

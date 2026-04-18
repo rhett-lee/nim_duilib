@@ -8,7 +8,7 @@ namespace ui
 
 /** 对位图数据的Alpha值进行保存和恢复
 */
-class BitmapAlpha
+class DUILIB_API BitmapAlpha
 {
 public:
     BitmapAlpha(uint8_t* pPiexl, int32_t nWidth, int32_t nHeight, int32_t nChannels);

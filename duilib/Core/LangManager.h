@@ -11,7 +11,7 @@ namespace ui
 
 /** 多语言的支持
 */
-class UILIB_API LangManager
+class DUILIB_API LangManager
 {
 public:
     LangManager();

@@ -8,7 +8,7 @@ namespace ui
 {
 /** Image列表
  */
-class UILIB_API ZipStreamIO
+class DUILIB_API ZipStreamIO
 {
 public:
     /** 构造内存数据

@@ -11,7 +11,7 @@ class Control;
 
 /** 控件阴影属性类
 */
-class UILIB_API BoxShadow
+class DUILIB_API BoxShadow
 {
 public:
     /** 构造函数

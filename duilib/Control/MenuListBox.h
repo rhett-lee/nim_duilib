@@ -8,7 +8,7 @@ namespace ui
 
 /** 用在菜单中的ListBox控件
 */
-class UILIB_API MenuListBox : public VListBox
+class DUILIB_API MenuListBox : public VListBox
 {
     typedef VListBox BaseClass;
 public:

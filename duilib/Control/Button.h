@@ -8,7 +8,7 @@
 namespace ui {
 
 template<typename InheritType = Control>
-class UILIB_API ButtonTemplate : public LabelTemplate<InheritType>
+class ButtonTemplate : public LabelTemplate<InheritType>
 {
     typedef LabelTemplate<InheritType> BaseClass;
 public:

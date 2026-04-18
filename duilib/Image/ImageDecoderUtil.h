@@ -6,7 +6,7 @@
 
 namespace ui 
 {
-class ImageDecoderUtil
+class DUILIB_API ImageDecoderUtil
 {
 public:
     /** 查询支持哪些类型的图片（按后缀名,后缀名不包含'.'字符，比如"BMP;JPG"等）

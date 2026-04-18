@@ -22,7 +22,7 @@ struct FontSizeInfo
 
 /** 字体管理器
 */
-class UILIB_API FontManager
+class DUILIB_API FontManager
 {
 public:
     FontManager();

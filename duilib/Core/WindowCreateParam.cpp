@@ -3,7 +3,6 @@
 namespace ui {
 
 WindowCreateParam::WindowCreateParam():
-    m_platformData(nullptr),
     m_className(_T("duilib_window")),
     m_dwClassStyle(kCS_VREDRAW | kCS_HREDRAW | kCS_DBLCLKS),
     m_dwStyle(0),

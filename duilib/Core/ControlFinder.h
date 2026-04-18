@@ -36,7 +36,7 @@ typedef struct tagFINDTABINFO
 
 /** Window辅助查找Control相关功能的封装
 */
-class UILIB_API ControlFinder
+class DUILIB_API ControlFinder
 {
 public:
     ControlFinder();

@@ -9,7 +9,7 @@ namespace ui {
 
 /** WebView2控件的公共配置管理
  */
-class WebView2Manager
+class DUILIB_API WebView2Manager
 {
 public:
     WebView2Manager();

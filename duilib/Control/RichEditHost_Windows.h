@@ -15,7 +15,7 @@ namespace ui
 
 class RichEdit;
 class DpiManager;
-class UILIB_API RichEditHost : public ITextHost
+class DUILIB_API RichEditHost : public ITextHost
 {
 public:
     /** 构造函数，构造后引用计数为1，外部可以通过AddRef和Release控制对象的生命周期

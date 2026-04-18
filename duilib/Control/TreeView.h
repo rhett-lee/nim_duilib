@@ -17,7 +17,7 @@ enum class TreeNodeCheck
 };
 
 class TreeView;
-class UILIB_API TreeNode : public ListBoxItem
+class DUILIB_API TreeNode : public ListBoxItem
 {
     typedef ListBoxItem BaseClass;
     friend class TreeView;
@@ -372,7 +372,7 @@ private:
     UiRect* m_pCollapseImageRect;//DPI无关，每次绘制后会更新此值
 };
 
-class UILIB_API TreeView : public ListBox
+class DUILIB_API TreeView : public ListBox
 {
     typedef ListBox BaseClass;
     friend class TreeNode;

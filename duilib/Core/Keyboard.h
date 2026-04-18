@@ -20,7 +20,7 @@ enum ModifierKey {
 
 /** 键盘操作
 */
-class UILIB_API Keyboard
+class DUILIB_API Keyboard
 {
 public:
     /** 判断一个虚拟键是否按下（适用于在处理窗口消息过程中调用）

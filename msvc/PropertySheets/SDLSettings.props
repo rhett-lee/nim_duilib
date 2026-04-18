@@ -3,17 +3,19 @@
     <!-- 该文件中设置 SDL 的 配置选项（可选项） -->
     <PropertyGroup Label="Globals">
 
-        <!-- SDL的include目录 -->
-        <SDLIncludeDir>$(SolutionDir)\..\..\SDL3\include</SDLIncludeDir>
-
-        <!-- SDL的lib目录 -->
-        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
-
         <!-- 是否支持SDL的宏定义： 0表示不支持；1 表示支持，同时设置SDLLibs的值 -->
         <SDLEnabled>0</SDLEnabled>
+
+        <!-- SDL的include目录 -->
+        <SDLIncludeDir Condition="'$(SDLEnabled)' == '0'"></SDLIncludeDir>
+        <SDLIncludeDir Condition="'$(SDLEnabled)' != '0'">$(SolutionDir)\..\..\SDL3\include</SDLIncludeDir>
+
+        <!-- SDL的lib目录 -->
+        <SDLLibDir Condition="'$(SDLEnabled)' == '0'"></SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
 
         <!-- SDL的lib列表 -->
         <SDLLibs Condition="'$(SDLEnabled)' != '0'">SDL3-static.lib;Version.lib;Winmm.lib;Setupapi.lib</SDLLibs>

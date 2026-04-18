@@ -10,7 +10,7 @@ namespace ui
 */
 class Control;
 class IRender;
-class UILIB_API StateColorMap
+class DUILIB_API StateColorMap
 {
 public:
     explicit StateColorMap(Control* pControl);

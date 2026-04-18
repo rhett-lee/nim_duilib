@@ -11,7 +11,7 @@ namespace ui
 {
 /** 矩形区域的封装
 */
-class UILIB_API UiRect
+class DUILIB_API UiRect
 {
 public:
     UiRect()

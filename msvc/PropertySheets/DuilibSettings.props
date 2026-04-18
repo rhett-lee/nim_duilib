@@ -23,36 +23,102 @@
     
     <!-- libpag: 需要添加include路径，需要添加是否支持的宏定义： DUILIB_LIB_PAG=1 开启，DUILIB_LIB_PAG=0 关闭  -->
     <Import Project="LibPagSettings.props" />
-    
+  
     <PropertyGroup Label="Globals">
         <!-- Include 目录  -->
         <DuilibIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);$(LibPagIncludeDir)</DuilibIncludeDirectories>
     </PropertyGroup>
+
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_CEF=$(LibCefEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+    </ItemDefinitionGroup>
+
+    <!-- $(EnableDuilibDll)的值为1时，表示使用动态链接库，最终编译为DLL形式，该变量在CommonSettings.props文件中定义 -->
+    <!-- duilib项目，当使用DLL时，设置工程类型为动态链接库(*.dll)，否则为静态库(*.lib) -->
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1'">
+        <ConfigurationType>DynamicLibrary</ConfigurationType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' != '1'">
+        <ConfigurationType>StaticLibrary</ConfigurationType>
+    </PropertyGroup>
+
+    <!-- duilib项目，当使用DLL时，定义符号导出的宏 -->
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1'">
+        <ClCompile>
+            <PreprocessorDefinitions>DUILIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+        <Link Condition="'$(Configuration)'=='Debug'">
+            <ImportLibrary>$(SolutionDir)\..\lib\$(Platform)\$(ProjectName)_d.lib</ImportLibrary>
+        </Link>
+        <Link Condition="'$(Configuration)'=='Release'">
+            <ImportLibrary>$(SolutionDir)\..\lib\$(Platform)\$(ProjectName).lib</ImportLibrary>
+        </Link>
+    </ItemDefinitionGroup>
     
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_CEF=$(LibCefEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
+    <!-- duilib项目，当使用DLL时，定义输出DLL的目录和DLL文件名 -->
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Release|x64'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)</TargetName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Debug|x64'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)_d</TargetName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Release|Win32'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)32</TargetName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)|$(Platform)'=='Debug|Win32'">
+        <OutDir>$(SolutionDir)\..\bin\</OutDir>
+        <TargetName>$(ProjectName)32_d</TargetName>
+    </PropertyGroup>
+
+    <!-- libCEF: lib路径, lib列表，libcef.dll延迟加载属性 -->
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1' And '$(LibCefEnabled)' != '0'">
+        <Link>
+            <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
+            <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
+        </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_CEF=$(LibCefEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
+
+    <!-- WebView2: 添加DUILIB_WEBVIEW2宏定义, include路径, lib路径, lib列表 -->
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1' And '$(WebView2Enabled)' != '0'">
+        <Link>
+            <AdditionalLibraryDirectories>$(WebView2LibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(WebView2Libs);%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+
+    <!-- duilib项目，当使用DLL时，添加公共依赖lib文件的路径和lib库列表 -->
+    <PropertyGroup Condition="'$(EnableDuilibDll)' == '1'" Label="Globals">
+        <!-- 库文件Include -->
+        <DuilibBinLibIncludeDir>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+
+        <!-- 库文件列表 -->
+        <DuilibBinLibList>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);$(LibPagLibs);$(DuilibThirdLibs);$(DuilibSystemLibs);</DuilibBinLibList>
+    </PropertyGroup>
+
+    <!-- duilib项目，当使用DLL时，设置库文件Include路径、lib列表-->
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_CEF=$(LibCefEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
+        <Link>
+            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibIncludeDirectories);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaPreprocessorDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_CEF=$(LibCefEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)'=='Debug'">
+        <Link>
+            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
+        </Link>
     </ItemDefinitionGroup>
+
+    <!-- duilib项目，当使用DLL时，添加嵌入的Manifest配置文件 -->
+    <Import Project="BinManifestSettings.props" Condition="'$(EnableDuilibDll)' == '1'"/>
     
-    <ItemGroup />
 </Project>

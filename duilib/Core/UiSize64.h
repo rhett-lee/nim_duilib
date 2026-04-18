@@ -9,7 +9,7 @@ namespace ui
 
 /** Size64的封装
 */
-class UILIB_API UiSize64
+class DUILIB_API UiSize64
 {
 public:
     UiSize64()

@@ -37,7 +37,7 @@ class MenuBarButton;
 
 /** 菜单栏
 */
-class MenuBar: public HBox
+class DUILIB_API MenuBar: public HBox
 {
     typedef HBox BaseClass;
 public:

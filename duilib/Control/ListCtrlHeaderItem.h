@@ -13,7 +13,7 @@ namespace ui
 /** ListCtrl的表头控件的显示项
 */
 class ListCtrlHeader;
-class ListCtrlHeaderItem:
+class DUILIB_API ListCtrlHeaderItem:
     public ControlDragableT<CheckBoxHBox>
 {
     typedef ControlDragableT<CheckBoxHBox> BaseClass;

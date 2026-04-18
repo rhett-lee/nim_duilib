@@ -7,7 +7,7 @@ namespace ui
 {
 /** 剪切板操作
 */
-class UILIB_API Clipboard
+class DUILIB_API Clipboard
 {
 public:
     /** 获取粘贴板字符串（UTF16）

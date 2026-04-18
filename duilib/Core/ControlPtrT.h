@@ -8,7 +8,7 @@ namespace ui
 /** Control指针有效性保护对象，使用方法和原生指针相同，但可以规避使用野指针的问题
 */
 template<typename T>
-class UILIB_API ControlPtrT
+class ControlPtrT
 {
 public:
     explicit ControlPtrT(std::nullptr_t):

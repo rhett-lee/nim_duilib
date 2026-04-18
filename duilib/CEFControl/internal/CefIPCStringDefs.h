@@ -6,6 +6,10 @@
 #ifndef UI_CEF_CONTROL_IPC_STRING_DEFINE_H_
 #define UI_CEF_CONTROL_IPC_STRING_DEFINE_H_
 
+#include "duilib/duilib_config.h"
+
+#ifdef DUILIB_BUILD_FOR_CEF
+
 namespace ui
 {
     static const char kFocusedNodeChangedMessage[]      = "FocusedNodeChanged";     // web页面中获取焦点的元素改变
@@ -14,5 +18,7 @@ namespace ui
     static const char kExecuteJsCallbackMessage[]       = "ExecuteJsCallback";      // web调用C++接口接口的通知
     static const char kCallJsFunctionMessage[]          = "CallJsFunction";         // C++ 调用 JavaScript 通知
 }
+
+#endif //DUILIB_BUILD_FOR_CEF
 
 #endif //UI_CEF_CONTROL_IPC_STRING_DEFINE_H_

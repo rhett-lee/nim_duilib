@@ -1,8 +1,11 @@
 #include "FileDialog.h"
-#include "duilib/Core/Window.h"
-#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Utils/StringConvert.h"
+
 #include "duilib/duilib_config_windows.h"
 #include <shlobj.h>
 

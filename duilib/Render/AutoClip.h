@@ -7,7 +7,7 @@ namespace ui
 {
 
 class IRender;
-class UILIB_API AutoClip
+class DUILIB_API AutoClip
 {
 public:
     AutoClip(IRender* pRender, const UiRect& rc, bool bClip = true);

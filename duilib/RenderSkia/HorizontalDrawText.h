@@ -18,7 +18,7 @@ struct THorizontalChar;
 
 /** 横向文本绘制的实现封装（从左到右，从上到下）
 */
-class UILIB_API HorizontalDrawText
+class HorizontalDrawText
 {
 public:
     HorizontalDrawText(SkCanvas* pSkCanvas, SkPaint* pSkPaint, SkPoint* pSkPointOrg);

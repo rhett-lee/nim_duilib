@@ -13,7 +13,7 @@ namespace ui
 /** 主要功能：支持通过鼠标左键按下来调整控件的位置
 */
 template<typename T = Control>
-class UILIB_API ControlMovableT: public T
+class ControlMovableT: public T
 {
     typedef T BaseClass;
 public:

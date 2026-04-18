@@ -2,9 +2,9 @@
 
  GIF construction tools
 
-SPDX-License-Identifier: MIT
-
 ****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (C) Eric S. Raymond <esr@thyrsus.com>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,9 +143,9 @@ ColorMapObject *GifUnionColorMap(const ColorMapObject *ColorIn1,
 	 * of table 1.  This is very useful if your display is limited to
 	 * 16 colors.
 	 */
-	while (ColorIn1->Colors[CrntSlot - 1].Red == 0 &&
+	while (CrntSlot > 0 && (ColorIn1->Colors[CrntSlot - 1].Red == 0 &&
 	       ColorIn1->Colors[CrntSlot - 1].Green == 0 &&
-	       ColorIn1->Colors[CrntSlot - 1].Blue == 0) {
+			    ColorIn1->Colors[CrntSlot - 1].Blue == 0)) {
 		CrntSlot--;
 	}
 
@@ -349,6 +349,14 @@ SavedImage *GifMakeSavedImage(GifFileType *GifFile,
 			 * aliasing problems.
 			 */
 
+			/* Null out aliased pointers before any allocations
+			 * so that FreeLastSavedImage won't free CopyFrom's
+			 * data if an allocation fails partway through. */
+			sp->ImageDesc.ColorMap = NULL;
+			sp->RasterBits = NULL;
+			sp->ExtensionBlocks = NULL;
+			sp->ExtensionBlockCount = 0;
+ 
 			/* first, the local color map */
 			if (CopyFrom->ImageDesc.ColorMap != NULL) {
 				sp->ImageDesc.ColorMap = GifMakeMapObject(

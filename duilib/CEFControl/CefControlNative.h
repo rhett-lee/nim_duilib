@@ -6,7 +6,7 @@
 #ifndef UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 #define UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 
-#include "CefControl.h"
+#include "duilib/CEFControl/CefControl.h"
 
 #ifdef DUILIB_BUILD_FOR_CEF
 
@@ -14,7 +14,7 @@ namespace ui {
 
 /** duilib的CEF控件，窗口模式
 */
-class CefControlNative : public CefControl
+class DUILIB_API CefControlNative : public CefControl
 {
     typedef CefControl BaseClass;
 public:

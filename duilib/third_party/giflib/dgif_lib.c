@@ -6,9 +6,9 @@ The functions here and in egif_lib.c are partitioned carefully so that
 if you only require one of read and write capability, only one of these
 two modules will be linked.  Preserve this property!
 
-SPDX-License-Identifier: MIT
-
 *****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (C) Eric S. Raymond <esr@thyrsus.com>
 
 #include <fcntl.h>
 #include <limits.h>
@@ -1161,7 +1161,15 @@ void DGifDecreaseImageCounter(GifFileType *GifFile) {
 		GifFreeMapObject(GifFile->SavedImages[GifFile->ImageCount].ImageDesc.ColorMap);
 	}
 
-	// Realloc array according to the new image counter.
+	// Avoid a dodgy edge casse in reallocarray() */
+	if (GifFile->ImageCount <= 0) {
+		free(GifFile->SavedImages);
+		GifFile->SavedImages = NULL;
+		GifFile->ImageCount = 0;
+		return;
+	}
+
+	/* Realloc array according to the new image counter. */
 	SavedImage *correct_saved_images = (SavedImage *)reallocarray(
 	    GifFile->SavedImages, GifFile->ImageCount, sizeof(SavedImage));
 	if (correct_saved_images != NULL) {

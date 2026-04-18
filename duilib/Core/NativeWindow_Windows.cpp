@@ -41,7 +41,6 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_pOwner(pOwner),
     m_hWnd(nullptr),
     m_hParentWnd(nullptr),
-    m_hResModule(nullptr),
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
     m_nLayeredWindowAlpha(255),
@@ -98,12 +97,8 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
         return false;
     }
 
-    m_hResModule = (HMODULE)createParam.m_platformData;
-    if (m_hResModule == nullptr) {
-        m_hResModule = ::GetModuleHandle(nullptr);
-    }
-
     //注册窗口类
+    HMODULE hModule = GetResModuleHandle();
     DString className = StringConvert::TToLocal(createParam.m_className);
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -111,7 +106,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.lpfnWndProc = NativeWindow_Windows::__WndProc;
-    wc.hInstance = GetResModuleHandle();
+    wc.hInstance = hModule;
     wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr;
     wc.lpszMenuName = nullptr;
@@ -125,6 +120,11 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     if (!bRet) {
         return false;
     }
+
+    //在模块退出时，注销该ATOM
+    GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
+        ::UnregisterClassW(className.c_str(), hModule);
+        });
 
     //保存参数
     m_createParam = createParam;
@@ -186,7 +186,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
 
 /** Hook函数的单例对象
 */
-class UILIB_API HookIsDialogMessage: public InlineHook
+class HookIsDialogMessage: public InlineHook
 {
 public:
     HookIsDialogMessage() = default;
@@ -243,10 +243,6 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
         return -1;
-    }
-    m_hResModule = (HMODULE)createParam.m_platformData;
-    if (m_hResModule == nullptr) {
-        m_hResModule = ::GetModuleHandle(nullptr);
     }
 
     //保存参数
@@ -368,12 +364,8 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
         return false;
     }
 
-    m_hResModule = pParentWindow->m_hResModule;
-    if (m_hResModule == nullptr) {
-        m_hResModule = ::GetModuleHandle(nullptr);
-    }
-
     //注册窗口类
+    HMODULE hModule = GetResModuleHandle();
     DString className = StringConvert::TToLocal(pParentWindow->m_createParam.m_className);
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -381,7 +373,7 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.lpfnWndProc = NativeWindow_Windows::__WndProc;
-    wc.hInstance = GetResModuleHandle();
+    wc.hInstance = hModule;
     wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr;
     wc.lpszMenuName = nullptr;
@@ -395,6 +387,11 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
     if (!bRet) {
         return false;
     }
+
+    //在模块退出时，注销该ATOM
+    GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
+        ::UnregisterClassW(className.c_str(), hModule);
+        });
 
     //保存参数
     m_createParam.m_className = pParentWindow->m_createParam.m_className;
@@ -651,7 +648,11 @@ bool NativeWindow_Windows::IsWindow() const
 
 HMODULE NativeWindow_Windows::GetResModuleHandle() const
 {
-    return (m_hResModule != nullptr) ? m_hResModule : (::GetModuleHandle(nullptr));
+    HMODULE hResModule = (HMODULE)GlobalManager::Instance().GetPlatformData();
+    if (hResModule == nullptr) {
+        hResModule = ::GetModuleHandle(nullptr);
+    }
+    return hResModule;
 }
 
 HDC NativeWindow_Windows::GetPaintDC() const

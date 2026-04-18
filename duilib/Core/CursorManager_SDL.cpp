@@ -1,11 +1,13 @@
 #include "CursorManager.h"
+
+#ifdef DUILIB_BUILD_FOR_SDL
+
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
 #include <map>
-
-#ifdef DUILIB_BUILD_FOR_SDL
 
 #include <SDL3/SDL.h>
 

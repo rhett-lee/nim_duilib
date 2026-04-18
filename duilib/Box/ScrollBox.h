@@ -15,7 +15,7 @@ namespace ui
  /** 带有垂直或水平滚动条的容器，使容器可以容纳更多内容
  *   通过修改布局，形成 HScrollBox/VScrollBox/HFlowScrollBox/VFlowScrollBox/HTileScrollBox/VTileScrollBox六个子类
  */
-class UILIB_API ScrollBox : public Box
+class DUILIB_API ScrollBox : public Box
 {
     typedef Box BaseClass;
 public:
@@ -335,7 +335,7 @@ private:
 
 /** 横向布局的ScrollBox
 */
-class UILIB_API HScrollBox : public ScrollBox
+class DUILIB_API HScrollBox : public ScrollBox
 {
 public:
     explicit HScrollBox(Window* pWindow) :
@@ -348,7 +348,7 @@ public:
 
 /** 纵向布局的ScrollBox
 */
-class UILIB_API VScrollBox : public ScrollBox
+class DUILIB_API VScrollBox : public ScrollBox
 {
 public:
     explicit VScrollBox(Window* pWindow) :
@@ -361,7 +361,7 @@ public:
 
 /** 横向流式布局的ScrollBox
 */
-class UILIB_API HFlowScrollBox : public ScrollBox
+class DUILIB_API HFlowScrollBox : public ScrollBox
 {
 public:
     explicit HFlowScrollBox(Window* pWindow):
@@ -374,7 +374,7 @@ public:
 
 /** 纵向流式布局的ScrollBox
 */
-class UILIB_API VFlowScrollBox : public ScrollBox
+class DUILIB_API VFlowScrollBox : public ScrollBox
 {
 public:
     explicit VFlowScrollBox(Window* pWindow):
@@ -387,7 +387,7 @@ public:
 
 /** 瓦片布局的ScrollBox(横向布局)
 */
-class UILIB_API HTileScrollBox : public ScrollBox
+class DUILIB_API HTileScrollBox : public ScrollBox
 {
 public:
     explicit HTileScrollBox(Window* pWindow) :
@@ -400,7 +400,7 @@ public:
 
 /** 瓦片布局的ScrollBox(纵向布局)
 */
-class UILIB_API VTileScrollBox : public ScrollBox
+class DUILIB_API VTileScrollBox : public ScrollBox
 {
 public:
     explicit VTileScrollBox(Window* pWindow) :

@@ -62,7 +62,7 @@ enum WindowDefaultSize
 
 /** 创建窗口所需的参数
 */
-class WindowCreateParam
+class DUILIB_API WindowCreateParam
 {
 public:
     /** 默认构造函数
@@ -83,11 +83,6 @@ public:
     WindowCreateParam(const DString& windowTitle, bool bCenterWindow, const DString& windowId = _T(""));
 
 public:
-    /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
-    * Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
-    */
-    void* m_platformData;
-
     /** 窗口类名（可选参数，如不填写则使用默认值）
     */
     DString m_className;

@@ -122,7 +122,7 @@ typedef std::function<bool(const ListCtrlSubItemData2& a,
 
 /** 视图填充数据到UI控件的相关接口
 */
-class IListCtrlView
+class DUILIB_API IListCtrlView
 {
 public:
     /** 创建一个数据项
@@ -169,7 +169,7 @@ struct ListCtrlEditParam
 *   其中的Control和Label的属性，支持从配置文件读取
 */
 class ListCtrl;
-class ListCtrlIconViewItem : public ListCtrlItemBaseV
+class DUILIB_API ListCtrlIconViewItem : public ListCtrlItemBaseV
 {
     typedef ListCtrlItemBaseV BaseClass;
 public:
@@ -249,7 +249,7 @@ private:
 *   基本结构：<ListCtrlListViewItem> <ListCtrlIcon/><ListCtrlLabel/> </ListCtrlListViewItem>
 *   其中的Control和Label的属性，支持从配置文件读取
 */
-class ListCtrlListViewItem : public ListCtrlItemBaseH
+class DUILIB_API ListCtrlListViewItem : public ListCtrlItemBaseH
 {
     typedef ListCtrlItemBaseH BaseClass;
 public:

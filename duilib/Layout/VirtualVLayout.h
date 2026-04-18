@@ -12,7 +12,7 @@ namespace ui
  *  在该布局中，子控件本身指定的对齐方式不生效
  */
 class VirtualListBox;
-class UILIB_API VirtualVLayout : public VLayout, public VirtualLayout
+class DUILIB_API VirtualVLayout : public VLayout, public VirtualLayout
 {
     typedef VLayout BaseClass;
 public:

@@ -11,7 +11,7 @@ namespace ui
 /** 标签控件（模板），用于显示文本
 */
 template<typename T = Control>
-class UILIB_API LabelTemplate : public T, public LabelOwner
+class LabelTemplate : public T, public LabelOwner
 {
     typedef T BaseClass;
 public:

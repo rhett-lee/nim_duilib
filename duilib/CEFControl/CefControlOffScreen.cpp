@@ -2,6 +2,8 @@
 
 #ifdef DUILIB_BUILD_FOR_CEF
 
+#include "duilib/Core/Window.h"
+
 #include "duilib/CEFControl/CefManager.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/internal/CefMemoryBlock.h"

@@ -71,7 +71,6 @@ void APngDecoder::PngErrorCallback(png_structp /*png_ptr*/, png_const_charp mess
         errMsg = StringUtil::Printf("PNG decoding error: %s", message);
     }
     DEBUG_OUTPUT(errMsg.c_str());
-    throw std::runtime_error(errMsg.c_str());
 }
 
 // libpng读取回调

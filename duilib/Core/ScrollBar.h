@@ -10,7 +10,7 @@ namespace ui
 
 /** 滚动条控件
 */
-class UILIB_API ScrollBar: public Control
+class DUILIB_API ScrollBar: public Control
 {
     typedef Control BaseClass;
 public:

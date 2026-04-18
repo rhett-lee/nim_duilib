@@ -13,7 +13,7 @@
 namespace ui
 {
 
-class UILIB_API CircleProgress : public Progress
+class DUILIB_API CircleProgress : public Progress
 {
     typedef Progress BaseClass;
 public:

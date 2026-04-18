@@ -2624,7 +2624,7 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     FastBytes& alphaValues = *m_pAlphaValues; //记住该区域内原来的Alpha值
     int32_t nEstSize = (nBottom - nTop) * (nRight - nLeft);
     if (nEstSize > 0) {
-        if (alphaValues.capacity() > 2 * nEstSize) {
+        if ((int32_t)alphaValues.capacity() > 2 * nEstSize) {
             //当缓存过大时，释放内存，重新分配合适的内存，避免占用过多内存
             alphaValues.clear_release();
         }

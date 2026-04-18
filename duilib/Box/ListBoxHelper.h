@@ -12,7 +12,7 @@ class IRender;
 
 /** ListBox鼠标键盘操作的辅助类
 */
-class UILIB_API ListBoxHelper: public SupportWeakCallback
+class DUILIB_API ListBoxHelper: public SupportWeakCallback
 {
 public:
     explicit ListBoxHelper(ListBox* pListBox);

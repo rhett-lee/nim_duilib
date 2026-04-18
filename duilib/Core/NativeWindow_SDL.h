@@ -27,7 +27,7 @@ class WindowDropTarget;
 
 /** 窗口功能的Windows平台实现
 */
-class NativeWindow_SDL
+class DUILIB_API NativeWindow_SDL
 {
 public:
     explicit NativeWindow_SDL(INativeWindow* pOwner);

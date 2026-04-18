@@ -10,7 +10,7 @@ namespace ui
 {
 /** 字体接口
 */
-class UILIB_API IFont: public virtual SupportWeakCallback
+class DUILIB_API IFont: public virtual SupportWeakCallback
 {
 public:
     /** 初始化字体(内部未对字体大小做DPI自适应)
@@ -44,7 +44,7 @@ public:
 
 /** 字体管理器接口
 */
-class UILIB_API IFontMgr : public virtual SupportWeakCallback
+class DUILIB_API IFontMgr : public virtual SupportWeakCallback
 {
 public:
     /** 获取字体个数
@@ -94,7 +94,7 @@ public:
 
 /** Skia引擎需要传入Alpha类型
 */
-enum class UILIB_API BitmapAlphaType: int
+enum class DUILIB_API BitmapAlphaType: int
 {
     kUnknown_SkAlphaType,   //!< uninitialized
     kOpaque_SkAlphaType,    //!< pixel is opaque
@@ -104,7 +104,7 @@ enum class UILIB_API BitmapAlphaType: int
 
 /** 位图接口
 */
-class UILIB_API IBitmap : public virtual SupportWeakCallback
+class DUILIB_API IBitmap : public virtual SupportWeakCallback
 {
 public:
     /** 从数据初始化（ARGB格式）
@@ -147,7 +147,7 @@ public:
 
 /** 画笔接口
 */
-class UILIB_API IPen : public virtual SupportWeakCallback
+class DUILIB_API IPen : public virtual SupportWeakCallback
 {
 public:
     /** 设置画笔宽度
@@ -243,7 +243,7 @@ public:
 /** 画刷接口
 */
 //目前只支持一个SolidBrush
-class UILIB_API IBrush : public virtual SupportWeakCallback
+class DUILIB_API IBrush : public virtual SupportWeakCallback
 {
 public:
     virtual IBrush* Clone() = 0;
@@ -253,7 +253,7 @@ public:
 /** 路径接口
 */
 class IMatrix;
-class UILIB_API IPath : public virtual SupportWeakCallback
+class DUILIB_API IPath : public virtual SupportWeakCallback
 {
 public:    
     /** 填充类型，在路径或曲线相交时如何填充形成的区域
@@ -386,7 +386,7 @@ public:
 
 /** 3x3 矩阵接口
 */
-class UILIB_API IMatrix : public SupportWeakCallback
+class DUILIB_API IMatrix : public SupportWeakCallback
 {
 public:
     /** 平移操作
@@ -438,7 +438,7 @@ public:
 
 /** 渲染接口中使用的DPI转换辅助接口
 */
-class UILIB_API IRenderDpi : public SupportWeakCallback
+class DUILIB_API IRenderDpi : public SupportWeakCallback
 {
 public:
     /** 根据界面缩放比来缩放整数
@@ -458,7 +458,7 @@ typedef std::shared_ptr<IRenderDpi> IRenderDpiPtr;
 
 /** 绘制回调接口
 */
-class UILIB_API IRenderPaint
+class DUILIB_API IRenderPaint
 {
 public:
     /** 通过回调接口，完成绘制
@@ -479,7 +479,7 @@ public:
 
 /** 光栅操作代码
 */
-enum class UILIB_API RopMode
+enum class DUILIB_API RopMode
 {
     kSrcCopy,    //对应于 SRCCOPY
     kDstInvert, //对应于 DSTINVERT
@@ -489,7 +489,7 @@ enum class UILIB_API RopMode
 
 /** 绘制文本时的格式
 */
-enum UILIB_API DrawStringFormat
+enum DUILIB_API DrawStringFormat
 {
     TEXT_LEFT           = 0x0001,   //水平对齐方式：靠左
     TEXT_HCENTER        = 0x0002,   //水平对齐方式：居中
@@ -767,7 +767,7 @@ struct DrawStringParam
 /** 渲染接口
 */
 class IRenderFactory;
-class UILIB_API IRender : public virtual SupportWeakCallback
+class DUILIB_API IRender : public virtual SupportWeakCallback
 {
 public:
     /** 获取Render实现类型
@@ -1339,7 +1339,7 @@ public:
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
 */
-class UILIB_API IRenderFactory
+class DUILIB_API IRenderFactory
 {
 public:
     virtual ~IRenderFactory() = default;

@@ -7,7 +7,7 @@ namespace ui
 {
 /** 字符串编码转换辅助类
 */
-class UILIB_API StringConvert
+class DUILIB_API StringConvert
 {
 public:
     //UTF8字符串转换为UTF16

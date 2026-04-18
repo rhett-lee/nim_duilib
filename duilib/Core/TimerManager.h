@@ -20,7 +20,7 @@ class TimerInfo;
 
 /** 定时器管理器
 */
-class TimerManager: public SupportWeakCallback
+class DUILIB_API TimerManager: public SupportWeakCallback
 {
 public:
     TimerManager();

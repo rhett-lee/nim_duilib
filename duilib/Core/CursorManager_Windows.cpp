@@ -1,10 +1,12 @@
 #include "CursorManager.h"
-#include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/Window.h"
-#include "duilib/Utils/FilePathUtil.h"
-#include <map>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Utils/FilePathUtil.h"
+#include <map>
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 

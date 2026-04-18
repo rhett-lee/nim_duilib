@@ -1,6 +1,7 @@
 #include "ChildWindow.h"
 #include "ChildWindowImpl.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Utils/AttributeUtil.h"
 
 namespace ui

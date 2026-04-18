@@ -11,7 +11,7 @@ class WindowBase;
 
 /** 用于管理所有窗口的生命周期
  */
-class UILIB_API WindowManager
+class DUILIB_API WindowManager
 {
 public:
     WindowManager();

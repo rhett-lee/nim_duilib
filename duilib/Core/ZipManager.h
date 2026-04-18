@@ -17,7 +17,7 @@ class ZipStreamIO;
  * （2）使用7-Zip做压缩包的时候，如果自定义参数：cu=on，可以制作出文件名编码为UTF-8的压缩包；若不设置，默认文件名编码是本机编码
  * （3）如果设置了密码，需要使用传统的密码加密算法，否则无法解压。（使用"ZIP legacy encryption"模式 或者 "ZipCrypto"算法的密码）
  */
-class UILIB_API ZipManager
+class DUILIB_API ZipManager
 {
 public:
     ZipManager();

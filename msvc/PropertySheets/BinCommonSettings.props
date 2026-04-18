@@ -26,24 +26,17 @@
         <!-- 头文件Include -->
         <DuilibBinIncludeDir>$(SolutionDir)\..;$(ProjectDir)</DuilibBinIncludeDir>
 
-        <!-- 库文件Include -->
-        <DuilibBinLibIncludeDir>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
-
-        <!-- 库文件列表 -->
-        <DuilibBinLibList>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);$(LibPagLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;</DuilibBinLibList>
+        <!-- 库文件Include: DLL模式仅依赖DLL导出的lib -->
+        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' == '1'">$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' != '1'">$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+        
+        <!-- 库文件列表: DLL模式仅依赖DLL导出的lib  -->
+        <DuilibBinLibList Condition="'$(EnableDuilibDll)' == '1'">$(DuilibMainLib);</DuilibBinLibList>
+        <DuilibBinLibList Condition="'$(EnableDuilibDll)' != '1'">$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);$(LibPagLibs);$(DuilibMainLib);$(DuilibThirdLibs);$(DuilibSystemLibs);</DuilibBinLibList>
     </PropertyGroup>
-    
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(DuilibBinLibList);%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+
+    <!-- 设置库文件Include路径、lib列表、宏定义-->
+    <ItemDefinitionGroup>
         <ClCompile>
             <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
             <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -51,29 +44,11 @@
         <Link>
             <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
+    </ItemDefinitionGroup>
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+        <Link>
             <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
         </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <ClCompile>
-            <AdditionalIncludeDirectories>$(DuilibBinIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);DUILIB_LIB_PAG=$(LibPagEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(DuilibBinLibIncludeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(DuilibBinLibList);$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemGroup />
 </Project>

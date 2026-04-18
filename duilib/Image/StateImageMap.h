@@ -7,7 +7,7 @@ namespace ui
 {
 /** 控件图片类型与状态图片的映射
 */
-class UILIB_API StateImageMap
+class DUILIB_API StateImageMap
 {
 public:
     StateImageMap();

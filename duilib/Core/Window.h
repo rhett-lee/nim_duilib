@@ -26,7 +26,7 @@ class WindowBuilder;
 *  4. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
 *  5. Window::AttachBox(pRoot);
 */
-class UILIB_API Window : public WindowBase
+class DUILIB_API Window : public WindowBase
 {
 public:
     Window();

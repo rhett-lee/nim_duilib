@@ -9,7 +9,7 @@ namespace ui
 {
 /** 窗口消息过滤接口，用于转接鼠标点击消息
 */
-class DragWindowFilter : public IUIMessageFilter
+class DUILIB_API DragWindowFilter : public IUIMessageFilter
 {
 public:
     DragWindowFilter(Window* pOwner, Window* pWindow);

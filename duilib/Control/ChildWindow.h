@@ -12,7 +12,7 @@ class ChildWindowImpl;
  *  由应用层自己负责子窗口的绘制
  *  子窗口的实现：Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口
  */
-class ChildWindow : public Box
+class DUILIB_API ChildWindow : public Box
 {
     typedef Box BaseClass;
 public:

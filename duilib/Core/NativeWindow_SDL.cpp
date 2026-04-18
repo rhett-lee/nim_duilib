@@ -1021,6 +1021,9 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
     HMODULE hModule = (HMODULE)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, nullptr);
     ASSERT(hModule != nullptr);
     if (hModule == nullptr) {
+        hModule = (HMODULE)GlobalManager::Instance().GetPlatformData();
+    }
+    if (hModule == nullptr) {
         hModule = ::GetModuleHandle(nullptr);
     }
     HWND hChild = nullptr;
@@ -1031,7 +1034,13 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
         wc.lpfnWndProc = ::DefWindowProc;
         wc.hInstance = hModule;
         wc.lpszClassName = className.c_str();
-        RegisterClass(&wc);
+        ATOM ret = RegisterClass(&wc);
+        ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+
+        //在模块退出时，注销该ATOM
+        GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
+            ::UnregisterClassW(className.c_str(), hModule);
+            });
 
         // 创建Windows子窗口（WS_CHILD样式）
         hChild = ::CreateWindowEx( 0,
@@ -1720,6 +1729,9 @@ HMODULE NativeWindow_SDL::GetResModuleHandle() const
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     HMODULE hModule = (HMODULE)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_INSTANCE_POINTER, nullptr);
     ASSERT(hModule != nullptr);
+    if (hModule == nullptr) {
+        hModule = (HMODULE)GlobalManager::Instance().GetPlatformData();
+    }
     if (hModule == nullptr) {
         hModule = ::GetModuleHandle(nullptr);
     }

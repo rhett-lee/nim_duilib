@@ -32,7 +32,7 @@ struct FindTextParam
     DString findText;            //查找的文本
 };
 
-class UILIB_API RichEdit : public ScrollBox, protected IRichTextData
+class DUILIB_API RichEdit : public ScrollBox, protected IRichTextData
 {
     typedef ScrollBox BaseClass;
 public:

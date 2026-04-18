@@ -8,7 +8,7 @@ namespace ui
 {
 /** 支持的字符集定义
 */
-enum class UILIB_API CharsetType
+enum class DUILIB_API CharsetType
 {
     UNKNOWN,
     ANSI,
@@ -19,7 +19,7 @@ enum class UILIB_API CharsetType
 
 /** 字符串字符集辅助类
 */
-class UILIB_API StringCharset
+class DUILIB_API StringCharset
 {   
 public:
     /** 获取指定编码的BOM头长度

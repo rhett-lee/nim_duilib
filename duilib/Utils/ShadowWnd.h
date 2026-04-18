@@ -16,7 +16,7 @@ namespace ui {
  *             上述配置等同于：layered_window="false"，不设置shadow_attached属性。
  */
 class ShadowWndBase;
-class ShadowWnd: public WindowImplBase
+class DUILIB_API ShadowWnd: public WindowImplBase
 {
     typedef WindowImplBase BaseClass;
 public:

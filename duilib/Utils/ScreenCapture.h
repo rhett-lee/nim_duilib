@@ -9,7 +9,7 @@ namespace ui
 {
 /** 屏幕截图
 */
-class UILIB_API ScreenCapture
+class DUILIB_API ScreenCapture
 {
 public:
     /** 抓一张窗口所在屏幕的截图

@@ -20,7 +20,7 @@ class IBitmap;
  * @author Redrain
  * @date 2019/3/20
  */
-class CefControl: public Control, public CefBrowserHandlerDelegate
+class DUILIB_API CefControl: public Control, public CefBrowserHandlerDelegate
 {
     typedef Control BaseClass;
 public:

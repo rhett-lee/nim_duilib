@@ -12,7 +12,7 @@ namespace ui
 
 /** 代码执行性能分析工具
 */
-class UILIB_API PerformanceUtil
+class DUILIB_API PerformanceUtil
 {
 public:
     PerformanceUtil();

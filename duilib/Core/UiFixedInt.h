@@ -9,7 +9,7 @@ namespace ui
 
 /** 控件设置长度（或宽度）数值
 */
-class UILIB_API UiFixedInt
+class DUILIB_API UiFixedInt
 {
 public:
     //数值类型定义

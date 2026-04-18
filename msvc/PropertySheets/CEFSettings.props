@@ -23,8 +23,11 @@
         <LibCefDllName>libcef.dll</LibCefDllName>
 
         <!-- libCEF的include/lib目录 -->
-        <LibCefIncludeDir>$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)</LibCefIncludeDir>
-        <LibCefLibDir>$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
+        <LibCefIncludeDir Condition="'$(LibCefEnabled)' == '0'"></LibCefIncludeDir>
+        <LibCefIncludeDir Condition="'$(LibCefEnabled)' != '0'">$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)</LibCefIncludeDir>
+
+        <LibCefLibDir Condition="'$(LibCefEnabled)' == '0'"></LibCefLibDir>
+        <LibCefLibDir Condition="'$(LibCefEnabled)' != '0'">$(SolutionDir)\..\duilib\third_party\libcef\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
 
         <!-- libCEF的库的lib名称 -->
         <LibCefLibs Condition="'$(LibCefEnabled)' == '0'"></LibCefLibs>

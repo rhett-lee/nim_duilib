@@ -14,7 +14,7 @@ namespace ui
 {
 /** 引用计数的实现（基于Skia源码skia\include\core\SkRefCnt.h做的修改）
 */
-class UILIB_API RefCount
+class RefCount
 {
 public:
     /** 默认构造函数，初始的引用计数为1
@@ -168,7 +168,7 @@ private:
  *  This can be used for classes inheriting from RefCount/NVRefCount
  */
 template <typename T>
-class UILIB_API SharePtr
+class SharePtr
 {
 public:
     using element_type = T;

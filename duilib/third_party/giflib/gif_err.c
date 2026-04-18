@@ -2,9 +2,9 @@
 
 gif_err.c - handle error reporting for the GIF library.
 
-SPDX-License-Identifier: MIT
-
 ****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-File-Copyright-Txt: (C) Copyright 1989 Gershon Elber
 
 #include <stdio.h>
 

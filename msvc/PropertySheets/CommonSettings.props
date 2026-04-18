@@ -4,25 +4,15 @@
     <PropertyGroup Label="UserMacros" />
 
     <!-- duilib项目，所有工程的输出公共配置 -->
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PropertyGroup>
         <OutDir>$(SolutionDir)\..\lib\$(Platform)\</OutDir>
         <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-        <TargetName>$(ProjectName)</TargetName>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <OutDir>$(SolutionDir)\..\lib\$(Platform)\</OutDir>
-        <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    </PropertyGroup>    
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <TargetName>$(ProjectName)_d</TargetName>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-        <OutDir>$(SolutionDir)\..\lib\$(Platform)\</OutDir>
-        <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <TargetName>$(ProjectName)</TargetName>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-        <OutDir>$(SolutionDir)\..\lib\$(Platform)\</OutDir>
-        <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-        <TargetName>$(ProjectName)_d</TargetName>
     </PropertyGroup>
     
     <!-- duilib项目，支持VS2026(v145)和VS2022(v143)[主分支]，支持VS2019(v142)和VS2017(v141)[develop-cpp17分支] -->
@@ -47,25 +37,18 @@
         <WindowsTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
     </PropertyGroup>
 
-    <!-- duilib项目，所有工程的编译选项配置: MT/MTd -->
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <!-- duilib项目，所有工程的编译选项配置: MT/MTd 或者 MD/MDd (根据当前文件所在目录是否存在duilib_dll.flag这个文件决定)-->
+    <PropertyGroup Label="Globals">
+        <DuilibDllFlagFile>$(MSBuildThisFileDirectory)\duilib_dll.flag</DuilibDllFlagFile>
+        <EnableDuilibDll Condition="!Exists('$(DuilibDllFlagFile)')">0</EnableDuilibDll>
+        <EnableDuilibDll Condition="Exists('$(DuilibDllFlagFile)')">1</EnableDuilibDll>
+    </PropertyGroup>    
+    <ItemDefinitionGroup>
         <ClCompile>
-            <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-        </ClCompile>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-        <ClCompile>
-            <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-        </ClCompile>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-        <ClCompile>
-            <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-        </ClCompile>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <ClCompile>
-            <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)'=='Release'">MultiThreadedDll</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(EnableDuilibDll)' != '1' And '$(Configuration)'=='Release'">MultiThreaded</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(EnableDuilibDll)' == '1' And '$(Configuration)'=='Debug'">MultiThreadedDebugDll</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(EnableDuilibDll)' != '1' And '$(Configuration)'=='Debug'">MultiThreadedDebug</RuntimeLibrary>
         </ClCompile>
     </ItemDefinitionGroup>
 
@@ -86,5 +69,24 @@
             <LanguageStandard_C>stdc11</LanguageStandard_C>
         </ClCompile>
     </ItemDefinitionGroup>
+    
+    <!-- duilib项目，当使用DLL时，禁用STL的一个编译警告，并添加DLL相关的宏定义 -->
+    <ItemDefinitionGroup Condition="'$(EnableDuilibDll)' == '1'">
+        <ClCompile>
+            <DisableSpecificWarnings>%(DisableSpecificWarnings);4251</DisableSpecificWarnings>
+            <PreprocessorDefinitions>DUILIB_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+        <ResourceCompile>
+            <PreprocessorDefinitions>DUILIB_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ResourceCompile>
+    </ItemDefinitionGroup>
 
+    <!-- duilib项目，自身的基础Lib名称列表，不含CEF、WebView2 -->
+    <PropertyGroup Label="Globals">
+        <DuilibSystemLibs>opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;</DuilibSystemLibs>
+        <DuilibThirdLibs Condition="'$(Configuration)'=='Debug'">zlib_d.lib;cximage_d.lib;libpng_d.lib;libwebp_d.lib</DuilibThirdLibs>
+        <DuilibThirdLibs Condition="'$(Configuration)'=='Release'">zlib.lib;cximage.lib;libpng.lib;libwebp.lib</DuilibThirdLibs>
+        <DuilibMainLib Condition="'$(Configuration)'=='Debug'">duilib_d.lib</DuilibMainLib>
+        <DuilibMainLib Condition="'$(Configuration)'=='Release'">duilib.lib</DuilibMainLib>
+    </PropertyGroup>
 </Project>

@@ -9,49 +9,16 @@
     <!-- libCEF: 需要添加include路径, lib路径, lib列表 -->
     <Import Project="CEFSettings.props" />
 
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <!-- libCEF: 添加DUILIB_CEF宏定义, include路径, lib路径, lib列表，libcef.dll延迟加载属性 -->
+    <ItemDefinitionGroup>
         <ClCompile>
             <PreprocessorDefinitions>DUILIB_CEF=$(LibCefEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
             <AdditionalIncludeDirectories>$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
         </ClCompile>
-        <Link>
+        <Link Condition="'$(LibCefEnabled)' != '0'">
             <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
             <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
         </Link>
     </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-        <ClCompile>
-            <PreprocessorDefinitions>DUILIB_CEF=$(LibCefEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
-            <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-        <ClCompile>
-            <PreprocessorDefinitions>DUILIB_CEF=$(LibCefEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
-            <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <ClCompile>
-            <PreprocessorDefinitions>DUILIB_CEF=$(LibCefEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-            <AdditionalIncludeDirectories>$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-        </ClCompile>
-        <Link>
-            <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
-            <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
-        </Link>
-    </ItemDefinitionGroup>
-    <ItemGroup />
 </Project>

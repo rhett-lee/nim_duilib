@@ -10,7 +10,7 @@ namespace ui
 
 /** 瓦片布局的Box(纵向布局)
 */
-class UILIB_API VTileBox : public Box
+class DUILIB_API VTileBox : public Box
 {
 public:
     explicit VTileBox(Window* pWindow) :
@@ -23,7 +23,7 @@ public:
 
 /** 瓦片布局的Box(水平布局)
 */
-class UILIB_API HTileBox : public Box
+class DUILIB_API HTileBox : public Box
 {
 public:
     explicit HTileBox(Window* pWindow) :

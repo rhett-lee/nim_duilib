@@ -11,7 +11,7 @@ class Control;
 
 /** 控件的动画播放管理器
 */
-class UILIB_API AnimationManager
+class DUILIB_API AnimationManager
 {
 public:
     explicit AnimationManager(Control* pControl);

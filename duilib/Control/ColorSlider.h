@@ -52,7 +52,7 @@ public:
 
 /** 自定义颜色背景的Slider控件
 */
-class ColorSlider: public Slider
+class DUILIB_API ColorSlider: public Slider
 {
     typedef Slider BaseClass;
 public:

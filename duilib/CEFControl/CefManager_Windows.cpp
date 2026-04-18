@@ -2,6 +2,7 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_CEF)
 
+#include "duilib/Core/Control.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/ProcessSingleton.h"
 #include "duilib/Utils/StringConvert.h"

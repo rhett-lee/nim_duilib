@@ -7,7 +7,7 @@ namespace ui
 {
 /** 动画格式的图片数据
 */
-class Image_Animation: public IImage
+class DUILIB_API Image_Animation: public IImage
 {
 public:
     Image_Animation(const std::shared_ptr<IAnimationImage>& pAnimationImage);

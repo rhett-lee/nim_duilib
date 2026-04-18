@@ -35,7 +35,7 @@ struct ControlLoadingStatus
     bool m_bStopLoading = false;
 };
 
-class UILIB_API ControlLoading: public SupportWeakCallback
+class DUILIB_API ControlLoading: public SupportWeakCallback
 {
 public:
     explicit ControlLoading(Control* pControl);

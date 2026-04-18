@@ -1,17 +1,19 @@
-/*****************************************************************************
+/****************************************************************************
 
 gif_font.c - utility font handling and simple drawing for the GIF library
 
-SPDX-License-Identifier: MIT
-
 ****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-File-Copyright-Txt: (C) Eric S. Raymond <esr@thyrsus.com>
 
+#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "gif_lib.h"
 
-/*****************************************************************************
+/****************************************************************************
  Ascii 8 by 8 regular font - only first 128 characters are supported.
 *****************************************************************************/
 
@@ -153,109 +155,297 @@ const unsigned char GifAsciiTable8x8[][GIF_FONT_WIDTH] = {
 };
 /*@=charint@*/
 
+static bool GifImageGetGeometry(const SavedImage *Image,
+                                size_t *width,
+                                size_t *height,
+                                size_t *pixels)
+{
+    size_t w, h;
+
+    if (Image == NULL || Image->RasterBits == NULL) {
+        return false;
+    }
+    if (Image->ImageDesc.Width <= 0 || Image->ImageDesc.Height <= 0) {
+        return false;
+    }
+
+    w = (size_t)Image->ImageDesc.Width;
+    h = (size_t)Image->ImageDesc.Height;
+    if (w > SIZE_MAX / h) {
+        return false;
+    }
+
+    if (width != NULL) {
+        *width = w;
+    }
+    if (height != NULL) {
+        *height = h;
+    }
+    if (pixels != NULL) {
+        *pixels = w * h;
+    }
+    return true;
+}
+
+static void GifPutPixelClipped(SavedImage *Image, int x, int y, GifPixelType color)
+{
+    size_t width, height;
+
+    if (!GifImageGetGeometry(Image, &width, &height, NULL)) {
+        return;
+    }
+    if (x < 0 || y < 0) {
+        return;
+    }
+    if ((size_t)x >= width || (size_t)y >= height) {
+        return;
+    }
+
+    Image->RasterBits[(size_t)y * width + (size_t)x] = color;
+}
+
 void GifDrawText8x8(SavedImage *Image, const int x, const int y,
-                    const char *legend, const int color) {
-	int i, j;
-	const char *cp;
+                    const char *legend, const int color)
+{
+    int i;
+    const unsigned char *cp;
 
-	for (i = 0; i < GIF_FONT_HEIGHT; i++) {
-		int base = Image->ImageDesc.Width * (y + i) + x;
+    if (legend == NULL) {
+        return;
+    }
 
-		for (cp = legend; *cp; cp++) {
-			for (j = 0; j < GIF_FONT_WIDTH; j++) {
-				if (GifAsciiTable8x8[(short)(*cp)][i] &
-				    (1 << (GIF_FONT_WIDTH - j))) {
-					Image->RasterBits[base] = color;
-				}
-				base++;
-			}
-		}
-	}
+    for (i = 0; i < GIF_FONT_HEIGHT; i++) {
+        int row_y = y + i;
+
+        if (row_y < 0 || row_y > INT_MAX) {
+            continue;
+        }
+
+        for (cp = (const unsigned char *)legend; *cp != '\0'; cp++) {
+            size_t char_index = (size_t)(cp - (const unsigned char *)legend);
+            size_t j;
+            int glyph_x;
+            unsigned int glyph;
+
+            if (*cp >= 128) {
+                continue;
+            }
+            if (char_index > (size_t)(INT_MAX / GIF_FONT_WIDTH)) {
+                break;
+            }
+
+            glyph_x = x + (int)(char_index * GIF_FONT_WIDTH);
+            glyph = GifAsciiTable8x8[*cp][i];
+            for (j = 0; j < GIF_FONT_WIDTH; j++) {
+                if ((glyph & (1U << (GIF_FONT_WIDTH - 1 - j))) != 0U) {
+                    if (glyph_x <= INT_MAX - (int)j) {
+                        GifPutPixelClipped(Image, glyph_x + (int)j, row_y,
+                                           (GifPixelType)color);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void GifDrawBox(SavedImage *Image, const int x, const int y, const int w,
-                const int d, const int color) {
-	int j, base = Image->ImageDesc.Width * y + x;
+                const int d, const int color)
+{
+    int j;
 
-	for (j = 0; j < w; j++) {
-		Image->RasterBits[base + j] =
-		    Image->RasterBits[base + (d * Image->ImageDesc.Width) + j] =
-		        color;
-	}
+    if (w < 0 || d < 0) {
+        return;
+    }
 
-	for (j = 0; j < d; j++) {
-		Image->RasterBits[base + j * Image->ImageDesc.Width] =
-		    Image->RasterBits[base + j * Image->ImageDesc.Width + w] =
-		        color;
-	}
+    for (j = 0; j <= w; j++) {
+        if (x <= INT_MAX - j) {
+            GifPutPixelClipped(Image, x + j, y, (GifPixelType)color);
+            if (y <= INT_MAX - d) {
+                GifPutPixelClipped(Image, x + j, y + d,
+                                   (GifPixelType)color);
+            }
+        }
+    }
+
+    for (j = 0; j <= d; j++) {
+        if (y <= INT_MAX - j) {
+            GifPutPixelClipped(Image, x, y + j, (GifPixelType)color);
+            if (x <= INT_MAX - w) {
+                GifPutPixelClipped(Image, x + w, y + j,
+                                   (GifPixelType)color);
+            }
+        }
+    }
 }
 
 void GifDrawRectangle(SavedImage *Image, const int x, const int y, const int w,
-                      const int d, const int color) {
-	unsigned char *bp = Image->RasterBits + Image->ImageDesc.Width * y + x;
-	int i;
+                      const int d, const int color)
+{
+    size_t width, height;
+    size_t row;
+    size_t x0, y0, x1, y1;
 
-	for (i = 0; i < d; i++) {
-		memset(bp + (i * Image->ImageDesc.Width), color, (size_t)w);
-	}
+    if (!GifImageGetGeometry(Image, &width, &height, NULL)) {
+        return;
+    }
+    if (w <= 0 || d <= 0) {
+        return;
+    }
+
+    x0 = (x <= 0) ? 0U : (size_t)x;
+    y0 = (y <= 0) ? 0U : (size_t)y;
+
+    if (x >= 0 && (size_t)x < width) {
+        size_t rw = (size_t)w;
+        x1 = rw > width - (size_t)x ? width : (size_t)x + rw;
+    } else if (x < 0) {
+        size_t rw = (size_t)w;
+        size_t start = (size_t)(-x);
+        if (rw <= start) {
+            return;
+        }
+        x1 = rw - start;
+        if (x1 > width) {
+            x1 = width;
+        }
+    } else {
+        return;
+    }
+
+    if (y >= 0 && (size_t)y < height) {
+        size_t rh = (size_t)d;
+        y1 = rh > height - (size_t)y ? height : (size_t)y + rh;
+    } else if (y < 0) {
+        size_t rh = (size_t)d;
+        size_t start = (size_t)(-y);
+        if (rh <= start) {
+            return;
+        }
+        y1 = rh - start;
+        if (y1 > height) {
+            y1 = height;
+        }
+    } else {
+        return;
+    }
+
+    if (x0 >= x1 || y0 >= y1) {
+        return;
+    }
+
+    for (row = y0; row < y1; row++) {
+        memset(Image->RasterBits + row * width + x0, (GifPixelType)color,
+               x1 - x0);
+    }
 }
 
 void GifDrawBoxedText8x8(SavedImage *Image, const int x, const int y,
                          const char *legend, const int border, const int bg,
-                         const int fg) {
-	int j = 0, LineCount = 0, TextWidth = 0;
-	const char *cp;
-	char *dup;
+                         const int fg)
+{
+    size_t j = 0, LineCount = 0, TextWidth = 0;
+    const char *cp;
+    char *dup;
+    size_t legend_len;
 
-	/* compute size of text to box */
-	for (cp = legend; *cp; cp++) {
-		if (*cp == '\r') {
-			if (j > TextWidth) {
-				TextWidth = j;
-			}
-			j = 0;
-			LineCount++;
-		} else if (*cp != '\t') {
-			++j;
-		}
-	}
-	LineCount++;         /* count last line */
-	if (j > TextWidth) { /* last line might be longer than any previous */
-		TextWidth = j;
-	}
+    if (legend == NULL || border < 0) {
+        return;
+    }
 
-	/* draw the text */
-	dup = malloc(strlen(legend) + 1);
-	/* FIXME: should return bad status, but that would require API change */
-	if (dup != NULL) {
-		int i = 0;
-		/* fill the box */
-		GifDrawRectangle(
-		    Image, x + 1, y + 1,
-		    border + TextWidth * GIF_FONT_WIDTH + border - 1,
-		    border + LineCount * GIF_FONT_HEIGHT + border - 1, bg);
-		(void)strcpy(dup, (char *)legend);
-		char *lasts;
-		cp = strtok_r(dup, "\r\n", &lasts);
-		do {
-			int leadspace = 0;
+    /* compute size of text to box */
+    for (cp = legend; *cp != '\0'; cp++) {
+        if (*cp == '\r' || *cp == '\n') {
+            if (j > TextWidth) {
+                TextWidth = j;
+            }
+            j = 0;
+            LineCount++;
+        } else if (*cp != '\t') {
+            ++j;
+        }
+    }
+    LineCount++;         /* count last line */
+    if (j > TextWidth) { /* last line might be longer than any previous */
+        TextWidth = j;
+    }
 
-			if (cp[0] == '\t') {
-				leadspace = (TextWidth - strlen(++cp)) / 2;
-			}
+    legend_len = strlen(legend);
+    dup = malloc(legend_len + 1);
+    /* FIXME: should return bad status, but that would require API change */
+    if (dup != NULL) {
+        size_t fill_w = 0, fill_h = 0, box_w = 0, box_h = 0;
+        int i = 0;
+        char *line, *next;
 
-			GifDrawText8x8(
-			    Image, x + border + (leadspace * GIF_FONT_WIDTH),
-			    y + border + (GIF_FONT_HEIGHT * i++), cp, fg);
-			cp = strtok_r(NULL, "\r\n", &lasts);
-		} while (cp);
-		(void)free((void *)dup);
+        if (TextWidth <= (SIZE_MAX - (size_t)(2 * border)) / GIF_FONT_WIDTH) {
+            box_w = (size_t)(2 * border) + TextWidth * GIF_FONT_WIDTH;
+            if (box_w > 0) {
+                fill_w = box_w - 1;
+            }
+        }
+        if (LineCount <= (SIZE_MAX - (size_t)(2 * border)) / GIF_FONT_HEIGHT) {
+            box_h = (size_t)(2 * border) + LineCount * GIF_FONT_HEIGHT;
+            if (box_h > 0) {
+                fill_h = box_h - 1;
+            }
+        }
 
-		/* outline the box */
-		GifDrawBox(Image, x, y,
-		           border + TextWidth * GIF_FONT_WIDTH + border,
-		           border + LineCount * GIF_FONT_HEIGHT + border, fg);
-	}
+        if (fill_w > (size_t)INT_MAX) {
+            fill_w = (size_t)INT_MAX;
+        }
+        if (fill_h > (size_t)INT_MAX) {
+            fill_h = (size_t)INT_MAX;
+        }
+        if (box_w > (size_t)INT_MAX) {
+            box_w = (size_t)INT_MAX;
+        }
+        if (box_h > (size_t)INT_MAX) {
+            box_h = (size_t)INT_MAX;
+        }
+
+        /* fill the box */
+        GifDrawRectangle(Image, x + 1, y + 1, (int)fill_w, (int)fill_h,
+                         bg);
+        memcpy(dup, legend, legend_len + 1);
+
+        for (line = dup; line != NULL; line = next) {
+            size_t leadspace = 0;
+            char *eol = strpbrk(line, "\r\n");
+
+            next = NULL;
+            if (eol != NULL) {
+                next = eol + 1;
+                if ((*eol == '\r' && *next == '\n') ||
+                    (*eol == '\n' && *next == '\r')) {
+                    ++next;
+                }
+                *eol = '\0';
+            }
+
+            if (line[0] == '\t') {
+                size_t linelen = strlen(line + 1);
+                if (linelen < TextWidth) {
+                    leadspace = (TextWidth - linelen) / 2;
+                }
+                ++line;
+            }
+
+            if ((size_t)i <= (size_t)(INT_MAX / GIF_FONT_HEIGHT)) {
+                int text_x = x + border;
+                int text_y = y + border + (GIF_FONT_HEIGHT * i++);
+
+                if (leadspace <= (size_t)(INT_MAX / GIF_FONT_WIDTH) &&
+                    text_x <= INT_MAX - (int)(leadspace * GIF_FONT_WIDTH)) {
+                    text_x += (int)(leadspace * GIF_FONT_WIDTH);
+                }
+                GifDrawText8x8(Image, text_x, text_y, line, fg);
+            }
+        }
+        free(dup);
+
+        /* outline the box */
+        GifDrawBox(Image, x, y, (int)box_w, (int)box_h, fg);
+    }
 }
 
 /* end */

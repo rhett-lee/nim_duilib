@@ -18,7 +18,7 @@ class Control;
 
 /** 窗口功能的Windows平台实现
 */
-class NativeWindow_Windows
+class DUILIB_API NativeWindow_Windows
 {
 public:
     explicit NativeWindow_Windows(INativeWindow* pOwner);
@@ -693,10 +693,6 @@ private:
     /** 创建时指定的父窗口
     */
     HWND m_hParentWnd;
-
-    /** 资源模块句柄
-    */
-    HMODULE m_hResModule;
 
     /** 创建窗口时的初始化参数
     */

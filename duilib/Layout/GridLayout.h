@@ -8,7 +8,7 @@ namespace ui
 {
 /** 网格布局
  */
-class UILIB_API GridLayout : public Layout
+class DUILIB_API GridLayout : public Layout
 {
     typedef Layout BaseClass;
 public:

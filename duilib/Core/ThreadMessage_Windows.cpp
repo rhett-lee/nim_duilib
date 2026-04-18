@@ -2,6 +2,8 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
+#include "duilib/Core/GlobalManager.h"
+
 namespace ui
 {
 class ThreadMessage::TImpl
@@ -55,24 +57,32 @@ ThreadMessage::~ThreadMessage()
     }
 }
 
+//窗口类的名称
+#define DUILIB_MESSAGING_WINDOW_CLASS L"duilib_messaging_window"
+
 void ThreadMessage::Initialize(void* platformData)
 {
     ASSERT(m_impl->m_hMessageWnd == nullptr);
     if (m_impl->m_hMessageWnd != nullptr) {
         return;
     }
-    auto hinst = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(nullptr);
+    auto hInstance = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(nullptr);
     WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = ThreadMessage::TImpl::WndProcThunk;
-    wc.hInstance = hinst;
-    wc.lpszClassName = L"duilib_messaging_window";
+    wc.hInstance = hInstance;
+    wc.lpszClassName = DUILIB_MESSAGING_WINDOW_CLASS;
     ATOM ret = ::RegisterClassExW(&wc);
     ASSERT_UNUSED_VARIABLE(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    m_impl->m_hMessageWnd = ::CreateWindowW(wc.lpszClassName, 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
+    m_impl->m_hMessageWnd = ::CreateWindowW(wc.lpszClassName, 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hInstance, 0);
     if (::IsWindow(m_impl->m_hMessageWnd)) {
         ::SetWindowLongPtr(m_impl->m_hMessageWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
     }
+
+    //在模块退出时，注销该ATOM
+    GlobalManager::Instance().AddAtExitFunction([hInstance]() {
+            ::UnregisterClassW(DUILIB_MESSAGING_WINDOW_CLASS, hInstance);
+        });
 }
 
 bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode)

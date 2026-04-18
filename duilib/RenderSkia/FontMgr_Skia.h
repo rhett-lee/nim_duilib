@@ -12,7 +12,7 @@ namespace ui
 
 /** 字体管理器接口的实现
 */
-class UILIB_API FontMgr_Skia: public IFontMgr
+class FontMgr_Skia: public IFontMgr
 {
 public:
     explicit FontMgr_Skia();

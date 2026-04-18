@@ -30,7 +30,7 @@ namespace ui
 {
     /** 加载后的图片数据类型
     */
-    enum class UILIB_API UiImageDataType
+    enum class UiImageDataType
     {
         kBGRA,  //格式为BGRA格式，位数顺序从高位到低位分别为[第3位:A，第2位:R，第1位:G,第0位:B]（Windows平台使用）
         kRGBA   //格式为RGBA格式，位数顺序从高位到低位分别为[第3位:A，第2位:B，第1位:G,第0位:R]（其他平台使用）
@@ -38,7 +38,7 @@ namespace ui
 
     /** 加载后的图片数据
     */
-    struct UILIB_API UiImageData
+    struct UiImageData
     {
         /** 位图数据，每帧图片的数据长度固定为：图像数据长度为 (m_imageHeight*m_imageWidth*4)
         */
@@ -84,7 +84,7 @@ namespace ui
 
     /** 设置的控件大小
     */
-    class UILIB_API UiFixedSize
+    class UiFixedSize
     {
     public:
         /** 宽度
@@ -98,7 +98,7 @@ namespace ui
 
     /** 估算的控件大小（相比UiFixedSize，没有Auto类型）
     */
-    class UILIB_API UiEstSize
+    class UiEstSize
     {
     public:
         /** 宽度
@@ -112,7 +112,7 @@ namespace ui
 
     /** 估算控件大小的结果
     */
-    class UILIB_API UiEstResult
+    class UiEstResult
     {
     public:
         /** 本次估算时的可用矩形大小(这个参数影响会估算结果)

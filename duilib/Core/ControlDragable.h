@@ -23,7 +23,7 @@ namespace ui
 /** 主要功能：支持相同Box内的子控件通过拖动来调整顺序
 */
 template<typename T = Control>
-class UILIB_API ControlDragableT: public T
+class ControlDragableT: public T
 {
     typedef T BaseClass;
 public:

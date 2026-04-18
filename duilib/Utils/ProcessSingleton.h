@@ -19,7 +19,7 @@ typedef std::function<void (const std::vector<DString>& argumentList)> OnAlready
 
 /** 跨进程单例的实现
 */
-class UILIB_API ProcessSingleton
+class DUILIB_API ProcessSingleton
 {
 protected:
     explicit ProcessSingleton(const std::string& strAppName);

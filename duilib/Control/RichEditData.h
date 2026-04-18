@@ -12,7 +12,7 @@ namespace ui
 {
 /** 生成格式化文本的接口，用于绘制文本
 */
-class IRichTextData
+class DUILIB_API IRichTextData
 {
 public:
     /** 将文本生成可绘制的格式
@@ -60,7 +60,7 @@ public:
     virtual int32_t GetTextLimitLength() const = 0;
 };
 
-class RichEditData
+class DUILIB_API RichEditData
 {
 public:
     explicit RichEditData(IRichTextData* pRichTextData);

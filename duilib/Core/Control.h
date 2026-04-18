@@ -31,7 +31,7 @@ namespace ui
 
 /** 控件基类(相当于Widget)
 */
-class UILIB_API Control: public PlaceHolder
+class DUILIB_API Control: public PlaceHolder
 {
     typedef PlaceHolder BaseClass;
 public:

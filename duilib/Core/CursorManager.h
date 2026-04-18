@@ -14,7 +14,7 @@ class Window;
 
 /** 设置光标
 */
-class UILIB_API CursorManager
+class DUILIB_API CursorManager
 {
 public:
     CursorManager();

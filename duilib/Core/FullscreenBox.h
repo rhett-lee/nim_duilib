@@ -10,7 +10,7 @@ class Window;
 
 /** 全屏时的根容器
 */
-class UILIB_API FullscreenBox: public Box
+class DUILIB_API FullscreenBox: public Box
 {
     typedef Box BaseClass;
 public:

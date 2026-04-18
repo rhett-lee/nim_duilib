@@ -15,7 +15,7 @@ class EasingFunctions;
 
 /** 控件动画播放器的基类接口
 */
-class UILIB_API AnimationPlayer : public virtual SupportWeakCallback
+class DUILIB_API AnimationPlayer : public virtual SupportWeakCallback
 {
 public:
     AnimationPlayer();

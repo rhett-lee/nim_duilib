@@ -2,9 +2,8 @@
 
 gif_hash.h - magfic constants and declarations for GIF LZW
 
-SPDX-License-Identifier: MIT
-
 ******************************************************************************/
+// SPDX-License-Identifier: MIT
 
 #ifndef _GIF_HASH_H_
 #define _GIF_HASH_H_

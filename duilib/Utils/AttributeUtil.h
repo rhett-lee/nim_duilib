@@ -9,7 +9,7 @@
 namespace ui
 {
 class Window;
-class UILIB_API AttributeUtil
+class DUILIB_API AttributeUtil
 {
 public:
     /** 配置字符串解析：跳过一个分隔符

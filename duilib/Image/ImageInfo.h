@@ -14,7 +14,7 @@ namespace ui
 
 /** 图片信息
 */
-class UILIB_API ImageInfo
+class DUILIB_API ImageInfo
 {
 public:
     ImageInfo();

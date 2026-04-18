@@ -9,7 +9,7 @@ class Window;
 
 /** 窗口点击穿透功能的实现封装
 */
-class UILIB_API ClickThrough
+class DUILIB_API ClickThrough
 {
 public:
     ClickThrough();

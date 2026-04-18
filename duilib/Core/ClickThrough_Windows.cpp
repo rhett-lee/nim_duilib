@@ -1,7 +1,9 @@
 #include "ClickThrough.h"
-#include "duilib/Core/Window.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
+
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 
 namespace ui
 {

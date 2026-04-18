@@ -25,7 +25,7 @@ enum class CefCallbackID;
 *  其中一些需要与上层交互的事件接口封装到此类中，CefBrowserHandler把这些事件传递到委托接口中
 *  可以根据需求来扩展此接口
 */
-class CefBrowserHandlerDelegate : public virtual SupportWeakCallback
+class DUILIB_API CefBrowserHandlerDelegate : public virtual SupportWeakCallback
 {
 public:
     /** CefRenderHandler接口, 在非UI线程中被调用

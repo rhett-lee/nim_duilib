@@ -9,7 +9,7 @@ namespace ui
 {
 /** 屏幕截图（Linux Wayland的实现）
 */
-class UILIB_API ScreenCapture_Wayland
+class DUILIB_API ScreenCapture_Wayland
 {
 public:
     /** 抓一张窗口所在屏幕的截图

@@ -15,7 +15,7 @@ namespace ui
 
 /** 颜色值的封装(ARGB格式)
 */
-class UILIB_API UiColor
+class DUILIB_API UiColor
 {
 public:
 

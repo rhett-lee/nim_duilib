@@ -10,7 +10,7 @@ namespace ui
 {
 /** 位图的实现：Skia绘制引擎
 */
-class UILIB_API Bitmap_Skia: public IBitmap
+class Bitmap_Skia: public IBitmap
 {
 public:
     Bitmap_Skia();

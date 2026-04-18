@@ -6,7 +6,7 @@
 namespace ui
 {
 
-class UILIB_API FileUtil
+class DUILIB_API FileUtil
 {
 public:
     /** 读取文件内容（全部内容）

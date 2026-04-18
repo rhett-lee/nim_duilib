@@ -103,6 +103,9 @@
     <Filter Include="Control\ColorPicker">
       <UniqueIdentifier>{2c09bd98-820a-4b70-9a57-080113e82e9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="duilibDLL">
+      <UniqueIdentifier>{4923e090-2969-48cd-8631-e305a81f3b0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -881,6 +884,9 @@
     </ClCompile>
     <ClCompile Include="Utils\TrayIcon.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\msvc\dllRes\dllmain.cpp">
+      <Filter>duilibDLL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1826,8 +1832,27 @@
     <ClInclude Include="Utils\TrayIcon.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\msvc\dllRes\framework.h">
+      <Filter>duilibDLL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\msvc\dllRes\resource.h">
+      <Filter>duilibDLL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\msvc\dllRes\version.h">
+      <Filter>duilibDLL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="duilib.ruleset" />
+    <None Include="duilib.ruleset">
+      <Filter>duilib</Filter>
+    </None>
+    <None Include="..\msvc\PropertySheets\duilib_dll.flag">
+      <Filter>duilibDLL</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\msvc\dllRes\duilib.rc">
+      <Filter>duilibDLL</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

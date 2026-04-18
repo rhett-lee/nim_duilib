@@ -24,7 +24,7 @@ enum class ResourceType
 
 /** 加载全局资源所需的基本参数（基类，使用时需要使用子类，见下方定义）
 */
-class UILIB_API ResourceParam
+class DUILIB_API ResourceParam
 {
 protected:
     explicit ResourceParam(ResourceType resourceType): resType(resourceType) { }
@@ -45,11 +45,6 @@ public:
     *   如果 resType == kZipFile 或者 resType == kResZipFile，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
     */
     FilePath resourcePath;
-
-    /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
-    *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
-    */
-    void* platformData = nullptr;
 
 public:
     /** 主题路径名称（相对路径）
@@ -81,7 +76,7 @@ public:
 
 /** 加载全局资源所需的参数（本地文件形式，对应资源类型：kLocalFiles）
 */
-class UILIB_API LocalFilesResParam: public ResourceParam
+class DUILIB_API LocalFilesResParam: public ResourceParam
 {
 public:
     LocalFilesResParam() : ResourceParam(ResourceType::kLocalFiles)
@@ -100,7 +95,7 @@ public:
 
 /** 加载全局资源所需的参数（Zip压缩包文件形式，对应资源类型：kZipFile）
 */
-class UILIB_API ZipFileResParam : public ResourceParam
+class DUILIB_API ZipFileResParam : public ResourceParam
 {
 public:
     ZipFileResParam() : ResourceParam(ResourceType::kZipFile)
@@ -121,7 +116,7 @@ public:
 
 /** 加载全局资源所需的参数（资源文件打包为zip压缩包，然后放在exe/dll的资源文件中，对应资源类型：kResZipFile）
 */
-class UILIB_API ResZipFileResParam : public ResourceParam
+class DUILIB_API ResZipFileResParam : public ResourceParam
 {
 public:
     ResZipFileResParam() : ResourceParam(ResourceType::kResZipFile)

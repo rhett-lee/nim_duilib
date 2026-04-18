@@ -7,7 +7,7 @@ namespace ui
 {
 /** 自动解锁类的封装
 */
-class ScopedLock
+class DUILIB_API ScopedLock
 {
 public:
     // 构造函数获取锁

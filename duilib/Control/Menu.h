@@ -67,7 +67,7 @@ typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
 */
 class MenuItem;
 class MenuBar;
-class Menu : public WindowImplBase, public ContextMenuReceiver
+class DUILIB_API Menu : public WindowImplBase, public ContextMenuReceiver
 {
     typedef WindowImplBase BaseClass;
 public:
@@ -257,7 +257,7 @@ private:
 
 /** 菜单项
 */
-class MenuItem : public ListBoxItem
+class DUILIB_API MenuItem : public ListBoxItem
 {
     typedef ListBoxItem BaseClass;
 public:

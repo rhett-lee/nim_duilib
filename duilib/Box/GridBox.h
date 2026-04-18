@@ -10,7 +10,7 @@ namespace ui
 /** 网格布局的容器(模板类)
 */
 template<typename InheritType = Box>
-class UILIB_API GridBoxT : public InheritType
+class GridBoxT : public InheritType
 {
     typedef GridBoxT<InheritType> BaseClass;
 public:
@@ -150,7 +150,7 @@ public:
 
 /** 网格布局的容器
 */
-class UILIB_API GridBox : public GridBoxT<Box>
+class DUILIB_API GridBox : public GridBoxT<Box>
 {
     typedef GridBoxT<Box> BaseClass;
 public:
@@ -166,7 +166,7 @@ public:
 
 /** 网格布局的容器(支持滚动条)
 */
-class UILIB_API GridScrollBox : public GridBoxT<ScrollBox>
+class DUILIB_API GridScrollBox : public GridBoxT<ScrollBox>
 {
     typedef GridBoxT<ScrollBox> BaseClass;
 public:

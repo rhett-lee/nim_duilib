@@ -7,7 +7,7 @@ namespace ui
 {
 /** 虚表实现的布局接口
 */
-class UILIB_API VirtualLayout
+class DUILIB_API VirtualLayout
 {
 public:
     VirtualLayout() = default;

@@ -10,7 +10,7 @@ namespace ui
 *   该类适合用于较低的内存空间来存储字符串，性能方面由于字符串复制偏多，性能偏弱
 */
 template<typename T>
-class UILIB_API UiStringT
+class UiStringT
 {
     using string_type = std::basic_string<T, std::char_traits<T>, std::allocator<T>>;
     using value_type = typename string_type::value_type;

@@ -14,7 +14,7 @@ class IBitmap;
  *  位图的alpha type为kPremul_SkAlphaType(外部预乘)
  *  线程模型：单线程，只能在UI线程中使用
  */
-class IconControl : public Control
+class DUILIB_API IconControl : public Control
 {
     typedef Control BaseClass;
 public:

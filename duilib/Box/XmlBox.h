@@ -11,7 +11,7 @@ class Shadow;
 
 /** 支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果
 */
-class UILIB_API XmlBox : public Box
+class DUILIB_API XmlBox : public Box
 {
     typedef Box BaseClass;
 public:

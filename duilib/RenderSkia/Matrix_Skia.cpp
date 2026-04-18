@@ -11,6 +11,10 @@ Matrix_Skia::Matrix_Skia()
     m_matrix = std::make_unique<SkMatrix>();
 }
 
+Matrix_Skia::~Matrix_Skia()
+{
+}
+
 void Matrix_Skia::Translate(float offsetX, float offsetY)
 {
     m_matrix->setTranslate((SkScalar)offsetX, (SkScalar)offsetY);

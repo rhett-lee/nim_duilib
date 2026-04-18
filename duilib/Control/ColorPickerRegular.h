@@ -8,11 +8,12 @@ namespace ui
 /** 颜色选择器：常用颜色
 */
 class ColorPickerRegularProvider;
-class ColorPickerRegular : public VirtualVTileListBox
+class DUILIB_API ColorPickerRegular : public VirtualVTileListBox
 {
     typedef VirtualVTileListBox BaseClass;
 public:
     explicit ColorPickerRegular(Window* pWindow);
+    virtual ~ColorPickerRegular() override;
 
     /** 获取控件类型
     */

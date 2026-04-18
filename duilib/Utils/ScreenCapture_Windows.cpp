@@ -1,7 +1,9 @@
 #include "ScreenCapture.h"
-#include "duilib/Core/GlobalManager.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN)
+
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Control.h"
 
 namespace ui
 {

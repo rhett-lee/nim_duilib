@@ -30,7 +30,7 @@ using ReleaseImageCallback = std::function<bool (const std::shared_ptr<ui::IImag
 
 /** 图片管理器（对于图片资源的释放：延迟释放，内部有个原图图片队列，如果需要立即释放图片，则需要ReleaseImageCallback回调函数阻止放入延迟释放队列）
  */
-class UILIB_API ImageManager
+class DUILIB_API ImageManager
 {
 public:
     ImageManager();

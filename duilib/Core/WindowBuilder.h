@@ -48,7 +48,7 @@ struct XmlPreviewAttributes
 
 /** 根据XML文件，解析并创建控件和布局
 */
-class UILIB_API WindowBuilder
+class DUILIB_API WindowBuilder
 {
 public:
     WindowBuilder();

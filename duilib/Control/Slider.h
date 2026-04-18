@@ -9,7 +9,7 @@ namespace ui
 
 /** 滑块控件
 */
-class UILIB_API Slider : public Progress
+class DUILIB_API Slider : public Progress
 {
     typedef Progress BaseClass;
 public:

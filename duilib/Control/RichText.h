@@ -10,7 +10,7 @@ namespace ui
 /** 格式化文本（类HTML格式）
 */
 template<typename T = Control>
-class UILIB_API RichTextT: public T
+class RichTextT: public T
 {
     typedef T BaseClass;
 public:

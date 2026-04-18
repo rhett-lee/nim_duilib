@@ -11,7 +11,7 @@ class WindowBase;
 
 /** ToolTip的实现
 */
-class UILIB_API ToolTip
+class DUILIB_API ToolTip
 {
 public:
     ToolTip();

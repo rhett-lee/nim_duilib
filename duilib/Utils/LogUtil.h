@@ -8,7 +8,7 @@ namespace ui
 
 /** 日志输出工具
 */
-class UILIB_API LogUtil
+class DUILIB_API LogUtil
 {
 public:
     /** 输出Debug日志

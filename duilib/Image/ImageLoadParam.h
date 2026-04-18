@@ -10,7 +10,7 @@ class Control;
 
 /** 图片加载的路径信息
 */
-enum class UILIB_API ImageLoadPathType
+enum class DUILIB_API ImageLoadPathType
 {
     kUnknownPath,   //未知类型路径
     kLocalPath,     //本地绝对路径(非资源路径)
@@ -21,7 +21,7 @@ enum class UILIB_API ImageLoadPathType
 
 /** 图片加载的路径信息
 */
-struct UILIB_API ImageLoadPath
+struct DUILIB_API ImageLoadPath
 {
     //图片路径（本地绝对路径或者压缩包内的相对路径）
     FilePath m_imageFullPath;
@@ -32,7 +32,7 @@ struct UILIB_API ImageLoadPath
 
 /** 图片加载参数，用于加载一个图片
 */
-class UILIB_API ImageLoadParam
+class DUILIB_API ImageLoadParam
 {   
 public:
     /** 默认构造函数

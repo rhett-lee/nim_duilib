@@ -26,7 +26,7 @@ class ListCtrlListViewItem;
 
 /** ListCtrl控件
 */
-class ListCtrl: public VBox
+class DUILIB_API ListCtrl: public VBox
 {
     typedef VBox BaseClass;
     friend class ListCtrlData;          //列表数据管理容器

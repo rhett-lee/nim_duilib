@@ -9,7 +9,7 @@ class WindowBase;
 
 /** 显示器显示比例辅助类
 */
-class UILIB_API MonitorUtil
+class DUILIB_API MonitorUtil
 {
 public:
     /** 获取窗口所在显示器的DPI缩放比例, 如果pWindowBase为nullptr, 则获取主显示屏的DPI缩放比

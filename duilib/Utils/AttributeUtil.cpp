@@ -1,6 +1,7 @@
 #include "AttributeUtil.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 
 namespace ui

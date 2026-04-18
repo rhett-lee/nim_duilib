@@ -13,7 +13,7 @@ class ComboButtonWnd;
 
 /** 带有下拉组合框的按钮
 */
-class UILIB_API ComboButton : public Box
+class DUILIB_API ComboButton : public Box
 {
     typedef Box BaseClass;
     friend class ComboButtonWnd;

@@ -10,7 +10,7 @@ namespace ui
 
 /** 字体接口的基本数据结构
 */
-class UILIB_API UiFont
+class DUILIB_API UiFont
 {
 public:
     UiFont() :
@@ -47,7 +47,7 @@ public:
 };
 
 #pragma pack(4)
-class UILIB_API UiFontEx: public UiFont, public NVRefCount<UiFontEx>
+class DUILIB_API UiFontEx: public UiFont, public NVRefCount<UiFontEx>
 {
 public:
     /** 复制数据

@@ -11,7 +11,7 @@ class NativeWindow_SDL;
 
 /** 窗口的拖放支持
 */
-class WindowDropTarget
+class DUILIB_API WindowDropTarget
 {
 public:
     explicit WindowDropTarget(NativeWindow_SDL* pNativeWindow);

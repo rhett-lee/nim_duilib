@@ -37,7 +37,7 @@ enum class LayoutType
  *  水平方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
  *  垂直方向对齐方式：无，布局时按照子控件本身指定的对齐方式排列子控件
  */
-class UILIB_API Layout
+class DUILIB_API Layout
 {
 public:
     Layout();

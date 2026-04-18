@@ -7,7 +7,7 @@ namespace ui
 {
 /** 矩形区域的封装(浮点型)
 */
-class UILIB_API UiRectF
+class DUILIB_API UiRectF
 {
 public:
     /** 从UiRect构造

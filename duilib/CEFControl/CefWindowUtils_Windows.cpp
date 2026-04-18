@@ -1,7 +1,8 @@
 #include "CefWindowUtils.h"
-#include "duilib/Core/Window.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_CEF)
+
+#include "duilib/Core/Window.h"
 
 namespace ui
 {

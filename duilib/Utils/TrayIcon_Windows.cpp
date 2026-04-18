@@ -1,11 +1,13 @@
 #include "duilib/Utils/TrayIcon.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/ApiWrapper_Windows.h"
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include <shellapi.h>
 
@@ -17,7 +19,7 @@ namespace ui
 
 /** 托盘图标的Windows实现
 */
-class UILIB_API TrayIconImpl : public TrayIcon
+class TrayIconImpl : public TrayIcon
 {
 public:
     TrayIconImpl();
@@ -119,25 +121,32 @@ TrayIconImpl::~TrayIconImpl()
     }
 }
 
+//窗口类的名称
+#define DUILIB_TRAY_MESSAGE_WINDOW_CLASS L"TrayIconMessageWindow"
+
 bool TrayIconImpl::Initialize(const Window* pWindow, const DString& iconFilePath, const DString& tooltip)
 {
     // 创建一个隐藏的消息窗口用于接收托盘消息
-    HINSTANCE hInstance = ::GetModuleHandle(nullptr);
-    const wchar_t className[] = L"TrayIconMessageWindow";
-    
-    // 只注册一次窗口类
-    static bool s_classRegistered = false;
-    if (!s_classRegistered) {
-        WNDCLASSEXW wc = { 0 };
-        wc.cbSize = sizeof(WNDCLASSEXW);
-        wc.lpfnWndProc = TrayIconWndProc;
-        wc.hInstance = hInstance;
-        wc.lpszClassName = className;
-        ::RegisterClassExW(&wc);
-        s_classRegistered = true;
+    HINSTANCE hInstance = (HINSTANCE)GlobalManager::Instance().GetPlatformData();
+    if (hInstance == nullptr) {
+        hInstance = ::GetModuleHandle(nullptr);
     }
+    
+    // 注册窗口类
+    WNDCLASSEXW wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEXW);
+    wc.lpfnWndProc = TrayIconWndProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = DUILIB_TRAY_MESSAGE_WINDOW_CLASS;
+    ATOM ret = ::RegisterClassExW(&wc);
+    ASSERT_UNUSED_VARIABLE(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 
-    m_hWnd = ::CreateWindowExW(0, className, L"", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
+    //在模块退出时，注销该ATOM
+    GlobalManager::Instance().AddAtExitFunction([hInstance]() {
+            ::UnregisterClassW(DUILIB_TRAY_MESSAGE_WINDOW_CLASS, hInstance);
+        });
+
+    m_hWnd = ::CreateWindowExW(0, wc.lpszClassName, L"", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
     if (m_hWnd == nullptr) {
         return false;
     }

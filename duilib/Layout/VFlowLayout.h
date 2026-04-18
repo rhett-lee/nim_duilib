@@ -10,7 +10,7 @@ namespace ui
  *  水平方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件（同一列内）
  *  垂直方向对齐方式：默认靠上对齐，子控件本身指定的垂直对齐方式不生效
  */
-class UILIB_API VFlowLayout : public Layout
+class DUILIB_API VFlowLayout : public Layout
 {
     typedef Layout BaseClass;
 public:

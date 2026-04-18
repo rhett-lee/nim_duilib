@@ -11,7 +11,7 @@ class IBitmap;
 
 /** SVG矢量图片接口
 */
-class UILIB_API ImageUtil
+class DUILIB_API ImageUtil
 {
 public:
     /** 判断此图片缩放比例下，是否需要对图片进行resize操作

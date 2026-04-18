@@ -6,11 +6,9 @@
 #ifndef UI_CEF_CONTROL_CEF_OSR_CONTROL_H_
 #define UI_CEF_CONTROL_CEF_OSR_CONTROL_H_
 
-#include "duilib/Core/Window.h"
+#include "duilib/CEFControl/CefControl.h"
 
 #ifdef DUILIB_BUILD_FOR_CEF
-
-#include "duilib/CEFControl/CefControl.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 namespace client
@@ -25,7 +23,7 @@ class CefMemoryBlock;
 
 /** duilib的CEF控件，离屏渲染模式
 */
-class CefControlOffScreen :public CefControl
+class DUILIB_API CefControlOffScreen :public CefControl
 {
     typedef CefControl BaseClass;
 public:

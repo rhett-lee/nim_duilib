@@ -6,9 +6,9 @@ The functions here and in dgif_lib.c are partitioned carefully so that
 if you only require one of read and write capability, only one of these
 two modules will be linked.  Preserve this property!
 
-SPDX-License-Identifier: MIT
-
 *****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright (C) Eric S. Raymond <esr@thyrsus.com>
 
 #include <fcntl.h>
 #include <stdint.h>

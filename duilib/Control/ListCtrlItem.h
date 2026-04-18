@@ -23,7 +23,7 @@ namespace ui
 */
 class ListCtrl;
 class ListCtrlSubItem;
-class ListCtrlItem : public ListCtrlItemBaseH
+class DUILIB_API ListCtrlItem : public ListCtrlItemBaseH
 {
     typedef ListCtrlItemBaseH BaseClass;
     friend class ListCtrlReportView;//开放部分protect接口

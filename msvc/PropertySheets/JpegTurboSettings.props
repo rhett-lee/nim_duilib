@@ -3,18 +3,20 @@
     <!-- 该文件中设置 libjpeg-turbo 的 配置选项（可选项） -->
     <PropertyGroup Label="Globals">
 
-        <!-- libjpeg-turbo的include目录 -->
-        <JpegTurboIncludeDir Condition="'$(Platform)'=='x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\include</JpegTurboIncludeDir>
-        <JpegTurboIncludeDir Condition="'$(Platform)'=='Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\include</JpegTurboIncludeDir>
-        
-        <!-- libjpeg-turbo的lib目录 -->
-        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
-        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
-        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
-        <JpegTurboLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
-
         <!-- 是否支持libjpeg-turbo的宏定义： 0表示不支持；1 表示支持 -->
         <JpegTurboEnabled>1</JpegTurboEnabled>
+
+        <!-- libjpeg-turbo的include目录 -->
+        <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboIncludeDir>
+        <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Platform)'=='x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\include</JpegTurboIncludeDir>
+        <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Platform)'=='Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\include</JpegTurboIncludeDir>
+        
+        <!-- libjpeg-turbo的lib目录 -->
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
 
         <!-- lib列表 -->
         <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0'">turbojpeg-static.lib</JpegTurboLibs>

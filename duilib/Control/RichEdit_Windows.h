@@ -37,7 +37,7 @@ struct FindTextParam
 class RichEditHost;
 class ControlDropTarget_Windows;
 class VBox;
-class UILIB_API RichEdit : public ScrollBox
+class DUILIB_API RichEdit : public ScrollBox
 {
     typedef ScrollBox BaseClass;
 public:

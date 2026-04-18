@@ -11,7 +11,7 @@ namespace ui
  *  垂直方向对齐方式：靠上对齐，按控件依次排列
  *  在瓦片布局中，子控件本身指定的垂直对齐方式不生效
  */
-class UILIB_API VTileLayout : public Layout
+class DUILIB_API VTileLayout : public Layout
 {
     typedef Layout BaseClass;
 public:

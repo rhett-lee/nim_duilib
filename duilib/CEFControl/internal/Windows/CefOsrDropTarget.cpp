@@ -2,6 +2,7 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_CEF)
 
+#include "duilib/Core/Control.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/internal/Windows/osr_dragdrop_win.h"
 

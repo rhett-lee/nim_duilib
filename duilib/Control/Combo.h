@@ -12,7 +12,7 @@ class CComboWnd;
 
 /** 组合框控件
 */
-class UILIB_API Combo : public Box
+class DUILIB_API Combo : public Box
 {
     typedef Box BaseClass;
     friend class CComboWnd;

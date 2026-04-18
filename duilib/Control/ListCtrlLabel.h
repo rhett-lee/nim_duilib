@@ -8,7 +8,7 @@ namespace ui
 {
 /** 列表中使用的Label控件，用于显示文本，并提供文本编辑功能的事件
 */
-class ListCtrlLabel: public CheckBoxTemplate<HBox>
+class DUILIB_API ListCtrlLabel: public CheckBoxTemplate<HBox>
 {
     typedef CheckBoxTemplate<HBox> BaseClass;
 public:

@@ -15,7 +15,7 @@ typedef std::shared_ptr<Image> ImagePtr;
 
 /** Image列表
  */
-class UILIB_API ImageList
+class DUILIB_API ImageList
 {
 public:
     ImageList();

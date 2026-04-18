@@ -226,7 +226,7 @@ namespace ui
 
 /** Cef控件事件处理接口
 */
-class CefControlEvent
+class DUILIB_API CefControlEvent
 {
 public:
     /** Browser对象创建完成（回调函数的调用线程：主进程的UI线程）

@@ -10,7 +10,7 @@ namespace ui
 /** 日期时间选择控件
 */
 class DateTimeWnd;
-class UILIB_API DateTime : public LabelTemplate<HBox>
+class DUILIB_API DateTime : public LabelTemplate<HBox>
 {
     typedef LabelTemplate<HBox> BaseClass;
     friend class DateTimeWnd;

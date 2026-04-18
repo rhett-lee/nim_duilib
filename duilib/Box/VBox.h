@@ -10,7 +10,7 @@ namespace ui
 
 /** 垂直布局的Box(不换行)
 */
-class UILIB_API VBox : public Box
+class DUILIB_API VBox : public Box
 {
 public:
     explicit VBox(Window* pWindow) :
@@ -23,7 +23,7 @@ public:
 
 /** 垂直流式布局的Box(自动换行)
 */
-class UILIB_API VFlowBox : public Box
+class DUILIB_API VFlowBox : public Box
 {
 public:
     explicit VFlowBox(Window* pWindow) :

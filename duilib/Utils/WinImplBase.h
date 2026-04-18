@@ -16,7 +16,7 @@ namespace ui
 *              shadow_attached="true" layered_window="true" ，alpha为可选，设置窗口透明度，如果不设置默认为255；
 *              上述配置等同于：layered_window="true"，不设置shadow_attached属性
 */
-class UILIB_API WindowImplBase : public Window
+class DUILIB_API WindowImplBase : public Window
 {
     typedef Window BaseClass;
 public:

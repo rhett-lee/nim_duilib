@@ -9,7 +9,7 @@ namespace ui
 {
 /** 字符串/路径操作的辅助类
 */
-class UILIB_API StringUtil
+class DUILIB_API StringUtil
 {
 public:
     // format a string

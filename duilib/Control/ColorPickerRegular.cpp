@@ -119,6 +119,10 @@ ColorPickerRegular::ColorPickerRegular(Window* pWindow):
         });
 }
 
+ColorPickerRegular::~ColorPickerRegular()
+{
+}
+
 DString ColorPickerRegular::GetType() const { return DUI_CTR_COLOR_PICKER_REGULAR; }
 
 void ColorPickerRegular::SelectColor(const UiColor& color)

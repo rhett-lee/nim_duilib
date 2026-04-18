@@ -14,7 +14,7 @@ namespace ui
 {
 /** 渲染引擎接口的Windows实现
 */
-class UILIB_API Render_Skia_Windows : public Render_Skia
+class Render_Skia_Windows : public Render_Skia
 {
 public:
     /** 构造函数

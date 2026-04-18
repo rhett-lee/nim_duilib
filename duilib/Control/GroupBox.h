@@ -11,7 +11,7 @@ namespace ui
 /** 分组容器
 */
 template<typename InheritType>
-class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
+class GroupBoxTemplate : public LabelTemplate<InheritType>
 {
     typedef LabelTemplate<InheritType> BaseClass;
 public:

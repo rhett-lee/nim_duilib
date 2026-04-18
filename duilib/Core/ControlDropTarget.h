@@ -12,7 +12,7 @@ class Control;
 
 /** 控件的拖放支持接口（Windows）
 */
-class ControlDropTarget_Windows : public virtual SupportWeakCallback
+class DUILIB_API ControlDropTarget_Windows : public virtual SupportWeakCallback
 {
 public:
     /** IDropTarget::DragEnter
@@ -34,7 +34,7 @@ public:
 
 /** 控件的拖放支持接口（SDL）
 */
-class ControlDropTarget_SDL : public virtual SupportWeakCallback
+class DUILIB_API ControlDropTarget_SDL : public virtual SupportWeakCallback
 {
 public:
     /** SDL_EVENT_DROP_BEGIN

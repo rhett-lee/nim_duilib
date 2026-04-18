@@ -11,7 +11,7 @@ namespace ui
  *  垂直方向对齐方式：默认居中对齐
  *  在瓦片布局中，子控件本身指定的对齐方式不生效
  */
-class UILIB_API HTileLayout : public Layout
+class DUILIB_API HTileLayout : public Layout
 {
     typedef Layout BaseClass;
 public:

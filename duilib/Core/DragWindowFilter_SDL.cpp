@@ -1,4 +1,5 @@
 #include "DragWindowFilter_SDL.h"
+#include "duilib/Core/Control.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>

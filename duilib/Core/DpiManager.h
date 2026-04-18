@@ -15,7 +15,7 @@ class WindowBase;
 
 /** DPI感知功能的接口（支持高分屏）
 */
-class UILIB_API DpiManager
+class DUILIB_API DpiManager
 {
 public:
     DpiManager();

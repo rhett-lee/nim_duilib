@@ -9,7 +9,7 @@ namespace ui
 {
 /** 文本绘制的实现类，支持普通文本绘制和RichText文本绘制
 */
-class TextDrawer
+class DUILIB_API TextDrawer
 {
 public:
     TextDrawer();

@@ -9,9 +9,9 @@ gif_hash.c -- module to support the following operations:
 
 This module is used to hash the GIF codes during encoding.
 
-SPDX-License-Identifier: MIT
-
 *****************************************************************************/
+// SPDX-License-Identifier: MIT
+// SPDX-File-Copyright-Txt: (C) Copyright 1989 Gershon Elber
 
 #include <fcntl.h>
 #include <stdint.h>

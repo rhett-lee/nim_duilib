@@ -2,9 +2,10 @@
 #define UI_CEF_CONTROL_CEF_MANAGER_WINDOWS_H_
 
 #include "duilib/CEFControl/CefManager.h"
-#include <memory>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_CEF)
+
+#include <memory>
 
 namespace ui
 {
@@ -13,7 +14,7 @@ class ProcessSingleton;
 
 /** CEF组件管理器（Windows实现）
  */
-class CefManager_Windows : public CefManager
+class DUILIB_API CefManager_Windows : public CefManager
 {
     friend class CefManager;
     typedef CefManager BaseClass;

@@ -5,6 +5,7 @@
 
 namespace ui
 {
+FilePath::FilePath() = default;
 
 FilePath::FilePath(const std::string& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -15,6 +16,12 @@ FilePath::FilePath(const std::string& filePath) :
     m_bLexicallyNormal(false)
 {
 }
+
+FilePath::FilePath(const FilePath&) = default;
+FilePath::FilePath(FilePath&&) = default;
+FilePath::~FilePath() = default;
+FilePath& FilePath::operator=(const FilePath&) = default;
+FilePath& FilePath::operator=(FilePath&&) noexcept = default;
 
 FilePath::FilePath(const std::wstring& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN

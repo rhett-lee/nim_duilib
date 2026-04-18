@@ -12,7 +12,7 @@ namespace ui
  * 涵盖常用的缓动曲线：正弦、二次、三次、四次、五次、指数、圆形、回退、弹性、回弹
  * 每种曲线分为In(缓入)、Out(缓出)、InOut(缓入缓出)三种形式
  */
-enum UILIB_API EasingFunctionType: uint8_t
+enum DUILIB_API EasingFunctionType: uint8_t
 {
     EaseLinear,          // 线性函数
 
@@ -54,7 +54,7 @@ typedef double(*EasingFunction)(double);
 
 /** 缓动函数的插值函数封装(供应用层使用)
 */
-class UILIB_API EasingFunctions
+class DUILIB_API EasingFunctions
 {
 public:
     /** 根据枚举类型获取对应的缓动函数指针

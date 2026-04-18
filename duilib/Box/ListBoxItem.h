@@ -32,7 +32,7 @@ enum class ListBoxHorVisible
 
 /** ListBox所有者接口
 */
-class UILIB_API IListBoxOwner
+class DUILIB_API IListBoxOwner
 {
 public:
     /** 触发事件
@@ -116,7 +116,7 @@ public:
 
 /** ListBoxItem 接口
 */
-class UILIB_API IListBoxItem
+class DUILIB_API IListBoxItem
 {
 public:
     virtual ~IListBoxItem() = default;
@@ -167,7 +167,7 @@ public:
 /** 列表项的数据子项，用于在列表中展示数据的子项
 */
 template<typename InheritType = Box>
-class UILIB_API ListBoxItemTemplate:
+class ListBoxItemTemplate:
     public OptionTemplate<InheritType>,
     public IListBoxItem
 {

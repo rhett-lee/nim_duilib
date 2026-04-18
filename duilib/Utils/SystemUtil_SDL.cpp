@@ -1,8 +1,11 @@
 #include "SystemUtil.h"
-#include "duilib/Utils/StringConvert.h"
-#include "duilib/Core/Window.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
+
+#include "duilib/Utils/StringConvert.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
+
 #include <SDL3/SDL.h>
 
 namespace ui

@@ -75,7 +75,6 @@ GlobalManager::GlobalManager():
 
 GlobalManager::~GlobalManager()
 {
-    Shutdown();
 }
 
 GlobalManager& GlobalManager::Instance()
@@ -132,9 +131,6 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //记录当前线程ID
     m_dwUiThreadId = std::this_thread::get_id();
-
-    //记录平台相关数据
-    m_platformData = resParam.platformData;
 
     //初始化DPI感知模式，//初始化DPI值
     DpiManager& dpiManager = Dpi();
@@ -312,6 +308,11 @@ void GlobalManager::SetResourcePath(const FilePath& strPath)
 {
     m_resourcePath = strPath;
     m_resourcePath.NormalizeDirectoryPath();
+}
+
+void GlobalManager::SetPlatformData(void* pPlatformData)
+{
+    m_platformData = pPlatformData;
 }
 
 void* GlobalManager::GetPlatformData() const

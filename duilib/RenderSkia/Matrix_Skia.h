@@ -8,10 +8,11 @@ class SkMatrix;
 namespace ui 
 {
 
-class UILIB_API Matrix_Skia : public IMatrix
+class Matrix_Skia : public IMatrix
 {
 public:
     Matrix_Skia();
+    virtual ~Matrix_Skia();
 
     virtual void Translate(float offsetX, float offsetY) override;
 

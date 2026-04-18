@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <climits>
 
-#define UILIB_API
+#define DUILIB_API
 
 typedef unsigned int        UINT;
 typedef unsigned long long  WPARAM;

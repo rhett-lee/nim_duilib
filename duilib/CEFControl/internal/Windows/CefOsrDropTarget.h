@@ -13,7 +13,7 @@ namespace ui {
 
 /** CEF离屏渲染模式下的拖动目标
  */
-class CefOsrDropTarget : public ControlDropTarget_Windows
+class DUILIB_API CefOsrDropTarget : public ControlDropTarget_Windows
 {
 public:
     explicit CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin);

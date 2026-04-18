@@ -154,6 +154,12 @@ bool DateTimeWnd::RegisterSuperClass()
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClassExW(&wc);
     ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+
+    //在模块退出时，注销该ATOM
+    GlobalManager::Instance().AddAtExitFunction([hModule]() {
+            ::UnregisterClassW(DATETIMEPICK_CLASSW, hModule);
+        });
+
     return ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
 

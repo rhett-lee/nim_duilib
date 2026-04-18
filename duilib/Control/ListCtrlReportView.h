@@ -18,7 +18,7 @@ namespace ui
 class ListCtrl;
 class ListCtrlData;
 struct ListCtrlItemData;
-class ListCtrlReportView : public ListCtrlView, public IListCtrlView
+class DUILIB_API ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
     typedef ListCtrlView BaseClass;
     friend class ListCtrlReportLayout;
@@ -330,7 +330,7 @@ private:
 
 /** 列表数据显示控件的布局管理接口
 */
-class ListCtrlReportLayout : public Layout, public VirtualLayout
+class DUILIB_API ListCtrlReportLayout : public Layout, public VirtualLayout
 {
     typedef Layout BaseClass;
 public:

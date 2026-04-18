@@ -18,7 +18,7 @@ interface ICoreWebView2CustomSchemeRegistration;
 
 namespace ui
 {
-class WebView2EnvironmentOptions :
+class DUILIB_API WebView2EnvironmentOptions :
     public ICoreWebView2EnvironmentOptions,
     public ICoreWebView2EnvironmentOptions2,
     public ICoreWebView2EnvironmentOptions3,

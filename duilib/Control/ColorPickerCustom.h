@@ -12,7 +12,7 @@ namespace ui
 */
 class RichEdit;
 class ColorPickerRegular;
-class ColorPickerCustom : public Box
+class DUILIB_API ColorPickerCustom : public Box
 {
     typedef Box BaseClass;
 public:

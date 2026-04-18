@@ -12,6 +12,10 @@ Path_Skia::Path_Skia()
     m_skPathBuilder = std::make_unique<SkPathBuilder>();
 }
 
+Path_Skia::~Path_Skia()
+{
+}
+
 Path_Skia::Path_Skia(const Path_Skia& r)
 {
     if (r.m_skPathBuilder.get() != nullptr) {

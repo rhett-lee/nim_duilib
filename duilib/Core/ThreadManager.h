@@ -10,7 +10,7 @@ namespace ui
 {
 /** 线程管理器，用以支持线程间通信
 */
-class UILIB_API ThreadManager
+class DUILIB_API ThreadManager
 {
 public:
     ThreadManager();

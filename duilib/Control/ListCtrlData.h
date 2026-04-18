@@ -11,7 +11,7 @@ namespace ui
 */
 class ListCtrl;
 struct ListCtrlSubItemData;
-class ListCtrlData : public ui::VirtualListBoxElement
+class DUILIB_API ListCtrlData : public ui::VirtualListBoxElement
 {
 public:
     //用于存储的数据结构

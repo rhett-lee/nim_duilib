@@ -6,7 +6,7 @@
 namespace ui 
 {
 
-class UILIB_API Pen_Skia : public IPen
+class Pen_Skia : public IPen
 {
 public:
     explicit Pen_Skia(UiColor color, float fWidth = 1.0f);

@@ -9,7 +9,7 @@ namespace ui
 /** Report视图中，列表项的子项
 */
 class ListCtrlItem;
-class ListCtrlSubItem : public ListCtrlLabel
+class DUILIB_API ListCtrlSubItem : public ListCtrlLabel
 {
     typedef ListCtrlLabel BaseClass;
     friend class ListCtrlReportView;//允许调用SetDataColumnId函数

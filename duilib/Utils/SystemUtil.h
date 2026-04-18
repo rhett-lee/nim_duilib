@@ -9,7 +9,7 @@ class Window;
 
 /** 系统相关的辅助操作
 */
-class UILIB_API SystemUtil
+class DUILIB_API SystemUtil
 {
 public:
     /** 打开URL

@@ -7,7 +7,7 @@ namespace ui
 {
 /** 文件时间类
 */
-class UILIB_API FileTime
+class DUILIB_API FileTime
 {
 public:
     FileTime();

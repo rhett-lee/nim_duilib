@@ -9,7 +9,7 @@ namespace ui
 
 /** 控件估算长度（或宽度）数值
 */
-class UILIB_API UiEstInt
+class DUILIB_API UiEstInt
 {
 public:
     //数值类型定义

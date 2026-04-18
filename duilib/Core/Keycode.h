@@ -212,7 +212,7 @@ enum VirtualKeyCode
     //VirtualKeyCode 与 SDL的 SDL_Keycode相互转换
     typedef uint32_t SDL_Keycode;
 
-    class Keycode
+    class DUILIB_API Keycode
     {
     public:
         /** SDL_Keycode 转换为 ui::VirtualKeyCode(有丢失，SDL的内容比VirtualKeyCode多)

@@ -8,7 +8,7 @@ namespace ui
 {
 /** 图片格式解码工程类
 */
-class UILIB_API ImageDecoderFactory
+class DUILIB_API ImageDecoderFactory
 {
 public:
     ImageDecoderFactory();

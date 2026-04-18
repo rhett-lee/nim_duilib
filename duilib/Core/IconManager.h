@@ -15,7 +15,7 @@ class ImageLoadAttribute;
 
 /** 图标位图数据
 */
-class UILIB_API IconBitmapData
+class DUILIB_API IconBitmapData
 {
 public:
     /** 图标位图数据, 数据的长度是：m_nBitmapHeight * m_nBitmapWidth * 4
@@ -38,7 +38,7 @@ typedef std::function<void (uint32_t nIconId)> RemoveIconEvent;
 /** 图标资源管理器（线程安全，适合图标类的小图片资源）
  *  说明：支持Windows的HICON句柄资源，但内部不使用HICON，因为HICON是内核GDI资源，每个进程有上限，约1万个左右，耗尽后该进程就挂了。
  */
-class UILIB_API IconManager
+class DUILIB_API IconManager
 {
 public:
     IconManager();

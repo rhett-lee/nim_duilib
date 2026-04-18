@@ -14,7 +14,7 @@ typedef std::function<void(size_t nStartIndex, size_t nEndIndex)> DataChangedNot
 typedef std::function<void()> CountChangedNotify;
 
 class VirtualListBox;
-class UILIB_API VirtualListBoxElement : public virtual SupportWeakCallback
+class DUILIB_API VirtualListBoxElement : public virtual SupportWeakCallback
 {
 public:
     VirtualListBoxElement();
@@ -105,7 +105,7 @@ private:
 
 /** 虚表实现的ListBox，支持大数据量，支持滚动条
 */
-class UILIB_API VirtualListBox : public ListBox
+class DUILIB_API VirtualListBox : public ListBox
 {
     typedef ListBox BaseClass;
     friend class VirtualHLayout;
@@ -580,7 +580,7 @@ private:
 
 /** 横向布局的虚表ListBox
 */
-class UILIB_API VirtualHListBox : public VirtualListBox
+class DUILIB_API VirtualHListBox : public VirtualListBox
 {
 public:
     explicit VirtualHListBox(Window* pWindow) :
@@ -595,7 +595,7 @@ public:
 
 /** 纵向布局的虚表ListBox
 */
-class UILIB_API VirtualVListBox : public VirtualListBox
+class DUILIB_API VirtualVListBox : public VirtualListBox
 {
 public:
     explicit VirtualVListBox(Window* pWindow) :
@@ -610,7 +610,7 @@ public:
 
 /** 瓦片布局的虚表ListBox(横向布局)
 */
-class UILIB_API VirtualHTileListBox : public VirtualListBox
+class DUILIB_API VirtualHTileListBox : public VirtualListBox
 {
 public:
     explicit VirtualHTileListBox(Window* pWindow) :
@@ -625,7 +625,7 @@ public:
 
 /** 瓦片布局的虚表ListBox(纵向布局)
 */
-class UILIB_API VirtualVTileListBox : public VirtualListBox
+class DUILIB_API VirtualVTileListBox : public VirtualListBox
 {
 public:
     explicit VirtualVTileListBox(Window* pWindow) :

@@ -13,7 +13,7 @@ namespace ui
 *   注意事项：如果两个控件都设置为拉伸类型的，则分割条无法正常工作。
 */
 template<typename InheritType = Control>
-class UILIB_API SplitTemplate : public InheritType
+class SplitTemplate : public InheritType
 {
     typedef InheritType BaseClass;
 public:

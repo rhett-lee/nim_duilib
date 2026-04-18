@@ -7,7 +7,7 @@
 #include <TargetConditionals.h>
 
 // macOS 平台导出宏定义
-#define UILIB_API
+#define DUILIB_API
 
 // 基础类型定义（保持与Linux一致）
 typedef unsigned int        UINT;

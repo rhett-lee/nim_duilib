@@ -7,7 +7,7 @@ namespace ui
 {
 /** 路径操作的辅助类
 */
-class UILIB_API FilePathUtil
+class DUILIB_API FilePathUtil
 {
 public:
     /** 连接两个路径，生成一个新的路径，用于路径拼接

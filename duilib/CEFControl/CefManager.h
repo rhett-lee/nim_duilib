@@ -37,7 +37,7 @@ class Window;
  * @author Redrain
  * @date 2016/7/19
  */
-class CefManager : public ui::SupportWeakCallback
+class DUILIB_API CefManager : public ui::SupportWeakCallback
 {
 public:
     CefManager();

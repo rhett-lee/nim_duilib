@@ -17,7 +17,7 @@ class IBitmap;
  *     （1）对于位图数据操作相关的函数：支持多线程，可以在子线程中操作位图数据，位图的绘制是在UI线程中进行的
  *     （2）对于非位图数据操作相关的函数：只能在UI线程中调用，不支持多线程
  */
-class BitmapControl : public Box
+class DUILIB_API BitmapControl : public Box
 {
     typedef Box BaseClass;
 public:

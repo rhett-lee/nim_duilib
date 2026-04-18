@@ -8,7 +8,7 @@ namespace ui
 {
 /** RichText文本XML解析后的格式化文本片段
 */
-class UILIB_API RichTextSlice
+class DUILIB_API RichTextSlice
 {
 public:
     /** 节点名称
@@ -43,7 +43,7 @@ public:
 
 /** 格式化文本（类HTML格式）
 */
-class UILIB_API RichTextImpl
+class DUILIB_API RichTextImpl
 {
 public:
     explicit RichTextImpl(Control* pOwner);

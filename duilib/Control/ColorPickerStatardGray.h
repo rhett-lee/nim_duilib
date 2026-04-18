@@ -8,7 +8,7 @@ namespace ui
 {
 /** 颜色选择器：标准颜色，灰色
 */
-class ColorPickerStatardGray : public Control
+class DUILIB_API ColorPickerStatardGray : public Control
 {
     typedef Control BaseClass;
 public:

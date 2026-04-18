@@ -10,7 +10,7 @@ namespace ui
 *   内边距：Padding是包含控件的矩形区域内的;
     内边距属性是布局(Layout)属性，只有Box及子类这种有布局特性的容器有内边距属性，Control本身没有内边距属性
 */
-class UILIB_API UiPadding
+class DUILIB_API UiPadding
 {
 public:
     UiPadding()
@@ -98,7 +98,7 @@ public:
 
 /** 16位无符号的版本，用于存储，节约空间
 */
-class UILIB_API UiPadding16
+class DUILIB_API UiPadding16
 {
 public:
     UiPadding16()

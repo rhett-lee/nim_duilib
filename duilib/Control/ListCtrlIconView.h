@@ -16,7 +16,7 @@ namespace ui
 */
 class ListCtrl;
 class ListCtrlData;
-class ListCtrlIconView : public ListCtrlView, public IListCtrlView
+class DUILIB_API ListCtrlIconView : public ListCtrlView, public IListCtrlView
 {
     typedef ListCtrlView BaseClass;
 public:

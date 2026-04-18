@@ -8,7 +8,7 @@ namespace ui
 
 /** 点的封装
 */
-class UILIB_API UiPointF
+class DUILIB_API UiPointF
 {
 public:
     /** 从UiPoint构造

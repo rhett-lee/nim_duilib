@@ -12,7 +12,7 @@ namespace ui
 {
 /** 窗口消息过滤接口，用于截获窗口过程的消息，优先于Window类进行消息处理
 */
-class IUIMessageFilter
+class DUILIB_API IUIMessageFilter
 {
 public:
     virtual ~IUIMessageFilter() = default;
@@ -29,7 +29,7 @@ public:
 
 class Control;
 
-class INativeWindow: public virtual SupportWeakCallback
+class DUILIB_API INativeWindow: public virtual SupportWeakCallback
 {
 public:
     /** 获取该窗口对应的DPI管理器

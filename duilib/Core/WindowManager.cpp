@@ -1,5 +1,6 @@
 #include "WindowManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include <set>
 

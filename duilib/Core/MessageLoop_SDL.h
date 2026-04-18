@@ -19,7 +19,7 @@ typedef std::function<void(uint32_t msgID, WPARAM wParam, LPARAM lParam)> SDLUse
 
 /** 主线程的消息循环
 */
-class MessageLoop_SDL
+class DUILIB_API MessageLoop_SDL
 {
 public:
     MessageLoop_SDL();

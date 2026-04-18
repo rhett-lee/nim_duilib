@@ -21,7 +21,7 @@ struct ListCtrlColumn;
 *       <SplitBox> <Control/> </SplitBox>
 *   </ListCtrlHeader>
 */
-class ListCtrlHeader : public ListBoxItemH
+class DUILIB_API ListCtrlHeader : public ListBoxItemH
 {
     typedef ListBoxItemH BaseClass;
     friend class ListCtrlHeaderItem;

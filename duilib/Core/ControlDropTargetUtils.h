@@ -7,7 +7,7 @@ namespace ui
 {
 /** 控件的拖放支持的辅助函数
 */
-class ControlDropTargetUtils
+class DUILIB_API ControlDropTargetUtils
 {
 public:
     /** 判断文件后缀是否满足配置要求

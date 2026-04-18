@@ -11,7 +11,7 @@ namespace ui
 
 /** Skia字体接口的实现
 */
-class UILIB_API Font_Skia: public IFont
+class Font_Skia: public IFont
 {
 public:
     explicit Font_Skia(std::shared_ptr<IFontMgr>& spFontMgr);

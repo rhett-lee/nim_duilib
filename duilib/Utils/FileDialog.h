@@ -11,7 +11,7 @@ namespace ui
 /** 文件或者目录选择对话框，支持多选
 */
 class Window;
-class UILIB_API FileDialog
+class DUILIB_API FileDialog
 {
 public:
     /** 选择文件夹（单选）

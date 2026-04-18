@@ -25,7 +25,7 @@ class ListBoxHelper;
 /** 列表容器，用于展示一组数据使用
 *   通过修改布局，形成 HListBox/VListBox/HTileListBox/VTileListBox四个子类
 */
-class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
+class DUILIB_API ListBox : public ScrollBox, public IListBoxOwner
 {
     typedef ScrollBox BaseClass;
 public:
@@ -700,7 +700,7 @@ private:
 
 /** 横向布局的ListBox
 */
-class UILIB_API HListBox : public ListBox
+class DUILIB_API HListBox : public ListBox
 {
 public:
     explicit HListBox(Window* pWindow) :
@@ -713,7 +713,7 @@ public:
 
 /** 纵向布局的ListBox
 */
-class UILIB_API VListBox : public ListBox
+class DUILIB_API VListBox : public ListBox
 {
 public:
     explicit VListBox(Window* pWindow) :
@@ -726,7 +726,7 @@ public:
 
 /** 瓦片布局的ListBox(横向布局)
 */
-class UILIB_API HTileListBox : public ListBox
+class DUILIB_API HTileListBox : public ListBox
 {
 public:
     explicit HTileListBox(Window* pWindow) :
@@ -739,7 +739,7 @@ public:
 
 /** 瓦片布局的ListBox(纵向布局)
 */
-class UILIB_API VTileListBox : public ListBox
+class DUILIB_API VTileListBox : public ListBox
 {
 public:
     explicit VTileListBox(Window* pWindow) :

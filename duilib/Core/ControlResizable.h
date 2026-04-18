@@ -8,7 +8,7 @@ namespace ui
 /** 主要功能：支持通过鼠标左键按下来调整控件的大小(同时保留基类的可拖动位置功能)
 */
 template<typename T = Control>
-class UILIB_API ControlResizableT: public ControlMovableT<T>
+class ControlResizableT: public ControlMovableT<T>
 {
     typedef ControlMovableT<T> BaseClass;
 public:

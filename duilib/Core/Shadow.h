@@ -15,7 +15,7 @@ class DpiManager;
 
 /** 窗口阴影属性
 */
-class UILIB_API Shadow
+class DUILIB_API Shadow
 {
 public:
     /** 阴影类型

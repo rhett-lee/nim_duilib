@@ -9,7 +9,7 @@
 
 /** 磁盘分区信息辅助类（字符串编码类型：UTF-16或者UTF-8）
 */
-class UILIB_API DiskUtils
+class DUILIB_API DiskUtils
 {
 public:
 

@@ -10,7 +10,7 @@ class TextDrawer;
 
 /** 获取文本的接口，支持虚函数
 */
-class UILIB_API LabelOwner
+class DUILIB_API LabelOwner
 {
 public:
     virtual ~LabelOwner() = default;
@@ -36,7 +36,7 @@ public:
 
 /** 标签控件的内部实现，用于显示文本
 */
-class UILIB_API LabelImpl
+class DUILIB_API LabelImpl
 {
 public:
     explicit LabelImpl(Control* pOwner);

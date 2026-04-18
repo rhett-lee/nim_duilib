@@ -9,7 +9,7 @@ class RichEdit;
 
 /** 地址栏控件，用于显示本地文件系统的路径
 */
-class AddressBar : public HBox
+class DUILIB_API AddressBar : public HBox
 {
     typedef HBox BaseClass;
 public:

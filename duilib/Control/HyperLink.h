@@ -7,7 +7,7 @@ namespace ui {
 
 /** 带有超级链接的文字, 如果URL为空的话，可以当作普通的文字按钮使用
 */
-class HyperLink : public Label
+class DUILIB_API HyperLink : public Label
 {
     typedef Label BaseClass;
 public:

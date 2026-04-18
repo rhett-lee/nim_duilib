@@ -9,7 +9,7 @@ namespace ui
 {
 /** 屏幕截图（Linux X11的实现）
 */
-class UILIB_API ScreenCapture_X11
+class DUILIB_API ScreenCapture_X11
 {
 public:
     /** 抓一张窗口所在屏幕的截图

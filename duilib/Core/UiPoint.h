@@ -9,7 +9,7 @@ namespace ui
 
 /** 点的封装
 */
-class UILIB_API UiPoint
+class DUILIB_API UiPoint
 {
 public:
     UiPoint()

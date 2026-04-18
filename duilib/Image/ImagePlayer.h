@@ -13,7 +13,7 @@ class Control;
 
 /** 控件图片动画播放的逻辑封装（支持GIF/WebP/APNG/Lottie-JSON/PAG动画）
 */
-class ImagePlayer: public SupportWeakCallback
+class DUILIB_API ImagePlayer: public SupportWeakCallback
 {
 public:
     ImagePlayer();

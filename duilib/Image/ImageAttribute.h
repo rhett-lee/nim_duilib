@@ -9,7 +9,7 @@ class DpiManager;
 
 /** 图片属性
 */
-class UILIB_API ImageAttribute
+class DUILIB_API ImageAttribute
 {
 public:
     ImageAttribute();

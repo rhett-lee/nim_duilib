@@ -33,7 +33,7 @@ typedef std::function<void(TrayIconMessageType msgType, int32_t x, int32_t y)> T
 
 /** 托盘图标功能
 */
-class UILIB_API TrayIcon
+class DUILIB_API TrayIcon
 {
 protected:
     TrayIcon();

@@ -19,7 +19,7 @@ class IBitmap;
 
 /** WebView2控件的C++封装类
  */
-class WebView2Control: public Control
+class DUILIB_API WebView2Control: public Control
 {
     typedef Control BaseClass;
 public:

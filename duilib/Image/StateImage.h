@@ -13,7 +13,7 @@ class Image;
 class IRender;
 class DpiManager;
 
-class UILIB_API StateImage
+class DUILIB_API StateImage
 {
 public:
     StateImage();

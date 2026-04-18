@@ -14,14 +14,14 @@ typedef std::function<void(void)> StdClosure;
 
 /** weak_ptr智能指针的类型标志
 */
-class UILIB_API WeakFlag
+class WeakFlag
 {
 };
 
 /** 基于weak_ptr的回调类
 */
 template<typename T>
-class UILIB_API WeakCallback
+class WeakCallback
 {
 public:
     WeakCallback(const std::weak_ptr<WeakFlag>& weak_flag, const T& t) :
@@ -77,7 +77,7 @@ private:
 
 /** 支持基于weak_ptr的回调类的基类
 */
-class UILIB_API SupportWeakCallback
+class DUILIB_API SupportWeakCallback
 {
 public:
     typedef std::weak_ptr<WeakFlag> _TyWeakFlag;
@@ -123,7 +123,7 @@ protected:
 // 这里禁止继承，主要担心误用。当使用这个类的功能，打包出多个支持 Weak 语义的 Callback 时，一旦错误的调用了 Cancel，
 // 将会取消所有 Callback，这种情况可能不是用户希望的。此时，应该使用多个带有 Cancel() 函数的 WeakCallbackFlag 类型的成员变量，
 // 每个对应一个 Callback，一一对应的控制每个支持 Weak 语义的 Callback。
-class UILIB_API WeakCallbackFlag final : public SupportWeakCallback
+class DUILIB_API WeakCallbackFlag final : public SupportWeakCallback
 {
 public:
     void Cancel()

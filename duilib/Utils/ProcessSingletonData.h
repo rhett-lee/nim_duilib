@@ -13,7 +13,7 @@ namespace ui
 {
 /** 跨进程单例的实现（通信协议部分）
 */
-class UILIB_API ProcessSingletonData
+class DUILIB_API ProcessSingletonData
 {
 public:
     /** 协议头定义

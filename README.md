@@ -232,6 +232,11 @@ if not exist ".\nim_duilib\.git" (
 )
 .\nim_duilib\build\build_duilib_all_in_one.bat
 ```
+上述脚本默认编译使用的是静态运行库(MT和MTd)，如果需要使用动态运行库（MD和MDd），需要将上述脚本的最后一行追加`/MD`参数，改为：    
+`.\nim_duilib\build\build_duilib_all_in_one.bat /MD`    
+备注1：如果nim_duilib最终编译为DLL库，那么就必须使用动态运行库。    
+备注2：如果nim_duilib使用动态运行库，那么Skia库也必须使用动态运行库，编译方法可参考skia_compile库的文档。    
+    
 * 对于Visual Studio 2017/2019（需要使用develop-cpp17分支代码），脚本文件内容如下：    
 ```
 REM For Visual Studio 2017/2019
@@ -262,6 +267,11 @@ if %errorlevel% neq 0 (
 )
 .\nim_duilib\build\build_duilib_all_in_one.bat
 ```
+上述脚本默认编译使用的是静态运行库(MT和MTd)，如果需要使用动态运行库（MD和MDd），需要将上述脚本的最后一行追加`/MD`参数，改为：    
+`.\nim_duilib\build\build_duilib_all_in_one.bat /MD`    
+备注1：如果nim_duilib最终编译为DLL库，那么就必须使用动态运行库。    
+备注2：如果nim_duilib使用动态运行库，那么Skia库也必须使用动态运行库，编译方法可参考skia_compile库的文档。    
+    
 * 脚本文件准备好以后，进入命令行控制台，运行该脚本： 
 ```
 .\build.bat
@@ -286,7 +296,13 @@ if %errorlevel% neq 0 (
 （3）CEF模块如果不需要可关闭，编辑`msvc\PropertySheets\CEFSettings.props`文件，将`LibCefEnabled`的值改为`0`即可。    
 （4）关闭CEF模块后，可使用`duilib_no_cef.sln`或者`examples_no_cef.sln`工程来编译，从而减少libCEF代码的编译。    
 7. WebView2模块的备注：    
-（1）WebView2模块如果不需要可关闭，编辑`msvc\PropertySheets\WebView2Settings.props`文件，将`WebView2Enabled`的值改为`0`即可。
+（1）WebView2模块如果不需要可关闭，编辑`msvc\PropertySheets\WebView2Settings.props`文件，将`WebView2Enabled`的值改为`0`即可。    
+8. nim_duilib库默认使用静态运行库（/MT和/MTd），同时也支持动态运行库（/MD和/MDd），切换方法如下：    
+（1）Skia库编译时使用的运行库，与nim_duilib库使用的运行库必须相同。Skia库的编译方法可参考skia_compile库的文档。    
+（2）nim_duilib库切换为使用动态运行库，可运行以下脚本：    
+    `.\nim_duilib\msvc\PropertySheets\DuilibUseDynamicRuntime.bat`    
+（3）nim_duilib库切换为使用静态运行库，可运行以下脚本：    
+    `.\nim_duilib\msvc\PropertySheets\DuilibUseStaticRuntime.bat`    
 
 ## B. 编译过程（Linux平台）
 ### 一、准备工作：安装必备的软件

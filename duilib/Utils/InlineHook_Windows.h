@@ -15,7 +15,7 @@ namespace ui
 {
 /** inline hook的功能封装
 */
-class UILIB_API InlineHook
+class InlineHook
 {
 public:
     InlineHook();

@@ -9,7 +9,7 @@ namespace ui
 {
 /** 颜色值的管理容器
 */
-class UILIB_API ColorMap
+class DUILIB_API ColorMap
 {
 public:
     /** 添加一个颜色值
@@ -47,7 +47,7 @@ private:
 
 /** 颜色值的管理类
 */
-class UILIB_API ColorManager
+class DUILIB_API ColorManager
 {
 public:
     ColorManager();

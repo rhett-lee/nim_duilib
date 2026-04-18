@@ -10,7 +10,7 @@ namespace ui
 {
 /** 虚拟目录的类型
 */
-enum class UILIB_API VirtualDirectoryType
+enum class DUILIB_API VirtualDirectoryType
 {
     kUserHome,  //主文件夹
     kDesktop,   //桌面
@@ -25,7 +25,7 @@ class DirectoryTreeImpl;
 
 /** 文件系统的目录树结构
 */
-class UILIB_API DirectoryTree: public TreeView
+class DUILIB_API DirectoryTree: public TreeView
 {
 public:
     typedef TreeView BaseClass;

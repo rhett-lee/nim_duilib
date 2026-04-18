@@ -10,7 +10,7 @@ namespace ui
  *  水平方向对齐方式：默认靠左对齐，子控件本身指定的对齐方式不生效
  *  垂直方向对齐方式：默认无，布局时按照子控件本身指定的对齐方式排列子控件（在同一行内）
  */
-class UILIB_API HFlowLayout : public Layout
+class DUILIB_API HFlowLayout : public Layout
 {
     typedef Layout BaseClass;
 public:

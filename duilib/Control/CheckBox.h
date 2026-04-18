@@ -24,7 +24,7 @@ namespace ui {
  */
 
 template<typename InheritType = Control>
-class UILIB_API CheckBoxTemplate : public ButtonTemplate<InheritType>
+class CheckBoxTemplate : public ButtonTemplate<InheritType>
 {
     typedef ButtonTemplate<InheritType> BaseClass;
 public:

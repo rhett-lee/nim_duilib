@@ -8,7 +8,7 @@ namespace ui
 {
 /** 自定义颜色控件
 */
-class ColorControl: public Control
+class DUILIB_API ColorControl: public Control
 {
     typedef Control BaseClass;
 public:

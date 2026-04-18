@@ -8,7 +8,7 @@ namespace ui
 {
 
 class CCheckComboWnd;
-class UILIB_API CheckCombo : public Box
+class DUILIB_API CheckCombo : public Box
 {
     typedef Box BaseClass;
     friend class CCheckComboWnd;

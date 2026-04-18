@@ -8,7 +8,7 @@ namespace ui
 {
 /** 列表中使用的图标控件，用于显示图标
 */
-class ListCtrlIcon: public CheckBoxTemplate<HBox>
+class DUILIB_API ListCtrlIcon: public CheckBoxTemplate<HBox>
 {
     typedef CheckBoxTemplate<HBox> BaseClass;
 public:

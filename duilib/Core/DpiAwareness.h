@@ -10,7 +10,7 @@ namespace ui
  *  1. 设置为 kDpiUnaware/kSystemDpiAware 具有相同的结果：都是不支持DPI感知，高DPI时，界面不会跟随DPI等比例放大，会出现模糊现象
  *  2. 设置为 kFromManifest/kPerMonitorDpiAware/kPerMonitorDpiAware_V2 具有相同的结果：支持DPI感知，高DPI时，界面会等比例放大，界面显示效果清晰
  */
-enum class UILIB_API DpiAwarenessMode
+enum class DUILIB_API DpiAwarenessMode
 {
     /** 设置根据平台设置不同的DPI感知模式：
     *   Windows平台：从可执行程序exe文件的manifest配置中读取，不需要使用代码设置，如果exe的manifest未配置，则不支持DPI感知
@@ -55,7 +55,7 @@ enum class UILIB_API DpiAwarenessMode
 
 /** DPI感知功能初始化参数
 */
-class UILIB_API DpiInitParam
+class DUILIB_API DpiInitParam
 {
 public:
     /** 参数设置的DPI感知参数模式
@@ -75,7 +75,7 @@ public:
 
 /** DPI感知功能的接口
 */
-class UILIB_API DpiAwareness
+class DUILIB_API DpiAwareness
 {
 public:
     DpiAwareness();

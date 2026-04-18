@@ -8,7 +8,7 @@ namespace ui
 
 /** 带有过滤功能的组合框
 */
-class UILIB_API FilterCombo : public Combo
+class DUILIB_API FilterCombo : public Combo
 {
     typedef Combo BaseClass;
 public:

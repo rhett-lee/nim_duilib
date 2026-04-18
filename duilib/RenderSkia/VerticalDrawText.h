@@ -18,7 +18,7 @@ struct TVerticalChar;
 
 /** 纵向文本绘制的实现封装（从上到下，从右到左）
 */
-class UILIB_API VerticalDrawText
+class VerticalDrawText
 {
 public:
     VerticalDrawText(SkCanvas* pSkCanvas, SkPaint* pSkPaint, SkPoint* pSkPointOrg);

@@ -17,7 +17,7 @@ namespace ui
 {
 /** 跨进程单例的实现（通信部分，Linux实现）
 */
-class UILIB_API ProcessSingletonImpl: public ProcessSingleton
+class DUILIB_API ProcessSingletonImpl: public ProcessSingleton
 {
 public:
     explicit ProcessSingletonImpl(const std::string& strAppName) :

@@ -13,7 +13,7 @@ class IBitmap;
 
 /** 支持多线程解码的接口（底层解码使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
 */
-class UILIB_API IImageDelayDecode
+class DUILIB_API IImageDelayDecode
 {
 public:
     virtual ~IImageDelayDecode() = default;
@@ -49,7 +49,7 @@ public:
 
 /** 支持多线程解码的接口（应用层使用，支持延迟解码，可以在多线程中解码，避免在UI线程解码图片导致卡顿）
 */
-class UILIB_API IImageAsyncDecode
+class DUILIB_API IImageAsyncDecode
 {
 public:
     virtual ~IImageAsyncDecode() = default;
@@ -94,7 +94,7 @@ public:
 
 /** SVG矢量图片接口
 */
-class UILIB_API ISvgImage
+class DUILIB_API ISvgImage
 {
 public:
     virtual ~ISvgImage() = default;
@@ -119,7 +119,7 @@ public:
 
 /** 单帧位图图片接口
 */
-class UILIB_API IBitmapImage : public IImageDelayDecode
+class DUILIB_API IBitmapImage : public IImageDelayDecode
 {
 public:
     virtual ~IBitmapImage() = default;
@@ -154,14 +154,14 @@ public:
 
 /** 动画图片接口
 */
-class UILIB_API IAnimationImage: public IImageDelayDecode
+class DUILIB_API IAnimationImage: public IImageDelayDecode
 {
 public:
     virtual ~IAnimationImage() = default;
 
     /** 多帧图片的一帧图片数据
     */
-    class UILIB_API AnimationFrame
+    class DUILIB_API AnimationFrame
     {
     public:
         bool m_bDataPending = false;        //数据是否处于待解码状态：true表示待解码，需要等待解码完成后再使用
@@ -243,7 +243,7 @@ typedef std::shared_ptr<IAnimationImage::AnimationFrame> AnimationFramePtr;
 
 /** 图片类型
 */
-enum class UILIB_API ImageType
+enum class DUILIB_API ImageType
 {
     kImageBitmap,       //位图类型，单帧，图片尺寸缩放时是有损缩放，显示效果会变差
     kImageSvg,          //SVG矢量图，单帧，图片尺寸缩放时是矢量缩放，显示效果较好
@@ -256,7 +256,7 @@ enum class UILIB_API ImageType
 
 /** 图片接口
 */
-class UILIB_API IImage: public IImageAsyncDecode
+class DUILIB_API IImage: public IImageAsyncDecode
 {
 public:
     virtual ~IImage() = default;
@@ -339,7 +339,7 @@ public:
 
 /** 图片解码器接口
 */
-class IImageDecoder
+class DUILIB_API IImageDecoder
 {
 public:
     virtual ~IImageDecoder() = default;
