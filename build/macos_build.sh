@@ -14,15 +14,14 @@ DUILIB_CC=clang
 DUILIB_CXX=clang++
 DUILIB_COMPILER_ID=llvm
 
-cmake_version=$(cmake --version | grep -oE '[0-9]+\.[0-9]+')
-required_version=3.24
-if [ $(echo "$cmake_version >= $required_version" | bc) -eq 1 ]; then
+# 首次构建或需要清理时: ./macos_build.sh --fresh
+if [[ "${1:-}" == "--fresh" ]]; then
     DUILIB_CMAKE_REFRESH=--fresh
 else
     DUILIB_CMAKE_REFRESH=
 fi
 
-DUILIB_CMAKE="cmake ${DUILIB_CMAKE_REFRESH} -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_CXX"
+DUILIB_CMAKE="cmake ${DUILIB_CMAKE_REFRESH} -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_CXX -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 DUILIB_MAKE="cmake --build"
 DUILIB_MAKE_THREADS="-j 6"
 
