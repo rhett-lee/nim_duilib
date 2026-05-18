@@ -24,6 +24,12 @@ bool SetFocus_MacOS(void* pNSWindow);
 */
 bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShadowType);
 
+/** 全屏退出后延迟恢复窗口阴影（确保 SDL 完成全屏退出动作后再设置圆角）
+@param [in] pNSWindow 窗口指针
+@param [in] nativeShadowType 系统阴影类型
+*/
+void RestoreWindowShadowAfterFullscreen(void* pNSWindow, NativeWindowShadowType nativeShadowType);
+
 }
 
 #endif

@@ -2387,6 +2387,8 @@ bool NativeWindow_SDL::ExitFullscreen()
     SDL_SetWindowFullscreenMode(m_sdlWindow, nullptr);
     //退出全屏后需要恢复窗口阴影（SDL 在独占全屏退出时可能未正确恢复）
     ModifyNsWindowShadowType(GetNSWindow(), m_systemShadowType);
+    //延迟再设置一次，确保 SDL 异步重置 style mask 后依然能恢复系统圆角
+    RestoreWindowShadowAfterFullscreen(GetNSWindow(), m_systemShadowType);
 #endif
 
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {

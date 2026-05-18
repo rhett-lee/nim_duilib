@@ -69,7 +69,25 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
         return true;
     }
 
-    // 4. 处理图层逻辑
+    // 4. 将 SDL 创建的 borderless 窗口转换为文档窗口：
+    //    替换 mask → 获得系统圆角和深度阴影
+    //    FullSizeContentView + titlebarAppearsTransparent → 隐藏标题栏
+    //    全屏退出后通过 toggle NSWindowStyleMaskTitled 强制 WindowServer 重新复合以恢复系统圆角
+    if (nativeShadowType != NativeWindowShadowType::kShadowSystemDisabled) {
+        window.titlebarAppearsTransparent = YES;
+        window.titleVisibility = NSWindowTitleHidden;
+        NSWindowStyleMask requiredMask = NSWindowStyleMaskTitled | NSWindowStyleMaskFullSizeContentView
+                                       | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+        if ((window.styleMask & requiredMask) != requiredMask) {
+            [window setStyleMask:requiredMask];
+
+            [[window standardWindowButton:NSWindowCloseButton] setHidden:YES];
+            [[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+            [[window standardWindowButton:NSWindowZoomButton] setHidden:YES];
+        }
+    }
+
+    // 5. 处理图层逻辑
     switch (nativeShadowType) {
         case NativeWindowShadowType::kShadowSystemDisabled:
         {
@@ -84,43 +102,35 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
             }
             break;
         }
-            
+
         case NativeWindowShadowType::kShadowSystemDefault:
         case NativeWindowShadowType::kShadowSystemRound:
         {
             [window setHasShadow:YES];
-            
-            // 确保图层存在
-            contentView.wantsLayer = YES;
-            CALayer* layer = contentView.layer;
-            if (layer) {
-                layer.cornerRadius = 10.0; 
-                layer.masksToBounds = YES;
-            }
-            
+            // 不设置自定义 cornerRadius，由系统圆角统一处理窗口外观
             window.backgroundColor = [NSColor clearColor];
             break;
         }
-            
+
         case NativeWindowShadowType::kShadowSystemSmallRound:
         {
             [window setHasShadow:YES];
-            
+
             contentView.wantsLayer = YES;
             CALayer* layer = contentView.layer;
             if (layer) {
                 layer.cornerRadius = 5.0;
                 layer.masksToBounds = YES;
             }
-            
+
             window.backgroundColor = [NSColor clearColor];
             break;
         }
-            
+
         case NativeWindowShadowType::kShadowSystemDoNotRound:
         {
             [window setHasShadow:YES];
-            
+
             // 移除圆角
             if (contentView.wantsLayer) {
                 CALayer* layer = contentView.layer;
@@ -136,6 +146,17 @@ bool ModifyNsWindowShadowType(void* pNSWindow, NativeWindowShadowType nativeShad
     // 5. 强制刷新阴影
     [window invalidateShadow];    
     return true;
+}
+
+void RestoreWindowShadowAfterFullscreen(void* pNSWindow, NativeWindowShadowType nativeShadowType)
+{
+    if (!pNSWindow) {
+        return;
+    }
+    // 延迟到下一个 runloop 再设置，确保 SDL 退出全屏的动作完全结束
+    dispatch_async(dispatch_get_main_queue(), ^{
+        ModifyNsWindowShadowType(pNSWindow, nativeShadowType);
+    });
 }
 
 }
