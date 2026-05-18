@@ -2346,6 +2346,18 @@ bool NativeWindow_SDL::EnterFullscreen()
     }
 #endif
 
+#if defined (__APPLE__)
+    //设置特定显示模式，使 SDL 使用独占全屏（绕过 Spaces），避免全屏拉伸动画
+    //同时 allow_spaces 保持默认 1，日常窗口正常有系统阴影
+    SDL_DisplayID displayID = SDL_GetDisplayForWindow(m_sdlWindow);
+    if (displayID != 0) {
+        const SDL_DisplayMode* desktopMode = SDL_GetDesktopDisplayMode(displayID);
+        if (desktopMode) {
+            SDL_SetWindowFullscreenMode(m_sdlWindow, desktopMode);
+        }
+    }
+#endif
+
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
     ASSERT_UNUSED_VARIABLE(nRet);
 
@@ -2369,6 +2381,13 @@ bool NativeWindow_SDL::ExitFullscreen()
 
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
     ASSERT_UNUSED_VARIABLE(nRet);
+
+#if defined (__APPLE__)
+    //清除独占全屏模式，恢复默认的桌面全屏行为（Spaces）
+    SDL_SetWindowFullscreenMode(m_sdlWindow, nullptr);
+    //退出全屏后需要恢复窗口阴影（SDL 在独占全屏退出时可能未正确恢复）
+    ModifyNsWindowShadowType(GetNSWindow(), m_systemShadowType);
+#endif
 
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
         //需要恢复可调整窗口大小的属性
