@@ -2038,7 +2038,18 @@ void Control::OnSetEnabled(bool bChanged)
     }
 
     if (!IsEnabled()) {
+        //停止动画
         PauseImageAnimation();
+
+        //取消当前控件的焦点状态
+        Window* pWindow = GetWindow();
+        if ((pWindow != nullptr) && (pWindow->GetFocusControl() == this)) {
+            std::weak_ptr<WeakFlag> controlFlag = GetWeakFlag();
+            pWindow->SetFocusControl(nullptr);
+            if (controlFlag.expired()) {
+                return;
+            }
+        }
     }
     if (bChanged) {
         Invalidate();

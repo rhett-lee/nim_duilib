@@ -641,6 +641,16 @@ UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
         //文本为空时，宽度和高度估算结果均为0
         return fixedSize;
     }
+    IRender* pRender = nullptr;
+    if (m_pOwner->GetWindow() != nullptr) {
+        pRender = m_pOwner->GetWindow()->GetRender();
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        //无法估算
+        return fixedSize;
+    }
+
     int32_t nWidth = szAvailable.cx;    //最终计算结果为最大宽度
     int32_t nHeight = szAvailable.cy;   //最终计算结果为最大高度
     const UiPadding rcTextPadding = this->GetTextPadding();
@@ -666,11 +676,26 @@ UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
             }
         }
         if (!m_pOwner->GetFixedWidth().IsAuto()) {
-            nWidth -= (rcPadding.left + rcPadding.right);
-            nWidth -= (rcTextPadding.left + rcTextPadding.right);
+            if (nWidth != INT32_MAX) {
+                nWidth -= (rcPadding.left + rcPadding.right);
+                nWidth -= (rcTextPadding.left + rcTextPadding.right);
+            }
         }
         if (nWidth < 0) {
             nWidth = 0;
+        }
+
+        //横向模式下，若高度为 auto，需以 GetMaxHeight()/INT32_MAX 兜底，
+        //否则 nHeight 沿用 szAvailable.cy，多行文本被父容器估算上限截断。
+        if (m_pOwner->GetFixedHeight().IsAuto()) {
+            nHeight = m_pOwner->GetMaxHeight();
+            if (nHeight != INT32_MAX) {
+                nHeight -= (rcPadding.top + rcPadding.bottom);
+                nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
+            }
+            if (nHeight <= 0) {
+                nHeight = INT32_MAX;
+            }
         }
     }
     else {
@@ -683,7 +708,7 @@ UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
             nHeight = m_pOwner->GetFixedHeight().GetInt32();
         }
         else if (m_pOwner->GetFixedHeight().IsAuto()) {
-            //宽度为自动时，不限制宽度
+            //高度为自动时，不限制高度
             nHeight = m_pOwner->GetMaxHeight();
             if (nHeight != INT32_MAX) {
                 nHeight -= (rcPadding.top + rcPadding.bottom);
@@ -694,32 +719,44 @@ UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
             }
         }
         if (!m_pOwner->GetFixedHeight().IsAuto()) {
-            nHeight -= (rcPadding.top + rcPadding.bottom);
-            nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
+            if (nHeight != INT32_MAX) {
+                nHeight -= (rcPadding.top + rcPadding.bottom);
+                nHeight -= (rcTextPadding.top + rcTextPadding.bottom);
+            }
         }
         if (nHeight < 0) {
             nHeight = 0;
         }
-    }
-    
-    if (!textValue.empty() && (m_pOwner->GetWindow() != nullptr)) {
-        auto pRender = m_pOwner->GetWindow()->GetRender();
-        if (pRender != nullptr) {
-            MeasureStringParam measureParam = GetMeasureParam();
-            measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
-            UiRect rect = m_pTextDrawer->MeasureString(pRender, textValue, measureParam, GetFontId(), IsRichText(), m_pOwner);
-            fixedSize.cx = std::min(rect.Width(), nWidth);
-            if (fixedSize.cx > 0) {
-                fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
-                fixedSize.cx += (rcPadding.left + rcPadding.right);
-            }
 
-            fixedSize.cy = std::min(rect.Height(), nHeight);
-            if (fixedSize.cy) {
-                fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
-                fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+        //纵向模式下，若宽度为 auto，需以 GetMaxWidth()/INT32_MAX 兜底，
+        //否则 nWidth 沿用 szAvailable.cx，会被传入的估算上限截断。
+        if (m_pOwner->GetFixedWidth().IsAuto()) {
+            nWidth = m_pOwner->GetMaxWidth();
+            if (nWidth != INT32_MAX) {
+                nWidth -= (rcPadding.left + rcPadding.right);
+                nWidth -= (rcTextPadding.left + rcTextPadding.right);
+            }
+            if (nWidth <= 0) {
+                nWidth = INT32_MAX;
             }
         }
+    }
+    
+    MeasureStringParam measureParam = GetMeasureParam();
+    measureParam.rectSize = !m_bVerticalText ? nWidth : nHeight;
+    UiRect rect = m_pTextDrawer->MeasureString(pRender, textValue, measureParam, GetFontId(), IsRichText(), m_pOwner);
+    fixedSize.cx = std::min(rect.Width(), nWidth);
+    fixedSize.cx = std::max(fixedSize.cx, 0);
+    if (fixedSize.cx > 0) {
+        fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+        fixedSize.cx += (rcPadding.left + rcPadding.right);
+    }
+
+    fixedSize.cy = std::min(rect.Height(), nHeight);
+    fixedSize.cy = std::max(fixedSize.cy, 0);
+    if (fixedSize.cy > 0) {
+        fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
     }
     return fixedSize;
 }

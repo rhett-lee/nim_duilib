@@ -1307,7 +1307,7 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     //获得焦点时，如果无焦点控件，则关闭输入法
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     ControlPtr pFocus = m_pFocus;
-    if (pFocus != nullptr) {
+    if ((pFocus != nullptr) && pFocus->IsEnabled()){
         pFocus->SendEvent(kEventWindowSetFocus);
 
         //重新激活控件焦点（但不恢复Hot状态，避免按钮等控件的显示状态异常）
