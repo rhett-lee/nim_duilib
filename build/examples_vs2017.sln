@@ -51,7 +51,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChildWindow", "..\examples\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XmlPreview", "..\examples\XmlPreview\XmlPreview.vcxproj", "{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColorTheme", "D:\rhett-lee.github.com\nim_duilib\examples\ColorTheme\ColorTheme.vcxproj", "{A6AE5F7F-2391-45FF-B379-62B370D8B554}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColorTheme", "..\examples\ColorTheme\ColorTheme.vcxproj", "{A6AE5F7F-2391-45FF-B379-62B370D8B554}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
