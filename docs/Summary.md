@@ -5,12 +5,14 @@
 * [示例程序](Examples.md)
 * [全局样式：字体、颜色、图片等资源](Global.md)
 * [窗口的样式](Window.md)
+* [窗口阴影参考文档](WindowShadow.md)
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
 * [菜单的样式](Menu.md)
 * [控件的事件/消息](Events.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
+* [主题参考文档](Theme.md)
 * [CEF控件](CEF.md)
 * [项目编译相关文档和脚本](../build/build.md)
 
@@ -45,7 +47,6 @@
 | WindowBuilder | [duilib/Core/WindowBuilder.h](../duilib/Core/WindowBuilder.h) | 解析XML文件，并创建窗口、容器布局和控件等|
 | Shadow | [duilib/Core/Shadow.h](../duilib/Core/Shadow.h) | 窗口阴影属性|
 | WindowImplBase | [duilib/Utils/WinImplBase.h](../duilib/Utils/WinImplBase.h) | 提供给应用层的窗口基类，实现一个带有标题栏的窗体，带有最大化、最小化、还原按钮的支持，提供带有 WS_EX_LAYERED 属性窗口阴影|
-| ShadowWnd | [duilib/Utils/ShadowWnd.h](../duilib/Utils/ShadowWnd.h) | 是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 WS_EX_LAYERED 属性的窗口阴影|
 | EventType | [duilib/duilib_defs.h](../duilib/duilib_defs.h) | 定义所有消息类型|
 | EventArgs | [duilib/Core/EventArgs.h](../duilib/Core/EventArgs.h) | 窗口消息与控件事件通知的参数|
 | WindowDropTarget | [duilib/Core/WindowDropTarget.h](../duilib/Core/WindowDropTarget.h) | 窗口中控件的拖放支持|
@@ -229,8 +230,8 @@
 | 拾色器实现类 | | [duilib/Control/ColorConvert.h](../duilib/Control/ColorConvert.h) | ColorPicker的实现类，颜色类型（RGB/HSV/HSL）转换类 |
 | 拾色器实现类 | | [duilib/Control/ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h) | ColorPicker的实现类，自定义颜色 |
 | 拾色器实现类 | | [duilib/Control/ColorPickerRegular.h](../duilib/Control/ColorPickerRegular.h) | ColorPicker的实现类，常用颜色 |
-| 拾色器实现类 | | [duilib/Control/ColorPickerStatard.h](../duilib/Control/ColorPickerStatard.h) | ColorPicker的实现类，标准颜色 |
-| 拾色器实现类 | | [duilib/Control/ColorPickerStatardGray.h](../duilib/Control/ColorPickerStatardGray.h) | ColorPicker的实现类，标准颜色，灰色 |
+| 拾色器实现类 | | [duilib/Control/ColorPickerStandard.h](../duilib/Control/ColorPickerStandard.h) | ColorPicker的实现类，标准颜色 |
+| 拾色器实现类 | | [duilib/Control/ColorPickerStandardGray.h](../duilib/Control/ColorPickerStandardGray.h) | ColorPicker的实现类，标准颜色，灰色 |
 | 拾色器实现类 | | [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | ColorPicker的实现类 |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
@@ -255,6 +256,7 @@
 | CursorManager | [duilib/Core/CursorManager.h](../duilib/Core/CursorManager.h) | 光标管理器 |
 | ThreadManager | [duilib/Core/ThreadManager.h](../duilib/Core/ThreadManager.h) | 线程管理器 |
 | ColorManager | [duilib/Core/ColorManager.h](../duilib/Core/ColorManager.h) | 颜色管理器 |
+| ThemeManager | [duilib/Core/ThemeManager.h](../duilib/Core/ThemeManager.h) | 主题管理器 |
 | WindowManager | [duilib/Core/WindowManager.h](../duilib/Core/WindowManager.h) | 窗口管理器 |
 | ImageDecoderFactory | [duilib/Image/ImageDecoderFactory.h](../duilib/Image/ImageDecoderFactory.h) | 图片解码器的管理 |
 

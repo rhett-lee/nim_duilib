@@ -260,7 +260,7 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_szDropBox(0, 0),
     m_bPopupTop(false),
     m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT),
-    m_nShadowType(Shadow::ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowMenu)
 {
     SetDropBoxSize({0, 150}, true);
     SetMaxHeight(m_iOrgHeight * 3, true);
@@ -288,8 +288,9 @@ CheckCombo::~CheckCombo()
 
 DString CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
 
-void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
+void CheckCombo::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("dropbox")) {
         SetDropBoxAttributeList(strValue);
     }
@@ -307,7 +308,7 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
         SetDropBoxSize(szDropBoxSize, true);
     }
     else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
-        SetPopupTop(strValue == _T("true"));
+        SetPopupTop(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("height")) {
         BaseClass::SetAttribute(strName, strValue);
@@ -320,7 +321,7 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("shadow_type")) {
         //设置下拉窗口的阴影类型
-        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        ShadowType nShadowType = ShadowType::kShadowDefault;
         if (Shadow::GetShadowType(strValue, nShadowType)) {
             SetComboWndShadowType(nShadowType);
         }
@@ -413,7 +414,7 @@ bool CheckCombo::AddTextItem(const DString& itemText)
         return false;
     }
     //避免重复名称
-    size_t itemCount = GetItemCount();
+    const size_t itemCount = GetItemCount();
     for (size_t index = 0; index < itemCount; ++index) {
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
         if (pCheckBox != nullptr) {
@@ -435,7 +436,7 @@ bool CheckCombo::AddTextIdItem(const DString& itemTextId)
         return false;
     }
     //避免重复名称
-    size_t itemCount = GetItemCount();
+    const size_t itemCount = GetItemCount();
     for (size_t index = 0; index < itemCount; ++index) {
         CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
         if (pCheckBox != nullptr) {
@@ -449,6 +450,42 @@ bool CheckCombo::AddTextIdItem(const DString& itemTextId)
     SetAttributeList(item, m_dropboxItemClass.c_str());
     item->SetTextId(itemTextId);
     return AddItem(item);
+}
+
+bool CheckCombo::SelectTextItem(const DString& itemText, bool bSelect)
+{
+    if (itemText.empty()) {
+        return false;
+    }
+    const size_t itemCount = GetItemCount();
+    for (size_t index = 0; index < itemCount; ++index) {
+        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
+        if (pCheckBox != nullptr) {
+            if (itemText == pCheckBox->GetText()) {
+                pCheckBox->Selected(bSelect, true);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool CheckCombo::SelectTextIdItem(const DString& itemTextId, bool bSelect)
+{
+    if (itemTextId.empty()) {
+        return false;
+    }
+    const size_t itemCount = GetItemCount();
+    for (size_t index = 0; index < itemCount; ++index) {
+        CheckBox* pCheckBox = dynamic_cast<CheckBox*>(GetItemAt(index));
+        if (pCheckBox != nullptr) {
+            if (itemTextId == pCheckBox->GetTextId()) {
+                pCheckBox->Selected(bSelect, true);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void CheckCombo::Activate(const EventArgs* /*pMsg*/)
@@ -503,6 +540,13 @@ void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
+void CheckCombo::SetPos(UiRect rc)
+{
+    BaseClass::SetPos(rc);
+    //更新选择列表的高度
+    UpdateSelectedListHeight();
+}
+
 void CheckCombo::SetDropBoxAttributeList(const DString& pstrList)
 {
     SetAttributeList(m_pDropList.get(), pstrList);
@@ -530,7 +574,7 @@ Window* CheckCombo::GetCheckComboWnd() const
     return m_pCheckComboWnd;
 }
 
-void CheckCombo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+void CheckCombo::SetComboWndShadowType(ShadowType nShadowType)
 {
     m_nShadowType = nShadowType;
     if (m_pCheckComboWnd != nullptr) {
@@ -538,27 +582,9 @@ void CheckCombo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
     }
 }
 
-Shadow::ShadowType CheckCombo::GetComboWndShadowType() const
+ShadowType CheckCombo::GetComboWndShadowType() const
 {
     return m_nShadowType;
-}
-
-void CheckCombo::ParseAttributeList(const DString& strList,
-                                    std::vector<std::pair<DString, DString>>& attributeList) const
-{
-    if (strList.empty()) {
-        return;
-    }
-    DString strValue = strList;
-    //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
-    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
-    }
-    else if (strValue.find(_T("\'")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
-    }
 }
 
 void CheckCombo::SetAttributeList(Control* pControl, const DString& classValue)
@@ -568,7 +594,7 @@ void CheckCombo::SetAttributeList(Control* pControl, const DString& classValue)
         return;
     }
     std::vector<std::pair<DString, DString>> attributeList;
-    ParseAttributeList(classValue, attributeList);
+    AttributeUtil::ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
         for (const auto& attribute : attributeList) {
@@ -612,10 +638,16 @@ bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
     if (itemText.empty()) {
         return true;
     }
+    DString itemTextId = pCheckBox->GetTextId();
 
     Label* item = new Label(m_pList->GetWindow());
     SetAttributeList(item, m_selectedItemClass.c_str());
-    item->SetText(itemText);
+    if (!itemTextId.empty()) {
+        item->SetTextId(itemTextId);
+    }
+    else {
+        item->SetText(itemText);
+    }    
     m_pList->AddItem(item);
     UpdateSelectedListHeight();
     return true;

@@ -1,6 +1,7 @@
 #include "ColorPickerCustom.h"
 #include "duilib/Control/ColorConvert.h"
 #include "duilib/Control/ColorPickerRegular.h"
+#include "duilib/Utils/Clipboard.h"
 
 namespace ui
 {
@@ -68,6 +69,21 @@ void ColorPickerCustom::InitPicker()
                 UiColor newColor = m_pNewColorEdit->GetUiColor(colorText);
                 if ((newColor.GetARGB() != 0) && (newColor != m_oldColor)) {
                     OnColorChanged(newColor.GetARGB(), m_oldColor.GetARGB(), ChangeReason::NewColorEdit);
+                }
+            }
+            return true;
+            });
+    }
+
+    //复制颜色值
+    ui::Button* pCopyBtn = dynamic_cast<Button*>(pWindow->FindControl(_T("color_picker_copy")));
+    if (pCopyBtn != nullptr) {
+        ControlPtrT<RichEdit> pNewColorEdit = m_pNewColorEdit;
+        pCopyBtn->AttachClick([pNewColorEdit](const ui::EventArgs&) {
+            if (pNewColorEdit != nullptr) {
+                DString colorValue = pNewColorEdit->GetText();
+                if (!colorValue.empty()) {
+                    Clipboard::SetClipboardText(colorValue);
                 }
             }
             return true;

@@ -23,7 +23,7 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
 {
     //格式如：如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
     std::vector<std::pair<DString, DString>> attributeList;
-    AttributeUtil::ParseAttributeList(strBoxShadow, _T('\''), attributeList);
+    AttributeUtil::ParseAttributeList(strBoxShadow, attributeList);
     for (const auto& attribute : attributeList) {
         const DString& name = attribute.first;
         const DString& value = attribute.second;

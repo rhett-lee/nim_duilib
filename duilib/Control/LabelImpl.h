@@ -43,7 +43,7 @@ public:
     ~LabelImpl();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    bool HasHotColorState();
+    bool HasHoveredStateColor();
     bool OnSetAttribute(const DString& strName, const DString& strValue);
     void OnPaintText(IRender* pRender);
 

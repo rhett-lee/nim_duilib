@@ -25,7 +25,7 @@ public:
     virtual ~ScrollBox() override;
 
     virtual DString GetType() const override;
-    virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void SetPos(UiRect rc) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual bool MouseEnter(const EventArgs& msg) override;
@@ -50,6 +50,13 @@ public:
     *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
     */
     UiSize GetScrollOffset() const;
+
+    /** 获取滚动条的真实偏移量, 以64位整型值标志偏移 (虚表会使用虚拟滚动条位置)
+    *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
+    *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
+    *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
+    */
+    UiSize64 GetScrollOffset64() const;
 
     /** ScrollOffset 值变化通知接口
     * @param [in] oldScrollOffset 旧值
@@ -264,6 +271,13 @@ protected:
     * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
     */
     virtual void OnSetMouseEnabled(bool bChanged) override;
+
+    /** 当处于ScrollBox中时，是否预先计算实际区域大小，然后再按实际区域大小对子控件进行布局
+     *  对于部分布局，当处于ScrollBox中时，必须按实际区域大小布局，而不是按显示区域布局（影响因素：是否有拉伸类型的子控件，水平和垂直对齐方式）
+     * @return 返回true表示当处于ScrollBox中时，预先计算实际区域大小，然后再按实际区域大小对子控件进行布局
+     *         返回false当处于ScrollBox中时，不需要特殊处理，直接对子控件进行布局
+     */
+    virtual bool IsScrollBoxLayoutByActualAreaSize() const;
 
 private:
     /** 设置位置大小

@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <cstring>
 #include <stdexcept>
+#include <climits>
 
 // 跨平台调试输出
 #ifdef _DEBUG
@@ -164,6 +165,7 @@ bool APngDecoder::LoadPng(IPngReader* reader, bool bLoadAllFrames)
 #pragma warning (disable: 4611)
     // 设置错误处理跳转
     if (setjmp(png_jmpbuf(m_pngPtr))) {
+        m_state = State::FAILED;
         Destroy();
         return false;
     }
@@ -184,11 +186,32 @@ bool APngDecoder::LoadPng(IPngReader* reader, bool bLoadAllFrames)
     png_read_info(m_pngPtr, m_infoPtr);
     png_read_update_info(m_pngPtr, m_infoPtr);
 
-    // 初始化图像参数
-    m_width = png_get_image_width(m_pngPtr, m_infoPtr);
-    m_height = png_get_image_height(m_pngPtr, m_infoPtr);
-    m_bytesPerRow = m_width * 4;
-    m_frameSize = m_bytesPerRow * m_height;
+    // 初始化图像参数（使用png_uint_32避免int32_t截断）
+    png_uint_32 pngWidth = png_get_image_width(m_pngPtr, m_infoPtr);
+    png_uint_32 pngHeight = png_get_image_height(m_pngPtr, m_infoPtr);
+    if ((pngWidth == 0) || (pngHeight == 0) || (pngWidth > (png_uint_32)INT32_MAX) || (pngHeight > (png_uint_32)INT32_MAX)) {
+        m_state = State::FAILED;
+        Destroy();
+        return false;
+    }
+    m_width = (int32_t)pngWidth;
+    m_height = (int32_t)pngHeight;
+
+    // 安全计算每行字节数和帧大小（避免溢出）
+    m_bytesPerRow = (size_t)pngWidth * 4;
+    m_frameSize = m_bytesPerRow * (size_t)pngHeight;
+    if ((m_bytesPerRow / 4) != (size_t)pngWidth) {
+        // 行字节数溢出
+        m_state = State::FAILED;
+        Destroy();
+        return false;
+    }
+    if ((pngHeight != 0) && (m_frameSize / m_bytesPerRow) != (size_t)pngHeight) {
+        // 帧大小溢出
+        m_state = State::FAILED;
+        Destroy();
+        return false;
+    }
 
     // 初始化帧缓存
     m_frameBuffer = std::make_unique<uint8_t[]>(m_frameSize);
@@ -218,14 +241,32 @@ bool APngDecoder::LoadPng(IPngReader* reader, bool bLoadAllFrames)
     }
     else {
         // 动画PNG
-        m_frameCount = png_get_num_frames(m_pngPtr, m_infoPtr);
-        if (m_frameCount < 1) m_frameCount = 1;
+        png_uint_32 numFrames = png_get_num_frames(m_pngPtr, m_infoPtr);
+        if (numFrames < 1) numFrames = 1;
+        if (numFrames > (png_uint_32)INT32_MAX) {
+            // 帧数超过 int32_t 范围
+            m_state = State::FAILED;
+            Destroy();
+            return false;
+        }
 
-        if (!m_loadAllFrames) m_frameCount = 1;
+        if (!m_loadAllFrames) numFrames = 1;
+        m_frameCount = (int32_t)numFrames;
 
-        m_loopCount = png_get_num_plays(m_pngPtr, m_infoPtr);
+        png_uint_32 numPlays = png_get_num_plays(m_pngPtr, m_infoPtr);
+        m_loopCount = (numPlays > (png_uint_32)INT32_MAX) ? 0 : (int32_t)numPlays;
+
         m_frameDelays = std::make_unique<uint16_t[]>(m_frameCount);
-        m_frameData = std::make_unique<uint8_t[]>(m_frameSize * m_frameCount);
+
+        // 安全计算所有帧数据总大小（避免 m_frameSize * m_frameCount 溢出）
+        size_t totalFrameDataSize = m_frameSize * (size_t)numFrames;
+        if ((numFrames != 0) && (totalFrameDataSize / (size_t)numFrames) != m_frameSize) {
+            // 帧数据总大小溢出
+            m_state = State::FAILED;
+            Destroy();
+            return false;
+        }
+        m_frameData = std::make_unique<uint8_t[]>(totalFrameDataSize);
 
         if (!m_frameDelays || !m_frameData) {
             throw std::bad_alloc();
@@ -251,7 +292,6 @@ bool APngDecoder::DecodeNextFrame() {
             return false;
         }
 #pragma warning (pop)
-
         // 处理单帧PNG
         if (m_frameCount == 1) {
             png_read_image(m_pngPtr, m_rowPointers.get());
@@ -282,22 +322,33 @@ bool APngDecoder::DecodeNextFrame() {
             png_read_image(m_pngPtr, m_rowPointers.get());
 
             // 计算绘制位置
-            auto xOffset = m_infoPtr->next_frame_x_offset;
-            auto yOffset = m_infoPtr->next_frame_y_offset;
-            auto frameWidth = m_infoPtr->next_frame_width;
-            auto frameHeight = m_infoPtr->next_frame_height;
+            png_uint_32 xOffset = m_infoPtr->next_frame_x_offset;
+            png_uint_32 yOffset = m_infoPtr->next_frame_y_offset;
+            png_uint_32 frameWidth = m_infoPtr->next_frame_width;
+            png_uint_32 frameHeight = m_infoPtr->next_frame_height;
+
+            // 边界检查：防止 xOffset/frameWidth 超出图像宽度，避免越界写入
+            if ((xOffset > (png_uint_32)m_width) || (frameWidth > (png_uint_32)m_width - xOffset)) {
+                m_state = State::FAILED;
+                return false;
+            }
+            // 边界检查：防止 yOffset/frameHeight 超出图像高度
+            if ((yOffset > (png_uint_32)m_height) || (frameHeight > (png_uint_32)m_height - yOffset)) {
+                m_state = State::FAILED;
+                return false;
+            }
 
             uint8_t* dstLine = m_currentFrameBuffer.get() +
-                yOffset * m_bytesPerRow + xOffset * 4;
+                (size_t)yOffset * m_bytesPerRow + (size_t)xOffset * 4;
             uint8_t* srcLine = m_frameBuffer.get();
 
             // 帧混合操作
             switch (m_infoPtr->next_frame_blend_op) {
             case PNG_BLEND_OP_OVER: {
-                for (unsigned int y = 0; y < frameHeight; ++y) {
+                for (png_uint_32 y = 0; y < frameHeight; ++y) {
                     uint8_t* dst = dstLine;
                     uint8_t* src = srcLine;
-                    for (unsigned int x = 0; x < frameWidth; ++x) {
+                    for (png_uint_32 x = 0; x < frameWidth; ++x) {
                         // Alpha混合计算
                         uint8_t alpha = src[3];
                         dst[0] = static_cast<uint8_t>(
@@ -318,8 +369,8 @@ bool APngDecoder::DecodeNextFrame() {
             }
             case PNG_BLEND_OP_SOURCE: {
                 // 直接覆盖
-                for (unsigned int y = 0; y < frameHeight; ++y) {
-                    memcpy(dstLine, srcLine, frameWidth * 4);
+                for (png_uint_32 y = 0; y < frameHeight; ++y) {
+                    memcpy(dstLine, srcLine, (size_t)frameWidth * 4);
                     dstLine += m_bytesPerRow;
                     srcLine += m_bytesPerRow;
                 }
@@ -331,17 +382,17 @@ bool APngDecoder::DecodeNextFrame() {
             }
 
             // 保存当前帧
-            uint8_t* targetFrame = m_frameData.get() + m_currentFrame * m_frameSize;
+            uint8_t* targetFrame = m_frameData.get() + (size_t)m_currentFrame * m_frameSize;
             memcpy(targetFrame, m_currentFrameBuffer.get(), m_frameSize);
 
             // 处理帧清理操作
-            dstLine = m_currentFrameBuffer.get() + yOffset * m_bytesPerRow + xOffset * 4;
+            dstLine = m_currentFrameBuffer.get() + (size_t)yOffset * m_bytesPerRow + (size_t)xOffset * 4;
 
             switch (m_infoPtr->next_frame_dispose_op) {
             case PNG_DISPOSE_OP_BACKGROUND:
                 // 清除背景
-                for (unsigned int y = 0; y < frameHeight; ++y) {
-                    memset(dstLine, 0, frameWidth * 4);
+                for (png_uint_32 y = 0; y < frameHeight; ++y) {
+                    memset(dstLine, 0, (size_t)frameWidth * 4);
                     dstLine += m_bytesPerRow;
                 }
                 break;
@@ -426,7 +477,7 @@ const uint8_t* APngDecoder::GetFrameData(int32_t frameIndex) const
     if (frameIndex < 0 || frameIndex >= m_frameCount || !m_frameData) {
         return nullptr;
     }
-    return (const uint8_t*)(m_frameData.get() + frameIndex * m_frameSize);
+    return (const uint8_t*)(m_frameData.get() + (size_t)frameIndex * m_frameSize);
 }
 
 // 获取指定帧数据（预乘Alpha）
@@ -436,20 +487,22 @@ bool APngDecoder::GetFrameDataPremultiplied(int32_t frameIndex, uint8_t* outData
     if (frameIndex < 0 || frameIndex >= m_frameCount || !m_frameData || !outData) {
         return false;
     }
+    if ((m_width <= 0) || (m_height <= 0)) {
+        return false;
+    }
 
     // 获取原始帧数据
-    const uint8_t* srcData = (const uint8_t*)(m_frameData.get() + frameIndex * m_frameSize);
+    const uint8_t* srcData = (const uint8_t*)(m_frameData.get() + (size_t)frameIndex * m_frameSize);
     if (!srcData) {
         return false;
     }
 
-    // 计算总像素数
-    size_t pixelCount = static_cast<size_t>(m_width) * m_height;
+    // 计算总像素数（避免溢出）
+    size_t pixelCount = (size_t)(uint32_t)m_width * (size_t)(uint32_t)m_height;
 
     // 对每个像素执行预乘操作
-    size_t pixelIndex = 0;
     for (size_t i = 0; i < pixelCount; ++i) {
-        pixelIndex = i * 4;
+        size_t pixelIndex = i * 4;
         // 读取原始RGBA值
         uint8_t r = srcData[pixelIndex];
         uint8_t g = srcData[pixelIndex + 1];

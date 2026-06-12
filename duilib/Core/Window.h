@@ -5,6 +5,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/ThemeManager.h"
 #include "duilib/Core/ControlPtrT.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/FilePath.h"
@@ -16,6 +17,7 @@ class Box;
 class Control;
 class ToolTip;
 class WindowBuilder;
+class WindowRoot;
 
 /** 窗口类
 *  //外部调用需要初始化的基本流程:
@@ -113,21 +115,13 @@ public:
     */
     bool IsShadowAttached() const;
 
-    /** 当前阴影效果值，是否为默认值
-    */
-    bool IsUseDefaultShadowAttached() const;
-
-    /** 设置当前阴影效果值，是否为默认值
-    */
-    void SetUseDefaultShadowAttached(bool bDefault);
-
     /** 设置阴影类型
     */
-    void SetShadowType(Shadow::ShadowType nShadowType);
+    void SetShadowType(ShadowType nShadowType);
 
     /** 获取阴影类型
     */
-    Shadow::ShadowType GetShadowType() const;
+    ShadowType GetShadowType() const;
 
     /** 获取阴影图片
     */
@@ -298,16 +292,6 @@ public:
     void UpdateToolTip();
 
 public:
-    /** 获取透明通道修补范围的的九宫格描述，对应 XML 中 alphafixcorner 属性
-    */
-    const UiRect& GetAlphaFixCorner() const;
-
-    /** 设置透明通道修补范围的的九宫格描述
-    * @param [in] rc 要设置的修补范围
-    * @param [in] bNeedDpiScale 是否进行DPI缩放
-    */
-    void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale);
-
     /** 设置窗口初始大小, 对应XML文件中的 size 属性
     * @param [in] cx 宽度，已做过DPI缩放
     * @param [in] cy 高度，已做过DPI缩放
@@ -345,29 +329,59 @@ public:
     */
     void RemoveAllClass();
 
-    /** 添加一个颜色值提供窗口内使用
+public:
+    /** 添加一个颜色值提供窗口内使用(该颜色为固定值，不支持颜色主题切换)
     * @param [in] strName 颜色名称（如 white）
     * @param [in] strValue 颜色具体数值（如 #FFFFFFFF）
     */
-    void AddTextColor(const DString& strName, const DString& strValue);
+    void AddThemeColor(const DString& strName, const DString& strValue);
 
-    /** 添加一个颜色值提供窗口内使用
+    /** 添加一个颜色值提供窗口内使用(该颜色为固定值，不支持颜色主题切换)
     * @param [in] strName 颜色名称（如 white）
     * @param [in] argb 颜色具体数值, 以ARGB格式表示
     */
-    void AddTextColor(const DString& strName, UiColor argb);
+    void AddThemeColor(const DString& strName, UiColor argb);
+
+    /** 删除指定名称的颜色属性(该颜色为固定值，不支持颜色主题切换)
+    * @param [in] strName 要删除的颜色名称
+    */
+    void RemoveThemeColor(const DString& strName);
 
     /** 根据名称获取一个颜色的具体数值
     * @param [in] strName 要获取的颜色名称
-    * @return 返回 DWORD 格式的颜色描述值
+    * @return 返回 ARGB 格式的颜色描述值
     */
-    UiColor GetTextColor(const DString& strName) const;
+    UiColor GetThemeColor(const DString& strName) const;
 
-    /** 删除指定名称的颜色属性
-    * @param [in] strName 要删除的颜色名称
+public:
+    /** 打开一个颜色主题颜色配置，从而使得该窗口使用自己的颜色管理器（ColorManager），不跟随全局颜色管理器（GlobalManager::Instance().Color()）
+    * @param [in] themePath 主题资源所在的路径，比如"color_light"为默认浅色主题，"color_dark"为默认深色主题
     */
-    void RemoveTextColor(const DString& strName);
+    bool OpenColorTheme(const FilePath& themePath);
 
+    /** 打开一个颜色主题颜色配置，从而使得该窗口使用自己的颜色管理器（ColorManager），不跟随全局颜色管理器（GlobalManager::Instance().Color()）
+    * @param [in] themeXmlFileData 主题资源的XML文件数据
+    */
+    bool OpenColorThemeData(const std::string& themeXmlFileData);
+
+    /** 关闭一打开的颜色主题配置，使用全局颜色管理器（GlobalManager::Instance().Color()）
+    */
+    void CloseColorTheme();
+
+    /** 判断当前主题是否为深色主题
+    */
+    bool IsColorThemeDarkMode() const;
+
+    /** 获取默认禁用状态下字体颜色
+     * @return 默认禁用状态颜色的字符串表示
+     */
+    const DString& GetDefaultDisabledTextColor();
+
+    /** 获取默认字体颜色
+     */
+    const DString& GetDefaultTextColor();
+
+public:
     /** 添加一个选项组
     * @param [in] strGroupName 组名称
     * @param [in] pControl 控件指针
@@ -400,11 +414,6 @@ public:
     /** 获取绘制引擎对象
     */
     virtual IRender* GetRender() const override;
-
-    /** 获取指定坐标点的控件接口
-    * @param [in] pt 客户区坐标点
-    */
-    virtual Control* OnFindControl(const UiPoint& pt) const override;
 
     /** 获取为Render使用的本窗口关联的DPI转换对象
     */
@@ -443,8 +452,7 @@ public:
     */
     virtual Control* CreateControl(const DString& strClass);
 
-public:
-    // 窗口的属性设置
+public:   
     /** 设置窗口指定属性
      * @param[in] strName 要设置的属性名称（如 width）
      * @param[in] strValue 要设置的属性值（如 100）
@@ -488,6 +496,19 @@ public:
     */
     void ExitControlFullscreen();
 
+public:
+    /** 语言发生变化
+    */
+    void NotifyLanguageChanged();
+
+    /** 主题发生变化
+    */
+    void NotifyThemeChanged();
+
+    /** 清除鼠标键盘操作状态
+    */
+    void ClearInputStatus();
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -521,7 +542,22 @@ protected:
     */
     virtual void OnWindowShadowTypeChanged() {};
 
+    /** 语言切换事件（当前语言可通过GlobalManager获取）
+    * @return 返回false表示不再触发窗口的kWindowLanguageChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnLanguageChanged();
+
+    /** 主题切换事件（当前主题可通过ThemeManager获取）
+    * @return 返回false表示不再触发窗口的kWindowThemeChangedMsg事件, 否则触发该事件
+    */
+    virtual bool OnThemeChanged();
+
 protected:
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnFindControl(const UiPoint& pt) const override;
+
     /** 切换系统标题栏与自绘标题栏
     */
     virtual void OnUseSystemCaptionBarChanged() override;
@@ -581,6 +617,20 @@ protected:
     * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
+
+    /** 是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
+    *   默认情况下，子窗口不自动设置，顶层窗口自动设置
+    */
+    virtual bool NeedSetWindowRgn() override;
+
+    /** 获取设置窗口RGN的圆角值, 默认为窗口的圆角值，如果窗口未设置圆角值，则获取阴影的圆角值
+    */
+    virtual UiSize GetWindowRgnRoundCorner() const override;
+
+    /** 根据当前窗口的阴影支持情况，设置窗口的分层窗口属性（仅Windows平台，对应WS_EX_LAYERED属性，使用SDL时不需要）
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void UpdateLayeredWindowStyleEx(bool bRedraw);
 
     /** @name 窗口消息处理相关
         * @{
@@ -906,6 +956,11 @@ protected:
     */
     virtual void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override;
 
+    /** 处理DWM服务变化的系统通知消息(WM_DWMCOMPOSITIONCHANGED)
+    * @param [in] bDwmCompositionEnabled true表示DWM服务开启，false表示DWM服务关闭
+    */
+    virtual void OnDwmCompositionChangedMsg(bool bDwmCompositionEnabled) override;
+
     /** @}*/
 
 private:
@@ -941,9 +996,6 @@ private:
 
     //鼠标等弹起消息处理函数
     void OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey);
-
-    //清除鼠标键盘操作状态
-    void ClearStatus();
 
     /** 判断是否需要发送鼠标进入或离开消息
     * @param [in] pt 鼠标当前位置
@@ -1023,35 +1075,6 @@ private:
     Shadow* GetShadow() const;
 
 private:
-    /** 处理窗口最大化事件
-    */
-    void ProcessWindowMaximized();
-
-    /** 处理窗口还原事件
-    */
-    void ProcessWindowRestored();
-
-    /** 处理窗口进入全屏事件
-    */
-    void ProcessWindowEnterFullscreen();
-
-    /** 处理窗口退出全屏事件
-    */
-    void ProcessWindowExitFullscreen();
-
-    /** 处理全屏按钮的动态显示
-    */
-    void ProcessFullscreenButtonMouseMove(const UiPoint& pt);
-
-    /** 保存并设置全屏状态下的容器外边距
-    */
-    void SetWindowMaximizedMargin();
-
-    /** 恢复全屏状态下的容器外边距
-    */
-    void RestoreWindowMaximizedMargin();
-
-private:
     //焦点控件
     ControlPtr m_pFocus;
 
@@ -1077,22 +1100,11 @@ private:
     */
     ControlFinder m_controlFinder;
 
-    /** 窗口关联的容器，根节点
+    /** 窗口根节点管理类（包含Root容器、阴影、控件全屏状态等）
     */
-    BoxPtr m_pRoot;
-
-    /** 窗口阴影
-    */
-    std::unique_ptr<Shadow> m_shadow;
-
-    /** 当前是否处于控件全屏状态
-    */
-    bool m_bControlFullscreen;
+    std::unique_ptr<WindowRoot> m_windowRoot;
 
 private:
-    //透明通道修补范围的的九宫格描述
-    UiRect m_rcAlphaFix;
-
     //布局是否变化，如果变化(true)则需要重新计算布局
     bool m_bIsArranged;
 
@@ -1107,9 +1119,6 @@ private:
 
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
-
-    //窗口最大化状态下的外边距（Windows平台，窗口最大化时，窗口的区域是溢出屏幕区域的，所以需要增加外边距，避免窗口的内容也溢出屏幕）
-    UiMargin m_rcWindowMaximizedMargin;
 
     //绘制引擎
     std::unique_ptr<IRender> m_render;
@@ -1135,6 +1144,10 @@ private:
     */
     std::unique_ptr<WindowBuilder> m_windowBuilder;
 
+    /** 窗口自身的主题颜色管理器（不使用全局主题颜色管理器）
+    */
+    std::unique_ptr<ColorManager> m_pColorManager;
+
 private:
     /** 窗口配置中class名称与属性映射关系
     */
@@ -1152,10 +1165,6 @@ private:
     */
     std::unique_ptr<ToolTip> m_toolTip;
 
-    /** 窗口关闭的时候，发送退出消息循环的请求
-    */
-    bool m_bPostQuitMsgWhenClosed;
-
     /** 渲染引擎的后台绘制方式（CPU、OpenGL等）
     */
     RenderBackendType m_renderBackendType;
@@ -1164,9 +1173,17 @@ private:
     */
     UiSize m_szInitSize;
 
+    /** 窗口关闭的时候，发送退出消息循环的请求
+    */
+    bool m_bPostQuitMsgWhenClosed;
+
     /** 窗口的属性是否已经设置完成
     */
     bool m_bWindowAttributesApplied;
+
+    /** 窗口阴影是否进行过初始化
+    */
+    bool m_bWindowShadowInited;
 };
 
 } // namespace ui

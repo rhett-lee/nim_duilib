@@ -11,10 +11,10 @@
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | giflib      | 2026-04-14 |v6.1.3 |无 |https://sourceforge.net/projects/giflib/||
 | libwebp     | 2025-10-21 |v1.6.0 |无 |https://github.com/webmproject/libwebp|tag/v1.6.0，使用了src目录下的子目录，覆盖后，删除不必要的文件即可（基本方法：新旧版本源码比较，然后看文件增删改，再同步，项目只使用了图片解码功能，没有用到图片编码功能，目前没有用到config.h文件）|
-| stb_image   | 2025-10-21 |stb_image v2.30 <br> stb_image_resize2 v2.15|无 |https://github.com/nothings/stb|无修改，直接取master的代码|
+| stb_image   | 2026-03-24 |stb_image v2.30 <br> stb_image_resize2 v2.18|无 |https://github.com/nothings/stb|无修改，直接取master的代码|
 | libjpeg-turbo| 2026-04-16 |v3.1.4.1|无 |https://github.com/libjpeg-turbo/libjpeg-turbo|无修改，直接取其release的代码和lib|
-| svg         | 2025-10-21 |无（2025-09-28）     |有 |https://github.com/memononen/nanosvg| 代码更新到2025-09-28，修改参见提交记录|
-| zlib        | 2025-03-11 |v1.3.1（2024-01-22） |有 |https://github.com/madler/zlib | 修改了zlib.h 和 CMakeLists.txt，并将zconf.h重命名为zconf_msvc.h<br>如果文件名或个数有变更，需要修改VC工程|
+| svg         | 2026-03-24 |无（2025-11-21）     |有 |https://github.com/memononen/nanosvg| 代码更新到2025-11-21，修改参见提交记录|
+| zlib        | 2026-03-24 |v1.3.2（2026-02-17） |有 |https://github.com/madler/zlib | 修改了以下文件：<br> 1.zlib\contrib\minizip\ioapi.h(1处代码) 2.zlib\contrib\minizip\unzip.h(1处代码) 3.zlib\contrib\minizip\unzip.c(1处代码) <br> 4.CMakeLists.txt(修改内容用duilib注释) <br> 5.如果文件名或个数有变更，需要修改VC工程|
 | xml         | 2025-03-11 |v1.15（2025-01-11）  |无 |https://github.com/zeux/pugixml| pugixml|
 | convert_utf | 2025-03-11 |v20.1.0|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
 | udis86      | 2025-04-11 |v1.7.2 |有 |https://sourceforge.net/projects/udis86/      |  udint.h 有修改|

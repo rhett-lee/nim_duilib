@@ -244,8 +244,8 @@
     <ClCompile Include="Control\ColorPicker.cpp" />
     <ClCompile Include="Control\ColorPickerCustom.cpp" />
     <ClCompile Include="Control\ColorPickerRegular.cpp" />
-    <ClCompile Include="Control\ColorPickerStatard.cpp" />
-    <ClCompile Include="Control\ColorPickerStatardGray.cpp" />
+    <ClCompile Include="Control\ColorPickerStandard.cpp" />
+    <ClCompile Include="Control\ColorPickerStandardGray.cpp" />
     <ClCompile Include="Control\ColorSlider.cpp" />
     <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
@@ -275,9 +275,13 @@
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\MenuBar.cpp" />
     <ClCompile Include="Control\PropertyGrid.cpp" />
+    <ClCompile Include="Control\RichEdit2.cpp" />
     <ClCompile Include="Control\RichEditData.cpp" />
+    <ClCompile Include="Control\RichEditDragSource_Windows.cpp" />
+    <ClCompile Include="Control\RichEditDropTargetHelper.cpp" />
+    <ClCompile Include="Control\RichEditDropTarget_SDL.cpp" />
+    <ClCompile Include="Control\RichEditDropTarget_Windows.cpp" />
     <ClCompile Include="Control\RichEditHost_Windows.cpp" />
-    <ClCompile Include="Control\RichEdit_SDL.cpp" />
     <ClCompile Include="Control\RichEdit_Windows.cpp" />
     <ClCompile Include="Control\RichTextImpl.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
@@ -285,7 +289,9 @@
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
+    <ClCompile Include="Core\ColorConverter.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
+    <ClCompile Include="Core\ColorMap.cpp" />
     <ClCompile Include="Core\Control.cpp" />
     <ClCompile Include="Core\ControlDropTargetImpl_SDL.cpp" />
     <ClCompile Include="Core\ControlDropTargetImpl_Windows.cpp" />
@@ -320,6 +326,8 @@
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
     <ClCompile Include="Core\StateColorMap2.cpp" />
+    <ClCompile Include="Core\ThemeGenerator.cpp" />
+    <ClCompile Include="Core\ThemeManager.cpp" />
     <ClCompile Include="Core\ThreadManager.cpp" />
     <ClCompile Include="Core\ThreadMessage_SDL.cpp" />
     <ClCompile Include="Core\ThreadMessage_Windows.cpp" />
@@ -334,6 +342,7 @@
     <ClCompile Include="Core\WindowDropTarget_SDL.cpp" />
     <ClCompile Include="Core\WindowDropTarget_Windows.cpp" />
     <ClCompile Include="Core\WindowManager.cpp" />
+    <ClCompile Include="Core\WindowRoot.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
     <ClCompile Include="duilib.cpp" />
@@ -385,6 +394,7 @@
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
     <ClCompile Include="RenderSkia\DrawRichText.cpp" />
     <ClCompile Include="RenderSkia\DrawSkiaImage.cpp" />
+    <ClCompile Include="RenderSkia\DrawSkiaText.cpp" />
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp" />
     <ClCompile Include="RenderSkia\Font_Skia.cpp" />
     <ClCompile Include="RenderSkia\HorizontalDrawText.cpp" />
@@ -396,10 +406,11 @@
     <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp" />
     <ClCompile Include="RenderSkia\Render_Skia_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp" />
+    <ClCompile Include="RenderSkia\SkiaTextData.cpp" />
     <ClCompile Include="RenderSkia\SkRasterWindowContext_SDL.cpp" />
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkTextBox.cpp" />
-    <ClCompile Include="RenderSkia\SkUtils.cpp" />
+    <ClCompile Include="RenderSkia\SkUTF.cpp" />
     <ClCompile Include="RenderSkia\VerticalDrawText.cpp" />
     <ClCompile Include="RenderSkia\WindowRgn_Windows.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
@@ -504,6 +515,7 @@
     <ClCompile Include="Utils\Clipboard_SDL.cpp" />
     <ClCompile Include="Utils\Clipboard_Windows.cpp" />
     <ClCompile Include="Utils\DiskUtils_Windows.cpp" />
+    <ClCompile Include="Utils\DllManager_Windows.cpp" />
     <ClCompile Include="Utils\FileDialog_SDL.cpp" />
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
     <ClCompile Include="Utils\FilePath.cpp" />
@@ -517,8 +529,6 @@
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ProcessSingleton.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
-    <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
-    <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
     <ClCompile Include="Utils\StringCharset.cpp" />
     <ClCompile Include="Utils\StringConvert.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
@@ -593,8 +603,8 @@
     <ClInclude Include="Control\ColorPicker.h" />
     <ClInclude Include="Control\ColorPickerCustom.h" />
     <ClInclude Include="Control\ColorPickerRegular.h" />
-    <ClInclude Include="Control\ColorPickerStatard.h" />
-    <ClInclude Include="Control\ColorPickerStatardGray.h" />
+    <ClInclude Include="Control\ColorPickerStandard.h" />
+    <ClInclude Include="Control\ColorPickerStandardGray.h" />
     <ClInclude Include="Control\ColorSlider.h" />
     <ClInclude Include="Control\ComboButton.h" />
     <ClInclude Include="Control\DateTime.h" />
@@ -629,10 +639,15 @@
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\PropertyGrid.h" />
     <ClInclude Include="Control\RichEdit.h" />
+    <ClInclude Include="Control\RichEdit2.h" />
     <ClInclude Include="Control\RichEditCtrl_Windows.h" />
     <ClInclude Include="Control\RichEditData.h" />
+    <ClInclude Include="Control\RichEditDefs.h" />
+    <ClInclude Include="Control\RichEditDragSource_Windows.h" />
+    <ClInclude Include="Control\RichEditDropTargetHelper.h" />
+    <ClInclude Include="Control\RichEditDropTarget_SDL.h" />
+    <ClInclude Include="Control\RichEditDropTarget_Windows.h" />
     <ClInclude Include="Control\RichEditHost_Windows.h" />
-    <ClInclude Include="Control\RichEdit_SDL.h" />
     <ClInclude Include="Control\RichEdit_Windows.h" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
@@ -644,7 +659,9 @@
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\Callback.h" />
     <ClInclude Include="Core\ClickThrough.h" />
+    <ClInclude Include="Core\ColorConverter.h" />
     <ClInclude Include="Core\ColorManager.h" />
+    <ClInclude Include="Core\ColorMap.h" />
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlDragable.h" />
     <ClInclude Include="Core\ControlDropTarget.h" />
@@ -675,6 +692,7 @@
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\MessageLoop_SDL.h" />
     <ClInclude Include="Core\MessageLoop_Windows.h" />
+    <ClInclude Include="Core\NativeWindowShadow.h" />
     <ClInclude Include="Core\NativeWindow_SDL.h" />
     <ClInclude Include="Core\NativeWindow_Windows.h" />
     <ClInclude Include="Core\PlaceHolder.h" />
@@ -685,6 +703,8 @@
     <ClInclude Include="Core\SharePtr.h" />
     <ClInclude Include="Core\StateColorMap.h" />
     <ClInclude Include="Core\StateColorMap2.h" />
+    <ClInclude Include="Core\ThemeGenerator.h" />
+    <ClInclude Include="Core\ThemeManager.h" />
     <ClInclude Include="Core\ThreadManager.h" />
     <ClInclude Include="Core\ThreadMessage.h" />
     <ClInclude Include="Core\TimerManager.h" />
@@ -714,6 +734,7 @@
     <ClInclude Include="Core\WindowDropTarget_Windows.h" />
     <ClInclude Include="Core\WindowManager.h" />
     <ClInclude Include="Core\WindowMessage.h" />
+    <ClInclude Include="Core\WindowRoot.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
     <ClInclude Include="duilib.h" />
@@ -773,6 +794,8 @@
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
     <ClInclude Include="RenderSkia\DrawRichText.h" />
     <ClInclude Include="RenderSkia\DrawSkiaImage.h" />
+    <ClInclude Include="RenderSkia\DrawSkiaText.h" />
+    <ClInclude Include="RenderSkia\FastVector.h" />
     <ClInclude Include="RenderSkia\FontMgr_Skia.h" />
     <ClInclude Include="RenderSkia\Font_Skia.h" />
     <ClInclude Include="RenderSkia\HorizontalDrawText.h" />
@@ -786,10 +809,11 @@
     <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkiaHeaderBegin.h" />
     <ClInclude Include="RenderSkia\SkiaHeaderEnd.h" />
+    <ClInclude Include="RenderSkia\SkiaTextData.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />
-    <ClInclude Include="RenderSkia\SkUtils.h" />
+    <ClInclude Include="RenderSkia\SkUTF.h" />
     <ClInclude Include="RenderSkia\VerticalDrawText.h" />
     <ClInclude Include="RenderSkia\WindowRgn_Windows.h" />
     <ClInclude Include="Render\AutoClip.h" />
@@ -820,6 +844,7 @@
     <ClInclude Include="Utils\BitmapHelper_Windows.h" />
     <ClInclude Include="Utils\Clipboard.h" />
     <ClInclude Include="Utils\DiskUtils_Windows.h" />
+    <ClInclude Include="Utils\DllManager_Windows.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FilePath.h" />
     <ClInclude Include="Utils\FilePathUtil.h" />
@@ -834,7 +859,6 @@
     <ClInclude Include="Utils\ProcessSingletonData.h" />
     <ClInclude Include="Utils\ProcessSingleton_Windows.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />
-    <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringCharset.h" />
     <ClInclude Include="Utils\StringConvert.h" />
     <ClInclude Include="Utils\StringUtil.h" />

@@ -19,6 +19,8 @@ enum ePaintSelectedColors
 ListBox::ListBox(Window* pWindow, Layout* pLayout) :
     ScrollBox(pWindow, pLayout),
     m_iCurSel(Box::InvalidIndex),
+    // m_nLastNoShiftItem：没按Shift键时的最后一次选中项的索引（用于Shift多选范围的起点），
+    // 默认为0，使用时通过 nLastNoShiftItem >= nItemCount 兜底修正
     m_nLastNoShiftItem(0),
     m_pCompareFunc(nullptr),
     m_pCompareContext(nullptr),
@@ -44,13 +46,14 @@ ListBox::~ListBox()
 
 DString ListBox::GetType() const { return _T("ListBox"); }
 
-void ListBox::SetAttribute(const DString& strName, const DString& strValue)
+void ListBox::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("multi_select")) {
-        SetMultiSelect(strValue == _T("true"));
+        SetMultiSelect(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("paint_selected_colors")) {
-        if (strValue == _T("true")) {
+        if (StringUtil::IsValueTrue(strValue)) {
             m_uPaintSelectedColors = PAINT_SELECTED_COLORS_YES;
         }
         else {
@@ -58,19 +61,19 @@ void ListBox::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if ((strName == _T("scroll_select")) || (strName == _T("scrollselect"))) {
-        SetScrollSelect(strValue == _T("true"));
+        SetScrollSelect(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("select_next_when_active_removed")) {
-        SetSelectNextWhenActiveRemoved(strValue == _T("true"));
+        SetSelectNextWhenActiveRemoved(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("frame_selection")) {
-        SetEnableFrameSelection(strValue == _T("true"));
+        SetEnableFrameSelection(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("frame_selection_color")) {
         SetFrameSelectionColor(strValue);
     }
     else if (strName == _T("frame_selection_alpha")) {
-        SetframeSelectionAlpha((uint8_t)StringUtil::StringToInt32(strValue));
+        SetFrameSelectionAlpha((uint8_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("frame_selection_border_size")) {
         SetFrameSelectionBorderSize(StringUtil::StringToInt32(strValue));
@@ -79,10 +82,10 @@ void ListBox::SetAttribute(const DString& strName, const DString& strValue)
         SetFrameSelectionBorderColor(strValue);
     }
     else if (strName == _T("select_none_when_click_blank")) {
-        SetSelectNoneWhenClickBlank(strValue == _T("true"));
+        SetSelectNoneWhenClickBlank(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("select_like_list_ctrl")) {
-        SetSelectLikeListCtrl(strValue == _T("true"));
+        SetSelectLikeListCtrl(StringUtil::IsValueTrue(strValue));
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -121,12 +124,12 @@ DString ListBox::GetFrameSelectionColor() const
     return DString();
 }
 
-void ListBox::SetframeSelectionAlpha(uint8_t frameSelectionAlpha)
+void ListBox::SetFrameSelectionAlpha(uint8_t frameSelectionAlpha)
 {
     if (m_pHelper == nullptr) {
         m_pHelper = std::make_unique<ListBoxHelper>(this);
     }
-    m_pHelper->SetframeSelectionAlpha(frameSelectionAlpha);
+    m_pHelper->SetFrameSelectionAlpha(frameSelectionAlpha);
 }
 
 uint8_t ListBox::GetFrameSelectionAlpha() const

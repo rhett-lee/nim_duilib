@@ -92,6 +92,10 @@ public:
     virtual bool MergeAsyncDecodeData() = 0;
 };
 
+/** SVG格式替换颜色实现的回调函数
+*/
+typedef std::function<UiColor(const DString& strColor)> SvgReplaceColorCallbackFunction;
+
 /** SVG矢量图片接口
 */
 class DUILIB_API ISvgImage
@@ -113,8 +117,9 @@ public:
 
     /** 获取指定大小的位图，矢量缩放
     * @param [in] szImageSize 代表获取图片的宽度(cx)和高度(cy)
+    * @param [in] svgReplaceColorCallback SVG格式替换颜色实现的回调函数
     */
-    virtual std::shared_ptr<IBitmap> GetBitmap(const UiSize& szImageSize) = 0;
+    virtual std::shared_ptr<IBitmap> GetBitmap(const UiSize& szImageSize, SvgReplaceColorCallbackFunction svgReplaceColorCallback) = 0;
 };
 
 /** 单帧位图图片接口
@@ -335,6 +340,12 @@ public:
 
     //PAG格式，解码动画的帧率
     float m_fPagMaxFrameRate = 30.0f;
+
+    //SVG格式的颜色替换参数(支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，现在只要一个svg就够了)
+    DString m_svgReplaceColors;
+
+    //用于替换SVG格式颜色值参数的回调函数
+    SvgReplaceColorCallbackFunction m_svgReplaceColorCallback;
 };
 
 /** 图片解码器接口

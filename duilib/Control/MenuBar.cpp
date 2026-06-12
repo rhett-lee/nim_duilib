@@ -279,8 +279,8 @@ void MenuBar::CheckShowPopupMenu(MenuBarButton* pButton)
         if ((m_pActiveMenu != nullptr) && (m_pActiveMenu->GetRelatedControl() == pButton)) {
             //已经弹出，不需要重复弹出
             bPopup = false;
-            if ((pButton != nullptr) && (pButton->GetState() != ui::kControlStatePushed)) {
-                pButton->SetState(ui::kControlStatePushed);
+            if ((pButton != nullptr) && (pButton->GetState() != ui::kControlStatePressed)) {
+                pButton->SetState(ui::kControlStatePressed);
             }
         }
         if (bPopup) {
@@ -317,8 +317,8 @@ void MenuBar::OnMenuMouseLeave(MenuBarButton* pButton, const EventArgs& /*msg*/)
     if (HasActivePopupMenu()) {
         if ((m_pActiveMenu != nullptr) && (m_pActiveMenu->GetRelatedControl() == pButton)) {
             //已经弹出菜单，保持状态不变
-            if ((pButton != nullptr) && (pButton->GetState() != ui::kControlStatePushed)) {
-                pButton->SetState(ui::kControlStatePushed);
+            if ((pButton != nullptr) && (pButton->GetState() != ui::kControlStatePressed)) {
+                pButton->SetState(ui::kControlStatePressed);
             }
         }
     }
@@ -367,6 +367,8 @@ void MenuBar::ShowPopupMenu(MenuBarButton* pButton)
     }
 
     UiPoint point(pButton->GetRect().left, pButton->GetRect().top);
+    UiPoint scrollOfset = pButton->GetScrollOffsetInScrollBox();
+    point.Offset(-scrollOfset.x, -scrollOfset.y);
     point.Offset(0, pButton->GetRect().Height());
     ClientToScreen(point);
 

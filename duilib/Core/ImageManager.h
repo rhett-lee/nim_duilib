@@ -41,10 +41,13 @@ public:
 public:
     /** 加载图片 ImageInfo 对象
      * @param [in] loadParam 图片的加载属性，包含图片路径等信息
+     * @param [in] svgReplaceColorCallback 用于替换SVG格式颜色值参数的回调函数
      * @param [out] bImageDataFromCache 返回true表示从缓存获取的ImageData共享原图数据，否则表示重新加载的
      * @return 返回图片 ImageInfo 对象的智能指针
      */
-    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam, bool& bImageDataFromCache);
+    std::shared_ptr<ImageInfo> GetImage(const ImageLoadParam& loadParam,
+                                        SvgReplaceColorCallbackFunction svgReplaceColorCallback,
+                                        bool& bImageDataFromCache);
 
     /** 从缓存中删除所有图片
      */
@@ -173,6 +176,12 @@ private:
     * @return 返回指定DPI下的图片资源路径, 如果失败则返回空串
     */
     DString GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const;
+
+    /** 生成一个图片的KEY
+    * @param [in] imageFullPath 图片的完整路径
+    * @param [in] svgReplaceColors SVG 图片替换颜色的字符串
+    */
+    DString CreateImageKey(const DString& imageFullPath, const DString& svgReplaceColors) const;
 
 private:
     /** 是否智能匹配临近的缩放百分比图片

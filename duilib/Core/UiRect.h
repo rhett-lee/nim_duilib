@@ -53,11 +53,11 @@ public:
 
     /** 获取中心点的X轴坐标值
     */
-    int32_t CenterX() const { return (left + right) / 2; }
+    int32_t CenterX() const { return (int32_t)(((int64_t)left + (int64_t)right) / 2); }
 
     /** 获取中心点的Y轴坐标值
     */
-    int32_t CenterY() const { return (top + bottom) / 2; }
+    int32_t CenterY() const { return (int32_t)(((int64_t)top + (int64_t)bottom) / 2); }
 
     /** 获取矩形中心点坐标（X轴坐标和Y轴坐标）
     */

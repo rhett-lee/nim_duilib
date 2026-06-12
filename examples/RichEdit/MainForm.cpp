@@ -253,7 +253,7 @@ void MainForm::OnInitWindow()
     }
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
-        ui::GlobalManager::Instance().Font().GetFontSizeList(Dpi(), m_fontSizeList);
+        ui::GlobalManager::Instance().Font().GetDpiFontSizeList(Dpi(), m_fontSizeList);
         for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
             const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
             size_t nItemIndex = pFontSizeCombo->AddTextItem(fontSize.fontSizeName);
@@ -467,7 +467,7 @@ void MainForm::OnInitWindow()
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToWString(url).c_str(), L"RichEdit点击超链接", MB_OK);
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToWString(url).c_str(), L"RichEdit", MB_OK);
 #endif
             }
             return true;
@@ -988,30 +988,41 @@ void MainForm::UpdateSaveStatus()
 
 void MainForm::LoadRichEditData()
 {
-    std::streamoff length = 0;
-    std::string xml;
-    ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
-    controls_xml += GetResourcePath();
-    controls_xml += GetSkinFile();
-
-    std::ifstream ifs(controls_xml.NativePath().c_str(), std::ios::binary);
-    if (ifs.is_open()) {
-        ifs.seekg(0, std::ios_base::end);
-        length = ifs.tellg();
-        ifs.seekg(0, std::ios_base::beg);
-
-        xml.resize(static_cast<unsigned int>(length));
-        ifs.read(&xml[0], length);
-        ifs.close();
+    ui::FilePath resFileFullPath;
+    std::vector<uint8_t> resFileData;
+    ui::FilePath windowResPath = GetResourcePath();
+    ui::FilePath xmlFilePath = ui::FilePath(GetSkinFile());
+    if (!ui::GlobalManager::Instance().Theme().GetResFile(xmlFilePath, windowResPath, resFileFullPath, resFileData)) {
+        return;
     }
-    DString xmlU = ui::StringConvert::UTF8ToT(xml);
+
+    DString xmlU;
+    if (resFileData.empty()) {        
+        std::string xml;
+        std::ifstream ifs(resFileFullPath.NativePath().c_str(), std::ios::binary);
+        if (ifs.is_open()) {
+            ifs.seekg(0, std::ios_base::end);
+            std::streamoff length = ifs.tellg();
+            ifs.seekg(0, std::ios_base::beg);
+
+            xml.resize(static_cast<unsigned int>(length));
+            ifs.read(&xml[0], length);
+            ifs.close();
+        }
+        xmlU = ui::StringConvert::UTF8ToT(xml);
+    }
+    else {
+        resFileData.push_back(0);
+        resFileData.push_back(0);
+        xmlU = ui::StringConvert::UTF8ToT((const char*)resFileData.data());
+    }
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);
         m_pRichEdit->SetFocus();
         m_pRichEdit->HomeUp();
         m_pRichEdit->SetModify(false);
-        m_filePath = controls_xml;
+        m_filePath = resFileFullPath;
     }
 }
 
@@ -1120,10 +1131,10 @@ void MainForm::UpdateZoomValue()
 void MainForm::OnOpenFile()
 {
     std::vector<ui::FileDialog::FileType> fileTypes;
-    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*")});
-    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*")});
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_TXT_FILES")), _T("*.txt") });
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
 #endif
 
     DString defaultExt;
@@ -1163,10 +1174,10 @@ void MainForm::OnSaveFile()
 void MainForm::OnSaveAsFile()
 {
     std::vector<ui::FileDialog::FileType> fileTypes;
-    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*") });
-    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_ALL_FILES")), _T("*.*") });
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_TXT_FILES")), _T("*.txt") });
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
+    fileTypes.push_back({ ui::GlobalManager::GetTextById(_T("STRID_RICHEDIT_RTF_FILES")), _T("*.rtf") });
 #endif
 
     DString defaultExt;
@@ -1396,7 +1407,7 @@ void MainForm::OnSetFont()
 
     cf.lStructSize = sizeof(cf);
     cf.hwndOwner = hWndParent;
-    cf.rgbColors = textColor.ToCOLORREF();
+    cf.rgbColors = textColor.ToCOLORREF(IsColorThemeDarkMode());
     cf.lpszStyle = (LPWSTR)&szStyleName;
     cf.Flags = dwFlags;
 

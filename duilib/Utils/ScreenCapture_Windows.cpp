@@ -29,7 +29,8 @@ static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeig
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
+    //注意：nWidth * nHeight * sizeof(DWORD) 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+    bmi.bmiHeader.biSizeImage = (DWORD)((size_t)nWidth * nHeight * sizeof(DWORD));
 
     HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HBITMAP hBitmap = nullptr;

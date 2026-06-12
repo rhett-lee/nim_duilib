@@ -162,11 +162,11 @@ void SkGLWindowContext_Windows::onDestroyContext()
 bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRenderPaint* pRenderPaint)
 {
     HWND hWnd = m_hWnd;
-    SkASSERT(::IsWindow(hWnd));
+    ASSERT(::IsWindow(hWnd));
     if ((hWnd == nullptr) || !::IsWindow(hWnd)) {
         return false;
     }
-    SkASSERT(pRenderPaint != nullptr);
+    ASSERT(pRenderPaint != nullptr);
     if (pRenderPaint == nullptr) {
         return false;
     }

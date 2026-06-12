@@ -142,9 +142,13 @@ bool TrayIconImpl::Initialize(const Window* pWindow, const DString& iconFilePath
     ASSERT_UNUSED_VARIABLE(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 
     //在模块退出时，注销该ATOM
-    GlobalManager::Instance().AddAtExitFunction([hInstance]() {
+    static bool bAddAtExitFunction = false;
+    if (!bAddAtExitFunction) {
+        bAddAtExitFunction = true;
+        GlobalManager::Instance().AddAtExitFunction([hInstance]() {
             ::UnregisterClassW(DUILIB_TRAY_MESSAGE_WINDOW_CLASS, hInstance);
-        });
+            });
+    }
 
     m_hWnd = ::CreateWindowExW(0, wc.lpszClassName, L"", WS_POPUP, 0, 0, 0, 0, HWND_MESSAGE, nullptr, hInstance, nullptr);
     if (m_hWnd == nullptr) {

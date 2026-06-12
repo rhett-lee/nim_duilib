@@ -100,9 +100,18 @@ void WebView2Manager::SetLanguage(const DString& language)
     m_language = language;
 }
 
-const DString& WebView2Manager::GetLanguage() const
+DString WebView2Manager::GetLanguage() const
 {
-    return m_language;
+    //WebView2控件，在一个进程内不支持混合语言的页面，如果页面语言不匹配，则页面无法加载
+    static DString language = m_language;
+    if (language.empty()) {
+        //获取当前的默认语言: 如"zh-CN"、"en-US"等
+        language = GlobalManager::GetTextById(DUILIB_LANGUAGE_NAME);
+        if (!language.empty()) {
+            StringUtil::ReplaceAll(_T("_"), _T("-"), language);
+        }
+    }
+    return language;
 }
 
 void WebView2Manager::SetUserAgent(const DString& userAgent)

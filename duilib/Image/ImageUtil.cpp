@@ -2,6 +2,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
 #include <cmath>
+#include <cstdint>
 
 #pragma warning (push)
 #pragma warning (disable: 4505)
@@ -202,12 +203,43 @@ std::unique_ptr<IBitmap> ImageUtil::ResizeImageBitmap(IBitmap* pBitmap, int32_t 
         return nullptr;
     }
     void* pOutPixelBits = pNewBitmap->LockPixelBits();
-    size_t nOutPixelBitsLen = (size_t)(nNewHeight * nNewWidth * 4);
+    if (pOutPixelBits == nullptr) {
+        return nullptr;
+    }
+    // 安全计算 buffer 大小（避免 int32_t / uint32_t 乘法溢出）
+    // 先做 size_t 提升再相乘，保证中间结果不会截断
+    if (nNewHeight > 0 && (size_t)nNewWidth > (SIZE_MAX / 4 / (size_t)nNewHeight)) {
+        // 溢出保护
+        ASSERT(!"ResizeImageBitmap: image too large");
+        pNewBitmap->UnLockPixelBits();
+        return nullptr;
+    }
+    size_t nOutPixelBitsLen = (size_t)nNewWidth * (size_t)nNewHeight * 4;
+    if (nOutPixelBitsLen == 0) {
+        pNewBitmap->UnLockPixelBits();
+        return nullptr;
+    }
 
     void* pPixelBits = pBitmap->LockPixelBits();
+    if (pPixelBits == nullptr) {
+        pNewBitmap->UnLockPixelBits();
+        return nullptr;
+    }
     uint32_t nWidth = pBitmap->GetWidth();
     uint32_t nHeight = pBitmap->GetHeight();
-    size_t nPixelBitsLen = nHeight * nWidth * 4;
+    // 同样的溢出保护
+    if (nHeight > 0 && nWidth > (SIZE_MAX / 4 / (size_t)nHeight)) {
+        ASSERT(!"ResizeImageBitmap: source image too large");
+        pBitmap->UnLockPixelBits();
+        pNewBitmap->UnLockPixelBits();
+        return nullptr;
+    }
+    size_t nPixelBitsLen = (size_t)nWidth * (size_t)nHeight * 4;
+    if (nPixelBitsLen == 0) {
+        pBitmap->UnLockPixelBits();
+        pNewBitmap->UnLockPixelBits();
+        return nullptr;
+    }
 
     if (ResizeImageData((const uint8_t*)pPixelBits, nPixelBitsLen, nWidth, nHeight,
                         (uint8_t*)pOutPixelBits, nOutPixelBitsLen, (uint32_t)nNewWidth, (uint32_t)nNewHeight)) {

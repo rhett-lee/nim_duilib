@@ -16,7 +16,7 @@ const ui::DpiInitParam& MainThread::GetDpiInitParam() const
     return m_dpiInitParam;
 }
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
     // 创建一个默认带有阴影的居中窗口
     CefForm* window = new CefForm();
@@ -32,6 +32,7 @@ void MainThread::OnInit()
     window->CreateWnd(nullptr, createWndParam);
     TestApplication::Instance().SetMainWindow(window);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
 }
 
 void MainThread::OnCleanup()

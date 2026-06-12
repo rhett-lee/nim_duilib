@@ -41,11 +41,11 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
     std::vector<Control*> stretchControls;                  // 按顺序存储拉伸控件
     std::unordered_map<Control*, UiEstSize> stretchItemsMap;// 拉伸控件尺寸临时存储
 
-    int32_t cyStretchPercentageTotal = 0;  // 拉伸控件总百分比（垂直方向）
+    int32_t cyStretchPercentageTotal = 0;  // 拉伸控件总百分比
     int32_t cyFixedSelfTotal = 0;          // 固定控件自身总高度（不含边距、不含间距）
     int32_t cyFixedTotal = 0;              // 固定控件总高度（含边距，不含间距）
     int32_t totalAllControlsCount = 0;     // 参与布局的总控件数（固定+拉伸，非浮动、可见）
-    int32_t totalAllMargin = 0;            // 所有参与布局控件的边距总和（上+下）
+    int64_t totalAllMargin = 0;            // 所有参与布局控件的边距总和（上+下）—— 使用 int64_t 避免累加溢出
 
     // 计算每个控件的基础尺寸，分类存储 + 统计关键参数
     for (auto pControl : items) {
@@ -99,8 +99,9 @@ UiSize64 VLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
 
         // 一、计算总可分配空间（严格按公式，垂直方向用高度）
         // 总可分配空间 = 总高度 - 固定控件自身总高度 - 所有控件边距总和（上+下） - 总间距
-        int32_t totalUsableSpace = rc.Height() - cyFixedSelfTotal - totalAllMargin - totalSpacing;
-        totalUsableSpace = std::max(totalUsableSpace, 0);
+        // 使用 int64_t 中间计算避免溢出，最后 clamp 到 int32_t
+        int64_t totalUsableSpace64 = (int64_t)rc.Height() - (int64_t)cyFixedSelfTotal - totalAllMargin - (int64_t)totalSpacing;
+        int32_t totalUsableSpace = (int32_t)std::max<int64_t>(totalUsableSpace64, 0);
 
         // 收集拉伸控件的最小/最大高度需求
         struct StretchInfo {

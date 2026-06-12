@@ -147,8 +147,9 @@ public:
     /** 显示所有磁盘节点, 返回第一个新节点接口(同步完成)
     * @param [in] computerName 计算机节点的显示名称
     * @param [in] fileSystemName 文件系统的显示名称
+    * @param [in] bDisplayNameIsID 虚拟目录的显示名称是否为语言ID，以支持多语言
     */
-    TreeNode* ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName);
+    TreeNode* ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName, bool bDisplayNameIsID = false);
 
     /** 在指定的节点前插入一个横向分割线(同步完成)
     * @param [in] pNode 节点接口

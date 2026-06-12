@@ -92,6 +92,7 @@ build/
   - `WebView2Browser` - WebView2 浏览器完整示例
   - `ChildWindow` - 子窗口示例
   - `XmlPreview` - XML 预览示例
+  - `ColorTheme` - 主题颜色预览与生成示例
 
 **注意：** CEF 模块需要手动下载配置，参见 [docs/CEF.md](../docs/CEF.md)。
 

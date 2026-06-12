@@ -12,7 +12,7 @@ namespace ui {
 
 /** 虚拟键编码(和Windows系统定义一致，WinUser.h)
 */
-enum VirtualKeyCode
+enum VirtualKeyCode: int32_t
 {
     kVK_None        = 0x00, //无虚拟键
     kVK_LBUTTON     = 0x01, //鼠标左键

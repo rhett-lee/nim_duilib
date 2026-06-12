@@ -20,7 +20,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "1";
         item.m_icon = _T("1.png");
         item.m_isFrequent = false;
-        item.m_name = _T("城市服务");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_01");
         app_list.emplace_back(item);
     }
     {
@@ -28,7 +28,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "2";
         item.m_icon = _T("2.png");
         item.m_isFrequent = false;
-        item.m_name = _T("天气预报");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_02");
         app_list.emplace_back(item);
     }
     {
@@ -36,7 +36,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "3";
         item.m_icon = _T("3.png");
         item.m_isFrequent = true;
-        item.m_name = _T("考勤");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_03");
         app_list.emplace_back(item);
     }
     {
@@ -44,7 +44,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "4";
         item.m_icon = _T("4.png");
         item.m_isFrequent = true;
-        item.m_name = _T("工资单");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_04");
         app_list.emplace_back(item);
     }
     {
@@ -52,7 +52,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "5";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试5");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_05");
         app_list.emplace_back(item);
     }
     {
@@ -60,7 +60,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "6";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试6");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_06");
         app_list.emplace_back(item);
     }
     {
@@ -68,7 +68,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "7";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试7");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_07");
         app_list.emplace_back(item);
     }
     {
@@ -76,7 +76,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "8";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试8");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_08");
         app_list.emplace_back(item);
     }
     {
@@ -84,7 +84,7 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "9";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试9");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_09");
         app_list.emplace_back(item);
     }
     {
@@ -92,18 +92,9 @@ bool AppDb::LoadFromDb(std::vector<AppItem>& app_list)
         item.m_id = "10";
         item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = _T("测试10");
+        item.m_name = _T("STRID_MOVECONTROL_TEST_10");
         app_list.emplace_back(item);
-    }
-    {
-        AppItem item;
-        item.m_id = "11";
-        item.m_icon = _T("5.png");
-        item.m_isFrequent = false;
-        item.m_name = _T("测试11");
-        app_list.emplace_back(item);
-    }
-    
+    }   
     return true;
 }
 

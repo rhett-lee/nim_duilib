@@ -469,4 +469,9 @@ void ChildWindowImpl::OnDisplayScaleChangedMsg(float /*fNewDisplayScale*/, float
     // 空实现
 }
 
+void ChildWindowImpl::OnDwmCompositionChangedMsg(bool /*bDwmCompositionEnabled*/)
+{
+    // 空实现
+}
+
 }//namespace ui

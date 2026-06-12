@@ -541,13 +541,13 @@ bool RenderTest2::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt,
         return false;
     }
 
+    UiPoint oldWindowOrg = pRender->GetWindowOrg();
+    pRender->SetWindowOrg(UiPoint(centerPt.x + oldWindowOrg.x, centerPt.y + oldWindowOrg.y));
+
     bool bRet = false;
     const int count = 6;
-    UiPoint oldWindowOrg = pRender->SetWindowOrg(UiPoint(centerPt.x, centerPt.y));
-
     //开始绘制多边形，并为每个区块上色
-    for (int i = 0; i < count; ++i)
-    {
+    for (int i = 0; i < count; ++i) {
         //设中心点到边的垂线与半径的夹角为degree=(360/count)/2即：
         float degree = 180.0f / count;
 

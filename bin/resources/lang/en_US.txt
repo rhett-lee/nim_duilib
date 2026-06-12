@@ -1,38 +1,10 @@
-﻿;String resources in English 
-;comment symbol：“;”
+﻿# String resources in English 
+# Comment symbol: "#"; trim spaces on both sides of language ID and text.
+# Allowed escape chars in text: "\r" (carriage return), "\n" (line feed), "\s" (space).
 
-;Language display name
+# Language name and display name
+LANGUAGE_NAME = en_US
 LANGUAGE_DISPLAY_NAME = English(English)
 
-;global.xml
-STRID_EXIT_FULLSCREEN = Exit Fullscreen
-TIPID_EXIT_FULLSCREEN = Click button or press ESC to exit fullscreen
-
-;Common
-STRING_OK = OK
-STRING_CANCEL = Cancel
-
-;cef Browser
-STRID_CEF_BROWSER_WINDOW_MODE        =    Window Mode Cef Browser Component Test
-STRID_CEF_BROWSER_BACKWARD           =    Back
-STRID_CEF_BROWSER_FORWARD            =    Forward
-STRID_CEF_BROWSER_INPUT_ADDRESS      =    Input Address
-STRID_CEF_BROWSER_BROWSE_TO          =    Go To
-STRID_CEF_BROWSER_REFRESH            =    Refresh
-STRID_CEF_BROWSER_STOP               =    Stop
-STRID_CEF_BROWSER_HELLO_JS           =    Hello JS！
-STRID_CEF_BROWSER_INPUT_TEXT         =    Input text sending to JS
-STRID_CEF_BROWSER_SEND_TO_JS         =    Send to JS
-STRID_CEF_BROWSER_OFF_SCREEN_MODE    =    Off-screen Rendering Cef Browser Component Test
-STRID_CEF_BROWSER_RECEIVE_JS_MSG     =    Received Msg From JS: %s
-STRID_CEF_BROWSER_MULTI_TAB          =    Multi Tab Browser
-
-;examples/MultiLang
-MULTI_LANG_WINDOW_TEXT               =   Support for multilingual windows
-MULTI_LANG_SELECT_LANGUAGE           =   Select Language
-MULTI_LANG_SELECT_WINDOW_MAX         =   Maximize
-MULTI_LANG_SELECT_WINDOW_RESTORE     =   Restore
-MULTI_LANG_SELECT_WINDOW_MIN         =   Minimize
-MULTI_LANG_SELECT_WINDOW_CLOSE       =   Close
-MULTI_LANG_LABEL_TEXT                =   This is a program that supports multiple languages.
-MULTI_LANG_RICH_TEXT                 =   <font color="#8B0000">This is</font> a <b>program </b>that <bgcolor color="#6495ED">supports multiple languages </bgcolor>.
+# Include language file list, different files are separated by semicolon: ";"
+INCLUDE_LANGUAGE_FILES = en_US-public.txt ; en_US-examples.txt

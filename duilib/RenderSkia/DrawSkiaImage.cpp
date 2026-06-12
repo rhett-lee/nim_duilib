@@ -1,6 +1,6 @@
 #include "DrawSkiaImage.h"
 
-#include "duilib/Utils/PerformanceUtil.h"
+//#include "duilib/Utils/PerformanceUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4505)
@@ -113,7 +113,7 @@ static bool ResizeSkiaImageByOpenCV(const sk_sp<SkImage>& skImage, const UiRect&
         return false;
     }
 
-    PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByOpenCV"));
+    //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByOpenCV"));
     skNewImage = SkiaResizeWithOpenCV_Opt(skImage, rcDest.Width(), rcDest.Height());
     return skNewImage != nullptr;
 }
@@ -143,7 +143,7 @@ static bool ResizeSkiaImageByStbImage(const sk_sp<SkImage>& /*skImage*/, const U
     //    //有错误
     //    return false;
     //}
-    //PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByStbImage"));
+    //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::ResizeSkiaImageByStbImage"));
 
     //sk_sp<SkData> skData = SkData::MakeUninitialized(rcDest.Height() * rcDest.Width() * sizeof(uint32_t));
     //const unsigned char* input_pixels = (const unsigned char*)srcPixmap.addr();
@@ -189,7 +189,7 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
 #ifdef DUILIB_HAVE_OPENCV
     sk_sp<SkImage> skNewImage;
     if (ResizeSkiaImageByOpenCV(skSrcImage, rcSrc, rcDest, skNewImage)) {
-        PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(OpenCV)"));
+        //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(OpenCV)"));
         rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
         rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
         pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
@@ -197,14 +197,14 @@ void DrawSkiaImage::DrawImage(SkCanvas* pSkCanvas,
 #else
     sk_sp<SkImage> skNewImage;
     if (ResizeSkiaImageByStbImage(skSrcImage, rcSrc, rcDest, skNewImage)) {
-        PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(StbImage)"));
+        //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(StbImage)"));
         rcSkSrc.fRight = rcSkSrc.fLeft + skNewImage->width();
         rcSkSrc.fBottom = rcSkSrc.fTop + skNewImage->height();
         pSkCanvas->drawImageRect(skNewImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
 #endif
     else {
-        PerformanceStat statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(Skia Only)"));
+        //PerformanceUtil statPerformance(_T("Render_Skia::DrawSkiaImage::DrawImage drawImageRect(Skia Only)"));
         pSkCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
     }
 }

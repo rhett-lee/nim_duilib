@@ -37,27 +37,28 @@ CefControl::~CefControl(void)
 
 DString CefControl::GetType() const { return DUI_CTR_CEF; }
 
-void CefControl::SetAttribute(const DString& strName, const DString& strValue)
+void CefControl::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("url")) {
         //初始化加载的URL
         SetInitURL(strValue);
     }
     else if (strName == _T("url_is_local_file")) {
         //初始化加载的URL是否为本地文件
-        SetInitUrlIsLocalFile(strValue == _T("true"));
+        SetInitUrlIsLocalFile(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("F12")) {
         //是否允许按F12打开开发者工具
-        SetEnableF12(strValue == _T("true"));
+        SetEnableF12(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("F11")) {
         //是否允许F11快捷键(页面全屏/页面退出全屏)
-        SetEnableF11(strValue == _T("true"));
+        SetEnableF11(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("download_favicon_image")) {
         //是否下载网站的FavIcon图标
-        SetDownloadFaviconImage(strValue == _T("true"));
+        SetDownloadFaviconImage(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -389,15 +390,45 @@ DString CefControl::GetInitURL() const
         DString url = StringUtil::MakeLowerString(initUrl);
         if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
             //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
-            FilePath cefHtml = GlobalManager::GetDefaultResourcePath(true);
-            cefHtml.NormalizeDirectoryPath();
-            cefHtml += initUrl;            
-            cefHtml.NormalizeFilePath();
+            FilePath cefHtml(initUrl);
+            if (cefHtml.IsAbsolutePath() && cefHtml.IsExistsFile()) {
+                //绝对路径, 并且文件存在
+                cefHtml.NormalizeFilePath();
+            }
+            else {
+                //相对路径: 直接拼接
+                cefHtml = GlobalManager::GetResourceRootPath(true);
+                cefHtml.NormalizeDirectoryPath();
+                cefHtml += initUrl;
+                if (!cefHtml.IsExistsFile()) {
+                    //直接拼接的文件不存在，则尝试按规则在资源目录查找
+                    FilePath windowResPath;
+                    if (GetWindow() != nullptr) {
+                        windowResPath = GetWindow()->GetResourcePath();
+                    }
+                    bool bFound = false;
+                    std::vector<FilePath> resFileSearchPathList;
+                    GlobalManager::Instance().Theme().GetResFileSearchPath(windowResPath, resFileSearchPathList);
+                    for (const FilePath& searchPath : resFileSearchPathList) {
+                        cefHtml = searchPath;
+                        cefHtml /= FilePath(initUrl);
+                        if (cefHtml.IsExistsFile()) {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                    if (!bFound) {
+                        cefHtml = FilePath(initUrl);
+                    }
+                }
+            }            
             initUrl = _T("file:///");
             initUrl += cefHtml.ToString();
-            StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
         }
     }
+    if (!initUrl.empty()) {
+        StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
+    }    
     return initUrl;
 }
 

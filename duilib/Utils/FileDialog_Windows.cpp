@@ -4,6 +4,7 @@
 
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
 
 #include "duilib/duilib_config_windows.h"
@@ -140,7 +141,11 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     };
     std::vector<FileTypeW> fileTypesW;
     for (const FileType& fileType : fileTypes) {
-        fileTypesW.push_back({ StringConvert::TToWString(fileType.szName), StringConvert::TToWString(fileType.szExt) });
+        DString name = fileType.szName;
+        if (!fileType.szNameId.empty()) {
+            name = GlobalManager::GetTextById(fileType.szNameId);
+        }
+        fileTypesW.push_back({ StringConvert::TToWString(name), StringConvert::TToWString(fileType.szExt) });
     }
 
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
@@ -216,7 +221,11 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
         if (!fileTypes.empty()) {
             std::vector<COMDLG_FILTERSPEC> filterSpecs;
             for (const FileType& fileType : fileTypes) {
-                filterSpecs.push_back({ (LPCWSTR)fileType.szName.c_str(), (LPCWSTR)fileType.szExt.c_str() });
+                DString name = fileType.szName;
+                if (!fileType.szNameId.empty()) {
+                    name = GlobalManager::GetTextById(fileType.szNameId);
+                }
+                filterSpecs.push_back({ (LPCWSTR)name.c_str(), (LPCWSTR)fileType.szExt.c_str() });
             }
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }

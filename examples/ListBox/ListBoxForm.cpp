@@ -69,7 +69,7 @@ void ListBoxForm::OnInitWindow()
         }
 
         DString img = _T("icon.png");
-        DString title = ui::StringUtil::Printf(_T("任务 [%02d]"), i);
+        DString title = ui::StringUtil::Printf(_T("Task [%02d]"), i);
 
         item->InitSubControls(img, title);
         m_pListBox->AddItem(item);

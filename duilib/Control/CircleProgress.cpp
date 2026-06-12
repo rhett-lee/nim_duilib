@@ -26,10 +26,11 @@ CircleProgress::~CircleProgress()
 
 DString CircleProgress::GetType() const { return DUI_CTR_CIRCLEPROGRESS; }
 
-void CircleProgress::SetAttribute(const DString& srName, const DString& strValue)
+void CircleProgress::SetAttribute(const DString& srName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (srName == _T("circular")) {
-        SetCircular(strValue == _T("true"));
+        SetCircular(StringUtil::IsValueTrue(strValue));
     }
     else if ((srName == _T("circle_width")) || (srName == _T("circlewidth"))) {
         int32_t iValue = StringUtil::StringToInt32(strValue);
@@ -39,7 +40,7 @@ void CircleProgress::SetAttribute(const DString& srName, const DString& strValue
         SetIndicator(strValue);
     }
     else if (srName == _T("clockwise")) {
-        SetClockwiseRotation(strValue == _T("true"));
+        SetClockwiseRotation(StringUtil::IsValueTrue(strValue));
     }
     else if (srName == _T("bgcolor")) {
         SetBackgroudColor(strValue);
@@ -159,7 +160,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         pRender->DrawArc(outer, 270, sweepAngle, false, fgPen);
     }
     else {
-        //不使用渐变色，直接用前景色铺满
+        //使用渐变色
         pRender->DrawArc(outer, 270, 360, false, bgPen);
 
         float sweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
@@ -170,7 +171,9 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
         if ((spMatrix != nullptr) && ((nMax - nMin) != 0)){
             float angle = direction * 360 * ((float)fValue - nMin) / (nMax - nMin);
-            spMatrix->RotateAt(angle, (float)center.x, (float)center.y);
+
+            const UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
+            spMatrix->RotateAt(angle, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
         }
 
         UiRect imageRect;
@@ -225,14 +228,14 @@ float CircleProgress::GetCircleWidth() const
 
 void CircleProgress::SetBackgroudColor(const DString& strColor)
 {
-    m_dwBackgroundColor = GlobalManager::Instance().Color().GetColor(strColor);
+    m_dwBackgroundColor = GetUiColor(strColor);
     ASSERT(m_dwBackgroundColor.GetARGB() != 0);
     Invalidate();
 }
 
 void CircleProgress::SetForegroudColor(const DString& strColor)
 {
-    m_dwForegroundColor = GlobalManager::Instance().Color().GetColor(strColor);
+    m_dwForegroundColor = GetUiColor(strColor);
     ASSERT(m_dwForegroundColor.GetARGB() != 0);
     Invalidate();
 }
@@ -251,7 +254,7 @@ void CircleProgress::SetIndicator(const DString& sIndicatorImage)
 
 void CircleProgress::SetCircleGradientColor(const DString& strColor)
 {
-    m_dwGradientColor = GlobalManager::Instance().Color().GetColor(strColor);
+    m_dwGradientColor = GetUiColor(strColor);
     ASSERT(m_dwGradientColor.GetARGB() != 0);
     Invalidate();
 }

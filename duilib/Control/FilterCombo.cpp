@@ -15,8 +15,9 @@ FilterCombo::~FilterCombo()
 
 DString FilterCombo::GetType() const { return DUI_CTR_FILTER_COMBO; }
 
-void FilterCombo::SetAttribute(const DString& strName, const DString& strValue)
+void FilterCombo::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("combo_type")) {
         //忽略该属性设置
     }

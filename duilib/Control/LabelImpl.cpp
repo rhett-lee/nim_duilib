@@ -110,7 +110,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if ((strName == _T("end_ellipsis")) || (strName == _T("endellipsis"))) {
-        if (strValue == _T("true")) {
+        if (StringUtil::IsValueTrue(strValue)) {
             m_uTextStyle |= TEXT_END_ELLIPSIS;
         }
         else {
@@ -118,7 +118,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if ((strName == _T("path_ellipsis")) || (strName == _T("pathellipsis"))) {
-        if (strValue == _T("true")) {
+        if (StringUtil::IsValueTrue(strValue)) {
             m_uTextStyle |= TEXT_PATH_ELLIPSIS;
         }
         else {
@@ -126,7 +126,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
-        SetSingleLine(strValue == _T("true"));
+        SetSingleLine(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
         SetSingleLine(strValue != _T("true"));
@@ -138,19 +138,19 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
         SetTextId(strValue);
     }
     else if ((strName == _T("auto_tooltip")) || (strName == _T("autotooltip"))) {
-        SetAutoShowToolTipEnabled(strValue == _T("true"));
+        SetAutoShowToolTipEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if ((strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
+    else if ((strName == _T("text_color")) || (strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
         SetStateTextColor(kControlStateNormal, strValue);
     }
-    else if ((strName == _T("hot_text_color")) || (strName == _T("hottextcolor"))) {
-        SetStateTextColor(kControlStateHot, strValue);
+    else if ((strName == _T("hovered_text_color")) || (strName == _T("hot_text_color")) || (strName == _T("hottextcolor"))) {
+        SetStateTextColor(kControlStateHovered, strValue);
     }
-    else if ((strName == _T("pushed_text_color")) || (strName == _T("pushedtextcolor"))) {
-        SetStateTextColor(kControlStatePushed, strValue);
+    else if ((strName == _T("pressed_text_color")) || (strName == _T("pushed_text_color")) || (strName == _T("pushedtextcolor"))) {
+        SetStateTextColor(kControlStatePressed, strValue);
     }
     else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
         SetStateTextColor(kControlStateDisabled, strValue);
@@ -162,7 +162,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("replace_newline")) {
         // 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"
-        SetReplaceNewline(strValue == _T("true"));
+        SetReplaceNewline(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("spacing_mul")) {
         // 设置行间距倍数
@@ -182,7 +182,7 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("vertical_text")) {
         // 设置是否为纵向文本
-        SetVerticalText(strValue == _T("true"));
+        SetVerticalText(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("word_spacing")) {
         // 设置两个相邻的字符之间的间隔（像素）
@@ -190,15 +190,15 @@ bool LabelImpl::OnSetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("use_font_height")) {
         // 设置当纵向绘制文本时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
-        SetUseFontHeight(strValue == _T("true"));
+        SetUseFontHeight(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("ascii_rotate_90")) {
         // 设置当纵向绘制文本时，对于字母数字等，顺时针旋转90度显示
-        SetRotate90ForAscii(strValue == _T("true"));
+        SetRotate90ForAscii(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("rich_text")) {
         // 设置文本内容是否为RichText
-        SetRichText(strValue == _T("true"));
+        SetRichText(StringUtil::IsValueTrue(strValue));
     }
     else {
         return false;
@@ -297,7 +297,7 @@ DString LabelImpl::GetText() const
 {
     DString strText = m_sText.c_str();
     if (strText.empty() && !m_sTextId.empty()) {
-        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId.c_str());
+        strText = GlobalManager::Instance().Lang().GetStringByID(m_sTextId.c_str());
     }
 
     if (IsReplaceNewline()) {
@@ -625,10 +625,10 @@ void LabelImpl::CheckShowToolTip()
     }
 }
 
-bool LabelImpl::HasHotColorState()
+bool LabelImpl::HasHoveredStateColor()
 {
     if (m_pTextColorMap != nullptr) {
-        return m_pTextColorMap->HasHotColor();
+        return m_pTextColorMap->HasHoveredColor();
     }
     return false;
 }
@@ -782,24 +782,24 @@ void LabelImpl::DoPaintText(const UiRect& rc, IRender* pRender)
     DrawStringParam drawParam = GetDrawParam();//绘制参数
     drawParam.textRect = rc;
 
-    if (m_pOwner->IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
-        if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
-            !GetStateTextColor(kControlStateHot).empty()) {
+    if (m_pOwner->IsAnimationPlayerPlaying(AnimationType::kAnimationHovered)) {
+        if ((stateType == kControlStateNormal || stateType == kControlStateHovered) && 
+            !GetStateTextColor(kControlStateHovered).empty()) {
             //先绘制默认的文本
-            const uint8_t nHotAlpha = m_pOwner->GetHotAlpha();
+            const uint8_t nHoveredAlpha = m_pOwner->GetHoveredAlpha();
             bool bPainted = false;
             DString clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {                
                 drawParam.dwTextColor = m_pOwner->GetUiColor(clrColor);
-                drawParam.uFade = 255 - nHotAlpha;
+                drawParam.uFade = 255 - nHoveredAlpha;
                 m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
                 bPainted = true;
             }
-            //绘制Hot状态的文本（半透明）
-            DString textColor = GetStateTextColor(kControlStateHot);
+            //绘制Hovered状态的文本（半透明）
+            DString textColor = GetStateTextColor(kControlStateHovered);
             if (!textColor.empty()) {
                 drawParam.dwTextColor = m_pOwner->GetUiColor(textColor);
-                drawParam.uFade = nHotAlpha;
+                drawParam.uFade = nHoveredAlpha;
                 m_pTextDrawer->DrawString(pRender, textValue, drawParam, GetFontId(), IsRichText(), m_pOwner);
                 bPainted = true;
             }
@@ -860,18 +860,28 @@ DString LabelImpl::GetStateTextColor(ControlStateType stateType) const
         stateColor = m_pTextColorMap->GetStateColor(stateType);
     }
     if (stateColor.empty() && (stateType == kControlStateNormal)) {
-        stateColor = GlobalManager::Instance().Color().GetDefaultTextColor();
+        if (m_pOwner->GetWindow() != nullptr) {
+            stateColor = m_pOwner->GetWindow()->GetDefaultTextColor();
+        }
+        else {
+            stateColor = GlobalManager::Instance().Color().GetDefaultTextColor();
+        }
     }
     if (stateColor.empty() && (stateType == kControlStateDisabled)) {
-        stateColor = GlobalManager::Instance().Color().GetDefaultDisabledTextColor();
+        if (m_pOwner->GetWindow() != nullptr) {
+            stateColor = m_pOwner->GetWindow()->GetDefaultDisabledTextColor();
+        }
+        else {
+            stateColor = GlobalManager::Instance().Color().GetDefaultDisabledTextColor();
+        }
     }
     return stateColor;
 }
 
 void LabelImpl::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
-    if (stateType == kControlStateHot) {
-        m_pOwner->SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        m_pOwner->SetFadeHovered(true);
     }
     if (m_pTextColorMap == nullptr) {
         m_pTextColorMap = std::make_unique<StateColorMap>(m_pOwner);
@@ -883,10 +893,10 @@ void LabelImpl::SetStateTextColor(ControlStateType stateType, const DString& dwT
 DString LabelImpl::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
 {
     stateType = buttonStateType;
-    if (stateType == kControlStatePushed && GetStateTextColor(kControlStatePushed).empty()) {
-        stateType = kControlStateHot;
+    if (stateType == kControlStatePressed && GetStateTextColor(kControlStatePressed).empty()) {
+        stateType = kControlStateHovered;
     }
-    if (stateType == kControlStateHot && GetStateTextColor(kControlStateHot).empty()) {
+    if (stateType == kControlStateHovered && GetStateTextColor(kControlStateHovered).empty()) {
         stateType = kControlStateNormal;
     }
     if (stateType == kControlStateDisabled && GetStateTextColor(kControlStateDisabled).empty()) {

@@ -364,12 +364,12 @@ private:
     /** 控件展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
     */
     std::unique_ptr<StateImage> m_expandImage;
-    UiRect* m_pExpandImageRect;//DPI无关，每次绘制后会更新此值
+    std::unique_ptr<UiRect> m_pExpandImageRect;//DPI无关，每次绘制后会更新此值
 
     /** 控件未展开状态的图片类型与状态图片的MAP, 绘制的目标矩形
     */
     std::unique_ptr<StateImage> m_collapseImage;
-    UiRect* m_pCollapseImageRect;//DPI无关，每次绘制后会更新此值
+    std::unique_ptr<UiRect> m_pCollapseImageRect;//DPI无关，每次绘制后会更新此值
 };
 
 class DUILIB_API TreeView : public ListBox

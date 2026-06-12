@@ -3,8 +3,12 @@
 #ifdef DUILIB_BUILD_FOR_WIN
 
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/DllManager_Windows.h"
 #include <shellapi.h>
 #include <memory>
+
+namespace ui
+{
 
 bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
 {
@@ -49,7 +53,7 @@ bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
 
 bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskInfo)
 {
-    HMODULE hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
+    HMODULE hShell32Dll = DllManager::Instance().LoadDll(_T("Shell32.dll"));
     ASSERT(hShell32Dll != nullptr);
     if (hShell32Dll == nullptr) {
         return false;
@@ -61,7 +65,6 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
     PFNSHGetFileInfo pfnSHGetFileInfo = (PFNSHGetFileInfo)::GetProcAddress(hShell32Dll, "SHGetFileInfoW");
     ASSERT(pfnSHGetFileInfo != nullptr);
     if (pfnSHGetFileInfo == nullptr) {
-        ::FreeLibrary(hShell32Dll);
         return false;
     }
     DStringW driveStringW = ui::StringConvert::TToWString(driveString);
@@ -70,7 +73,6 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
     SHFILEINFOW shellInfo = {0, };
     DWORD_PTR result = pfnSHGetFileInfo(driveStringW.c_str(),  0, &shellInfo, sizeof(shellInfo), SHGFI_USEFILEATTRIBUTES | SHGFI_DISPLAYNAME| SHGFI_TYPENAME);
     if (result == 0) {
-        ::FreeLibrary(hShell32Dll);
         return false;
     }
     currentDiskInfo.m_volumeName = ui::StringConvert::WStringToT(shellInfo.szDisplayName);
@@ -113,7 +115,6 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
         currentDiskInfo.m_hasFileSystem = false;
     }
     diskInfo = currentDiskInfo;
-    ::FreeLibrary(hShell32Dll);
     return true;
 }
 
@@ -167,5 +168,7 @@ uint64_t DiskUtils::GetFreeDiskSpace(const DString& fullDirectory)
     }
     return freeSize;
 }
+
+}//namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

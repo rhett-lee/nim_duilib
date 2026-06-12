@@ -20,6 +20,7 @@ class Control;
 class RichTextSlice;
 class RichTextImpl;
 class WindowCreateAttributes;
+class ColorManager;
 
 /** 创建控件的回调函数
 */
@@ -37,9 +38,9 @@ struct XmlPreviewAttributes
     */
     std::vector<DString> m_windowClassList;
 
-    /** 本次解析在窗口下添加的TextColor属性列表
+    /** 本次解析在窗口下添加的ThemeColor属性列表
     */
-    std::vector<DString> m_windowTextColorList;
+    std::vector<DString> m_windowThemeColorList;
 
     /** 本次解析在全局属性中添加的FontId属性列表
     */
@@ -92,7 +93,25 @@ public:
     /** 解析出窗口的属性
     *   (只解析出部分创建窗口依赖的属性，有些窗口属性只能在创建的时候指定，创建窗口后不支持修改，所以必须先读取出来，创建窗口时作为传入参数)
     */
-    bool ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes);
+    bool ParseWindowCreateAttributes(Window* pWindow, WindowCreateAttributes& createAttributes);
+
+    /** 从当前XML中解析出主题相关数据
+    * @param [out] themeName 主题名称
+    * @param [out] themeType 主题类型
+    * @param [out] themeStyle 主题风格
+    */
+    bool ParseThemeInfo(DString& themeName, DString& themeType, DString& themeStyle) const;
+
+    /** 从当前XML中解析出颜色主题相关数据，并添加到颜色管理器
+    */
+    bool ParseThemeColor(ColorManager& colorManager) const;
+
+    /** 读取XML文件内容
+    * @param [in] xmlFilePath XML文件的路径
+    * @param [in] windowResPath 窗口资源子目录, 用于查找XML文件（当不指定文件路径时）
+    * @return 读取成功返回XML文件的内容（一般为UTF8格式）
+    */
+    std::string ReadXmlFileData(const FilePath& xmlFilePath, const FilePath& windowResPath = FilePath()) const;
 
 public:
     /** 解析出窗口的属性(属性名称保存在Map的Key中，属性的值保存在属性的Value中)
@@ -103,9 +122,9 @@ public:
     */
     const std::vector<DString>& GetWindowClassList() const;
 
-    /** 获取本次解析在窗口下添加的TextColor属性列表
+    /** 获取本次解析在窗口下添加的ThemeColor属性列表
     */
-    const std::vector<DString>& GetWindowTextColorList() const;
+    const std::vector<DString>& GetWindowThemeColorList() const;
 
     /** 获取本次解析在全局属性中添加的FontId属性列表
     */
@@ -133,6 +152,42 @@ private:
     */
     static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, RichTextImpl* pRichTextImpl, RichTextSlice* pTextSlice = nullptr);
 
+    /** 解析Include节点
+    * @param [in] xmlNode xml节点
+    * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
+    * @return 返回第一个创建的节点，可能是普通控件，也可能是容器
+    */
+    Control* ParseIncludeXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const;
+
+    /** 解析MenuBarItem节点
+    * @param [in] xmlNode xml节点
+    * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
+    */
+    void ParseMenuBarItemXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const;
+
+    /** 解析PropertyGridGroup节点
+    * @param [in] xmlNode xml节点
+    * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
+    */
+    void ParsePropertyGridGroupXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const;
+
+    /** 解析CheckComboText节点
+    * @param [in] xmlNode xml节点
+    * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
+    */
+    void ParseCheckComboTextXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const;
+
+    /** 解析ListCtrl数据节点
+    * @param [in] xmlNode xml节点
+    * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
+    */
+    void ParseListCtrlXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const;
+
 private:
     /** 解析窗口的属性(根XML节点名称："Window")
     */
@@ -149,6 +204,7 @@ private:
     /** 解析XML节点的子节点
     * @param [in] xmlNode xml节点
     * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）
+    * @param [in] pWindow 关联的窗口
     * @return 返回第一个创建的节点，可能是普通控件，也可能是容器
     */
     Control* ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
@@ -165,13 +221,13 @@ private:
     */
     void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
-    /** 判断XML文件是否存在
-    */
-    bool IsXmlFileExists(const FilePath& xmlFilePath) const;
-
     /** 解析字体节点
     */
     void ParseFontXmlNode(const pugi::xml_node& xmlNode);
+
+    /** 判断是否为忽略的节点名称
+    */
+    bool IsIgnoreNodeName(const DString& nodeName) const;
 
 private:
     
@@ -192,9 +248,9 @@ private:
     */
     std::vector<DString> m_windowClassList;
 
-    /** 本次解析在窗口下添加的TextColor属性列表
+    /** 本次解析在窗口下添加的ThemeColor属性列表
     */
-    std::vector<DString> m_windowTextColorList;
+    std::vector<DString> m_windowThemeColorList;
 
     /** 本次解析在全局属性中添加的FontId属性列表
     */

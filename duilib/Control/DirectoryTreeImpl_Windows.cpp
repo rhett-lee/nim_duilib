@@ -7,6 +7,7 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/DiskUtils_Windows.h"
+#include "duilib/Utils/DllManager_Windows.h"
 
 #include <ShellApi.h>
 #include <Shlobj.h>
@@ -45,10 +46,6 @@ DirectoryTreeImpl::~DirectoryTreeImpl()
         GlobalManager::Instance().Icon().RemoveIcon(m_impl->m_nSmallIconID);
         m_impl->m_nSmallIconID = 0;
     }
-    if (m_impl->m_hShell32Dll != nullptr) {
-        ::FreeLibrary(m_impl->m_hShell32Dll);
-        m_impl->m_hShell32Dll = nullptr;
-    }
     delete m_impl;
     m_impl = nullptr;
 }
@@ -60,7 +57,7 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     nIconID = 0;
 
     if (m_impl->m_hShell32Dll == nullptr) {
-        m_impl->m_hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
+        m_impl->m_hShell32Dll = DllManager::Instance().LoadDll(_T("Shell32.dll"));
     }
     if (m_impl->m_hShell32Dll == nullptr) {
         return false;

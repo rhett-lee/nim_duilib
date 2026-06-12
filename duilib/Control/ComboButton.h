@@ -104,11 +104,11 @@ public:
 
     /** 设置下拉窗口的阴影类型
     */
-    void SetComboWndShadowType(Shadow::ShadowType nShadowType);
+    void SetComboWndShadowType(ShadowType nShadowType);
 
     /** 获取下拉窗口的阴影类型
     */
-    Shadow::ShadowType GetComboWndShadowType() const;
+    ShadowType GetComboWndShadowType() const;
 
 public:
     /** 监听子项按钮点击事件（左侧的按钮被点击）
@@ -183,11 +183,6 @@ protected:
     virtual void OnInit() override;
 
 private:
-    /** 解析属性列表
-    */
-    void ParseAttributeList(const DString& strList,
-                            std::vector<std::pair<DString, DString>>& attributeList) const;
-
     /** 设置控件的属性列表
     */
     void SetAttributeList(Control* pControl, const DString& classValue);
@@ -209,7 +204,7 @@ private:
 
     /** 阴影类型
     */
-    Shadow::ShadowType m_nShadowType;
+    ShadowType m_nShadowType;
 
     /** 下拉列表的大小（宽度和高度）
     */

@@ -44,6 +44,10 @@ public:
         *   编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
         */
         DString szExt;
+
+        /** 文件类型筛选器的显示名称的多语言资源ID（用来支持多语言版）
+        */
+        DString szNameId;
     };
 
     /** 选择文件（单选）

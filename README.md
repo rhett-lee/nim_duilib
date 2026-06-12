@@ -14,11 +14,12 @@
  - 支持动画格式：支持GIF、APNG、WEBP、Lottie JSON、PAG动画文件格式。
  - 多语言与国际化：支持动态多种语言切换，便于开发全球化的应用程序。
  - 支持动态换肤：通过XML文件定义皮肤结构，可以轻松改变界面风格，支持动态换肤。
- - 支持窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新。
+ - 支持窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新；在Windows和macOS系统中，支持使用系统阴影。
  - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）。
  - 支持CEF控件：支持libcef 109 版本，以兼容Windows 7系统；支持libcef 142 版本，支持Windows 10及以上操作系统，支持Linux和MacOS平台。
  - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）。
  - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）。
+ - 支持主题切换，默认支持浅色主题和深色主题，支持设置强调色，并提供设计主题的辅助工具。
 
 ## 目录结构
 | 目录          | 说明 |
@@ -30,7 +31,7 @@
 | cmake         | cmake编译时依赖的公共设置|
 | build         | 各个平台的编译脚本和编译工程（包括VC编译工程）|
 | msvc          | Windows平台的应用程序清单文件和VC工程公共配置|
-| examples      | 项目的示例程序源代码，涵盖所有控件的基本用法示例|
+| examples      | 项目的示例程序源代码，涵盖所有控件的基本用法示例（示例程序，详见 [docs/Examples.md](docs/Examples.md)）|
 | duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
 
 ## 基于NIM_Duilib_Framework源码做的主要修改
@@ -40,7 +41,7 @@
         <th>修改内容</th>
     </tr>
     <tr>
-        <td rowspan="11">整体改进</td>
+        <td rowspan="12">整体改进</td>
         <td align="left">1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
     </tr>
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
@@ -53,6 +54,7 @@
     <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台、MacOS平台、FreeBSD平台）</td></tr>
     <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 142 版本，支持Win10及以上操作系统）</td></tr>
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
+    <tr><td align="left">12. 重新设计全局资源管理器的XML文件结构（global.xml），改进字体管理功能，支持字体回退功能，从而支持Emoji字体显示；支持浅色主题和深色主题，支持强调色</td></tr>
     <tr>
         <td rowspan="22">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
@@ -72,14 +74,14 @@
     <tr><td align="left">14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
     <tr><td align="left">15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
     <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>
-    <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），可选值为：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影</td></tr>
+    <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），支持自绘阴影和系统阴影，详见`docs/Window.md`文档</td></tr>
     <tr><td align="left">18. 新增对APNG/SVG/WEBP/ICO/LOTTIE/PAG图片格式的支持</td></tr>
     <tr><td align="left">19. 重新设计控件的loading功能，使用Box容器展示loading功能，通过xml文件配置loading界面（包括动画图片），并支持与动画图片交互</td></tr>
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr>
-        <td rowspan="25">新增控件/新增容器</td>
+        <td rowspan="24">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -93,19 +95,18 @@
     <tr><td align="left">10. PropertyGrid: 属性表控件，支持文本、数字、复选框、字体、颜色、日期、IP地址、热键、文件路径、文件夹等属性</td></tr>
     <tr><td align="left">11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
     <tr><td align="left">12. ComboButton：带有下拉组合框的按钮</td></tr>
-    <tr><td align="left">13. ShadowWnd：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 kWS_EX_LAYERED 属性的窗口阴影</td></tr>
-    <tr><td align="left">14. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
-    <tr><td align="left">15. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
-    <tr><td align="left">16. WebView2Control：封装了WebView2控件的基本功能</td></tr>
-    <tr><td align="left">17. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
-    <tr><td align="left">18. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
-    <tr><td align="left">19. MenuBar：菜单栏控件</td></tr>
-    <tr><td align="left">20. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
-    <tr><td align="left">21. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
-    <tr><td align="left">22. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
-    <tr><td align="left">23. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
-    <tr><td align="left">24. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
-    <tr><td align="left">25. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
+    <tr><td align="left">13. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
+    <tr><td align="left">14. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
+    <tr><td align="left">15. WebView2Control：封装了WebView2控件的基本功能</td></tr>
+    <tr><td align="left">16. GridBox/GridScrollBox：基于网格布局的控件</td></tr>
+    <tr><td align="left">17. HFlowBox/VFlowBox/HFlowScrollBox/VFlowScrollBox：基于水平流式布局和垂直流式布局的控件</td></tr>
+    <tr><td align="left">18. MenuBar：菜单栏控件</td></tr>
+    <tr><td align="left">19. IconControl/BitmapControl：用户显示基于内存的小图标和位图数据</td></tr>
+    <tr><td align="left">20. ChildWindow：子窗口控件，Windows平台的实现为系统原生子窗口（带有WS_CHILD属性）；其他平台为SDL的弹出式窗口，非原生子窗口，SDL不支持原生子窗口</td></tr>
+    <tr><td align="left">21. ControlDragableT(模板类，包含以下四个标准控件：ControlDragable/BoxDragable/HBoxDragable/VBoxDragable)：支持相同Box内的子控件通过拖动来调整顺序，支持在不同的Box内通过拖动来调整控件所属容器</td></tr>
+    <tr><td align="left">22. ControlMovableT(模板类，包含以下四个标准控件：ControlMovable/BoxMovable/HBoxMovable/VBoxMovable)：支持通过鼠标拖动来调整控件的位置，也支持通过鼠标拖动来调整父容器的位置</td></tr>
+    <tr><td align="left">23. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
+    <tr><td align="left">24. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -113,7 +114,7 @@
     <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
     <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
-        <td rowspan="14">示例程序完善</td>
+        <td rowspan="15">示例程序完善</td>
         <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
@@ -127,8 +128,9 @@
     <tr><td align="left">10. examples/WebView2Browser：提供了WebView2控件的功能演示（多标签）</td></tr>
     <tr><td align="left">11. examples/layout：所有布局和容器的功能演示</td></tr>
     <tr><td align="left">12. examples/ChildWindow：子窗口控件的功能演示</td></tr>
-    <tr><td align="left">12. examples/XmlPreview：XML文件的界面效果预览功能测试（测试XmlBox容器）</td></tr>
-    <tr><td align="left">14. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">13. examples/XmlPreview：XML文件的界面效果预览功能测试（测试XmlBox容器）</td></tr>
+    <tr><td align="left">14. examples/ColorTheme：颜色主题的功能预览与测试程序</td></tr>
+    <tr><td align="left">15. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>

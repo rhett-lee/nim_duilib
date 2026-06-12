@@ -1,5 +1,6 @@
 #include "Line.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
 
@@ -17,17 +18,19 @@ Line::Line(Window* pWindow):
 
 DString Line::GetType() const { return DUI_CTR_LINE; }
 
-void Line::SetAttribute(const DString& strName, const DString& strValue)
+void Line::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("vertical")) {
-        SetLineVertical(strValue == _T("true"));
+        SetLineVertical(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("line_color")) {
         SetLineColor(strValue);
     }
     else if (strName == _T("line_width")) {
         if (!strValue.empty()) {
-            SetLineWidth((float)StringUtil::StringToInt32(strValue), true);
+            ASSERT(StringUtil::StringToFloat(strValue.c_str(), nullptr) >= 0);
+            SetLineWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr), true);
         }
     }
     else if (strName == _T("dash_style")) {
@@ -157,7 +160,12 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
 
     DString sLineColor = m_lineColor.c_str();
     if (sLineColor.empty()) {
-        sLineColor = GlobalManager::Instance().Color().GetDefaultTextColor();
+        if (GetWindow() != nullptr) {
+            sLineColor = GetWindow()->GetDefaultTextColor();
+        }
+        else {
+            sLineColor = GlobalManager::Instance().Color().GetDefaultTextColor();
+        }
     }
     UiColor lineColor = GetUiColor(sLineColor);
     float fLineWidth = GetLineWidth();

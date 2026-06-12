@@ -1,5 +1,6 @@
 #include "Bitmap_Skia.h"
 #include "duilib/Image/ImageUtil.h"
+#include <cstdint>
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkBitmap.h"
@@ -36,8 +37,17 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, const void* pPixelBits
         }
         else {
             //有图像数据，执行图片大小调整（无多余数据拷贝）
-            size_t nPixelBitsLen = static_cast<size_t>(nHeight) * nWidth * 4;
-            size_t nOutPixelBitsLen = static_cast<size_t>(nNewHeight) * nNewWidth * 4;
+            // 安全计算 buffer 大小（避免 uint32_t 乘法溢出）
+            if (nHeight > 0 && nWidth > (SIZE_MAX / 4 / (size_t)nHeight)) {
+                ASSERT(!"Bitmap_Skia::Init: source image too large");
+                return false;
+            }
+            size_t nPixelBitsLen = (size_t)nWidth * (size_t)nHeight * 4;
+            if (nNewHeight > 0 && nNewWidth > (SIZE_MAX / 4 / (size_t)nNewHeight)) {
+                ASSERT(!"Bitmap_Skia::Init: target image too large");
+                return false;
+            }
+            size_t nOutPixelBitsLen = (size_t)nNewWidth * (size_t)nNewHeight * 4;
 
             m_pSkBitmap->reset();
             m_pSkBitmap->setInfo(SkImageInfo::Make(nNewWidth, nNewHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
@@ -94,7 +104,14 @@ bool Bitmap_Skia::InitImage(uint32_t nWidth, uint32_t nHeight, const void* pPixe
     }
     //复制图片数据到位图
     if (pPixelBits != nullptr) {
-        ::memcpy(pBits, pPixelBits, nWidth * nHeight * sizeof(uint32_t));
+        // 安全计算拷贝大小（避免 uint32_t 乘法溢出）
+        if (nHeight > 0 && nWidth > (SIZE_MAX / 4 / (size_t)nHeight)) {
+            ASSERT(!"Bitmap_Skia::InitImage: image too large");
+            m_pSkBitmap->reset();
+            return false;
+        }
+        size_t copyLen = (size_t)nWidth * (size_t)nHeight * sizeof(uint32_t);
+        ::memcpy(pBits, pPixelBits, copyLen);
     }
     
     //更新图片的透明通道数据
@@ -169,18 +186,26 @@ void Bitmap_Skia::UpdateAlphaFlag(uint8_t* pPixelBits)
     if (pPixelBits == nullptr) {
         return;
     }
-    int32_t nWidth = m_pSkBitmap->width();
-    int32_t nHeight = m_pSkBitmap->height();
+    const int32_t nWidth = m_pSkBitmap->width();
+    const int32_t nHeight = m_pSkBitmap->height();
     if ((nWidth <= 0) || (nHeight <= 0)) {
         return;
     }
     if (m_pSkBitmap->info().alphaType() == SkAlphaType::kOpaque_SkAlphaType) {
-        //指定为不透明图片，不需要更新AlphaBitmap标志
-        for (int32_t i = 0; i < nHeight; ++i) {
-            for (int32_t j = 0; j < nWidth; ++j) {
-                uint8_t* a = (uint8_t*)pPixelBits + (i * nWidth + j) * sizeof(uint32_t) + 3;
-                *a = 255;
-            }
+        //指定为不透明图片，将所有像素的 Alpha 通道填充为 255
+        //优化：避免 i*nWidth+j 重复乘法，使用指针递增
+        //同时避免内层循环索引乘法溢出
+        const size_t totalPixels = (size_t)nWidth * (size_t)nHeight;
+        //溢出保护（每像素 4 字节，总字节数 = totalPixels * 4）
+        if (totalPixels > (SIZE_MAX / 4)) {
+            ASSERT(!"Bitmap_Skia::UpdateAlphaFlag: too many pixels");
+            return;
+        }
+        constexpr uint32_t kOpaquePixel = 0xFF000000u; // ARGB 格式：A=0xFF
+        uint32_t* pPixel = reinterpret_cast<uint32_t*>(pPixelBits);
+        for (size_t i = 0; i < totalPixels; ++i) {
+            // 仅设置 alpha 通道（高字节），保留 RGB 不变
+            pPixel[i] |= kOpaquePixel;
         }
     }
 }

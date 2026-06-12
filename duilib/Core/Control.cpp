@@ -35,11 +35,12 @@ Control::Control(Window* pWindow) :
     m_cursorType(CursorType::kCursorArrow),
     m_controlState(kControlStateNormal),
     m_nAlpha(255),
-    m_nHotAlpha(0),
+    m_nHoveredAlpha(0),
     m_bBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
-    m_bShowFocusRect(false),
+    m_bShowFocusedRect(false),
     m_nPaintOrder(0),
+    m_bAnimationMode(false),
     m_bBordersOnTop(true),
     m_bMouseEnter(false)
 {
@@ -65,7 +66,6 @@ Control::~Control()
 
     m_pAnimationData.reset();
     m_pBkImage.reset();
-    m_pImageMap.reset();
     m_pDragDropData.reset();
     m_pOtherData.reset();
     m_pEventMapData.reset();
@@ -77,11 +77,17 @@ Control::~Control()
 
 DString Control::GetType() const { return DUI_CTR_CONTROL; }
 
-void Control::SetAttribute(const DString& strName, const DString& strValue)
+void Control::SetAttribute(const DString& strName, const DString& strValue2)
 {
     ASSERT(GetWindow() != nullptr);//由于需要做DPI感知功能，所以必须先设置关联窗口
+
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("class")) {
         SetClass(strValue);
+    }
+    else if (strName == _T("enable_vars")) {
+        //属性值中是否支持变量展开
+        SetEnableVars(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("halign")) {
         if (strValue == _T("left")) {
@@ -144,7 +150,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetPadding(rcPadding, true);
     }
     else if (strName == _T("control_padding")) {
-        SetEnableControlPadding(strValue == _T("true"));
+        SetEnableControlPadding(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("bkcolor")) {
         //背景色
@@ -202,7 +208,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("borders_on_top")) {
         //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
-        SetBordersOnTop(strValue == _T("true"));
+        SetBordersOnTop(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
         //圆角大小
@@ -274,10 +280,10 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             SetState(kControlStateNormal);
         }
         else if (strValue == _T("hot")) {
-            SetState(kControlStateHot);
+            SetState(kControlStateHovered);
         }
         else if (strValue == _T("pushed")) {
-            SetState(kControlStatePushed);
+            SetState(kControlStatePressed);
         }
         else if (strValue == _T("disabled")) {
             SetState(kControlStateDisabled);
@@ -335,11 +341,11 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("normal_color")) || (strName == _T("normalcolor"))) {
         SetStateColor(kControlStateNormal, strValue);
     }
-    else if ((strName == _T("hot_color")) || (strName == _T("hotcolor"))) {
-        SetStateColor(kControlStateHot, strValue);
+    else if ((strName == _T("hovered_color")) || (strName == _T("hot_color")) || (strName == _T("hotcolor"))) {
+        SetStateColor(kControlStateHovered, strValue);
     }
-    else if ((strName == _T("pushed_color")) || (strName == _T("pushedcolor"))) {
-        SetStateColor(kControlStatePushed, strValue);
+    else if ((strName == _T("pressed_color")) || (strName == _T("pushed_color")) || (strName == _T("pushedcolor"))) {
+        SetStateColor(kControlStatePressed, strValue);
     }
     else if ((strName == _T("disabled_color")) || (strName == _T("disabledcolor"))) {
         SetStateColor(kControlStateDisabled, strValue);
@@ -349,35 +355,43 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
         SetStateColorMargin(kControlStateNormal, rcMargin, true);
     }
-    else if (strName == _T("hot_color_margin")) {
+    else if ((strName == _T("hovered_color_margin")) || (strName == _T("hot_color_margin"))) {
         UiMargin rcMargin;
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
-        SetStateColorMargin(kControlStateHot, rcMargin, true);
+        SetStateColorMargin(kControlStateHovered, rcMargin, true);
     }
-    else if (strName == _T("pushed_color_margin")) {
+    else if ((strName == _T("pressed_color_margin")) || (strName == _T("pushed_color_margin"))) {
         UiMargin rcMargin;
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
-        SetStateColorMargin(kControlStatePushed, rcMargin, true);
+        SetStateColorMargin(kControlStatePressed, rcMargin, true);
     }
     else if (strName == _T("disabled_color_margin")) {
         UiMargin rcMargin;
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
         SetStateColorMargin(kControlStateDisabled, rcMargin, true);
     }
+    else if (strName == _T("state_color_min_width")) {
+        //状态颜色区域的最小宽度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+        SetStateColorMinWidth(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
+    else if (strName == _T("state_color_min_height")) {
+        //状态颜色区域的最小高度（解决DPI缩放后的运算精度损失导致线条高度失真问题）
+        SetStateColorMinHeight(StringUtil::StringToFloat(strValue.c_str(), nullptr));
+    }
     else if (strName == _T("normal_color_round")) {
         UiSize szRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
         SetStateColorRound(kControlStateNormal, szRound, true);
     }
-    else if (strName == _T("hot_color_round")) {
+    else if ((strName == _T("hovered_color_round")) || (strName == _T("hot_color_round"))) {
         UiSize szRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
-        SetStateColorRound(kControlStateHot, szRound, true);
+        SetStateColorRound(kControlStateHovered, szRound, true);
     }
-    else if (strName == _T("pushed_color_round")) {
+    else if ((strName == _T("pressed_color_round")) || (strName == _T("pushed_color_round"))) {
         UiSize szRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szRound);
-        SetStateColorRound(kControlStatePushed, szRound, true);
+        SetStateColorRound(kControlStatePressed, szRound, true);
     }
     else if (strName == _T("disabled_color_round")) {
         UiSize szRound;
@@ -390,17 +404,17 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("normal_border_color")) {
         SetBorderColor(kControlStateNormal, strValue);
     }
-    else if (strName == _T("hot_border_color")) {
-        SetBorderColor(kControlStateHot, strValue);
+    else if ((strName == _T("hovered_border_color")) || (strName == _T("hot_border_color"))) {
+        SetBorderColor(kControlStateHovered, strValue);
     }
-    else if (strName == _T("pushed_border_color")) {
-        SetBorderColor(kControlStatePushed, strValue);
+    else if ((strName == _T("pressed_border_color")) || (strName == _T("pushed_border_color"))) {
+        SetBorderColor(kControlStatePressed, strValue);
     }
     else if (strName == _T("disabled_border_color")) {
         SetBorderColor(kControlStateDisabled, strValue);
     }
-    else if (strName == _T("focus_border_color")) {
-        SetFocusBorderColor(strValue);
+    else if ((strName == _T("focused_border_color")) || (strName == _T("focus_border_color"))) {
+        SetFocusedBorderColor(strValue);
     }
     else if ((strName == _T("left_border_size")) || (strName == _T("leftbordersize"))) {
         SetLeftBorderSize((float)StringUtil::StringToInt32(strValue), true);
@@ -448,25 +462,25 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetUserDataID(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("enabled")) {
-        SetEnabled(strValue == _T("true"));
+        SetEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("mouse_enabled")) || (strName == _T("mouse"))) {
-        SetMouseEnabled(strValue == _T("true"));
+        SetMouseEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("keyboard_enabled")) || (strName == _T("keyboard"))) {
-        SetKeyboardEnabled(strValue == _T("true"));
+        SetKeyboardEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("visible")) {
-        SetVisible(strValue == _T("true"));
+        SetVisible(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("fade_visible")) || (strName == _T("fadevisible"))) {
-        SetFadeVisible(strValue == _T("true"));
+        SetFadeVisible(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("float")) {
-        SetFloat(strValue == _T("true"));
+        SetFloat(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("keep_float_pos")) {
-        SetKeepFloatPos(strValue == _T("true"));
+        SetKeepFloatPos(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("cache")) {
         //忽略该选项：对应功能已经删除
@@ -480,11 +494,11 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("normal_image")) || (strName == _T("normalimage"))) {
         SetStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == _T("hot_image")) || (strName == _T("hotimage"))) {
-        SetStateImage(kControlStateHot, strValue);
+    else if ((strName == _T("hovered_image")) || (strName == _T("hot_image")) || (strName == _T("hotimage"))) {
+        SetStateImage(kControlStateHovered, strValue);
     }
-    else if ((strName == _T("pushed_image")) || (strName == _T("pushedimage"))) {
-        SetStateImage(kControlStatePushed, strValue);
+    else if ((strName == _T("pressed_image")) || (strName == _T("pushed_image")) || (strName == _T("pushedimage"))) {
+        SetStateImage(kControlStatePressed, strValue);
     }
     else if ((strName == _T("disabled_image")) || (strName == _T("disabledimage"))) {
         SetStateImage(kControlStateDisabled, strValue);
@@ -492,11 +506,11 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("fore_normal_image")) || (strName == _T("forenormalimage"))) {
         SetForeStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == _T("fore_hot_image")) || (strName == _T("forehotimage"))) {
-        SetForeStateImage(kControlStateHot, strValue);
+    else if ((strName == _T("fore_hovered_image")) || (strName == _T("fore_hot_image")) || (strName == _T("forehotimage"))) {
+        SetForeStateImage(kControlStateHovered, strValue);
     }
-    else if ((strName == _T("fore_pushed_image")) || (strName == _T("forepushedimage"))) {
-        SetForeStateImage(kControlStatePushed, strValue);
+    else if ((strName == _T("fore_pressed_image")) || (strName == _T("fore_pushed_image")) || (strName == _T("forepushedimage"))) {
+        SetForeStateImage(kControlStatePressed, strValue);
     }
     else if ((strName == _T("fore_disabled_image")) || (strName == _T("foredisabledimage"))) {
         SetForeStateImage(kControlStateDisabled, strValue);
@@ -511,38 +525,38 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         }
         GetAnimationManager().SetFadeAlpha(bFadeVisible, nEndAlpha);
     }
-    else if ((strName == _T("fade_hot")) || (strName == _T("fadehot"))) {
-        SetFadeHot(strValue == _T("true"));
+    else if ((strName == _T("fade_hovered")) || (strName == _T("fade_hot")) || (strName == _T("fadehot"))) {
+        SetFadeHovered(StringUtil::IsValueTrue(strValue));
     }
-    else if (strName == _T("fade_hot_frame_interval_ms")) {
-        SetFadeHotFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
+    else if ((strName == _T("fade_hovered_frame_interval_ms")) || (strName == _T("fade_hot_frame_interval_ms"))) {
+        SetFadeHoveredFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
     }
-    else if (strName == _T("fade_hot_total_ms")) {
-        SetFadeHotTotalMillSeconds(StringUtil::StringToInt32(strValue));
+    else if ((strName == _T("fade_hovered_total_ms")) || (strName == _T("fade_hot_total_ms"))) {
+        SetFadeHoveredTotalMillSeconds(StringUtil::StringToInt32(strValue));
     }
-    else if (strName == _T("fade_hot_easing_function")) {
-        SetFadeHotEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
+    else if ((strName == _T("fade_hovered_easing_function")) || (strName == _T("fade_hot_easing_function"))) {
+        SetFadeHoveredEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("fade_width")) || (strName == _T("fadewidth"))) {
-        GetAnimationManager().SetFadeWidth(strValue == _T("true"));
+        GetAnimationManager().SetFadeWidth(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("fade_height")) || (strName == _T("fadeheight"))) {
-        GetAnimationManager().SetFadeHeight(strValue == _T("true"));
+        GetAnimationManager().SetFadeHeight(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("fade_size")) {
-        GetAnimationManager().SetFadeSize(strValue == _T("true"));
+        GetAnimationManager().SetFadeSize(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("fade_in_out_x_from_left")) || (strName == _T("fadeinoutxfromleft"))) {
-        GetAnimationManager().SetFadeInOutX(strValue == _T("true"), false);
+        GetAnimationManager().SetFadeInOutX(StringUtil::IsValueTrue(strValue), false);
     }
     else if ((strName == _T("fade_in_out_x_from_right")) || (strName == _T("fadeinoutxfromright"))) {
-        GetAnimationManager().SetFadeInOutX(strValue == _T("true"), true);
+        GetAnimationManager().SetFadeInOutX(StringUtil::IsValueTrue(strValue), true);
     }
     else if ((strName == _T("fade_in_out_y_from_top")) || (strName == _T("fadeinoutyfromtop"))) {
-        GetAnimationManager().SetFadeInOutY(strValue == _T("true"), false);
+        GetAnimationManager().SetFadeInOutY(StringUtil::IsValueTrue(strValue), false);
     }
     else if ((strName == _T("fade_in_out_y_from_bottom")) || (strName == _T("fadeinoutyfrombottom"))) {
-        GetAnimationManager().SetFadeInOutY(strValue == _T("true"), true);
+        GetAnimationManager().SetFadeInOutY(StringUtil::IsValueTrue(strValue), true);
     }
     else if (strName == _T("fade_frame_interval_ms")) {
         GetAnimationManager().SetFrameIntervalMillSeconds(StringUtil::StringToInt32(strValue));
@@ -554,16 +568,16 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         GetAnimationManager().SetEasingFunctionType(EasingFunctions::GetEasingFunctionType(strValue));
     }
     else if ((strName == _T("tab_stop")) || (strName == _T("tabstop"))) {
-        SetTabStop(strValue == _T("true"));
+        SetTabStop(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("loading")) {
         SetLoadingAttribute(strValue);
     }
-    else if (strName == _T("show_focus_rect")) {
-        SetShowFocusRect(strValue == _T("true"));
+    else if ((strName == _T("show_focused_rect")) || (strName == _T("show_focus_rect"))) {
+        SetShowFocusedRect(StringUtil::IsValueTrue(strValue));
     }
-    else if (strName == _T("focus_rect_color")) {
-        SetFocusRectColor(strValue);
+    else if ((strName == _T("focused_rect_color")) || (strName == _T("focus_rect_color"))) {
+        SetFocusedRectColor(strValue);
     }
     else if (strName == _T("paint_order")) {
         uint8_t nPaintOrder = TruncateToUInt8(StringUtil::StringToInt32(strValue));
@@ -580,11 +594,11 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
-        SetEnableDragDrop(strValue == _T("true"));
+        SetEnableDragDrop(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("enable_drop_file")) {
         //是否允许拖放文件操作
-        SetEnableDropFile(strValue == _T("true"));
+        SetEnableDropFile(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("drop_file_types")) {
         //拖放文件的扩展名列表
@@ -599,7 +613,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetColumnSpan(StringUtil::StringToInt32(strValue));
     }
     else {
-        ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
+        ASSERT(!"Control::SetAttribute failed: unknown attribute name!");
     }
 }
 
@@ -776,10 +790,22 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetReEstimateSize(true);
 }
 
-void Control::OnLanguageChanged()
+void Control::OnLanguageChanged(bool bRedraw)
 {
-    RelayoutOrRedraw();
-    Invalidate();
+    if ((GetFixedWidth().IsAuto()) || (GetFixedHeight().IsAuto())) {
+        //如果当前控件的宽高有的是AUTO的，需要父控件Box进行布局重排（一般在可能引起布局变化时调用），布局重排后会进行重绘
+        ArrangeAncestor();
+    }
+    if (bRedraw) {
+        Invalidate();
+    }
+}
+
+void Control::OnThemeChanged(bool bRedraw)
+{
+    if (bRedraw) {
+        Invalidate();
+    }
 }
 
 void Control::SetClass(const DString& strClass)
@@ -789,15 +815,23 @@ void Control::SetClass(const DString& strClass)
     }
     std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
-        DString pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
+        DString classAttributes = GlobalManager::Instance().GetClassAttributes(*it);
         Window* pWindow = GetWindow();
-        if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
-            pDefaultAttributes = pWindow->GetClassAttributes(*it);
+        if (classAttributes.empty() && (pWindow != nullptr)) {
+            classAttributes = pWindow->GetClassAttributes(*it);
         }
 
-        ASSERT(!pDefaultAttributes.empty());
-        if (!pDefaultAttributes.empty()) {
-            ApplyAttributeList(pDefaultAttributes);
+        if (classAttributes.empty()) {
+            //尝试别名
+            DString aliasValue = GlobalManager::Instance().GetAliasValue(strClass);
+            if (!aliasValue.empty()) {
+                classAttributes = GlobalManager::Instance().GetClassAttributes(aliasValue);
+            }
+        }
+
+        ASSERT(!classAttributes.empty());
+        if (!classAttributes.empty()) {
+            ApplyAttributeList(classAttributes);
         }
     }
 }
@@ -805,16 +839,8 @@ void Control::SetClass(const DString& strClass)
 void Control::ApplyAttributeList(const DString& strList)
 {
     //属性列表，先解析，然后再应用
-    if (strList.empty()) {
-        return;
-    }
     std::vector<std::pair<DString, DString>> attributeList;
-    if (strList.find(_T('\"')) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strList, _T('\"'), attributeList);
-    }    
-    else if (strList.find(_T('\'')) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strList, _T('\''), attributeList);
-    }
+    AttributeUtil::ParseAttributeList(strList, attributeList);
     for (const auto& attribute : attributeList) {
         SetAttribute(attribute.first, attribute.second);
     }
@@ -825,7 +851,9 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
     bool isFindSubControl = false;
     DString receiverName = strReceiver;
     if (receiverName.size() >= 2) {
-        if (receiverName.substr(0, 2) == _T(".\\") || receiverName.substr(0, 2) == _T("./")) {
+        //注意：substr(0, 2) 提取到局部变量，避免重复创建临时 DString 对象（4 次 → 1 次）
+        const DString prefix = receiverName.substr(0, 2);
+        if ((prefix == _T(".\\")) || (prefix == _T("./"))) {
             receiverName = receiverName.substr(2);
             isFindSubControl = true;
         }
@@ -866,11 +894,11 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
     }
 }
 
-void Control::SetFadeHot(bool bFadeHot)
+void Control::SetFadeHovered(bool bFadeHovered)
 {
-    if (bFadeHot) {
+    if (bFadeHovered) {
         AnimationPlayer* pAnimationPlayer = new AnimationPlayer;
-        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHot);
+        pAnimationPlayer->SetAnimationType(AnimationType::kAnimationHovered);
         pAnimationPlayer->SetStartValue(0);
         pAnimationPlayer->SetEndValue(255);
         ControlPtr pControl(this);
@@ -883,7 +911,7 @@ void Control::SetFadeHot(bool bFadeHot)
                     if (nNewValue > 255) {
                         nNewValue = 255;
                     }
-                    pControl->SetHotAlpha(TruncateToUInt8(nNewValue));
+                    pControl->SetHoveredAlpha(TruncateToUInt8(nNewValue));
                 }
             };
         pAnimationPlayer->SetPlayCallback(playCallback);
@@ -896,80 +924,80 @@ void Control::SetFadeHot(bool bFadeHot)
             };
         pAnimationPlayer->SetCompleteCallback(completeCallback);
 
-        if (m_pHotAnimationPlayer != nullptr) {
+        if (m_pHoveredAnimationPlayer != nullptr) {
             //同步属性
-            pAnimationPlayer->SetTotalMillSeconds(m_pHotAnimationPlayer->GetTotalMillSeconds());
-            pAnimationPlayer->SetFrameIntervalMillSeconds(m_pHotAnimationPlayer->GetFrameIntervalMillSeconds());
-            pAnimationPlayer->SetEasingFunctionType(m_pHotAnimationPlayer->GetEasingFunctionType());
+            pAnimationPlayer->SetTotalMillSeconds(m_pHoveredAnimationPlayer->GetTotalMillSeconds());
+            pAnimationPlayer->SetFrameIntervalMillSeconds(m_pHoveredAnimationPlayer->GetFrameIntervalMillSeconds());
+            pAnimationPlayer->SetEasingFunctionType(m_pHoveredAnimationPlayer->GetEasingFunctionType());
         }
-        m_pHotAnimationPlayer.reset(pAnimationPlayer);
+        m_pHoveredAnimationPlayer.reset(pAnimationPlayer);
     }
     else {
-        m_pHotAnimationPlayer.reset();
+        m_pHoveredAnimationPlayer.reset();
     }
 }
 
-AnimationPlayer* Control::GetHotAnimationPlayer() const
+AnimationPlayer* Control::GetHoveredAnimationPlayer() const
 {
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return nullptr;
     }
-    return m_pHotAnimationPlayer.get();
+    return m_pHoveredAnimationPlayer.get();
 }
 
-void Control::SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
+void Control::SetFadeHoveredFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds)
 {
-    if (m_pHotAnimationPlayer == nullptr) {
-        SetFadeHot(true);
+    if (m_pHoveredAnimationPlayer == nullptr) {
+        SetFadeHovered(true);
     }
-    ASSERT(m_pHotAnimationPlayer != nullptr);
-    if (m_pHotAnimationPlayer != nullptr) {
-        m_pHotAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
+    ASSERT(m_pHoveredAnimationPlayer != nullptr);
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        m_pHoveredAnimationPlayer->SetFrameIntervalMillSeconds(frameIntervalMillSeconds);
     }
 }
 
-int32_t Control::GetFadeHotFrameIntervalMillSeconds() const
+int32_t Control::GetFadeHoveredFrameIntervalMillSeconds() const
 {
-    if (m_pHotAnimationPlayer != nullptr) {
-        return m_pHotAnimationPlayer->GetFrameIntervalMillSeconds();
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        return m_pHoveredAnimationPlayer->GetFrameIntervalMillSeconds();
     }
     return -1;
 }
 
-void Control::SetFadeHotTotalMillSeconds(int32_t totalMillSeconds)
+void Control::SetFadeHoveredTotalMillSeconds(int32_t totalMillSeconds)
 {
-    if (m_pHotAnimationPlayer == nullptr) {
-        SetFadeHot(true);
+    if (m_pHoveredAnimationPlayer == nullptr) {
+        SetFadeHovered(true);
     }
-    ASSERT(m_pHotAnimationPlayer != nullptr);
-    if (m_pHotAnimationPlayer != nullptr) {
-        m_pHotAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
+    ASSERT(m_pHoveredAnimationPlayer != nullptr);
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        m_pHoveredAnimationPlayer->SetTotalMillSeconds(totalMillSeconds);
     }
 }
 
-int32_t Control::GetFadeHotTotalMillSeconds() const
+int32_t Control::GetFadeHoveredTotalMillSeconds() const
 {
-    if (m_pHotAnimationPlayer != nullptr) {
-        return m_pHotAnimationPlayer->GetTotalMillSeconds();
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        return m_pHoveredAnimationPlayer->GetTotalMillSeconds();
     }
     return -1;
 }
 
-void Control::SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType)
+void Control::SetFadeHoveredEasingFunctionType(EasingFunctionType easingFunctionType)
 {
-    if (m_pHotAnimationPlayer == nullptr) {
-        SetFadeHot(true);
+    if (m_pHoveredAnimationPlayer == nullptr) {
+        SetFadeHovered(true);
     }
-    ASSERT(m_pHotAnimationPlayer != nullptr);
-    if (m_pHotAnimationPlayer != nullptr) {
-        m_pHotAnimationPlayer->SetEasingFunctionType(easingFunctionType);
+    ASSERT(m_pHoveredAnimationPlayer != nullptr);
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        m_pHoveredAnimationPlayer->SetEasingFunctionType(easingFunctionType);
     }
 }
 
-EasingFunctionType Control::GetFadeHotEasingFunctionType() const
+EasingFunctionType Control::GetFadeHoveredEasingFunctionType() const
 {
-    if (m_pHotAnimationPlayer != nullptr) {
-        return m_pHotAnimationPlayer->GetEasingFunctionType();
+    if (m_pHoveredAnimationPlayer != nullptr) {
+        return m_pHoveredAnimationPlayer->GetEasingFunctionType();
     }
     return EasingFunctionType::EaseInOutCubic;
 }
@@ -979,8 +1007,8 @@ bool Control::HasAnimationPlayer(AnimationType animationType) const
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return false;
     }
-    if (animationType == AnimationType::kAnimationHot) {
-        return m_pHotAnimationPlayer != nullptr;
+    if (animationType == AnimationType::kAnimationHovered) {
+        return m_pHoveredAnimationPlayer != nullptr;
     }
     else if (m_pAnimationData != nullptr) {
         if (m_pAnimationData->m_animationManager != nullptr) {
@@ -995,8 +1023,8 @@ bool Control::IsAnimationPlayerPlaying(AnimationType animationType) const
     if (!GlobalManager::Instance().IsAnimationEnabled()) {
         return false;
     }
-    if (animationType == AnimationType::kAnimationHot) {
-        return (m_pHotAnimationPlayer != nullptr) && m_pHotAnimationPlayer->IsPlaying();
+    if (animationType == AnimationType::kAnimationHovered) {
+        return (m_pHoveredAnimationPlayer != nullptr) && m_pHoveredAnimationPlayer->IsPlaying();
     }
     else if ((m_pAnimationData != nullptr) && (m_pAnimationData->m_animationManager != nullptr)) {
         AnimationPlayer* pAnimationPlayer = m_pAnimationData->m_animationManager->GetAnimationPlayer(animationType);
@@ -1183,8 +1211,8 @@ void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
         m_pColorMap = std::make_unique<StateColorMap2>(this);
     }
     m_pColorMap->SetStateColor(stateType, strColor);
-    if (stateType == kControlStateHot) {
-        SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        SetFadeHovered(true);
     }
     Invalidate();
 }
@@ -1203,8 +1231,8 @@ void Control::SetStateColorMargin(ControlStateType stateType, UiMargin colorMarg
         m_pColorMap = std::make_unique<StateColorMap2>(this);
     }
     m_pColorMap->SetStateColorMargin(stateType, colorMargin);
-    if (stateType == kControlStateHot) {
-        SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        SetFadeHovered(true);
     }
     Invalidate();
 }
@@ -1223,10 +1251,44 @@ void Control::SetStateColorRound(ControlStateType stateType, UiSize colorRound, 
         m_pColorMap = std::make_unique<StateColorMap2>(this);
     }
     m_pColorMap->SetStateColorRound(stateType, colorRound);
-    if (stateType == kControlStateHot) {
-        SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        SetFadeHovered(true);
     }
     Invalidate();
+}
+
+void Control::SetStateColorMinWidth(float fMinWidth)
+{
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMinWidth(fMinWidth);
+    Invalidate();
+}
+
+void Control::SetStateColorMinHeight(float fMinHeight)
+{
+    if (m_pColorMap == nullptr) {
+        m_pColorMap = std::make_unique<StateColorMap2>(this);
+    }
+    m_pColorMap->SetStateColorMinHeight(fMinHeight);
+    Invalidate();
+}
+
+float Control::GetStateColorMinWidth() const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMinWidth();
+    }
+    return 0.0f;
+}
+
+float Control::GetStateColorMinHeight() const
+{
+    if (m_pColorMap != nullptr) {
+        return m_pColorMap->GetStateColorMinHeight();
+    }
+    return 0.0f;
 }
 
 DString Control::GetBkImage() const
@@ -1418,8 +1480,8 @@ DString Control::GetStateImage(ControlStateType stateType) const
 
 void Control::SetStateImage(ControlStateType stateType, const DString& strImage)
 {
-    if (stateType == kControlStateHot) {
-        SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        SetFadeHovered(true);
     }
     SetStateImage(kStateImageBk, stateType, strImage);
     RelayoutOrRedraw();
@@ -1432,8 +1494,8 @@ DString Control::GetForeStateImage(ControlStateType stateType) const
 
 void Control::SetForeStateImage(ControlStateType stateType, const DString& strImage)
 {
-    if (stateType == kControlStateHot) {
-        SetFadeHot(true);
+    if (stateType == kControlStateHovered) {
+        SetFadeHovered(true);
     }
     SetStateImage(kStateImageFore, stateType, strImage);
     Invalidate();
@@ -1547,10 +1609,10 @@ ControlStateType Control::GetState() const
 void Control::SetState(ControlStateType controlState)
 {
     if (controlState == kControlStateNormal) {
-        m_nHotAlpha = 0;
+        m_nHoveredAlpha = 0;
     }
-    else if (controlState == kControlStateHot) {
-        m_nHotAlpha = 255;
+    else if (controlState == kControlStateHovered) {
+        m_nHoveredAlpha = 255;
     }
     PrivateSetState(controlState);
     Invalidate();
@@ -1566,9 +1628,9 @@ void Control::PrivateSetState(ControlStateType controlState)
     }
 }
 
-bool Control::IsHotState() const
+bool Control::IsHoveredState() const
 {
-    return (GetState() == kControlStateHot) ? true : false;
+    return (GetState() == kControlStateHovered) ? true : false;
 }
 
 DString Control::GetBorderColor(ControlStateType stateType) const
@@ -1583,8 +1645,8 @@ DString Control::GetBorderColor(ControlStateType stateType) const
 void Control::SetBorderColor(const DString& strBorderColor)
 {
     SetBorderColor(kControlStateNormal, strBorderColor);
-    SetBorderColor(kControlStateHot, strBorderColor);
-    SetBorderColor(kControlStatePushed, strBorderColor);
+    SetBorderColor(kControlStateHovered, strBorderColor);
+    SetBorderColor(kControlStatePressed, strBorderColor);
     SetBorderColor(kControlStateDisabled, strBorderColor);
 }
 
@@ -1602,21 +1664,21 @@ void Control::SetBorderColor(ControlStateType stateType, const DString& strBorde
     }
 }
 
-void Control::SetFocusBorderColor(const DString& strBorderColor)
+void Control::SetFocusedBorderColor(const DString& strBorderColor)
 {
     if (m_pBorderData == nullptr) {
         m_pBorderData = std::make_unique<TBorderData>();
     }
-    if (m_pBorderData->m_focusBorderColor != strBorderColor) {
-        m_pBorderData->m_focusBorderColor = strBorderColor;
+    if (m_pBorderData->m_focusedBorderColor != strBorderColor) {
+        m_pBorderData->m_focusedBorderColor = strBorderColor;
         Invalidate();
     }
 }
 
-DString Control::GetFocusBorderColor() const
+DString Control::GetFocusedBorderColor() const
 {
     if (m_pBorderData != nullptr) {
-        return m_pBorderData->m_focusBorderColor.c_str();
+        return m_pBorderData->m_focusedBorderColor.c_str();
     }
     return DString();
 }
@@ -1854,7 +1916,7 @@ DString Control::GetToolTipText() const
     if ((m_pOtherData != nullptr) && (m_pOtherData->m_pTooltip != nullptr)) {
         strText = m_pOtherData->m_pTooltip->m_sToolTipText.c_str();
         if (strText.empty() && !m_pOtherData->m_pTooltip->m_sToolTipTextId.empty()) {
-            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
+            strText = GlobalManager::Instance().Lang().GetStringByID(m_pOtherData->m_pTooltip->m_sToolTipTextId.c_str());
         }
     }
     return strText;
@@ -2031,7 +2093,7 @@ void Control::OnSetEnabled(bool bChanged)
     BaseClass::OnSetEnabled(bChanged);
     if (IsEnabled()) {
         PrivateSetState(kControlStateNormal);
-        m_nHotAlpha = 0;
+        m_nHoveredAlpha = 0;
     }
     else {
         PrivateSetState(kControlStateDisabled);
@@ -2084,32 +2146,32 @@ void Control::SetNoFocus()
     EnsureNoFocus();
 }
 
-void Control::SetShowFocusRect(bool bShowFocusRect)
+void Control::SetShowFocusedRect(bool bShowFocusedRect)
 {
-    m_bShowFocusRect = bShowFocusRect;
+    m_bShowFocusedRect = bShowFocusedRect;
 }
 
-bool Control::IsShowFocusRect() const
+bool Control::IsShowFocusedRect() const
 {
-    return m_bShowFocusRect;
+    return m_bShowFocusedRect;
 }
 
-void Control::SetFocusRectColor(const DString& focusRectColor)
+void Control::SetFocusedRectColor(const DString& focusRectColor)
 {
     if (m_pColorData == nullptr) {
         m_pColorData = std::make_unique<TColorData>();
     }
-    if (m_pColorData->m_focusRectColor == focusRectColor) {
+    if (m_pColorData->m_focusedRectColor == focusRectColor) {
         return;
     }
-    m_pColorData->m_focusRectColor = focusRectColor;
+    m_pColorData->m_focusedRectColor = focusRectColor;
     Invalidate();
 }
 
-DString Control::GetFocusRectColor() const
+DString Control::GetFocusedRectColor() const
 {
     if (m_pColorData != nullptr) {
-        return m_pColorData->m_focusRectColor.c_str();
+        return m_pColorData->m_focusedRectColor.c_str();
     }
     return DString();
 }
@@ -2729,17 +2791,17 @@ bool Control::CheckEventType(const EventArgs& msg, EventType eventType) const
     return true;
 }
 
-bool Control::HasHotState()
+bool Control::HasHoveredState()
 {
     bool bState = false;
     if (m_pColorMap != nullptr) {
-        bState = m_pColorMap->HasHotColor();
+        bState = m_pColorMap->HasHoveredColor();
     }
     if (!bState && (m_pImageMap != nullptr)) {
-        bState = m_pImageMap->HasHotImage();
+        bState = m_pImageMap->HasHoveredImage();
     }
     if (!bState && (m_pBorderData != nullptr) && (m_pBorderData->m_pBorderColorMap != nullptr)) {
-        bState = m_pBorderData->m_pBorderColorMap->HasHotColor();
+        bState = m_pBorderData->m_pBorderColorMap->HasHoveredColor();
     }
     return bState;
 }
@@ -2752,14 +2814,14 @@ bool Control::MouseEnter(const EventArgs& msg)
     }
     if(IsEnabled()) {
         if (GetState() == kControlStateNormal) {            
-            if (HasHotState()) {
-                //Hot状态动画
-                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
-                if (pHotAnimationPlayer != nullptr) {
-                    pHotAnimationPlayer->Continue();
+            if (HasHoveredState()) {
+                //Hovered状态动画
+                AnimationPlayer* pHoveredAnimationPlayer = GetHoveredAnimationPlayer();
+                if (pHoveredAnimationPlayer != nullptr) {
+                    pHoveredAnimationPlayer->Continue();
                 }
             }
-            PrivateSetState(kControlStateHot);
+            PrivateSetState(kControlStateHovered);
         }
         if (!m_bMouseEnter) {
             m_bMouseEnter = true;
@@ -2773,7 +2835,7 @@ bool Control::MouseEnter(const EventArgs& msg)
     else {
         //恢复状态
         m_bMouseEnter = false;
-        if (GetState() == kControlStateHot) {
+        if (GetState() == kControlStateHovered) {
             PrivateSetState(kControlStateNormal);
         }
     }
@@ -2787,13 +2849,13 @@ bool Control::MouseLeave(const EventArgs& msg)
         return true;
     }
     if(IsEnabled()) {
-        if (GetState() == kControlStateHot) {
+        if (GetState() == kControlStateHovered) {
             PrivateSetState(kControlStateNormal);
-            if (HasHotState()) {
-                //Hot状态动画
-                AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
-                if (pHotAnimationPlayer != nullptr) {
-                    pHotAnimationPlayer->ReverseContinue();
+            if (HasHoveredState()) {
+                //Hovered状态动画
+                AnimationPlayer* pHoveredAnimationPlayer = GetHoveredAnimationPlayer();
+                if (pHoveredAnimationPlayer != nullptr) {
+                    pHoveredAnimationPlayer->ReverseContinue();
                 }
             }
             Invalidate();
@@ -2810,7 +2872,7 @@ bool Control::MouseLeave(const EventArgs& msg)
     else {
         //恢复状态
         m_bMouseEnter = false;
-        if (GetState() == kControlStateHot) {
+        if (GetState() == kControlStateHovered) {
             PrivateSetState(kControlStateNormal);
             Invalidate();
         }
@@ -2824,7 +2886,7 @@ bool Control::ButtonDown(const EventArgs& msg)
         return true;
     }
     if( IsEnabled() ) {
-        PrivateSetState(kControlStatePushed);
+        PrivateSetState(kControlStatePressed);
         SetMouseFocused(true);
         Invalidate();
     }
@@ -2838,20 +2900,20 @@ bool Control::ButtonUp(const EventArgs& msg)
     }
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
-        //停止Hot状态动画
-        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
-        if (pHotAnimationPlayer != nullptr) {
-            pHotAnimationPlayer->Stop();
+        //停止Hovered状态动画
+        AnimationPlayer* pHoveredAnimationPlayer = GetHoveredAnimationPlayer();
+        if (pHoveredAnimationPlayer != nullptr) {
+            pHoveredAnimationPlayer->Stop();
         }
         Invalidate();
         if( IsPointInWithScrollOffset(msg.ptMouse) ) {
-            PrivateSetState(kControlStateHot);
-            m_nHotAlpha = 255;
+            PrivateSetState(kControlStateHovered);
+            m_nHoveredAlpha = 255;
             Activate(&msg);
         }
         else {
             PrivateSetState(kControlStateNormal);
-            m_nHotAlpha = 0;
+            m_nHoveredAlpha = 0;
         }
     }
     return true;
@@ -3040,7 +3102,7 @@ bool Control::OnSetFocus(const EventArgs& msg)
 #endif
 
     if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHot);
+        SetState(kControlStateHovered);
         Invalidate();
     }
     return true;
@@ -3051,16 +3113,16 @@ bool Control::OnKillFocus(const EventArgs& msg)
     if (!CheckEventType(msg, kEventKillFocus)) {
         return true;
     }
-    if (GetState() == kControlStateHot) {
+    if (GetState() == kControlStateHovered) {
         SetState(kControlStateNormal);
     }
-    else if (GetState() == kControlStatePushed) {
+    else if (GetState() == kControlStatePressed) {
         //失去焦点时，修复控件状态（如果鼠标按下时，窗口失去焦点，鼠标弹起事件这个控件就收不到了）
         SetMouseFocused(false);
-        //停止Hot状态动画
-        AnimationPlayer* pHotAnimationPlayer = GetHotAnimationPlayer();
-        if (pHotAnimationPlayer != nullptr) {
-            pHotAnimationPlayer->Stop();
+        //停止Hovered状态动画
+        AnimationPlayer* pHoveredAnimationPlayer = GetHoveredAnimationPlayer();
+        if (pHoveredAnimationPlayer != nullptr) {
+            pHoveredAnimationPlayer->Stop();
         }
         SetState(kControlStateNormal);
     }
@@ -3138,7 +3200,17 @@ bool Control::PaintImage(IRender* pRender,
                          const UiRect* pDestRect,
                          UiRect* pPaintedRect) const
 {
-    PerformanceStat statPerformance(_T("Control::PaintImage"));
+#if DUILIB_PERFORMANCE_STAT_ENABLED
+    //性能统计
+    static size_t statNameHash = 0;
+    if (statNameHash == 0) {
+        DString statName = _T("PaintWindow, Control::PaintImage");
+        statNameHash = std::hash<DString>{}(statName);
+        PerformanceUtilHelper::Instance().AddStat(statName);
+    }
+    PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
+
     //注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
     //                   也有一个类传入了：_T(" corner='%d,%d,%d,%d'")。
     if (pImage == nullptr) {
@@ -3496,6 +3568,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
     const UiPoint renderOffset = GetRenderOffset();
 
     if (bAlpha) {
+        //是否需要重绘（动画模式下，不需要重绘）
+        bool bNeedRepaint = !IsAnimationMode();
+
         //当设置了透明度时，该控件（若为容器则包含子控件）需要完整绘制
         UiRect rcPaintRect = GetRect();
         SetPaintRect(rcPaintRect);
@@ -3508,6 +3583,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             return;
         }
         if ((pTempRender->GetWidth() != GetRect().Width()) || (pTempRender->GetHeight() != GetRect().Height())) {
+            bNeedRepaint = true;
             if (!pTempRender->Resize(GetRect().Width(), GetRect().Height())) {
                 //存在错误，绘制失败
                 ASSERT(!"pTempRender->Resize failed!");
@@ -3515,7 +3591,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             }
         }
         
-        if ((pTempRender->GetWidth() > 0) && (pTempRender->GetHeight() > 0)) {
+        if ((pTempRender->GetWidth() > 0) && (pTempRender->GetHeight() > 0) && bNeedRepaint)  {
             // 将控件（如果是容器，则包含子控件），完整绘制到缓存新的render中
             // 绘制前，首先清除原内容
             pTempRender->Clear(UiColor());
@@ -3541,7 +3617,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         }
 
         //如果配置了box-shadow，先绘制，因为box-shadow会超出rect边界绘制(如果使用剪辑区域，会显示不全)        
-        if (bPaintBoxShadow) {
+        if (bPaintBoxShadow && bNeedRepaint) {
             m_bBoxShadowPainted = false;
             PaintShadow(pRender);
             m_bBoxShadowPainted = true;
@@ -3570,7 +3646,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         UiRect::Intersect(m_rcPaint, rcPaint, GetRect()); //设置m_rcPaint的值
     }
     else {
-        //清除临时的Render(当使用Hot动画时，会出现使用Alpha的情况，结束后应清除并释放内存)
+        //清除临时的Render(当使用Hovered动画时，会出现使用Alpha的情况，结束后应清除并释放内存)
         m_pTempRender.reset();
 
         //本控件未设置透明度，不使用缓存绘制，直接在目标render上绘制本控件（若为容器，则也包含子控件）        
@@ -3653,7 +3729,7 @@ void Control::PaintShadow(IRender* pRender)
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
                                boxShadow.m_nSpreadRadius,
-                               GlobalManager::Instance().Color().GetColor(boxShadow.m_strColor),
+                               GetUiColor(boxShadow.m_strColor),
                                m_nAlpha);//控件阴影的透明度跟随控件的透明度
     }    
 }
@@ -3766,7 +3842,7 @@ void Control::PaintBorder(IRender* pRender)
     DString borderColor;
     if (IsFocused()) {
         if (borderColor.empty()) {
-            borderColor = GetFocusBorderColor();
+            borderColor = GetFocusedBorderColor();
         }
     }
     if (borderColor.empty()) {
@@ -3955,7 +4031,7 @@ bool Control::ShouldBeRoundRectBorders() const
 
 void Control::PaintFocusRect(IRender* pRender)
 {
-    if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
+    if ((pRender != nullptr) && IsShowFocusedRect() && IsFocused()) {
         DoPaintFocusRect(pRender);    //绘制焦点状态
     }
 }
@@ -3970,18 +4046,22 @@ void Control::DoPaintFocusRect(IRender* pRender)
     if (pRenderFactory == nullptr) {
         return;
     }
-    float fWidth =  Dpi().GetScaleFloat(1.0f); //画笔宽度
+    float fWidth =  Dpi().GetScaleFloat(1.5f); //画笔宽度
     UiColor dwBorderColor;//画笔颜色
-    DString focusRectColor = GetFocusRectColor();
+    DString focusRectColor = GetFocusedRectColor();
     if (!focusRectColor.empty()) {
         dwBorderColor = GetUiColor(focusRectColor);
+    }
+    if (dwBorderColor.IsEmpty()) {
+        //默认聚焦状态的矩形边框颜色
+        dwBorderColor = GetUiColor(_T("border_focus_ring"));
     }
     if(dwBorderColor.IsEmpty()) {
         dwBorderColor = UiColor(UiColors::Gray);
     }
-    UiRect rcBorderSize(1, 1, 1, 1);
+    UiRect rcBorderSize(1, 1, 1, 1); //功能开关
     UiRect rcFocusRect = GetRect();
-    int32_t nFocusWidth = Dpi().GetScaleInt(2); //矩形间隙
+    int32_t nFocusWidth = Dpi().GetScaleInt(3); //矩形间隙
     rcFocusRect.Deflate(nFocusWidth, nFocusWidth);
     if (rcFocusRect.IsEmpty()) {
         return;
@@ -4152,10 +4232,10 @@ void Control::SetAlpha(uint8_t nAlpha)
     }
 }
 
-void Control::SetHotAlpha(uint8_t nHotAlpha)
+void Control::SetHoveredAlpha(uint8_t nHoveredAlpha)
 {
-    if (m_nHotAlpha != nHotAlpha) {
-        m_nHotAlpha = nHotAlpha;
+    if (m_nHoveredAlpha != nHoveredAlpha) {
+        m_nHoveredAlpha = nHoveredAlpha;
         Invalidate();
     }
 }
@@ -4598,7 +4678,7 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
         imageLoadPath.m_imageFullPath = sImagePath;
     }
     else {
-        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）       
+        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）
         FilePath resPath(sImagePath);
         bool bLocalPath = true;
         bool bResPath = true;
@@ -4666,8 +4746,20 @@ bool Control::LoadImageInfo(Image& duiImage, bool bPaintImage) const
             imageLoadParam.SetMaxDestRectSize(UiSize(GetRect().Width(), GetRect().Height()));
         }
 
+        std::weak_ptr<WeakFlag> windowFlag = pWindow->GetWeakFlag();
+        SvgReplaceColorCallbackFunction svgReplaceColorCallback = [windowFlag, pWindow](const DString& strColor) {
+            UiColor color;
+            if (!windowFlag.expired()) {
+                color = Control::PrivateGetUiColor(strColor, pWindow);
+            }
+            else {
+                color = Control::PrivateGetUiColor(strColor, nullptr);
+            }
+            return color;
+            };
+
         bool bImageDataFromCache = false;
-        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, bImageDataFromCache);
+        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, svgReplaceColorCallback, bImageDataFromCache);
         duiImage.SetImageInfo(imageInfo);
         if (imageInfo != nullptr) {
             //检查并启动多线程解码，在子线程中解码图片数据
@@ -5186,57 +5278,54 @@ bool Control::HasUiColor(const DString& colorName) const
     if (colorName.empty()) {
         return false;
     }
-    UiColor color = GetUiColorByName(colorName);
-    return color.GetARGB() != 0;
+    return !GetUiColor(colorName).IsEmpty();
 }
 
 UiColor Control::GetUiColor(const DString& colorName) const
 {
-    if (colorName.empty()) {
-        return UiColor();
-    }
-    UiColor color = GetUiColorByName(colorName);
-    ASSERT(!color.IsEmpty());
-    return color;
+    return Control::PrivateGetUiColor(colorName, GetWindow());
 }
 
-UiColor Control::GetUiColorByName(const DString& colorName) const
+UiColor Control::PrivateGetUiColor(const DString& colorName2, Window* pWindow)
 {
+    if (colorName2.empty()) {
+        return UiColor();
+    }
+
+    //别名优先，由于需要保留历史兼容性问题(比如原代码中使用了"red"这种颜色值，需要被覆盖掉)
+    DString colorName = GlobalManager::Instance().GetAliasValue(colorName2);
+    if (colorName.empty()) {
+        colorName = colorName2;
+    }
     UiColor color;
     if (colorName.empty()) {
         return color;
     }
     if (colorName.at(0) == _T('#')) {
         //优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
-        color = ColorManager::ConvertToUiColor(colorName);
+        color = GlobalManager::Instance().Color().ConvertToUiColor(colorName);
     }
-    if (color.GetARGB() == 0) {
-        Window* pWindow = GetWindow();
+    if (color.IsEmpty()) {
         if (pWindow != nullptr) {
-            //优先级2：获取在配置XML中的<Window>节点中定义子节点<TextColor>指定的颜色
-            color = pWindow->GetTextColor(colorName);
+            //优先级2：获取在配置XML中的<Window>节点中定义子节点<ThemeColor>指定的颜色
+            color = pWindow->GetThemeColor(colorName);
         }
     }
-    if (color.GetARGB() == 0) {
-        //优先级3：获取在global.xml中的<Global>节点中定义子节点<TextColor>指定的颜色
+    if (color.IsEmpty()) {
+        //优先级3：获取在global.xml中的<Global>节点中定义子节点<ThemeColor>指定的颜色
         color = GlobalManager::Instance().Color().GetColor(colorName);
     }
-    if (color.GetARGB() == 0) {
+    if (color.IsEmpty()) {
         //优先级4：直接指定预定义的颜色别名
-        color = GlobalManager::Instance().Color().GetStandardColor(colorName);
+        color = StandardColorMap::Instance().GetColor(colorName);
     }
-    ASSERT(color.GetARGB() != 0);
+    ASSERT(!color.IsEmpty());
     return color;
 }
 
 DString Control::GetColorString(const UiColor& color) const
 {
-    if (color.IsEmpty()) {
-        return DString();
-    }
-    else {
-        return StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
-    }
+    return StandardColorMap::ColorToHex(color);
 }
 
 bool Control::HasBoxShadow() const
@@ -5358,6 +5447,16 @@ uint8_t Control::GetPaintOrder() const
 IFont* Control::GetIFontById(const DString& strFontId) const
 {
     return GlobalManager::Instance().Font().GetIFont(strFontId, this->Dpi());
+}
+
+void Control::SetAnimationMode(bool bAnimationMode)
+{
+    m_bAnimationMode = bAnimationMode;
+}
+
+bool Control::IsAnimationMode() const
+{
+    return m_bAnimationMode;
 }
 
 bool Control::HasDestroyEventCallback() const

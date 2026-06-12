@@ -399,9 +399,10 @@ public:
     */
     bool IsClip() const { return m_bClip; }
 
-    /** 获取外层滚动偏移
+    /** 获取外层滚动偏移(X方向和Y方向)
      */
     UiPoint GetScrollOffsetInScrollBox() const;
+    UiSize64 GetScrollOffsetInScrollBox64() const;
 
     /** 判断两个控件是否相等，是否存在父子或者子孙关系
      * @param [in] pAncestor 父祖级别的控件
@@ -413,6 +414,25 @@ public:
     /** 获取该窗口对应的DPI管理器
     */
     const DpiManager& Dpi() const;
+
+    /** 设置是否支持变量展开(功能说明，参见ExpandVarStrings函数)
+    * @param [in] bEnableVars true表示支持，false表示不支持
+    */
+    void SetEnableVars(bool bEnableVars);
+
+    /** 获取是否支持变量展开
+    */
+    bool IsEnableVars() const;
+
+    /** 函数功能：如果varValue中有Var定义的变量，替换为对应的值
+     *   用法举例：假设在globle.xml中增加一行变量定义：<Var name="SIZE_ICON_SMALL" value="16"/>
+     *   属性字符串中可以这样使用这个变量：width='${SIZE_ICON_SMALL}'
+     *   使用该函数展开后，变量的取值变成了：width='16'
+     * @param [in,out] varValue 需要展开变量的字符串
+     * @return 返回varValue
+     */
+    DString& ExpandVarStrings(DString& varValue) const;
+    DString GetExpandVarStrings(const DString& varValue) const;
 
 protected:
     /** 可见状态（供内部子类重写可见状态使用, 如果返回true代表可见，返回false表示不可见）
@@ -552,6 +572,9 @@ private:
 
     //是否已经完成初始化
     bool m_bInited;
+
+    //是否支持变量展开
+    bool m_bEnableVars;
 };
 
 } // namespace ui

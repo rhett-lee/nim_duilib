@@ -58,6 +58,14 @@ public:
     /** 获取文本限制长度
     */
     virtual int32_t GetTextLimitLength() const = 0;
+
+    /** 文本是否为只读模式
+    */
+    virtual bool IsTextReadOnlyMode() const = 0;
+
+    /** 文本是否为禁用模式
+    */
+    virtual bool IsTextDisabledMode() const = 0;
 };
 
 class DUILIB_API RichEditData
@@ -374,7 +382,7 @@ private:
 
     /** 将文本按照换行符（'\n'）切分为多行
     */
-    void SplitLines(const std::wstring_view& textView, std::vector<std::wstring_view>& lineTextViewList);
+    void SplitLines(const std::wstring_view& textView, std::vector<std::wstring_view>& lineTextViewList) const;
 
     /** 清空撤销列表
     */
@@ -386,7 +394,7 @@ private:
 
     /** 从缓存中计算文本所占的矩形区域
     */
-    void CalcCacheTextRects(UiRect& rcTextRect);
+    void CalcCacheTextRects(UiRect& rcTextRect) const;
 
     /** 按对齐方式，更新每行文本的纵坐标
     */
@@ -398,7 +406,7 @@ private:
 
     /** 计算文本的区域信息（全部重新计算）
     */
-    void CalcTextRects();
+    void CalcTextRectsFull();
 
     /** 计算文本的区域信息（只重新计算修改的部分文本）
     * @param [in] nStartLine 重新计算的起始行号
@@ -406,10 +414,22 @@ private:
     * @param [in] deletedLines 删除的行
     * @param [in] nDeletedRows 删除了几行
     */
-    void CalcTextRects(size_t nStartLine,
-                       const std::vector<size_t>& modifiedLines,
-                       const std::vector<size_t>& deletedLines,
-                       size_t nDeletedRows);
+    void CalcTextRectsPart(size_t nStartLine,
+                           const std::vector<size_t>& modifiedLines,
+                           const std::vector<size_t>& deletedLines,
+                           size_t nDeletedRows);
+
+    /** 在编辑状态下，如果最后的字符是换行符，追加一个空行，从而使得光标可以定位到最后的空行
+    */
+    void AppendEmptyLine(RichTextLineInfoList& lineTextInfo) const;
+
+    /** 删除最后的空行
+    */
+    void RemoveEmptyLine(RichTextLineInfoList& lineTextInfo) const;
+
+    /** 检查行数据是否合法
+    */
+    void CheckLineTextData(const RichTextLineInfoList& lineTextInfo, size_t nIndex) const;
 
     /** 定位字符范围所属的行和行文本偏移量
     * @param [in] nStartChar 起始下标值

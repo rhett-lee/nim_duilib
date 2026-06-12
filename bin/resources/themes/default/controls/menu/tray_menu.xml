@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" shadow_border_size="1" shadow_border_color="#FFEDEDED">
+<Window shadow_type="menu_round" shadow_border_size="1" shadow_border_color="#FFEDEDED">
     <MenuListBox class="menu" name="main_menu" padding="0,4,0,4">
         <MenuItem class="menu_element" name="tray_menu_item_1" width="180">
-            <Label class="menu_text" text="托盘菜单项1" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_TRAY_MENU_01" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="tray_menu_item_2" width="180">
-            <Label class="menu_text" text="托盘菜单项2" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_TRAY_MENU_02" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="tray_menu_item_3" width="180">
-            <Label class="menu_text" text="托盘菜单项3" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_TRAY_MENU_03" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="tray_menu_item_4" width="180">
-            <Label class="menu_text" text="托盘菜单项4" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_TRAY_MENU_04" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="tray_menu_exit" width="180">
-            <Label class="menu_text" text="退出" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+            <Label class="menu_text" text_id="STRID_CONTROLS_TRAY_MENU_05" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
     </MenuListBox>
 </Window>

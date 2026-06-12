@@ -28,19 +28,6 @@ public:
     virtual bool CanPlaceCaptionBar() const override;
     virtual DString GetBorderColor(ControlStateType stateType) const override;
 
-    /** DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
-
-    /** 语言发生变化，刷新界面文字显示相关的内容
-    */
-    virtual void OnLanguageChanged() override;
-
-protected:
-    virtual void OnInit() override;
-
 public:
     /** Combo类型
     */
@@ -111,17 +98,23 @@ public:
      */
     size_t GetCurSel() const;
 
-    /** 选择一个子项, 不触发选择事件
-     * @param[in] iIndex 要选择的子项索引
+    /** 选择一个子项, 触发选择变化事件
+     * @param [in] iIndex 要选择的子项索引
+     * @param [in] bTriggerEvent true表示触发变化事件，false表示不触发变化事件
      * @return 返回 true 表示成功，否则为 false
      */
-    bool SetCurSel(size_t iIndex);
+    bool SetCurSel(size_t iIndex, bool bTriggerEvent = true);
 
     /** 获取子项关联的数据
     * @param [in] iIndex 子项索引号
     * @return 返回该索引号关联的数据
     */
     size_t GetItemData(size_t iIndex) const;
+
+    /** 获取是否含有子项关联的数据
+    * @param [in] iIndex 子项索引号
+    */
+    bool HasItemData(size_t iIndex) const;
 
     /** 设置子项关联的数据
     * @param [in] iIndex 子项索引号
@@ -231,11 +224,11 @@ public:
 
     /** 设置下拉窗口的阴影类型
     */
-    void SetComboWndShadowType(Shadow::ShadowType nShadowType);
+    void SetComboWndShadowType(ShadowType nShadowType);
 
     /** 获取下拉窗口的阴影类型
     */
-    Shadow::ShadowType GetComboWndShadowType() const;
+    ShadowType GetComboWndShadowType() const;
 
 public:
     /** 监听子项被选择事件
@@ -255,6 +248,22 @@ public:
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      */
     void AttachWindowClose(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventWindowClose, callback, callbackID); }
+
+protected:
+    /** 控件初始化
+    */
+    virtual void OnInit() override;
+
+    /** DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnLanguageChanged(bool bRedraw) override;
 
 protected:
     /** 显示下拉列表
@@ -349,11 +358,6 @@ protected:
     virtual bool OnEditTextChanged(const ui::EventArgs& args);
 
 private:
-    /** 解析属性列表
-    */
-    void ParseAttributeList(const DString& strList,
-                            std::vector<std::pair<DString, DString>>& attributeList) const;
-
     /** 设置控件的属性列表
     */
     void SetAttributeList(Control* pControl, const DString& classValue);
@@ -394,7 +398,7 @@ private:
 
     /** 阴影类型
     */
-    Shadow::ShadowType m_nShadowType;
+    ShadowType m_nShadowType;
 
     /** 下拉列表的大小（宽度和高度）
     */

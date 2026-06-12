@@ -18,7 +18,7 @@
         <SDLLibDir Condition="'$(SDLEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
 
         <!-- SDL的lib列表 -->
-        <SDLLibs Condition="'$(SDLEnabled)' != '0'">SDL3-static.lib;Version.lib;Winmm.lib;Setupapi.lib</SDLLibs>
+        <SDLLibs Condition="'$(SDLEnabled)' != '0'">SDL3-static.lib;Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib</SDLLibs>
         <SDLLibs Condition="'$(SDLEnabled)' == '0'"></SDLLibs>
 
     </PropertyGroup>

@@ -24,9 +24,9 @@ public:
     virtual void SetPos(UiRect rc) override;
     virtual void SetWindow(Window* pWindow) override;
     virtual void PaintText(IRender* pRender) override;
-    virtual bool HasHotState() override;
+    virtual bool HasHoveredState() override;
     virtual DString GetToolTipText() const override;
-    virtual void OnLanguageChanged() override;
+    virtual void OnLanguageChanged(bool bRedraw) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
     /** 计算文本区域大小（宽和高）
@@ -284,8 +284,9 @@ template<>
 inline DString LabelTemplate<VBox>::GetType() const { return DUI_CTR_LABELVBOX; }
 
 template<typename T>
-void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strValue)
+void LabelTemplate<T>::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = this->GetExpandVarStrings(strValue2);
     if (!m_impl->OnSetAttribute(strName, strValue)) {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -312,9 +313,9 @@ void LabelTemplate<T>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiSca
 }
 
 template<typename T>
-void LabelTemplate<T>::OnLanguageChanged()
+void LabelTemplate<T>::OnLanguageChanged(bool bRedraw)
 {
-    BaseClass::OnLanguageChanged();
+    BaseClass::OnLanguageChanged(bRedraw);
     //语言发生变化，字符串长度可能发生了变化，需要重新计算布局，更新ToolTip数据
     this->RelayoutOrRedraw();
     m_impl->OnLanguageChanged();
@@ -506,12 +507,12 @@ bool LabelTemplate<T>::IsTextEquals(const DString& text) const
 }
 
 template<typename T>
-bool LabelTemplate<T>::HasHotState()
+bool LabelTemplate<T>::HasHoveredState()
 {
-    if (BaseClass::HasHotState()) {
+    if (BaseClass::HasHoveredState()) {
         return true;
     }
-    return m_impl->HasHotColorState();
+    return m_impl->HasHoveredStateColor();
 }
 
 template<typename T>

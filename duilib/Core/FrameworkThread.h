@@ -116,9 +116,10 @@ public:
     bool CancelTask(size_t nTaskId);
 
 protected:
-    /** 运行前初始化，在进入消息循环前调用
+    /** 运行前初始化，在进入消息循环前调用，如果初始化失败则不进入消息循环
+    * @return 初始化成功返回true，初始化失败返回false
     */
-    virtual void OnInit();
+    virtual bool OnInit();
 
     /** 运行消息循环，子类可以重写该函数，自己实现消息循环
     */
@@ -186,6 +187,11 @@ private:
         std::chrono::steady_clock::time_point m_startTime;     //开始时间（任务放入队列的时间）
         std::chrono::steady_clock::time_point m_lastExecTime;  //任务上次执行的时间
         int32_t m_nTotalExecTimes = 0;          //任务总计执行的次数
+
+        // 底层定时器 ID（用于 PostDelayedTask / PostRepeatedTask 触发的任务）。
+        // 0 表示没有关联的定时器（如 PostTask 的立即任务）。
+        // 在 CancelTask 时同步通过 TimerManager::RemoveTimer 取消，避免定时器空转触发空回调。
+        size_t m_nTimerId = 0;
     };
 
     /** 任务信息映射表
@@ -215,8 +221,10 @@ private:
     bool m_bThreadUI;
 
     /** 是否正在运行中
+    *   注意：必须使用 std::atomic 以保证多线程间的内存可见性，
+    *   单纯 volatile 在 C++ 标准下不保证多线程可见性。
     */
-    volatile bool m_bRunning;
+    std::atomic<bool> m_bRunning;
 
     /** true表示支持Idle功能，当消息队列为空时，会调用OnMessageLoopIdle虚函数，供应用层处理业务
     */

@@ -60,7 +60,7 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if (strName == _T("text_color")) {
+    else if ((strName == _T("text_color")) || (strName == _T("normal_text_color"))) {
         SetTextColor(strValue);
     }    
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -78,21 +78,21 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         //超级链接：常规文本颜色值
         m_linkNormalTextColor = strValue;
     }
-    else if (strName == _T("hover_link_font_color")) {
+    else if ((strName == _T("hovered_link_font_color")) || (strName == _T("hover_link_font_color"))) {
         //超级链接：Hover状态文本颜色值
-        m_linkHoverTextColor = strValue;
+        m_linkHoveredTextColor = strValue;
     }
-    else if (strName == _T("mouse_down_link_font_color")) {
+    else if ((strName == _T("pressed_link_font_color")) || (strName == _T("mouse_down_link_font_color"))) {
         //超级链接：鼠标按下状态文本颜色值
-        m_linkMouseDownTextColor = strValue;
+        m_linkPressedTextColor = strValue;
     }
     else if (strName == _T("link_font_underline")) {
         //超级链接：是否使用带下划线的字体
-        m_bLinkUnderlineFont = (strValue == _T("true"));
+        m_bLinkUnderlineFont = (StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("replace_brace")) {
         //对text属性，是否允许替换花括号
-        m_bReplaceBrace = strValue == _T("true");
+        m_bReplaceBrace = StringUtil::IsValueTrue(strValue);
     }
     else if (strName == _T("text")) {
         //允许使用'{'代替'<'，'}'代替'>' (m_bReplaceBrace变量为开关)
@@ -126,7 +126,7 @@ bool RichTextImpl::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if (strName == _T("word_wrap")) {
-        SetWordWrap(strValue == _T("true"));
+        SetWordWrap(StringUtil::IsValueTrue(strValue));
     }
     else {
         return false;
@@ -349,12 +349,12 @@ void RichTextImpl::PaintText(IRender* pRender)
             normalLinkTextColor = m_pOwner->GetUiColor(m_linkNormalTextColor.c_str());
         }
         UiColor mouseDownLinkTextColor;
-        if (!m_linkMouseDownTextColor.empty()) {
-            mouseDownLinkTextColor = m_pOwner->GetUiColor(m_linkMouseDownTextColor.c_str());
+        if (!m_linkPressedTextColor.empty()) {
+            mouseDownLinkTextColor = m_pOwner->GetUiColor(m_linkPressedTextColor.c_str());
         }
         UiColor linkHoverTextColor;
-        if (!m_linkHoverTextColor.empty()) {
-            linkHoverTextColor = m_pOwner->GetUiColor(m_linkHoverTextColor.c_str());
+        if (!m_linkHoveredTextColor.empty()) {
+            linkHoverTextColor = m_pOwner->GetUiColor(m_linkHoveredTextColor.c_str());
         }
 
         std::vector<RichTextData> richTextData;
@@ -377,12 +377,12 @@ void RichTextImpl::PaintText(IRender* pRender)
                         textData.m_textColor = normalLinkTextColor;//标准状态的字体颜色
                     }
                 }
-                if (textDataEx.m_bMouseDown && !m_linkMouseDownTextColor.empty()) {                    
+                if (textDataEx.m_bMouseDown && !m_linkPressedTextColor.empty()) {                    
                     if (!mouseDownLinkTextColor.IsEmpty()) {
                         textData.m_textColor = mouseDownLinkTextColor;//鼠标按下时的字体颜色
                     }
                 }
-                else if (textDataEx.m_bMouseHover && !m_linkHoverTextColor.empty()) {                    
+                else if (textDataEx.m_bMouseHover && !m_linkHoveredTextColor.empty()) {                    
                     if (!linkHoverTextColor.IsEmpty()) {
                         textData.m_textColor = linkHoverTextColor;//鼠标Hover时的字体颜色
                     }
@@ -452,7 +452,7 @@ void RichTextImpl::CheckParseText()
 {
     if (!m_richTextId.empty() && (m_langFileName != GlobalManager::Instance().GetLanguageFileName())) {
         //多语言版：当语言发生变化时，更新文本内容
-        DoSetText(GlobalManager::Instance().Lang().GetStringViaID(m_richTextId.c_str()));
+        DoSetText(GlobalManager::Instance().Lang().GetStringByID(m_richTextId.c_str()));
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();
     }
 
@@ -695,7 +695,7 @@ bool RichTextImpl::SetText(const DString& richText, bool bRedraw)
 
 bool RichTextImpl::SetTextId(const DString& richTextId, bool bRedraw)
 {
-    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringViaID(richTextId), bRedraw);
+    bool bRet = SetText(GlobalManager::Instance().Lang().GetStringByID(richTextId), bRedraw);
     m_richTextId = richTextId;
     if (!m_richTextId.empty()) {
         m_langFileName = GlobalManager::Instance().GetLanguageFileName();

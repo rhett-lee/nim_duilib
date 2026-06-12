@@ -14,11 +14,12 @@
 #include "duilib/Core/CursorManager.h"
 #include "duilib/Core/IconManager.h"
 #include "duilib/Core/WindowManager.h"
+#include "duilib/Core/ThemeManager.h"
 #include "duilib/Image/ImageDecoderFactory.h"
 
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <thread>
 
 namespace ui 
@@ -43,10 +44,22 @@ public:
     */
     static GlobalManager& Instance();
 
-    /** 获取默认的资源目录
-    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle 
+    /** 获取资源目录的根路径（绝对路径）
+    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle（目前仅在使用CEF模块时需要传入true，其他均传入false）
+    *             该函数仅用于在调用Startup函数前确定资源目录，其他情况下，请使用GlobalManager::Instance().GetResourceRootPath()函数
+    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources/
     */
-    static FilePath GetDefaultResourcePath(bool bMacOsAppBundle);
+    static FilePath GetResourceRootPath(bool bMacOsAppBundle);
+
+    /** 获取资源压缩包的路径（绝对路径）
+    * @return 返回绝对路径，示例：<程序所在目录的绝对路径>/resources.zip
+    */
+    static FilePath GetResourceZipPath();
+
+    /** 根据语言文件的资源ID获取对应的实际文字（支持多国语言版）
+    *   该函数是对GlobalManager::Instance().Lang().GetStringByID(const DString& textId)的二次封装，方便使用
+    */
+    static DString GetTextById(const DString& textId);
 
 public:
     /** 初始化全局设置函数
@@ -69,28 +82,6 @@ public:
     void Shutdown();
 
 public:
-    /** 设置皮肤资源所在路径
-     *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
-     *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
-     */
-    void SetResourcePath(const FilePath& strPath);
-
-    /** 获取当前资源所在路径
-     */
-    const FilePath& GetResourcePath() const;
-
-    /** 重新加载皮肤资源（可通过此接口实现动态换肤功能）
-    * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
-     *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
-     *                         使用 LocalFilesResParam 类型作为参数
-     *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
-     *                         使用 ZipFileResParam 类型作为参数
-     *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
-     *                         使用 ResZipFileResParam 类型作为参数
-     * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
-    */
-    bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
-
     /** 设置平台相关数据，Windows平台使用，当使用动态链接库时，设置为DLL所在模块句柄（HMODULE）
     */
     void SetPlatformData(void* pPlatformData);
@@ -99,22 +90,32 @@ public:
     */
     void* GetPlatformData() const;
 
-    /** 设置字体文件所在路径
-    */
+    /** 获取资源目录的根路径
+     *  如果是使用本地文件系统做资源目录，则为绝对路径
+     *  如果是使用zip压缩包提供资源，则为相对路径
+     */
+    FilePath GetResourceRootPath() const;
+
+    /** 设置字体文件所在目录，可以是相对路径或者是绝对路径
+     *  如果是使用本地文件系统做资源目录，则为绝对路径
+     *  如果是使用zip压缩包提供资源，则为相对路径
+     */
     void SetFontFilePath(const FilePath& strPath);
 
-    /** 获取字体文件所在路径
+    /** 获取字体文件所在目录
+    * @return 返回字体文件所在目录，详细说明同上
     */
     const FilePath& GetFontFilePath() const;
 
 public:
-    /** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
-    *   如果是绝对路径，则在这个绝对路径中查找语言文件
-    *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
-    */
+    /** 设置语言文件所在目录，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
+     *  如果是使用本地文件系统做资源目录，则为绝对路径
+     *  如果是使用zip压缩包提供资源，则为相对路径
+     */
     void SetLanguagePath(const FilePath& strPath);
 
-    /** 获取语言文件所在路径
+    /** 获取语言文件所在目录
+    * @return 返回语言文件所在目录，详细说明同上
     */
     const FilePath& GetLanguagePath() const;
 
@@ -139,7 +140,7 @@ public:
     * @param [out] languageList 返回语言文件和显示名称的列表
     */
     bool GetLanguageList(std::vector<std::pair<DString, DString>>& languageList,
-                         const DString& languageNameID = _T("LANGUAGE_DISPLAY_NAME")) const;
+                         const DString& languageNameID = DUILIB_LANGUAGE_DISPLAY_NAME) const;
 
 public:
     /** 添加一个全局 Class 属性
@@ -221,12 +222,15 @@ public:
     */
     WindowManager& Windows();
 
+    /** 主题管理器
+    */
+    ThemeManager& Theme();
+
 public:
     /** 根据资源加载方式，返回对应的资源路径
-     * @param[in] path 要获取的资源路径
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
-     * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+     * @param [in] resPath 资源文件路径，比如："public/button/btn_wnd_gray_min_hovered.png"
      * @param [in] pControl 该资源关联的Control控件接口
      * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
      * @param [out] bResPath 返回true表示文件在程序资源路径内，返回false表示文件不在程序资源路径内
@@ -261,10 +265,6 @@ public:
     * @param [in] callbackId 待删除回调函数的ID
     */
     void RemoveResNotFoundCallback(size_t callbackId);
-
-    /** 判断一个路径是否在public子目录中
-    */
-    bool IsResInPublicPath(const FilePath& resPath) const;
 
 public:
     /** CreateBox/CreateBoxWithCache 和 FillBox/FillBoxWithCache 函数的使用说明
@@ -375,21 +375,103 @@ public:
     */
     bool IsAnimationEnabled() const;
 
+public:
+    /** 添加别名：<Alias name="bk_menuitem_hovered" value="bg_menu_item_hovered"/>
+    *   为了兼容旧版本程序，避免改名后导致旧版本程序无法运行
+    * @param [in] name 名字
+    * @param [in] value 别名的实际取值
+    */
+    void AddAlias(const DString& name, const DString& value);
+
+    /** 删除别名
+    * @param [in] name 名字
+    */
+    void RemoveAlias(const DString& name);
+
+    /** 判断一个名字是否有别名
+    * @param [in] name 名字
+    */
+    bool HasAliasValue(const DString& name) const;
+
+    /** 获取别名对应的值
+    * @param [in] name 名字
+    */
+    DString GetAliasValue(const DString& name) const;
+
+    /** 清除所有别名
+    */
+    void ClearAlias();
+
+public:
+    /** 添加变量: <Var name="SIZE_SCROLLBAR_WIDTH" value="12"/>
+    * @param [in] name 变量名称
+    * @param [in] value 变量对应的取值
+    */
+    void AddVar(const DString& name, const DString& value);
+
+    /** 删除变量
+    * @param [in] name 变量名称
+    */
+    void RemoveVar(const DString& name);
+
+    /** 获取变量定义的值
+    * @param [in] name 变量名称
+    * @return 返回变量的取值，如果不包含变量则返回空
+    */
+    DString GetVarValue(const DString& name) const;
+
+    /** 清除所有变量定义
+    */
+    void ClearVars();
+
+    /** 函数功能：如果varValue中有Var定义的变量，替换为对应的值
+     *   用法举例：假设在globle.xml中增加一行变量定义：<Var name="SIZE_ICON_SMALL" value="16"/>
+     *   属性字符串中可以这样使用这个变量：width='${SIZE_ICON_SMALL}'
+     *   使用该函数展开后，变量的取值变成了：width='16'
+     * @param [in,out] varValue 需要展开变量的字符串
+     * @return 返回varValue
+     */
+    DString& ExpandVarStrings(DString& varValue) const;
+
+    /** 函数功能：如果varValue中有Var定义的变量，替换为对应的值（功能同上）
+    */
+    DString GetExpandVarStrings(const DString& varValue) const;
+
+public:
+    /** 清除主题相关的缓存（切换主题后，立即生效）
+    */
+    void ClearThemeCache();
+
 private:
+    /** 加载全局资源
+    * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
+    *                      1. 本地文件的形式，所有资源都已本地文件的形式存在
+    *                         使用 LocalFilesResParam 类型作为参数
+    *                      2. 资源文件打包为zip压缩包，然后以本地文件的形式存在
+    *                         使用 ZipFileResParam 类型作为参数
+    *                      3. 资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
+    *                         使用 ResZipFileResParam 类型作为参数
+    */
+    bool LoadGlobalResource(const ResourceParam& resParam);
+
+    /** 加载一个语言文件
+    * @param [in] languagePath 语言文件所在目录
+    * @param [in] languageFileName 语言文件名（不含路径）
+    */
+    bool LoadLanguageFile(const FilePath& languagePath, const DString& languageFileName);
+
+    /** 根据系统语言，获取默认的语言文件名
+    */
+    DString GetDefaultLanguageFileName() const;
+
+    /** 获取系统语言字符串
+    * @return 返回系统语言字符串，示例：如"zh_CN"、"en_US"等
+    */
+    DString GetSystemLanguage() const;
+
     /** 从缓存中删除所有图片
      */
     void RemoveAllImages();
-
-    /** 检查图片文件路径是否存在
-    * @param [in,out] imageFullPath 如果不存在清空，如果存在保留
-    * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
-    */
-    void CheckImagePath(FilePath& imageFullPath, bool& bLocalPath);
-
-    /** 根据资源加载方式，返回对应的资源路径
-    */
-    FilePath FindExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath,
-                                   const FilePath& resPath, bool& bLocalPath, bool& bResPath);
 
 private:
     /** 资源加载失败的回调函数相关数据
@@ -405,14 +487,14 @@ private:
     */
     std::unique_ptr<IRenderFactory> m_renderFactory;
 
-    /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
-    */
-    FilePath m_resourcePath;
-
     /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
     *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
     */
     void* m_platformData;
+
+    /** 资源根目录（使用本地文件时为绝对路径，使用zip时为相对路）
+    */
+    FilePath m_resourceRootPath;
 
     /** 全局字体文件路径（绝对路径）
     */
@@ -428,7 +510,7 @@ private:
     
     /** 窗口构建管理接口，KEY是XML文件路径，VALUE是窗口构建管理接口（已经解析后的XML，可避免重复解析）
     */
-    std::map<FilePath, std::unique_ptr<WindowBuilder>> m_builderMap;
+    std::unordered_map<FilePath, std::unique_ptr<WindowBuilder>> m_builderMap;
 
     /** 控件创建函数，用于用户自定义控件的创建
     */
@@ -436,7 +518,7 @@ private:
 
     /** 每个Class的名称(KEY)和属性列表(VALUE)（比如global.xml中定义的Class）
     */
-    std::map<DString, DString> m_globalClass;
+    std::unordered_map<DString, DString> m_globalClass;
 
     /** 主线程ID
     */
@@ -444,7 +526,7 @@ private:
 
     /** 颜色管理器
     */
-    ColorManager m_colorManager;
+    std::unique_ptr<ColorManager> m_pColorManager;
 
     /** 字体管理器
     */
@@ -490,6 +572,10 @@ private:
     */
     WindowManager m_windowManager;
 
+    /** 主题管理器
+    */
+    ThemeManager m_themeManager;
+
     /** 退出时要执行的函数
     */
     std::vector<std::function<void()>> m_atExitFunctions;
@@ -498,9 +584,21 @@ private:
     */
     std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
 
+    /** 别名管理
+    */
+    std::unordered_map<DString, DString> m_aliasMap;
+
+    /** 变量管理（用于解析配置文件，比如global.xml等）
+    */
+    std::unordered_map<DString, DString> m_defineMap;
+
     /** 是否开启控件动画（比如淡入淡出等动画）
     */
     bool m_bAnimationEnabled;
+
+    /** 是否已经初始化
+    */
+    bool m_bStartup;
 };
 
 } // namespace ui

@@ -80,9 +80,13 @@ void ThreadMessage::Initialize(void* platformData)
     }
 
     //在模块退出时，注销该ATOM
-    GlobalManager::Instance().AddAtExitFunction([hInstance]() {
+    static bool bAddAtExitFunction = false;
+    if (!bAddAtExitFunction) {
+        bAddAtExitFunction = true;
+        GlobalManager::Instance().AddAtExitFunction([hInstance]() {
             ::UnregisterClassW(DUILIB_MESSAGING_WINDOW_CLASS, hInstance);
-        });
+            });
+    }
 }
 
 bool ThreadMessage::PostMsg(uint32_t msgId, WPARAM wParam, LPARAM lParam, uint32_t* nErrorCode)

@@ -75,7 +75,7 @@ bool ControlLoading::InitAttribute(LoadingAttribute& loadingAttribute, const DSt
         return false;
     }
     std::vector<std::pair<DString, DString>> attributeList;
-    AttributeUtil::ParseAttributeList(loadingString, _T('\''), attributeList);
+    AttributeUtil::ParseAttributeList(loadingString, attributeList);
     for (const auto& attribute : attributeList) {
         const DString& name = attribute.first;
         const DString& value = attribute.second;

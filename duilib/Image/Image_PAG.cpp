@@ -125,7 +125,15 @@ public:
         }
 
         //每帧的播放时间
-        m_frameDelayMs = (int32_t)(1000 / pagDecoder.frameRate());    
+        //注意：frameRate 为 0 时，1000 / 0.0f 得到 +inf，(int32_t)+inf 是 UB（未定义行为）；
+        //这里先检查 frameRate > 0 才计算，否则使用默认帧延迟，避免 UB
+        const float frameRate = pagDecoder.frameRate();
+        if (frameRate > 0.0f) {
+            m_frameDelayMs = (int32_t)(1000.0f / frameRate);
+        }
+        else {
+            m_frameDelayMs = IMAGE_ANIMATION_DELAY_MS;
+        }
         return true;
     }
 };
@@ -304,16 +312,31 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         pAnimationFrame->m_bDataError = true;
         return false;
     }
-    size_t rowBytes = pBitmap->GetWidth() * 4;
+    //RAII 风格的像素位解锁包装
+    struct TAutoUnlockPixels
+    {
+        std::shared_ptr<IBitmap>& bitmap;
+        bool locked;
+        ~TAutoUnlockPixels()
+        {
+            if (locked && bitmap) {
+                bitmap->UnLockPixelBits();
+            }
+        }
+    };
+    TAutoUnlockPixels autoUnlock{ pBitmap, true };
+
+    size_t rowBytes = (size_t)pBitmap->GetWidth() * 4;
 #ifdef DUILIB_BUILD_FOR_WIN
     pag::ColorType colorType = pag::ColorType::BGRA_8888;
 #else
     pag::ColorType colorType = pag::ColorType::RGBA_8888;
-#endif    
+#endif
     pag::AlphaType alphaType = pag::AlphaType::Premultiplied;
     bool bRet = pagDecoder.readFrame(index, pixels, rowBytes, colorType, alphaType);
     if (bRet) {
         pBitmap->UnLockPixelBits();
+        autoUnlock.locked = false;  // 已解锁，防止析构中重复解锁
         pAnimationFrame->m_pBitmap = pBitmap;
         pAnimationFrame->m_nOffsetX = 0;
         pAnimationFrame->m_nOffsetY = 0;
@@ -326,6 +349,7 @@ bool Image_PAG::ReadFrameData(int32_t nFrameIndex, const UiSize& /*szDestRectSiz
         m_impl->m_bDecodeError = true;
         pAnimationFrame->m_bDataError = true;
         pAnimationFrame->m_pBitmap.reset();
+        // autoUnlock 析构时会自动 UnLockPixelBits
     }
     return bRet;
 }

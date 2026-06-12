@@ -3,12 +3,14 @@
 
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/Callback.h"
+#include <memory>
 
 //Skia相关类的前置声明
 class SkSurface;
 class SkCanvas;
 struct SkPoint;
 class SkPaint;
+class SkFont;
 enum class SkTextEncoding;
 
 namespace ui 
@@ -44,9 +46,9 @@ public:
 
     virtual void SaveClip(int32_t& nState) override;
     virtual void RestoreClip(int32_t nState) override;
-    virtual void SetClip(const UiRect& rc, bool bIntersect = true) override;
-    virtual void SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
-    virtual void ClearClip() override;
+    virtual int32_t SetClip(const UiRect& rc, bool bIntersect = true) override;
+    virtual int32_t SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
+    virtual void ClearClip(int32_t nState) override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
@@ -191,10 +193,6 @@ private:
     */
     void SetPaintByPen(SkPaint& skPaint, const IPen* pen);
 
-    /** 获取当前字所占的UTF16字符个数(1个或者2个)
-    */
-    size_t GetUTF16CharCount(const DStringW::value_type* srcPtr, size_t textStartIndex) const;
-
     /** 设置颜色渐变的绘制属性
     */
     void InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
@@ -219,11 +217,11 @@ private:
 
     /** 绘制属性
     */
-    SkPaint* m_pSkPaint;
+    std::unique_ptr<SkPaint> m_pSkPaint;
 
     /** 视图的原点坐标
     */
-    SkPoint* m_pSkPointOrg;
+    std::unique_ptr<SkPoint> m_pSkPointOrg;
 
     /** DPI转换辅助接口
     */

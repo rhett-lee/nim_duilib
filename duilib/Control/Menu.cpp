@@ -3,6 +3,7 @@
 #include "duilib/Control/MenuBar.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
 
 namespace ui {
@@ -21,6 +22,9 @@ public:
     explicit SubMenu(Window* pWindow):
         ListBoxItem(pWindow)
     {
+        //默认宽度和高度均设置为auto类型
+        SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+        SetFixedWidth(UiFixedInt::MakeAuto(), false, false);
     }
 };
 
@@ -74,7 +78,7 @@ Menu::Menu(Window* pParentWindow, Control* pRelatedControl, MenuBar* pMenuBar):
     m_pOwner(nullptr),
     m_pListBox(nullptr)
 {
-    m_skinFolder = DString(_T("public/menu/"));
+    m_skinFolder = DString(DUILIB_PUBLIC_RES_DIR) + DString(_T("/menu/"));
     m_submenuXml = DString(_T("submenu.xml"));
     m_submenuNodeName = DString(_T("submenu"));
 }
@@ -312,7 +316,7 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
                 for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
                     MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
                     if ((pItem != nullptr) && pItem->IsVisible() && pItem->IsEnabled()) {
-                        if (pItem->GetState() == ControlStateType::kControlStateHot) {
+                        if (pItem->GetState() == ControlStateType::kControlStateHovered) {
                             pLayoutListBox->SelectItem(nIndex, false, false);
                             bFoundItem = true;
                             break;
@@ -320,7 +324,7 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
                     }
                 }
                 if (!bFoundItem) {
-                    //如果未找到Hot状态的菜单项
+                    //如果未找到Hovered状态的菜单项
                     if (vkCode == kVK_DOWN) {
                         //选中第一个
                         for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
@@ -664,7 +668,7 @@ void Menu::PostInitWindow()
 
     //菜单显示后，让关联控件处于Push状态(异步)
     if (m_pRelatedControl != nullptr) {
-        m_pRelatedControl->SetState(kControlStatePushed);
+        m_pRelatedControl->SetState(kControlStatePressed);
     }
 
     //需要在最后才调用基类的实现函数
@@ -741,8 +745,8 @@ void Menu::OnCloseWindow()
         m_pRelatedControl->ScreenToClient(pt);
         pt.Offset(m_pRelatedControl->GetScrollOffsetInScrollBox());
         if (m_pRelatedControl->GetRect().ContainsPt(pt)) {
-            if (m_pRelatedControl->GetState() != ui::kControlStateHot) {
-                m_pRelatedControl->SetState(ui::kControlStateHot);
+            if (m_pRelatedControl->GetState() != ui::kControlStateHovered) {
+                m_pRelatedControl->SetState(ui::kControlStateHovered);
             }            
         }
         else {
@@ -1141,7 +1145,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
     bool ret = BaseClass::MouseEnter(msg);
-    if (!weakFlag.expired() && IsHotState() && !msg.IsSenderExpired()) {
+    if (!weakFlag.expired() && IsHoveredState() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()) {
             ContextMenuParam param;
@@ -1191,8 +1195,8 @@ bool MenuItem::CheckSubMenuItem()
 {
     bool hasSubMenu = false;
     for (auto item : m_items) {
-        MenuItem* subMenuItem = dynamic_cast<MenuItem*>(item);
-        if (subMenuItem != nullptr) {
+        if ((dynamic_cast<MenuItem*>(item) != nullptr) ||
+            (dynamic_cast<SubMenu*>(item) != nullptr)) {
             hasSubMenu = true;
             break;
         }
@@ -1235,8 +1239,22 @@ void MenuItem::CreateMenuWnd()
         FilePath xmlPath = pParentWindow->GetXmlPath();
         FilePath subXmlFile = FilePath(pParentWindow->m_submenuXml.c_str());
         //约定：子菜单的XML与父菜单的XML文件，在相同的目录中
+        bool bSubMenuXmlChecked = false;
         if (!xmlPath.IsEmpty()) {
-            subXmlFile = FilePathUtil::JoinFilePath(xmlPath, subXmlFile);
+            if (GlobalManager::Instance().Theme().IsResFileExists(FilePathUtil::JoinFilePath(xmlPath, subXmlFile), FilePath(skinFolder))) {
+                subXmlFile = FilePathUtil::JoinFilePath(xmlPath, subXmlFile);
+                bSubMenuXmlChecked = true;
+            }
+        }
+        if (!bSubMenuXmlChecked) {
+            if (!GlobalManager::Instance().Theme().IsResFileExists(subXmlFile, FilePath(skinFolder))) {
+                //在公共资源目录的public/menu目录中查找submenu.xml文件
+                const FilePath publicMenuPath(DString(DUILIB_PUBLIC_RES_DIR) + _T("/menu")); //"public/menu"
+                if (GlobalManager::Instance().Theme().IsResFileExists(FilePathUtil::JoinFilePath(publicMenuPath, subXmlFile), FilePath())) {
+                    subXmlFile = FilePathUtil::JoinFilePath(publicMenuPath, subXmlFile);
+                    bSubMenuXmlChecked = true;
+                }
+            }
         }
         m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
 
@@ -1277,6 +1295,28 @@ void MenuItem::Activate(const EventArgs* pMsg)
         }
         pMenu->OnMenuItemActivated(menuName, 0, itemName, nItemIndex);
     }
+}
+
+UiEstSize MenuItem::EstimateSize(UiSize szAvailable)
+{
+    //代码与Box::EstimateSize函数一致，但将m_items里面的SubMenu过滤掉
+    bool bRemoved = false;
+    std::vector<Control*> items = m_items;
+    auto iter = m_items.begin();
+    while (iter != m_items.end()) {
+        if (dynamic_cast<SubMenu*>(*iter) != nullptr) {
+            iter = m_items.erase(iter);
+            bRemoved = true;
+        }
+        else {
+            ++iter;
+        }
+    }
+    UiEstSize estSize = BaseClass::EstimateSize(szAvailable);
+    if (bRemoved) {
+        m_items.swap(items);
+    }
+    return estSize;
 }
 
 } // namespace ui

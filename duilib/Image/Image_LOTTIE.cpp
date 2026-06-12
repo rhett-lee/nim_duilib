@@ -8,6 +8,7 @@
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkFontMgr.h"
+#include <climits>
 #include "duilib/RenderSkia/SkiaHeaderEnd.h"
 
 namespace ui
@@ -170,19 +171,31 @@ bool Image_LOTTIE::LoadImageFile(std::vector<uint8_t>& fileData,
         m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
         m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
     }
-    m_impl->m_nFrameCount = static_cast<int32_t>(m_impl->m_pSkAnimation->duration() * m_impl->m_pSkAnimation->fps() + 0.5);
+    //安全计算帧数（避免int32_t溢出与符号问题）
+    double duration = m_impl->m_pSkAnimation->duration();
+    double fps = m_impl->m_pSkAnimation->fps();
+    double frameCountDouble = duration * fps + 0.5;
+    if ((frameCountDouble <= 0.0) || (frameCountDouble > (double)INT32_MAX)) {
+        //帧数非法或溢出
+        m_impl->m_fileData.swap(fileData);
+        return false;
+    }
+    m_impl->m_nFrameCount = static_cast<int32_t>(frameCountDouble);
 
     if (bAssertEnabled) {
         ASSERT(m_impl->m_nWidth > 0);
         ASSERT(m_impl->m_nHeight > 0);
         ASSERT(m_impl->m_nFrameCount > 0);
     }
-    if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
+    if ((m_impl->m_nFrameCount <= 0) || (m_impl->m_nWidth == 0) || (m_impl->m_nHeight == 0)) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);
         return false;
     }
-    m_impl->m_nFrameDelayMs = int32_t(m_impl->m_pSkAnimation->duration() * 1000) / m_impl->m_nFrameCount;
+    //安全计算单帧延迟（避免duration * 1000溢出）
+    double delayTotalMs = duration * 1000.0;
+    int32_t nDelayMs = (delayTotalMs > (double)INT32_MAX) ? INT32_MAX : (int32_t)delayTotalMs;
+    m_impl->m_nFrameDelayMs = nDelayMs / m_impl->m_nFrameCount;
     if (m_impl->m_nFrameDelayMs < IMAGE_ANIMATION_DELAY_MS_MIN) {
         m_impl->m_nFrameDelayMs = IMAGE_ANIMATION_DELAY_MS_MIN;
     }

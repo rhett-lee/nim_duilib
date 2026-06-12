@@ -13,7 +13,7 @@ namespace ui
 class ChildWindowImpl: public WindowBase
 {
 public:
-    ChildWindowImpl(ChildWindowEvents* pChildWindowEvents);
+    explicit ChildWindowImpl(ChildWindowEvents* pChildWindowEvents);
     virtual ~ChildWindowImpl() override;
     ChildWindowImpl(const ChildWindowImpl&) = delete;
     ChildWindowImpl& operator=(const ChildWindowImpl&) = delete;
@@ -472,6 +472,11 @@ protected:
     * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
     virtual void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override;
+
+    /** 处理DWM服务变化的系统通知消息(WM_DWMCOMPOSITIONCHANGED)
+    * @param [in] bDwmCompositionEnabled true表示DWM服务开启，false表示DWM服务关闭
+    */
+    virtual void OnDwmCompositionChangedMsg(bool bDwmCompositionEnabled) override;
 
     /** @}*/
 

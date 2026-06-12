@@ -19,8 +19,9 @@ TabBox::TabBox(Window* pWindow, Layout* pLayout):
 
 DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
-void TabBox::SetAttribute(const DString& strName, const DString& strValue)
+void TabBox::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if ((strName == _T("selected_id")) || (strName == _T("selectedid"))) {
         size_t iSel = (size_t)StringUtil::StringToInt32(strValue);
         if (IsInited()) {
@@ -31,7 +32,7 @@ void TabBox::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if ((strName == _T("fade_switch")) || (strName == _T("fadeswitch"))) {
-        if (strValue == _T("true")) {
+        if (StringUtil::IsValueTrue(strValue)) {
             SetFadeSwitch(true);
         }
         else if (strValue == _T("false")) {
@@ -537,6 +538,9 @@ bool TabBox::StartSwitchItemAnimationFadeInOut(Control* pNewItemControl, Control
     //新选中的标签页，最后绘制，避免被旧页面覆盖
     pNewItem->SetPaintOrder(1);
 
+    pOldItem->SetAnimationMode(true);
+    pNewItem->SetAnimationMode(true);
+
     AnimationPlayCallback playCallback = [pTabBox, pNewItem, pOldItem, nMaxValue, nNewItemAlpha, nOldItemAlpha](int32_t nNewValue) {
             if ((pTabBox == nullptr) || (pNewItem == nullptr) || (pOldItem == nullptr)) {
                 return;
@@ -569,6 +573,7 @@ bool TabBox::StartSwitchItemAnimationFadeInOut(Control* pNewItemControl, Control
             if ((pTabBox != nullptr) && (pOldItem != nullptr)) {
                 size_t itemIndex = pTabBox->GetItemIndex(pOldItem.get());
                 if (itemIndex < pTabBox->GetItemCount()) {
+                    pOldItem->SetAnimationMode(false);
                     pOldItem->SetRenderOffsetX(0);
                     pOldItem->SetRenderOffsetY(0);
                     pOldItem->SetAlpha(nOldItemAlpha);
@@ -580,6 +585,7 @@ bool TabBox::StartSwitchItemAnimationFadeInOut(Control* pNewItemControl, Control
             if ((pTabBox != nullptr) && (pNewItem != nullptr)) {
                 size_t itemIndex = pTabBox->GetItemIndex(pNewItem.get());
                 if (itemIndex < pTabBox->GetItemCount()) {
+                    pNewItem->SetAnimationMode(false);
                     pNewItem->SetRenderOffsetX(0);
                     pNewItem->SetRenderOffsetY(0);
                     pNewItem->SetAlpha(nNewItemAlpha);

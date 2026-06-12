@@ -42,6 +42,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
 
     m_hAlign = r.m_hAlign;
     m_vAlign = r.m_vAlign;
+    m_svgReplaceColors = r.m_svgReplaceColors;
 
     m_bFade = r.m_bFade;
     m_bWindowShadowMode = r.m_bWindowShadowMode;
@@ -135,6 +136,7 @@ void ImageAttribute::Init()
 
     m_hAlign.clear();
     m_vAlign.clear();
+    m_svgReplaceColors.clear();
 
     m_bFade = 0xFF;
     m_bWindowShadowMode = false;
@@ -206,7 +208,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         return;
     }
     std::vector<std::pair<DString, DString>> attributeList;
-    AttributeUtil::ParseAttributeList(strImageString, _T('\''), attributeList);
+    AttributeUtil::ParseAttributeList(strImageString, attributeList);
 
     ImageAttribute& imageAttribute = *this;
     imageAttribute.m_bImageDpiScaleEnabled = true;
@@ -310,7 +312,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
                 imageAttribute.m_vAlign = value;
             }
         }
-        else if (name == _T("fade")) {
+        else if ((name == _T("fade")) || (name == _T("alpha"))) {
             //图片的透明度
             imageAttribute.m_bFade = (uint8_t)StringUtil::StringToInt32(value);
         }
@@ -412,6 +414,13 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if (name == _T("adaptive_dest_rect")) {
             //自动适应目标区域（等比例缩放图片）
             imageAttribute.m_bAdaptiveDestRect = (value == _T("true"));
+        }
+        else if (name == _T("svg_replace_colors")) {
+            // SVG格式的颜色替换参数：支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，使用这个功能只要一个svg就够了。
+            // 使用示例: "#B5B5B5|color_gray_light"，表示将"#B5B5B5"替换为"color_gray_light"，"color_gray_light"在global.xml中定义。
+            // 若有多组颜色需要替换，则用分号分割，比如："#B5B5B5|color_gray_light;#B2B2B2|color_gray_dark"。
+            // 该功能当目标不是颜色值时，按字符串替换。
+            imageAttribute.m_svgReplaceColors = value;
         }
         else if (name == _T("assert")) {
             //图片加载失败时，代码断言的设置（debug编译时启用，用于排查图片加载过程中的错误，尤其时图片数据错误导致加载失败的问题）

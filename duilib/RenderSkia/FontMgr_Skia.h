@@ -65,6 +65,16 @@ public:
     */
     virtual void ClearFontCache() override;
 
+    /** 设置字体回退管理器
+    * @param [in] 字体回退管理器(生命周期由设置者来管理)
+    */
+    virtual void SetFallbackFontMgr(IFallbackFontMgr* pFallbackFontMgr) override;
+
+    /** 获取字体回退管理器
+    * @return 返回字体回退管理器，外部不应存储该指针
+    */
+    virtual IFallbackFontMgr* GetFallbackFontMgr() const override;
+
 public:
     /** 创建Skia字体
     * @param [in] fontInfo 字体属性

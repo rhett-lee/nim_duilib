@@ -205,12 +205,12 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
     return rect;
 }
 
-void RichEditData::CalcCacheTextRects(UiRect& rcTextRect)
+void RichEditData::CalcCacheTextRects(UiRect& rcTextRect) const
 {
     rcTextRect.Clear();
     UiRectF rowRects;
     bool bFirst = true;
-    for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+    for (const RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
         ASSERT(pLineInfo != nullptr);
         const size_t nRowCount = pLineInfo->m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
@@ -341,16 +341,17 @@ void RichEditData::CheckCalcTextRects()
 {
     SetTextDrawRect(m_pRichText->GetRichTextDrawRect(), true);
     if (m_bCacheDirty) {
-        CalcTextRects();
+        CalcTextRectsFull();
         SetCacheDirty(false);
         m_pRichText->OnTextRectsChanged();
     }
 }
 
-void RichEditData::CalcTextRects()
+void RichEditData::CalcTextRectsFull()
 {
-    PerformanceStat statPerformance(_T("RichEditData::CalcTextRects"));
+    PerformanceUtil statPerformance(_T("RichEditData::CalcTextRectsFull"));
     //清空所有行的缓存数据
+    RemoveEmptyLine(m_lineTextInfo);
     for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
         ASSERT(pLineInfo != nullptr);
         pLineInfo->m_rowInfo.clear();
@@ -436,14 +437,117 @@ void RichEditData::CalcTextRects()
     }
 
     UpdateRowTextOffsetX(m_lineTextInfo, GetHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
+
+    //检查并按需插入空行
+    AppendEmptyLine(m_lineTextInfo);
 }
 
-void RichEditData::CalcTextRects(size_t nStartLine,
-                                 const std::vector<size_t>& modifiedLines,
-                                 const std::vector<size_t>& deletedLines,
-                                 size_t nDeletedRows)
+void RichEditData::AppendEmptyLine(RichTextLineInfoList& lineTextInfo) const
 {
-    PerformanceStat statPerformance(_T("RichEditData::CalcTextRects2"));
+    if (IsSingleLineMode() || m_pRichText->IsTextPasswordMode() || m_pRichText->IsTextReadOnlyMode() || m_pRichText->IsTextDisabledMode()) {
+        //只有多行编辑模式下，才插入空行
+        return;
+    }
+    if (lineTextInfo.size() >= 1) {
+        RichTextLineInfoPtr pLastLine = lineTextInfo[lineTextInfo.size() - 1];
+        if ((pLastLine != nullptr) && (pLastLine->m_nLineTextLen > 0) && (pLastLine->m_lineText.data()[pLastLine->m_nLineTextLen - 1] == _T('\n'))) {
+            //最后一行的最后一个字符是换行符，需要插入空行
+            RichTextLineInfoPtr spNewTextLineInfo(new RichTextLineInfo);
+            spNewTextLineInfo->m_nLineTextLen = 0;
+            lineTextInfo.push_back(spNewTextLineInfo);
+        }
+    }
+    if (lineTextInfo.size() >= 2) {
+        RichTextLineInfoPtr pLastLine = lineTextInfo[lineTextInfo.size() - 1];
+        RichTextLineInfoPtr pPreLine = lineTextInfo[lineTextInfo.size() - 2];
+        if ((pLastLine != nullptr) && (pLastLine->m_nLineTextLen == 0) &&
+            (pPreLine != nullptr) && !pPreLine->m_rowInfo.empty()) {
+            pLastLine->m_rowInfo.clear();
+            pLastLine->m_rowInfo.push_back(RichTextRowInfoPtr(new RichTextRowInfo));
+            pLastLine->m_rowInfo[0]->m_xOffset = pPreLine->m_rowInfo[0]->m_xOffset;
+            pLastLine->m_rowInfo[0]->m_rowRect = pPreLine->m_rowInfo[0]->m_rowRect;
+            pLastLine->m_rowInfo[0]->m_rowRect.Offset(0, pPreLine->m_rowInfo[0]->m_rowRect.Height()); //高度与上一行相同
+            pLastLine->m_rowInfo[0]->m_rowRect.right = pLastLine->m_rowInfo[0]->m_rowRect.left + m_pRichText->GetTextCaretWidth(); //宽度与光标宽度相同
+            pLastLine->m_rowInfo[0]->m_charInfo.push_back(RichTextCharInfo());
+
+            //按对齐方式，重新计算m_xOffset的值和left值
+            HorAlignType hAlignType = m_hAlignType;
+            const int32_t nDrawRectWidth = m_rcTextDrawRect.Width();//矩形总宽度
+            RichTextRowInfo& rowInfo = *pLastLine->m_rowInfo[0];
+            UiRectF& rowRect = rowInfo.m_rowRect;
+            if (rowInfo.m_xOffset > 0) {
+                //恢复
+                rowRect.Offset(-(float)rowInfo.m_xOffset, 0.0f);
+                rowInfo.m_xOffset = 0;
+            }
+            if (rowRect.Width() < nDrawRectWidth) {
+                if (hAlignType == HorAlignType::kAlignCenter) {
+                    //居中对齐
+                    float diff = nDrawRectWidth - rowRect.Width();
+                    rowInfo.m_xOffset = (int32_t)(diff / 2);
+                    if (rowInfo.m_xOffset > 0) {
+                        rowRect.Offset((float)rowInfo.m_xOffset, 0.0f);
+                    }
+                }
+                else if (hAlignType == HorAlignType::kAlignRight) {
+                    //靠右对齐
+                    float diff = nDrawRectWidth - rowRect.Width();
+                    rowInfo.m_xOffset = (int32_t)diff;
+                    if (rowInfo.m_xOffset > 0) {
+                        rowRect.Offset((float)rowInfo.m_xOffset, 0.0f);
+                    }
+                }
+            }
+            ASSERT(rowInfo.m_xOffset >= 0);
+        }
+    }
+}
+
+void RichEditData::RemoveEmptyLine(RichTextLineInfoList& lineTextInfo) const
+{
+    if (lineTextInfo.size() >= 2) {
+        RichTextLineInfoPtr pPreLine = lineTextInfo[lineTextInfo.size() - 2];
+        if ((pPreLine != nullptr) && (pPreLine->m_nLineTextLen > 0) && (pPreLine->m_lineText.data()[pPreLine->m_nLineTextLen - 1] == _T('\n'))) {
+            //最后一行的最后一个字符是换行符，需要删除最后的空行
+            RichTextLineInfoPtr pLastLine = lineTextInfo[lineTextInfo.size() - 1];
+            if ((pLastLine != nullptr) && (pLastLine->m_nLineTextLen == 0)) {
+                lineTextInfo.pop_back();
+            }
+        }
+    }
+}
+
+void RichEditData::CheckLineTextData(const RichTextLineInfoList& lineTextInfo, size_t nIndex) const
+{
+    ASSERT(nIndex < lineTextInfo.size());
+    if (nIndex >= lineTextInfo.size()) {
+        return;
+    }
+    const RichTextLineInfoPtr& spLineInfo = lineTextInfo[nIndex];
+    ASSERT(spLineInfo != nullptr);
+    if (spLineInfo == nullptr) {
+        return;
+    }
+    ASSERT((spLineInfo->m_nLineTextLen > 0) || (nIndex == (lineTextInfo.size() - 1))); //仅最后一行允许为空
+    if ((spLineInfo->m_nLineTextLen == 0) && (nIndex == (lineTextInfo.size() - 1))) {
+        ASSERT(lineTextInfo.size() > 1);
+        if (lineTextInfo.size() > 1) {
+            const RichTextLineInfoPtr& spPreLineInfo = lineTextInfo[nIndex - 1];
+            ASSERT(spPreLineInfo != nullptr);
+            if (spPreLineInfo != nullptr) {
+                ASSERT((spPreLineInfo->m_nLineTextLen > 0));
+                ASSERT((spPreLineInfo->m_lineText.data()[spPreLineInfo->m_nLineTextLen - 1] == _T('\n')));
+            }            
+        }
+    }
+}
+
+void RichEditData::CalcTextRectsPart(size_t nStartLine,
+                                     const std::vector<size_t>& modifiedLines,
+                                     const std::vector<size_t>& deletedLines,
+                                     size_t nDeletedRows)
+{
+    PerformanceUtil statPerformance(_T("RichEditData::CalcTextRectsPart"));
     ASSERT(!m_pRichText->IsTextPasswordMode());//密码模式下，不应使用该函数
     if (nStartLine != (size_t)-1) {
         ASSERT(!modifiedLines.empty() || !deletedLines.empty());
@@ -614,8 +718,11 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     if (nStartLine != (size_t)-1) {
         std::vector<std::wstring_view> textView2;
         RichTextLineInfoList lineTextInfoList;
-        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+        for (const RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
             ASSERT(pLineInfo != nullptr);
+            if (pLineInfo->m_nLineTextLen == 0) {
+                continue;
+            }
             RichTextLineInfoPtr spLineInfo(new RichTextLineInfo);
             spLineInfo->m_nLineTextLen = pLineInfo->m_nLineTextLen;
             spLineInfo->m_lineText = pLineInfo->m_lineText;
@@ -672,11 +779,14 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
 bool RichEditData::SetText(const DStringW& text)
 {
-    PerformanceStat statPerformance(_T("RichEditData::SetText"));
+    PerformanceUtil statPerformance(_T("RichEditData::SetText"));
     if (text.empty()) {
         Clear();
         return true;
     }
+
+    //清空追加的空行
+    RemoveEmptyLine(m_lineTextInfo);
 
     DStringW textLimit;
     DStringW validText;
@@ -739,17 +849,21 @@ bool RichEditData::SetText(const DStringW& text)
                 lineText.reset(new RichTextLineInfo);
                 lineText->m_lineText = lineTextView; //文本数据复制一份，保存起来
                 lineText->m_nLineTextLen = (uint32_t)lineTextView.size();
-                ASSERT(lineText->m_nLineTextLen > 0);
+                CheckLineTextData(lineTextInfo, nIndex);
             }
         }
         m_lineTextInfo.swap(lineTextInfo);
         SetCacheDirty(true);
         ClearUndoList();
     }
+    else if (!m_bCacheDirty){
+        //检查并追加空行
+        AppendEmptyLine(m_lineTextInfo);
+    }
     return bTextChanged;
 }
 
-void RichEditData::SplitLines(const std::wstring_view& textView, std::vector<std::wstring_view>& lineTextViewList)
+void RichEditData::SplitLines(const std::wstring_view& textView, std::vector<std::wstring_view>& lineTextViewList) const
 {
     if (textView.empty()) {
         return;
@@ -819,7 +933,7 @@ void RichEditData::GetTextView(std::vector<std::wstring_view>& textView) const
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         if (lineText.m_nLineTextLen > 0) {
             textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
         }
@@ -832,7 +946,7 @@ size_t RichEditData::GetTextLength() const
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
     }
     return nTextLen;
@@ -896,7 +1010,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)) {
             nStartLine = nIndex;
@@ -939,7 +1053,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
 
 bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo, bool bClearRedo)
 {
-    PerformanceStat statPerformance(_T("RichEditData::ReplaceText"));
+    PerformanceUtil statPerformance(_T("RichEditData::ReplaceText"));
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
@@ -958,6 +1072,9 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     //检查并计算字符位置
     CheckCalcTextRects();
+
+    //清空追加的空行
+    RemoveEmptyLine(m_lineTextInfo);
 
     constexpr const size_t nNotFound = (size_t)-1;
     size_t nStartLine = nNotFound;              //起始行
@@ -1065,12 +1182,14 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         //修改的行，需要重新计算(增量计算)
         if ((m_lineTextInfo.size() <= 1) || m_pRichText->IsTextPasswordMode()) {
             //单行模式、密码模式、文本为空时，完整绘制
-            CalcTextRects();
+            CalcTextRectsFull();
         }
         else {
             //多行模式时，使用增量绘制
-            CalcTextRects(nStartLine, modifiedLines, deletedLines, nDeletedRows);
-        }        
+            RemoveEmptyLine(m_lineTextInfo);
+            CalcTextRectsPart(nStartLine, modifiedLines, deletedLines, nDeletedRows);
+            AppendEmptyLine(m_lineTextInfo);
+        }
     }
     if (bCanUndo) {
         //生成撤销列表
@@ -1191,7 +1310,7 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
     for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
         ASSERT(lineTextInfoList[nLineIndex] != nullptr);
         const RichTextLineInfo& lineTextInfo = *lineTextInfoList[nLineIndex];
-        ASSERT(lineTextInfo.m_nLineTextLen > 0);
+        CheckLineTextData(lineTextInfoList, nLineIndex);
         nTextLen += lineTextInfo.m_nLineTextLen;
         if ((size_t)nCharIndex < nTextLen) {
             const size_t nStartBaseLen = nTextLen - lineTextInfo.m_nLineTextLen;
@@ -1219,12 +1338,19 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
         else if (((size_t)nCharIndex == nTextLen) && (nLineIndex == (nLineCount - 1))) {
             //最后一行的最后一个字符之后的位置
             const size_t nRowCount = lineTextInfo.m_rowInfo.size();
-            ASSERT(nRowCount != 0);
             if (nRowCount > 0) {
                 const RichTextRowInfo& rowInfo = *lineTextInfo.m_rowInfo[nRowCount - 1];                
                 nStartCharRowOffset = rowInfo.m_charInfo.size();
                 nLineNumber = nLineIndex;
                 nLineRowIndex = nRowCount - 1;
+                bFound = true;
+                break;
+            }
+            else {
+                //空行的情况
+                nStartCharRowOffset = 0;
+                nLineNumber = nLineIndex;
+                nLineRowIndex = 0;
                 bFound = true;
                 break;
             }
@@ -1268,7 +1394,9 @@ RichTextRowInfoPtr RichEditData::GetCharRowInfo(int32_t nCharIndex, size_t& nSta
     if (GetCharLineRowIndex(nCharIndex, nLineNumber, nLineRowIndex, nStartCharRowOffset)) {
         if (nLineNumber < m_lineTextInfo.size()) {
             const RichTextLineInfo& lineTextInfo = *m_lineTextInfo[nLineNumber];
-            spRowInfo = lineTextInfo.m_rowInfo[nLineRowIndex];
+            if (nLineRowIndex < lineTextInfo.m_rowInfo.size()) {
+                spRowInfo = lineTextInfo.m_rowInfo[nLineRowIndex];
+            }
         }
     }
     return spRowInfo;
@@ -1297,7 +1425,7 @@ RichTextRowInfoPtr RichEditData::GetLastRowInfo() const
     const size_t nLineCount = lineTextInfoList.size();
     if (nLineCount != 0) {
         const RichTextLineInfo& lineTextInfo = *lineTextInfoList[nLineCount - 1];
-        ASSERT(!lineTextInfo.m_rowInfo.empty());
+        //ASSERT(!lineTextInfo.m_rowInfo.empty());
         const size_t nRowCount = lineTextInfo.m_rowInfo.size();
         if (nRowCount != 0) {
             spRowInfo = lineTextInfo.m_rowInfo[nRowCount - 1];
@@ -1316,7 +1444,7 @@ size_t RichEditData::GetRowInfoStartIndex(const RichTextRowInfoPtr& spRowInfo) c
     for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
         ASSERT(lineTextInfoList[nLineIndex] != nullptr);
         const RichTextLineInfo& lineTextInfo = *lineTextInfoList[nLineIndex];
-        ASSERT(lineTextInfo.m_nLineTextLen > 0);
+        CheckLineTextData(lineTextInfoList, nLineIndex);
 
         size_t nRowTextLen = 0;
         const size_t nRowCount = lineTextInfo.m_rowInfo.size();
@@ -1359,7 +1487,7 @@ void RichEditData::UpdateRowInfo(size_t nDrawStartLineIndex)
             continue;
         }
         const size_t nLineRowCount = lineTextInfoList[nLineIndex]->m_rowInfo.size();
-        ASSERT(nLineRowCount > 0);
+        ASSERT((nLineRowCount > 0) || (nLineIndex == (nLineCount - 1)));
         for (size_t nLineRowIndex = 0; nLineRowIndex < nLineRowCount; ++nLineRowIndex) {
             ASSERT(lineTextInfoList[nLineIndex]->m_rowInfo[nLineRowIndex] != nullptr);
             if (lineTextInfoList[nLineIndex]->m_rowInfo[nLineRowIndex] == nullptr) {
@@ -1697,8 +1825,10 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
     return nCharPosIndex;
 }
 
-#define SkUTF16_IsHighSurrogate(c)  (((c) & 0xFC00) == 0xD800)
-#define SkUTF16_IsLowSurrogate(c)   (((c) & 0xFC00) == 0xDC00)
+#if defined(WCHAR_T_IS_UTF16)
+    #define SkUTF16_IsHighSurrogate(c)  (((c) & 0xFC00) == 0xD800)
+    #define SkUTF16_IsLowSurrogate(c)   (((c) & 0xFC00) == 0xDC00)
+#endif
 
 int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
 {
@@ -1721,7 +1851,7 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
@@ -1730,6 +1860,7 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
             //在本行中寻找
             size_t i = nStartCharLineOffset + 1;
             while ( i < lineText.m_nLineTextLen) {
+#if defined(WCHAR_T_IS_UTF16)
                 const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
@@ -1743,6 +1874,10 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
                     nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
                     break;
                 }
+#else
+                nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
+                break;
+#endif
             }
             size_t nNewOffset = (size_t)nNewCharIndex - nStartCharBaseLen;
             if ((nNewOffset == (lineText.m_nLineTextLen - 1)) && (lineText.m_lineText.data()[nNewOffset] == L'\n')) {
@@ -1787,7 +1922,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
@@ -1796,6 +1931,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
             //在本行中寻找
             int32_t i = (int32_t)nStartCharLineOffset - 1;
             while (i >= 0) {
+#if defined(WCHAR_T_IS_UTF16)
                 const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
@@ -1809,11 +1945,16 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
                     nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
                     break;
                 }
+#else
+                nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
+                break;
+#endif
             }
             if ((nNewCharIndex == nCharIndex) && (i <= 0) && (nIndex >= 1)) {
                 //已经在行首，跳到前一行的最后一个字符
                 const RichTextLineInfo& prevLineText = *m_lineTextInfo[nIndex - 1];
                 ASSERT(prevLineText.m_nLineTextLen > 0);
+                CheckLineTextData(m_lineTextInfo, nIndex - 1);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
                     nNewCharIndex = nCharIndex - 2; //跳过最后一个'\n'字符
@@ -1833,6 +1974,40 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
             }
             break;
         }
+        else if ((nCharIndex == (int32_t)nTextLen) && (lineText.m_nLineTextLen > 0)) {
+            //定位到所在的行
+            bool bLastChar = false;
+            if ((nIndex == (nLineCount - 2)) && (m_lineTextInfo[nLineCount - 1]->m_nLineTextLen == 0)) {
+                //最后一行是空行的情况
+                bLastChar = true;
+            }
+            else if (nIndex == (nLineCount - 1)) {
+                //最后一行
+                bLastChar = true;
+            }
+            if (bLastChar) {
+                //定位到最后一个字符
+                if (lineText.m_lineText.data()[lineText.m_nLineTextLen - 1] == _T('\n')) {
+                    if (lineText.m_nLineTextLen >= 2) {
+                        if (lineText.m_lineText.data()[lineText.m_nLineTextLen - 2] == _T('\r')) {
+                            nNewCharIndex = nCharIndex - 2;
+                        }
+                        else {
+                            nNewCharIndex = nCharIndex - 1;
+                        }
+                    }
+                    else {
+                        nNewCharIndex = nCharIndex - 1;
+                    }
+                }
+                else {
+                    nNewCharIndex = nCharIndex - 1;
+                }
+                if (nNewCharIndex != nCharIndex) {
+                    break;
+                }
+            }
+        }
     }
     if ((nNewCharIndex == nCharIndex) && (nNewCharIndex > 0)) {
         nNewCharIndex -= 1;
@@ -1848,8 +2023,8 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
 
 bool RichEditData::IsSeperatorChar(DStringW::value_type ch) const
 {
-    static const DStringW sep = L"`~!@#$%^&*()-=+\t[]{}|\\;:'\"\r\n,<.>/?·！￥…、，。《》？“”；：‘’（）【】";
-    return sep.find(ch) != DStringW::npos;
+    // Unicode 标准：标点 + 空白 + 控制符
+    return iswpunct(ch) || iswspace(ch) || iswcntrl(ch);
 }
 
 int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
@@ -1873,7 +2048,7 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
@@ -1904,6 +2079,7 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
                     nNewCharIndex = (int32_t)(nStartCharBaseLen + i);
                     break;
                 }
+#if defined(WCHAR_T_IS_UTF16)
                 const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
@@ -1912,6 +2088,9 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
                 else {
                     i += 1;//跳过该字符
                 }
+#else
+                i += 1;//跳过该字符
+#endif
             }
             size_t nNewOffset = (size_t)nNewCharIndex - nStartCharBaseLen;
             if ((nNewOffset == (lineText.m_nLineTextLen - 1)) && (lineText.m_lineText.data()[nNewOffset] == L'\n')) {
@@ -1956,7 +2135,7 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
@@ -1972,12 +2151,14 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
                     i -= 1;//跳过该字符
                 }
 
+#if defined(WCHAR_T_IS_UTF16)
                 if (i > 0) {
                     const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
                     if (SkUTF16_IsLowSurrogate(*src)) {
                         i -= 1;//跳过低代理字符
                     }
                 }
+#endif
 
                 if (i <= 0) {
                     //已经到达行首
@@ -2002,7 +2183,7 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
             if ((nNewCharIndex == nCharIndex) && (i <= 0) && (nIndex >= 1)) {
                 //已经在行首，跳到前一行的最后一个字符
                 const RichTextLineInfo& prevLineText = *m_lineTextInfo[nIndex - 1];
-                ASSERT(prevLineText.m_nLineTextLen > 0);
+                CheckLineTextData(m_lineTextInfo, nIndex - 1);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
                     nNewCharIndex = nCharIndex - 2; //跳过最后一个'\n'字符
@@ -2057,7 +2238,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
@@ -2111,6 +2292,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                     nWordEndIndex = (int32_t)(nStartCharBaseLen + i);
                     break;
                 }
+#if defined(WCHAR_T_IS_UTF16)
                 const uint16_t* src = (const uint16_t*)(lineText.m_lineText.c_str() + i);
                 if (SkUTF16_IsHighSurrogate(*src)) {
                     ASSERT(SkUTF16_IsLowSurrogate(*(src + 1)));
@@ -2119,6 +2301,9 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                 else {
                     i += 1;//跳过该字符
                 }
+#else
+                i += 1;//跳过该字符
+#endif
             }
             if (nWordEndIndex == -1) {
                 nWordEndIndex = (int32_t)lineText.m_nLineTextLen;
@@ -2164,7 +2349,7 @@ int32_t RichEditData::GetRowStartCharIndex(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             //在本行中寻找
@@ -2202,7 +2387,7 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             //在本行中寻找
@@ -2273,7 +2458,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
     for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
         ASSERT(lineTextInfoList[nLineIndex] != nullptr);
         const RichTextLineInfo& lineTextInfo = *lineTextInfoList[nLineIndex];
-        ASSERT(lineTextInfo.m_nLineTextLen > 0);
+        CheckLineTextData(lineTextInfoList, nLineIndex);
         nRowTextLen = 0;
         const size_t nRowCount = lineTextInfo.m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
@@ -2589,7 +2774,7 @@ int32_t RichEditData::GetRowCount()
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nRowIndex += (int32_t)lineText.m_rowInfo.size();
     }
     return nRowIndex;
@@ -2606,7 +2791,7 @@ DStringW RichEditData::GetRowText(int32_t nRowIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         const size_t nRowCount = lineText.m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
             if (nRows == nRowIndex) {
@@ -2645,7 +2830,7 @@ int32_t RichEditData::RowIndex(int32_t nRowIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         const size_t nRowCount = lineText.m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
             if (nRows == nRowIndex) {
@@ -2677,7 +2862,7 @@ int32_t RichEditData::RowLength(int32_t nRowIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         const size_t nRowCount = lineText.m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
             if (nRows == nRowIndex) {
@@ -2713,7 +2898,7 @@ int32_t RichEditData::RowFromChar(int32_t nCharIndex)
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
+        CheckLineTextData(m_lineTextInfo, nIndex);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
             //定位到行

@@ -20,8 +20,9 @@ ListCtrlHeader::~ListCtrlHeader()
 
 DString ListCtrlHeader::GetType() const { return _T("ListCtrlHeader"); }
 
-void ListCtrlHeader::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrlHeader::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("icon_spacing")) {
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
@@ -117,6 +118,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         pHeaderItem->SetClass(m_pListCtrl->GetHeaderItemClass());
     }
     pHeaderItem->SetText(columnInfo.text);
+    pHeaderItem->SetTextId(columnInfo.textId);
 
     //保存关联的Split控件接口
     pHeaderItem->SetSplitBox(pHeaderSplit);

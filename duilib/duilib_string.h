@@ -2,7 +2,7 @@
 #define DUILIB_STRING_H_
 
 #ifndef DUILIB_CONFIG_H_
-    #error "需要先包含duilib_config.h头文件"
+    #error "Please include duilib_config.h first"
 #endif
 
 //字符串类
@@ -47,7 +47,7 @@
         #define WCHAR_T_IS_UTF32
     #endif
 #else
-    #error "不支持的平台，请添加对您的编译器的支持"
+    #error "Unkown compiler"
 #endif
 
 typedef char DUTF8Char;

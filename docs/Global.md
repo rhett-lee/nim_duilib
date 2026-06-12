@@ -27,7 +27,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <Button text="Hello Button" font="system_12"/>
 ```
-在界面显示时，duilib界面库会以字体ID为"system_12"标识的字体属性（字体名称：系统默认字体，字体大小：12，粗体：是，斜体：是）来绘制这个按钮的文字。
+在界面显示时，duilib界面库会以字体ID为"system_12"标识的字体属性（字体名称：系统默认字体，字体大小：12，粗体：是，下划线：是）来绘制这个按钮的文字。
 
 ### Font 所有可用属性
 
@@ -80,32 +80,36 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```
 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文，所以不要用这个字体来显示中文。    
 
-## 4. 颜色（TextColor）
+## 4. 颜色（ThemeColor）
 
 你可以添加常用的颜色到 `global.xml` 中，如下所示：
 
 ```xml
 <!-- name 是颜色的名称，value 是颜色的具体数值 -->
-<TextColor name="default_font_color" value="#ff333333"/>
+<ThemeColor name="text_default" value="#FFE5E7EB" type="text" category="text_color" fixed="false" comment_cn="主要文本/浅灰白" comment_en="Primary text/light gray white"/>
 ```
 
 这样当你需要使用这个颜色给一个 Label 设置文字颜色时，可以这样写：
 
 ```xml
-<Label text="Hello Label" normal_text_color="default_font_color"/>
+<Label text="Hello Label" normal_text_color="text_default"/>
 ```
 
-### TextColor的所有可用属性
+### ThemeColor的所有可用属性
+| 属性名称| 参数类型 | 用途 |
+| :---  | :---   | :---     |
+| name  | string | 颜色名称 |
+| value | string | 颜色取值 |
+| type  | string | 颜色按功能划分的类型，比如: "`common`"代表通用颜色，"`text`"代表文本颜色，"`window`"代表窗口背景颜色，"`button`"代表按钮颜色，"`menu_bar`"代表菜单栏颜色，"`list_ctrl`"代表列表使用的颜色，还有其他很多取值，按所属控件划分|
+| category | string | 颜色按类别划分的类型，比如: "`basic_color`"代表基础颜色， "`text_color`"代表文本颜色，"`border_color`"代表边框颜色，"`bg_color`"代表背景颜色，|
+| fixed | bool | 该颜色是否支持强调色，"`true`"代表支持强调色，当使用强调色主题时，该颜色会被替换为强调色；"`false`"代表不支持强调色，当使用强调色时，该颜色保持不变 |
+| comment_cn     | string | 颜色的中文注释 |
+| comment_en     | string | 颜色的英文注释 |
 
-| 属性名称 | 默认值 | 参数类型 | 用途 |
-| :--- | :--- | :--- | :--- |
-| name | | string | 颜色名称 |
-| value | | string | 颜色取值|
-
-一个合法的颜色取值定义如下：
+一个合法的颜色取值（value）定义如下：
 1. 格式如："#FFFFFFFF"形式，以"#"开头，8个16进制字符构成，ARGB格式的颜色值（从左到右：第1、2个字符代表A（透明度），第3、4个字符代表R（红），第5、6个字符代表G（绿），第7、8个字符代表B（蓝）；
 2. 格式如："#FFFFFF"形式，以"#"开头，6个16进制字符构成，RGB格式的颜色值（从左到右：第1、2个字符代表R（红），第3、4个字符代表G（绿），第5、6个字符代表B（蓝）。这种格式的颜色不含透明通道，按照不透明处理；
-3. 直接指定预定义的颜色别名：比如"Blue"表示蓝色，"Aqua"表示浅绿色等，这个颜色别名在[duilib/Core/UiColors.cpp](../duilib/Core/UiColors.cpp)文件中定义，颜色值在[duilib/Core/UiColors.h](../duilib/Core/UiColors.h)文件中定义。这些颜色别名，可用直接使用，不需要在`global.xml`中定义颜色。    
+3. 直接指定预定义的颜色别名：比如"Blue"表示蓝色，"Aqua"表示浅绿色等，这个颜色别名在[duilib/Core/UiColors.cpp](../duilib/Core/UiColors.cpp)文件中定义，颜色值在[duilib/Core/UiColors.h](../duilib/Core/UiColors.h)文件中定义。这些颜色别名，可直接使用，不需要在`global.xml`中定义颜色。    
 举例：以下XML配置都是正确的：
 ```xml
 <Label text="Hello Label" normal_text_color="Aqua"/>
@@ -118,6 +122,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 ```xml
 <Label text="Hello Label" normal_text_color="0x00FFFF"/>
 ```
+但是，如果程序支持设置主题颜色，还是需要使用ThemeColor标签定义的颜色值，这样可以随着主题而改变颜色值。
 
 ## 5. 图片（包括动画图片）
 
@@ -131,7 +136,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | height | | string | 图片高度，可以放大或缩小图像：数值可以是像素或者百分比，比如:<br> height="300"：设置图片高度为300像素<br>height="75%"：设置图片高度为图片原高度的75% <br>如果只设置了高度，未设置宽度，则图片的宽度按高度等比例缩放| 
 | src | | rect | 图片源区域设置，格式为src="left,top,right,bottom"：可以用于仅包含源图片的部分图片内容（比如通过此机制，可以将按钮的各个状态图片整合到一张大图片上，然后通过src指定各个状态的图片资源）<br>src指定的区域，其基准是源图片的矩形范围(0,0,图片宽度,图片高度)<br>如果使用width和height指定了图片的宽度和高度属性，则src的基准是指定尺寸的矩形范围(0,0,width,height)<br>比如：源图片宽100，高100，指定`src="10,5,60,40"`代表取图片以"10,5"为原点，宽度60高度40的图片内容作为图片资源 |
 | corner | | rect | 图片的九宫格绘图属性，使用示例: corner="left,top,right,bottom"，图片示意图：<br> <img src="./Images/nine-patch.png"/> <br>采用九宫格绘制方式绘制图片时，图片共计分为九个区域：<br>四个角（区域：1、3、7、8）的图片绘制时不拉伸 <br>四个边（区域：2、4、6、9）的图片绘制时上下拉伸<br>中间（区域：5）的图片区域默认拉伸绘制，也可以设置xtiled="true"、ytiled="true"属性来选择平铺绘制 <br> corner属性指定的参数，就是设置区域（4、2、6、9）的宽度或者高度 <br>corner指定的区域，其基准是源图片的矩形范围(0,0,图片宽度,图片高度)<br>如果使用width和height指定了图片的宽度和高度属性，则corner的基准是指定尺寸的矩形范围(0,0,width,height)<br>比如：corner="4,2,6,9"，代表区域4的宽度为4像素，区域2的高度为2像素，区域6的宽度为6像素，区域9的高度为9像素 |
-| dest | | rect | 设置图片绘制目标区域，该区域是指相对于所属控(Control::GetRect())左上角的矩形区域<br>比如（假定控件的矩形宽度和高度均是100）：<br>（1）dest="10,20,60,70": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度均是50像素<br>（2）dest="10,20": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度为图片资源的宽度和高度（允许只设置顶点坐标，此时绘制目标矩形区域大小与图片资源大小一致） |
+| dest | | rect | 设置图片绘制目标区域，该区域是指相对于所属控件(Control::GetRect())左上角的矩形区域<br>比如（假定控件的矩形宽度和高度均是100）：<br>（1）dest="10,20,60,70": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度均是50像素<br>（2）dest="10,20": 是指在控件的矩形范围内，图片的显示区域为相对控件左上角坐标(10,20)的位置，图片宽度和高度为图片资源的宽度和高度（允许只设置顶点坐标，此时绘制目标矩形区域大小与图片资源大小一致） |
 | dest_scale |true | bool | 仅当设置了dest属性时有效，控制对dest属性是否按照DPI缩放<br>比如（假定当前屏幕的DPI缩放比为200%）：<br>（1）dest="10,20,60,70" dest_scale="true"：dest区域在绘制时，按DPI缩放后的实际区域为：dest="20,40,120,140" <br>（2）dest="10,20,60,70" dest_scale="false"：dest区域在绘制时，禁止DPI缩放，实际区域仍然为：dest="10,20,60,70" <br> 如果不设置，dest_scale的默认值为true<br>该选项的值一般不需要特殊指定，保持默认即可适配各种DPI的屏幕设置|
 | dpi_scale |true | bool | 该图片是否支持屏幕DPI自适应: <br> （1）dpi_scale="true": 支持DPI自适应，图片的显示尺寸按屏幕DPI缩放比等比例放大 <br>（2）dpi_scale="false": 不支持DPI自适应：图片的显示尺寸保持原图尺寸，不根据DPI调整 <br>如果设置了dpi_scale="false"，当屏幕的DPI变化时，图片的显示尺寸不会随着DPI变化，此时程序在不同DPI下，显示的布局效果会不同<br>该选项除了会影响图片加载后的显示区域大小，同时也会影响图片的width、height、src、corner几个属性值的DPI自适应功能<br>如果不设置dpi_scale选项，默认值为true，该选项一般不需要调整，保持默认值即可做到界面布局能够适应各种屏幕DPI|
 | adaptive_dest_rect | false | bool | 图片大小自动适应目标区域（等比例缩放图片），可使用halign/valign设置图片在目标区域中的对齐方式 <br> 用法：adaptive_dest_rect="true" 或者 adaptive_dest_rect="false"|
@@ -146,7 +151,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，同时设置tiled_margin_x和tiled_margin_y为相同的值 |
 | tiled_margin_x | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为横向平铺的间隔，仅当xtiled为true时有效 |
 | tiled_margin_y | 0 | int | 平铺绘制时，各平铺图片之间的间隔，此值为纵向平铺的间隔，仅当ytiled为true时有效 |
-| tiled_padding |  | UiPadding | 平铺绘制时，在目标区域内的内边距（此内边距结合TiledMargin可用形成网格）， 仅当xtiled为true 或yxtiled为true时有效|
+| tiled_padding |  | UiPadding | 平铺绘制时，在目标区域内的内边距（此内边距结合TiledMargin可形成网格）， 仅当xtiled为true 或yxtiled为true时有效|
 | window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
 | icon_size | 32 | int | 如果是ICO文件，指定加载ICO文件的图片大小 |
 | icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
@@ -155,6 +160,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿），<br> 用法：async_load="true" 或者 async_load="false"  <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
 | pag_max_frame_rate | 30 | int | 如果是PAG文件，用于指定动画的帧率 |
+| svg_replace_colors | | string | SVG格式的颜色替换参数：支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，使用这个功能只要一个svg就够了。使用示例: `"#B5B5B5|color_gray_light"`，表示将`"#B5B5B5"`替换为`"color_gray_light"`，`"color_gray_light"`在global.xml中定义。若有多组颜色需要替换，则用分号分割，比如：`"#B5B5B5|color_gray_light;#B2B2B2|color_gray_dark"`。该功能当目标不是颜色值时，按字符串替换。|
 | assert | true | bool | 图片加载失败时，是否允许断言（编译为debug模式时），用法：assert="true" 或者 assert="false"|
 
 图片的使用示例：
@@ -174,22 +180,22 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
      图片属性中的值，可用使用单引号"'"括起来（比如：width='24'）-->
 <Class name="btn_wnd_min_11" 
        normal_image="file='public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" 
-       hot_color="AliceBlue" 
-       pushed_color="Lavender"/>
+       hovered_color="AliceBlue" 
+       pressed_color="Lavender"/>
 ```
 
 ```xml
 <!-- 以下代码，演示如何使用动画图片 -->
 <HBox width="auto" height="auto">           
-    <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150' playcount='-1'" valign="center" margin="8"/>            
-    <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150' playcount='-1'" valign="center" margin="8"/>
-    <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150' playcount='-1'" valign="center" margin="8"/>
+    <Control width="auto" height="auto" bkimage="file='gif_test.gif' width='150' play_count='-1'" valign="center" margin="8"/>            
+    <Control width="auto" height="auto" bkimage="file='apng_test.png' width='150' play_count='-1'" valign="center" margin="8"/>
+    <Control width="auto" height="auto" bkimage="file='webp_test.webp' width='150' play_count='-1'" valign="center" margin="8"/>
 </HBox>
 ```
 
 ```xml
 <!-- 以下代码，演示如何使用Event控制动画图片(render示例程序) -->
-<Control width="80" height="80" bkimage="file='fan.gif' width='80' height='80' playcount='0' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender">
+<Control width="80" height="80" bkimage="file='fan.gif' width='80' height='80' play_count='0' valign='center' halign='center'" hovered_color="AliceBlue" pressed_color="Lavender">
     <Event type="mouse_enter" receiver="" apply_attribute="start_image_animation={}" />
     <Event type="mouse_leave" receiver="" apply_attribute="stop_image_animation={}" />
 </Control>
@@ -204,10 +210,9 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 <!-- name 是通用样式的名称，其他的是该通用样式中的属性 -->
 <Class name="btn_global_blue_80x30" font="system_bold_14" normal_text_color="white" 
        normal_image="file='public/button/btn_global_blue_80x30_normal.png'" 
-       hot_image="file='public/button/btn_global_blue_80x30_hovered.png'" 
-       pushed_image="file='public/button/btn_global_blue_80x30_pushed.png'" 
-       disabled_image="file='public/button/btn_global_blue_80x30_normal.png' 
-       fade='80'"/>
+       hovered_image="file='public/button/btn_global_blue_80x30_hovereded.png'" 
+       pressed_image="file='public/button/btn_global_blue_80x30_pushed.png'" 
+       disabled_image="file='public/button/btn_global_blue_80x30_normal.png' fade='80'"/>
 ```
 
 以上代码定义了一个按钮通用样式，命名为 `btn_global_blue_80x30`，使用字体ID为system_bold_14，普通样式下字体颜色为 `white`，
@@ -223,15 +228,15 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 <Button class="btn_global_blue_80x30" font="system_bold_12" text="ui::Buttons"/>
 ```
 
-在定义通用样式的时候，如果属性值被包含在双引号中的时候，里面就不能再用双引号了（如果非要用，可以用双引号的XML转移字符），这种情况下，可以使用单引号或者花括号来提高可读性。例如，以下是定义了一个下拉框的通用样式，其中使用了单引号（padding='1,1,1,1'）和花括号（padding={1,0,0,0}）。
+在定义通用样式的时候，如果属性值被包含在双引号中的时候，里面就不能再用双引号了（如果非要用，可以用双引号的XML转义字符），这种情况下，可以使用单引号或者花括号来提高可读性。例如，以下是定义了一个下拉框的通用样式，其中使用了单引号（padding='1,1,1,1'）和花括号（padding={1,0,0,0}）。
 ```xml
 <!--下拉框-->
-<Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
+<Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hovered_border_color="blue" 
                     combo_tree_view_class="padding='0,0,0,0' border_size='0,0,0,0' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                     combo_tree_node_class="tree_node" 
                     combo_icon_class="bkimage='public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
                     combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
-                    combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hot_border_color={blue} pushed_border_color={blue} valign={center} hot_color={#FFE5F3FF} pushed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hot_image={file='../public/combo/arrow_hot.svg' valign='center'}"/>
+                    combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} hovered_border_color={blue} pressed_border_color={blue} valign={center} hovered_color={#FFE5F3FF} pressed_color={#FFCCE8FF} normal_image={file='../public/combo/arrow_normal.svg' valign='center'} hovered_image={file='../public/combo/arrow_hovered.svg' valign='center'}"/>
 ```
 
 ### Class 所有可用属性
@@ -259,3 +264,4 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | ThreadManager | [duilib/Core/ThreadManager.h](../duilib/Core/ThreadManager.h) | 线程管理器，用以支持线程间通信 |
 | CursorManager | [duilib/Core/CursorManager.h](../duilib/Core/CursorManager.h) | 光标管理类 |
 | WindowManager | [duilib/Core/WindowManager.h](../duilib/Core/WindowManager.h) | 窗口管理类 |
+| ThemeManager  | [duilib/Core/ThemeManager.h](../duilib/Core/ThemeManager.h) | 主题管理类 |

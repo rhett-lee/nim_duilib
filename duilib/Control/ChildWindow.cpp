@@ -24,8 +24,9 @@ ChildWindow::~ChildWindow()
 
 DString ChildWindow::GetType() const { return DUI_CTR_CHILD_WINDOW; }
 
-void ChildWindow::SetAttribute(const DString& strName, const DString& strValue)
+void ChildWindow::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("child_window_margin")) {
         UiMargin rcMargin;
         AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);

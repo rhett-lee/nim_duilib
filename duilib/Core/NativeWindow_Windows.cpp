@@ -5,34 +5,18 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
-#include "duilib/Utils/ApiWrapper_Windows.h"
-#include "duilib/Utils/InlineHook_Windows.h"
 #include "duilib/Core/WindowDropTarget_Windows.h"
 #include "duilib/Core/ControlDropTargetImpl_Windows.h"
+#include "duilib/Utils/ApiWrapper_Windows.h"
+#include "duilib/Utils/InlineHook_Windows.h"
+
+#include "duilib/Utils/PerformanceUtil.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
 #include <VersionHelpers.h>
 
 namespace ui {
-
-//判断是否为Windows 11的函数
-static bool UiIsWindows11OrGreater()
-{
-    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-    DWORDLONG const dwlConditionMask = VerSetConditionMask(
-        VerSetConditionMask(
-            VerSetConditionMask(
-                0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-            VER_MINORVERSION, VER_GREATER_EQUAL),
-        VER_BUILDNUMBER, VER_GREATER_EQUAL);
-
-    osvi.dwMajorVersion = 10;
-    osvi.dwMinorVersion = 0;
-    osvi.dwBuildNumber = 22000; //需要根据Build版本号区分
-
-    return ::VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
-}
 
 //系统菜单延迟显示的定时器ID
 #define UI_SYS_MEMU_TIMER_ID 711
@@ -59,6 +43,7 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
+    m_bSnapLayoutMenuFlag(false),
     m_bEnableSysMenu(true),
     m_bNCLButtonDownOnMaxButton(false),
     m_nSysMenuTimerId(0),
@@ -66,15 +51,11 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_pWindowDropTarget(nullptr),
     m_nWindowDpiScaleFactor(100),
     m_bChildWindow(false),
-    m_pDataObj(nullptr)
+    m_pDataObj(nullptr),
+    m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
-
-    //Windows 11及新版本，支持显示贴靠布局菜单（默认关闭，最新版的Win11下，会触发NC绘制，显示出系统绘制的内容，效果不好）
-    /*if (UiIsWindows11OrGreater()) {
-        m_bSnapLayoutMenu = true;
-    }*/
 }
 
 NativeWindow_Windows::~NativeWindow_Windows()
@@ -123,7 +104,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
 
     //在模块退出时，注销该ATOM
     GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
-        ::UnregisterClassW(className.c_str(), hModule);
+        ::UnregisterClass(className.c_str(), hModule);
         });
 
     //保存参数
@@ -390,7 +371,7 @@ bool NativeWindow_Windows::CreateChildWnd(NativeWindow_Windows* pParentWindow, i
 
     //在模块退出时，注销该ATOM
     GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
-        ::UnregisterClassW(className.c_str(), hModule);
+        ::UnregisterClass(className.c_str(), hModule);
         });
 
     //保存参数
@@ -696,13 +677,13 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     m_bIsLayeredWindow = bIsLayeredWindow;
     bool bChanged = false;
-    SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
+    bool bRet = SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
     if (bRedraw && bChanged && IsWindow()) {
         // 强制窗口重绘
-        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+        ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
         ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
     }
-    return true;
+    return bRet || !IsWindow();
 }
 
 bool NativeWindow_Windows::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const
@@ -770,13 +751,14 @@ void NativeWindow_Windows::UpdateMinMaxBoxStyle() const
     }
 }
 
-void NativeWindow_Windows::SetLayeredWindowAlpha(int32_t nAlpha)
+bool NativeWindow_Windows::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
+        return false;
     }
     m_nLayeredWindowAlpha = static_cast<uint8_t>(nAlpha);
+    return true;
 }
 
 uint8_t NativeWindow_Windows::GetLayeredWindowAlpha() const
@@ -784,12 +766,13 @@ uint8_t NativeWindow_Windows::GetLayeredWindowAlpha() const
     return m_nLayeredWindowAlpha;
 }
 
-void NativeWindow_Windows::SetLayeredWindowOpacity(int32_t nAlpha)
+bool NativeWindow_Windows::SetLayeredWindowOpacity(int32_t nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
+        return false;
     }
+    bool bRet = false;
     m_nLayeredWindowOpacity = static_cast<uint8_t>(nAlpha);
     if (m_nLayeredWindowOpacity == 255) {
         COLORREF crKey = 0;
@@ -797,16 +780,20 @@ void NativeWindow_Windows::SetLayeredWindowOpacity(int32_t nAlpha)
         DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
         bool bAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
         if (bAttributes) {
-            bool bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+            bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
             ASSERT_UNUSED_VARIABLE(bRet);
         }
     }
     else {
         //必须先设置为分层窗口，然后才能设置成功
-        SetLayeredWindow(true, false);
-        bool bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+        if (!IsLayeredWindow()) {
+            m_pOwner->OnNativeRequestSetLayeredWindow(true, false);
+        }        
+        ASSERT(IsLayeredWindow());
+        bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
         ASSERT_UNUSED_VARIABLE(bRet);
     }
+    return bRet;
 }
 
 uint8_t NativeWindow_Windows::GetLayeredWindowOpacity() const
@@ -821,38 +808,44 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
         return;
     }
     m_bUseSystemCaption = bUseSystemCaption;
-    if (IsUseSystemCaption()) {
-        //使用系统默认标题栏, 需要增加标题栏风格
-        bool bChanged = false;
-        if (IsWindow()) {
-            UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+
+    //使用系统默认标题栏, 需要增加标题栏风格
+    if (IsWindow()) {
+        UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+        if (IsUseSystemCaption()) {
+            //开启系统标题栏
             UINT newStyleValue = oldStyleValue;
             if (oldStyleValue & WS_POPUP) {
                 //弹出式窗口
                 newStyleValue |= (WS_CAPTION | WS_SYSMENU);
             }
             else {
-                newStyleValue |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);                
+                newStyleValue |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
             }
             if (newStyleValue != oldStyleValue) {
                 ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
-                bChanged = true; 
             }
         }
-        //关闭层窗口
-        if (IsLayeredWindow()) {
-            bChanged = true;
-            SetLayeredWindow(false, false);
+        else {
+            //关闭系统标题栏
+            UpdateMinMaxBoxStyle();
         }
-        if (bChanged) {
-            // 强制窗口重绘
-            ::SetWindowPos(GetHWND(), nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
-            //重新激活窗口的非客户区绘制
-            if (IsWindowForeground()) {
-                KeepParentActive();
-            }            
-        }        
+        
     }
+    if (IsUseSystemCaption() && IsLayeredWindow()) {
+        //开启系统标题栏时，请求应用层关闭层窗口
+        m_pOwner->OnNativeRequestSetLayeredWindow(false, false);
+    }
+
+    // 强制窗口重绘
+    ::RedrawWindow(m_hWnd, NULL, NULL, RDW_FRAME | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+    ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+    //重新激活窗口的非客户区绘制
+    if (IsWindowForeground()) {
+        KeepParentActive();
+    }
+
     m_pOwner->OnNativeUseSystemCaptionBarChanged();
 }
 
@@ -1172,7 +1165,11 @@ bool NativeWindow_Windows::EnterFullscreen()
     DWORD dwFullscreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
     ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullscreenStyle);
     ::SetWindowPos(m_hWnd, nullptr, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
-    
+
+    //全屏时，必须禁用系统阴影，否则内容显示不全
+    if (IsSystemShadowEnabled()) {
+        ModifyDwmStyle(m_hWnd, NativeWindowShadowType::kShadowSystemDisabled);
+    }    
     m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
@@ -1203,9 +1200,11 @@ bool NativeWindow_Windows::ExitFullscreen()
     m_bFullscreen = false;
     m_bFullscreenExiting = false;
 
+    if (IsSystemShadowEnabled()) {
+        ModifyDwmStyle(m_hWnd, m_systemShadowType);
+    }
     //触发位置和大小变化事件
     ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
-
     m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
@@ -1455,6 +1454,9 @@ void NativeWindow_Windows::ClearWindowRgn(bool bRedraw)
 
 void NativeWindow_Windows::Invalidate(const UiRect& rcItem)
 {
+    if (m_hWnd == nullptr) {
+        return;
+    }
     RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
     ::InvalidateRect(m_hWnd, &rc, FALSE);
     // Invalidating a layered window will not trigger a WM_PAINT message,
@@ -1536,6 +1538,16 @@ LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam
         bPaint = false;
     }
     if (bPaint) {
+#if DUILIB_PERFORMANCE_STAT_ENABLED
+        //性能统计
+        static size_t statNameHash = 0;
+        if (statNameHash == 0) {
+            DString statName = _T("PaintWindow 0, NativeWindow_Windows::OnPaintMsg(Total)");
+            statNameHash = std::hash<DString>{}(statName);
+            PerformanceUtilHelper::Instance().AddStat(statName);
+        }
+        PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
         if (IsChildWindow()) {
             //子窗口模式，完全由应用层负责绘制
             if (m_pOwner != nullptr) {
@@ -1725,6 +1737,7 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
     switch (message) {
     case WM_SYSCHAR:
     case WM_CHAR:
+    case WM_UNICHAR:
         if (0 == (lParam & (1 << 30))) {
             modifierKey |= ModifierKey::kFirstPress;
         }
@@ -1806,7 +1819,6 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
     ASSERT(bRet);
     return bRet;
 }
-
 
 int32_t NativeWindow_Windows::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
 {
@@ -2091,6 +2103,7 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
     case WM_ERASEBKGND:         lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_DISPLAYCHANGE:      lResult = OnDisplayChangedMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_DPICHANGED:         lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_DWMCOMPOSITIONCHANGED: lResult = OnDwmCompositionChangedMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_WINDOWPOSCHANGING:  lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
 
     case WM_NOTIFY:             lResult = OnNotifyMsg(uMsg, wParam, lParam, bHandled); break;
@@ -2222,6 +2235,7 @@ LRESULT NativeWindow_Windows::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARA
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_NCHITTEST);
     if (IsUseSystemCaption()) {
+        //使用系统标题栏时，不需要处理，系统默认即可
         bHandled = false;
         return 0;
     }
@@ -2456,6 +2470,14 @@ LRESULT NativeWindow_Windows::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM l
     return 0;
 }
 
+LRESULT NativeWindow_Windows::OnDwmCompositionChangedMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& /*bHandled*/)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_DWMCOMPOSITIONCHANGED);
+    bool bDwmCompositionEnabled = IsDwmCompositionEnabled();
+    m_pOwner->OnNativeDwmCompositionChangedMsg(bDwmCompositionEnabled);
+    return 0;
+}
+
 LRESULT NativeWindow_Windows::OnWindowPosChangingMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_WINDOWPOSCHANGING);
@@ -2637,6 +2659,10 @@ LRESULT NativeWindow_Windows::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lPa
 
 void NativeWindow_Windows::CheckWindowSnap(HWND hWnd)
 {
+    if (IsUseSystemCaption() || IsSystemShadowEnabled()) {
+        //使用系统标题栏或者系统阴影时，不需要执行自己实现的snap功能
+        return;
+    }
     if (::IsZoomed(hWnd) || ::IsIconic(hWnd) || IsChildWindow()) {
         //最大化/最小化/子窗口时，不处理
         return;
@@ -2686,7 +2712,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         break;
     }
     case WM_SIZE:
-    {        
+    {
         WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);
         UiSize newWindowSize;
         newWindowSize.cx = (int)(short)LOWORD(lParam);
@@ -2800,6 +2826,19 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         lResult = m_pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
+    case WM_UNICHAR:
+        if (wParam == UNICODE_NOCHAR) {
+            //测试是否支持该消息，应返回1
+            lResult = 1;
+            bHandled = true;
+        }
+        else {
+            VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        }
+        break;
     case WM_CHAR:
     case WM_SYSCHAR:
     {
@@ -3126,15 +3165,24 @@ HWND NativeWindow_Windows::GetWindowOwner() const
 
 void NativeWindow_Windows::SetEnableSnapLayoutMenu(bool bEnable)
 {
-    //仅Windows11才支持
-    if (UiIsWindows11OrGreater()) {
-        m_bSnapLayoutMenu = bEnable;
-    }
+    m_bSnapLayoutMenu = bEnable;
+    m_bSnapLayoutMenuFlag = true;    
 }
 
 bool NativeWindow_Windows::IsEnableSnapLayoutMenu() const
 {
-    return m_bSnapLayoutMenu;
+    //仅Windows11才支持
+    static bool bIsWindows11OrGreater = UiIsWindows11OrGreater();
+    if (bIsWindows11OrGreater) {
+        if (m_bSnapLayoutMenuFlag) {
+            //外部设置为准
+            return m_bSnapLayoutMenu;
+        }
+        else if (IsLayeredWindow() || IsSystemShadowEnabled()) {
+            return true; //Win11下，如果为分层窗口，或者使用系统阴影时默认开启
+        }
+    }
+    return false;
 }
 
 void NativeWindow_Windows::SetEnableSysMenu(bool bEnable)
@@ -3253,6 +3301,12 @@ HRESULT NativeWindow_Windows::OnDragEnter(IDataObject* pDataObj, DWORD grfKeySta
 
     m_textList.clear();
     m_fileList.clear();
+    //COM 引用计数：保存 IDataObject 指针前必须 AddRef，否则外部释放后会 use-after-free
+    if (m_pDataObj != nullptr) {
+        m_pDataObj->Release();
+        m_pDataObj = nullptr;
+    }
+    pDataObj->AddRef();
     m_pDataObj = pDataObj;
 
     ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_textList, m_fileList);
@@ -3297,7 +3351,11 @@ HRESULT NativeWindow_Windows::OnDragOver(IDataObject* pDataObj, DWORD grfKeyStat
 
 HRESULT NativeWindow_Windows::OnDragLeave()
 {
-    m_pDataObj = nullptr;
+    //COM 引用计数：清理保存的 IDataObject 指针前必须 Release
+    if (m_pDataObj != nullptr) {
+        m_pDataObj->Release();
+        m_pDataObj = nullptr;
+    }
     m_textList.clear();
     m_fileList.clear();
     m_pOwner->OnNativeDropLeaveMsg();
@@ -3329,7 +3387,61 @@ HRESULT NativeWindow_Windows::OnDrop(IDataObject* pDataObj, DWORD grfKeyState, P
     if (pdwEffect != nullptr) {
         *pdwEffect = data.m_dwEffect;
     }
+
+    //COM 引用计数：Drop 完成后不再有 DragLeave 消息，需要在此处释放 IDataObject 引用
+    if (m_pDataObj != nullptr) {
+        m_pDataObj->Release();
+        m_pDataObj = nullptr;
+    }
+    m_textList.clear();
+    m_fileList.clear();
     return data.m_hResult;
+}
+
+bool NativeWindow_Windows::IsSystemShadowSupported() const
+{
+    return IsDwmCompositionEnabled();
+}
+
+bool NativeWindow_Windows::IsSystemShadowEnabled() const
+{
+    return IsSystemShadowSupported() && (GetSystemShadowType() != NativeWindowShadowType::kShadowSystemDisabled);
+}
+
+bool NativeWindow_Windows::SetSystemShadowType(NativeWindowShadowType nativeShadowType)
+{
+    if (m_systemShadowType == nativeShadowType) {
+        return true;
+    }
+    if (IsChildWindow()) {
+        return false;
+    }
+    //if ((nativeShadowType == NativeWindowShadowType::kShadowSystemDefault) ||
+    //    (nativeShadowType == NativeWindowShadowType::kShadowSystemDoNotRound)) {
+    //    //这两个值时，窗口不能是分层窗口，否则会变成无阴影的状态
+    //    ASSERT(!IsLayeredWindow());
+    //}
+    if (ModifyDwmStyle(m_hWnd, nativeShadowType)) {
+        m_systemShadowType = nativeShadowType;
+        //启用系统阴影时，必须清除RGN，否则显示不正确(由调用方负责处理)
+        return true;
+    }
+    return false;
+}
+
+NativeWindowShadowType NativeWindow_Windows::GetSystemShadowType() const
+{
+    return m_systemShadowType;
+}
+
+int32_t NativeWindow_Windows::GetSystemShadowFrameBorderSize() const
+{
+    if (IsChildWindow() || !IsSystemShadowEnabled() || IsUseSystemCaption()) {
+        return 0;
+    }
+    UINT outThickness = 0;
+    GetDwmVisibleFrameBorderThickness(m_hWnd, outThickness);
+    return (int32_t)outThickness;
 }
 
 } // namespace ui

@@ -2,7 +2,8 @@
 #include "MainThread.h"
 
 MainForm::MainForm():
-    m_fLoadingPercent(0)
+    m_fLoadingPercent(0),
+    m_imageId(0)
 {
 }
 
@@ -39,12 +40,12 @@ void MainForm::OnInitWindow()
     pIconImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
 
     //添加图片资源
-    uint32_t imageId = pReportImageList->AddImageString(_T("file='display-color.svg' width='22' height='22'"), Dpi());
+    m_imageId = pReportImageList->AddImageString(_T("file='display-color.svg' width='22' height='22'"), Dpi());
     pListImageList->AddImageString(_T("file='display-color.svg' width='32' height='32' valign='center' halign='center'"), Dpi());
     pIconImageList->AddImageString(_T("file='display-color.svg' width='64' height='64' valign='center' halign='center'"), Dpi());
 
     //填充数据
-    InsertItemData(400, 9, (int32_t)imageId);
+    InsertItemData(400, 9, (int32_t)m_imageId);
 
     //初始化本程序的测试功能相关UI事件
     InitListCtrlEvents(pListCtrl);
@@ -68,6 +69,22 @@ void MainForm::OnInitWindow()
     //    }        
     //    return true;
     //    });
+}
+
+bool MainForm::OnLanguageChanged()
+{
+    bool bRet = BaseClass::OnLanguageChanged();
+    //语言变化时，需要更新列表中的数据
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl != nullptr) {
+        pListCtrl->SetEnableRefresh(false);
+        pListCtrl->DeleteAllColumns();
+        pListCtrl->DeleteAllDataItems();
+        InsertItemData(400, 9, (int32_t)m_imageId);
+        pListCtrl->SetEnableRefresh(true);
+    }    
+    return bRet;
 }
 
 void MainForm::OnInitLayout()
@@ -455,19 +472,19 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
     }
     //在列表头点击右键
     ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
-    if (pHeaderCtrl != nullptr) {
-        pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-            if (::MessageBox(nullptr, _T("ListCtrlHeader RClick! 是否执行功能测试？"), _T(""), MB_YESNO) == IDYES) {
-                RunListCtrlTest();
-            }
-#else
-            ui::SystemUtil::ShowMessageBox(this, _T("开始执行功能测试"), _T("ListCtrlHeader RClick!"));
-            RunListCtrlTest();
-#endif
-            return true;
-            });
-    }
+//    if (pHeaderCtrl != nullptr) {
+//        pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
+//#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+//            if (::MessageBox(nullptr, _T("ListCtrlHeader RClick! 是否执行功能测试？"), _T(""), MB_YESNO) == IDYES) {
+//                RunListCtrlTest();
+//            }
+//#else
+//            ui::SystemUtil::ShowMessageBox(this, _T("开始执行功能测试"), _T("ListCtrlHeader RClick!"));
+//            RunListCtrlTest();
+//#endif
+//            return true;
+//            });
+//    }
 
     //按比例设置各个列的宽度，使其充满整个视图
     ui::Button* pAutoStretchBtn = dynamic_cast<ui::Button*>(FindControl(_T("set_column_stretch")));
@@ -811,11 +828,12 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     const size_t rowCount = nRows;
     bool bShowCheckBox = true; //是否显示CheckBox
     //添加列
+    const DString fmtHeader = ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_DATA_COLUMN"));
     for (size_t i = 0; i < columnCount; ++i) {
         ui::ListCtrlColumn columnInfo;
         columnInfo.nColumnWidth = 200;
-        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-        columnInfo.text = ui::StringUtil::Printf(_T("第 %d 列"), i);
+        //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;        
+        columnInfo.text = ui::StringUtil::Printf(fmtHeader.c_str(), i);//_T("第 %d 列")
         columnInfo.bShowCheckBox = bShowCheckBox;
         columnInfo.nImageId = nImageId;
         pListCtrl->InsertColumn(-1, columnInfo);
@@ -823,14 +841,15 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
+    const DString fmtData = ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_DATA_ROW_COLUMN"));
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ui::ListCtrlSubItemData subItemData;
-            subItemData.text = ui::StringUtil::Printf(_T("第 %03d 行/第 %02d 列"), itemIndex, columnIndex);
+            subItemData.text = ui::StringUtil::Printf(fmtData.c_str(), itemIndex, columnIndex);
             subItemData.bShowCheckBox = bShowCheckBox;
             subItemData.nImageId = nImageId;
             if (columnIndex == 0) {
-                subItemData.text += _T("-测试1234567890-测试1234567890-测试1234567890-测试1234567890");
+                subItemData.text += _T("-1234567890-ABCDEFG-1234567890-abcdefg");
             }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }
@@ -847,11 +866,11 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
         pListCtrl->SetDataItemHeight(1, 100, true);
         pListCtrl->SetDataItemHeight(2, 200, true);
 
-        pListCtrl->SetSubItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
-        pListCtrl->SetSubItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
-        pListCtrl->SetSubItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
-        pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
-        pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //pListCtrl->SetSubItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //pListCtrl->SetSubItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //pListCtrl->SetSubItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
     }
     //重绘
     UpdateWindow();
@@ -1140,9 +1159,10 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetMultiSelect(bOldMultiSelect);
     pListCtrl->SetSelectedDataItems(oldSelectedIndexs, true);
 
+    pListCtrl->DeleteAllColumns();
     pListCtrl->DeleteAllDataItems();
 
-    InsertItemData((int32_t)nRows, (int32_t)nColumns, -1);
+    InsertItemData((int32_t)nRows, (int32_t)nColumns, m_imageId);
 #endif
 }
 

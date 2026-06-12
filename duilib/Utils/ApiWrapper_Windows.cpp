@@ -2,10 +2,13 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
-#include <VersionHelpers.h>
-#include <map>
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/DllManager_Windows.h"
 #include "duilib/Render/IRender.h"
+#include <VersionHelpers.h>
+#include <dwmapi.h>
+#include <shellapi.h>
+#include <map>
 
 namespace ui
 {
@@ -308,7 +311,7 @@ bool IsDragWindowContentsEnabled()
         HKEY hKey
         );
 
-    HMODULE hModAdvapi32 = LoadLibraryW(L"Advapi32.dll");
+    HMODULE hModAdvapi32 = DllManager::Instance().LoadDll(_T("Advapi32.dll"));
     if (NULL == hModAdvapi32) {
         return false;
     }
@@ -319,7 +322,6 @@ bool IsDragWindowContentsEnabled()
     PFUNC_RegCloseKey pfnRegCloseKey = (PFUNC_RegCloseKey)GetProcAddress(hModAdvapi32, "RegCloseKey");
 
     if (NULL == pfnRegOpenKeyExW || NULL == pfnRegQueryValueExW || NULL == pfnRegCloseKey) {
-        FreeLibrary(hModAdvapi32);
         return false;
     }
 
@@ -343,7 +345,6 @@ bool IsDragWindowContentsEnabled()
         if (hKey) {
             pfnRegCloseKey(hKey);
         }
-        FreeLibrary(hModAdvapi32);      // 释放DLL句柄
         return false;
     }
 
@@ -386,12 +387,80 @@ bool IsDragWindowContentsEnabled()
 
     // 关闭注册表句柄
     pfnRegCloseKey(hKey);
-
-    //释放已加载的DLL
-    FreeLibrary(hModAdvapi32);
     return bEnabled;
 }
 
+bool IsSystemThemeDarkMode()
+{
+    bool bDarkMode = false; //默认不是Dark模式
+    typedef LONG(WINAPI* PFUNC_RegOpenKeyExW)(
+        HKEY hKey,
+        LPCWSTR lpSubKey,
+        DWORD ulOptions,
+        REGSAM samDesired,
+        PHKEY phkResult
+        );
+
+    typedef LONG(WINAPI* PFUNC_RegQueryValueExW)(
+        HKEY hKey,
+        LPCWSTR lpValueName,
+        LPDWORD lpReserved,
+        LPDWORD lpType,
+        LPBYTE lpData,
+        LPDWORD lpcbData
+        );
+
+    typedef LONG(WINAPI* PFUNC_RegCloseKey)(
+        HKEY hKey
+        );
+
+    HMODULE hModAdvapi32 = DllManager::Instance().LoadDll(_T("Advapi32.dll"));
+    if (NULL == hModAdvapi32) {
+        return bDarkMode;
+    }
+
+    // 获取注册表API的函数地址
+    PFUNC_RegOpenKeyExW pfnRegOpenKeyExW = (PFUNC_RegOpenKeyExW)GetProcAddress(hModAdvapi32, "RegOpenKeyExW");
+    PFUNC_RegQueryValueExW pfnRegQueryValueExW = (PFUNC_RegQueryValueExW)GetProcAddress(hModAdvapi32, "RegQueryValueExW");
+    PFUNC_RegCloseKey pfnRegCloseKey = (PFUNC_RegCloseKey)GetProcAddress(hModAdvapi32, "RegCloseKey");
+
+    if (NULL == pfnRegOpenKeyExW || NULL == pfnRegQueryValueExW || NULL == pfnRegCloseKey) {
+        return bDarkMode;
+    }
+
+    HKEY hKey = NULL;
+    LONG lResult = ERROR_SUCCESS;
+
+    // 打开注册表项
+    lResult = pfnRegOpenKeyExW(
+        HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        0,
+        KEY_READ,
+        &hKey
+    );
+
+    if (lResult != ERROR_SUCCESS) {
+        if (hKey) {
+            pfnRegCloseKey(hKey);
+        }
+        return bDarkMode;
+    }
+
+    DWORD dwType = REG_DWORD;
+    DWORD value = ~0U;
+    DWORD length = sizeof(value);
+
+    //读取注册表键值：1=浅色，0=深色
+    lResult = pfnRegQueryValueExW(hKey, L"AppsUseLightTheme", NULL, &dwType, (LPBYTE)&value, &length);
+    if (lResult == ERROR_SUCCESS) {
+        bDarkMode = (value == 0);
+    }
+
+    // 关闭注册表句柄
+    pfnRegCloseKey(hKey);
+    return bDarkMode;
+}
 
 // 辅助函数：将宽度和高度转为唯一键（处理0表示256px的情况）
 static DWORD GetIconSizeKey(BYTE bWidth, BYTE bHeight)
@@ -861,6 +930,212 @@ bool CreateIconsFromData(const std::vector<uint8_t>& iconFileData,
         return true;
     }
     return CreateIconsFromImageData(iconFileData, FilePath(imageFilePath), uDpiScaleFactor, hSmallIcon, hBigIcon);
+}
+
+//判断是否为Windows 11的函数
+bool UiIsWindows11OrGreater()
+{
+    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+    DWORDLONG const dwlConditionMask = VerSetConditionMask(
+        VerSetConditionMask(
+            VerSetConditionMask(
+                0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+            VER_MINORVERSION, VER_GREATER_EQUAL),
+        VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+    osvi.dwMajorVersion = 10;
+    osvi.dwMinorVersion = 0;
+    osvi.dwBuildNumber = 22000; //需要根据Build版本号区分
+
+    return ::VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
+}
+
+bool UiIsWindows7OrOlder()
+{
+    return ::IsWindows7OrGreater() && !::IsWindows8OrGreater();
+}
+
+bool IsDwmCompositionEnabled()
+{
+    HMODULE hDwm = DllManager::Instance().LoadDll(_T("dwmapi.dll"));
+    if (hDwm == nullptr) {
+        return false;
+    }
+    BOOL bEnabled = FALSE;
+    if (hDwm) {
+        typedef HRESULT(WINAPI* LPDWMISCOMPOSITIONENABLED)(BOOL*);
+        LPDWMISCOMPOSITIONENABLED pfn = (LPDWMISCOMPOSITIONENABLED)GetProcAddress(hDwm, "DwmIsCompositionEnabled");
+        if (pfn) {
+            pfn(&bEnabled);
+        }
+    }
+    return (bEnabled == TRUE);
+}
+
+// 动态加载并初始化 DWM 样式（以支持系统的窗口阴影）
+bool ModifyDwmStyle(HWND hWnd, NativeWindowShadowType nativeShadowType)
+{
+    if (!::IsWindow(hWnd)) {
+        return false;
+    }
+    HMODULE hDwm = DllManager::Instance().LoadDll(_T("dwmapi.dll"));
+    if (hDwm == nullptr) {
+        return false;
+    }
+
+    // 动态 DWM API 定义
+    typedef HRESULT(WINAPI* DWM_SET_WINDOW_ATTRIBUTE)(HWND, DWORD, LPCVOID, DWORD);
+    typedef HRESULT(WINAPI* DWM_EXTEND_FRAME_INTO_CLIENT_AREA)(HWND, const MARGINS*);
+    //typedef HRESULT(WINAPI* DWM_ENABLE_BLUR_BEHIND_WINDOW)(HWND, const DWM_BLURBEHIND*);
+
+    DWM_SET_WINDOW_ATTRIBUTE DwmSetWindowAttribute = (DWM_SET_WINDOW_ATTRIBUTE)GetProcAddress(hDwm, "DwmSetWindowAttribute");
+    DWM_EXTEND_FRAME_INTO_CLIENT_AREA DwmExtendFrameIntoClientArea = (DWM_EXTEND_FRAME_INTO_CLIENT_AREA)GetProcAddress(hDwm, "DwmExtendFrameIntoClientArea");
+    //DWM_ENABLE_BLUR_BEHIND_WINDOW DwmEnableBlurBehindWindow = (DWM_ENABLE_BLUR_BEHIND_WINDOW)GetProcAddress(hDwm, "DwmEnableBlurBehindWindow");
+
+    // Win11+：设置圆角
+    if (UiIsWindows11OrGreater() && DwmSetWindowAttribute) {
+        DWORD corner = DWMWCP_DEFAULT;
+        switch (nativeShadowType) {
+        case NativeWindowShadowType::kShadowSystemDoNotRound:
+            corner = DWMWCP_DONOTROUND;
+            break;
+        case NativeWindowShadowType::kShadowSystemRound:
+            corner = DWMWCP_ROUND;
+            break;
+        case NativeWindowShadowType::kShadowSystemSmallRound:
+            corner = DWMWCP_ROUNDSMALL;
+            break;
+        default:
+            break;
+        }
+        HRESULT hr = DwmSetWindowAttribute(hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &corner, sizeof(DWORD));
+        ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
+    }
+
+    //// 启用模糊后景（全版本兼容）
+    //if (DwmEnableBlurBehindWindow) {
+    //    DWM_BLURBEHIND bb = { 0 };
+    //    bb.dwFlags = DWM_BB_ENABLE;
+    //    bb.fEnable = TRUE;
+    //    DwmEnableBlurBehindWindow(hWnd, &bb);
+    //}
+
+    // 扩展框架到整个客户区（全版本兼容, 该函数为关键函数）
+    HRESULT hr = E_FAIL;
+    if (DwmExtendFrameIntoClientArea) {
+        MARGINS margins = { -1, -1, -1, -1 };
+        if (nativeShadowType == NativeWindowShadowType::kShadowSystemDisabled) {
+            margins = { 0, 0, 0, 0 }; //关闭
+        }        
+        hr = DwmExtendFrameIntoClientArea(hWnd, &margins);
+        ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
+    }
+    return SUCCEEDED(hr);
+}
+
+bool GetDwmVisibleFrameBorderThickness(HWND hWnd, UINT& outThickness)
+{
+    // 初始化输出值
+    outThickness = 0;
+
+    // 句柄无效直接返回
+    if (!::IsWindow(hWnd)) {
+        return false;
+    }
+
+    // 动态加载 dwmapi.dll（使用 DllManager，不重复加载）
+    HMODULE hDwm = DllManager::Instance().LoadDll(_T("dwmapi.dll"));
+    if (hDwm == nullptr) {
+        return false;
+    }
+
+    // 获取函数地址
+    typedef HRESULT(WINAPI* DWM_GET_WINDOW_ATTRIBUTE)(HWND, DWORD, PVOID, DWORD);
+    DWM_GET_WINDOW_ATTRIBUTE pDwmGetWindowAttribute = reinterpret_cast<DWM_GET_WINDOW_ATTRIBUTE>(::GetProcAddress(hDwm, "DwmGetWindowAttribute"));
+    if (pDwmGetWindowAttribute == nullptr) {
+        return false;
+    }
+    HRESULT hr = pDwmGetWindowAttribute(hWnd, DWMWA_VISIBLE_FRAME_BORDER_THICKNESS, &outThickness, sizeof(UINT));
+    return SUCCEEDED(hr);
+}
+
+bool SetDwmEnableBlurBehindWindow(HWND hWnd, bool bEnable)
+{
+    // 句柄无效直接返回
+    if (!::IsWindow(hWnd)) {
+        return false;
+    }
+
+    // 动态加载 dwmapi.dll（使用 DllManager，不重复加载）
+    HMODULE hDwm = DllManager::Instance().LoadDll(_T("dwmapi.dll"));
+    if (hDwm == nullptr) {
+        return false;
+    }
+    typedef HRESULT(WINAPI* DWM_ENABLE_BLUR_BEHIND_WINDOW)(HWND hWnd, const DWM_BLURBEHIND* pBlurBehind);
+    DWM_ENABLE_BLUR_BEHIND_WINDOW pDwmEnableBlurBehindWindow = reinterpret_cast<DWM_ENABLE_BLUR_BEHIND_WINDOW>(::GetProcAddress(hDwm, "DwmEnableBlurBehindWindow"));
+    if (pDwmEnableBlurBehindWindow == nullptr) {
+        return false;
+    }
+
+    HRGN rgn = CreateRectRgn(-1, -1, 0, 0);
+    DWM_BLURBEHIND bb;
+    bb.dwFlags = (DWM_BB_ENABLE | DWM_BB_BLURREGION);
+    bb.fEnable = bEnable ? TRUE : FALSE;
+    bb.hRgnBlur = rgn;
+    bb.fTransitionOnMaximized = FALSE;
+    HRESULT hr = pDwmEnableBlurBehindWindow(hWnd, &bb);
+    DeleteObject(rgn);
+    return SUCCEEDED(hr);
+}
+
+bool IsTaskbarAutoHide()
+{
+    HMODULE hShell32 = DllManager::Instance().LoadDll(_T("shell32.dll"));
+    if (!hShell32) {
+        return false;
+    }
+
+    using FuncSHAppBarMessage = UINT(WINAPI*)(UINT, PAPPBARDATA);
+    auto pSHAppBarMessage = (FuncSHAppBarMessage)GetProcAddress(hShell32, "SHAppBarMessage");
+    if (!pSHAppBarMessage) {
+        return false;
+    }
+    APPBARDATA abd{};
+    abd.cbSize = sizeof(APPBARDATA);
+    // 获取任务栏状态
+    UINT state = pSHAppBarMessage(ABM_GETSTATE, &abd);
+    // ABS_AUTOHIDE：自动隐藏标记
+    return (state & ABS_AUTOHIDE) != 0;
+}
+
+TaskbarPosition GetTaskbarPosition()
+{
+    HMODULE hShell32 = DllManager::Instance().LoadDll(_T("shell32.dll"));
+    if (!hShell32) {
+        return TASKBAR_BOTTOM;
+    }
+
+    using FuncSHAppBarMessage = UINT(WINAPI*)(UINT, PAPPBARDATA);
+    FuncSHAppBarMessage pSHAppBarMessage = (FuncSHAppBarMessage)GetProcAddress(hShell32, "SHAppBarMessage");
+    if (!pSHAppBarMessage) {
+        return TASKBAR_BOTTOM;
+    }
+
+    // 调用 API 获取任务栏位置
+    APPBARDATA abd{};
+    abd.cbSize = sizeof(APPBARDATA);
+    abd.uEdge = TASKBAR_BOTTOM;
+    pSHAppBarMessage(ABM_GETTASKBARPOS, &abd);
+    TaskbarPosition pos = TASKBAR_BOTTOM;
+    switch (abd.uEdge)
+    {
+    case ABE_BOTTOM: pos = TASKBAR_BOTTOM; break;
+    case ABE_LEFT:   pos = TASKBAR_LEFT;   break;
+    case ABE_RIGHT:  pos = TASKBAR_RIGHT;  break;
+    case ABE_TOP:    pos = TASKBAR_TOP;   break;
+    default: break;
+    }
+    return pos;
 }
 
 } //namespace ui

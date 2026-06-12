@@ -9,6 +9,7 @@ class SkPaint;
 struct SkRect;
 class SkFont;
 struct SkPoint;
+enum class SkTextEncoding;
 
 namespace ui 
 {
@@ -40,12 +41,13 @@ public:
     void DrawString(const DString& strText, const DrawStringParam& drawParam);
 
 private:
-    /** 获取UTF16字符串，并做预处理（纵向绘制文本）
+    /** 获取UTF32字符串，并做预处理（纵向绘制文本）
     */
-    UTF16String GetDrawStringUTF16(const DString& strText, bool bSingleLineMode) const;
+    UTF32String GetDrawStringUTF32(const DString& strText, bool bSingleLineMode) const;
 
     /** 计算每个字符的绘制所占的矩形范围
-    * @param [in] textUTF16 字符串
+    * @param [in] textUTF32 字符串
+    * @param [in] pFont 字体
     * @param [in] pSkFont 字体
     * @param [in] skPaint 绘制属性
     * @param [in] bUseFontHeight 纵向绘制时，使用字体的默认高度，而不是每个字体的高度（显示时所有字体等高）
@@ -53,7 +55,8 @@ private:
     * @param [in] bRotate90ForAscii 纵向绘制时，对于字母数字等，旋转90度显示
     * @param [out] charRects 返回每个字符绘制所占的矩形范围
     */
-    bool CalculateTextCharBounds(const UTF16String& textUTF16, const SkFont* pSkFont, const SkPaint* skPaint,
+    bool CalculateTextCharBounds(const UTF32String& textUTF32, const IFont* pFont,
+                                 const SkFont* pSkFont, const SkPaint* skPaint,
                                  bool bUseFontHeight, float fFontHeight, bool bRotate90ForAscii,
                                  std::vector<TVerticalChar>& charRects) const;
 
@@ -80,13 +83,13 @@ private:
 
     /** 计算默认字符的宽度(用于空列的宽度计算)
     */
-    float CalculateDefaultCharWidth(const SkFont* pSkFont, const SkPaint* skPaint) const;
+    float CalculateDefaultCharWidth(const IFont* pFont, const SkFont* pSkFont, const SkPaint* skPaint) const;
 
     /** 判断竖排文本中字符是否需要旋转90度显示
-     * @param ch 宽字符（wchar_t）
+     * @param [in] ch UTF32字符
      * @return true：需要旋转90度；false：保持正立
     */
-    bool NeedRotateForVertical(DUTF16Char ch) const;
+    bool NeedRotateForVertical(DUTF32Char ch) const;
 
 private:
     /** 绘制的画布

@@ -14,12 +14,14 @@ DUILIB_CC=clang
 DUILIB_CXX=clang++
 DUILIB_COMPILER_ID=llvm
 
+# 首次构建或需要清理时: ./macos_build.sh --fresh
+DUILIB_CMAKE_REFRESH=
 cmake_version=$(cmake --version | grep -oE '[0-9]+\.[0-9]+')
 required_version=3.24
-if [ $(echo "$cmake_version >= $required_version" | bc) -eq 1 ]; then
-    DUILIB_CMAKE_REFRESH=--fresh
-else
-    DUILIB_CMAKE_REFRESH=
+if [[ "${1:-}" == "--fresh" ]]; then
+    if [ $(echo "$cmake_version >= $required_version" | bc) -eq 1 ]; then
+        DUILIB_CMAKE_REFRESH=--fresh
+    fi
 fi
 
 DUILIB_CMAKE="cmake ${DUILIB_CMAKE_REFRESH} -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_CXX"
@@ -73,7 +75,7 @@ $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib" -B "$DUILIB_BUILD_DIR/duilib" -DC
 $DUILIB_MAKE "$DUILIB_BUILD_DIR/duilib" $DUILIB_MAKE_THREADS
 
 # 编译examples下的各个程序
-DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "chat" "layout" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "cef" "CefBrowser" "ChildWindow" "XmlPreview")
+DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "chat" "layout" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "cef" "CefBrowser" "ChildWindow" "XmlPreview" "ColorTheme")
 for duilib_bin in "${DUILIB_PROGRAMS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=${DUILIB_BUILD_TYPE} -DDUILIB_SKIA_LIB_SUBPATH="$DUILIB_SKIA_LIB_SUBPATH"
     $DUILIB_MAKE "$DUILIB_BUILD_DIR/$duilib_bin" $DUILIB_MAKE_THREADS

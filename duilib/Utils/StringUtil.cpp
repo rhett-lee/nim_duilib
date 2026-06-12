@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstdarg>
 #include <vector>
+#include <climits>
 
 namespace ui
 {
@@ -170,6 +171,11 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
         {
             ASSERT(0);
             return; /* not expected, result should be -1 here */
+        }
+        // 检查 buffer_size 翻倍是否溢出（防御性）
+        if (buffer_size > (INT_MAX / 2)) {
+            ASSERT(0);
+            return;    /* too long, would overflow */
         }
         buffer_size <<= 1; /* try doubling the buffer size */
         if (buffer_size > 32 * 1024 * 1024)
@@ -1032,6 +1038,16 @@ float StringUtil::StringToFloat(const char* str, char** pEndPtr)
     return ::strtof(str, pEndPtr);
 }
 
+float StringUtil::StringToFloat(const wchar_t* str)
+{
+    return StringToFloat(str, nullptr);
+}
+
+float StringUtil::StringToFloat(const char* str)
+{
+    return StringToFloat(str, nullptr);
+}
+
 int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* src)
 {
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
@@ -1119,6 +1135,11 @@ size_t StringUtil::StringLen(const char* str)
     else {
         return ::strlen(str);
     }
+}
+
+bool StringUtil::IsValueTrue(const DString& value)
+{
+    return (value == _T("true")) || (value == _T("1"));
 }
 
 } // namespace ui

@@ -59,10 +59,10 @@ void MainForm::OnInitWindow()
     }
 
     if (layoutType == ui::LayoutType::VirtualHTileLayout) {
-        m_pOptionColumnFix->SetText(_T("固定行数"));
+        m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_ROWS"));
     }
     else if (layoutType == ui::LayoutType::VirtualVTileLayout) {
-        m_pOptionColumnFix->SetText(_T("固定列数"));
+        m_pOptionColumnFix->SetTextId(_T("STRID_VIRTUALLISTBOX_FIX_COLS"));
     }
     else {
         m_pOptionColumnFix->SetEnabled(false);
@@ -82,9 +82,9 @@ void MainForm::OnInitWindow()
     if ((pOptionAlign1 != nullptr) && (pOptionAlign2 != nullptr) && (pOptionAlign3 != nullptr)) {
         if ((layoutType == ui::LayoutType::VirtualHTileLayout) || (layoutType == ui::LayoutType::VirtualHLayout)) {
             //水平布局
-            pOptionAlign1->SetText(_T("靠上对齐(top)"));
-            pOptionAlign2->SetText(_T("居中对齐(center)"));
-            pOptionAlign3->SetText(_T("靠下对齐(bottom)"));
+            pOptionAlign1->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_TOP"));
+            pOptionAlign2->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_CENTER"));
+            pOptionAlign3->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_BOTTOM"));
             pOptionAlign2->Selected(true, true);
 
             //相应对齐方式变化，动态调整控件的对齐方式
@@ -112,9 +112,9 @@ void MainForm::OnInitWindow()
         }
         else {
             //垂直布局
-            pOptionAlign1->SetText(_T("靠左对齐(left)"));
-            pOptionAlign2->SetText(_T("居中对齐(center)"));
-            pOptionAlign3->SetText(_T("靠右对齐(right)"));
+            pOptionAlign1->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_LEFT"));
+            pOptionAlign2->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_CENTER"));
+            pOptionAlign3->SetTextId(_T("STRID_VIRTUALLISTBOX_ALIGN_RIGHT"));
             pOptionAlign2->Selected(true, true);
 
             //相应对齐方式变化，动态调整控件的对齐方式
@@ -188,6 +188,16 @@ void MainForm::OnInitWindow()
 
     //测试虚表的事件
     TestVirtualListBoxEvents(m_pTileList);
+}
+
+bool MainForm::OnLanguageChanged()
+{
+    bool bRet = BaseClass::OnLanguageChanged();
+    if (m_pDataProvider != nullptr) {
+        //语言变化时，刷新数据
+        m_pDataProvider->Refresh();
+    }
+    return bRet;
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& args)

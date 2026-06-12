@@ -127,6 +127,9 @@ public:
     //在绘制目标区域中纵向对齐方式(如果指定了rcDest值，则此选项无效)
     UiString m_vAlign;
 
+    //SVG格式的颜色替换参数(支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，现在只要一个svg就够了)
+    UiString m_svgReplaceColors;
+
     //平铺绘制相关参数
     std::unique_ptr<TiledDrawParam> m_pTiledDrawParam;
 

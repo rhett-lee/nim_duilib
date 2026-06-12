@@ -323,11 +323,11 @@ private:
 
     /** 超级链接的文本：Hover文本颜色
     */
-    UiString m_linkHoverTextColor;
+    UiString m_linkHoveredTextColor;
 
     /** 超级链接的文本：鼠标按下文本颜色
     */
-    UiString m_linkMouseDownTextColor;
+    UiString m_linkPressedTextColor;
 
     /** 文本ID
     */

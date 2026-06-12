@@ -1,9 +1,9 @@
 #include "HorizontalDrawText.h"
 #include "duilib/RenderSkia/Font_Skia.h"
+#include "duilib/RenderSkia/DrawSkiaText.h"
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
-#include "duilib/Utils/PerformanceUtil.h"
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkCanvas.h"
@@ -14,14 +14,14 @@
 
 namespace ui {
 
-HorizontalDrawText::HorizontalDrawText(SkCanvas* pSkCanvas, SkPaint* pSkPaint, SkPoint* pSkPointOrg) :
+HorizontalDrawText::HorizontalDrawText(SkCanvas* pSkCanvas, SkPaint* pSkPaint, SkPoint* pSkPointOrg):
     m_pSkCanvas(pSkCanvas),
     m_pSkPaint(pSkPaint),
     m_pSkPointOrg(pSkPointOrg)
 {
 }
 
-UTF16String HorizontalDrawText::GetDrawStringUTF16(const DString& strText, bool bSingleLineMode) const
+UTF32String HorizontalDrawText::GetDrawStringUTF32(const DString& strText, bool bSingleLineMode) const
 {
     DString text = strText;
     StringUtil::ReplaceAll(_T("\r\n"), _T("\n"), text);
@@ -31,10 +31,12 @@ UTF16String HorizontalDrawText::GetDrawStringUTF16(const DString& strText, bool 
         StringUtil::ReplaceAll(_T("\n"), _T(" "), text);
     }
 #if defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF16
+    return StringConvert::UTF16ToUTF32(text.c_str(), text.size());
+#elif defined DUILIB_UNICODE && defined WCHAR_T_IS_UTF32
     return text;
 #else
     std::string textUTF8 = StringConvert::TToUTF8(text);
-    return StringConvert::UTF8ToUTF16(textUTF8.c_str(), textUTF8.size());
+    return StringConvert::UTF8ToUTF32(textUTF8.c_str(), textUTF8.size());
 #endif
 }
 
@@ -42,16 +44,17 @@ UTF16String HorizontalDrawText::GetDrawStringUTF16(const DString& strText, bool 
 */
 struct THorizontalChar
 {
-    DUTF16Char ch;
+    DUTF32Char ch;
     bool bNewLine;  //是否为换行符
     SkSize size;    //字符绘制后的宽度和高度
     SkRect bounds;  //字符绘制后的边界信息
 };
 
-bool HorizontalDrawText::CalculateTextCharBounds(const UTF16String& textUTF16, const SkFont* pSkFont, const SkPaint* skPaint,
+bool HorizontalDrawText::CalculateTextCharBounds(const UTF32String& textUTF32, const IFont* pFont,
+                                                 const SkFont* pSkFont, const SkPaint* skPaint,
                                                  float fFontHeight, std::vector<THorizontalChar>& charRects) const
 {
-    if (textUTF16.empty()) {
+    if (textUTF32.empty()) {
         return false;
     }
     ASSERT(fFontHeight > 0);
@@ -68,10 +71,11 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF16String& textUTF16, c
     }
     //每个字符绘制所占的矩形范围
     charRects.clear();
-    charRects.reserve(textUTF16.size());
+    charRects.reserve(textUTF32.size());
 
+    constexpr SkScalar fMinCharSize = 0.01f;
     THorizontalChar horizontalChar;
-    for (DUTF16Char ch : textUTF16) {
+    for (DUTF32Char ch : textUTF32) {
         horizontalChar.ch = ch;
         if (ch == L'\n') {
             //换行符
@@ -82,19 +86,13 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF16String& textUTF16, c
         }
         else {
             horizontalChar.bNewLine = false;
-            SkScalar fTextWidth = pSkFont->measureText(&ch,
-                                                       sizeof(DUTF16Char),
-                                                       SkTextEncoding::kUTF16,
-                                                       &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
-                                                       skPaint);
-            if ((horizontalChar.bounds.width() <= 0) || (horizontalChar.bounds.height() <= 0)) {
+            SkScalar fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
+                                                                skPaint, pFont, true);
+            if ((fTextWidth < fMinCharSize) || (horizontalChar.bounds.width() < fMinCharSize) || (horizontalChar.bounds.height() < fMinCharSize)) {
                 //空格或者不可见字符(按小写字母确定显示区域)
-                ch = 'a';
-                fTextWidth = pSkFont->measureText(&ch,
-                                                  sizeof(DUTF16Char),
-                                                  SkTextEncoding::kUTF16,
-                                                  &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
-                                                  skPaint);
+                ch = DrawSkiaText::GetMeasureDefaultChar();
+                fTextWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch, &horizontalChar.bounds,//斜体字时，这个宽度包含了外延的宽度
+                                                           skPaint, pFont, true);
             }
 
             //用字体高度作为字的高度，所有字都等高
@@ -102,7 +100,7 @@ bool HorizontalDrawText::CalculateTextCharBounds(const UTF16String& textUTF16, c
             charRects.push_back(horizontalChar);
         }
     }
-    return (charRects.size() == textUTF16.size());
+    return (charRects.size() == textUTF32.size());
 }
 
 SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THorizontalChar>& charRects, int32_t width, bool bSingleLineMode,
@@ -280,18 +278,15 @@ SkRect HorizontalDrawText::CalculateHorizontalTextBounds(const std::vector<THori
     return SkRect::MakeWH(maxX, maxY);
 }
 
-float HorizontalDrawText::CalculateDefaultCharWidth(const SkFont* pSkFont, const SkPaint* skPaint) const
+float HorizontalDrawText::CalculateDefaultCharWidth(const IFont* pFont, const SkFont* pSkFont, const SkPaint* skPaint) const
 {
     if ((pSkFont == nullptr) || (skPaint == nullptr)) {
         return 0;
     }
-    DUTF16Char ch = L'W';
+    DUTF32Char ch = DrawSkiaText::GetMeasureDefaultChar();
     SkRect bounds;
-    SkScalar fCharWidth = pSkFont->measureText(&ch,
-                                               sizeof(DUTF16Char),
-                                               SkTextEncoding::kUTF16,
-                                               &bounds,//斜体字时，这个宽度包含了外延的宽度
-                                               skPaint);
+    SkScalar fCharWidth = DrawSkiaText::MeasureTextChar(*pSkFont, ch,  &bounds,//斜体字时，这个宽度包含了外延的宽度
+                                                        skPaint, pFont, true);
 
     SkScalar nWidthDiff = 0;
     if (bounds.fLeft < 0) {
@@ -308,7 +303,6 @@ float HorizontalDrawText::CalculateDefaultCharWidth(const SkFont* pSkFont, const
 
 UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureStringParam& measureParam)
 {
-    PerformanceStat statPerformance(_T("HorizontalDrawText::MeasureString"));
     ASSERT((m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
         return UiRect();
@@ -347,20 +341,20 @@ UiRect HorizontalDrawText::MeasureString(const DString& strText, const MeasureSt
         return UiRect();
     }
 
-    //绘制文本始终使用UTF16编码
-    const UTF16String textUTF16 = GetDrawStringUTF16(strText, bSingleLineMode);
+    //绘制文本始终使用UTF32编码
+    const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<THorizontalChar> charRects;
-    if (!CalculateTextCharBounds(textUTF16, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
+    if (!CalculateTextCharBounds(textUTF32, measureParam.pFont, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
         return UiRect();
     }
-    ASSERT(charRects.size() == textUTF16.size());
-    if (charRects.size() != textUTF16.size()) {
+    ASSERT(charRects.size() == textUTF32.size());
+    if (charRects.size() != textUTF32.size()) {
         return UiRect();
     }
 
     //默认字符的宽度
-    float fDefaultCharWidth = CalculateDefaultCharWidth(pSkFont, &skPaint);
+    float fDefaultCharWidth = CalculateDefaultCharWidth(measureParam.pFont, pSkFont, &skPaint);
     SkRect skTextBounds = CalculateHorizontalTextBounds(charRects, measureParam.rectSize, bSingleLineMode,
                                                         measureParam.fSpacingMul, measureParam.fSpacingAdd,
                                                         measureParam.fWordSpacing,
@@ -382,7 +376,6 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
 {
     // 备注：横向文本绘制不支持以下功能
     // 1. 文本风格：DrawStringFormat::TEXT_PATH_ELLIPSIS 不支持，按DrawStringFormat::TEXT_END_ELLIPSIS处理
-    PerformanceStat statPerformance(_T("HorizontalDrawText::DrawString"));
     ASSERT((m_pSkCanvas != nullptr) && (m_pSkPaint != nullptr) && (m_pSkPointOrg != nullptr));
     if ((m_pSkCanvas == nullptr) || (m_pSkPaint == nullptr) || (m_pSkPointOrg == nullptr)) {
         return;
@@ -454,20 +447,20 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
         fWordHorizontalSpacing = 0;
     }
 
-    //绘制文本始终使用UTF16编码
-    const UTF16String textUTF16 = GetDrawStringUTF16(strText, bSingleLineMode);
+    //绘制文本始终使用UTF32编码
+    const UTF32String textUTF32 = GetDrawStringUTF32(strText, bSingleLineMode);
 
     std::vector<THorizontalChar> charRects;
-    if (!CalculateTextCharBounds(textUTF16, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
+    if (!CalculateTextCharBounds(textUTF32, drawParam.pFont, pSkFont, &skPaint, (float)fFontHeight, charRects)) {
         return;
     }
-    ASSERT(charRects.size() == textUTF16.size());
-    if (charRects.size() != textUTF16.size()) {
+    ASSERT(charRects.size() == textUTF32.size());
+    if (charRects.size() != textUTF32.size()) {
         return;
     }
 
     // 默认字符宽度
-    float fDefaultCharWidth = CalculateDefaultCharWidth(pSkFont, &skPaint);
+    float fDefaultCharWidth = CalculateDefaultCharWidth(drawParam.pFont, pSkFont, &skPaint);
 
     std::vector<std::vector<int32_t>> rowColumns;
     std::vector<float> rowHeights;
@@ -485,7 +478,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
     //记录每个字符的绘制位置，后续还需要处理对齐方式
     struct TDrawCharPos
     {
-        DUTF16Char ch = 0;          //字符
+        DUTF32Char ch = 0;          //字符
         int32_t nRowIndex = 0;      //行序号
         int32_t nColumnIndex = 0;   //列序号
         SkScalar xPos = 0;          //绘制时的X坐标
@@ -728,9 +721,7 @@ void HorizontalDrawText::DrawString(const DString& strText, const DrawStringPara
         }
 
         charPos.bDrew = true;
-        skCanvas->drawSimpleText(&charPos.ch, sizeof(charPos.ch), SkTextEncoding::kUTF16,
-                                 charPos.xPos, charPos.yPos,
-                                 *pSkFont, skPaint);
+        DrawSkiaText::DrawSimpleText(skCanvas, charPos.ch, charPos.xPos, charPos.yPos, *pSkFont, skPaint, drawParam.pFont);
     }
 
     // 绘制下划线/删除线

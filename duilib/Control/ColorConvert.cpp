@@ -111,13 +111,16 @@ int ColorConvert::HSV2RGB(double hue, double sat, double value, double* red, dou
     if (sat < 0.0 || sat > 1.0 || value < 0.0 || value > 1.0) return (-1);
     if (hue < 0.0 || hue > 360.0) return (-1);
 
-    // gray?
-    if (sat == 0.0)
+    // gray? 使用 epsilon 容差比较，避免浮点精度问题
+    constexpr double kSatEpsilon = 1e-6;
+    if (sat < kSatEpsilon)
         *red = *green = *blue = value;
     else
     {
         // hue (chromatic) 360 == hue 0
-        if (hue == 360.0) hue = 0;
+        // 使用容差比较，hue 接近 360 时归一化为 0
+        constexpr double kHueEpsilon = 1e-6;
+        if (hue > 360.0 - kHueEpsilon) hue = 0;
         hue = hue / 60;                         // hue in [0, 6)
         frac = modf(hue, &intp);                // split hue to integer and fraction
         coef1 = value * (1 - sat);
@@ -174,7 +177,9 @@ int ColorConvert::RGB2HSV(double red, double green, double blue, double* hue, do
         // red = green = blue = 0
         *sat = 0.0;
 
-    if (*sat == 0.0)
+    // 使用 epsilon 容差比较
+    constexpr double kSatEpsilon = 1e-6;
+    if (*sat < kSatEpsilon)
         *hue = 0.0;
     else
     {

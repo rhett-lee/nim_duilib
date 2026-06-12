@@ -11,11 +11,10 @@ MainThread::~MainThread()
 {
 }
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //初始化WebView2的基本配置
@@ -24,6 +23,7 @@ void MainThread::OnInit()
 
     //创建窗口, 显示默认页面
     BrowserManager::GetInstance()->CreateBorwserBox(nullptr, "", _T(""));
+    return true;
 }
 
 void MainThread::OnCleanup()

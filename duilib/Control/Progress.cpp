@@ -37,6 +37,47 @@ Progress::~Progress()
 
 DString Progress::GetType() const { return DUI_CTR_PROGRESS; }
 
+void Progress::SetAttribute(const DString& srName, const DString& strValue2)
+{
+    DString strValue = GetExpandVarStrings(strValue2);
+    if ((srName == _T("horizontal")) || (srName == _T("hor"))) {
+        SetHorizontal(StringUtil::IsValueTrue(strValue));
+    }
+    else if (srName == _T("min")) {
+        SetMinValue(StringUtil::StringToInt32(strValue));
+    }
+    else if (srName == _T("max")) {
+        SetMaxValue(StringUtil::StringToInt32(strValue));
+    }
+    else if (srName == _T("value")) {
+        SetValue(StringUtil::StringToInt32(strValue));
+    }
+    else if ((srName == _T("progress_image")) || (srName == _T("progressimage"))) {
+        SetProgressImage(strValue);
+    }
+    else if ((srName == _T("stretch_fore_image")) || (srName == _T("is_stretch_fore")) || (srName == _T("isstretchfore"))) {
+        SetStretchForeImage(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((srName == _T("progress_color")) || (srName == _T("progresscolor"))) {
+        SetProgressColor(strValue);
+    }
+    else if (srName == _T("marquee")) {
+        SetMarquee(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((srName == _T("marquee_width")) || (srName == _T("marqueewidth"))) {
+        SetMarqueeWidth(StringUtil::StringToInt32(strValue), true);
+    }
+    else if ((srName == _T("marquee_step")) || (srName == _T("marqueestep"))) {
+        SetMarqueeStep(StringUtil::StringToInt32(strValue), true);
+    }
+    else if (srName == _T("reverse")) {
+        SetReverse(StringUtil::IsValueTrue(strValue));
+    }
+    else {
+        Label::SetAttribute(srName, strValue);
+    }
+}
+
 bool Progress::IsHorizontal() const
 {
     return m_bHorizontal;
@@ -140,46 +181,6 @@ void Progress::SetProgressColor(const DString& strProgressColor)
     }
     m_sProgressColor = strProgressColor;
     Invalidate();
-}
-
-void Progress::SetAttribute(const DString& srName, const DString& strValue)
-{
-    if ((srName == _T("horizontal")) || (srName == _T("hor"))){
-        SetHorizontal(strValue == _T("true"));
-    }
-    else if (srName == _T("min")) {
-        SetMinValue(StringUtil::StringToInt32(strValue));
-    }
-    else if (srName == _T("max")) {
-        SetMaxValue(StringUtil::StringToInt32(strValue));
-    }
-    else if (srName == _T("value")) {
-        SetValue(StringUtil::StringToInt32(strValue));
-    }
-    else if ((srName == _T("progress_image")) || (srName == _T("progressimage"))){
-        SetProgressImage(strValue);
-    }
-    else if ((srName == _T("stretch_fore_image")) || (srName == _T("is_stretch_fore")) || (srName == _T("isstretchfore"))){
-        SetStretchForeImage(strValue == _T("true"));
-    }
-    else if ((srName == _T("progress_color")) || (srName == _T("progresscolor"))) {
-        SetProgressColor(strValue);
-    }
-    else if (srName == _T("marquee")) {
-        SetMarquee(strValue == _T("true"));
-    }
-    else if ((srName == _T("marquee_width")) || (srName == _T("marqueewidth"))){
-        SetMarqueeWidth(StringUtil::StringToInt32(strValue), true);
-    }
-    else if ((srName == _T("marquee_step")) || (srName == _T("marqueestep"))){
-        SetMarqueeStep(StringUtil::StringToInt32(strValue), true);
-    }
-    else if (srName == _T("reverse")) {
-        SetReverse(strValue == _T("true"));
-    }
-    else {
-        Label::SetAttribute(srName, strValue);
-    }
 }
 
 void Progress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -347,7 +348,7 @@ void Progress::PaintMarquee(IRender* pRender)
         return;
     }
     if (!m_sProgressColor.empty()) {
-        UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor.c_str());
+        UiColor dwProgressColor = GetUiColor(m_sProgressColor.c_str());
         if (dwProgressColor.GetARGB() != 0) {
             ui::UiRect rc = GetRect();
             if (IsHorizontal()) {

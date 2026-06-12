@@ -25,7 +25,7 @@ public:
     virtual DString GetType() const override;
     virtual void SetFocus() override;
     virtual bool ButtonUp(const EventArgs& msg) override;
-    virtual bool HasHotState() override;
+    virtual bool HasHoveredState() override;
     virtual bool MouseEnter(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;
 

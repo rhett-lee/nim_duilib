@@ -120,6 +120,7 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
         nRet = ::unzOpenCurrentFile(m_hzip);
     }
     if (nRet != UNZ_OK) {
+        ASSERT(!"ZipManager: unzOpenCurrentFile failed");
         return false;
     }
 
@@ -225,9 +226,19 @@ void ZipManager::CloseResZip()
     m_pZipStreamIO.reset();
 }
 
-bool ZipManager::GetZipFileList(const FilePath& dirPath, std::vector<DString>& fileList) const
+bool ZipManager::GetZipFileList(const FilePath& dirPath,
+                                std::vector<DString>* fileList,
+                                std::vector<DString>* dirList) const
 {
-    fileList.clear();
+    if (fileList != nullptr) {
+        fileList->clear();
+    }
+    if (dirList != nullptr) {
+        dirList->clear();
+    }
+    if ((fileList == nullptr) && (dirList == nullptr)) {
+        return false;
+    }
     GlobalManager::Instance().AssertUIThread();
     DString filePath = dirPath.NativePath();
     if (!filePath.empty() &&
@@ -275,12 +286,21 @@ bool ZipManager::GetZipFileList(const FilePath& dirPath, std::vector<DString>& f
             //14 - VFAT
             bDir = (file_info.external_fa & 0x00000010) != 0;
         }
-        if (!bDir) {
+        if (!fileName.empty()) {
             size_t nPos = fileName.find(innerPath);
             if ((nPos == 0) && (fileName.size() > innerPath.size())) {
                 fileName = fileName.substr(innerPath.size());
                 if (fileName.find(_T('/')) == DString::npos) {
-                    fileList.push_back(fileName);
+                    if (!bDir) {
+                        if (fileList != nullptr) {
+                            fileList->push_back(fileName);
+                        }
+                    }
+                    else {
+                        if (dirList != nullptr) {
+                            dirList->push_back(fileName);
+                        }
+                    }
                 }
             }
         }

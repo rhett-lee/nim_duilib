@@ -99,10 +99,30 @@ public:
     }
 
     /** 将ARGB颜色转换为COLORREF颜色值（COLORREF仅包含RGB值，不含A值）
+    * @param [in] bDarkThemeStyle true表示为深色主题模式，false表示浅色主题模式
     */
-    uint32_t ToCOLORREF() const
+    uint32_t ToCOLORREF(bool bDarkThemeStyle) const
     {
-        return RGB(GetRed(), GetGreen(), GetBlue());
+        if (GetA() == 255) {
+            //无透明度
+            return RGB(GetRed(), GetGreen(), GetBlue());
+        }
+        else {
+            if (bDarkThemeStyle) {
+                //深色主题
+                uint32_t R = (uint32_t)GetA() * GetR() / 255;
+                uint32_t G = (uint32_t)GetA() * GetG() / 255;
+                uint32_t B = (uint32_t)GetA() * GetB() / 255;
+                return RGB((uint8_t)R, (uint8_t)G, (uint8_t)B);
+            }
+            else {
+                //浅色主题
+                uint32_t R = (uint32_t)GetA() * GetR() / 255 + 255 - GetA();
+                uint32_t G = (uint32_t)GetA() * GetG() / 255 + 255 - GetA();
+                uint32_t B = (uint32_t)GetA() * GetB() / 255 + 255 - GetA();
+                return RGB((uint8_t)R, (uint8_t)G, (uint8_t)B);
+            }
+        }
     }
 
     /** 判断是否与另外一个点相同

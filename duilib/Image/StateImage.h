@@ -58,9 +58,9 @@ public:
     Image* GetStateImage(ControlStateType stateType) const;
 
 public:
-    /** 是否包含Hot状态的图片
+    /** 是否包含Hovered状态的图片
     */
-    bool HasHotImage() const;
+    bool HasHoveredImage() const;
 
     /** 是否包含状态图片
     */

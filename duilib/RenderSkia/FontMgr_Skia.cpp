@@ -1,6 +1,5 @@
 #include "FontMgr_Skia.h"
 #include "duilib/Utils/StringConvert.h"
-#include "duilib/Utils/PerformanceUtil.h"
 
 #include "SkiaHeaderBegin.h"
 #include "include/core/SkFontMgr.h"
@@ -25,7 +24,7 @@
 
 #include "SkiaHeaderEnd.h"
 
-#include <map>
+#include <unordered_map>
 
 namespace ui
 {
@@ -185,12 +184,21 @@ public:
 
     /** 字体名称对应的FontStyleSet缓存（发现部分Linux系统创建字体时，速度特别慢，调用一次需要几十毫秒，所以有必要做缓存）
     */
-    std::map<std::string, sk_sp<SkFontStyleSet>> m_fontStyleSetMap;
+    std::unordered_map<std::string, sk_sp<SkFontStyleSet>> m_fontStyleSetMap;
+
+    /** 字体名称缓存
+    */
+    std::unordered_map<DString, bool> m_fontNameMap;
+
+    /** 字体回退管理器（生命周期由设置者管理）
+    */
+    IFallbackFontMgr* m_pFallbackFontMgr;
 };
 
 FontMgr_Skia::FontMgr_Skia()
 {
     m_impl = new TImpl;
+    m_impl->m_pFallbackFontMgr = nullptr;
 
     //创建Skia的字体管理器对象，进程内唯一
 #if defined(SK_BUILD_FOR_WIN)
@@ -256,18 +264,23 @@ bool FontMgr_Skia::HasFontName(const DString& fontName) const
     if (fontName.empty()) {
         return false;
     }
+    auto iterFontName = m_impl->m_fontNameMap.find(fontName);
+    if (iterFontName != m_impl->m_fontNameMap.end()) {
+        //优先从缓存中匹配
+        return iterFontName->second;
+    }
 
     ASSERT(m_impl->m_pSkFontMgr != nullptr);
     if (m_impl->m_pSkFontMgr == nullptr) {
         return false;
     }
     bool bFound = false;
-    std::string fontFamily = StringConvert::TToUTF8(fontName); //转换为UTF8格式
-    int nCountFamilies = m_impl->m_pSkFontMgr->countFamilies();
+    const std::string dstFontFamily = StringConvert::TToUTF8(fontName); //转换为UTF8格式
+    const int nCountFamilies = m_impl->m_pSkFontMgr->countFamilies();
     for (int nIndex = 0; nIndex < nCountFamilies; ++nIndex) {
-        SkString fontFamilyName;
+        SkString fontFamilyName;//字体名称，该名称为与系统语言相同的字体名称，比如中文版时返回"微软雅黑"，英文版时返回"Microsoft YaHei"，所以很可能匹配不到设置的字体
         m_impl->m_pSkFontMgr->getFamilyName((int)nIndex, &fontFamilyName);
-        if (!fontFamilyName.isEmpty() && (fontFamily == fontFamilyName.c_str())) {
+        if (!fontFamilyName.isEmpty() && (dstFontFamily == fontFamilyName.c_str())) {
             bFound = true;
             break;
         }
@@ -275,6 +288,33 @@ bool FontMgr_Skia::HasFontName(const DString& fontName) const
     if (!bFound) {
         bFound = m_impl->m_fontFileMgr.HasFontName(fontName);
     }
+    if (!bFound) {
+        //使用字体本身的名称（每个语言一个名称），进行精确匹配字体名称
+        for (int nIndex = 0; nIndex < nCountFamilies; ++nIndex) {
+            SkString fontFamilyName;
+            m_impl->m_pSkFontMgr->getFamilyName((int)nIndex, &fontFamilyName);
+            if (!fontFamilyName.isEmpty()) {
+                auto skTypeFace = m_impl->m_pSkFontMgr->legacyMakeTypeface(fontFamilyName.c_str(), SkFontStyle::Normal());
+                if (skTypeFace != nullptr) {
+                    SkTypeface::LocalizedStrings* iter = skTypeFace->createFamilyNameIterator();
+                    if (iter != nullptr) {
+                        SkTypeface::LocalizedString ls;
+                        while (iter->next(&ls)) {
+                            if (!ls.fString.isEmpty() && (dstFontFamily == ls.fString.c_str())) {
+                                bFound = true;
+                                break;
+                            }
+                        }
+                        iter->unref();
+                    }
+                }                        
+            }
+            if (bFound) {
+                break;
+            }
+        }
+    }
+    m_impl->m_fontNameMap[fontName] = bFound;
     return bFound;
 }
 
@@ -307,6 +347,11 @@ bool FontMgr_Skia::LoadFontFile(const DString& fontFilePath)
         return false;
     }
     sk_sp<SkTypeface> spTypeface = m_impl->m_pSkFontMgr->makeFromFile(fontFile.c_str());
+    if (spTypeface == nullptr) {
+        //加载失败不加断言
+        return false;
+    }
+    m_impl->m_fontNameMap.clear();
     return m_impl->m_fontFileMgr.AddFontTypeface(spTypeface);
 }
 
@@ -323,22 +368,24 @@ bool FontMgr_Skia::LoadFontFileData(const void* data, size_t length)
         return false;
     }
     sk_sp<SkTypeface> spTypeface = m_impl->m_pSkFontMgr->makeFromData(skData);
+    m_impl->m_fontNameMap.clear();
     return m_impl->m_fontFileMgr.AddFontTypeface(spTypeface);
 }
 
 void FontMgr_Skia::ClearFontFiles()
 {
+    m_impl->m_fontNameMap.clear();
     m_impl->m_fontFileMgr.Clear();
 }
 
 void FontMgr_Skia::ClearFontCache()
 {
+    m_impl->m_fontNameMap.clear();
     m_impl->m_fontStyleSetMap.clear();
 }
 
 SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
 {
-    PerformanceStat statPerformance(_T("FontMgr_Skia::CreateSkFont"));
     ASSERT(!fontInfo.m_fontName.empty());
     if (fontInfo.m_fontName.empty()) {
         return nullptr;
@@ -433,6 +480,16 @@ void FontMgr_Skia::DeleteSkFont(SkFont* pSkFont)
 void* FontMgr_Skia::GetSkiaFontMgrPtr() const
 {
     return &(m_impl->m_pSkFontMgr);
+}
+
+void FontMgr_Skia::SetFallbackFontMgr(IFallbackFontMgr* pFallbackFontMgr)
+{
+    m_impl->m_pFallbackFontMgr = pFallbackFontMgr;
+}
+
+IFallbackFontMgr* FontMgr_Skia::GetFallbackFontMgr() const
+{
+    return m_impl->m_pFallbackFontMgr;
 }
 
 } // namespace ui

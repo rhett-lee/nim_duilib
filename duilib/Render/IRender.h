@@ -40,6 +40,26 @@ public:
     /** 字体的删除线状态
     */
     virtual bool IsStrikeOut() const = 0;
+
+    /** 当前字体是否支持指定的Unicode字符
+    * @param [in] unicodeChar UTF32字符
+    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    */
+    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar, uint16_t* glyphId) = 0;
+};
+
+/** 字体回退管理器（当支持的字体无法显示字符时，会查询回退字体管理器，以正确显示文字）
+*/
+class DUILIB_API IFallbackFontMgr : public virtual SupportWeakCallback
+{
+public:
+    /** 创建指定字体的回退字体接口
+    * @param [in] pFont 当前字体接口
+    * @param [in] unicodeChar UTF32字符，如果为0表示不支持字符检测
+    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    * @return 返回对应的回退字体接口
+    */
+    virtual IFont* CreateFallbackFont(const IFont* pFont, uint32_t unicodeChar, uint16_t* glyphId) = 0;
 };
 
 /** 字体管理器接口
@@ -90,6 +110,16 @@ public:
     /** 清除字体缓存
     */
     virtual void ClearFontCache() = 0;
+
+    /** 设置字体回退管理器
+    * @param [in] 字体回退管理器(生命周期由设置者来管理)
+    */
+    virtual void SetFallbackFontMgr(IFallbackFontMgr* pFallbackFontMgr) = 0;
+
+    /** 获取字体回退管理器
+    * @return 返回字体回退管理器，外部不应存储该指针
+    */
+    virtual IFallbackFontMgr* GetFallbackFontMgr() const = 0;
 };
 
 /** Skia引擎需要传入Alpha类型
@@ -821,20 +851,23 @@ public:
     /** 设置矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rc剪辑区域，与当前剪辑区取交集作为新的剪辑区域
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
+    * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
     */
-    virtual void SetClip(const UiRect& rc, bool bIntersect = true) = 0;
+    virtual int32_t SetClip(const UiRect& rc, bool bIntersect = true) = 0;
 
     /** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rcItem 剪辑区域，与当前剪辑区取交集作为新的剪辑区域
     * @param [in] rx 圆角的宽度
     * @param [in] ry 圆角的的高度
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
+    * @return 返回当前设备上下文标志，在调用ClearClip的时候需要传回该返回值，错误时返回-1
     */
-    virtual void SetRoundClip(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
+    virtual int32_t SetRoundClip(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
 
     /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
+    * @return [in] nState 设备上下文标志, 由SetClip或者SetRoundClip函数返回
     */
-    virtual void ClearClip() = 0;
+    virtual void ClearClip(int32_t nState) = 0;
 
     /** 函数执行与从指定源设备上下文到目标设备上下文中的像素矩形对应的颜色数据的位块传输
     * @param [in] x 目标矩形左上角的 x 坐标

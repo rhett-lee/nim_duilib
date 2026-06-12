@@ -60,9 +60,12 @@ public:
 
     /** 获取指定目录下的文件名称列表
     * @param [in] dirPath 目录名称(压缩包内路径)
-    * @param [out] fileList 返回该目录下的文件列表
+    * @param [out] fileList 返回该目录下的文件列表（不含目录），可以为nullptr
+    * @param [out] dirList 返回该目录下的目录列表（不含文件），可以为nullptr
     */
-    bool GetZipFileList(const FilePath& dirPath, std::vector<DString>& fileList) const;
+    bool GetZipFileList(const FilePath& dirPath,
+                        std::vector<DString>* fileList,
+                        std::vector<DString>* dirList) const;
 
     /** 关闭压缩包
     */

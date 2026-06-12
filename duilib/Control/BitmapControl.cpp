@@ -1,6 +1,7 @@
 #include "BitmapControl.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/FileUtil.h"
@@ -27,8 +28,9 @@ BitmapControl::~BitmapControl()
 
 DString BitmapControl::GetType() const { return DUI_CTR_BITMAP_CONTROL; }
 
-void BitmapControl::SetAttribute(const DString& strName, const DString& strValue)
+void BitmapControl::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("bitmap_halign")) {
         ASSERT((strValue == _T("left")) || (strValue == _T("center")) || (strValue == _T("right")));
         if (strValue == _T("center")) {
@@ -87,13 +89,13 @@ void BitmapControl::SetAttribute(const DString& strName, const DString& strValue
         SetBitmapMargin(rcMargin, true);
     }
     else if (strName == _T("bitmap_adaptive_dest_rect")) {
-        SetAdaptiveDestRect(strValue == _T("true"));
+        SetAdaptiveDestRect(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("bitmap_stretch")) {
-        SetStretchedDrawing(strValue == _T("true"));
+        SetStretchedDrawing(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("bitmap_multi_thread")) {
-        SetSupportMultiThread(strValue == _T("true"));
+        SetSupportMultiThread(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("bitmap_file")) {
         //设置关联的图片文件：主要用于测试
@@ -447,14 +449,27 @@ void BitmapControl::CheckLoadBitmapFile()
 {
     if (!m_bitmapFile.empty() && (m_pBitmap == nullptr)) {
         //加载指定的图片: 加载图片数据时无优化，仅供测试功能时使用
-        ImageDecodeParam decodeParam;
-        FilePath resPath = ui::GlobalManager::Instance().GetResourcePath();
-        resPath += m_bitmapFile.c_str();
-        decodeParam.m_imageFilePath = resPath;
-        decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
-        decodeParam.m_fImageSizeScale = Dpi().GetDisplayScale();
-        FileUtil::ReadFileData(decodeParam.m_imageFilePath, *decodeParam.m_pFileData);
-        std::shared_ptr<IBitmap> pBitmap = GlobalManager::Instance().ImageDecoders().DecodeImageData(decodeParam);
+        FilePath bitmapFileFullPath;
+        std::vector<uint8_t> bitmapFileData;
+        const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+        FilePath windowResPath;
+        if (GetWindow() != nullptr) {
+            windowResPath = GetWindow()->GetResourcePath();
+        }
+        std::shared_ptr<IBitmap> pBitmap;
+        if (themeMgr.GetResFile(FilePath(m_bitmapFile.c_str()), windowResPath, bitmapFileFullPath, bitmapFileData)) {
+            ImageDecodeParam decodeParam;
+            decodeParam.m_imageFilePath = bitmapFileFullPath;
+            decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+            decodeParam.m_fImageSizeScale = Dpi().GetDisplayScale();
+            if (bitmapFileData.empty()) {
+                FileUtil::ReadFileData(decodeParam.m_imageFilePath, *decodeParam.m_pFileData);
+            }
+            else {
+                decodeParam.m_pFileData->swap(bitmapFileData);
+            }            
+            pBitmap = GlobalManager::Instance().ImageDecoders().DecodeImageData(decodeParam);
+        }        
         ASSERT(pBitmap != nullptr);
         if (pBitmap != nullptr) {
             SetBitmapDataWithCopy(pBitmap.get());
@@ -569,8 +584,16 @@ void BitmapControl::PaintBitmap(IRender* pRender, const UiRect& rcPaint)
     //按需加载指定的图片
     CheckLoadBitmapFile();
 
+#if DUILIB_PERFORMANCE_STAT_ENABLED
     //统计绘制图片的性能
-    PerformanceStat statPerformance(_T("BitmapControl::Paint"));
+    static size_t statNameHash = 0;
+    if (statNameHash == 0) {
+        DString statName = _T("PaintWindow, BitmapControl::Paint");
+        statNameHash = std::hash<DString>{}(statName);
+        PerformanceUtilHelper::Instance().AddStat(statName);
+    }
+    PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
 
     //支持多线程时，对m_pBitmap操作前先加锁
     std::unique_ptr<std::unique_lock<std::mutex>> spMutexLock;

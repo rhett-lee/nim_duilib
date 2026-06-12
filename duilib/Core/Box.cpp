@@ -1,5 +1,6 @@
 #include "Box.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 
 namespace ui
@@ -37,13 +38,14 @@ Box::~Box()
 
 DString Box::GetType() const { return DUI_CTR_BOX; }
 
-void Box::SetAttribute(const DString& strName, const DString& strValue)
+void Box::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (m_pLayout->SetAttribute(strName, strValue, Dpi())) {
         return;
     }
     else if ((strName == _T("mouse_child")) || (strName == _T("mousechild"))) {
-        SetMouseChildEnabled(strValue == _T("true"));
+        SetMouseChildEnabled(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("drag_out_id")) {
         uint8_t nValue = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
@@ -74,13 +76,24 @@ void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 }
 
-void Box::OnLanguageChanged()
+void Box::OnLanguageChanged(bool bRedraw)
 {
-    BaseClass::OnLanguageChanged();
+    BaseClass::OnLanguageChanged(bRedraw);
     for (auto pControl : m_items) {
         ASSERT(pControl != nullptr);
         if (pControl != nullptr) {
-            pControl->OnLanguageChanged();
+            pControl->OnLanguageChanged(bRedraw);
+        }
+    }
+}
+
+void Box::OnThemeChanged(bool bRedraw)
+{
+    BaseClass::OnThemeChanged(bRedraw);
+    for (auto pControl : m_items) {
+        ASSERT(pControl != nullptr);
+        if (pControl != nullptr) {
+            pControl->OnThemeChanged(bRedraw);
         }
     }
 }
@@ -169,7 +182,7 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    if ((pRender != nullptr) && IsShowFocusRect() && IsFocused()) {
+    if ((pRender != nullptr) && IsShowFocusedRect() && IsFocused()) {
         DoPaintFocusRect(pRender);    //绘制焦点状态
     }
 }
@@ -512,6 +525,9 @@ bool Box::DoRemoveItem(Control* pControl)
                     delete pControl;
                 }                
             }
+            else {
+                pControl->SetParent(nullptr);
+            }
             Arrange();
             return true;
         }
@@ -526,6 +542,13 @@ void Box::RemoveAllItems()
     if (m_bAutoDestroyChild) {
         for(Control* pControl : items) {
             delete pControl;
+        }
+    }
+    else {
+        for (Control* pControl : items) {
+            if (pControl != nullptr) {
+                pControl->SetParent(nullptr);
+            }
         }
     }
     if (!items.empty()) {

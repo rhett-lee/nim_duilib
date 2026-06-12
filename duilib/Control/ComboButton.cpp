@@ -52,7 +52,7 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     if (bActivated) {
         ShowWindow(ui::kSW_SHOW_NORMAL);
         KeepParentActive();
-        pOwner->SetState(kControlStateHot);
+        pOwner->SetState(kControlStateHovered);
     }
     else {
         ShowWindow(ui::kSW_SHOW_NA);
@@ -255,7 +255,7 @@ ComboButton::ComboButton(Window* pWindow) :
     m_pLabelBottom(nullptr),
     m_pRightButton(nullptr),
     m_bDropListShown(false),
-    m_nShadowType(Shadow::ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowMenu)
 {
     m_pComboBox = new Box(pWindow);
     SetDropBoxSize({0, 150}, true);
@@ -289,8 +289,9 @@ ComboButton::~ComboButton()
 
 DString ComboButton::GetType() const { return DUI_CTR_COMBO_BUTTON; }
 
-void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
+void ComboButton::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize")) ) {
         //设置下拉列表的大小（宽度和高度）
         UiSize szDropBoxSize;
@@ -299,7 +300,7 @@ void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
         //下拉列表是否向上弹出
-        SetPopupTop(strValue == _T("true"));
+        SetPopupTop(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("combo_box_class")) {
         SetComboBoxClass(strValue);
@@ -338,7 +339,7 @@ void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("shadow_type")) {
         //设置下拉窗口的阴影类型
-        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        ShadowType nShadowType = ShadowType::kShadowDefault;
         if (Shadow::GetShadowType(strValue, nShadowType)) {
             SetComboWndShadowType(nShadowType);
         }
@@ -348,7 +349,7 @@ void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
     }
 }
 
-void ComboButton::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+void ComboButton::SetComboWndShadowType(ShadowType nShadowType)
 {
     m_nShadowType = nShadowType;
     if (m_pWindow != nullptr) {
@@ -356,7 +357,7 @@ void ComboButton::SetComboWndShadowType(Shadow::ShadowType nShadowType)
     }
 }
 
-Shadow::ShadowType ComboButton::GetComboWndShadowType() const
+ShadowType ComboButton::GetComboWndShadowType() const
 {
     return m_nShadowType;
 }
@@ -465,24 +466,6 @@ void ComboButton::SetComboBoxClass(const DString& classValue)
     }
 }
 
-void ComboButton::ParseAttributeList(const DString& strList,
-                               std::vector<std::pair<DString, DString>>& attributeList) const
-{
-    if (strList.empty()) {
-        return;
-    }
-    DString strValue = strList;
-    //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
-    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
-    }
-    else if (strValue.find(_T("\'")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
-    }
-}
-
 void ComboButton::SetAttributeList(Control* pControl, const DString& classValue)
 {
     ASSERT(pControl != nullptr);
@@ -490,7 +473,7 @@ void ComboButton::SetAttributeList(Control* pControl, const DString& classValue)
         return;
     }
     std::vector<std::pair<DString, DString>> attributeList;
-    ParseAttributeList(classValue, attributeList);
+    AttributeUtil::ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
         for (const auto& attribute : attributeList) {
@@ -522,17 +505,17 @@ DString ComboButton::GetBorderColor(ControlStateType stateType) const
 {
     DString borderColor;
     if (borderColor.empty() && (m_pLeftButton != nullptr)) {
-        if (m_pLeftButton->IsFocused() || m_pLeftButton->IsMouseFocused() || m_pLeftButton->IsHotState()) {
-            borderColor = BaseClass::GetBorderColor(kControlStateHot);
+        if (m_pLeftButton->IsFocused() || m_pLeftButton->IsMouseFocused() || m_pLeftButton->IsHoveredState()) {
+            borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }
     }
     if (borderColor.empty() && (m_pRightButton != nullptr)) {
-        if (m_pRightButton->IsFocused() || m_pRightButton->IsMouseFocused() || m_pRightButton->IsHotState()) {
-            borderColor = BaseClass::GetBorderColor(kControlStateHot);
+        if (m_pRightButton->IsFocused() || m_pRightButton->IsMouseFocused() || m_pRightButton->IsHoveredState()) {
+            borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }
     }
     if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        borderColor = BaseClass::GetBorderColor(kControlStateHot);
+        borderColor = BaseClass::GetBorderColor(kControlStateHovered);
     }
     if (borderColor.empty()) {
         borderColor = BaseClass::GetBorderColor(stateType);

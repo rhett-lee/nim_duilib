@@ -296,6 +296,13 @@ private:
     virtual bool MouseEnter(const ui::EventArgs& msg) override;
     virtual void PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
 
+    /** 计算控件大小(宽和高)
+        如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiEstSize EstimateSize(UiSize szAvailable) override;
+
 private:
     friend Menu; //需要访问部分私有成员函数
 

@@ -107,8 +107,9 @@ ImageListPtr ListCtrl::GetImageList(ListCtrlType type) const
     }
 }
 
-void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrl::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("header_class")) {
         SetHeaderClass(strValue);
     }
@@ -122,7 +123,7 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetHeaderSplitControlClass(strValue);
     }
     else if (strName == _T("enable_header_drag_order")) {
-        SetEnableHeaderDragOrder(strValue == _T("true"));
+        SetEnableHeaderDragOrder(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("check_box_class")) {
         SetCheckBoxClass(strValue);
@@ -134,13 +135,19 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetDataSubItemClass(strValue);
     }
     else if (strName == _T("row_grid_line_width")) {
-        SetRowGridLineWidth(StringUtil::StringToInt32(strValue), true);
+        //注意：StringToFloat 调用 1 次，提取到局部变量避免重复计算且防止结果不一致
+        float fValue = StringUtil::StringToFloat(strValue.c_str(), nullptr);
+        ASSERT(fValue >= 0);
+        SetRowGridLineWidth(fValue, true);
     }
     else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
     else if (strName == _T("column_grid_line_width")) {
-        SetColumnGridLineWidth(StringUtil::StringToInt32(strValue), true);
+        //注意：StringToFloat 调用 1 次，提取到局部变量避免重复计算且防止结果不一致
+        float fValue = StringUtil::StringToFloat(strValue.c_str(), nullptr);
+        ASSERT(fValue >= 0);
+        SetColumnGridLineWidth(fValue, true);
     }
     else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
@@ -155,22 +162,22 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetDataItemHeight(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("show_header")) {
-        SetHeaderVisible(strValue == _T("true"));
+        SetHeaderVisible(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("multi_select")) {
-        SetMultiSelect(strValue == _T("true"));
+        SetMultiSelect(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("enable_column_width_auto")) {
-        SetEnableColumnWidthAuto(strValue == _T("true"));
+        SetEnableColumnWidthAuto(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("auto_check_select")) {
-        SetAutoCheckSelect(strValue == _T("true"));
+        SetAutoCheckSelect(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("show_header_checkbox")) {
-        SetHeaderShowCheckBox(strValue == _T("true"));
+        SetHeaderShowCheckBox(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("show_data_item_checkbox")) {
-        SetDataItemShowCheckBox(strValue == _T("true"));
+        SetDataItemShowCheckBox(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("type")) {
         if (strValue == _T("report")) {
@@ -208,7 +215,7 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetListViewItemLabelClass(strValue);
     }
     else if (strName == _T("enable_item_edit")) {
-        SetEnableItemEdit(strValue == _T("true"));
+        SetEnableItemEdit(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("list_ctrl_richedit_class")) {
         SetRichEditClass(strValue);
@@ -226,19 +233,19 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
     //首先禁止界面刷新
     bool bOldValue = SetEnableRefresh(false);
-    int32_t iValue = GetRowGridLineWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetRowGridLineWidth(iValue, false);
+    float fValue = GetRowGridLineWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetRowGridLineWidth(fValue, false);
 
-    iValue = GetColumnGridLineWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetColumnGridLineWidth(iValue, false);
+    fValue = GetColumnGridLineWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetColumnGridLineWidth(fValue, false);
 
     if (m_nHeaderHeight > 0) {
         m_nHeaderHeight = Dpi().GetScaleInt(m_nHeaderHeight, nOldDpiScale);
     }
 
-    iValue = GetDataItemHeight();
+    int32_t iValue = GetDataItemHeight();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetDataItemHeight(iValue, false);
 
@@ -937,12 +944,12 @@ DString ListCtrl::GetRichEditClass() const
     return m_listCtrlRichEditClass.c_str();
 }
 
-void ListCtrl::SetRowGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrl::SetRowGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    m_pReportView->SetRowGridLineWidth(nLineWidth, bNeedDpiScale);
+    m_pReportView->SetRowGridLineWidth(fLineWidth, bNeedDpiScale);
 }
 
-int32_t ListCtrl::GetRowGridLineWidth() const
+float ListCtrl::GetRowGridLineWidth() const
 {
     return m_pReportView->GetRowGridLineWidth();
 }
@@ -957,12 +964,12 @@ DString ListCtrl::GetRowGridLineColor() const
     return m_pReportView->GetRowGridLineColor();
 }
 
-void ListCtrl::SetColumnGridLineWidth(int32_t nLineWidth, bool bNeedDpiScale)
+void ListCtrl::SetColumnGridLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    m_pReportView->SetColumnGridLineWidth(nLineWidth, bNeedDpiScale);
+    m_pReportView->SetColumnGridLineWidth(fLineWidth, bNeedDpiScale);
 }
 
-int32_t ListCtrl::GetColumnGridLineWidth() const
+float ListCtrl::GetColumnGridLineWidth() const
 {
     return m_pReportView->GetColumnGridLineWidth();
 }
@@ -1235,6 +1242,17 @@ bool ListCtrl::DeleteColumnById(size_t columnId)
     }
 }
 
+void ListCtrl::DeleteAllColumns()
+{
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl != nullptr) {
+        size_t nColumnCount = m_pHeaderCtrl->GetColumnCount();
+        for (size_t nColumn = 0; nColumn < nColumnCount; ++nColumn) {
+            m_pHeaderCtrl->DeleteColumn(0);
+        }
+    }
+}
+
 ListCtrlHeader* ListCtrl::GetHeaderCtrl() const
 {
     return m_pHeaderCtrl;
@@ -1277,6 +1295,11 @@ void ListCtrl::SetHeaderHeight(int32_t nHeaderHeight, bool bNeedDpiScale)
     if (nHeaderHeight < 0) {
         nHeaderHeight = 0;
     }
+    //注意：增加上限检查，防止 XML 中传入超大值（>10000）导致 DPI 缩放后整数溢出及显示异常
+    if (nHeaderHeight > 10000) {
+        ASSERT(!"ListCtrl::SetHeaderHeight: nHeaderHeight too large, clamp to 10000");
+        nHeaderHeight = 10000;
+    }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nHeaderHeight);
     }
@@ -1308,6 +1331,11 @@ void ListCtrl::SetDataItemHeight(int32_t nItemHeight, bool bNeedDpiScale)
     ASSERT(nItemHeight > 0);
     if (nItemHeight <= 0) {
         return;
+    }
+    //注意：增加上限检查，防止 XML 中传入超大值（>10000）导致 DPI 缩放后整数溢出及显示异常
+    if (nItemHeight > 10000) {
+        ASSERT(!"ListCtrl::SetDataItemHeight: nItemHeight too large, clamp to 10000");
+        nItemHeight = 10000;
     }
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nItemHeight);

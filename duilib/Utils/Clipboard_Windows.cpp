@@ -12,22 +12,24 @@ bool Clipboard::GetClipboardText(DStringW& text)
     if (ret) {
         if (::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
             HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
-            if (h != INVALID_HANDLE_VALUE) {
+            //注意：GetClipboardData 失败时返回 NULL，不是 INVALID_HANDLE_VALUE
+            if (h != nullptr) {
                 wchar_t* buf = (wchar_t*)::GlobalLock(h);
                 if (buf != nullptr) {
                     DStringW str(buf, GlobalSize(h) / sizeof(wchar_t));
-                    text = str;
+                    text = DStringW(str).c_str();//避免出现字符中包含尾0的情况
                     ::GlobalUnlock(h);
                 }
             }
         }
         else if (::IsClipboardFormatAvailable(CF_TEXT)) {
             HANDLE h = ::GetClipboardData(CF_TEXT);
-            if (h != INVALID_HANDLE_VALUE) {
+            //注意：GetClipboardData 失败时返回 NULL，不是 INVALID_HANDLE_VALUE
+            if (h != nullptr) {
                 char* buf = (char*)::GlobalLock(h);
                 if (buf != nullptr) {
                     std::string str(buf, GlobalSize(h));
-                    text = StringConvert::MBCSToUnicode(str);
+                    text = StringConvert::MBCSToUnicode(str).c_str();
                     ::GlobalUnlock(h);
                 }
             }

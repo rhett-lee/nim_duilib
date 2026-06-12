@@ -13,7 +13,7 @@ TestApplication::~TestApplication()
 void TestApplication::Run()
 {
     //性能统计
-    ui::PerformanceStat stat(_T("TestApplication::Run"));
+    ui::PerformanceUtil stat(_T("TestApplication::Run"));
 
     // 创建主线程
     MainThread thread;

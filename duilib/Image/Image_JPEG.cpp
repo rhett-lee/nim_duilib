@@ -252,6 +252,7 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
                                   &jpegSubsamp,
                                   &jpegColorspace);
     if (ret != 0) {
+        m_impl->m_bDecodeError = true;
         return false;
     }
     //解析Header成功
@@ -302,7 +303,7 @@ bool Image_JPEG::LoadImageFile(std::vector<uint8_t>& fileData,
     m_impl->m_nWidth = TJSCALED(width, selectedScalingfactor);
     m_impl->m_nHeight = TJSCALED(height, selectedScalingfactor);
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
-    if ((m_impl->m_nHeight <= 0) || (m_impl->m_nHeight <= 0)) {
+    if ((m_impl->m_nWidth <= 0) || (m_impl->m_nHeight <= 0)) {
         m_impl->m_bDecodeError = true;
         return false;
     }
@@ -383,7 +384,20 @@ std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
         void* pBitmapBits = pBitmap->LockPixelBits();
         if (pBitmapBits == nullptr) {
             return nullptr;
-        }        
+        }
+        // RAII 风格：无论后续解码成功或失败，都确保解锁 pixel bits，
+        // 避免 IBitmap 析构前仍处于锁定状态
+        bool bUnlockNeeded = true;
+        struct TAutoUnlock {
+            IBitmap* pBitmap;
+            bool& bUnlockNeeded;
+            ~TAutoUnlock() {
+                if (bUnlockNeeded && (pBitmap != nullptr)) {
+                    pBitmap->UnLockPixelBits();
+                }
+            }
+        };
+        TAutoUnlock autoUnlock{ pBitmap, bUnlockNeeded };
 
 #ifdef DUILIB_BUILD_FOR_WIN
         int pixelFormat = TJPF_BGRA;
@@ -405,9 +419,12 @@ std::shared_ptr<IBitmap> Image_JPEG::DecodeBitmap() const
             ASSERT(ret == 0);
         }
         if (ret == 0) {
+            // 解码成功：标记不再需要 RAII 解锁（保持原有显式 Unlock 调用）
+            bUnlockNeeded = false;
             pBitmap->UnLockPixelBits();
         }
         else {
+            // 解码失败：丢弃位图，RAII 会负责解锁
             pJpegBitmap.reset();
         }
     }

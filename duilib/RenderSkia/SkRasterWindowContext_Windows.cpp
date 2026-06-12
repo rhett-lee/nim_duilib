@@ -14,7 +14,7 @@ SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, std::uni
     fWidth = 0;
     fHeight = 0;
     if (m_hWnd != nullptr) {
-        SkASSERT(::IsWindow(m_hWnd));
+        ASSERT(::IsWindow(m_hWnd));
         if (!::IsWindow(m_hWnd)) {
             m_hWnd = nullptr;
         }
@@ -118,15 +118,15 @@ void SkRasterWindowContext_Windows::onSwapBuffers()
 bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint)
 {
     HWND hWnd = m_hWnd;
-    SkASSERT(::IsWindow(hWnd));
+    ASSERT(::IsWindow(hWnd));
     if ((hWnd == nullptr) || !::IsWindow(hWnd)) {
         return false;
     }
-    SkASSERT(pRender != nullptr);
+    ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return false;
     }
-    SkASSERT(pRenderPaint != nullptr);
+    ASSERT(pRenderPaint != nullptr);
     if (pRenderPaint == nullptr) {
         return false;
     }
@@ -189,7 +189,17 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
 
 bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
 {
-    PerformanceStat statPerformance(_T("SkRasterWindowContext_Windows::SwapPaintBuffers"));
+#if DUILIB_PERFORMANCE_STAT_ENABLED
+    //性能统计
+    static size_t statNameHash = 0;
+    if (statNameHash == 0) {
+        DString statName = _T("PaintWindow 9, SkRasterWindowContext_Windows::SwapPaintBuffers");
+        statNameHash = std::hash<DString>{}(statName);
+        PerformanceUtilHelper::Instance().AddStat(statName);
+    }
+    PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
+
     ASSERT(hPaintDC != nullptr);
     if (hPaintDC == nullptr) {
         return false;

@@ -3,6 +3,7 @@
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui
 {
@@ -11,8 +12,8 @@ namespace ui
 */
 class Control;
 class ColorPickerRegular;
-class ColorPickerStatard;
-class ColorPickerStatardGray;
+class ColorPickerStandard;
+class ColorPickerStandardGray;
 class ColorPickerCustom;
 class DUILIB_API ColorPicker : public WindowImplBase
 {
@@ -78,6 +79,12 @@ private:
     */
     void OnSelectColor(const UiColor& newColor);
 
+    /** 根据背景色计算对比度最佳的前景文本颜色（黑或白）
+    *   使用 YIQ 公式: Y = 0.299R + 0.587G + 0.114B
+    *   Y >= 128 时选择黑色文本，否则选择白色文本
+    */
+    static UiColor GetContrastTextColor(const UiColor& bkColor);
+
     /** 屏幕取色
     */
     void OnPickColorFromScreen();
@@ -85,11 +92,11 @@ private:
 private:
     /** 新选择的颜色控件接口
     */
-    Label* m_pNewColor;
+    ControlPtrT<Label> m_pNewColor;
 
     /** 原来的颜色控件接口
     */
-    Label* m_pOldColor;
+    ControlPtrT<Label> m_pOldColor;
 
     /** 常用颜色控件接口
     */
@@ -97,11 +104,11 @@ private:
 
     /** 标准颜色控件接口
     */
-    ColorPickerStatard* m_pStatardPicker;
+    ColorPickerStandard* m_pStandardPicker;
 
     /** 标准颜色控件接口(灰色)
     */
-    ColorPickerStatardGray* m_pStatardGrayPicker;
+    ColorPickerStandardGray* m_pStandardGrayPicker;
 
     /** 自定义颜色控件接口
     */

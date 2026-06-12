@@ -4,6 +4,7 @@
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/StringUtil.h"
+#include <climits>
 
 namespace ui
 {
@@ -61,6 +62,12 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
         ASSERT(0);
     }
     if (bLoaded) {
+        // 防止 uint32_t → int32_t 截断为负数
+        if ((imageData.m_imageWidth == 0) || (imageData.m_imageHeight == 0) ||
+            (imageData.m_imageWidth > (uint32_t)INT32_MAX) || (imageData.m_imageHeight > (uint32_t)INT32_MAX)) {
+            ASSERT(!"ImageDecoder_Common: invalid image dimensions");
+            return nullptr;
+        }
         int32_t nWidth = (int32_t)imageData.m_imageWidth;
         int32_t nHeight = (int32_t)imageData.m_imageHeight;
         float fNewScale = fImageSizeScale;
@@ -68,7 +75,7 @@ std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodePara
             fNewScale = fImageSizeScale;
         }
         pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fNewScale);
-    }    
+    }
     return pImage;
 }
 

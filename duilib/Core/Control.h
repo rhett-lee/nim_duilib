@@ -128,6 +128,18 @@ public:
     void SetStateColorMargin(ControlStateType stateType, UiMargin colorMargin, bool bNeedDpiScale);
     void SetStateColorRound(ControlStateType stateType, UiSize colorRound, bool bNeedDpiScale);
 
+    /** 设置状态颜色区域的最小宽度或者最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+    * @param [in] fMinWidth 设置状态颜色区域的最小宽度，未经DPI缩放
+    * @param [in] fMinHeight 设置状态颜色区域的最小高度，未经DPI缩放
+    */
+    void SetStateColorMinWidth(float fMinWidth);
+    void SetStateColorMinHeight(float fMinHeight);
+
+    /** 获取状态颜色区域的最小宽度或者最小高度（未经DPI缩放）
+    */
+    float GetStateColorMinWidth() const;
+    float GetStateColorMinHeight() const;
+
     /**
      * @brief 获取背景图片位置
      * @return 背景图片位置  
@@ -195,9 +207,9 @@ public:
      */
     void SetState(ControlStateType controlState);
 
-    /** 当前是否为Hot状态(这个状态下，业务逻辑较多)
+    /** 当前是否为Hovered状态(这个状态下，业务逻辑较多)
     */
-    bool IsHotState() const;
+    bool IsHoveredState() const;
 
     /** 获取用于估算控件大小（宽和高）图片接口
      */
@@ -223,11 +235,11 @@ public:
 
     /** 设置焦点状态下的边框颜色
     */
-    void SetFocusBorderColor(const DString& strBorderColor);
+    void SetFocusedBorderColor(const DString& strBorderColor);
 
     /** 获取焦点状态下的边框颜色
     */
-    DString GetFocusBorderColor() const;
+    DString GetFocusedBorderColor() const;
 
     /** 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
      * @param [in] rc 一个 `UiRectF` 结构的边框大小集合
@@ -461,19 +473,19 @@ public:
 
     /** 设置是否显示焦点状态(一个虚线构成的矩形)
     */
-    void SetShowFocusRect(bool bShowFocusRect);
+    void SetShowFocusedRect(bool bShowFocusedRect);
 
     /** 设置是否显示焦点状态(一个虚线构成的矩形)
     */
-    bool IsShowFocusRect() const;
+    bool IsShowFocusedRect() const;
 
     /** 设置焦点状态虚线矩形的颜色(线条的颜色)
     */
-    void SetFocusRectColor(const DString& focusRectColor);
+    void SetFocusedRectColor(const DString& focusRectColor);
 
     /** 获取焦点状态虚线矩形的颜色(线条的颜色)
     */
-    DString GetFocusRectColor() const;
+    DString GetFocusedRectColor() const;
 
     /** 判断当前鼠标焦点是否在控件上
      * @return 返回鼠标焦点是否在控件上，true 鼠标焦点在控件上，false 鼠标焦点不在控件上
@@ -588,7 +600,7 @@ public:
      * @brief 判断控件是否有 HOT 状态
      * @return 返回 true 有 HOT 状态， 否则为 false
      */
-    virtual bool HasHotState();
+    virtual bool HasHoveredState();
 
     // 属性设置
     /**
@@ -675,12 +687,12 @@ public:
     /** 设置焦点状态透明度
      * @param [in] alpha 0 ~ 255 的透明度值，255 为不透明
      */
-    void SetHotAlpha(uint8_t nHotAlpha);
+    void SetHoveredAlpha(uint8_t nHoveredAlpha);
 
     /** 获取焦点状态透明度
      * @return 返回控件焦点状态的透明度
      */
-    uint8_t GetHotAlpha() const { return m_nHotAlpha; }
+    uint8_t GetHoveredAlpha() const { return m_nHoveredAlpha; }
 
     /**
      * @brief 设置是否接受TAB键切换焦点
@@ -827,36 +839,36 @@ public:
 public:
     /// 控件动画相关接口
 
-    /** 设置或清除Hot状态的播放动画（对应动画类型为：kAnimationHot）
-    * @param [in] bFadeHot true表示设置动画，false表示清除动画
+    /** 设置或清除Hovered状态的播放动画（对应动画类型为：kAnimationHovered）
+    * @param [in] bFadeHovered true表示设置动画，false表示清除动画
     */
-    void SetFadeHot(bool bFadeHot);
+    void SetFadeHovered(bool bFadeHovered);
 
-    /** 设置播放Hot状态动画的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    /** 设置播放Hovered状态动画的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHovered）
     * @param [in] frameIntervalMillSeconds 播放动画的定时器时间间隔（毫秒）
     */
-    void SetFadeHotFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds);
+    void SetFadeHoveredFrameIntervalMillSeconds(int32_t frameIntervalMillSeconds);
 
-    /** 获取Hot状态动画播放的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHot）
+    /** 获取Hovered状态动画播放的定时器时间间隔（毫秒）（对应动画类型为：kAnimationHovered）
     */
-    int32_t GetFadeHotFrameIntervalMillSeconds() const;
+    int32_t GetFadeHoveredFrameIntervalMillSeconds() const;
 
-    /** 设置Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    /** 设置Hovered状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHovered）
     * @param [in] totalMillSeconds 动画总的播放时间（毫秒）
     */
-    void SetFadeHotTotalMillSeconds(int32_t totalMillSeconds);
+    void SetFadeHoveredTotalMillSeconds(int32_t totalMillSeconds);
 
-    /** 获取Hot状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHot）
+    /** 获取Hovered状态动画总的播放时间（毫秒）（对应动画类型为：kAnimationHovered）
     */
-    int32_t GetFadeHotTotalMillSeconds() const;
+    int32_t GetFadeHoveredTotalMillSeconds() const;
 
-    /** 设置Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    /** 设置Hovered状态动画缓动函数类型（对应动画类型为：kAnimationHovered）
     */
-    void SetFadeHotEasingFunctionType(EasingFunctionType easingFunctionType);
+    void SetFadeHoveredEasingFunctionType(EasingFunctionType easingFunctionType);
 
-    /** 获取Hot状态动画缓动函数类型（对应动画类型为：kAnimationHot）
+    /** 获取Hovered状态动画缓动函数类型（对应动画类型为：kAnimationHovered）
     */
-    EasingFunctionType GetFadeHotEasingFunctionType() const;
+    EasingFunctionType GetFadeHoveredEasingFunctionType() const;
 
     /** 判断是否包含指定类型的动画播放接口
     */
@@ -909,8 +921,14 @@ public:
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
     /** 语言发生变化，刷新界面文字显示相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
     */
-    virtual void OnLanguageChanged();
+    virtual void OnLanguageChanged(bool bRedraw);
+
+    /** 主题发生变化，刷新界面颜色相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnThemeChanged(bool bRedraw);
 
 public:
     /** 监听控件所有事件
@@ -1080,8 +1098,8 @@ public:
     /** 判断颜色定义是否有效
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF       
-    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
-    *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<ThemeColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<ThemeColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：参见ui::UiColors::UiColorConsts函数中的定义
     */
     bool HasUiColor(const DString& colorName) const;
@@ -1089,8 +1107,8 @@ public:
     /** 获取某个颜色对应的值
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
     *           (1) 优先级1：以'#'字符开头，直接指定颜色值，举例：#FFFFFFFF
-    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<TextColor name="wnd_darkcolor" value="#FF00BB96"/>
-    *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
+    *           (2) 优先级2：在配置XML中的<Window>节点中定义子节点，举例：<ThemeColor name="wnd_darkcolor" value="#FF00BB96"/>
+    *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<ThemeColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：直接指定预定义的颜色别名，参见ui::UiColors::UiColorConsts函数中的定义
     * @return ARGB颜色值
     */
@@ -1341,6 +1359,19 @@ protected:
     virtual bool MouseMenu(const EventArgs& msg);
 
     //键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+
+    /** 文本字符输入消息
+    * @param msg 文本输入的具体参数信息，参数取值详细内容如下
+    *            ASSERT(msg.eventType == ui::kEventChar)
+    *            1. Windows API实现时：
+    *               ASSERT((msg.eventData == WM_CHAR) || (msg.eventData == WM_SYSCHAR) || (msg.eventData == WM_UNICHAR));
+    *               wParam和lParam参数值就是操作系统消息对应的wParam和lParam参数值
+    *            2. SDL实现时, 获取文本的方法如下(wParam是DStringW::value_type*指针，lParam是字符串的长度)：
+    *               DStringW text;
+    *               if((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 0)) {
+    *                   text = (DStringW::value_type*)msg.wParam;
+    *               }
+    */
     virtual bool OnChar(const EventArgs& msg);
     virtual bool OnKeyDown(const EventArgs& msg);
     virtual bool OnKeyUp(const EventArgs& msg);
@@ -1552,9 +1583,14 @@ public:
     */
     IFont* GetIFontById(const DString& strFontId) const;
 
-    /** 获取颜色名称对应的颜色值
+    /** 设置为动画模式(该模式下，可减少不必要的绘制)
+    * @param [in] 
     */
-    UiColor GetUiColorByName(const DString& colorName) const;
+    void SetAnimationMode(bool bAnimationMode);
+
+    /** 获取当前是否为动画模式
+    */
+    bool IsAnimationMode() const;
 
 protected:
     /** 设置可见状态事件
@@ -1628,15 +1664,19 @@ private:
     bool HasXmlBubbledEventMap() const;
 
 private:
-    /** 获取Hot动画的播放接口
+    /** 获取Hovered动画的播放接口
     */
-    AnimationPlayer* GetHotAnimationPlayer() const;
+    AnimationPlayer* GetHoveredAnimationPlayer() const;
 
 private:
     /** 图片异步解码的实现函数
     */
     struct TAsyncImageDecode;
     static void AsyncDecodeImageData(std::shared_ptr<TAsyncImageDecode> pAsyncDecoder);
+
+    /** 颜色转换函数的实现
+    */
+    static UiColor PrivateGetUiColor(const DString& colorName, Window* pWindow);
 
 private:
     //回调事件管理
@@ -1698,7 +1738,7 @@ private:
         std::unique_ptr<StateColorMap> m_pBorderColorMap;
 
         //焦点状态下的边框颜色
-        UiString m_focusBorderColor;
+        UiString m_focusedBorderColor;
 
         /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
             仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
@@ -1723,7 +1763,7 @@ private:
         UiString m_strForeColor;
 
         //焦点状态虚线矩形的颜色
-        UiString m_focusRectColor;
+        UiString m_focusedRectColor;
     };
 
     //拖放相关数据
@@ -1821,9 +1861,9 @@ private:
     */
     std::unique_ptr<TOtherData> m_pOtherData;
 
-    /** Hot动画的播放接口
+    /** Hovered动画的播放接口
     */
-    std::unique_ptr<AnimationPlayer> m_pHotAnimationPlayer;
+    std::unique_ptr<AnimationPlayer> m_pHoveredAnimationPlayer;
 
     /** 控件的绘制区域
     */
@@ -1849,8 +1889,8 @@ private:
     //控件的透明度（0 - 255，0为完全透明，255为不透明）
     uint8_t m_nAlpha;
 
-    //控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
-    uint8_t m_nHotAlpha;
+    //控件为Hovered状态时的透明度（0 - 255，0为完全透明，255为不透明）
+    uint8_t m_nHoveredAlpha;
 
     //鼠标焦点是否在控件上
     bool m_bMouseFocused;
@@ -1868,10 +1908,14 @@ private:
     CursorType m_cursorType;
 
     //是否显示焦点状态(一个虚线构成的矩形)
-    bool m_bShowFocusRect;
+    bool m_bShowFocusedRect;
 
     //绘制顺序: 0 表示常规绘制，非0表示指定绘制顺序，值越大表示绘制越晚绘制
     uint8_t m_nPaintOrder;
+
+    /** 是否为动画模式(该模式下，可减少不必要的绘制)
+    */
+    bool m_bAnimationMode;
 
     //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
     bool m_bBordersOnTop;

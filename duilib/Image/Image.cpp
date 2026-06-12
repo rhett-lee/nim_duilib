@@ -111,7 +111,8 @@ ImageLoadParam Image::GetImageLoadParam() const
                           nIconFrameDelayMs,
                           nIconSize,
                           fPagMaxFrameRate,
-                          m_imageAttribute.IsAssertEnabled());
+                          m_imageAttribute.IsAssertEnabled(),
+                          m_imageAttribute.m_svgReplaceColors.c_str());
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const
@@ -178,7 +179,17 @@ bool Image::IsMultiFrameImage() const
 
 AnimationFramePtr Image::GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource, UiRect& rcSourceCorners) const
 {
-    PerformanceStat statPerformance(_T("Image::GetCurrentFrame"));
+#if DUILIB_PERFORMANCE_STAT_ENABLED
+    //性能统计
+    static size_t statNameHash = 0;
+    if (statNameHash == 0) {
+        DString statName = _T("Image::GetCurrentFrame");
+        statNameHash = std::hash<DString>{}(statName);
+        PerformanceUtilHelper::Instance().AddStat(statName);
+    }
+    PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
+
     ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || !m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
@@ -203,13 +214,23 @@ AnimationFramePtr Image::GetCurrentFrame(const UiRect& rcDest, UiRect& rcSource,
 
 std::shared_ptr<IBitmap> Image::GetBitmapData(UiRect& rcSource, UiRect& rcSourceCorners, bool* bDecodeError) const
 {
-    PerformanceStat statPerformance(_T("Image::GetBitmapData"));
+#if DUILIB_PERFORMANCE_STAT_ENABLED
+    //性能统计
+    static size_t statNameHash = 0;
+    if (statNameHash == 0) {
+        DString statName = _T("Image::GetBitmapData");
+        statNameHash = std::hash<DString>{}(statName);
+        PerformanceUtilHelper::Instance().AddStat(statName);
+    }
+    PerformanceUtilFast statPerformance(statNameHash);
+#endif //  DUILIB_PERFORMANCE_STAT_ENABLED
+
     ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
     if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
     //单帧图片
-    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetBitmap(bDecodeError);
+    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetBitmap(bDecodeError, m_pControl);
     AdjustImageSourceRect(pBitmap, rcSource, rcSourceCorners);
     return pBitmap;
 }
@@ -220,7 +241,7 @@ void Image::AdjustImageSourceRect(const std::shared_ptr<IBitmap>& pBitmap, UiRec
         return;
     }
     ASSERT((pBitmap->GetWidth() > 0) && (pBitmap->GetHeight() > 0));
-    if ((pBitmap->GetWidth() <= 0) || (pBitmap->GetHeight() <= 0)) {
+    if ((pBitmap->GetWidth() == 0) || (pBitmap->GetHeight() == 0)) {
         return;
     }
     ASSERT((m_imageInfo->GetWidth() > 0) && (m_imageInfo->GetHeight() > 0));
@@ -312,7 +333,7 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(bool bImageStretch,
     }
     else {
         //SVG图片：支持矢量缩放
-        std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(rcDest, rcSource);
+        std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(rcDest, rcSource, m_pControl);
         if (pBitmap == nullptr) {
             pBitmap = GetBitmapData(rcSource, rcSourceCorners, bDecodeError);
             if ((pBitmap == nullptr) && (bDecodeError != nullptr)) {

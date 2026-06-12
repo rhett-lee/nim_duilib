@@ -37,8 +37,9 @@ ListCtrlHeaderItem::~ListCtrlHeaderItem()
  
 DString ListCtrlHeaderItem::GetType() const { return _T("ListCtrlHeaderItem"); }
 
-void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("sorted_up_image")) {
         SetSortedUpImage(strValue);
     }
@@ -49,7 +50,7 @@ void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& str
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("show_icon_at_top")) {
-        SetShowIconAtTop(strValue == _T("true"));
+        SetShowIconAtTop(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);

@@ -212,10 +212,11 @@ template<>
 inline DString ControlResizableT<VBox>::GetType() const { return DUI_CTR_VBOX_RESIZABLE; }
 
 template<typename T>
-void ControlResizableT<T>::SetAttribute(const DString& strName, const DString& strValue)
+void ControlResizableT<T>::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = this->GetExpandVarStrings(strValue2);
     if (strName == _T("enable_resize")) {
-        SetEnableResize(strValue == _T("true"));
+        SetEnableResize(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("resize_size_box")) {
         UiRect rcSizeBox;
@@ -229,7 +230,7 @@ void ControlResizableT<T>::SetAttribute(const DString& strName, const DString& s
         SetResizeReserveHeight(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("resize_keep_within_parent")) {
-        SetResizeKeepWithinParent(strValue == _T("true"));
+        SetResizeKeepWithinParent(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
