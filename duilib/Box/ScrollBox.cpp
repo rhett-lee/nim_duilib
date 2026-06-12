@@ -134,8 +134,10 @@ void ScrollBox::DoSetPos(UiRect rc, bool bScrollProcess)
         return;
     }
     struct DepthGuard {
-        int32_t& m_depth;
+        DepthGuard(int32_t& depth) : m_depth(depth) {}
         ~DepthGuard() { --m_depth; }
+
+        int32_t& m_depth;
     } guard(s_recursionDepth);
 
     UiSize oldScrollOffset = GetScrollOffset();
