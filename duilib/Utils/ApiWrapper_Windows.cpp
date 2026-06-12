@@ -955,6 +955,30 @@ bool UiIsWindows7OrOlder()
     return ::IsWindows7OrGreater() && !::IsWindows8OrGreater();
 }
 
+// ===================== 兼容：Win10 SDK 补全 Win11 DWM 相关定义 =====================
+// 定义目标最低 SDK 版本：Windows 11 (21H2) -> 10.0.22000.0
+// NTDDI_WIN10_CO 对应 Windows 11 21H2 (Build 22000)
+#ifndef NTDDI_WIN10_CO
+    #define NTDDI_WIN10_CO 0x0A00000B
+#endif
+
+#if (WDK_NTDDI_VERSION < NTDDI_WIN10_CO)
+    // DWM 窗口圆角偏好枚举
+    typedef enum
+    {
+        DWMWCP_DEFAULT = 0,
+        DWMWCP_DONOTROUND = 1,
+        DWMWCP_ROUND = 2,
+        DWMWCP_ROUNDSMALL = 3
+    } DWM_WINDOW_CORNER_PREFERENCE;
+
+    // 窗口圆角偏好属性
+    #define DWMWA_WINDOW_CORNER_PREFERENCE          33
+    // 可视边框厚度属性
+    #define DWMWA_VISIBLE_FRAME_BORDER_THICKNESS    37
+#endif
+// ==================================================================================
+
 bool IsDwmCompositionEnabled()
 {
     HMODULE hDwm = DllManager::Instance().LoadDll(_T("dwmapi.dll"));
