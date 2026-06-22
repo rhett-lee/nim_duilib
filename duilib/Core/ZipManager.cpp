@@ -39,7 +39,12 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
     if (rsc == nullptr) {
         return false;
     }
-    uint8_t* pData = (uint8_t*)::LoadResource(hModule, rsc);
+
+    HGLOBAL hGlobal = ::LoadResource(hModule, rsc);
+    if (hGlobal == nullptr) {
+        return false;
+    }
+    uint8_t* pData = reinterpret_cast<uint8_t*>(::LockResource(hGlobal));
     uint32_t nDataSize = ::SizeofResource(hModule, rsc);
     ASSERT((pData != nullptr) && (nDataSize > 0));
     if ((pData == nullptr) || (nDataSize == 0)) {
