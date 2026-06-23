@@ -426,8 +426,17 @@ bool ThemeManager::GetZipThemePathList(const FilePath& themeRootPath,
         temp = StringUtil::MakeLowerString(temp);
         themePathSet.insert(temp);
     }
+    FilePath innerThemeRootPath = themeRootPath;
+    innerThemeRootPath.NormalizeDirectoryPath();
     std::vector<DString> dirList;
-    GlobalManager::Instance().Zip().GetZipFileList(themeRootPath, nullptr, &dirList);
+    GlobalManager::Instance().Zip().GetZipFileList(innerThemeRootPath, nullptr, &dirList);
+    for (DString& dirName : dirList) {
+        // 删除目录中的分隔符
+        size_t nPos = dirName.find(_T("/"));
+        if (nPos != DString::npos) {
+            dirName = dirName.substr(0, nPos);
+        }
+    }
     for (const DString& dirName : dirList) {
         FilePath localPath(dirName);
         if (!themePathSet.empty()) {
@@ -507,56 +516,45 @@ bool ThemeManager::GetResFileData(const FilePath& resFilePath,
     // 缓存 ZipManager 引用，避免频繁获取单例
     ZipManager& zipMgr = GlobalManager::Instance().Zip();
     const bool bUseZip = zipMgr.IsUseZip();
-
     // 如果启用 ZIP 模式，且传入的本身就是 ZIP 内完整有效路径
-    if (bUseZip) {
-        if (zipMgr.IsZipResExist(resFilePath)) {
-            // 如果需要读取数据且读取失败，则视为文件获取失败
-            if (pResFileData != nullptr && !zipMgr.GetZipData(resFilePath, *pResFileData)) {
-                return false;
-            }
-            if (pResFileFullPath != nullptr) {
-                *pResFileFullPath = resFilePath;
-            }
-            return true; // 直接返回成功
+    if (bUseZip && zipMgr.IsZipResExist(resFilePath)) {
+        // 如果需要读取数据且读取失败，则视为文件获取失败
+        if (pResFileData != nullptr && !zipMgr.GetZipData(resFilePath, *pResFileData)) {
+            return false;
         }
-    }
-    // 如果是本地文件模式，且传入的是物理磁盘的“绝对路径”
-    else if (resFilePath.IsAbsolutePath()) {
-        if (resFilePath.IsExistsFile()) {
-            if (pResFileFullPath != nullptr) {
-                *pResFileFullPath = resFilePath;
-            }
-            return true; // 绝对路径存在直接返回，不需要进入下方的路径拼接循环
+        if (pResFileFullPath != nullptr) {
+            *pResFileFullPath = resFilePath;
         }
-        return false; // 绝对路径不存在，直接失败
+        return true; // 直接返回成功
     }
-
-    // 相对路径，进入搜索目录的拼接轮询
-    std::vector<FilePath> resFileSearchPathList;
-    GetResFileSearchPath(windowResPath, resFileSearchPathList);
-
     bool bFileExists = false;
     FilePath sFile;
-
+    std::vector<FilePath> resFileSearchPathList;
+    GetResFileSearchPath(windowResPath, resFileSearchPathList);
     for (const FilePath& resFileSearchPath : resFileSearchPathList) {
-        // 统一进行路径拼接（既然能走到这里，说明是相对路径）
-        sFile = FilePathUtil::JoinFilePath(resFileSearchPath, resFilePath);
-
-        if (bUseZip) {
-            if (zipMgr.IsZipResExist(sFile)) {
-                bFileExists = true;
-                if (pResFileData != nullptr && !zipMgr.GetZipData(sFile, *pResFileData)) {
-                    bFileExists = false; // 读取失败则当做不存在，继续查找下一个
+        if (GlobalManager::Instance().Zip().IsUseZip()) {
+            sFile = FilePathUtil::JoinFilePath(resFileSearchPath, resFilePath);
+            if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
+                bFileExists = true;                
+                if (pResFileData != nullptr) {
+                    if (!GlobalManager::Instance().Zip().GetZipData(sFile, *pResFileData)) {
+                        bFileExists = false;
+                    }
                 }
-            }
+            }            
         }
         else {
-            // 本地相对路径，检查磁盘文件是否存在
+            sFile.Clear();
+            if (resFilePath.IsRelativePath()) {
+                //相对路径
+                sFile = FilePathUtil::JoinFilePath(resFileSearchPath, resFilePath);
+            }
+            else {
+                //绝对路径
+                sFile = resFilePath;
+            }
             bFileExists = sFile.IsExistsFile();
         }
-
-        // 找到文件，赋值全路径并跳出循环
         if (bFileExists) {
             if (pResFileFullPath != nullptr) {
                 *pResFileFullPath = sFile;
@@ -564,7 +562,6 @@ bool ThemeManager::GetResFileData(const FilePath& resFilePath,
             break;
         }
     }
-
     return bFileExists;
 }
 
@@ -603,18 +600,9 @@ void ThemeManager::GetResFileSearchPath(const FilePath& windowResPath, std::vect
         tempPath /= themeDir;
         resFileSearchPathList.push_back(tempPath);
     }
-    // 只有未使用 ZIP 资源（使用本地文件）时，才过滤不存在的本地目录
-    if (!GlobalManager::Instance().Zip().IsUseZip()) {
-        auto iter = resFileSearchPathList.begin();
-        while (iter != resFileSearchPathList.end()) {
-            if (iter->IsExistsDirectory()) {
-                ++iter;
-            }
-            else {
-                iter = resFileSearchPathList.erase(iter);
-            }
-        }
-    }
+
+    // 需要检查目录是否存在
+    CheckResSearchPathList(resFileSearchPathList);
 }
 
 void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
@@ -730,16 +718,31 @@ void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
         }
     }
 
-    // ZIP 资源模式下，跳过本地物理目录生存率检查
-    if (!GlobalManager::Instance().Zip().IsUseZip()) {
-        auto iter = resFileSearchPathList.begin();
-        while (iter != resFileSearchPathList.end()) {
-            if (iter->IsExistsDirectory()) {
-                ++iter;
-            }
-            else {
-                iter = resFileSearchPathList.erase(iter);
-            }
+    // 需要检查目录是否存在
+    CheckResSearchPathList(resFileSearchPathList);
+}
+
+void ThemeManager::CheckResSearchPathList(std::vector<FilePath>& resFileSearchPathList) const
+{
+    // 需要检查目录是否存在
+    auto iter = resFileSearchPathList.begin();
+    while (iter != resFileSearchPathList.end()) {
+        bool bExistsDirectory = true;
+        if (GlobalManager::Instance().Zip().IsUseZip()) {
+            // 使用Zip压缩包时, 目录需要确保以分隔符为结尾，否则找不到
+            FilePath innerDirName = *iter;
+            innerDirName.NormalizeDirectoryPath();
+            bExistsDirectory = GlobalManager::Instance().Zip().IsZipResExist(innerDirName);
+        }
+        else {
+            // 使用本地文件系统时
+            bExistsDirectory = iter->IsExistsDirectory();
+        }
+        if (bExistsDirectory) {
+            ++iter;
+        }
+        else {
+            iter = resFileSearchPathList.erase(iter);
         }
     }
 }
