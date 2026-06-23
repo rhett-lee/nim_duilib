@@ -351,13 +351,13 @@ namespace ui
 
     template <typename TInterface, const IID& IID_TInterface, typename TCallback>
     ComPtr<TInterface> ComCallback(TCallback&& callback) {
-        // 验证接口必须包含 Invoke 方法
+        // 验证接口必须包含 Invoke 方法：接口必须定义 STDMETHODCALLTYPE 调用约定的 Invoke 方法
         static_assert(InvokeTraits<TInterface>::HasInvoke,
-            "接口必须定义 STDMETHODCALLTYPE 调用约定的 Invoke 方法");
+            "The interface must define an Invoke method with the STDMETHODCALLTYPE calling convention");
 
-        // 验证参数数量不超过 6 个
+        // 验证参数数量不超过 6 个：Invoke 方法最多支持 6 个参数
         static_assert(InvokeTraits<TInterface>::ArgCount <= 6,
-            "Invoke 方法最多支持 6 个参数");
+            "The Invoke method supports up to 6 parameters");
 
         // 实例化对应参数数量的实现类
         using Impl = ComCallbackImpl<

@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 namespace ui 
 {
@@ -93,12 +94,15 @@ private:
 
 private:
     /** 是否正在运行中
+    *   注意：必须使用 std::atomic 以保证多线程间的内存可见性，
+    *   单纯 volatile 在 C++ 标准下不保证多线程可见性（MSVC 扩展有 acquire/release，但 GCC/Clang 没有）。
     */
-    volatile bool m_bRunning;
+    std::atomic<bool> m_bRunning;
 
     /** 是否正在等待主线程处理定时器的回调事件
+    *   同上，必须使用 std::atomic 保证多线程可见性。
     */
-    volatile bool m_bHasPenddingPoll;
+    std::atomic<bool> m_bHasPenddingPoll;
 
     /** 后台线程
     */

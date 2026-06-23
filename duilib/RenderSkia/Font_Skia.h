@@ -19,7 +19,8 @@ public:
     Font_Skia& operator=(const Font_Skia&) = delete;
     virtual ~Font_Skia() override;
 
-    /** 初始化字体(内部未对字体大小做DPI自适应)
+    /** 设置字体信息(内部未对字体大小做DPI自适应)
+    * @note 该方法只保存 UiFont 并清理旧的 SkFont，实际 SkFont 的创建延迟到首次调用 GetFontHandle()
     */
     virtual bool InitFont(const UiFont& fontInfo) override;
 
@@ -47,10 +48,20 @@ public:
      */
     virtual bool IsStrikeOut() const override { return m_uiFont.m_bStrikeOut; }
 
+    /** 当前字体是否支持指定的Unicode字符
+    * @param [in] unicodeChar UTF32字符
+    * @param [out] glyphId 如果unicodeChar不为0，返回对应的SkGlyphID值
+    */
+    virtual bool IsUnicodeCharSupported(uint32_t unicodeChar, uint16_t* glyphId) override;
+
 public:
     /** 获取字体句柄
     */
     const SkFont* GetFontHandle();
+
+    /** 获取字体管理器接口
+    */
+    IFontMgr* GetFontMgr() const;
 
 private:
     /** 删除Skia字体

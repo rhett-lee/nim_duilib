@@ -39,7 +39,7 @@ public:
 
     /** 设置鼠标框选填充颜色的Alpha值
     */
-    void SetframeSelectionAlpha(uint8_t frameSelectionAlpha);
+    void SetFrameSelectionAlpha(uint8_t frameSelectionAlpha);
 
     /** 获取鼠标框选填充颜色的Alpha值
     */
@@ -92,6 +92,10 @@ private:
     /** 检查是否需要滚动视图
     */
     void OnCheckScrollView();
+
+    /** 获取滚动条偏移位置
+    */
+    UiSize64 GetListBoxScrollPos() const;
 
 private:
     /** 关联的ListBox控件

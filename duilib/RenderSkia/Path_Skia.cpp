@@ -86,19 +86,21 @@ IPath::FillType Path_Skia::GetFillType()
 
 void Path_Skia::MoveToPoint(int32_t x1, int32_t y1)
 {
+    // 仅在 lastPt 与目标点不同时才调用 moveTo，避免连续 moveTo 破坏路径闭合逻辑
+    const SkPoint newPt = SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1));
     std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
-    if (lastPt != SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1))) {
-        //如果不相等才调用moveTo函数，否则影响路径的闭合逻辑
-        m_skPathBuilder->moveTo(SkPoint::Make(static_cast<float>(x1), static_cast<float>(y1)));
+    if (!lastPt.has_value() || *lastPt != newPt) {
+        m_skPathBuilder->moveTo(newPt);
     }
 }
 
 void Path_Skia::MoveToPoint(float x1, float y1)
 {
+    // 仅在 lastPt 与目标点不同时才调用 moveTo，避免连续 moveTo 破坏路径闭合逻辑
+    const SkPoint newPt = SkPoint::Make(x1, y1);
     std::optional<SkPoint> lastPt = m_skPathBuilder->getLastPt();
-    if (lastPt != SkPoint::Make(x1, y1)) {
-        //如果不相等才调用moveTo函数，否则影响路径的闭合逻辑
-        m_skPathBuilder->moveTo(SkPoint::Make(x1, y1));
+    if (!lastPt.has_value() || *lastPt != newPt) {
+        m_skPathBuilder->moveTo(newPt);
     }
 }
 
@@ -116,8 +118,8 @@ void Path_Skia::AddLine(float x1, float y1, float x2, float y2)
 
 void Path_Skia::AddLines(const UiPoint* points, int32_t count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 2);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 2);
     if ((count < 2) || (points == nullptr)) {
         return;
     }
@@ -129,8 +131,8 @@ void Path_Skia::AddLines(const UiPoint* points, int32_t count)
 
 void Path_Skia::AddLines(const UiPointF* points, int32_t count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 2);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 2);
     if ((count < 2) || (points == nullptr)) {
         return;
     }
@@ -158,8 +160,8 @@ void Path_Skia::AddBezier(float x1, float y1, float x2, float y2, float x3, floa
 
 void Path_Skia::AddBeziers(const UiPoint* points, int32_t count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 4);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 4);
     if ((count < 4) || (points == nullptr)) {
         return;
     }
@@ -170,13 +172,13 @@ void Path_Skia::AddBeziers(const UiPoint* points, int32_t count)
                                  SkPoint::Make(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y)),
                                  SkPoint::Make(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y)));
     }
-    SkASSERT(i == (count - 1));
+    ASSERT(i == (count - 1));
 }
 
 void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 4);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 4);
     if ((count < 4) || (points == nullptr)) {
         return;
     }
@@ -187,7 +189,7 @@ void Path_Skia::AddBeziers(const UiPointF* points, int32_t count)
                                  SkPoint::Make(points[i + 1].x, points[i + 1].y),
                                  SkPoint::Make(points[i + 2].x, points[i + 2].y));
     }
-    SkASSERT(i == (count - 1));
+    ASSERT(i == (count - 1));
 }
 
 void Path_Skia::AddRect(const UiRect& rect)
@@ -227,8 +229,8 @@ void Path_Skia::AddArc(const UiRectF& rect, float startAngle, float sweepAngle)
 
 void Path_Skia::AddPolygon(const UiPoint* points, int count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 1);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 1);
     if ((count < 1) || (points == nullptr)) {
         return;
     }
@@ -243,8 +245,8 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
 
 void Path_Skia::AddPolygon(const UiPointF* points, int32_t count)
 {
-    SkASSERT(points != nullptr);
-    SkASSERT(count >= 1);
+    ASSERT(points != nullptr);
+    ASSERT(count >= 1);
     if ((count < 1) || (points == nullptr)) {
         return;
     }

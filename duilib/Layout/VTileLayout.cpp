@@ -37,10 +37,10 @@ bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
         }
     }
     else if (strName == _T("auto_calc_item_size")) {
-        SetAutoCalcItemWidth(strValue == _T("true"));
+        SetAutoCalcItemWidth(StringUtil::IsValueTrue(strValue));
     }
     else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {
-        SetScaleDown(strValue == _T("true"));
+        SetScaleDown(StringUtil::IsValueTrue(strValue));
     }
     else {
         hasAttribute = BaseClass::SetAttribute(strName, strValue, dpiManager);

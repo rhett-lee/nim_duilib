@@ -6,7 +6,7 @@
       }
       </style>
   </defs>
- <path style="fill:currentColor;fill-opacity:1;stroke:none" 
+ <path style="fill:#363636;fill-opacity:1;stroke:none" 
      d="m8 11.5l-6-6.251.719-.749 4.125 4.298 1.156 1.237 1.156-1.237 4.125-4.298.719.749-4.125 4.298z"
      class="ColorScheme-Text"
      />

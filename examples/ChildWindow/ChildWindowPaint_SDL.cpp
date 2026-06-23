@@ -174,6 +174,14 @@ void ChildWindowPaint::PaintChildWindow(const ui::UiRect& rcPaint, const ui::Nat
     if (renderer == nullptr) {
         renderer = SDL_CreateRenderer(sdlWindow, nullptr);
     }
+
+#ifdef DUILIB_DLL
+    //DLL模式下，子窗口SDL无法支持绘制, 因为SDL库不支持跨模块使用，其内使用了大量的static变量。
+    if (renderer == nullptr) {
+        return;
+    }
+#endif
+
     ASSERT(renderer != nullptr);
     if (renderer != nullptr) {
         if (bPaintFps && (m_pChildWindow != nullptr)) {

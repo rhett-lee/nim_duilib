@@ -230,7 +230,7 @@ public:
 
     /** 设置鼠标框选填充颜色的Alpha值
     */
-    void SetframeSelectionAlpha(uint8_t frameSelectionAlpha);
+    void SetFrameSelectionAlpha(uint8_t frameSelectionAlpha);
 
     /** 获取鼠标框选填充颜色的Alpha值
     */

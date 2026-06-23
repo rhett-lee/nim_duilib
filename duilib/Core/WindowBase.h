@@ -88,6 +88,10 @@ public:
     */
     bool IsUseSystemCaption() const;
 
+    /** 获取是否使用系统的窗口阴影
+    */
+    bool IsUseSystemShadow() const;
+
     /** 设置是否为层窗口
     * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
     * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
@@ -102,7 +106,7 @@ public:
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)。
     */
-    void SetLayeredWindowAlpha(int32_t nAlpha);
+    bool SetLayeredWindowAlpha(int32_t nAlpha);
 
     /** 获取窗口透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
@@ -113,7 +117,7 @@ public:
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)。
     */
-    void SetLayeredWindowOpacity(int32_t nAlpha);
+    bool SetLayeredWindowOpacity(int32_t nAlpha);
 
     /** 获取窗口不透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
@@ -797,6 +801,24 @@ public:
     */
     void AttachWindowDisplayResolutionChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
 
+    /** 监听DWM服务状态发生变化事件
+    * @param [in] callback 指定的回调函数，wParam为1表示DWM服务开启，为0表示DWM服务关闭
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowDwmCompositionChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口窗口的语言切换事件（支持多国语言版）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowLanguageChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+    /** 监听窗口窗口的主题切换事件（支持深色、浅色等主题）
+    * @param [in] callback 指定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachWindowThemeChangedMsg(const EventCallback& callback, EventCallbackID callbackID = 0);
+
 public:
     /** 本窗口是否含有回调函数（根据回调事件类型）
     * @param [in] eventType 回调事件类型
@@ -932,11 +954,23 @@ protected:
     */
     virtual Control* OnFindControl(const UiPoint& pt) const = 0;
 
+    /** 请求设置窗口的分层窗口属性（从而支持透明度）
+    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
+    * @return 设置成功返回true，否则返回false
+    */
+    virtual bool OnRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
+
 protected:
-    /** 在窗口大小改变时，是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
+    /** 是否自动设置窗口形状（Windows平台是指设置窗口的RGN）
     *   默认情况下，子窗口不自动设置，顶层窗口自动设置
     */
-    virtual bool NeedSetWindowRgnOnWindowResized();
+    virtual bool NeedSetWindowRgn();
+
+    /** 根据当前窗口的阴影支持情况，设置窗口的RGN
+    * @param [in] bRedraw 是否重绘
+    */
+    virtual void UpdateWindowRGN(bool bRedraw);
 
     /** 设置窗口的形状为圆角矩形
     * @param [in] rcWnd 需要设置RGN的区域，坐标为屏幕坐标
@@ -956,6 +990,10 @@ protected:
     * @param [in] bRedraw 是否重绘
     */
     virtual void ClearWindowRgn(bool bRedraw);
+
+    /** 获取设置窗口RGN的圆角值, 默认为窗口的圆角值，如果窗口未设置圆角值，则获取阴影的圆角值
+    */
+    virtual UiSize GetWindowRgnRoundCorner() const;
 
 protected:
     /** @name 窗口消息处理相关
@@ -1280,6 +1318,11 @@ protected:
     */
     virtual void OnDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) = 0;
 
+    /** 处理DWM服务变化的系统通知消息(WM_DWMCOMPOSITIONCHANGED)
+    * @param [in] bDwmCompositionEnabled true表示DWM服务开启，false表示DWM服务关闭
+    */
+    virtual void OnDwmCompositionChangedMsg(bool bDwmCompositionEnabled) = 0;
+
     /** @}*/
 
 protected:
@@ -1316,35 +1359,32 @@ private:
     */
     void InitWindowBase();
 
-    /** 窗口大小变化，处理内部业务（设置RGN）
-    * @param [in] bRedraw 是否重绘
-    */
-    void OnWindowSized(bool bRedraw);
-
 private:
     //来自实现窗口的事件
-    virtual void OnNativeWindowEnterFullscreen() override final;
-    virtual void OnNativeWindowExitFullscreen() override final;
-    virtual UiRect OnNativeGetSizeBox() const override final;
-    virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override final;
     virtual const DpiManager& OnNativeGetDpi() const override final;
+    virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override final;
+    virtual UiRect OnNativeGetSizeBox() const override final;
+    virtual void OnNativeUseSystemCaptionBarChanged() override final;
     virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override final;
     virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const override final;
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override final;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override final;
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override final;
+    virtual void OnNativeWindowEnterFullscreen() override final;
+    virtual void OnNativeWindowExitFullscreen() override final;
     virtual void OnNativePreCloseWindow() override final;
     virtual void OnNativePostCloseWindow() override final;
-    virtual void OnNativeUseSystemCaptionBarChanged() override final;
     virtual bool OnNativePreparePaint() override final;
     virtual IRender* OnNativeGetRender() const override final;
     virtual Control* OnNativeFindControl(const UiPoint& pt) const override final;
+    virtual bool OnNativeRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw) override final;
 
     virtual void    OnNativeFinalMessage() override final;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
     virtual void    OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight) override final;
     virtual void    OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
     virtual void    OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) override final;
+    virtual void    OnNativeDwmCompositionChangedMsg(bool bDwmCompositionEnabled) override final;
     virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override final;
@@ -1440,14 +1480,20 @@ private:
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
 
-    //窗口大小变化事件是否触发
-    bool m_bWindowSized;
+    //窗口RGN是否已经更新(窗口第一次创建后，必须有一次设置，否则可能显示异常)
+    bool m_bWindowRgnUpdated;
+
+    //当前是否已经设置窗口的RGN: true表示已经设置，false表示未设置
+    bool m_bWindowRgnSetFlag;
 
     //窗口的状态
     WindowSizeState m_windowSizeState;
 
     //是否发送了DragEnter消息，确保DragLeave消息匹配
     bool m_bSendDragEnterMsg;
+
+    //是否设置了分层窗口属性
+    bool m_bLayeredWindowSetFlag;
 };
 
 } // namespace ui

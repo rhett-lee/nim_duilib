@@ -644,7 +644,7 @@ bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
 {
     //不调用基类的方法(基类的方法会关闭输入法)
     if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHot);
+        SetState(kControlStateHovered);
     }
 
     //设置输入法相关属性
@@ -683,12 +683,16 @@ bool CefControlOffScreen::OnChar(const EventArgs& msg)
 {
     bool bRet = BaseClass::OnChar(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ASSERT((msg.eventData == WM_CHAR) || (msg.eventData == WM_SYSCHAR) || (msg.eventData == WM_UNICHAR));
     bool bHandled = false;
     if (msg.modifierKey & ModifierKey::kIsSystemKey) {
         SendKeyEvent(WM_SYSCHAR, msg.wParam, msg.lParam, bHandled);
     }
-    else {
+    else if (msg.eventData == WM_CHAR) {
         SendKeyEvent(WM_CHAR, msg.wParam, msg.lParam, bHandled);
+    }
+    else if (msg.eventData == WM_UNICHAR) {
+        SendKeyEvent(WM_UNICHAR, msg.wParam, msg.lParam, bHandled);
     }
     return bRet || bHandled;
 #else
@@ -1007,6 +1011,11 @@ LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lPara
     }
     else {
         event.type = KEYEVENT_CHAR;
+        if (uMsg == WM_UNICHAR) {
+            event.character = (char16_t)wParam;
+            //下列值在Windows平台需要设置
+            event.unmodified_character = event.character;
+        }
     }
     event.modifiers = client::GetCefKeyboardModifiers(wParam, lParam);
 

@@ -1,4 +1,4 @@
-﻿# 快速上手（Windows系统，VS 2022）
+# 快速上手（Windows系统，以VS 2022为例）
 
 此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `examples` 中的 `basic` 项目相似，如果你更喜欢查看代码，可以打开`examples.sln`工程，参考示例代码而无需多花费时间。
 
@@ -24,7 +24,7 @@ git clone https://github.com/rhett-lee/skia_compile
 
 <img src="./Images/vs00.png"/>
 
-5. 编译nim_duilib：进入 `nim_duilib` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
+5. 编译nim_duilib：进入 `nim_duilib` 目录，使用 Visual Studio 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
 
 ## 创建基础工程
 
@@ -62,7 +62,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 <img src="./Images/vs02.png"/>
 
-- 项目右键->添加->引用，将 duilib、cximage、libpng、libwebp、zlib 作为引用项目，这样就不需要手动引入静态库文件了。
+- 项目右键->添加->引用，将 duilib作为引用项目，这样就不需要手动引入库文件了。
 
 <img src="./Images/vs03.png"/>
 
@@ -91,9 +91,10 @@ public:
     virtual ~MainThread() override;
 
 private:
-    /** 运行前初始化，在进入消息循环前调用
+    /** 运行前初始化，在进入消息循环前调用，如果初始化失败则不进入消息循环
+    * @return 初始化成功返回true，初始化失败返回false
     */
-    virtual void OnInit() override;
+    virtual bool OnInit() override;
 
     /** 退出时清理，在退出消息循环后调用
     */
@@ -117,11 +118,10 @@ MainThread::~MainThread()
 {
 }
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //在下面加入启动窗口代码
@@ -131,6 +131,7 @@ void MainThread::OnInit()
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyDuilibApp"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
 }
 
 void MainThread::OnCleanup()
@@ -241,27 +242,35 @@ void MainForm::OnInitWindow()
 注意事项：XML文件的编码格式是UTF-8。  
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" mininfo="80,60" 
-        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
-        shadow_type="default" shadow_attached="true" layered_window="true" 
-        alpha="255" sizebox="4,4,4,4" icon="../public/caption/logo.ico">
-    <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
+<Window size="75%,75%" min_size="240,100"
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_snap="true"
+        size_box="4,4,4,4" icon="public/caption/logo.ico">
+    <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
+    <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Control />
-            <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="fullscreenbtn" margin="0,2,0,2" tooltip_text="全屏，按ESC键可退出全屏"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
-            <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
-            </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <!-- 标题栏：窗口左上角显示区域 -->
+            <Control mouse_enabled="false"/>
+            <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
         </HBox>
-        
+        <!-- 标题栏区域结束 -->
+
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <Box>
+        <Box bkcolor="bg_container">
             <VBox margin="0,0,0,0" valign="center" halign="center">
-                <Label name="tooltip" text="这是一个简单的nim_duilib窗口，带有标题栏和常规按钮。" height="100%" width="100%" text_align="hcenter,vcenter"/>        
+                <Label name="tooltip" text="这是一个简单的nim_duilib窗口，带有标题栏和常规按钮。" height="100%" width="100%" text_align="hcenter,vcenter"/>
             </VBox>
         </Box>
     </VBox>
@@ -270,15 +279,14 @@ void MainForm::OnInitWindow()
 
 ## 显示窗口
 
-在主线程的 MainThread::Init 方法中，创建窗口并居中显示，创建窗口前先引入窗口的头文件，修改后的代码如下：    
+在主线程的 `MainThread::OnInit` 方法中，创建窗口并居中显示，创建窗口前先引入窗口的头文件，修改后的代码如下：    
 （首先在文件中包含头文件：`#include "MainForm.h"`）
 
 ```cpp
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //在下面加入启动窗口代码
@@ -288,6 +296,7 @@ void MainThread::OnInit()
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyDuilibApp"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
 }
 ```
 

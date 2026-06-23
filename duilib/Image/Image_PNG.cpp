@@ -7,6 +7,7 @@
 #include <cmath>
 #include <fstream>
 #include <atomic>
+#include <climits>
 
 namespace ui
 {
@@ -151,11 +152,11 @@ namespace ReadPngHeader
         png_destroy_read_struct(&png, &info, nullptr);
 
         ASSERT((pngImageInfo.width > 0) && (pngImageInfo.height > 0));
-        if ((pngImageInfo.width <= 0) || (pngImageInfo.height <= 0)) {
+        if ((pngImageInfo.width == 0) || (pngImageInfo.height == 0)) {
             return false;
         }
         ASSERT(pngImageInfo.frame_count > 0);
-        if (pngImageInfo.frame_count <= 0) {
+        if (pngImageInfo.frame_count == 0) {
             return false;
         }
         if (pngImageInfo.frame_count > 1) {
@@ -260,11 +261,11 @@ namespace ReadPngHeader
         png_destroy_read_struct(&png, &info, nullptr);
 
         ASSERT((pngImageInfo.width > 0) && (pngImageInfo.height > 0));
-        if ((pngImageInfo.width <= 0) || (pngImageInfo.height <= 0)) {
+        if ((pngImageInfo.width == 0) || (pngImageInfo.height == 0)) {
             return false;
         }
         ASSERT(pngImageInfo.frame_count > 0);
-        if (pngImageInfo.frame_count <= 0) {
+        if (pngImageInfo.frame_count == 0) {
             return false;
         }
         if (pngImageInfo.frame_count > 1) {
@@ -371,7 +372,7 @@ public:
         }
 
         bool bLoaded = true;
-        if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
+        if ((m_nFrameCount <= 0) || (m_nWidth == 0) || (m_nHeight == 0)) {
             bLoaded = false;
         }
         else if (bLoadAllFrames) {
@@ -527,9 +528,9 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
             return nullptr;
         }
         if (m_impl->m_bAssertEnabled) {
-            ASSERT(nFrameIndex < m_impl->m_nFrameCount);
+            ASSERT(nFrameIndex >= 0 && nFrameIndex < m_impl->m_nFrameCount);
         }
-        if (nFrameIndex >= m_impl->m_nFrameCount) {
+        if ((nFrameIndex < 0) || (nFrameIndex >= m_impl->m_nFrameCount)) {
             //数据错误，清除数据，标记错误
             m_impl->m_bDecodeError = true;
             m_impl->ClearImageData();
@@ -545,8 +546,10 @@ AnimationFramePtr Image_PNG::DecodeImageFrame()
         pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
         ASSERT(pFrameData->m_pBitmap != nullptr);
         if (pFrameData->m_pBitmap != nullptr) {
+            //使用 size_t 避免溢出
+            size_t nBitmapSize = (size_t)pngDecoder.GetWidth() * (size_t)pngDecoder.GetHeight() * 4;
             std::vector<uint8_t> bitmapData;
-            bitmapData.resize(pngDecoder.GetHeight() * pngDecoder.GetWidth() * 4);
+            bitmapData.resize(nBitmapSize);
             if (pngDecoder.GetFrameDataPremultiplied(nFrameIndex, bitmapData.data())) {
                 bool bRet = pFrameData->m_pBitmap->Init(pngDecoder.GetWidth(), pngDecoder.GetHeight(), bitmapData.data(), fImageSizeScale);
                 if (!bRet) {
@@ -581,7 +584,11 @@ bool Image_PNG::IsDelayDecodeFinished() const
     if (m_impl->m_bDecodeError) {
         return true;
     }
-    return (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
+    size_t totalSize = m_impl->m_frames.size() + m_impl->m_delayFrames.size();
+    if (totalSize > (size_t)INT32_MAX) {
+        return true;
+    }
+    return (int32_t)totalSize == m_impl->m_nFrameCount;
 }
 
 uint32_t Image_PNG::GetDecodedFrameIndex() const

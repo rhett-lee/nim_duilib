@@ -63,7 +63,7 @@ bool GridLayout::SetAttribute(const DString& strName, const DString& strValue, c
         }
     }
     else if (strName == _T("scale_down")) {
-        SetScaleDown(strValue == _T("true"));
+        SetScaleDown(StringUtil::IsValueTrue(strValue));
     }
     else {
         hasAttribute = BaseClass::SetAttribute(strName, strValue, dpiManager);

@@ -74,7 +74,7 @@ public:
         //固定结构, 校验后修改标签栏的宽度
         int64_t nTotalWidth = 0;
         for (Control* pControl : items) {
-            if (pControl == nullptr) {
+            if ((pControl == nullptr) || !pControl->IsVisible()){
                 continue;
             }
             ui::UiMargin margin = pControl->GetMargin();
@@ -146,15 +146,19 @@ public:
 
         //最后再校验
         if (!bEstimateOnly) {
+            bool bHasHiden = false;
             nTotalWidth = 0;
             for (Control* pControl : items) {
-                if (pControl == nullptr) {
+                if ((pControl == nullptr) || !pControl->IsVisible()) {
+                    bHasHiden = true;
                     continue;
                 }
                 ui::UiMargin margin = pControl->GetMargin();
                 nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
             }
-            ASSERT(rc.Width() == nTotalWidth);
+            if (!bHasHiden) {
+                ASSERT(rc.Width() == nTotalWidth);
+            }
         }
         return szSize;
     }

@@ -5,7 +5,7 @@
 #include <map>
 #include <memory>
 
-namespace ui 
+namespace ui
 {
 class Control;
 
@@ -151,6 +151,11 @@ private:
     */
     static std::vector<AnimationType> s_animationList;
 };
+
+/** EstimateSize 时使用的"无限制尺寸"，表示期望获取控件自身的最大/原始尺寸
+*   任何控件的最大尺寸不会超过此值，因此可作为 EstimateSize 时的最大探测尺寸
+*/
+static constexpr int32_t kAnimationEstimateMaxSize = 999999;
 
 } // namespace ui
 

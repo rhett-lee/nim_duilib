@@ -1,4 +1,4 @@
-﻿## 菜单
+## 菜单
 菜单的实现是基于窗口([WindowImplBase](../duilib/Utils/WinImplBase.h))实现的，主要由[Menu](../duilib/Control/Menu.h)和[MenuItem](../duilib/Control/Menu.h)两个类组成。
 1. 菜单的效果预览
 这个预览是`examples/controls`示例程序中的菜单。
@@ -7,7 +7,7 @@
 3. `settings_menu.xml`中的主要内容：
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" >
+<Window shadow_type="menu_round">
     <MenuListBox class="menu" name="main_menu">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element" name="first" width="180">
@@ -99,7 +99,7 @@
 4. `submenu.xml`中的主要内容：
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<Window shadow_type="menu_round" shadow_attached="true" layered_window="true">
+<Window shadow_type="menu_round">
   <MenuListBox class="menu" name="submenu">
    
   </MenuListBox>
@@ -118,7 +118,7 @@ void SetSubMenuXml(const std::wstring& submenuXml, const std::wstring& submenuNo
 ```cpp
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl)
 {
-    ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否则菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("menu/settings_menu.xml"));
     menu->ShowMenu(xml, point);

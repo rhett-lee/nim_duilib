@@ -5,6 +5,8 @@
 
 #include "duilib/third_party/giflib/gif_lib.h"
 #include <atomic>
+#include <climits>
+#include <cstdint>
 
 namespace ui
 {
@@ -34,13 +36,19 @@ static int UiGifMemoryReadFunc(GifFileType* gif, GifByteType* buf, int len)
     }
 
     // 计算实际可读取的字节数（避免越界）
-    int bytes_to_read = (len > (int)(source->size - source->position)) ? (int)(source->size - source->position) : len;
+    // 防止 size_t -> int 截断（理论上的超大 GIF 才会触发）
+    size_t bytes_available = source->size - source->position;
+    size_t bytes_to_read = (static_cast<size_t>(len) > bytes_available) ? bytes_available : static_cast<size_t>(len);
+    // 业务上 GIF 通常不会超过 INT_MAX，此处再 cast 一次
+    if (bytes_to_read > static_cast<size_t>(INT_MAX)) {
+        bytes_to_read = static_cast<size_t>(INT_MAX);
+    }
 
     // 从内存复制数据到缓冲区
     memcpy(buf, source->data + source->position, bytes_to_read);
     source->position += bytes_to_read;
 
-    return bytes_to_read;
+    return static_cast<int>(bytes_to_read);
 }
 
 /** 初始化解码器：从内存数据创建 GIF 解码句柄
@@ -140,11 +148,20 @@ static AnimationFramePtr UiGifToRgbaFrames(FrameSequence_gif& gif,
         return nullptr;
     }
 
-    const int nImageWidth = gif.GetWidth();
-    const int nImageHeight = gif.GetHeight();
-    const int outputPixelStride = nImageWidth;
-    const int canvas_pixel_count = nImageWidth * nImageHeight;
-    if ((int)canvas.size() != canvas_pixel_count) {
+    const int32_t nImageWidth = gif.GetWidth();
+    const int32_t nImageHeight = gif.GetHeight();
+    // 安全计算画布像素总数：先做 size_t 提升再相乘，避免 int32_t 溢出
+    if (nImageWidth <= 0 || nImageHeight <= 0) {
+        return nullptr;
+    }
+    if ((size_t)nImageWidth > (SIZE_MAX / (size_t)nImageHeight)) {
+        // 溢出保护：图片像素数超过 size_t 容量
+        ASSERT(!"Image_GIF: canvas too large");
+        return nullptr;
+    }
+    const size_t canvas_pixel_count = (size_t)nImageWidth * (size_t)nImageHeight;
+    const int32_t outputPixelStride = nImageWidth;
+    if (canvas.size() != canvas_pixel_count) {
         canvas.resize(canvas_pixel_count); // 初始化画布
     }
 
@@ -178,7 +195,7 @@ static AnimationFramePtr UiGifToRgbaFrames(FrameSequence_gif& gif,
 #else
     pFrameData->m_pBitmap->Init(nImageWidth, nImageHeight, canvas.data(), fImageSizeScale);
 #endif
-    
+
     nPrevFrameIndex = nFrameIndex;
     return pFrameData;
 }
@@ -300,7 +317,7 @@ public:
         ASSERT(m_nHeight > 0);
         ASSERT(m_nFrameCount > 0);
 
-        if ((m_nFrameCount <= 0) || ((int32_t)m_nWidth <= 0) || ((int32_t)m_nHeight <= 0)) {
+        if ((m_nFrameCount <= 0) || (m_nWidth == 0) || (m_nHeight == 0)) {
             //加载失败
             m_bDecodeError = true;
             UiGifFreeDecoder(dec, nullptr);
@@ -419,7 +436,11 @@ bool Image_GIF::IsDelayDecodeFinished() const
     if (m_impl->m_bDecodeError || (m_impl->m_gifDecoder == nullptr)) {
         return true;
     }
-    return (int32_t)(m_impl->m_frames.size() + m_impl->m_delayFrames.size()) == m_impl->m_nFrameCount;
+    size_t totalSize = m_impl->m_frames.size() + m_impl->m_delayFrames.size();
+    if (totalSize > (size_t)INT32_MAX) {
+        return true;
+    }
+    return (int32_t)totalSize == m_impl->m_nFrameCount;
 }
 
 uint32_t Image_GIF::GetDecodedFrameIndex() const

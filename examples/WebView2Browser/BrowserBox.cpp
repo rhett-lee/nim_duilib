@@ -129,7 +129,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
         navigateUrl = _T("www.baidu.com");
 
         ////测试JS与C++通信
-        //ui::FilePath webViewHtml = GlobalManager::GetDefaultResourcePath(true);
+        //ui::FilePath webViewHtml = GlobalManager::GetResourceRootPath(true);
         //webViewHtml.NormalizeDirectoryPath();
         //webViewHtml += _T("themes/default/webview2_browser/WebView2Demo.html");
         //webViewHtml.NormalizeFilePath();
@@ -162,7 +162,7 @@ bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
 
     //不再调用基类的方法，避免覆盖输入法管理的逻辑（基类会关闭输入法）
     if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHot);
+        SetState(kControlStateHovered);
         Invalidate();
     }
     return true;

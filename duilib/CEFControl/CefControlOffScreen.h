@@ -98,6 +98,18 @@ protected:
     virtual bool OnKillFocus(const EventArgs& msg) override;
 
     //键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    /** 文本字符输入消息
+    * @param msg 文本输入的具体参数信息，参数取值详细内容如下
+    *            ASSERT(msg.eventType == ui::kEventChar)
+    *            1. Windows API实现时：
+    *               ASSERT((msg.eventData == WM_CHAR) || (msg.eventData == WM_SYSCHAR) || (msg.eventData == WM_UNICHAR));
+    *               wParam和lParam参数值就是操作系统消息对应的wParam和lParam参数值
+    *            2. SDL实现时, 获取文本的方法如下(wParam是DStringW::value_type*指针，lParam是字符串的长度)：
+    *               DStringW text;
+    *               if((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 0)) {
+    *                   text = (DStringW::value_type*)msg.wParam;
+    *               }
+    */
     virtual bool OnChar(const EventArgs& msg) override;
     virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnKeyUp(const EventArgs& msg) override;

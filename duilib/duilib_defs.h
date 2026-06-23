@@ -78,6 +78,8 @@ namespace ui
     #define  DUI_CTR_VTILE_SCROLLBOX                 (_T("VTileScrollBox"))
 
     #define  DUI_CTR_LISTBOX_ITEM                    (_T("ListBoxItem"))
+    #define  DUI_CTR_LISTBOX_ITEM_HBOX               (_T("ListBoxItemH"))
+    #define  DUI_CTR_LISTBOX_ITEM_VBOX               (_T("ListBoxItemV"))
     #define  DUI_CTR_HLISTBOX                        (_T("HListBox"))
     #define  DUI_CTR_VLISTBOX                        (_T("VListBox"))
     #define  DUI_CTR_HTILE_LISTBOX                   (_T("HTileListBox"))
@@ -100,6 +102,7 @@ namespace ui
     #define  DUI_CTR_DIRECTORY_TREE                  (_T("DirectoryTree"))
 
     #define  DUI_CTR_RICHEDIT                        (_T("RichEdit"))
+    #define  DUI_CTR_RICHEDIT2                       (_T("RichEdit2"))
     #define  DUI_CTR_COMBO                           (_T("Combo"))
     #define  DUI_CTR_COMBO_BUTTON                    (_T("ComboButton"))
     #define  DUI_CTR_FILTER_COMBO                    (_T("FilterCombo"))
@@ -114,6 +117,7 @@ namespace ui
     #define  DUI_CTR_MENU_ITEM                       (_T("MenuItem"))
     #define  DUI_CTR_MENU_LISTBOX                    (_T("MenuListBox"))
     #define  DUI_CTR_MENU_BAR                        (_T("MenuBar"))
+    #define  DUI_CTR_MENU_BAR_ITEM                   (_T("MenuBarItem"))
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
@@ -123,8 +127,8 @@ namespace ui
     #define  DUI_CTR_COLOR_CONTROL                   (_T("ColorControl"))
     #define  DUI_CTR_COLOR_SLIDER                    (_T("ColorSlider"))
     #define  DUI_CTR_COLOR_PICKER_REGULAR            (_T("ColorPickerRegular"))
-    #define  DUI_CTR_COLOR_PICKER_STANDARD           (_T("ColorPickerStatard"))
-    #define  DUI_CTR_COLOR_PICKER_STANDARD_GRAY      (_T("ColorPickerStatardGray"))
+    #define  DUI_CTR_COLOR_PICKER_STANDARD           (_T("ColorPickerStandard"))
+    #define  DUI_CTR_COLOR_PICKER_STANDARD_GRAY      (_T("ColorPickerStandardGray"))
     #define  DUI_CTR_COLOR_PICKER_CUSTOM             (_T("ColorPickerCustom"))
 
     #define  DUI_CTR_LINE                            (_T("Line"))
@@ -137,13 +141,15 @@ namespace ui
     #define  DUI_CTR_BITMAP_CONTROL                  (_T("BitmapControl"))
     #define  DUI_CTR_CHILD_WINDOW                    (_T("ChildWindow"))
 
-    // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
-    #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))
-    #define  DUI_CTR_BUTTON_CLOSE                    (_T("closebtn"))
-    #define  DUI_CTR_BUTTON_MIN                      (_T("minbtn"))
-    #define  DUI_CTR_BUTTON_MAX                      (_T("maxbtn"))
-    #define  DUI_CTR_BUTTON_RESTORE                  (_T("restorebtn"))
-    #define  DUI_CTR_BUTTON_FULLSCREEN               (_T("fullscreenbtn"))
+    // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口、选择主题、选择语言，代码中写死，XML需要用这个名称
+    #define  DUI_CTR_WINDOW_TITLE_BAR                       (_T("window_title_bar"))
+    #define  DUI_CTR_WINDOW_BUTTON_CLOSE                    (_T("btn_window_close"))
+    #define  DUI_CTR_WINDOW_BUTTON_MIN                      (_T("btn_window_min"))
+    #define  DUI_CTR_WINDOW_BUTTON_MAX                      (_T("btn_window_max"))
+    #define  DUI_CTR_WINDOW_BUTTON_RESTORE                  (_T("btn_window_restore"))
+    #define  DUI_CTR_WINDOW_BUTTON_FULLSCREEN               (_T("btn_window_fullscreen"))
+    #define  DUI_CTR_WINDOW_BUTTON_LANGUAGE                 (_T("btn_window_language"))
+    #define  DUI_CTR_WINDOW_BUTTON_THEME                    (_T("btn_window_theme"))
 
     class Control;
     class Image;
@@ -179,8 +185,8 @@ namespace ui
     enum ControlStateType: int8_t
     {
         kControlStateNormal     = 0,    // 普通状态
-        kControlStateHot        = 1,    // 悬停状态
-        kControlStatePushed     = 2,    // 按下状态
+        kControlStateHovered    = 1,    // 悬停状态
+        kControlStatePressed    = 2,    // 按下状态
         kControlStateDisabled   = 3,    // 禁用状态
 
         kControlStateCount      = 4     // 状态个数
@@ -190,7 +196,7 @@ namespace ui
     enum class AnimationType: int8_t
     {
         kAnimationNone              = 0,    //无动画
-        kAnimationHot               = 1,    //鼠标悬停状态的动画
+        kAnimationHovered           = 1,    //鼠标悬停状态的动画
         kAnimationAlpha             = 2,    //透明度渐变动画
         kAnimationHeight            = 3,    //控件高度变化动画（高度不能是拉伸类型）
         kAnimationWidth             = 4,    //控件宽度变化动画（宽度不能是拉伸类型）
@@ -331,7 +337,10 @@ namespace ui
         kEventKeyBegin,
         kEventKeyDown,              //Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
         kEventKeyUp,                //Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
-        kEventChar,                 //Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+        kEventChar,                 //Window类：Windows API实现时：当收到WM_CHAR/WM_SYSCHAR/WM_UNICHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+                                    //                            WM_CHAR/WM_SYSCHAR/WM_UNICHAR消息的值存储在EventArgs::eventData属性中
+                                    //         使用SDL实现时：当收到SDL_EVENT_TEXT_INPUT消息时触发，发送给KEYDOWN事件中的那个Focus控件
+                                    //                       SDL_EVENT_TEXT_INPUT消息的值存储在EventArgs::eventData属性中
         kEventKeyEnd,
 
         //鼠标消息
@@ -403,7 +412,7 @@ namespace ui
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
         kEventScrollPosChanged,     //ScrollBox类：当滚动条位置发生变化时触发
-        kEventValueChanged,         //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+        kEventValueChanged,         //DateTime、Slider类、PropertyGridProperty：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
         kEventPosChanged,           //Control类：当控件的位置发生变化时触发
         kEventSizeChanged,          //Control类：当控件的大小发生变化时触发
         kEventVisibleChanged,       //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)
@@ -474,6 +483,7 @@ namespace ui
         kWindowMoveMsg,             //窗口位置发生改变
         kWindowDisplayScaleChangedMsg,      //窗口的DPI属性发生改变
         kWindowDisplayResolutionChangedMsg, //窗口所在的屏幕分辨率属性发生改变
+        kWindowDwmCompositionChangedMsg,    //窗口的DWM服务状态发生改变，wParam为1表示DWM服务开启，为0表示DWM服务关闭
         kWindowSetFocusMsg,         //窗口获得焦点
         kWindowKillFocusMsg,        //窗口失去焦点
         kWindowSetCursorMsg,        //窗口设置光标
@@ -503,6 +513,8 @@ namespace ui
                                     //                  当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
                                     //                  当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
         kWindowDropLeaveMsg,        //窗口拖放操作：离开, 无参数
+        kWindowLanguageChangedMsg,  //窗口的语言切换事件（支持多国语言版）, 无参数
+        kWindowThemeChangedMsg,     //窗口的主题切换事件（支持深色、浅色等主题）, 无参数
         kWindowMsgEnd               //窗口消息的结束
     };
 

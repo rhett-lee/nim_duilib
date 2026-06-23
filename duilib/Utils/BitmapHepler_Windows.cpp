@@ -116,7 +116,8 @@ HBITMAP BitmapHelper::CreateGDIBitmap(IBitmap* pBitmap)
     LPVOID pBitmapBits = nullptr;
     HBITMAP hBitmap = CreateGDIBitmap(pBitmap->GetWidth(), pBitmap->GetHeight(), true, &pBitmapBits);
     if ((hBitmap != nullptr) && (pBitmapBits != nullptr)){
-        memcpy(pBitmapBits, pLockBits, pBitmap->GetWidth() * pBitmap->GetHeight() * 4);
+        //注意：pBitmap->GetWidth() * pBitmap->GetHeight() * 4 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+        memcpy(pBitmapBits, pLockBits, (size_t)pBitmap->GetWidth() * pBitmap->GetHeight() * 4);
     }        
     pBitmap->UnLockPixelBits();
     return hBitmap;
@@ -142,7 +143,8 @@ HBITMAP BitmapHelper::CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flip
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
+    //注意：nWidth * nHeight * sizeof(DWORD) 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+    bmi.bmiHeader.biSizeImage = (DWORD)((size_t)nWidth * nHeight * sizeof(DWORD));
 
     HDC hdc = ::GetDC(nullptr);
     HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);

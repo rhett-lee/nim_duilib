@@ -97,12 +97,14 @@ void CefMemoryBlock::PaintData(IRender* pRender,const UiRect& rc)
         bool bRet = false;
         if ((rc.Width() == GetWidth()) && (rc.Height() == GetHeight())) {
             //目标区域与图像数据的大小相同，直接写入
-            bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory);
+            //注意：GetWidth() * GetHeight() * sizeof(uint32_t) 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+            bRet = pRender->WritePixels(GetBits(), (size_t)GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory);
         }
         else {
             const UiRect& rcPaint = rc;//实际的脏区域（避免绘制越界，因为WritePixels函数会忽略Clip，导致越界绘制，覆盖其他控件）
-            bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory, rcPaint);
-        }        
+            //注意：GetWidth() * GetHeight() * sizeof(uint32_t) 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+            bRet = pRender->WritePixels(GetBits(), (size_t)GetWidth() * GetHeight() * sizeof(uint32_t), rcMemory, rcPaint);
+        }
         ASSERT_UNUSED_VARIABLE(bRet);
     }
 }

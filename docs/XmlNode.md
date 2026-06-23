@@ -79,8 +79,8 @@
 | ColorControl | "ColorControl"| [duilib/Control/ColorControl.h](../duilib/Control/ColorControl.h) | |
 | ColorSlider | "ColorSlider"| [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | |
 | ColorPickerRegular | "ColorPickerRegular"| [duilib/Control/ColorPickerRegular.h](../duilib/Control/ColorPickerRegular.h) | |
-| ColorPickerStatard | "ColorPickerStatard"| [duilib/Control/ColorPickerStatard.h](../duilib/Control/ColorPickerStatard.h) | |
-| ColorPickerStatardGray | "ColorPickerStatardGray"| [duilib/Control/ColorPickerStatardGray.h](../duilib/Control/ColorPickerStatardGray.h) | |
+| ColorPickerStandard | "ColorPickerStandard"| [duilib/Control/ColorPickerStandard.h](../duilib/Control/ColorPickerStandard.h) | |
+| ColorPickerStandardGray | "ColorPickerStandardGray"| [duilib/Control/ColorPickerStandardGray.h](../duilib/Control/ColorPickerStandardGray.h) | |
 | ColorPickerCustom | "ColorPickerCustom"| [duilib/Control/ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h) | |
 | CefControl | "CefControl"| [duilib/CEFControl/CefControl.h](../duilib/CEFControl/CefControl.h) | |
 | WebView2Control | "WebView2Control"| [duilib/WebView2/WebView2Control.h](../duilib/WebView2/WebView2Control.h) | |

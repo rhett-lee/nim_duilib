@@ -22,7 +22,7 @@ bool VirtualVLayout::SetAttribute(const DString& strName, const DString& strValu
         SetItemSize(szItem);
     }
     else if (strName == _T("auto_calc_item_size")) {
-        SetAutoCalcItemWidth(strValue == _T("true"));
+        SetAutoCalcItemWidth(StringUtil::IsValueTrue(strValue));
     }
     else {
         hasAttribute = BaseClass::SetAttribute(strName, strValue, dpiManager);

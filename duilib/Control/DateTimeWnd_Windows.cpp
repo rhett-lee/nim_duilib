@@ -156,9 +156,13 @@ bool DateTimeWnd::RegisterSuperClass()
     ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 
     //在模块退出时，注销该ATOM
-    GlobalManager::Instance().AddAtExitFunction([hModule]() {
+    static bool bAddAtExitFunction = false;
+    if (!bAddAtExitFunction) {
+        bAddAtExitFunction = true;
+        GlobalManager::Instance().AddAtExitFunction([hModule]() {
             ::UnregisterClassW(DATETIMEPICK_CLASSW, hModule);
-        });
+            });
+    }
 
     return ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }

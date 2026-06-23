@@ -25,7 +25,8 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_bEnableControlPadding(true),
     m_bInited(false),
     m_bReEstimateSize(true),
-    m_pEstResult(nullptr)
+    m_pEstResult(nullptr),
+    m_bEnableVars(true)
 {
     //控件的高度和宽度值，默认设置为拉伸
     m_cxyFixed.cx.SetStretch();
@@ -751,6 +752,28 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
     return scrollPos;
 }
 
+UiSize64 PlaceHolder::GetScrollOffsetInScrollBox64() const
+{
+    UiSize64 scrollPos;
+    Control* parent = GetParent();
+    while (parent != nullptr) {
+        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(parent);
+        if ((pScrollBox != nullptr) &&
+            (pScrollBox->IsVScrollBarValid() || pScrollBox->IsHScrollBarValid())) {
+            //此父控件是ScrollBox，并且父控件存在横向滚动条或者纵向滚动条
+            if (IsFloat() && (pScrollBox == GetParent())) {
+                //当前控件是浮动的，父控件是ScrollBox，不计入统计
+            }
+            else {
+                scrollPos.cx += pScrollBox->GetScrollOffset64().cx;
+                scrollPos.cy += pScrollBox->GetScrollOffset64().cy;
+            }
+        }
+        parent = parent->GetParent();
+    }
+    return scrollPos;
+}
+
 bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHolder* pChild)
 {
     while ((pChild != nullptr) && (pChild != pAncestor)) {
@@ -762,6 +785,32 @@ bool PlaceHolder::IsControlRelated(const PlaceHolder* pAncestor, const PlaceHold
 const DpiManager& PlaceHolder::Dpi() const
 {
     return (m_pWindow != nullptr) ? m_pWindow->Dpi() : GlobalManager::Instance().Dpi();
+}
+
+void PlaceHolder::SetEnableVars(bool bEnableVars)
+{
+    m_bEnableVars = bEnableVars;
+}
+
+bool PlaceHolder::IsEnableVars() const
+{
+    return m_bEnableVars;
+}
+
+DString& PlaceHolder::ExpandVarStrings(DString& varValue) const
+{
+    if (IsEnableVars()) {
+        GlobalManager::Instance().ExpandVarStrings(varValue);
+    }
+    return varValue;
+}
+
+DString PlaceHolder::GetExpandVarStrings(const DString& varValue) const
+{
+    if (IsEnableVars()) {
+        return GlobalManager::Instance().GetExpandVarStrings(varValue);
+    }
+    return varValue;
 }
 
 }

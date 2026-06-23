@@ -20,7 +20,7 @@ static AnimationFramePtr DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
         return nullptr;
     }
     ASSERT(fImageSizeScale > 0);
-    if (fImageSizeScale < 0) {
+    if (fImageSizeScale <= 0) {
         return nullptr;
     }
 

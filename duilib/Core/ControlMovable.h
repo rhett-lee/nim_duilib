@@ -235,13 +235,14 @@ template<>
 inline DString ControlMovableT<VBox>::GetType() const { return DUI_CTR_VBOX_MOVABLE; }
 
 template<typename T>
-void ControlMovableT<T>::SetAttribute(const DString& strName, const DString& strValue)
+void ControlMovableT<T>::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = this->GetExpandVarStrings(strValue2);
     if (strName == _T("enable_move_pos")) {
-        SetEnableMovePos(strValue == _T("true"));
+        SetEnableMovePos(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("move_parent_pos")) {
-        SetMoveParentPos(strValue == _T("true"));
+        SetMoveParentPos(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("move_pos_alpha")) {
         SetMovePosAlpha((uint8_t)StringUtil::StringToInt32(strValue));
@@ -263,7 +264,7 @@ void ControlMovableT<T>::SetAttribute(const DString& strName, const DString& str
         SetMovePosReserveHeight(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("move_pos_keep_within_parent")) {
-        SetMovePosKeepWithinParent(strValue == _T("true"));
+        SetMovePosKeepWithinParent(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);

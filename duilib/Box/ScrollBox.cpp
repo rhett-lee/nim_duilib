@@ -30,62 +30,63 @@ ScrollBox::~ScrollBox()
 
 DString ScrollBox::GetType() const { return DUI_CTR_SCROLLBOX; }//ScrollBox
 
-void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
+void ScrollBox::SetAttribute(const DString& strName, const DString& strValue2)
 {
-    if (pstrName == _T("vscrollbar")) {
-        EnableScrollBar(pstrValue == _T("true"), GetHScrollBar() != nullptr);
+    DString strValue = GetExpandVarStrings(strValue2);
+    if (strName == _T("vscrollbar")) {
+        EnableScrollBar(StringUtil::IsValueTrue(strValue), GetHScrollBar() != nullptr);
     }
-    else if ((pstrName == _T("vscrollbar_style")) || (pstrName == _T("vscrollbarstyle"))) {
+    else if ((strName == _T("vscrollbar_style")) || (strName == _T("vscrollbarstyle"))) {
         EnableScrollBar(true, GetHScrollBar() != nullptr);
         if (GetVScrollBar() != nullptr) {
-            GetVScrollBar()->ApplyAttributeList(pstrValue);
+            GetVScrollBar()->ApplyAttributeList(strValue);
         }
     }
-    else if (pstrName == _T("vscrollbar_class")) {
+    else if (strName == _T("vscrollbar_class")) {
         EnableScrollBar(true, GetHScrollBar() != nullptr);
         if (GetVScrollBar() != nullptr) {
-            GetVScrollBar()->SetClass(pstrValue);
+            GetVScrollBar()->SetClass(strValue);
         }
     }
-    else if (pstrName == _T("hscrollbar")) {
-        EnableScrollBar(GetVScrollBar() != nullptr, pstrValue == _T("true"));
+    else if (strName == _T("hscrollbar")) {
+        EnableScrollBar(GetVScrollBar() != nullptr, StringUtil::IsValueTrue(strValue));
     }
-    else if ((pstrName == _T("hscrollbar_style")) || (pstrName == _T("hscrollbarstyle"))) {
+    else if ((strName == _T("hscrollbar_style")) || (strName == _T("hscrollbarstyle"))) {
         EnableScrollBar(GetVScrollBar() != nullptr, true);
         if (GetHScrollBar() != nullptr) {
-            GetHScrollBar()->ApplyAttributeList(pstrValue);
+            GetHScrollBar()->ApplyAttributeList(strValue);
         }
     }
-    else if (pstrName == _T("hscrollbar_class")) {
+    else if (strName == _T("hscrollbar_class")) {
         EnableScrollBar(GetVScrollBar() != nullptr, true);
         if (GetHScrollBar() != nullptr) {
-            GetHScrollBar()->SetClass(pstrValue);
+            GetHScrollBar()->SetClass(strValue);
         }
     }
-    else if ((pstrName == _T("scrollbar_padding")) || (pstrName == _T("scrollbarpadding"))) {
+    else if ((strName == _T("scrollbar_padding")) || (strName == _T("scrollbarpadding"))) {
         UiPadding rcScrollbarPadding;
-        AttributeUtil::ParsePaddingValue(pstrValue.c_str(), rcScrollbarPadding);
+        AttributeUtil::ParsePaddingValue(strValue.c_str(), rcScrollbarPadding);
         SetScrollBarPadding(rcScrollbarPadding, true);
     }
-    else if ((pstrName == _T("vscroll_unit")) || (pstrName == _T("vscrollunit"))) {
-        int32_t iValue = StringUtil::StringToInt32(pstrValue);
+    else if ((strName == _T("vscroll_unit")) || (strName == _T("vscrollunit"))) {
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetVerScrollUnitPixels(iValue, true);
     }
-    else if ((pstrName == _T("hscroll_unit")) || (pstrName == _T("hscrollunit"))) {
-        int32_t iValue = StringUtil::StringToInt32(pstrValue);
+    else if ((strName == _T("hscroll_unit")) || (strName == _T("hscrollunit"))) {
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetHorScrollUnitPixels(iValue, true);
     }
-    else if ((pstrName == _T("scrollbar_float")) || (pstrName == _T("scrollbarfloat"))) {
-        SetScrollBarFloat(pstrValue == _T("true"));
+    else if ((strName == _T("scrollbar_float")) || (strName == _T("scrollbarfloat"))) {
+        SetScrollBarFloat(StringUtil::IsValueTrue(strValue));
     }
-    else if ((pstrName == _T("vscrollbar_left")) || (pstrName == _T("vscrollbarleft"))) {
-        SetVScrollBarAtLeft(pstrValue == _T("true"));
+    else if ((strName == _T("vscrollbar_left")) || (strName == _T("vscrollbarleft"))) {
+        SetVScrollBarAtLeft(StringUtil::IsValueTrue(strValue));
     }
-    else if ((pstrName == _T("hold_end")) || (pstrName == _T("holdend"))) {
-        SetHoldEnd(pstrValue == _T("true"));
+    else if ((strName == _T("hold_end")) || (strName == _T("holdend"))) {
+        SetHoldEnd(StringUtil::IsValueTrue(strValue));
     }
     else {
-        Box::SetAttribute(pstrName, pstrValue);
+        Box::SetAttribute(strName, strValue);
     }
 }
 
@@ -122,6 +123,23 @@ void ScrollBox::SetPos(UiRect rc)
 
 void ScrollBox::DoSetPos(UiRect rc, bool bScrollProcess)
 {
+    // 防止复杂布局下反复触发滚动条状态变化导致递归过深
+    // 实际正常流程最多 1 次递归（内部 SetPosInternally 在 bScrollProcess==true 时不再递归），
+    // 此处作为安全网，超过深度限制时主动中断以避免栈溢出
+    constexpr int32_t kMaxDoSetPosDepth = 8;
+    thread_local int32_t s_recursionDepth = 0;
+    if (++s_recursionDepth > kMaxDoSetPosDepth) {
+        ASSERT(!"ScrollBox::DoSetPos recursion depth exceeded, possible layout loop");
+        --s_recursionDepth;
+        return;
+    }
+    struct DepthGuard {
+        DepthGuard(int32_t& depth) : m_depth(depth) {}
+        ~DepthGuard() { --m_depth; }
+
+        int32_t& m_depth;
+    } guard(s_recursionDepth);
+
     UiSize oldScrollOffset = GetScrollOffset();
     bool bEndDown = false;
     if (IsHoldEnd() && IsVScrollBarValid() && GetScrollRange().cy - GetScrollPos().cy == 0) {
@@ -138,17 +156,22 @@ void ScrollBox::DoSetPos(UiRect rc, bool bScrollProcess)
     }
 }
 
-void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
+bool ScrollBox::IsScrollBoxLayoutByActualAreaSize() const
 {
-    Control::SetPos(rc);
     Layout* pLayout = GetLayout();
     ASSERT(pLayout != nullptr);
     if (pLayout == nullptr) {
-        return;
+        return false;
     }
+    return pLayout->LayoutByActualAreaSize();
+}
+
+void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
+{
+    Control::SetPos(rc);    
     bool bArrangedChildren = false;
     UiSize64 requiredSize;
-    if (pLayout->LayoutByActualAreaSize()) {
+    if (IsScrollBoxLayoutByActualAreaSize()) {
         //该布局在支持滚动条的容器中，拉伸类型的子控件的布局与目标区域大小相关，需要预先计算目标区域大小
         requiredSize = CalcRequiredSize(rc, true);//只计算子控件的大小和位置，不调整
         if ((requiredSize.cx > 0) && (requiredSize.cy > 0)) {
@@ -517,12 +540,12 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 bool ScrollBox::MouseEnter(const EventArgs& msg)
 {
     bool bRet = BaseClass::MouseEnter(msg);
-    if (IsHotState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
+    if (IsHoveredState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
         if (m_pVScrollBar->IsAutoHideScroll()) {
             m_pVScrollBar->SetFadeVisible(true);
         }
     }
-    if (IsHotState() && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled()) {
+    if (IsHoveredState() && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled()) {
         if (m_pHScrollBar->IsAutoHideScroll()) {
             m_pHScrollBar->SetFadeVisible(true);
         }
@@ -533,7 +556,7 @@ bool ScrollBox::MouseEnter(const EventArgs& msg)
 bool ScrollBox::MouseLeave(const EventArgs& msg)
 {
     bool bRet = BaseClass::MouseLeave(msg);
-    if (!IsHotState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
+    if (!IsHoveredState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
         if ((m_pVScrollBar->GetThumbState() == kControlStateNormal) && 
              m_pVScrollBar->IsAutoHideScroll()) {
             Control* pNewHover = nullptr;
@@ -545,7 +568,7 @@ bool ScrollBox::MouseLeave(const EventArgs& msg)
             }
         }
     }
-    if (!IsHotState() && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled()) {
+    if (!IsHoveredState() && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled()) {
         if ((m_pHScrollBar->GetThumbState() == kControlStateNormal) && 
              m_pHScrollBar->IsAutoHideScroll()) {
             Control* pNewHover = nullptr;
@@ -1136,6 +1159,16 @@ UiSize ScrollBox::GetScrollOffset() const
     realcrollPos.cx = TruncateToInt32(scrollPosX);
     realcrollPos.cy = TruncateToInt32(scrollPosY);
     return realcrollPos;
+}
+
+UiSize64 ScrollBox::GetScrollOffset64() const
+{
+    //这种虚拟滚动条位置的引入，是为了解决UiRect用32位整型值不能支持超大虚表（千万数据量级别以上）的问题
+    UiSize64 scrollPos = GetScrollPos();
+    UiSize64 scrollVirtualOffset = GetScrollVirtualOffset();
+    scrollPos.cx -= scrollVirtualOffset.cx;
+    scrollPos.cy -= scrollVirtualOffset.cy;
+    return scrollPos;
 }
 
 const UiSize64& ScrollBox::GetScrollVirtualOffset() const

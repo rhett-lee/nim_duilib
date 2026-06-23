@@ -69,7 +69,9 @@ AnimationPlayer* AnimationManager::SetFadeWidth(bool bFadeWidth)
     AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFadeWidth) {
-        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        // 使用一个超大尺寸去探测控件"不受限"时的自然宽度
+        // 该常量定义在 AnimationManager.h 中
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(kAnimationEstimateMaxSize, kAnimationEstimateMaxSize));
         cx = estSize.cx.GetInt32();
         ASSERT(cx > 0);
     }
@@ -102,7 +104,8 @@ AnimationPlayer* AnimationManager::SetFadeHeight(bool bFadeHeight)
     AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFadeHeight) {
-        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        // 使用一个超大尺寸去探测控件"不受限"时的自然高度
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(kAnimationEstimateMaxSize, kAnimationEstimateMaxSize));
         cy = estSize.cy.GetInt32();
         ASSERT(cy > 0);
     }
@@ -136,7 +139,9 @@ AnimationPlayer* AnimationManager::SetFadeSize(bool bFadeSize)
     int32_t cx = 0;
     int32_t cy = 0;
     if (bFadeSize) {
-        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        // 使用一个超大尺寸去探测控件"不受限"时的自然尺寸
+        // 该常量定义在 AnimationManager.h 中
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(kAnimationEstimateMaxSize, kAnimationEstimateMaxSize));
         cx = estSize.cx.GetInt32();
         cy = estSize.cy.GetInt32();
         ASSERT(cy > 0);
@@ -173,7 +178,8 @@ AnimationPlayer* AnimationManager::SetFadeInOutX(bool bFade, bool bIsFromRight)
     AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cx = 0;
     if (bFade) {
-        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        // 使用一个超大尺寸去探测控件"不受限"时的自然宽度
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(kAnimationEstimateMaxSize, kAnimationEstimateMaxSize));
         cx = estSize.cx.GetInt32();
         if (cx <= 0) {
             cx = 100;
@@ -211,7 +217,8 @@ AnimationPlayer* AnimationManager::SetFadeInOutY(bool bFade, bool bIsFromBottom)
     AnimationPlayer* pAnimationPlayer = nullptr;
     int32_t cy = 0;
     if (bFade) {
-        UiEstSize estSize = m_pControl->EstimateSize(UiSize(999999, 999999));
+        // 使用一个超大尺寸去探测控件"不受限"时的自然高度
+        UiEstSize estSize = m_pControl->EstimateSize(UiSize(kAnimationEstimateMaxSize, kAnimationEstimateMaxSize));
         cy = estSize.cy.GetInt32();
         if (cy <= 0) {
             cy = 100;

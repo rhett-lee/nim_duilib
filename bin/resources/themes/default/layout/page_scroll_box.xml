@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_scroll_box" text_padding="4,4,4,4" halign="center" valign="center" bkcolor="Sienna" border_size="2" border_color="Blue"/>
-    <Label text="ScrollBox容器布局测试（容器内容不支持设置对齐方式，子控件的对齐方式需要在自身设置）"/>
+    <HBox width="auto" height="auto">
+        <Label text="ScrollBox " height="28" valign="center"/>
+        <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
+        <Label text_id="STRID_LAYOUT_PAGE_22" height="28" valign="center"/>
+    </HBox>
     <ScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" border_size="2" border_color="red" padding="20,20,20,20">
         <Label class="page_scroll_box" text="1 default left,top" text_align="left,top" halign="left" valign="top" width="5000" height="2500" bkcolor="Cornsilk"/>
 
@@ -13,7 +17,7 @@
         <Label class="page_scroll_box" text="7 center,bottom" halign="center" valign="bottom" width="100" height="80"/>
         <Label class="page_scroll_box" text="8 right,top" halign="right" valign="top" width="100" height="80" margin="0,10,10,0"/>
         <Label class="page_scroll_box" text="9 right,center" halign="right" valign="center" width="100" height="80"/>
-        
+
         <Label class="page_scroll_box" text="10 width:70%" halign="center" valign="center" width="70%" height="40" alpha="128" margin="10,200,10,10"/>
         <Label class="page_scroll_box" text="11 height:70%" halign="center" valign="center" width="200" height="70%" alpha="128" margin="300,10,10,10"/>
 
@@ -21,5 +25,5 @@
         <Label text="float 301*301 center,center" float="true" halign="center" valign="center" single_line="false" width="301" height="301" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
         <Label text="float 302*302 center,bottom" float="true" halign="center" valign="bottom" single_line="false" width="302" height="302" border_size="1" border_color="green" bkcolor="LemonChiffon"/>
 
-   </ScrollBox>
+    </ScrollBox>
 </Window>

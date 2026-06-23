@@ -193,9 +193,9 @@ void CefManager_Windows::AddCefDllToPath()
     FilePath cefDllPath = cefDllDir;
     cefDllPath /= FilePath(L"libcef.dll");
     if (!cefDllDir.IsExistsDirectory() || !cefDllPath.IsExistsFile()) {
-        DStringW errMsg = L"无法加载libcef.dll文件！\n请将libcef.dll等相关的CEF二进制文件和资源文件释放到以下目录：\n";
+        DStringW errMsg = L"Load libcef.dll failed:\n";
         errMsg += cefDllDir.ToStringW();
-        ::MessageBoxW(nullptr, errMsg.c_str(), L"错误提示", MB_OK);
+        ::MessageBoxW(nullptr, errMsg.c_str(), L"CefManager Error", MB_OK);
         exit(0);
     }
     DString new_envirom(cefDllDir.NativePath());

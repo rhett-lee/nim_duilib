@@ -14,8 +14,9 @@ TabCtrl::TabCtrl(Window* pWindow):
 
 DString TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
 
-void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
+void TabCtrl::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("selected_id")) {
         int32_t nValue = StringUtil::StringToInt32(strValue);
         if (nValue >= 0) {
@@ -28,7 +29,19 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("drag_order")) {
         //是否支持拖动调整顺序（在同一个标签内），默认是开启的
-        SetEnableDragOrder(strValue == _T("true"));
+        SetEnableDragOrder(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("selected_tab_item_outline_width")) {
+        SetSelectedTabItemOutlineWidth(StringUtil::StringToFloat(strValue.c_str()));
+    }
+    else if (strName == _T("selected_tab_item_outline_color")) {
+        SetSelectedTabItemOutlineColor(strValue);
+    }
+    else if (strName == _T("tab_ctrl_bottom_line_height")) {
+        SetTabCtrlBottomLineHeight(StringUtil::StringToFloat(strValue.c_str()));
+    }
+    else if (strName == _T("tab_ctrl_bottom_line_color")) {
+        SetTabCtrlBottomLineColor(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -43,6 +56,52 @@ void TabCtrl::SetEnableDragOrder(bool bEnable)
 bool TabCtrl::IsEnableDragOrder() const
 {
     return m_bEnableDragOrder;
+}
+
+void TabCtrl::SetSelectedTabItemOutlineWidth(float fOutlineWidth)
+{
+    if (fOutlineWidth < 0.0f) {
+        fOutlineWidth = 0.0f;
+    }
+    m_fSelectedTabItemOutlineWidth = fOutlineWidth;
+}
+
+float TabCtrl::GetSelectedTabItemOutlineWidth() const
+{
+    return m_fSelectedTabItemOutlineWidth;
+}
+
+void TabCtrl::SetSelectedTabItemOutlineColor(const DString& outlineColor)
+{
+    m_selectedTabItemOutlineColor = outlineColor;
+}
+
+const DString& TabCtrl::GetSelectedTabItemOutlineColor() const
+{
+    return m_selectedTabItemOutlineColor;
+}
+
+void TabCtrl::SetTabCtrlBottomLineHeight(float fLineHeight)
+{
+    if (fLineHeight < 0.0f) {
+        fLineHeight = 0.0f;
+    }
+    m_fTabCtrlBottomLineHeight = fLineHeight;
+}
+
+float TabCtrl::GetTabCtrlBottomLineHeight() const
+{
+    return m_fTabCtrlBottomLineHeight;
+}
+
+void TabCtrl::SetTabCtrlBottomLineColor(const DString& lineColor)
+{
+    m_tabCtrlBottomLineColor = lineColor;
+}
+
+const DString& TabCtrl::GetTabCtrlBottomLineColor() const
+{
+    return m_tabCtrlBottomLineColor;
 }
 
 void TabCtrl::OnInit()
@@ -98,6 +157,32 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
         if (pItem != nullptr) {
             pItem->AdjustItemLineStatus();
         }
+    }
+}
+
+void TabCtrl::PaintStateColors(IRender* pRender)
+{
+    BaseClass::PaintStateColors(pRender);
+    //在标签底部画线（但排除当前选择标签的区域，不覆盖选择标签）
+    float fBottomLineHeight = GetTabCtrlBottomLineHeight();
+    DString strBottomLineColor = GetTabCtrlBottomLineColor();
+    UiColor bottomLineColor;
+    if (!strBottomLineColor.empty()) {
+        bottomLineColor = GetUiColor(strBottomLineColor);
+    }
+    std::unique_ptr<IPen> pBottomLinePen;
+    if ((fBottomLineHeight > 0.01f) && !bottomLineColor.IsEmpty()) {
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        if (pRenderFactory != nullptr) {
+            pBottomLinePen.reset(pRenderFactory->CreatePen(bottomLineColor, fBottomLineHeight));
+        }
+    }
+    if (pBottomLinePen != nullptr) {
+        UiRectF rcTabCtrl = UiRectF::MakeFromRect(GetRect());
+        rcTabCtrl.bottom -= (fBottomLineHeight / 2);
+        pRender->DrawLine(UiPointF(rcTabCtrl.left, rcTabCtrl.bottom),
+                          UiPointF(rcTabCtrl.right, rcTabCtrl.bottom),
+                          pBottomLinePen.get());
     }
 }
 
@@ -197,7 +282,7 @@ void TabCtrl::AdjustItemLineStatus()
             continue;
         }
         ControlStateType state = pItem->GetState();
-        if ((state == kControlStateHot) || (state == kControlStatePushed) || pItem->IsSelected()) {
+        if ((state == kControlStateHovered) || (state == kControlStatePressed) || pItem->IsSelected()) {
             //活动标签，不显示分割线
             pItem->SetItemLineVisible(false);
 
@@ -235,19 +320,20 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_rcSelected.cx = (uint8_t)-1;
     m_rcSelected.cy = (uint8_t)-1;
 
-    m_rcHot.cx = (uint8_t)-1;
-    m_rcHot.cy = (uint8_t)-1;
+    m_rcHovered.cx = (uint8_t)-1;
+    m_rcHovered.cy = (uint8_t)-1;
 
-    m_hotPadding.top = 0;
-    m_hotPadding.left = (uint8_t)-1;
-    m_hotPadding.right = 0;
-    m_hotPadding.bottom = 0;
+    m_hoveredPadding.top = 0;
+    m_hoveredPadding.left = (uint8_t)-1;
+    m_hoveredPadding.right = 0;
+    m_hoveredPadding.bottom = 0;
 }
 
 DString TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
 
-void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
+void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("tab_box_item_index")) {
         SetTabBoxItemIndex((size_t)StringUtil::StringToInt32(strValue));
     }
@@ -277,18 +363,18 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
         AttributeUtil::ParseSizeValue(strValue.c_str(), sz);
         SetSelectedRoundCorner(sz, true);
     }
-    else if (strName == _T("hot_round_corner")) {
+    else if ((strName == _T("hovered_round_corner")) || (strName == _T("hot_round_corner"))) {
         UiSize sz;
         AttributeUtil::ParseSizeValue(strValue.c_str(), sz);
-        SetHotRoundCorner(sz, true);
+        SetHoveredRoundCorner(sz, true);
     }
-    else if (strName == _T("hot_padding")) {
+    else if ((strName == _T("hovered_padding")) || (strName == _T("hot_padding"))) {
         UiPadding rcPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
-        SetHotPadding(rcPadding, true);
+        SetHoveredPadding(rcPadding, true);
     }
     else if (strName == _T("auto_hide_close_button")) {
-        SetAutoHideCloseButton(strValue == _T("true"));
+        SetAutoHideCloseButton(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -581,22 +667,22 @@ UiSize TabCtrlItem::GetSelectedRoundCorner() const
     return szCorner;
 }
 
-void TabCtrlItem::SetHotRoundCorner(UiSize szCorner, bool bNeedDpiScale)
+void TabCtrlItem::SetHoveredRoundCorner(UiSize szCorner, bool bNeedDpiScale)
 {
     ASSERT((szCorner.cx >= 0) && (szCorner.cy >= 0));
     szCorner.Validate();
     if (bNeedDpiScale) {
         Dpi().ScaleSize(szCorner);
     }
-    m_rcHot.cx = ui::TruncateToUInt8(szCorner.cx);
-    m_rcHot.cy = ui::TruncateToUInt8(szCorner.cy);
+    m_rcHovered.cx = ui::TruncateToUInt8(szCorner.cx);
+    m_rcHovered.cy = ui::TruncateToUInt8(szCorner.cy);
 }
 
-UiSize TabCtrlItem::GetHotRoundCorner() const
+UiSize TabCtrlItem::GetHoveredRoundCorner() const
 {
     UiSize szCorner;
-    szCorner.cx = (int8_t)m_rcHot.cx;
-    szCorner.cy = (int8_t)m_rcHot.cy;
+    szCorner.cx = (int8_t)m_rcHovered.cx;
+    szCorner.cy = (int8_t)m_rcHovered.cy;
     if (szCorner.cx < 0) {
         szCorner.cx = Dpi().GetScaleInt(5);
     }
@@ -606,26 +692,26 @@ UiSize TabCtrlItem::GetHotRoundCorner() const
     return szCorner;
 }
 
-void TabCtrlItem::SetHotPadding(UiPadding rcPadding, bool bNeedDpiScale)
+void TabCtrlItem::SetHoveredPadding(UiPadding rcPadding, bool bNeedDpiScale)
 {
     ASSERT((rcPadding.left >= 0) && (rcPadding.top >= 0) && (rcPadding.right >= 0) && (rcPadding.bottom >= 0));
     rcPadding.Validate();
     if (bNeedDpiScale) {
         Dpi().ScalePadding(rcPadding);
     }
-    m_hotPadding.left = TruncateToUInt8(rcPadding.left);
-    m_hotPadding.top = TruncateToUInt8(rcPadding.top);
-    m_hotPadding.right = TruncateToUInt8(rcPadding.right);
-    m_hotPadding.bottom = TruncateToUInt8(rcPadding.bottom);
+    m_hoveredPadding.left = TruncateToUInt8(rcPadding.left);
+    m_hoveredPadding.top = TruncateToUInt8(rcPadding.top);
+    m_hoveredPadding.right = TruncateToUInt8(rcPadding.right);
+    m_hoveredPadding.bottom = TruncateToUInt8(rcPadding.bottom);
 }
 
-UiPadding TabCtrlItem::GetHotPadding() const
+UiPadding TabCtrlItem::GetHoveredPadding() const
 {
     UiPadding rcPadding;
-    rcPadding.left = (int8_t)m_hotPadding.left;
-    rcPadding.top = (int8_t)m_hotPadding.top;
-    rcPadding.right = (int8_t)m_hotPadding.right;
-    rcPadding.bottom = (int8_t)m_hotPadding.bottom;
+    rcPadding.left = (int8_t)m_hoveredPadding.left;
+    rcPadding.top = (int8_t)m_hoveredPadding.top;
+    rcPadding.right = (int8_t)m_hoveredPadding.right;
+    rcPadding.bottom = (int8_t)m_hoveredPadding.bottom;
     if (rcPadding.left < 0) {
         rcPadding.top = 0;
         rcPadding.left = (uint8_t)Dpi().GetScaleInt(3);
@@ -707,11 +793,11 @@ void TabCtrlItem::PaintStateColors(IRender* pRender)
     if (IsSelected()) {
         PaintTabItemSelected(pRender);
     }
-    else if ((GetState() == ControlStateType::kControlStateHot)    ||
-             (GetState() == ControlStateType::kControlStatePushed) ||
-             IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
+    else if ((GetState() == ControlStateType::kControlStateHovered)    ||
+             (GetState() == ControlStateType::kControlStatePressed) ||
+             IsAnimationPlayerPlaying(AnimationType::kAnimationHovered)) {
         //鼠标悬停状态
-        PaintTabItemHot(pRender);
+        PaintTabItemHovered(pRender);
     }
     else {
         BaseClass::PaintStateColors(pRender);
@@ -741,53 +827,130 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
     UiColor dwColor = GetUiColor(color);
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory != nullptr) {
-        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));
+        std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));        
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-        if (brush && path) {
+        if ((brush != nullptr) && (path != nullptr)) {
+            //轮廓边线相关参数
+            float fOutlineWidth = 0.0f;
+            UiColor outlineColor;
+            TabCtrl* pTabCtrl = GetTabCtrl();
+            if (pTabCtrl != nullptr) {
+                fOutlineWidth = pTabCtrl->GetSelectedTabItemOutlineWidth();
+                DString strOutlineColor = pTabCtrl->GetSelectedTabItemOutlineColor();
+
+                fOutlineWidth = pTabCtrl->Dpi().GetScaleFloat(fOutlineWidth);
+                if (!strOutlineColor.empty()) {
+                    outlineColor = GetUiColor(strOutlineColor);
+                }
+            }
+            std::unique_ptr<IPen> pOutlinePen;
+            if ((fOutlineWidth > 0.01f) && !outlineColor.IsEmpty()) {
+                pOutlinePen.reset(pRenderFactory->CreatePen(outlineColor, fOutlineWidth));
+            }
+            if (pOutlinePen != nullptr) {
+                //为边线留出空间
+                rc.top += (int32_t)std::round(fOutlineWidth / 2);
+            }
+            //绘制选择标签的样式到路径
             AddTabItemPath(path.get(), rc, roundSize);
+            if (pOutlinePen != nullptr) {
+                //绘制选择标签的轮廓边线
+                pRender->DrawPath(path.get(), pOutlinePen.get());
+                UiRect rcSelectItem = rc;
+                if (pTabCtrl != nullptr) {
+                    UiRect rcTabCtrl = pTabCtrl->GetRect();
+                    float fRoundWidth = 0;
+                    float fRoundHeight = 0;
+                    pTabCtrl->GetBorderRound(fRoundWidth, fRoundHeight);
+                    rcTabCtrl.left += (int32_t)fRoundWidth;
+                    rcTabCtrl.right -= (int32_t)fRoundWidth;
+
+                    rcSelectItem.left = std::max(rcSelectItem.left, rcTabCtrl.left);
+                    rcSelectItem.right = std::min(rcSelectItem.right, rcTabCtrl.right);
+                }
+                pRender->DrawLine(UiPointF(rcSelectItem.left, rcSelectItem.bottom), UiPointF(rcSelectItem.right, rcSelectItem.bottom), pOutlinePen.get());
+            }
+            //绘制选择标签的样式（从路径中绘制）
             pRender->FillPath(path.get(), brush.get());
         }
     }
 }
 
+/*************************************************************************
+ * 函数功能：
+ * 为 Tab 标签项绘制【顶部圆角、底部圆角、两侧直线】的闭合图形路径
+ * 用于绘制 TabCtrl 的标签背景形状
+ *
+ * 参数说明：
+ * @path    ：输出的图形路径对象（由外部创建）
+ * @rect    ：Tab 标签项的整体绘制区域
+ * @roundSize：圆角大小（cx=圆角宽度，cy=圆角高度）
+ *************************************************************************/
 void TabCtrlItem::AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSize) const
 {
+    // 安全校验：路径对象不能为空
     ASSERT(path != nullptr);
     if (path == nullptr) {
         return;
     }
-    //确保圆角宽度和高度都是偶数
+
+    // ==========================
+    // 确保圆角宽高都是【偶数】
+    // 避免绘制时出现半像素模糊
+    // ==========================
     if ((roundSize.cx % 2) != 0) {
         roundSize.cx += 1;
     }
     if ((roundSize.cy % 2) != 0) {
         roundSize.cy += 1;
     }
+
+    // 如果绘制区域宽度小于圆角宽度，无法正常绘制，直接返回
     if (rect.Width() < roundSize.cx) {
-        //无法绘制
         return;
     }
 
+    // ==========================
+    // 计算实际绘制路径的内缩区域
+    // 左右各缩进 半个圆角宽度，用于放置圆角
+    // ==========================
     UiRect rc = rect;
     rc.left += roundSize.cx / 2;
     rc.right -= roundSize.cx / 2;
 
+    // ==========================
+    // 开始绘制路径（顺时针绘制）
+    // ==========================
+
+    // 1. 左侧竖直线：左下 → 左上（圆角起点）
     path->AddLine(rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy);
 
+    // 2. 左上角圆弧：180度起点，扫90度
     path->AddArc(UiRect(rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
+
+    // 3. 顶部横线：左 → 右
     path->AddLine(rc.left + roundSize.cx / 2, rc.top, rc.right - roundSize.cx / 2, rc.top);
-    
+
+    // 4. 右上角圆弧：270度起点，扫90度
     path->AddArc(UiRect(rc.right - roundSize.cx, rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
+
+    // 5. 右侧竖直线：右上 → 右下
     path->AddLine(rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
 
+    // 6. 左下角圆弧：0度起点，扫90度
     path->AddArc(UiRect(rc.left - roundSize.cx, rc.bottom - roundSize.cy, rc.left, rc.bottom), 0, 90);
+
+    // 7. 右下角圆弧：90度起点，扫90度
     path->AddArc(UiRect(rc.right, rc.bottom - roundSize.cy, rc.right + roundSize.cx, rc.bottom), 90, 90);
+
+    // 8. 底部横线：左 → 右
     path->AddLine(rc.left - roundSize.cx / 2, rc.bottom, rc.right + roundSize.cx / 2, rc.bottom);
 
+    // 闭合路径，形成完整 Tab 标签形状
     path->Close();
 }
 
-void TabCtrlItem::PaintTabItemHot(IRender* pRender)
+void TabCtrlItem::PaintTabItemHovered(IRender* pRender)
 {
     if (pRender == nullptr) {
         return;
@@ -796,21 +959,21 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
     if (rc.IsEmpty()) {
         return;
     }
-    UiPadding hotPadding = GetHotPadding();
+    UiPadding hotPadding = GetHoveredPadding();
     rc.top += hotPadding.top;
     rc.left += hotPadding.left;
     rc.right -= hotPadding.right;
     rc.bottom -= hotPadding.bottom;
  
-    UiSize roundSize = GetHotRoundCorner();
-    DString color = GetStateColor(ControlStateType::kControlStateHot);
+    UiSize roundSize = GetHoveredRoundCorner();
+    DString color = GetStateColor(ControlStateType::kControlStateHovered);
     if (color.empty()) {
         return;
     }
     UiColor dwColor = GetUiColor(color);
     uint8_t uFade = 255;
-    if (IsAnimationPlayerPlaying(AnimationType::kAnimationHot)) {
-        uFade = GetHotAlpha();
+    if (IsAnimationPlayerPlaying(AnimationType::kAnimationHovered)) {
+        uFade = GetHoveredAlpha();
     }
     pRender->FillRoundRect(UiRectF::MakeFromRect(rc), (float)roundSize.cx, (float)roundSize.cy, dwColor, uFade);
 }

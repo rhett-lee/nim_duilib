@@ -172,9 +172,17 @@ void AnimationPlayer::Play()
         m_frameIndex = m_pEasingFunctions->GetFrameCount();
     }
     int32_t newCurrentValue = m_pEasingFunctions->GetEasingValue(m_frameIndex);
-    if (m_playCallback) {
+    // 缓存成员函数指针引用，避免回调中 AnimationPlayer 被销毁后的悬空调用
+    AnimationPlayCallback playCallback = m_playCallback;
+    if (playCallback) {
         if (newCurrentValue != m_currentValue) {
-            m_playCallback(newCurrentValue);
+            // 回调可能修改成员（包括调用 Stop/Reset），
+            // 之后必须重新检查 m_pEasingFunctions 是否仍有效
+            playCallback(newCurrentValue);
+            if (m_pEasingFunctions == nullptr) {
+                m_weakFlagOwner.Cancel();
+                return;
+            }
         }
     }
     m_currentValue = newCurrentValue;
@@ -192,11 +200,15 @@ void AnimationPlayer::ReverseAllValue()
 
 void AnimationPlayer::Complete()
 {
-    m_weakFlagOwner.Cancel();
-    m_bPlaying = false;
+    // 先缓存回调，避免回调中 AnimationPlayer 被销毁后的悬空调用
+    AnimationCompleteCallback completeCallback = m_completeCallback;
     m_currentValue = m_endValue;
-    if (m_completeCallback) {
-        m_completeCallback();
+    m_bPlaying = false;
+    // 先释放 easing 函数资源，让回调中如需重启也能正确初始化
+    m_pEasingFunctions.reset();
+    m_weakFlagOwner.Cancel();
+    if (completeCallback) {
+        completeCallback();
     }
 }
 

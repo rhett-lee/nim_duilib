@@ -2,6 +2,7 @@
 #define UI_CORE_NATIVE_WINDOW_WINDOWS_H_
 
 #include "duilib/Core/INativeWindow.h"
+#include "duilib/Core/NativeWindowShadow.h"
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/FilePath.h"
@@ -121,7 +122,7 @@ public:
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在UpdateLayeredWindow函数中作为参数使用。
     */
-    void SetLayeredWindowAlpha(int32_t nAlpha);
+    bool SetLayeredWindowAlpha(int32_t nAlpha);
 
     /** 获取窗口透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
@@ -132,7 +133,7 @@ public:
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
     *             该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)。
     */
-    void SetLayeredWindowOpacity(int32_t nAlpha);
+    bool SetLayeredWindowOpacity(int32_t nAlpha);
 
     /** 获取窗口不透明度(仅当IsLayeredWindow()为true的时候有效)
     * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
@@ -517,6 +518,27 @@ public:
     */
     bool NeedCenterWindowAfterCreated() const;
 
+public:
+    /** 是否支持系统级别的窗口阴影
+    */
+    bool IsSystemShadowSupported() const;
+
+    /** 当前是否正在使用系统级别的窗口阴影（支持，并且已经开启）
+    */
+    bool IsSystemShadowEnabled() const;
+
+    /** 设置系统级别的窗口阴影
+    */
+    bool SetSystemShadowType(NativeWindowShadowType nativeShadowType);
+
+    /** 获取系统级别的窗口阴影
+    */
+    NativeWindowShadowType GetSystemShadowType() const;
+
+    /** 获取系统阴影的边框线条宽度（视觉边线）
+    */
+    int32_t GetSystemShadowFrameBorderSize() const;
+
 private:
     /** 窗口过程函数
     * @param [in] hWnd 窗口句柄
@@ -572,6 +594,7 @@ private:
     LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnDisplayChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnDwmCompositionChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -743,6 +766,10 @@ private:
     //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu
     bool m_bSnapLayoutMenu;
 
+    /** m_bSnapLayoutMenu 属性是否被设置
+    */
+    bool m_bSnapLayoutMenuFlag;
+
     //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
     bool m_bEnableSysMenu;
 
@@ -803,6 +830,10 @@ private:
     /** 窗口的界面缩放比
     */
     uint32_t m_nWindowDpiScaleFactor;
+
+    /** 操作系统级别的窗口阴影
+    */
+    NativeWindowShadowType m_systemShadowType;
 
     /** 是否为子窗口（含有WS_CHILD风格）
     */

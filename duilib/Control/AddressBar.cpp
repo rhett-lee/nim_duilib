@@ -31,19 +31,23 @@ AddressBar::AddressBar(Window* pWindow):
 
 DString AddressBar::GetType() const { return DUI_CTR_ADDRESS_BAR; }
 
-void AddressBar::SetAttribute(const DString& strName, const DString& strValue)
+void AddressBar::SetAttribute(const DString& strName, const DString& strValue2)
 {
-    if (strName == _T("path_tooltip")) {
-        SetEnablePathTooltip(strValue == _T("true"));
+    DString strValue = GetExpandVarStrings(strValue2);
+    if (strName == _T("address_path")) {
+        SetAddressPath(strValue);
+    }
+    else if (strName == _T("path_tooltip")) {
+        SetEnablePathTooltip(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("return_update_ui")) {
-        SetReturnUpdateUI(strValue == _T("true"));
+        SetReturnUpdateUI(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("esc_update_ui")) {
-        SetEscUpdateUI(strValue == _T("true"));
+        SetEscUpdateUI(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("kill_focus_update_ui")) {
-        SetKillFocusUpdateUI(strValue == _T("true"));
+        SetKillFocusUpdateUI(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("rich_edit_class")) {
         SetRichEditClass(strValue);
@@ -408,7 +412,9 @@ void AddressBar::SetAddressPath(const DString& addressPath)
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(addressPath);
     }
-    UpdateAddressBarControls(addressPath);
+    if (m_pBarBox != nullptr) {
+        UpdateAddressBarControls(addressPath);
+    }
 }
 
 DString AddressBar::GetAddressPath() const

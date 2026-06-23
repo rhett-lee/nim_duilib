@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="85%,90%" min_size="800,600" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4" text="Theme Color Test - All Controls All States">
+    <VBox bkcolor="bg_window_main">
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
+                <Label text="Theme Color Test - All Controls All States" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            </HBox>
+            <Control width="stretch" mouse_enabled="false"/>
+            <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
+                <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+                <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+                <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+            </HBox>
+        </HBox>
+        <GroupHBox class="group_box_round" text="Color Theme Test" height="auto" padding="10,20,6,10" control_padding="false" margin="4,4,4,4">
+            <Button class="btn_primary_global" name="open_theme_manager" text_id="STRID_COLORTHEME_BTN_OPEN_THEME_MGR" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+            <Button class="btn_primary_global" name="open_new_window_as_dark" text_id="STRID_COLORTHEME_BTN_OPEN_WND_AS_DARK" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+            <Button class="btn_primary_global" name="open_new_window_as_light" text_id="STRID_COLORTHEME_BTN_OPEN_WND_AS_LIGHT" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+            <CheckBox class="checkbox_1" name="gen_color_checkbox" text_id="STRID_COLORTHEME_ENABLE_GEN_THEME" margin="20,0,0,0"/>
+            <CheckBox class="checkbox_1" text_id="STRID_COLORTHEME_SHOW_ALL_COLORS" margin="20,0,0,0" selected="false">
+                <Event type="select" receiver="all_colors" apply_attribute="visible='true'" />
+                <Event type="unselect" receiver="all_colors" apply_attribute="visible='false'" />
+            </CheckBox>
+        </GroupHBox>
+        <GroupHBox class="group_box_round" name="gen_color_groupbox" text="Color Generator" height="auto" padding="10,24,6,10" control_padding="false" 
+                   margin="4,4,4,4" child_margin="10">
+            <VBox name="gen_color_box" height="auto" child_margin="10" enabled="false">
+                <HBox height="auto" child_margin="10">
+                    <Option class="option_1" name="gen_color_radio_light" group="radio_gen_color" text_id="STRID_COLORTHEME_LIGHT_THEME" selected="true"/>
+                    <Option class="option_1" name="gen_color_radio_dark" group="radio_gen_color" text_id="STRID_COLORTHEME_DARK_THEME"/>
+                    <VBox height="auto" child_margin="10" margin="10,0,0,0">
+                        <HBox height="auto" child_margin="10" margin="0,0,0,4">
+                            <VBox height="auto" width="360" child_margin="6">
+                                <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                                    <Label text_id="STRID_COLORTHEME_COLOR_HUE" valign="center" width="auto" height="auto"/>
+                                    <Label name="gen_color_label_hue" text="" valign="center" width="auto" height="auto"/>
+                                </HBox>
+                                <Slider class="slider_horizontal_blue" name="gen_color_slider_hue" value="0" min="0" max="3600"/>
+                            </VBox>
+                            <VBox height="auto" width="360" child_margin="6">
+                                <HBox height="auto" child_margin="2" margin="12,0,0,0">
+                                    <Label text_id="STRID_COLORTHEME_COLOR_BASE_L" valign="center" width="auto" height="auto"/>
+                                    <Label name="gen_color_label_base_chroma" text="" valign="center" width="auto" height="auto"/>
+                                </HBox>
+                                <Slider class="slider_horizontal_blue" name="gen_color_slider_base_chroma" value="0" min="0" max="400"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    <CheckBox class="checkbox_1" name="gen_color_neutral_mode" text_id="STRID_COLORTHEME_GEN_NEUTRAL_MODE" margin="10,0,0,0" valign="center"/>
+                    <Button class="btn_primary_global" name="btn_copty_xml_data" text_id="STRID_COLORTHEME_COPY_XML" height="32" width="auto" margin="4,0,4,0" text_padding="10,0,10,0" border_round="4,4"/>
+                </HBox>
+                <GroupVBox class="group_box_round" text_id="STRID_COLORTHEME_COLOR_PREVIEW" height="auto" padding="10,30,6,10" control_padding="false">
+                    <HBox height="auto" child_margin="4">
+                        <Label name="--background2" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--background1" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--background" bkcolor="bg_window_main" text_id="STRID_COLORTHEME_COLOR_BACKGROUND" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--accent" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_ACCENT" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--success" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SUCCESS" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--warning" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_WARNING" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--error" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_ERROR" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                    </HBox>
+                    <HBox height="auto" child_margin="4" margin="0,4,0,0">
+                        <Label name="--surface_1" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_1" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_2" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_2" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_3" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_3" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_4" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_4" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_5" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_5" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_6" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_6" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                        <Label name="--surface_7" bkcolor="bg_window_card" text_id="STRID_COLORTHEME_COLOR_SURFACE_7" width="160" height="40" text_align="hcenter,vcenter" border_round="8,8"/>
+                    </HBox>
+                </GroupVBox>
+            </VBox>
+        </GroupHBox>
+        <Split class="split_horizontal" name="gen_color_groupbox_split"/>
+        <VScrollBox bkcolor="bg_container" vscrollbar="true" hscrollbar="true" padding="10,0,10,0">
+            <VBox height="auto">
+                <Control height="0000"/>
+                <!-- Section 0: All Colors -->
+                <VBox name="all_colors" child_margin="2" height="auto" width="100%" visible="false"/>
+
+                <!-- Section 1: Window Controls -->
+                <GroupVBox class="group_box_round" text="Window Buttons" height="auto" padding="10,20,10,10" control_padding="false">
+                    <VBox child_margin="2" height="auto">
+                        <HBox child_margin="10" height="auto" width="auto">
+                            <Label text="Normal  :" valign="center" height="auto"/>
+                            <Button class="btn_switch_lang" height="32" width="40"/>
+                            <Button class="btn_switch_theme" height="32" width="40"/>
+                            <Button class="btn_wnd_settings_11" height="32" width="40"/>
+                            <Button class="btn_view_fullscreen_11" height="32" width="40"/>
+                            <Button class="btn_wnd_fullscreen_11" height="32" width="40"/>
+                            <Button class="btn_wnd_min_11" height="32" width="40"/>
+                            <Button class="btn_wnd_max_11" height="32" width="40"/>
+                            <Button class="btn_wnd_restore_11" height="32" width="40"/>
+                            <Button class="btn_wnd_close_11" height="32" width="40"/>
+                            <Button class="btn_exit_fullscreen" alpha="128" float="false"/>
+                        </HBox>
+                        <HBox child_margin="10" height="auto" width="auto" enabled="false">
+                            <Label text="Disabled:" valign="center" height="auto"/>
+                            <Button class="btn_switch_lang" height="32" width="40"/>
+                            <Button class="btn_switch_theme" height="32" width="40"/>
+                            <Button class="btn_wnd_settings_11" height="32" width="40"/>
+                            <Button class="btn_view_fullscreen_11" height="32" width="40"/>
+                            <Button class="btn_wnd_fullscreen_11" height="32" width="40"/>
+                            <Button class="btn_wnd_min_11" height="32" width="40"/>
+                            <Button class="btn_wnd_max_11" height="32" width="40"/>
+                            <Button class="btn_wnd_restore_11" height="32" width="40"/>
+                            <Button class="btn_wnd_close_11" height="32" width="40"/>
+                        </HBox>
+                    </VBox>
+                </GroupVBox>
+
+                <!-- Section 2: Buttons -->
+                <GroupVBox class="group_box_round" text="Buttons - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="5" height="auto">
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Global Button States:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_global" text="Normal" width="80" height="30"/>
+                            <Button class="btn_global" text="Disabled" width="80" height="30" enabled="false"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Primary Button States:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_primary_global" text="Primary Normal" width="140" height="30"/>
+                            <Button class="btn_primary_global" text="Primary Disabled" width="140" height="30" enabled="false"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Image Buttons:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_global_blue_80x30" text="Blue"/>
+                            <Button class="btn_global_white_80x30" text="White"/>
+                            <Button class="btn_global_red_80x30" text="Red"/>
+                            <Button class="btn_global_gray_80x30" text="Gray"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Image Buttons Disabled:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_global_blue_80x30" text="Blue" enabled="false"/>
+                            <Button class="btn_global_white_80x30" text="White" enabled="false"/>
+                            <Button class="btn_global_red_80x30" text="Red" enabled="false"/>
+                            <Button class="btn_global_gray_80x30" text="Gray" enabled="false"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Color Buttons:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_global_color_blue" text="Color Blue" width="120" height="30"/>
+                            <Button class="btn_global_color_white" text="Color White" width="120" height="30"/>
+                            <Button class="btn_global_color_red" text="Color Red" width="120" height="30"/>
+                            <Button class="btn_global_color_gray" text="Color Gray" width="120" height="30"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4" margin="0,0,8,0">
+                            <Label text="Color Buttons Disabled:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_global_color_blue" text="Color Blue" width="120" height="30" enabled="false"/>
+                            <Button class="btn_global_color_white" text="Color White" width="120" height="30" enabled="false"/>
+                            <Button class="btn_global_color_red" text="Color Red" width="120" height="30" enabled="false"/>
+                            <Button class="btn_global_color_gray" text="Color Gray" width="120" height="30" enabled="false"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="4">
+                            <Label text="Delete Buttons:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_recycle"/>
+                            <Label text="Delete Buttons Disabled:" valign="center" margin="0,5" height="auto"/>
+                            <Button class="btn_recycle" enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <HBox height="auto" child_margin="4">
+                    <!-- Section 3: Checkboxes -->
+                    <GroupVBox class="group_box_round" text="Checkboxes - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                        <HBox child_margin="20" height="auto">
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Checkbox Style 1:" valign="center" height="auto"/>
+                                <CheckBox class="checkbox_1" text="Normal"/>
+                                <CheckBox class="checkbox_1" text="Checked" selected="true"/>
+                                <CheckBox class="checkbox_1" text="Disabled" enabled="false"/>
+                                <CheckBox class="checkbox_1" text="Checked Disabled" selected="true" enabled="false"/>
+                            </VBox>
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Checkbox Style 2:" valign="center" height="auto"/>
+                                <CheckBox class="checkbox_2" text="Normal"/>
+                                <CheckBox class="checkbox_2" text="Checked" selected="true"/>
+                                <CheckBox class="checkbox_2" text="Disabled" enabled="false"/>
+                                <CheckBox class="checkbox_2" text="Checked Disabled" selected="true" enabled="false"/>
+                            </VBox>
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Toggle Switches:" valign="center" height="auto"/>
+                                <HBox height="auto" child_margin="4">
+                                    <Label text="Toggle 1:" valign="center" width="auto" height="auto"/>
+                                    <CheckBox class="checkbox_toggle_1" selected="false"/>
+                                    <CheckBox class="checkbox_toggle_1" selected="true"/>
+                                </HBox>
+                                <HBox height="auto" child_margin="4">
+                                    <Label text="Toggle 2:" valign="center" width="auto" height="auto"/>
+                                    <CheckBox class="checkbox_toggle_2" selected="false"/>
+                                    <CheckBox class="checkbox_toggle_2" selected="true"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                    </GroupVBox>
+
+                    <!-- Section 4: Radio Buttons -->
+                    <GroupVBox class="group_box_round" text="Radio Buttons - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                        <HBox child_margin="20" height="auto">
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Radio Style 1:" valign="center" height="auto"/>
+                                <Option class="option_1" group="radio1" text="Option 1"/>
+                                <Option class="option_1" group="radio1" text="Option 2" selected="true"/>
+                                <Option class="option_1" group="radio1" text="Option 3"/>
+                                <Option class="option_1" group="radio1" text="Disabled" enabled="false"/>
+                            </VBox>
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Radio Style 2:" valign="center" height="auto"/>
+                                <Option class="option_2" group="radio2" text="Option A"/>
+                                <Option class="option_2" group="radio2" text="Option B" selected="true"/>
+                                <Option class="option_2" group="radio2" text="Option C"/>
+                                <Option class="option_2" group="radio2" text="Disabled" enabled="false"/>
+                            </VBox>
+                        </HBox>
+                    </GroupVBox>
+                </HBox>
+                <!-- Section 5: ComboBox -->
+                <GroupVBox class="group_box_round" text="ComboBox - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="250" height="auto">
+                            <Label text="Normal Combo(drop_list):" valign="center" height="auto"/>
+                            <Combo class="combo" name="combo_normal" combo_type="drop_list" dropbox_size="0,150" height="30">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                            </Combo>
+                            <Label text="Disabled Combo(drop_list):" valign="center" margin="0,10,0,0" height="auto"/>
+                            <Combo class="combo" name="combo_disabled" combo_type="drop_list" dropbox_size="0,150" height="30" enabled="false">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2"/>
+                            </Combo>
+                        </VBox>
+                        <VBox width="250" height="auto">
+                            <Label text="Normal Combo(drop_down):" valign="center" height="auto"/>
+                            <Combo class="combo" name="combo_normal" combo_type="drop_down" dropbox_size="0,150" height="30">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                            </Combo>
+                            <Label text="Disabled Combo(drop_down):" valign="center" margin="0,10,0,0" height="auto"/>
+                            <Combo class="combo" name="combo_disabled" combo_type="drop_down" dropbox_size="0,150" height="30" enabled="false">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2"/>
+                            </Combo>
+                        </VBox>
+                        <VBox width="250" height="auto">
+                            <Label text="Filter Combo:" valign="center" height="auto"/>
+                            <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                            </FilterCombo>
+                            <Label text="Filter Combo: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
+                            <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" enabled="false">
+                                <TreeNode class="tree_node" padding="4" text="Option 1"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 2" selected="true"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 3"/>
+                                <TreeNode class="tree_node" padding="4" text="Option 4"/>
+                            </FilterCombo>
+                        </VBox>
+                        <VBox width="250" height="auto">
+                            <Label text="Check Combo:" valign="center" height="auto"/>
+                            <CheckCombo class="check_combo" name="check_combo" height="30">
+                                <CheckComboText text="Text 1" selected="true"></CheckComboText>
+                                <CheckComboText text="Text 2"></CheckComboText>
+                                <CheckComboText text="Text 3" selected="true"></CheckComboText>
+                            </CheckCombo>
+                            <Label text="Check Combo: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
+                            <CheckCombo class="check_combo" name="check_combo" height="30" enabled="false">
+                                <CheckComboText text="Text 1" selected="true"></CheckComboText>
+                                <CheckComboText text="Text 2"></CheckComboText>
+                                <CheckComboText text="Text 3" selected="true"></CheckComboText>
+                            </CheckCombo>
+                        </VBox>
+                        <VBox width="auto" height="auto">
+                            <Label text="ComboButton:" valign="center" height="auto"/>
+                            <ComboButton class="combo_button" name="check_combo" width="120" height="30"/>
+                            <Label text="ComboButton: Disabled" valign="center" margin="0,10,0,0" height="auto"/>
+                            <ComboButton class="combo_button" name="check_combo" width="120" height="30" enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 6: RichEdit -->
+                <GroupVBox class="group_box_round" text="RichEdit - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="300" height="auto" child_margin="2">
+                            <Label text="Single Line Edit:" valign="center" height="auto"/>
+                            <RichEdit class="simple prompt simple_border_bottom" height="30" text_padding="2,0,2,0" prompt_text_id="STRID_CONTROLS_RICHEDIT_SINGLE_LINE"/>
+                            <Label text="Single Line Normal:" valign="center" margin="5,5,0,0" height="auto"/>
+                            <RichEdit class="simple simple_border" height="30" text="Normal text" text_padding="2,0,2,0"/>
+                            <Label text="Single Line Disabled:" valign="center" margin="5,5,0,0" height="auto"/>
+                            <RichEdit class="simple simple_border" height="30" text="Disabled text" text_padding="2,0,2,0" enabled="false"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="2">
+                            <Label text="Multi Line Edit:" valign="center" height="auto"/>
+                            <RichEdit class="simple simple_border" name="edit" text_align="left,top" text_padding="2,2,2,2"
+                                        bkcolor="bg_richedit" width="240" height="80"
+                                        hide_selection="false" multi_line="true" auto_vscroll="true"
+                                        vscrollbar="true" hscrollbar="true" scrollbar_float="false"
+                                        vscrollbar_style="auto_hide_scroll='false'"
+                                        hscrollbar_style="auto_hide_scroll='false'"
+                                        want_return="true" want_tab="true" rich="false" default_context_menu="true"
+                                        replace_newline="true" text="RichEdit Multi Line Edit RichEdit Multi Line Edit\nA\nB\nC\nD"/>
+                            <RichEdit class="simple simple_border" name="edit2" text_align="left,top" text_padding="2,2,2,2"
+                                        bkcolor="bg_richedit" width="240" height="80"
+                                        hide_selection="false" multi_line="true" auto_vscroll="true"
+                                        vscrollbar="true" hscrollbar="true" scrollbar_float="false"
+                                        vscrollbar_class="vscrollbar2" hscrollbar_class="hscrollbar2"
+                                        vscrollbar_style="auto_hide_scroll='false'"
+                                        hscrollbar_style="auto_hide_scroll='false'"
+                                        want_return="true" want_tab="true" rich="false" default_context_menu="true"
+                                        replace_newline="true" text="RichEdit Multi Line Edit RichEdit Multi Line Edit\nA\nB\nC\nD"/>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="2" padding="2,0,2,0">
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Spin Style 1:" height="auto" valign="center"/>                            
+                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" text="0" height="30"/>
+                            </HBox>
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Spin Style 1 Disabled:" height="auto" valign="center"/>                            
+                                <RichEdit class="simple simple_border rich_edit_spin" min_number="-64" max_number="64" limit_text="3" text="0" height="30" enabled="false"/>
+                            </HBox>
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Spin Style 2:" height="auto" valign="center"/>                            
+                                <RichEdit class="simple rich_edit_spin2" min_number="-64" max_number="64" limit_text="3" text="0" height="30"/>
+                            </HBox>
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Spin Style 2 Disabled:" height="auto" valign="center"/>                            
+                                <RichEdit class="simple rich_edit_spin2" min_number="-64" max_number="64" limit_text="3" text="0" height="30" enabled="false"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="auto" height="auto" child_margin="2" padding="2,0,2,0">
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Password:" height="auto" valign="center"/>
+                                <RichEdit class="simple simple_border" text="Password123" password="true" height="30" width="100" text_padding="2,0,2,0"/>
+                            </HBox>
+                            <HBox width="auto" height="auto" child_margin="4">
+                                <Label text="Password Disabled:" height="auto" valign="center"/>
+                                <RichEdit class="simple simple_border" text="Password123" password="true" height="30" width="100" text_padding="2,0,2,0" enabled="false"/>
+                            </HBox>
+                            <VBox width="auto" height="auto" child_margin="2">
+                                <HBox width="auto" height="auto" child_margin="2">
+                                    <Label text="Clear Button:" valign="center" margin="5,5,0,0" height="auto"/>
+                                    <RichEdit class="simple simple_border rich_edit_clear_btn" height="30" width="130" text="Normal text" text_padding="2,0,2,0"/>
+                                </HBox>
+                                <HBox width="auto" height="auto" child_margin="2">
+                                    <Label text="Show Password Button:" valign="center" margin="5,5,0,0" height="auto"/>
+                                    <RichEdit class="simple simple_border rich_edit_show_password_btn" height="30" width="130" text="Normal text" text_padding="2,0,2,0"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 7: Lists -->
+                <GroupVBox class="group_box_round" text="List Controls - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox height="auto" child_margin="8">
+                        <VBox width="250" height="auto" child_margin="2">
+                            <Label text="ListBox:" valign="center" height="auto"/>
+                            <VListBox class="list" name="list" padding="5,3,5,3" vscrollbar="true" height="200"
+                                      multi_select="true"
+                                      frame_selection="true" 
+                                      frame_selection_color="bg_list_ctrl_frame_selected" 
+                                      frame_selection_alpha="128" 
+                                      frame_selection_border_size="1" 
+                                      frame_selection_border_color="border_list_ctrl_frame_selected">
+                                <ListBoxItem class="list_item" height="24" text="Item 1"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 2"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 3"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 4 - Selected" selected="true"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 5"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 6 - Disabled" enabled="false"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 7"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 8"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 9"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 10"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 11"/>
+                                <ListBoxItem class="list_item" height="24" text="Item 12"/>
+                            </VListBox>
+                        </VBox>
+                        <VBox width="300" height="auto" child_margin="2">
+                            <Label text="TreeView:" valign="center" height="auto"/>
+                            <TreeView class="tree_view" name="tree" padding="5,3,5,3" indent="20" vscrollbar="true" height="200">
+                                <TreeNode class="tree_node" height="28" text="Node 1">
+                                    <TreeNode class="tree_node" height="24" text="Child 1-1"/>
+                                    <TreeNode class="tree_node" height="24" text="Child 1-2"/>
+                                </TreeNode>
+                                <TreeNode class="tree_node" height="28" text="Node 2 - Disabled" enabled="false">
+                                    <TreeNode class="tree_node" height="24" text="Child 2-1"/>
+                                    <TreeNode class="tree_node" height="24" text="Child 2-2"/>
+                                </TreeNode>
+                                <TreeNode class="tree_node" height="28" text="Node 3 - Selected" selected="true">
+                                    <TreeNode class="tree_node" height="24" text="Child 3-1"/>
+                                    <TreeNode class="tree_node" height="24" text="Child 3-2"/>
+                                </TreeNode>
+                                <TreeNode class="tree_node" height="28" text="Node 4">
+                                    <TreeNode class="tree_node" height="24" text="Child 4-1"/>
+                                </TreeNode>
+                            </TreeView>
+                        </VBox>
+                        <VBox width="300" height="auto" child_margin="2">
+                            <Label text="ListCtrl:" valign="center" height="auto"/>
+                            <ListCtrl class="list_ctrl" name="list_ctrl" height="200">
+                                <ListCtrlHeaderItem text="Column 1" width="130"/>
+                                <ListCtrlHeaderItem text="Column 2" width="130"/>
+                                <ListCtrlItem text="Item 0"/>
+                                <ListCtrlItem text="Item 1"/>
+                                <ListCtrlItem text="Item 2"/>
+                                <ListCtrlItem text="Item 3"/>
+                                <ListCtrlItem text="Item 4"/>
+                                <ListCtrlItem text="Item 5"/>
+                                <ListCtrlItem text="Item 6"/>
+                                <ListCtrlItem text="Item 7"/>
+                                <ListCtrlItem text="Item 8"/>
+                                <ListCtrlItem text="Item 9"/>
+                                <ListCtrlSubItem item_index="0" column_index="1" text="SubItem 0"/>
+                                <ListCtrlSubItem item_index="1" column_index="1" text="SubItem 1"/>
+                                <ListCtrlSubItem item_index="2" column_index="1" text="SubItem 2"/>
+                                <ListCtrlSubItem item_index="3" column_index="1" text="SubItem 3"/>
+                                <ListCtrlSubItem item_index="4" column_index="1" text="SubItem 4"/>
+                                <ListCtrlSubItem item_index="5" column_index="1" text="SubItem 5"/>
+                                <ListCtrlSubItem item_index="6" column_index="1" text="SubItem 6"/>
+                                <ListCtrlSubItem item_index="7" column_index="1" text="SubItem 7"/>
+                                <ListCtrlSubItem item_index="8" column_index="1" text="SubItem 8"/>
+                                <ListCtrlSubItem item_index="9" column_index="1" text="SubItem 9"/>
+                            </ListCtrl>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 8: Progress and Slider -->
+                <GroupVBox class="group_box_round" text="Progress and Slider Controls" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="30" height="auto">
+                        <VBox width="260" height="auto">
+                            <Label text="Blue Progress Bars(horizontal):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <Progress class="progress_horizontal_blue" value="25" tooltip_text="25%"/>
+                                <Label text="25%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal_blue" value="50"/>
+                                <Label text="50%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal_blue" value="75"/>
+                                <Label text="75%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal_blue" value="100"/>
+                                <Label text="100%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Blue Progress Bars(vertical):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <VBox height="100">
+                                    <Progress class="progress_vertical_blue" value="25" margin="16,0,0,0" tooltip_text="25%"/>
+                                    <Label text="25%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical_blue" value="50" margin="16,0,0,0"/>
+                                    <Label text="50%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical_blue" value="75" margin="16,0,0,0"/>
+                                    <Label text="75%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical_blue" value="100" margin="16,0,0,0"/>
+                                    <Label text="100%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Blue Sliders(horizontal):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <Slider class="slider_horizontal_blue" value="25" min="0" max="100" tooltip_text="30"/>
+                                <Label text="25" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal_blue" value="50" min="0" max="100"/>
+                                <Label text="50" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal_blue" value="75" min="0" max="100"/>
+                                <Label text="75" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal_blue" value="100" min="0" max="100"/>
+                                <Label text="100" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Blue Sliders(vertical):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <VBox height="100">
+                                    <Slider class="slider_vertical_blue" value="25" min="0" max="100" tooltip_text="25"/>
+                                    <Label text="25" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical_blue" value="50" min="0" max="100" />
+                                    <Label text="50" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical_blue" value="75" min="0" max="100" />
+                                    <Label text="75" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical_blue" value="100" min="0" max="100" />
+                                    <Label text="100" width="auto" height="auto"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        <VBox width="auto" height="auto">
+                            <Label text="CircleProgress:" valign="center" height="auto"/>
+                            <CircleProgress reverse="false" circular="true" height="80" width="80" horizontal="false"
+                                            circle_width="12" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true" min="0" max="100" value="75" margin="20,20,20,20"
+                                            text_padding="10,32,10,10" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
+                        </VBox>
+                    </HBox>
+                    <HBox child_margin="30" height="auto">
+                        <VBox width="260" height="auto">
+                            <Label text="Progress Bars(horizontal):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <Progress class="progress_horizontal" value="25" tooltip_text="25%"/>
+                                <Label text="25%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal" value="50"/>
+                                <Label text="50%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal" value="75"/>
+                                <Label text="75%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Progress class="progress_horizontal" value="100"/>
+                                <Label text="100%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Progress Bars(vertical):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <VBox height="100">
+                                    <Progress class="progress_vertical" value="25" margin="16,0,0,0" tooltip_text="25%"/>
+                                    <Label text="25%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical" value="50" margin="16,0,0,0"/>
+                                    <Label text="50%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical" value="75" margin="16,0,0,0"/>
+                                    <Label text="75%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Progress class="progress_vertical" value="100" margin="16,0,0,0"/>
+                                    <Label text="100%" valign="center" margin="5,0,0,0" width="auto" height="auto"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Sliders(horizontal):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <Slider class="slider_horizontal" value="25" min="0" max="100" tooltip_text="30"/>
+                                <Label text="25" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal" value="50" min="0" max="100"/>
+                                <Label text="50" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal" value="75" min="0" max="100"/>
+                                <Label text="75" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                            <HBox margin="0,5" height="auto">
+                                <Slider class="slider_horizontal" value="100" min="0" max="100"/>
+                                <Label text="100" valign="center" width="auto" height="auto" margin="4,0,0,0"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="260" height="auto">
+                            <Label text="Sliders(vertical):" valign="center" height="auto"/>
+                            <HBox margin="0,10" height="auto">
+                                <VBox height="100">
+                                    <Slider class="slider_vertical" value="25" min="0" max="100" tooltip_text="25"/>
+                                    <Label text="25" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical" value="50" min="0" max="100" />
+                                    <Label text="50" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical" value="75" min="0" max="100" />
+                                    <Label text="75" width="auto" height="auto"/>
+                                </VBox>
+                                <VBox height="100">
+                                    <Slider class="slider_vertical" value="100" min="0" max="100" />
+                                    <Label text="100" width="auto" height="auto"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 9: Tab Box -->
+                <GroupVBox class="group_box_round" text="TabBox - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <TabBox name="tab_box" bkcolor="bg_container" selected_id="0" height="auto">
+                        <VBox padding="10,10,10,10" height="auto">
+                            <Label text="Tab 1 Content" height="auto"/>
+                        </VBox>
+                        <VBox padding="10,10,10,10" height="auto">
+                            <Label text="Tab 2 Content" height="auto"/>
+                        </VBox>
+                    </TabBox>
+                </GroupVBox>
+
+                <!-- Section 10: Split Lines -->
+                <GroupVBox class="group_box_round" text="Split Lines - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="16" height="auto">
+                        <VBox width="auto" height="auto" child_margin="10">
+                            <Label text="Horizontal Split Line(Level 1):" valign="center" width="auto" height="auto"/>
+                            <Control class="splitline_hor_level1" margin="0,5,0,0"/>
+                            <Label text="Horizontal Split Line(Level 2):" valign="center" width="auto" height="auto"/>
+                            <Control class="splitline_hor_level2" margin="0,5,0,0"/>
+                        </VBox>
+                        <HBox width="auto" height="auto" child_margin="10">
+                            <Label text="Vertical Split Line(Level 1):" vertical_text="true" valign="center" width="auto" height="auto"/>
+                            <Control class="splitline_ver_level1" margin="5,0,0,0"/>
+                            <Label text="Vertical Split Line(Level 2):" vertical_text="true" valign="center" width="auto" height="auto"/>
+                            <Control class="splitline_ver_level2" margin="5,0,0,0"/>
+                        </HBox>
+                        <VBox width="200" height="auto">
+                            <Label text="Draggable Split Lines:" valign="center" height="auto"/>
+                            <Label text="(Vertical, Normal)" valign="center" height="auto"/>
+                            <HBox height="100" child_margin="10">
+                                <Label text="Left Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="auto"/>
+                                <Split class="split_vertical" margin="2,4,2,0"/>
+                                <Label text="Right Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="auto"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="200" height="auto">
+                            <Label text="Draggable Split Lines:" valign="center" height="auto"/>
+                            <Label text="(Vertical, Disabled)" valign="center" height="auto"/>
+                            <HBox height="100" child_margin="10">
+                                <Label text="Left Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="auto"/>
+                                <Split class="split_vertical" margin="2,4,2,0" enabled="false"/>
+                                <Label text="Right Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="auto"/>
+                            </HBox>
+                        </VBox>
+                        <VBox width="200" height="auto">
+                            <Label text="Draggable Split Lines:" valign="center" height="auto"/>
+                            <Label text="(Horizontal, Normal)" valign="center" height="auto"/>
+                            <VBox height="120">
+                                <Label text="Top Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="50"/>
+                                <Split class="split_horizontal"/>
+                                <Label text="Bottom Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="50"/>
+                            </VBox>
+                        </VBox>
+                        <VBox width="200" height="auto">
+                            <Label text="Draggable Split Lines:" valign="center" height="auto"/>
+                            <Label text="(Horizontal, Disabled)" valign="center" height="auto"/>
+                            <VBox height="120">
+                                <Label text="Top Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="50"/>
+                                <Split class="split_horizontal" enabled="false"/>
+                                <Label text="Bottom Panel" valign="center" halign="left" bkcolor="bg_container" width="auto" height="50"/>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 11: Address Bar -->
+                <GroupVBox class="group_box_round" text="Address Bar - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="500" height="auto">
+                            <Label text="Normal Address Bar:" valign="center" height="auto"/>
+                            <AddressBar class="address_bar" width="500" height="36" margin="0,5" address_path="Windows/Microsoft/Windows"/>
+                            <Label text="Disabled Address Bar:" valign="center" margin="0,10,0,0" height="auto"/>
+                            <AddressBar class="address_bar" width="500" height="36" margin="0,5" address_path="Windows/Microsoft/Windows" enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 12: Special Controls -->
+                <GroupVBox class="group_box_round" text="Special Controls - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox child_margin="20" height="auto">
+                        <VBox width="200" height="auto" child_margin="6">
+                            <Label text="IP Address Normal:" valign="center" height="auto"/>
+                            <IPAddress class="ip_address" ip="192.168.0.1"/>
+                            <Label text="IP Address Disabled:" valign="center" height="auto"/>
+                            <IPAddress class="ip_address" ip="192.168.0.1" enabled="false"/>
+                        </VBox>
+                        <VBox width="250" height="auto" child_margin="6">
+                            <Label text="Hot Key Normal:" valign="center" height="auto"/>
+                            <HotKey class="hot_key" default_text="Ctrl+C"/>
+                            <Label text="Hot Key Disabled:" valign="center" height="auto"/>
+                            <HotKey class="hot_key" default_text="Ctrl+C" enabled="false"/>
+                        </VBox>
+                        <VBox width="200" height="auto" child_margin="6">
+                            <Label text="Hyperlinks:" valign="center" height="auto"/>
+                            <HyperLink class="hyper_link" name="link1" text="Normal Text Link" url="www.baidu.com" show_url_tooltip="true"/>
+                            <HyperLink class="hyper_link" name="link2" text="Disabled Text Link" url="www.baidu.com" show_url_tooltip="true" enabled="false"/>
+                        </VBox>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 13: Menu Bar -->
+                <GroupVBox class="group_box_round" text="Menu Bar - All States" height="auto" margin="0,4,0,0" padding="30,30,6,20" control_padding="false">
+                    <HBox child_margin="5" height="auto">
+                        <MenuBar name="menu_bar" height="auto">
+                            <MenuBarItem id="menu_file" text="File">
+                                <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto" padding="2,2,2,2">
+                                    <MenuItem class="menu_element" text="New" height="28" width="auto" padding="10,4,10,4">
+                                        <SubMenu>
+                                            <MenuItem class="menu_element" text="New File" height="28" width="auto" padding="10,4,10,4"/>
+                                            <MenuItem class="menu_element" text="New Project" height="28" width="auto" padding="10,4,10,4"/>
+                                        </SubMenu>
+                                    </MenuItem>
+                                    <MenuItem class="menu_element" text="Open" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Save" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Exit" height="28" width="auto" padding="10,4,10,4"/>
+                                </Menu>
+                            </MenuBarItem>
+                            <MenuBarItem class="menu_bar_button" id="menu_edit" text="Edit">
+                                <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto" padding="2,2,2,2">
+                                    <MenuItem class="menu_element" text="Cut" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Copy" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Paste" height="28" width="auto" padding="10,4,10,4"/>
+                                </Menu>
+                            </MenuBarItem>
+                            <MenuBarItem class="menu_bar_button" id="menu_view" text="View">
+                                <Menu class="menu" bkcolor="bg_menu" height="auto" width="auto" padding="2,2,2,2">
+                                    <MenuItem class="menu_element" text="Zoom In" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Zoom Out" height="28" width="auto" padding="10,4,10,4"/>
+                                    <MenuItem class="menu_element" text="Reset Zoom" height="28" width="auto" padding="10,4,10,4"/>
+                                </Menu>
+                            </MenuBarItem>
+                        </MenuBar>
+                    </HBox>
+                </GroupVBox>
+
+                <!-- Section 14: Property Grid -->
+                <GroupVBox class="group_box_round" text="Property Grid - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <PropertyGrid class="property_grid" name="property_grid" height="320" width="500">
+                        <PropertyGridGroup group_name="General" height="auto">
+                            <PropertyGridTextProperty name="Text" value="Test" height="auto"/>
+                            <PropertyGridDateTimeProperty name="DateTime" value="2026-05-22" height="auto"/>
+                            <PropertyGridIPAddressProperty name="IPAddress" value="192.168.0.1" height="auto"/>
+                            <PropertyGridHotKeyProperty name="HotKey" value="Ctrl+C" height="auto"/>
+                            <PropertyGridFileProperty name="File" value="C:\\Test.txt" height="auto"/>
+                            <PropertyGridDirectoryProperty name="Directory" value="C:\\Windows" height="auto"/>
+                            <PropertyGridComboProperty name="Combo" value="Test" height="auto"/>
+                        </PropertyGridGroup>
+                        <PropertyGridGroup group_name="Appearance" height="auto">
+                            <PropertyGridFontProperty name="Font" value="SimSun" height="auto"/>
+                            <PropertyGridFontSizeProperty name="FontSize" value="14" height="auto"/>
+                            <PropertyGridColorProperty name="Color" value="blue" height="auto"/>
+                        </PropertyGridGroup>
+                    </PropertyGrid>
+                </GroupVBox>
+
+                <!-- Section 15: Color Reference -->
+                <GroupVBox class="group_box_round" text="Color Reference (Theme Colors)" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                        <HBox child_margin="10" height="auto">
+                            <VBox width="200" height="auto" child_margin="4">
+                                <Label text="Basic Colors:" valign="center" margin="0,5" height="auto"/>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_white"/>
+                                    <Label text="White" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_black"/>
+                                    <Label text="Black" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_blue"/>
+                                    <Label text="Blue" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_gray"/>
+                                    <Label text="Gray" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_green"/>
+                                    <Label text="Green" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="color_red"/>
+                                    <Label text="Red" valign="center" height="auto"/>
+                                </HBox>
+                            </VBox>
+                            <VBox width="300" height="auto" child_margin="4">
+                                <Label text="Button Colors:" valign="center" margin="0,5" height="auto"/>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_btn_normal" border_size="1" border_color="border_btn_normal"/>
+                                    <Label text="Button Normal" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_btn_hovered" border_size="1" border_color="border_btn_hovered"/>
+                                    <Label text="Button Hovered" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_btn_pressed" border_size="1" border_color="border_btn_pressed"/>
+                                    <Label text="Button Pressed" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_btn_disabled" border_size="1" border_color="border_btn_disabled"/>
+                                    <Label text="Button Disabled" valign="center" height="auto"/>
+                                </HBox>
+                            </VBox>
+                            <VBox width="300" height="auto" child_margin="4">
+                                <Label text="List Colors:" valign="center" margin="0,5" height="auto"/>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_list_item_normal"/>
+                                    <Label text="List Item Normal" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_list_item_hovered"/>
+                                    <Label text="List Item Hovered" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_list_item_pressed"/>
+                                    <Label text="List Item Pressed" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_list_item_selected"/>
+                                    <Label text="List Item Selected" valign="center" height="auto"/>
+                                </HBox>
+                                <HBox child_margin="5" height="auto">
+                                    <Control width="30" height="20" bkcolor="bg_list_item_disabled"/>
+                                    <Label text="List Item Disabled" valign="center" height="auto"/>
+                                </HBox>
+                            </VBox>
+                        </HBox>
+                </GroupVBox>
+
+                <!-- Section 16: Tooltip -->
+                <GroupVBox class="group_box_round" text="Tooltips - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="10" height="auto">
+                        <Label text="Hover over controls to see tooltips:" valign="center" height="auto" valign="center"/>
+                        <Button class="btn_global" text="Button with Tooltip" tooltip_text="This is a tooltip - hover over controls to preview color changes" padding="10,4,10,4" valign="center"/>
+                        <Label text="Tooltips Text color and background color" valign="center" height="auto" text_padding="10,10,10,10" bkcolor="bg_tooltip" normal_text_color="text_tooltip" valign="center"/>
+                    </HBox>
+                </GroupVBox>
+                
+                <!-- Section 17: TabCtrl -->
+                <GroupVBox class="group_box_round" text="TabCtrl - All States" height="auto" margin="0,4,0,0" padding="10,24,6,10" control_padding="false">
+                    <HBox child_margin="10" height="auto">
+                        <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1" drop_in_id="2">
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 1-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                        </TabCtrl>
+                        <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1" drag_out_id="2">
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                            <TabCtrlItem class="tab_ctrl_item" title="Item 2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                        </TabCtrl>
+                    </HBox>
+                </GroupVBox>
+                
+                <Control height="20"/>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

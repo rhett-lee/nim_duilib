@@ -54,15 +54,18 @@ public:
     /** 获取Svg图片的位图，支持矢量缩放
     * @param [in] rcDest 绘制目标区域
     * @param [in] rcSource 图片源区域
+    * @param [in] pControl 该图片管理的控件接口
     */
-    std::shared_ptr<IBitmap> GetSvgBitmap(const UiRect& rcDest, UiRect& rcSource);
+    std::shared_ptr<IBitmap> GetSvgBitmap(const UiRect& rcDest, UiRect& rcSource, Control* pControl);
 
 public:
     /** 获取一个位图图片数据（单帧图片）
+     * @param [out] bDecodeError 返回是否出现解码错误
+     * @param [in] pControl 该图片管理的控件接口
      * @return 返回位图的接口指针，如果返回nullptr并且bDecodeError为false表示图片尚未完成解码（多线程解码的情况下）
      *                          如果返回nullptr并且bDecodeError为true代表图片解码出现错误
      */
-    std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError);
+    std::shared_ptr<IBitmap> GetBitmap(bool* bDecodeError, Control* pControl);
 
 public:
     /** 查询是某帧的图片数据是否有准备完成（多线程解码时，帧数据在后台线程解码）
@@ -153,8 +156,9 @@ private:
 
     /** 获取Svg图片的位图，支持矢量缩放
     * @param [in] fImageSizeScale 图片缩放的比例
+    * @param [in] pControl 该图片管理的控件接口
     */
-    std::shared_ptr<IBitmap> GetSvgBitmap(float fImageSizeScale);
+    std::shared_ptr<IBitmap> GetSvgBitmap(float fImageSizeScale, Control* pControl);
 
 
 private:

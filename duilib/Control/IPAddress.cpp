@@ -13,8 +13,9 @@ IPAddress::IPAddress(Window* pWindow):
 
 DString IPAddress::GetType() const { return DUI_CTR_IPADDRESS; }
 
-void IPAddress::SetAttribute(const DString& strName, const DString& strValue)
+void IPAddress::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("ip")) {
         SetIPAddress(strValue);
     }    

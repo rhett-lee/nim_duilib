@@ -39,7 +39,12 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
     if (rsc == nullptr) {
         return false;
     }
-    uint8_t* pData = (uint8_t*)::LoadResource(hModule, rsc);
+
+    HGLOBAL hGlobal = ::LoadResource(hModule, rsc);
+    if (hGlobal == nullptr) {
+        return false;
+    }
+    uint8_t* pData = reinterpret_cast<uint8_t*>(::LockResource(hGlobal));
     uint32_t nDataSize = ::SizeofResource(hModule, rsc);
     ASSERT((pData != nullptr) && (nDataSize > 0));
     if ((pData == nullptr) || (nDataSize == 0)) {
@@ -120,6 +125,7 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
         nRet = ::unzOpenCurrentFile(m_hzip);
     }
     if (nRet != UNZ_OK) {
+        ASSERT(!"ZipManager: unzOpenCurrentFile failed");
         return false;
     }
 
@@ -225,9 +231,19 @@ void ZipManager::CloseResZip()
     m_pZipStreamIO.reset();
 }
 
-bool ZipManager::GetZipFileList(const FilePath& dirPath, std::vector<DString>& fileList) const
+bool ZipManager::GetZipFileList(const FilePath& dirPath,
+                                std::vector<DString>* fileList,
+                                std::vector<DString>* dirList) const
 {
-    fileList.clear();
+    if (fileList != nullptr) {
+        fileList->clear();
+    }
+    if (dirList != nullptr) {
+        dirList->clear();
+    }
+    if ((fileList == nullptr) && (dirList == nullptr)) {
+        return false;
+    }
     GlobalManager::Instance().AssertUIThread();
     DString filePath = dirPath.NativePath();
     if (!filePath.empty() &&
@@ -275,12 +291,22 @@ bool ZipManager::GetZipFileList(const FilePath& dirPath, std::vector<DString>& f
             //14 - VFAT
             bDir = (file_info.external_fa & 0x00000010) != 0;
         }
-        if (!bDir) {
+        if (!fileName.empty()) {
             size_t nPos = fileName.find(innerPath);
             if ((nPos == 0) && (fileName.size() > innerPath.size())) {
                 fileName = fileName.substr(innerPath.size());
-                if (fileName.find(_T('/')) == DString::npos) {
-                    fileList.push_back(fileName);
+                size_t nSep = fileName.find(_T('/'));
+                if (nSep == DString::npos) {
+                    //文件
+                    if (!bDir && (fileList != nullptr)) {
+                        fileList->push_back(fileName);
+                    }
+                }
+                else {
+                    //目录
+                    if (bDir && (dirList != nullptr) && nSep == (fileName.size() - 1)) {
+                        dirList->push_back(fileName);
+                    }
                 }
             }
         }

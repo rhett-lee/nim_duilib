@@ -45,7 +45,7 @@ void ImageDecoderFactory::Clear()
 
 std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    PerformanceStat statPerformance(_T("ImageDecoderFactory::LoadImageData"));
+    PerformanceUtil statPerformance(_T("ImageDecoderFactory::LoadImageData"));
     const bool bHasFileData = (decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty(); //图片文件数据
     const DString imageFilePath = decodeParam.m_imageFilePath.NativePath(); //图片文件路径
     ASSERT(!imageFilePath.empty() || bHasFileData);
@@ -148,7 +148,7 @@ std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeP
                     szImageSize.cx = (int32_t)std::round(szImageSize.cx * fRealScale);
                     szImageSize.cy = (int32_t)std::round(szImageSize.cy * fRealScale);
                 }
-                pBitmap = pSvgImage->GetBitmap(szImageSize);
+                pBitmap = pSvgImage->GetBitmap(szImageSize, decodeParam.m_svgReplaceColorCallback);
             }
         }
     }

@@ -297,18 +297,19 @@ template<>
 inline DString ControlDragableT<VBox>::GetType() const { return DUI_CTR_VBOX_DRAGABLE; }
 
 template<typename T>
-void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& strValue)
+void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = this->GetExpandVarStrings(strValue2);
     if (strName == _T("drag_order")) {
         //是否支持拖动调整顺序（在同一个容器内）
-        SetEnableDragOrder(strValue == _T("true"));
+        SetEnableDragOrder(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("drag_alpha")) {
         SetDragAlpha((uint8_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("drag_out")) {
         //是否支持拖出操作（在相同窗口的不同容器内）
-        SetEnableDragOut(strValue == _T("true"));
+        SetEnableDragOut(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -965,9 +966,10 @@ std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
             destHeight = kDragImageHeight;
             destWidth = (int32_t)(kDragImageHeight * (float)rc.Width() / (float)rc.Height());
         }
+        UiPoint ptScrollOffset = this->GetScrollOffsetInScrollBox();
         render->AlphaBlend((kDragImageWidth - destWidth) / 2, 0, destWidth, destHeight,
             this->GetWindow()->GetRender(),
-            rc.left, rc.top, rc.Width(), rc.Height());
+            rc.left - ptScrollOffset.x, rc.top - ptScrollOffset.y, rc.Width(), rc.Height());
     }
     std::shared_ptr<IBitmap> pDragImage(render->MakeImageSnapshot());
     return pDragImage;

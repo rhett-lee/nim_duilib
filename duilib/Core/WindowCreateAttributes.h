@@ -36,7 +36,7 @@ public:
 
     /** 是否为层窗口
     */
-    bool m_bIsLayeredWindow = true;
+    bool m_bIsLayeredWindow = false;
     bool m_bIsLayeredWindowDefined = false;//是否包含有效值
 
     /** 窗口透明度，该值在Windows平台是：UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)

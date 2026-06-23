@@ -122,10 +122,16 @@ void CefManager::SetCefLanguage(const DString& lang)
 
 DString CefManager::GetCefLanguage() const
 {
-    if (!m_lang.empty()) {
-        return m_lang;
+    //程序启动时，决定页面的语言，不可修改
+    static DString language = m_lang;
+    if (language.empty()) {
+        //获取当前的默认语言: 如"zh-CN"、"en-US"等
+        language = GlobalManager::GetTextById(DUILIB_LANGUAGE_NAME);
+        if (!language.empty()) {
+            StringUtil::ReplaceAll(_T("_"), _T("-"), language);
+        }
     }
-    return _T("zh-CN");
+    return language;
 }
 
 void CefManager::SetLogSeverity(cef_log_severity_t log_severity)

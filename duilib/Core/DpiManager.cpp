@@ -247,17 +247,17 @@ uint32_t DpiManager::GetUnscaleInt(uint32_t nValue) const
 
 float DpiManager::GetScaleFloat(int32_t nValue) const
 {
-    return std::round((nValue * m_nScaleFactor) / 100.0f);
+    return (nValue * (int32_t)m_nScaleFactor) / 100.0f;
 }
 
 float DpiManager::GetScaleFloat(uint32_t nValue) const
 {
-    return std::round((nValue * m_nScaleFactor) / 100.0f);
+    return (nValue * m_nScaleFactor) / 100.0f;
 }
 
 float DpiManager::GetScaleFloat(float fValue) const
 {
-    return std::round((fValue * m_nScaleFactor) / 100.0f);
+    return (fValue * m_nScaleFactor) / 100.0f;
 }
 
 float DpiManager::GetScaleFloat(float fValue, uint32_t nOldScaleFactor) const
@@ -265,7 +265,7 @@ float DpiManager::GetScaleFloat(float fValue, uint32_t nOldScaleFactor) const
     if ((nOldScaleFactor == 0) || (m_nScaleFactor == 0)) {
         return fValue;
     }
-    return std::round((fValue * m_nScaleFactor) / (float)nOldScaleFactor);
+    return (fValue * m_nScaleFactor) / (float)nOldScaleFactor;
 }
 
 int32_t DpiManager::GetScaleInt(int32_t nValue, uint32_t nOldScaleFactor) const

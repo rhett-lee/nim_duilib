@@ -45,7 +45,7 @@ DString ListBoxHelper::GetFrameSelectionColor() const
     return m_frameSelectionColor.c_str();
 }
 
-void ListBoxHelper::SetframeSelectionAlpha(uint8_t frameSelectionAlpha)
+void ListBoxHelper::SetFrameSelectionAlpha(uint8_t frameSelectionAlpha)
 {
     m_frameSelectionAlpha = frameSelectionAlpha;
 }
@@ -88,12 +88,21 @@ int32_t ListBoxHelper::GetNormalItemTop() const
     return m_nNormalItemTop;
 }
 
+UiSize64 ListBoxHelper::GetListBoxScrollPos() const
+{
+    UiSize64 scrollOffset = m_pListBox->GetScrollOffsetInScrollBox64(); //当前ListBox容器在父容器中的滚动条偏移
+    UiSize64 scrollPos = m_pListBox->GetScrollPos();//当前ListBox中的滚动条偏移
+    scrollPos.cx += scrollOffset.cx;
+    scrollPos.cy += scrollOffset.cy;
+    return scrollPos;
+}
+
 void ListBoxHelper::PaintFrameSelection(IRender* pRender)
 {
     if (!m_bInMouseMove || (pRender == nullptr)) {
         return;
     }
-    UiSize64 scrollPos = m_pListBox->GetScrollPos();
+    const UiSize64 scrollPos = m_pListBox->GetScrollPos();//当前ListBox中的滚动条偏移
     int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
     int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx) - scrollPos.cx;
     int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
@@ -129,7 +138,7 @@ void ListBoxHelper::OnButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_bMouseDownInView = (pSender == m_pListBox) ? true : false;
     m_bMouseDown = true;
     m_pMouseSender = pSender;
-    UiSize64 scrollPos = m_pListBox->GetScrollPos();
+    UiSize64 scrollPos = GetListBoxScrollPos();
     m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
@@ -163,7 +172,7 @@ void ListBoxHelper::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
     m_bMouseDownInView = (pSender == m_pListBox) ? true : false;
     m_bRMouseDown = true;
     m_pMouseSender = pSender;
-    UiSize64 scrollPos = m_pListBox->GetScrollPos();
+    UiSize64 scrollPos = GetListBoxScrollPos();
     m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
     m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
 }
@@ -197,7 +206,7 @@ void ListBoxHelper::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
     if ((m_bMouseDown || m_bRMouseDown) &&
         (pSender != nullptr) &&
         (m_pMouseSender == pSender) && pSender->IsMouseFocused()) {
-        UiSize64 scrollPos = m_pListBox->GetScrollPos();
+        const UiSize64 scrollPos = GetListBoxScrollPos();
         m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
 
@@ -242,10 +251,10 @@ void ListBoxHelper::OnCheckScrollView()
         return;
     }
     bool bScrollView = false;
-    const UiSize64 scrollPos = m_pListBox->GetScrollPos();
+    const UiSize64 oldScrollPos = m_pListBox->GetScrollPos();//当前ListBox中的滚动条偏移
     UiSize64 pt = m_ptMouseMove;
-    pt.cx -= scrollPos.cx;
-    pt.cy -= scrollPos.cy;
+    pt.cx -= oldScrollPos.cx;
+    pt.cy -= oldScrollPos.cy;
     const UiSize64 ptMouseMove = pt; //记录原值
 
     if (m_bInMouseMove) {
@@ -280,11 +289,11 @@ void ListBoxHelper::OnCheckScrollView()
     }
 
     if (bScrollView) {
-        UiSize64 scrollPosNew = m_pListBox->GetScrollPos();
-        if (scrollPos != scrollPosNew) {
+        UiSize64 newScrollPos = m_pListBox->GetScrollPos();//当前ListBox中的滚动条偏移
+        if (oldScrollPos != newScrollPos) {
             //更新鼠标位置
-            m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
-            m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
+            m_ptMouseMove.cx = ptMouseMove.cx + newScrollPos.cx;
+            m_ptMouseMove.cy = ptMouseMove.cy + newScrollPos.cy;
         }
 
         //启动定时器

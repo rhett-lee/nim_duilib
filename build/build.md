@@ -15,8 +15,8 @@
 | `msys2_build.sh`              | Windows       |MSYS2 gcc/g++ <br>MSYS2 clang/clang++|需预先下载并编译|不支持|支持|MSYS2系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
 | `build_duilib_all_in_one.sh`  | Linux         |gcc/g++ <br> clang/clang++           |自动下载并编译|支持，自动下载|不支持|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
 | `linux_build.sh`              | Linux         |gcc/g++ <br> clang/clang++           |需预先下载并编译|支持|不支持|Linux系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
-| `build_duilib_all_in_one.sh`  | MacOS         |clang/clang++                        |自动下载并编译|支持，自动下载|不支持|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
-| `macos_build.sh`              | MacOS         |clang/clang++                        |需预先下载并编译|支持|不支持|MacOS系统下的编译脚本，编译器为clang/clang++|
+| `build_duilib_all_in_one.sh`  | macOS         |clang/clang++                        |自动下载并编译|支持，自动下载|不支持|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `macos_build.sh`              | macOS         |clang/clang++                        |需预先下载并编译|支持|不支持|macOS系统下的编译脚本，编译器为clang/clang++|
 | `build_duilib_all_in_one.sh`  | FreeBSD       |clang/clang++                        |自动下载并编译|不支持|不支持|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为clang/clang++|
 | `freebsd_build.sh`            | FreeBSD       |clang/clang++                        |需预先下载并编译|不支持|不支持|FreeBSD系统下的编译脚本，编译器为clang/clang++|
 

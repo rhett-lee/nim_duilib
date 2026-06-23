@@ -57,6 +57,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChildWindow", "..\examples\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XmlPreview", "..\examples\XmlPreview\XmlPreview.vcxproj", "{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ColorTheme", "..\examples\ColorTheme\ColorTheme.vcxproj", "{A6AE5F7F-2391-45FF-B379-62B370D8B554}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -241,6 +243,14 @@ Global
 		{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63}.Release|Win32.Build.0 = Release|Win32
 		{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63}.Release|x64.ActiveCfg = Release|x64
 		{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63}.Release|x64.Build.0 = Release|x64
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Debug|Win32.Build.0 = Debug|Win32
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Debug|x64.ActiveCfg = Debug|x64
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Debug|x64.Build.0 = Debug|x64
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Release|Win32.ActiveCfg = Release|Win32
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Release|Win32.Build.0 = Release|Win32
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Release|x64.ActiveCfg = Release|x64
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -267,6 +277,7 @@ Global
 		{87A5F3FF-4DC5-4BBC-AE1E-FBC339CCA49E} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{A1430125-B369-44BA-AB20-CE4F54437F89} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{5C88CC5E-F26D-4CA8-85BF-E2893F97CB63} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
+		{A6AE5F7F-2391-45FF-B379-62B370D8B554} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}

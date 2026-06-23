@@ -27,7 +27,9 @@ ImageManager::~ImageManager()
 {
 }
 
-std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam, bool& bImageDataFromCache)
+std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadParam,
+                                                  SvgReplaceColorCallbackFunction svgReplaceColorCallback,
+                                                  bool& bImageDataFromCache)
 {
     ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     bImageDataFromCache = false;
@@ -78,7 +80,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
 
     std::shared_ptr<IImage> spImageData;
     //查询缓存，如果缓存存在，则可共享图片资源，无需重复加载
-    const DString imageKey = imageFullPath;
+    const DString imageKey = CreateImageKey(imageFullPath, loadParam.GetSvgReplaceColors());
     auto iterImageData = m_imageDataMap.find(imageKey);
     if (iterImageData != m_imageDataMap.end()) {
         spImageData = iterImageData->second.m_pImage.lock();
@@ -166,6 +168,8 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         decodeParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
         decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
         decodeParam.m_bAssertEnabled = loadParam.IsAssertEnabled();       //加载图片失败时是否允许断言（一般只影响图片数据错误导致的问题）
+        decodeParam.m_svgReplaceColors = loadParam.GetSvgReplaceColors(); //SVG格式的颜色替换参数(支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，现在只要一个svg就够了)
+        decodeParam.m_svgReplaceColorCallback = svgReplaceColorCallback;  //用于替换SVG格式颜色值参数的回调函数
 
         //加载图片     
         std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(decodeParam);
@@ -194,7 +198,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
             return nullptr;
         }
         //赋值, 添加到容器(替换删除函数)
-        ASSERT(imageKey == imageFullPath);
+        ASSERT(imageKey == CreateImageKey(imageFullPath, loadParam.GetSvgReplaceColors()));
         spImageData.reset(pImageData.release(), ImageManager::CallImageDataDestroy);//TODO：待验证，或许有平台兼容性问题
         OnImageDataCreate(imageKey, spImageData, fImageSizeScale);        
     }
@@ -215,6 +219,16 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         }
     }
     return nullptr;
+}
+
+DString ImageManager::CreateImageKey(const DString& imageFullPath, const DString& svgReplaceColors) const
+{
+    if (svgReplaceColors.empty()) {
+        return imageFullPath;
+    }
+    else {
+        return imageFullPath + _T("&") + svgReplaceColors;
+    }    
 }
 
 void ImageManager::CallImageInfoDestroy(ImageInfo* pImageInfo)

@@ -3,7 +3,8 @@
 
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiRect.h"
-#include <string>
+#include "duilib/Core/Box.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui 
 {
@@ -13,43 +14,68 @@ class Control;
 class Window;
 class DpiManager;
 
+/** 阴影类型
+*/
+enum class ShadowType
+{
+    kShadowDefault       = 0,    //默认阴影（未设置时，默认使用此值）
+    kShadowBig           = 1,    //大阴影，直角（适合普通窗口）
+    kShadowBigRound      = 2,    //大阴影，圆角（适合普通窗口）
+    kShadowSmall         = 3,    //小阴影，直角（适合普通窗口）
+    kShadowSmallRound    = 4,    //小阴影，圆角（适合普通窗口）
+    kShadowMenu          = 5,    //小阴影，直角（适合弹出式窗口，比如菜单等）
+    kShadowMenuRound     = 6,    //小阴影，圆角（适合弹出式窗口，比如菜单等）
+    kShadowNone          = 7,    //无阴影，有边框，直角
+    kShadowNoneRound     = 8,    //无阴影，有边框，圆角
+    kShadowCustom        = 9,    //用户自定义阴影（设置时会清除默认的阴影属性，后续需要调用SetShadowImage,SetShadowCorner,SetShadowBorderRound设置阴影属性）
+
+    kShadowSystemDefault    = 10,   //使用操作系统的默认阴影
+    kShadowSystemDoNotRound = 11,   //使用操作系统的阴影，非圆角阴影
+    kShadowSystemRound      = 12,   //使用操作系统的阴影，圆角阴影
+    kShadowSystemSmallRound = 13,   //使用操作系统的阴影，小圆角阴影
+};
+
 /** 窗口阴影属性
 */
 class DUILIB_API Shadow
 {
 public:
-    /** 阴影类型
-    */
-    enum ShadowType
-    {
-        kShadowFirst        = 0,            //有效值的起始值
-
-        kShadowBig          = 0,            //大阴影，直角（适合普通窗口）
-        kShadowBigRound     = 1,            //大阴影，圆角（适合普通窗口）
-        kShadowSmall        = 2,            //小阴影，直角（适合普通窗口）
-        kShadowSmallRound   = 3,            //小阴影，圆角（适合普通窗口）
-        kShadowMenu         = 4,            //小阴影，直角（适合弹出式窗口，比如菜单等）
-        kShadowMenuRound    = 5,            //小阴影，圆角（适合弹出式窗口，比如菜单等）
-        kShadowNone         = 6,            //无阴影，有边框，直角
-        kShadowNoneRound    = 7,            //无阴影，有边框，圆角
-        kShadowCustom       = 8,                //用户自定义阴影（设置时会清除默认的阴影属性，后续需要调用SetShadowImage,SetShadowCorner,SetShadowBorderRound设置阴影属性）
-        kShadowCount,                           //有效值的最大值
-
-        kShadowDefault      = kShadowBigRound   //默认阴影（未设置时，默认使用此值）
-    };
-
     /** 根据字符串获取对应的阴影类型
     */
     static bool GetShadowType(const DString& typeString, ShadowType& nShadowType);
 
+    /** 获取默认的阴影类型
+    * @param [in] pWindow 关联的窗口，用于判断是否支持系统阴影，可以为nullptr
+    * @return 返回默认的阴影类型（返回除了ShadowType::kShadowDefault外的阴影类型）
+    */
+    static ShadowType GetDefaultShadowType(const Window* pWindow);
+
+    /** 根据窗口属性获取支持的阴影类型
+    */
+    static ShadowType GetSupportedShadowType(const Window* pWindow, ShadowType nShadowType);
+
+    /** 是否为系统阴影类型
+    */
+    static bool IsSystemShadowType(ShadowType nShadowType);
+
+    /** 该阴影类型是否需要分层窗口属性（支持透明度的窗口）
+    */
+    static bool IsShadowTypeNeedLayeredWindow(ShadowType nShadowType);
+
+    /** 该阴影类型是否需要设置窗口的RGN（避免窗口的圆角影响阴影效果）
+    */
+    static bool IsShadowTypeNeedWindowRGN(ShadowType nShadowType);
+
     /** 获取默认的阴影类型对应的参数
-    * @param [in] nShadowType 阴影类型
+    * @param [in] pWindow 关联的窗口
+    * @param [in,out] nShadowType 阴影类型
     * @param [out] szBorderRound 返回圆角大小，未经DPI缩放
     * @param [out] rcShadowCorner 返回阴影素材的九宫格属性，未经DPI缩放
     * @param [out] shadowImage 返回阴影图片的属性，包含阴影图片的九宫格属性
     * @param [in] pShadowObj 关联的阴影对象
     */
-    static bool GetShadowParam(ShadowType nShadowType,
+    static bool GetShadowParam(const Window* pWindow,
+                               ShadowType& nShadowType,
                                UiSize& szBorderRound,
                                UiPadding& rcShadowCorner,
                                DString& shadowImage,
@@ -58,8 +84,9 @@ public:
 public:
     /** 构造函数
      @param [in] pWindow 关联的窗口
+     @param [in] bShadowAttached 设置 true 为支持阴影效果，false 为不支持阴影效果
     */
-    explicit Shadow(Window* pWindow);
+    Shadow(Window* pWindow, bool bShadowAttached);
 
     /** 设置是否支持阴影效果
      * @param[in] bShadowAttached 设置 true 为支持阴影效果，false 为不支持阴影效果
@@ -70,21 +97,18 @@ public:
      */
     bool IsShadowAttached() const;
 
-    /** 当前阴影效果值，是否为默认值
-    */
-    bool IsUseDefaultShadowAttached() const;
-
-    /** 设置当前阴影效果值，是否为默认值
-    */
-    void SetUseDefaultShadowAttached(bool bDefault);
-
     /** 设置阴影类型
     */
-    void SetShadowType(Shadow::ShadowType nShadowType);
+    void SetShadowType(ShadowType nShadowType);
 
     /** 获取阴影类型
     */
-    Shadow::ShadowType GetShadowType() const;
+    ShadowType GetShadowType() const;
+
+    /** 当前是否正在使用系统级别的窗口阴影
+    */
+    bool IsSystemShadowEnabled() const;
+    bool IsSystemShadowEnabled(ShadowType nShadowType) const;
 
     /** 设置阴影素材的九宫格描述
     * @param [in] rcShadowCorner 阴影图片的九宫格属性，未经DPI缩放的值
@@ -153,10 +177,14 @@ public:
     */
     Box* GetAttachedXmlRoot() const;
 
+    /** 将顶层容器与阴影解除绑定, 并释放阴影容器
+    */
+    Box* DettachShadow();
+
     /** 设置窗口最大化还是还原状态
-     * @param[in] isMaximized 设置为 true 表示最大化，false 为还原初始状态
+     * @param[in] bWindowMaximized 设置为 true 表示最大化，false 为还原初始状态
      */
-    void MaximizedOrRestored(bool isMaximized);
+    void MaximizedOrRestored(bool bWindowMaximized);
 
     /** 清理图片缓存
      */
@@ -197,12 +225,17 @@ public:
 
 private:
     /** 将阴影附加到窗口
+     * @param [in] pShadowBox 新的根容器接口，阴影容器
+     * @param [in] pXmlRoot 原来的根容器接口，XML根容器
+     * @param [in] bShadowAttached true表示窗口绑定了阴影，需要显示阴影；false表示窗口未绑定阴影，不需要显示阴影
+     * @param [in] bWindowMaximized true表示窗口为最大化状态，false表示窗口未处于最大化状态
      */
-    void DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool isMaximized) const;
+    void DoAttachShadow(Box* pShadowBox, Box* pXmlRoot, bool bShadowAttached, bool bWindowMaximized) const;
 
     /** 附加阴影事件
+    * @param [in] 输入的阴影类型
     */
-    void OnShadowAttached(Shadow::ShadowType nShadowType);
+    void OnShadowAttached(ShadowType nShadowType);
 
     /** 更新阴影属性
     */
@@ -216,11 +249,8 @@ private:
     //是否支持阴影效果
     bool m_bShadowAttached;
 
-    //当前阴影效果值，是否为默认值
-    bool m_bUseDefaultShadowAttached;
-
     //当前是否为最大化状态
-    bool m_isMaximized;
+    bool m_bWindowMaximized;
 
     /** 设置是否支持阴影的点击穿透功能
     */
@@ -255,13 +285,16 @@ private:
     DString m_shadowBorderColor;
 
     //阴影容器接口
-    Box* m_pShadowBox;
+    BoxPtr m_pShadowBox;
+
+    //阴影容器接口
+    BoxPtr m_pXmlRootBox;
 
     //关联的窗口
     Window* m_pWindow;
 
     //阴影类型
-    Shadow::ShadowType m_nShadowType;
+    ShadowType m_nShadowType;
 };
 
 }

@@ -1,10 +1,12 @@
 #include "ZipStreamIO.h"
+#include <climits>
 
-namespace ui 
+namespace ui
 {
 ZipStreamIO::ZipStreamIO(uint8_t* pData, uint32_t nDataLen):
     m_pData(pData),
-    m_nDataLen((int32_t)nDataLen),
+    //注意：m_nDataLen 是 int32_t，当 nDataLen > INT32_MAX 时，强转会得到负数；这里显式截断到 INT32_MAX 防止溢出
+    m_nDataLen((nDataLen > (uint32_t)INT32_MAX) ? INT32_MAX : (int32_t)nDataLen),
     m_nCurPos(0)
 {
     ASSERT(m_pData != nullptr);
@@ -36,7 +38,6 @@ voidpf ZCALLBACK ZipStreamIO::fopen_file_func(voidpf opaque, const char* /*filen
 
 uLong ZCALLBACK ZipStreamIO::fread_file_func(voidpf opaque, voidpf stream, void* buf, uLong size)
 {
-    ASSERT_UNUSED_VARIABLE(opaque == stream);
     ASSERT_UNUSED_VARIABLE(opaque == stream);
     ASSERT(stream != nullptr);
     if (stream == nullptr) {

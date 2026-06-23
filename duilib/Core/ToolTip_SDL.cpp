@@ -14,7 +14,7 @@ class ToolTipWindow: public Window
 public:
     ToolTipWindow()
     {
-        InitSkin(_T("public/tooltip/"), _T("tooltip.xml"));
+        InitSkin(DString(DUILIB_PUBLIC_RES_DIR) + _T("/tooltip/"), _T("tooltip.xml"));
     }
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
@@ -115,7 +115,7 @@ public:
     ControlPtrT<WindowBase> m_pParentWnd;
 
     //定时器的有效性保证
-    std::weak_ptr<WeakFlag> m_hoverFlag;
+    std::weak_ptr<WeakFlag> m_hoveredFlag;
 
     //Tooltip自身的窗口
     ControlPtrT<ToolTipWindow> m_pTooltipWnd;
@@ -127,7 +127,7 @@ public:
     size_t m_nTimerId;
 
     // 显示Tooltip的时间间隔，即定时器的触发时间间隔（毫秒）
-    const uint32_t m_hoverMillSeconds = 320;
+    const uint32_t m_hoveredMillSeconds = 320;
 };
 
 ToolTip::TImpl::TImpl():
@@ -143,7 +143,7 @@ ToolTip::TImpl::~TImpl()
 
 void ToolTip::TImpl::StopHoverTimer()
 {
-    m_hoverFlag.reset();
+    m_hoveredFlag.reset();
     if (m_nTimerId != 0) {        
         GlobalManager::Instance().Timer().RemoveTimer(m_nTimerId);
         m_nTimerId = 0;        
@@ -159,17 +159,17 @@ void ToolTip::TImpl::SetMouseTracking(WindowBase* pParentWnd, bool bTracking)
     }
     if (bTracking && !m_bMouseTracking) {
         //启动定时器，跟踪状态
-        m_hoverFlag = pParentWnd->GetWeakFlag();
+        m_hoveredFlag = pParentWnd->GetWeakFlag();
         ControlPtrT<WindowBase> spParentWnd(pParentWnd);
-        auto hoverCallback = [this, pParentWnd]() {
+        auto hoveredCallback = [this, pParentWnd]() {
                 if (pParentWnd != nullptr) {
                     pParentWnd->PostMsg(NativeWindow_SDL::GetHoverMsgId());
                     m_nTimerId = 0;
                     m_bMouseTracking = false;
-                    m_hoverFlag.reset();
+                    m_hoveredFlag.reset();
                 }                
             };
-        m_nTimerId = GlobalManager::Instance().Timer().AddTimer(m_hoverFlag, hoverCallback, m_hoverMillSeconds, 1);
+        m_nTimerId = GlobalManager::Instance().Timer().AddTimer(m_hoveredFlag, hoveredCallback, m_hoveredMillSeconds, 1);
     }
     m_pParentWnd = pParentWnd;
     m_bMouseTracking = bTracking;
@@ -211,7 +211,7 @@ void ToolTip::TImpl::ShowToolTip(WindowBase* pParentWnd,
     WindowBuilder windowBuilder;
     if (windowBuilder.ParseXmlFile(xmlPath)) {
         WindowCreateAttributes createAttributes;
-        if (windowBuilder.ParseWindowCreateAttributes(createAttributes)) {
+        if (windowBuilder.ParseWindowCreateAttributes(m_pTooltipWnd.get(), createAttributes)) {
             rcShadowCorner = createAttributes.m_rcShadowCorner;
         }
     }

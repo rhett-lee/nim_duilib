@@ -46,7 +46,7 @@ int TestApplication::Run(int argc, char** argv)
 
     //必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(true);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), thread.GetDpiInitParam());
 
     //初始化CEF模块的附加启动参数

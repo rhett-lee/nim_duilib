@@ -83,9 +83,13 @@ void BrowserBox::InitBrowserBox(const DString& url)
     // 加载默认网页
     DString html_path = url;
     if (html_path.empty()) {
-        ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
+        ui::FilePath resourcePath = ui::GlobalManager::Instance().Theme().GetThemeRootPath();
+        resourcePath /= ui::GlobalManager::Instance().Theme().GetDefaultThemePath();
+        if (GetWindow() != nullptr) {
+            resourcePath /= ui::FilePath(GetWindow()->GetResourcePath());
+        }        
         resourcePath.NormalizeDirectoryPath();
-        resourcePath += _T("themes/default/cef_browser/cef.html");
+        resourcePath += _T("cef.html");
         html_path = resourcePath.ToString();
         html_path = _T("file:///") + html_path;
     }
@@ -114,7 +118,7 @@ bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
 
     //不再调用基类的方法，避免覆盖输入法管理的逻辑（基类会关闭输入法）
     if (GetState() == ui::kControlStateNormal) {
-        SetState(ui::kControlStateHot);
+        SetState(ui::kControlStateHovered);
         Invalidate();
     }
     return true;
@@ -146,9 +150,13 @@ void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
         if (model->GetCount() > 0) {
             model->InsertSeparatorAt(0);
         }
-        model->InsertItemAt(0, MENU_ID_COPY_LINK, "复制链接");
-        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_WINDOW, "在新窗口中打开链接");
-        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_TAB, "在新标签页中打开链接");
+        DString copyLink = ui::GlobalManager::GetTextById(_T("STRID_CEF_BROWSER_COPY_LINK"));
+        DString openLinkInWindow = ui::GlobalManager::GetTextById(_T("STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_WINDOW"));
+        DString openLinkInTab = ui::GlobalManager::GetTextById(_T("STRID_CEF_BROWSER_OPEN_LINK_IN_NEW_TAB"));
+
+        model->InsertItemAt(0, MENU_ID_COPY_LINK, ui::StringConvert::TToUTF8(copyLink));
+        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_WINDOW, ui::StringConvert::TToUTF8(openLinkInWindow));
+        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_TAB, ui::StringConvert::TToUTF8(openLinkInTab));
     }
 }
 
@@ -396,8 +404,9 @@ void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
     ui::GlobalManager::Instance().AssertUIThread();
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
+        //C++ 接收到 JavaScript 发来的消息
         DString value = ui::StringConvert::UTF8ToT(params);
-        ui::SystemUtil::ShowMessageBox(GetWindow(), value.c_str(), _T("C++ 接收到 JavaScript 发来的消息"));
+        ui::SystemUtil::ShowMessageBox(GetWindow(), value.c_str(), _T("C++ receives the message sent by JavaScript."));
         callback(false, R"({ "message": "Success." })");
     }));
 }

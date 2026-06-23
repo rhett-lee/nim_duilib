@@ -132,7 +132,8 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     bi.biClrImportant = 0;
 
     // 分配内存并获取位图数据
-    bitmap.resize(width * height * 4);
+    //注意：width * height * 4 在 int32 范围内可能溢出（如 32768*32768*4 > INT32_MAX），必须先转为 size_t
+    bitmap.resize((size_t)width * height * 4);
     ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
 
     // 清理资源

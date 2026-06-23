@@ -198,9 +198,6 @@
     <ClCompile Include="RenderSkia\SkTextBox.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSkia\SkUtils.cpp">
-      <Filter>RenderSkia</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSkia\Brush_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
@@ -411,9 +408,6 @@
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp">
       <Filter>Utils\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ShadowWnd_Windows.cpp">
-      <Filter>Utils\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp">
       <Filter>Control\Windows</Filter>
     </ClCompile>
@@ -444,20 +438,11 @@
     <ClCompile Include="Utils\FileDialog_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ShadowWnd_SDL.cpp">
-      <Filter>Utils\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="Control\RichEdit_Windows.cpp">
       <Filter>Control\Windows</Filter>
     </ClCompile>
     <ClCompile Include="Control\RichEditHost_Windows.cpp">
       <Filter>Control\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\RichEdit_SDL.cpp">
-      <Filter>Control\SDL</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\RichEditData.cpp">
-      <Filter>Control\SDL</Filter>
     </ClCompile>
     <ClCompile Include="Utils\Clipboard_Windows.cpp">
       <Filter>Utils\Windows</Filter>
@@ -837,12 +822,6 @@
     <ClCompile Include="Control\ColorPickerRegular.cpp">
       <Filter>Control\ColorPicker</Filter>
     </ClCompile>
-    <ClCompile Include="Control\ColorPickerStatard.cpp">
-      <Filter>Control\ColorPicker</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\ColorPickerStatardGray.cpp">
-      <Filter>Control\ColorPicker</Filter>
-    </ClCompile>
     <ClCompile Include="Control\ColorSlider.cpp">
       <Filter>Control\ColorPicker</Filter>
     </ClCompile>
@@ -876,6 +855,9 @@
     <ClCompile Include="Animation\EasingFunctions.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ThemeManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="Utils\TrayIcon_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
@@ -887,6 +869,54 @@
     </ClCompile>
     <ClCompile Include="..\msvc\dllRes\dllmain.cpp">
       <Filter>duilibDLL</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\DrawSkiaText.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkiaTextData.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditData.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEdit2.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\DllManager_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowRoot.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditDropTarget_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditDropTarget_SDL.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditDropTargetHelper.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditDragSource_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkUTF.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ColorMap.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThemeGenerator.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ColorConverter.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStandard.cpp">
+      <Filter>Control\ColorPicker</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\ColorPickerStandardGray.cpp">
+      <Filter>Control\ColorPicker</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1004,9 +1034,6 @@
     <ClInclude Include="Utils\PerformanceUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\ShadowWnd.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Render\AutoClip.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -1026,9 +1053,6 @@
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\SkTextBox.h">
-      <Filter>RenderSkia</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSkia\SkUtils.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\Brush_Skia.h">
@@ -1349,14 +1373,8 @@
     <ClInclude Include="Control\RichEdit.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\RichEdit_SDL.h">
-      <Filter>Control\SDL</Filter>
-    </ClInclude>
     <ClInclude Include="Core\UiRectF.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\RichEditData.h">
-      <Filter>Control\SDL</Filter>
     </ClInclude>
     <ClInclude Include="Core\SharePtr.h">
       <Filter>Core</Filter>
@@ -1781,12 +1799,6 @@
     <ClInclude Include="Control\ColorPickerRegular.h">
       <Filter>Control\ColorPicker</Filter>
     </ClInclude>
-    <ClInclude Include="Control\ColorPickerStatard.h">
-      <Filter>Control\ColorPicker</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\ColorPickerStatardGray.h">
-      <Filter>Control\ColorPicker</Filter>
-    </ClInclude>
     <ClInclude Include="Control\ColorSlider.h">
       <Filter>Control\ColorPicker</Filter>
     </ClInclude>
@@ -1829,6 +1841,9 @@
     <ClInclude Include="Animation\EasingFunctions.h">
       <Filter>Animation</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ThemeManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Utils\TrayIcon.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -1840,6 +1855,63 @@
     </ClInclude>
     <ClInclude Include="..\msvc\dllRes\version.h">
       <Filter>duilibDLL</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\DrawSkiaText.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkiaTextData.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\FastVector.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditDefs.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditData.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit2.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\DllManager_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowRoot.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NativeWindowShadow.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditDropTarget_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditDropTarget_SDL.h">
+      <Filter>Control\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditDropTargetHelper.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditDragSource_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkUTF.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ColorMap.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ThemeGenerator.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ColorConverter.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStandard.h">
+      <Filter>Control\ColorPicker</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ColorPickerStandardGray.h">
+      <Filter>Control\ColorPicker</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

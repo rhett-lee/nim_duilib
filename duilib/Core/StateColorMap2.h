@@ -43,10 +43,22 @@ public:
     void SetStateColorMargin(ControlStateType stateType, const UiMargin& colorMargin);
     void SetStateColorRound(ControlStateType stateType, const UiSize& colorRound);
 
-public:
-    /** 是否包含Hot状态的颜色
+    /** 设置状态颜色区域的最小宽度或者最小高度（解决DPI缩放后的运算精度损失导致线条宽度失真问题）
+    * @param [in] fMinWidth 设置状态颜色区域的最小宽度，未经DPI缩放
+    * @param [in] fMinHeight 设置状态颜色区域的最小高度，未经DPI缩放
     */
-    bool HasHotColor() const;
+    void SetStateColorMinWidth(float fMinWidth);
+    void SetStateColorMinHeight(float fMinHeight);
+
+    /** 获取状态颜色区域的最小宽度或者最小高度（未经DPI缩放）
+    */
+    float GetStateColorMinWidth() const;
+    float GetStateColorMinHeight() const;
+
+public:
+    /** 是否包含Hovered状态的颜色
+    */
+    bool HasHoveredColor() const;
 
     /** 是否含有指定颜色值
     */
@@ -64,7 +76,7 @@ public:
 private:
     /** 绘制指定状态的颜色(使用预先获取的颜色值)
     */
-    void DoPaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha = 255) const;
+    void DoPaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType, UiColor colorValue, uint8_t nAlpha = 255) const;
 
 private:
     /** 每个颜色的基本属性
@@ -85,6 +97,14 @@ private:
     /** 关联的控件接口
     */
     Control* m_pControl;
+
+    /** 状态颜色区域的最小宽度（未经DPI缩放）
+    */
+    float m_fStateColorMinWidth;
+
+    /** 状态颜色区域的最小高度（未经DPI缩放）
+    */
+    float m_fStateColorMinHeight;
 
     /** 状态与颜色值的映射表
     */

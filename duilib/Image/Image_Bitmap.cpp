@@ -202,7 +202,7 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IBitmap>& 
         return nullptr;
     }
     ASSERT((pBitmap->GetWidth() > 0) && (pBitmap->GetHeight() > 0));
-    if ((pBitmap->GetWidth() <= 0) || (pBitmap->GetHeight() <= 0)) {
+    if ((pBitmap->GetWidth() == 0) || (pBitmap->GetHeight() == 0)) {
         return nullptr;
     }
     Image_Bitmap* pImageBitmap = new Image_Bitmap;
@@ -222,7 +222,7 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IBitmapIma
         return nullptr;
     }
     ASSERT((pBitmap->GetWidth() > 0) && (pBitmap->GetHeight() > 0));
-    if ((pBitmap->GetWidth() <= 0) || (pBitmap->GetHeight() <= 0)) {
+    if ((pBitmap->GetWidth() == 0) || (pBitmap->GetHeight() == 0)) {
         return nullptr;
     }
 
@@ -239,7 +239,7 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(const std::shared_ptr<IAnimation
         return nullptr;
     }
     ASSERT((pAnimationImage->GetWidth() > 0) && (pAnimationImage->GetHeight() > 0));
-    if ((pAnimationImage->GetWidth() <= 0) || (pAnimationImage->GetHeight() <= 0)) {
+    if ((pAnimationImage->GetWidth() == 0) || (pAnimationImage->GetHeight() == 0)) {
         return nullptr;
     }
 

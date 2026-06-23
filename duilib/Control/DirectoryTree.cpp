@@ -29,18 +29,18 @@ DirectoryTree::DirectoryTree(Window* pWindow):
 
 DirectoryTree::~DirectoryTree()
 {
-    for (auto iter : m_folderMap) {
-        DeleteFolderStatus(iter.second);
-    }
-    m_folderMap.clear();
-
     //移除所有的树节点，避免产生Destroy事件
     RemoveAllNodes();
 
     if (m_impl != nullptr) {
         delete m_impl;
         m_impl = nullptr;
-    }    
+    }
+
+    for (auto iter : m_folderMap) {
+        DeleteFolderStatus(iter.second);
+    }
+    m_folderMap.clear();
 }
 
 void DirectoryTree::DeleteFolderStatus(FolderStatus* pFolderStatus)
@@ -55,8 +55,9 @@ void DirectoryTree::DeleteFolderStatus(FolderStatus* pFolderStatus)
 
 DString DirectoryTree::GetType() const { return DUI_CTR_DIRECTORY_TREE; }
 
-void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue)
+void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     //支持的属性列表: 基类实现的直接转发
     if (strName == _T("small_icon_size")) {
         SetSmallIconSize(StringUtil::StringToInt32(strValue));
@@ -65,10 +66,10 @@ void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue
         SetLargeIconSize(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("show_hiden_files")) {
-        SetShowHidenFiles(strValue == _T("true"));
+        SetShowHidenFiles(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("show_system_files")) {
-        SetShowSystemFiles(strValue == _T("true"));
+        SetShowSystemFiles(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -191,7 +192,7 @@ TreeNode* DirectoryTree::ShowVirtualDirectoryNode(VirtualDirectoryType type, con
     return InsertTreeNode(nullptr, folderName, bDisplayNameIsID, filePath, true, false, nIconID, false);
 }
 
-TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName)
+TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName, bool bDisplayNameIsID)
 {
     //基本结构:
     //  -计算机
@@ -199,7 +200,7 @@ TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DSt
     //     -D:\\盘
     //     ...
     uint32_t nMyComputerIcon = m_impl->GetMyComputerIconID();
-    TreeNode* pMyComputerNode = InsertTreeNode(nullptr, computerName, false, FilePath(), false, true, nMyComputerIcon, false);
+    TreeNode* pMyComputerNode = InsertTreeNode(nullptr, computerName, bDisplayNameIsID, FilePath(), false, true, nMyComputerIcon, false);
     TreeNode* pFirstNode = pMyComputerNode; //返回计算机节点
     std::vector<DirectoryTree::PathInfo> pathInfoList;
     m_impl->GetRootPathInfoList(false, pathInfoList);
@@ -211,15 +212,17 @@ TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DSt
         if (pathInfo.m_filePath.IsEmpty()) {
             continue;
         }
+        bool bCurrentDisplayNameIsID = false;
         DString displayName = pathInfo.m_displayName;
 #ifndef DUILIB_BUILD_FOR_WIN
         if (bFirstNode && (displayName == _T("/")) && !fileSystemName.empty()) {
             //替换为文件系统
             bFirstNode = false;
             displayName = fileSystemName;
+            bCurrentDisplayNameIsID = bDisplayNameIsID;
         }
 #endif
-        TreeNode* pNewNode = InsertTreeNode(pMyComputerNode, displayName, false,
+        TreeNode* pNewNode = InsertTreeNode(pMyComputerNode, displayName, bCurrentDisplayNameIsID,
                                             pathInfo.m_filePath, pathInfo.m_bFolder, false,
                                             pathInfo.m_nIconID, pathInfo.m_bIconShared);
         if (pFirstNode == nullptr) {

@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <Class name="color_combo_picker_btn" font="system_14" normal_text_color="black" disabled_text_color="gray" text_align="hcenter,vcenter" border_size="1" hot_border_color="#FFB3D0EE" pushed_border_color="#FF82B4E8" hot_color="#FFE8EFF7" pushed_color="#FFC9E0F7" />
+    <Class name="color_combo_picker_btn" font="system_regular_14"
+                 normal_text_color="text_default" disabled_text_color="text_disabled"
+                 text_align="hcenter,vcenter" border_size="1"
+                 hovered_border_color="border_btn_hovered"
+                 pressed_border_color="border_btn_pressed"
+                 hovered_color="bg_btn_hovered"
+                 pressed_color="bg_btn_pressed" />
     <!-- 第一个节点会被跳过解析 -->
     <Box>
-        <VBox bkcolor="bk_wnd_darkcolor">
+        <VBox bkcolor="bg_window_main">
             <!-- 常用颜色 -->
             <ColorPickerRegular name="color_combo_picker" color_type="default" item_size="40,20" columns="10" child_margin="2" padding="2,2,2,2" halign="center" valign="center"/>
-            <Button class="color_combo_picker_btn" name="color_combo_picker_more" text="  更多颜色 ...  " width="auto" height="30" margin="2,0,2,2" halign="center"/>
+            <Button class="color_combo_picker_btn" name="color_combo_picker_more" text_id="STRID_RICHEDIT_MORE_COLOR" width="auto" height="30" padding="8,0,8,0" margin="2,0,2,2" halign="center"/>
         </VBox>
     </Box>
 </Window>

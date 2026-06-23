@@ -15,22 +15,20 @@ MainThread::~MainThread()
 {
 }
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
     //初始化全局资源
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
-        ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resourcePath += _T("resources\\");
+        ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }
     else if (resType == ui::ResourceType::kZipFile) {
         //使用本地zip压缩包作为资源（压缩包位于exe相同目录）    
         ui::ZipFileResParam resParam;
-        resParam.resourcePath = _T("resources\\");
-        resParam.zipFilePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resParam.zipFilePath += _T("resources.zip");
+        resParam.resourcePath = DUILIB_RESOURCE_DIR;
+        resParam.zipFilePath = ui::GlobalManager::GetResourceZipPath();
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
@@ -38,7 +36,7 @@ void MainThread::OnInit()
     else if (resType == ui::ResourceType::kResZipFile) {
         //使用exe资源文件中的zip压缩包
         ui::ResZipFileResParam resParam;
-        resParam.resourcePath = _T("resources\\");
+        resParam.resourcePath = DUILIB_RESOURCE_DIR;
         resParam.hResModule = nullptr;
         resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
         resParam.resourceType = _T("THEME");
@@ -47,7 +45,7 @@ void MainThread::OnInit()
     }
 #endif
     else {
-        return;
+        return false;
     }
 
     //在下面加入启动窗口代码
@@ -56,6 +54,7 @@ void MainThread::OnInit()
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiLang"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
 }
 
 void MainThread::OnCleanup()

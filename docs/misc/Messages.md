@@ -1,4 +1,4 @@
-﻿## Window消息注解
+# Window消息注解
 | 消息          | 参数说明     | 资料     |
 | :---          | :---     | :---     |
 | WM_SIZE       | wParam（具体值）, lParam（新的宽度和高度）          | https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-size|
@@ -28,21 +28,6 @@
 | WM_RBUTTONUP     |  相同   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttonup     |
 | WM_RBUTTONDBLCLK |  相同   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttondblclk    |
 | WM_CAPTURECHANGED|  消息发送到丢失鼠标捕获的窗口，lParam 获取鼠标捕获的窗口的句柄   | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-capturechanged |
-| WM_CLOSE    |     |     |
-|     |     |     |
-| WM_TASKBARBUTTONCREATED |  示例使用，无参数   |     |
-| WM_SHOWWINDOW| wParam 指示是否显示窗口。 如果 wParam 为 TRUE，则显示窗口。 如果 wParam 为 FALSE，则表示窗口处于隐藏状态。| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow?redirectedfrom=MSDN
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
-|     |     |     |
+| WM_CLOSE    |  wParam 无意义，lParam 无意义  | https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-close  |
+| WM_TASKBARBUTTONCREATED |  任务栏按钮创建通知，应用程序启动时由系统发送，无参数   | https://learn.microsoft.com/zh-cn/windows/win32/shell/taskbar |
+| WM_SHOWWINDOW| wParam 指示是否显示窗口。 如果 wParam 为 TRUE，则显示窗口。 如果 wParam 为 FALSE，则表示窗口处于隐藏状态。| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow |

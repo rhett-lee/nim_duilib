@@ -28,11 +28,20 @@ std::basic_string<DUTF16Char> StringConvert::UTF8ToUTF16(const DUTF8Char* utf8, 
                                                      lenientConversion);
         utf16.append((const DUTF16Char*)output, dst_begin - reinterpret_cast<UTF16*>(output));
         dst_begin = reinterpret_cast<UTF16*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
+        // conversionOK (0): 正常完成，src_begin==src_end，下次循环退出
+        // targetExhausted (2): 输出缓冲已满，src_begin 前进部分，下次循环继续处理
+        // sourceIllegal (3): 源字节非法（lenient 模式理论上不会出现）
+        // sourceExhausted (1): 源末尾有未完成的多字节序列（lenient 模式理论上不会出现）
+        // 注意：合法转换结果（已 append 到 utf16）不应被清空；只在 sourceIllegal 时清空
+        if (result == sourceIllegal) {
             utf16.clear();
             break;
         }
+        if (result == sourceExhausted) {
+            // 源末尾有部分多字节字符：直接 break，保留已转换的有效前缀
+            break;
+        }
+        // conversionOK 和 targetExhausted 都不需要 break，下次循环条件自动处理
     }
     return utf16;
 }
@@ -67,8 +76,11 @@ std::string StringConvert::UTF16ToUTF8(const DUTF16Char* utf16, size_t length)
                                                      lenientConversion);
         utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
         dst_begin = reinterpret_cast<UTF8*>(output);
-        if (result == sourceIllegal || result == sourceExhausted) {
+        if (result == sourceIllegal) {
             utf8.clear();
+            break;
+        }
+        if (result == sourceExhausted) {
             break;
         }
     }
@@ -107,9 +119,11 @@ std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const DUTF8Char* utf8, 
 
         utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
         dst_begin = reinterpret_cast<UTF32*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
+        if (result == sourceIllegal) {
             utf32.clear();
+            break;
+        }
+        if (result == sourceExhausted) {
             break;
         }
     }
@@ -137,9 +151,11 @@ std::string StringConvert::UTF32ToUTF8(const DUTF32Char* utf32, size_t length)
 
         utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
         dst_begin = reinterpret_cast<UTF8*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
+        if (result == sourceIllegal) {
             utf8.clear();
+            break;
+        }
+        if (result == sourceExhausted) {
             break;
         }
     }
@@ -168,8 +184,11 @@ std::basic_string<DUTF32Char> StringConvert::UTF16ToUTF32(const DUTF16Char* utf1
                                                       lenientConversion);
         utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
         dst_begin = reinterpret_cast<UTF32*>(output);
-        if (result == sourceIllegal || result == sourceExhausted) {
+        if (result == sourceIllegal) {
             utf32.clear();
+            break;
+        }
+        if (result == sourceExhausted) {
             break;
         }
     }
@@ -210,8 +229,11 @@ DStringW StringConvert::UTF32ToWString(const DUTF32Char* utf32, size_t length)
                                                       lenientConversion);
         utf16.append((const std::wstring::value_type*)output, dst_begin - reinterpret_cast<UTF16*>(output));
         dst_begin = reinterpret_cast<UTF16*>(output);
-        if (result == sourceIllegal || result == sourceExhausted) {
+        if (result == sourceIllegal) {
             utf16.clear();
+            break;
+        }
+        if (result == sourceExhausted) {
             break;
         }
     }

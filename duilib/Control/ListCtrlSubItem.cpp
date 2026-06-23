@@ -15,8 +15,9 @@ ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
 
 DString ListCtrlSubItem::GetType() const { return _T("ListCtrlSubItem"); }
 
-void ListCtrlSubItem::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrlSubItem::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("icon_spacing")) {
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }

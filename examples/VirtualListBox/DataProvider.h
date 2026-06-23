@@ -66,6 +66,7 @@ public:
 
 public:
     void SetTotal(int nTotal);
+    void Refresh();
     void RemoveTask(size_t nIndex);
     void ChangeTaskName(size_t nIndex, const DString& sName);
 

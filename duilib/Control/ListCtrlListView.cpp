@@ -21,10 +21,11 @@ ListCtrlListView::~ListCtrlListView()
 {
 }
 
-void ListCtrlListView::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrlListView::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("horizontal_layout")) {
-        SetHorizontalLayout(strValue == _T("true"));
+        SetHorizontalLayout(StringUtil::IsValueTrue(strValue));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);

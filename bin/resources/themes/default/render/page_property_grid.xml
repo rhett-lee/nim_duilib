@@ -1,74 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Box>
     <HBox>
-        <PropertyGrid name="property_grid_test" 
-                      bkcolor="YellowGreen" 
-                      width="320"
-                      left_column_width="130"
-                      row_grid_line_width="1"
-                      row_grid_line_color="darkgray"
-                      column_grid_line_width="1"
-                      column_grid_line_color="darkgray"
-                      header_class="property_grid_header"
-                      group_class="property_grid_group"
-                      propterty_class="property_grid_propterty"/>
-        <Split bkcolor="splitline_level1" width="2"/>
-        <VBox>
-            <HBox bkcolor="white" height="80" margin="0,4,0,0">
+        <PropertyGrid class="property_grid" name="property_grid_test" width="320" margin="1,1,1,1"/>
+        <Split class="split_vertical"/>
+        <VBox bkcolor="bg_container" >
+            <HBox height="80" margin="0,4,0,0">
                 <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">
-                    <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签1-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签1-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_1_1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签1-1 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_1_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签1-2 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_1_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签1-3 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_1_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签1-4 -->
                 </TabCtrl>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1">
-                    <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_2_1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签2-1 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_2_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签2-2 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_2_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签2-3 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_2_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签2-4 -->
                 </TabCtrl>
-            </HBox>            
-            <HBox bkcolor="white">
+            </HBox>
+            <HBox>
                 <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
-                    <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_1_NO_DRAG" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-1：不支持拖动调序 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-2 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-3 -->
+                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-4 -->
                 </TabCtrl>
-                <VListBox margin="10,10,10,10" width="128">
-                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                </VListBox>
             </HBox>
             <VBox>
-                <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" padding="20,20,20,20">
+                <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" padding="20,20,20,20">
                     <TabCtrl class="tab_ctrl" margin="10,10,10,10">
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-1 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-2 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-3 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-4 -->
                     </TabCtrl>
-                    <Control height="300"/>                    
+                    <Control height="300"/>
                     <TabCtrl class="tab_ctrl" margin="10,10,10,10">
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
-                        <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_1" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-1 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_2" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-2 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_3" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-3 -->
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_RENDER_PROPGRID_TAB_3_4" icon="file='public/caption/logo.svg' valign='center' halign='center'"/> <!-- 标签3-4 -->
                     </TabCtrl>
-                    <Label text="纵向文本测试，下面有个纵向文本需要显示出来：" text_align="hcenter,top"/>
-                    <Label height="120" width="stretch" text="纵向文本测试：\n测试在滚动条内是否能够正常显示。" text_align="hcenter,top" vertical_text="true" multi_line="true" replace_newline="true"/>
+                    <Label text_id="STRID_RENDER_PROPGRID_LABEL_VERTICAL_TEXT_TIP" text_align="hcenter,top"/> <!-- 纵向文本测试，下面有个纵向文本需要显示出来： -->
+                    <Label height="120" width="stretch" text_id="STRID_RENDER_PROPGRID_LABEL_VERTICAL_TEXT_CONTENT" text_align="hcenter,top" vertical_text="true" multi_line="true" replace_newline="true"/> <!-- 纵向文本测试：\n测试在滚动条内是否能够正常显示。 -->
                 </VScrollBox>
             </VBox>
-            <HBox bkcolor="white" margin="4,4,4,0">
+            <HBox margin="4,4,4,0">
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />
             </HBox>
-            <HBox bkcolor="white" margin="4,4,4,4">
-                <Label width="stretch" height="stretch" text_align="hcenter,vcenter" text="这里演示的是渐变背景色功能" border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
+            <HBox margin="4,4,4,4">
+                <Label width="stretch" height="stretch" text_align="hcenter,vcenter" text_id="STRID_RENDER_PROPGRID_LABEL_GRADIENT_BG_TIP" border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/> <!-- 这里演示的是渐变背景色功能 -->
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="3" margin="0,0,4,0"/>
                 <Control border_round="8,8" bkcolor="blue" bkcolor2="red" bkcolor2_direction="4" />

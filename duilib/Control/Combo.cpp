@@ -87,7 +87,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
         SetWindowForeground();
         KeepParentActive();
         pOwner->GetTreeView()->SetFocus();
-        pOwner->SetState(kControlStateHot);
+        pOwner->SetState(kControlStateHovered);
     }
     else {
         ShowWindow(ui::kSW_SHOW_NA);
@@ -308,7 +308,7 @@ Combo::Combo(Window* pWindow) :
     m_pButtonControl(nullptr),
     m_comboType(kCombo_DropDown),
     m_bDropListShown(false),
-    m_nShadowType(Shadow::ShadowType::kShadowMenu)
+    m_nShadowType(ShadowType::kShadowMenu)
 {
     SetDropBoxSize({0, 150}, true);
     m_treeView.SetSelectNextWhenActiveRemoved(false);
@@ -335,8 +335,9 @@ Combo::~Combo()
 
 DString Combo::GetType() const { return DUI_CTR_COMBO; }
 
-void Combo::SetAttribute(const DString& strName, const DString& strValue)
+void Combo::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("combo_type")) {
         if (strValue == _T("drop_list")) {
             SetComboType(kCombo_DropList);
@@ -347,7 +348,7 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("shadow_type")) {
         //设置下拉窗口的阴影类型
-        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        ShadowType nShadowType = ShadowType::kShadowDefault;
         if (Shadow::GetShadowType(strValue, nShadowType)) {
             SetComboWndShadowType(nShadowType);
         }
@@ -360,7 +361,7 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
         //下拉列表是否向上弹出
-        SetPopupTop(strValue == _T("true"));
+        SetPopupTop(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("combo_tree_view_class")) {
         SetComboTreeClass(strValue);
@@ -382,7 +383,7 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
     }
 }
 
-void Combo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+void Combo::SetComboWndShadowType(ShadowType nShadowType)
 {
     m_nShadowType = nShadowType;
     if (m_pWindow != nullptr) {
@@ -390,7 +391,7 @@ void Combo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
     }
 }
 
-Shadow::ShadowType Combo::GetComboWndShadowType() const
+ShadowType Combo::GetComboWndShadowType() const
 {
     return m_nShadowType;
 }
@@ -478,24 +479,6 @@ void Combo::SetButtonControlClass(const DString& classValue)
     }
 }
 
-void Combo::ParseAttributeList(const DString& strList,
-                               std::vector<std::pair<DString, DString>>& attributeList) const
-{
-    if (strList.empty()) {
-        return;
-    }
-    DString strValue = strList;
-    //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
-    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
-    }
-    else if (strValue.find(_T("\'")) != DString::npos) {
-        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
-    }
-}
-
 void Combo::SetAttributeList(Control* pControl, const DString& classValue)
 {
     ASSERT(pControl != nullptr);
@@ -503,7 +486,7 @@ void Combo::SetAttributeList(Control* pControl, const DString& classValue)
         return;
     }
     std::vector<std::pair<DString, DString>> attributeList;
-    ParseAttributeList(classValue, attributeList);
+    AttributeUtil::ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
         for (const auto& attribute : attributeList) {
@@ -536,21 +519,21 @@ DString Combo::GetBorderColor(ControlStateType stateType) const
     DString borderColor;
     if (m_pIconControl != nullptr) {
         if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
-            borderColor = BaseClass::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }
     }
     if (borderColor.empty() && (m_pEditControl != nullptr)) {
         if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
-            borderColor = BaseClass::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }
     }
     if (borderColor.empty() && (m_pButtonControl != nullptr)) {
         if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
-            borderColor = BaseClass::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHovered);
         }
     }
     if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        borderColor = BaseClass::GetBorderColor(kControlStateHot);
+        borderColor = BaseClass::GetBorderColor(kControlStateHovered);
     }
     if (borderColor.empty()) {
         borderColor = BaseClass::GetBorderColor(stateType);
@@ -591,7 +574,8 @@ void Combo::OnInit()
         m_pButtonControl->AttachClick(UiBind(&Combo::OnButtonClicked, this, std::placeholders::_1));
     }
     if (m_pEditControl != nullptr) {
-        m_pEditControl->SetWantReturn(true);
+        m_pEditControl->SetWantReturn(false);
+        m_pEditControl->SetWantCtrlReturn(false);
         m_pEditControl->AttachButtonDown(UiBind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
         m_pEditControl->AttachButtonUp(UiBind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventKeyDown, UiBind(&Combo::OnEditKeyDown, this, std::placeholders::_1), 0);
@@ -686,7 +670,7 @@ size_t Combo::GetCurSel() const
     return m_treeView.GetCurSel();
 }
 
-bool Combo::SetCurSel(size_t iIndex)
+bool Combo::SetCurSel(size_t iIndex, bool bTriggerEvent)
 {
     size_t iOldSel = m_iCurSel;
     bool bRet = m_treeView.SelectItem(iIndex, false, false);
@@ -694,7 +678,12 @@ bool Combo::SetCurSel(size_t iIndex)
     OnSelectedItemChanged();
     if (m_iCurSel != iOldSel) {
         Invalidate();
-    }
+
+        //触发选择变化事件
+        if (bTriggerEvent) {
+            SendEvent(kEventSelect, m_iCurSel, iOldSel);
+        }        
+    }  
     return bRet;
 }
 
@@ -706,6 +695,16 @@ size_t Combo::GetItemData(size_t iIndex) const
         return pControl->GetUserDataID();
     }
     return 0;
+}
+
+bool Combo::HasItemData(size_t iIndex) const
+{
+    Control* pControl = m_treeView.GetItemAt(iIndex);
+    if (pControl != nullptr) {
+        ASSERT(dynamic_cast<TreeNode*>(pControl) != nullptr);
+        return true;
+    }
+    return false;
 }
 
 bool Combo::SetItemData(size_t iIndex, size_t itemData)
@@ -853,6 +852,7 @@ bool Combo::DeleteItem(size_t iIndex)
 
 void Combo::DeleteAllItems()
 {
+    m_iCurSel = Box::InvalidIndex;
     m_treeView.GetRootNode()->RemoveAllChildNodes();
     OnSelectedItemChanged();
 }
@@ -1114,8 +1114,9 @@ void Combo::OnSelectedItemChanged()
     }
 }
 
-void Combo::OnLanguageChanged()
+void Combo::OnLanguageChanged(bool bRedraw)
 {
+    BaseClass::OnLanguageChanged(bRedraw);
     //语言发生变化
     ComboType comboType = GetComboType();
     if (comboType == ComboType::kCombo_DropList) {

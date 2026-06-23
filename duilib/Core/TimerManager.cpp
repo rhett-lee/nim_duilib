@@ -82,10 +82,15 @@ void TimerManager::Clear()
         m_aTimers.pop();
     }
     m_removedTimerIds.clear();
-    m_bRunning = false;
+    m_bRunning.store(false, std::memory_order_release);
+    //清空残留状态：避免后续重新启动 worker 时，残留的"有 Poll 未完成"标志
+    //导致新 worker 错误地进入"等待 Poll 完成"分支。
+    m_bHasPenddingPoll.store(false, std::memory_order_release);
     if (m_pWorkerThread != nullptr) {
-        m_cv.notify_one();
+        //与 Poll() 保持一致：先释放锁，再锁外 notify，最后 join
+        //（join 必须在锁外执行，否则 worker 若在持锁等待会与本调用形成死锁）
         guard.unlock();
+        m_cv.notify_one();
         m_pWorkerThread->join();
         m_pWorkerThread = nullptr;
     }
@@ -101,10 +106,7 @@ size_t TimerManager::AddTimer(const std::weak_ptr<WeakFlag>& weakFlag, const Tim
     if (iRepeatTime < 0) {
         iRepeatTime = -1;
     }
-    size_t nTimerId = m_nNextTimerId++;
     TimerInfo pTimer;
-    pTimer.m_nTimerId = nTimerId;
-
     pTimer.timerCallback = callback;
     pTimer.uElapseMs = uElapseMs;
     pTimer.trigerTime = std::chrono::steady_clock::now();
@@ -113,13 +115,17 @@ size_t TimerManager::AddTimer(const std::weak_ptr<WeakFlag>& weakFlag, const Tim
     pTimer.weakFlag = weakFlag;
 
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+    //必须在持锁状态下分配 ID，否则多线程并发 AddTimer 时 m_nNextTimerId++
+    //会出现竞态（32 位平台 size_t 自增非原子），导致返回重复的 timerId。
+    size_t nTimerId = m_nNextTimerId++;
+    pTimer.m_nTimerId = nTimerId;
     m_aTimers.push(pTimer);
     if (m_pWorkerThread == nullptr) {
         //启动线程
-        m_bRunning = true;
+        m_bRunning.store(true, std::memory_order_release);
         m_pWorkerThread = std::make_unique<std::thread>(&TimerManager::WorkerThreadProc, this);
     }
-    ASSERT(m_bRunning);
+    ASSERT(m_bRunning.load(std::memory_order_acquire));
     //唤醒工作线程，检查任务状态
     m_cv.notify_one();
     return nTimerId;
@@ -129,8 +135,14 @@ void TimerManager::RemoveTimer(size_t nTimerId)
 {
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
     m_removedTimerIds.insert(nTimerId);
+    //唤醒工作线程，让它重新评估队首：
+    //如果被移除的恰好是队首，新的队首可能有更早的 trigerTime，
+    //worker 需要立刻退出 wait_until 重新计算等待时间。
+    m_cv.notify_one();
 }
 
+// IsTimerRemoved / ClearRemovedTimerId 内部不获取锁，调用方必须持有 m_taskMutex
+// （约定：与 AddTimer / RemoveTimer / Poll 共享锁；外部不要直接调用）
 bool TimerManager::IsTimerRemoved(size_t nTimerId) const
 {
     if (!m_removedTimerIds.empty()) {
@@ -200,21 +212,25 @@ void TimerManager::Poll()
         }
     }
     //唤醒工作线程，检查任务状态
+    //标准并发模式：先清标志 → 释放锁 → 锁外通知，
+    //避免 worker 被 notify 后又在锁上重新阻塞（notify_one 的 pessimization），
+    //同时也确保 worker 被唤醒时 m_bHasPenddingPoll 一定已是 false。
+    m_bHasPenddingPoll.store(false, std::memory_order_release);
+    taskGuard.unlock();
     m_cv.notify_one();
-    m_bHasPenddingPoll = false;
 }
 
 void TimerManager::WorkerThreadProc()
 {
-    while (m_bRunning) {
+    while (m_bRunning.load(std::memory_order_acquire)) {
         std::unique_lock taskGuard(m_taskMutex);
-        if (!m_bRunning) {
+        if (!m_bRunning.load(std::memory_order_acquire)) {
             break;
         }
         if (m_aTimers.empty()) {
-            //为空，等待任务
-            m_cv.wait(taskGuard);
-            if (!m_bRunning) {
+            //为空，等待任务；使用谓词避免虚假唤醒
+            m_cv.wait(taskGuard, [this] { return !m_bRunning.load(std::memory_order_acquire) || !m_aTimers.empty(); });
+            if (!m_bRunning.load(std::memory_order_acquire)) {
                 break;
             }
         }
@@ -238,13 +254,31 @@ void TimerManager::WorkerThreadProc()
 
             if (nDetaTimeMs > 0) {
                 //延迟等待超时
-                //LogUtil::OutputLine(StringUtil::Printf(_T("condition_variable: wait_for timer event(%u ms)"), nDetaTimeMs));
                 //该函数精确度10ms左右
                 //注意事项：发现gcc版本和glibc版本对wait_for都有问题（使用的时系统时间），gcc >=10 且 glibc >= 2.30 才会对程序行为没有影响。
-                m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
+                //使用谓词版本 wait_until：能精确到停止时间点，且能正确响应 m_bRunning 变化和 spurious wakeup
+                //(wait_for 是相对时间，spurious wakeup 后会重新倒计时 nDetaTimeMs，可能延迟多倍)
+                //
+                //谓词三层"早退"语义：
+                //  1) !m_bRunning        —— 收到停止信号，立刻退出
+                //  2) m_aTimers.empty()  —— 队列被清空，立刻退出
+                //  3) 队首 trigerTime 已经比本次等待的 deadline 更早 —— 说明期间
+                //     新增了更早触发的定时器或队首被换，需立刻退出重新评估
+                auto deadline = currentTime + std::chrono::milliseconds(nDetaTimeMs);
+                m_cv.wait_until(taskGuard, deadline, [this, deadline] {
+                    return !m_bRunning.load(std::memory_order_acquire)
+                        || m_aTimers.empty()
+                        || m_aTimers.top().trigerTime < deadline;
+                    });
             }
+
+            //如果已经停止运行，跳过消息投递，直接退出循环
+            if (!m_bRunning.load(std::memory_order_acquire)) {
+                break;
+            }
+
             //通知处理(发送到主线程执行, 此时不能加锁，避免出现死锁问题)
-            m_bHasPenddingPoll = true;
+            m_bHasPenddingPoll.store(true, std::memory_order_release);
             taskGuard.unlock();
 
             uint32_t nErrorCode = 0;
@@ -255,7 +289,7 @@ void TimerManager::WorkerThreadProc()
                     //在程序启动时，如果在子线程向主线程Post消息，会遇到此错误
                     for (int32_t i = 0; i < 200; ++i) {
                         ::Sleep(50);
-                        if (!m_bRunning) {
+                        if (!m_bRunning.load(std::memory_order_acquire)) {
                             break;
                         }
                         bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0, &nErrorCode);
@@ -264,27 +298,29 @@ void TimerManager::WorkerThreadProc()
                         }
                     }
                 }
-                if (m_bRunning) {
+                if (m_bRunning.load(std::memory_order_acquire)) {
                     ASSERT_UNUSED_VARIABLE(bRet);
-                }                
+                }
             }
 #else
-            if (m_bRunning) {
+            if (m_bRunning.load(std::memory_order_acquire)) {
                 ASSERT_UNUSED_VARIABLE(bRet);
             }
 #endif
             taskGuard.lock();
-            if (m_bRunning) {
+            if (m_bRunning.load(std::memory_order_acquire)) {
                 ASSERT_UNUSED_VARIABLE(bRet);
-            }            
-            //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
-
-            if (m_bRunning && m_bHasPenddingPoll) {
-                m_cv.wait(taskGuard);
             }
-        }        
+
+            if (m_bRunning.load(std::memory_order_acquire) && m_bHasPenddingPoll.load(std::memory_order_acquire)) {
+                //使用谓词等待，避免虚假唤醒
+                m_cv.wait(taskGuard, [this] {
+                    return !m_bRunning.load(std::memory_order_acquire) || !m_bHasPenddingPoll.load(std::memory_order_acquire);
+                    });
+            }
+        }
     }
-    m_bRunning = false;
+    m_bRunning.store(false, std::memory_order_release);
 }
 
 }

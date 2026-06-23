@@ -15,6 +15,8 @@
     #include "SDL_MacOS.h"
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     #include "SDL_Linux.h"
+#elif defined (DUILIB_BUILD_FOR_WIN)
+    #include "duilib/Utils/ApiWrapper_Windows.h"
 #endif
 
 /** 主动绘制
@@ -202,6 +204,10 @@ public:
 
 void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
 {
+    if (IsUseSystemCaption() || IsSystemShadowEnabled()) {
+        //使用系统标题栏或者系统阴影时，不需要执行自己实现的snap功能
+        return;
+    }
     // 检查窗口是否最大化或最小化
     if ((window == nullptr) || IsChildWindow()) {
         return;
@@ -722,7 +728,8 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bFullscreenExiting(false),
     m_bFullscreenMaximized(false),
     m_ptLastMousePos(-1, -1),
-    m_bInitWindowPosFlag(false)
+    m_bInitWindowPosFlag(false),
+    m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
 {
     ASSERT(m_pOwner != nullptr);    
 }
@@ -820,7 +827,7 @@ SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, c
     bool bOpenGL = false;
     bool bSupportTransparent = false;
 #ifndef DUILIB_BUILD_FOR_WIN
-    //Linux平台    
+    //macOS/Linux/FreeBSD平台
     bool bOpenGLES2 = false;    
     QueryRenderProperties(createAttributes.m_sdlRenderName, bOpenGL, bOpenGLES2, bSupportTransparent);
 #endif
@@ -872,6 +879,7 @@ SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, c
     pSdlWindow = SDL_CreateWindowWithProperties(props);
 #endif
 
+    ASSERT(SDL_GetWindowProperties(pSdlWindow) != props);
     SDL_DestroyProperties(props);
 
     if (pSdlWindow != nullptr) {
@@ -1038,10 +1046,13 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
         ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
 
         //在模块退出时，注销该ATOM
-        GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
-            ::UnregisterClassW(className.c_str(), hModule);
-            });
-
+        static bool bAddAtExitFunction = false;
+        if (!bAddAtExitFunction) {
+            bAddAtExitFunction = true;
+            GlobalManager::Instance().AddAtExitFunction([className, hModule]() {
+                ::UnregisterClass(className.c_str(), hModule);
+                });
+        }
         // 创建Windows子窗口（WS_CHILD样式）
         hChild = ::CreateWindowEx( 0,
                                    className.c_str(),
@@ -1062,6 +1073,7 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
 
     m_bChildWindow = true;
     m_sdlWindow = SDL_CreateWindowWithProperties(props);
+    ASSERT(SDL_GetWindowProperties(m_sdlWindow) != props);
     SDL_DestroyProperties(props);
 
     if (m_sdlWindow != nullptr) {
@@ -1073,6 +1085,12 @@ bool NativeWindow_SDL::CreateChildWnd(NativeWindow_SDL* pParentWindow, int32_t n
             m_sdlWindow = nullptr;
             return false;
         }
+        ASSERT(SDL_GetRenderer(m_sdlWindow) == m_sdlRenderer);
+#ifdef DUILIB_BUILD_FOR_WIN
+        SDL_PropertiesID childPropID = SDL_GetWindowProperties(m_sdlWindow);
+        ASSERT((HWND)SDL_GetPointerProperty(childPropID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr) == hChild);
+        UNUSED_VARIABLE(childPropID);
+#endif
 
         SDL_WindowID id = SDL_GetWindowID(m_sdlWindow);
         SetWindowFromID(id, this);
@@ -1183,13 +1201,20 @@ void NativeWindow_SDL::GetRenderNameList(const DString& externalRenderName, std:
     }
 
     //优先级最低：默认的取值，按优先级顺序排列
-#ifdef DUILIB_BUILD_FOR_WIN
-    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"，"vulkan"
+#if defined DUILIB_BUILD_FOR_WIN
+    //备注：当前平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）
     renderNames.push_back(_T("direct3d11"));
-    renderNames.push_back(_T("opengl"));
+    renderNames.push_back(_T("opengles2"));
     renderNames.push_back(_T("vulkan"));
+    renderNames.push_back(_T("opengl"));
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    //macOS平台：当前平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）
+    renderNames.push_back(_T("metal"));
+    renderNames.push_back(_T("opengles2"));
+    renderNames.push_back(_T("vulkan"));
+    renderNames.push_back(_T("opengl"));
 #else
-    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："opengles2", "vulkan"
+    //Linux平台：当前平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）
     renderNames.push_back(_T("opengles2"));
     renderNames.push_back(_T("vulkan"));
     renderNames.push_back(_T("opengl"));
@@ -1286,6 +1311,9 @@ bool NativeWindow_SDL::IsRenderSupportTransparent(const DString& renderName) con
     else if (renderName == _T("vulkan")) {
         bSupportTransparent = true;
     }
+    else if (renderName == _T("opengles2")) {
+        bSupportTransparent = true;
+    }
 #else
     if (renderName == _T("opengles2")) {
         bSupportTransparent = true;
@@ -1294,6 +1322,9 @@ bool NativeWindow_SDL::IsRenderSupportTransparent(const DString& renderName) con
         bSupportTransparent = true;
     }
     else if (renderName == _T("vulkan")) {
+        bSupportTransparent = true;
+    }
+    else if (renderName == _T("metal")) {
         bSupportTransparent = true;
     }
 #endif
@@ -1328,33 +1359,20 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     }
 
     //初始化层窗口属性
-    m_bIsLayeredWindow = false;
     if (createAttributes.m_bIsLayeredWindowDefined) {
         if (createAttributes.m_bIsLayeredWindow) {
             m_bIsLayeredWindow = true;
-            m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
-        }
-        else {
-            m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
         }
     }
     else if (m_createParam.m_dwExStyle & kWS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
 
-    //如果使用系统标题栏，关闭层窗口
-    if (IsUseSystemCaption()) {
-        m_bIsLayeredWindow = false;
-        m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
-    }
-
     //如果设置了不透明度，则设置为层窗口
     if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
-        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
         m_bIsLayeredWindow = true;
     }
     if (createAttributes.m_bLayeredWindowAlphaDefined && (createAttributes.m_nLayeredWindowAlpha != 255)) {
-        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
         m_bIsLayeredWindow = true;
     }
 
@@ -1370,6 +1388,11 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     //Linux平台，仅部分Render支持透明窗口; Windows平台支持透明窗口
     if (!bSupportTransparent) {
         m_bIsLayeredWindow = false;
+    }
+    if (m_bIsLayeredWindow) {
+        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
+    }
+    else {
         m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
     }
 }
@@ -1438,7 +1461,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     //支持Hight DPI，参见SDL文档：docs/README-highdpi.md
     windowFlags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-    if (!IsUseSystemCaption() && IsLayeredWindow()) {
+    if (IsLayeredWindow()) {
         //设置透明属性，这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
         windowFlags |= SDL_WINDOW_TRANSPARENT;
     }
@@ -1888,13 +1911,14 @@ bool NativeWindow_SDL::IsLayeredWindow() const
     return m_bIsLayeredWindow;
 }
 
-void NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
+bool NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
+        return false;
     }
     m_nLayeredWindowAlpha = static_cast<uint8_t>(nAlpha);
+    return true;
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowAlpha() const
@@ -1902,15 +1926,15 @@ uint8_t NativeWindow_SDL::GetLayeredWindowAlpha() const
     return m_nLayeredWindowAlpha;
 }
 
-void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
+bool NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
+        return false;
     }
     ASSERT(IsWindow());
     if (!IsWindow()) {
-        return;
+        return false;
     }
     m_nLayeredWindowOpacity = static_cast<uint8_t>(nAlpha);
     float opacity = 1.0f;//完全不透明
@@ -1920,6 +1944,7 @@ void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
     }
     bool nRet = SDL_SetWindowOpacity(m_sdlWindow, opacity);
     ASSERT_UNUSED_VARIABLE(nRet);
+    return nRet;
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowOpacity() const
@@ -1935,6 +1960,9 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
         return;
     }
     m_bUseSystemCaption = bUseSystemCaption;
+    if (!IsWindow()) {
+        return;
+    }
 
 #ifndef DUILIB_BUILD_FOR_WIN
     //目前Linux系统只有OpenGLES2这个Render支持窗口半透明，所以如果不支持时，强制使用系统标题栏
@@ -1949,14 +1977,8 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
-        if (IsWindow()) {
-            bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
-            ASSERT_UNUSED_VARIABLE(nRet);
-        }
-        //关闭层窗口
-        if (IsLayeredWindow()) {
-            SetLayeredWindow(false, false);
-        }
+        bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
+        ASSERT_UNUSED_VARIABLE(nRet);
 
         //设置Hit Test函数为默认
         SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
@@ -2312,15 +2334,33 @@ bool NativeWindow_SDL::EnterFullscreen()
         SDL_RestoreWindow(m_sdlWindow);
     }
 
+    m_lastWindowFlags = ::SDL_GetWindowFlags(m_sdlWindow);
+    if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
+        //需要去掉可调整窗口大小的属性，否则在部分平台下无法正常设置全屏
+        SDL_SetWindowResizable(m_sdlWindow, false);
+    }
+#if defined (DUILIB_BUILD_FOR_WIN)
+    //全屏时，必须禁用系统阴影，否则内容显示不全
+    if (IsSystemShadowEnabled()) {
+        ModifyDwmStyle(GetHWND(), NativeWindowShadowType::kShadowSystemDisabled);
+    }
+#endif
+
+#if defined (__APPLE__)
+    //设置特定显示模式，使 SDL 使用独占全屏（绕过 Spaces），避免全屏拉伸动画
+    //同时 allow_spaces 保持默认 1，日常窗口正常有系统阴影
+    SDL_DisplayID displayID = SDL_GetDisplayForWindow(m_sdlWindow);
+    if (displayID != 0) {
+        const SDL_DisplayMode* desktopMode = SDL_GetDesktopDisplayMode(displayID);
+        if (desktopMode) {
+            SDL_SetWindowFullscreenMode(m_sdlWindow, desktopMode);
+        }
+    }
+#endif
+
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
     ASSERT_UNUSED_VARIABLE(nRet);
 
-    m_lastWindowFlags = ::SDL_GetWindowFlags(m_sdlWindow);
-    if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
-        //需要去掉可调整窗口大小的属性
-        SDL_SetWindowResizable(m_sdlWindow, false);
-    }
-    
     m_pOwner->OnNativeWindowEnterFullscreen();
     return true;
 }
@@ -2342,6 +2382,15 @@ bool NativeWindow_SDL::ExitFullscreen()
     bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
     ASSERT_UNUSED_VARIABLE(nRet);
 
+#if defined (__APPLE__)
+    //清除独占全屏模式，恢复默认的桌面全屏行为（Spaces）
+    SDL_SetWindowFullscreenMode(m_sdlWindow, nullptr);
+    //退出全屏后需要恢复窗口阴影（SDL 在独占全屏退出时可能未正确恢复）
+    ModifyNsWindowShadowType(GetNSWindow(), m_systemShadowType);
+    //延迟再设置一次，确保 SDL 异步重置 style mask 后依然能恢复系统圆角
+    RestoreWindowShadowAfterFullscreen(GetNSWindow(), m_systemShadowType);
+#endif
+
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
         //需要恢复可调整窗口大小的属性
         SDL_SetWindowResizable(m_sdlWindow, true);
@@ -2355,6 +2404,12 @@ bool NativeWindow_SDL::ExitFullscreen()
         //如果窗口最大化，先还原，再进入全屏（因部分平台在最大化进入全屏后，退出全面时逻辑异常），退出全屏时再重新最大化
         SDL_MaximizeWindow(m_sdlWindow);
     }
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    if (IsSystemShadowEnabled()) {
+        ModifyDwmStyle(GetHWND(), m_systemShadowType);
+    }
+#endif
     m_pOwner->OnNativeWindowExitFullscreen();
     return true;
 }
@@ -2655,7 +2710,7 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 
 void NativeWindow_SDL::PaintWindow(bool bPaintAll)
 {
-    PerformanceStat statPerformance(_T("PaintWindow, NativeWindow_SDL::PaintWindow(Total)"));
+    PerformanceUtil statPerformance(_T("PaintWindow 0, NativeWindow_SDL::PaintWindow(Total)"));
     if (bPaintAll) {
         //绘制全部
         m_rcUpdateRect.Clear();
@@ -3178,8 +3233,7 @@ float NativeWindow_SDL::GetWindowPixelDensity() const
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
     //不支持该功能
-    ASSERT_UNUSED_VARIABLE(bIsLayeredWindow == bIsLayeredWindow);
-    //m_bIsLayeredWindow = bIsLayeredWindow;
+    m_bIsLayeredWindow = bIsLayeredWindow;
     //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改，所以此属性不支持修改，在创建窗口的时候已经设置正确的属性
     return true;
 }
@@ -3268,6 +3322,59 @@ void NativeWindow_SDL::OnDropFiles(const DString& source, const std::vector<DStr
 void NativeWindow_SDL::OnDropLeave()
 {
     m_pOwner->OnNativeDropLeaveMsg();
+}
+
+bool NativeWindow_SDL::IsSystemShadowSupported() const
+{
+#if defined DUILIB_BUILD_FOR_WIN
+    return IsDwmCompositionEnabled();
+#elif defined DUILIB_BUILD_FOR_MACOS
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool NativeWindow_SDL::IsSystemShadowEnabled() const
+{
+    return IsSystemShadowSupported() && (GetSystemShadowType() != NativeWindowShadowType::kShadowSystemDisabled);
+}
+
+bool NativeWindow_SDL::SetSystemShadowType(NativeWindowShadowType nativeShadowType)
+{
+#if defined DUILIB_BUILD_FOR_WIN
+    if (ModifyDwmStyle(GetHWND(), nativeShadowType)) {
+        m_systemShadowType = nativeShadowType;
+        //启用系统阴影时，必须清除RGN，否则显示不正确(由调用方负责处理)
+        return true;
+    }
+#elif defined DUILIB_BUILD_FOR_MACOS
+    if (ModifyNsWindowShadowType(GetNSWindow(), nativeShadowType)) {
+        m_systemShadowType = nativeShadowType;
+        //启用系统阴影成功
+        return true;
+    }
+#endif
+    return false;
+}
+
+NativeWindowShadowType NativeWindow_SDL::GetSystemShadowType() const
+{
+    return m_systemShadowType;
+}
+
+int32_t NativeWindow_SDL::GetSystemShadowFrameBorderSize() const
+{
+    if (IsChildWindow() || !IsSystemShadowEnabled() || IsUseSystemCaption()) {
+        return 0;
+    }
+#if defined DUILIB_BUILD_FOR_WIN
+    UINT outThickness = 0;
+    GetDwmVisibleFrameBorderThickness(GetHWND(), outThickness);
+    return (int32_t)outThickness;
+#else
+    return 0;
+#endif    
 }
 
 bool NativeWindow_SDL::KillWindowFocus()
@@ -3362,92 +3469,3 @@ bool NativeWindow_SDL::IsEnableSysMenu() const
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_SDL
-
-//
-//LRESULT NativeWindow_SDL::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-//{
-//    LRESULT lResult = 0;
-//    bHandled = false;
-//    switch (uMsg)
-//    {
-//
-//    case WM_IME_STARTCOMPOSITION://不支持
-//    {
-//        lResult = m_pOwner->OnNativeImeStartCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    case WM_IME_ENDCOMPOSITION://不支持
-//    {
-//        lResult = m_pOwner->OnNativeImeEndCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    case WM_SETCURSOR://不支持（需要处理）
-//    {
-//        if (LOWORD(lParam) == HTCLIENT) {
-//            //只处理设置客户区的光标
-//            lResult = m_pOwner->OnNativeSetCursorMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-//        }
-//        break;
-//    }
-//    case WM_CONTEXTMENU://不支持
-//    {
-//        UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-//        if ((pt.x != -1) && (pt.y != -1)) {
-//            ScreenToClient(pt);
-//        }
-//        lResult = m_pOwner->OnNativeContextMenuMsg(pt, NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    case WM_CHAR:
-//    {
-//        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
-//        uint32_t modifierKey = 0;
-//        GetModifiers(uMsg, wParam, lParam, modifierKey);
-//        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    case WM_HOTKEY://不支持
-//    {
-//        int32_t hotkeyId = (int32_t)wParam;
-//        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
-//        uint32_t modifierKey = 0;
-//        GetModifiers(uMsg, wParam, lParam, modifierKey);
-//        lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    case WM_MOUSEHOVER://不支持
-//    {
-//        UiPoint pt;
-//        pt.x = GET_X_LPARAM(lParam);
-//        pt.y = GET_Y_LPARAM(lParam);
-//        uint32_t modifierKey = 0;
-//        GetModifiers(uMsg, wParam, lParam, modifierKey);
-//        lResult = m_pOwner->OnNativeMouseHoverMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//
-//    case WM_CAPTURECHANGED://不支持
-//    {
-//        lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-//        break;
-//    }
-//    default:
-//        break;
-//    }//end of switch
-//    return lResult;
-//}
-
-
-//SDL源码：
-//if (style & WS_POPUP) {
-//    window->flags |= SDL_WINDOW_BORDERLESS;
-//}
-//else {
-//    window->flags &= ~SDL_WINDOW_BORDERLESS;
-//}
-//if (style & WS_THICKFRAME) {
-//    window->flags |= SDL_WINDOW_RESIZABLE;
-//}
-//else {
-//    window->flags &= ~SDL_WINDOW_RESIZABLE;
-//}

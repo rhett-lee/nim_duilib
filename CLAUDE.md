@@ -22,7 +22,7 @@ nim_duilib/
 │   ├── Utils/           # 工具类（WindowImplBase, FilePath...）
 │   ├── CEFControl/      # CEF浏览器集成
 │   └── WebView2/        # WebView2控件
-├── examples/            # 21个示例程序
+├── examples/            # 示例程序
 ├── docs/                # 完整文档
 ├── bin/resources/       # 主题资源（XML布局、图片、字体）
 ├── build/               # 构建脚本和解决方案

@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+namespace ui
+{
+
 /** 磁盘分区信息辅助类（字符串编码类型：UTF-16或者UTF-8）
 */
 class DUILIB_API DiskUtils
@@ -78,6 +81,8 @@ public:
     */
     static uint64_t GetFreeDiskSpace(const DString& fullDirectory);
 };
+
+}//namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN
 

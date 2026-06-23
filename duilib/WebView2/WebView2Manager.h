@@ -58,7 +58,7 @@ public:
     /** 语言
     */
     void SetLanguage(const DString& language);
-    const DString& GetLanguage() const;
+    DString GetLanguage() const;
 
     /** UserAgent
     */

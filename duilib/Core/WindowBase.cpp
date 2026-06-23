@@ -11,9 +11,11 @@ WindowBase::WindowBase():
     m_pParentWindow(nullptr), 
     m_pNativeWindow(nullptr),
     m_bWindowFirstShown(false),
-    m_bWindowSized(false),
+    m_bWindowRgnUpdated(false),
+    m_bWindowRgnSetFlag(false),
     m_windowSizeState(WindowSizeState::kUnknown),
-    m_bSendDragEnterMsg(false)
+    m_bSendDragEnterMsg(false),
+    m_bLayeredWindowSetFlag(false)
 {
     m_pNativeWindow = new NativeWindow(this);
 }
@@ -111,10 +113,18 @@ bool WindowBase::IsUseSystemCaption() const
     return m_pNativeWindow->IsUseSystemCaption();
 }
 
-void WindowBase::SetLayeredWindowAlpha(int32_t nAlpha)
+bool WindowBase::IsUseSystemShadow() const
 {
-    m_pNativeWindow->SetLayeredWindowAlpha(nAlpha);
-    OnWindowAlphaChanged();
+    return m_pNativeWindow->IsSystemShadowEnabled();
+}
+
+bool WindowBase::SetLayeredWindowAlpha(int32_t nAlpha)
+{
+    if (m_pNativeWindow->SetLayeredWindowAlpha(nAlpha)) {
+        OnWindowAlphaChanged();
+        return true;
+    }
+    return false;
 }
 
 uint8_t WindowBase::GetLayeredWindowAlpha() const
@@ -122,10 +132,13 @@ uint8_t WindowBase::GetLayeredWindowAlpha() const
     return m_pNativeWindow->GetLayeredWindowAlpha();
 }
 
-void WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
+bool WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
 {
-    m_pNativeWindow->SetLayeredWindowOpacity(nAlpha);
-    OnWindowAlphaChanged();
+    if (m_pNativeWindow->SetLayeredWindowOpacity(nAlpha)) {
+        OnWindowAlphaChanged();
+        return true;
+    }
+    return false;
 }
 
 uint8_t WindowBase::GetLayeredWindowOpacity() const
@@ -133,17 +146,38 @@ uint8_t WindowBase::GetLayeredWindowOpacity() const
     return m_pNativeWindow->GetLayeredWindowOpacity();
 }
 
-
 bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
+    m_bLayeredWindowSetFlag = true;
     bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);
-    OnLayeredWindowChanged();
+    if (bRet) {
+        OnLayeredWindowChanged();
+    }
     return bRet;
 }
 
 bool WindowBase::IsLayeredWindow() const
 {
     return m_pNativeWindow->IsLayeredWindow();
+}
+
+bool WindowBase::OnRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
+{
+    if (bIsLayeredWindow == IsLayeredWindow()) {
+        return true;
+    }
+    if (!m_bLayeredWindowSetFlag) {
+        //如果外部未设置分层窗口属性，则内部自动设置
+        bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);
+        if (bRet) {
+            OnLayeredWindowChanged();
+        }
+        return bRet;
+    }
+    else {
+        //如果外部设置了分层窗口属性，则内部不自动设置，以外部设置的为准
+        return false;
+    }
 }
 
 void WindowBase::CloseWnd(int32_t nRet)
@@ -526,7 +560,7 @@ void WindowBase::SetTextId(const DString& strTextId)
 {
     ASSERT(IsWindow());
     m_textId = strTextId;
-    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId));  
+    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringByID(strTextId));  
 }
 
 const DString& WindowBase::GetTextId() const
@@ -680,7 +714,7 @@ void WindowBase::OnDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewSc
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldScaleFactor);
 }
 
-bool WindowBase::NeedSetWindowRgnOnWindowResized()
+bool WindowBase::NeedSetWindowRgn()
 {
     if (IsChildWindow()) {
         //子窗口，不自动设置RGN
@@ -689,18 +723,65 @@ bool WindowBase::NeedSetWindowRgnOnWindowResized()
     return true;
 }
 
+
+void WindowBase::UpdateWindowRGN(bool bRedraw)
+{
+    m_bWindowRgnUpdated = true;
+    //此函数的主要功能：设置窗口的RGN，从而实现窗口的圆角或者直角功能
+    if (!NeedSetWindowRgn()) {
+        //不支持，立即返回
+        if (m_bWindowRgnSetFlag) {
+            ClearWindowRgn(bRedraw);
+        }
+        return;
+    }
+    if (IsUseSystemCaption() || IsUseSystemShadow() || IsWindowMinimized() || IsWindowMaximized()) {
+        //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
+        ClearWindowRgn(bRedraw);
+    }
+    else {
+        //其他情况下
+        UiSize szRoundCorner = GetWindowRgnRoundCorner();
+        if (szRoundCorner.cx > 0 && szRoundCorner.cy > 0) {
+            //该窗口的配置为圆角窗口
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, bRedraw);
+        }
+        else {
+            //配置为直角窗口
+            //不需要设置RGN的时候，使用与窗口大小相同的矩形RGN，而不是使用默认值（因为默认情况下，窗口的左上角和右上角是圆角，左下角和右下角是直角）
+            UiRect rcWnd;
+            GetWindowRect(rcWnd);
+            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+            rcWnd.right++;
+            rcWnd.bottom++;
+            SetWindowRectRgn(rcWnd, bRedraw);
+        }
+    }
+}
+
+UiSize WindowBase::GetWindowRgnRoundCorner() const
+{
+    return GetRoundCorner();
+}
+
 bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, float rx, float ry, bool bRedraw)
 {
+    m_bWindowRgnSetFlag = true;
     return m_pNativeWindow->SetWindowRoundRectRgn(rcWnd, rx, ry, bRedraw);
 }
 
 bool WindowBase::SetWindowRectRgn(const UiRect& rcWnd, bool bRedraw)
 {
+    m_bWindowRgnSetFlag = true;
     return m_pNativeWindow->SetWindowRectRgn(rcWnd, bRedraw);
 }
 
 void WindowBase::ClearWindowRgn(bool bRedraw)
 {
+    m_bWindowRgnSetFlag = false;
     m_pNativeWindow->ClearWindowRgn(bRedraw);
 }
 
@@ -900,41 +981,6 @@ DString WindowBase::GetWindowRenderName() const
 }
 #endif
 
-void WindowBase::OnWindowSized(bool bRedraw)
-{
-    m_bWindowSized = true;
-    //此函数的主要功能：设置窗口的RGN，从而实现窗口的圆角或者直角功能
-    if (!NeedSetWindowRgnOnWindowResized()) {
-        //不支持，立即返回
-        return;
-    }
-    if (IsUseSystemCaption() || IsWindowMinimized() || IsWindowMaximized()) {
-        //使用系统工具栏，窗口最小化，窗口最大化的情况下，关闭RGN设置
-        ClearWindowRgn(bRedraw);
-    }
-    else {
-        //其他情况下
-        UiSize szRoundCorner = GetRoundCorner();
-        if (szRoundCorner.cx > 0 && szRoundCorner.cy > 0) {
-            //该窗口的配置为圆角窗口
-            UiRect rcWnd;
-            GetWindowRect(rcWnd);
-            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-            SetWindowRoundRectRgn(rcWnd, (float)szRoundCorner.cx, (float)szRoundCorner.cy, bRedraw);
-        }
-        else {
-            //配置为直角窗口
-            //不需要设置RGN的时候，使用与窗口大小相同的矩形RGN，而不是使用默认值（因为默认情况下，窗口的左上角和右上角是圆角，左下角和右下角是直角）
-            UiRect rcWnd;
-            GetWindowRect(rcWnd);
-            rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-            rcWnd.right++;
-            rcWnd.bottom++;
-            SetWindowRectRgn(rcWnd, bRedraw);
-        }
-    }
-}
-
 void WindowBase::OnNativeWindowEnterFullscreen()
 {
     NotifyWindowEnterFullscreen(); //供Window子类处理业务
@@ -951,9 +997,9 @@ void WindowBase::OnNativeWindowExitFullscreen()
     SendWindowEvent(kWindowExitFullscreenMsg);
 }
 
-UiRect WindowBase::OnNativeGetSizeBox() const
+const DpiManager& WindowBase::OnNativeGetDpi() const
 {
-    return GetSizeBox();
+    return Dpi();
 }
 
 void WindowBase::OnNativeGetShadowCorner(UiPadding& rcShadow) const
@@ -961,9 +1007,14 @@ void WindowBase::OnNativeGetShadowCorner(UiPadding& rcShadow) const
     GetCurrentShadowCorner(rcShadow);
 }
 
-const DpiManager& WindowBase::OnNativeGetDpi() const
+UiRect WindowBase::OnNativeGetSizeBox() const
 {
-    return Dpi();
+    return GetSizeBox();
+}
+
+void WindowBase::OnNativeUseSystemCaptionBarChanged()
+{
+    OnUseSystemCaptionBarChanged();
 }
 
 void WindowBase::OnNativeGetCaptionRect(UiRect& captionRect) const
@@ -1003,11 +1054,6 @@ void WindowBase::OnNativePostCloseWindow()
     PostCloseWindow();
 }
 
-void WindowBase::OnNativeUseSystemCaptionBarChanged()
-{
-    OnUseSystemCaptionBarChanged();
-}
-
 bool WindowBase::OnNativePreparePaint()
 {
     return OnPreparePaint();
@@ -1021,6 +1067,11 @@ IRender* WindowBase::OnNativeGetRender() const
 Control* WindowBase::OnNativeFindControl(const UiPoint& pt) const
 {
     return OnFindControl(pt);
+}
+
+bool WindowBase::OnNativeRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
+{
+    return OnRequestSetLayeredWindow(bIsLayeredWindow, bRedraw);
 }
 
 void WindowBase::OnNativeDisplayResolutionChangedMsg(int32_t nColorDepth, int32_t nScreenWidth, int32_t nScreenHeight)
@@ -1046,6 +1097,15 @@ void WindowBase::OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fN
         displayScale.m_fNewPixelDensity = fNewPixelDensity;
         SendWindowEvent(kWindowDisplayScaleChangedMsg, (WPARAM)&displayScale);
     }
+}
+
+void WindowBase::OnNativeDwmCompositionChangedMsg(bool bDwmCompositionEnabled)
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    OnDwmCompositionChangedMsg(bDwmCompositionEnabled);
+    if (!windowFlag.expired()) {
+        SendWindowEvent(kWindowDwmCompositionChangedMsg, bDwmCompositionEnabled ? 1 : 0);
+    }    
 }
 
 void WindowBase::OnNativeProcessDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity)
@@ -1103,7 +1163,7 @@ LRESULT WindowBase::OnNativeWindowPosChangedMsg(const NativeMsg& nativeMsg, bool
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    OnWindowSized(true);
+    UpdateWindowRGN(true);
     LRESULT lResult = OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     if (windowFlag.expired()) {
         return lResult;
@@ -1185,9 +1245,9 @@ LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nat
         }
 
         //如果未触发窗口大小变化，则触发一次(设置RGN等)
-        if (!m_bWindowSized) {
-            m_bWindowSized = true;
-            OnWindowSized(false);
+        if (!m_bWindowRgnUpdated) {
+            m_bWindowRgnUpdated = true;
+            UpdateWindowRGN(false);
         }
     }
     return lResult;
@@ -1778,6 +1838,31 @@ void WindowBase::AttachWindowDropMsg(const EventCallback& callback, EventCallbac
 void WindowBase::AttachWindowDropLeaveMsg(const EventCallback& callback, EventCallbackID callbackID)
 {
     m_windowEventMap[kWindowDropLeaveMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDisplayScaleChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDisplayScaleChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDisplayResolutionChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDisplayResolutionChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowDwmCompositionChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowDwmCompositionChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowLanguageChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowLanguageChangedMsg].AddEventCallback(callback, callbackID);
+}
+
+void WindowBase::AttachWindowThemeChangedMsg(const EventCallback& callback, EventCallbackID callbackID)
+{
+    m_windowEventMap[kWindowThemeChangedMsg].AddEventCallback(callback, callbackID);
 }
 
 } // namespace ui

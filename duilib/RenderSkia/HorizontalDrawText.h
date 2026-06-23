@@ -9,6 +9,7 @@ class SkPaint;
 struct SkRect;
 class SkFont;
 struct SkPoint;
+enum class SkTextEncoding;
 
 namespace ui
 {
@@ -40,17 +41,20 @@ public:
     void DrawString(const DString& strText, const DrawStringParam& drawParam);
 
 private:
-    /** 获取UTF16字符串，并做预处理（横向绘制文本）
+    /** 获取UTF32字符串，并做预处理（横向绘制文本）
     */
-    UTF16String GetDrawStringUTF16(const DString& strText, bool bSingleLineMode) const;
+    UTF32String GetDrawStringUTF32(const DString& strText, bool bSingleLineMode) const;
 
     /** 计算每个字符的绘制所占的矩形范围
-    * @param [in] textUTF16 字符串
+    * @param [in] textUTF32 字符串
+    * @param [in] pFont 字体
     * @param [in] pSkFont 字体
     * @param [in] skPaint 绘制属性
     * @param [in] fFontHeight 字体高度
+    * @param [out] charRects 返回每个字符绘制所占的矩形范围
     */
-    bool CalculateTextCharBounds(const UTF16String& textUTF16, const SkFont* pSkFont, const SkPaint* skPaint,
+    bool CalculateTextCharBounds(const UTF32String& textUTF32, const IFont* pFont,
+                                 const SkFont* pSkFont, const SkPaint* skPaint,
                                  float fFontHeight, std::vector<THorizontalChar>& charRects) const;
 
     /** 计算横向文本（从左到右、从上到下）的绘制区域总矩形
@@ -65,6 +69,7 @@ private:
      * @param [out] pColumnRows 返回每列每行字符在charRects容器中对应的下标值
      * @param [out] pColumnWidths 返回每列的列宽
      * @param [out] pColumnHeights 返回每列的列高
+     * @return 包含所有字符的总绘制矩形（SkRect）
      */
     SkRect CalculateHorizontalTextBounds(const std::vector<THorizontalChar>& charRects, int32_t width, bool bSingleLineMode,
                                          float fSpacingMul, float fSpacingAdd, float fWordHorizontalSpacing,
@@ -75,7 +80,7 @@ private:
 
     /** 计算默认字符的宽度(用于空行的宽度计算)
     */
-    float CalculateDefaultCharWidth(const SkFont* pSkFont, const SkPaint* skPaint) const;
+    float CalculateDefaultCharWidth(const IFont* pFont, const SkFont* pSkFont, const SkPaint* skPaint) const;
 
 private:
     /** 绘制的画布

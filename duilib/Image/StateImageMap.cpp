@@ -36,10 +36,10 @@ DString StateImageMap::GetImageString(StateImageType stateImageType, ControlStat
     return imageString;
 }
 
-bool StateImageMap::HasHotImage() const
+bool StateImageMap::HasHoveredImage() const
 {
     for (auto& it : m_stateImageMap) {
-        if (it.second.HasHotImage()) {
+        if (it.second.HasHoveredImage()) {
             return true;
         }
     }

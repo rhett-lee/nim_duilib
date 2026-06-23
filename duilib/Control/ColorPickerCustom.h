@@ -2,6 +2,7 @@
 #define UI_CONTROL_COLORPICKER_CUSTOM_H_
 
 #include "duilib/Core/Box.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Control/ColorControl.h"
 #include "duilib/Control/ColorSlider.h"
 #include "duilib/Control/RichEdit.h"
@@ -143,7 +144,7 @@ private:
 
     /** 新选择的颜色控件文本框接口
     */
-    RichEdit* m_pNewColorEdit;
+    ControlPtrT<RichEdit> m_pNewColorEdit;
 
 private:
     /** RGB颜色调整控件

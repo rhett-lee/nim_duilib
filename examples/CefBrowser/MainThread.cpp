@@ -17,7 +17,7 @@ const ui::DpiInitParam& MainThread::GetDpiInitParam() const
     return m_dpiInitParam;
 }
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {   
     //设置控制主进程单例的回调函数
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MainThread::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
@@ -25,6 +25,7 @@ void MainThread::OnInit()
     //创建第一个窗口
     std::string id = BrowserManager::GetInstance()->CreateBrowserID();
     BrowserManager::GetInstance()->CreateBorwserBox(nullptr, id, _T(""));
+    return true;
 }
 
 void MainThread::OnCleanup()

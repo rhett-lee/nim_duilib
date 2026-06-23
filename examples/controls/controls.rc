@@ -37,30 +37,12 @@ IDI_CONTROLS            ICON                    "controls.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
-//
-
-IDC_CONTROLS MENU
-BEGIN
-    POPUP "文件(&F)"
-    BEGIN
-        MENUITEM "退出(&X)",                      IDM_EXIT
-    END
-    POPUP "帮助(&H)"
-    BEGIN
-        MENUITEM "关于(&A) ...",                  IDM_ABOUT
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
 //
 
 IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "关于 controls"
+CAPTION "About controls"
 FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
 END
@@ -114,6 +96,14 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// THEME
+//
+
+IDR_THEME               THEME                   "..\\..\\bin\\resources.zip"
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -96,22 +96,30 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<UiImageData>& imageData,
         pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
         ASSERT(pFrameData->m_pBitmap != nullptr);
         if (pFrameData->m_pBitmap == nullptr) {
+            m_impl->m_frames.clear();
             return false;
         }
         ASSERT((icoData.m_imageWidth != 0) && (icoData.m_imageHeight != 0));
         if ((icoData.m_imageWidth == 0) || (icoData.m_imageHeight == 0)) {
+            m_impl->m_frames.clear();
             return false;
         }
 
         //图片的宽度和高度，不超过约定值(超过就缩小图片)
+        bool bInitOk = false;
         if ((icoData.m_imageWidth > nImageSize) || (icoData.m_imageHeight > nImageSize)) {
             float fScaleX = static_cast<float>(nImageSize) / icoData.m_imageWidth;
             float fScaleY = static_cast<float>(nImageSize) / icoData.m_imageHeight;
             float fNewImageSizeScale = std::min(fScaleX, fScaleY);
-            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fNewImageSizeScale);
+            bInitOk = pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fNewImageSizeScale);
         }
         else {
-            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fImageSizeScale);
+            bInitOk = pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fImageSizeScale);
+        }
+        if (!bInitOk) {
+            // Init 失败，清空已处理的帧并返回
+            m_impl->m_frames.clear();
+            return false;
         }
         ASSERT(pFrameData->m_pBitmap->GetWidth() <= (uint32_t)m_impl->m_nWidth);
         ASSERT(pFrameData->m_pBitmap->GetHeight() <= (uint32_t)m_impl->m_nHeight);

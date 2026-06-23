@@ -45,7 +45,7 @@ UiSize64 HLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
     int32_t cxFixedSelfTotal = 0;          // 固定控件自身总宽度（不含边距、不含间距）
     int32_t cxFixedTotal = 0;              // 固定控件总宽度（含边距，不含间距）
     int32_t totalAllControlsCount = 0;     // 参与布局的总控件数（固定+拉伸，非浮动、可见）
-    int32_t totalAllMargin = 0;            // 所有参与布局控件的边距总和（左+右）
+    int64_t totalAllMargin = 0;            // 所有参与布局控件的边距总和（左+右）—— 使用 int64_t 避免累加溢出
 
     // 计算每个控件的基础尺寸，分类存储 + 统计关键参数
     for (auto pControl : items) {
@@ -99,8 +99,9 @@ UiSize64 HLayout::ArrangeChildren(const std::vector<Control*>& items, UiRect rc,
 
         // 一、计算总可分配空间（严格按公式）
         // 总可分配空间 = 总宽度 - 固定控件自身总宽度 - 所有控件边距总和 - 总间距
-        int32_t totalUsableSpace = rc.Width() - cxFixedSelfTotal - totalAllMargin - totalSpacing;
-        totalUsableSpace = std::max(totalUsableSpace, 0);
+        // 使用 int64_t 中间计算避免溢出，最后 clamp 到 int32_t
+        int64_t totalUsableSpace64 = (int64_t)rc.Width() - (int64_t)cxFixedSelfTotal - totalAllMargin - (int64_t)totalSpacing;
+        int32_t totalUsableSpace = (int32_t)std::max<int64_t>(totalUsableSpace64, 0);
 
         // 收集拉伸控件的最小/最大宽度需求
         struct StretchInfo {

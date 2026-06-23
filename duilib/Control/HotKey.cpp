@@ -2,6 +2,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
@@ -13,6 +14,7 @@ namespace ui
 
 class HotKeyRichEdit : public RichEdit
 {
+    typedef RichEdit BaseClass;
 public:
     explicit HotKeyRichEdit(Window* pWindow):
         RichEdit(pWindow),
@@ -53,7 +55,8 @@ public:
 
         if ((msg.wParam == kVK_DELETE) || (msg.wParam == kVK_BACK)) {
             //清空文本
-            SetTextNoEvent(m_defaultText.c_str());
+            m_lastDefaultText = GetDefaultText();
+            SetTextNoEvent(m_lastDefaultText.c_str());
         }
         else if (msg.wParam == kVK_MENU) {
             SetHotKey(0, wModifiers);
@@ -91,9 +94,22 @@ public:
         }
         if ((wVirtualKeyCode == 0) || (wModifiers == 0)) {
             //无有效的热键，清空文本
-            SetTextNoEvent(m_defaultText.c_str());
+            m_lastDefaultText = GetDefaultText();
+            SetTextNoEvent(m_lastDefaultText.c_str());
         }
         return true;
+    }
+
+    /** 语言发生变化，刷新界面文字显示相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnLanguageChanged(bool bRedraw) override
+    {
+        BaseClass::OnLanguageChanged(bRedraw);
+        if (GetText() == m_lastDefaultText) {
+            m_lastDefaultText = GetDefaultText();
+            SetTextNoEvent(m_lastDefaultText.c_str());
+        }
     }
 
     /** 设置热键
@@ -173,6 +189,33 @@ public:
         m_defaultText = defaultText;
     }
 
+    /** 设置默认的文本Id
+    */
+    void SetDefaultTextId(const DString& defaultTextId)
+    {
+        m_defaultTextId = defaultTextId;
+    }
+
+    /** 获取默认的文本内容
+    */
+    DString GetDefaultText() const
+    {
+        if (!m_defaultText.empty()) {
+            return m_defaultText.c_str();
+        }
+        else if (!m_defaultTextId.empty()) {
+            return GlobalManager::Instance().Lang().GetStringByID(m_defaultTextId.c_str());
+        }
+        return DString();
+    }
+
+    /** 设置默认的文本（原值）
+    */
+    void SetLastDefaultText(const DString& defaultText)
+    {
+        m_lastDefaultText = defaultText;
+    }
+
 private:
 
     /** 虚拟键盘码，比如：VK_DOWN等
@@ -187,6 +230,14 @@ private:
     /** 默认的文本
     */
     UiString m_defaultText;
+
+    /** 默认的文本
+    */
+    UiString m_defaultTextId;
+
+    /** 已经设置的文本内容
+    */
+    UiString m_lastDefaultText;
 };
 
 HotKey::HotKey(Window* pWindow):
@@ -212,12 +263,21 @@ HotKey::~HotKey()
 
 DString HotKey::GetType() const { return DUI_CTR_HOTKEY; }
 
-void HotKey::SetAttribute(const DString& strName, const DString& strValue)
+void HotKey::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("default_text")) {
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetDefaultText(strValue);
             m_pRichEdit->SetText(strValue);
+            m_pRichEdit->SetLastDefaultText(m_pRichEdit->GetDefaultText());
+        }
+    }
+    else if (strName == _T("default_text_id")) {
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetDefaultTextId(strValue);
+            m_pRichEdit->SetTextId(strValue);
+            m_pRichEdit->SetLastDefaultText(m_pRichEdit->GetDefaultText());
         }
     }
     else {

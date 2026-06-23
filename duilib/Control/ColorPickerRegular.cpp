@@ -1,4 +1,5 @@
 #include "ColorPickerRegular.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
@@ -79,8 +80,8 @@ private:
     */
     struct RegularColor
     {
-        //颜色的显示名称
-        UiString colorName;
+        //颜色的显示名称的语言
+        UiString colorNameId;
         //颜色值
         UiColor colorValue;
         //是否选择
@@ -203,8 +204,9 @@ void ColorPickerRegular::SetColumns(int32_t nColumns)
     }
 }
 
-void ColorPickerRegular::SetAttribute(const DString& strName, const DString& strValue)
+void ColorPickerRegular::SetAttribute(const DString& strName, const DString& strValue2)
 {
+    DString strValue = GetExpandVarStrings(strValue2);
     if (strName == _T("color_type")) {
         if (strValue == _T("basic")) {
             //使用基本颜色
@@ -240,15 +242,7 @@ void ColorPickerRegularProvider::SetColors(const std::vector<std::pair<DString, 
     regularColor.m_bSelected = false;
     for (const auto& color : uiColors) {
         regularColor.colorValue = UiColor(color.second);
-        DString colorString = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"),
-            regularColor.colorValue.GetA(),
-            regularColor.colorValue.GetR(),
-            regularColor.colorValue.GetG(),
-            regularColor.colorValue.GetB());
-        DString colorName = color.first;
-        StringUtil::ReplaceAll(_T(","), _T(", "), colorName);
-        colorName = colorString + _T(", ") + colorName;
-        regularColor.colorName = colorName;
+        regularColor.colorNameId = color.first;
         if (regularColor.colorValue.GetARGB() != UiColors::Transparent) {
             m_colors.push_back(regularColor);
         }
@@ -267,10 +261,10 @@ Control* ColorPickerRegularProvider::CreateElement(VirtualListBox* pVirtualListB
         return nullptr;
     }
     ListBoxItem* pControl = new ListBoxItem(pVirtualListBox->GetWindow());
-    float fBorderSize = 2.0f;
+    float fBorderSize = 2.0f;//TODO
     UiRectF borderSize(fBorderSize, fBorderSize, fBorderSize, fBorderSize);
     pControl->SetBorderSize(borderSize, true);
-    pControl->SetBorderColor(kControlStatePushed, _T("blue"));
+    pControl->SetBorderColor(kControlStatePressed, _T("blue"));
     return pControl;
 }
 
@@ -279,7 +273,17 @@ bool ColorPickerRegularProvider::FillElement(ui::Control* pControl, size_t nElem
     if ((pControl != nullptr) && (nElementIndex < m_colors.size())) {
         const RegularColor& regularColor = m_colors[nElementIndex];
         pControl->SetBkColor(regularColor.colorValue);
-        pControl->SetToolTipText(regularColor.colorName.c_str());
+
+        DString colorString = StringUtil::Printf(_T("#%02X%02X%02X%02X"),
+                                                 regularColor.colorValue.GetA(),
+                                                 regularColor.colorValue.GetR(),
+                                                 regularColor.colorValue.GetG(),
+                                                 regularColor.colorValue.GetB());
+        DString colorInfo = GlobalManager::Instance().GetTextById(regularColor.colorNameId.c_str());
+        colorInfo += _T("(");
+        colorInfo += colorString;
+        colorInfo += _T(")");
+        pControl->SetToolTipText(colorInfo);
         pControl->SetUserDataID(nElementIndex);
         return true;
     }
@@ -357,205 +361,206 @@ UiColor ColorPickerRegularProvider::GetSelectedColor() const
 
 void ColorPickerRegularProvider::GetDefaultColors(std::vector<std::pair<DString, int32_t>>& uiColors)
 {
+    // 多语言字符串ID映射（中文版本）
     uiColors = {
-                {_T("AliceBlue,爱丽丝蓝"),UiColors::AliceBlue},
-                {_T("AntiqueWhite,古董白"),UiColors::AntiqueWhite},
-                {_T("Aqua,浅绿色"),UiColors::Aqua},
-                {_T("Aquamarine,海蓝宝石色"),UiColors::Aquamarine},
-                {_T("Azure,蔚蓝色的"),UiColors::Azure},
-                {_T("Beige,米色"),UiColors::Beige},
-                {_T("Bisque,桔黄色"),UiColors::Bisque},
-                {_T("Black,黑色"),UiColors::Black},
-                {_T("BlanchedAlmond,白杏色"),UiColors::BlanchedAlmond},
-                {_T("Blue,蓝色"),UiColors::Blue},
-                {_T("BlueViolet,蓝紫罗兰色"),UiColors::BlueViolet},
-                {_T("Brown,棕色，褐色"),UiColors::Brown},
-                {_T("BurlyWood,实木色"),UiColors::BurlyWood},
-                {_T("CadetBlue,军蓝色"),UiColors::CadetBlue},
-                {_T("Chartreuse,黄绿色"),UiColors::Chartreuse},
-                {_T("Chocolate,巧克力色"),UiColors::Chocolate},
-                {_T("Coral,珊瑚色"),UiColors::Coral},
-                {_T("CornflowerBlue,菊兰色"),UiColors::CornflowerBlue},
-                {_T("Cornsilk,米绸色"),UiColors::Cornsilk},
-                {_T("Crimson,暗红色的"),UiColors::Crimson},
-                {_T("Cyan,青色"),UiColors::Cyan},
-                {_T("DarkBlue,深蓝色"),UiColors::DarkBlue},
-                {_T("DarkCyan,深青色"),UiColors::DarkCyan},
-                {_T("DarkGoldenrod,深金黄黄"),UiColors::DarkGoldenrod},
-                {_T("DarkGray,深灰色"),UiColors::DarkGray},
-                {_T("DarkGreen,深绿色"),UiColors::DarkGreen},
-                {_T("DarkKhaki,暗卡其色，深黄褐色"),UiColors::DarkKhaki},
-                {_T("DarkMagenta,深品红色，暗洋红"),UiColors::DarkMagenta},
-                {_T("DarkOliveGreen,暗橄榄绿"),UiColors::DarkOliveGreen},
-                {_T("DarkOrange,深橙色"),UiColors::DarkOrange},
-                {_T("DarkOrchid,暗紫色"),UiColors::DarkOrchid},
-                {_T("DarkRed,深红色"),UiColors::DarkRed},
-                {_T("DarkSalmon,暗肉色"),UiColors::DarkSalmon},
-                {_T("DarkSeaGreen,深海蓝色"),UiColors::DarkSeaGreen},
-                {_T("DarkSlateBlue,深灰蓝色"),UiColors::DarkSlateBlue},
-                {_T("DarkSlateGray,暗绿色"),UiColors::DarkSlateGray},
-                {_T("DarkTurquoise,暗宝石绿色"),UiColors::DarkTurquoise},
-                {_T("DarkViolet,暗紫罗兰色"),UiColors::DarkViolet},
-                {_T("DeepPink,深粉红色"),UiColors::DeepPink},
-                {_T("DeepSkyBlue,深天蓝色"),UiColors::DeepSkyBlue},
-                {_T("DimGray,暗灰色"),UiColors::DimGray},
-                {_T("DodgerBlue,闪兰色"),UiColors::DodgerBlue},
-                {_T("Firebrick,火砖色"),UiColors::Firebrick},
-                {_T("FloralWhite,花白色"),UiColors::FloralWhite},
-                {_T("ForestGreen,森林绿"),UiColors::ForestGreen},
-                {_T("Fuchsia,紫红色"),UiColors::Fuchsia},
-                {_T("Gainsboro,淡灰色"),UiColors::Gainsboro},
-                {_T("GhostWhite,幽灵白色"),UiColors::GhostWhite},
-                {_T("Gold,金色"),UiColors::Gold},
-                {_T("Goldenrod,金麒麟色"),UiColors::Goldenrod},
-                {_T("Gray,灰色"),UiColors::Gray},
-                {_T("Green,绿色"),UiColors::Green},
-                {_T("GreenYellow,黄绿色"),UiColors::GreenYellow},
-                {_T("Honeydew,蜜色"),UiColors::Honeydew},
-                {_T("HotPink,热粉红色"),UiColors::HotPink},
-                {_T("IndianRed,印第安红"),UiColors::IndianRed},
-                {_T("Indigo,靛蓝色"),UiColors::Indigo},
-                {_T("Ivory,象牙色"),UiColors::Ivory},
-                {_T("Khaki,黄褐色"),UiColors::Khaki},
-                {_T("Lavender,薰衣草色，淡紫色"),UiColors::Lavender},
-                {_T("LavenderBlush,淡紫红色"),UiColors::LavenderBlush},
-                {_T("LawnGreen,草绿色"),UiColors::LawnGreen},
-                {_T("LemonChiffon,柠檬绸色"),UiColors::LemonChiffon},
-                {_T("LightBlue,淡蓝色"),UiColors::LightBlue},
-                {_T("LightCoral,淡珊瑚色"),UiColors::LightCoral},
-                {_T("LightCyan,淡青色"),UiColors::LightCyan},
-                {_T("LightGoldenrodYellow,亮菊黄"),UiColors::LightGoldenrodYellow},
-                {_T("LightGray,浅灰色"),UiColors::LightGray},
-                {_T("LightGreen,淡绿色"),UiColors::LightGreen},
-                {_T("LightPink,浅粉红"),UiColors::LightPink},
-                {_T("LightSalmon,亮肉色"),UiColors::LightSalmon},
-                {_T("LightSeaGreen,浅海蓝色"),UiColors::LightSeaGreen},
-                {_T("LightSkyBlue,亮天蓝色"),UiColors::LightSkyBlue},
-                {_T("LightSlateGray,亮蓝灰"),UiColors::LightSlateGray},
-                {_T("LightSteelBlue,亮钢蓝色"),UiColors::LightSteelBlue},
-                {_T("LightYellow,浅黄色"),UiColors::LightYellow},
-                {_T("Lime,石灰色"),UiColors::Lime},
-                {_T("LimeGreen,酸橙绿色"),UiColors::LimeGreen},
-                {_T("Linen,亚麻色"),UiColors::Linen},
-                {_T("Magenta,洋红色"),UiColors::Magenta},
-                {_T("Maroon,紫褐色"),UiColors::Maroon},
-                {_T("MediumAquamarine,中碧绿色"),UiColors::MediumAquamarine},
-                {_T("MediumBlue,中蓝色"),UiColors::MediumBlue},
-                {_T("MediumOrchid,中兰花紫"),UiColors::MediumOrchid},
-                {_T("MediumPurple,中紫色"),UiColors::MediumPurple},
-                {_T("MediumSeaGreen,中海洋绿"),UiColors::MediumSeaGreen},
-                {_T("MediumSlateBlue,中板岩蓝"),UiColors::MediumSlateBlue},
-                {_T("MediumSpringGreen,中春绿色"),UiColors::MediumSpringGreen},
-                {_T("MediumTurquoise,中绿宝石色"),UiColors::MediumTurquoise},
-                {_T("MediumVioletRed,中紫罗兰色"),UiColors::MediumVioletRed},
-                {_T("MidnightBlue,深夜蓝"),UiColors::MidnightBlue},
-                {_T("MintCream,薄荷色"),UiColors::MintCream},
-                {_T("MistyRose,薄雾玫瑰色"),UiColors::MistyRose},
-                {_T("Moccasin,鹿皮色"),UiColors::Moccasin},
-                {_T("NavajoWhite,纳瓦白"),UiColors::NavajoWhite},
-                {_T("Navy,海军蓝"),UiColors::Navy},
-                {_T("OldLace,浅米色"),UiColors::OldLace},
-                {_T("Olive,橄榄色"),UiColors::Olive},
-                {_T("OliveDrab,深绿褐色"),UiColors::OliveDrab},
-                {_T("Orange,橙色"),UiColors::Orange},
-                {_T("OrangeRed,橙红色"),UiColors::OrangeRed},
-                {_T("Orchid,兰花紫色"),UiColors::Orchid},
-                {_T("PaleGoldenrod,淡黄色"),UiColors::PaleGoldenrod},
-                {_T("PaleGreen,淡绿色"),UiColors::PaleGreen},
-                {_T("PaleTurquoise,苍绿色"),UiColors::PaleTurquoise},
-                {_T("PaleVioletRed,浅紫罗兰红"),UiColors::PaleVioletRed},
-                {_T("PapayaWhip,番木色"),UiColors::PapayaWhip},
-                {_T("PeachPuff,桃色"),UiColors::PeachPuff},
-                {_T("Peru,秘鲁色"),UiColors::Peru},
-                {_T("Pink,粉红色"),UiColors::Pink},
-                {_T("Plum,李子色"),UiColors::Plum},
-                {_T("PowderBlue,粉蓝色"),UiColors::PowderBlue},
-                {_T("Purple,紫色"),UiColors::Purple},
-                {_T("Red,红色"),UiColors::Red},
-                {_T("RosyBrown,玫瑰棕色"),UiColors::RosyBrown},
-                {_T("RoyalBlue,皇家蓝色"),UiColors::RoyalBlue},
-                {_T("SaddleBrown,重褐色"),UiColors::SaddleBrown},
-                {_T("Salmon,鲑鱼色，三文鱼色"),UiColors::Salmon},
-                {_T("SandyBrown,沙棕色"),UiColors::SandyBrown},
-                {_T("SeaGreen,海绿色"),UiColors::SeaGreen},
-                {_T("SeaShell,海贝色"),UiColors::SeaShell},
-                {_T("Sienna,黄土赭色"),UiColors::Sienna},
-                {_T("Silver,银色"),UiColors::Silver},
-                {_T("SkyBlue,天蓝色"),UiColors::SkyBlue},
-                {_T("SlateBlue,石板蓝色"),UiColors::SlateBlue},
-                {_T("SlateGray,石板灰色"),UiColors::SlateGray},
-                {_T("Snow,雪白色"),UiColors::Snow},
-                {_T("SpringGreen,春绿色"),UiColors::SpringGreen},
-                {_T("SteelBlue,钢青色"),UiColors::SteelBlue},
-                {_T("Tan,棕褐色"),UiColors::Tan},
-                {_T("Teal,青色"),UiColors::Teal},
-                {_T("Thistle,蓟色，是一种紫色"),UiColors::Thistle},
-                {_T("Tomato,番茄色"),UiColors::Tomato},
-                {_T("Transparent,透明的"),UiColors::Transparent},
-                {_T("Turquoise,绿松色"),UiColors::Turquoise},
-                {_T("Violet,紫罗兰色"),UiColors::Violet},
-                {_T("Wheat,小麦色, 淡黄色"),UiColors::Wheat},
-                {_T("White,白色"),UiColors::White},
-                {_T("WhiteSmoke,白烟色"),UiColors::WhiteSmoke},
-                {_T("Yellow,黄色"),UiColors::Yellow},
-                {_T("YellowGreen,黄绿色"),UiColors::YellowGreen}
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_AliceBlue"), UiColors::AliceBlue},            // AliceBlue,爱丽丝蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_AntiqueWhite"), UiColors::AntiqueWhite},      // AntiqueWhite,古董白
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Aqua"), UiColors::Aqua},                      // Aqua,浅绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Aquamarine"), UiColors::Aquamarine},          // Aquamarine,海蓝宝石色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Azure"), UiColors::Azure},                    // Azure,蔚蓝色的
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Beige"), UiColors::Beige},                    // Beige,米色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Bisque"), UiColors::Bisque},                  // Bisque,桔黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Black"), UiColors::Black},                    // Black,黑色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_BlanchedAlmond"), UiColors::BlanchedAlmond},  // BlanchedAlmond,白杏色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Blue"), UiColors::Blue},                      // Blue,蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_BlueViolet"), UiColors::BlueViolet},          // BlueViolet,蓝紫罗兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Brown"), UiColors::Brown},                    // Brown,棕色，褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_BurlyWood"), UiColors::BurlyWood},            // BurlyWood,实木色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_CadetBlue"), UiColors::CadetBlue},            // CadetBlue,军蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Chartreuse"), UiColors::Chartreuse},          // Chartreuse,黄绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Chocolate"), UiColors::Chocolate},            // Chocolate,巧克力色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Coral"), UiColors::Coral},                    // Coral,珊瑚色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_CornflowerBlue"), UiColors::CornflowerBlue},  // CornflowerBlue,菊兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Cornsilk"), UiColors::Cornsilk},              // Cornsilk,米绸色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Crimson"), UiColors::Crimson},                // Crimson,暗红色的
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Cyan"), UiColors::Cyan},                      // Cyan,青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkBlue"), UiColors::DarkBlue},              // DarkBlue,深蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkCyan"), UiColors::DarkCyan},              // DarkCyan,深青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkGoldenrod"), UiColors::DarkGoldenrod},    // DarkGoldenrod,深金黄黄
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkGray"), UiColors::DarkGray},              // DarkGray,深灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkGreen"), UiColors::DarkGreen},            // DarkGreen,深绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkKhaki"), UiColors::DarkKhaki},            // DarkKhaki,暗卡其色，深黄褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkMagenta"), UiColors::DarkMagenta},        // DarkMagenta,深品红色，暗洋红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkOliveGreen"), UiColors::DarkOliveGreen},  // DarkOliveGreen,暗橄榄绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkOrange"), UiColors::DarkOrange},          // DarkOrange,深橙色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkOrchid"), UiColors::DarkOrchid},          // DarkOrchid,暗紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkRed"), UiColors::DarkRed},                // DarkRed,深红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkSalmon"), UiColors::DarkSalmon},          // DarkSalmon,暗肉色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkSeaGreen"), UiColors::DarkSeaGreen},      // DarkSeaGreen,深海蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkSlateBlue"), UiColors::DarkSlateBlue},    // DarkSlateBlue,深灰蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkSlateGray"), UiColors::DarkSlateGray},    // DarkSlateGray,暗绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkTurquoise"), UiColors::DarkTurquoise},    // DarkTurquoise,暗宝石绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DarkViolet"), UiColors::DarkViolet},          // DarkViolet,暗紫罗兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DeepPink"), UiColors::DeepPink},              // DeepPink,深粉红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DeepSkyBlue"), UiColors::DeepSkyBlue},        // DeepSkyBlue,深天蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DimGray"), UiColors::DimGray},                // DimGray,暗灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_DodgerBlue"), UiColors::DodgerBlue},          // DodgerBlue,闪兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Firebrick"), UiColors::Firebrick},            // Firebrick,火砖色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_FloralWhite"), UiColors::FloralWhite},        // FloralWhite,花白色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_ForestGreen"), UiColors::ForestGreen},        // ForestGreen,森林绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Fuchsia"), UiColors::Fuchsia},                // Fuchsia,紫红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Gainsboro"), UiColors::Gainsboro},            // Gainsboro,淡灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_GhostWhite"), UiColors::GhostWhite},          // GhostWhite,幽灵白色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Gold"), UiColors::Gold},                      // Gold,金色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Goldenrod"), UiColors::Goldenrod},            // Goldenrod,金麒麟色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Gray"), UiColors::Gray},                      // Gray,灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Green"), UiColors::Green},                    // Green,绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_GreenYellow"), UiColors::GreenYellow},        // GreenYellow,黄绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Honeydew"), UiColors::Honeydew},              // Honeydew,蜜色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_HotPink"), UiColors::HotPink},                // HotPink,热粉红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_IndianRed"), UiColors::IndianRed},            // IndianRed,印第安红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Indigo"), UiColors::Indigo},                  // Indigo,靛蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Ivory"), UiColors::Ivory},                    // Ivory,象牙色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Khaki"), UiColors::Khaki},                    // Khaki,黄褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Lavender"), UiColors::Lavender},              // Lavender,薰衣草色，淡紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LavenderBlush"), UiColors::LavenderBlush},    // LavenderBlush,淡紫红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LawnGreen"), UiColors::LawnGreen},            // LawnGreen,草绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LemonChiffon"), UiColors::LemonChiffon},      // LemonChiffon,柠檬绸色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightBlue"), UiColors::LightBlue},            // LightBlue,淡蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightCoral"), UiColors::LightCoral},          // LightCoral,淡珊瑚色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightCyan"), UiColors::LightCyan},            // LightCyan,淡青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightGoldenrodYellow"), UiColors::LightGoldenrodYellow}, // LightGoldenrodYellow,亮菊黄
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightGray"), UiColors::LightGray},            // LightGray,浅灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightGreen"), UiColors::LightGreen},          // LightGreen,淡绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightPink"), UiColors::LightPink},            // LightPink,浅粉红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightSalmon"), UiColors::LightSalmon},        // LightSalmon,亮肉色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightSeaGreen"), UiColors::LightSeaGreen},    // LightSeaGreen,浅海蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightSkyBlue"), UiColors::LightSkyBlue},      // LightSkyBlue,亮天蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightSlateGray"), UiColors::LightSlateGray},  // LightSlateGray,亮蓝灰
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightSteelBlue"), UiColors::LightSteelBlue},  // LightSteelBlue,亮钢蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LightYellow"), UiColors::LightYellow},        // LightYellow,浅黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Lime"), UiColors::Lime},                      // Lime,石灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_LimeGreen"), UiColors::LimeGreen},            // LimeGreen,酸橙绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Linen"), UiColors::Linen},                    // Linen,亚麻色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Magenta"), UiColors::Magenta},                // Magenta,洋红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Maroon"), UiColors::Maroon},                  // Maroon,紫褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumAquamarine"), UiColors::MediumAquamarine}, // MediumAquamarine,中碧绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumBlue"), UiColors::MediumBlue},          // MediumBlue,中蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumOrchid"), UiColors::MediumOrchid},      // MediumOrchid,中兰花紫
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumPurple"), UiColors::MediumPurple},      // MediumPurple,中紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumSeaGreen"), UiColors::MediumSeaGreen},  // MediumSeaGreen,中海洋绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumSlateBlue"), UiColors::MediumSlateBlue}, // MediumSlateBlue,中板岩蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumSpringGreen"), UiColors::MediumSpringGreen}, // MediumSpringGreen,中春绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumTurquoise"), UiColors::MediumTurquoise}, // MediumTurquoise,中绿宝石色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MediumVioletRed"), UiColors::MediumVioletRed}, // MediumVioletRed,中紫罗兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MidnightBlue"), UiColors::MidnightBlue},      // MidnightBlue,深夜蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MintCream"), UiColors::MintCream},            // MintCream,薄荷色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_MistyRose"), UiColors::MistyRose},            // MistyRose,薄雾玫瑰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Moccasin"), UiColors::Moccasin},              // Moccasin,鹿皮色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_NavajoWhite"), UiColors::NavajoWhite},        // NavajoWhite,纳瓦白
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Navy"), UiColors::Navy},                      // Navy,海军蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_OldLace"), UiColors::OldLace},                // OldLace,浅米色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Olive"), UiColors::Olive},                    // Olive,橄榄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_OliveDrab"), UiColors::OliveDrab},            // OliveDrab,深绿褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Orange"), UiColors::Orange},                  // Orange,橙色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_OrangeRed"), UiColors::OrangeRed},            // OrangeRed,橙红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Orchid"), UiColors::Orchid},                  // Orchid,兰花紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PaleGoldenrod"), UiColors::PaleGoldenrod},    // PaleGoldenrod,淡黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PaleGreen"), UiColors::PaleGreen},            // PaleGreen,淡绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PaleTurquoise"), UiColors::PaleTurquoise},    // PaleTurquoise,苍绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PaleVioletRed"), UiColors::PaleVioletRed},    // PaleVioletRed,浅紫罗兰红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PapayaWhip"), UiColors::PapayaWhip},          // PapayaWhip,番木色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PeachPuff"), UiColors::PeachPuff},            // PeachPuff,桃色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Peru"), UiColors::Peru},                      // Peru,秘鲁色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Pink"), UiColors::Pink},                      // Pink,粉红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Plum"), UiColors::Plum},                      // Plum,李子色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_PowderBlue"), UiColors::PowderBlue},          // PowderBlue,粉蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Purple"), UiColors::Purple},                  // Purple,紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Red"), UiColors::Red},                        // Red,红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_RosyBrown"), UiColors::RosyBrown},            // RosyBrown,玫瑰棕色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_RoyalBlue"), UiColors::RoyalBlue},            // RoyalBlue,皇家蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SaddleBrown"), UiColors::SaddleBrown},        // SaddleBrown,重褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Salmon"), UiColors::Salmon},                  // Salmon,鲑鱼色，三文鱼色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SandyBrown"), UiColors::SandyBrown},          // SandyBrown,沙棕色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SeaGreen"), UiColors::SeaGreen},              // SeaGreen,海绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SeaShell"), UiColors::SeaShell},              // SeaShell,海贝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Sienna"), UiColors::Sienna},                  // Sienna,黄土赭色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Silver"), UiColors::Silver},                  // Silver,银色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SkyBlue"), UiColors::SkyBlue},                // SkyBlue,天蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SlateBlue"), UiColors::SlateBlue},            // SlateBlue,石板蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SlateGray"), UiColors::SlateGray},            // SlateGray,石板灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Snow"), UiColors::Snow},                      // Snow,雪白色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SpringGreen"), UiColors::SpringGreen},        // SpringGreen,春绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_SteelBlue"), UiColors::SteelBlue},            // SteelBlue,钢青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Tan"), UiColors::Tan},                        // Tan,棕褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Teal"), UiColors::Teal},                      // Teal,青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Thistle"), UiColors::Thistle},                // Thistle,蓟色，是一种紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Tomato"), UiColors::Tomato},                  // Tomato,番茄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Transparent"), UiColors::Transparent},        // Transparent,透明的
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Turquoise"), UiColors::Turquoise},            // Turquoise,绿松色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Violet"), UiColors::Violet},                  // Violet,紫罗兰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Wheat"), UiColors::Wheat},                    // Wheat,小麦色, 淡黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_White"), UiColors::White},                    // White,白色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_WhiteSmoke"), UiColors::WhiteSmoke},          // WhiteSmoke,白烟色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_Yellow"), UiColors::Yellow},                  // Yellow,黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP1_YellowGreen"), UiColors::YellowGreen}         // YellowGreen,黄绿色
     };
 }
 
 void ColorPickerRegularProvider::GetBasicColors(std::vector<std::pair<DString, int32_t>>& uiColors)
 {
     uiColors = {
-        {_T("玫瑰红"),0xFFF08784},
-        {_T("玫瑰红"),0xFFEB3324},
-        {_T("褐色"),0xFF774342},
-        {_T("红色"),0xFF8E403A},
-        {_T("深红色"),0xFF3A0603},
-        {_T("天蓝"),0xFF9FFCFD},
-        {_T("天蓝"),0xFF73FBFD},
-        {_T("蓝色"),0xFF3282F6},
-        {_T("蓝色"),0xFF0023F5},
-        {_T("深蓝"),0xFF00129A},
-        {_T("深蓝"),0xFF16417C},
-        {_T("深蓝"),0xFF000C7B},
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_ROSE_RED"),0xFFF08784},          // 玫瑰红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_ROSE_RED"),0xFFEB3324},          // 玫瑰红
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BROWN"),0xFF774342},            // 褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_RED"),0xFF8E403A},              // 红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_RED"),0xFF3A0603},          // 深红色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_SKY_BLUE"),0xFF9FFCFD},          // 天蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_SKY_BLUE"),0xFF73FBFD},          // 天蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BLUE"),0xFF3282F6},              // 蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BLUE"),0xFF0023F5},              // 蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_BLUE"),0xFF00129A},         // 深蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_BLUE"),0xFF16417C},         // 深蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_BLUE"),0xFF000C7B},         // 深蓝
 
-        {_T("浅黄色"),0xFFFFFE91},
-        {_T("黄色"),0xFFFFFD55},
-        {_T("橙色"),0xFFF09B59},
-        {_T("橙色"),0xFFF08650},
-        {_T("褐色"),0xFF784315},
-        {_T("深黄色"),0xFF817F26},
-        {_T("浅蓝色"),0xFF7E84F7},
-        {_T("紫色"),0xFF732BF5},
-        {_T("蓝色"),0xFF3580BB},
-        {_T("深蓝"),0xFF00023D},
-        {_T("深紫色"),0xFF58135E},
-        {_T("深紫色"),0xFF3A083E},
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_YELLOW"),0xFFFFFE91},      // 浅黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_YELLOW"),0xFFFFFD55},            // 黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_ORANGE"),0xFFF09B59},            // 橙色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_ORANGE"),0xFFF08650},            // 橙色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BROWN"),0xFF784315},             // 褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_YELLOW"),0xFF817F26},       // 深黄色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_BLUE"),0xFF7E84F7},        // 浅蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PURPLE"),0xFF732BF5},            // 紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BLUE"),0xFF3580BB},              // 蓝色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_BLUE"),0xFF00023D},         // 深蓝
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_PURPLE"),0xFF58135E},       // 深紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_PURPLE"),0xFF3A083E},       // 深紫色
 
-        {_T("浅绿"),0xFFA1FB8E},
-        {_T("绿色"),0xFFA1FA4F},
-        {_T("绿色"),0xFF75F94D},
-        {_T("浅绿"),0xFF75FA61},
-        {_T("浅绿"),0xFF75FA8D},
-        {_T("褐色"),0xFF818049},
-        {_T("粉色"),0xFFEF88BE},
-        {_T("浅紫色"),0xFFEE8AF8},
-        {_T("淡紫色"),0xFFEA3FF7},
-        {_T("粉色"),0xFFEA3680},
-        {_T("淡紫色"),0xFF7F82BB},
-        {_T("紫红色"),0xFF75163F},
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_GREEN"),0xFFA1FB8E},       // 浅绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_GREEN"),0xFFA1FA4F},             // 绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_GREEN"),0xFF75F94D},             // 绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_GREEN"),0xFF75FA61},       // 浅绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_GREEN"),0xFF75FA8D},       // 浅绿
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BROWN"),0xFF818049},             // 褐色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PINK"),0xFFEF88BE},              // 粉色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_PURPLE"),0xFFEE8AF8},      // 浅紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PALE_PURPLE"),0xFFEA3FF7},       // 淡紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PINK"),0xFFEA3680},              // 粉色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PALE_PURPLE"),0xFF7F82BB},       // 淡紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_MAGENTA"),0xFF75163F},           // 紫红色
 
-        {_T("浅绿色"),0xFF377D22},
-        {_T("深绿色"),0xFF377E47},
-        {_T("深青色"),0xFF367E7F},
-        {_T("青色"),0xFF507F80},
-        {_T("深绿色"),0xFF183E0C},
-        {_T("深青色"),0xFF173F3F},
-        {_T("深紫色"),0xFF741B7C},
-        {_T("深紫色"),0xFF39107B},
-        {_T("黑色"),0xFF000000},
-        {_T("灰色"),0xFF808080},
-        {_T("浅灰"),0xFFC0C0C0},
-        {_T("白色"),0xFFFFFFFF}
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_PALE_GREEN"),0xFF377D22},        // 浅绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_GREEN"),0xFF377E47},        // 深绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_CYAN"),0xFF367E7F},         // 深青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_CYAN"),0xFF507F80},              // 青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_GREEN"),0xFF183E0C},        // 深绿色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_CYAN"),0xFF173F3F},         // 深青色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_PURPLE"),0xFF741B7C},       // 深紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_DARK_PURPLE"),0xFF39107B},       // 深紫色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_BLACK"),0xFF000000},             // 黑色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_GRAY"),0xFF808080},              // 灰色
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_LIGHT_GRAY"),0xFFC0C0C0},        // 浅灰
+        {_T("STRID_PUBLIC_COLORPICKER_TIP2_WHITE"),0xFFFFFFFF}              // 白色
     };
 }
 

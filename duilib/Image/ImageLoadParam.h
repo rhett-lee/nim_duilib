@@ -60,7 +60,8 @@ public:
                    int32_t nIconFrameDelayMs /*= 1000*/,
                    uint32_t nIconSize /*= 0*/,
                    float fPagMaxFrameRate /*= 30.0f*/,
-                   bool bAssertEnabled /*= true*/);
+                   bool bAssertEnabled /*= true*/,
+                   const DString& svgReplaceColors /*= _T("")*/);
 
     /** 拷贝构造和复制
     */
@@ -123,6 +124,10 @@ public:
     */
     bool IsAssertEnabled() const;
 
+    /** 获取SVG格式的颜色替换参数
+    */
+    DString GetSvgReplaceColors() const;
+
 public:
     /** 获取加载图片的缓存KEY
     *   完整的格式是：<图片完整路径>@<界面缩放百分比>#<是否支持DPI自适应>$<宽度>:<高度>
@@ -180,6 +185,9 @@ private:
 
     //目标区域大小，用于优化加载性能（绘制阶段加载的图片，不需要图片宽高来确定目标区域，可做加载优化；对于大图，可以加载一个小图，保证绘制质量的情况下，提高绘制速度，并减少内存占用）
     UiSize m_rcMaxDestRectSize;
+
+    //SVG格式的颜色替换参数(支持将颜色A替换为颜色B，从而避免每个颜色主题下，都要单独配置一个svg文件，现在只要一个svg就够了)
+    UiString m_svgReplaceColors;
 
     //绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     uint32_t m_nLoadDpiScale;

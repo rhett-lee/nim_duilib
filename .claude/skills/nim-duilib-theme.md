@@ -173,8 +173,8 @@ bkimage="file='../public/shadow/shadow_big.svg' corner='64,64,68,70'"
 |---------|------|
 | progress_horizontal_blue | 水平蓝色进度条 |
 | progress_vertical_blue | 垂直蓝色进度条 |
-| slider_horizontal_green | 水平绿色滑块 |
-| slider_vertical_green | 垂直绿色滑块 |
+| slider_horizontal_blue | 水平蓝色滑块 |
+| slider_vertical_blue | 垂直蓝色滑块 |
 
 ### 菜单样式
 | Class名 | 说明 |

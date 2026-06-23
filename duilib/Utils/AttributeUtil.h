@@ -37,14 +37,21 @@ public:
     static void ParsePaddingValue(const char* strValue, UiPadding& padding);
     static void ParseMarginValue(const char* strValue, UiMargin& margin);
 
-    /** 解析属性列表，格式如    : font="system_bold_14" normaltextcolor="white" bkcolor="red"
-    *                 或者    : color='black' offset='1,1' blur_radius='2' spread_radius='2'
-    *   分隔符可以是双引号或者单引号，由参数传入
-    * @param [in] seperateChar 字符串分隔符，可以是 _T('\"') 或者 _T('\')'
-    */
-    static void ParseAttributeList(const DString& strList,
-                                   DString::value_type seperateChar,
-                                   std::vector<std::pair<DString, DString>>& attributeList);
+    /** 解析属性列表，有效的格式示例
+     * (1) 使用双引号: font="system_bold_14" normal_text_color="white" bkcolor="red"
+     * (2) 使用单引号: color='black' offset='1,1' blur_radius='2' spread_radius='2'
+     * (3) 使用单引号和双引号混合：color="black" offset='1,1' blur_radius="2" spread_radius='2'
+     * (4) 使用花括号(当无法用单引号和双引号时，可适当使用花括号):
+     *     combo_button_class="height='stretch' hovered_image={file='test/arrow_hot.svg' valign='center'}"
+     * @param [in] strList 需要解析的属性列表，格式如上说明
+     * @param [out] attributeList 返回解析结果的name和value列表
+     * @param [in] seperateStartChars 起始分隔符集合（如_T("\"'{["）
+     * @param [in] seperateEndChars 结束分隔符集合，必须与起始分隔符集合配对（如_T("\"'}]"));
+     * @return 当解析出至少一个属性-值时，返回true，否则返回false
+     */
+    static bool ParseAttributeList(const DString& strList, std::vector<std::pair<DString, DString>>& attributeList,
+                                   const DString& seperateStartChars = _T("\"'{["),
+                                   const DString& seperateEndChars = _T("\"'}]"));
 
     /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者浮点数
     * @param [in] strValue 待解析的字符串地址

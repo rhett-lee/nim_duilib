@@ -177,59 +177,106 @@ void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect, bool bChe
     }
 }
 
-void AttributeUtil::ParseAttributeList(const DString& strList,
-                                       DString::value_type seperateChar,
-                                       std::vector<std::pair<DString, DString>>& attributeList)
+// 辅助函数：查找字符在字符串中的位置，返回下标（未找到返回-1）
+static int32_t FindCharIndexInString(DString::value_type ch, const DString& str)
 {
-    //示例：normal_image="file='public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"
+    DString::size_type pos = str.find(ch);
+    return (pos != DString::npos) ? static_cast<int>(pos) : -1;
+}
+
+bool AttributeUtil::ParseAttributeList(const DString& strList, std::vector<std::pair<DString, DString>>& attributeList,
+                                       const DString& seperateStartChars,
+                                       const DString& seperateEndChars)
+{
+    // 清空输出列表，避免残留数据
+    attributeList.clear();
+
+    // 示例：normal_image={file='public/button/window-minimize.svg' width='24'} hovered_color="AliceBlue" pressed_color='Lavender'
     DString sName;
     DString sValue;
     const DString::value_type* pstrList = strList.c_str();
-    if (pstrList == nullptr) {
-        return;
+
+    // 失败场景1：空指针/空字符串
+    if (pstrList == nullptr || *pstrList == _T('\0')) {
+        return false;
     }
+
+    // 失败场景2：起始分隔符为空
+    ASSERT(!seperateStartChars.empty());
+    if (seperateStartChars.empty()) {
+        return false;
+    }
+
+    // 失败场景3：起始/结束分隔符长度不匹配
+    ASSERT(!seperateEndChars.empty() && (seperateStartChars.size() == seperateEndChars.size()));
+    if (seperateEndChars.empty() || seperateStartChars.size() != seperateEndChars.size()) {
+        return false;
+    }
+
+    // 标记是否至少解析出一个有效属性（避免空解析返回true）
+    bool hasValidAttribute = false;
+
     while (*pstrList != _T('\0')) {
         sName.clear();
         sValue.clear();
-        //读取等号前面的内容，作为Name
+
+        // 1. 读取等号前面的内容，作为属性名
         while (*pstrList != _T('\0') && *pstrList != _T('=')) {
             sName += *pstrList++;
         }
-        //当前字符应该是个等号
-        ASSERT(*pstrList == _T('='));
+
+        // 失败场景4：遍历完未找到等号（属性名后无等号）
         if (*pstrList != _T('=')) {
-            return;
-        }
-        //跳到等号字符后面的字符，这个字符应该是个分隔字符
-        pstrList++;
-        ASSERT(*pstrList == seperateChar);
-        if (*pstrList != seperateChar) {
-            return;
+            // 如果已解析出有效属性，返回true；否则返回false
+            return hasValidAttribute;
         }
 
-        //跳到第一个分隔字符后面的字符，读取属性值
-        pstrList++;
-        while (*pstrList != _T('\0') && *pstrList != seperateChar) {
+        // 2. 跳到等号后，检查起始分隔符
+        pstrList++; // 跳过等号
+        // 失败场景5：等号后无内容
+        if (*pstrList == _T('\0')) {
+            return hasValidAttribute;
+        }
+
+        // 3. 查找当前字符是否是支持的起始分隔符，并获取对应结束分隔符
+        int32_t sepIndex = FindCharIndexInString(*pstrList, seperateStartChars);
+        ASSERT(sepIndex != -1);
+        // 失败场景6：不是合法起始分隔符
+        if (sepIndex == -1) {
+            return hasValidAttribute;
+        }
+        DString::value_type endSepChar = seperateEndChars[sepIndex];
+
+        // 4. 跳到起始分隔符后，读取属性值（直到遇到对应的结束分隔符）
+        pstrList++; // 跳过起始分隔符
+        while (*pstrList != _T('\0') && *pstrList != endSepChar) {
             sValue += *pstrList++;
         }
-        ASSERT(*pstrList == seperateChar);
-        if (*pstrList != seperateChar) {
-            return;
+
+        // 失败场景7：未找到结束分隔符
+        ASSERT(*pstrList == endSepChar);
+        if (*pstrList != endSepChar) {
+            return hasValidAttribute;
         }
 
-        //解析出一个属性，添加到列表中(属性名称不允许有空格)
+        // 5. 处理属性名（去除前后空白），添加到结果列表
         sName = StringUtil::Trim(sName);
-        attributeList.push_back(std::make_pair(sName, sValue));
-
-        //跳到分隔字符后面的字符，这个字符应该是空格，如果不是空格，认为已经结束
-        pstrList++;
-        if (*pstrList != _T(' ')) {
-            return;
+        if (!sName.empty()) { // 过滤空属性名
+            attributeList.push_back(std::make_pair(sName, sValue));
+            hasValidAttribute = true; // 标记有有效属性
         }
 
-        //跳到空格后面的字符
-        pstrList++;
+        // 6. 跳到结束分隔符后，处理后续字符
+        pstrList++; // 跳过结束分隔符
+
+        // 7. 跳过后续的所有空白字符（兼容多空格场景）
+        while (*pstrList != _T('\0') && *pstrList == _T(' ')) {
+            pstrList++;
+        }
     }
+
+    // 正常遍历完成：有有效属性返回true，无则返回false
+    return hasValidAttribute;
 }
 
 std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, wchar_t** pEndPtr)

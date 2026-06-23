@@ -1,8 +1,7 @@
 #ifndef UI_CONTROL_RICHEDIT_WINDOWS_H_
 #define UI_CONTROL_RICHEDIT_WINDOWS_H_
 
-#include "duilib/Box/ScrollBox.h"
-#include "duilib/Image/Image.h"
+#include "duilib/Control/RichEditDefs.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -15,28 +14,12 @@
 namespace ui 
 {
 
-/** 字符的索引号范围
-*/
-struct TextCharRange
-{
-    int32_t cpMin = -1; //字符的起始索引值
-    int32_t cpMax = -1; //字符的结束索引值
-};
-
-/** 字符查找的参数
-*/
-struct FindTextParam
-{
-    bool bMatchCase = true;      //查找时是否区分大小写
-    bool bMatchWholeWord = true; //查找时，是否按词匹配
-    bool bFindDown = true;       //是否向后查找，为true表示向后查找，false表示反向查找
-    TextCharRange chrg;          //字符的查找范围
-    DString findText;            //查找的文本
-};
-
 class RichEditHost;
 class ControlDropTarget_Windows;
 class VBox;
+
+/** RichEdit Windows平台使用Windows API实现，仅支持Windows平台
+*/
 class DUILIB_API RichEdit : public ScrollBox
 {
     typedef ScrollBox BaseClass;
@@ -57,6 +40,11 @@ public:
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual UiEstSize EstimateSize(UiSize szAvailable) override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
+
+    /** 主题发生变化，刷新界面颜色相关的内容
+    * @param [in] bRedraw true表示需要内部实现重绘，否则控件内部不需要重绘，由外部调用重绘
+    */
+    virtual void OnThemeChanged(bool bRedraw) override;
 
 public:
     /** 设置控件的文本, 会触发文本变化事件
@@ -707,6 +695,16 @@ public:
     */
     void AdjustTextNumber(int32_t nDelta);
 
+    /** 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    * @param [in] bReplaceNewline true表示替换，false表示不替换
+    */
+    void SetReplaceNewline(bool bReplaceNewline);
+
+    /** 获取是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    * @return true表示替换，false表示不替换
+    */
+    bool IsReplaceNewline() const;
+
     /** 设置是否隐藏选择项
      */
     void SetHideSelection(bool fHideSelection);
@@ -719,19 +717,19 @@ public:
     * @param [in] nBottomBorderSize 底部边框的大小(未经DPI缩放)
     * @param [in] bNeedDpiScale 是否支持DPI缩放
     */
-    void SetFocusBottomBorderSize(int32_t nBottomBorderSize);
+    void SetFocusedBottomBorderSize(int32_t nBottomBorderSize);
 
     /** 获取焦点状态时，底部边框的大小(未经DPI缩放)
     */
-    int32_t GetFocusBottomBorderSize() const;
+    int32_t GetFocusedBottomBorderSize() const;
 
     /** 设置焦点状态时，底部边框的颜色
     */
-    void SetFocusBottomBorderColor(const DString& bottomBorderColor);
+    void SetFocusedBottomBorderColor(const DString& bottomBorderColor);
 
     /** 获取焦点状态时，底部边框的颜色
     */
-    DString GetFocusBottomBorderColor() const;
+    DString GetFocusedBottomBorderColor() const;
 
     /** 设置是否允许拖放功能
     */
@@ -951,6 +949,19 @@ protected:
     virtual bool OnSetCursor(const EventArgs& msg) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
+
+    /** 文本字符输入消息
+    * @param msg 文本输入的具体参数信息，参数取值详细内容如下
+    *            ASSERT(msg.eventType == ui::kEventChar)
+    *            1. Windows API实现时：
+    *               ASSERT((msg.eventData == WM_CHAR) || (msg.eventData == WM_SYSCHAR) || (msg.eventData == WM_UNICHAR));
+    *               wParam和lParam参数值就是操作系统消息对应的wParam和lParam参数值
+    *            2. SDL实现时, 获取文本的方法如下(wParam是DStringW::value_type*指针，lParam是字符串的长度)：
+    *               DStringW text;
+    *               if((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 0)) {
+    *                   text = (DStringW::value_type*)msg.wParam;
+    *               }
+    */
     virtual bool OnChar(const EventArgs& msg) override;
     virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnImeStartComposition(const EventArgs& msg) override;
@@ -983,6 +994,10 @@ private:
     * @return 如果返回true, 表示不可用进行粘贴操作
     */
     bool IsPasteLimited() const;
+
+    /** 检查字符是否符合输入限制
+    */
+    bool IsInvalidInputChar(DStringW::value_type charValue) const;
 
 private:
     /** 触发文本变化事件
@@ -1042,7 +1057,7 @@ private:
 
     /** 切换光标是否显示
     */
-    void ChangeCaretVisiable();
+    void ChangeCaretVisible();
 
     /** 绘制提示文字
      * @param[in] pRender 绘制引擎
@@ -1120,7 +1135,6 @@ private:
     RichEditHost* m_pRichHost;
 
     float m_fRowSpacingMul;     //行间距倍数
-    bool m_bVScrollBarFixing;   //滚动条修正标志
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
     bool m_bWantCtrlReturn;     //是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
@@ -1136,7 +1150,7 @@ private:
 
 private:
     bool m_bNoCaretReadonly;    //只读模式下，不显示光标
-    bool m_bIsCaretVisiable;    //光标是否可见
+    bool m_bIsCaretVisible;     //光标是否可见
     int32_t m_iCaretPosX;       //光标X坐标
     int32_t m_iCaretPosY;       //光标Y坐标
     int32_t m_iCaretWidth;      //光标宽度
@@ -1177,6 +1191,9 @@ private:
     /** 是否禁止触发文本变化事件
     */
     bool m_bDisableTextChangeEvent;
+
+    //是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
+    bool m_bReplaceNewline;
 
     /** 设置允许的最大数字(仅当IsNumberOnly()为true的时候有效)
     */

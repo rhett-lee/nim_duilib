@@ -45,6 +45,10 @@ public:
     */
     virtual UiRect OnNativeGetSizeBox() const = 0;
 
+    /** 切换系统标题栏与自绘标题栏
+    */
+    virtual void OnNativeUseSystemCaptionBarChanged() = 0;
+
     /** 获取窗口标题栏区域（可拖动区域），对应 XML 中 caption 属性
     * @param [out] captionRect 返回标题栏区域的矩形范围(rcClient代表窗口的客户区矩形范围)：
     *              标题栏的left  : rcClient.left + rcCaption.left
@@ -89,10 +93,6 @@ public:
     */
     virtual void OnNativePostCloseWindow() = 0;
 
-    /** 切换系统标题栏与自绘标题栏
-    */
-    virtual void OnNativeUseSystemCaptionBarChanged() = 0;
-
     /** 准备绘制
     * @return 返回true表示继续绘制，返回false表示不再继续绘制
     */
@@ -106,6 +106,13 @@ public:
     * @param [in] pt 客户区坐标点
     */
     virtual Control* OnNativeFindControl(const UiPoint& pt) const = 0;
+
+    /** 请求设置窗口的分层窗口属性（从而支持透明度）
+    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
+    * @return 设置成功返回true，否则返回false
+    */
+    virtual bool OnNativeRequestSetLayeredWindow(bool bIsLayeredWindow, bool bRedraw) = 0;
 
 public:
     /** @name 窗口消息处理相关
@@ -137,6 +144,11 @@ public:
     * @param [in] fNewPixelDensity 新的窗口的像素密度值（仅SDL实现时使用）
     */
     virtual void OnNativeDisplayScaleChangedMsg(float fNewDisplayScale, float fNewPixelDensity) = 0;
+
+    /** 处理DWM服务变化的系统通知消息(WM_DWMCOMPOSITIONCHANGED)
+    * @param [in] bDwmCompositionEnabled true表示DWM服务开启，false表示DWM服务关闭
+    */
+    virtual void OnNativeDwmCompositionChangedMsg(bool bDwmCompositionEnabled) = 0;
 
     /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
     * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框

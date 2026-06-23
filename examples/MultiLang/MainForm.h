@@ -27,12 +27,6 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
-
-private:
-    /** 显示菜单
-    * @param [in] point 显示位置坐标，屏幕坐标
-    */
-    void ShowPopupMenu(const ui::UiPoint& point);
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

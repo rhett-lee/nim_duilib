@@ -27,8 +27,8 @@
 #include "duilib/Control/ColorControl.h"
 #include "duilib/Control/ColorSlider.h"
 #include "duilib/Control/ColorPickerRegular.h"
-#include "duilib/Control/ColorPickerStatard.h"
-#include "duilib/Control/ColorPickerStatardGray.h"
+#include "duilib/Control/ColorPickerStandard.h"
+#include "duilib/Control/ColorPickerStandardGray.h"
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Control/Line.h"
 #include "duilib/Control/IPAddress.h"
@@ -40,6 +40,7 @@
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/BitmapControl.h"
 #include "duilib/Control/AddressBar.h"
+#include "duilib/Control/MenuListBox.h"
 #include "duilib/Control/MenuBar.h"
 #include "duilib/Control/ChildWindow.h"
 
@@ -57,6 +58,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/FileUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
 #include <set>
@@ -71,8 +73,8 @@ WindowBuilder::WindowBuilder()
 
 WindowBuilder::~WindowBuilder()
 {
+    m_xml.reset();
 }
-
 
 Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Window* pWindow)
 {
@@ -100,6 +102,8 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_VTILE_SCROLLBOX, [](Window* pWindow) { return new VTileScrollBox(pWindow); }},
 
         {DUI_CTR_LISTBOX_ITEM, [](Window* pWindow) { return new ListBoxItem(pWindow); }},
+        {DUI_CTR_LISTBOX_ITEM_HBOX, [](Window* pWindow) { return new ListBoxItemH(pWindow); }},
+        {DUI_CTR_LISTBOX_ITEM_VBOX, [](Window* pWindow) { return new ListBoxItemV(pWindow); }},
         {DUI_CTR_HLISTBOX, [](Window* pWindow) { return new HListBox(pWindow); }},
         {DUI_CTR_VLISTBOX, [](Window* pWindow) { return new VListBox(pWindow); }},
         {DUI_CTR_HTILE_LISTBOX, [](Window* pWindow) { return new HTileListBox(pWindow); }},
@@ -146,12 +150,13 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_RICHTEXT_HBOX, [](Window* pWindow) { return new RichTextHBox(pWindow); }},
         {DUI_CTR_RICHTEXT_VBOX, [](Window* pWindow) { return new RichTextVBox(pWindow); }},
         {DUI_CTR_RICHEDIT, [](Window* pWindow) { return new RichEdit(pWindow); }},
+        {DUI_CTR_RICHEDIT2, [](Window* pWindow) { return new RichEdit2(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},
         {DUI_CTR_COLOR_PICKER_REGULAR, [](Window* pWindow) { return new ColorPickerRegular(pWindow); }},
-        {DUI_CTR_COLOR_PICKER_STANDARD, [](Window* pWindow) { return new ColorPickerStatard(pWindow); }},
-        {DUI_CTR_COLOR_PICKER_STANDARD_GRAY, [](Window* pWindow) { return new ColorPickerStatardGray(pWindow); }},
+        {DUI_CTR_COLOR_PICKER_STANDARD, [](Window* pWindow) { return new ColorPickerStandard(pWindow); }},
+        {DUI_CTR_COLOR_PICKER_STANDARD_GRAY, [](Window* pWindow) { return new ColorPickerStandardGray(pWindow); }},
         {DUI_CTR_COLOR_PICKER_CUSTOM, [](Window* pWindow) { return new ColorPickerCustom(pWindow); }},
         {DUI_CTR_LINE, [](Window* pWindow) { return new Line(pWindow); }},
         {DUI_CTR_IPADDRESS, [](Window* pWindow) { return new IPAddress(pWindow); }},
@@ -191,31 +196,9 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
     return pControl;
 }
 
-bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
-{
-    if (xmlFilePath.IsEmpty()) {
-        return false;
-    }
-    bool bExists = false;
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-        bExists = GlobalManager::Instance().Zip().IsZipResExist(sFile);
-    }
-    else {
-        if (xmlFilePath.IsAbsolutePath()) {
-            bExists = xmlFilePath.IsExistsFile();
-        }
-        else {
-            FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-            bExists = xmlFullPath.IsExistsFile();
-        }
-    }
-    return bExists;
-}
-
 bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xmlFilePath)
 {
-    ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
+    ASSERT(!xmlFileData.empty() && _T("xmlFileData is empty!"));
     if (xmlFileData.empty()) {
         return false;
     }
@@ -243,7 +226,7 @@ bool WindowBuilder::ParseXmlData(const DString& xmlFileData, const FilePath& xml
 
 bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, const FilePath& xmlFilePath)
 {
-    ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
+    ASSERT(!xmlFileData.empty() && _T("xmlFileData is empty!"));
     if (xmlFileData.empty()) {
         return false;
     }
@@ -262,47 +245,32 @@ bool WindowBuilder::ParseXmlData(const std::vector<unsigned char>& xmlFileData, 
 
 bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& windowResPath)
 {
-    ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
+    ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath is empty!"));
     if (xmlFilePath.IsEmpty()) {
         return false;
     }
+
     bool isLoaded = false;
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-        if (!windowResPath.IsEmpty() && !GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
-            //在窗口目录查找
-            sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
-            sFile = FilePathUtil::JoinFilePath(sFile, xmlFilePath);
-        }
-        std::vector<unsigned char> file_data;
-        if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
-            pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
+    FilePath xmlFileFullPath;
+    std::vector<uint8_t> xmlFileData;
+    const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+    if (themeMgr.GetResFile(xmlFilePath, windowResPath, xmlFileFullPath, xmlFileData)) {
+        if (!xmlFileData.empty()) {
+            pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.data(), xmlFileData.size());
             if (result.status != pugi::status_ok) {
                 ASSERT(!_T("WindowBuilder::ParseXmlFile load xml from zip data failed!"));
                 return false;
             }
             isLoaded = true;
         }
-    }
-    else {
-        FilePath xmlFileFullPath;
-        if (xmlFilePath.IsRelativePath()) {
-            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
-            if (!windowResPath.IsEmpty() && !xmlFileFullPath.IsExistsFile()) {
-                //在窗口目录查找
-                xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), windowResPath);
-                xmlFileFullPath = FilePathUtil::JoinFilePath(xmlFileFullPath, xmlFilePath);
+        else if (!xmlFileFullPath.IsEmpty()) {
+            pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
+            if (result.status != pugi::status_ok) {
+                ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
+                return false;
             }
+            isLoaded = true;
         }
-        else {
-            xmlFileFullPath = xmlFilePath;
-        }
-        pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
-        if (result.status != pugi::status_ok) {
-            ASSERT(!_T("WindowBuilder::ParseXmlFile load xml file failed!"));
-            return false;
-        }
-        isLoaded = true;
     }
     if (!isLoaded) {
         ASSERT(!_T("WindowBuilder::ParseXmlFile load xmlFilePath failed!"));
@@ -310,6 +278,29 @@ bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath, const FilePath& wi
     }
     m_xmlFilePath = xmlFilePath;
     return true;
+}
+
+std::string WindowBuilder::ReadXmlFileData(const FilePath& xmlFilePath, const FilePath& windowResPath) const
+{
+    ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath is empty!"));
+    if (xmlFilePath.IsEmpty()) {
+        return std::string();
+    }
+
+    std::string xmlFileString;
+    FilePath xmlFileFullPath;
+    std::vector<uint8_t> xmlFileData;
+    const ThemeManager& themeMgr = GlobalManager::Instance().Theme();
+    if (themeMgr.GetResFile(xmlFilePath, windowResPath, xmlFileFullPath, xmlFileData)) {
+        if (xmlFileData.empty() && !xmlFileFullPath.IsEmpty()) {
+            FileUtil::ReadFileData(xmlFileFullPath, xmlFileData);
+            
+        }
+        if (!xmlFileData.empty()) {
+            xmlFileString = std::string((const char*)xmlFileData.data(), xmlFileData.size());
+        }
+    }
+    return xmlFileString;
 }
 
 Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pCallback, Box* pParent, Box* pUserDefinedBox)
@@ -353,13 +344,8 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
 
     for (pugi::xml_node node : root.children()) {
         DString strClass = node.name();
-        if ( (strClass == _T("Image"))          ||
-             (strClass == _T("FontResource"))   ||
-             (strClass == _T("Font"))           ||
-             (strClass == _T("Class"))          ||
-             (strClass == _T("TextColor")) ) {
+        if (IsIgnoreNodeName(strClass)) {
             //忽略这几个属性
-
         }
         else {
             if (pUserDefinedBox == nullptr) {
@@ -383,7 +369,7 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
     return nullptr;
 }
 
-bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes)
+bool WindowBuilder::ParseWindowCreateAttributes(Window* pWindow, WindowCreateAttributes& createAttributes)
 {
     pugi::xml_node root = m_xml->root().first_child();
     ASSERT(!root.empty());
@@ -406,10 +392,11 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
     //窗口配置的size是否包含阴影
     bool bSizeContainShadow = false;
 
+    //XML文件中是否定义了分层窗口属性
+    bool bIsLayeredWindowDefined = false;
+
     //阴影相关参数
-    bool bShadowAttached = false;
-    bool bHasShadowAttached = false;
-    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowDefault;
+    ShadowType nShadowType = ShadowType::kShadowDefault;
     UiPadding rcShadowCorner;
 
     RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
@@ -427,7 +414,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             }
         }
         else if (strName == _T("use_system_caption")) {
-            createAttributes.m_bUseSystemCaption = (strValue == _T("true"));
+            createAttributes.m_bUseSystemCaption = (StringUtil::IsValueTrue(strValue));
             createAttributes.m_bUseSystemCaptionDefined = true;
         }
         else if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
@@ -439,18 +426,27 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             createAttributes.m_bCaptionDefined = true;
         }
         else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-            createAttributes.m_bShadowAttached = (strValue == _T("true"));
+            createAttributes.m_bShadowAttached = (StringUtil::IsValueTrue(strValue));
             createAttributes.m_bShadowAttachedDefined = true;
         }
+        else if (strName == _T("shadow_type")) {
+            //设置阴影类型
+            Shadow::GetShadowType(strValue, nShadowType);
+        }
+        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+            //设置窗口阴影的九宫格属性            
+            AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
+        }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
-            createAttributes.m_bIsLayeredWindow = (strValue == _T("true"));
+            createAttributes.m_bIsLayeredWindow = (StringUtil::IsValueTrue(strValue));
             createAttributes.m_bIsLayeredWindowDefined = true;
+            bIsLayeredWindowDefined = true;
         }
         else if (strName == _T("alpha")) {
             //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
             int32_t nAlpha = StringUtil::StringToInt32(strValue);
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+            if ((nAlpha >= 0) && (nAlpha < 255)) {
                 createAttributes.m_nLayeredWindowAlpha = (uint8_t)nAlpha;
                 createAttributes.m_bLayeredWindowAlphaDefined = true;
             }
@@ -459,7 +455,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
             const int32_t nAlpha = StringUtil::StringToInt32(strValue);
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
-            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+            if ((nAlpha >= 0) && (nAlpha < 255)) {
                 createAttributes.m_nLayeredWindowOpacity = (uint8_t)nAlpha;
                 createAttributes.m_bLayeredWindowOpacityDefined = true;
             }
@@ -470,7 +466,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         }
         else if (strName == _T("size_contain_shadow")) {
             //窗口配置的size是否包含阴影
-            bSizeContainShadow = (strValue == _T("true"));
+            bSizeContainShadow = (StringUtil::IsValueTrue(strValue));
         }
         else if ((strName == _T("min_size")) || (strName == _T("mininfo"))) {
             AttributeUtil::ParseSizeValue(strValue.c_str(), szMinSize);
@@ -482,29 +478,87 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             //期望的SDL Render的名称
             createAttributes.m_sdlRenderName = strValue;
         }
-        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-            //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
-            bShadowAttached = (strValue == _T("true"));
-            bHasShadowAttached = true;
+    }
+
+    //设置分层窗口的默认值
+    const bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
+    const bool bShadowAttached = !createAttributes.m_bShadowAttachedDefined || (createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached);
+    if (!createAttributes.m_bIsLayeredWindowDefined &&
+        !bUseSystemCaption &&
+        createAttributes.m_bLayeredWindowOpacityDefined) {
+        //使用Opacity属性，默认需要开启分层窗口
+        createAttributes.m_bIsLayeredWindowDefined = true;
+        createAttributes.m_bIsLayeredWindow = true;
+    }
+    else if (!createAttributes.m_bIsLayeredWindowDefined && bUseSystemCaption) {
+        //使用系统标题栏属性，默认不开启分层窗口
+        createAttributes.m_bIsLayeredWindowDefined = true;
+        createAttributes.m_bIsLayeredWindow = false;
+    }
+    if (!createAttributes.m_bIsLayeredWindowDefined && bShadowAttached && !bUseSystemCaption) {
+        //阴影启用
+        ShadowType shadowType = nShadowType;
+        if (shadowType == ShadowType::kShadowDefault) {
+            shadowType = Shadow::GetDefaultShadowType(pWindow);
         }
-        else if (strName == _T("shadow_type")) {
-            //设置阴影类型
-            Shadow::GetShadowType(strValue, nShadowType);
-        }
-        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
-            //设置窗口阴影的九宫格属性            
-            AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
+        if (Shadow::IsShadowTypeNeedLayeredWindow(shadowType)) {
+            //使用自绘阴影，默认需要开启分层窗口
+            createAttributes.m_bIsLayeredWindowDefined = true;
+            createAttributes.m_bIsLayeredWindow = true;
         }
     }
 
-    //评估阴影的九宫格属性
-    if (bHasShadowAttached && !bShadowAttached) {
+    //校验
+#ifdef _DEBUG
+    //使用系统标题栏时，不应该开启分层窗口属性
+    if (bUseSystemCaption) {
+        ASSERT(!createAttributes.m_bIsLayeredWindow);
+    }    
+    //使用Opacity属性时，应该开启分层窗口属性
+    if (createAttributes.m_bLayeredWindowOpacityDefined) {
+        ASSERT(createAttributes.m_bIsLayeredWindow);
+    }
+#endif
+
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //默认开启支持透明度(SDL在Windows系统中，未使用分层窗口属性)
+    if (!bIsLayeredWindowDefined) {
+        createAttributes.m_bIsLayeredWindowDefined = true;
+        createAttributes.m_bIsLayeredWindow = true;
+    }
+#endif
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (backendType == RenderBackendType::kNativeGL_BackendType) {
+        //使用OpenGL时，不能使用层窗口
+        if (!createAttributes.m_bLayeredWindowOpacityDefined &&
+            createAttributes.m_bIsLayeredWindowDefined && createAttributes.m_bIsLayeredWindow) {
+            ASSERT(!createAttributes.m_bIsLayeredWindow);
+            createAttributes.m_bIsLayeredWindow = false;
+        }
+    }
+#else
+    UNUSED_VARIABLE(backendType);
+#endif
+
+    //评估阴影的九宫格属性, 用于确定最终的窗口大小
+    if (createAttributes.m_bShadowAttachedDefined && !createAttributes.m_bShadowAttached) {
+        //阴影被禁用
         rcShadowCorner.Clear();
     }
-    else if (rcShadowCorner.IsEmpty()){
+    else if (rcShadowCorner.IsEmpty()) {
         UiSize szBorderRound;
         DString shadowImage;
-        Shadow::GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage);
+        if (pWindow != nullptr) {
+            bool bLayeredWindow = createAttributes.m_bIsLayeredWindowDefined && createAttributes.m_bIsLayeredWindow;
+            bool bOldLayeredWindow = pWindow->IsLayeredWindow();
+            pWindow->SetLayeredWindow(bLayeredWindow, false);
+            Shadow::GetShadowParam(pWindow, nShadowType, szBorderRound, rcShadowCorner, shadowImage);
+            pWindow->SetLayeredWindow(bOldLayeredWindow, false);
+        }
+        else {
+            Shadow::GetShadowParam(pWindow, nShadowType, szBorderRound, rcShadowCorner, shadowImage);
+        }
     }
     createAttributes.m_rcShadowCorner = rcShadowCorner;
 
@@ -555,18 +609,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         createAttributes.m_szInitSize.cx = cx;
         createAttributes.m_szInitSize.cy = cy;
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (backendType == RenderBackendType::kNativeGL_BackendType) {
-        //使用OpenGL时，不能使用层窗口
-        if (!createAttributes.m_bLayeredWindowOpacityDefined || (createAttributes.m_nLayeredWindowOpacity == 255)) {
-            if (createAttributes.m_bIsLayeredWindowDefined) {
-                createAttributes.m_bIsLayeredWindow = false;
-            }
-        }
-    }
-#else
-    UNUSED_VARIABLE(backendType);
-#endif
+
     return true;
 }
 
@@ -626,7 +669,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if (strName == _T("use_system_caption")) {
             knownNames.insert(strName);
-            pWindow->SetUseSystemCaption(strValue == _T("true"));
+            pWindow->SetUseSystemCaption(StringUtil::IsValueTrue(strValue));
         }
     }
     //窗口配置的size是否包含阴影
@@ -635,7 +678,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     //窗口阴影是否开启
     bool bShadowAttached = false;
     bool bHasShadowAttached = false;
-    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+    ShadowType nShadowType = ShadowType::kShadowDefault;
 
     //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
     for (pugi::xml_attribute attr : root.attributes()) {
@@ -655,11 +698,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if (strName == _T("snap_layout_menu")) {
             knownNames.insert(strName);
-            pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
+            pWindow->SetEnableSnapLayoutMenu(StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("sys_menu")) {
             knownNames.insert(strName);
-            pWindow->SetEnableSysMenu(strValue == _T("true"));
+            pWindow->SetEnableSysMenu(StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("sys_menu_rect")) {
             knownNames.insert(strName);
@@ -688,30 +731,22 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
             pWindow->SetRoundCorner(size.cx, size.cy, true);
         }
-        else if (strName == _T("alpha_fix_corner") || strName == _T("alphafixcorner")) {
-            knownNames.insert(strName);
-            UiRect rc;
-            AttributeUtil::ParseRectValue(strValue.c_str(), rc);
-            pWindow->SetAlphaFixCorner(rc, true);
-        }
         else if (strName == _T("size_contain_shadow")) {
             knownNames.insert(strName);
             //窗口配置的size是否包含阴影
-            bSizeContainShadow = (strValue == _T("true"));
+            bSizeContainShadow = (StringUtil::IsValueTrue(strValue));
         }
         else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
             knownNames.insert(strName);
             //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
-            bShadowAttached = (strValue == _T("true"));
+            bShadowAttached = (StringUtil::IsValueTrue(strValue));
             bHasShadowAttached = true;            
         }
         else if (strName == _T("shadow_type")) {
             knownNames.insert(strName);
             //设置阴影类型
-            Shadow::GetShadowType(strValue, nShadowType);
-            if ((nShadowType >= Shadow::ShadowType::kShadowFirst) &&
-                (nShadowType < Shadow::ShadowType::kShadowCount)) {
-                pWindow->SetShadowType((Shadow::ShadowType)nShadowType);
+            if (Shadow::GetShadowType(strValue, nShadowType)) {
+                pWindow->SetShadowType(nShadowType);
             }
         }
         else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
@@ -746,14 +781,12 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         else if (strName == _T("shadow_snap")) {
             knownNames.insert(strName);
             //设置阴影是否支持窗口贴边操作
-            pWindow->SetEnableShadowSnap(strValue == _T("true"));
+            pWindow->SetEnableShadowSnap(StringUtil::IsValueTrue(strValue));
         }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
             knownNames.insert(strName);
             //设置是否设置分层窗口属性（分层窗口还是普通窗口）
-            if (!pWindow->IsUseSystemCaption()) {
-                pWindow->SetLayeredWindow(strValue == _T("true"), false);
-            }
+            pWindow->SetLayeredWindow(StringUtil::IsValueTrue(strValue), false);
         }
         else if (strName == _T("alpha")) {
             knownNames.insert(strName);
@@ -766,13 +799,18 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if (strName == _T("drag_drop")) {
             knownNames.insert(strName);
-            pWindow->SetEnableDragDrop(strValue == _T("true"));
+            pWindow->SetEnableDragDrop(StringUtil::IsValueTrue(strValue));
         }
     }
 
     if (bHasShadowAttached) {
         //后设置，避免受到"shadow_type"的影响
-        pWindow->SetShadowAttached(bShadowAttached);
+        if (!bShadowAttached) {
+            pWindow->SetShadowAttached(bShadowAttached);
+        }
+        else if (!pWindow->IsUseSystemCaption()) {
+            pWindow->SetShadowAttached(bShadowAttached);
+        }
     }
 
     bool bScaledCX = false;
@@ -887,6 +925,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                     strClassName = strValue;
                 }
                 else {
+                    GlobalManager::Instance().ExpandVarStrings(strValue);
                     strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""), strName.c_str(), strValue.c_str()));
                 }
             }
@@ -898,7 +937,7 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                 m_windowClassList.push_back(strClassName);
             }
         }
-        else if (strClass == _T("TextColor")) {
+        else if ((strClass == _T("ThemeColor")) || (strClass == _T("TextColor"))) {
             DString strColorName;
             DString strColor;
             for (pugi::xml_attribute attr : node.attributes()) {
@@ -908,12 +947,13 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                     strColorName = strValue;
                 }
                 else if (strName == _T("value")) {
+                    GlobalManager::Instance().ExpandVarStrings(strValue);
                     strColor = strValue;
                 }
             }
             if (!strColorName.empty()) {
-                pWindow->AddTextColor(strColorName, strColor);
-                m_windowTextColorList.push_back(strColorName);
+                pWindow->AddThemeColor(strColorName, strColor);
+                m_windowThemeColorList.push_back(strColorName);
             }
         }
         else if (strClass == _T("Font")) {
@@ -923,8 +963,26 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
     }
 }
 
+/** 获取操作系统平台的字体属性名称
+*/
+static DString GetPlatformFontPropName()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return _T("windows");
+#elif defined DUILIB_BUILD_FOR_MACOS
+    return _T("macos");
+#elif defined DUILIB_BUILD_FOR_LINUX
+    return _T("linux");
+#elif defined DUILIB_BUILD_FOR_FREEBSD
+    return _T("freebsd");
+#else
+    return _T("value");
+#endif
+}
+
 void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
 {
+    const DString fontPropName = GetPlatformFontPropName();
     DString strClass;
     DString strName;
     DString strValue;
@@ -935,13 +993,28 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
             for (pugi::xml_attribute attr : node.attributes()) {
                 strName = attr.name();
                 strValue = attr.value();
-                if (strName == _T("value")) {
-                    defaultFontFamilyNames = strValue;
+                if (strName == fontPropName) {
+                    // 显式接收 ExpandVarStrings 的返回值，表达"使用展开后的字符串"的意图
+                    defaultFontFamilyNames = GlobalManager::Instance().ExpandVarStrings(strValue);
                     break;
                 }
             }
             if (!defaultFontFamilyNames.empty()) {
                 GlobalManager::Instance().Font().SetDefaultFontFamilyNames(defaultFontFamilyNames);
+            }
+        }
+        else if (strClass == _T("FallbackFontFamilyNames")) {
+            DString fallbackFontFamilyNames;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == fontPropName) {
+                    fallbackFontFamilyNames = GlobalManager::Instance().ExpandVarStrings(strValue);
+                    break;
+                }
+            }
+            if (!fallbackFontFamilyNames.empty()) {
+                GlobalManager::Instance().Font().SetFallbackFontFamilyNames(fallbackFontFamilyNames);
             }
         }
         else if (strClass == _T("FontFile")) {
@@ -959,6 +1032,7 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
                 }
             }
             if (!strFontFile.empty()) {
+                strFontFile = GlobalManager::Instance().ExpandVarStrings(strFontFile);
                 GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontDesc);
             }
         }
@@ -975,8 +1049,8 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
                     strClassName = strValue;
                 }
                 else {
-                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
-                        strName.c_str(), strValue.c_str()));
+                    GlobalManager::Instance().ExpandVarStrings(strValue);
+                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""), strName.c_str(), strValue.c_str()));
                 }
             }
             if (!strClassName.empty()) {
@@ -984,21 +1058,109 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
                 GlobalManager::Instance().AddClass(strClassName, strAttribute);
             }
         }
-        else if (strClass == _T("TextColor")) {
+        else if ((strClass == _T("ThemeColor")) || (strClass == _T("TextColor"))) {
             DString colorName = node.attribute(_T("name")).as_string();
             DString colorValue = node.attribute(_T("value")).as_string();
             if (!colorName.empty() && !colorValue.empty()) {
+                GlobalManager::Instance().ExpandVarStrings(colorValue);
                 ColorManager& colorManager = GlobalManager::Instance().Color();
                 colorManager.AddColor(colorName, colorValue);
-                if (colorName == _T("default_font_color")) {
+                if ((colorName == _T("text_default")) || (colorName == _T("default_font_color"))) {
                     colorManager.SetDefaultTextColor(colorName);
                 }
-                else if (colorName == _T("disabled_font_color")) {
+                else if ((colorName == _T("text_disabled")) || (colorName == _T("disabled_font_color"))) {
                     colorManager.SetDefaultDisabledTextColor(colorName);
                 }
             }
         }
+        else if (strClass == _T("Alias")) {
+            DString aliasName = node.attribute(_T("name")).as_string();
+            DString aliasValue = node.attribute(_T("value")).as_string();
+            GlobalManager::Instance().AddAlias(aliasName, aliasValue);
+        }
+        else if (strClass == _T("Var")) {
+            DString defineName = node.attribute(_T("name")).as_string();
+            DString defineValue = node.attribute(_T("value")).as_string();
+            GlobalManager::Instance().AddVar(defineName, defineValue);
+        }
+        else if (strClass == _T("Theme")) {
+            //跳过(主题名称，在其他地方解析)
+        }
     }
+}
+
+bool WindowBuilder::IsIgnoreNodeName(const DString& nodeName) const
+{
+    //这些是公共资源的标签名字，有些是旧名（已废弃）
+    if ((nodeName == _T("DefaultFontFamilyNames")) ||
+        (nodeName == _T("FallbackFontFamilyNames")) ||
+        (nodeName == _T("Font")) ||
+        (nodeName == _T("FontFile")) ||
+        (nodeName == _T("FontResource")) ||
+        (nodeName == _T("Class")) ||
+        (nodeName == _T("TextColor")) ||
+        (nodeName == _T("ThemeColor")) ||
+        (nodeName == _T("ThemeMeta")) ||
+        (nodeName == _T("Theme")) ||
+        (nodeName == _T("Alias")) ||
+        (nodeName == _T("Var"))) {
+        return true;
+    }
+    return false;
+}
+
+bool WindowBuilder::ParseThemeInfo(DString& themeName, DString& themeType, DString& themeStyle) const
+{
+    pugi::xml_node root = m_xml->root().first_child();
+    if (root.empty()) {
+        return false;
+    }
+    DString strClass = root.name();
+    if (strClass != _T("Global")) {
+        return false;
+    }
+    for (pugi::xml_node node : root.children()) {
+        strClass = node.name();
+        if (strClass == _T("Theme")) {
+            themeName = node.attribute(_T("name")).as_string();
+            themeType = node.attribute(_T("type")).as_string();
+            themeStyle = node.attribute(_T("style")).as_string();
+            return true;
+        }
+    }
+    return false;
+}
+
+bool WindowBuilder::ParseThemeColor(ColorManager& colorManager) const
+{
+    pugi::xml_node root = m_xml->root().first_child();
+    if (root.empty()) {
+        return false;
+    }
+    DString strClass = root.name();
+    if (strClass != _T("Global")) {
+        return false;
+    }
+    bool bRet = false;
+    for (pugi::xml_node node : root.children()) {
+        strClass = node.name();
+        if (strClass == _T("ThemeColor")) {
+            DString colorName = node.attribute(_T("name")).as_string();
+            DString colorValue = node.attribute(_T("value")).as_string();
+            if (!colorName.empty() && !colorValue.empty()) {
+                GlobalManager::Instance().ExpandVarStrings(colorValue);
+                colorManager.AddColor(colorName, colorValue);
+                if ((colorName == _T("text_default")) || (colorName == _T("default_font_color"))) {
+                    colorManager.SetDefaultTextColor(colorName);
+                }
+                else if ((colorName == _T("text_disabled")) || (colorName == _T("disabled_font_color"))) {
+                    colorManager.SetDefaultDisabledTextColor(colorName);
+                }
+                bRet = true;
+            }            
+        }
+    }
+    return bRet;
 }
 
 void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
@@ -1017,8 +1179,7 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
     for (pugi::xml_attribute attr : xmlNode.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == _T("id"))
-        {
+        if (strName == _T("id")) {
             strFontId = strValue;
         }
         else if (strName == _T("name")) {
@@ -1028,19 +1189,19 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode)
             size = StringUtil::StringToInt32(strValue);
         }
         else if (strName == _T("bold")) {
-            bold = (strValue == _T("true"));
+            bold = (StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("underline")) {
-            underline = (strValue == _T("true"));
+            underline = (StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("strikeout")) {
-            strikeout = (strValue == _T("true"));
+            strikeout = (StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("italic")) {
-            italic = (strValue == _T("true"));
+            italic = (StringUtil::IsValueTrue(strValue));
         }
         else if (strName == _T("default")) {
-            isDefault = (strValue == _T("true"));
+            isDefault = (StringUtil::IsValueTrue(strValue));
         }
     }
     if (!strFontName.empty() && !strFontId.empty()) {
@@ -1065,89 +1226,69 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
     Control* pReturn = nullptr;
     for (pugi::xml_node node : xmlNode.children()) {
         DString strClass = node.name();
-        if( (strClass == _T("DefaultFontFamilyNames")) ||
-            (strClass == _T("Font")) ||
-            (strClass == _T("FontFile"))  ||
-            (strClass == _T("Class")) || 
-            (strClass == _T("TextColor")) ) {
-                continue;
+        if(IsIgnoreNodeName(strClass)) {
+            //需要忽略的节点名称（一些全局属性等）
+            continue;
         }
-
-        Control* pControl = nullptr;
-        if (strClass == _T("Include")) {
-            if (node.attributes().empty()) {
-                continue;
-            }
-            pugi::xml_attribute countAttr = node.attribute(_T("count"));
-            int nCount = countAttr.as_int();
-            if (nCount <= 0) {
-                //默认值设置为1，count这个属性参数为可选
-                nCount = 1;
-            }
-            pugi::xml_attribute sourceAttr = node.attribute(_T("src"));
-            DString sourceValue = sourceAttr.as_string();
-            if (sourceValue.empty()) {
-                sourceAttr = node.attribute(_T("source"));
-                sourceValue = sourceAttr.as_string();                
-            }
-            FilePath sourceXmlFilePath(sourceValue);
-            if (!sourceValue.empty()) {
-                StringUtil::ReplaceAll(_T("/"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
-                StringUtil::ReplaceAll(_T("\\"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
-                if (!m_xmlFilePath.IsEmpty()) {
-                    //优先尝试在原XML文件相同目录加载
-                    DString xmlFilePath = m_xmlFilePath.NativePath();
-                    size_t pos = xmlFilePath.find_last_of(_T("\\/"));
-                    if (pos != DString::npos) {
-                        FilePath srcFilePath(xmlFilePath.substr(0, pos));
-                        srcFilePath.JoinFilePath(FilePath(sourceValue));
-                        if (IsXmlFileExists(srcFilePath)) {
-                            sourceXmlFilePath = srcFilePath;
-                        }
-                    }
-                }
-            }
-            ASSERT(!sourceXmlFilePath.IsEmpty());
-            if (sourceXmlFilePath.IsEmpty()) {
-                continue;
-            }
-            for ( int i = 0; i < nCount; i++ ) {
-                WindowBuilder builder;
-                FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
-                if (builder.ParseXmlFile(sourceXmlFilePath, windowResPath)) {
-                    pControl = builder.CreateControls(pWindow, m_createControlCallback, ToBox(pParent), nullptr);
-                }
-                else {
-                    pControl = nullptr;
-                }                
+        else if (strClass == _T("Include")) {
+            //Include节点
+            Control* pNewControl = ParseIncludeXmlNode(node, pParent, pWindow);
+            if ((pNewControl != nullptr) && (pReturn == nullptr)) {
+                pReturn = pNewControl;
             }
             continue;
         }
-        else {
-            pControl = CreateControlByClass(strClass, pWindow);
-            if (pControl == nullptr) {
-                if ((strClass == _T("Event")) || 
-                    (strClass == _T("BubbledEvent"))) {
-                    bool bBubbled = (strClass == _T("BubbledEvent"));
-                    AttachXmlEvent(bBubbled, node, pParent);
-                    continue;
-                }
+        else if (strClass == DUI_CTR_MENU_BAR_ITEM) {
+            //MenuBarItem节点
+            ParseMenuBarItemXmlNode(node, pParent, pWindow);
+            continue;
+        }
+        else if (strClass == _T("PropertyGridGroup")) {
+            //PropertyGridGroup节点
+            ParsePropertyGridGroupXmlNode(node, pParent, pWindow);
+            continue;
+        }
+        else if (strClass == _T("CheckComboText")) {
+            //CheckComboText节点
+            ParseCheckComboTextXmlNode(node, pParent, pWindow);
+            continue;
+        }
+        else if ((strClass == _T("ListCtrlHeaderItem")) || (strClass == _T("ListCtrlItem")) || (strClass == _T("ListCtrlSubItem"))) {
+            //ListCtrlHeaderItem/ListCtrlItem/ListCtrlSubItem节点
+            ParseListCtrlXmlNode(node, pParent, pWindow);
+            continue;
+        }
+ 
+        //根据Class名称直接窗口标准控件
+        Control* pControl = CreateControlByClass(strClass, pWindow);
+        if (pControl == nullptr) {
+            if ((strClass == _T("Event")) || 
+                (strClass == _T("BubbledEvent"))) {
+                //挂载XML事件
+                bool bBubbled = (strClass == _T("BubbledEvent"));
+                AttachXmlEvent(bBubbled, node, pParent);
+                continue;
             }
+        }
+        if( pControl == nullptr) {
+            //通过注册的控件函数来创建控件
+            pControl = GlobalManager::Instance().CreateControl(strClass);
+            if (pControl != nullptr) {
+                pControl->SetWindow(pWindow);
+            }
+        }
 
-            // User-supplied control factory
-            if( pControl == nullptr) {
-                pControl = GlobalManager::Instance().CreateControl(strClass);
-                if (pControl != nullptr) {
-                    pControl->SetWindow(pWindow);
-                }
+        if( pControl == nullptr && m_createControlCallback ) {
+            //通过外部回调函数创建控件
+            pControl = m_createControlCallback(strClass);
+            if (pControl != nullptr) {
+                pControl->SetWindow(pWindow);
             }
+        }
 
-            if( pControl == nullptr && m_createControlCallback ) {
-                pControl = m_createControlCallback(strClass);
-                if (pControl != nullptr) {
-                    pControl->SetWindow(pWindow);
-                }
-            }
+        if ((pControl == nullptr) && (strClass == DUI_CTR_MENU)) {
+            //菜单容器
+            pControl = new MenuListBox(pWindow);
         }
 
         if(pControl == nullptr) {
@@ -1156,82 +1297,385 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             continue;
         }
 
-        // TreeView相关必须先添加后解析
+        // TreeView相关必须先添加到容器，然后再解析子节点
+        bool bAddedToParentBox = false;
         if (strClass == DUI_CTR_TREENODE) {
-            bool bAdded = false;
             TreeNode* pNode = dynamic_cast<TreeNode*>(pControl);
             ASSERT(pNode != nullptr);
             TreeView* pTreeView = dynamic_cast<TreeView*>(pParent);
             if (pTreeView != nullptr) {
                 //一级子节点
                 pTreeView->GetRootNode()->AddChildNode(pNode);
-                bAdded = true;
+                bAddedToParentBox = true;
             }
             else {
                 //多级子节点
                 TreeNode* pTreeNode = dynamic_cast<TreeNode*>(pParent);
                 if (pTreeNode != nullptr) {
                     pTreeNode->AddChildNode(pNode);
-                    bAdded = true;
+                    bAddedToParentBox = true;
                 }
             }
-            if (!bAdded) {
+            if (!bAddedToParentBox) {
                 //尝试Combo控件
                 Combo* pCombo = dynamic_cast<Combo*>(pParent);
                 if (pCombo != nullptr) {
                     pCombo->GetTreeView()->GetRootNode()->AddChildNode(pNode);
-                    bAdded = true;
+                    bAddedToParentBox = true;
                 }
             }
-            ASSERT(bAdded);
+            ASSERT(bAddedToParentBox);
         }
-
+        else if ((strClass == DUI_CTR_PROPERTY_GRID) || (strClass == DUI_CTR_LISTCTRL)) {
+            //PropertyGrid/ListCtrl控件必须先添加到容器，然后再解析子节点
+            if (pParent != nullptr) {
+                Box* pContainer = dynamic_cast<Box*>(pParent);
+                ASSERT(pContainer != nullptr);
+                if (pContainer != nullptr) {
+                    bAddedToParentBox = pContainer->AddItem(pControl);
+                }
+            }
+        }
         pControl->SetWindow(pWindow);
         
         // Process attributes
         if(!node.attributes().empty()) {
             //读取节点的属性，设置控件的属性
-            int i = 0;
+            int32_t i = 0;
             for (pugi::xml_attribute attr : node.attributes()) {
                 ASSERT_UNUSED_VARIABLE(i == 0 || StringUtil::StringCompare(attr.name(), _T("class")) != 0);    //class必须是第一个属性
                 ++i;
                 pControl->SetAttribute(attr.name(), attr.value());
             }
         }
-
         if (strClass == DUI_CTR_RICHTEXT) {
             //节点为：<RichText></RichText>，解析其子节点为RichText内容
             ParseRichTextXmlNode(node, pControl);
         }
-        else {
-            // Add children
-            if (!node.children().empty()) {
-                //递归该节点的所有子节点，继续添加
-                ParseXmlNodeChildren(node, pControl, pWindow);
-            }
+        else if (!node.children().empty()) {
+            //递归该节点的所有子节点，继续添加
+            ParseXmlNodeChildren(node, pControl, pWindow);
         }
-
-        // Attach to parent
-        // 因为某些属性和父窗口相关，比如selected，必须先Add到父窗口
-        if (pParent != nullptr && strClass != DUI_CTR_TREENODE) {
+        //普通的控件或者容器，需要再最后添加到容器（不可以先添加到容器，否则部分控件的实现逻辑会存在问题，比如TabBox等带select功能的容器）
+        if ((pParent != nullptr) && !bAddedToParentBox) {
             Box* pContainer = dynamic_cast<Box*>(pParent);
             ASSERT(pContainer != nullptr);
-            if (pContainer == nullptr) {
-                return nullptr;
-            }
-            if( !pContainer->AddItem(pControl) ) {
-                ASSERT(0);
-                delete pControl;
-                continue;
+            if (pContainer != nullptr) {
+                if (!pContainer->AddItem(pControl)) {
+                    ASSERT(0);
+                    delete pControl;
+                    pControl = nullptr;
+                    continue;
+                }
+                else if ((strClass == DUI_CTR_LISTBOX_ITEM) ||
+                         (strClass == DUI_CTR_LISTBOX_ITEM_HBOX) ||
+                         (strClass == DUI_CTR_LISTBOX_ITEM_VBOX)) {
+                    //检查ListBoxItem
+                    if (!node.attributes().empty() && StringUtil::IsValueTrue(node.attribute(_T("selected")).as_string())) {
+                        //该列表项设置了选择selected属性
+                        ListBox* pListBox = dynamic_cast<ListBox*>(pContainer);
+                        if (pListBox != nullptr) {
+                            size_t nItemIndex = pListBox->GetItemIndex(pControl);
+                            if (nItemIndex != Box::InvalidIndex) {
+                                pListBox->SelectItem(nItemIndex, false, false);
+                            }
+                        }
+                    }
+                 }
             }
         }
-        
-        // Return first item
         if (pReturn == nullptr) {
             pReturn = pControl;
         }
     }
     return pReturn;
+}
+
+Control* WindowBuilder::ParseIncludeXmlNode(const pugi::xml_node& node, Control* pParent, Window* pWindow) const
+{
+    if (node.attributes().empty()) {
+        return nullptr;
+    }
+    pugi::xml_attribute countAttr = node.attribute(_T("count"));
+    int32_t nCount = countAttr.as_int();
+    if (nCount <= 0) {
+        //默认值设置为1，count这个属性参数为可选
+        nCount = 1;
+    }
+    pugi::xml_attribute sourceAttr = node.attribute(_T("src"));
+    DString sourceValue = sourceAttr.as_string();
+    if (sourceValue.empty()) {
+        sourceAttr = node.attribute(_T("source"));
+        sourceValue = sourceAttr.as_string();
+    }
+    const FilePath windowResPath = (pWindow != nullptr) ? pWindow->GetResourcePath() : FilePath();
+    FilePath sourceXmlFilePath(sourceValue);
+    if (!sourceValue.empty()) {
+        StringUtil::ReplaceAll(_T("/"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+        StringUtil::ReplaceAll(_T("\\"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+        if (!m_xmlFilePath.IsEmpty()) {
+            //优先尝试在原XML文件相同目录加载
+            DString xmlFilePath = m_xmlFilePath.ToString();
+            size_t pos = xmlFilePath.find_last_of(_T("\\/"));
+            if (pos != DString::npos) {
+                FilePath srcFilePath(xmlFilePath.substr(0, pos));
+                srcFilePath.JoinFilePath(FilePath(sourceValue));
+                if (GlobalManager::Instance().Theme().IsResFileExists(srcFilePath, windowResPath)) {
+                    sourceXmlFilePath = srcFilePath;
+                }
+            }
+        }
+    }
+    ASSERT(!sourceXmlFilePath.IsEmpty());
+    if (sourceXmlFilePath.IsEmpty()) {
+        return nullptr;
+    }
+    Control* pReturn = nullptr;
+    Box* pParentBox = ToBox(pParent);
+    for (int32_t i = 0; i < nCount; i++) {
+        WindowBuilder builder;
+        if (builder.ParseXmlFile(sourceXmlFilePath, windowResPath)) {
+            Control* pControl = builder.CreateControls(pWindow, m_createControlCallback, pParentBox, nullptr);
+            if ((pParentBox != nullptr) && (pControl != nullptr)) {
+                ASSERT(pParentBox->GetItemIndex(pControl) != Box::InvalidIndex);
+            }
+            if (pReturn == nullptr) {
+                pReturn = pControl;
+            }
+        }
+    }
+    return pReturn;
+}
+
+void WindowBuilder::ParseMenuBarItemXmlNode(const pugi::xml_node& node, Control* pParent, Window* /*pWindow*/) const
+{
+    MenuBar* pMenuBar = dynamic_cast<MenuBar*>(pParent);
+    ASSERT((pMenuBar != nullptr) && !node.attributes().empty());
+    if ((pMenuBar == nullptr) || node.attributes().empty()) {
+        return;
+    }
+
+    DString menuItemId = node.attribute(_T("id")).as_string();
+    DString menuText = node.attribute(_T("text")).as_string();
+    DString menuTextId = node.attribute(_T("text_id")).as_string();
+    DString menuXmlPath = node.attribute(_T("xml_path")).as_string();
+    ASSERT(!menuText.empty() || !menuTextId.empty());
+    if (menuText.empty() && menuTextId.empty()) {
+        return;
+    }
+
+    if (menuXmlPath.empty()) {
+        pugi::xml_node menuNode = node.child(_T("Menu"));
+        if (!menuNode.empty()) {
+            struct xml_string_writer : pugi::xml_writer {
+                DString result;
+                virtual void write(const void* data, size_t size) override {
+                    std::string utf8(static_cast<const char*>(data), size);
+                    result.append(StringConvert::UTF8ToT(utf8));
+                }
+            };
+            xml_string_writer writer;
+            menuNode.print(writer, _T("    "), pugi::format_default);
+            menuXmlPath = _T("<Window shadow_type = \"menu_round\" shadow_border_size = \"1\" shadow_border_color = \"border_window\">");
+            menuXmlPath += writer.result;
+            menuXmlPath += _T("</Window>");
+        }
+    }
+    pMenuBar->AddTopMenu(menuItemId, menuText, menuTextId, menuXmlPath);
+}
+
+void WindowBuilder::ParsePropertyGridGroupXmlNode(const pugi::xml_node& node, Control* pParent, Window* /*pWindow*/) const
+{
+    PropertyGrid* pPropertyGrid = dynamic_cast<PropertyGrid*>(pParent);
+    ASSERT((pPropertyGrid != nullptr) && !node.attributes().empty());
+    if ((pPropertyGrid == nullptr) || node.attributes().empty()) {
+        return;
+    }
+    PropertyGridGroup* pPropertyGridGroup = nullptr;
+    DString name = node.attribute(_T("name")).as_string();
+    DString groupName = node.attribute(_T("group_name")).as_string();
+    DString groupNameId = node.attribute(_T("group_name_id")).as_string();
+    DString groupDescription = node.attribute(_T("description")).as_string();
+    if (!groupNameId.empty()) {
+        pPropertyGridGroup = pPropertyGrid->AddGroupById(groupNameId, groupDescription);
+    }
+    else {
+        pPropertyGridGroup = pPropertyGrid->AddGroup(groupName, groupDescription);
+    }
+    ASSERT(pPropertyGridGroup != nullptr);
+    if (pPropertyGridGroup == nullptr) {
+        return;
+    }
+    if (!name.empty()) {
+        pPropertyGridGroup->SetName(name);
+    }
+
+    for (pugi::xml_node childNode : node.children()) {
+        DString strClass = childNode.name();
+        DString propName = childNode.attribute(_T("name")).as_string();
+        DString propNameId = childNode.attribute(_T("name_id")).as_string();
+        DString propValue = childNode.attribute(_T("value")).as_string();
+        DString propValueId = childNode.attribute(_T("value_id")).as_string();
+        DString propDescription = childNode.attribute(_T("description")).as_string();
+        DString propMargin = childNode.attribute(_T("margin")).as_string();
+        DString propPadding = childNode.attribute(_T("padding")).as_string();
+        PropertyGridProperty* pProperty = nullptr;
+        if (strClass == _T("PropertyGridTextProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddTextPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddTextProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridComboProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddComboPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddComboProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridFontProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddFontPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddFontProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridFontSizeProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddFontSizePropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddFontSizeProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridColorProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddColorPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddColorProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridDateTimeProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddDateTimePropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddDateTimeProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridIPAddressProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddIPAddressPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddIPAddressProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridHotKeyProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddHotKeyPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddHotKeyProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridFileProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddFilePropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddFileProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        else if (strClass == _T("PropertyGridDirectoryProperty")) {
+            if (!propNameId.empty()) {
+                pProperty = pPropertyGrid->AddDirectoryPropertyById(pPropertyGridGroup, propNameId, propValueId.empty() ? propValue : propValueId, propDescription, 0, !propValueId.empty());
+            }
+            else {
+                pProperty = pPropertyGrid->AddDirectoryProperty(pPropertyGridGroup, propName, propValue, propDescription);
+            }
+        }
+        if (pProperty != nullptr) {
+            if (!propName.empty()) {
+                pProperty->SetName(propName);
+            }
+            if (!propMargin.empty()) {
+                pProperty->SetAttribute(_T("margin"), propMargin);
+            }
+            if (!propPadding.empty()) {
+                pProperty->SetAttribute(_T("padding"), propPadding);
+            }
+        }
+    }
+}
+
+void WindowBuilder::ParseCheckComboTextXmlNode(const pugi::xml_node& node, Control* pParent, Window* /*pWindow*/) const
+{
+    CheckCombo* pCheckCombo = dynamic_cast<CheckCombo*>(pParent);
+    ASSERT((pCheckCombo != nullptr) && !node.attributes().empty());
+    if ((pCheckCombo == nullptr) || node.attributes().empty()) {
+        return;
+    }
+
+    DString text = node.attribute(_T("text")).as_string();
+    DString textId = node.attribute(_T("text_id")).as_string();
+    DString selected = node.attribute(_T("selected")).as_string();
+    if (text.empty() && textId.empty()) {
+        return;
+    }
+    if (!textId.empty()) {
+        pCheckCombo->AddTextIdItem(textId);
+        if (StringUtil::IsValueTrue(selected)) {
+            pCheckCombo->SelectTextIdItem(textId, true);
+        }
+    }
+    else {
+        pCheckCombo->AddTextItem(text);
+        if (StringUtil::IsValueTrue(selected)) {
+            pCheckCombo->SelectTextItem(text, true);
+        }
+    }
+}
+
+void WindowBuilder::ParseListCtrlXmlNode(const pugi::xml_node& node, Control* pParent, Window* /*pWindow*/) const
+{
+    ListCtrl* pListCtrl = dynamic_cast<ListCtrl*>(pParent);
+    ASSERT((pListCtrl != nullptr) && !node.attributes().empty());
+    if ((pListCtrl == nullptr) || node.attributes().empty()) {
+        return;
+    }
+
+    DString strClass = node.name();
+    if (strClass == _T("ListCtrlHeaderItem"))  {
+        //ListCtrlHeaderItem节点
+        ListCtrlColumn column;
+        column.text = node.attribute(_T("text")).as_string();
+        column.textId = node.attribute(_T("text_id")).as_string();
+        column.nColumnWidth = node.attribute(_T("width")).as_int();
+        if (column.nColumnWidth <= 0) {
+            column.nColumnWidth = 100;
+        }
+        pListCtrl->InsertColumn(-1, column);
+    }
+    else if (strClass == _T("ListCtrlItem")) {
+        //ListCtrlItem节点: 添加一行
+        ListCtrlSubItemData dataItem;
+        dataItem.text = node.attribute(_T("text")).as_string();
+        pListCtrl->AddDataItem(dataItem);
+    }
+    else if (strClass == _T("ListCtrlSubItem")) {
+        //ListCtrlSubItem节点
+        int32_t nItemIndex = node.attribute(_T("item_index")).as_int();
+        int32_t nColumnIndex = node.attribute(_T("column_index")).as_int();
+        ListCtrlSubItemData subItem;
+        subItem.text = node.attribute(_T("text")).as_string();
+        pListCtrl->SetSubItemData((size_t)nItemIndex, (size_t)nColumnIndex, subItem);
+    }
 }
 
 bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pControl)
@@ -1472,9 +1916,9 @@ const std::vector<DString>& WindowBuilder::GetWindowClassList() const
     return m_windowClassList;
 }
 
-const std::vector<DString>& WindowBuilder::GetWindowTextColorList() const
+const std::vector<DString>& WindowBuilder::GetWindowThemeColorList() const
 {
-    return m_windowTextColorList;
+    return m_windowThemeColorList;
 }
 
 const std::vector<DString>& WindowBuilder::GetGlobalFontIdList() const

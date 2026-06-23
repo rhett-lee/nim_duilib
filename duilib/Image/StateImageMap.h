@@ -33,9 +33,9 @@ public:
     */
     DString GetImageString(StateImageType stateImageType, ControlStateType stateType) const;
 
-    /** 是否含有Hot状态的图片
+    /** 是否含有Hovered状态的图片
     */
-    bool HasHotImage() const;
+    bool HasHoveredImage() const;
 
     /** 是否状态图片
     */

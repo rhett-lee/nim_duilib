@@ -84,7 +84,7 @@ DString DragWindow::GetSkinFile()
 {
     return _T("<?xml version = \"1.0\" encoding=\"utf-8\"?>")
            _T("<Window size=\"90,90\" shadow_snap=\"false\">")
-           _T("    <VBox width=\"stretch\" height=\"stretch\" visible=\"true\" bkcolor=\"white\"/>")
+           _T("    <VBox width=\"stretch\" height=\"stretch\" visible=\"true\" bkcolor=\"bg_window_card\"/>")
            _T("</Window>");
 }
 
