@@ -426,8 +426,17 @@ bool ThemeManager::GetZipThemePathList(const FilePath& themeRootPath,
         temp = StringUtil::MakeLowerString(temp);
         themePathSet.insert(temp);
     }
+    FilePath innerThemeRootPath = themeRootPath;
+    innerThemeRootPath.NormalizeDirectoryPath();
     std::vector<DString> dirList;
-    GlobalManager::Instance().Zip().GetZipFileList(themeRootPath, nullptr, &dirList);
+    GlobalManager::Instance().Zip().GetZipFileList(innerThemeRootPath, nullptr, &dirList);
+    for (DString& dirName : dirList) {
+        // 删除目录中的分隔符
+        size_t nPos = dirName.find(_T("/"));
+        if (nPos != DString::npos) {
+            dirName = dirName.substr(0, nPos);
+        }
+    }
     for (const DString& dirName : dirList) {
         FilePath localPath(dirName);
         if (!themePathSet.empty()) {
@@ -504,6 +513,20 @@ bool ThemeManager::GetResFileData(const FilePath& resFilePath,
     if (pResFileData != nullptr) {
         pResFileData->clear();
     }
+    // 缓存 ZipManager 引用，避免频繁获取单例
+    ZipManager& zipMgr = GlobalManager::Instance().Zip();
+    const bool bUseZip = zipMgr.IsUseZip();
+    // 如果启用 ZIP 模式，且传入的本身就是 ZIP 内完整有效路径
+    if (bUseZip && zipMgr.IsZipResExist(resFilePath)) {
+        // 如果需要读取数据且读取失败，则视为文件获取失败
+        if (pResFileData != nullptr && !zipMgr.GetZipData(resFilePath, *pResFileData)) {
+            return false;
+        }
+        if (pResFileFullPath != nullptr) {
+            *pResFileFullPath = resFilePath;
+        }
+        return true; // 直接返回成功
+    }
     bool bFileExists = false;
     FilePath sFile;
     std::vector<FilePath> resFileSearchPathList;
@@ -577,15 +600,9 @@ void ThemeManager::GetResFileSearchPath(const FilePath& windowResPath, std::vect
         tempPath /= themeDir;
         resFileSearchPathList.push_back(tempPath);
     }
-    auto iter = resFileSearchPathList.begin();
-    while (iter != resFileSearchPathList.end()) {
-        if (iter->IsExistsDirectory()) {
-            ++iter;
-        }
-        else {
-            iter = resFileSearchPathList.erase(iter);
-        }
-    }
+
+    // 需要检查目录是否存在
+    CheckResSearchPathList(resFileSearchPathList);
 }
 
 void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
@@ -701,9 +718,27 @@ void ThemeManager::GetResFileSearchPathEx(const FilePath& windowResPath,
         }
     }
 
+    // 需要检查目录是否存在
+    CheckResSearchPathList(resFileSearchPathList);
+}
+
+void ThemeManager::CheckResSearchPathList(std::vector<FilePath>& resFileSearchPathList) const
+{
+    // 需要检查目录是否存在
     auto iter = resFileSearchPathList.begin();
     while (iter != resFileSearchPathList.end()) {
-        if (iter->IsExistsDirectory()) {
+        bool bExistsDirectory = true;
+        if (GlobalManager::Instance().Zip().IsUseZip()) {
+            // 使用Zip压缩包时, 目录需要确保以分隔符为结尾，否则找不到
+            FilePath innerDirName = *iter;
+            innerDirName.NormalizeDirectoryPath();
+            bExistsDirectory = GlobalManager::Instance().Zip().IsZipResExist(innerDirName);
+        }
+        else {
+            // 使用本地文件系统时
+            bExistsDirectory = iter->IsExistsDirectory();
+        }
+        if (bExistsDirectory) {
             ++iter;
         }
         else {

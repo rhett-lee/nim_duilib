@@ -39,7 +39,12 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
     if (rsc == nullptr) {
         return false;
     }
-    uint8_t* pData = (uint8_t*)::LoadResource(hModule, rsc);
+
+    HGLOBAL hGlobal = ::LoadResource(hModule, rsc);
+    if (hGlobal == nullptr) {
+        return false;
+    }
+    uint8_t* pData = reinterpret_cast<uint8_t*>(::LockResource(hGlobal));
     uint32_t nDataSize = ::SizeofResource(hModule, rsc);
     ASSERT((pData != nullptr) && (nDataSize > 0));
     if ((pData == nullptr) || (nDataSize == 0)) {
@@ -290,16 +295,17 @@ bool ZipManager::GetZipFileList(const FilePath& dirPath,
             size_t nPos = fileName.find(innerPath);
             if ((nPos == 0) && (fileName.size() > innerPath.size())) {
                 fileName = fileName.substr(innerPath.size());
-                if (fileName.find(_T('/')) == DString::npos) {
-                    if (!bDir) {
-                        if (fileList != nullptr) {
-                            fileList->push_back(fileName);
-                        }
+                size_t nSep = fileName.find(_T('/'));
+                if (nSep == DString::npos) {
+                    //文件
+                    if (!bDir && (fileList != nullptr)) {
+                        fileList->push_back(fileName);
                     }
-                    else {
-                        if (dirList != nullptr) {
-                            dirList->push_back(fileName);
-                        }
+                }
+                else {
+                    //目录
+                    if (bDir && (dirList != nullptr) && nSep == (fileName.size() - 1)) {
+                        dirList->push_back(fileName);
                     }
                 }
             }

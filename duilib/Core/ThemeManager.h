@@ -266,6 +266,10 @@ private:
                            const FilePath& themePath,
                            ThemeInfo& themeInfo) const;
 
+    /** 检查资源搜索路径，确保目录存在
+    */
+    void CheckResSearchPathList(std::vector<FilePath>& resFileSearchPathList) const;
+
 private:
     /** 主题资源的根目录
      *  当使用zip文件时，为相对路径，格式示例："resources/themes"
