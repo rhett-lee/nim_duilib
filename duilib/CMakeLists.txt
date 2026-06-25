@@ -4,15 +4,20 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
 endif()
 
+message(STATUS "current platform: ${CMAKE_SYSTEM_NAME}")
+
+set(DUILIB_ROOT ${PROJECT_SOURCE_DIR})
+
+message(STATUS "DUILIB_ROOT: ${DUILIB_ROOT}")
 # duilib
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 if("${DUILIB_MD}" STREQUAL "ON")
     # MD/MDd
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Debug>:MultiThreadedDebugDLL>$<$<CONFIG:Release>:MultiThreadedDLL>")
 else()
     # MT/MTd
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "$<$<CONFIG:Debug>:MultiThreadedDebug>$<$<CONFIG:Release>:MultiThreaded>")
 endif()
 # duilib end
 
@@ -56,13 +61,15 @@ endif()
 
 # Set include directories
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
+get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/skia/" ABSOLUTE)
+get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/SDL/" ABSOLUTE)
 
 # Always include these directories
 include_directories(${DUILIB_SRC_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
+include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/duilib/third_party/libpng)
 
 # Conditionally include CEF directory
 if(CEF_LIB_DIR AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
@@ -235,11 +242,11 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     find_package(Freetype REQUIRED)
     find_package(Fontconfig REQUIRED)
-    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+    add_library(${PROJECT_NAME} STATIC ${LIBRARY_SOURCES})
     target_link_libraries(${PROJECT_NAME} Freetype::Freetype Fontconfig::Fontconfig)
 else()
     # Create the library with the filtered sources
-    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+    add_library(${PROJECT_NAME} STATIC ${LIBRARY_SOURCES})
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -308,3 +315,9 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE ${DUILIB_COMPILER_FLAGS})
     target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${DUILIB_CXX_COMPILER_FLAGS}>)
 endif()
+
+add_subdirectory(third_party)
+
+force_set_folder_recursive("${CMAKE_CURRENT_SOURCE_DIR}/third_party" "third_party")
+
+add_dependencies(duilib duilib-cximage png_static zlibstatic)

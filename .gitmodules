@@ -1,0 +1,7 @@
+[submodule "duilib/third_party/skia"]
+	path = duilib/third_party/skia
+	url = https://github.com/wangqiangcc/skia_nim_duilib.git
+[submodule "duilib/third_party/SDL"]
+	path = duilib/third_party/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = release-3.4.x

@@ -31,7 +31,10 @@ get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../"
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../zlib)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../zlib ${CMAKE_CURRENT_BINARY_DIR}/../libpng)
+
+# 允许 cximage 访问 libpng 内部结构（兼容旧代码）
+add_definitions(-DPNG_ALLOW_PRIVATE_ACCESS)
 
 set(CXIMAGE_HDRS
     xfile.h

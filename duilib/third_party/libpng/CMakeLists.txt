@@ -139,9 +139,16 @@ message(STATUS "Building for target architecture: ${PNG_TARGET_ARCHITECTURE}")
 # duilib: please build zlib first
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
 set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
-set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/duilib/lib/libduilib-zlib.a")
+if(MSVC)
+    set(ZLIB_LIBRARY_DEBUG "${DUILIB_SRC_ROOT_DIR}/lib/debug/duilib-zlib.lib")
+    set(ZLIB_LIBRARY_RELEASE "${DUILIB_SRC_ROOT_DIR}/lib/release/duilib-zlib.lib")
+else()
+    set(ZLIB_LIBRARY_DEBUG "${DUILIB_SRC_ROOT_DIR}/lib/debug/libduilib-zlib.a")
+    set(ZLIB_LIBRARY_RELEASE "${DUILIB_SRC_ROOT_DIR}/lib/release/libduilib-zlib.a")
+endif()
 message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
-message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
+message(STATUS "ZLIB_LIBRARY_DEBUG: ${ZLIB_LIBRARY_DEBUG}")
+message(STATUS "ZLIB_LIBRARY_RELEASE: ${ZLIB_LIBRARY_RELEASE}")
 # duilib end
 
 # Allow the users to specify a custom location of zlib.
@@ -158,7 +165,17 @@ if(PNG_BUILD_ZLIB)
 endif()
 
 # Find the zlib library.
-find_package(ZLIB REQUIRED)
+# duilib: use our static zlib directly, do not find system zlib
+if(NOT TARGET ZLIB::ZLIB)
+    add_library(ZLIB::ZLIB STATIC IMPORTED)
+endif()
+set_target_properties(ZLIB::ZLIB PROPERTIES
+    IMPORTED_LOCATION_DEBUG "${ZLIB_LIBRARY_DEBUG}"
+    IMPORTED_LOCATION_RELEASE "${ZLIB_LIBRARY_RELEASE}"
+    IMPORTED_LOCATION_MINSIZEREL "${ZLIB_LIBRARY_RELEASE}"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${ZLIB_LIBRARY_RELEASE}"
+    INTERFACE_INCLUDE_DIRECTORIES "${ZLIB_ROOT}"
+)
 set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
 
 # Find the math library (unless we already know it's not available or

@@ -242,7 +242,8 @@ if(ZLIB_BUILD_STATIC)
 # duilib
     set_target_properties(
         zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
-                                                     ${DUILIB_ZLIB_OUTPUT_NAME})
+                                                     ${DUILIB_ZLIB_OUTPUT_NAME}
+                                                     DEBUG_POSTFIX "")
 # duilib end
 endif(ZLIB_BUILD_STATIC)
 
