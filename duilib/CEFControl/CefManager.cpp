@@ -339,7 +339,7 @@ void CefManager::GetCefSetting(CefSettings& settings)
     if (!appDataRootDir.empty()) {
         const DString cachePath = appDataRootDir + _T("CefLocalStorage");
         CefString(&settings.cache_path) = cachePath;
-        CefString(&settings.root_cache_path) = cachePath;
+        CefString(&settings.root_cache_path) = appDataRootDir;
     }
 
     //设置日志级别
