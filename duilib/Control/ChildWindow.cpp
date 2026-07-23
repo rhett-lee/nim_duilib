@@ -176,14 +176,15 @@ void ChildWindow::RegisterWindowCallbacks(Window* pWindow)
     if ((pWindow == nullptr) || !pWindow->IsWindow()) {
         return;
     }
-    pWindow->AttachWindowMoveMsg([this, pWindow](const EventArgs&) {
-        if (GetWindow() == pWindow) {
+    std::weak_ptr<WeakFlag> windowFlag = this->GetWeakFlag();//避免this失效，导致回调函数中出粗
+    pWindow->AttachWindowMoveMsg([this, pWindow, windowFlag](const EventArgs&) {
+        if (!windowFlag.expired() && GetWindow() == pWindow) {
             AdjustChildWindowPos();
         }
         return true;
         }, m_callbackID);
-    pWindow->AttachWindowPosChangedMsg([this, pWindow](const EventArgs&) {
-        if (GetWindow() == pWindow) {
+    pWindow->AttachWindowPosChangedMsg([this, pWindow, windowFlag](const EventArgs&) {
+        if (!windowFlag.expired() && GetWindow() == pWindow) {
             AdjustChildWindowPos();
         }
         return true;
