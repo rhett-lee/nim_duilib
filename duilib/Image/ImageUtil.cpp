@@ -170,7 +170,7 @@ bool ImageUtil::ResizeImageData(const uint8_t* pPixelBits, size_t nPixelBitsLen,
         int output_w = (int)nNewWidth;
         int output_h = (int)nNewHeight;
         int output_stride_in_bytes = 0;
-        stbir_pixel_layout num_channels = STBIR_RGBA;
+        stbir_pixel_layout num_channels = STBIR_RGBA_PM;
         unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
                                                           output_pixels, output_w, output_h, output_stride_in_bytes,
                                                           num_channels);
