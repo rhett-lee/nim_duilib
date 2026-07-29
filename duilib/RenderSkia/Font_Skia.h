@@ -5,6 +5,8 @@
 
 #include "duilib/Render/IRender.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 class SkFont;
 
 namespace ui 
@@ -65,5 +67,7 @@ private:
 };
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif // UI_RENDER_GDIPLUS_FONT_GDI_H_

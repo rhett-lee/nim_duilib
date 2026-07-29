@@ -5,6 +5,8 @@
 
 #include "duilib/Render/IRender.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 class SkPath;
 
 namespace ui 
@@ -57,5 +59,7 @@ private:
 };
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif // UI_RENDER_SKIA_PATH_H_

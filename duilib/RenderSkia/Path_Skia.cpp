@@ -1,5 +1,7 @@
 #include "Path_Skia.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #pragma warning (push)
 #pragma warning (disable: 4244 4201)
 
@@ -214,3 +216,5 @@ SkPath* Path_Skia::GetSkPath() const
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

@@ -5,6 +5,8 @@
 
 #include "duilib/Render/IRender.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 //Skia相关类的前置声明
 class SkBitmap;
 
@@ -118,5 +120,7 @@ private:
 };
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif // UI_RENDER_SKIA_BITMAP_H_

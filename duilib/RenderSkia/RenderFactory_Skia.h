@@ -5,6 +5,8 @@
 
 #include "duilib/Render/IRender.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 class SkFontMgr;
 
 namespace ui 
@@ -36,5 +38,7 @@ private:
 };
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif // UI_RENDER_SKIA_RENDER_FACTORY_H_

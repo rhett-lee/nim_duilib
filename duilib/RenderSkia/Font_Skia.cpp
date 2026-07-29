@@ -1,4 +1,7 @@
 #include "Font_Skia.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "RenderFactory_Skia.h"
 #include "duilib/Utils/StringUtil.h"
 
@@ -94,3 +97,4 @@ const SkFont* Font_Skia::GetFontHandle()
 
 } // namespace ui
 
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

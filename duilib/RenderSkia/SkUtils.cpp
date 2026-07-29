@@ -5,6 +5,9 @@
  * found in the LICENSE file.
  */
 #include "SkUtils.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "include/private/base/SkTFitsIn.h"
 #include "include/private/base/SkMath.h"
 #include "include/private/base/SkAlign.h"
@@ -430,3 +433,5 @@ int SkUTF32_CountUnichars(const void* text, size_t byteLength) {
 }
 
 } //namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

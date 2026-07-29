@@ -1,5 +1,7 @@
 #include "Bitmap_Skia.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #pragma warning (push)
 #pragma warning (disable: 4244 4201)
 
@@ -257,3 +259,5 @@ const SkBitmap& Bitmap_Skia::GetSkBitmap() const
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

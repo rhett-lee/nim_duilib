@@ -1,4 +1,7 @@
 #include "RenderFactory_Skia.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/Render_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
@@ -77,3 +80,5 @@ SkFontMgr* RenderFactory_Skia::GetSkFontMgr()
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

@@ -6,6 +6,8 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/Callback.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 //Skia相关类的前置声明
 class SkCanvas;
 struct SkPoint;
@@ -188,5 +190,7 @@ private:
 };
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif // UI_RENDER_SKIA_RENDER_H_

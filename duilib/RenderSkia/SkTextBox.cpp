@@ -6,6 +6,9 @@
  */
 
 #include "SkTextBox.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "SkUtils.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkFontMetrics.h"
@@ -1022,3 +1025,5 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 //    std::u32string textUTF32 = U"UTF32: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj 中文字符串";
 //    test_breakText(textUTF32.c_str(), textUTF32.size() * 4, SkTextEncoding::kUTF32);
 //}
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

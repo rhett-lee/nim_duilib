@@ -5,6 +5,7 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Render/RenderConfig.h"
 
 namespace ui 
 {

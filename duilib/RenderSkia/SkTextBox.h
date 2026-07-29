@@ -8,6 +8,10 @@
 #ifndef UI_RENDER_SKIA_SK_TEXT_BOX_H_
 #define UI_RENDER_SKIA_SK_TEXT_BOX_H_
 
+#include "duilib/Render/RenderConfig.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #pragma warning (push)
 #pragma warning (disable: 4244 4267)
 #include "include/core/SkCanvas.h"
@@ -212,5 +216,7 @@ public:
 };
 
 } //namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif //UI_RENDER_SKIA_SK_TEXT_BOX_H_

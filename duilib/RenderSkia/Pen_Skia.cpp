@@ -1,5 +1,7 @@
 #include "Pen_Skia.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 namespace ui {
 
 Pen_Skia::Pen_Skia(UiColor color, int width /*= 1*/):
@@ -100,3 +102,5 @@ IPen::DashStyle Pen_Skia::GetDashStyle() const
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

@@ -1,5 +1,7 @@
 #include "Matrix_Skia.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #pragma warning (push)
 #pragma warning (disable: 4244)
 #include "include/core/SkMatrix.h"
@@ -33,3 +35,5 @@ void Matrix_Skia::RotateAt(float angle, const UiPoint& center)
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

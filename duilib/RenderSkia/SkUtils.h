@@ -8,6 +8,10 @@
 #ifndef UI_RENDER_SKIA_SK_UTILS_H_
 #define UI_RENDER_SKIA_SK_UTILS_H_
 
+#include "duilib/Render/RenderConfig.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "include/core/SkTypes.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/core/SkUtils.h
@@ -113,5 +117,7 @@ namespace SkHexadecimalDigits {
 }
 
 }// namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
 
 #endif //UI_RENDER_SKIA_SK_UTILS_H_

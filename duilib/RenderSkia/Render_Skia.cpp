@@ -1,4 +1,7 @@
 #include "Render_Skia.h"
+
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
@@ -2006,3 +2009,5 @@ void Render_Skia::ReleaseDC(HDC hdc)
 
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)

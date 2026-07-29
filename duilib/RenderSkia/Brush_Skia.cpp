@@ -1,5 +1,7 @@
 #include "Brush_Skia.h"
 
+#if (duilib_kRenderType == duilib_kRenderType_Skia)
+
 namespace ui {
 
 Brush_Skia::Brush_Skia(UiColor color):
@@ -23,3 +25,5 @@ UiColor Brush_Skia::GetColor() const
 }
 
 } // namespace ui
+
+#endif //#if (duilib_kRenderType == duilib_kRenderType_Skia)
