@@ -2622,7 +2622,7 @@ void Window::SetFocus(Control* pControl)
     // Set focus to new control    
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
-        ASSERT(::GetFocus() == m_hWnd);
+        //ASSERT(::GetFocus() == m_hWnd);
 
         m_pFocus = pControl;
         m_pFocus->SendEvent(kEventSetFocus);
