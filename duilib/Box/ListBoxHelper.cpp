@@ -109,7 +109,7 @@ void ListBoxHelper::PaintFrameSelection(IRender* pRender)
     int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
     if (m_nNormalItemTop > 0) {
         if (top < m_nNormalItemTop) {
-            top = (int64_t)m_nNormalItemTop - m_pListBox->Dpi().GetScaleInt(4);
+            top = (int64_t)m_nNormalItemTop;
         }
         if (bottom < m_nNormalItemTop) {
             bottom = m_nNormalItemTop;
