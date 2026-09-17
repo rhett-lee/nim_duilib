@@ -181,10 +181,10 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
             y = 0;
             break;
         case kCenter_SpacingAlign:
-            y = SkScalarHalf(height - textHeight);
+            y = (height - textHeight) * 0.5f;
             if (y < 0) {
                 //如果居中对齐绘制区域不足，那么按照可显示的文字进行居中对齐
-                y = SkScalarHalf(height - fontHeight);
+                y = (height - fontHeight) * 0.5f;
             }
             break;
         case kEnd_SpacingAlign:
@@ -219,7 +219,7 @@ SkScalar SkTextBox::Visit(Visitor& visitor) const
                                                                nullptr, &paint, fallbackFontCreator, measureTempData);
                 if (textAlign == kCenter_Align) {
                     //横向：中对齐
-                    x = boxRect.fLeft + SkScalarHalf(marginWidth - textWidth);
+                    x = boxRect.fLeft + (marginWidth - textWidth) * 0.5f;
                     if (x < boxRect.fLeft) {
                         x = boxRect.fLeft;
                     }
