@@ -1303,7 +1303,7 @@ bool NativeWindow_Windows::SetWindowIconByIcoFile(const FilePath& iconFilePath)
         ASSERT(hIcon != nullptr);
     }    
     if (hIcon != nullptr) {
-        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
+        ::PostMessage(m_hWnd, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hIcon);
     }
     else {
         return false;
@@ -1317,7 +1317,7 @@ bool NativeWindow_Windows::SetWindowIconByIcoFile(const FilePath& iconFilePath)
         ASSERT(hIcon != nullptr);
     }
     if (hIcon != nullptr) {
-        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+        ::PostMessage(m_hWnd, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hIcon);
     }
     else {
         return false;
@@ -1331,8 +1331,8 @@ bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileDat
     HICON hSmallIcon = nullptr;
     HICON hBigIcon = nullptr;
     if (CreateIconsFromData(iconFileData, iconFileName, uDpiScaleFactor, &hSmallIcon, &hBigIcon)) {
-        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hBigIcon);
-        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hSmallIcon);
+        ::PostMessage(m_hWnd, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hBigIcon);
+        ::PostMessage(m_hWnd, WM_SETICON, (WPARAM)ICON_SMALL, (LPARAM)hSmallIcon);
         return true;
     }
     return false;
