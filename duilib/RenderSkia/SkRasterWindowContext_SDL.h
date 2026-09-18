@@ -9,7 +9,7 @@
 
 #include "include/core/SkSurface.h"
 #include "include/core/SkCanvas.h"
-#include "src/base/SkAutoMalloc.h"
+#include "src/core/SkAutoMalloc.h"
 #include "tools/window/RasterWindowContext.h"
 
 // DisplayParams.fGrContextOptions 类型为GrContextOptions:
