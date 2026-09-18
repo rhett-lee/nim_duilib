@@ -144,7 +144,7 @@ if not exist ".\skia\.git" (
     exit /b 1
 )
 
-set SKIA_PATCH_SRC_ZIP=skia. 2026-09-16.src.zip
+set SKIA_PATCH_SRC_ZIP=skia.2026-09-16.src.zip
 if not exist ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" (
     echo ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" not found!
     cd /d %CURRENT_DIR%
