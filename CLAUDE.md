@@ -84,6 +84,7 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 - XML事件: `docs/XmlEvents.md`
 - XML节点名: `docs/XmlNode.md`
 - LLM详细参考: `.claude/docs/nim-duilib-llm-reference.md`
+- WorkBuddy 用法: `WORKBUDDY.md`（含 WorkBuddy Skill 部署位置与首次拉取源码后的依赖库预编译步骤；两份文档需保持一致）
 
 ## 编码规范
 - 字符串使用 `DString` 类型，字面量用 `_T("...")` 宏包裹

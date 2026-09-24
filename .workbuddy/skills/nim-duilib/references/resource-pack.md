@@ -1,0 +1,223 @@
+# 资源打包与部署
+
+## 三种资源加载模式
+
+### 模式 1：本地文件夹（开发时推荐）
+
+```cpp
+// 推荐：跨平台，自动适配 Windows(exe 同目录 resources/) 与 macOS bundle(Resources/)
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+```
+
+（`ui::FilePathUtil::GetCurrentModuleDirectory()` + 手工拼 `"resources\\"` 只在 Windows 下碰巧能用，
+在 Linux/macOS 上分隔符不对，不要照抄。）
+
+目录结构：
+
+```
+MyApp.exe
+resources/
+├── themes/default/
+│   ├── global.xml
+│   ├── public/...
+│   └── my_app/...
+├── themes/color_light/global.xml    # 必须：语义色值
+├── themes/color_dark/global.xml     # 必须：语义色值
+├── fonts/...
+└── lang/...
+```
+
+### 模式 2：ZIP 压缩包（发布时推荐）
+
+```cpp
+ui::ZipFileResParam resParam;
+resParam.resourcePath = _T("resources\\");     // ZIP 内的相对路径
+resParam.zipFilePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+resParam.zipFilePath += _T("resources.zip");   // ZIP 文件路径
+resParam.zipPassword = _T("");                 // 可选密码
+ui::GlobalManager::Instance().Startup(resParam);
+```
+
+发布文件：
+
+```
+MyApp.exe
+resources.zip        # 包含 resources/ 目录结构
+```
+
+### 模式 3：嵌入 EXE 资源（单文件发布，仅 Windows）
+
+```cpp
+#include "resource.h"
+
+ui::ResZipFileResParam resParam;
+resParam.resourcePath = _T("resources\\");
+resParam.hResModule = nullptr;                        // nullptr = 当前EXE
+resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);   // 资源ID
+resParam.resourceType = _T("THEME");                  // 资源类型名
+resParam.zipPassword = _T("");
+ui::GlobalManager::Instance().Startup(resParam);
+```
+
+## 实现单 EXE 发布（模式 3 详细步骤）
+
+### 步骤 1：创建 resource.h
+
+```cpp
+// resource.h
+#ifndef RESOURCE_H_
+#define RESOURCE_H_
+
+#define IDR_THEME  101
+
+#endif // RESOURCE_H_
+```
+
+### 步骤 2：创建 .rc 资源文件
+
+```rc
+// MyApp.rc
+#include "resource.h"
+IDR_THEME  THEME  "..\\..\\bin\\resources.zip"
+```
+
+**注意**：路径是相对于 .rc 文件的位置。
+
+### 步骤 3：制作 resources.zip
+
+使用 7-Zip 打包（推荐参数，确保 UTF-8 文件名）：
+
+```bash
+cd bin
+7z a -tzip -mcu=on resources.zip resources/
+```
+
+**ZIP 要求：**
+
+- 压缩算法：仅支持 Deflate（不支持 Deflate64）
+- 文件名编码：UTF-8（7-Zip 用 `-mcu=on` 参数）
+- 密码加密：仅支持 ZipCrypto（ZIP 传统加密）
+
+### 步骤 4：在 MainThread 中切换加载模式
+
+```cpp
+bool MainThread::OnInit()
+{
+#ifdef NDEBUG
+    // Release：使用嵌入 EXE 的 ZIP 资源
+    ui::ResZipFileResParam resParam;
+    resParam.resourcePath = _T("resources\\");
+    resParam.hResModule = nullptr;
+    resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
+    resParam.resourceType = _T("THEME");
+    resParam.zipPassword = _T("");
+    ui::GlobalManager::Instance().Startup(resParam);
+#else
+    // Debug：使用本地文件夹（方便修改和调试）
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+#endif
+
+    // 创建窗口...
+    return true;
+}
+```
+
+### 步骤 5：添加 .rc 到工程
+
+- Visual Studio：右键项目 → 添加 → 现有项 → 选择 .rc 文件
+- CMakeLists.txt：
+
+```cmake
+# Windows 平台添加资源文件
+if(WIN32)
+    target_sources(MyApp PRIVATE MyApp.rc)
+endif()
+```
+
+## 打包清单：应该包含什么
+
+### 必须打包的资源
+
+```
+resources/
+├── themes/
+│   ├── default/
+│   │   ├── global.xml                # 必须：样式 Class、字体、兼容别名
+│   │   ├── public/                   # 必须（按目录整体复制，不要照抄数字）
+│   │   │   ├── button/               # 窗口按钮 SVG
+│   │   │   ├── caption/              # 标题栏图标
+│   │   │   ├── checkbox/             # 复选框图标
+│   │   │   ├── combo/                # 下拉框图标
+│   │   │   ├── option/               # 单选按钮图标
+│   │   │   ├── scrollbar01/          # 滚动条资源
+│   │   │   ├── scrollbar02/          # 滚动条资源
+│   │   │   ├── shadow/               # 窗口阴影
+│   │   │   ├── slider/               # 滑块资源
+│   │   │   ├── tooltip/              # 提示框
+│   │   │   ├── tree/                 # 树控件图标
+│   │   │   ├── menu/                 # 菜单资源
+│   │   │   ├── progress/             # 进度条
+│   │   │   ├── animation/            # 加载动画 JSON
+│   │   │   └── ...
+│   │   └── my_app/                   # 应用 XML 和图片
+│   │       ├── main_form.xml
+│   │       └── ...
+│   ├── color_light/                  # ★ 必须：浅色主题色值 (global.xml)
+│   └── color_dark/                   # ★ 必须：深色主题色值 (global.xml)
+├── fonts/                            # 可选：自定义字体
+└── lang/                             # 可选：多语言文件
+```
+
+> **★ 颜色主题目录是运行期必需资源，漏掉会导致整个界面没有颜色。**
+> `GlobalManager::Startup()` 会按系统深浅色模式自动加载 `themes/color_light/` 或 `themes/color_dark/`
+> 下的 `global.xml`（`ResourceParam.h:39/43` 定义目录名，`GlobalManager.cpp:518-524` 执行切换，
+> `ThemeManager::GetSystemColorThemePath()` 决定用哪一个）。语义色名（如 `text_default`、`bg_window_main`）
+> 都来自这两个目录，而不是 `themes/default/global.xml`。
+>
+> 完整溯源：`GlobalManager::Startup()` → `resParam.colorThemePath`（为空则跟随系统）→
+> `Theme().SwitchColorTheme()`；运行时可用 `Window::OpenColorTheme(_T("color_dark"))` 切换。
+
+### 严禁打包的内容
+
+| 不要打包 | 原因 |
+|---------|------|
+| themes/default/basic/ | 示例程序目录 |
+| themes/default/controls/ | 示例程序目录 |
+| themes/default/layout/ | 示例程序目录 |
+| themes/default/render/ | 示例程序目录 |
+| themes/default/chat/ | 示例程序目录 |
+| themes/default/cef/ | 示例程序目录 |
+| themes/default/cef_browser/ | 示例程序目录 |
+| themes/default/webview2/ | 示例程序目录 |
+| themes/default/webview2_browser/ | 示例程序目录 |
+| themes/default/list_box/ | 示例程序目录 |
+| themes/default/list_ctrl/ | 示例程序目录 |
+| themes/default/tree_view/ | 示例程序目录 |
+| themes/default/rich_edit/ | 示例程序目录 |
+| themes/default/color_theme/ | 示例程序目录 |
+| themes/default/dpi_aware/ | 示例程序目录 |
+| themes/default/move_control/ | 示例程序目录 |
+| themes/default/threads/ | 示例程序目录 |
+| themes/default/virtual_list_box/ | 示例程序目录 |
+| themes/default/child_window/ | 示例程序目录 |
+| themes/default/xml_preview/ | 示例程序目录 |
+| themes/default/MultiLang/ | 示例程序目录 |
+| bin/*.exe, bin/*.dll | 编译产物 |
+| bin/bin.zip | 编译产物压缩包 |
+
+**规则：只打包 `themes/default/global.xml` + `themes/default/public/` + `themes/color_light/` +
+`themes/color_dark/` + 应用自己的目录 + `fonts/`(可选) + `lang/`(可选)**
+（示例程序目录按上表全部排除；`themes/theme_test/` 是测试用主题，同样不要打包）
+
+## 跨平台注意事项
+
+| 平台 | 支持的资源模式 |
+|------|--------------|
+| Windows | 本地文件 / ZIP文件 / 嵌入EXE(单文件) |
+| Linux | 本地文件 / ZIP文件 |
+| macOS | 本地文件 / ZIP文件 |
+| FreeBSD | 本地文件 / ZIP文件 |
+
+macOS/Linux 不支持嵌入EXE模式（无 Windows RC 资源机制），发布时使用 ZIP 文件模式。
