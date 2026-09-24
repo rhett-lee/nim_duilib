@@ -1,5 +1,5 @@
 ---
-name: nim-create-window
+name: nim-duilib-create-window
 description: 创建 nim_duilib 新窗口（生成 C++ 窗口类 + XML 布局文件 + 更新主线程）
 trigger: 当用户要求创建新窗口、新窗体、新对话框、新界面时触发
 ---
@@ -25,6 +25,7 @@ trigger: 当用户要求创建新窗口、新窗体、新对话框、新界面�
 
 #include "duilib/duilib.h"
 
+// 基类 ui::WindowImplBase 声明在 duilib/Utils/WinImplBase.h（文件名不带 Window 前缀）
 class <FormName> : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
@@ -78,16 +79,16 @@ void <FormName>::OnInitWindow()
         layered_window="true" alpha="255" size_box="4,4,4,4"
         icon="../public/caption/logo.ico">
     <VBox bkcolor="bk_wnd_darkcolor">
-        <!-- 标题栏 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <!-- 标题栏：name 必须用 window_title_bar + btn_window_*（旧名仅兼容 fallback） -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Label text="<窗口标题>" margin="12,0,0,0" valign="center" normal_text_color="white"/>
             <Control />
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false"/>
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2"/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
         <!-- 内容区域 -->
         <Box padding="12,12,12,12">

@@ -7,22 +7,22 @@
 ### 窗口模板
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" min_size="80,60"
+<Window size="800,600" min_size="240,100"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
         shadow_type="default" shadow_attached="true"
         layered_window="true" alpha="255" size_box="4,4,4,4"
         icon="../public/caption/logo.ico">
   <VBox bkcolor="bk_wnd_darkcolor">
-    <!-- 标题栏 -->
-    <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+    <!-- 标题栏（name 必须是 window_title_bar；旧名 window_caption_bar 仅为兼容 fallback） -->
+    <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
       <Control />
-      <Button class="btn_wnd_min_11" name="minbtn" height="32" width="40" margin="0,2,0,2"/>
+      <Button class="btn_wnd_min_11" name="btn_window_min" height="32" width="40" margin="0,2,0,2"/>
       <Box height="stretch" width="40" margin="0,2,0,2">
-        <Button class="btn_wnd_max_11" name="maxbtn" height="32" width="stretch"/>
-        <Button class="btn_wnd_restore_11" name="restorebtn" height="32" width="stretch" visible="false"/>
+        <Button class="btn_wnd_max_11" name="btn_window_max" height="32" width="stretch"/>
+        <Button class="btn_wnd_restore_11" name="btn_window_restore" height="32" width="stretch" visible="false"/>
       </Box>
-      <Button class="btn_wnd_close_11" name="closebtn" height="stretch" width="40"/>
+      <Button class="btn_wnd_close_11" name="btn_window_close" height="stretch" width="40"/>
     </HBox>
     <!-- 内容区域 -->
     <Box>
@@ -98,16 +98,16 @@
 | Progress | Label | 进度条 |
 | Slider | Progress | 滑块 |
 | CircleProgress | Progress | 圆形进度条 |
-| DateTime | Label | 日期时间选择器 |
-| TreeView | VListBox | 树形控件 |
-| TreeNode | Box | 树节点 |
+| DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
+| TreeView | ListBox | 树形控件 |
+| TreeNode | ListBoxItem | 树节点 |
 | ListCtrl | VBox | 列表控件(Report/List/Icon视图) |
-| PropertyGrid | VListBox | 属性网格 |
+| PropertyGrid | VBox | 属性网格 |
 | HyperLink | Label | 超级链接 |
 | Line | Control | 画线控件 |
-| Split / SplitBox | Control/Box | 分隔条 |
+| Split / SplitBox | Control/Box | 分隔条（`SplitTemplate<Control>` / `SplitTemplate<Box>`） |
 | ScrollBar | Control | 滚动条 |
-| TabCtrl | HBox | 标签页控件 |
+| TabCtrl | ListBox | 标签页控件 |
 | IPAddress | HBox | IP地址输入 |
 | HotKey | HBox | 热键输入 |
 | GroupBox/GroupVBox/GroupHBox | Box | 分组容器 |
@@ -214,19 +214,44 @@
 ## 四、全局资源 (global.xml)
 
 ### 字体定义
+`<Font>` 命名规则为 `<字体类型>_<样式>_<字号>`，可选样式：regular / bold / underline / italic /
+strikeout / fullstyle（四者全开），字号支持 12/14/16/18/20/22。`default="true"` 的字体为默认字体。
+
 ```xml
-<DefaultFontFamilyNames value="微软雅黑,宋体"/>
-<Font id="system_12" name="system" size="12"/>
+<DefaultFontFamilyNames windows="Microsoft YaHei, SimSun" macos="PingFang SC" linux="Noto Sans CJK SC"/>
+<Font id="system_regular_14" name="system" size="14" default="true"/>   <!-- 默认字体 -->
 <Font id="system_bold_14" name="system" size="14" bold="true"/>
-<FontFile file="RobotoMono-Regular.ttf" desc="Roboto Mono常规"/>
+<FontFile file="fonts/RobotoMono-Regular.ttf" desc="Roboto Mono常规"/>  <!-- 字体文件放在 resources/fonts/ -->
 ```
+旧 ID（`system_12` ~ `system_22`，无样式段）仍保留作兼容别名，新代码请用 `system_<样式>_<字号>`。
 
 ### 颜色定义
+颜色**不要**在 `themes/default/global.xml` 里写死数值：该文件的 `<ThemeColor>` 已迁移到
+`bin/resources/themes/color_light/global.xml`（浅色）与 `color_dark/global.xml`（深色），
+由框架在运行时按当前主题加载。`themes/default/global.xml` 中只剩下**旧名→新名的 `<Alias>` 映射**。
+
 ```xml
-<TextColor name="default_font_color" value="#FF333333"/>
-<TextColor name="bk_wnd_darkcolor" value="#FF2B2B2B"/>
+<!-- 自定义颜色：写在 bin/resources/themes/color_light/global.xml 的 <Global> 内 -->
+<ThemeColor name="my_brand_color" value="#FF1890FF" type="common"
+            category="bg_color" role="neutral" comment_cn="品牌色"/>
 ```
 颜色格式: "#AARRGGBB"(ARGB) 或 "#RRGGBB"(RGB) 或颜色名(Blue/Red/White...)
+
+常用语义色（浅色主题实际取值，取自 `color_light/global.xml`）与兼容别名:
+
+| global.xml 语义色名 | 浅色取值 | 兼容别名（旧名） | 用途 |
+|------|------|------|------|
+| bg_window_main | #FFF4F4F4 | bk_wnd_darkcolor | 窗口主背景 |
+| bg_container | #FFF9F9F9 | bk_wnd_lightcolor | 容器背景 |
+| bg_titlebar | #FFEAEAEA | - | 标题栏背景 |
+| bg_list_item_hovered | #FFEAEAEA | bk_listitem_hovered | 列表项悬浮 |
+| bg_list_item_selected | #FFE2E2E2 | bk_listitem_selected | 列表项选中 |
+| bg_menu_item_hovered | #FFEBEBEB | bk_menuitem_hovered | 菜单项悬浮 |
+| text_default | #FF1A1A1A | default_font_color | 主文本 |
+| text_disabled | #B3343434 | disabled_font_color | 禁用文本 |
+| border_split_level1 | #FFE7E7E7 | splitline_level1 | 分割线 |
+
+完整的颜色清单与命名规范见 `docs/ThemeColor.md`。深色主题取值不同，**写业务 XML 时一律用语义色名，不要写死色值**。
 
 ### 通用样式(Class)
 ```xml
@@ -305,6 +330,7 @@
 #define MY_FORM_H_
 #include "duilib/duilib.h"
 
+// WindowImplBase 声明在 duilib/Utils/WinImplBase.h（文件名不带 Window 前缀）
 class MyForm : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
@@ -343,7 +369,8 @@ public:
     MainThread();
     virtual ~MainThread() override;
 private:
-    virtual void OnInit() override;
+    // 注意：FrameworkThread::OnInit() 返回 bool（FrameworkThread.h:122），不是 void
+    virtual bool OnInit() override;
     virtual void OnCleanup() override;
 };
 
@@ -354,16 +381,16 @@ private:
 MainThread::MainThread() : FrameworkThread(_T("MainThread"), ui::kThreadUI) {}
 MainThread::~MainThread() {}
 
-void MainThread::OnInit()
+bool MainThread::OnInit()
 {
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     MyForm* window = new MyForm();
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyApp"), true));
     window->PostQuitMsgWhenClosed(true);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
 }
 
 void MainThread::OnCleanup()
@@ -448,8 +475,8 @@ void MyForm::OnInitWindow()
     ui::ListBox* list = dynamic_cast<ui::ListBox*>(FindControl(_T("my_list")));
     if (list) {
         list->AttachSelect([this](const ui::EventArgs& args) {
-            size_t newIndex = args.wParam;
-            size_t oldIndex = args.lParam;
+            const size_t newIndex = static_cast<size_t>(args.wParam); // wParam 实际类型是 WPARAM
+            const size_t oldIndex = static_cast<size_t>(args.lParam); // lParam 实际类型是 LPARAM
             return true;
         });
     }
@@ -560,5 +587,7 @@ ui::UiBind(this, [this]() {
 - 窗口XML: `bin/resources/themes/default/<skin_folder>/<skin_file>.xml`
 - 公共图片: `bin/resources/themes/default/public/`
 - 字体文件: `bin/resources/fonts/`
-- 语言文件: `bin/resources/themes/default/lang/` (zh_CN.txt, en_US.txt)
+- 语言文件: `bin/resources/lang/`（`zh_CN.txt` / `en_US.txt`，示例中另有 `zh_CN-public.txt`、`zh_CN-examples.txt` 等）
+  **注意**：语言文件在 **`bin/resources/lang/`**，**不在** `themes/default/lang/`
+- 主题色定义: `bin/resources/themes/color_light/global.xml`（浅色）/ `bin/resources/themes/color_dark/global.xml`（深色）
 - 示例源码: `examples/<example_name>/`

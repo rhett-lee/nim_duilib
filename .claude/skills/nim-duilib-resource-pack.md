@@ -9,10 +9,12 @@ description: nim_duilib 资源打包与部署（ZIP打包、嵌入EXE、单文�
 
 ### 模式 1：本地文件夹（开发时推荐）
 ```cpp
-ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-resourcePath += _T("resources\\");
+// 推荐：跨平台，自动适配 Windows(exe 同目录 resources/) 与 macOS bundle(Resources/)
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```
+（`ui::FilePathUtil::GetCurrentModuleDirectory()` + 手工拼 `"resources\\"` 只在 Windows 下碰巧能用，
+在 Linux/macOS 上分隔符不对，不要照抄。）
 目录结构：
 ```
 MyApp.exe
@@ -21,6 +23,8 @@ resources/
 │   ├── global.xml
 │   ├── public/...
 │   └── my_app/...
+├── themes/color_light/global.xml    # 必须：语义色值
+├── themes/color_dark/global.xml     # 必须：语义色值
 ├── fonts/...
 └── lang/...
 ```
@@ -101,8 +105,7 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(resParam);
 #else
     // Debug：使用本地文件夹（方便修改和调试）
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 #endif
 
@@ -125,30 +128,42 @@ endif()
 ### 必须打包的资源
 ```
 resources/
-├── themes/default/
-│   ├── global.xml                  # 必须
-│   ├── public/                     # 必须（全部 133 个文件）
-│   │   ├── button/                 # 窗口按钮 SVG
-│   │   ├── caption/                # 标题栏图标
-│   │   ├── checkbox/               # 复选框图标
-│   │   ├── combo/                  # 下拉框图标
-│   │   ├── option/                 # 单选按钮图标
-│   │   ├── scrollbar01/            # 滚动条资源
-│   │   ├── scrollbar02/            # 滚动条资源
-│   │   ├── shadow/                 # 窗口阴影
-│   │   ├── slider/                 # 滑块资源
-│   │   ├── tooltip/                # 提示框
-│   │   ├── tree/                   # 树控件图标
-│   │   ├── menu/                   # 菜单资源
-│   │   ├── progress/               # 进度条
-│   │   ├── animation/              # 加载动画 JSON
-│   │   └── ...
-│   └── my_app/                     # 你的应用 XML 和图片
-│       ├── main_form.xml
-│       └── ...
-├── fonts/                          # 可选：自定义字体
-└── lang/                           # 可选：多语言文件
+├── themes/
+│   ├── default/
+│   │   ├── global.xml                # 必须：样式 Class、字体、兼容别名
+│   │   ├── public/                   # 必须（约 144 个文件，按目录整体复制，不要照抄数字）
+│   │   │   ├── button/               # 窗口按钮 SVG
+│   │   │   ├── caption/              # 标题栏图标
+│   │   │   ├── checkbox/             # 复选框图标
+│   │   │   ├── combo/                # 下拉框图标
+│   │   │   ├── option/               # 单选按钮图标
+│   │   │   ├── scrollbar01/          # 滚动条资源
+│   │   │   ├── scrollbar02/          # 滚动条资源
+│   │   │   ├── shadow/               # 窗口阴影
+│   │   │   ├── slider/               # 滑块资源
+│   │   │   ├── tooltip/              # 提示框
+│   │   │   ├── tree/                 # 树控件图标
+│   │   │   ├── menu/                 # 菜单资源
+│   │   │   ├── progress/             # 进度条
+│   │   │   ├── animation/            # 加载动画 JSON
+│   │   │   └── ...
+│   │   └── my_app/                   # 你的应用 XML 和图片
+│   │       ├── main_form.xml
+│   │       └── ...
+│   ├── color_light/                  # ★ 必须：浅色主题色值 (global.xml)
+│   └── color_dark/                   # ★ 必须：深色主题色值 (global.xml)
+├── fonts/                            # 可选：自定义字体
+└── lang/                             # 可选：多语言文件
 ```
+
+> **★ 颜色主题目录是运行期必需资源，漏掉会导致整个界面没有颜色。**
+> `GlobalManager::Startup()` 会按系统深浅色模式自动加载 `themes/color_light/` 或 `themes/color_dark/`
+> 下的 `global.xml`（`ResourceParam.h:39/43` 定义目录名，`GlobalManager.cpp:518-524` 执行切换，
+> `ThemeManager::GetSystemColorThemePath()` 决定用哪一个）。语义色名（如 `text_default`、`bg_window_main`）
+> 都来自这两个目录，而不是 `themes/default/global.xml`。
+
+（完整溯源：`GlobalManager::Startup()` → `resParam.colorThemePath`（为空则跟随系统）→
+`Theme().SwitchColorTheme()`；运行时可用 `Window::OpenColorTheme(_T("color_dark"))` 切换。）
 
 ### 严禁打包的内容
 | 不要打包 | 原因 |
@@ -166,7 +181,7 @@ resources/
 | themes/default/list_ctrl/ | 示例程序目录 |
 | themes/default/tree_view/ | 示例程序目录 |
 | themes/default/rich_edit/ | 示例程序目录 |
-| themes/default/color_picker/ | 示例程序目录 |
+| themes/default/color_theme/ | 示例程序目录 |
 | themes/default/dpi_aware/ | 示例程序目录 |
 | themes/default/move_control/ | 示例程序目录 |
 | themes/default/threads/ | 示例程序目录 |
@@ -177,7 +192,9 @@ resources/
 | bin/*.exe, bin/*.dll | 编译产物 |
 | bin/bin.zip | 编译产物压缩包 |
 
-**规则：只打包 global.xml + public/ + 你自己的应用目录 + fonts/(可选) + lang/(可选)**
+**规则：只打包 `themes/default/global.xml` + `themes/default/public/` + `themes/color_light/` +
+`themes/color_dark/` + 你自己的应用目录 + `fonts/`(可选) + `lang/`(可选)**
+（示例程序目录按上表全部排除；`themes/theme_test/` 是测试用主题，同样不要打包）
 
 ## 跨平台注意事项
 

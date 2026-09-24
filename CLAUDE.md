@@ -5,7 +5,7 @@ nim_duilib 是基于 Skia 渲染引擎的跨平台 C++ UI 框架，采用 XML �
 - **支持平台**: Windows (7/10/11+), Linux, macOS (12+), FreeBSD
 - **渲染引擎**: Skia (CPU/OpenGL)
 - **构建工具**: CMake + Visual Studio / GCC / Clang
-- **C++ 标准**: C++17+
+- **C++ 标准**: C++20（`cmake/duilib_bin.cmake:6-7` 强制 `CMAKE_CXX_STANDARD 20`，MSVC 工程为 `stdcpp20`，不要用低于 C++20 的语法假设）
 
 ## 项目结构
 ```
@@ -19,7 +19,7 @@ nim_duilib/
 │   ├── Image/           # 图片处理（PNG/SVG/GIF/WEBP/APNG/Lottie/PAG）
 │   ├── Render/          # 渲染接口
 │   ├── RenderSkia/      # Skia渲染实现
-│   ├── Utils/           # 工具类（WindowImplBase, FilePath...）
+│   ├── Utils/           # 工具类（WinImplBase.h→WindowImplBase 类, FilePath...）
 │   ├── CEFControl/      # CEF浏览器集成
 │   └── WebView2/        # WebView2控件
 ├── examples/            # 示例程序
@@ -46,10 +46,12 @@ nim_duilib/
 
 **初始化全局资源:**
 ```cpp
-ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-resourcePath += _T("resources\\");
+// 推荐写法：自动处理平台差异（Windows 取 exe 同目录的 resources/，
+// macOS 取 .app bundle 内的 Resources/），不要手工拼 "\\"
+ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
 ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 ```
+发布时切换到 ZIP / 嵌入 EXE 资源，详见 `.claude/skills/nim-duilib-resource-pack.md`。
 
 **创建窗口:**
 ```cpp
@@ -90,6 +92,11 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 - XML属性值中内嵌引号用单引号`'`或花括号`{}`代替双引号
 - 控件类支持模板变体: `Label`(Control基)、`LabelBox`(Box基)、`LabelHBox`(HBox基)、`LabelVBox`(VBox基)
 - 窗口析构由框架管理，使用 `new` 创建，不需要手动 `delete`
+- 标题栏控件命名约定（`duilib/duilib_defs.h:145-152`，旧名为 fallback 兼容）:
+  标题栏 `window_title_bar`（旧 `window_caption_bar`）；按钮 `btn_window_min` / `btn_window_max` /
+  `btn_window_restore` / `btn_window_close` / `btn_window_fullscreen`（旧 `minbtn` / `maxbtn` /
+  `restorebtn` / `closebtn` / `fullscreenbtn`）。新代码一律用新名，否则 `WindowImplBase` 的
+  标题栏按钮自动处理会退化到 fallback 路径
 
 ## 构建
 - Windows: 打开 `build/examples.sln`，选择 Debug|x64 或 Release|x64

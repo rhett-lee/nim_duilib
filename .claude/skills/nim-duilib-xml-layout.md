@@ -1,5 +1,5 @@
 ---
-name: nim-xml-layout
+name: nim-duilib-xml-layout
 description: 为 nim_duilib 窗口设计和生成 XML 布局
 trigger: 当用户需要设计界面布局、创建XML界面、修改界面结构时触发
 ---
@@ -116,16 +116,20 @@ trigger: 当用户需要设计界面布局、创建XML界面、修改界面结�
 - `class` 属性必须写在**所有属性最前面**
 - 属性值内嵌引号用**单引号 `'`** 或 **花括号 `{}`** 代替双引号
 - `<Control />` 作为弹性占位符，在 HBox/VBox 中占据剩余空间
-- 窗口标题栏按钮的 name 必须是: `minbtn`, `maxbtn`, `restorebtn`, `closebtn`, `fullscreenbtn`
+- 窗口标题栏容器的 name 必须是 `window_title_bar`（旧名 `window_caption_bar` 仅作兼容 fallback）
+- 标题栏按钮的 name 必须是: `btn_window_min`, `btn_window_max`, `btn_window_restore`, `btn_window_close`, `btn_window_fullscreen`
+  （旧名 `minbtn`/`maxbtn`/`restorebtn`/`closebtn`/`fullscreenbtn` 仅作 fallback，新代码不要再用；
+  见 `duilib/duilib_defs.h:145-152` 与 `duilib/Utils/WinImplBase.cpp:9-14`）
 - 颜色值格式: "#AARRGGBB"(ARGB) 或颜色名
 
 ### 5. `<Include>` 共享 XML 片段
 
 nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多个窗口共享同一段布局（比如公共状态栏、工具栏）。
 
-**路径解析规则**（`WindowBuilder.cpp:1097-1108`）
+**路径解析规则**（`WindowBuilder::ParseIncludeXmlNode`，`WindowBuilder.cpp:1405-1425`）
 - `src` 相对于**宿主 XML 所在目录**解析；找不到则回退到 window resource path
 - 推荐把共享片段与宿主 XML 放在**同一个 skin 目录**，写 `src="fragment.xml"` 最省心
+- `src` 为空时会尝试读同名的 `source` 属性；支持 `count` 属性重复包含多次
 
 **被包含 XML 的根节点**
 - 推荐用单根 `<Window>` 包裹（符合 pugixml 单根要求）；`<Window>` 上的窗口属性会被 `IsWindowAttributesApplied()` guard 忽略，**不要在被包含的 `<Window>` 上写 size/caption/layered_window 等属性**，否则会误导
@@ -134,17 +138,39 @@ nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多�
 **`FindControl` 作用域**
 - 按 Window 独立寻址，两个不同 Window 用相同 `name` **不会冲突**——这是跨窗口复用共享片段的基础
 
-**⚠️ 致命陷阱：`<Include>` 不能作为 `<Window>` 的直接唯一子节点**
+**历史问题（已修复，仅存档说明）**
 
-`WindowBuilder::ParseXmlNodeChildren`（`WindowBuilder.cpp:1077-1124`）在处理 `<Include>` 时用 `continue` 跳过了后面的 `pReturn = pControl` 赋值块（行 1229-1232）。**当 `<Include>` 是窗口根 `<Window>` 下的第一个非样式子节点时，`CreateControls` 返回 nullptr，`GlobalManager` 因此不会为该 Window 建立 root Box，窗口被静默创建成完全空的——不可见、无任何控件**。框架不会报错、不会打印警告，只是窗口什么都没有。
+早期版本有一个坑：`<Include>` 作为窗口根 `<Window>` 下的**第一个非样式子节点**时，窗口会被静默创建成
+完全空白（看不见、无任何控件，且不报错）。原因是旧版 `WindowBuilder::ParseXmlNodeChildren` 处理
+`<Include>` 分支时用 `continue` 跳过了尾部的 `pReturn = pControl` 赋值，`CreateControls` 因此返回
+`nullptr`，框架不会为该 Window 建立 root Box。
+
+**该缺陷已在 2026-05-21 的提交 `62c56e491` 修复**：现在 `<Include>` 分支（`WindowBuilder.cpp:1233-1240`）
+会自行判定并给 `pReturn` 赋值：
+
+```cpp
+else if (strClass == _T("Include")) {
+    Control* pNewControl = ParseIncludeXmlNode(node, pParent, pWindow);
+    if ((pNewControl != nullptr) && (pReturn == nullptr)) {
+        pReturn = pNewControl;
+    }
+    continue;
+}
+```
+
+所以下面这种写法在当前代码库上是**正常可用**的：
 
 ```xml
-<!-- ❌ 错：HUD/小窗口不可见，控件全部丢失 -->
+<!-- ✅ 现在可以：<Include> 直接作为 <Window> 的唯一子节点 -->
 <Window size="900,32" layered_window="true" ...>
     <Include src="status_bar.xml"/>
 </Window>
+```
 
-<!-- ✅ 对：用 HBox/VBox/Box 包裹一层 -->
+**仍然推荐的保守写法**：用 Box 包裹一层。理由不是"避免崩溃"，而是便于后续在同一窗口里叠加其他控件、
+以及让共享片段的根节点和宿主结构保持一致。
+
+```xml
 <Window size="900,32" layered_window="true" ...>
     <HBox>
         <Include src="status_bar.xml"/>
@@ -152,7 +178,11 @@ nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多�
 </Window>
 ```
 
-如果 `<Include>` 前面已有 Box/控件兄弟节点，不会踩到这个坑（因为第一个非样式子节点已经占掉了 pReturn）。**但只要有同样布局的另一个窗口把 Include 放到根下，就会炸**——写共享片段时永远加一层 Box 包裹最保险。
+**其余两条 `<Include>` 约束依然有效**
+- 被包含 XML 建议用单根 `<Window>` 包裹（符合 pugixml 单根要求）；`<Window>` 上的窗口属性会被
+  `IsWindowAttributesApplied()` guard 忽略（`WindowBuilder.cpp:333-334`），**不要在被包含的 `<Window>`
+  上写 size/caption/layered_window 等属性**，写了也不会生效，只会误导
+- `FindControl` 按 Window 独立寻址，两个不同 Window 用相同 `name` 不会冲突——这是跨窗口复用共享片段的基础
 
 **完整示例**
 
@@ -166,7 +196,7 @@ nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多�
     </HBox>
 </Window>
 
-<!-- host_a.xml：主窗口（Include 嵌在 VBox 里，安全） -->
+<!-- host_a.xml：主窗口（Include 嵌在 VBox 里） -->
 <Window ...>
     <VBox>
         <!-- ...主内容... -->
@@ -174,7 +204,7 @@ nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多�
     </VBox>
 </Window>
 
-<!-- host_b.xml：HUD 小窗口（Include 必须被 Box 包裹） -->
+<!-- host_b.xml：HUD 小窗口（推荐包一层 Box） -->
 <Window size="900,32" layered_window="true" ...>
     <HBox>
         <Include src="status_bar.xml"/>

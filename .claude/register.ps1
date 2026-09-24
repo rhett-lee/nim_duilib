@@ -25,12 +25,42 @@ if (-not (Test-Path (Join-Path (Join-Path $DuilibRoot "duilib") "duilib.h"))) {
 $DuilibRootUnix = $DuilibRoot -replace '\\', '/'
 
 # ============================================================
-# Step 1: Register all nim-duilib-* skills as global skills
+# Step 0: Clean up stale nim_duilib skills from previous versions.
+#         Two sources of zombies:
+#           a) 历史曾用过的旧技能名（未带 nim-duilib- 前缀）
+#           b) 当前前缀下已改名的技能
+#         Both would otherwise linger in $GlobalSkillsDir forever.
 # ============================================================
-Write-Host "[1/2] Registering global skills..." -ForegroundColor Yellow
+Write-Host "[0/3] Cleaning up stale skills..." -ForegroundColor Yellow
+$LegacySkillNames = @("nim-create-window", "nim-xml-layout", "nim-add-control", "nim-event-handler")
 
 $SourceSkillsDir = Join-Path $ScriptDir "skills"
 $SkillFiles = Get-ChildItem -Path $SourceSkillsDir -Filter "nim-duilib-*.md" -File
+$SkillNames = @($SkillFiles | ForEach-Object { $_.BaseName })
+
+$CandidateNames = @()
+$CandidateNames += $LegacySkillNames
+if (Test-Path $GlobalSkillsDir) {
+    $CandidateNames += @(Get-ChildItem -Path $GlobalSkillsDir -Directory -Filter "nim-duilib-*" |
+                         ForEach-Object { $_.Name })
+}
+$CandidateNames = @($CandidateNames | Sort-Object -Unique)
+
+foreach ($name in $CandidateNames) {
+    if ([string]::IsNullOrEmpty($name)) { continue }
+    $targetDir = Join-Path $GlobalSkillsDir $name
+    if (-not (Test-Path $targetDir)) { continue }
+    # 不在本次注册列表中的，就是旧技能 -> 删除
+    if ($SkillNames -notcontains $name) {
+        Remove-Item -Path $targetDir -Recurse -Force -Confirm:$false
+        Write-Host "  - stale: $name"
+    }
+}
+
+# ============================================================
+# Step 1: Register all nim-duilib-* skills as global skills
+# ============================================================
+Write-Host "[1/3] Registering global skills..." -ForegroundColor Yellow
 
 foreach ($file in $SkillFiles) {
     # Each skill needs its own subdirectory: ~/.claude/skills/<name>/SKILL.md
@@ -46,7 +76,7 @@ foreach ($file in $SkillFiles) {
 # ============================================================
 # Step 2: Register /nim-init command
 # ============================================================
-Write-Host "[2/2] Registering /nim-init command..." -ForegroundColor Yellow
+Write-Host "[2/3] Registering /nim-init command..." -ForegroundColor Yellow
 
 if (-not (Test-Path $NimInitDir)) {
     New-Item -ItemType Directory -Path $NimInitDir -Force | Out-Null
@@ -133,4 +163,9 @@ Write-Host ""
 Write-Host "Skills are now globally available in ALL projects." -ForegroundColor Cyan
 Write-Host "Run /nim-init in a project to set up CLAUDE.md and LLM docs."
 Write-Host ""
+Write-Host "Installed layout: $GlobalSkillsDir\<skill-name>\SKILL.md" -ForegroundColor Gray
+Write-Host "NOTE: Claude Code requires the <name>\SKILL.md layout. The .md files inside this" -ForegroundColor Gray
+Write-Host "      repo's .claude\skills\ are flat sources only - copied without this script they will NOT load." -ForegroundColor Gray
+Write-Host ""
 Write-Host "To update after editing skills: just re-run this script." -ForegroundColor Gray
+Write-Host "To uninstall: .claude\unregister.bat (or pwsh .claude\unregister.ps1)" -ForegroundColor Gray

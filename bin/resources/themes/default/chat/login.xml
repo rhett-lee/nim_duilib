@@ -9,8 +9,8 @@
                 <VBox height="auto">
                     <HBox height="40" margin="0,6,5,40">
                         <Control />
-                        <Button class="btn_wnd_min_11" name="minbtn" height="32" width="32" margin="4,0,4,0"/>
-                        <Button class="btn_wnd_close_11" height="32" width="32" name="closebtn"/>
+                        <Button class="btn_wnd_min_11" name="btn_window_min" height="32" width="32" margin="4,0,4,0"/>
+                        <Button class="btn_wnd_close_11" height="32" width="32" name="btn_window_close"/>
                     </HBox>
                     <HBox height="auto">
                         <Control />

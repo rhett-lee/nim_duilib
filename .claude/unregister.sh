@@ -23,8 +23,19 @@ for skill_dir in "${GLOBAL_SKILLS_DIR}"/nim-duilib-*; do
     fi
 done
 
+# Remove legacy skill names used by older versions (no nim-duilib- prefix).
+# These would otherwise be left behind forever after a rename.
+for legacy_name in nim-create-window nim-xml-layout nim-add-control nim-event-handler; do
+    if [ -d "${GLOBAL_SKILLS_DIR}/${legacy_name}" ]; then
+        rm -rf "${GLOBAL_SKILLS_DIR}/${legacy_name}"
+        echo "  - removed legacy /${legacy_name}"
+    fi
+done
+
 echo ""
 echo "All nim_duilib global skills removed."
 echo ""
 echo "Note: per-project files (.claude/docs/, CLAUDE.md) are not removed."
 echo "Clean them manually if needed."
+echo ""
+echo "To re-install: bash .claude/register.sh   (Windows: .claude\\register.bat)"

@@ -1,5 +1,5 @@
 ---
-name: nim-add-control
+name: nim-duilib-add-control
 description: 向 nim_duilib 界面添加控件（XML + C++ 事件绑定）
 trigger: 当用户要求添加按钮、输入框、列表、复选框等控件时触发
 ---
@@ -159,7 +159,7 @@ if (auto* edit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_input")))) {
 // 下拉框选择变化
 if (auto* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_type")))) {
     combo->AttachSelect([this](const ui::EventArgs& args) {
-        size_t selIndex = args.wParam;
+        const size_t selIndex = static_cast<size_t>(args.wParam); // wParam 类型是 WPARAM
         return true;
     });
 }
@@ -167,7 +167,7 @@ if (auto* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_type")))) {
 // 列表选择
 if (auto* list = dynamic_cast<ui::ListBox*>(FindControl(_T("list_items")))) {
     list->AttachSelect([this](const ui::EventArgs& args) {
-        size_t newSel = args.wParam;
+        const size_t newSel = static_cast<size_t>(args.wParam);
         return true;
     });
 }
@@ -179,7 +179,7 @@ if (auto* list = dynamic_cast<ui::ListBox*>(FindControl(_T("list_items")))) {
 // Combo 添加选项
 if (auto* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_type")))) {
     auto* treeView = combo->GetTreeView();
-    auto* root = treeView->GetRootNode();
+        auto* root = treeView->GetRootNode();
     for (int i = 0; i < 5; i++) {
         auto* node = new ui::TreeNode(this);
         node->SetClass(_T("tree_node"));
@@ -193,7 +193,7 @@ if (auto* combo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_type")))) {
 if (auto* list = dynamic_cast<ui::ListBox*>(FindControl(_T("list_items")))) {
     for (int i = 0; i < 20; i++) {
         auto* item = new ui::ListBoxItem(this);
-        item->SetClass(_T("listitem"));
+        item->SetClass(_T("list_item"));  // 旧名 listitem 也为等价兼容别名
         item->SetText(ui::StringUtil::Printf(_T("列表项 %d"), i));
         item->SetFixedHeight(ui::UiFixedInt(28), true, true);
         list->AddItem(item);
