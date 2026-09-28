@@ -497,3 +497,7 @@ AI 就从「会写 C++ 的陌生人」变成「懂这个框架的同事」。
 
 如果你也在维护一个有历史包袱的 C++ 项目，不妨从「写一份入口文档 + 建一个校验脚本」开始，  
 成本比想象中低，收益比想象中大。
+
+## 十、资源链接
+nim_duilib界面库的代码库，请点击访问：[nim_duilib](https://github.com/rhett-lee/nim_duilib)     
+nim_duilib 是一款基于C++开发的跨平台界面库，源于经典的 duilib 界面库并进行了深度优化与功能扩展，支持Windows/Linux/macOS/FreeBSD平台，支持的Linux系统包括OpenEuler、OpenKylin、UbuntuKylin、统信UOS、中科方德、Ubuntu、Fedora、Debian等，专注于简化桌面应用的高效开发。其设计融合了DirectUI理念，通过XML描述界面布局，实现视觉与逻辑的分离，显著提升开发灵活性与维护性。
