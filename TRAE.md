@@ -1,16 +1,17 @@
-# nim_duilib - WorkBuddy 使用指南
+# nim_duilib - TRAE 使用指南
 
-本文面向使用 **WorkBuddy** 开发 nim_duilib 的场景，说明环境准备、专用 Skill 的用法、日常开发流程
-与验证手段。内容以仓库源码为准；与 `CLAUDE.md`（Claude Code 用）信息同源，两份需保持一致。
+本文面向使用 **TRAE** 开发 nim_duilib 的场景，说明环境准备、专用 Skill 的用法、日常开发流程
+与验证手段。内容以仓库源码为准；与 `CLAUDE.md`（Claude Code 用）和 `WORKBUDDY.md`（WorkBuddy 用）
+信息同源，三份需保持一致。
 
 ## 1. 三分钟速览
 
 | 事项 | 位置 / 命令 |
 |------|-------------|
 | 首次拉取源码后的依赖库预编译 | `build\build_duilib_all_in_one.bat` → `build\msvc_build.bat`（Windows） |
-| WorkBuddy 专用 Skill | `.workbuddy\skills\nim-duilib\`（项目级）、`~/.workbuddy/skills/nim-duilib\`（用户级） |
+| TRAE 专用 Skill | `.trae\skills\nim-duilib\`（项目级） |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
-| 改文档后自检 | `python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo .` |
+| 改文档后自检 | `python .trae/skills/nim-duilib/scripts/verify_docs.py --repo .` |
 | 只验证 C++ 语法（不链接） | `cl.exe /Zs ...`（见第 6 节） |
 
 ---
@@ -74,25 +75,22 @@ FreeBSD → `freebsd_build.sh`，MSYS2(Windows) → `msys2_build.sh`；同样会
 
 ---
 
-## 3. WorkBuddy 专用 Skill：`nim-duilib`
+## 3. TRAE 专用 Skill：`nim-duilib`
 
-### 3.1 部署位置（两份，内容相同）
+### 3.1 部署位置
 
 | 级别 | 路径 | 生效范围 |
 |------|------|----------|
-| 项目级 | `<仓库根>\.workbuddy\skills\nim-duilib\` | 仅本仓库 |
-| 用户级 | `C:\Users\<用户名>\.workbuddy\skills\nim-duilib\` | 所有项目 |
+| 项目级 | `<仓库根>\.trae\skills\nim-duilib\` | 仅本仓库 |
 
-改动 Skill 后必须双向同步，否则两边行为会分叉：
-
-```bash
-cp -r <仓库根>/.workbuddy/skills/nim-duilib/. ~/.workbuddy/skills/nim-duilib/
-```
+TRAE 项目级 Skill 只有一份，无需像 WorkBuddy 那样在项目级与用户级之间双向同步。
+若需跨项目复用，可将 Skill 复制到用户级全局目录 `~/.trae-cn/skills/nim-duilib/`（CN 版）
+或 `~/.trae/skills/nim-duilib/`（国际版），但项目级是首选——它随仓库走，团队成员拉取即生效。
 
 ### 3.2 目录结构
 
 ```
-.workbuddy/skills/nim-duilib/
+.trae/skills/nim-duilib/
 ├── SKILL.md                  # 入口：路由表 + 六条必守约束 + 权威源对照表
 ├── references/               # 按需加载，不要一次全读
 │   ├── create-window.md      # 新建窗口（四件套 + 主线程）
@@ -107,22 +105,41 @@ cp -r <仓库根>/.workbuddy/skills/nim-duilib/. ~/.workbuddy/skills/nim-duilib/
 └── scripts/verify_docs.py    # 文档与源码漂移校验
 ```
 
-### 3.3 触发与加载
+### 3.3 frontmatter 格式
 
-WorkBuddy 按语义自动触发：提到建窗口/改 XML/加控件/绑事件/主题配色/打包发布/窗口空白/样式失效等
+TRAE 的 `SKILL.md` 头部使用 YAML frontmatter，与 WorkBuddy 略有不同：
+
+```yaml
+---
+name: nim-duilib
+description: nim_duilib C++ desktop UI framework guide. Use when creating windows, XML layouts, adding controls, binding events, theming, or packaging resources. Also for diagnosing render or style issues.
+---
+```
+
+**TRAE frontmatter 规则**：
+- `name` 必须与目录名一致（`nim-duilib`），kebab-case，2–64 字符。
+- `description` 是路由器唯一看到的触发文本，一行纯 YAML 标量，**不引号**。
+- `description` 中**不能出现 `: `（冒号+空格）**——会强制引号化；用 em dash 或 "including" 替代。
+- `description` 中**不能出现 `<` 或 `>`**。
+- 目标 < 200 字符；不需要 `agent_created` 等 WorkBuddy 专有字段。
+
+### 3.4 触发与加载
+
+TRAE 按语义自动触发：提到建窗口/改 XML/加控件/绑事件/主题配色/打包发布/窗口空白/样式失效等
 即会加载 `SKILL.md`，再按任务类型**只读**对应的 `references/*.md`。
 `api-reference.md` 最大，只在需要查表时才载入。
 
-### 3.4 文档自检脚本
+### 3.5 文档自检脚本
 
 改完 Skill 文档或生成的新文档后跑一次，比对其中出现的 `DUI_CTR_*`、`kEvent*`、类名、字体 ID、
 颜色名是否与源码一致：
 
 ```bash
-python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
-python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档.md>
+python .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
+python .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档.md>
 ```
 
+脚本用 `Path(__file__).parent.parent` 自动定位 Skill 根目录，从任意位置调用均可。
 确实需要引用源码中不存在的名字时，在文档里加一行 HTML 注释走白名单：
 `<!-- verify:allow-missing 名字1 名字2 -->`。
 
@@ -256,13 +273,13 @@ cmake --build build/build_temp/hello_button --config Release
 
 ---
 
-## 8. 与 CLAUDE.md / TRAE.md 的关系
+## 8. 与 CLAUDE.md / WORKBUDDY.md 的关系
 
 | 目录 | 使用者 | 形态 |
 |------|--------|------|
 | `CLAUDE.md` + `.claude/docs` + `.claude/skills/*.md` | Claude Code | 扁平 md，靠注册脚本部署 |
-| `WORKBUDDY.md`（本文）+ `.workbuddy/skills/nim-duilib/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
-| `TRAE.md` + `.trae/skills/nim-duilib/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
+| `WORKBUDDY.md` + `.workbuddy/skills/nim-duilib/` | WorkBuddy | `SKILL.md` + `references/`，语义触发、三级加载 |
+| `TRAE.md`（本文）+ `.trae/skills/nim-duilib/` | TRAE | `SKILL.md` + `references/`，语义触发、frontmatter 路由 |
 
 三份描述的是同一套框架事实，**修一份就要同步另外两份**，否则会重新出现文档与代码不一致
 （本项目历史上出现过 26 处）。`C++20`、`WindowImplBase` 位于 `duilib/Utils/WinImplBase.h`、
