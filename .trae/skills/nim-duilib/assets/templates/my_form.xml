@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="800,600" min_size="240,100"
+        caption="0,0,0,36" use_system_caption="false"
+        snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" alpha="255" size_box="4,4,4,4"
+        icon="public/caption/logo.ico">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏：容器 name 必须是 window_title_bar，按钮必须用 btn_window_* 新名 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label text="MyForm" valign="center" margin="8" mouse_enabled="false"/>
+            <Control />
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 内容区域 -->
+        <Box padding="12,12,12,12">
+            <VBox>
+                <Label text="Hello nim_duilib" font="system_regular_14"
+                       normal_text_color="text_default" text_align="hcenter,vcenter"/>
+                <HBox height="auto" halign="right" child_margin_x="10" margin="0,20,0,0">
+                    <Button class="btn_global_white_80x30" name="btn_cancel" text="取消" width="80" height="32"/>
+                    <Button class="btn_global_blue_80x30" name="btn_ok" text="确定" width="80" height="32"/>
+                </HBox>
+            </VBox>
+        </Box>
+    </VBox>
+</Window>
