@@ -97,7 +97,7 @@ control->AttachSelect([](const ui::EventArgs&) { return true; });
 control->AttachUnSelect([](const ui::EventArgs&) { return true; });
 
 // 文本变化 (RichEdit)
-edit->AttachTextChange([](const ui::EventArgs&) { return true; });
+edit->AttachTextChanged([](const ui::EventArgs&) { return true; });
 
 // 回车键 (RichEdit)
 edit->AttachReturn([](const ui::EventArgs&) { return true; });

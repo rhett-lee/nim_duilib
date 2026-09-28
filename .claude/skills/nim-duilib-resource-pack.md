@@ -190,7 +190,7 @@ resources/
 | themes/default/xml_preview/ | 示例程序目录 |
 | themes/default/MultiLang/ | 示例程序目录 |
 | bin/*.exe, bin/*.dll | 编译产物 |
-| bin/bin.zip | 编译产物压缩包 |
+| bin/resources.zip | 编译产物压缩包 |
 
 **规则：只打包 `themes/default/global.xml` + `themes/default/public/` + `themes/color_light/` +
 `themes/color_dark/` + 你自己的应用目录 + `fonts/`(可选) + `lang/`(可选)**

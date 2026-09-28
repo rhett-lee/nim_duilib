@@ -1,7 +1,7 @@
 # 主题与样式定制
 
-<!-- verify:allow-missing bk_main_wnd_title my_card my_title_font my_font_16 -->
-<!-- bk_main_wnd_title 是已废弃的旧色名；my_card / my_title_font / my_font_16 是自定义样式举例名。
+<!-- verify:allow-missing my_card my_title_font my_font_16 -->
+<!-- my_card / my_title_font / my_font_16 是自定义样式举例名。
      以上均为刻意举例，verify_docs.py 不应判为漂移。 -->
 
 ## 一、资源文件规则
@@ -51,7 +51,7 @@ bin/resources/
 - **不要复制** `themes/default/basic/`、`controls/`、`layout/` 等示例目录
 - **不要复制** `themes/default/chat/`、`cef/`、`cef_browser/` 等 demo 目录
 - **不要复制** `bin/*.exe`、`bin/*.dll` 等二进制文件
-- **不要复制** `bin/bin.zip`
+- **不要复制** `bin/resources.zip`
 - 只创建**应用自己的**皮肤目录（如 `themes/default/my_app/`）
 
 ### 资源引用路径规则
@@ -84,7 +84,7 @@ bkimage="file='../public/shadow/shadow_big.svg' corner='64,64,68,70'"
 | bg_window_card | #FFFAFAFA | - | 卡片背景 |
 | bg_container | #FFF9F9F9 | `bk_wnd_lightcolor` | 容器背景 |
 | bg_content | #FFF9F9F9 | - | 内容区背景 |
-| bg_titlebar | #FFEAEAEA | - | **标题栏背景**（替代已废弃的 `bk_main_wnd_title`） |
+| bg_titlebar | #FFEAEAEA | - | **标题栏背景** |
 | bg_header | #FFF4F4F4 | - | 表头背景 |
 | bg_list_item_hovered | #FFEAEAEA | `bk_listitem_hovered` | 列表项悬浮 |
 | bg_list_item_selected | #FFE2E2E2 | `bk_listitem_selected` | 列表项选中 |
@@ -120,6 +120,11 @@ bkimage="file='../public/shadow/shadow_big.svg' corner='64,64,68,70'"
 | color_accent | #FF0078D4 | - | 主题强调色 |
 | border_split_level1 | #FFE7E7E7 | `splitline_level1` | 一级分割线 |
 | border_split_level2 | #FFE7E7E7 | `splitline_level2` | 二级分割线 |
+
+> 上表中 `white` / `blue` / `red` / `green` 等并非 `global.xml` 的 `<Alias>` 映射，而是
+> `duilib/Core/UiColors.cpp` 中内置的预定义颜色名（大小写不敏感，首字母大写形式 `White`/`Blue`/`Red`/`Green`），
+> 其 RGB 取值与语义色不同（如内置 `Blue` = `#FF0000FF`，语义色 `color_blue` = `#FF2966A3`）。
+> 写业务 XML 时仍应优先使用语义色名（`color_blue` 等），以便深色主题自动切换。
 
 ### 自定义颜色
 
