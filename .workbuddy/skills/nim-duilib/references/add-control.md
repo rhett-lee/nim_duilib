@@ -160,7 +160,7 @@ if (auto* chk = dynamic_cast<ui::CheckBox*>(FindControl(_T("chk_agree")))) {
 
 // 输入框文本变化
 if (auto* edit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_input")))) {
-    edit->AttachTextChange([this](const ui::EventArgs&) {
+    edit->AttachTextChanged([this](const ui::EventArgs&) {
         // 文本变化
         return true;
     });

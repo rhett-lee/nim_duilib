@@ -126,7 +126,7 @@ trigger: 当用户需要设计界面布局、创建XML界面、修改界面结�
 
 nim_duilib 支持用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多个窗口共享同一段布局（比如公共状态栏、工具栏）。
 
-**路径解析规则**（`WindowBuilder::ParseIncludeXmlNode`，`WindowBuilder.cpp:1405-1425`）
+**路径解析规则**（`WindowBuilder::ParseIncludeXmlNode`，`WindowBuilder.cpp:1394`）
 - `src` 相对于**宿主 XML 所在目录**解析；找不到则回退到 window resource path
 - 推荐把共享片段与宿主 XML 放在**同一个 skin 目录**，写 `src="fragment.xml"` 最省心
 - `src` 为空时会尝试读同名的 `source` 属性；支持 `count` 属性重复包含多次
@@ -190,7 +190,7 @@ else if (strClass == _T("Include")) {
 <!-- status_bar.xml：共享片段 -->
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <HBox name="status_bar_root" height="32" bkcolor="bg_statusbar">
+    <HBox name="status_bar_root" height="32" bkcolor="bg_container">
         <Label name="status_state" text="就绪" />
         <!-- ... -->
     </HBox>

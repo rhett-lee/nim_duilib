@@ -39,7 +39,7 @@
 | min_size / max_size | size | 最小/最大尺寸 |
 | caption | rect | 标题栏可拖动区域 "0,0,0,36" |
 | size_box | rect | 可拖动调整大小的边距 "4,4,4,4" |
-| shadow_type | string | 阴影类型: default/big/big_round/small/small_round/menu/menu_round/none/none_round |
+| shadow_type | string | 阴影类型: default/big/big_round/small/small_round/menu/menu_round/none/none_round/custom/system_default/system_not_round/system_round/system_small_round |
 | shadow_attached | bool | 是否附加阴影 |
 | layered_window | bool | 是否为层窗口 |
 | alpha | int | 透明度 0-255 |
@@ -465,7 +465,7 @@ void MyForm::OnInitWindow()
     // 文本变化
     ui::RichEdit* edit = dynamic_cast<ui::RichEdit*>(FindControl(_T("my_edit")));
     if (edit) {
-        edit->AttachTextChange([this](const ui::EventArgs& args) {
+        edit->AttachTextChanged([this](const ui::EventArgs& args) {
             // 文字改变
             return true;
         });
@@ -475,8 +475,9 @@ void MyForm::OnInitWindow()
     ui::ListBox* list = dynamic_cast<ui::ListBox*>(FindControl(_T("my_list")));
     if (list) {
         list->AttachSelect([this](const ui::EventArgs& args) {
+            // ListBox::AttachSelect：wParam 是新选中项索引，lParam 是 Box::InvalidIndex（占位符，不是旧索引）
             const size_t newIndex = static_cast<size_t>(args.wParam); // wParam 实际类型是 WPARAM
-            const size_t oldIndex = static_cast<size_t>(args.lParam); // lParam 实际类型是 LPARAM
+            // args.lParam 当前为 Box::InvalidIndex，请勿当旧索引使用
             return true;
         });
     }

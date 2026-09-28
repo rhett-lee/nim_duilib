@@ -95,9 +95,9 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 - 窗口析构由框架管理，使用 `new` 创建，不需要手动 `delete`
 - 标题栏控件命名约定（`duilib/duilib_defs.h:145-152`，旧名为 fallback 兼容）:
   标题栏 `window_title_bar`（旧 `window_caption_bar`）；按钮 `btn_window_min` / `btn_window_max` /
-  `btn_window_restore` / `btn_window_close` / `btn_window_fullscreen`（旧 `minbtn` / `maxbtn` /
-  `restorebtn` / `closebtn` / `fullscreenbtn`）。新代码一律用新名，否则 `WindowImplBase` 的
-  标题栏按钮自动处理会退化到 fallback 路径
+  `btn_window_restore` / `btn_window_close` / `btn_window_fullscreen` / `btn_window_language` /
+  `btn_window_theme`（旧 `minbtn` / `maxbtn` / `restorebtn` / `closebtn` / `fullscreenbtn`）。
+  新代码一律用新名，否则 `WindowImplBase` 的标题栏按钮自动处理会退化到 fallback 路径
 
 ## 构建
 - Windows: 打开 `build/examples.sln`，选择 Debug|x64 或 Release|x64

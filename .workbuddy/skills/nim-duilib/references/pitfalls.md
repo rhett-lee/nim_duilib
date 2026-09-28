@@ -1,6 +1,6 @@
 # 已核实的陷阱与历史问题
 
-<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange bk_main_wnd_title -->
+<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange -->
 <!-- 上面这些名字是刻意举例的"错误写法"，verify_docs.py 不应把它们当成文档漂移。 -->
 
 本文记录的都是**实际验证过**的坑，按"症状"分类。排查诡异问题时先查这里，

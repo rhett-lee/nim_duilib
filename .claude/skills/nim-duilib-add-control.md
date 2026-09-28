@@ -23,7 +23,7 @@ trigger: 当用户要求添加按钮、输入框、列表、复选框等控件�
 
 **文本标签 Label:**
 ```xml
-<Label name="lbl_info" text="信息文本" font="system_14"
+<Label name="lbl_info" text="信息文本" font="system_regular_14"
        normal_text_color="default_font_color" text_align="left,vcenter"/>
 ```
 
@@ -31,7 +31,7 @@ trigger: 当用户要求添加按钮、输入框、列表、复选框等控件�
 ```xml
 <RichEdit name="edit_input" width="200" height="30"
           single_line="true" prompt_text="请输入..."
-          font="system_12" text_padding="4,2,4,2"
+          font="system_regular_14" text_padding="4,2,4,2"
           border_size="1" border_color="gray" border_round="4,4"
           hot_border_color="blue" focus_border_color="blue"/>
 ```
@@ -150,7 +150,7 @@ if (auto* chk = dynamic_cast<ui::CheckBox*>(FindControl(_T("chk_agree")))) {
 
 // 输入框文本变化
 if (auto* edit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_input")))) {
-    edit->AttachTextChange([this](const ui::EventArgs&) {
+    edit->AttachTextChanged([this](const ui::EventArgs&) {
         // 文本变化
         return true;
     });

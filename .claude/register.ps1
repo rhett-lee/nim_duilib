@@ -117,14 +117,15 @@ Library path: ``$DuilibRootUnix``
 
 - LLM reference: ``.claude/docs/nim-duilib-llm-reference.md``
 - XML layouts: ``bin/resources/themes/default/<skin_folder>/``
-- Global resources (fonts/colors/styles): ``bin/resources/themes/default/global.xml``
+- Global resources (fonts/styles/aliases): ``bin/resources/themes/default/global.xml``
+- Color values (light/dark): ``bin/resources/themes/color_light/global.xml`` / ``bin/resources/themes/color_dark/global.xml``
 - nim_duilib docs: ``$DuilibRootUnix/docs/``
 - nim_duilib examples: ``$DuilibRootUnix/examples/``
 
 ### Resource rules (IMPORTANT)
-- MUST copy: ``global.xml`` + ``public/`` (shared icons) + your app's own skin directory
+- MUST copy: ``global.xml`` + ``public/`` (shared icons) + ``color_light/global.xml`` + ``color_dark/global.xml`` + your app's own skin directory
 - NEVER copy demo directories (basic/, controls/, layout/, chat/, cef/, render/, etc.)
-- NEVER copy bin/*.exe, bin/*.dll, bin/bin.zip
+- NEVER copy bin/*.exe, bin/*.dll, bin/resources.zip
 - Resource packaging: local files (dev) / ZIP file (release) / embedded EXE (Windows single-file)
 
 ### Key patterns

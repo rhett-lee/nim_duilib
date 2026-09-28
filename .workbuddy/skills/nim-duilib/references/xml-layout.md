@@ -127,7 +127,7 @@
 
 用 `<Include src="fragment.xml"/>` 复用 XML 片段，让多个窗口共享同一段布局（公共状态栏、工具栏等）。
 
-**路径解析规则**（`WindowBuilder::ParseIncludeXmlNode`，`WindowBuilder.cpp:1405-1425`）
+**路径解析规则**（`WindowBuilder::ParseIncludeXmlNode`，`WindowBuilder.cpp:1394`）
 
 - `src` 相对于**宿主 XML 所在目录**解析；找不到则回退到 window resource path
 - 推荐把共享片段与宿主 XML 放在**同一个 skin 目录**，写 `src="fragment.xml"` 最省心
