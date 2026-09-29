@@ -20,7 +20,7 @@ git clone https://github.com/rhett-lee/nim_duilib
 git clone https://github.com/rhett-lee/skia_compile
 ```
 
-3. Compile the skia source code: build the skia-related lib files according to the method in the skia_compile project documentation [compile_skia_on_windows.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.md).    
+3. Compile the skia source code: build the skia-related lib files according to the method in the skia_compile project documentation [compile_skia_on_windows.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.en.md).    
    Note: the skia source code should be located in the same directory as the nim_duilib source code.    
    Note: when compiling the skia source code, LLVM should be used so that the program runs smoothly; if compiled with VS, the running speed is very slow and the UI is laggy.    
    Check method: after a successful build, the skia.lib and other lib files are generated in a subdirectory of skia/out.
