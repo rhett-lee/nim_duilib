@@ -288,7 +288,7 @@ if %errorlevel% neq 0 (
 （3）`git clone https://github.com/google/skia.git`  
 3. 编译Skia源码    
 （1）nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia，优先用LLVM编译，运行流畅    
-（2）按照skia_compile目录中的[Windows下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)文档中的方法，编译出skia相关的.lib文件      
+（2）按照skia_compile目录中的[compile_skia_on_windows.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.md)文档中的方法，编译出skia相关的.lib文件      
 4. 如果使用的是Visual Studio 2017/2019，需要使用develop-cpp17分支代码，需要在命令运行以下命令：    
    `git -C ./nim_duilib checkout develop-cpp17`
 5. 编译nim_duilib：进入 `build` 目录，打开 `examples.sln`（如果使用的是Visual Studio 2017，需要打开`examples_vs2017.sln`），可执行编译，编译完成的示例程序位于bin目录中。
@@ -352,7 +352,7 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 ./nim_duilib/build/build_duilib_all_in_one.sh
 ```
 编译完成的示例程序位于bin目录中。    
-备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)。
+备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[compile_skia_on_uos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.md)。
 
 ### 三、手动编译过程（Linux平台）
 1. 设置工作目录：`~/develop`    
@@ -365,15 +365,15 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 
 | 操作系统平台            |参考文档（网络链接）    |  参考文档（本地文件） |
 | :---                    | :---       |:---   |
-|OpenEuler                |[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[OpenEuler下编译skia.md](../skia_compile/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
-|OpenKylin（开放麒麟）    |[OpenKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[OpenKylin下编译skia.md](../skia_compile/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
-|UbuntuKylin（优麒麟）    |[UbuntuKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[UbuntuKylin下编译skia.md](../skia_compile/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
-|中科方德                 |[中科方德下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[中科方德下编译skia.md](../skia_compile/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
-|统信UOS                  |[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[统信UOS下编译skia.md](../skia_compile/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
-|Ubuntu                   |[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [Ubuntu下编译skia.md](../skia_compile/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
-|Debian                   |[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[Debian下编译skia.md](../skia_compile/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
-|Fedora                   |[Fedora下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[Fedora下编译skia.md](../skia_compile/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
-|OpenSuse                 |[OpenSuse下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [OpenSuse下编译skia.md](../skia_compile/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+|OpenEuler                |[compile_skia_on_openeuler.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openeuler.md)|[compile_skia_on_openeuler.md](../skia_compile/compile_skia_on_openeuler.md)|
+|OpenKylin（开放麒麟）    |[compile_skia_on_openkylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openkylin.md)|[compile_skia_on_openkylin.md](../skia_compile/compile_skia_on_openkylin.md)|
+|UbuntuKylin（优麒麟）    |[compile_skia_on_ubuntukylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntukylin.md)  |[compile_skia_on_ubuntukylin.md](../skia_compile/compile_skia_on_ubuntukylin.md)|
+|中科方德                 |[compile_skia_on_neokylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_neokylin.md)  |[compile_skia_on_neokylin.md](../skia_compile/compile_skia_on_neokylin.md) |
+|统信UOS                  |[compile_skia_on_uos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.md)|[compile_skia_on_uos.md](../skia_compile/compile_skia_on_uos.md)|
+|Ubuntu                   |[compile_skia_on_ubuntu.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntu.md) | [compile_skia_on_ubuntu.md](../skia_compile/compile_skia_on_ubuntu.md) |
+|Debian                   |[compile_skia_on_debian.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_debian.md)  |[compile_skia_on_debian.md](../skia_compile/compile_skia_on_debian.md) |
+|Fedora                   |[compile_skia_on_fedora.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_fedora.md)  |[compile_skia_on_fedora.md](../skia_compile/compile_skia_on_fedora.md)|
+|OpenSuse                 |[compile_skia_on_opensuse.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_opensuse.md) | [compile_skia_on_opensuse.md](../skia_compile/compile_skia_on_opensuse.md) |
 
     注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅。
 4. 编译SDL库 
@@ -480,7 +480,7 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 
 | 操作系统平台 |参考文档（网络链接） |  参考文档（本地文件） |
 | :---         | :---                |:---                   |
-|macOS         |[macOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [macOS下编译skia.md](../skia_compile/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+|macOS         |[compile_skia_on_macos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_macos.md) | [compile_skia_on_macos.md](../skia_compile/compile_skia_on_macos.md) |
 
     注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅。
 4. 编译SDL库 
@@ -550,7 +550,7 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 
 | 操作系统平台 |参考文档（网络链接） |  参考文档（本地文件） |
 | :---         | :---                |:---                   |
-|FreeBSD         |[FreeBSD下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/FreeBSD下编译skia.md) | [FreeBSD下编译skia.md](../skia_compile/FreeBSD下编译skia.md) |
+|FreeBSD         |[compile_skia_on_freebsd.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_freebsd.md) | [compile_skia_on_freebsd.md](../skia_compile/compile_skia_on_freebsd.md) |
 
     注意事项：skia源码编译的时候，只支持使用LLVM编译。
 4. 编译SDL库 
