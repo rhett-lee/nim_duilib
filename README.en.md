@@ -292,7 +292,7 @@ The compiled example programs are located in the bin directory.
 (3) `git clone https://github.com/google/skia.git`  
 3. Build the Skia source code    
 (1) nim_duilib internally uses Skia as the UI rendering engine, so you need to build skia first; it is recommended to use LLVM for building, which runs smoothly    
-(2) Follow the method in the [compile_skia_on_windows.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.md) documentation in the skia_compile directory to build the skia-related .lib files      
+(2) Follow the method in the [compile_skia_on_windows.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.en.md) documentation in the skia_compile directory to build the skia-related .lib files      
 4. If you are using Visual Studio 2017/2019, you need to use the develop-cpp17 branch code, and run the following command in the command line:    
    `git -C ./nim_duilib checkout develop-cpp17`
 5. Build nim_duilib: enter the `build` directory, open `examples.sln` (if you are using Visual Studio 2017, you need to open `examples_vs2017.sln`), then you can build; the compiled example programs are located in the bin directory.
@@ -356,7 +356,7 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 ./nim_duilib/build/build_duilib_all_in_one.sh
 ```
 The compiled example programs are located in the bin directory.    
-Note: For the UOS system, you need to install the required development environment first, then install it; you can refer to the documentation: [compile_skia_on_uos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.md).
+Note: For the UOS system, you need to install the required development environment first, then install it; you can refer to the documentation: [compile_skia_on_uos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.en.md).
 
 ### 3. Manual Build Process (Linux Platform)
 1. Set the working directory: `~/develop`    
@@ -369,15 +369,15 @@ Note: For the UOS system, you need to install the required development environme
 
 | Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
 | :--- | :--- |:--- |
-|OpenEuler |[compile_skia_on_openeuler.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openeuler.md)|[compile_skia_on_openeuler.md](../skia_compile/compile_skia_on_openeuler.md)|
-|OpenKylin(openKylin) |[compile_skia_on_openkylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openkylin.md)|[compile_skia_on_openkylin.md](../skia_compile/compile_skia_on_openkylin.md)|
-|UbuntuKylin(Ubuntu Kylin) |[compile_skia_on_ubuntukylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntukylin.md)  |[compile_skia_on_ubuntukylin.md](../skia_compile/compile_skia_on_ubuntukylin.md)|
-|NeoKylin |[compile_skia_on_neokylin.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_neokylin.md)  |[compile_skia_on_neokylin.md](../skia_compile/compile_skia_on_neokylin.md) |
-|UnionTech UOS |[compile_skia_on_uos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.md)|[compile_skia_on_uos.md](../skia_compile/compile_skia_on_uos.md)|
-|Ubuntu |[compile_skia_on_ubuntu.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntu.md) | [compile_skia_on_ubuntu.md](../skia_compile/compile_skia_on_ubuntu.md) |
-|Debian |[compile_skia_on_debian.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_debian.md)  |[compile_skia_on_debian.md](../skia_compile/compile_skia_on_debian.md) |
-|Fedora |[compile_skia_on_fedora.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_fedora.md)  |[compile_skia_on_fedora.md](../skia_compile/compile_skia_on_fedora.md)|
-|OpenSuse |[compile_skia_on_opensuse.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_opensuse.md) | [compile_skia_on_opensuse.md](../skia_compile/compile_skia_on_opensuse.md) |
+|OpenEuler |[compile_skia_on_openeuler.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openeuler.en.md)|[compile_skia_on_openeuler.en.md](../skia_compile/compile_skia_on_openeuler.en.md)|
+|OpenKylin(openKylin) |[compile_skia_on_openkylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openkylin.en.md)|[compile_skia_on_openkylin.en.md](../skia_compile/compile_skia_on_openkylin.en.md)|
+|UbuntuKylin(Ubuntu Kylin) |[compile_skia_on_ubuntukylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntukylin.en.md)  |[compile_skia_on_ubuntukylin.en.md](../skia_compile/compile_skia_on_ubuntukylin.en.md)|
+|NeoKylin |[compile_skia_on_neokylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_neokylin.en.md)  |[compile_skia_on_neokylin.en.md](../skia_compile/compile_skia_on_neokylin.en.md) |
+|UnionTech UOS |[compile_skia_on_uos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.en.md)|[compile_skia_on_uos.en.md](../skia_compile/compile_skia_on_uos.en.md)|
+|Ubuntu |[compile_skia_on_ubuntu.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntu.en.md) | [compile_skia_on_ubuntu.en.md](../skia_compile/compile_skia_on_ubuntu.en.md) |
+|Debian |[compile_skia_on_debian.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_debian.en.md)  |[compile_skia_on_debian.en.md](../skia_compile/compile_skia_on_debian.en.md) |
+|Fedora |[compile_skia_on_fedora.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_fedora.en.md)  |[compile_skia_on_fedora.en.md](../skia_compile/compile_skia_on_fedora.en.md)|
+|OpenSuse |[compile_skia_on_opensuse.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_opensuse.en.md) | [compile_skia_on_opensuse.en.md](../skia_compile/compile_skia_on_opensuse.en.md) |
 
     Note: When compiling the skia source code, you should use LLVM for compilation, so that the program runs more smoothly.
 4. Build the SDL library 
@@ -483,7 +483,7 @@ The compiled example programs are located in the bin directory.
 
 | Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
 | :--- | :--- |:--- |
-|macOS |[compile_skia_on_macos.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_macos.md) | [compile_skia_on_macos.md](../skia_compile/compile_skia_on_macos.md) |
+|macOS |[compile_skia_on_macos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_macos.en.md) | [compile_skia_on_macos.en.md](../skia_compile/compile_skia_on_macos.en.md) |
 
     Note: When compiling the skia source code, you should use LLVM for compilation, so that the program runs more smoothly.
 4. Build the SDL library 
@@ -553,7 +553,7 @@ Note: The FreeBSD platform does not support CEF (Chromium Embedded Framework).
 
 | Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
 | :--- | :--- |:--- |
-|FreeBSD |[compile_skia_on_freebsd.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_freebsd.md) | [compile_skia_on_freebsd.md](../skia_compile/compile_skia_on_freebsd.md) |
+|FreeBSD |[compile_skia_on_freebsd.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_freebsd.en.md) | [compile_skia_on_freebsd.en.md](../skia_compile/compile_skia_on_freebsd.en.md) |
 
     Note: When compiling the skia source code, only LLVM compilation is supported.
 4. Build the SDL library 
