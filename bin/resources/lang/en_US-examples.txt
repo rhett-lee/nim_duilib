@@ -772,3 +772,87 @@ STRID_COLORTHEME_COLOR_SURFACE_4   = Surface Level 4
 STRID_COLORTHEME_COLOR_SURFACE_5   = Surface Level 5
 STRID_COLORTHEME_COLOR_SURFACE_6   = Surface Level 6
 STRID_COLORTHEME_COLOR_SURFACE_7   = Surface Level 7
+
+# examples/panel
+# Window and title bar
+STRID_PANEL_WINDOW_TITLE = Panel Control Example
+STRID_PANEL_APP_NAME = Panel
+
+# Panel titles (Panel does not support text_id; the sample sets them on language change)
+STRID_PANEL_TITLE_BASIC = Basic Panel (Static)
+STRID_PANEL_TITLE_COLLAPSIBLE = Collapsible Panel (Click Title Bar to Toggle)
+STRID_PANEL_TITLE_NESTED = Nested Panels (Outer Panel Contains Inner Panels)
+STRID_PANEL_TITLE_NESTED_INNER = Inner Panel (Collapsible)
+STRID_PANEL_TITLE_NESTED_HLAYOUT = Inner Panel (Horizontal Layout)
+STRID_PANEL_TITLE_CPP = C++ Controlled Panel (Collapsible)
+STRID_PANEL_TITLE_CPP_MODIFIED_FMT = C++ Controlled Panel (Modified %d Times)
+STRID_PANEL_TITLE_V = VPanel Demo (Vertical Box Layout)
+STRID_PANEL_TITLE_H = HPanel Demo (Horizontal Box Layout)
+STRID_PANEL_TITLE_STRETCH_A = Stretch Panel A
+STRID_PANEL_TITLE_STRETCH_B = Stretch Panel B (Initially Collapsed)
+STRID_PANEL_TITLE_VISIBLE = Child Visibility Retention (Rounded Corner Clipping)
+STRID_PANEL_TITLE_ARROW_ONLY = Arrow-Only Collapse (Title Text Does Not React)
+STRID_PANEL_TITLE_ACCORDION = Accordion Mode (group=settings)
+STRID_PANEL_TITLE_PROFILE = Profile
+STRID_PANEL_TITLE_NOTIFY = Notifications
+STRID_PANEL_TITLE_ABOUT = About
+STRID_PANEL_TITLE_CUSTOM_ARROW = Custom Arrow Images (Hover for Hover State)
+STRID_PANEL_TITLE_ARROW_LEFT = Arrow on the Left, Centered Title
+STRID_PANEL_TITLE_SLOT = Title Bar Slot (Right-Side Buttons Always Available)
+STRID_PANEL_TITLE_VETO = Protected Panel (Collapse Event Can Be Cancelled)
+
+# Description texts
+STRID_PANEL_DESC_BASIC = Note: The basic panel defines title bar styles through the XML attributes title / title_height / title_bk_color.
+STRID_PANEL_DESC_COLLAPSIBLE = Note: With collapsible='true', click the title bar to collapse or expand.
+STRID_PANEL_DESC_NESTED = Note: Panels can be nested; each inner panel has its own title bar and collapse state.
+STRID_PANEL_DESC_CPP = Note: The collapse animation duration (300ms) and event listeners of this panel are set in C++; 'Toggle Collapse' plays the animation, while 'Toggle Now' skips it (bPlayAnim=false of SetCollapsed).
+STRID_PANEL_DESC_V = Note: PanelVBox inherits VBox; children are arranged vertically and stretch to fill the width and height.
+STRID_PANEL_DESC_H = Note: PanelHBox inherits HBox; children are arranged horizontally.
+STRID_PANEL_DESC_STRETCH_A = After collapsing/expanding, this panel should refill the left half height (stretch mode must not be changed to a fixed height).
+STRID_PANEL_DESC_STRETCH_B = Initially collapsed; after expanding it should fill the right half, and collapse back to the title bar height.
+STRID_PANEL_DESC_VISIBLE = Steps: collapse then expand; the green label should stay hidden until 'Toggle Label' is clicked. The background must not overflow at the rounded corners of the title bar.
+STRID_PANEL_DESC_ARROW_ONLY = Steps: clicking the title text area does not collapse the panel; only the arrow on the far right toggles it.
+STRID_PANEL_DESC_ACCORDION = The following three panels share group=settings: expanding one automatically collapses the others; rapid clicks smoothly reverse the animation midway. All of them can be collapsed.
+STRID_PANEL_DESC_PROFILE = Profile settings such as nickname, avatar and signature.
+STRID_PANEL_DESC_NOTIFY = Notification preferences such as desktop notifications, sounds and do-not-disturb hours.
+STRID_PANEL_DESC_ABOUT = About information such as version number, update checks and open-source licenses.
+STRID_PANEL_DESC_CUSTOM_ARROW = The arrow uses normal/hovered state images instead of a glyph; the title text automatically avoids the arrow area, and an overly long title ends with an ellipsis.
+STRID_PANEL_DESC_ARROW_LEFT = arrow_align='left' places the arrow on the left of the title bar (like VSCode tree nodes); title_text_align='hcenter' centers the title. The arrow can show an accent color when hovered.
+STRID_PANEL_DESC_SLOT = Steps: click the empty area of the title bar to collapse/expand; clicking the 'Settings/Refresh' buttons on the right does not collapse it. The buttons remain on the title bar and stay clickable after collapsing.
+STRID_PANEL_DESC_VETO = How it works: the AttachCollapsing callback reads the checkbox state and returns false to cancel collapsing; expanding is unrestricted.
+
+# Buttons/options/labels
+STRID_PANEL_BTN_1 = Button 1
+STRID_PANEL_BTN_2 = Button 2
+STRID_PANEL_BTN_3 = Button 3
+STRID_PANEL_OPTION_A = Option A
+STRID_PANEL_OPTION_B = Option B
+STRID_PANEL_OPTION_C = Option C
+STRID_PANEL_SUB_OPTION_1 = Sub-option 1
+STRID_PANEL_SUB_OPTION_2 = Sub-option 2
+STRID_PANEL_SUB_OPTION_3 = Sub-option 3
+STRID_PANEL_ACTION_1 = Action 1
+STRID_PANEL_ACTION_2 = Action 2
+STRID_PANEL_ACTION_3 = Action 3
+STRID_PANEL_BTN_TOGGLE = Toggle Collapse
+STRID_PANEL_BTN_TOGGLE_NOANIM = Toggle Now
+STRID_PANEL_BTN_SET_TITLE = Change Title
+STRID_PANEL_ITEM_1 = Item 1
+STRID_PANEL_ITEM_2 = Item 2
+STRID_PANEL_ITEM_3 = Item 3
+STRID_PANEL_BTN_TOGGLE_LABEL = Toggle Label
+STRID_PANEL_HIDDEN_CHILD = I am a child control initially with visible=false
+STRID_PANEL_BTN_NO_COLLAPSE = A normal button below the title bar; clicking it does not collapse the panel
+STRID_PANEL_BTN_SLOT_SETTINGS = Settings
+STRID_PANEL_BTN_SLOT_REFRESH = Refresh
+STRID_PANEL_CHK_ALLOW_COLLAPSE = Allow collapsing this panel (when unchecked, clicking the title bar does nothing)
+
+# Dynamic status bar texts
+STRID_PANEL_STATUS_PREFIX = Status:
+STRID_PANEL_STATUS_READY = Ready
+STRID_PANEL_STATUS_CPP_EXPANDED = panel_cpp: Expanded (kEventExpand)
+STRID_PANEL_STATUS_CPP_COLLAPSED = panel_cpp: Collapsed (kEventCollapse)
+STRID_PANEL_STATUS_SLOT_SETTINGS = Title bar slot: 'Settings' clicked (panel not collapsed)
+STRID_PANEL_STATUS_SLOT_REFRESH = Title bar slot: 'Refresh' clicked (panel not collapsed)
+STRID_PANEL_STATUS_VETO_CANCELLED = Collapse cancelled: check 'Allow collapsing this panel' first
+STRID_PANEL_STATUS_VETO_COLLAPSED = Protected panel collapsed (the before-collapse event allowed it)

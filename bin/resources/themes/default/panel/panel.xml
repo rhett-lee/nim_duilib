@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="900,700" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
+<Window text_id="STRID_PANEL_WINDOW_TITLE" size="900,700" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
         caption="0,0,0,36" shadow_type="default" size_box="2,2,2,2" min_size="500,400"
         icon="public/caption/logo.ico">
     <VBox bkcolor="bg_window_main">
@@ -7,11 +7,10 @@
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse_enabled="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="Panel" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+                <Label text_id="STRID_PANEL_APP_NAME" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
             </HBox>
             <Control mouse_enabled="false"/>
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
-                <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2"/>
                 <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
                 <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
                 <Button class="btn_wnd_fullscreen_11" height="32" width="40" name="btn_window_fullscreen" margin="0,2,0,2"/>
@@ -31,14 +30,15 @@
                        border_color="border_window" border_round="4,4" bkcolor="bg_container"
                        title="基础面板（静态）" title_height="32" title_bk_color="bg_header"
                        title_text_color="text_selected" title_font="system_bold_14"
+                       name="panel_basic"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：基础面板通过 XML 属性 title / title_height / title_bk_color 定义标题栏样式。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_BASIC" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
-                        <Button class="btn_global_blue_80x30" text="按钮1" margin="0,0,6,0"/>
-                        <Button class="btn_global_white_80x30" text="按钮2" margin="0,0,6,0"/>
-                        <Button class="btn_global_red_80x30" text="按钮3"/>
+                        <Button class="btn_global_blue_80x30" text_id="STRID_PANEL_BTN_1" margin="0,0,6,0"/>
+                        <Button class="btn_global_white_80x30" text_id="STRID_PANEL_BTN_2" margin="0,0,6,0"/>
+                        <Button class="btn_global_red_80x30" text_id="STRID_PANEL_BTN_3"/>
                     </HBox>
                 </PanelVBox>
 
@@ -50,14 +50,15 @@
                        title="可折叠面板（点击标题栏切换）" title_height="30" title_bk_color="bg_overlay"
                        title_text_color="text_link_normal" title_font="system_bold_14"
                        collapsible="true" collapsed="false" collapse_anim="220"
+                       name="panel_collapsible"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：设置 collapsible='true'后，点击标题栏可折叠/展开。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_COLLAPSIBLE" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <VBox height="auto">
-                        <Option class="option_1" group="panel_option_group" text="选项 A" selected="true" margin="0,2,0,2"/>
-                        <Option class="option_1" group="panel_option_group" text="选项 B" margin="0,2,0,2"/>
-                        <Option class="option_1" group="panel_option_group" text="选项 C" margin="0,2,0,2"/>
+                        <Option class="option_1" group="panel_option_group" text_id="STRID_PANEL_OPTION_A" selected="true" margin="0,2,0,2"/>
+                        <Option class="option_1" group="panel_option_group" text_id="STRID_PANEL_OPTION_B" margin="0,2,0,2"/>
+                        <Option class="option_1" group="panel_option_group" text_id="STRID_PANEL_OPTION_C" margin="0,2,0,2"/>
                     </VBox>
                 </PanelVBox>
 
@@ -69,9 +70,10 @@
                        title="嵌套面板（外层 Panel 包含内层 Panel）" title_height="30" title_bk_color="bg_titlebar"
                        title_text_color="text_default" title_font="system_bold_14"
                        collapsible="false"
+                       name="panel_nested"
                        padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：Panel 支持嵌套，内层 Panel 具有独立的标题栏和折叠状态。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_NESTED" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
                         <!-- 内层可折叠面板 -->
@@ -80,10 +82,11 @@
                                    title="内层面板（可折叠）" title_height="26" title_bk_color="bg_overlay"
                                    title_text_color="text_selected" title_font="system_bold_14"
                                    collapsible="true" collapsed="false" collapse_anim="220"
+                                   name="panel_nested_inner"
                                    padding="8,8,8,8" margin="0,0,6,0">
-                            <CheckBox class="checkbox_1" text="子选项 1" margin="0,2,0,2" selected="true"/>
-                            <CheckBox class="checkbox_1" text="子选项 2" margin="0,2,0,2"/>
-                            <CheckBox class="checkbox_1" text="子选项 3" margin="0,2,0,2"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_PANEL_SUB_OPTION_1" margin="0,2,0,2" selected="true"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_PANEL_SUB_OPTION_2" margin="0,2,0,2"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_PANEL_SUB_OPTION_3" margin="0,2,0,2"/>
                         </PanelVBox>
                         <!-- 内层静态面板 -->
                         <PanelHBox width="0.5st" height="auto" min_height="100" border_size="1"
@@ -91,10 +94,11 @@
                                    title="内层面板（HLayout）" title_height="26" title_bk_color="bg_overlay"
                                    title_text_color="text_selected" title_font="system_bold_14"
                                    collapsible="false"
+                                   name="panel_nested_hlayout"
                                    padding="8,8,8,8">
-                            <Button class="btn_global_blue_80x30" text="操作1" margin="0,0,6,0"/>
-                            <Button class="btn_global_white_80x30" text="操作2" margin="0,0,6,0"/>
-                            <Button class="btn_global" text="操作3" height="30" width="80" border_round="3,3"/>
+                            <Button class="btn_global_blue_80x30" text_id="STRID_PANEL_ACTION_1" margin="0,0,6,0"/>
+                            <Button class="btn_global_white_80x30" text_id="STRID_PANEL_ACTION_2" margin="0,0,6,0"/>
+                            <Button class="btn_global" text_id="STRID_PANEL_ACTION_3" height="30" width="80" border_round="3,3"/>
                         </PanelHBox>
                     </HBox>
                 </PanelVBox>
@@ -109,16 +113,16 @@
                            collapsible="true" collapsed="false" name="panel_cpp"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：此面板的折叠动画时长（300ms）与事件监听均通过 C++ 代码设置；『切换折叠』播放动画，『立即切换』跳过动画（SetCollapsed 的 bPlayAnim=false）。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_CPP" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
-                        <Button class="btn_global_blue_80x30" name="btn_toggle" text="切换折叠" margin="0,0,6,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_toggle_noanim" text="立即切换" margin="0,0,6,0"/>
-                        <Button class="btn_global_white_80x30" name="btn_set_title" text="修改标题" margin="0,0,6,0"/>
+                        <Button class="btn_global_blue_80x30" name="btn_toggle" text_id="STRID_PANEL_BTN_TOGGLE" margin="0,0,6,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_toggle_noanim" text_id="STRID_PANEL_BTN_TOGGLE_NOANIM" margin="0,0,6,0"/>
+                        <Button class="btn_global_white_80x30" name="btn_set_title" text_id="STRID_PANEL_BTN_SET_TITLE" margin="0,0,6,0"/>
                     </HBox>
                     <HBox height="auto" padding="6,0,0,0">
-                        <Label text="状态：" width="auto" valign="center" text_color="text_muted"/>
-                        <Label name="lbl_status" text="就绪" width="stretch" valign="center" text_color="text_link_normal"/>
+                        <Label text_id="STRID_PANEL_STATUS_PREFIX" width="auto" valign="center" text_color="text_muted"/>
+                        <Label name="lbl_status" text_id="STRID_PANEL_STATUS_READY" width="stretch" valign="center" text_color="text_link_normal"/>
                     </HBox>
                 </PanelVBox>
 
@@ -130,18 +134,19 @@
                            title="VPanel 演示（VBox 布局）" title_height="30" title_bk_color="bg_overlay"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="false"
+                           name="panel_v_demo"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：PanelVBox 继承 VBox，子控件按垂直排列，内部宽度和高度自动拉伸。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_V" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
-                        <Label text="项目 1" width="stretch" valign="center" height="28" bkcolor="bg_content" margin="0,0,0,4"/>
+                        <Label text_id="STRID_PANEL_ITEM_1" width="stretch" valign="center" height="28" bkcolor="bg_content" margin="0,0,0,4"/>
                     </HBox>
                     <HBox height="auto">
-                        <Label text="项目 2" width="stretch" valign="center" height="28" bkcolor="bg_content" margin="0,0,0,4"/>
+                        <Label text_id="STRID_PANEL_ITEM_2" width="stretch" valign="center" height="28" bkcolor="bg_content" margin="0,0,0,4"/>
                     </HBox>
                     <HBox height="auto">
-                        <Label text="项目 3" width="stretch" valign="center" height="28" bkcolor="bg_content"/>
+                        <Label text_id="STRID_PANEL_ITEM_3" width="stretch" valign="center" height="28" bkcolor="bg_content"/>
                     </HBox>
                 </PanelVBox>
 
@@ -153,9 +158,10 @@
                            title="HPanel 演示（HBox 布局）" title_height="28" title_bk_color="bg_overlay"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="false"
+                           name="panel_h_demo"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="说明：PanelHBox 继承 HBox，子控件按水平排列。" text_color="text_muted" width="stretch" valign="center"/>
+                        <Label text_id="STRID_PANEL_DESC_H" text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
                         <Button class="btn_global_blue_80x30" text="Btn A" margin="0,0,6,0"/>
@@ -173,16 +179,20 @@
                                border_color="border_control_normal" border_round="4,4" bkcolor="bg_content"
                                title="stretch 面板 A" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_selected" title_font="system_bold_14"
-                               collapsible="true" collapse_anim="220" padding="8,8,8,8" margin="0,0,3,0">
-                        <Label text="折叠/展开后，本面板应重新填满左半区域高度（stretch 模式不被改为固定高度）。"
+                               collapsible="true" collapse_anim="220"
+                               name="panel_stretch_a"
+                               padding="8,8,8,8" margin="0,0,3,0">
+                        <Label text_id="STRID_PANEL_DESC_STRETCH_A"
                                text_color="text_muted" width="stretch" height="stretch" text_align="left,top"/>
                     </PanelVBox>
                     <PanelVBox width="0.5st" height="stretch" border_size="1"
                                border_color="border_control_normal" border_round="4,4" bkcolor="bg_content"
                                title="stretch 面板 B（初始折叠）" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_selected" title_font="system_bold_14"
-                               collapsible="true" collapsed="true" collapse_anim="220" padding="8,8,8,8" margin="3,0,0,0">
-                        <Label text="初始为折叠状态，展开后应占满右半区域，再次折叠恢复标题栏高度。"
+                               collapsible="true" collapsed="true" collapse_anim="220"
+                               name="panel_stretch_b"
+                               padding="8,8,8,8" margin="3,0,0,0">
+                        <Label text_id="STRID_PANEL_DESC_STRETCH_B"
                                text_color="text_muted" width="stretch" height="stretch" text_align="left,top"/>
                     </PanelVBox>
                 </HBox>
@@ -194,14 +204,16 @@
                            border_color="border_control_normal" border_round="8,8" bkcolor="bg_container"
                            title="子控件可见性保持（圆角裁剪）" title_height="32" title_bk_color="bg_header"
                            title_text_color="text_selected" title_font="system_bold_14"
-                           collapsible="true" collapse_anim="220" padding="10,10,10,10">
+                           collapsible="true" collapse_anim="220"
+                           name="panel_visible"
+                           padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="操作：先折叠再展开，绿色标签应始终隐藏；点『切换标签』才显示。标题栏圆角处背景不应溢出。"
+                        <Label text_id="STRID_PANEL_DESC_VISIBLE"
                                text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
-                        <Button class="btn_global_blue_80x30" name="btn_toggle_hidden" text="切换标签" margin="0,0,6,0"/>
-                        <Label name="lbl_hidden_child" text="我是一个原本 visible=false 的子控件"
+                        <Button class="btn_global_blue_80x30" name="btn_toggle_hidden" text_id="STRID_PANEL_BTN_TOGGLE_LABEL" margin="0,0,6,0"/>
+                        <Label name="lbl_hidden_child" text_id="STRID_PANEL_HIDDEN_CHILD"
                                visible="false" width="auto" height="30" valign="center"
                                text_color="color_success" bkcolor="bg_content" padding="6,0,6,0" border_round="3,3"/>
                     </HBox>
@@ -215,13 +227,14 @@
                            title="仅箭头可折叠（点击标题文字无反应）" title_height="30" title_bk_color="bg_overlay"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="true" collapse_trigger="arrow" collapse_anim="220"
+                           name="panel_arrow_only"
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
-                        <Label text="操作：点击本标题文字区域不会折叠，只有点击最右侧箭头才切换。"
+                        <Label text_id="STRID_PANEL_DESC_ARROW_ONLY"
                                text_color="text_muted" width="stretch" valign="center"/>
                     </HBox>
                     <HBox height="auto">
-                        <Button class="btn_global_white_80x30" text="标题栏下方的普通按钮，点击不折叠"/>
+                        <Button class="btn_global_white_80x30" text_id="STRID_PANEL_BTN_NO_COLLAPSE"/>
                     </HBox>
                 </PanelVBox>
 
@@ -232,8 +245,9 @@
                            border_color="border_control_normal" border_round="4,4" bkcolor="bg_container"
                            title="手风琴模式（group=settings）" title_height="30" title_bk_color="bg_header"
                            title_text_color="text_selected" title_font="system_bold_14"
+                           name="panel_accordion"
                            padding="10,8,10,8">
-                    <Label text="下列三个面板同属 group=settings：展开任意一个，其余自动折叠；快速连点可观察动画中途平滑反向。允许全部折叠。"
+                    <Label text_id="STRID_PANEL_DESC_ACCORDION"
                            text_color="text_muted" width="stretch" height="auto" padding="0,0,0,8"/>
 
                     <PanelVBox width="stretch" height="auto" border_size="1"
@@ -241,8 +255,9 @@
                                title="个人资料" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_default" title_font="system_bold_14"
                                collapsible="true" collapse_anim="220" group="settings"
+                               name="panel_acc_profile"
                                padding="10,10,10,10" margin="0,0,0,6">
-                        <Label text="昵称、头像、签名等个人资料设置项。"
+                        <Label text_id="STRID_PANEL_DESC_PROFILE"
                                text_color="text_muted" width="stretch" height="auto"/>
                     </PanelVBox>
 
@@ -251,8 +266,9 @@
                                title="通知设置" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_default" title_font="system_bold_14"
                                collapsible="true" collapsed="true" collapse_anim="220" group="settings"
+                               name="panel_acc_notify"
                                padding="10,10,10,10" margin="0,0,0,6">
-                        <Label text="桌面通知、声音、免打扰时段等通知偏好。"
+                        <Label text_id="STRID_PANEL_DESC_NOTIFY"
                                text_color="text_muted" width="stretch" height="auto"/>
                     </PanelVBox>
 
@@ -261,8 +277,9 @@
                                title="关于" title_height="28" title_bk_color="bg_overlay"
                                title_text_color="text_default" title_font="system_bold_14"
                                collapsible="true" collapsed="true" collapse_anim="220" group="settings"
+                               name="panel_acc_about"
                                padding="10,10,10,10">
-                        <Label text="版本号、更新检查、开源许可等关于信息。"
+                        <Label text_id="STRID_PANEL_DESC_ABOUT"
                                text_color="text_muted" width="stretch" height="auto"/>
                     </PanelVBox>
                 </PanelVBox>
@@ -275,12 +292,13 @@
                            title="自定义箭头图片（悬停看 hover 态）" title_height="32" title_bk_color="bg_header"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="true" collapse_anim="220"
+                           name="panel_custom_arrow"
                            arrow_expanded_normal_image="file='public/tree/expand_normal.svg' width='14' height='14' valign='center'"
                            arrow_expanded_hovered_image="file='public/tree/expand_hovered.svg' width='14' height='14' valign='center'"
                            arrow_collapsed_normal_image="file='public/tree/collapse_normal.svg' width='14' height='14' valign='center'"
                            arrow_collapsed_hovered_image="file='public/tree/collapse_hovered.svg' width='14' height='14' valign='center'"
                            padding="10,10,10,10">
-                    <Label text="箭头不再使用字形，而是 normal/hovered 状态图片；标题文字自动避让箭头区域，超长标题以省略号收尾。"
+                    <Label text_id="STRID_PANEL_DESC_CUSTOM_ARROW"
                            text_color="text_muted" width="stretch" height="auto"/>
                 </PanelVBox>
 
@@ -293,8 +311,9 @@
                            title_text_color="text_selected" title_font="system_bold_14"
                            title_text_align="hcenter" arrow_align="left"
                            collapsible="true" collapse_anim="220"
+                           name="panel_arrow_left"
                            padding="10,10,10,10">
-                    <Label text="arrow_align='left' 把箭头放到标题栏左侧（类似 VSCode 树节点）；title_text_align='hcenter' 让标题居中。悬停箭头可变强调色。"
+                    <Label text_id="STRID_PANEL_DESC_ARROW_LEFT"
                            text_color="text_muted" width="stretch" height="auto"/>
                 </PanelVBox>
 
@@ -306,14 +325,15 @@
                            title="标题栏槽位（右侧按钮始终可用）" title_height="32" title_bk_color="bg_header"
                            title_text_color="text_selected" title_font="system_bold_14"
                            collapsible="true" collapse_anim="220"
+                           name="panel_slot"
                            title_slot="panel_slot_actions"
                            padding="10,10,10,10">
                     <!-- 槽位控件必须 float=true，不参与正文布局；折叠状态下仍显示在标题栏 -->
                     <HBox name="panel_slot_actions" float="true" height="28" width="auto">
-                        <Button class="btn_global_white_80x30" name="btn_slot_settings" text="设置" margin="0,0,6,0"/>
-                        <Button class="btn_global_blue_80x30" name="btn_slot_refresh" text="刷新"/>
+                        <Button class="btn_global_white_80x30" name="btn_slot_settings" text_id="STRID_PANEL_BTN_SLOT_SETTINGS" margin="0,0,6,0"/>
+                        <Button class="btn_global_blue_80x30" name="btn_slot_refresh" text_id="STRID_PANEL_BTN_SLOT_REFRESH"/>
                     </HBox>
-                    <Label text="操作：点标题栏空白处折叠/展开；点右侧『设置/刷新』按钮不会折叠。折叠后按钮仍停留在标题栏且可点击。"
+                    <Label text_id="STRID_PANEL_DESC_SLOT"
                            text_color="text_muted" width="stretch" height="auto"/>
                 </PanelVBox>
 
@@ -329,10 +349,10 @@
                            padding="10,10,10,10">
                     <HBox height="auto" padding="0,0,0,6">
                         <CheckBox class="checkbox_1" name="chk_allow_collapse" height="28" width="auto"
-                                  text="允许折叠本面板（不勾选时点标题栏无反应）"
+                                  text_id="STRID_PANEL_CHK_ALLOW_COLLAPSE"
                                   text_color="text_default" valign="center"/>
                     </HBox>
-                    <Label text="实现方式：AttachCollapsing 回调中读取复选框状态，返回 false 即取消折叠；展开不受限制。"
+                    <Label text_id="STRID_PANEL_DESC_VETO"
                            text_color="text_muted" width="stretch" height="auto"/>
                 </PanelVBox>
 

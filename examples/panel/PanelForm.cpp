@@ -1,9 +1,43 @@
 #include "PanelForm.h"
 
+namespace {
+/** Panel 控件名称与标题语言 ID 的对照表
+* （Panel 控件只支持 title 属性、不支持 text_id，语言切换时需通过 C++ 重设标题）
+*/
+struct PanelTitleItem
+{
+    LPCTSTR sControlName;
+    LPCTSTR sTitleTextId;
+};
+
+const PanelTitleItem kPanelTitleItems[] = {
+    { _T("panel_basic"),         _T("STRID_PANEL_TITLE_BASIC") },
+    { _T("panel_collapsible"),   _T("STRID_PANEL_TITLE_COLLAPSIBLE") },
+    { _T("panel_nested"),        _T("STRID_PANEL_TITLE_NESTED") },
+    { _T("panel_nested_inner"),  _T("STRID_PANEL_TITLE_NESTED_INNER") },
+    { _T("panel_nested_hlayout"),_T("STRID_PANEL_TITLE_NESTED_HLAYOUT") },
+    { _T("panel_v_demo"),        _T("STRID_PANEL_TITLE_V") },
+    { _T("panel_h_demo"),        _T("STRID_PANEL_TITLE_H") },
+    { _T("panel_stretch_a"),     _T("STRID_PANEL_TITLE_STRETCH_A") },
+    { _T("panel_stretch_b"),     _T("STRID_PANEL_TITLE_STRETCH_B") },
+    { _T("panel_visible"),       _T("STRID_PANEL_TITLE_VISIBLE") },
+    { _T("panel_arrow_only"),    _T("STRID_PANEL_TITLE_ARROW_ONLY") },
+    { _T("panel_accordion"),     _T("STRID_PANEL_TITLE_ACCORDION") },
+    { _T("panel_acc_profile"),   _T("STRID_PANEL_TITLE_PROFILE") },
+    { _T("panel_acc_notify"),    _T("STRID_PANEL_TITLE_NOTIFY") },
+    { _T("panel_acc_about"),     _T("STRID_PANEL_TITLE_ABOUT") },
+    { _T("panel_custom_arrow"),  _T("STRID_PANEL_TITLE_CUSTOM_ARROW") },
+    { _T("panel_arrow_left"),    _T("STRID_PANEL_TITLE_ARROW_LEFT") },
+    { _T("panel_slot"),          _T("STRID_PANEL_TITLE_SLOT") },
+    { _T("panel_veto"),          _T("STRID_PANEL_TITLE_VETO") },
+};
+} //namespace
+
 PanelForm::PanelForm():
     m_pCppPanel(nullptr),
     m_pStatusLabel(nullptr),
-    m_pHiddenChildLabel(nullptr)
+    m_pHiddenChildLabel(nullptr),
+    m_nCppTitleModified(0)
 {
 }
 
@@ -28,6 +62,43 @@ void PanelForm::SetStatusText(const DString& strText)
     }
 }
 
+void PanelForm::ApplyLocalizedPanelTitles()
+{
+    for (const PanelTitleItem& item : kPanelTitleItems) {
+        ui::Control* pControl = FindControl(item.sControlName);
+        DString sTitle = ui::GlobalManager::GetTextById(item.sTitleTextId);
+        ui::PanelVBox* pPanelV = dynamic_cast<ui::PanelVBox*>(pControl);
+        if (pPanelV != nullptr) {
+            pPanelV->SetTitle(sTitle);
+            continue;
+        }
+        ui::PanelHBox* pPanelH = dynamic_cast<ui::PanelHBox*>(pControl);
+        if (pPanelH != nullptr) {
+            pPanelH->SetTitle(sTitle);
+        }
+    }
+
+    //C++ 控制面板：默认标题与“已修改 N 次”的标题都需要跟随当前语言
+    if (m_pCppPanel != nullptr) {
+        if (m_nCppTitleModified > 0) {
+            m_pCppPanel->SetTitle(ui::StringUtil::Printf(
+                ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP_MODIFIED_FMT")).c_str(),
+                m_nCppTitleModified));
+        }
+        else {
+            m_pCppPanel->SetTitle(ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP")));
+        }
+    }
+}
+
+bool PanelForm::OnLanguageChanged()
+{
+    bool bRet = BaseClass::OnLanguageChanged();
+    //Panel 标题不支持 text_id，语言切换后手动按当前语言刷新
+    ApplyLocalizedPanelTitles();
+    return bRet;
+}
+
 void PanelForm::OnInitWindow()
 {
     m_pStatusLabel = dynamic_cast<ui::Label*>(FindControl(_T("lbl_status")));
@@ -43,14 +114,14 @@ void PanelForm::OnInitWindow()
             if (weakFlag.expired()) {
                 return true;
             }
-            SetStatusText(_T("panel_cpp: 已展开（kEventExpand）"));
+            SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_CPP_EXPANDED")));
             return true;
         });
         pPanel->AttachCollapse([this, weakFlag](const ui::EventArgs& args) {
             if (weakFlag.expired()) {
                 return true;
             }
-            SetStatusText(_T("panel_cpp: 已折叠（kEventCollapse）"));
+            SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_CPP_COLLAPSED")));
             return true;
         });
     }
@@ -82,8 +153,10 @@ void PanelForm::OnInitWindow()
     if (pTitleBtn != nullptr) {
         pTitleBtn->AttachClick([this](const ui::EventArgs& args) {
             if (m_pCppPanel != nullptr) {
-                static int32_t s_nCount = 0;
-                m_pCppPanel->SetTitle(ui::StringUtil::Printf(_T("C++ 控制面板（已修改 %d 次）"), ++s_nCount));
+                ++m_nCppTitleModified;
+                m_pCppPanel->SetTitle(ui::StringUtil::Printf(
+                    ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP_MODIFIED_FMT")).c_str(),
+                    m_nCppTitleModified));
             }
             return true;
         });
@@ -105,18 +178,14 @@ void PanelForm::OnInitWindow()
     ui::Button* pSlotSettings = dynamic_cast<ui::Button*>(FindControl(_T("btn_slot_settings")));
     if (pSlotSettings != nullptr) {
         pSlotSettings->AttachClick([this](const ui::EventArgs& args) {
-            if (m_pStatusLabel != nullptr) {
-                m_pStatusLabel->SetText(_T("标题栏槽位：点击了『设置』按钮（面板未折叠）"));
-            }
+            SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_SLOT_SETTINGS")));
             return true;
         });
     }
     ui::Button* pSlotRefresh = dynamic_cast<ui::Button*>(FindControl(_T("btn_slot_refresh")));
     if (pSlotRefresh != nullptr) {
         pSlotRefresh->AttachClick([this](const ui::EventArgs& args) {
-            if (m_pStatusLabel != nullptr) {
-                m_pStatusLabel->SetText(_T("标题栏槽位：点击了『刷新』按钮（面板未折叠）"));
-            }
+            SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_SLOT_REFRESH")));
             return true;
         });
     }
@@ -127,16 +196,17 @@ void PanelForm::OnInitWindow()
     if (pVetoPanel != nullptr) {
         pVetoPanel->AttachCollapsing([this, pAllowCollapse](const ui::EventArgs& args) {
             bool bAllow = (pAllowCollapse != nullptr) && pAllowCollapse->IsSelected();
-            if (!bAllow && (m_pStatusLabel != nullptr)) {
-                m_pStatusLabel->SetText(_T("折叠被取消：请先勾选『允许折叠本面板』"));
+            if (!bAllow) {
+                SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_VETO_CANCELLED")));
             }
             return bAllow;
         });
         pVetoPanel->AttachCollapse([this](const ui::EventArgs& args) {
-            if (m_pStatusLabel != nullptr) {
-                m_pStatusLabel->SetText(_T("受保护面板已折叠（折叠前事件已放行）"));
-            }
+            SetStatusText(ui::GlobalManager::GetTextById(_T("STRID_PANEL_STATUS_VETO_COLLAPSED")));
             return true;
         });
     }
+
+    //XML 中 Panel 的 title 属性为中文兜底值，窗口创建后按当前语言刷新一次
+    ApplyLocalizedPanelTitles();
 }

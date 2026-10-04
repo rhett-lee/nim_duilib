@@ -25,10 +25,19 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 语言切换后由框架调用：窗口上带 text_id 的控件会自动刷新，
+    *   但 Panel 标题不支持 text_id，需要在这里手动重设
+    */
+    virtual bool OnLanguageChanged() override;
+
 private:
     /** 更新状态栏文字
     */
     void SetStatusText(const DString& strText);
+
+    /** 按当前语言刷新所有 Panel 的标题（Panel 控件仅支持 title 属性，不支持 text_id）
+    */
+    void ApplyLocalizedPanelTitles();
 
 private:
     //C++ 控制的可折叠面板
@@ -39,6 +48,9 @@ private:
 
     //可见性保持测试：用户控制显隐的子标签
     ui::Label* m_pHiddenChildLabel;
+
+    //C++ 控制面板标题被“修改标题”按钮修改的次数（0 表示默认标题）
+    int32_t m_nCppTitleModified;
 };
 
 #endif //EXAMPLES_PANEL_FORM_H_

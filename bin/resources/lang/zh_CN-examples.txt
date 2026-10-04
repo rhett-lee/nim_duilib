@@ -1,4 +1,4 @@
-﻿# 中文简体字符资源
+# 中文简体字符资源
 # 注释符号："#"
 
 # 以下为各个示例程序使用的文本
@@ -775,5 +775,89 @@ STRID_COLORTHEME_COLOR_SURFACE_2 = 2级表面色
 STRID_COLORTHEME_COLOR_SURFACE_3 = 3级表面色
 STRID_COLORTHEME_COLOR_SURFACE_4 = 4级表面色
 STRID_COLORTHEME_COLOR_SURFACE_5 = 5级表面色
-STRID_COLORTHEME_COLOR_SURFACE_6 = 6级表面色
-STRID_COLORTHEME_COLOR_SURFACE_7 = 7级表面色
+STRID_COLORTHEME_COLOR_SURFACE_6   = 6级表面色
+STRID_COLORTHEME_COLOR_SURFACE_7   = 7级表面色
+
+# examples/panel
+# 窗口与标题栏
+STRID_PANEL_WINDOW_TITLE = Panel 控件示例
+STRID_PANEL_APP_NAME = Panel
+
+# 各 Panel 标题（Panel 不支持 text_id，由示例代码在语言切换时设置）
+STRID_PANEL_TITLE_BASIC = 基础面板（静态）
+STRID_PANEL_TITLE_COLLAPSIBLE = 可折叠面板（点击标题栏切换）
+STRID_PANEL_TITLE_NESTED = 嵌套面板（外层 Panel 包含内层 Panel）
+STRID_PANEL_TITLE_NESTED_INNER = 内层面板（可折叠）
+STRID_PANEL_TITLE_NESTED_HLAYOUT = 内层面板（HLayout）
+STRID_PANEL_TITLE_CPP = C++ 控制面板（可折叠）
+STRID_PANEL_TITLE_CPP_MODIFIED_FMT = C++ 控制面板（已修改 %d 次）
+STRID_PANEL_TITLE_V = VPanel 演示（VBox 布局）
+STRID_PANEL_TITLE_H = HPanel 演示（HBox 布局）
+STRID_PANEL_TITLE_STRETCH_A = stretch 面板 A
+STRID_PANEL_TITLE_STRETCH_B = stretch 面板 B（初始折叠）
+STRID_PANEL_TITLE_VISIBLE = 子控件可见性保持（圆角裁剪）
+STRID_PANEL_TITLE_ARROW_ONLY = 仅箭头可折叠（点击标题文字无反应）
+STRID_PANEL_TITLE_ACCORDION = 手风琴模式（group=settings）
+STRID_PANEL_TITLE_PROFILE = 个人资料
+STRID_PANEL_TITLE_NOTIFY = 通知设置
+STRID_PANEL_TITLE_ABOUT = 关于
+STRID_PANEL_TITLE_CUSTOM_ARROW = 自定义箭头图片（悬停看 hover 态）
+STRID_PANEL_TITLE_ARROW_LEFT = 箭头在左，标题居中
+STRID_PANEL_TITLE_SLOT = 标题栏槽位（右侧按钮始终可用）
+STRID_PANEL_TITLE_VETO = 受保护面板（取消折叠事件）
+
+# 说明文字
+STRID_PANEL_DESC_BASIC = 说明：基础面板通过 XML 属性 title / title_height / title_bk_color 定义标题栏样式。
+STRID_PANEL_DESC_COLLAPSIBLE = 说明：设置 collapsible='true' 后，点击标题栏可折叠/展开。
+STRID_PANEL_DESC_NESTED = 说明：Panel 支持嵌套，内层 Panel 具有独立的标题栏和折叠状态。
+STRID_PANEL_DESC_CPP = 说明：此面板的折叠动画时长（300ms）与事件监听均通过 C++ 代码设置；『切换折叠』播放动画，『立即切换』跳过动画（SetCollapsed 的 bPlayAnim=false）。
+STRID_PANEL_DESC_V = 说明：PanelVBox 继承 VBox，子控件按垂直排列，内部宽度和高度自动拉伸。
+STRID_PANEL_DESC_H = 说明：PanelHBox 继承 HBox，子控件按水平排列。
+STRID_PANEL_DESC_STRETCH_A = 折叠/展开后，本面板应重新填满左半区域高度（stretch 模式不被改为固定高度）。
+STRID_PANEL_DESC_STRETCH_B = 初始为折叠状态，展开后应占满右半区域，再次折叠恢复标题栏高度。
+STRID_PANEL_DESC_VISIBLE = 操作：先折叠再展开，绿色标签应始终隐藏；点『切换标签』才显示。标题栏圆角处背景不应溢出。
+STRID_PANEL_DESC_ARROW_ONLY = 操作：点击本标题文字区域不会折叠，只有点击最右侧箭头才切换。
+STRID_PANEL_DESC_ACCORDION = 下列三个面板同属 group=settings：展开任意一个，其余自动折叠；快速连点可观察动画中途平滑反向。允许全部折叠。
+STRID_PANEL_DESC_PROFILE = 昵称、头像、签名等个人资料设置项。
+STRID_PANEL_DESC_NOTIFY = 桌面通知、声音、免打扰时段等通知偏好。
+STRID_PANEL_DESC_ABOUT = 版本号、更新检查、开源许可等关于信息。
+STRID_PANEL_DESC_CUSTOM_ARROW = 箭头不再使用字形，而是 normal/hovered 状态图片；标题文字自动避让箭头区域，超长标题以省略号收尾。
+STRID_PANEL_DESC_ARROW_LEFT = arrow_align='left' 把箭头放到标题栏左侧（类似 VSCode 树节点）；title_text_align='hcenter' 让标题居中。悬停箭头可变强调色。
+STRID_PANEL_DESC_SLOT = 操作：点标题栏空白处折叠/展开；点右侧『设置/刷新』按钮不会折叠。折叠后按钮仍停留在标题栏且可点击。
+STRID_PANEL_DESC_VETO = 实现方式：AttachCollapsing 回调中读取复选框状态，返回 false 即取消折叠；展开不受限制。
+
+# 按钮/选项/标签
+STRID_PANEL_BTN_1 = 按钮1
+STRID_PANEL_BTN_2 = 按钮2
+STRID_PANEL_BTN_3 = 按钮3
+STRID_PANEL_OPTION_A = 选项 A
+STRID_PANEL_OPTION_B = 选项 B
+STRID_PANEL_OPTION_C = 选项 C
+STRID_PANEL_SUB_OPTION_1 = 子选项 1
+STRID_PANEL_SUB_OPTION_2 = 子选项 2
+STRID_PANEL_SUB_OPTION_3 = 子选项 3
+STRID_PANEL_ACTION_1 = 操作1
+STRID_PANEL_ACTION_2 = 操作2
+STRID_PANEL_ACTION_3 = 操作3
+STRID_PANEL_BTN_TOGGLE = 切换折叠
+STRID_PANEL_BTN_TOGGLE_NOANIM = 立即切换
+STRID_PANEL_BTN_SET_TITLE = 修改标题
+STRID_PANEL_ITEM_1 = 项目 1
+STRID_PANEL_ITEM_2 = 项目 2
+STRID_PANEL_ITEM_3 = 项目 3
+STRID_PANEL_BTN_TOGGLE_LABEL = 切换标签
+STRID_PANEL_HIDDEN_CHILD = 我是一个原本 visible=false 的子控件
+STRID_PANEL_BTN_NO_COLLAPSE = 标题栏下方的普通按钮，点击不折叠
+STRID_PANEL_BTN_SLOT_SETTINGS = 设置
+STRID_PANEL_BTN_SLOT_REFRESH = 刷新
+STRID_PANEL_CHK_ALLOW_COLLAPSE = 允许折叠本面板（不勾选时点标题栏无反应）
+
+# 状态栏动态文案
+STRID_PANEL_STATUS_PREFIX = 状态：
+STRID_PANEL_STATUS_READY = 就绪
+STRID_PANEL_STATUS_CPP_EXPANDED = panel_cpp: 已展开（kEventExpand）
+STRID_PANEL_STATUS_CPP_COLLAPSED = panel_cpp: 已折叠（kEventCollapse）
+STRID_PANEL_STATUS_SLOT_SETTINGS = 标题栏槽位：点击了『设置』按钮（面板未折叠）
+STRID_PANEL_STATUS_SLOT_REFRESH = 标题栏槽位：点击了『刷新』按钮（面板未折叠）
+STRID_PANEL_STATUS_VETO_CANCELLED = 折叠被取消：请先勾选『允许折叠本面板』
+STRID_PANEL_STATUS_VETO_COLLAPSED = 受保护面板已折叠（折叠前事件已放行）
