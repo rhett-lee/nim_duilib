@@ -22,6 +22,7 @@ nim_duilib 是一个 XML 驱动皮肤 + C++ 逻辑的跨平台桌面 UI 框架�
 | 新建窗口 / 窗体 / 对话框 | `references/create-window.md` |
 | 设计或修改 XML 布局、选容器、写尺寸 | `references/xml-layout.md` |
 | 添加控件、写控件属性、动态加数据 | `references/add-control.md` |
+| 给框架已有控件扩展新 XML 属性 / 改 duilib 头文件 | `references/framework-extend.md` |
 | 事件绑定（XML 内联或 C++ Attach）、查事件名 | `references/event-handler.md` |
 | 主题、颜色、字体、global.xml 的 Class | `references/theme.md` |
 | 资源打包、发布、ZIP、单文件 EXE | `references/resource-pack.md` |

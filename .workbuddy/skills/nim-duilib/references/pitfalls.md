@@ -83,9 +83,29 @@ fallback。所以旧名 `minbtn`/`closebtn` 能跑，但会多一次失败的 `F
 （不是 `uint16_t`）；`modifierKey` 是 `uint32_t`；`eventData` 是 `int32_t`（不是 `int64_t`）。
 取下标时显式转型：`static_cast<size_t>(args.wParam)`。
 
+### 10. 改了头文件模板类只重编示例 → 运行时 0xC0000005 崩溃
+
+`PanelTemplate`、`BoxTemplate` 等模板类的实例化发生在 `duilib/Core/WindowBuilder.cpp`
+的控件工厂表里（`new PanelVBox(pWindow)` 等），编译进了 `duilib.lib`。
+给这些类新增成员变量（如 `m_titleId`）会改变对象内存布局。
+
+只重编示例、不重编 `duilib` target 时，示例用新布局读写对象，但链接的旧 `duilib.lib`
+仍按旧布局 `new` 对象 → 偏移错位 → 越界访问 → 窗口创建期崩溃（`0xC0000005` / `0xC000041D`），
+且编译零错误，极难定位。
+
+**修复**：先重建库，再重建示例：
+
+```bash
+cmake --build build/build_temp/msvc/duilib --config Release --target duilib
+cmake --build build/build_temp/msvc/panel   --config Release --target panel
+```
+
+判断某个头文件改动是否需要 Rebuild 库：`grep -rn "<类名>" duilib/*.cpp duilib/**/*.cpp`，
+有命中即说明库内有实例化，必须 Rebuild。
+
 ## 三、已修复的历史问题（不要按旧说法处理）
 
-### 10. `<Include>` 作为 `<Window>` 唯一子节点导致空白窗口 —— 已修复
+### 11. `<Include>` 作为 `<Window>` 唯一子节点导致空白窗口 —— 已修复
 
 早期版本：`<Include>` 是窗口根 `<Window>` 下第一个非样式子节点时，`ParseXmlNodeChildren` 用
 `continue` 跳过了 `pReturn = pControl` 赋值，`CreateControls` 返回 `nullptr`，
@@ -110,7 +130,7 @@ git log --oneline -5 -- <源码路径>
 git merge-base --is-ancestor <代码提交> <文档提交> && echo "文档写于修复之后"
 ```
 
-### 11. 示例资源里的旧标题栏名 —— 已全部迁移
+### 12. 示例资源里的旧标题栏名 —— 已全部迁移
 
 `chat/login.xml`、`controls/about.xml`、`rich_edit/find.xml`、`rich_edit/replace.xml`
 曾使用 `minbtn`/`closebtn`，现均已改为 `btn_window_min`/`btn_window_close`。
@@ -123,21 +143,21 @@ git merge-base --is-ancestor <代码提交> <文档提交> && echo "文档写于
 
 ## 四、命名与别名
 
-### 12. `list_item` 与 `listitem`
+### 13. `list_item` 与 `listitem`
 
 真名是 `list_item`，`listitem` 是通过 `<Alias>` 定义的旧名，两者等价。新代码写 `list_item`。
 
-### 13. 字体 ID：`system_<样式>_<字号>`
+### 14. 字体 ID：`system_<样式>_<字号>`
 
 样式段 regular/bold/underline/italic/strikeout/fullstyle，字号只有 12/14/16/18/20/22 六档
 （下划线/斜体/删除线同样各有六档，不是只有 12）。
 **不存在 `arial_*` 系列**（已从 global.xml 移除）。默认字体是 `system_regular_14`。
 
-### 14. `WinImplBase.h` 文件名不带 Window 前缀
+### 15. `WinImplBase.h` 文件名不带 Window 前缀
 
 类名是 `ui::WindowImplBase`，但文件是 `duilib/Utils/WinImplBase.h`。按类名猜文件名会找不到。
 
-### 15. 语言文件在 `bin/resources/lang/`，不在 `themes/default/lang/`
+### 16. 语言文件在 `bin/resources/lang/`，不在 `themes/default/lang/`
 
 ## 四点五、CMake 变量设置的时序陷阱
 
