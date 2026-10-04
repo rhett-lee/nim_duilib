@@ -243,6 +243,9 @@ English | [简体中文](Box.md)
 
 
 | VBoxDragable | VBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | Vertical layout (VLayout) | Container that supports drag-in/drag-out operations of child controls |
+| Panel | Box|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | Float layout (Layout) | Titled panel container (`PanelTemplate<Box>`), supporting title bar styling, collapse/expand and accordion groups |
+| PanelHBox | HBox|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | Horizontal layout (HLayout) | Titled panel container (`PanelTemplate<HBox>`) with horizontally arranged children |
+| PanelVBox | VBox|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | Vertical layout (VLayout) | Titled panel container (`PanelTemplate<VBox>`) with vertically arranged children |
 
 
 
@@ -1751,6 +1754,43 @@ The VBoxResizable control inherits `ControlResizableT` and `VBox` attributes. Fo
 
 
 The XmlBox control inherits `Box` attributes. For more available attributes, please refer to the `Box` attributes.
+
+### 38. Panel/PanelHBox/PanelVBox Attributes
+
+Panel/PanelHBox/PanelVBox are three instances of the same template class (`PanelTemplate`), inheriting Box/HBox/VBox respectively. Besides the corresponding layout capabilities, they provide a title bar and collapse/expand support. Header file: [duilib/Box/Panel.h](../duilib/Box/Panel.h).
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| title | | string | Title bar text |
+| title_height | 28 | int | Title bar height in pixels (automatically DPI scaled) |
+| title_bk_color | | string | Title bar background color (semantic color name; if not set, no background is painted) |
+| title_text_color | text_default | string | Title text color (semantic color name) |
+| title_text_align | "left" | string | Horizontal alignment of the title text: "left", "hcenter" or "right" |
+| title_font | system_bold_14 | string | Title font ID (the Font id in global.xml) |
+| collapsible | false | bool | Whether the panel is collapsible: when true, clicking the title bar (or the arrow hit area) collapses/expands the content area |
+| collapsed | false | bool | Initial collapsed state; the initial setting fires no events and plays no animation |
+| collapse_trigger | "title" | string | Collapse trigger hit area: "title" (the whole title bar) or "arrow" (only the arrow area) |
+| collapse_anim | 0 | int | Collapse/expand animation duration in milliseconds; 0 means no animation (instant switch), 150~300 is recommended |
+| arrow_align | "right" | string | Position of the collapse arrow: "right" (right side of the title bar, default) or "left" (left side) |
+| group | | string | Accordion group name: within the same window, only one panel of a group may be expanded at a time (all may be collapsed); empty string means no group |
+| title_slot | | string | Title bar slot: the name of a child control (recommended to set float="true") which is automatically positioned at the right side of the title bar (left of the arrow); it stays visible and clickable when collapsed |
+| arrow_expanded_normal_image | | string | Image of the expanded-state (▼) arrow in the normal state |
+| arrow_expanded_hovered_image | | string | Image of the expanded-state arrow in the hovered state (alias: arrow_expanded_hot_image) |
+| arrow_expanded_pushed_image | | string | Image of the expanded-state arrow in the pushed state (alias: arrow_expanded_pressed_image) |
+| arrow_expanded_disabled_image | | string | Image of the expanded-state arrow in the disabled state |
+| arrow_collapsed_normal_image | | string | Image of the collapsed-state (▶) arrow in the normal state |
+| arrow_collapsed_hovered_image | | string | Image of the collapsed-state arrow in the hovered state (alias: arrow_collapsed_hot_image) |
+| arrow_collapsed_pushed_image | | string | Image of the collapsed-state arrow in the pushed state (alias: arrow_collapsed_pressed_image) |
+| arrow_collapsed_disabled_image | | string | Image of the collapsed-state arrow in the disabled state |
+| padding | 0,0,0,0 | rect | Padding of the content area; the title bar space is automatically reserved at the top, so padding only applies to the content area below the title bar |
+
+Additional notes:
+* When no arrow images are configured, built-in vector triangles are used (pointing right when collapsed, down when expanded); the arrow automatically turns into the color_accent color when the mouse hovers over the title bar. If an image is missing for a specific state, the normal-state image is used as fallback.
+* Collapsing hides the content area at measurement, painting and hit-testing points. It neither modifies the children's visible state nor changes the control's own height mode, so fixed/auto/stretch heights all collapse correctly. During collapse, min_height is temporarily relaxed to the title bar height, and the user value is restored after expanding.
+* Events: `kEventCollapse` / `kEventExpand` are fired after collapse/expand completes (immediately without animation, after the animation otherwise). Before the action, `kEventPanelCollapsing` / `kEventPanelExpanding` are fired; an event callback returning false cancels the action (the initial collapsed XML attribute and internal accordion synchronization do not fire the cancel events).
+* Main C++ APIs: `SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`, `IsCollapsed()`, `SetCollapsible()`, `SetCollapseAnimMillSeconds()`, `SetGroup()`, `SetArrowAlign()`, `SetTitleTextHAlign()`, `SetArrowStateImage()`, `SetTitleSlotName()`, plus the listeners `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`.
+
+The Panel/PanelHBox/PanelVBox controls inherit the attributes of `Box`/`HBox`/`VBox` respectively. For more available attributes, please refer to the `Box` attributes. For a complete example, see the `examples/panel` sample.
 
 
 

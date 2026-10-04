@@ -1,0 +1,30 @@
+#include "MainThread.h"
+#include "PanelForm.h"
+
+MainThread::MainThread() :
+    FrameworkThread(_T("MainThread"), ui::kThreadUI)
+{
+}
+
+MainThread::~MainThread()
+{
+}
+
+bool MainThread::OnInit()
+{
+    //初始化全局资源（使用本地文件夹作为资源）
+    ui::FilePath resourcePath = ui::GlobalManager::GetResourceRootPath(false);
+    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
+
+    // 创建一个默认带有阴影的居中窗口
+    PanelForm* window = new PanelForm();
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("panel"), true));
+    window->PostQuitMsgWhenClosed(true);
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    return true;
+}
+
+void MainThread::OnCleanup()
+{
+    ui::GlobalManager::Instance().Shutdown();
+}

@@ -43,8 +43,10 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventChecked              |     |     |     |     |       |     | No parameters |
 |kEventUnCheck              |     |     |     |     |       |     | No parameters |
 |kEventTabSelect            |New selected index | Old selected index|     |     |    |     |    |
-|kEventExpand               |     |     |     |     |       |     | No parameters |
-|kEventCollapse             |     |     |     |     |       |     | No parameters |
+|kEventExpand               |     |     |     |     |       |     | No parameters; fired after a Panel finishes expanding |
+|kEventCollapse             |     |     |     |     |       |     | No parameters; fired after a Panel finishes collapsing |
+|kEventPanelExpanding       |     |     |Client-area coordinates of the mouse |     | Key flags   |     | Fired before a Panel expands; returning false from the handler cancels the expand |
+|kEventPanelCollapsing      |     |     |Client-area coordinates of the mouse |     | Key flags   |     | Fired before a Panel collapses; returning false from the handler cancels the collapse |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |

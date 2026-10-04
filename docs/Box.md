@@ -60,6 +60,9 @@
 | BoxDragable | Box|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 浮动布局（Layout）    | 支持子控件的拖入/拖出操作的容器 |
 | HBoxDragable | HBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 水平布局（HLayout） | 支持子控件的拖入/拖出操作的容器 |
 | VBoxDragable | VBox|[duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | 垂直布局（VLayout） | 支持子控件的拖入/拖出操作的容器 |
+| Panel | Box|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 浮动布局（Layout） | 带标题栏的面板容器（`PanelTemplate<Box>`），支持标题栏样式、折叠/展开、手风琴分组 |
+| PanelHBox | HBox|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 水平布局（HLayout） | 带标题栏的面板容器（`PanelTemplate<HBox>`），子控件水平排列 |
+| PanelVBox | VBox|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 垂直布局（VLayout） | 带标题栏的面板容器（`PanelTemplate<VBox>`），子控件垂直排列 |
 
 容器（Box）包含如下基础属性：    
 * 子控件之间的间隔（X方向和Y方向）: child_margin_x/child_margin_y
@@ -435,3 +438,40 @@ VBoxResizable 控件继承了`ControlResizableT`和`VBox`属性，更多可用�
 | res_path      | | string | 设置图片资源所在路径（XML文件对应的资源根目录） |
 
 XmlBox 控件继承了`Box`属性，更多可用属性请参考`Box`的属性
+
+### 38. Panel/PanelHBox/PanelVBox的属性
+Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实例，分别继承 Box/HBox/VBox，
+在对应布局能力之外增加了标题栏与折叠/展开能力，关联头文件：[duilib/Box/Panel.h](../duilib/Box/Panel.h)。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| title | | string | 标题栏文字 |
+| title_height | 28 | int | 标题栏高度（像素，自动DPI缩放）|
+| title_bk_color | | string | 标题栏背景色（语义色名，不设置则不绘制背景）|
+| title_text_color | text_default | string | 标题文字颜色（语义色名）|
+| title_text_align | "left" | string | 标题文字水平对齐方式，可选值："left"、"hcenter"、"right" |
+| title_font | system_bold_14 | string | 标题字体ID（global.xml 中的 Font id）|
+| collapsible | false | bool | 是否可折叠：为 true 时，点击标题栏（或箭头热区）可折叠/展开内容区 |
+| collapsed | false | bool | 初始是否处于折叠状态；初始设置不触发事件、不播放动画 |
+| collapse_trigger | "title" | string | 折叠触发热区："title" 表示整个标题栏可点击；"arrow" 表示仅箭头区域可点击 |
+| collapse_anim | 0 | int | 折叠/展开动画时长（毫秒），0 表示无动画、立即切换，建议取值 150~300 |
+| arrow_align | "right" | string | 折叠箭头的位置："right"（标题栏右侧，默认）或 "left"（标题栏左侧）|
+| group | | string | 手风琴分组名：同一窗口内同组面板同时只允许一个展开（允许全部折叠）；空字符串表示不分组 |
+| title_slot | | string | 标题栏槽位：值为一个子控件的 name，该控件（建议设置 float="true"）会被自动定位到标题栏右侧（箭头左侧），折叠后仍显示且可点击 |
+| arrow_expanded_normal_image | | string | 展开状态（▼）箭头在普通态下的图片属性 |
+| arrow_expanded_hovered_image | | string | 展开状态箭头在悬停态下的图片属性（兼容别名 arrow_expanded_hot_image）|
+| arrow_expanded_pushed_image | | string | 展开状态箭头在按下态下的图片属性（兼容别名 arrow_expanded_pressed_image）|
+| arrow_expanded_disabled_image | | string | 展开状态箭头在禁用态下的图片属性 |
+| arrow_collapsed_normal_image | | string | 折叠状态（▶）箭头在普通态下的图片属性 |
+| arrow_collapsed_hovered_image | | string | 折叠状态箭头在悬停态下的图片属性（兼容别名 arrow_collapsed_hot_image）|
+| arrow_collapsed_pushed_image | | string | 折叠状态箭头在按下态下的图片属性（兼容别名 arrow_collapsed_pressed_image）|
+| arrow_collapsed_disabled_image | | string | 折叠状态箭头在禁用态下的图片属性 |
+| padding | 0,0,0,0 | rect | 内容区的内边距；标题栏空间由控件在顶部自动额外预留，padding 只作用于标题栏下方的内容区 |
+
+补充说明：
+* 未配置任何箭头图片时使用内置矢量三角形（折叠态指向右、展开态指向下），鼠标悬停标题栏时箭头自动变为 color_accent 强调色；配置了图片但某个状态缺图时，自动回退到普通态图片。
+* 折叠通过测量、绘制、命中测试三处屏蔽内容区实现，不修改子控件的 visible 状态，也不改变自身的高度模式，fixed/auto/stretch 高度均可正常折叠；折叠期间会临时把 min_height 放宽到标题栏高度，展开后恢复用户设置值。
+* 事件：折叠/展开完成后分别触发 `kEventCollapse` / `kEventExpand`（无动画时立即触发，有动画时在动画结束后触发）；动作执行前分别触发 `kEventPanelCollapsing` / `kEventPanelExpanding`，事件回调返回 false 可取消本次操作（XML 初始 collapsed 属性与手风琴内部联动不会触发取消事件）。
+* 主要 C++ 接口：`SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`、`IsCollapsed()`、`SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`，以及事件监听 `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`。
+
+Panel/PanelHBox/PanelVBox 控件分别继承了 `Box`/`HBox`/`VBox` 的属性，更多可用属性请参考`Box`的属性。完整示例可参考 `examples/panel` 示例程序。

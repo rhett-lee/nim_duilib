@@ -64,6 +64,9 @@
 | HBox | 水平(HLayout) | 子控件从左到右依次排列 |
 | VFlowBox | 垂直流式 | 垂直排列，自动换列 |
 | HFlowBox | 水平流式 | 水平排列，自动换行 |
+| Panel | 浮动(Layout) | 带标题栏的面板容器（`PanelTemplate<Box>`），可折叠/手风琴 |
+| PanelHBox | 水平(HLayout) | 带标题栏的水平面板（`PanelTemplate<HBox>`） |
+| PanelVBox | 垂直(VLayout) | 带标题栏的垂直面板（`PanelTemplate<VBox>`） |
 | VTileBox | 垂直瓦片 | 网格式垂直排列，columns属性 |
 | HTileBox | 水平瓦片 | 网格式水平排列，rows属性 |
 | GridBox | 网格(GridLayout) | 网格布局，支持单元格合并 |
@@ -87,6 +90,47 @@
 | child_valign | string | 子控件垂直对齐: top/center/bottom |
 | mouse_child | bool | 子控件是否响应鼠标 |
 | padding | rect | 内边距 "L,T,R,B" |
+
+### Panel 面板容器属性（Panel / PanelHBox / PanelVBox）
+
+三种节点是同一模板 `PanelTemplate` 的实例（基类分别为 Box/HBox/VBox），在普通容器之外
+增加标题栏与折叠/展开能力。头文件 `duilib/Box/Panel.h`，完整示例见 `examples/panel`。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| title | | string | 标题文字 |
+| title_height | 28 | int | 标题栏高度（像素，DPI 自适应） |
+| title_bk_color | | string | 标题栏背景语义色名，不设置则不绘制 |
+| title_text_color | text_default | string | 标题文字语义色名 |
+| title_text_align | left | string | 标题水平对齐：left/hcenter/right |
+| title_font | system_bold_14 | string | 标题字体 ID |
+| collapsible | false | bool | 是否可点击标题栏折叠/展开 |
+| collapsed | false | bool | 初始折叠状态（不播动画、不触发事件） |
+| collapse_trigger | title | string | 折叠热区：title（整个标题栏）/ arrow（仅箭头） |
+| collapse_anim | 0 | int | 折叠动画毫秒数，0 立即切换（建议 150~300） |
+| arrow_align | right | string | 箭头位置：right/left |
+| group | | string | 手风琴分组名；同窗口同组同时只展开一个（可全折叠） |
+| title_slot | | string | 标题栏槽位子控件 name（子控件建议 float="true"），折叠后仍可点击 |
+| arrow_expanded_normal_image | | string | 展开态（▼）箭头普通图 |
+| arrow_expanded_hovered_image | | string | 展开态箭头悬停图（别名 arrow_expanded_hot_image） |
+| arrow_expanded_pushed_image | | string | 展开态箭头按下图（别名 arrow_expanded_pressed_image） |
+| arrow_expanded_disabled_image | | string | 展开态箭头禁用图 |
+| arrow_collapsed_normal_image | | string | 折叠态（▶）箭头普通图 |
+| arrow_collapsed_hovered_image | | string | 折叠态箭头悬停图（别名 arrow_collapsed_hot_image） |
+| arrow_collapsed_pushed_image | | string | 折叠态箭头按下图（别名 arrow_collapsed_pressed_image） |
+| arrow_collapsed_disabled_image | | string | 折叠态箭头禁用图 |
+
+要点：
+
+- `padding` 仍是内容区内边距，标题栏空间由控件在顶部自动额外预留。
+- 未配箭头图时用矢量三角（折叠▶/展开▼），悬停标题栏时箭头变 `color_accent`；某状态缺图回退普通图。
+- 折叠只屏蔽内容区的测量/绘制/命中测试，不改子控件 `visible`，fixed/auto/stretch 高度均可折叠。
+- C++：`SetCollapsed(bool bCollapsed, bool bFireEvent=true, bool bPlayAnim=true)`、`IsCollapsed()`、
+  `SetCollapseAnimMillSeconds()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、
+  `SetArrowStateImage()`、`SetTitleSlotName()`。
+- 事件：完成后触发 `kEventCollapse` / `kEventExpand`；动作前触发
+  `kEventPanelCollapsing` / `kEventPanelExpanding`，回调返回 false 可取消
+  （XML 初始 `collapsed` 与手风琴内部联动不触发取消事件）。
 
 ## 三、控件类型速查
 
@@ -341,6 +385,8 @@ strikeout / fullstyle（四者全开），字号支持 12/14/16/18/20/22。`defa
 | tab_select | 标签页切换 |
 | text_changed | 文本变化 |
 | value_changed | 值变化 |
+| expand / collapse | Panel 面板展开/折叠完成 |
+| panel_expanding / panel_collapsing | Panel 即将展开/折叠（C++ 回调返回 false 可取消；XML 内联仅用于 apply_attribute） |
 | key_down / key_up | 按键 |
 | return | 回车 |
 | visible_changed | 可见性变化 |
@@ -519,6 +565,31 @@ void MyForm::OnInitWindow()
     });
 }
 ```
+
+### Panel 面板折叠/展开
+
+```cpp
+// 头文件 duilib/Box/Panel.h；节点 Panel / PanelHBox / PanelVBox 对应三个 C++ 类
+ui::PanelVBox* panel = dynamic_cast<ui::PanelVBox*>(FindControl(_T("my_panel")));
+if (panel != nullptr) {
+    panel->SetCollapseAnimMillSeconds(220);
+
+    // 切换折叠：bFireEvent 是否触发事件，bPlayAnim=false 立即切换不播动画
+    panel->SetCollapsed(!panel->IsCollapsed(), true, true);
+
+    // 完成事件（无动画立即触发，有动画在动画结束后触发）
+    panel->AttachExpand([](const ui::EventArgs&) { return true; });
+    panel->AttachCollapse([](const ui::EventArgs&) { return true; });
+
+    // 即将折叠：返回 false 取消本次操作（展开不受限时同样可监听 AttachExpanding）
+    panel->AttachCollapsing([](const ui::EventArgs&) {
+        return false; // true 放行，false 取消
+    });
+}
+```
+
+手风琴：多个 Panel 设置相同 `group` 属性后，展开其中一个会自动折叠同窗口同组的其他面板；
+初始展开哪个由 XML 的 `collapsed` 决定，允许全部折叠。
 
 ### ListBox 动态添加项
 

@@ -95,3 +95,7 @@ A demonstration example of the XML file interface preview feature.
 ## 22. examples/ColorTheme    
 A demonstration example of the theme color preview and generation feature.    
 <img width="800" src="./Images/ColorTheme.png"/>
+
+## 23. examples/panel
+Demonstrates the titled Panel/PanelHBox/PanelVBox panel containers, including: title bar styling, collapsing/expanding by clicking the title bar (with animation), accordion groups, collapse trigger hit areas, custom arrow state images, left-aligned arrow and title alignment, title bar slots, the before-collapse cancel event, and controlling the panel state from C++ code.    
+<img width="900" src="./Images/panel.png"/>

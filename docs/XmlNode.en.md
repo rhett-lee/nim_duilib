@@ -12,6 +12,9 @@ English | [简体中文](XmlNode.md)
 | HBox | "HBox"| [duilib/Box/HBox.h](../duilib/Box/HBox.h) | |
 | VFlowBox | "VFlowBox"| [duilib/Box/VBox.h](../duilib/Box/VBox.h) | |
 | HFlowBox | "HFlowBox"| [duilib/Box/HBox.h](../duilib/Box/HBox.h) | |
+| Panel | "Panel"| [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled, collapsible panel container (float layout) |
+| PanelHBox | "PanelHBox"| [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled, collapsible panel container (horizontal layout) |
+| PanelVBox | "PanelVBox"| [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled, collapsible panel container (vertical layout) |
 | BoxDragable | "BoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
 | HBoxDragable | "HBoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
 | VBoxDragable | "VBoxDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |

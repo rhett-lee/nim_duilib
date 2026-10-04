@@ -1563,6 +1563,11 @@ public:
     */
     UiSize GetStateImageSize(StateImageType imageType, ControlStateType stateType);
 
+    /** 获取指定类型、指定状态的图片对象指针（外部不需要释放；可能返回nullptr）
+    * 用于需要自行指定目标矩形绘制状态图片的场景（如 Panel 的折叠箭头）
+    */
+    Image* GetStateImageData(StateImageType imageType, ControlStateType stateType) const;
+
     /** 设置光标
     * @param [in] cursorType 光标类型
     */

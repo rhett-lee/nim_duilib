@@ -129,6 +129,23 @@ trigger: 当用户要求添加按钮、输入框、列表、复选框等控件�
 </VBox>
 ```
 
+**可折叠面板 PanelVBox（另有 Panel / PanelHBox 两种布局）:**
+```xml
+<PanelVBox width="stretch" height="auto" min_height="120"
+           title="分组标题" title_height="30"
+           title_bk_color="bg_overlay" title_text_color="text_selected"
+           title_font="system_bold_14"
+           bkcolor="bg_container" border_size="1"
+           border_color="border_control_normal" border_round="4,4"
+           collapsible="true" collapsed="false" collapse_anim="220"
+           padding="10,10,10,10">
+    <!-- 标题栏之外的内容区；折叠时自动隐藏，不影响子控件 visible 状态 -->
+    <Label text="内容..." text_color="text_muted"/>
+</PanelVBox>
+```
+手风琴分组给同组面板加相同 `group="settings"`；标题栏右侧放常驻按钮用
+`title_slot="控件name"`（该子控件设 `float="true"`）。完整属性表见 `docs/nim-duilib-llm-reference.md` 第二节。
+
 ### 3. C++ 事件绑定代码
 
 在窗口的 `OnInitWindow()` 中添加:

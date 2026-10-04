@@ -3,6 +3,9 @@ name: nim-duilib-theme
 description: nim_duilib 主题定制（颜色、字体、通用样式Class、图标），修改 global.xml 和创建自定义样式
 ---
 
+<!-- verify:allow-missing my_card my_title_font my_font_16 -->
+<!-- my_card / my_title_font / my_font_16 是自定义样式与字体的举例名，verify_docs.py 不应判为漂移。 -->
+
 # nim_duilib 主题与样式定制
 
 ## 重要：资源文件规则

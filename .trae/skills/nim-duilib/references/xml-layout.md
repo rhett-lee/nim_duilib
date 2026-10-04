@@ -22,6 +22,7 @@
 | 可选择的列表 | VListBox / HListBox |
 | 大数据量列表 | VirtualVListBox |
 | 多页签切换 | TabBox |
+| 带标题栏、可折叠的卡片/分组 | PanelVBox / PanelHBox / Panel（属性见 api-reference.md 第二节） |
 
 **尺寸设置指南:**
 

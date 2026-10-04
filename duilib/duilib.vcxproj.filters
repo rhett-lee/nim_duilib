@@ -1913,6 +1913,9 @@
     <ClInclude Include="Control\ColorPickerStandardGray.h">
       <Filter>Control\ColorPicker</Filter>
     </ClInclude>
+    <ClInclude Include="Box\Panel.h">
+      <Filter>Box</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset">

@@ -163,6 +163,8 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventTabSelect|"TabSelect"|"tab_select"|
 |kEventExpand|"Expand"|"expand"|
 |kEventCollapse|"Collapse"|"collapse"|
+|kEventPanelExpanding|"PanelExpanding"|"panel_expanding"|
+|kEventPanelCollapsing|"PanelCollapsing"|"panel_collapsing"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|

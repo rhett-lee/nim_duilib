@@ -53,6 +53,7 @@
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/VirtualListBox.h"
+#include "duilib/Box/Panel.h"
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
@@ -175,6 +176,10 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_GROUP_BOX, [](Window* pWindow) { return new GroupBox(pWindow); }},
         {DUI_CTR_GROUP_HBOX, [](Window* pWindow) { return new GroupHBox(pWindow); }},
         {DUI_CTR_GROUP_VBOX, [](Window* pWindow) { return new GroupVBox(pWindow); }},
+
+        {DUI_CTR_PANEL, [](Window* pWindow) { return new Panel(pWindow); }},
+        {DUI_CTR_PANEL_HBOX, [](Window* pWindow) { return new PanelHBox(pWindow); }},
+        {DUI_CTR_PANEL_VBOX, [](Window* pWindow) { return new PanelVBox(pWindow); }},
 
         {DUI_CTR_BOX_DRAGABLE, [](Window* pWindow) { return new BoxDragable(pWindow); }},
         {DUI_CTR_HBOX_DRAGABLE, [](Window* pWindow) { return new HBoxDragable(pWindow); }},
