@@ -446,6 +446,7 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | title | | string | 标题栏文字 |
+| title_id | | string | 标题栏文字的多语言资源ID（兼容别名 titleid）；设置后立即按当前语言解析为标题，切换语言时自动刷新；语言文件中找不到该ID时保留原标题。与 Label 的 text_id 用法一致 |
 | title_height | 28 | int | 标题栏高度（像素，自动DPI缩放）|
 | title_bk_color | | string | 标题栏背景色（语义色名，不设置则不绘制背景）|
 | title_text_color | text_default | string | 标题文字颜色（语义色名）|
@@ -469,9 +470,10 @@ Panel/PanelHBox/PanelVBox 是同一个模板类（`PanelTemplate`）的三个实
 | padding | 0,0,0,0 | rect | 内容区的内边距；标题栏空间由控件在顶部自动额外预留，padding 只作用于标题栏下方的内容区 |
 
 补充说明：
+* 多语言：配置 `title_id` 后标题文本由语言资源提供，程序运行中切换语言时标题会自动刷新，无需业务代码干预；对应的 C++ 接口为 `SetTitleId()` / `GetTitleId()`。若通过 `SetTitle()` 设置了动态文本（如带参数的格式化文案），切换语言后需要自行在窗口的 `OnLanguageChanged()` 中重新设置。
 * 未配置任何箭头图片时使用内置矢量三角形（折叠态指向右、展开态指向下），鼠标悬停标题栏时箭头自动变为 color_accent 强调色；配置了图片但某个状态缺图时，自动回退到普通态图片。
 * 折叠通过测量、绘制、命中测试三处屏蔽内容区实现，不修改子控件的 visible 状态，也不改变自身的高度模式，fixed/auto/stretch 高度均可正常折叠；折叠期间会临时把 min_height 放宽到标题栏高度，展开后恢复用户设置值。
 * 事件：折叠/展开完成后分别触发 `kEventCollapse` / `kEventExpand`（无动画时立即触发，有动画时在动画结束后触发）；动作执行前分别触发 `kEventPanelCollapsing` / `kEventPanelExpanding`，事件回调返回 false 可取消本次操作（XML 初始 collapsed 属性与手风琴内部联动不会触发取消事件）。
-* 主要 C++ 接口：`SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`、`IsCollapsed()`、`SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`，以及事件监听 `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`。
+* 主要 C++ 接口：`SetTitle()` / `GetTitle()`、`SetTitleId()` / `GetTitleId()`、`SetCollapsed(bool bCollapsed, bool bFireEvent = true, bool bPlayAnim = true)`、`IsCollapsed()`、`SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetGroup()`、`SetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`，以及事件监听 `AttachCollapse` / `AttachExpand` / `AttachCollapsing` / `AttachExpanding`。
 
 Panel/PanelHBox/PanelVBox 控件分别继承了 `Box`/`HBox`/`VBox` 的属性，更多可用属性请参考`Box`的属性。完整示例可参考 `examples/panel` 示例程序。

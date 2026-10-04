@@ -25,8 +25,8 @@ public:
     */
     virtual void OnInitWindow() override;
 
-    /** 语言切换后由框架调用：窗口上带 text_id 的控件会自动刷新，
-    *   但 Panel 标题不支持 text_id，需要在这里手动重设
+    /** 语言切换后由框架调用：带 text_id/title_id 的控件会自动刷新；
+    *   这里只需重设 C++ 控制面板被“修改标题”按钮改写过的动态标题（含 %d 计数）
     */
     virtual bool OnLanguageChanged() override;
 
@@ -34,10 +34,6 @@ private:
     /** 更新状态栏文字
     */
     void SetStatusText(const DString& strText);
-
-    /** 按当前语言刷新所有 Panel 的标题（Panel 控件仅支持 title 属性，不支持 text_id）
-    */
-    void ApplyLocalizedPanelTitles();
 
 private:
     //C++ 控制的可折叠面板

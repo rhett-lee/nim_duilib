@@ -41,6 +41,8 @@ public:
 *
 *   XML 属性（除 Box/Control 通用属性外）：
 *     title             标题文字
+*     title_id          标题文字的多语言资源 ID（语言文件中的 KEY）；设置后标题自动随语言切换刷新，
+*                       与 Label 的 text_id 用法一致。与 title 同时设置时，后设置的属性生效
 *     title_height      标题栏高度（像素，默认 28，DPI 自适应）
 *     title_bk_color    标题栏背景色（语义色名，不设置则不绘制背景）
 *     title_text_color  标题文字颜色（语义色名，默认 text_default）
@@ -99,6 +101,10 @@ public:
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
+    /** 语言发生变化时，按标题文字ID重新获取多语言文本并刷新
+    */
+    virtual void OnLanguageChanged(bool bRedraw) override;
+
 public:
     /** 设置标题文字
     */
@@ -107,6 +113,16 @@ public:
     /** 获取标题文字
     */
     const DString& GetTitle() const;
+
+    /** 设置标题文字 ID（支持多语言，与 Label::SetTextId 用法一致）
+    * @param [in] strTitleId 语言文件中配置的标题文本 ID，设置后立即按当前语言解析并显示，
+    *                        语言切换时自动刷新为对应语言的文本
+    */
+    void SetTitleId(const DString& strTitleId);
+
+    /** 获取标题文字 ID
+    */
+    DString GetTitleId() const;
 
     /** 设置标题栏高度（像素）
     * @param [in] nHeight 标题栏高度
@@ -333,6 +349,9 @@ private:
     //标题文字
     UiString m_title;
 
+    //标题文字ID，用于支持多语言（为空表示标题不关联语言资源）
+    UiString m_titleId;
+
     //标题栏高度（像素，已按 DPI 缩放）
     int32_t m_nTitleBarHeight;
 
@@ -433,6 +452,10 @@ void PanelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
     DString strValue = this->GetExpandVarStrings(strValue2);
     if (strName == _T("title")) {
         SetTitle(strValue);
+    }
+    else if ((strName == _T("title_id")) || (strName == _T("titleid"))) {
+        //标题文字的多语言资源ID
+        SetTitleId(strValue);
     }
     else if (strName == _T("title_height")) {
         //标题栏高度
@@ -544,6 +567,39 @@ template<typename InheritType>
 const DString& PanelTemplate<InheritType>::GetTitle() const
 {
     return m_title.c_str();
+}
+
+template<typename InheritType>
+void PanelTemplate<InheritType>::SetTitleId(const DString& strTitleId)
+{
+    if (m_titleId == strTitleId) {
+        return;
+    }
+    m_titleId = strTitleId;
+    //立即按当前语言解析并显示；语言文件中找不到该ID时保留原有标题
+    DString strTitle = GlobalManager::GetTextById(strTitleId);
+    if (!strTitle.empty()) {
+        SetTitle(strTitle);
+    }
+}
+
+template<typename InheritType>
+DString PanelTemplate<InheritType>::GetTitleId() const
+{
+    return m_titleId.c_str();
+}
+
+template<typename InheritType>
+void PanelTemplate<InheritType>::OnLanguageChanged(bool bRedraw)
+{
+    BaseClass::OnLanguageChanged(bRedraw);
+    //标题关联了多语言ID时，按新语言重新解析标题文本
+    if (!m_titleId.empty()) {
+        DString strTitle = GlobalManager::GetTextById(m_titleId.c_str());
+        if (!strTitle.empty()) {
+            SetTitle(strTitle);
+        }
+    }
 }
 
 template<typename InheritType>
