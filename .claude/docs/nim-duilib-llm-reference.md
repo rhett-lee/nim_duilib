@@ -94,6 +94,7 @@
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
 | title | | string | 标题文字 |
+| title_id | | string | 标题文字的多语言资源 ID（别名 titleid）；按当前语言解析标题，切换语言自动刷新，找不到 ID 保留原标题；用法同 Label 的 text_id |
 | title_height | 28 | int | 标题栏高度（像素，DPI 自适应） |
 | title_bk_color | | string | 标题栏背景语义色名，不设置则不绘制 |
 | title_text_color | text_default | string | 标题文字语义色名 |
@@ -120,7 +121,10 @@
 - `padding` 仍是内容区内边距，标题栏空间由控件在顶部自动额外预留。
 - 未配箭头图时用矢量三角（折叠▶/展开▼），悬停标题栏时箭头变 `color_accent`；某状态缺图回退普通图。
 - 折叠只屏蔽内容区的测量/绘制/命中测试，不改子控件 `visible`，fixed/auto/stretch 高度均可折叠。
-- C++：`SetCollapsed(bool bCollapsed, bool bFireEvent=true, bool bPlayAnim=true)`、`IsCollapsed()`、
+- 多语言：`title_id` 标题在切换语言时自动刷新（C++ 接口 `SetTitleId()`/`GetTitleId()`）；
+  若用 `SetTitle()` 设置了带参数的动态文案，需自行在窗口 `OnLanguageChanged()` 中重设。
+- C++：`SetTitle()`/`GetTitle()`、`SetTitleId()`/`GetTitleId()`、
+  `SetCollapsed(bool bCollapsed, bool bFireEvent=true, bool bPlayAnim=true)`、`IsCollapsed()`、
   `SetCollapsible()`、`SetCollapseAnimMillSeconds()`、`SetGroup()`/`GetGroup()`、
   `SetArrowAlign()`/`GetArrowAlign()`、`SetTitleTextHAlign()`、`SetArrowStateImage()`、`SetTitleSlotName()`。
 - 事件：完成后触发 `kEventCollapse` / `kEventExpand`；动作前触发

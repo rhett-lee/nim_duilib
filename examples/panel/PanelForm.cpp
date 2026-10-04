@@ -1,38 +1,5 @@
 #include "PanelForm.h"
 
-namespace {
-/** Panel 控件名称与标题语言 ID 的对照表
-* （Panel 控件只支持 title 属性、不支持 text_id，语言切换时需通过 C++ 重设标题）
-*/
-struct PanelTitleItem
-{
-    LPCTSTR sControlName;
-    LPCTSTR sTitleTextId;
-};
-
-const PanelTitleItem kPanelTitleItems[] = {
-    { _T("panel_basic"),         _T("STRID_PANEL_TITLE_BASIC") },
-    { _T("panel_collapsible"),   _T("STRID_PANEL_TITLE_COLLAPSIBLE") },
-    { _T("panel_nested"),        _T("STRID_PANEL_TITLE_NESTED") },
-    { _T("panel_nested_inner"),  _T("STRID_PANEL_TITLE_NESTED_INNER") },
-    { _T("panel_nested_hlayout"),_T("STRID_PANEL_TITLE_NESTED_HLAYOUT") },
-    { _T("panel_v_demo"),        _T("STRID_PANEL_TITLE_V") },
-    { _T("panel_h_demo"),        _T("STRID_PANEL_TITLE_H") },
-    { _T("panel_stretch_a"),     _T("STRID_PANEL_TITLE_STRETCH_A") },
-    { _T("panel_stretch_b"),     _T("STRID_PANEL_TITLE_STRETCH_B") },
-    { _T("panel_visible"),       _T("STRID_PANEL_TITLE_VISIBLE") },
-    { _T("panel_arrow_only"),    _T("STRID_PANEL_TITLE_ARROW_ONLY") },
-    { _T("panel_accordion"),     _T("STRID_PANEL_TITLE_ACCORDION") },
-    { _T("panel_acc_profile"),   _T("STRID_PANEL_TITLE_PROFILE") },
-    { _T("panel_acc_notify"),    _T("STRID_PANEL_TITLE_NOTIFY") },
-    { _T("panel_acc_about"),     _T("STRID_PANEL_TITLE_ABOUT") },
-    { _T("panel_custom_arrow"),  _T("STRID_PANEL_TITLE_CUSTOM_ARROW") },
-    { _T("panel_arrow_left"),    _T("STRID_PANEL_TITLE_ARROW_LEFT") },
-    { _T("panel_slot"),          _T("STRID_PANEL_TITLE_SLOT") },
-    { _T("panel_veto"),          _T("STRID_PANEL_TITLE_VETO") },
-};
-} //namespace
-
 PanelForm::PanelForm():
     m_pCppPanel(nullptr),
     m_pStatusLabel(nullptr),
@@ -62,40 +29,16 @@ void PanelForm::SetStatusText(const DString& strText)
     }
 }
 
-void PanelForm::ApplyLocalizedPanelTitles()
-{
-    for (const PanelTitleItem& item : kPanelTitleItems) {
-        ui::Control* pControl = FindControl(item.sControlName);
-        DString sTitle = ui::GlobalManager::GetTextById(item.sTitleTextId);
-        ui::PanelVBox* pPanelV = dynamic_cast<ui::PanelVBox*>(pControl);
-        if (pPanelV != nullptr) {
-            pPanelV->SetTitle(sTitle);
-            continue;
-        }
-        ui::PanelHBox* pPanelH = dynamic_cast<ui::PanelHBox*>(pControl);
-        if (pPanelH != nullptr) {
-            pPanelH->SetTitle(sTitle);
-        }
-    }
-
-    //C++ 控制面板：默认标题与“已修改 N 次”的标题都需要跟随当前语言
-    if (m_pCppPanel != nullptr) {
-        if (m_nCppTitleModified > 0) {
-            m_pCppPanel->SetTitle(ui::StringUtil::Printf(
-                ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP_MODIFIED_FMT")).c_str(),
-                m_nCppTitleModified));
-        }
-        else {
-            m_pCppPanel->SetTitle(ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP")));
-        }
-    }
-}
-
 bool PanelForm::OnLanguageChanged()
 {
     bool bRet = BaseClass::OnLanguageChanged();
-    //Panel 标题不支持 text_id，语言切换后手动按当前语言刷新
-    ApplyLocalizedPanelTitles();
+    //框架已按 title_id 自动刷新所有 Panel 标题；C++ 控制面板若被“修改标题”按钮
+    //改写过（含 %d 计数的动态文案），需要在自动刷新之后重新套用动态标题
+    if ((m_pCppPanel != nullptr) && (m_nCppTitleModified > 0)) {
+        m_pCppPanel->SetTitle(ui::StringUtil::Printf(
+            ui::GlobalManager::GetTextById(_T("STRID_PANEL_TITLE_CPP_MODIFIED_FMT")).c_str(),
+            m_nCppTitleModified));
+    }
     return bRet;
 }
 
@@ -206,7 +149,4 @@ void PanelForm::OnInitWindow()
             return true;
         });
     }
-
-    //XML 中 Panel 的 title 属性为中文兜底值，窗口创建后按当前语言刷新一次
-    ApplyLocalizedPanelTitles();
 }
