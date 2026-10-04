@@ -93,3 +93,7 @@ XML文件的界面效果预览功能演示示例。
 ## 22. examples/ColorTheme    
 主题颜色预览与生成功能演示示例。    
 <img width="800" src="./Images/ColorTheme.png"/>
+
+## 23. examples/panel
+演示 Panel/PanelHBox/PanelVBox 带标题栏面板容器的用法，包含：标题栏样式、点击标题栏折叠/展开（支持动画）、手风琴分组、折叠触发热区、自定义箭头状态图片、箭头左置与标题对齐、标题栏槽位、折叠前取消事件，以及通过 C++ 代码控制面板状态。    
+<img width="900" src="./Images/panel.png"/>

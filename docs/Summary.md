@@ -108,6 +108,9 @@
 | VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Layout/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
 | GridBox | Box|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器 |
 | GridScrollBox | ScrollBox|[GridLayout](../duilib/Layout/GridLayout.h)|[duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | 网格布局容器（支持滚动条） |
+| Panel | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的面板容器（PanelTemplate模板实例），支持标题栏样式、折叠/展开动画与手风琴分组 |
+| PanelHBox | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的水平布局面板容器 |
+| PanelVBox | VBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的垂直布局面板容器 |
 
 * 图片
 

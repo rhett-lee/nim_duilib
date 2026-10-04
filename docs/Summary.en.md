@@ -110,6 +110,9 @@ For detailed interface descriptions of each class, please refer to the associate
 | VirtualHTileListBox | VirtualListBox | [VirtualHTileLayout](../duilib/Layout/VirtualHTileLayout.h) | [duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | Virtual-list implemented horizontal layout list container |
 | GridBox | Box | [GridLayout](../duilib/Layout/GridLayout.h) | [duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | Grid layout container |
 | GridScrollBox | ScrollBox | [GridLayout](../duilib/Layout/GridLayout.h) | [duilib/Box/GridBox.h](../duilib/Box/GridBox.h) | Grid layout container (supports scroll bars) |
+| Panel | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container (PanelTemplate instance), supporting title bar styling, collapse/expand animation and accordion groups |
+| PanelHBox | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with horizontal layout |
+| PanelVBox | VBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with vertical layout |
 
 * Image
 

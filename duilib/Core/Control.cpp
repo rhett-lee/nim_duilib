@@ -1467,6 +1467,14 @@ UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType sta
     return imageSize;
 }
 
+Image* Control::GetStateImageData(StateImageType imageType, ControlStateType stateType) const
+{
+    if (m_pImageMap != nullptr) {
+        return m_pImageMap->GetStateImage(imageType, stateType);
+    }
+    return nullptr;
+}
+
 void Control::ClearStateImages()
 {
     m_pImageMap.reset();

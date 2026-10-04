@@ -112,6 +112,15 @@ tabCtrl->AttachTabSelect([](const ui::EventArgs& args) {
 // 值变化 (Progress/Slider/DateTime/PropertyGridProperty)
 slider->AttachEvent(ui::kEventValueChanged, [](const ui::EventArgs&) { return true; });
 
+// Panel 面板：折叠/展开完成（AttachExpand / AttachCollapse）
+// 动作前可取消：AttachCollapsing / AttachExpanding 回调返回 false 即放弃本次操作
+// 注意：XML 初始 collapsed 属性与手风琴 group 内部联动不会触发取消事件
+if (auto* panel = dynamic_cast<ui::PanelVBox*>(FindControl(_T("my_panel")))) {
+    panel->AttachCollapsing([](const ui::EventArgs&) {
+        return false;  // true 放行折叠，false 取消折叠
+    });
+}
+
 // 通用事件绑定（枚举名见下方"完整事件类型列表"，取值以 duilib/duilib_defs.h 中 enum EventType 为准）
 control->AttachEvent(ui::kEventMouseEnter, handler);
 control->AttachEvent(ui::kEventMouseLeave, handler);
@@ -165,7 +174,7 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 
 焦点/输入法: `kEventSetFocus`, `kEventKillFocus`, `kEventSetCursor`, `kEventCaptureChanged`, `kEventImeSetContext`, `kEventImeStartComposition`, `kEventImeComposition`, `kEventImeEndComposition`
 
-操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventExpand`, `kEventCollapse`
+操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventExpand`, `kEventCollapse`, `kEventPanelExpanding`, `kEventPanelCollapsing`（后两个为 Panel 专用：即将展开/折叠时触发，回调返回 false 可取消）
 
 编辑: `kEventTextChanged`, `kEventSelChanged`, `kEventReturn`, `kEventEsc`, `kEventTab`, `kEventZoom`, `kEventLinkClick`, `kEventScrollPosChanged`, `kEventValueChanged`
 

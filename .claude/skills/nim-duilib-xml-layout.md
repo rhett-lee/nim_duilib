@@ -28,6 +28,7 @@ trigger: 当用户需要设计界面布局、创建XML界面、修改界面结�
 | 可选择的列表 | VListBox / HListBox |
 | 大数据量列表 | VirtualVListBox |
 | 多页签切换 | TabBox |
+| 带标题栏、可折叠的卡片/分组 | PanelVBox / PanelHBox / Panel（属性见 nim-duilib-llm-reference.md 第二节） |
 
 **尺寸设置指南:**
 | 需求 | width/height 值 |

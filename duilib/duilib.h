@@ -75,6 +75,7 @@
 #include "Box/ListBox.h"
 #include "Box/VirtualListBox.h"
 #include "Box/GridBox.h"
+#include "Box/Panel.h"
 
 #include "Layout/Layout.h"
 

@@ -69,6 +69,10 @@ namespace ui
     #define  DUI_CTR_GROUP_HBOX                      (_T("GroupHBox"))
     #define  DUI_CTR_GROUP_VBOX                      (_T("GroupVBox"))
 
+    #define  DUI_CTR_PANEL                           (_T("Panel"))
+    #define  DUI_CTR_PANEL_HBOX                      (_T("PanelHBox"))
+    #define  DUI_CTR_PANEL_VBOX                      (_T("PanelVBox"))
+
     #define  DUI_CTR_SCROLLBOX                       (_T("ScrollBox"))
     #define  DUI_CTR_HSCROLLBOX                      (_T("HScrollBox"))
     #define  DUI_CTR_VSCROLLBOX                      (_T("VScrollBox"))
@@ -179,6 +183,8 @@ namespace ui
         kStateImageSelectedFore     = 3,    //选择时的前景图片（CheckBox在用）
         kStateImagePartSelectedBk   = 4,    //部分选择时的背景图片（CheckBox在用）
         kStateImagePartSelectedFore = 5,    //部分选择时的前景图片（CheckBox在用）
+        kStateImagePanelArrowExpanded   = 6,    //Panel展开状态的箭头图片
+        kStateImagePanelArrowCollapsed  = 7,    //Panel折叠状态的箭头图片
     };
 
     //控件状态
@@ -402,6 +408,10 @@ namespace ui
         //树节点展开/收起
         kEventExpand,               //TreeNode类：当树节点展开时触发
         kEventCollapse,             //TreeNode类：当树节点收起时触发
+
+        //Panel面板折叠/展开前（可取消：回调返回false阻止本次折叠/展开）
+        kEventPanelCollapsing,      //Panel类：面板即将折叠时触发，返回false可取消
+        kEventPanelExpanding,       //Panel类：面板即将展开时触发，返回false可取消
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发

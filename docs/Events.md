@@ -41,8 +41,10 @@
 |kEventChecked              |     |     |     |     |       |     | 无参数 |
 |kEventUnCheck              |     |     |     |     |       |     | 无参数 |
 |kEventTabSelect            |新选择的索引号 | 旧选项择索引号|     |     |    |     |    |
-|kEventExpand               |     |     |     |     |       |     | 无参数 |
-|kEventCollapse             |     |     |     |     |       |     | 无参数 |
+|kEventExpand               |     |     |     |     |       |     | 无参数；Panel面板展开完成后触发 |
+|kEventCollapse             |     |     |     |     |       |     | 无参数；Panel面板折叠完成后触发 |
+|kEventPanelExpanding       |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | Panel面板即将展开时触发，事件回调返回false可取消本次展开 |
+|kEventPanelCollapsing      |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | Panel面板即将折叠时触发，事件回调返回false可取消本次折叠 |
 
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
