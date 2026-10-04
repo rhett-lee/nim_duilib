@@ -52,11 +52,18 @@ int32_t MessageBoxWnd::Show(ui::Window* pParentWindow,
     }
     pMsgBox->m_bTextId = bTextId;
 
-    //居中显示，标题同时用于任务栏
-    ui::WindowCreateParam createParam(title, true, bTextId ? title : _T(""));
+    //居中显示。bTextId 模式下，任务栏/Alt+Tab 的原生窗口标题需要使用翻译后的文本，
+    //不能直接传入多语言ID（否则任务栏会显示 "STRID_XXX" 原样字符串）；
+    //第三参 windowId 传入文本ID，供窗口状态记忆等机制使用。
+    DString strWindowTitle = title;
+    if (bTextId) {
+        strWindowTitle = ui::GlobalManager::GetTextById(title);
+    }
+    ui::WindowCreateParam createParam(strWindowTitle, true, bTextId ? title : _T(""));
 
     //bCloseByEsc=true：ESC 关闭，DoModal 返回 kWindowCloseCancel(2)
     //bCloseByEnter=true：Enter 关闭，DoModal 返回 kWindowCloseOK(1)，再按按钮组合归一化
+    //标题栏关闭按钮：框架 CloseWnd() 默认传 kWindowCloseNormal(0)，统一在 NormalizeResult 中归一化
     int32_t nResult = pMsgBox->DoModal(pParentWindow, createParam, true, true);
     delete pMsgBox;
 
@@ -227,8 +234,11 @@ void MessageBoxWnd::InitButtons()
             pButton->SetClass(_T("btn_global_white_80x30"));
         }
 
-        pButton->AttachClick([this, item](const ui::EventArgs& /*args*/) {
-            CloseWnd(item.result);
+        //注意：item 内的指针指向 InitButtons 的栈变量，不能把 item 本身捕获到异步回调中；
+        //这里只按值拷贝回调需要的返回值。
+        const int32_t nItemResult = item.result;
+        pButton->AttachClick([this, nItemResult](const ui::EventArgs& /*args*/) {
+            CloseWnd(nItemResult);
             return true;
         });
     }
@@ -274,20 +284,11 @@ int32_t MessageBoxWnd::NormalizeResult(int32_t nResult, uint32_t buttonFlags)
         return kResultOK;
     }
 
-    //ESC 键(kWindowCloseCancel=2)或标题栏关闭(kWindowCloseNormal=0)：
-    //有"取消"按钮按取消处理，否则按默认按钮处理
-    if ((buttonFlags & kButtonCancel) != 0) {
-        return kResultCancel;
-    }
-    if ((buttonFlags & kButtonOK) != 0) {
-        return kResultOK;
-    }
-    if ((buttonFlags & kButtonYes) != 0) {
-        return kResultYes;
-    }
-    if ((buttonFlags & kButtonRetry) != 0) {
-        return kResultRetry;
-    }
+    //标题栏关闭按钮(kWindowCloseNormal=0)、ESC 键(kWindowCloseCancel=2)、点击"取消"按钮(kResultCancel=2)：
+    //统一按"取消"语义返回。即使组合中没有"取消"按钮，也不能映射为默认的
+    //"确定/是/重试"——否则用户只是想关闭窗口，却会触发肯定性动作
+    //（例如"是否保存？"选"是+否"时点 X，旧逻辑会返回 IDYES，导致误保存）。
+    //这与 Win32 MessageBox 的行为保持一致：X/ESC 表示放弃选择。
     return kResultCancel;
 }
 

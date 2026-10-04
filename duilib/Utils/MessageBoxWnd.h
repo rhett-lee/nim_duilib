@@ -1,5 +1,5 @@
-#ifndef EXAMPLES_MESSAGE_BOX_WND_H_
-#define EXAMPLES_MESSAGE_BOX_WND_H_
+#ifndef DUILIB_UTILS_MESSAGE_BOX_WND_H_
+#define DUILIB_UTILS_MESSAGE_BOX_WND_H_
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/Label.h"
@@ -17,7 +17,7 @@ namespace ui
 *   5. 消息文本支持多行（自动换行），窗口高度随文本自适应
 *   6. 按钮文字允许调用方自定义（多语言场景）
 */
-class MessageBoxWnd : public ui::WindowImplBase
+class DUILIB_API MessageBoxWnd : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
 
@@ -121,7 +121,8 @@ private:
 
     /** 规范化 DoModal 的返回值：
     *   Enter 键返回 kResultOK，但组合中没有"确定"时映射为默认按钮；
-    *   ESC/标题栏关闭返回取消语义：有"取消"返回取消，否则返回默认按钮。
+    *   ESC 键、标题栏关闭按钮、点击"取消"按钮，统一返回取消语义(kResultCancel)，
+    *   即使组合中没有"取消"按钮也不能映射为默认按钮，避免用户放弃选择时触发肯定性动作。
     */
     static int32_t NormalizeResult(int32_t nResult, uint32_t buttonFlags);
 
@@ -156,4 +157,4 @@ private:
 
 } //namespace ui
 
-#endif // EXAMPLES_MESSAGE_BOX_WND_H_
+#endif // DUILIB_UTILS_MESSAGE_BOX_WND_H_
