@@ -524,6 +524,7 @@
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\InlineHook_Windows.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
+    <ClCompile Include="Utils\MessageBoxWnd.cpp" />
     <ClCompile Include="Utils\MonitorUtil_SDL.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
@@ -854,6 +855,7 @@
     <ClInclude Include="Utils\InlineHook_Windows.h" />
     <ClInclude Include="Utils\LogUtil.h" />
     <ClInclude Include="Utils\Macros_Windows.h" />
+    <ClInclude Include="Utils\MessageBoxWnd.h" />
     <ClInclude Include="Utils\MonitorUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ProcessSingleton.h" />

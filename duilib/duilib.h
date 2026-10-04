@@ -13,6 +13,7 @@
 #include "Utils/Clipboard.h"
 #include "Utils/FileTime.h"
 #include "Utils/TrayIcon.h"
+#include "Utils/MessageBoxWnd.h"
 
 #include "Image/Image.h"
 #include "Image/ImageAttribute.h"

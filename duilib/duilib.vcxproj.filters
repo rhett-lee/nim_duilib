@@ -918,6 +918,9 @@
     <ClCompile Include="Control\ColorPickerStandardGray.cpp">
       <Filter>Control\ColorPicker</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\MessageBoxWnd.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1915,6 +1918,9 @@
     </ClInclude>
     <ClInclude Include="Box\Panel.h">
       <Filter>Box</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\MessageBoxWnd.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

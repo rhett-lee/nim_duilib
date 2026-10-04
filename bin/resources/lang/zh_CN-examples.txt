@@ -487,6 +487,68 @@ STRID_CONTROLS_TRAY_MENU_03 = 托盘菜单项3
 STRID_CONTROLS_TRAY_MENU_04 = 托盘菜单项4
 STRID_CONTROLS_TRAY_MENU_05 = 退出
 
+# controls/MessageBox
+# 主窗口 UI
+STRID_MSGBOX_MAIN_TITLE          = MessageBox 消息框演示
+STRID_MSGBOX_MAIN_HINT           = 点击下列按钮，弹出不同组合的消息框：
+STRID_MSGBOX_MAIN_RESULT_PREFIX  = 上次返回值：
+STRID_MSGBOX_MAIN_RESULT_NONE    = 上次返回值：（无）
+
+# 演示按钮文字
+STRID_MSGBOX_BTN_OK             = 确定（OK）
+STRID_MSGBOX_BTN_OK_CANCEL      = 确定 + 取消（OKCancel）
+STRID_MSGBOX_BTN_YES_NO         = 是 + 否（YesNo）
+STRID_MSGBOX_BTN_YES_NO_CANCEL  = 是 + 否 + 取消（YesNoCancel）
+STRID_MSGBOX_BTN_RETRY_CANCEL   = 重试 + 取消（RetryCancel）
+STRID_MSGBOX_BTN_ICONS          = 四种标准图标（信息/警告/错误/疑问）
+STRID_MSGBOX_BTN_LONG_TEXT      = 长文本（自动换行，窗口高度自适应）
+STRID_MSGBOX_BTN_CUSTOM_TEXT    = 自定义按钮文字（保存/不保存/取消）
+
+# 演示：确定
+STRID_MSGBOX_DEMO_OK_TEXT   = 这是一条普通提示消息。
+STRID_MSGBOX_DEMO_OK_TITLE  = 提示
+
+# 演示：确定+取消
+STRID_MSGBOX_DEMO_OK_CANCEL_TEXT   = 文件内容已被修改，是否保存更改？
+STRID_MSGBOX_DEMO_OK_CANCEL_TITLE  = 保存文件
+
+# 演示：是+否
+STRID_MSGBOX_DEMO_YES_NO_TEXT   = 确定要执行该操作吗？
+STRID_MSGBOX_DEMO_YES_NO_TITLE  = 操作确认
+
+# 演示：是+否+取消
+STRID_MSGBOX_DEMO_YES_NO_CANCEL_TEXT   = 删除后无法恢复，确定继续删除选中的项目吗？
+STRID_MSGBOX_DEMO_YES_NO_CANCEL_TITLE  = 删除确认
+
+# 演示：重试+取消
+STRID_MSGBOX_DEMO_RETRY_CANCEL_TEXT   = 网络连接失败，请检查网络后重试。
+STRID_MSGBOX_DEMO_RETRY_CANCEL_TITLE  = 连接失败
+
+# 演示：四种图标
+STRID_MSGBOX_DEMO_ICONS_TEXT            = 四种标准图标：信息、警告、错误、疑问。
+STRID_MSGBOX_DEMO_ICONS_TITLE_INFO      = 图标类型 - Info
+STRID_MSGBOX_DEMO_ICONS_TITLE_WARNING   = 图标类型 - Warning
+STRID_MSGBOX_DEMO_ICONS_TITLE_ERROR     = 图标类型 - Error
+STRID_MSGBOX_DEMO_ICONS_TITLE_QUESTION  = 图标类型 - Question
+
+# 演示：长文本
+STRID_MSGBOX_DEMO_LONG_TEXT_TITLE = 长文本
+STRID_MSGBOX_DEMO_LONG_TEXT_TEXT  = 这是一段较长的消息文本，用于验证多行文本自动换行与窗口高度自适应能力。\n\n同时支持显式换行（换行符），窗口宽度固定为 420，高度会随着文本行数自动增长，按钮始终保持在窗口底部。
+
+# 演示：自定义按钮文字
+STRID_MSGBOX_DEMO_CUSTOM_TEXT    = 按钮文字支持自定义，可用于多语言场景。
+STRID_MSGBOX_DEMO_CUSTOM_TITLE   = 自定义按钮文字
+STRID_MSGBOX_CUSTOM_YES          = 保存
+STRID_MSGBOX_CUSTOM_NO           = 不保存
+STRID_MSGBOX_CUSTOM_CANCEL       = 取消
+
+# 返回值名称
+STRID_MSGBOX_RESULT_OK      = 确定(IDOK=1)
+STRID_MSGBOX_RESULT_CANCEL  = 取消(IDCANCEL=2)
+STRID_MSGBOX_RESULT_RETRY   = 重试(IDRETRY=4)
+STRID_MSGBOX_RESULT_YES     = 是(IDYES=6)
+STRID_MSGBOX_RESULT_NO      = 否(IDNO=7)
+
 # examples/render
 # 窗口核心标题
 STRID_RENDER_WINDOW_TITLE = 渲染引擎测试程序

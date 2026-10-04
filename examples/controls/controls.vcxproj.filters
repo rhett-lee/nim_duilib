@@ -39,6 +39,9 @@
     <ClInclude Include="AnimationForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MessageBoxForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main_windows.cpp">
@@ -60,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AnimationForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MessageBoxForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

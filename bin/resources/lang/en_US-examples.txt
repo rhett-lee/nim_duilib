@@ -482,6 +482,68 @@ STRID_CONTROLS_TRAY_MENU_03 = Menu Item 3
 STRID_CONTROLS_TRAY_MENU_04 = Menu Item 4
 STRID_CONTROLS_TRAY_MENU_05 = Exit
 
+# controls/MessageBox
+# Main window UI
+STRID_MSGBOX_MAIN_TITLE          = MessageBox Demo
+STRID_MSGBOX_MAIN_HINT           = Click a button below to show a message box:
+STRID_MSGBOX_MAIN_RESULT_PREFIX  = Last result:
+STRID_MSGBOX_MAIN_RESULT_NONE    = Last result: (none)
+
+# Demo button text
+STRID_MSGBOX_BTN_OK             = OK
+STRID_MSGBOX_BTN_OK_CANCEL      = OK + Cancel
+STRID_MSGBOX_BTN_YES_NO         = Yes + No
+STRID_MSGBOX_BTN_YES_NO_CANCEL  = Yes + No + Cancel
+STRID_MSGBOX_BTN_RETRY_CANCEL   = Retry + Cancel
+STRID_MSGBOX_BTN_ICONS          = Four standard icons
+STRID_MSGBOX_BTN_LONG_TEXT      = Long text (auto-wrap, adaptive height)
+STRID_MSGBOX_BTN_CUSTOM_TEXT    = Custom button text (Save/Don't Save/Cancel)
+
+# Demo: OK
+STRID_MSGBOX_DEMO_OK_TEXT   = This is a normal informational message.
+STRID_MSGBOX_DEMO_OK_TITLE  = Information
+
+# Demo: OK + Cancel
+STRID_MSGBOX_DEMO_OK_CANCEL_TEXT   = The file has been modified. Save changes?
+STRID_MSGBOX_DEMO_OK_CANCEL_TITLE  = Save File
+
+# Demo: Yes + No
+STRID_MSGBOX_DEMO_YES_NO_TEXT   = Are you sure you want to perform this operation?
+STRID_MSGBOX_DEMO_YES_NO_TITLE  = Confirm Operation
+
+# Demo: Yes + No + Cancel
+STRID_MSGBOX_DEMO_YES_NO_CANCEL_TEXT   = Deleted items cannot be restored. Continue deleting the selected items?
+STRID_MSGBOX_DEMO_YES_NO_CANCEL_TITLE  = Delete Confirmation
+
+# Demo: Retry + Cancel
+STRID_MSGBOX_DEMO_RETRY_CANCEL_TEXT   = Network connection failed. Check your network and retry.
+STRID_MSGBOX_DEMO_RETRY_CANCEL_TITLE  = Connection Failed
+
+# Demo: Four icons
+STRID_MSGBOX_DEMO_ICONS_TEXT            = Four standard icons: Information, Warning, Error, Question.
+STRID_MSGBOX_DEMO_ICONS_TITLE_INFO      = Icon Type - Info
+STRID_MSGBOX_DEMO_ICONS_TITLE_WARNING   = Icon Type - Warning
+STRID_MSGBOX_DEMO_ICONS_TITLE_ERROR     = Icon Type - Error
+STRID_MSGBOX_DEMO_ICONS_TITLE_QUESTION  = Icon Type - Question
+
+# Demo: Long text
+STRID_MSGBOX_DEMO_LONG_TEXT_TITLE = Long Text
+STRID_MSGBOX_DEMO_LONG_TEXT_TEXT  = This is a long message used to verify multi-line text auto-wrap and adaptive window height.\n\nExplicit line breaks are also supported. The window width is fixed at 420 and the height grows with the number of lines, while buttons stay at the bottom.
+
+# Demo: Custom button text
+STRID_MSGBOX_DEMO_CUSTOM_TEXT    = Button text can be customized, useful for multilingual scenarios.
+STRID_MSGBOX_DEMO_CUSTOM_TITLE   = Custom Button Text
+STRID_MSGBOX_CUSTOM_YES          = Save
+STRID_MSGBOX_CUSTOM_NO           = Don't Save
+STRID_MSGBOX_CUSTOM_CANCEL       = Cancel
+
+# Result names
+STRID_MSGBOX_RESULT_OK      = OK (IDOK=1)
+STRID_MSGBOX_RESULT_CANCEL  = Cancel (IDCANCEL=2)
+STRID_MSGBOX_RESULT_RETRY   = Retry (IDRETRY=4)
+STRID_MSGBOX_RESULT_YES     = Yes (IDYES=6)
+STRID_MSGBOX_RESULT_NO      = No (IDNO=7)
+
 # examples/render
 # Window core title
 STRID_RENDER_WINDOW_TITLE = Render Engine Test

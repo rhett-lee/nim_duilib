@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- 消息框布局：固定宽度 420，根容器 height="auto"，窗口高度随消息文本自适应 -->
+<Window size="420,200" caption="0,0,0,36" use_system_caption="false"
+        sys_menu="true" sys_menu_rect="0,0,36,36"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" size_box="0,0,0,0"
+        icon="public/caption/logo.ico">
+    <VBox width="420" height="auto" bkcolor="bg_window_main" max_height="600">
+        <!-- 标题栏：只保留关闭按钮，无最小化/最大化 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="msg_title" valign="center" margin="8,0,0,0" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close"/>
+        </HBox>
+
+        <!-- 消息区：图标 + 多行文本（文本自动换行，高度自适应） -->
+        <HBox width="stretch" height="auto" padding="20,20,20,4">
+            <Control name="msg_icon" width="32" height="32" valign="top" margin="0,0,14,0"/>
+            <Label name="msg_text" width="stretch" height="auto" min_height="32"
+                   multi_line="true" font="system_regular_14"
+                   normal_text_color="text_default" text_align="hleft,vcenter"/>
+        </HBox>
+
+        <!-- 按钮区：右对齐，默认全部隐藏，由 MessageBoxForm 按按钮组合显示 -->
+        <HBox width="stretch" height="auto" child_halign="right" padding="20,12,20,20" child_margin_x="10">
+            <Button class="btn_global_white_80x30" name="btn_retry" text_id="STRID_MSGBOX_RETRY" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_yes" text_id="STRID_MSGBOX_YES" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_no" text_id="STRID_MSGBOX_NO" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_ok" text_id="STRID_MSGBOX_OK" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_cancel" text_id="STRID_MSGBOX_CANCEL" width="80" height="32" visible="false"/>
+        </HBox>
+    </VBox>
+</Window>

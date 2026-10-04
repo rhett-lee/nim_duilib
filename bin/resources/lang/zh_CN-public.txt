@@ -387,3 +387,10 @@ STRID_PUBLIC_DIRECTORY_TREE_MUSIC = 音乐
 
 # 中文字体大小列表
 STRID_PUBLIC_FONT_SIZE_LIST = 1英寸,95.6;大特号,83.7;特号,71.7;初号,56.0;小初,48.0;一号,34.7;小一,32.0;二号,29.3;小二,24.0;三号,21.3;小三,20.0;四号,18.7;小四,16.0;五号,14.0;小五,12.0;六号,10.0;小六,8.7;七号,7.3;八号,6.7
+
+# MessageBox 默认按钮文字
+STRID_MSGBOX_OK      = 确定
+STRID_MSGBOX_CANCEL  = 取消
+STRID_MSGBOX_YES     = 是
+STRID_MSGBOX_NO      = 否
+STRID_MSGBOX_RETRY   = 重试

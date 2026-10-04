@@ -1,4 +1,5 @@
 #include "TestForm.h"
+#include "MessageBoxForm.h"
 
 TestForm::TestForm():
     m_nProgressValue(0.0)
@@ -27,6 +28,22 @@ void TestForm::OnInitWindow()
                 OnTimer();
             }),
         100);
+
+    //显示MessageBox的测试界面
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("message_box_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this](const ui::EventArgs& args) {
+            MessageBoxForm* testForm = new MessageBoxForm();
+            ui::WindowCreateParam createParam;
+            createParam.m_dwStyle = ui::kWS_POPUP;
+            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+            createParam.m_windowTitle = _T("MessageBoxForm");
+            createParam.m_bCenterWindow = true;
+            testForm->CreateWnd(this, createParam);
+            testForm->ShowModalFake();
+            return true;
+            });
+    }
 }
 
 void TestForm::OnTimer()
