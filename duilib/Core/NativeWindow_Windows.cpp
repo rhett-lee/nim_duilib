@@ -198,6 +198,14 @@ static BOOL WINAPI IsDialogMessageDuiLib(_In_ HWND hDlg, _In_ LPMSG lpMsg)
         //不将WM_CHAR识别为对话框消息
         return bRet;
     }
+    if ((lpMsg != nullptr) && (lpMsg->message == WM_KEYDOWN) && (lpMsg->wParam == VK_TAB)) {
+        //不将TAB键识别为对话框消息：模态窗口（DialogBoxIndirectParam）的消息循环
+        //会先调用IsDialogMessage，它会吞掉TAB键（用于在原生子控件间切换焦点），
+        //导致窗口过程收不到WM_KEYDOWN，自绘控件的TAB焦点切换无法工作。
+        //返回false让消息正常派发给窗口过程，由duilib完成自绘控件间的焦点切换
+        //（见 Window::OnKeyDownMsg -> Window::SetNextTabControl）。
+        return bRet;
+    }
     auto original = HookIsDialogMessage::Instance().GetTrampoline<PfnIsDialogMessage>();
     if (original) {
 #if defined (_MSC_VER)

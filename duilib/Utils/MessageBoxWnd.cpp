@@ -97,6 +97,12 @@ void MessageBoxWnd::OnInitWindow()
         }        
     }
 
+    //标题栏关闭按钮不参与TAB焦点循环（只保留功能按钮之间切换）
+    ui::Button* pCloseButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_window_close")));
+    if (pCloseButton != nullptr) {
+        pCloseButton->SetTabStop(false);
+    }
+
     m_pIconControl = FindControl(_T("msg_icon"));
     if (m_pIconControl != nullptr) {
         DString strIcon;
