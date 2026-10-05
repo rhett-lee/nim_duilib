@@ -74,6 +74,7 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_maxNumber(INT_MAX),
     m_minNumber(INT_MIN),
     m_pSpinBox(nullptr),
+    m_nSpinStep(1),
     m_pClearButton(nullptr),
     m_pShowPasswordButton(nullptr),
     m_bReadOnly(false),
@@ -2788,13 +2789,13 @@ bool RichEdit2::SetSpinClass(const DString& spinClass)
         //挂载事件处理
         pUpButton->DetachEvent(kEventClick);
         pUpButton->AttachClick([this](const EventArgs& /*args*/){
-            AdjustTextNumber(1);
+            AdjustTextNumber(GetSpinStep());
             return true;
             });
 
         pUpButton->DetachEvent(kEventMouseButtonDown);
         pUpButton->AttachButtonDown([this](const EventArgs& /*args*/) {
-            StartAutoAdjustTextNumberTimer(1);
+            StartAutoAdjustTextNumberTimer(GetSpinStep());
             return true;
             });
 
@@ -2813,13 +2814,13 @@ bool RichEdit2::SetSpinClass(const DString& spinClass)
         pDownButton->DetachEvent(kEventClick);
         pDownButton->AttachClick([this](const EventArgs& /*args*/) {
             StopAutoAdjustTextNumber();
-            AdjustTextNumber(-1);
+            AdjustTextNumber(-GetSpinStep());
             return true;
             });
 
         pDownButton->DetachEvent(kEventMouseButtonDown);
         pDownButton->AttachButtonDown([this](const EventArgs& /*args*/) {
-            StartAutoAdjustTextNumberTimer(-1);
+            StartAutoAdjustTextNumberTimer(-GetSpinStep());
             return true;
             });
 
@@ -2954,6 +2955,19 @@ void RichEdit2::StartAutoAdjustTextNumber(int32_t nDelta)
 void RichEdit2::StopAutoAdjustTextNumber()
 {
     m_flagAdjustTextNumber.Cancel();
+}
+
+void RichEdit2::SetSpinStep(int32_t nStep)
+{
+    ASSERT(nStep > 0);
+    if (nStep > 0) {
+        m_nSpinStep = nStep;
+    }
+}
+
+int32_t RichEdit2::GetSpinStep() const
+{
+    return m_nSpinStep;
 }
 
 void RichEdit2::SetReplaceNewline(bool bReplaceNewline)
@@ -3733,10 +3747,10 @@ bool RichEdit2::OnArrowKeyDown(const EventArgs& msg)
     if (IsNumberOnly() && !IsReadOnly() && IsEnabled() && ((msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN))) {
         //数字模式，方向键调整数字大小
         if (msg.vkCode == kVK_UP) {
-            AdjustTextNumber(1);
+            AdjustTextNumber(GetSpinStep());
         }
         else {
-            AdjustTextNumber(-1);
+            AdjustTextNumber(-GetSpinStep());
         }        
         return true;
     }

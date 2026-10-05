@@ -17,6 +17,7 @@
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
 * [主题参考文档](Theme.md)
+* [控件库能力盘点与新增规划](Control-Roadmap.md)
 * [CEF控件](CEF.md)
 * [项目编译相关文档和脚本](../build/build.md)
 

@@ -211,7 +211,7 @@ grep -rn "PanelVBox\|PanelHBox" duilib/ --include="*.cpp"
 
 **相关链接**
 
-- nim_duilib 仓库：https://github.com/netease/nim_duilib
+- nim_duilib 仓库：https://github.com/rhett-lee/nim_duilib
 - 本文示例代码见仓库 `examples/panel/` 目录
 
 如果这篇教程帮到你，欢迎点赞收藏转发，也欢迎在评论区聊聊你在桌面端多语言上踩过的坑。

@@ -489,6 +489,25 @@ RichEdit2类的功能说明：
 （1）在Windows平台，RichEdit类是使用Windows系统本身的ITextServices接口实现的，RichEdit2是本项目自己实现的，两者实现方式不同，但功能基本一致    
 （2）在非Windows平台，RichEdit是RichEdit2的别名，两者没有区别。    
 
+## SpinBox的属性
+SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`模式，提供数字输入 + 步进按钮 + 上下方向键调整的完整数字输入能力。    
+除RichEdit的通用属性（`spin_class`、`min_number`、`max_number`、`limit_text`等）外，新增以下属性：    
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| step | 1 | int | 步长值（正整数），步进按钮和上下方向键每次调整的数值 |
+| value | 0 | int | 初始数值（超出min/max范围时会被修正到边界值） |
+
+对应C++接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。    
+数值变化时触发`kEventTextChanged`事件（与RichEdit一致）。    
+使用示例（参考 rich_edit 示例程序）：    
+
+```xml
+<SpinBox class="simple simple_border rich_edit_spin" min_number="0" max_number="100" step="5" value="50"/>
+```
+
+其中`spin_class`样式（rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down）在 global.xml 的`rich_edit_spin`类中定义。    
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    

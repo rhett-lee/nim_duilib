@@ -72,6 +72,7 @@ English | [简体中文](XmlNode.md)
 | Slider | "Slider"| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | |
 | CircleProgress | "CircleProgress"| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | |
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
+| SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | Numeric input box, derived from RichEdit, supports step/range/spin buttons |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

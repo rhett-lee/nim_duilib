@@ -994,6 +994,16 @@ private:
     */
     void StopAutoAdjustTextNumber();
 
+public:
+    /** 设置Spin按钮（及数字模式下方向键）每次调整的步长
+    * @param [in] nStep 步长值，必须大于0，默认值为1
+    */
+    void SetSpinStep(int32_t nStep);
+
+    /** 获取Spin按钮每次调整的步长
+    */
+    int32_t GetSpinStep() const;
+
 private:
     /** 设置清除按钮功能的Class名称
     */
@@ -1295,6 +1305,10 @@ private:
     /** Spin功能的容器
     */
     VBox* m_pSpinBox;
+
+    /** Spin按钮（及数字模式下方向键）每次调整的步长
+    */
+    int32_t m_nSpinStep;
 
     /** 自动调整文本数字值的定时器生命周期管理
     */

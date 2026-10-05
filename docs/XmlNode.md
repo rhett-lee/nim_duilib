@@ -70,6 +70,7 @@
 | Slider | "Slider"| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | |
 | CircleProgress | "CircleProgress"| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | |
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
+| SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | 数字输入框，继承RichEdit，支持步长/范围/步进按钮 |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

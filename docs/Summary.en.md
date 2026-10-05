@@ -19,6 +19,7 @@ English | [简体中文](Summary.md)
 * [Node Names of Each Control in XML Files](XmlNode.en.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
 * [Theme Reference Document](Theme.en.md)
+* [Control Library Capability Inventory and New Control Roadmap](Control-Roadmap.en.md)
 * [CEF Control](CEF.en.md)
 * [Project Build Related Documents and Scripts](../build/build.md)
 

@@ -491,6 +491,25 @@ Functional description of the RichEdit2 class:
 (1) On the Windows platform, the RichEdit class is implemented using the Windows system's own ITextServices interface, while RichEdit2 is implemented by this project itself; the two have different implementation methods but basically the same functionality.    
 (2) On non-Windows platforms, RichEdit is an alias of RichEdit2, and the two are identical.    
 
+## Attributes of SpinBox
+SpinBox is a numeric input control derived from RichEdit. It enables `number_only` mode by default and provides numeric input plus spin buttons and up/down arrow key adjustment.    
+In addition to RichEdit's common attributes (`spin_class`, `min_number`, `max_number`, `limit_text`, etc.), it adds the following attributes:    
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| step | 1 | int | Step value (positive integer); the amount added/subtracted by each spin button click or up/down arrow key press |
+| value | 0 | int | Initial numeric value (clamped to the min/max range if out of bounds) |
+
+Corresponding C++ interfaces: `SetStep/GetStep`, `SetValue/GetValue`, `SetRange(min, max)`.    
+The `kEventTextChanged` event is fired when the value changes (same as RichEdit).    
+Example (see the rich_edit example program):    
+
+```xml
+<SpinBox class="simple simple_border rich_edit_spin" min_number="0" max_number="100" step="5" value="50"/>
+```
+
+The `spin_class` styles (rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down) are defined in the `rich_edit_spin` class of global.xml.    
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    

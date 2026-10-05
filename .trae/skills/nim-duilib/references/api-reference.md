@@ -258,6 +258,17 @@
 | caret_color | | string | 光标颜色 |
 | normal_text_color | | string | 文字颜色 |
 
+### SpinBox 属性(继承 RichEdit，数字输入框)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| step | 1 | int | 步长（步进按钮/上下方向键每次调整值） |
+| value | 0 | int | 初始值（超范围时自动修正） |
+| spin_class | | string | 步进按钮样式（同 RichEdit，如 `rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down`） |
+| min_number / max_number | | int | 数字范围 |
+
+C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。数值变化触发 `kEventTextChanged`。
+
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |

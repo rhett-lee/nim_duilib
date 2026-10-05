@@ -359,6 +359,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_maxNumber(INT_MAX),
     m_minNumber(INT_MIN),
     m_pSpinBox(nullptr),
+    m_nSpinStep(1),
     m_pClearButton(nullptr),
     m_pShowPasswordButton(nullptr),
     m_nFocusBottomBorderSize(0),
@@ -3585,13 +3586,13 @@ bool RichEdit::SetSpinClass(const DString& spinClass)
         //挂载事件处理
         pUpButton->DetachEvent(kEventClick);
         pUpButton->AttachClick([this](const EventArgs& /*args*/){
-            AdjustTextNumber(1);
+            AdjustTextNumber(GetSpinStep());
             return true;
             });
 
         pUpButton->DetachEvent(kEventMouseButtonDown);
         pUpButton->AttachButtonDown([this](const EventArgs& /*args*/) {
-            StartAutoAdjustTextNumberTimer(1);
+            StartAutoAdjustTextNumberTimer(GetSpinStep());
             return true;
             });
 
@@ -3610,13 +3611,13 @@ bool RichEdit::SetSpinClass(const DString& spinClass)
         pDownButton->DetachEvent(kEventClick);
         pDownButton->AttachClick([this](const EventArgs& /*args*/) {
             StopAutoAdjustTextNumber();
-            AdjustTextNumber(-1);
+            AdjustTextNumber(-GetSpinStep());
             return true;
             });
 
         pDownButton->DetachEvent(kEventMouseButtonDown);
         pDownButton->AttachButtonDown([this](const EventArgs& /*args*/) {
-            StartAutoAdjustTextNumberTimer(-1);
+            StartAutoAdjustTextNumberTimer(-GetSpinStep());
             return true;
             });
 
@@ -3743,6 +3744,19 @@ void RichEdit::StartAutoAdjustTextNumber(int32_t nDelta)
 void RichEdit::StopAutoAdjustTextNumber()
 {
     m_flagAdjustTextNumber.Cancel();
+}
+
+void RichEdit::SetSpinStep(int32_t nStep)
+{
+    ASSERT(nStep > 0);
+    if (nStep > 0) {
+        m_nSpinStep = nStep;
+    }
+}
+
+int32_t RichEdit::GetSpinStep() const
+{
+    return m_nSpinStep;
 }
 
 void RichEdit::SetReplaceNewline(bool bReplaceNewline)
