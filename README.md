@@ -83,7 +83,7 @@
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr>
-        <td rowspan="25">新增控件/新增容器</td>
+        <td rowspan="26">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -110,6 +110,7 @@
     <tr><td align="left">23. ControlResizableT(模板类，包含以下四个标准控件：ControlResizable/BoxResizable/HBoxResizable/VBoxResizable)：支持通过鼠标拖动来调整控件的大小，功能与调整窗口大小的功能相似</td></tr>
     <tr><td align="left">24. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
     <tr><td align="left">25. Pane/PanelHBox/PanelVBox：带标题栏的面板容器（PanelTemplate<Box>），支持标题栏样式、折叠/展开、手风琴分组</td></tr>
+    <tr><td align="left">26. MessageBoxWnd：框架自带的自绘皮肤模态消息框</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -662,6 +663,7 @@ nim_duilib/.claude/
  - [容器的样式](docs/Box.md)
  - [控件的样式](docs/Control.md)
  - [菜单的样式](docs/Menu.md)
+ - [模态消息框（MessageBoxWnd）](docs/MessageBox.md)
  - [控件的事件/消息](docs/Events.md)
  - [XML文件中各控件的节点名称](docs/XmlNode.md)
  - [XML文件中直接响应控件的事件](docs/XmlEvents.md)

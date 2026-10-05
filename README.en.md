@@ -85,7 +85,7 @@ English | [简体中文](README.md)
     <tr><td align="left">21. The Control control supports full-screen display (implemented by calling the newly added Window::SetFullscreenControl function); the CEF control and WebView2 control support switching the page to full screen via F11</td></tr>
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr>
-        <td rowspan="25">New Controls / New Containers</td>
+        <td rowspan="26">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -112,6 +112,7 @@ English | [简体中文](README.md)
     <tr><td align="left">23. ControlResizableT (template class, including the following four standard controls: ControlResizable/BoxResizable/HBoxResizable/VBoxResizable): supports adjusting the size of a control by mouse dragging, with functionality similar to resizing a window</td></tr>
     <tr><td align="left">24. XmlBox: a container that supports loading and previewing the XML files of the GUI library, which can be used to preview the display effects of controls defined in XML files</td></tr>
     <tr><td align="left">25. Pane/PanelHBox/PanelVBox: Titled panel container (PanelTemplate<Box>), supporting title bar styling, collapse/expand and accordion groups</td></tr>
+    <tr><td align="left">26. MessageBoxWnd: a built-in owner-drawn skin modal message box.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>
@@ -663,6 +664,7 @@ nim_duilib/.claude/
  - [Container Styles](docs/Box.en.md)
  - [Control Styles](docs/Control.en.md)
  - [Menu Styles](docs/Menu.en.md)
+ - [Modal Message Box (MessageBoxWnd)](docs/MessageBox.en.md)
  - [Control Events/Messages](docs/Events.en.md)
  - [Node Names of Each Control in XML Files](docs/XmlNode.en.md)
  - [Responding to Control Events Directly in XML Files](docs/XmlEvents.en.md)

@@ -193,6 +193,7 @@
 | cursor_type | arrow | string | 光标: arrow/hand/ibeam/wait/cross/size_we/size_ns 等 |
 | no_focus | false | bool | 是否不可获取焦点 |
 | tab_stop | true | bool | 是否允许TAB切换 |
+| show_focused_rect | false | bool | 键盘TAB聚焦时是否绘制焦点虚线框（别名 show_focus_rect）；C++ 接口 SetShowFocusedRect()/IsShowFocusedRect()，需要"初始不显示、TAB后才显示"时在 OnKeyDownMsg 中按需开启 |
 | fade_visible | true | bool | 可见性变化时是否有动画 |
 | box_shadow | | string | 阴影 "color='red' offset='0,0' blurradius='8' spreadradius='8'" |
 
@@ -630,6 +631,87 @@ ui::UiBind(this, [this]() {
     // 控件销毁后不会执行
 });
 ```
+
+### 模态消息框 MessageBoxWnd
+
+框架自带的自绘皮肤模态消息框，头文件 `duilib/Utils/MessageBoxWnd.h`，
+皮肤 `bin/resources/themes/default/public/messagebox/messagebox.xml`，
+完整演示见 `examples/controls`（MessageBoxForm）。只能通过静态接口 `Show` 使用，
+内部以 `DoModal` 模态显示，阻塞父窗口，返回用户点击的按钮。
+
+```cpp
+#include "duilib/Utils/MessageBoxWnd.h"
+
+//基本用法（按钮组合 + 图标）
+int32_t nResult = ui::MessageBoxWnd::Show(this,
+    _T("确定要删除该文件吗？"), _T("删除确认"),
+    ui::MessageBoxWnd::kButtonsYesNoCancel,
+    ui::MessageBoxWnd::kIconQuestion);
+if (nResult == ui::MessageBoxWnd::kResultYes) {
+    //执行删除
+}
+
+//多语言：第 7 个参数传 true，text/title/按钮文字全部按多语言 ID 解析，切换语言实时生效
+int32_t nResult2 = ui::MessageBoxWnd::Show(this,
+    _T("STRID_DELETE_CONFIRM_TEXT"), _T("STRID_DELETE_CONFIRM_TITLE"),
+    ui::MessageBoxWnd::kButtonsOKCancel,
+    ui::MessageBoxWnd::kIconWarning, nullptr, true);
+
+//自定义按钮文字（bTextId=true 时成员也填多语言 ID；某一项留空则用框架默认文字）
+ui::MessageBoxWnd::ButtonText buttonText;
+buttonText.yes    = _T("STRID_CUSTOM_SAVE");
+buttonText.no     = _T("STRID_CUSTOM_DISCARD");
+buttonText.cancel = _T("STRID_CUSTOM_CANCEL");
+ui::MessageBoxWnd::Show(this, _T("..."), _T("..."),
+    ui::MessageBoxWnd::kButtonsYesNoCancel,
+    ui::MessageBoxWnd::kIconQuestion, &buttonText, true);
+```
+
+`Show(pParentWindow, text, title, buttonFlags, iconType, pButtonText=nullptr, bTextId=false)`：
+
+| 参数 | 说明 |
+|------|------|
+| pParentWindow | 父窗口，模态期间不可操作，可为 nullptr |
+| text / title | 消息内容（支持 `\n` 换行，长文本自动换行，窗口高度自适应）/ 窗口标题 |
+| buttonFlags | 按钮组合，见下表 |
+| iconType | `kIconNone` / `kIconInfo` / `kIconWarning` / `kIconError` / `kIconQuestion` |
+| pButtonText | 自定义按钮文字，nullptr 用默认文字 |
+| bTextId | 为 true 时 text/title/按钮文字均按多语言 ID 解析；任务栏原生标题也显示译文而非 ID |
+
+| ButtonFlags 按钮组合 | 含有的按钮 |
+|------|------|
+| `kButtonsOK` | 确定 |
+| `kButtonsOKCancel` | 确定、取消 |
+| `kButtonsYesNo` | 是、否 |
+| `kButtonsYesNoCancel` | 是、否、取消 |
+| `kButtonsRetryCancel` | 重试、取消 |
+
+返回值（与 Win32 `ID*` 一致；创建失败返回 -1）：
+
+| Result | 值 | 触发方式 |
+|------|----|------|
+| `kResultOK` | 1 | 点击"确定"；或按 Enter 且组合含"确定" |
+| `kResultCancel` | 2 | 点击"取消"、按 ESC、点标题栏关闭按钮 |
+| `kResultRetry` | 4 | 点击"重试" |
+| `kResultYes` | 6 | 点击"是"；Enter 默认按钮映射（组合无"确定"时） |
+| `kResultNo` | 7 | 点击"否" |
+
+要点：
+
+- Enter 触发**当前焦点按钮**（默认焦点是组合中的第一个肯定性按钮：确定→是→重试）；
+  按 TAB/Shift+TAB 可在功能按钮间循环切换焦点，标题栏关闭按钮不参与 TAB 循环。
+- ESC 与标题栏 X 一律返回 `kResultCancel`，即使组合中没有"取消"按钮也不会映射成默认按钮
+  （与 Win32 放弃选择的语义一致）。
+- 焦点虚线框按需显示：窗口初始弹出时不显示焦点环，用户首次按 TAB 后才显示，
+  由 `MessageBoxWnd::OnKeyDownMsg` 调 `SetShowFocusedRect(true)` 开启。
+- DoModal 下 Enter 键能派发给焦点按钮，依赖 Windows 平台的
+  `NativeWindow_Windows::SetEnterKeyPassthrough(HWND, bool)` 注册机制：
+  `OnInitWindow` 注册、`OnPreCloseWindow` 注销。DoModal 的消息循环会先调 `IsDialogMessage`，
+  默认把 Enter 转成 `WM_COMMAND IDOK`、吞掉 TAB；框架 hook 对 TAB 全局放行，
+  对 Enter 仅放行了注册窗口——自定义模态窗口有同样需求时才注册，不要全局放行，
+  以免改变普通模态对话框"回车关闭"的默认行为。
+- `WindowBase::DoModal(pParentWindow, createParam, bCloseByEsc=true, bCloseByEnter=false)`
+  默认 ESC 关窗、Enter 不关窗；只有传 `bCloseByEnter=true` 时 IDOK 才会关闭窗口。
 
 ## 八、布局属性速查
 

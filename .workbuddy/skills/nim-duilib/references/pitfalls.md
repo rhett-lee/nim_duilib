@@ -188,3 +188,62 @@ python scripts/verify_docs.py --repo <nim_duilib仓库根目录>
 ```
 
 它会自动比对文档里出现的 `DUI_CTR_*`、`kEvent*`、类名、字体 ID、颜色名与源码是否一致。
+
+## 七、模态对话框（DoModal）的键盘消息
+
+### 17. DoModal 窗口里 TAB 切不了焦点、Enter 永远触发默认按钮
+
+`DoModal` 在 Windows 平台用 `DialogBoxIndirectParam` 创建模态对话框，其消息循环在派发前
+先调用 `IsDialogMessage`。该 API 会**吞掉两类键**：
+
+- **`VK_TAB`**：被转换为原生子控件之间的焦点切换。自绘窗口没有原生子控件，
+  于是 TAB 键根本到不了窗口过程，自绘按钮的 TAB 导航失效。
+- **`VK_RETURN`**：被转换为 `WM_COMMAND` + `IDOK`，进入 `__DialogProc` 的 WM_COMMAND 分支
+  （`duilib/Core/NativeWindow_Windows.cpp`），窗口过程收不到 `WM_KEYDOWN`，
+  因此无论焦点在哪个按钮上，回车都只走 `m_bCloseByEnter`/IDOK 的默认关闭路径，
+  无法触发当前焦点按钮的 click（`Button::HandleEvent` 对 `kEventKeyDown` +
+  `kVK_RETURN`/`kVK_SPACE` 才会 `Activate`）。
+
+框架在 `IsDialogMessageDuiLib`（同名文件，内联 hook）中的处理：
+
+- **TAB：全局放行**（不区分窗口）。TAB 对自绘窗口只有副作用，放行后由
+  `Window::OnKeyDownMsg → SetNextTabControl` 完成焦点切换，任何 DoModal 窗口都受益。
+- **Enter：仅对显式注册的窗口放行**。放行是按窗口句柄登记的：
+
+```cpp
+// duilib/Core/NativeWindow_Windows.h（仅 Windows 平台）
+static void NativeWindow_Windows::SetEnterKeyPassthrough(HWND hWnd, bool bPassthrough);
+```
+
+需要"回车触发当前焦点按钮"的模态窗口（框架自带的 `MessageBoxWnd` 已这样做）：
+`OnInitWindow` 中注册、`OnPreCloseWindow` 中注销——必须注销，否则窗口句柄被系统复用后
+会影响后来的普通模态对话框：
+
+```cpp
+void MyModalWnd::OnInitWindow()
+{
+    BaseClass::OnInitWindow();
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ui::NativeWindow_Windows::SetEnterKeyPassthrough(NativeWnd()->GetHWND(), true);
+#endif
+}
+
+void MyModalWnd::OnPreCloseWindow()
+{
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ui::NativeWindow_Windows::SetEnterKeyPassthrough(NativeWnd()->GetHWND(), false);
+#endif
+    BaseClass::OnPreCloseWindow();
+}
+```
+
+不要把 Enter 改成全局放行：未注册的普通模态对话框依赖默认的
+`Enter → WM_COMMAND IDOK` 行为（例如"回车直接关闭对话框"的交互），全局放行会改变它们的行为。
+
+### 18. `DoModal` 默认不响应回车关闭，ESC 默认关闭
+
+`WindowBase::DoModal(pParentWindow, createParam, bCloseByEsc=true, bCloseByEnter=false)`
+后两个参数默认 **ESC 关窗、Enter 不关窗**。只有显式传 `bCloseByEnter=true` 时，
+`__DialogProc` 收到 IDOK 才会 `CloseWnd(kWindowCloseOK)`。
+模态返回值经 `m_closeParam` 传递，ESC/`IDCANCEL` 对应 `kWindowCloseCancel(2)`，
+Enter/`IDOK` 对应 `kWindowCloseOK(1)`。

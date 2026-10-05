@@ -11,6 +11,7 @@
 * [容器的样式](Box.md)
 * [控件的样式](Control.md)
 * [菜单的样式](Menu.md)
+* [模态消息框（MessageBoxWnd）](MessageBox.md)
 * [控件的事件/消息](Events.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
@@ -238,6 +239,7 @@
 | 拾色器实现类 | | [duilib/Control/ColorPickerStandard.h](../duilib/Control/ColorPickerStandard.h) | ColorPicker的实现类，标准颜色 |
 | 拾色器实现类 | | [duilib/Control/ColorPickerStandardGray.h](../duilib/Control/ColorPickerStandardGray.h) | ColorPicker的实现类，标准颜色，灰色 |
 | 拾色器实现类 | | [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | ColorPicker的实现类 |
+| MessageBoxWnd | WindowImplBase | [duilib/Utils/MessageBoxWnd.h](../duilib/Utils/MessageBoxWnd.h) | 自绘皮肤的模态消息框，独立窗口，详见[MessageBox.md](MessageBox.md) |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
