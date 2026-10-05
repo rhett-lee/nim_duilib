@@ -32,7 +32,7 @@ static void Show(ui::Window* pParentWindow,
 | Parameter | Description |
 | :--- | :--- |
 | pParentWindow | Parent window; the toast is shown near its client area, and the parent remains fully operable while the toast is visible. Can be nullptr, in which case the monitor work area is used |
-| text | Notification content; supports explicit `\n` line breaks. Long text wraps automatically, and the window height adapts to the text (up to 200 DIP) |
+| text | Notification content; supports explicit `\n` line breaks. Long text wraps automatically, and the window height adapts to the text (up to 320 DIP) |
 | type | Notification type (determines the icon on the left), see the table below |
 | nDurationMs | Dwell time before auto-close, in milliseconds; default 3000. **Pass 0 to disable auto-close**; the toast can then only be dismissed by a click |
 | position | Display position, see the table below |
@@ -154,15 +154,16 @@ the Alt+Tab list. The skin root node enables the window shadow (`shadow_attached
 Key structure of the `toast.xml` skin:
 
 * The root HBox is the toast bar itself: fixed width of 360 DIP, auto height
-  (`max_height="200"`), corner radius of 8px. It reuses the semantic color names
+  (`max_height="320"`), corner radius of 8px. It reuses the semantic color names
   `bg_tooltip` (background), `text_tooltip` (text), and `border_window` (border); no new
   color names are introduced.
-* An inner HBox arranges the icon (`name="toast_icon"`) and the text
-  (`name="toast_text"`, `multi_line="true"`).
+* An inner HBox arranges the icon (`name="toast_icon"`, 20×20 with a 12 right margin)
+  and the text (`name="toast_text"`, `multi_line="true"`, **fixed width 296** — see
+  pitfall 4 below).
 * The inner container, the icon, and the text all set `mouse_enabled="false"` and
   `tab_stop="false"`, so mouse messages always hit the outermost toast bar.
 
-There are three pitfalls when implementing this kind of interactive window with the
+There are four pitfalls when implementing this kind of interactive window with the
 framework; keep them in mind if you develop similar controls:
 
 1. **Plain containers do not dispatch `kEventClick`**: `kEventClick` is only produced by
@@ -182,6 +183,16 @@ framework; keep them in mind if you develop similar controls:
    event to controls. `ToastWnd` overrides `OnMouseLeaveMsg`, calls
    `ResumeAutoCloseTimer()` in it to resume the countdown, and then calls the base class
    implementation.
+4. **An auto-height multi-line `stretch` label next to a fixed-width sibling in an HBox can
+   underestimate its height**: the auto-height window calls `EstimateSize` only once, and
+   during layout estimation a stretch child receives the **container's** available width
+   (360), not the width it actually gets after fixed-width siblings such as the icon are
+   subtracted (296). With Chinese text (which can wrap at every character) the line count is
+   often the same at both widths; with English word wrapping, the wider estimate width
+   produces fewer lines, so the window ends up too short and the last line is clipped.
+   The fix is to give the Label a **fixed width equal to its actual layout width**
+   (`width="296"` in toast.xml = 360 outer width − 32 horizontal padding − 20 icon −
+   12 icon right margin), so estimation and rendering use the same wrap width.
 
 In addition, the toast window is created as an owned window of the parent, so it is destroyed
 together with the parent when the parent closes. `OnFinalMessage` removes the toast from the

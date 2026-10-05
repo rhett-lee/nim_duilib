@@ -766,13 +766,16 @@ ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_INFO"),
   分层窗口透明度用 `SetLayeredWindowAlpha`。
 - 窗口样式 `kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_LAYERED|kWS_EX_NOACTIVATE`，
   无父窗口时再加 `kWS_EX_TOOLWINDOW`（不进任务栏/Alt+Tab）。
-- **三个实现坑（自写类似交互窗口时务必注意）**：
+- **四个实现坑（自写类似交互窗口时务必注意）**：
   ① 普通容器不派发 `kEventClick`，整条可点要用 `AttachButtonUp`（kEventMouseButtonUp）；
   ② 有阴影的窗口 `GetRoot()` 返回的 ShadowBox 已被 `SetMouseEnabled(false)`，
      鼠标事件必须绑在 `GetXmlRoot()`（XML 可见根容器）上；尺寸测量仍用 `GetRoot()`
      （EstimateSize 含阴影、GetPadding() 是阴影边距）；
   ③ 鼠标直接移出窗口边界时控件级 kEventMouseLeave 不派发，需重写窗口级
-     `OnMouseLeaveMsg(const NativeMsg&, bool&)` 恢复倒计时。
+     `OnMouseLeaveMsg(const NativeMsg&, bool&)` 恢复倒计时；
+  ④ 高度自适应窗口中的多行文本不要用 `width="stretch"`——EstimateSize 时 stretch
+     子项按容器可用宽（未扣除固定宽兄弟）换行，英文按词换行会少算行数导致末行
+     被裁；Label 宽度写与实际布局相等的固定值（toast.xml 为 296）。
 
 ## 八、布局属性速查
 

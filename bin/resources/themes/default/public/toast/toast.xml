@@ -9,7 +9,10 @@
         <HBox width="stretch" height="auto" padding="16,12,16,12" mouse_enabled="false" tab_stop="false">
             <Control name="toast_icon" width="20" height="20" valign="center" margin="0,0,12,0"
                      mouse_enabled="false" tab_stop="false"/>
-            <Label name="toast_text" width="stretch" height="auto" min_height="20"
+            <!-- 文本宽度必须为固定值 296（=360 外宽 - 左右内边距 16*2 - 图标 20 - 图标右 margin 12）：
+                 多行 stretch 标签在估算高度时会按容器可用宽（360）而非扣除固定宽兄弟后的实际宽（296）换行，
+                 英文按词换行时会少算行数，导致窗口高度偏短、末行被裁切。固定宽可保证估算与实际布局一致 -->
+            <Label name="toast_text" width="296" height="auto" min_height="20"
                    mouse_enabled="false" tab_stop="false" auto_tooltip="true"
                    multi_line="true" font="system_regular_14"
                    normal_text_color="text_tooltip" text_align="hleft,vcenter"/>

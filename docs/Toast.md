@@ -29,7 +29,7 @@ static void Show(ui::Window* pParentWindow,
 | 参数 | 说明 |
 | :--- | :--- |
 | pParentWindow | 父窗口，通知显示在其客户区附近；显示期间父窗口仍可正常操作。可为 nullptr，此时按显示器工作区定位 |
-| text | 通知内容，支持 `\n` 显式换行，长文本自动换行，窗口高度随文本自适应（最高 200 DIP） |
+| text | 通知内容，支持 `\n` 显式换行，长文本自动换行，窗口高度随文本自适应（最高 320 DIP） |
 | type | 通知类型（决定左侧图标），见下表 |
 | nDurationMs | 自动关闭的停留时长（毫秒），默认 3000；**传 0 表示不自动关闭**，只能由用户点击关闭 |
 | position | 显示位置，见下表 |
@@ -137,15 +137,15 @@ ui::ToastWnd::Show(this,
 
 皮肤 `toast.xml` 的关键结构：
 
-* 根 HBox 为通知条本体：固定宽度 360 DIP、高度 auto（`max_height="200"`），
+* 根 HBox 为通知条本体：固定宽度 360 DIP、高度 auto（`max_height="320"`），
   圆角 8px，复用语义色 `bg_tooltip`（背景）、`text_tooltip`（文字）、
   `border_window`（描边），未引入新的颜色名。
-* 内部使用 HBox 排列图标（`name="toast_icon"`）与文本
-  （`name="toast_text"`，`multi_line="true"`）。
+* 内部使用 HBox 排列图标（`name="toast_icon"`，20×20、右 margin 12）与文本
+  （`name="toast_text"`，`multi_line="true"`，**固定宽 296**，见下文第 4 点）。
 * 内部容器及图标、文本均设置 `mouse_enabled="false"`、`tab_stop="false"`，
   保证鼠标消息统一命中最外层通知条。
 
-在该框架下实现此类交互窗口时，有三点容易踩坑，使用方自行开发类似控件时需注意：
+在该框架下实现此类交互窗口时，有四点容易踩坑，使用方自行开发类似控件时需注意：
 
 1. **普通容器不会派发 `kEventClick`**：`kEventClick` 只有 Button、ComboButton、
    ListBoxItem 等控件会产生。让整个通知条可点击，应在容器上使用
@@ -160,6 +160,14 @@ ui::ToastWnd::Show(this,
    框架的 `Window::OnMouseLeaveMsg`（WM_MOUSELEAVE）不会向控件转发该事件。
    `ToastWnd` 重写了 `OnMouseLeaveMsg`，在其中调用 `ResumeAutoCloseTimer()`
    恢复倒计时，再调用基类实现。
+4. **多行 `stretch` 文本与固定宽兄弟控件同处一个 HBox 时，高度估算可能偏小**：
+   高度自适应（窗口只调一次 `EstimateSize`）依赖标签按可用宽估算换行行数，
+   但布局估算时 stretch 子项拿到的是**容器**的可用宽（360），而不是扣除图标等
+   固定宽兄弟控件后的实际宽（296）。中文按字换行时两者行数往往相同；英文按词
+   换行时更宽的估算宽度会少算行数，窗口高度偏短、末行被裁切。
+   解决办法是把该 Label 的宽度写成**与实际布局一致的固定值**（toast.xml 中
+   `width="296"` = 360 外宽 − 左右内边距 32 − 图标 20 − 图标右 margin 12），
+   使估算与渲染使用同一换行宽度。
 
 此外，通知窗口作为父窗口的 owned window 创建，父窗口关闭时会随之一并销毁；
 `OnFinalMessage` 中负责把自身从静态列表摘除并重排其余通知，随后非模态窗口基类

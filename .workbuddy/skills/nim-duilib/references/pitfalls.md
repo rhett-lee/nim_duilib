@@ -276,3 +276,11 @@ Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
 不要用 UiBind 包装（UiBind 只用于 Thread().PostXxxTask）；动画枚举写
 `AnimationType::kAnimationNone`，缓动名是 `EaseOutCubic`/`EaseInCubic`。
 
+4. **高度自适应窗口里，多行 stretch 文本的宽度不要用 stretch**：
+   `EstimateSize` 链式估算时，HLayout 把容器的 `szAvailable.cx` 原样传给
+   stretch 子项，不会先扣除固定宽兄弟（图标等）；多行 Label 就按这个偏宽的
+   宽度估算换行行数，实际布局时宽度更窄、行数更多，窗口高度不够导致末行被裁。
+   中文按字换行时行数常常恰好一样，英文按词换行必现。解决：Label 宽度直接写
+   与实际布局相等的固定 DIP 值（外宽−内边距−兄弟宽/margin），让估算与渲染
+   使用同一换行宽度。Toast 的 toast.xml 中 label 固定 width="296"。
+
