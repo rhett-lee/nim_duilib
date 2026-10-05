@@ -112,7 +112,7 @@ public:
 
     /** 获取标题文字
     */
-    const DString& GetTitle() const;
+    DString GetTitle() const;
 
     /** 设置标题文字 ID（支持多语言，与 Label::SetTextId 用法一致）
     * @param [in] strTitleId 语言文件中配置的标题文本 ID，设置后立即按当前语言解析并显示，
@@ -564,7 +564,7 @@ void PanelTemplate<InheritType>::SetTitle(const DString& strTitle)
 }
 
 template<typename InheritType>
-const DString& PanelTemplate<InheritType>::GetTitle() const
+DString PanelTemplate<InheritType>::GetTitle() const
 {
     return m_title.c_str();
 }
