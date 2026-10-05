@@ -742,6 +742,67 @@ ui::MessageBoxWnd::Show(this, _T("..."), _T("..."),
 - DoModal 下 Enter 键能派发给焦点按钮，依赖 `NativeWindow_Windows::SetEnterKeyPassthrough`
   的注册机制（见 pitfalls.md「DoModal 模态对话框的键盘消息」）；自定义模态窗口若有同样需求需自行注册/注销。
 
+### 非模态通知框 ToastWnd
+
+框架自带的自绘皮肤非模态通知框（Toast），头文件 `duilib/Utils/ToastWnd.h`
+（已在 `duilib/duilib.h` 中 include），皮肤
+`bin/resources/themes/default/public/toast/toast.xml`，
+完整演示见 `examples/controls`（ToastForm）。非模态、不抢焦点，到时自动消失，
+多条垂直堆叠，点击立即关闭，鼠标悬停暂停倒计时、移开按剩余时间继续。
+fire-and-forget：只能通过静态 `Show` 使用，窗口对象关闭后由框架自动销毁。
+
+```cpp
+#include "duilib/duilib.h"
+
+//基本用法：默认顶部居中、停留 3000ms
+ui::ToastWnd::Show(this, _T("保存成功"), ui::ToastWnd::kTypeSuccess);
+
+//错误通知，停留 5 秒
+ui::ToastWnd::Show(this, _T("网络连接失败，请稍后重试。"),
+                   ui::ToastWnd::kTypeError, 5000);
+
+//右下角通知
+ui::ToastWnd::Show(this, _T("文件已下载完成"),
+                   ui::ToastWnd::kTypeInfo, 4000, ui::ToastWnd::kPosBottomRight);
+
+//nDurationMs 传 0 = 不自动关闭，只能点击关闭
+ui::ToastWnd::Show(this, _T("重要提示，需手动关闭"), ui::ToastWnd::kTypeWarning, 0);
+
+//多语言 ID（切换语言后实时刷新）
+ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_INFO"),
+                   ui::ToastWnd::kTypeInfo, 3000, ui::ToastWnd::kPosTop, true);
+```
+
+`Show(pParentWindow, text, type=kTypeInfo, nDurationMs=3000, position=kPosTop, bTextId=false)`：
+
+| 参数 | 说明 |
+|------|------|
+| pParentWindow | 父窗口，通知显示在其客户区附近，显示期间父窗口仍可操作；nullptr 时按显示器工作区定位 |
+| text | 通知内容，支持 `\n` 换行，长文本自动换行，窗口高度自适应 |
+| type | `kTypeInfo`（蓝 i）/ `kTypeSuccess`（绿对勾）/ `kTypeWarning`（黄 !）/ `kTypeError`（红 X） |
+| nDurationMs | 停留毫秒数，默认 3000；**0 表示不自动关闭** |
+| position | `kPosTop`(默认) / `kPosCenter` / `kPosBottom` / `kPosTopRight` / `kPosBottomRight` |
+| bTextId | 为 true 时 text 按多语言 ID 解析 |
+
+要点：
+
+- 堆叠规则：同一父窗口、同一 position 的通知垂直堆叠（间距 12 DIP，新的在后面），
+  某条关闭后其余平滑上移补齐；同屏上限 5 条（`kMaxToastCount`），超出后最早的先退场。
+- 倒计时用 `ThreadManager::PostDelayedTask` + `steady_clock` 时间戳实现，
+  悬停暂停只暂停剩余时间，多次移入移出不会重置总时长。
+- 动画用 `AnimationPlayer`（`AnimationType::kAnimationNone` 回调驱动）：
+  入场 200ms 淡入+上移 12DIP（EaseOutCubic），退场 180ms 淡出（EaseInCubic），
+  分层窗口透明度用 `SetLayeredWindowAlpha`。
+- 窗口样式 `kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_LAYERED|kWS_EX_NOACTIVATE`，
+  无父窗口时再加 `kWS_EX_TOOLWINDOW`（不进任务栏/Alt+Tab）。
+- **三个实现坑（自写类似交互窗口时务必注意，详见 pitfalls.md）**：
+  ① 普通容器不派发 `kEventClick`，整条可点要用 `AttachButtonUp`（kEventMouseButtonUp）；
+  ② 有阴影的窗口 `GetRoot()` 返回的 ShadowBox 已被 `SetMouseEnabled(false)`，
+     鼠标事件必须绑在 `GetXmlRoot()`（XML 可见根容器）上；尺寸测量仍用 `GetRoot()`
+     （EstimateSize 含阴影、GetPadding() 是阴影边距）；
+  ③ 鼠标直接移出窗口边界时控件级 kEventMouseLeave 不派发，需重写窗口级
+     `OnMouseLeaveMsg` 恢复倒计时。
+
 ## 八、布局属性速查
 
 ### 瓦片布局 (HTileBox/VTileBox)

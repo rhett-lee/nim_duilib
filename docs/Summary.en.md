@@ -14,6 +14,7 @@ English | [简体中文](Summary.md)
 * [Control Styles](Control.en.md)
 * [Menu Styles](Menu.en.md)
 * [Modal Message Box (MessageBoxWnd)](MessageBox.en.md)
+* [Non-Modal Toast Notification (ToastWnd)](Toast.en.md)
 * [Control Events / Messages](Events.en.md)
 * [Node Names of Each Control in XML Files](XmlNode.en.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
@@ -242,6 +243,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | ColorPicker Implementation Class | | [duilib/Control/ColorPickerStandardGray.h](../duilib/Control/ColorPickerStandardGray.h) | Implementation class of ColorPicker; standard colors, gray |
 | ColorPicker Implementation Class | | [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | Implementation class of ColorPicker |
 | MessageBoxWnd | WindowImplBase | [duilib/Utils/MessageBoxWnd.h](../duilib/Utils/MessageBoxWnd.h) | Owner-drawn skin modal message box, independent window; see [MessageBox.en.md](MessageBox.en.md) for details |
+| ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | Owner-drawn skin non-modal toast notification, independent window, auto-dismiss and stackable; see [Toast.en.md](Toast.en.md) for details |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |

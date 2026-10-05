@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Toast 通知布局：固定宽度 360，高度随文本自适应；根容器即阴影内边缘，padding 由框架阴影自动注入 -->
+<Window size="360,80" caption="0,0,0,0" use_system_caption="false"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" size_box="0,0,0,0"
+        icon="public/caption/logo.ico">
+    <!-- 圆角通知条：点击/悬停事件统一由根容器处理，内部控件全部 mouse_enabled="false" -->
+    <HBox width="360" height="auto" max_height="200"
+          bkcolor="bg_tooltip" corner_size="8,8" line_width="1" line_color="border_window">
+        <HBox width="stretch" height="auto" padding="16,12,16,12" mouse_enabled="false" tab_stop="false">
+            <Control name="toast_icon" width="20" height="20" valign="center" margin="0,0,12,0"
+                     mouse_enabled="false" tab_stop="false"/>
+            <Label name="toast_text" width="stretch" height="auto" min_height="20"
+                   mouse_enabled="false" tab_stop="false"
+                   multi_line="true" font="system_regular_14"
+                   normal_text_color="text_tooltip" text_align="hleft,vcenter"/>
+        </HBox>
+    </HBox>
+</Window>

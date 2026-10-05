@@ -1,5 +1,6 @@
 #include "TestForm.h"
 #include "MessageBoxForm.h"
+#include "ToastForm.h"
 
 TestForm::TestForm():
     m_nProgressValue(0.0)
@@ -38,6 +39,22 @@ void TestForm::OnInitWindow()
             createParam.m_dwStyle = ui::kWS_POPUP;
             createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("MessageBoxForm");
+            createParam.m_bCenterWindow = true;
+            testForm->CreateWnd(this, createParam);
+            testForm->ShowModalFake();
+            return true;
+            });
+    }
+
+    //显示Toast的测试界面
+    ui::Button* pToastButton = dynamic_cast<ui::Button*>(FindControl(_T("toast_btn")));
+    if (pToastButton != nullptr) {
+        pToastButton->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ToastForm* testForm = new ToastForm();
+            ui::WindowCreateParam createParam;
+            createParam.m_dwStyle = ui::kWS_POPUP;
+            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+            createParam.m_windowTitle = _T("ToastForm");
             createParam.m_bCenterWindow = true;
             testForm->CreateWnd(this, createParam);
             testForm->ShowModalFake();

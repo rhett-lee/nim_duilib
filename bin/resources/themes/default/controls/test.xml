@@ -5,6 +5,9 @@
             <GroupHBox height="80" margin="6,6,6,6" text="MessageBox" corner_size="4,4">
                 <Button class="btn_global" text="MessageBox Test" name="message_box_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
             </GroupHBox>
+            <GroupHBox height="80" margin="6,6,6,6" text="Toast" corner_size="4,4">
+                <Button class="btn_global" text="Toast Test" name="toast_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
+            </GroupHBox>
             <GroupVBox margin="6,6,6,6" text="Progress" corner_size="4,4">            
                 <HBox height="30" margin="10,30,0,0">
                     <Label text="Progress: "/>

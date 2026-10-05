@@ -113,6 +113,7 @@ English | [简体中文](README.md)
     <tr><td align="left">24. XmlBox: a container that supports loading and previewing the XML files of the GUI library, which can be used to preview the display effects of controls defined in XML files</td></tr>
     <tr><td align="left">25. Pane/PanelHBox/PanelVBox: Titled panel container (PanelTemplate<Box>), supporting title bar styling, collapse/expand and accordion groups</td></tr>
     <tr><td align="left">26. MessageBoxWnd: a built-in owner-drawn skin modal message box.</td></tr>
+    <tr><td align="left">27. ToastWnd: a built-in owner-drawn skin non-modal toast notification, with auto-dismiss, multi-toast stacking, hover-to-pause and click-to-dismiss.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>
@@ -665,6 +666,7 @@ nim_duilib/.claude/
  - [Control Styles](docs/Control.en.md)
  - [Menu Styles](docs/Menu.en.md)
  - [Modal Message Box (MessageBoxWnd)](docs/MessageBox.en.md)
+ - [Non-Modal Toast Notification (ToastWnd)](docs/Toast.en.md)
  - [Control Events/Messages](docs/Events.en.md)
  - [Node Names of Each Control in XML Files](docs/XmlNode.en.md)
  - [Responding to Control Events Directly in XML Files](docs/XmlEvents.en.md)

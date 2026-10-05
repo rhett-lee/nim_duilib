@@ -247,3 +247,32 @@ void MyModalWnd::OnPreCloseWindow()
 `__DialogProc` 收到 IDOK 才会 `CloseWnd(kWindowCloseOK)`。
 模态返回值经 `m_closeParam` 传递，ESC/`IDCANCEL` 对应 `kWindowCloseCancel(2)`，
 Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
+
+## 八、非模态通知窗口（ToastWnd）开发要点
+
+### 19. 做"整条可点击的小窗口"时三个必踩坑（Toast 实战总结）
+
+1. **普通容器不派发 `kEventClick`**：`kEventClick` 只有 Button/ComboButton/
+   ListBoxItem 等控件会 SendEvent，Box/HBox/VBox 上 `AttachClick` 永远不触发。
+   需要"点击容器任意位置"时用 `AttachButtonUp`（监听 `kEventMouseButtonUp`）。
+2. **有阴影的窗口，鼠标事件绑 `GetXmlRoot()` 而不是 `GetRoot()`**：
+   `Shadow::DoAttachShadow` 注入的 ShadowBox 被显式 `SetMouseEnabled(false)`，
+   绑在 `GetRoot()` 上收不到任何鼠标消息。事件绑 XML 实际根容器 `GetXmlRoot()`；
+   但尺寸测量仍用 `GetRoot()`（`EstimateSize` 返回值含阴影，
+   `GetPadding()` 即四周阴影边距，窗口定位时要减去 left/top）。
+   内层容器及非交互子控件也要 `mouse_enabled="false"`，避免命中内层。
+3. **鼠标完全移出窗口时收不到控件级 `kEventMouseLeave`**：
+   `Window::OnMouseLeaveMsg`（WM_MOUSELEAVE）只处理 tooltip，不向
+   `m_pEventHover` 派发 leave；控件的 leave 只在同窗口内控件切换时派发。
+   小窗口需要"移出即恢复"的逻辑时，重写窗口级
+   `virtual LRESULT OnMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled)`，
+   在其中处理后再调基类（控件级 AttachMouseLeave 可同时保留，Resume 要幂等）。
+
+配套要点：非模态小窗口样式用
+`kWS_POPUP|kWS_EX_TOPMOST|kWS_EX_LAYERED|kWS_EX_NOACTIVATE`（不抢焦点），
+无父窗口时加 `kWS_EX_TOOLWINDOW`；倒计时不要用窗口定时器，用
+`GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, ...)`
++ CancelTask，剩余时间用 steady_clock 时间戳计算；事件回调直接传裸 lambda，
+不要用 UiBind 包装（UiBind 只用于 Thread().PostXxxTask）；动画枚举写
+`AnimationType::kAnimationNone`，缓动名是 `EaseOutCubic`/`EaseInCubic`。
+

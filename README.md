@@ -111,6 +111,7 @@
     <tr><td align="left">24. XmlBox：支持加载并预览界面库的XML文件的容器，可以用于预览XML文件中定义的控件显示效果</td></tr>
     <tr><td align="left">25. Pane/PanelHBox/PanelVBox：带标题栏的面板容器（PanelTemplate<Box>），支持标题栏样式、折叠/展开、手风琴分组</td></tr>
     <tr><td align="left">26. MessageBoxWnd：框架自带的自绘皮肤模态消息框</td></tr>
+    <tr><td align="left">27. ToastWnd：框架自带的自绘皮肤非模态通知框，自动消失、多条堆叠、悬停暂停、点击关闭</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -664,6 +665,7 @@ nim_duilib/.claude/
  - [控件的样式](docs/Control.md)
  - [菜单的样式](docs/Menu.md)
  - [模态消息框（MessageBoxWnd）](docs/MessageBox.md)
+ - [非模态通知框（ToastWnd）](docs/Toast.md)
  - [控件的事件/消息](docs/Events.md)
  - [XML文件中各控件的节点名称](docs/XmlNode.md)
  - [XML文件中直接响应控件的事件](docs/XmlEvents.md)

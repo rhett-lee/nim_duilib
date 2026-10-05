@@ -544,6 +544,30 @@ STRID_MSGBOX_RESULT_RETRY   = Retry (IDRETRY=4)
 STRID_MSGBOX_RESULT_YES     = Yes (IDYES=6)
 STRID_MSGBOX_RESULT_NO      = No (IDNO=7)
 
+# controls/Toast
+# Main window UI
+STRID_TOAST_MAIN_TITLE = Toast Control Demo
+STRID_TOAST_MAIN_HINT  = Click a button below to show a notification at the top of this window. Click to dismiss instantly; hover to pause the auto-close timer:
+
+# Demo buttons
+STRID_TOAST_BTN_INFO     = Info toast (3 seconds)
+STRID_TOAST_BTN_SUCCESS  = Success toast (3 seconds)
+STRID_TOAST_BTN_WARNING  = Warning toast (5 seconds)
+STRID_TOAST_BTN_ERROR    = Error toast (5 seconds)
+STRID_TOAST_BTN_STACK    = Show 4 toasts in a row (stacked, auto reflow)
+STRID_TOAST_BTN_LONG     = Long text (auto wrap, 6 seconds)
+STRID_TOAST_BTN_MANUAL   = No auto close (0 ms, click to dismiss)
+STRID_TOAST_BTN_POSITION = Bottom-right position (3 seconds)
+
+# Demo toast contents
+STRID_TOAST_DEMO_INFO_TEXT     = This is an information message.
+STRID_TOAST_DEMO_SUCCESS_TEXT  = Done. Your changes have been saved.
+STRID_TOAST_DEMO_WARNING_TEXT  = Warning: the current settings may be risky.
+STRID_TOAST_DEMO_ERROR_TEXT    = The operation failed. Please try again later.
+STRID_TOAST_DEMO_LONG_TEXT     = This is a longer notification used to verify multi-line text wrapping and automatic height adjustment.\nThe toast width is fixed at 360 and its height grows with the number of lines; explicit line breaks are also supported.
+STRID_TOAST_DEMO_MANUAL_TEXT   = This toast stays until you click it.
+STRID_TOAST_DEMO_POSITION_TEXT = This toast is shown at the bottom-right corner.
+
 # examples/render
 # Window core title
 STRID_RENDER_WINDOW_TITLE = Render Engine Test
