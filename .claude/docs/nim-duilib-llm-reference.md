@@ -237,7 +237,9 @@
 | number_only | false | bool | 仅数字 |
 | max_number / min_number | | int | 数字范围 |
 | limit_text | | int | 最大字符数 |
-| prompt_text | | string | 占位提示文字 |
+| prompt_mode | false | bool | 是否显示占位提示文字 |
+| prompt_text | | string | 占位提示文字（text 为空时显示） |
+| prompt_text_id | | string | 占位提示文字的多语言 ID |
 | prompt_color | | string | 提示文字颜色 |
 | word_wrap | false | bool | 自动换行 |
 | vscrollbar / hscrollbar | false | bool | 滚动条 |
