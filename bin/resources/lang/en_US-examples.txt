@@ -547,7 +547,7 @@ STRID_MSGBOX_RESULT_NO      = No (IDNO=7)
 # controls/Toast
 # Main window UI
 STRID_TOAST_MAIN_TITLE = Toast Control Demo
-STRID_TOAST_MAIN_HINT  = Click a button below to show a notification at the top of this window. Click to dismiss instantly; hover to pause the auto-close timer:
+STRID_TOAST_MAIN_HINT  = Click a button below to show a notification at the top of this window. \nClick to dismiss instantly; hover to pause the auto-close timer:
 
 # Demo buttons
 STRID_TOAST_BTN_INFO     = Info toast (3 seconds)

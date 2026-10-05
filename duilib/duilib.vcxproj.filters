@@ -921,6 +921,9 @@
     <ClCompile Include="Utils\MessageBoxWnd.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\ToastWnd.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1920,6 +1923,9 @@
       <Filter>Box</Filter>
     </ClInclude>
     <ClInclude Include="Utils\MessageBoxWnd.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ToastWnd.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

@@ -552,7 +552,7 @@ STRID_MSGBOX_RESULT_NO      = 否(IDNO=7)
 # controls/Toast
 # 主窗口 UI
 STRID_TOAST_MAIN_TITLE = Toast 通知控件演示
-STRID_TOAST_MAIN_HINT  = 点击下列按钮，在本窗口顶部弹出通知；可点击立即关闭，鼠标悬停会暂停自动消失计时：
+STRID_TOAST_MAIN_HINT  = 点击下列按钮，在本窗口顶部弹出通知；\n可点击立即关闭，鼠标悬停会暂停自动消失计时：
 
 # 演示按钮文字
 STRID_TOAST_BTN_INFO     = 信息通知（Info，3 秒）

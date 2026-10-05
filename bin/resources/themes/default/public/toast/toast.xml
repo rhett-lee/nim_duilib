@@ -5,13 +5,12 @@
         layered_window="true" size_box="0,0,0,0"
         icon="public/caption/logo.ico">
     <!-- 圆角通知条：点击/悬停事件统一由根容器处理，内部控件全部 mouse_enabled="false" -->
-    <HBox width="360" height="auto" max_height="200"
-          bkcolor="bg_tooltip" corner_size="8,8" line_width="1" line_color="border_window">
+    <HBox width="360" height="auto" max_height="320" bkcolor="bg_tooltip" border_round="8,8">
         <HBox width="stretch" height="auto" padding="16,12,16,12" mouse_enabled="false" tab_stop="false">
             <Control name="toast_icon" width="20" height="20" valign="center" margin="0,0,12,0"
                      mouse_enabled="false" tab_stop="false"/>
             <Label name="toast_text" width="stretch" height="auto" min_height="20"
-                   mouse_enabled="false" tab_stop="false"
+                   mouse_enabled="false" tab_stop="false" auto_tooltip="true"
                    multi_line="true" font="system_regular_14"
                    normal_text_color="text_tooltip" text_align="hleft,vcenter"/>
         </HBox>

@@ -539,6 +539,7 @@
     <ClCompile Include="Control\TreeView.cpp" />
     <ClCompile Include="Utils\SystemUtil_SDL.cpp" />
     <ClCompile Include="Utils\SystemUtil_Windows.cpp" />
+    <ClCompile Include="Utils\ToastWnd.cpp" />
     <ClCompile Include="Utils\TrayIcon.cpp" />
     <ClCompile Include="Utils\TrayIcon_SDL.cpp" />
     <ClCompile Include="Utils\TrayIcon_Windows.cpp" />
@@ -866,6 +867,7 @@
     <ClInclude Include="Utils\StringConvert.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\SystemUtil.h" />
+    <ClInclude Include="Utils\ToastWnd.h" />
     <ClInclude Include="Utils\TrayIcon.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
