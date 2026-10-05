@@ -23,13 +23,13 @@
         </HBox>
 
         <!-- 按钮区：右对齐，默认全部隐藏，由 MessageBoxForm 按按钮组合显示 -->
-        <!-- show_focused_rect：键盘TAB/Shift+TAB切换焦点时显示焦点矩形 -->
+        <!-- 焦点矩形按需显示：初始不显示，用户通过 TAB 导航时由 MessageBoxWnd::OnKeyDownMsg 开启 -->
         <HBox width="stretch" height="auto" child_halign="right" padding="20,12,20,20" child_margin_x="10">
-            <Button class="btn_global_white_80x30" name="btn_retry" text_id="STRID_MSGBOX_RETRY" width="80" height="32" visible="false" show_focused_rect="true"/>
-            <Button class="btn_global_white_80x30" name="btn_yes" text_id="STRID_MSGBOX_YES" width="80" height="32" visible="false" show_focused_rect="true"/>
-            <Button class="btn_global_white_80x30" name="btn_no" text_id="STRID_MSGBOX_NO" width="80" height="32" visible="false" show_focused_rect="true"/>
-            <Button class="btn_global_white_80x30" name="btn_ok" text_id="STRID_MSGBOX_OK" width="80" height="32" visible="false" show_focused_rect="true"/>
-            <Button class="btn_global_white_80x30" name="btn_cancel" text_id="STRID_MSGBOX_CANCEL" width="80" height="32" visible="false" show_focused_rect="true"/>
+            <Button class="btn_global_white_80x30" name="btn_retry" text_id="STRID_MSGBOX_RETRY" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_yes" text_id="STRID_MSGBOX_YES" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_no" text_id="STRID_MSGBOX_NO" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_ok" text_id="STRID_MSGBOX_OK" width="80" height="32" visible="false"/>
+            <Button class="btn_global_white_80x30" name="btn_cancel" text_id="STRID_MSGBOX_CANCEL" width="80" height="32" visible="false"/>
         </HBox>
     </VBox>
 </Window>

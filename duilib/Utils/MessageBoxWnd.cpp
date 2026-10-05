@@ -131,6 +131,35 @@ void MessageBoxWnd::OnInitWindow()
     }
 
     InitButtons();
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    //注册到 NativeWindow_Windows 的 Enter 键放行列表，让 IsDialogMessageDuiLib 对本窗口放行 VK_RETURN
+    ui::NativeWindow_Windows::SetEnterKeyPassthrough(NativeWnd()->GetHWND(), true);
+#endif
+}
+
+void MessageBoxWnd::OnPreCloseWindow()
+{
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    //注销 Enter 键放行，避免窗口句柄复用后影响其他模态对话框
+    ui::NativeWindow_Windows::SetEnterKeyPassthrough(NativeWnd()->GetHWND(), false);
+#endif
+    BaseClass::OnPreCloseWindow();
+}
+
+LRESULT MessageBoxWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    if (vkCode == kVK_TAB) {
+        //首次 TAB 导航时，为所有功能按钮开启焦点矩形显示（仅焦点按钮实际可见）
+        const DString btnNames[] = { _T("btn_retry"), _T("btn_yes"), _T("btn_no"), _T("btn_ok"), _T("btn_cancel") };
+        for (const DString& name : btnNames) {
+            ui::Button* pBtn = dynamic_cast<ui::Button*>(FindControl(name));
+            if (pBtn != nullptr) {
+                pBtn->SetShowFocusedRect(true);
+            }
+        }
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
 void MessageBoxWnd::InitButtons()

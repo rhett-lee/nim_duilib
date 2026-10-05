@@ -50,6 +50,14 @@ public:
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
+    /** 设置模态窗口是否放行 Enter 键到窗口过程（仅对需要焦点按钮响应回车的窗口使用，如 MessageBoxWnd）
+    *   默认情况下 IsDialogMessage 会把 Enter 转换为 WM_COMMAND IDOK，导致窗口过程收不到 WM_KEYDOWN。
+    *   调用此接口注册后，IsDialogMessageDuiLib 会对该窗口放行 VK_RETURN，由窗口过程自行处理。
+    * @param [in] hWnd 窗口句柄，必须有效
+    * @param [in] bPassthrough true=放行 Enter 键，false=恢复默认行为（从注册表中移除）
+    */
+    static void SetEnterKeyPassthrough(HWND hWnd, bool bPassthrough);
+
     /** 创建子窗口（非弹出式子窗口）
     * @param [in] pParentWindow 父窗口
     * @param [in] nX 子窗口的X坐标点（相对于父窗口）

@@ -110,6 +110,14 @@ private:
     */
     virtual void OnInitWindow() override;
 
+    /** 窗口即将关闭时，注销 Enter 键放行注册
+    */
+    virtual void OnPreCloseWindow() override;
+
+    /** 键盘按下：TAB 导航时按需开启功能按钮的焦点矩形显示（避免初始弹出即显示焦点环）
+    */
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
 private:
     /** 根据按钮组合，初始化按钮显隐、文字、样式与事件
     */
