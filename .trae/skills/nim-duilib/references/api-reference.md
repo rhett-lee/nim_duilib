@@ -313,6 +313,39 @@ C++ 接口：`SetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`Set
 - `switch_fluent`：Win11 Fluent 风格 48x24（padding 2），描边小轨道 + 14px 小滑块；
 - `switch_material`：Material 3 风格 52x32，未选中描边轨道+16px 小滑块，选中主题色轨道+24px 带对勾大滑块。
 
+### Badge 属性(继承 Label，角标)
+
+TabCtrl 标签、按钮、图标上的未读数/小红点控件（`duilib/Control/Badge.h`），XML 节点名 `Badge`。
+数字角标：圆角胶囊背景+数字，超过上限显示"99+"；红点角标（dot 模式）：纯小圆点。继承 Label 的文本属性（font/normal_text_color/text_padding 等）。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| count / badge_count | 0 | int64 | 角标数量：>0 显示，<=0 自动隐藏 |
+| max_count / maxcount | 99 | int64 | 数量上限，超过显示"上限+"（如"99+"） |
+| dot | false | bool | 红点模式：true 为纯小圆点不显示数字（显隐由 visible 控制） |
+| badge_color / badgecolor | `bg_badge` | string | 角标背景颜色（语义色名或颜色值） |
+
+用法：作为子控件放在任意 Box 内；悬浮宿主控件角上用 `float="true"` + `margin` 定位（子控件超出父容器边界的部分会被裁剪，父容器需留出角标外露宽度）。
+默认皮肤类：`badge`（数字角标，高 18，白字红底，宽度自适应） / `badge_dot`（8x8 红点）。
+语义色：`bg_badge`（派生自 `color_error`）、`text_badge`（白色，light/dark 同值）。
+C++ 接口：`SetCount/GetCount`、`SetMaxCount/GetMaxCount`、`SetDotMode/IsDotMode`、`SetBadgeColor/GetBadgeColor`。
+示例：`<Badge class="badge" count="5"/>`；按钮右上角 `<Box width="66" height="30"><Button .../><Badge class="badge" count="6" float="true" margin="42,0,0,0"/></Box>`。
+
+### TabCtrlItem 内置角标（继承 ControlDragableT）
+
+TabCtrl 标签页内建未读数/小红点支持（`duilib/Control/TabCtrl.h`），角标为懒创建的 Badge 子控件（排在标题之后）。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| badge_count | 0 | int64 | 角标数量：>0 显示，<=0 自动隐藏；未设置 badge_class 时仅保存数值 |
+| badge_max_count | 99 | int64 | 数量上限，超过显示"上限+"（如"99+"） |
+| badge_dot | false | bool | 红点模式：true 为纯小圆点不显示数字 |
+| badge_class | | string | 角标控件 Class，为空时不创建角标子控件 |
+
+默认皮肤类：`tab_ctrl_item_badge`（数字角标，高 16，挂在 `tab_ctrl_item` 的 badge_class 上） / `tab_ctrl_item_badge_dot`（8x8 红点，dot 模式需指定此类，否则 auto 宽度下红点不可见）。
+C++ 接口：`SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。
+示例：`<TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>`、`<TabCtrlItem class="tab_ctrl_item" title="动态" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>`。
+
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |

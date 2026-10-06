@@ -933,6 +933,9 @@
     <ClCompile Include="Control\Switch.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Badge.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1944,6 +1947,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Switch.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Badge.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

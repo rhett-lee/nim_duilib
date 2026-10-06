@@ -4,6 +4,7 @@
 #include "duilib/Box/ListBox.h"
 #include "duilib/Core/ControlDragable.h"
 #include "duilib/Control/IconControl.h"
+#include "duilib/Control/Badge.h"
 
 namespace ui
 {
@@ -248,6 +249,40 @@ public:
     */
     Control* GetLineControl() const { return m_pLine; }
 
+    /** 获取角标控件（未读数/小红点，未设置角标Class时返回nullptr）
+    */
+    Badge* GetBadgeControl() const { return m_pBadge; }
+
+public:
+    /** 设置角标数量：大于0时显示角标，小于等于0时自动隐藏
+    */
+    void SetBadgeCount(int64_t nCount);
+
+    /** 获取角标数量
+    */
+    int64_t GetBadgeCount() const;
+
+    /** 设置角标数量上限：超过上限时显示"上限+"（如"99+"），默认99
+    */
+    void SetBadgeMaxCount(int64_t nMaxCount);
+
+    /** 获取角标数量上限
+    */
+    int64_t GetBadgeMaxCount() const;
+
+    /** 设置角标是否为红点模式：true为纯小圆点，不显示数字
+    */
+    void SetBadgeDot(bool bDot);
+
+    /** 角标是否为红点模式
+    */
+    bool IsBadgeDot() const;
+
+    /** 角标控件的Class
+    */
+    void SetBadgeClass(const DString& badgeClass);
+    DString GetBadgeClass() const;
+
 public:
     /** 图标控件的Class
     */
@@ -437,6 +472,10 @@ private:
     */
     Control* m_pLine;
 
+    /** 角标控件（未读数/小红点）
+    */
+    Badge* m_pBadge;
+
     /** 图标控件的Class
     */
     UiString m_iconClass;
@@ -452,6 +491,22 @@ private:
     /** 分割线的Class
     */
     UiString m_lineClass;
+
+    /** 角标控件的Class
+    */
+    UiString m_badgeClass;
+
+    /** 角标数量（小于等于0时自动隐藏）
+    */
+    int64_t m_nBadgeCount;
+
+    /** 角标数量上限，超过时显示"上限+"（如"99+"）
+    */
+    int64_t m_nBadgeMaxCount;
+
+    /** 角标是否为红点模式（纯小圆点，不显示数字）
+    */
+    bool m_bBadgeDot;
 
     /** 文本内容
     */

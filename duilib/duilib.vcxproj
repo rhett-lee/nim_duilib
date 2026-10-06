@@ -287,6 +287,7 @@
     <ClCompile Include="Control\SearchBox.cpp" />
     <ClCompile Include="Control\SpinBox.cpp" />
     <ClCompile Include="Control\Switch.cpp" />
+    <ClCompile Include="Control\Badge.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Control\TextDrawer.cpp" />
     <ClCompile Include="Core\Box.cpp" />
@@ -662,6 +663,7 @@
     <ClInclude Include="Control\SpinBox.h" />
     <ClInclude Include="Control\Split.h" />
     <ClInclude Include="Control\Switch.h" />
+    <ClInclude Include="Control\Badge.h" />
     <ClInclude Include="Control\TabCtrl.h" />
     <ClInclude Include="Control\TextDrawer.h" />
     <ClInclude Include="Core\Box.h" />

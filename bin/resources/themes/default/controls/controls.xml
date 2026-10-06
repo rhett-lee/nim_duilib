@@ -64,10 +64,31 @@
                         <CheckBox class="checkbox_toggle_2" margin="4,3,0,3"/>
                     </HBox>
                     <HBox height="36">
-                        <Label text_id="STRID_CONTROLS_SWITCH_3" height="36" valign="center"/>
-                        <Switch class="switch" margin="4,3,0,3"/>
-                    </HBox>
-                </VBox>
+                    <Label text_id="STRID_CONTROLS_SWITCH_3" height="36" valign="center"/>
+                    <Switch class="switch" margin="4,3,0,3"/>
+                </HBox>
+            </VBox>
+            <!-- Badge -->
+            <VBox width="120" margin="16,0,0,0">
+                <HBox height="36">
+                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
+                    <Badge class="badge" count="5" margin="8,0,0,0" tooltip_text="ui::Badge (count=5)"/>
+                </HBox>
+                <HBox height="36">
+                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
+                    <Badge class="badge" count="120" margin="8,0,0,0" tooltip_text="ui::Badge (count=120, max=99)"/>
+                </HBox>
+                <HBox height="36">
+                    <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
+                    <Badge class="badge_dot" margin="8,0,0,0" tooltip_text="ui::Badge (dot)"/>
+                </HBox>
+                <HBox height="36">
+                    <Box width="66" height="30" valign="center">
+                        <Button class="btn_global" text_id="STRID_CONTROLS_BADGE_MSG" width="48" height="30" border_round="3,3"/>
+                        <Badge class="badge" count="6" float="true" margin="42,0,0,0" tooltip_text="ui::Badge (float)"/>
+                    </Box>
+                </HBox>
+            </VBox>
                 <!-- List -->
                 <VListBox class="list" name="list" padding="5,3,5,3" tooltip_text="ui::VListBox">
                     <ListBoxItem class="list_item" height="20" text="ui::VListBox::ListBoxItem"/>

@@ -288,6 +288,11 @@
                                     track_on_image="file='${PATH_SWITCH}/switch_material_track_on.svg' svg_replace_colors='#6750A4|color_accent'"
                                     thumb_off_image="file='${PATH_SWITCH}/switch_material_thumb_off.svg' svg_replace_colors='#49454F|bg_switch_thumb_off'"
                                     thumb_on_image="file='${PATH_SWITCH}/switch_material_thumb_on.svg' svg_replace_colors='#6750A4|color_accent'"/>
+
+    <!-- 角标（Badge）：未读数/小红点，count<=0 时自动隐藏；悬浮定位用 float="true" + margin -->
+    <Class name="badge" width="auto" height="18" valign="center" font="system_regular_12"
+                                    normal_text_color="text_badge" text_padding="5,0,5,0" text_align="center" mouse_enabled="false"/>
+    <Class name="badge_dot" width="8" height="8" dot="true" valign="center" mouse_enabled="false"/>
     <Class name="checkbox_1" height="20" text_padding="20,0,0,0" text_align="vcenter" valign="center"
                              normal_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center'" 
                              disabled_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center' fade='80'" 
@@ -710,7 +715,8 @@
                                 icon_class="tab_ctrl_item_icon"
                                 title_class="tab_ctrl_item_title"
                                 close_button_class="tab_ctrl_item_close"
-                                line_class="tab_ctrl_item_line"/>
+                                line_class="tab_ctrl_item_line"
+                                badge_class="tab_ctrl_item_badge"/>
     <Class name="tab_ctrl_item_icon" width="${SIZE_ICON_SMALL}" height="${SIZE_ICON_SMALL}" valign="center" mouse_enabled="false"/>
     <Class name="tab_ctrl_item_title" width="stretch" height="24" margin="2,0,12,0" valign="center" 
                                       font="system_regular_12" auto_tooltip="true" mouse_enabled="false"/>
@@ -720,9 +726,12 @@
                                       hovered_color="bg_tab_ctrl_item_close_hovered" 
                                       pressed_color="bg_tab_ctrl_item_close_pressed"
                                       border_round="4,4" alpha="192" fade_alpha="true"/>
-    <Class name="tab_ctrl_item_line" bkcolor="border_tab_ctrl_item" width="1" height="22" float="true" 
+    <Class name="tab_ctrl_item_line" bkcolor="border_tab_ctrl_item" width="1" height="22" float="true"
                                      halign="right" valign="center" mouse_enabled="false"/>
-    
+    <Class name="tab_ctrl_item_badge" height="16" valign="center" margin="0,0,8,0" font="system_regular_12"
+                                      normal_text_color="text_badge" text_padding="4,0,4,0" text_align="center" mouse_enabled="false"/>
+    <Class name="tab_ctrl_item_badge_dot" width="8" height="8" dot="true" valign="center" margin="0,0,10,0" mouse_enabled="false"/>
+
     <!-- AddressBar控件 -->
     <Class name="address_bar" width="stretch" height="36" border_size="1" border_color="border_address_bar" disabled_border_color="border_address_bar_disabled" border_round="4,4" 
                               bkcolor="bg_address_bar" disabled_color="bg_address_bar_disabled"

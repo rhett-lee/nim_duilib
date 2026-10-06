@@ -618,6 +618,61 @@ if (pSwitch != nullptr) {
 }
 ```
 
+## Attributes of Badge
+Badge is a badge control derived from Label, used to display unread counts/new message counts/red dots on TabCtrl tabs, buttons, icons and other controls. Header file: `duilib/Control/Badge.h`.
+Two forms: count badge (rounded capsule background + number, shows "99+" when exceeding the limit) and dot badge (dot mode, a small round dot). The badge is automatically hidden when count <= 0 (no badge when there are no unread items); in dot mode, visibility is controlled by the visible attribute.
+Badge inherits the text attributes of Label (font, normal_text_color, text_padding, etc.); the background is a rounded capsule self-drawn with semantic colors (corner radius = half the height), automatically adapting to light/dark themes.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0 |
+| max_count | 99 | int64 | Count limit, shows "limit+" (e.g. "99+") when exceeded |
+| dot | false | bool | Dot mode: true shows a pure small round dot without a number |
+| badge_color | bg_badge | string | Badge background color (semantic color name or color value) |
+
+Notes:
+- Badge is used as a child control inside any Box container; to float it on the corner of a host control, use `float="true"` with the `margin` attribute.
+- The count bubble width adapts to the number of digits (`width="auto"`); a single digit appears as a circle; the dot size is determined by the XML width/height (default skin 8x8).
+- Child controls are clipped at the parent container boundary; ensure the parent container is large enough for a floating badge (see the controls example: parent Box width = button width + badge overhang).
+- Badge does not respond to the mouse (`mouse_enabled="false"`), so it does not block clicks on the host control.
+
+Corresponding C++ interfaces: `SetCount/GetCount`, `SetMaxCount/GetMaxCount`, `SetDotMode/IsDotMode`, `SetBadgeColor/GetBadgeColor`.
+Usage example (see the controls example program):
+
+```xml
+<!-- Default skin: count badge (automatically hidden when count <= 0) -->
+<Badge class="badge" count="5"/>
+<Badge class="badge" count="120"/>   <!-- Shows "99+" -->
+
+<!-- Dot badge -->
+<Badge class="badge_dot"/>
+
+<!-- Floating on the button's top-right corner: parent Box width = button width + badge overhang, positioned with float+margin -->
+<Box width="66" height="30">
+    <Button class="btn_global" text="Messages" width="48" height="30"/>
+    <Badge class="badge" count="6" float="true" margin="42,0,0,0"/>
+</Box>
+
+<!-- Badge on a TabCtrl tab: TabCtrlItem has built-in badge_count/badge_dot/badge_class attributes, no manual nesting needed -->
+<TabCtrlItem class="tab_ctrl_item" title="Messages" badge_count="3"/>
+```
+
+Updating the unread count dynamically in C++:
+
+```cpp
+ui::Badge* pBadge = dynamic_cast<ui::Badge*>(pWindow->FindControl(_T("badge_msg")));
+if (pBadge != nullptr) {
+    pBadge->SetCount(pBadge->GetCount() + 1);   // Unread +1, shows "99+" when exceeding 99
+    pBadge->SetCount(0);                        // Reset to zero, the badge is hidden automatically
+}
+```
+
+Two skin classes are defined in global.xml by default:
+- `badge`: count badge, height 18, white text on red background (semantic colors `text_badge`/`bg_badge`), width adapts to the digits, text_padding="5,0,5,0";
+- `badge_dot`: dot badge, 8x8, dot="true".
+
+The semantic color `bg_badge` is defined in the color_light and color_dark global.xml files, derived from `color_error` (red); the count text color `text_badge` is white.
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    
@@ -712,6 +767,42 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 | hovered_round_corner | | size | Rounded corner size of the tab page in hovered state|
 | hovered_padding | | UiPadding | Padding of the background color of the tab page in hovered state|
 | auto_hide_close_button | false | bool | Whether the close button is automatically hidden|
+| badge_count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0; the badge control is not created unless badge_class is set |
+| badge_max_count | 99 | int64 | Badge count limit; when exceeded, "limit+" is displayed (e.g. "99+") |
+| badge_dot | false | bool | Badge dot mode: true for a plain dot without digits; should be used together with badge_class or the badge attribute |
+| badge_class | | string | Class value of the badge control (e.g. `tab_ctrl_item_badge`); the badge control is not created when empty |
+
+**Notes:**
+- TabCtrlItem has built-in badge support: specify a `Badge`-based Class via `badge_class`, then configure the display with `badge_count`/`badge_dot`/`badge_max_count`. Without `badge_class`, badge attributes only store values and no Badge child control is created.
+- The default skin defines `tab_ctrl_item_badge` (count badge, height 16, white text on red background) and `tab_ctrl_item_badge_dot` (dot badge, 8x8) in global.xml, already attached to `badge_class` of `tab_ctrl_item`.
+- The badge child control does not handle mouse events (`mouse_enabled="false"`), so it does not block tab clicks.
+
+**Corresponding C++ interfaces:** `SetBadgeCount/GetBadgeCount`, `SetBadgeMaxCount/GetBadgeMaxCount`, `SetBadgeDot/IsBadgeDot`, `SetBadgeClass/GetBadgeClass`, `GetBadgeControl`.
+
+**XML example:**
+
+```xml
+<TabCtrl class="tab_ctrl" width="stretch" height="36">
+    <!-- Count badge (count=5) -->
+    <TabCtrlItem class="tab_ctrl_item" title="Messages" badge_count="5"/>
+    <!-- Overflow badge (shows "99+") -->
+    <TabCtrlItem class="tab_ctrl_item" title="Notifications" badge_count="120"/>
+    <!-- Dot badge (use the dedicated dot Class) -->
+    <TabCtrlItem class="tab_ctrl_item" title="Feed" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>
+    <!-- No badge -->
+    <TabCtrlItem class="tab_ctrl_item" title="Settings"/>
+</TabCtrl>
+```
+
+Updating the badge dynamically in C++:
+
+```cpp
+ui::TabCtrlItem* pTabItem = dynamic_cast<ui::TabCtrlItem*>(pWindow->FindControl(_T("tab_msg")));
+if (pTabItem != nullptr) {
+    pTabItem->SetBadgeCount(pTabItem->GetBadgeCount() + 1);   // Unread +1
+    pTabItem->SetBadgeCount(0);                               // Reset to zero, the badge is hidden automatically
+}
+```
 
 The TabCtrlItem control inherits the `ControlDragableT` attributes. For more available attributes, please refer to the `ControlDragableT` attributes.
 
