@@ -555,12 +555,32 @@ Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。
 
 对应C++接口：`SetAnimationDuration/GetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`。
 选中状态变化触发`kEventSelect`/`kEventUnSelect`事件（与CheckBox一致）。
-使用示例（参考 controls 和 color_theme 示例程序）：
+
+### XML使用示例（参考 controls 和 color_theme 示例程序）
 
 ```xml
+<!-- 使用默认皮肤（global.xml 中定义的 Class） -->
 <Switch class="switch" selected="false"/>
 <Switch class="switch_fluent" selected="true"/>
 <Switch class="switch_material" selected="true"/>
+
+<!-- 纯颜色自绘：不配置图片，指定轨道/滑块颜色（支持语义色名或颜色值） -->
+<Switch width="51" height="31" selected="true"
+        track_off_color="bg_switch_track_off" track_on_color="bg_switch_track_on"
+        thumb_off_color="bg_switch_thumb_off" thumb_on_color="bg_switch_thumb_on"/>
+
+<!-- 自定义图片皮肤：轨道 off/on 两张图铺满轨道 + 滑块 off/on 两张方形图（参考 switch_fluent） -->
+<Switch width="48" height="24" padding="2,2,2,2" cursor_type="hand"
+        track_off_image="file='public/switch/switch_fluent_track_off.svg' svg_replace_colors='#E9E9EA|bg_switch_track_off;#8A8886|bg_switch_thumb_off'"
+        track_on_image="file='public/switch/switch_fluent_track_on.svg' svg_replace_colors='#0078D4|bg_switch_track_on'"
+        thumb_off_image="file='public/switch/switch_fluent_thumb_off.svg' svg_replace_colors='#8A8886|bg_switch_thumb_off'"
+        thumb_on_image="file='public/switch/switch_fluent_thumb_on.svg'"/>
+
+<!-- XML事件：状态切换时联动其他控件（type 取 select/unselect，与 CheckBox 一致） -->
+<Switch class="switch">
+    <Event type="select" receiver="target_control" apply_attribute="visible='true'"/>
+    <Event type="unselect" receiver="target_control" apply_attribute="visible='false'"/>
+</Switch>
 ```
 
 默认皮肤在global.xml中定义了3套Class（SVG资源在`public/switch/`目录）：
@@ -569,6 +589,32 @@ Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。
 - `switch_material`：Material Design 3风格，52x32，未选中为描边轨道+16px小滑块，选中为主题色轨道+24px带对勾大滑块。
 
 语义色在color_light和color_dark的global.xml中分别定义了`bg_switch_track_on/off`、`bg_switch_thumb_on/off`，Fluent/Material皮肤中的SVG颜色通过`svg_replace_colors`映射到这些语义色或`color_accent`。
+
+### C++使用示例
+
+```cpp
+// 获取控件指针（XML 中 name="switch_test"）
+ui::Switch* pSwitch = dynamic_cast<ui::Switch*>(pWindow->FindControl(_T("switch_test")));
+if (pSwitch != nullptr) {
+    // 监听状态切换事件（与 CheckBox 一致）
+    pSwitch->AttachSelect([](const ui::EventArgs& args) {
+        // 已切换为选中状态
+        return true;
+        });
+    pSwitch->AttachUnSelect([](const ui::EventArgs& args) {
+        // 已切换为未选中状态
+        return true;
+        });
+
+    // 动态读取/切换选中状态（触发滑动动画与 select/unselect 事件）
+    bool bSelected = pSwitch->IsSelected();
+    pSwitch->Selected(!bSelected);
+
+    // 动态设置外观（颜色自绘；如需图片皮肤改用 SetTrackXxxImage/SetThumbXxxImage）
+    pSwitch->SetTrackOnColor(_T("#FF0078D4"));
+    pSwitch->SetAnimationDuration(200);
+}
+```
 
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    

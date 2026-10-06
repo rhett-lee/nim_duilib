@@ -557,12 +557,32 @@ Notes:
 
 Corresponding C++ interfaces: `SetAnimationDuration/GetAnimationDuration`, `SetTrackOffColor/GetTrackOffColor`, `SetTrackOnColor/GetTrackOnColor`, `SetThumbOffColor/GetThumbOffColor`, `SetThumbOnColor/GetThumbOnColor`, `SetTrackOffImage/GetTrackOffImage`, `SetTrackOnImage/GetTrackOnImage`, `SetThumbOffImage/GetThumbOffImage`, `SetThumbOnImage/GetThumbOnImage`, `SetThumbPadding/GetThumbPadding`.
 Selection state changes trigger `kEventSelect`/`kEventUnSelect` events (same as CheckBox).
-Example (see the controls and color_theme example programs):
+
+### XML Usage Example (see the controls and color_theme example programs)
 
 ```xml
+<!-- Using default skins (classes defined in global.xml) -->
 <Switch class="switch" selected="false"/>
 <Switch class="switch_fluent" selected="true"/>
 <Switch class="switch_material" selected="true"/>
+
+<!-- Pure color self-drawing: no images configured, specify track/thumb colors (semantic color names or color values) -->
+<Switch width="51" height="31" selected="true"
+        track_off_color="bg_switch_track_off" track_on_color="bg_switch_track_on"
+        thumb_off_color="bg_switch_thumb_off" thumb_on_color="bg_switch_thumb_on"/>
+
+<!-- Custom image skin: off/on track images filling the track + off/on square thumb images (see switch_fluent) -->
+<Switch width="48" height="24" padding="2,2,2,2" cursor_type="hand"
+        track_off_image="file='public/switch/switch_fluent_track_off.svg' svg_replace_colors='#E9E9EA|bg_switch_track_off;#8A8886|bg_switch_thumb_off'"
+        track_on_image="file='public/switch/switch_fluent_track_on.svg' svg_replace_colors='#0078D4|bg_switch_track_on'"
+        thumb_off_image="file='public/switch/switch_fluent_thumb_off.svg' svg_replace_colors='#8A8886|bg_switch_thumb_off'"
+        thumb_on_image="file='public/switch/switch_fluent_thumb_on.svg'"/>
+
+<!-- XML events: link other controls on state change (type is select/unselect, same as CheckBox) -->
+<Switch class="switch">
+    <Event type="select" receiver="target_control" apply_attribute="visible='true'"/>
+    <Event type="unselect" receiver="target_control" apply_attribute="visible='false'"/>
+</Switch>
 ```
 
 Three skin classes are defined in global.xml by default (SVG assets are in the `public/switch/` directory):
@@ -571,6 +591,32 @@ Three skin classes are defined in global.xml by default (SVG assets are in the `
 - `switch_material`: Material Design 3 style, 52x32; unselected shows an outlined track with a 16px small thumb, selected shows an accent-filled track with a 24px large thumb carrying a check mark.
 
 Semantic colors are defined in the `color_light` and `color_dark` global.xml files as `bg_switch_track_on/off` and `bg_switch_thumb_on/off`; SVG colors in the Fluent/Material skins are mapped to these semantic colors or `color_accent` via `svg_replace_colors`.
+
+### C++ Usage Example
+
+```cpp
+// Get the control pointer (name="switch_test" in XML)
+ui::Switch* pSwitch = dynamic_cast<ui::Switch*>(pWindow->FindControl(_T("switch_test")));
+if (pSwitch != nullptr) {
+    // Listen for state change events (same as CheckBox)
+    pSwitch->AttachSelect([](const ui::EventArgs& args) {
+        // Switched to selected state
+        return true;
+        });
+    pSwitch->AttachUnSelect([](const ui::EventArgs& args) {
+        // Switched to unselected state
+        return true;
+        });
+
+    // Read/toggle the selected state dynamically (plays the slide animation and fires select/unselect events)
+    bool bSelected = pSwitch->IsSelected();
+    pSwitch->Selected(!bSelected);
+
+    // Set the appearance dynamically (color self-drawing; use SetTrackXxxImage/SetThumbXxxImage for image skins)
+    pSwitch->SetTrackOnColor(_T("#FF0078D4"));
+    pSwitch->SetAnimationDuration(200);
+}
+```
 
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
