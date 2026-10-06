@@ -211,6 +211,12 @@
     <ThemeColor name="bg_progress" value="#FF00B42A" type="progress" category="bg_color" role="primary" derived_from="" adjust="" fixed="true" support_accent="true" contrast_bg="" comment_cn="进度条填充/滑块主色" comment_en="Progress bar fill/slider main color"/>
     <ThemeColor name="bg_progress_track" value="#FFE5E5E5" type="progress" category="bg_color" role="primary" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="" comment_cn="进度条轨道/滑块轨道" comment_en="Progress bar track/slider track color"/>
 
+    <!-- ===================== 开关控件 (type: switch) ===================== -->
+    <ThemeColor name="bg_switch_track_on" value="#FF0078D4" type="switch" category="bg_color" role="semantic_accent" derived_from="" adjust="" fixed="false" support_accent="true" contrast_bg="" comment_cn="开关选中轨道" comment_en="Switch track on"/>
+    <ThemeColor name="bg_switch_track_off" value="#FFE9E9EA" type="switch" category="bg_color" role="neutral" derived_from="" adjust="" fixed="false" support_accent="false" contrast_bg="" comment_cn="开关未选中轨道" comment_en="Switch track off"/>
+    <ThemeColor name="bg_switch_thumb_on" value="#FFFFFFFF" type="switch" category="bg_color" role="neutral" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="" comment_cn="开关滑块选中" comment_en="Switch thumb on"/>
+    <ThemeColor name="bg_switch_thumb_off" value="#FF8A8886" type="switch" category="bg_color" role="neutral" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="" comment_cn="开关滑块未选中" comment_en="Switch thumb off"/>
+
     <!-- ===================== 分割线颜色 (type: split_line) ===================== -->
     <ThemeColor name="bg_split_disabled" value="#B3F3F3F3" type="split_line" category="bg_color" role="neutral" derived_from="bg_split_normal" adjust="lightness:+10,saturation:-30,alpha:=70" fixed="false" support_accent="false" contrast_bg="" comment_cn="分割线禁用状态" comment_en="Split line disabled state"/>
     <ThemeColor name="bg_split_hovered" value="#FFCACACA" type="split_line" category="bg_color" role="neutral" derived_from="bg_split_normal" adjust="lightness:-6" fixed="false" support_accent="false" contrast_bg="" comment_cn="分割线悬浮状态" comment_en="Split line hovered state"/>

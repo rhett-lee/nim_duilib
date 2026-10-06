@@ -529,6 +529,47 @@ SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索�
 
 默认皮肤在global.xml中定义了`search_box`（外框）、`search_box_icon`（放大镜图标）、`search_box_edit`（内部编辑框）、`search_box_clear_btn`（清除按钮）4个Class。
 
+## Switch的属性
+Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。对应头文件`duilib/Control/Switch.h`。
+轨道和滑块既可以用语义色自绘，也可以配置SVG图片皮肤：配置图片后off/on两张图片按动画进度交叉淡入淡出，滑块图片同时沿轨道平移；未配置图片时使用颜色自绘。
+
+除CheckBox的通用属性外，新增以下属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| switch_animation_ms | 160 | int | 切换动画时长（毫秒），0表示不使用动画 |
+| track_off_color | bg_switch_track_off | string | 未选中状态的轨道颜色（语义色名，无轨道图片时生效） |
+| track_on_color | bg_switch_track_on | string | 选中状态的轨道颜色（语义色名，无轨道图片时生效） |
+| thumb_off_color | bg_switch_thumb_off | string | 未选中状态的滑块颜色（语义色名，无滑块图片时生效） |
+| thumb_on_color | bg_switch_thumb_on | string | 选中状态的滑块颜色（语义色名，无滑块图片时生效） |
+| track_off_image | | string | 未选中状态的轨道图片（图片属性串，与track_on_image成对配置） |
+| track_on_image | | string | 选中状态的轨道图片（图片属性串，与track_off_image成对配置） |
+| thumb_off_image | | string | 未选中状态的滑块图片（方形图片，与thumb_on_image成对配置） |
+| thumb_on_image | | string | 选中状态的滑块图片（方形图片，与thumb_off_image成对配置） |
+| thumb_padding | 0 | int | 滑块图片方形框与轨道边缘的距离（自动DPI缩放）。方形框边长等于轨道高度，阴影等留白需绘制在图片内部 |
+
+说明：
+- 轨道图片会被拉伸铺满整个轨道矩形，滑块图片在轨道高度的方形框内平移，图片属性串中不要再设置width/height/valign/halign，否则绘制位置将固定不动。
+- 图片内的固定颜色可用`svg_replace_colors`替换为语义色（多组替换用分号分隔），以适配深浅色主题。
+- 轨道和滑块两层独立：只配置滑块图片时，轨道仍由颜色自绘（iOS风格皮肤即如此）。
+
+对应C++接口：`SetAnimationDuration/GetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`。
+选中状态变化触发`kEventSelect`/`kEventUnSelect`事件（与CheckBox一致）。
+使用示例（参考 controls 和 color_theme 示例程序）：
+
+```xml
+<Switch class="switch" selected="false"/>
+<Switch class="switch_fluent" selected="true"/>
+<Switch class="switch_material" selected="true"/>
+```
+
+默认皮肤在global.xml中定义了3套Class（SVG资源在`public/switch/`目录）：
+- `switch`（别名`switch_ios`）：iOS风格，51x31，白色大滑块带柔和投影，轨道颜色随主题色；
+- `switch_fluent`：Windows 11 Fluent风格，48x24（padding=2，轨道44x20），描边小轨道+14px小滑块；
+- `switch_material`：Material Design 3风格，52x32，未选中为描边轨道+16px小滑块，选中为主题色轨道+24px带对勾大滑块。
+
+语义色在color_light和color_dark的global.xml中分别定义了`bg_switch_track_on/off`、`bg_switch_thumb_on/off`，Fluent/Material皮肤中的SVG颜色通过`svg_replace_colors`映射到这些语义色或`color_accent`。
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    

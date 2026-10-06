@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Material Design 3 风格滑块：未选中，16px 深色小圆 + 微投影 -->
+    <circle cx="16" cy="17" r="8.5" fill="#000000" opacity="0.06"/>
+    <circle cx="16" cy="16" r="8" fill="#49454F"/>
+</svg>

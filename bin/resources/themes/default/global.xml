@@ -24,6 +24,7 @@
     <Var name="PATH_SCROLLBAR_STANDARD" value="public/scrollbar02"/>
     <Var name="PATH_BUTTON" value="public/button"/>
     <Var name="PATH_CHECKBOX" value="public/checkbox"/>
+    <Var name="PATH_SWITCH" value="public/switch"/>
     <Var name="PATH_OPTION" value="public/option"/>
     <Var name="PATH_TREE" value="public/tree"/>
     <Var name="PATH_LISTCTRL" value="public/listctrl"/>
@@ -265,8 +266,28 @@
                                     normal_image="file='${PATH_CHECKBOX}/checkbox-toggle-off.svg' height='18' valign='center' halign='center'" 
                                     selected_normal_image="file='${PATH_CHECKBOX}/checkbox-toggle-on.svg' height='18' valign='center' halign='center' svg_replace_colors='#34C759|color_accent'"/>
     <Class name="checkbox_toggle_2" height="22" width="44" valign="center"
-                                    normal_image="file='${PATH_CHECKBOX}/checkbox-toggle2-off.svg' height='20' valign='center' halign='center'" 
+                                    normal_image="file='${PATH_CHECKBOX}/checkbox-toggle2-off.svg' height='20' valign='center' halign='center'"
                                     selected_normal_image="file='${PATH_CHECKBOX}/checkbox-toggle2-on.svg' height='20' valign='center' halign='center' svg_replace_colors='#0078D4|color_accent'"/>
+    <!-- 滑块开关（Switch）：三套默认皮肤，轨道语义色自绘/图片均支持深浅色主题 -->
+    <!-- iOS 风格：51x31，白色大滑块带柔和投影，轨道颜色随主题色 -->
+    <Class name="switch" height="31" width="51" valign="center" cursor_type="hand"
+                                    thumb_off_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"
+                                    thumb_on_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"/>
+    <Class name="switch_ios" height="31" width="51" valign="center" cursor_type="hand"
+                                    thumb_off_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"
+                                    thumb_on_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"/>
+    <!-- Fluent(Windows 11) 风格：48x24，描边小轨道 + 14px 小滑块 -->
+    <Class name="switch_fluent" height="24" width="48" padding="2,2,2,2" valign="center" cursor_type="hand"
+                                    track_off_image="file='${PATH_SWITCH}/switch_fluent_track_off.svg' svg_replace_colors='#E9E9EA|bg_switch_track_off;#8A8886|bg_switch_thumb_off'"
+                                    track_on_image="file='${PATH_SWITCH}/switch_fluent_track_on.svg' svg_replace_colors='#0078D4|bg_switch_track_on'"
+                                    thumb_off_image="file='${PATH_SWITCH}/switch_fluent_thumb_off.svg' svg_replace_colors='#8A8886|bg_switch_thumb_off'"
+                                    thumb_on_image="file='${PATH_SWITCH}/switch_fluent_thumb_on.svg'"/>
+    <!-- Material Design 3 风格：52x32，描边轨道，未选中小滑块/选中大滑块带对勾 -->
+    <Class name="switch_material" height="32" width="52" valign="center" cursor_type="hand"
+                                    track_off_image="file='${PATH_SWITCH}/switch_material_track_off.svg' svg_replace_colors='#79747E|bg_switch_thumb_off'"
+                                    track_on_image="file='${PATH_SWITCH}/switch_material_track_on.svg' svg_replace_colors='#6750A4|color_accent'"
+                                    thumb_off_image="file='${PATH_SWITCH}/switch_material_thumb_off.svg' svg_replace_colors='#49454F|bg_switch_thumb_off'"
+                                    thumb_on_image="file='${PATH_SWITCH}/switch_material_thumb_on.svg' svg_replace_colors='#6750A4|color_accent'"/>
     <Class name="checkbox_1" height="20" text_padding="20,0,0,0" text_align="vcenter" valign="center"
                              normal_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center'" 
                              disabled_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center' fade='80'" 

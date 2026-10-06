@@ -285,6 +285,34 @@ C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`（取内部 Rich
 清除按钮复用 RichEdit 内置 `clear_btn_class`：聚焦且有文本时显示，点击清空，失焦隐藏。
 默认皮肤类：`search_box` / `search_box_icon` / `search_box_edit` / `search_box_clear_btn`。
 
+### Switch 属性(继承 CheckBox，滑块开关)
+
+轨道 + 圆形滑块 + 滑动/淡入淡出过渡动画的开关控件（`duilib/Control/Switch.h`），XML 节点名 `Switch`。
+轨道与滑块均支持 SVG 图片皮肤（off/on 成对配置，按动画进度交叉淡入，滑块图同时平移）；未配置图片时用语义色自绘。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| switch_animation_ms / animation_ms | 160 | int | 动画时长（毫秒），0 表示无动画 |
+| track_off_color / trackoncolor | `bg_switch_track_off` | string | 轨道未选中颜色（语义色名，无轨道图时生效） |
+| track_on_color / trackoncolor | `bg_switch_track_on` | string | 轨道选中颜色 |
+| thumb_off_color / thumboffcolor | `bg_switch_thumb_off` | string | 滑块未选中颜色（无滑块图时生效） |
+| thumb_on_color / thumboncolor | `bg_switch_thumb_on` | string | 滑块选中颜色 |
+| track_off_image / trackoffimage | | string | 轨道未选中图片（图片属性串，须与 track_on_image 成对） |
+| track_on_image / trackonimage | | string | 轨道选中图片（拉伸铺满轨道矩形） |
+| thumb_off_image / thumboffimage | | string | 滑块未选中图片（方形，须与 thumb_on_image 成对） |
+| thumb_on_image / thumbonimage | | string | 滑块选中图片（方形框边长=轨道高，阴影留白画在图内） |
+| thumb_padding | 0 | int | 滑块方形框距轨道边缘距离（自动 DPI 缩放） |
+
+注意：滑块/轨道图片属性串中不要带 width/height/valign/halign（否则绘制位置固定不平移）；
+图片内固定色用 `svg_replace_colors='#XXXXXX|语义色名'` 替换适配深浅色（多组分号分隔）。
+
+C++ 接口：`SetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`。
+事件：状态变化触发 `kEventSelect` / `kEventUnSelect`（继承 CheckBox）。
+三套默认皮肤类（SVG 在 `public/switch/`）：
+- `switch`（别名 `switch_ios`）：iOS 风格 51x31，白色大滑块带柔和投影，轨道色随 `color_accent`；
+- `switch_fluent`：Win11 Fluent 风格 48x24（padding 2），描边小轨道 + 14px 小滑块；
+- `switch_material`：Material 3 风格 52x32，未选中描边轨道+16px 小滑块，选中主题色轨道+24px 带对勾大滑块。
+
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |
