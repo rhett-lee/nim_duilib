@@ -21,6 +21,7 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/SpinBox.h"
 #include "duilib/Control/SearchBox.h"
+#include "duilib/Control/Switch.h"
 #include "duilib/Control/RichText.h"
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/Split.h"
@@ -156,6 +157,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_RICHEDIT2, [](Window* pWindow) { return new RichEdit2(pWindow); }},
         {DUI_CTR_SPIN_BOX, [](Window* pWindow) { return new SpinBox(pWindow); }},
         {DUI_CTR_SEARCH_BOX, [](Window* pWindow) { return new SearchBox(pWindow); }},
+        {DUI_CTR_SWITCH, [](Window* pWindow) { return new Switch(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},

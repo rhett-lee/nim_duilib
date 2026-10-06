@@ -74,6 +74,7 @@ English | [简体中文](XmlNode.md)
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
 | SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | Numeric input box, derived from RichEdit, supports step/range/spin buttons |
 | SearchBox | "SearchBox"| [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | Composite search box with left icon, edit box and clear button, derived from HBox |
+| Switch | "Switch"| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | Toggle switch control derived from CheckBox with sliding animation and color transition |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

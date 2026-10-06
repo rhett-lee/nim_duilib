@@ -1,0 +1,5 @@
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Fluent(Windows 11) 风格滑块：选中，白色小圆 + 轻投影 -->
+    <circle cx="10" cy="11.5" r="7" fill="#000000" opacity="0.12"/>
+    <circle cx="10" cy="10" r="7" fill="#FFFFFF"/>
+</svg>

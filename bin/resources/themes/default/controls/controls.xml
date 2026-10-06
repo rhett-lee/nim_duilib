@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" 
         shadow_type="default" size_box="2,2,2,2" min_size="400,320" icon="public/caption/logo.ico">
     <!-- 整个布局放在一个VBox容器中 -->
@@ -33,7 +33,7 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="170" padding="0,0,0,10">
+            <HBox height="206" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
@@ -62,6 +62,10 @@
                     <HBox height="36">
                         <Label text_id="STRID_CONTROLS_SWITCH_2" height="36" valign="center"/>
                         <CheckBox class="checkbox_toggle_2" margin="4,3,0,3"/>
+                    </HBox>
+                    <HBox height="36">
+                        <Label text_id="STRID_CONTROLS_SWITCH_3" height="36" valign="center"/>
+                        <Switch class="switch" margin="4,3,0,3"/>
                     </HBox>
                 </VBox>
                 <!-- List -->

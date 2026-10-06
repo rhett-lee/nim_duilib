@@ -531,6 +531,47 @@ Example (see the rich_edit example program):
 
 The default skin defines four classes in global.xml: `search_box` (outer frame), `search_box_icon` (magnifier icon), `search_box_edit` (inner edit box), and `search_box_clear_btn` (clear button).
 
+## Attributes of Switch
+Switch is a toggle switch control derived from CheckBox, used for on/off state switching. Header file: `duilib/Control/Switch.h`.
+Both the track and the thumb can be self-drawn with semantic colors or skinned with SVG images: when images are configured, the off/on images cross-fade with the animation progress while the thumb image slides along the track; when no images are configured, colors are self-drawn.
+
+In addition to the common attributes of CheckBox, the following new attributes are added:
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| switch_animation_ms | 160 | int | Transition animation duration in milliseconds (0 disables animation) |
+| track_off_color | bg_switch_track_off | string | Track color in unselected state (semantic color name, effective without track images) |
+| track_on_color | bg_switch_track_on | string | Track color in selected state (semantic color name, effective without track images) |
+| thumb_off_color | bg_switch_thumb_off | string | Thumb color in unselected state (semantic color name, effective without thumb images) |
+| thumb_on_color | bg_switch_thumb_on | string | Thumb color in selected state (semantic color name, effective without thumb images) |
+| track_off_image | | string | Track image in unselected state (image attribute string, paired with track_on_image) |
+| track_on_image | | string | Track image in selected state (image attribute string, paired with track_off_image) |
+| thumb_off_image | | string | Thumb image in unselected state (square image, paired with thumb_on_image) |
+| thumb_on_image | | string | Thumb image in selected state (square image, paired with thumb_off_image) |
+| thumb_padding | 0 | int | Distance between the thumb image square box and the track edges (auto DPI scaled). The square box side equals the track height; shadow padding must be drawn inside the image itself |
+
+Notes:
+- Track images are stretched to fill the whole track rectangle; thumb images translate inside a square box as high as the track. Do not set width/height/valign/halign in the image attribute string, otherwise the draw position will be fixed.
+- Fixed colors inside images can be replaced with semantic colors via `svg_replace_colors` (multiple replacements separated by semicolons) to adapt to light/dark themes.
+- Track and thumb layers are independent: when only thumb images are configured, the track is still self-drawn with colors (this is how the iOS-style skin works).
+
+Corresponding C++ interfaces: `SetAnimationDuration/GetAnimationDuration`, `SetTrackOffColor/GetTrackOffColor`, `SetTrackOnColor/GetTrackOnColor`, `SetThumbOffColor/GetThumbOffColor`, `SetThumbOnColor/GetThumbOnColor`, `SetTrackOffImage/GetTrackOffImage`, `SetTrackOnImage/GetTrackOnImage`, `SetThumbOffImage/GetThumbOffImage`, `SetThumbOnImage/GetThumbOnImage`, `SetThumbPadding/GetThumbPadding`.
+Selection state changes trigger `kEventSelect`/`kEventUnSelect` events (same as CheckBox).
+Example (see the controls and color_theme example programs):
+
+```xml
+<Switch class="switch" selected="false"/>
+<Switch class="switch_fluent" selected="true"/>
+<Switch class="switch_material" selected="true"/>
+```
+
+Three skin classes are defined in global.xml by default (SVG assets are in the `public/switch/` directory):
+- `switch` (alias `switch_ios`): iOS style, 51x31, large white thumb with soft shadow, track color follows the theme accent color;
+- `switch_fluent`: Windows 11 Fluent style, 48x24 (padding=2, track 44x20), outlined small track + 14px small thumb;
+- `switch_material`: Material Design 3 style, 52x32; unselected shows an outlined track with a 16px small thumb, selected shows an accent-filled track with a 24px large thumb carrying a check mark.
+
+Semantic colors are defined in the `color_light` and `color_dark` global.xml files as `bg_switch_track_on/off` and `bg_switch_thumb_on/off`; SVG colors in the Fluent/Material skins are mapped to these semantic colors or `color_accent` via `svg_replace_colors`.
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    

@@ -269,6 +269,25 @@ C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`。事件：`kEve
 清除按钮复用 RichEdit `clear_btn_class` 机制（聚焦有文本时显示，点击清空，失焦隐藏）。
 皮肤类：`search_box` / `search_box_icon` / `search_box_edit` / `search_box_clear_btn`。
 
+### Switch 属性(继承 CheckBox，滑块开关)
+轨道 + 圆形滑块 + 滑动/淡入淡出动画的开关控件（`duilib/Control/Switch.h`），XML 节点名 `Switch`。轨道与滑块均支持 SVG 图片皮肤（off/on 成对，按进度交叉淡入、滑块平移）；无图时用语义色自绘。
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| switch_animation_ms / animation_ms | 160 | int | 动画时长（毫秒），0 表示无动画 |
+| track_off_color / trackoncolor | `bg_switch_track_off` | string | 轨道未选中颜色（无轨道图时生效） |
+| track_on_color / trackoncolor | `bg_switch_track_on` | string | 轨道选中颜色 |
+| thumb_off_color / thumboffcolor | `bg_switch_thumb_off` | string | 滑块未选中颜色（无滑块图时生效） |
+| thumb_on_color / thumboncolor | `bg_switch_thumb_on` | string | 滑块选中颜色 |
+| track_off_image / trackoffimage | | string | 轨道未选中图片（与 track_on_image 成对） |
+| track_on_image / trackonimage | | string | 轨道选中图片（拉伸铺满轨道矩形） |
+| thumb_off_image / thumboffimage | | string | 滑块未选中图片（方形，与 thumb_on_image 成对） |
+| thumb_on_image / thumbonimage | | string | 滑块选中图片（方形框边长=轨道高，阴影留白画在图内） |
+| thumb_padding | 0 | int | 滑块方形框距轨道边缘距离（自动 DPI 缩放） |
+
+图片属性串不要带 width/height/valign/halign（否则不平移）；颜色用 `svg_replace_colors` 替换适配深浅色。
+C++ 接口：`SetAnimationDuration`、`SetTrackOffColor/OnColor/OffImage/OnImage`、`SetThumbOffColor/OnColor/OffImage/OnImage`、`SetThumbPadding`。事件：`kEventSelect` / `kEventUnSelect`。
+三套皮肤类（SVG 在 `public/switch/`）：`switch`（别名 `switch_ios`，iOS 风 51x31 白滑块带投影）、`switch_fluent`（Win11 风 48x24 描边小轨道+14px 滑块）、`switch_material`（Material3 风 52x32，选中带对勾大滑块）。
+
 ### Progress 属性(继承 Label)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
