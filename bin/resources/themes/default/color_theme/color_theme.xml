@@ -184,35 +184,57 @@
                                 <CheckBox class="checkbox_2" text="Disabled" enabled="false"/>
                                 <CheckBox class="checkbox_2" text="Checked Disabled" selected="true" enabled="false"/>
                             </VBox>
-                            <VBox width="320" height="auto" child_margin="4">
-                                <Label text="Toggle Switches:" valign="center" height="auto"/>
-                                <HBox height="auto" child_margin="4">
-                                    <Label text="Toggle 1:" valign="center" width="auto" height="auto"/>
-                                    <CheckBox class="checkbox_toggle_1" selected="false"/>
-                                    <CheckBox class="checkbox_toggle_1" selected="true"/>
-                                </HBox>
-                                <HBox height="auto" child_margin="4">
-                                    <Label text="Toggle 2:" valign="center" width="auto" height="auto"/>
-                                    <CheckBox class="checkbox_toggle_2" selected="false"/>
-                                    <CheckBox class="checkbox_toggle_2" selected="true"/>
-                                </HBox>
-                                <HBox height="auto" child_margin="4">
-                                    <Label text="Switch(iOS):" valign="center" width="auto" height="auto"/>
-                                    <Switch class="switch" selected="false"/>
-                                    <Switch class="switch" selected="true"/>
-                                </HBox>
-                                <HBox height="auto" child_margin="4">
-                                    <Label text="Switch(Fluent):" valign="center" width="auto" height="auto"/>
-                                    <Switch class="switch_fluent" selected="false"/>
-                                    <Switch class="switch_fluent" selected="true"/>
-                                </HBox>
-                                <HBox height="auto" child_margin="4">
-                                    <Label text="Switch(Material):" valign="center" width="auto" height="auto"/>
-                                    <Switch class="switch_material" selected="false"/>
-                                    <Switch class="switch_material" selected="true"/>
-                                </HBox>
-                            </VBox>
                         </HBox>
+                    </GroupVBox>
+
+                    <!-- Section 3.5: Switches & Badges -->
+                    <GroupVBox class="group_box_round" text_id="STRID_COLORTHEME_SWITCH_BADGE_GROUP" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                        <VBox width="320" height="auto" child_margin="4">
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_TOGGLE_1" valign="center" width="auto" height="auto"/>
+                                <CheckBox class="checkbox_toggle_1" selected="false"/>
+                                <CheckBox class="checkbox_toggle_1" selected="true"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_TOGGLE_2" valign="center" width="auto" height="auto"/>
+                                <CheckBox class="checkbox_toggle_2" selected="false"/>
+                                <CheckBox class="checkbox_toggle_2" selected="true"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_SWITCH_IOS" valign="center" width="auto" height="auto"/>
+                                <Switch class="switch" selected="false"/>
+                                <Switch class="switch" selected="true"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_SWITCH_FLUENT" valign="center" width="auto" height="auto"/>
+                                <Switch class="switch_fluent" selected="false"/>
+                                <Switch class="switch_fluent" selected="true"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_SWITCH_MATERIAL" valign="center" width="auto" height="auto"/>
+                                <Switch class="switch_material" selected="false"/>
+                                <Switch class="switch_material" selected="true"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_BADGE_NUMBER" valign="center" width="auto" height="auto"/>
+                                <Badge class="badge" count="1" valign="center"/>
+                                <Badge class="badge" count="5" valign="center"/>
+                                <Badge class="badge" count="99" valign="center"/>
+                                <Badge class="badge" count="120" valign="center"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_BADGE_DOT" valign="center" width="auto" height="auto"/>
+                                <Badge class="badge_dot" valign="center"/>
+                                <Badge class="badge" count="0" valign="center"/>
+                            </HBox>
+                            <HBox height="auto" child_margin="4">
+                                <Label text_id="STRID_COLORTHEME_BADGE_BUTTON" valign="center" width="auto" height="auto"/>
+                                <Box width="66" height="30" valign="center">
+                                    <Button class="btn_global" text_id="STRID_COLORTHEME_BADGE_MSG" width="48" height="30" border_round="3,3"/>
+                                    <Badge class="badge" count="6" float="true" margin="42,0,0,0"/>
+                                </Box>
+                            </HBox>
+                        </VBox>
                     </GroupVBox>
 
                     <!-- Section 4: Radio Buttons -->

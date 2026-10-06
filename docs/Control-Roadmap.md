@@ -43,7 +43,7 @@
 | 2 | Switch/Toggle 开关 | **已有但样式静态**：[global.xml](file:///c:/develop/nim_duilib/bin/resources/themes/default/global.xml#L263-L268) 的 `checkbox_toggle_1/2` 用 CheckBox + 两张 SVG（off/on）硬切换，无滑块动画 | 已完成：新增 Switch 控件类（自绘轨道+滑块动画+颜色过渡，语义色适配深浅色） |
 | 3 | SpinBox 数字输入框 | **已有**：RichEdit 的 `spin_class` 属性（`rich_edit_spin` / `rich_edit_spin_box/btn_up/btn_down`），配合 `min_number/max_number/number_only/limit_text`，示例见 rich_edit.exe | 已完成：独立为 SpinBox 控件类（支持 step 步长） |
 | 4 | SearchBox 搜索框 | **缺失**：未基于 prompt_text + clear 组合，无专门控件 | 已完成：新增 SearchBox 组合控件（左图标+编辑框+清除按钮，支持回车事件） |
-| 5 | Badge 角标 | TabCtrl 标签、按钮上的未读数/小红点。IM、邮件类应用必备 | 各平台通用 |
+| 5 | Badge 角标 | TabCtrl 标签、按钮上的未读数/小红点。IM、邮件类应用必备 | 已完成：新增 Badge 控件类（数字角标/红点模式，count<=0 自动隐藏，语义色适配深浅色） |
 
 #### 第二梯队：补齐浮层地基，实现成本中等
 

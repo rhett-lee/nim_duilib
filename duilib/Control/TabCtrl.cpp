@@ -314,6 +314,10 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_pLabel(nullptr),
     m_pCloseBtn(nullptr),
     m_pLine(nullptr),
+    m_pBadge(nullptr),
+    m_nBadgeCount(0),
+    m_nBadgeMaxCount(99),
+    m_bBadgeDot(false),
     m_bAutoHideCloseBtn(false),
     m_nTabBoxItemIndex(Box::InvalidIndex)
 {
@@ -376,6 +380,18 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("auto_hide_close_button")) {
         SetAutoHideCloseButton(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("badge_count")) {
+        SetBadgeCount(StringUtil::StringToInt64(strValue));
+    }
+    else if (strName == _T("badge_max_count")) {
+        SetBadgeMaxCount(StringUtil::StringToInt64(strValue));
+    }
+    else if (strName == _T("badge_dot")) {
+        SetBadgeDot(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("badge_class")) {
+        SetBadgeClass(strValue);
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -391,6 +407,7 @@ void TabCtrlItem::OnInit()
     SetTitleClass(GetTitleClass());
     SetLineClass(GetLineClass());
     SetCloseButtonClass(GetCloseButtonClass());
+    SetBadgeClass(GetBadgeClass());
     CheckIconVisible();
     if (m_pCloseBtn != nullptr) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
@@ -571,6 +588,82 @@ DString TabCtrlItem::GetLineClass() const
     return m_lineClass.c_str();
 }
 
+void TabCtrlItem::SetBadgeClass(const DString& badgeClass)
+{
+    bool bChanged = m_badgeClass != badgeClass;
+    if (bChanged) {
+        m_badgeClass = badgeClass;
+    }
+    if (!IsInited()) {
+        return;
+    }
+    if (!badgeClass.empty()) {
+        if (m_pBadge == nullptr) {
+            m_pBadge = new Badge(GetWindow());
+            m_pBadge->SetClass(badgeClass);
+            AddItem(m_pBadge);
+            //应用保存的角标数据
+            m_pBadge->SetMaxCount(m_nBadgeMaxCount);
+            m_pBadge->SetDotMode(m_bBadgeDot);
+            m_pBadge->SetCount(m_nBadgeCount);
+            AdjustSubItemIndex();
+        }
+        else if (bChanged) {
+            m_pBadge->SetClass(badgeClass);
+        }
+    }
+    else {
+        if (m_pBadge != nullptr) {
+            RemoveItem(m_pBadge);
+            m_pBadge = nullptr;
+        }
+    }
+}
+
+DString TabCtrlItem::GetBadgeClass() const
+{
+    return m_badgeClass.c_str();
+}
+
+void TabCtrlItem::SetBadgeCount(int64_t nCount)
+{
+    m_nBadgeCount = nCount;
+    if (m_pBadge != nullptr) {
+        m_pBadge->SetCount(nCount);
+    }
+}
+
+int64_t TabCtrlItem::GetBadgeCount() const
+{
+    return (m_pBadge != nullptr) ? m_pBadge->GetCount() : m_nBadgeCount;
+}
+
+void TabCtrlItem::SetBadgeMaxCount(int64_t nMaxCount)
+{
+    m_nBadgeMaxCount = nMaxCount;
+    if (m_pBadge != nullptr) {
+        m_pBadge->SetMaxCount(nMaxCount);
+    }
+}
+
+int64_t TabCtrlItem::GetBadgeMaxCount() const
+{
+    return (m_pBadge != nullptr) ? m_pBadge->GetMaxCount() : m_nBadgeMaxCount;
+}
+
+void TabCtrlItem::SetBadgeDot(bool bDot)
+{
+    m_bBadgeDot = bDot;
+    if (m_pBadge != nullptr) {
+        m_pBadge->SetDotMode(bDot);
+    }
+}
+
+bool TabCtrlItem::IsBadgeDot() const
+{
+    return (m_pBadge != nullptr) ? m_pBadge->IsDotMode() : m_bBadgeDot;
+}
+
 void TabCtrlItem::AdjustSubItemIndex()
 {
     std::vector<Control*> subItems;
@@ -580,11 +673,17 @@ void TabCtrlItem::AdjustSubItemIndex()
     if (m_pLabel != nullptr) {
         subItems.push_back(m_pLabel);
     }
+    if ((m_pBadge != nullptr) && !m_pBadge->IsFloat()) {
+        subItems.push_back(m_pBadge);
+    }
     if ((m_pCloseBtn != nullptr) && !m_pCloseBtn->IsFloat()) {
         subItems.push_back(m_pCloseBtn);
     }
     if (m_pLine != nullptr) {
         subItems.push_back(m_pLine);
+    }
+    if ((m_pBadge != nullptr) && m_pBadge->IsFloat()) {
+        subItems.push_back(m_pBadge);
     }
     if ((m_pCloseBtn != nullptr) && m_pCloseBtn->IsFloat()) {
         subItems.push_back(m_pCloseBtn);

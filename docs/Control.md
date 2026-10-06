@@ -616,6 +616,61 @@ if (pSwitch != nullptr) {
 }
 ```
 
+## Badge的属性
+Badge是角标控件，继承自Label，用于TabCtrl标签页、按钮、图标等控件上的未读数/新消息数量/小红点展示。对应头文件`duilib/Control/Badge.h`。
+两种形态：数字角标（圆角胶囊背景+数字，超过上限显示"99+"）和红点角标（dot模式，纯小圆点）。数量count<=0时自动隐藏（无未读不显示角标）；红点模式的显隐由visible属性控制。
+Badge继承Label的文本属性（font、normal_text_color、text_padding等），背景为语义色自绘的圆角胶囊（圆角=高度一半），自动适配深浅色主题。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| count | 0 | int64 | 角标数量：大于0时显示角标，小于等于0时自动隐藏 |
+| max_count | 99 | int64 | 数量上限，超过上限时显示"上限+"（如"99+"） |
+| dot | false | bool | 红点模式：true为纯小圆点，不显示数字 |
+| badge_color | bg_badge | string | 角标背景颜色（语义色名或颜色值） |
+
+说明：
+- Badge作为子控件放在任意Box容器内使用；悬浮定位在宿主控件角上时配合`float="true"`与`margin`属性。
+- 数字气泡的宽度随数字位数自适应（`width="auto"`），单个数字时呈圆形；红点尺寸由XML的width/height决定（默认皮肤8x8）。
+- 子控件超出父容器边界的部分会被裁剪，悬浮角标需保证父容器足够容纳（参考controls示例：父Box宽度=按钮宽度+角标外露部分）。
+- Badge不响应鼠标（`mouse_enabled="false"`），不会挡住宿主控件的点击。
+
+对应C++接口：`SetCount/GetCount`、`SetMaxCount/GetMaxCount`、`SetDotMode/IsDotMode`、`SetBadgeColor/GetBadgeColor`。
+使用示例（参考 controls 示例程序）：
+
+```xml
+<!-- 默认皮肤：数字角标（count<=0 自动隐藏） -->
+<Badge class="badge" count="5"/>
+<Badge class="badge" count="120"/>   <!-- 显示"99+" -->
+
+<!-- 红点角标 -->
+<Badge class="badge_dot"/>
+
+<!-- 悬浮在按钮右上角：父Box宽度=按钮宽度+角标外露部分，float+margin定位 -->
+<Box width="66" height="30">
+    <Button class="btn_global" text="消息" width="48" height="30"/>
+    <Badge class="badge" count="6" float="true" margin="42,0,0,0"/>
+</Box>
+
+<!-- TabCtrl 标签页角标：TabCtrlItem 内置 badge_count/badge_dot/badge_class 属性，无需手动嵌套 -->
+<TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="3"/>
+```
+
+C++动态更新未读数：
+
+```cpp
+ui::Badge* pBadge = dynamic_cast<ui::Badge*>(pWindow->FindControl(_T("badge_msg")));
+if (pBadge != nullptr) {
+    pBadge->SetCount(pBadge->GetCount() + 1);   // 未读+1，超过99显示"99+"
+    pBadge->SetCount(0);                        // 清零，角标自动隐藏
+}
+```
+
+默认皮肤在global.xml中定义了2个Class：
+- `badge`：数字角标，高18，白字红底（语义色`text_badge`/`bg_badge`），宽度随数字自适应，text_padding="5,0,5,0"；
+- `badge_dot`：红点角标，8x8，dot="true"。
+
+语义色`bg_badge`在color_light和color_dark的global.xml中定义，派生自`color_error`（红色系），数字文本色`text_badge`为白色。
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    
@@ -711,6 +766,42 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | hovered_round_corner | | size | 标签页悬停状态时的圆角大小|
 | hovered_padding | | UiPadding | 标签页悬停状态的背景色的内边距|
 | auto_hide_close_button | false | bool | 关闭按钮是否自动隐藏|
+| badge_count | 0 | int64 | 角标数量：大于0时显示角标，小于等于0时自动隐藏；未设置badge_class时不创建角标控件|
+| badge_max_count | 99 | int64 | 角标数量上限，超过上限时显示"上限+"（如"99+"）|
+| badge_dot | false | bool | 角标红点模式：true为纯小圆点，不显示数字；需配合badge_class或badge属性使用|
+| badge_class | | string | 角标控件的Class值（如`tab_ctrl_item_badge`），为空时不创建角标控件|
+
+**说明：**
+- TabCtrlItem 内置角标能力：通过 `badge_class` 指定一个基于 `Badge` 控件的 Class，再使用 `badge_count`/`badge_dot`/`badge_max_count` 配置显示内容。未设置 `badge_class` 时，角标属性仅保存数值，不会创建 Badge 子控件。
+- 默认皮肤在 global.xml 中定义了 `tab_ctrl_item_badge`（数字角标，高16，白字红底）和 `tab_ctrl_item_badge_dot`（红点角标，8x8），已挂载在 `tab_ctrl_item` 的 `badge_class` 上。
+- 角标子控件不参与鼠标事件（`mouse_enabled="false"`），不会阻挡标签页的点击。
+
+**对应 C++ 接口：** `SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。
+
+**XML 示例：**
+
+```xml
+<TabCtrl class="tab_ctrl" width="stretch" height="36">
+    <!-- 数字角标（count=5） -->
+    <TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>
+    <!-- 超限角标（显示"99+"） -->
+    <TabCtrlItem class="tab_ctrl_item" title="通知" badge_count="120"/>
+    <!-- 红点角标（使用独立 dot Class） -->
+    <TabCtrlItem class="tab_ctrl_item" title="动态" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>
+    <!-- 无角标 -->
+    <TabCtrlItem class="tab_ctrl_item" title="设置"/>
+</TabCtrl>
+```
+
+C++ 动态更新角标：
+
+```cpp
+ui::TabCtrlItem* pTabItem = dynamic_cast<ui::TabCtrlItem*>(pWindow->FindControl(_T("tab_msg")));
+if (pTabItem != nullptr) {
+    pTabItem->SetBadgeCount(pTabItem->GetBadgeCount() + 1);   // 未读+1
+    pTabItem->SetBadgeCount(0);                               // 清零，角标自动隐藏
+}
+```
 
 TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参考`ControlDragableT`的属性
 

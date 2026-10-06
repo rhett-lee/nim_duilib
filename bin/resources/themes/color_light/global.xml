@@ -217,6 +217,10 @@
     <ThemeColor name="bg_switch_thumb_on" value="#FFFFFFFF" type="switch" category="bg_color" role="neutral" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="" comment_cn="开关滑块选中" comment_en="Switch thumb on"/>
     <ThemeColor name="bg_switch_thumb_off" value="#FF8A8886" type="switch" category="bg_color" role="neutral" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="" comment_cn="开关滑块未选中" comment_en="Switch thumb off"/>
 
+    <!-- ===================== 角标控件 (type: badge) ===================== -->
+    <ThemeColor name="bg_badge" value="#FFE85854" type="badge" category="bg_color" role="semantic_error" derived_from="color_error" adjust="" fixed="false" support_accent="false" contrast_bg="bg_window_main, bg_window_card" comment_cn="角标背景（未读数/红点）" comment_en="Badge background (unread count/red dot)"/>
+    <ThemeColor name="text_badge" value="#FFFFFFFF" type="badge" category="text_color" role="neutral" derived_from="" adjust="" fixed="true" support_accent="false" contrast_bg="bg_badge" comment_cn="角标数字文本" comment_en="Badge count text"/>
+
     <!-- ===================== 分割线颜色 (type: split_line) ===================== -->
     <ThemeColor name="bg_split_disabled" value="#B3F3F3F3" type="split_line" category="bg_color" role="neutral" derived_from="bg_split_normal" adjust="lightness:+10,saturation:-30,alpha:=70" fixed="false" support_accent="false" contrast_bg="" comment_cn="分割线禁用状态" comment_en="Split line disabled state"/>
     <ThemeColor name="bg_split_hovered" value="#FFCACACA" type="split_line" category="bg_color" role="neutral" derived_from="bg_split_normal" adjust="lightness:-6" fixed="false" support_accent="false" contrast_bg="" comment_cn="分割线悬浮状态" comment_en="Split line hovered state"/>

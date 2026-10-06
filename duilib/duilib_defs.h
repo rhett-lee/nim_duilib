@@ -110,6 +110,7 @@ namespace ui
     #define  DUI_CTR_SPIN_BOX                        (_T("SpinBox"))
     #define  DUI_CTR_SEARCH_BOX                      (_T("SearchBox"))
     #define  DUI_CTR_SWITCH                          (_T("Switch"))
+    #define  DUI_CTR_BADGE                           (_T("Badge"))
     #define  DUI_CTR_COMBO                           (_T("Combo"))
     #define  DUI_CTR_COMBO_BUTTON                    (_T("ComboButton"))
     #define  DUI_CTR_FILTER_COMBO                    (_T("FilterCombo"))
