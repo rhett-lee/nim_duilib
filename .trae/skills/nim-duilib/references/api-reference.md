@@ -269,6 +269,22 @@
 
 C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。数值变化触发 `kEventTextChanged`。
 
+### SearchBox 属性(继承 HBox，搜索框组合控件)
+
+左图标 + 内部 RichEdit + 清除按钮的组合控件（`duilib/Control/SearchBox.h`），XML 节点名 `SearchBox`。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| text | | string | 初始文本 |
+| prompt_text | | string | 空内容时的占位提示文本 |
+| prompt_text_id | | string | 占位提示文本的多语言字符串 ID |
+| prompt_color | | string | 占位提示文本颜色（语义色名） |
+
+C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`（取内部 RichEdit）。
+事件：文本变化触发 `kEventTextChanged`，按回车触发 `kEventReturn`（发起搜索）。
+清除按钮复用 RichEdit 内置 `clear_btn_class`：聚焦且有文本时显示，点击清空，失焦隐藏。
+默认皮肤类：`search_box` / `search_box_icon` / `search_box_edit` / `search_box_clear_btn`。
+
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |

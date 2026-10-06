@@ -123,6 +123,10 @@
                         <SpinBox class="simple simple_border rich_edit_spin" min_number="0" max_number="100" step="5" value="50" margin="4,6,4,4"/>
                         <Label text_id="STRID_RICHEDIT_SPINBOX_STEP_DESC" valign="center"/>
                     </HBox>
+                    <HBox height="40" margin="8,0,8,0">
+                        <Label text_id="STRID_RICHEDIT_SEARCH_BOX" valign="center"/>
+                        <SearchBox class="search_box" prompt_text_id="STRID_RICHEDIT_SEARCH_PROMPT" margin="4,6,4,4"/>
+                    </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text_id="STRID_RICHEDIT_CLEAR_TEXT" valign="center"/>
                         <RichEdit class="simple simple_border rich_edit_clear_btn" margin="4,6,4,4"/>

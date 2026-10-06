@@ -508,6 +508,27 @@ SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`�
 
 其中`spin_class`样式（rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down）在 global.xml 的`rich_edit_spin`类中定义。    
 
+## SearchBox的属性
+SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索图标、文本编辑框（RichEdit）与右侧清除按钮，用于关键词输入与搜索场景。对应头文件`duilib/Control/SearchBox.h`。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| text | "" | string | 搜索框初始文本 |
+| prompt_text | "" | string | 编辑框为空时显示的占位提示文本 |
+| prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
+| prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
+
+对应C++接口：`SetSearchText/GetSearchText`、`GetEditControl()`（获取内部RichEdit控件）。
+文本变化时触发`kEventTextChanged`事件；按下回车键时触发`kEventReturn`事件（可用于发起搜索）。
+清除按钮复用RichEdit内置的`clear_btn_class`机制：编辑框聚焦且有文本时显示，点击清空文本，失焦后自动隐藏。
+使用示例（参考 rich_edit 示例程序）：
+
+```xml
+<SearchBox class="search_box" prompt_text="输入关键词搜索"/>
+```
+
+默认皮肤在global.xml中定义了`search_box`（外框）、`search_box_icon`（放大镜图标）、`search_box_edit`（内部编辑框）、`search_box_clear_btn`（清除按钮）4个Class。
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    

@@ -927,6 +927,9 @@
     <ClCompile Include="Control\SpinBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\SearchBox.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1932,6 +1935,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Control\SpinBox.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\SearchBox.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

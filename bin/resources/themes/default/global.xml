@@ -33,6 +33,7 @@
     <Var name="PATH_CAPTION" value="public/caption"/>
     <Var name="PATH_COMBO" value="public/combo"/>
     <Var name="PATH_MENU" value="public/menu"/>
+    <Var name="PATH_SEARCHBOX" value="public/searchbox"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
     <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
@@ -531,6 +532,21 @@
                                                     hovered_color="bg_richedit_btn_hovered" 
                                                     pressed_color="bg_richedit_btn_pressed"
                                                     disabled_color="bg_richedit_btn_disabled"/>    
+
+    <!-- 搜索框控件（SearchBox） -->
+    <Class name="search_box" width="220" height="32" padding="1,1,1,1" bkcolor="bg_richedit" border_size="1" border_round="4,4"
+                                border_color="border_richedit_normal"
+                                hovered_border_color="border_richedit_hovered"/>
+    <Class name="search_box_icon" width="16" height="16" margin="8,0,6,0" valign="center" halign="left"
+                                   bkimage="file='${PATH_SEARCHBOX}/search.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"/>
+    <Class name="search_box_edit" class="richedit_base" width="stretch" text_align="vcenter" text_padding="0,0,2,0" margin="0,0,2,0"
+                                  prompt_mode="true" prompt_color="text_richedit_prompt"/>
+    <Class name="search_box_clear_btn" height="22" width="24" border_round="4,4" margin="0,0,2,0" halign="right" valign="center"
+                                             normal_image="file='${PATH_BUTTON}/window-close.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
+                                             normal_color="bg_richedit_btn_normal"
+                                             hovered_color="bg_richedit_btn_hovered"
+                                             pressed_color="bg_richedit_btn_pressed"
+                                             disabled_color="bg_richedit_btn_disabled"/>
     
     <!-- 富文本基本属性 -->
     <Class name="rich_text" text_color="text_default" 

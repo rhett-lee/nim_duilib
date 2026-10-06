@@ -71,6 +71,7 @@
 | CircleProgress | "CircleProgress"| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | |
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
 | SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | 数字输入框，继承RichEdit，支持步长/范围/步进按钮 |
+| SearchBox | "SearchBox"| [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | 搜索框组合控件，左侧图标+编辑框+清除按钮，继承HBox |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

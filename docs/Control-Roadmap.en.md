@@ -47,7 +47,7 @@ Grouped into three tiers by value and implementation cost; implement in tier ord
 | 1 | RichEdit placeholder | **Already supported**: `prompt_mode` / `prompt_text` / `prompt_text_id` / `prompt_color` ([RichEdit_Windows.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit_Windows.h), [RichEdit2.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit2.h); cross-platform RichEdit2 also supports it). Demo: rich_edit.exe | No new code needed; docs only |
 | 2 | Switch/Toggle | **Exists but static style**: `checkbox_toggle_1/2` in [global.xml](file:///c:/develop/nim_duilib/bin/resources/themes/default/global.xml#L263-L268) is a CheckBox that hard-swaps two SVGs (off/on) with no sliding animation | Add slide animation + theme consistency |
 | 3 | SpinBox | **Already supported**: RichEdit's `spin_class` attribute (`rich_edit_spin` / `rich_edit_spin_box/btn_up/btn_down`) plus `min_number/max_number/number_only/limit_text`. Demo: rich_edit.exe | Completed: extracted into SpinBox control class (supports `step`) |
-| 4 | SearchBox | **Missing**: no dedicated control built on prompt_text + clear-button combination | Add a composite SearchBox control |
+| 4 | SearchBox | **Missing**: no dedicated control built on prompt_text + clear-button combination | Completed: added composite SearchBox control (left icon + edit box + clear button, supports Enter event) |
 | 5 | Badge | Unread counts / red dots on TabCtrl tabs and buttons. Essential for IM and mail apps | Common across platforms |
 
 #### Tier 2: Flyout Foundation, Medium Cost

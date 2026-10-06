@@ -510,6 +510,27 @@ Example (see the rich_edit example program):
 
 The `spin_class` styles (rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down) are defined in the `rich_edit_spin` class of global.xml.    
 
+## Attributes of SearchBox
+SearchBox is a composite search input control derived from HBox. It combines a search icon on the left, a text edit box (RichEdit), and a clear button on the right, intended for keyword input and search scenarios. Header file: `duilib/Control/SearchBox.h`.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| text | "" | string | Initial text of the search box |
+| prompt_text | "" | string | Placeholder text shown when the edit box is empty |
+| prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
+| prompt_color | "" | string | Color of the placeholder text (semantic color name) |
+
+Corresponding C++ interfaces: `SetSearchText/GetSearchText`, `GetEditControl()` (returns the inner RichEdit control).
+The `kEventTextChanged` event is fired when the text changes; the `kEventReturn` event is fired when the Enter key is pressed (can be used to start a search).
+The clear button reuses RichEdit's built-in `clear_btn_class` mechanism: it is shown when the edit box is focused and has text, clears the text when clicked, and is automatically hidden after losing focus.
+Example (see the rich_edit example program):
+
+```xml
+<SearchBox class="search_box" prompt_text="Type to search"/>
+```
+
+The default skin defines four classes in global.xml: `search_box` (outer frame), `search_box_icon` (magnifier icon), `search_box_edit` (inner edit box), and `search_box_clear_btn` (clear button).
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    
