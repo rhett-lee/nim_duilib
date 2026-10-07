@@ -26,6 +26,12 @@ private:
     */
     void OnTimer();
 
+    /** 显示 Flyout 浮层演示
+    * @param [in] pAnchor 锚点按钮（事件发送者）
+    * @param [in] placement 期望弹出方位
+    */
+    void ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement);
+
 private:
     /** 进度值
     */

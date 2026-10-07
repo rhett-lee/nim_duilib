@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flyout 浮层演示内容：固定宽度 240，窗口高度按内容估算；根容器即阴影内边缘，padding 由框架阴影自动注入 -->
+<Window size="240,210" caption="0,0,0,0" use_system_caption="false"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" size_box="0,0,0,0"
+        icon="public/caption/logo.ico">
+    <VBox class="flyout" width="240" height="auto">
+        <!-- 标题 -->
+        <Label class="flyout_title" name="flyout_title" text_id="STRID_FLYOUT_DEMO_TITLE"/>
+        <!-- 辅助说明 -->
+        <Label class="flyout_desc" text_id="STRID_FLYOUT_DEMO_DESC" margin="0,6,0,10"/>
+        <!-- 操作区：主按钮 + 次按钮 -->
+        <Button class="btn_primary_global" name="flyout_action1" text_id="STRID_FLYOUT_DEMO_ACTION1"
+                width="stretch" height="30" border_round="4,4" margin="0,2,0,0"/>
+        <Button class="btn_global" name="flyout_action2" text_id="STRID_FLYOUT_DEMO_ACTION2"
+                width="stretch" height="30" border_round="4,4" margin="0,8,0,0"/>
+        <!-- 底部关闭按钮 -->
+        <HBox width="auto" height="auto" halign="right" margin="0,10,0,0">
+            <Button class="btn_global" name="flyout_close" text_id="STRID_FLYOUT_DEMO_CLOSE"
+                    width="72" height="28" border_round="4,4"/>
+        </HBox>
+    </VBox>
+</Window>

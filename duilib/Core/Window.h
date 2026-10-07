@@ -372,6 +372,11 @@ public:
     */
     bool IsColorThemeDarkMode() const;
 
+    /** 获取窗口自身颜色主题的XML配置数据
+    * @return 返回通过 OpenColorTheme/OpenColorThemeData 设置的主题数据；未设置私有颜色主题时返回空串
+    */
+    const std::string& GetColorThemeXmlData() const;
+
     /** 获取默认禁用状态下字体颜色
      * @return 默认禁用状态颜色的字符串表示
      */
@@ -1147,6 +1152,10 @@ private:
     /** 窗口自身的主题颜色管理器（不使用全局主题颜色管理器）
     */
     std::unique_ptr<ColorManager> m_pColorManager;
+
+    /** 窗口自身颜色主题的XML配置数据（为空表示使用全局颜色主题）
+    */
+    std::string m_colorThemeXmlData;
 
 private:
     /** 窗口配置中class名称与属性映射关系

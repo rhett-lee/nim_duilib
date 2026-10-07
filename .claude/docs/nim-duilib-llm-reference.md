@@ -304,6 +304,13 @@ C++ 接口：`SetCount/GetCount`、`SetMaxCount/GetMaxCount`、`SetDotMode/IsDot
 
 TabCtrlItem 内置角标（`duilib/Control/TabCtrl.h`，懒创建 Badge 子控件，排在标题后）：属性 `badge_count`（0，>0 显示 <=0 隐藏）、`badge_max_count`（99）、`badge_dot`（false）、`badge_class`（空则不创建）。皮肤类 `tab_ctrl_item_badge`（数字，已挂在 `tab_ctrl_item`）/ `tab_ctrl_item_badge_dot`（8x8 红点，dot 模式须用此类）。C++：`SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。示例：`<TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>`。
 
+### Flyout 浮层窗口(继承 WindowImplBase)
+`duilib/Control/Flyout.h`（duilib.h 已 include）。锚点周围浮出任意 Box 内容；非模态、关闭后框架自动 delete；默认不抢焦点（WS_EX_NOACTIVATE）、点击外部/Esc 自动关闭、8 方位空间不足自动翻转+工作区夹持、全局单活。
+C++：`Flyout(Window*)` → `SetSkinFolder(path)`（默认父窗口 GetResourcePath）→ `bool ShowAt(Control* anchor, xmlFile, Placement=Bottom)`（**xmlFile 只传文件名**；失败内部已 delete this 返回 false）；`Dismiss()`、`SetAutoDismiss`(true)、`SetNoFocus`(true)、`SetGap`(6 DIP)、`SetAllowFlip`(true)、`GetAnchor/GetPlacement/IsOpen`、`AttachOpened/AttachClosed`（`std::function<void(CloseReason)>`）、静态 `GetActiveFlyout/DismissActive`。
+`Placement{Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd}`；`CloseReason{kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、DPI 变化）。
+内容 XML：`<Window size="240,210" caption="0,0,0,0" use_system_caption="false" shadow_type="default" shadow_attached="true" layered_window="true" size_box="0,0,0,0">`，固定 DIP 尺寸（内容超出会画进阴影区）。皮肤类 `flyout`（240 宽 bg_window_card/border_window/圆角8/padding12）、`flyout_title`（bold14）、`flyout_desc`（regular12 text_muted 多行）。
+ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方比较 `GetActiveFlyout()->GetAnchor()`；外部点击检测仅 Windows（50ms 轮询），非 Win 平台 SetNoFocus(false)；锚点在滚动容器内自动扣除累计滚动偏移；父窗口 OpenColorTheme 私有颜色主题自动继承（Window::GetColorThemeXmlData）。
+
 ### Progress 属性(继承 Label)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|

@@ -257,6 +257,13 @@
                         </HBox>
                     </GroupVBox>
                 </HBox>
+                <!-- Section 4.5: Flyout -->
+                <GroupVBox class="group_box_round" text_id="STRID_COLORTHEME_FLYOUT_GROUP" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
+                    <HBox height="auto" child_margin="8">
+                        <Button class="btn_global" name="flyout_show_bottom" text_id="STRID_COLORTHEME_FLYOUT_BOTTOM" width="120" height="30" border_round="3,3"/>
+                        <Button class="btn_global" name="flyout_show_right" text_id="STRID_COLORTHEME_FLYOUT_RIGHT" width="120" height="30" border_round="3,3"/>
+                    </HBox>
+                </GroupVBox>
                 <!-- Section 5: ComboBox -->
                 <GroupVBox class="group_box_round" text="ComboBox - All States" height="auto" margin="0,4,0,0" padding="10,20,6,10" control_padding="false">
                     <HBox child_margin="20" height="auto">

@@ -42,6 +42,10 @@ private:
     */
     void ShowAllColors();
 
+    /** 在指定按钮周围弹出 Flyout 演示浮层（同锚点再次点击则关闭）
+    */
+    void ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement);
+
 private:
     /** 主题生成器
     */

@@ -673,6 +673,104 @@ Two skin classes are defined in global.xml by default:
 
 The semantic color `bg_badge` is defined in the color_light and color_dark global.xml files, derived from `color_error` (red); the count text color `text_badge` is white.
 
+## Flyout Window
+Flyout is a general-purpose popup (flying card) window derived from WindowImplBase. Header file: `duilib/Control/Flyout.h`. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.), and serves as the common base for calendar popups, search suggestions and settings bubbles.
+
+Key features:
+- Anchor positioning: 8 placements (bottom/top/left/right x start/end aligned); when the preferred side has no room it automatically flips to the opposite side, and is finally clamped inside the monitor work area;
+- Non-focus-stealing by default (`WS_EX_NOACTIVATE`): the parent window stays active while the flyout is shown and can keep receiving input;
+- Automatically closed by clicking outside or pressing Esc by default; `Dismiss` closes it manually;
+- Modeless window: the framework deletes the object automatically after the window closes, callers do not need to delete it;
+- Only one active flyout at a time: showing a new flyout closes the previous one;
+- The flyout is a layered popup window with shadow (`WS_POPUP | WS_EX_LAYERED`); the content XML is drawn with current-theme semantic colors, adapting to light/dark themes automatically.
+
+### C++ Interfaces
+
+| Interface | Description |
+| :--- | :--- |
+| `Flyout(Window* pParentWindow)` | Constructs a flyout with the parent window (the anchor control must belong to it) |
+| `SetSkinFolder(path)` | Resource folder of the content XML; defaults to the parent window's resource path |
+| `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)` | Shows the flyout around the anchor; on failure the object is already deleted and must not be accessed |
+| `Dismiss()` | Closes the flyout manually (reason kManual) |
+| `SetAutoDismiss(bool)` / `IsAutoDismiss()` | Whether click-outside/Esc closes automatically, default true |
+| `SetNoFocus(bool)` / `IsNoFocus()` | Whether to avoid taking focus, default true; when false, focus loss is used to detect outside clicks |
+| `SetGap(int)` / `GetGap()` | Gap between the flyout and the anchor (unscaled logical pixels), default 6 |
+| `SetAllowFlip(bool)` / `IsAllowFlip()` | Whether flipping to the opposite side is allowed, default true |
+| `GetAnchor()` | Returns the anchor control (may be nullptr after close or anchor destruction) |
+| `GetPlacement()` | Returns the preferred placement |
+| `IsOpen()` | Whether the flyout is open |
+| `AttachOpened(callback)` / `AttachClosed(callback)` | Registers opened/about-to-close callbacks with a `CloseReason` argument |
+| `static GetActiveFlyout()` | Returns the current active flyout, or nullptr |
+| `static DismissActive()` | Dismisses the current active flyout (no-op if none) |
+
+`Placement` enum: `Bottom` (below, start-aligned, default), `BottomEnd` (below, end-aligned), `Top`, `TopEnd`, `Right`, `RightEnd`, `Left`, `LeftEnd`.
+
+`CloseReason` enum: `kManual` (manual close), `kClickOutside` (click outside / focus loss), `kEscape` (Esc key), `kAnchorLost` (anchor or parent window invalidated: destroyed/hidden/minimized/DPI changed).
+
+### Writing the Content XML
+
+The flyout window itself is created and styled in C++; the caller only provides a **content XML**. Its root is an ordinary `<Window>` with shadow and layered window enabled, and a fixed size fitting the content (the framework wraps a shadow around it):
+
+```xml
+<Window size="240,210" caption="0,0,0,0" use_system_caption="false"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" size_box="0,0,0,0">
+    <VBox class="flyout" width="240" height="auto">
+        <Label class="flyout_title" text="Flyout Title"/>
+        <Label class="flyout_desc" text="Description text..." margin="0,6,0,10"/>
+        <Button class="btn_primary_global" name="flyout_action" text="Primary Action"
+                width="stretch" height="30" border_round="4,4"/>
+    </VBox>
+</Window>
+```
+
+Notes:
+- The window size is in unscaled logical pixels; make the height large enough for all content (overflow would be painted over the shadow area);
+- Name interactive controls with `name` and bind events via `FindControl` after `ShowAt` succeeds;
+- The default skin defines 3 classes in global.xml: `flyout` (240-wide card, `bg_window_card` background, `border_window` border, corner radius 8), `flyout_title` (14pt bold title), `flyout_desc` (12pt `text_muted` multiline description).
+
+### Usage Example
+
+```cpp
+//Called when the anchor button is clicked (clicking the same anchor again closes it)
+void ShowFlyout(ui::Control* pAnchor)
+{
+    ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+    if (pActive != nullptr) {
+        if (pActive->GetAnchor() == pAnchor) {
+            pActive->Dismiss();      // Same anchor: toggle off
+            return;
+        }
+        pActive->Dismiss();          // Different anchor: the old flyout closes
+    }
+
+    ui::Flyout* pFlyout = new ui::Flyout(this);
+    pFlyout->SetSkinFolder(GetResourcePath().ToString());
+    //The XML file name is resolved relative to SkinFolder, without a subfolder prefix
+    if (!pFlyout->ShowAt(pAnchor, _T("my_flyout.xml"), ui::Flyout::Placement::Bottom)) {
+        return;                      // On failure the object is already deleted
+    }
+
+    ui::Button* pAction = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_action")));
+    if (pAction != nullptr) {
+        pAction->AttachClick([pFlyout](const ui::EventArgs&) {
+            //Do the action, then close the flyout
+            pFlyout->Dismiss();
+            return true;
+            });
+    }
+}
+```
+
+Remarks:
+- In no-focus mode, controls inside the flyout still receive clicks, but keyboard focus stays on the parent window; call `SetNoFocus(false)` when text input inside the flyout is required;
+- Outside-click detection polls the global mouse button state (Windows only); on non-Windows platforms use the focus mode via `SetNoFocus(false)`;
+- When the anchor is nested inside scrollable containers, the accumulated scroll offset is automatically removed, so the flyout always pops at the control's visual position after scrolling;
+- When the parent window uses a private color theme via `OpenColorTheme` (e.g. the dark window in the ColorTheme demo), the flyout automatically inherits the same color set without extra setup;
+- When the display DPI changes (e.g. moving across monitors), the flyout closes automatically with reason `kAnchorLost` to avoid wrong position/size.
+
+See the controls demo (the "Flyout" group with 4 placement buttons) and the ColorTheme demo for complete examples.
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    
