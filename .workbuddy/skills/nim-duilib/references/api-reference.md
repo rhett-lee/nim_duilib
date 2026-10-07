@@ -346,6 +346,34 @@ TabCtrl 标签页内建未读数/小红点支持（`duilib/Control/TabCtrl.h`）
 C++ 接口：`SetBadgeCount/GetBadgeCount`、`SetBadgeMaxCount/GetBadgeMaxCount`、`SetBadgeDot/IsBadgeDot`、`SetBadgeClass/GetBadgeClass`、`GetBadgeControl`。
 示例：`<TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>`、`<TabCtrlItem class="tab_ctrl_item" title="动态" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>`。
 
+### Flyout 浮层窗口(继承 WindowImplBase)
+
+通用浮层（弹出卡片）窗口（`duilib/Control/Flyout.h`，已在 duilib.h 中 include）。在锚点控件周围浮出任意 Box 内容，非模态、不抢焦点、点击外部/Esc 自动关闭、全局单活，窗口关闭后框架自动 delete。
+窗口样式由 C++ 内部固定（`WS_POPUP|WS_EX_LAYERED|WS_EX_TOPMOST`，noFocus 时加 `WS_EX_NOACTIVATE`），调用方只提供**内容 XML**：普通 `<Window shadow_type="default" shadow_attached="true" layered_window="true" caption="0,0,0,0" use_system_caption="false">` + 固定 `size="宽,高"`（DIP 逻辑像素，高度须容纳全部内容，超出会画到阴影区；框架自动在外层包阴影）。
+
+C++ 接口（无 XML 控件属性）：
+- `Flyout(Window* pParentWindow)`：构造，锚点控件必须属于父窗口；
+- `SetSkinFolder(path)`：内容 XML 资源文件夹，默认用父窗口 GetResourcePath()；
+- `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)`：弹出；**xmlFile 只传文件名不带子目录前缀**（SkinFolder 已含子目录）；失败时内部已 `delete this`，返回 false 后不可再访问；
+- `Dismiss()` 主动关闭；`SetAutoDismiss/IsAutoDismiss`（默认 true）、`SetNoFocus/IsNoFocus`（默认 true）、`SetGap/GetGap`（默认 6 DIP）、`SetAllowFlip/IsAllowFlip`（默认 true）；
+- `GetAnchor()`、`GetPlacement()`、`IsOpen()`；`AttachOpened(cb)` / `AttachClosed(cb)`（`typedef std::function<void(CloseReason)> FlyoutEvent`）；
+- 静态 `GetActiveFlyout()` / `DismissActive()`。
+
+`enum class Placement {Bottom,BottomEnd,Top,TopEnd,Right,RightEnd,Left,LeftEnd}`（8 方位，空间不足自动翻转对侧并夹持工作区）；
+`enum class CloseReason {kManual,kClickOutside,kEscape,kAnchorLost}`（父窗口销毁/隐藏/最小化、锚点失效、跨屏 DPI 变化→kAnchorLost）。
+
+内容 XML 默认皮肤类（global.xml）：`flyout`（240 宽卡片，`bg_window_card`/`border_window`/圆角 8/padding 12）、`flyout_title`（system_bold_14 + text_default）、`flyout_desc`（system_regular_12 + text_muted，多行）。
+
+```cpp
+ui::Flyout* p = new ui::Flyout(this);
+p->SetSkinFolder(GetResourcePath().ToString());
+if (!p->ShowAt(pBtn, _T("my_flyout.xml"), ui::Flyout::Placement::Bottom)) return;
+ui::Button* pOk = (ui::Button*)p->FindControl(_T("ok"));   // ShowAt 成功后再绑事件
+pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
+```
+
+注意：noFocus 模式外部点击检测仅 Windows（全局鼠标按键 50ms 轮询，非 Win 平台用 `SetNoFocus(false)` 焦点模式）；浮层内控件可正常点击但键盘焦点不进入，需要输入文字时 SetNoFocus(false)；同锚点再次点击切换关闭需调用方自行比较 `GetActiveFlyout()->GetAnchor()`；锚点在滚动容器内时自动扣除累计滚动偏移；父窗口通过 `OpenColorTheme` 使用私有颜色主题时浮层自动继承该主题（新增 `Window::GetColorThemeXmlData()` 暴露私有主题 XML 数据）。
+
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |

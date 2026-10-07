@@ -60,7 +60,23 @@ void MainForm::OnInitWindow()
             });
     }
 
-    //主题生成相关    
+    //Flyout 浮层演示
+    ui::Button* pFlyoutBottomBtn = dynamic_cast<ui::Button*>(FindControl(_T("flyout_show_bottom")));
+    if (pFlyoutBottomBtn != nullptr) {
+        pFlyoutBottomBtn->AttachClick([this](const ui::EventArgs& args) {
+            ShowFlyoutDemo(args.GetSender(), ui::Flyout::Placement::Bottom);
+            return true;
+            });
+    }
+    ui::Button* pFlyoutRightBtn = dynamic_cast<ui::Button*>(FindControl(_T("flyout_show_right")));
+    if (pFlyoutRightBtn != nullptr) {
+        pFlyoutRightBtn->AttachClick([this](const ui::EventArgs& args) {
+            ShowFlyoutDemo(args.GetSender(), ui::Flyout::Placement::Right);
+            return true;
+            });
+    }
+
+    //主题生成相关
     ui::CheckBox* pGenColorCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("gen_color_checkbox")));
     ui::Box* pGenColorBox = dynamic_cast<ui::Box*>(FindControl(_T("gen_color_box")));
 
@@ -292,6 +308,35 @@ void MainForm::OnGenColorParamChanged()
                 pLabel->SetStateTextColor(ui::ControlStateType::kControlStateNormal, ui::StringConvert::UTF8ToT(fgColor));
             }
         }
+    }
+}
+
+void MainForm::ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement)
+{
+    if (pAnchor == nullptr) {
+        return;
+    }
+    //同一锚点再次点击：关闭已有浮层；不同锚点：切换到新浮层
+    ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+    if (pActive != nullptr) {
+        if (pActive->GetAnchor() == pAnchor) {
+            pActive->Dismiss();
+            return;
+        }
+        pActive->Dismiss();
+    }
+
+    ui::Flyout* pFlyout = new ui::Flyout(this);
+    pFlyout->SetSkinFolder(GetResourcePath().ToString());
+    if (!pFlyout->ShowAt(pAnchor, _T("flyout_demo.xml"), placement)) {
+        return;
+    }
+    ui::Button* pCloseBtn = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_close")));
+    if (pCloseBtn != nullptr) {
+        pCloseBtn->AttachClick([pFlyout](const ui::EventArgs&) {
+            pFlyout->Dismiss();
+            return true;
+            });
     }
 }
 

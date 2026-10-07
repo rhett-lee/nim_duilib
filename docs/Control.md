@@ -671,6 +671,104 @@ if (pBadge != nullptr) {
 
 语义色`bg_badge`在color_light和color_dark的global.xml中定义，派生自`color_error`（红色系），数字文本色`text_badge`为白色。
 
+## Flyout浮层窗口
+Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应头文件`duilib/Control/Flyout.h`。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等），是日历弹层、搜索建议、气泡设置等控件的公共基座。
+
+核心特性：
+- 锚点定位：支持8个弹出方位（下/上/左/右 × 左对齐/右对齐），主方位空间不足时自动翻转到对侧，并整体夹持在显示器工作区内；
+- 默认不抢焦点（`WS_EX_NOACTIVATE`），浮层显示期间父窗口保持激活，可继续操作父窗口；
+- 默认点击浮层外部、按Esc键自动关闭；也可调用`Dismiss`主动关闭；
+- 非模态窗口：窗口关闭后框架自动释放对象，调用方不需要手动delete；
+- 同一时刻只保留一个活动浮层，弹出新浮层时旧浮层自动关闭；
+- 浮层为带阴影的层窗口（`WS_POPUP | WS_EX_LAYERED`），内容XML按当前主题语义色自绘，深浅色主题自动适配。
+
+### C++接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| `Flyout(Window* pParentWindow)` | 构造浮层，传入父窗口（锚点控件必须属于该窗口） |
+| `SetSkinFolder(path)` | 设置内容XML所在资源文件夹；不设置时默认使用父窗口的资源路径 |
+| `bool ShowAt(Control* anchor, const DString& xmlFile, Placement = Bottom)` | 在锚点周围显示浮层；返回false时对象已自动销毁，不可再访问 |
+| `Dismiss()` | 主动关闭浮层（关闭原因kManual） |
+| `SetAutoDismiss(bool)` / `IsAutoDismiss()` | 点击外部/Esc是否自动关闭，默认true |
+| `SetNoFocus(bool)` / `IsNoFocus()` | 是否不抢焦点，默认true；设为false后通过失去焦点感知外部点击 |
+| `SetGap(int)` / `GetGap()` | 浮层与锚点的间距（未缩放逻辑像素），默认6 |
+| `SetAllowFlip(bool)` / `IsAllowFlip()` | 空间不足时是否允许翻转到对侧，默认true |
+| `GetAnchor()` | 获取锚点控件（浮层关闭或锚点销毁后可能为nullptr） |
+| `GetPlacement()` | 获取期望的弹出方位 |
+| `IsOpen()` | 浮层是否处于打开状态 |
+| `AttachOpened(callback)` / `AttachClosed(callback)` | 注册打开后/关闭前回调，回调参数为`CloseReason` |
+| `static GetActiveFlyout()` | 获取当前活动浮层，没有时返回nullptr |
+| `static DismissActive()` | 关闭当前活动浮层（无活动浮层时为空操作） |
+
+`Placement`枚举：`Bottom`（下方左对齐，默认）、`BottomEnd`（下方右对齐）、`Top`、`TopEnd`、`Right`、`RightEnd`、`Left`、`LeftEnd`。
+
+`CloseReason`枚举：`kManual`（主动关闭）、`kClickOutside`（点击外部/失去焦点）、`kEscape`（Esc键）、`kAnchorLost`（锚点或父窗口失效：销毁/隐藏/最小化/DPI变化）。
+
+### 内容XML编写要点
+
+浮层窗口本身由C++创建并设置样式，调用方只需提供**内容XML**：根节点为普通`<Window>`，需开启阴影与层窗口，并按内容给定固定尺寸（框架在其外层包裹阴影）：
+
+```xml
+<Window size="240,210" caption="0,0,0,0" use_system_caption="false"
+        shadow_type="default" shadow_attached="true"
+        layered_window="true" size_box="0,0,0,0">
+    <VBox class="flyout" width="240" height="auto">
+        <Label class="flyout_title" text="浮层标题"/>
+        <Label class="flyout_desc" text="说明文字……" margin="0,6,0,10"/>
+        <Button class="btn_primary_global" name="flyout_action" text="主要操作"
+                width="stretch" height="30" border_round="4,4"/>
+    </VBox>
+</Window>
+```
+
+说明：
+- 窗口尺寸按未缩放逻辑像素填写，高度需要保证内容完整（内容超出时会绘制到阴影区域）；
+- 内容中需要交互的控件通过`name`命名，在`ShowAt`成功后用`FindControl`查找并绑定事件；
+- 默认皮肤在global.xml中提供3个Class：`flyout`（240宽卡片，`bg_window_card`底色、`border_window`边框、圆角8）、`flyout_title`（14号粗体标题）、`flyout_desc`（12号`text_muted`多行说明文字）。
+
+### 使用示例
+
+```cpp
+//点击锚点按钮时弹出（同一锚点再次点击则关闭）
+void ShowFlyout(ui::Control* pAnchor)
+{
+    ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+    if (pActive != nullptr) {
+        if (pActive->GetAnchor() == pAnchor) {
+            pActive->Dismiss();      // 同锚点：切换关闭
+            return;
+        }
+        pActive->Dismiss();          // 不同锚点：旧浮层自动关闭
+    }
+
+    ui::Flyout* pFlyout = new ui::Flyout(this);
+    pFlyout->SetSkinFolder(GetResourcePath().ToString());
+    //XML文件名相对SkinFolder解析，不要带子目录前缀
+    if (!pFlyout->ShowAt(pAnchor, _T("my_flyout.xml"), ui::Flyout::Placement::Bottom)) {
+        return;                      // 创建失败时对象已自动销毁
+    }
+
+    ui::Button* pAction = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_action")));
+    if (pAction != nullptr) {
+        pAction->AttachClick([pFlyout](const ui::EventArgs&) {
+            //执行操作后关闭浮层
+            pFlyout->Dismiss();
+            return true;
+            });
+    }
+}
+```
+
+注意事项：
+- 不抢焦点模式下，浮层内控件可以正常响应点击，但键盘焦点仍在父窗口；需要在浮层内输入文字时调用`SetNoFocus(false)`；
+- 外部点击检测基于全局鼠标按键轮询（仅Windows平台），非Windows平台请使用`SetNoFocus(false)`的焦点模式；
+- 锚点位于滚动容器内时定位会自动扣除各级滚动偏移，滚动后点击仍在控件视觉位置弹出；
+- 父窗口通过`OpenColorTheme`使用私有颜色主题（如ColorTheme示例的深色窗口）时，浮层自动继承同一套配色，无需额外设置；
+- 跨显示器DPI变化时浮层会自动关闭（原因`kAnchorLost`），避免位置与尺寸错位。
+
+完整演示见controls示例（"浮层"分组，4个方位按钮）与ColorTheme示例。
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    

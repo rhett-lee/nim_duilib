@@ -61,6 +61,32 @@ void TestForm::OnInitWindow()
             return true;
             });
     }
+
+    //Flyout 浮层：4 个按钮分别从下/上/左/右弹出
+    struct FlyoutDemoItem
+    {
+        DString name;
+        ui::Flyout::Placement placement;
+    };
+    const FlyoutDemoItem flyoutItems[] = {
+        { _T("flyout_bottom"), ui::Flyout::Placement::Bottom },
+        { _T("flyout_top"),    ui::Flyout::Placement::Top },
+        { _T("flyout_left"),   ui::Flyout::Placement::Left },
+        { _T("flyout_right"),  ui::Flyout::Placement::Right },
+    };
+    for (const FlyoutDemoItem& item : flyoutItems) {
+        ui::Button* pFlyoutButton = dynamic_cast<ui::Button*>(FindControl(item.name));
+        if (pFlyoutButton != nullptr) {
+            pFlyoutButton->AttachClick([this, placement = item.placement](const ui::EventArgs& args) {
+                ui::Control* pAnchor = args.GetSender();
+                if (pAnchor == nullptr) {
+                    return true;
+                }
+                ShowFlyoutDemo(pAnchor, placement);
+                return true;
+                });
+        }
+    }
 }
 
 void TestForm::OnTimer()
@@ -81,6 +107,60 @@ void TestForm::OnTimer()
     m_nProgressValue += 0.4;
     if (m_nProgressValue > 100.0) {
         m_nProgressValue = 0.0;
+    }
+}
+
+void TestForm::ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement)
+{
+    if (pAnchor == nullptr) {
+        return;
+    }
+
+    //同一锚点再次点击：切换为关闭已打开的浮层
+    ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+    if ((pActive != nullptr) && (pActive->GetAnchor() == pAnchor)) {
+        pActive->Dismiss();
+        return;
+    }
+
+    //非模态浮层，关闭后框架自动 delete
+    //TestForm 的资源路径已是 "controls"，XML 文件名直接相对该路径
+    ui::Flyout* pFlyout = new ui::Flyout(this);
+    pFlyout->SetSkinFolder(GetResourcePath().ToString());
+    if (!pFlyout->ShowAt(pAnchor, _T("flyout_demo.xml"), placement)) {
+        //创建失败时 ShowAt 内部已销毁对象
+        return;
+    }
+
+    //浮层内“主要操作”：关闭浮层并弹出成功 Toast
+    ui::Button* pAction1 = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_action1")));
+    if (pAction1 != nullptr) {
+        pAction1->AttachClick([this, pFlyout](const ui::EventArgs& /*args*/) {
+            pFlyout->Dismiss();
+            ui::ToastWnd::Show(this, _T("STRID_FLYOUT_TOAST_ACTION1"), ui::ToastWnd::kTypeSuccess,
+                               2000, ui::ToastWnd::kPosTop, true);
+            return true;
+            });
+    }
+
+    //浮层内“次要操作”：关闭浮层并弹出信息 Toast
+    ui::Button* pAction2 = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_action2")));
+    if (pAction2 != nullptr) {
+        pAction2->AttachClick([this, pFlyout](const ui::EventArgs& /*args*/) {
+            pFlyout->Dismiss();
+            ui::ToastWnd::Show(this, _T("STRID_FLYOUT_TOAST_ACTION2"), ui::ToastWnd::kTypeInfo,
+                               2000, ui::ToastWnd::kPosTop, true);
+            return true;
+            });
+    }
+
+    //浮层内“关闭”按钮
+    ui::Button* pClose = dynamic_cast<ui::Button*>(pFlyout->FindControl(_T("flyout_close")));
+    if (pClose != nullptr) {
+        pClose->AttachClick([pFlyout](const ui::EventArgs& /*args*/) {
+            pFlyout->Dismiss();
+            return true;
+            });
     }
 }
 

@@ -9,17 +9,25 @@
                 <GroupHBox height="80" margin="6,6,6,6" text="Toast" corner_size="4,4">
                     <Button class="btn_global" text="Toast Test" name="toast_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
                 </GroupHBox>
+                <!-- Flyout 浮层：4 个按钮分别从下/上/右/左弹出，均以自身为锚点 -->
+                <GroupVBox height="80" width="auto" margin="6,6,6,6" text_id="STRID_FLYOUT_DEMO_GROUP" corner_size="4,4">
+                    <HBox margin="8,28,8,8" height="28" width="auto">
+                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_BOTTOM" name="flyout_bottom" width="56" height="28" border_round="3,3"/>
+                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_TOP" name="flyout_top" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
+                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_LEFT" name="flyout_left" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
+                        <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_RIGHT" name="flyout_right" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
+                    </HBox>
+                </GroupVBox>
             </HBox>
             <!-- TabCtrl (Badge) -->
-            <HBox height="36" margin="0,4,0,10">
-                <Label text_id="STRID_CONTROLS_TABCTRL" width="60" height="36" valign="center" margin="10,0,8,0"/>
-                <TabCtrl class="tab_ctrl" width="stretch" height="36" selected_id="0" tooltip_text="ui::TabCtrl + ui::TabCtrlItem (badge)">
+            <GroupHBox text_id="STRID_CONTROLS_TABCTRL" height="70" margin="6,6,6,6">
+                <TabCtrl class="tab_ctrl" width="stretch" height="36" margin="12,24,12,10" selected_id="3" tooltip_text="ui::TabCtrl + ui::TabCtrlItem (badge)">
                     <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_MSG" badge_count="5"/>
                     <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_NOTIFY" badge_count="120"/>
                     <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_FEED" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>
                     <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_SETTINGS"/>
                 </TabCtrl>
-            </HBox>
+            </GroupHBox>
             <GroupVBox margin="6,6,6,6" text="Progress" corner_size="4,4">            
                 <HBox height="30" margin="10,30,0,0">
                     <Label text="Progress: "/>

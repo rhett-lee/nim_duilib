@@ -832,5 +832,18 @@
                              button2_hovered_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_hovered.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(200,200,200,0.5)|bg_scrollbar_btn_hovered;rgba(30,120,200,0.9)|bg_scrollbar_btn_arrow_hovered'"
                              button2_pressed_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_pressed.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(180,180,180,0.7)|bg_scrollbar_btn_pressed;rgba(80,80,80,1.0)|bg_scrollbar_btn_arrow_pressed'"
                              button2_disabled_image="file='${PATH_SCROLLBAR_STANDARD}/hscrollbar/btn_right_disabled.svg' height='${SIZE_SCROLLBAR_HEIGHT}' svg_replace_colors='rgba(220,220,220,0.1)|bg_scrollbar_btn_disabled;rgba(120,120,120,0.4)|bg_scrollbar_btn_arrow_disabled'" />
-    
+
+    <!-- Flyout浮层容器：浮层窗口的内容根容器（窗口级阴影由XML根节点 shadow_attached="true" 配置） -->
+    <Class name="flyout" width="240" height="auto" bkcolor="bg_window_card"
+                            border_size="1" border_color="border_window" border_round="8,8"
+                            padding="12,12,12,12"/>
+    <!-- Flyout标题文本 -->
+    <Class name="flyout_title" width="stretch" height="auto" font="system_bold_14"
+                                   normal_text_color="text_default" text_align="hleft,vcenter"
+                                   mouse_enabled="false" tab_stop="false"/>
+    <!-- Flyout辅助说明文本 -->
+    <Class name="flyout_desc" width="stretch" height="auto" font="system_regular_12"
+                                  normal_text_color="text_muted" multi_line="true"
+                                  text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
+
 </Global>

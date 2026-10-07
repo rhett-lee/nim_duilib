@@ -83,7 +83,7 @@
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr>
-        <td rowspan="31">新增控件/新增容器</td>
+        <td rowspan="32">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -116,6 +116,7 @@
     <tr><td align="left">29. SpinBox：数字输入框，继承RichEdit，支持步长/范围/步进按钮</td></tr>
     <tr><td align="left">30. Switch：滑块开关控件，继承CheckBox，自带滑动动画与颜色过渡</td></tr>
     <tr><td align="left">31. Badge：角标控件，未读数/小红点，数量超限显示"99+"，count<=0 自动隐藏</td></tr>
+    <tr><td align="left">32. Flyout：Flyout是通用浮层（弹出卡片）窗口，。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等）。</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

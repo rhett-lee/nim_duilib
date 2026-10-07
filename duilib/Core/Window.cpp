@@ -629,6 +629,7 @@ bool Window::OpenColorThemeData(const std::string& themeXmlFileData)
     if (themeXmlFileData.empty()) {
         return false;
     }
+    m_colorThemeXmlData.clear();
     std::vector<unsigned char> xmlFileData;
     xmlFileData.resize(themeXmlFileData.size());
     memcpy(xmlFileData.data(), themeXmlFileData.data(), xmlFileData.size());
@@ -662,6 +663,9 @@ bool Window::OpenColorThemeData(const std::string& themeXmlFileData)
     globalbuilder.ParseThemeColor(*m_pColorManager);
     m_pColorManager->SetColorThemeDarkMode(readThemeStyle == ThemeStyle::kDark);
 
+    //私有颜色主题设置成功：保存原始XML数据，供弹出子窗口（如Flyout）继承
+    m_colorThemeXmlData = themeXmlFileData;
+
     //主题变化后，重绘界面
     InvalidateAll();
     return true;
@@ -670,8 +674,14 @@ bool Window::OpenColorThemeData(const std::string& themeXmlFileData)
 void Window::CloseColorTheme()
 {
     m_pColorManager.reset();
+    m_colorThemeXmlData.clear();
     //主题变化后，重绘界面
     InvalidateAll();
+}
+
+const std::string& Window::GetColorThemeXmlData() const
+{
+    return m_colorThemeXmlData;
 }
 
 bool Window::IsColorThemeDarkMode() const
