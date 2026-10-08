@@ -526,4 +526,46 @@ void DateTime::EndEditDateTime()
     SendEvent(kEventKillFocus);
 }
 
+UiSize DateTime::EstimateText(UiSize szAvailable)
+{
+    //当未设置日期（显示文本为空）时，使用与日期格式等宽的示例字符串估算，
+    //避免 width/height 为 auto 时被估算为 0，导致控件塌陷；
+    //已设置日期时，直接使用真实日期文本进行估算。
+    DString text = GetText();
+    if (text.empty()) {
+        DString sample = GetSampleDateTimeString();
+        if (!sample.empty()) {
+            return BaseClass::EstimateTextWith(sample, szAvailable);
+        }
+    }
+    return BaseClass::EstimateText(szAvailable);
+}
+
+DString DateTime::GetSampleDateTimeString() const
+{
+    //使用固定日期（2000-01-01 00:00:00）生成与真实日期等宽的示例字符串，
+    //仅用于尺寸估算，不会作为实际显示文本。
+    struct tm t = { 0, };
+    t.tm_year = 100;   //2000 年
+    t.tm_mon  = 0;     //1 月
+    t.tm_mday = 1;
+    t.tm_hour = 0;
+    t.tm_min  = 0;
+    t.tm_sec  = 0;
+    t.tm_wday = 6;     //2000-01-01 为星期六（仅 %a/%A/%w 等格式会用到）
+    t.tm_yday = 0;
+    t.tm_isdst = -1;   //由 mktime 自动判断夏令时
+    DString sFormat = GetStringFormat();
+    if (sFormat.empty()) {
+        return DString();
+    }
+#ifdef DUILIB_UNICODE
+    std::wstringstream ss;
+#else
+    std::stringstream ss;
+#endif
+    ss << std::put_time(&t, sFormat.c_str());
+    return ss.str();
+}
+
 }//namespace ui

@@ -635,8 +635,12 @@ bool LabelImpl::HasHoveredStateColor()
 
 UiSize LabelImpl::OnEstimateText(UiSize szAvailable)
 {
+    return OnEstimateTextWith(GetOwnerText(), szAvailable);
+}
+
+UiSize LabelImpl::OnEstimateTextWith(const DString& textValue, UiSize szAvailable)
+{
     UiSize fixedSize;
-    const DString textValue = GetOwnerText();
     if (textValue.empty()) {
         //文本为空时，宽度和高度估算结果均为0
         return fixedSize;

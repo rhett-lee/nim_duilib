@@ -143,6 +143,12 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
+    /** 计算文本区域大小（宽和高）
+     *  当未设置日期（显示文本为空）时，使用与日期格式等宽的示例字符串估算，
+     *  避免 width/height 为 auto 时被估算为 0，导致控件塌陷。
+     */
+    virtual UiSize EstimateText(UiSize szAvailable) override;
+
     //用于初始化xml属性
     virtual void OnInit() override;
 
@@ -155,6 +161,11 @@ private:
     /** 比较两个时间是否相同
     */
     bool IsEqual(const struct tm& a, const struct tm& b) const;
+
+    /** 生成与当前日期格式等宽的示例日期字符串，仅用于 auto 尺寸估算
+     *  （使用固定日期 2000-01-01 00:00:00，宽度与真实日期一致）
+     */
+    DString GetSampleDateTimeString() const;
 
     /** 结束编辑
     */

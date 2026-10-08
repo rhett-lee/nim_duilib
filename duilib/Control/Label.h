@@ -35,6 +35,13 @@ public:
      */
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
+    /** 使用指定的文本内容进行文本尺寸估算（供子类在文本为空时提供示例文本使用，避免 auto 尺寸塌陷）
+     *  @param [in] textValue 用于估算的文本内容
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     */
+    UiSize EstimateTextWith(const DString& textValue, UiSize szAvailable);
+
 public:
     /** 获取文本内容
     */
@@ -519,6 +526,12 @@ template<typename T>
 UiSize LabelTemplate<T>::EstimateText(UiSize szAvailable)
 {
     return m_impl->OnEstimateText(szAvailable);
+}
+
+template<typename T>
+UiSize LabelTemplate<T>::EstimateTextWith(const DString& textValue, UiSize szAvailable)
+{
+    return m_impl->OnEstimateTextWith(textValue, szAvailable);
 }
 
 template<typename T>
