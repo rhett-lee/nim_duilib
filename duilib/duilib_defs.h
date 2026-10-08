@@ -479,6 +479,8 @@ namespace ui
         kEventImageLoad,                //图片加载完成事件，wParam 为数据指针：ui::ImageDecodeResult*
         kEventImageDecode,              //图片解码完成事件，wParam 为数据指针：ui::ImageDecodeResult*
 
+        kEventViewModeChanged,          //Calendar类：当日历视图模式（月/年/十年）发生变化时触发，wParam是新视图模式(0=月,1=年,2=十年)，lParam是旧视图模式
+
         kEventLast,                     //控件的最后一个消息
 
         /** 窗口相关的事件，这些事件不会发给任何控件，直接发给应用层

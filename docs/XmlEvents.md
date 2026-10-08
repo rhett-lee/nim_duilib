@@ -207,5 +207,6 @@ if (msg.eventType == eventType) {
 |kEventLoadingStop|"LoadingStop"|"loading_stop"|
 |kEventImageLoad|"ImageLoad"|"image_load"|
 |kEventImageDecode|"ImageDecode"|"image_decode"|
+|kEventViewModeChanged|"ViewModeChanged"|"view_mode_changed"|
 
 以上列表中，在XML中使用"事件的XML名称1"或者"事件的XML名称2"均可，两个名称都认。

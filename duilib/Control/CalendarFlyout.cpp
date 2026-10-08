@@ -152,6 +152,13 @@ void CalendarFlyout::InitControls()
             Dismiss();
             return true;
         });
+
+        //绑定视图模式变化事件：年/十年视图下通过网格点击下钻（年->月、十年->年）时，
+        //标题栏需同步刷新，否则标题会停留在上一级视图的文字。
+        pCalendar->AttachViewModeChanged([this](const EventArgs&) {
+            UpdateTitle();
+            return true;
+        });
     }
 
     //上一月/下一月按钮
@@ -252,15 +259,16 @@ void CalendarFlyout::OnTitleClicked()
     if (pCalendar != nullptr) {
         int32_t mode = pCalendar->GetViewMode();
         if (mode == 0) {
-            pCalendar->SetViewMode(1); //月 -> 年
+            pCalendar->SetViewMode(1); //月 -> 年（上钻一级，粒度更粗）
         }
         else if (mode == 1) {
-            pCalendar->SetViewMode(2); //年 -> 十年
+            pCalendar->SetViewMode(2); //年 -> 十年（上钻一级，粒度更粗）
         }
         else {
-            pCalendar->SetViewMode(0); //十年 -> 月
+            //十年视图已是最粗粒度，标题无可再上钻的层级，保持不动。
+            //（不再像旧实现那样跳回月视图，避免跨越年视图造成的方向错乱）
         }
-        UpdateTitle();
+        //标题刷新由 AttachViewModeChanged 回调统一处理（SetViewMode 触发），此处无需重复调用。
     }
 }
 
@@ -268,18 +276,11 @@ void CalendarFlyout::OnTodayClicked()
 {
     Calendar* pCalendar = GetCalendar();
     if (pCalendar != nullptr) {
+        //仅导航到当前月份，不提交日期、不关闭浮层。
+        //日期提交仍由网格点击（单选）或"确定"按钮完成，避免一次误触就直接提交"今天"并关闭。
         pCalendar->GoToToday();
         UpdateTitle();
     }
-    //注意：不要在这里调用 pCalendar->SetDate()——它会触发事件回调链并同步关闭浮层，
-    //导致后续代码访问已销毁的对象。这里直接触发回调并关闭浮层。
-    struct tm today = Calendar::GetToday();
-    time_t t = Calendar::DateToTimeT(today);
-    std::vector<DateSelectedEvent> callbacks = m_dateSelectedCallbacks;
-    for (const DateSelectedEvent& callback : callbacks) {
-        callback(0, (LPARAM)t);
-    }
-    Dismiss();
 }
 
 void CalendarFlyout::OnClearClicked()

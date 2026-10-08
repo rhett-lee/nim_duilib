@@ -257,9 +257,12 @@ void Calendar::SetViewMode(int32_t viewMode)
         return;
     }
     if (m_viewMode != viewMode) {
+        int32_t oldViewMode = m_viewMode;
         m_viewMode = viewMode;
         m_bCellsDirty = true;
         Invalidate();
+        //通知视图模式变化（例如网格点击下钻：年->月、十年->年），供浮层同步刷新标题栏。
+        SendEvent(kEventViewModeChanged, (WPARAM)viewMode, (LPARAM)oldViewMode);
     }
 }
 

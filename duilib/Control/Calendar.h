@@ -145,6 +145,18 @@ public:
     */
     void AttachDateChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
 
+    /** 监听视图模式变化事件（月/年/十年切换）
+    * @param [in] callback 视图模式变化时的回调函数
+    * @param [in] callbackID 该回调函数对应的ID
+    * 参数说明：
+    *   wParam: 新的视图模式（0=月, 1=年, 2=十年）
+    *   lParam: 旧的视图模式（0=月, 1=年, 2=十年）
+    * 注意：在日历模式下，视图切换既可能来自标题按钮（上钻），也可能来自网格点击（下钻，
+    *       例如年视图点击月份进入月视图、十年视图点击年份进入年视图）。浮层标题栏需要根据
+    *       该事件同步刷新，避免标题与当前视图脱节。
+    */
+    void AttachViewModeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventViewModeChanged, callback, callbackID); }
+
 public:
     /** 判断两个日期是否同一天
     */
