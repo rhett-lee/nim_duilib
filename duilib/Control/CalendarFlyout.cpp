@@ -2,6 +2,7 @@
 #include "duilib/Control/Calendar.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Core/WindowBuilder.h"
+#include "duilib/Core/Keycode.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Utils/StringUtil.h"
@@ -45,6 +46,9 @@ bool CalendarFlyout::ShowAt(Control* pAnchor, const struct tm& initDate, Placeme
 {
     m_initDate = initDate;
     m_bHasInitDate = true;
+    //日历需要接收键盘事件（方向键/回车导航），故浮层必须抢占焦点。
+    //DateTime 侧已有 m_bSuppressCalendarReopen 标志，关闭后焦点回落不会造成重开死循环。
+    SetNoFocus(false);
     return Flyout::ShowAt(pAnchor, kCalendarFlyoutXml, placement);
 }
 
@@ -159,6 +163,21 @@ void CalendarFlyout::InitControls()
             UpdateTitle();
             return true;
         });
+
+        //键盘导航：打开时初始化键盘焦点，使焦点环立即出现（优先用已选日期，否则用今天）
+        pCalendar->SetInitialFocus();
+
+        //让 Calendar 控件获得键盘焦点：延迟到窗口显示完成（SetWindowForeground）之后执行，
+        //避免焦点被重置，从而方向键/回车导航生效。
+        GlobalManager::Instance().Thread().PostDelayedTask(
+            kThreadUI,
+            UiBind(this, [this]() {
+                Calendar* pCal = GetCalendar();
+                if (pCal != nullptr && IsWindow() && (pCal->GetWindow() != nullptr)) {
+                    pCal->SetFocus();
+                }
+            }),
+            0);
     }
 
     //上一月/下一月按钮
@@ -316,6 +335,54 @@ Calendar* CalendarFlyout::GetCalendar() const
         return nullptr;
     }
     return dynamic_cast<Calendar*>(m_pCalendar);
+}
+
+LRESULT CalendarFlyout::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar != nullptr) {
+        bool bHandledLocal = false;
+        switch (vkCode) {
+        case kVK_LEFT:
+        case kVK_RIGHT:
+        case kVK_UP:
+        case kVK_DOWN:
+        case kVK_PRIOR: //PageUp
+        case kVK_NEXT:  //PageDown
+            //方向键 / 翻页：始终导航日历（按钮不使用这些键，无冲突）
+            bHandledLocal = HandleCalendarKey(pCalendar, vkCode, modifierKey);
+            break;
+        case kVK_RETURN:
+        case kVK_SPACE:
+            //Enter / Space：仅当日历自身获得焦点时用于选中 / 下钻；
+            //若焦点在按钮上则交由基类处理按钮激活，避免双重响应。
+            if (GetFocusControl() == pCalendar) {
+                bHandledLocal = HandleCalendarKey(pCalendar, vkCode, modifierKey);
+            }
+            break;
+        default:
+            break;
+        }
+        if (bHandledLocal) {
+            bHandled = true;
+            return 0;
+        }
+    }
+    //其余按键（含 Esc 关闭浮层）交由基类处理
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
+bool CalendarFlyout::HandleCalendarKey(Calendar* pCalendar, VirtualKeyCode vkCode, uint32_t modifierKey)
+{
+    if (pCalendar == nullptr) {
+        return false;
+    }
+    EventArgs keyMsg;
+    keyMsg.eventType = kEventKeyDown;
+    keyMsg.vkCode = vkCode;
+    keyMsg.modifierKey = modifierKey;
+    keyMsg.SetSender(pCalendar); //SetDate 后浮层可能关闭并销毁 Calendar，IsSenderExpired 据此判断
+    return pCalendar->HandleKeyDown(keyMsg);
 }
 
 } // namespace ui

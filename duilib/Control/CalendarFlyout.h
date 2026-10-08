@@ -100,6 +100,11 @@ public:
     //和 m_xml（ShowAt 传入的内嵌 XML），重写为空会导致窗口 XML 加载失败、创建被销毁
     virtual void OnInitWindow() override;
 
+    /** 键盘导航：拦截方向键/PgUp/PgDn/Enter/Space 并转发给内部 Calendar；
+     *  Esc 仍由 Flyout 基类处理（关闭浮层）。
+     */
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
 private:
     /** 初始化内部控件
     */
@@ -132,6 +137,10 @@ private:
     /** 日历控件日期变化事件
     */
     void OnCalendarDateChanged(const EventArgs& msg);
+
+    /** 构造 kEventKeyDown 事件并转发给 Calendar::HandleKeyDown（供 OnKeyDownMsg 调用）
+     */
+    bool HandleCalendarKey(Calendar* pCalendar, VirtualKeyCode vkCode, uint32_t modifierKey);
 
     /** 获取内部 Calendar 控件
     */

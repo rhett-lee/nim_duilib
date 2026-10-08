@@ -157,6 +157,18 @@ public:
     */
     void AttachViewModeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventViewModeChanged, callback, callbackID); }
 
+    /** 键盘导航：由 CalendarFlyout 在收到按键时调用（方向键移动焦点、PgUp/PgDn 翻页、Enter/Space 选中或下钻）
+     * @param [in] msg kEventKeyDown 事件（含 vkCode / modifierKey）
+     * @return true 表示已处理该按键（事件不再继续派发）
+     * 注意：Esc 关闭浮层由 Flyout 基类处理，本方法不处理 Esc。
+     */
+    bool HandleKeyDown(const EventArgs& msg);
+
+    /** 打开时初始化键盘焦点：使焦点环在浮层显示时即出现，且不改变显示范围
+     * （优先用已选日期，否则用今天）。仅用于浮层打开场景。
+     */
+    void SetInitialFocus();
+
 public:
     /** 判断两个日期是否同一天
     */
@@ -309,6 +321,49 @@ private:
     */
     struct tm m_today;
     bool m_bTodayValid;
+
+    /** 键盘导航用的"焦点日期"（与鼠标悬停 m_hover 分离）
+     *  - 月视图：年/月/日均有效
+     *  - 年视图：年/月有效（日固定为 1）
+     *  - 十年视图：年仅有效（月固定为 m_displayMonth）
+     */
+    struct tm m_focusDate;
+    bool m_bHasFocusDate;
+
+    /** 确保键盘焦点日期已初始化（首次按键或打开时）：优先用已选日期，否则用今天
+     */
+    void EnsureFocusDate();
+
+    /** 设置键盘焦点日期，并使其可见（必要时切换显示月/年/十年）
+     */
+    void SetKeyboardFocusDate(const struct tm& date);
+
+    /** 把键盘焦点对齐到当前显示范围（PageUp/PageDown 翻页后调用，保持焦点在可见区域内）
+     */
+    void SyncFocusToDisplay();
+
+    /** 月视图：按天移动焦点（deltaDays 可正可负，如 ±1 / ±7）
+     */
+    void MoveFocusDay(int32_t deltaDays);
+
+    /** 年视图：按月份移动焦点（deltaMonths 可正可负，如 ±1 / ±3）
+     */
+    void MoveFocusMonth(int32_t deltaMonths);
+
+    /** 十年视图：按年份移动焦点（deltaYears 可正可负，如 ±1 / ±3）
+     */
+    void MoveFocusYear(int32_t deltaYears);
+
+    /** 在月视图下，选中当前键盘焦点所在的日期
+     *  - 单选：SetDate（触发 kEventValueChanged，浮层随后关闭）
+     *  - 范围：两步选择（第一次设起始日，第二次设结束日）
+     * @param [in] msg 触发该操作的键盘事件（用于 SetDate 后检测控件是否已被销毁）
+     */
+    void SelectFocusedDay(const EventArgs& msg);
+
+    /** 绘制键盘焦点环（在指定矩形内绘制 1px 圆角边框，使用主题色 border_focus_ring）
+     */
+    void DrawFocusRing(IRender* pRender, const UiRect& rect, float cornerRadius);
 };
 
 } // namespace ui

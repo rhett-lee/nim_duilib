@@ -1,6 +1,7 @@
 #include "Calendar.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Keycode.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include <ctime>
@@ -39,7 +40,9 @@ Calendar::Calendar(Window* pWindow):
     m_bHasMinDate(false),
     m_bHasMaxDate(false),
     m_bCellsDirty(true),
-    m_bTodayValid(false)
+    m_bTodayValid(false),
+    m_focusDate{0},
+    m_bHasFocusDate(false)
 {
     //初始化显示为当前年月
     m_today = GetToday();
@@ -263,6 +266,232 @@ void Calendar::SetViewMode(int32_t viewMode)
         Invalidate();
         //通知视图模式变化（例如网格点击下钻：年->月、十年->年），供浮层同步刷新标题栏。
         SendEvent(kEventViewModeChanged, (WPARAM)viewMode, (LPARAM)oldViewMode);
+    }
+}
+
+namespace {
+//规范化 tm：通过 mktime 规整越界字段（如 2 月 31 日 -> 3 月 3 日）；
+//hour 设为 12 以规避夏令时边界问题（与 GetMonthCells 一致）。
+void NormalizeTm(struct tm& t)
+{
+    t.tm_hour = 12;
+    t.tm_min = 0;
+    t.tm_sec = 0;
+    t.tm_isdst = -1;
+    time_t tt = std::mktime(&t);
+    if (tt != (time_t)-1) {
+        t = *std::localtime(&tt);
+    }
+}
+}
+
+void Calendar::EnsureFocusDate()
+{
+    if (m_bHasFocusDate) {
+        return;
+    }
+    struct tm d = {0, };
+    if (HasSelection()) {
+        d = (m_mode == Mode::kSingle) ? m_selectedDate : m_rangeStart;
+    }
+    else {
+        d = m_today;
+    }
+    m_focusDate = d;
+    m_bHasFocusDate = true;
+}
+
+void Calendar::SetKeyboardFocusDate(const struct tm& date)
+{
+    m_focusDate = date;
+    m_bHasFocusDate = true;
+    Invalidate();
+}
+
+void Calendar::SyncFocusToDisplay()
+{
+    //PageUp/PageDown 翻页后，把键盘焦点对齐到新的显示范围（保持同一天/月/年，仅跟随显示边界）
+    struct tm d = m_focusDate;
+    d.tm_year = m_displayYear - 1900;
+    if (m_viewMode == 0) {
+        d.tm_mon = m_displayMonth - 1;
+    }
+    NormalizeTm(d);
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusDay(int32_t deltaDays)
+{
+    struct tm d = m_focusDate;
+    d.tm_mday += deltaDays;
+    NormalizeTm(d);
+    int32_t fy = d.tm_year + 1900;
+    int32_t fm = d.tm_mon + 1;
+    if (fy != m_displayYear || fm != m_displayMonth) {
+        SetDisplayMonth(fy, fm); //跟随显示，使焦点始终可见
+    }
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusMonth(int32_t deltaMonths)
+{
+    struct tm d = m_focusDate;
+    d.tm_mon += deltaMonths;
+    d.tm_mday = 1; //避免 31 日跨月被 mktime 规整到再下一个月（如 1/31 -> +1 月本应到 2 月，若保留 31 会变成 3 月）
+    NormalizeTm(d);
+    int32_t fy = d.tm_year + 1900;
+    if (fy != m_displayYear) {
+        SetDisplayMonth(fy, d.tm_mon + 1); //年视图下跟随年份
+    }
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusYear(int32_t deltaYears)
+{
+    struct tm d = m_focusDate;
+    d.tm_year += deltaYears;
+    d.tm_mday = 1;
+    NormalizeTm(d);
+    int32_t fy = d.tm_year + 1900;
+    int32_t decade = (fy / 10) * 10;
+    int32_t curDecade = (m_displayYear / 10) * 10;
+    if (decade != curDecade) {
+        SetDisplayMonth(fy, m_displayMonth); //十年视图下跟随十年
+    }
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::SelectFocusedDay(const EventArgs& msg)
+{
+    if (m_viewMode != 0) {
+        return;
+    }
+    //越界/禁用判断
+    if (m_bHasMinDate && IsDateLess(m_focusDate, m_minDate)) {
+        return;
+    }
+    if (m_bHasMaxDate && IsDateLess(m_maxDate, m_focusDate)) {
+        return;
+    }
+    if (m_mode == Mode::kSingle) {
+        SetDate(m_focusDate);
+        //SetDate 触发 kEventValueChanged，可能同步关闭浮层并销毁本控件，需检测过期后停止访问 this
+        if (msg.IsSenderExpired()) {
+            return;
+        }
+    }
+    else {
+        //范围模式：两步选择（与鼠标交互语义一致）
+        if (!m_bRangeAwaitingEnd) {
+            m_rangeDragStart = m_focusDate;
+            m_rangeStart = m_focusDate;
+            m_rangeEnd = m_focusDate;
+            m_bHasRangeStart = true;
+            m_bHasRangeEnd = false;
+            m_bRangeAwaitingEnd = true;
+            Invalidate();
+        }
+        else {
+            struct tm d = m_focusDate;
+            if (IsDateLess(d, m_rangeDragStart)) {
+                m_rangeEnd = m_rangeDragStart;
+                m_rangeStart = d;
+            }
+            else {
+                m_rangeStart = m_rangeDragStart;
+                m_rangeEnd = d;
+            }
+            m_bHasRangeStart = true;
+            m_bHasRangeEnd = true;
+            m_bRangeAwaitingEnd = false;
+            Invalidate();
+            time_t tStart = DateToTimeT(m_rangeStart);
+            time_t tEnd = DateToTimeT(m_rangeEnd);
+            SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+            if (msg.IsSenderExpired()) {
+                return;
+            }
+        }
+    }
+}
+
+bool Calendar::HandleKeyDown(const EventArgs& msg)
+{
+    EnsureFocusDate();
+    const uint32_t vk = msg.vkCode;
+    switch (vk) {
+    case kVK_LEFT:
+        if (m_viewMode == 0) { MoveFocusDay(-1); }
+        else if (m_viewMode == 1) { MoveFocusMonth(-1); }
+        else { MoveFocusYear(-1); }
+        return true;
+    case kVK_RIGHT:
+        if (m_viewMode == 0) { MoveFocusDay(1); }
+        else if (m_viewMode == 1) { MoveFocusMonth(1); }
+        else { MoveFocusYear(1); }
+        return true;
+    case kVK_UP:
+        if (m_viewMode == 0) { MoveFocusDay(-kDaysPerWeek); }
+        else if (m_viewMode == 1) { MoveFocusMonth(-kYearGridCols); }
+        else { MoveFocusYear(-kYearGridCols); }
+        return true;
+    case kVK_DOWN:
+        if (m_viewMode == 0) { MoveFocusDay(kDaysPerWeek); }
+        else if (m_viewMode == 1) { MoveFocusMonth(kYearGridCols); }
+        else { MoveFocusYear(kYearGridCols); }
+        return true;
+    case kVK_PRIOR: //PageUp：上一月 / 年 / 十年
+        NavigatePrev();
+        SyncFocusToDisplay();
+        return true;
+    case kVK_NEXT: //PageDown：下一月 / 年 / 十年
+        NavigateNext();
+        SyncFocusToDisplay();
+        return true;
+    case kVK_RETURN:
+    case kVK_SPACE:
+        if (m_viewMode == 0) {
+            SelectFocusedDay(msg);
+        }
+        else if (m_viewMode == 1) {
+            //年视图下钻到月视图
+            SetDisplayMonth(m_focusDate.tm_year + 1900, m_focusDate.tm_mon + 1);
+            SetViewMode(0);
+        }
+        else {
+            //十年视图下钻到年视图
+            SetDisplayMonth(m_focusDate.tm_year + 1900, m_displayMonth);
+            SetViewMode(1);
+        }
+        return true;
+    default:
+        return false;
+    }
+}
+
+void Calendar::SetInitialFocus()
+{
+    EnsureFocusDate();
+    Invalidate();
+}
+
+void Calendar::DrawFocusRing(IRender* pRender, const UiRect& rect, float cornerRadius)
+{
+    UiColor focusColor = GetUiColor(_T("border_focus_ring"));
+    if (focusColor.IsEmpty()) {
+        return;
+    }
+    UiRectF focusRectF;
+    focusRectF.left = (float)(rect.left + 1);
+    focusRectF.top = (float)(rect.top + 1);
+    focusRectF.right = (float)(rect.right - 1);
+    focusRectF.bottom = (float)(rect.bottom - 1);
+    float radius = Dpi().GetScaleFloat(cornerRadius);
+    float width = Dpi().GetScaleFloat(1.5f);
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(focusColor, width));
+        pRender->DrawRoundRect(focusRectF, radius, radius, pen.get());
     }
 }
 
@@ -558,6 +787,12 @@ void Calendar::DrawDayCell(IRender* pRender, const DayCell& cell, IFont* pFont)
     param.pFont = pFont;
     param.uFormat = TEXT_HCENTER | TEXT_VCENTER;
     pRender->DrawString(text, param);
+
+    //键盘焦点环（区别于鼠标悬停：仅在键盘导航存在焦点日期时绘制）
+    if (m_bHasFocusDate && cell.year == (m_focusDate.tm_year + 1900) &&
+        cell.month == (m_focusDate.tm_mon + 1) && cell.day == m_focusDate.tm_mday) {
+        DrawFocusRing(pRender, innerRect, cornerRadius);
+    }
 }
 
 void Calendar::DrawYearView(IRender* pRender, const UiRect& rect)
@@ -577,8 +812,6 @@ void Calendar::DrawYearView(IRender* pRender, const UiRect& rect)
     UiColor selectedTextColor = GetUiColor(_T("text_primary_btn_normal"));
 
     int32_t currentYear = m_displayYear;
-    int32_t currentMonth = m_displayMonth;
-
     for (int32_t i = 0; i < 12; ++i) {
         int32_t row = i / kYearGridCols;
         int32_t col = i % kYearGridCols;
@@ -615,6 +848,12 @@ void Calendar::DrawYearView(IRender* pRender, const UiRect& rect)
         param.pFont = pFont;
         param.uFormat = TEXT_HCENTER | TEXT_VCENTER;
         pRender->DrawString(text, param);
+
+        //键盘焦点环（年视图：焦点停留在某个月份）
+        if (m_bHasFocusDate && (m_focusDate.tm_year + 1900) == currentYear &&
+            (m_focusDate.tm_mon + 1) == month) {
+            DrawFocusRing(pRender, innerRect, 4.0f);
+        }
     }
 }
 
@@ -635,8 +874,6 @@ void Calendar::DrawDecadeView(IRender* pRender, const UiRect& rect)
     UiColor selectedTextColor = GetUiColor(_T("text_primary_btn_normal"));
 
     int32_t startYear = (m_displayYear / 10) * 10;
-    int32_t currentYear = m_displayYear;
-
     for (int32_t i = 0; i < 12; ++i) {
         int32_t row = i / kYearGridCols;
         int32_t col = i % kYearGridCols;
@@ -673,6 +910,11 @@ void Calendar::DrawDecadeView(IRender* pRender, const UiRect& rect)
         param.pFont = pFont;
         param.uFormat = TEXT_HCENTER | TEXT_VCENTER;
         pRender->DrawString(text, param);
+
+        //键盘焦点环（十年视图：焦点停留在某一个年份）
+        if (m_bHasFocusDate && (m_focusDate.tm_year + 1900) == year) {
+            DrawFocusRing(pRender, innerRect, 4.0f);
+        }
     }
 }
 
