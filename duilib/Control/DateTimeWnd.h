@@ -1,10 +1,8 @@
-#ifndef _UI_CONTROL_DATETIME_WND_SDL_H_
-#define _UI_CONTROL_DATETIME_WND_SDL_H_
+#ifndef _UI_CONTROL_DATETIME_WND_H_
+#define _UI_CONTROL_DATETIME_WND_H_
 
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/Callback.h"
-
-#if defined (DUILIB_BUILD_FOR_SDL)
 
 namespace ui
 {
@@ -13,7 +11,7 @@ class RichEdit;
 class Control;
 class VBox;
 
-/** 日期时间选择控件的实现（SDL）
+/** 日期时间选择控件的实现（统一的跨平台实现）
 */
 class DateTimeWnd : public virtual SupportWeakCallback
 {
@@ -122,6 +120,4 @@ private:
 
 } //namespace ui
 
-#endif // DUILIB_BUILD_FOR_SDL
-
-#endif // _UI_CONTROL_DATETIME_WND_SDL_H_
+#endif // _UI_CONTROL_DATETIME_WND_H_

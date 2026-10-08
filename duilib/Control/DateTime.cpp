@@ -8,11 +8,7 @@
 #include <sstream>
 #include <iomanip>
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    #include "DateTimeWnd_Windows.h"
-#elif defined (DUILIB_BUILD_FOR_SDL)
-    #include "DateTimeWnd_SDL.h"
-#endif
+#include "DateTimeWnd.h"
 
 namespace ui
 {
@@ -30,10 +26,8 @@ DateTime::DateTime(Window* pWindow):
     SetAttribute(_T("border_color"), _T("border_richedit_normal"));
     SetAttribute(_T("text_align"), _T("vcenter"));
     SetAttribute(_T("text_padding"), _T("2,0,0,0"));
-#ifdef DUILIB_BUILD_FOR_SDL
     SetAttribute(_T("padding"), _T("1,1,1,1"));
     SetAttribute(_T("spin_class"), _T("rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down"));
-#endif
 }
 
 DateTime::~DateTime()
@@ -402,13 +396,13 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 }
             }
             else {
-                //其他格式使用旧的 DateTimeWnd
+                //其他格式使用统一的 DateTimeWnd 实现
                 m_pDateWindow = new DateTimeWnd(this);
                 if (m_pDateWindow->Init(this)) {
                     m_pDateWindow->ShowWindow();
                 }
                 else {
-                    delete m_pDateWindow;
+                    delete m_pDateWindow.get();
                     m_pDateWindow = nullptr;
                 }
             }
@@ -454,13 +448,13 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 }
             }
             else {
-                //其他格式使用旧的 DateTimeWnd
+                //其他格式使用统一的 DateTimeWnd 实现
                 m_pDateWindow = new DateTimeWnd(this);
                 if (m_pDateWindow->Init(this)) {
                     m_pDateWindow->ShowWindow();
                 }
                 else {
-                    delete m_pDateWindow;
+                    delete m_pDateWindow.get();
                     m_pDateWindow = nullptr;
                 }
             }
@@ -552,11 +546,13 @@ UiSize DateTime::EstimateText(UiSize szAvailable)
     //支持 Spin（spin_class 不为空）时，预留 Spin 按钮容器所占的宽度，
     //使 width 为 auto 的 DateTime 在显示态也能为编辑态的 Spin 留出空间，
     //避免进入编辑态后 Spin 被挤压或显示不全。
-    DString spinClass = GetSpinClass();
-    if (!spinClass.empty()) {
-        int32_t nSpinWidth = GetSpinBoxWidth(spinClass);
-        if (nSpinWidth > 0) {
-            size.cx += nSpinWidth;
+    if (GetEditFormat() != EditFormat::kDateCalendar) {
+        DString spinClass = GetSpinClass();
+        if (!spinClass.empty()) {
+            int32_t nSpinWidth = GetSpinBoxWidth(spinClass);
+            if (nSpinWidth > 0) {
+                size.cx += nSpinWidth;
+            }
         }
     }
     return size;

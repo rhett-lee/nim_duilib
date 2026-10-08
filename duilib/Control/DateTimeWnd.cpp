@@ -1,12 +1,10 @@
-#include "DateTimeWnd_SDL.h"
+#include "DateTimeWnd.h"
 #include "DateTime.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Core/GlobalManager.h"
-
-#if defined (DUILIB_BUILD_FOR_SDL)
 
 namespace ui
 {
@@ -621,6 +619,4 @@ void DateTimeWnd::AdjustTextNumber(int32_t nDelta)
 }
 
 } //namespace ui
-
-#endif // DUILIB_BUILD_FOR_SDL
 

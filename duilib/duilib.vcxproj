@@ -249,8 +249,7 @@
     <ClCompile Include="Control\ColorSlider.cpp" />
     <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
-    <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
-    <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
+    <ClCompile Include="Control\DateTimeWnd.cpp" />
     <ClCompile Include="Control\DirectoryTree.cpp" />
     <ClCompile Include="Control\DirectoryTreeImpl_Linux.cpp" />
     <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp" />
@@ -618,8 +617,7 @@
     <ClInclude Include="Control\ColorSlider.h" />
     <ClInclude Include="Control\ComboButton.h" />
     <ClInclude Include="Control\DateTime.h" />
-    <ClInclude Include="Control\DateTimeWnd_SDL.h" />
-    <ClInclude Include="Control\DateTimeWnd_Windows.h" />
+    <ClInclude Include="Control\DateTimeWnd.h" />
     <ClInclude Include="Control\DirectoryTree.h" />
     <ClInclude Include="Control\DirectoryTreeImpl.h" />
     <ClInclude Include="Control\FilterCombo.h" />

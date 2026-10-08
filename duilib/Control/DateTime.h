@@ -3,6 +3,7 @@
 
 #include "duilib/Control/Label.h"
 #include "duilib/Box/HBox.h"
+#include <duilib/Core/ControlPtrT.h>
 #include <ctime>
 
 namespace ui
@@ -197,11 +198,11 @@ private:
 
     /** 设置日期控件窗口接口
     */
-    DateTimeWnd* m_pDateWindow;
+    ControlPtrT<DateTimeWnd> m_pDateWindow;
 
     /** 日历浮层（仅 date_calendar 编辑格式使用）
     */
-    CalendarFlyout* m_pCalendarFlyout;
+    ControlPtrT<CalendarFlyout> m_pCalendarFlyout;
 
     /** 标志：日历浮层刚因选择/今天/清除而关闭，抑制随后的焦点事件重开
     */
