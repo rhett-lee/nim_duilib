@@ -210,5 +210,6 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventImageLoad|"ImageLoad"|"image_load"|
 |kEventImageDecode|"ImageDecode"|"image_decode"|
 |kEventViewModeChanged|"ViewModeChanged"|"view_mode_changed"|
+|kEventDisplayDateChanged|"DisplayDateChanged"|"display_date_changed"|
 
 In the list above, either "XML name 1 of the event" or "XML name 2 of the event" can be used in XML; both names are recognized.

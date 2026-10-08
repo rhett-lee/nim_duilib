@@ -157,6 +157,15 @@ public:
     */
     void AttachViewModeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventViewModeChanged, callback, callbackID); }
 
+    /** 订阅"显示周期变化"事件
+     * 当显示的周期（月视图的月份、年/十年视图的年份）发生变化时触发，
+     * 例如通过键盘 PgUp/PgDn 翻页、方向键移动焦点跨月/跨年、或导航按钮切换。
+     * 浮层标题栏需据此刷新（标题文字 = 当前显示的 年/月/十年区间）。
+     * 与 AttachViewModeChanged 配合：视图模式变化（月↔年↔十年）与显示周期变化都会刷新标题，
+     * 两条路径都覆盖，避免标题与日历内容脱节。
+     */
+    void AttachDisplayDateChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventDisplayDateChanged, callback, callbackID); }
+
     /** 键盘导航：由 CalendarFlyout 在收到按键时调用（方向键移动焦点、PgUp/PgDn 翻页、Enter/Space 选中或下钻）
      * @param [in] msg kEventKeyDown 事件（含 vkCode / modifierKey）
      * @return true 表示已处理该按键（事件不再继续派发）

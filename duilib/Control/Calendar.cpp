@@ -117,6 +117,8 @@ void Calendar::SetDisplayMonth(int32_t year, int32_t month)
         m_displayMonth = month;
         m_bCellsDirty = true;
         Invalidate();
+        //通知浮层刷新标题：显示周期（月/年/十年）已变化，标题文字需同步。
+        SendEvent(kEventDisplayDateChanged);
     }
 }
 
@@ -280,7 +282,13 @@ void NormalizeTm(struct tm& t)
     t.tm_isdst = -1;
     time_t tt = std::mktime(&t);
     if (tt != (time_t)-1) {
-        t = *std::localtime(&tt);
+        struct tm tmp = {0, };
+#if defined (_WIN32) || defined (_WIN64)
+        ::localtime_s(&tmp, &tt);
+#else
+        ::localtime_r(&tt, &tmp);
+#endif
+        t = tmp;
     }
 }
 }
@@ -510,7 +518,12 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
     if (t == (time_t)-1) {
         return;
     }
-    struct tm firstDayOfWeek = *std::localtime(&t);
+    struct tm firstDayOfWeek = {0, };
+#if defined (_WIN32) || defined (_WIN64)
+    ::localtime_s(&firstDayOfWeek, &t);
+#else
+    ::localtime_r(&t, &firstDayOfWeek);
+#endif
     int32_t wday = firstDayOfWeek.tm_wday; // 0=周日
 
     //计算网格中第一天（可能属于上月）
@@ -528,7 +541,11 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
     if (t == (time_t)-1) {
         return;
     }
-    gridStart = *std::localtime(&t);
+#if defined (_WIN32) || defined (_WIN64)
+    ::localtime_s(&gridStart, &t);
+#else
+    ::localtime_r(&t, &gridStart);
+#endif
 
     //填充42天
     for (int32_t i = 0; i < kDaysPerPage; ++i) {
@@ -538,7 +555,11 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
         if (t == (time_t)-1) {
             continue;
         }
-        day = *std::localtime(&t);
+#if defined (_WIN32) || defined (_WIN64)
+        ::localtime_s(&day, &t);
+#else
+        ::localtime_r(&t, &day);
+#endif
 
         DayCell cell;
         cell.year = day.tm_year + 1900;

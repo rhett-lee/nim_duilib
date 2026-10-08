@@ -353,7 +353,7 @@ DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 
 Calendar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
-Calendar 控件在视图模式（月/年/十年）发生变化时触发 `kEventViewModeChanged` 事件（wParam=新视图模式，取值 0/1/2；lParam=旧视图模式，取值 0/1/2），可通过 `AttachViewModeChanged` 订阅；选中日期或日期范围变化时触发 `kEventValueChanged` 事件（与 DateTime 一致）。
+Calendar 控件在视图模式（月/年/十年）发生变化时触发 `kEventViewModeChanged` 事件（wParam=新视图模式，取值 0/1/2；lParam=旧视图模式，取值 0/1/2），可通过 `AttachViewModeChanged` 订阅；显示周期（月视图的月份、年/十年视图的年份）发生变化时触发 `kEventDisplayDateChanged` 事件，可通过 `AttachDisplayDateChanged` 订阅（常用于浮层标题栏随翻页/跨月移动刷新）；选中日期或日期范围变化时触发 `kEventValueChanged` 事件（与 DateTime 一致）。
 
 ## CalendarFlyout日历浮层
 CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应头文件`duilib/Control/CalendarFlyout.h`。用于在锚点控件周围弹出日历面板，支持单选/范围选择、月/年/十年三级导航。

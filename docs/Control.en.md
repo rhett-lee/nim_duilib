@@ -355,7 +355,7 @@ The DateTime control inherits the `Label` attributes. For more available attribu
 
 The Calendar control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 
-The Calendar control triggers the `kEventViewModeChanged` event when its view mode (month/year/decade) changes (wParam = new view mode 0/1/2, lParam = old view mode 0/1/2), which can be subscribed via `AttachViewModeChanged`; it also triggers `kEventValueChanged` when the selected date or date range changes (consistent with DateTime).
+The Calendar control triggers the `kEventViewModeChanged` event when its view mode (month/year/decade) changes (wParam = new view mode 0/1/2, lParam = old view mode 0/1/2), which can be subscribed via `AttachViewModeChanged`; it triggers the `kEventDisplayDateChanged` event when the displayed period (the month in month-view, the year in year/decade-view) changes, which can be subscribed via `AttachDisplayDateChanged` (typically used to refresh the flyout title bar on page-turn or cross-month focus moves); it also triggers `kEventValueChanged` when the selected date or date range changes (consistent with DateTime).
 
 ## CalendarFlyout
 CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar control, corresponding to header `duilib/Control/CalendarFlyout.h`. It displays a calendar panel around an anchor control, supporting single/range selection and month/year/decade navigation.

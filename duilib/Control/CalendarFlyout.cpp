@@ -164,6 +164,14 @@ void CalendarFlyout::InitControls()
             return true;
         });
 
+        //绑定显示周期变化事件：键盘 PgUp/PgDn 翻页、方向键移动焦点跨月/跨年、导航按钮切换等
+        //都会导致显示周期（月/年/十年）变化，标题栏（显示当前 年/月/十年区间）需同步刷新。
+        //通过事件统一处理，可覆盖所有路径（含键盘导航），避免标题与日历内容脱节。
+        pCalendar->AttachDisplayDateChanged([this](const EventArgs&) {
+            UpdateTitle();
+            return true;
+        });
+
         //键盘导航：打开时初始化键盘焦点，使焦点环立即出现（优先用已选日期，否则用今天）
         pCalendar->SetInitialFocus();
 
