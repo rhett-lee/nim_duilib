@@ -1,5 +1,8 @@
 #include "DateTime.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/StringUtil.h"
 #include "duilib/Control/CalendarFlyout.h"
 #include "duilib/Control/Calendar.h"
 #include <sstream>
@@ -532,13 +535,78 @@ UiSize DateTime::EstimateText(UiSize szAvailable)
     //避免 width/height 为 auto 时被估算为 0，导致控件塌陷；
     //已设置日期时，直接使用真实日期文本进行估算。
     DString text = GetText();
+    UiSize size;
     if (text.empty()) {
         DString sample = GetSampleDateTimeString();
         if (!sample.empty()) {
-            return BaseClass::EstimateTextWith(sample, szAvailable);
+            size = BaseClass::EstimateTextWith(sample, szAvailable);
+        }
+        else {
+            size = BaseClass::EstimateText(szAvailable);
         }
     }
-    return BaseClass::EstimateText(szAvailable);
+    else {
+        size = BaseClass::EstimateText(szAvailable);
+    }
+
+    //支持 Spin（spin_class 不为空）时，预留 Spin 按钮容器所占的宽度，
+    //使 width 为 auto 的 DateTime 在显示态也能为编辑态的 Spin 留出空间，
+    //避免进入编辑态后 Spin 被挤压或显示不全。
+    DString spinClass = GetSpinClass();
+    if (!spinClass.empty()) {
+        int32_t nSpinWidth = GetSpinBoxWidth(spinClass);
+        if (nSpinWidth > 0) {
+            size.cx += nSpinWidth;
+        }
+    }
+    return size;
+}
+
+int32_t DateTime::GetSpinBoxWidth(const DString& spinClass) const
+{
+    //spin_class 格式："spin容器class,上按钮class,下按钮class"，取首段（容器）的 width
+    std::list<DString> classNames = StringUtil::Split(spinClass, _T(","));
+    if (classNames.empty()) {
+        return 0;
+    }
+    DString spinBoxClass = classNames.front();
+    StringUtil::Trim(spinBoxClass);
+    if (spinBoxClass.empty()) {
+        return 0;
+    }
+
+    //解析 spin 容器类的 width 属性（与 Control::SetClass 的处理一致：先查全局类，再查窗口类）
+    DString classAttributes = GlobalManager::Instance().GetClassAttributes(spinBoxClass);
+    if (classAttributes.empty() && (GetWindow() != nullptr)) {
+        classAttributes = GetWindow()->GetClassAttributes(spinBoxClass);
+    }
+    if (classAttributes.empty()) {
+        return 0;
+    }
+
+    std::vector<std::pair<DString, DString>> attributeList;
+    if (!AttributeUtil::ParseAttributeList(classAttributes, attributeList)) {
+        return 0;
+    }
+
+    int32_t nWidth = 0;
+    for (const auto& attr : attributeList) {
+        if (attr.first == _T("width")) {
+            DString value = attr.second;
+            StringUtil::Trim(value);
+            //仅支持固定像素宽度；auto / 百分比 / stretch 无法在估算阶段静态确定，忽略
+            if (!value.empty() && (value != _T("auto")) &&
+                (value.find(_T("%")) == DString::npos) &&
+                (value.find(_T("stretch")) == DString::npos)) {
+                int32_t nRawWidth = StringUtil::StringToInt32(value);
+                if (nRawWidth > 0) {
+                    nWidth = Dpi().GetScaleInt(nRawWidth);
+                }
+            }
+            break;  //width 属性找到即结束（无论是否可用）
+        }
+    }
+    return nWidth;
 }
 
 DString DateTime::GetSampleDateTimeString() const

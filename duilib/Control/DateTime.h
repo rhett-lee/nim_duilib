@@ -167,6 +167,13 @@ private:
      */
     DString GetSampleDateTimeString() const;
 
+    /** 计算 Spin 按钮容器所占的宽度（用于 auto 尺寸估算）
+     *  spin_class 格式："spin容器class,上按钮class,下按钮class"，取首段（容器）的 width；
+     *  仅支持固定像素宽度，auto / 百分比 / stretch 无法在估算阶段静态确定，返回 0。
+     *  @return 经 DPI 缩放后的 Spin 宽度（像素），无效时返回 0
+     */
+    int32_t GetSpinBoxWidth(const DString& spinClass) const;
+
     /** 结束编辑
     */
     void EndEditDateTime();
