@@ -32,6 +32,13 @@ DateTime::DateTime(Window* pWindow):
 
 DateTime::~DateTime()
 {
+    //释放可能残留的 DateTimeWnd 对象（例如编辑尚未结束时控件就被销毁），
+    //避免对象泄漏与悬空引用。m_pDateWindow 为空时 delete nullptr 是安全的。
+    if (m_pDateWindow != nullptr) {
+        DateTimeWnd* pWnd = m_pDateWindow.get();
+        m_pDateWindow = nullptr;
+        delete pWnd;
+    }
 }
 
 DString DateTime::GetType() const { return DUI_CTR_DATETIME; }
@@ -520,7 +527,16 @@ void DateTime::SendEventMsg(const EventArgs& msg)
 
 void DateTime::EndEditDateTime()
 {
+    //编辑结束时，必须复位并释放 DateTimeWnd 对象：
+    //DateTimeWnd 仅在 m_pDateWindow 中通过弱引用被持有，若不复位，m_pDateWindow 将持续非空，
+    //导致后续点击命中 HandleEvent 中的“m_pDateWindow != nullptr 直接返回”分支，
     SendEvent(kEventKillFocus);
+    if (m_pDateWindow != nullptr) {
+        //再也无法重新进入编辑（编辑一次后点击再也无法编辑日期）。
+        DateTimeWnd* pWnd = m_pDateWindow.get();
+        m_pDateWindow = nullptr;
+        delete pWnd;
+    }
 }
 
 UiSize DateTime::EstimateText(UiSize szAvailable)
