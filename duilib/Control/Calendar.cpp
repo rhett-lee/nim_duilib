@@ -6,6 +6,8 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include <ctime>
+#include <cstdio>
+#include <cwchar>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
@@ -1409,9 +1411,17 @@ bool Calendar::ParseDateString(const DString& str, struct tm& date)
     StringUtil::ReplaceAll(_T("/"), _T("-"), s);
     int32_t year = 0, month = 0, day = 0;
 #ifdef DUILIB_UNICODE
+#  if defined (_WIN32) || defined (_WIN64)
     if (::swscanf_s(s.c_str(), _T("%d-%d-%d"), &year, &month, &day) == 3) {
+#  else
+    if (::swscanf(s.c_str(), _T("%d-%d-%d"), &year, &month, &day) == 3) {
+#  endif
 #else
+#  if defined (_WIN32) || defined (_WIN64)
     if (::sscanf_s(s.c_str(), "%d-%d-%d", &year, &month, &day) == 3) {
+#  else
+    if (::sscanf(s.c_str(), "%d-%d-%d", &year, &month, &day) == 3) {
+#  endif
 #endif
         if (year >= 1900 && year <= 9999 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
             date.tm_year = year - 1900;
