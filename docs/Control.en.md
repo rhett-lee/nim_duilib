@@ -357,6 +357,23 @@ The Calendar control inherits the `Control` attributes. For more available attri
 
 The Calendar control triggers the `kEventViewModeChanged` event when its view mode (month/year/decade) changes (wParam = new view mode 0/1/2, lParam = old view mode 0/1/2), which can be subscribed via `AttachViewModeChanged`; it triggers the `kEventDisplayDateChanged` event when the displayed period (the month in month-view, the year in year/decade-view) changes, which can be subscribed via `AttachDisplayDateChanged` (typically used to refresh the flyout title bar on page-turn or cross-month focus moves); it also triggers `kEventValueChanged` when the selected date or date range changes (consistent with DateTime).
 
+The calendar flyout supports the following keyboard interactions (effective once the flyout opens and takes focus; Esc closes the flyout):
+
+| Shortcut | Month view | Year view | Decade view |
+| :--- | :--- | :--- | :--- |
+| ← / → | Move focus ±1 day | Move focus ±1 month | Move focus ±1 year |
+| ↑ / ↓ | Move focus ±1 week | Move focus ±3 months | Move focus ±3 years |
+| Ctrl + ← / → / ↑ / ↓ | Move focus ±1 year | Move focus ±10 years (prev/next decade) | Move focus ±100 years (prev/next century) |
+| Home | Jump to first day of month | Jump to first month of year (Jan) | Jump to first year of decade |
+| End | Jump to last day of month | Jump to last month of year (Dec) | Jump to last year of decade |
+| PageUp / PageDown | Prev / next month | Prev / next year | Prev / next decade |
+| Enter / Space | Select focused date (single: confirm directly; range: enter "awaiting end" or confirm range) | Drill down to month view | Drill down to year view |
+| Shift + ← / → / ↑ / ↓ (range mode) | Extend range from focused anchor (live highlight of start/end), Enter/Space again to confirm | — | — |
+
+Additional notes:
+- Focus movement and page-turning are both clamped to the `min_date`/`max_date` limits, so the focus ring never lands on a disabled date; page-turning stops at the earliest/latest selectable period boundary.
+- Keyboard range extension in range mode shares the same start/end logic and live-preview drawing with mouse dragging.
+
 ## CalendarFlyout
 CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar control, corresponding to header `duilib/Control/CalendarFlyout.h`. It displays a calendar panel around an anchor control, supporting single/range selection and month/year/decade navigation.
 

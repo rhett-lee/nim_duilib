@@ -357,7 +357,9 @@ LRESULT CalendarFlyout::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey
         case kVK_DOWN:
         case kVK_PRIOR: //PageUp
         case kVK_NEXT:  //PageDown
-            //方向键 / 翻页：始终导航日历（按钮不使用这些键，无冲突）
+        case kVK_HOME:  //Home：跳到周期起点
+        case kVK_END:   //End：跳到周期末点
+            //方向键 / 翻页 / Home / End：始终导航日历（按钮不使用这些键，无冲突）
             bHandledLocal = HandleCalendarKey(pCalendar, vkCode, modifierKey);
             break;
         case kVK_RETURN:

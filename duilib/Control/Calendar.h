@@ -307,6 +307,10 @@ private:
     */
     bool m_bRangeAwaitingEnd;
 
+    /** 范围选择中：键盘 Shift+方向键 正在扩展选择区间（与鼠标拖拽 m_bRangeDragging 分离，避免鼠标移动误接管）
+    */
+    bool m_bRangeKeyboardExtending;
+
     /** 悬停的日期格子
     */
     int32_t m_hoverYear;
@@ -369,6 +373,36 @@ private:
      * @param [in] msg 触发该操作的键盘事件（用于 SetDate 后检测控件是否已被销毁）
      */
     void SelectFocusedDay(const EventArgs& msg);
+
+    /** 把焦点日期收敛到可选范围 [m_minDate, m_maxDate] 内（越界则钳制到边界），避免焦点环落在禁用日上
+     */
+    void ClampFocusToLimits(struct tm& date);
+
+    /** 月视图下，Shift+方向键 以当前焦点为锚点扩展范围选择（实时预览，复用鼠标拖拽的绘制逻辑）
+     * @param [in] deltaDays 焦点移动的日数（与方向键对应，如 ±1 / ±7），同时作为范围的扩展步长
+     */
+    void ExtendRangeSelection(int32_t deltaDays);
+
+    /** 确认当前键盘范围选择（m_bRangeKeyboardExtending 为 true 时由 Enter/Space 触发）：固化区间并触发 kEventValueChanged
+     * @param [in] msg 触发该操作的键盘事件（用于检测控件是否已被销毁）
+     */
+    void CommitRangeSelection(const EventArgs& msg);
+
+    /** 月视图：跳到当前显示月的首日（Home）
+     */
+    void MoveFocusToMonthStart();
+
+    /** 月视图：跳到当前显示月的末日（End）
+     */
+    void MoveFocusToMonthEnd();
+
+    /** 年视图：跳到当前显示年的首月（Home）/ 末月（End）
+     */
+    void MoveFocusToYearBoundary(bool bToStart);
+
+    /** 十年视图：跳到当前十年的首年（Home）/ 末年（End）
+     */
+    void MoveFocusToDecadeBoundary(bool bToStart);
 
     /** 绘制键盘焦点环（在指定矩形内绘制 1px 圆角边框，使用主题色 border_focus_ring）
      */

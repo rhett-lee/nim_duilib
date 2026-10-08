@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Keycode.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include <ctime>
@@ -33,6 +34,7 @@ Calendar::Calendar(Window* pWindow):
     m_bHasRangeEnd(false),
     m_bRangeDragging(false),
     m_bRangeAwaitingEnd(false),
+    m_bRangeKeyboardExtending(false),
     m_hoverYear(0),
     m_hoverMonth(0),
     m_hoverDay(0),
@@ -183,6 +185,7 @@ void Calendar::ClearSelection()
     m_bHasRangeEnd = false;
     m_bRangeDragging = false;
     m_bRangeAwaitingEnd = false;
+    m_bRangeKeyboardExtending = false;
     Invalidate();
 }
 
@@ -215,21 +218,34 @@ void Calendar::GoToToday()
 void Calendar::NavigatePrev()
 {
     if (m_viewMode == 0) {
-        //月视图：上一月
+        //月视图：上一月（收敛到可选范围，不翻到早于 minDate 的月份）
         int32_t year = m_displayYear;
         int32_t month = m_displayMonth - 1;
         if (month < 1) {
             month = 12;
             --year;
         }
+        if (m_bHasMinDate) {
+            int32_t minYear = m_minDate.tm_year + 1900;
+            int32_t minMonth = m_minDate.tm_mon + 1;
+            if (year * 12 + month < minYear * 12 + minMonth) {
+                return; //已到最早可选月，不再前翻
+            }
+        }
         SetDisplayMonth(year, month);
     }
     else if (m_viewMode == 1) {
-        //年视图：上一年
+        //年视图：上一年（不翻到早于 minDate 的年份）
+        if (m_bHasMinDate && (m_displayYear - 1) < (m_minDate.tm_year + 1900)) {
+            return;
+        }
         SetDisplayMonth(m_displayYear - 1, m_displayMonth);
     }
     else {
-        //十年视图：上一个十年
+        //十年视图：上一个十年（不翻到整段早于 minDate 的十年）
+        if (m_bHasMinDate && (m_displayYear - 10) < (m_minDate.tm_year + 1900)) {
+            return;
+        }
         SetDisplayMonth(m_displayYear - 10, m_displayMonth);
     }
 }
@@ -237,21 +253,34 @@ void Calendar::NavigatePrev()
 void Calendar::NavigateNext()
 {
     if (m_viewMode == 0) {
-        //月视图：下一月
+        //月视图：下一月（收敛到可选范围，不翻到晚于 maxDate 的月份）
         int32_t year = m_displayYear;
         int32_t month = m_displayMonth + 1;
         if (month > 12) {
             month = 1;
             ++year;
         }
+        if (m_bHasMaxDate) {
+            int32_t maxYear = m_maxDate.tm_year + 1900;
+            int32_t maxMonth = m_maxDate.tm_mon + 1;
+            if (year * 12 + month > maxYear * 12 + maxMonth) {
+                return; //已到最晚可选月，不再后翻
+            }
+        }
         SetDisplayMonth(year, month);
     }
     else if (m_viewMode == 1) {
-        //年视图：下一年
+        //年视图：下一年（不翻到晚于 maxDate 的年份）
+        if (m_bHasMaxDate && (m_displayYear + 1) > (m_maxDate.tm_year + 1900)) {
+            return;
+        }
         SetDisplayMonth(m_displayYear + 1, m_displayMonth);
     }
     else {
-        //十年视图：下一个十年
+        //十年视图：下一个十年（不翻到整段晚于 maxDate 的十年）
+        if (m_bHasMaxDate && (m_displayYear + 10) > (m_maxDate.tm_year + 1900)) {
+            return;
+        }
         SetDisplayMonth(m_displayYear + 10, m_displayMonth);
     }
 }
@@ -325,6 +354,7 @@ void Calendar::SyncFocusToDisplay()
         d.tm_mon = m_displayMonth - 1;
     }
     NormalizeTm(d);
+    ClampFocusToLimits(d); //翻页后把焦点收敛回可选范围
     SetKeyboardFocusDate(d);
 }
 
@@ -333,6 +363,7 @@ void Calendar::MoveFocusDay(int32_t deltaDays)
     struct tm d = m_focusDate;
     d.tm_mday += deltaDays;
     NormalizeTm(d);
+    ClampFocusToLimits(d); //收敛到可选范围，避免焦点环落在禁用日
     int32_t fy = d.tm_year + 1900;
     int32_t fm = d.tm_mon + 1;
     if (fy != m_displayYear || fm != m_displayMonth) {
@@ -347,6 +378,7 @@ void Calendar::MoveFocusMonth(int32_t deltaMonths)
     d.tm_mon += deltaMonths;
     d.tm_mday = 1; //避免 31 日跨月被 mktime 规整到再下一个月（如 1/31 -> +1 月本应到 2 月，若保留 31 会变成 3 月）
     NormalizeTm(d);
+    ClampFocusToLimits(d);
     int32_t fy = d.tm_year + 1900;
     if (fy != m_displayYear) {
         SetDisplayMonth(fy, d.tm_mon + 1); //年视图下跟随年份
@@ -360,6 +392,7 @@ void Calendar::MoveFocusYear(int32_t deltaYears)
     d.tm_year += deltaYears;
     d.tm_mday = 1;
     NormalizeTm(d);
+    ClampFocusToLimits(d);
     int32_t fy = d.tm_year + 1900;
     int32_t decade = (fy / 10) * 10;
     int32_t curDecade = (m_displayYear / 10) * 10;
@@ -374,6 +407,7 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
     if (m_viewMode != 0) {
         return;
     }
+    m_bRangeKeyboardExtending = false; //切换到两步点击/单选，结束键盘扩展态
     //越界/禁用判断
     if (m_bHasMinDate && IsDateLess(m_focusDate, m_minDate)) {
         return;
@@ -423,43 +457,208 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
     }
 }
 
+void Calendar::ClampFocusToLimits(struct tm& date)
+{
+    //把焦点日期收敛到可选范围 [m_minDate, m_maxDate]，避免焦点环落在禁用日上
+    if (m_bHasMinDate && IsDateLess(date, m_minDate)) {
+        date = m_minDate;
+    }
+    if (m_bHasMaxDate && IsDateLess(m_maxDate, date)) {
+        date = m_maxDate;
+    }
+}
+
+void Calendar::ExtendRangeSelection(int32_t deltaDays)
+{
+    if (m_viewMode != 0 || m_mode != Mode::kRange) {
+        return;
+    }
+    if (!m_bRangeKeyboardExtending) {
+        //以当前焦点为锚点开始键盘范围扩展；同时取消两步点击的"等待结束日"状态
+        m_rangeDragStart = m_focusDate;
+        m_bRangeKeyboardExtending = true;
+        m_bRangeAwaitingEnd = false;
+    }
+    MoveFocusDay(deltaDays); //先按步长移动焦点（内部已钳制到可选范围）
+    if (IsDateLess(m_focusDate, m_rangeDragStart)) {
+        m_rangeStart = m_focusDate;
+        m_rangeEnd = m_rangeDragStart;
+    }
+    else {
+        m_rangeStart = m_rangeDragStart;
+        m_rangeEnd = m_focusDate;
+    }
+    m_bHasRangeStart = true;
+    m_bHasRangeEnd = true;
+    ClampFocusToLimits(m_rangeStart);
+    ClampFocusToLimits(m_rangeEnd);
+    Invalidate();
+}
+
+void Calendar::CommitRangeSelection(const EventArgs& /*msg*/)
+{
+    //固化键盘扩展出的范围并触发变更事件（调用方负责 SendEvent 后检测控件是否已销毁）
+    m_bRangeKeyboardExtending = false;
+    m_bRangeAwaitingEnd = false;
+    m_bHasRangeStart = true;
+    m_bHasRangeEnd = true;
+    Invalidate();
+    time_t tStart = DateToTimeT(m_rangeStart);
+    time_t tEnd = DateToTimeT(m_rangeEnd);
+    SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+}
+
+void Calendar::MoveFocusToMonthStart()
+{
+    struct tm d = {0, };
+    d.tm_year = m_displayYear - 1900;
+    d.tm_mon = m_displayMonth - 1;
+    d.tm_mday = 1;
+    NormalizeTm(d);
+    ClampFocusToLimits(d);
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusToMonthEnd()
+{
+    struct tm d = {0, };
+    d.tm_year = m_displayYear - 1900;
+    d.tm_mon = m_displayMonth; //0-based 下一个月
+    d.tm_mday = 0;            //0 日 = 当月最后一天
+    NormalizeTm(d);
+    ClampFocusToLimits(d);
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusToYearBoundary(bool bToStart)
+{
+    struct tm d = m_focusDate;
+    d.tm_year = m_displayYear - 1900;
+    d.tm_mon = bToStart ? 0 : 11; //1月 / 12月
+    d.tm_mday = 1;
+    NormalizeTm(d);
+    ClampFocusToLimits(d);
+    SetKeyboardFocusDate(d);
+}
+
+void Calendar::MoveFocusToDecadeBoundary(bool bToStart)
+{
+    int32_t startYear = (m_displayYear / 10) * 10;
+    int32_t year = bToStart ? startYear : (startYear + 11);
+    struct tm d = m_focusDate;
+    d.tm_year = year - 1900;
+    d.tm_mday = 1;
+    NormalizeTm(d);
+    ClampFocusToLimits(d);
+    SetKeyboardFocusDate(d);
+}
+
 bool Calendar::HandleKeyDown(const EventArgs& msg)
 {
     EnsureFocusDate();
     const uint32_t vk = msg.vkCode;
+    const bool bCtrl = (msg.modifierKey & kControl) != 0;
+    const bool bShift = (msg.modifierKey & kShift) != 0;
+
+    //范围模式且正在键盘扩展时：方向键继续以焦点为终点扩展区间（与 Shift+方向 启动扩展同源）
+    if (m_viewMode == 0 && m_mode == Mode::kRange && m_bRangeKeyboardExtending && !bCtrl) {
+        switch (vk) {
+        case kVK_LEFT:  ExtendRangeSelection(-1); return true;
+        case kVK_RIGHT: ExtendRangeSelection(1); return true;
+        case kVK_UP:    ExtendRangeSelection(-kDaysPerWeek); return true;
+        case kVK_DOWN:  ExtendRangeSelection(kDaysPerWeek); return true;
+        default: break;
+        }
+    }
+
     switch (vk) {
     case kVK_LEFT:
-        if (m_viewMode == 0) { MoveFocusDay(-1); }
-        else if (m_viewMode == 1) { MoveFocusMonth(-1); }
-        else { MoveFocusYear(-1); }
+        if (m_viewMode == 0) {
+            if (m_mode == Mode::kRange && bShift) { ExtendRangeSelection(-1); }
+            else if (bCtrl) { MoveFocusYear(-1); }        //Ctrl+左：跳上一年
+            else       { MoveFocusDay(-1); }
+        }
+        else if (m_viewMode == 1) {
+            if (bCtrl) { MoveFocusYear(-10); }       //Ctrl+左：跳上一个十年
+            else       { MoveFocusMonth(-1); }
+        }
+        else {
+            if (bCtrl) { MoveFocusYear(-100); }      //Ctrl+左：跳上一个世纪
+            else       { MoveFocusYear(-1); }
+        }
         return true;
     case kVK_RIGHT:
-        if (m_viewMode == 0) { MoveFocusDay(1); }
-        else if (m_viewMode == 1) { MoveFocusMonth(1); }
-        else { MoveFocusYear(1); }
+        if (m_viewMode == 0) {
+            if (m_mode == Mode::kRange && bShift) { ExtendRangeSelection(1); }
+            else if (bCtrl) { MoveFocusYear(1); }
+            else       { MoveFocusDay(1); }
+        }
+        else if (m_viewMode == 1) {
+            if (bCtrl) { MoveFocusYear(10); }
+            else       { MoveFocusMonth(1); }
+        }
+        else {
+            if (bCtrl) { MoveFocusYear(100); }
+            else       { MoveFocusYear(1); }
+        }
         return true;
     case kVK_UP:
-        if (m_viewMode == 0) { MoveFocusDay(-kDaysPerWeek); }
-        else if (m_viewMode == 1) { MoveFocusMonth(-kYearGridCols); }
-        else { MoveFocusYear(-kYearGridCols); }
+        if (m_viewMode == 0) {
+            if (m_mode == Mode::kRange && bShift) { ExtendRangeSelection(-kDaysPerWeek); }
+            else if (bCtrl) { MoveFocusYear(-1); }
+            else       { MoveFocusDay(-kDaysPerWeek); }
+        }
+        else if (m_viewMode == 1) {
+            if (bCtrl) { MoveFocusYear(-10); }
+            else       { MoveFocusMonth(-kYearGridCols); }
+        }
+        else {
+            if (bCtrl) { MoveFocusYear(-100); }
+            else       { MoveFocusYear(-kYearGridCols); }
+        }
         return true;
     case kVK_DOWN:
-        if (m_viewMode == 0) { MoveFocusDay(kDaysPerWeek); }
-        else if (m_viewMode == 1) { MoveFocusMonth(kYearGridCols); }
-        else { MoveFocusYear(kYearGridCols); }
+        if (m_viewMode == 0) {
+            if (m_mode == Mode::kRange && bShift) { ExtendRangeSelection(kDaysPerWeek); }
+            else if (bCtrl) { MoveFocusYear(1); }
+            else       { MoveFocusDay(kDaysPerWeek); }
+        }
+        else if (m_viewMode == 1) {
+            if (bCtrl) { MoveFocusYear(10); }
+            else       { MoveFocusMonth(kYearGridCols); }
+        }
+        else {
+            if (bCtrl) { MoveFocusYear(100); }
+            else       { MoveFocusYear(kYearGridCols); }
+        }
         return true;
-    case kVK_PRIOR: //PageUp：上一月 / 年 / 十年
+    case kVK_HOME: //Home：跳到周期起点（月首日 / 年首月 / 十年首年）
+        if (m_viewMode == 0)      { MoveFocusToMonthStart(); }
+        else if (m_viewMode == 1) { MoveFocusToYearBoundary(true); }
+        else                      { MoveFocusToDecadeBoundary(true); }
+        return true;
+    case kVK_END:  //End：跳到周期末点（月末日 / 年末月 / 十年末年）
+        if (m_viewMode == 0)      { MoveFocusToMonthEnd(); }
+        else if (m_viewMode == 1) { MoveFocusToYearBoundary(false); }
+        else                      { MoveFocusToDecadeBoundary(false); }
+        return true;
+    case kVK_PRIOR: //PageUp：上一月 / 年 / 十年（已收敛到可选范围边界）
         NavigatePrev();
         SyncFocusToDisplay();
         return true;
-    case kVK_NEXT: //PageDown：下一月 / 年 / 十年
+    case kVK_NEXT: //PageDown：下一月 / 年 / 十年（已收敛到可选范围边界）
         NavigateNext();
         SyncFocusToDisplay();
         return true;
     case kVK_RETURN:
     case kVK_SPACE:
         if (m_viewMode == 0) {
-            SelectFocusedDay(msg);
+            if (m_mode == Mode::kRange && m_bRangeKeyboardExtending) {
+                CommitRangeSelection(msg); //确认键盘扩展出的范围
+            }
+            else {
+                SelectFocusedDay(msg);
+            }
         }
         else if (m_viewMode == 1) {
             //年视图下钻到月视图
@@ -1026,6 +1225,7 @@ bool Calendar::ButtonDown(const EventArgs& msg)
                 date.tm_mon = cell.month - 1;
                 date.tm_mday = cell.day;
                 m_bRangeDragging = true;
+                m_bRangeKeyboardExtending = false; //鼠标接手，结束键盘扩展态
                 if (m_bRangeAwaitingEnd) {
                     //第二次点击：保留 m_rangeDragStart（指向第一次的起始日）
                     //实际结束日的确定在 ButtonUp 中完成
