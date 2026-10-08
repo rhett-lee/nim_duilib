@@ -4,6 +4,7 @@
 #include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/Callback.h"
 #include "duilib/Animation/AnimationPlayer.h"
+#include "duilib/Control/Button.h"
 
 #include <chrono>
 
@@ -26,6 +27,7 @@ namespace ui
         m_remainingMs(3000),
         m_position(kPosTop),
         m_bTextId(false),
+        m_pActionBox(nullptr),
         m_nAutoCloseTaskId(0),
         m_nExpireTick(0),
         m_bClosing(false),
@@ -63,6 +65,17 @@ namespace ui
                         ToastPosition position,
                         bool bTextId)
     {
+        Show(pParentWindow, text, type, {}, nDurationMs, position, bTextId);
+    }
+
+    void ToastWnd::Show(ui::Window* pParentWindow,
+                        const DString& text,
+                        ToastType type,
+                        const std::vector<ToastAction>& actions,
+                        int32_t nDurationMs,
+                        ToastPosition position,
+                        bool bTextId)
+    {
         ASSERT(nDurationMs >= 0);
         if (nDurationMs < 0) {
             nDurationMs = 3000;
@@ -81,6 +94,7 @@ namespace ui
         pToastWnd->m_remainingMs = nDurationMs;
         pToastWnd->m_position = position;
         pToastWnd->m_bTextId = bTextId;
+        pToastWnd->m_actions = actions;
 
         WindowCreateParam createWndParam;
         createWndParam.m_dwStyle = kWS_POPUP;
@@ -124,6 +138,7 @@ namespace ui
 
         InitContent();
         InitInteraction();
+        InitActions();
         MeasureAndPosition();
     }
 
@@ -217,6 +232,53 @@ namespace ui
             ResumeAutoCloseTimer();
             return true;
         });
+    }
+
+    void ToastWnd::InitActions()
+    {
+        if (m_actions.empty()) {
+            return;
+        }
+        Box* pActions = dynamic_cast<Box*>(FindControl(_T("toast_actions")));
+        if (pActions == nullptr) {
+            return;
+        }
+        m_pActionBox = pActions;
+
+        for (const ToastAction& action : m_actions) {
+            ui::Button* pBtn = new ui::Button(this);
+            if (action.bTextId) {
+                pBtn->SetTextId(action.text);
+            }
+            else {
+                pBtn->SetText(action.text);
+            }
+            //样式：与日历 today/clear 按钮同款（圆角边框 + hover/按下反馈），语义色适配深浅色
+            pBtn->SetAttribute(_T("width"), _T("auto"));
+            pBtn->SetAttribute(_T("height"), _T("28"));
+            pBtn->SetAttribute(_T("margin"), _T("4,0,4,0"));
+            pBtn->SetAttribute(_T("min_width"), _T("64"));
+            pBtn->SetAttribute(_T("text_padding"), _T("12,0,12,0"));
+            pBtn->SetAttribute(_T("font"), _T("system_regular_12"));
+            pBtn->SetAttribute(_T("text_color"), _T("color_accent"));
+            pBtn->SetAttribute(_T("border_size"), _T("1"));
+            pBtn->SetAttribute(_T("border_round"), _T("4,4"));
+            pBtn->SetAttribute(_T("normal_border_color"), _T("border_control_normal"));
+            pBtn->SetAttribute(_T("hovered_border_color"), _T("border_btn_hovered"));
+            pBtn->SetAttribute(_T("hovered_color"), _T("bg_btn_hovered"));
+            pBtn->SetAttribute(_T("pressed_color"), _T("bg_btn_pressed"));
+            //点击：先执行回调，再关闭通知（按钮 mouse_enabled=true，不会冒泡到根容器的整条关闭）
+            pBtn->AttachClick([this, action](const ui::EventArgs& /*args*/) {
+                if (action.callback) {
+                    action.callback();
+                }
+                RequestClose();
+                return true;
+            });
+            pActions->AddItem(pBtn);
+        }
+
+        pActions->SetVisible(true);
     }
 
     void ToastWnd::MeasureAndPosition()

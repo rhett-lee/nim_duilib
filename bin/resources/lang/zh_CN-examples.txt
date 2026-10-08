@@ -591,6 +591,7 @@ STRID_TOAST_BTN_STACK    = 连续 4 条（堆叠排列，关闭后自动补齐�
 STRID_TOAST_BTN_LONG     = 长文本（自动换行，6 秒）
 STRID_TOAST_BTN_MANUAL   = 不自动关闭（停留 0 毫秒，点击关闭）
 STRID_TOAST_BTN_POSITION = 右下角位置（BottomRight，3 秒）
+STRID_TOAST_BTN_ACTION   = 带操作按钮（知道了 / 查看详情）
 
 # 演示通知内容
 STRID_TOAST_DEMO_INFO_TEXT     = 这是一条信息通知。
@@ -600,6 +601,11 @@ STRID_TOAST_DEMO_ERROR_TEXT    = 操作失败，请稍后重试。
 STRID_TOAST_DEMO_LONG_TEXT     = 这是一条较长的通知文本，用于验证多行文本自动换行以及通知窗口高度自适应能力。\n通知宽度固定为 360，高度随文本行数自动增长，文本支持显式换行（换行符）。
 STRID_TOAST_DEMO_MANUAL_TEXT   = 这条通知不会自动消失，请点击关闭。
 STRID_TOAST_DEMO_POSITION_TEXT = 这条通知显示在窗口右下角。
+STRID_TOAST_DEMO_ACTION_TEXT   = 这是一条演示通知，用于展示操作按钮（ActionButton）的效果。
+
+# 操作按钮文本
+STRID_TOAST_ACTION_GOTIT   = 知道了
+STRID_TOAST_ACTION_DETAIL  = 查看详情
 
 # examples/render
 # 窗口核心标题

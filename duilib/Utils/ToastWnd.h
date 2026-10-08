@@ -3,6 +3,7 @@
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Core/Callback.h"
 #include <vector>
 #include <memory>
 
@@ -10,6 +11,17 @@ namespace ui
 {
 
 class AnimationPlayer;
+
+/** Toast 操作按钮（Win32 通知风格的 ActionButton，例如 "撤销"、"查看详情"）
+*   点击按钮执行 callback，随后通知自动关闭；
+*   callback 为空时点击仅关闭通知。
+*/
+struct ToastAction
+{
+    DString     text;       //按钮文本（bTextId=true 时按多语言 ID 解析）
+    StdClosure  callback;   //点击回调（可为空）
+    bool        bTextId = false; //text 是否为多语言ID
+};
 
 /** 自绘皮肤的非模态通知窗口（Toast）
 *   功能：
@@ -70,6 +82,18 @@ public:
                      ToastPosition position = kPosTop,
                      bool bTextId = false);
 
+    /** 显示一条带操作按钮的 Toast 通知（功能同上，额外在操作区渲染一组 ActionButton）
+    * @param [in] actions 操作按钮列表（如 {撤销, 查看详情}）；为空时等价于上面的 6 参数版本
+    * @note 其余参数含义与上面的 Show 一致
+    */
+    static void Show(ui::Window* pParentWindow,
+                     const DString& text,
+                     ToastType type,
+                     const std::vector<ToastAction>& actions,
+                     int32_t nDurationMs = 3000,
+                     ToastPosition position = kPosTop,
+                     bool bTextId = false);
+
 private:
     ToastWnd();
     virtual ~ToastWnd() override;
@@ -96,6 +120,10 @@ private:
     /** 填充文本与图标
     */
     void InitContent();
+
+    /** 动态创建并布局操作按钮（无操作按钮时直接返回，不影响原有布局）
+    */
+    void InitActions();
 
     /** 测量窗口大小（含阴影），并计算最终的显示位置
     */
@@ -167,6 +195,12 @@ private:
 
     //文本是否为多语言ID
     bool m_bTextId;
+
+    //操作按钮列表（为空表示无操作按钮）
+    std::vector<ToastAction> m_actions;
+
+    //操作按钮容器（XML 中的 toast_actions）
+    ui::Box* m_pActionBox;
 
     //自动关闭延迟任务的ID（0 表示无任务）
     size_t m_nAutoCloseTaskId;

@@ -76,4 +76,31 @@ void ToastForm::OnInitWindow()
             return true;
         });
     }
+
+    //带操作按钮的通知：演示 Win32 通知风格的 ActionButton（知道了 / 查看详情）
+    ui::Button* pActionButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_demo_action")));
+    if (pActionButton != nullptr) {
+        pActionButton->AttachClick([this](const ui::EventArgs& /*args*/) {
+            std::vector<ui::ToastAction> actions;
+            ui::ToastAction undo;
+            undo.text = _T("STRID_TOAST_ACTION_GOTIT");
+            undo.bTextId = true;
+            undo.callback = [this]() {
+                ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_INFO_TEXT"),
+                                   ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosTop, true);
+            };
+            ui::ToastAction detail;
+            detail.text = _T("STRID_TOAST_ACTION_DETAIL");
+            detail.bTextId = true;
+            detail.callback = [this]() {
+                ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_SUCCESS_TEXT"),
+                                   ui::ToastWnd::kTypeSuccess, 2000, ui::ToastWnd::kPosTop, true);
+            };
+            actions.push_back(undo);
+            actions.push_back(detail);
+            ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_ACTION_TEXT"),
+                               ui::ToastWnd::kTypeSuccess, actions, 6000, ui::ToastWnd::kPosTop, true);
+            return true;
+        });
+    }
 }

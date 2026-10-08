@@ -586,6 +586,7 @@ STRID_TOAST_BTN_STACK    = Show 4 toasts in a row (stacked, auto reflow)
 STRID_TOAST_BTN_LONG     = Long text (auto wrap, 6 seconds)
 STRID_TOAST_BTN_MANUAL   = No auto close (0 ms, click to dismiss)
 STRID_TOAST_BTN_POSITION = Bottom-right position (3 seconds)
+STRID_TOAST_BTN_ACTION   = With action buttons (Undo / View details)
 
 # Demo toast contents
 STRID_TOAST_DEMO_INFO_TEXT     = This is an information message.
@@ -595,6 +596,11 @@ STRID_TOAST_DEMO_ERROR_TEXT    = The operation failed. Please try again later.
 STRID_TOAST_DEMO_LONG_TEXT     = This is a longer notification used to verify multi-line text wrapping and automatic height adjustment.\nThe toast width is fixed at 360 and its height grows with the number of lines; explicit line breaks are also supported.
 STRID_TOAST_DEMO_MANUAL_TEXT   = This toast stays until you click it.
 STRID_TOAST_DEMO_POSITION_TEXT = This toast is shown at the bottom-right corner.
+STRID_TOAST_DEMO_ACTION_TEXT   = This is a demo notification used to showcase the Toast action buttons (ActionButton).
+
+# Action button labels
+STRID_TOAST_ACTION_GOTIT   = Got it
+STRID_TOAST_ACTION_DETAIL  = View details
 
 # examples/render
 # Window core title

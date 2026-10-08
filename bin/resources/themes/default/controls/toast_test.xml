@@ -41,6 +41,8 @@
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
             <Button class="btn_global" name="btn_demo_position" text_id="STRID_TOAST_BTN_POSITION"
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
+            <Button class="btn_global" name="btn_demo_action" text_id="STRID_TOAST_BTN_ACTION"
+                    width="320" height="34" halign="center" margin="0,0,0,10"/>
         </VBox>
     </VBox>
 </Window>

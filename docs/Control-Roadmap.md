@@ -39,7 +39,7 @@
 
 | # | 控件 | 现状 | 优化方向 |
 |---|------|------|------|
-| 1 | RichEdit 占位提示 | **已有**：`prompt_mode` / `prompt_text` / `prompt_text_id` / `prompt_color`（[RichEdit_Windows.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit_Windows.h)、[RichEdit2.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit2.h)，跨平台 RichEdit2 亦支持），示例见 rich_edit.exe | 无需新开发，文档补充即可 |
+| 1 | RichEdit 占位提示 | **已有**：`prompt_mode` / `prompt_text` / `prompt_text_id` / `prompt_color`（[RichEdit_Windows.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit_Windows.h)、[RichEdit2.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit2.h)，跨平台 RichEdit2 亦支持），示例见 rich_edit.exe | 已完成：占位提示属性与示例的文档补充已写入 RichEdit 相关文档 |
 | 2 | Switch/Toggle 开关 | **已有但样式静态**：[global.xml](file:///c:/develop/nim_duilib/bin/resources/themes/default/global.xml#L263-L268) 的 `checkbox_toggle_1/2` 用 CheckBox + 两张 SVG（off/on）硬切换，无滑块动画 | 已完成：新增 Switch 控件类（自绘轨道+滑块动画+颜色过渡，语义色适配深浅色） |
 | 3 | SpinBox 数字输入框 | **已有**：RichEdit 的 `spin_class` 属性（`rich_edit_spin` / `rich_edit_spin_box/btn_up/btn_down`），配合 `min_number/max_number/number_only/limit_text`，示例见 rich_edit.exe | 已完成：独立为 SpinBox 控件类（支持 step 步长） |
 | 4 | SearchBox 搜索框 | **缺失**：未基于 prompt_text + clear 组合，无专门控件 | 已完成：新增 SearchBox 组合控件（左图标+编辑框+清除按钮，支持回车事件） |
@@ -52,7 +52,7 @@
 | 6 | Flyout/Popup 浮层容器（建议最优先） | 目前 Menu 只能做菜单形态、Tooltip 仅纯文本（Windows 实现为系统原生）。缺一个"任意内容浮出卡片"基座：定位锚点、不抢焦点、自动关闭、按主题自绘。它是日历弹层、搜索建议、富内容提示、数值气泡等控件的公共地基 | Qt Popup、WinUI Flyout | 已完成：新增 Flyout 浮层窗口类（8 方位锚点定位+自动翻转、不抢焦点、点击外部/Esc 自动关闭、语义色按主题自绘、全局单活），controls 与 ColorTheme 示例已接入 |
 | 7 | Calendar 日历面板 | 现有 DateTime 依赖系统控件（超类化 DTP，数字滚动式），无自绘月历面板。日程、报表类软件需要，依赖第 6 项作为弹层载体 | Qt QCalendarWidget、WPF DatePicker | 已完成：新增 Calendar 自绘月历控件（单选/范围选择、月/年/十年三级导航、今天高亮、语义色适配深浅色）+ CalendarFlyout 弹层封装；DateTime 的 `date_calendar` 编辑格式已改用 CalendarFlyout，controls 与 ColorTheme 示例已接入 |
 | 8 | NavigationView 侧边栏导航 | 汉堡按钮 + 分组导航项 + 页头 + 内容区联动。现代设置页、桌面客户端标配；可用 TreeView+TabBox 组合模拟，但交互内聚性差 | WinUI NavigationView | |
-| 9 | Toast 操作按钮 | 现有 Toast 仅整条可点关闭；增加"撤销/查看详情"类操作按钮区，对齐 Win32 通知能力，小增强 | Windows 通知 ActionButton | |
+| 9 | Toast 操作按钮 | 现有 Toast 仅整条可点关闭；增加"撤销/查看详情"类操作按钮区，对齐 Win32 通知能力，小增强 | Windows 通知 ActionButton | 已完成：新增 `ToastAction` 结构与 `Show` 重载（携带 `std::vector<ToastAction>`），在通知底部渲染一组圆角操作按钮；点击按钮先执行回调再关闭通知，按钮 `mouse_enabled=true` 不冒泡到根容器（整条点击关闭仅对非交互区生效）；无操作按钮时布局与行为完全不变。controls 示例已加演示按钮 |
 
 #### 第三梯队：大件/独立模块，按需排期
 

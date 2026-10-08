@@ -1,6 +1,6 @@
 English | [简体中文](Control-Roadmap.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-10-09 (Toast action buttons done)
 
 ## Control Library Capability Inventory and New Control Roadmap
 
@@ -44,7 +44,7 @@ Grouped into three tiers by value and implementation cost; implement in tier ord
 
 | # | Control | Current Status | Direction |
 |---|------|------|------|
-| 1 | RichEdit placeholder | **Already supported**: `prompt_mode` / `prompt_text` / `prompt_text_id` / `prompt_color` ([RichEdit_Windows.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit_Windows.h), [RichEdit2.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit2.h); cross-platform RichEdit2 also supports it). Demo: rich_edit.exe | No new code needed; docs only |
+| 1 | RichEdit placeholder | **Already supported**: `prompt_mode` / `prompt_text` / `prompt_text_id` / `prompt_color` ([RichEdit_Windows.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit_Windows.h), [RichEdit2.h](file:///c:/develop/nim_duilib/duilib/Control/RichEdit2.h); cross-platform RichEdit2 also supports it). Demo: rich_edit.exe | **Completed**: docs for placeholder attributes and examples written into the RichEdit docs |
 | 2 | Switch/Toggle | **Completed**: Added `Switch` control class (self-drawn track + thumb slide animation + color transition, semantic colors adapted to light/dark themes) | — |
 | 3 | SpinBox | **Already supported**: RichEdit's `spin_class` attribute (`rich_edit_spin` / `rich_edit_spin_box/btn_up/btn_down`) plus `min_number/max_number/number_only/limit_text`. Demo: rich_edit.exe | Completed: extracted into SpinBox control class (supports `step`) |
 | 4 | SearchBox | **Missing**: no dedicated control built on prompt_text + clear-button combination | Completed: added composite SearchBox control (left icon + edit box + clear button, supports Enter event) |
@@ -57,7 +57,7 @@ Grouped into three tiers by value and implementation cost; implement in tier ord
 | 6 | Flyout/Popup container (highest priority) | Today Menu can only be a menu and Tooltip is plain text only (system-native on Windows). A generic "floating card with arbitrary content" base is missing: anchor positioning, no focus stealing, auto-dismiss, themed drawing. It is the shared foundation for calendar popups, search suggestions, rich tooltips, and value bubbles | Qt Popup, WinUI Flyout | **Completed**: added the Flyout popup window class (8-way anchor placement with auto-flip, no focus stealing, click-outside/Esc auto-dismiss, semantic themed colors, single active flyout); integrated into the controls and ColorTheme demos |
 | 7 | Calendar panel | The current DateTime relies on the system control (superclassed DTP, spinner-style); there is no custom-drawn month panel. Needed by schedule/report software; uses item 6 as its popup host | Qt QCalendarWidget, WPF DatePicker | **Completed**: added Calendar custom-drawn month panel (single/range selection, month/year/decade navigation, today highlight, semantic themed colors) + CalendarFlyout popup wrapper; DateTime `date_calendar` edit format now uses CalendarFlyout; integrated into the controls and ColorTheme demos |
 | 8 | NavigationView (sidebar) | Hamburger button + grouped nav items + header + content area. A staple of modern settings pages and desktop clients; TreeView+TabBox can emulate it but with poor cohesion | WinUI NavigationView | |
-| 9 | Toast action buttons | The current toast only closes when clicked as a whole; add an action-button area ("Undo" / "View details") to match Win32 notification capability. Small enhancement | Windows notification ActionButton | |
+| 9 | Toast action buttons | The current toast only closes when clicked as a whole; add an action-button area ("Undo" / "View details") to match Win32 notification capability. Small enhancement | Windows notification ActionButton | **Completed**: added the `ToastAction` struct and a `Show` overload taking `std::vector<ToastAction>`; renders a row of rounded action buttons at the bottom of the toast. Clicking a button runs its callback then closes the toast; the buttons are `mouse_enabled=true` so they do not bubble to the root container (whole-bar click-to-close applies only to non-interactive areas). Layout and behavior are unchanged when no actions are supplied. The controls demo has a sample button |
 
 #### Tier 3: Large Items / Standalone Modules, Scheduled as Needed
 
