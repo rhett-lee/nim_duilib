@@ -342,6 +342,74 @@ CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属
 
 DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
+## Calendar的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| calendar_mode | "single" | string | 选择模式："single"单选，"range"范围选择 |
+| first_day_of_week | "monday" | string | 每周第一天："monday"周一，"sunday"周日 |
+| min_date | | string | 最小可选日期（格式：yyyy-mm-dd），空表示不限制 |
+| max_date | | string | 最大可选日期（格式：yyyy-mm-dd），空表示不限制 |
+
+Calendar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## CalendarFlyout日历浮层
+CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应头文件`duilib/Control/CalendarFlyout.h`。用于在锚点控件周围弹出日历面板，支持单选/范围选择、月/年/十年三级导航。
+
+核心特性：
+- 继承Flyout：自动获得8方位弹出、空间不足自动翻转、点击外部/Esc关闭等能力；
+- 内嵌XML布局：头部导航（上一月/标题/下一月）+ Calendar + 底部按钮（今天/清除）；
+- 单选模式：点击日期后自动关闭并触发`AttachDateSelected`回调；
+- 范围模式：拖拽选择起止日期后自动关闭并触发`AttachDateSelected`回调；
+- 三级导航：点击标题在月/年/十年视图间循环切换。
+
+### C++接口
+
+| 接口 | 说明 |
+| :--- | :--- |
+| `CalendarFlyout(Window* pParentWindow)` | 构造浮层，传入父窗口（锚点控件必须属于该窗口） |
+| `bool ShowAt(Control* anchor, const struct tm& initDate, Placement = Bottom)` | 在锚点周围显示日历浮层；返回false时对象已自动销毁，不可再访问 |
+| `SetMode(int32_t mode)` | 设置选择模式：0=单选，1=范围 |
+| `GetMode()` | 获取选择模式 |
+| `SetInitRange(start, end)` | 设置范围选择的初始范围 |
+| `SetFirstDayOfWeek(dayOfWeek)` | 设置每周第一天：0=周日，1=周一（默认1） |
+| `SetDateLimit(minDate, maxDate)` | 设置可选日期范围限制（yyyy-mm-dd格式） |
+| `AttachDateSelected(callback)` | 注册日期选择完成回调，参数为`(WPARAM wParam, LPARAM lParam)`；wParam=0单选、1范围；lParam单选时为time_t，范围时低32位start、高32位end |
+| `AttachDateCleared(callback)` | 注册清除日期回调（点击"清除"按钮时触发） |
+
+### 使用示例
+
+```cpp
+//单选日期
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetMode(0);
+struct tm today = ui::Calendar::GetToday();
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
+pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+    if (wParam == 0) {
+        time_t t = (time_t)lParam;
+        struct tm date = ui::Calendar::TimeTToDate(t);
+        DString text = ui::Calendar::FormatDateString(date);
+        //处理选中日期
+    }
+});
+
+//范围选择
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetMode(1);
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
+pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+    if (wParam == 1) {
+        time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
+        time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
+        struct tm start = ui::Calendar::TimeTToDate(tStart);
+        struct tm end = ui::Calendar::TimeTToDate(tEnd);
+        //处理选中范围
+    }
+});
+```
+
+DateTime控件（`edit_format="date_calendar"`）已内置使用CalendarFlyout，无需手动创建。
+
 ## HotKey的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

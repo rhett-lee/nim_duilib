@@ -939,6 +939,12 @@
     <ClCompile Include="Control\Flyout.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Calendar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\CalendarFlyout.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1956,6 +1962,12 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Flyout.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Calendar.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\CalendarFlyout.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

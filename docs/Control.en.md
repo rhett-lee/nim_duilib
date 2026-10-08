@@ -344,6 +344,74 @@ The CheckCombo control inherits the `Box` attributes. For more available attribu
 
 The DateTime control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 
+## Attributes of Calendar
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| calendar_mode | "single" | string | Selection mode: "single" for single date, "range" for date range selection |
+| first_day_of_week | "monday" | string | First day of week: "monday" or "sunday" |
+| min_date | | string | Minimum selectable date (yyyy-mm-dd), empty means no limit |
+| max_date | | string | Maximum selectable date (yyyy-mm-dd), empty means no limit |
+
+The Calendar control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
+
+## CalendarFlyout
+CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar control, corresponding to header `duilib/Control/CalendarFlyout.h`. It displays a calendar panel around an anchor control, supporting single/range selection and month/year/decade navigation.
+
+Key features:
+- Inherits Flyout: 8 placement directions, auto-flip on insufficient space, click-outside/Esc to close;
+- Built-in XML layout: header navigation (prev/title/next) + Calendar + footer buttons (Today/Clear);
+- Single mode: auto-close and trigger `AttachDateSelected` after date selection;
+- Range mode: drag to select start/end dates, auto-close and trigger `AttachDateSelected`;
+- Three-level navigation: click title to cycle month/year/decade views.
+
+### C++ Interfaces
+
+| Interface | Description |
+| :--- | :--- |
+| `CalendarFlyout(Window* pParentWindow)` | Construct flyout with parent window (anchor must belong to it) |
+| `bool ShowAt(Control* anchor, const struct tm& initDate, Placement = Bottom)` | Show calendar flyout around anchor; returns false if creation failed (object auto-destroyed) |
+| `SetMode(int32_t mode)` | Set selection mode: 0=single, 1=range |
+| `GetMode()` | Get selection mode |
+| `SetInitRange(start, end)` | Set initial range for range mode |
+| `SetFirstDayOfWeek(dayOfWeek)` | Set first day of week: 0=Sunday, 1=Monday (default 1) |
+| `SetDateLimit(minDate, maxDate)` | Set min/max date limit (yyyy-mm-dd) |
+| `AttachDateSelected(callback)` | Register date selection callback with `(WPARAM wParam, LPARAM lParam)`; wParam=0 single, 1 range; lParam is time_t for single, low32=start high32=end for range |
+| `AttachDateCleared(callback)` | Register clear callback (triggered by "Clear" button) |
+
+### Usage Example
+
+```cpp
+//Single date selection
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetMode(0);
+struct tm today = ui::Calendar::GetToday();
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
+pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+    if (wParam == 0) {
+        time_t t = (time_t)lParam;
+        struct tm date = ui::Calendar::TimeTToDate(t);
+        DString text = ui::Calendar::FormatDateString(date);
+        //Handle selected date
+    }
+});
+
+//Range selection
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetMode(1);
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
+pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+    if (wParam == 1) {
+        time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
+        time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
+        struct tm start = ui::Calendar::TimeTToDate(tStart);
+        struct tm end = ui::Calendar::TimeTToDate(tEnd);
+        //Handle selected range
+    }
+});
+```
+
+The DateTime control (`edit_format="date_calendar"`) already uses CalendarFlyout internally; no manual creation needed.
+
 ## Attributes of HotKey
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

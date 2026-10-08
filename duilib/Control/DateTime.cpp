@@ -1,5 +1,7 @@
 #include "DateTime.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Control/CalendarFlyout.h"
+#include "duilib/Control/Calendar.h"
 #include <sstream>
 #include <iomanip>
 
@@ -15,6 +17,8 @@ DateTime::DateTime(Window* pWindow):
     LabelTemplate<HBox>(pWindow),
     m_dateTime({0,}),
     m_pDateWindow(nullptr),
+    m_pCalendarFlyout(nullptr),
+    m_bSuppressCalendarReopen(false),
     m_editFormat(EditFormat::kDateCalendar),
     m_dateSeparator(_T('-'))
 {
@@ -346,17 +350,22 @@ void DateTime::HandleEvent(const EventArgs& msg)
         return;
     }
     else if (msg.eventType == kEventWindowSize) {
-        if (m_pDateWindow != nullptr) {
+        if (m_pDateWindow != nullptr || m_pCalendarFlyout != nullptr) {
             return;
         }
     }
     else if (msg.eventType == kEventScrollPosChanged) {
-        if (m_pDateWindow != nullptr) {
+        if (m_pDateWindow != nullptr || m_pCalendarFlyout != nullptr) {
             return;
         }
     }
     else if (msg.eventType == kEventSetFocus) {
-        if (m_pDateWindow != nullptr) {
+        if (m_pDateWindow != nullptr || m_pCalendarFlyout != nullptr) {
+            return;
+        }
+        if (m_bSuppressCalendarReopen) {
+            //日历浮层刚关闭，焦点恢复触发的 SetFocus 不再重开
+            //（可能连续收到多次 SetFocus，标志在 KillFocus/MouseButtonDown 时才清除）
             return;
         }
         if (GetRect().IsZero() && (GetWindow() != nullptr)) {
@@ -364,17 +373,46 @@ void DateTime::HandleEvent(const EventArgs& msg)
             GetWindow()->UpdateWindow();
         }
         if (IsFocused() && IsEnabled()) {
-            m_pDateWindow = new DateTimeWnd(this);
-            if (m_pDateWindow->Init(this)) {
-                m_pDateWindow->ShowWindow();
+            if (GetEditFormat() == EditFormat::kDateCalendar) {
+                //使用新的 CalendarFlyout 弹层
+                m_pCalendarFlyout = new CalendarFlyout(GetWindow());
+                m_pCalendarFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+                    if (wParam == 0) {
+                        time_t t = (time_t)lParam;
+                        struct tm date = Calendar::TimeTToDate(t);
+                        SetDateTime(date);
+                    }
+                });
+                m_pCalendarFlyout->AttachDateCleared([this]() {
+                    ClearTime();
+                });
+                m_pCalendarFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
+                    m_pCalendarFlyout = nullptr;
+                    //浮层关闭后焦点回落到本控件会触发 SetFocus，需抑制重开
+                    m_bSuppressCalendarReopen = true;
+                    return true;
+                });
+                struct tm initDate = IsValidDateTime() ? m_dateTime : Calendar::GetToday();
+                if (!m_pCalendarFlyout->ShowAt(this, initDate, ui::Flyout::Placement::Bottom)) {
+                    //创建失败时 ShowAt 内部已销毁对象，需置空避免悬空指针
+                    m_pCalendarFlyout = nullptr;
+                }
             }
             else {
-                delete m_pDateWindow;
-                m_pDateWindow = nullptr;
+                //其他格式使用旧的 DateTimeWnd
+                m_pDateWindow = new DateTimeWnd(this);
+                if (m_pDateWindow->Init(this)) {
+                    m_pDateWindow->ShowWindow();
+                }
+                else {
+                    delete m_pDateWindow;
+                    m_pDateWindow = nullptr;
+                }
             }
         }
     }
     else if (msg.eventType == kEventKillFocus) {
+        m_bSuppressCalendarReopen = false;
         Invalidate();
     }
     else if ((msg.eventType == kEventMouseButtonDown) ||
@@ -383,16 +421,45 @@ void DateTime::HandleEvent(const EventArgs& msg)
         if (GetWindow() != nullptr) {
             GetWindow()->ReleaseCapture();
         }
-        if (IsFocused() && IsEnabled() && (m_pDateWindow == nullptr)) {
-            m_pDateWindow = new DateTimeWnd(this);
-        }
-        if (m_pDateWindow != nullptr) {
-            if (m_pDateWindow->Init(this)) {
-                m_pDateWindow->ShowWindow();
+        //用户主动点击，清除抑制标志
+        m_bSuppressCalendarReopen = false;
+        if (IsFocused() && IsEnabled() && (m_pDateWindow == nullptr) && (m_pCalendarFlyout == nullptr)) {
+            if (GetEditFormat() == EditFormat::kDateCalendar) {
+                //使用新的 CalendarFlyout 弹层
+                m_pCalendarFlyout = new CalendarFlyout(GetWindow());
+                m_pCalendarFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+                    if (wParam == 0) {
+                        //单选模式
+                        time_t t = (time_t)lParam;
+                        struct tm date = Calendar::TimeTToDate(t);
+                        SetDateTime(date);
+                    }
+                });
+                m_pCalendarFlyout->AttachDateCleared([this]() {
+                    ClearTime();
+                });
+                m_pCalendarFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
+                    m_pCalendarFlyout = nullptr;
+                    //浮层关闭后焦点恢复触发的 SetFocus 不再重开
+                    m_bSuppressCalendarReopen = true;
+                    return true;
+                });
+                struct tm initDate = IsValidDateTime() ? m_dateTime : Calendar::GetToday();
+                if (!m_pCalendarFlyout->ShowAt(this, initDate, ui::Flyout::Placement::Bottom)) {
+                    //创建失败时 ShowAt 内部已销毁对象，需置空避免悬空指针
+                    m_pCalendarFlyout = nullptr;
+                }
             }
             else {
-                delete m_pDateWindow;
-                m_pDateWindow = nullptr;
+                //其他格式使用旧的 DateTimeWnd
+                m_pDateWindow = new DateTimeWnd(this);
+                if (m_pDateWindow->Init(this)) {
+                    m_pDateWindow->ShowWindow();
+                }
+                else {
+                    delete m_pDateWindow;
+                    m_pDateWindow = nullptr;
+                }
             }
         }
     }

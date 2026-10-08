@@ -1,6 +1,7 @@
 #include "TestForm.h"
 #include "MessageBoxForm.h"
 #include "ToastForm.h"
+#include <ctime>
 
 TestForm::TestForm():
     m_nProgressValue(0.0)
@@ -86,6 +87,76 @@ void TestForm::OnInitWindow()
                 return true;
                 });
         }
+    }
+
+    //Calendar 演示：单选/范围 两个按钮分别弹出 CalendarFlyout
+    ui::Button* pCalSingle = dynamic_cast<ui::Button*>(FindControl(_T("calendar_single")));
+    if (pCalSingle != nullptr) {
+        pCalSingle->AttachClick([this](const ui::EventArgs& args) {
+            ui::Control* pAnchor = args.GetSender();
+            if (pAnchor == nullptr) {
+                return true;
+            }
+            //同一锚点再次点击：切换为关闭已打开的浮层
+            ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+            if ((pActive != nullptr) && (pActive->GetAnchor() == pAnchor)) {
+                pActive->Dismiss();
+                return true;
+            }
+            ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+            pFlyout->SetMode(0); //单选
+            pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+                if (wParam == 0) {
+                    time_t t = (time_t)lParam;
+                    struct tm date = ui::Calendar::TimeTToDate(t);
+                    DString text = ui::Calendar::FormatDateString(date);
+                    //text 是格式化后的日期字符串，不是多语言ID，bTextId 必须为 false
+                    ui::ToastWnd::Show(this, text, ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosTop, false);
+                }
+            });
+            struct tm today = ui::Calendar::GetToday();
+            if (!pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom)) {
+                //创建失败时 ShowAt 内部已销毁对象
+                return true;
+            }
+            return true;
+            });
+    }
+
+    ui::Button* pCalRange = dynamic_cast<ui::Button*>(FindControl(_T("calendar_range")));
+    if (pCalRange != nullptr) {
+        pCalRange->AttachClick([this](const ui::EventArgs& args) {
+            ui::Control* pAnchor = args.GetSender();
+            if (pAnchor == nullptr) {
+                return true;
+            }
+            //同一锚点再次点击：切换为关闭已打开的浮层
+            ui::Flyout* pActive = ui::Flyout::GetActiveFlyout();
+            if ((pActive != nullptr) && (pActive->GetAnchor() == pAnchor)) {
+                pActive->Dismiss();
+                return true;
+            }
+            ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+            pFlyout->SetMode(1); //范围
+            pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+                if (wParam == 1) {
+                    //范围模式：低32位 start，高32位 end
+                    time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
+                    time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
+                    struct tm start = ui::Calendar::TimeTToDate(tStart);
+                    struct tm end = ui::Calendar::TimeTToDate(tEnd);
+                    DString text = ui::Calendar::FormatDateString(start) + _T(" ~ ") + ui::Calendar::FormatDateString(end);
+                    //text 是格式化后的日期字符串，不是多语言ID，bTextId 必须为 false
+                    ui::ToastWnd::Show(this, text, ui::ToastWnd::kTypeInfo, 2000, ui::ToastWnd::kPosTop, false);
+                }
+            });
+            struct tm today = ui::Calendar::GetToday();
+            if (!pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom)) {
+                //创建失败时 ShowAt 内部已销毁对象
+                return true;
+            }
+            return true;
+            });
     }
 }
 

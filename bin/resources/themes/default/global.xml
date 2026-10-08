@@ -846,4 +846,29 @@
                                   normal_text_color="text_muted" multi_line="true"
                                   text_align="hleft,vcenter" mouse_enabled="false" tab_stop="false"/>
 
+    <!-- Calendar日历面板：整体容器 -->
+    <Class name="calendar" width="280" height="240" bkcolor="bg_window_card"/>
+    <!-- Calendar星期标题 -->
+    <Class name="calendar_weekday" width="stretch" height="24" font="system_regular_12"
+                                  normal_text_color="text_muted" text_align="hcenter,vcenter"
+                                  mouse_enabled="false" tab_stop="false"/>
+    <!-- Calendar日期格子（当月） -->
+    <Class name="calendar_day" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="text_default" text_align="hcenter,vcenter"/>
+    <!-- Calendar日期格子（上月/下月，灰色） -->
+    <Class name="calendar_day_muted" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="text_muted" text_align="hcenter,vcenter"/>
+    <!-- Calendar日期格子（今天，主题色边框） -->
+    <Class name="calendar_day_today" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="color_accent" text_align="hcenter,vcenter"/>
+    <!-- Calendar日期格子（选中，主题色背景） -->
+    <Class name="calendar_day_selected" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="text_primary_btn_normal" text_align="hcenter,vcenter"/>
+    <!-- Calendar日期格子（范围中间，浅色背景） -->
+    <Class name="calendar_day_range" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="text_default" text_align="hcenter,vcenter"/>
+    <!-- Calendar日期格子（悬停） -->
+    <Class name="calendar_day_hovered" width="stretch" height="stretch" font="system_regular_14"
+                                  normal_text_color="text_default" text_align="hcenter,vcenter"/>
+
 </Global>

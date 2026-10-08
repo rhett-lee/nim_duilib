@@ -288,6 +288,8 @@
     <ClCompile Include="Control\SpinBox.cpp" />
     <ClCompile Include="Control\Switch.cpp" />
     <ClCompile Include="Control\Badge.cpp" />
+    <ClCompile Include="Control\Calendar.cpp" />
+    <ClCompile Include="Control\CalendarFlyout.cpp" />
     <ClCompile Include="Control\Flyout.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Control\TextDrawer.cpp" />
@@ -666,6 +668,8 @@
     <ClInclude Include="Control\Switch.h" />
     <ClInclude Include="Control\Badge.h" />
     <ClInclude Include="Control\Flyout.h" />
+    <ClInclude Include="Control\Calendar.h" />
+    <ClInclude Include="Control\CalendarFlyout.h" />
     <ClInclude Include="Control\TabCtrl.h" />
     <ClInclude Include="Control\TextDrawer.h" />
     <ClInclude Include="Core\Box.h" />

@@ -151,13 +151,13 @@
                         <VBox margin="4,8,0,0">
                             <HBox child_margin="4" width="300">
                                 <Label text_id="STRID_CONTROLS_DATE" height="24" text_align="vcenter" hovered_text_color="red" pressed_text_color="blue"/>
-                                <DateTime width="100%" height="24" text="2022-02-01"/>
-                                <DateTime width="120" height="24" edit_format="date_up_down" />
+                                <DateTime width="auto" height="24" text="2022-02-01"/>
+                                <DateTime width="auto" height="24" edit_format="date_up_down" />
                             </HBox>
                             <HBox child_margin="4" width="320">
                                 <Label text_id="STRID_CONTROLS_TIME" height="24" text_align="vcenter" />
-                                <DateTime width="100%" height="24" edit_format="date_time_up_down" />
-                                <DateTime width="72" height="24" edit_format="minute_up_down" />
+                                <DateTime width="auto" height="24" edit_format="date_time_up_down" />
+                                <DateTime width="auto" height="24" edit_format="minute_up_down" />
                             </HBox>
                         </VBox>
                     </HBox>

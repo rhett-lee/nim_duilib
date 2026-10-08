@@ -103,6 +103,8 @@
 #include "Control/Menu.h"
 #include "Control/MenuBar.h"
 #include "Control/Flyout.h"
+#include "Control/Calendar.h"
+#include "Control/CalendarFlyout.h"
 #include "Control/DateTime.h"
 #include "Control/Line.h"
 #include "Control/IPAddress.h"

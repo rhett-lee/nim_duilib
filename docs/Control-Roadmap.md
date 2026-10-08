@@ -50,7 +50,7 @@
 | # | 控件 | 说明 | 参考 | 状态 |
 |---|------|------|------|------|
 | 6 | Flyout/Popup 浮层容器（建议最优先） | 目前 Menu 只能做菜单形态、Tooltip 仅纯文本（Windows 实现为系统原生）。缺一个"任意内容浮出卡片"基座：定位锚点、不抢焦点、自动关闭、按主题自绘。它是日历弹层、搜索建议、富内容提示、数值气泡等控件的公共地基 | Qt Popup、WinUI Flyout | 已完成：新增 Flyout 浮层窗口类（8 方位锚点定位+自动翻转、不抢焦点、点击外部/Esc 自动关闭、语义色按主题自绘、全局单活），controls 与 ColorTheme 示例已接入 |
-| 7 | Calendar 日历面板 | 现有 DateTime 依赖系统控件（超类化 DTP，数字滚动式），无自绘月历面板。日程、报表类软件需要，依赖第 6 项作为弹层载体 | Qt QCalendarWidget、WPF DatePicker | |
+| 7 | Calendar 日历面板 | 现有 DateTime 依赖系统控件（超类化 DTP，数字滚动式），无自绘月历面板。日程、报表类软件需要，依赖第 6 项作为弹层载体 | Qt QCalendarWidget、WPF DatePicker | 已完成：新增 Calendar 自绘月历控件（单选/范围选择、月/年/十年三级导航、今天高亮、语义色适配深浅色）+ CalendarFlyout 弹层封装；DateTime 的 `date_calendar` 编辑格式已改用 CalendarFlyout，controls 与 ColorTheme 示例已接入 |
 | 8 | NavigationView 侧边栏导航 | 汉堡按钮 + 分组导航项 + 页头 + 内容区联动。现代设置页、桌面客户端标配；可用 TreeView+TabBox 组合模拟，但交互内聚性差 | WinUI NavigationView | |
 | 9 | Toast 操作按钮 | 现有 Toast 仅整条可点关闭；增加"撤销/查看详情"类操作按钮区，对齐 Win32 通知能力，小增强 | Windows 通知 ActionButton | |
 
