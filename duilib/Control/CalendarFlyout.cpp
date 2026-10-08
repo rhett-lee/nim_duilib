@@ -14,7 +14,7 @@ static const DString kCalendarFlyoutXml = _T("<Window size=\"280,320\" caption=\
                                               "    <HBox height=\"32\" child_valign=\"center\">\n"
                                               "      <Button name=\"cal_prev\" text=\"&#x2039;\" width=\"28\" height=\"28\" font=\"system_bold_16\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
                                               "      <Control/>\n"
-                                              "      <Button name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\"/>\n"
+                                              "      <Button name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,8,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
                                               "      <Control/>\n"
                                               "      <Button name=\"cal_next\" text=\"&#x203A;\" width=\"28\" height=\"28\" font=\"system_bold_16\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
                                               "    </HBox>\n"
@@ -230,6 +230,19 @@ void CalendarFlyout::UpdateTitle()
         //十年视图：yyyy - yyyy
         int32_t startYear = (year / 10) * 10;
         text = StringUtil::Printf(_T("%04d - %04d"), startYear, startYear + 9);
+    }
+
+    //标题按钮的"可交互/禁用"状态需与当前视图层级一致：
+    // - 月视图 / 年视图：标题可点击上钻（月→年→十年），保留 ▾ 提示"可展开"。
+    // - 十年视图（viewMode==2）：已是最粗粒度层级，标题再无可上钻的视图，
+    //   故将按钮置为禁用状态并去掉 ▾，使"点击无反应"在视觉上成立，
+    //   避免用户误以为还能继续上钻（配合 disabled_text_color / disabled_border_color 呈现禁用外观）。
+    if (viewMode == 2) {
+        m_pTitleBtn->SetEnabled(false);
+    }
+    else {
+        m_pTitleBtn->SetEnabled(true);
+        text += _T(" ▾");
     }
 
     m_pTitleBtn->SetText(text);
