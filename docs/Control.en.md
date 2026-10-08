@@ -341,6 +341,7 @@ The CheckCombo control inherits the `Box` attributes. For more available attribu
 | format | | string | Date format; for details, please refer to the function descriptions in `DateTime.h` |
 | edit_format | | string | Edit format of the date when editing, optional values: "date_calendar": year-month-day, modify the date by displaying a month calendar in a drop-down box; "date_up_down": when editing, display year-month-day, modify the date via an up-down control placed on the right side of the control; "date_time_up_down": when editing, display year-month-day hour:minute:second; "date_minute_up_down": when editing, display year-month-day hour:minute; "time_up_down": when editing, display hour:minute:second; "minute_up_down": when editing, display hour:minute|
 | spin_class | | string | Class attribute of the Spin control in the date; only valid when using SDL; default value: "rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" |
+| current_time | | bool | Initialize to the current local time (effective when `"true"` or `"1"`), convenient to use without manually calling `InitLocalTime()` in code; when used together with the `text` attribute, `current_time` takes precedence |
 
 The DateTime control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 

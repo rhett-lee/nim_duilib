@@ -339,6 +339,7 @@ CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属
 | format | | string | 日期的格式，具体可参考：`DateTime.h`中函数的说明 |
 | edit_format | | string | 编辑状态时，日期的编辑格式，可选值："date_calendar"：年-月-日，通过下拉框展示月日历的方式来修改日期；"date_up_down"： 编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期；"date_time_up_down"：编辑时显示：年-月-日 时:分:秒；"date_minute_up_down"：编辑时显示：年-月-日 时:分；"time_up_down"：编辑时显示：时:分:秒；"minute_up_down"：编辑时显示：时:分|
 | spin_class | | string | 日期中的Spin控件的Class属性，仅当使用SDL时有效，默认值为："rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" |
+| current_time | | bool | 初始化为当前本地时间（`"true"` 或 `"1"` 时生效），方便使用，无需在代码中手动调用 `InitLocalTime()`；与 `text` 属性同时使用时，`current_time` 优先 |
 
 DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 

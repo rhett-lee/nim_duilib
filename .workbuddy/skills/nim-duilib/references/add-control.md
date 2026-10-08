@@ -107,8 +107,9 @@
 **日期选择 DateTime:**
 
 ```xml
+<!-- 默认显示今天：current_time="true" 会在加载时初始化为当前本地时间 -->
 <DateTime name="dt_start" width="160" height="30"
-          format="%Y-%m-%d" edit_format="date_calendar"/>
+          format="%Y-%m-%d" edit_format="date_calendar" current_time="true"/>
 ```
 
 **超级链接 HyperLink:**

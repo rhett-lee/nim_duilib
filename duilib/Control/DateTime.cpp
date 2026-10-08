@@ -75,6 +75,13 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("spin_class")) {
         SetSpinClass(strValue);
     }
+    else if (strName == _T("current_time")) {
+        //初始化为当前本地时间，方便使用：无需在代码中手动调用 InitLocalTime()
+        //取值为 "true" 或 "1" 时生效（与 StringUtil::IsValueTrue 一致）
+        if (StringUtil::IsValueTrue(strValue)) {
+            InitLocalTime();
+        }
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }

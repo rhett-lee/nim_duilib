@@ -393,6 +393,17 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 | dropbox_size | | string | 下拉列表尺寸 |
 | popup_top | false | bool | 向上弹出 |
 
+### DateTime 属性(继承 Label，日期时间选择器)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| format | | string | 日期格式，具体可参考 `DateTime.h` 中 `SetStringFormat` 的说明（基于 `std::put_time`） |
+| edit_format | "date_calendar" | string | 编辑格式：`date_calendar` / `date_up_down` / `date_time_up_down` / `date_minute_up_down` / `time_up_down` / `minute_up_down` |
+| spin_class | | string | Spin 控件的 Class 属性（容器,上按钮,下按钮），仅非 `date_calendar` 编辑格式生效 |
+| current_time | | bool | 初始化为当前本地时间（`"true"` 或 `"1"` 时生效），无需在代码中手动调用 `InitLocalTime()`；与 `text` 同时使用时 `current_time` 优先 |
+
+C++ 接口：`InitLocalTime()`（设为当前时间）、`ClearTime()`、`SetDateTime/GetDateTime(tm)`、`SetDateTimeString/GetDateTimeString()`、`SetStringFormat/GetStringFormat()`、`SetEditFormat/GetEditFormat()`、`SetSpinClass/GetSpinClass()`。值变化触发 `kEventValueChanged`。
+
 ## 四、全局资源 (global.xml)
 
 ### 字体定义
