@@ -913,6 +913,42 @@ ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_INFO"),
 | position | `kPosTop`(默认) / `kPosCenter` / `kPosBottom` / `kPosTopRight` / `kPosBottomRight` |
 | bTextId | 为 true 时 text 按多语言 ID 解析 |
 
+**带操作按钮（ActionButton）**：除整条点击关闭外，还可传入一组操作按钮，对齐 Win32 通知的
+ActionButton 能力。调用 7 参数 `Show` 重载，额外传入 `std::vector<ToastAction>`：
+
+```cpp
+//带操作按钮的通知（如"知道了 / 查看详情"），对齐 Win32 通知的 ActionButton
+std::vector<ui::ToastAction> actions;
+ui::ToastAction gotIt;
+gotIt.text = _T("STRID_TOAST_ACTION_GOTIT");   //按钮文本（bTextId=true 时按多语言 ID 解析）
+gotIt.bTextId = true;
+gotIt.callback = [&]() { /* 点击"知道了"后执行的逻辑 */ };  //回调为空则点击仅关闭通知
+actions.push_back(gotIt);
+
+ui::ToastAction detail;
+detail.text = _T("STRID_TOAST_ACTION_DETAIL");
+detail.bTextId = true;
+detail.callback = [&]() { /* 点击"查看详情"后执行的逻辑 */ };
+actions.push_back(detail);
+
+ui::ToastWnd::Show(this, _T("STRID_TOAST_DEMO_ACTION_TEXT"),
+                   ui::ToastWnd::kTypeSuccess, actions, 6000, ui::ToastWnd::kPosTop, true);
+```
+
+`ToastAction` 结构：
+
+| 字段 | 说明 |
+|------|------|
+| text | 按钮文本（bTextId=true 时按多语言 ID 解析） |
+| callback | 点击回调（`StdClosure`，可为空）；执行后通知自动关闭 |
+| bTextId | 为 true 时 text 按多语言 ID 解析 |
+
+操作按钮行为要点：
+
+- 操作按钮位于通知底部，默认隐藏；仅当传入非空 `actions` 时动态创建并显示，无操作按钮时布局与行为完全不变。
+- 按钮 `mouse_enabled=true`，点击只触发自身回调（执行后关闭通知），**不会**冒泡到根容器的"整条点击关闭"；点击通知其它非交互区域仍整条关闭。
+- 按钮样式与日历"今天/清除"按钮同款（圆角边框 + 悬停/按下背景填充），颜色跟随按钮状态。
+
 要点：
 
 - 堆叠规则：同一父窗口、同一 position 的通知垂直堆叠（间距 12 DIP，新的在后面），

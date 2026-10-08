@@ -83,7 +83,7 @@ public:
                      bool bTextId = false);
 
     /** 显示一条带操作按钮的 Toast 通知（功能同上，额外在操作区渲染一组 ActionButton）
-    * @param [in] actions 操作按钮列表（如 {撤销, 查看详情}）；为空时等价于上面的 6 参数版本
+    * @param [in] actions 操作按钮列表（如 {知道了, 查看详情}）；为空时等价于上面的 6 参数版本
     * @note 其余参数含义与上面的 Show 一致
     */
     static void Show(ui::Window* pParentWindow,
