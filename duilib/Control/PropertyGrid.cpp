@@ -240,6 +240,7 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
     }
     if ((fRowLineWidth > 0.01) && !rowLineColor.IsEmpty()) {
         //绘制横向网格线
+        UiPoint treeScrollBoxOffset = m_pTreeView->GetScrollOffsetInScrollBox();
         UiRect viewRect = m_pTreeView->GetRect();
         const size_t itemCount = m_pTreeView->GetItemCount();
         for (size_t index = 0; index < itemCount; ++index) {
@@ -248,7 +249,9 @@ void PropertyGrid::PaintGridLines(IRender* pRender)
                 continue;
             }
             //纵坐标位置放在每个子项控件的底部（Header控件的底部不画线）
+            UiPoint scrollBoxOffset = pItem->GetScrollOffsetInScrollBox();
             UiRect rcItemRect = pItem->GetRect();
+            rcItemRect.Offset(-(scrollBoxOffset.x - treeScrollBoxOffset.x), -(scrollBoxOffset.y - treeScrollBoxOffset.y));
             int32_t yPos = rcItemRect.bottom;
 
             int32_t nChildMarginY = 0;
