@@ -85,7 +85,7 @@ English | [简体中文](README.md)
     <tr><td align="left">21. The Control control supports full-screen display (implemented by calling the newly added Window::SetFullscreenControl function); the CEF control and WebView2 control support switching the page to full screen via F11</td></tr>
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr>
-        <td rowspan="32">New Controls / New Containers</td>
+        <td rowspan="33">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -119,6 +119,7 @@ English | [简体中文](README.md)
     <tr><td align="left">30. Switch: Toggle switch control derived from CheckBox with sliding animation and color transition</td></tr>
     <tr><td align="left">31. Switch: Badge control for unread counts/red dots; shows "99+" when exceeding the limit, hidden automatically when count<=0</td></tr>
     <tr><td align="left">32. Flyout: a general-purpose popup (flying card) windowd. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.).</td></tr>
+    <tr><td align="left">33. Calendar: Calendar control </td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>
