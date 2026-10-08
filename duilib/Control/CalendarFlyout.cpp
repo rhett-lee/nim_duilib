@@ -5,7 +5,9 @@
 #include "duilib/Core/Keycode.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
+#include <array>
 
 namespace ui
 {
@@ -13,20 +15,214 @@ namespace ui
 static const DString kCalendarFlyoutXml = _T("<Window size=\"280,320\" caption=\"0,0,0,0\" use_system_caption=\"false\" shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">\n"
                                               "  <VBox bkcolor=\"bg_window_card\" width=\"280\" height=\"320\" padding=\"8,8,8,8\">\n"
                                               "    <HBox height=\"32\" child_valign=\"center\">\n"
-                                              "      <Button name=\"cal_prev\" text=\"&#x2039;\" width=\"28\" height=\"28\" font=\"system_bold_16\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
+                                              "      <CalendarNavButton name=\"cal_prev\" direction=\"left\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
                                               "      <Control/>\n"
-                                              "      <Button name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,8,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
+                                              "      <CalendarTitleButton name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,22,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
                                               "      <Control/>\n"
-                                              "      <Button name=\"cal_next\" text=\"&#x203A;\" width=\"28\" height=\"28\" font=\"system_bold_16\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
+                                              "      <CalendarNavButton name=\"cal_next\" direction=\"right\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
                                               "    </HBox>\n"
                                               "    <Calendar name=\"cal_grid\" height=\"240\" width=\"stretch\" calendar_mode=\"single\"/>\n"
                                               "    <HBox height=\"32\" child_valign=\"center\">\n"
-                                              "      <Button name=\"cal_today\" text_id=\"STRID_PUBLIC_CALENDAR_TODAY\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"color_accent\"/>\n"
+                                              "      <Button name=\"cal_today\" text_id=\"STRID_PUBLIC_CALENDAR_TODAY\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n"
                                               "      <Control/>\n"
-                                              "      <Button name=\"cal_clear\" text_id=\"STRID_PUBLIC_CALENDAR_CLEAR\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"text_muted\"/>\n"
+                                              "      <Button name=\"cal_clear\" text_id=\"STRID_PUBLIC_CALENDAR_CLEAR\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"text_muted\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n"
                                               "    </HBox>\n"
                                               "  </VBox>\n"
                                               "</Window>");
+
+namespace
+{
+/** 控件工厂回调：根据类名创建日历专用的自定义控件。
+ *  注意：WindowBuilder 在 GlobalManager::CreateControl 返回后会调用 pControl->SetWindow(pWindow)，
+ *        因此此处以 nullptr 构造 Window 是安全的（与 CefControl 等注册控件的做法一致）。
+ */
+Control* CreateCalendarCustomControl(const DString& strControlName)
+{
+    if (strControlName == _T("CalendarTitleButton")) {
+        return new CalendarTitleButton(nullptr);
+    }
+    if (strControlName == _T("CalendarNavButton")) {
+        return new CalendarNavButton(nullptr);
+    }
+    return nullptr;
+}
+
+/** 仅注册一次自定义控件工厂（全局回调列表，避免重复添加）
+ */
+void EnsureCalendarControlClassesRegistered()
+{
+    static bool s_registered = false;
+    if (!s_registered) {
+        s_registered = true;
+        GlobalManager::Instance().AddCreateControlCallback(CreateCalendarCustomControl);
+    }
+}
+
+} // namespace
+
+void CalendarTitleButton::Paint(IRender* pRender, const UiRect& rcPaint)
+{
+    // 先绘制按钮本身（背景、边框、文本），保持原有交互外观
+    BaseClass::Paint(pRender, rcPaint);
+
+    // 仅在按钮可用状态（月视图/年视图：标题可上钻）绘制向下箭头；
+    // 十年视图下按钮被禁用，不绘制箭头，与"已是最粗粒度、无可再上钻层级"的语义一致。
+    if (!IsEnabled()) {
+        return;
+    }
+
+    // 箭头颜色与按钮文本当前状态色保持一致（普通/悬停/按下）
+    UiColor arrowColor = GetArrowColor();
+    if (arrowColor.IsEmpty()) {
+        return;
+    }
+
+    const UiRect rc = GetRect();
+    // 箭头绘制在按钮右侧预留的文本内边距区域内（见 XML 的 text_padding 右侧值）
+    const int32_t arrowSize = Dpi().GetScaleInt(7);  // 三角形的底宽与高度（像素），适当放大便于跨平台辨识
+    const int32_t marginRight = Dpi().GetScaleInt(5); // 距右边框的内边距，适当左移远离边缘
+    const int32_t cx = rc.right - marginRight - arrowSize / 2;
+    const int32_t cy = (rc.top + rc.bottom) / 2;
+    std::array<UiPointF, 3> pts = {{
+        UiPointF(static_cast<float>(cx - arrowSize / 2), static_cast<float>(cy - arrowSize / 2)),
+        UiPointF(static_cast<float>(cx + arrowSize / 2), static_cast<float>(cy - arrowSize / 2)),
+        UiPointF(static_cast<float>(cx),                       static_cast<float>(cy + arrowSize / 2)),
+    }};
+
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory == nullptr) {
+        return;
+    }
+    std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+    if (path == nullptr) {
+        return;
+    }
+    path->AddPolygon(pts.data(), static_cast<int32_t>(pts.size()));
+    path->Close();
+    std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(arrowColor));
+    if (brush != nullptr) {
+        pRender->FillPath(path.get(), brush.get());
+    }
+}
+
+UiColor CalendarTitleButton::GetArrowColor() const
+{
+    ControlStateType state = GetState();
+    DString colorStr;
+    if (state == kControlStatePressed) {
+        colorStr = GetStateTextColor(kControlStatePressed);
+        if (colorStr.empty()) {
+            state = kControlStateHovered;
+        }
+    }
+    if (state == kControlStateHovered) {
+        DString hovered = GetStateTextColor(kControlStateHovered);
+        if (!hovered.empty()) {
+            colorStr = hovered;
+        }
+        else {
+            state = kControlStateNormal;
+        }
+    }
+    if (colorStr.empty()) {
+        colorStr = GetStateTextColor(kControlStateNormal);
+    }
+    if (colorStr.empty()) {
+        return UiColor();
+    }
+    return GetUiColor(colorStr);
+}
+
+void CalendarNavButton::SetAttribute(const DString& strName, const DString& strValue)
+{
+    if (strName == _T("direction")) {
+        // left=上一月（‹），right=下一月（›）；缺省视为 left，兼容遗漏配置
+        m_direction = (strValue == _T("right")) ? Direction::kRight : Direction::kLeft;
+        return;
+    }
+    BaseClass::SetAttribute(strName, strValue);
+}
+
+void CalendarNavButton::Paint(IRender* pRender, const UiRect& rcPaint)
+{
+    // 先绘制按钮本身（背景、边框），保持原有交互外观；本按钮无文本，仅作为图标按钮。
+    BaseClass::Paint(pRender, rcPaint);
+
+    // 图标颜色与按钮文本当前状态色保持一致（普通/悬停/按下）
+    UiColor arrowColor = GetArrowColor();
+    if (arrowColor.IsEmpty()) {
+        return;
+    }
+
+    const UiRect rc = GetRect();
+    // 居中绘制矢量三角（chevron）：与标题的向下箭头同源、风格统一；
+    // 导航按钮在浮层生命周期内始终可用，故始终绘制（不做禁用判断）。
+    const int32_t arrowSize = Dpi().GetScaleInt(8); // 三角形边长（像素），DPI 自适应
+    const int32_t cx = (rc.left + rc.right) / 2;
+    const int32_t cy = (rc.top + rc.bottom) / 2;
+    const float half = static_cast<float>(arrowSize) / 2.0f;
+
+    std::array<UiPointF, 3> pts;
+    if (m_direction == Direction::kRight) {
+        // 向右三角：apex 在右、底边在左（下一月 ›）
+        pts = std::array<UiPointF, 3>{{
+            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy)),
+            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy) - half),
+            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy) + half),
+        }};
+    }
+    else {
+        // 向左三角：apex 在左、底边在右（上一月 ‹）
+        pts = std::array<UiPointF, 3>{{
+            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy)),
+            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy) - half),
+            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy) + half),
+        }};
+    }
+
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory == nullptr) {
+        return;
+    }
+    std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+    if (path == nullptr) {
+        return;
+    }
+    path->AddPolygon(pts.data(), static_cast<int32_t>(pts.size()));
+    path->Close();
+    std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(arrowColor));
+    if (brush != nullptr) {
+        pRender->FillPath(path.get(), brush.get());
+    }
+}
+
+UiColor CalendarNavButton::GetArrowColor() const
+{
+    ControlStateType state = GetState();
+    DString colorStr;
+    if (state == kControlStatePressed) {
+        colorStr = GetStateTextColor(kControlStatePressed);
+        if (colorStr.empty()) {
+            state = kControlStateHovered;
+        }
+    }
+    if (state == kControlStateHovered) {
+        DString hovered = GetStateTextColor(kControlStateHovered);
+        if (!hovered.empty()) {
+            colorStr = hovered;
+        }
+        else {
+            state = kControlStateNormal;
+        }
+    }
+    if (colorStr.empty()) {
+        colorStr = GetStateTextColor(kControlStateNormal);
+    }
+    if (colorStr.empty()) {
+        return UiColor();
+    }
+    return GetUiColor(colorStr);
+}
 
 CalendarFlyout::CalendarFlyout(Window* pParentWindow):
     Flyout(pParentWindow),
@@ -46,6 +242,8 @@ bool CalendarFlyout::ShowAt(Control* pAnchor, const struct tm& initDate, Placeme
 {
     m_initDate = initDate;
     m_bHasInitDate = true;
+    //注册日历专用自定义控件（标题按钮，自绘向下箭头），仅注册一次。
+    EnsureCalendarControlClassesRegistered();
     //日历需要接收键盘事件（方向键/回车导航），故浮层必须抢占焦点。
     //DateTime 侧已有 m_bSuppressCalendarReopen 标志，关闭后焦点回落不会造成重开死循环。
     SetNoFocus(false);
@@ -260,16 +458,15 @@ void CalendarFlyout::UpdateTitle()
     }
 
     //标题按钮的"可交互/禁用"状态需与当前视图层级一致：
-    // - 月视图 / 年视图：标题可点击上钻（月→年→十年），保留 ▾ 提示"可展开"。
+    // - 月视图 / 年视图：标题可点击上钻（月→年→十年），由 CalendarTitleButton 自绘向下箭头提示"可展开"。
     // - 十年视图（viewMode==2）：已是最粗粒度层级，标题再无可上钻的视图，
-    //   故将按钮置为禁用状态并去掉 ▾，使"点击无反应"在视觉上成立，
+    //   故将按钮置为禁用状态；CalendarTitleButton 在禁用时不绘制箭头，使"点击无反应"在视觉上成立，
     //   避免用户误以为还能继续上钻（配合 disabled_text_color / disabled_border_color 呈现禁用外观）。
     if (viewMode == 2) {
         m_pTitleBtn->SetEnabled(false);
     }
     else {
         m_pTitleBtn->SetEnabled(true);
-        text += _T(" ▾");
     }
 
     m_pTitleBtn->SetText(text);
