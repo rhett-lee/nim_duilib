@@ -390,14 +390,28 @@ void Calendar::MoveFocusYear(int32_t deltaYears)
 {
     struct tm d = m_focusDate;
     d.tm_year += deltaYears;
-    d.tm_mday = 1;
+    //注意：不重置 tm_mday，保留日号，使 Ctrl+方向 在月视图下跳到"同日的去年/明年"而非 1 号
     NormalizeTm(d);
     ClampFocusToLimits(d);
     int32_t fy = d.tm_year + 1900;
-    int32_t decade = (fy / 10) * 10;
-    int32_t curDecade = (m_displayYear / 10) * 10;
-    if (decade != curDecade) {
-        SetDisplayMonth(fy, m_displayMonth); //十年视图下跟随十年
+    if (m_viewMode == 0) {
+        //月视图：网格显示单个月份，焦点跨年必须跟随显示，
+        //否则焦点环落在不可见月份、界面看似"无刷新"（仅在再次普通移动时才跳转显示）。
+        SetDisplayMonth(fy, d.tm_mon + 1);
+    }
+    else if (m_viewMode == 1) {
+        //年视图：网格显示单个年份，焦点跨年才跟随显示
+        if (fy != m_displayYear) {
+            SetDisplayMonth(fy, m_displayMonth);
+        }
+    }
+    else {
+        //十年视图：仅在跨越十年边界时跟随显示（十年网格内移动年份仍可见）
+        int32_t decade = (fy / 10) * 10;
+        int32_t curDecade = (m_displayYear / 10) * 10;
+        if (decade != curDecade) {
+            SetDisplayMonth(fy, m_displayMonth);
+        }
     }
     SetKeyboardFocusDate(d);
 }
