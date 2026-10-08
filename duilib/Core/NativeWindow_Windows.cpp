@@ -1805,6 +1805,14 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
         if (lParam & (1 << 29)) {
             modifierKey |= ModifierKey::kAlt;
         }
+        //Shift / Control 在 WM_KEYDOWN 的 lParam 中没有可靠编码，
+        //必须用 GetKeyState 取实时按键状态，否则 Shift+方向、Ctrl+方向等组合键的修饰位永远为 0。
+        if (::GetKeyState(VK_SHIFT) & 0x8000) {
+            modifierKey |= ModifierKey::kShift;
+        }
+        if (::GetKeyState(VK_CONTROL) & 0x8000) {
+            modifierKey |= ModifierKey::kControl;
+        }
         break;
     case WM_KEYUP:
     case WM_SYSKEYUP:
