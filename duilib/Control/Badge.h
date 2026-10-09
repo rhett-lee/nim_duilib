@@ -10,7 +10,8 @@ namespace ui {
  *  两种形态：
  *  1. 数字角标：圆角胶囊背景 + 数字文本，数量超过 max_count 时显示"max+"（如"99+"）；
  *  2. 红点角标（dot模式）：小圆点，不显示数字。
- *  数量 count <= 0 时控件自动隐藏（主流平台惯例：无未读时不显示角标）。
+ *  数字角标数量 count <= 0 时自动隐藏（主流平台惯例：无未读时不显示角标）；
+ *  红点角标不受 count 影响，显隐由 visible 属性控制。
  *  作为子控件放在任意 Box 容器内使用，悬浮定位时配合 float="true" 与 margin 属性。
  *  背景使用语义色自绘（圆角 = 高度的一半），自动适配深浅色主题。
  */
@@ -36,7 +37,7 @@ public:
     virtual void PaintStateColors(IRender* pRender) override;
 
 public:
-    /** 设置角标数量：大于0时显示角标，小于等于0时自动隐藏
+    /** 设置角标数量：数字模式下大于0时显示角标，小于等于0时自动隐藏（红点模式不受影响）
     */
     void SetCount(int64_t nCount);
 
@@ -74,7 +75,7 @@ private:
     void UpdateBadge();
 
 private:
-    /** 角标数量（小于等于0时自动隐藏）
+    /** 角标数量（数字模式下小于等于0时自动隐藏；红点模式不受影响）
     */
     int64_t m_nCount;
 

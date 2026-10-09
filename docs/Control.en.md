@@ -708,12 +708,12 @@ if (pSwitch != nullptr) {
 
 ## Attributes of Badge
 Badge is a badge control derived from Label, used to display unread counts/new message counts/red dots on TabCtrl tabs, buttons, icons and other controls. Header file: `duilib/Control/Badge.h`.
-Two forms: count badge (rounded capsule background + number, shows "99+" when exceeding the limit) and dot badge (dot mode, a small round dot). The badge is automatically hidden when count <= 0 (no badge when there are no unread items); in dot mode, visibility is controlled by the visible attribute.
+Two forms: count badge (rounded capsule background + number, shows "99+" when exceeding the limit) and dot badge (dot mode, a small round dot). The count badge is automatically hidden when count <= 0 (no badge when there are no unread items); the dot badge is unaffected by count, and its visibility is controlled by the visible attribute.
 Badge inherits the text attributes of Label (font, normal_text_color, text_padding, etc.); the background is a rounded capsule self-drawn with semantic colors (corner radius = half the height), automatically adapting to light/dark themes.
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0 |
+| count | 0 | int64 | Badge count: in count mode, shows the badge when greater than 0 and automatically hides when less than or equal to 0 (dot mode is unaffected) |
 | max_count | 99 | int64 | Count limit, shows "limit+" (e.g. "99+") when exceeded |
 | dot | false | bool | Dot mode: true shows a pure small round dot without a number |
 | badge_color | bg_badge | string | Badge background color (semantic color name or color value) |

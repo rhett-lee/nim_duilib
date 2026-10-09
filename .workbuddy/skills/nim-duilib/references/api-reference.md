@@ -324,7 +324,7 @@ TabCtrl 标签、按钮、图标上的未读数/小红点控件（`duilib/Contro
 |------|--------|------|------|
 | count / badge_count | 0 | int64 | 角标数量：>0 显示，<=0 自动隐藏 |
 | max_count / maxcount | 99 | int64 | 数量上限，超过显示"上限+"（如"99+"） |
-| dot | false | bool | 红点模式：true 为纯小圆点不显示数字（显隐由 visible 控制） |
+| dot | false | bool | 红点模式：true 为纯小圆点不显示数字（显隐由 visible 控制，不受 count 影响） |
 | badge_color / badgecolor | `bg_badge` | string | 角标背景颜色（语义色名或颜色值） |
 
 用法：作为子控件放在任意 Box 内；悬浮宿主控件角上用 `float="true"` + `margin` 定位（子控件超出父容器边界的部分会被裁剪，父容器需留出角标外露宽度）。

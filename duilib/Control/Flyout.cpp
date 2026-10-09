@@ -36,6 +36,10 @@ Flyout::Flyout(Window* pParentWindow) :
 Flyout::~Flyout()
 {
     StopDetectTimer();
+    //兜底：确保析构后活动浮层指针不悬空（正常关闭路径已在 DoClose/OnFinalMessage 清空）
+    if (s_pActiveFlyout == this) {
+        s_pActiveFlyout = nullptr;
+    }
 }
 
 void Flyout::SetSkinFolder(const DString& skinFolder)
@@ -86,7 +90,12 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     createWndParam.m_nY = rcAnchorInit.top;
 
     if (!CreateWnd(m_pParentWindow, createWndParam)) {
-        //创建失败（通常是 XML 资源路径错误）：销毁对象并返回，避免泄漏
+        //创建失败（通常是 XML 资源路径错误）：销毁对象并返回，避免泄漏。
+        //注意：若本对象此前已是活动浮层（重复调用 ShowAt 且此前 ShowAt 成功过），
+        //直接 delete this 会留下指向已释放内存的悬空静态指针，须先清空。
+        if (s_pActiveFlyout == this) {
+            s_pActiveFlyout = nullptr;
+        }
         delete this;
         return false;
     }
