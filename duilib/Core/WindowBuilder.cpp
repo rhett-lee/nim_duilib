@@ -27,6 +27,7 @@
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/Calendar.h"
 #include "duilib/Control/CalendarFlyout.h"
+#include "duilib/Control/NavigationView.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
 
@@ -164,6 +165,8 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_BADGE, [](Window* pWindow) { return new Badge(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_CALENDAR, [](Window* pWindow) { return new Calendar(pWindow); }},
+        {DUI_CTR_NAVIGATIONVIEW, [](Window* pWindow) { return new NavigationView(pWindow); }},
+        {DUI_CTR_NAVIGATION_VIEW_ITEM, [](Window* pWindow) { return new NavigationViewItem(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},
         {DUI_CTR_COLOR_PICKER_REGULAR, [](Window* pWindow) { return new ColorPickerRegular(pWindow); }},

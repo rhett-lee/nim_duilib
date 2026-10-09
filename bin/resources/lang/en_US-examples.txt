@@ -461,7 +461,7 @@ STRID_CONTROLS_NONE = None
 STRID_CONTROLS_SET_WINDOW_HOTKEY = SetWinHotkey
 STRID_CONTROLS_SET_SYSTEM_HOTKEY = SetSysHotkey
 
-# 超链接/RichText
+# Hyperlink/RichText
 STRID_CONTROLS_BAIDU_HOME = Baidu Home
 STRID_CONTROLS_TEXT_BUTTON = Text Button
 STRID_CONTROLS_HYPERLINK_CONTROL = A HyperLink control
@@ -509,6 +509,38 @@ STRID_CONTROLS_TRAY_MENU_02 = Menu Item 2
 STRID_CONTROLS_TRAY_MENU_03 = Menu Item 3
 STRID_CONTROLS_TRAY_MENU_04 = Menu Item 4
 STRID_CONTROLS_TRAY_MENU_05 = Exit
+
+# controls/NavigationView
+STRID_CONTROLS_NAVIGATION_TEST = Nav Test
+STRID_NAV_SETTINGS = Settings
+STRID_NAV_DEMO_TITLE = Demo App
+STRID_NAV_PAGE_HOME = Home
+STRID_NAV_PAGE_DASHBOARD = Dashboard
+STRID_NAV_PAGE_TOOLS = Tools
+STRID_NAV_GROUP_SYSTEM = System
+STRID_NAV_HOME_DESC = This is the Home page. Click an item in the left pane to switch pages; click the hamburger button at the top-left to expand/collapse the pane. When collapsed, only icons are shown and hover tooltips reveal the text.
+STRID_NAV_DASHBOARD_DESC = This is the Dashboard page for summary content.
+STRID_NAV_TOOLS_DESC = This is the Tools page for tool entries.
+STRID_NAV_SETTINGS_DESC = This is the Settings page, opened from the settings item pinned at the bottom of the pane.
+STRID_NAV_JUMP_TOOLS = Jump to Tools via C++
+STRID_NAV_PAGE_NOTIFICATIONS = Notifications
+STRID_NAV_PAGE_PROJECTS = Projects
+STRID_NAV_PAGE_DOCS = Docs
+STRID_NAV_PAGE_TASKS = Tasks
+STRID_NAV_PAGE_CALENDAR = Calendar
+STRID_NAV_PAGE_FAVORITES = Favorites
+STRID_NAV_PAGE_HELP = Help
+STRID_NAV_GROUP_WORKSPACE = Workspace
+STRID_NAV_NOTIFICATIONS_DESC = This is the Notifications page. With many items, the left nav list scrolls vertically inside the pane.
+STRID_NAV_PROJECTS_DESC = This is the Projects page.
+STRID_NAV_DOCS_DESC = This is the Docs page.
+STRID_NAV_TASKS_DESC = This is the Tasks page.
+STRID_NAV_CALENDAR_DESC = This is the Calendar page.
+STRID_NAV_FAVORITES_DESC = This is the Favorites page.
+STRID_NAV_HELP_DESC = This is the Help page.
+STRID_NAV_STATUS = Selected:
+STRID_NAV_BTN_ADD_ITEM = Add nav item
+STRID_NAV_BTN_TOGGLE = Toggle collapsed
 
 # controls/MessageBox
 # Main window UI

@@ -42,6 +42,9 @@
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NavigationForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ToastForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NavigationForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ToastForm.cpp">

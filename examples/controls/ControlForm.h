@@ -69,6 +69,10 @@ private:
     */
     void ShowAnimationWindow();
 
+    /** 显示 NavigationView 侧边栏导航演示窗口
+    */
+    void ShowNavigationWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

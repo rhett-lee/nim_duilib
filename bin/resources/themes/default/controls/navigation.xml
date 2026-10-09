@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,640" text="NavigationView Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text="NavigationView Test" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- NavigationView：汉堡按钮 + 分组导航项 + 页头 + 内容区联动 -->
+        <NavigationView name="nav" height="stretch"
+                        pane_width="220" compact_pane_width="48"
+                        pane_title_id="STRID_NAV_DEMO_TITLE" show_header="true"
+                        toggle_icon="file='nav/hamburger.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
+                        settings_item="true" settings_page="page_settings"
+                        settings_text_id="STRID_NAV_SETTINGS"
+                        settings_icon="file='nav/settings.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                        selected_id="page_home">
+            <!-- ===== 分组一：常用 ===== -->
+            <NavigationViewItem text_id="STRID_NAV_PAGE_HOME"
+                                icon="file='nav/home.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_home"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_DASHBOARD"
+                                icon="file='nav/dashboard.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_dashboard"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_NOTIFICATIONS"
+                                icon="file='nav/notification.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_notifications"/>
+            <NavigationViewItem item_type="separator"/>
+
+            <!-- ===== 分组二：工作区（项较多，超出窗格高度时可纵向滚动） ===== -->
+            <NavigationViewItem item_type="header" text_id="STRID_NAV_GROUP_WORKSPACE"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_PROJECTS"
+                                icon="file='nav/folder.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_projects"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_DOCS"
+                                icon="file='nav/docs.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_docs"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_TASKS"
+                                icon="file='nav/task.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_tasks"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_CALENDAR"
+                                icon="file='nav/calendar.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_calendar"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_FAVORITES"
+                                icon="file='nav/bookmark.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_favorites"/>
+            <NavigationViewItem item_type="separator"/>
+
+            <!-- ===== 分组三：系统 ===== -->
+            <NavigationViewItem item_type="header" text_id="STRID_NAV_GROUP_SYSTEM"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_TOOLS"
+                                icon="file='nav/tools.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_tools"/>
+            <NavigationViewItem text_id="STRID_NAV_PAGE_HELP"
+                                icon="file='nav/help.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page="page_help"/>
+
+            <!-- ===== 内容区：显式 TabBox 承载所有页面，便于外部直接操控页面容器 ===== -->
+            <TabBox name="nav_content" bkcolor="bg_window_main">
+                <VBox name="page_home" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_HOME" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_HOME_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                        <Button class="btn_global" name="btn_jump_tools" text_id="STRID_NAV_JUMP_TOOLS"
+                                width="180" height="30" border_round="3,3" margin="0,20,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_dashboard" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_DASHBOARD" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_DASHBOARD_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_notifications" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_NOTIFICATIONS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_NOTIFICATIONS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_projects" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_PROJECTS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_PROJECTS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_docs" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_DOCS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_DOCS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_tasks" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_TASKS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_TASKS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_calendar" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_CALENDAR" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_CALENDAR_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_favorites" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_FAVORITES" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_FAVORITES_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_tools" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_TOOLS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_TOOLS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_help" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_PAGE_HELP" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_HELP_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+
+                <VBox name="page_settings" bkcolor="bg_window_main">
+                    <VBox margin="24,24,24,24" height="stretch">
+                        <Label text_id="STRID_NAV_SETTINGS" font="system_bold_16" text_color="text_default"/>
+                        <Label text_id="STRID_NAV_SETTINGS_DESC" text_color="text_muted" margin="0,8,0,0"/>
+                    </VBox>
+                </VBox>
+            </TabBox>
+        </NavigationView>
+
+        <!-- 底部状态栏：展示选中事件监听结果与 C++ API 操作入口 -->
+        <HBox name="nav_status_bar" height="30" bkcolor="bg_window_card" padding="10,0,10,0">
+            <Label text_id="STRID_NAV_STATUS" text_color="text_muted" valign="center"/>
+            <Label name="nav_status_value" text_color="text_default" margin="6,0,0,0" width="stretch" valign="center"/>
+            <Button class="btn_global" name="btn_add_nav" text_id="STRID_NAV_BTN_ADD_ITEM"
+                    width="130" height="24" border_round="3,3" margin="0,0,6,0"/>
+            <Button class="btn_global" name="btn_toggle_nav" text_id="STRID_NAV_BTN_TOGGLE"
+                    width="130" height="24" border_round="3,3"/>
+        </HBox>
+    </VBox>
+</Window>

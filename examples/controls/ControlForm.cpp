@@ -2,6 +2,7 @@
 #include "AboutForm.h"
 #include "TestForm.h"
 #include "AnimationForm.h"
+#include "NavigationForm.h"
 
 #include <fstream>
 
@@ -296,6 +297,15 @@ void ControlForm::OnInitWindow()
             });
     }
 
+    //NavigationView 侧边栏导航演示
+    ui::Button* pNavigationBtn = dynamic_cast<ui::Button*>(FindControl(_T("navigation_btn")));
+    if (pNavigationBtn != nullptr) {
+        pNavigationBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowNavigationWindow();
+            return true;
+            });
+    }
+
     //托盘图标功能
     ui::CheckBox* pTrayIconCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_tray_icon")));
     if (pTrayIconCheckBox != nullptr) {
@@ -467,6 +477,18 @@ void ControlForm::ShowAnimationWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("AnimationWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowNavigationWindow()
+{
+    NavigationForm* testForm = new NavigationForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("NavigationWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

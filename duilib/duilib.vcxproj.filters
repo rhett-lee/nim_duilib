@@ -942,6 +942,9 @@
     <ClCompile Include="Control\CalendarFlyout.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\NavigationView.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1962,6 +1965,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\CalendarFlyout.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\NavigationView.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
