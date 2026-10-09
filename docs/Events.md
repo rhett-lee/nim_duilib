@@ -45,6 +45,10 @@
 |kEventCollapse             |     |     |     |     |       |     | 无参数；Panel面板折叠完成后触发 |
 |kEventPanelExpanding       |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | Panel面板即将展开时触发，事件回调返回false可取消本次展开 |
 |kEventPanelCollapsing      |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     | Panel面板即将折叠时触发，事件回调返回false可取消本次折叠 |
+|kEventNavigationItemClick  |可选项序号 |     |     |     |       |     | NavigationView点击可选择导航项时触发，重复点击已选中项也会触发 |
+|kEventNavigationSelectionChanged |新选择的索引号 | 旧选择的索引号 |     |     |    |     | NavigationView选中项发生变化时触发，无选中时为Box::InvalidIndex |
+|kEventNavigationPaneToggling |目标状态：<br>1=收起，0=展开 |     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | NavigationView窗格即将收起/展开时触发，事件回调返回false可取消本次切换 |
+|kEventNavigationPaneToggled |当前状态：<br>1=收起，0=展开 |     |     |     |    |     | NavigationView窗格收起/展开完成时触发 |
 
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |

@@ -114,6 +114,7 @@
 | Panel | Box|[Layout](../duilib/Layout/Layout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的面板容器（PanelTemplate模板实例），支持标题栏样式、折叠/展开动画与手风琴分组 |
 | PanelHBox | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的水平布局面板容器 |
 | PanelVBox | VBox|[VLayout](../duilib/Layout/VLayout.h)|[duilib/Box/Panel.h](../duilib/Box/Panel.h) | 带标题栏的垂直布局面板容器 |
+| NavigationView | HBox|[HLayout](../duilib/Layout/HLayout.h)|[duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | 侧边栏导航容器（左侧导航窗格+右侧内容区），支持导航项分组、底部设置项、窗格收起/展开 |
 
 * 图片
 
@@ -207,6 +208,7 @@
 | HyperLink | Label| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | 带有超级链接的文字, 如果URL为空的话，可以当作普通的文字按钮使用 |
 | IPAddress | HBox| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP地址控件 |
 | Line | Control| [duilib/Control/Line.h](../duilib/Control/Line.h) | 画线控件 |
+| NavigationViewItem | Control| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | NavigationView的导航项，支持item/header/separator三种形态 |
 | Menu | WindowImplBase| [duilib/Control/Menu.h](../duilib/Control/Menu.h) | 菜单，独立窗口 |
 | Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件 |
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |

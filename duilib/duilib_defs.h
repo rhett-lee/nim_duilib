@@ -421,6 +421,12 @@ namespace ui
         kEventPanelCollapsing,      //Panel类：面板即将折叠时触发，返回false可取消
         kEventPanelExpanding,       //Panel类：面板即将展开时触发，返回false可取消
 
+        //NavigationView侧边栏导航
+        kEventNavigationItemClick,          //NavigationView类：点击可选择的导航项时触发(重复点击已选中项也会触发), WPARAM是可选项序号
+        kEventNavigationSelectionChanged,   //NavigationView类：选中项发生变化时触发, WPARAM是新序号, LPARAM是旧序号(无选中时为Box::InvalidIndex)
+        kEventNavigationPaneToggling,       //NavigationView类：窗格即将收起/展开时触发, WPARAM是目标状态(1=收起,0=展开)，回调返回false可取消本次切换
+        kEventNavigationPaneToggled,        //NavigationView类：窗格收起/展开完成时触发, WPARAM是当前状态(1=收起,0=展开)
+
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发
         kEventSelChanged,           //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发

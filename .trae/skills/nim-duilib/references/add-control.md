@@ -159,6 +159,31 @@
 手风琴分组给同组面板加相同 `group="settings"`；标题栏右侧放常驻按钮用
 `title_slot="控件name"`（该子控件设 `float="true"`）。完整属性表见 `api-reference.md` 第二节。
 
+**侧边栏导航 NavigationView:**
+
+```xml
+<NavigationView name="nav" width="stretch" height="stretch"
+                pane_title="工作台" pane_width="220" compact_pane_width="48"
+                toggle_icon="file='nav/hamburger.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                settings_item="true" settings_page="page_settings"
+                settings_text_id="STRID_NAV_SETTINGS"
+                settings_icon="file='nav/settings.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'">
+    <!-- item：可选中导航项；header：分组标题；separator：分隔线 -->
+    <NavigationViewItem item_type="header" text_id="STRID_NAV_GROUP_COMMON"/>
+    <NavigationViewItem text_id="STRID_NAV_HOME" page="page_home"
+                        icon="file='nav/home.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"/>
+    <NavigationViewItem item_type="separator"/>
+    <!-- 内容区：推荐显式提供一个 TabBox，导航项 page 与页面 name 一一对应 -->
+    <TabBox name="nav_content">
+        <VBox name="page_home"/>
+        <VBox name="page_settings"/>
+    </TabBox>
+</NavigationView>
+```
+
+事件（`AttachNavSelectionChanged` / `AttachNavItemClick` / `AttachNavPaneToggling` /
+`AttachNavPaneToggled`）见 `event-handler.md`；完整属性与子节点路由规则见 `api-reference.md` 第二节。
+
 ## 3. C++ 事件绑定代码
 
 在窗口的 `OnInitWindow()` 中添加:

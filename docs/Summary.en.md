@@ -116,6 +116,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | Panel | Box | [Layout](../duilib/Layout/Layout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container (PanelTemplate instance), supporting title bar styling, collapse/expand animation and accordion groups |
 | PanelHBox | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with horizontal layout |
 | PanelVBox | VBox | [VLayout](../duilib/Layout/VLayout.h) | [duilib/Box/Panel.h](../duilib/Box/Panel.h) | Titled panel container with vertical layout |
+| NavigationView | HBox | [HLayout](../duilib/Layout/HLayout.h) | [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Sidebar navigation container (left nav pane + right content area); supports grouped items, a bottom settings item and pane collapse/expand |
 
 * Image
 
@@ -209,6 +210,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | HyperLink | Label | [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | Text with a hyperlink; if the URL is empty, it can be used as a normal text button |
 | IPAddress | HBox | [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | IP address control |
 | Line | Control | [duilib/Control/Line.h](../duilib/Control/Line.h) | Line drawing control |
+| NavigationViewItem | Control | [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Navigation item of NavigationView; supports item/header/separator forms |
 | Menu | WindowImplBase | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | Menu, independent window |
 | Progress | Label | [duilib/Control/Progress.h](../duilib/Control/Progress.h) | Progress bar control |
 | Slider | Progress | [duilib/Control/Slider.h](../duilib/Control/Slider.h) | Slider control |

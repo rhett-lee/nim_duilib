@@ -190,8 +190,14 @@ private:
 *     settings_icon        设置项图标图片属性串（默认空，由使用方提供）
 *     selected_id          初始选中项对应的 page name（默认第一个可选项）
 *
-*   事件：选中项变化时触发 kEventTabSelect（AttachNavSelect 监听），
-*         wParam 为当前选中项在所有可选项中的序号（无选中时为 Box::InvalidIndex）
+*   事件（均由 NavigationView 自身作为发送者触发，与内部 TabBox 的 kEventTabSelect 互不干扰）：
+*     kEventNavigationItemClick         点击可选择导航项时触发（重复点击已选中项也会触发），
+*                                       WPARAM 为该项在所有可选项中的序号；适合"点击即刷新/回顶"类需求
+*     kEventNavigationSelectionChanged  选中项发生变化时触发，WPARAM 为新序号，LPARAM 为旧序号
+*                                       （无选中时为 Box::InvalidIndex）
+*     kEventNavigationPaneToggling      窗格即将收起/展开时触发，WPARAM 为目标状态（1=收起，0=展开），
+*                                       回调返回 false 可取消本次切换
+*     kEventNavigationPaneToggled       窗格收起/展开完成时触发，WPARAM 为当前状态（1=收起，0=展开）
 */
 class DUILIB_API NavigationView : public HBox
 {
@@ -241,11 +247,36 @@ public:
     void SetCollapsed(bool bCollapsed);
     bool IsCollapsed() const { return m_bCollapsed; }
 
-    /** 监听导航选中变化事件（kEventTabSelect）
+    /** 监听导航项点击事件（kEventNavigationItemClick）
+    *   与选中变化事件的区别：重复点击当前已选中项时本事件仍会触发，WPARAM 为可选项序号
     */
-    void AttachNavSelect(const EventCallback& callback, EventCallbackID callbackID = 0)
+    void AttachNavItemClick(const EventCallback& callback, EventCallbackID callbackID = 0)
     {
-        AttachEvent(kEventTabSelect, callback, callbackID);
+        AttachEvent(kEventNavigationItemClick, callback, callbackID);
+    }
+
+    /** 监听导航选中变化事件（kEventNavigationSelectionChanged）
+    *   WPARAM 为新序号，LPARAM 为旧序号（无选中时为 Box::InvalidIndex）
+    */
+    void AttachNavSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0)
+    {
+        AttachEvent(kEventNavigationSelectionChanged, callback, callbackID);
+    }
+
+    /** 监听窗格即将收起/展开事件（kEventNavigationPaneToggling，可取消）
+    *   WPARAM 为目标状态（1=收起，0=展开），回调返回 false 可阻止本次切换
+    */
+    void AttachNavPaneToggling(const EventCallback& callback, EventCallbackID callbackID = 0)
+    {
+        AttachEvent(kEventNavigationPaneToggling, callback, callbackID);
+    }
+
+    /** 监听窗格收起/展开完成事件（kEventNavigationPaneToggled）
+    *   WPARAM 为当前状态（1=收起，0=展开）
+    */
+    void AttachNavPaneToggled(const EventCallback& callback, EventCallbackID callbackID = 0)
+    {
+        AttachEvent(kEventNavigationPaneToggled, callback, callbackID);
     }
 
     /** 动态追加一个导航项（内容页需已存在于内容区）

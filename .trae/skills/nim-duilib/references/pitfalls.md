@@ -1,6 +1,6 @@
 # 已核实的陷阱与历史问题
 
-<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange -->
+<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange kEventXxx -->
 <!-- 上面这些名字是刻意举例的"错误写法"，verify_docs.py 不应把它们当成文档漂移。 -->
 
 本文记录的都是**实际验证过**的坑，按"症状"分类。排查诡异问题时先查这里，
@@ -283,4 +283,58 @@ Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
    中文按字换行时行数常常恰好一样，英文按词换行必现。解决：Label 宽度直接写
    与实际布局相等的固定 DIP 值（外宽−内边距−兄弟宽/margin），让估算与渲染
    使用同一换行宽度。Toast 的 toast.xml 中 label 固定 width="296"。
+
+## 九、自绘复合控件开发要点（NavigationView 实战总结）
+
+### 20. 自绘控件的图标/前景图被画两遍（重影错位）
+
+`Control::Paint`（`duilib/Core/Control.cpp`）基类流程会自动调用虚函数
+`PaintStateImages(IRender*)` 绘制 `normal_image` 等前景状态图。自绘控件若又在自己的
+`PaintItem`/绘制函数里把同一张图标画一次，界面上就出现两个错位的图标，且无任何报错。
+
+**修复**：自绘控件完全接管图片绘制时，重写该虚函数为空：
+
+```cpp
+virtual void PaintStateImages(IRender* pRender) override { (void)pRender; /* 屏蔽基类前景图绘制 */ }
+```
+
+### 21. Line 分隔线默认是点划线，不是实线
+
+`Line` 构造默认 `m_dashStyle = kDashStyleDashDot`（`duilib/Control/Line.cpp`），
+不写 `dash_style` 时画出来是 `-.-.-`。要实线必须 XML 显式声明：
+
+```xml
+<Line dash_style="solid" line_color="border_split_level1" line_width="1"/>
+```
+
+### 22. 复合控件不要直接转发内部子控件的事件类型
+
+NavigationView 内部用 TabBox 切换内容页，早期对外直接 `SendEvent(kEventTabSelect)`。
+问题：内部 TabBox 自身切换时也会冒泡 `kEventTabSelect`，应用层监听同一个事件会收到
+语义不同、参数基准不同（TabBox 页索引 vs 导航项可选序号）的两次通知。
+
+**正确做法**：复合控件定义自己的专用事件，由外层控件作为 sender 派发。新增事件三件套：
+
+1. `duilib/duilib_defs.h` 的 `enum EventType` 加枚举（注意是 `uint8_t` 顺序枚举）；
+2. `duilib/Core/EventArgs.cpp` 的 `InitEventStringMap()` 加四元组映射
+   `{kEventXxx, _T("kEventXxx"), _T("Xxx"), _T("xxx")}`（枚举名 / C++ 名 / XML type 名 / XML 下划线名）；
+3. 控件头文件加 `AttachXxx()` 便捷方法，cpp 中 `SendEvent` 派发。
+
+"动作前可取消"事件**不能用 `SendEvent`（返回 void）**，要用
+`FireAllEvents(msg)`（返回 bool，所有回调都返回 true 才放行），范式见
+`PanelTemplate::FireBeforeCollapseEvent`（`duilib/Box/Panel.h`）。改了
+`duilib_defs.h` 等公共头文件后必须先 Rebuild `duilib` target（见第 10 条）。
+
+### 23. `Label`/`Button` 是模板别名，不能前置声明
+
+在自绘控件头文件里写 `class Label;` 会报 C2061/C2760——`Label` 是
+`LabelTemplate<Control>` 的 `using` 别名而非类名，`Button` 同理。直接包含头文件：
+
+```cpp
+#include "duilib/Control/Button.h"   // Button/CheckBox/Option 均在此
+#include "duilib/Control/Label.h"    // Label/LabelBox 均在此
+```
+
+`VBox`/`HBox`/`VScrollBox`/`TabBox`/`Line` 等可以前置声明，是否可前置声明以实际编译为准。
+
 

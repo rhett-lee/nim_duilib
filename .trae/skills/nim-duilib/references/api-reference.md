@@ -67,6 +67,7 @@
 | Panel | 浮动(Layout) | 带标题栏的面板容器（`PanelTemplate<Box>`），可折叠/手风琴 |
 | PanelHBox | 水平(HLayout) | 带标题栏的水平面板（`PanelTemplate<HBox>`） |
 | PanelVBox | 垂直(VLayout) | 带标题栏的垂直面板（`PanelTemplate<VBox>`） |
+| NavigationView | 水平(HLayout) | 侧边栏导航容器（左导航窗格+右内容区），窗格可收起为图标条 |
 | VTileBox | 垂直瓦片 | 网格式垂直排列，columns属性 |
 | HTileBox | 水平瓦片 | 网格式水平排列，rows属性 |
 | GridBox | 网格(GridLayout) | 网格布局，支持单元格合并 |
@@ -136,6 +137,56 @@
   `kEventPanelCollapsing` / `kEventPanelExpanding`，回调返回 false 可取消
   （XML 初始 `collapsed` 与手风琴内部联动不触发取消事件）。
 
+### NavigationView 侧边栏导航属性（NavigationView / NavigationViewItem）
+
+左侧导航窗格 + 右侧内容区的组合导航容器，头文件 `duilib/Control/NavigationView.h`，
+完整示例见 `examples/controls`（NavigationForm + `controls/navigation.xml`）。
+
+NavigationView（继承 HBox）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| pane_width | 220 | int | 展开态窗格宽度（DPI 自适应） |
+| compact_pane_width | 48 | int | 收起态窗格宽度（仅显示图标） |
+| pane_title | | string | 窗格顶部标题文字 |
+| pane_title_id | | string | 窗格标题多语言资源 ID，切换语言自动刷新 |
+| toggle_icon | | string | 汉堡按钮图标图片属性串 |
+| collapsed | false | bool | 初始是否为收起（紧凑）态 |
+| show_header | true | bool | 内容区是否显示页头（随选中项同步文字） |
+| settings_item | false | bool | 是否在窗格底部生成内置"设置"导航项 |
+| settings_page | | string | 设置项关联的内容页 name |
+| settings_text_id | | string | 设置项文字多语言 ID |
+| settings_icon | | string | 设置项图标图片属性串 |
+| selected_id | | string | 初始选中项关联的 page name，缺省为第一个可选项 |
+
+NavigationViewItem（继承 Control）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| text | | string | 项文字（header 形态显示为分组标题） |
+| text_id | | string | 项文字多语言资源 ID |
+| icon | | string | 图标图片属性串（separator 形态忽略） |
+| page | | string | 关联内容页的控件 name，点击后切换页面并同步页头 |
+| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题，别名 group_header）/ separator（分隔线） |
+
+子节点路由规则（AddItem 分流）：
+
+- `NavigationViewItem` 子节点 → 加入窗格导航项列表；
+- `TabBox` 子节点 → 仅允许一个，被接管为内容区宿主（推荐显式提供，页面结构完全自控）；
+- 其他子控件 → 自动加入惰性创建的内容区 TabBox 作为页面，按 `page`/`name` 联动切换。
+
+要点：
+
+- 收起态仅显示图标，鼠标悬停导航项显示文字 tooltip；设置项固定在窗格底部，不参与默认选中。
+- C++：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
+  `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`、
+  `SetCollapsed(bool)`、`IsCollapsed()`、`AddNavItem(strTextId, strIcon, strPageName)`。
+- 事件由 NavigationView 自身触发，与内部 TabBox 的 `kEventTabSelect` 互不干扰（详见"XML 事件系统"一节）：
+  `AttachNavItemClick`（重复点击已选中项也触发，wParam 可选项序号）、
+  `AttachNavSelectionChanged`（wParam 新序号、lParam 旧序号，无选中为 `Box::InvalidIndex`）、
+  `AttachNavPaneToggling`（wParam 目标状态 1=收起/0=展开，回调返回 false 取消切换）、
+  `AttachNavPaneToggled`（wParam 当前状态）。
+
 ## 三、控件类型速查
 
 | XML节点 | 基类 | 说明 |
@@ -161,6 +212,7 @@
 | PropertyGrid | VBox | 属性网格 |
 | HyperLink | Label | 超级链接 |
 | Line | Control | 画线控件 |
+| NavigationViewItem | Control | NavigationView 导航项（item/header/separator 三种形态） |
 | Split / SplitBox | Control/Box | 分隔条（`SplitTemplate<Control>` / `SplitTemplate<Box>`） |
 | ScrollBar | Control | 滚动条 |
 | TabCtrl | ListBox | 标签页控件 |
@@ -521,6 +573,9 @@ strikeout / fullstyle（四者全开），字号支持 12/14/16/18/20/22。`defa
 | value_changed | 值变化 |
 | expand / collapse | Panel 面板展开/折叠完成 |
 | panel_expanding / panel_collapsing | Panel 即将展开/折叠（C++ 回调返回 false 可取消；XML 内联仅用于 apply_attribute） |
+| navigation_item_click | NavigationView 导航项被点击（重复点击已选中项也触发） |
+| navigation_selection_changed | NavigationView 选中项变化（wParam 新序号、lParam 旧序号） |
+| navigation_pane_toggling / navigation_pane_toggled | NavigationView 窗格即将收起/展开 / 完成（前者回调返回 false 可取消） |
 | key_down / key_up | 按键 |
 | return | 回车 |
 | visible_changed | 可见性变化 |
@@ -724,6 +779,38 @@ if (panel != nullptr) {
 
 手风琴：多个 Panel 设置相同 `group` 属性后，展开其中一个会自动折叠同窗口同组的其他面板；
 初始展开哪个由 XML 的 `collapsed` 决定，允许全部折叠。
+
+### NavigationView 侧边栏导航
+
+```cpp
+// 头文件 duilib/Control/NavigationView.h
+ui::NavigationView* nav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")));
+if (nav != nullptr) {
+    // 编程式切换页面（按导航项 page 属性对应的 name，或可选项序号）
+    nav->SelectItem(_T("page_tools"));
+    nav->SelectItemByIndex(0);
+
+    // 动态追加导航项（内容页需已存在于内容区 TabBox）
+    ui::NavigationViewItem* pItem = nav->AddNavItem(
+        _T("STRID_NAV_NEW"),
+        _T("file='nav/star.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"),
+        _T("page_new"));
+
+    // 窗格收起/展开（AttachNavPaneToggling 回调返回 false 可阻止）
+    nav->SetCollapsed(!nav->IsCollapsed());
+
+    // 选中变化：wParam 新序号、lParam 旧序号（无选中为 ui::Box::InvalidIndex）
+    nav->AttachNavSelectionChanged([](const ui::EventArgs& args) {
+        size_t nNew = (size_t)args.wParam;
+        return true;
+    });
+    // 点击项（重复点击已选中项也触发）；另有 AttachNavPaneToggled 监听切换完成
+    nav->AttachNavItemClick([](const ui::EventArgs&) { return true; });
+}
+```
+
+内容区推荐显式提供一个 `<TabBox name="nav_content">` 子节点承载各页面，导航项的 `page`
+属性与页面控件的 `name` 一一对应；完整示例见 `examples/controls/NavigationForm.cpp`。
 
 ### ListBox 动态添加项
 

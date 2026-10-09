@@ -68,6 +68,8 @@ English | [简体中文](XmlNode.md)
 | HyperLink | "HyperLink"| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | |
 | IPAddress | "IPAddress"| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | |
 | Line | "Line"| [duilib/Control/Line.h](../duilib/Control/Line.h) | |
+| NavigationView | "NavigationView"| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Sidebar navigation control (left navigation pane + right content area), extends HBox |
+| NavigationViewItem | "NavigationViewItem"| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Navigation item of NavigationView; supports item/header/separator forms |
 | Progress | "Progress"| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | |
 | Slider | "Slider"| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | |
 | CircleProgress | "CircleProgress"| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | |

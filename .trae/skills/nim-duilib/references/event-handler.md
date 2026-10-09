@@ -121,6 +121,22 @@ if (auto* panel = dynamic_cast<ui::PanelVBox*>(FindControl(_T("my_panel")))) {
     });
 }
 
+// NavigationView 侧边栏导航（事件由 NavigationView 自身触发，与内部 TabBox 的 kEventTabSelect 无关）
+if (auto* nav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")))) {
+    // 选中项变化：wParam 新序号，lParam 旧序号（无选中为 ui::Box::InvalidIndex）
+    nav->AttachNavSelectionChanged([](const ui::EventArgs& args) {
+        size_t nNew = (size_t)args.wParam;
+        size_t nOld = (size_t)args.lParam;
+        return true;
+    });
+    // 点击导航项：重复点击已选中项也会触发（适合刷新/回顶场景），wParam 为可选项序号
+    nav->AttachNavItemClick([](const ui::EventArgs&) { return true; });
+    // 窗格即将收起/展开：wParam 目标状态（1=收起 0=展开），返回 false 取消本次切换
+    nav->AttachNavPaneToggling([](const ui::EventArgs&) { return true; });
+    // 窗格收起/展开完成：wParam 为当前状态（1=收起 0=展开）
+    nav->AttachNavPaneToggled([](const ui::EventArgs&) { return true; });
+}
+
 // 通用事件绑定（枚举名见下方"完整事件类型列表"，取值以 duilib/duilib_defs.h 中 enum EventType 为准）
 control->AttachEvent(ui::kEventMouseEnter, handler);
 control->AttachEvent(ui::kEventMouseLeave, handler);
@@ -174,7 +190,7 @@ btn->AttachClick([this](const ui::EventArgs& args) {
 
 焦点/输入法: `kEventSetFocus`, `kEventKillFocus`, `kEventSetCursor`, `kEventCaptureChanged`, `kEventImeSetContext`, `kEventImeStartComposition`, `kEventImeComposition`, `kEventImeEndComposition`
 
-操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventExpand`, `kEventCollapse`, `kEventPanelExpanding`, `kEventPanelCollapsing`（后两个为 Panel 专用：即将展开/折叠时触发，回调返回 false 可取消）
+操作: `kEventClick`, `kEventRClick`, `kEventSelect`, `kEventUnSelect`, `kEventCheck`, `kEventUnCheck`, `kEventTabSelect`, `kEventExpand`, `kEventCollapse`, `kEventPanelExpanding`, `kEventPanelCollapsing`（后两个为 Panel 专用：即将展开/折叠时触发，回调返回 false 可取消）, `kEventNavigationItemClick`, `kEventNavigationSelectionChanged`, `kEventNavigationPaneToggling`, `kEventNavigationPaneToggled`（NavigationView 专用：导航项点击/选中变化/窗格切换前（可取消）/窗格切换后）
 
 编辑: `kEventTextChanged`, `kEventSelChanged`, `kEventReturn`, `kEventEsc`, `kEventTab`, `kEventZoom`, `kEventLinkClick`, `kEventScrollPosChanged`, `kEventValueChanged`
 

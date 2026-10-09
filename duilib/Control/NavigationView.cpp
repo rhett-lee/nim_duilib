@@ -707,6 +707,20 @@ void NavigationView::OnToggleClicked()
 
 void NavigationView::OnItemClicked(NavigationViewItem* pItem)
 {
+    if ((pItem == nullptr) || !pItem->IsSelectable()) {
+        return;
+    }
+    //先触发"导航项被点击"事件：重复点击已选中项也会触发，WPARAM 为可选项序号
+    size_t nIndex = 0;
+    for (NavigationViewItem* p : m_items) {
+        if ((p != nullptr) && p->IsSelectable()) {
+            if (p == pItem) {
+                SendEvent(kEventNavigationItemClick, static_cast<WPARAM>(nIndex), 0);
+                break;
+            }
+            ++nIndex;
+        }
+    }
     SelectItem(pItem, true);
 }
 
@@ -715,8 +729,24 @@ void NavigationView::SetCollapsed(bool bCollapsed)
     if (m_bCollapsed == bCollapsed) {
         return;
     }
+    //派发"即将收起/展开"事件：所有监听者都返回 true 才放行（返回 false 取消本次切换）
+    EventArgs msg;
+    msg.eventType = kEventNavigationPaneToggling;
+    msg.SetSender(this);
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        msg.ptMouse = pWindow->GetLastMousePos();
+    }
+    msg.wParam = bCollapsed ? 1 : 0;
+    if (!FireAllEvents(msg)) {
+        return;
+    }
+
     m_bCollapsed = bCollapsed;
     ApplyCollapsed();
+
+    //派发"收起/展开完成"事件，WPARAM 为当前状态（1=收起，0=展开）
+    SendEvent(kEventNavigationPaneToggled, static_cast<WPARAM>(bCollapsed ? 1 : 0), 0);
 }
 
 bool NavigationView::SelectItem(NavigationViewItem* pItem, bool bFireEvent)
@@ -724,6 +754,7 @@ bool NavigationView::SelectItem(NavigationViewItem* pItem, bool bFireEvent)
     if ((pItem == nullptr) || !pItem->IsSelectable()) {
         return false;
     }
+    size_t nOldIndex = GetSelectedIndex();
     if (m_pSelected != pItem) {
         if (m_pSelected != nullptr) {
             m_pSelected->SetSelected(false);
@@ -740,7 +771,12 @@ bool NavigationView::SelectItem(NavigationViewItem* pItem, bool bFireEvent)
     UpdateHeaderText(pItem);
 
     if (bFireEvent) {
-        SendEvent(kEventTabSelect, static_cast<WPARAM>(GetSelectedIndex()), 0);
+        //选中变化事件：WPARAM 新序号，LPARAM 旧序号
+        size_t nNewIndex = GetSelectedIndex();
+        if (nNewIndex != nOldIndex) {
+            SendEvent(kEventNavigationSelectionChanged,
+                      static_cast<WPARAM>(nNewIndex), static_cast<LPARAM>(nOldIndex));
+        }
     }
     return true;
 }

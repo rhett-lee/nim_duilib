@@ -66,6 +66,8 @@
 | HyperLink | "HyperLink"| [duilib/Control/HyperLink.h](../duilib/Control/HyperLink.h) | |
 | IPAddress | "IPAddress"| [duilib/Control/IPAddress.h](../duilib/Control/IPAddress.h) | |
 | Line | "Line"| [duilib/Control/Line.h](../duilib/Control/Line.h) | |
+| NavigationView | "NavigationView"| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | 侧边栏导航控件（左侧导航窗格+右侧内容区），继承HBox |
+| NavigationViewItem | "NavigationViewItem"| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | NavigationView的导航项，支持item/header/separator三种形态 |
 | Progress | "Progress"| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | |
 | Slider | "Slider"| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | |
 | CircleProgress | "CircleProgress"| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | |

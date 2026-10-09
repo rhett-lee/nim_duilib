@@ -47,6 +47,10 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventCollapse             |     |     |     |     |       |     | No parameters; fired after a Panel finishes collapsing |
 |kEventPanelExpanding       |     |     |Client-area coordinates of the mouse |     | Key flags   |     | Fired before a Panel expands; returning false from the handler cancels the expand |
 |kEventPanelCollapsing      |     |     |Client-area coordinates of the mouse |     | Key flags   |     | Fired before a Panel collapses; returning false from the handler cancels the collapse |
+|kEventNavigationItemClick  |Selectable item index |     |     |     |       |     | Fired when a selectable NavigationView item is clicked; also fires when clicking the currently selected item |
+|kEventNavigationSelectionChanged |New selected index | Old selected index |     |     |    |     | Fired when the NavigationView selection changes; Box::InvalidIndex when nothing is selected |
+|kEventNavigationPaneToggling |Target state:<br>1=collapsed, 0=expanded |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before the NavigationView pane collapses/expands; returning false from the handler cancels the toggle |
+|kEventNavigationPaneToggled |Current state:<br>1=collapsed, 0=expanded |     |     |     |    |     | Fired after the NavigationView pane has collapsed/expanded |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |

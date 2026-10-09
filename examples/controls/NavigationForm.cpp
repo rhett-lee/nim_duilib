@@ -49,9 +49,25 @@ void NavigationForm::OnInitWindow()
         };
     updateStatus();
 
-    //AttachNavSelect 监听导航选中变化
-    pNav->AttachNavSelect([updateStatus](const ui::EventArgs& /*args*/) {
+    //AttachNavSelectionChanged 监听导航选中变化（wParam 新序号，lParam 旧序号）
+    pNav->AttachNavSelectionChanged([updateStatus](const ui::EventArgs& /*args*/) {
         updateStatus();
+        return true;
+        });
+
+    //AttachNavItemClick：重复点击同一项也会触发（适合刷新/回顶场景）
+    pNav->AttachNavItemClick([pStatusValue](const ui::EventArgs& args) {
+        if (pStatusValue != nullptr) {
+            pStatusValue->SetText(ui::StringUtil::Printf(_T("item clicked: %zu"), (size_t)args.wParam));
+        }
+        return true;
+        });
+
+    //AttachNavPaneToggled：窗格收起/展开完成后更新状态（wParam: 1=收起 0=展开）
+    pNav->AttachNavPaneToggled([pStatusValue](const ui::EventArgs& args) {
+        if (pStatusValue != nullptr) {
+            pStatusValue->SetText(args.wParam == 1 ? _T("pane collapsed") : _T("pane expanded"));
+        }
         return true;
         });
 

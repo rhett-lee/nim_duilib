@@ -23,6 +23,7 @@
 | 大数据量列表 | VirtualVListBox |
 | 多页签切换 | TabBox |
 | 带标题栏、可折叠的卡片/分组 | PanelVBox / PanelHBox / Panel（属性见 api-reference.md 第二节） |
+| 侧边栏导航（导航项+内容页联动、窗格收起为图标条） | NavigationView（属性见 api-reference.md 第二节） |
 
 **尺寸设置指南:**
 
