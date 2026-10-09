@@ -437,7 +437,8 @@ C++ 接口：
 - 选择：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
   `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`；
 - 窗格：`SetCollapsed(bool)` / `IsCollapsed()`（汉堡按钮点击触发切换）；
-- 项管理：`AddNavItem(strTextId, strIcon, strPageName)`、`RemoveNavItem(NavigationViewItem*)`、
+- 项管理：`AddNavItem(strTextId, strIcon, strPageName, pPage=nullptr)`（传 pPage 则一步完成"建内容页+加导航项+按 name 联动"）、
+  `AddPage(Control*)`、`RemoveNavItem(NavigationViewItem*, bool bRemovePage=false)`（true 时一并移除关联内容页）、
   `RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`；
 - 键盘：`MoveFocusByKey(NavigationViewItem*, bool bForward)`（tab 可聚焦，上/下方向键移动，回车/空格选中）。
 

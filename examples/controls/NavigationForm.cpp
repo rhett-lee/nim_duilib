@@ -1,5 +1,7 @@
 #include "NavigationForm.h"
 #include <functional>
+#include <memory>
+#include <vector>
 
 using namespace ui;
 
@@ -80,21 +82,55 @@ void NavigationForm::OnInitWindow()
             });
     }
 
-    //演示动态添加导航项：用 C++ API AddNavItem 新增一项（复用首页内容容器）
+    //演示动态添加导航项：AddNavItem 一次完成"建内容页 + 加导航项 + 关联"
+    //用 shared_ptr 记录动态创建项，供"移除末项"演示使用
+    auto spDynamicItems = std::make_shared<std::vector<ui::NavigationViewItem*>>();
     ui::Button* pAddBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_add_nav")));
     if (pAddBtn != nullptr) {
-        pAddBtn->AttachClick([pNav, updateStatus](const ui::EventArgs& /*args*/) {
+        pAddBtn->AttachClick([pNav, updateStatus, spDynamicItems](const ui::EventArgs& /*args*/) {
             static int32_t nCount = 0;
             DString pageName = ui::StringUtil::Printf(_T("page_dynamic_%d"), nCount);
             DString itemText = ui::StringUtil::Printf(_T("Item %d"), nCount);
+
+            //动态创建一个内容页（VBox 承载一段说明文字）
+            ui::VBox* pPage = new ui::VBox(pNav->GetWindow());
+            pPage->SetBkColor(_T("bg_window_main"));
+            pPage->SetAttribute(_T("padding"), _T("24,24,24,24"));
+            ui::Label* pLabel = new ui::Label(pNav->GetWindow());
+            pLabel->SetText(ui::StringUtil::Printf(_T("动态页面：%s"), pageName.c_str()));
+            pLabel->SetAttribute(_T("text_color"), _T("text_default"));
+            pLabel->SetFontId(_T("system_regular_16"));
+            pPage->AddItem(pLabel);
+
+            //第 4 参传入页面控件：自动挂到内容区 TabBox，并与导航项 page 联动
             ui::NavigationViewItem* pItem = pNav->AddNavItem(
                 DString(),
                 _T("file='nav/star.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"),
-                pageName);
+                pageName,
+                pPage);
             if (pItem != nullptr) {
                 pItem->SetItemText(itemText);
+                spDynamicItems->push_back(pItem);
+                //立即选中新建项，直观看到右侧内容页
+                pNav->SelectItem(pItem);
             }
             ++nCount;
+            updateStatus();
+            return true;
+            });
+    }
+
+    //演示动态移除导航项：RemoveNavItem(pItem, true) 一并移除关联内容页
+    ui::Button* pRemoveBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_remove_nav")));
+    if (pRemoveBtn != nullptr) {
+        pRemoveBtn->AttachClick([pNav, updateStatus, spDynamicItems](const ui::EventArgs& /*args*/) {
+            if (spDynamicItems->empty()) {
+                return true;
+            }
+            ui::NavigationViewItem* pItem = spDynamicItems->back();
+            spDynamicItems->pop_back();
+            //第 2 参 true：同时移除其关联的内容页，避免右侧残留
+            pNav->RemoveNavItem(pItem, true);
             updateStatus();
             return true;
             });

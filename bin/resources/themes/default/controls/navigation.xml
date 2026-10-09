@@ -146,11 +146,13 @@
         </NavigationView>
 
         <!-- 底部状态栏：展示选中事件监听结果与 C++ API 操作入口 -->
-        <HBox name="nav_status_bar" height="30" bkcolor="bg_window_card" padding="10,0,10,0">
+        <HBox name="nav_status_bar" height="30" bkcolor="bg_window_card" padding="10,2,10,0">
             <Label text_id="STRID_NAV_STATUS" text_color="text_muted" valign="center"/>
             <Label name="nav_status_value" text_color="text_default" margin="6,0,0,0" width="stretch" valign="center"/>
             <Button class="btn_global" name="btn_add_nav" text_id="STRID_NAV_BTN_ADD_ITEM"
                     width="130" height="24" border_round="3,3" margin="0,0,6,0"/>
+            <Button class="btn_global" name="btn_remove_nav" text_id="STRID_NAV_BTN_REMOVE_ITEM"
+                    width="150" height="24" border_round="3,3" margin="0,0,6,0"/>
             <Button class="btn_global" name="btn_toggle_nav" text_id="STRID_NAV_BTN_TOGGLE"
                     width="130" height="24" border_round="3,3"/>
         </HBox>

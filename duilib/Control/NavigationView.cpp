@@ -1015,9 +1015,20 @@ DString NavigationView::GetSelectedPage() const
 }
 
 NavigationViewItem* NavigationView::AddNavItem(const DString& strTextId, const DString& strIcon,
-                                               const DString& strPage)
+                                               const DString& strPage, Control* pPage)
 {
     EnsureInternals();
+    //先挂内容页（若有）：确保点击导航项时右侧能按 page name 命中，否则会出现"有节点无页面"
+    if (pPage != nullptr) {
+        //页面 name 与导航项 page 对齐：未命名时以 strPage 命名，保证联动可命中
+        if (!strPage.empty() && pPage->GetName().empty()) {
+            pPage->SetName(strPage);
+        }
+        if (!AddPage(pPage)) {
+            return nullptr;
+        }
+    }
+
     NavigationViewItem* pItem = new NavigationViewItem(GetWindow());
     if (!strTextId.empty()) {
         pItem->SetItemTextId(strTextId);
@@ -1035,7 +1046,20 @@ NavigationViewItem* NavigationView::AddNavItem(const DString& strTextId, const D
     return pItem;
 }
 
-bool NavigationView::RemoveNavItem(NavigationViewItem* pItem)
+bool NavigationView::AddPage(Control* pPage)
+{
+    if (pPage == nullptr) {
+        return false;
+    }
+    //其他控件作为内容页进入内容区；未显式提供 TabBox 时自动创建
+    EnsureContentHost();
+    if (m_pContent == nullptr) {
+        return false;
+    }
+    return m_pContent->AddItem(pPage);
+}
+
+bool NavigationView::RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage)
 {
     if (pItem == nullptr) {
         return false;
@@ -1047,6 +1071,7 @@ bool NavigationView::RemoveNavItem(NavigationViewItem* pItem)
     }
     //从所属容器中移除（可能是列表或底部固定区）
     bool bRemoved = false;
+    const DString strPage = pItem->GetPageName();
     if (m_pItemHost != nullptr) {
         bRemoved = m_pItemHost->RemoveItem(pItem);
     }
@@ -1056,6 +1081,16 @@ bool NavigationView::RemoveNavItem(NavigationViewItem* pItem)
     if (!bRemoved && (m_pPane != nullptr)) {
         bRemoved = m_pPane->RemoveItem(pItem);
     }
+
+    //可选：一并移除关联的内容页（按 page name 在内容区查找并移除）
+    if (bRemovePage && (m_pContent != nullptr)) {        
+        if (!strPage.empty()) {
+            if (Control* pPage = m_pContent->FindSubControl(strPage)) {
+                m_pContent->RemoveItem(pPage);
+            }
+        }
+    }
+
     UnregisterNavItem(pItem);
     //控件从容器移除后，由调用方决定是否 delete（若由本控件动态创建，见 AddNavItem 的归属约定）
     return bRemoved;

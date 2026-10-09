@@ -198,8 +198,11 @@ NavigationViewItem（继承 Control）属性：
 - 序号仅统计可选中导航项（item 形态），header / separator 与设置项均不计入。
 - C++：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
   `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`、
-  `SetCollapsed(bool)`、`IsCollapsed()`、`AddNavItem(strTextId, strIcon, strPageName)`、
-  `RemoveNavItem(NavigationViewItem*)`、`RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`、
+  `SetCollapsed(bool)`、`IsCollapsed()`、
+  `AddNavItem(strTextId, strIcon, strPageName, pPage=nullptr)`（传入 pPage 时一步完成"建内容页+加导航项+按 name 联动"，不传则仅加导航项）、
+  `AddPage(Control*)`（单独把页面加入内容区）、
+  `RemoveNavItem(NavigationViewItem*, bool bRemovePage=false)`（bRemovePage=true 时一并移除关联内容页）、
+  `RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`、
   `MoveFocusByKey(NavigationViewItem*, bool bForward)`。
 - 键盘：item 形态 tab 可聚焦，上/下方向键在可选项间移动焦点，回车/空格选中；聚焦时绘制强调色焦点环。
 - 禁用态：`SetItemEnabled(pItem,false)` 或 XML `enabled="false"`，禁用项不响应点击/键盘，文字走 `disabled_text_color`。
@@ -812,18 +815,29 @@ if (nav != nullptr) {
     nav->SelectItem(_T("page_tools"));
     nav->SelectItemByIndex(0);
 
-    // 动态追加导航项（内容页需已存在于内容区 TabBox）
+    // 动态追加导航项：两种方式——
+    //  a) 内容页已存在于内容区 TabBox，仅加导航项：
     ui::NavigationViewItem* pItem = nav->AddNavItem(
         _T("STRID_NAV_NEW"),
         _T("file='nav/star.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"),
         _T("page_new"));
+    //  b) 同时新建内容页（推荐）：第 4 参传页面控件，自动挂到内容区 TabBox 并按 name 联动，
+    //     避免"只加了左侧节点、点击后右侧空白"
+    ui::VBox* pPage = new ui::VBox(nav->GetWindow());
+    pPage->SetBkColor(_T("bg_window_main"));
+    pPage->AddItem(new ui::Label(nav->GetWindow()));   // 填充页内内容…
+    ui::NavigationViewItem* pItem2 = nav->AddNavItem(
+        _T("STRID_NAV_NEW2"), _T("file='nav/star.svg' width='16' height='16'"),
+        _T("page_new2"), pPage);
+    // 也可单独加页：nav->AddPage(pPage);
 
     // 窗格收起/展开（AttachNavPaneToggling 回调返回 false 可阻止）
     nav->SetCollapsed(!nav->IsCollapsed());
 
-    // 项管理：禁用/启用、移除单个、清空（均不移除其关联内容页）
+    // 项管理：禁用/启用、移除（第 2 参 true 一并移除关联内容页）、清空
     nav->SetItemEnabled(pItem, false);
-    nav->RemoveNavItem(pItem);
+    nav->RemoveNavItem(pItem);          // 仅移除导航项，保留内容页
+    nav->RemoveNavItem(pItem2, true);   // 连内容页一起移除
     // nav->RemoveAllNavItems();
 
     // 选中变化：wParam 新序号、lParam 旧序号（无选中为 ui::Box::InvalidIndex）

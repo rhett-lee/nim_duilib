@@ -541,6 +541,7 @@ STRID_NAV_FAVORITES_DESC = This is the Favorites page.
 STRID_NAV_HELP_DESC = This is the Help page.
 STRID_NAV_STATUS = Selected:
 STRID_NAV_BTN_ADD_ITEM = Add nav item
+STRID_NAV_BTN_REMOVE_ITEM = Remove last dynamic item
 STRID_NAV_BTN_TOGGLE = Toggle collapsed
 
 # controls/MessageBox

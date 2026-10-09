@@ -546,6 +546,7 @@ STRID_NAV_FAVORITES_DESC = 这是收藏页。
 STRID_NAV_HELP_DESC = 这是帮助页。
 STRID_NAV_STATUS = 当前选中：
 STRID_NAV_BTN_ADD_ITEM = 动态添加导航项
+STRID_NAV_BTN_REMOVE_ITEM = 移除末个动态项
 STRID_NAV_BTN_TOGGLE = 切换展开/收起
 
 # controls/MessageBox

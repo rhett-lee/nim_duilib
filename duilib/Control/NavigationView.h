@@ -234,6 +234,10 @@ private:
 *   序号约定：序号仅统计"可选中导航项"（item 形态），header/separator 与底部设置项均不计入；
 *             设置项固定显示在窗格底部，不随导航列表滚动，也不参与序号统计。
 *
+*   运行时用法：AddNavItem(textId, icon, page, pPage) 一步完成"建内容页 + 加导航项 + 按 name 联动"；
+*             仅需加导航项（页面已存在）时省略 pPage 即可。AddPage() 可单独把页面加入内容区；
+*             RemoveNavItem(pItem, bRemovePage=true) 可连同关联内容页一起移除。
+*
 *   XML 属性：
 *     pane_width           展开态窗格宽度（像素，默认 220，DPI 自适应）
 *     compact_pane_width   紧凑态窗格宽度（像素，默认 48，DPI 自适应）
@@ -337,19 +341,32 @@ public:
         AttachEvent(kEventNavigationPaneToggled, callback, callbackID);
     }
 
-    /** 动态追加一个导航项（内容页需已存在于内容区）
+    /** 动态追加一个导航项
+    *   两种用法：
+    *     1) 传入 pPage：把该页面控件挂到内容区 TabBox（按其 name 联动），一步完成"加导航项+加内容页"；
+    *     2) 不传 pPage：仅追加导航项，关联的内容页需已存在于内容区（或由使用方另行 AddPage）。
     * @param [in] strTextId 项文字 ID（多语言），传空则用 strText
     * @param [in] strIcon 图标图片属性串
-    * @param [in] strPage 关联内容页 name
-    * @return 新建的导航项指针（仍由控件内部管理，外部无需释放）
+    * @param [in] strPage 关联内容页 name（须与 pPage 的 name 或已存在内容页一致）
+    * @param [in] pPage 关联的内容页控件；为 nullptr 时仅加导航项。
+    *                   传入时其 name 应等于 strPage（若 pPage 未命名，则以 strPage 为其 name）。
+    * @return 新建的导航项指针（仍由控件内部管理，外部无需释放）；失败返回 nullptr
     */
-    NavigationViewItem* AddNavItem(const DString& strTextId, const DString& strIcon, const DString& strPage);
+    NavigationViewItem* AddNavItem(const DString& strTextId, const DString& strIcon, const DString& strPage,
+                                   Control* pPage = nullptr);
 
-    /** 移除一个导航项（不移除其关联的内容页）
+    /** 将一个页面控件加入内容区 TabBox（供使用方自行拼装"先建页、后关联"的流程）
+    * @param [in] pPage 页面控件，建议先设置好 name（与导航项的 page 对应）
+    * @return true 添加成功
+    */
+    bool AddPage(Control* pPage);
+
+    /** 移除一个导航项
     * @param [in] pItem 导航项指针（必须属于本控件）
+    * @param [in] bRemovePage true 时一并从内容区移除其关联的内容页（按 page name 查找）
     * @return true 移除成功
     */
-    bool RemoveNavItem(NavigationViewItem* pItem);
+    bool RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage = false);
 
     /** 移除所有导航项（分组标题/分隔线/设置项一并移除；不移除内容页）
     */
