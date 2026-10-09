@@ -6,6 +6,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include <ctime>
+#include <cstdint>
 #include <cstdio>
 #include <cwchar>
 #include <sstream>
@@ -138,8 +139,7 @@ void Calendar::SetDate(const struct tm& date)
     Invalidate();
 
     //触发事件
-    time_t t = DateToTimeT(m_selectedDate);
-    SendEvent(kEventValueChanged, (WPARAM)0, (LPARAM)t);
+    EmitDateChanged(false);
 }
 
 void Calendar::SetDateRange(const struct tm& start, const struct tm& end)
@@ -164,9 +164,7 @@ void Calendar::SetDateRange(const struct tm& start, const struct tm& end)
     Invalidate();
 
     //触发事件
-    time_t tStart = DateToTimeT(m_rangeStart);
-    time_t tEnd = DateToTimeT(m_rangeEnd);
-    SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+    EmitDateChanged(true);
 }
 
 void Calendar::GetDateRange(struct tm& start, struct tm& end) const
@@ -210,8 +208,40 @@ void Calendar::SetDateLimit(const DString& minDate, const DString& maxDate)
     Invalidate();
 }
 
+void Calendar::RefreshToday()
+{
+    //“今天”缓存需随系统日期变化刷新，否则程序跨零点后高亮/GoToToday 会停留在旧日期
+    struct tm today = GetToday();
+    if (m_bTodayValid && IsSameDay(today, m_today)) {
+        return;
+    }
+    m_today = today;
+    m_bTodayValid = true;
+    m_bCellsDirty = true;   //日期格子中的 bToday 需要重算
+}
+
+void Calendar::EmitDateChanged(bool bRange)
+{
+    if (!bRange) {
+        //单选：lParam 直接携带 time_t（64 位平台上完整有效）
+        const time_t t = DateToTimeT(m_selectedDate);
+        SendEvent(kEventValueChanged, (WPARAM)0, (LPARAM)t);
+        return;
+    }
+
+    //范围：起止值通过 pEventData 携带（DateRange 含完整 64 位 start/end），lParam 无意义。
+    //完整起止值：栈上临时对象，仅在本次同步派发期间有效（回调不可保存该指针）
+    DateRange range;
+    range.start = DateToTimeT(m_rangeStart);
+    range.end = DateToTimeT(m_rangeEnd);
+
+    SendEvent(kEventValueChanged, (WPARAM)1, 0, static_cast<void*>(&range));
+}
+
 void Calendar::GoToToday()
 {
+    //用户主动跳到"今天"前先校正缓存，避免跨零点后跳到旧日期
+    RefreshToday();
     if (m_bTodayValid) {
         SetDisplayMonth(m_today.tm_year + 1900, m_today.tm_mon + 1);
     }
@@ -463,9 +493,7 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
             m_bHasRangeEnd = true;
             m_bRangeAwaitingEnd = false;
             Invalidate();
-            time_t tStart = DateToTimeT(m_rangeStart);
-            time_t tEnd = DateToTimeT(m_rangeEnd);
-            SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+            EmitDateChanged(true);
             if (msg.IsSenderExpired()) {
                 return;
             }
@@ -519,9 +547,7 @@ void Calendar::CommitRangeSelection(const EventArgs& /*msg*/)
     m_bHasRangeStart = true;
     m_bHasRangeEnd = true;
     Invalidate();
-    time_t tStart = DateToTimeT(m_rangeStart);
-    time_t tEnd = DateToTimeT(m_rangeEnd);
-    SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+    EmitDateChanged(true);
 }
 
 void Calendar::MoveFocusToMonthStart()
@@ -848,6 +874,9 @@ void Calendar::Paint(IRender* pRender, const UiRect& rcPaint)
     if (pRender == nullptr) {
         return;
     }
+
+    //每次绘制前校正"今天"缓存：程序跨零点后高亮/GoToToday 需跟随系统日期
+    RefreshToday();
 
     UiRect rect = GetRect();
     UiPadding rcPadding = GetControlPadding();
@@ -1332,9 +1361,7 @@ bool Calendar::ButtonUp(const EventArgs& msg)
             Invalidate();
 
             //触发事件
-            time_t tStart = DateToTimeT(m_rangeStart);
-            time_t tEnd = DateToTimeT(m_rangeEnd);
-            SendEvent(kEventValueChanged, (WPARAM)1, (LPARAM)((tEnd << 32) | (tStart & 0xFFFFFFFF)));
+            EmitDateChanged(true);
             //事件回调中可能同步关闭浮层导致自身被销毁，需检查过期后再继续
             if (msg.IsSenderExpired()) {
                 return false;

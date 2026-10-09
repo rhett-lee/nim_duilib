@@ -296,6 +296,13 @@ void CalendarFlyout::AttachDateSelected(const DateSelectedEvent& callback)
     }
 }
 
+void CalendarFlyout::AttachDateSelectedEx(const DateSelectedExEvent& callback)
+{
+    if (callback) {
+        m_dateSelectedExCallbacks.push_back(callback);
+    }
+}
+
 void CalendarFlyout::AttachDateCleared(const DateClearedEvent& callback)
 {
     if (callback) {
@@ -346,10 +353,23 @@ void CalendarFlyout::InitControls()
 
         //绑定日期变化事件
         pCalendar->AttachDateChanged([this](const EventArgs& msg) {
-            //触发日期选择回调
+            //范围模式下 pEventData 指向 Calendar::DateRange（完整 64 位起止值），单选模式为 nullptr。
+            //该指针仅在本次事件同步派发期间有效，传递给外部回调时须在本次回调内用完。
+            const Calendar::DateRange* pRange = nullptr;
+            if ((msg.wParam == 1) && (msg.pEventData != nullptr)) {
+                pRange = static_cast<const Calendar::DateRange*>(msg.pEventData);
+            }
+
+            //触发日期选择回调（两参数，仅适用于单选模式）
             std::vector<DateSelectedEvent> callbacks = m_dateSelectedCallbacks;
             for (const DateSelectedEvent& callback : callbacks) {
                 callback(msg.wParam, msg.lParam);
+            }
+
+            //触发日期选择回调（三参数，携带完整 64 位范围）
+            std::vector<DateSelectedExEvent> exCallbacks = m_dateSelectedExCallbacks;
+            for (const DateSelectedExEvent& callback : exCallbacks) {
+                callback(msg.wParam, msg.lParam, pRange);
             }
             Dismiss();
             return true;

@@ -3,6 +3,7 @@
 
 #include "duilib/Control/Flyout.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Control/Calendar.h"
 #include <ctime>
 #include <functional>
 #include <vector>
@@ -94,9 +95,10 @@ private:
  *  @code
  *      ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
  *      pFlyout->ShowAt(pAnchorButton, initialDate, ui::Flyout::Placement::Bottom);
- *      pFlyout->AttachDateSelected([](const ui::EventArgs& args) {
+ *      pFlyout->AttachDateSelectedEx([](WPARAM wParam, LPARAM lParam, const ui::Calendar::DateRange* pRange) {
  *          // wParam: 0=单选，1=范围
- *          // lParam: 单选时为 time_t 日期值；范围时低32位 start，高32位 end
+ *          // lParam: 单选时为 time_t 日期值；范围时无意义
+ *          // pRange: 仅范围模式非空，含完整 64 位 start/end
  *          return true;
  *      });
  *  @endcode
@@ -149,15 +151,28 @@ public:
 
     /** 日期选择完成事件回调类型（选择日期/范围后自动关闭前触发）
     * @param [in] wParam 0=单选模式，1=范围模式
-    * @param [in] lParam 单选模式时为选中日期的 time_t 值；
-    *            范围模式时低32位为 start time_t，高32位为 end time_t（仅32位 time_t 有效）
+    * @param [in] lParam 单选模式时为选中日期的 time_t 值；范围模式时无意义。
+    * @note 该回调仅适用于单选模式；范围模式请改用 DateSelectedExEvent（可读取完整 64 位起止值）。
     */
     typedef std::function<void(WPARAM wParam, LPARAM lParam)> DateSelectedEvent;
 
-    /** 监听日期选择完成事件（选择日期/范围后自动关闭前触发）
+    /** 监听日期选择完成事件（两参数签名，仅适用于单选模式）
     * @param [in] callback 回调函数
     */
     void AttachDateSelected(const DateSelectedEvent& callback);
+
+    /** 日期选择完成事件回调类型（推荐，携带完整的 64 位起止值）
+    * @param [in] wParam 0=单选模式，1=范围模式
+    * @param [in] lParam 单选模式时为选中日期的 time_t 值；范围模式时无意义
+    * @param [in] pRange 仅范围模式（wParam==1）时非空，指向 Calendar::DateRange（含完整 64 位
+    *            start/end）；单选模式为 nullptr。该指针仅在本次回调期间有效，不可保存。
+    */
+    typedef std::function<void(WPARAM wParam, LPARAM lParam, const Calendar::DateRange* pRange)> DateSelectedExEvent;
+
+    /** 监听日期选择完成事件（三参数签名，可获取完整 64 位范围值）
+    * @param [in] callback 回调函数
+    */
+    void AttachDateSelectedEx(const DateSelectedExEvent& callback);
 
     /** 监听清除日期事件（点击"清除"按钮时触发）
     */
@@ -246,9 +261,13 @@ private:
     Button* m_pTitleBtn;
     Control* m_pCalendar;
 
-    /** 日期选择完成回调
+    /** 日期选择完成回调（旧版两参数）
     */
     std::vector<DateSelectedEvent> m_dateSelectedCallbacks;
+
+    /** 日期选择完成回调（扩展版三参数，携带完整 64 位范围）
+    */
+    std::vector<DateSelectedExEvent> m_dateSelectedExCallbacks;
 
     /** 清除日期回调
     */

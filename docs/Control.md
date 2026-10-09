@@ -393,7 +393,8 @@ CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应�
 | `SetInitRange(start, end)` | 设置范围选择的初始范围 |
 | `SetFirstDayOfWeek(dayOfWeek)` | 设置每周第一天：0=周日，1=周一（默认1） |
 | `SetDateLimit(minDate, maxDate)` | 设置可选日期范围限制（yyyy-mm-dd格式） |
-| `AttachDateSelected(callback)` | 注册日期选择完成回调，参数为`(WPARAM wParam, LPARAM lParam)`；wParam=0单选、1范围；lParam单选时为time_t，范围时低32位start、高32位end |
+| `AttachDateSelected(callback)` | 注册日期选择完成回调（两参数签名，仅适用于单选模式），参数为`(WPARAM wParam, LPARAM lParam)`；wParam=0单选、1范围；lParam单选时为time_t，范围时无意义 |
+| `AttachDateSelectedEx(callback)` | 注册日期选择完成回调（三参数签名，推荐），参数为`(WPARAM wParam, LPARAM lParam, const Calendar::DateRange* pRange)`；范围模式从pRange读取完整64位start/end |
 | `AttachDateCleared(callback)` | 注册清除日期回调（点击"清除"按钮时触发） |
 
 ### 使用示例
@@ -417,12 +418,11 @@ pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
 ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
 pFlyout->SetMode(1);
 pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
-pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+pFlyout->AttachDateSelectedEx([this](WPARAM wParam, LPARAM lParam, const ui::Calendar::DateRange* pRange) {
     if (wParam == 1) {
-        time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
-        time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
-        struct tm start = ui::Calendar::TimeTToDate(tStart);
-        struct tm end = ui::Calendar::TimeTToDate(tEnd);
+        //范围模式：起止值统一从 pRange 读取（完整 64 位）
+        struct tm start = ui::Calendar::TimeTToDate(pRange->start);
+        struct tm end = ui::Calendar::TimeTToDate(pRange->end);
         //处理选中范围
     }
 });

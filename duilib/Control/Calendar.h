@@ -135,13 +135,28 @@ public:
     void SetViewMode(int32_t viewMode); // 0=月, 1=年, 2=十年
     int32_t GetViewMode() const { return m_viewMode; }
 
+    /** 日期范围（用于 kEventValueChanged 事件，承载不受 time_t 字长限制的完整起止日期）
+    */
+    struct DateRange
+    {
+        time_t start = 0;   //开始日期（time_t）
+        time_t end = 0;     //结束日期（time_t）
+    };
+
     /** 监听日期变化事件
     * @param [in] callback 日期变化时的回调函数
     * @param [in] callbackID 该回调函数对应的ID
     * 参数说明：
     *   wParam: 0=单选模式，1=范围模式
     *   lParam: 单选模式时为选中日期的 time_t 值（失败为0）；
-    *           范围模式时低32位为 start time_t，高32位为 end time_t（仅32位 time_t 有效）
+    *           范围模式时无意义（请使用 pEventData 读取完整起止值）。
+    *   pEventData: 范围模式时指向 DateRange（含完整 64 位 start/end），
+    *               仅在本次回调派发期间有效，请勿保存该指针；单选模式为 nullptr。
+    * 推荐用法（范围模式）：
+    *   if (msg.pEventData != nullptr) {
+    *       auto* pRange = static_cast<const Calendar::DateRange*>(msg.pEventData);
+    *       // 读取 pRange->start / pRange->end
+    *   }
     */
     void AttachDateChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
 
@@ -334,6 +349,18 @@ private:
     */
     struct tm m_today;
     bool m_bTodayValid;
+
+    /** 刷新"今天"缓存（跨天时重新计算，并让月/今日高亮失效重绘）
+    */
+    void RefreshToday();
+
+    /** 发送 kEventValueChanged 事件（统一编码：单选 wParam=0/lParam=time_t/pEventData=nullptr；
+    *   范围 wParam=1/lParam=0/pEventData=指向 DateRange 的临时对象）
+    * @param [in] bRange true=范围模式，false=单选模式
+    * 注意：事件为同步派发，回调中若关闭浮层可能销毁本控件，调用方需在调用后自行用
+    *       msg.IsSenderExpired() 判断是否仍可继续访问 this。
+    */
+    void EmitDateChanged(bool bRange);
 
     /** 键盘导航用的"焦点日期"（与鼠标悬停 m_hover 分离）
      *  - 月视图：年/月/日均有效

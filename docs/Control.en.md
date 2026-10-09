@@ -395,7 +395,8 @@ Key features:
 | `SetInitRange(start, end)` | Set initial range for range mode |
 | `SetFirstDayOfWeek(dayOfWeek)` | Set first day of week: 0=Sunday, 1=Monday (default 1) |
 | `SetDateLimit(minDate, maxDate)` | Set min/max date limit (yyyy-mm-dd) |
-| `AttachDateSelected(callback)` | Register date selection callback with `(WPARAM wParam, LPARAM lParam)`; wParam=0 single, 1 range; lParam is time_t for single, low32=start high32=end for range |
+| `AttachDateSelected(callback)` | Register date selection callback (two-arg signature, single mode only) with `(WPARAM wParam, LPARAM lParam)`; wParam=0 single, 1 range; lParam is time_t for single, meaningless for range |
+| `AttachDateSelectedEx(callback)` | Register date selection callback (three-arg signature, recommended) with `(WPARAM wParam, LPARAM lParam, const Calendar::DateRange* pRange)`; read full 64-bit start/end from pRange for range mode |
 | `AttachDateCleared(callback)` | Register clear callback (triggered by "Clear" button) |
 
 ### Usage Example
@@ -419,12 +420,11 @@ pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
 ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
 pFlyout->SetMode(1);
 pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
-pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+pFlyout->AttachDateSelectedEx([this](WPARAM wParam, LPARAM lParam, const ui::Calendar::DateRange* pRange) {
     if (wParam == 1) {
-        time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
-        time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
-        struct tm start = ui::Calendar::TimeTToDate(tStart);
-        struct tm end = ui::Calendar::TimeTToDate(tEnd);
+        //Range mode: read full 64-bit start/end from pRange
+        struct tm start = ui::Calendar::TimeTToDate(pRange->start);
+        struct tm end = ui::Calendar::TimeTToDate(pRange->end);
         //Handle selected range
     }
 });

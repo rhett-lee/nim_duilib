@@ -138,11 +138,14 @@ void TestForm::OnInitWindow()
             }
             ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
             pFlyout->SetMode(1); //范围
-            pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+            pFlyout->AttachDateSelectedEx([this](WPARAM wParam, LPARAM lParam, const ui::Calendar::DateRange* pRange) {
                 if (wParam == 1) {
-                    //范围模式：低32位 start，高32位 end
-                    time_t tStart = (time_t)(lParam & 0xFFFFFFFF);
-                    time_t tEnd = (time_t)((lParam >> 32) & 0xFFFFFFFF);
+                    //范围模式：起止值统一从 pRange 读取（完整 64 位），lParam 无意义
+                    if (pRange == nullptr) {
+                        return;
+                    }
+                    time_t tStart = pRange->start;
+                    time_t tEnd = pRange->end;
                     struct tm start = ui::Calendar::TimeTToDate(tStart);
                     struct tm end = ui::Calendar::TimeTToDate(tEnd);
                     DString text = ui::Calendar::FormatDateString(start) + _T(" ~ ") + ui::Calendar::FormatDateString(end);
