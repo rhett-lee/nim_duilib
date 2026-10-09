@@ -854,10 +854,11 @@ bool Calendar::HitTestDay(const UiPoint& pt, DayCell& cell) const
     if (m_viewMode != 0) {
         return false;
     }
+    //惰性重算：m_cells/m_bCellsDirty 均为 mutable，const 方法内可直接刷新缓存，
+    //不再依赖「先 Paint 后命中测试」的调用顺序（构造顺序变化也不会导致点击失灵）
     if (m_bCellsDirty) {
-        //需要重新计算，但HitTest是const方法，所以这里只能返回false
-        //调用方应在Paint后调用HitTest
-        return false;
+        GetMonthCells(m_displayYear, m_displayMonth, m_cells);
+        m_bCellsDirty = false;
     }
     for (const auto& c : m_cells) {
         if (c.rect.ContainsPt(pt)) {
@@ -942,9 +943,12 @@ DString Calendar::GetWeekdayText(int32_t index) const
 
 void Calendar::DrawMonthView(IRender* pRender, const UiRect& rect)
 {
-    //重新计算格子
-    GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-    m_bCellsDirty = false;
+    //仅在日期数据变化时重算格子（42 次 mktime），纯 resize 等 rect 变化时复用缓存；
+    //每个 cell 的 rect 在下方循环中按当前 rect 重新计算，与缓存无耦合
+    if (m_bCellsDirty) {
+        GetMonthCells(m_displayYear, m_displayMonth, m_cells);
+        m_bCellsDirty = false;
+    }
 
     int32_t cellWidth = rect.Width() / kDaysPerWeek;
     int32_t cellHeight = rect.Height() / kWeeksPerMonth;
@@ -1188,10 +1192,6 @@ bool Calendar::MouseMove(const EventArgs& msg)
     if (m_viewMode == 0) {
         //范围模式拖拽中：实时更新范围终点，提供视觉反馈
         if (m_mode == Mode::kRange && m_bRangeDragging) {
-            if (m_bCellsDirty) {
-                GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-                m_bCellsDirty = false;
-            }
             DayCell cell;
             if (HitTestDay(msg.ptMouse, cell)) {
                 struct tm date = {0, };
@@ -1211,11 +1211,6 @@ bool Calendar::MouseMove(const EventArgs& msg)
                 m_bHasRangeEnd = true;
                 Invalidate();
             }
-        }
-        if (m_bCellsDirty) {
-            //强制重新计算
-            GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-            m_bCellsDirty = false;
         }
         DayCell cell;
         if (HitTestDay(msg.ptMouse, cell)) {
@@ -1246,10 +1241,6 @@ bool Calendar::ButtonDown(const EventArgs& msg)
 
     if (m_viewMode == 0) {
         //月视图：选择日期
-        if (m_bCellsDirty) {
-            GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-            m_bCellsDirty = false;
-        }
         DayCell cell;
         if (HitTestDay(msg.ptMouse, cell) && !cell.bDisabled) {
             if (m_mode == Mode::kSingle) {
@@ -1323,10 +1314,6 @@ bool Calendar::ButtonUp(const EventArgs& msg)
 {
     if (m_viewMode == 0 && m_mode == Mode::kRange && m_bRangeDragging) {
         m_bRangeDragging = false;
-        if (m_bCellsDirty) {
-            GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-            m_bCellsDirty = false;
-        }
         DayCell cell;
         if (HitTestDay(msg.ptMouse, cell) && !cell.bDisabled) {
             struct tm date = {0, };

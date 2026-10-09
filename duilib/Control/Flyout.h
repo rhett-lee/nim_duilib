@@ -84,12 +84,17 @@ public:
     void Dismiss();
 
     /** 设置点击外部/按 Esc 是否自动关闭，默认 true
+    * @note 非 Windows 平台：不抢焦点模式（SetNoFocus(true)，默认）下无法检测外部点击，
+    *       此时外部点击自动关闭不生效；如需自动关闭，请用 SetNoFocus(false) 走焦点模式
+    *       （通过失去焦点感知外部点击）。
     */
     void SetAutoDismiss(bool bAutoDismiss);
     bool IsAutoDismiss() const;
 
     /** 设置弹出后是否不抢焦点，默认 true
     *   设为 false 时浮层会获取焦点，此时通过失去焦点来感知外部点击
+    * @note 非 Windows 平台：不抢焦点模式（true）下外部点击检测暂不支持（见 StartDetectTimer），
+    *       浮层无法在点击外部时自动关闭；如需该能力，请改用 false（焦点模式）。
     */
     void SetNoFocus(bool bNoFocus);
     bool IsNoFocus() const;

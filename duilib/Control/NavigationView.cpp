@@ -805,6 +805,8 @@ void NavigationView::ApplyCollapsed()
     if (m_pPaneTitleLabel != nullptr) {
         m_pPaneTitleLabel->SetVisible(!m_bCollapsed);
     }
+    //逐个设置紧凑态；SetCompact 内部已做「状态未变则早退」，此循环仅对状态变化的项真正生效，
+    //无需额外维护增量列表（O(n) 遍历成本与项目数同阶，收益有限）
     for (NavigationViewItem* pItem : m_items) {
         if (pItem != nullptr) {
             pItem->SetCompact(m_bCollapsed);
