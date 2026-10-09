@@ -719,6 +719,7 @@ void NavigationView::EnsureInternals()
     m_pItemHost = new VScrollBox(pWindow);
     m_pItemHost->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
     m_pItemHost->SetFixedHeight(UiFixedInt::MakeStretch(), false, false);
+    m_pItemHost->SetAttribute(_T("vscrollbar"), _T("true")); //支持纵向滚动条
     m_pPane->AddItem(m_pItemHost);
 
     //窗格底部固定区（设置项所在；高度 auto，不随导航列表滚动，导航项较多时依然固定在底部）
