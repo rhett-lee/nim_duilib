@@ -57,6 +57,10 @@
             <NavigationViewItem text_id="STRID_NAV_PAGE_HELP"
                                 icon="file='nav/help.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
                                 page="page_help"/>
+            <!-- 禁用态演示：enabled=false 时不响应点击/键盘，文字与图标弱化 -->
+            <NavigationViewItem text_id="STRID_NAV_PAGE_DISABLED" enabled="false"
+                                icon="file='nav/tools.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"
+                                page=""/>
 
             <!-- ===== 内容区：显式 TabBox 承载所有页面，便于外部直接操控页面容器 ===== -->
             <TabBox name="nav_content" bkcolor="bg_window_main">

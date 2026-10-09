@@ -46,6 +46,7 @@ EXCLUDE_IDENTS = {
     # XML 属性名
     "border_size", "border_color", "border_round",
     "text_align", "text_padding", "text_id", "text_changed", "text_color",
+    "text_left", "text_right",
     # 目录名 / 分类值
     "color_theme", "color_light", "color_dark", "bg_color", "color_picker",
     # 事件字符串（XML type）

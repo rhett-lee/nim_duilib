@@ -530,6 +530,7 @@ STRID_NAV_PAGE_TASKS = Tasks
 STRID_NAV_PAGE_CALENDAR = Calendar
 STRID_NAV_PAGE_FAVORITES = Favorites
 STRID_NAV_PAGE_HELP = Help
+STRID_NAV_PAGE_DISABLED = Disabled item (not clickable)
 STRID_NAV_GROUP_WORKSPACE = Workspace
 STRID_NAV_NOTIFICATIONS_DESC = This is the Notifications page. With many items, the left nav list scrolls vertically inside the pane.
 STRID_NAV_PROJECTS_DESC = This is the Projects page.

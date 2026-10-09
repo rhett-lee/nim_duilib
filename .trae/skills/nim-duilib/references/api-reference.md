@@ -139,8 +139,11 @@
 
 ### NavigationView 侧边栏导航属性（NavigationView / NavigationViewItem）
 
-左侧导航窗格 + 右侧内容区的组合导航容器，头文件 `duilib/Control/NavigationView.h`，
-完整示例见 `examples/controls`（NavigationForm + `controls/navigation.xml`）。
+左侧导航窗格 + 右侧内容区的组合导航容器，头文件 `duilib/Control/NavigationView.h`。
+节点 `<NavigationView>` / `<NavigationViewItem>` 已在 `WindowBuilder::CreateControlByClass` 的
+`createControlMap` 中注册（`WindowBuilder.cpp`）——自定义 XML 标签必须走这条路径，仅靠
+`GlobalManager::AddCreateControlCallback` 会因"回调在控件自身构造里才注册"而首个控件永远创建不了。
+完整示例见 `examples/controls`（NavigationForm + `themes/default/controls/navigation.xml`）。
 
 NavigationView（继承 HBox）属性：
 
@@ -164,23 +167,42 @@ NavigationViewItem（继承 Control）属性：
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
 | text | | string | 项文字（header 形态显示为分组标题） |
-| text_id | | string | 项文字多语言资源 ID |
+| text_id | | string | 项文字多语言资源 ID（优先于 text） |
 | icon | | string | 图标图片属性串（separator 形态忽略） |
 | page | | string | 关联内容页的控件 name，点击后切换页面并同步页头 |
-| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题，别名 group_header）/ separator（分隔线） |
+| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题）/ separator（分隔线） |
+| icon_size | 16 | int | 图标尺寸（DIP） |
+| icon_left | 16 | int | 展开态图标左边距（DIP） |
+| text_left | 44 | int | 展开态文字左边距（DIP） |
+| text_right | 8 | int | 展开态文字右边距（DIP） |
+| pill_radius | 6 | int | 选中/悬停热区圆角半径（DIP） |
+| pill_inset_x | 6 | int | 热区水平内缩（DIP） |
+| pill_inset_y | 3 | int | 热区垂直内缩（DIP） |
+| selected_bg_color | bg_list_item_selected | string | 选中背景色名 |
+| hovered_bg_color | bg_list_item_hovered | string | 悬停背景色名 |
+| selected_text_color | color_accent | string | 选中文字色名 |
+| normal_text_color | text_default | string | 普通文字色名 |
+| disabled_text_color | text_disabled | string | 禁用文字色名 |
+| header_text_color | text_muted | string | 分组标题文字色名 |
+| separator_color | border_window | string | 分隔线颜色名 |
 
 子节点路由规则（AddItem 分流）：
 
-- `NavigationViewItem` 子节点 → 加入窗格导航项列表；
+- `NavigationViewItem` 子节点 → 加入窗格导航项列表（header/separator 同样入列，仅渲染形态不同）；
 - `TabBox` 子节点 → 仅允许一个，被接管为内容区宿主（推荐显式提供，页面结构完全自控）；
 - 其他子控件 → 自动加入惰性创建的内容区 TabBox 作为页面，按 `page`/`name` 联动切换。
 
 要点：
 
-- 收起态仅显示图标，鼠标悬停导航项显示文字 tooltip；设置项固定在窗格底部，不参与默认选中。
+- 收起态仅显示图标，鼠标悬停导航项显示文字 tooltip；设置项固定在窗格底部，不参与默认选中与序号统计。
+- 序号仅统计可选中导航项（item 形态），header / separator 与设置项均不计入。
 - C++：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
   `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`、
-  `SetCollapsed(bool)`、`IsCollapsed()`、`AddNavItem(strTextId, strIcon, strPageName)`。
+  `SetCollapsed(bool)`、`IsCollapsed()`、`AddNavItem(strTextId, strIcon, strPageName)`、
+  `RemoveNavItem(NavigationViewItem*)`、`RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`、
+  `MoveFocusByKey(NavigationViewItem*, bool bForward)`。
+- 键盘：item 形态 tab 可聚焦，上/下方向键在可选项间移动焦点，回车/空格选中；聚焦时绘制强调色焦点环。
+- 禁用态：`SetItemEnabled(pItem,false)` 或 XML `enabled="false"`，禁用项不响应点击/键盘，文字走 `disabled_text_color`。
 - 事件由 NavigationView 自身触发，与内部 TabBox 的 `kEventTabSelect` 互不干扰（详见"XML 事件系统"一节）：
   `AttachNavItemClick`（重复点击已选中项也触发，wParam 可选项序号）、
   `AttachNavSelectionChanged`（wParam 新序号、lParam 旧序号，无选中为 `Box::InvalidIndex`）、
@@ -798,6 +820,11 @@ if (nav != nullptr) {
 
     // 窗格收起/展开（AttachNavPaneToggling 回调返回 false 可阻止）
     nav->SetCollapsed(!nav->IsCollapsed());
+
+    // 项管理：禁用/启用、移除单个、清空（均不移除其关联内容页）
+    nav->SetItemEnabled(pItem, false);
+    nav->RemoveNavItem(pItem);
+    // nav->RemoveAllNavItems();
 
     // 选中变化：wParam 新序号、lParam 旧序号（无选中为 ui::Box::InvalidIndex）
     nav->AttachNavSelectionChanged([](const ui::EventArgs& args) {

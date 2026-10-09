@@ -46,6 +46,7 @@ EXCLUDE_IDENTS = {
     # XML 属性名
     "border_size", "border_color", "border_round",
     "text_align", "text_padding", "text_id", "text_changed", "text_color",
+    "text_left", "text_right",
     # 目录名 / 分类值
     "color_theme", "color_light", "color_dark", "bg_color", "color_picker",
     # 事件字符串（XML type）
@@ -93,8 +94,9 @@ def build_index(repo: Path) -> dict:
             continue
         idx["DUI_CTR 宏"].update(re.findall(r"#define\s+(DUI_CTR_[A-Z0-9_]+)", text))
         idx["事件枚举"].update(re.findall(r"\bkEvent[A-Za-z]+\b", text))
-        # class DUILIB_API Xxx / class Xxx / typedef ... Xxx; / using Xxx =
+        # class DUILIB_API Xxx / class Xxx / struct Xxx / typedef ... Xxx; / using Xxx =
         idx["C++ 类名"].update(re.findall(r"class\s+(?:DUILIB_API\s+)?([A-Za-z_]\w*)", text))
+        idx["C++ 类名"].update(re.findall(r"struct\s+(?:DUILIB_API\s+)?([A-Za-z_]\w*)", text))
         idx["C++ 类名"].update(re.findall(r"typedef\s+[^;]*?\b([A-Za-z_]\w*)\s*;", text))
         idx["C++ 类名"].update(re.findall(r"using\s+([A-Za-z_]\w*)\s*=", text))
         # 自由函数 / 函数模板（如 auto UiBind(F&&...)）——不是类但同样可调用

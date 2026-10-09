@@ -78,6 +78,7 @@
 | HListBox | 水平列表 | 可选择的水平列表 |
 | VirtualVListBox | 虚拟垂直列表 | 大数据量虚拟列表(垂直) |
 | VirtualHListBox | 虚拟水平列表 | 大数据量虚拟列表(水平) |
+| NavigationView | 水平(HLayout) | 侧边栏导航容器（左导航窗格+右内容区），窗格可收起为图标条 |
 
 ### 容器属性
 
@@ -161,6 +162,7 @@
 | PropertyGrid | VBox | 属性网格 |
 | HyperLink | Label | 超级链接 |
 | Line | Control | 画线控件 |
+| NavigationViewItem | Control | NavigationView 导航项（item/header/separator 三种形态） |
 | Split / SplitBox | Control/Box | 分隔条（`SplitTemplate<Control>` / `SplitTemplate<Box>`） |
 | ScrollBar | Control | 滚动条 |
 | TabCtrl | ListBox | 标签页控件 |
@@ -373,6 +375,80 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 ```
 
 注意：noFocus 模式外部点击检测仅 Windows（全局鼠标按键 50ms 轮询，非 Win 平台用 `SetNoFocus(false)` 焦点模式）；浮层内控件可正常点击但键盘焦点不进入，需要输入文字时 SetNoFocus(false)；同锚点再次点击切换关闭需调用方自行比较 `GetActiveFlyout()->GetAnchor()`；锚点在滚动容器内时自动扣除累计滚动偏移；父窗口通过 `OpenColorTheme` 使用私有颜色主题时浮层自动继承该主题（新增 `Window::GetColorThemeXmlData()` 暴露私有主题 XML 数据）。
+
+### NavigationView 侧边栏导航(继承 HBox)
+
+复合容器（`duilib/Control/NavigationView.h`，已在 duilib.h 中 include），把汉堡按钮+窗格标题+分组导航项+页头+内容区联动封装成现代设置页/客户端导航框架，对标 WinUI NavigationView。
+XML 节点 `<NavigationView>` 与 `<NavigationViewItem>`（`item_type` 分 item / header / separator 三种形态），
+**已在 `WindowBuilder::CreateControlByClass` 的 `createControlMap` 中注册**（`WindowBuilder.cpp`）。
+演示见 `examples/controls`（NavigationForm + `themes/default/controls/navigation.xml`）。
+
+NavigationView（继承 HBox）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| pane_width | 220 | int | 展开态窗格宽度（DPI 自适应） |
+| compact_pane_width | 48 | int | 收起态（紧凑）窗格宽度，仅显示图标 |
+| pane_title | | string | 窗格顶部标题文字 |
+| pane_title_id | | string | 窗格标题多语言资源 ID |
+| toggle_icon | | string | 汉堡按钮图标图片属性串 |
+| collapsed | false | bool | 初始是否紧凑态 |
+| show_header | true | bool | 内容区是否显示页头（随选中项同步文字） |
+| settings_item | false | bool | 是否在窗格底部生成内置"设置"导航项 |
+| settings_page | settings | string | 设置项关联的内容页 name |
+| settings_text_id | | string | 设置项文字多语言 ID |
+| settings_icon | | string | 设置项图标图片属性串 |
+| selected_id | | string | 初始选中项关联的 page name，缺省为第一个可选项 |
+
+NavigationViewItem（继承 Control）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| text | | string | 项文字（header 形态显示为分组标题） |
+| text_id | | string | 项文字多语言资源 ID（优先于 text） |
+| icon | | string | 图标图片属性串（separator 形态忽略） |
+| page | | string | 关联内容页的控件 name，点击后切换页面并同步页头 |
+| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题）/ separator（分隔线） |
+| icon_size | 16 | int | 图标尺寸（DIP） |
+| icon_left | 16 | int | 展开态图标左边距（DIP） |
+| text_left | 44 | int | 展开态文字左边距（DIP） |
+| text_right | 8 | int | 展开态文字右边距（DIP） |
+| pill_radius | 6 | int | 选中/悬停热区圆角半径（DIP） |
+| pill_inset_x | 6 | int | 热区水平内缩（DIP） |
+| pill_inset_y | 3 | int | 热区垂直内缩（DIP） |
+| selected_bg_color | bg_list_item_selected | string | 选中背景色名 |
+| hovered_bg_color | bg_list_item_hovered | string | 悬停背景色名 |
+| selected_text_color | color_accent | string | 选中文字色名 |
+| normal_text_color | text_default | string | 普通文字色名 |
+| disabled_text_color | text_disabled | string | 禁用文字色名 |
+| header_text_color | text_muted | string | 分组标题文字色名 |
+| separator_color | border_window | string | 分隔线颜色名 |
+
+子节点路由规则（AddItem 分流）：
+
+- `NavigationViewItem` 子节点 → 加入窗格导航项列表（header/separator 同样入列，仅渲染形态不同）；
+- `TabBox` 子节点 → 仅允许一个，被接管为内容区页面宿主（推荐显式提供，页面结构与切换动画完全自控）；
+- 其他子控件 → 作为页面进入内容区；若未显式提供 TabBox 则惰性自动创建一个。
+
+序号约定：序号仅统计**可选中导航项**（item 形态）；header / separator 与底部设置项均不计入。
+
+C++ 接口：
+
+- 选择：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
+  `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`；
+- 窗格：`SetCollapsed(bool)` / `IsCollapsed()`（汉堡按钮点击触发切换）；
+- 项管理：`AddNavItem(strTextId, strIcon, strPageName)`、`RemoveNavItem(NavigationViewItem*)`、
+  `RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`；
+- 键盘：`MoveFocusByKey(NavigationViewItem*, bool bForward)`（tab 可聚焦，上/下方向键移动，回车/空格选中）。
+
+事件（由 NavigationView 自身触发，与内部 TabBox 的 `kEventTabSelect` 互不干扰）：
+
+- `AttachNavItemClick` / `kEventNavigationItemClick`：点击可选项即触发（重复点击已选中项也触发），wParam=可选项序号；
+- `AttachNavSelectionChanged` / `kEventNavigationSelectionChanged`：选中变化，wParam=新序号、lParam=旧序号（无选中为 `Box::InvalidIndex`）；
+- `AttachNavPaneToggling` / `kEventNavigationPaneToggling`：窗格即将收起/展开，wParam=目标状态（1=收起/0=展开），回调返回 false 可取消；
+- `AttachNavPaneToggled` / `kEventNavigationPaneToggled`：窗格收起/展开完成，wParam=当前状态。
+
+禁用态：`SetItemEnabled(pItem,false)` 或 XML `enabled="false"`，禁用项不响应点击/键盘，文字走 `disabled_text_color`、图标降透明度。
 
 ### Progress 属性(继承 Label)
 

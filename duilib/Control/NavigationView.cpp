@@ -1,4 +1,4 @@
-/* 2025-07 新增：NavigationView 侧边栏导航控件（NavigationView + NavigationViewItem） */
+/* 2026-10 新增：NavigationView 侧边栏导航控件（NavigationView + NavigationViewItem） */
 
 #include "duilib/Control/NavigationView.h"
 #include "duilib/Box/VBox.h"
@@ -10,6 +10,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
+#include <algorithm>
 
 namespace ui
 {
@@ -24,7 +25,21 @@ NavigationViewItem::NavigationViewItem(Window* pWindow) :
     m_bSelected(false),
     m_bHovered(false),
     m_bCompact(false),
-    m_pOwner(nullptr)
+    m_pOwner(nullptr),
+    m_nIconSize(16),
+    m_nIconLeft(16),
+    m_nTextLeft(44),
+    m_nTextRight(8),
+    m_nPillRadius(6),
+    m_nPillInsetX(6),
+    m_nPillInsetY(3),
+    m_selectedBgColor(_T("bg_list_item_selected")),
+    m_hoveredBgColor(_T("bg_list_item_hovered")),
+    m_selectedTextColor(_T("color_accent")),
+    m_normalTextColor(_T("text_default")),
+    m_disabledTextColor(_T("text_disabled")),
+    m_headerTextColor(_T("text_muted")),
+    m_separatorColor(_T("border_window"))
 {
 }
 
@@ -77,6 +92,51 @@ void NavigationViewItem::SetAttribute(const DString& strName, const DString& str
             SetItemType(ItemType::kItem);
         }
     }
+    else if (strName == _T("icon_size")) {
+        int32_t nValue = StringUtil::StringToInt32(strValue);
+        if (nValue > 0) {
+            m_nIconSize = nValue;
+        }
+    }
+    else if (strName == _T("icon_left")) {
+        m_nIconLeft = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("text_left")) {
+        m_nTextLeft = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("text_right")) {
+        m_nTextRight = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("pill_radius")) {
+        m_nPillRadius = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("pill_inset_x")) {
+        m_nPillInsetX = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("pill_inset_y")) {
+        m_nPillInsetY = StringUtil::StringToInt32(strValue);
+    }
+    else if (strName == _T("selected_bg_color")) {
+        m_selectedBgColor = strValue;
+    }
+    else if (strName == _T("hovered_bg_color")) {
+        m_hoveredBgColor = strValue;
+    }
+    else if (strName == _T("selected_text_color")) {
+        m_selectedTextColor = strValue;
+    }
+    else if (strName == _T("normal_text_color")) {
+        m_normalTextColor = strValue;
+    }
+    else if (strName == _T("disabled_text_color")) {
+        m_disabledTextColor = strValue;
+    }
+    else if (strName == _T("header_text_color")) {
+        m_headerTextColor = strValue;
+    }
+    else if (strName == _T("separator_color")) {
+        m_separatorColor = strValue;
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -111,7 +171,8 @@ void NavigationViewItem::PaintStateImages(IRender* /*pRender*/)
 bool NavigationViewItem::MouseEnter(const EventArgs& msg)
 {
     bool bRet = BaseClass::MouseEnter(msg);
-    if (IsSelectable() && !m_bHovered) {
+    //禁用态不显示悬停热区
+    if (IsSelectable() && IsEnabled() && !m_bHovered) {
         m_bHovered = true;
         Invalidate();
     }
@@ -131,6 +192,7 @@ bool NavigationViewItem::MouseLeave(const EventArgs& msg)
 bool NavigationViewItem::ButtonUp(const EventArgs& msg)
 {
     bool bRet = BaseClass::ButtonUp(msg);
+    //禁用态不触发选中，避免误操作
     if (IsSelectable() && IsEnabled() && (msg.GetSender() == this)) {
         if (m_pOwner != nullptr) {
             m_pOwner->OnItemClicked(this);
@@ -145,6 +207,33 @@ void NavigationViewItem::OnLanguageChanged(bool bRedraw)
     if (bRedraw) {
         Invalidate();
     }
+}
+
+uint32_t NavigationViewItem::GetControlFlags() const
+{
+    //可选中且可用时允许 Tab 聚焦（用于键盘导航）
+    return (IsSelectable() && IsEnabled() && IsKeyboardEnabled()) ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
+}
+
+void NavigationViewItem::HandleEvent(const EventArgs& msg)
+{
+    if ((msg.eventType == kEventKeyDown) && IsSelectable() && IsEnabled()) {
+        if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_SPACE)) {
+            //回车/空格：激活当前项（等价于鼠标点击）
+            if (m_pOwner != nullptr) {
+                m_pOwner->OnItemClicked(this);
+            }
+            return;
+        }
+        if ((msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN)) {
+            //上/下方向键：在可选项之间移动焦点
+            if (m_pOwner != nullptr) {
+                m_pOwner->MoveFocusByKey(this, msg.vkCode == kVK_DOWN);
+            }
+            return;
+        }
+    }
+    BaseClass::HandleEvent(msg);
 }
 
 void NavigationViewItem::SetItemText(const DString& strText)
@@ -247,27 +336,45 @@ void NavigationViewItem::PaintItem(IRender* pRender)
         return;
     }
 
-    //选中/悬停背景（圆角热区，左右各缩 6 DIP，上下各缩 3 DIP）
+    //选中/悬停背景（圆角热区，内缩量可定制）
     UiColor bgColor;
     if (m_bSelected) {
-        bgColor = GetUiColor(_T("bg_list_item_selected"));
+        bgColor = GetUiColor(m_selectedBgColor.c_str());
     }
-    else if (m_bHovered) {
-        bgColor = GetUiColor(_T("bg_list_item_hovered"));
+    else if (m_bHovered && IsEnabled()) {
+        bgColor = GetUiColor(m_hoveredBgColor.c_str());
     }
+    const int32_t nInsetX = Dpi().GetScaleInt(m_nPillInsetX);
+    const int32_t nInsetY = Dpi().GetScaleInt(m_nPillInsetY);
+    const float fRadius = Dpi().GetScaleFloat(static_cast<float>(m_nPillRadius));
     if (!bgColor.IsEmpty()) {
         UiRect rcPill = rc;
-        rcPill.Deflate(Dpi().GetScaleInt(6), Dpi().GetScaleInt(3));
+        rcPill.Deflate(nInsetX, nInsetY);
         UiRectF rcPillF;
         rcPillF.left = static_cast<float>(rcPill.left);
         rcPillF.top = static_cast<float>(rcPill.top);
         rcPillF.right = static_cast<float>(rcPill.right);
         rcPillF.bottom = static_cast<float>(rcPill.bottom);
-        float fRadius = Dpi().GetScaleFloat(6.0f);
         pRender->FillRoundRect(rcPillF, fRadius, fRadius, bgColor);
     }
 
-    const int32_t nIconSize = Dpi().GetScaleInt(16);
+    //键盘焦点指示：在热区外沿绘制强调色描边（仅焦点态）
+    if (IsFocused() && IsEnabled()) {
+        UiColor focusColor = GetUiColor(_T("color_accent"));
+        if (!focusColor.IsEmpty()) {
+            UiRect rcRing = rc;
+            rcRing.Deflate(nInsetX, nInsetY);
+            UiRectF rcRingF;
+            rcRingF.left = static_cast<float>(rcRing.left);
+            rcRingF.top = static_cast<float>(rcRing.top);
+            rcRingF.right = static_cast<float>(rcRing.right);
+            rcRingF.bottom = static_cast<float>(rcRing.bottom);
+            const float fStroke = Dpi().GetScaleFloat(1.0f);
+            pRender->DrawRoundRect(rcRingF, fRadius, fRadius, focusColor, fStroke);
+        }
+    }
+
+    const int32_t nIconSize = Dpi().GetScaleInt(m_nIconSize);
     UiRect rcIcon;
     rcIcon.top = rc.CenterY() - nIconSize / 2;
     rcIcon.bottom = rcIcon.top + nIconSize;
@@ -277,15 +384,16 @@ void NavigationViewItem::PaintItem(IRender* pRender)
         rcIcon.right = rcIcon.left + nIconSize;
     }
     else {
-        //展开态：图标左边距 16 DIP
-        rcIcon.left = rc.left + Dpi().GetScaleInt(16);
+        //展开态：图标左边距可定制
+        rcIcon.left = rc.left + Dpi().GetScaleInt(m_nIconLeft);
         rcIcon.right = rcIcon.left + nIconSize;
     }
 
-    //绘制图标
+    //绘制图标（禁用态做半透明淡出处理）
     Image* pImage = GetStateImageData(kStateImageFore, kControlStateNormal);
     if (pImage != nullptr) {
-        PaintImage(pRender, pImage, _T(""), -1, nullptr, &rcIcon, nullptr);
+        const int32_t nFade = IsEnabled() ? -1 : 110;   //-1 表示使用默认不透明度
+        PaintImage(pRender, pImage, _T(""), nFade, nullptr, &rcIcon, nullptr);
     }
 
     //展开态绘制文字；紧凑态仅显示图标
@@ -293,10 +401,17 @@ void NavigationViewItem::PaintItem(IRender* pRender)
         DString strText = GetDisplayText();
         if (!strText.empty()) {
             UiRect rcText = rc;
-            rcText.left = rc.left + Dpi().GetScaleInt(44);
-            rcText.right = rc.right - Dpi().GetScaleInt(8);
-            UiColor textColor = m_bSelected ? GetUiColor(_T("color_accent"))
-                                            : GetUiColor(_T("text_default"));
+            rcText.left = rc.left + Dpi().GetScaleInt(m_nTextLeft);
+            rcText.right = rc.right - Dpi().GetScaleInt(m_nTextRight);
+            UiColor textColor;
+            if (!IsEnabled()) {
+                //禁用态：弱化色
+                textColor = GetUiColor(m_disabledTextColor.c_str());
+            }
+            if (textColor.IsEmpty()) {
+                textColor = m_bSelected ? GetUiColor(m_selectedTextColor.c_str())
+                                        : GetUiColor(m_normalTextColor.c_str());
+            }
             if (textColor.IsEmpty()) {
                 textColor = UiColor(0xFF000000);
             }
@@ -326,7 +441,7 @@ void NavigationViewItem::PaintHeader(IRender* pRender)
     UiRect rcText = rc;
     rcText.left = rc.left + Dpi().GetScaleInt(16);
     rcText.right = rc.right - Dpi().GetScaleInt(8);
-    UiColor textColor = GetUiColor(_T("text_muted"));
+    UiColor textColor = GetUiColor(m_headerTextColor.c_str());
     if (textColor.IsEmpty()) {
         textColor = UiColor(0xFF808080);
     }
@@ -345,7 +460,7 @@ void NavigationViewItem::PaintSeparator(IRender* pRender)
     if (rc.IsEmpty() || m_bCompact) {
         return;
     }
-    UiColor lineColor = GetUiColor(_T("border_window"));
+    UiColor lineColor = GetUiColor(m_separatorColor.c_str());
     if (lineColor.IsEmpty()) {
         lineColor = UiColor(0xFFD5D5D5);
     }
@@ -375,6 +490,7 @@ NavigationView::NavigationView(Window* pWindow) :
     m_pToggleBtn(nullptr),
     m_pPaneTitleLabel(nullptr),
     m_pItemHost(nullptr),
+    m_pBottomHost(nullptr),
     m_pSettingsNavItem(nullptr),
     m_pSeparator(nullptr),
     m_pRight(nullptr),
@@ -388,8 +504,10 @@ NavigationView::NavigationView(Window* pWindow) :
 
 NavigationView::~NavigationView()
 {
-    //子控件由父容器持有，无需手动释放
+    //子控件由父容器持有，内部容器会在析构时统一释放；此处仅解除弱引用
     m_pSelected = nullptr;
+    m_pSettingsNavItem = nullptr;
+    m_items.clear();
 }
 
 DString NavigationView::GetType() const
@@ -500,7 +618,7 @@ void NavigationView::OnInit()
         m_pPaneTitleLabel->SetTextId(m_paneTitleId.c_str());
     }
 
-    //底部设置项（在导航项列表之后加入窗格，借助列表区的 stretch 固定在底部）
+    //底部设置项（加入窗格底部固定区，导航列表滚动时仍固定在底部）
     if (m_bSettingsItem && (m_pSettingsNavItem == nullptr)) {
         m_pSettingsNavItem = new NavigationViewItem(GetWindow());
         m_pSettingsNavItem->SetPageName(m_settingsPage.c_str());
@@ -508,8 +626,14 @@ void NavigationView::OnInit()
         if (!m_settingsIcon.empty()) {
             m_pSettingsNavItem->SetIconAttr(m_settingsIcon.c_str());
         }
+        //设置项同样登记（供点击联动/查找），但 IsIndexedItem 会将其排除在序号统计之外
         RegisterNavItem(m_pSettingsNavItem);
-        m_pPane->AddItem(m_pSettingsNavItem);
+        if (m_pBottomHost != nullptr) {
+            m_pBottomHost->AddItem(m_pSettingsNavItem);
+        }
+        else {
+            m_pPane->AddItem(m_pSettingsNavItem);
+        }
     }
 
     ApplyCollapsed();
@@ -597,6 +721,12 @@ void NavigationView::EnsureInternals()
     m_pItemHost->SetFixedHeight(UiFixedInt::MakeStretch(), false, false);
     m_pPane->AddItem(m_pItemHost);
 
+    //窗格底部固定区（设置项所在；高度 auto，不随导航列表滚动，导航项较多时依然固定在底部）
+    m_pBottomHost = new VBox(pWindow);
+    m_pBottomHost->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
+    m_pBottomHost->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+    m_pPane->AddItem(m_pBottomHost);
+
     //内容区页头
     m_pHeader = new Label(pWindow);
     m_pHeader->SetBkColor(_T("bg_window_main"));
@@ -629,6 +759,27 @@ void NavigationView::RegisterNavItem(NavigationViewItem* pItem)
     pItem->SetOwnerView(this);
     pItem->SetCompact(m_bCollapsed);
     m_items.push_back(pItem);
+}
+
+void NavigationView::UnregisterNavItem(NavigationViewItem* pItem)
+{
+    if (pItem == nullptr) {
+        return;
+    }
+    auto it = std::find(m_items.begin(), m_items.end(), pItem);
+    if (it != m_items.end()) {
+        m_items.erase(it);
+    }
+    if (m_pSelected == pItem) {
+        m_pSelected = nullptr;
+        UpdateHeaderText(nullptr);
+    }
+}
+
+bool NavigationView::IsIndexedItem(const NavigationViewItem* pItem) const
+{
+    //参与序号统计的项：可选中（item 形态）、非设置项
+    return (pItem != nullptr) && pItem->IsSelectable() && (pItem != m_pSettingsNavItem);
 }
 
 NavigationViewItem* NavigationView::FindItemByPage(const DString& strPageName) const
@@ -687,9 +838,9 @@ void NavigationView::DoInitialSelection()
         pInitItem = FindItemByPage(m_initSelectedId.c_str());
     }
     if (pInitItem == nullptr) {
-        //默认选中第一个非设置项的可选项，避免设置页成为初始页
+        //默认选中第一个可选项（不含设置项，避免设置页成为初始页）
         for (NavigationViewItem* pItem : m_items) {
-            if ((pItem != nullptr) && pItem->IsSelectable() && (pItem != m_pSettingsNavItem)) {
+            if (IsIndexedItem(pItem)) {
                 pInitItem = pItem;
                 break;
             }
@@ -713,7 +864,7 @@ void NavigationView::OnItemClicked(NavigationViewItem* pItem)
     //先触发"导航项被点击"事件：重复点击已选中项也会触发，WPARAM 为可选项序号
     size_t nIndex = 0;
     for (NavigationViewItem* p : m_items) {
-        if ((p != nullptr) && p->IsSelectable()) {
+        if (IsIndexedItem(p)) {
             if (p == pItem) {
                 SendEvent(kEventNavigationItemClick, static_cast<WPARAM>(nIndex), 0);
                 break;
@@ -722,6 +873,40 @@ void NavigationView::OnItemClicked(NavigationViewItem* pItem)
         }
     }
     SelectItem(pItem, true);
+}
+
+void NavigationView::MoveFocusByKey(NavigationViewItem* pFrom, bool bForward)
+{
+    if (pFrom == nullptr) {
+        return;
+    }
+    //收集所有可聚焦项（含设置项；顺序按 m_items，与视觉顺序基本一致）
+    std::vector<NavigationViewItem*> focusable;
+    focusable.reserve(m_items.size());
+    for (NavigationViewItem* p : m_items) {
+        if ((p != nullptr) && p->IsSelectable() && p->IsEnabled()) {
+            focusable.push_back(p);
+        }
+    }
+    if (focusable.empty()) {
+        return;
+    }
+    auto it = std::find(focusable.begin(), focusable.end(), pFrom);
+    int32_t nIndex = (it == focusable.end()) ? (bForward ? -1 : 0)
+                                             : static_cast<int32_t>(std::distance(focusable.begin(), it));
+    const int32_t nCount = static_cast<int32_t>(focusable.size());
+    //循环移动
+    nIndex = bForward ? (nIndex + 1) : (nIndex - 1);
+    if (nIndex < 0) {
+        nIndex = nCount - 1;
+    }
+    else if (nIndex >= nCount) {
+        nIndex = 0;
+    }
+    NavigationViewItem* pTarget = focusable[static_cast<size_t>(nIndex)];
+    if ((pTarget != nullptr) && (pTarget != pFrom)) {
+        pTarget->SetFocus();
+    }
 }
 
 void NavigationView::SetCollapsed(bool bCollapsed)
@@ -791,7 +976,7 @@ bool NavigationView::SelectItemByIndex(size_t nIndex)
 {
     size_t nSelectable = 0;
     for (NavigationViewItem* pItem : m_items) {
-        if ((pItem != nullptr) && pItem->IsSelectable()) {
+        if (IsIndexedItem(pItem)) {
             if (nSelectable == nIndex) {
                 return SelectItem(pItem, true);
             }
@@ -810,7 +995,7 @@ size_t NavigationView::GetSelectedIndex() const
 {
     size_t nSelectable = 0;
     for (NavigationViewItem* pItem : m_items) {
-        if ((pItem != nullptr) && pItem->IsSelectable()) {
+        if (IsIndexedItem(pItem)) {
             if (pItem == m_pSelected) {
                 return nSelectable;
             }
@@ -842,10 +1027,59 @@ NavigationViewItem* NavigationView::AddNavItem(const DString& strTextId, const D
     pItem->SetPageName(strPage);
     RegisterNavItem(pItem);
     if (!m_pItemHost->AddItem(pItem)) {
+        UnregisterNavItem(pItem);
         delete pItem;
         return nullptr;
     }
     return pItem;
+}
+
+bool NavigationView::RemoveNavItem(NavigationViewItem* pItem)
+{
+    if (pItem == nullptr) {
+        return false;
+    }
+    auto it = std::find(m_items.begin(), m_items.end(), pItem);
+    if (it == m_items.end()) {
+        //不是本控件的导航项
+        return false;
+    }
+    //从所属容器中移除（可能是列表或底部固定区）
+    bool bRemoved = false;
+    if (m_pItemHost != nullptr) {
+        bRemoved = m_pItemHost->RemoveItem(pItem);
+    }
+    if (!bRemoved && (m_pBottomHost != nullptr)) {
+        bRemoved = m_pBottomHost->RemoveItem(pItem);
+    }
+    if (!bRemoved && (m_pPane != nullptr)) {
+        bRemoved = m_pPane->RemoveItem(pItem);
+    }
+    UnregisterNavItem(pItem);
+    //控件从容器移除后，由调用方决定是否 delete（若由本控件动态创建，见 AddNavItem 的归属约定）
+    return bRemoved;
+}
+
+void NavigationView::RemoveAllNavItems()
+{
+    if (m_pItemHost != nullptr) {
+        m_pItemHost->RemoveAllItems();
+    }
+    if (m_pBottomHost != nullptr) {
+        m_pBottomHost->RemoveAllItems();
+    }
+    m_items.clear();
+    m_pSelected = nullptr;
+    m_pSettingsNavItem = nullptr;
+    UpdateHeaderText(nullptr);
+}
+
+void NavigationView::SetItemEnabled(NavigationViewItem* pItem, bool bEnabled)
+{
+    if (pItem == nullptr) {
+        return;
+    }
+    pItem->SetEnabled(bEnabled);
 }
 
 } // namespace ui

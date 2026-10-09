@@ -24,11 +24,20 @@ class Line;
 *     header      ：分组标题（小号、弱化色，不可点击）
 *     separator   ：分隔线
 *
+*   支持键盘导航：item 形态可通过 Tab 聚焦，上/下方向键在可选项间移动焦点，
+*   回车/空格选中当前项；禁用态（SetEnabled(false)）不响应点击与键盘。
+*
 *   XML 属性：
 *     text / text_id  项文字（text_id 支持多语言自动切换）
 *     icon            图标图片属性串，如 file='public/nav/home.svg' width='16' height='16'
 *     page            关联的内容页控件 name（内容页是 NavigationView 的非导航项直接子节点）
 *     item_type       item（默认）/ header / separator
+*     样式（均可选，默认值等价内置外观）：
+*       icon_size / icon_left / text_left / text_right        图标尺寸与左右边距（DIP）
+*       pill_radius / pill_inset_x / pill_inset_y             选中/悬停热区圆角与内缩（DIP）
+*       selected_bg_color / hovered_bg_color                  选中/悬停背景色名
+*       selected_text_color / normal_text_color               选中/普通文字色名
+*       disabled_text_color / header_text_color / separator_color  禁用文字/分组标题/分隔线颜色名
 */
 class DUILIB_API NavigationViewItem : public Control
 {
@@ -58,6 +67,8 @@ public:
     virtual bool MouseLeave(const EventArgs& msg) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual void OnLanguageChanged(bool bRedraw) override;
+    virtual uint32_t GetControlFlags() const override;
+    virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
     /** 设置项文字
@@ -150,6 +161,50 @@ private:
     /** 所属 NavigationView
     */
     NavigationView* m_pOwner;
+
+    //--- 可定制样式（默认值等价于内置外观，可用 XML 属性覆盖）---
+
+    /** 图标尺寸（DIP，默认 16） */
+    int32_t m_nIconSize;
+
+    /** 展开态图标左边距（DIP，默认 16） */
+    int32_t m_nIconLeft;
+
+    /** 展开态文字左边距（DIP，默认 44） */
+    int32_t m_nTextLeft;
+
+    /** 展开态文字右边距（DIP，默认 8） */
+    int32_t m_nTextRight;
+
+    /** 选中/悬停热区圆角半径（DIP，默认 6） */
+    int32_t m_nPillRadius;
+
+    /** 热区水平内缩（DIP，默认 6） */
+    int32_t m_nPillInsetX;
+
+    /** 热区垂直内缩（DIP，默认 3） */
+    int32_t m_nPillInsetY;
+
+    /** 选中背景色名（默认 bg_list_item_selected） */
+    UiString m_selectedBgColor;
+
+    /** 悬停背景色名（默认 bg_list_item_hovered） */
+    UiString m_hoveredBgColor;
+
+    /** 选中文字色名（默认 color_accent） */
+    UiString m_selectedTextColor;
+
+    /** 普通文字色名（默认 text_default） */
+    UiString m_normalTextColor;
+
+    /** 禁用文字色名（默认 text_disabled） */
+    UiString m_disabledTextColor;
+
+    /** 分组标题文字色名（默认 text_muted） */
+    UiString m_headerTextColor;
+
+    /** 分隔线颜色名（默认 border_window） */
+    UiString m_separatorColor;    
 };
 
 /** 侧边栏导航控件（NavigationView）
@@ -175,6 +230,9 @@ private:
 *     NavigationViewItem → 导航项列表（header/separator 同样进入列表，仅渲染形态不同）
 *     TabBox             → 作为内容区页面容器接管（仅允许一个；可自行配置切换动画等属性）
 *     其他控件           → 作为页面进入内容区；若未显式提供 TabBox，则自动创建一个
+*
+*   序号约定：序号仅统计"可选中导航项"（item 形态），header/separator 与底部设置项均不计入；
+*             设置项固定显示在窗格底部，不随导航列表滚动，也不参与序号统计。
 *
 *   XML 属性：
 *     pane_width           展开态窗格宽度（像素，默认 220，DPI 自适应）
@@ -287,9 +345,27 @@ public:
     */
     NavigationViewItem* AddNavItem(const DString& strTextId, const DString& strIcon, const DString& strPage);
 
+    /** 移除一个导航项（不移除其关联的内容页）
+    * @param [in] pItem 导航项指针（必须属于本控件）
+    * @return true 移除成功
+    */
+    bool RemoveNavItem(NavigationViewItem* pItem);
+
+    /** 移除所有导航项（分组标题/分隔线/设置项一并移除；不移除内容页）
+    */
+    void RemoveAllNavItems();
+
+    /** 设置/获取导航项被禁用能力（false 时不可点击选中）
+    */
+    void SetItemEnabled(NavigationViewItem* pItem, bool bEnabled);
+
     /** 导航项被点击时由 NavigationViewItem 回调
     */
     void OnItemClicked(NavigationViewItem* pItem);
+
+    /** 键盘导航：在可选中项之间移动焦点（bForward=true 向下，false 向上）
+    */
+    void MoveFocusByKey(NavigationViewItem* pFrom, bool bForward);
 
 private:
     /** 惰性创建内部子结构（窗格、分隔线、右侧页头），必须在首个用户子节点分流前完成
@@ -303,6 +379,14 @@ private:
     /** 注册导航项：设置 owner、紧凑态、加入列表
     */
     void RegisterNavItem(NavigationViewItem* pItem);
+
+    /** 注销导航项：从列表移除（不销毁控件）
+    */
+    void UnregisterNavItem(NavigationViewItem* pItem);
+
+    /** 判断是否为参与序号统计的"可选中导航项"（排除设置项、header、separator）
+    */
+    bool IsIndexedItem(const NavigationViewItem* pItem) const;
 
     /** 按内容页 name 查找可选项
     */
@@ -375,7 +459,8 @@ private:
     HBox* m_pTopBar;           ///< 窗格顶部：汉堡按钮 + 窗格标题
     Button* m_pToggleBtn;      ///< 汉堡按钮
     Label* m_pPaneTitleLabel;  ///< 窗格标题
-    VScrollBox* m_pItemHost;   ///< 导航项可滚动列表
+    VScrollBox* m_pItemHost;   ///< 导航项可滚动列表（占据窗格剩余空间，stretch）
+    VBox* m_pBottomHost;       ///< 窗格底部固定区（设置项所在，不随列表滚动）
     NavigationViewItem* m_pSettingsNavItem; ///< 底部设置项
     Line* m_pSeparator;        ///< 窗格与内容区间竖分隔线
     VBox* m_pRight;            ///< 右侧：页头 + 内容
