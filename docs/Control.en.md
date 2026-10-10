@@ -791,6 +791,11 @@ In addition to the common Control attributes, the following attributes are added
 | bar_mode | grouped | string | Bar layout: "grouped" side-by-side / "stacked" cumulative |
 | donut | false | bool | Whether the pie chart is a donut ring |
 | show_percent | false | bool | Whether the pie chart shows percentages (instead of raw values) |
+| bar_radius | 3 | int | Bar corner radius (px, 0 for square corners, auto DPI-scaled) |
+| bar_gradient | true | bool | Whether bars use gradient fill (bright top, dark bottom) |
+| line_glow | false | bool | Whether the line chart draws a glow/shadow effect |
+| animation_enabled | true | bool | Whether data-update animation is enabled (bar grow / line fade-in) |
+| animation_duration | 300 | int | Data-update animation duration (ms) |
 
 Notes:
 - The three forms share the same data (`data`); switching `chart_type` changes the presentation without rebuilding the data.
@@ -800,9 +805,10 @@ Notes:
 - Negative values in a pie chart are ignored (not summed, not drawn); an empty or all-zero dataset renders an empty chart.
 - The data range of line/bar charts is computed automatically (with headroom), no manual axis range needed.
 - Value labels are auto-formatted: integers drop decimals, non-integers keep two decimal places.
-- **Interactivity**: ① data-point hover tooltip (shows "series / category: value"); ② click-to-select (pie slice separates with highlight, bar gets an outline highlight; click again to deselect); ③ line chart wheel zoom + drag pan (for real-time curves). Tooltip/select can be toggled via `SetEnableTooltip`/`SetEnableSelect`.
+- **Interactivity**: ① data-point hover tooltip (shows "series / category: value"); ② click-to-select (pie slice separates with highlight + leader-line external label, bar gets an outline highlight; click again to deselect); ③ line chart wheel zoom + drag pan (for real-time curves). Tooltip/select can be toggled via `SetEnableTooltip`/`SetEnableSelect`.
+- **Visual polish**: bars support rounded corners (`bar_radius`) and gradient fill (`bar_gradient`); line charts support glow/shadow (`line_glow`); data updates animate bar growth / line fade-in (`animation_enabled`/`animation_duration`).
 
-C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
+C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`, `SetBarRadius`, `SetBarGradient`, `SetLineGlow`, `SetAnimationEnabled`, `SetAnimationDuration`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
 
 ### XML Usage Example
 

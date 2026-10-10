@@ -789,6 +789,11 @@ Chart是轻量图表控件，继承自Control，纯自绘实现（不依赖第�
 | bar_mode | grouped | string | 柱状排列模式："grouped"分组并排 / "stacked"堆叠累加 |
 | donut | false | bool | 饼图是否环形（donut） |
 | show_percent | false | bool | 饼图是否显示百分比（替代数值标签） |
+| bar_radius | 3 | int | 柱状图圆角半径（像素，0 表示直角，自动DPI缩放） |
+| bar_gradient | true | bool | 柱状图是否渐变填充（顶部亮、底部暗） |
+| line_glow | false | bool | 折线图是否绘制发光/阴影效果 |
+| animation_enabled | true | bool | 数据更新动画是否启用（柱体生长/折线渐入） |
+| animation_duration | 300 | int | 数据更新动画时长（毫秒） |
 
 说明：
 - 三种形态共用同一套数据（`data`），切换`chart_type`即可改变呈现方式，无需重建数据。
@@ -798,9 +803,10 @@ Chart是轻量图表控件，继承自Control，纯自绘实现（不依赖第�
 - 饼图负值会被忽略（不计入总和、不绘制扇区）；数据全为0或空时图表为空。
 - 折线/柱状图数据范围自动计算（上下各留余量），无需手动设置坐标轴范围。
 - 数值标签自动格式化：整数不显示小数，非整数保留两位小数。
-- **交互能力**：①数据点悬停 Tooltip（显示"系列名 / 类目: 值"）；②点击选中（饼图扇区分离高亮、柱状单柱描边高亮，再次点击取消）；③折线图滚轮缩放 + 拖拽平移（实时曲线场景）。Tooltip/选中均可用 `SetEnableTooltip`/`SetEnableSelect` 开关。
+- **交互能力**：①数据点悬停 Tooltip（显示"系列名 / 类目: 值"）；②点击选中（饼图扇区分离高亮 + 引导线外部标签、柱状单柱描边高亮，再次点击取消）；③折线图滚轮缩放 + 拖拽平移（实时曲线场景）。Tooltip/选中均可用 `SetEnableTooltip`/`SetEnableSelect` 开关。
+- **视觉打磨**：柱状图支持圆角（`bar_radius`）与渐变填充（`bar_gradient`）；折线图支持发光/阴影（`line_glow`）；数据更新时柱体生长/折线渐入动画（`animation_enabled`/`animation_duration`）。
 
-对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`；交互：`SetEnableTooltip/IsEnableTooltip`、`SetEnableSelect/IsEnableSelect`、`GetSelected/ClearSelection`、`AttachPointClick/AttachPointHover`、`GetHitFromEvent`。
+对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`、`SetBarRadius`、`SetBarGradient`、`SetLineGlow`、`SetAnimationEnabled`、`SetAnimationDuration`；交互：`SetEnableTooltip/IsEnableTooltip`、`SetEnableSelect/IsEnableSelect`、`GetSelected/ClearSelection`、`AttachPointClick/AttachPointHover`、`GetHitFromEvent`。
 
 ### XML使用示例
 

@@ -58,6 +58,12 @@ Chart::Chart(Window* pWindow) :
     m_barMode(ChartBarMode::kGrouped),
     m_bDonut(false),
     m_bShowPercent(false),
+    m_nBarRadius(3),
+    m_bBarGradient(true),
+    m_bLineGlow(false),
+    m_bAnimationEnabled(true),
+    m_nAnimationDuration(300),
+    m_nAnimProgress(100),
     m_bEnableTooltip(true),
     m_bEnableSelect(true),
     m_viewStart(0.0),
@@ -168,6 +174,22 @@ void Chart::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("show_percent")) || (strName == _T("showpercent"))) {
         SetShowPercent(StringUtil::IsValueTrue(strValue));
     }
+    else if ((strName == _T("bar_radius")) || (strName == _T("barradius"))) {
+        SetBarRadius(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("bar_gradient")) || (strName == _T("bargradient"))) {
+        SetBarGradient(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("line_glow")) || (strName == _T("lineglow"))) {
+        SetLineGlow(StringUtil::IsValueTrue(strValue));
+    }
+
+    else if ((strName == _T("animation_enabled")) || (strName == _T("animationenabled"))) {
+        SetAnimationEnabled(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("animation_duration")) || (strName == _T("animationduration"))) {
+        SetAnimationDuration(StringUtil::StringToInt32(strValue));
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -226,6 +248,7 @@ void Chart::SetData(const std::vector<double>& data)
     m_selected = HitResult();
     m_viewStart = 0.0;
     m_viewEnd = -1.0;
+    StartDataAnimation();
     Invalidate();
 }
 
@@ -238,6 +261,7 @@ void Chart::AddData(double value)
         m_series[0].color = m_strSeriesColor;
     }
     m_series[0].data.push_back(value);
+    StartDataAnimation();
     Invalidate();
 }
 
@@ -272,12 +296,14 @@ void Chart::SetSeriesData(const std::vector<Series>& series)
     m_selected = HitResult();
     m_viewStart = 0.0;
     m_viewEnd = -1.0;
+    StartDataAnimation();
     Invalidate();
 }
 
 void Chart::AddSeries(const Series& series)
 {
     m_series.push_back(series);
+    StartDataAnimation();
     Invalidate();
 }
 
@@ -408,6 +434,93 @@ void Chart::SetShowPercent(bool bShowPercent)
     }
 }
 
+void Chart::SetBarRadius(int32_t nRadius)
+{
+    if (nRadius < 0) {
+        nRadius = 0;
+    }
+    if (m_nBarRadius != nRadius) {
+        m_nBarRadius = nRadius;
+        Invalidate();
+    }
+}
+
+void Chart::SetBarGradient(bool bGradient)
+{
+    if (m_bBarGradient != bGradient) {
+        m_bBarGradient = bGradient;
+        Invalidate();
+    }
+}
+
+void Chart::SetLineGlow(bool bGlow)
+{
+    if (m_bLineGlow != bGlow) {
+        m_bLineGlow = bGlow;
+        Invalidate();
+    }
+}
+
+void Chart::SetAnimationEnabled(bool bEnabled)
+{
+    m_bAnimationEnabled = bEnabled;
+    if (!bEnabled) {
+        m_pAnimPlayer.reset();
+        m_nAnimProgress = 100;
+    }
+}
+
+void Chart::SetAnimationDuration(int32_t nMs)
+{
+    if (nMs < 0) {
+        nMs = 0;
+    }
+    m_nAnimationDuration = nMs;
+}
+
+void Chart::StartDataAnimation()
+{
+    if (!m_bAnimationEnabled || (m_nAnimationDuration <= 0) || !IsInited()) {
+        m_nAnimProgress = 100;
+        return;
+    }
+    //停止旧动画
+    if ((m_pAnimPlayer != nullptr) && m_pAnimPlayer->IsPlaying()) {
+        m_pAnimPlayer->SetCompleteCallback(nullptr);
+        m_pAnimPlayer->Stop();
+    }
+    m_nAnimProgress = 0;
+    m_pAnimPlayer.reset(new AnimationPlayer);
+    m_pAnimPlayer->SetAnimationType(AnimationType::kAnimationNone);
+    m_pAnimPlayer->SetTotalMillSeconds(m_nAnimationDuration);
+    m_pAnimPlayer->SetFrameIntervalMillSeconds(16);
+    m_pAnimPlayer->SetEasingFunctionType(EaseOutQuad);
+    m_pAnimPlayer->SetStartValue(0);
+    m_pAnimPlayer->SetEndValue(100);
+
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+    m_pAnimPlayer->SetPlayCallback([this, weakFlag](int32_t nValue) {
+        if (weakFlag.expired()) {
+            return;
+        }
+        m_nAnimProgress = nValue;
+        Invalidate();
+    });
+    m_pAnimPlayer->SetCompleteCallback([this, weakFlag]() {
+        if (weakFlag.expired()) {
+            return;
+        }
+        m_nAnimProgress = 100;
+        Invalidate();
+    });
+    m_pAnimPlayer->Start();
+}
+
+double Chart::GetAnimProgress() const
+{
+    return static_cast<double>(m_nAnimProgress) / 100.0;
+}
+
 void Chart::ParseDataString(const DString& strData, std::vector<double>& data)
 {
     data.clear();
@@ -480,6 +593,15 @@ UiColor Chart::MakeSliceColor(UiColor baseColor, size_t index, size_t count)
     g = static_cast<uint8_t>(g * brightness);
     b = static_cast<uint8_t>(b * brightness);
     return UiColor(UiColor::MakeARGB(a, r, g, b));
+}
+
+UiColor Chart::MakeDarkerColor(UiColor baseColor, uint8_t nScale)
+{
+    //生成更暗的颜色（nScale 为百分比 0~255，如 180 = 约 70% 亮度）
+    uint8_t r = static_cast<uint8_t>(static_cast<uint32_t>(baseColor.GetR()) * nScale / 255);
+    uint8_t g = static_cast<uint8_t>(static_cast<uint32_t>(baseColor.GetG()) * nScale / 255);
+    uint8_t b = static_cast<uint8_t>(static_cast<uint32_t>(baseColor.GetB()) * nScale / 255);
+    return UiColor(UiColor::MakeARGB(baseColor.GetA(), r, g, b));
 }
 
 DString Chart::FormatValue(double value)
@@ -1247,6 +1369,9 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
     const float fPlotWidth = static_cast<float>(nRight - nLeft);
     const float fPlotHeight = static_cast<float>(nBottom - nTop);
 
+    //数据更新动画进度（折线从绘图区底部渐入）
+    const double dProgress = GetAnimProgress();
+
     //Y 轴刻度值文本宽度（直接测量实际要绘制的刻度值，保证宽度精确一致）
     int32_t nAxisValueWidth = 0;
     if (m_bShowAxisValues) {
@@ -1315,7 +1440,9 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
         points.reserve(visibleIdx.size());
         for (size_t i : visibleIdx) {
             float fx = layout.XToPixel(static_cast<double>(i));
-            float fy = layout.YToPixel(data[i]);
+            float fyTarget = layout.YToPixel(data[i]);
+            //渐入动画：从绘图区底部向目标值插值
+            float fy = static_cast<float>(nBottom) - (static_cast<float>(nBottom) - fyTarget) * static_cast<float>(dProgress);
             points.emplace_back(fx, fy);
         }
         const size_t nVisible = points.size();
@@ -1357,12 +1484,26 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
         //绘制折线/曲线
         if (nVisible >= 2) {
             const float fLineWidth = static_cast<float>(Dpi().GetScaleInt(m_nLineWidth));
+            //发光/阴影：先画一条更粗、低透明度的同色线，再叠主线
+            const bool bGlow = m_bLineGlow && (pFactory != nullptr);
+            const float fGlowWidth = fLineWidth * 2.0f + 1.0f;
+            const UiColor glowColor = UiColor(UiColor::MakeARGB(48, seriesColor.GetR(), seriesColor.GetG(), seriesColor.GetB()));
             if (m_lineMode == ChartLineMode::kCurve) {
                 for (size_t i = 0; i + 1 < nVisible; ++i) {
                     //用贝塞尔平滑：控制点取相邻中点水平延伸
                     float cx1 = points[i].x + (points[i + 1].x - points[i].x) * 0.5f;
                     float cx2 = points[i + 1].x - (points[i + 1].x - points[i].x) * 0.5f;
-                    IPath* pPath = pFactory != nullptr ? pFactory->CreatePath() : nullptr;
+                    if (bGlow) {
+                        IPath* pGlowPath = pFactory->CreatePath();
+                        std::unique_ptr<IPath> spGlowPath(pGlowPath);
+                        IPen* pGlowPen = pFactory->CreatePen(glowColor, fGlowWidth);
+                        std::unique_ptr<IPen> spGlowPen(pGlowPen);
+                        if ((pGlowPath != nullptr) && (pGlowPen != nullptr)) {
+                            pGlowPath->AddBezier(points[i].x, points[i].y, cx1, points[i].y, cx2, points[i + 1].y, points[i + 1].x, points[i + 1].y);
+                            pRender->DrawPath(pGlowPath, pGlowPen);
+                        }
+                    }
+                    IPath* pPath = pFactory->CreatePath();
                     std::unique_ptr<IPath> spPath(pPath);
                     if (pPath != nullptr) {
                         pPath->AddBezier(points[i].x, points[i].y, cx1, points[i].y, cx2, points[i + 1].y, points[i + 1].x, points[i + 1].y);
@@ -1376,6 +1517,9 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
             }
             else {
                 for (size_t i = 0; i + 1 < nVisible; ++i) {
+                    if (bGlow) {
+                        pRender->DrawLine(points[i], points[i + 1], glowColor, fGlowWidth);
+                    }
                     pRender->DrawLine(points[i], points[i + 1], seriesColor, fLineWidth);
                 }
             }
@@ -1465,15 +1609,16 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
             rc.bottom = nLabelBottom;
             labelRects[i] = rc;
         }
-        //抽稀：贪心选择互不重叠的标签，但保证末标签始终绘制（与最后已选标签重叠时用末标签替换之）
+        //抽稀：贪心选择互不重叠的标签（含最小间距），但保证末标签始终绘制（与最后已选标签重叠时用末标签替换之）
         std::vector<size_t> drawn;
+        const int32_t nMinGap = Dpi().GetScaleInt(6); //相邻标签最小间距
         int32_t nLastRight = std::numeric_limits<int32_t>::min();
         for (size_t i = 0; i < nLabelCount; ++i) {
             //跳过可视窗口外的标签（空矩形）
             if ((labelRects[i].Width() <= 0) || (labelRects[i].Height() <= 0)) {
                 continue;
             }
-            if (labelRects[i].left > nLastRight) {
+            if (labelRects[i].left > nLastRight + nMinGap) {
                 drawn.push_back(i);
                 nLastRight = labelRects[i].right;
             }
@@ -1508,6 +1653,11 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
     if ((rcPlot.Width() <= 0) || (rcPlot.Height() <= 0)) {
         return;
     }
+
+    //数据更新动画进度（柱体生长）
+    const double dProgress = GetAnimProgress();
+    const float fRadius = static_cast<float>(Dpi().GetScaleInt(m_nBarRadius));
+    const uint8_t nDarkerScale = 210; //渐变暗端约 82% 亮度（过暗会显得脏）
 
     UiColor axisColor = GetUiColor(m_strAxisColor);
     if (axisColor.IsEmpty()) {
@@ -1631,10 +1781,18 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
                 }
                 double v = m_series[si].data[i];
                 if (v >= 0.0) {
-                    float h = fPlotHeight * static_cast<float>(v / dRange);
+                    float h = fPlotHeight * static_cast<float>(v / dRange) * static_cast<float>(dProgress);
                     float segTop = posTop - h;
                     UiRectF rcBar(fBarLeft, segTop, fBarLeft + fBarWidth, posTop);
-                    pRender->FillRect(rcBar, GetSeriesColor(si), GetAlpha());
+                    UiColor barColor = GetSeriesColor(si);
+                    //堆叠模式：分段不做圆角（分段圆角会产生缝隙感）
+                    if (m_bBarGradient) {
+                        pRender->FillRoundRect(rcBar, 0.0f, 0.0f, barColor,
+                                               MakeDarkerColor(barColor, nDarkerScale), 2, GetAlpha());
+                    }
+                    else {
+                        pRender->FillRect(rcBar, barColor, GetAlpha());
+                    }
                     posTop = segTop;
                 }
             }
@@ -1646,10 +1804,17 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
                 }
                 double v = m_series[si].data[i];
                 if (v < 0.0) {
-                    float h = fPlotHeight * static_cast<float>((-v) / dRange);
+                    float h = fPlotHeight * static_cast<float>((-v) / dRange) * static_cast<float>(dProgress);
                     float segBottom = negBottom + h;
                     UiRectF rcBar(fBarLeft, negBottom, fBarLeft + fBarWidth, segBottom);
-                    pRender->FillRect(rcBar, GetSeriesColor(si), GetAlpha());
+                    UiColor barColor = GetSeriesColor(si);
+                    if (m_bBarGradient) {
+                        pRender->FillRoundRect(rcBar, 0.0f, 0.0f, barColor,
+                                               MakeDarkerColor(barColor, nDarkerScale), 2, GetAlpha());
+                    }
+                    else {
+                        pRender->FillRect(rcBar, barColor, GetAlpha());
+                    }
                     negBottom = segBottom;
                 }
             }
@@ -1683,17 +1848,25 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
                 float fBarLeft = fGroupLeft + fBarWidth * static_cast<float>(si);
                 float fBarTop, fBarBottom;
                 if (v >= 0.0) {
-                    float h = fPlotHeight * static_cast<float>(v / dRange);
+                    float h = fPlotHeight * static_cast<float>(v / dRange) * static_cast<float>(dProgress);
                     fBarTop = fZeroY - h;
                     fBarBottom = fZeroY;
                 }
                 else {
-                    float h = fPlotHeight * static_cast<float>((-v) / dRange);
+                    float h = fPlotHeight * static_cast<float>((-v) / dRange) * static_cast<float>(dProgress);
                     fBarTop = fZeroY;
                     fBarBottom = fZeroY + h;
                 }
                 UiRectF rcBar(fBarLeft, fBarTop, fBarLeft + fBarWidth, fBarBottom);
-                pRender->FillRect(rcBar, GetSeriesColor(si), GetAlpha());
+                UiColor barColor = GetSeriesColor(si);
+                if (m_bBarGradient) {
+                    //顶部亮 → 底部暗渐变（方向 2 = 上→下）
+                    pRender->FillRoundRect(rcBar, fRadius, fRadius, barColor,
+                                           MakeDarkerColor(barColor, nDarkerScale), 2, GetAlpha());
+                }
+                else {
+                    pRender->FillRoundRect(rcBar, fRadius, fRadius, barColor, GetAlpha());
+                }
                 //选中柱描边高亮
                 if (m_bEnableSelect && (m_selected.type == HitType::kBar) &&
                     (m_selected.seriesIndex == si) && (m_selected.dataIndex == i)) {
@@ -1701,7 +1874,7 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
                     if (hlColor.IsEmpty()) {
                         hlColor = UiColor(0xFF000000);
                     }
-                    pRender->DrawRect(rcBar, hlColor, 2.0f);
+                    pRender->DrawRoundRect(rcBar, fRadius, fRadius, hlColor, 2.0f);
                 }
 
                 //数值标签
@@ -1888,9 +2061,6 @@ void Chart::PaintPie(IRender* pRender, const UiRect& rcChart)
             float fSweep = static_cast<float>(360.0 * (v / dSum));
             float fMidAngle = fStartAngle + fSweep / 2.0f;
             double rad = fMidAngle * kPi / 180.0;
-            float fLabelRadius = fOuterRadius * (m_bDonut ? 0.78f : 0.7f);
-            float fLabelX = static_cast<float>(nCenterX) + fLabelRadius * static_cast<float>(std::cos(rad));
-            float fLabelY = static_cast<float>(nCenterY) + fLabelRadius * static_cast<float>(std::sin(rad));
 
             //标签文本：数值 + 可选百分比
             DString strValue;
@@ -1901,12 +2071,43 @@ void Chart::PaintPie(IRender* pRender, const UiRect& rcChart)
             else {
                 strValue = FormatValue(v);
             }
-            UiRect rcText;
-            rcText.left = static_cast<int32_t>(fLabelX) - Dpi().GetScaleInt(30);
-            rcText.right = static_cast<int32_t>(fLabelX) + Dpi().GetScaleInt(30);
-            rcText.top = static_cast<int32_t>(fLabelY) - Dpi().GetScaleInt(10);
-            rcText.bottom = static_cast<int32_t>(fLabelY) + Dpi().GetScaleInt(10);
-            DrawChartText(pRender, strValue, rcText, TEXT_HCENTER | TEXT_VCENTER | TEXT_SINGLELINE);
+
+            //选中扇区：标签移到扇区外，画引导线连接（小扇区百分比不再被挤在内部）
+            const bool bSelectedSlice = m_bEnableSelect && (m_selected.type == HitType::kSlice) && (m_selected.dataIndex == i);
+            if (bSelectedSlice) {
+                const float fCos = static_cast<float>(std::cos(rad));
+                const float fSin = static_cast<float>(std::sin(rad));
+                const float fStartR = fOuterRadius * 1.05f;
+                const float fEndR = fOuterRadius + Dpi().GetScaleInt(12);
+                UiColor lineColor = GetUiColor(m_strLabelColor);
+                if (lineColor.IsEmpty()) {
+                    lineColor = UiColor(0xFF000000);
+                }
+                //引导线：从扇区边缘延伸到标签
+                pRender->DrawLine(UiPointF(static_cast<float>(nCenterX) + fStartR * fCos, static_cast<float>(nCenterY) + fStartR * fSin),
+                                  UiPointF(static_cast<float>(nCenterX) + fEndR * fCos, static_cast<float>(nCenterY) + fEndR * fSin),
+                                  lineColor, 1.0f);
+                //外部标签：沿半径方向外侧放置，按角度决定对齐
+                float fLabelX = static_cast<float>(nCenterX) + (fEndR + Dpi().GetScaleInt(6)) * fCos;
+                float fLabelY = static_cast<float>(nCenterY) + (fEndR + Dpi().GetScaleInt(6)) * fSin;
+                UiRect rcText;
+                rcText.left = static_cast<int32_t>(fLabelX) - Dpi().GetScaleInt(40);
+                rcText.right = static_cast<int32_t>(fLabelX) + Dpi().GetScaleInt(40);
+                rcText.top = static_cast<int32_t>(fLabelY) - Dpi().GetScaleInt(10);
+                rcText.bottom = static_cast<int32_t>(fLabelY) + Dpi().GetScaleInt(10);
+                DrawChartText(pRender, strValue, rcText, TEXT_HCENTER | TEXT_VCENTER | TEXT_SINGLELINE);
+            }
+            else {
+                float fLabelRadius = fOuterRadius * (m_bDonut ? 0.78f : 0.7f);
+                float fLabelX = static_cast<float>(nCenterX) + fLabelRadius * static_cast<float>(std::cos(rad));
+                float fLabelY = static_cast<float>(nCenterY) + fLabelRadius * static_cast<float>(std::sin(rad));
+                UiRect rcText;
+                rcText.left = static_cast<int32_t>(fLabelX) - Dpi().GetScaleInt(30);
+                rcText.right = static_cast<int32_t>(fLabelX) + Dpi().GetScaleInt(30);
+                rcText.top = static_cast<int32_t>(fLabelY) - Dpi().GetScaleInt(10);
+                rcText.bottom = static_cast<int32_t>(fLabelY) + Dpi().GetScaleInt(10);
+                DrawChartText(pRender, strValue, rcText, TEXT_HCENTER | TEXT_VCENTER | TEXT_SINGLELINE);
+            }
             fStartAngle += fSweep;
         }
     }

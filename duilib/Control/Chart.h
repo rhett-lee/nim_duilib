@@ -2,6 +2,7 @@
 #define UI_CONTROL_CHART_H_
 
 #include "duilib/Core/Control.h"
+#include "duilib/Animation/AnimationPlayer.h"
 #include <vector>
 
 namespace ui {
@@ -328,6 +329,26 @@ public:
     */
     void SetShowPercent(bool bShowPercent);
 
+    /** 设置柱状图圆角半径（像素，自动 DPI 缩放），0 表示直角，默认 3
+    */
+    void SetBarRadius(int32_t nRadius);
+
+    /** 设置柱状图是否渐变填充（顶部亮、底部暗），默认 true
+    */
+    void SetBarGradient(bool bGradient);
+
+    /** 设置折线图是否绘制发光/阴影效果，默认 true
+    */
+    void SetLineGlow(bool bGlow);
+
+    /** 设置数据更新动画是否启用（柱体生长/折线渐入），默认 true
+    */
+    void SetAnimationEnabled(bool bEnabled);
+
+    /** 设置数据更新动画时长（毫秒），默认 300
+    */
+    void SetAnimationDuration(int32_t nMs);
+
 private:
     /** 解析逗号分隔的数值字符串
     */
@@ -348,6 +369,10 @@ private:
     /** 根据索引生成同色系扇区颜色（用于饼图多扇区）
     */
     static UiColor MakeSliceColor(UiColor baseColor, size_t index, size_t count);
+
+    /** 生成渐变填充的暗色端（用于柱状渐变、折线发光）
+    */
+    static UiColor MakeDarkerColor(UiColor baseColor, uint8_t nScale);
 
     /** 将值格式化为字符串（保留合适精度）
     */
@@ -391,6 +416,14 @@ private:
     *   @param nDivisions 传入期望分段数，返回实际分段数（可能少于期望值）
     */
     void CalcNiceAxis(double& dMin, double& dMax, int32_t& nDivisions) const;
+
+    /** 启动数据更新动画（柱体生长/折线渐入）
+    */
+    void StartDataAnimation();
+
+    /** 获取当前动画进度（0~1，1 表示动画完成或未启用）
+    */
+    double GetAnimProgress() const;
 
     /** 绘制折线图
     */
@@ -531,6 +564,34 @@ private:
     /** 饼图是否显示百分比
     */
     bool m_bShowPercent;
+
+    /** 柱状图圆角半径（像素，未 DPI 缩放）
+    */
+    int32_t m_nBarRadius;
+
+    /** 柱状图是否渐变填充
+    */
+    bool m_bBarGradient;
+
+    /** 折线图是否绘制发光/阴影
+    */
+    bool m_bLineGlow;
+
+    /** 数据更新动画是否启用
+    */
+    bool m_bAnimationEnabled;
+
+    /** 数据更新动画时长（毫秒）
+    */
+    int32_t m_nAnimationDuration;
+
+    /** 数据更新动画播放接口
+    */
+    std::unique_ptr<AnimationPlayer> m_pAnimPlayer;
+
+    /** 动画进度值（0~100）
+    */
+    int32_t m_nAnimProgress;
 
     /** 是否启用数据点 Tooltip
     */
