@@ -128,6 +128,18 @@ void Chart::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("y_axis_title")) || (strName == _T("yaxistitle"))) {
         SetYAxisTitle(strValue);
     }
+    else if ((strName == _T("title_id")) || (strName == _T("titleid"))) {
+        SetTitleId(strValue);
+    }
+    else if ((strName == _T("x_axis_title_id")) || (strName == _T("xaxistitleid"))) {
+        SetXAxisTitleId(strValue);
+    }
+    else if ((strName == _T("y_axis_title_id")) || (strName == _T("yaxistitleid"))) {
+        SetYAxisTitleId(strValue);
+    }
+    else if ((strName == _T("data_labels_id")) || (strName == _T("datalabelsid"))) {
+        SetDataLabelsId(strValue);
+    }
     else if (strName == _T("show_value")) {
         SetShowValue(StringUtil::IsValueTrue(strValue));
     }
@@ -231,6 +243,68 @@ void Chart::SetYAxisTitle(const DString& strTitle)
     if (m_strYAxisTitle != strTitle) {
         m_strYAxisTitle = strTitle;
         Invalidate();
+    }
+}
+
+void Chart::SetTitleId(const DString& strTitleId)
+{
+    m_strTitleId = strTitleId;
+    if (!m_strTitleId.empty()) {
+        SetTitle(GlobalManager::Instance().Lang().GetStringByID(m_strTitleId));
+    }
+}
+
+void Chart::SetXAxisTitleId(const DString& strTitleId)
+{
+    m_strXAxisTitleId = strTitleId;
+    if (!m_strXAxisTitleId.empty()) {
+        SetXAxisTitle(GlobalManager::Instance().Lang().GetStringByID(m_strXAxisTitleId));
+    }
+}
+
+void Chart::SetYAxisTitleId(const DString& strTitleId)
+{
+    m_strYAxisTitleId = strTitleId;
+    if (!m_strYAxisTitleId.empty()) {
+        SetYAxisTitle(GlobalManager::Instance().Lang().GetStringByID(m_strYAxisTitleId));
+    }
+}
+
+void Chart::SetDataLabelsId(const DString& strLabelsId)
+{
+    m_strDataLabelsId = strLabelsId;
+    if (m_strDataLabelsId.empty()) {
+        return;
+    }
+    //逗号分隔的多个 STRID，逐个从语言文件解析为类目标签
+    std::vector<DString> labels;
+    std::list<DString> parts = StringUtil::Split(m_strDataLabelsId, _T(","));
+    for (const DString& part : parts) {
+        DString s = part;
+        StringUtil::Trim(s);
+        if (s.empty()) {
+            continue;
+        }
+        labels.push_back(GlobalManager::Instance().Lang().GetStringByID(s));
+    }
+    SetDataLabels(labels);
+}
+
+void Chart::OnLanguageChanged(bool bRedraw)
+{
+    BaseClass::OnLanguageChanged(bRedraw);
+    //根据语言 ID 重新解析标题/轴标题/类目标签
+    if (!m_strTitleId.empty()) {
+        SetTitle(GlobalManager::Instance().Lang().GetStringByID(m_strTitleId));
+    }
+    if (!m_strXAxisTitleId.empty()) {
+        SetXAxisTitle(GlobalManager::Instance().Lang().GetStringByID(m_strXAxisTitleId));
+    }
+    if (!m_strYAxisTitleId.empty()) {
+        SetYAxisTitle(GlobalManager::Instance().Lang().GetStringByID(m_strYAxisTitleId));
+    }
+    if (!m_strDataLabelsId.empty()) {
+        SetDataLabelsId(m_strDataLabelsId);
     }
 }
 
@@ -1036,7 +1110,7 @@ DString Chart::BuildHitTooltip(const HitResult& hit) const
     return DString();
 }
 
-int32_t Chart::HitTestPieSlice(const UiPoint& ptMouse, const UiRect& rcPie,
+int32_t Chart::HitTestPieSlice(const UiPoint& ptMouse, const UiRect& /*rcPie*/,
                                int32_t nCenterX, int32_t nCenterY, float fRadius,
                                const std::vector<double>& data, double dSum) const
 {
@@ -1357,7 +1431,7 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
         axisColor = UiColor(0xFFD0D0D0);
     }
 
-    const double dMin = layout.dMin;
+    //const double dMin = layout.dMin;
     const double dMax = layout.dMax;
     const double dRange = layout.dRange;
     const int32_t nDiv = layout.nDivisions; //美观刻度对齐后的实际分段数
@@ -1366,7 +1440,7 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
     const int32_t nRight = rcPlot.right;
     const int32_t nTop = rcPlot.top;
     const int32_t nBottom = rcPlot.bottom;
-    const float fPlotWidth = static_cast<float>(nRight - nLeft);
+    //const float fPlotWidth = static_cast<float>(nRight - nLeft);
     const float fPlotHeight = static_cast<float>(nBottom - nTop);
 
     //数据更新动画进度（折线从绘图区底部渐入）

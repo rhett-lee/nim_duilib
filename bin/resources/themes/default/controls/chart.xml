@@ -4,7 +4,7 @@
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
             <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
-            <Label name="label_title" text="Chart 图表控件测试" valign="center" margin="8" mouse_enabled="false"/>
+            <Label name="label_title" text_id="STRID_CHART_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
             <Control/>
             <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
         </HBox>
@@ -16,14 +16,14 @@
                 <!-- 左上：多系列折线图（直线 + 数据点 + 标题 + 坐标轴标题 + 图例） -->
                 <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,12,0">
                     <HBox height="28">
-                        <Label text="折线图 · 多系列（直线）" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Label text_id="STRID_CHART_CARD_LINE" font="system_bold_15" text_color="text_default" valign="center"/>
                         <Control/>
-                        <Button class="btn_global" name="btn_line_add" text="追加数据" width="90" height="26" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="btn_line_clear" text="清空" width="70" height="26" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_line_add" text_id="STRID_CHART_BTN_ADD" width="90" height="26" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="btn_line_clear" text_id="STRID_CHART_BTN_CLEAR" width="70" height="26" border_round="3,3"/>
                     </HBox>
                     <Chart name="chart_line" height="stretch" chart_type="line"
-                           title="季度销售趋势对比"
-                           x_axis_title="季度" y_axis_title="销售额（万元）"
+                           title_id="STRID_CHART_LINE_TITLE"
+                           x_axis_title_id="STRID_CHART_AXIS_QUARTER" y_axis_title_id="STRID_CHART_AXIS_SALES"
                            data="35,48,27,62,50,41,58,33,45,52"
                            data_labels="Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10"
                            legend_visible="true"
@@ -36,13 +36,13 @@
                 <!-- 右上：折线图（曲线 + 面积填充） -->
                 <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
                     <HBox height="28">
-                        <Label text="折线图 · 曲线 + 面积填充" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Label text_id="STRID_CHART_CARD_AREA" font="system_bold_15" text_color="text_default" valign="center"/>
                     </HBox>
                     <Chart name="chart_line_area" height="stretch" chart_type="line"
-                           title="网站访问量趋势"
-                           x_axis_title="日期" y_axis_title="访问量"
+                           title_id="STRID_CHART_AREA_TITLE"
+                           x_axis_title_id="STRID_CHART_AXIS_DATE" y_axis_title_id="STRID_CHART_AXIS_VISITS"
                            data="120,150,180,165,220,260,240,300,280,340,320,380"
-                           data_labels="1日,5日,9日,13日,17日,21日,25日,29日,3日,7日,11日,15日"
+                           data_labels="1,5,9,13,17,21,25,29,3,7,11,15"
                            legend_visible="false"
                            series_color="color_accent" axis_color="border_control_normal"
                            label_color="text_default" show_value="false" show_grid="true"
@@ -56,13 +56,13 @@
                 <!-- 左下：柱状图（分组，含负值） -->
                 <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,12,0">
                     <HBox height="28">
-                        <Label text="柱状图 · 分组（含负值）" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Label text_id="STRID_CHART_CARD_BAR" font="system_bold_15" text_color="text_default" valign="center"/>
                         <Control/>
-                        <Button class="btn_global" name="btn_bar_switch" text="切换数据" width="90" height="26" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_bar_switch" text_id="STRID_CHART_BTN_SWITCH" width="90" height="26" border_round="3,3"/>
                     </HBox>
                     <Chart name="chart_bar" height="stretch" chart_type="bar"
-                           title="各季度收支对比"
-                           x_axis_title="季度" y_axis_title="金额（万元）"
+                           title_id="STRID_CHART_BAR_TITLE"
+                           x_axis_title_id="STRID_CHART_AXIS_QUARTER" y_axis_title_id="STRID_CHART_AXIS_AMOUNT"
                            data="45,-18,62,-25,38,80,-15,55,70"
                            data_labels="Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9"
                            legend_visible="true"
@@ -75,14 +75,14 @@
                 <!-- 右下：环形饼图（百分比 + 图例） -->
                 <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
                     <HBox height="28">
-                        <Label text="饼图 · 环形（百分比）" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Label text_id="STRID_CHART_CARD_PIE" font="system_bold_15" text_color="text_default" valign="center"/>
                         <Control/>
-                        <Button class="btn_global" name="btn_pie_switch" text="切换数据" width="90" height="26" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_pie_switch" text_id="STRID_CHART_BTN_SWITCH" width="90" height="26" border_round="3,3"/>
                     </HBox>
                     <Chart name="chart_pie" height="stretch" chart_type="pie"
-                           title="访问来源占比"
+                           title_id="STRID_CHART_PIE_TITLE"
                            data="30,25,20,15,10"
-                           data_labels="搜索引擎,直接访问,社交媒体,邮件推广,其他"
+                           data_labels_id="STRID_CHART_SLICE_SE,STRID_CHART_SLICE_DIRECT,STRID_CHART_SLICE_SOCIAL,STRID_CHART_SLICE_EMAIL,STRID_CHART_SLICE_OTHER"
                            series_color="color_accent" label_color="text_default"
                            legend_visible="true" show_value="false" show_percent="true"
                            donut="true"/>
