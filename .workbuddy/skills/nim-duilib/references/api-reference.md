@@ -143,6 +143,7 @@
 |---------|------|------|
 | Control | - | 基础控件/占位符 |
 | Label | Control | 文本标签 |
+| Marquee | Label | 文本跑马灯（横向/纵向循环滚动，速度/方向/暂停/悬停暂停，`duilib/Control/Marquee.h`），XML 节点名 `Marquee` |
 | Button | Label | 按钮 |
 | CheckBox | Button | 复选框 |
 | Option | CheckBox | 单选按钮(group属性分组) |

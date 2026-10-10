@@ -100,6 +100,7 @@
 #include "Control/Progress.h"
 #include "Control/CircleProgress.h"
 #include "Control/Chart.h"
+#include "Control/Marquee.h"
 #include "Control/Slider.h"
 
 #include "Control/RichEdit.h"

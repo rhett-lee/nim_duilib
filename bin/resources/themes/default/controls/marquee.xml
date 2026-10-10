@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="980,720" text="Marquee Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_MARQUEE_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 控制区 -->
+        <HBox height="44" padding="12,8,12,0">
+            <Button class="btn_global" name="btn_pause" text_id="STRID_MARQUEE_BTN_PAUSE" width="90" height="28" border_round="3,3" margin="0,0,8,0"/>
+            <Button class="btn_global" name="btn_update" text_id="STRID_MARQUEE_BTN_UPDATE" width="90" height="28" border_round="3,3"/>
+            <Control/>
+            <Label text_id="STRID_MARQUEE_HINT" text_color="text_muted" valign="center"/>
+        </HBox>
+
+        <!-- 演示区：横向滚动 -->
+        <VBox padding="12,8,12,12">
+            <!-- 横向向左（默认，悬停暂停） -->
+            <VBox height="100" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                <Label text_id="STRID_MARQUEE_CARD_H_LEFT" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Marquee name="marquee_h_left" width="stretch" height="28"
+                         text_id="STRID_MARQUEE_TEXT_H_LEFT"
+                         scroll_direction="left" scroll_speed="60" scroll_interval="30" hover_pause="true"
+                         text_color="text_default" font="system_regular_14"/>
+            </VBox>
+
+            <!-- 横向向右（不悬停暂停，速度较快） -->
+            <VBox height="100" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                <Label text_id="STRID_MARQUEE_CARD_H_RIGHT" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Marquee name="marquee_h_right" width="stretch" height="28"
+                         text_id="STRID_MARQUEE_TEXT_H_RIGHT"
+                         scroll_direction="right" scroll_speed="100" hover_pause="false"
+                         text_color="text_default" font="system_regular_14"/>
+            </VBox>
+
+            <!-- 纵向滚动（上/下各一个，竖排文字） -->
+            <HBox height="260" margin="0,0,0,10">
+                <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,10,0">
+                    <Label text_id="STRID_MARQUEE_CARD_V_UP" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                    <Marquee name="marquee_v_up" width="stretch" height="stretch"
+                             text_id="STRID_MARQUEE_TEXT_V_UP"
+                             scroll_direction="up" scroll_speed="40"
+                             text_color="text_default" font="system_regular_14"/>
+                </VBox>
+                <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                    <Label text_id="STRID_MARQUEE_CARD_V_DOWN" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                    <Marquee name="marquee_v_down" width="stretch" height="stretch"
+                             text_id="STRID_MARQUEE_TEXT_V_DOWN"
+                             scroll_direction="down" scroll_speed="30"
+                             text_color="text_default" font="system_regular_14"/>
+                </VBox>
+            </HBox>
+
+            <!-- 静态文本（未超出，不滚动） -->
+            <VBox height="88" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                <Label text_id="STRID_MARQUEE_CARD_STATIC" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Marquee name="marquee_static" width="stretch" height="28"
+                         text_id="STRID_MARQUEE_TEXT_STATIC"
+                         scroll_direction="left" scroll_speed="60" hover_pause="true"
+                         text_color="text_default" text_align="hcenter,vcenter" font="system_regular_14"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</Window>

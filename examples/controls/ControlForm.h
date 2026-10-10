@@ -77,6 +77,10 @@ private:
     */
     void ShowChartWindow();
 
+    /** 显示 Marquee 文本跑马灯演示窗口
+    */
+    void ShowMarqueeWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

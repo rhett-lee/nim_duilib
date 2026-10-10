@@ -33,7 +33,7 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="236" padding="0,0,0,10">
+            <HBox height="270" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
@@ -43,6 +43,7 @@
                     <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANIMATION_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
                     <Button class="btn_global" name="navigation_btn" text_id="STRID_CONTROLS_NAVIGATION_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
                     <Button class="btn_global" name="chart_btn" text_id="STRID_CONTROLS_CHART_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="marquee_btn" text_id="STRID_CONTROLS_MARQUEE_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Checkbox -->
                 <VBox width="120">

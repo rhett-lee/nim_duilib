@@ -518,6 +518,26 @@ STRID_CONTROLS_TRAY_MENU_05 = 退出
 # controls/NavigationView
 STRID_CONTROLS_NAVIGATION_TEST = 导航测试
 STRID_CONTROLS_CHART_TEST = 图表测试
+STRID_CONTROLS_MARQUEE_TEST = 跑马灯测试
+# controls/Marquee
+STRID_MARQUEE_WINDOW_TITLE = Marquee 跑马灯控件测试
+STRID_MARQUEE_HINT = 提示：鼠标悬停到跑马灯上会暂停滚动（hover_pause）
+STRID_MARQUEE_CARD_H_LEFT = 横向 · 向左滚动（悬停暂停）
+STRID_MARQUEE_CARD_H_RIGHT = 横向 · 向右滚动（不悬停暂停）
+STRID_MARQUEE_CARD_V_UP = 纵向 · 向上滚动
+STRID_MARQUEE_CARD_V_DOWN = 纵向 · 向下滚动
+STRID_MARQUEE_CARD_STATIC = 静态文本（未超出，不滚动）
+STRID_MARQUEE_BTN_PAUSE = 暂停
+STRID_MARQUEE_BTN_RESUME = 恢复
+STRID_MARQUEE_BTN_UPDATE = 更新文本
+STRID_MARQUEE_TEXT_H_LEFT = 这是一条横向向左滚动的公告文本：欢迎使用 nim_duilib 跨平台界面库！跑马灯控件支持横向与纵向两种滚动方式，可自定义滚动速度与方向，支持暂停恢复、鼠标悬停暂停以及文本内容动态更新，当文本超出显示区域时自动循环滚动。
+STRID_MARQUEE_TEXT_H_RIGHT = 向右滚动演示：文本超出显示区域后会自动循环滚动，两份文本首尾相接实现无缝衔接；鼠标悬停时是否暂停可由 hover_pause 属性控制，滚动速度可通过 SetScrollSpeed 接口实时调整。
+STRID_MARQUEE_TEXT_V_UP = 这是一段纵向向上滚动的竖排文字公告。
+STRID_MARQUEE_TEXT_V_DOWN = 纵向向下滚动：竖排文字从下往上循环显示。
+STRID_MARQUEE_TEXT_STATIC = 短文本
+STRID_MARQUEE_TEXT_UPDATE_1 = 这是一条正在横向向左滚动的公告：欢迎使用 nim_duilib 跨平台界面库！跑马灯控件支持横向与纵向两种滚动方式，可自定义滚动速度与方向。
+STRID_MARQUEE_TEXT_UPDATE_2 = 文本已动态更新：跑马灯支持运行时修改文本内容并自动重置滚动位置，同时支持通过 SetScrollSpeed 接口实时调整滚动速度，本条演示速度已调整为中等速度。
+STRID_MARQUEE_TEXT_UPDATE_3 = 第三段内容：滚动速度、方向、暂停与恢复均可通过接口实时调整，文本超出显示区域时自动循环滚动，未超出时静态居中显示。
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart 图表控件测试
 STRID_CHART_CARD_LINE = 折线图 · 多系列（直线）

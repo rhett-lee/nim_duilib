@@ -179,6 +179,61 @@ ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control
 
 Label 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
+## Marquee的属性
+Marquee是文本跑马灯控件，继承自Label（复用`text`/`text_id`/`font`/`text_color`/`vertical_text`/`text_padding`等全部文本属性），对应头文件`duilib/Control/Marquee.h`。用于在界面中横向/纵向循环滚动显示文本：文本内容超出控件显示区域时自动循环滚动，未超出时按`text_align`静态显示。
+
+除Label的属性外，新增以下属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| scroll_direction | left | string | 滚动方向："left"横向向左 / "right"横向向右 / "up"纵向向上 / "down"纵向向下。同时决定文本排列方向（left/right 为横向文本，up/down 为纵向文本） |
+| scroll_speed | 50 | int | 滚动速度（像素/秒，自动DPI缩放），0 表示不滚动 |
+| scroll_interval | 30 | int | 滚动定时器帧间隔（毫秒，5~1000），影响流畅度与CPU占用 |
+| hover_pause | true | bool | 鼠标悬停到控件时是否暂停滚动 |
+
+说明：
+- **循环滚动**：文本超出显示区域时，采用"双份文本首尾相接"方式无缝循环滚动；文本未超出时静态显示（按`text_align`对齐），不占用定时器。
+- **文本方向**：`scroll_direction`为`left`/`right`时横向文本滚动，为`up`/`down`时纵向文本滚动（内部自动设置`vertical_text`）。
+- **动态更新**：`SetText`/`SetTextId`更新文本后自动重置滚动位置；语言切换（`text_id`）同样生效。
+- **暂停/恢复**：`Pause()`/`Resume()`/`SetPaused()`控制手动暂停；鼠标悬停自动暂停由`hover_pause`控制（默认开启）。
+
+对应C++接口：`SetScrollDirection/GetScrollDirection`、`SetScrollSpeed/GetScrollSpeed`、`SetScrollInterval/GetScrollInterval`、`SetHoverPause/IsHoverPause`、`Pause/Resume/SetPaused/IsPaused`、`IsScrolling`。
+
+### XML使用示例
+
+```xml
+<!-- 横向向左滚动（文本超出控件宽度时循环滚动） -->
+<Marquee width="200" height="28" text_id="STRID_NEWS_TICKER"
+          scroll_direction="left" scroll_speed="60"
+          text_color="text_default"/>
+
+<!-- 纵向向上滚动（竖排文字） -->
+<Marquee width="28" height="300" text="这是一条竖排滚动的公告文本"
+          scroll_direction="up" scroll_speed="40" font="system_regular_14"/>
+
+<!-- 横向向右滚动，悬停不暂停 -->
+<Marquee width="300" height="24" text="向右滚动的文本"
+          scroll_direction="right" hover_pause="false"/>
+```
+
+### C++使用示例
+
+```cpp
+ui::Marquee* pMarquee = dynamic_cast<ui::Marquee*>(pWindow->FindControl(_T("marquee")));
+if (pMarquee != nullptr) {
+    // 动态更新文本（自动重置滚动位置）
+    pMarquee->SetText(_T("新的滚动公告内容"));
+
+    // 调整速度与方向
+    pMarquee->SetScrollSpeed(80);
+    pMarquee->SetScrollDirection(ui::MarqueeDirection::kLeft);
+
+    // 暂停 / 恢复
+    pMarquee->Pause();
+    pMarquee->Resume();
+}
+```
+
 ## LabelBox的属性
 LabelBox与Label是基于相同模板的类，请参考 `Label`的属性    
 LabelBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性

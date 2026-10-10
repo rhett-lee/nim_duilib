@@ -181,6 +181,61 @@ The ScrollBar control inherits the `Control` attributes. For more available attr
 
 The Label control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
 
+## Attributes of Marquee
+Marquee is a text marquee (scrolling text) control derived from Label (reusing all text attributes: `text`/`text_id`/`font`/`text_color`/`vertical_text`/`text_padding`, etc.). Header file: `duilib/Control/Marquee.h`. It scrolls text horizontally/vertically in a loop: when the text exceeds the control's display area it scrolls automatically in a seamless loop; otherwise it is displayed statically (aligned by `text_align`).
+
+In addition to the Label attributes, the following attributes are added:
+
+| Attribute | Default | Type | Description |
+| :--- | :--- | :--- | :--- |
+| scroll_direction | left | string | Scroll direction: "left" horizontal leftward / "right" horizontal rightward / "up" vertical upward / "down" vertical downward. Also determines the text orientation (left/right = horizontal text, up/down = vertical text) |
+| scroll_speed | 50 | int | Scroll speed (pixels/second, auto DPI-scaled); 0 means no scrolling |
+| scroll_interval | 30 | int | Scroll timer frame interval (ms, 5~1000), affects smoothness and CPU usage |
+| hover_pause | true | bool | Whether to pause scrolling when the mouse hovers over the control |
+
+Notes:
+- **Loop scrolling**: when text exceeds the display area, two copies of the text are drawn end-to-end for a seamless loop; when it fits, the text is displayed statically (aligned by `text_align`) without using a timer.
+- **Text orientation**: `left`/`right` scroll horizontal text, `up`/`down` scroll vertical text (sets `vertical_text` internally).
+- **Dynamic update**: `SetText`/`SetTextId` resets the scroll position automatically; language switching via `text_id` works as well.
+- **Pause/resume**: `Pause()`/`Resume()`/`SetPaused()` control manual pause; hover pause is controlled by `hover_pause` (enabled by default).
+
+C++ API: `SetScrollDirection/GetScrollDirection`, `SetScrollSpeed/GetScrollSpeed`, `SetScrollInterval/GetScrollInterval`, `SetHoverPause/IsHoverPause`, `Pause/Resume/SetPaused/IsPaused`, `IsScrolling`.
+
+### XML Usage Example
+
+```xml
+<!-- Horizontal leftward scroll (loops when text exceeds the control width) -->
+<Marquee width="200" height="28" text_id="STRID_NEWS_TICKER"
+          scroll_direction="left" scroll_speed="60"
+          text_color="text_default"/>
+
+<!-- Vertical upward scroll (vertical text) -->
+<Marquee width="28" height="300" text="A vertically scrolling announcement"
+          scroll_direction="up" scroll_speed="40" font="system_regular_14"/>
+
+<!-- Horizontal rightward scroll, no hover pause -->
+<Marquee width="300" height="24" text="Text scrolling to the right"
+          scroll_direction="right" hover_pause="false"/>
+```
+
+### C++ Usage Example
+
+```cpp
+ui::Marquee* pMarquee = dynamic_cast<ui::Marquee*>(pWindow->FindControl(_T("marquee")));
+if (pMarquee != nullptr) {
+    // Dynamically update text (resets scroll position automatically)
+    pMarquee->SetText(_T("New scrolling announcement content"));
+
+    // Adjust speed and direction
+    pMarquee->SetScrollSpeed(80);
+    pMarquee->SetScrollDirection(ui::MarqueeDirection::kLeft);
+
+    // Pause / resume
+    pMarquee->Pause();
+    pMarquee->Resume();
+}
+```
+
 ## Attributes of LabelBox
 LabelBox and Label are classes based on the same template; please refer to the `Label` attributes.    
 The LabelBox control inherits the `Box` attributes. For more available attributes, please refer to the `Box` attributes.
