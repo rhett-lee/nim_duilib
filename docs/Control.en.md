@@ -531,8 +531,8 @@ The CircleProgress control inherits the `Progress` attributes. For more availabl
 | password_char || string | Set the password character; default is the " * " character, which can be changed via this attribute |
 | flash_password_char | false | bool | Display the character first, then display the password character|
 | number_only | false | bool | Whether only numbers are allowed to be entered, e.g. "false" |
-| max_number | INT_MAX | int | Maximum allowed number (only valid when number_only is true) |
-| min_number | INT_MIN | int | Minimum allowed number (only valid when number_only is true) |
+| max_number | INT64_MAX | int64 | Maximum allowed number (only valid when number_only is true) |
+| min_number | INT64_MIN | int64 | Minimum allowed number (only valid when number_only is true) |
 | text_align | "left,top" | string | Horizontal and vertical alignment of the text, optional values: left, right, hcenter, top, vcenter, bottom, separated by commas, e.g. "hcenter,vcenter" |
 | text_padding |  | rect | Text padding, e.g. "2,2,2,2" |
 | text |  | string | Display text |
@@ -586,7 +586,7 @@ In addition to RichEdit's common attributes (`spin_class`, `min_number`, `max_nu
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
 | step | 1 | int | Step value (positive integer); the amount added/subtracted by each spin button click or up/down arrow key press |
-| value | 0 | int | Initial numeric value (clamped to the min/max range if out of bounds) |
+| value | 0 | int64 | Initial numeric value (clamped to the min/max range if out of bounds) |
 
 Corresponding C++ interfaces: `SetStep/GetStep`, `SetValue/GetValue`, `SetRange(min, max)`.    
 The `kEventTextChanged` event is fired when the value changes (same as RichEdit).    

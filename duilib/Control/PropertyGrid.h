@@ -1285,7 +1285,7 @@ public:
     * @param [in] nMin 表示设置数字的最小值
     * @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
     */
-    void SetEnableSpin(bool bEnable, int32_t nMin = 0, int32_t nMax = 0);
+    void SetEnableSpin(bool bEnable, int64_t nMin = 0, int64_t nMax = 0);
 
 protected:
     /** 设置是否允许存在编辑框控件

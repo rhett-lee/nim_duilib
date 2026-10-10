@@ -444,10 +444,10 @@ void DateTimeWnd::UpdateDayRange()
 
         int32_t nDay = StringUtil::StringToInt32(m_editList[EditType::MDAY]->GetText());
         if (nDay < m_editList[EditType::MDAY]->GetMinNumber()) {
-            m_editList[EditType::MDAY]->SetText(StringUtil::Printf(_T("%02d"), m_editList[EditType::MDAY]->GetMinNumber()));
+            m_editList[EditType::MDAY]->SetText(StringUtil::Printf(_T("%02d"), static_cast<int32_t>(m_editList[EditType::MDAY]->GetMinNumber())));
         }
         if (nDay > m_editList[EditType::MDAY]->GetMaxNumber()) {
-            m_editList[EditType::MDAY]->SetText(StringUtil::Printf(_T("%02d"), m_editList[EditType::MDAY]->GetMaxNumber()));
+            m_editList[EditType::MDAY]->SetText(StringUtil::Printf(_T("%02d"), static_cast<int32_t>(m_editList[EditType::MDAY]->GetMaxNumber())));
         }
     }
 }

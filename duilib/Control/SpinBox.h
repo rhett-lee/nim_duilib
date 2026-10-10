@@ -54,7 +54,7 @@ public:
     * @param [in] nMin 最小值
     * @param [in] nMax 最大值
     */
-    void SetRange(int32_t nMin, int32_t nMax);
+    void SetRange(int64_t nMin, int64_t nMax);
 };
 
 } // namespace ui

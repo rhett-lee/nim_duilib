@@ -529,8 +529,8 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变|
 | flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
 | number_only | false | bool | 是否只允许输入数字,如"false" |
-| max_number | INT_MAX | int | 允许的最大数字(仅当number_only为true的时候有效) |
-| min_number | INT_MIN | int | 允许的最小数字(仅当number_only为true的时候有效) |
+| max_number | INT64_MAX | int64 | 允许的最大数字(仅当number_only为true的时候有效) |
+| min_number | INT64_MIN | int64 | 允许的最小数字(仅当number_only为true的时候有效) |
 | text_align | "left,top" | string | 文字的水平与垂直对齐方式, 可取值: left、right、hcenter、top、vcenter、bottom，用逗号分割，如"hcenter,vcenter" |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
 | text |  | string | 显示文本 |
@@ -584,7 +584,7 @@ SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`�
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | step | 1 | int | 步长值（正整数），步进按钮和上下方向键每次调整的数值 |
-| value | 0 | int | 初始数值（超出min/max范围时会被修正到边界值） |
+| value | 0 | int64 | 初始数值（超出min/max范围时会被修正到边界值） |
 
 对应C++接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。    
 数值变化时触发`kEventTextChanged`事件（与RichEdit一致）。    

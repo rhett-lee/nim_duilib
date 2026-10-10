@@ -322,7 +322,7 @@ NavigationViewItem（继承 Control）属性：
 | password | false | bool | 密码模式 |
 | readonly | false | bool | 只读 |
 | number_only | false | bool | 仅数字 |
-| max_number / min_number | | int | 数字范围 |
+| max_number / min_number | | int64 | 数字范围 |
 | limit_text | | int | 最大字符数 |
 | prompt_mode | false | bool | 是否显示占位提示文字 |
 | prompt_text | | string | 占位提示文字（text 为空时显示） |
@@ -340,9 +340,9 @@ NavigationViewItem（继承 Control）属性：
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
 | step | 1 | int | 步长（步进按钮/上下方向键每次调整值） |
-| value | 0 | int | 初始值（超范围时自动修正） |
+| value | 0 | int64 | 初始值（超范围时自动修正） |
 | spin_class | | string | 步进按钮样式（同 RichEdit，如 `rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down`） |
-| min_number / max_number | | int | 数字范围 |
+| min_number / max_number | | int64 | 数字范围 |
 
 C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。数值变化触发 `kEventTextChanged`。
 

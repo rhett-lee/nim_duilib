@@ -40,7 +40,7 @@ int32_t SpinBox::GetStep() const
 
 void SpinBox::SetValue(int64_t nValue)
 {
-    if ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX)) {
+    if ((GetMinNumber() != INT64_MIN) || (GetMaxNumber() != INT64_MAX)) {
         if (nValue > GetMaxNumber()) {
             nValue = GetMaxNumber();
         }
@@ -56,7 +56,7 @@ int64_t SpinBox::GetValue() const
     return GetTextNumber();
 }
 
-void SpinBox::SetRange(int32_t nMin, int32_t nMax)
+void SpinBox::SetRange(int64_t nMin, int64_t nMax)
 {
     ASSERT(nMin <= nMax);
     SetMinNumber(nMin);

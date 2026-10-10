@@ -2040,7 +2040,7 @@ void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
     }
 }
 
-void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int32_t nMin, int32_t nMax)
+void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int64_t nMin, int64_t nMax)
 {
     RichEdit* pRichEdit = GetRichEdit();
     if (IsEnabled()) {
