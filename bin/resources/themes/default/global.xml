@@ -69,6 +69,7 @@
     <Font id="system_regular_22" name="system" size="22"/>
     <Font id="system_bold_12" name="system" size="12" bold="true"/>
     <Font id="system_bold_14" name="system" size="14" bold="true"/>
+    <Font id="system_bold_15" name="system" size="15" bold="true"/>
     <Font id="system_bold_16" name="system" size="16" bold="true"/>
     <Font id="system_bold_18" name="system" size="18" bold="true"/>
     <Font id="system_bold_20" name="system" size="20" bold="true"/>

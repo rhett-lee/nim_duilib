@@ -73,6 +73,10 @@ private:
     */
     void ShowNavigationWindow();
 
+    /** 显示 Chart 轻量图表演示窗口
+    */
+    void ShowChartWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

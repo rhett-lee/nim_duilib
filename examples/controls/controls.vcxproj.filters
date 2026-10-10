@@ -39,6 +39,9 @@
     <ClInclude Include="AnimationForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ChartForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AnimationForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ChartForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">

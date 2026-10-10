@@ -761,6 +761,102 @@ if (pBadge != nullptr) {
 
 语义色`bg_badge`在color_light和color_dark的global.xml中定义，派生自`color_error`（红色系），数字文本色`text_badge`为白色。
 
+## Chart的属性
+Chart是轻量图表控件，继承自Control，纯自绘实现（不依赖第三方图表库、无需嵌入CEF），对应头文件`duilib/Control/Chart.h`。支持折线图（line）、柱状图（bar）、饼图（pie）三种形态，对标Qt Charts精简版，数据通过XML属性或C++接口绑定。
+
+除Control的通用属性外，新增以下属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| chart_type | line | string | 图表类型："line"折线图 / "bar"柱状图 / "pie"饼图 |
+| data | 空 | string | 逗号分隔的数值序列，如 data="12,35,28,40"，作为（单）系列数据 |
+| data_labels | 空 | string | 逗号分隔的类别标签，用于折线/柱状图的类目轴（X轴）与饼图的图例 |
+| title | 空 | string | 图表标题（居中显示在顶部） |
+| x_axis_title | 空 | string | X 轴标题（显示在类目轴下方） |
+| y_axis_title | 空 | string | Y 轴标题（纵向显示在左侧） |
+| series_color | color_accent | string | 系列主色（语义色名或颜色值）；饼图各扇区在此基础上按索引自动生成同色系明暗渐变 |
+| axis_color | border_control_normal | string | 坐标轴/网格线颜色（折线、柱状图有效） |
+| label_color | text_default | string | 文本标签颜色 |
+| show_value | true | bool | 是否在数据点/柱顶/扇区旁显示数值 |
+| show_grid | true | bool | 是否显示网格线（折线、柱状图有效） |
+| show_axis_values | true | bool | 是否显示 Y 轴刻度值 |
+| axis_divisions | 4 | int | Y 轴刻度分段数（1~10） |
+| legend_visible | pie:true,其他:false | bool | 是否显示图例（饼图默认显示；折线/柱状多系列时可开启） |
+| line_width | 2 | int | 折线粗细（折线图有效，自动DPI缩放） |
+| line_mode | straight | string | 折线绘制模式："straight"折线 / "curve"平滑曲线（贝塞尔） |
+| area_fill | false | bool | 折线下方是否填充半透明面积（折线图） |
+| show_data_points | true | bool | 是否绘制数据点圆点（折线图） |
+| bar_mode | grouped | string | 柱状排列模式："grouped"分组并排 / "stacked"堆叠累加 |
+| donut | false | bool | 饼图是否环形（donut） |
+| show_percent | false | bool | 饼图是否显示百分比（替代数值标签） |
+
+说明：
+- 三种形态共用同一套数据（`data`），切换`chart_type`即可改变呈现方式，无需重建数据。
+- **多系列**：折线/柱状图支持多系列叠加对比（C++ `SetSeriesData`/`AddSeries`），系列颜色未指定时按内置 8 色色板自动分配；多系列时可开启图例显示系列名称。
+- 颜色均使用语义色名（color_light/color_dark的global.xml中的ThemeColor），自动适配深浅色主题；也可直接传颜色值（如`#FF0078D4`）。
+- 柱状图支持负值：数据含负值时自动绘制零基线，负值柱向下延伸；分组模式各系列并排，堆叠模式正向累加、负向累减。
+- 饼图负值会被忽略（不计入总和、不绘制扇区）；数据全为0或空时图表为空。
+- 折线/柱状图数据范围自动计算（上下各留余量），无需手动设置坐标轴范围。
+- 数值标签自动格式化：整数不显示小数，非整数保留两位小数。
+
+对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`。
+
+### XML使用示例
+
+```xml
+<!-- 折线图：一周访问量 -->
+<Chart width="stretch" height="200" chart_type="line"
+       data="120,356,280,410,398,452,380"
+       data_labels="周一,周二,周三,周四,周五,周六,周日"
+       series_color="color_accent" show_value="true"/>
+
+<!-- 柱状图：季度销售额（含标题与坐标轴标题） -->
+<Chart width="stretch" height="220" chart_type="bar"
+       title="季度销售额" x_axis_title="季度" y_axis_title="销售额（万元）"
+       data="82,116,98,135"
+       data_labels="Q1,Q2,Q3,Q4"
+       series_color="color_accent"/>
+
+<!-- 柱状图：含负值（自动绘制零基线） -->
+<Chart width="stretch" height="220" chart_type="bar"
+       data="45,-18,62,-25,38,80" data_labels="1月,2月,3月,4月,5月,6月"/>
+
+<!-- 饼图：环形 + 百分比（右侧自动绘制图例） -->
+<Chart width="300" height="300" chart_type="pie"
+       data="45,30,15,10"
+       data_labels="产品A,产品B,产品C,其他"
+       series_color="color_accent" legend_visible="true"
+       donut="true" show_percent="true"/>
+```
+
+### C++使用示例
+
+```cpp
+// 获取控件指针（XML 中 name="chart_sales"）
+ui::Chart* pChart = dynamic_cast<ui::Chart*>(pWindow->FindControl(_T("chart_sales")));
+if (pChart != nullptr) {
+    // 单系列：动态绑定数据（替换原有数据）
+    pChart->SetData({ 82.0, 116.0, 98.0, 135.0 });
+    pChart->SetDataLabels({ _T("Q1"), _T("Q2"), _T("Q3"), _T("Q4") });
+
+    // 多系列：叠加对比（折线/柱状）
+    std::vector<ui::Chart::Series> series;
+    ui::Chart::Series s1; s1.name = _T("今年"); s1.data = { 82.0, 116.0, 98.0, 135.0 }; s1.color = _T("color_accent");
+    ui::Chart::Series s2; s2.name = _T("去年"); s2.data = { 70.0, 90.0, 110.0, 120.0 }; //颜色自动分配
+    series.push_back(s1); series.push_back(s2);
+    pChart->SetSeriesData(series);
+    pChart->SetLegendVisible(true);
+
+    // 切换图表类型 / 曲线 + 面积填充
+    pChart->SetChartType(ui::ChartType::kLine);
+    pChart->SetLineMode(ui::ChartLineMode::kCurve);
+    pChart->SetAreaFill(true);
+
+    // 追加一个数据点（实时曲线场景）
+    pChart->AddData(152.0);
+}
+```
+
 ## Flyout浮层窗口
 Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应头文件`duilib/Control/Flyout.h`。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等），是日历弹层、搜索建议、气泡设置等控件的公共基座。
 

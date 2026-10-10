@@ -70,6 +70,7 @@
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"
+#include "Control/SearchBox.h"
 #include "Box/XmlBox.h"
 #include "Box/TileBox.h"
 #include "Box/TabBox.h"
@@ -89,16 +90,20 @@
 #include "Control/DirectoryTree.h"
 
 #include "Control/Label.h"
+#include "Control/Badge.h"
 #include "Control/Button.h"
 #include "Control/CheckBox.h"
+#include "Control/Switch.h"
 #include "Control/Option.h"
 #include "Control/Split.h"
 
 #include "Control/Progress.h"
 #include "Control/CircleProgress.h"
+#include "Control/Chart.h"
 #include "Control/Slider.h"
 
 #include "Control/RichEdit.h"
+#include "Control/SpinBox.h"
 #include "Control/RichText.h"
 #include "Control/Menu.h"
 #include "Control/MenuBar.h"

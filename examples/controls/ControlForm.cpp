@@ -3,6 +3,7 @@
 #include "TestForm.h"
 #include "AnimationForm.h"
 #include "NavigationForm.h"
+#include "ChartForm.h"
 
 #include <fstream>
 
@@ -306,6 +307,15 @@ void ControlForm::OnInitWindow()
             });
     }
 
+    //Chart 轻量图表演示
+    ui::Button* pChartBtn = dynamic_cast<ui::Button*>(FindControl(_T("chart_btn")));
+    if (pChartBtn != nullptr) {
+        pChartBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowChartWindow();
+            return true;
+            });
+    }
+
     //托盘图标功能
     ui::CheckBox* pTrayIconCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_tray_icon")));
     if (pTrayIconCheckBox != nullptr) {
@@ -489,6 +499,18 @@ void ControlForm::ShowNavigationWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("NavigationWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowChartWindow()
+{
+    ChartForm* testForm = new ChartForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("ChartWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();
