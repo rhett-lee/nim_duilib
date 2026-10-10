@@ -248,7 +248,52 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | name | | string | 通用样式名称 |
 | 任何自定义名称 | | string | 通用样式的值，必须经过XML转义或者使用单引号('')、花括号({})代替双引号 |
 
-## 7. 全局资源管理相关的接口
+## 7. 引用其它全局资源文件（Include）
+
+当全局资源较多时，可以把部分全局资源（变量 `Var`、字体 `Font`、字体文件 `FontFile`、颜色 `ThemeColor`/`TextColor`、通用样式 `Class`、别名 `Alias` 等）拆分到同目录下的其它 XML 文件中，再通过 `Include` 节点引用，程序启动时会把这些文件中的全局资源一并注册，效果等同于直接写在 `global.xml` 中。
+
+被引用的文件根节点需为 `Global`，例如在 `global.xml` 同目录下新建一个 `my_vars.xml`：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global>
+    <!-- 自定义变量 -->
+    <Var name="SIZE_MY_BTN" value="120x36"/>
+    <Var name="PATH_MY_ICON" value="public/my_icon"/>
+
+    <!-- 自定义颜色 -->
+    <ThemeColor name="my_brand_color" value="#FF3B82F6"/>
+
+    <!-- 自定义通用样式 -->
+    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white" .../>
+</Global>
+```
+
+然后在 `global.xml` 中通过 `Include` 引用它：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global>
+    <Theme name="Default" type="Base" style="Combined" version="2.0"/>
+    ...
+    <!-- 引用同目录下的其它全局资源文件 -->
+    <Include src="my_vars.xml"/>
+</Global>
+```
+
+属性说明：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| src（或 source） | | string | 被引用的全局资源 XML 文件名，优先在 `global.xml` 同目录下查找 |
+
+注意事项：
+
+- 被引用文件的根节点必须为 `Global`，其中的全局资源标签与 `global.xml` 的写法完全一致。
+- 引用是**递归**的：被引用的文件中也可以继续通过 `Include` 引用同目录下的其它文件。
+- 同名资源（如相同名称的 `Var`、`Class`、`ThemeColor`）按**后加载覆盖先加载**的规则处理，与直接写在 `global.xml` 中的顺序语义一致。
+
+## 8. 全局资源管理相关的接口
 
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |

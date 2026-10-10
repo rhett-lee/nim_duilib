@@ -201,6 +201,11 @@ private:
     */
     void ParseGlobalAttributes(const pugi::xml_node& root);
 
+    /** 解析全局资源中的Include节点：引用同目录的XML文件，注册其中的全局资源（Var/Font/Class/ThemeColor等）
+    * @param [in] node 全局资源中的Include节点
+    */
+    void ParseGlobalIncludeXmlNode(const pugi::xml_node& node);
+
     /** 解析XML节点的子节点
     * @param [in] xmlNode xml节点
     * @param [in] pParent 父控件，可能是普通控件（参数只传入，未用到），也可能是容器（用时转换为容器）

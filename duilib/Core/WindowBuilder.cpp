@@ -366,6 +366,10 @@ Control* WindowBuilder::CreateControls(Window* pWindow, CreateControlCallback pC
         if (IsIgnoreNodeName(strClass)) {
             //忽略这几个属性
         }
+        else if ((strClass == _T("Include")) && (StringUtil::StringCompare(root.name(), _T("Global")) == 0)) {
+            //全局资源中的Include节点，已在ParseGlobalAttributes中处理，这里跳过
+            continue;
+        }
         else {
             if (pUserDefinedBox == nullptr) {
                 return ParseXmlNodeChildren(root, pParent, pWindow);
@@ -1104,6 +1108,57 @@ void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root)
         }
         else if (strClass == _T("Theme")) {
             //跳过(主题名称，在其他地方解析)
+        }
+        else if (strClass == _T("Include")) {
+            //Include节点：引用同目录的XML文件，注册其中的全局资源
+            ParseGlobalIncludeXmlNode(node);
+        }
+    }
+}
+
+void WindowBuilder::ParseGlobalIncludeXmlNode(const pugi::xml_node& node)
+{
+    if (node.attributes().empty()) {
+        return;
+    }
+    pugi::xml_attribute sourceAttr = node.attribute(_T("src"));
+    DString sourceValue = sourceAttr.as_string();
+    if (sourceValue.empty()) {
+        sourceAttr = node.attribute(_T("source"));
+        sourceValue = sourceAttr.as_string();
+    }
+    if (sourceValue.empty()) {
+        return;
+    }
+
+    //统一路径分隔符
+    StringUtil::ReplaceAll(_T("/"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+    StringUtil::ReplaceAll(_T("\\"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+
+    FilePath sourceXmlFilePath(sourceValue);
+    if (!m_xmlFilePath.IsEmpty()) {
+        //优先尝试在原XML文件相同目录加载被引用的XML文件
+        DString xmlFilePath = m_xmlFilePath.ToString();
+        size_t pos = xmlFilePath.find_last_of(_T("\\/"));
+        if (pos != DString::npos) {
+            FilePath srcFilePath(xmlFilePath.substr(0, pos));
+            srcFilePath.JoinFilePath(FilePath(sourceValue));
+            if (GlobalManager::Instance().Theme().IsResFileExists(srcFilePath, FilePath())) {
+                sourceXmlFilePath = srcFilePath;
+            }
+        }
+    }
+
+    //使用独立的WindowBuilder解析被引用的XML文件，避免覆盖当前正在遍历的文档
+    WindowBuilder builder;
+    if (builder.ParseXmlFile(sourceXmlFilePath, FilePath())) {
+        pugi::xml_node root = builder.m_xml->root().first_child();
+        if (!root.empty() && (StringUtil::StringCompare(root.name(), _T("Global")) == 0)) {
+            //被引用的文件根节点为"Global"，递归解析其中的全局资源声明
+            builder.ParseGlobalAttributes(root);
+        }
+        else {
+            ASSERT(!"ParseGlobalIncludeXmlNode: the included file root node must be 'Global'");
         }
     }
 }
