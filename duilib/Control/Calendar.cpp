@@ -86,6 +86,7 @@ void Calendar::SetAttribute(const DString& strName, const DString& strValue2)
         if (ParseDateString(strValue, date)) {
             m_minDate = date;
             m_bHasMinDate = true;
+            m_bCellsDirty = true;   //可选范围变化，需重算 bDisabled
         }
     }
     else if (strName == _T("max_date")) {
@@ -93,6 +94,7 @@ void Calendar::SetAttribute(const DString& strName, const DString& strValue2)
         if (ParseDateString(strValue, date)) {
             m_maxDate = date;
             m_bHasMaxDate = true;
+            m_bCellsDirty = true;   //可选范围变化，需重算 bDisabled
         }
     }
     else {
@@ -136,6 +138,7 @@ void Calendar::SetDate(const struct tm& date)
     m_bHasSelectedDate = true;
     m_bHasRangeStart = false;
     m_bHasRangeEnd = false;
+    m_bCellsDirty = true;   //选中状态变化，需重算格子的 bSelected
     Invalidate();
 
     //触发事件
@@ -161,6 +164,7 @@ void Calendar::SetDateRange(const struct tm& start, const struct tm& end)
     m_bHasRangeStart = true;
     m_bHasRangeEnd = true;
     m_bHasSelectedDate = false;
+    m_bCellsDirty = true;   //范围变化，需重算格子的 bSelected/bInRange
     Invalidate();
 
     //触发事件
@@ -186,6 +190,7 @@ void Calendar::ClearSelection()
     m_bRangeDragging = false;
     m_bRangeAwaitingEnd = false;
     m_bRangeKeyboardExtending = false;
+    m_bCellsDirty = true;   //选中/范围清空，需重算格子的 bSelected/bInRange
     Invalidate();
 }
 
@@ -205,6 +210,7 @@ void Calendar::SetDateLimit(const DString& minDate, const DString& maxDate)
 {
     m_bHasMinDate = ParseDateString(minDate, m_minDate);
     m_bHasMaxDate = ParseDateString(maxDate, m_maxDate);
+    m_bCellsDirty = true;   //可选范围变化，需重算格子的 bDisabled
     Invalidate();
 }
 
@@ -477,6 +483,7 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
             m_bHasRangeStart = true;
             m_bHasRangeEnd = false;
             m_bRangeAwaitingEnd = true;
+            m_bCellsDirty = true;   //范围起始日变化，需重算 bSelected
             Invalidate();
         }
         else {
@@ -492,6 +499,7 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
             m_bHasRangeStart = true;
             m_bHasRangeEnd = true;
             m_bRangeAwaitingEnd = false;
+            m_bCellsDirty = true;   //范围确定，需重算 bSelected/bInRange
             Invalidate();
             EmitDateChanged(true);
             if (msg.IsSenderExpired()) {
@@ -536,6 +544,7 @@ void Calendar::ExtendRangeSelection(int32_t deltaDays)
     m_bHasRangeEnd = true;
     ClampFocusToLimits(m_rangeStart);
     ClampFocusToLimits(m_rangeEnd);
+    m_bCellsDirty = true;   //键盘扩展范围，需重算 bSelected/bInRange
     Invalidate();
 }
 
@@ -546,6 +555,7 @@ void Calendar::CommitRangeSelection(const EventArgs& /*msg*/)
     m_bRangeAwaitingEnd = false;
     m_bHasRangeStart = true;
     m_bHasRangeEnd = true;
+    m_bCellsDirty = true;   //范围固化，需重算 bSelected/bInRange
     Invalidate();
     EmitDateChanged(true);
 }
@@ -943,12 +953,11 @@ DString Calendar::GetWeekdayText(int32_t index) const
 
 void Calendar::DrawMonthView(IRender* pRender, const UiRect& rect)
 {
-    //仅在日期数据变化时重算格子（42 次 mktime），纯 resize 等 rect 变化时复用缓存；
-    //每个 cell 的 rect 在下方循环中按当前 rect 重新计算，与缓存无耦合
-    if (m_bCellsDirty) {
-        GetMonthCells(m_displayYear, m_displayMonth, m_cells);
-        m_bCellsDirty = false;
-    }
+    //无条件重算格子：bSelected/bHovered/bInRange/bDisabled 等状态随 SetDate/悬停等随时变化，
+    //若改为「仅 m_bCellsDirty 时重算」，则所有改变这些状态的 setter 都必须记得置脏，
+    //极易遗漏（曾导致单选模式下 hover/选中高亮丢失）。月视图绘制非每帧高频路径，42 次 mktime 开销可忽略。
+    GetMonthCells(m_displayYear, m_displayMonth, m_cells);
+    m_bCellsDirty = false;
 
     int32_t cellWidth = rect.Width() / kDaysPerWeek;
     int32_t cellHeight = rect.Height() / kWeeksPerMonth;
@@ -1209,6 +1218,7 @@ bool Calendar::MouseMove(const EventArgs& msg)
                 }
                 m_bHasRangeStart = true;
                 m_bHasRangeEnd = true;
+                m_bCellsDirty = true;   //拖拽更新范围，需重算 bSelected/bInRange
                 Invalidate();
             }
         }
@@ -1219,12 +1229,14 @@ bool Calendar::MouseMove(const EventArgs& msg)
                 m_hoverMonth = cell.month;
                 m_hoverDay = cell.day;
                 m_bHasHover = true;
+                m_bCellsDirty = true;   //悬停格子变化，需重算 bHovered
                 Invalidate();
             }
         }
         else {
             if (m_bHasHover) {
                 m_bHasHover = false;
+                m_bCellsDirty = true;   //悬停移出，需重算 bHovered
                 Invalidate();
             }
         }
@@ -1274,6 +1286,7 @@ bool Calendar::ButtonDown(const EventArgs& msg)
                     m_bHasRangeStart = true;
                     m_bHasRangeEnd = false;
                     m_bHasSelectedDate = false;
+                    m_bCellsDirty = true;   //范围起始日变化，需重算 bSelected
                     Invalidate();
                 }
             }
@@ -1329,6 +1342,7 @@ bool Calendar::ButtonUp(const EventArgs& msg)
                 m_bHasRangeStart = true;
                 m_bHasRangeEnd = false;
                 m_bRangeAwaitingEnd = true;
+                m_bCellsDirty = true;   //范围起始日变化，需重算 bSelected
                 Invalidate();
                 return BaseClass::ButtonUp(msg);
             }
@@ -1345,6 +1359,7 @@ bool Calendar::ButtonUp(const EventArgs& msg)
             m_bHasRangeStart = true;
             m_bHasRangeEnd = true;
             m_bRangeAwaitingEnd = false;
+            m_bCellsDirty = true;   //范围确定，需重算 bSelected/bInRange
             Invalidate();
 
             //触发事件
@@ -1362,6 +1377,7 @@ bool Calendar::MouseLeave(const EventArgs& msg)
 {
     if (m_bHasHover) {
         m_bHasHover = false;
+        m_bCellsDirty = true;   //悬停移出，需重算 bHovered
         Invalidate();
     }
     return BaseClass::MouseLeave(msg);
