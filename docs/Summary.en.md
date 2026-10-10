@@ -192,6 +192,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | ScrollBar | Control | [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | Scroll bar control |
 | Label | Control | [duilib/Control/Label.h](../duilib/Control/Label.h) | Label control (template), used to display text |
 | LabelBox | Box | [duilib/Control/Label.h](../duilib/Control/Label.h) | Label container (template), used to display text |
+| Marquee | Label | [duilib/Control/Marquee.h](../duilib/Control/Marquee.h) | Text marquee control (horizontal/vertical loop scroll, speed/direction/pause/hover-pause), see [Control.md](Control.md#attributes-of-marquee) |
 | Button | Control | [duilib/Control/Button.h](../duilib/Control/Button.h) | Button control (template implementation) |
 | ButtonBox | Box | [duilib/Control/Button.h](../duilib/Control/Button.h) | Button container control (template implementation) |
 | CheckBox | Control | [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | Check box control (template implementation) |

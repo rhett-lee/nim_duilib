@@ -190,6 +190,7 @@
 | ScrollBar | Control| [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | 滚动条控件 |
 | Label | Control| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签控件（模板），用于显示文本 |
 | LabelBox | Box| [duilib/Control/Label.h](../duilib/Control/Label.h) | 标签容器（模板），用于显示文本 |
+| Marquee | Label| [duilib/Control/Marquee.h](../duilib/Control/Marquee.h) | 文本跑马灯控件（横向/纵向循环滚动，支持速度/方向/暂停/悬停暂停），详见[Control.md](Control.md#marquee的属性) |
 | Button | Control| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮控件（模板实现） |
 | ButtonBox | Box| [duilib/Control/Button.h](../duilib/Control/Button.h) | 按钮容器控件（模板实现） |
 | CheckBox | Control| [duilib/Control/CheckBox.h](../duilib/Control/CheckBox.h) | 复选框控件（模板实现） |

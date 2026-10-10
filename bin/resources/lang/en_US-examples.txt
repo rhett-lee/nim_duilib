@@ -513,6 +513,26 @@ STRID_CONTROLS_TRAY_MENU_05 = Exit
 # controls/NavigationView
 STRID_CONTROLS_NAVIGATION_TEST = Nav Test
 STRID_CONTROLS_CHART_TEST = Chart Test
+STRID_CONTROLS_MARQUEE_TEST = Marquee Test
+# controls/Marquee
+STRID_MARQUEE_WINDOW_TITLE = Marquee Control Test
+STRID_MARQUEE_HINT = Hint: hover over a marquee to pause scrolling
+STRID_MARQUEE_CARD_H_LEFT = Horizontal · Left (hover pause)
+STRID_MARQUEE_CARD_H_RIGHT = Horizontal · Right (no hover pause)
+STRID_MARQUEE_CARD_V_UP = Vertical · Up
+STRID_MARQUEE_CARD_V_DOWN = Vertical · Down
+STRID_MARQUEE_CARD_STATIC = Static (fits, no scroll)
+STRID_MARQUEE_BTN_PAUSE = Pause
+STRID_MARQUEE_BTN_RESUME = Resume
+STRID_MARQUEE_BTN_UPDATE = Update Text
+STRID_MARQUEE_TEXT_H_LEFT = This is a left-scrolling announcement: welcome to the nim_duilib cross-platform UI library! The Marquee control supports both horizontal and vertical scrolling, with customizable speed and direction, pause/resume, hover pause and dynamic text updates. When the text exceeds the display area it loops automatically and seamlessly.
+STRID_MARQUEE_TEXT_H_RIGHT = Right-scrolling demo: text loops automatically when it exceeds the display area, with two copies joined end-to-end for a seamless loop; whether hovering pauses the scroll is controlled by the hover_pause attribute, and the speed can be adjusted at runtime via SetScrollSpeed.
+STRID_MARQUEE_TEXT_V_UP = This is a vertical text announcement scrolling upward.
+STRID_MARQUEE_TEXT_V_DOWN = Vertical downward scroll: vertical text loops from bottom to top.
+STRID_MARQUEE_TEXT_STATIC = Short text
+STRID_MARQUEE_TEXT_UPDATE_1 = This is a left-scrolling announcement: welcome to the nim_duilib cross-platform UI library! The Marquee control supports both horizontal and vertical scrolling with customizable speed and direction.
+STRID_MARQUEE_TEXT_UPDATE_2 = Text updated dynamically: the marquee resets its scroll position automatically when the content changes, and the speed can be adjusted at runtime via SetScrollSpeed. This demo switches to a medium speed.
+STRID_MARQUEE_TEXT_UPDATE_3 = Third content: speed, direction, pause and resume can all be adjusted via the API in real time; the text loops automatically when it exceeds the display area and is centered statically when it fits.
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart Control Test
 STRID_CHART_CARD_LINE = Line · Multi-series
