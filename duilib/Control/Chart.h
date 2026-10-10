@@ -84,6 +84,63 @@ public:
         DString color;
     };
 
+    /** 命中元素的类型
+    */
+    enum class HitType
+    {
+        kNone = 0,  //未命中
+        kPoint = 1, //折线数据点
+        kBar   = 2, //柱状图的柱
+        kSlice = 3, //饼图扇区
+        kLegend = 4 //图例项
+    };
+
+    /** 命中检测结果
+    */
+    struct HitResult
+    {
+        HitType type = HitType::kNone; //命中类型
+        size_t seriesIndex = 0;        //系列索引（折线点/柱/图例有效）
+        size_t dataIndex = 0;          //数据索引（折线点/柱/扇区有效）
+        UiPoint ptHit;                 //命中位置（控件坐标）
+    };
+
+    /** 折线图布局参数（绘制与命中检测共用，保证坐标一致）
+    */
+    struct LineLayout
+    {
+        UiRect rcPlot;              //绘图区
+        double dMin = 0.0;          //Y 轴下界
+        double dMax = 0.0;          //Y 轴上界
+        double dRange = 1.0;        //Y 轴范围
+        int32_t nDivisions = 1;     //实际刻度分段数（美观刻度对齐后的值）
+        double viewStart = 0.0;     //可视窗口起始索引（含小数）
+        double viewEnd = 0.0;       //可视窗口结束索引（含小数）
+        size_t nMaxCount = 0;       //最大数据点数
+
+        /** 数据索引 → X 像素坐标
+        */
+        float XToPixel(double index) const {
+            double t = (viewEnd <= viewStart) ? 0.5 : ((index - viewStart) / (viewEnd - viewStart));
+            return static_cast<float>(rcPlot.left) + static_cast<float>(rcPlot.Width()) * static_cast<float>(t);
+        }
+        /** 数据值 → Y 像素坐标
+        */
+        float YToPixel(double value) const {
+            double norm = (value - dMin) / dRange;
+            return static_cast<float>(rcPlot.bottom) - static_cast<float>(rcPlot.Height()) * static_cast<float>(norm);
+        }
+        /** X 像素坐标 → 数据索引
+        */
+        double PixelToX(int32_t px) const {
+            if (rcPlot.Width() <= 0) {
+                return viewStart;
+            }
+            double t = static_cast<double>(px - rcPlot.left) / static_cast<double>(rcPlot.Width());
+            return viewStart + t * (viewEnd - viewStart);
+        }
+    };
+
 public:
     explicit Chart(Window* pWindow);
     Chart(const Chart& r) = delete;
@@ -101,6 +158,50 @@ public:
     /** 绘制图表内容（坐标轴、系列、图例、数据标签）
     */
     void PaintStateImages(IRender* pRender) override;
+
+    // 鼠标交互（重写基类虚函数，实现 Tooltip / 选中 / 缩放平移）
+    bool MouseMove(const EventArgs& msg) override;
+    bool MouseLeave(const EventArgs& msg) override;
+    bool ButtonDown(const EventArgs& msg) override;
+    bool ButtonUp(const EventArgs& msg) override;
+    bool MouseWheel(const EventArgs& msg) override;
+
+    /** 设置是否启用数据点 Tooltip（悬停显示系列/类目/值），默认 true
+    */
+    void SetEnableTooltip(bool bEnable);
+
+    /** 获取是否启用数据点 Tooltip
+    */
+    bool IsEnableTooltip() const { return m_bEnableTooltip; }
+
+    /** 设置是否启用点击选中（饼图扇区高亮/偏移、柱状单柱高亮），默认 true
+    */
+    void SetEnableSelect(bool bEnable);
+
+    /** 获取是否启用点击选中
+    */
+    bool IsEnableSelect() const { return m_bEnableSelect; }
+
+    /** 获取当前选中的元素（无选中时 type == kNone）
+    */
+    HitResult GetSelected() const { return m_selected; }
+
+    /** 清除选中状态
+    */
+    void ClearSelection();
+
+    /** 数据点点击事件回调（参数 EventArgs::wParam 为命中元素打包指针，由 GetHitFromEvent 解析）
+    */
+    void AttachPointClick(const EventCallback& callback);
+
+    /** 数据点悬停事件回调
+    */
+    void AttachPointHover(const EventCallback& callback);
+
+    /** 从点击/悬停事件的 wParam 解析命中的元素
+    *   @return 命中结果（args.wParam 为空时返回 kNone）
+    */
+    static HitResult GetHitFromEvent(const EventArgs& args);
 
 public:
     /** 设置图表类型
@@ -307,6 +408,45 @@ private:
     */
     void PaintLegend(IRender* pRender, const UiRect& rcChart);
 
+    /** 计算折线图布局参数（含可视窗口与 Y 轴范围）
+    */
+    LineLayout CalcLineLayout(IRender* pRender, const UiRect& rcChart) const;
+
+    /** 命中检测：检测鼠标位置命中的元素
+    *   @param pRender 渲染接口（用于获取字体测量）
+    *   @param ptMouse 鼠标位置（控件坐标）
+    *   @return 命中结果
+    */
+    HitResult HitTest(IRender* pRender, const UiPoint& ptMouse);
+
+    /** 构建命中元素的 Tooltip 文本
+    */
+    DString BuildHitTooltip(const HitResult& hit) const;
+
+    /** 构建命中元素的显示文本（"系列名: 值"）
+    */
+    DString BuildHitLabel(const HitResult& hit) const;
+
+    /** 发送数据点点击事件（把命中结果打包进 wParam）
+    */
+    void SendPointClickEvent(const HitResult& hit);
+
+    /** 发送数据点悬停事件
+    */
+    void SendPointHoverEvent(const HitResult& hit);
+
+    /** 获取命中的扇区角度（饼图，返回 -1 表示未命中）
+    *   @param ptMouse 鼠标位置（控件坐标）
+    *   @param rcPie 饼图外接矩形
+    *   @param nCenterX/nCenterY 圆心
+    *   @param fRadius 半径
+    *   @param data 数据
+    *   @param dSum 数据总和（正值）
+    */
+    int32_t HitTestPieSlice(const UiPoint& ptMouse, const UiRect& rcPie,
+                            int32_t nCenterX, int32_t nCenterY, float fRadius,
+                            const std::vector<double>& data, double dSum) const;
+
 private:
     /** 图表类型
     */
@@ -391,6 +531,46 @@ private:
     /** 饼图是否显示百分比
     */
     bool m_bShowPercent;
+
+    /** 是否启用数据点 Tooltip
+    */
+    bool m_bEnableTooltip;
+
+    /** 是否启用点击选中
+    */
+    bool m_bEnableSelect;
+
+    /** 当前选中的元素（type == kNone 表示无选中）
+    */
+    HitResult m_selected;
+
+    /** 上次悬停命中的元素（用于判断是否需要更新 Tooltip）
+    */
+    HitResult m_lastHover;
+
+    /** 折线缩放平移：可视窗口（数据索引的浮点范围 [0, N-1]）
+    */
+    double m_viewStart;
+
+    /** 折线可视窗口结束索引
+    */
+    double m_viewEnd;
+
+    /** 是否处于拖拽平移状态
+    */
+    bool m_bPanning;
+
+    /** 拖拽是否实际产生了位移（用于区分"按下"与"拖动"）
+    */
+    bool m_bPanMoved;
+
+    /** 拖拽起始鼠标 X（控件坐标）
+    */
+    int32_t m_panStartX;
+
+    /** 拖拽起始可视窗口 start
+    */
+    double m_panStartView;
 };
 
 } // namespace ui

@@ -65,6 +65,27 @@ void ChartForm::OnInitWindow()
             return true;
             });
     }
+
+    //交互演示：数据点点击选中回调（折线/柱状/饼图均支持）
+    AttachChartPointClick(pLineChart, _T("chart_line"));
+    AttachChartPointClick(dynamic_cast<ui::Chart*>(FindControl(_T("chart_bar"))), _T("chart_bar"));
+    AttachChartPointClick(dynamic_cast<ui::Chart*>(FindControl(_T("chart_pie"))), _T("chart_pie"));
+}
+
+void ChartForm::AttachChartPointClick(ui::Chart* pChart, const DString& strChartName)
+{
+    if (pChart == nullptr) {
+        return;
+    }
+    pChart->AttachPointClick([pChart, strChartName](const ui::EventArgs& args) {
+        ui::Chart::HitResult hit = ui::Chart::GetHitFromEvent(args);
+        if (hit.type != ui::Chart::HitType::kNone) {
+            //演示：打印命中的元素信息（Tooltip 已由控件自动显示，这里演示回调用法）
+            (void)pChart;
+            (void)strChartName;
+        }
+        return true;
+        });
 }
 
 void ChartForm::OnInitMultiSeriesLine(ui::Chart* pLineChart)
@@ -96,25 +117,42 @@ void ChartForm::AppendRandomLineData()
     if (pLineChart == nullptr) {
         return;
     }
-    //向两个系列各追加一个随机数据点（0~100）
-    double value1 = static_cast<double>(std::rand() % 101);
-    double value2 = static_cast<double>(std::rand() % 101);
-
     auto series = pLineChart->GetSeries();
-    if (series.size() < 2) {
-        //若尚未初始化多系列，则先初始化
-        OnInitMultiSeriesLine(pLineChart);
-        series = pLineChart->GetSeries();
+    if (series.empty()) {
+        //清空后的全新起点：两个空系列从零开始同步追加
+        ui::Chart::Series s1;
+        s1.name = _T("今年");
+        s1.color = _T("color_accent");
+        series.push_back(s1);
+        ui::Chart::Series s2;
+        s2.name = _T("去年");
+        s2.color = _T("color_warning");
+        series.push_back(s2);
     }
-    series[0].data.push_back(value1);
+    //对齐各系列长度（取最大长度，短系列用末值补齐），保证系列间数据不错位
+    size_t nMaxCount = 0;
+    for (const auto& s : series) {
+        nMaxCount = std::max(nMaxCount, s.data.size());
+    }
+    for (auto& s : series) {
+        if (s.data.size() < nMaxCount) {
+            double dFill = s.data.empty() ? 0.0 : s.data.back();
+            s.data.resize(nMaxCount, dFill);
+        }
+    }
+    //各追加一个随机数据点（0~100）
+    series[0].data.push_back(static_cast<double>(std::rand() % 101));
     if (series.size() > 1) {
-        series[1].data.push_back(value2);
+        series[1].data.push_back(static_cast<double>(std::rand() % 101));
     }
     pLineChart->SetSeriesData(series);
 
-    //同步追加类目标签
+    //类目标签与数据点数对齐：已有标签保留（初始为 Q1~Q10），不足时按序号补 P11、P12...
     std::vector<DString> labels = pLineChart->GetDataLabels();
-    labels.push_back(ui::StringUtil::Printf(_T("P%zu"), labels.size() + 1));
+    const size_t nDataCount = series[0].data.size();
+    while (labels.size() < nDataCount) {
+        labels.push_back(ui::StringUtil::Printf(_T("P%zu"), labels.size() + 1));
+    }
     pLineChart->SetDataLabels(labels);
 }
 

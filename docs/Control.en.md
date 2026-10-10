@@ -800,8 +800,9 @@ Notes:
 - Negative values in a pie chart are ignored (not summed, not drawn); an empty or all-zero dataset renders an empty chart.
 - The data range of line/bar charts is computed automatically (with headroom), no manual axis range needed.
 - Value labels are auto-formatted: integers drop decimals, non-integers keep two decimal places.
+- **Interactivity**: ① data-point hover tooltip (shows "series / category: value"); ② click-to-select (pie slice separates with highlight, bar gets an outline highlight; click again to deselect); ③ line chart wheel zoom + drag pan (for real-time curves). Tooltip/select can be toggled via `SetEnableTooltip`/`SetEnableSelect`.
 
-C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`.
+C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
 
 ### XML Usage Example
 
@@ -858,6 +859,35 @@ if (pChart != nullptr) {
     pChart->AddData(152.0);
 }
 ```
+
+### Interaction Usage Example
+
+```cpp
+// Hover tooltip and click-select are enabled by default; toggle via these setters
+pChart->SetEnableTooltip(true);
+pChart->SetEnableSelect(true);
+
+// Listen for data-point clicks (line point / bar / pie slice / legend item)
+pChart->AttachPointClick([](const ui::EventArgs& args) {
+    ui::Chart::HitResult hit = ui::Chart::GetHitFromEvent(args);
+    if (hit.type == ui::Chart::HitType::kSlice) {
+        // The hit.dataIndex-th slice of the pie chart was clicked
+        // ... business logic
+    }
+    else if (hit.type == ui::Chart::HitType::kBar) {
+        // The hit.dataIndex-th bar of the hit.seriesIndex-th series was clicked
+    }
+    return true;
+});
+
+// Query the current selection
+ui::Chart::HitResult sel = pChart->GetSelected();
+if (sel.type != ui::Chart::HitType::kNone) {
+    pChart->ClearSelection(); // clear selection
+}
+```
+
+> Note: `HitResult` contains `type` (kPoint/kBar/kSlice/kLegend), `seriesIndex` (series index) and `dataIndex` (data index). Line charts support wheel zoom (around the mouse position) and left-button drag pan.
 
 ## Flyout Window
 Flyout is a general-purpose popup (flying card) window derived from WindowImplBase. Header file: `duilib/Control/Flyout.h`. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.), and serves as the common base for calendar popups, search suggestions and settings bubbles.
