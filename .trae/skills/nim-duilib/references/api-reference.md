@@ -346,6 +346,8 @@ NavigationViewItem（继承 Control）属性：
 
 C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。数值变化触发 `kEventTextChanged`。
 
+注意：需设置 `spin_class` 属性才会显示步进按钮，否则只有上下方向键能调整数值。
+
 ### SearchBox 属性(继承 HBox，搜索框组合控件)
 
 左图标 + 内部 RichEdit + 清除按钮的组合控件（`duilib/Control/SearchBox.h`），XML 节点名 `SearchBox`。

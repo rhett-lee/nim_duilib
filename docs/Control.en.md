@@ -597,6 +597,7 @@ Example (see the rich_edit example program):
 ```
 
 The `spin_class` styles (rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down) are defined in the `rich_edit_spin` class of global.xml.    
+Note: the spin buttons are only shown when the `spin_class` attribute is set; otherwise only the up/down arrow keys can adjust the value.    
 
 ## Attributes of SearchBox
 SearchBox is a composite search input control derived from HBox. It combines a search icon on the left, a text edit box (RichEdit), and a clear button on the right, intended for keyword input and search scenarios. Header file: `duilib/Control/SearchBox.h`.

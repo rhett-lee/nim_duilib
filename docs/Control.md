@@ -595,6 +595,7 @@ SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`�
 ```
 
 其中`spin_class`样式（rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down）在 global.xml 的`rich_edit_spin`类中定义。    
+注意：需设置 `spin_class` 属性才会显示步进按钮；否则只有上下方向键能调整数值。    
 
 ## SearchBox的属性
 SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索图标、文本编辑框（RichEdit）与右侧清除按钮，用于关键词输入与搜索场景。对应头文件`duilib/Control/SearchBox.h`。
