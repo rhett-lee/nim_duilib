@@ -764,7 +764,7 @@ Two skin classes are defined in global.xml by default:
 The semantic color `bg_badge` is defined in the color_light and color_dark global.xml files, derived from `color_error` (red); the count text color `text_badge` is white.
 
 ## Chart Attributes
-Chart is a lightweight chart control derived from Control, self-drawn (no third-party chart library, no CEF embedding). Header file: `duilib/Control/Chart.h`. It supports three forms — line, bar and pie — as a trimmed-down Qt Charts, with data bound via XML attributes or C++ API.
+Chart is a lightweight chart control derived from Control, self-drawn (no third-party chart library, no CEF embedding). Header file: `duilib/Control/Chart.h`. It supports three forms — line, bar and pie, with data bound via XML attributes or C++ API.
 
 In addition to the common Control attributes, the following attributes are added:
 
@@ -776,6 +776,10 @@ In addition to the common Control attributes, the following attributes are added
 | title | empty | string | Chart title (centered at the top) |
 | x_axis_title | empty | string | X-axis title (below the category axis) |
 | y_axis_title | empty | string | Y-axis title (vertical, on the left) |
+| title_id | empty | string | Language ID (text_id) for the chart title (multi-language, takes precedence over title) |
+| x_axis_title_id | empty | string | Language ID for the X-axis title (multi-language) |
+| y_axis_title_id | empty | string | Language ID for the Y-axis title (multi-language) |
+| data_labels_id | empty | string | Language ID for category labels (comma-separated STRIDs, multi-language, takes precedence over data_labels) |
 | series_color | color_accent | string | Series color (semantic color name or color value); pie slices derive same-hue brightness gradients from it by index |
 | axis_color | border_control_normal | string | Axis/grid line color (line and bar charts) |
 | label_color | text_default | string | Text label color |
@@ -808,7 +812,7 @@ Notes:
 - **Interactivity**: ① data-point hover tooltip (shows "series / category: value"); ② click-to-select (pie slice separates with highlight + leader-line external label, bar gets an outline highlight; click again to deselect); ③ line chart wheel zoom + drag pan (for real-time curves). Tooltip/select can be toggled via `SetEnableTooltip`/`SetEnableSelect`.
 - **Visual polish**: bars support rounded corners (`bar_radius`) and gradient fill (`bar_gradient`); line charts support glow/shadow (`line_glow`); data updates animate bar growth / line fade-in (`animation_enabled`/`animation_duration`).
 
-C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`, `SetBarRadius`, `SetBarGradient`, `SetLineGlow`, `SetAnimationEnabled`, `SetAnimationDuration`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
+C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetTitleId`, `SetXAxisTitleId`, `SetYAxisTitleId`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetDataLabelsId`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`, `SetBarRadius`, `SetBarGradient`, `SetLineGlow`, `SetAnimationEnabled`, `SetAnimationDuration`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
 
 ### XML Usage Example
 

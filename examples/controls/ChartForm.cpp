@@ -4,6 +4,16 @@
 
 using namespace ui;
 
+namespace
+{
+    /** 从语言文件读取指定 STRID 的文本（支持中英双语）
+    */
+    DString ChartLang(const DString& strId)
+    {
+        return GlobalManager::Instance().Lang().GetStringByID(strId);
+    }
+}
+
 ChartForm::ChartForm()
 {
 }
@@ -97,13 +107,13 @@ void ChartForm::OnInitMultiSeriesLine(ui::Chart* pLineChart)
     const std::vector<double>& data1 = pLineChart->GetData();
     std::vector<ui::Chart::Series> series;
     ui::Chart::Series s1;
-    s1.name = _T("今年");
+    s1.name = ChartLang(_T("STRID_CHART_SERIES_THISYEAR"));
     s1.data = data1;
     s1.color = _T("color_accent");
     series.push_back(s1);
 
     ui::Chart::Series s2;
-    s2.name = _T("去年");
+    s2.name = ChartLang(_T("STRID_CHART_SERIES_LASTYEAR"));
     s2.data = { 28.0, 40.0, 22.0, 55.0, 45.0, 36.0, 50.0, 28.0, 40.0, 47.0 };
     s2.color = _T("color_warning"); //若语义色不存在则自动分配
     series.push_back(s2);
@@ -121,11 +131,11 @@ void ChartForm::AppendRandomLineData()
     if (series.empty()) {
         //清空后的全新起点：两个空系列从零开始同步追加
         ui::Chart::Series s1;
-        s1.name = _T("今年");
+        s1.name = ChartLang(_T("STRID_CHART_SERIES_THISYEAR"));
         s1.color = _T("color_accent");
         series.push_back(s1);
         ui::Chart::Series s2;
-        s2.name = _T("去年");
+        s2.name = ChartLang(_T("STRID_CHART_SERIES_LASTYEAR"));
         s2.color = _T("color_warning");
         series.push_back(s2);
     }
@@ -169,12 +179,12 @@ void ChartForm::SwitchBarData()
         //堆叠模式：两个系列正向累加
         std::vector<ui::Chart::Series> series;
         ui::Chart::Series s1;
-        s1.name = _T("收入");
+        s1.name = ChartLang(_T("STRID_CHART_SERIES_INCOME"));
         s1.data = { 45.0, 62.0, 38.0, 80.0, 55.0, 70.0 };
         s1.color = _T("color_accent");
         series.push_back(s1);
         ui::Chart::Series s2;
-        s2.name = _T("支出");
+        s2.name = ChartLang(_T("STRID_CHART_SERIES_EXPENSE"));
         s2.data = { 30.0, 40.0, 25.0, 50.0, 35.0, 45.0 };
         s2.color = _T("color_warning");
         series.push_back(s2);
@@ -182,7 +192,9 @@ void ChartForm::SwitchBarData()
         pBarChart->SetBarMode(ui::ChartBarMode::kStacked);
         pBarChart->SetLegendVisible(true);
         pBarChart->SetSeriesData(series);
-        pBarChart->SetDataLabels({ _T("一月"), _T("二月"), _T("三月"), _T("四月"), _T("五月"), _T("六月") });
+        pBarChart->SetDataLabels({ ChartLang(_T("STRID_CHART_MONTH_1")), ChartLang(_T("STRID_CHART_MONTH_2")),
+                                   ChartLang(_T("STRID_CHART_MONTH_3")), ChartLang(_T("STRID_CHART_MONTH_4")),
+                                   ChartLang(_T("STRID_CHART_MONTH_5")), ChartLang(_T("STRID_CHART_MONTH_6")) });
     }
     else {
         //分组模式：单系列，含负值
@@ -203,12 +215,15 @@ void ChartForm::SwitchPieData()
     bToggle = !bToggle;
     if (bToggle) {
         pPieChart->SetData({ 30.0, 25.0, 20.0, 15.0, 10.0 });
-        pPieChart->SetDataLabels({ _T("搜索引擎"), _T("直接访问"), _T("社交媒体"), _T("邮件推广"), _T("其他") });
+        pPieChart->SetDataLabels({ ChartLang(_T("STRID_CHART_SLICE_SE")), ChartLang(_T("STRID_CHART_SLICE_DIRECT")),
+                                   ChartLang(_T("STRID_CHART_SLICE_SOCIAL")), ChartLang(_T("STRID_CHART_SLICE_EMAIL")),
+                                   ChartLang(_T("STRID_CHART_SLICE_OTHER")) });
         pPieChart->SetDonut(true);
     }
     else {
         pPieChart->SetData({ 40.0, 30.0, 30.0 });
-        pPieChart->SetDataLabels({ _T("华东"), _T("华南"), _T("华北") });
+        pPieChart->SetDataLabels({ ChartLang(_T("STRID_CHART_REGION_EAST")), ChartLang(_T("STRID_CHART_REGION_SOUTH")),
+                                   ChartLang(_T("STRID_CHART_REGION_NORTH")) });
         pPieChart->SetDonut(false);
     }
 }

@@ -32,7 +32,7 @@ enum class ChartLineMode
     kCurve    = 1   //平滑曲线（贝塞尔）
 };
 
-/** Chart 轻量图表控件（继承Control，纯自绘，对标 Qt Charts 精简版）
+/** Chart 轻量图表控件（继承Control，纯自绘）
  *  支持折线图（line）、柱状图（bar）、饼图（pie）三种形态，数据通过 XML 属性或 C++ 接口绑定。
  *
  *  特性：
@@ -160,6 +160,10 @@ public:
     */
     void PaintStateImages(IRender* pRender) override;
 
+    /** 语言切换时刷新标题/轴标题/类目标签（text_id 关联）
+    */
+    void OnLanguageChanged(bool bRedraw) override;
+
     // 鼠标交互（重写基类虚函数，实现 Tooltip / 选中 / 缩放平移）
     bool MouseMove(const EventArgs& msg) override;
     bool MouseLeave(const EventArgs& msg) override;
@@ -228,6 +232,22 @@ public:
     /** 设置 Y 轴标题
     */
     void SetYAxisTitle(const DString& strTitle);
+
+    /** 设置图表标题的语言 ID（text_id，多语言支持）
+    */
+    void SetTitleId(const DString& strTitleId);
+
+    /** 设置 X 轴标题的语言 ID
+    */
+    void SetXAxisTitleId(const DString& strTitleId);
+
+    /** 设置 Y 轴标题的语言 ID
+    */
+    void SetYAxisTitleId(const DString& strTitleId);
+
+    /** 设置类目标签的语言 ID（逗号分隔的多个 STRID，多语言支持）
+    */
+    void SetDataLabelsId(const DString& strLabelsId);
 
     /** 设置系列数据（单系列，替代原有数据），兼容旧接口
     */
@@ -496,6 +516,22 @@ private:
     /** Y 轴标题
     */
     DString m_strYAxisTitle;
+
+    /** 图表标题的语言 ID（空表示不使用）
+    */
+    DString m_strTitleId;
+
+    /** X 轴标题的语言 ID
+    */
+    DString m_strXAxisTitleId;
+
+    /** Y 轴标题的语言 ID
+    */
+    DString m_strYAxisTitleId;
+
+    /** 类目标签的语言 ID（逗号分隔多个 STRID）
+    */
+    DString m_strDataLabelsId;
 
     /** 类别标签（X 轴类目，所有系列共用）
     */

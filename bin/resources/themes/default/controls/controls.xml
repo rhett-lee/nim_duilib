@@ -33,7 +33,7 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="206" padding="0,0,0,10">
+            <HBox height="236" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
