@@ -61,11 +61,11 @@ Grouped into three tiers by value and implementation cost; implement in tier ord
 
 #### Tier 3: Large Items / Standalone Modules, Scheduled as Needed
 
-| # | Control | Description | Reference |
-|---|------|------|------|
-| 10 | Lightweight Chart | Line/bar/pie charts, custom-drawn with data binding. Charts currently require CEF embedding or a third-party library; the largest workload but the highest value for a "full toolkit", best evolved as a standalone module | Qt Charts (slimmed) |
-| 11 | Timeline | Vertical timeline (nodes + content) for logs, task flows, approval flows. Relatively cheap to draw | Common across platforms |
-| 12 | Skeleton / loading placeholder | ControlLoading (loading state) already exists; add list/card skeleton placeholder modes to improve async-loading UX | Common across platforms |
+| # | Control | Description | Reference | Status |
+|---|------|------|------|------|
+| 10 | Lightweight Chart | Line/bar/pie charts, custom-drawn with data binding. Charts currently require CEF embedding or a third-party library; the largest workload but the highest value for a "full toolkit", best evolved as a standalone module | Qt Charts (slimmed) | Done: added the Chart control (derives from Control, fully self-drawn, supports line/bar/pie forms, data/data_labels binding, axis/grid/legend/value labels, semantic colors adapting to light/dark themes). See [Control.md](Control.md#chart-attributes) |
+| 11 | Timeline | Vertical timeline (nodes + content) for logs, task flows, approval flows. Relatively cheap to draw | Common across platforms | |
+| 12 | Skeleton / loading placeholder | ControlLoading (loading state) already exists; add list/card skeleton placeholder modes to improve async-loading UX | Common across platforms | |
 
 ### 3. Explicitly Not Planned
 

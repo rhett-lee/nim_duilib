@@ -763,6 +763,102 @@ Two skin classes are defined in global.xml by default:
 
 The semantic color `bg_badge` is defined in the color_light and color_dark global.xml files, derived from `color_error` (red); the count text color `text_badge` is white.
 
+## Chart Attributes
+Chart is a lightweight chart control derived from Control, self-drawn (no third-party chart library, no CEF embedding). Header file: `duilib/Control/Chart.h`. It supports three forms — line, bar and pie — as a trimmed-down Qt Charts, with data bound via XML attributes or C++ API.
+
+In addition to the common Control attributes, the following attributes are added:
+
+| Attribute | Default | Type | Description |
+| :--- | :--- | :--- | :--- |
+| chart_type | line | string | Chart type: "line" / "bar" / "pie" |
+| data | empty | string | Comma-separated numeric series, e.g. data="12,35,28,40" (single series) |
+| data_labels | empty | string | Comma-separated category labels, used for the category axis (X axis) of line/bar charts and the legend of pie charts |
+| title | empty | string | Chart title (centered at the top) |
+| x_axis_title | empty | string | X-axis title (below the category axis) |
+| y_axis_title | empty | string | Y-axis title (vertical, on the left) |
+| series_color | color_accent | string | Series color (semantic color name or color value); pie slices derive same-hue brightness gradients from it by index |
+| axis_color | border_control_normal | string | Axis/grid line color (line and bar charts) |
+| label_color | text_default | string | Text label color |
+| show_value | true | bool | Whether to show the value next to data points / bar tops / slices |
+| show_grid | true | bool | Whether to show grid lines (line and bar charts) |
+| show_axis_values | true | bool | Whether to show Y-axis tick values |
+| axis_divisions | 4 | int | Number of Y-axis divisions (1~10) |
+| legend_visible | pie:true, others:false | bool | Whether to show the legend (pie shows by default; line/bar can enable it for multi-series) |
+| line_width | 2 | int | Line thickness (line chart, auto DPI-scaled) |
+| line_mode | straight | string | Line drawing mode: "straight" / "curve" (Bézier smooth) |
+| area_fill | false | bool | Whether to fill a semi-transparent area under the line (line chart) |
+| show_data_points | true | bool | Whether to draw data-point dots (line chart) |
+| bar_mode | grouped | string | Bar layout: "grouped" side-by-side / "stacked" cumulative |
+| donut | false | bool | Whether the pie chart is a donut ring |
+| show_percent | false | bool | Whether the pie chart shows percentages (instead of raw values) |
+
+Notes:
+- The three forms share the same data (`data`); switching `chart_type` changes the presentation without rebuilding the data.
+- **Multi-series**: line/bar charts support multiple overlaid series (C++ `SetSeriesData`/`AddSeries`); when a series has no explicit color it is auto-assigned from a built-in 8-color palette; the legend can be enabled to show series names.
+- Colors use semantic color names (ThemeColor in the color_light/color_dark global.xml files), automatically adapting to light/dark themes; a direct color value (e.g. `#FF0078D4`) is also accepted.
+- Bar charts support negative values: a zero baseline is drawn automatically, negative bars extend downward; grouped mode lays series side-by-side, stacked mode accumulates positive values and subtracts negative ones.
+- Negative values in a pie chart are ignored (not summed, not drawn); an empty or all-zero dataset renders an empty chart.
+- The data range of line/bar charts is computed automatically (with headroom), no manual axis range needed.
+- Value labels are auto-formatted: integers drop decimals, non-integers keep two decimal places.
+
+C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`.
+
+### XML Usage Example
+
+```xml
+<!-- Line chart: weekly visits -->
+<Chart width="stretch" height="200" chart_type="line"
+       data="120,356,280,410,398,452,380"
+       data_labels="Mon,Tue,Wed,Thu,Fri,Sat,Sun"
+       series_color="color_accent" show_value="true"/>
+
+<!-- Bar chart: quarterly sales (with title and axis titles) -->
+<Chart width="stretch" height="220" chart_type="bar"
+       title="Quarterly Sales" x_axis_title="Quarter" y_axis_title="Sales (10k)"
+       data="82,116,98,135"
+       data_labels="Q1,Q2,Q3,Q4"
+       series_color="color_accent"/>
+
+<!-- Bar chart: with negative values (auto zero baseline) -->
+<Chart width="stretch" height="220" chart_type="bar"
+       data="45,-18,62,-25,38,80" data_labels="Jan,Feb,Mar,Apr,May,Jun"/>
+
+<!-- Pie chart: donut + percentage (legend auto-drawn on the right) -->
+<Chart width="300" height="300" chart_type="pie"
+       data="45,30,15,10"
+       data_labels="Product A,Product B,Product C,Others"
+       series_color="color_accent" legend_visible="true"
+       donut="true" show_percent="true"/>
+```
+
+### C++ Usage Example
+
+```cpp
+// Get the control pointer (name="chart_sales" in XML)
+ui::Chart* pChart = dynamic_cast<ui::Chart*>(pWindow->FindControl(_T("chart_sales")));
+if (pChart != nullptr) {
+    // Single series: dynamically bind data (replaces existing data)
+    pChart->SetData({ 82.0, 116.0, 98.0, 135.0 });
+    pChart->SetDataLabels({ _T("Q1"), _T("Q2"), _T("Q3"), _T("Q4") });
+
+    // Multi-series: overlaid comparison (line/bar)
+    std::vector<ui::Chart::Series> series;
+    ui::Chart::Series s1; s1.name = _T("This year"); s1.data = { 82.0, 116.0, 98.0, 135.0 }; s1.color = _T("color_accent");
+    ui::Chart::Series s2; s2.name = _T("Last year"); s2.data = { 70.0, 90.0, 110.0, 120.0 }; //color auto-assigned
+    series.push_back(s1); series.push_back(s2);
+    pChart->SetSeriesData(series);
+    pChart->SetLegendVisible(true);
+
+    // Switch chart type / curve + area fill
+    pChart->SetChartType(ui::ChartType::kLine);
+    pChart->SetLineMode(ui::ChartLineMode::kCurve);
+    pChart->SetAreaFill(true);
+
+    // Append a data point (real-time curve scenario)
+    pChart->AddData(152.0);
+}
+```
+
 ## Flyout Window
 Flyout is a general-purpose popup (flying card) window derived from WindowImplBase. Header file: `duilib/Control/Flyout.h`. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.), and serves as the common base for calendar popups, search suggestions and settings bubbles.
 

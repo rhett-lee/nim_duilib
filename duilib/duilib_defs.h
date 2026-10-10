@@ -132,6 +132,7 @@ namespace ui
     #define  DUI_CTR_CALENDAR_FLYOUT                 (_T("CalendarFlyout"))
     #define  DUI_CTR_NAVIGATIONVIEW                  (_T("NavigationView"))
     #define  DUI_CTR_NAVIGATION_VIEW_ITEM            (_T("NavigationViewItem"))
+    #define  DUI_CTR_CHART                           (_T("Chart"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
 
