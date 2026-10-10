@@ -92,7 +92,7 @@ bool ThemeManager::InitTheme(const FilePath& themeRootFullPath,
     PerformanceUtil statPerformance(_T("ParseXml, ThemeManager::InitTheme load global.xml"));
     WindowBuilder globalbuilder;
     Window tempWnd;
-    if (globalbuilder.ParseXmlFile(FilePath(globalXmlFileName))) {
+    if (globalbuilder.ParseXmlFile(globalXmlFileNameFullPath)) {
         //初始化默认主题数据
         DString themeName;
         DString themeType;

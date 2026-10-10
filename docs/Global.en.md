@@ -249,7 +249,52 @@ When defining a common style, if the attribute value is enclosed in double quote
 | name | | string | Common style name |
 | Any custom name | | string | The value of the common style, which must be XML-escaped or use single quotes ('') or curly braces ({}) instead of double quotes |
 
-## 7. Interfaces Related to Global Resource Management
+## 7. Referencing Other Global Resource Files (Include)
+
+When there are many global resources, you can split some of them (variables `Var`, fonts `Font`, font files `FontFile`, colors `ThemeColor`/`TextColor`, common styles `Class`, aliases `Alias`, etc.) into other XML files in the same directory, and reference them via the `Include` node. On program startup, these files' global resources are registered as well, producing the same effect as writing them directly in `global.xml`.
+
+The root node of the referenced file must be `Global`. For example, create a `my_vars.xml` in the same directory as `global.xml`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global>
+    <!-- Custom variables -->
+    <Var name="SIZE_MY_BTN" value="120x36"/>
+    <Var name="PATH_MY_ICON" value="public/my_icon"/>
+
+    <!-- Custom color -->
+    <ThemeColor name="my_brand_color" value="#FF3B82F6"/>
+
+    <!-- Custom common style -->
+    <Class name="btn_my_style" font="system_regular_14" normal_text_color="white" .../>
+</Global>
+```
+
+Then reference it in `global.xml` via `Include`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Global>
+    <Theme name="Default" type="Base" style="Combined" version="2.0"/>
+    ...
+    <!-- Reference other global resource files in the same directory -->
+    <Include src="my_vars.xml"/>
+</Global>
+```
+
+Attributes:
+
+| Attribute Name | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| src (or source) | | string | The file name of the referenced global resource XML, searched first in the same directory as `global.xml` |
+
+Notes:
+
+- The root node of the referenced file must be `Global`, and its global resource tags are written exactly the same as in `global.xml`.
+- Referencing is **recursive**: a referenced file may also reference other files in the same directory via `Include`.
+- Resources with the same name (e.g. `Var`, `Class`, `ThemeColor` with identical names) follow the rule of **later-loaded overwriting earlier-loaded**, consistent with the ordering semantics of writing them directly in `global.xml`.
+
+## 8. Interfaces Related to Global Resource Management
 
 | Class Name | Associated Header File | Purpose |
 | :--- | :--- | :--- |
