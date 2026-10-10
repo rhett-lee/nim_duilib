@@ -19,6 +19,7 @@ class RichEdit;
 *     prompt_text_id  占位提示文字的多语言 ID
 *     prompt_color    占位提示文字颜色
 *     text            初始搜索文本
+*     text_id         初始搜索文本的多语言 ID（与 text 同时设置时，后设置的属性生效）
 *
 *   事件：
 *   - kEventTextChanged：搜索文本变化时触发（内部编辑框事件转发）
@@ -75,6 +76,10 @@ private:
     /** 初始搜索文本（OnInit 前缓存 XML 中的 text 属性）
     */
     UiString m_initText;
+
+    /** 初始搜索文本的多语言 ID（OnInit 前缓存 XML 中的 text_id 属性）
+    */
+    UiString m_initTextId;
 
     /** 占位提示文字（OnInit 前缓存）
     */

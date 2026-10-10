@@ -41,7 +41,15 @@ void SearchBox::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("text")) {
         m_initText = strValue;
         if (m_pEdit != nullptr) {
-            m_pEdit->SetText(strValue);
+            //与其它属性保持一致，走 SetAttribute 转发，复用 RichEdit 的完整 text 处理
+            //（含 IsReplaceNewline 换行符替换等）
+            m_pEdit->SetAttribute(strName, strValue);
+        }
+    }
+    else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
+        m_initTextId = strValue;
+        if (m_pEdit != nullptr) {
+            m_pEdit->SetAttribute(strName, strValue);
         }
     }
     else {
@@ -82,6 +90,9 @@ void SearchBox::OnInit()
     m_pEdit->SetAttribute(_T("clear_btn_class"), _T("search_box_clear_btn"));
     if (!m_initText.empty()) {
         m_pEdit->SetText(m_initText.c_str());
+    }
+    if (!m_initTextId.empty()) {
+        m_pEdit->SetAttribute(_T("text_id"), DString(m_initTextId.c_str()));
     }
     AddItem(m_pEdit);
 

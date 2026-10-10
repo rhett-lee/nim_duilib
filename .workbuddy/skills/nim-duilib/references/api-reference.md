@@ -280,6 +280,7 @@ C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。�
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
 | text | | string | 初始文本 |
+| text_id | | string | 初始文本的多语言字符串 ID（与 text 同时设置时，后设置的属性生效） |
 | prompt_text | | string | 空内容时的占位提示文本 |
 | prompt_text_id | | string | 占位提示文本的多语言字符串 ID |
 | prompt_color | | string | 占位提示文本颜色（语义色名） |

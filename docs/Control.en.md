@@ -605,6 +605,7 @@ SearchBox is a composite search input control derived from HBox. It combines a s
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
 | text | "" | string | Initial text of the search box |
+| text_id | "" | string | Multi-language string ID of the initial search box text (when set together with `text`, the last-set attribute takes effect) |
 | prompt_text | "" | string | Placeholder text shown when the edit box is empty |
 | prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
 | prompt_color | "" | string | Color of the placeholder text (semantic color name) |

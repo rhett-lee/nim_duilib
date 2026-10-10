@@ -300,8 +300,11 @@ int32_t MessageBoxWnd::GetDefaultResult() const
 
 int32_t MessageBoxWnd::NormalizeResult(int32_t nResult, uint32_t buttonFlags)
 {
-    //明确点击的按钮：重试/是/否/取消，直接返回
-    if ((nResult == kResultRetry) || (nResult == kResultYes) || (nResult == kResultNo)) {
+    //明确点击的功能按钮：重试/是/否/取消，直接返回对应结果。
+    //注意：kResultCancel(2) 与 ESC 键关闭返回值 kWindowCloseCancel(2) 值相同，
+    //因此"点击取消按钮"和"按 ESC"都会命中这里，统一返回 kResultCancel，语义正确。
+    if ((nResult == kResultRetry) || (nResult == kResultYes) ||
+        (nResult == kResultNo) || (nResult == kResultCancel)) {
         return nResult;
     }
 
@@ -319,11 +322,10 @@ int32_t MessageBoxWnd::NormalizeResult(int32_t nResult, uint32_t buttonFlags)
         return kResultOK;
     }
 
-    //标题栏关闭按钮(kWindowCloseNormal=0)、ESC 键(kWindowCloseCancel=2)、点击"取消"按钮(kResultCancel=2)：
-    //统一按"取消"语义返回。即使组合中没有"取消"按钮，也不能映射为默认的
-    //"确定/是/重试"——否则用户只是想关闭窗口，却会触发肯定性动作
-    //（例如"是否保存？"选"是+否"时点 X，旧逻辑会返回 IDYES，导致误保存）。
-    //这与 Win32 MessageBox 的行为保持一致：X/ESC 表示放弃选择。
+    //标题栏关闭按钮(kWindowCloseNormal=0)：用户放弃选择，统一按"取消"语义返回。
+    //即使组合中没有"取消"按钮，也不能映射为默认的"确定/是/重试"——否则用户只是想
+    //关闭窗口，却会触发肯定性动作（例如"是否保存？"选"是+否"时点 X，旧逻辑会返回 IDYES，
+    //导致误保存）。这与 Win32 MessageBox 的行为保持一致：X 表示放弃选择。
     return kResultCancel;
 }
 

@@ -603,6 +603,7 @@ SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索�
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | text | "" | string | 搜索框初始文本 |
+| text_id | "" | string | 搜索框初始文本的多语言字符串ID（与text同时设置时，后设置的属性生效） |
 | prompt_text | "" | string | 编辑框为空时显示的占位提示文本 |
 | prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
 | prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
