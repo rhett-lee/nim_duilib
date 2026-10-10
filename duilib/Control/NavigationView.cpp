@@ -939,7 +939,7 @@ void NavigationView::SetCollapsed(bool bCollapsed)
 
 bool NavigationView::SelectItem(NavigationViewItem* pItem, bool bFireEvent)
 {
-    if ((pItem == nullptr) || !pItem->IsSelectable()) {
+    if ((pItem == nullptr) || !pItem->IsSelectable() || !pItem->IsEnabled()) {
         return false;
     }
     size_t nOldIndex = GetSelectedIndex();
@@ -1118,6 +1118,14 @@ void NavigationView::SetItemEnabled(NavigationViewItem* pItem, bool bEnabled)
         return;
     }
     pItem->SetEnabled(bEnabled);
+
+    //禁用当前选中项时，联动取消其选中态（否则视觉上会保留「选中了一个禁用项」的悬空高亮），
+    //并同步清空标题栏。是否切换到其它可用项由调用方决定（避免禁用操作产生隐式跳转的副作用）。
+    if (!bEnabled && (pItem == m_pSelected)) {
+        pItem->SetSelected(false);
+        m_pSelected = nullptr;
+        UpdateHeaderText(nullptr);
+    }
 }
 
 } // namespace ui

@@ -943,12 +943,55 @@ void Calendar::DrawWeekdayHeader(IRender* pRender, const UiRect& rect, IFont* pF
 
 DString Calendar::GetWeekdayText(int32_t index) const
 {
-    //index: 0=第一天（按firstDayOfWeek偏移后）
-    static const DString weekdays[] = {
-        _T("日"), _T("一"), _T("二"), _T("三"), _T("四"), _T("五"), _T("六")
+    //星期标题走多语言资源（STRID_PUBLIC_CALENDAR_WEEKDAY_*），支持国际化；
+    //index: 0=第一天（按 firstDayOfWeek 偏移后）
+    static const DString kWeekdayIds[] = {
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_SUNDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_MONDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_TUESDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_WEDNESDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_THURSDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_FRIDAY"),
+        _T("STRID_PUBLIC_CALENDAR_WEEKDAY_SATURDAY"),
     };
     int32_t dayIndex = (m_firstDayOfWeek + index) % kDaysPerWeek;
-    return weekdays[dayIndex];
+    DString strText = GlobalManager::GetTextById(kWeekdayIds[dayIndex]);
+    if (strText.empty()) {
+        //语言资源缺失时的兜底（避免空白），回退到单字缩写
+        static const DString kFallback[] = {
+            _T("日"), _T("一"), _T("二"), _T("三"), _T("四"), _T("五"), _T("六")
+        };
+        strText = kFallback[dayIndex];
+    }
+    return strText;
+}
+
+DString Calendar::GetMonthText(int32_t month) const
+{
+    //月份显示文字走多语言资源（STRID_PUBLIC_CALENDAR_MONTH_*），支持国际化
+    static const DString kMonthIds[] = {
+        _T("STRID_PUBLIC_CALENDAR_MONTH_JANUARY"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_FEBRUARY"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_MARCH"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_APRIL"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_MAY"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_JUNE"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_JULY"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_AUGUST"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_SEPTEMBER"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_OCTOBER"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_NOVEMBER"),
+        _T("STRID_PUBLIC_CALENDAR_MONTH_DECEMBER"),
+    };
+    if ((month < 1) || (month > 12)) {
+        return DString();
+    }
+    DString strText = GlobalManager::GetTextById(kMonthIds[month - 1]);
+    if (strText.empty()) {
+        //语言资源缺失时的兜底：回退到 "%d月" 数字格式
+        strText = StringUtil::Printf(_T("%d月"), month);
+    }
+    return strText;
 }
 
 void Calendar::DrawMonthView(IRender* pRender, const UiRect& rect)
@@ -1084,8 +1127,6 @@ void Calendar::DrawYearView(IRender* pRender, const UiRect& rect)
     int32_t cellHeight = rect.Height() / kYearGridRows;
 
     UiColor textColor = GetUiColor(_T("text_default"));
-    UiColor mutedColor = GetUiColor(_T("text_muted"));
-    UiColor hoverColor = GetUiColor(_T("bg_btn_hovered"));
     UiColor selectedColor = GetUiColor(_T("color_accent"));
     UiColor selectedTextColor = GetUiColor(_T("text_primary_btn_normal"));
 
@@ -1119,7 +1160,7 @@ void Calendar::DrawYearView(IRender* pRender, const UiRect& rect)
         }
 
         //文字
-        DString text = StringUtil::Printf(_T("%d月"), month);
+        DString text = GetMonthText(month);
         DrawStringParam param;
         param.textRect = cellRect;
         param.dwTextColor = bSelected ? selectedTextColor : (bCurrent ? selectedColor : textColor);
@@ -1146,8 +1187,6 @@ void Calendar::DrawDecadeView(IRender* pRender, const UiRect& rect)
     int32_t cellHeight = rect.Height() / kYearGridRows;
 
     UiColor textColor = GetUiColor(_T("text_default"));
-    UiColor mutedColor = GetUiColor(_T("text_muted"));
-    UiColor hoverColor = GetUiColor(_T("bg_btn_hovered"));
     UiColor selectedColor = GetUiColor(_T("color_accent"));
     UiColor selectedTextColor = GetUiColor(_T("text_primary_btn_normal"));
 

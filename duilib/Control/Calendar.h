@@ -277,10 +277,15 @@ protected:
     */
     void DrawWeekdayHeader(IRender* pRender, const UiRect& rect, IFont* pFont);
 
-    /** 获取星期标题文字
+    /** 获取星期标题文字（走多语言资源 STRID_PUBLIC_CALENDAR_WEEKDAY_*）
     * @param [in] index 0=第一天（按 firstDayOfWeek 偏移后）
     */
     DString GetWeekdayText(int32_t index) const;
+
+    /** 获取月份显示文字（走多语言资源 STRID_PUBLIC_CALENDAR_MONTH_*）
+    * @param [in] month 1~12
+    */
+    DString GetMonthText(int32_t month) const;
 
 private:
     /** 选择模式
