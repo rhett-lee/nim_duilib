@@ -798,8 +798,9 @@ Chart是轻量图表控件，继承自Control，纯自绘实现（不依赖第�
 - 饼图负值会被忽略（不计入总和、不绘制扇区）；数据全为0或空时图表为空。
 - 折线/柱状图数据范围自动计算（上下各留余量），无需手动设置坐标轴范围。
 - 数值标签自动格式化：整数不显示小数，非整数保留两位小数。
+- **交互能力**：①数据点悬停 Tooltip（显示"系列名 / 类目: 值"）；②点击选中（饼图扇区分离高亮、柱状单柱描边高亮，再次点击取消）；③折线图滚轮缩放 + 拖拽平移（实时曲线场景）。Tooltip/选中均可用 `SetEnableTooltip`/`SetEnableSelect` 开关。
 
-对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`。
+对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`；交互：`SetEnableTooltip/IsEnableTooltip`、`SetEnableSelect/IsEnableSelect`、`GetSelected/ClearSelection`、`AttachPointClick/AttachPointHover`、`GetHitFromEvent`。
 
 ### XML使用示例
 
@@ -856,6 +857,35 @@ if (pChart != nullptr) {
     pChart->AddData(152.0);
 }
 ```
+
+### 交互使用示例
+
+```cpp
+// 悬停 Tooltip 与点击选中默认已开启；可通过以下接口开关
+pChart->SetEnableTooltip(true);
+pChart->SetEnableSelect(true);
+
+// 监听数据点点击（折线点 / 柱 / 饼图扇区 / 图例项）
+pChart->AttachPointClick([](const ui::EventArgs& args) {
+    ui::Chart::HitResult hit = ui::Chart::GetHitFromEvent(args);
+    if (hit.type == ui::Chart::HitType::kSlice) {
+        // 命中了饼图第 hit.dataIndex 个扇区
+        // ... 业务处理
+    }
+    else if (hit.type == ui::Chart::HitType::kBar) {
+        // 命中了第 hit.seriesIndex 个系列的第 hit.dataIndex 根柱
+    }
+    return true;
+});
+
+// 查询当前选中元素
+ui::Chart::HitResult sel = pChart->GetSelected();
+if (sel.type != ui::Chart::HitType::kNone) {
+    pChart->ClearSelection(); // 清除选中
+}
+```
+
+> 说明：`HitResult` 含 `type`（kPoint/kBar/kSlice/kLegend）、`seriesIndex`（系列索引）、`dataIndex`（数据索引）。折线图支持滚轮缩放（围绕鼠标位置）与左键拖拽平移。
 
 ## Flyout浮层窗口
 Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应头文件`duilib/Control/Flyout.h`。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等），是日历弹层、搜索建议、气泡设置等控件的公共基座。

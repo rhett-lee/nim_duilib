@@ -40,6 +40,10 @@ private:
     /** 演示切换饼图数据源（含环形/实心切换）
     */
     void SwitchPieData();
+
+    /** 演示数据点点击选中回调
+    */
+    void AttachChartPointClick(ui::Chart* pChart, const DString& strChartName);
 };
 
 #endif //EXAMPLES_CHART_FORM_H_
