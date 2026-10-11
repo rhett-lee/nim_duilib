@@ -62,12 +62,15 @@
     
     <!-- 系统字体：按 字体类型_样式_字号 命名 --> 
     <Font id="system_regular_12" name="system" size="12"/>
+    <Font id="system_regular_13" name="system" size="13"/>
     <Font id="system_regular_14" name="system" size="14" default="true"/>
+    <Font id="system_regular_15" name="system" size="15"/>
     <Font id="system_regular_16" name="system" size="16"/>
     <Font id="system_regular_18" name="system" size="18"/>
     <Font id="system_regular_20" name="system" size="20"/>
     <Font id="system_regular_22" name="system" size="22"/>
     <Font id="system_bold_12" name="system" size="12" bold="true"/>
+    <Font id="system_bold_13" name="system" size="13" bold="true"/>
     <Font id="system_bold_14" name="system" size="14" bold="true"/>
     <Font id="system_bold_15" name="system" size="15" bold="true"/>
     <Font id="system_bold_16" name="system" size="16" bold="true"/>
@@ -75,25 +78,33 @@
     <Font id="system_bold_20" name="system" size="20" bold="true"/>
     <Font id="system_bold_22" name="system" size="22" bold="true"/>
     <Font id="system_underline_12" name="system" size="12" underline="true"/>
+    <Font id="system_underline_13" name="system" size="13" underline="true"/>
     <Font id="system_underline_14" name="system" size="14" underline="true"/>
+    <Font id="system_underline_15" name="system" size="15" underline="true"/>
     <Font id="system_underline_16" name="system" size="16" underline="true"/>
     <Font id="system_underline_18" name="system" size="18" underline="true"/>
     <Font id="system_underline_20" name="system" size="20" underline="true"/>
     <Font id="system_underline_22" name="system" size="22" underline="true"/>
     <Font id="system_italic_12" name="system" size="12" italic="true"/>
+    <Font id="system_italic_13" name="system" size="13" italic="true"/>
     <Font id="system_italic_14" name="system" size="14" italic="true"/>
+    <Font id="system_italic_15" name="system" size="15" italic="true"/>
     <Font id="system_italic_16" name="system" size="16" italic="true"/>
     <Font id="system_italic_18" name="system" size="18" italic="true"/>
     <Font id="system_italic_20" name="system" size="20" italic="true"/>
     <Font id="system_italic_22" name="system" size="22" italic="true"/>
     <Font id="system_strikeout_12" name="system" size="12" strikeout="true"/>
+    <Font id="system_strikeout_13" name="system" size="13" strikeout="true"/>
     <Font id="system_strikeout_14" name="system" size="14" strikeout="true"/>
+    <Font id="system_strikeout_15" name="system" size="15" strikeout="true"/>
     <Font id="system_strikeout_16" name="system" size="16" strikeout="true"/>
     <Font id="system_strikeout_18" name="system" size="18" strikeout="true"/>
     <Font id="system_strikeout_20" name="system" size="20" strikeout="true"/>
     <Font id="system_strikeout_22" name="system" size="22" strikeout="true"/>
     <Font id="system_fullstyle_12" name="system" size="12" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_13" name="system" size="13" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_14" name="system" size="14" italic="true" strikeout="true" underline="true" bold="true"/>
+    <Font id="system_fullstyle_15" name="system" size="15" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_16" name="system" size="16" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_18" name="system" size="18" italic="true" strikeout="true" underline="true" bold="true"/>
     <Font id="system_fullstyle_20" name="system" size="20" italic="true" strikeout="true" underline="true" bold="true"/>

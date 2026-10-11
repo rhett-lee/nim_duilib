@@ -553,6 +553,13 @@ STRID_PROGRESS_EVENT_NONE = Event: none
 STRID_PROGRESS_CARD_HORIZ = Horizontal (image / radius+percent / float+animation / slider / marquee)
 STRID_PROGRESS_CARD_VERT = Vertical
 STRID_PROGRESS_CARD_CIRCLE = Circular (gradient / CCW / indeterminate)
+STRID_PROGRESS_CARD_SLIDER = Slider Interaction (keyboard accessibility / ticks / track click-to-jump)
+STRID_PROGRESS_SLIDER_KEYBOARD = Keyboard: Tab to focus, then use arrow keys
+STRID_PROGRESS_SLIDER_TIP_KEY = Left/Right: step 5 - Shift+Arrow / PgUp/PgDn: step 25 - Home/End: endpoints - value: 50
+STRID_PROGRESS_SLIDER_TICKS = Ticks: 6 marks, major ticks longer and labeled
+STRID_PROGRESS_SLIDER_TIP_TICKS = Common for volume bars / timelines: ticks + labels, custom text via SetTickLabelCallback
+STRID_PROGRESS_SLIDER_CLICK = Track click-to-jump comparison (step=1)
+STRID_PROGRESS_SLIDER_TIP_CLICK = Top: jumps on mouse down - Bottom: jumps on mouse up
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee Control Test
 STRID_MARQUEE_HINT = Hint: hover over a marquee to pause scrolling
