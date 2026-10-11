@@ -1,6 +1,7 @@
 #include "CircleProgress.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include <algorithm>
 
 namespace ui
 {
@@ -128,9 +129,13 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     if (fValue < nMin) {
         fValue = nMin;
     }
+    //进度比例：先归一化再按 reverse 取反（直接做 (nMax-nMin)-fValue 的绝对值翻转
+    //在 min != 0 时会算出越界比例）
+    double fRatio = (fValue - nMin) / static_cast<double>(nMax - nMin);
+    fRatio = std::clamp(fRatio, 0.0, 1.0);
     if (IsReverse()) {
-        //逆向滚动条
-        fValue = (nMax - nMin) - fValue;
+        //逆向：value=min 时为满格，value=max 时为空
+        fRatio = 1.0 - fRatio;
     }
 
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
@@ -161,7 +166,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         fSweepAngle = m_fIndeterminateArc;
     }
     else {
-        fSweepAngle = static_cast<float>(direction * m_fSpanAngle * (fValue - nMin) / (nMax - nMin));
+        fSweepAngle = static_cast<float>(direction * m_fSpanAngle * fRatio);
     }
 
     //圆形中心：整圆时取控件中心；非整圆（仪表盘/缺口环）时按弧的包围盒居中，

@@ -574,7 +574,9 @@ STRID_PROGRESS_ROBUST_TIP_EASING = 上：EaseLinear 线性 / 中：EaseOutQuad �
 STRID_PROGRESS_ROBUST_CLAMP = min/max 运行时钳位（当前值=80，max=100）
 STRID_PROGRESS_ROBUST_BTN_SHRINK = max 改为 50
 STRID_PROGRESS_ROBUST_BTN_RESTORE = max 恢复 100
-STRID_PROGRESS_ROBUST_TIP_CLAMP = 点击按钮把 max 改为 50，当前值应自动回落到 50 而不是停留在 80
+STRID_PROGRESS_ROBUST_TIP_CLAMP = 点按钮把 max 改为 50，当前值应回落到 50 而非停在 80。
+STRID_PROGRESS_ROBUST_REVERSE = reverse 对照（min=10 ≠ 0）
+STRID_PROGRESS_ROBUST_TIP_REVERSE = 上 value=min 应满格 / 下 value=max 应空格
 STRID_PROGRESS_GAUGE_HALF = 180° 半圆表盘（span_angle=180）
 STRID_PROGRESS_GAUGE_GAP = 270° 缺口环（start_angle=135）
 STRID_PROGRESS_GAUGE_CENTER = 中心自定义内容（SetCenterCallback）

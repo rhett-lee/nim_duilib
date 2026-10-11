@@ -569,7 +569,9 @@ STRID_PROGRESS_ROBUST_TIP_EASING = Top: EaseLinear / Middle: EaseOutQuad (defaul
 STRID_PROGRESS_ROBUST_CLAMP = Runtime min/max clamping (value=80, max=100)
 STRID_PROGRESS_ROBUST_BTN_SHRINK = Set max to 50
 STRID_PROGRESS_ROBUST_BTN_RESTORE = Restore max to 100
-STRID_PROGRESS_ROBUST_TIP_CLAMP = Click to set max to 50; the value should fall back to 50 instead of staying at 80
+STRID_PROGRESS_ROBUST_TIP_CLAMP = Click to set max to 50; the value should fall back to 50 instead of staying at 80.
+STRID_PROGRESS_ROBUST_REVERSE = reverse comparison (min=10, non-zero)
+STRID_PROGRESS_ROBUST_TIP_REVERSE = Top value=min should be full / Bottom value=max should be empty
 STRID_PROGRESS_GAUGE_HALF = 180 deg half-round gauge (span_angle=180)
 STRID_PROGRESS_GAUGE_GAP = 270 deg gap ring (start_angle=135)
 STRID_PROGRESS_GAUGE_CENTER = Custom center content (SetCenterCallback)

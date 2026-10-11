@@ -542,7 +542,7 @@ Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属
 | marquee | false | bool | 是否滚动显示 |
 | marquee_width | | int | 滚动的宽度 |
 | marquee_step | | int | 滚动的步长 |
-| reverse | false | bool | 进度值是否倒数（进度从100 到 0） |
+| reverse | false | bool | 进度是否反向填充：`false` 为 value=min 时空、value=max 时满格；`true` 则相反（value=min 时满格）。`min != 0` 时同样按比例正确换算 |
 
 Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
@@ -554,6 +554,7 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 - `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（时长 `animation_duration`，缓动曲线由 `animation_easing` 决定，默认 `EaseOutQuad`）；Slider 拖动为即时响应，通常无需开启。
 - `min`/`max` 在运行时修改会**自动把当前值钳位回新区间**（含`buffer_value` 与动画中间值），因此 `GetValue()` 始终在 `[min, max]` 内，不会出现"绘制被钳位但成员值越界"的不一致。可手动调用 `ClampCurrentValue()` 主动钳位。
 - `progress_radius` 现在**同时作用于纯色主进度、buffer 次级进度与 marquee 滚动块**，三者风格一致。
+- marquee 以「轨道长度 + 滚动块宽度」为周期循环回绕（取模并处理负值），轨道长度 <= 0 时复位为 0。
 - 值变化事件：`AttachValueChanged`（`EventArgs::wParam` 为新值、`lParam` 为旧值，均按整数截断；精确浮点值从 `GetValue()` 读取）。
 - 完成事件：`AttachProgressCompleted`——进度值到达完成端点（正向到 `max`、倒数到 `min`）时触发一次。
 - 推荐语义色：前景 `bg_progress`、轨道 `bg_progress_track`（随深浅色主题自动切换）。
@@ -574,6 +575,13 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 运行时可随时修改，下一次动画即生效（不影响正在播放的动画）。
 
 对应 C++ 接口：`SetAnimationEasing(EasingFunctionType)`、`SetAnimationEasingName(const DString&)`、`GetAnimationEasing()`、`GetAnimationEasingName()`。
+
+### 反向填充（reverse）
+`reverse="true"` 时填充方向反转：`value=min` 为满格、`value=max` 为空格。
+内部实现是**先把 value 归一化成0~1 的比例再取反**，而不是对绝对值做 `(max-min)-value` 的翻转——
+后者在 `min != 0`（如 `min="10" max="100"`）时会算出越界比例甚至负数。
+
+`Progress`、`CircleProgress` 的反向换算语义一致。
 
 ### 值域运行时钳位
 `SetMinValue`/`SetMaxValue` 会自动把当前值拉回新区间，避免成员值与绘制结果不一致：

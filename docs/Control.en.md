@@ -544,7 +544,7 @@ The Menu control inherits the `Window` attributes. For more available attributes
 | marquee | false | bool | Whether to scroll/marquee display |
 | marquee_width | | int | Marquee width |
 | marquee_step | | int | Marquee step |
-| reverse | false | bool | Whether the progress value counts down (progress from 100 to 0) |
+| reverse | false | bool | Whether the fill direction is inverted: with `false`, value=min is empty and value=max is full; with `true` it is the opposite (value=min is full). The ratio is converted correctly even when `min != 0` |
 
 The Progress control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 
@@ -556,6 +556,7 @@ Notes:
 - With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (duration `animation_duration`, easing curve given by `animation_easing`, default `EaseOutQuad`); Slider drags are instant and normally do not need this.
 - Changing `min`/`max` at runtime **automatically clamps the current value back into the new range** (including `buffer_value` and the animation intermediate value), so `GetValue()` is always within `[min, max]` and the member value never diverges from what is drawn. Call `ClampCurrentValue()` to clamp manually.
 - `progress_radius` now applies to the **solid main progress, the buffer progress, and the marquee block alike**, so all three share the same style.
+- The marquee wraps with a period of "track length + block width" (modulo, with negative-value handling) and resets to 0 when the track length is <= 0.
 - Value-change event: `AttachValueChanged` (`EventArgs::wParam` = new value, `lParam` = old value, both truncated to integer; read the exact floating-point value via `GetValue()`).
 - Completion event: `AttachProgressCompleted` — fired once when the value reaches the completion endpoint (max for forward, min for countdown).
 - Recommended semantic colors: foreground `bg_progress`, track `bg_progress_track` (auto-switch with light/dark theme).
@@ -576,6 +577,12 @@ Curve groups: `EaseLinear`, `Ease{In|Out|InOut}{Sine|Quad|Cubic|Quart|Quint|Expo
 It can be changed at any time and takes effect on the next animation (the currently playing one is unaffected).
 
 C++ interfaces: `SetAnimationEasing(EasingFunctionType)`, `SetAnimationEasingName(const DString&)`, `GetAnimationEasing()`, `GetAnimationEasingName()`.
+
+### Reverse fill (reverse)
+With `reverse="true"` the fill direction is inverted: `value=min` is full and `value=max` is empty.
+Internally the value is **first normalized to a 0~1 ratio and then inverted**, rather than flipping the absolute value as `(max-min)-value` — the latter produces out-of-range or even negative ratios when `min != 0` (e.g. `min="10" max="100"`).
+
+`Progress` and `CircleProgress` share the same reverse conversion semantics.
 
 ### Runtime range clamping
 `SetMinValue`/`SetMaxValue` pull the current value back into the new range automatically, avoiding divergence between the member value and the rendered result:
