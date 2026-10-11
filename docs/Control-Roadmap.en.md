@@ -66,7 +66,7 @@ The items above are "large" ones. The following are smaller items that strengthe
 
 | # | Control | Description | Reference |
 |---|------|------|------|
-| 13 | TagInput | A "type → Enter to create tag → delete tag" composite control for recipients, tag selection, keyword entry. Essential for IM/collaboration/admin apps; reuses RichEdit + self-drawn tags | Element UI el-tag, Ant Design Tag |
+| 13 | **TagInput (completed)** | A "type → Enter to create tag → delete tag" composite control for recipients, tag selection, keyword entry. Essential for IM/collaboration/admin apps; reuses RichEdit + self-drawn tags. Delivered: derived from Box with a horizontal flow layout; commits tags on Enter or an optional delimiter; removes tags via the X button or Backspace on an empty edit; supports duplicate rejection and a max tag count; auto-wraps and grows in height; events `kEventTagAdded/kEventTagRemoved/kEventTagClick`; semantic colors for light/dark themes. See [Control.en.md](Control.en.md#attributes-of-taginput) | Element UI el-tag, Ant Design Tag |
 | 14 | AutoComplete | A text box that shows suggestions as you type (search history, address completion), distinct from FilterCombo's "dropdown filtering" — the former is edit-box-centric with a popup following the caret. Can reuse Flyout as the popup host | Qt QCompleter, WPF AutoCompleteBox |
 | 15 | Unified context-menu API | Menu already exists, but a "bind a right-click menu to any control in one line" convenience wrapper is missing (currently requires manual creation + popup + coordinate conversion) | Common across platforms |
 | 16 | Mask / Overlay layer | Modal-dialog background dimming, onboarding masks, loading overlays. The last missing piece of the popup system (Flyout/Modal) | Common across platforms |
@@ -80,13 +80,13 @@ The items above are "large" ones. The following are smaller items that strengthe
 
 ### 4. Progress and Ordering
 
-#### Completed (Tier 1â2 items 1â9, plus Tier 3 Chart item 10, Timeline item 11, and skeleton screen item 12)
+#### Completed (Tier 1–2 items 1–9, plus Tier 3 Chart item 10, Timeline item 11, skeleton screen item 12, and supplement item TagInput 13)
 
-Tier 1 (form essentials 1â5), Tier 2 (flyout system 6â9), and the Tier 3 Chart (item 10), Timeline (item 11), and skeleton/loading placeholder (item 12) are all delivered: Switch, SpinBox, SearchBox, Badge, plus Flyout, Calendar, NavigationView, Toast action buttons, Chart, Timeline, and skeleton screens are implemented and integrated into the controls / ColorTheme / ListCtrl demos. The shared flyout foundation (Flyout) is ready, so subsequent popup-style controls (AutoComplete, rich tooltips, etc.) can build directly on it. The skeleton screen reuses the existing `ControlLoading` mechanism instead of introducing a new control class; a generic virtualized list skeleton, or automatic coupling with the ListCtrl item template, can be scheduled later as enhancements.
+Tier 1 (form essentials 1–5), Tier 2 (flyout system 6–9), the Tier 3 Chart (item 10), Timeline (item 11), skeleton/loading placeholder (item 12), and the Tier 3 supplement item TagInput (item 13) are all delivered: Switch, SpinBox, SearchBox, Badge, plus Flyout, Calendar, NavigationView, Toast action buttons, Chart, Timeline, skeleton screens, and TagInput are implemented and integrated into the controls / ColorTheme / ListCtrl demos. The shared flyout foundation (Flyout) is ready, so subsequent popup-style controls (AutoComplete, rich tooltips, etc.) can build directly on it. The skeleton screen reuses the existing `ControlLoading` mechanism instead of introducing a new control class; a generic virtualized list skeleton, or automatic coupling with the ListCtrl item template, can be scheduled later as enhancements.
 
 #### Subsequent Ordering
 
-1. **Finish Tier 3 supplement items 13â17** (low to medium cost, mostly composites/enhancements of existing controls): prioritize TagInput, AutoComplete (reusing Flyout), and ListCtrl table enhancements â the most direct gaps for form/report-style software.
+1. **Finish Tier 3 supplement items 14–17** (low to medium cost, mostly composites/enhancements of existing controls): prioritize AutoComplete (reusing Flyout) and ListCtrl table enhancements — the most direct gaps for form/report-style software (TagInput item 13 is completed).
 2. **Platform integration and engineering (sections 5 and 6)**: run in parallel with the control roadmap; accessibility and packaging/signing are hard requirements for "cross-platform desktop development" and should start early.
 3. **Relationship between item 16 (mask/overlay layer) and skeleton screens**: a skeleton loading layer is "painted on top" rather than a "mask". Implementing modal-dialog background masks belongs to item 16, at which point the backdrop semantics used by skeleton screens can be unified with it.
 

@@ -76,6 +76,7 @@ English | [简体中文](XmlNode.md)
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
 | SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | Numeric input box, derived from RichEdit, supports step/range/spin buttons |
 | SearchBox | "SearchBox"| [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | Composite search box with left icon, edit box and clear button, derived from HBox |
+| TagInput | "TagInput"| [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | Composite tag input: commits tags on Enter/delimiter with removable tags and auto wrapping, derived from Box |
 | Switch | "Switch"| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | Toggle switch control derived from CheckBox with sliding animation and color transition |
 | Badge | "Badge"| [duilib/Control/Badge.h](../duilib/Control/Badge.h) | Badge control derived from Label for unread counts/red dots; shows "99+" when exceeding the limit, hidden automatically when count<=0 |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |

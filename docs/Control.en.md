@@ -988,6 +988,39 @@ Example (see the rich_edit example program):
 
 The default skin defines four classes in global.xml: `search_box` (outer frame), `search_box_icon` (magnifier icon), `search_box_edit` (inner edit box), and `search_box_clear_btn` (clear button).
 
+## Attributes of TagInput
+TagInput is a composite tag input control derived from Box. Using a horizontal flow layout, it combines a set of tags (HBox + text Label + close button) and a text edit box (RichEdit). Type text and press Enter to create a tag; click the X button on a tag or press Backspace in the empty edit box to remove a tag. When tags fill a row the control wraps automatically and grows in height. It is commonly used for recipients, tag picking, and keyword entry. Header file: `duilib/Control/TagInput.h`.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| prompt_text | "" | string | Placeholder text shown when the edit box is empty |
+| prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
+| prompt_color | "" | string | Color of the placeholder text (semantic color name) |
+| allow_duplicate | false | bool | Whether duplicate tags are allowed (when false, tags with duplicated text are not added) |
+| max_count | 0 | int | Maximum number of tags; 0 means unlimited |
+| delimiter | "" | string | Delimiter that commits a tag while typing (e.g. `,`); empty means tags are only created with Enter |
+| tags | "" | string | Initial tag texts, multiple tags separated by semicolons `;` |
+
+Corresponding C++ interfaces: `AddTag` (adds a tag; returns false when text is empty, duplicated, or the limit is reached), `RemoveTagAt`, `RemoveAllTags`, `GetTagCount`, `GetTagText`, `SetAllowDuplicate/IsAllowDuplicate`, `SetMaxCount/GetMaxCount`, `GetEditControl` (returns the inner RichEdit), `SetFocus` (sets focus to the inner edit box).
+
+Events:
+- `kEventTagAdded`: fired after a tag is added, WPARAM is the new tag index (starting from 0);
+- `kEventTagRemoved`: fired before a tag is removed, WPARAM is the removed tag index; its text is still readable via `GetTagText` inside the callback;
+- `kEventTagClick`: fired when the tag body (not the close button) is clicked, WPARAM is the tag index;
+- `kEventTextChanged`: forwarded when the inner edit box text changes.
+
+Example (see the controls example program):
+
+```xml
+<!-- Commit tags with Enter, with 3 initial tags -->
+<TagInput class="tag_input" tags="nim_duilib;C++;desktop-ui" prompt_text="Type and press Enter to add a tag"/>
+
+<!-- Comma or Enter commits tags; up to 5 tags, duplicates allowed -->
+<TagInput class="tag_input" delimiter="," max_count="5" allow_duplicate="true" prompt_text="Press Enter or comma to add a tag"/>
+```
+
+The default skin defines five classes in global.xml: `tag_input` (outer container), `tag_input_tag` (tag background), `tag_input_tag_text` (tag text), `tag_input_tag_close` (tag close button), and `tag_input_edit` (inner edit box). Tag backgrounds use the semantic colors `bg_tag`/`bg_tag_hover` and adapt to light/dark themes automatically.
+
 ## Attributes of Switch
 Switch is a toggle switch control derived from CheckBox, used for on/off state switching. Header file: `duilib/Control/Switch.h`.
 Both the track and the thumb can be self-drawn with semantic colors or skinned with SVG images: when images are configured, the off/on images cross-fade with the animation progress while the thumb image slides along the track; when no images are configured, colors are self-drawn.

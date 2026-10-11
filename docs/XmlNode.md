@@ -74,6 +74,7 @@
 | RichEdit | "RichEdit"| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | |
 | SpinBox | "SpinBox"| [duilib/Control/SpinBox.h](../duilib/Control/SpinBox.h) | 数字输入框，继承RichEdit，支持步长/范围/步进按钮 |
 | SearchBox | "SearchBox"| [duilib/Control/SearchBox.h](../duilib/Control/SearchBox.h) | 搜索框组合控件，左侧图标+编辑框+清除按钮，继承HBox |
+| TagInput | "TagInput"| [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | 标签输入框组合控件，回车/分隔符成标签、可删除标签，标签过多自动换行，继承Box |
 | Switch | "Switch"| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | 滑块开关控件，继承CheckBox，自带滑动动画与颜色过渡 |
 | Badge | "Badge"| [duilib/Control/Badge.h](../duilib/Control/Badge.h) | 角标控件，继承Label，未读数/小红点，数量超限显示"99+"，count<=0 自动隐藏 |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |

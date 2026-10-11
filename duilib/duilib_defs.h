@@ -111,6 +111,7 @@ namespace ui
     #define  DUI_CTR_SEARCH_BOX                      (_T("SearchBox"))
     #define  DUI_CTR_SWITCH                          (_T("Switch"))
     #define  DUI_CTR_BADGE                           (_T("Badge"))
+    #define  DUI_CTR_TAG_INPUT                       (_T("TagInput"))
     #define  DUI_CTR_COMBO                           (_T("Combo"))
     #define  DUI_CTR_COMBO_BUTTON                    (_T("ComboButton"))
     #define  DUI_CTR_FILTER_COMBO                    (_T("FilterCombo"))
@@ -432,6 +433,11 @@ namespace ui
 
         //Timeline时间轴
         kEventTimelineItemClick,            //Timeline类：点击时间轴节点时触发, WPARAM是节点序号(从0开始)
+
+        //TagInput标签输入框
+        kEventTagAdded,                     //TagInput类：新增标签后触发, WPARAM是新标签序号(从0开始)
+        kEventTagRemoved,                   //TagInput类：标签被删除前触发, WPARAM是被删除标签序号(回调中仍可读取该标签文本)
+        kEventTagClick,                     //TagInput类：点击标签正文区域时触发, WPARAM是标签序号(从0开始)
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发

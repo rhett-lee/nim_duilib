@@ -23,6 +23,7 @@
 #include "duilib/Control/SearchBox.h"
 #include "duilib/Control/Switch.h"
 #include "duilib/Control/Badge.h"
+#include "duilib/Control/TagInput.h"
 #include "duilib/Control/RichText.h"
 #include "duilib/Control/DateTime.h"
 #include "duilib/Control/Calendar.h"
@@ -166,6 +167,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_SEARCH_BOX, [](Window* pWindow) { return new SearchBox(pWindow); }},
         {DUI_CTR_SWITCH, [](Window* pWindow) { return new Switch(pWindow); }},
         {DUI_CTR_BADGE, [](Window* pWindow) { return new Badge(pWindow); }},
+        {DUI_CTR_TAG_INPUT, [](Window* pWindow) { return new TagInput(pWindow); }},
         {DUI_CTR_DATETIME, [](Window* pWindow) { return new DateTime(pWindow); }},
         {DUI_CTR_CALENDAR, [](Window* pWindow) { return new Calendar(pWindow); }},
         {DUI_CTR_NAVIGATIONVIEW, [](Window* pWindow) { return new NavigationView(pWindow); }},

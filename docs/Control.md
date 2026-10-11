@@ -988,6 +988,39 @@ SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索�
 
 默认皮肤在global.xml中定义了`search_box`（外框）、`search_box_icon`（放大镜图标）、`search_box_edit`（内部编辑框）、`search_box_clear_btn`（清除按钮）4个Class。
 
+## TagInput的属性
+TagInput是标签输入框组合控件，继承自Box，内部使用水平流式布局组合了若干标签（HBox+文本Label+关闭按钮）和一个文本编辑框（RichEdit）。输入文本后按回车生成标签，点击标签右侧X按钮或在空编辑框按Backspace删除标签，标签过多时自动换行、控件高度自动增长。常用于收件人、标签选择、关键词录入等场景。对应头文件`duilib/Control/TagInput.h`。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| prompt_text | "" | string | 编辑框为空时显示的占位提示文本 |
+| prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
+| prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
+| allow_duplicate | false | bool | 是否允许重复标签（false时重复文本的标签不会被添加） |
+| max_count | 0 | int | 最多标签个数，0表示不限制 |
+| delimiter | "" | string | 输入过程中直接生成标签的分隔符（如英文逗号`,`）；为空表示仅按回车键生成 |
+| tags | "" | string | 初始标签文本，多个标签以分号`;`分隔 |
+
+对应C++接口：`AddTag`（新增标签，文本为空/重复/超限时返回false）、`RemoveTagAt`、`RemoveAllTags`、`GetTagCount`、`GetTagText`、`SetAllowDuplicate/IsAllowDuplicate`、`SetMaxCount/GetMaxCount`、`GetEditControl`（获取内部RichEdit）、`SetFocus`（焦点设置到内部编辑框）。
+
+事件：
+- `kEventTagAdded`：新增标签后触发，WPARAM为新标签序号（从0开始）；
+- `kEventTagRemoved`：标签被删除前触发，WPARAM为被删除标签序号，回调中仍可通过`GetTagText`读取其文本；
+- `kEventTagClick`：点击标签正文区域触发，WPARAM为标签序号（点关闭按钮不触发）；
+- `kEventTextChanged`：内部编辑框文本变化时转发触发。
+
+使用示例（参考 controls 示例程序）：
+
+```xml
+<!-- 回车成标签，带3个初始标签 -->
+<TagInput class="tag_input" tags="nim_duilib;C++;桌面UI" prompt_text="输入后按回车生成标签"/>
+
+<!-- 逗号或回车均可成标签，最多5个且允许重复 -->
+<TagInput class="tag_input" delimiter="," max_count="5" allow_duplicate="true" prompt_text="回车或英文逗号生成标签"/>
+```
+
+默认皮肤在global.xml中定义了`tag_input`（外框容器）、`tag_input_tag`（标签背景）、`tag_input_tag_text`（标签文本）、`tag_input_tag_close`（标签关闭按钮）、`tag_input_edit`（内部编辑框）5个Class，标签底色使用语义色`bg_tag`/`bg_tag_hover`，自动适配深浅色主题。
+
 ## Switch的属性
 Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。对应头文件`duilib/Control/Switch.h`。
 轨道和滑块既可以用语义色自绘，也可以配置SVG图片皮肤：配置图片后off/on两张图片按动画进度交叉淡入淡出，滑块图片同时沿轨道平移；未配置图片时使用颜色自绘。

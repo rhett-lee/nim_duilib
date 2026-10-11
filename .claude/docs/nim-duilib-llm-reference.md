@@ -269,6 +269,19 @@ C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`。事件：`kEve
 清除按钮复用 RichEdit `clear_btn_class` 机制（聚焦有文本时显示，点击清空，失焦隐藏）。
 皮肤类：`search_box` / `search_box_icon` / `search_box_edit` / `search_box_clear_btn`。
 
+### TagInput 属性(继承 Box，标签输入框组合控件)
+流式标签 + 内部 RichEdit（`duilib/Control/TagInput.h`），XML 节点名 `TagInput`。回车/分隔符成标签、X 按钮或空框 Backspace 删除、自动换行增高。
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| prompt_text / prompt_text_id / prompt_color | | string | 空内容占位提示文本 / 多语言 ID / 颜色（语义色名） |
+| allow_duplicate | false | bool | 是否允许重复标签 |
+| max_count | 0 | int | 最多标签数，0 不限 |
+| delimiter | | string | 输入时成标签的分隔符（如 `,`），空表示仅回车 |
+| tags | | string | 初始标签，分号 `;` 分隔 |
+
+C++ 接口：`AddTag`（空/重复/超限返回 false）、`RemoveTagAt`、`RemoveAllTags`、`GetTagCount`、`GetTagText`、`SetAllowDuplicate/IsAllowDuplicate`、`SetMaxCount/GetMaxCount`、`GetEditControl()`、`SetFocus`。事件：`kEventTagAdded`、`kEventTagRemoved`（回调中仍可取文本）、`kEventTagClick`（WPARAM 均为标签序号，点关闭按钮不触发 click）、转发 `kEventTextChanged`。
+皮肤类：`tag_input` / `tag_input_tag` / `tag_input_tag_text` / `tag_input_tag_close` / `tag_input_edit`，语义色 `bg_tag` / `bg_tag_hover`。
+
 ### Switch 属性(继承 CheckBox，滑块开关)
 轨道 + 圆形滑块 + 滑动/淡入淡出动画的开关控件（`duilib/Control/Switch.h`），XML 节点名 `Switch`。轨道与滑块均支持 SVG 图片皮肤（off/on 成对，按进度交叉淡入、滑块平移）；无图时用语义色自绘。
 | 属性 | 默认值 | 类型 | 说明 |

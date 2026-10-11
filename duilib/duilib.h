@@ -91,6 +91,7 @@
 
 #include "Control/Label.h"
 #include "Control/Badge.h"
+#include "Control/TagInput.h"
 #include "Control/Button.h"
 #include "Control/CheckBox.h"
 #include "Control/Switch.h"

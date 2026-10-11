@@ -927,6 +927,9 @@
     <ClCompile Include="Control\SearchBox.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\TagInput.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\Switch.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -1959,6 +1962,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\SearchBox.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\TagInput.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Switch.h">
