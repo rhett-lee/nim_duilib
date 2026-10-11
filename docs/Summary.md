@@ -216,6 +216,7 @@
 | CircleProgress | Progress| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条（渐变、指示图标、逆时针、indeterminate 转圈、仪表盘/缺口环、中心自定义内容），详见[Control.md](Control.md#circleprogress的属性) |
 | Chart | Control| [duilib/Control/Chart.h](../duilib/Control/Chart.h) | 轻量图表控件（折线/柱状/饼图自绘，支持数据绑定），详见[Control.md](Control.md#chart的属性) |
 | Timeline | Control| [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | 垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条），详见[Control.md](Control.md#timeline的属性) |
+| ControlLoading 与骨架屏 | Control 基类能力| [duilib/Core/ControlLoading.h](../duilib/Core/ControlLoading.h) | 所有控件通用：`loading` 属性 + `StartLoading`/`StopLoading` 加载占位；骨架屏（列表/卡片）四要点与超时兜底，详见[Control.md](Control.md#controlloading-与骨架屏) |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
 | RichEdit实现类 | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | 富文本编辑框的主要功能封装（Windows） |
 | RichEdit实现类 | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | 富文本编辑框的主要功能实现（Windows） |

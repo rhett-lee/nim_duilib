@@ -949,6 +949,89 @@ ui::GlobalManager::Instance().Thread().PostRepeatedTask(ui::kThreadWorker,
     200 // 毫秒间隔
 );
 ```
+### ControlLoading 与骨架屏（所有控件通用）
+
+所有控件都继承 `Control`，都支持 `loading` 属性 + `StartLoading` / `StopLoading`，可用于列表、表格、卡片区域的加载占位。
+
+**loading 属性的 9 个子属性**（写在 XML 里，注意 `InitAttribute` 末尾是 `else { ASSERT(0); }`，写错属性名 debug 版直接断言）：
+
+```xml
+loading="file='loading.xml' width='0' height='0' offset_x='-1' offset_y='-1'
+         valign='center' halign='center' fade='255'
+         animation_control='loading_animation' auto_stop='true'"
+```
+
+| 子属性 | 说明 |
+| :--- | :--- |
+| `file` | **必填**，loading 皮肤 XML 路径。为空则 `StartLoading` 返回 false |
+| `width` / `height` | ≤0 时按皮肤的 fixed 值或 `EstimateSize()` 自适应 |
+| `offset_x` / `offset_y` | 优先于 align；必须落在 `[0, 控件尺寸)` 内才生效，否则回退到 align |
+| `halign` | `left` / `center` / `right`（默认 center） |
+| `valign` | `top` / `center` / `bottom`（默认 center） |
+| `fade` | 整体透明度 0-255 |
+| `auto_stop` | 动画播完自动停止（**仅当 `animation_control` 指向的控件存在时才生效**） |
+| `animation_control` | 动画控件名，用于取 `m_pAnimationControl` |
+
+**骨架屏（skeleton）：灰白占位块，结构已知时提前呈现版式。** 项目已有两套皮肤可直接用：
+- `bin/resources/themes/default/list_ctrl/loading_skeleton_list.xml`（12 行列表 + 工具栏占位）
+- `bin/resources/themes/default/list_ctrl/loading_skeleton_card.xml`（3 列 × 2 行卡片）
+
+**写骨架屏必须遵守的四条（都踩过坑）**：
+
+1. **根容器必须有不透明 `bkcolor`。** loading 层是**叠加绘制不是遮罩** —— `CreateBox` 建的独立 Box
+   不进控件树，靠 `Control::PaintLoading` → `AlphaPaint` 画在目标控件之上。不画底色，下方旧内容会透出来。
+2. **尺寸**：`width='0' height='0'` + 根容器 `height="stretch" width="stretch"` 即可铺满目标控件（含表头）。
+   机制是 `stretch` 既非 `IsAuto()` 也非 `IsInt32()` → 尺寸算成 0 → 被 clamp 补成控件全宽。
+3. **必须业务侧超时兜底。** 骨架屏是静态占位，没有"动画播完"的时刻，所以**不要设** `animation_control`
+   和 `auto_stop`，改为在 `kEventLoading` 里判 `pStatus->m_nElapsedTimeMs >= 5000` 后置 `m_bStopLoading = true`。
+   注意 `StartLoading(nIntervalMs, nMaxCount)` 的 `nMaxCount` 是**回调次数上限，不是超时时间**。
+4. **呼吸动画不能给根容器设 `SetAlpha`。** `SetAlpha` 作用于整个子树，根容器 `bkcolor` 是唯一遮罩，
+   alpha 一降就失效。正确做法：根容器固定 255，只遍历 `GetItemCount()` / `GetItemAt(i)` 给子控件设 alpha
+   （`Box` **没有** `GetChildCount()` / `GetChildAt()`）。
+
+**XML 两条额外注意**：
+- `valign` 只能填 `top`/`center`/`bottom`，`vcenter` 只在 `text_align` 里有效，填错 debug 版断言崩溃。
+- 同层级兄弟要么统一 `height="stretch"`，要么都别混用 `auto`，否则留白不对称。行间距用 margin。
+
+**最小可用代码**：
+
+```cpp
+pListCtrl->SetLoadingAttribute(_T("file='loading_skeleton_list.xml' width='0' height='0' "
+    _T("offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255'")));
+pListCtrl->AttachLoading([pListCtrl](const ui::EventArgs& args) {
+    ui::ControlLoadingStatus* pStatus = (ui::ControlLoadingStatus*)args.wParam;
+    if (pStatus == nullptr) { return false; }
+    if (pStatus->m_nElapsedTimeMs >= 5000) {   // 超时兜底
+        pStatus->m_bStopLoading = true;
+        return true;
+    }
+    ui::ControlPtrT<ui::Box> pRootBox = pStatus->m_pLoadingUiRootBox;
+    const uint8_t nAlpha = (uint8_t)(197.5 + 57.5 * std::sin(
+        (double)pStatus->m_nElapsedTimeMs / 1000.0 * 3.1415926));
+    for (size_t i = 0; i < pRootBox->GetItemCount(); ++i) {
+        ui::Control* pChild = pRootBox->GetItemAt(i);
+        if (pChild != nullptr) { pChild->SetAlpha(nAlpha); }
+    }
+    return true;
+});
+pListCtrl->StartLoading(33, -1);   // 33ms 心跳，-1 = 不靠次数停止
+```
+
+**其它必须知道的机制细节**：
+- `StopLoading()` 会 `m_pLoadingBox.reset()` **销毁 Box**，下次 `StartLoading` 重新解析 XML
+  → 皮肤 XML 必须每次能独立解析。
+- `Control::StartLoading` 内部会 `SetEnabled(false)`，`StopLoading` 才恢复。loading 卡死会导致控件
+  一直禁用、整片区域点不动，调试时务必留一个"无条件 `StopLoading()`"的兜底出口。
+- `AttachLoading*` 回调的 `wParam` 是**栈上的 `ControlLoadingStatus*`，当场用完即亡，不能存**。
+- **用 `animation_control` 做非循环动画**：`play_count='1' auto_play='false'` 的 json 当静态图集，
+  在 `kEventLoading` 里 `SetImageAnimationFrame(percent * frameCount / 100)` 手动刷帧 ——
+  `loading_progress1/2.xml` 的进度条就是这么做的，零框架改动。
+- `kEventLoading` 回调里**不要用 `IsLoading()` 短路 return false**（该事件是定时器驱动的，
+  结束后还会派发几次），只判 `args.wParam == nullptr`。
+
+完整章节见 [docs/Control.md](../../docs/Control.md#controlloading-与骨架屏)，
+演示见 `examples/ListCtrl` 的「骨架屏测试（列表）/（卡片）/ 停止Loading」三个按钮。
+
 
 ### 弱回调保护
 

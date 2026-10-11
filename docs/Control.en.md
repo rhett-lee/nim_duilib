@@ -118,6 +118,124 @@ English | [简体中文](Control.md)
 | row_span  | 1 | int | SetRowSpan  | Cell merging attribute, spanning how many rows (default 1 row), only takes effect in GridLayout |
 | col_span  | 1 | int | SetColumnSpan  | Cell merging attribute, spanning how many columns (default 1 column), only takes effect in GridLayout |
 
+## ControlLoading and Skeleton Screens
+
+Every control derives from `Control`, so all of them support the `loading` attribute plus the `StartLoading` / `StopLoading` interfaces, which can be used for loading placeholders over lists, tables and card areas.
+
+### How skeleton screens differ from other loading states
+
+| State | When to use | How to implement |
+| :--- | :--- | :--- |
+| Spinner | Layout structure unknown, or loading takes only a few hundred ms | `loading*.xml` + auto-playing json animation |
+| Progress-bar loading | Progress is computable (download, upload, batch tasks) | Static-frame json + `SetImageAnimationFrame` driven manually in `kEventLoading` |
+| **Skeleton screen** | Structure is known and the layout should be previewed up front | Grey placeholder blocks (see below); **the business side must implement a timeout fallback** |
+| Empty state | Loading finished but there is no data | A real control, not loading |
+| Error state | Loading failed | A real control plus a retry entry |
+
+### Four hard constraints for skeleton screens
+
+All four have been hit in practice; follow them when writing skeleton XML or code.
+
+**① The loading layer is painted on top, not used as a mask.**
+`ControlLoading` creates a standalone Box via `GlobalManager::CreateBox`. It is attached to the Window but is not part of the control tree, and is drawn above the target control through `Control::PaintLoading` → `AlphaPaint`. Therefore the **root container must have an opaque `bkcolor`**, otherwise the existing content underneath shows through.
+
+**② Size: use `width='0' height='0'` together with a `stretch` root container to fill the target control.**
+In `UpdateLoadingPos`, `stretch` is neither `IsAuto()` nor `IsInt32()`, so the computed size stays 0 and is then replaced by `if (nBoxWidth <= 0 || nBoxWidth > ctrlWidth) nBoxWidth = ctrlWidth`, i.e. the full control size — exactly the "fill the control including the header" effect, with no size calculation needed in C++. Use `auto` only when the size should follow the content (that path goes through `EstimateSize()`).
+
+**③ A skeleton screen has no "animation finished" moment, so the business side must time it out.**
+Spinners and progress bars can stop automatically via `auto_stop='true'`, but a skeleton is a static placeholder. So **do not set `animation_control` or `auto_stop`**; instead check the timeout inside `kEventLoading`:
+
+```cpp
+const uint64_t nTimeoutMs = 5000;
+if (pLoadingStatus->m_nElapsedTimeMs >= nTimeoutMs) {
+    pLoadingStatus->m_bStopLoading = true;
+}
+```
+
+Note that `nMaxCount` in `StartLoading(nIntervalMs, nMaxCount)` is a **callback count limit, not a timeout**; the only way to time out is to inspect `ControlLoadingStatus::m_nElapsedTimeMs`. A skeleton screen without a timeout fallback is worse than a spinner, because the user loses the certainty that loading is still in progress.
+
+**④ Do not call `SetAlpha` on the root container for the breathing animation.**
+`Control::SetAlpha` applies to the **entire subtree**, and the root container's `bkcolor` is the only thing masking the content below (see ①). As soon as alpha drops the mask fails and the old content shows through. Keep the root at 255 and only animate the placeholder children:
+
+```cpp
+// Keep the root opaque; only the placeholder blocks breathe
+const uint8_t nAlpha = (uint8_t)(197.5 + 57.5 * std::sin(fSeconds * 3.1415926));
+for (size_t i = 0; i < pLoadingUiRootBox->GetItemCount(); ++i) {
+    ui::Control* pChild = pLoadingUiRootBox->GetItemAt(i);
+    if (pChild != nullptr) {
+        pChild->SetAlpha(nAlpha);
+    }
+}
+```
+
+The child-control API on `Box` is `GetItemCount()` / `GetItemAt(i)` — there is **no** `GetChildCount()` / `GetChildAt()`. An alpha range of roughly 140~255 keeps the placeholders clearly readable. Changing a child's alpha does not trigger layout recalculation.
+
+### Two more XML gotchas
+
+- **`valign` only accepts `top` / `center` / `bottom`.** `vcenter` is only valid for the `text_align` attribute. An invalid value hits `else { ASSERT(0); }` at the end of `Control::SetAttribute`, which crashes debug builds outright. `halign` likewise only accepts `left` / `center` / `right`.
+- **Sibling nodes at the same level should uniformly use `height="stretch"`, or uniformly use `auto` — do not mix them.** Mixing causes one row to be stretched while another follows its content height, producing asymmetric whitespace. Use margin for row spacing (top row `margin="0,0,0,12"`, bottom row `margin="0,12,0,0"`).
+
+### Sample code
+
+Starting a skeleton screen from C++:
+
+```cpp
+const DString strSkin = _T("loading_skeleton_list.xml");
+const DString strLoading = _T("file='") + strSkin + _T("' width='0' height='0' "
+    _T("offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255'"));
+pListCtrl->SetLoadingAttribute(strLoading);   // returns bool — check for failure
+
+pListCtrl->AttachLoading([pListCtrl](const ui::EventArgs& args) {
+    ui::ControlLoadingStatus* pStatus = (ui::ControlLoadingStatus*)args.wParam;
+    if (pStatus == nullptr) {
+        return false;
+    }
+    if (pStatus->m_nElapsedTimeMs >= 5000) {   // timeout fallback
+        pStatus->m_bStopLoading = true;
+        return true;
+    }
+    ui::ControlPtrT<ui::Box> pRootBox = pStatus->m_pLoadingUiRootBox;
+    const uint8_t nAlpha = (uint8_t)(197.5 + 57.5 * std::sin(
+        (double)pStatus->m_nElapsedTimeMs / 1000.0 * 3.1415926));
+    for (size_t i = 0; i < pRootBox->GetItemCount(); ++i) {
+        ui::Control* pChild = pRootBox->GetItemAt(i);
+        if (pChild != nullptr) {
+            pChild->SetAlpha(nAlpha);
+        }
+    }
+    return true;
+});
+
+pListCtrl->StartLoading(33, -1);   // 33 ms heartbeat, -1 means "no count-based stop"
+```
+
+Skeleton XML skeleton (see `bin/resources/themes/default/list_ctrl/loading_skeleton_list.xml` for the full version):
+
+```xml
+<Loading>
+    <VBox height="stretch" width="stretch" bkcolor="bg_list" mousechild="false" padding="8,6,8,6">
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="180" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="110" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</Loading>
+```
+
+### Available skeleton skins
+
+Located under `bin/resources/themes/default/list_ctrl/`:
+
+- `loading_skeleton_list.xml` — list skeleton (toolbar placeholder + 12 rows)
+- `loading_skeleton_card.xml` — card skeleton (3 columns × 2 rows, each card = large image slot + title + subtitle)
+
+See the "Skeleton Test (List)", "Skeleton Test (Card)" and "Stop Loading" buttons in the `examples/ListCtrl` demo.
+
+**Note:** `StopLoading()` destroys the loading Box, and the next `StartLoading` re-parses the XML, so a skeleton skin must be independently parseable every time. Also, `Control::StartLoading` internally calls `SetEnabled(false)`; if loading gets stuck, the control stays disabled and the whole area becomes unclickable, so provide an unconditional "StopLoading" escape hatch while debugging.
+
 ## Attributes of ScrollBar
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
