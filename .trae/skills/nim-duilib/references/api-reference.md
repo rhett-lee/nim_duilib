@@ -476,7 +476,7 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 | animation_easing | EaseOutQuad | string | 动画缓动曲线，取值与 `EasingFunctionType` 枚举名完全一致（EaseLinear / EaseIn|Out|InOut{Sine,Quad,Cubic,Quart,Quint,Expo,Circ,Back,Elastic,Bounce}，共 31 条；首字母大小写均可，无法识别时按 EaseLinear 处理） |
 | marquee | false | bool | 滚动显示（不确定进度） |
 | marquee_width / marquee_step | | int | 滚动宽度 / 步长 |
-| reverse | false | bool | 倒数（从 max 到 min） |
+| reverse | false | bool | 反向填充：false 为 value=min 空 / value=max 满；true 则相反。min≠0 时也按比例正确换算 |
 
 **健壮性约定（已实现，勿重复实现）**：
 - `SetMinValue`/`SetMaxValue` 会自动调用 `ClampCurrentValue()`，把 `m_fCurrentValue`、动画中间值
@@ -484,6 +484,11 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
   不会出现"绘制时才钳位、成员值越界"的不一致。区间非法（min>max）时不改动。
 - `progress_radius` 同时作用于**纯色主进度、buffer 次级进度与 marquee 滚动块**（三者共用
   `DrawSolidProgressRect`），因此配了圆角后 marquee 不再是直角。
+- `ClampCurrentValue()` **不钳位未设置的 buffer**（值<= min 时保持原状），否则会把"未设置"污染成 min。
+  值被钳位时会**停止正在播放的动画**——动画终点是旧值，不停会把显示值重新推回越界区间。
+- `reverse` 必须**先归一化成比例再取反**（`ratio = (v-min)/(max-min)`，reverse 时 `1-ratio`），
+  **不要**用 `(max-min)-fValue` 翻转绝对值：min≠0 时会算出越界/负比例（Progress 与 CircleProgress 同此坑，已修）。
+- marquee 回绕周期 = 轨道长度 + 块宽，取模并处理负值；轨道长度 <= 0 时pos 复位为 0。
 
 C++ 接口：`SetValue/GetValue`、`SetMinValue/SetMaxValue`、`ClampCurrentValue`、`SetHorizontal`、`SetProgressColor`、`SetProgressRadius`、`SetBufferValue/SetBufferColor`、`SetShowPercent`、`SetAnimationEnabled/SetAnimationDuration`、`SetAnimationEasing(EasingFunctionType)`、`SetAnimationEasingName/GetAnimationEasingName`、`SetMarquee`、`SetReverse`、`SetTextFormatCallback`（自定义进度文本格式）。
 事件：`AttachValueChanged`（值变化）、`AttachProgressCompleted`（到达完成端点：正向 max / 倒数 min）。

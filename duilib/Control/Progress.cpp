@@ -1,5 +1,6 @@
 #include "Progress.h"
 #include "duilib/Core/GlobalManager.h"
+#include <algorithm>
 #include <cmath>
 
 namespace ui
@@ -160,8 +161,11 @@ void Progress::ClampCurrentValue()
     if (m_nMaxValue < m_nMinValue) {
         return;
     }
+    //buffer 未设置时为 -1（绘制条件要求 > min），此时不参与钳位判断，避免被当成越界值
+    const bool bBufferSet = (m_fBufferValue > m_nMinValue);
     if ((m_fCurrentValue >= m_nMinValue) && (m_fCurrentValue <= m_nMaxValue) &&
-        (m_fBufferValue <= m_nMaxValue) && (m_fDisplayValue >= m_nMinValue) && (m_fDisplayValue <= m_nMaxValue)) {
+        (!bBufferSet || (m_fBufferValue <= m_nMaxValue)) &&
+        (m_fDisplayValue >= m_nMinValue) && (m_fDisplayValue <= m_nMaxValue)) {
         return;
     }
 
@@ -172,13 +176,15 @@ void Progress::ClampCurrentValue()
     if (fNewValue < m_nMinValue) {
         fNewValue = m_nMinValue;
     }
-    //次级进度（buffer）同样钳位，它可能是未设置状态（<= min），此时不动
+    //次级进度（buffer）：仅在已设置时才钳位，保持"未设置"为负值的原有语义
     double fNewBuffer = m_fBufferValue;
-    if (fNewBuffer > m_nMaxValue) {
-        fNewBuffer = m_nMaxValue;
-    }
-    if (fNewBuffer < m_nMinValue) {
-        fNewBuffer = m_nMinValue;
+    if (bBufferSet) {
+        if (fNewBuffer > m_nMaxValue) {
+            fNewBuffer = m_nMaxValue;
+        }
+        if (fNewBuffer < m_nMinValue) {
+            fNewBuffer = m_nMinValue;
+        }
     }
     //显示值：动画播放中时同步收敛，避免动画结束后又跳回去
     double fNewDisplay = m_fDisplayValue;
@@ -195,9 +201,15 @@ void Progress::ClampCurrentValue()
     if (fNewBuffer != m_fBufferValue) {
         m_fBufferValue = fNewBuffer;
     }
+
     if (bValueClamped) {
         //值被外部区间变化钳位：同步百分比文本（动画中的显示值已随之收敛）
         UpdatePercentText();
+        //正在播放的动画其终点是钳位前的旧值，会把显示值重新推回越界区间，必须停止
+        if ((m_pAnimPlayer != nullptr) && m_pAnimPlayer->IsPlaying()) {
+            m_pAnimPlayer->SetCompleteCallback(nullptr);
+            m_pAnimPlayer->Stop();
+        }
     }
 }
 
@@ -431,18 +443,28 @@ UiRect Progress::CalcProgressRect(double value) const
     if (fValue < nMin) {
         fValue = nMin;
     }
-    if (IsReverse()) {
-        //逆向滚动条
-        fValue = (nMax - nMin) - fValue;
-    }
+    //reverse（倒数）在下方按比例取反实现；此处不再做 (nMax-nMin)-fValue 的绝对值翻转，
+    //那种写法在 min != 0 时会算出越界比例
 
     UiRect rc;
     if (IsHorizontal()) {
-        rc.right = static_cast<int>(std::ceil(static_cast<double>((fValue - nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(nMax - nMin)));
+        //归一化为比例后再按 reverse 取反：value=min 时进度为空、value=max 时为满格
+        double fRatio = (fValue - nMin) / static_cast<double>(nMax - nMin);
+        fRatio = std::clamp(fRatio, 0.0, 1.0);
+        if (IsReverse()) {
+            fRatio = 1.0 - fRatio;
+        }
+        rc.right = static_cast<int>(std::ceil(fRatio * (GetRect().right - GetRect().left)));
         rc.bottom = GetRect().bottom - GetRect().top;
     }
     else {
-        rc.top = static_cast<int>(std::ceil(static_cast<double>((nMax - fValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(nMax - nMin)));
+        double fRatio = (fValue - nMin) / static_cast<double>(nMax - nMin);
+        fRatio = std::clamp(fRatio, 0.0, 1.0);
+        if (IsReverse()) {
+            fRatio = 1.0 - fRatio;
+        }
+        //垂直进度条自下而上填充，top 由剩余高度决定
+        rc.top = static_cast<int>(std::ceil((1.0 - fRatio) * (GetRect().bottom - GetRect().top)));
         rc.bottom = GetRect().bottom - GetRect().top;
         rc.right = GetRect().right - GetRect().left;
     }
@@ -465,15 +487,20 @@ void Progress::Play()
     }
     m_nMarqueePos = m_nMarqueePos + GetMarqueeStep();
 
+    //轨道长度与滚动块宽度：轨道长 <= 0 时无可滚动空间，直接复位避免死循环累加
     ui::UiRect rc = GetRect();
-    if (IsHorizontal()) {
-        if (m_nMarqueePos > rc.right - rc.left) {
-            m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - GetMarqueeWidth();
-        }
+    const int32_t nTrackLen = IsHorizontal() ? (rc.right - rc.left) : (rc.bottom - rc.top);
+    if (nTrackLen <= 0) {
+        m_nMarqueePos = 0;
+        Invalidate();
+        return;
     }
-    else {
-        if (m_nMarqueePos > rc.bottom - rc.top) {
-            m_nMarqueePos = (m_nMarqueePos - (rc.bottom - rc.top) - GetMarqueeWidth());
+    //循环周期 = 轨道长 + 滚动块宽（块走完整个轨道后从头部重新出现）
+    const int32_t nCycle = nTrackLen + GetMarqueeWidth();
+    if (nCycle > 0) {
+        m_nMarqueePos = m_nMarqueePos % nCycle;
+        if (m_nMarqueePos < 0) {
+            m_nMarqueePos += nCycle;
         }
     }
 
