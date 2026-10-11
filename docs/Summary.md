@@ -211,9 +211,9 @@
 | Line | Control| [duilib/Control/Line.h](../duilib/Control/Line.h) | 画线控件 |
 | NavigationViewItem | Control| [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | NavigationView的导航项，支持item/header/separator三种形态 |
 | Menu | WindowImplBase| [duilib/Control/Menu.h](../duilib/Control/Menu.h) | 菜单，独立窗口 |
-| Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件 |
-| Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |
-| CircleProgress | Control| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条 |
+| Progress | Label| [duilib/Control/Progress.h](../duilib/Control/Progress.h) | 进度条控件（水平/垂直、浮点值、圆角、缓冲 buffer、百分比、值动画、marquee），详见[Control.md](Control.md#progress的属性) |
+| Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件（可拖动、步长、值变化事件） |
+| CircleProgress | Progress| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条（渐变、指示图标、逆时针、indeterminate 转圈） |
 | Chart | Control| [duilib/Control/Chart.h](../duilib/Control/Chart.h) | 轻量图表控件（折线/柱状/饼图自绘，支持数据绑定），详见[Control.md](Control.md#chart的属性) |
 | Timeline | Control| [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | 垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条），详见[Control.md](Control.md#timeline的属性) |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |

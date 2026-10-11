@@ -443,6 +443,7 @@ namespace ui
 
         kEventScrollPosChanged,     //ScrollBox类：当滚动条位置发生变化时触发
         kEventValueChanged,         //DateTime、Slider类、PropertyGridProperty：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值
+        kEventProgressCompleted,    //Progress类：当进度值到达完成端点（正向到max/倒数到min）时触发
         kEventPosChanged,           //Control类：当控件的位置发生变化时触发
         kEventSizeChanged,          //Control类：当控件的大小发生变化时触发
         kEventVisibleChanged,       //Control类：当控件的Visible属性发生变化时触发, WPARAM是新状态(1表示可见，0表示不可见)

@@ -40,7 +40,7 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventWindowClose          |0: normal close <br> 1: cancel close|     |     |     |       |     |     |
 |kEventSelect               |ListBox/Combo: <br>New selected index | ListBox/Combo: <br>Old selected index|     |     |       |     | Other classes have no parameters |
 |kEventUnSelect             |ListBox: <br>New selected index | ListBox:<br>Old selected index|     |     |       |     |  Other classes have no parameters   |
-|kEventChecked              |     |     |     |     |       |     | No parameters |
+|kEventCheck                |     |     |     |     |       |     | No parameters |
 |kEventUnCheck              |     |     |     |     |       |     | No parameters |
 |kEventTabSelect            |New selected index | Old selected index|     |     |    |     |    |
 |kEventExpand               |     |     |     |     |       |     | No parameters; fired after a Panel finishes expanding |
@@ -51,21 +51,24 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventNavigationSelectionChanged |New selected index | Old selected index |     |     |    |     | Fired when the NavigationView selection changes; Box::InvalidIndex when nothing is selected |
 |kEventNavigationPaneToggling |Target state:<br>1=collapsed, 0=expanded |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before the NavigationView pane collapses/expands; returning false from the handler cancels the toggle |
 |kEventNavigationPaneToggled |Current state:<br>1=collapsed, 0=expanded |     |     |     |    |     | Fired after the NavigationView pane has collapsed/expanded |
+|kEventTimelineItemClick  |Item index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when a Timeline node is clicked |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
 |kEventZoom                 | Scaling ratio numerator [0,64] | Scaling ratio denominator (0,64] |     |     |       |     | RichEdit: Ctrl + wheel: zoom function|
-|kEventTextChange           |     |     |     |     |       |     | No parameters |
-|kEventSelChange            |     |     |     |     |       |     | No parameters |
+|kEventTextChanged          |     |     |     |     |       |     | No parameters |
+|kEventSelChanged           |     |     |     |     |       |     | No parameters |
 |kEventReturn               |     |     |     |     |       |     | No parameters    |
 |kEventTab                  |     |     |     |     |       |     | No parameters   |
 |kEventLinkClick            | DString.c_str()<br> URL string    |     |     |     |       |     |     |
-|kEventScrollChange         | 0: cy unchanged<br> 1: cy changed   | 0: cx unchanged<br> 1: cx changed    |     |     |       |     |     |
-|kEventValueChange          |     |     |     |     |       |     | No parameters |
-|kEventResize               |     |     |     |     |       |     | No parameters |
-|kEventVisibleChange        |     |     |     |     |       |     | No parameters |
-|kEventStateChange          | New state | Old state   |     |     |       |     | ControlStateType |
+|kEventScrollPosChanged     | 0: cy unchanged<br> 1: cy changed   | 0: cx unchanged<br> 1: cx changed    |     |     |       |     |     |
+|kEventValueChanged         |New value | Old value |     |     |       |     | Slider: fired when the value changes |
+|kEventProgressCompleted    |     |     |     |     |       |     | Progress: fired once when the value reaches the completion endpoint (max forward, min countdown); no parameters |
+|kEventPosChanged           |     |     |     |     |       |     | No parameters |
+|kEventSizeChanged          |     |     |     |     |       |     | No parameters |
+|kEventVisibleChanged       |New state (1=visible, 0=invisible)|     |     |     |       |     | No parameters |
+|kEventStateChanged         | New state | Old state   |     |     |       |     | ControlStateType |
 |kEventSelectColor          | Selected color |     |     |     |       |     | newColor.GetARGB() |
 |kEventSplitDraged          | Control*: <br>First control interface| Control*:<br>Second control interface|     |     |       |     |  May be nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>Data entering edit state  |     |     |     |       |     |     |

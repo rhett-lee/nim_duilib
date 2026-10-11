@@ -74,6 +74,25 @@ void ProgressForm::OnInitWindow()
             return true;
             });
     }
+
+    //进度文本自定义格式演示：浮点进度条用自定义格式替代默认的"xx%"
+    if (pFloatProgress != nullptr) {
+        pFloatProgress->SetTextFormatCallback([](double value, double /*minValue*/, double /*maxValue*/) {
+            return ui::StringUtil::Printf(_T("%.2f / 1.00"), value);
+            });
+    }
+
+    //进度完成事件演示：定时器驱动的进度条每走满一次触发一次
+    ui::Progress* pLoopProgress = dynamic_cast<ui::Progress*>(FindControl(_T("progress11")));
+    if (pLoopProgress != nullptr) {
+        pLoopProgress->AttachProgressCompleted([this](const ui::EventArgs& /*args*/) {
+            ui::Label* pEventLabel = dynamic_cast<ui::Label*>(FindControl(_T("progress_event_text")));
+            if (pEventLabel != nullptr) {
+                pEventLabel->SetText(_T("Completed!"));
+            }
+            return true;
+            });
+    }
 }
 
 void ProgressForm::OnTimer()
@@ -85,6 +104,12 @@ void ProgressForm::OnTimer()
         if (pProgress != nullptr) {
             pProgress->SetValue(m_nProgressValue);
         }
+    }
+
+    //buffer 次级进度演示：进度条 12 的缓冲始终领先主进度 25
+    ui::Progress* pBufferProgress = dynamic_cast<ui::Progress*>(FindControl(_T("progress12")));
+    if (pBufferProgress != nullptr) {
+        pBufferProgress->SetBufferValue(m_nProgressValue + 25.0);
     }
 
     m_nProgressValue += 0.4;

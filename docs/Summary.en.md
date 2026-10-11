@@ -213,9 +213,9 @@ For detailed interface descriptions of each class, please refer to the associate
 | Line | Control | [duilib/Control/Line.h](../duilib/Control/Line.h) | Line drawing control |
 | NavigationViewItem | Control | [duilib/Control/NavigationView.h](../duilib/Control/NavigationView.h) | Navigation item of NavigationView; supports item/header/separator forms |
 | Menu | WindowImplBase | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | Menu, independent window |
-| Progress | Label | [duilib/Control/Progress.h](../duilib/Control/Progress.h) | Progress bar control |
-| Slider | Progress | [duilib/Control/Slider.h](../duilib/Control/Slider.h) | Slider control |
-| CircleProgress | Control | [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | Circular progress bar |
+| Progress | Label | [duilib/Control/Progress.h](../duilib/Control/Progress.h) | Progress bar control (horizontal/vertical, floating-point value, radius, buffer, percentage, value animation, marquee), see [Control.md](Control.md#attributes-of-progress) |
+| Slider | Progress | [duilib/Control/Slider.h](../duilib/Control/Slider.h) | Slider control (draggable, step, value-change event) |
+| CircleProgress | Progress | [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | Circular progress bar (gradient, indicator, counter-clockwise, indeterminate spinning) |
 | Chart | Control | [duilib/Control/Chart.h](../duilib/Control/Chart.h) | Lightweight chart control (self-drawn line/bar/pie charts with data binding), see [Control.md](Control.md#chart-attributes) |
 | Timeline | Control | [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | Vertical timeline control (nodes + connector lines + content, data-driven, status colors, forward/reverse, multi-language binding, scrollbar), see [Control.md](Control.md#timeline-attributes) |
 | RichEdit | ScrollBox | [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | Rich text edit box control |
