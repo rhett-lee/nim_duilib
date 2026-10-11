@@ -17,7 +17,7 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual UiRect GetProgressPos() override;
+    virtual UiRect GetProgressPos() const override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateImages(IRender* pRender) override;

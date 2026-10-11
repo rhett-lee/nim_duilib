@@ -1,0 +1,94 @@
+#include "ProgressForm.h"
+#include <cstdlib>
+
+ProgressForm::ProgressForm():
+    m_nProgressValue(0.0)
+{
+}
+
+ProgressForm::~ProgressForm()
+{
+}
+
+DString ProgressForm::GetSkinFolder()
+{
+    return _T("controls");
+}
+
+DString ProgressForm::GetSkinFile()
+{
+    return _T("progress.xml");
+}
+
+void ProgressForm::OnInitWindow()
+{
+    //启动一个定时器：统一驱动各进度控件递增演示
+    ui::GlobalManager::Instance().Thread().PostRepeatedTask(ui::kThreadUI,
+        ui::UiBind(this, [this]() {
+                OnTimer();
+            }),
+        100);
+
+    //随机设值按钮：给浮点进度条设置 0~1 随机值（触发值变化动画与事件）
+    ui::Button* pAnimateBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_progress_animate")));
+    if (pAnimateBtn != nullptr) {
+        pAnimateBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::Progress* pFloat = dynamic_cast<ui::Progress*>(FindControl(_T("progress_float")));
+            if (pFloat != nullptr) {
+                double v = static_cast<double>(std::rand() % 101) / 100.0;
+                pFloat->SetValue(v);
+            }
+            return true;
+            });
+    }
+
+    //切换转圈按钮：切换环形进度条的 indeterminate 状态
+    ui::Button* pIndetBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_progress_indet")));
+    if (pIndetBtn != nullptr) {
+        pIndetBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::CircleProgress* pIndet = dynamic_cast<ui::CircleProgress*>(FindControl(_T("circle_indeterminate")));
+            if (pIndet != nullptr) {
+                pIndet->SetIndeterminate(!pIndet->IsIndeterminate());
+            }
+            return true;
+            });
+    }
+
+    //值变化事件演示：浮点进度条挂载 AttachValueChanged
+    ui::Progress* pFloatProgress = dynamic_cast<ui::Progress*>(FindControl(_T("progress_float")));
+    if (pFloatProgress != nullptr) {
+        pFloatProgress->AttachValueChanged([this](const ui::EventArgs& args) {
+            ui::Label* pEventLabel = dynamic_cast<ui::Label*>(FindControl(_T("progress_event_text")));
+            if (pEventLabel != nullptr) {
+                //精确浮点值从发送者读取（wParam 为整数截断值）
+                double fValue = 0.0;
+                ui::Control* pSender = args.GetSender();
+                if (pSender != nullptr) {
+                    ui::Progress* pProgress = dynamic_cast<ui::Progress*>(pSender);
+                    if (pProgress != nullptr) {
+                        fValue = pProgress->GetValue();
+                    }
+                }
+                pEventLabel->SetText(ui::StringUtil::Printf(_T("Event: %.2f"), fValue));
+            }
+            return true;
+            });
+    }
+}
+
+void ProgressForm::OnTimer()
+{
+    std::vector<DString> controlList = {_T("progress11"), _T("progress12"), _T("progress13"), _T("progress14"),
+                                        _T("progress21"), _T("progress22"), _T("progress23"), _T("progress24") };
+    for (const DString& name : controlList) {
+        ui::Progress* pProgress = dynamic_cast<ui::Progress*>(FindControl(name));
+        if (pProgress != nullptr) {
+            pProgress->SetValue(m_nProgressValue);
+        }
+    }
+
+    m_nProgressValue += 0.4;
+    if (m_nProgressValue > 100.0) {
+        m_nProgressValue = 0.0;
+    }
+}

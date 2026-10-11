@@ -12,7 +12,9 @@ CircleProgress::CircleProgress(Window* pWindow) :
     m_dwBackgroundColor(0),
     m_dwForegroundColor(0),
     m_dwGradientColor(0),
-    m_pIndicatorImage(nullptr)
+    m_pIndicatorImage(nullptr),
+    m_bIndeterminate(false),
+    m_fIndeterminateAngle(0.0f)
 {
 }
 
@@ -43,13 +45,16 @@ void CircleProgress::SetAttribute(const DString& srName, const DString& strValue
         SetClockwiseRotation(StringUtil::IsValueTrue(strValue));
     }
     else if (srName == _T("bgcolor")) {
-        SetBackgroudColor(strValue);
+        SetBackgroundColor(strValue);
     }
     else if (srName == _T("fgcolor")) {
-        SetForegroudColor(strValue);
+        SetForegroundColor(strValue);
     }
     else if ((srName == _T("gradient_color")) || (srName == _T("gradientcolor"))) {
         SetCircleGradientColor(strValue);
+    }
+    else if ((srName == _T("indeterminate"))) {
+        SetIndeterminate(StringUtil::IsValueTrue(strValue));
     }
     else {
         Progress::SetAttribute(srName, strValue);
@@ -80,7 +85,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 
     int32_t nMax = GetMaxValue();
     int32_t nMin = GetMinValue();
-    double fValue = GetValue();
+    double fValue = GetDisplayValue();
 
     if (nMax <= nMin) {
         nMax = nMin + 1;
@@ -152,25 +157,33 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     int inflateValue = Dpi().GetScaleInt(-1);
     outer.Inflate(inflateValue, inflateValue);
 
+    //弧的起始角与扫过角：indeterminate 时为持续旋转的固定弧，否则按进度值
+    float fStartAngle = 270.0f;
+    float fSweepAngle;
+    if (m_bIndeterminate) {
+        fStartAngle = 270.0f + m_fIndeterminateAngle;
+        fSweepAngle = 90.0f;
+    }
+    else {
+        fSweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
+    }
+
     if (m_dwGradientColor.GetARGB() == 0) {
         //不使用渐变色，直接用前景色铺满
         pRender->DrawArc(outer, 270, 360, false, bgPen);
-
-        float sweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
-        pRender->DrawArc(outer, 270, sweepAngle, false, fgPen);
+        pRender->DrawArc(outer, fStartAngle, fSweepAngle, false, fgPen);
     }
     else {
         //使用渐变色
         pRender->DrawArc(outer, 270, 360, false, bgPen);
-
-        float sweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
-        pRender->DrawArc(outer, 270, sweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
+        pRender->DrawArc(outer, fStartAngle, fSweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
     }
     
     if (pIndicatorImageInfo != nullptr) {
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
         if ((spMatrix != nullptr) && ((nMax - nMin) != 0)){
-            float angle = direction * 360 * ((float)fValue - nMin) / (nMax - nMin);
+            float angle = m_bIndeterminate ? m_fIndeterminateAngle
+                                           : (direction * 360 * ((float)fValue - nMin) / (nMax - nMin));
 
             const UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
             spMatrix->RotateAt(angle, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
@@ -226,17 +239,15 @@ float CircleProgress::GetCircleWidth() const
     return m_fCircleWidth;
 }
 
-void CircleProgress::SetBackgroudColor(const DString& strColor)
+void CircleProgress::SetBackgroundColor(const DString& strColor)
 {
     m_dwBackgroundColor = GetUiColor(strColor);
-    ASSERT(m_dwBackgroundColor.GetARGB() != 0);
     Invalidate();
 }
 
-void CircleProgress::SetForegroudColor(const DString& strColor)
+void CircleProgress::SetForegroundColor(const DString& strColor)
 {
     m_dwForegroundColor = GetUiColor(strColor);
-    ASSERT(m_dwForegroundColor.GetARGB() != 0);
     Invalidate();
 }
 
@@ -255,7 +266,36 @@ void CircleProgress::SetIndicator(const DString& sIndicatorImage)
 void CircleProgress::SetCircleGradientColor(const DString& strColor)
 {
     m_dwGradientColor = GetUiColor(strColor);
-    ASSERT(m_dwGradientColor.GetARGB() != 0);
+    Invalidate();
+}
+
+void CircleProgress::SetIndeterminate(bool bIndeterminate)
+{
+    if (m_bIndeterminate == bIndeterminate) {
+        return;
+    }
+    m_bIndeterminate = bIndeterminate;
+    m_fIndeterminateAngle = 0.0f;
+    if (m_bIndeterminate) {
+        auto timerCallback = UiBind(&CircleProgress::OnIndeterminateTimer, this);
+        GlobalManager::Instance().Timer().AddTimer(m_indeterminateTimer.GetWeakFlag(), timerCallback, 16);
+    }
+    else {
+        m_indeterminateTimer.Cancel();
+    }
+    Invalidate();
+}
+
+void CircleProgress::OnIndeterminateTimer()
+{
+    if (!m_bIndeterminate || !IsVisible()) {
+        return;
+    }
+    //每 16ms 旋转 6°，约 0.96s 转一圈
+    m_fIndeterminateAngle += 6.0f;
+    if (m_fIndeterminateAngle >= 360.0f) {
+        m_fIndeterminateAngle -= 360.0f;
+    }
     Invalidate();
 }
 

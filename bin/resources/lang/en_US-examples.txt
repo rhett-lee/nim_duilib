@@ -545,6 +545,14 @@ STRID_TIMELINE_T_CONTENT_1 = Task started.
 STRID_TIMELINE_T_CONTENT_2 = Core logic running.
 STRID_TIMELINE_T_CONTENT_3 = Waiting for upstream data.
 STRID_TIMELINE_T_CONTENT_4 = Task completed and archived.
+# controls/Progress
+STRID_PROGRESS_WINDOW_TITLE = Progress Control Test
+STRID_PROGRESS_BTN_ANIMATE = Animate
+STRID_PROGRESS_BTN_SPIN = Toggle Spin
+STRID_PROGRESS_EVENT_NONE = Event: none
+STRID_PROGRESS_CARD_HORIZ = Horizontal (image / radius+percent / float+animation / slider / marquee)
+STRID_PROGRESS_CARD_VERT = Vertical
+STRID_PROGRESS_CARD_CIRCLE = Circular (gradient / CCW / indeterminate)
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee Control Test
 STRID_MARQUEE_HINT = Hint: hover over a marquee to pause scrolling

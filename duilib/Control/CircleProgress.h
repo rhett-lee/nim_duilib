@@ -55,14 +55,14 @@ public:
     /** 设置进度条背景颜色
     * @param [in] strColor要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
     */
-    void SetBackgroudColor(const DString& strColor);
+    void SetBackgroundColor(const DString& strColor);
 
     /** 设置进度条前景颜色
     * @param [in] strColor要设置的前景颜色字符串，该字符串必须在 global.xml 中存在
     */
-    void SetForegroudColor(const DString& strColor);
+    void SetForegroundColor(const DString& strColor);
 
-    /** 设置进度条前景渐变颜色，与 SetForegroudColor 同时使用，可以不设置,则无渐变效果
+    /** 设置进度条前景渐变颜色，与 SetForegroundColor 同时使用，可以不设置,则无渐变效果
     * @param [in] strColor要设置的前景渐变颜色字符串，该字符串必须在 global.xml 中存在
     */
     void SetCircleGradientColor(const DString& strColor);
@@ -72,6 +72,20 @@ public:
     */
     void SetIndicator(const DString& sIndicatorImage);
 
+    /** 设置是否为不确定进度（indeterminate，忽略 value，圆环一段弧持续旋转）
+    * @param [in] bIndeterminate 为 true 时启用不确定进度模式
+    */
+    void SetIndeterminate(bool bIndeterminate);
+
+    /** 获取是否为不确定进度
+    */
+    bool IsIndeterminate() const { return m_bIndeterminate; }
+
+private:
+    /** 不确定进度定时回调（旋转弧）
+    */
+    void OnIndeterminateTimer();
+
 protected:
     bool m_bCircular;
     bool m_bClockwise;
@@ -80,6 +94,18 @@ protected:
     UiColor m_dwForegroundColor;
     UiColor m_dwGradientColor;
     Image* m_pIndicatorImage;
+
+    /** 是否不确定进度
+    */
+    bool m_bIndeterminate;
+
+    /** 不确定进度的当前旋转角度（度）
+    */
+    float m_fIndeterminateAngle;
+
+    /** 不确定进度定时器取消机制
+    */
+    WeakCallbackFlag m_indeterminateTimer;
 };
 
 } // namespace ui

@@ -1,5 +1,6 @@
 #include "Progress.h"
 #include "duilib/Core/GlobalManager.h"
+#include <cmath>
 
 namespace ui
 {
@@ -19,9 +20,15 @@ Progress::Progress(Window* pWindow) :
     m_nMarqueeStep(0),
     m_nMarqueeElapsed(50), // for 1s 25fps,will use 20fps default
     m_nMarqueePos(0),
+    m_fDisplayValue(0),
+    m_bAnimationEnabled(false),
+    m_nAnimationDuration(300),
+    m_pAnimPlayer(nullptr),
+    m_bShowPercent(false),
+    m_nProgressRadius(0),
     m_bReverse(false)
 {
-    SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER, false);
+    SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER | TEXT_VCENTER, false);
     SetFixedHeight(UiFixedInt(12), true, true);
     SetMarqueeWidth(10, true);
     SetMarqueeStep(4, true);
@@ -50,7 +57,7 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue2)
         SetMaxValue(StringUtil::StringToInt32(strValue));
     }
     else if (srName == _T("value")) {
-        SetValue(StringUtil::StringToInt32(strValue));
+        SetValue(StringUtil::StringToDouble(strValue));
     }
     else if ((srName == _T("progress_image")) || (srName == _T("progressimage"))) {
         SetProgressImage(strValue);
@@ -60,6 +67,18 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue2)
     }
     else if ((srName == _T("progress_color")) || (srName == _T("progresscolor"))) {
         SetProgressColor(strValue);
+    }
+    else if ((srName == _T("progress_radius")) || (srName == _T("progressradius"))) {
+        SetProgressRadius(StringUtil::StringToInt32(strValue));
+    }
+    else if ((srName == _T("show_percent")) || (srName == _T("showpercent"))) {
+        SetShowPercent(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((srName == _T("animation_enabled")) || (srName == _T("animationenabled"))) {
+        SetAnimationEnabled(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((srName == _T("animation_duration")) || (srName == _T("animationduration"))) {
+        SetAnimationDuration(StringUtil::StringToInt32(strValue));
     }
     else if (srName == _T("marquee")) {
         SetMarquee(StringUtil::IsValueTrue(strValue));
@@ -124,16 +143,29 @@ double Progress::GetValue() const
 
 void Progress::SetValue(double fValue)
 {
+    if (fValue > m_nMaxValue) {
+        fValue = m_nMaxValue;
+    }
+    if (fValue < m_nMinValue) {
+        fValue = m_nMinValue;
+    }
     if (fValue == m_fCurrentValue) {
         return;
     }
+    const double fOldValue = m_fCurrentValue;
     m_fCurrentValue = fValue;
-    if (m_fCurrentValue > m_nMaxValue) {
-        m_fCurrentValue = m_nMaxValue;
+
+    //值变化动画（未初始化或动画关闭时直接到位）
+    if (m_bAnimationEnabled && IsInited() && (m_nAnimationDuration > 0)) {
+        StartValueAnimation(m_fDisplayValue, fValue);
     }
-    if (m_fCurrentValue < m_nMinValue) {
-        m_fCurrentValue = m_nMinValue;
+    else {
+        m_fDisplayValue = fValue;
+        UpdatePercentText();
     }
+
+    //发送值变化事件
+    SendValueChangedEvent(fValue, fOldValue);
     Invalidate();
 }
 
@@ -175,7 +207,7 @@ DString Progress::GetProgressColor() const
 
 void Progress::SetProgressColor(const DString& strProgressColor)
 {
-    ASSERT(strProgressColor.empty() || HasUiColor(strProgressColor));
+    //不校验颜色是否存在，绘制时若解析不到有效颜色则跳过（宽松处理，避免断言崩溃）
     if (m_sProgressColor == strProgressColor) {
         return;
     }
@@ -221,7 +253,24 @@ void Progress::PaintStateImages(IRender* pRender)
             else {
                 rcProgressColor.top = rcProgressColor.top + rc.top;
             }
-            pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor);
+            if (rcProgressColor.IsEmpty()) {
+                return;
+            }
+            //圆角填充（progress_radius 配置，默认 0 为直角）
+            int32_t nRadius = Dpi().GetScaleInt(m_nProgressRadius);
+            if (nRadius > 0) {
+                int32_t nMaxRadius = std::min(rcProgressColor.Width(), rcProgressColor.Height()) / 2;
+                nRadius = std::min(nRadius, nMaxRadius);
+                if (nRadius > 0) {
+                    pRender->FillRoundRect(UiRectF::MakeFromRect(rcProgressColor), static_cast<float>(nRadius), static_cast<float>(nRadius), dwProgressColor, GetAlpha());
+                }
+                else {
+                    pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor, GetAlpha());
+                }
+            }
+            else {
+                pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor, GetAlpha());
+            }
         }
     }
     if (rc.IsEmpty() || (m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
@@ -277,11 +326,11 @@ void Progress::PaintStateImages(IRender* pRender)
     PaintImage(pRender, m_pProgressImage, m_sProgressImageModify.c_str());
 }
 
-UiRect Progress::GetProgressPos()
+UiRect Progress::GetProgressPos() const
 {
     int32_t nMax = GetMaxValue();
     int32_t nMin = GetMinValue();
-    double fValue = GetValue();
+    double fValue = GetDisplayValue();
 
     if (nMax <= nMin) {
         nMax = nMin + 1;
@@ -454,6 +503,112 @@ void Progress::SetReverse(bool bReverse)
 bool Progress::IsReverse() const
 {
     return m_bReverse;
+}
+
+void Progress::SetShowPercent(bool bShowPercent)
+{
+    if (m_bShowPercent != bShowPercent) {
+        m_bShowPercent = bShowPercent;
+        if (m_bShowPercent) {
+            UpdatePercentText();
+        }
+        Invalidate();
+    }
+}
+
+void Progress::SetAnimationEnabled(bool bEnabled)
+{
+    m_bAnimationEnabled = bEnabled;
+    if (!bEnabled) {
+        //关闭动画：停止旧动画并直接到位
+        if ((m_pAnimPlayer != nullptr) && m_pAnimPlayer->IsPlaying()) {
+            m_pAnimPlayer->SetCompleteCallback(nullptr);
+            m_pAnimPlayer->Stop();
+        }
+        m_pAnimPlayer.reset();
+        m_fDisplayValue = m_fCurrentValue;
+    }
+}
+
+void Progress::SetAnimationDuration(int32_t nMs)
+{
+    if (nMs < 0) {
+        nMs = 0;
+    }
+    m_nAnimationDuration = nMs;
+}
+
+void Progress::SetProgressRadius(int32_t nRadius)
+{
+    if (nRadius < 0) {
+        nRadius = 0;
+    }
+    if (m_nProgressRadius != nRadius) {
+        m_nProgressRadius = nRadius;
+        Invalidate();
+    }
+}
+
+void Progress::SendValueChangedEvent(double newValue, double oldValue)
+{
+    //值按整数截断传递（与 Slider 一致）；精确浮点值可从 GetValue() 读取
+    SendEvent(kEventValueChanged, (WPARAM)newValue, (LPARAM)oldValue);
+}
+
+void Progress::UpdatePercentText()
+{
+    if (!m_bShowPercent) {
+        return;
+    }
+    int32_t nMin = m_nMinValue;
+    int32_t nMax = m_nMaxValue;
+    if (nMax <= nMin) {
+        nMax = nMin + 1;
+    }
+    double fPercent = (GetDisplayValue() - nMin) / static_cast<double>(nMax - nMin) * 100.0;
+    if (fPercent < 0.0) {
+        fPercent = 0.0;
+    }
+    if (fPercent > 100.0) {
+        fPercent = 100.0;
+    }
+    int32_t nPercent = static_cast<int32_t>(std::lround(fPercent));
+    SetText(StringUtil::Printf(_T("%d%%"), nPercent));
+}
+
+void Progress::StartValueAnimation(double fFrom, double fTo)
+{
+    //停止旧动画
+    if ((m_pAnimPlayer != nullptr) && m_pAnimPlayer->IsPlaying()) {
+        m_pAnimPlayer->SetCompleteCallback(nullptr);
+        m_pAnimPlayer->Stop();
+    }
+    m_pAnimPlayer.reset(new AnimationPlayer);
+    m_pAnimPlayer->SetAnimationType(AnimationType::kAnimationNone);
+    m_pAnimPlayer->SetTotalMillSeconds(m_nAnimationDuration);
+    m_pAnimPlayer->SetFrameIntervalMillSeconds(16);
+    m_pAnimPlayer->SetEasingFunctionType(EaseOutQuad);
+    m_pAnimPlayer->SetStartValue(0);
+    m_pAnimPlayer->SetEndValue(1000);
+
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+    m_pAnimPlayer->SetPlayCallback([this, weakFlag, fFrom, fTo](int32_t nValue) {
+        if (weakFlag.expired()) {
+            return;
+        }
+        m_fDisplayValue = fFrom + (fTo - fFrom) * static_cast<double>(nValue) / 1000.0;
+        UpdatePercentText();
+        Invalidate();
+    });
+    m_pAnimPlayer->SetCompleteCallback([this, weakFlag, fTo]() {
+        if (weakFlag.expired()) {
+            return;
+        }
+        m_fDisplayValue = fTo;
+        UpdatePercentText();
+        Invalidate();
+    });
+    m_pAnimPlayer->Start();
 }
 
 }

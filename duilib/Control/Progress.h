@@ -3,6 +3,7 @@
 
 #include "duilib/Control/Label.h"
 #include "duilib/Image/Image.h"
+#include "duilib/Animation/AnimationPlayer.h"
 
 namespace ui
 {
@@ -101,7 +102,50 @@ public:
     /** 获取进度条位置
     * @return 返回进度条区域坐标（以GetRect()为整个区域的相对坐标，左上角为<0,0>）
     */
-    virtual UiRect GetProgressPos();
+    virtual UiRect GetProgressPos() const;
+
+    /** 获取当前显示值（值动画播放期间为插值中的中间值，其余时候等于 GetValue()）
+    * @return 返回当前用于绘制的进度值
+    */
+    double GetDisplayValue() const { return m_fDisplayValue; }
+
+    /** 监听进度值改变事件
+    * @param [in] callback 进度值改变后调用的回调函数（EventArgs::wParam 为新值、lParam 为旧值，均按整数截断）
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    */
+    void AttachValueChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
+
+    /** 设置是否自动显示百分比文本（覆盖控件 text，进度变化时自动更新为"xx%"）
+    */
+    void SetShowPercent(bool bShowPercent);
+
+    /** 获取是否自动显示百分比文本
+    */
+    bool IsShowPercent() const { return m_bShowPercent; }
+
+    /** 设置是否启用值变化动画（默认关闭）
+    */
+    void SetAnimationEnabled(bool bEnabled);
+
+    /** 获取是否启用值变化动画
+    */
+    bool IsAnimationEnabled() const { return m_bAnimationEnabled; }
+
+    /** 设置值变化动画时长（毫秒，默认 300）
+    */
+    void SetAnimationDuration(int32_t nMs);
+
+    /** 获取值变化动画时长
+    */
+    int32_t GetAnimationDuration() const { return m_nAnimationDuration; }
+
+    /** 设置纯色前景的圆角半径（像素，自动 DPI 缩放，默认 0 为直角）
+    */
+    void SetProgressRadius(int32_t nRadius);
+
+    /** 获取纯色前景的圆角半径
+    */
+    int32_t GetProgressRadius() const { return m_nProgressRadius; }
 
     /** 播放Marquee
      */
@@ -153,6 +197,21 @@ public:
     bool IsReverse() const;
 
 private:
+    /** 发送进度值改变事件
+    * @param newValue 新值
+    * @param oldValue 旧值
+    */
+    void SendValueChangedEvent(double newValue, double oldValue);
+
+    /** 更新百分比显示文本（show_percent 开启时）
+    */
+    void UpdatePercentText();
+
+    /** 启动值变化动画（从 fFrom 缓动到 fTo）
+    */
+    void StartValueAnimation(double fFrom, double fTo);
+
+private:
     //进度条是水平或垂直: true为水平，false为垂直
     bool m_bHorizontal;
 
@@ -183,6 +242,24 @@ private:
     int32_t m_nMarqueeStep;
     int32_t m_nMarqueeElapsed;
     int32_t m_nMarqueePos;
+
+    //值变化动画的显示值（动画插值中的中间值）
+    double m_fDisplayValue;
+
+    //是否启用值变化动画
+    bool m_bAnimationEnabled;
+
+    //值变化动画时长（毫秒）
+    int32_t m_nAnimationDuration;
+
+    //值变化动画播放器
+    std::unique_ptr<AnimationPlayer> m_pAnimPlayer;
+
+    //是否自动显示百分比文本
+    bool m_bShowPercent;
+
+    //纯色前景的圆角半径（DPI 缩放前原始值）
+    int32_t m_nProgressRadius;
 
 private:
     //是否倒数（进度从100 到 0）

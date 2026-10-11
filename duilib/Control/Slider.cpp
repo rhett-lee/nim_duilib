@@ -18,7 +18,7 @@ Slider::Slider(Window* pWindow) :
 
 DString Slider::GetType() const { return DUI_CTR_SLIDER; }
 
-UiRect Slider::GetProgressPos()
+UiRect Slider::GetProgressPos() const
 {
     int32_t nMax = GetMaxValue();
     int32_t nMin = GetMinValue();
@@ -78,7 +78,6 @@ void Slider::HandleEvent(const EventArgs& msg)
     }
     if (msg.eventType == kEventMouseButtonUp) {
         UiSize szThumb = GetThumbSize();
-        const double oldValue = GetValue();
         if(IsMouseFocused()) {
             SetMouseFocused(false);
         }
@@ -112,27 +111,16 @@ void Slider::HandleEvent(const EventArgs& msg)
                 SetValue(newValue);
             }
         }
-        if (GetValue() != oldValue) {
-            SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
-            Invalidate();
-        }
         return;
     }
     if (msg.eventType == kEventMouseWheel) {
-        const double oldValue = GetValue();
         int32_t detaValue = msg.eventData;
         if (detaValue > 0) {
             SetValue(GetValue() + GetChangeStep());
-            if (GetValue() != oldValue) {
-                SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
-            }            
             return;
         }
         else {
             SetValue(GetValue() - GetChangeStep());
-            if (GetValue() != oldValue) {
-                SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
-            }
             return;
         }
     }
@@ -143,7 +131,6 @@ void Slider::HandleEvent(const EventArgs& msg)
         if (IsMouseFocused()) {
             UiPoint ptMouse(msg.ptMouse);
             ptMouse.Offset(GetScrollOffsetInScrollBox());
-            const double oldValue = GetValue();
             if (IsHorizontal()) {
                 if (ptMouse.x >= GetRect().right - szThumb.cx / 2) {
                     SetValue(nMax);
@@ -167,10 +154,6 @@ void Slider::HandleEvent(const EventArgs& msg)
                     double newValue = nMin + double((nMax - nMin) * (GetRect().bottom - ptMouse.y - szThumb.cy / 2)) / (GetRect().bottom - GetRect().top - szThumb.cy);
                     SetValue(newValue);
                 }
-            }
-            if (GetValue() != oldValue) {
-                SendEvent(kEventValueChanged, (WPARAM)GetValue(), (LPARAM)oldValue);
-                Invalidate();
             }
         }
         return;

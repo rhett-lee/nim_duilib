@@ -530,16 +530,28 @@ The Menu control inherits the `Window` attributes. For more available attributes
 | horizontal | true | bool | Whether horizontal; "true" means horizontal, "false" means vertical |
 | min | 0 | int | Minimum progress value, e.g. "0" |
 | max | 100 | int | Maximum progress value, e.g. "100" |
-| value | 0 | int | Progress value, e.g. "50" |
+| value | 0 | double | Progress value (supports floating point), e.g. "50" or "0.5" |
 | progress_image |  | string | Foreground image of the progress bar |
 | stretch_fore_image | true | bool | Specify whether the progress bar foreground image is scaled for display |
-| progress_color |  | string | Foreground color of the progress bar; if not specified, the default color is used, e.g. "blue" |
-| marquee | true | bool | Whether to scroll/marquee display |
+| progress_color |  | string | Foreground color of the progress bar (semantic color name or value), e.g. "bg_progress" |
+| progress_radius | 0 | int | Corner radius of the solid-color foreground (px, auto DPI-scaled, 0 = square) |
+| show_percent | false | bool | Whether to auto-display the percentage text (overrides the control text) |
+| animation_enabled | false | bool | Whether to enable value-change animation (default off) |
+| animation_duration | 300 | int | Value-change animation duration (ms) |
+| marquee | false | bool | Whether to scroll/marquee display |
 | marquee_width | | int | Marquee width |
 | marquee_step | | int | Marquee step |
 | reverse | false | bool | Whether the progress value counts down (progress from 100 to 0) |
 
 The Progress control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
+
+Notes:
+- `value` supports floating-point values (XML parsed as double; `SetValue(double)` likewise), suitable for 0~1 range scenarios such as download progress or volume.
+- Use either `progress_color` or `progress_image` as the foreground; the solid-color foreground can be rounded via `progress_radius`. The track background uses `bkcolor` (a common Control attribute).
+- With `show_percent` enabled, the control text is auto-updated to "xx%" (following the value-change animation).
+- With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (`EaseOutQuad`, duration `animation_duration`); Slider drags are instant and normally do not need this.
+- Value-change event: `AttachValueChanged` (`EventArgs::wParam` = new value, `lParam` = old value, both truncated to integer; read the exact floating-point value via `GetValue()`).
+- Recommended semantic colors: foreground `bg_progress`, track `bg_progress_track` (auto-switch with light/dark theme).
 
 ## Attributes of Slider
 | Attribute name | Default value | Parameter type | Purpose |
@@ -564,6 +576,7 @@ The Slider control inherits the `Progress` attributes. For more available attrib
 | bgcolor |  | string | Set the progress bar background color |
 | fgcolor |  | string | Set the progress bar foreground color |
 | gradient_color |  | string | Set the progress bar foreground gradient color; used together with fgcolor; if not set, there is no gradient effect |
+| indeterminate | false | bool | Whether it is an indeterminate progress (ignores value, a segment of arc keeps rotating) |
 
 The CircleProgress control inherits the `Progress` attributes. For more available attributes, please refer to the `Progress` attributes.
 

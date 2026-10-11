@@ -550,6 +550,14 @@ STRID_TIMELINE_T_CONTENT_1 = 任务已启动。
 STRID_TIMELINE_T_CONTENT_2 = 核心逻辑执行中。
 STRID_TIMELINE_T_CONTENT_3 = 等待上游数据。
 STRID_TIMELINE_T_CONTENT_4 = 任务完成并归档。
+# controls/Progress
+STRID_PROGRESS_WINDOW_TITLE = Progress 进度条控件测试
+STRID_PROGRESS_BTN_ANIMATE = 随机设值
+STRID_PROGRESS_BTN_SPIN = 切换转圈
+STRID_PROGRESS_EVENT_NONE = 事件：无
+STRID_PROGRESS_CARD_HORIZ = 水平进度条（图片前景 · 圆角百分比 · 浮点动画 · 滑块 · marquee）
+STRID_PROGRESS_CARD_VERT = 垂直进度条
+STRID_PROGRESS_CARD_CIRCLE = 环形进度条（渐变 · 逆时针 · 转圈）
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee 跑马灯控件测试
 STRID_MARQUEE_HINT = 提示：鼠标悬停到跑马灯上会暂停滚动（hover_pause）
