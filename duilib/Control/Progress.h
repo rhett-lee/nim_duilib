@@ -149,6 +149,25 @@ public:
     */
     int32_t GetAnimationDuration() const { return m_nAnimationDuration; }
 
+    /** 设置值变化动画的缓动曲线（默认 EaseOutQuad）
+    * @param [in] easing 缓动函数类型，取值见 enum EasingFunctionType
+    */
+    void SetAnimationEasing(EasingFunctionType easing);
+
+    /** 获取值变化动画的缓动曲线
+    */
+    EasingFunctionType GetAnimationEasing() const { return m_easingAnimation; }
+
+    /** 设置值变化动画的缓动曲线（字符串方式，字符串名称与 EasingFunctionType 枚举名完全一致）
+    * @param [in] strEasing 缓动函数名，如 "EaseOutQuad"、"EaseLinear"、"EaseOutElastic"；
+    *                       空字符串或无法识别时回退为默认的 EaseOutQuad
+    */
+    void SetAnimationEasingName(const DString& strEasing);
+
+    /** 获取值变化动画的缓动曲线名称（与 EasingFunctionType 枚举名一致）
+    */
+    const DString& GetAnimationEasingName() const { return m_strAnimationEasing; }
+
     /** 设置纯色前景的圆角半径（像素，自动 DPI 缩放，默认 0 为直角）
     */
     void SetProgressRadius(int32_t nRadius);
@@ -156,6 +175,10 @@ public:
     /** 获取纯色前景的圆角半径
     */
     int32_t GetProgressRadius() const { return m_nProgressRadius; }
+
+    /** 立即把当前值钳位到新的 [min, max] 区间内（min/max 变化时自动调用）
+    */
+    void ClampCurrentValue();
 
     /** 设置次级进度值（缓冲/buffer，通常比主进度略靠前，如视频已缓存位置）
     * @param [in] fValue 次级进度值，小于等于 min 时不绘制；默认 -1 表示未设置
@@ -305,6 +328,12 @@ private:
 
     //值变化动画时长（毫秒）
     int32_t m_nAnimationDuration;
+
+    //值变化动画的缓动曲线（默认 EaseOutQuad）
+    EasingFunctionType m_easingAnimation;
+
+    //值变化动画的缓动曲线名称（与 EasingFunctionType 枚举名一致，供 XML 往返与日志使用）
+    DString m_strAnimationEasing;
 
     //值变化动画播放器
     std::unique_ptr<AnimationPlayer> m_pAnimPlayer;

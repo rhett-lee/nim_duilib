@@ -23,6 +23,8 @@ Progress::Progress(Window* pWindow) :
     m_fDisplayValue(0),
     m_bAnimationEnabled(false),
     m_nAnimationDuration(300),
+    m_easingAnimation(EaseOutQuad),
+    m_strAnimationEasing(_T("EaseOutQuad")),
     m_pAnimPlayer(nullptr),
     m_bShowPercent(false),
     m_nProgressRadius(0),
@@ -89,6 +91,9 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue2)
     else if ((srName == _T("animation_duration")) || (srName == _T("animationduration"))) {
         SetAnimationDuration(StringUtil::StringToInt32(strValue));
     }
+    else if ((srName == _T("animation_easing")) || (srName == _T("animationeasing"))) {
+        SetAnimationEasingName(strValue);
+    }
     else if (srName == _T("marquee")) {
         SetMarquee(StringUtil::IsValueTrue(strValue));
     }
@@ -128,6 +133,8 @@ void Progress::SetMinValue(int32_t nMin)
 {
     if (m_nMinValue != nMin) {
         m_nMinValue = nMin;
+        //min 变化后把当前值拉回新区间，避免 GetValue() 返回越界的值
+        ClampCurrentValue();
         Invalidate();
     }
 }
@@ -141,8 +148,57 @@ void Progress::SetMaxValue(int32_t nMax)
 {
     if (m_nMaxValue != nMax) {
         m_nMaxValue = nMax;
+        //max 变化后把当前值拉回新区间，避免 GetValue() 返回越界的值
+        ClampCurrentValue();
         Invalidate();
     }    
+}
+
+void Progress::ClampCurrentValue()
+{
+    //区间可能非法（如 min > max），此时保持当前值不动，由绘制/取值的既有逻辑兜底
+    if (m_nMaxValue < m_nMinValue) {
+        return;
+    }
+    if ((m_fCurrentValue >= m_nMinValue) && (m_fCurrentValue <= m_nMaxValue) &&
+        (m_fBufferValue <= m_nMaxValue) && (m_fDisplayValue >= m_nMinValue) && (m_fDisplayValue <= m_nMaxValue)) {
+        return;
+    }
+
+    double fNewValue = m_fCurrentValue;
+    if (fNewValue > m_nMaxValue) {
+        fNewValue = m_nMaxValue;
+    }
+    if (fNewValue < m_nMinValue) {
+        fNewValue = m_nMinValue;
+    }
+    //次级进度（buffer）同样钳位，它可能是未设置状态（<= min），此时不动
+    double fNewBuffer = m_fBufferValue;
+    if (fNewBuffer > m_nMaxValue) {
+        fNewBuffer = m_nMaxValue;
+    }
+    if (fNewBuffer < m_nMinValue) {
+        fNewBuffer = m_nMinValue;
+    }
+    //显示值：动画播放中时同步收敛，避免动画结束后又跳回去
+    double fNewDisplay = m_fDisplayValue;
+    if (fNewDisplay > m_nMaxValue) {
+        fNewDisplay = m_nMaxValue;
+    }
+    if (fNewDisplay < m_nMinValue) {
+        fNewDisplay = m_nMinValue;
+    }
+
+    const bool bValueClamped = (fNewValue != m_fCurrentValue);
+    m_fCurrentValue = fNewValue;
+    m_fDisplayValue = fNewDisplay;
+    if (fNewBuffer != m_fBufferValue) {
+        m_fBufferValue = fNewBuffer;
+    }
+    if (bValueClamped) {
+        //值被外部区间变化钳位：同步百分比文本（动画中的显示值已随之收敛）
+        UpdatePercentText();
+    }
 }
 
 double Progress::GetValue() const
@@ -442,7 +498,10 @@ void Progress::PaintMarquee(IRender* pRender)
                 rc.top = std::max(m_nMarqueePos, 0) + rc.top;
                 rc.bottom = rc.top + (m_nMarqueePos >= 0 ? GetMarqueeWidth() : (GetMarqueeWidth() + m_nMarqueePos));
             }
-            pRender->FillRect(UiRectF::MakeFromRect(rc), dwProgressColor);
+            if (!rc.IsEmpty()) {
+                //与主进度共用 progress_radius，避免配置了圆角后marquee 仍是直角导致风格不一致
+                DrawSolidProgressRect(pRender, rc, dwProgressColor, GetAlpha());
+            }
         }
     }
 }
@@ -572,6 +631,26 @@ void Progress::SetAnimationDuration(int32_t nMs)
     m_nAnimationDuration = nMs;
 }
 
+void Progress::SetAnimationEasing(EasingFunctionType easing)
+{
+    m_easingAnimation = easing;
+}
+
+void Progress::SetAnimationEasingName(const DString& strEasing)
+{
+    if (strEasing.empty()) {
+        //空值回退为默认曲线，保持与构造函数一致
+        m_easingAnimation = EaseOutQuad;
+        m_strAnimationEasing = _T("EaseOutQuad");
+        return;
+    }
+    //GetEasingFunctionType 的键与 EasingFunctionType 枚举名完全一致（首字母大小写均可），
+    //无法识别时它会返回 EaseLinear，这里同步记录原始字符串，便于排查
+    const EasingFunctionType easing = EasingFunctions::GetEasingFunctionType(strEasing);
+    m_easingAnimation = easing;
+    m_strAnimationEasing = strEasing;
+}
+
 void Progress::SetProgressRadius(int32_t nRadius)
 {
     if (nRadius < 0) {
@@ -667,7 +746,7 @@ void Progress::StartValueAnimation(double fFrom, double fTo)
     m_pAnimPlayer->SetAnimationType(AnimationType::kAnimationNone);
     m_pAnimPlayer->SetTotalMillSeconds(m_nAnimationDuration);
     m_pAnimPlayer->SetFrameIntervalMillSeconds(16);
-    m_pAnimPlayer->SetEasingFunctionType(EaseOutQuad);
+    m_pAnimPlayer->SetEasingFunctionType(m_easingAnimation);
     m_pAnimPlayer->SetStartValue(0);
     m_pAnimPlayer->SetEndValue(1000);
 

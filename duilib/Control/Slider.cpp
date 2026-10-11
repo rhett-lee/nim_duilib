@@ -259,10 +259,10 @@ bool Slider::HandleKeyDown(uint32_t vkCode, bool bShiftDown)
     //bBigStep 表示大步进（PageUp/PageDown，或 Shift+方向键）
     bool bIncrease = false;
     bool bArrowKey = true;
-    if (vkCode == (bHorizontal ? kVK_RIGHT : kVK_UP)) {
+    if ((int32_t)vkCode == (bHorizontal ? kVK_RIGHT : kVK_UP)) {
         bIncrease = true;
     }
-    else if (vkCode == (bHorizontal ? kVK_LEFT : kVK_DOWN)) {
+    else if ((int32_t)vkCode == (bHorizontal ? kVK_LEFT : kVK_DOWN)) {
         bIncrease = false;
     }
     else if (vkCode == kVK_PRIOR) {

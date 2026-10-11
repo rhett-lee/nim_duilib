@@ -39,6 +39,15 @@ void ProgressForm::OnInitWindow()
                 double v = static_cast<double>(std::rand() % 101) / 100.0;
                 pFloat->SetValue(v);
             }
+            //动画曲线对照：三条不同缓动的进度条统一切到同一个随机目标值，便于横向对比
+            const double fTarget = static_cast<double>(std::rand() % 101);
+            const TCHAR* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
+            for (const TCHAR* pName : ppEasingNames) {
+                ui::Progress* pEasing = dynamic_cast<ui::Progress*>(FindControl(pName));
+                if (pEasing != nullptr) {
+                    pEasing->SetValue(fTarget);
+                }
+            }
             return true;
             });
     }
@@ -199,6 +208,55 @@ void ProgressForm::OnInitWindow()
             pRender->DrawString(ui::StringUtil::Printf(_T("%.0f"), fValue), param);
             return true;
             });
+    }
+
+    //===== 健壮性与一致性测试 =====
+
+    //min/max 运行时钳位演示：max 由100 改为 50 时，当前值应自动回落到 50
+    ui::Button* pShrinkBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_clamp_shrink")));
+    if (pShrinkBtn != nullptr) {
+        pShrinkBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::Progress* pClamp = dynamic_cast<ui::Progress*>(FindControl(_T("robust_clamp")));
+            ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("robust_clamp_text")));
+            if (pClamp != nullptr) {
+                //先重置一个超出新区间的值（80 > 50），再收紧 max
+                pClamp->SetValue(80.0);
+                pClamp->SetMaxValue(50);
+                if (pLabel != nullptr) {
+                    pLabel->SetText(ui::StringUtil::Printf(
+                        _T("max=50, value=%.0f (auto-clamped), value>max is %s"),
+                        pClamp->GetValue(), (pClamp->GetValue() <= 50.0) ? _T("false") : _T("true")));
+                }
+            }
+            return true;
+            });
+    }
+    ui::Button* pRestoreBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_clamp_restore")));
+    if (pRestoreBtn != nullptr) {
+        pRestoreBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::Progress* pClamp = dynamic_cast<ui::Progress*>(FindControl(_T("robust_clamp")));
+            ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("robust_clamp_text")));
+            if (pClamp != nullptr) {
+                pClamp->SetMaxValue(100);
+                pClamp->SetValue(80.0);
+                if (pLabel != nullptr) {
+                    pLabel->SetText(ui::StringUtil::Printf(
+                        _T("max=100, value=%.0f (restored)"), pClamp->GetValue()));
+                }
+            }
+            return true;
+            });
+    }
+
+    //动画曲线对照：三条进度条由"随机设值"按钮统一切到同一目标值，便于横向对比缓动差异
+    //（不用 AttachValueChanged 驱动，避免 SetValue 触发事件造成自递归）
+    const TCHAR* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
+    for (const TCHAR* pName : ppEasingNames) {
+        ui::Progress* pEasing = dynamic_cast<ui::Progress*>(FindControl(pName));
+        if (pEasing != nullptr) {
+            //初值设为 0，点击"随机设值"后都跳到同一个目标值
+            pEasing->SetValue(0.0);
+        }
     }
 }
 

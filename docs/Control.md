@@ -538,6 +538,7 @@ Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属
 | show_percent | false | bool | 是否自动显示百分比文本（覆盖控件 text） |
 | animation_enabled | false | bool | 是否启用值变化动画（默认关闭） |
 | animation_duration | 300 | int | 值变化动画时长（毫秒） |
+| animation_easing | EaseOutQuad | string | 值变化动画的缓动曲线，取值与 `EasingFunctionType` 枚举名完全一致，如"EaseLinear"、"EaseOutQuad"、"EaseOutElastic"、"EaseInOutBounce"（首字母大小写均可；无法识别时按 `EaseLinear` 处理） |
 | marquee | false | bool | 是否滚动显示 |
 | marquee_width | | int | 滚动的宽度 |
 | marquee_step | | int | 滚动的步长 |
@@ -550,10 +551,42 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 - `progress_color` 与 `progress_image` 二选一作为前景；纯色前景可用 `progress_radius` 设圆角。轨道背景用 `bkcolor`（Control 通用属性）。
 - `buffer_value` 设置次级进度（视频/下载的"已缓冲 + 已播放"双进度），绘制在主进度下方的浅色条；`buffer_color` 不指定时用前景色的浅色版（约 40% 不透明度）。
 - `show_percent` 开启后控件文本自动更新为"xx%"（跟随值变化动画）；可用 `SetTextFormatCallback` 自定义格式（如 "5/10"、"3.2 GB"）。
-- `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（`EaseOutQuad`，时长 `animation_duration`）；Slider 拖动为即时响应，通常无需开启。
+- `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（时长 `animation_duration`，缓动曲线由 `animation_easing` 决定，默认 `EaseOutQuad`）；Slider 拖动为即时响应，通常无需开启。
+- `min`/`max` 在运行时修改会**自动把当前值钳位回新区间**（含`buffer_value` 与动画中间值），因此 `GetValue()` 始终在 `[min, max]` 内，不会出现"绘制被钳位但成员值越界"的不一致。可手动调用 `ClampCurrentValue()` 主动钳位。
+- `progress_radius` 现在**同时作用于纯色主进度、buffer 次级进度与 marquee 滚动块**，三者风格一致。
 - 值变化事件：`AttachValueChanged`（`EventArgs::wParam` 为新值、`lParam` 为旧值，均按整数截断；精确浮点值从 `GetValue()` 读取）。
 - 完成事件：`AttachProgressCompleted`——进度值到达完成端点（正向到 `max`、倒数到 `min`）时触发一次。
 - 推荐语义色：前景 `bg_progress`、轨道 `bg_progress_track`（随深浅色主题自动切换）。
+
+### 动画缓动曲线
+`animation_easing` 直接复用框架已有的 `ui::EasingFunctionType` 枚举（见 `duilib/Animation/EasingFunctions.h`），共 31 条曲线：
+
+```xml
+<!-- 线性 -->
+<Progress name="p1" min="0" max="100" value="70" animation_enabled="true" animation_duration="600" animation_easing="EaseLinear"/>
+<!-- 缓出（二次，默认） -->
+<Progress name="p2" min="0" max="100" value="70" animation_enabled="true" animation_duration="600" animation_easing="EaseOutQuad"/>
+<!-- 弹性 -->
+<Progress name="p3" min="0" max="100" value="70" animation_enabled="true" animation_duration="900" animation_easing="EaseOutElastic"/>
+```
+
+曲线分组：`EaseLinear`、`Ease{In|Out|InOut}{Sine|Quad|Cubic|Quart|Quint|Expo|Circ|Back|Elastic|Bounce}`。
+运行时可随时修改，下一次动画即生效（不影响正在播放的动画）。
+
+对应 C++ 接口：`SetAnimationEasing(EasingFunctionType)`、`SetAnimationEasingName(const DString&)`、`GetAnimationEasing()`、`GetAnimationEasingName()`。
+
+### 值域运行时钳位
+`SetMinValue`/`SetMaxValue` 会自动把当前值拉回新区间，避免成员值与绘制结果不一致：
+
+```cpp
+pProgress->SetValue(80.0);
+pProgress->SetMaxValue(50);
+//此时 GetValue() == 50，而不是 80
+```
+
+同时钳位 `m_fCurrentValue`、动画中间值 `m_fDisplayValue` 与 `buffer_value`（未设置 buffer 时保持原状）。
+区间非法（`min > max`）时不改动，交由既有绘制逻辑兜底。
+对应 C++ 接口：`ClampCurrentValue()`。
 
 ## Slider的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
