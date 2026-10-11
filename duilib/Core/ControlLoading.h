@@ -24,7 +24,7 @@ struct ControlLoadingStatus
     //该Loading状态界面显示的根容器接口，可用根据该接口操作界面元素
     ControlPtrT<Box> m_pLoadingUiRootBox;
 
-    //loading开始到现在的时间（毫秒）
+    //loading开始到现在的时间（毫秒，milliseconds）
     uint64_t m_nElapsedTimeMs = 0;
 
     //动画图片所在的控件接口(需要正确配置XML属性)
