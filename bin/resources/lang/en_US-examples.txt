@@ -514,6 +514,37 @@ STRID_CONTROLS_TRAY_MENU_05 = Exit
 STRID_CONTROLS_NAVIGATION_TEST = Nav Test
 STRID_CONTROLS_CHART_TEST = Chart Test
 STRID_CONTROLS_MARQUEE_TEST = Marquee Test
+STRID_CONTROLS_TIMELINE_TEST = Timeline Test
+# controls/Timeline
+STRID_TIMELINE_WINDOW_TITLE = Timeline Control Test
+STRID_TIMELINE_HINT = Hint: click a node to fire the callback
+STRID_TIMELINE_CARD_APPROVAL = Approval Flow (data binding · multi-status)
+STRID_TIMELINE_CARD_TASK = Task Flow (reverse · dashed)
+STRID_TIMELINE_BTN_ADD = Add Node
+STRID_TIMELINE_BTN_REMOVE = Remove Last
+STRID_TIMELINE_BTN_CLEAR = Clear
+STRID_TIMELINE_BTN_REVERSE = Toggle Reverse
+STRID_TIMELINE_ADD_TIME = 2026-10-11 10:00
+STRID_TIMELINE_ADD_TITLE = New Task
+STRID_TIMELINE_ADD_CONTENT = A dynamically appended in-progress task node.
+STRID_TIMELINE_EMPTY = No data (cleared)
+# Timeline data binding (multi-language IDs)
+STRID_TIMELINE_A_TITLE_1 = Submitted
+STRID_TIMELINE_A_TITLE_2 = Initial Review
+STRID_TIMELINE_A_TITLE_3 = Re-review
+STRID_TIMELINE_A_TITLE_4 = Approval Done
+STRID_TIMELINE_A_CONTENT_1 = Leave request submitted, awaiting approval.
+STRID_TIMELINE_A_CONTENT_2 = Department initial review passed.
+STRID_TIMELINE_A_CONTENT_3 = HR re-review in progress, please wait.
+STRID_TIMELINE_A_CONTENT_4 = Approval fully completed.
+STRID_TIMELINE_T_TITLE_1 = Started
+STRID_TIMELINE_T_TITLE_2 = Running
+STRID_TIMELINE_T_TITLE_3 = Waiting
+STRID_TIMELINE_T_TITLE_4 = Completed
+STRID_TIMELINE_T_CONTENT_1 = Task started.
+STRID_TIMELINE_T_CONTENT_2 = Core logic running.
+STRID_TIMELINE_T_CONTENT_3 = Waiting for upstream data.
+STRID_TIMELINE_T_CONTENT_4 = Task completed and archived.
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee Control Test
 STRID_MARQUEE_HINT = Hint: hover over a marquee to pause scrolling

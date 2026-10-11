@@ -33,31 +33,35 @@
         <!-- 工作区域，除了标题栏外的内容都放在这个大的VBox区域 -->
         <VBox padding="10,10,10,10">
             <!-- 第一排 -->
-            <HBox height="270" padding="0,0,0,10">
+            <HBox height="240" padding="0,0,0,10">
                 <!-- Buttons -->
                 <VBox width="120">
                     <Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
                     <Button class="btn_global_white_80x30" text="white"/>
                     <Button class="btn_global_red_80x30" text="red"/>
-                    <Button class="btn_global" text_id="STRID_CONTROLS_CONTROL_TEST" name="test_btn" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANIMATION_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="navigation_btn" text_id="STRID_CONTROLS_NAVIGATION_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="chart_btn" text_id="STRID_CONTROLS_CHART_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global" name="marquee_btn" text_id="STRID_CONTROLS_MARQUEE_TEST" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                </VBox>
-                <!-- Checkbox -->
-                <VBox width="120">
-                    <CheckBox class="checkbox_1" font="system_regular_14" text_id="STRID_CONTROLS_CHECKBOX_1" margin="0,3,0,3" selected="true" tooltip_text="ui::Checkbox"/>
-                    <CheckBox class="checkbox_1" text_id="STRID_CONTROLS_CHECKBOX_2" margin="0,3,0,3"/>
-                    <CheckBox class="checkbox_2"  text_id="STRID_CONTROLS_CHECKBOX_3" margin="0,3,0,3"/>
                     <Button class="btn_global" name="domodal2" text_id="STRID_CONTROLS_MODAL_DIALOG" width="110" height="30" border_round="3,3" margin="0,12,0,0"/>
                     <Button class="btn_global" name="show_color_picker" text_id="STRID_CONTROLS_COLOR_PICKER_MODAL" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
-                <!-- Option -->
-                <VBox width="120" margin="20,0,0,0">
+                <VBox width="124">
+                    <Button class="btn_global" text_id="STRID_CONTROLS_CONTROL_TEST" name="test_btn" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="animation_btn" text_id="STRID_CONTROLS_ANIMATION_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="navigation_btn" text_id="STRID_CONTROLS_NAVIGATION_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="chart_btn" text_id="STRID_CONTROLS_CHART_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="marquee_btn" text_id="STRID_CONTROLS_MARQUEE_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global" name="timeline_btn" text_id="STRID_CONTROLS_TIMELINE_TEST" width="110" height="30" border_round="3,3" margin="0,2,0,0"/>
+                </VBox>
+                <!-- Checkbox / Option -->
+                <VBox width="100">
+                    <CheckBox class="checkbox_1" font="system_regular_14" text_id="STRID_CONTROLS_CHECKBOX_1" margin="0,3,0,3" selected="true" tooltip_text="ui::Checkbox"/>
+                    <CheckBox class="checkbox_1" text_id="STRID_CONTROLS_CHECKBOX_2" margin="0,3,0,3"/>
+                    <CheckBox class="checkbox_2"  text_id="STRID_CONTROLS_CHECKBOX_3" margin="0,3,0,3"/>
+                    
                     <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_1" margin="0,3,0,3" selected="true" tooltip_text="ui::Option"/>
                     <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_2" margin="0,3,0,3"/>
                     <Option class="option_1" group="option_group" text_id="STRID_CONTROLS_OPTION_3" margin="0,3,0,3"/>
+                </VBox>
+                <!-- CheckBox / Switch -->
+                <VBox width="120" margin="2,0,0,0">                    
                     <HBox height="36">
                         <Label text_id="STRID_CONTROLS_SWITCH_1" height="36" valign="center"/>
                         <CheckBox class="checkbox_toggle_1" name="checkbox_tray_icon" selected="false" margin="4,3,0,3"/>
@@ -72,7 +76,7 @@
                 </HBox>
             </VBox>
             <!-- Badge -->
-            <VBox width="120" margin="16,0,0,0">
+            <VBox width="100" margin="2,0,0,0">
                 <HBox height="36">
                     <Label text_id="STRID_CONTROLS_BADGE" height="36" valign="center"/>
                     <Badge class="badge" count="5" margin="8,0,0,0" tooltip_text="ui::Badge (count=5)"/>
@@ -86,9 +90,9 @@
                     <Badge class="badge_dot" margin="8,0,0,0" tooltip_text="ui::Badge (dot)"/>
                 </HBox>
                 <HBox height="36">
-                    <Box width="66" height="30" valign="center">
-                        <Button class="btn_global" text_id="STRID_CONTROLS_BADGE_MSG" width="48" height="30" border_round="3,3"/>
-                        <Badge class="badge" count="6" float="true" margin="42,0,0,0" tooltip_text="ui::Badge (float)"/>
+                    <Box width="90" height="30" valign="center">
+                        <Button class="btn_global" text_id="STRID_CONTROLS_BADGE_MSG" width="80" height="30" border_round="3,3"/>
+                        <Badge class="badge" count="6" float="true" margin="64,0,0,0" tooltip_text="ui::Badge (float)"/>
                     </Box>
                 </HBox>
             </VBox>

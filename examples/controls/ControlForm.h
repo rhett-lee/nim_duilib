@@ -81,6 +81,10 @@ private:
     */
     void ShowMarqueeWindow();
 
+    /** 显示 Timeline 垂直时间轴演示窗口
+    */
+    void ShowTimelineWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

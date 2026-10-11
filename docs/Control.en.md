@@ -954,6 +954,95 @@ if (sel.type != ui::Chart::HitType::kNone) {
 
 > Note: `HitResult` contains `type` (kPoint/kBar/kSlice/kLegend), `seriesIndex` (series index) and `dataIndex` (data index). Line charts support wheel zoom (around the mouse position) and left-button drag pan.
 
+## Timeline Attributes
+Timeline is a vertical timeline control derived from Control and fully self-drawn. Header file: `duilib/Control/Timeline.h`. It is used for logs, task flows and approval flows: nodes and status connector lines on the left, content (time/title/body) on the right. Data-driven rendering, supports forward/reverse ordering, node status colors, line styles, node click events, empty/loading states, and scrolling.
+
+In addition to the common Control attributes, the following attributes are added:
+
+| Attribute | Default | Type | Description |
+| :--- | :--- | :--- | :--- |
+| item_time | empty | string | Time/date text, `\|`-separated for multiple items (data binding) |
+| item_title | empty | string | Title, `\|`-separated (data binding) |
+| item_content | empty | string | Body content (supports line breaks), `\|`-separated (data binding) |
+| item_status | empty | string | Node status, `\|`-separated: pending / inprogress / completed / failed (data binding) |
+| item_color | empty | string | Custom node color, `\|`-separated (used when status is custom) |
+| item_time_id | empty | string | Multi-language data binding: time field, `\|`-separated STRID list, auto-refreshed on language switch |
+| item_title_id | empty | string | Multi-language data binding: title field, `\|`-separated STRID list |
+| item_content_id | empty | string | Multi-language data binding: body field, `\|`-separated STRID list |
+| node_color_pending | text_muted | string | Pending node color (semantic color name or value) |
+| node_color_inprogress | color_accent | string | In-progress node color |
+| node_color_completed | color_success | string | Completed node color |
+| node_color_failed | color_error | string | Failed node color |
+| line_color | border_control_normal | string | Connector line color |
+| line_style | solid | string | Line style: "solid" / "dashed" |
+| scrollbar_track_color | bg_scrollbar_normal | string | Scrollbar track color (semantic color name or value) |
+| scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | Scrollbar thumb color (semantic color name or value) |
+| auto_hide_scrollbar | true | bool | Whether to show the scrollbar only on mouse hover (default on, cleaner look) |
+| reverse | false | bool | Whether to display in reverse order (default false = forward) |
+| node_size | 12 | int | Node diameter (px, auto DPI-scaled, 4~64) |
+| item_spacing | 24 | int | Spacing between adjacent items (px, auto DPI-scaled) |
+| empty_text | empty | string | Empty-state hint text (centered when there are no items) |
+| empty_text_id | empty | string | Multi-language ID of the empty-state hint text (auto-refreshed on language switch) |
+| loading | false | bool | Whether to show a loading state |
+
+Notes:
+- **Data binding**: `item_time`/`item_title`/`item_content`/`item_status` are `\|`-separated item lists, aligned by the longest one (missing fields become empty); alternatively drive them dynamically via the C++ `AddItem`/`SetItems` APIs.
+- **Multi-language data binding**: `item_time_id`/`item_title_id`/`item_content_id` (and `empty_text_id`) take `\|`-separated STRID lists, resolved to actual texts from the language file; they are re-parsed and refreshed automatically on language switch (via the `OnLanguageChanged` override). When mixed with the direct-text attributes, whichever is set later takes effect.
+- **Node status**: four states — pending (gray), in-progress (accent), completed (green), failed (red), all customizable.
+- **Scrolling**: mouse-wheel scrolling when the content exceeds the control height, with a right-side scrollbar (with a draggable thumb) shown automatically; the track/thumb colors are customizable via `scrollbar_track_color`/`scrollbar_thumb_color`, defaulting to the theme scrollbar semantic colors (`bg_scrollbar_normal`/`bg_scrollbar_thumb_normal`); by default the scrollbar is only shown on mouse hover (`auto_hide_scrollbar`); body width wraps responsively with the control width.
+- **Append visibility**: after `AddItem`, the view scrolls automatically to make the new item visible (scrolls to the bottom in forward order, to the top in reverse order).
+- **Events**: clicking a node fires `kEventTimelineItemClick` (`EventArgs::wParam` is the item index).
+- **Custom rendering**: `SetItemDrawCallback` can override the default rendering of a single item.
+
+C++ API: `AddItem`, `InsertItem`, `RemoveItemAt`, `ClearItems`, `SetItems`, `GetItemCount`, `GetItemAt`, `GetItems`, `SetNodeColor/GetNodeColor`, `SetLineColor/GetLineColor`, `SetLineStyle`, `SetScrollbarTrackColor/GetScrollbarTrackColor`, `SetScrollbarThumbColor/GetScrollbarThumbColor`, `SetAutoHideScrollbar/IsAutoHideScrollbar`, `SetReverse/IsReverse`, `SetNodeSize`, `SetItemSpacing`, `SetEmptyText`, `SetEmptyTextId`, `SetLoading/IsLoading`, `SetItemDrawCallback`, `AttachItemClick`, `GetScrollPos/SetScrollPos`, `ScrollToItem`.
+
+### XML Usage Example
+
+```xml
+<!-- Approval-flow timeline (data binding with status colors) -->
+<Timeline width="360" height="320"
+          item_time="2026-10-01|2026-10-02|2026-10-03"
+          item_title="Submitted|Approved|Rejected"
+          item_content="Application submitted, awaiting review.|Materials complete, passed.|Missing supplementary materials, rejected."
+          item_status="completed|completed|failed"
+          line_style="solid" reverse="false"/>
+
+<!-- Task-flow timeline (reverse order + dashed line) -->
+<Timeline width="stretch" height="260"
+          item_time="09:00|10:30|11:00"
+          item_title="Started|Running|Pending"
+          item_content="Task started.|Executing core logic.|Waiting for the next stage."
+          item_status="completed|inprogress|pending"
+          line_style="dashed" reverse="true"/>
+```
+
+### C++ Usage Example
+
+```cpp
+ui::Timeline* pTimeline = dynamic_cast<ui::Timeline*>(pWindow->FindControl(_T("timeline")));
+if (pTimeline != nullptr) {
+    // Data-driven rendering
+    pTimeline->AddItem(_T("2026-10-01"), _T("Submitted"), _T("Application submitted, awaiting review."), ui::TimelineNodeStatus::kCompleted);
+    pTimeline->AddItem(_T("2026-10-02"), _T("Approved"), _T("Materials complete, passed."), ui::TimelineNodeStatus::kCompleted);
+    pTimeline->AddItem(_T("2026-10-03"), _T("Reviewing"), _T("Under review."), ui::TimelineNodeStatus::kInProgress);
+
+    // Reverse order + dashed line
+    pTimeline->SetReverse(true);
+    pTimeline->SetLineStyle(ui::TimelineLineStyle::kDashed);
+
+    // Node click event (args.wParam is the item index)
+    pTimeline->AttachItemClick([](const ui::EventArgs& args) {
+        size_t index = static_cast<size_t>(args.wParam);
+        // ... handle the click
+        return true;
+    });
+
+    // Empty hint and loading state
+    pTimeline->SetEmptyText(_T("No data"));
+    pTimeline->SetLoading(true);
+}
+```
+
 ## Flyout Window
 Flyout is a general-purpose popup (flying card) window derived from WindowImplBase. Header file: `duilib/Control/Flyout.h`. It is used to pop up arbitrary Box content around an anchor control (action panels, confirmation cards, rich-content tips, etc.), and serves as the common base for calendar popups, search suggestions and settings bubbles.
 

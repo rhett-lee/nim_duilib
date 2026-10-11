@@ -5,6 +5,7 @@
 #include "NavigationForm.h"
 #include "ChartForm.h"
 #include "MarqueeForm.h"
+#include "TimelineForm.h"
 
 #include <fstream>
 
@@ -326,6 +327,15 @@ void ControlForm::OnInitWindow()
             });
     }
 
+    //Timeline 垂直时间轴演示
+    ui::Button* pTimelineBtn = dynamic_cast<ui::Button*>(FindControl(_T("timeline_btn")));
+    if (pTimelineBtn != nullptr) {
+        pTimelineBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowTimelineWindow();
+            return true;
+            });
+    }
+
     //托盘图标功能
     ui::CheckBox* pTrayIconCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_tray_icon")));
     if (pTrayIconCheckBox != nullptr) {
@@ -533,6 +543,18 @@ void ControlForm::ShowMarqueeWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("MarqueeWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowTimelineWindow()
+{
+    TimelineForm* testForm = new TimelineForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("TimelineWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

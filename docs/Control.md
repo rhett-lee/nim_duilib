@@ -952,6 +952,95 @@ if (sel.type != ui::Chart::HitType::kNone) {
 
 > 说明：`HitResult` 含 `type`（kPoint/kBar/kSlice/kLegend）、`seriesIndex`（系列索引）、`dataIndex`（数据索引）。折线图支持滚轮缩放（围绕鼠标位置）与左键拖拽平移。
 
+## Timeline的属性
+Timeline是垂直时间轴控件，继承自Control，纯自绘实现，对应头文件`duilib/Control/Timeline.h`。用于日志记录、任务流、审批流等场景：左侧节点+状态连接线，右侧内容（时间/标题/正文）。数据驱动渲染，支持正序/倒序、节点状态配色、连接线样式、节点点击事件、空数据与加载状态、滚动。
+
+除Control的通用属性外，新增以下属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| item_time | 空 | string | 时间/日期文本，`\|` 分隔多条（数据绑定） |
+| item_title | 空 | string | 标题，`\|` 分隔多条（数据绑定） |
+| item_content | 空 | string | 正文内容（支持换行），`\|` 分隔多条（数据绑定） |
+| item_status | 空 | string | 节点状态，`\|` 分隔多条：pending / inprogress / completed / failed（数据绑定） |
+| item_color | 空 | string | 自定义节点颜色，`\|` 分隔多条（status 为 custom 时生效） |
+| item_time_id | 空 | string | 多语言数据绑定：时间字段，`\|` 分隔多个STRID，语言切换时自动刷新 |
+| item_title_id | 空 | string | 多语言数据绑定：标题字段，`\|` 分隔多个STRID |
+| item_content_id | 空 | string | 多语言数据绑定：正文字段，`\|` 分隔多个STRID |
+| node_color_pending | text_muted | string | 待处理状态节点颜色（语义色名或颜色值） |
+| node_color_inprogress | color_accent | string | 进行中状态节点颜色 |
+| node_color_completed | color_success | string | 已完成状态节点颜色 |
+| node_color_failed | color_error | string | 失败状态节点颜色 |
+| line_color | border_control_normal | string | 连接线颜色 |
+| line_style | solid | string | 连接线样式："solid"实线 / "dashed"虚线 |
+| scrollbar_track_color | bg_scrollbar_normal | string | 滚动条轨道颜色（语义色名或颜色值） |
+| scrollbar_thumb_color | bg_scrollbar_thumb_normal | string | 滚动条滑块颜色（语义色名或颜色值） |
+| auto_hide_scrollbar | true | bool | 是否仅在鼠标悬停时显示滚动条（默认开启，更美观） |
+| reverse | false | bool | 是否倒序显示（默认正序，即数据顺序从上到下） |
+| node_size | 12 | int | 节点直径（像素，自动DPI缩放，4~64） |
+| item_spacing | 24 | int | 相邻条目间距（像素，自动DPI缩放） |
+| empty_text | 空 | string | 空数据提示文本（无条目时居中显示） |
+| empty_text_id | 空 | string | 空数据提示文本的多语言ID（语言切换时自动刷新） |
+| loading | false | bool | 是否显示加载中状态 |
+
+说明：
+- **数据绑定**：`item_time`/`item_title`/`item_content`/`item_status` 四个属性用 `\|` 分隔条目，长度以最长者为准（不足的条目字段为空）；也可用 C++ 接口 `AddItem`/`SetItems` 动态驱动。
+- **多语言数据绑定**：`item_time_id`/`item_title_id`/`item_content_id`（及 `empty_text_id`）用 `\|` 分隔多个 STRID，按语言文件解析为实际文本；语言切换时自动重新解析刷新（重写 `OnLanguageChanged` 实现）。与直接文本属性混用时，后设置的一方生效。
+- **节点状态**：pending（灰）、inprogress（强调色）、completed（绿）、failed（红）四态，颜色均可自定义。
+- **滚动**：内容超出控件高度时支持鼠标滚轮滚动，并自动显示右侧滚动条（含滑块，可拖动）；轨道/滑块颜色可用 `scrollbar_track_color`/`scrollbar_thumb_color` 自定义，默认对齐主题滚动条语义色（`bg_scrollbar_normal`/`bg_scrollbar_thumb_normal`）；默认仅鼠标悬停时显示滚动条（`auto_hide_scrollbar`）；正文宽度随控件宽度自适应换行（响应式）。
+- **追加可见**：`AddItem` 追加条目后自动滚动到新条目（正序滚到底部、倒序滚动到顶部）。
+- **事件**：点击节点触发 `kEventTimelineItemClick`（`EventArgs::wParam` 为条目序号）。
+- **自定义渲染**：`SetItemDrawCallback` 可覆盖单条条目的默认绘制。
+
+对应C++接口：`AddItem`、`InsertItem`、`RemoveItemAt`、`ClearItems`、`SetItems`、`GetItemCount`、`GetItemAt`、`GetItems`、`SetNodeColor/GetNodeColor`、`SetLineColor/GetLineColor`、`SetLineStyle`、`SetScrollbarTrackColor/GetScrollbarTrackColor`、`SetScrollbarThumbColor/GetScrollbarThumbColor`、`SetAutoHideScrollbar/IsAutoHideScrollbar`、`SetReverse/IsReverse`、`SetNodeSize`、`SetItemSpacing`、`SetEmptyText`、`SetLoading/IsLoading`、`SetItemDrawCallback`、`AttachItemClick`、`GetScrollPos/SetScrollPos`、`ScrollToItem`、`SetEmptyTextId`。
+
+### XML使用示例
+
+```xml
+<!-- 审批流程时间轴（数据绑定，含状态配色） -->
+<Timeline width="360" height="320"
+          item_time="2026-10-01|2026-10-02|2026-10-03"
+          item_title="提交申请|初审通过|复审驳回"
+          item_content="申请已提交，等待审批。|材料齐全，初审通过。|缺少补充材料，已驳回。"
+          item_status="completed|completed|failed"
+          line_style="solid" reverse="false"/>
+
+<!-- 任务流时间轴（倒序 + 虚线） -->
+<Timeline width="stretch" height="260"
+          item_time="09:00|10:30|11:00"
+          item_title="启动|执行中|待处理"
+          item_content="任务启动。|正在执行核心逻辑。|等待下一阶段。"
+          item_status="completed|inprogress|pending"
+          line_style="dashed" reverse="true"/>
+```
+
+### C++使用示例
+
+```cpp
+ui::Timeline* pTimeline = dynamic_cast<ui::Timeline*>(pWindow->FindControl(_T("timeline")));
+if (pTimeline != nullptr) {
+    // 数据驱动渲染
+    pTimeline->AddItem(_T("2026-10-01"), _T("提交申请"), _T("申请已提交，等待审批。"), ui::TimelineNodeStatus::kCompleted);
+    pTimeline->AddItem(_T("2026-10-02"), _T("初审通过"), _T("材料齐全，初审通过。"), ui::TimelineNodeStatus::kCompleted);
+    pTimeline->AddItem(_T("2026-10-03"), _T("复审中"), _T("正在复审。"), ui::TimelineNodeStatus::kInProgress);
+
+    // 倒序显示 + 虚线
+    pTimeline->SetReverse(true);
+    pTimeline->SetLineStyle(ui::TimelineLineStyle::kDashed);
+
+    // 节点点击事件（args.wParam 为条目序号）
+    pTimeline->AttachItemClick([](const ui::EventArgs& args) {
+        size_t index = static_cast<size_t>(args.wParam);
+        // ... 处理点击
+        return true;
+    });
+
+    // 空数据提示与加载状态
+    pTimeline->SetEmptyText(_T("暂无数据"));
+    pTimeline->SetLoading(true);
+}
+```
+
 ## Flyout浮层窗口
 Flyout是通用浮层（弹出卡片）窗口，继承自WindowImplBase，对应头文件`duilib/Control/Flyout.h`。用于在锚点控件周围浮出任意Box内容（操作面板、确认卡片、富内容提示等），是日历弹层、搜索建议、气泡设置等控件的公共基座。
 

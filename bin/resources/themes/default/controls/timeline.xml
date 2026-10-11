@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="820,640" text="Timeline Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_TIMELINE_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 控制区：按钮一行，提示一行（避免长提示文本溢出） -->
+        <VBox height="58" padding="12,8,12,0">
+            <HBox height="28">
+                <Button class="btn_global" name="btn_add" text_id="STRID_TIMELINE_BTN_ADD" width="90" height="28" border_round="3,3" margin="0,0,8,0"/>
+                <Button class="btn_global" name="btn_remove" text_id="STRID_TIMELINE_BTN_REMOVE" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                <Button class="btn_global" name="btn_clear" text_id="STRID_TIMELINE_BTN_CLEAR" width="90" height="28" border_round="3,3" margin="0,0,8,0"/>
+                <Button class="btn_global" name="btn_reverse" text_id="STRID_TIMELINE_BTN_REVERSE" width="120" height="28" border_round="3,3"/>
+                <Control/>
+            </HBox>
+            <Label text_id="STRID_TIMELINE_HINT" text_color="text_muted" height="22" valign="center"/>
+        </VBox>
+
+        <!-- 演示区 -->
+        <HBox height="stretch" padding="12,8,12,12">
+            <!-- 审批流：数据绑定（多语言ID） + 多状态 -->
+            <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,12,0">
+                <Label text_id="STRID_TIMELINE_CARD_APPROVAL" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Timeline name="timeline_approval" width="stretch" height="stretch"
+                          item_time="2026-10-01 09:00|2026-10-01 14:00|2026-10-02 10:00|2026-10-03 16:00"
+                          item_title_id="STRID_TIMELINE_A_TITLE_1|STRID_TIMELINE_A_TITLE_2|STRID_TIMELINE_A_TITLE_3|STRID_TIMELINE_A_TITLE_4"
+                          item_content_id="STRID_TIMELINE_A_CONTENT_1|STRID_TIMELINE_A_CONTENT_2|STRID_TIMELINE_A_CONTENT_3|STRID_TIMELINE_A_CONTENT_4"
+                          item_status="completed|completed|inprogress|pending"
+                          line_style="solid"/>
+            </VBox>
+
+            <!-- 任务流：倒序 + 虚线（数据绑定多语言ID） -->
+            <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                <Label text_id="STRID_TIMELINE_CARD_TASK" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Timeline name="timeline_task" width="stretch" height="stretch"
+                          item_time="09:00|10:30|11:00|14:00"
+                          item_title_id="STRID_TIMELINE_T_TITLE_1|STRID_TIMELINE_T_TITLE_2|STRID_TIMELINE_T_TITLE_3|STRID_TIMELINE_T_TITLE_4"
+                          item_content_id="STRID_TIMELINE_T_CONTENT_1|STRID_TIMELINE_T_CONTENT_2|STRID_TIMELINE_T_CONTENT_3|STRID_TIMELINE_T_CONTENT_4"
+                          item_status="completed|inprogress|pending|completed"
+                          line_style="dashed" reverse="true"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</Window>
