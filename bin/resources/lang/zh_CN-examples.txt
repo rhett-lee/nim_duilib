@@ -566,6 +566,15 @@ STRID_PROGRESS_SLIDER_TIP_TICKS = 音量条/时间轴常用：刻度线+刻度�
 STRID_PROGRESS_SLIDER_CLICK = 点击轨道跳转对照（step=1）
 STRID_PROGRESS_SLIDER_TIP_CLICK = 上：按下即跳值 · 下：松开鼠标才跳值
 STRID_PROGRESS_CARD_GAUGE = CircleProgress 形态扩展（仪表盘/缺口环 · 中心自定义内容 · indeterminate 参数化）
+STRID_PROGRESS_CARD_ROBUST = 健壮性与一致性（min/max 运行时钳位 · marquee 圆角 · 动画曲线可配）
+STRID_PROGRESS_ROBUST_MARQUEE = marquee 圆角（上：radius=10 / 下：radius=0）
+STRID_PROGRESS_ROBUST_TIP_MARQUEE = marquee 现在与主进度共用 progress_radius，两者风格一致
+STRID_PROGRESS_ROBUST_EASING = 动画曲线 animation_easing（点上方按钮随机设值观察）
+STRID_PROGRESS_ROBUST_TIP_EASING = 上：EaseLinear 线性 / 中：EaseOutQuad 默认 / 下：EaseOutElastic 弹性
+STRID_PROGRESS_ROBUST_CLAMP = min/max 运行时钳位（当前值=80，max=100）
+STRID_PROGRESS_ROBUST_BTN_SHRINK = max 改为 50
+STRID_PROGRESS_ROBUST_BTN_RESTORE = max 恢复 100
+STRID_PROGRESS_ROBUST_TIP_CLAMP = 点击按钮把 max 改为 50，当前值应自动回落到 50 而不是停留在 80
 STRID_PROGRESS_GAUGE_HALF = 180° 半圆表盘（span_angle=180）
 STRID_PROGRESS_GAUGE_GAP = 270° 缺口环（start_angle=135）
 STRID_PROGRESS_GAUGE_CENTER = 中心自定义内容（SetCenterCallback）

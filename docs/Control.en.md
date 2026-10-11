@@ -540,6 +540,7 @@ The Menu control inherits the `Window` attributes. For more available attributes
 | show_percent | false | bool | Whether to auto-display the percentage text (overrides the control text) |
 | animation_enabled | false | bool | Whether to enable value-change animation (default off) |
 | animation_duration | 300 | int | Value-change animation duration (ms) |
+| animation_easing | EaseOutQuad | string | Easing curve of the value-change animation; values are exactly the `EasingFunctionType` enum names, e.g. "EaseLinear", "EaseOutQuad", "EaseOutElastic", "EaseInOutBounce" (first letter case-insensitive; unrecognized values fall back to `EaseLinear`) |
 | marquee | false | bool | Whether to scroll/marquee display |
 | marquee_width | | int | Marquee width |
 | marquee_step | | int | Marquee step |
@@ -552,10 +553,42 @@ Notes:
 - Use either `progress_color` or `progress_image` as the foreground; the solid-color foreground can be rounded via `progress_radius`. The track background uses `bkcolor` (a common Control attribute).
 - `buffer_value` sets the secondary progress (the "buffered + played" dual progress of video/download), drawn as a lighter bar under the main progress; when `buffer_color` is not specified, a lighter shade (about 40% opacity) of the foreground color is used.
 - With `show_percent` enabled, the control text is auto-updated to "xx%" (following the value-change animation); customize the format via `SetTextFormatCallback` (e.g. "5/10", "3.2 GB").
-- With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (`EaseOutQuad`, duration `animation_duration`); Slider drags are instant and normally do not need this.
+- With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (duration `animation_duration`, easing curve given by `animation_easing`, default `EaseOutQuad`); Slider drags are instant and normally do not need this.
+- Changing `min`/`max` at runtime **automatically clamps the current value back into the new range** (including `buffer_value` and the animation intermediate value), so `GetValue()` is always within `[min, max]` and the member value never diverges from what is drawn. Call `ClampCurrentValue()` to clamp manually.
+- `progress_radius` now applies to the **solid main progress, the buffer progress, and the marquee block alike**, so all three share the same style.
 - Value-change event: `AttachValueChanged` (`EventArgs::wParam` = new value, `lParam` = old value, both truncated to integer; read the exact floating-point value via `GetValue()`).
 - Completion event: `AttachProgressCompleted` — fired once when the value reaches the completion endpoint (max for forward, min for countdown).
 - Recommended semantic colors: foreground `bg_progress`, track `bg_progress_track` (auto-switch with light/dark theme).
+
+### Animation easing curve
+`animation_easing` reuses the framework's existing `ui::EasingFunctionType` enum (see `duilib/Animation/EasingFunctions.h`), which provides 31 curves:
+
+```xml
+<!-- linear -->
+<Progress name="p1" min="0" max="100" value="70" animation_enabled="true" animation_duration="600" animation_easing="EaseLinear"/>
+<!-- ease out quad (default) -->
+<Progress name="p2" min="0" max="100" value="70" animation_enabled="true" animation_duration="600" animation_easing="EaseOutQuad"/>
+<!-- elastic -->
+<Progress name="p3" min="0" max="100" value="70" animation_enabled="true" animation_duration="900" animation_easing="EaseOutElastic"/>
+```
+
+Curve groups: `EaseLinear`, `Ease{In|Out|InOut}{Sine|Quad|Cubic|Quart|Quint|Expo|Circ|Back|Elastic|Bounce}`.
+It can be changed at any time and takes effect on the next animation (the currently playing one is unaffected).
+
+C++ interfaces: `SetAnimationEasing(EasingFunctionType)`, `SetAnimationEasingName(const DString&)`, `GetAnimationEasing()`, `GetAnimationEasingName()`.
+
+### Runtime range clamping
+`SetMinValue`/`SetMaxValue` pull the current value back into the new range automatically, avoiding divergence between the member value and the rendered result:
+
+```cpp
+pProgress->SetValue(80.0);
+pProgress->SetMaxValue(50);
+// GetValue() == 50 here, not 80
+```
+
+`m_fCurrentValue`, the animation intermediate value `m_fDisplayValue`, and `buffer_value` are all clamped (an unset buffer value stays untouched).
+When the range is invalid (`min > max`) nothing is changed, and the existing rendering logic handles it.
+C++ interface: `ClampCurrentValue()`.
 
 ## Attributes of Slider
 | Attribute name | Default value | Parameter type | Purpose |

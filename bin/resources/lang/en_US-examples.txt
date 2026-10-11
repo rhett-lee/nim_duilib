@@ -561,6 +561,15 @@ STRID_PROGRESS_SLIDER_TIP_TICKS = Common for volume bars / timelines: ticks + la
 STRID_PROGRESS_SLIDER_CLICK = Track click-to-jump comparison (step=1)
 STRID_PROGRESS_SLIDER_TIP_CLICK = Top: jumps on mouse down - Bottom: jumps on mouse up
 STRID_PROGRESS_CARD_GAUGE = CircleProgress Shapes (gauge/gap ring / custom center content / indeterminate tuning)
+STRID_PROGRESS_CARD_ROBUST = Robustness and Consistency (runtime min/max clamping / marquee radius / configurable easing)
+STRID_PROGRESS_ROBUST_MARQUEE = Marquee radius (top: radius=10 / bottom: radius=0)
+STRID_PROGRESS_ROBUST_TIP_MARQUEE = Marquee now shares progress_radius with the main progress, so styles match
+STRID_PROGRESS_ROBUST_EASING = animation_easing (click the buttons above to set random values and observe)
+STRID_PROGRESS_ROBUST_TIP_EASING = Top: EaseLinear / Middle: EaseOutQuad (default) / Bottom: EaseOutElastic
+STRID_PROGRESS_ROBUST_CLAMP = Runtime min/max clamping (value=80, max=100)
+STRID_PROGRESS_ROBUST_BTN_SHRINK = Set max to 50
+STRID_PROGRESS_ROBUST_BTN_RESTORE = Restore max to 100
+STRID_PROGRESS_ROBUST_TIP_CLAMP = Click to set max to 50; the value should fall back to 50 instead of staying at 80
 STRID_PROGRESS_GAUGE_HALF = 180 deg half-round gauge (span_angle=180)
 STRID_PROGRESS_GAUGE_GAP = 270 deg gap ring (start_angle=135)
 STRID_PROGRESS_GAUGE_CENTER = Custom center content (SetCenterCallback)
