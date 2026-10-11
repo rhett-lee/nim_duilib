@@ -232,6 +232,7 @@ NavigationViewItem（继承 Control）属性：
 | Slider | Progress | 滑块 |
 | CircleProgress | Progress | 圆形进度条 |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
+| Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、状态配色、正序/倒序、滚动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
 | TreeView | ListBox | 树形控件 |
 | TreeNode | ListBoxItem | 树节点 |

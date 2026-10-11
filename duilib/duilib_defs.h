@@ -134,6 +134,7 @@ namespace ui
     #define  DUI_CTR_NAVIGATION_VIEW_ITEM            (_T("NavigationViewItem"))
     #define  DUI_CTR_CHART                           (_T("Chart"))
     #define  DUI_CTR_MARQUEE                         (_T("Marquee"))
+    #define  DUI_CTR_TIMELINE                        (_T("Timeline"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
 
@@ -428,6 +429,9 @@ namespace ui
         kEventNavigationSelectionChanged,   //NavigationView类：选中项发生变化时触发, WPARAM是新序号, LPARAM是旧序号(无选中时为Box::InvalidIndex)
         kEventNavigationPaneToggling,       //NavigationView类：窗格即将收起/展开时触发, WPARAM是目标状态(1=收起,0=展开)，回调返回false可取消本次切换
         kEventNavigationPaneToggled,        //NavigationView类：窗格收起/展开完成时触发, WPARAM是当前状态(1=收起,0=展开)
+
+        //Timeline时间轴
+        kEventTimelineItemClick,            //Timeline类：点击时间轴节点时触发, WPARAM是节点序号(从0开始)
 
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChanged,          //RichEdit类：当文本内容发生变化时触发
