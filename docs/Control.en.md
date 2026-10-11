@@ -638,8 +638,88 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | fgcolor |  | string | Set the progress bar foreground color |
 | gradient_color |  | string | Set the progress bar foreground gradient color; used together with fgcolor; if not set, there is no gradient effect |
 | indeterminate | false | bool | Whether it is an indeterminate progress (ignores value, a segment of arc keeps rotating) |
+| start_angle | 270 | float | Start angle of the arc (degrees), 0 is the 12 o'clock direction and increases clockwise; 360 is normalized to 0 |
+| span_angle | 360 | float | Total sweep span of the arc (degrees), range (0, 360]; less than 360 means a gap ring / gauge |
+| indeterminate_arc | 90 | float | Arc length of the rotating segment in indeterminate mode (degrees) |
+| indeterminate_speed | 6 | float | Rotation step per refresh in indeterminate mode (degrees) |
+| indeterminate_interval | 16 | int | Refresh interval in indeterminate mode (milliseconds), about 60 FPS by default |
+| center_ratio | 100 | float | Size of the center content area as a percentage of the control (0~100), e.g. "70" means 70% of the control |
+| center_padding | 0,0,0,0 | rect | Inner padding of the center content area, e.g. "4,4,4,4" (DPI-scaled in XML) |
 
 The CircleProgress control inherits the `Progress` attributes. For more available attributes, please refer to the `Progress` attributes.
+
+### Gauge and gap ring (start_angle / span_angle)
+
+The ring used to always start at 270° and sweep the full 360°, which cannot express a "half-round gauge" or a "ring with a gap". Now both the start angle and the span are configurable:
+
+```xml
+<!-- 180° half-round speedometer: 0~240 km/h -->
+<CircleProgress name="gauge_half" circular="true" width="170" height="110" valign="bottom"
+                circle_width="10" start_angle="270" span_angle="180"
+                min="0" max="240" value="120" show_percent="true"/>
+
+<!-- 270° gap ring: 90° gap, for scoring / completion -->
+<CircleProgress name="gauge_gap" circular="true" width="140" height="140"
+                circle_width="12" start_angle="135" span_angle="270"
+                gradient_color="color_accent" min="0" max="100" value="65"/>
+```
+
+Behavior notes:
+- The **foreground arc** sweeps `(value-min)/(max-min) * span_angle`, while the **background arc** always paints the full `span_angle`, so the gap area stays in the track color
+- **The center is auto-centered on the arc's bounding box**: for non-full circles it does not simply use the control center. It samples the start/end angles plus the 0/90/180/270 quadrant extremes passed along the way, computes the bounding box, and places the center at that box's center. This keeps the upper half of a 180° gauge fully inside the control instead of clipping it
+- The radius takes the maximum radius required in each direction, so the arc neither overflows nor shrinks excessively
+- `start_angle`/`span_angle` apply to the background arc, the foreground arc and the indicator at the same time; the indicator follows the progress end
+- `clockwise="false"` reverses the sweep direction (start angle and span unchanged)
+- C++ interfaces: `SetStartAngle/GetStartAngle`, `SetSpanAngle/GetSpanAngle`
+
+### Custom center content (draw callback)
+
+The ring center could only hold text (inherited from Label). Gauge scenarios often need a needle, an icon, or a composed number in the center, which can be done with `SetCenterCallback`:
+
+```cpp
+pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCenter, double fValue) {
+    if (pRender == nullptr || rcCenter.IsEmpty()) {
+        return true;
+    }
+    const int nWidth = rcCenter.right - rcCenter.left;
+    const int nHeight = rcCenter.bottom - rcCenter.top;
+    const float fCx = rcCenter.left + nWidth / 2.0f;
+    const float fCy = rcCenter.top + nHeight / 2.0f;
+    const float fLen = (nWidth < nHeight ? nWidth : nHeight) * 0.42f;
+    // start 135°, span 270°, clockwise; derive the needle angle from fValue
+    const float fRad = (135.0f + 270.0f * (float)(fValue / 100.0)) * 3.14159265f / 180.0f;
+    const ui::UiPointF ptEnd(fCx + fLen * std::cos(fRad), fCy + fLen * std::sin(fRad));
+    pRender->DrawLine({fCx, fCy}, ptEnd, pGauge->GetUiColor(_T("bg_progress")), 2.0f);
+    pRender->FillCircle({fCx, fCy}, 3.0f, pGauge->GetUiColor(_T("text_default")));
+    return true;
+    });
+```
+
+- Callback signature: `bool(IRender* pRender, const UiRect& rcCenter, double fValue)`; return `true` when drawing is done
+- `rcCenter` is a rectangle in **control-relative coordinates**, determined by `center_ratio` (shrink by ratio) and `center_padding` (inner padding); it can be passed directly to `IRender`
+- `fValue` is the display value clamped to `[min, max]` with `reverse` already applied
+- **Behavior is unchanged when no callback is set**: the center text is still painted by the base `text`/`text_padding`/`show_percent` flow, so text and custom content never stack up
+- To place real child controls (buttons, images, etc.) in the center, overlay a centered child control instead; this callback only handles self-drawn content
+- C++ interfaces: `SetCenterCallback`, `GetCenterRect()`, `SetCenterRatio/GetCenterRatio`, `SetCenterPadding/GetCenterPadding`
+
+### Indeterminate tuning
+
+Indeterminate mode used to be fixed at a 90° arc and 6°/16ms rotation. All three are now configurable:
+
+```xml
+<CircleProgress name="loading" circular="true" indeterminate="true" width="140" height="140"
+                start_angle="135" span_angle="270"
+                indeterminate_arc="240" indeterminate_speed="3" indeterminate_interval="24"/>
+```
+
+| Attribute | Default | Effect |
+| :--- | :--- | :--- |
+| `indeterminate_arc` | 90 | Arc length of the rotating segment. When it is smaller than `span_angle`, a visible trailing gap appears |
+| `indeterminate_speed` | 6 | Degrees advanced per refresh. Smaller means slower |
+| `indeterminate_interval` | 16 | Refresh interval in milliseconds. The default 16ms is about 60 FPS; 24~33ms gives a more "stepped" mechanical feel |
+
+Changing any of them at runtime restarts the timer automatically, so there is **no need to re-set `indeterminate`**. `span_angle` also applies to the rotating arc.
+C++ interfaces: `SetIndeterminateArc/GetIndeterminateArc`, `SetIndeterminateSpeed/GetIndeterminateSpeed`, `SetIndeterminateInterval/GetIndeterminateInterval`.
 
 ## Attributes of RichEdit/RichEdit2
 | Attribute name | Default value | Parameter type | Purpose |

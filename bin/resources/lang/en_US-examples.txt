@@ -560,6 +560,11 @@ STRID_PROGRESS_SLIDER_TICKS = Ticks: 6 marks, major ticks longer and labeled
 STRID_PROGRESS_SLIDER_TIP_TICKS = Common for volume bars / timelines: ticks + labels, custom text via SetTickLabelCallback
 STRID_PROGRESS_SLIDER_CLICK = Track click-to-jump comparison (step=1)
 STRID_PROGRESS_SLIDER_TIP_CLICK = Top: jumps on mouse down - Bottom: jumps on mouse up
+STRID_PROGRESS_CARD_GAUGE = CircleProgress Shapes (gauge/gap ring / custom center content / indeterminate tuning)
+STRID_PROGRESS_GAUGE_HALF = 180 deg half-round gauge (span_angle=180)
+STRID_PROGRESS_GAUGE_GAP = 270 deg gap ring (start_angle=135)
+STRID_PROGRESS_GAUGE_CENTER = Custom center content (SetCenterCallback)
+STRID_PROGRESS_GAUGE_INDET = Indeterminate tuning (arc 240 deg / 3 deg per 24ms)
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee Control Test
 STRID_MARQUEE_HINT = Hint: hover over a marquee to pause scrolling

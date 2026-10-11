@@ -637,8 +637,88 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | fgcolor |  | string | 设置进度条前景色 |
 | gradient_color |  | string | 设置进度条前景渐变颜色，与 fgcolor 同时使用，可以不设置则无渐变效果 |
 | indeterminate | false | bool | 是否不确定进度（忽略 value，一段弧持续旋转） |
+| start_angle | 270 | float | 圆弧起始角度（度），0 为12 点方向，顺时针递增；360 会被归一化为 0 |
+| span_angle | 360 | float | 圆弧总跨度（度），取值范围 (0, 360]；小于 360 即为缺口环/仪表盘 |
+| indeterminate_arc | 90 | float | 不确定进度模式下旋转弧的弧长（度） |
+| indeterminate_speed | 6 | float | 不确定进度模式下旋转角速度（度/次刷新） |
+| indeterminate_interval | 16 | int | 不确定进度模式的刷新间隔（毫秒），默认约 60 帧/秒 |
+| center_ratio | 100 | float | 中心内容区占控件的百分比（0~100），如"70"表示中心区为控件的 70% |
+| center_padding | 0,0,0,0 | rect | 中心内容区内边距，如"4,4,4,4"（XML 中按 DPI 缩放） |
 
 CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
+
+### 仪表盘与缺口环（start_angle / span_angle）
+
+原本圆环固定从 270° 起、扫满 360°，无法表达"半圆表盘""带缺口的环"。现在起点与跨度均可配置：
+
+```xml
+<!-- 180° 半圆速度表：0~240 km/h -->
+<CircleProgress name="gauge_half" circular="true" width="170" height="110" valign="bottom"
+                circle_width="10" start_angle="270" span_angle="180"
+                min="0" max="240" value="120" show_percent="true"/>
+
+<!-- 270° 缺口环：缺口 90°，用于评分/完成度 -->
+<CircleProgress name="gauge_gap" circular="true" width="140" height="140"
+                circle_width="12" start_angle="135" span_angle="270"
+                gradient_color="color_accent" min="0" max="100" value="65"/>
+```
+
+行为要点：
+- **前景弧**按 `(value-min)/(max-min) * span_angle` 扫过，**背景弧**始终绘制完整的 `span_angle`，因此缺口部分固定呈轨道色
+- **圆心自动按弧的包围盒居中**：非整圆时不是简单取控件中心，而是采样起止角与途经的 0/90/180/270 象限极值点求包围盒，再把圆心放在该包围盒中心。这样 180° 半圆表盘的上半弧能完整落在控件内，不会被裁掉
+- 半径取各方向所需半径的最大值，保证弧既不溢出控件也不过度缩小
+- `start_angle`/`span_angle` 对背景弧、前景弧、指示点（indicator）同时生效，指示点跟随进度末端
+- `clockwise="false"` 时扫过方向反转（起点与跨度不变）
+- 对应C++ 接口：`SetStartAngle/GetStartAngle`、`SetSpanAngle/GetSpanAngle`
+
+### 中心自定义内容（绘制回调）
+
+圆环中心原本只能放文本（继承自 Label）。仪表盘场景常需要在中心放指针、图标或组合数字，可用 `SetCenterCallback` 接管中心绘制：
+
+```cpp
+pGauge->SetCenterCallback([pGauge](ui::IRender* pRender, const ui::UiRect& rcCenter, double fValue) {
+    if (pRender == nullptr || rcCenter.IsEmpty()) {
+        return true;
+    }
+    const int nWidth = rcCenter.right - rcCenter.left;
+    const int nHeight = rcCenter.bottom - rcCenter.top;
+    const float fCx = rcCenter.left + nWidth / 2.0f;
+    const float fCy = rcCenter.top + nHeight / 2.0f;
+    const float fLen = (nWidth < nHeight ? nWidth : nHeight) * 0.42f;
+    // 起始 135°、跨度 270°，顺时针；按 fValue 换算指针角度
+    const float fRad = (135.0f + 270.0f * (float)(fValue / 100.0)) * 3.14159265f / 180.0f;
+    const ui::UiPointF ptEnd(fCx + fLen * std::cos(fRad), fCy + fLen * std::sin(fRad));
+    pRender->DrawLine({fCx, fCy}, ptEnd, pGauge->GetUiColor(_T("bg_progress")), 2.0f);
+    pRender->FillCircle({fCx, fCy}, 3.0f, pGauge->GetUiColor(_T("text_default")));
+    return true;
+    });
+```
+
+- 回调签名：`bool(IRender* pRender, const UiRect& rcCenter, double fValue)`，返回 `true` 表示绘制完成
+- `rcCenter` 是**控件内相对坐标**的矩形，由 `center_ratio`（按比例收缩）与 `center_padding`（内边距）共同决定，可直接交给 `IRender` 使用
+- `fValue` 为钳位到 `[min, max]`、并已应用 `reverse` 的显示值
+- **不设置回调时行为不变**：中心文本仍由基类的 `text`/`text_padding`/`show_percent` 流程绘制，不会出现文本与自定义内容重复叠加
+- 若需要在中心放真实子控件（按钮、图片等），可在控件上叠加一个居中的子控件实现，本回调仅负责自绘内容
+- 对应 C++ 接口：`SetCenterCallback`、`GetCenterRect()`、`SetCenterRatio/GetCenterRatio`、`SetCenterPadding/GetCenterPadding`
+
+### indeterminate 参数化
+
+不确定进度模式原本固定弧长 90°、转速 6°/16ms，现在可调：
+
+```xml
+<CircleProgress name="loading" circular="true" indeterminate="true" width="140" height="140"
+                start_angle="135" span_angle="270"
+                indeterminate_arc="240" indeterminate_speed="3" indeterminate_interval="24"/>
+```
+
+| 属性 | 默认值 | 效果 |
+| :--- | :--- | :--- |
+| `indeterminate_arc` | 90 | 旋转弧的弧长。弧长小于 `span_angle` 时可看到明显的缺口拖尾 |
+| `indeterminate_speed` | 6 | 每次刷新前进的角度（度）。越小越慢 |
+| `indeterminate_interval` | 16 | 刷新间隔（毫秒）。默认 16ms 约 60 帧/秒；放大到 24~33ms 可获得更"卡顿"的机械感 |
+
+三者在运行期修改会自动重启定时器，**无需重新设置 `indeterminate`**。`span_angle` 同样作用于旋转弧的绘制范围。
+对应 C++ 接口：`SetIndeterminateArc/GetIndeterminateArc`、`SetIndeterminateSpeed/GetIndeterminateSpeed`、`SetIndeterminateInterval/GetIndeterminateInterval`。
 
 ## RichEdit/RichEdit2的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
