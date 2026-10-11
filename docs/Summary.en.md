@@ -217,7 +217,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | Slider | Progress | [duilib/Control/Slider.h](../duilib/Control/Slider.h) | Slider control |
 | CircleProgress | Control | [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | Circular progress bar |
 | Chart | Control | [duilib/Control/Chart.h](../duilib/Control/Chart.h) | Lightweight chart control (self-drawn line/bar/pie charts with data binding), see [Control.md](Control.md#chart-attributes) |
-| Timeline | Control | [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | Vertical timeline control (nodes + connector lines + content, data-driven, status colors, forward/reverse), see [Control.md](Control.md#timeline-attributes) |
+| Timeline | Control | [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | Vertical timeline control (nodes + connector lines + content, data-driven, status colors, forward/reverse, multi-language binding, scrollbar), see [Control.md](Control.md#timeline-attributes) |
 | RichEdit | ScrollBox | [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | Rich text edit box control |
 | RichEdit Implementation Class | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | Main function wrapper of the rich text edit box (Windows) |
 | RichEdit Implementation Class | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | Main function implementation of the rich text edit box (Windows) |

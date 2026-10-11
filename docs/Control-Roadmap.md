@@ -55,7 +55,7 @@
 | # | 控件 | 说明 | 参考 | 状态 |
 |---|------|------|------|------|
 | 10 | 轻量 Chart 图表 | 折线/柱状/饼图自绘 + 数据绑定。目前图表只能嵌 CEF 或引第三方库；工作量最大，但对"桌面开发全家桶"价值最高，建议作为独立模块演进 | Qt Charts（精简） | 已完成：新增 Chart 控件类（继承 Control，纯自绘，支持 line/bar/pie 三形态，data/data_labels 数据绑定、坐标轴/网格/图例/数值标签、多系列、负值柱状、堆叠、曲线/面积、环形饼图；交互含悬停 Tooltip/点击选中/缩放平移；视觉含圆角/渐变/发光/数据动画；语义色适配深浅色），详见 [Control.md](Control.md#chart的属性) |
-| 11 | Timeline 时间轴 | 垂直时间轴（节点 + 内容），用于日志、任务流、审批流展示。自绘成本较低 | 各平台通用 | |
+| 11 | Timeline 时间轴 | 垂直时间轴（节点 + 内容），用于日志、任务流、审批流展示。自绘成本较低 | 各平台通用 | 已完成：新增 Timeline 控件类（继承 Control，纯自绘，节点+状态连接线+时间/标题/正文内容；数据驱动 `item_time/item_title/item_content/item_status` 及多语言 `item_*_id` 绑定、4 态节点配色、实线/虚线连接线、正序/倒序、节点点击事件、空数据/加载状态、滚动条（hover 自动显隐、颜色可配、可拖动）、自定义渲染回调），详见 [Control.md](Control.md#timeline的属性) |
 | 12 | 骨架屏/加载占位 | 已有 ControlLoading（控件加载中状态），补充列表/卡片骨架屏占位模式，改善异步数据加载体验 | 各平台通用 | |
 
 #### 第三梯队（补充）：表单与表格增强，成本低到中
@@ -78,14 +78,14 @@
 
 ### 四、实施进度与顺序
 
-#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项）
+#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项）
 
-第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart 均已实现并接入 controls / ColorTheme 示例。浮层公共地基 Flyout 已就绪，后续弹层类控件（AutoComplete、富内容提示等）可直接复用。
+第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline 均已实现并接入 controls / ColorTheme 示例。浮层公共地基 Flyout 已就绪，后续弹层类控件（AutoComplete、富内容提示等）可直接复用。
 
 #### 后续顺序建议
 
 1. **补齐第三梯队补充项 13–17**（成本低到中，多为对现有控件的组合/增强）：优先 TagInput、AutoComplete（复用 Flyout）、ListCtrl 表格增强，它们是表单/报表类软件最直接的缺口。
-2. **第三梯队剩余大件按产品需求排期**：Timeline、骨架屏可随需求插入。
+2. **第三梯队剩余大件按产品需求排期**：骨架屏可随需求插入。
 3. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
 
 ### 五、平台整合能力规划（应用骨架层）

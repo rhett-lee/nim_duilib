@@ -57,7 +57,7 @@ Grouped into three tiers by value and implementation cost; implement in tier ord
 | # | Control | Description | Reference | Status |
 |---|------|------|------|------|
 | 10 | Lightweight Chart | Line/bar/pie charts, custom-drawn with data binding. Charts currently require CEF embedding or a third-party library; the largest workload but the highest value for a "full toolkit", best evolved as a standalone module | Qt Charts (slimmed) | **Completed**: added the Chart control (derives from Control, fully self-drawn, supports line/bar/pie forms, data/data_labels binding, axis/grid/legend/value labels, multi-series, negative bars, stacking, curve/area, donut pie; interaction includes hover tooltip/click-select/zoom-pan; visuals include rounded corners/gradient/glow/data animation; semantic colors adapt to light/dark themes). See [Control.md](Control.md#chart-attributes) |
-| 11 | Timeline | Vertical timeline (nodes + content) for logs, task flows, approval flows. Relatively cheap to draw | Common across platforms | |
+| 11 | Timeline | Vertical timeline (nodes + content) for logs, task flows, approval flows. Relatively cheap to draw | Common across platforms | Done: added the Timeline control (derives from Control, fully self-drawn, nodes + status connector lines + time/title/body content; data-driven `item_time/item_title/item_content/item_status` and multi-language `item_*_id` binding, 4-state node colors, solid/dashed connector lines, forward/reverse order, node click events, empty/loading states, scrollbar (hover auto-hide, configurable colors, draggable), custom render callback). See [Control.md](Control.md#timeline-attributes) |
 | 12 | Skeleton / loading placeholder | ControlLoading (loading state) already exists; add list/card skeleton placeholder modes to improve async-loading UX | Common across platforms | |
 
 #### Tier 3 (supplement): Form and Table Enhancements, Low to Medium Cost
@@ -80,14 +80,14 @@ The items above are "large" ones. The following are smaller items that strengthe
 
 ### 4. Progress and Ordering
 
-#### Completed (Tier 1–2 items 1–9, plus Tier 3 Chart item 10)
+#### Completed (Tier 1–2 items 1–9, plus Tier 3 Chart item 10 and Timeline item 11)
 
-Tier 1 (form essentials 1–5), Tier 2 (flyout system 6–9), and the Tier 3 Chart (item 10) are all delivered: Switch, SpinBox, SearchBox, Badge, plus Flyout, Calendar, NavigationView, Toast action buttons, and Chart are implemented and integrated into the controls / ColorTheme demos. The shared flyout foundation (Flyout) is ready, so subsequent popup-style controls (AutoComplete, rich tooltips, etc.) can build directly on it.
+Tier 1 (form essentials 1–5), Tier 2 (flyout system 6–9), and the Tier 3 Chart (item 10) and Timeline (item 11) are all delivered: Switch, SpinBox, SearchBox, Badge, plus Flyout, Calendar, NavigationView, Toast action buttons, Chart, and Timeline are implemented and integrated into the controls / ColorTheme demos. The shared flyout foundation (Flyout) is ready, so subsequent popup-style controls (AutoComplete, rich tooltips, etc.) can build directly on it.
 
 #### Subsequent Ordering
 
 1. **Finish Tier 3 supplement items 13–17** (low to medium cost, mostly composites/enhancements of existing controls): prioritize TagInput, AutoComplete (reusing Flyout), and ListCtrl table enhancements — the most direct gaps for form/report-style software.
-2. **Schedule the remaining Tier 3 large items by product needs**: Timeline and skeleton screens can be inserted as needs arise.
+2. **Schedule the remaining Tier 3 large items by product needs**: skeleton screens can be inserted as needs arise.
 3. **Platform integration and engineering (sections 5 and 6)**: run in parallel with the control roadmap; accessibility and packaging/signing are hard requirements for "cross-platform desktop development" and should start early.
 
 ### 5. Platform Integration Roadmap (Application Skeleton Layer)
