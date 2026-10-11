@@ -1,6 +1,8 @@
 #include "MainForm.h"
 #include "MainThread.h"
 
+#include <cmath>
+
 MainForm::MainForm():
     m_fLoadingPercent(0),
     m_imageId(0)
@@ -642,6 +644,31 @@ void MainForm::TestListCtrlLoading(ui::ListCtrl* pListCtrl)
             return true;
             });
     }
+
+    //骨架屏测试：列表骨架屏
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_skeleton_btn1")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            OnTestLoadingSkeleton(false);
+            return true;
+            });
+    }
+    //骨架屏测试：卡片骨架屏
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_skeleton_btn2")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            OnTestLoadingSkeleton(true);
+            return true;
+            });
+    }
+    //停止骨架屏占位
+    pLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("loading_stop_btn")));
+    if (pLoadingBtn != nullptr) {
+        pLoadingBtn->AttachClick([pListCtrl, this](const ui::EventArgs& args) {
+            OnStopLoadingSkeleton();
+            return true;
+            });
+    }
 }
 
 void MainForm::OnTestLoadingProgress()
@@ -722,6 +749,111 @@ void MainForm::OnTestLoadingProgress()
         });
 
     pListCtrl->StartLoading(33, -1);
+}
+
+void MainForm::OnTestLoadingSkeleton(bool bCardLayout)
+{
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    //若上一轮骨架屏因异常卡在loading状态，先强制复位，否则后续所有点击都会被这里挡住
+    if (pListCtrl->IsLoading()) {
+        pListCtrl->StopLoading();
+    }
+
+    //骨架屏的占位界面完全由XML描述，C++侧只负责指定皮肤与超时兜底：
+    //  width='0' height='0' + 皮肤根容器的 stretch = 铺满ListCtrl（clamp 生效），无需算尺寸
+    //  不指定 animation_control：骨架屏是静态占位块，不存在"动画播完"的时刻
+    //  不设置 auto_stop：必须由业务侧根据 m_nElapsedTimeMs 主动结束
+    const DString strSkin = bCardLayout ? _T("loading_skeleton_card.xml") : _T("loading_skeleton_list.xml");
+    const DString strLoading = _T("file='") + strSkin + _T("' width='0' height='0' offset_x='-1' offset_y='-1' ") +
+        _T("valign='center' halign='center' fade='255'");
+    if (!pListCtrl->SetLoadingAttribute(strLoading)) {
+        OutputDebugLog(_T("SetLoadingAttribute failed, skin=") + strSkin);
+        return;
+    }
+
+    pListCtrl->DetachEvent(ui::kEventLoadingStart);
+    pListCtrl->DetachEvent(ui::kEventLoading);
+    pListCtrl->DetachEvent(ui::kEventLoadingStop);
+
+    pListCtrl->AttachLoadingStart([this](const ui::EventArgs& args) {
+        ui::ControlLoadingStatus* pLoadingStatus = (ui::ControlLoadingStatus*)args.wParam;
+        if (pLoadingStatus != nullptr) {
+            //骨架屏的占位根容器，可用于动态增删占位块。
+            //注意：StopLoading时这个Box会被销毁，句柄随之失效，不能跨事件保存。
+            ui::ControlPtrT<ui::Box> pLoadingUiRootBox = pLoadingStatus->m_pLoadingUiRootBox;
+            OutputDebugLog(_T("skeleton loading start"));
+        }
+        return true;
+        });
+
+    pListCtrl->AttachLoading([pListCtrl, this](const ui::EventArgs& args) {
+        bool bRet = true;
+        ui::ControlLoadingStatus* pLoadingStatus = (ui::ControlLoadingStatus*)args.wParam;
+        if (pLoadingStatus == nullptr) {
+            return false;
+        }
+
+        //超时兜底：nMaxCount只是回调次数上限，真正的时间超时必须自己判断。
+        //没有这一步，骨架屏会一直停在那里，比转圈更糟——用户失去了"还在加载"的确信感。
+        const uint64_t nTimeoutMs = 5000;
+        if (pLoadingStatus->m_nElapsedTimeMs >= nTimeoutMs) {
+            pLoadingStatus->m_bStopLoading = true;
+            return true;
+        }
+
+        //呼吸动画：让"占位块"呼吸，**不能给根容器设 alpha**。
+        //原因：ControlLoading 的 loading 层是叠加绘制而不是遮罩，根容器的 bkcolor 承担遮住
+        //下方列表内容的职责。一旦根容器 alpha < 255，底板也跟着半透明，下方内容会透出来
+        //（表现为骨架屏只有灰块、下方旧列表隐约可见）。
+        //正确做法：根容器固定 255，只遍历它的子控件（占位块）调 SetAlpha。
+        //如需"尊重减少动态效果"的无障碍设置，可在此处判断系统偏好后跳过本段。
+        ui::ControlPtrT<ui::Box> pLoadingUiRootBox = pLoadingStatus->m_pLoadingUiRootBox;
+        if (pLoadingUiRootBox != nullptr) {
+            const double fSeconds = (double)pLoadingStatus->m_nElapsedTimeMs / 1000.0;
+            //约2秒一个周期，alpha 在 140~255 之间起伏（不降到太低，保持占位块清晰可辨）
+            const uint8_t nAlpha = (uint8_t)(197.5 + 57.5 * std::sin(fSeconds * 3.1415926));
+            for (size_t i = 0; i < pLoadingUiRootBox->GetItemCount(); ++i) {
+                ui::Control* pChild = pLoadingUiRootBox->GetItemAt(i);
+                if (pChild != nullptr) {
+                    pChild->SetAlpha(nAlpha);
+                }
+            }
+        }
+        return bRet;
+        });
+
+    pListCtrl->AttachLoadingStop([pListCtrl](const ui::EventArgs& args) {
+        //解除注册的回调，避免影响其他业务
+        pListCtrl->DetachEvent(ui::kEventLoadingStart);
+        pListCtrl->DetachEvent(ui::kEventLoading);
+        pListCtrl->DetachEvent(ui::kEventLoadingStop);
+        return true;
+        });
+
+    //33ms一次心跳；nMaxCount=-1表示不靠次数停止，完全由上面的超时逻辑控制
+    if (!pListCtrl->StartLoading(33, -1)) {
+        OutputDebugLog(_T("StartLoading failed, skin=") + strSkin);
+    }
+}
+
+void MainForm::OnStopLoadingSkeleton()
+{
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
+    ASSERT(pListCtrl != nullptr);
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    //注意：Control::StartLoading 内部会 SetEnabled(false)，Control::StopLoading 内部会
+    // SetEnabled(true)。如果骨架屏因为任何原因卡在 loading 状态（例如 XML 解析失败导致
+    // 定时器没跑起来），ListCtrl 会一直处于禁用状态，下方整个列表区域都点不动。
+    //所以这里不判断 IsLoading()，无条件停止并恢复可用状态，作为兜底。
+    pListCtrl->StopLoading();
+    pListCtrl->SetEnabled(true);
+    OutputDebugLog(_T("skeleton loading stopped manually"));
 }
 
 void MainForm::OnColumnChanged(size_t nColumnId)
