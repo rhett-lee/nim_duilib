@@ -266,8 +266,8 @@ void ControlLoading::Loading()
 
     ControlLoadingStatus status;
     status.m_pControl = pControl;
-    auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_startTime);
-    status.m_nElapsedTimeMs = (uint64_t)microseconds.count();
+    auto milliSeconds = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_startTime);
+    status.m_nElapsedTimeMs = (uint64_t)milliSeconds.count();
     status.m_pLoadingUiRootBox = pLoadingUiRootBox;
     status.m_pAnimationControl = pAnimationControl;
     status.m_bStopLoading = false;
