@@ -41,8 +41,8 @@ void ProgressForm::OnInitWindow()
             }
             //动画曲线对照：三条不同缓动的进度条统一切到同一个随机目标值，便于横向对比
             const double fTarget = static_cast<double>(std::rand() % 101);
-            const TCHAR* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
-            for (const TCHAR* pName : ppEasingNames) {
+            const DString::value_type* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
+            for (const DString::value_type* pName : ppEasingNames) {
                 ui::Progress* pEasing = dynamic_cast<ui::Progress*>(FindControl(pName));
                 if (pEasing != nullptr) {
                     pEasing->SetValue(fTarget);
@@ -137,8 +137,8 @@ void ProgressForm::OnInitWindow()
     }
 
     //点击轨道行为对照：两个滑块共用一个标签，回显各自的值
-    const TCHAR* ppClickNames[] = {_T("slider_click_jump"), _T("slider_click_release")};
-    for (const TCHAR* pName : ppClickNames) {
+    const DString::value_type* ppClickNames[] = {_T("slider_click_jump"), _T("slider_click_release")};
+    for (const DString::value_type* pName : ppClickNames) {
         ui::Slider* pSlider = dynamic_cast<ui::Slider*>(FindControl(pName));
         if (pSlider != nullptr) {
             pSlider->AttachValueChanged([this, pName](const ui::EventArgs& /*args*/) {
@@ -155,8 +155,8 @@ void ProgressForm::OnInitWindow()
     //===== CircleProgress 形态扩展测试 =====
 
     //仪表盘/缺口环：由OnTimer 统一递增，验证 span_angle 内的扫过效果
-    const TCHAR* ppGaugeNames[] = {_T("gauge_half"), _T("gauge_gap")};
-    for (const TCHAR* pName : ppGaugeNames) {
+    const DString::value_type* ppGaugeNames[] = {_T("gauge_half"), _T("gauge_gap")};
+    for (const DString::value_type* pName : ppGaugeNames) {
         ui::CircleProgress* pGauge = dynamic_cast<ui::CircleProgress*>(FindControl(pName));
         if (pGauge != nullptr) {
             pGauge->SetValue(0.0);
@@ -250,8 +250,8 @@ void ProgressForm::OnInitWindow()
 
     //动画曲线对照：三条进度条由"随机设值"按钮统一切到同一目标值，便于横向对比缓动差异
     //（不用 AttachValueChanged 驱动，避免 SetValue 触发事件造成自递归）
-    const TCHAR* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
-    for (const TCHAR* pName : ppEasingNames) {
+    const DString::value_type* ppEasingNames[] = {_T("robust_ease_linear"), _T("robust_ease_out"), _T("robust_ease_elastic")};
+    for (const DString::value_type* pName : ppEasingNames) {
         ui::Progress* pEasing = dynamic_cast<ui::Progress*>(FindControl(pName));
         if (pEasing != nullptr) {
             //初值设为 0，点击"随机设值"后都跳到同一个目标值
