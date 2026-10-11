@@ -133,16 +133,19 @@
                 </GroupVBox>
                 <HBox>
                     <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="2,0,2,0">
-                        <Button class="btn_global" name="loading_progress_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS1" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
-                        <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_progress_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS1" width="200" height="28" border_round="3,3" margin="20,25,10,0"/>
+                        <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+                        <!-- Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="200" height="28" border_round="3,3" margin="20,4,10,0"/ -->
+                        <!-- Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="200" height="28" border_round="3,3" margin="20,4,10,0"/ -->
+                        <Button class="btn_global" name="loading_skeleton_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_LIST" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_skeleton_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_CARD" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_stop_btn" text_id="STRID_LISTCTRL_LOADING_TEST_STOP" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
                     </GroupVBox>
                     <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="0,0,2,0">
-                        <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="200" height="30" border_round="3,3" margin="20,25,10,0"/>
-                        <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn5" text_id="STRID_LISTCTRL_LOADING_TEST5" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn6" text_id="STRID_LISTCTRL_LOADING_TEST6" width="200" height="30" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="200" height="28" border_round="3,3" margin="20,25,10,0"/>
+                        <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_btn5" text_id="STRID_LISTCTRL_LOADING_TEST5" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+                        <Button class="btn_global" name="loading_btn6" text_id="STRID_LISTCTRL_LOADING_TEST6" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
                     </GroupVBox>
                 </HBox>
             </HBox>

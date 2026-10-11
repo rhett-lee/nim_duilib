@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 卡片骨架屏：用于卡片式布局（如图标网格、统计卡片）的加载占位
+
+     与 loading_skeleton_list.xml 的差异：
+       - 结构为"大图位 + 标题 + 副标题"的纵向卡片，重复 6 张（3 列 x 2 行）
+       - 卡片本身有底色和圆角，占位块在卡片内部
+       - 行高一致性要求同列表骨架：卡片尺寸必须与真实卡片一致
+
+     两条必须遵守的约束（写错会直接触发 ASSERT 崩溃），详见 loading_skeleton_list.xml 顶部注释：
+       1. valign 只能填 top / center / bottom，不能填 vcenter（vcenter 只在 text_align 里有效）
+       2. 根容器必须有 bkcolor 且为不透明色（loading 层是叠加绘制不是遮罩）
+
+     第三条（踩过）：**同一层级的多个兄弟要么全写 height="stretch"，要么别混用 auto**。
+     最初写成"第一行 stretch + 第二行 auto"，结果两行高度不对称 —— 第一行被拉伸占满，
+     第二行按内容高度（约163px）贴在中上方，行间留白一大一小。统一成 stretch 后两行平分，可预期。
+     行间距用 margin 实现：第一行 margin="0,0,0,12"，第二行 margin="0,12,0,0"。
+-->
+<Loading>
+    <VBox height="stretch" width="stretch" bkcolor="bg_list" mousechild="false" padding="12,12,12,12">
+        <!-- 第 1 行：3 张卡片 -->
+        <HBox height="stretch" width="stretch" margin="0,0,0,12">
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="90%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="60%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="40%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14" margin="12,0,0,0">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="78%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="66%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="46%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14" margin="12,0,0,0">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="84%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="58%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="42%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+        </HBox>
+
+        <!-- 第 2 行：3 张卡片 -->
+        <HBox height="stretch" width="stretch" margin="0,12,0,0">
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="72%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="62%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="38%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14" margin="12,0,0,0">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="88%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="54%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="44%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+            <VBox width="stretch" height="auto" bkcolor="bg_container" border_round="4,4" border_size="1,1" border_color="border_list_ctrl_view_split" padding="14,14,14,14" margin="12,0,0,0">
+                <Control width="stretch" height="72" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="80%" height="13" bkcolor="bg_progress_track" border_round="3,3" margin="0,14,0,0"/>
+                <Control width="70%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+                <Control width="36%" height="10" bkcolor="bg_progress_track" border_round="3,3" margin="0,8,0,0"/>
+            </VBox>
+        </HBox>
+    </VBox>
+</Loading>

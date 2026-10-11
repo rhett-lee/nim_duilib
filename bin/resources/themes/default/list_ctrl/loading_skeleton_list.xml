@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 列表骨架屏：用于 ListCtrl/TreeView 等条目型控件的加载占位
+
+     两条必须遵守的约束（写错会直接触发 ASSERT 崩溃）：
+
+       1. valign 只能填 top / center / bottom，**不能填 vcenter**。
+          vcenter 只在 text_align 属性里有效；Control::SetAttribute 解析 valign/halign 时
+          末尾是 else { ASSERT(0); }，填错值在 debug 版直接断言。
+          （halign 同理，只能填 left / center / right）
+       2. 根容器必须有 bkcolor 且为不透明色。loading 层是"叠加绘制"而不是"遮罩"
+          （CreateBox 建的独立 Box 不进控件树，靠 AlphaPaint 画在目标控件之上），
+          不画底色的话下方已有的列表内容会透出来。
+
+     根容器用 height="stretch" width="stretch"：配合 SetLoadingAttribute 的 width='0' height='0'，
+     UpdateLoadingPos 会因为 stretch 既非 IsAuto() 也非 IsInt32() 而算出 0，
+     再被 clamp 补成目标控件的完整区域 —— 效果正是"铺满 ListCtrl（含表头）"，无需 C++ 算尺寸。
+
+     第三条约束（踩过）：**不要给根容器调 SetAlpha 做呼吸动画**。
+     根容器的 bkcolor 承担遮住下方列表内容的职责（loading 层是叠加绘制不是遮罩），
+     一旦根容器 alpha < 255，底板跟着半透明，下方旧列表会透出来。
+     正确做法是根容器固定 255，只遍历 GetItemAt() 给子控件（占位块）设 alpha。
+
+     不挂 animation_control、不设 auto_stop —— 骨架屏是静态占位，没有"动画播完"的时刻，
+     必须由业务侧根据 ControlLoadingStatus::m_nElapsedTimeMs 超时后主动停止。
+
+     行数说明：12 行 × 30px + 顶部工具栏 44px ≈ 404px，可铺满示例 ListCtrl 的可视区。
+     行宽做了差异化变化（标题 132~204px、副标题 88~140px），避免所有行一模一样显得假。
+     若真实列表行高与此处不同（示例可通过"每行高度"调整），需按实际行高重算行数以铺满。
+-->
+<Loading>
+    <VBox height="stretch" width="stretch" bkcolor="bg_list" mousechild="false" padding="8,6,8,6">
+        <!-- 顶部工具栏占位：与真实界面顶部的筛选区高度一致 -->
+        <HBox height="auto" width="stretch" margin="0,0,0,10">
+            <Control width="160" height="20" bkcolor="bg_progress_track" border_round="3,3"/>
+            <Control width="120" height="20" bkcolor="bg_progress_track" border_round="3,3" margin="12,0,0,0"/>
+            <Control width="stretch" height="1"/>
+            <Control width="96" height="24" bkcolor="bg_progress_track" border_round="3,3"/>
+        </HBox>
+
+        <!-- 8 行条目占位 -->
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="180" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="110" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="150" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="126" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="204" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="98" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="166" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="134" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="188" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="104" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="142" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="118" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="176" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="92" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+
+        <HBox height="24" width="stretch">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="158" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="130" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="132" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="124" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="196" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="88" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="172" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="140" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+        <HBox height="24" width="stretch" margin="0,0,0,6">
+            <Control width="16" height="16" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="18" height="18" bkcolor="bg_progress_track" border_round="3,3" margin="10,0,0,0" valign="center"/>
+            <VBox width="stretch" height="auto" margin="12,0,0,0" valign="center">
+                <Control width="148" height="11" bkcolor="bg_progress_track" border_round="3,3"/>
+                <Control width="100" height="9" bkcolor="bg_progress_track" border_round="3,3" margin="0,5,0,0"/>
+            </VBox>
+            <Control width="64" height="11" bkcolor="bg_progress_track" border_round="3,3" valign="center"/>
+            <Control width="48" height="11" bkcolor="bg_progress_track" border_round="3,3" margin="16,0,0,0" valign="center"/>
+        </HBox>
+    </VBox>
+</Loading>

@@ -56,6 +56,15 @@ private:
     */
     void OnTestLoadingProgress();
 
+    /** 测试骨架屏（Skeleton）占位功能
+    * @param bCardLayout true=卡片骨架屏；false=列表骨架屏
+    */
+    void OnTestLoadingSkeleton(bool bCardLayout);
+
+    /** 停止骨架屏占位（超时或手动停止）
+    */
+    void OnStopLoadingSkeleton();
+
     /** 测试ListCtrl的事件回调接口
     */
     void TestListCtrlEvents(ui::ListCtrl* pListCtrl);
