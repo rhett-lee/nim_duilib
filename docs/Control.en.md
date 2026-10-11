@@ -566,9 +566,66 @@ Notes:
 | thumb_disabled_image |  | string | Disabled state image of the drag slider |
 | thumb_size | 10,10 | size | Size of the drag slider, e.g. "10,10" |
 | step | 1 | int | Progress step, e.g. "1" |
+| page_step | 0 | int | Big step for PageUp/PageDown (and Shift+arrow); 0 means auto = (max-min)/10 |
+| click_to_jump | true | bool | Whether clicking the track jumps **on mouse down**; false keeps the legacy "jump on mouse up" behavior |
 | progress_bar_padding | 0,0,0,0 | rect | Padding reduced when drawing the slider bar |
+| show_ticks | false | bool | Whether tick marks (a ruler) are drawn |
+| tick_count | 5 | int | Number of ticks (at least 2, including both endpoints) |
+| tick_length | 4 | int | Tick length in pixels (DPI-scaled internally) |
+| tick_color | text_muted | string | Tick color (semantic color name or color value) |
+| tick_pos | bottom | string | Tick position: bottom/top (horizontal), right/left (vertical) |
+| show_tick_labels | false | bool | Whether tick value labels are drawn (requires show_ticks) |
+| tick_label_interval | 1 | int | Draw a value label every N ticks |
+| tick_font | system_regular_12 | string | Font ID for tick value labels |
+| tick_label_color | text_muted | string | Color for tick value labels |
 
 The Slider control inherits the `Progress` attributes. For more available attributes, please refer to the `Progress` attributes.
+
+### Keyboard operation (accessibility)
+Slider joins the Tab focus loop (`GetControlFlags` returns `UIFLAG_TABSTOP`) and handles `kEventKeyDown`:
+
+| Key | Behavior |
+| :--- | :--- |
+| Left/Right (horizontal), Up/Down (vertical) | Step forward/backward by `step` |
+| Shift + arrow | Step by `page_step` (big step) |
+| PageUp / PageDown | Step by `page_step` (big step), independent of the slider axis |
+| Home / End | Jump directly to `min` / `max` |
+| Mouse wheel | Step forward/backward by `step` |
+
+All keyboard operations clamp to `[min, max]` and fire `kEventValueChanged`.
+When `page_step` is 0 (the default) it is computed as `(max-min)/10`, and never smaller than `step`.
+
+### Ticks and ruler
+Slider can draw tick lines and tick values like Chart axis ticks — typical for volume bars and timeline handles:
+
+```xml
+<Slider name="volume" min="0" max="100" value="30" height="42" width="stretch"
+        show_ticks="true" tick_count="11" tick_length="5" tick_pos="bottom"
+        tick_color="border_control_normal"
+        show_tick_labels="true" tick_label_interval="2"
+        tick_font="system_regular_12" tick_label_color="text_muted"/>
+```
+
+Tick positions are computed over the thumb's **travel range**, so they align exactly with the thumb center; horizontal sliders draw ticks above or below the track, vertical sliders draw them to the left or right.
+Integer tick values drop the decimal part by default (showing `20` instead of `20.00`); non-integer ticks keep two decimals.
+
+Visual rules:
+- **Major/minor tick layering**: ticks that carry a label (`i % tick_label_interval == 0`) are drawn as longer major ticks; the rest are minor ticks at roughly half the length, producing the visual hierarchy of a ruler
+- **Adaptive label width**: the label half-width shrinks to the actual tick spacing (never more than half a spacing), which by design prevents adjacent labels from overlapping
+- **Edge alignment for first/last**: the first label is left-aligned and the last is right-aligned (top/bottom for vertical sliders), with the text expanding inward. This keeps end labels from being shifted out of bounds — which would otherwise encroach on the neighbouring label's space — and guarantees the text is never clipped
+
+Customize tick text (e.g. `03:20` for a timeline) with `SetTickLabelCallback`:
+
+```cpp
+pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
+    int nTotal = (int)value;
+    return ui::StringUtil::Printf(_T("%02d:%02d"), nTotal / 60, nTotal % 60);
+    });
+```
+
+### Track click behavior
+`click_to_jump=true` (the default) jumps **on mouse down**: pressing the left mouse button anywhere on the track immediately moves the value there and enters the dragging state (you can keep holding to drag). This is the more common desktop interaction.
+`click_to_jump=false` keeps the legacy behavior: the value jumps to the release position on mouse up.
 
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |

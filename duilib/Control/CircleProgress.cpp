@@ -147,13 +147,8 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     }    
 
     UiRect outer = rcBorder;
-    if (pIndicatorImageInfo != nullptr) {
-        outer.Inflate(-1 * pIndicatorImageInfo->GetWidth() / 2,
-                      -1 * pIndicatorImageInfo->GetWidth() / 2);
-    }
-    else {
-        outer.Inflate(-1 * (int32_t)(m_fCircleWidth / 2), -1 * (int32_t)(m_fCircleWidth / 2));
-    }
+    //环的绘制半径由环宽决定；指示点不参与收缩，避免更换指示点尺寸时环跟着变形
+    outer.Inflate(-1 * (int32_t)(m_fCircleWidth / 2), -1 * (int32_t)(m_fCircleWidth / 2));
     int inflateValue = Dpi().GetScaleInt(-1);
     outer.Inflate(inflateValue, inflateValue);
 
@@ -181,21 +176,21 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     
     if (pIndicatorImageInfo != nullptr) {
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
-        if ((spMatrix != nullptr) && ((nMax - nMin) != 0)){
-            float angle = m_bIndeterminate ? m_fIndeterminateAngle
-                                           : (direction * 360 * ((float)fValue - nMin) / (nMax - nMin));
-
+        //指示点跟随进度末端：与弧的起始角+扫过角一致，而不是固定的 12 点方向
+        const float fAngle = fStartAngle + fSweepAngle;
+        if (spMatrix != nullptr) {
             const UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
-            spMatrix->RotateAt(angle, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
+            spMatrix->RotateAt(fAngle, (float)center.x - ptScrollOffset.x, (float)center.y - ptScrollOffset.y);
         }
 
+        //先按 12 点方向摆位（弧的起始方向），再由上面的矩阵旋转到末端角度
         UiRect imageRect;
         imageRect.left = center.x - pIndicatorImageInfo->GetWidth() / 2;
         imageRect.top = outer.top + bordersize / 2 - pIndicatorImageInfo->GetHeight() / 2;
         imageRect.right = imageRect.left + pIndicatorImageInfo->GetWidth();
         imageRect.bottom = imageRect.top + pIndicatorImageInfo->GetHeight();
         imageRect.Offset(-GetRect().left, -GetRect().top);
-        DString imageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), 
+        DString imageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"),
             imageRect.left, imageRect.top, imageRect.right, imageRect.bottom);
         PaintImage(pRender, m_pIndicatorImage, imageModify, -1, spMatrix.get());
     }

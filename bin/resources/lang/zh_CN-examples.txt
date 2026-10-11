@@ -558,6 +558,13 @@ STRID_PROGRESS_EVENT_NONE = 事件：无
 STRID_PROGRESS_CARD_HORIZ = 水平进度条（图片前景 · 圆角百分比 · 浮点动画 · 滑块 · marquee）
 STRID_PROGRESS_CARD_VERT = 垂直进度条
 STRID_PROGRESS_CARD_CIRCLE = 环形进度条（渐变 · 逆时针 · 转圈）
+STRID_PROGRESS_CARD_SLIDER = Slider 交互（键盘无障碍 · 刻度标尺 · 点击轨道跳转）
+STRID_PROGRESS_SLIDER_KEYBOARD = 键盘操作：Tab 聚焦后用方向键步进
+STRID_PROGRESS_SLIDER_TIP_KEY = ←/→ 步进5 · Shift+←/→ 与 PgUp/PgDn 步进25 · Home/End 到端点 · 当前值：50
+STRID_PROGRESS_SLIDER_TICKS = 刻度显示：6 个刻度，主刻度加长并带标签
+STRID_PROGRESS_SLIDER_TIP_TICKS = 音量条/时间轴常用：刻度线+刻度值，可用 SetTickLabelCallback 自定义格式
+STRID_PROGRESS_SLIDER_CLICK = 点击轨道跳转对照（step=1）
+STRID_PROGRESS_SLIDER_TIP_CLICK = 上：按下即跳值 · 下：松开鼠标才跳值
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee 跑马灯控件测试
 STRID_MARQUEE_HINT = 提示：鼠标悬停到跑马灯上会暂停滚动（hover_pause）

@@ -93,6 +93,54 @@ void ProgressForm::OnInitWindow()
             return true;
             });
     }
+
+    //===== Slider 交互测试 =====
+
+    //键盘操作测试：把键盘/鼠标操作后的当前值回显到标签，便于手工验证
+    ui::Slider* pKeyboardSlider = dynamic_cast<ui::Slider*>(FindControl(_T("slider_keyboard")));
+    if (pKeyboardSlider != nullptr) {
+        pKeyboardSlider->AttachValueChanged([this](const ui::EventArgs& /*args*/) {
+            ui::Slider* pSlider = dynamic_cast<ui::Slider*>(FindControl(_T("slider_keyboard")));
+            ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("slider_keyboard_text")));
+            if ((pSlider != nullptr) && (pLabel != nullptr)) {
+                pLabel->SetText(ui::StringUtil::Printf(
+                    _T("step=%d, page_step=%d, value=%.0f"),
+                    pSlider->GetChangeStep(), pSlider->GetPageStep(), pSlider->GetValue()));
+            }
+            return true;
+            });
+        //初始回显
+        ui::Label* pKeyLabel = dynamic_cast<ui::Label*>(FindControl(_T("slider_keyboard_text")));
+        if (pKeyLabel != nullptr) {
+            pKeyLabel->SetText(ui::StringUtil::Printf(
+                _T("step=%d, page_step=%d, value=%.0f"),
+                pKeyboardSlider->GetChangeStep(), pKeyboardSlider->GetPageStep(), pKeyboardSlider->GetValue()));
+        }
+    }
+
+    //刻度标签自定义格式演示：把值格式化为百分比
+    ui::Slider* pTickSlider = dynamic_cast<ui::Slider*>(FindControl(_T("slider_ticks")));
+    if (pTickSlider != nullptr) {
+        pTickSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
+            return ui::StringUtil::Printf(_T("%d%%"), (int32_t)value);
+            });
+    }
+
+    //点击轨道行为对照：两个滑块共用一个标签，回显各自的值
+    const TCHAR* ppClickNames[] = {_T("slider_click_jump"), _T("slider_click_release")};
+    for (const TCHAR* pName : ppClickNames) {
+        ui::Slider* pSlider = dynamic_cast<ui::Slider*>(FindControl(pName));
+        if (pSlider != nullptr) {
+            pSlider->AttachValueChanged([this, pName](const ui::EventArgs& /*args*/) {
+                ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("slider_click_text")));
+                ui::Slider* pSender = dynamic_cast<ui::Slider*>(FindControl(pName));
+                if ((pLabel != nullptr) && (pSender != nullptr)) {
+                    pLabel->SetText(ui::StringUtil::Printf(_T("%s = %.0f"), pName, pSender->GetValue()));
+                }
+                return true;
+                });
+        }
+    }
 }
 
 void ProgressForm::OnTimer()

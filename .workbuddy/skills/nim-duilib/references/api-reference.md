@@ -487,7 +487,22 @@ C++ 接口：`SetValue/GetValue`、`SetMinValue/SetMaxValue`、`SetHorizontal`�
 | thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image | | string | 滑块各状态图片 |
 | thumb_size | 10,10 | size | 滑块大小 |
 | step | 1 | int | 步长 |
+| page_step | 0 | int | PageUp/PageDown 及 Shift+方向键的大步长，0=自动取 (max-min)/10 |
+| click_to_jump | true | bool | 点击轨道按下即跳值（false=松开才跳值） |
 | progress_bar_padding | 0,0,0,0 | rect | 滑块绘制内边距 |
+| show_ticks | false | bool | 是否绘制刻度线（标尺） |
+| tick_count | 5 | int | 刻度数量（含首尾，至少 2） |
+| tick_length | 4 | int | 刻度线长度（自动 DPI 缩放） |
+| tick_color | text_muted | string | 刻度线颜色 |
+| tick_pos | bottom | string | 刻度位置：bottom/top（水平）、right/left（垂直） |
+| show_tick_labels | false | bool | 是否绘制刻度值文本 |
+| tick_label_interval | 1 | int | 每隔几个刻度显示一次标签 |
+| tick_font | system_regular_12 | string | 刻度值字体ID |
+| tick_label_color | text_muted | string | 刻度值颜色 |
+
+键盘操作（无障碍，Tab 可聚焦，处理 `kEventKeyDown`）：←/→（垂直为 ↑/↓）按 `step` 步进；Shift+方向键与 PageUp/PageDown 按 `page_step` 大步进；Home/End 跳到 min/max；滚轮按 `step` 步进。均自动钳位到 [min,max] 并触发 `kEventValueChanged`。
+刻度按滑块可移动区间定位，与滑块中心对齐；整数刻度去掉小数。带标签的刻度为长主刻度、其余为短次刻度（标尺层级），标签半宽按刻度间距自适应收窄（从设计上避免重叠），首尾标签改为左/右靠边对齐（垂直为顶/底），文字向内展开，不裁剪也不侵占相邻标签空间。自定义刻度文本用 `SetTickLabelCallback(std::function<DString(double value, int32_t index)>)`。
+C++ 接口：`SetPageStep/GetPageStep`、`SetClickToJump/IsClickToJump`、`SetShowTicks`、`SetTickCount`、`SetTickLength`、`SetTickColor`、`SetTickPos(SliderTickPos)`、`SetShowTickLabels`、`SetTickLabelInterval`、`SetTickFontId`、`SetTickLabelColor`、`SetTickLabelCallback`。
 
 ### CircleProgress 属性(继承 Progress)
 

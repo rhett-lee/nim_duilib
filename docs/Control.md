@@ -564,9 +564,67 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 | thumb_disabled_image |  | string | 拖动滑块鼠标禁用状态图片 |
 | thumb_size | 10,10 | size | 拖动滑块大小,如"10,10" |
 | step | 1 | int | 进度步长,如"1" |
+| page_step | 0 | int | PageUp/PageDown（及Shift+方向键）的大步长，0 表示自动取 (max-min)/10 |
+| click_to_jump | true | bool | 点击轨道是否**按下即跳值**；false 则保持"松开鼠标才跳值"的旧行为 |
 | progress_bar_padding | 0,0,0,0 | rect | 滑动条绘制时缩小的内边距 |
+| show_ticks | false | bool | 是否显示刻度线（标尺） |
+| tick_count | 5 | int | 刻度线数量（至少 2，含首尾两端） |
+| tick_length | 4 | int | 刻度线长度（像素，内部按 DPI 缩放） |
+| tick_color | text_muted | string | 刻度线颜色（语义色名或颜色值） |
+| tick_pos | bottom | string | 刻度线位置：bottom/top（水平滑块）、right/left（垂直滑块） |
+| show_tick_labels | false | bool | 是否显示刻度值文本（需 show_ticks 为 true） |
+| tick_label_interval | 1 | int | 每隔多少个刻度显示一次刻度值文本 |
+| tick_font | system_regular_12 | string | 刻度值文本的字体ID |
+| tick_label_color | text_muted | string | 刻度值文本的颜色 |
 
 Slider 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
+
+### 键盘操作（无障碍）
+Slider 已接入 Tab 焦点循环（`GetControlFlags` 返回 `UIFLAG_TABSTOP`），并处理 `kEventKeyDown`：
+
+| 按键 | 行为 |
+| :--- | :--- |
+| ←/→（水平）、↑/↓（垂直） | 按 `step` 步进/步退 |
+| Shift + 方向键 | 按 `page_step` 大步进/大步退 |
+| PageUp / PageDown | 按 `page_step` 大步进/大步退（与方向轴无关） |
+| Home / End | 直接跳到 `min` / `max` |
+| 鼠标滚轮 | 按 `step` 步进/步退 |
+
+所有键盘操作都会自动钳位到 `[min, max]`，并触发 `kEventValueChanged`。
+`page_step` 为 0（默认）时自动取 `(max-min)/10`，且不小于 `step`。
+
+### 刻度与标尺
+滑块支持类似 Chart 坐标刻度的刻度线与刻度值绘制，典型场景是音量条、时间轴拖动：
+
+```xml
+<Slider name="volume" min="0" max="100" value="30" height="42" width="stretch"
+        show_ticks="true" tick_count="11" tick_length="5" tick_pos="bottom"
+        tick_color="border_control_normal"
+        show_tick_labels="true" tick_label_interval="2"
+        tick_font="system_regular_12" tick_label_color="text_muted"/>
+```
+
+刻度位置按滑块**可移动区间**计算，与滑块中心严格对齐；水平滑块的刻度画在轨道上方或下方，垂直滑块画在轨道左侧或右侧。
+刻度值文本默认对整数刻度去掉小数（显示 `20` 而非 `20.00`），非整数刻度保留两位小数。
+
+视觉规则：
+- **主次刻度分层**：带标签的刻度（`i % tick_label_interval == 0`）为长主刻度，其余为长度约一半的短次刻度，形成标尺的视觉层级
+- **标签自适应宽度**：标签半宽按实际刻度间距自动收窄（不超过间距的一半），从设计上避免相邻标签重叠
+- **首尾靠边对齐**：首个标签左对齐、末个标签右对齐（垂直滑块为顶/底对齐），文字向控件内侧展开。
+  这样首尾标签不会因为平移出界而侵占相邻标签的空间，也保证文字完整不被裁剪
+
+自定义刻度文本（如时间轴的 `03:20`）用 `SetTickLabelCallback`：
+
+```cpp
+pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
+    int nTotal = (int)value;
+    return ui::StringUtil::Printf(_T("%02d:%02d"), nTotal / 60, nTotal % 60);
+    });
+```
+
+### 点击轨道行为
+`click_to_jump=true`（默认）为**按下即跳值**：在轨道任意位置按下鼠标左键，值立即跳到该位置，并进入拖动状态（可继续按住拖动）。这是桌面端更常见的交互。
+`click_to_jump=false` 保留原有行为：仅在松开鼠标时跳到松开位置。
 
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
