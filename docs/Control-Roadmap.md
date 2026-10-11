@@ -56,7 +56,7 @@
 |---|------|------|------|------|
 | 10 | 轻量 Chart 图表 | 折线/柱状/饼图自绘 + 数据绑定。目前图表只能嵌 CEF 或引第三方库；工作量最大，但对"桌面开发全家桶"价值最高，建议作为独立模块演进 | Qt Charts（精简） | 已完成：新增 Chart 控件类（继承 Control，纯自绘，支持 line/bar/pie 三形态，data/data_labels 数据绑定、坐标轴/网格/图例/数值标签、多系列、负值柱状、堆叠、曲线/面积、环形饼图；交互含悬停 Tooltip/点击选中/缩放平移；视觉含圆角/渐变/发光/数据动画；语义色适配深浅色），详见 [Control.md](Control.md#chart的属性) |
 | 11 | Timeline 时间轴 | 垂直时间轴（节点 + 内容），用于日志、任务流、审批流展示。自绘成本较低 | 各平台通用 | 已完成：新增 Timeline 控件类（继承 Control，纯自绘，节点+状态连接线+时间/标题/正文内容；数据驱动 `item_time/item_title/item_content/item_status` 及多语言 `item_*_id` 绑定、4 态节点配色、实线/虚线连接线、正序/倒序、节点点击事件、空数据/加载状态、滚动条（hover 自动显隐、颜色可配、可拖动）、自定义渲染回调），详见 [Control.md](Control.md#timeline的属性) |
-| 12 | 骨架屏/加载占位 | 已有 ControlLoading（控件加载中状态），补充列表/卡片骨架屏占位模式，改善异步数据加载体验 | 各平台通用 | |
+| 12 | 骨架屏/加载占位 | 已有 ControlLoading（控件加载中状态），补充列表/卡片骨架屏占位模式，改善异步数据加载体验 | 各平台通用 | 已完成：新增 `loading_skeleton_list.xml`（12 行列表骨架，含工具栏占位）与 `loading_skeleton_card.xml`（3 列 × 2 行卡片骨架，带底色圆角）两套骨架屏皮肤，走 `SetLoadingAttribute` + `StartLoading` 既有机制，**未新增控件类**。配套骨架屏四要点：① 根容器固定像素或 stretch + attribute `width='0' height='0'` 即可铺满目标控件（含表头）；② 根容器必须有**不透明** `bkcolor`，因 loading 层是叠加绘制不是遮罩，不画底色下方内容会透出；③ 骨架屏是静态占位无"动画播完"时刻，故**不设** `animation_control`/`auto_stop`，必须由业务侧判 `ControlLoadingStatus::m_nElapsedTimeMs` 超时兜底（`nMaxCount` 只是回调次数上限）；④ 呼吸动画**不能给根容器设 `SetAlpha`**（会连底板一起半透明导致遮罩失效），须根容器固定 255、只遍历 `GetItemCount()`/`GetItemAt(i)` 给子控件设 alpha。ListCtrl 示例已接入三个演示按钮（列表/卡片/停止），详见 [Control.md](Control.md#controlloading-与骨架屏) |
 
 #### 第三梯队（补充）：表单与表格增强，成本低到中
 
@@ -78,15 +78,15 @@
 
 ### 四、实施进度与顺序
 
-#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项）
+#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项）
 
-第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline 均已实现并接入 controls / ColorTheme 示例。浮层公共地基 Flyout 已就绪，后续弹层类控件（AutoComplete、富内容提示等）可直接复用。
+第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏均已实现并接入 controls / ColorTheme / ListCtrl 示例。浮层公共地基 Flyout 已就绪，后续弹层类控件（AutoComplete、富内容提示等）可直接复用。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。
 
 #### 后续顺序建议
 
 1. **补齐第三梯队补充项 13–17**（成本低到中，多为对现有控件的组合/增强）：优先 TagInput、AutoComplete（复用 Flyout）、ListCtrl 表格增强，它们是表单/报表类软件最直接的缺口。
-2. **第三梯队剩余大件按产品需求排期**：骨架屏可随需求插入。
-3. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
+2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
+3. **第 16 项遮罩/蒙版层与骨架屏的关系**：骨架屏的 loading 层是"叠加绘制"而非"遮罩"，若要实现模态对话框背景遮罩，需在第 16 项里统一处理，届时骨架屏的底板语义可与之统一。
 
 ### 五、平台整合能力规划（应用骨架层）
 
