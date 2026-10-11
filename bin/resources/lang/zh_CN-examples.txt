@@ -565,6 +565,11 @@ STRID_PROGRESS_SLIDER_TICKS = 刻度显示：6 个刻度，主刻度加长并带
 STRID_PROGRESS_SLIDER_TIP_TICKS = 音量条/时间轴常用：刻度线+刻度值，可用 SetTickLabelCallback 自定义格式
 STRID_PROGRESS_SLIDER_CLICK = 点击轨道跳转对照（step=1）
 STRID_PROGRESS_SLIDER_TIP_CLICK = 上：按下即跳值 · 下：松开鼠标才跳值
+STRID_PROGRESS_CARD_GAUGE = CircleProgress 形态扩展（仪表盘/缺口环 · 中心自定义内容 · indeterminate 参数化）
+STRID_PROGRESS_GAUGE_HALF = 180° 半圆表盘（span_angle=180）
+STRID_PROGRESS_GAUGE_GAP = 270° 缺口环（start_angle=135）
+STRID_PROGRESS_GAUGE_CENTER = 中心自定义内容（SetCenterCallback）
+STRID_PROGRESS_GAUGE_INDET = 转圈参数化（弧长240° · 3°/24ms）
 # controls/Marquee
 STRID_MARQUEE_WINDOW_TITLE = Marquee 跑马灯控件测试
 STRID_MARQUEE_HINT = 提示：鼠标悬停到跑马灯上会暂停滚动（hover_pause）

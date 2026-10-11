@@ -516,6 +516,27 @@ C++ 接口：`SetPageStep/GetPageStep`、`SetClickToJump/IsClickToJump`、`SetSh
 | fgcolor | | string | 前景（进度弧）颜色 |
 | gradient_color | | string | 前景渐变颜色 |
 | indeterminate | false | bool | 不确定进度（忽略 value，一段弧持续旋转） |
+| start_angle | 270 | float | 圆弧起始角度（度），0 为 12 点方向，顺时针递增；360 归一化为 0 |
+| span_angle | 360 | float | 圆弧总跨度（度），取值 (0, 360]；小于 360 即为缺口环/仪表盘 |
+| indeterminate_arc | 90 | float | 不确定进度模式的旋转弧长（度） |
+| indeterminate_speed | 6 | float | 不确定进度模式每次刷新前进的角度（度） |
+| indeterminate_interval | 16 | int | 不确定进度模式刷新间隔（毫秒），默认约 60 帧/秒 |
+| center_ratio | 100 | float | 中心内容区占控件百分比（0~100），XML 中按百分比填写（如 70 表示 70%） |
+| center_padding | 0,0,0,0 | rect | 中心内容区内边距，如 "4,4,4,4" |
+
+**仪表盘 / 缺口环**：前景弧按 `(value-min)/(max-min)*span_angle` 扫过，背景弧始终绘制完整 `span_angle`（缺口固定呈轨道色）；
+非整圆时**圆心按弧的包围盒自动居中**（采样起止角+途经 0/90/180/270 象限极值），因此 180° 半圆表盘的上半弧能完整落在控件内不被裁剪；
+`start_angle`/`span_angle` 对背景弧、前景弧、indicator 同时生效。
+
+**中心自定义内容**：`SetCenterCallback([pCtrl](IRender*, const UiRect& rcCenter, double fValue) -> bool)` 接管中心绘制（指针/图标/组合数字）。
+`rcCenter` 为控件内相对坐标矩形，由 `center_ratio` + `center_padding` 决定；不设回调时行为不变（中心文本仍由基类 `text`/`show_percent` 绘制，不会重复叠加）。
+需要放真实子控件时叠加居中的子控件即可。
+
+**indeterminate 参数化**：`indeterminate_arc`/`indeterminate_speed`/`indeterminate_interval` 运行期修改会自动重启定时器，无需重设 `indeterminate`。
+
+C++ 接口：`SetStartAngle/GetStartAngle`、`SetSpanAngle/GetSpanAngle`、`SetIndeterminateArc/GetIndeterminateArc`、
+`SetIndeterminateSpeed/GetIndeterminateSpeed`、`SetIndeterminateInterval/GetIndeterminateInterval`、
+`SetCenterRatio/GetCenterRatio`、`SetCenterPadding/GetCenterPadding`、`SetCenterCallback`、`GetCenterRect()`。
 
 ### Combo 属性(继承 Box)
 

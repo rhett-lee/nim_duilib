@@ -3,6 +3,7 @@
 
 ProgressForm::ProgressForm():
     m_nProgressValue(0.0)
+    ,m_fGaugeValue(0.0)
 {
 }
 
@@ -141,6 +142,64 @@ void ProgressForm::OnInitWindow()
                 });
         }
     }
+
+    //===== CircleProgress 形态扩展测试 =====
+
+    //仪表盘/缺口环：由OnTimer 统一递增，验证 span_angle 内的扫过效果
+    const TCHAR* ppGaugeNames[] = {_T("gauge_half"), _T("gauge_gap")};
+    for (const TCHAR* pName : ppGaugeNames) {
+        ui::CircleProgress* pGauge = dynamic_cast<ui::CircleProgress*>(FindControl(pName));
+        if (pGauge != nullptr) {
+            pGauge->SetValue(0.0);
+        }
+    }
+
+    //中心自定义内容演示：在环中心绘制一个随进度摆动的指针 + 中心数值
+    //（说明：回调收到的是控件内相对坐标的矩形，可直接交给IRender 绘制）
+    ui::CircleProgress* pGaugeCenter = dynamic_cast<ui::CircleProgress*>(FindControl(_T("gauge_center")));
+    if (pGaugeCenter != nullptr) {
+        pGaugeCenter->SetCenterCallback([pGaugeCenter](ui::IRender* pRender, const ui::UiRect& rcCenter, double fValue) {
+            if (pRender == nullptr || rcCenter.IsEmpty()) {
+                return true;
+            }
+            const int32_t nWidth = rcCenter.right - rcCenter.left;
+            const int32_t nHeight = rcCenter.bottom - rcCenter.top;
+            //中心点与指针长度
+            const float fCx = static_cast<float>(rcCenter.left) + nWidth / 2.0f;
+            const float fCy = static_cast<float>(rcCenter.top) + nHeight / 2.0f;
+            const float fLen = static_cast<float>((nWidth < nHeight ? nWidth : nHeight)) * 0.42f;
+            //起始 135°、跨度 270°（与 XML 一致），顺时针
+            const float fPi = 3.14159265f;
+            float fRatio = static_cast<float>((fValue - 0.0) / 100.0);
+            if (fRatio < 0.0f) {
+                fRatio = 0.0f;
+            }
+            else if (fRatio > 1.0f) {
+                fRatio = 1.0f;
+            }
+            const float fDeg = 135.0f + 270.0f * fRatio;
+            const float fRad = fDeg * fPi / 180.0f;
+            const ui::UiPointF ptEnd(fCx + fLen * static_cast<float>(std::cos(fRad)),
+                fCy + fLen * static_cast<float>(std::sin(fRad)));
+            const ui::UiPointF ptTail(fCx - fLen * 0.18f * static_cast<float>(std::cos(fRad)),
+                fCy - fLen * 0.18f * static_cast<float>(std::sin(fRad)));
+            //指针（进度色）+ 中心轴点
+            pRender->DrawLine(ptTail, ptEnd, pGaugeCenter->GetUiColor(_T("bg_progress")), 2.0f);
+            pRender->FillCircle(ui::UiPointF(fCx, fCy), 3.0f, pGaugeCenter->GetUiColor(_T("text_default")));
+            //中心数值文字（放在指针下方，避免与指针重叠）
+            ui::DrawStringParam param;
+            param.textRect = rcCenter;
+            param.dwTextColor = pGaugeCenter->GetUiColor(_T("text_default"));
+            param.pFont = pGaugeCenter->GetIFontById(_T("system_bold_14"));
+            param.uFormat = ui::TEXT_SINGLELINE | ui::TEXT_HCENTER | ui::TEXT_VCENTER;
+            param.textRect.left = rcCenter.left;
+            param.textRect.right = rcCenter.right;
+            param.textRect.top = rcCenter.bottom - static_cast<int>(fLen) - 6;
+            param.textRect.bottom = param.textRect.top + 18;
+            pRender->DrawString(ui::StringUtil::Printf(_T("%.0f"), fValue), param);
+            return true;
+            });
+    }
 }
 
 void ProgressForm::OnTimer()
@@ -158,6 +217,25 @@ void ProgressForm::OnTimer()
     ui::Progress* pBufferProgress = dynamic_cast<ui::Progress*>(FindControl(_T("progress12")));
     if (pBufferProgress != nullptr) {
         pBufferProgress->SetBufferValue(m_nProgressValue + 25.0);
+    }
+
+    //CircleProgress 形态扩展演示：三个确定态表盘/缺口环同步递增
+    //gauge_half:0~240（速度表）、gauge_gap/gauge_center: 0~100（评分环）
+    m_fGaugeValue += 2.0;
+    if (m_fGaugeValue > 100.0) {
+        m_fGaugeValue = 0.0;
+    }
+    ui::CircleProgress* pGaugeHalf = dynamic_cast<ui::CircleProgress*>(FindControl(_T("gauge_half")));
+    if (pGaugeHalf != nullptr) {
+        pGaugeHalf->SetValue(m_fGaugeValue * 2.4);
+    }
+    ui::CircleProgress* pGaugeGap = dynamic_cast<ui::CircleProgress*>(FindControl(_T("gauge_gap")));
+    if (pGaugeGap != nullptr) {
+        pGaugeGap->SetValue(m_fGaugeValue);
+    }
+    ui::CircleProgress* pGaugeCenter = dynamic_cast<ui::CircleProgress*>(FindControl(_T("gauge_center")));
+    if (pGaugeCenter != nullptr) {
+        pGaugeCenter->SetValue(m_fGaugeValue);
     }
 
     m_nProgressValue += 0.4;

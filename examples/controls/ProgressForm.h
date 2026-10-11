@@ -32,6 +32,10 @@ private:
     /** 进度值
     */
     double m_nProgressValue;
+
+    /** CircleProgress 形态扩展演示用值（0~100，映射到表盘 0~240）
+    */
+    double m_fGaugeValue;
 };
 
 #endif //EXAMPLES_PROGRESS_FORM_H_
