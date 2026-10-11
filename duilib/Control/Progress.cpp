@@ -26,6 +26,9 @@ Progress::Progress(Window* pWindow) :
     m_pAnimPlayer(nullptr),
     m_bShowPercent(false),
     m_nProgressRadius(0),
+    m_fBufferValue(-1),
+    m_strBufferColor(),
+    m_textFormatCallback(),
     m_bReverse(false)
 {
     SetTextStyle(TEXT_SINGLELINE | TEXT_HCENTER | TEXT_VCENTER, false);
@@ -70,6 +73,12 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue2)
     }
     else if ((srName == _T("progress_radius")) || (srName == _T("progressradius"))) {
         SetProgressRadius(StringUtil::StringToInt32(strValue));
+    }
+    else if ((srName == _T("buffer_value")) || (srName == _T("buffervalue"))) {
+        SetBufferValue(StringUtil::StringToDouble(strValue));
+    }
+    else if ((srName == _T("buffer_color")) || (srName == _T("buffercolor"))) {
+        SetBufferColor(strValue);
     }
     else if ((srName == _T("show_percent")) || (srName == _T("showpercent"))) {
         SetShowPercent(StringUtil::IsValueTrue(strValue));
@@ -166,6 +175,14 @@ void Progress::SetValue(double fValue)
 
     //发送值变化事件
     SendValueChangedEvent(fValue, fOldValue);
+
+    //完成事件：从"未完成"跨到"完成端点"（正向到 max，倒数到 min）时触发一次
+    const bool bOldCompleted = m_bReverse ? (fOldValue <= m_nMinValue) : (fOldValue >= m_nMaxValue);
+    const bool bCompleted = m_bReverse ? (fValue <= m_nMinValue) : (fValue >= m_nMaxValue);
+    if (bCompleted && !bOldCompleted) {
+        SendEvent(kEventProgressCompleted, 0, 0);
+    }
+
     Invalidate();
 }
 
@@ -243,6 +260,32 @@ void Progress::PaintStateImages(IRender* pRender)
     }
 
     UiRect rc = GetProgressPos();
+
+    //buffer 次级进度（先画，主进度覆盖其上）：视频/下载的"已缓冲 + 已播放"双进度
+    if ((m_fBufferValue > m_fCurrentValue) && (m_fBufferValue > m_nMinValue)) {
+        UiColor bufferColor = GetUiColor(m_strBufferColor);
+        if (bufferColor.GetARGB() == 0) {
+            //未指定 buffer 颜色：使用前景色的浅色版
+            bufferColor = GetUiColor(m_sProgressColor.c_str());
+        }
+        if (bufferColor.GetARGB() != 0) {
+            UiRect rcBuffer = CalcProgressRect(m_fBufferValue);
+            UiRect rcBufferColor = GetRect();
+            if (IsHorizontal()) {
+                rcBufferColor.right = rcBufferColor.left + rcBuffer.right;
+            }
+            else {
+                rcBufferColor.top = rcBufferColor.top + rcBuffer.top;
+            }
+            if (!rcBufferColor.IsEmpty()) {
+                //buffer 更浅（约 40% 不透明度）
+                uint8_t bufferAlpha = static_cast<uint8_t>(GetAlpha() * 40 / 100);
+                DrawSolidProgressRect(pRender, rcBufferColor, bufferColor, bufferAlpha);
+            }
+        }
+    }
+
+    //主进度纯色
     if (!m_sProgressColor.empty()) {
         UiColor dwProgressColor = this->GetUiColor(m_sProgressColor.c_str());
         if (dwProgressColor.GetARGB() != 0) {
@@ -256,21 +299,7 @@ void Progress::PaintStateImages(IRender* pRender)
             if (rcProgressColor.IsEmpty()) {
                 return;
             }
-            //圆角填充（progress_radius 配置，默认 0 为直角）
-            int32_t nRadius = Dpi().GetScaleInt(m_nProgressRadius);
-            if (nRadius > 0) {
-                int32_t nMaxRadius = std::min(rcProgressColor.Width(), rcProgressColor.Height()) / 2;
-                nRadius = std::min(nRadius, nMaxRadius);
-                if (nRadius > 0) {
-                    pRender->FillRoundRect(UiRectF::MakeFromRect(rcProgressColor), static_cast<float>(nRadius), static_cast<float>(nRadius), dwProgressColor, GetAlpha());
-                }
-                else {
-                    pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor, GetAlpha());
-                }
-            }
-            else {
-                pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), dwProgressColor, GetAlpha());
-            }
+            DrawSolidProgressRect(pRender, rcProgressColor, dwProgressColor, GetAlpha());
         }
     }
     if (rc.IsEmpty() || (m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
@@ -328,9 +357,14 @@ void Progress::PaintStateImages(IRender* pRender)
 
 UiRect Progress::GetProgressPos() const
 {
+    return CalcProgressRect(GetDisplayValue());
+}
+
+UiRect Progress::CalcProgressRect(double value) const
+{
     int32_t nMax = GetMaxValue();
     int32_t nMin = GetMinValue();
-    double fValue = GetDisplayValue();
+    double fValue = value;
 
     if (nMax <= nMin) {
         nMax = nMin + 1;
@@ -549,6 +583,46 @@ void Progress::SetProgressRadius(int32_t nRadius)
     }
 }
 
+void Progress::SetBufferValue(double fValue)
+{
+    if (fValue != m_fBufferValue) {
+        m_fBufferValue = fValue;
+        Invalidate();
+    }
+}
+
+void Progress::SetBufferColor(const DString& strColor)
+{
+    if (m_strBufferColor != strColor) {
+        m_strBufferColor = strColor;
+        Invalidate();
+    }
+}
+
+void Progress::SetTextFormatCallback(const TextFormatCallback& callback)
+{
+    m_textFormatCallback = callback;
+    if (m_bShowPercent) {
+        UpdatePercentText();
+    }
+    Invalidate();
+}
+
+void Progress::DrawSolidProgressRect(IRender* pRender, const UiRect& rcProgressColor, UiColor color, uint8_t alpha)
+{
+    //圆角填充（progress_radius 配置，默认 0 为直角）
+    int32_t nRadius = Dpi().GetScaleInt(m_nProgressRadius);
+    if (nRadius > 0) {
+        int32_t nMaxRadius = std::min(rcProgressColor.Width(), rcProgressColor.Height()) / 2;
+        nRadius = std::min(nRadius, nMaxRadius);
+        if (nRadius > 0) {
+            pRender->FillRoundRect(UiRectF::MakeFromRect(rcProgressColor), static_cast<float>(nRadius), static_cast<float>(nRadius), color, alpha);
+            return;
+        }
+    }
+    pRender->FillRect(UiRectF::MakeFromRect(rcProgressColor), color, alpha);
+}
+
 void Progress::SendValueChangedEvent(double newValue, double oldValue)
 {
     //值按整数截断传递（与 Slider 一致）；精确浮点值可从 GetValue() 读取
@@ -558,6 +632,12 @@ void Progress::SendValueChangedEvent(double newValue, double oldValue)
 void Progress::UpdatePercentText()
 {
     if (!m_bShowPercent) {
+        return;
+    }
+    if (m_textFormatCallback) {
+        //自定义格式：由回调生成文本
+        DString strText = m_textFormatCallback(GetDisplayValue(), static_cast<double>(m_nMinValue), static_cast<double>(m_nMaxValue));
+        SetText(strText);
         return;
     }
     int32_t nMin = m_nMinValue;

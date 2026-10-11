@@ -169,6 +169,7 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventNavigationSelectionChanged|"NavigationSelectionChanged"|"navigation_selection_changed"|
 |kEventNavigationPaneToggling|"NavigationPaneToggling"|"navigation_pane_toggling"|
 |kEventNavigationPaneToggled|"NavigationPaneToggled"|"navigation_pane_toggled"|
+|kEventTimelineItemClick|"TimelineItemClick"|"timeline_item_click"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|
@@ -178,6 +179,7 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventLinkClick|"LinkClick"|"link_click"|
 |kEventScrollPosChanged|"ScrollPosChanged"|"scroll_pos_changed"|
 |kEventValueChanged|"ValueChanged"|"value_changed"|
+|kEventProgressCompleted|"ProgressCompleted"|"progress_completed"|
 |kEventPosChanged|"PosChanged"|"pos_changed"|
 |kEventSizeChanged|"SizeChanged"|"size_changed"|
 |kEventVisibleChanged|"VisibleChanged"|"visible_changed"|

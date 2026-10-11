@@ -533,6 +533,8 @@ Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属
 | stretch_fore_image | true | bool | 指定进度条前景图片是否缩放显示 |
 | progress_color |  | string | 进度条前景颜色（语义色名或颜色值），如"bg_progress" |
 | progress_radius | 0 | int | 纯色前景的圆角半径（像素，自动DPI缩放，0为直角） |
+| buffer_value | -1 | double | 次级进度值（缓冲/buffer，通常比主进度略靠前，如视频已缓存位置；≤min 不绘制） |
+| buffer_color |  | string | 次级进度颜色（语义色名或颜色值，为空则用前景色的浅色版） |
 | show_percent | false | bool | 是否自动显示百分比文本（覆盖控件 text） |
 | animation_enabled | false | bool | 是否启用值变化动画（默认关闭） |
 | animation_duration | 300 | int | 值变化动画时长（毫秒） |
@@ -546,9 +548,11 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 说明：
 - `value` 支持浮点值（XML 按 double 解析，`SetValue(double)` 亦如此），适用于下载进度、音量等 0~1 区间场景。
 - `progress_color` 与 `progress_image` 二选一作为前景；纯色前景可用 `progress_radius` 设圆角。轨道背景用 `bkcolor`（Control 通用属性）。
-- `show_percent` 开启后控件文本自动更新为"xx%"（跟随值变化动画）。
+- `buffer_value` 设置次级进度（视频/下载的"已缓冲 + 已播放"双进度），绘制在主进度下方的浅色条；`buffer_color` 不指定时用前景色的浅色版（约 40% 不透明度）。
+- `show_percent` 开启后控件文本自动更新为"xx%"（跟随值变化动画）；可用 `SetTextFormatCallback` 自定义格式（如 "5/10"、"3.2 GB"）。
 - `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（`EaseOutQuad`，时长 `animation_duration`）；Slider 拖动为即时响应，通常无需开启。
 - 值变化事件：`AttachValueChanged`（`EventArgs::wParam` 为新值、`lParam` 为旧值，均按整数截断；精确浮点值从 `GetValue()` 读取）。
+- 完成事件：`AttachProgressCompleted`——进度值到达完成端点（正向到 `max`、倒数到 `min`）时触发一次。
 - 推荐语义色：前景 `bg_progress`、轨道 `bg_progress_track`（随深浅色主题自动切换）。
 
 ## Slider的属性

@@ -38,7 +38,7 @@
 |kEventWindowClose          |0: 正常关闭 <br> 1: 取消关闭|     |     |     |       |     |     |
 |kEventSelect               |ListBox/Combo: <br>新选择的索引号 | ListBox/Combo: <br>旧选项择索引号|     |     |       |     | 其他类无参数 |
 |kEventUnSelect             |ListBox: <br>新选择的索引号 | ListBox：<br>旧选项择索引号|     |     |       |     |  其他类无参数   |
-|kEventChecked              |     |     |     |     |       |     | 无参数 |
+|kEventCheck                |     |     |     |     |       |     | 无参数 |
 |kEventUnCheck              |     |     |     |     |       |     | 无参数 |
 |kEventTabSelect            |新选择的索引号 | 旧选项择索引号|     |     |    |     |    |
 |kEventExpand               |     |     |     |     |       |     | 无参数；Panel面板展开完成后触发 |
@@ -49,21 +49,24 @@
 |kEventNavigationSelectionChanged |新选择的索引号 | 旧选择的索引号 |     |     |    |     | NavigationView选中项发生变化时触发，无选中时为Box::InvalidIndex |
 |kEventNavigationPaneToggling |目标状态：<br>1=收起，0=展开 |     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | NavigationView窗格即将收起/展开时触发，事件回调返回false可取消本次切换 |
 |kEventNavigationPaneToggled |当前状态：<br>1=收起，0=展开 |     |     |     |    |     | NavigationView窗格收起/展开完成时触发 |
+|kEventTimelineItemClick  |节点序号（从0开始）|     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | Timeline点击节点时触发 |
 
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
 |kEventZoom                 | 按缩放比例分子[0,64] | 按缩放比例分母(0,64] |     |     |       |     | RichEdit: Ctrl + 滚轮：缩放功能|
-|kEventTextChange           |     |     |     |     |       |     | 无参数 |
-|kEventSelChange            |     |     |     |     |       |     | 无参数 |
+|kEventTextChanged          |     |     |     |     |       |     | 无参数 |
+|kEventSelChanged           |     |     |     |     |       |     | 无参数 |
 |kEventReturn               |     |     |     |     |       |     | 无参数    |
 |kEventTab                  |     |     |     |     |       |     | 无参数   |
 |kEventLinkClick            | DString.c_str()<br> URL字符串    |     |     |     |       |     |     |
-|kEventScrollChange         | 0: cy无变化<br> 1: cy有变化   | 0: cx无变化<br> 1: cx有变化    |     |     |       |     |     |
-|kEventValueChange          |     |     |     |     |       |     | 无参数 |
-|kEventResize               |     |     |     |     |       |     | 无参数 |
-|kEventVisibleChange        |     |     |     |     |       |     | 无参数 |
-|kEventStateChange          | 新状态 | 旧状态   |     |     |       |     | ControlStateType |
+|kEventScrollPosChanged     | 0: cy无变化<br> 1: cy有变化   | 0: cx无变化<br> 1: cx有变化    |     |     |       |     |     |
+|kEventValueChanged         |新值 | 旧值 |     |     |       |     | Slider类：值发生变化时触发 |
+|kEventProgressCompleted    |     |     |     |     |       |     | Progress类：进度值到达完成端点（正向到max、倒数到min）时触发一次，无参数 |
+|kEventPosChanged           |     |     |     |     |       |     | 无参数 |
+|kEventSizeChanged          |     |     |     |     |       |     | 无参数 |
+|kEventVisibleChanged       |新状态（1可见/0不可见）|     |     |     |       |     | 无参数 |
+|kEventStateChanged         | 新状态 | 旧状态   |     |     |       |     | ControlStateType |
 |kEventSelectColor          | 所选颜色 |     |     |     |       |     | newColor.GetARGB() |
 |kEventSplitDraged          | Control*: <br>第1个控件接口| Control*:<br>第2个控件接口|     |     |       |     |  可能是nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>进入编辑状态的数据  |     |     |     |       |     |     |

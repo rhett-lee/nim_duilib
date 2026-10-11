@@ -4,6 +4,7 @@
 #include "duilib/Control/Label.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Animation/AnimationPlayer.h"
+#include <functional>
 
 namespace ui
 {
@@ -13,6 +14,15 @@ namespace ui
 class DUILIB_API Progress : public LabelTemplate<Control>
 {
     typedef LabelTemplate<Control> BaseClass;
+public:
+    /** 进度文本格式化回调：自定义 show_percent 显示的文本
+    *   @param value     当前进度值（动画插值中的显示值）
+    *   @param minValue  进度最小值
+    *   @param maxValue  进度最大值
+    *   @return 要显示的文本（如 "5/10"、"3.2 GB"、"剩余 3 秒"）
+    */
+    typedef std::function<DString(double value, double minValue, double maxValue)> TextFormatCallback;
+
 public:
     explicit Progress(Window* pWindow);
     virtual ~Progress() override;
@@ -147,6 +157,32 @@ public:
     */
     int32_t GetProgressRadius() const { return m_nProgressRadius; }
 
+    /** 设置次级进度值（缓冲/buffer，通常比主进度略靠前，如视频已缓存位置）
+    * @param [in] fValue 次级进度值，小于等于 min 时不绘制；默认 -1 表示未设置
+    */
+    void SetBufferValue(double fValue);
+
+    /** 获取次级进度值
+    */
+    double GetBufferValue() const { return m_fBufferValue; }
+
+    /** 设置次级进度颜色（语义色名或颜色值，为空则使用前景色的半透明版）
+    */
+    void SetBufferColor(const DString& strColor);
+
+    /** 获取次级进度颜色
+    */
+    const DString& GetBufferColor() const { return m_strBufferColor; }
+
+    /** 设置进度文本格式化回调（show_percent 开启时生效，自定义显示文本）
+    * @param [in] callback 格式化回调，置空则恢复默认的"xx%"格式
+    */
+    void SetTextFormatCallback(const TextFormatCallback& callback);
+
+    /** 监听进度完成事件（进度值到达完成端点时触发：正向到达 max，倒数到达 min）
+    */
+    void AttachProgressCompleted(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventProgressCompleted, callback, callbackID); }
+
     /** 播放Marquee
      */
     virtual void Play();
@@ -211,6 +247,15 @@ private:
     */
     void StartValueAnimation(double fFrom, double fTo);
 
+    /** 根据进度值计算填充区域（含钳位与 reverse 处理，供 GetProgressPos 与 buffer 绘制复用）
+    * @param value 进度值
+    */
+    UiRect CalcProgressRect(double value) const;
+
+    /** 绘制纯色进度填充（含圆角，供主进度与 buffer 复用）
+    */
+    void DrawSolidProgressRect(IRender* pRender, const UiRect& rcProgressColor, UiColor color, uint8_t alpha);
+
 private:
     //进度条是水平或垂直: true为水平，false为垂直
     bool m_bHorizontal;
@@ -226,6 +271,15 @@ private:
 
     //当前进度值
     double m_fCurrentValue;
+
+    //次级进度值（缓冲/buffer），默认 -1 表示未设置
+    double m_fBufferValue;
+
+    //次级进度颜色（语义色名或颜色值）
+    DString m_strBufferColor;
+
+    //进度文本格式化回调
+    TextFormatCallback m_textFormatCallback;
 
     //进度条前景图片
     Image* m_pProgressImage;

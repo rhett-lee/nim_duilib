@@ -228,9 +228,9 @@ NavigationViewItem（继承 Control）属性：
 | ComboButton | Box | 带下拉的按钮 |
 | RichEdit | ScrollBox | 文本编辑框(单行/多行/密码) |
 | RichText | Control | 富文本显示(HTML子集) |
-| Progress | Label | 进度条 |
-| Slider | Progress | 滑块 |
-| CircleProgress | Progress | 圆形进度条 |
+| Progress | Label | 进度条（水平/垂直、浮点值、圆角、缓冲 buffer、百分比、值动画、marquee，`duilib/Control/Progress.h`），XML 节点名 `Progress` |
+| Slider | Progress | 滑块（可拖动、步长、值变化事件，`duilib/Control/Slider.h`），XML 节点名 `Slider` |
+| CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
@@ -463,10 +463,44 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 |------|--------|------|------|
 | min | 0 | int | 最小值 |
 | max | 100 | int | 最大值 |
-| value | 0 | int | 当前值 |
+| value | 0 | double | 当前值（支持浮点） |
 | horizontal | true | bool | 水平方向 |
-| progress_color | | string | 进度条颜色 |
-| progress_image | | string | 进度条图片 |
+| progress_color | | string | 进度条前景颜色（语义色名或颜色值） |
+| progress_image | | string | 进度条前景图片 |
+| progress_radius | 0 | int | 纯色前景圆角半径（0 为直角） |
+| buffer_value | -1 | double | 次级进度值（缓冲/buffer，≤min 不绘制） |
+| buffer_color | | string | 次级进度颜色（空则用前景色浅色版） |
+| show_percent | false | bool | 自动显示百分比文本 |
+| animation_enabled | false | bool | 值变化动画 |
+| animation_duration | 300 | int | 动画时长（毫秒） |
+| marquee | false | bool | 滚动显示（不确定进度） |
+| marquee_width / marquee_step | | int | 滚动宽度 / 步长 |
+| reverse | false | bool | 倒数（从 max 到 min） |
+
+C++ 接口：`SetValue/GetValue`、`SetMinValue/SetMaxValue`、`SetHorizontal`、`SetProgressColor`、`SetProgressRadius`、`SetBufferValue/SetBufferColor`、`SetShowPercent`、`SetAnimationEnabled/SetAnimationDuration`、`SetMarquee`、`SetReverse`、`SetTextFormatCallback`（自定义进度文本格式）。
+事件：`AttachValueChanged`（值变化）、`AttachProgressCompleted`（到达完成端点：正向 max / 倒数 min）。
+
+### Slider 属性(继承 Progress)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image | | string | 滑块各状态图片 |
+| thumb_size | 10,10 | size | 滑块大小 |
+| step | 1 | int | 步长 |
+| progress_bar_padding | 0,0,0,0 | rect | 滑块绘制内边距 |
+
+### CircleProgress 属性(继承 Progress)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| circular | true | bool | 是否环形 |
+| circle_width | 1 | int | 圆环宽度 |
+| indicator | | string | 进度指示图标（随进度旋转） |
+| clockwise | true | bool | 顺时针 |
+| bgcolor | | string | 背景（轨道）颜色 |
+| fgcolor | | string | 前景（进度弧）颜色 |
+| gradient_color | | string | 前景渐变颜色 |
+| indeterminate | false | bool | 不确定进度（忽略 value，一段弧持续旋转） |
 
 ### Combo 属性(继承 Box)
 

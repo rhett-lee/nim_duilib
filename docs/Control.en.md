@@ -535,6 +535,8 @@ The Menu control inherits the `Window` attributes. For more available attributes
 | stretch_fore_image | true | bool | Specify whether the progress bar foreground image is scaled for display |
 | progress_color |  | string | Foreground color of the progress bar (semantic color name or value), e.g. "bg_progress" |
 | progress_radius | 0 | int | Corner radius of the solid-color foreground (px, auto DPI-scaled, 0 = square) |
+| buffer_value | -1 | double | Secondary progress value (buffer, usually slightly ahead of the main value, e.g. cached position; not drawn when <= min) |
+| buffer_color |  | string | Secondary progress color (semantic color name or value; empty = a lighter shade of the foreground color) |
 | show_percent | false | bool | Whether to auto-display the percentage text (overrides the control text) |
 | animation_enabled | false | bool | Whether to enable value-change animation (default off) |
 | animation_duration | 300 | int | Value-change animation duration (ms) |
@@ -548,9 +550,11 @@ The Progress control inherits the `Label` attributes. For more available attribu
 Notes:
 - `value` supports floating-point values (XML parsed as double; `SetValue(double)` likewise), suitable for 0~1 range scenarios such as download progress or volume.
 - Use either `progress_color` or `progress_image` as the foreground; the solid-color foreground can be rounded via `progress_radius`. The track background uses `bkcolor` (a common Control attribute).
-- With `show_percent` enabled, the control text is auto-updated to "xx%" (following the value-change animation).
+- `buffer_value` sets the secondary progress (the "buffered + played" dual progress of video/download), drawn as a lighter bar under the main progress; when `buffer_color` is not specified, a lighter shade (about 40% opacity) of the foreground color is used.
+- With `show_percent` enabled, the control text is auto-updated to "xx%" (following the value-change animation); customize the format via `SetTextFormatCallback` (e.g. "5/10", "3.2 GB").
 - With `animation_enabled` enabled, `SetValue` eases from the current value to the new value (`EaseOutQuad`, duration `animation_duration`); Slider drags are instant and normally do not need this.
 - Value-change event: `AttachValueChanged` (`EventArgs::wParam` = new value, `lParam` = old value, both truncated to integer; read the exact floating-point value via `GetValue()`).
+- Completion event: `AttachProgressCompleted` — fired once when the value reaches the completion endpoint (max for forward, min for countdown).
 - Recommended semantic colors: foreground `bg_progress`, track `bg_progress_track` (auto-switch with light/dark theme).
 
 ## Attributes of Slider
