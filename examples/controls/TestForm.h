@@ -22,20 +22,15 @@ public:
     virtual void OnInitWindow() override;
 
 private:
-    /** 定时器函数
+    /** 显示进度条控件测试窗口（独立演示窗口）
     */
-    void OnTimer();
+    void ShowProgressWindow();
 
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位
     */
     void ShowFlyoutDemo(ui::Control* pAnchor, ui::Flyout::Placement placement);
-
-private:
-    /** 进度值
-    */
-    double m_nProgressValue;
 };
 
 #endif //EXAMPLES_TEST_FORM_H_

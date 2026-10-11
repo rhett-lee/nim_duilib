@@ -528,16 +528,28 @@ Menu 控件继承了 `Window` 属性，更多可用属性请参考`Window`的属
 | horizontal | true | bool | 是否水平的，"true"表示水平，"false"表示垂直 |
 | min | 0 | int | 进度最小值,如"0" |
 | max | 100 | int | 进度最大值,如"100" |
-| value | 0 | int | 进度值,如"50" |
+| value | 0 | double | 进度值（支持浮点），如"50"或"0.5" |
 | progress_image |  | string | 进度条前景图片 |
 | stretch_fore_image | true | bool | 指定进度条前景图片是否缩放显示 |
-| progress_color |  | string | 进度条前景颜色,不指定则使用默认颜色,如"blue" |
-| marquee | true | bool | 是否滚动显示 |
+| progress_color |  | string | 进度条前景颜色（语义色名或颜色值），如"bg_progress" |
+| progress_radius | 0 | int | 纯色前景的圆角半径（像素，自动DPI缩放，0为直角） |
+| show_percent | false | bool | 是否自动显示百分比文本（覆盖控件 text） |
+| animation_enabled | false | bool | 是否启用值变化动画（默认关闭） |
+| animation_duration | 300 | int | 值变化动画时长（毫秒） |
+| marquee | false | bool | 是否滚动显示 |
 | marquee_width | | int | 滚动的宽度 |
 | marquee_step | | int | 滚动的步长 |
 | reverse | false | bool | 进度值是否倒数（进度从100 到 0） |
 
 Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
+
+说明：
+- `value` 支持浮点值（XML 按 double 解析，`SetValue(double)` 亦如此），适用于下载进度、音量等 0~1 区间场景。
+- `progress_color` 与 `progress_image` 二选一作为前景；纯色前景可用 `progress_radius` 设圆角。轨道背景用 `bkcolor`（Control 通用属性）。
+- `show_percent` 开启后控件文本自动更新为"xx%"（跟随值变化动画）。
+- `animation_enabled` 开启后 `SetValue` 会从当前值缓动到新值（`EaseOutQuad`，时长 `animation_duration`）；Slider 拖动为即时响应，通常无需开启。
+- 值变化事件：`AttachValueChanged`（`EventArgs::wParam` 为新值、`lParam` 为旧值，均按整数截断；精确浮点值从 `GetValue()` 读取）。
+- 推荐语义色：前景 `bg_progress`、轨道 `bg_progress_track`（随深浅色主题自动切换）。
 
 ## Slider的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -560,8 +572,9 @@ Slider 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`
 | indicator |  | string | 设置进度指示移动图标 |
 | clockwise | true | bool |设置递增方向 |
 | bgcolor |  | string | 设置进度条背景颜色 |
-| fgcolor |  | string | 设置进度条背前景色 |
+| fgcolor |  | string | 设置进度条前景色 |
 | gradient_color |  | string | 设置进度条前景渐变颜色，与 fgcolor 同时使用，可以不设置则无渐变效果 |
+| indeterminate | false | bool | 是否不确定进度（忽略 value，一段弧持续旋转） |
 
 CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 

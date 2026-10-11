@@ -164,6 +164,7 @@
     <ClInclude Include="ChartForm.h" />
     <ClInclude Include="MarqueeForm.h" />
     <ClInclude Include="TimelineForm.h" />
+    <ClInclude Include="ProgressForm.h" />
     <ClInclude Include="ControlForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="MessageBoxForm.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="ChartForm.cpp" />
     <ClCompile Include="MarqueeForm.cpp" />
     <ClCompile Include="TimelineForm.cpp" />
+    <ClCompile Include="ProgressForm.cpp" />
     <ClCompile Include="ControlForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
