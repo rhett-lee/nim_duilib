@@ -98,6 +98,12 @@ private:
     */
     void RebuildList();
 
+    /** 按当前候选行数调整内容容器（及根容器）的高度
+    *   容器高度 = 行数 * 单行高度 + 容器自身内边距；
+    *   忽略内边距会导致列表可用高度不足，从而错误地出现滚动条
+    */
+    void ApplyContentHeight();
+
     /** 计算单个列表项高度（DIP）
     */
     int32_t GetItemHeight() const;

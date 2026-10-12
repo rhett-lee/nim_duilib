@@ -112,6 +112,9 @@ void AutoCompleteFlyout::InitControls()
     //内容容器：高度随候选行数变化
     m_pContent = dynamic_cast<Box*>(FindControl(_T("auto_complete_content")));
 
+    //按候选项行数（含容器内边距）确定初始高度，避免出现不必要的滚动条
+    ApplyContentHeight();
+
     //鼠标点击列表项：确认选择
     m_pList->AttachClick([this](const EventArgs& msg) {
         const size_t nIndex = static_cast<size_t>(msg.wParam);
@@ -144,21 +147,8 @@ bool AutoCompleteFlyout::UpdateItems(const std::vector<UiString>& items, size_t 
     m_items = items;
     m_nSelectedIndex = nSelectedIndex;
 
-    //按新的候选项行数就地调整内容容器高度（宽度不变）
-    const int32_t nRows = std::min<int32_t>(static_cast<int32_t>(m_items.size()), m_nMaxVisible);
-    if (m_pContent != nullptr) {
-        m_pContent->SetFixedHeight(UiFixedInt(nRows * GetItemHeight()), true, true);
-
-        //根容器的宽高在挂载阴影时按XML根容器的固定尺寸一次性计算并被固定下来（见 Shadow::DoAttachShadow），
-        //内容高度变化后不会自动同步；这里显式更新根容器高度（内容高度 + 阴影区域），
-        //否则 PositionAroundAnchor 估算出的窗口大小不会随候选行数变化
-        Box* pRoot = GetRoot();
-        if ((pRoot != nullptr) && (pRoot != m_pContent)) {
-            const UiPadding rcShadow = pRoot->GetPadding();
-            const int32_t nContentHeight = m_pContent->GetFixedHeight().GetInt32();
-            pRoot->SetFixedHeight(UiFixedInt(nContentHeight + rcShadow.top + rcShadow.bottom), true, false);
-        }
-    }
+    //按新的候选项行数调整内容容器高度与窗口大小
+    ApplyContentHeight();
 
     //刷新列表内容：复用同一个列表控件，只替换候选项，不销毁重建窗口
     RebuildList();
@@ -166,6 +156,32 @@ bool AutoCompleteFlyout::UpdateItems(const std::vector<UiString>& items, size_t 
     //按内容高度重新计算浮层窗口的大小与位置
     PositionAroundAnchor();
     return true;
+}
+
+void AutoCompleteFlyout::ApplyContentHeight()
+{
+    if (m_pContent == nullptr) {
+        return;
+    }
+    //单行候选项高度（物理像素，与 RebuildList 中设置的一致）
+    const int32_t nItemHeight = Dpi().GetScaleInt(GetItemHeight());
+    const int32_t nRows = std::min<int32_t>(static_cast<int32_t>(m_items.size()), m_nMaxVisible);
+
+    //内容容器（auto_complete_flyout）自身带有内边距（主题中 padding），
+    //布局时列表的可用区域会扣除该内边距，因此容器高度需额外加上内边距，
+    //否则可用高度小于候选项总高度，会错误地出现滚动条
+    const UiPadding rcPadding = m_pContent->GetPadding();
+    const int32_t nContentHeight = nRows * nItemHeight + rcPadding.top + rcPadding.bottom;
+    m_pContent->SetFixedHeight(UiFixedInt(nContentHeight), true, false);
+
+    //根容器（阴影容器）的宽高在挂载阴影时按XML根容器的固定尺寸一次性计算并被固定下来，
+    //内容高度变化后不会自动同步；这里显式更新根容器高度（内容高度 + 阴影区域），
+    //否则 PositionAroundAnchor 估算出的窗口大小不会随候选行数变化
+    Box* pRoot = GetRoot();
+    if ((pRoot != nullptr) && (pRoot != m_pContent)) {
+        const UiPadding rcShadow = pRoot->GetPadding();
+        pRoot->SetFixedHeight(UiFixedInt(nContentHeight + rcShadow.top + rcShadow.bottom), true, false);
+    }
 }
 
 void AutoCompleteFlyout::RebuildList()
