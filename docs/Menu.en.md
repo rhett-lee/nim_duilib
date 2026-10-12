@@ -1,6 +1,6 @@
 English | [简体中文](Menu.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-10-12
 
 ## Menu
 The implementation of the menu is based on the window ([WindowImplBase](../duilib/Utils/WinImplBase.h)), and mainly consists of two classes: [Menu](../duilib/Control/Menu.h) and [MenuItem](../duilib/Control/Menu.h).
@@ -159,3 +159,54 @@ Add the Associated Response Function for the Menu Item:
     }
 }
 ```
+
+6. Convenient Right-click Context Menu Binding (One Line of Code)    
+In addition to the manual way above (create `Menu` + convert coordinates + bind callbacks), `Control` provides the convenience interface `AttachPopupMenu`: one line of code binds a context menu to any control. When the user right-clicks the control, the specified menu pops up automatically with the screen coordinates resolved, and the callback is triggered after a menu item is activated (mouse click or Enter key).
+```cpp
+// Bind during window initialization: right-clicking context_menu_btn pops up menu/settings_menu.xml
+ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("context_menu_btn")));
+if (pButton != nullptr) {
+    pButton->AttachPopupMenu(_T("menu/settings_menu.xml"),
+        [this](const DString& itemName, size_t nItemIndex) {
+            // itemName: the "name" attribute of the activated menu item; nItemIndex: item index (from 0)
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Context menu item: %s"), itemName.c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+        });
+}
+```
+Interface description:
+```cpp
+/** Conveniently binds a right-click context menu: when the user right-clicks this control,
+*   the menu specified by menuXml pops up automatically; after a menu item is activated
+*   (mouse click or Enter key), actionCallback is invoked.
+*   Calling this function again overwrites the previous binding (menu and callbacks).
+* @param [in] menuXml The menu XML resource file name (relative to the window resource path
+*              GetResourcePath(), e.g. "menu/settings_menu.xml")
+* @param [in] actionCallback The callback after a menu item is activated; may be null
+* @param [in] creatingCallback The callback after the menu pops up, for adjusting the menu
+*              contents dynamically; may be null
+* @return Returns true on success, otherwise false (menuXml is empty)
+*/
+bool AttachPopupMenu(const DString& menuXml,
+                     const ContextMenuActionEvent& actionCallback = nullptr,
+                     const ContextMenuCreatingEvent& creatingCallback = nullptr);
+
+/** Removes the right-click context menu bound by AttachPopupMenu (its counterpart).
+*   After calling it, this control no longer responds to the context menu; calling it
+*   when nothing is bound has no effect.
+*/
+void DetachPopupMenu();
+```
+The two callback types are defined as follows:
+```cpp
+//Callback prototype after a menu item is activated
+typedef std::function<void (const DString& itemName, size_t nItemIndex)> ContextMenuActionEvent;
+
+//Callback prototype after the menu pops up (add/remove menu items, set checked/enabled states, etc.)
+typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingEvent;
+```
+Notes:
+1. `AttachPopupMenu` works on all platforms (Windows / Linux / macOS): the framework generates the context menu event uniformly, including the `Shift+F10` case.
+2. Calling `AttachPopupMenu` again overwrites the previous binding (both the menu XML and the two callbacks take the last values); it does not stack. Call `DetachPopupMenu()` to unbind, after which right-clicking no longer pops up the menu. `DetachPopupMenu()` only unregisters the callback registered by this interface and does not affect a `kEventContextMenu` callback registered separately via `AttachContextMenu`.
+3. To dynamically adjust the menu contents based on the right-click position (add/remove items, set checked/enabled states), use `creatingCallback`: at that moment the menu is already loaded, and menu items can be fetched via `pMenu->FindControl(name)`.
+4. The `examples/controls` sample already contains a demo control `context_menu_btn` in `test.xml`; see [TestForm.cpp](../examples/controls/TestForm.cpp).
