@@ -1021,6 +1021,41 @@ TagInput是标签输入框组合控件，继承自Box，内部使用水平流式
 
 默认皮肤在global.xml中定义了`tag_input`（外框容器）、`tag_input_tag`（标签背景）、`tag_input_tag_text`（标签文本）、`tag_input_tag_close`（标签关闭按钮）、`tag_input_edit`（内部编辑框）5个Class，标签底色使用语义色`bg_tag`/`bg_tag_hover`，关闭按钮悬浮/按下时显示`bg_tag_close_hover`/`bg_tag_close_pressed`圆形底色与白色叉形图标，自动适配深浅色主题。
 
+## AutoComplete的属性
+AutoComplete是自动完成输入框组合控件，继承自Box，内部包含一个占满整个控件的单行编辑框（RichEdit）。输入达到`min_chars`个字符后，在编辑框下方弹出不抢焦点的候选浮层（`AutoCompleteFlyout`，复用Flyout），浮层宽度与编辑框一致、不占用布局空间，候选项数量变化时浮层高度自适应。键盘上下方向键移动候选项、回车确认、Esc关闭浮层，鼠标悬停高亮、点击直接确认；确认后用候选项文本回填编辑框（程序化回填不再触发联想）。与FilterCombo的区别：AutoComplete以编辑框为主体、边输入边实时过滤、浮层跟随编辑框；FilterCombo以下拉框为主体、点击按钮展开固定选项列表。常用于搜索历史、城市/地址补全等场景。对应头文件`duilib/Control/AutoComplete.h`。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| items | "" | string | 初始候选数据源，多个候选项以分号`;`分隔（也可通过代码`SetItems`设置） |
+| prompt_text | "" | string | 编辑框为空时显示的占位提示文本 |
+| prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
+| prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
+| min_chars | 1 | int | 输入达到多少个字符后开始联想 |
+| max_visible | 8 | int | 浮层最多可见候选行数，超出显示滚动条 |
+| match_mode | prefix | string | 文本匹配模式：`prefix`前缀匹配（候选项以输入文本开头）；`contains`包含匹配（任意位置包含） |
+| ignore_case | true | bool | 匹配时是否忽略大小写 |
+
+对应C++接口：`SetItems`/`GetItems`（设置/获取完整候选数据源）、`AddItem`（追加候选项，相同文本自动去重）、`ClearItems`、`SetText`/`GetText`（程序化设置文本不会弹出联想浮层）、`SetMinChars`/`GetMinChars`、`SetMaxVisible`/`GetMaxVisible`、`SetMatchMode`/`GetMatchMode`（参数为`AutoCompleteMatchMode::kPrefix/kContains`）、`SetIgnoreCase`/`IsIgnoreCase`、`GetEditControl`（获取内部RichEdit）、`SetFocus`（焦点设置到内部编辑框）。
+
+事件：
+- `kEventAutoCompleteSelect`：选中候选项（鼠标点击或键盘回车）后触发，WPARAM为选中项在当前候选列表中的序号（从0开始），XML内联事件名为`select`；
+- `kEventTextChanged`：内部编辑框文本变化时转发触发（程序化回填不触发）。
+
+使用示例（参考 controls 示例程序）：
+
+```xml
+<!-- 前缀匹配，18个城市候选，输入 b/sh 等前缀即联想 -->
+<AutoComplete class="auto_complete" name="auto_complete"
+              items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London"
+              prompt_text="输入城市名前缀，如 b / sh"/>
+
+<!-- 包含匹配，最多显示6行；数据源也可完全由代码 SetItems 提供 -->
+<AutoComplete class="auto_complete" name="auto_complete2" width="260" margin="8,2,0,2"
+              match_mode="contains" max_visible="6" prompt_text="输入关键词包含匹配"/>
+```
+
+默认皮肤在global.xml中定义了`auto_complete`（外框容器）、`auto_complete_edit`（内部编辑框）2个控件Class，以及浮层使用的`auto_complete_flyout`（浮层卡片）、`auto_complete_list`（候选列表）、`auto_complete_item`（候选项）3个Class；候选项悬浮/选中底色复用列表语义色`bg_list_item_hovered`/`bg_list_item_selected`，浮层卡片使用`bg_window_card`/`border_window`，自动适配深浅色主题。
+
 ## Switch的属性
 Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。对应头文件`duilib/Control/Switch.h`。
 轨道和滑块既可以用语义色自绘，也可以配置SVG图片皮肤：配置图片后off/on两张图片按动画进度交叉淡入淡出，滑块图片同时沿轨道平移；未配置图片时使用颜色自绘。

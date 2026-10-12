@@ -226,6 +226,7 @@
 | SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
 | TabCtrl | ListBox| [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | 多标签控件（类似浏览器的多标签） |
 | TagInput | Box| [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | 标签输入框组合控件（流式标签+RichEdit，回车/分隔符成标签、可删除、去重与数量限制、自动换行），详见[Control.md](Control.md#taginput的属性) |
+| AutoComplete | Box| [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | 自动完成输入框组合控件（编辑框+跟随浮层，边输入边联想，前缀/包含匹配、键盘导航、回填不重弹），详见[Control.md](Control.md#autocomplete的属性) |
 | TreeView | ListBox| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件 |
 | TreeNode | ListBoxItem| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件的节点 |
 | DirectoryTree | TreeView| [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | 目录树控件，用于显示文件系统的目录结构 |

@@ -52,7 +52,8 @@
 |kEventTimelineItemClick  |节点序号（从0开始）|     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | Timeline点击节点时触发 |
 |kEventTagAdded            |新标签序号（从0开始）|     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | TagInput新增标签后触发 |
 |kEventTagRemoved          |被删除标签序号（从0开始）|     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | TagInput删除标签前触发，回调中仍可通过GetTagText读取该标签文本 |
-|kEventTagClick            |标签序号（从0开始）|     |鼠标所在位置<br>的客户区坐标 |     | 按键标志 |     | TagInput点击标签正文区域（非关闭按钮）时触发 |
+|kEventTagClick            |标签序号（从0开始）|     |鼠标所在位置<br>的客户区坐标   |     | 按键标志 |     | TagInput点击标签正文区域（非关闭按钮）时触发 |
+|kEventAutoCompleteSelect  |选中项在当前候选列表中的序号（从0开始）|     |鼠标所在位置<br>的客户区坐标   |     | 按键标志 |     | AutoComplete选中候选项（鼠标点击或键盘回车）后触发，XML内联事件名为auto_complete_select |
 
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |

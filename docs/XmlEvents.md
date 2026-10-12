@@ -171,6 +171,7 @@ if (msg.eventType == eventType) {
 |kEventTagAdded|"TagAdded"|"tag_added"|
 |kEventTagRemoved|"TagRemoved"|"tag_removed"|
 |kEventTagClick|"TagClick"|"tag_click"|
+|kEventAutoCompleteSelect|"AutoCompleteSelect"|"auto_complete_select"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|

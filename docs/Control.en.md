@@ -1021,6 +1021,41 @@ Example (see the controls example program):
 
 The default skin defines five classes in global.xml: `tag_input` (outer container), `tag_input_tag` (tag background), `tag_input_tag_text` (tag text), `tag_input_tag_close` (tag close button), and `tag_input_edit` (inner edit box). Tag backgrounds use the semantic colors `bg_tag`/`bg_tag_hover`; on hover/press the close button shows the `bg_tag_close_hover`/`bg_tag_close_pressed` circular background with a white X icon. All adapt to light/dark themes automatically.
 
+## Attributes of AutoComplete
+AutoComplete is an auto-complete composite control derived from Box, containing a single-line edit box (RichEdit) that fills the whole control. Once the input reaches `min_chars` characters, a non-focus-stealing suggestion popup (`AutoCompleteFlyout`, built on Flyout) opens below the edit box. The popup is as wide as the edit box, takes no layout space, and resizes its height as the number of candidates changes. The Up/Down keys move the selection, Enter confirms, Esc closes the popup; mouse hover highlights and a click confirms directly. On confirmation the chosen candidate text is filled back into the edit box (this programmatic fill does not re-trigger suggestions). Difference from FilterCombo: AutoComplete is edit-box-centric, filters in real time while typing and the popup follows the edit box, whereas FilterCombo is combo-box-centric with a fixed option list opened by a button. Typical uses include search history and city/address completion. Header file: `duilib/Control/AutoComplete.h`.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| items | "" | string | Initial candidate data source, multiple items separated by semicolons `;` (can also be set via `SetItems`) |
+| prompt_text | "" | string | Placeholder text shown when the edit box is empty |
+| prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
+| prompt_color | "" | string | Color of the placeholder text (semantic color name) |
+| min_chars | 1 | int | Number of characters required before suggestions appear |
+| max_visible | 8 | int | Maximum number of visible candidate rows in the popup; a scrollbar appears when exceeded |
+| match_mode | prefix | string | Matching mode: `prefix` (candidate starts with the input) or `contains` (candidate contains the input anywhere) |
+| ignore_case | true | bool | Whether matching is case-insensitive |
+
+Corresponding C++ interfaces: `SetItems`/`GetItems` (set/get the full candidate data source), `AddItem` (appends a candidate; duplicates are ignored), `ClearItems`, `SetText`/`GetText` (setting text programmatically does not open the popup), `SetMinChars`/`GetMinChars`, `SetMaxVisible`/`GetMaxVisible`, `SetMatchMode`/`GetMatchMode` (parameter is `AutoCompleteMatchMode::kPrefix/kContains`), `SetIgnoreCase`/`IsIgnoreCase`, `GetEditControl` (returns the inner RichEdit), `SetFocus` (sets focus to the inner edit box).
+
+Events:
+- `kEventAutoCompleteSelect`: fired after a candidate is chosen (mouse click or Enter), WPARAM is the selected item index within the current candidate list (starting from 0); the inline XML event name is `select`;
+- `kEventTextChanged`: forwarded when the inner edit box text changes (not fired for programmatic fill-back).
+
+Example (see the controls example program):
+
+```xml
+<!-- Prefix matching over 18 cities; type a prefix such as b / sh -->
+<AutoComplete class="auto_complete" name="auto_complete"
+              items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London"
+              prompt_text="Type a city prefix, e.g. b / sh"/>
+
+<!-- Contains matching, at most 6 rows; the data source can also be provided entirely via SetItems -->
+<AutoComplete class="auto_complete" name="auto_complete2" width="260" margin="8,2,0,2"
+              match_mode="contains" max_visible="6" prompt_text="Type a keyword (contains match)"/>
+```
+
+The default skin defines two control classes in global.xml, `auto_complete` (outer container) and `auto_complete_edit` (inner edit box), plus three popup classes: `auto_complete_flyout` (popup card), `auto_complete_list` (candidate list), and `auto_complete_item` (candidate row). Candidate hover/selection backgrounds reuse the list semantic colors `bg_list_item_hovered`/`bg_list_item_selected`, and the popup card uses `bg_window_card`/`border_window`, adapting to light/dark themes automatically.
+
 ## Attributes of Switch
 Switch is a toggle switch control derived from CheckBox, used for on/off state switching. Header file: `duilib/Control/Switch.h`.
 Both the track and the thumb can be self-drawn with semantic colors or skinned with SVG images: when images are configured, the off/on images cross-fade with the animation progress while the thumb image slides along the track; when no images are configured, colors are self-drawn.

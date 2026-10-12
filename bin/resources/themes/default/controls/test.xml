@@ -53,6 +53,18 @@
                               prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
                 </HBox>
             </GroupVBox>
+
+            <!-- AutoComplete 自动完成输入框 -->
+            <GroupVBox text_id="STRID_CONTROLS_AUTO_COMPLETE" height="auto" margin="6,6,6,6" corner_size="4,4">
+                <HBox height="auto" margin="8,28,8,8">
+                    <AutoComplete class="auto_complete" name="auto_complete"
+                                  items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London;Los Angeles;New York;Paris;Seattle;Shanghai;Shenzhen;Singapore;Sydney;Tokyo;Toronto"
+                                  prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT"/>
+                    <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
+                                  width="260" margin="8,2,0,2"
+                                  prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
+                </HBox>
+            </GroupVBox>
         </VBox>
     </VBox>
 </Window>

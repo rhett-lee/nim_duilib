@@ -605,6 +605,23 @@
                                       pressed_image="file='${PATH_BUTTON}/btn_close.svg' width='12' height='12' valign='center' halign='center' svg_replace_colors='#333333|white'"/>
     <Class name="tag_input_edit" class="richedit_base" width="stretch" height="24" min_width="80" margin="2,0,2,0"
                                    valign="center" prompt_mode="true" prompt_color="text_richedit_prompt"/>
+
+    <!-- 自动完成输入框控件（AutoComplete） -->
+    <Class name="auto_complete" width="260" height="32" padding="3,3,3,3"
+                               bkcolor="bg_richedit" border_size="1" border_round="4,4"
+                               border_color="border_richedit_normal"
+                               hovered_border_color="border_richedit_hovered"/>
+    <Class name="auto_complete_edit" class="richedit_base" width="stretch" height="stretch"
+                                    text_padding="4,0,4,0" prompt_mode="true" prompt_color="text_richedit_prompt"/>
+    <Class name="auto_complete_flyout" width="260" height="auto" bkcolor="bg_window_card"
+                                      border_size="1" border_color="border_window" border_round="6,6"
+                                      padding="1,1,1,1"/>
+    <Class name="auto_complete_list" bkcolor="bg_window_card" vscrollbar="true" paint_selected_colors="true"/>
+    <Class name="auto_complete_item" text_padding="10,0,10,0" fade_hovered="false"
+                                    hovered_color="bg_list_item_hovered"
+                                    pressed_color="bg_list_item_pressed"
+                                    disabled_color="bg_list_item_disabled"
+                                    selected_normal_color="bg_list_item_selected"/>
     
     <!-- 富文本基本属性 -->
     <Class name="rich_text" text_color="text_default" 

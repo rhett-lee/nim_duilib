@@ -930,6 +930,9 @@
     <ClCompile Include="Control\TagInput.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\AutoComplete.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\Switch.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -1965,6 +1968,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\TagInput.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\AutoComplete.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Switch.h">

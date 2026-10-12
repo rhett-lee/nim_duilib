@@ -181,6 +181,40 @@ void TestForm::OnInitWindow()
             return true;
             });
     }
+
+    //AutoComplete 自动完成输入框：选中候选项后用 Toast 提示
+    ui::AutoComplete* pAutoComplete = dynamic_cast<ui::AutoComplete*>(FindControl(_T("auto_complete")));
+    if (pAutoComplete != nullptr) {
+        //数据源已通过 XML 的 items 属性配置（前缀匹配），这里仅绑定选中事件
+        pAutoComplete->AttachSelect([this, pAutoComplete](const ui::EventArgs& /*args*/) {
+            DString text = pAutoComplete->GetText();
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), text.c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+            return true;
+            });
+    }
+
+    //第二个控件：代码填充数据源，match_mode="contains" 在 XML 中配置（包含匹配）
+    ui::AutoComplete* pAutoComplete2 = dynamic_cast<ui::AutoComplete*>(FindControl(_T("auto_complete2")));
+    if (pAutoComplete2 != nullptr) {
+        pAutoComplete2->SetItems({
+            _T("https://github.com"),
+            _T("https://github.com/nimdemo/nim_duilib"),
+            _T("https://gitee.com"),
+            _T("https://www.baidu.com"),
+            _T("https://www.google.com"),
+            _T("https://duilib.com"),
+            _T("https://learn.microsoft.com"),
+            _T("https://stackoverflow.com"),
+            _T("https://en.cppreference.com")
+            });
+        pAutoComplete2->AttachSelect([this, pAutoComplete2](const ui::EventArgs& /*args*/) {
+            DString text = pAutoComplete2->GetText();
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), text.c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+            return true;
+            });
+    }
 }
 
 void TestForm::ShowProgressWindow()

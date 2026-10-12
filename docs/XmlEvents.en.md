@@ -173,6 +173,7 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventTagAdded|"TagAdded"|"tag_added"|
 |kEventTagRemoved|"TagRemoved"|"tag_removed"|
 |kEventTagClick|"TagClick"|"tag_click"|
+|kEventAutoCompleteSelect|"AutoCompleteSelect"|"select"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|

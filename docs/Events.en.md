@@ -55,6 +55,7 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventTagAdded            |New tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a tag is added to TagInput |
 |kEventTagRemoved          |Removed tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before a tag is removed from TagInput; its text is still readable via GetTagText in the callback |
 |kEventTagClick            |Tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when the tag body (not the close button) in TagInput is clicked |
+|kEventAutoCompleteSelect  |Selected item index within the current candidate list (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a candidate in AutoComplete is chosen (mouse click or Enter); inline XML event name is `select` |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |
