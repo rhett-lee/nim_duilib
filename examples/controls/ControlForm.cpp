@@ -350,24 +350,6 @@ void ControlForm::OnInitWindow()
             return true;
         });
     }
-
-    //TagInput 标签输入框：按钮演示程序化添加标签（默认不允许重复标签，递增序号保证唯一）
-    ui::TagInput* pTagInput = dynamic_cast<ui::TagInput*>(FindControl(_T("tag_input")));
-    ui::Button* pAddTagBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_add_tag")));
-    if ((pTagInput != nullptr) && (pAddTagBtn != nullptr)) {
-        pAddTagBtn->AttachClick([pTagInput](const ui::EventArgs&) {
-            static int32_t s_nTagIndex = 1;
-            while (s_nTagIndex < 10000) {
-                DString tag = ui::StringUtil::Printf(_T("Tag%d"), s_nTagIndex);
-                ++s_nTagIndex;
-                if (pTagInput->AddTag(tag)) {
-                    break;
-                }
-            }
-            pTagInput->SetFocus();
-            return true;
-            });
-    }
 }
 
 void ControlForm::OnCloseWindow()

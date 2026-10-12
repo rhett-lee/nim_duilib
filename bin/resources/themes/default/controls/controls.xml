@@ -228,15 +228,6 @@
 
             <!-- 分割线 -->
             <Control class="splitline_hor_level1" margin="0,8,0,4"/>
-            <!-- TagInput 标签输入框 -->
-            <HBox height="auto" margin="0,0,0,8">
-                <Label text_id="STRID_CONTROLS_TAG_INPUT" height="34" valign="center"/>
-                <TagInput class="tag_input" name="tag_input" tags="nim_duilib;C++;桌面UI" margin="8,0,8,0"
-                          prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT"/>
-                <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30" border_round="3,3" valign="center"/>
-                <TagInput class="tag_input" name="tag_input2" delimiter="," width="240" margin="8,0,0,0"
-                          prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
-            </HBox>
             <!-- RichEdit -->
             <HBox>
                 <RichEdit class="prompt" name="edit" bkcolor="bg_richedit" width="stretch" height="stretch"

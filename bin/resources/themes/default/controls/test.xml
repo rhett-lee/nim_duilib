@@ -42,6 +42,17 @@
                     <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_SETTINGS"/>
                 </TabCtrl>
             </GroupHBox>
+
+            <!-- TagInput 标签输入框 -->
+            <GroupVBox text_id="STRID_CONTROLS_TAG_INPUT" height="auto" margin="6,6,6,6" corner_size="4,4">
+                <HBox height="auto" margin="8,28,8,8">
+                    <TagInput class="tag_input" name="tag_input" tags="nim_duilib;C++;Desktop UI"
+                              prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT"/>
+                    <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30" border_round="3,3" margin="8,2,0,2" valign="center"/>
+                    <TagInput class="tag_input" name="tag_input2" delimiter="," width="240" margin="8,2,0,2"
+                              prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
+                </HBox>
+            </GroupVBox>
         </VBox>
     </VBox>
 </Window>
