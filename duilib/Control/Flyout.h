@@ -153,11 +153,14 @@ public:
     */
     virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
-private:
-    /** 按锚点与方位计算窗口位置
+protected:
+    /** 按锚点与方位重新计算浮层窗口的大小与位置
+    *   子类在就地更新内容尺寸（例如候选项行数变化导致高度变化）后调用，
+    *   从而复用当前窗口，避免销毁后重建
     */
     void PositionAroundAnchor();
 
+private:
     /** 启动/停止外部输入检测（不抢焦点模式下通过定时器轮询全局鼠标与 Esc 状态）
     */
     void StartDetectTimer();

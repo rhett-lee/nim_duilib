@@ -6,6 +6,7 @@
 #include "duilib/Core/Keycode.h"
 #include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/Callback.h"
+#include "duilib/Core/Window.h"
 #include <algorithm>
 #include <functional>
 
@@ -51,7 +52,8 @@ AutoCompleteFlyout::AutoCompleteFlyout(Window* pParentWindow) :
     m_nMaxVisible(8),
     m_nWidthDip(200),
     m_nGapDip(4),
-    m_pList(nullptr)
+    m_pList(nullptr),
+    m_pContent(nullptr)
 {
     //浮层不抢焦点：父窗保持激活，编辑框可持续输入
     SetNoFocus(true);
@@ -77,11 +79,11 @@ bool AutoCompleteFlyout::ShowAt(Control* pAnchor, const std::vector<UiString>& i
     const int32_t nHeight = nRows * GetItemHeight();
 
     //内嵌皮肤 XML：Window size 为不含阴影的客户区尺寸，框架自动附加阴影
-    //浮层随候选项变化时由宿主关闭后重新创建，故这里按当前行数给出固定尺寸即可
+    //初始尺寸按当前候选项行数给出；后续文本变化时通过 UpdateItems 就地调整高度，不重建窗口
     DString sXml = StringUtil::Printf(
         _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" ")
         _T("shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">")
-        _T("<VBox class=\"auto_complete_flyout\" width=\"%d\" height=\"%d\">")
+        _T("<VBox class=\"auto_complete_flyout\" name=\"auto_complete_content\" width=\"%d\" height=\"%d\">")
         _T("<VListBox class=\"auto_complete_list\" name=\"auto_complete_list\" ")
         _T("width=\"stretch\" height=\"stretch\"/>")
         _T("</VBox></Window>"),
@@ -107,6 +109,8 @@ void AutoCompleteFlyout::InitControls()
     if (m_pList == nullptr) {
         return;
     }
+    //内容容器：高度随候选行数变化
+    m_pContent = dynamic_cast<Box*>(FindControl(_T("auto_complete_content")));
 
     //鼠标点击列表项：确认选择
     m_pList->AttachClick([this](const EventArgs& msg) {
@@ -130,6 +134,38 @@ void AutoCompleteFlyout::InitControls()
         });
 
     RebuildList();
+}
+
+bool AutoCompleteFlyout::UpdateItems(const std::vector<UiString>& items, size_t nSelectedIndex)
+{
+    if (!IsWindow() || (m_pList == nullptr) || items.empty()) {
+        return false;
+    }
+    m_items = items;
+    m_nSelectedIndex = nSelectedIndex;
+
+    //按新的候选项行数就地调整内容容器高度（宽度不变）
+    const int32_t nRows = std::min<int32_t>(static_cast<int32_t>(m_items.size()), m_nMaxVisible);
+    if (m_pContent != nullptr) {
+        m_pContent->SetFixedHeight(UiFixedInt(nRows * GetItemHeight()), true, true);
+
+        //根容器的宽高在挂载阴影时按XML根容器的固定尺寸一次性计算并被固定下来（见 Shadow::DoAttachShadow），
+        //内容高度变化后不会自动同步；这里显式更新根容器高度（内容高度 + 阴影区域），
+        //否则 PositionAroundAnchor 估算出的窗口大小不会随候选行数变化
+        Box* pRoot = GetRoot();
+        if ((pRoot != nullptr) && (pRoot != m_pContent)) {
+            const UiPadding rcShadow = pRoot->GetPadding();
+            const int32_t nContentHeight = m_pContent->GetFixedHeight().GetInt32();
+            pRoot->SetFixedHeight(UiFixedInt(nContentHeight + rcShadow.top + rcShadow.bottom), true, false);
+        }
+    }
+
+    //刷新列表内容：复用同一个列表控件，只替换候选项，不销毁重建窗口
+    RebuildList();
+
+    //按内容高度重新计算浮层窗口的大小与位置
+    PositionAroundAnchor();
+    return true;
 }
 
 void AutoCompleteFlyout::RebuildList()
@@ -507,10 +543,13 @@ void AutoComplete::UpdatePopup()
         return;
     }
 
-    //候选结果变化时：关闭旧浮层并按新行数重建（新浮层高度与候选数一致，
-    //复用已实现的创建路径，避免对已创建的分层窗口做动态缩放导致列表布局异常）
-    if (m_pFlyout != nullptr) {
-        ClosePopup();
+    //浮层已打开时：就地刷新候选项内容与高度，复用同一个窗口（避免关闭后重开带来的开销）
+    if ((m_pFlyout != nullptr) && m_pFlyout->IsOpen()) {
+        if (m_pFlyout->UpdateItems(m_candidates, 0)) {
+            return;
+        }
+        //更新失败（窗口已失效）：退回到重建路径
+        m_pFlyout = nullptr;
     }
     OpenPopup();
 }

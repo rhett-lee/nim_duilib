@@ -23,7 +23,8 @@ enum class AutoCompleteMatchMode : uint8_t
 *
 *   特点：
 *   1. 默认不抢焦点（WS_EX_NOACTIVATE），显示期间编辑框持续获得键盘焦点，可直接继续输入
-*   2. 候选项数量变化时，浮层宽高随之调整（宽度固定为编辑框宽度）
+*   2. 候选项数量变化时，浮层高度随之调整（宽度固定为编辑框宽度）；文本变化时复用
+*      同一个浮层窗口就地刷新内容，不销毁重建
 *   3. 支持鼠标点击/悬停选择，键盘上下方向键、回车由宿主控件转发处理
 *   4. 非模态窗口：对象在窗口关闭后由框架自动 delete，调用方不需要手动释放
 */
@@ -53,6 +54,14 @@ public:
     */
     bool ShowAt(Control* pAnchor, const std::vector<UiString>& items, size_t nSelectedIndex,
                 int32_t nWidthDip, Placement placement = Placement::Bottom);
+
+    /** 就地更新候选项内容（复用已创建的浮层窗口，不销毁重建）
+    *   仅刷新列表内容，并按新的候选项行数调整浮层高度、重新计算位置
+    * @param [in] items 新的候选项文本列表（不可为空）
+    * @param [in] nSelectedIndex 新的选中项序号
+    * @return 更新成功返回 true（浮层窗口尚未创建时会返回 false）
+    */
+    bool UpdateItems(const std::vector<UiString>& items, size_t nSelectedIndex);
 
     /** 获取当前选中项序号，无选中项返回 Box::InvalidIndex
     */
@@ -117,6 +126,10 @@ private:
     /** 内部候选列表控件
     */
     VListBox* m_pList;
+
+    /** 浮层内容容器（高度随候选行数变化）
+    */
+    Box* m_pContent;
 
     /** 候选项选中回调
     */
