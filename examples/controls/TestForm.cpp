@@ -197,7 +197,7 @@ void TestForm::OnInitWindow()
     //第二个控件：代码填充数据源，match_mode="contains" 在 XML 中配置（包含匹配）
     ui::AutoComplete* pAutoComplete2 = dynamic_cast<ui::AutoComplete*>(FindControl(_T("auto_complete2")));
     if (pAutoComplete2 != nullptr) {
-        pAutoComplete2->SetItems({
+        pAutoComplete2->SetCandidates({
             _T("https://github.com"),
             _T("https://github.com/nimdemo/nim_duilib"),
             _T("https://gitee.com"),

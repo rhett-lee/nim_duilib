@@ -286,14 +286,14 @@ C++ 接口：`AddTag`（空/重复/超限返回 false）、`RemoveTagAt`、`Remo
 内部单行 RichEdit + 下方候选浮层（`AutoCompleteFlyout` 复用 Flyout：不抢焦点、宽度跟随编辑框、高度随候选项自适应、超出滚动）（`duilib/Control/AutoComplete.h`），XML 节点名 `AutoComplete`。输入达 min_chars 后实时过滤弹层；上下键/回车/Esc + 鼠标悬停点击；回填不重弹。
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
-| items | | string | 初始候选数据源，分号 `;` 分隔（也可 `SetItems`） |
+| items | | string | 初始候选数据源，分号 `;` 分隔（也可 `SetCandidates`） |
 | prompt_text / prompt_text_id / prompt_color | | string | 占位提示文本 / 多语言 ID / 颜色（语义色名） |
 | min_chars | 1 | int | 输入多少字符后开始联想 |
 | max_visible | 8 | int | 浮层最多可见行数，超出滚动 |
 | match_mode | prefix | string | `prefix` 前缀 / `contains` 包含 |
 | ignore_case | true | bool | 是否忽略大小写 |
 
-C++ 接口：`SetItems/GetItems`、`AddItem`（去重）、`ClearItems`、`SetText/GetText`（程序化 SetText 不弹浮层）、`SetMinChars/GetMinChars`、`SetMaxVisible/GetMaxVisible`、`SetMatchMode/GetMatchMode`（`AutoCompleteMatchMode::kPrefix/kContains`）、`SetIgnoreCase/IsIgnoreCase`、`GetEditControl()`、`SetFocus`。事件：`kEventAutoCompleteSelect`（WPARAM=当前候选列表中的序号，XML 内联事件名 `auto_complete_select`）、转发 `kEventTextChanged`（回填不触发）。
+C++ 接口：`SetCandidates/GetCandidates`、`AddCandidate`（去重）、`ClearCandidates`、`SetText/GetText`（程序化 SetText 不弹浮层）、`SetMinChars/GetMinChars`、`SetMaxVisible/GetMaxVisible`、`SetMatchMode/GetMatchMode`（`AutoCompleteMatchMode::kPrefix/kContains`）、`SetIgnoreCase/IsIgnoreCase`、`GetEditControl()`、`SetFocus`。事件：`kEventAutoCompleteSelect`（WPARAM=当前候选列表中的序号，XML 内联事件名 `auto_complete_select`）、转发 `kEventTextChanged`（回填不触发）。
 皮肤类：控件 `auto_complete` / `auto_complete_edit`；浮层 `auto_complete_flyout` / `auto_complete_list` / `auto_complete_item`，候选项复用 `bg_list_item_hovered` / `bg_list_item_selected`，卡片 `bg_window_card` / `border_window`。
 
 ### Switch 属性(继承 CheckBox，滑块开关)

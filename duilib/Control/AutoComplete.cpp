@@ -387,7 +387,7 @@ void AutoComplete::SetFocus()
     }
 }
 
-void AutoComplete::SetItems(const std::vector<DString>& items)
+void AutoComplete::SetCandidates(const std::vector<DString>& items)
 {
     m_items.clear();
     for (const DString& text : items) {
@@ -398,7 +398,7 @@ void AutoComplete::SetItems(const std::vector<DString>& items)
     }
 }
 
-std::vector<DString> AutoComplete::GetItems() const
+std::vector<DString> AutoComplete::GetCandidates() const
 {
     std::vector<DString> result;
     result.reserve(m_items.size());
@@ -408,7 +408,7 @@ std::vector<DString> AutoComplete::GetItems() const
     return result;
 }
 
-void AutoComplete::AddItem(const DString& text)
+void AutoComplete::AddCandidate(const DString& text)
 {
     DString item = StringUtil::Trim(text.c_str());
     if (item.empty()) {
@@ -422,7 +422,7 @@ void AutoComplete::AddItem(const DString& text)
     m_items.push_back(item);
 }
 
-void AutoComplete::ClearItems()
+void AutoComplete::ClearCandidates()
 {
     m_items.clear();
     ClosePopup();
@@ -675,7 +675,7 @@ void AutoComplete::ParseInitItems(const DString& items)
 {
     std::list<DString> itemList = StringUtil::Split(items, _T(";"));
     for (const DString& item : itemList) {
-        AddItem(item);
+        AddCandidate(item);
     }
 }
 

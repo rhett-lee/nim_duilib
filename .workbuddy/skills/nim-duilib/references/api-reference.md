@@ -317,14 +317,14 @@ C++ 接口：`AddTag`（空/重复/超限返回 false）、`RemoveTagAt`、`Remo
 
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
-| items | | string | 初始候选数据源，多个以分号 `;` 分隔（也可代码 `SetItems`） |
+| items | | string | 初始候选数据源，多个以分号 `;` 分隔（也可代码 `SetCandidates`） |
 | prompt_text / prompt_text_id / prompt_color | | string | 占位提示文本 / 多语言 ID / 颜色（语义色名） |
 | min_chars | 1 | int | 输入多少字符后开始联想 |
 | max_visible | 8 | int | 浮层最多可见行数，超出滚动 |
 | match_mode | prefix | string | `prefix` 前缀匹配 / `contains` 包含匹配 |
 | ignore_case | true | bool | 是否忽略大小写 |
 
-C++ 接口：`SetItems/GetItems`、`AddItem`（去重）、`ClearItems`、`SetText/GetText`（程序化 SetText 不弹浮层）、`SetMinChars/GetMinChars`、`SetMaxVisible/GetMaxVisible`、`SetMatchMode/GetMatchMode`（`AutoCompleteMatchMode::kPrefix/kContains`）、`SetIgnoreCase/IsIgnoreCase`、`GetEditControl()`、`SetFocus`。
+C++ 接口：`SetCandidates/GetCandidates`、`AddCandidate`（去重）、`ClearCandidates`、`SetText/GetText`（程序化 SetText 不弹浮层）、`SetMinChars/GetMinChars`、`SetMaxVisible/GetMaxVisible`、`SetMatchMode/GetMatchMode`（`AutoCompleteMatchMode::kPrefix/kContains`）、`SetIgnoreCase/IsIgnoreCase`、`GetEditControl()`、`SetFocus`。
 事件：`kEventAutoCompleteSelect`（WPARAM=选中项在当前候选列表中的序号；XML 内联事件名 `auto_complete_select`）、转发 `kEventTextChanged`（回填不触发）。
 默认皮肤类：控件 `auto_complete` / `auto_complete_edit`；浮层 `auto_complete_flyout` / `auto_complete_list` / `auto_complete_item`，候选项复用列表语义色 `bg_list_item_hovered` / `bg_list_item_selected`，卡片 `bg_window_card` / `border_window`。
 

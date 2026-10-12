@@ -192,19 +192,19 @@ public:
 
     /** 设置候选数据源（联想始终基于该原始数据过滤）
     */
-    void SetItems(const std::vector<DString>& items);
+    void SetCandidates(const std::vector<DString>& items);
 
     /** 获取候选数据源
     */
-    std::vector<DString> GetItems() const;
+    std::vector<DString> GetCandidates() const;
 
     /** 追加一个候选项（已存在相同文本时忽略）
     */
-    void AddItem(const DString& text);
+    void AddCandidate(const DString& text);
 
     /** 清空候选数据源
     */
-    void ClearItems();
+    void ClearCandidates();
 
     /** 设置/获取编辑框文本（程序化设置不触发联想浮层）
     */
