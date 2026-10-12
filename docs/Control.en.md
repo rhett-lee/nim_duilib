@@ -1026,7 +1026,7 @@ AutoComplete is an auto-complete composite control derived from Box, containing 
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| items | "" | string | Initial candidate data source, multiple items separated by semicolons `;` (can also be set via `SetItems`) |
+| items | "" | string | Initial candidate data source, multiple items separated by semicolons `;` (can also be set via `SetCandidates`) |
 | prompt_text | "" | string | Placeholder text shown when the edit box is empty |
 | prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
 | prompt_color | "" | string | Color of the placeholder text (semantic color name) |
@@ -1035,7 +1035,7 @@ AutoComplete is an auto-complete composite control derived from Box, containing 
 | match_mode | prefix | string | Matching mode: `prefix` (candidate starts with the input) or `contains` (candidate contains the input anywhere) |
 | ignore_case | true | bool | Whether matching is case-insensitive |
 
-Corresponding C++ interfaces: `SetItems`/`GetItems` (set/get the full candidate data source), `AddItem` (appends a candidate; duplicates are ignored), `ClearItems`, `SetText`/`GetText` (setting text programmatically does not open the popup), `SetMinChars`/`GetMinChars`, `SetMaxVisible`/`GetMaxVisible`, `SetMatchMode`/`GetMatchMode` (parameter is `AutoCompleteMatchMode::kPrefix/kContains`), `SetIgnoreCase`/`IsIgnoreCase`, `GetEditControl` (returns the inner RichEdit), `SetFocus` (sets focus to the inner edit box).
+Corresponding C++ interfaces: `SetCandidates`/`GetCandidates` (set/get the full candidate data source), `AddCandidate` (appends a candidate; duplicates are ignored), `ClearCandidates`, `SetText`/`GetText` (setting text programmatically does not open the popup), `SetMinChars`/`GetMinChars`, `SetMaxVisible`/`GetMaxVisible`, `SetMatchMode`/`GetMatchMode` (parameter is `AutoCompleteMatchMode::kPrefix/kContains`), `SetIgnoreCase`/`IsIgnoreCase`, `GetEditControl` (returns the inner RichEdit), `SetFocus` (sets focus to the inner edit box).
 
 Events:
 - `kEventAutoCompleteSelect`: fired after a candidate is chosen (mouse click or Enter), WPARAM is the selected item index within the current candidate list (starting from 0); the inline XML event name is `select`;
@@ -1049,7 +1049,7 @@ Example (see the controls example program):
               items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London"
               prompt_text="Type a city prefix, e.g. b / sh"/>
 
-<!-- Contains matching, at most 6 rows; the data source can also be provided entirely via SetItems -->
+<!-- Contains matching, at most 6 rows; the data source can also be provided entirely via SetCandidates -->
 <AutoComplete class="auto_complete" name="auto_complete2" width="260" margin="8,2,0,2"
               match_mode="contains" max_visible="6" prompt_text="Type a keyword (contains match)"/>
 ```
