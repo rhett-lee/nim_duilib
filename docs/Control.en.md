@@ -1019,7 +1019,7 @@ Example (see the controls example program):
 <TagInput class="tag_input" delimiter="," max_count="5" allow_duplicate="true" prompt_text="Press Enter or comma to add a tag"/>
 ```
 
-The default skin defines five classes in global.xml: `tag_input` (outer container), `tag_input_tag` (tag background), `tag_input_tag_text` (tag text), `tag_input_tag_close` (tag close button), and `tag_input_edit` (inner edit box). Tag backgrounds use the semantic colors `bg_tag`/`bg_tag_hover` and adapt to light/dark themes automatically.
+The default skin defines five classes in global.xml: `tag_input` (outer container), `tag_input_tag` (tag background), `tag_input_tag_text` (tag text), `tag_input_tag_close` (tag close button), and `tag_input_edit` (inner edit box). Tag backgrounds use the semantic colors `bg_tag`/`bg_tag_hover`; on hover/press the close button shows the `bg_tag_close_hover`/`bg_tag_close_pressed` circular background with a white X icon. All adapt to light/dark themes automatically.
 
 ## Attributes of Switch
 Switch is a toggle switch control derived from CheckBox, used for on/off state switching. Header file: `duilib/Control/Switch.h`.

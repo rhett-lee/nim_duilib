@@ -170,6 +170,9 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventNavigationPaneToggling|"NavigationPaneToggling"|"navigation_pane_toggling"|
 |kEventNavigationPaneToggled|"NavigationPaneToggled"|"navigation_pane_toggled"|
 |kEventTimelineItemClick|"TimelineItemClick"|"timeline_item_click"|
+|kEventTagAdded|"TagAdded"|"tag_added"|
+|kEventTagRemoved|"TagRemoved"|"tag_removed"|
+|kEventTagClick|"TagClick"|"tag_click"|
 |kEventZoom|"Zoom"|"zoom"|
 |kEventTextChanged|"TextChanged"|"text_changed"|
 |kEventSelChanged|"SelChanged"|"sel_changed"|

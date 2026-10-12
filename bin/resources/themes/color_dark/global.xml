@@ -223,7 +223,9 @@
 
     <!-- ===================== 标签输入框 (type: tag) ===================== -->
     <ThemeColor name="bg_tag" value="#FF3A3D42" type="tag" category="bg_color" role="neutral" derived_from="" adjust="" fixed="false" support_accent="false" contrast_bg="" comment_cn="标签默认背景" comment_en="Tag default background"/>
-    <ThemeColor name="bg_tag_hover" value="#FF4E525A" type="tag" category="bg_color" role="neutral" derived_from="bg_tag" adjust="lightness:+8" fixed="false" support_accent="false" contrast_bg="" comment_cn="标签悬浮/删除按钮悬浮背景" comment_en="Tag hover / close button hover background"/>
+    <ThemeColor name="bg_tag_hover" value="#FF4E525A" type="tag" category="bg_color" role="neutral" derived_from="bg_tag" adjust="lightness:+8" fixed="false" support_accent="false" contrast_bg="" comment_cn="标签悬浮背景" comment_en="Tag hover background"/>
+    <ThemeColor name="bg_tag_close_hover" value="#FF5C616B" type="tag" category="bg_color" role="neutral" derived_from="" adjust="" fixed="false" support_accent="false" contrast_bg="" comment_cn="标签删除按钮悬浮背景" comment_en="Tag close button hovered background"/>
+    <ThemeColor name="bg_tag_close_pressed" value="#FF6C7280" type="tag" category="bg_color" role="neutral" derived_from="bg_tag_close_hover" adjust="lightness:+7" fixed="false" support_accent="false" contrast_bg="" comment_cn="标签删除按钮按下背景" comment_en="Tag close button pressed background"/>
 
     <!-- ===================== 分割线颜色 (type: split_line) ===================== -->
     <ThemeColor name="bg_split_disabled" value="#B3333333" type="split_line" category="bg_color" role="neutral" derived_from="bg_split_normal" adjust="lightness:-10,saturation:-30,alpha:=70" fixed="false" support_accent="false" contrast_bg="" comment_cn="分割线禁用状态" comment_en="Split line disabled state"/>

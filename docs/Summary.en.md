@@ -227,6 +227,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | Split | Control | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter control |
 | SplitBox | Box | [duilib/Control/Split.h](../duilib/Control/Split.h) | Splitter container |
 | TabCtrl | ListBox | [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | Multi-tab control (similar to the multi-tabs of a browser) |
+| TagInput | Box | [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | Composite tag input (flow tags + RichEdit; commits tags on Enter/delimiter, removable, duplicate/max-count limits, auto wrapping), see [Control.md](Control.md#attributes-of-taginput) |
 | TreeView | ListBox | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Tree control |
 | TreeNode | ListBoxItem | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Node of the tree control |
 | DirectoryTree | TreeView | [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | Directory tree control, used to display the directory structure of the file system |

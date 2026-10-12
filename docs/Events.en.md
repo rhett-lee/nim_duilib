@@ -52,6 +52,9 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventNavigationPaneToggling |Target state:<br>1=collapsed, 0=expanded |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before the NavigationView pane collapses/expands; returning false from the handler cancels the toggle |
 |kEventNavigationPaneToggled |Current state:<br>1=collapsed, 0=expanded |     |     |     |    |     | Fired after the NavigationView pane has collapsed/expanded |
 |kEventTimelineItemClick  |Item index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when a Timeline node is clicked |
+|kEventTagAdded            |New tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired after a tag is added to TagInput |
+|kEventTagRemoved          |Removed tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired before a tag is removed from TagInput; its text is still readable via GetTagText in the callback |
+|kEventTagClick            |Tag index (0-based) |     |Client-area coordinates of the mouse |     | Key flags |     | Fired when the tag body (not the close button) in TagInput is clicked |
 
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |

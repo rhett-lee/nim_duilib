@@ -1019,7 +1019,7 @@ TagInput是标签输入框组合控件，继承自Box，内部使用水平流式
 <TagInput class="tag_input" delimiter="," max_count="5" allow_duplicate="true" prompt_text="回车或英文逗号生成标签"/>
 ```
 
-默认皮肤在global.xml中定义了`tag_input`（外框容器）、`tag_input_tag`（标签背景）、`tag_input_tag_text`（标签文本）、`tag_input_tag_close`（标签关闭按钮）、`tag_input_edit`（内部编辑框）5个Class，标签底色使用语义色`bg_tag`/`bg_tag_hover`，自动适配深浅色主题。
+默认皮肤在global.xml中定义了`tag_input`（外框容器）、`tag_input_tag`（标签背景）、`tag_input_tag_text`（标签文本）、`tag_input_tag_close`（标签关闭按钮）、`tag_input_edit`（内部编辑框）5个Class，标签底色使用语义色`bg_tag`/`bg_tag_hover`，关闭按钮悬浮/按下时显示`bg_tag_close_hover`/`bg_tag_close_pressed`圆形底色与白色叉形图标，自动适配深浅色主题。
 
 ## Switch的属性
 Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。对应头文件`duilib/Control/Switch.h`。

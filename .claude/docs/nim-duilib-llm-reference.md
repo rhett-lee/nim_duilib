@@ -280,7 +280,7 @@ C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`。事件：`kEve
 | tags | | string | 初始标签，分号 `;` 分隔 |
 
 C++ 接口：`AddTag`（空/重复/超限返回 false）、`RemoveTagAt`、`RemoveAllTags`、`GetTagCount`、`GetTagText`、`SetAllowDuplicate/IsAllowDuplicate`、`SetMaxCount/GetMaxCount`、`GetEditControl()`、`SetFocus`。事件：`kEventTagAdded`、`kEventTagRemoved`（回调中仍可取文本）、`kEventTagClick`（WPARAM 均为标签序号，点关闭按钮不触发 click）、转发 `kEventTextChanged`。
-皮肤类：`tag_input` / `tag_input_tag` / `tag_input_tag_text` / `tag_input_tag_close` / `tag_input_edit`，语义色 `bg_tag` / `bg_tag_hover`。
+皮肤类：`tag_input` / `tag_input_tag` / `tag_input_tag_text` / `tag_input_tag_close` / `tag_input_edit`，语义色 `bg_tag` / `bg_tag_hover` / `bg_tag_close_hover` / `bg_tag_close_pressed`（关闭按钮悬浮/按下灰圆底，叉变白）。
 
 ### Switch 属性(继承 CheckBox，滑块开关)
 轨道 + 圆形滑块 + 滑动/淡入淡出动画的开关控件（`duilib/Control/Switch.h`），XML 节点名 `Switch`。轨道与滑块均支持 SVG 图片皮肤（off/on 成对，按进度交叉淡入、滑块平移）；无图时用语义色自绘。

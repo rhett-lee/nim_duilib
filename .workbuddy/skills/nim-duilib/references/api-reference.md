@@ -309,7 +309,7 @@ C++ 接口：`SetSearchText/GetSearchText`、`GetEditControl()`（取内部 Rich
 
 C++ 接口：`AddTag`（空/重复/超限返回 false）、`RemoveTagAt`、`RemoveAllTags`、`GetTagCount`、`GetTagText`、`SetAllowDuplicate/IsAllowDuplicate`、`SetMaxCount/GetMaxCount`、`GetEditControl()`、`SetFocus`。
 事件：`kEventTagAdded`（WPARAM=新标签序号）、`kEventTagRemoved`（WPARAM=被删序号，回调中仍可 GetTagText）、`kEventTagClick`（WPARAM=序号，点关闭按钮不触发）、转发 `kEventTextChanged`。
-默认皮肤类：`tag_input` / `tag_input_tag` / `tag_input_tag_text` / `tag_input_tag_close` / `tag_input_edit`，底色语义色 `bg_tag` / `bg_tag_hover`。
+默认皮肤类：`tag_input` / `tag_input_tag` / `tag_input_tag_text` / `tag_input_tag_close` / `tag_input_edit`，底色语义色 `bg_tag` / `bg_tag_hover`；关闭按钮悬浮/按下为灰圆底白叉，语义色 `bg_tag_close_hover` / `bg_tag_close_pressed`。
 
 ### Switch 属性(继承 CheckBox，滑块开关)
 

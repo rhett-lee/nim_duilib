@@ -83,7 +83,7 @@
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr>
-        <td rowspan="37">新增控件/新增容器</td>
+        <td rowspan="38">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -122,6 +122,7 @@
     <tr><td align="left">35. Chart：轻量图表控件，支持折线图（line）、柱状图（bar）、饼图（pie）等形态</td></tr>
     <tr><td align="left">36. Marquee：文本跑马灯控件，用于在界面中横向/纵向循环滚动显示文本</td></tr>
     <tr><td align="left">37. Timeline：垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条）</td></tr>
+    <tr><td align="left">38. TagInput：标签输入框组合控件，输入回车（或指定分隔符）生成标签，支持关闭按钮/Backspace删除、去重、最大数量限制，标签过多自动换行</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
