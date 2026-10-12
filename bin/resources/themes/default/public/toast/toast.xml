@@ -7,7 +7,7 @@
     <!-- 圆角通知条：点击/悬停事件统一由根容器处理，内部非交互控件全部 mouse_enabled="false" -->
     <HBox width="360" height="auto" max_height="320" bkcolor="bg_tooltip" border_round="8,8">
         <VBox width="stretch" height="auto" padding="16,12,16,12" mouse_enabled="false" tab_stop="false">
-            <HBox width="stretch" height="auto">
+            <HBox width="stretch" height="auto" mouse_enabled="false">
                 <Control name="toast_icon" width="20" height="20" valign="center" margin="0,0,12,0"
                          mouse_enabled="false" tab_stop="false"/>
                 <!-- 文本宽度必须为固定值 296（=360 外宽 - 左右内边距 16*2 - 图标 20 - 图标右 margin 12）：
