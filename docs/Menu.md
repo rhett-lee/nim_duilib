@@ -157,3 +157,50 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedC
     }
 }
 ```
+
+6. 便捷绑定右键菜单（一行代码）    
+除上述"手动创建 `Menu` + 坐标换算 + 绑定回调"的方式外，`Control` 提供了便捷接口 `AttachPopupMenu`：一行代码即可把右键菜单绑定到任意控件。右键点击控件时，会自动弹出指定菜单，并自动完成屏幕坐标换算；菜单项被激活（鼠标点击或键盘回车）后触发回调。
+```cpp
+// 在窗口初始化时绑定：在 context_menu_btn 控件上点右键，弹出 menu/settings_menu.xml
+ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("context_menu_btn")));
+if (pButton != nullptr) {
+    pButton->AttachPopupMenu(_T("menu/settings_menu.xml"),
+        [this](const DString& itemName, size_t nItemIndex) {
+            // itemName: 被激活菜单项的 name 属性; nItemIndex: 菜单项索引(从0开始)
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Context menu item: %s"), itemName.c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+        });
+}
+```
+接口说明：
+```cpp
+/** 便捷绑定右键上下文菜单：右键点击此控件时，自动弹出 menuXml 指定的菜单；
+*   菜单项被激活(鼠标点击或者键盘回车)后，通过 actionCallback 回调。
+*   重复调用本函数时，会直接覆盖之前的绑定配置(菜单及回调均以最后一次为准)。
+* @param [in] menuXml 菜单XML资源文件名(相对于窗口的资源路径 GetResourcePath()，如 "menu/settings_menu.xml")
+* @param [in] actionCallback 菜单项被激活后的回调函数；可以为空(为空时不回调)
+* @param [in] creatingCallback 菜单弹出后的回调函数，用于动态调整菜单内容；可以为空
+* @return 绑定成功返回true，否则返回false(menuXml为空)
+*/
+bool AttachPopupMenu(const DString& menuXml,
+                     const ContextMenuActionEvent& actionCallback = nullptr,
+                     const ContextMenuCreatingEvent& creatingCallback = nullptr);
+
+/** 解除由 AttachPopupMenu 绑定的右键上下文菜单(与 AttachPopupMenu 配对使用)
+*   调用后，本控件不再响应右键上下文菜单；未绑定过时调用无副作用。
+*/
+void DetachPopupMenu();
+```
+其中，两个回调类型定义如下：
+```cpp
+//菜单项被激活后的回调函数原型
+typedef std::function<void (const DString& itemName, size_t nItemIndex)> ContextMenuActionEvent;
+
+//菜单弹出后的回调函数原型(可动态增删菜单项、设置菜单项的勾选/禁用状态等)
+typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingEvent;
+```
+说明：
+1. `AttachPopupMenu` 支持在 Windows / Linux / macOS 等所有平台使用，框架会统一产生上下文菜单事件（含按 `Shift+F10` 触发的场景）。
+2. 重复调用 `AttachPopupMenu` 会直接覆盖上一次的绑定配置（菜单 XML 与两个回调均以最后一次为准），不会叠加；如需解除绑定，调用 `DetachPopupMenu()`，解除后右键不再弹菜单。`DetachPopupMenu()` 只注销本接口注册的回调，不影响通过 `AttachContextMenu` 单独注册的 `kEventContextMenu` 回调。
+3. 需要根据右键位置动态调整菜单内容（如增删菜单项、设置勾选/禁用状态）时，使用 `creatingCallback`：此时菜单已加载完成，可通过 `pMenu->FindControl(name)` 获取菜单项。
+4. `examples/controls` 示例程序的 `test.xml` 中，已内置演示控件 `context_menu_btn`，可参考 [TestForm.cpp](../examples/controls/TestForm.cpp) 的实现。

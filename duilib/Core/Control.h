@@ -26,8 +26,22 @@ namespace ui
     class ControlDropTarget_SDL;
     class ControlDropTargetImpl_Windows;
     class ControlDropTargetImpl_SDL;
+    class Menu;
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
+
+/** 上下文菜单项被激活的回调函数原型(便捷绑定接口 Control::AttachPopupMenu 使用)
+* @param [in] itemName 菜单项的名称(即菜单XML中的name属性，相当于命令ID)
+* @param [in] nItemIndex 菜单项的索引序号(从0开始的序号)
+*/
+typedef std::function<void (const DString& itemName, size_t nItemIndex)> ContextMenuActionEvent;
+
+/** 上下文菜单创建后的回调函数原型(便捷绑定接口 Control::AttachPopupMenu 使用)
+*  在菜单加载完成、弹出之后调用，用于动态增删菜单项、设置菜单项的勾选/禁用状态等
+* @param [in] pMenu 菜单接口(仅在回调期间有效，不可长期保存)
+* @param [in] pSender 触发菜单的控件(即调用 Control::AttachPopupMenu 的控件)
+*/
+typedef std::function<void (Menu* pMenu, Control* pSender)> ContextMenuCreatingEvent;
 
 /** 控件基类(相当于Widget)
 */
@@ -1009,6 +1023,28 @@ public:
      */
     void AttachContextMenu(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventContextMenu, callback, callbackID); }
 
+    /** 便捷绑定右键上下文菜单：右键点击此控件时，自动弹出 menuXml 指定的菜单；
+    *   菜单项被激活(鼠标点击或者键盘回车)后，通过 actionCallback 回调。
+    *   一行代码即可完成绑定，无需手动创建 Menu 对象、无需进行坐标换算。
+    *   说明：菜单XML资源文件名相对于窗口的资源路径(Window::GetResourcePath())，
+    *         例如 "menu/settings_menu.xml"，与窗口自身的XML资源使用相同的查找规则。
+    *         重复调用本函数时，会直接覆盖之前的绑定配置(菜单及回调均以最后一次为准)；
+    *         如需解除绑定，调用 DetachPopupMenu()。
+    * @param [in] menuXml 菜单XML资源文件名
+    * @param [in] actionCallback 菜单项被激活后的回调函数；可以为空(为空时不回调)
+    * @param [in] creatingCallback 菜单弹出后的回调函数，用于动态调整菜单内容；可以为空
+    * @return 绑定成功返回true，否则返回false(menuXml为空)
+    */
+    bool AttachPopupMenu(const DString& menuXml,
+                         const ContextMenuActionEvent& actionCallback = nullptr,
+                         const ContextMenuCreatingEvent& creatingCallback = nullptr);
+
+    /** 解除由 AttachPopupMenu 绑定的右键上下文菜单(与 AttachPopupMenu 配对使用)
+    *   调用后，本控件不再响应右键上下文菜单；未绑定过时调用无副作用。
+    *   注意：如果通过 AttachContextMenu 单独注册过 kEventContextMenu 事件回调，则不受本函数影响。
+    */
+    void DetachPopupMenu();
+
     /** 监听控件位置改变事件
      * @param [in] callback 事件处理的回调函数，请参考 EventCallback 声明
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -1668,6 +1704,10 @@ private:
     EventMap& GetXmlBubbledEventMap();
     bool HasXmlBubbledEventMap() const;
 
+    /** 上下文菜单事件(kEventContextMenu)的处理函数(AttachPopupMenu 内部使用)
+    */
+    bool OnContextMenuEvent(const EventArgs& args);
+
 private:
     /** 获取Hovered动画的播放接口
     */
@@ -1808,6 +1848,19 @@ private:
         UiPoint m_renderOffset;
     };
 
+    //上下文菜单便捷绑定的数据
+    struct TContextMenuData
+    {
+        //菜单XML资源文件名(相对于窗口的资源路径)
+        UiString m_menuXml;
+
+        //菜单项被激活后的回调函数
+        ContextMenuActionEvent m_actionCallback;
+
+        //菜单弹出后的回调函数(用于动态调整菜单内容)
+        ContextMenuCreatingEvent m_creatingCallback;
+    };
+
     /** 不常用的功能数据
     */
     struct TOtherData
@@ -1823,6 +1876,10 @@ private:
         /** Tooltip数据
         */
         std::unique_ptr<TTooltipData> m_pTooltip;
+
+        /** 上下文菜单便捷绑定的数据(AttachPopupMenu接口)
+        */
+        std::unique_ptr<TContextMenuData> m_pContextMenuData;
     };
 
 private:

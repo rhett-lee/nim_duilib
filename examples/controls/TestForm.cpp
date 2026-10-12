@@ -215,6 +215,16 @@ void TestForm::OnInitWindow()
             return true;
             });
     }
+
+    //上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu)
+    ui::Button* pContextMenuBtn = dynamic_cast<ui::Button*>(FindControl(_T("context_menu_btn")));
+    if (pContextMenuBtn != nullptr) {
+        pContextMenuBtn->AttachPopupMenu(_T("menu/settings_menu.xml"),
+            [this](const DString& itemName, size_t /*nItemIndex*/) {
+                ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Context menu item: %s"), itemName.c_str()),
+                                   ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+            });
+    }
 }
 
 void TestForm::ShowProgressWindow()

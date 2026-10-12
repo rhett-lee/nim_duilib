@@ -15,6 +15,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Control/Menu.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "ControlDropTargetImpl_Windows.h"
@@ -2024,6 +2025,107 @@ int32_t Control::GetToolTipWidth(void) const
 void Control::SetContextMenuUsed(bool bMenuUsed)
 {
     m_bContextMenuUsed = bMenuUsed;
+}
+
+constexpr EventCallbackID kPopupMenuEventCallbackID = 0xFFFFFFFF;
+
+bool Control::AttachPopupMenu(const DString& menuXml,
+                              const ContextMenuActionEvent& actionCallback,
+                              const ContextMenuCreatingEvent& creatingCallback)
+{
+    if (menuXml.empty()) {
+        return false;
+    }
+    //如果已经注册，则注销，以最后一次注册为准(覆盖)
+    if (HasEventByID(kPopupMenuEventCallbackID)) {
+        DetachPopupMenu();
+    }
+
+    //保存菜单绑定配置(重复调用时，直接覆盖之前的配置)
+    if (m_pOtherData == nullptr) {
+        m_pOtherData = std::make_unique<TOtherData>();
+    }
+    if (m_pOtherData->m_pContextMenuData == nullptr) {
+        m_pOtherData->m_pContextMenuData = std::make_unique<TContextMenuData>();
+    }
+    TContextMenuData& contextMenuData = *m_pOtherData->m_pContextMenuData;
+    contextMenuData.m_menuXml = menuXml;
+    contextMenuData.m_actionCallback = actionCallback;
+    contextMenuData.m_creatingCallback = creatingCallback;
+
+    //注册上下文菜单事件的处理函数(幂等：已注册过则不重复注册，避免叠加)
+    if (!HasEventByID(kPopupMenuEventCallbackID)) {
+        AttachEvent(kEventContextMenu, [this](const EventArgs& args) {
+            return OnContextMenuEvent(args);
+            }, kPopupMenuEventCallbackID);
+    }
+    return true;
+}
+
+void Control::DetachPopupMenu()
+{
+    //释放菜单绑定配置
+    if (m_pOtherData != nullptr) {
+        m_pOtherData->m_pContextMenuData.reset();
+    }
+    //注销本接口注册的上下文菜单事件处理函数(不影响通过AttachContextMenu注册的其他回调)
+    DetachEventByID(kEventContextMenu, kPopupMenuEventCallbackID);
+
+    //如果已经没有任何上下文菜单事件回调，则清除标记，避免右键继续派发事件到本控件
+    if (!HasEvent(kEventContextMenu) && !HasEvent(kEventAll)) {
+        SetContextMenuUsed(false);
+    }
+}
+
+bool Control::OnContextMenuEvent(const EventArgs& args)
+{
+    if ((m_pOtherData == nullptr) || (m_pOtherData->m_pContextMenuData == nullptr)) {
+        return true;
+    }
+    TContextMenuData& contextMenuData = *m_pOtherData->m_pContextMenuData;
+    Window* pWindow = GetWindow();
+    if ((pWindow == nullptr) || !pWindow->IsWindow()) {
+        return true;
+    }
+
+    //计算菜单弹出的屏幕坐标
+    UiPoint point = args.ptMouse;
+    if ((point.x == -1) && (point.y == -1)) {
+        //按Shift+F10键时，由系统产生上下文菜单，此时没有鼠标点击坐标，则以控件的右下角为准
+        UiRect rc = GetRect();
+        point.x = rc.left;
+        point.y = rc.bottom;
+    }
+    ClientToScreen(point);
+
+    //创建菜单，并关联当前控件(菜单弹出时，使当前控件保持按下状态)
+    Menu* pMenu = new Menu(pWindow, this);
+    //菜单资源与窗口使用相同的资源路径
+    pMenu->SetSkinFolder(pWindow->GetResourcePath().ToString());
+
+    //菜单项被激活后的回调函数(菜单关闭后，通知应用层)
+    if (contextMenuData.m_actionCallback != nullptr) {
+        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+        ContextMenuActionEvent actionCallback = contextMenuData.m_actionCallback;
+        pMenu->AttachMenuItemActivated([weakFlag, actionCallback](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                                                  const DString& itemName, size_t nItemIndex) {
+            if (!weakFlag.expired() && (actionCallback != nullptr)) {
+                actionCallback(itemName, nItemIndex);
+            }
+        });
+    }
+
+    //弹出菜单
+    pMenu->ShowMenu(contextMenuData.m_menuXml.c_str(), point);
+
+    //菜单弹出后的回调函数，用于动态调整菜单内容
+    if (contextMenuData.m_creatingCallback != nullptr) {
+        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+        if (!weakFlag.expired()) {
+            contextMenuData.m_creatingCallback(pMenu, this);
+        }
+    }
+    return true;
 }
 
 DString Control::GetDataID() const

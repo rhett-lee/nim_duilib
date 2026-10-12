@@ -65,6 +65,12 @@
                                   prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
                 </HBox>
             </GroupVBox>
+
+            <!-- 上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu) -->
+            <GroupHBox text_id="STRID_CONTROLS_CONTEXT_MENU" height="70" margin="6,6,6,6" corner_size="4,4">
+                <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
+                        margin="20,24,20,10" width="220" height="30" border_round="3,3"/>
+            </GroupHBox>
         </VBox>
     </VBox>
 </Window>

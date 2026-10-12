@@ -58,7 +58,7 @@
     <tr><td align="left">11. 重新设计图片管理的接口和加载流程（Image目录），支持多线程加载图片，以更好的扩展其他图片格式支持</td></tr>
     <tr><td align="left">12. 重新设计全局资源管理器的XML文件结构（global.xml），改进字体管理功能，支持字体回退功能，从而支持Emoji字体显示；支持浅色主题和深色主题，支持强调色</td></tr>
     <tr>
-        <td rowspan="22">功能完善</td>
+        <td rowspan="23">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
     <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
@@ -82,6 +82,7 @@
     <tr><td align="left">20. Label文本显示控件的功能加强：对文本齐方式新增加"两端对齐"，新增对竖排文本的支持（文本绘制方向从上到下，从右到左），新增支持设置行间距和设置字间距</td></tr>
     <tr><td align="left">21. Control控件支持全屏显示（通过调用新增加的Window::SetFullscreenControl函数实现该功能），CEF控件和WebView2控件支持F11切换页面全屏</td></tr>
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
+    <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
     <tr>
         <td rowspan="39">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>

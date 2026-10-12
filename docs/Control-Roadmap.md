@@ -66,7 +66,7 @@
 |---|------|------|------|
 | 13 | **TagInput 标签输入框（已完成）** | "输入→回车成标签→删除标签"的组合控件，用于收件人、标签选择、关键词录入。IM/协作/后台管理类刚需，复用 RichEdit + 自绘标签。已实现：继承 Box + 水平流式布局，回车/可选分隔符成标签、X 按钮与空框 Backspace 删除、去重与最大数量限制、标签过多自动换行增高，事件 `kEventTagAdded/kEventTagRemoved/kEventTagClick`，语义色适配深浅色，详见 [Control.md](Control.md#taginput的属性) | Element UI el-tag、Ant Design Tag |
 | 14 | **AutoComplete 自动完成（已完成）** | 编辑框边输入边联想下拉（搜索历史、地址补全），与 FilterCombo 的"下拉过滤"不同——前者以编辑框为主、浮层跟随光标。已实现：继承 Box + 内部单行 RichEdit，输入达到 `min_chars` 后在下方弹出复用 Flyout 的不抢焦点候选浮层（宽度跟随编辑框、高度随候选项数量自适应、超出 `max_visible` 滚动），支持 prefix/contains 两种匹配与忽略大小写，键盘上下键/回车/Esc + 鼠标悬停/点击选择，回填不重弹，事件 `kEventAutoCompleteSelect`（XML 内联事件名 `select`），语义色适配深浅色，详见 [Control.md](Control.md#autocomplete的属性) | Qt QCompleter、WPF AutoCompleteBox |
-| 15 | 上下文菜单统一 API | Menu 已具备，缺"一行代码把右键菜单绑定到任意控件"的便捷封装（现状需手动创建+弹窗+坐标换算） | 各平台通用 |
+| 15 | **上下文菜单统一 API（已完成）** | Menu 已具备，本次补齐"一行代码把右键菜单绑定到任意控件"的便捷封装（此前需手动创建 Menu + 弹窗 + 坐标换算）。已实现：`Control` 新增 `AttachPopupMenu(menuXml, actionCallback, creatingCallback)`——右键点击控件时自动创建 `Menu`、完成屏幕坐标换算（含 `Shift+F10` 场景）并弹出菜单，菜单项被激活（鼠标点击/回车）后通过 `ContextMenuActionEvent` 回调；`creatingCallback`（`ContextMenuCreatingEvent`）用于菜单弹出后动态增删菜单项、设置勾选/禁用状态；配套 `DetachPopupMenu()` 解除绑定；重复绑定直接覆盖。跨平台通用（Windows/Linux/macOS），详见 [Menu.md](Menu.md#6-便捷绑定右键菜单一行代码) | 各平台通用 |
 | 16 | 遮罩/蒙版层（Mask/Overlay） | 模态对话框背景遮罩、新手引导蒙层、加载遮罩。弹层体系（Flyout/Modal）缺的最后一块 | 各平台通用 |
 | 17 | ListCtrl 表格增强 | 列宽拖拽调整、列冻结（固定首列）、列头拖拽换序、单元格富文本/进度条/图标，报表类软件高频诉求 | Qt QTableView、WPF DataGrid |
 
@@ -78,13 +78,13 @@
 
 ### 四、实施进度与顺序
 
-#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项）
+#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项）
 
-第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete 均已实现并接入 controls / ColorTheme / ListCtrl 示例。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。
+第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete 均已实现并接入 controls / ColorTheme / ListCtrl 示例；上下文菜单统一 API 以 `Control::AttachPopupMenu/DetachPopupMenu` 形式提供便捷封装，已在 controls 示例的 `test.xml` 内置演示控件 `context_menu_btn`。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。
 
 #### 后续顺序建议
 
-1. **继续补齐第三梯队补充项 15–17**（成本低到中，多为对现有控件的组合/增强）：优先 ListCtrl 表格增强，它是表单/报表类软件最直接的缺口（TagInput 第 13 项、AutoComplete 第 14 项已完成）。
+1. **继续补齐第三梯队补充项 15–17**（成本低到中，多为对现有控件的组合/增强）：优先 ListCtrl 表格增强，它是表单/报表类软件最直接的缺口（TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项已完成）。
 2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
 3. **第 16 项遮罩/蒙版层与骨架屏的关系**：骨架屏的 loading 层是"叠加绘制"而非"遮罩"，若要实现模态对话框背景遮罩，需在第 16 项里统一处理，届时骨架屏的底板语义可与之统一。
 

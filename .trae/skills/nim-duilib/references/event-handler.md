@@ -217,3 +217,22 @@ XML 内联事件的 `type` 字符串是另一套（小写下划线，如 `click`
 - 事件回调返回 `true` 表示已处理该事件
 - 使用 `UiBind` 绑定成员函数确保弱引用安全
 - lambda 中捕获 `this` 时用 `ui::UiBind(this, lambda)` 包装，防止控件销毁后回调崩溃
+
+### 右键上下文菜单（便捷绑定，一行代码）
+
+除单独监听 `kEventContextMenu` 事件外，`Control` 提供了 `AttachPopupMenu`，
+一行代码即可把右键菜单绑定到任意控件：右键点击即自动弹出指定菜单并完成屏幕坐标换算，
+菜单项被激活（鼠标点击或回车）后回调。
+
+```cpp
+btn->AttachPopupMenu(_T("menu/settings_menu.xml"),
+    [this](const DString& itemName, size_t nItemIndex) {
+        // itemName: 被激活菜单项的 name 属性; nItemIndex: 菜单项索引(从0开始)
+    });
+```
+
+- 回调类型：`ContextMenuActionEvent = std::function<void(const DString&, size_t)>`；
+  `ContextMenuCreatingEvent = std::function<void(Menu*, Control*)>`（菜单弹出后回调，可动态增删菜单项、设置勾选/禁用状态）。
+- 菜单 XML 路径相对窗口资源路径 `GetResourcePath()`（如 `"menu/settings_menu.xml"`）。
+- 重复调用 `AttachPopupMenu` 会覆盖上次的绑定配置；解除绑定用 `DetachPopupMenu()`。
+- 跨平台通用（Windows/Linux/macOS，含 `Shift+F10`）。详见 `docs/Menu.md`。
