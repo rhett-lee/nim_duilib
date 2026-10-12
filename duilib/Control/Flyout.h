@@ -154,7 +154,7 @@ public:
     virtual void OnWindowDisplayScaleChanged(uint32_t nOldScaleFactor, uint32_t nNewScaleFactor) override;
 
 private:
-    /** 按锚点与方位计算窗口位置并显示
+    /** 按锚点与方位计算窗口位置
     */
     void PositionAroundAnchor();
 

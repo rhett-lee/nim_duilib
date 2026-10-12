@@ -72,12 +72,16 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
     m_bClosing = false;
     m_bOpen = false;
 
+    //不抢焦点模式下，记录创建浮层前父窗口是否处于前台：
+    //浮层窗口的创建过程可能使其意外成为前台窗口，从而使父窗口失去激活状态与键盘焦点
+    const bool bParentWasForeground = (m_pParentWindow != nullptr) && m_pParentWindow->IsWindowForeground();
+
     //窗口初始位置设为锚点左上角（物理像素），避免首次显示时在默认位置闪烁
     UiRect rcAnchorInit;
     GetAnchorScreenRect(rcAnchorInit, true);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
+    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
     if (m_bNoFocus) {
         //不抢焦点：显示后父窗口保持激活
         createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;
@@ -108,11 +112,32 @@ bool Flyout::ShowAt(Control* pAnchor, const DString& xmlFile, Placement placemen
         }
     }
 
-    //计算锚点位置并显示窗口
+    //计算锚点位置
     PositionAroundAnchor();
 
     if (!m_bNoFocus) {
+        //显示窗口，并且需要设置焦点
+        ShowWindow(ui::kSW_SHOW_NORMAL);
+
+        //设置为置顶窗口
+        SetWindowAlwaysOnTop(true);
+
         SetWindowForeground();
+        KeepParentActive();
+    }
+    else {
+        //显示窗口，并且不需要设置焦点
+        ShowWindow(ui::kSW_SHOW_NA);
+
+        //设置为置顶窗口
+        SetWindowAlwaysOnTop(true);
+
+        if (bParentWasForeground && (m_pParentWindow != nullptr) && !m_pParentWindow->IsWindowForeground()) {
+            //不抢焦点模式：浮层窗口创建后可能成为前台窗口，导致父窗口失去激活状态与键盘焦点
+            //（例如自动完成浮层弹出后无法继续输入）；此处显式恢复父窗口的前台状态与输入焦点
+            m_pParentWindow->SetWindowForeground();
+            m_pParentWindow->SetWindowFocus();
+        }
     }
 
     m_bOpen = true;
@@ -247,7 +272,10 @@ LRESULT Flyout::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nat
 {
     LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //抢焦点模式下：焦点落到本窗口以外即关闭
-    if (m_bAutoDismiss && (pSetFocusWindow != this)) {
+    //不抢焦点模式（m_bNoFocus）下，浮层不持有键盘焦点，收到失去焦点消息属于正常运行状态
+    //（例如父窗口重新成为前台窗口时），此时不应关闭浮层；
+    //该模式下的外部点击关闭由 OnDetectTick 的定时检测负责
+    if (!m_bNoFocus && m_bAutoDismiss && (pSetFocusWindow != this)) {
         DoClose(CloseReason::kClickOutside);
     }
     return lResult;
@@ -468,10 +496,10 @@ void Flyout::PositionAroundAnchor()
     UiSize szWindowPhysical = szWindow;
     Dpi().ClientSizeToWindowSize(szWindowPhysical);
 
-    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+    SetWindowPos(InsertAfterWnd(),
                  nWindowX, nWindowY,
                  szWindowPhysical.cx, szWindowPhysical.cy,
-                 kSWP_SHOWWINDOW | (m_bNoFocus ? kSWP_NOACTIVATE : 0));
+                 kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
 
 void Flyout::StartDetectTimer()
