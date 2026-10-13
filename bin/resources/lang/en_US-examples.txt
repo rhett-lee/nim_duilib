@@ -385,6 +385,8 @@ STRID_LISTCTRL_VERTICAL_GRID = V Grid:
 STRID_LISTCTRL_ROW_HEIGHT = Row H:
 STRID_LISTCTRL_FROZEN_COLUMN = Freeze First Col:
 STRID_LISTCTRL_FROZEN_COLUMN_TIPS = Freeze the first column on the left; it stays fixed when scrolling horizontally
+STRID_LISTCTRL_COLUMN_VISIBLE_API = Column 2 Visible:
+STRID_LISTCTRL_COLUMN_VISIBLE_API_TIPS = Hide or show column 2 (column index 1) using ListCtrl::SetColumnVisible/IsColumnVisible
 
 # Row-Level CheckBox/Icon
 STRID_LISTCTRL_ROW_LEVEL_CHECKBOX = Row CheckBox:

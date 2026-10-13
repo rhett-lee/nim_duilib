@@ -61,6 +61,9 @@ void MainForm::OnInitWindow()
     //演示单格刷新功能（RefreshSubItem）
     TestRefreshSubItem(pListCtrl);
 
+    //演示ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）
+    TestColumnVisibleApi(pListCtrl);
+
     //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
     //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
     //        //视图大小变化时，自动调整列宽
@@ -1087,6 +1090,52 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
     };
     //每 800ms 触发一次，重复执行；定时器与ListCtrl的生命周期绑定，控件销毁后自动取消
     ui::GlobalManager::Instance().Timer().AddTimer(pListCtrl->GetWeakFlag(), refreshCallback, 800);
+}
+
+void MainForm::TestColumnVisibleApi(ui::ListCtrl* pListCtrl)
+{
+    //测试：ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）与列显隐变化事件（kEventColumnVisibleChanged）
+    //说明：界面上"第2列显隐"的两个选项，通过ListCtrl::SetColumnVisible接口来隐藏/显示第2列
+    ui::Option* pHideColumn = dynamic_cast<ui::Option*>(FindControl(_T("column_visible_hide")));
+    ui::Option* pShowColumn = dynamic_cast<ui::Option*>(FindControl(_T("column_visible_show")));
+    ASSERT(pHideColumn != nullptr);
+    ASSERT(pShowColumn != nullptr);
+    if ((pListCtrl == nullptr) || (pHideColumn == nullptr) || (pShowColumn == nullptr)) {
+        return;
+    }
+    const size_t nColumnIndex = 1;  //第2列（列索引为1）
+    const size_t nColumnId = pListCtrl->GetColumnId(nColumnIndex);
+    if (nColumnId == ui::Box::InvalidIndex) {
+        return;
+    }
+
+    //按该列的实际显示状态，同步界面上选项的选中状态
+    auto updateOptionSelected = [pListCtrl, nColumnIndex, pHideColumn, pShowColumn]() {
+        bool bColumnVisible = pListCtrl->IsColumnVisible(nColumnIndex);
+        pHideColumn->Selected(!bColumnVisible, false);
+        pShowColumn->Selected(bColumnVisible, false);
+        };
+    updateOptionSelected();
+
+    //监听列显隐变化事件：该列的显示状态变化时（包括从其他入口变化，比如表头项接口），同步界面的选中状态
+    pListCtrl->AttachColumnVisibleChanged([nColumnId, updateOptionSelected](const ui::EventArgs& args) {
+        if (args.wParam == (WPARAM)nColumnId) {
+            updateOptionSelected();
+        }
+        return true;
+        });
+
+    //隐藏第2列
+    pHideColumn->AttachSelect([pListCtrl, nColumnIndex](const ui::EventArgs&) {
+        pListCtrl->SetColumnVisible(nColumnIndex, false);
+        return true;
+        });
+    //显示第2列
+    pShowColumn->AttachSelect([pListCtrl, nColumnIndex](const ui::EventArgs&) {
+        pListCtrl->SetColumnVisible(nColumnIndex, true);
+        return true;
+        });
+    //判断第2列当前是否显示：pListCtrl->IsColumnVisible(nColumnIndex)
 }
 
 void MainForm::RunListCtrlTest()

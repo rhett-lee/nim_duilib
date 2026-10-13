@@ -73,6 +73,10 @@ private:
     */
     void TestRefreshSubItem(ui::ListCtrl* pListCtrl);
 
+    /** 测试ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）与列显隐变化事件
+    */
+    void TestColumnVisibleApi(ui::ListCtrl* pListCtrl);
+
     /** 获取消息的基本信息（用于显示日志）
     */
     DString GetEventDisplayInfo(const ui::EventArgs& args);

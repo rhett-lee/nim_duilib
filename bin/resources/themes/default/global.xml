@@ -266,10 +266,10 @@
                                         pressed_color="#B71D22"/>
                               
     <!-- 单选框 -->
-    <Class name="option_1" height="20" text_padding="22,0,0,0" text_align="vcenter" valign="center"
+    <Class name="option_1" width="auto" height="20" padding="2,0,2,0" text_padding="22,0,0,0" text_align="vcenter,left" valign="center"
                            normal_image="file='${PATH_OPTION}/radio-circle-unchecked.svg' width='20' height='20' valign='center'" 
                            selected_normal_image="file='${PATH_OPTION}/radio-circle-checked.svg' width='20' height='20' valign='center'"/>
-    <Class name="option_2" height="18" text_padding="20,0,0,0" text_align="vcenter" valign="center"
+    <Class name="option_2" width="auto" height="18" padding="2,0,2,0" text_padding="20,0,0,0" text_align="vcenter,left" valign="center"
                            normal_image="file='${PATH_OPTION}/radio-unchecked.svg' width='16' height='16' valign='center'" 
                            selected_normal_image="file='${PATH_OPTION}/radio-checked.svg' width='16' height='16' valign='center'"/>
     
