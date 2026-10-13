@@ -463,6 +463,33 @@ public:
     */
     bool IsSubItemEditable(size_t itemIndex, size_t columnId) const;
 
+    /** 设置该列以进度条方式显示，并刷新界面显示
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] nProgress 进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    bool SetSubItemProgress(size_t itemIndex, size_t columnId, int32_t nProgress);
+
+    /** 获取该列的进度值
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @return 返回进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    int32_t GetSubItemProgress(size_t itemIndex, size_t columnId) const;
+
+    /** 设置该列的文本是否按富文本（类HTML格式）渲染，并刷新界面显示
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] bRichText true表示按富文本渲染，false表示按普通文本渲染
+    */
+    bool SetSubItemRichText(size_t itemIndex, size_t columnId, bool bRichText);
+
+    /** 获取该列的文本是否按富文本（类HTML格式）渲染
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    */
+    bool IsSubItemRichText(size_t itemIndex, size_t columnId) const;
+
     /** 对数据排序，并刷新界面显示
     * @param [in] columnId 列的ID
     * @param [in] nColumnIndex 列的序号

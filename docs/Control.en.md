@@ -1884,9 +1884,74 @@ The DirectoryTree control inherits the `TreeView` attributes. For more available
 | list_view_item_label_class | | string | Class attribute of the Label in the ListBox's sub-item in the data List view; for the definition method, please refer to the corresponding content in `global.xml` and the example program|
 | enable_item_edit | true | bool | Whether to support sub-item editing|
 | list_ctrl_richedit_class | | string | Class attribute of the edit box; for the definition method, please refer to the corresponding content in `global.xml` and the example program|
+| frozen_column_count | 0 | int | Number of frozen columns: the first N columns on the left are fixed and do not move when scrolling horizontally (0 means no frozen columns)|
 
 The ListCtrl control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.    
 Each view of the ListCtrl control inherits the `ListBox` attributes; for more available attributes, please refer to the `ListBox` attribute settings: [Box.md](Box.en.md); the view attributes need to be set in `global.xml`.
+
+### ListCtrl Table Enhancements
+
+For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl provides the following enhancements in Report view:
+
+| Capability | Interface / Attribute | Description |
+| :--- | :--- | :--- |
+| Drag to resize columns | Header split bar (`enable_column_width_auto` controls double-click auto-fit) | Existing capability: drag the header split bar to resize a column; double-click to auto-fit by content |
+| Drag header to reorder | `enable_header_drag_order` | Existing capability: drag the header to change column order (enabled by default) |
+| Cell icon | `SetSubItemImageId(ById)` | Existing capability: set an icon for a cell |
+| Frozen columns (freeze first column) | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | Freeze the first N columns on the left; they stay fixed when scrolling horizontally. The header is frozen as well, and grid lines and mouse hit testing are adapted |
+| Cell progress bar | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | Displays a cell as a progress bar. Valid range is `[0, 100]`; `-1` turns off the progress bar (renders as plain text) |
+| Cell rich text | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | Renders cell text as rich text (supports tags such as `<b>/<i>/<u>/<font>/<a>`, see [RichText attributes](#richtext-attributes)) |
+
+**Frozen columns (freeze first column):**
+
+```cpp
+// Fix the first column on the left; it stays fixed when scrolling horizontally
+pListCtrl->SetFrozenColumnCount(1);
+size_t nCount = pListCtrl->GetFrozenColumnCount();
+```
+
+It can also be configured in XML: `<ListCtrl class="list_ctrl" name="list_ctrl" frozen_column_count="1"/>`
+
+**Cell progress bar:**
+
+The progress bar style is controlled by the `progress_color` (foreground) and `progress_bkcolor` (background track) semantic color attributes of `ListCtrlSubItem`; the defaults are configured in the `list_ctrl_sub_item` Class in `global.xml` (`bg_progress` / `bg_progress_track`). The bar is a rounded capsule, vertically centered, and its height automatically fits the text. If text is also set for the cell, the text is drawn on top of the progress bar (useful for showing a percentage); its position is controlled by `progress_text_pos`:
+
+| Attribute | Default | Purpose |
+| :--- | :--- | :--- |
+| `progress_text_pos` | `center` | Text position: `center` (centered in the cell) / `left` (left-aligned in the cell) / `right` (right-aligned in the cell) / `outside` (to the right of the bar, which shrinks accordingly). C++: `SetProgressTextPos()` / `GetProgressTextPos()` |
+
+```cpp
+// Display column 2 (columnIndex=1) as a progress bar with value 60
+pListCtrl->SetSubItemProgress(0, 1, 60);
+int32_t nProgress = pListCtrl->GetSubItemProgress(0, 1); // returns 60
+
+// Turn off the progress bar for this cell (back to plain text)
+pListCtrl->SetSubItemProgress(0, 1, -1);
+```
+
+It can also be set at once when filling data:
+
+```cpp
+ui::ListCtrlSubItemData subItemData;
+subItemData.text = _T("60%");
+subItemData.nProgress = 60;      // -1 means no progress bar
+pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
+```
+
+**Cell rich text:**
+
+```cpp
+ui::ListCtrlSubItemData subItemData;
+subItemData.bRichText = true;
+subItemData.text = _T("<b>Title</b> <font color=\"#1E90FF\">desc</font>");
+pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
+
+// Or set it separately:
+pListCtrl->SetSubItemRichText(0, 2, true);
+bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // returns true
+```
+
+See the ListCtrl example program for a full demo (the table freezes the first column by default, column 2 is a progress bar, column 3 is rich text).
 
 ## Attributes of PropertyGrid (inherits VBox attributes)
 | Attribute name | Default value | Parameter type | Purpose |

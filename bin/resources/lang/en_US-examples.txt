@@ -383,6 +383,8 @@ STRID_LISTCTRL_TABLE_PROPERTIES = Table Attr:
 STRID_LISTCTRL_HORIZONTAL_GRID = H Grid:
 STRID_LISTCTRL_VERTICAL_GRID = V Grid:
 STRID_LISTCTRL_ROW_HEIGHT = Row H:
+STRID_LISTCTRL_FROZEN_COLUMN = Freeze First Col:
+STRID_LISTCTRL_FROZEN_COLUMN_TIPS = Freeze the first column on the left; it stays fixed when scrolling horizontally
 
 # Row-Level CheckBox/Icon
 STRID_LISTCTRL_ROW_LEVEL_CHECKBOX = Row CheckBox:

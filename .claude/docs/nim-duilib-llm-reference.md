@@ -344,6 +344,12 @@ ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方�
 皮肤类 `mask`（`float="true" width="stretch" height="stretch" mask_color="bg_overlay"`）；作为覆盖层时置于父容器最后一个子节点（或配 `paint_order`）。蒙层内可放任意子控件（模态卡片用 `float="true" halign="center" valign="center"` 居中；加载遮罩放 marquee `Progress`）。
 C++：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightControl`、`SetHighlightPadding/GetHighlightPadding`、`SetHighlightCorner/GetHighlightCorner`、`SetClickThrough/IsClickThrough`；静态 `Mask::ShowOverWindow(Window*)`、`Remove()`。示例：`<Mask class="mask" highlight_control="btn_guide" highlight_padding="6" highlight_corner="6" click_through="true"/>`。
 
+### ListCtrl 表格增强(继承 VBox，Report 视图)
+面向报表场景（对标 Qt QTableView / WPF DataGrid）。列宽拖拽调整、列头拖拽换序（`enable_header_drag_order`）、单元格图标（`SetSubItemImageId`）为既有能力；新增：
+属性：`frozen_column_count`（0）冻结列表左侧前 N 列，横向滚动固定不动（表头同步冻结）。
+C++：`SetFrozenColumnCount/GetFrozenColumnCount`；`SetSubItemProgress(ById)/GetSubItemProgress(ById)`（进度值 `[0,100]`，`-1` 关闭，可叠加文本）；`SetSubItemRichText(ById)/IsSubItemRichText(ById)`（富文本渲染）。
+进度条样式：`ListCtrlSubItem` 的 `progress_color`(默认 `bg_progress`)/`progress_bkcolor`(默认 `bg_progress_track`)；也可用 `ui::ListCtrlSubItemData` 的 `nProgress`/`bRichText` 一次性设置。示例：`<ListCtrl class="list_ctrl" frozen_column_count="1"/>`。
+
 ### Progress 属性(继承 Label)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|

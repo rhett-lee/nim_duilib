@@ -17,6 +17,7 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_pIconView(nullptr),
     m_pListView(nullptr),
     m_bEnableHeaderDragOrder(true),
+    m_nFrozenColumnCount(0),
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
     m_bMultiSelect(true),
@@ -124,6 +125,9 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("enable_header_drag_order")) {
         SetEnableHeaderDragOrder(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("frozen_column_count")) {
+        SetFrozenColumnCount((size_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("check_box_class")) {
         SetCheckBoxClass(strValue);
@@ -1268,6 +1272,19 @@ bool ListCtrl::IsEnableHeaderDragOrder() const
     return m_bEnableHeaderDragOrder;
 }
 
+void ListCtrl::SetFrozenColumnCount(size_t nCount)
+{
+    if (m_nFrozenColumnCount != nCount) {
+        m_nFrozenColumnCount = nCount;
+        Refresh();
+    }
+}
+
+size_t ListCtrl::GetFrozenColumnCount() const
+{
+    return m_nFrozenColumnCount;
+}
+
 void ListCtrl::SetHeaderVisible(bool bVisible)
 {
     m_bShowHeaderCtrl = bVisible;
@@ -2128,6 +2145,46 @@ bool ListCtrl::IsSubItemEditable(size_t itemIndex, size_t columnIndex) const
 bool ListCtrl::IsSubItemEditableById(size_t itemIndex, size_t columnId) const
 {
     return m_pData->IsSubItemEditable(itemIndex, columnId);
+}
+
+bool ListCtrl::SetSubItemProgress(size_t itemIndex, size_t columnIndex, int32_t nProgress)
+{
+    return SetSubItemProgressById(itemIndex, GetColumnId(columnIndex), nProgress);
+}
+
+bool ListCtrl::SetSubItemProgressById(size_t itemIndex, size_t columnId, int32_t nProgress)
+{
+    return m_pData->SetSubItemProgress(itemIndex, columnId, nProgress);
+}
+
+int32_t ListCtrl::GetSubItemProgress(size_t itemIndex, size_t columnIndex) const
+{
+    return GetSubItemProgressById(itemIndex, GetColumnId(columnIndex));
+}
+
+int32_t ListCtrl::GetSubItemProgressById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemProgress(itemIndex, columnId);
+}
+
+bool ListCtrl::SetSubItemRichText(size_t itemIndex, size_t columnIndex, bool bRichText)
+{
+    return SetSubItemRichTextById(itemIndex, GetColumnId(columnIndex), bRichText);
+}
+
+bool ListCtrl::SetSubItemRichTextById(size_t itemIndex, size_t columnId, bool bRichText)
+{
+    return m_pData->SetSubItemRichText(itemIndex, columnId, bRichText);
+}
+
+bool ListCtrl::IsSubItemRichText(size_t itemIndex, size_t columnIndex) const
+{
+    return IsSubItemRichTextById(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::IsSubItemRichTextById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->IsSubItemRichText(itemIndex, columnId);
 }
 
 bool ListCtrl::IsMultiSelect() const

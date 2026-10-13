@@ -58,9 +58,11 @@ struct ListCtrlSubItemData
     uint64_t userDataN = 0;         //用户自定义数据(整型)
     UiString userDataS;             //用户自定义数据(字符串类型)
     int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
+    int32_t nProgress = -1;         //进度值(进度条单元格)，有效范围[0, 100]，-1表示不显示进度条
     bool bShowCheckBox = false;     //是否显示CheckBox
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     bool bEditable = false;         //是否可编辑
+    bool bRichText = false;         //是否将text按富文本（类HTML格式）渲染
 };
 
 /** 列表数据项用于内部存储的数据结构(列数据，每<行,列>1条数据，数据存储)
@@ -77,7 +79,10 @@ struct ListCtrlSubItemData2
     uint64_t userDataN = 0;         //用户自定义数据(整型)
     UiString userDataS;             //用户自定义数据(字符串类型)
     int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
+    int8_t nProgress = -1;          //进度值(进度条单元格)，有效范围[0, 100]，-1表示不显示进度条
+                                    //(内部存储使用最小宽度类型，避免每<行,列>一条数据时浪费内存；对外接口仍为int32_t)
     bool bEditable = false;         //是否可编辑
+    bool bRichText = false;         //是否将text按富文本（类HTML格式）渲染
 };
 
 //列数据的智能指针

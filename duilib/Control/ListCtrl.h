@@ -167,6 +167,15 @@ public:
     */
     bool IsEnableHeaderDragOrder() const;
 
+    /** 设置冻结列的个数（固定列表左侧的前N列，不随横向滚动而移动）
+    * @param [in] nCount 冻结的列数，0表示不冻结
+    */
+    void SetFrozenColumnCount(size_t nCount);
+
+    /** 获取冻结列的个数
+    */
+    size_t GetFrozenColumnCount() const;
+
     /** 设置是否显示表头控件
     */
     void SetHeaderVisible(bool bVisible);
@@ -542,6 +551,41 @@ public:
     */
     bool IsSubItemEditable(size_t itemIndex, size_t columnIndex) const;
     bool IsSubItemEditableById(size_t itemIndex, size_t columnId) const;
+
+    /** 设置该列以进度条方式显示
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    * @param [in] nProgress 进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    bool SetSubItemProgress(size_t itemIndex, size_t columnIndex, int32_t nProgress);
+    bool SetSubItemProgressById(size_t itemIndex, size_t columnId, int32_t nProgress);
+
+    /** 获取该列的进度值
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    * @return 返回进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    int32_t GetSubItemProgress(size_t itemIndex, size_t columnIndex) const;
+    int32_t GetSubItemProgressById(size_t itemIndex, size_t columnId) const;
+
+    /** 设置该列的文本是否按富文本（类HTML格式）渲染
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    * @param [in] bRichText true表示按富文本渲染，false表示按普通文本渲染
+    */
+    bool SetSubItemRichText(size_t itemIndex, size_t columnIndex, bool bRichText);
+    bool SetSubItemRichTextById(size_t itemIndex, size_t columnId, bool bRichText);
+
+    /** 获取该列的文本是否按富文本（类HTML格式）渲染
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    */
+    bool IsSubItemRichText(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemRichTextById(size_t itemIndex, size_t columnId) const;
 
 public:
     /** 对数据排序
@@ -1378,6 +1422,10 @@ private:
     /** 是否支持拖动改变列的顺序
     */
     bool m_bEnableHeaderDragOrder;
+
+    /** 冻结列的个数（固定列表左侧的前N列，不随横向滚动而移动）
+    */
+    size_t m_nFrozenColumnCount;
 
     /** 是否显示表头控件
     */

@@ -68,7 +68,7 @@
 | 14 | **AutoComplete 自动完成（已完成）** | 编辑框边输入边联想下拉（搜索历史、地址补全），与 FilterCombo 的"下拉过滤"不同——前者以编辑框为主、浮层跟随光标。已实现：继承 Box + 内部单行 RichEdit，输入达到 `min_chars` 后在下方弹出复用 Flyout 的不抢焦点候选浮层（宽度跟随编辑框、高度随候选项数量自适应、超出 `max_visible` 滚动），支持 prefix/contains 两种匹配与忽略大小写，键盘上下键/回车/Esc + 鼠标悬停/点击选择，回填不重弹，事件 `kEventAutoCompleteSelect`（XML 内联事件名 `select`），语义色适配深浅色，详见 [Control.md](Control.md#autocomplete的属性) | Qt QCompleter、WPF AutoCompleteBox |
 | 15 | **上下文菜单统一 API（已完成）** | Menu 已具备，本次补齐"一行代码把右键菜单绑定到任意控件"的便捷封装（此前需手动创建 Menu + 弹窗 + 坐标换算）。已实现：`Control` 新增 `AttachPopupMenu(menuXml, actionCallback, creatingCallback)`——右键点击控件时自动创建 `Menu`、完成屏幕坐标换算（含 `Shift+F10` 场景）并弹出菜单，菜单项被激活（鼠标点击/回车）后通过 `ContextMenuActionEvent` 回调；`creatingCallback`（`ContextMenuCreatingEvent`）用于菜单弹出后动态增删菜单项、设置勾选/禁用状态；配套 `DetachPopupMenu()` 解除绑定；重复绑定直接覆盖。跨平台通用（Windows/Linux/macOS），详见 [Menu.md](Menu.md#6-便捷绑定右键菜单一行代码) | 各平台通用 |
 | 16 | **遮罩/蒙版层（Mask/Overlay）（已完成）** | 模态对话框背景遮罩、新手引导蒙层、加载遮罩。弹层体系（Flyout/Modal）缺的最后一块。已实现：新增 `Mask` 控件类（继承 Box，XML 节点 `Mask`）——半透明蒙层填充、`highlight_control` 镂空高亮指定控件（偶奇路径挖洞，支持 `highlight_padding` 内边距与 `highlight_corner` 圆角）、`click_through` 使镂空区域内点击穿透到目标控件（新手引导）、非镂空区域拦截鼠标（默认 `mouse_enabled=true`）实现模态；提供 `Mask::ShowOverWindow(parentWnd)` 便捷接口覆盖整窗、`Remove()` 卸载；复用语义色 `bg_overlay`，详见 [Control.md](Control.md#mask的属性) | 各平台通用 |
-| 17 | ListCtrl 表格增强 | 列宽拖拽调整、列冻结（固定首列）、列头拖拽换序、单元格富文本/进度条/图标，报表类软件高频诉求 | Qt QTableView、WPF DataGrid |
+| 17 | **ListCtrl 表格增强（已完成）** | 列宽拖拽调整、列冻结（固定首列）、列头拖拽换序、单元格富文本/进度条/图标，报表类软件高频诉求。已实现：列宽拖拽调整、列头拖拽换序、单元格图标为既有能力；本次新增 **列冻结**（`SetFrozenColumnCount/GetFrozenColumnCount`，XML `frozen_column_count`，冻结列表左侧前 N 列，横向滚动时固定不动，表头同步冻结、网格线与命中测试均已适配）、**单元格进度条**（`SetSubItemProgress(ById)` / `GetSubItemProgress(ById)`，进度值 `[0,100]`、`-1` 关闭，语义色 `progress_color`/`progress_bkcolor` 可配，可叠加百分比文字）、**单元格富文本**（`SetSubItemRichText(ById)` / `IsSubItemRichText(ById)`，复用 Label 内建富文本渲染，支持 `<b>/<font>/<a>` 等标签），ListCtrl 示例已接入（默认冻结首列、第2列进度条、第3列富文本），详见 [Control.md](Control.md#listctrl-表格增强) | Qt QTableView、WPF DataGrid |
 
 ### 三、明确不建议做的
 
@@ -78,13 +78,13 @@
 
 ### 四、实施进度与顺序
 
-#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项、遮罩/蒙版层第 16 项）
+#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项、遮罩/蒙版层第 16 项、ListCtrl 表格增强第 17 项）
 
-第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete、Mask 均已实现并接入 controls / ColorTheme / ListCtrl 示例；上下文菜单统一 API 以 `Control::AttachPopupMenu/DetachPopupMenu` 形式提供便捷封装，已在 controls 示例的 `test.xml` 内置演示控件 `context_menu_btn`。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。遮罩/蒙版层以 `Mask` 控件形式补齐了弹层体系的最后一块（模态遮罩/新手引导/加载遮罩），controls 示例新增三个演示按钮。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。
+第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete、Mask 均已实现并接入 controls / ColorTheme / ListCtrl 示例；上下文菜单统一 API 以 `Control::AttachPopupMenu/DetachPopupMenu` 形式提供便捷封装，已在 controls 示例的 `test.xml` 内置演示控件 `context_menu_btn`。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。遮罩/蒙版层以 `Mask` 控件形式补齐了弹层体系的最后一块（模态遮罩/新手引导/加载遮罩），controls 示例新增三个演示按钮。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。ListCtrl 表格增强复用了已有的列宽拖拽/表头换序/单元格图标能力，新增列冻结、单元格进度条与单元格富文本三项，ListCtrl 示例已接入演示。
 
 #### 后续顺序建议
 
-1. **继续补齐第三梯队补充项**（成本低到中，多为对现有控件的组合/增强）：仅剩 ListCtrl 表格增强（第 17 项），它是表单/报表类软件最直接的缺口（TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项、遮罩/蒙版层第 16 项已完成）。
+1. **第三梯队补充项已全部完成**：TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）均已落地。至此控制层规划清单已清空，后续新需求按实际需要再排期。
 2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
 3. **第 16 项遮罩/蒙版层与骨架屏的关系（已解决）**：蒙层已由 `Mask` 控件统一提供（模态遮罩/新手引导/加载遮罩）；骨架屏的 loading 层仍是"叠加绘制"语义，二者定位不同——需要拦截交互或镂空高亮时用 `Mask`，仅需视觉占位时用骨架屏。
 

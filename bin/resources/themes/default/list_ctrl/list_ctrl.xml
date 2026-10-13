@@ -121,6 +121,15 @@
                         <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
                     </HBox>
                     <HBox minheight="18" height="auto" margin="4,0,4,8">
+                        <Label text_id="STRID_LISTCTRL_FROZEN_COLUMN" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_FROZEN_COLUMN_TIPS"/>
+                        <Option class="option_2" group="frozen_column" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_DISABLE" padding="2,2,2,2" border_round="2,2" valign="center">
+                            <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={0}" />
+                        </Option>
+                        <Option class="option_2" group="frozen_column" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ENABLE" padding="2,2,2,2" border_round="2,2" valign="center">
+                            <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={1}" />
+                        </Option>
+                    </HBox>
+                    <HBox minheight="18" height="auto" margin="4,0,4,8">
                         <Control width="153"/>
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Label text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX_TIPS"/>

@@ -1885,9 +1885,74 @@ DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`Tr
 | list_view_item_label_class | | string | 数据List视图中的ListBox的子项的Label的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
 | enable_item_edit | true | bool | 是否支持子项编辑|
 | list_ctrl_richedit_class | | string | 编辑框的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
+| frozen_column_count | 0 | int | 冻结列的个数：固定列表左侧的前N列，横向滚动时这些列固定不动（0表示不冻结）|
 
 ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性    
 ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性设置:[Box.md](Box.md)，视图的属性需要在`global.xml` 中设置。
+
+### ListCtrl 表格增强
+
+面向报表类场景（类似 Qt QTableView / WPF DataGrid），ListCtrl 在 Report 视图下提供以下增强能力：
+
+| 能力 | 接口 / 属性 | 说明 |
+| :--- | :--- | :--- |
+| 列宽拖拽调整 | Header 分割条（`enable_column_width_auto` 控制双击自适应） | 已有能力：拖动表头分割条调整列宽，双击分割条按内容自适应 |
+| 列头拖拽换序 | `enable_header_drag_order` | 已有能力：拖动表头改变列的顺序（默认开启） |
+| 单元格图标 | `SetSubItemImageId(ById)` | 已有能力：为单元格设置图标 |
+| 列冻结（固定首列） | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与鼠标命中测试均已适配 |
+| 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 单元格以进度条方式显示，进度值有效范围 `[0, 100]`，`-1` 表示关闭进度条（按普通文本显示） |
+| 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 单元格文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签，见 [RichText的属性](#richtext的属性)） |
+
+**列冻结（冻结首列）：**
+
+```cpp
+// 固定左侧第 1 列，横向滚动时该列不移动
+pListCtrl->SetFrozenColumnCount(1);
+size_t nCount = pListCtrl->GetFrozenColumnCount();
+```
+
+XML 中也可直接配置：`<ListCtrl class="list_ctrl" name="list_ctrl" frozen_column_count="1"/>`
+
+**单元格进度条：**
+
+进度条的样式由 `ListCtrlSubItem` 的 `progress_color`（前景）与 `progress_bkcolor`（背景轨道）两个语义色属性控制，默认值在 `global.xml` 的 `list_ctrl_sub_item` Class 中配置（`bg_progress` / `bg_progress_track`）。进度条为圆角胶囊形、垂直居中，高度自动保证可容纳文本。若单元格同时设置了文本，文本会叠加显示在进度条之上（可用于显示百分比），其位置由 `progress_text_pos` 控制：
+
+| 属性 | 默认值 | 说明 |
+| :--- | :--- | :--- |
+| `progress_text_pos` | `center` | 文本位置：`center`（在单元格内居中）/ `left`（在单元格内左对齐）/ `right`（在单元格内右对齐）/ `outside`（显示在进度条右侧外部，此时进度条宽度相应缩短）。C++ 接口：`SetProgressTextPos()` / `GetProgressTextPos()` |
+
+```cpp
+// 第2列（columnIndex=1）以进度条方式显示，进度值 60
+pListCtrl->SetSubItemProgress(0, 1, 60);
+int32_t nProgress = pListCtrl->GetSubItemProgress(0, 1); // 返回 60
+
+// 关闭该单元格的进度条（恢复为普通文本显示）
+pListCtrl->SetSubItemProgress(0, 1, -1);
+```
+
+也可在填充数据时一次性设置：
+
+```cpp
+ui::ListCtrlSubItemData subItemData;
+subItemData.text = _T("60%");
+subItemData.nProgress = 60;      // -1 表示不显示进度条
+pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
+```
+
+**单元格富文本：**
+
+```cpp
+ui::ListCtrlSubItemData subItemData;
+subItemData.bRichText = true;
+subItemData.text = _T("<b>标题</b> <font color=\"#1E90FF\">说明</font>");
+pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
+
+// 也可单独设置：
+pListCtrl->SetSubItemRichText(0, 2, true);
+bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // 返回 true
+```
+
+完整演示见 ListCtrl 示例程序（表格默认冻结首列，第2列为进度条、第3列为富文本）。
 
 ## PropertyGrid 控件（继承 VBox 属性）
 | 属性名称 | 默认值 | 参数类型 | 用途 |

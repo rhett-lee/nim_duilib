@@ -711,7 +711,8 @@
                                                   pressed_color="bg_list_ctrl_item_pressed" 
                                                   disabled_color="bg_list_ctrl_item_disabled" 
                                                   selected_normal_color="bg_list_ctrl_item_selected"/>
-    <Class name="list_ctrl_sub_item" icon_spacing="2" text_align="vcenter,left" text_padding="2,0,2,0" auto_tooltip="true" single_line="true"/>    
+    <Class name="list_ctrl_sub_item" icon_spacing="2" text_align="vcenter,left" text_padding="2,0,2,0" auto_tooltip="true" single_line="true"
+                                            progress_color="bg_progress" progress_bkcolor="bg_progress_track" progress_text_pos="outside"/>    
     
     <!-- ListCtrl图标视图 -->
     <Class name="list_ctrl_icon_view" bkcolor="bg_list_ctrl_view" 

@@ -436,6 +436,20 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 默认皮肤类：`mask`（`float="true" width="stretch" height="stretch" mask_color="bg_overlay"`）。
 示例：`<Mask class="mask" highlight_control="btn_guide" highlight_padding="6" highlight_corner="6" click_through="true"/>`；加载遮罩内放 `<Progress class="progress_horizontal" marquee="true" marquee_width="60"/>`。
 
+### ListCtrl 表格增强(继承 VBox，Report 视图)
+
+面向报表场景（类似 Qt QTableView / WPF DataGrid）。列宽拖拽调整、列头拖拽换序（`enable_header_drag_order`）、单元格图标（`SetSubItemImageId`）为既有能力；表格增强新增：
+
+| 能力 | 属性/接口 | 说明 |
+|------|-----------|------|
+| 列冻结 | `frozen_column_count`(XML) / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与命中测试已适配 |
+| 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 进度值 `[0,100]`，`-1` 关闭（按普通文本显示）；可叠加文本显示百分比 |
+| 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签） |
+
+- 进度条样式：`ListCtrlSubItem` 的 `progress_color`(前景，默认 `bg_progress`) 与 `progress_bkcolor`(背景轨道，默认 `bg_progress_track`)，默认值配置在 `global.xml` 的 `list_ctrl_sub_item` Class。
+- 也可在填充数据时通过 `ui::ListCtrlSubItemData` 的 `nProgress`(-1 关闭)/`bRichText` 一次性设置。
+- 示例：`<ListCtrl class="list_ctrl" name="list_ctrl" frozen_column_count="1"/>`。
+
 ### NavigationView 侧边栏导航(继承 HBox)
 
 复合容器（`duilib/Control/NavigationView.h`，已在 duilib.h 中 include），把汉堡按钮+窗格标题+分组导航项+页头+内容区联动封装成现代设置页/客户端导航框架，对标 WinUI NavigationView。

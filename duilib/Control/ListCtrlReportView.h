@@ -283,6 +283,12 @@ private:
     */
     void PaintGridLines(IRender* pRender);
 
+    /** 计算冻结列的宽度（前N个可见列的总宽度，内容坐标系）
+    * @param [in] nFrozenCount 冻结的列数
+    * @return 返回冻结列的宽度，如果无法计算则返回0
+    */
+    int32_t GetFrozenColumnsWidth(size_t nFrozenCount) const;
+
     /** 将header和置顶项放在最后
     * @param [in,out] items 需要移动的控件列表
     * @param [out] atTopItems 返回置顶的控件列表

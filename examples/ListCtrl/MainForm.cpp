@@ -983,9 +983,23 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
             if (columnIndex == 0) {
                 subItemData.text += _T("-1234567890-ABCDEFG-1234567890-abcdefg");
             }
+            else if (columnIndex == 1) {
+                //演示：单元格进度条（第2列按进度条方式显示）
+                subItemData.nProgress = (int32_t)((itemIndex * 7 + 15) % 101);
+                subItemData.text = ui::StringUtil::Printf(_T("%d%%"), subItemData.nProgress);
+                subItemData.nImageId = -1;
+            }
+            else if (columnIndex == 2) {
+                //演示：单元格富文本（第3列按富文本方式显示）
+                subItemData.bRichText = true;
+                subItemData.text = ui::StringUtil::Printf(_T("<b>Row %03d</b> <font color=\"#1E90FF\">Col %02d</font>"), itemIndex, columnIndex);
+                subItemData.nImageId = -1;
+            }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }
     }
+    //演示：冻结首列（与界面上的"冻结首列"选项状态保持一致）
+    pListCtrl->SetFrozenColumnCount(1);
     //排序，默认为升序
     pListCtrl->SortDataItems(0, true);
 

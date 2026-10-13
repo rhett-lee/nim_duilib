@@ -92,10 +92,41 @@ public:
     */
     int32_t GetIconSpacing() const;
 
+    /** 设置进度条显示值
+    * @param [in] nProgress 进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    void SetProgress(int32_t nProgress);
+
+    /** 获取进度条显示值
+    * @return 返回进度值，有效范围[0, 100]，-1表示不显示进度条（按普通文本显示）
+    */
+    int32_t GetProgress() const;
+
+    /** 获取进度条前景色（语义色名）
+    */
+    const DString& GetProgressColor() const;
+
+    /** 获取进度条背景色（语义色名）
+    */
+    const DString& GetProgressBkColor() const;
+
+    /** 设置进度条上文本的位置
+    * @param [in] textPos 位置模式，可取值："center"(默认，在单元格内居中)/"left"(在单元格内左对齐)/"right"(在单元格内右对齐)/"outside"(显示在进度条右侧外部)
+    */
+    void SetProgressTextPos(const DString& textPos);
+
+    /** 获取进度条上文本的位置
+    */
+    const DString& GetProgressTextPos() const;
+
 protected:
     /** 绘制文字
     */
     virtual void PaintText(IRender* pRender) override;
+
+    /** 绘制进度条
+    */
+    void PaintProgress(IRender* pRender);
 
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -135,6 +166,22 @@ private:
     /** 关联的列ID
     */
     size_t m_nColumnId;
+
+    /** 进度条显示值，-1表示不显示进度条（按普通文本显示）
+    */
+    int32_t m_nProgress;
+
+    /** 进度条前景色（语义色名）
+    */
+    DString m_sProgressColor;
+
+    /** 进度条背景色（语义色名）
+    */
+    DString m_sProgressBkColor;
+
+    /** 进度条上文本的位置（"center"/"right"/"outside"）
+    */
+    DString m_sProgressTextPos;
 };
 
 }//namespace ui

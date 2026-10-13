@@ -610,23 +610,52 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 
     //绘制列表项子控件
-    for (Control* pControl : items) {
-        if (pControl == nullptr) {
-            continue;
-        }
-        if (!pControl->IsVisible()) {
-            continue;
-        }
+    //冻结列的处理：冻结列固定显示在列表左侧，不随横向滚动移动
+    int32_t nFrozenWidth = 0;
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
+        nFrozenWidth = GetFrozenColumnsWidth(m_pListCtrl->GetFrozenColumnCount());
+    }
+    const bool bHasFrozen = nFrozenWidth > 0;
 
-        UiSize scrollPos = GetScrollOffset();
-        UiRect rcNewPaint = GetPosWithoutPadding();
-        AutoClip alphaClip(pRender, rcNewPaint, IsClip());
-        rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
+    //绘制单个控件（bFrozenPass：是否绘制冻结列的部分）
+    auto paintControl = [&](Control* pControl, bool bFrozenPass) {
+        if ((pControl == nullptr) || !pControl->IsVisible()) {
+            return;
+        }
+        const UiSize scrollPos = GetScrollOffset();
+        const UiRect rcViewport = GetPosWithoutPadding(); //视口矩形(不随滚动移动)
+
+        //裁剪区域（视口坐标系）
+        UiRect rcClip = rcViewport;
+        if (bHasFrozen) {
+            if (bFrozenPass) {
+                rcClip.right = rcViewport.left + nFrozenWidth;
+            }
+            else {
+                rcClip.left = rcViewport.left + nFrozenWidth;
+            }
+            if (rcClip.left >= rcClip.right) {
+                return;
+            }
+        }
+        AutoClip alphaClip(pRender, rcClip, IsClip());
+
+        //绘制区域（内容坐标系）
+        UiRect rcNewPaint = rcViewport;
+        if (bHasFrozen && bFrozenPass) {
+            rcNewPaint.right = rcViewport.left + nFrozenWidth;
+        }
+        else {
+            rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
+            if (bHasFrozen) {
+                rcNewPaint.left = rcViewport.left + nFrozenWidth + scrollPos.cx;
+            }
+        }
         rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
 
         int32_t nClipState = -1;
         if (!atTopItems.empty() &&
-            (std::find(atTopItems.begin(), atTopItems.end(), pControl) == atTopItems.end())) {            
+            (std::find(atTopItems.begin(), atTopItems.end(), pControl) == atTopItems.end())) {
             UiRect rcControlRect = pControl->GetRect();
             UiRect rUnion;
             if (UiRect::Intersect(rUnion, rcTopControls, rcControlRect)) {
@@ -635,12 +664,29 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             }
         }
 
-        UiPoint ptOffset(scrollPos.cx, scrollPos.cy);
+        //冻结列不随横向滚动移动，所以横向的偏移量为0
+        UiPoint ptOffset = bFrozenPass ? UiPoint(0, scrollPos.cy) : UiPoint(scrollPos.cx, scrollPos.cy);
         UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
         pControl->AlphaPaint(pRender, rcNewPaint);
         pRender->SetWindowOrg(ptOldOrg);
         if (nClipState >= 0) {
             pRender->ClearClip(nClipState);
+        }
+    };
+
+    for (Control* pControl : items) {
+        if (pControl == nullptr) {
+            continue;
+        }
+        if (bHasFrozen) {
+            //先绘制可滚动区域（非冻结列）
+            paintControl(pControl, false);
+            //再绘制冻结列（覆盖在最上层）
+            paintControl(pControl, true);
+        }
+        else {
+            //没有冻结列：按原有逻辑单趟绘制
+            paintControl(pControl, false);
         }
     }
 
@@ -660,6 +706,65 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     //鼠标框选功能的框选框绘制
     PaintFrameSelection(pRender);
+}
+
+int32_t ListCtrlReportView::GetFrozenColumnsWidth(size_t nFrozenCount) const
+{
+    if (nFrozenCount == 0) {
+        return 0;
+    }
+    //冻结列的宽度 = 前N个可见列的右侧边界 - 视口左侧边界
+    //（包含行首的CheckBox/内边距等占位宽度，确保冻结区边界与列边界对齐）
+    const int32_t nViewLeft = GetPosWithoutPadding().left;
+    const size_t nItemCount = GetItemCount();
+    //从第一个可见的数据行中，获取前N个可见列的右侧边界
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetWidth() <= 0)) {
+            continue;
+        }
+        size_t nCount = 0;
+        int32_t nRight = nViewLeft;
+        const size_t nSubItemCount = pItem->GetItemCount();
+        for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
+            ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItem));
+            if ((pSubItem == nullptr) || !pSubItem->IsVisible()) {
+                continue;
+            }
+            nRight = pSubItem->GetRect().right;
+            ++nCount;
+            if (nCount >= nFrozenCount) {
+                break;
+            }
+        }
+        if (nRight > nViewLeft) {
+            return nRight - nViewLeft;
+        }
+        break;
+    }
+
+    //没有可见的数据行时，从表头获取各列的宽度
+    ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(GetItemAt(0));
+    if (pHeaderCtrl != nullptr) {
+        size_t nCount = 0;
+        int32_t nRight = nViewLeft;
+        const size_t nHeaderItemCount = pHeaderCtrl->GetItemCount();
+        for (size_t i = 0; i < nHeaderItemCount; ++i) {
+            ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pHeaderCtrl->GetItemAt(i));
+            if (pHeaderItem == nullptr) {
+                continue;
+            }
+            nRight = pHeaderItem->GetRect().right;
+            ++nCount;
+            if (nCount >= nFrozenCount) {
+                break;
+            }
+        }
+        if (nRight > nViewLeft) {
+            return nRight - nViewLeft;
+        }
+    }
+    return 0;
 }
 
 void ListCtrlReportView::PaintGridLines(IRender* pRender)
@@ -735,12 +840,43 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
             break;
         }
 
-        for (int32_t xPos : xPosList) {
+        //冻结列的纵向网格线处理：冻结列不随横向滚动移动
+        int32_t nFrozenWidth = 0;
+        size_t nFrozenCount = 0;
+        if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
+            nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
+            nFrozenWidth = GetFrozenColumnsWidth(nFrozenCount);
+        }
+        const int32_t nScrollX = (nFrozenWidth > 0) ? GetScrollOffset().cx : 0;
+        const int32_t nFrozenRight = viewRect.left + nFrozenWidth;
+
+        for (size_t i = 0; i < xPosList.size(); ++i) {
+            int32_t xPos = xPosList[i];
+            int32_t nClipState = -1;
+            if (nFrozenWidth > 0) {
+                UiRect rcClip = viewRect;
+                if (i < nFrozenCount) {
+                    //冻结列：恢复到不随横向滚动移动的屏幕位置
+                    xPos += nScrollX;
+                    rcClip.right = nFrozenRight;
+                }
+                else {
+                    //非冻结列：绘制区域排除冻结列所占区域
+                    rcClip.left = nFrozenRight;
+                }
+                if (rcClip.left >= rcClip.right) {
+                    continue;
+                }
+                nClipState = pRender->SetClip(rcClip, true);
+            }
             //横坐标位置放在每个子项控件的右侧部
             float fXPos = (float)xPos - (float)fColumnLineWidth / 2;
             UiPointF pt1(fXPos, (float)yTop);
             UiPointF pt2(fXPos, (float)viewRect.bottom);
             pRender->DrawLine(pt1, pt2, columnLineColor, fColumnLineWidth);
+            if (nClipState >= 0) {
+                pRender->ClearClip(nClipState);
+            }
         }
     }
     if ((fRowLineWidth > 0.001f) && !rowLineColor.IsEmpty()) {
@@ -771,15 +907,14 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                                          uint32_t uFlags, const UiPoint& ptMouse,
                                          const UiPoint& scrollPos)
 {
-    //重写：ScrollBox::FindControl 函数，让Header/置顶的Item优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
-    if ((uFlags & UIFIND_TOP_FIRST) == 0) {
-        return BaseClass::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
-    }
-
+    //重写：ScrollBox::FindControl 函数，让Header/置顶的Item优先被查找到
+    //同时处理冻结列：鼠标落在冻结列区域内时，命中测试需要按"不随横向滚动"的坐标计算
     std::vector<Control*> newItems = m_items;
-    //Header和置顶的元素，移动到最后
-    std::vector<Control*> atTopItems;
-    MoveTopItemsToLast(newItems, atTopItems);
+    if ((uFlags & UIFIND_TOP_FIRST) != 0) {
+        //Header和置顶的元素，移动到最后
+        std::vector<Control*> atTopItems;
+        MoveTopItemsToLast(newItems, atTopItems);
+    }
 
     // Check if this guy is valid
     if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
@@ -831,6 +966,13 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 
     UiSize boxScrollOffset = GetScrollOffset();
     UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
+    if ((boxScrollPos.x != 0) && (m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
+        //存在冻结列：鼠标落在冻结列区域内时，冻结列不随横向滚动移动，所以横向偏移量为0
+        const int32_t nFrozenWidth = GetFrozenColumnsWidth(m_pListCtrl->GetFrozenColumnCount());
+        if ((nFrozenWidth > 0) && (boxPt.x < GetRect().left + nFrozenWidth)) {
+            boxScrollPos.x = 0;
+        }
+    }
     return FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }
 
@@ -1038,6 +1180,8 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
         const ListCtrlSubItemData2Ptr& pStorage = elementData.pStorage;
         if (pStorage != nullptr) {
+            //先设置富文本属性，再设置文本内容：文本内容需要按富文本方式解析
+            pSubItem->SetRichText(pStorage->bRichText);
             pSubItem->SetText(pStorage->text.c_str());
             if (pStorage->nTextFormat != 0) {
                 pSubItem->SetTextStyle(pStorage->nTextFormat, false);
@@ -1085,8 +1229,10 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 pSubItem->SetChecked(false, false);
             }
             pSubItem->SetImageId(pStorage->nImageId);
+            pSubItem->SetProgress(pStorage->nProgress);
         }
         else {
+            pSubItem->SetRichText(false);
             pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
             pSubItem->SetText(defaultSubItem.GetText());
             pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
@@ -1100,6 +1246,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             pSubItem->DetachEvent(kEventUnCheck);
             pSubItem->SetChecked(false, false);
             pSubItem->SetImageId(-1);
+            pSubItem->SetProgress(-1);
         }
     }
     auto viewFlag = GetWeakFlag();

@@ -234,6 +234,8 @@ void ListCtrlData::SubItemToStorage(const ListCtrlSubItemData& item, Storage& st
     storage.userDataN = item.userDataN;
     storage.userDataS = item.userDataS;
     storage.nSortGroup = item.nSortGroup;
+    storage.nProgress = static_cast<int8_t>(item.nProgress);
+    storage.bRichText = item.bRichText;
 }
 
 void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData& item) const
@@ -255,6 +257,8 @@ void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData&
     item.userDataN = storage.userDataN;
     item.userDataS = storage.userDataS;
     item.nSortGroup = storage.nSortGroup;
+    item.nProgress = static_cast<int32_t>(storage.nProgress);
+    item.bRichText = storage.bRichText;
 }
 
 bool ListCtrlData::IsValidDataItemIndex(size_t itemIndex) const
@@ -1466,6 +1470,64 @@ bool ListCtrlData::IsSubItemEditable(size_t itemIndex, size_t columnId) const
         bEditable = pStorage->bEditable;
     }
     return bEditable;
+}
+
+bool ListCtrlData::SetSubItemProgress(size_t itemIndex, size_t columnId, int32_t nProgress)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (nProgress > 100) {
+        nProgress = 100;
+    }
+    if (nProgress < -1) {
+        nProgress = -1;
+    }
+    if (pStorage->nProgress != static_cast<int8_t>(nProgress)) {
+        pStorage->nProgress = static_cast<int8_t>(nProgress);
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+int32_t ListCtrlData::GetSubItemProgress(size_t itemIndex, size_t columnId) const
+{
+    int32_t nProgress = -1;
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage != nullptr) {
+        nProgress = static_cast<int32_t>(pStorage->nProgress);
+    }
+    return nProgress;
+}
+
+bool ListCtrlData::SetSubItemRichText(size_t itemIndex, size_t columnId, bool bRichText)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (pStorage->bRichText != bRichText) {
+        pStorage->bRichText = bRichText;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+bool ListCtrlData::IsSubItemRichText(size_t itemIndex, size_t columnId) const
+{
+    bool bRichText = false;
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage != nullptr) {
+        bRichText = pStorage->bRichText;
+    }
+    return bRichText;
 }
 
 bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex,

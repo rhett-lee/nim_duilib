@@ -381,7 +381,9 @@ void LabelImpl::SetRichText(bool bRichText)
 {
     if (m_bRichText != bRichText) {
         m_bRichText = bRichText;
-        m_pOwner->Invalidate();
+        //普通文本与富文本的解析、测量结果不同，需要使绘制缓存失效并重新布局
+        m_pTextDrawer->SetTextChanged();
+        m_pOwner->RelayoutOrRedraw();
     }
 }
 
