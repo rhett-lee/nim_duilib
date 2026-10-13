@@ -86,7 +86,7 @@ The related parsing logic can be referred to in the code of the `WindowBuilder::
 The code logic implemented by the examples above is shown in the following pseudocode:    
 ```
 EventArgs msg; // Assume a certain event is triggered on the container/control that is the parent node of <Event>
-ui::EventType eventType = ui::StringToEventType("event_name");
+ui::EventType eventType = ui::EventUtils::StringToEventType("event_name");
 if (msg.eventType == eventType) {
     ui::Control* pControl = FindControl("receiver_name");
     if (pControl != nullptr) {
@@ -205,6 +205,10 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventViewTypeChanged|"ViewTypeChanged"|"view_type_changed"|
 |kEventViewPosChanged|"ViewPosChanged"|"view_pos_changed"|
 |kEventViewSizeChanged|"ViewSizeChanged"|"view_size_changed"|
+|kEventColumnWidthChanged|"ColumnWidthChanged"|"column_width_changed"|
+|kEventColumnOrderChanged|"ColumnOrderChanged"|"column_order_changed"|
+|kEventColumnVisibleChanged|"ColumnVisibleChanged"|"column_visible_changed"|
+|kEventColumnSorted|"ColumnSorted"|"column_sorted"|
 |kEventPathChanged|"PathChanged"|"path_changed"|
 |kEventPathClick|"PathClick"|"path_click"|
 |kEventDropEnter|"DropEnter"|"drop_enter"|

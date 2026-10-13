@@ -77,6 +77,10 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventSplitDraged          | Control*: <br>First control interface| Control*:<br>Second control interface|     |     |       |     |  May be nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>Data entering edit state  |     |     |     |       |     |     |
 |kEventLeaveEdit            | ListCtrlEditParam*:<br>Data leaving edit state    |     |     |     |       |     |     |
+|kEventColumnWidthChanged   | Column ID (size_t)  | Related column ID (size_t),<br>may be Box::InvalidIndex |     |     |       |     | ListCtrl: a column width changed (triggered by dragging the header splitter, double-click auto-fit, or SetColumnWidth) |
+|kEventColumnOrderChanged   |     |     |     |     |       |     | ListCtrl: the column display order changed (triggered when dragging the header to reorder columns); iterate with GetColumnId to get the new order |
+|kEventColumnVisibleChanged | Column ID (size_t)  | New state (1 visible / 0 hidden) |     |     |       |     | ListCtrl: a column's show/hide state changed |
+|kEventColumnSorted         | Column ID (size_t)  | New state (1 ascending / 0 descending) |     |     |       |     | ListCtrl: a column's sort state changed |
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |

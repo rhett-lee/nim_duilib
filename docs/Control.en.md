@@ -1901,6 +1901,9 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Frozen columns (freeze first column) | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | Freeze the first N columns on the left; they stay fixed when scrolling horizontally. The header is frozen as well, and grid lines and mouse hit testing are adapted |
 | Cell progress bar | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | Displays a cell as a progress bar. Valid range is `[0, 100]`; `-1` turns off the progress bar (renders as plain text) |
 | Cell rich text | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | Renders cell text as rich text (supports tags such as `<b>/<i>/<u>/<font>/<a>`, see [RichText attributes](#richtext-attributes)) |
+| Single-cell refresh | `RefreshSubItem` / `RefreshSubItemById` | Refresh only the specified cell (partial update for progress/status columns), avoiding a full row refresh |
+| Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API (equivalent to the header item's visibility; the data columns are synchronized automatically) |
+| Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Notify the application when column width/order/visibility/sort changes, for persisting the column layout |
 
 **Frozen columns (freeze first column):**
 
@@ -1949,6 +1952,65 @@ pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 // Or set it separately:
 pListCtrl->SetSubItemRichText(0, 2, true);
 bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // returns true
+```
+
+**Single-cell refresh:**
+
+When only individual cells change (e.g. progress or status columns), use `RefreshSubItem` to update just that cell instead of the whole row:
+
+```cpp
+// Update the cell at row 0, column 1
+pListCtrl->RefreshSubItem(0, 1);
+
+// Or refresh by column ID
+size_t nColumnId = pListCtrl->GetColumnId(1);
+pListCtrl->RefreshSubItemById(0, nColumnId);
+```
+
+Note: this API is for Report view only. If the cell is currently outside the visible range (no UI control exists for it), it returns false; the data itself is already updated and will be shown when scrolled into view. Refreshing fires the `kEventReportViewSubItemFilled` callback (`pEventData` is the cell's `ListCtrlSubItem*`), where the application can dynamically set the cell's display content.
+
+**Column show/hide:**
+
+```cpp
+// Hide column 2
+pListCtrl->SetColumnVisible(1, false);
+bool bVisible = pListCtrl->IsColumnVisible(1); // returns false
+
+// By column ID
+pListCtrl->SetColumnVisibleById(nColumnId, true);
+```
+
+**Column layout events (persist column layout):**
+
+Events are fired when column width, order, visibility or sort state changes, so the application can save the layout:
+
+```cpp
+// Column width changed: wParam is the column ID, lParam is the related column ID (may be Box::InvalidIndex)
+pListCtrl->AttachColumnWidthChanged([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    // Save width: pListCtrl->GetColumnWidthById(nColumnId);
+    return true;
+});
+
+// Column order changed (after dragging the header)
+pListCtrl->AttachColumnOrderChanged([](const ui::EventArgs& args) {
+    // Iterate with GetColumnId(columnIndex) to save the order
+    return true;
+});
+
+// Column visibility changed: wParam is the column ID, lParam is the new state (1 visible, 0 hidden)
+pListCtrl->AttachColumnVisibleChanged([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    bool bVisible = (args.lParam != 0);
+    return true;
+});
+
+// Column sort changed: wParam is the column ID, lParam is the new state (1 ascending, 0 descending)
+pListCtrl->AttachColumnSorted([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    bool bSortedUp = (args.lParam != 0);
+    return true;
+});
 ```
 
 See the ListCtrl example program for a full demo (the table freezes the first column by default, column 2 is a progress bar, column 3 is rich text).

@@ -84,7 +84,7 @@
 上述示例实现的代码逻辑，其伪代码如下：    
 ```
 EventArgs msg; //假定在<Event>父节点的容器/控件上触发了某个事件
-ui::EventType eventType = ui::StringToEventType("event_name");
+ui::EventType eventType = ui::EventUtils::StringToEventType("event_name");
 if (msg.eventType == eventType) {
     ui::Control* pControl = FindControl("receiver_name");
     if (pControl != nullptr) {
@@ -203,6 +203,10 @@ if (msg.eventType == eventType) {
 |kEventViewTypeChanged|"ViewTypeChanged"|"view_type_changed"|
 |kEventViewPosChanged|"ViewPosChanged"|"view_pos_changed"|
 |kEventViewSizeChanged|"ViewSizeChanged"|"view_size_changed"|
+|kEventColumnWidthChanged|"ColumnWidthChanged"|"column_width_changed"|
+|kEventColumnOrderChanged|"ColumnOrderChanged"|"column_order_changed"|
+|kEventColumnVisibleChanged|"ColumnVisibleChanged"|"column_visible_changed"|
+|kEventColumnSorted|"ColumnSorted"|"column_sorted"|
 |kEventPathChanged|"PathChanged"|"path_changed"|
 |kEventPathClick|"PathClick"|"path_click"|
 |kEventDropEnter|"DropEnter"|"drop_enter"|

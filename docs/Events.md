@@ -75,6 +75,10 @@
 |kEventSplitDraged          | Control*: <br>第1个控件接口| Control*:<br>第2个控件接口|     |     |       |     |  可能是nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>进入编辑状态的数据  |     |     |     |       |     |     |
 |kEventLeaveEdit            | ListCtrlEditParam*:<br>离开编辑状态的数据    |     |     |     |       |     |     |
+|kEventColumnWidthChanged   | 列ID(size_t)  | 关联的另一个列ID(size_t)，<br>可能为Box::InvalidIndex |     |     |       |     | ListCtrl: 列的宽度发生变化（拖动表头分割条、双击自适应或调用SetColumnWidth时触发） |
+|kEventColumnOrderChanged   |     |     |     |     |       |     | ListCtrl: 列的显示顺序发生变化（拖动表头调整列顺序时触发），可通过GetColumnId遍历获取最新顺序 |
+|kEventColumnVisibleChanged | 列ID(size_t)  | 新状态(1显示/0隐藏) |     |     |       |     | ListCtrl: 列的显示/隐藏状态发生变化 |
+|kEventColumnSorted         | 列ID(size_t)  | 新状态(1升序/0降序) |     |     |       |     | ListCtrl: 列的排序状态发生变化 |
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |

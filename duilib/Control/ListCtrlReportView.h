@@ -17,6 +17,7 @@ namespace ui
  */
 class ListCtrl;
 class ListCtrlData;
+class ListCtrlSubItem;
 struct ListCtrlItemData;
 class DUILIB_API ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
@@ -189,6 +190,13 @@ public:
     */
     void AdjustSubItemWidth(const std::map<size_t, int32_t>& subItemWidths);
 
+    /** 刷新指定单元格的数据显示（单格刷新）
+    * @param [in] nElementIndex 数据元素的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID
+    * @return 返回true表示更新成功，返回false表示参数无效，或者该单元格当前不在可见范围内
+    */
+    bool RefreshSubItemData(size_t nElementIndex, size_t nColumnId);
+
 protected:
     /** 绘制子控件
     */
@@ -282,6 +290,19 @@ private:
     /** 绘制网格线
     */
     void PaintGridLines(IRender* pRender);
+
+    /** 把某个单元格的数据填充到UI控件（FillDataItem与RefreshSubItemData共用，保证填充逻辑一致）
+    * @param [in] pSubItem 目标子项控件
+    * @param [in] pStorage 单元格的数据，可以为空
+    * @param [in] defaultSubItem 默认属性子项控件
+    * @param [in] nColumnId 列的ID
+    * @param [in] nElementIndex 数据元素的索引号
+    */
+    void FillSubItemData(ListCtrlSubItem* pSubItem,
+                         const ListCtrlSubItemData2Ptr& pStorage,
+                         const ListCtrlSubItem& defaultSubItem,
+                         size_t nColumnId,
+                         size_t nElementIndex);
 
     /** 计算冻结列的宽度（前N个可见列的总宽度，内容坐标系）
     * @param [in] nFrozenCount 冻结的列数

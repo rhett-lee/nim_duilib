@@ -1902,6 +1902,9 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 列冻结（固定首列） | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与鼠标命中测试均已适配 |
 | 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 单元格以进度条方式显示，进度值有效范围 `[0, 100]`，`-1` 表示关闭进度条（按普通文本显示） |
 | 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 单元格文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签，见 [RichText的属性](#richtext的属性)） |
+| 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度、状态类列的局部更新），避免整行刷新 |
+| 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级的列显隐接口（等价于表头项的显隐，内部自动同步数据列） |
+| 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时通知应用层，便于持久化列布局 |
 
 **列冻结（冻结首列）：**
 
@@ -1950,6 +1953,65 @@ pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 // 也可单独设置：
 pListCtrl->SetSubItemRichText(0, 2, true);
 bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // 返回 true
+```
+
+**单格刷新：**
+
+当只有个别单元格的数据发生变化时（例如进度、状态列），可使用 `RefreshSubItem` 只更新该单元格，避免整行刷新：
+
+```cpp
+// 更新第 0 行、第 1 列单元格的显示
+pListCtrl->RefreshSubItem(0, 1);
+
+// 也可按列ID刷新
+size_t nColumnId = pListCtrl->GetColumnId(1);
+pListCtrl->RefreshSubItemById(0, nColumnId);
+```
+
+说明：该接口仅用于 Report 视图；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），则返回 false，此时数据本身已更新，滚动到可见范围后会显示最新数据。刷新时会触发 `kEventReportViewSubItemFilled` 回调（`pEventData` 为该单元格的 `ListCtrlSubItem*`），应用可在此回调中动态设置该单元格的显示内容。
+
+**列显示/隐藏：**
+
+```cpp
+// 隐藏第 2 列
+pListCtrl->SetColumnVisible(1, false);
+bool bVisible = pListCtrl->IsColumnVisible(1); // 返回 false
+
+// 按列ID操作
+pListCtrl->SetColumnVisibleById(nColumnId, true);
+```
+
+**列布局事件（持久化列布局）：**
+
+列宽、列序、列显隐、排序状态变化时均会触发对应事件，应用可在此保存列布局：
+
+```cpp
+// 列宽变化：wParam 是列ID，lParam 是关联的另一个列ID（可能为 Box::InvalidIndex）
+pListCtrl->AttachColumnWidthChanged([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    // 保存列宽：pListCtrl->GetColumnWidthById(nColumnId);
+    return true;
+});
+
+// 列顺序变化（拖动表头调整列顺序后触发）
+pListCtrl->AttachColumnOrderChanged([](const ui::EventArgs& args) {
+    // 通过 GetColumnId(columnIndex) 遍历保存列顺序
+    return true;
+});
+
+// 列显示/隐藏变化：wParam 是列ID，lParam 是新状态（1显示，0隐藏）
+pListCtrl->AttachColumnVisibleChanged([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    bool bVisible = (args.lParam != 0);
+    return true;
+});
+
+// 列排序变化：wParam 是列ID，lParam 是新状态（1升序，0降序）
+pListCtrl->AttachColumnSorted([](const ui::EventArgs& args) {
+    size_t nColumnId = (size_t)args.wParam;
+    bool bSortedUp = (args.lParam != 0);
+    return true;
+});
 ```
 
 完整演示见 ListCtrl 示例程序（表格默认冻结首列，第2列为进度条、第3列为富文本）。

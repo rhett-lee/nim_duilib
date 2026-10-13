@@ -78,13 +78,13 @@
 
 ### 四、实施进度与顺序
 
-#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项、遮罩/蒙版层第 16 项、ListCtrl 表格增强第 17 项）
+#### 已完成（第一、二梯队 1–9 项 + 第三梯队 Chart 第 10 项、Timeline 第 11 项、骨架屏第 12 项 + 补充项 TagInput 第 13 项、AutoComplete 第 14 项、上下文菜单统一 API 第 15 项、遮罩/蒙版层第 16 项、ListCtrl 表格增强第 17 项、ListCtrl 交互增强第 18 项）
 
-第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete、Mask 均已实现并接入 controls / ColorTheme / ListCtrl 示例；上下文菜单统一 API 以 `Control::AttachPopupMenu/DetachPopupMenu` 形式提供便捷封装，已在 controls 示例的 `test.xml` 内置演示控件 `context_menu_btn`。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。遮罩/蒙版层以 `Mask` 控件形式补齐了弹层体系的最后一块（模态遮罩/新手引导/加载遮罩），controls 示例新增三个演示按钮。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。ListCtrl 表格增强复用了已有的列宽拖拽/表头换序/单元格图标能力，新增列冻结、单元格进度条与单元格富文本三项，ListCtrl 示例已接入演示。
+第一梯队（表单刚需 1–5）、第二梯队（浮层体系 6–9）与第三梯队的 Chart（第 10 项）、Timeline（第 11 项）、骨架屏/加载占位（第 12 项），以及第三梯队补充项 TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）均已落地：Switch、SpinBox、SearchBox、Badge 及 Flyout、Calendar、NavigationView、Toast 操作按钮、Chart、Timeline、骨架屏、TagInput、AutoComplete、Mask 均已实现并接入 controls / ColorTheme / ListCtrl 示例；上下文菜单统一 API 以 `Control::AttachPopupMenu/DetachPopupMenu` 形式提供便捷封装，已在 controls 示例的 `test.xml` 内置演示控件 `context_menu_btn`。浮层公共地基 Flyout 已就绪，后续弹层类控件（富内容提示等）可直接复用。遮罩/蒙版层以 `Mask` 控件形式补齐了弹层体系的最后一块（模态遮罩/新手引导/加载遮罩），controls 示例新增三个演示按钮。骨架屏复用既有 `ControlLoading` 机制，未新增控件类，后续如需通用列表虚拟化骨架或与 ListCtrl item 模板自动联动，可作为增强项再排期。ListCtrl 表格增强复用了已有的列宽拖拽/表头换序/单元格图标能力，新增列冻结、单元格进度条与单元格富文本三项，ListCtrl 示例已接入演示。ListCtrl 交互增强（第 18 项）在其基础上补充了单格刷新接口（`RefreshSubItem/RefreshSubItemById`）、ListCtrl 一级列显隐接口（`SetColumnVisible/IsColumnVisible`）以及列布局对外事件（`kEventColumnWidthChanged/OrderChanged/VisibleChanged/Sorted`），使应用可对进度/状态类列做局部刷新，并可持久化列宽、列序、列显隐与排序状态。
 
 #### 后续顺序建议
 
-1. **第三梯队补充项已全部完成**：TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）均已落地。至此控制层规划清单已清空，后续新需求按实际需要再排期。
+1. **第三梯队补充项已全部完成**：TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）、ListCtrl 交互增强（第 18 项）均已落地。至此控制层规划清单已清空，后续新需求按实际需要再排期。
 2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
 3. **第 16 项遮罩/蒙版层与骨架屏的关系（已解决）**：蒙层已由 `Mask` 控件统一提供（模态遮罩/新手引导/加载遮罩）；骨架屏的 loading 层仍是"叠加绘制"语义，二者定位不同——需要拦截交互或镂空高亮时用 `Mask`，仅需视觉占位时用骨架屏。
 

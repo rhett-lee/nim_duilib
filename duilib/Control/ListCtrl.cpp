@@ -1521,6 +1521,8 @@ void ListCtrl::OnColumnWidthChanged(size_t nColumnId1, size_t nColumnId2)
     }
     m_pReportView->AdjustSubItemWidth(subItemWidths);
     Arrange();
+    //列宽发生变化，通知应用层（可用于持久化列宽）
+    SendEvent(kEventColumnWidthChanged, (WPARAM)nColumnId1, (LPARAM)nColumnId2);
 }
 
 void ListCtrl::OnHeaderColumnAdded(size_t nColumnId)
@@ -1542,6 +1544,8 @@ void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
     uint8_t nSortFlag = GetColumnSortFlagById(m_nSortedColumnId);
     m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nSortFlag, nullptr, nullptr);
     Refresh();
+    //列排序状态发生变化，通知应用层（可用于持久化排序状态）
+    SendEvent(kEventColumnSorted, (WPARAM)nColumnId, (LPARAM)(bSortedUp ? 1 : 0));
 }
 
 bool ListCtrl::GetSortColumn(size_t& nSortColumnId, bool& bSortUp) const
@@ -1582,7 +1586,12 @@ bool ListCtrl::SortDataItemsById(size_t columnId, bool bSortedUp, uint8_t nSortF
         //更新UI排序显示
         m_pHeaderCtrl->SetSortColumnId(columnId, bSortedUp, false);
     }    
-    return m_pData->SortDataItems(columnId, columnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
+    bool bRet = m_pData->SortDataItems(columnId, columnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
+    if (bRet) {
+        //列排序状态发生变化，通知应用层（可用于持久化排序状态）
+        SendEvent(kEventColumnSorted, (WPARAM)columnId, (LPARAM)(bSortedUp ? 1 : 0));
+    }
+    return bRet;
 }
 
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
@@ -1619,6 +1628,8 @@ uint8_t ListCtrl::GetColumnSortFlagById(size_t columnId)
 void ListCtrl::OnHeaderColumnOrderChanged()
 {
     Refresh();
+    //列的显示顺序发生变化，通知应用层（可用于持久化列顺序）
+    SendEvent(kEventColumnOrderChanged, 0, 0);
 }
 
 void ListCtrl::OnHeaderColumnCheckStateChanged(size_t nColumnId, bool bChecked)
@@ -1633,9 +1644,12 @@ void ListCtrl::OnHeaderCheckStateChanged(bool bChecked)
     m_pData->SetAllDataItemsCheck(bChecked);
 }
 
-void ListCtrl::OnHeaderColumnVisibleChanged()
+void ListCtrl::OnHeaderColumnVisibleChanged(size_t nColumnId)
 {
     Refresh();
+    //列的显示/隐藏状态发生变化，通知应用层（可用于持久化列显示状态）
+    bool bVisible = IsColumnVisibleById(nColumnId);
+    SendEvent(kEventColumnVisibleChanged, (WPARAM)nColumnId, (LPARAM)(bVisible ? 1 : 0));
 }
 
 void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
@@ -2399,6 +2413,73 @@ bool ListCtrl::SetEnableRefresh(bool bEnable)
 bool ListCtrl::IsEnableRefresh() const
 {
     return m_bEnableRefresh;
+}
+
+bool ListCtrl::RefreshSubItem(size_t dataItemIndex, size_t columnIndex)
+{
+    size_t columnId = GetColumnId(columnIndex);
+    return RefreshSubItemById(dataItemIndex, columnId);
+}
+
+bool ListCtrl::RefreshSubItemById(size_t dataItemIndex, size_t columnId)
+{
+    if (!m_bEnableRefresh) {
+        return false;
+    }
+    //单格刷新仅支持Report视图：Icon/List视图没有列的概念
+    if (m_listCtrlType != ListCtrlType::Report) {
+        return false;
+    }
+    if (m_pReportView == nullptr) {
+        return false;
+    }
+    if ((dataItemIndex == Box::InvalidIndex) || (dataItemIndex >= GetDataItemCount())) {
+        return false;
+    }
+    if (!IsValidColumnId(columnId)) {
+        return false;
+    }
+    return m_pReportView->RefreshSubItemData(dataItemIndex, columnId);
+}
+
+bool ListCtrl::SetColumnVisible(size_t columnIndex, bool bColumnVisible)
+{
+    ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
+    if (pHeaderItem == nullptr) {
+        return false;
+    }
+    if (pHeaderItem->IsColumnVisible() == bColumnVisible) {
+        return true;
+    }
+    pHeaderItem->SetColumnVisible(bColumnVisible);
+    return true;
+}
+
+bool ListCtrl::SetColumnVisibleById(size_t columnId, bool bColumnVisible)
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (columnIndex == Box::InvalidIndex) {
+        return false;
+    }
+    return SetColumnVisible(columnIndex, bColumnVisible);
+}
+
+bool ListCtrl::IsColumnVisible(size_t columnIndex) const
+{
+    ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
+    if (pHeaderItem == nullptr) {
+        return false;
+    }
+    return pHeaderItem->IsColumnVisible();
+}
+
+bool ListCtrl::IsColumnVisibleById(size_t columnId) const
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (columnIndex == Box::InvalidIndex) {
+        return false;
+    }
+    return IsColumnVisible(columnIndex);
 }
 
 void ListCtrl::SetAutoCheckSelect(bool bAutoCheckSelect)

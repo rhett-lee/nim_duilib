@@ -10,9 +10,11 @@ namespace ui
 /** 列表项的数据管理器
 */
 class ListCtrl;
+class ListCtrlReportView;
 struct ListCtrlSubItemData;
 class DUILIB_API ListCtrlData : public ui::VirtualListBoxElement
 {
+    friend class ListCtrlReportView; //列表数据显示UI控件(Report视图)：需要访问单元格的数据存储，以支持单格刷新
 public:
     //用于存储的数据结构
     typedef ListCtrlSubItemData2 Storage;

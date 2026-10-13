@@ -144,6 +144,23 @@ public:
     bool SetColumnWidthAuto(size_t columnIndex);
     bool SetColumnWidthAutoById(size_t columnId);
 
+    /** 显示/隐藏一列
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    * @param [in] bColumnVisible true表示显示该列，false表示隐藏该列
+    * @return 返回true表示设置成功，false表示参数无效
+    */
+    bool SetColumnVisible(size_t columnIndex, bool bColumnVisible);
+    bool SetColumnVisibleById(size_t columnId, bool bColumnVisible);
+
+    /** 判断一列是否显示
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    * @return 返回true表示该列显示，返回false表示该列隐藏（或者参数无效）
+    */
+    bool IsColumnVisible(size_t columnIndex) const;
+    bool IsColumnVisibleById(size_t columnId) const;
+
     /** 按设置的宽度值调整所有列的宽度
     * @param [in] columnWidthList 容器的下标对应列表列的索引序号，容器的值代表各个列的期望宽度
     *             列的宽度设置支持支持三种类型：固定数值、自动适应、拉伸。
@@ -669,6 +686,22 @@ public:
     */
     void RefreshDataItems(const std::vector<size_t>& dataItemIndexs);
 
+    /** 刷新指定单元格（单格刷新，仅Report视图有效；用于进度、状态类列的局部更新，避免整行刷新）
+    * @param [in] dataItemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列索引序号, 有效范围：[0, GetColumnCount())
+    * @return 返回true表示更新成功（该单元格当前在可见范围内并已完成刷新）；
+    *         如果返回false，表示参数无效，或者该单元格当前不在可见范围内（数据本身已更新，滚动到可见范围后会显示最新数据）
+    */
+    bool RefreshSubItem(size_t dataItemIndex, size_t columnIndex);
+
+    /** 刷新指定单元格（单格刷新，仅Report视图有效；用于进度、状态类列的局部更新，避免整行刷新）
+    * @param [in] dataItemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    * @return 返回true表示更新成功（该单元格当前在可见范围内并已完成刷新）；
+    *         如果返回false，表示参数无效，或者该单元格当前不在可见范围内（数据本身已更新，滚动到可见范围后会显示最新数据）
+    */
+    bool RefreshSubItemById(size_t dataItemIndex, size_t columnId);
+
     /** 是否允许刷新界面
     * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh()函数刷新界面
     * @return 返回旧的IsEnableRefresh()状态
@@ -1081,6 +1114,41 @@ public:
      */
     void AttachViewSizeChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventViewSizeChanged, callback, callbackID); }
 
+    /** 监听列宽变化事件（拖动列表头调整列宽，或者调用SetColumnWidth等接口时触发）
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * 参数说明:
+     *   wParam: 列ID(size_t)
+     *   lParam: 关联的另一个列ID(size_t)，如果是拖动调整列宽，可能是相邻列；如果为Box::InvalidIndex表示无关联列
+     */
+    void AttachColumnWidthChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventColumnWidthChanged, callback, callbackID); }
+
+    /** 监听列顺序变化事件（拖动列表头调整列的顺序时触发）
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * 参数说明:
+     *   wParam/lParam: 未使用，可通过GetColumnId等接口获取最新的列顺序
+     */
+    void AttachColumnOrderChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventColumnOrderChanged, callback, callbackID); }
+
+    /** 监听列显示/隐藏状态变化事件
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * 参数说明:
+     *   wParam: 列ID(size_t)
+     *   lParam: 新状态(1表示显示，0表示隐藏)
+     */
+    void AttachColumnVisibleChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventColumnVisibleChanged, callback, callbackID); }
+
+    /** 监听列排序变化事件（点击列表头排序，或者调用SortDataItems等接口时触发）
+     * @param [in] callback 要绑定的回调函数
+     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+     * 参数说明:
+     *   wParam: 列ID(size_t)
+     *   lParam: 新状态(1表示升序，0表示降序)
+     */
+    void AttachColumnSorted(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventColumnSorted, callback, callbackID); }
+
 protected:
     /** 控件初始化
     */
@@ -1221,8 +1289,9 @@ protected:
     void OnHeaderCheckStateChanged(bool bChecked);
 
     /** 表头列的显示属性发生变化
+    * @param [in] nColumnId 列的ID
     */
-    void OnHeaderColumnVisibleChanged();
+    void OnHeaderColumnVisibleChanged(size_t nColumnId);
 
     /** 列表头列的分割条双击事件
     * @param [in] pHeaderItem 列表头控件接口

@@ -703,7 +703,7 @@ void ListCtrlHeaderItem::SetColumnVisible(bool bColumnVisible)
     }
     ListCtrlHeader* pHeader = GetHeaderCtrl();
     if (pHeader != nullptr) {
-        pHeader->OnHeaderColumnVisibleChanged();
+        pHeader->OnHeaderColumnVisibleChanged(GetColumnId());
     }
 }
 

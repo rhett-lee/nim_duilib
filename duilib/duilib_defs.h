@@ -481,6 +481,11 @@ namespace ui
         kEventViewPosChanged,           //ListCtrl类：当视图控件的位置发生变化时触发，视图类型参见listCtrlType取值
         kEventViewSizeChanged,          //ListCtrl类：当视图控件的大小发生变化时触发，视图类型参见listCtrlType取值
 
+        kEventColumnWidthChanged,       //ListCtrl类：列的宽度发生变化, wParam是列ID(size_t), lParam是关联的另一个列ID(size_t, 可能为Box::InvalidIndex)
+        kEventColumnOrderChanged,       //ListCtrl类：列的显示顺序发生变化(拖动列表头调整列的顺序)
+        kEventColumnVisibleChanged,     //ListCtrl类：列的显示/隐藏状态发生变化, wParam是列ID(size_t), lParam是新状态(1表示显示，0表示隐藏)
+        kEventColumnSorted,             //ListCtrl类：列的排序状态发生变化, wParam是列ID(size_t), lParam是新状态(1表示升序，0表示降序)
+
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
 

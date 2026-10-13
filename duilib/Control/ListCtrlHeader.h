@@ -209,8 +209,9 @@ protected:
     void OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeaderItem, bool bChecked);
 
     /** 表头列的显示属性发生变化
+    * @param [in] nColumnId 列的ID
     */
-    void OnHeaderColumnVisibleChanged();
+    void OnHeaderColumnVisibleChanged(size_t nColumnId);
 
     /** 列表头列的分割条双击事件
     * @param [in] pHeaderItem 列表头控件接口

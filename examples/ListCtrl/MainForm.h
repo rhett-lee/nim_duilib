@@ -69,6 +69,10 @@ private:
     */
     void TestListCtrlEvents(ui::ListCtrl* pListCtrl);
 
+    /** 测试单格刷新功能（RefreshSubItem）
+    */
+    void TestRefreshSubItem(ui::ListCtrl* pListCtrl);
+
     /** 获取消息的基本信息（用于显示日志）
     */
     DString GetEventDisplayInfo(const ui::EventArgs& args);
@@ -95,6 +99,10 @@ private:
     /** 图标ID
     */
     uint32_t m_imageId;
+
+    /** 演示单格刷新时使用的进度值（由应用层维护，模拟后台任务进度，不写入ListCtrl的数据模型）
+    */
+    std::vector<int32_t> m_progressValues;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

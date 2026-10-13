@@ -444,10 +444,10 @@ void ListCtrlHeader::OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeader
     }
 }
 
-void ListCtrlHeader::OnHeaderColumnVisibleChanged()
+void ListCtrlHeader::OnHeaderColumnVisibleChanged(size_t nColumnId)
 {
     if (m_pListCtrl != nullptr) {
-        m_pListCtrl->OnHeaderColumnVisibleChanged();
+        m_pListCtrl->OnHeaderColumnVisibleChanged(nColumnId);
     }
 }
 

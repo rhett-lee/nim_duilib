@@ -520,6 +520,9 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 | 列冻结 | `frozen_column_count`(XML) / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与命中测试已适配 |
 | 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 进度值 `[0,100]`，`-1` 关闭（按普通文本显示）；可叠加文本显示百分比 |
 | 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签） |
+| 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度/状态类列局部更新），仅 Report 视图；单元格不在可见范围时返回 false（数据已更新） |
+| 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级列显隐接口，内部自动同步数据列 |
+| 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时回调，便于应用持久化列布局；参数见 `kEventColumn*`（wParam 为列ID，lParam 为新状态或关联列ID） |
 
 - 进度条样式：`ListCtrlSubItem` 的 `progress_color`(前景，默认 `bg_progress`) 与 `progress_bkcolor`(背景轨道，默认 `bg_progress_track`)，默认值配置在 `global.xml` 的 `list_ctrl_sub_item` Class。
 - 也可在填充数据时通过 `ui::ListCtrlSubItemData` 的 `nProgress`(-1 关闭)/`bRichText` 一次性设置。

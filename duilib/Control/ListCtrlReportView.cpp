@@ -1178,76 +1178,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 
         //填充数据，设置属性        
         pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
-        const ListCtrlSubItemData2Ptr& pStorage = elementData.pStorage;
-        if (pStorage != nullptr) {
-            //先设置富文本属性，再设置文本内容：文本内容需要按富文本方式解析
-            pSubItem->SetRichText(pStorage->bRichText);
-            pSubItem->SetText(pStorage->text.c_str());
-            if (pStorage->nTextFormat != 0) {
-                pSubItem->SetTextStyle(pStorage->nTextFormat, false);
-            }
-            else {
-                pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
-            }
-            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
-                ControlStateType stateType = (ControlStateType)nState;
-                pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
-            }
-            if (!pStorage->textColor.IsEmpty()) {
-                pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
-            }
-            else {
-                pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
-            }
-            if (!pStorage->bkColor.IsEmpty()) {
-                pSubItem->SetBkColor(pStorage->bkColor);
-            }
-            else {
-                pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            }
-            if (pStorage->bShowCheckBox) {
-                //添加CheckBox
-                pSubItem->SetShowCheckBox(true);
-                //挂载CheckBox的事件处理
-                pSubItem->DetachEvent(kEventCheck);
-                pSubItem->DetachEvent(kEventUnCheck);
-                pSubItem->SetChecked(pStorage->bChecked, false);
-                pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                    OnSubItemColumnChecked(nElementIndex, nColumnId, true);
-                    return true;
-                    });
-                pSubItem->AttachUnCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                    OnSubItemColumnChecked(nElementIndex, nColumnId, false);
-                    return true;
-                    });
-            }
-            else {
-                pSubItem->SetShowCheckBox(false);
-                pSubItem->DetachEvent(kEventCheck);
-                pSubItem->DetachEvent(kEventUnCheck);
-                pSubItem->SetChecked(false, false);
-            }
-            pSubItem->SetImageId(pStorage->nImageId);
-            pSubItem->SetProgress(pStorage->nProgress);
-        }
-        else {
-            pSubItem->SetRichText(false);
-            pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
-            pSubItem->SetText(defaultSubItem.GetText());
-            pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
-            for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
-                ControlStateType stateType = (ControlStateType)nState;
-                pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
-            }
-            pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-            pSubItem->SetShowCheckBox(false);
-            pSubItem->DetachEvent(kEventCheck);
-            pSubItem->DetachEvent(kEventUnCheck);
-            pSubItem->SetChecked(false, false);
-            pSubItem->SetImageId(-1);
-            pSubItem->SetProgress(-1);
-        }
+        FillSubItemData(pSubItem, elementData.pStorage, defaultSubItem, nColumnId, nElementIndex);
     }
     auto viewFlag = GetWeakFlag();
     //先给出各个列的数据填充回调
@@ -1263,6 +1194,140 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     if (!viewFlag.expired()) {
         SendEvent(kEventReportViewItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pItem);
     }
+    return true;
+}
+
+void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
+                                         const ListCtrlSubItemData2Ptr& pStorage,
+                                         const ListCtrlSubItem& defaultSubItem,
+                                         size_t nColumnId,
+                                         size_t nElementIndex)
+{
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    if (pStorage != nullptr) {
+        //先设置富文本属性，再设置文本内容：文本内容需要按富文本方式解析
+        pSubItem->SetRichText(pStorage->bRichText);
+        pSubItem->SetText(pStorage->text.c_str());
+        if (pStorage->nTextFormat != 0) {
+            pSubItem->SetTextStyle(pStorage->nTextFormat, false);
+        }
+        else {
+            pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
+        }
+        pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+        for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+            ControlStateType stateType = (ControlStateType)nState;
+            pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+        }
+        if (!pStorage->textColor.IsEmpty()) {
+            pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
+        }
+        else {
+            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+        }
+        if (!pStorage->bkColor.IsEmpty()) {
+            pSubItem->SetBkColor(pStorage->bkColor);
+        }
+        else {
+            pSubItem->SetBkColor(defaultSubItem.GetBkColor());
+        }
+        if (pStorage->bShowCheckBox) {
+            //添加CheckBox
+            pSubItem->SetShowCheckBox(true);
+            //挂载CheckBox的事件处理
+            pSubItem->DetachEvent(kEventCheck);
+            pSubItem->DetachEvent(kEventUnCheck);
+            pSubItem->SetChecked(pStorage->bChecked, false);
+            pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                OnSubItemColumnChecked(nElementIndex, nColumnId, true);
+                return true;
+                });
+            pSubItem->AttachUnCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+                OnSubItemColumnChecked(nElementIndex, nColumnId, false);
+                return true;
+                });
+        }
+        else {
+            pSubItem->SetShowCheckBox(false);
+            pSubItem->DetachEvent(kEventCheck);
+            pSubItem->DetachEvent(kEventUnCheck);
+            pSubItem->SetChecked(false, false);
+        }
+        pSubItem->SetImageId(pStorage->nImageId);
+        pSubItem->SetProgress(pStorage->nProgress);
+    }
+    else {
+        pSubItem->SetRichText(false);
+        pSubItem->SetTextStyle(defaultSubItem.GetTextStyle(), false);
+        pSubItem->SetText(defaultSubItem.GetText());
+        pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
+        for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+            ControlStateType stateType = (ControlStateType)nState;
+            pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+        }
+        pSubItem->SetBkColor(defaultSubItem.GetBkColor());
+        pSubItem->SetShowCheckBox(false);
+        pSubItem->DetachEvent(kEventCheck);
+        pSubItem->DetachEvent(kEventUnCheck);
+        pSubItem->SetChecked(false, false);
+        pSubItem->SetImageId(-1);
+        pSubItem->SetProgress(-1);
+    }
+}
+
+bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumnId)
+{
+    if ((m_pListCtrl == nullptr) || (m_pData == nullptr)) {
+        return false;
+    }
+    if (!Box::IsValidItemIndex(nElementIndex) || (nElementIndex >= m_pData->GetDataItemCount())) {
+        return false;
+    }
+    if (!m_pData->IsValidDataColumnId(nColumnId)) {
+        return false;
+    }
+    //获取该单元格的数据
+    ListCtrlData::StoragePtr pStorage = m_pData->GetSubItemStorage(nElementIndex, nColumnId);
+
+    //获取该数据元素当前对应的UI控件
+    size_t nItemIndex = GetDisplayItemIndex(nElementIndex);
+    if (!Box::IsValidItemIndex(nItemIndex)) {
+        //该数据元素当前不在可见范围内，无需更新界面（数据本身已更新）
+        return false;
+    }
+    ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(nItemIndex));
+    if (pItem == nullptr) {
+        return false;
+    }
+
+    //查找该列对应的子项控件
+    ListCtrlSubItem* pSubItem = nullptr;
+    const size_t nSubItemCount = pItem->GetItemCount();
+    for (size_t nIndex = 0; nIndex < nSubItemCount; ++nIndex) {
+        ListCtrlSubItem* pItemSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nIndex));
+        if ((pItemSubItem != nullptr) && (pItemSubItem->GetDataColumnId() == nColumnId)) {
+            pSubItem = pItemSubItem;
+            break;
+        }
+    }
+    if (pSubItem == nullptr) {
+        //该列的控件不存在（比如该列被隐藏了），或者该单元格当前不在可见范围内
+        return false;
+    }
+
+    //默认属性
+    DString defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
+    defaultSubItem.SetClass(defaultSubItemClass);
+
+    //仅更新该单元格的数据，不改变其宽度和事件绑定
+    FillSubItemData(pSubItem, pStorage, defaultSubItem, nColumnId, nElementIndex);
+    pSubItem->Invalidate();
+    //给出该单元格的数据填充回调（与整行填充保持一致，便于应用动态定制单元格的显示内容）
+    SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)nElementIndex, pSubItem);
     return true;
 }
 

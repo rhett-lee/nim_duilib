@@ -58,6 +58,9 @@ void MainForm::OnInitWindow()
     //测试loading功能
     TestListCtrlLoading(pListCtrl);
 
+    //演示单格刷新功能（RefreshSubItem）
+    TestRefreshSubItem(pListCtrl);
+
     //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
     //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
     //        //视图大小变化时，自动调整列宽
@@ -1020,6 +1023,70 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     }
     //重绘
     UpdateWindow();
+}
+
+void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
+{
+    //演示：单格刷新（RefreshSubItem）
+    //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值，
+    //      不写入 ListCtrl 的数据模型，而是在单元格填充回调(kEventReportViewSubItemFilled)中设置显示内容；
+    //      后台进度更新时，只调用 RefreshSubItem 刷新对应的单元格，不刷新整行。
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nProgressColumnIndex = 1;  //进度列的索引号（第 2 列）
+    const size_t nMaxTestRowCount = 20;     //参与演示的行数（避免演示数据过多影响性能）
+    const size_t nDataCount = pListCtrl->GetDataItemCount();
+
+    //初始化进度值（模拟后台数据源，取值范围[0, 100]，与 InsertItemData 中的演示数据保持一致）
+    m_progressValues.assign(nDataCount, 0);
+    for (size_t nRow = 0; nRow < nDataCount; ++nRow) {
+        m_progressValues[nRow] = (int32_t)((nRow * 7 + 15) % 101);
+    }
+
+    //在单元格填充回调中：按数据项索引取出应用层维护的进度值，设置到该单元格上
+    pListCtrl->AttachReportViewSubItemFilled([this, nProgressColumnIndex](const ui::EventArgs& args) {
+        if (args.eventType != ui::kEventReportViewSubItemFilled) {
+            return true;
+        }
+        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+        if (pSubItem == nullptr) {
+            return true;
+        }
+        if (pSubItem->GetDataColumnIndex() != nProgressColumnIndex) {
+            //仅处理进度列
+            return true;
+        }
+        size_t nRowIndex = pSubItem->GetDataItemIndex();
+        if (nRowIndex >= m_progressValues.size()) {
+            return true;
+        }
+        //设置进度条的进度值（-1 表示不显示进度条）和显示的文本
+        int32_t nProgress = m_progressValues[nRowIndex];
+        pSubItem->SetProgress(nProgress);
+        pSubItem->SetText(ui::StringUtil::Printf(_T("%d%%"), nProgress));
+        return true;
+        });
+
+    //定时器回调：在UI线程中执行，可以安全访问控件
+    auto refreshCallback = [this, pListCtrl, nProgressColumnIndex, nMaxTestRowCount]() {
+        for (size_t nRow = 0; nRow < nMaxTestRowCount; ++nRow) {
+            if (nRow >= m_progressValues.size()) {
+                break;
+            }
+            //模拟后台进度推进（到达 100 后回到 0，循环演示）
+            int32_t nProgress = m_progressValues[nRow] + 5;
+            if (nProgress > 100) {
+                nProgress = 0;
+            }
+            m_progressValues[nRow] = nProgress;
+
+            //只刷新这一个单元格（如果该单元格不在可见范围内，RefreshSubItem 返回 false，无需额外处理）
+            pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
+        }
+    };
+    //每 800ms 触发一次，重复执行；定时器与ListCtrl的生命周期绑定，控件销毁后自动取消
+    ui::GlobalManager::Instance().Timer().AddTimer(pListCtrl->GetWeakFlag(), refreshCallback, 800);
 }
 
 void MainForm::RunListCtrlTest()
