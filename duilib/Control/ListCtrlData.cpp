@@ -1325,6 +1325,31 @@ int32_t ListCtrlData::GetSubItemTextFormat(size_t itemIndex, size_t columnId) co
     return nTextFormat;
 }
 
+bool ListCtrlData::SetSubItemSingleLine(size_t itemIndex, size_t columnId, bool bSingleLine)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    //基于当前生效的文本格式（含默认格式）切换单行/多行属性：
+    //多行模式下，文本会按单元格可用宽度自动换行（行高需由调用方通过SetDataItemHeight调整）
+    int32_t nTextFormat = GetSubItemTextFormat(itemIndex, columnId);
+    if (bSingleLine) {
+        nTextFormat |= TEXT_SINGLELINE;
+    }
+    else {
+        nTextFormat &= ~TEXT_SINGLELINE;
+    }
+    return SetSubItemTextFormat(itemIndex, columnId, nTextFormat);
+}
+
+bool ListCtrlData::IsSubItemSingleLine(size_t itemIndex, size_t columnId) const
+{
+    int32_t nTextFormat = GetSubItemTextFormat(itemIndex, columnId);
+    return (nTextFormat & TEXT_SINGLELINE) != 0;
+}
+
 bool ListCtrlData::SetSubItemBkColor(size_t itemIndex, size_t columnId, const UiColor& bkColor)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);

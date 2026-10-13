@@ -520,6 +520,7 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 | 列冻结 | `frozen_column_count`(XML) / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与命中测试已适配 |
 | 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 进度值 `[0,100]`，`-1` 关闭（按普通文本显示）；可叠加文本显示百分比 |
 | 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签） |
+| 单元格自动换行 | `SetSubItemSingleLine(ById)` / `IsSubItemSingleLine(ById)` | 控制 Report 单元格文本单行(true，默认，超出按省略号裁剪)/多行(false，按单元格宽度自动换行)；行高需由调用方通过 `SetDataItemHeight` 调够，否则超出部分被裁剪；仅 Report 视图有效（非 Report 视图 `Set*` 返回 false）。虚表下属性存于数据模型，填充单元格时应用 |
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度/状态类列局部更新），仅 Report 视图；单元格不在可见范围时返回 false（数据已更新） |
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级列显隐接口，内部自动同步数据列 |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时回调，便于应用持久化列布局；参数见 `kEventColumn*`（wParam 为列ID，lParam 为新状态或关联列ID） |

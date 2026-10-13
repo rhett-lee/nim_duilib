@@ -390,6 +390,22 @@ public:
     */
     int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnId) const;
 
+    /** 设置指定数据项的文本是否为单行显示，并刷新界面显示
+        说明：设置为多行(false)后，文本超出单元格宽度时会自动换行；
+              行高需由调用方通过 SetDataItemHeight 调整，否则超出部分会被裁剪
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] bSingleLine true表示单行显示（超出时按省略号裁剪），false表示多行显示（自动换行）
+    */
+    bool SetSubItemSingleLine(size_t itemIndex, size_t columnId, bool bSingleLine);
+
+    /** 获取指定数据项的文本是否为单行显示
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @return true表示单行显示，false表示多行显示（自动换行）
+    */
+    bool IsSubItemSingleLine(size_t itemIndex, size_t columnId) const;
+
     /** 设置指定数据项的背景颜色，并刷新界面显示
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnId 列的ID

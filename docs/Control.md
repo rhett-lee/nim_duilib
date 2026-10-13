@@ -1902,6 +1902,7 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 列冻结（固定首列） | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | 冻结列表左侧前 N 列，横向滚动时固定不动；表头同步冻结，网格线与鼠标命中测试均已适配 |
 | 单元格进度条 | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | 单元格以进度条方式显示，进度值有效范围 `[0, 100]`，`-1` 表示关闭进度条（按普通文本显示） |
 | 单元格富文本 | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | 单元格文本按富文本渲染（支持 `<b>/<i>/<u>/<font>/<a>` 等标签，见 [RichText的属性](#richtext的属性)） |
+| 单元格自动换行 | `SetSubItemSingleLine(ById)` / `IsSubItemSingleLine(ById)` | 控制单元格文本单行/多行：`true` 为单行（超出按省略号裁剪，默认），`false` 为自动换行（行高需由 `SetDataItemHeight` 调够，否则被裁剪）；仅 Report 视图有效 |
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度、状态类列的局部更新），避免整行刷新 |
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级的列显隐接口（等价于表头项的显隐，内部自动同步数据列） |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时通知应用层，便于持久化列布局 |
@@ -1953,6 +1954,31 @@ pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 // 也可单独设置：
 pListCtrl->SetSubItemRichText(0, 2, true);
 bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // 返回 true
+```
+
+**单元格自动换行（Report 视图）：**
+
+Report 视图的单元格默认 `single_line="true"`（单行 + 末尾省略号）。调用下面的接口可切换为多行（自动换行）：
+
+```cpp
+// 第 0 行、第 1 列单元格开启自动换行
+pListCtrl->SetSubItemSingleLine(0, 1, false);
+bool bSingleLine = pListCtrl->IsSubItemSingleLine(0, 1); // 返回 false
+
+// 按列ID操作
+size_t nColumnId = pListCtrl->GetColumnId(1);
+pListCtrl->SetSubItemSingleLineById(0, nColumnId, false);
+```
+
+说明：
+- 仅对 Report 视图有效（List / Icon 视图的换行由视图自身的 `SetTextSingleLine` 控制）；非 Report 视图下 `Set*` 返回 `false`。
+- 由于是虚表实现，单元格属性存于数据模型，并在**数据填充时**应用到复用的单元格控件上，滚动复用不会导致属性错乱。
+- 自动换行后必须把行高调够，否则超出部分会被裁剪。按需调用 `SetDataItemHeight(itemIndex, height, true)`（逐行）或 `SetDataItemHeight(height, true)`（默认行高）：
+
+```cpp
+// 开启换行，并把默认行高调大以容纳多行文本
+pListCtrl->SetSubItemSingleLine(0, 1, false);
+pListCtrl->SetDataItemHeight(64, true);
 ```
 
 **单格刷新：**

@@ -2057,6 +2057,33 @@ int32_t ListCtrl::GetSubItemTextFormatById(size_t itemIndex, size_t columnId) co
     return m_pData->GetSubItemTextFormat(itemIndex, columnId);
 }
 
+bool ListCtrl::SetSubItemSingleLine(size_t itemIndex, size_t columnIndex, bool bSingleLine)
+{
+    return SetSubItemSingleLineById(itemIndex, GetColumnId(columnIndex), bSingleLine);
+}
+
+bool ListCtrl::SetSubItemSingleLineById(size_t itemIndex, size_t columnId, bool bSingleLine)
+{
+    //仅Report视图支持（Icon/List视图没有列的概念，其单行/多行由视图自身的接口控制）
+    if (m_listCtrlType != ListCtrlType::Report) {
+        return false;
+    }
+    return m_pData->SetSubItemSingleLine(itemIndex, columnId, bSingleLine);
+}
+
+bool ListCtrl::IsSubItemSingleLine(size_t itemIndex, size_t columnIndex) const
+{
+    return IsSubItemSingleLineById(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::IsSubItemSingleLineById(size_t itemIndex, size_t columnId) const
+{
+    if (m_listCtrlType != ListCtrlType::Report) {
+        return true;
+    }
+    return m_pData->IsSubItemSingleLine(itemIndex, columnId);
+}
+
 bool ListCtrl::SetSubItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)
 {
     return SetSubItemBkColorById(itemIndex, GetColumnId(columnIndex), bkColor);

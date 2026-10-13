@@ -473,6 +473,34 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
         return true;
         });
 
+    //单元格自动换行：对当前选中列的单元格，开启/关闭自动换行（仅Report视图有效）
+    //说明：换行开启后，文本超出单元格宽度时自动换行；需配合 SetDataItemHeight 把行高调大，否则超出部分会被裁剪
+    ui::Option* pCellSingleLine = dynamic_cast<ui::Option*>(FindControl(_T("cell_single_line")));
+    ui::Option* pCellWordWrap = dynamic_cast<ui::Option*>(FindControl(_T("cell_word_wrap")));
+    if ((pCellSingleLine != nullptr) && (pCellWordWrap != nullptr)) {
+        auto OnCellWrap = [this, pColumnCombo, pListCtrl](bool bSingleLine) {
+            size_t nColumnId = pColumnCombo->GetItemData(pColumnCombo->GetCurSel());
+            size_t nColumnIndex = pListCtrl->GetColumnIndex(nColumnId);
+            if (nColumnIndex == ui::Box::InvalidIndex) {
+                return;
+            }
+            size_t nItemCount = pListCtrl->GetDataItemCount();
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+                pListCtrl->SetSubItemSingleLine(nItemIndex, nColumnIndex, bSingleLine);
+            }
+            //换行后需要调大行高以容纳多行文本；恢复单行时恢复默认行高（默认行高为32）
+            pListCtrl->SetDataItemHeight(bSingleLine ? 32 : 64, true);
+        };
+        pCellSingleLine->AttachSelect([this, OnCellWrap](const ui::EventArgs&) {
+            OnCellWrap(true);
+            return true;
+            });
+        pCellWordWrap->AttachSelect([this, OnCellWrap](const ui::EventArgs&) {
+            OnCellWrap(false);
+            return true;
+            });
+    }
+
     //是否支持多选
     ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_multi_select")));
     if (pMultiSelect != nullptr) {
@@ -952,6 +980,15 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     }
     else {
         pColumnTextAlignLeft->Selected(true, false);
+    }
+
+    //单元格换行状态：与当前列单元格的文本格式(TEXT_SINGLELINE位)保持一致
+    ui::Option* pCellSingleLine = dynamic_cast<ui::Option*>(FindControl(_T("cell_single_line")));
+    ui::Option* pCellWordWrap = dynamic_cast<ui::Option*>(FindControl(_T("cell_word_wrap")));
+    if ((pCellSingleLine != nullptr) && (pCellWordWrap != nullptr)) {
+        bool bSingleLine = (nTextFormat & ui::TEXT_SINGLELINE) != 0;
+        pCellSingleLine->Selected(bSingleLine, false);
+        pCellWordWrap->Selected(!bSingleLine, false);
     }
 }
 

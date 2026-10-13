@@ -1901,6 +1901,7 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Frozen columns (freeze first column) | `frozen_column_count` / `SetFrozenColumnCount` / `GetFrozenColumnCount` | Freeze the first N columns on the left; they stay fixed when scrolling horizontally. The header is frozen as well, and grid lines and mouse hit testing are adapted |
 | Cell progress bar | `SetSubItemProgress(ById)` / `GetSubItemProgress(ById)` | Displays a cell as a progress bar. Valid range is `[0, 100]`; `-1` turns off the progress bar (renders as plain text) |
 | Cell rich text | `SetSubItemRichText(ById)` / `IsSubItemRichText(ById)` | Renders cell text as rich text (supports tags such as `<b>/<i>/<u>/<font>/<a>`, see [RichText attributes](#richtext-attributes)) |
+| Cell word wrap | `SetSubItemSingleLine(ById)` / `IsSubItemSingleLine(ById)` | Control single/multi-line per cell: `true` = single line (ellipsis on overflow, default), `false` = word wrap (row height must be enlarged via `SetDataItemHeight`, otherwise clipped). Report view only |
 | Single-cell refresh | `RefreshSubItem` / `RefreshSubItemById` | Refresh only the specified cell (partial update for progress/status columns), avoiding a full row refresh |
 | Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API (equivalent to the header item's visibility; the data columns are synchronized automatically) |
 | Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Notify the application when column width/order/visibility/sort changes, for persisting the column layout |
@@ -1952,6 +1953,31 @@ pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 // Or set it separately:
 pListCtrl->SetSubItemRichText(0, 2, true);
 bool bRichText = pListCtrl->IsSubItemRichText(0, 2); // returns true
+```
+
+**Cell word wrap (Report view):**
+
+Cells in the Report view default to `single_line="true"` (single line with a trailing ellipsis). Use the API below to switch a cell to multi-line (word wrap):
+
+```cpp
+// Enable word wrap for the cell at row 0, column 1
+pListCtrl->SetSubItemSingleLine(0, 1, false);
+bool bSingleLine = pListCtrl->IsSubItemSingleLine(0, 1); // returns false
+
+// By column ID
+size_t nColumnId = pListCtrl->GetColumnId(1);
+pListCtrl->SetSubItemSingleLineById(0, nColumnId, false);
+```
+
+Notes:
+- Report view only (for List / Icon views, wrapping is controlled by the view's own `SetTextSingleLine`); in non-Report views `Set*` returns `false`.
+- Because the view is virtual, the property is stored in the data model and applied when the cell is filled, so scrolling and control reuse never mix up the property.
+- Word wrap requires a taller row height, otherwise the overflow is clipped. Call `SetDataItemHeight(itemIndex, height, true)` (per row) or `SetDataItemHeight(height, true)` (default row height) as needed:
+
+```cpp
+// Enable wrap and enlarge the default row height to fit multiple lines
+pListCtrl->SetSubItemSingleLine(0, 1, false);
+pListCtrl->SetDataItemHeight(64, true);
 ```
 
 **Single-cell refresh:**

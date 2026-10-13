@@ -484,6 +484,27 @@ public:
     int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const;
     int32_t GetSubItemTextFormatById(size_t itemIndex, size_t columnId) const;
 
+    /** 设置指定数据项的文本是否为单行显示（仅Report视图有效）
+        说明：Report视图为虚表，单元格控件在滚动时会被复用，因此该属性存储在数据模型中，
+              由框架在填充单元格数据时应用到复用的控件上；设置为多行(false)后，文本会按单元格
+              宽度自动换行，此时行高需由调用方通过 SetDataItemHeight 调整，否则超出部分会被裁剪
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    * @param [in] bSingleLine true表示单行显示（超出时按省略号裁剪），false表示多行显示（自动换行）
+    */
+    bool SetSubItemSingleLine(size_t itemIndex, size_t columnIndex, bool bSingleLine);
+    bool SetSubItemSingleLineById(size_t itemIndex, size_t columnId, bool bSingleLine);
+
+    /** 获取指定数据项的文本是否为单行显示（仅Report视图有效）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
+    * @return true表示单行显示，false表示多行显示（自动换行）
+    */
+    bool IsSubItemSingleLine(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemSingleLineById(size_t itemIndex, size_t columnId) const;
+
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
