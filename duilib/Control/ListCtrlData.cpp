@@ -1662,6 +1662,11 @@ bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const List
             return StringUtil::StringCompare(a.userDataS.c_str(), b.userDataS.c_str()) < 0;
         }
     }
+    else if ((a.nProgress >= 0) || (b.nProgress >= 0)) {
+        //进度条单元格：按进度值排序，而不是按进度文本排序（比如"5%"、"15%"、"100%"）
+        //注：不显示进度条的单元格(nProgress为-1)视为最小值，保证比较结果是一个严格的全序
+        return a.nProgress < b.nProgress;
+    }
     else {
         //按 .text 字段排序(字符串值)
         if (nSortFlag & ListCtrlSubItemSortFlag::kSortNoCase) {
