@@ -59,7 +59,7 @@ void MainForm::OnInitWindow()
     TestListCtrlLoading(pListCtrl);
 
     //演示单格刷新功能（RefreshSubItem）
-    TestRefreshSubItem(pListCtrl);
+    //TestRefreshSubItem(pListCtrl);
 
     //演示ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）
     TestColumnVisibleApi(pListCtrl);
@@ -1013,6 +1013,13 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
         columnInfo.nImageId = nImageId;
         pListCtrl->InsertColumn(-1, columnInfo);
     }
+    //演示：列级比较模式（对Report视图的表头点击排序生效）
+    //说明：排序方式按列声明（SetColumnSortFlag/SetColumnSortFlagById），表头点击排序时会自动使用该列声明的比较模式，
+    //      从而由"列的语义"决定比较方式，而不是按单元格当前状态推断
+    pListCtrl->SetColumnSortFlag(1, ui::ListCtrlSubItemSortFlag::kSortByProgress);      //第2列（进度条列）按进度值排序
+    if (columnCount > 3) {
+        pListCtrl->SetColumnSortFlag(3, ui::ListCtrlSubItemSortFlag::kSortByTextAsNumber);//第4列（数值文本列）按数值大小排序
+    }
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
@@ -1037,6 +1044,11 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
                 subItemData.bRichText = true;
                 subItemData.text = ui::StringUtil::Printf(_T("<b>Row %03d</b> <font color=\"#1E90FF\">Col %02d</font>"), itemIndex, columnIndex);
                 subItemData.nImageId = -1;
+            }
+            else if (columnIndex == 3) {
+                //演示：列级比较模式中的"数值文本"（见 SetColumnSortFlag(kSortByTextAsNumber)）
+                //文本为纯数字，点击该列表头时按数值大小排序（如 10 > 9），而不是按字典序（如 "10" < "9"）
+                subItemData.text = ui::StringUtil::Printf(_T("%d"), (int32_t)((itemIndex * 13 + 7) % 1000));
             }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }

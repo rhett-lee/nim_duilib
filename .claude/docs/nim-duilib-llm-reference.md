@@ -349,6 +349,7 @@ C++：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightControl`、
 属性：`frozen_column_count`（0）冻结列表左侧前 N 列，横向滚动固定不动（表头同步冻结）。
 C++：`SetFrozenColumnCount/GetFrozenColumnCount`；`SetSubItemProgress(ById)/GetSubItemProgress(ById)`（进度值 `[0,100]`，`-1` 关闭，可叠加文本）；`SetSubItemRichText(ById)/IsSubItemRichText(ById)`（富文本渲染）；`RefreshSubItem/RefreshSubItemById`（单格刷新，仅 Report 视图）；`SetColumnVisible(ById)/IsColumnVisible(ById)`（列显隐）；`SetSubItemSingleLine(ById)/IsSubItemSingleLine(ById)`（Report 单元格单行/多行自动换行，多行时行高需配合 `SetDataItemHeight` 调够，否则超出被裁剪）。
 列布局事件：`AttachColumnWidthChanged/AttachColumnOrderChanged/AttachColumnVisibleChanged/AttachColumnSorted`（对应 `kEventColumnWidthChanged/OrderChanged/VisibleChanged/Sorted`，wParam 为列ID，lParam 为新状态或关联列ID），用于应用持久化列布局。
+列级比较模式：`SetColumnSortFlag(ById)/GetColumnSortFlag(ById)`（标志位 `ListCtrlSubItemSortFlag`，按列声明排序比较方式，点击该列表头自动采用；`kSortByProgress` 按进度值、`kSortByTextAsNumber` 文本按数值比较 `"10" > "9"`），替代按单元格 `nProgress` 推断。
 进度条样式：`ListCtrlSubItem` 的 `progress_color`(默认 `bg_progress`)/`progress_bkcolor`(默认 `bg_progress_track`)；也可用 `ui::ListCtrlSubItemData` 的 `nProgress`/`bRichText` 一次性设置。示例：`<ListCtrl class="list_ctrl" frozen_column_count="1"/>`。
 
 ### Progress 属性(继承 Label)

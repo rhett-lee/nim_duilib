@@ -449,6 +449,7 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度/状态类列局部更新），仅 Report 视图；单元格不在可见范围时返回 false（数据已更新） |
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级列显隐接口，内部自动同步数据列 |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时回调，便于应用持久化列布局；参数见 `kEventColumn*`（wParam 为列ID，lParam 为新状态或关联列ID） |
+| 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序比较方式（点击该列表头自动采用）；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），替代按单元格 `nProgress` 推断 |
 
 - 进度条样式：`ListCtrlSubItem` 的 `progress_color`(前景，默认 `bg_progress`) 与 `progress_bkcolor`(背景轨道，默认 `bg_progress_track`)，默认值配置在 `global.xml` 的 `list_ctrl_sub_item` Class。
 - 也可在填充数据时通过 `ui::ListCtrlSubItemData` 的 `nProgress`(-1 关闭)/`bRichText` 一次性设置。

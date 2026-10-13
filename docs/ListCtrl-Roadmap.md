@@ -36,6 +36,18 @@
 
 实现要点：Report 视图为虚表，单元格控件在滚动时会被复用，因此单行/多行属性存储于数据模型（`nTextFormat` 的 `TEXT_SINGLELINE` 位），由框架在**填充单元格数据时**应用到复用的控件上（复用既有的 per-cell 文本格式通路，未新增结构体字段）。List / Icon 视图的换行由其自身的 `SetTextSingleLine` 控制，本接口仅 Report 视图有效（非 Report 视图 `Set*` 返回 `false`，`Is*` 返回 `true`）。
 
+#### 4. 列级比较模式（排序）
+
+| 能力 | 接口 / 标志位 | 说明 |
+|------|-------------|------|
+| 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式，鼠标点击该列表头排序时自动采用；由"列的语义"决定比较方式，替代早期"按单元格 `nProgress` 推断"的行为 |
+
+标志位（`enum ListCtrlSubItemSortFlag`，按位组合）：`kSortByGroup`（先按 `nSortGroup` 分组）、`kSortNoCase`（字符串忽略大小写）、`kSortByText`（默认，按文本字典序）、`kSortByTextAsNumber`（文本按数值比较，`"10" > "9"`）、`kSortByUserDataN` / `kSortByUserDataS`（按用户数据）、`kSortByProgress`（按进度值 `nProgress`）。
+
+实现要点：列级 flag 存于 `ListCtrl::m_columnSortFlagMap`（列ID → `uint8_t`）；表头点击排序（`OnColumnSorted`）与主动排序（`SortDataItemsById`）都会读取/写入该列 flag，应用声明一次即长期生效。原 `SortDataCompareFunc` 中"任一单元格 `nProgress >= 0` 即按进度排序"的推断分支已移除，改为由 `kSortByProgress` 显式声明。
+
+配套演示：`examples/ListCtrl` 中第 2 列（进度条列）声明 `kSortByProgress`，第 4 列为纯数字文本并声明 `kSortByTextAsNumber`，点击对应列表头即可看到按进度 / 按数值排序。
+
 ### 二、已具备能力（非本次新增，曾一度被误判为缺失）
 
 | 能力 | 实现位置 | 说明 |
@@ -66,6 +78,7 @@
 |------|----|------|
 | — | 列冻结 / 单元格进度条 / 单元格富文本 | 已完成 |
 | — | 单格刷新 / 列显隐 / 列布局事件 | 已完成 |
+| — | 列级比较模式（排序） | 已完成 |
 | — | 键盘导航（方向键 / Home / End / PageUp / PageDown） | 已具备 |
 | — | 单元格 tooltip（超长自动提示） | 已具备 |
 | — | 可变行高 / 文本省略号 | 已具备 |

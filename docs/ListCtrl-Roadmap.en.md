@@ -36,6 +36,18 @@ Demo: `examples/ListCtrl` (first column frozen by default, column 2 as a progres
 
 Implementation note: the Report view is virtual, so its cell controls are reused while scrolling; therefore the single/multi-line property is stored in the data model (the `TEXT_SINGLELINE` bit of `nTextFormat`) and applied by the framework **when filling the cell data** onto the reused control (reusing the existing per-cell text-format path, with no new struct field). Wrapping in the List / Icon views is controlled by their own `SetTextSingleLine`; this API is Report-only (in non-Report views `Set*` returns `false` and `Is*` returns `true`).
 
+#### 4. Column-level compare mode (sorting)
+
+| Capability | API / flags | Description |
+|-----------|-------------|-------------|
+| Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column; clicking that column's header sorts by it automatically. Determined by the column's semantics, replacing the earlier "infer from the cell's `nProgress`" behavior |
+
+Flags (`enum ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings), `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByProgress` (by progress value `nProgress`).
+
+Implementation note: the per-column flag is stored in `ListCtrl::m_columnSortFlagMap` (column ID -> `uint8_t`); both header-click sorting (`OnColumnSorted`) and programmatic sorting (`SortDataItemsById`) read/write it, so the app only declares it once. The `SortDataCompareFunc` inference branch ("sort by progress when any cell has `nProgress >= 0`") has been removed and replaced by the explicit `kSortByProgress` declaration.
+
+Demo: in `examples/ListCtrl`, column 2 (the progress column) declares `kSortByProgress`, and column 4 holds pure numeric text and declares `kSortByTextAsNumber`; click the respective header to see progress / numeric sorting.
+
 ### 2. Existing capabilities (not added this round; briefly misjudged as missing)
 
 | Capability | Implementation | Description |
@@ -66,6 +78,7 @@ Implementation note: the Report view is virtual, so its cell controls are reused
 |----|------|--------|
 | — | Frozen columns / cell progress bar / cell rich text | Done |
 | — | Single-cell refresh / column show-hide / column layout events | Done |
+| — | Column-level compare mode (sorting) | Done |
 | — | Keyboard navigation (arrows / Home / End / PageUp / PageDown) | Existing |
 | — | Cell tooltip (auto-show on overflow) | Existing |
 | — | Variable row height / text ellipsis | Existing |

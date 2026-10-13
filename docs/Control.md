@@ -1906,7 +1906,22 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度、状态类列的局部更新），避免整行刷新 |
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级的列显隐接口（等价于表头项的显隐，内部自动同步数据列） |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时通知应用层，便于持久化列布局 |
+| 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式（文本/数值/进度等），鼠标点击该列表头排序时自动采用；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`） |
 
+**列级比较模式（排序）：**
+
+排序的比较方式按列声明，鼠标点击表头排序时会自动采用该列声明的模式（由"列的语义"决定，而非按单元格当前状态推断）：
+
+```cpp
+// 第 2 列（列索引 1）按进度值排序；第 4 列文本按数值大小排序
+pListCtrl->SetColumnSortFlag(1, ui::ListCtrlSubItemSortFlag::kSortByProgress);
+pListCtrl->SetColumnSortFlag(3, ui::ListCtrlSubItemSortFlag::kSortByTextAsNumber);
+uint8_t flag = pListCtrl->GetColumnSortFlag(3); // 读取该列的比较模式
+```
+
+常用标志位（`ListCtrlSubItemSortFlag`，可按位组合）：`kSortByText`（默认，按文本字典序）、`kSortByTextAsNumber`（文本按数值比较，`"10" > "9"`）、`kSortByProgress`（按 `nProgress` 进度值）、`kSortByUserDataN` / `kSortByUserDataS`（按用户数据）、`kSortByGroup`（先按 `nSortGroup` 分组）、`kSortNoCase`（字符串忽略大小写）。
+
+<!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 **列冻结（冻结首列）：**
 
 ```cpp

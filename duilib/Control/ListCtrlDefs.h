@@ -97,7 +97,9 @@ enum ListCtrlSubItemSortFlag : uint8_t
     kSortNoCase         = 2,    //当排序目标是字符串时，比较字符串不区分大小写
     kSortByText         = 4,    //按照ListCtrlSubItemData2.text字段排序（默认）
     kSortByUserDataN    = 8,    //按照ListCtrlSubItemData2.userDataN字段排序
-    kSortByUserDataS    = 16,    //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
+    kSortByUserDataS    = 16,   //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
+    kSortByProgress     = 32,   //按照ListCtrlSubItemData2.nProgress字段排序（显式声明，替代早期"按单元格nProgress推断"的行为）
+    kSortByTextAsNumber = 64,   //将text按数值比较排序（如"10" > "9"），而非按字符串字典序
 };
 
 struct ListCtrlSubItemData2Pair
