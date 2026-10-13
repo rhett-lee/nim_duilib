@@ -77,6 +77,34 @@ private:
     */
     void TestColumnVisibleApi(ui::ListCtrl* pListCtrl);
 
+    /** 初始化"压力测试"面板（Phase 0 性能基线）：绑定各按钮事件
+    */
+    void InitStressTest(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：载入大数据量（10万行×10列），输出填充耗时
+    */
+    void StressTestLoad(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：在列表中间插入若干行，输出耗时
+    */
+    void StressTestInsert(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：删除若干行，输出耗时
+    */
+    void StressTestDelete(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：整表排序，输出耗时
+    */
+    void StressTestSort(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：滚动重绘，输出平均帧耗时
+    */
+    void StressTestRepaint(ui::ListCtrl* pListCtrl);
+
+    /** 还原为初始演示数据（退出压测状态）
+    */
+    void StressTestRestore(ui::ListCtrl* pListCtrl);
+
     /** 获取消息的基本信息（用于显示日志）
     */
     DString GetEventDisplayInfo(const ui::EventArgs& args);
@@ -107,6 +135,10 @@ private:
     /** 演示单格刷新时使用的进度值（由应用层维护，模拟后台任务进度，不写入ListCtrl的数据模型）
     */
     std::vector<int32_t> m_progressValues;
+
+    /** 压力测试数据是否已载入
+    */
+    bool m_bStressDataLoaded;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

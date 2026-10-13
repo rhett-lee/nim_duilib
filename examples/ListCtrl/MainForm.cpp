@@ -2,10 +2,12 @@
 #include "MainThread.h"
 
 #include <cmath>
+#include <chrono>
 
 MainForm::MainForm():
     m_fLoadingPercent(0),
-    m_imageId(0)
+    m_imageId(0),
+    m_bStressDataLoaded(false)
 {
 }
 
@@ -63,6 +65,9 @@ void MainForm::OnInitWindow()
 
     //演示ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）
     TestColumnVisibleApi(pListCtrl);
+
+    //初始化"压力测试"面板（Phase 0 性能基线）
+    InitStressTest(pListCtrl);
 
     //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
     //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
@@ -585,6 +590,290 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
             return true;
             });
     }
+}
+
+namespace
+{
+/** 高精度计时器：取当前计数值（Windows 使用 QueryPerformanceCounter 的原始 tick；其他平台使用 steady_clock 的微秒） */
+int64_t GetPerfTick()
+{
+#if defined (DUILIB_BUILD_FOR_WIN)
+    LARGE_INTEGER nTick = { 0 };
+    ::QueryPerformanceCounter(&nTick);
+    return nTick.QuadPart;
+#else
+    return (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
+}
+
+/** 把计数值的差值换算为毫秒 */
+double PerfTickToMs(int64_t nTickCount)
+{
+#if defined (DUILIB_BUILD_FOR_WIN)
+    LARGE_INTEGER nFreq = { 0 };
+    ::QueryPerformanceFrequency(&nFreq);
+    if (nFreq.QuadPart <= 0) {
+        return 0.0;
+    }
+    return (double)nTickCount * 1000.0 / (double)nFreq.QuadPart;
+#else
+    return (double)nTickCount / 1000.0;
+#endif
+}
+}//namespace
+
+void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_load_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestLoad(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_insert_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestInsert(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_delete_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestDelete(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_sort_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestSort(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_repaint_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestRepaint(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_restore_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestRestore(pListCtrl);
+            return true;
+            });
+    }
+}
+
+void MainForm::StressTestLoad(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nRows = 100000;    //10万行
+    const size_t nColumns = 10;     //10列
+
+    //批量数据操作期间关闭界面刷新，避免绘制干扰对数据层耗时的测量
+    pListCtrl->SetEnableRefresh(false);
+    pListCtrl->DeleteAllColumns();
+    pListCtrl->DeleteAllDataItems();
+
+    //1) 添加列
+    const int64_t nTick0 = GetPerfTick();
+    for (size_t nColumn = 0; nColumn < nColumns; ++nColumn) {
+        ui::ListCtrlColumn columnInfo;
+        columnInfo.nColumnWidth = 120;
+        columnInfo.text = ui::StringUtil::Printf(_T("Col %zu"), nColumn);
+        columnInfo.bShowCheckBox = false;
+        columnInfo.nImageId = -1;
+        pListCtrl->InsertColumn(-1, columnInfo);
+    }
+    const int64_t nTick1 = GetPerfTick();
+
+    //2) 设置行数（虚表：仅记录行数，单元格数据按需填充）
+    pListCtrl->SetDataItemCount(nRows);
+    const int64_t nTick2 = GetPerfTick();
+
+    //3) 填充单元格数据（nRows × nColumns）
+    for (size_t nRow = 0; nRow < nRows; ++nRow) {
+        for (size_t nColumn = 0; nColumn < nColumns; ++nColumn) {
+            ui::ListCtrlSubItemData subItemData;
+            subItemData.text = ui::StringUtil::Printf(_T("%zu-%zu"), nRow, nColumn);
+            subItemData.bShowCheckBox = false;
+            subItemData.nImageId = -1;
+            pListCtrl->SetSubItemData(nRow, nColumn, subItemData);
+        }
+    }
+    const int64_t nTick3 = GetPerfTick();
+
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+    m_bStressDataLoaded = true;
+
+    DString msg = ui::StringUtil::Printf(
+        _T("Load stress data\nRows=%zu, Columns=%zu\n")
+        _T("InsertColumn: %.1f ms\nSetDataItemCount: %.1f ms\nFill cells: %.1f ms\nTotal: %.1f ms"),
+        nRows, nColumns,
+        PerfTickToMs(nTick1 - nTick0),
+        PerfTickToMs(nTick2 - nTick1),
+        PerfTickToMs(nTick3 - nTick2),
+        PerfTickToMs(nTick3 - nTick0));
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestInsert(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    const size_t nInsertCount = 1000;   //插入1000行
+
+    pListCtrl->SetEnableRefresh(false);
+    const int64_t nTick0 = GetPerfTick();
+    //始终在列表的中间位置插入（触发中间位置的搬移，验证增删改性能不降级）
+    for (size_t n = 0; n < nInsertCount; ++n) {
+        const size_t nInsertPos = pListCtrl->GetDataItemCount() / 2;
+        ui::ListCtrlSubItemData subItemData;
+        subItemData.text = _T("insert");
+        subItemData.bShowCheckBox = false;
+        subItemData.nImageId = -1;
+        pListCtrl->InsertDataItem(nInsertPos, subItemData);
+    }
+    const int64_t nTick1 = GetPerfTick();
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+
+    const double dTotalMs = PerfTickToMs(nTick1 - nTick0);
+    DString msg = ui::StringUtil::Printf(
+        _T("Insert rows at middle\nCount: %zu\nTotal: %.1f ms\nAverage: %.3f ms/row"),
+        nInsertCount, dTotalMs, dTotalMs / (double)nInsertCount);
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestDelete(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    const size_t nDeleteCount = 500;    //删除500行
+
+    pListCtrl->SetEnableRefresh(false);
+    const int64_t nTick0 = GetPerfTick();
+    //循环删除中间位置的行（触发中间位置的搬移，验证批量删除性能不降级）
+    for (size_t n = 0; n < nDeleteCount; ++n) {
+        const size_t nDeleteIndex = pListCtrl->GetDataItemCount() / 2;
+        pListCtrl->DeleteDataItem(nDeleteIndex);
+    }
+    const int64_t nTick1 = GetPerfTick();
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+
+    const double dTotalMs = PerfTickToMs(nTick1 - nTick0);
+    DString msg = ui::StringUtil::Printf(
+        _T("Delete rows at middle\nCount: %zu\nTotal: %.1f ms\nAverage: %.3f ms/row"),
+        nDeleteCount, dTotalMs, dTotalMs / (double)nDeleteCount);
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestSort(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    if (pListCtrl->GetColumnCount() == 0) {
+        return;
+    }
+
+    pListCtrl->SetEnableRefresh(false);
+    const int64_t nTick0 = GetPerfTick();
+    const bool bRet = pListCtrl->SortDataItems(0, true);    //按第1列升序排序（整表排序）
+    const int64_t nTick1 = GetPerfTick();
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+
+    DString msg = ui::StringUtil::Printf(
+        _T("Sort whole table (column 0, ascending)\nResult: %s\nTotal: %.1f ms"),
+        bRet ? _T("true") : _T("false"),
+        PerfTickToMs(nTick1 - nTick0));
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestRepaint(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    const int32_t nFrames = 20;         //滚动并重绘的帧数
+    const size_t nStep = 200;           //每帧向下滚动的行数
+    const size_t nDataCount = pListCtrl->GetDataItemCount();
+    if (nDataCount == 0) {
+        return;
+    }
+
+    double dTotalMs = 0.0;
+    size_t nItemIndex = 0;
+    for (int32_t nFrame = 0; nFrame < nFrames; ++nFrame) {
+        if (nItemIndex >= nDataCount) {
+            nItemIndex = 0;
+        }
+        //滚动到指定行（置顶），再强制同步重绘可见区域，测量"滚动 + 绘制"的单帧耗时
+        pListCtrl->EnsureDataItemVisible(nItemIndex, true);
+        const int64_t nTick0 = GetPerfTick();
+        pListCtrl->Refresh(true);
+        const int64_t nTick1 = GetPerfTick();
+        dTotalMs += PerfTickToMs(nTick1 - nTick0);
+        nItemIndex += nStep;
+    }
+
+    DString msg = ui::StringUtil::Printf(
+        _T("Scroll & repaint\nFrames: %d\nTotal: %.1f ms\nAverage: %.3f ms/frame"),
+        nFrames, dTotalMs, dTotalMs / (double)nFrames);
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestRestore(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    pListCtrl->SetEnableRefresh(false);
+    pListCtrl->DeleteAllColumns();
+    pListCtrl->DeleteAllDataItems();
+    InsertItemData(400, 9, (int32_t)m_imageId);
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+    m_bStressDataLoaded = false;
 }
 
 void MainForm::TestListCtrlLoading(ui::ListCtrl* pListCtrl)

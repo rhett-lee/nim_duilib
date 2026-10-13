@@ -44,6 +44,8 @@
 
 > 用户反馈的"删几百行要等秒级"正是第 1 条瓶颈所致。Phase 1 即可消除。
 
+> **实测对照（x64 Release，10 万行 × 10 列）**：现状基线测得"删 500 行 = **615.9 ms**"（对应上表"数百 ms"）、"删单行 = **1.232 ms**"、中间插 1000 行 = **605.7 ms**、排序整表 = **76.7 ms**、滚动重绘 = **15.529 ms/帧**，与上表估算吻合。完整现状基线数据见 [§10 实施记录](#10-实施记录)。
+
 ---
 
 ## 2. 目标架构：身份与位置分离
@@ -150,13 +152,13 @@
 
 ## 5. 分阶段实施（每阶段独立验收、可回退）
 
-### Phase 0 — 基线与护栏（不改架构）
-- 在 `examples/ListCtrl` 增加"压力测试"面板：**批量插入 10 万行 / 中间插入 / 删除 500 行 / 排序 / 滚动绘制**，用 `QueryPerformanceCounter` 打印耗时。
-- 采集**现状基线**（记录到本文件），作为后续对比依据。
-- 增加 `_DEBUG` 断言函数 `AssertDataConsistency()`（可先对旧模型做等价校验，作为回归网）。
+### Phase 0 — 基线与护栏（不改架构）✅ 面板、现状基线与 Phase 1 后数据均已留档（2026-10-13）
+- 在 `examples/ListCtrl` 增加"压力测试"面板：**批量插入 10 万行 / 中间插入 / 删除 500 行 / 排序 / 滚动绘制**，用 `QueryPerformanceCounter` 打印耗时。（**✅ 已落地**，见 §10）
+- 采集**现状基线**（记录到本文件），作为后续对比依据。（**✅ 重构前现状基线与 Phase 1 后实测数据均已按 x64 Release 手动采集并留档**，见 §10）
+- 增加 `_DEBUG` 断言函数 `AssertDataConsistency()`（可先对旧模型做等价校验，作为回归网）。（**✅ 已随 Phase 1 落地**）
 - **验收**：基线数据留档；断言函数可运行。
 
-### Phase 1 — 身份/位置分离（**解决增删改性能**，不动单元格形态）
+### Phase 1 — 身份/位置分离（**解决增删改性能**，不动单元格形态）✅ 已完成并通过性能验收（2026-10-13）
 - 引入 `RowId`、`m_nextRowId`、`m_displayOrder`；列池与行属性池改为**按 RowId 索引**（仍用 `shared_ptr`）。
 - 改写 §4 表中所有接口的内部实现；`m_nSelectedIndex → m_nSelectedRowId`。
 - **不动内存形态**，因此风险聚焦在"索引换算"上，便于定位。
@@ -231,3 +233,103 @@
 2. 分页页大小 `kPageCells` 取值（建议 64；需要时再调）。
 3. 批量删除接口是否作为公开 API 暴露（`DeleteDataItems(vector<size_t>)`），还是仅内部优化。
 4. 是否需要 Phase 4 的行优先绘制缓存（取决于 Phase 1/2 后的实测）。
+
+---
+
+## 10. 实施记录
+
+### Phase 1 — 身份/位置分离（已完成）
+
+**状态**：已完成并通过编译验证（VS2022 MSBuild，`build/examples.sln` Debug|x64，0 错误）。
+
+**核心改动**（`ListCtrlData.h` / `ListCtrlData.cpp`）：
+
+- 新增行身份 `typedef uint32_t RowId;` 与哨兵 `kInvalidRowId = 0xFFFFFFFF`；成员 `m_nextRowId` 单调递增，删除不复用。
+- 新增显示顺序表 `std::vector<RowId> m_displayOrder;`，作为**唯一**随增/删/改/排序变动的结构（4B/元素）。
+- 列数据池 `m_dataMap`（`columnId → vector<shared_ptr<Storage>>`）与行属性池 `m_rowDataList` 改为**按 RowId 索引**；删除行时列池槽位置空指针墓碑、行属性槽位重置为默认值墓碑（append-only，不搬移）。
+- `m_nSelectedIndex(size_t)` → `m_nSelectedRowId(RowId)`，单选状态记录行身份，排序/增删后自动跟随对应行。
+- 新增内部辅助：`GetRowIdByDisplayIndex` / `GetDisplayIndexByRowId` / `AllocRowId` / `FreeRowId`；新增公开访问器 `GetDisplayItemData(size_t)`（替代原 `GetItemDataList()`，返回行属性指针）。
+- 结构性操作后调用 `AssertDataConsistency()`（`#ifdef _DEBUG` 内校验：排列性、列池/行属性池长度=`m_nextRowId`、单选有效、三个计数一致）。
+
+**性能关键改动**：
+
+- `InsertDataItem` / `DeleteDataItem`：只改 `m_displayOrder`（insert/erase，4B 搬移）+ 目标行 O(C) 标记，**不再对每列做整列 `vector::insert/erase`**。
+- `SortDataItems`：只对 `m_displayOrder` 排序（比较时按 RowId 读排序列），**彻底去掉"每列整列深拷贝写回"**。
+
+**受影响消费方**：`ListCtrlReportView.cpp` 中 6 处 `GetItemDataList()` 使用点改为 `GetDataItemCount()` + `GetDisplayItemData(index)`（含框选 `SetSelectedElements` 前的行高/可见性扫描）。`ListCtrl.cpp` 对外 API 以显示索引为参数、行为不变，未改动。
+
+### Phase 0 — 压力测试面板（已落地）
+
+**状态**：面板与代码已落地并通过编译验证（VS2022 MSBuild，`build/examples.sln` Debug|x64，0 错误，仅既有 LNK4099 PDB 警告）；基线数据待运行采集后回填。
+
+**改动文件**：
+
+- `examples/ListCtrl/MainForm.h` / `MainForm.cpp`：新增压力测试面板的 7 个方法（`InitStressTest` / `StressTestLoad` / `StressTestInsert` / `StressTestDelete` / `StressTestSort` / `StressTestRepaint` / `StressTestRestore`）与成员 `m_bStressDataLoaded`；新增匿名命名空间计时助手 `GetPerfTick()` / `PerfTickToMs()`（Windows 走 `QueryPerformanceCounter` / `QueryPerformanceFrequency`，其他平台退化为 `std::chrono::steady_clock`）；在 `OnInitWindow()` 中调用 `InitStressTest(pListCtrl)` 绑定 6 个按钮。
+- `bin/resources/themes/default/list_ctrl/list_ctrl.xml`：新增全宽"压力测试"分组行（`GroupVBox` + 6 个 `btn_global` 按钮）。
+- `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt`：新增 8 个 `STRID_LISTCTRL_STRESS_*` 文案。
+
+**面板按钮与测量口径**：
+
+| 按钮 | text_id | 操作 | 计时口径 |
+|------|---------|------|---------|
+| 载入压测数据 | `STRID_LISTCTRL_STRESS_LOAD` | `DeleteAllColumns`+`DeleteAllDataItems` → 插 10 列 → `SetDataItemCount(100000)` → 逐格 `SetSubItemData` | 三段分别计时（插列 / 设行数 / 填单元格）+ 总耗时；数据操作期间 `SetEnableRefresh(false)` 隔离绘制噪声 |
+| 中间插入1000行 | `STRID_LISTCTRL_STRESS_INSERT` | 在 `GetDataItemCount()/2` 处循环 `InsertDataItem` 1000 行 | 总耗时 + 单行均值（触发中间位置搬移） |
+| 删除500行 | `STRID_LISTCTRL_STRESS_DELETE` | 在 `GetDataItemCount()/2` 处循环 `DeleteDataItem` 500 行 | 总耗时 + 单行均值（触发中间位置搬移） |
+| 排序 | `STRID_LISTCTRL_STRESS_SORT` | `SortDataItems(0, true)` 整表按第 1 列升序 | 总耗时 + 返回值 |
+| 滚动重绘 | `STRID_LISTCTRL_STRESS_REPAINT` | 20 帧，每帧 `EnsureDataItemVisible(index, true)` 置顶后 `Refresh(true)` 同步重绘 | 总耗时 + 单帧均值（含绘制） |
+| 还原演示数据 | `STRID_LISTCTRL_STRESS_RESTORE` | 清空后 `InsertItemData(400, 9, imageId)` 回到初始演示态 | 无（退出压测态） |
+
+**基线数据采集说明**：
+
+- **现状基线（重构前）**已在独立构建（**x64 Release**）上手动采集，见下表——这是后续所有改进的对比基准。
+- 运行 `bin/ListCtrl_d.exe` → 点击面板按钮，即可得到 **Phase 1 后**的实测数据：既用于校验 Phase 1 验收门槛（10 万行×10 列：中间插/删单行 < 5 ms；删 500 行 < 100 ms；排序 < 300 ms；绘制不劣化），也作为 **Phase 2 / Phase 3** 的对比基线。
+- 按钮每次点击弹出结果消息框（标题"压力测试"），记录 Total / Average / 分阶段耗时。
+
+**现状基线（重构前，x64 Release，手动采集，10 万行 × 10 列）**：
+
+| 阶段 / 操作 | 实测耗时 |
+|------|---------|
+| 载入：插入 10 列（`InsertColumn`） | 0.3 ms |
+| 载入：`SetDataItemCount(100000)` | 3.9 ms |
+| 载入：填充 100 万单元格（`SetSubItemData`） | 1163.9 ms |
+| 载入合计 | 1168.1 ms |
+| 中间插入 1000 行（`InsertDataItem`） | 605.7 ms（0.606 ms/行） |
+| 中间删除 500 行（`DeleteDataItem`） | 615.9 ms（1.232 ms/行） |
+| 排序（整表，第 1 列升序，`SortDataItems`） | 76.7 ms |
+| 滚动重绘（`EnsureDataItemVisible` + `Refresh(true)`，20 帧） | 310.6 ms（15.529 ms/帧） |
+
+> 与 §1 的理论估算对照：现状"删 500 行"实测 **615.9 ms**（理论估"数百 ms"），"删单行"实测 **1.232 ms**，与估算一致；§1 的 11 MB / 5.5 GB 为搬移字节量的理论值，此处为端到端耗时实测值。
+
+**Phase 1 后实测数据（10 万行 × 10 列，x64 Release，手动采集）**：
+
+| 指标 | 验收门槛 | 现状基线（Release） | Phase 1 后（Release） | 改善 |
+|------|---------|------------------|--------------------|------|
+| 载入：插 10 列（`InsertColumn`） | — | 0.3 ms | 0.3 ms | 持平 |
+| 载入：`SetDataItemCount(100000)` | — | 3.9 ms | 23.2 ms | ⚠ 慢 5.9× |
+| 载入：填充 100 万单元格（`SetSubItemData`） | — | 1163.9 ms | 1425.8 ms | ⚠ 慢 22% |
+| 载入合计 | — | 1168.1 ms | 1449.3 ms | ⚠ 慢 24% |
+| 中间插入单行 | < 5 ms | 0.606 ms | 0.068 ms | ✅ 快 8.9× |
+| 中间插入 1000 行 | — | 605.7 ms | 68.1 ms | ✅ 快 8.9× |
+| 中间删除单行 | < 5 ms | 1.232 ms | 0.113 ms | ✅ 快 10.9× |
+| 删除 500 行 | < 100 ms | 615.9 ms | 56.4 ms | ✅ 快 10.9× |
+| 排序（整表） | < 300 ms | 76.7 ms | 31.5 ms | ✅ 快 2.4× |
+| 滚动重绘单帧 | ≤ 现状 | 15.529 ms/帧 | 13.020 ms/帧 | ✅ 快 19% |
+
+**Phase 1 验收结论**：✅ **通过**。
+
+- 中间插 / 删单行 **0.068 / 0.113 ms** ≪ 5 ms；
+- 删 500 行 **56.4 ms** < 100 ms（较基线提速 **10.9×**）；
+- 排序 **31.5 ms** < 300 ms（提速 **2.4×**）；
+- 绘制**不劣化**：**13.020 ms/帧 ≤ 基线 15.529 ms/帧**（提速 19%）——满足"绘制快（最高优先）"硬约束；
+- 中间增删改吞吐大幅提升，满足"中间增删改不降级"硬约束。
+
+**观察（载入路径轻微回退，留待 Phase 2/3 关注）**：
+
+- `SetDataItemCount(100000)` 由 **3.9 ms → 23.2 ms**（慢 ~5.9×），填充 100 万单元格由 **1163.9 → 1425.8 ms**（慢 ~22%），载入合计慢 ~24%。
+- 疑似原因（待核实）：Phase 1 按 RowId 物化 `m_displayOrder` 与行属性池后，`SetDataItemCount` 需按 `m_nextRowId` 填充 / 增长 `m_displayOrder`；单格写入多了一次 `row → RowId` 间接寻址。属**一次性载入开销**，不影响"绘制 / 增删改"两条最高优先级路径，可留待 Phase 2（值存储）一并评估优化。
+
+**待办**：
+
+1. Phase 2（连续分页存储，达成内存下降 ≥20%）尚未实施；可一并评估上述载入路径回退。
+2. Phase 3（批量删除 + 存储压缩）尚未实施。
+

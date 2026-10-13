@@ -89,7 +89,7 @@ Todo (phase 2): the date mode `kSortByTextAsDate` is not yet implemented (it can
 
 | # | Item | Status | Description |
 |---|------|--------|-------------|
-| P1 | Heap-allocation overhead of cell storage | To evaluate | In the data model `ListCtrlData`, cell storage uses `std::shared_ptr` (`StoragePtr` / `StoragePtrList` / `StorageMap`), i.e. each cell is a separate heap allocation, actually ~130B+ per cell on x64; at large scale this leads to noticeable memory use, allocation overhead and fragmentation. Consider contiguous per-column storage (`std::vector<ListCtrlSubItemData2>`) or splitting sparse fields (progress / rich text) into an SoA layout, expected to save 30%+ of memory |
+| P1 | Heap-allocation overhead of cell storage | In progress (Phase 1 done, perf acceptance passed) | In the data model `ListCtrlData`, cell storage uses `std::shared_ptr` (`StoragePtr` / `StoragePtrList` / `StorageMap`), i.e. each cell is a separate heap allocation, actually ~130B+ per cell on x64; at large scale this leads to noticeable memory use, allocation overhead and fragmentation. Consider contiguous per-column storage (`std::vector<ListCtrlSubItemData2>`) or splitting sparse fields (progress / rich text) into an SoA layout, expected to save 30%+ of memory. The storage refactor has started (design: [ListCtrl存储重构设计方案.md](misc/ListCtrl存储重构设计方案.md)): **Phase 1 "identity/position split" is done** (introducing `RowId` + `m_displayOrder`, with the column/row-attribute pools indexed by RowId), removing the O(N×C) shifting on middle insert/delete and the full-column deep copy on sort; **Phase 2 "contiguous paged storage" pending**, which will deliver the memory reduction target above; **Phase 0 "stress test panel" delivered** (`examples/ListCtrl`, 100k-row benchmark, see design doc §10) to collect performance baselines and verify each phase's acceptance gates; **Phase 1 performance acceptance passed** (100k×10, x64 Release measured: delete 500 rows 615.9→56.4 ms, insert 1000 rows 605.7→68.1 ms, sort 76.7→31.5 ms, scroll repaint 15.529→13.020 ms/frame, painting not degraded; the load path regressed slightly ~24%, deferred to Phase 2) |
 | P2 | Column-major storage vs. row-major access traversal overhead | To evaluate | Data is organized by column (column ID to a row list) while painting / filling accesses it row-major; `GetSubItemStorageList(itemIndex)` gathers across N columns and builds a temporary container, causing extra traversal. Consider a row-major cache or a row-major layout with a column index |
 | P3 | Maximum horizontal scroll range with frozen columns | To verify | Whether the maximum horizontal scroll range already subtracts the frozen-column width (to avoid the last column being covered by the frozen columns / a blank strip at the end of the scroll). The horizontal extent calculation in `ListCtrlReportView` (`EstimateLayoutSize` / `CalcEstimateSize`) shows no explicit frozen-width deduction, so it needs hands-on verification |
 | P4 | Re-arrange on every paint | To evaluate | `ListCtrlReportView::PaintChild` calls `ReArrangeChild(false)` on every paint, and in the frozen-column case each control is painted twice; re-arranging can be skipped when the size / data has not changed |
@@ -136,7 +136,7 @@ Architectural items:
 
 | # | Item | Status |
 |---|------|--------|
-| 10 | Cell storage to contiguous memory (drop the per-cell `shared_ptr`), also improving row-access locality | To evaluate (P1 / P2) |
+| 10 | Cell storage to contiguous memory (drop the per-cell `shared_ptr`), also improving row-access locality | In progress (identity/position split Phase 1 done; contiguous storage Phase 2 pending) |
 | 11 | Converge frozen columns from "two-pass paint + hit-test compensation" into a unified coordinate transform to avoid recurring bugs | To evaluate (A1; scroll-range scope see P3) |
 | 12 | Multi-level header / row group collapse / in-table tree / cell merge (requires header and row layout model upgrade) | Missing (A2, architectural) |
 
@@ -160,7 +160,7 @@ Architectural items:
 | L3 | Row filtering / header filters | Todo |
 | L4 | Custom cell renderer | Todo |
 | L5 | Cell-level editors (dropdown / date / numeric) | Todo |
-| P1 | Cell storage heap-allocation overhead (contiguous memory / SoA) | To evaluate |
+| P1 | Cell storage heap-allocation overhead (contiguous memory / SoA) | In progress (Phase 1 done, perf acceptance passed) |
 | P2 | Column storage vs. row-major access overhead | To evaluate |
 | P3 | Horizontal scroll range with frozen columns (frozen width deducted?) | To verify |
 | P4 | Re-arrange on every paint (`ReArrangeChild`) | To evaluate |

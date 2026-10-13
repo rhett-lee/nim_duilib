@@ -215,12 +215,15 @@ size_t ListCtrlReportView::GetTopDataItemIndex(int64_t nScrollPosY) const
     if (pDataProvider == nullptr) {
         return itemIndex;
     }
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
-    const size_t dataItemCount = itemDataList.size();
+    const size_t dataItemCount = pDataProvider->GetDataItemCount();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = rowData.nItemHeight;
         if (nItemHeight < 0) {
             //取默认行高
@@ -252,12 +255,10 @@ int32_t ListCtrlReportView::GetDataItemHeight(size_t itemIndex) const
     if (pDataProvider == nullptr) {
         return 0;
     }
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
-    ASSERT(itemIndex < itemDataList.size());
-    if (itemIndex < itemDataList.size()) {
-        if (itemDataList[itemIndex].nItemHeight >= 0) {
-            nItemHeight = itemDataList[itemIndex].nItemHeight;
-        }        
+    const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(itemIndex);
+    ASSERT(pRowData != nullptr);
+    if ((pRowData != nullptr) && (pRowData->nItemHeight >= 0)) {
+        nItemHeight = pRowData->nItemHeight;
     }
     return nItemHeight;
 }
@@ -298,12 +299,15 @@ void ListCtrlReportView::GetDataItemsToShow(int64_t nScrollPosY, size_t maxCount
     };
     std::vector<AlwaysAtTopData> alwaysAtTopItemList;
     
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
-    const size_t dataItemCount = itemDataList.size();
+    const size_t dataItemCount = pDataProvider->GetDataItemCount();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -391,12 +395,15 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
     std::vector<AlwaysAtTopData> alwaysAtTopItemList;
     std::vector<size_t> itemIndexList;
 
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
-    const size_t dataItemCount = itemDataList.size();
+    const size_t dataItemCount = pDataProvider->GetDataItemCount();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -446,8 +453,11 @@ int32_t ListCtrlReportView::GetMaxDataItemsToShow(int64_t nScrollPosY, int32_t n
         if (index >= dataItemCount) {
             continue;
         }
-        const ListCtrlItemData& rowData = itemDataList[index];
-        nItemHeight = rowData.nItemHeight;
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        nItemHeight = pRowData->nItemHeight;
         if (nItemHeight < 0) {
             //取默认行高
             nItemHeight = nDefaultItemHeight;
@@ -485,12 +495,15 @@ int64_t ListCtrlReportView::GetDataItemTotalHeights(size_t itemIndex, bool bIncl
         return 0;
     }
     const int32_t nDefaultItemHeight = m_pListCtrl->GetDataItemHeight(); //默认行高
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;
-    const size_t dataItemCount = itemDataList.size();
+    const size_t dataItemCount = pDataProvider->GetDataItemCount();
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -1529,8 +1542,7 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
     if (pDataProvider == nullptr) {
         return false;
     }
-    const ListCtrlData::RowDataList& itemDataList = pDataProvider->GetItemDataList();
-    const size_t dataItemCount = itemDataList.size();
+    const size_t dataItemCount = pDataProvider->GetDataItemCount();
     if (dataItemCount == 0) {
         return false;
     }
@@ -1543,7 +1555,11 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
     int64_t totalItemHeight = 0;
     int32_t nItemHeight = 0;    
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过
@@ -1566,7 +1582,11 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
         bottom = 0;
     }
     for (size_t index = 0; index < dataItemCount; ++index) {
-        const ListCtrlItemData& rowData = itemDataList[index];
+        const ListCtrlItemData* pRowData = pDataProvider->GetDisplayItemData(index);
+        if (pRowData == nullptr) {
+            continue;
+        }
+        const ListCtrlItemData& rowData = *pRowData;
         nItemHeight = (rowData.nItemHeight < 0) ? nDefaultItemHeight : rowData.nItemHeight;
         if (!rowData.bVisible || (nItemHeight == 0)) {
             //不可见的，跳过

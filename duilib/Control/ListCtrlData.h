@@ -19,9 +19,18 @@ public:
     //用于存储的数据结构
     typedef ListCtrlSubItemData2 Storage;
     typedef std::shared_ptr<Storage> StoragePtr;
-    typedef std::vector<StoragePtr> StoragePtrList;
+    typedef std::vector<StoragePtr> StoragePtrList;         //列数据池：按行身份(RowId)索引
     typedef std::unordered_map<size_t, StoragePtrList> StorageMap;
-    typedef std::vector<ListCtrlItemData> RowDataList;
+    typedef std::vector<ListCtrlItemData> RowDataList;      //行属性池：按行身份(RowId)索引
+
+    /** 行身份：行的唯一标识，单调递增、删除后不复用
+        用于把"行的身份"与"行的物理位置"解耦：增删改只重排显示顺序表，数据本体不搬移
+    */
+    typedef uint32_t RowId;
+
+    /** 无效的行身份
+    */
+    static constexpr RowId kInvalidRowId = static_cast<RowId>(0xFFFFFFFF);
 
 public:
     ListCtrlData();
@@ -601,10 +610,33 @@ private:
     */
     bool GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlSubItemData2Pair>& subItemList) const;
 
-public:
-    /** 获取行属性数据
+    /** 显示索引 → 行身份；索引无效时返回 kInvalidRowId
     */
-    const RowDataList& GetItemDataList() const;
+    RowId GetRowIdByDisplayIndex(size_t itemIndex) const;
+
+    /** 行身份 → 显示索引；未找到时返回 Box::InvalidIndex
+    */
+    size_t GetDisplayIndexByRowId(RowId rowId) const;
+
+    /** 分配一个新的行身份，并让各列数据池与行属性池增长到该位置
+    * @return 返回新分配的行身份
+    */
+    RowId AllocRowId();
+
+    /** 释放一个行身份关联的数据（列池置墓碑、行属性重置），并修正计数与单选状态
+    */
+    void FreeRowId(RowId rowId);
+
+    /** 检查内部数据的一致性（仅在Debug编译下进行断言检查）
+    */
+    void AssertDataConsistency() const;
+
+public:
+    /** 获取指定显示位置的数据项行属性（按显示顺序访问）
+    * @param [in] itemIndex 数据项的显示索引号, 有效范围：[0, GetDataItemCount())
+    * @return 返回行属性数据的指针，索引无效时返回nullptr；该指针在下次数据变更前有效
+    */
+    const ListCtrlItemData* GetDisplayItemData(size_t itemIndex) const;
 
     /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
     */
@@ -653,13 +685,22 @@ private:
     */
     bool m_bAutoCheckSelect;
 
-    /** 数据，按列保存，每个列一个数组
+    /** 数据，按列保存，每个列一个数组；数组按行身份(RowId)索引（删除某行时该槽位置为空指针墓碑）
     */
     StorageMap m_dataMap;
 
-    /** 行的属性数据
+    /** 行的属性数据，按行身份(RowId)索引（删除某行时该槽位重置为默认值墓碑）
     */
     RowDataList m_rowDataList;
+
+    /** 显示顺序表：m_displayOrder[i] 表示当前第i个显示位置对应的行身份
+        是唯一随增/删/改/排序变动的结构（每个元素仅4字节），数据本体不随之搬移
+    */
+    std::vector<RowId> m_displayOrder;
+
+    /** 下一个可分配的行身份（单调递增，删除后不复用）
+    */
+    RowId m_nextRowId;
 
     /** 外部设置的排序函数
     */
@@ -685,9 +726,9 @@ private:
     */
     bool m_bMultiSelect;
 
-    /** 单选的时候，选择的元素索引号
+    /** 单选的时候，选中的元素行身份（无效时为 kInvalidRowId）
     */
-    size_t m_nSelectedIndex;
+    RowId m_nSelectedRowId;
 
     /** 当前默认的文本属性
     */
