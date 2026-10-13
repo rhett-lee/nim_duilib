@@ -1521,6 +1521,87 @@ void ShowFlyout(ui::Control* pAnchor)
 
 完整演示见controls示例（"浮层"分组，4个方位按钮）与ColorTheme示例。
 
+## Mask的属性
+Mask（遮罩/蒙版层）是继承自`Box`的容器控件（XML节点为`Mask`），用于覆盖在其它控件之上形成半透明蒙层，覆盖弹层体系的三种典型场景：
+
+- **模态对话框背景遮罩**：蒙层铺满整个区域并拦截鼠标输入（默认`mouse_enabled=true`），使下层控件不可交互；
+- **新手引导蒙层**：用`highlight_control`在蒙层上"镂空"高亮某个控件，其余区域保持半透明；配合`click_through="true"`，镂空区域内的点击可穿透到目标控件，引导用户点击；
+- **加载遮罩**：蒙层覆盖内容区并拦截交互，可在蒙层上放置任意子控件（加载动画、提示文案、按钮等）。
+
+Mask 本质是容器，可以在其上继续放置任意子控件。作为浮动覆盖层使用时，建议配置`float="true" width="stretch" height="stretch"`（框架内置的`mask` Class 已包含该配置），并作为父容器的最后一个子节点（或配合`paint_order`），以保证绘制在最上层、命中测试优先命中。
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| mask_color | String | 语义色`bg_overlay` | 蒙层颜色（语义色名或颜色值）；为空表示不绘制蒙层底色 |
+| highlight_control | String | 空 | 需要镂空(高亮)的控件名称（在整个窗口内按名称查找，目标控件可以是 Mask 之外的任意控件）；为空表示不镂空，整块区域均为蒙层 |
+| highlight_padding | int | 4 | 镂空区域相对高亮控件的内边距（DPI自适应） |
+| highlight_corner | int | 0 | 镂空区域的圆角半径（DPI自适应） |
+| click_through | bool | false | 镂空区域内的鼠标点击是否穿透到下层控件；通常配合`highlight_control`用于新手引导 |
+
+> 提示：`mouse_enabled`（继承自容器基类）控制是否拦截鼠标，默认`true`即为模态遮罩；设为`false`则表示"仅视觉遮挡、不拦截鼠标"。
+
+### C++接口
+
+| 方法 | 说明 |
+|------|------|
+| `SetMaskColor(strColor)` / `GetMaskColor()` | 设置/获取蒙层颜色（语义色名） |
+| `SetHighlightControl(strName)` / `GetHighlightControl()` | 设置/获取需要镂空(高亮)的控件名称 |
+| `SetHighlightPadding(nPadding)` / `GetHighlightPadding()` | 设置/获取镂空区域内边距（DPI自适应） |
+| `SetHighlightCorner(nCorner)` / `GetHighlightCorner()` | 设置/获取镂空区域圆角半径（DPI自适应） |
+| `SetClickThrough(bool)` / `IsClickThrough()` | 设置/获取镂空区域内点击是否穿透到下层控件 |
+| `Mask::ShowOverWindow(pWindow)`（静态） | 便捷接口：在指定窗口上覆盖一个铺满整窗、拦截鼠标的遮罩，返回遮罩指针（失败返回`nullptr`） |
+| `Remove()` | 从父容器中移除本遮罩（若父容器自动销毁子控件，调用后本对象即被销毁，不可再访问） |
+
+### XML使用示例
+
+```xml
+<!-- ① 模态遮罩：铺满父容器、拦截鼠标；蒙层内放置一个居中的模态卡片 -->
+<Mask class="mask">
+    <VBox bkcolor="bg_window_card" border_round="6,6" float="true" halign="center" valign="center"
+          width="300" height="170" padding="20,20,20,20">
+        <Label text_id="STRID_MASK_MODAL_TITLE" width="stretch" height="auto" font="system_bold_14"/>
+        <Button class="btn_global_blue_80x30" name="mask_modal_close" text_id="STRID_MASK_CLOSE"
+                float="true" halign="center" valign="bottom" width="90" height="30" border_round="3,3"/>
+    </VBox>
+</Mask>
+
+<!-- ② 新手引导蒙层：镂空高亮 btn_guide_target，镂空区域内点击可穿透到该按钮 -->
+<Mask class="mask" highlight_control="btn_guide_target" highlight_padding="6" highlight_corner="6"
+      click_through="true">
+    <Label text="点击高亮的按钮继续" float="true" halign="center" valign="bottom"
+           width="auto" height="auto" margin="0,0,0,60"/>
+</Mask>
+
+<!-- ③ 加载遮罩：覆盖内容区并拦截交互，蒙层内放置加载动画 -->
+<Mask class="mask" visible="false">
+    <VBox float="true" halign="center" valign="center" width="220" height="70">
+        <Progress class="progress_horizontal" marquee="true" marquee_width="60" height="6"/>
+        <Label text="加载中，请稍候..." width="stretch" height="auto" margin="0,16,0,0" text_align="center"/>
+    </VBox>
+</Mask>
+```
+
+### C++使用示例
+
+```cpp
+// 程序化在整个窗口上覆盖一个遮罩（默认蒙层色 bg_overlay、拦截鼠标）
+ui::Mask* pMask = ui::Mask::ShowOverWindow(this);
+if (pMask != nullptr) {
+    // 追加内容：在蒙层中央放置提示文案
+    ui::Label* pLabel = new ui::Label(this);
+    pLabel->SetText(_T("Loading..."));
+    pLabel->SetFloat(true);
+    pLabel->SetHorAlignType(ui::HorAlignType::kAlignCenter);
+    pLabel->SetVerAlignType(ui::VerAlignType::kAlignCenter);
+    pMask->AddItem(pLabel);
+
+    // 不再需要时移除（若父容器开启自动销毁子控件，Remove 后对象即被销毁）
+    // pMask->Remove();
+}
+```
+
+完整演示见controls示例（"遮罩/蒙版"分组：模态遮罩 / 新手引导 / 加载遮罩三个按钮）。
+
 ## RichText的属性
 RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`</RichText>`结尾。    
 举例：`<RichText>格式文本演示：<a href="URL">文本</a></RichText>`    

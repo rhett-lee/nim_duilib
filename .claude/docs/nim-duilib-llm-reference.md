@@ -338,6 +338,12 @@ C++：`Flyout(Window*)` → `SetSkinFolder(path)`（默认父窗口 GetResourceP
 内容 XML：`<Window size="240,210" caption="0,0,0,0" use_system_caption="false" shadow_type="default" shadow_attached="true" layered_window="true" size_box="0,0,0,0">`，固定 DIP 尺寸（内容超出会画进阴影区）。皮肤类 `flyout`（240 宽 bg_window_card/border_window/圆角8/padding12）、`flyout_title`（bold14）、`flyout_desc`（regular12 text_muted 多行）。
 ShowAt 成功后再 `FindControl` 绑事件；同锚点切换关闭由调用方比较 `GetActiveFlyout()->GetAnchor()`；外部点击检测仅 Windows（50ms 轮询），非 Win 平台 SetNoFocus(false)；锚点在滚动容器内自动扣除累计滚动偏移；父窗口 OpenColorTheme 私有颜色主题自动继承（Window::GetColorThemeXmlData）。
 
+### Mask 属性(继承 Box，遮罩/蒙版层)
+`duilib/Control/Mask.h`，XML 节点 `Mask`。模态遮罩/新手引导蒙层/加载遮罩；半透明蒙层 + 可镂空高亮指定控件 + 镂空区域内点击穿透。跨平台通用。
+属性：`mask_color`（`bg_overlay`）、`highlight_control`（空，在整个窗口内按名称查找目标控件）、`highlight_padding`（4，DPI 自适应）、`highlight_corner`（0）、`click_through`（false）。`mouse_enabled` 默认 true 拦截鼠标（模态），false 为仅视觉遮挡。
+皮肤类 `mask`（`float="true" width="stretch" height="stretch" mask_color="bg_overlay"`）；作为覆盖层时置于父容器最后一个子节点（或配 `paint_order`）。蒙层内可放任意子控件（模态卡片用 `float="true" halign="center" valign="center"` 居中；加载遮罩放 marquee `Progress`）。
+C++：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightControl`、`SetHighlightPadding/GetHighlightPadding`、`SetHighlightCorner/GetHighlightCorner`、`SetClickThrough/IsClickThrough`；静态 `Mask::ShowOverWindow(Window*)`、`Remove()`。示例：`<Mask class="mask" highlight_control="btn_guide" highlight_padding="6" highlight_corner="6" click_through="true"/>`。
+
 ### Progress 属性(继承 Label)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|

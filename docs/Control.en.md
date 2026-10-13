@@ -1521,6 +1521,87 @@ Remarks:
 
 See the controls demo (the "Flyout" group with 4 placement buttons) and the ColorTheme demo for complete examples.
 
+## Mask Attributes
+Mask (the mask/overlay layer) is a container control derived from `Box` (XML node `Mask`) used to overlay a semi-transparent mask on top of other controls. It covers three typical popup-system scenarios:
+
+- **Modal-dialog background dimming**: the mask fills the whole area and blocks mouse input (default `mouse_enabled=true`), making the controls underneath non-interactive;
+- **Onboarding mask**: use `highlight_control` to "punch out" a highlight over a target control while the rest stays semi-transparent; with `click_through="true"`, clicks inside the highlight pass through to the target control to guide the user;
+- **Loading overlay**: the mask covers the content area and blocks interaction; you can place any child controls on it (loading animation, hint text, buttons, etc.).
+
+Mask is a container, so any child controls can be placed on top of it. When used as a floating overlay, configure `float="true" width="stretch" height="stretch"` (the built-in `mask` Class already does this) and place it as the last child of its parent (or use `paint_order`) so it is drawn on top and hit-tested first.
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| mask_color | String | semantic color `bg_overlay` | Mask color (semantic color name or color value); empty means no mask fill is drawn |
+| highlight_control | String | empty | Name of the control to punch out (highlight), looked up by name across the whole window (the target may be any control outside the Mask); empty means no hole — the whole area is masked |
+| highlight_padding | int | 4 | Inset of the highlight rect relative to the highlighted control (DPI-aware) |
+| highlight_corner | int | 0 | Corner radius of the highlight rect (DPI-aware) |
+| click_through | bool | false | Whether clicks inside the highlight pass through to the control underneath; typically used with `highlight_control` for onboarding |
+
+> Note: `mouse_enabled` (inherited from the container base) controls whether the mask blocks the mouse; the default `true` makes it a modal mask, while `false` means "visual dimming only, mouse not blocked".
+
+### C++ API
+
+| Method | Description |
+|--------|-------------|
+| `SetMaskColor(strColor)` / `GetMaskColor()` | Set/get the mask color (semantic color name) |
+| `SetHighlightControl(strName)` / `GetHighlightControl()` | Set/get the name of the control to punch out |
+| `SetHighlightPadding(nPadding)` / `GetHighlightPadding()` | Set/get the highlight inset (DPI-aware) |
+| `SetHighlightCorner(nCorner)` / `GetHighlightCorner()` | Set/get the highlight corner radius (DPI-aware) |
+| `SetClickThrough(bool)` / `IsClickThrough()` | Set/get whether clicks inside the highlight pass through |
+| `Mask::ShowOverWindow(pWindow)` (static) | Convenience API: overlay a full-window, mouse-blocking mask on the given window; returns the mask pointer (or `nullptr` on failure) |
+| `Remove()` | Detach this mask from its parent (if the parent auto-destroys children, the object is destroyed right after the call and must not be accessed again) |
+
+### XML example
+
+```xml
+<!-- (1) Modal mask: fills the parent and blocks the mouse; a centered card is placed on the mask -->
+<Mask class="mask">
+    <VBox bkcolor="bg_window_card" border_round="6,6" float="true" halign="center" valign="center"
+          width="300" height="170" padding="20,20,20,20">
+        <Label text_id="STRID_MASK_MODAL_TITLE" width="stretch" height="auto" font="system_bold_14"/>
+        <Button class="btn_global_blue_80x30" name="mask_modal_close" text_id="STRID_MASK_CLOSE"
+                float="true" halign="center" valign="bottom" width="90" height="30" border_round="3,3"/>
+    </VBox>
+</Mask>
+
+<!-- (2) Onboarding mask: punch out a highlight over btn_guide_target; clicks inside it pass through -->
+<Mask class="mask" highlight_control="btn_guide_target" highlight_padding="6" highlight_corner="6"
+      click_through="true">
+    <Label text="Click the highlighted button to continue" float="true" halign="center" valign="bottom"
+           width="auto" height="auto" margin="0,0,0,60"/>
+</Mask>
+
+<!-- (3) Loading overlay: covers the content area and blocks interaction; a loading animation is placed on it -->
+<Mask class="mask" visible="false">
+    <VBox float="true" halign="center" valign="center" width="220" height="70">
+        <Progress class="progress_horizontal" marquee="true" marquee_width="60" height="6"/>
+        <Label text="Loading..." width="stretch" height="auto" margin="0,16,0,0" text_align="center"/>
+    </VBox>
+</Mask>
+```
+
+### C++ example
+
+```cpp
+// Programmatically overlay a mask on the whole window (default color bg_overlay, blocks the mouse)
+ui::Mask* pMask = ui::Mask::ShowOverWindow(this);
+if (pMask != nullptr) {
+    // Append content: a hint label at the center of the mask
+    ui::Label* pLabel = new ui::Label(this);
+    pLabel->SetText(_T("Loading..."));
+    pLabel->SetFloat(true);
+    pLabel->SetHorAlignType(ui::HorAlignType::kAlignCenter);
+    pLabel->SetVerAlignType(ui::VerAlignType::kAlignCenter);
+    pMask->AddItem(pLabel);
+
+    // Remove when no longer needed (if the parent auto-destroys children, the object is destroyed)
+    // pMask->Remove();
+}
+```
+
+See the controls demo (the "Mask / Overlay" group with three buttons: modal mask / onboarding / loading mask) for a complete example.
+
 ## Attributes of RichText
 RichText is formatted text whose format is similar to HTML tags; the formatted text starts with `<RichText>` and ends with `</RichText>`.    
 Example: <RichText>RichText demo: <a href="URL">text</a></RichText>    

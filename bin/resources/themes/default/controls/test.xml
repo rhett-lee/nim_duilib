@@ -31,6 +31,12 @@
                 <GroupHBox height="80" width="auto" margin="6,6,6,6" text="Progress" corner_size="4,4">
                     <Button class="btn_global" text="Progress Test" name="progress_btn" margin="20,30,20,0" width="140" height="30" border_round="3,3"/>
                 </GroupHBox>
+                
+                <!-- 上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu) -->
+                <GroupHBox text_id="STRID_CONTROLS_CONTEXT_MENU" height="80" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
+                            margin="20,30,20,0" width="220" height="30" border_round="3,3"/>
+                </GroupHBox>
             </HBox>
             
             <!-- TabCtrl (Badge) -->
@@ -66,11 +72,47 @@
                 </HBox>
             </GroupVBox>
 
-            <!-- 上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu) -->
-            <GroupHBox text_id="STRID_CONTROLS_CONTEXT_MENU" height="70" margin="6,6,6,6" corner_size="4,4">
-                <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
-                        margin="20,24,20,10" width="220" height="30" border_round="3,3"/>
+            <!-- 遮罩/蒙版层（Mask）：模态遮罩 / 新手引导 / 加载遮罩 -->
+            <GroupHBox text_id="STRID_CONTROLS_MASK" height="70" margin="6,6,6,6" corner_size="4,4">
+                <Button class="btn_global" name="mask_modal_btn" text_id="STRID_CONTROLS_MASK_MODAL"
+                        margin="20,24,0,10" width="120" height="30" border_round="3,3"/>
+                <Button class="btn_global" name="mask_guide_btn" text_id="STRID_CONTROLS_MASK_GUIDE"
+                        margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
+                <Button class="btn_global" name="mask_guide_target" text_id="STRID_CONTROLS_MASK_GUIDE_TARGET"
+                        margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
+                <Button class="btn_global" name="mask_loading_btn" text_id="STRID_CONTROLS_MASK_LOADING"
+                        margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
             </GroupHBox>
         </VBox>
+
+        <!-- 模态遮罩：铺满整个窗口、拦截鼠标输入，中间显示一个模态卡片 -->
+        <Mask class="mask" name="mask_modal" visible="false">
+            <VBox bkcolor="bg_window_card" border_round="6,6" float="true" halign="center" valign="center"
+                  width="300" height="170" padding="20,20,20,20">
+                <Label text_id="STRID_CONTROLS_MASK_MODAL_TITLE" width="stretch" height="auto" font="system_bold_14"/>
+                <Label text_id="STRID_CONTROLS_MASK_MODAL_DESC" width="stretch" height="auto"
+                       margin="0,12,0,0" font="system_regular_12" multi_line="true" replace_newline="true"/>
+                <Button class="btn_global_blue_80x30" name="mask_modal_close" text_id="STRID_CONTROLS_MASK_CLOSE"
+                        float="true" halign="center" valign="bottom" width="90" height="30" border_round="3,3"/>
+            </VBox>
+        </Mask>
+
+        <!-- 新手引导遮罩：镂空高亮 mask_guide_target，镂空区域内点击可穿透到该按钮。
+             这里显式指定较深的蒙层色（默认语义色 bg_overlay 在浅色主题下偏淡，镂空对比不明显） -->
+        <Mask class="mask" name="mask_guide" visible="false" mask_color="#80000000"
+              highlight_control="mask_guide_target" highlight_padding="6" highlight_corner="6" click_through="true">
+            <Label text_id="STRID_CONTROLS_MASK_GUIDE_HINT" float="true" halign="center" valign="bottom"
+                   width="auto" height="auto" margin="0,0,0,60" font="system_regular_14" text_color="#FFFFFFFF"/>
+        </Mask>
+
+        <!-- 加载遮罩：覆盖内容区并拦截交互，中间显示加载动画 -->
+        <Mask class="mask" name="mask_loading" visible="false">
+            <VBox float="true" halign="center" valign="center" width="220" height="70">
+                <Progress class="progress_horizontal" name="mask_loading_progress" marquee="true" marquee_width="60"
+                          height="6" margin="20,0,20,0"/>
+                <Label text_id="STRID_CONTROLS_MASK_LOADING_TEXT" width="stretch" height="auto"
+                       margin="0,16,0,0" text_align="center" font="system_regular_14"/>
+            </VBox>
+        </Mask>
     </VBox>
 </Window>

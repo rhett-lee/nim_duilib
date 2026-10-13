@@ -78,6 +78,7 @@
 | AutoComplete | "AutoComplete"| [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | 自动完成输入框组合控件，边输入边在编辑框下方弹出候选浮层（复用Flyout），支持前缀/包含匹配，继承Box |
 | Switch | "Switch"| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | 滑块开关控件，继承CheckBox，自带滑动动画与颜色过渡 |
 | Badge | "Badge"| [duilib/Control/Badge.h](../duilib/Control/Badge.h) | 角标控件，继承Label，未读数/小红点，数量超限显示"99+"，count<=0 自动隐藏 |
+| Mask | "Mask"| [duilib/Control/Mask.h](../duilib/Control/Mask.h) | 遮罩/蒙版层控件，用于模态遮罩/新手引导蒙层/加载遮罩，支持镂空高亮指定控件与镂空区点击穿透，继承Box |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

@@ -84,7 +84,7 @@
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
     <tr>
-        <td rowspan="39">新增控件/新增容器</td>
+        <td rowspan="40">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -125,6 +125,7 @@
     <tr><td align="left">37. Timeline：垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条）</td></tr>
     <tr><td align="left">38. TagInput：标签输入框组合控件，输入回车（或指定分隔符）生成标签，支持关闭按钮/Backspace删除、去重、最大数量限制，标签过多自动换行</td></tr>
     <tr><td align="left">39. AutoComplete：自动完成输入框组合控件，边输入边在编辑框下方弹出候选浮层（复用Flyout、不抢焦点、宽度跟随编辑框），支持前缀/包含匹配、忽略大小写、键盘上下键/回车/Esc与鼠标选择</td></tr>
+    <tr><td align="left">40. Mask：遮罩/蒙版层控件（继承Box），用于模态对话框背景遮罩、新手引导蒙层、加载遮罩；支持镂空高亮指定控件、镂空区域内点击穿透到目标控件、语义色适配深浅色</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

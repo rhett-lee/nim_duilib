@@ -86,7 +86,7 @@ English | [简体中文](README.md)
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr><td align="left">23. Unified context-menu API: Control::AttachPopupMenu binds a right-click menu to any control in one line (auto-creates the menu, resolves coordinates, invokes the item callback, and supports adjusting the menu after it pops up); the paired DetachPopupMenu unbinds it.</td></tr>
     <tr>
-        <td rowspan="39">New Controls / New Containers</td>
+        <td rowspan="40">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -127,6 +127,7 @@ English | [简体中文](README.md)
     <tr><td align="left">37. Timeline: Vertical timeline control (nodes + connector lines + content, data-driven, status colors, forward/reverse, multi-language binding, scrollbar).</td></tr>
     <tr><td align="left">38. TagInput: Composite tag input — press Enter (or a configured delimiter) to create tags; supports close-button/Backspace removal, duplicate rejection and a max tag count, with automatic line wrapping.</td></tr>
     <tr><td align="left">39. AutoComplete: Composite auto-complete input — shows a candidate popup below the edit box as you type (reusing Flyout; non-focus-stealing, width follows the edit box); supports prefix/contains matching, case-insensitivity, Up/Down-key/Enter/Esc and mouse selection.</td></tr>
+    <tr><td align="left">40. Mask: Mask/overlay layer control (derived from Box) for modal-dialog background dimming, onboarding masks and loading overlays; supports punching out a highlight over a target control and passing clicks inside the highlight through to it, with semantic colors adapted to light/dark themes.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>

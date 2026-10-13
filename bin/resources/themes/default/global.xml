@@ -305,6 +305,11 @@
     <Class name="badge" width="auto" height="18" valign="center" font="system_regular_12"
                                     normal_text_color="text_badge" text_padding="5,0,5,0" text_align="center" mouse_enabled="false"/>
     <Class name="badge_dot" width="8" height="8" dot="true" valign="center" mouse_enabled="false"/>
+
+    <!-- 遮罩/蒙版层（Mask）：半透明蒙层，默认铺满父容器并拦截鼠标输入；可用 highlight_control 镂空高亮指定控件 -->
+    <Class name="mask" float="true" width="stretch" height="stretch" mask_color="bg_overlay"/>
+    
+    <!-- CheckBox控件 -->
     <Class name="checkbox_1" height="20" text_padding="20,0,0,0" text_align="vcenter" valign="center"
                              normal_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center'" 
                              disabled_image="file='${PATH_CHECKBOX}/checkbox-fill-unchecked.svg' width='16' height='16' valign='center' fade='80'" 

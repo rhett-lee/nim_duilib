@@ -80,6 +80,7 @@ English | [简体中文](XmlNode.md)
 | AutoComplete | "AutoComplete"| [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | Auto-complete input: shows a candidate popup below the edit box as you type (using Flyout), supports prefix/contains matching, derived from Box |
 | Switch | "Switch"| [duilib/Control/Switch.h](../duilib/Control/Switch.h) | Toggle switch control derived from CheckBox with sliding animation and color transition |
 | Badge | "Badge"| [duilib/Control/Badge.h](../duilib/Control/Badge.h) | Badge control derived from Label for unread counts/red dots; shows "99+" when exceeding the limit, hidden automatically when count<=0 |
+| Mask | "Mask"| [duilib/Control/Mask.h](../duilib/Control/Mask.h) | Mask/overlay layer control for modal dimming, onboarding masks and loading overlays; supports punching out a highlight over a control and click-through inside the highlight, derived from Box |
 | RichText | "RichText"| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | |
 | Split | "Split"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |
 | SplitBox | "SplitBox"| [duilib/Control/Split.h](../duilib/Control/Split.h) | |

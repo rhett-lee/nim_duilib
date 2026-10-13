@@ -417,6 +417,25 @@ pOk->AttachClick([p](const ui::EventArgs&){ p->Dismiss(); return true; });
 
 注意：noFocus 模式外部点击检测仅 Windows（全局鼠标按键 50ms 轮询，非 Win 平台用 `SetNoFocus(false)` 焦点模式）；浮层内控件可正常点击但键盘焦点不进入，需要输入文字时 SetNoFocus(false)；同锚点再次点击切换关闭需调用方自行比较 `GetActiveFlyout()->GetAnchor()`；锚点在滚动容器内时自动扣除累计滚动偏移；父窗口通过 `OpenColorTheme` 使用私有颜色主题时浮层自动继承该主题（新增 `Window::GetColorThemeXmlData()` 暴露私有主题 XML 数据）。
 
+### Mask 属性(继承 Box，遮罩/蒙版层)
+
+半透明蒙层容器（`duilib/Control/Mask.h`），XML 节点名 `Mask`。用于模态对话框背景遮罩、新手引导蒙层、加载遮罩；可镂空高亮指定控件，镂空区域内点击可穿透到目标控件。跨平台通用。
+作为浮动覆盖层使用时配置 `float="true" width="stretch" height="stretch"`（内置 `mask` Class 已含该配置），并置于父容器最后一个子节点（或配合 `paint_order`），以保证置顶绘制与优先命中。
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| mask_color / maskcolor | `bg_overlay` | string | 蒙层颜色（语义色名或颜色值）；为空不绘制底色 |
+| highlight_control / highlightcontrol | | string | 需镂空(高亮)的控件名称（在整个窗口内按名称查找，可为 Mask 之外的控件）；为空则不镂空，整块区域均为蒙层 |
+| highlight_padding / highlightpadding | 4 | int | 镂空区域内边距（自动 DPI 缩放） |
+| highlight_corner / highlightcorner | 0 | int | 镂空区域圆角半径（自动 DPI 缩放） |
+| click_through / clickthrough | false | bool | 镂空区域内点击是否穿透到下层控件（新手引导用） |
+
+`mouse_enabled`（继承自容器基类）默认 true 即拦截鼠标（模态）；设为 false 为仅视觉遮挡、不拦截鼠标。
+蒙层内可继续放置任意子控件（加载动画、提示文案、模态卡片按钮等）；模态卡片在 Mask 内用 `float="true" halign="center" valign="center"` 居中。
+C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightControl`、`SetHighlightPadding/GetHighlightPadding`、`SetHighlightCorner/GetHighlightCorner`、`SetClickThrough/IsClickThrough`；静态 `Mask::ShowOverWindow(Window*)`（整窗覆盖，返回指针或 nullptr）、`Remove()`（从父容器移除；父容器自动销毁子控件时调用后对象即销毁）。
+默认皮肤类：`mask`（`float="true" width="stretch" height="stretch" mask_color="bg_overlay"`）。
+示例：`<Mask class="mask" highlight_control="btn_guide" highlight_padding="6" highlight_corner="6" click_through="true"/>`；加载遮罩内放 `<Progress class="progress_horizontal" marquee="true" marquee_width="60"/>`。
+
 ### NavigationView 侧边栏导航(继承 HBox)
 
 复合容器（`duilib/Control/NavigationView.h`，已在 duilib.h 中 include），把汉堡按钮+窗格标题+分组导航项+页头+内容区联动封装成现代设置页/客户端导航框架，对标 WinUI NavigationView。

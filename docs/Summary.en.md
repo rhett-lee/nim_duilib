@@ -229,6 +229,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | TabCtrl | ListBox | [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | Multi-tab control (similar to the multi-tabs of a browser) |
 | TagInput | Box | [duilib/Control/TagInput.h](../duilib/Control/TagInput.h) | Composite tag input (flow tags + RichEdit; commits tags on Enter/delimiter, removable, duplicate/max-count limits, auto wrapping), see [Control.md](Control.md#attributes-of-taginput) |
 | AutoComplete | Box | [duilib/Control/AutoComplete.h](../duilib/Control/AutoComplete.h) | Auto-complete input (edit box + following popup, live suggestions while typing, prefix/contains matching, keyboard navigation, fill-back without reopening), see [Control.md](Control.md#attributes-of-autocomplete) |
+| Mask | Box | [duilib/Control/Mask.h](../duilib/Control/Mask.h) | Mask/overlay layer control (modal dimming / onboarding mask / loading overlay; punch out a highlight and click-through inside it), see [Control.md](Control.en.md#mask-attributes) |
 | TreeView | ListBox | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Tree control |
 | TreeNode | ListBoxItem | [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | Node of the tree control |
 | DirectoryTree | TreeView | [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | Directory tree control, used to display the directory structure of the file system |

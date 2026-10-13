@@ -225,6 +225,72 @@ void TestForm::OnInitWindow()
                                    ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             });
     }
+
+    //遮罩/蒙版层（ui::Mask）：演示三种典型场景
+    //(1) 模态遮罩：覆盖整个窗口并拦截鼠标输入，点击卡片上的按钮关闭
+    ui::Control* pMaskModal = FindControl(_T("mask_modal"));
+    ui::Button* pMaskModalBtn = dynamic_cast<ui::Button*>(FindControl(_T("mask_modal_btn")));
+    if ((pMaskModal != nullptr) && (pMaskModalBtn != nullptr)) {
+        pMaskModalBtn->AttachClick([pMaskModal](const ui::EventArgs& /*args*/) {
+            pMaskModal->SetVisible(true);
+            return true;
+            });
+    }
+    ui::Button* pMaskModalClose = dynamic_cast<ui::Button*>(FindControl(_T("mask_modal_close")));
+    if ((pMaskModal != nullptr) && (pMaskModalClose != nullptr)) {
+        pMaskModalClose->AttachClick([pMaskModal](const ui::EventArgs& /*args*/) {
+            pMaskModal->SetVisible(false);
+            return true;
+            });
+    }
+
+    //(2) 新手引导蒙层：镂空高亮目标按钮，镂空区域内点击可穿透到目标按钮
+    ui::Control* pMaskGuide = FindControl(_T("mask_guide"));
+    ui::Button* pMaskGuideBtn = dynamic_cast<ui::Button*>(FindControl(_T("mask_guide_btn")));
+    if ((pMaskGuide != nullptr) && (pMaskGuideBtn != nullptr)) {
+        pMaskGuideBtn->AttachClick([pMaskGuide](const ui::EventArgs& /*args*/) {
+            pMaskGuide->SetVisible(true);
+            return true;
+            });
+    }
+    //镂空区域内点击穿透到目标按钮：完成引导并关闭蒙层
+    ui::Button* pMaskGuideTarget = dynamic_cast<ui::Button*>(FindControl(_T("mask_guide_target")));
+    if ((pMaskGuide != nullptr) && (pMaskGuideTarget != nullptr)) {
+        pMaskGuideTarget->AttachClick([this, pMaskGuide](const ui::EventArgs& /*args*/) {
+            if (pMaskGuide->IsVisible()) {
+                //引导中：点击镂空区域内的目标按钮，完成引导
+                pMaskGuide->SetVisible(false);
+                ui::ToastWnd::Show(this, _T("STRID_CONTROLS_MASK_GUIDE_DONE"), ui::ToastWnd::kTypeSuccess,
+                                   1500, ui::ToastWnd::kPosTop, true);
+            }
+            else {
+                //未处于引导状态：提示先点击"新手引导"按钮
+                ui::ToastWnd::Show(this, _T("STRID_CONTROLS_MASK_GUIDE_TIP"), ui::ToastWnd::kTypeInfo,
+                                   1500, ui::ToastWnd::kPosTop, true);
+            }
+            return true;
+            });
+    }
+    //点击镂空区域之外的蒙层区域：关闭引导
+    if (pMaskGuide != nullptr) {
+        pMaskGuide->AttachButtonUp([pMaskGuide](const ui::EventArgs& /*args*/) {
+            pMaskGuide->SetVisible(false);
+            return true;
+            });
+    }
+
+    //(3) 加载遮罩：显示后拦截交互，2 秒后由定时器自动关闭（模拟异步加载完成）
+    ui::Control* pMaskLoading = FindControl(_T("mask_loading"));
+    ui::Button* pMaskLoadingBtn = dynamic_cast<ui::Button*>(FindControl(_T("mask_loading_btn")));
+    if ((pMaskLoading != nullptr) && (pMaskLoadingBtn != nullptr)) {
+        pMaskLoadingBtn->AttachClick([this, pMaskLoading](const ui::EventArgs& /*args*/) {
+            pMaskLoading->SetVisible(true);
+            ui::GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), [pMaskLoading]() {
+                pMaskLoading->SetVisible(false);
+                }, 2000, 1);
+            return true;
+            });
+    }
 }
 
 void TestForm::ShowProgressWindow()
