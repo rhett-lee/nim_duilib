@@ -44,13 +44,13 @@
 |------|-------------|------|
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式，鼠标点击该列表头排序时自动采用；由"列的语义"决定比较方式，替代早期"按单元格 `nProgress` 推断"的行为 |
 
-标志位（`enum ListCtrlSubItemSortFlag`，按位组合）：`kSortByGroup`（先按 `nSortGroup` 分组）、`kSortNoCase`（字符串忽略大小写）、`kSortByText`（默认，按文本字典序）、`kSortByTextAsNumber`（文本按数值比较，`"10" > "9"`）、`kSortByUserDataN` / `kSortByUserDataS`（按用户数据）、`kSortByProgress`（按进度值 `nProgress`）。
+标志位（`enum ListCtrlSubItemSortFlag`，按位组合）：`kSortByGroup`（先按 `nSortGroup` 分组）、`kSortNoCase`（字符串忽略大小写）、`kSortByText`（默认，按文本字典序）、`kSortByTextAsNumber`（文本按数值比较，`"10" > "9"`）、`kSortByTextAsDate`（文本按日期时间先后比较，如 `"2024-3-7" < "2024-10-1"`）、`kSortByUserDataN` / `kSortByUserDataS`（按用户数据）、`kSortByProgress`（按进度值 `nProgress`）。
 
 实现要点：列级 flag 存于 `ListCtrl::m_columnSortFlagMap`（列ID → `uint8_t`）；表头点击排序（`OnColumnSorted`）与主动排序（`SortDataItemsById`）都会读取/写入该列 flag，应用声明一次即长期生效。原 `SortDataCompareFunc` 中"任一单元格 `nProgress >= 0` 即按进度排序"的推断分支已移除，改为由 `kSortByProgress` 显式声明。
 
-配套演示：`examples/ListCtrl` 中第 2 列（进度条列）声明 `kSortByProgress`，第 4 列为纯数字文本并声明 `kSortByTextAsNumber`，点击对应列表头即可看到按进度 / 按数值排序。
+配套演示：`examples/ListCtrl` 中第 2 列（进度条列）声明 `kSortByProgress`，第 4 列为纯数字文本并声明 `kSortByTextAsNumber`，第 5 列为日期文本（未补零，如 `2020-3-7`）并声明 `kSortByTextAsDate`，点击对应列表头即可看到按进度 / 按数值 / 按日期排序。
 
-待办（二期）：日期模式 `kSortByTextAsDate` 尚未实现（可复用 `duilib/Control/DateTime.h` 解析）。
+日期模式（`kSortByTextAsDate`）：将文本按"年、月、日、时、分、秒"六个数字段解析为可比较的 64 位键值后排序；字段之间允许任意非数字分隔符、月/日/时等可不补零（如 `2024-3-7`、`2024/03/07`、`2024-03-07 13:45:00`）。无法解析为日期的文本视为最小值（与其他排序标志的"无效值最小"约定一致），键值相同时回退文本比较，保证比较结果是一个严格的全序。
 
 > 注：目前仅支持单列排序，且为整表排序 + 全量刷新（增量/局部排序待评估）。
 
@@ -127,7 +127,7 @@
 | 3 | `ListCtrl` 级 `SetColumnVisible` / `IsColumnVisible` | 已完成 |
 | 4 | 键盘导航（方向键 + Home/End/PageUp/PageDown + F2/Ctrl+C） | 导航已完成；F2（L1）、Ctrl+C（L2）待办 |
 | 5 | 单元格 tooltip（内容超长时自动提示） | 已具备 |
-| 6 | 列级比较模式（数值 / 日期 / 进度 / 自定义） | 数值 / 进度已完成；日期（`kSortByTextAsDate`）二期 |
+| 6 | 列级比较模式（数值 / 日期 / 进度 / 自定义） | 数值 / 进度 / 日期均已完成 |
 | 7 | 可变行高 + 单元格自动换行 + 省略号 | 已完成 |
 | 8 | 行筛选（按条件过滤 + 表头筛选器） | 待办（L3） |
 | 9 | 复制到剪贴板 / 导出 CSV | 待办（L2） |

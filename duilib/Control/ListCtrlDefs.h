@@ -97,6 +97,7 @@ enum ListCtrlSubItemSortFlag : uint8_t
     kSortByUserDataS    = 16,   //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
     kSortByProgress     = 32,   //按照ListCtrlSubItemData2.nProgress字段排序（显式声明，替代早期"按单元格nProgress推断"的行为）
     kSortByTextAsNumber = 64,   //将text按数值比较排序（如"10" > "9"），而非按字符串字典序
+    kSortByTextAsDate   = 128,  //将text按日期时间比较排序（如"2024-3-7" < "2024-10-1"），而非按字符串字典序
 };
 
 struct ListCtrlSubItemData2Pair

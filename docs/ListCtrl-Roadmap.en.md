@@ -44,13 +44,13 @@ Implementation note: the Report view is virtual, so its cell controls are reused
 |-----------|-------------|-------------|
 | Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column; clicking that column's header sorts by it automatically. Determined by the column's semantics, replacing the earlier "infer from the cell's `nProgress`" behavior |
 
-Flags (`enum ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings), `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByProgress` (by progress value `nProgress`).
+Flags (`enum ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings), `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByTextAsDate` (chronological text compare, e.g. `"2024-3-7" < "2024-10-1"`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByProgress` (by progress value `nProgress`).
 
 Implementation note: the per-column flag is stored in `ListCtrl::m_columnSortFlagMap` (column ID -> `uint8_t`); both header-click sorting (`OnColumnSorted`) and programmatic sorting (`SortDataItemsById`) read/write it, so the app only declares it once. The `SortDataCompareFunc` inference branch ("sort by progress when any cell has `nProgress >= 0`") has been removed and replaced by the explicit `kSortByProgress` declaration.
 
-Demo: in `examples/ListCtrl`, column 2 (the progress column) declares `kSortByProgress`, and column 4 holds pure numeric text and declares `kSortByTextAsNumber`; click the respective header to see progress / numeric sorting.
+Demo: in `examples/ListCtrl`, column 2 (the progress column) declares `kSortByProgress`, column 4 holds pure numeric text and declares `kSortByTextAsNumber`, and column 5 holds date text (not zero-padded, e.g. `2020-3-7`) and declares `kSortByTextAsDate`; click the respective header to see progress / numeric / date sorting.
 
-Todo (phase 2): the date mode `kSortByTextAsDate` is not yet implemented (it can reuse `duilib/Control/DateTime.h`).
+Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by taking the "year, month, day, hour, minute, second" numeric fields in order; fields may be separated by any non-digit characters and month/day/hour need not be zero-padded (e.g. `2024-3-7`, `2024/03/07`, `2024-03-07 13:45:00`). Text that cannot be parsed as a date is treated as the minimum value (consistent with the "invalid value is smallest" convention of the other flags), and equal keys fall back to a text compare, guaranteeing a strict total order.
 
 > Note: only single-column sorting is supported, and it is a full-table sort with a full refresh (incremental / partial sorting is to be evaluated).
 
@@ -127,7 +127,7 @@ Low / medium cost items (most done):
 | 3 | `ListCtrl`-level `SetColumnVisible` / `IsColumnVisible` | Done |
 | 4 | Keyboard navigation (arrows + Home/End/PageUp/PageDown + F2/Ctrl+C) | Navigation done; F2 (L1) and Ctrl+C (L2) todo |
 | 5 | Cell tooltip (auto-show on overflow) | Existing |
-| 6 | Column-level compare mode (numeric / date / progress / custom) | Numeric / progress done; date (`kSortByTextAsDate`) in phase 2 |
+| 6 | Column-level compare mode (numeric / date / progress / custom) | Numeric / progress / date all done |
 | 7 | Variable row height + cell word wrap + ellipsis | Done |
 | 8 | Row filtering (condition filter + header filters) | Todo (L3) |
 | 9 | Copy to clipboard / export CSV | Todo (L2) |

@@ -1910,7 +1910,7 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Single-cell refresh | `RefreshSubItem` / `RefreshSubItemById` | Refresh only the specified cell (partial update for progress/status columns), avoiding a full row refresh |
 | Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API (equivalent to the header item's visibility; the data columns are synchronized automatically) |
 | Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Notify the application when column width/order/visibility/sort changes, for persisting the column layout |
-| Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column (text/number/progress, etc.); clicking that column's header uses it automatically. `kSortByProgress` sorts by progress value, `kSortByTextAsNumber` compares text numerically (`"10" > "9"`) |
+| Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column (text/number/date/progress, etc.); clicking that column's header uses it automatically. `kSortByProgress` sorts by progress value, `kSortByTextAsNumber` compares text numerically (`"10" > "9"`), `kSortByTextAsDate` compares text chronologically (`"2024-3-7" < "2024-10-1"`) |
 | Batch row deletion | `DeleteDataItems(const std::vector<size_t>&)` | Deletes many rows at once (indices may be unordered and may include out-of-range/duplicate entries, which are ignored); deduplicates by row identity and performs a single-pass compaction of the display-order table, avoiding the O(K×N) shifting of row-by-row deletion; returns the number of rows actually deleted |
 | Storage compaction | `CompactStorage()` | An explicit whole-table maintenance operation: renumbers row identities and compacts the storage pages, reclaiming the tombstone slots and empty pages left by repeated insert/delete. Call it only when no fill/paint is in progress; afterwards all outstanding internal cell raw pointers become invalid. During single/batch deletion, a storage page whose slots are all tombstones is released automatically |
 
@@ -1919,13 +1919,14 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 The comparison mode is declared per column; clicking a column header sorts by that column's declared mode (determined by the column's semantics, not inferred from the current cell state):
 
 ```cpp
-// Column 2 (index 1) sorts by progress value; column 4 sorts text numerically
+// Column 2 (index 1) sorts by progress value; column 4 sorts text numerically; column 5 sorts text chronologically
 pListCtrl->SetColumnSortFlag(1, ui::ListCtrlSubItemSortFlag::kSortByProgress);
 pListCtrl->SetColumnSortFlag(3, ui::ListCtrlSubItemSortFlag::kSortByTextAsNumber);
+pListCtrl->SetColumnSortFlag(4, ui::ListCtrlSubItemSortFlag::kSortByTextAsDate);
 uint8_t flag = pListCtrl->GetColumnSortFlag(3); // read the column's compare mode
 ```
 
-Common flags (`ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByProgress` (by `nProgress`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings).
+Common flags (`ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByTextAsDate` (chronological text, e.g. `"2024-3-7" < "2024-10-1"`; fields may be separated by any non-digit characters and month/day need not be zero-padded; text that cannot be parsed as a date is treated as the minimum value), `kSortByProgress` (by `nProgress`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings).
 
 <!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 **Frozen columns (freeze first column):**

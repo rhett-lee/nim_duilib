@@ -1911,6 +1911,58 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, size_t nC
     return true;
 }
 
+namespace
+{
+/** 将日期时间文本解析为可比较的 64 位键值（用于 kSortByTextAsDate 排序）
+ *  支持的写法：字段之间以任意非数字字符分隔，按"年、月、日、时、分、秒"的顺序取数字段，
+ *  例如 "2024-3-7"、"2024/03/07"、"2024-03-07 13:45:00"（月、日、时等可不补零）。
+ *  最少需要"年、月、日"三个字段才算有效，否则视为无效日期（无效值小于任何有效值）。
+ * @param [in] text 待解析的文本
+ * @param [out] nKey 解析得到的键值，解析无效时保持不变
+ * @return 解析成功返回 true，否则返回 false
+ */
+bool ParseTextAsDateKey(const UiString& text, int64_t& nKey)
+{
+    const DString::value_type* pStr = text.c_str();
+    if (pStr == nullptr) {
+        return false;
+    }
+    //依次取"年、月、日、时、分、秒"六个数字段
+    constexpr int32_t kFieldCount = 6;
+    int64_t nFields[kFieldCount] = { 0, 0, 0, 0, 0, 0 };
+    int32_t nFoundCount = 0;
+    bool bInNumber = false;
+    for (; *pStr != 0; ++pStr) {
+        const DString::value_type ch = *pStr;
+        if ((ch >= _T('0')) && (ch <= _T('9'))) {
+            if (!bInNumber) {
+                if (nFoundCount >= kFieldCount) {
+                    //超出支持范围的数字段，忽略
+                    break;
+                }
+                ++nFoundCount;    //开始一个新的数字段
+                bInNumber = true;
+            }
+            nFields[nFoundCount - 1] = nFields[nFoundCount - 1] * 10 + (ch - _T('0'));
+        }
+        else {
+            bInNumber = false;
+        }
+    }
+    if (nFoundCount < 3) {
+        //不足"年、月、日"三个字段，无法构成有效的日期
+        return false;
+    }
+    //按"年、月、日、时、分、秒"逐级进位编码，使键值的大小顺序与日期时间的先后顺序一致
+    int64_t nRetKey = 0;
+    for (int32_t i = 0; i < kFieldCount; ++i) {
+        nRetKey = nRetKey * 100 + nFields[i];
+    }
+    nKey = nRetKey;
+    return true;
+}
+}//namespace
+
 bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b, uint8_t nSortFlag) const
 {
     if (nSortFlag & ListCtrlSubItemSortFlag::kSortByGroup) {
@@ -1944,6 +1996,19 @@ bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const List
         double dValueA = StringUtil::StringToDouble(a.text.c_str());
         double dValueB = StringUtil::StringToDouble(b.text.c_str());
         return dValueA < dValueB;
+    }
+    else if (nSortFlag & ListCtrlSubItemSortFlag::kSortByTextAsDate) {
+        //将 text 按日期时间比较排序（如"2024-3-7" < "2024-10-1"），而非按字符串字典序
+        //注：无法解析为日期的文本视为最小值（与其他排序标志的"无效值最小"约定一致）；
+        //    键值相同时再按文本比较，保证比较结果是一个严格的全序
+        int64_t nKeyA = -1;
+        int64_t nKeyB = -1;
+        ParseTextAsDateKey(a.text, nKeyA);
+        ParseTextAsDateKey(b.text, nKeyB);
+        if (nKeyA != nKeyB) {
+            return nKeyA < nKeyB;
+        }
+        return StringUtil::StringCompare(a.text.c_str(), b.text.c_str()) < 0;
     }
     else {
         //按 .text 字段排序(字符串值)

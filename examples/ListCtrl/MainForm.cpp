@@ -1520,6 +1520,9 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     if (columnCount > 3) {
         pListCtrl->SetColumnSortFlag(3, ui::ListCtrlSubItemSortFlag::kSortByTextAsNumber);//第4列（数值文本列）按数值大小排序
     }
+    if (columnCount > 4) {
+        pListCtrl->SetColumnSortFlag(4, ui::ListCtrlSubItemSortFlag::kSortByTextAsDate);//第5列（日期文本列）按日期时间先后排序
+    }
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
@@ -1549,6 +1552,15 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
                 //演示：列级比较模式中的"数值文本"（见 SetColumnSortFlag(kSortByTextAsNumber)）
                 //文本为纯数字，点击该列表头时按数值大小排序（如 10 > 9），而不是按字典序（如 "10" < "9"）
                 subItemData.text = ui::StringUtil::Printf(_T("%d"), (int32_t)((itemIndex * 13 + 7) % 1000));
+            }
+            else if (columnIndex == 4) {
+                //演示：列级比较模式中的"日期时间文本"（见 SetColumnSortFlag(kSortByTextAsDate)）
+                //日期不补零，点击该列表头时按日期先后排序（如 2020-3-7 在 2020-10-1 之前），
+                //而不是按字典序（字典序会认为 "2020-10-1" 在 "2020-3-7" 之前）
+                int32_t nYear = 2020 + (int32_t)((itemIndex * 7) % 5);
+                int32_t nMonth = 1 + (int32_t)((itemIndex * 5) % 12);
+                int32_t nDay = 1 + (int32_t)((itemIndex * 11) % 28);
+                subItemData.text = ui::StringUtil::Printf(_T("%d-%d-%d"), nYear, nMonth, nDay);
             }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }
