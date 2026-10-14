@@ -1056,10 +1056,16 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 
     // 详细的结构说明，参见：ListCtrlItem.h
 
-    std::map<size_t, const ListCtrlSubItemData2*> subItemDataMap;
-    for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
-        subItemDataMap[dataPair.nColumnId] = dataPair.pSubItemData;
-    }
+    //按列ID查找该行的单元格数据：列数通常很少（N <= ~10），线性查找比每行构造 std::map 更省，
+    //且不产生堆分配（subItemList 已是连续的小容器）
+    auto findSubItemData = [&subItemList](size_t nColumnId) -> const ListCtrlSubItemData2* {
+        for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
+            if (dataPair.nColumnId == nColumnId) {
+                return dataPair.pSubItemData;
+            }
+        }
+        return nullptr;
+        };
 
     //获取需要显示的各个列的属性
     struct ElementData
@@ -1071,6 +1077,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     };
     std::vector<ElementData> elementDataList;
     const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
+    elementDataList.reserve(nColumnCount);
     for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
         ListCtrlHeaderItem* pHeaderItem = pHeaderCtrl->GetColumn(nColumnIndex);
         if ((pHeaderItem == nullptr) || !pHeaderItem->IsColumnVisible()) {
@@ -1083,7 +1090,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         ElementData data;
         data.nColumnIndex = nColumnIndex;
         data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);        
-        data.pStorage = subItemDataMap[data.nColumnId];
+        data.pStorage = findSubItemData(data.nColumnId);
         if (nColumnIndex == 0) {
             //第1列：确保表头与数据项右侧对齐
             data.nColumnWidth = nColumnWidth + rcHeaderPadding.left - nPaddingLeft;
@@ -1118,6 +1125,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     defaultSubItem.SetClass(defaultSubItemClass);
 
     std::vector<ControlPtrT<ListCtrlSubItem>> subItemPtrList;
+    subItemPtrList.reserve(showColumnCount);
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
         ListCtrlSubItem* pSubItem = nullptr;
