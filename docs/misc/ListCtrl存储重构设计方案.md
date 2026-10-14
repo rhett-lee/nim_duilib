@@ -169,7 +169,7 @@
   - 排序写回不再深拷贝整列；
   - `AssertDataConsistency()` 全绿。
 
-### Phase 2 — 值存储 + 分页连续（**解决内存与绘制局部性**）
+### Phase 2 — 值存储 + 分页连续（**解决内存与绘制局部性**）✅ 已实施（性能 / 绘制 / 内存门槛 Release 实测全部通过）
 - 列池由 `vector<shared_ptr<Storage>>` 改为 `vector<unique_ptr<StoragePage>>`（页大小 64，懒分配，页内连续）。
 - `StoragePtr` 使用点改为按 `(RowId → const Storage*)` 访问；`ListCtrlReportView::FillSubItemData` 同步适配。
 - 行属性池可保持 `vector<ListCtrlItemData>`（体积小）。
@@ -238,6 +238,74 @@
 
 ## 10. 实施记录
 
+### Phase 2 — 值存储 + 分页连续（已实施；性能 / 绘制 / 内存门槛 Release 实测全部通过）
+
+**状态**：代码已完成并通过编译验证（VS2022 MSBuild，先 Rebuild `duilib` target 再增量编译 `build/examples.sln`，Debug|x64，0 错误 0 警告，仅既有 libpng C4996 警告）。时序路径（载入 / 增删改 / 排序）、滚动帧耗时，以及基线 / Phase 1 / Phase 2 三态稠密与稀疏峰值内存的 Release（x64）实测数据均已采集并回填（见下）；`AssertDataConsistency()` 断言经 Debug（x64）运行确认无失败；全部验收门槛已通过。
+
+**核心改动文件**：
+
+- `duilib/Control/ListCtrlData.h`：分页存储结构定义与访问器声明。
+- `duilib/Control/ListCtrlDefs.h`：对外取数类型由 `shared_ptr` 改为原始 `const` 指针；并移除 `ListCtrlSubItemData2Ptr` typedef，代码中统一直接书写 `const ListCtrlSubItemData2*`（避免 typedef 名字形似智能指针、定义变量时漏初始化）。
+- `duilib/Control/ListCtrlData.cpp`：全部取数 / 增删 / 排序 / 校验逻辑改写为分页存储。
+- `duilib/Control/ListCtrlReportView.cpp`：`GetSubItemStorage` 返回类型适配（`StoragePtr` → `const Storage*`）。
+- `duilib/Control/ListCtrlListView.cpp` / `duilib/Control/ListCtrlIconView.cpp`：原始指针成员补 `= nullptr` 初始化，消除 C4701/C4703 警告。
+
+**核心机制**：
+
+- **分页连续存储**：列池由"每列 `std::vector<std::shared_ptr<Storage>>`"改为"每列 `std::vector<std::unique_ptr<StoragePage>>`"；`struct StoragePage { std::array<Storage, kPageCells> cells; uint8_t usedMask[kPageCells]; }`，`static constexpr size_t kPageCells = 64;`；页索引 = `RowId / kPageCells`，页内偏移 = `RowId % kPageCells`。
+- **懒分配**：某页首次写入时才 `make_unique<StoragePage>()`（`pageList.resize(nPage + 1)` 增长页列表，中间未触及页留空指针）；稀疏 / 纯虚表场景（`SetDataItemCount` 大、实际写入少）内存不膨胀。`AllocRowId` 不再对每列 `resize`，顺带修复 Phase 1 的 `SetDataItemCount` 载入路径回退。
+- **指针稳定性**：`std::vector<std::unique_ptr<StoragePage>>` 扩容只移动 `unique_ptr`，`StoragePage` 对象地址不变，故页内 `&cells[slot]` 原始指针在 Phase 2（暂无页回收）期间稳定。
+- **对外取数统一为原始指针**：直接使用 `const ListCtrlSubItemData2*`（避免 `ListCtrlSubItemData2Ptr` 这类 typedef 名字形似智能指针、易漏初始化，故未保留 typedef）；`StoragePtr` typedef 移除，内部读点用 `const Storage*`、写点用 `Storage*`。
+- **页操作辅助**（`ListCtrlData` 静态成员）：`GetStorageAt`（读，命中未写入 / 未分配页返回 `nullptr`）、`GetStorageAtForWrite`（写，按需分配页并置位掩码）、`ResetStorageAt`（删除行墓碑：重置单元格并清掩码）。
+
+**关键语义保持**：
+
+- `SetSubItemData` 的 `bCheckChanged`：原靠 `shared_ptr` 是否为 null 判断"是否首次写入"，分页模型下改为先 `GetStorageAt`（`nullptr` 表示未写入）再 `GetStorageAtForWrite`，语义一致。
+- `AddColumn`：由"对已存在列 `resize`"改为 find-guard 的 `emplace`，保留已有页数据。
+- `AssertDataConsistency` 不变量重写为：(1) `m_displayOrder` 合法无重复；(2) 各列已写入单元格的 `RowId` 必须落在存活行集合内；(3) `m_rowDataList.size() == m_nextRowId`；(4) 单选有效；(5) 计数一致。
+
+**验收门槛（见 §5）**：
+
+- 内存：稠密 10 万×10 峰值内存较基线（重构前，x64 Release 实测 174.0 MB 工作集）下降 ≥20%（目标 ~30%）；
+- 绘制：滚动帧耗时不高于 Phase 1 基线（13.020 ms/帧，不得变差）；
+- 稀疏场景内存不膨胀；
+- `AssertDataConsistency()` 全绿。
+
+**Phase 2 后实测数据（10 万行 × 10 列，x64 Release，手动采集）**：
+
+| 指标 | 验收门槛 | 现状基线（Release） | Phase 1 后（Release） | Phase 2 后（Release） | 改善 |
+|------|---------|------------------|--------------------|--------------------|------|
+| 载入：插 10 列（`InsertColumn`） | — | 0.3 ms | 0.3 ms | 0.3 ms | 持平 |
+| 载入：`SetDataItemCount(100000)` | — | 3.9 ms | 23.2 ms | **2.7 ms** | ✅ 载入回退已修复（较 Phase 1 快 8.6×，优于基线 1.4×） |
+| 载入：填充 100 万单元格（`SetSubItemData`） | — | 1163.9 ms | 1425.8 ms | **1204.8 ms** | ✅ 较 Phase 1 快 15.5%，基本回到基线（+3.5%） |
+| 载入合计 | — | 1168.1 ms | 1449.3 ms | **1207.8 ms** | ✅ 较 Phase 1 快 16.7% |
+| 中间插入单行 | < 5 ms | 0.606 ms | 0.068 ms | **0.069 ms** | ✅ 保持（较基线快 8.8×） |
+| 中间插入 1000 行 | — | 605.7 ms | 68.1 ms | **68.7 ms** | ✅ 保持（较基线快 8.8×） |
+| 中间删除单行 | < 5 ms | 1.232 ms | 0.113 ms | **0.106 ms** | ✅ 保持（较基线快 11.6×） |
+| 删除 500 行 | < 100 ms | 615.9 ms | 56.4 ms | **52.9 ms** | ✅ 较 Phase 1 快 6.2%（较基线快 11.6×） |
+| 排序（整表） | < 300 ms | 76.7 ms | 31.5 ms | **27.7 ms** | ✅ 较 Phase 1 快 12.1%（较基线快 2.8×） |
+| 滚动重绘单帧 | ≤ 13.020 ms/帧 | 15.529 ms/帧 | 13.020 ms/帧 | **11.032 ms/帧** | ✅ 较 Phase 1 快 15.3%（较基线快 29.0%） |
+| 峰值内存（稠密 10 万×10） | 较基线 ↓≥20% | **174.0 / 153.2 MB**（WS / 私有） | 174.4 / 160.3 MB | **131.2 / 109.7 MB** | ✅ 较基线 ↓24.6% / ↓28.4%（较 Phase 1 ↓24.8% / ↓31.6%） |
+| 峰值内存（稀疏 10 万行 / 1000 格） | 不膨胀 | **67.0 / 41.8 MB**（WS / 私有） | 67.3 / 48.8 MB | **52.0 / 27.8 MB** | ✅ 不膨胀（较基线 ↓22.4% / ↓33.5%，懒分配页生效） |
+
+**观察**：
+
+- **载入路径回退已消除**：`SetDataItemCount(100000)` 由 Phase 1 的 23.2 ms 回落到 **2.7 ms**（优于基线 3.9 ms）；填充 100 万单元格由 1425.8 回到 **1204.8 ms**（较 Phase 1 快 15.5%）。印证「`AllocRowId` 不再按列 `resize`、单元格改为懒分配页」的预期——`SetDataItemCount` 现仅推进 `m_displayOrder` / `m_nextRowId`，不再按列预分配。
+- **增删改 / 排序保持领先**：均与 Phase 1 持平或微升（删 500 行 56.4→52.9 ms、排序 31.5→27.7 ms、插 1000 行 68.1→68.7 ms 属噪声级），仍大幅优于现状基线。
+- **填充路径仍略高于基线**（1204.8 vs 1163.9 ms，+3.5%）：属一次性载入开销，不影响"绘制 / 增删改"两条最高优先级路径。
+- **绘制提速（最高优先硬约束满足）**：滚动重绘单帧由 Phase 1 的 13.020 ms 进一步降到 **11.032 ms/帧**（较 Phase 1 快 15.3%、较基线快 29.0%）。分页连续存储使同一页内相邻单元格内存连续，绘制取数时缓存命中更好，兑现了"改善绘制局部性"的设计预期。
+- **内存大幅下降（内存门槛满足）**：稠密 10 万×10 峰值内存由基线 174.0 MB / Phase 1 174.4 MB 降至 **131.2 MB**（工作集，较基线 ↓24.6%、较 Phase 1 ↓24.8%）；私有提交由 153.2 / 160.3 MB 降至 **109.7 MB**（较基线 ↓28.4%、较 Phase 1 ↓31.6%，达成"目标 ~30%"）。收益源于去掉每格 `shared_ptr`（指针 + 控制块）与指针 `vector`，改为页内连续 `Storage`。
+
+**验收结论**：**全部验收门槛 Release 实测通过（性能 / 绘制 / 内存）**。
+
+- ✅ **时序路径**（载入 / 增删改 / 排序）Release 实测不劣于 Phase 1，且载入回退已修复——满足"中间增删改不降级"约束；
+- ✅ **绘制门槛**（滚动帧 ≤ 13.020 ms/帧，硬约束"绘制快"最高优先）：**11.032 ms/帧 ≤ 13.020**（较 Phase 1 再快 15.3%）——通过；
+- ✅ **内存门槛**（稠密峰值内存较基线 ↓≥20%）：Phase 2 稠密工作集 **131.2 MB**（较基线 174.0 ↓24.6%、较 Phase 1 174.4 ↓24.8%）、私有提交 **109.7 MB**（较基线 153.2 ↓28.4%、较 Phase 1 160.3 ↓31.6%）——**≥20% 达成**；
+- ✅ **稀疏场景**（`SetDataItemCount` 大、写入少）内存不膨胀：Phase 2 稀疏 **52.0 MB** 工作集 / **27.8 MB** 私有，低于基线（67.0 / 41.8）与 Phase 1（67.3 / 48.8）——懒分配页生效，未写入页不分配内存；
+- ✅ **`AssertDataConsistency()`**：校验逻辑已随实现更新至分页模型（`_DEBUG` 下每次结构性操作后调用）；Debug（x64）运行实测（载入 / 增删改 / 排序 / 稀疏载入等交互路径）**无断言失败**。
+
+**实测项（已完成）**：基线（重构前）、Phase 1、Phase 2 三态的稠密 / 稀疏峰值内存均已采集回填（见 §10），内存门槛判定通过。
+
 ### Phase 1 — 身份/位置分离（已完成）
 
 **状态**：已完成并通过编译验证（VS2022 MSBuild，`build/examples.sln` Debug|x64，0 错误）。
@@ -273,17 +341,20 @@
 | 按钮 | text_id | 操作 | 计时口径 |
 |------|---------|------|---------|
 | 载入压测数据 | `STRID_LISTCTRL_STRESS_LOAD` | `DeleteAllColumns`+`DeleteAllDataItems` → 插 10 列 → `SetDataItemCount(100000)` → 逐格 `SetSubItemData` | 三段分别计时（插列 / 设行数 / 填单元格）+ 总耗时；数据操作期间 `SetEnableRefresh(false)` 隔离绘制噪声 |
+| 载入稀疏数据 | `STRID_LISTCTRL_STRESS_LOAD_SPARSE` | 插 10 列 → `SetDataItemCount(100000)`（不整体填充）→ 仅写第 0 列前 1000 行 | 三段分别计时；验证分页存储的懒分配：大行数、极少写入时内存不膨胀 |
 | 中间插入1000行 | `STRID_LISTCTRL_STRESS_INSERT` | 在 `GetDataItemCount()/2` 处循环 `InsertDataItem` 1000 行 | 总耗时 + 单行均值（触发中间位置搬移） |
 | 删除500行 | `STRID_LISTCTRL_STRESS_DELETE` | 在 `GetDataItemCount()/2` 处循环 `DeleteDataItem` 500 行 | 总耗时 + 单行均值（触发中间位置搬移） |
 | 排序 | `STRID_LISTCTRL_STRESS_SORT` | `SortDataItems(0, true)` 整表按第 1 列升序 | 总耗时 + 返回值 |
 | 滚动重绘 | `STRID_LISTCTRL_STRESS_REPAINT` | 20 帧，每帧 `EnsureDataItemVisible(index, true)` 置顶后 `Refresh(true)` 同步重绘 | 总耗时 + 单帧均值（含绘制） |
 | 还原演示数据 | `STRID_LISTCTRL_STRESS_RESTORE` | 清空后 `InsertItemData(400, 9, imageId)` 回到初始演示态 | 无（退出压测态） |
+| 内存读数 | `STRID_LISTCTRL_STRESS_MEMORY` | 不操作控件，直接读进程内存（`GetProcessMemoryInfo`） | 输出工作集 / 峰值工作集 / 私有提交（MB）；峰值自进程启动累计，单场景测量需重启进程 |
 
 **基线数据采集说明**：
 
 - **现状基线（重构前）**已在独立构建（**x64 Release**）上手动采集，见下表——这是后续所有改进的对比基准。
 - 运行 `bin/ListCtrl_d.exe` → 点击面板按钮，即可得到 **Phase 1 后**的实测数据：既用于校验 Phase 1 验收门槛（10 万行×10 列：中间插/删单行 < 5 ms；删 500 行 < 100 ms；排序 < 300 ms；绘制不劣化），也作为 **Phase 2 / Phase 3** 的对比基线。
 - 按钮每次点击弹出结果消息框（标题"压力测试"），记录 Total / Average / 分阶段耗时。
+- 「内存读数」按钮（仅 Windows）直接读进程内存（工作集 / 峰值工作集 / 私有提交），无需任务管理器切窗口；**峰值工作集自进程启动累计**，故单独测量稠密或稀疏场景前应先重启进程。
 
 **现状基线（重构前，x64 Release，手动采集，10 万行 × 10 列）**：
 
@@ -297,6 +368,13 @@
 | 中间删除 500 行（`DeleteDataItem`） | 615.9 ms（1.232 ms/行） |
 | 排序（整表，第 1 列升序，`SortDataItems`） | 76.7 ms |
 | 滚动重绘（`EnsureDataItemVisible` + `Refresh(true)`，20 帧） | 310.6 ms（15.529 ms/帧） |
+
+**现状基线内存（重构前，x64 Release，手动采集，用「内存读数」按钮）**：
+
+| 场景 | 工作集 | 峰值工作集 | 私有提交 |
+|------|-------|-----------|---------|
+| 稠密（10 万×10 全填充，`载入压测数据`） | 174.0 MB | 174.0 MB | 153.2 MB |
+| 稀疏（10 万行仅填 1000 格，`载入稀疏数据`） | 67.0 MB | 67.1 MB | 41.8 MB |
 
 > 与 §1 的理论估算对照：现状"删 500 行"实测 **615.9 ms**（理论估"数百 ms"），"删单行"实测 **1.232 ms**，与估算一致；§1 的 11 MB / 5.5 GB 为搬移字节量的理论值，此处为端到端耗时实测值。
 
@@ -314,6 +392,8 @@
 | 删除 500 行 | < 100 ms | 615.9 ms | 56.4 ms | ✅ 快 10.9× |
 | 排序（整表） | < 300 ms | 76.7 ms | 31.5 ms | ✅ 快 2.4× |
 | 滚动重绘单帧 | ≤ 现状 | 15.529 ms/帧 | 13.020 ms/帧 | ✅ 快 19% |
+| 峰值内存（稠密 10 万×10） | — | 174.0 / 153.2 MB（WS / 私有） | 174.4 / 160.3 MB | 持平（WS +0.4 MB；私有 +4.6%，Phase 1 未改单元格存储形态） |
+| 峰值内存（稀疏 10 万行 / 1000 格） | — | 67.0 / 41.8 MB（WS / 私有） | 67.3 / 48.8 MB | 持平（WS +0.3 MB；私有 +16.7%，Phase 1 引入 `m_displayOrder` / 行属性池所致） |
 
 **Phase 1 验收结论**：✅ **通过**。
 
@@ -330,6 +410,6 @@
 
 **待办**：
 
-1. Phase 2（连续分页存储，达成内存下降 ≥20%）尚未实施；可一并评估上述载入路径回退。
+1. Phase 2（连续分页存储，达成内存下降 ≥20%）**已完成并通过 Release 验收**（性能 / 绘制 / 内存实测全部通过；稠密峰值内存 174.0→131.2 MB，↓24.6%）；`AllocRowId` 不再按列预分配，已顺带修复上述载入路径回退（`SetDataItemCount` 23.2→2.7 ms，Release 实测确认）。
 2. Phase 3（批量删除 + 存储压缩）尚未实施。
 

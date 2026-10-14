@@ -66,15 +66,21 @@ bool ListCtrlData::FillElement(Control* pControl, size_t nElementIndex)
 int32_t ListCtrlData::GetMaxColumnWidth(size_t columnId) const
 {
     int32_t nMaxWidth = -1;
-    std::vector<ListCtrlSubItemData2Ptr> subItemList;
+    std::vector<const ListCtrlSubItemData2*> subItemList;
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
-        const StoragePtrList& storageList = iter->second;
-        const size_t nCount = storageList.size();
-        for (size_t index = 0; index < nCount; ++index) {
-            if (storageList[index] != nullptr) {
-                subItemList.push_back(storageList[index]);
+        const StoragePageList& pageList = iter->second;
+        const size_t nPageCount = pageList.size();
+        for (size_t nPage = 0; nPage < nPageCount; ++nPage) {
+            const StoragePage* pPage = pageList[nPage].get();
+            if (pPage == nullptr) {
+                continue;
+            }
+            for (size_t nSlot = 0; nSlot < kPageCells; ++nSlot) {
+                if (pPage->usedMask[nSlot] != 0) {
+                    subItemList.push_back(&pPage->cells[nSlot]);
+                }
             }
         }
     }
@@ -287,9 +293,10 @@ bool ListCtrlData::AddColumn(size_t columnId)
     if ((columnId == Box::InvalidIndex) || (columnId == 0)) {
         return false;
     }
-    StoragePtrList& storageList = m_dataMap[columnId];
-    //列的长度与已分配的行身份数量保持一致（按RowId索引）
-    storageList.resize(m_nextRowId);
+    //新建该列的存储页列表（页为懒分配：某页首次写入时才创建，此处不预分配）
+    if (m_dataMap.find(columnId) == m_dataMap.end()) {
+        m_dataMap.emplace(columnId, StoragePageList());
+    }
     EmitCountChanged();
     return true;
 }
@@ -321,18 +328,14 @@ bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked, bool bRefresh)
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
-        StoragePtrList& storageList = iter->second;
+        StoragePageList& pageList = iter->second;
         //仅遍历存活的行(按显示顺序)，避免为已删除的行(墓碑)重建数据
         const size_t nCount = m_displayOrder.size();
         for (size_t index = 0; index < nCount; ++index) {
-            const RowId rowId = m_displayOrder[index];
-            if (rowId >= storageList.size()) {
-                continue;
+            Storage* pStorage = GetStorageAtForWrite(pageList, m_displayOrder[index]);
+            if (pStorage != nullptr) {
+                pStorage->bChecked = bChecked;
             }
-            if (storageList[rowId] == nullptr) {
-                storageList[rowId] = std::make_shared<Storage>();
-            }
-            storageList[rowId]->bChecked = bChecked;
         }
         bRet = true;
     }
@@ -342,50 +345,90 @@ bool ListCtrlData::SetColumnCheck(size_t columnId, bool bChecked, bool bRefresh)
     return bRet;
 }
 
-ListCtrlData::StoragePtr ListCtrlData::GetSubItemStorage(
-    size_t itemIndex, size_t nColumnId) const
+const ListCtrlData::Storage* ListCtrlData::GetStorageAt(const StoragePageList& pageList, RowId rowId)
 {
-    StoragePtr pStorage;
-    const RowId rowId = GetRowIdByDisplayIndex(itemIndex);
-    if (rowId == kInvalidRowId) {
-        return pStorage;
+    const size_t nPage = static_cast<size_t>(rowId) / kPageCells;
+    if (nPage >= pageList.size()) {
+        //该页尚未分配（懒分配），视为无数据
+        return nullptr;
     }
-    auto iter = m_dataMap.find(nColumnId);
-    ASSERT(iter != m_dataMap.end());
-    if (iter != m_dataMap.end()) {
-        const StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            //关联列：获取数据
-            pStorage = storageList[rowId];
-        }
+    const StoragePage* pPage = pageList[nPage].get();
+    if (pPage == nullptr) {
+        return nullptr;
     }
-    return pStorage;
+    const size_t nSlot = static_cast<size_t>(rowId) % kPageCells;
+    if (pPage->usedMask[nSlot] == 0) {
+        //该单元格未写入（墓碑），视为无数据
+        return nullptr;
+    }
+    return &pPage->cells[nSlot];
 }
 
-ListCtrlData::StoragePtr ListCtrlData::GetSubItemStorageForWrite(
-    size_t itemIndex, size_t nColumnId)
+ListCtrlData::Storage* ListCtrlData::GetStorageAtForWrite(StoragePageList& pageList, RowId rowId)
 {
-    StoragePtr pStorage;
+    const size_t nPage = static_cast<size_t>(rowId) / kPageCells;
+    const size_t nSlot = static_cast<size_t>(rowId) % kPageCells;
+    if (nPage >= pageList.size()) {
+        //懒分配：仅在首次写入该页时增长页列表（中间未触及的页保持为空指针）
+        pageList.resize(nPage + 1);
+    }
+    if (pageList[nPage] == nullptr) {
+        //懒分配：创建存储页（页内单元格一次性构造，页内连续）
+        pageList[nPage] = std::make_unique<StoragePage>();
+    }
+    StoragePage* pPage = pageList[nPage].get();
+    pPage->usedMask[nSlot] = 1;
+    return &pPage->cells[nSlot];
+}
+
+void ListCtrlData::ResetStorageAt(StoragePageList& pageList, RowId rowId)
+{
+    const size_t nPage = static_cast<size_t>(rowId) / kPageCells;
+    if (nPage >= pageList.size()) {
+        return;
+    }
+    StoragePage* pPage = pageList[nPage].get();
+    if (pPage == nullptr) {
+        return;
+    }
+    const size_t nSlot = static_cast<size_t>(rowId) % kPageCells;
+    if (pPage->usedMask[nSlot] != 0) {
+        //置墓碑：清空数据并标记为未写入（不释放存储页）
+        pPage->cells[nSlot] = Storage();
+        pPage->usedMask[nSlot] = 0;
+    }
+}
+
+const ListCtrlData::Storage* ListCtrlData::GetSubItemStorage(
+    size_t itemIndex, size_t nColumnId) const
+{
     const RowId rowId = GetRowIdByDisplayIndex(itemIndex);
     if (rowId == kInvalidRowId) {
-        return pStorage;
+        return nullptr;
     }
     auto iter = m_dataMap.find(nColumnId);
     ASSERT(iter != m_dataMap.end());
-    if (iter != m_dataMap.end()) {
-        StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            //关联列：获取数据
-            pStorage = storageList[rowId];
-            if (pStorage == nullptr) {
-                pStorage = std::make_shared<Storage>();
-                storageList[rowId] = pStorage;
-            }
-        }
+    if (iter == m_dataMap.end()) {
+        return nullptr;
     }
-    return pStorage;
+    //关联列：按页/槽读取数据（未写入的单元格返回nullptr）
+    return GetStorageAt(iter->second, rowId);
+}
+
+ListCtrlData::Storage* ListCtrlData::GetSubItemStorageForWrite(
+    size_t itemIndex, size_t nColumnId)
+{
+    const RowId rowId = GetRowIdByDisplayIndex(itemIndex);
+    if (rowId == kInvalidRowId) {
+        return nullptr;
+    }
+    auto iter = m_dataMap.find(nColumnId);
+    ASSERT(iter != m_dataMap.end());
+    if (iter == m_dataMap.end()) {
+        return nullptr;
+    }
+    //关联列：按页/槽获取可写单元格（必要时分配存储页）
+    return GetStorageAtForWrite(iter->second, rowId);
 }
 
 bool ListCtrlData::GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlSubItemData2Pair>& subItemList) const
@@ -399,14 +442,7 @@ bool ListCtrlData::GetSubItemStorageList(size_t itemIndex, std::vector<ListCtrlS
     ListCtrlSubItemData2Pair dataPair;
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
         dataPair.nColumnId = iter->first;        
-        const StoragePtrList& dataList = iter->second;
-        ASSERT(rowId < dataList.size());
-        if (rowId < dataList.size()) {
-            dataPair.pSubItemData = dataList.at(rowId);
-        }
-        else {
-            dataPair.pSubItemData = nullptr;
-        }
+        dataPair.pSubItemData = GetStorageAt(iter->second, rowId);
         subItemList.push_back(dataPair);
     }
     return true;
@@ -450,13 +486,7 @@ ListCtrlData::RowId ListCtrlData::AllocRowId()
 {
     const RowId rowId = m_nextRowId;
     ++m_nextRowId;
-    //各列数据池、行属性池增长到与行身份数量一致（新增槽位为空）
-    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        StoragePtrList& storageList = iter->second;
-        if (storageList.size() < m_nextRowId) {
-            storageList.resize(m_nextRowId);
-        }
-    }
+    //仅行属性池增长到与行身份数量一致；列数据池为分页懒分配，无需在此增长
     if (m_rowDataList.size() < m_nextRowId) {
         m_rowDataList.resize(m_nextRowId);
     }
@@ -484,12 +514,9 @@ void ListCtrlData::FreeRowId(RowId rowId)
     }
     //行属性置墓碑
     m_rowDataList[rowId] = ListCtrlItemData();
-    //各列数据置墓碑
+    //各列数据置墓碑（清空该单元格并标记为未写入；存储页本身不释放）
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        StoragePtrList& storageList = iter->second;
-        if (rowId < storageList.size()) {
-            storageList[rowId].reset();
-        }
+        ResetStorageAt(iter->second, rowId);
     }
     //修正单选状态
     if (m_nSelectedRowId == rowId) {
@@ -508,16 +535,31 @@ void ListCtrlData::AssertDataConsistency() const
         ASSERT(rowIdSet.find(rowId) == rowIdSet.end());
         rowIdSet.insert(rowId);
     }
-    //2. 各列数据池、行属性池的长度与已分配行身份数量一致
+    //2. 各列分页存储中，已写入的单元格必须属于存活的行身份；且页索引与页内偏移换算一致
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        ASSERT(iter->second.size() == m_nextRowId);
+        const StoragePageList& pageList = iter->second;
+        const size_t nPageCount = pageList.size();
+        for (size_t nPage = 0; nPage < nPageCount; ++nPage) {
+            const StoragePage* pPage = pageList[nPage].get();
+            if (pPage == nullptr) {
+                continue;
+            }
+            for (size_t nSlot = 0; nSlot < kPageCells; ++nSlot) {
+                if (pPage->usedMask[nSlot] != 0) {
+                    const RowId rowId = static_cast<RowId>(nPage * kPageCells + nSlot);
+                    ASSERT(rowId < m_nextRowId);
+                    ASSERT(rowIdSet.find(rowId) != rowIdSet.end());
+                }
+            }
+        }
     }
+    //3. 行属性池长度与已分配行身份数量一致
     ASSERT(m_rowDataList.size() == m_nextRowId);
-    //3. 单选状态有效时，其行身份必须存在于显示顺序表中
+    //4. 单选状态有效时，其行身份必须存在于显示顺序表中
     if (!m_bMultiSelect && (m_nSelectedRowId != kInvalidRowId)) {
         ASSERT(rowIdSet.find(m_nSelectedRowId) != rowIdSet.end());
     }
-    //4. 个性化数据计数与按存活行扫描的结果一致
+    //5. 个性化数据计数与按存活行扫描的结果一致
     int32_t nHideCount = 0;
     int32_t nHeightCount = 0;
     int32_t nAtTopCount = 0;
@@ -610,16 +652,15 @@ size_t ListCtrlData::AddDataItem(size_t columnId, const ListCtrlSubItemData& dat
     Storage storage;
     SubItemToStorage(dataItem, storage);
 
-    //分配新的行身份（各列池与行属性池随之增长，数据本体不搬移）
+    //分配新的行身份（行属性池随之增长，列数据本体不搬移）
     const RowId rowId = AllocRowId();
 
     //关联列：写入数据（其他列为空）
     auto iter = m_dataMap.find(columnId);
     if (iter != m_dataMap.end()) {
-        StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            storageList[rowId] = std::make_shared<Storage>(storage);
+        Storage* pStorage = GetStorageAtForWrite(iter->second, rowId);
+        if (pStorage != nullptr) {
+            *pStorage = storage;
         }
     }
 
@@ -644,16 +685,15 @@ bool ListCtrlData::InsertDataItem(size_t itemIndex, size_t columnId, const ListC
     Storage storage;
     SubItemToStorage(dataItem, storage);
 
-    //分配新的行身份（各列池与行属性池随之增长，数据本体不搬移）
+    //分配新的行身份（行属性池随之增长，列数据本体不搬移）
     const RowId rowId = AllocRowId();
 
     //关联列：写入数据
     auto iter = m_dataMap.find(columnId);
     if (iter != m_dataMap.end()) {
-        StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            storageList[rowId] = std::make_shared<Storage>(storage);
+        Storage* pStorage = GetStorageAtForWrite(iter->second, rowId);
+        if (pStorage != nullptr) {
+            *pStorage = storage;
         }
     }
 
@@ -686,11 +726,9 @@ bool ListCtrlData::DeleteAllDataItems()
     bool bDeleted = !m_displayOrder.empty();
     //清空显示顺序表
     m_displayOrder.clear();
-    //清空各列数据池
+    //清空各列分页存储（释放所有存储页）
     for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
-        StoragePtrList& storageList = iter->second;
-        StoragePtrList emptyList;
-        storageList.swap(emptyList);
+        iter->second.clear();
     }
     //清空行属性池，并重置行身份生成器
     m_rowDataList.clear();
@@ -1041,16 +1079,12 @@ void ListCtrlData::GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& b
     if (iter == m_dataMap.end()) {
         return;
     }
-    const StoragePtrList& sortStorageList = iter->second;
+    const StoragePageList& pageList = iter->second;
     size_t nCheckCount = 0;
     size_t nUnCheckCount = 0;
     //按显示顺序遍历存活的行
     const size_t nCount = m_displayOrder.size();
     if (nCount == 0) {
-        return;
-    }
-    ASSERT(sortStorageList.size() == m_nextRowId);
-    if (sortStorageList.size() != m_nextRowId) {
         return;
     }
 
@@ -1060,10 +1094,7 @@ void ListCtrlData::GetColumnCheckStatus(size_t columnId, bool& bChecked, bool& b
         if (!rowData.bVisible) {
             continue;
         }
-        if (rowId >= sortStorageList.size()) {
-            continue;
-        }
-        const StoragePtr& pStorage = sortStorageList[rowId];
+        const Storage* pStorage = GetStorageAt(pageList, rowId);
         if (pStorage == nullptr) {
             continue;
         }
@@ -1248,19 +1279,19 @@ bool ListCtrlData::SetSubItemData(size_t itemIndex, size_t columnId,
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
-        //关联列：更新数据
-        StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            StoragePtr pStorage = storageList[rowId];
-            if (pStorage == nullptr) {
-                storageList[rowId] = std::make_shared<Storage>(storage);
+        //关联列：更新数据（未写入时先分配存储页）
+        StoragePageList& pageList = iter->second;
+        const Storage* pOld = GetStorageAt(pageList, rowId);
+        Storage* pStorage = GetStorageAtForWrite(pageList, rowId);
+        if (pStorage != nullptr) {
+            if (pOld == nullptr) {
+                *pStorage = storage;
                 if (storage.bChecked) {
                     bCheckChanged = true;
                 }
             }
             else {
-                if (storage.bChecked != pStorage->bChecked) {
+                if (storage.bChecked != pOld->bChecked) {
                     bCheckChanged = true;
                 }
                 *pStorage = storage;
@@ -1287,22 +1318,18 @@ bool ListCtrlData::GetSubItemData(size_t itemIndex, size_t columnId, ListCtrlSub
     auto iter = m_dataMap.find(columnId);
     ASSERT(iter != m_dataMap.end());
     if (iter != m_dataMap.end()) {
-        const StoragePtrList& storageList = iter->second;
-        ASSERT(rowId < storageList.size());
-        if (rowId < storageList.size()) {
-            StoragePtr pStorage = storageList[rowId];
-            if (pStorage != nullptr) {
-                StorageToSubItem(*pStorage, subItemData);
-            }
-            bRet = true;
+        const Storage* pStorage = GetStorageAt(iter->second, rowId);
+        if (pStorage != nullptr) {
+            StorageToSubItem(*pStorage, subItemData);
         }
+        bRet = true;
     }
     return bRet;
 }
 
 bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const DString& text)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1317,7 +1344,7 @@ bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const DStri
 
 DString ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1328,7 +1355,7 @@ DString ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
 
 bool ListCtrlData::SetSubItemSortGroup(size_t itemIndex, size_t columnId, int32_t nSortGroup)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1343,7 +1370,7 @@ bool ListCtrlData::SetSubItemSortGroup(size_t itemIndex, size_t columnId, int32_
 
 int32_t ListCtrlData::GetSubItemSortGroup(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1354,7 +1381,7 @@ int32_t ListCtrlData::GetSubItemSortGroup(size_t itemIndex, size_t columnId) con
 
 bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, uint64_t userDataN)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1369,7 +1396,7 @@ bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, uint64
 
 uint64_t ListCtrlData::GetSubItemUserDataN(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1380,7 +1407,7 @@ uint64_t ListCtrlData::GetSubItemUserDataN(size_t itemIndex, size_t columnId) co
 
 bool ListCtrlData::SetSubItemUserDataS(size_t itemIndex, size_t columnId, const DString& userDataS)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1395,7 +1422,7 @@ bool ListCtrlData::SetSubItemUserDataS(size_t itemIndex, size_t columnId, const 
 
 DString ListCtrlData::GetSubItemUserDataS(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1406,7 +1433,7 @@ DString ListCtrlData::GetSubItemUserDataS(size_t itemIndex, size_t columnId) con
 
 bool ListCtrlData::SetSubItemTextColor(size_t itemIndex, size_t columnId, const UiColor& textColor)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1422,7 +1449,7 @@ bool ListCtrlData::SetSubItemTextColor(size_t itemIndex, size_t columnId, const 
 bool ListCtrlData::GetSubItemTextColor(size_t itemIndex, size_t columnId, UiColor& textColor) const
 {
     textColor = UiColor();
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1434,7 +1461,7 @@ bool ListCtrlData::GetSubItemTextColor(size_t itemIndex, size_t columnId, UiColo
 
 bool ListCtrlData::SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32_t nTextFormat)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1451,7 +1478,7 @@ bool ListCtrlData::SetSubItemTextFormat(size_t itemIndex, size_t columnId, int32
 int32_t ListCtrlData::GetSubItemTextFormat(size_t itemIndex, size_t columnId) const
 {
     int32_t nTextFormat = 0;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         nTextFormat = pStorage->nTextFormat;
@@ -1464,7 +1491,7 @@ int32_t ListCtrlData::GetSubItemTextFormat(size_t itemIndex, size_t columnId) co
 
 bool ListCtrlData::SetSubItemSingleLine(size_t itemIndex, size_t columnId, bool bSingleLine)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     if (pStorage == nullptr) {
         //索引号无效
         return false;
@@ -1489,7 +1516,7 @@ bool ListCtrlData::IsSubItemSingleLine(size_t itemIndex, size_t columnId) const
 
 bool ListCtrlData::SetSubItemBkColor(size_t itemIndex, size_t columnId, const UiColor& bkColor)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1505,7 +1532,7 @@ bool ListCtrlData::SetSubItemBkColor(size_t itemIndex, size_t columnId, const Ui
 bool ListCtrlData::GetSubItemBkColor(size_t itemIndex, size_t columnId, UiColor& bkColor) const
 {
     bkColor = UiColor();
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1517,7 +1544,7 @@ bool ListCtrlData::GetSubItemBkColor(size_t itemIndex, size_t columnId, UiColor&
 
 bool ListCtrlData::IsSubItemShowCheckBox(size_t itemIndex, size_t columnId) const
 {
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1528,7 +1555,7 @@ bool ListCtrlData::IsSubItemShowCheckBox(size_t itemIndex, size_t columnId) cons
 
 bool ListCtrlData::SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, bool bShowCheckBox)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1543,7 +1570,7 @@ bool ListCtrlData::SetSubItemShowCheckBox(size_t itemIndex, size_t columnId, boo
 
 bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChecked, bool bRefresh)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1565,7 +1592,7 @@ bool ListCtrlData::SetSubItemCheck(size_t itemIndex, size_t columnId, bool bChec
 bool ListCtrlData::GetSubItemCheck(size_t itemIndex, size_t columnId, bool& bChecked) const
 {
     bChecked = false;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1581,7 +1608,7 @@ bool ListCtrlData::GetSubItemCheck(size_t itemIndex, size_t columnId, bool& bChe
 
 bool ListCtrlData::SetSubItemImageId(size_t itemIndex, size_t columnId, int32_t imageId)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1600,7 +1627,7 @@ bool ListCtrlData::SetSubItemImageId(size_t itemIndex, size_t columnId, int32_t 
 int32_t ListCtrlData::GetSubItemImageId(size_t itemIndex, size_t columnId) const
 {
     int32_t nImageId = -1;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         nImageId = pStorage->nImageId;
@@ -1610,7 +1637,7 @@ int32_t ListCtrlData::GetSubItemImageId(size_t itemIndex, size_t columnId) const
 
 bool ListCtrlData::SetSubItemEditable(size_t itemIndex, size_t columnId, bool bEditable)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1626,7 +1653,7 @@ bool ListCtrlData::SetSubItemEditable(size_t itemIndex, size_t columnId, bool bE
 bool ListCtrlData::IsSubItemEditable(size_t itemIndex, size_t columnId) const
 {
     bool bEditable = false;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         bEditable = pStorage->bEditable;
@@ -1636,7 +1663,7 @@ bool ListCtrlData::IsSubItemEditable(size_t itemIndex, size_t columnId) const
 
 bool ListCtrlData::SetSubItemProgress(size_t itemIndex, size_t columnId, int32_t nProgress)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1658,7 +1685,7 @@ bool ListCtrlData::SetSubItemProgress(size_t itemIndex, size_t columnId, int32_t
 int32_t ListCtrlData::GetSubItemProgress(size_t itemIndex, size_t columnId) const
 {
     int32_t nProgress = -1;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         nProgress = static_cast<int32_t>(pStorage->nProgress);
@@ -1668,7 +1695,7 @@ int32_t ListCtrlData::GetSubItemProgress(size_t itemIndex, size_t columnId) cons
 
 bool ListCtrlData::SetSubItemRichText(size_t itemIndex, size_t columnId, bool bRichText)
 {
-    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    Storage* pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
@@ -1684,7 +1711,7 @@ bool ListCtrlData::SetSubItemRichText(size_t itemIndex, size_t columnId, bool bR
 bool ListCtrlData::IsSubItemRichText(size_t itemIndex, size_t columnId) const
 {
     bool bRichText = false;
-    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    const Storage* pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage != nullptr) {
         bRichText = pStorage->bRichText;
@@ -1701,7 +1728,7 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex,
     if (iter == m_dataMap.end()) {
         return false;
     }
-    const StoragePtrList& sortStorageList = iter->second;
+    const StoragePageList& pageList = iter->second;
     if (m_displayOrder.empty()) {
         return false;
     }
@@ -1712,8 +1739,7 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex,
     sortedDataList.reserve(dataCount);
     for (size_t index = 0; index < dataCount; ++index) {
         const RowId rowId = m_displayOrder[index];
-        const StoragePtr pStorage = (rowId < sortStorageList.size()) ? sortStorageList[rowId] : nullptr;
-        sortedDataList.push_back({index, pStorage });
+        sortedDataList.push_back({index, GetStorageAt(pageList, rowId)});
     }
     if (!SortStorageData(sortedDataList, nColumnId, nColumnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData)) {
         return false;

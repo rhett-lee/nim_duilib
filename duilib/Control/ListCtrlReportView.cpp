@@ -1056,7 +1056,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 
     // 详细的结构说明，参见：ListCtrlItem.h
 
-    std::map<size_t, ListCtrlSubItemData2Ptr> subItemDataMap;
+    std::map<size_t, const ListCtrlSubItemData2*> subItemDataMap;
     for (const ListCtrlSubItemData2Pair& dataPair : subItemList) {
         subItemDataMap[dataPair.nColumnId] = dataPair.pSubItemData;
     }
@@ -1067,7 +1067,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         size_t nColumnIndex = Box::InvalidIndex;
         size_t nColumnId = Box::InvalidIndex;
         int32_t nColumnWidth = 0;
-        ListCtrlSubItemData2Ptr pStorage;
+        const ListCtrlSubItemData2* pStorage = nullptr;
     };
     std::vector<ElementData> elementDataList;
     const size_t nColumnCount = pHeaderCtrl->GetColumnCount();
@@ -1211,7 +1211,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 }
 
 void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
-                                         const ListCtrlSubItemData2Ptr& pStorage,
+                                         const ListCtrlSubItemData2* pStorage,
                                          const ListCtrlSubItem& defaultSubItem,
                                          size_t nColumnId,
                                          size_t nElementIndex)
@@ -1303,7 +1303,7 @@ bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumn
         return false;
     }
     //获取该单元格的数据
-    ListCtrlData::StoragePtr pStorage = m_pData->GetSubItemStorage(nElementIndex, nColumnId);
+    const ListCtrlData::Storage* pStorage = m_pData->GetSubItemStorage(nElementIndex, nColumnId);
 
     //获取该数据元素当前对应的UI控件
     size_t nItemIndex = GetDisplayItemIndex(nElementIndex);
@@ -1344,7 +1344,7 @@ bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumn
     return true;
 }
 
-int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList)
+int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<const ListCtrlSubItemData2*>& subItemList)
 {
     int32_t nMaxWidth = -1;
     if (m_pListCtrl == nullptr) {
@@ -1365,7 +1365,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
     subItem.SetClass(defaultSubItemClass);
     subItem.SetListCtrlItem(&defaultItem);
 
-    for (const ListCtrlSubItemData2Ptr& pStorage : subItemList) {
+    for (const ListCtrlSubItemData2* pStorage : subItemList) {
         if (pStorage == nullptr) {
             continue;
         }

@@ -169,14 +169,16 @@
             </HBox>
             <!-- 压力测试面板（Phase 0 性能基线）：验证大数据量下的增删改/排序/滚动绘制性能 -->
             <HBox height="auto">
-                <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_STRESS_TEST" margin="2,0,2,0" width="stretch">
+                <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_STRESS_TEST" height="auto" margin="2,0,2,0" width="stretch">
                     <HBox minheight="18" height="auto" margin="8,22,8,8">
-                        <Button class="btn_global" name="stress_load_btn" text_id="STRID_LISTCTRL_STRESS_LOAD" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="stress_insert_btn" text_id="STRID_LISTCTRL_STRESS_INSERT" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="stress_delete_btn" text_id="STRID_LISTCTRL_STRESS_DELETE" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="stress_sort_btn" text_id="STRID_LISTCTRL_STRESS_SORT" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="stress_repaint_btn" text_id="STRID_LISTCTRL_STRESS_REPAINT" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
-                        <Button class="btn_global" name="stress_restore_btn" text_id="STRID_LISTCTRL_STRESS_RESTORE" width="auto" height="28" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="stress_load_btn" text_id="STRID_LISTCTRL_STRESS_LOAD" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_insert_btn" text_id="STRID_LISTCTRL_STRESS_INSERT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_delete_btn" text_id="STRID_LISTCTRL_STRESS_DELETE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_sort_btn" text_id="STRID_LISTCTRL_STRESS_SORT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_repaint_btn" text_id="STRID_LISTCTRL_STRESS_REPAINT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_restore_btn" text_id="STRID_LISTCTRL_STRESS_RESTORE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_load_sparse_btn" text_id="STRID_LISTCTRL_STRESS_LOAD_SPARSE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_memory_btn" text_id="STRID_LISTCTRL_STRESS_MEMORY" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                     </HBox>
                 </GroupVBox>
             </HBox>

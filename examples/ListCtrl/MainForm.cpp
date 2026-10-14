@@ -4,6 +4,11 @@
 #include <cmath>
 #include <chrono>
 
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include <psapi.h>
+    #pragma comment(lib, "psapi.lib")
+#endif
+
 MainForm::MainForm():
     m_fLoadingPercent(0),
     m_imageId(0),
@@ -621,6 +626,31 @@ double PerfTickToMs(int64_t nTickCount)
     return (double)nTickCount / 1000.0;
 #endif
 }
+
+/** 读取当前进程内存占用；返回 false 表示当前平台不支持该指标（仅 Windows 提供）
+    @param [out] nWorkingSet 当前工作集（字节）
+    @param [out] nPeakWorkingSet 进程启动以来的峰值工作集（字节）
+    @param [out] nPrivateUsage 私有提交内存（字节）
+*/
+bool GetProcessMemorySnapshot(uint64_t& nWorkingSet, uint64_t& nPeakWorkingSet, uint64_t& nPrivateUsage)
+{
+    nWorkingSet = 0;
+    nPeakWorkingSet = 0;
+    nPrivateUsage = 0;
+#if defined (DUILIB_BUILD_FOR_WIN)
+    PROCESS_MEMORY_COUNTERS_EX counters = { 0 };
+    counters.cb = sizeof(counters);
+    if (!::GetProcessMemoryInfo(::GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&counters, sizeof(counters))) {
+        return false;
+    }
+    nWorkingSet = (uint64_t)counters.WorkingSetSize;
+    nPeakWorkingSet = (uint64_t)counters.PeakWorkingSetSize;
+    nPrivateUsage = (uint64_t)counters.PrivateUsage;
+    return true;
+#else
+    return false;
+#endif
+}
 }//namespace
 
 void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
@@ -667,6 +697,20 @@ void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
     if (pButton != nullptr) {
         pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
             StressTestRestore(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_load_sparse_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestLoadSparse(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_memory_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestMemory(pListCtrl);
             return true;
             });
     }
@@ -725,6 +769,82 @@ void MainForm::StressTestLoad(ui::ListCtrl* pListCtrl)
         PerfTickToMs(nTick2 - nTick1),
         PerfTickToMs(nTick3 - nTick2),
         PerfTickToMs(nTick3 - nTick0));
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestLoadSparse(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nRows = 100000;    //10万行（仅声明行数，不整体填充）
+    const size_t nColumns = 10;     //10列
+    const size_t nFillRows = 1000;  //稀疏填充：仅写第 0 列的前 1000 行
+
+    pListCtrl->SetEnableRefresh(false);
+    pListCtrl->DeleteAllColumns();
+    pListCtrl->DeleteAllDataItems();
+
+    //1) 添加列
+    const int64_t nTick0 = GetPerfTick();
+    for (size_t nColumn = 0; nColumn < nColumns; ++nColumn) {
+        ui::ListCtrlColumn columnInfo;
+        columnInfo.nColumnWidth = 120;
+        columnInfo.text = ui::StringUtil::Printf(_T("Col %zu"), nColumn);
+        columnInfo.bShowCheckBox = false;
+        columnInfo.nImageId = -1;
+        pListCtrl->InsertColumn(-1, columnInfo);
+    }
+    const int64_t nTick1 = GetPerfTick();
+
+    //2) 仅设置行数（虚表：不写单元格，验证分页存储的懒分配——未写入的页不分配内存）
+    pListCtrl->SetDataItemCount(nRows);
+    const int64_t nTick2 = GetPerfTick();
+
+    //3) 稀疏填充：只写第 0 列的前 nFillRows 行（其余单元格不写入）
+    for (size_t nRow = 0; nRow < nFillRows; ++nRow) {
+        ui::ListCtrlSubItemData subItemData;
+        subItemData.text = ui::StringUtil::Printf(_T("s-%zu-0"), nRow);
+        subItemData.bShowCheckBox = false;
+        subItemData.nImageId = -1;
+        pListCtrl->SetSubItemData(nRow, 0, subItemData);
+    }
+    const int64_t nTick3 = GetPerfTick();
+
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+    m_bStressDataLoaded = true;
+
+    DString msg = ui::StringUtil::Printf(
+        _T("Load sparse data\nRows=%zu, Columns=%zu, Filled cells=%zu (column 0, first %zu rows)\n")
+        _T("InsertColumn: %.1f ms\nSetDataItemCount: %.1f ms\nFill cells: %.1f ms\nTotal: %.1f ms"),
+        nRows, nColumns, nFillRows, nFillRows,
+        PerfTickToMs(nTick1 - nTick0),
+        PerfTickToMs(nTick2 - nTick1),
+        PerfTickToMs(nTick3 - nTick2),
+        PerfTickToMs(nTick3 - nTick0));
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestMemory(ui::ListCtrl* pListCtrl)
+{
+    (void)pListCtrl;    //仅读取进程内存，不需要操作控件
+    uint64_t nWorkingSet = 0;
+    uint64_t nPeakWorkingSet = 0;
+    uint64_t nPrivateUsage = 0;
+    if (!GetProcessMemorySnapshot(nWorkingSet, nPeakWorkingSet, nPrivateUsage)) {
+        ui::SystemUtil::ShowMessageBox(this,
+            _T("Memory reading is not supported on this platform."),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    const double dMB = 1024.0 * 1024.0;
+    DString msg = ui::StringUtil::Printf(
+        _T("Process memory\nWorking set: %.1f MB\nPeak working set: %.1f MB\nPrivate usage: %.1f MB\n")
+        _T("\nNote: peak is measured since process start;\nrestart the app to measure one scenario alone."),
+        (double)nWorkingSet / dMB,
+        (double)nPeakWorkingSet / dMB,
+        (double)nPrivateUsage / dMB);
     ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
 }
 

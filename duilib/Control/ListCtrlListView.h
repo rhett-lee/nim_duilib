@@ -101,7 +101,7 @@ protected:
     * @param [in] subItemList 数据子项（代表每一列的数据）
     * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
     */
-    virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
+    virtual int32_t GetMaxDataItemWidth(const std::vector<const ListCtrlSubItemData2*>& subItemList) override;
 
 private:
     /** ListCtrl 控件接口

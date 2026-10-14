@@ -229,7 +229,7 @@ protected:
     * @param [in] subItemList 数据子项（代表每一列的数据）
     * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
     */
-    virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) override;
+    virtual int32_t GetMaxDataItemWidth(const std::vector<const ListCtrlSubItemData2*>& subItemList) override;
 
     /** 计算本页里面显示几个子项
     * @param [in] bIsHorizontal 当前布局是否为水平布局
@@ -299,7 +299,7 @@ private:
     * @param [in] nElementIndex 数据元素的索引号
     */
     void FillSubItemData(ListCtrlSubItem* pSubItem,
-                         const ListCtrlSubItemData2Ptr& pStorage,
+                         const ListCtrlSubItemData2* pStorage,
                          const ListCtrlSubItem& defaultSubItem,
                          size_t nColumnId,
                          size_t nElementIndex);

@@ -85,6 +85,14 @@ private:
     */
     void StressTestLoad(ui::ListCtrl* pListCtrl);
 
+    /** 压力测试：载入稀疏数据（10万行、仅少量单元格写入），用于验证分页存储的懒分配不膨胀
+    */
+    void StressTestLoadSparse(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：读取并显示当前进程内存占用（工作集 / 峰值工作集 / 私有提交）
+    */
+    void StressTestMemory(ui::ListCtrl* pListCtrl);
+
     /** 压力测试：在列表中间插入若干行，输出耗时
     */
     void StressTestInsert(ui::ListCtrl* pListCtrl);

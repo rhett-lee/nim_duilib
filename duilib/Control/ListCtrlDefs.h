@@ -85,9 +85,6 @@ struct ListCtrlSubItemData2
     bool bRichText = false;         //是否将text按富文本（类HTML格式）渲染
 };
 
-//列数据的智能指针
-typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
-
 /** 列表中数据排序标志（按位与操作）
 */
 enum ListCtrlSubItemSortFlag : uint8_t
@@ -105,7 +102,7 @@ enum ListCtrlSubItemSortFlag : uint8_t
 struct ListCtrlSubItemData2Pair
 {
     size_t nColumnId = 0; //列的ID
-    ListCtrlSubItemData2Ptr pSubItemData; //列的数据
+    const ListCtrlSubItemData2* pSubItemData = nullptr; //列的数据
 };
 
 /** 比较数据的附加信息
@@ -154,7 +151,7 @@ public:
     * @param [in] subItemList 数据子项（代表每一列的数据）
     * @return 返回该列宽度的最大值，返回的是DPI自适应后的值； 如果失败返回-1
     */
-    virtual int32_t GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& subItemList) = 0;
+    virtual int32_t GetMaxDataItemWidth(const std::vector<const ListCtrlSubItemData2*>& subItemList) = 0;
 };
 
 /** 编辑状态的输入参数

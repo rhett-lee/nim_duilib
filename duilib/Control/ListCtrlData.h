@@ -4,6 +4,8 @@
 #include "duilib/Box/VirtualListBox.h"
 #include "duilib/Control/ListCtrlDefs.h"
 #include <unordered_map>
+#include <array>
+#include <memory>
 
 namespace ui
 {
@@ -18,9 +20,6 @@ class DUILIB_API ListCtrlData : public ui::VirtualListBoxElement
 public:
     //用于存储的数据结构
     typedef ListCtrlSubItemData2 Storage;
-    typedef std::shared_ptr<Storage> StoragePtr;
-    typedef std::vector<StoragePtr> StoragePtrList;         //列数据池：按行身份(RowId)索引
-    typedef std::unordered_map<size_t, StoragePtrList> StorageMap;
     typedef std::vector<ListCtrlItemData> RowDataList;      //行属性池：按行身份(RowId)索引
 
     /** 行身份：行的唯一标识，单调递增、删除后不复用
@@ -31,6 +30,26 @@ public:
     /** 无效的行身份
     */
     static constexpr RowId kInvalidRowId = static_cast<RowId>(0xFFFFFFFF);
+
+    /** 每页的单元格数量（分页连续存储）
+        页索引 = RowId / kPageCells，页内偏移 = RowId % kPageCells
+    */
+    static constexpr size_t kPageCells = 64;
+
+    /** 存储页：页内单元格连续存放，附带"已写入"标记
+        优势：页内数组连续（绘制/排序扫描缓存友好，无shared_ptr指针追逐）；
+              页为懒分配（某页首次写入时才创建），稀疏/纯虚表场景内存不膨胀
+    */
+    struct StoragePage
+    {
+        std::array<Storage, kPageCells> cells;  //页内单元格数组（连续）
+        uint8_t usedMask[kPageCells] = {};      //每个单元格是否已写入（1表示已写入）
+    };
+
+    /** 每列的存储页列表（按页索引存放；页为懒分配，列表中允许出现空指针）
+    */
+    typedef std::vector<std::unique_ptr<StoragePage>> StoragePageList;
+    typedef std::unordered_map<size_t, StoragePageList> StorageMap;
 
 public:
     ListCtrlData();
@@ -593,16 +612,28 @@ private:
     /** 获取指定数据项的数据, 读取
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnId 列的ID
-    * @return 如果失败则返回nullptr
+    * @return 如果失败或者该单元格无数据则返回nullptr
     */
-    StoragePtr GetSubItemStorage(size_t itemIndex, size_t nColumnId) const;
+    const Storage* GetSubItemStorage(size_t itemIndex, size_t nColumnId) const;
 
-    /** 获取指定数据项的数据, 写入
+    /** 获取指定数据项的数据, 写入（必要时分配存储页）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnId 列的ID
     * @return 如果失败则返回nullptr
     */
-    StoragePtr GetSubItemStorageForWrite(size_t itemIndex, size_t nColumnId);
+    Storage* GetSubItemStorageForWrite(size_t itemIndex, size_t nColumnId);
+
+    /** 按行身份读取某列的单元格（只读）；该单元格未写入时返回nullptr
+    */
+    static const Storage* GetStorageAt(const StoragePageList& pageList, RowId rowId);
+
+    /** 按行身份获取某列可写的单元格；必要时分配存储页并标记为已写入
+    */
+    static Storage* GetStorageAtForWrite(StoragePageList& pageList, RowId rowId);
+
+    /** 将某列某行身份的单元格置为墓碑（清空数据并标记为未写入）；不分配存储页
+    */
+    static void ResetStorageAt(StoragePageList& pageList, RowId rowId);
 
     /** 获取各个列的数据，用于UI展示
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -647,8 +678,8 @@ private:
     */
     struct StorageData
     {
-        size_t index;       //原来的数据索引号
-        StoragePtr pStorage;
+        size_t index;             //原来的数据索引号
+        const Storage* pStorage;  //该行在排序列的单元格（可能为nullptr）
     };
 
     /** 对数据排序
@@ -685,7 +716,9 @@ private:
     */
     bool m_bAutoCheckSelect;
 
-    /** 数据，按列保存，每个列一个数组；数组按行身份(RowId)索引（删除某行时该槽位置为空指针墓碑）
+    /** 数据，按列保存，每列一份分页连续存储
+        按页索引存放（页 = RowId / kPageCells），页内按行身份偏移索引；页为懒分配，
+        删除某行时仅把该单元格标记为未写入（墓碑），数据本体不搬移
     */
     StorageMap m_dataMap;
 
