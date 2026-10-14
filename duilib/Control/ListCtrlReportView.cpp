@@ -624,46 +624,24 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     //绘制列表项子控件
     //冻结列的处理：冻结列固定显示在列表左侧，不随横向滚动移动
-    int32_t nFrozenWidth = 0;
-    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
-        nFrozenWidth = GetFrozenColumnsWidth(m_pListCtrl->GetFrozenColumnCount());
-    }
-    const bool bHasFrozen = nFrozenWidth > 0;
+    //绘制 / 命中测试 / 网格线统一复用同一套坐标变换（BuildFrozenTransform）
+    const FrozenTransform frozenTransform = BuildFrozenTransform();
 
     //绘制单个控件（bFrozenPass：是否绘制冻结列的部分）
     auto paintControl = [&](Control* pControl, bool bFrozenPass) {
         if ((pControl == nullptr) || !pControl->IsVisible()) {
             return;
         }
-        const UiSize scrollPos = GetScrollOffset();
-        const UiRect rcViewport = GetPosWithoutPadding(); //视口矩形(不随滚动移动)
-
-        //裁剪区域（视口坐标系）
-        UiRect rcClip = rcViewport;
-        if (bHasFrozen) {
-            if (bFrozenPass) {
-                rcClip.right = rcViewport.left + nFrozenWidth;
-            }
-            else {
-                rcClip.left = rcViewport.left + nFrozenWidth;
-            }
-            if (rcClip.left >= rcClip.right) {
-                return;
-            }
+        //裁剪区（屏幕坐标）、绘制区（屏幕坐标）、窗口原点偏移，统一由坐标变换推导
+        UiRect rcClip;
+        UiRect rcNewPaint;
+        UiPoint ptOffset;
+        frozenTransform.GetPaintPass(bFrozenPass, rcClip, rcNewPaint, ptOffset);
+        if (frozenTransform.bHasFrozen && (rcClip.left >= rcClip.right)) {
+            return;
         }
         AutoClip alphaClip(pRender, rcClip, IsClip());
 
-        //绘制区域（内容坐标系）
-        UiRect rcNewPaint = rcViewport;
-        if (bHasFrozen && bFrozenPass) {
-            rcNewPaint.right = rcViewport.left + nFrozenWidth;
-        }
-        else {
-            rcNewPaint.Offset(scrollPos.cx, scrollPos.cy);
-            if (bHasFrozen) {
-                rcNewPaint.left = rcViewport.left + nFrozenWidth + scrollPos.cx;
-            }
-        }
         rcNewPaint.Offset(GetRenderOffset().x, GetRenderOffset().y);
 
         int32_t nClipState = -1;
@@ -677,8 +655,6 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
             }
         }
 
-        //冻结列不随横向滚动移动，所以横向的偏移量为0
-        UiPoint ptOffset = bFrozenPass ? UiPoint(0, scrollPos.cy) : UiPoint(scrollPos.cx, scrollPos.cy);
         UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
         pControl->AlphaPaint(pRender, rcNewPaint);
         pRender->SetWindowOrg(ptOldOrg);
@@ -691,7 +667,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         if (pControl == nullptr) {
             continue;
         }
-        if (bHasFrozen) {
+        if (frozenTransform.bHasFrozen) {
             //先绘制可滚动区域（非冻结列）
             paintControl(pControl, false);
             //再绘制冻结列（覆盖在最上层）
@@ -780,6 +756,20 @@ int32_t ListCtrlReportView::GetFrozenColumnsWidth(size_t nFrozenCount) const
     return 0;
 }
 
+ListCtrlReportView::FrozenTransform ListCtrlReportView::BuildFrozenTransform() const
+{
+    FrozenTransform transform;
+    transform.rcViewport = GetPosWithoutPadding();
+    transform.scrollPos = GetScrollOffset();
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
+        transform.nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
+        transform.nFrozenWidth = GetFrozenColumnsWidth(transform.nFrozenCount);
+        //冻结区宽度为0时视为没有冻结列（保持与历史行为一致）
+        transform.bHasFrozen = transform.nFrozenWidth > 0;
+    }
+    return transform;
+}
+
 void ListCtrlReportView::PaintGridLines(IRender* pRender)
 {
     ASSERT(pRender != nullptr);
@@ -854,23 +844,18 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
         }
 
         //冻结列的纵向网格线处理：冻结列不随横向滚动移动
-        int32_t nFrozenWidth = 0;
-        size_t nFrozenCount = 0;
-        if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
-            nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
-            nFrozenWidth = GetFrozenColumnsWidth(nFrozenCount);
-        }
-        const int32_t nScrollX = (nFrozenWidth > 0) ? GetScrollOffset().cx : 0;
-        const int32_t nFrozenRight = viewRect.left + nFrozenWidth;
+        //与绘制复用同一套坐标变换（viewRect 与坐标变换的视口矩形同口径）
+        const FrozenTransform frozenTransform = BuildFrozenTransform();
+        const int32_t nFrozenRight = frozenTransform.FrozenRight();
 
         for (size_t i = 0; i < xPosList.size(); ++i) {
             int32_t xPos = xPosList[i];
             int32_t nClipState = -1;
-            if (nFrozenWidth > 0) {
+            if (frozenTransform.bHasFrozen) {
                 UiRect rcClip = viewRect;
-                if (i < nFrozenCount) {
+                if (i < frozenTransform.nFrozenCount) {
                     //冻结列：恢复到不随横向滚动移动的屏幕位置
-                    xPos += nScrollX;
+                    xPos = frozenTransform.GridLineScreenX(xPos, true);
                     rcClip.right = nFrozenRight;
                 }
                 else {
@@ -981,10 +966,9 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
     if ((boxScrollPos.x != 0) && (m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
         //存在冻结列：鼠标落在冻结列区域内时，冻结列不随横向滚动移动，所以横向偏移量为0
-        const int32_t nFrozenWidth = GetFrozenColumnsWidth(m_pListCtrl->GetFrozenColumnCount());
-        if ((nFrozenWidth > 0) && (boxPt.x < GetRect().left + nFrozenWidth)) {
-            boxScrollPos.x = 0;
-        }
+        //由统一坐标变换推导，保证命中区域的冻结区边界与绘制区域口径一致
+        const FrozenTransform frozenTransform = BuildFrozenTransform();
+        boxScrollPos.x = frozenTransform.HitScrollX(boxPt.x);
     }
     return FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }

@@ -304,6 +304,78 @@ private:
                          size_t nColumnId,
                          size_t nElementIndex);
 
+    /** 冻结列的坐标变换结果：绘制 / 命中测试 / 网格线 / 滚动范围统一由此推导
+    *  内容坐标：子控件 GetRect() 所在坐标系，随滚动偏移移动
+    *  屏幕坐标：最终绘制 / 鼠标位置所在坐标系（不含 RenderOffset）
+    *  冻结列不随横向滚动移动，所以其内容坐标与屏幕坐标同值
+    */
+    struct FrozenTransform
+    {
+        /** 是否存在冻结列 */
+        bool bHasFrozen = false;
+
+        /** 冻结的列数 */
+        size_t nFrozenCount = 0;
+
+        /** 冻结区宽度（内容坐标与屏幕坐标同值） */
+        int32_t nFrozenWidth = 0;
+
+        /** 视口矩形（屏幕坐标，不包含内边距） */
+        UiRect rcViewport;
+
+        /** 当前滚动偏移 */
+        UiSize scrollPos;
+
+        /** 冻结区的右边界（屏幕X坐标） */
+        int32_t FrozenRight() const { return rcViewport.left + nFrozenWidth; }
+
+        /** 屏幕X坐标是否落在冻结区内 */
+        bool IsFrozenX(int32_t screenX) const { return bHasFrozen && (screenX < FrozenRight()); }
+
+        /** 命中测试：由屏幕X坐标推导横向滚动偏移（落在冻结区内时横向偏移为0） */
+        int32_t HitScrollX(int32_t screenX) const { return IsFrozenX(screenX) ? 0 : scrollPos.cx; }
+
+        /** 网格线：由"已扣除滚动偏移的内容X"推导屏幕X（冻结列不随横向滚动移动） */
+        int32_t GridLineScreenX(int32_t x, bool bFrozenColumn) const
+        {
+            return bFrozenColumn ? (x + scrollPos.cx) : x;
+        }
+
+        /** 绘制趟：推导裁剪区（屏幕）+ 绘制区（屏幕）+ 窗口原点偏移
+        * @param [in] bFrozenPass true表示绘制冻结列趟，false表示绘制可滚动区域趟
+        * @param [out] rcClip 裁剪矩形（屏幕坐标）
+        * @param [out] rcPaint 绘制矩形（屏幕坐标）
+        * @param [out] ptOffset 窗口原点偏移
+        */
+        void GetPaintPass(bool bFrozenPass, UiRect& rcClip, UiRect& rcPaint, UiPoint& ptOffset) const
+        {
+            rcClip = rcViewport;
+            rcPaint = rcViewport;
+            if (bHasFrozen) {
+                if (bFrozenPass) {
+                    //冻结列趟：只保留视口左侧的冻结区
+                    rcClip.right = FrozenRight();
+                    rcPaint.right = FrozenRight();
+                }
+                else {
+                    //可滚动区域趟：裁剪掉冻结区，绘制区左边界对齐到冻结区右侧（随横向滚动移动）
+                    rcClip.left = FrozenRight();
+                    rcPaint.Offset(scrollPos.cx, scrollPos.cy);
+                    rcPaint.left = FrozenRight() + scrollPos.cx;
+                }
+            }
+            else {
+                rcPaint.Offset(scrollPos.cx, scrollPos.cy);
+            }
+            //冻结列不随横向滚动移动，所以横向的窗口原点偏移量为0
+            ptOffset = bFrozenPass ? UiPoint(0, scrollPos.cy) : UiPoint(scrollPos.cx, scrollPos.cy);
+        }
+    };
+
+    /** 构建冻结列的坐标变换（一次推导，绘制 / 命中测试 / 网格线复用）
+    */
+    FrozenTransform BuildFrozenTransform() const;
+
     /** 计算冻结列的宽度（前N个可见列的总宽度，内容坐标系）
     * @param [in] nFrozenCount 冻结的列数
     * @return 返回冻结列的宽度，如果无法计算则返回0

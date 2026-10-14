@@ -94,7 +94,7 @@
 | P3 | 冻结列下的横向滚动最大范围 | 已核实（无需改动） | 结论：**无需扣除冻结列宽度，滚动范围本身正确**。内容宽度来自 `ListCtrlReportLayout::ArrangeChildren` 的 `sz.cx = max(GetItemWidth(), rc.Width())`，其中 `GetItemWidth()` → `ListCtrlReportView::GetListCtrlWidth()` **求和的是全部可见列宽（含冻结列）**（`EstimateLayoutSize` 仅用于 `auto` 尺寸估算、`CalcEstimateSize` 是 H/VTile 工具函数，均不参与横向 extent）；滚动范围由 `ScrollBox::NeedShowHScrollBar()` 计算为 `max(内容宽 - 视口宽, 0)`，此处的"视口宽"也是**含冻结区的全宽**。设总列宽 `W`、视口宽 `V`、冻结宽 `F`，则最大滚动 `= W - V`；绘制侧非冻结趟把裁剪左界与内容起点都对齐到 `视口左 + F`（`rcClip.left = rcViewport.left + nFrozenWidth`、`rcNewPaint.left = rcViewport.left + nFrozenWidth + scrollPos.cx`），于是滚动为 0 时首个非冻结列左边缘恰在 `视口左 + F`、与冻结区无缝相接，滚动到 `W - V` 时末列右边缘恰在 `视口右`——冻结宽度在两式中自然抵消，`W - V` 即正确上限，不需要任何显式扣除，也不会出现遮挡或空白带（该段被冻结列覆盖的内容已由 `rcNewPaint.left` 排除在绘制外）。界面功能测试亦未发现冻结列异常 |
 | P4 | 绘制期每帧重排 | 已核实（无需改动） | `ListCtrlReportView::PaintChild` 每次绘制会调用 `ReArrangeChild(false)`，但该调用内部由 `VirtualLayout::NeedReArrange()` 守卫：`ListCtrlReportLayout::NeedReArrange()` 仅在"滚动位置相对已应用的虚拟偏移发生变化"（`GetScrollPos().cy != GetScrollVirtualOffset().cy`）时为真，常规重绘时立即返回，**无重排开销**；尺寸 / 数据变化走 `Refresh()` 中的 `ReArrangeChild(true)` 强制重排路径。冻结列场景的"每个控件画两趟"仅在 `frozen_column_count > 0` 时发生（无冻结列时为单趟），属冻结列双趟裁剪的固有实现，非冗余绘制 |
 | P5 | 依赖调用时序 / `GetRect()` 有效的脆弱写法排查 | 已核实（无需改动） | 已全文排查，判定标准 = "把 `GetRect()` 的绝对坐标当作宽度/尺寸用，且该代码可能在布局前执行"。结论：**估算路径干净，运行时 `GetRect()` 用法均为布局后按设计调用**。(1) 估算路径全部干净：`LabelImpl::OnEstimateTextWith`、`RichTextImpl::EstimateText`、`RichEdit2::EstimateText`、`DateTime::EstimateText` 均以 `rc.left = 0` / `rc.top = 0` 为零点、宽度取自 `szAvailable`/固定尺寸/内边距之和，无绝对坐标；`ListCtrlReportLayout::EstimateLayoutSize` 只用内边距与 `EstimateSize()` 结果；原缺陷点 `ListCtrlSubItem::EstimateText` 已修复为"仅累加左侧额外占位宽度"（CheckBox + 图标 + 间距）。(2) 其余 `GetRect()/GetPos()` 用法（`ListBox` 显示范围遍历、`ScrollBox` 滚动量计算、`RichEdit2::EnsureCharVisible`、`ListCtrlReportView` 绘制偏移、`ListCtrlSubItem::PaintText/PaintProgress`）均在绘制 / 滚动 / 鼠标 / 编辑等**布局已完成后**执行，属运行时按设计读取，非脆弱写法。(3) 唯一残留的"依赖前序调用"点：`ListCtrl` 进入单元格编辑时读取 `pSubItem->GetTextRect()`（`ListCtrl.cpp` L2838 / L2953），该矩形仅由 `ListCtrlSubItem::PaintText/PaintProgress` 的 `SetTextRect()` 赋值、未绘制时为空；由于只有已绘制的单元格才可能被点击编辑，实际安全，建议在落地 L1（F2 编辑）/ L2（Ctrl+C）时顺手加"矩形为空则回退 `GetRect()`"的兜底 |
-| A1 | 冻结列实现收敛为统一坐标变换层 | 待评估（架构性） | 当前命中测试靠"落在冻结区就把横向偏移置 0"的补偿、绘制靠两趟裁剪，与常规布局坐标混用，后续改动容易再踩坑（`frozen=0` 绘制异常即同源问题）；建议将绘制 / 命中 / 网格线 / 滚动条范围统一由一层坐标变换推导 |
+| A1 | 冻结列实现收敛为统一坐标变换层 | 已完成 | 已在 `ListCtrlReportView` 内新增私有值对象 `FrozenTransform` 与构建函数 `BuildFrozenTransform()`，把"冻结区右边界 / 冻结区判定 / 命中横向偏移归零 / 两趟裁剪 / 网格线屏幕 X"统一由一层坐标变换推导；绘制（`PaintChild` 在控件循环外推导一次并复用）、命中测试（`FindControl`）、网格线（`PaintGridLines`）三处改为共用同一口径，`frozen=0` 的回退分支收敛为单一的 `bHasFrozen` 判断。顺带修正命中区口径：原先命中用 `GetRect().left + F`、绘制用 `GetPosWithoutPadding().left + F`，内边距非 0 时命中区相对绘制区左移 `padding.left`，现统一为 `GetPosWithoutPadding().left`；滚动范围无需改动（内容宽与视口宽均含冻结宽，自然抵消，见 P3），`ListCtrlHeader` 无需改动（表头随同一套两趟绘制）。Debug\|x64 编译通过 |
 | A2 | 布局模型升级（多级表头 / 单元格合并 / 内嵌树 / 行分组折叠） | 缺失（架构性） | 需要表头与行的布局模型升级，详见下节功能对照 |
 
 ### 四、相对 QTableView / WPF DataGrid 功能对照
@@ -137,7 +137,7 @@
 | # | 项 | 状态 |
 |---|----|------|
 | 10 | 单元格存储改为连续内存（去掉每格 `shared_ptr`），顺带改善行访问局部性 | 实施中（身份/位置分离 Phase 1 已完成；连续分页存储 Phase 2 已完成并通过 Release 实测 + Debug 断言验收；Phase 3 已实施（批量删除与内存门槛 Release 实测通过；内存回收门槛实测达成（删 50% 后压缩回落 41 MB；小比例删除观测不到）；绘制同机 A/B 已闭环、无回归（Phase 3 ≈13.2 vs 同机 Phase 2 ≈17.6 ms/帧，快 24.7%））） |
-| 11 | 冻结列从"两趟绘制 + 命中补偿"收敛为统一坐标变换层，避免同类 bug 复发 | 待评估（A1；滚动范围口径见 P3） |
+| 11 | 冻结列从"两趟绘制 + 命中补偿"收敛为统一坐标变换层，避免同类 bug 复发 | 已完成（A1：绘制 / 命中 / 网格线统一由 `FrozenTransform` 推导，并修正命中区口径；滚动范围口径见 P3） |
 | 12 | 多级表头 / 行分组折叠 / 表格内嵌树 / 单元格合并（需表头与行的布局模型升级） | 缺失（A2，架构性） |
 
 ### 六、跟进状态总览
@@ -165,7 +165,7 @@
 | P3 | 冻结列横向滚动范围（是否扣除冻结宽度） | 待核实 |
 | P4 | 绘制期每帧重排（`ReArrangeChild`） | 待评估 |
 | P5 | 脆弱写法排查（依赖时序 / `GetRect()`） | 待办 |
-| A1 | 冻结列收敛为统一坐标变换层 | 待评估（架构性） |
+| A1 | 冻结列收敛为统一坐标变换层 | 已完成 |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 缺失（架构性） |
 
 > 注：本文档为 ListCtrl 专项跟进清单，条目完成后请同步更新本表状态；控件级的新增规划仍以 [Control-Roadmap.md](Control-Roadmap.md) 为准。
