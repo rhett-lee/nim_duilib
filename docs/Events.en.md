@@ -81,6 +81,8 @@ The content related to control events is defined in the files [`duilib/Core/Even
 |kEventColumnOrderChanged   |     |     |     |     |       |     | ListCtrl: the column display order changed (triggered when dragging the header to reorder columns); iterate with GetColumnId to get the new order |
 |kEventColumnVisibleChanged | Column ID (size_t)  | New state (1 visible / 0 hidden) |     |     |       |     | ListCtrl: a column's show/hide state changed |
 |kEventColumnSorted         | Column ID (size_t)  | New state (1 ascending / 0 descending) |     |     |       |     | ListCtrl: a column's sort state changed |
+|kEventCurrentCellChanged   | Row display index (size_t) | Column ID (size_t) |     |     |       |     | ListCtrl: the current cell changed (cell selection mode) |
+|kEventCellSelectionChanged | Number of selected areas (size_t) | 0 (reserved) |     |     |       | std::vector<ui::ListCtrlCellRange>*:<br>the list of selected areas (possibly multiple; nullptr when there is no selection) | ListCtrl: the cell selection area changed (a list of areas is used because discontiguous selection is supported; the pointer is nullptr and wParam is 0 when there is no valid selection) |
 
 | Event (eventType)           | Parameter (wParam)  | Parameter (lParam) | Parameter (ptMouse) | Parameter (vkCode) | Parameter (modifierKey) |Parameter (eventData) | Note     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |

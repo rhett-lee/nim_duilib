@@ -1890,6 +1890,7 @@ The DirectoryTree control inherits the `TreeView` attributes. For more available
 | enable_item_edit | true | bool | Whether to support sub-item editing|
 | list_ctrl_richedit_class | | string | Class attribute of the edit box; for the definition method, please refer to the corresponding content in `global.xml` and the example program|
 | frozen_column_count | 0 | int | Number of frozen columns: the first N columns on the left are fixed and do not move when scrolling horizontally (0 means no frozen columns)|
+| selection_mode | "row" | string | Selection mode; optional values: "row" (row selection, default), "cell" (cell selection)|
 
 The ListCtrl control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.    
 Each view of the ListCtrl control inherits the `ListBox` attributes; for more available attributes, please refer to the `ListBox` attribute settings: [Box.md](Box.en.md); the view attributes need to be set in `global.xml`.
@@ -1910,6 +1911,10 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Single-cell refresh | `RefreshSubItem` / `RefreshSubItemById` | Refresh only the specified cell (partial update for progress/status columns), avoiding a full row refresh |
 | Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API (equivalent to the header item's visibility; the data columns are synchronized automatically) |
 | Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Notify the application when column width/order/visibility/sort changes, for persisting the column layout |
+| Cell selection mode | `selection_mode` (XML, `row`/`cell`) / `SetSelectionMode` / `GetSelectionMode` | Selection mode: `row` (row selection, default, existing behavior unchanged) / `cell` (cell selection); switching to `cell` clears the row selection, switching back to `row` clears the cell selection |
+| Cell selection | `SetCurrentCell` / `GetCurrentCell` / `SetCellSelection` / `ClearCellSelection` / `GetCellSelection` / `SetSelectedCells` / `GetSelectedCells` / `IsCellSelected` / `IsCellCurrent` | Current cell and selection set in cell selection mode: the selected state is stored per cell at the data layer, indexed by row identity (RowId) + column ID (decoupled from display order, so it does not drift after sorting), supporting **discontiguous** selection. A plain click replaces the selection with that cell (anchor = focus), `Ctrl+click` toggles that cell, `Shift+click`/dragging replaces the selection with a rectangle, `Ctrl+drag`/`Ctrl+Shift+click` appends a rectangle; `GetSelectedCells` expands it to a cell list (skipping cells covered by a merge), and `SetSelectedCells` is the cell equivalent of the row API `SetSelectedDataItems` |
+| Cell selection events | `AttachCurrentCellChanged` / `AttachCellSelectionChanged` | `kEventCurrentCellChanged` (current cell changed, wParam = row display index, lParam = column ID) / `kEventCellSelectionChanged` (selection area changed, wParam = number of areas, pEventData points to `std::vector<ui::ListCtrlCellRange>*` (the list of selected areas, possibly multiple, empty means no selection)); XML inline event names `on_current_cell_changed` / `on_cell_selection_changed` |
+| Row/cell mode dispatch | `SetSelectAll` / `SetSelectNone`; `SetSelectedDataItems` / `GetSelectedDataItems` | `SetSelectAll` / `SetSelectNone` dispatch by the current mode (`row` selects/clears rows, `cell` selects/clears cells); the row-only APIs `SetSelectedDataItems` / `GetSelectedDataItems` **keep their original behavior** (they still read/write the underlying row-selection state normally), and `SetSelectedCells` / `GetSelectedCells` are available as cell equivalents. In `cell` mode isolation is not achieved by suppressing APIs but by suppressing the row-selected visual at the **paint layer** (`ListCtrlReportView::CanPaintSelectedColors` returns false), so no matter which entry point changes the row-selection state (right-click, keyboard, APIs), the UI never shows a row as selected |
 | Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column (text/number/date/progress, etc.); clicking that column's header uses it automatically. `kSortByProgress` sorts by progress value, `kSortByTextAsNumber` compares text numerically (`"10" > "9"`), `kSortByTextAsDate` compares text chronologically (`"2024-3-7" < "2024-10-1"`) |
 | Batch row deletion | `DeleteDataItems(const std::vector<size_t>&)` | Deletes many rows at once (indices may be unordered and may include out-of-range/duplicate entries, which are ignored); deduplicates by row identity and performs a single-pass compaction of the display-order table, avoiding the O(K×N) shifting of row-by-row deletion; returns the number of rows actually deleted |
 | Storage compaction | `CompactStorage()` | An explicit whole-table maintenance operation: renumbers row identities and compacts the storage pages, reclaiming the tombstone slots and empty pages left by repeated insert/delete. Call it only when no fill/paint is in progress; afterwards all outstanding internal cell raw pointers become invalid. During single/batch deletion, a storage page whose slots are all tombstones is released automatically |
@@ -2061,6 +2066,70 @@ pListCtrl->AttachColumnSorted([](const ui::EventArgs& args) {
     return true;
 });
 ```
+
+**Cell selection mode (C1 / C1b):**
+
+The default is `selection_mode="row"` (row selection); the existing row selection, keyboard navigation and event behavior remain completely unchanged. Set it to `cell` to enter cell selection mode:
+
+```cpp
+// Switch to cell selection mode
+pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kCell);
+ui::ListCtrlSelectionMode mode = pListCtrl->GetSelectionMode(); // returns kCell
+
+// Current cell: the cell hit by a click becomes the current cell (and also the area anchor)
+ui::ListCtrlCellId cell = pListCtrl->GetCurrentCell(); // cell.nRowIndex / cell.nColumnId; use IsValid() to test validity
+pListCtrl->SetCurrentCell(0, nColumnId); // replace semantics: clear other cells and select only this one
+
+// Set / get / clear the selection area: anchorCell is the anchor, focusCell is the focus
+ui::ListCtrlCellId anchorCell, focusCell;
+pListCtrl->SetCellSelection(anchorCell, focusCell, false); // third parameter: true = append this rectangle (keep existing), false = clear first then set
+pListCtrl->GetCellSelection(anchorCell, focusCell);       // get the anchor and focus
+pListCtrl->ClearCellSelection();
+
+// Cell equivalents of the row APIs SetSelectedDataItems / GetSelectedDataItems
+std::vector<ui::ListCtrlCellId> cellList;
+pListCtrl->SetSelectedCells(cellList, true); // batch-select cells; true = clear others first
+pListCtrl->GetSelectedCells(cellList);       // expand to a list of selected cells (skipping cells covered by a merge)
+
+// Queries (for the application's custom paint / edit decisions)
+bool bSelected = pListCtrl->IsCellSelected(0, nColumnId); // whether the cell is selected
+bool bCurrent  = pListCtrl->IsCellCurrent(0, nColumnId);  // whether the cell is the current cell
+
+// Select-all / clear: dispatched by the current mode (cells in cell mode, rows in row mode)
+pListCtrl->SetSelectAll();
+pListCtrl->SetSelectNone();
+
+// Events
+pListCtrl->AttachCurrentCellChanged([](const ui::EventArgs& args) {
+    size_t nRowIndex = (size_t)args.wParam; // row display index
+    size_t nColumnId = (size_t)args.lParam; // column ID
+    return true;
+});
+pListCtrl->AttachCellSelectionChanged([](const ui::EventArgs& args) {
+    // wParam is the number of selected areas; when there is no selection wParam is 0 and pEventData is nullptr
+    auto* pRangeList = (std::vector<ui::ListCtrlCellRange>*)args.pEventData;
+    if (pRangeList != nullptr) {
+        // the result may contain multiple discontiguous areas, each with nRowBegin / nRowEnd / nColumnIdBegin / nColumnIdEnd
+        for (const ui::ListCtrlCellRange& range : *pRangeList) {
+            if (range.IsValid()) {
+                // use range ...
+            }
+        }
+    }
+    return true;
+});
+```
+
+It can be configured and bound to inline events directly in XML: `<ListCtrl class="list_ctrl" selection_mode="cell"><Event type="current_cell_changed" .../><Event type="cell_selection_changed" .../></ListCtrl>`.
+
+Interaction notes (aligned with Windows Explorer): in `cell` mode,
+- Mouse: a plain click replaces the selection with that cell (clearing others); `Ctrl+click` toggles that cell (clicking again deselects, supporting discontiguous selection); `Shift+click` extends from the anchor to that cell (replace); `Ctrl+Shift+click` extends from the anchor to that cell (append); holding the **left or right button** and dragging shows a light-blue translucent rubber-band overlay **identical** to row-selection mode (reusing `ListBoxHelper`: same color, same alpha, same DPI-scaled border, top clipped at the header bottom); on release the cells inside the rectangle are selected (replace), while `Ctrl+drag` appends (without clearing the existing selection); dragging to the viewport edge auto-scrolls the view (same as row-selection mode).
+- Keyboard: arrow keys move the current cell (replacing the selection with that cell), `Shift+arrow` extends the area (replace), `Ctrl+arrow` moves the focus only without changing the selection, `Ctrl+Shift+arrow` appends an extension; `Home`/`End` go to the first/last column of the current row, `Ctrl+Home`/`Ctrl+End` go to the first/last cell of the table; `PageUp`/`PageDown` page; `Ctrl+A` selects all cells; `Ctrl+Space` toggles the current cell.
+- Mode isolation: in `cell` mode all row-selection entry points (clicking a row, row Hover/Pushed highlight, `Ctrl+A`/arrow keys, row frame selection, `SetSelectedDataItems`, etc.) do not affect row selection (mouse operations never change the row-selection state, so switching back to `row` mode shows no leftover selected rows); clicking a blank area clears the cell selection. Note: cell-mode rubber-band selection reuses the ListBox frame-selection capability and therefore requires `multi_select == true` (ListCtrl defaults to `true`).
+- Paint: the selected area is filled translucent, the current cell gets a focus rectangle; frozen-column cells participate in the selection as well.
+- Pinned rows: the header and pinned rows (non-selectable rows) do not participate in cell selection or highlight painting; clicking/hovering on them does not "pierce through" to select the cells underneath that they occlude, and the cell highlight is never painted over pinned-row content.
+- Single-select semantics: when `multi_select="false"`, the `cell` mode matches the row mode — **at most one cell is selected**: `Shift+click` / `Ctrl+click` behave like a plain click, `Shift+arrow` degrades to plain movement of the current cell, `Ctrl+A` changes nothing, and no drag-box selection is started; `SetSelectedCells` / `SetCellSelection` keep only the first (or the focus) cell; switching from multi- to single-select trims the selection down to the first cell (symmetric with `OnSwitchToSingleSelect` in row mode). The "current cell" focus box is still kept — only the selection set is limited to one.
+- Not implemented yet: interaction adaptation for cell merging (handled in later phases).
 
 See the ListCtrl example program for a full demo (the table freezes the first column by default, column 2 is a progress bar, column 3 is rich text).
 

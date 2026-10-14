@@ -1890,6 +1890,7 @@ DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`Tr
 | enable_item_edit | true | bool | 是否支持子项编辑|
 | list_ctrl_richedit_class | | string | 编辑框的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
 | frozen_column_count | 0 | int | 冻结列的个数：固定列表左侧的前N列，横向滚动时这些列固定不动（0表示不冻结）|
+| selection_mode | "row" | string | 选择模式，可选值："row"（行选择，默认）、"cell"（单元格选择）|
 
 ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性    
 ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性设置:[Box.md](Box.md)，视图的属性需要在`global.xml` 中设置。
@@ -1910,6 +1911,10 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 只刷新指定单元格（进度、状态类列的局部更新），避免整行刷新 |
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级的列显隐接口（等价于表头项的显隐，内部自动同步数据列） |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时通知应用层，便于持久化列布局 |
+| 单元格选择模式 | `selection_mode`（XML，`row`/`cell`）/ `SetSelectionMode` / `GetSelectionMode` | 选择模式：`row`（行选择，默认，既有行为不变）/ `cell`（单元格选择）；切到 `cell` 会清空行选择，切回 `row` 会清空单元格选择 |
+| 单元格选择 | `SetCurrentCell` / `GetCurrentCell` / `SetCellSelection` / `ClearCellSelection` / `GetCellSelection` / `SetSelectedCells` / `GetSelectedCells` / `IsCellSelected` / `IsCellCurrent` | 单元格选择模式下的当前格与选择集合：底层按行身份（RowId）+ 列ID 逐单元格保存选中状态（与显示顺序解耦，排序后不漂移），支持**不连续**选择。单击替换选中该格（锚点=焦点），`Ctrl+单击`切换该格选中状态，`Shift+单击`/拖动按矩形替换，`Ctrl+拖动`/`Ctrl+Shift+单击`按矩形追加；`GetSelectedCells` 展开为单元格列表（跳过被合并覆盖的单元格），`SetSelectedCells` 为行选择 `SetSelectedDataItems` 的单元格等价接口 |
+| 单元格选择事件 | `AttachCurrentCellChanged` / `AttachCellSelectionChanged` | `kEventCurrentCellChanged`（当前单元格变化，wParam=行显示索引，lParam=列ID）/ `kEventCellSelectionChanged`（选择区域变化，wParam=区域个数，pEventData 指向 `std::vector<ui::ListCtrlCellRange>*`（选中区域列表，可能多项，空表示无选择））；XML 内联事件名 `on_current_cell_changed` / `on_cell_selection_changed` |
+| 行/单元格模式分派 | `SetSelectAll` / `SetSelectNone`；`SetSelectedDataItems` / `GetSelectedDataItems` | `SetSelectAll` / `SetSelectNone` 按当前模式分派（`row` 全选/清空行，`cell` 全选/清空单元格）；行专用接口 `SetSelectedDataItems` / `GetSelectedDataItems` **保留原有行为**（仍正常读写底层行选择状态），必要时可用 `SetSelectedCells` / `GetSelectedCells` 作为单元格等价接口。`cell` 模式下不通过屏蔽接口来实现隔离，而是由**绘制层**屏蔽行选中视觉表现（`ListCtrlReportView::CanPaintSelectedColors` 返回 false），因此无论行选择状态由哪个入口（鼠标右键、键盘、API）改动，界面都看不出行被选中 |
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式（文本/数值/日期/进度等），鼠标点击该列表头排序时自动采用；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），`kSortByTextAsDate` 文本按日期时间先后比较（`"2024-3-7" < "2024-10-1"`） |
 | 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序、可含越界/重复项，重复与越界项被忽略），内部按行身份去重后对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移；返回实际删除行数 |
 | 存储压缩 | `CompactStorage()` | 显式的整表维护操作：行身份重编号 + 存储页全量压缩，回收多次增删后遗留的墓碑槽位与空页内存。仅在无填充/绘制进行时调用；调用后内部已发出的单元格原始指针失效。单行/批量删除时，整页全部变为墓碑的存储页会被自动回收 |
@@ -2061,6 +2066,70 @@ pListCtrl->AttachColumnSorted([](const ui::EventArgs& args) {
     return true;
 });
 ```
+
+**单元格选择模式（C1 / C1b）：**
+
+默认 `selection_mode="row"`（行选择），既有行选择、键盘导航与事件行为完全不变；设为 `cell` 后进入单元格选择模式：
+
+```cpp
+// 切换为单元格选择模式
+pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kCell);
+ui::ListCtrlSelectionMode mode = pListCtrl->GetSelectionMode(); // 返回 kCell
+
+// 当前单元格：单击命中的单元格即为当前格（同时也是区域锚点）
+ui::ListCtrlCellId cell = pListCtrl->GetCurrentCell(); // cell.nRowIndex / cell.nColumnId，IsValid() 判断有效性
+pListCtrl->SetCurrentCell(0, nColumnId); // 替换语义：清除其它选择，仅选中该格
+
+// 设置 / 取回 / 清除选择区域：anchorCell 为锚点，focusCell 为焦点
+ui::ListCtrlCellId anchorCell, focusCell;
+pListCtrl->SetCellSelection(anchorCell, focusCell, false); // 第三个参数 true=追加该矩形（不清除已有），false=先清除再设置
+pListCtrl->GetCellSelection(anchorCell, focusCell);       // 取回锚点与焦点
+pListCtrl->ClearCellSelection();
+
+// 单元格等价接口（对应行选择的 SetSelectedDataItems / GetSelectedDataItems）
+std::vector<ui::ListCtrlCellId> cellList;
+pListCtrl->SetSelectedCells(cellList, true); // 批量设置选中单元格，true=先清除其它
+pListCtrl->GetSelectedCells(cellList);       // 展开为选中单元格列表（跳过被合并覆盖的单元格）
+
+// 查询（供应用自定义绘制 / 编辑判定）
+bool bSelected = pListCtrl->IsCellSelected(0, nColumnId); // 该单元格是否被选中
+bool bCurrent  = pListCtrl->IsCellCurrent(0, nColumnId);  // 该单元格是否为当前格
+
+// 全选 / 清空：按当前模式分派（cell 模式为单元格，row 模式为行）
+pListCtrl->SetSelectAll();
+pListCtrl->SetSelectNone();
+
+// 事件
+pListCtrl->AttachCurrentCellChanged([](const ui::EventArgs& args) {
+    size_t nRowIndex = (size_t)args.wParam; // 行的显示索引
+    size_t nColumnId = (size_t)args.lParam; // 列ID
+    return true;
+});
+pListCtrl->AttachCellSelectionChanged([](const ui::EventArgs& args) {
+    // wParam 为选中区域个数；无选择时 wParam 为 0、pEventData 为 nullptr
+    auto* pRangeList = (std::vector<ui::ListCtrlCellRange>*)args.pEventData;
+    if (pRangeList != nullptr) {
+        // 反序列化后可能得到多项不连续区域，每项含 nRowBegin / nRowEnd / nColumnIdBegin / nColumnIdEnd
+        for (const ui::ListCtrlCellRange& range : *pRangeList) {
+            if (range.IsValid()) {
+                // 使用 range ...
+            }
+        }
+    }
+    return true;
+});
+```
+
+XML 中可直接配置并绑定内联事件：`<ListCtrl class="list_ctrl" selection_mode="cell"><Event type="current_cell_changed" .../><Event type="cell_selection_changed" .../></ListCtrl>`。
+
+交互说明（对齐 Windows 资源管理器）：`cell` 模式下
+- 鼠标：单击替换选中该格（清除其它）；`Ctrl+单击`切换该格选中状态（再次点击取消，支持不连续选择）；`Shift+单击`以锚点扩展到该格（替换）；`Ctrl+Shift+单击`以锚点扩展到该格（追加）；按住**左键或右键**拖动：出现与行选择模式**完全一致**的浅蓝半透明矩形框选蒙层（复用 `ListBoxHelper`，同色/同透明度/同 DPI 缩放边框/顶部裁剪到表头下沿），松手后矩形内的单元格被选中（替换），`Ctrl+拖动`为追加（不清除已有）；拖到视口边缘会自动滚动视图（与行选择模式同款）。
+- 键盘：方向键移动当前格（单选替换该格）、`Shift+方向键`扩展区域（替换）、`Ctrl+方向键`仅移动焦点不改变选择、`Ctrl+Shift+方向键`追加扩展；`Home`/`End` 到当前行首/末列，`Ctrl+Home`/`Ctrl+End` 到表格首/末格；`PageUp`/`PageDown` 翻页；`Ctrl+A` 全选单元格；`Ctrl+Space` 切换当前格选中状态。
+- 模式隔离：`cell` 模式下所有行选择入口（鼠标点击行、行 Hover/Pushed 高亮、键盘 `Ctrl+A`/方向键、行框选、`SetSelectedDataItems` 等）均不对行选择生效（鼠标操作不会改动行选择状态，切回 `row` 模式不会出现残留选中行）；空白处单击清空单元格选择。注意：单元格模式下的鼠标框选复用 ListBox 的框选能力，需要 `multi_select == true`（ListCtrl 默认为 `true`）。
+- 绘制：选中区域半透明填充、当前格焦点框；冻结列单元格同样参与选择。
+- 置顶行：表头与置顶行（不可选行）不参与单元格选择与高亮绘制；鼠标点击/悬停在其上时不会"穿透"选中被其遮挡的下方单元格，单元格高亮也不会绘制到置顶行内容之上。
+- 单选语义：`multi_select="false"`（单选）时，`cell` 模式与行模式一致，**至多选中一个单元格** —— `Shift+单击`/`Ctrl+单击` 按普通单击处理、`Shift+方向键` 退化为普通移动当前格、`Ctrl+A` 不做任何改变、单击后不进入拖动框选状态；`SetSelectedCells` / `SetCellSelection` 只保留第一个（或焦点）单元格；由多选切换到单选时，已选中的多个单元格自动裁剪为保留首格（与行模式的 `OnSwitchToSingleSelect` 对称）。"当前格焦点框"仍然保留，仅把选中集合限制为 1。
+- 暂未实现：单元格合并的交互适配（随后续阶段处理）。
 
 完整演示见 ListCtrl 示例程序（表格默认冻结首列，第2列为进度条、第3列为富文本）。
 

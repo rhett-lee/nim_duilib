@@ -34,6 +34,17 @@ ListCtrlReportView::~ListCtrlReportView()
 
 void ListCtrlReportView::HandleEvent(const EventArgs& msg)
 {
+    //单元格选择模式下，键盘事件优先用于移动当前格 / 扩展选择区域
+    if ((msg.eventType == kEventKeyDown) && (m_pListCtrl != nullptr) &&
+        (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell) &&
+        m_pListCtrl->OnCellKeyDown(msg)) {
+        return;
+    }
+    //鼠标移出控件时清除单元格悬停高亮，避免残留
+    if ((msg.eventType == kEventMouseLeave) && (m_pListCtrl != nullptr) &&
+        (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        m_pListCtrl->ClearHoverCell();
+    }
     BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
@@ -43,6 +54,178 @@ void ListCtrlReportView::HandleEvent(const EventArgs& msg)
             m_pListCtrl->OnViewMouseEvents(msg);
         }
     }
+}
+
+bool ListCtrlReportView::OnListBoxItemMouseEvent(const EventArgs& msg)
+{
+    //单元格选择模式下，拦截鼠标事件用于单元格的选择与区域扩展
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        //行的进入/离开事件不做消费，必须继续向父控件（视图 ScrollBox）冒泡：
+        //视图收到 MouseEnter/MouseLeave 才会进入/退出 Hovered 状态，进而触发自动隐藏滚动条的淡入/淡出；
+        //行级 Hover/Pressed 高亮属于行选择模式专属视觉，由 ListCtrlItem 重写的 MouseEnter/MouseLeave
+        //（kCell 下不进入 Hovered 状态、不启动悬停渐隐动画）屏蔽，绘制层 PaintStateColors 作为兜底
+        if (msg.eventType == kEventMouseLeave) {
+            //鼠标离开该行（比如移到视图的空白区域）：清除单元格悬停状态，避免悬停高亮残留在最后划过的单元格上
+            m_pListCtrl->ClearHoverCell();
+        }
+        if ((msg.eventType == kEventMouseEnter) || (msg.eventType == kEventMouseLeave)) {
+            return BaseClass::OnListBoxItemMouseEvent(msg);
+        }
+        const bool bLButton = (msg.eventType == kEventMouseButtonDown) || (msg.eventType == kEventMouseButtonUp);
+        const bool bRButton = (msg.eventType == kEventMouseRButtonDown) || (msg.eventType == kEventMouseRButtonUp);
+        if (bLButton || bRButton || (msg.eventType == kEventMouseMove) || (msg.eventType == kEventMouseHover)) {
+            //先把鼠标事件转给基类：ListBoxHelper 借此记录框选状态并绘制框选蒙层（与行选择模式同一套实现）
+            BaseClass::OnListBoxItemMouseEvent(msg);
+            //因为下面会消费事件（阻止 Item 触发行选择以及行级 Hover/Pressed 视觉），Item 不会执行 Control::ButtonDown，
+            //不会自动置位"鼠标焦点"状态，故这里显式维护，以满足 ListBoxHelper::OnMouseMove 对 pSender->IsMouseFocused() 的要求
+            Control* pSender = msg.GetSender();
+            if (pSender != nullptr) {
+                if ((msg.eventType == kEventMouseButtonDown) || (msg.eventType == kEventMouseRButtonDown)) {
+                    pSender->SetMouseFocused(true);
+                }
+                else if ((msg.eventType == kEventMouseButtonUp) || (msg.eventType == kEventMouseRButtonUp)) {
+                    pSender->SetMouseFocused(false);
+                }
+            }
+            //鼠标落在"表头/置顶行"区域内时，不做单元格的选择与悬停处理（按钮抬起除外，仅用于结束拖动状态）：
+            //避免点击置顶行时"穿透"选中其下方被遮挡的单元格，也避免误清空已有的单元格选择
+            const bool bButtonUp = (msg.eventType == kEventMouseButtonUp) || (msg.eventType == kEventMouseRButtonUp);
+            if (!bButtonUp && IsPointOnAtTopItem(msg.ptMouse)) {
+                if ((msg.eventType == kEventMouseMove) || (msg.eventType == kEventMouseHover)) {
+                    //清除单元格悬停状态，避免悬停高亮残留在置顶行下方
+                    m_pListCtrl->UpdateHoverCell(Box::InvalidIndex, Box::InvalidIndex);
+                }
+                else if ((msg.eventType == kEventMouseButtonDown) || (msg.eventType == kEventMouseRButtonDown)) {
+                    //置顶行（不可选行）内的单元格CheckBox同样要求"当前列表项是焦点控件"才能勾选
+                    //（见 ListCtrlLabel::OnMouseEvent 的焦点前置条件），故与普通行一致，按下时把命中的置顶行设为焦点控件
+                    ListCtrlItem* pTopItem = HitTestTopItem(msg.ptMouse);
+                    if (pTopItem != nullptr) {
+                        pTopItem->SetFocus();
+                    }
+                }
+                return true;
+            }
+            //再按单元格语义处理命中与选择
+            size_t nRowIndex = Box::InvalidIndex;
+            size_t nColumnId = Box::InvalidIndex;
+            ListCtrlItem* pHitItem = nullptr;
+            HitTestCell(msg.ptMouse, nRowIndex, nColumnId, &pHitItem);
+            if ((pHitItem != nullptr) &&
+                ((msg.eventType == kEventMouseButtonDown) || (msg.eventType == kEventMouseRButtonDown))) {
+                //显式把命中的列表项设为键盘焦点控件：
+                //1) 单元格内的CheckBox(ListCtrlLabel)在处理勾选/取消勾选前，要求"当前列表项是焦点控件"；
+                //2) 焦点控件是键盘事件的接收入口，方向键/Ctrl+A等只有先到焦点控件才能冒泡到视图被 OnCellKeyDown 处理。
+                //（行选择模式下由 ListBox::SelectItemSingle 完成同样的焦点设置）
+                //注：SetFocus() 会经由 Control::OnSetFocus 把该行控件状态置为 Hovered，
+                //因行级 Hovered 视觉已由 ListCtrlItem::PaintStateColors 在单元格选择模式下屏蔽，此处无需再做状态恢复。
+                pHitItem->SetFocus();
+            }
+            m_pListCtrl->OnCellMouseEvent(msg, nRowIndex, nColumnId);
+            //消费该事件：不触发行选择逻辑
+            return true;
+        }
+        if (msg.eventType == kEventMouseRDoubleClick) {
+            return true;
+        }
+    }
+    return BaseClass::OnListBoxItemMouseEvent(msg);
+}
+
+bool ListCtrlReportView::HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, size_t& nColumnId, ListCtrlItem** ppItem) const
+{
+    nRowIndex = Box::InvalidIndex;
+    nColumnId = Box::InvalidIndex;
+    if (ppItem != nullptr) {
+        *ppItem = nullptr;
+    }
+    const size_t nItemCount = GetItemCount();
+    //首行是表头，从索引1开始遍历数据行
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible()) {
+            continue;
+        }
+        if (!pItem->IsSelectableType()) {
+            //置顶行等不可选的行不参与单元格命中
+            continue;
+        }
+        ListCtrlSubItem* pSubItem = pItem->GetSubItem(ptMouse);
+        if (pSubItem != nullptr) {
+            nRowIndex = pItem->GetDataItemIndex();
+            nColumnId = pSubItem->GetDataColumnId();
+            if (ppItem != nullptr) {
+                *ppItem = pItem;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ListCtrlReportView::IsPointOnAtTopItem(const UiPoint& ptMouse) const
+{
+    const size_t nItemCount = GetItemCount();
+    //首行是表头，从索引1开始遍历数据行
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible() || pItem->IsSelectableType()) {
+            continue;
+        }
+        //置顶行（不可选行）：判断鼠标点是否落在该行的范围内
+        //（与 GetSubItem 使用同一个坐标口径，避免滚动后判断错误）
+        UiPoint pt(ptMouse);
+        pt.Offset(pItem->GetScrollOffsetInScrollBox());
+        if (pItem->GetRect().ContainsPt(pt)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+ListCtrlItem* ListCtrlReportView::HitTestTopItem(const UiPoint& ptMouse) const
+{
+    const size_t nItemCount = GetItemCount();
+    //首行是表头，从索引1开始遍历数据行
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible() || pItem->IsSelectableType()) {
+            continue;
+        }
+        //置顶行（不可选行）：判断鼠标点是否落在该行的范围内（与 GetSubItem 使用同一个坐标口径）
+        UiPoint pt(ptMouse);
+        pt.Offset(pItem->GetScrollOffsetInScrollBox());
+        if (pItem->GetRect().ContainsPt(pt)) {
+            return pItem;
+        }
+    }
+    return nullptr;
+}
+
+bool ListCtrlReportView::GetTopFixedItemsRect(UiRect& rcTopFixed) const
+{
+    bool bHasTopFixed = false;
+    const size_t nItemCount = GetItemCount();
+    for (size_t index = 0; index < nItemCount; ++index) {
+        Control* pControl = GetItemAt(index);
+        if ((pControl == nullptr) || !pControl->IsVisible()) {
+            continue;
+        }
+        if (index > 0) {
+            //索引0为表头；其余元素中，只有置顶行（不可选行）是固定显示在顶部的
+            ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(pControl);
+            if ((pItem == nullptr) || pItem->IsSelectableType()) {
+                continue;
+            }
+        }
+        if (!bHasTopFixed) {
+            rcTopFixed = pControl->GetRect();
+            bHasTopFixed = true;
+        }
+        else {
+            rcTopFixed.Union(pControl->GetRect());
+        }
+    }
+    return bHasTopFixed;
 }
 
 void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
@@ -627,6 +810,17 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     //绘制 / 命中测试 / 网格线统一复用同一套单元格几何层（BuildCellGeometry）
     const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
 
+    //单元格选择模式：先绘制选择高亮（在数据项控件之前绘制，避免覆盖单元格文字）
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        if (cellGeometry.bHasFrozen) {
+            PaintCellSelection(pRender, cellGeometry, false);
+            PaintCellSelection(pRender, cellGeometry, true);
+        }
+        else {
+            PaintCellSelection(pRender, cellGeometry, false);
+        }
+    }
+
     //绘制单个控件（bFrozenPass：是否绘制冻结列的部分）
     auto paintControl = [&](Control* pControl, bool bFrozenPass) {
         if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -892,6 +1086,97 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
             pRender->DrawLine(pt1, pt2, rowLineColor, fRowLineWidth);
         }
     }
+}
+
+void ListCtrlReportView::PaintCellSelection(IRender* pRender, const ListCtrlCellGeometry& cellGeometry, bool bFrozenPass)
+{
+    if ((pRender == nullptr) || (m_pListCtrl == nullptr) || (m_pData == nullptr)) {
+        return;
+    }
+    if (m_pListCtrl->GetSelectionMode() != ListCtrlSelectionMode::kCell) {
+        return;
+    }
+
+    //与绘制数据项控件复用同一套坐标变换（裁剪区/绘制区/窗口原点偏移）
+    UiRect rcClip;
+    UiRect rcNewPaint;
+    UiPoint ptOffset;
+    cellGeometry.GetPaintPass(bFrozenPass, rcClip, rcNewPaint, ptOffset);
+    if (cellGeometry.bHasFrozen && (rcClip.left >= rcClip.right)) {
+        return;
+    }
+    AutoClip alphaClip(pRender, rcClip, IsClip());
+    UiPoint ptOldOrg = pRender->OffsetWindowOrg(ptOffset);
+
+    const UiColor fillColor = GetUiColor(_T("#66AACCEE"));
+    const UiColor focusColor = GetUiColor(_T("#FF0078D7"));
+    const UiColor hoverColor = GetUiColor(_T("#33AACCEE"));
+
+    //逐格判定的当前格
+    const ListCtrlCellId currentCell = m_pListCtrl->GetCurrentCell();
+
+    //表头与置顶行固定显示在顶部：其遮挡的区域不绘制单元格高亮，避免高亮覆盖置顶行内容
+    UiRect rcTopFixed;
+    const bool bHasTopFixed = GetTopFixedItemsRect(rcTopFixed);
+
+    const size_t nItemCount = GetItemCount();
+    //首行是表头，从索引1开始遍历数据行
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetWidth() <= 0)) {
+            continue;
+        }
+        if (!pItem->IsSelectableType()) {
+            //置顶行等不可选的行不参与单元格选择高亮
+            continue;
+        }
+        const size_t nRowIndex = pItem->GetDataItemIndex();
+        const size_t nSubItemCount = pItem->GetItemCount();
+        for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
+            ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItem));
+            if ((pSubItem == nullptr) || !pSubItem->IsVisible() || (pSubItem->GetWidth() <= 0)) {
+                continue;
+            }
+            const size_t nColumnId = pSubItem->GetDataColumnId();
+            const size_t nColumnIndex = m_pListCtrl->GetColumnIndex(nColumnId);
+            if (nColumnIndex == Box::InvalidIndex) {
+                continue;
+            }
+            const bool bFrozenColumn = cellGeometry.bHasFrozen && (nColumnIndex < cellGeometry.nFrozenCount);
+            if (bFrozenColumn != bFrozenPass) {
+                continue;
+            }
+            UiRect rcCell = pSubItem->GetRect();
+            if (bHasTopFixed && (rcCell.top < rcTopFixed.bottom)) {
+                //单元格被表头/置顶行遮挡：只绘制其未被遮挡的部分，避免高亮覆盖置顶行内容
+                rcCell.top = rcTopFixed.bottom;
+                if (rcCell.bottom <= rcCell.top) {
+                    continue;
+                }
+            }
+
+            //按行身份判定该单元格是否被选中（O(1)，与显示顺序解耦）
+            const bool bSelected = m_pData->IsCellSelected(nRowIndex, nColumnId);
+            const bool bCurrent = currentCell.IsValid() &&
+                                  (currentCell.nRowIndex == nRowIndex) &&
+                                  (currentCell.nColumnId == nColumnId);
+            const bool bHovered = m_pListCtrl->IsCellHovered(nRowIndex, nColumnId);
+            if (!bSelected && !bCurrent && !bHovered) {
+                continue;
+            }
+            if (bSelected) {
+                pRender->FillRect(UiRectF::MakeFromRect(rcCell), fillColor);
+            }
+            else if (bHovered) {
+                //悬停的单元格：浅色填充提示
+                pRender->FillRect(UiRectF::MakeFromRect(rcCell), hoverColor);
+            }
+            if (bCurrent) {
+                pRender->DrawRect(UiRectF::MakeFromRect(rcCell), focusColor, 1.0f, false);
+            }
+        }
+    }
+    pRender->SetWindowOrg(ptOldOrg);
 }
 
 Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
@@ -1504,8 +1789,42 @@ void ListCtrlReportView::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nV
     }
 }
 
-bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64_t top, int64_t bottom)
+bool ListCtrlReportView::CanPaintSelectedColors(bool bHasStateImages) const
 {
+    //行选中背景色是行选择模式专属视觉；单元格选择模式下屏蔽，
+    //使行选择状态（无论由鼠标/键盘/API 哪个入口改动）都不会显示到界面，看不出行可选状态
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        return false;
+    }
+    return BaseClass::CanPaintSelectedColors(bHasStateImages);
+}
+
+bool ListCtrlReportView::OnLButtonClickedBlank()
+{
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        //单元格选择模式下：空白处点击清空单元格选择（不涉及行选择，故返回false避免误报行选择变化事件）
+        m_pListCtrl->ClearCellSelection();
+        return false;
+    }
+    return BaseClass::OnLButtonClickedBlank();
+}
+
+bool ListCtrlReportView::OnRButtonClickedBlank()
+{
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        //单元格选择模式下：空白处点击清空单元格选择（不涉及行选择，故返回false避免误报行选择变化事件）
+        m_pListCtrl->ClearCellSelection();
+        return false;
+    }
+    return BaseClass::OnRButtonClickedBlank();
+}
+
+bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell)) {
+        //单元格选择模式：按框选矩形命中单元格
+        return OnFrameSelectionForCells(left, right, top, bottom);
+    }
     if (left > GetListCtrlWidth()) {
         //在空白处，不做框选处理，只是取消所有选择项
         bool bRet = SetSelectNone();
@@ -1599,6 +1918,94 @@ bool ListCtrlReportView::OnFrameSelection(int64_t left, int64_t /*right*/, int64
         OnSelectStatusChanged();
     }    
     return bRet;
+}
+
+bool ListCtrlReportView::OnFrameSelectionForCells(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    if ((m_pListCtrl == nullptr) || (m_pData == nullptr)) {
+        return false;
+    }
+    if (left > right) {
+        const int64_t nTemp = left;
+        left = right;
+        right = nTemp;
+    }
+    if (top > bottom) {
+        const int64_t nTemp = top;
+        top = bottom;
+        bottom = nTemp;
+    }
+    //框选矩形换算为与子项控件矩形一致的坐标系：
+    //ListBoxHelper 传入的坐标是"内容坐标"（含 ListBox 自身的滚动量），而单元格子控件的矩形是"控件坐标"。
+    //纵向采用虚拟滚动布局（控件被复用后排列在可视位置上），控件矩形的位置就是屏幕位置，不随纵向滚动移动，
+    //所以纵向需要扣除滚动量后再做命中判定，否则滚动后框选的实际位置会与鼠标框选的位置相差一个滚动量。
+    //（横向是真实的滚动条偏移，绘制时按 -偏移量 移动、命中时按 +偏移量 还原，两者口径已一致）
+    const UiRect rcView = GetRect();
+    const int64_t nScrollPosY = GetScrollPos().cy;
+    const int64_t frameLeft = left + (int64_t)rcView.left;
+    const int64_t frameRight = right + (int64_t)rcView.left;
+    const int64_t frameTop = top + (int64_t)rcView.top - nScrollPosY;
+    const int64_t frameBottom = bottom + (int64_t)rcView.top - nScrollPosY;
+
+    //表头与置顶行固定显示在顶部，会遮挡其下方滚动的普通行：这些区域不参与单元格框选
+    UiRect rcTopFixed;
+    const bool bHasTopFixed = GetTopFixedItemsRect(rcTopFixed);
+    if (bHasTopFixed &&
+        (frameBottom <= (int64_t)rcTopFixed.bottom) &&
+        (frameLeft < (int64_t)rcTopFixed.right) && (frameRight > (int64_t)rcTopFixed.left)) {
+        //框选矩形完全落在表头/置顶行区域内：不改变任何单元格的选择状态
+        return false;
+    }
+
+    //Ctrl+拖动：只追加（命中者置选、未命中者保持原状）；普通拖动：替换（命中者置选、可见未命中者取消）
+    const bool bAdditive = m_pListCtrl->m_bCellDragAdditive;
+    bool bChanged = false;
+    const size_t nItemCount = GetItemCount();
+    //首行是表头，从索引1开始遍历数据行
+    for (size_t index = 1; index < nItemCount; ++index) {
+        ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
+        if ((pItem == nullptr) || !pItem->IsVisible()) {
+            continue;
+        }
+        if (!pItem->IsSelectableType()) {
+            //置顶行等不可选的行不参与单元格框选
+            continue;
+        }
+        const size_t nRowIndex = pItem->GetDataItemIndex();
+        const size_t nSubItemCount = pItem->GetItemCount();
+        for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
+            ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItem));
+            if ((pSubItem == nullptr) || !pSubItem->IsVisible() || (pSubItem->GetWidth() <= 0)) {
+                continue;
+            }
+            const size_t nColumnId = pSubItem->GetDataColumnId();
+            if (m_pListCtrl->GetColumnIndex(nColumnId) == Box::InvalidIndex) {
+                continue;
+            }
+            UiRect rcCell = pSubItem->GetRect();
+            if (bHasTopFixed && (rcCell.top < rcTopFixed.bottom)) {
+                //单元格被表头/置顶行遮挡的部分不参与命中，避免选中置顶行下方被遮挡的区域
+                rcCell.top = rcTopFixed.bottom;
+                if (rcCell.bottom <= rcCell.top) {
+                    continue;
+                }
+            }
+            const bool bHit = (rcCell.right > frameLeft) && (rcCell.left < frameRight) &&
+                              (rcCell.bottom > frameTop) && (rcCell.top < frameBottom);
+            if (bAdditive && !bHit) {
+                //追加语义：未命中的单元格保持原有选择状态
+                continue;
+            }
+            if (m_pData->SetCellSelected(nRowIndex, nColumnId, bHit)) {
+                bChanged = true;
+            }
+        }
+    }
+    if (bChanged) {
+        m_pListCtrl->NotifyCellSelectionChanged();
+        m_pListCtrl->RefreshCellSelectionView();
+    }
+    return bChanged;
 }
 
 void ListCtrlReportView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem)

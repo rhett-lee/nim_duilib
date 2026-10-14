@@ -93,11 +93,13 @@
 
 ---
 
-### C1　单元格选择模型（**解锁 L1 / L2 的关键**）
+### C1　单元格选择模型（**解锁 L1 / L2 的关键**）　【已完成】
 
 **状态（存数据层）**
-- 在 `ListCtrlData` 增加单元格级状态：`m_currentCell`（当前单元格，作锚点）+ `m_focusCell`（区域焦点）；规范化区域 `{rowBegin,rowEnd,colBegin,colEnd}` 由二者推导。
+- 在 `ListCtrlData` 增加单元格级状态：锚点 `m_anchorCell` + 当前格 `m_currentCell`（均以**行身份 RowId + 列ID** 存储，与显示顺序解耦）+ 选中列ID范围 `m_cellColumnIdBegin/End` + **选中行集合** `m_cellRowSelected`（按 RowId 索引的位图）。
+- 区域选择在设置时把显示区间内的行展开为行身份集合存入 `m_cellRowSelected`：**排序/增删后选择状态跟随原数据行**，不再因显示顺序变化而错位到其他行；行成员判定 O(1)。
 - 行选择状态保留不动（`bSelected` / `m_nSelectedRowId` 继续服务 `kRow` 模式）。
+- **演进（见 C1b）**：该"单矩形"模型无法表达**不连续**选择，且 `kCell` 模式下的行选择入口未全部受模式约束；C1b 将其升级为"**逐单元格选中状态** + 行/单元格统一动作语义"。
 - 新增枚举 `ListCtrlSelectionMode { kRow（默认）, kCell }`，XML 属性 `selection_mode="row|cell"`。
 
 **对外 API（`ui::ListCtrl` 一级，失败返回 `false` / 无效值，风格与既有接口一致）**
@@ -114,15 +116,133 @@
 
 **事件（按项目"三件套"约定落地）**
 - `kEventCurrentCellChanged`（当前单元格变化；wParam=行索引，lParam=列ID）
-- `kEventCellSelectionChanged`（区域变化；pEventData 指向规范化区域）
+- `kEventCellSelectionChanged`（区域变化；pEventData 指向选中区域列表 `std::vector<ListCtrlCellRange>`，见 C1b）
 - XML 内联事件名同步写入 `docs/XmlEvents.md`（`on_current_CellChanged` 等，命名随三件套表生成）。
 
 **交互**
-- 鼠标：`kCell` 模式下 `ButtonDown` 先 `GetCellAt(point)` 命中单元格 → 设锚点/当前格；`Shift+Click` 扩展到焦点格；`Ctrl+Click` 追加/切换；`MouseMove` 拖动做矩形扩展，到视口边缘触发自动滚动。
+- 鼠标：`kCell` 模式下 `ButtonDown` 先 `GetCellAt(point)` 命中单元格 → 设锚点/当前格；`Shift+Click` 扩展到焦点格；`Ctrl+Click` 切换；`MouseMove` 拖动做矩形扩展，到视口边缘触发自动滚动。
 - 键盘：方向键移动当前格（横向沿**可见列序**）、`Shift+方向` 扩展区域、`Ctrl+A` 全选单元格、`Home/End/PageUp/PageDown` 与既有行级导航共存（由模式决定语义）。
 - 绘制：选中区域半透明填充；当前格画焦点框；**冻结列单元格同样参与选择**（几何层已统一处理冻结区）。
+- **说明**：`Ctrl+Click` 切换等在 C1 阶段未落地；行/单元格动作语义与逐单元格状态由 **C1b** 统一定义，C1 阶段的"单矩形"选择语义由 C1b 取代。
 
 **验收**：`kRow` 模式下所有既有行选择/键盘/事件行为**完全不变**；`kCell` 模式下可选中任意单元格与矩形区域。
+
+---
+
+### C1b　统一选择模型（行选择 / 单元格选择）　【已完成】
+
+**问题（C1 落地后暴露）**
+- **行选择入口未全部受模式约束**——`kCell` 模式下，鼠标点击行 / 行 Hover 高亮、键盘 `Ctrl+A` 与方向键（`ListBox::OnListCtrlKeyDown` 分支）、以及 `SetSelectedDataItems` / `SetSelectAll` / `SetSelectNone` 等 API 仍会改动**行**选择状态，导致"行选择状态错误"。
+- **单元格选择被建模为单个矩形**（锚点 + 焦点 + 行位图 + 列范围），**无法表达不连续选择**，且 `Ctrl+Click` 切换未实现。
+
+**统一原则（对齐 Windows 资源管理器）**
+1. **选择粒度由模式唯一决定**：`kRow` → 行、`kCell` → 单元格；切换模式清空另一模式（已拍板事项 1）。
+2. **两种模式共享同一套动作语义**：鼠标 / 键盘 / API 一一对应，仅"作用单元"由行变为单元格。
+3. **状态一律存数据层、按身份（RowId）索引**，与显示序解耦：行 → `ListCtrlItemData::bSelected`（现状）；单元格 → 底层新增"每单元格选中状态"（本项新增）。
+4. **模式隔离（强制，只隔离"视觉"不隔离"状态"）**：`kCell` 模式下界面不得显示出任何"行被选中 / 行可选"的视觉表现（含行选中背景色、行 Hover 高亮、行级框选蒙层、右键触发的行选中）；但底层行选择**状态**本身不作屏蔽（见评审结论第 3 条）。反之 `kRow` 模式下不显示单元格选择。
+
+**评审结论（已拍板）**
+1. `Ctrl+拖动` **要做**：向已有选择**追加**一个矩形区域（不清除）；拖动过程需绘制**半透明矩形蒙层选择框**（行选择模式已支持，复用同一绘制通路）。
+2. `Ctrl+A` / `SetSelectAll` / `SetSelectNone` 在 `kCell` 模式**按模式分派**（全选 / 清空**单元格**）。
+3. 行专用 API（`SetSelectedDataItems` 等）在 `kCell` 模式**保留原有行为**（仍正常读写底层行选择状态，不做 no-op）；隔离改为在**填充/绘制层**屏蔽行选中视觉表现，使界面看不出行可选状态；另提供单元格等价 API（`SetSelectedCells` / `GetSelectedCells`）。
+4. `kEventCellSelectionChanged` payload 改为**选中区域列表** `std::vector<ListCtrlCellRange>`。
+5. 存储用**独立位图**（不放进 `ListCtrlSubItemData2`，理由见下）。
+6. C1 阶段的"单矩形"实现**按本设计重新实现**（C1 的对外 API 名与语义尽量保留，内部模型替换）。
+
+**底层数据（`ListCtrlData` 新增）**
+- 每列一张"单元格选中位图"：`std::unordered_map<size_t /*columnId*/, std::vector<uint8_t> /*按 RowId 索引*/> m_cellSelected`；`AllocRowId` 时各列位图同步扩容，`FreeRowId` 时清位；`CompactStorage` 重编号 RowId 后需按 `m_displayOrder` 重映射位图（锚点/当前格同步重映射）。
+- 保留锚点格 `m_anchorCell` / 当前格 `m_currentCell`（均 `RowId + 列ID`），**仅用于 Shift 区域扩展与焦点框绘制**；选中集合不再由锚点/焦点推导，避免排序后漂移。
+- 新增接口：`IsCellSelected(RowId, columnId)`、`SetCellSelected(RowId, columnId, bool)`、`ClearAllCells()`、`SelectAllCells()`。
+- **存储位置决策（已拍板）：独立位图，不放进 `ListCtrlSubItemData2`。** 原因：
+  1. `ListCtrlSubItemData2` 是**分页懒分配**存储（`GetStorageAtForWrite` 首次写入才 `make_unique<StoragePage>`，`usedMask` 标记已写入格）。若把选中位放进去，"全选单元格"（`Ctrl+A`）或对**未实化行**的选中会强制为整表分配单元格实体——内存从"每格 1 bit"（10 列 × 100 万行 ≈ 1.25MB）暴涨到"每格一个结构体"（含 `UiString` 等），直接破坏 Phase 2 建立的稀疏内存优势。
+  2. 选中是**瞬态 UI 状态**，业务数据写入通路（`FillElement` / `SetSubItemData` / 虚表滚动复用）不应顺带改写它；分离存储避免两者耦合被误改。
+  3. 与行选择的对称性由"**同样按身份(RowId)索引**"保证，而非"放在同一个结构体里"——行的 `bSelected` 稠密（每行一条），单元格是"行 × 列"，量级不同，独立位图更经济。
+
+**动作语义对照表**
+
+| 动作 | `kRow` 模式（保持现状） | `kCell` 模式（本项） |
+|---|---|---|
+| 单击 | 选中该行（清其它） | 选中该格（清其它），更新锚点/当前格 |
+| `Ctrl+单击` | 切换该行选中，不清其它 | **切换该格选中**（再次点击取消），不清其它 |
+| `Shift+单击` | 锚点行 → 该行（替换） | 锚点格 → 该格矩形（替换） |
+| 拖动 | 左/右键行区域框选（替换，`ListBoxHelper` 半透明蒙层） | 左/右键拖动：由框选矩形（同款 `ListBoxHelper` 半透明蒙层）命中的单元格决定选择（替换） |
+| `Ctrl+拖动` | 追加框选区域 | 追加矩形区域（不清其它，只增不减） |
+| 空白单击 | 清空行选择 | 清空单元格选择 |
+| 方向键 | 移动当前行（单选替换） | 移动当前格（单选替换该格） |
+| `Shift+方向` | 扩展行区域 | 扩展矩形区域 |
+| `Ctrl+方向` | 只移焦点/滚动，不改选择 | 只移当前格焦点，不改选择 |
+| `Home/End` | 首/末行 | 当前行首/末列；`Ctrl+Home/End` = 表格首/末格 |
+| `PageUp/PageDown` | 翻页移动当前行 | 翻页移动当前格 |
+| `Ctrl+A` | 全选行 | **全选单元格** |
+| `Ctrl+Space` | 切换当前行选中 | 切换当前格选中（可选） |
+| `SelectAll/SelectNone` API | 行 | 单元格（**按模式分派**） |
+| `SetSelectedDataItems` API | 行 | 保留原有行为（仍读写底层行选择状态）；界面侧由**绘制层**屏蔽行选中视觉（`ListCtrlReportView::CanPaintSelectedColors` 返回 false），另提供单元格等价 API `SetSelectedCells` |
+
+**交互层改造点（入口清单，全部受模式约束）**
+- 鼠标：`ListCtrlItem::ButtonDown/ButtonUp`（已有守卫，需补齐）、`ListBoxItemTemplate::HandleEvent` 的 Hover / Pushed 状态、`ListCtrlReportView::OnListBoxItemMouseEvent`（`kCell` 模式下拦截 Hover 与左/右键按下、抬起、移动，**先把事件转发给基类喂给 `ListBoxHelper`（获得与行模式一致的框选状态与蒙层绘制），再按单元格语义处理，最后消费事件**，从而既不触发行选择、又能显示框选蒙层；因消费导致 Item 不执行 `Control::ButtonDown`，需显式对 `msg.GetSender()` 调 `SetMouseFocused(true/false)` 以满足 helper 的 `pSender->IsMouseFocused()` 守卫）。**注意：`kEventMouseEnter` / `kEventMouseLeave` 不消费**，必须继续向父控件冒泡（否则视图收不到 `MouseEnter` / `MouseLeave`，自动隐藏滚动条无法淡入淡出）；行级 Hover / Pressed 视觉由 `ListCtrlItem` 重写的 `MouseEnter` / `MouseLeave`（`kCell` 下不进入 Hovered 状态、不启动悬停渐隐动画）屏蔽，绘制层的 `ListCtrlItem::PaintStateColors` 作为兜底。`ListBoxHelper` 框选在 `kCell` 下**不做额外开关**：沿用其既有守卫（`IsEnableFrameSelection() && IsMultiSelect()`，框架层未改动），框选矩形交给 `OnFrameSelection` 的 `kCell` 分支按矩形命中单元格（`Ctrl+拖动` 追加，故单元格框选需 `multi_select == true`）。
+- 键盘：`ListCtrlReportView::HandleEvent(kEventKeyDown)` → `OnCellKeyDown` 必须拦截**全部**选择相关键（含 `Ctrl+A`、方向键、`Home/End/Page*`），确保不会落到 `ListBox::OnListCtrlKeyDown` 的行选择分支。
+- API：`ListCtrl::SetSelectAll/SetSelectNone` 按模式分派；`SetSelectedDataItems` 等**保留原有行为**（不再加模式守卫）；行选择视觉的屏蔽统一收敛到**绘制层**：`ListCtrlReportView::CanPaintSelectedColors(bHasStateImages)` 在 `kCell` 模式下返回 false，使任何入口（鼠标 / 键盘 / API）改动的行选择状态都不显示到界面（唯一视觉输出口，避免逐个入口堵截）。
+
+**事件**：`kEventCellSelectionChanged` 的 payload 由"单矩形"改为**选中区域列表** `std::vector<ListCtrlCellRange>`（可能多项；空表示无选择）；详细单元格列表仍可通过 `GetSelectedCells()` 查询。
+
+**绘制**：逐格 `m_pData->IsCellSelected(RowId, columnId)`（O(1)）；拖动过程的**半透明矩形蒙层选择框**完全复用行选择模式的框选通路（`ListBoxHelper::PaintFrameSelection`，颜色/透明度/DPI 缩放边框/顶部裁剪到表头下沿全部一致；`ListCtrlReportView::PaintCellSelection` 不再自绘蒙层，只画单元格选中填充 / 悬停填充 / 当前格焦点框）；`kCell` 模式下不绘制行背景 / 行 Hover。
+
+**置顶行处理**：表头与置顶行（不可选行）固定显示在顶部，会遮挡其下方滚动的普通行，因此不参与单元格选择与高亮绘制：
+- 鼠标入口处用 `ListCtrlReportView::IsPointOnAtTopItem` 判断落点是否在置顶行内，是则跳过单元格的选择与悬停处理（并清除悬停状态），避免"穿透"选中被遮挡的下方单元格，也不误清空已有的单元格选择；
+- 绘制高亮（`PaintCellSelection`）与框选命中（`OnFrameSelectionForCells`）前，用 `GetTopFixedItemsRect` 取表头与置顶行所占区域，把被其遮挡的部分从单元格矩形中裁剪掉，避免高亮覆盖置顶行内容。
+
+**框选坐标口径**：`ListBoxHelper` 传给 `OnFrameSelection` 的矩形是"内容坐标"（叠加了 ListBox 自身的滚动量），而单元格子控件的矩形是"控件坐标"：
+- 纵向：Report 视图采用虚拟滚动布局（控件被复用后重新排列在可视位置），控件矩形的位置就是屏幕位置、不随纵向滚动移动，故 `OnFrameSelectionForCells` 需先扣除 `GetScrollPos().cy` 再做命中判定；否则滚动后框选会与鼠标实际框出的位置相差一个滚动量；
+- 横向：是真实滚动条偏移（绘制时按 `-偏移量` 移动、命中时按 `+偏移量` 还原），两者口径已一致，无需换算。
+
+**验收**：`kRow` 行为完全不变；`kCell` 下支持任意不连续单元格选择（`Ctrl+Click` 切换）、`Ctrl+拖动` 追加、`Shift` 矩形扩展；`kCell` 下行选择状态与行 Hover 均不再出现；模式切换清空对侧状态。
+
+**交互缺陷修复补充（实测反馈）**
+- **焦点机制（CheckBox 勾选 / 键盘导航的前提）**：`kCell` 模式下鼠标事件在视图层被消费、行选择逻辑不执行，导致 `ListBoxItem` 从未成为窗口焦点控件。`ListCtrlReportView::OnListBoxItemMouseEvent` 现在在左/右键按下时，对 `HitTestCell` 命中的 `ListCtrlItem` 显式调用 `SetFocus()`（与行模式 `ListBox::SelectItemSingle` 的焦点设置一致）：这样 (1) 单元格内的 `ListCtrlLabel`（`CheckBoxTemplate<HBox>` 子类）满足其勾选前置条件 `pWindow->GetFocusControl() == m_pListBoxItem`，CheckBox 可正常勾选/取消勾选；(2) 键盘事件经焦点控件冒泡到视图被 `OnCellKeyDown` 处理，方向键、`Ctrl+A` 稳定生效。为此 `HitTestCell` 增加了可选出参 `ListCtrlItem** ppItem` 输出命中的行项。
+- **行级悬停/按下视觉的屏蔽（状态层 + 绘制层）**：`list_ctrl_item` 类定义了 `hovered_color="bg_list_ctrl_item_hovered"`（以及 `pressed_color`）；同时框架在设置 `hovered_color` 时会自动 `SetFadeHovered(true)` 创建悬停动画播放器。若行项进入 Hovered 状态，行选择模式下会渐显整行背景；而在 `kCell` 模式下行项**根本不应进入 Hovered**，否则移出时 `Control::MouseLeave` 触发的 `ReverseContinue()` 渐隐动画会在状态已回 Normal 时经 `StateColorMap::PaintStateColor` 的动画分支继续绘制 hovered 色，表现为"移出单元格时该行闪现一下悬停色"的闪烁。故 `kCell` 模式下：
+  - 状态层：`ListCtrlItem` 重写 `MouseEnter` / `MouseLeave`，`kCell` 时**不调用基类逻辑**（不置 Hovered、不启动/反转悬停动画），但仍 `return false` 让事件继续冒泡给视图（滚动条淡入淡出依赖之）；`MouseLeave` 仅清除可能由 `SetFocus()`（`Control::OnSetFocus` 会置 Hovered）残留的行级悬停状态。`kRow` 行为完全不变。
+  - 绘制层（兜底）：`ListCtrlItem::PaintStateColors` 在状态为 `kControlStateHovered` / `kControlStatePressed` 时**直接跳过基类绘制**，覆盖 `SetFocus()` 造成的 Hovered 副作用。
+- **置顶行（不可选行）的 CheckBox 焦点**：`ListCtrlLabel::OnMouseEvent` 对"非 Enter/Leave/Move/Hover"的鼠标事件有前置条件 `pWindow->GetFocusControl() == m_pListBoxItem`，否则直接返回、不执行 CheckBox 的勾选逻辑。普通行在按下时由 `HitTestCell` 命中的行项 `SetFocus()` 满足该条件；而置顶行既被 `HitTestCell` 跳过（不可选），又会走 `IsPointOnAtTopItem` 的提前 `return true`，导致其 CheckBox 永远拿不到焦点、无法勾选（行模式由 `ListBox::SelectItemSingle` 的焦点设置而正常）。故 `kCell` 模式下在置顶行分支内对左/右键按下补充焦点：新增 `ListCtrlReportView::HitTestTopItem` 命中鼠标点所在的置顶行列表项并 `SetFocus()`（`IsPointOnAtTopItem` 的 `return true` 消费逻辑与 Move/Hover 清悬停逻辑保持不变）。
+- **右键语义**：`kCell` 模式下右键点击「已选中」的单元格时，`BeginCellDrag` 保持现有选择集合不变，仅同步锚点/当前格（供弹出右键菜单对已选项执行操作），与行模式 `ListBox::ListCtrlSelectItem`（`if (bRbuttonDown && IsItemSelected(iIndex))`）语义一致；右键点击未选中单元格仍为替换选择。
+- **Enter/Leave 不消费（滚动条可见性）**：item 级的 `kEventMouseEnter` / `kEventMouseLeave` 不再被消费，必须继续冒泡到父控件（视图 `ScrollBox`）——否则视图永远进不了 Hovered 状态，`ScrollBox::MouseEnter` 就不会对自动隐藏的滚动条调 `SetFadeVisible(true)`，表现为"鼠标在视图内但不显示滚动条"（行选择模式因基类 `OnListBoxItemMouseEvent` 返回 false 而正常）。
+- **悬停清除**：item 级 `kEventMouseLeave`（不再消费）仍会调用 `ListCtrl::ClearHoverCell()`，避免鼠标移出单元格到视图空白区域后悬停高亮残留在最后划过的单元格上。
+
+**示例程序（examples/ListCtrl）**：新增「选择方式」开关（`selection_mode='row'|'cell'` 内联事件 + `STRID_LISTCTRL_SELECTION_*` 语言串）；「支持多选」复选框（`multi_select={true|false}`）即单/多选切换开关（既有）。
+
+**C1 复查结论**（复查范围：C0 / C1 / C1b 全部已落地代码）
+
+**遗留未实现 / 状态更正**
+1. **冻结列与单元格选择的命中口径适配：未完成。** `ListCtrlReportView::HitTestCell` 与 `OnFrameSelectionForCells` 均未做"冻结列"判定（仅 `PaintCellSelection` 分冻结趟绘制）。横向存在滚动偏移且同时启用冻结列时，点击 / 框选的命中可能与绘制结果错位。**待适配并实测验证。**
+2. **视口边缘拖拽自动滚动：已具备（更正为此前的"遗留"记载）。** 由两种选择模式共用的 `ListBoxHelper::OnCheckScrollView`（定时器驱动）实现，`kCell` 下框选拖动到视口边缘即触发。
+3. **C1 阶段的"单矩形"选择语义与 `Ctrl+单击` 切换：已由 C1b 取代并落地，闭环。**
+4. **属后续阶段、尚未实施**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）、`F2` 进入单元格编辑（C3 ＝ L1）。
+
+**已确认缺陷（已修复，Debug|x64 编译验证通过）**
+1. 【中·已修复】**右键按在"已选中"单元格上继续拖动会清除选择。** 原因：`ListCtrl::BeginCellDrag` 的"右键命中已选格"分支未 `return`，函数末尾仍置 `m_bCellDragSelecting = true`，随后 `ListBoxHelper` 的右键框选按"替换"语义执行 → 清除可见区已选单元格。修复：该分支末尾直接 `return`，不再进入拖动框选状态（选择集合保持不变，供右键菜单使用）。
+2. 【中·已修复】**单元格全选 / 批量设置 / 查询未过滤不可选行。** 修复：`ListCtrlData::SetCellSelected`、`SetCellSelectionRect`（`SelectAllCells` 与 Shift 区域扩展的公共通路）增加 `IsSelectableElement`（`bVisible && nAlwaysAtTop < 0`）过滤；`ListCtrl::SetSelectedCells`、`GetSelectedCells`、`GetSelectedCellRanges` 同步跳过置顶行 / 不可见行。
+3. 【中低·已修复】`kEventCellSelectionChanged` 重复派发。修复：`ListCtrlData::SetCellSelected` 改为比对 `IsCellSelectedByRowId` 旧值，仅当选中状态真正变化时返回 true（返回语义由"是否设置成功"改为"是否发生变化"），拖动期间鼠标移动不再重复派发事件。
+4. 【低·已修复】`m_hoverCell` 以显示索引存储。修复：改为私有 `HoverCellId`（`RowId + 列ID`）存储，`UpdateHoverCell` / `IsCellHovered` 经 `GetRowIdByDisplayIndex` 换算（为此在 `ListCtrlData` 增加 `friend class ListCtrl;`），排序 / 删行后悬停高亮不再漂移到其它数据行。
+5. 【低·文档·已修复】`duilib_defs.h:490-491` 对 `kEventCellSelectionChanged` 的注释更正为"`wParam` ＝ 选中区域个数，`lParam` ＝ 0，`pEventData` 指向 `std::vector<ui::ListCtrlCellRange>`"，与实现一致。
+
+**已核实无误（排除的疑点）**
+- 选中集合、锚点、当前格均以 `RowId` 存储，排序 / 增删后跟随原数据行；列删除同步丢弃对应列位图；模式切换双向清空对侧状态。
+- `OnFrameSelectionForCells` 纵向扣除 `GetScrollPos().cy`、横向不换算，与 `HitTestCell`（经 `GetSubItem` 叠加 `GetScrollOffsetInScrollBox`）口径一致，非缺陷。
+- `SelectAll / SelectNone / SetSelectedDataItems` 的模式分派与绘制层视觉屏蔽符合"只隔离视觉、不隔离状态"的既定决策。
+
+**C1c 单选语义对齐（已实施，Debug|x64 编译验证通过）**
+
+问题：`multi_select="false"`（单选）在行模式下严格执行"至多一个选择单元"，但 `kCell` 模式的各入口均未读取该开关，导致单选下仍可用 `Shift/Ctrl+单击`、`Shift+方向键`、`Ctrl+A`、批量 API 选中多个单元格（而框选因 `ListBoxHelper::OnMouseMove` 要求 `IsMultiSelect()` 本来就不生效），同一开关下两种模式行为割裂。
+
+决策（已拍板）：单一选择开关对两种模式语义一致 —— 单选下至多一个单元格；批量 API 取"第一个有效格"；"当前格焦点框"保留，仅把选中集合限制为 1。
+
+实施要点：
+- `ListCtrl::BeginCellDrag`：`!IsMultiSelect()` 时忽略 Shift/Ctrl，按普通单击处理（`SetCurrentCell` 替换选中该格），并**不进入**拖动框选状态（避免拖动时焦点框跟随鼠标而选中集合不动造成视觉错位）。
+- `ListCtrl::OnCellKeyDown`：`Ctrl+A` 仅在多选下生效；`Shift+方向键` 的区域扩展分支增加 `IsMultiSelect()` 条件，单选下退化为普通移动当前格（选中集合随之保持 1 个）；`Ctrl+Space` 维持"至多一个"的切换语义。
+- `ListCtrl::SetSelectAll()`：函数入口统一加 `!IsMultiSelect()` 早退（两种模式"全选"均无意义；同时避免行模式下继续走到 `ListCtrlData::SelectAll` 内的 `IsMultiSelect` 断言）。
+- `ListCtrl::SetCellSelection()`：单选下忽略追加语义，仅选中焦点格。
+- `ListCtrl::SetSelectedCells()`：单选下取列表中第一个有效单元格后即结束（`break`），且无论 `bClearOthers` 为何值都先清空（保证结果至多一个单元格）。
+- `ListCtrl::SetMultiSelect(false)`：由多选切到单选时，把已选中的多个单元格裁剪为保留首格（`GetSelectedCells` + `SetSelectedCells({首格}, true)`），与行模式 `ListBox::OnSwitchToSingleSelect` 对称。
+- 未改动项：框选（橡皮筋）本就被 `IsMultiSelect()` 把守；`GetSelectedCells` / `GetSelectedCellRanges` 为查询接口，单选下至多回报一个单元格，无需额外裁剪。
 
 ---
 

@@ -306,12 +306,16 @@ bool ListCtrlData::RemoveColumn(size_t columnId)
     auto iter = m_dataMap.find(columnId);
     if (iter != m_dataMap.end()) {
         m_dataMap.erase(iter);
+        //该列的单元格选中位图一并丢弃，避免同ID列重新添加时继承陈旧选择状态
+        m_cellSelected.erase(columnId);
         if (m_dataMap.empty()) {
             //如果所有列都删除了，行也清空为0
             m_displayOrder.clear();
             m_rowDataList.clear();
             m_nextRowId = 0;
             m_nSelectedRowId = kInvalidRowId;
+            //行身份已全部失效，单元格选择状态一并清空
+            ClearCellSelection();
             m_hideRowCount = 0;
             m_heightRowCount = 0;
             m_atTopRowCount = 0;
@@ -500,6 +504,13 @@ ListCtrlData::RowId ListCtrlData::AllocRowId()
     if (m_rowDataList.size() < m_nextRowId) {
         m_rowDataList.resize(m_nextRowId);
     }
+    //单元格选中位图按行身份索引，同步增长（新行默认为未选中）
+    for (auto iter = m_cellSelected.begin(); iter != m_cellSelected.end(); ++iter) {
+        std::vector<uint8_t>& bitmap = iter->second;
+        if (bitmap.size() < m_nextRowId) {
+            bitmap.resize(m_nextRowId, static_cast<uint8_t>(0));
+        }
+    }
     return rowId;
 }
 
@@ -531,6 +542,19 @@ void ListCtrlData::FreeRowId(RowId rowId)
     //修正单选状态
     if (m_nSelectedRowId == rowId) {
         m_nSelectedRowId = kInvalidRowId;
+    }
+    //单元格选择：清除被删除行的选中位；若锚点/当前格所在行被删除，则锚点/当前格失效
+    for (auto iter = m_cellSelected.begin(); iter != m_cellSelected.end(); ++iter) {
+        std::vector<uint8_t>& bitmap = iter->second;
+        if (rowId < bitmap.size()) {
+            bitmap[rowId] = 0;
+        }
+    }
+    if (m_anchorCell.IsValid() && (m_anchorCell.nRowId == rowId)) {
+        m_anchorCell = CellIdentity();
+    }
+    if (m_currentCell.IsValid() && (m_currentCell.nRowId == rowId)) {
+        m_currentCell = CellIdentity();
     }
 }
 
@@ -595,6 +619,183 @@ bool ListCtrlData::IsNormalMode() const
 {
     ASSERT((m_hideRowCount >= 0) && (m_heightRowCount >= 0) && (m_atTopRowCount >= 0));
     return (m_hideRowCount == 0) && (m_heightRowCount == 0) && (m_atTopRowCount == 0);
+}
+
+const std::vector<uint8_t>* ListCtrlData::FindCellBitmap(size_t nColumnId) const
+{
+    auto iter = m_cellSelected.find(nColumnId);
+    if (iter == m_cellSelected.end()) {
+        return nullptr;
+    }
+    return &(iter->second);
+}
+
+std::vector<uint8_t>& ListCtrlData::GetCellBitmapForWrite(size_t nColumnId, RowId rowId)
+{
+    std::vector<uint8_t>& bitmap = m_cellSelected[nColumnId];
+    const size_t nNeed = static_cast<size_t>(rowId) + 1;
+    if (bitmap.size() < nNeed) {
+        bitmap.resize(nNeed, static_cast<uint8_t>(0));
+    }
+    return bitmap;
+}
+
+void ListCtrlData::SetCellSelectedByRowId(RowId rowId, size_t nColumnId, bool bSelected)
+{
+    if ((rowId == kInvalidRowId) || !IsValidDataColumnId(nColumnId)) {
+        return;
+    }
+    std::vector<uint8_t>& bitmap = GetCellBitmapForWrite(nColumnId, rowId);
+    bitmap[rowId] = bSelected ? 1 : 0;
+}
+
+bool ListCtrlData::IsCellSelectedByRowId(RowId rowId, size_t nColumnId) const
+{
+    if (rowId == kInvalidRowId) {
+        return false;
+    }
+    const std::vector<uint8_t>* pBitmap = FindCellBitmap(nColumnId);
+    if ((pBitmap == nullptr) || (rowId >= pBitmap->size())) {
+        return false;
+    }
+    return (*pBitmap)[rowId] != 0;
+}
+
+ListCtrlCellId ListCtrlData::GetCurrentCell() const
+{
+    ListCtrlCellId cell;
+    if (m_currentCell.IsValid()) {
+        const size_t nDisplayIndex = GetDisplayIndexByRowId(m_currentCell.nRowId);
+        if (nDisplayIndex != Box::InvalidIndex) {
+            cell.nRowIndex = nDisplayIndex;
+            cell.nColumnId = m_currentCell.nColumnId;
+        }
+    }
+    return cell;
+}
+
+ListCtrlCellId ListCtrlData::GetAnchorCell() const
+{
+    ListCtrlCellId cell;
+    if (m_anchorCell.IsValid()) {
+        const size_t nDisplayIndex = GetDisplayIndexByRowId(m_anchorCell.nRowId);
+        if (nDisplayIndex != Box::InvalidIndex) {
+            cell.nRowIndex = nDisplayIndex;
+            cell.nColumnId = m_anchorCell.nColumnId;
+        }
+    }
+    return cell;
+}
+
+bool ListCtrlData::SetCurrentCell(const ListCtrlCellId& cell)
+{
+    if (!IsValidDataItemIndex(cell.nRowIndex) || !IsValidDataColumnId(cell.nColumnId)) {
+        return false;
+    }
+    //把"显示索引"换算为"行身份"存储，使选择状态与显示顺序解耦（排序/增删后仍跟随原数据行）
+    const RowId rowId = GetRowIdByDisplayIndex(cell.nRowIndex);
+    if (rowId == kInvalidRowId) {
+        return false;
+    }
+    m_currentCell.nRowId = rowId;
+    m_currentCell.nColumnId = cell.nColumnId;
+    return true;
+}
+
+bool ListCtrlData::SetAnchorCell(const ListCtrlCellId& cell)
+{
+    if (!IsValidDataItemIndex(cell.nRowIndex) || !IsValidDataColumnId(cell.nColumnId)) {
+        return false;
+    }
+    const RowId rowId = GetRowIdByDisplayIndex(cell.nRowIndex);
+    if (rowId == kInvalidRowId) {
+        return false;
+    }
+    m_anchorCell.nRowId = rowId;
+    m_anchorCell.nColumnId = cell.nColumnId;
+    return true;
+}
+
+void ListCtrlData::GetCellSelection(ListCtrlCellId& anchorCell, ListCtrlCellId& focusCell) const
+{
+    anchorCell = GetAnchorCell();
+    focusCell = GetCurrentCell();
+}
+
+bool ListCtrlData::IsCellSelected(size_t nRowIndex, size_t nColumnId) const
+{
+    return IsCellSelectedByRowId(GetRowIdByDisplayIndex(nRowIndex), nColumnId);
+}
+
+bool ListCtrlData::SetCellSelected(size_t nRowIndex, size_t nColumnId, bool bSelected)
+{
+    if (!IsValidDataItemIndex(nRowIndex) || !IsValidDataColumnId(nColumnId)) {
+        return false;
+    }
+    if (!IsSelectableElement(nRowIndex)) {
+        //置顶行、不可见行不参与单元格选择
+        return false;
+    }
+    const RowId rowId = GetRowIdByDisplayIndex(nRowIndex);
+    if (rowId == kInvalidRowId) {
+        return false;
+    }
+    if (IsCellSelectedByRowId(rowId, nColumnId) == bSelected) {
+        //选中状态未发生变化：返回false，避免调用方重复刷新与派发选择变化事件
+        return false;
+    }
+    SetCellSelectedByRowId(rowId, nColumnId, bSelected);
+    return true;
+}
+
+void ListCtrlData::SetCellSelectionRect(size_t nRowBegin, size_t nRowEnd,
+                                        const std::vector<size_t>& columnIdList, bool bAdditive)
+{
+    if (!bAdditive) {
+        //替换模式：仅清除选中集合，锚点/当前格由调用方维护（拖动/区域扩展过程中锚点需要保持不变）
+        m_cellSelected.clear();
+    }
+    const size_t nCount = m_displayOrder.size();
+    if ((nCount == 0) || columnIdList.empty() ||
+        (nRowBegin == Box::InvalidIndex) || (nRowEnd == Box::InvalidIndex)) {
+        return;
+    }
+    if (nRowBegin > nRowEnd) {
+        const size_t nTemp = nRowBegin;
+        nRowBegin = nRowEnd;
+        nRowEnd = nTemp;
+    }
+    if (nRowEnd >= nCount) {
+        nRowEnd = nCount - 1;
+    }
+    //按行身份收集选中单元格：排序/增删后选择状态仍跟随原数据行
+    for (size_t nRowIndex = nRowBegin; nRowIndex <= nRowEnd; ++nRowIndex) {
+        if (!IsSelectableElement(nRowIndex)) {
+            //置顶行、不可见行不参与单元格选择
+            continue;
+        }
+        const RowId rowId = m_displayOrder[nRowIndex];
+        for (size_t nColumnId : columnIdList) {
+            SetCellSelectedByRowId(rowId, nColumnId, true);
+        }
+    }
+}
+
+void ListCtrlData::SelectAllCells(const std::vector<size_t>& columnIdList)
+{
+    const size_t nCount = m_displayOrder.size();
+    if ((nCount == 0) || columnIdList.empty()) {
+        ClearCellSelection();
+        return;
+    }
+    SetCellSelectionRect(0, nCount - 1, columnIdList, false);
+}
+
+void ListCtrlData::ClearCellSelection()
+{
+    m_anchorCell = CellIdentity();
+    m_currentCell = CellIdentity();
+    m_cellSelected.clear();
 }
 
 size_t ListCtrlData::GetDataItemCount() const
@@ -744,6 +945,8 @@ bool ListCtrlData::DeleteAllDataItems()
     m_rowDataList.clear();
     m_nextRowId = 0;
     m_nSelectedRowId = kInvalidRowId;
+    //行身份已全部失效，单元格选择状态一并清空
+    ClearCellSelection();
     m_hideRowCount = 0;
     m_heightRowCount = 0;
     m_atTopRowCount = 0;
@@ -800,6 +1003,15 @@ void ListCtrlData::CompactStorage()
     if (m_nSelectedRowId != kInvalidRowId) {
         nSelectedIndex = GetDisplayIndexByRowId(m_nSelectedRowId);
     }
+    //单元格选择的锚点/当前格也记录显示位置，重编号后按新行身份恢复
+    size_t nAnchorIndex = Box::InvalidIndex;
+    if (m_anchorCell.IsValid()) {
+        nAnchorIndex = GetDisplayIndexByRowId(m_anchorCell.nRowId);
+    }
+    size_t nCurrentIndex = Box::InvalidIndex;
+    if (m_currentCell.IsValid()) {
+        nCurrentIndex = GetDisplayIndexByRowId(m_currentCell.nRowId);
+    }
 
     //1. 重建行属性池：新行身份 = 显示位置（按显示顺序紧凑存放，丢弃墓碑槽位）
     RowDataList newRowDataList;
@@ -825,6 +1037,19 @@ void ListCtrlData::CompactStorage()
         pageList.swap(newPageList);
     }
 
+    //2b. 重映射单元格选中位图：新行身份 = 显示位置，按显示顺序搬迁选中位
+    for (auto iter = m_cellSelected.begin(); iter != m_cellSelected.end(); ++iter) {
+        const std::vector<uint8_t>& oldBits = iter->second;
+        std::vector<uint8_t> newBits(nCount, static_cast<uint8_t>(0));
+        for (size_t index = 0; index < nCount; ++index) {
+            const RowId oldRowId = m_displayOrder[index];
+            if ((oldRowId < oldBits.size()) && (oldBits[oldRowId] != 0)) {
+                newBits[index] = static_cast<uint8_t>(1);
+            }
+        }
+        iter->second.swap(newBits);
+    }
+
     //3. 显示顺序表变为恒等映射；行身份生成器归位
     for (size_t index = 0; index < nCount; ++index) {
         m_displayOrder[index] = static_cast<RowId>(index);
@@ -834,6 +1059,19 @@ void ListCtrlData::CompactStorage()
     //4. 恢复选中行身份（显示位置不变，新行身份 = 该显示位置）
     if (nSelectedIndex != Box::InvalidIndex) {
         m_nSelectedRowId = static_cast<RowId>(nSelectedIndex);
+    }
+    //恢复单元格选择锚点/当前格（行身份被重编号）
+    if (nAnchorIndex != Box::InvalidIndex) {
+        m_anchorCell.nRowId = static_cast<RowId>(nAnchorIndex);
+    }
+    else {
+        m_anchorCell = CellIdentity();
+    }
+    if (nCurrentIndex != Box::InvalidIndex) {
+        m_currentCell.nRowId = static_cast<RowId>(nCurrentIndex);
+    }
+    else {
+        m_currentCell = CellIdentity();
     }
 
     AssertDataConsistency();

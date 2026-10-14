@@ -79,6 +79,8 @@
 |kEventColumnOrderChanged   |     |     |     |     |       |     | ListCtrl: 列的显示顺序发生变化（拖动表头调整列顺序时触发），可通过GetColumnId遍历获取最新顺序 |
 |kEventColumnVisibleChanged | 列ID(size_t)  | 新状态(1显示/0隐藏) |     |     |       |     | ListCtrl: 列的显示/隐藏状态发生变化 |
 |kEventColumnSorted         | 列ID(size_t)  | 新状态(1升序/0降序) |     |     |       |     | ListCtrl: 列的排序状态发生变化 |
+|kEventCurrentCellChanged   | 行的显示索引(size_t) | 列ID(size_t) |     |     |       |     | ListCtrl: 当前单元格发生变化（单元格选择模式） |
+|kEventCellSelectionChanged | 选中区域个数(size_t) | 0（保留） |     |     |       | std::vector<ui::ListCtrlCellRange>*:<br>选中的区域列表（可能多项；无选择时为 nullptr） | ListCtrl: 单元格的选择区域发生变化（支持不连续选择，故为区域列表；无有效选择时该指针为 nullptr，wParam 为 0） |
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |

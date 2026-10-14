@@ -486,6 +486,10 @@ namespace ui
         kEventColumnVisibleChanged,     //ListCtrl类：列的显示/隐藏状态发生变化, wParam是列ID(size_t), lParam是新状态(1表示显示，0表示隐藏)
         kEventColumnSorted,             //ListCtrl类：列的排序状态发生变化, wParam是列ID(size_t), lParam是新状态(1表示升序，0表示降序)
 
+        kEventCurrentCellChanged,       //ListCtrl类：当前单元格发生变化(单元格选择模式), wParam是行的显示索引(size_t), lParam是列ID(size_t)
+        kEventCellSelectionChanged,     //ListCtrl类：单元格的选择区域发生变化, wParam是选中区域的个数(size_t)，lParam为0，
+                                        //            pEventData 指向 std::vector<ui::ListCtrlCellRange>（按行/列归并后的选中区域列表）
+
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
 

@@ -18,6 +18,7 @@ namespace ui
 class ListCtrl;
 class ListCtrlData;
 class ListCtrlSubItem;
+class ListCtrlItem;
 struct ListCtrlItemData;
 class DUILIB_API ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
@@ -29,6 +30,12 @@ public:
 
     virtual DString GetType() const override { return _T("ListCtrlReportView"); }
     virtual void HandleEvent(const EventArgs& msg) override;
+
+    /** 鼠标事件(来源于子控件的消息转发)：单元格选择模式下拦截，用于实现单元格的选择与区域扩展
+    * @param [in] msg 鼠标事件的内容
+    * @return 返回true表示已按单元格选择处理，不再触发行选择
+    */
+    virtual bool OnListBoxItemMouseEvent(const EventArgs& msg) override;
 
     /** 设置ListCtrl控件接口
     */
@@ -279,6 +286,22 @@ protected:
     */
     virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom) override;
 
+    /** 当前是否允许绘制"行选中"背景色（行选中背景色为行选择模式专属视觉）
+        单元格选择模式下返回false：这样无论行选择状态由哪个入口（鼠标/键盘/API）改动，
+        界面都不会显示出"行被选中"的视觉表现，从而在单元格选择模式下看不出行可选状态
+    */
+    virtual bool CanPaintSelectedColors(bool bHasStateImages) const override;
+
+    /** 在视图空白处点击了鼠标左键
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    virtual bool OnLButtonClickedBlank() override;
+
+    /** 在视图空白处点击了鼠标右键
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    virtual bool OnRButtonClickedBlank() override;
+
     /** 某个数据项的Check勾选状态变化(列级)
     * @param [in] nElementIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] nColumnId 列ID
@@ -290,6 +313,45 @@ private:
     /** 绘制网格线
     */
     void PaintGridLines(IRender* pRender);
+
+    /** 单元格选择模式下的鼠标框选：把框选矩形内的单元格置为选中
+    *  说明：框选矩形由 ListBoxHelper 传入（视图客户坐标，与行模式同一口径）；
+    *        Ctrl+拖动（m_bCellDragAdditive）为追加语义，只增不减
+    * @param [in] left 框选矩形的X坐标left值
+    * @param [in] right 框选矩形的X坐标right值
+    * @param [in] top 框选矩形的Y坐标top值
+    * @param [in] bottom 框选矩形的Y坐标bottom值
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    bool OnFrameSelectionForCells(int64_t left, int64_t right, int64_t top, int64_t bottom);
+
+    /** 命中测试：将鼠标位置（窗口客户坐标）映射到单元格（行显示索引 + 列ID）
+    * @param [in] ptMouse 鼠标位置（窗口客户坐标）
+    * @param [out] nRowIndex 命中单元格所在行的显示索引；未命中时为 Box::InvalidIndex
+    * @param [out] nColumnId 命中单元格的列ID；未命中时为 Box::InvalidIndex
+    * @param [out] ppItem 命中单元格所在的数据项（ListCtrlItem）指针；未命中时为 nullptr
+    * @return 返回是否命中某个单元格
+    */
+    bool HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, size_t& nColumnId, ListCtrlItem** ppItem = nullptr) const;
+
+    /** 判断鼠标点是否落在"置顶行"（不可选行）范围内
+    *  置顶行固定显示在顶部，会遮挡其下方滚动的普通行；鼠标落在其上时不应穿透选择下方的单元格
+    * @param [in] ptMouse 鼠标位置（窗口客户坐标）
+    * @return 返回是否落在置顶行范围内
+    */
+    bool IsPointOnAtTopItem(const UiPoint& ptMouse) const;
+
+    /** 命中"置顶行"（不可选行）所在的列表项
+    * @param [in] ptMouse 鼠标位置（窗口客户坐标）
+    * @return 返回鼠标点命中的置顶行列表项；未命中时为 nullptr
+    */
+    ListCtrlItem* HitTestTopItem(const UiPoint& ptMouse) const;
+
+    /** 计算"表头与置顶行"所占的矩形区域（这些行固定显示在顶部，会遮挡其下方滚动的普通行）
+    * @param [out] rcTopFixed 返回表头与置顶行所占的矩形区域
+    * @return 是否存在表头或置顶行
+    */
+    bool GetTopFixedItemsRect(UiRect& rcTopFixed) const;
 
     /** 把某个单元格的数据填充到UI控件（FillDataItem与RefreshSubItemData共用，保证填充逻辑一致）
     * @param [in] pSubItem 目标子项控件
@@ -433,6 +495,13 @@ private:
     * @return 返回构建出的列布局表
     */
     ListCtrlColumnLayout BuildColumnLayout(int32_t nViewLeft) const;
+
+    /** 绘制单元格选择的高亮（选中区域半透明填充 + 当前格焦点框）
+    * @param [in] pRender 绘制接口
+    * @param [in] cellGeometry 单元格几何层
+    * @param [in] bFrozenPass 是否绘制冻结列趟
+    */
+    void PaintCellSelection(IRender* pRender, const ListCtrlCellGeometry& cellGeometry, bool bFrozenPass);
 
     /** 将header和置顶项放在最后
     * @param [in,out] items 需要移动的控件列表

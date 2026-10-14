@@ -95,7 +95,7 @@
 | P4 | 绘制期每帧重排 | 已核实（无需改动） | `ListCtrlReportView::PaintChild` 每次绘制会调用 `ReArrangeChild(false)`，但该调用内部由 `VirtualLayout::NeedReArrange()` 守卫：`ListCtrlReportLayout::NeedReArrange()` 仅在"滚动位置相对已应用的虚拟偏移发生变化"（`GetScrollPos().cy != GetScrollVirtualOffset().cy`）时为真，常规重绘时立即返回，**无重排开销**；尺寸 / 数据变化走 `Refresh()` 中的 `ReArrangeChild(true)` 强制重排路径。冻结列场景的"每个控件画两趟"仅在 `frozen_column_count > 0` 时发生（无冻结列时为单趟），属冻结列双趟裁剪的固有实现，非冗余绘制 |
 | P5 | 依赖调用时序 / `GetRect()` 有效的脆弱写法排查 | 已核实（无需改动） | 已全文排查，判定标准 = "把 `GetRect()` 的绝对坐标当作宽度/尺寸用，且该代码可能在布局前执行"。结论：**估算路径干净，运行时 `GetRect()` 用法均为布局后按设计调用**。(1) 估算路径全部干净：`LabelImpl::OnEstimateTextWith`、`RichTextImpl::EstimateText`、`RichEdit2::EstimateText`、`DateTime::EstimateText` 均以 `rc.left = 0` / `rc.top = 0` 为零点、宽度取自 `szAvailable`/固定尺寸/内边距之和，无绝对坐标；`ListCtrlReportLayout::EstimateLayoutSize` 只用内边距与 `EstimateSize()` 结果；原缺陷点 `ListCtrlSubItem::EstimateText` 已修复为"仅累加左侧额外占位宽度"（CheckBox + 图标 + 间距）。(2) 其余 `GetRect()/GetPos()` 用法（`ListBox` 显示范围遍历、`ScrollBox` 滚动量计算、`RichEdit2::EnsureCharVisible`、`ListCtrlReportView` 绘制偏移、`ListCtrlSubItem::PaintText/PaintProgress`）均在绘制 / 滚动 / 鼠标 / 编辑等**布局已完成后**执行，属运行时按设计读取，非脆弱写法。(3) 唯一残留的"依赖前序调用"点：`ListCtrl` 进入单元格编辑时读取 `pSubItem->GetTextRect()`（`ListCtrl.cpp` L2838 / L2953），该矩形仅由 `ListCtrlSubItem::PaintText/PaintProgress` 的 `SetTextRect()` 赋值、未绘制时为空；由于只有已绘制的单元格才可能被点击编辑，实际安全，建议在落地 L1（F2 编辑）/ L2（Ctrl+C）时顺手加"矩形为空则回退 `GetRect()`"的兜底 |
 | A1 | 冻结列实现收敛为统一坐标变换层 | 已完成 | 已在 `ListCtrlReportView` 内新增私有值对象 `FrozenTransform` 与构建函数 `BuildFrozenTransform()`，把"冻结区右边界 / 冻结区判定 / 命中横向偏移归零 / 两趟裁剪 / 网格线屏幕 X"统一由一层坐标变换推导；绘制（`PaintChild` 在控件循环外推导一次并复用）、命中测试（`FindControl`）、网格线（`PaintGridLines`）三处改为共用同一口径，`frozen=0` 的回退分支收敛为单一的 `bHasFrozen` 判断。顺带修正命中区口径：原先命中用 `GetRect().left + F`、绘制用 `GetPosWithoutPadding().left + F`，内边距非 0 时命中区相对绘制区左移 `padding.left`，现统一为 `GetPosWithoutPadding().left`；滚动范围无需改动（内容宽与视口宽均含冻结宽，自然抵消，见 P3），`ListCtrlHeader` 无需改动（表头随同一套两趟绘制）。Debug\|x64 编译通过。**C0 阶段已把该值对象推广为通用单元格几何层 `ListCtrlCellGeometry`（新增 `ListCtrlColumnLayout` 列布局表，作为"某一列 X 区间"的唯一来源，冻结区宽度改由列布局表推导），详见 [ListCtrl单元格交互与结构升级设计方案.md](misc/ListCtrl单元格交互与结构升级设计方案.md) §3-C0** |
-| A2 | 布局模型升级（多级表头 / 单元格合并 / 内嵌树 / 行分组折叠） | 实施中（C0 单元格坐标层已完成） | 需要表头与行的布局模型升级，详见下节功能对照；**已出统一设计方案（含单元格选择层，见 [ListCtrl单元格交互与结构升级设计方案.md](misc/ListCtrl单元格交互与结构升级设计方案.md)），5 项设计决策已拍板**；**C0（单元格坐标层，无用户可见行为变化）已完成**：A1 的 `FrozenTransform` 已推广为 `ListCtrlCellGeometry`，新增 `ListCtrlColumnLayout` 列布局表（各列 X 区间由首个可见数据行的子项几何推导、无可见行时回退表头），冻结区宽度改由列布局表推导，绘制 / 命中 / 网格线继续共用同一几何层；下一步 C1（单元格选择模型） |
+| A2 | 布局模型升级（多级表头 / 单元格合并 / 内嵌树 / 行分组折叠） | 实施中（C0 / C1 / C1b 已完成） | 需要表头与行的布局模型升级，详见下节功能对照；**已出统一设计方案（含单元格选择层，见 [ListCtrl单元格交互与结构升级设计方案.md](misc/ListCtrl单元格交互与结构升级设计方案.md)），5 项设计决策已拍板**；**C0（单元格坐标层，无用户可见行为变化）已完成**：A1 的 `FrozenTransform` 已推广为 `ListCtrlCellGeometry`，新增 `ListCtrlColumnLayout` 列布局表（各列 X 区间由首个可见数据行的子项几何推导、无可见行时回退表头），冻结区宽度改由列布局表推导，绘制 / 命中 / 网格线继续共用同一几何层；**C1（单元格选择模型）已完成**（选择状态与行身份 `RowId` + 列ID 绑定，排序不再漂移）；**C1b（统一选择模型）已完成**：单元格选择状态改为"每列一张按 `RowId` 索引的位图"存储（不再塞进 `ListCtrlSubItemData2`），`Ctrl+单击`切换单元格、`Shift+单击/拖动`矩形扩展、`Ctrl+拖动`追加矩形区域（不清除已有），`kEventCellSelectionChanged` 的 `eventData` 由"单矩形"改为"选中区域列表 `std::vector<ui::ListCtrlCellRange>*`"（支持不连续选择），`SetSelectAll` / `SetSelectNone` 按模式分派；行专用 API 保留原有行为（仍读写底层行选择状态），`kCell` 模式下由绘制层屏蔽行选中视觉（`ListCtrlReportView::CanPaintSelectedColors` 返回 false）、并拦截行 Hover/Pushed 与右键行选择通路，界面看不出行可选状态，另提供单元格等价 API（`SetSelectedCells`）；**kCell 鼠标框选已完成**：单元格模式下按住左键/右键拖动，复用 `ListBoxHelper` 绘制与行模式完全一致的浅蓝半透明框选蒙层，并由 `ListCtrlReportView::OnFrameSelection` 按框选矩形命中单元格（`Ctrl+拖动`为追加、只增不减），同时补齐了原 C1 遗留的"视口边缘拖拽自动滚动" |
 
 ### 四、相对 QTableView / WPF DataGrid 功能对照
 
@@ -109,7 +109,8 @@
 | 行筛选 / 表头筛选器 | 缺失 | 见 L3 |
 | 汇总行 / 页脚行 | 缺失 | 无固定汇总 / 页脚行 |
 | 复制到剪贴板 / 导出 | 缺失 | 见 L2 |
-| 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A |
+| 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格 |
+| 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；**遗留：冻结列与单元格选择的命中口径待适配（延后至 C2）；复查发现的 5 项缺陷已修复（见设计方案「C1 复查结论」）；单选（`multi_select=false`）语义已与行模式对齐（见 C1c）** |
 | 单元格 tooltip | 已具备 | `auto_tooltip="true"` 默认开启，超长自动提示 |
 | 自定义单元格渲染器（嵌入任意控件） | 缺失 | 见 L4，现仅内置文本 / 图标 / CheckBox / 进度条 / 富文本 |
 | 可变行高 / 单元格自动换行 | 已完成 | `SetDataItemHeight` + `SetSubItemSingleLine`，文本省略号由 Label 默认样式提供 |
@@ -166,6 +167,11 @@
 | P4 | 绘制期每帧重排（`ReArrangeChild`） | 已核实（无需改动：由 `NeedReArrange()` 守卫，常规重绘无重排） |
 | P5 | 脆弱写法排查（依赖时序 / `GetRect()`） | 已核实（无需改动：估算路径干净；仅 L1 / L2 落地时补"矩形为空回退 `GetRect()`"兜底） |
 | A1 | 冻结列收敛为统一坐标变换层 | 已完成 |
-| A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 缺失（架构性） |
+| C0 | 单元格坐标层（`ListCtrlCellGeometry` / `ListCtrlColumnLayout`） | 已完成 |
+| C1 | 单元格选择模型（`kCell` 模式，与 `RowId` 绑定） | 已完成 |
+| C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
+| C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（5 项缺陷已修复并通过 Debug 编译验证）；冻结列命中口径待 C2 适配（详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
+| C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
+| A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 实施中（C0 / C1 / C1b 已完成；后续 C2–C7 待实施） |
 
 > 注：本文档为 ListCtrl 专项跟进清单，条目完成后请同步更新本表状态；控件级的新增规划仍以 [Control-Roadmap.md](Control-Roadmap.md) 为准。

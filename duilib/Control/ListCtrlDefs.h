@@ -16,6 +16,49 @@ enum class ListCtrlType: int8_t
     List   = 2  //List类型
 };
 
+/** 列表的选择模式
+*/
+enum class ListCtrlSelectionMode : int8_t
+{
+    kRow  = 0,  //行选择模式（默认）
+    kCell = 1   //单元格选择模式
+};
+
+/** 表格中单元格的定位标识（CellId）
+    行使用"显示序索引"，列使用"列ID"（与既有列宽/列序/显隐/排序均按columnId组织保持一致：列序可变、列ID稳定）
+*/
+struct ListCtrlCellId
+{
+    size_t nRowIndex = Box::InvalidIndex;   //行的显示索引号，有效范围：[0, GetDataItemCount())
+    size_t nColumnId = Box::InvalidIndex;   //列的ID
+
+    /** 判断是否为有效的单元格
+    */
+    bool IsValid() const { return (nRowIndex != Box::InvalidIndex) && (nColumnId != Box::InvalidIndex); }
+
+    bool operator==(const ListCtrlCellId& r) const { return (nRowIndex == r.nRowIndex) && (nColumnId == r.nColumnId); }
+    bool operator!=(const ListCtrlCellId& r) const { return !(*this == r); }
+};
+
+/** 单元格的选择区域（规范化后的矩形区域：行范围 + 列范围）
+    行使用显示序索引，列使用列ID（按当前列序规范化：nColumnIdBegin 对应的列序靠前）
+*/
+struct ListCtrlCellRange
+{
+    size_t nRowBegin = Box::InvalidIndex;      //起始行索引（显示序，nRowBegin <= nRowEnd）
+    size_t nRowEnd = Box::InvalidIndex;        //结束行索引（显示序）
+    size_t nColumnIdBegin = Box::InvalidIndex; //起始列ID（按当前列序靠前）
+    size_t nColumnIdEnd = Box::InvalidIndex;   //结束列ID（按当前列序靠后）
+
+    /** 判断是否为有效的区域
+    */
+    bool IsValid() const
+    {
+        return (nRowBegin != Box::InvalidIndex) && (nRowEnd != Box::InvalidIndex) &&
+               (nColumnIdBegin != Box::InvalidIndex) && (nColumnIdEnd != Box::InvalidIndex);
+    }
+};
+
 /** 列的基本信息（用于添加列）
 */
 struct ListCtrlColumn

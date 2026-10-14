@@ -668,24 +668,90 @@ public:
     */
     void SetMultiSelect(bool bMultiSelect);
 
-    /** 批量设置选择数据项
+    /** 批量设置选择数据项（行选择专用）
+        说明：仅在行选择模式（kRow）下生效；单元格选择模式（kCell）下对行选择不做任何修改（no-op）
     * @param [in] selectedIndexs 需要设置选择的数据项索引号，有效范围：[0, GetDataItemCount())
     * @param [in] bClearOthers 如果为true，表示对其他已选择的进行清除选择，只保留本次设置的为选择项
     */
     void SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers);
 
-    /** 获取选择的元素列表
+    /** 获取选择的元素列表（行选择专用）
+        说明：仅在行选择模式（kRow）下有结果；单元格选择模式（kCell）下返回空列表
     * @param [in] itemIndexs 返回当前选择的数据项索引号，有效范围：[0, GetDataItemCount())
     */
     void GetSelectedDataItems(std::vector<size_t>& itemIndexs) const;
 
-    /** 选择全部
+    /** 选择全部（按当前选择模式分派：行选择模式全选行，单元格选择模式全选单元格）
     */
     void SetSelectAll();
 
-    /** 取消所有选择
+    /** 取消所有选择（按当前选择模式分派：行选择模式清空行选择，单元格选择模式清空单元格选择）
     */
     void SetSelectNone();
+
+public:
+    /** 获取选择模式（行选择模式 / 单元格选择模式）
+    */
+    ListCtrlSelectionMode GetSelectionMode() const;
+
+    /** 设置选择模式（默认是行选择模式）
+        说明：切换到单元格选择模式时，会自动清除当前的行选择；切回行选择模式时，会自动清除单元格选择
+    * @param [in] mode 选择模式
+    */
+    void SetSelectionMode(ListCtrlSelectionMode mode);
+
+    /** 获取当前单元格（单元格选择模式下有效，无效时返回的ListCtrlCellId::IsValid()为false）
+    */
+    ListCtrlCellId GetCurrentCell() const;
+
+    /** 设置当前单元格（单元格选择模式下有效；不能用于行选择模式）
+    * @param [in] nRowIndex 行的显示索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID值
+    * @return 返回是否设置成功（行索引或列ID无效，或者当前不是单元格选择模式时返回false）
+    */
+    bool SetCurrentCell(size_t nRowIndex, size_t nColumnId);
+
+    /** 设置单元格的选择区域（锚点 + 焦点，构成规范化矩形）
+    * @param [in] anchorCell 锚点单元格
+    * @param [in] focusCell 焦点单元格（为无效值时，仅设置锚点单元格，不改变选中集合）
+    * @param [in] bAdditive true=向已有选择追加该矩形区域（不清除已有）；false=先清除已有单元格选择再设置
+    * @return 返回是否设置成功（锚点无效或当前不是单元格选择模式时返回false）
+    */
+    bool SetCellSelection(const ListCtrlCellId& anchorCell, const ListCtrlCellId& focusCell, bool bAdditive);
+
+    /** 清除单元格的选择区域
+    */
+    void ClearCellSelection();
+
+    /** 获取单元格的选择区域（锚点 + 焦点，未做规范化）
+    */
+    void GetCellSelection(ListCtrlCellId& anchorCell, ListCtrlCellId& focusCell) const;
+
+    /** 批量设置选择的单元格（单元格选择等价 API，对应行选择的 SetSelectedDataItems）
+        说明：仅在单元格选择模式（kCell）下生效；行选择模式（kRow）下不做任何修改（no-op）
+    * @param [in] cellList 需要设置为选中状态的单元格列表
+    * @param [in] bClearOthers 如果为true，表示先清除其它已选中的单元格，只保留本次设置的
+    */
+    void SetSelectedCells(const std::vector<ListCtrlCellId>& cellList, bool bClearOthers);
+
+    /** 获取选择的单元格列表（规范化区域内展开的单元格，按行优先顺序）
+        说明：跳过被合并覆盖的单元格（当前尚未实现单元格合并，后续合并功能落地后生效）
+    * @param [in] cellList 返回选择的单元格列表
+    * @return 返回选择的单元格个数
+    */
+    size_t GetSelectedCells(std::vector<ListCtrlCellId>& cellList) const;
+
+    /** 判断一个单元格是否在选择的区域内
+    * @param [in] nRowIndex 行的显示索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID值
+    */
+    bool IsCellSelected(size_t nRowIndex, size_t nColumnId) const;
+
+    /** 判断一个单元格是否为当前单元格
+    * @param [in] nRowIndex 行的显示索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID值
+    */
+    bool IsCellCurrent(size_t nRowIndex, size_t nColumnId) const;
 
 public:
     /** 获取当前显示的数据项列表，顺序是从上到下
@@ -1182,6 +1248,25 @@ public:
      */
     void AttachColumnSorted(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventColumnSorted, callback, callbackID); }
 
+    /** 绑定当前单元格发生变化的事件（单元格选择模式）
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    * 参数说明:
+    *   wParam: 行的显示索引(size_t)
+    *   lParam: 列ID(size_t)
+    */
+    void AttachCurrentCellChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventCurrentCellChanged, callback, callbackID); }
+
+    /** 绑定单元格选择区域发生变化的事件（单元格选择模式）
+    * @param [in] callback 要绑定的回调函数
+    * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
+    * 参数说明:
+    *   wParam: 选中区域个数(size_t)，0表示当前无选择
+    *   lParam: 0（保留）
+    *   pEventData: 指向 std::vector<ui::ListCtrlCellRange>*（选中的区域列表，可能多项；无选择时为nullptr）
+    */
+    void AttachCellSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventCellSelectionChanged, callback, callbackID); }
+
 protected:
     /** 控件初始化
     */
@@ -1400,6 +1485,63 @@ private:
     */
     void DoSetListCtrlType(ListCtrlType type, bool bInit);
 
+    /** 单元格选择模式：收集当前选中的单元格区域列表（可能多项，用于事件上报）
+        归并规则：同一显示行内按"列索引连续"合并为横向区段，纵向相邻行的相同区段再合并为矩形
+    * @param [out] rangeList 返回选中区域列表（无选择时为空）
+    */
+    void GetSelectedCellRanges(std::vector<ListCtrlCellRange>& rangeList) const;
+
+    /** 单元格选择模式：派发"当前单元格发生变化"事件
+    */
+    void NotifyCurrentCellChanged(const ListCtrlCellId& cell);
+
+    /** 单元格选择模式：派发"选择区域发生变化"事件
+    */
+    void NotifyCellSelectionChanged();
+
+    /** 单元格选择模式：刷新视图显示（重绘单元格高亮与当前格焦点框）
+    */
+    void RefreshCellSelectionView();
+
+    /** 单元格选择模式：更新鼠标悬停的单元格（用于绘制单元格悬停高亮）
+    * @param [in] nRowIndex 行的显示索引号（未命中单元格时为 Box::InvalidIndex）
+    * @param [in] nColumnId 列的ID（未命中单元格时为 Box::InvalidIndex）
+    */
+    void UpdateHoverCell(size_t nRowIndex, size_t nColumnId);
+
+    /** 单元格选择模式：清除鼠标悬停的单元格（鼠标移出控件时调用，避免悬停高亮残留）
+    */
+    void ClearHoverCell();
+
+    /** 单元格选择模式：判断指定单元格是否为鼠标悬停的单元格
+    * @param [in] nRowIndex 行的显示索引号
+    * @param [in] nColumnId 列的ID
+    */
+    bool IsCellHovered(size_t nRowIndex, size_t nColumnId) const;
+
+    /** 单元格选择模式：处理来自 ListCtrlItem 的鼠标事件（设置/扩展单元格选择）
+    * @param [in] msg 鼠标事件消息
+    * @param [in] nRowIndex 行的显示索引号
+    * @param [in] nColumnId 列的ID（未命中单元格时为 Box::InvalidIndex）
+    * @return 返回是否已处理（true表示已按单元格选择处理，调用方不应再做行选择）
+    */
+    bool OnCellMouseEvent(const EventArgs& msg, size_t nRowIndex, size_t nColumnId);
+
+    /** 单元格选择模式：鼠标按下时开始一次拖动框选（左键/右键共用）
+        普通单击选中单元格（清除其它）；Shift 扩展到点击格；Ctrl 切换选中；Ctrl+Shift 追加扩展；
+        未命中单元格（空白区域）则清空单元格选择；结束后置位拖动框选状态（框选矩形驱动后续选择）
+    * @param [in] msg 鼠标按下事件消息
+    * @param [in] nRowIndex 行的显示索引号（未命中单元格时为 Box::InvalidIndex）
+    * @param [in] nColumnId 列的ID（未命中单元格时为 Box::InvalidIndex）
+    */
+    void BeginCellDrag(const EventArgs& msg, size_t nRowIndex, size_t nColumnId);
+
+    /** 单元格选择模式：处理键盘事件（方向键移动当前格、Shift扩展区域、Ctrl+A全选等）
+    * @param [in] msg 键盘事件消息
+    * @return 返回是否已处理
+    */
+    bool OnCellKeyDown(const EventArgs& msg);
+
 private:
     /** 表头控件
     */
@@ -1540,6 +1682,40 @@ private:
     /** 是否支持多选(默认是单选)
     */
     bool m_bMultiSelect;
+
+    /** 选择模式（默认是行选择模式）
+    */
+    ListCtrlSelectionMode m_selectionMode;
+
+    /** 单元格选择模式下是否正在通过鼠标拖动扩展选择区域
+    */
+    bool m_bCellDragSelecting;
+
+    /** 单元格选择模式下本次拖动是否为"追加"模式（Ctrl+拖动：追加矩形区域，不清除已有选择）
+    */
+    bool m_bCellDragAdditive;
+
+    /** 单元格悬停状态的内部标识：按行身份(RowId)存储，与显示顺序解耦
+        （排序/增删行后，悬停高亮仍跟随原数据行，配合列ID定位唯一单元格）
+    */
+    struct HoverCellId
+    {
+        ListCtrlData::RowId nRowId;     //行身份（无效时为 ListCtrlData::kInvalidRowId）
+        size_t nColumnId;               //列ID（无效时为 Box::InvalidIndex）
+
+        HoverCellId() : nRowId(ListCtrlData::kInvalidRowId), nColumnId(Box::InvalidIndex) {}
+
+        /** 判断是否为有效的单元格
+        */
+        bool IsValid() const { return (nRowId != ListCtrlData::kInvalidRowId) && (nColumnId != Box::InvalidIndex); }
+
+        bool operator==(const HoverCellId& r) const { return (nRowId == r.nRowId) && (nColumnId == r.nColumnId); }
+        bool operator!=(const HoverCellId& r) const { return !(*this == r); }
+    };
+
+    /** 单元格选择模式下鼠标悬停的单元格（用于绘制单元格悬停高亮）
+    */
+    HoverCellId m_hoverCell;
 
     /** 是否支持双击Header的分割条自动调整列宽
     */

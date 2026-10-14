@@ -516,6 +516,15 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
     if (pMultiSelect != nullptr) {
         pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
     }
+
+    //选择方式：按行选择 / 按单元格选择（单元格模式仅Report视图有效）
+    ui::Option* pSelectionModeRow = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_row")));
+    ui::Option* pSelectionModeCell = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_cell")));
+    if ((pSelectionModeRow != nullptr) && (pSelectionModeCell != nullptr)) {
+        const bool bCellMode = (pListCtrl->GetSelectionMode() == ui::ListCtrlSelectionMode::kCell);
+        pSelectionModeRow->Selected(!bCellMode, false);
+        pSelectionModeCell->Selected(bCellMode, false);
+    }
     //在列表头点击右键
     ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
 //    if (pHeaderCtrl != nullptr) {

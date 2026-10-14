@@ -148,6 +148,18 @@ protected:
     */
     virtual bool ButtonUp(const EventArgs& msg) override;
 
+    /** 鼠标左键按下事件（单元格选择模式下跳过行选择逻辑）
+    */
+    virtual bool ButtonDown(const EventArgs& msg) override;
+
+    /** 鼠标进入事件（单元格选择模式下不进入行级悬停状态，避免行级高亮与悬停渐隐动画）
+    */
+    virtual bool MouseEnter(const EventArgs& msg) override;
+
+    /** 鼠标离开事件（单元格选择模式下不启动悬停渐隐动画，仅清除焦点带来的行级悬停状态）
+    */
+    virtual bool MouseLeave(const EventArgs& msg) override;
+
     /** 是否支持勾选模式（目前是TreeView/ListCtrl在使用这个模式）
         勾选模式是指：
         （1）只有点击在CheckBox图片上的时候，勾选框图片才是选择状态（非勾选模式下，是点击在控件矩形内就选择）
@@ -158,6 +170,11 @@ protected:
     /** 绘制函数
     */
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
+
+    /** 绘制控件的状态颜色
+    *   单元格选择模式下，屏蔽行级的悬停/按下状态颜色（行级高亮视觉是行选择模式专属）
+    */
+    virtual void PaintStateColors(IRender* pRender) override;
 
 private:
     /** 是否可以选择（影响方向键切换选择项）

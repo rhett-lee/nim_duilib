@@ -21,6 +21,9 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_bShowHeaderCtrl(true),
     m_bEnableRefresh(true),
     m_bMultiSelect(true),
+    m_selectionMode(ListCtrlSelectionMode::kRow),
+    m_bCellDragSelecting(false),
+    m_hoverCell(),
     m_bEnableColumnWidthAuto(true),
     m_bAutoCheckSelect(false),
     m_bHeaderShowCheckBox(false),
@@ -170,6 +173,14 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("multi_select")) {
         SetMultiSelect(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("selection_mode")) {
+        if (strValue == _T("cell")) {
+            SetSelectionMode(ListCtrlSelectionMode::kCell);
+        }
+        else if (strValue == _T("row")) {
+            SetSelectionMode(ListCtrlSelectionMode::kRow);
+        }
     }
     else if (strName == _T("enable_column_width_auto")) {
         SetEnableColumnWidthAuto(StringUtil::IsValueTrue(strValue));
@@ -2261,6 +2272,16 @@ void ListCtrl::SetMultiSelect(bool bMultiSelect)
         m_pListView->SetMultiSelect(bMultiSelect);
     }
     UpdateHeaderCheckBox();
+    if (!bMultiSelect) {
+        //切换为单选模式：单元格选择模式下把已选择的多个单元格裁剪为 1（保留第一个选中的单元格），
+        //与行选择模式（ListBox::OnSwitchToSingleSelect）的行为保持一致
+        std::vector<ListCtrlCellId> cellList;
+        if (GetSelectedCells(cellList) > 1) {
+            std::vector<ListCtrlCellId> keepCellList;
+            keepCellList.push_back(cellList.front());
+            SetSelectedCells(keepCellList, true);
+        }
+    }
 }
 
 void ListCtrl::SetSelectedDataItems(const std::vector<size_t>& selectedIndexs, bool bClearOthers)
@@ -2295,6 +2316,35 @@ void ListCtrl::GetCheckedDataItems(std::vector<size_t>& itemIndexs) const
 
 void ListCtrl::SetSelectAll()
 {
+    if (!IsMultiSelect()) {
+        //单选模式：至多一个选中单元（行或单元格），"全选"无意义，不做任何改变
+        //（同时避免行模式下继续走到 ListCtrlData::SelectAll 内的 IsMultiSelect 断言）
+        return;
+    }
+    if (m_selectionMode == ListCtrlSelectionMode::kCell) {
+        //单元格选择模式：全选所有单元格
+        std::vector<size_t> columnIdList;
+        const size_t nColumnCount = GetColumnCount();
+        for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+            const size_t nColumnId = GetColumnId(nColumnIndex);
+            if (IsValidColumnId(nColumnId)) {
+                columnIdList.push_back(nColumnId);
+            }
+        }
+        m_pData->SelectAllCells(columnIdList);
+        //若当前格无效，则把当前格/锚点定位到左上角单元格
+        if (!m_pData->GetCurrentCell().IsValid() &&
+            (GetDataItemCount() > 0) && !columnIdList.empty()) {
+            ListCtrlCellId cell;
+            cell.nRowIndex = 0;
+            cell.nColumnId = columnIdList[0];
+            m_pData->SetAnchorCell(cell);
+            m_pData->SetCurrentCell(cell);
+        }
+        NotifyCellSelectionChanged();
+        RefreshCellSelectionView();
+        return;
+    }
     std::vector<size_t> refreshIndexs;
     m_pData->SelectAll(refreshIndexs);
     if (!refreshIndexs.empty()) {
@@ -2307,6 +2357,13 @@ void ListCtrl::SetSelectAll()
 
 void ListCtrl::SetSelectNone()
 {
+    if (m_selectionMode == ListCtrlSelectionMode::kCell) {
+        //单元格选择模式：清空所有单元格选择
+        m_pData->ClearCellSelection();
+        NotifyCellSelectionChanged();
+        RefreshCellSelectionView();
+        return;
+    }
     std::vector<size_t> refreshIndexs;
     m_pData->SelectNone(refreshIndexs);
     if (!refreshIndexs.empty()) {
@@ -2315,6 +2372,659 @@ void ListCtrl::SetSelectNone()
             UpdateHeaderCheckBox();
         }
     }
+}
+
+ListCtrlSelectionMode ListCtrl::GetSelectionMode() const
+{
+    return m_selectionMode;
+}
+
+void ListCtrl::SetSelectionMode(ListCtrlSelectionMode mode)
+{
+    if (m_selectionMode == mode) {
+        return;
+    }
+    if (mode == ListCtrlSelectionMode::kCell) {
+        //切换到单元格选择模式：先清除当前的行选择
+        if (m_pData != nullptr) {
+            std::vector<size_t> refreshIndexs;
+            m_pData->SelectNone(refreshIndexs);
+            if (!refreshIndexs.empty()) {
+                RefreshDataItems(refreshIndexs);
+                if (IsAutoCheckSelect()) {
+                    UpdateHeaderCheckBox();
+                }
+            }
+            //单元格选择状态也一并重置
+            m_pData->ClearCellSelection();
+        }
+    }
+    else {
+        //切换回行选择模式：清除单元格选择状态
+        if (m_pData != nullptr) {
+            m_pData->ClearCellSelection();
+        }
+    }
+    m_selectionMode = mode;
+    m_bCellDragSelecting = false;
+    m_bCellDragAdditive = false;
+    m_hoverCell = HoverCellId();
+    NotifyCellSelectionChanged();
+    RefreshCellSelectionView();
+}
+
+ListCtrlCellId ListCtrl::GetCurrentCell() const
+{
+    if (m_pData != nullptr) {
+        return m_pData->GetCurrentCell();
+    }
+    return ListCtrlCellId();
+}
+
+bool ListCtrl::SetCurrentCell(size_t nRowIndex, size_t nColumnId)
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return false;
+    }
+    if ((nRowIndex >= GetDataItemCount()) || !IsValidColumnId(nColumnId)) {
+        return false;
+    }
+    ListCtrlCellId cell;
+    cell.nRowIndex = nRowIndex;
+    cell.nColumnId = nColumnId;
+
+    ListCtrlCellId oldCell = GetCurrentCell();
+    //替换语义：清除其它已选中的单元格，仅选中该单元格，并同步锚点/当前格
+    std::vector<size_t> columnIdList;
+    columnIdList.push_back(nColumnId);
+    m_pData->SetCellSelectionRect(nRowIndex, nRowIndex, columnIdList, false);
+    m_pData->SetAnchorCell(cell);
+    m_pData->SetCurrentCell(cell);
+    if (oldCell != cell) {
+        NotifyCurrentCellChanged(cell);
+    }
+    NotifyCellSelectionChanged();
+    RefreshCellSelectionView();
+    return true;
+}
+
+bool ListCtrl::SetCellSelection(const ListCtrlCellId& anchorCell, const ListCtrlCellId& focusCell, bool bAdditive)
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return false;
+    }
+    if ((anchorCell.nRowIndex >= GetDataItemCount()) || !IsValidColumnId(anchorCell.nColumnId)) {
+        return false;
+    }
+    //焦点格无效时仅更新锚点，不改变选中集合
+    if (!focusCell.IsValid()) {
+        m_pData->SetAnchorCell(anchorCell);
+        return true;
+    }
+    if ((focusCell.nRowIndex >= GetDataItemCount()) || !IsValidColumnId(focusCell.nColumnId)) {
+        return false;
+    }
+    ListCtrlCellId oldCell = GetCurrentCell();
+
+    //按当前列序把"锚点列 → 焦点列"展开为连续的列ID列表（列序可变，故以列索引区间为准）
+    size_t nIndexBegin = GetColumnIndex(anchorCell.nColumnId);
+    size_t nIndexEnd = GetColumnIndex(focusCell.nColumnId);
+    if (!Box::IsValidItemIndex(nIndexBegin) || !Box::IsValidItemIndex(nIndexEnd)) {
+        return false;
+    }
+    if (nIndexBegin > nIndexEnd) {
+        const size_t nTemp = nIndexBegin;
+        nIndexBegin = nIndexEnd;
+        nIndexEnd = nTemp;
+    }
+    std::vector<size_t> columnIdList;
+    for (size_t nColumnIndex = nIndexBegin; nColumnIndex <= nIndexEnd; ++nColumnIndex) {
+        const size_t nColumnId = GetColumnId(nColumnIndex);
+        if (IsValidColumnId(nColumnId)) {
+            columnIdList.push_back(nColumnId);
+        }
+    }
+    if (!IsMultiSelect()) {
+        //单选模式：忽略追加语义，仅选中焦点格（至多一个单元格）
+        columnIdList.clear();
+        columnIdList.push_back(focusCell.nColumnId);
+        m_pData->SetCellSelectionRect(focusCell.nRowIndex, focusCell.nRowIndex, columnIdList, false);
+    }
+    else {
+        m_pData->SetCellSelectionRect(anchorCell.nRowIndex, focusCell.nRowIndex, columnIdList, bAdditive);
+    }
+    m_pData->SetAnchorCell(anchorCell);
+    m_pData->SetCurrentCell(focusCell);
+    if (oldCell != focusCell) {
+        NotifyCurrentCellChanged(focusCell);
+    }
+    NotifyCellSelectionChanged();
+    RefreshCellSelectionView();
+    return true;
+}
+
+void ListCtrl::ClearCellSelection()
+{
+    if (m_pData != nullptr) {
+        m_pData->ClearCellSelection();
+    }
+    NotifyCellSelectionChanged();
+    RefreshCellSelectionView();
+}
+
+void ListCtrl::GetCellSelection(ListCtrlCellId& anchorCell, ListCtrlCellId& focusCell) const
+{
+    if (m_pData != nullptr) {
+        m_pData->GetCellSelection(anchorCell, focusCell);
+    }
+    else {
+        anchorCell = ListCtrlCellId();
+        focusCell = ListCtrlCellId();
+    }
+}
+
+void ListCtrl::SetSelectedCells(const std::vector<ListCtrlCellId>& cellList, bool bClearOthers)
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return;
+    }
+    if (bClearOthers || !IsMultiSelect()) {
+        //单选模式下，即使调用方要求"不清除其它"也必须清空：单选语义下至多一个单元格
+        m_pData->ClearCellSelection();
+    }
+    bool bFirst = true;
+    for (const ListCtrlCellId& cell : cellList) {
+        if ((cell.nRowIndex >= GetDataItemCount()) || !IsValidColumnId(cell.nColumnId)) {
+            continue;
+        }
+        if (!m_pData->IsSelectableElement(cell.nRowIndex)) {
+            //置顶行、不可见行不参与单元格选择
+            continue;
+        }
+        m_pData->SetCellSelected(cell.nRowIndex, cell.nColumnId, true);
+        if (bFirst) {
+            m_pData->SetAnchorCell(cell);
+            m_pData->SetCurrentCell(cell);
+            bFirst = false;
+        }
+        if (!IsMultiSelect()) {
+            //单选模式：至多保留一个单元格，取列表中第一个有效单元格后即结束
+            break;
+        }
+    }
+    NotifyCellSelectionChanged();
+    RefreshCellSelectionView();
+}
+
+size_t ListCtrl::GetSelectedCells(std::vector<ListCtrlCellId>& cellList) const
+{
+    cellList.clear();
+    if ((m_selectionMode != ListCtrlSelectionMode::kCell) || (m_pData == nullptr)) {
+        return 0;
+    }
+    const size_t nCount = GetDataItemCount();
+    const size_t nColumnCount = GetColumnCount();
+    for (size_t nRowIndex = 0; nRowIndex < nCount; ++nRowIndex) {
+        if (!m_pData->IsSelectableElement(nRowIndex)) {
+            //置顶行、不可见行不参与单元格选择
+            continue;
+        }
+        for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+            const size_t nColumnId = GetColumnId(nColumnIndex);
+            if (!IsValidColumnId(nColumnId)) {
+                continue;
+            }
+            if (!m_pData->IsCellSelected(nRowIndex, nColumnId)) {
+                continue;
+            }
+            ListCtrlCellId cell;
+            cell.nRowIndex = nRowIndex;
+            cell.nColumnId = nColumnId;
+            cellList.push_back(cell);
+        }
+    }
+    return cellList.size();
+}
+
+bool ListCtrl::IsCellSelected(size_t nRowIndex, size_t nColumnId) const
+{
+    if ((m_selectionMode != ListCtrlSelectionMode::kCell) || (m_pData == nullptr)) {
+        return false;
+    }
+    return m_pData->IsCellSelected(nRowIndex, nColumnId);
+}
+
+bool ListCtrl::IsCellCurrent(size_t nRowIndex, size_t nColumnId) const
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return false;
+    }
+    const ListCtrlCellId cell = GetCurrentCell();
+    return cell.IsValid() && (cell.nRowIndex == nRowIndex) && (cell.nColumnId == nColumnId);
+}
+
+void ListCtrl::GetSelectedCellRanges(std::vector<ListCtrlCellRange>& rangeList) const
+{
+    rangeList.clear();
+    if ((m_selectionMode != ListCtrlSelectionMode::kCell) || (m_pData == nullptr)) {
+        return;
+    }
+    const size_t nRowCount = GetDataItemCount();
+    const size_t nColumnCount = GetColumnCount();
+    if ((nRowCount == 0) || (nColumnCount == 0)) {
+        return;
+    }
+
+    //正在纵向延伸的区域（按列索引区间归并）
+    struct PendingRange
+    {
+        size_t nColumnIndexBegin;
+        size_t nColumnIndexEnd;
+        size_t nRowBegin;
+        size_t nRowEnd;
+    };
+    std::vector<PendingRange> pending;   //上一行仍在延伸的区域
+    std::vector<PendingRange> nextPending;
+    std::vector<std::pair<size_t, size_t>> rowRuns;  //本行的连续选中列区段（列索引区间）
+    std::vector<bool> runUsed;
+
+    for (size_t nRowIndex = 0; nRowIndex < nRowCount; ++nRowIndex) {
+        //1. 求本行的连续选中列区段（置顶行、不可见行不参与单元格选择，按空区段处理使其上方区域在此结算）
+        rowRuns.clear();
+        if (m_pData->IsSelectableElement(nRowIndex)) {
+            bool bInRun = false;
+            size_t nRunBegin = 0;
+            for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+                const size_t nColumnId = GetColumnId(nColumnIndex);
+                const bool bSelected = IsValidColumnId(nColumnId) &&
+                                       m_pData->IsCellSelected(nRowIndex, nColumnId);
+                if (bSelected && !bInRun) {
+                    bInRun = true;
+                    nRunBegin = nColumnIndex;
+                }
+                else if (!bSelected && bInRun) {
+                    bInRun = false;
+                    rowRuns.emplace_back(nRunBegin, nColumnIndex - 1);
+                }
+            }
+            if (bInRun) {
+                rowRuns.emplace_back(nRunBegin, nColumnCount - 1);
+            }
+        }
+
+        //2. 与上一行的区域纵向合并（列索引区间完全一致才能延伸）
+        nextPending.clear();
+        runUsed.assign(rowRuns.size(), false);
+        for (const PendingRange& p : pending) {
+            bool bMatched = false;
+            for (size_t r = 0; r < rowRuns.size(); ++r) {
+                if (!runUsed[r] && (rowRuns[r].first == p.nColumnIndexBegin) &&
+                    (rowRuns[r].second == p.nColumnIndexEnd)) {
+                    runUsed[r] = true;
+                    PendingRange np = p;
+                    np.nRowEnd = nRowIndex;
+                    nextPending.push_back(np);
+                    bMatched = true;
+                    break;
+                }
+            }
+            if (!bMatched) {
+                //该区域不再延伸：结算并输出为对外区域
+                ListCtrlCellRange range;
+                range.nRowBegin = p.nRowBegin;
+                range.nRowEnd = p.nRowEnd;
+                range.nColumnIdBegin = GetColumnId(p.nColumnIndexBegin);
+                range.nColumnIdEnd = GetColumnId(p.nColumnIndexEnd);
+                if (range.IsValid()) {
+                    rangeList.push_back(range);
+                }
+            }
+        }
+        //3. 本行新出现的区段，作为新区域的起点
+        for (size_t r = 0; r < rowRuns.size(); ++r) {
+            if (runUsed[r]) {
+                continue;
+            }
+            PendingRange np;
+            np.nColumnIndexBegin = rowRuns[r].first;
+            np.nColumnIndexEnd = rowRuns[r].second;
+            np.nRowBegin = nRowIndex;
+            np.nRowEnd = nRowIndex;
+            nextPending.push_back(np);
+        }
+        pending.swap(nextPending);
+    }
+
+    //收尾：仍在延伸的区域输出
+    for (const PendingRange& p : pending) {
+        ListCtrlCellRange range;
+        range.nRowBegin = p.nRowBegin;
+        range.nRowEnd = p.nRowEnd;
+        range.nColumnIdBegin = GetColumnId(p.nColumnIndexBegin);
+        range.nColumnIdEnd = GetColumnId(p.nColumnIndexEnd);
+        if (range.IsValid()) {
+            rangeList.push_back(range);
+        }
+    }
+}
+
+void ListCtrl::NotifyCurrentCellChanged(const ListCtrlCellId& cell)
+{
+    SendEvent(kEventCurrentCellChanged, (WPARAM)cell.nRowIndex, (LPARAM)cell.nColumnId);
+}
+
+void ListCtrl::NotifyCellSelectionChanged()
+{
+    //选择区域列表：按列索引连续 + 纵向相邻合并后，可能得到多项不连续区域
+    std::vector<ListCtrlCellRange> rangeList;
+    GetSelectedCellRanges(rangeList);
+    if (rangeList.empty()) {
+        SendEvent(kEventCellSelectionChanged, (WPARAM)0, (LPARAM)0, nullptr);
+    }
+    else {
+        SendEvent(kEventCellSelectionChanged, (WPARAM)rangeList.size(), (LPARAM)0, &rangeList);
+    }
+}
+
+void ListCtrl::RefreshCellSelectionView()
+{
+    if (m_pReportView != nullptr) {
+        m_pReportView->Invalidate();
+    }
+}
+
+void ListCtrl::UpdateHoverCell(size_t nRowIndex, size_t nColumnId)
+{
+    if ((nRowIndex == Box::InvalidIndex) || !IsValidColumnId(nColumnId) || (m_pData == nullptr)) {
+        //未命中单元格：清除悬停状态
+        ClearHoverCell();
+        return;
+    }
+    //把"显示索引"换算为"行身份"存储，与显示顺序解耦（排序/增删行后悬停高亮仍跟随原数据行）
+    HoverCellId hoverCell;
+    hoverCell.nRowId = m_pData->GetRowIdByDisplayIndex(nRowIndex);
+    hoverCell.nColumnId = nColumnId;
+    if (!hoverCell.IsValid()) {
+        ClearHoverCell();
+        return;
+    }
+    if (m_hoverCell != hoverCell) {
+        m_hoverCell = hoverCell;
+        RefreshCellSelectionView();
+    }
+}
+
+void ListCtrl::ClearHoverCell()
+{
+    if (m_hoverCell.IsValid()) {
+        m_hoverCell = HoverCellId();
+        RefreshCellSelectionView();
+    }
+}
+
+bool ListCtrl::IsCellHovered(size_t nRowIndex, size_t nColumnId) const
+{
+    if ((m_selectionMode != ListCtrlSelectionMode::kCell) || !m_hoverCell.IsValid() || (m_pData == nullptr)) {
+        return false;
+    }
+    //按行身份比对：与显示顺序解耦
+    return (m_pData->GetRowIdByDisplayIndex(nRowIndex) == m_hoverCell.nRowId) && (m_hoverCell.nColumnId == nColumnId);
+}
+
+bool ListCtrl::OnCellMouseEvent(const EventArgs& msg, size_t nRowIndex, size_t nColumnId)
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return false;
+    }
+    const bool bHitCell = (nRowIndex != Box::InvalidIndex) && IsValidColumnId(nColumnId);
+    switch (msg.eventType) {
+    case kEventMouseButtonDown:
+    case kEventMouseRButtonDown:
+        //左键与右键按下：语义相同（Shift 扩展 / Ctrl 切换 / 普通单击），并进入拖动框选状态
+        BeginCellDrag(msg, nRowIndex, nColumnId);
+        break;
+    case kEventMouseHover:
+        //更新鼠标悬停的单元格（用于绘制单元格悬停高亮），同时抑制行级悬停背景
+        UpdateHoverCell(nRowIndex, nColumnId);
+        break;
+    case kEventMouseMove:
+        //更新鼠标悬停的单元格
+        UpdateHoverCell(nRowIndex, nColumnId);
+        if (m_bCellDragSelecting && bHitCell) {
+            //拖动过程中的"选择"由框选矩形驱动（ListCtrlReportView::OnFrameSelectionForCells）；
+            //这里仅让"当前格焦点框"跟随鼠标命中的单元格（不清除已选择的单元格）
+            ListCtrlCellId cell;
+            cell.nRowIndex = nRowIndex;
+            cell.nColumnId = nColumnId;
+            const ListCtrlCellId oldCell = GetCurrentCell();
+            if (oldCell != cell) {
+                if (m_pData != nullptr) {
+                    m_pData->SetCurrentCell(cell);
+                }
+                NotifyCurrentCellChanged(cell);
+                RefreshCellSelectionView();
+            }
+        }
+        break;
+    case kEventMouseButtonUp:
+    case kEventMouseRButtonUp:
+        m_bCellDragSelecting = false;
+        m_bCellDragAdditive = false;
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+void ListCtrl::BeginCellDrag(const EventArgs& msg, size_t nRowIndex, size_t nColumnId)
+{
+    if (m_pData == nullptr) {
+        return;
+    }
+    m_bCellDragSelecting = false;
+    m_bCellDragAdditive = false;
+    if ((nRowIndex == Box::InvalidIndex) || !IsValidColumnId(nColumnId)) {
+        //未命中单元格（空白区域）：清空单元格选择
+        ClearCellSelection();
+        return;
+    }
+    ListCtrlCellId cell;
+    cell.nRowIndex = nRowIndex;
+    cell.nColumnId = nColumnId;
+
+    const bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+    const bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+
+    if ((msg.eventType == kEventMouseRButtonDown) && m_pData->IsCellSelected(nRowIndex, nColumnId)) {
+        //右键点击"已选中"的单元格：保持现有选择状态不变（供弹出右键菜单，对已选中的单元格执行操作），
+        //仅把锚点/当前格同步到该单元格（不改变选择集合，也不触发选择变化事件）。
+        //语义与行选择模式保持一致：参见 ListBox::ListCtrlSelectItem 对右键命中选择项的处理
+        m_pData->SetAnchorCell(cell);
+        const ListCtrlCellId oldCell = GetCurrentCell();
+        m_pData->SetCurrentCell(cell);
+        if (oldCell != cell) {
+            NotifyCurrentCellChanged(cell);
+        }
+        RefreshCellSelectionView();
+        //注意：此处直接返回，不进入拖动框选状态；否则继续拖动时会被框选逻辑按"替换"语义清除已有选择
+        return;
+    }
+    if (!IsMultiSelect()) {
+        //单选模式：忽略 Shift/Ctrl 的多选语义，一律按"普通单击"处理（至多选中一个单元格）；
+        //同时不进入拖动框选状态，避免拖动时"当前格焦点框"跟随鼠标而选中集合不变造成视觉错位
+        SetCurrentCell(nRowIndex, nColumnId);
+        m_bCellDragAdditive = false;
+        return;
+    }
+    if (bShiftDown) {
+        //Shift（含Ctrl+Shift）：以锚点为起点扩展到点击的单元格；Ctrl+Shift 为追加，否则替换
+        ListCtrlCellId anchorCell;
+        ListCtrlCellId focusCell;
+        GetCellSelection(anchorCell, focusCell);
+        if (!anchorCell.IsValid()) {
+            anchorCell = cell;
+        }
+        SetCellSelection(anchorCell, cell, bCtrlDown);
+        m_bCellDragAdditive = bCtrlDown;
+    }
+    else if (bCtrlDown) {
+        //Ctrl+单击：切换该单元格的选中状态（再次点击取消），不清除其它已选择的单元格
+        const bool bSelected = m_pData->IsCellSelected(nRowIndex, nColumnId);
+        m_pData->SetCellSelected(nRowIndex, nColumnId, !bSelected);
+        m_pData->SetAnchorCell(cell);
+        const ListCtrlCellId oldCell = GetCurrentCell();
+        m_pData->SetCurrentCell(cell);
+        if (oldCell != cell) {
+            NotifyCurrentCellChanged(cell);
+        }
+        NotifyCellSelectionChanged();
+        RefreshCellSelectionView();
+        //Ctrl+拖动：在其后进入追加模式
+        m_bCellDragAdditive = true;
+    }
+    else {
+        //普通单击：选中该单元格（清除其它），并同步锚点/当前格
+        SetCurrentCell(nRowIndex, nColumnId);
+        m_bCellDragAdditive = false;
+    }
+    //鼠标按下后，进入拖动框选状态
+    m_bCellDragSelecting = true;
+}
+
+bool ListCtrl::OnCellKeyDown(const EventArgs& msg)
+{
+    if ((m_selectionMode != ListCtrlSelectionMode::kCell) || (msg.eventType != kEventKeyDown)) {
+        return false;
+    }
+    const bool bCtrlDown = Keyboard::IsKeyDown(kVK_CONTROL);
+    const bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
+
+    //Ctrl + A：全选单元格（仅多选模式有效；单选模式至多一个单元格，忽略该按键）
+    if (bCtrlDown && ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')))) {
+        if (IsMultiSelect()) {
+            SetSelectAll();
+        }
+        return true;
+    }
+    //Ctrl + Space：切换当前单元格的选中状态
+    if (bCtrlDown && (msg.vkCode == kVK_SPACE)) {
+        const ListCtrlCellId cell = GetCurrentCell();
+        if (cell.IsValid()) {
+            const bool bSelected = m_pData->IsCellSelected(cell.nRowIndex, cell.nColumnId);
+            m_pData->SetCellSelected(cell.nRowIndex, cell.nColumnId, !bSelected);
+            NotifyCellSelectionChanged();
+            RefreshCellSelectionView();
+        }
+        return true;
+    }
+
+    //方向键：移动当前单元格
+    const bool bArrowKey = (msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN) ||
+                            (msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
+                            (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                            (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END);
+    if (!bArrowKey) {
+        return false;
+    }
+    const size_t nRowCount = GetDataItemCount();
+    const size_t nColumnCount = GetColumnCount();
+    if ((nRowCount == 0) || (nColumnCount == 0)) {
+        return true;
+    }
+
+    ListCtrlCellId cell = GetCurrentCell();
+    if (!cell.IsValid()) {
+        //无当前格：定位到首个单元格
+        SetCurrentCell(0, GetColumnId(0));
+        return true;
+    }
+
+    const size_t nOldColumnIndex = GetColumnIndex(cell.nColumnId);
+    size_t nNewRowIndex = cell.nRowIndex;
+    size_t nNewColumnIndex = Box::IsValidItemIndex(nOldColumnIndex) ? nOldColumnIndex : 0;
+
+    if (msg.vkCode == kVK_UP) {
+        if (nNewRowIndex > 0) {
+            --nNewRowIndex;
+        }
+    }
+    else if (msg.vkCode == kVK_DOWN) {
+        if (nNewRowIndex + 1 < nRowCount) {
+            ++nNewRowIndex;
+        }
+    }
+    else if (msg.vkCode == kVK_LEFT) {
+        if (nNewColumnIndex > 0) {
+            --nNewColumnIndex;
+        }
+    }
+    else if (msg.vkCode == kVK_RIGHT) {
+        if (nNewColumnIndex + 1 < nColumnCount) {
+            ++nNewColumnIndex;
+        }
+    }
+    else if (msg.vkCode == kVK_PRIOR) {
+        nNewRowIndex = (nNewRowIndex > 5) ? (nNewRowIndex - 5) : 0;
+    }
+    else if (msg.vkCode == kVK_NEXT) {
+        nNewRowIndex = nNewRowIndex + 5;
+        if (nNewRowIndex >= nRowCount) {
+            nNewRowIndex = nRowCount - 1;
+        }
+    }
+    else if (msg.vkCode == kVK_HOME) {
+        //Home：当前行的首列；Ctrl+Home：表格首个单元格
+        if (bCtrlDown) {
+            nNewRowIndex = 0;
+        }
+        nNewColumnIndex = 0;
+    }
+    else if (msg.vkCode == kVK_END) {
+        //End：当前行的末列；Ctrl+End：表格最后一个单元格
+        if (bCtrlDown) {
+            nNewRowIndex = nRowCount - 1;
+        }
+        nNewColumnIndex = nColumnCount - 1;
+    }
+
+    const size_t nNewColumnId = GetColumnId(nNewColumnIndex);
+    if (!IsValidColumnId(nNewColumnId)) {
+        return true;
+    }
+
+    ListCtrlCellId newFocusCell;
+    newFocusCell.nRowIndex = nNewRowIndex;
+    newFocusCell.nColumnId = nNewColumnId;
+
+    if (bCtrlDown && !bShiftDown) {
+        //Ctrl+方向：只移动当前格焦点，不改变选择集合
+        const ListCtrlCellId oldCell = GetCurrentCell();
+        m_pData->SetCurrentCell(newFocusCell);
+        if (oldCell != newFocusCell) {
+            NotifyCurrentCellChanged(newFocusCell);
+        }
+        RefreshCellSelectionView();
+    }
+    else if (bShiftDown && IsMultiSelect()) {
+        //Shift(+Ctrl)：保持锚点扩展区域；Ctrl+Shift 为追加，Shift 为替换（仅多选模式；单选模式退化为普通移动）
+        ListCtrlCellId anchorCell;
+        ListCtrlCellId focusCell;
+        GetCellSelection(anchorCell, focusCell);
+        if (!anchorCell.IsValid()) {
+            anchorCell = cell;
+        }
+        SetCellSelection(anchorCell, newFocusCell, bCtrlDown);
+    }
+    else {
+        //普通方向键：移动当前格（单选替换该格）
+        SetCurrentCell(nNewRowIndex, nNewColumnId);
+    }
+    //确保当前格所在行可见
+    if (m_pReportView != nullptr) {
+        m_pReportView->EnsureDataItemVisible(nNewRowIndex, false);
+    }
+    return true;
 }
 
 void ListCtrl::GetDisplayDataItems(std::vector<size_t>& itemIndexList) const

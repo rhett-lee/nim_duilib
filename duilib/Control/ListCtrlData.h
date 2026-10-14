@@ -17,6 +17,7 @@ struct ListCtrlSubItemData;
 class DUILIB_API ListCtrlData : public ui::VirtualListBoxElement
 {
     friend class ListCtrlReportView; //列表数据显示UI控件(Report视图)：需要访问单元格的数据存储，以支持单格刷新
+    friend class ListCtrl;           //ListCtrl控件：需要按显示索引换算行身份(RowId)，用于单元格悬停状态与显示顺序解耦
 public:
     //用于存储的数据结构
     typedef ListCtrlSubItemData2 Storage;
@@ -673,6 +674,22 @@ private:
     */
     void FreeRowId(RowId rowId);
 
+    /** 单元格选择：查找某列的选中位图（不存在时返回nullptr）
+    */
+    const std::vector<uint8_t>* FindCellBitmap(size_t nColumnId) const;
+
+    /** 单元格选择：查找（必要时创建）某列的选中位图，并保证容量可容纳 rowId
+    */
+    std::vector<uint8_t>& GetCellBitmapForWrite(size_t nColumnId, RowId rowId);
+
+    /** 单元格选择：按行身份设置单个单元格的选中状态
+    */
+    void SetCellSelectedByRowId(RowId rowId, size_t nColumnId, bool bSelected);
+
+    /** 单元格选择：按行身份判断单个单元格是否被选中
+    */
+    bool IsCellSelectedByRowId(RowId rowId, size_t nColumnId) const;
+
     /** 检查内部数据的一致性（仅在Debug编译下进行断言检查）
     */
     void AssertDataConsistency() const;
@@ -687,6 +704,60 @@ public:
     /** 是否为标准模式（行高都为默认行高，无隐藏行，无置顶行）
     */
     bool IsNormalMode() const;
+
+public:
+    /** 获取当前单元格（单元格选择模式下的当前格，未设置时返回无效值）
+        返回的行索引为当前的显示索引号（内部按行身份存储，排序/增删后自动跟随数据行）
+    */
+    ListCtrlCellId GetCurrentCell() const;
+
+    /** 获取锚点单元格（区域选择的起点，未设置时返回无效值）
+    */
+    ListCtrlCellId GetAnchorCell() const;
+
+    /** 设置当前单元格（仅更新当前格，不改变选中集合）
+    * @param [in] cell 单元格标识（行显示索引 + 列ID）
+    * @return 返回是否设置成功（行索引或列ID无效时返回false，不做任何修改）
+    */
+    bool SetCurrentCell(const ListCtrlCellId& cell);
+
+    /** 设置锚点单元格（仅更新锚点，不改变选中集合）
+    * @param [in] cell 单元格标识（行显示索引 + 列ID）
+    * @return 返回是否设置成功（行索引或列ID无效时返回false，不做任何修改）
+    */
+    bool SetAnchorCell(const ListCtrlCellId& cell);
+
+    /** 获取单元格的选择区域（锚点 + 当前格，未做规范化；用于查询与事件上报）
+    */
+    void GetCellSelection(ListCtrlCellId& anchorCell, ListCtrlCellId& focusCell) const;
+
+    /** 判断单个单元格是否被选中（O(1)，按行身份判定，与显示顺序解耦）
+    * @param [in] nRowIndex 行的显示索引号
+    * @param [in] nColumnId 列ID
+    */
+    bool IsCellSelected(size_t nRowIndex, size_t nColumnId) const;
+
+    /** 设置单个单元格的选中状态（不清除其它已选中的单元格）
+    * @return 返回选中状态是否发生变化（行无效/行不可选/状态未变化时返回 false）
+    */
+    bool SetCellSelected(size_t nRowIndex, size_t nColumnId, bool bSelected);
+
+    /** 对"显示行区间 × 指定列集合"做区域选择
+    * @param [in] nRowBegin/nRowEnd 显示索引区间（已规范化，begin<=end）；无效值表示不改变行
+    * @param [in] columnIdList 参与选择的列ID列表（顺序无关）
+    * @param [in] bAdditive true=追加到已有选择；false=先清除全部单元格选择再设置
+    */
+    void SetCellSelectionRect(size_t nRowBegin, size_t nRowEnd,
+                              const std::vector<size_t>& columnIdList, bool bAdditive);
+
+    /** 全选所有单元格
+    * @param [in] columnIdList 参与选择的列ID列表
+    */
+    void SelectAllCells(const std::vector<size_t>& columnIdList);
+
+    /** 清除所有单元格选择（选中集合、锚点、当前格一并清空）
+    */
+    void ClearCellSelection();
 
 private:
     /** 排序数据
@@ -786,6 +857,30 @@ private:
     /** 当前默认的行高
     */
     int32_t m_nDefaultItemHeight;
+
+    /** 单元格身份：行身份(RowId) + 列ID
+        与显示顺序解耦，行被排序/增删后仍指向同一数据行
+    */
+    struct CellIdentity
+    {
+        RowId nRowId = kInvalidRowId;
+        size_t nColumnId = Box::InvalidIndex;
+        bool IsValid() const { return (nRowId != kInvalidRowId) && (nColumnId != Box::InvalidIndex); }
+    };
+
+    /** 单元格选择模式下的锚点单元格（拖拽/区域选择的起点）
+    */
+    CellIdentity m_anchorCell;
+
+    /** 单元格选择模式下的当前单元格（区域焦点）
+    */
+    CellIdentity m_currentCell;
+
+    /** 单元格选中集合：每列一张位图（key=列ID，value=按行身份RowId索引的位图，1表示选中）
+        独立于分页懒分配的单元格存储：全选/选中未实化行不会强制分配单元格实体，
+        内存为"列数 × 行数 / 8 字节"；按行身份索引，排序/增删后选择跟随原数据行
+    */
+    std::unordered_map<size_t, std::vector<uint8_t>> m_cellSelected;
 };
 
 }//namespace ui

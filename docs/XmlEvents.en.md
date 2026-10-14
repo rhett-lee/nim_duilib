@@ -209,6 +209,8 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventColumnOrderChanged|"ColumnOrderChanged"|"column_order_changed"|
 |kEventColumnVisibleChanged|"ColumnVisibleChanged"|"column_visible_changed"|
 |kEventColumnSorted|"ColumnSorted"|"column_sorted"|
+|kEventCurrentCellChanged|"CurrentCellChanged"|"current_cell_changed"|
+|kEventCellSelectionChanged|"CellSelectionChanged"|"cell_selection_changed"|
 |kEventPathChanged|"PathChanged"|"path_changed"|
 |kEventPathClick|"PathClick"|"path_click"|
 |kEventDropEnter|"DropEnter"|"drop_enter"|
