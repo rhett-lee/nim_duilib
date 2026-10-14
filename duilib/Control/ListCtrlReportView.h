@@ -304,12 +304,61 @@ private:
                          size_t nColumnId,
                          size_t nElementIndex);
 
-    /** 冻结列的坐标变换结果：绘制 / 命中测试 / 网格线 / 滚动范围统一由此推导
+    /** 列布局表：描述各列的 X 区间（内容坐标，以视口左边为原点）
+    *  由"首个可见数据行的子项控件几何"推导；无可见数据行时回退到表头几何。
+    *  这是"某一列 X 区间"的唯一来源：冻结区宽度、以及后续的单元格选择 / 合并 /
+    *  多级表头等能力均由此推导，禁止在绘制、命中、网格线各处自行累加列宽。
+    *  说明：本表按"可见顺序"记录列，坐标为内容坐标（不扣滚动偏移）。
+    */
+    struct ListCtrlColumnLayout
+    {
+        /** 单个列的位置信息 */
+        struct Column
+        {
+            /** 列的ID */
+            size_t nColumnId = Box::InvalidIndex;
+
+            /** 列的序号（0起，按可见顺序） */
+            size_t nColumnIndex = 0;
+
+            /** 列左边界的X坐标（内容坐标，相对视口左边） */
+            int32_t nXBegin = 0;
+
+            /** 列右边界的X坐标（内容坐标，相对视口左边） */
+            int32_t nXEnd = 0;
+
+            /** 列的宽度 */
+            int32_t GetWidth() const { return nXEnd - nXBegin; }
+        };
+
+        /** 各列的信息（按列序排列） */
+        std::vector<Column> m_columns;
+
+        /** 获取列数 */
+        size_t GetColumnCount() const { return m_columns.size(); }
+
+        /** 获取前N列的总宽度（即这一组列的右边界X坐标，相对视口左边）
+        * @param [in] nColumnCount 列数；如果超出实际列数，则按实际列数计算（与历史行为一致）
+        * @return 返回宽度，如果无法计算则返回0
+        */
+        int32_t GetColumnsWidth(size_t nColumnCount) const
+        {
+            if (m_columns.empty() || (nColumnCount == 0)) {
+                return 0;
+            }
+            const size_t nIndex = (nColumnCount < m_columns.size()) ? (nColumnCount - 1) : (m_columns.size() - 1);
+            const int32_t nWidth = m_columns[nIndex].nXEnd;
+            return (nWidth > 0) ? nWidth : 0;
+        }
+    };
+
+    /** 单元格几何层：绘制 / 命中测试 / 网格线 / 冻结区 / 列X区间统一由此推导
     *  内容坐标：子控件 GetRect() 所在坐标系，随滚动偏移移动
     *  屏幕坐标：最终绘制 / 鼠标位置所在坐标系（不含 RenderOffset）
     *  冻结列不随横向滚动移动，所以其内容坐标与屏幕坐标同值
+    *  （本结构由 A1 的 FrozenTransform 推广而来，冻结列是它的一个特例）
     */
-    struct FrozenTransform
+    struct ListCtrlCellGeometry
     {
         /** 是否存在冻结列 */
         bool bHasFrozen = false;
@@ -325,6 +374,9 @@ private:
 
         /** 当前滚动偏移 */
         UiSize scrollPos;
+
+        /** 列布局表（各列X区间的唯一来源） */
+        ListCtrlColumnLayout columnLayout;
 
         /** 冻结区的右边界（屏幕X坐标） */
         int32_t FrozenRight() const { return rcViewport.left + nFrozenWidth; }
@@ -372,15 +424,15 @@ private:
         }
     };
 
-    /** 构建冻结列的坐标变换（一次推导，绘制 / 命中测试 / 网格线复用）
+    /** 构建单元格几何层（一次推导，绘制 / 命中测试 / 网格线复用）
     */
-    FrozenTransform BuildFrozenTransform() const;
+    ListCtrlCellGeometry BuildCellGeometry() const;
 
-    /** 计算冻结列的宽度（前N个可见列的总宽度，内容坐标系）
-    * @param [in] nFrozenCount 冻结的列数
-    * @return 返回冻结列的宽度，如果无法计算则返回0
+    /** 构建列布局表：由首个可见数据行的子项控件几何推导各列X区间；无可见数据行时回退到表头几何
+    * @param [in] nViewLeft 视口左边的X坐标（内容坐标的原点）
+    * @return 返回构建出的列布局表
     */
-    int32_t GetFrozenColumnsWidth(size_t nFrozenCount) const;
+    ListCtrlColumnLayout BuildColumnLayout(int32_t nViewLeft) const;
 
     /** 将header和置顶项放在最后
     * @param [in,out] items 需要移动的控件列表

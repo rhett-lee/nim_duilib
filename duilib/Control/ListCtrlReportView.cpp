@@ -624,8 +624,8 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
     //绘制列表项子控件
     //冻结列的处理：冻结列固定显示在列表左侧，不随横向滚动移动
-    //绘制 / 命中测试 / 网格线统一复用同一套坐标变换（BuildFrozenTransform）
-    const FrozenTransform frozenTransform = BuildFrozenTransform();
+    //绘制 / 命中测试 / 网格线统一复用同一套单元格几何层（BuildCellGeometry）
+    const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
 
     //绘制单个控件（bFrozenPass：是否绘制冻结列的部分）
     auto paintControl = [&](Control* pControl, bool bFrozenPass) {
@@ -636,8 +636,8 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         UiRect rcClip;
         UiRect rcNewPaint;
         UiPoint ptOffset;
-        frozenTransform.GetPaintPass(bFrozenPass, rcClip, rcNewPaint, ptOffset);
-        if (frozenTransform.bHasFrozen && (rcClip.left >= rcClip.right)) {
+        cellGeometry.GetPaintPass(bFrozenPass, rcClip, rcNewPaint, ptOffset);
+        if (cellGeometry.bHasFrozen && (rcClip.left >= rcClip.right)) {
             return;
         }
         AutoClip alphaClip(pRender, rcClip, IsClip());
@@ -667,7 +667,7 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         if (pControl == nullptr) {
             continue;
         }
-        if (frozenTransform.bHasFrozen) {
+        if (cellGeometry.bHasFrozen) {
             //先绘制可滚动区域（非冻结列）
             paintControl(pControl, false);
             //再绘制冻结列（覆盖在最上层）
@@ -697,77 +697,70 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     PaintFrameSelection(pRender);
 }
 
-int32_t ListCtrlReportView::GetFrozenColumnsWidth(size_t nFrozenCount) const
+ListCtrlReportView::ListCtrlColumnLayout ListCtrlReportView::BuildColumnLayout(int32_t nViewLeft) const
 {
-    if (nFrozenCount == 0) {
-        return 0;
-    }
-    //冻结列的宽度 = 前N个可见列的右侧边界 - 视口左侧边界
-    //（包含行首的CheckBox/内边距等占位宽度，确保冻结区边界与列边界对齐）
-    const int32_t nViewLeft = GetPosWithoutPadding().left;
+    ListCtrlColumnLayout columnLayout;
     const size_t nItemCount = GetItemCount();
-    //从第一个可见的数据行中，获取前N个可见列的右侧边界
+    //优先从第一个可见的数据行推导各列的X区间（几何与列边界对齐，含行首CheckBox/内边距等占位宽度）
     for (size_t index = 1; index < nItemCount; ++index) {
         ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(GetItemAt(index));
         if ((pItem == nullptr) || !pItem->IsVisible() || (pItem->GetWidth() <= 0)) {
             continue;
         }
-        size_t nCount = 0;
-        int32_t nRight = nViewLeft;
         const size_t nSubItemCount = pItem->GetItemCount();
         for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
             ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItem));
             if ((pSubItem == nullptr) || !pSubItem->IsVisible()) {
                 continue;
             }
-            nRight = pSubItem->GetRect().right;
-            ++nCount;
-            if (nCount >= nFrozenCount) {
-                break;
-            }
+            ListCtrlColumnLayout::Column column;
+            column.nColumnId = pSubItem->GetDataColumnId();
+            column.nColumnIndex = columnLayout.m_columns.size();
+            column.nXBegin = pSubItem->GetRect().left - nViewLeft;
+            column.nXEnd = pSubItem->GetRect().right - nViewLeft;
+            columnLayout.m_columns.push_back(column);
         }
-        if (nRight > nViewLeft) {
-            return nRight - nViewLeft;
-        }
+        //只处理第一个可见的数据行
         break;
     }
+    if (!columnLayout.m_columns.empty()) {
+        return columnLayout;
+    }
 
-    //没有可见的数据行时，从表头获取各列的宽度
+    //没有可见的数据行时，从表头推导各列的X区间
     ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(GetItemAt(0));
     if (pHeaderCtrl != nullptr) {
-        size_t nCount = 0;
-        int32_t nRight = nViewLeft;
         const size_t nHeaderItemCount = pHeaderCtrl->GetItemCount();
         for (size_t i = 0; i < nHeaderItemCount; ++i) {
             ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pHeaderCtrl->GetItemAt(i));
             if (pHeaderItem == nullptr) {
                 continue;
             }
-            nRight = pHeaderItem->GetRect().right;
-            ++nCount;
-            if (nCount >= nFrozenCount) {
-                break;
-            }
-        }
-        if (nRight > nViewLeft) {
-            return nRight - nViewLeft;
+            ListCtrlColumnLayout::Column column;
+            column.nColumnId = pHeaderItem->GetColumnId();
+            column.nColumnIndex = columnLayout.m_columns.size();
+            column.nXBegin = pHeaderItem->GetRect().left - nViewLeft;
+            column.nXEnd = pHeaderItem->GetRect().right - nViewLeft;
+            columnLayout.m_columns.push_back(column);
         }
     }
-    return 0;
+    return columnLayout;
 }
 
-ListCtrlReportView::FrozenTransform ListCtrlReportView::BuildFrozenTransform() const
+ListCtrlReportView::ListCtrlCellGeometry ListCtrlReportView::BuildCellGeometry() const
 {
-    FrozenTransform transform;
-    transform.rcViewport = GetPosWithoutPadding();
-    transform.scrollPos = GetScrollOffset();
+    ListCtrlCellGeometry cellGeometry;
+    cellGeometry.rcViewport = GetPosWithoutPadding();
+    cellGeometry.scrollPos = GetScrollOffset();
+    cellGeometry.columnLayout = BuildColumnLayout(cellGeometry.rcViewport.left);
     if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
-        transform.nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
-        transform.nFrozenWidth = GetFrozenColumnsWidth(transform.nFrozenCount);
+        cellGeometry.nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
+        //冻结列宽度 = 前N列的总宽度（含行首的CheckBox/内边距等占位宽度，确保冻结区边界与列边界对齐）
+        cellGeometry.nFrozenWidth = cellGeometry.columnLayout.GetColumnsWidth(cellGeometry.nFrozenCount);
         //冻结区宽度为0时视为没有冻结列（保持与历史行为一致）
-        transform.bHasFrozen = transform.nFrozenWidth > 0;
+        cellGeometry.bHasFrozen = cellGeometry.nFrozenWidth > 0;
     }
-    return transform;
+    return cellGeometry;
 }
 
 void ListCtrlReportView::PaintGridLines(IRender* pRender)
@@ -845,17 +838,17 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
 
         //冻结列的纵向网格线处理：冻结列不随横向滚动移动
         //与绘制复用同一套坐标变换（viewRect 与坐标变换的视口矩形同口径）
-        const FrozenTransform frozenTransform = BuildFrozenTransform();
-        const int32_t nFrozenRight = frozenTransform.FrozenRight();
+        const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
+        const int32_t nFrozenRight = cellGeometry.FrozenRight();
 
         for (size_t i = 0; i < xPosList.size(); ++i) {
             int32_t xPos = xPosList[i];
             int32_t nClipState = -1;
-            if (frozenTransform.bHasFrozen) {
+            if (cellGeometry.bHasFrozen) {
                 UiRect rcClip = viewRect;
-                if (i < frozenTransform.nFrozenCount) {
+                if (i < cellGeometry.nFrozenCount) {
                     //冻结列：恢复到不随横向滚动移动的屏幕位置
-                    xPos = frozenTransform.GridLineScreenX(xPos, true);
+                    xPos = cellGeometry.GridLineScreenX(xPos, true);
                     rcClip.right = nFrozenRight;
                 }
                 else {
@@ -967,8 +960,8 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     if ((boxScrollPos.x != 0) && (m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
         //存在冻结列：鼠标落在冻结列区域内时，冻结列不随横向滚动移动，所以横向偏移量为0
         //由统一坐标变换推导，保证命中区域的冻结区边界与绘制区域口径一致
-        const FrozenTransform frozenTransform = BuildFrozenTransform();
-        boxScrollPos.x = frozenTransform.HitScrollX(boxPt.x);
+        const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
+        boxScrollPos.x = cellGeometry.HitScrollX(boxPt.x);
     }
     return FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }
