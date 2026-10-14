@@ -261,6 +261,18 @@ public:
     */
     bool DeleteAllDataItems();
 
+    /** 批量删除指定行的数据项(行数-K)
+    * @param [in] itemIndexs 需要删除的数据项索引号列表，有效范围：[0, GetDataItemCount())；
+    *                        重复索引与越界索引会被忽略
+    * @return 返回实际删除的行数
+    */
+    size_t DeleteDataItems(const std::vector<size_t>& itemIndexs);
+
+    /** 压缩数据存储：整理行身份与存储页布局，回收已删除行占用的内存
+        说明：显式的整表维护操作，仅在无填充/绘制进行时调用；调用后内部已发出的单元格原始指针失效
+    */
+    void CompactStorage();
+
     /** 设置数据项的默认高度(行高)
     * @param [in] nItemHeight 高度值
     * @param [in] bNeedDpiScale 如果为true表示需要对宽度进行DPI自适应

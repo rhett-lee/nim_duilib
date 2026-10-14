@@ -450,6 +450,8 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 | 列显示/隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级列显隐接口，内部自动同步数据列 |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 列宽/列序/列显隐/排序变化时回调，便于应用持久化列布局；参数见 `kEventColumn*`（wParam 为列ID，lParam 为新状态或关联列ID） |
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序比较方式（点击该列表头自动采用）；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），替代按单元格 `nProgress` 推断 |
+| 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序，越界/重复项被忽略）；内部按行身份去重 + 对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移，返回实际删除行数 |
+| 存储压缩 | `CompactStorage()` | 显式整表维护操作：行身份重编号 + 存储页全量压缩，回收多次增删后遗留的墓碑槽位与空页内存；仅在无填充/绘制进行时调用（调用后内部已发出的单元格原始指针失效）。单行/批量删除时，整页全部变为墓碑的存储页会被自动回收 |
 
 - 进度条样式：`ListCtrlSubItem` 的 `progress_color`(前景，默认 `bg_progress`) 与 `progress_bkcolor`(背景轨道，默认 `bg_progress_track`)，默认值配置在 `global.xml` 的 `list_ctrl_sub_item` Class。
 - 也可在填充数据时通过 `ui::ListCtrlSubItemData` 的 `nProgress`(-1 关闭)/`bRichText` 一次性设置。

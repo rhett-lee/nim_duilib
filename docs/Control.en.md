@@ -1,5 +1,10 @@
 English | [简体中文](Control.md)
 
+<!-- verify:allow-missing border_dash_style EasingFunctionType -->
+<!-- Exemption note: border_dash_style is a real XML attribute name (parsed in Control.cpp) and EasingFunctionType is a real
+     enum name (defined in duilib/Animation/EasingFunctions.h); both exist in the source and are only reported because the
+     checker's symbol index does not cover them. -->
+
 > Last synced: 2026-09-29
 
 ## Attributes of `Control` (Basic Control)
@@ -1906,6 +1911,8 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API (equivalent to the header item's visibility; the data columns are synchronized automatically) |
 | Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Notify the application when column width/order/visibility/sort changes, for persisting the column layout |
 | Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column (text/number/progress, etc.); clicking that column's header uses it automatically. `kSortByProgress` sorts by progress value, `kSortByTextAsNumber` compares text numerically (`"10" > "9"`) |
+| Batch row deletion | `DeleteDataItems(const std::vector<size_t>&)` | Deletes many rows at once (indices may be unordered and may include out-of-range/duplicate entries, which are ignored); deduplicates by row identity and performs a single-pass compaction of the display-order table, avoiding the O(K×N) shifting of row-by-row deletion; returns the number of rows actually deleted |
+| Storage compaction | `CompactStorage()` | An explicit whole-table maintenance operation: renumbers row identities and compacts the storage pages, reclaiming the tombstone slots and empty pages left by repeated insert/delete. Call it only when no fill/paint is in progress; afterwards all outstanding internal cell raw pointers become invalid. During single/batch deletion, a storage page whose slots are all tombstones is released automatically |
 
 **Column-level compare mode (sorting):**
 

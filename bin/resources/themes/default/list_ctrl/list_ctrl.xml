@@ -179,6 +179,8 @@
                         <Button class="btn_global" name="stress_restore_btn" text_id="STRID_LISTCTRL_STRESS_RESTORE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                         <Button class="btn_global" name="stress_load_sparse_btn" text_id="STRID_LISTCTRL_STRESS_LOAD_SPARSE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                         <Button class="btn_global" name="stress_memory_btn" text_id="STRID_LISTCTRL_STRESS_MEMORY" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_delete_batch_btn" text_id="STRID_LISTCTRL_STRESS_DELETE_BATCH" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="stress_compact_btn" text_id="STRID_LISTCTRL_STRESS_COMPACT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                     </HBox>
                 </GroupVBox>
             </HBox>

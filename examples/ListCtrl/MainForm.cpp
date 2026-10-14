@@ -679,6 +679,20 @@ void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
             return true;
             });
     }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_delete_batch_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestDeleteBatch(pListCtrl);
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_compact_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            StressTestCompact(pListCtrl);
+            return true;
+            });
+    }
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("stress_sort_btn")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
@@ -911,6 +925,83 @@ void MainForm::StressTestDelete(ui::ListCtrl* pListCtrl)
     DString msg = ui::StringUtil::Printf(
         _T("Delete rows at middle\nCount: %zu\nTotal: %.1f ms\nAverage: %.3f ms/row"),
         nDeleteCount, dTotalMs, dTotalMs / (double)nDeleteCount);
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestDeleteBatch(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+    const size_t nDeleteCount = 500;    //批量删除500行
+    const size_t nTotal = pListCtrl->GetDataItemCount();
+    if (nTotal == 0) {
+        return;
+    }
+
+    //构造500个"乱序"的待删除显示索引：均匀分布于整个列表，覆盖多个存储页，验证单趟压缩与页回收
+    std::vector<size_t> deleteIndexs;
+    deleteIndexs.reserve(nDeleteCount);
+    const size_t nStep = (nTotal > nDeleteCount) ? (nTotal / nDeleteCount) : 1;
+    for (size_t n = 0; n < nDeleteCount; ++n) {
+        deleteIndexs.push_back((n * nStep) % nTotal);
+    }
+
+    pListCtrl->SetEnableRefresh(false);
+    const int64_t nTick0 = GetPerfTick();
+    const size_t nDeleted = pListCtrl->DeleteDataItems(deleteIndexs);
+    const int64_t nTick1 = GetPerfTick();
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+
+    const double dTotalMs = PerfTickToMs(nTick1 - nTick0);
+    DString msg = ui::StringUtil::Printf(
+        _T("Batch delete rows (unordered)\nRequested: %zu\nDeleted: %zu\nTotal: %.1f ms"),
+        nDeleteCount, nDeleted, dTotalMs);
+    ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+}
+
+void MainForm::StressTestCompact(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    if (!m_bStressDataLoaded) {
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_NEED_LOAD")),
+            ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
+        return;
+    }
+
+    //压缩前的内存快照
+    uint64_t nWorkingSet0 = 0, nPeakWorkingSet0 = 0, nPrivateUsage0 = 0;
+    GetProcessMemorySnapshot(nWorkingSet0, nPeakWorkingSet0, nPrivateUsage0);
+
+    //执行存储压缩（重编号 + 整体压缩），并测量耗时
+    pListCtrl->SetEnableRefresh(false);
+    const int64_t nTick0 = GetPerfTick();
+    pListCtrl->CompactStorage();
+    const int64_t nTick1 = GetPerfTick();
+    pListCtrl->SetEnableRefresh(true);
+    pListCtrl->Refresh(true);
+
+    //压缩后的内存快照
+    uint64_t nWorkingSet1 = 0, nPeakWorkingSet1 = 0, nPrivateUsage1 = 0;
+    GetProcessMemorySnapshot(nWorkingSet1, nPeakWorkingSet1, nPrivateUsage1);
+
+    const double dTotalMs = PerfTickToMs(nTick1 - nTick0);
+    const double dMb = 1024.0 * 1024.0;
+    DString msg = ui::StringUtil::Printf(
+        _T("Compact storage\nRows: %zu\nTotal: %.1f ms\nWorking set: %.1f -> %.1f MB\nPrivate: %.1f -> %.1f MB"),
+        pListCtrl->GetDataItemCount(), dTotalMs,
+        (double)nWorkingSet0 / dMb, (double)nWorkingSet1 / dMb,
+        (double)nPrivateUsage0 / dMb, (double)nPrivateUsage1 / dMb);
     ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
 }
 

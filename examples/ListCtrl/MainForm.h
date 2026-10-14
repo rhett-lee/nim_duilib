@@ -101,6 +101,14 @@ private:
     */
     void StressTestDelete(ui::ListCtrl* pListCtrl);
 
+    /** 压力测试：批量删除500行（乱序索引，单趟压缩），输出耗时
+    */
+    void StressTestDeleteBatch(ui::ListCtrl* pListCtrl);
+
+    /** 压力测试：压缩数据存储（CompactStorage），输出耗时与前后内存对比
+    */
+    void StressTestCompact(ui::ListCtrl* pListCtrl);
+
     /** 压力测试：整表排序，输出耗时
     */
     void StressTestSort(ui::ListCtrl* pListCtrl);

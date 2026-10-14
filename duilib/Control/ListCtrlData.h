@@ -180,6 +180,20 @@ public:
     */
     bool DeleteAllDataItems();
 
+    /** 批量删除指定行的数据项, 并刷新界面显示
+        内部实现：先按行身份去重并标记墓碑，再对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移
+    * @param [in] displayIndexs 需要删除的数据项显示索引号列表，有效范围：[0, GetDataItemCount())；
+    *                            重复索引会被忽略，越界索引会被忽略
+    * @return 返回实际删除的行数
+    */
+    size_t DeleteDataItems(const std::vector<size_t>& displayIndexs);
+
+    /** 压缩数据存储：整理行身份与存储页布局，回收已删除行占用的内存
+        说明：这是一次显式的整表维护操作（重编号 + 全量压缩），仅在无填充/绘制进行时调用；
+              调用后所有已发出的内部单元格指针（原始指针）均失效
+    */
+    void CompactStorage();
+
     /** 设置数据项的行属性数据, 并刷新界面显示
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] itemData 关联的数据
@@ -631,7 +645,8 @@ private:
     */
     static Storage* GetStorageAtForWrite(StoragePageList& pageList, RowId rowId);
 
-    /** 将某列某行身份的单元格置为墓碑（清空数据并标记为未写入）；不分配存储页
+    /** 将某列某行身份的单元格置为墓碑（清空数据并标记为未写入）；不分配存储页，
+        并在该页已全部为墓碑时释放整页（页回收）
     */
     static void ResetStorageAt(StoragePageList& pageList, RowId rowId);
 
@@ -718,7 +733,8 @@ private:
 
     /** 数据，按列保存，每列一份分页连续存储
         按页索引存放（页 = RowId / kPageCells），页内按行身份偏移索引；页为懒分配，
-        删除某行时仅把该单元格标记为未写入（墓碑），数据本体不搬移
+        删除某行时仅把该单元格标记为未写入（墓碑），数据本体不搬移；
+        整页全部变为墓碑时释放该页（页回收），长时间高频增删后可调用 CompactStorage 做整体压缩
     */
     StorageMap m_dataMap;
 

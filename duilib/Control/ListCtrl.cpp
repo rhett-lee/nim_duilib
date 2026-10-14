@@ -1824,6 +1824,21 @@ bool ListCtrl::DeleteAllDataItems()
     return bRet;
 }
 
+size_t ListCtrl::DeleteDataItems(const std::vector<size_t>& itemIndexs)
+{
+    size_t nDeleted = m_pData->DeleteDataItems(itemIndexs);
+    if (nDeleted > 0) {
+        UpdateHeaderColumnCheckBox(Box::InvalidIndex);
+        UpdateHeaderCheckBox();
+    }
+    return nDeleted;
+}
+
+void ListCtrl::CompactStorage()
+{
+    m_pData->CompactStorage();
+}
+
 bool ListCtrl::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData)
 {
     bool bChanged = false;

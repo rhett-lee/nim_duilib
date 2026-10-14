@@ -393,9 +393,19 @@ void ListCtrlData::ResetStorageAt(StoragePageList& pageList, RowId rowId)
     }
     const size_t nSlot = static_cast<size_t>(rowId) % kPageCells;
     if (pPage->usedMask[nSlot] != 0) {
-        //置墓碑：清空数据并标记为未写入（不释放存储页）
+        //置墓碑：清空数据并标记为未写入
         pPage->cells[nSlot] = Storage();
         pPage->usedMask[nSlot] = 0;
+    }
+    //页回收：该页已全部为墓碑（无任何已写入单元格）时释放该页，并裁剪尾部已释放的页以收缩页列表
+    for (size_t n = 0; n < kPageCells; ++n) {
+        if (pPage->usedMask[n] != 0) {
+            return;
+        }
+    }
+    pageList[nPage].reset();
+    while (!pageList.empty() && (pageList.back() == nullptr)) {
+        pageList.pop_back();
     }
 }
 
@@ -742,6 +752,91 @@ bool ListCtrlData::DeleteAllDataItems()
         EmitCountChanged();
     }
     return bDeleted;
+}
+
+size_t ListCtrlData::DeleteDataItems(const std::vector<size_t>& displayIndexs)
+{
+    const size_t nCount = m_displayOrder.size();
+    if ((nCount == 0) || displayIndexs.empty()) {
+        return 0;
+    }
+    //按行身份收集待删除的行（去重；越界索引忽略）
+    std::set<RowId> rowIdSet;
+    for (size_t index : displayIndexs) {
+        if (index < nCount) {
+            rowIdSet.insert(m_displayOrder[index]);
+        }
+    }
+    if (rowIdSet.empty()) {
+        return 0;
+    }
+
+    //释放待删除行身份关联的数据（列池置墓碑、修正个性化计数与单选状态）
+    for (RowId rowId : rowIdSet) {
+        FreeRowId(rowId);
+    }
+
+    //单趟压缩显示顺序表：把存活的行身份前移，O(N) 搬 4B（避免逐行 erase 的 O(K×N) 搬移）
+    size_t nWriteIndex = 0;
+    for (size_t nReadIndex = 0; nReadIndex < nCount; ++nReadIndex) {
+        const RowId rowId = m_displayOrder[nReadIndex];
+        if (rowIdSet.find(rowId) == rowIdSet.end()) {
+            m_displayOrder[nWriteIndex] = rowId;
+            ++nWriteIndex;
+        }
+    }
+    m_displayOrder.resize(nWriteIndex);
+
+    AssertDataConsistency();
+    EmitCountChanged();
+    return rowIdSet.size();
+}
+
+void ListCtrlData::CompactStorage()
+{
+    const size_t nCount = m_displayOrder.size();
+    //记录压缩前选中行所在显示位置（行身份被重编号后需要重新映射）
+    size_t nSelectedIndex = Box::InvalidIndex;
+    if (m_nSelectedRowId != kInvalidRowId) {
+        nSelectedIndex = GetDisplayIndexByRowId(m_nSelectedRowId);
+    }
+
+    //1. 重建行属性池：新行身份 = 显示位置（按显示顺序紧凑存放，丢弃墓碑槽位）
+    RowDataList newRowDataList;
+    newRowDataList.resize(nCount);
+    for (size_t index = 0; index < nCount; ++index) {
+        newRowDataList[index] = m_rowDataList[m_displayOrder[index]];
+    }
+    m_rowDataList.swap(newRowDataList);
+
+    //2. 重建各列的存储页：按新行身份紧凑排布，仅搬运已写入的单元格（未写入的不分配页）
+    for (auto iter = m_dataMap.begin(); iter != m_dataMap.end(); ++iter) {
+        StoragePageList& pageList = iter->second;
+        StoragePageList newPageList;
+        for (size_t index = 0; index < nCount; ++index) {
+            const Storage* pOld = GetStorageAt(pageList, m_displayOrder[index]);
+            if (pOld == nullptr) {
+                continue;
+            }
+            Storage* pNew = GetStorageAtForWrite(newPageList, static_cast<RowId>(index));
+            *pNew = *pOld;
+        }
+        //交换后，旧页列表随 newPageList 析构自动释放（回收已删除行占用的内存）
+        pageList.swap(newPageList);
+    }
+
+    //3. 显示顺序表变为恒等映射；行身份生成器归位
+    for (size_t index = 0; index < nCount; ++index) {
+        m_displayOrder[index] = static_cast<RowId>(index);
+    }
+    m_nextRowId = static_cast<RowId>(nCount);
+
+    //4. 恢复选中行身份（显示位置不变，新行身份 = 该显示位置）
+    if (nSelectedIndex != Box::InvalidIndex) {
+        m_nSelectedRowId = static_cast<RowId>(nSelectedIndex);
+    }
+
+    AssertDataConsistency();
 }
 
 bool ListCtrlData::SetDataItemData(size_t itemIndex, const ListCtrlItemData& itemData,
