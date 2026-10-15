@@ -212,10 +212,9 @@
 **C1 复查结论**（复查范围：C0 / C1 / C1b 全部已落地代码）
 
 **遗留未实现 / 状态更正**
-1. **冻结列与单元格选择的命中口径适配：未完成。** `ListCtrlReportView::HitTestCell` 与 `OnFrameSelectionForCells` 均未做"冻结列"判定（仅 `PaintCellSelection` 分冻结趟绘制）。横向存在滚动偏移且同时启用冻结列时，点击 / 框选的命中可能与绘制结果错位。**待适配并实测验证。**
-2. **视口边缘拖拽自动滚动：已具备（更正为此前的"遗留"记载）。** 由两种选择模式共用的 `ListBoxHelper::OnCheckScrollView`（定时器驱动）实现，`kCell` 下框选拖动到视口边缘即触发。
-3. **C1 阶段的"单矩形"选择语义与 `Ctrl+单击` 切换：已由 C1b 取代并落地，闭环。**
-4. **属后续阶段、尚未实施**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）、`F2` 进入单元格编辑（C3 ＝ L1）。
+1. **视口边缘拖拽自动滚动：已具备（更正为此前的"遗留"记载）。** 由两种选择模式共用的 `ListBoxHelper::OnCheckScrollView`（定时器驱动）实现，`kCell` 下框选拖动到视口边缘即触发。
+2. **C1 阶段的"单矩形"选择语义与 `Ctrl+单击` 切换：已由 C1b 取代并落地，闭环。**
+3. **属后续阶段、尚未实施**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）、`F2` 进入单元格编辑（C3 ＝ L1）。
 
 **已确认缺陷（已修复，Debug|x64 编译验证通过）**
 1. 【中·已修复】**右键按在"已选中"单元格上继续拖动会清除选择。** 原因：`ListCtrl::BeginCellDrag` 的"右键命中已选格"分支未 `return`，函数末尾仍置 `m_bCellDragSelecting = true`，随后 `ListBoxHelper` 的右键框选按"替换"语义执行 → 清除可见区已选单元格。修复：该分支末尾直接 `return`，不再进入拖动框选状态（选择集合保持不变，供右键菜单使用）。
@@ -224,10 +223,22 @@
 4. 【低·已修复】`m_hoverCell` 以显示索引存储。修复：改为私有 `HoverCellId`（`RowId + 列ID`）存储，`UpdateHoverCell` / `IsCellHovered` 经 `GetRowIdByDisplayIndex` 换算（为此在 `ListCtrlData` 增加 `friend class ListCtrl;`），排序 / 删行后悬停高亮不再漂移到其它数据行。
 5. 【低·文档·已修复】`duilib_defs.h:490-491` 对 `kEventCellSelectionChanged` 的注释更正为"`wParam` ＝ 选中区域个数，`lParam` ＝ 0，`pEventData` 指向 `std::vector<ui::ListCtrlCellRange>`"，与实现一致。
 6. 【低·已修复】`ClearCellSelection` 无条件刷新并派发事件。修复：`ListCtrlData::ClearCellSelection()` 的返回类型由 `void` 改为 `bool`（返回"清除前是否存在实际选择状态"：有选中单元格或存在当前格；因位图可能残留全 0 内容，需遍历位图内容判定而非仅看容器是否为空；锚点仅用于区域扩展、无独立视觉表现，不单独计为变化），`ListCtrl::ClearCellSelection()` 仅在该返回值为 true 时才 `RefreshCellSelectionView()` 并 `NotifyCellSelectionChanged()`（`m_pData == nullptr` 时直接返回），无变化时不做任何刷新与事件派发。**`ListCtrl::SetSelectNone()` 的 `kCell` 分支同源问题一并修复：改为复用 `ClearCellSelection()`，故同样具备"无变化不刷新、不派发"语义。**
+7. 【中·已修复】**冻结列与单元格选择的命中口径适配（此前记为遗留项）。** 原因：`ListCtrlReportView::HitTestCell` 经 `ListCtrlItem::GetSubItem(ptMouse)` 按统一滚动量换算、`OnFrameSelectionForCells` 直接用框选矩形做横向比较，两处都未做冻结列判定；而冻结列绘制时横向的窗口原点偏移为 0（`GetPaintPass` 冻结趟 `ptOffset = (0, scrollPos.cy)`），即冻结列的内容坐标等于窗口坐标、不随横向滚动移动。后果：横向滚动量 ≠ 0 且启用冻结列时，点击 / 框选落在冻结区的命中整体右移一个滚动量，命中的列与视觉错位。修复：
+   - 新增 `ListCtrlReportView::MouseToCellSpace(ptMouse, scrollOffsetInBox)`（窗口坐标 → 单元格坐标），其横向偏移按几何层的冻结列判据 `IsFrozenX()` 决定（鼠标落在冻结区内时按 0 计）；`HitTestCell`、`IsPointOnAtTopItem`、`HitTestTopItem` 三处统一改用它，纵向偏移与原先完全一致。
+   - `HitTestCell` 不再复用 `ListCtrlItem::GetSubItem(ptMouse)`（其内部仍按统一滚动量换算），改为在已换算的点上直接遍历子项控件查找命中格（判据与 `GetSubItem` 相同：`IsVisible()` + `GetRect().ContainsPt()`）。
+   - `OnFrameSelectionForCells` 按列分派横向命中范围：冻结列的框选矩形左移一个滚动量、并裁剪到冻结区横向内容范围 `[rcViewport.left, FrozenRight())`，非冻结列裁剪到 `[FrozenRight() + scrollX, +∞)`，避免框选跨冻结边界时误命中另一侧；无冻结列或横向滚动量为 0 时与原行为完全一致。
+   - 冻结列判据 `nColumnIndex < cellGeometry.nFrozenCount` 与绘制层 `PaintCellSelection` 使用同一表达式（几何层为唯一坐标来源）。
+   - 实测验证点（待人工确认）：横向滚动后 (1) 点击冻结区内的单元格，选中 / 当前格与视觉一致；(2) 从左向右框选跨过冻结边界，冻结列与非冻结列各自正确命中；(3) 在冻结列内起拖的框选只影响冻结列；(4) 置顶行 + 冻结列 + 横向滚动时其 CheckBox 可正常勾选。
+
+8. 【中·已修复】**冻结列命中遍历触发 Debug 断言（`ASSERT(ptOrg == ptMouse)`）。** 现象：横向已滚动时鼠标移入冻结列内容区域即断言失败。原因：Report 视图的控件矩形位于"未横向滚动"的坐标空间（行矩形 `left` 取视口 left；`GetPaintPass` 冻结趟横向偏移 0、可滚动趟偏移 `scrollPos.cx`），而框架的通用命中（`ControlFinder::FindControlFromPoint`）按"自定义数据 + 控件自身 `GetScrollOffsetInScrollBox()`"判定，后者对视图内控件恒为 `(scrollX, scrollY)`；`Box` / `Control` / `ScrollBox` 的 `FindControl*` 中三处 Debug 不变式要求该式与传入坐标相等。此前只把传入坐标改为 `(0, scrollPos.cy)`（`HitScrollX` 补偿）而未同步控件侧滚动量，二者无法自洽（仅改传入坐标时 Proc 仍按 `原始点 + scrollX` 判定，命中会右移一列）。修复：`ScrollBox::GetScrollOffset()` 改为虚函数，`ListCtrlReportView` 在冻结列命中遍历期间把其横向分量按 0 计（新增 `m_bFrozenHitTestPass` 标记：`FindControl` 中先以 `IsFrozenX(boxPt.x)` 判定落点是否在冻结区，命中时置位标记并把传入坐标横向分量置 0，调用 `FindControlInItems` 后立即复位）。此时三处不变式与命中判定同时成立于 `原始点 + (0, scrollPos.cy)`，冻结列的 hover / 单元格 hover / 单元格 tooltip / 右键菜单命中均与显示位置一致；非冻结区、无冻结列、横向未滚动场景不进入该分支，行为不变。几何层原 `HitScrollX()` 无调用方，已删除。
+
+9. 【中·已修复】**冻结列表头点击触发 Debug 断言（`ASSERT(itemStatus.m_rcPos.ContainsPt(m_ptMouseDown))`）。** 现象：横向已滚动时点击冻结列的表头即断言失败（`ControlDragable.h:1040`）。原因：冻结列的显示位置为"未横向滚动"的坐标空间（冻结趟横向偏移 0，故冻结列的内容坐标 = 窗口坐标），但 `ControlDragableT::ButtonDown` 在事件派发阶段（命中遍历已结束、`m_bFrozenHitTestPass` 已复位）用 `GetScrollOffsetInScrollBox()` 把原始点换算为"原始点 + (scrollX, scrollY)"，与该表头项的 `GetRect()`（未横向滚动空间）不在同一坐标系；表头项列宽通常远小于横向滚动量，故点必然落在其矩形之外。修复：新增 `ScrollBox::GetScrollOffsetForChild(pChild)` 虚函数（默认返回 `GetScrollOffset()`，行为不变），`PlaceHolder::GetScrollOffsetInScrollBox()` 的累加改用它；`ListCtrlReportView` 重写为"属于冻结列区域的子控件横向偏移按 0 计"（新增私有 `IsChildInFrozenColumn()`：向上查找子控件所属单元格——数据行为 `ListCtrlSubItem`（取其 `GetDataColumnId()`）、表头为 `ListCtrlHeaderItem`（取其 `GetColumnId()`）——再以列ID换列索引号与冻结列个数比较；整行的 `ListCtrlItem` 等无归属单元格的控件返回 false、保持默认口径）。该钩子只影响冻结列区域内的子控件，横向未滚动（偏移已为 0）与命中遍历期间均提前返回、行为不变，故非冻结列 / 无冻结列 / 嵌套外层 `ScrollBox` 场景均无回归（外层滚动量仍由外层自身的钩子贡献，仅剔除列表视图自身的横向滚动量）。
+
+10. 【中·已修复】**冻结列区域内的 CheckBox 无法勾选 / 取消勾选。** 现象：横向已滚动时，点击冻结列区域内单元格（含行首）的 CheckBox 图标，勾选状态不变。原因：`CheckBoxTemplate::ButtonUp` 自行把原始点换算为"原始点 + `GetScrollOffsetInScrollBox()`"，再与控件矩形及 CheckBox 图标矩形（二者均为未横向滚动的坐标空间）比较；冻结列内控件因横向滚动量非 0 必然落在图标矩形之外，勾选被拒。该判定发生在 `ButtonUp`（`Window::OnButtonUp` 不做命中测试），故仅修正命中遍历期的坐标无法覆盖。修复：`CheckBoxTemplate` 新增 protected 虚函数 `GetCheckBoxMousePos(ptMouse)`（默认实现即原换算），`ButtonUp` 改用它；`ListCtrlItem` 重写为"存在冻结列且行首显示 CheckBox 时，横向偏移按 0 计"（行首 CheckBox / 图标固定显示在行的最左侧，落在冻结列区域内）。冻结列内单元格（`ListCtrlSubItem`）的 CheckBox 则由上一条的 `GetScrollOffsetForChild` 钩子一并修正（其所属列处于冻结范围内）。
 
 **已核实无误（排除的疑点）**
 - 选中集合、锚点、当前格均以 `RowId` 存储，排序 / 增删后跟随原数据行；列删除同步丢弃对应列位图；模式切换双向清空对侧状态。
-- `OnFrameSelectionForCells` 纵向扣除 `GetScrollPos().cy`、横向不换算，与 `HitTestCell`（经 `GetSubItem` 叠加 `GetScrollOffsetInScrollBox`）口径一致，非缺陷。
+- `OnFrameSelectionForCells` 纵向扣除 `GetScrollPos().cy`；横向在**无冻结列**时与 `HitTestCell` 口径一致（均为"窗口坐标 + 横向滚动量"），非缺陷；**启用冻结列且横向已滚动**时的命中错位已按上方"已确认缺陷"第 7 项修复。
 - `SelectAll / SelectNone / SetSelectedDataItems` 的模式分派与绘制层视觉屏蔽符合"只隔离视觉、不隔离状态"的既定决策。
 - cell 级 `kEventMouseEnter` / `kEventMouseLeave` 在 `kCell` 与 `kRow` 下完全一致：单元格控件 `ListCtrlSubItem` 自身仍会派发并继续冒泡，应用可用 `AttachBubbledEvent` 在 ListCtrl / 视图上收到（sender 为单元格控件）；C1 只屏蔽了行（`ListCtrlItem`）级的 Hover / Enter / Leave，未触及 cell 级。
 

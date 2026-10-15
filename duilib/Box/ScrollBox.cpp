@@ -1147,6 +1147,12 @@ void ScrollBox::ClearImageCache()
     }
 }
 
+UiSize ScrollBox::GetScrollOffsetForChild(const PlaceHolder* /*pChild*/) const
+{
+    //默认：所有子控件的坐标空间均按本容器的滚动量换算
+    return GetScrollOffset();
+}
+
 UiSize ScrollBox::GetScrollOffset() const
 {
     //这种虚拟滚动条位置的引入，是为了解决UiRect用32位整型值不能支持超大虚表（千万数据量级别以上）的问题

@@ -215,6 +215,22 @@ protected:
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint()) override;
 
+    /** 获取当前滚动条偏移量（重写 ScrollBox::GetScrollOffset）
+    *  冻结列命中遍历期间（m_bFrozenHitTestPass 为 true 时）横向分量按0计：
+    *  冻结列固定显示在视口左侧、不随横向滚动移动，其坐标空间横向偏移为0，
+    *  使子控件的 GetScrollOffsetInScrollBox() 与冻结列的显示位置口径一致
+    * @return 返回滚动条偏移量
+    */
+    virtual UiSize GetScrollOffset() const override;
+
+    /** 获取某个子控件（含子孙控件）所属坐标空间的滚动偏移量（重写 ScrollBox::GetScrollOffsetForChild）
+    *  冻结列区域内的子控件（数据行的单元格、表头的单元格及其子孙控件）固定显示在视口左侧、
+    *  不随横向滚动移动，其横向偏移量按0计；其余子控件（如整行的 ListCtrlItem）保持默认口径
+    * @param [in] pChild 待换算坐标的子控件（可能是子孙控件）
+    * @return 返回该子控件所在坐标空间对应的滚动偏移量
+    */
+    virtual UiSize GetScrollOffsetForChild(const PlaceHolder* pChild) const override;
+
     /** 创建一个数据项
     * @return 返回创建后的数据项指针
     */
@@ -309,6 +325,14 @@ protected:
     */
     void OnSubItemColumnChecked(size_t nElementIndex, size_t nColumnId, bool bChecked);
 
+    /** 判断某个子控件（含子孙控件）是否属于"冻结列"区域
+    *  判定方式：向上查找该控件所属的单元格（数据行的单元格为 ListCtrlSubItem，表头单元格为 ListCtrlHeaderItem），
+    *  再用单元格的列ID换取列索引号，与冻结列个数比较；整行的 ListCtrlItem 等无归属单元格的控件返回false
+    * @param [in] pChild 待判断的子控件（可能是子孙控件）
+    * @return 返回true表示该控件属于冻结列区域，否则返回false
+    */
+    bool IsChildInFrozenColumn(const PlaceHolder* pChild) const;
+
 private:
     /** 绘制网格线
     */
@@ -333,6 +357,15 @@ private:
     * @return 返回是否命中某个单元格
     */
     bool HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, size_t& nColumnId, ListCtrlItem** ppItem = nullptr) const;
+
+    /** 把鼠标位置换算为"子项控件坐标"（与 ListCtrlSubItem::GetRect() 同一坐标系）
+    *  横向按冻结列口径换算：鼠标落在冻结区内时，冻结列不随横向滚动移动，横向滚动量按 0 计
+    *  （与绘制趟、FindControl 的冻结列处理保持一致，避免横向滚动后命中的列与视觉错位）
+    * @param [in] ptMouse 鼠标位置（窗口客户坐标）
+    * @param [in] scrollOffsetInBox 滚动框内的滚动偏移量（与 ListCtrlItem::GetSubItem 取值一致）
+    * @return 返回换算后的坐标
+    */
+    UiPoint MouseToCellSpace(const UiPoint& ptMouse, const UiPoint& scrollOffsetInBox) const;
 
     /** 判断鼠标点是否落在"置顶行"（不可选行）范围内
     *  置顶行固定显示在顶部，会遮挡其下方滚动的普通行；鼠标落在其上时不应穿透选择下方的单元格
@@ -446,9 +479,6 @@ private:
         /** 屏幕X坐标是否落在冻结区内 */
         bool IsFrozenX(int32_t screenX) const { return bHasFrozen && (screenX < FrozenRight()); }
 
-        /** 命中测试：由屏幕X坐标推导横向滚动偏移（落在冻结区内时横向偏移为0） */
-        int32_t HitScrollX(int32_t screenX) const { return IsFrozenX(screenX) ? 0 : scrollPos.cx; }
-
         /** 网格线：由"已扣除滚动偏移的内容X"推导屏幕X（冻结列不随横向滚动移动） */
         int32_t GridLineScreenX(int32_t x, bool bFrozenColumn) const
         {
@@ -546,6 +576,10 @@ private:
     /** 纵向网格线的颜色
     */
     UiString m_columnGridLineColor;
+
+    /** 冻结列命中遍历标记：为true时，本控件对外的横向滚动量按0计（冻结列不随横向滚动移动）
+    */
+    bool m_bFrozenHitTestPass;
 };
 
 /** 列表数据显示控件的布局管理接口

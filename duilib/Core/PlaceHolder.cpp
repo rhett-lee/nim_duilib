@@ -743,8 +743,9 @@ UiPoint PlaceHolder::GetScrollOffsetInScrollBox() const
                 //当前控件是浮动的，父控件是ScrollBox，不计入统计
             }
             else {
-                scrollPos.x += pScrollBox->GetScrollOffset().cx;
-                scrollPos.y += pScrollBox->GetScrollOffset().cy;
+                const UiSize childScrollOffset = pScrollBox->GetScrollOffsetForChild(this);
+                scrollPos.x += childScrollOffset.cx;
+                scrollPos.y += childScrollOffset.cy;
             }
         }
         parent = parent->GetParent();

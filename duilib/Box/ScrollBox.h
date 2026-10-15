@@ -48,15 +48,26 @@ public:
     *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
     *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
     *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
+    *   该函数为虚函数：子类可在特定命中口径下调整其返回值（如冻结列命中遍历时，横向滚动量按0计）。
     */
-    UiSize GetScrollOffset() const;
+    virtual UiSize GetScrollOffset() const;
+
+    /** 获取某个子控件（含子孙控件）所属坐标空间的滚动偏移量
+    *   默认实现：返回 GetScrollOffset()，即该子控件按本容器的滚动量进行坐标换算；
+    *   子类可重写，以对特定子控件返回不同的偏移量（例如 ListCtrl 的冻结列区域固定显示、
+    *   不随横向滚动移动，其内部子控件的横向偏移量需要按0计，避免横向滚动后点击判定错位）
+    * @param [in] pChild 待换算坐标的子控件（可能是子孙控件，不一定是直接子控件）
+    * @return 返回该子控件所在坐标空间对应的滚动偏移量
+    */
+    virtual UiSize GetScrollOffsetForChild(const PlaceHolder* pChild) const;
 
     /** 获取滚动条的真实偏移量, 以64位整型值标志偏移 (虚表会使用虚拟滚动条位置)
     *   如果设置了ScrollVirtualOffset，那么这个函数会将滚动条的位置减去这个虚拟偏移；
     *   如果没有设置ScrollVirtualOffset，那么这个函数返回与UiSize64 GetScrollPos()相同的结果，但会检查是否越界；
     *   这个函数存在的意义是支持大数据量的虚表（VirtualScrollBox），避免UiRect越界。
+    *   该函数为虚函数：子类可在特定命中口径下调整其返回值（如冻结列命中遍历时，横向滚动量按0计）。
     */
-    UiSize64 GetScrollOffset64() const;
+    virtual UiSize64 GetScrollOffset64() const;
 
     /** ScrollOffset 值变化通知接口
     * @param [in] oldScrollOffset 旧值

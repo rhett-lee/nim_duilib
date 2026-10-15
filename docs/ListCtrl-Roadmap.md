@@ -110,7 +110,7 @@
 | 汇总行 / 页脚行 | 缺失 | 无固定汇总 / 页脚行 |
 | 复制到剪贴板 / 导出 | 缺失 | 见 L2 |
 | 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格（Ctrl+A 与 Ctrl+Space 均仅在多选下生效，单选下忽略；Ctrl+Space 行选择模式本身也不支持） |
-| 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；**遗留：冻结列与单元格选择的命中口径待适配（延后至 C2）；复查发现的 5 项缺陷已修复（见设计方案「C1 复查结论」）；单选（`multi_select=false`）语义已与行模式对齐（见 C1c）** |
+| 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；冻结列与单元格选择的命中口径已适配（`HitTestCell` / `OnFrameSelectionForCells` / 置顶行命中统一走 `MouseToCellSpace` 的冻结感知换算）；复查发现的 6 项缺陷 + 冻结列命中口径均已修复（见设计方案「C1 复查结论」）；横向滚动后鼠标移入冻结列区域触发的 Debug 断言（`Box.cpp` 的 `ptOrg == ptMouse`）已修复：`ScrollBox::GetScrollOffset()` 改为虚函数，冻结列命中遍历期间该类横向滚动量按 0 计，使子控件的坐标口径与冻结列显示位置一致；单选（`multi_select=false`）语义已与行模式对齐（见 C1c） |
 | 单元格 tooltip | 已具备 | `auto_tooltip="true"` 默认开启，超长自动提示 |
 | 自定义单元格渲染器（嵌入任意控件） | 缺失 | 见 L4，现仅内置文本 / 图标 / CheckBox / 进度条 / 富文本 |
 | 可变行高 / 单元格自动换行 | 已完成 | `SetDataItemHeight` + `SetSubItemSingleLine`，文本省略号由 Label 默认样式提供 |
@@ -170,7 +170,7 @@
 | C0 | 单元格坐标层（`ListCtrlCellGeometry` / `ListCtrlColumnLayout`） | 已完成 |
 | C1 | 单元格选择模型（`kCell` 模式，与 `RowId` 绑定） | 已完成 |
 | C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
-| C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（5 项缺陷已修复并通过 Debug 编译验证）；冻结列命中口径待 C2 适配（详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
+| C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，以及冻结列区域内 CheckBox 无法勾选的问题，详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
 | C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 实施中（C0 / C1 / C1b 已完成；后续 C2–C7 待实施） |
 

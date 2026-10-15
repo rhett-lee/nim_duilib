@@ -400,9 +400,11 @@ public:
     bool IsClip() const { return m_bClip; }
 
     /** 获取外层滚动偏移(X方向和Y方向)
+     *  说明：子类可重写该函数，以适配特殊的坐标口径（例如 ListCtrl 的冻结列区域固定显示、
+     *        不随横向滚动移动，其内部控件的横向偏移量需要按0计）
      */
-    UiPoint GetScrollOffsetInScrollBox() const;
-    UiSize64 GetScrollOffsetInScrollBox64() const;
+    virtual UiPoint GetScrollOffsetInScrollBox() const;
+    virtual UiSize64 GetScrollOffsetInScrollBox64() const;
 
     /** 判断两个控件是否相等，是否存在父子或者子孙关系
      * @param [in] pAncestor 父祖级别的控件

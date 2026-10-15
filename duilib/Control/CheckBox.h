@@ -279,6 +279,15 @@ protected:
     */
     virtual bool ButtonUp(const EventArgs& msg) override;
 
+    /** 将鼠标点（窗口客户区坐标）换算到用于判定CheckBox图标命中的控件坐标空间
+    *   默认实现：ptMouse + GetScrollOffsetInScrollBox()（框架通用约定）
+    *   子类可重写，以适配特殊坐标口径（例如 ListCtrl 的冻结列区域固定显示、不随横向滚动移动，
+    *   其行首CheckBox的点击判定需要按横向偏移为0换算，否则横向滚动后无法勾选）
+    * @param [in] ptMouse 鼠标点（窗口客户区坐标）
+    * @return 返回换算后的控件坐标空间中的点
+    */
+    virtual UiPoint GetCheckBoxMousePos(const UiPoint& ptMouse) const;
+
 protected:
     /** 获取被选择时指定状态下的实际被渲染文本颜色
      * @param [in] buttonStateType 要获取何种状态下的颜色
@@ -578,8 +587,7 @@ bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
     if (bCheckedMode && (m_pCheckBoxImageRect != nullptr)) {
         if (this->IsEnabled()) {
             UiRect pos = this->GetPos();
-            UiPoint pt(msg.ptMouse);
-            pt.Offset(this->GetScrollOffsetInScrollBox());
+            const UiPoint pt = this->GetCheckBoxMousePos(msg.ptMouse);
             if (pos.ContainsPt(pt) && m_pCheckBoxImageRect->ContainsPt(pt)) {
                 //确认点击在CheckBox图标上面，改变勾选状态(开关属性)
                 SetChecked(!IsChecked(), true);
@@ -600,6 +608,14 @@ bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
         m_bCheckBoxImageClicked = false;
     }
     return bRet;
+}
+
+template<typename InheritType>
+UiPoint CheckBoxTemplate<InheritType>::GetCheckBoxMousePos(const UiPoint& ptMouse) const
+{
+    UiPoint pt(ptMouse);
+    pt.Offset(this->GetScrollOffsetInScrollBox());
+    return pt;
 }
 
 template<typename InheritType>

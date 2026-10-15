@@ -12,7 +12,8 @@ ListCtrlReportView::ListCtrlReportView(Window* pWindow) :
     m_pData(nullptr),
     m_nTopElementIndex(0),
     m_fRowGridLineWidth(0),
-    m_fColumnGridLineWidth(0)
+    m_fColumnGridLineWidth(0),
+    m_bFrozenHitTestPass(false)
 {
     ListCtrlReportLayout* pDataLayout = dynamic_cast<ListCtrlReportLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -149,7 +150,19 @@ bool ListCtrlReportView::HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, 
             //置顶行等不可选的行不参与单元格命中
             continue;
         }
-        ListCtrlSubItem* pSubItem = pItem->GetSubItem(ptMouse);
+        //鼠标点换算为子项控件坐标（存在冻结列时，横向按冻结区口径换算）
+        const UiPoint pt = MouseToCellSpace(ptMouse, pItem->GetScrollOffsetInScrollBox());
+        //在子项控件中查找包含该点的单元格：此处不能复用 ListCtrlItem::GetSubItem，
+        //因为它按统一滚动量换算，鼠标落在冻结区内时命中的列会与绘制错位
+        ListCtrlSubItem* pSubItem = nullptr;
+        const size_t nSubItemCount = pItem->GetItemCount();
+        for (size_t nSubItemIndex = 0; nSubItemIndex < nSubItemCount; ++nSubItemIndex) {
+            ListCtrlSubItem* pSubItemTemp = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nSubItemIndex));
+            if ((pSubItemTemp != nullptr) && pSubItemTemp->IsVisible() && pSubItemTemp->GetRect().ContainsPt(pt)) {
+                pSubItem = pSubItemTemp;
+                break;
+            }
+        }
         if (pSubItem != nullptr) {
             nRowIndex = pItem->GetDataItemIndex();
             nColumnId = pSubItem->GetDataColumnId();
@@ -162,6 +175,24 @@ bool ListCtrlReportView::HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, 
     return false;
 }
 
+UiPoint ListCtrlReportView::MouseToCellSpace(const UiPoint& ptMouse, const UiPoint& scrollOffsetInBox) const
+{
+    int32_t nScrollX = scrollOffsetInBox.x;
+    if ((nScrollX != 0) && (m_pListCtrl != nullptr)) {
+        const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
+        if (cellGeometry.bHasFrozen) {
+            //鼠标落在冻结区内时，横向滚动量按 0 计：冻结列不随横向滚动移动
+            //（绘制时横向的窗口原点偏移为 0，命中口径必须与绘制一致）
+            if (cellGeometry.IsFrozenX(ptMouse.x)) {
+                nScrollX = 0;
+            }
+        }
+    }
+    UiPoint pt(ptMouse);
+    pt.Offset(nScrollX, scrollOffsetInBox.y);
+    return pt;
+}
+
 bool ListCtrlReportView::IsPointOnAtTopItem(const UiPoint& ptMouse) const
 {
     const size_t nItemCount = GetItemCount();
@@ -172,9 +203,8 @@ bool ListCtrlReportView::IsPointOnAtTopItem(const UiPoint& ptMouse) const
             continue;
         }
         //置顶行（不可选行）：判断鼠标点是否落在该行的范围内
-        //（与 GetSubItem 使用同一个坐标口径，避免滚动后判断错误）
-        UiPoint pt(ptMouse);
-        pt.Offset(pItem->GetScrollOffsetInScrollBox());
+        //（与 GetSubItem 使用同一个坐标口径，避免滚动后判断错误；存在冻结列时横向按冻结区口径换算）
+        const UiPoint pt = MouseToCellSpace(ptMouse, pItem->GetScrollOffsetInScrollBox());
         if (pItem->GetRect().ContainsPt(pt)) {
             return true;
         }
@@ -192,8 +222,7 @@ ListCtrlItem* ListCtrlReportView::HitTestTopItem(const UiPoint& ptMouse) const
             continue;
         }
         //置顶行（不可选行）：判断鼠标点是否落在该行的范围内（与 GetSubItem 使用同一个坐标口径）
-        UiPoint pt(ptMouse);
-        pt.Offset(pItem->GetScrollOffsetInScrollBox());
+        const UiPoint pt = MouseToCellSpace(ptMouse, pItem->GetScrollOffsetInScrollBox());
         if (pItem->GetRect().ContainsPt(pt)) {
             return pItem;
         }
@@ -1242,13 +1271,78 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 
     UiSize boxScrollOffset = GetScrollOffset();
     UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
+    bool bFrozenHitTestPass = false;
     if ((boxScrollPos.x != 0) && (m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0)) {
-        //存在冻结列：鼠标落在冻结列区域内时，冻结列不随横向滚动移动，所以横向偏移量为0
-        //由统一坐标变换推导，保证命中区域的冻结区边界与绘制区域口径一致
+        //存在冻结列且横向已滚动：判断鼠标是否落在冻结列区域内
         const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
-        boxScrollPos.x = cellGeometry.HitScrollX(boxPt.x);
+        if (cellGeometry.IsFrozenX(boxPt.x)) {
+            //鼠标落在冻结列区域内：冻结列不随横向滚动移动，命中遍历时的横向滚动量按0计
+            //(1) 传给子控件的滚动量为(0, scrollY)，与冻结列的坐标空间一致；
+            //(2) 同时让子控件的GetScrollOffsetInScrollBox()的横向分量为0，
+            //    使框架的坐标约定(自定义数据 + 控件滚动量 == 传入坐标)成立，消除Debug断言；
+            //(3) 查找函数按"自定义数据 + 控件滚动量"判定命中，上述两点一致后，
+            //    命中结果与冻结列的显示位置一致（单元格tooltip、右键菜单同样受益）
+            boxScrollPos.x = 0;
+            bFrozenHitTestPass = true;
+        }
     }
-    return FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
+    m_bFrozenHitTestPass = bFrozenHitTestPass;
+    pResult = FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
+    m_bFrozenHitTestPass = false;
+    return pResult;
+}
+
+UiSize ListCtrlReportView::GetScrollOffset() const
+{
+    UiSize scrollOffset = BaseClass::GetScrollOffset();
+    if (m_bFrozenHitTestPass) {
+        //冻结列命中遍历：横向滚动量按0计，保证子控件的坐标系与冻结列的显示位置一致
+        scrollOffset.cx = 0;
+    }
+    return scrollOffset;
+}
+
+UiSize ListCtrlReportView::GetScrollOffsetForChild(const PlaceHolder* pChild) const
+{
+    UiSize scrollOffset = BaseClass::GetScrollOffsetForChild(pChild);
+    //冻结列区域内的子控件固定显示在视口左侧、不随横向滚动移动：横向偏移量按0计
+    if ((scrollOffset.cx != 0) && IsChildInFrozenColumn(pChild)) {
+        scrollOffset.cx = 0;
+    }
+    return scrollOffset;
+}
+
+bool ListCtrlReportView::IsChildInFrozenColumn(const PlaceHolder* pChild) const
+{
+    if ((pChild == nullptr) || (m_pListCtrl == nullptr)) {
+        return false;
+    }
+    const size_t nFrozenCount = m_pListCtrl->GetFrozenColumnCount();
+    if (nFrozenCount == 0) {
+        return false;
+    }
+    //向上查找该控件所属的单元格（数据行的单元格为ListCtrlSubItem，表头单元格为ListCtrlHeaderItem）
+    size_t nColumnId = Box::InvalidIndex;
+    const PlaceHolder* pControl = pChild;
+    while ((pControl != nullptr) && (pControl != this)) {
+        const ListCtrlSubItem* pSubItem = dynamic_cast<const ListCtrlSubItem*>(pControl);
+        if (pSubItem != nullptr) {
+            nColumnId = pSubItem->GetDataColumnId();
+            break;
+        }
+        const ListCtrlHeaderItem* pHeaderItem = dynamic_cast<const ListCtrlHeaderItem*>(pControl);
+        if (pHeaderItem != nullptr) {
+            nColumnId = pHeaderItem->GetColumnId();
+            break;
+        }
+        pControl = pControl->GetParent();
+    }
+    if (nColumnId == Box::InvalidIndex) {
+        //未找到所属的单元格（例如整行的ListCtrlItem），按默认口径处理
+        return false;
+    }
+    const size_t nColumnIndex = m_pListCtrl->GetColumnIndex(nColumnId);
+    return (nColumnIndex != Box::InvalidIndex) && (nColumnIndex < nFrozenCount);
 }
 
 Control* ListCtrlReportView::CreateDataItem()
@@ -1947,6 +2041,27 @@ bool ListCtrlReportView::OnFrameSelectionForCells(int64_t left, int64_t right, i
     const int64_t frameTop = top + (int64_t)rcView.top - nScrollPosY;
     const int64_t frameBottom = bottom + (int64_t)rcView.top - nScrollPosY;
 
+    //存在冻结列时的横向口径修正：ListBoxHelper 给出的横向坐标统一按"窗口坐标 + 横向滚动量"计算，
+    //但冻结列（前 N 列）绘制时横向的窗口原点偏移为 0（即内容坐标等于窗口坐标），不随横向滚动移动。
+    //因此对冻结列需把框选矩形左移一个滚动量；两个区域各自裁剪到所属范围，
+    //避免框选区域跨冻结边界时误命中另一侧的列（无冻结列时两者与 frameLeft/frameRight 相同）
+    const ListCtrlCellGeometry cellGeometry = BuildCellGeometry();
+    int64_t frozenFrameLeft = frameLeft;
+    int64_t frozenFrameRight = frameRight;
+    int64_t scrollFrameLeft = frameLeft;
+    int64_t scrollFrameRight = frameRight;
+    if (cellGeometry.bHasFrozen) {
+        const int64_t nScrollX = cellGeometry.scrollPos.cx;
+        const int64_t nFrozenLeft = cellGeometry.rcViewport.left;
+        const int64_t nFrozenRight = cellGeometry.FrozenRight();
+        //冻结列：矩形左移滚动量，并裁剪到冻结区的横向内容范围
+        frozenFrameLeft = std::max<int64_t>(frameLeft - nScrollX, nFrozenLeft);
+        frozenFrameRight = std::min<int64_t>(frameRight - nScrollX, nFrozenRight);
+        //非冻结列：矩形裁剪到"冻结区右侧 + 滚动量"之后的横向范围
+        scrollFrameLeft = std::max<int64_t>(frameLeft, nFrozenRight + nScrollX);
+        scrollFrameRight = frameRight;
+    }
+
     //表头与置顶行固定显示在顶部，会遮挡其下方滚动的普通行：这些区域不参与单元格框选
     UiRect rcTopFixed;
     const bool bHasTopFixed = GetTopFixedItemsRect(rcTopFixed);
@@ -1979,7 +2094,8 @@ bool ListCtrlReportView::OnFrameSelectionForCells(int64_t left, int64_t right, i
                 continue;
             }
             const size_t nColumnId = pSubItem->GetDataColumnId();
-            if (m_pListCtrl->GetColumnIndex(nColumnId) == Box::InvalidIndex) {
+            const size_t nColumnIndex = m_pListCtrl->GetColumnIndex(nColumnId);
+            if (nColumnIndex == Box::InvalidIndex) {
                 continue;
             }
             UiRect rcCell = pSubItem->GetRect();
@@ -1990,7 +2106,11 @@ bool ListCtrlReportView::OnFrameSelectionForCells(int64_t left, int64_t right, i
                     continue;
                 }
             }
-            const bool bHit = (rcCell.right > frameLeft) && (rcCell.left < frameRight) &&
+            //按是否为冻结列选用对应区域的横向命中范围（无冻结列时两者相同）
+            const bool bFrozenColumn = cellGeometry.bHasFrozen && (nColumnIndex < cellGeometry.nFrozenCount);
+            const int64_t nCellFrameLeft = bFrozenColumn ? frozenFrameLeft : scrollFrameLeft;
+            const int64_t nCellFrameRight = bFrozenColumn ? frozenFrameRight : scrollFrameRight;
+            const bool bHit = (rcCell.right > nCellFrameLeft) && (rcCell.left < nCellFrameRight) &&
                               (rcCell.bottom > frameTop) && (rcCell.top < frameBottom);
             if (bAdditive && !bHit) {
                 //追加语义：未命中的单元格保持原有选择状态
