@@ -1922,7 +1922,7 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式（文本/数值/日期/进度等），鼠标点击该列表头排序时自动采用；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），`kSortByTextAsDate` 文本按日期时间先后比较（`"2024-3-7" < "2024-10-1"`） |
 | 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序、可含越界/重复项，重复与越界项被忽略），内部按行身份去重后对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移；返回实际删除行数 |
 | 存储压缩 | `CompactStorage()` | 显式的整表维护操作：行身份重编号 + 存储页全量压缩，回收多次增删后遗留的墓碑槽位与空页内存。仅在无填充/绘制进行时调用；调用后内部已发出的单元格原始指针失效。单行/批量删除时，整页全部变为墓碑的存储页会被自动回收 |
-| 单元格编辑 | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell 模式 + Report 视图；`F2` 或"选中后单击一次"进入编辑（单击链路沿用原有、未改动）；`Enter` 提交并下移一行、`Esc` 取消、失焦提交不移动；需 `enable_item_edit="true"` |
+| 单元格编辑 | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell 模式 + Report 视图；`F2` 或"选中后单击一次"进入编辑（单击链路沿用原有、未改动）；`Enter` 提交并下移一行（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）、`Esc` 取消、失焦提交不移动；需 `enable_item_edit="true"` |
 | 按列编辑器类型 | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | 枚举 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`；列声明字段 `ListCtrlColumn::nEditorType`（默认 `kEditText`）；提交时按类型校验输入（空串视为清空单元格合法；数值列为十进制数值；日期列为 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）；`kEditCombo` 为下拉候选编辑器（需配合 `SetColumnCandidates(ById)` 配置候选，kCell 模式与行选择模式均支持）；**不引入 XML 属性**（列由代码声明） |
 | 按列候选值（下拉编辑器） | `SetColumnCandidates` / `SetColumnCandidatesById` / `GetColumnCandidates` / `GetColumnCandidatesById` | 按列保存纯文本候选列表（`std::vector<DString>`，按列ID存储），供 `kEditCombo` 使用；传入空列表表示清空候选；`kEditCombo` 列未配置候选时按 `F2` / 单击不会进入编辑状态；候选浮层复用 `Flyout` + `VListBox`（主题类 `list_ctrl_combo_flyout` / `list_ctrl_combo_list` / `list_ctrl_combo_item`），鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回 |
 
@@ -1979,7 +1979,7 @@ pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 
 **单元格编辑（C3）：**
 
-仅 kCell 模式 + Report 视图生效，且需 `enable_item_edit="true"`。按 `F2`（等价于调用 `EnterCurrentCellEdit`，绕过 600ms 延时立即进入编辑；行不在可视区时会先滚动到可视区）或"选中该格后单击一次"（沿用原有单击链路）进入编辑；`Enter` 提交并把当前格下移一行、`Esc` 取消且不移动、点击其它区域失焦则提交但不移动；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时按 `F2` 无反应。
+仅 kCell 模式 + Report 视图生效，且需 `enable_item_edit="true"`。按 `F2`（等价于调用 `EnterCurrentCellEdit`，绕过 600ms 延时立即进入编辑；行不在可视区时会先滚动到可视区）或"选中该格后单击一次"（沿用原有单击链路）进入编辑；`Enter` 提交并把当前格下移一行（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）、`Esc` 取消且不移动、点击其它区域失焦则提交但不移动；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时按 `F2` 无反应。
 
 ```cpp
 // 声明第 2 列为数值、第 5 列为日期（列序从 0 开始）
@@ -2011,7 +2011,7 @@ pListCtrl->SetColumnEditorType(7, ui::ListCtrlEditorType::kEditCombo);
 
 交互说明：
 - 进入编辑：按 `F2` 或"选中该格后单击一次"，与其它编辑器同一链路；浮层初始选中项＝当前单元格文本在候选列表中的序号（无匹配取第 1 项）。
-- 鼠标点击候选项 或 按 `Enter`：立即提交并关闭浮层，写回单元格文本（提交成功后当前格下移一行，与 RichEdit 编辑器的 `Enter` 语义一致）。
+- 鼠标点击候选项 或 按 `Enter`：立即提交并关闭浮层，写回单元格文本（`kCell` 模式提交成功后当前格下移一行，与 RichEdit 编辑器的 `Enter` 语义一致；`kRow` 行模式提交候选后不移动选中行、不设置当前格、不滚动视图）。
 - 按 `↑` / `↓`：移动候选高亮；按 `Esc`、点击浮层外部、或在列表其它位置点击/滚动：关闭浮层且**不写回**（视为放弃本次编辑）。
 - 该列未配置候选值时，按 `F2` / 单击不会进入编辑状态（不弹出空浮层）。
 - kCell 模式与行选择模式 + Report 视图均生效，仍受 `enable_item_edit="true"` 与单元格可编辑属性约束；行选择模式下由既有"选中后单击一次"链路进入编辑，`F2` 快捷键仍仅 kCell 模式支持。

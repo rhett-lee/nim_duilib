@@ -304,7 +304,7 @@
 - 依赖 C1。**进入编辑**的触发：`F2`（当前格）/ 双击 / 直接键入（可配置）。
 - 现有基础：`ListCtrl` 已有基于 `RichEdit` 的就地编辑器路径，定位读取 `pSubItem->GetTextRect()`（[`ListCtrl.cpp`](../../duilib/Control/ListCtrl.cpp#L2838-L2953)，P5 已记录其"未绘制时为空"的边界）。本阶段把定位改为由 C0 的 `GetCellRect` 推导（**合并格按合并矩形**），并补 P5 建议的兜底（矩形为空则回退 `GetRect()`）。
 - **L5 编辑器类型**：按列声明 `SetColumnEditorType(ById, kEditText|kEditNumber|kEditDate|kEditCombo)` / `GetColumnEditorType(ById)`，编辑时创建对应输入控件；数值/日期带解析与校验（可复用日期排序已实现的"六段解析"思路）。
-- 提交/取消语义：`Enter` 提交并下移当前格、`Esc` 取消、失焦提交（可配置）。
+- 提交/取消语义：`Enter` 提交并下移当前格（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）、`Esc` 取消、失焦提交（可配置）。
 - 事件（三件套 + XML）：`kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`。
 
 **验收**：编辑 → 提交 → 写回数据层 → 单格刷新（复用 `kEventReportViewSubItemFilled` 通路）；数值/日期编辑器正确解析。
@@ -321,7 +321,7 @@
 6. `kCell` 模式下 `IsValidItemEditState` 放宽为**只校验 `IsVisible()`**（不再要求行 `IsSelected() && IsFocused()`）；`kRow` 分支逐字保持。
 7. **非法输入策略**：提交时按列声明的编辑器类型校验（空串一律合法＝清空单元格；`kEditText` 恒合法；`kEditNumber` 仅接受合法十进制数值；`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`）；**非法输入不写回数据、不派发 `kEventLeaveEdit`**，等同丢弃本次编辑、保持原值并结束编辑态。
 
-**已落地要点**（补充事实）：`F2` → `EnterCurrentCellEdit()` → `EnterCellEdit` **绕过进入编辑的 600ms 定时器、立即进入编辑**；行不在可视区时先滚动到可视区；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时无反应（返回 `false`）。`Enter` 提交内容写回、且**提交成功后当前格下移一行**；`Esc` 不写回、当前格不动；点击其它区域失焦：提交但**不移动**当前格（与改动前一致）。编辑器类型按**列ID**保存（列序变化不影响），`InsertColumn` 时按 `ListCtrlColumn::nEditorType` 写入、删列时清理，未声明的列 `GetColumnEditorTypeById` 返回 `kEditText`。**不引入 XML 属性**（列由代码声明，编辑器类型经 `ListCtrlColumn::nEditorType` + `SetColumnEditorType(ById)` 设置）。
+**已落地要点**（补充事实）：`F2` → `EnterCurrentCellEdit()` → `EnterCellEdit` **绕过进入编辑的 600ms 定时器、立即进入编辑**；行不在可视区时先滚动到可视区；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时无反应（返回 `false`）。`Enter` 提交内容写回、且**提交成功后当前格下移一行（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）**；`Esc` 不写回、当前格不动；点击其它区域失焦：提交但**不移动**当前格（与改动前一致）。编辑器类型按**列ID**保存（列序变化不影响），`InsertColumn` 时按 `ListCtrlColumn::nEditorType` 写入、删列时清理，未声明的列 `GetColumnEditorTypeById` 返回 `kEditText`。**不引入 XML 属性**（列由代码声明，编辑器类型经 `ListCtrlColumn::nEditorType` + `SetColumnEditorType(ById)` 设置）。
 
 ---
 

@@ -74,7 +74,7 @@
 |kEventSelectColor          | 所选颜色 |     |     |     |       |     | newColor.GetARGB() |
 |kEventSplitDraged          | Control*: <br>第1个控件接口| Control*:<br>第2个控件接口|     |     |       |     |  可能是nullptr  |
 |kEventEnterEdit            | ListCtrlEditParam*:<br>进入编辑状态的数据  |     |     |     |       |     | ListCtrl 单元格编辑：进入编辑状态时派发（行模式单击进入编辑、kCell 模式按 F2 立即进入编辑）；pEventData 指向 ListCtrlEditParam（行索引 / 列ID / 原文本等）；可在此回调中否决（cancel）以阻止进入编辑；kEditCombo 弹出候选浮层前也会派发本事件（同样可在此回调中 cancel 阻止进入编辑） |
-|kEventLeaveEdit            | ListCtrlEditParam*:<br>离开编辑状态的数据    |     |     |     |       |     | ListCtrl 单元格编辑：离开编辑状态时派发（Enter 提交 / 失焦提交 / Esc 取消）；pEventData 指向 ListCtrlEditParam；提交时若输入不合法（数值/日期列）则不派发本事件且不写回数据；Enter 提交成功后 kCell 模式当前格下移一行（应用可在事件回调的 bCancelled 上判断是否被取消） |
+|kEventLeaveEdit            | ListCtrlEditParam*:<br>离开编辑状态的数据    |     |     |     |       |     | ListCtrl 单元格编辑：离开编辑状态时派发（Enter 提交 / 失焦提交 / Esc 取消）；pEventData 指向 ListCtrlEditParam；提交时若输入不合法（数值/日期列）则不派发本事件且不写回数据；Enter 提交成功后 kCell 模式当前格下移一行、kRow 行模式提交候选不移动选中行/不设置当前格/不滚动视图（应用可在事件回调的 bCancelled 上判断是否被取消） |
 |kEventColumnWidthChanged   | 列ID(size_t)  | 关联的另一个列ID(size_t)，<br>可能为Box::InvalidIndex |     |     |       |     | ListCtrl: 列的宽度发生变化（拖动表头分割条、双击自适应或调用SetColumnWidth时触发） |
 |kEventColumnOrderChanged   |     |     |     |     |       |     | ListCtrl: 列的显示顺序发生变化（拖动表头调整列顺序时触发），可通过GetColumnId遍历获取最新顺序 |
 |kEventColumnVisibleChanged | 列ID(size_t)  | 新状态(1显示/0隐藏) |     |     |       |     | ListCtrl: 列的显示/隐藏状态发生变化 |

@@ -3535,6 +3535,13 @@ bool ListCtrl::OnComboKeyDown(const EventArgs& msg)
         CloseComboFlyout();
         return true;
     }
+    //其余列表导航类按键：浮层打开期间不参与列表的行/单元格导航，直接消费，避免按键泄漏导致选择被移动
+    const bool bNavigationKey = (msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
+                                (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                                (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END);
+    if (bNavigationKey) {
+        return true;
+    }
     return false;
 }
 
@@ -4600,14 +4607,32 @@ bool ListCtrl::OnComboCandidateSelected(size_t nIndex)
     editParam.pItem = GetDisplayItemByIndex(editParam.nItemIndex);
     editParam.pSubItem = dynamic_cast<ListCtrlLabel*>(pFlyout->GetAnchor());
     const DString strNewText = candidates[nIndex];
+    const bool bRowMode = (m_selectionMode != ListCtrlSelectionMode::kCell);
+    std::vector<size_t> selectedRowsBefore;
+    if (bRowMode) {
+        //行选择模式：先快照当前选中的行，用于提交后校验选择是否被意外移动
+        GetSelectedDataItems(selectedRowsBefore);
+    }
 
     //先关闭浮层，再提交写回（避免回调期间重复进入编辑流程）
     CloseComboFlyout();
 
     const bool bEdited = OnItemEdited(editParam, strNewText);
-    if (bEdited && (m_selectionMode == ListCtrlSelectionMode::kCell)) {
-        //提交成功后，当前格下移一行（与富文本编辑器按回车提交的语义保持一致）
-        MoveCurrentCellToNextRow();
+    if (bEdited) {
+        if (!bRowMode) {
+            //提交成功后，当前格下移一行（与富文本编辑器按回车提交的语义保持一致）
+            MoveCurrentCellToNextRow();
+        }
+        else {
+            //行选择模式下，提交候选后不应改变选中的行；若发生变化，说明内部存在移动选择的逻辑，
+            //用断言暴露该问题，并恢复提交前的选中行，保证行选择模式不移动任何选择
+            std::vector<size_t> selectedRowsAfter;
+            GetSelectedDataItems(selectedRowsAfter);
+            if (selectedRowsAfter != selectedRowsBefore) {
+                ASSERT(0);
+                SetSelectedDataItems(selectedRowsBefore, true);
+            }
+        }
     }
     return bEdited;
 }
@@ -4716,6 +4741,10 @@ bool ListCtrl::GetEditingCell(ListCtrlCellId& cell) const
 
 void ListCtrl::MoveCurrentCellToNextRow()
 {
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        //仅单元格选择模式支持移动当前格（行选择模式不移动任何选择）
+        return;
+    }
     const ListCtrlCellId cell = GetCurrentCell();
     if (!cell.IsValid() || ((cell.nRowIndex + 1) >= GetDataItemCount())) {
         //当前格无效或者已在最后一行：不移动
