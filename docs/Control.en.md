@@ -2175,7 +2175,6 @@ Interaction notes (aligned with Windows Explorer): in `cell` mode,
 - Paint: the selected area is filled translucent, the current cell gets a focus rectangle; frozen-column cells participate in the selection as well.
 - Pinned rows: the header and pinned rows (non-selectable rows) do not participate in cell selection or highlight painting; clicking/hovering on them does not "pierce through" to select the cells underneath that they occlude, and the cell highlight is never painted over pinned-row content.
 - Single-select semantics: when `multi_select="false"`, the `cell` mode matches the row mode — **at most one cell is selected**: `Shift+click` / `Ctrl+click` behave like a plain click, `Shift+arrow` degrades to plain movement of the current cell, `Ctrl+A`/`Ctrl+Space` change nothing (row mode does not support `Ctrl+Space` either), and no drag-box selection is started; `SetSelectedCells` / `SetCellSelection` keep only the first (or the focus) cell; switching from multi- to single-select trims the selection down to the first cell (symmetric with `OnSwitchToSingleSelect` in row mode). The "current cell" focus box is still kept — only the selection set is limited to one.
-- Not implemented yet: interaction adaptation for cell merging (handled in later phases).
 
 See the ListCtrl example program for a full demo (the table freezes the first column by default, column 2 is a progress bar, column 3 is rich text).
 
