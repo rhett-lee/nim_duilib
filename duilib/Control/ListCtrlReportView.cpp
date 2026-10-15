@@ -77,6 +77,14 @@ bool ListCtrlReportView::OnListBoxItemMouseEvent(const EventArgs& msg)
         if (bLButton || bRButton || (msg.eventType == kEventMouseMove) || (msg.eventType == kEventMouseHover)) {
             //先把鼠标事件转给基类：ListBoxHelper 借此记录框选状态并绘制框选蒙层（与行选择模式同一套实现）
             BaseClass::OnListBoxItemMouseEvent(msg);
+            //鼠标落在"数据行/表头"自身的CheckBox图标上时，不消费该事件（返回false，交给Item自身处理）：
+            //单元格选择模式下若消费该事件，ListBoxItemTemplate::HandleEvent 会提前返回，
+            //Item 不会执行自身的 ButtonDown/ButtonUp，其中的CheckBox勾选逻辑就不生效，
+            //导致行级CheckBox与表头CheckBox点击无响应；放行后由Item自行完成勾选/取消勾选，
+            //整行选择逻辑已由 ListCtrlItem::ButtonDown 在单元格选择模式下跳过，不会误触发整行选择
+            if (bLButton && IsMouseOnItemCheckBox(msg.GetSender(), msg.ptMouse)) {
+                return false;
+            }
             //因为下面会消费事件（阻止 Item 触发行选择以及行级 Hover/Pressed 视觉），Item 不会执行 Control::ButtonDown，
             //不会自动置位"鼠标焦点"状态，故这里显式维护，以满足 ListBoxHelper::OnMouseMove 对 pSender->IsMouseFocused() 的要求
             Control* pSender = msg.GetSender();
@@ -228,6 +236,24 @@ ListCtrlItem* ListCtrlReportView::HitTestTopItem(const UiPoint& ptMouse) const
         }
     }
     return nullptr;
+}
+
+bool ListCtrlReportView::IsMouseOnItemCheckBox(const Control* pSender, const UiPoint& ptMouse) const
+{
+    if (pSender == nullptr) {
+        return false;
+    }
+    //数据行（ListCtrlItem）自身的CheckBox
+    const ListCtrlItem* pListItem = dynamic_cast<const ListCtrlItem*>(pSender);
+    if (pListItem != nullptr) {
+        return pListItem->IsShowCheckBox() && pListItem->IsMouseOnCheckBoxIcon(ptMouse);
+    }
+    //表头（ListCtrlHeader）自身的CheckBox
+    const ListCtrlHeader* pListHeader = dynamic_cast<const ListCtrlHeader*>(pSender);
+    if (pListHeader != nullptr) {
+        return pListHeader->IsShowCheckBox() && pListHeader->IsMouseOnCheckBoxIcon(ptMouse);
+    }
+    return false;
 }
 
 bool ListCtrlReportView::GetTopFixedItemsRect(UiRect& rcTopFixed) const

@@ -242,6 +242,15 @@ public:
     */
     bool IsCheckBoxImageClicked() const;
 
+    /** 判断鼠标点（窗口客户区坐标）是否落在CheckBox图标上
+    *   可用于在事件派发前判断是否需要放行CheckBox的勾选操作
+    *   （例如ListCtrl在单元格选择模式下会消费Item的鼠标消息，需先判断鼠标是否落在行级/表头级CheckBox图标上）
+    *   说明：仅当支持勾选模式(SupportCheckMode()为true)、且当前确实绘制了CheckBox图标时，才可能返回true
+    * @param [in] ptMouse 鼠标点（窗口客户区坐标）
+    * @return 返回true表示鼠标点落在CheckBox图标上，否则返回false
+    */
+    bool IsMouseOnCheckBoxIcon(const UiPoint& ptMouse) const;
+
     /** 设置是否支持勾选模式
     */
     void SetSupportCheckMode(bool bSupport) { m_bSupportCheckMode = bSupport; }
@@ -616,6 +625,16 @@ UiPoint CheckBoxTemplate<InheritType>::GetCheckBoxMousePos(const UiPoint& ptMous
     UiPoint pt(ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
     return pt;
+}
+
+template<typename InheritType>
+bool CheckBoxTemplate<InheritType>::IsMouseOnCheckBoxIcon(const UiPoint& ptMouse) const
+{
+    if (!SupportCheckMode() || (m_pCheckBoxImageRect == nullptr) || m_pCheckBoxImageRect->IsEmpty()) {
+        return false;
+    }
+    const UiPoint pt = GetCheckBoxMousePos(ptMouse);
+    return this->GetPos().ContainsPt(pt) && m_pCheckBoxImageRect->ContainsPt(pt);
 }
 
 template<typename InheritType>

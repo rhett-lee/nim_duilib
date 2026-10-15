@@ -170,7 +170,7 @@
 | C0 | 单元格坐标层（`ListCtrlCellGeometry` / `ListCtrlColumnLayout`） | 已完成 |
 | C1 | 单元格选择模型（`kCell` 模式，与 `RowId` 绑定） | 已完成 |
 | C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
-| C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，以及冻结列区域内 CheckBox 无法勾选的问题，详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
+| C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，冻结列区域内 CheckBox 无法勾选的问题，以及单元格选择模式（`kCell`）下行级 CheckBox（每行行首）与表头 CheckBox 点击无响应的问题（根因为 `OnListBoxItemMouseEvent` 消费事件导致 Item 自身 `ButtonUp` 被跳过，修复为 `CheckBoxTemplate::IsMouseOnCheckBoxIcon` + `ListCtrlReportView::IsMouseOnItemCheckBox` 放行 + `ListCtrlHeader::GetCheckBoxMousePos` override），详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
 | C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 实施中（C0 / C1 / C1b 已完成；后续 C2–C7 待实施） |
 

@@ -380,6 +380,15 @@ private:
     */
     ListCtrlItem* HitTestTopItem(const UiPoint& ptMouse) const;
 
+    /** 判断鼠标点（窗口客户坐标）是否落在"列表项自身的CheckBox图标"上
+    *  列表项指数据行（ListCtrlItem）与表头（ListCtrlHeader），其CheckBox由控件自身绘制；
+    *  用于单元格选择模式下判断是否需要放行鼠标事件，让Item自行完成勾选/取消勾选
+    * @param [in] pSender 鼠标事件所属的控件（即 EventArgs::GetSender()）
+    * @param [in] ptMouse 鼠标位置（窗口客户坐标）
+    * @return 返回true表示鼠标点落在列表项自身的CheckBox图标上
+    */
+    bool IsMouseOnItemCheckBox(const Control* pSender, const UiPoint& ptMouse) const;
+
     /** 计算"表头与置顶行"所占的矩形区域（这些行固定显示在顶部，会遮挡其下方滚动的普通行）
     * @param [out] rcTopFixed 返回表头与置顶行所占的矩形区域
     * @return 是否存在表头或置顶行

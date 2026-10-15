@@ -236,6 +236,12 @@
 
 10. 【中·已修复】**冻结列区域内的 CheckBox 无法勾选 / 取消勾选。** 现象：横向已滚动时，点击冻结列区域内单元格（含行首）的 CheckBox 图标，勾选状态不变。原因：`CheckBoxTemplate::ButtonUp` 自行把原始点换算为"原始点 + `GetScrollOffsetInScrollBox()`"，再与控件矩形及 CheckBox 图标矩形（二者均为未横向滚动的坐标空间）比较；冻结列内控件因横向滚动量非 0 必然落在图标矩形之外，勾选被拒。该判定发生在 `ButtonUp`（`Window::OnButtonUp` 不做命中测试），故仅修正命中遍历期的坐标无法覆盖。修复：`CheckBoxTemplate` 新增 protected 虚函数 `GetCheckBoxMousePos(ptMouse)`（默认实现即原换算），`ButtonUp` 改用它；`ListCtrlItem` 重写为"存在冻结列且行首显示 CheckBox 时，横向偏移按 0 计"（行首 CheckBox / 图标固定显示在行的最左侧，落在冻结列区域内）。冻结列内单元格（`ListCtrlSubItem`）的 CheckBox 则由上一条的 `GetScrollOffsetForChild` 钩子一并修正（其所属列处于冻结范围内）。
 
+11. 【中·已修复】**单元格选择模式下，行级 CheckBox（每行行首）与表头 CheckBox 点击无响应。** 现象：`selection_mode="cell"` 且行级 CheckBox 为显示状态时，点击行首的 CheckBox 图标（以及表头左侧的全选 CheckBox）无法勾选 / 取消勾选（上一会话对此仅按"冻结列坐标口径"修复，未覆盖本独立根因）。原因：`ListCtrlReportView::OnListBoxItemMouseEvent` 在 `kCell` 模式下把 `kEventMouseButtonDown / Up / Move / Hover` 一律 `return true` 消费（用于实现单元格选择与区域扩展）。而 `ListBoxItemTemplate::HandleEvent` 收到鼠标事件时**先**调用 `m_pOwner->OnListBoxItemMouseEvent(msg)`，一旦返回 true 便**直接 return、不再调用 `BaseClass::HandleEvent(msg)`**，即 Item 自身的 `ButtonDown / ButtonUp` 被整体跳过——其中的 `CheckBoxTemplate::ButtonUp`（唯一的勾选落点）因此不执行。受影响对象为自身携带 CheckBox 的两类"列表项"：数据行 `ListCtrlItem` 与表头 `ListCtrlHeader`（表头容器本身也是 `ListBoxItem`）。修复：
+    - `CheckBoxTemplate` 新增 public `bool IsMouseOnCheckBoxIcon(const UiPoint& ptMouse) const;`（仅在 `SupportCheckMode()` 为真且当前已绘制 CheckBox 图标时可能返回 true；内部经 `GetCheckBoxMousePos` 换算后再依次比较控件矩形与图标矩形），为"事件派发前判断是否需要放行"提供判定入口。
+    - `ListCtrlReportView` 新增私有 `bool IsMouseOnItemCheckBox(const Control* pSender, const UiPoint& ptMouse) const;`：仅对 `ListCtrlItem` 与 `ListCtrlHeader` 两类 sender（且 `IsShowCheckBox()` 为真）做判定，单元格 sender（`ListCtrlSubItem`，其鼠标事件由 `ListCtrlLabel::OnMouseEvent` 转发而来）显式排除，确保单元格点击行为零回归。
+    - `ListCtrlReportView::OnListBoxItemMouseEvent` 的 `kCell` 消费分支中：先照常调用 `BaseClass::OnListBoxItemMouseEvent(msg)`（保证 `ListBoxHelper` 的框选状态机仍被驱动、`ButtonUp` 时不遗留拖动状态），随后仅在**左键**且 `IsMouseOnItemCheckBox(...)` 为真时 `return false` 放行，交由 Item 自身完成勾选；`Move / Hover / 右键` 仍按原逻辑消费（避免行级悬停视觉与右键行为变化）。放行后整行选择不会被误触发——`ListCtrlItem::ButtonDown` 在 `kCell` 模式下已跳过整行选择逻辑。
+    - `ListCtrlHeader` 新增 `GetCheckBoxMousePos` override：表头左侧 CheckBox 固定显示在最左侧、位于冻结列区域内（不随横向滚动移动），存在冻结列时将横向偏移按 0 计，使其与 `ListCtrlItem` 同口径、与冻结趟绘制一致；否则横向滚动后 `IsMouseOnCheckBoxIcon` 判定会失败。
+
 **已核实无误（排除的疑点）**
 - 选中集合、锚点、当前格均以 `RowId` 存储，排序 / 增删后跟随原数据行；列删除同步丢弃对应列位图；模式切换双向清空对侧状态。
 - `OnFrameSelectionForCells` 纵向扣除 `GetScrollPos().cy`；横向在**无冻结列**时与 `HitTestCell` 口径一致（均为"窗口坐标 + 横向滚动量"），非缺陷；**启用冻结列且横向已滚动**时的命中错位已按上方"已确认缺陷"第 7 项修复。

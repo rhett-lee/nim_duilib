@@ -463,6 +463,18 @@ bool ListCtrlHeader::SupportCheckMode() const
     return true;
 }
 
+UiPoint ListCtrlHeader::GetCheckBoxMousePos(const UiPoint& ptMouse) const
+{
+    UiPoint pt(ptMouse);
+    pt.Offset(GetScrollOffsetInScrollBox());
+    //表头左侧的CheckBox固定显示在最左侧，位于冻结列区域内（不随横向滚动移动）：
+    //存在冻结列时，横向的滚动量按0计，使点击判定与冻结列的显示位置保持一致
+    if ((m_pListCtrl != nullptr) && (m_pListCtrl->GetFrozenColumnCount() > 0) && IsShowCheckBox()) {
+        pt.x = ptMouse.x;
+    }
+    return pt;
+}
+
 void ListCtrlHeader::OnPrivateSetChecked()
 {
     if (!m_bEnableCheckChangeEvent) {
