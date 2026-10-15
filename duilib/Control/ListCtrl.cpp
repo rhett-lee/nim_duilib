@@ -2359,9 +2359,8 @@ void ListCtrl::SetSelectNone()
 {
     if (m_selectionMode == ListCtrlSelectionMode::kCell) {
         //单元格选择模式：清空所有单元格选择
-        m_pData->ClearCellSelection();
-        NotifyCellSelectionChanged();
-        RefreshCellSelectionView();
+        //复用 ClearCellSelection 的条件派发：仅在确实存在选择状态时才刷新并派发选择变化事件
+        ClearCellSelection();
         return;
     }
     std::vector<size_t> refreshIndexs;
@@ -2505,11 +2504,14 @@ bool ListCtrl::SetCellSelection(const ListCtrlCellId& anchorCell, const ListCtrl
 
 void ListCtrl::ClearCellSelection()
 {
-    if (m_pData != nullptr) {
-        m_pData->ClearCellSelection();
+    if (m_pData == nullptr) {
+        return;
     }
-    NotifyCellSelectionChanged();
-    RefreshCellSelectionView();
+    //仅在确实清除了选择状态时才刷新界面并派发选择变化事件，避免无变化时的多余刷新与事件
+    if (m_pData->ClearCellSelection()) {
+        NotifyCellSelectionChanged();
+        RefreshCellSelectionView();
+    }
 }
 
 void ListCtrl::GetCellSelection(ListCtrlCellId& anchorCell, ListCtrlCellId& focusCell) const
@@ -2907,14 +2909,17 @@ bool ListCtrl::OnCellKeyDown(const EventArgs& msg)
         }
         return true;
     }
-    //Ctrl + Space：切换当前单元格的选中状态
+    //Ctrl + Space：切换当前单元格的选中状态（仅多选模式有效；
+    //单选模式至多一个单元格，与行选择模式保持一致（行选择也不支持该按键），故忽略该按键）
     if (bCtrlDown && (msg.vkCode == kVK_SPACE)) {
-        const ListCtrlCellId cell = GetCurrentCell();
-        if (cell.IsValid()) {
-            const bool bSelected = m_pData->IsCellSelected(cell.nRowIndex, cell.nColumnId);
-            m_pData->SetCellSelected(cell.nRowIndex, cell.nColumnId, !bSelected);
-            NotifyCellSelectionChanged();
-            RefreshCellSelectionView();
+        if (IsMultiSelect()) {
+            const ListCtrlCellId cell = GetCurrentCell();
+            if (cell.IsValid()) {
+                const bool bSelected = m_pData->IsCellSelected(cell.nRowIndex, cell.nColumnId);
+                m_pData->SetCellSelected(cell.nRowIndex, cell.nColumnId, !bSelected);
+                NotifyCellSelectionChanged();
+                RefreshCellSelectionView();
+            }
         }
         return true;
     }

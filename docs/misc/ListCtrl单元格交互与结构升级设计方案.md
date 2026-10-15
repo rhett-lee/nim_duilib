@@ -174,7 +174,7 @@
 | `Home/End` | 首/末行 | 当前行首/末列；`Ctrl+Home/End` = 表格首/末格 |
 | `PageUp/PageDown` | 翻页移动当前行 | 翻页移动当前格 |
 | `Ctrl+A` | 全选行 | **全选单元格** |
-| `Ctrl+Space` | 切换当前行选中 | 切换当前格选中（可选） |
+| `Ctrl+Space` | **不支持**（行模式未实现该按键） | 切换当前格选中（仅多选；单选下与行模式一致，忽略该按键） |
 | `SelectAll/SelectNone` API | 行 | 单元格（**按模式分派**） |
 | `SetSelectedDataItems` API | 行 | 保留原有行为（仍读写底层行选择状态）；界面侧由**绘制层**屏蔽行选中视觉（`ListCtrlReportView::CanPaintSelectedColors` 返回 false），另提供单元格等价 API `SetSelectedCells` |
 
@@ -223,11 +223,13 @@
 3. 【中低·已修复】`kEventCellSelectionChanged` 重复派发。修复：`ListCtrlData::SetCellSelected` 改为比对 `IsCellSelectedByRowId` 旧值，仅当选中状态真正变化时返回 true（返回语义由"是否设置成功"改为"是否发生变化"），拖动期间鼠标移动不再重复派发事件。
 4. 【低·已修复】`m_hoverCell` 以显示索引存储。修复：改为私有 `HoverCellId`（`RowId + 列ID`）存储，`UpdateHoverCell` / `IsCellHovered` 经 `GetRowIdByDisplayIndex` 换算（为此在 `ListCtrlData` 增加 `friend class ListCtrl;`），排序 / 删行后悬停高亮不再漂移到其它数据行。
 5. 【低·文档·已修复】`duilib_defs.h:490-491` 对 `kEventCellSelectionChanged` 的注释更正为"`wParam` ＝ 选中区域个数，`lParam` ＝ 0，`pEventData` 指向 `std::vector<ui::ListCtrlCellRange>`"，与实现一致。
+6. 【低·已修复】`ClearCellSelection` 无条件刷新并派发事件。修复：`ListCtrlData::ClearCellSelection()` 的返回类型由 `void` 改为 `bool`（返回"清除前是否存在实际选择状态"：有选中单元格或存在当前格；因位图可能残留全 0 内容，需遍历位图内容判定而非仅看容器是否为空；锚点仅用于区域扩展、无独立视觉表现，不单独计为变化），`ListCtrl::ClearCellSelection()` 仅在该返回值为 true 时才 `RefreshCellSelectionView()` 并 `NotifyCellSelectionChanged()`（`m_pData == nullptr` 时直接返回），无变化时不做任何刷新与事件派发。**`ListCtrl::SetSelectNone()` 的 `kCell` 分支同源问题一并修复：改为复用 `ClearCellSelection()`，故同样具备"无变化不刷新、不派发"语义。**
 
 **已核实无误（排除的疑点）**
 - 选中集合、锚点、当前格均以 `RowId` 存储，排序 / 增删后跟随原数据行；列删除同步丢弃对应列位图；模式切换双向清空对侧状态。
 - `OnFrameSelectionForCells` 纵向扣除 `GetScrollPos().cy`、横向不换算，与 `HitTestCell`（经 `GetSubItem` 叠加 `GetScrollOffsetInScrollBox`）口径一致，非缺陷。
 - `SelectAll / SelectNone / SetSelectedDataItems` 的模式分派与绘制层视觉屏蔽符合"只隔离视觉、不隔离状态"的既定决策。
+- cell 级 `kEventMouseEnter` / `kEventMouseLeave` 在 `kCell` 与 `kRow` 下完全一致：单元格控件 `ListCtrlSubItem` 自身仍会派发并继续冒泡，应用可用 `AttachBubbledEvent` 在 ListCtrl / 视图上收到（sender 为单元格控件）；C1 只屏蔽了行（`ListCtrlItem`）级的 Hover / Enter / Leave，未触及 cell 级。
 
 **C1c 单选语义对齐（已实施，Debug|x64 编译验证通过）**
 
@@ -237,7 +239,7 @@
 
 实施要点：
 - `ListCtrl::BeginCellDrag`：`!IsMultiSelect()` 时忽略 Shift/Ctrl，按普通单击处理（`SetCurrentCell` 替换选中该格），并**不进入**拖动框选状态（避免拖动时焦点框跟随鼠标而选中集合不动造成视觉错位）。
-- `ListCtrl::OnCellKeyDown`：`Ctrl+A` 仅在多选下生效；`Shift+方向键` 的区域扩展分支增加 `IsMultiSelect()` 条件，单选下退化为普通移动当前格（选中集合随之保持 1 个）；`Ctrl+Space` 维持"至多一个"的切换语义。
+- `ListCtrl::OnCellKeyDown`：`Ctrl+A` 仅在多选下生效；`Shift+方向键` 的区域扩展分支增加 `IsMultiSelect()` 条件，单选下退化为普通移动当前格（选中集合随之保持 1 个）；`Ctrl+Space` 仅在多选下生效，单选下忽略该按键（与行模式一致：行模式本身也未实现 `Ctrl+Space`，全库仅 `kCell` 分支处理该键）。
 - `ListCtrl::SetSelectAll()`：函数入口统一加 `!IsMultiSelect()` 早退（两种模式"全选"均无意义；同时避免行模式下继续走到 `ListCtrlData::SelectAll` 内的 `IsMultiSelect` 断言）。
 - `ListCtrl::SetCellSelection()`：单选下忽略追加语义，仅选中焦点格。
 - `ListCtrl::SetSelectedCells()`：单选下取列表中第一个有效单元格后即结束（`break`），且无论 `bClearOthers` 为何值都先清空（保证结果至多一个单元格）。

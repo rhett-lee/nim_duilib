@@ -2084,7 +2084,7 @@ pListCtrl->SetCurrentCell(0, nColumnId); // replace semantics: clear other cells
 ui::ListCtrlCellId anchorCell, focusCell;
 pListCtrl->SetCellSelection(anchorCell, focusCell, false); // third parameter: true = append this rectangle (keep existing), false = clear first then set
 pListCtrl->GetCellSelection(anchorCell, focusCell);       // get the anchor and focus
-pListCtrl->ClearCellSelection();
+pListCtrl->ClearCellSelection(); // repaints and fires kEventCellSelectionChanged only when there is real selection state (selected cells or a current cell); no event when nothing changed
 
 // Cell equivalents of the row APIs SetSelectedDataItems / GetSelectedDataItems
 std::vector<ui::ListCtrlCellId> cellList;
@@ -2097,7 +2097,7 @@ bool bCurrent  = pListCtrl->IsCellCurrent(0, nColumnId);  // whether the cell is
 
 // Select-all / clear: dispatched by the current mode (cells in cell mode, rows in row mode)
 pListCtrl->SetSelectAll();
-pListCtrl->SetSelectNone();
+pListCtrl->SetSelectNone(); // in cell mode it reuses ClearCellSelection's conditional dispatch: no kEventCellSelectionChanged when nothing is selected
 
 // Events
 pListCtrl->AttachCurrentCellChanged([](const ui::EventArgs& args) {
@@ -2124,11 +2124,11 @@ It can be configured and bound to inline events directly in XML: `<ListCtrl clas
 
 Interaction notes (aligned with Windows Explorer): in `cell` mode,
 - Mouse: a plain click replaces the selection with that cell (clearing others); `Ctrl+click` toggles that cell (clicking again deselects, supporting discontiguous selection); `Shift+click` extends from the anchor to that cell (replace); `Ctrl+Shift+click` extends from the anchor to that cell (append); holding the **left or right button** and dragging shows a light-blue translucent rubber-band overlay **identical** to row-selection mode (reusing `ListBoxHelper`: same color, same alpha, same DPI-scaled border, top clipped at the header bottom); on release the cells inside the rectangle are selected (replace), while `Ctrl+drag` appends (without clearing the existing selection); dragging to the viewport edge auto-scrolls the view (same as row-selection mode).
-- Keyboard: arrow keys move the current cell (replacing the selection with that cell), `Shift+arrow` extends the area (replace), `Ctrl+arrow` moves the focus only without changing the selection, `Ctrl+Shift+arrow` appends an extension; `Home`/`End` go to the first/last column of the current row, `Ctrl+Home`/`Ctrl+End` go to the first/last cell of the table; `PageUp`/`PageDown` page; `Ctrl+A` selects all cells; `Ctrl+Space` toggles the current cell.
+- Keyboard: arrow keys move the current cell (replacing the selection with that cell), `Shift+arrow` extends the area (replace), `Ctrl+arrow` moves the focus only without changing the selection, `Ctrl+Shift+arrow` appends an extension; `Home`/`End` go to the first/last column of the current row, `Ctrl+Home`/`Ctrl+End` go to the first/last cell of the table; `PageUp`/`PageDown` page; `Ctrl+A` selects all cells (multi-select only, ignored in single-select); `Ctrl+Space` toggles the current cell (multi-select only, consistent with row mode, ignored in single-select).
 - Mode isolation: in `cell` mode all row-selection entry points (clicking a row, row Hover/Pushed highlight, `Ctrl+A`/arrow keys, row frame selection, `SetSelectedDataItems`, etc.) do not affect row selection (mouse operations never change the row-selection state, so switching back to `row` mode shows no leftover selected rows); clicking a blank area clears the cell selection. Note: cell-mode rubber-band selection reuses the ListBox frame-selection capability and therefore requires `multi_select == true` (ListCtrl defaults to `true`).
 - Paint: the selected area is filled translucent, the current cell gets a focus rectangle; frozen-column cells participate in the selection as well.
 - Pinned rows: the header and pinned rows (non-selectable rows) do not participate in cell selection or highlight painting; clicking/hovering on them does not "pierce through" to select the cells underneath that they occlude, and the cell highlight is never painted over pinned-row content.
-- Single-select semantics: when `multi_select="false"`, the `cell` mode matches the row mode — **at most one cell is selected**: `Shift+click` / `Ctrl+click` behave like a plain click, `Shift+arrow` degrades to plain movement of the current cell, `Ctrl+A` changes nothing, and no drag-box selection is started; `SetSelectedCells` / `SetCellSelection` keep only the first (or the focus) cell; switching from multi- to single-select trims the selection down to the first cell (symmetric with `OnSwitchToSingleSelect` in row mode). The "current cell" focus box is still kept — only the selection set is limited to one.
+- Single-select semantics: when `multi_select="false"`, the `cell` mode matches the row mode — **at most one cell is selected**: `Shift+click` / `Ctrl+click` behave like a plain click, `Shift+arrow` degrades to plain movement of the current cell, `Ctrl+A`/`Ctrl+Space` change nothing (row mode does not support `Ctrl+Space` either), and no drag-box selection is started; `SetSelectedCells` / `SetCellSelection` keep only the first (or the focus) cell; switching from multi- to single-select trims the selection down to the first cell (symmetric with `OnSwitchToSingleSelect` in row mode). The "current cell" focus box is still kept — only the selection set is limited to one.
 - Not implemented yet: interaction adaptation for cell merging (handled in later phases).
 
 See the ListCtrl example program for a full demo (the table freezes the first column by default, column 2 is a progress bar, column 3 is rich text).

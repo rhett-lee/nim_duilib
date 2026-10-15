@@ -756,8 +756,10 @@ public:
     void SelectAllCells(const std::vector<size_t>& columnIdList);
 
     /** 清除所有单元格选择（选中集合、锚点、当前格一并清空）
+    * @return 清除前是否存在实际的选择状态（有选中单元格或存在当前格）；
+    *         返回 false 表示本来就没有选择，调用方无需刷新界面或派发选择变化事件
     */
-    void ClearCellSelection();
+    bool ClearCellSelection();
 
 private:
     /** 排序数据

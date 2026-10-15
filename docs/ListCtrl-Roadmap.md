@@ -109,7 +109,7 @@
 | 行筛选 / 表头筛选器 | 缺失 | 见 L3 |
 | 汇总行 / 页脚行 | 缺失 | 无固定汇总 / 页脚行 |
 | 复制到剪贴板 / 导出 | 缺失 | 见 L2 |
-| 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格 |
+| 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格（Ctrl+A 与 Ctrl+Space 均仅在多选下生效，单选下忽略；Ctrl+Space 行选择模式本身也不支持） |
 | 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；**遗留：冻结列与单元格选择的命中口径待适配（延后至 C2）；复查发现的 5 项缺陷已修复（见设计方案「C1 复查结论」）；单选（`multi_select=false`）语义已与行模式对齐（见 C1c）** |
 | 单元格 tooltip | 已具备 | `auto_tooltip="true"` 默认开启，超长自动提示 |
 | 自定义单元格渲染器（嵌入任意控件） | 缺失 | 见 L4，现仅内置文本 / 图标 / CheckBox / 进度条 / 富文本 |

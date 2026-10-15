@@ -791,11 +791,27 @@ void ListCtrlData::SelectAllCells(const std::vector<size_t>& columnIdList)
     SetCellSelectionRect(0, nCount - 1, columnIdList, false);
 }
 
-void ListCtrlData::ClearCellSelection()
+bool ListCtrlData::ClearCellSelection()
 {
+    //判断清除前是否真的存在选择状态：位图可能残留（某格被选中后又取消，位图仍在但内容全为0），
+    //故需遍历位图内容确认，不能仅以"位图容器非空"判定
+    bool bHasSelectedCell = false;
+    for (auto iter = m_cellSelected.begin(); (iter != m_cellSelected.end()) && !bHasSelectedCell; ++iter) {
+        const std::vector<uint8_t>& bitmap = iter->second;
+        for (size_t nIndex = 0; nIndex < bitmap.size(); ++nIndex) {
+            if (bitmap[nIndex] != 0) {
+                bHasSelectedCell = true;
+                break;
+            }
+        }
+    }
+    //锚点仅用于区域扩展、无独立视觉表现，故不单独计为变化；当前格有焦点框，属于状态变化
+    const bool bChanged = bHasSelectedCell || m_currentCell.IsValid();
+
     m_anchorCell = CellIdentity();
     m_currentCell = CellIdentity();
     m_cellSelected.clear();
+    return bChanged;
 }
 
 size_t ListCtrlData::GetDataItemCount() const

@@ -720,6 +720,7 @@ public:
     bool SetCellSelection(const ListCtrlCellId& anchorCell, const ListCtrlCellId& focusCell, bool bAdditive);
 
     /** 清除单元格的选择区域
+        仅在确实存在选择状态（有选中单元格或当前格）时才刷新界面并派发 kEventCellSelectionChanged 事件
     */
     void ClearCellSelection();
 

@@ -2084,7 +2084,7 @@ pListCtrl->SetCurrentCell(0, nColumnId); // 替换语义：清除其它选择，
 ui::ListCtrlCellId anchorCell, focusCell;
 pListCtrl->SetCellSelection(anchorCell, focusCell, false); // 第三个参数 true=追加该矩形（不清除已有），false=先清除再设置
 pListCtrl->GetCellSelection(anchorCell, focusCell);       // 取回锚点与焦点
-pListCtrl->ClearCellSelection();
+pListCtrl->ClearCellSelection(); // 仅在确实存在选择状态（有选中单元格或当前格）时才刷新并派发 kEventCellSelectionChanged；无变化时不派发
 
 // 单元格等价接口（对应行选择的 SetSelectedDataItems / GetSelectedDataItems）
 std::vector<ui::ListCtrlCellId> cellList;
@@ -2097,7 +2097,7 @@ bool bCurrent  = pListCtrl->IsCellCurrent(0, nColumnId);  // 该单元格是否�
 
 // 全选 / 清空：按当前模式分派（cell 模式为单元格，row 模式为行）
 pListCtrl->SetSelectAll();
-pListCtrl->SetSelectNone();
+pListCtrl->SetSelectNone(); // cell 模式下复用 ClearCellSelection 的条件派发：无选择时不会派发 kEventCellSelectionChanged
 
 // 事件
 pListCtrl->AttachCurrentCellChanged([](const ui::EventArgs& args) {
@@ -2124,11 +2124,11 @@ XML 中可直接配置并绑定内联事件：`<ListCtrl class="list_ctrl" selec
 
 交互说明（对齐 Windows 资源管理器）：`cell` 模式下
 - 鼠标：单击替换选中该格（清除其它）；`Ctrl+单击`切换该格选中状态（再次点击取消，支持不连续选择）；`Shift+单击`以锚点扩展到该格（替换）；`Ctrl+Shift+单击`以锚点扩展到该格（追加）；按住**左键或右键**拖动：出现与行选择模式**完全一致**的浅蓝半透明矩形框选蒙层（复用 `ListBoxHelper`，同色/同透明度/同 DPI 缩放边框/顶部裁剪到表头下沿），松手后矩形内的单元格被选中（替换），`Ctrl+拖动`为追加（不清除已有）；拖到视口边缘会自动滚动视图（与行选择模式同款）。
-- 键盘：方向键移动当前格（单选替换该格）、`Shift+方向键`扩展区域（替换）、`Ctrl+方向键`仅移动焦点不改变选择、`Ctrl+Shift+方向键`追加扩展；`Home`/`End` 到当前行首/末列，`Ctrl+Home`/`Ctrl+End` 到表格首/末格；`PageUp`/`PageDown` 翻页；`Ctrl+A` 全选单元格；`Ctrl+Space` 切换当前格选中状态。
+- 键盘：方向键移动当前格（单选替换该格）、`Shift+方向键`扩展区域（替换）、`Ctrl+方向键`仅移动焦点不改变选择、`Ctrl+Shift+方向键`追加扩展；`Home`/`End` 到当前行首/末列，`Ctrl+Home`/`Ctrl+End` 到表格首/末格；`PageUp`/`PageDown` 翻页；`Ctrl+A` 全选单元格（仅多选，单选下忽略）；`Ctrl+Space` 切换当前格选中状态（仅多选，与行选择模式一致，单选下忽略）。
 - 模式隔离：`cell` 模式下所有行选择入口（鼠标点击行、行 Hover/Pushed 高亮、键盘 `Ctrl+A`/方向键、行框选、`SetSelectedDataItems` 等）均不对行选择生效（鼠标操作不会改动行选择状态，切回 `row` 模式不会出现残留选中行）；空白处单击清空单元格选择。注意：单元格模式下的鼠标框选复用 ListBox 的框选能力，需要 `multi_select == true`（ListCtrl 默认为 `true`）。
 - 绘制：选中区域半透明填充、当前格焦点框；冻结列单元格同样参与选择。
 - 置顶行：表头与置顶行（不可选行）不参与单元格选择与高亮绘制；鼠标点击/悬停在其上时不会"穿透"选中被其遮挡的下方单元格，单元格高亮也不会绘制到置顶行内容之上。
-- 单选语义：`multi_select="false"`（单选）时，`cell` 模式与行模式一致，**至多选中一个单元格** —— `Shift+单击`/`Ctrl+单击` 按普通单击处理、`Shift+方向键` 退化为普通移动当前格、`Ctrl+A` 不做任何改变、单击后不进入拖动框选状态；`SetSelectedCells` / `SetCellSelection` 只保留第一个（或焦点）单元格；由多选切换到单选时，已选中的多个单元格自动裁剪为保留首格（与行模式的 `OnSwitchToSingleSelect` 对称）。"当前格焦点框"仍然保留，仅把选中集合限制为 1。
+- 单选语义：`multi_select="false"`（单选）时，`cell` 模式与行模式一致，**至多选中一个单元格** —— `Shift+单击`/`Ctrl+单击` 按普通单击处理、`Shift+方向键` 退化为普通移动当前格、`Ctrl+A`/`Ctrl+Space` 不做任何改变（行选择模式同样不支持 `Ctrl+Space`）、单击后不进入拖动框选状态；`SetSelectedCells` / `SetCellSelection` 只保留第一个（或焦点）单元格；由多选切换到单选时，已选中的多个单元格自动裁剪为保留首格（与行模式的 `OnSwitchToSingleSelect` 对称）。"当前格焦点框"仍然保留，仅把选中集合限制为 1。
 - 暂未实现：单元格合并的交互适配（随后续阶段处理）。
 
 完整演示见 ListCtrl 示例程序（表格默认冻结首列，第2列为进度条、第3列为富文本）。
