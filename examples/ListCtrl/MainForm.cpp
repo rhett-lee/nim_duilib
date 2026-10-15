@@ -53,6 +53,11 @@ void MainForm::OnInitWindow()
     pListImageList->AddImageString(_T("file='display-color.svg' width='32' height='32' valign='center' halign='center'"), Dpi());
     pIconImageList->AddImageString(_T("file='display-color.svg' width='64' height='64' valign='center' halign='center'"), Dpi());
 
+    //默认在表头显示CheckBox
+    if (pListCtrl->GetHeaderCtrl() != nullptr) {
+        pListCtrl->GetHeaderCtrl()->SetShowCheckBox(true);
+    }
+
     //填充数据
     InsertItemData(400, 9, (int32_t)m_imageId);
 
@@ -1508,6 +1513,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     if (pListCtrl == nullptr) {
         return;
     }
+
     const size_t columnCount = nColumns;
     const size_t rowCount = nRows;
     bool bShowCheckBox = true; //是否显示CheckBox
