@@ -319,7 +319,7 @@
 2. **不新增任何事件**：复用既有 `kEventEnterEdit` / `kEventLeaveEdit`；原设计提出的 `kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`（含"取消事件"）**未采纳**。
 3. 四种编辑器类型**均已实现**（枚举 `ListCtrlEditorType : int8_t`，字段 `ListCtrlColumn::nEditorType`）：`kEditText` / `kEditNumber` / `kEditDate` / `kEditCombo`（下拉候选编辑器：候选按列配置 `SetColumnCandidates(ById)`，编辑时在单元格下方弹出候选浮层，复用 `Flyout` + `VListBox`、不抢焦点；鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回；kCell 模式与行选择模式均支持）；该编辑器与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**。
 4. `kEditText` / `kEditNumber` / `kEditDate` **共用同一个 `RichEdit` 编辑器**；`kEditCombo` 改用候选浮层（`Flyout` + `VListBox`），不使用 `RichEdit`。
-5. 单元格定位仍沿用既有的 `GetTextRect()` 路径，**未引入新的定位层**（原设计"改为由 C0 的 `GetCellRect` 推导并补矩形为空回退 `GetRect()` 兜底"未实施）。
+5. 单元格定位仍沿用既有的 `GetTextRect()` 路径，**未引入新的定位层**（原设计"改为由 C0 的 `GetCellRect` 推导"未实施）；其中"**矩形为空回退 `GetRect()`**"的兜底**已实施**（对应路线图 P5）：`ListCtrlLabel::GetTextRect()`（`ListCtrlLabel.cpp`）在文本矩形为空（`IsEmpty()`：尚未绘制 / 尚未布局，或宽高无效）时回退到 `GetRect()` 并对结果 `Validate()`，使就地编辑器定位不再依赖绘制副产物的调用时序；Debug\|x64 编译验证通过。
 6. `kCell` 模式下 `IsValidItemEditState` 放宽为**只校验 `IsVisible()`**（不再要求行 `IsSelected() && IsFocused()`）；`kRow` 分支逐字保持。
 7. **非法输入策略**：提交时按列声明的编辑器类型校验（空串一律合法＝清空单元格；`kEditText` 恒合法；`kEditNumber` 仅接受合法十进制数值；`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`）；**非法输入不写回数据、不派发 `kEventLeaveEdit`**，等同丢弃本次编辑、保持原值并结束编辑态。
 
