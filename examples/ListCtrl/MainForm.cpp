@@ -4,6 +4,8 @@
 #include <cmath>
 #include <chrono>
 
+#include "duilib/Utils/FilePath.h"
+
 #if defined (DUILIB_BUILD_FOR_WIN)
     #include <psapi.h>
     #pragma comment(lib, "psapi.lib")
@@ -704,6 +706,37 @@ void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
     if (pButton != nullptr) {
         pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
             StressTestCompact(pListCtrl);
+            return true;
+            });
+    }
+    //C2：复制选中内容到剪贴板（TSV格式，与 Ctrl+C 效果一致）
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("copy_selection_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            const bool bRet = pListCtrl->CopySelectionToClipboard(false);
+            ui::SystemUtil::ShowMessageBox(this,
+                bRet ? _T("Copy to clipboard: OK (paste into Excel to verify)") :
+                       _T("Copy to clipboard: FAILED (no selection, or enable_copy is false)"),
+                ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_COPY_EXPORT_TITLE")));
+            return true;
+            });
+    }
+    //C2：导出CSV文件（仅导出当前选中内容；文件位于资源目录，可用 Excel 直接打开）
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("export_csv_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
+            csvPath /= ui::FilePath(_T("list_ctrl_export.csv"));
+            const DString strFilePath = csvPath.ToString();
+            const bool bRet = pListCtrl->ExportToCsvFile(strFilePath, true);
+            DString msg;
+            if (bRet) {
+                msg = ui::StringUtil::Printf(_T("Export CSV: OK\nFile: %s"), strFilePath.c_str());
+            }
+            else {
+                msg = _T("Export CSV: FAILED (no selection/data, or enable_csv_export is false)");
+            }
+            ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_COPY_EXPORT_TITLE")));
             return true;
             });
     }

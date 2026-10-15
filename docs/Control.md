@@ -1891,6 +1891,8 @@ DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`Tr
 | list_ctrl_richedit_class | | string | 编辑框的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
 | frozen_column_count | 0 | int | 冻结列的个数：固定列表左侧的前N列，横向滚动时这些列固定不动（0表示不冻结）|
 | selection_mode | "row" | string | 选择模式，可选值："row"（行选择，默认）、"cell"（单元格选择）|
+| enable_copy | true | bool | 是否支持复制选中内容到剪贴板（`Ctrl+C` 复制为 TSV：行模式复制选中行、单元格模式复制选中区域）|
+| enable_csv_export | true | bool | 是否支持 CSV 导出（`Ctrl+Shift+C` 复制为 CSV 到剪贴板，以及 `ExportToCsvFile` 导出到文件）|
 
 ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性    
 ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性设置:[Box.md](Box.md)，视图的属性需要在`global.xml` 中设置。
@@ -1914,6 +1916,7 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 单元格选择模式 | `selection_mode`（XML，`row`/`cell`）/ `SetSelectionMode` / `GetSelectionMode` | 选择模式：`row`（行选择，默认，既有行为不变）/ `cell`（单元格选择）；切到 `cell` 会清空行选择，切回 `row` 会清空单元格选择 |
 | 单元格选择 | `SetCurrentCell` / `GetCurrentCell` / `SetCellSelection` / `ClearCellSelection` / `GetCellSelection` / `SetSelectedCells` / `GetSelectedCells` / `IsCellSelected` / `IsCellCurrent` | 单元格选择模式下的当前格与选择集合：底层按行身份（RowId）+ 列ID 逐单元格保存选中状态（与显示顺序解耦，排序后不漂移），支持**不连续**选择。单击替换选中该格（锚点=焦点），`Ctrl+单击`切换该格选中状态，`Shift+单击`/拖动按矩形替换，`Ctrl+拖动`/`Ctrl+Shift+单击`按矩形追加；`GetSelectedCells` 展开为单元格列表（跳过被合并覆盖的单元格），`SetSelectedCells` 为行选择 `SetSelectedDataItems` 的单元格等价接口 |
 | 单元格选择事件 | `AttachCurrentCellChanged` / `AttachCellSelectionChanged` | `kEventCurrentCellChanged`（当前单元格变化，wParam=行显示索引，lParam=列ID）/ `kEventCellSelectionChanged`（选择区域变化，wParam=区域个数，pEventData 指向 `std::vector<ui::ListCtrlCellRange>*`（选中区域列表，可能多项，空表示无选择））；XML 内联事件名 `on_current_cell_changed` / `on_cell_selection_changed` |
+| 复制 / 导出 | `enable_copy` / `SetEnableCopy` / `IsEnableCopy`、`enable_csv_export` / `SetEnableCsvExport` / `IsEnableCsvExport`、`CopySelectionToClipboard(bCsvFormat)`、`ExportToCsvFile(路径, 是否仅选中)` | TSV 复制（`Ctrl+C`：行模式复制选中行、单元格模式复制选中区域）与 CSV 导出（`Ctrl+Shift+C` 复制为 CSV 到剪贴板；`ExportToCsvFile` 写 UTF-8 BOM 的 CSV 文件，便于 Excel 直接打开、中文不乱码）。`kCell` 多区域选择取**并集外接矩形**，矩形内未选中单元格输出空串以保证行列对齐；整表导出不含表头行；与编辑态互斥（编辑中先提交再复制）。两个开关默认开启，关闭时对应快捷键与接口均 inert（返回 `false`，不改变编辑态与数据） |
 | 行/单元格模式分派 | `SetSelectAll` / `SetSelectNone`；`SetSelectedDataItems` / `GetSelectedDataItems` | `SetSelectAll` / `SetSelectNone` 按当前模式分派（`row` 全选/清空行，`cell` 全选/清空单元格）；行专用接口 `SetSelectedDataItems` / `GetSelectedDataItems` **保留原有行为**（仍正常读写底层行选择状态），必要时可用 `SetSelectedCells` / `GetSelectedCells` 作为单元格等价接口。`cell` 模式下不通过屏蔽接口来实现隔离，而是由**绘制层**屏蔽行选中视觉表现（`ListCtrlReportView::CanPaintSelectedColors` 返回 false），因此无论行选择状态由哪个入口（鼠标右键、键盘、API）改动，界面都看不出行被选中 |
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式（文本/数值/日期/进度等），鼠标点击该列表头排序时自动采用；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），`kSortByTextAsDate` 文本按日期时间先后比较（`"2024-3-7" < "2024-10-1"`） |
 | 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序、可含越界/重复项，重复与越界项被忽略），内部按行身份去重后对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移；返回实际删除行数 |

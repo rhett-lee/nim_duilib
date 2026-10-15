@@ -265,7 +265,7 @@
 
 ---
 
-### C2　单元格复制 / 导出（L2）
+### C2　单元格复制 / 导出（L2）（已实施，Debug|x64 编译验证通过）
 
 - 依赖 C1。`Ctrl+C`：
   - `kRow` 模式：复制选中行（多行 → TSV 逐行）；
@@ -277,6 +277,25 @@
 - 事件（可选）：`kEventCellsCopied` + XML。
 
 **验收**：复制结果粘贴到 Excel 行列对齐正确；含合并格时不串位。
+
+**实施要点（已落地）**
+
+- **属性开关（默认打开，可配置关闭）**：
+  - `enable_copy`（默认 `true`）：控制 TSV 复制——`Ctrl+C` 与 `CopySelectionToClipboard(false)`。
+  - `enable_csv_export`（默认 `true`）：控制 CSV 能力——`Ctrl+Shift+C`、`CopySelectionToClipboard(true)`、`ExportToCsvFile(...)`。
+  - 开关关闭时为 inert：快捷键不生效、接口返回 `false`，且不触碰编辑态与数据。
+- **接口**：`SetEnableCopy` / `IsEnableCopy`、`SetEnableCsvExport` / `IsEnableCsvExport`；
+  `bool CopySelectionToClipboard(bool bCsvFormat = false)`；`bool ExportToCsvFile(const DString& strFilePath, bool bSelectedOnly = true)`。
+  私有辅助：`DString BuildSelectionText(bool bCsvFormat, bool bSelectedOnly) const`、`static DString EscapeText(const DString& strText, bool bCsvFormat)`。
+- **快捷键接入点**：`kCell` 模式在 `ListCtrl::OnCellKeyDown`（Ctrl+A / Ctrl+Space 之后）消费该按键；`kRow` 模式在 `ListCtrl::HandleEvent` 的键盘分支内拦截（`Ctrl+C` 未被行模式处理时会继续冒泡）。两种模式互斥判断，不会重复处理。
+- **格式规则**：行分隔符统一 `\r\n`；TSV 单元格分隔符 `\t`（单元格内的制表符/回车/换行替换为空格）；CSV 按 RFC4180 最小化引用（含 `,` `"` `\r` `\n` 才加双引号，内部双引号翻倍）。
+- **选择内容口径**：
+  - `kRow`：输出 `GetSelectedDataItems()` 返回的选中行（去重升序），列取当前列序的全部列。
+  - `kCell`：取 `GetSelectedCellRanges()` 所有区域的**并集外接矩形**，矩形内未落在任一选中区域的单元格输出空串（保证行列对齐、不串位）；列范围限定在外接矩形的列序区间。
+  - `ExportToCsvFile(..., false)` 导出整表：输出全部数据行（**不含表头行**），列取当前列序的全部列。
+- **文件编码**：`ExportToCsvFile` 写入 UTF-8 BOM + UTF-8 正文，便于 Excel 直接打开且中文不乱码。
+- **明确未做**：`kEventCellsCopied` 事件（设计文档标注为「可选」）、`Ctrl+V` 粘贴 TSV（留待后续阶段）。
+- **C4 扩展点**：`BuildSelectionText` 取单元格文本处已留注释，C4 单元格合并实施后应按合并锚点格的展开区域填同一文本。
 
 ---
 

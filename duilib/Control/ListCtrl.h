@@ -876,6 +876,36 @@ public:
     */
     bool IsEnableItemEdit() const;
 
+    /** 设置是否支持复制选中内容到剪贴板（Ctrl+C，TSV 格式；默认 true）
+    */
+    void SetEnableCopy(bool bEnableCopy);
+
+    /** 判断是否支持复制选中内容到剪贴板
+    */
+    bool IsEnableCopy() const;
+
+    /** 设置是否支持 CSV 导出（Ctrl+Shift+C 复制为 CSV，及 ExportToCsvFile；默认 true）
+    */
+    void SetEnableCsvExport(bool bEnableCsvExport);
+
+    /** 判断是否支持 CSV 导出
+    */
+    bool IsEnableCsvExport() const;
+
+    /** 复制当前选中内容到剪贴板
+    * @param [in] bCsvFormat true 表示 CSV 格式（受 enable_csv_export 开关控制），
+    *                       false 表示 TSV 格式（受 enable_copy 开关控制）
+    * @return 返回 true 表示复制成功；开关关闭、无选中内容、剪贴板写入失败时返回 false
+    */
+    bool CopySelectionToClipboard(bool bCsvFormat = false);
+
+    /** 导出为 CSV 文件（UTF-8 BOM 编码，便于 Excel 直接打开）
+    * @param [in] strFilePath CSV 文件路径（由应用提供，绝对路径）
+    * @param [in] bSelectedOnly true 表示仅导出当前选中内容，false 表示导出整表
+    * @return 返回 true 表示导出成功；enable_csv_export 开关关闭、无数据、写文件失败时返回 false
+    */
+    bool ExportToCsvFile(const DString& strFilePath, bool bSelectedOnly = true);
+
     /** 获取编辑框控件的接口(只有执行编辑操作以后，才有值)
     */
     RichEdit* GetRichEdit() const;
@@ -1492,6 +1522,21 @@ private:
     */
     void GetSelectedCellRanges(std::vector<ListCtrlCellRange>& rangeList) const;
 
+    /** 生成选中内容（或整表）的文本
+    * @param [in] bCsvFormat true 表示 CSV 格式（符合 RFC4180），false 表示 TSV 格式（制表符分隔）
+    * @param [in] bSelectedOnly true 表示仅导出当前选中内容，false 表示导出整表（仅 CSV 导出路径使用）
+    * @return 返回生成的文本（无内容时返回空串）
+    */
+    DString BuildSelectionText(bool bCsvFormat, bool bSelectedOnly) const;
+
+    /** 转义单个字段的内容
+    * @param [in] strText 原始字段文本
+    * @param [in] bCsvFormat true 表示 CSV 格式（按需加双引号，并翻倍内部双引号）；
+    *                         false 表示 TSV 格式（把制表符/回车/换行替换为空格）
+    * @return 返回转义后的文本
+    */
+    static DString EscapeText(const DString& strText, bool bCsvFormat);
+
     /** 单元格选择模式：派发"当前单元格发生变化"事件
     */
     void NotifyCurrentCellChanged(const ListCtrlCellId& cell);
@@ -1733,6 +1778,14 @@ private:
     /** 是否显示数据项的CheckBox（行级）
     */
     bool m_bDataItemShowCheckBox;
+
+    /** 是否支持复制选中内容到剪贴板（默认 true）
+    */
+    bool m_bEnableCopy;
+
+    /** 是否支持 CSV 导出（默认 true）
+    */
+    bool m_bEnableCsvExport;
 
     /** 是否支持子项编辑
     */

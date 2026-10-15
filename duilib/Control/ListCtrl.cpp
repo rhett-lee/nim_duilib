@@ -5,7 +5,11 @@
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Utils/Clipboard.h"
+#include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include <set>
+#include <algorithm>
 
 namespace ui
 {
@@ -30,6 +34,8 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_bDataItemShowCheckBox(false),
     m_listCtrlType(ListCtrlType::Report),
     m_pRichEdit(nullptr),
+    m_bEnableCopy(true),
+    m_bEnableCsvExport(true),
     m_bEnableItemEdit(true),
     m_nItemHeight(0),
     m_nHeaderHeight(0),
@@ -232,6 +238,12 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("enable_item_edit")) {
         SetEnableItemEdit(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("enable_copy")) {
+        SetEnableCopy(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("enable_csv_export")) {
+        SetEnableCsvExport(StringUtil::IsValueTrue(strValue));
+    }
     else if (strName == _T("list_ctrl_richedit_class")) {
         SetRichEditClass(strValue);
     }
@@ -293,6 +305,17 @@ void ListCtrl::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
     if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
+        //行选择模式：Ctrl+C 复制选中行（TSV格式），Ctrl+Shift+C 复制为CSV格式
+        //（单元格选择模式下由 OnCellKeyDown 处理并已消费该事件，此处不会重复处理）
+        if ((m_selectionMode == ListCtrlSelectionMode::kRow) &&
+            (msg.eventType == kEventKeyDown) &&
+            Keyboard::IsKeyDown(kVK_CONTROL) &&
+            ((msg.vkCode == _T('C')) || (msg.vkCode == _T('c')))) {
+            if (CopySelectionToClipboard(Keyboard::IsKeyDown(kVK_SHIFT))) {
+                //已处理，不再转交视图
+                return;
+            }
+        }
         OnViewKeyboardEvents(msg);
     }
     else if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
@@ -947,6 +970,258 @@ void ListCtrl::SetEnableItemEdit(bool bEnableItemEdit)
 bool ListCtrl::IsEnableItemEdit() const
 {
     return m_bEnableItemEdit;
+}
+
+void ListCtrl::SetEnableCopy(bool bEnableCopy)
+{
+    m_bEnableCopy = bEnableCopy;
+}
+
+bool ListCtrl::IsEnableCopy() const
+{
+    return m_bEnableCopy;
+}
+
+void ListCtrl::SetEnableCsvExport(bool bEnableCsvExport)
+{
+    m_bEnableCsvExport = bEnableCsvExport;
+}
+
+bool ListCtrl::IsEnableCsvExport() const
+{
+    return m_bEnableCsvExport;
+}
+
+DString ListCtrl::EscapeText(const DString& strText, bool bCsvFormat)
+{
+    if (!bCsvFormat) {
+        //TSV格式：单元格内的制表符/回车/换行会破坏行列结构，统一替换为空格
+        DString strResult = strText;
+        for (DString::value_type& ch : strResult) {
+            if ((ch == _T('\t')) || (ch == _T('\r')) || (ch == _T('\n'))) {
+                ch = _T(' ');
+            }
+        }
+        return strResult;
+    }
+
+    //CSV格式(RFC4180)：字段中含逗号/双引号/回车/换行时，才用双引号包裹字段
+    const bool bNeedQuote = (strText.find(_T(',')) != DString::npos) ||
+                            (strText.find(_T('"')) != DString::npos) ||
+                            (strText.find(_T('\r')) != DString::npos) ||
+                            (strText.find(_T('\n')) != DString::npos);
+    if (!bNeedQuote) {
+        return strText;
+    }
+    DString strResult;
+    strResult += _T('"');
+    for (const DString::value_type ch : strText) {
+        if (ch == _T('"')) {
+            //字段内部的双引号需要翻倍
+            strResult += _T('"');
+        }
+        strResult += ch;
+    }
+    strResult += _T('"');
+    return strResult;
+}
+
+DString ListCtrl::BuildSelectionText(bool bCsvFormat, bool bSelectedOnly) const
+{
+    const size_t nColumnCount = GetColumnCount();
+    if ((nColumnCount == 0) || (GetDataItemCount() == 0)) {
+        return DString();
+    }
+
+    //需要输出的列（按当前列序的全部有效列；导出整表时不包含表头行）
+    std::vector<size_t> columnIdList;
+    columnIdList.reserve(nColumnCount);
+    for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+        const size_t nColumnId = GetColumnId(nColumnIndex);
+        if (IsValidColumnId(nColumnId)) {
+            columnIdList.push_back(nColumnId);
+        }
+    }
+    if (columnIdList.empty()) {
+        return DString();
+    }
+
+    //行输出范围（闭区间）与单元格参与判定
+    std::vector<size_t> rowIndexList;          //需要输出的行（显示索引）
+    bool bCellMode = false;                    //是否按单元格区域的"外接矩形"输出
+    struct SelectedRect
+    {
+        size_t nRowBegin;       //起始行（显示索引）
+        size_t nRowEnd;         //结束行（显示索引）
+        size_t nColumnBegin;    //起始列（列序）
+        size_t nColumnEnd;      //结束列（列序）
+    };
+    std::vector<SelectedRect> rectList;        //kCell 模式下的选中区域（已换算为列序）
+    size_t nRowBegin = 0;
+    size_t nRowEnd = 0;
+    size_t nColumnBegin = 0;
+    size_t nColumnEnd = 0;
+
+    if (!bSelectedOnly) {
+        //导出整表：输出全部数据行
+        const size_t nDataItemCount = GetDataItemCount();
+        rowIndexList.reserve(nDataItemCount);
+        for (size_t nRowIndex = 0; nRowIndex < nDataItemCount; ++nRowIndex) {
+            rowIndexList.push_back(nRowIndex);
+        }
+    }
+    else if (m_selectionMode == ListCtrlSelectionMode::kRow) {
+        //行选择模式：输出选中的行
+        GetSelectedDataItems(rowIndexList);
+        std::sort(rowIndexList.begin(), rowIndexList.end());
+        rowIndexList.erase(std::unique(rowIndexList.begin(), rowIndexList.end()), rowIndexList.end());
+    }
+    else if (m_selectionMode == ListCtrlSelectionMode::kCell) {
+        //单元格选择模式：取所有选中区域的并集外接矩形，矩形内未选中的单元格输出空串
+        std::vector<ListCtrlCellRange> rangeList;
+        GetSelectedCellRanges(rangeList);
+        bool bHasRect = false;
+        for (const ListCtrlCellRange& range : rangeList) {
+            if (!range.IsValid()) {
+                continue;
+            }
+            const size_t nColumnIndexBegin = GetColumnIndex(range.nColumnIdBegin);
+            const size_t nColumnIndexEnd = GetColumnIndex(range.nColumnIdEnd);
+            if (!Box::IsValidItemIndex(nColumnIndexBegin) || !Box::IsValidItemIndex(nColumnIndexEnd)) {
+                continue;
+            }
+            SelectedRect rect;
+            rect.nRowBegin = range.nRowBegin;
+            rect.nRowEnd = range.nRowEnd;
+            rect.nColumnBegin = (nColumnIndexBegin < nColumnIndexEnd) ? nColumnIndexBegin : nColumnIndexEnd;
+            rect.nColumnEnd = (nColumnIndexBegin < nColumnIndexEnd) ? nColumnIndexEnd : nColumnIndexBegin;
+            rectList.push_back(rect);
+
+            if (!bHasRect) {
+                bHasRect = true;
+                nRowBegin = rect.nRowBegin;
+                nRowEnd = rect.nRowEnd;
+                nColumnBegin = rect.nColumnBegin;
+                nColumnEnd = rect.nColumnEnd;
+            }
+            else {
+                if (rect.nRowBegin < nRowBegin) { nRowBegin = rect.nRowBegin; }
+                if (rect.nRowEnd > nRowEnd) { nRowEnd = rect.nRowEnd; }
+                if (rect.nColumnBegin < nColumnBegin) { nColumnBegin = rect.nColumnBegin; }
+                if (rect.nColumnEnd > nColumnEnd) { nColumnEnd = rect.nColumnEnd; }
+            }
+        }
+        if (!bHasRect) {
+            return DString();
+        }
+        bCellMode = true;
+        for (size_t nRowIndex = nRowBegin; nRowIndex <= nRowEnd; ++nRowIndex) {
+            rowIndexList.push_back(nRowIndex);
+        }
+        //列的输出范围限定在外接矩形内（列序区间）
+        columnIdList.clear();
+        for (size_t nColumnIndex = nColumnBegin; (nColumnIndex <= nColumnEnd) && (nColumnIndex < nColumnCount); ++nColumnIndex) {
+            const size_t nColumnId = GetColumnId(nColumnIndex);
+            if (IsValidColumnId(nColumnId)) {
+                columnIdList.push_back(nColumnId);
+            }
+        }
+    }
+
+    if (rowIndexList.empty() || columnIdList.empty()) {
+        return DString();
+    }
+
+    //判断某个单元格是否落在选中区域内（仅 kCell 模式使用；columnIndex 为 columnIdList 中的序号）
+    auto isCellSelected = [&rectList, nColumnBegin](size_t nRowIndex, size_t nColumnIndex) -> bool {
+        const size_t nColumnOrder = nColumnBegin + nColumnIndex;
+        for (const SelectedRect& rect : rectList) {
+            if ((nRowIndex >= rect.nRowBegin) && (nRowIndex <= rect.nRowEnd) &&
+                (nColumnOrder >= rect.nColumnBegin) && (nColumnOrder <= rect.nColumnEnd)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const DString strCellSep = bCsvFormat ? _T(",") : _T("\t");
+    const DString strLineSep = _T("\r\n");
+    const size_t nDataItemCount = GetDataItemCount();
+
+    DString strResult;
+    bool bFirstLine = true;
+    for (const size_t nRowIndex : rowIndexList) {
+        if (nRowIndex >= nDataItemCount) {
+            continue;
+        }
+        DString strLine;
+        for (size_t nColumnIndex = 0; nColumnIndex < columnIdList.size(); ++nColumnIndex) {
+            if (nColumnIndex > 0) {
+                strLine += strCellSep;
+            }
+            if (bCellMode && !isCellSelected(nRowIndex, nColumnIndex)) {
+                //未选中单元格输出空串，保证行列对齐、内容不串位
+                continue;
+            }
+            //C4 单元格合并实施后，此处应按合并锚点格的展开区域填同一文本
+            const DString strText = GetSubItemTextById(nRowIndex, columnIdList[nColumnIndex]);
+            strLine += EscapeText(strText, bCsvFormat);
+        }
+        if (!bFirstLine) {
+            strResult += strLineSep;
+        }
+        bFirstLine = false;
+        strResult += strLine;
+    }
+    return strResult;
+}
+
+bool ListCtrl::CopySelectionToClipboard(bool bCsvFormat)
+{
+    //开关关闭时不做任何处理（inert：不改变编辑状态、不改数据）
+    if (bCsvFormat) {
+        if (!m_bEnableCsvExport) {
+            return false;
+        }
+    }
+    else {
+        if (!m_bEnableCopy) {
+            return false;
+        }
+    }
+
+    //与编辑态互斥：编辑中先提交编辑内容，再执行复制，避免丢失编辑结果
+    LeaveEditMode();
+
+    const DString strText = BuildSelectionText(bCsvFormat, true);
+    if (strText.empty()) {
+        return false;
+    }
+    //DString 在 Windows 平台即 DStringW，走 UTF16 的剪贴板写入
+    return Clipboard::SetClipboardText(strText);
+}
+
+bool ListCtrl::ExportToCsvFile(const DString& strFilePath, bool bSelectedOnly)
+{
+    if (!m_bEnableCsvExport) {
+        return false;
+    }
+    if (strFilePath.empty()) {
+        return false;
+    }
+    const DString strText = BuildSelectionText(true, bSelectedOnly);
+    if (strText.empty()) {
+        return false;
+    }
+    //写入 UTF-8 BOM 头 + UTF-8 正文，便于 Excel 直接识别编码（避免中文乱码）
+    const DStringA strUtf8Text = StringConvert::TToUTF8(strText);
+    std::vector<uint8_t> fileData;
+    fileData.reserve(3 + strUtf8Text.size());
+    fileData.push_back((uint8_t)0xEF);
+    fileData.push_back((uint8_t)0xBB);
+    fileData.push_back((uint8_t)0xBF);
+    fileData.insert(fileData.end(), strUtf8Text.begin(), strUtf8Text.end());
+    return FileUtil::WriteFileData(FilePath(strFilePath), fileData);
 }
 
 RichEdit* ListCtrl::GetRichEdit() const
@@ -2921,6 +3196,13 @@ bool ListCtrl::OnCellKeyDown(const EventArgs& msg)
                 RefreshCellSelectionView();
             }
         }
+        return true;
+    }
+
+    //Ctrl + C：复制选中单元格区域到剪贴板（TSV格式）；Ctrl + Shift + C：复制为CSV格式
+    if (bCtrlDown && ((msg.vkCode == _T('C')) || (msg.vkCode == _T('c')))) {
+        //无论开关是否关闭都消费该按键，避免继续冒泡到其它处理逻辑
+        CopySelectionToClipboard(bShiftDown);
         return true;
     }
 

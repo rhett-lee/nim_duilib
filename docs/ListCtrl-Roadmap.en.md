@@ -80,7 +80,7 @@ Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by
 | # | Item | Status quo | Implementation notes |
 |---|------|-----------|----------------------|
 | L1 | F2 to enter cell editing | Missing: `ListCtrl` currently handles only `kVK_ESCAPE` (leave editing), no `kVK_F2` | Handle `kVK_F2` in the `ListCtrl` key branch to enter editing for the current cell; must be mutually exclusive with the existing `m_pRichEdit` editing state |
-| L2 | Ctrl+C to copy the selected content to the clipboard | Missing: the framework already provides `Clipboard::SetClipboardText`, but `ListCtrl` does not call it | Copy the current selected cell's text; can be extended to copy a whole row / multiple rows in TSV format (for pasting into Excel); must be mutually exclusive with the editing state. Can be further extended to "export CSV" |
+| L2 | Ctrl+C to copy the selected content to the clipboard | Done (verified by Debug\|x64 build) | Implemented: `kRow` copies the selected rows, `kCell` copies the selected cell area, both producing TSV into the clipboard (`Ctrl+C`); `Ctrl+Shift+C` produces CSV into the clipboard; `ExportToCsvFile(path, bSelectedOnly)` exports CSV to a file (UTF-8 BOM); mutually exclusive with the editing state (commit first, then copy). Two independent switches default to on and can be disabled via `enable_copy` / `enable_csv_export` (when off, both the shortcuts and the APIs are inert). Not done: the copy-completed event (optional, not implemented) and "paste TSV" |
 | L3 | Row filtering / header filters | Missing (only the sort group `nSortGroup` exists; no condition-based row filtering) | Provide APIs to filter rows by condition + a header filter dropdown UI |
 | L4 | Custom cell renderer | Missing (only the built-in text / icon / CheckBox / progress bar / rich text renderers) | Allow embedding an arbitrary child control (custom drawing) inside a cell |
 | L5 | Cell-level editors (dropdown / date / numeric) | Missing (only one RichEdit editor) | Declare the editor type per column and create the matching input control on editing |
@@ -108,7 +108,7 @@ Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by
 | Row group collapse | Missing | Only the sort group `nSortGroup` exists (rows still flat after grouping, no collapse) |
 | Row filtering / header filters | Missing | See L3 |
 | Summary row / footer row | Missing | No fixed summary / footer row |
-| Copy to clipboard / export | Missing | See L2 |
+| Copy to clipboard / export | Done | See L2; TSV copy (`Ctrl+C`, row mode copies selected rows / cell mode copies the selected area) + CSV export (`Ctrl+Shift+C` to clipboard / `ExportToCsvFile` to a file), on by default and can be disabled via `enable_copy` / `enable_csv_export` |
 | Keyboard navigation | Existing | Arrow keys / Home / End / PageUp / PageDown / Shift range select / Ctrl+A; in `kCell` mode Ctrl+arrows move only the current cell, Shift(+Ctrl) does rectangular region selection, plus Home/End, Ctrl+Home/End and Ctrl+Space toggling the current cell (both Ctrl+A and Ctrl+Space take effect only in multi-select mode and are ignored in single-select; Ctrl+Space is not supported in row mode either) |
 | Cell selection (row / cell mode) | Done | Row selection by default; `kCell` mode supports cell-level and non-contiguous selection, `Ctrl+click` toggles, `Shift+click` extends, left/right-button drag shows the row-mode-identical rubber-band overlay and selects the hit cells (`Ctrl+drag` appends, auto-scroll at the viewport edge), and `kEventCellSelectionChanged` reports a list of selected regions; frozen-column hit-testing for cell selection is now adapted (`HitTestCell` / `OnFrameSelectionForCells` / pinned-row hit-testing all go through the frozen-aware conversion in `MouseToCellSpace`); the 6 issues confirmed by review plus frozen-column hit-testing have been fixed (see "C1 review conclusions" in the design doc); the Debug assertion (`ptOrg == ptMouse` in `Box.cpp`) triggered by moving the mouse into the frozen-column area after horizontal scrolling is fixed: `ScrollBox::GetScrollOffset()` is now virtual, and the view reports a horizontal scroll offset of 0 during the frozen-column hit-test pass so child controls share the frozen columns' coordinate space; single-select (`multi_select=false`) semantics are now aligned with row mode (see C1c) |
 | Cell tooltip | Existing | `auto_tooltip="true"` by default, auto-show on overflow |
@@ -126,12 +126,12 @@ Low / medium cost items (most done):
 | 1 | Single-cell refresh API `RefreshSubItem` | Done |
 | 2 | External `kEvent*` events for column width / order / visibility / sort | Done |
 | 3 | `ListCtrl`-level `SetColumnVisible` / `IsColumnVisible` | Done |
-| 4 | Keyboard navigation (arrows + Home/End/PageUp/PageDown + F2/Ctrl+C) | Navigation done; F2 (L1) and Ctrl+C (L2) todo |
+| 4 | Keyboard navigation (arrows + Home/End/PageUp/PageDown + F2/Ctrl+C) | Navigation done; Ctrl+C (L2) done; F2 (L1) todo |
 | 5 | Cell tooltip (auto-show on overflow) | Existing |
 | 6 | Column-level compare mode (numeric / date / progress / custom) | Numeric / progress / date all done |
 | 7 | Variable row height + cell word wrap + ellipsis | Done |
 | 8 | Row filtering (condition filter + header filters) | Todo (L3) |
-| 9 | Copy to clipboard / export CSV | Todo (L2) |
+| 9 | Copy to clipboard / export CSV | Done (L2, verified by Debug\|x64 build) |
 
 Architectural items:
 
@@ -157,7 +157,7 @@ Architectural items:
 | — | Report / List / Icon views (Report is virtual) | Existing |
 | — | Full refresh `Refresh()` + per-row refresh `RefreshDataItems(vector)` | Existing |
 | L1 | F2 to enter cell editing | Todo |
-| L2 | Ctrl+C to copy to clipboard (multi-row TSV / export CSV) | Todo |
+| L2 | Ctrl+C to copy to clipboard (multi-row TSV / export CSV) | Done (TSV copy + CSV export; on by default, can be disabled via `enable_copy` / `enable_csv_export`) |
 | L3 | Row filtering / header filters | Todo |
 | L4 | Custom cell renderer | Todo |
 | L5 | Cell-level editors (dropdown / date / numeric) | Todo |

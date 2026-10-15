@@ -80,7 +80,7 @@
 | # | 项 | 现状 | 实现要点 |
 |---|----|------|---------|
 | L1 | F2 进入单元格编辑 | 缺失：`ListCtrl` 现仅处理 `kVK_ESCAPE`（退出编辑），无 `kVK_F2` | 在 `ListCtrl` 的按键处理分支中响应 `kVK_F2`，进入当前单元格编辑态；需与既有 `m_pRichEdit` 编辑态互斥 |
-| L2 | Ctrl+C 复制选中内容到剪贴板 | 缺失：框架已提供 `Clipboard::SetClipboardText`，但 `ListCtrl` 未调用 | 复制当前选中单元格的文本；可扩展为整行 / 多行按 TSV 格式复制（便于粘贴到 Excel）；需与编辑态互斥。可进一步扩展"导出 CSV" |
+| L2 | Ctrl+C 复制选中内容到剪贴板 | 已完成（Debug\|x64 编译验证通过） | 已实现：`kRow` 复制选中行、`kCell` 复制选中区域，均生成 TSV 写入剪贴板（`Ctrl+C`）；`Ctrl+Shift+C` 生成 CSV 写入剪贴板；`ExportToCsvFile(路径, 是否仅选中)` 导出 CSV 文件（UTF-8 BOM）；与编辑态互斥（先提交再复制）。两个独立开关默认开启、可通过 `enable_copy` / `enable_csv_export` 关闭（关闭时快捷键与接口均 inert）。未做：复制完成事件（可选，未实现）、"粘贴 TSV" |
 | L3 | 行筛选 / 表头筛选器 | 缺失（现仅有排序分组 `nSortGroup`，无按条件过滤） | 提供按条件过滤行的接口 + 表头筛选器下拉 UI |
 | L4 | 自定义单元格渲染器 | 缺失（仅内置文本 / 图标 / CheckBox / 进度条 / 富文本几种渲染） | 允许在单元格内嵌入任意子控件（自定义绘制） |
 | L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 缺失（仅一种 RichEdit 编辑器） | 按列声明编辑器类型，编辑时创建对应输入控件 |
@@ -108,7 +108,7 @@
 | 行分组折叠显示 | 缺失 | 现仅有排序分组 `nSortGroup`（分组后仍是平铺行，无折叠） |
 | 行筛选 / 表头筛选器 | 缺失 | 见 L3 |
 | 汇总行 / 页脚行 | 缺失 | 无固定汇总 / 页脚行 |
-| 复制到剪贴板 / 导出 | 缺失 | 见 L2 |
+| 复制到剪贴板 / 导出 | 已完成 | 见 L2；TSV 复制（`Ctrl+C`，行模式复制选中行 / 单元格模式复制选中区域）+ CSV 导出（`Ctrl+Shift+C` 到剪贴板 / `ExportToCsvFile` 到文件），默认开启，可用 `enable_copy` / `enable_csv_export` 关闭 |
 | 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格（Ctrl+A 与 Ctrl+Space 均仅在多选下生效，单选下忽略；Ctrl+Space 行选择模式本身也不支持） |
 | 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；冻结列与单元格选择的命中口径已适配（`HitTestCell` / `OnFrameSelectionForCells` / 置顶行命中统一走 `MouseToCellSpace` 的冻结感知换算）；复查发现的 6 项缺陷 + 冻结列命中口径均已修复（见设计方案「C1 复查结论」）；横向滚动后鼠标移入冻结列区域触发的 Debug 断言（`Box.cpp` 的 `ptOrg == ptMouse`）已修复：`ScrollBox::GetScrollOffset()` 改为虚函数，冻结列命中遍历期间该类横向滚动量按 0 计，使子控件的坐标口径与冻结列显示位置一致；单选（`multi_select=false`）语义已与行模式对齐（见 C1c） |
 | 单元格 tooltip | 已具备 | `auto_tooltip="true"` 默认开启，超长自动提示 |
@@ -126,12 +126,12 @@
 | 1 | 单格刷新接口 `RefreshSubItem` | 已完成 |
 | 2 | 列宽 / 列序 / 列显隐 / 排序的对外 `kEvent*` 事件 | 已完成 |
 | 3 | `ListCtrl` 级 `SetColumnVisible` / `IsColumnVisible` | 已完成 |
-| 4 | 键盘导航（方向键 + Home/End/PageUp/PageDown + F2/Ctrl+C） | 导航已完成；F2（L1）、Ctrl+C（L2）待办 |
+| 4 | 键盘导航（方向键 + Home/End/PageUp/PageDown + F2/Ctrl+C） | 导航已完成；Ctrl+C（L2）已完成；F2（L1）待办 |
 | 5 | 单元格 tooltip（内容超长时自动提示） | 已具备 |
 | 6 | 列级比较模式（数值 / 日期 / 进度 / 自定义） | 数值 / 进度 / 日期均已完成 |
 | 7 | 可变行高 + 单元格自动换行 + 省略号 | 已完成 |
 | 8 | 行筛选（按条件过滤 + 表头筛选器） | 待办（L3） |
-| 9 | 复制到剪贴板 / 导出 CSV | 待办（L2） |
+| 9 | 复制到剪贴板 / 导出 CSV | 已完成（L2，Debug\|x64 编译验证通过） |
 
 架构性改动项：
 
@@ -157,7 +157,7 @@
 | — | Report / List / Icon 三视图（Report 为虚表） | 已具备 |
 | — | 全量刷新 `Refresh()` + 按行刷新 `RefreshDataItems(vector)` | 已具备 |
 | L1 | F2 进入单元格编辑 | 待办 |
-| L2 | Ctrl+C 复制到剪贴板（多行 TSV / 导出 CSV） | 待办 |
+| L2 | Ctrl+C 复制到剪贴板（多行 TSV / 导出 CSV） | 已完成（TSV 复制 + CSV 导出；默认开启，可用 `enable_copy` / `enable_csv_export` 关闭） |
 | L3 | 行筛选 / 表头筛选器 | 待办 |
 | L4 | 自定义单元格渲染器 | 待办 |
 | L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 待办 |
