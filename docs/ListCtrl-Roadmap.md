@@ -52,7 +52,7 @@
 
 日期模式（`kSortByTextAsDate`）：将文本按"年、月、日、时、分、秒"六个数字段解析为可比较的 64 位键值后排序；字段之间允许任意非数字分隔符、月/日/时等可不补零（如 `2024-3-7`、`2024/03/07`、`2024-03-07 13:45:00`）。无法解析为日期的文本视为最小值（与其他排序标志的"无效值最小"约定一致），键值相同时回退文本比较，保证比较结果是一个严格的全序。
 
-> 注：目前仅支持单列排序，且为整表排序 + 全量刷新（增量/局部排序待评估）。
+> 注：目前仅支持单列排序，且为整表排序 + 全量刷新；增量 / 局部排序经评审后决定**不做（不实施）**。
 
 <!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 
@@ -79,11 +79,11 @@
 
 | # | 项 | 现状 | 实现要点 |
 |---|----|------|---------|
-| L1 | F2 进入单元格编辑 | 已完成（C3；Debug\|x64 编译验证通过） | 已实现：`kCell` 模式下按 `F2` 对**当前单元格立即进入编辑**（`EnterCurrentCellEdit` / `EnterCellEdit`，不走单击链路的 600ms 定时器；行不在可视区时先 `EnsureDataItemVisible`）；`Enter` 提交（提交成功后当前格下移一行，仅 `kCell` 模式；行模式提交候选不移动选中行/不设置当前格/不滚动视图）、`Esc` 取消（不写回）、失焦提交（保持既有行为、不移动当前格）；与既有 `m_pRichEdit` 编辑态互斥；单击进入编辑沿用原有链路（**未改动**）。未做：双击 / 直接键入进入编辑、`Tab` 提交并右移 |
-| L2 | Ctrl+C 复制选中内容到剪贴板 | 已完成（Debug\|x64 编译验证通过） | 已实现：`kRow` 复制选中行、`kCell` 复制选中区域，均生成 TSV 写入剪贴板（`Ctrl+C`）；`Ctrl+Shift+C` 生成 CSV 写入剪贴板；`ExportToCsvFile(路径, 是否仅选中)` 导出 CSV 文件（UTF-8 BOM）；与编辑态互斥（先提交再复制）。两个独立开关默认开启、可通过 `enable_copy` / `enable_csv_export` 关闭（关闭时快捷键与接口均 inert）。未做：复制完成事件（可选，未实现）、"粘贴 TSV" |
-| L3 | 行筛选 / 表头筛选器 | 缺失（现仅有排序分组 `nSortGroup`，无按条件过滤） | 提供按条件过滤行的接口 + 表头筛选器下拉 UI |
+| L1 | F2 进入单元格编辑 | 已完成（C3；Debug\|x64 编译验证通过） | 已实现：`kCell` 模式下按 `F2` 对**当前单元格立即进入编辑**（`EnterCurrentCellEdit` / `EnterCellEdit`，不走单击链路的 600ms 定时器；行不在可视区时先 `EnsureDataItemVisible`）；`Enter` 提交（提交成功后当前格下移一行，仅 `kCell` 模式；行模式提交候选不移动选中行/不设置当前格/不滚动视图）、`Esc` 取消（不写回）、失焦提交（保持既有行为、不移动当前格）；与既有 `m_pRichEdit` 编辑态互斥；单击进入编辑沿用原有链路（**未改动**）。未做：双击 / 直接键入进入编辑经评审后决定不做（不实施）；`Tab` 提交并右移未做 |
+| L2 | Ctrl+C 复制选中内容到剪贴板 | 已完成（Debug\|x64 编译验证通过） | 已实现：`kRow` 复制选中行、`kCell` 复制选中区域，均生成 TSV 写入剪贴板（`Ctrl+C`）；`Ctrl+Shift+C` 生成 CSV 写入剪贴板；`ExportToCsvFile(路径, 是否仅选中)` 导出 CSV 文件（UTF-8 BOM）；与编辑态互斥（先提交再复制）。两个独立开关默认开启、可通过 `enable_copy` / `enable_csv_export` 关闭（关闭时快捷键与接口均 inert）。未做：复制完成事件（可选，未实现）、"粘贴 TSV"——两者经评审后决定不做（不实施） |
+| L3 | 行筛选 / 表头筛选器 | 已取消（不实施） | 原计划：提供按条件过滤行的接口 + 表头筛选器下拉 UI；经评审后决定**不做** |
 | L4 | 自定义单元格渲染器 | 缺失（仅内置文本 / 图标 / CheckBox / 进度条 / 富文本几种渲染） | 允许在单元格内嵌入任意子控件（自定义绘制） |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉；Debug\|x64 编译验证通过） | 已实现：按列声明编辑器类型 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`（`ListCtrlColumn::nEditorType`、`SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`，按列ID保存、列序变化不影响）；提交编辑时按类型校验输入（`kEditNumber` 允许空串或十进制数值、`kEditDate` 允许空串或 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），**非法输入不写回数据、不派发 `kEventLeaveEdit`**（等同丢弃本次编辑，保持原值）；`kEditCombo` 已实现为下拉候选浮层（候选按列配置 `SetColumnCandidates(ById)`；复用 `Flyout` + `VListBox`，不抢焦点；鼠标点选 / `Enter` 提交、`↑`/`↓` 移动、`Esc` 取消不写回；kCell 模式与行选择模式均支持）；它与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**；未做：双击 / 直接键入进入编辑、`Tab` 提交并右移、为各类型创建完全差异化的输入控件 |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉；Debug\|x64 编译验证通过） | 已实现：按列声明编辑器类型 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`（`ListCtrlColumn::nEditorType`、`SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`，按列ID保存、列序变化不影响）；提交编辑时按类型校验输入（`kEditNumber` 允许空串或十进制数值、`kEditDate` 允许空串或 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），**非法输入不写回数据、不派发 `kEventLeaveEdit`**（等同丢弃本次编辑，保持原值）；`kEditCombo` 已实现为下拉候选浮层（候选按列配置 `SetColumnCandidates(ById)`；复用 `Flyout` + `VListBox`，不抢焦点；鼠标点选 / `Enter` 提交、`↑`/`↓` 移动、`Esc` 取消不写回；kCell 模式与行选择模式均支持）；它与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**；未做：双击 / 直接键入进入编辑（经评审后决定不做，不实施）、`Tab` 提交并右移、为各类型创建完全差异化的输入控件（经评审后决定不做，不实施） |
 
 ### 三、候选优化项（待评估 / 待核实 / 架构性）
 
@@ -106,8 +106,8 @@
 | 单元格合并 | 已取消（不实施） | C4 支持跨行 / 跨列合并；需单元格几何层做合并 span，评审后决定不实施 |
 | 表格内嵌树（父行展开子行） | 已取消（不实施） | `TreeView` 为独立控件；C5 与行分组折叠共用层级模型，评审后决定不实施 |
 | 行分组折叠显示 | 已取消（不实施） | 现仅有排序分组 `nSortGroup`（分组后仍是平铺行，无折叠）；C5 需行的层级布局模型，评审后决定不实施 |
-| 行筛选 / 表头筛选器 | 缺失 | 见 L3 |
-| 汇总行 / 页脚行 | 缺失 | 无固定汇总 / 页脚行 |
+| 行筛选 / 表头筛选器 | 已取消（不实施） | 见 L3 |
+| 汇总行 / 页脚行 | 已取消（不实施） | 无固定汇总 / 页脚行；经评审后决定**不做** |
 | 复制到剪贴板 / 导出 | 已完成 | 见 L2；TSV 复制（`Ctrl+C`，行模式复制选中行 / 单元格模式复制选中区域）+ CSV 导出（`Ctrl+Shift+C` 到剪贴板 / `ExportToCsvFile` 到文件），默认开启，可用 `enable_copy` / `enable_csv_export` 关闭 |
 | 键盘导航 | 已具备 | 方向键 / Home / End / PageUp / PageDown / Shift 范围选择 / Ctrl+A；`kCell` 模式下 Ctrl+方向键仅移动当前单元格、Shift(+Ctrl) 做矩形区域选择，Home/End、Ctrl+Home/End、Ctrl+Space 切换当前格（Ctrl+A 与 Ctrl+Space 均仅在多选下生效，单选下忽略；Ctrl+Space 行选择模式本身也不支持） |
 | 单元格选择（行 / 单元格模式） | 已完成 | 默认行选择；`kCell` 模式支持单元格级选择与不连续选择，`Ctrl+单击`切换、`Shift+单击/拖动`矩形、`Ctrl+拖动`追加，`kEventCellSelectionChanged` 回调带选中区域列表；冻结列与单元格选择的命中口径已适配（`HitTestCell` / `OnFrameSelectionForCells` / 置顶行命中统一走 `MouseToCellSpace` 的冻结感知换算）；复查发现的 6 项缺陷 + 冻结列命中口径均已修复（见设计方案「C1 复查结论」）；横向滚动后鼠标移入冻结列区域触发的 Debug 断言（`Box.cpp` 的 `ptOrg == ptMouse`）已修复：`ScrollBox::GetScrollOffset()` 改为虚函数，冻结列命中遍历期间该类横向滚动量按 0 计，使子控件的坐标口径与冻结列显示位置一致；单选（`multi_select=false`）语义已与行模式对齐（见 C1c） |
@@ -115,7 +115,7 @@
 | 自定义单元格渲染器（嵌入任意控件） | 缺失 | 见 L4，现仅内置文本 / 图标 / CheckBox / 进度条 / 富文本 |
 | 可变行高 / 单元格自动换行 | 已完成 | `SetDataItemHeight` + `SetSubItemSingleLine`，文本省略号由 Label 默认样式提供 |
 | 列宽 / 列序 / 列显隐持久化 | 已完成 | 通过 `kEventColumn*` 系列事件通知应用，应用可持久化与恢复 |
-| 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成 | 见 L5，Text / Number / Date 已实现；Combo / Check 待办 |
+| 单元格级编辑器（下拉 / 日期 / 数值） | 已完成 | 见 L5，文本 / 数值 / 日期 / 下拉四种编辑器均已实现（勾选类型已移除，不再实现） |
 
 ### 五、优先级建议
 
@@ -130,7 +130,7 @@
 | 5 | 单元格 tooltip（内容超长时自动提示） | 已具备 |
 | 6 | 列级比较模式（数值 / 日期 / 进度 / 自定义） | 数值 / 进度 / 日期均已完成 |
 | 7 | 可变行高 + 单元格自动换行 + 省略号 | 已完成 |
-| 8 | 行筛选（按条件过滤 + 表头筛选器） | 待办（L3） |
+| 8 | 行筛选（按条件过滤 + 表头筛选器） | 已取消（不实施，L3） |
 | 9 | 复制到剪贴板 / 导出 CSV | 已完成（L2，Debug\|x64 编译验证通过） |
 
 架构性改动项：
@@ -158,9 +158,9 @@
 | — | 全量刷新 `Refresh()` + 按行刷新 `RefreshDataItems(vector)` | 已具备 |
 | L1 | F2 进入单元格编辑 | 已完成（C3；Debug\|x64 编译验证通过） |
 | L2 | Ctrl+C 复制到剪贴板（多行 TSV / 导出 CSV） | 已完成（TSV 复制 + CSV 导出；默认开启，可用 `enable_copy` / `enable_csv_export` 关闭） |
-| L3 | 行筛选 / 表头筛选器 | 待办 |
+| L3 | 行筛选 / 表头筛选器 | 已取消（不实施） |
 | L4 | 自定义单元格渲染器 | 待办 |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉 / 勾选；Debug\|x64 编译验证通过） |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉；Debug\|x64 编译验证通过） |
 | P1 | 单元格存储堆分配开销（连续内存 / SoA） | 已完成（Phase 0–3 全部完成并验收；Phase 4 已核实无需实施；SoA 备选未采用） |
 | P2 | 列存储与行优先访问开销 | 已完成（无需改存储布局，仅局部去分配；Release 同会话 A/B：13.804 → 13.300 ms/帧，无劣化） |
 | P3 | 冻结列横向滚动范围（是否扣除冻结宽度） | 已核实（无需改动：内容宽与视口宽均含冻结宽，自然抵消） |
@@ -172,7 +172,7 @@
 | C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
 | C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，冻结列区域内 CheckBox 无法勾选的问题，以及单元格选择模式（`kCell`）下行级 CheckBox（每行行首）与表头 CheckBox 点击无响应的问题（根因为 `OnListBoxItemMouseEvent` 消费事件导致 Item 自身 `ButtonUp` 被跳过，修复为 `CheckBoxTemplate::IsMouseOnCheckBoxIcon` + `ListCtrlReportView::IsMouseOnItemCheckBox` 放行 + `ListCtrlHeader::GetCheckBoxMousePos` override），详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
 | C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
-| C3 | 单元格编辑（F2 进入编辑 + 按列编辑器类型：文本 / 数值 / 日期 / 下拉） | 已完成（F2 立即进入编辑、Enter 提交后当前格下移一行（仅 kCell 模式；行模式提交候选不移动选中行/不设置当前格/不滚动视图）、Esc 取消、失焦提交；按列声明 ListCtrlEditorType 并做输入校验，非法输入丢弃；下拉候选（kEditCombo）编辑器已实现，kCell 模式与行选择模式均支持；复用 kEventEnterEdit / kEventLeaveEdit，未新增事件、未新增 XML 属性；未做双击/直接键入进入编辑与 Tab 提交；Debug\|x64 编译验证通过） |
+| C3 | 单元格编辑（F2 进入编辑 + 按列编辑器类型：文本 / 数值 / 日期 / 下拉） | 已完成（F2 立即进入编辑、Enter 提交后当前格下移一行（仅 kCell 模式；行模式提交候选不移动选中行/不设置当前格/不滚动视图）、Esc 取消、失焦提交；按列声明 ListCtrlEditorType 并做输入校验，非法输入丢弃；下拉候选（kEditCombo）编辑器已实现，kCell 模式与行选择模式均支持；复用 kEventEnterEdit / kEventLeaveEdit，未新增事件、未新增 XML 属性；双击/直接键入进入编辑经评审后决定不做（不实施）；`Tab` 提交未做；Debug\|x64 编译验证通过） |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 已收尾（C0 / C1 / C1b 已完成；C4~C7 已取消，不实施） |
 | C4–C7 | 单元格合并（C4）/ 内嵌树 + 行分组折叠（C5）/ 多级表头（C6）/ 行拖拽换序（C7） | 已取消（不实施：均需表头与行的布局模型整体升级、改动面过大，评审后决定不做） |
 

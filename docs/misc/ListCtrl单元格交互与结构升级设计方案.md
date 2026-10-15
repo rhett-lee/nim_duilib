@@ -274,9 +274,9 @@
   - `kCell` 模式：复制选中区域 → TSV（合并格按其展开区域填同一文本）。
 - 落地直接调用 [`Clipboard::SetClipboardText`](../../duilib/Utils/Clipboard_Windows.cpp#L8-L79)（框架已具备，ListCtrl 目前未调用——正是 L2 的缺口）。
 - **CSV 导出（已拍板：纳入 L2 范围）**：`Ctrl+Shift+C` 或接口 `ExportCellsToCsv`，可导出当前选中区域 / 整表。
-- 可选：`Ctrl+V` 粘贴 TSV 到区域（写入走 `SetSubItemData`，见 [`ListCtrl::SetSubItemData`](../../duilib/Control/ListCtrl.cpp#L1782-L1804)，写入后 `RefreshSubItemData` 单格刷新）。
+- **（不实施）** 可选：`Ctrl+V` 粘贴 TSV 到区域（写入走 `SetSubItemData`，见 [`ListCtrl::SetSubItemData`](../../duilib/Control/ListCtrl.cpp#L1782-L1804)，写入后 `RefreshSubItemData` 单格刷新）——经评审后决定**不做**。
 - 与编辑态互斥（编辑中先提交再复制）。
-- 事件（可选）：`kEventCellsCopied` + XML。
+- **（不实施）** 事件（可选）：`kEventCellsCopied` + XML——经评审后决定**不做**。
 
 **验收**：复制结果粘贴到 Excel 行列对齐正确；含合并格时不串位。
 
@@ -296,14 +296,14 @@
   - `kCell`：取 `GetSelectedCellRanges()` 所有区域的**并集外接矩形**，矩形内未落在任一选中区域的单元格输出空串（保证行列对齐、不串位）；列范围限定在外接矩形的列序区间。
   - `ExportToCsvFile(..., false)` 导出整表：输出全部数据行（**不含表头行**），列取当前列序的全部列。
 - **文件编码**：`ExportToCsvFile` 写入 UTF-8 BOM + UTF-8 正文，便于 Excel 直接打开且中文不乱码。
-- **明确未做**：`kEventCellsCopied` 事件（设计文档标注为「可选」）、`Ctrl+V` 粘贴 TSV（留待后续阶段）。
+- **明确未做（经评审后决定不做，不实施）**：`kEventCellsCopied` 事件（原标注为「可选」）、`Ctrl+V` 粘贴 TSV。
 - **C4 扩展点（已作废）**：`BuildSelectionText` 取单元格文本处的"按合并锚点格展开"注释随 C4 取消而不再需要，保留注释仅作历史记录。
 
 ---
 
 ### C3　单元格编辑（L1 + L5）　【已实施（四种编辑器类型：Text / Number / Date / Combo）】
 
-- 依赖 C1。**进入编辑**的触发：`F2`（当前格）/ 双击 / 直接键入（可配置）。
+- 依赖 C1。**进入编辑**的触发：`F2`（当前格）；**（不实施）** 双击 / 直接键入（可配置）——经评审后决定**不做**。
 - 现有基础：`ListCtrl` 已有基于 `RichEdit` 的就地编辑器路径，定位读取 `pSubItem->GetTextRect()`（[`ListCtrl.cpp`](../../duilib/Control/ListCtrl.cpp#L2838-L2953)，P5 已记录其"未绘制时为空"的边界）。本阶段把定位改为由 C0 的 `GetCellRect` 推导（**合并格按合并矩形**），并补 P5 建议的兜底（矩形为空则回退 `GetRect()`）。
 - **L5 编辑器类型**：按列声明 `SetColumnEditorType(ById, kEditText|kEditNumber|kEditDate|kEditCombo)` / `GetColumnEditorType(ById)`，编辑时创建对应输入控件；数值/日期带解析与校验（可复用日期排序已实现的"六段解析"思路）。
 - 提交/取消语义：`Enter` 提交并下移当前格（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）、`Esc` 取消、失焦提交（可配置）。
@@ -315,7 +315,7 @@
 
 已落地 **C3**（Debug|x64 编译验证通过；仅 Report 视图生效，`kEditCombo` 在 kCell 模式与行选择模式下均支持、其余编辑器仅 kCell 模式）。实际实现与原设计存在以下偏差，逐条记录：
 
-1. **触发进入编辑仅 2 个：`F2` 与鼠标左键单击**（单击链路**沿用原有**、未改动，与 Windows 资源管理器"选中后单击改名"一致）；**未做**双击 / 直接键入进入编辑。
+1. **触发进入编辑仅 2 个：`F2` 与鼠标左键单击**（单击链路**沿用原有**、未改动，与 Windows 资源管理器"选中后单击改名"一致）；双击 / 直接键入进入编辑**经评审后决定不做（不实施）**。
 2. **不新增任何事件**：复用既有 `kEventEnterEdit` / `kEventLeaveEdit`；原设计提出的 `kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`（含"取消事件"）**未采纳**。
 3. 四种编辑器类型**均已实现**（枚举 `ListCtrlEditorType : int8_t`，字段 `ListCtrlColumn::nEditorType`）：`kEditText` / `kEditNumber` / `kEditDate` / `kEditCombo`（下拉候选编辑器：候选按列配置 `SetColumnCandidates(ById)`，编辑时在单元格下方弹出候选浮层，复用 `Flyout` + `VListBox`、不抢焦点；鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回；kCell 模式与行选择模式均支持）；该编辑器与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**。
 4. `kEditText` / `kEditNumber` / `kEditDate` **共用同一个 `RichEdit` 编辑器**；`kEditCombo` 改用候选浮层（`Flyout` + `VListBox`），不使用 `RichEdit`。
