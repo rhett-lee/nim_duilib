@@ -146,10 +146,13 @@ void ListCtrlLabel::SetTextRect(const UiRect& rect)
 UiRect ListCtrlLabel::GetTextRect() const
 {
     UiRect rect = m_textRect;
-    if (rect.IsZero()) {
+    if (rect.IsEmpty()) {
+        //兜底（P5）：文本矩形尚未计算（控件尚未绘制 / 尚未布局）或为空时，回退到控件矩形，
+        //避免就地编辑框等依赖"文本矩形"的功能受绘制副产物与调用时序影响。
         rect = GetRect();
         rect.Deflate(GetControlPadding());
         rect.Deflate(GetTextPadding());
+        rect.Validate();
     }
     return rect;
 }
