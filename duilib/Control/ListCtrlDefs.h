@@ -24,6 +24,17 @@ enum class ListCtrlSelectionMode : int8_t
     kCell = 1   //单元格选择模式
 };
 
+/** 单元格的编辑器类型（按列声明）
+    本轮实现 kEditText / kEditNumber / kEditDate；
+    kEditCombo / kEditCheck 作为紧接的一项单独实现（本轮仅预留位置，不实现）
+*/
+enum class ListCtrlEditorType : int8_t
+{
+    kEditText   = 0, //文本编辑器（默认）
+    kEditNumber = 1, //数值编辑器（提交时校验：允许为空，或为合法的十进制数值）
+    kEditDate   = 2  //日期编辑器（提交时校验：允许为空，或为 yyyy-mm-dd / yyyy/mm/dd）
+};
+
 /** 表格中单元格的定位标识（CellId）
     行使用"显示序索引"，列使用"列ID"（与既有列宽/列序/显隐/排序均按columnId组织保持一致：列序可变、列ID稳定）
 */
@@ -74,6 +85,7 @@ struct ListCtrlColumn
     bool bResizeable = true;        //是否支持通过拖动调整列宽
     bool bShowCheckBox = false;     //是否显示CheckBox（支持在表头和数据列显示CheckBox）
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
+    ListCtrlEditorType nEditorType = ListCtrlEditorType::kEditText; //单元格编辑器类型（用于提交时的输入校验）
 };
 
 /** 行的属性数据结构(行数据，每行1条数据，数据存储)

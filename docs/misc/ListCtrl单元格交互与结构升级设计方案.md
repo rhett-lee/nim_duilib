@@ -214,7 +214,7 @@
 **遗留未实现 / 状态更正**
 1. **视口边缘拖拽自动滚动：已具备（更正为此前的"遗留"记载）。** 由两种选择模式共用的 `ListBoxHelper::OnCheckScrollView`（定时器驱动）实现，`kCell` 下框选拖动到视口边缘即触发。
 2. **C1 阶段的"单矩形"选择语义与 `Ctrl+单击` 切换：已由 C1b 取代并落地，闭环。**
-3. **属后续阶段、尚未实施**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）、`F2` 进入单元格编辑（C3 ＝ L1）。
+3. **属后续阶段、状态更正**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）**已实施**；`F2` 进入单元格编辑（C3 ＝ L1）**已实施首期**（C3 首期：Text / Number / Date 编辑器类型已实现，`kEditCombo` / `kEditCheck` 待办）。
 
 **已确认缺陷（已修复，Debug|x64 编译验证通过）**
 1. 【中·已修复】**右键按在"已选中"单元格上继续拖动会清除选择。** 原因：`ListCtrl::BeginCellDrag` 的"右键命中已选格"分支未 `return`，函数末尾仍置 `m_bCellDragSelecting = true`，随后 `ListBoxHelper` 的右键框选按"替换"语义执行 → 清除可见区已选单元格。修复：该分支末尾直接 `return`，不再进入拖动框选状态（选择集合保持不变，供右键菜单使用）。
@@ -299,7 +299,7 @@
 
 ---
 
-### C3　单元格编辑（L1 + L5）
+### C3　单元格编辑（L1 + L5）　【已实施（C3 首期：Text / Number / Date）】
 
 - 依赖 C1。**进入编辑**的触发：`F2`（当前格）/ 双击 / 直接键入（可配置）。
 - 现有基础：`ListCtrl` 已有基于 `RichEdit` 的就地编辑器路径，定位读取 `pSubItem->GetTextRect()`（[`ListCtrl.cpp`](../../duilib/Control/ListCtrl.cpp#L2838-L2953)，P5 已记录其"未绘制时为空"的边界）。本阶段把定位改为由 C0 的 `GetCellRect` 推导（**合并格按合并矩形**），并补 P5 建议的兜底（矩形为空则回退 `GetRect()`）。
@@ -308,6 +308,20 @@
 - 事件（三件套 + XML）：`kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`。
 
 **验收**：编辑 → 提交 → 写回数据层 → 单格刷新（复用 `kEventReportViewSubItemFilled` 通路）；数值/日期编辑器正确解析。
+
+**实施偏差记录（相对原设计）**
+
+已落地 **C3 首期**（Debug|x64 编译验证通过；仅 `kCell` 模式 + Report 视图生效）。实际实现与原设计存在以下偏差，逐条记录：
+
+1. **触发进入编辑仅 2 个：`F2` 与鼠标左键单击**（单击链路**沿用原有**、未改动，与 Windows 资源管理器"选中后单击改名"一致）；**未做**双击 / 直接键入进入编辑。
+2. **不新增任何事件**：复用既有 `kEventEnterEdit` / `kEventLeaveEdit`；原设计提出的 `kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`（含"取消事件"）**未采纳**。
+3. 本轮只实现 `kEditText` / `kEditNumber` / `kEditDate` 三种编辑器类型（枚举 `ListCtrlEditorType : int8_t`，字段 `ListCtrlColumn::nEditorType`）；原设计枚举中的 `kEditCombo`（下拉）/ `kEditCheck`（勾选）作为**紧接的一项单独实现**，本轮仅在枚举中**预留位置、不实现**。
+4. 三种类型**共用同一个 `RichEdit` 编辑器**，未创建差异化输入控件。
+5. 单元格定位仍沿用既有的 `GetTextRect()` 路径，**未引入新的定位层**（原设计"改为由 C0 的 `GetCellRect` 推导并补矩形为空回退 `GetRect()` 兜底"未实施）。
+6. `kCell` 模式下 `IsValidItemEditState` 放宽为**只校验 `IsVisible()`**（不再要求行 `IsSelected() && IsFocused()`）；`kRow` 分支逐字保持。
+7. **非法输入策略**：提交时按列声明的编辑器类型校验（空串一律合法＝清空单元格；`kEditText` 恒合法；`kEditNumber` 仅接受合法十进制数值；`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`）；**非法输入不写回数据、不派发 `kEventLeaveEdit`**，等同丢弃本次编辑、保持原值并结束编辑态。
+
+**已落地要点**（补充事实）：`F2` → `EnterCurrentCellEdit()` → `EnterCellEdit` **绕过进入编辑的 600ms 定时器、立即进入编辑**；行不在可视区时先滚动到可视区；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时无反应（返回 `false`）。`Enter` 提交内容写回、且**提交成功后当前格下移一行**；`Esc` 不写回、当前格不动；点击其它区域失焦：提交但**不移动**当前格（与改动前一致）。编辑器类型按**列ID**保存（列序变化不影响），`InsertColumn` 时按 `ListCtrlColumn::nEditorType` 写入、删列时清理，未声明的列 `GetColumnEditorTypeById` 返回 `kEditText`。**不引入 XML 属性**（列由代码声明，编辑器类型经 `ListCtrlColumn::nEditorType` + `SetColumnEditorType(ById)` 设置）。
 
 ---
 
@@ -391,7 +405,7 @@
 
 ```
 C0 单元格坐标层 ──┬──▶ C1 单元格选择 ──┬──▶ C2 复制/导出
-（无行为变化）    │                    └──▶ C3 单元格编辑 (+L5 编辑器类型)
+（无行为变化）    │                    └──▶ C3 单元格编辑 (+L5 编辑器类型)　【已实施首期：Text/Number/Date】
                   │
                   ├──▶ C6 多级表头        （布局层 / 表头树）
                   ├──▶ C5 内嵌树+分组折叠  （布局层 / 行树，复用 m_displayOrder）
@@ -431,7 +445,7 @@ C0 单元格坐标层 ──┬──▶ C1 单元格选择 ──┬──▶ C
 
 ## 7. 文档同步清单（落地时按项目约定执行）
 
-- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1/L2/A2/§四对应条目状态与实现要点回填；A2 拆为 C4/C5/C6 三项。
+- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1 / L2 / L5 / A2 / §四对应条目状态与实现要点回填（L1、L5 见 C3 首期：Text / Number / Date；L2 见 C2）；A2 拆为 C4/C5/C6 三项。
 - `docs/Control.md` / `.en.md`：`ui::ListCtrl` 新增接口、XML 属性（`selection_mode` / `sub_item_row_span` / `sub_item_column_span`）与示例。
 - `docs/Events.md` / `.en.md`、`docs/XmlEvents.md` / `.en.md`：新增事件参数表与 XML 内联事件名。
 - 三处技能参考副本（`.trae` / `.workbuddy` / `.claude`）与 `README.md` / `.en.md` 功能计数。

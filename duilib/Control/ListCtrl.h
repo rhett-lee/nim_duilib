@@ -906,6 +906,57 @@ public:
     */
     bool ExportToCsvFile(const DString& strFilePath, bool bSelectedOnly = true);
 
+public:
+    /** @name 单元格编辑（kCell 模式；仅 Report 视图）
+    * @{ */
+
+    /** 按列的序号设置编辑器类型（作用于该列的所有单元格）
+    * @param [in] columnIndex 列的序号，有效范围：[0, GetColumnCount())
+    * @param [in] editorType 编辑器类型（文本/数值/日期）
+    */
+    void SetColumnEditorType(size_t columnIndex, ListCtrlEditorType editorType);
+
+    /** 按列的ID设置编辑器类型（推荐：列ID稳定，列序可变）
+    * @param [in] columnId 列的ID
+    * @param [in] editorType 编辑器类型
+    */
+    void SetColumnEditorTypeById(size_t columnId, ListCtrlEditorType editorType);
+
+    /** 获取某列序号的编辑器类型（未设置时为 kEditText）
+    */
+    ListCtrlEditorType GetColumnEditorType(size_t columnIndex) const;
+
+    /** 获取某列ID的编辑器类型（未设置时为 kEditText）
+    */
+    ListCtrlEditorType GetColumnEditorTypeById(size_t columnId) const;
+
+    /** 进入指定单元格的编辑状态（等同于对当前格按 F2）
+    * 前置条件：enable_item_edit 为 true、kCell 模式、Report 视图、该单元格"可编辑"且所在行可选；
+    *           行不在可视区时先滚动到可视区
+    * @param [in] nRowIndex 行的显示索引号，有效范围：[0, GetDataItemCount())
+    * @param [in] nColumnId 列的ID
+    * @return 返回 true 表示已进入编辑状态（或已在编辑中）
+    */
+    bool EnterCellEdit(size_t nRowIndex, size_t nColumnId);
+
+    /** 对"当前单元格"进入编辑状态（F2 的实现入口）
+    * @return 返回 true 表示已进入编辑状态
+    */
+    bool EnterCurrentCellEdit();
+
+    /** 判断当前是否处于单元格编辑状态（kCell 模式）
+    */
+    bool IsCellEditing() const;
+
+    /** 获取当前正在编辑的单元格
+    * @param [out] cell 返回单元格定位（无编辑态时 nRowIndex / nColumnId 为 Box::InvalidIndex）
+    * @return 返回是否处于单元格编辑状态
+    */
+    bool GetEditingCell(ListCtrlCellId& cell) const;
+
+    /** @} */
+
+public:
     /** 获取编辑框控件的接口(只有执行编辑操作以后，才有值)
     */
     RichEdit* GetRichEdit() const;
@@ -1491,8 +1542,23 @@ private:
     void UpdateRichEditSize(ListCtrlLabel* pSubItem);
 
     /** 子项编辑事件
+    * @return 返回 true 表示已写回数据（用户未取消、且输入通过编辑器类型校验）
     */
-    void OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText);
+    bool OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText);
+
+    /** 获取指定显示索引号对应的数据行控件（Report 视图；仅"当前可视"的行，滚动复用后不可缓存）
+    * @param [in] nItemIndex 行的显示索引号
+    * @return 返回数据行控件（不可视时返回nullptr）
+    */
+    ListCtrlItem* GetDisplayItemByIndex(size_t nItemIndex) const;
+
+    /** 判断编辑器输入的文本是否符合列声明的编辑器类型（空串一律视为有效，表示清空单元格）
+    */
+    static bool IsValidCellEditText(const DString& strNewText, ListCtrlEditorType editorType);
+
+    /** 提交成功后，把当前格下移一行（kCell 模式；已在最后一行则不移动）
+    */
+    void MoveCurrentCellToNextRow();
 
     /** 视图接收到鼠标消息
     */
@@ -1790,6 +1856,14 @@ private:
     /** 是否支持子项编辑
     */
     bool m_bEnableItemEdit;
+
+    /** 列ID -> 编辑器类型（按列ID保存，列序变化不影响）
+    */
+    std::map<size_t, ListCtrlEditorType> m_columnEditorTypes;
+
+    /** 正在编辑的单元格（仅 kCell 模式成立；非编辑态时为无效值）
+    */
+    ListCtrlCellId m_editingCell;
 };
 
 }//namespace ui

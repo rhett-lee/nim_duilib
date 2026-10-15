@@ -40,6 +40,10 @@ private:
     */
     void InitListCtrlEvents(ui::ListCtrl* pListCtrl);
 
+    /** 把所有行、所有列的单元格设置为可编辑/不可编辑
+    */
+    void SetAllColumnsEditable(ui::ListCtrl* pListCtrl, bool bEditable);
+
     /** 执行一些功能测试
     */
     void RunListCtrlTest();
@@ -155,6 +159,10 @@ private:
     /** 压力测试数据是否已载入
     */
     bool m_bStressDataLoaded;
+
+    /** "所有列可编辑"勾选框的状态：数据被重新载入后，按该状态重新应用单元格的可编辑属性
+    */
+    bool m_bAllColumnsEditable;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

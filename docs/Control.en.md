@@ -1896,6 +1896,7 @@ The DirectoryTree control inherits the `TreeView` attributes. For more available
 
 The ListCtrl control inherits the `VBox` attributes. For more available attributes, please refer to the `VBox` attributes.    
 Each view of the ListCtrl control inherits the `ListBox` attributes; for more available attributes, please refer to the `ListBox` attribute settings: [Box.md](Box.en.md); the view attributes need to be set in `global.xml`.
+The cell editor type is not set through an XML attribute; it is declared in code via `ListCtrlColumn::nEditorType` (see "Per-column editor type" under "ListCtrl Table Enhancements" below).
 
 ### ListCtrl Table Enhancements
 
@@ -1921,6 +1922,8 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Column-level compare mode | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`, flags in `ListCtrlSubItemSortFlag` | Declares the comparison mode per column (text/number/date/progress, etc.); clicking that column's header uses it automatically. `kSortByProgress` sorts by progress value, `kSortByTextAsNumber` compares text numerically (`"10" > "9"`), `kSortByTextAsDate` compares text chronologically (`"2024-3-7" < "2024-10-1"`) |
 | Batch row deletion | `DeleteDataItems(const std::vector<size_t>&)` | Deletes many rows at once (indices may be unordered and may include out-of-range/duplicate entries, which are ignored); deduplicates by row identity and performs a single-pass compaction of the display-order table, avoiding the O(K×N) shifting of row-by-row deletion; returns the number of rows actually deleted |
 | Storage compaction | `CompactStorage()` | An explicit whole-table maintenance operation: renumbers row identities and compacts the storage pages, reclaiming the tombstone slots and empty pages left by repeated insert/delete. Call it only when no fill/paint is in progress; afterwards all outstanding internal cell raw pointers become invalid. During single/batch deletion, a storage page whose slots are all tombstones is released automatically |
+| Cell editing | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell mode + Report view; enter editing with `F2` or "a single click after the cell is selected" (the click path is unchanged); `Enter` commits and moves down one row, `Esc` cancels, focus loss commits without moving; requires `enable_item_edit="true"` |
+| Per-column editor type | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | Enum `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`; column declaration field `ListCtrlColumn::nEditorType` (defaults to `kEditText`); input is validated on commit by the declared type (an empty string clears the cell and is always valid; a number column accepts decimal numbers; a date column accepts `yyyy-mm-dd` / `yyyy/mm/dd`, reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired); `kEditCombo` (dropdown) / `kEditCheck` (checkbox) are TODO; **no XML attribute is introduced** (columns are declared in code) |
 
 **Column-level compare mode (sorting):**
 
@@ -1972,6 +1975,22 @@ subItemData.text = _T("60%");
 subItemData.nProgress = 60;      // -1 means no progress bar
 pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 ```
+
+**Cell editing (C3):**
+
+Only effective in kCell mode + Report view, and requires `enable_item_edit="true"`. Enter editing with `F2` (equivalent to `EnterCurrentCellEdit`, entering editing immediately, bypassing the 600 ms delay; the row is scrolled into view first if it is off-screen) or with "a single click after the cell is selected" (the existing click path is reused); `Enter` commits and moves the current cell down one row, `Esc` cancels without moving, and clicking elsewhere to lose focus commits without moving; pressing `F2` on a pinned row / a non-editable cell / when `enable_item_edit="false"` has no effect.
+
+```cpp
+// Declare column 2 as a number column and column 5 as a date column (column index starts at 0)
+pListCtrl->SetColumnEditorType(1, ui::ListCtrlEditorType::kEditNumber);
+pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
+// Or by column ID (unaffected when the column order changes)
+// pListCtrl->SetColumnEditorTypeById(columnId, ui::ListCtrlEditorType::kEditNumber);
+// Enter editing on the current cell (equivalent to pressing F2)
+pListCtrl->EnterCurrentCellEdit();
+```
+
+On commit the input is validated by the column's declared editor type: an empty string is always valid (it clears the cell), `kEditText` is always valid, `kEditNumber` accepts only a valid decimal number, and `kEditDate` accepts only `yyyy-mm-dd` / `yyyy/mm/dd` (reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired). The existing events `kEventEnterEdit` / `kEventLeaveEdit` are reused — no new event is added; the three types share the same RichEdit editor; `kEditCombo` / `kEditCheck` are TODO.
 
 **Cell rich text:**
 

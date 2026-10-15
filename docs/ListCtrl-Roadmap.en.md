@@ -79,11 +79,11 @@ Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by
 
 | # | Item | Status quo | Implementation notes |
 |---|------|-----------|----------------------|
-| L1 | F2 to enter cell editing | Missing: `ListCtrl` currently handles only `kVK_ESCAPE` (leave editing), no `kVK_F2` | Handle `kVK_F2` in the `ListCtrl` key branch to enter editing for the current cell; must be mutually exclusive with the existing `m_pRichEdit` editing state |
+| L1 | F2 to enter cell editing | Completed (C3; verified by Debug\|x64 build) | Implemented in `kCell` mode: `F2` enters editing on the current cell immediately (`EnterCurrentCellEdit` / `EnterCellEdit`, bypassing the 600 ms click-path timer; the row is first scrolled into view via `EnsureDataItemVisible` when outside the visible range); `Enter` commits (and moves the current cell down one row after a successful commit), `Esc` cancels (no write-back), focus-loss commits (keeps the existing behavior, does not move the current cell); mutually exclusive with the existing `m_pRichEdit` editing state; the click-to-edit path is reused unchanged. Not done: double-click / typing-to-edit, and `Tab` commit-and-move-right |
 | L2 | Ctrl+C to copy the selected content to the clipboard | Done (verified by Debug\|x64 build) | Implemented: `kRow` copies the selected rows, `kCell` copies the selected cell area, both producing TSV into the clipboard (`Ctrl+C`); `Ctrl+Shift+C` produces CSV into the clipboard; `ExportToCsvFile(path, bSelectedOnly)` exports CSV to a file (UTF-8 BOM); mutually exclusive with the editing state (commit first, then copy). Two independent switches default to on and can be disabled via `enable_copy` / `enable_csv_export` (when off, both the shortcuts and the APIs are inert). Not done: the copy-completed event (optional, not implemented) and "paste TSV" |
 | L3 | Row filtering / header filters | Missing (only the sort group `nSortGroup` exists; no condition-based row filtering) | Provide APIs to filter rows by condition + a header filter dropdown UI |
 | L4 | Custom cell renderer | Missing (only the built-in text / icon / CheckBox / progress bar / rich text renderers) | Allow embedding an arbitrary child control (custom drawing) inside a cell |
-| L5 | Cell-level editors (dropdown / date / numeric) | Missing (only one RichEdit editor) | Declare the editor type per column and create the matching input control on editing |
+| L5 | Cell-level editors (dropdown / date / numeric) | Partially completed (C3 first phase: text / number / date; verified by Debug\|x64 build) | Implemented: declare the editor type per column via `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }` (`ListCtrlColumn::nEditorType`, `SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`, stored by column ID so a column-order change does not affect it); validate the input at commit time by type (`kEditNumber` accepts an empty string or a decimal value, `kEditDate` accepts an empty string or `yyyy-mm-dd` / `yyyy/mm/dd`, reusing `Calendar::ParseDateString`), and **invalid input is discarded** (no write-back, no `kEventLeaveEdit`, keeping the original value); all three types currently share the same `RichEdit` editor (no differentiated input control created). **Immediate next item**: `kEditCombo` (drop-down) and `kEditCheck` (checkbox), plus creating the matching input control for each type |
 
 ### 3. Candidate optimizations (to evaluate / to verify / architectural)
 
@@ -115,7 +115,7 @@ Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by
 | Custom cell renderer (embed any control) | Missing | See L4; only built-in text / icon / CheckBox / progress bar / rich text for now |
 | Variable row height / cell word wrap | Done | `SetDataItemHeight` + `SetSubItemSingleLine`; text ellipsis comes from the default Label style |
 | Column width / order / visibility persistence | Done | App is notified via the `kEventColumn*` events and can persist and restore them |
-| Cell-level editors (dropdown / date / numeric) | Missing | See L5; only one RichEdit editor for now |
+| Cell-level editors (dropdown / date / numeric) | Partially completed | See L5; text / number / date are implemented, combo / check still todo |
 
 ### 5. Priority suggestion
 
@@ -126,7 +126,7 @@ Low / medium cost items (most done):
 | 1 | Single-cell refresh API `RefreshSubItem` | Done |
 | 2 | External `kEvent*` events for column width / order / visibility / sort | Done |
 | 3 | `ListCtrl`-level `SetColumnVisible` / `IsColumnVisible` | Done |
-| 4 | Keyboard navigation (arrows + Home/End/PageUp/PageDown + F2/Ctrl+C) | Navigation done; Ctrl+C (L2) done; F2 (L1) todo |
+| 4 | Keyboard navigation (arrows + Home/End/PageUp/PageDown + F2/Ctrl+C) | Navigation done; Ctrl+C (L2) done; F2 (L1) completed (C3, verified by Debug\|x64 build) |
 | 5 | Cell tooltip (auto-show on overflow) | Existing |
 | 6 | Column-level compare mode (numeric / date / progress / custom) | Numeric / progress / date all done |
 | 7 | Variable row height + cell word wrap + ellipsis | Done |
@@ -156,11 +156,11 @@ Architectural items:
 | — | Fixed / auto / stretch column width, width drag, header drag reorder, double-click width auto-fit | Existing |
 | — | Report / List / Icon views (Report is virtual) | Existing |
 | — | Full refresh `Refresh()` + per-row refresh `RefreshDataItems(vector)` | Existing |
-| L1 | F2 to enter cell editing | Todo |
+| L1 | F2 to enter cell editing | Completed (C3; verified by Debug\|x64 build) |
 | L2 | Ctrl+C to copy to clipboard (multi-row TSV / export CSV) | Done (TSV copy + CSV export; on by default, can be disabled via `enable_copy` / `enable_csv_export`) |
 | L3 | Row filtering / header filters | Todo |
 | L4 | Custom cell renderer | Todo |
-| L5 | Cell-level editors (dropdown / date / numeric) | Todo |
+| L5 | Cell-level editors (dropdown / date / numeric) | Partially completed (C3 first phase: text / number / date; verified by Debug\|x64 build) |
 | P1 | Cell storage heap-allocation overhead (contiguous memory / SoA) | Completed (Phases 0–3 all done and accepted; Phase 4 verified as not needed; the SoA alternative was not adopted) |
 | P2 | Column storage vs. row-major access overhead | Done (no storage-layout change, local de-allocation only; Release same-session A/B: 13.804 → 13.300 ms/frame, no regression) |
 | P3 | Horizontal scroll range with frozen columns (frozen width deducted?) | Verified (no change needed: content width and viewport width both include the frozen width and cancel out) |
@@ -172,6 +172,7 @@ Architectural items:
 | C1b | Unified selection model (bitmap storage + region-list event + mode dispatch + Ctrl+drag append) | Completed |
 | C1-review | C1 review (frozen-column hit-testing + 5 confirmed issues) | Done (the 6 issues plus frozen-column hit-testing are all fixed and verified by a Debug build; the Debug assertions `ptOrg == ptMouse` (frozen-column hit-test pass) and `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)` (clicking a frozen-column header), the failure to toggle CheckBoxes inside the frozen-column area, and the unresponsive row-level CheckBox (at the start of each row) and header CheckBox in cell-selection mode (`kCell`) (root cause: `OnListBoxItemMouseEvent` consumed the mouse event so the item's own `ButtonUp` was skipped; fixed via `CheckBoxTemplate::IsMouseOnCheckBoxIcon` + `ListCtrlReportView::IsMouseOnItemCheckBox` pass-through + a `ListCtrlHeader::GetCheckBoxMousePos` override), are fixed as well; see "C1 review conclusions" in the [design doc](misc/ListCtrl单元格交互与结构升级设计方案.md)) |
 | C1c | Cell selection: single-select semantics aligned | Done (at most one cell when single-select: Shift/Ctrl click and `Ctrl+A` become no-ops, batch APIs keep only the first cell, switching back to single-select trims to the first cell; the "current cell" focus box is kept) |
+| C3 | Cell editing (F2 to enter editing + per-column editor type: text / number / date) | Completed first phase (F2 enters editing immediately, Enter commits then moves the current cell down one row, Esc cancels, focus-loss commits; the editor type is declared per column via `ListCtrlEditorType` with submit-time validation, invalid input is discarded; reuses `kEventEnterEdit` / `kEventLeaveEdit`, no new events; double-click / typing-to-edit and Tab-commit are not implemented; drop-down / checkbox editors are pending; verified by Debug\|x64 build) |
 | A2 | Multi-level header / cell merge / in-table tree / row group collapse | In progress (C0 / C1 / C1b done; C2–C7 pending) |
 
 > Note: this document is the dedicated follow-up list for ListCtrl. Please update the status table as items are completed; control-level new plans still follow [Control-Roadmap.en.md](Control-Roadmap.en.md).

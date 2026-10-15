@@ -14,7 +14,8 @@
 MainForm::MainForm():
     m_fLoadingPercent(0),
     m_imageId(0),
-    m_bStressDataLoaded(false)
+    m_bStressDataLoaded(false),
+    m_bAllColumnsEditable(false)
 {
 }
 
@@ -524,6 +525,24 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
         pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
     }
 
+    //所有列是否可编辑（勾选：所有行、所有列的数据均设置为可编辑；不勾选：全部不可编辑，默认状态）
+    //勾选状态保存在成员变量中：数据被重新载入（切换语言、还原演示数据等）后会自动重新应用
+    ui::CheckBox* pAllColumnsEditable = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_all_columns_editable")));
+    if (pAllColumnsEditable != nullptr) {
+        m_bAllColumnsEditable = (pListCtrl->GetDataItemCount() > 0) && pListCtrl->IsSubItemEditable(0, 0);
+        pAllColumnsEditable->Selected(m_bAllColumnsEditable, false);
+        pAllColumnsEditable->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
+            m_bAllColumnsEditable = true;
+            SetAllColumnsEditable(pListCtrl, true);
+            return true;
+            });
+        pAllColumnsEditable->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
+            m_bAllColumnsEditable = false;
+            SetAllColumnsEditable(pListCtrl, false);
+            return true;
+            });
+    }
+
     //选择方式：按行选择 / 按单元格选择（单元格模式仅Report视图有效）
     ui::Option* pSelectionModeRow = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_row")));
     ui::Option* pSelectionModeCell = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_cell")));
@@ -610,6 +629,26 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
             OnShowDataItemIcon(false);
             return true;
             });
+    }
+}
+
+void MainForm::SetAllColumnsEditable(ui::ListCtrl* pListCtrl, bool bEditable)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    const size_t nItemCount = pListCtrl->GetDataItemCount();
+    const size_t nColumnCount = pListCtrl->GetColumnCount();
+    //批量修改期间关闭自动刷新，避免逐格触发刷新
+    const bool bOldEnableRefresh = pListCtrl->SetEnableRefresh(false);
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        for (size_t nColumnIndex = 0; nColumnIndex < nColumnCount; ++nColumnIndex) {
+            pListCtrl->SetSubItemEditable(nItemIndex, nColumnIndex, bEditable);
+        }
+    }
+    pListCtrl->SetEnableRefresh(bOldEnableRefresh);
+    if (bOldEnableRefresh) {
+        pListCtrl->Refresh();
     }
 }
 
@@ -737,6 +776,21 @@ void MainForm::InitStressTest(ui::ListCtrl* pListCtrl)
                 msg = _T("Export CSV: FAILED (no selection/data, or enable_csv_export is false)");
             }
             ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_COPY_EXPORT_TITLE")));
+            return true;
+            });
+    }
+    //C3：进入当前单元格的编辑状态（效果与选中单元格后按 F2 相同）
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("enter_cell_edit_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            const bool bRet = pListCtrl->EnterCurrentCellEdit();
+            if (!bRet) {
+                //仅失败时弹提示；成功时静默进入编辑（若弹模态框，主窗口会失去焦点，
+                //进而向编辑框派发窗口失去焦点事件，刚进入的编辑态会被立即拆除）
+                ui::SystemUtil::ShowMessageBox(this,
+                    _T("Enter cell edit: FAILED (need cell selection mode, a current editable cell, and enable_item_edit)"),
+                    ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_ENTER_CELL_EDIT")));
+            }
             return true;
             });
     }
@@ -1571,6 +1625,15 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     if (columnCount > 4) {
         pListCtrl->SetColumnSortFlag(4, ui::ListCtrlSubItemSortFlag::kSortByTextAsDate);//第5列（日期文本列）按日期时间先后排序
     }
+    //C3：按列声明单元格编辑器类型（提交编辑时按该类型校验输入内容）
+    //      kEditNumber：仅允许空串或合法的十进制数值；kEditDate：仅允许空串或 yyyy-mm-dd / yyyy/mm/dd
+    pListCtrl->SetColumnEditorType(1, ui::ListCtrlEditorType::kEditNumber);      //第2列（进度条列）按数值校验
+    if (columnCount > 3) {
+        pListCtrl->SetColumnEditorType(3, ui::ListCtrlEditorType::kEditNumber);//第4列（数值文本列）按数值校验
+    }
+    if (columnCount > 4) {
+        pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);  //第5列（日期文本列）按日期校验
+    }
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
@@ -1632,6 +1695,10 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
         //pListCtrl->SetSubItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
         //pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
         //pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+    }
+    //保持"所有列可编辑"勾选框的状态：数据被重新载入后，按当前状态重新应用一次
+    if (m_bAllColumnsEditable) {
+        SetAllColumnsEditable(pListCtrl, true);
     }
     //重绘
     UpdateWindow();

@@ -754,7 +754,7 @@
     <!-- ListCtrl编辑框 -->
     <Class name="list_ctrl_richedit" class="simple_border" 
                                      text_align="left,vcenter" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" 
-                                     want_return="true" want_tab="false" rich_text="false" 
+                                     want_return="false" want_tab="false" rich_text="false" 
                                      text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" 
                                      bkcolor="bg_richedit"/>
     

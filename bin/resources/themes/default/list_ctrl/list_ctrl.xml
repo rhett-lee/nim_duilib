@@ -38,6 +38,8 @@
                     <Event type="select" receiver="list_ctrl" apply_attribute="multi_select={true}" />
                     <Event type="unselect" receiver="list_ctrl" apply_attribute="multi_select={false}" />
                 </CheckBox>
+                <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
+                <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="12,0,0,0" valign="center"/>
             </HBox>
             <HBox height="auto">
                 <GroupVBox class="group_box_round" name="report_group" height="auto" width="820" margin="2,0,0,0" text_id="STRID_LISTCTRL_REPORT_TYPE">
@@ -159,6 +161,7 @@
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Button class="btn_global" name="copy_selection_btn" text_id="STRID_LISTCTRL_COPY_SELECTION" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                         <Button class="btn_global" name="export_csv_btn" text_id="STRID_LISTCTRL_EXPORT_CSV" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
+                        <Button class="btn_global" name="enter_cell_edit_btn" text_id="STRID_LISTCTRL_ENTER_CELL_EDIT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
                     </HBox>
                 </GroupVBox>
                 <HBox>

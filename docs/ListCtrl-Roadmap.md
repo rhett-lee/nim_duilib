@@ -79,11 +79,11 @@
 
 | # | 项 | 现状 | 实现要点 |
 |---|----|------|---------|
-| L1 | F2 进入单元格编辑 | 缺失：`ListCtrl` 现仅处理 `kVK_ESCAPE`（退出编辑），无 `kVK_F2` | 在 `ListCtrl` 的按键处理分支中响应 `kVK_F2`，进入当前单元格编辑态；需与既有 `m_pRichEdit` 编辑态互斥 |
+| L1 | F2 进入单元格编辑 | 已完成（C3；Debug\|x64 编译验证通过） | 已实现：`kCell` 模式下按 `F2` 对**当前单元格立即进入编辑**（`EnterCurrentCellEdit` / `EnterCellEdit`，不走单击链路的 600ms 定时器；行不在可视区时先 `EnsureDataItemVisible`）；`Enter` 提交（提交成功后当前格下移一行）、`Esc` 取消（不写回）、失焦提交（保持既有行为、不移动当前格）；与既有 `m_pRichEdit` 编辑态互斥；单击进入编辑沿用原有链路（**未改动**）。未做：双击 / 直接键入进入编辑、`Tab` 提交并右移 |
 | L2 | Ctrl+C 复制选中内容到剪贴板 | 已完成（Debug\|x64 编译验证通过） | 已实现：`kRow` 复制选中行、`kCell` 复制选中区域，均生成 TSV 写入剪贴板（`Ctrl+C`）；`Ctrl+Shift+C` 生成 CSV 写入剪贴板；`ExportToCsvFile(路径, 是否仅选中)` 导出 CSV 文件（UTF-8 BOM）；与编辑态互斥（先提交再复制）。两个独立开关默认开启、可通过 `enable_copy` / `enable_csv_export` 关闭（关闭时快捷键与接口均 inert）。未做：复制完成事件（可选，未实现）、"粘贴 TSV" |
 | L3 | 行筛选 / 表头筛选器 | 缺失（现仅有排序分组 `nSortGroup`，无按条件过滤） | 提供按条件过滤行的接口 + 表头筛选器下拉 UI |
 | L4 | 自定义单元格渲染器 | 缺失（仅内置文本 / 图标 / CheckBox / 进度条 / 富文本几种渲染） | 允许在单元格内嵌入任意子控件（自定义绘制） |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 缺失（仅一种 RichEdit 编辑器） | 按列声明编辑器类型，编辑时创建对应输入控件 |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成（C3 首期：文本 / 数值 / 日期；Debug\|x64 编译验证通过） | 已实现：按列声明编辑器类型 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`（`ListCtrlColumn::nEditorType`、`SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`，按列ID保存、列序变化不影响）；提交编辑时按类型校验输入（`kEditNumber` 允许空串或十进制数值、`kEditDate` 允许空串或 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），**非法输入不写回数据、不派发 `kEventLeaveEdit`**（等同丢弃本次编辑，保持原值）；三种类型当前共用同一个 `RichEdit` 编辑器（未创建差异化输入控件）。**待做（紧接的一项）**：`kEditCombo`（下拉）与 `kEditCheck`（勾选），以及为各类型创建对应的差异化输入控件 |
 
 ### 三、候选优化项（待评估 / 待核实 / 架构性）
 
@@ -115,7 +115,7 @@
 | 自定义单元格渲染器（嵌入任意控件） | 缺失 | 见 L4，现仅内置文本 / 图标 / CheckBox / 进度条 / 富文本 |
 | 可变行高 / 单元格自动换行 | 已完成 | `SetDataItemHeight` + `SetSubItemSingleLine`，文本省略号由 Label 默认样式提供 |
 | 列宽 / 列序 / 列显隐持久化 | 已完成 | 通过 `kEventColumn*` 系列事件通知应用，应用可持久化与恢复 |
-| 单元格级编辑器（下拉 / 日期 / 数值） | 缺失 | 见 L5，现仅一种 RichEdit 编辑器 |
+| 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成 | 见 L5，Text / Number / Date 已实现；Combo / Check 待办 |
 
 ### 五、优先级建议
 
@@ -126,7 +126,7 @@
 | 1 | 单格刷新接口 `RefreshSubItem` | 已完成 |
 | 2 | 列宽 / 列序 / 列显隐 / 排序的对外 `kEvent*` 事件 | 已完成 |
 | 3 | `ListCtrl` 级 `SetColumnVisible` / `IsColumnVisible` | 已完成 |
-| 4 | 键盘导航（方向键 + Home/End/PageUp/PageDown + F2/Ctrl+C） | 导航已完成；Ctrl+C（L2）已完成；F2（L1）待办 |
+| 4 | 键盘导航（方向键 + Home/End/PageUp/PageDown + F2/Ctrl+C） | 导航已完成；Ctrl+C（L2）已完成；F2（L1）已完成（C3，Debug\|x64 编译验证通过） |
 | 5 | 单元格 tooltip（内容超长时自动提示） | 已具备 |
 | 6 | 列级比较模式（数值 / 日期 / 进度 / 自定义） | 数值 / 进度 / 日期均已完成 |
 | 7 | 可变行高 + 单元格自动换行 + 省略号 | 已完成 |
@@ -156,11 +156,11 @@
 | — | 固定 / 自动 / 拉伸列宽、列宽拖拽、列头拖拽换序、双击列宽自适应 | 已具备 |
 | — | Report / List / Icon 三视图（Report 为虚表） | 已具备 |
 | — | 全量刷新 `Refresh()` + 按行刷新 `RefreshDataItems(vector)` | 已具备 |
-| L1 | F2 进入单元格编辑 | 待办 |
+| L1 | F2 进入单元格编辑 | 已完成（C3；Debug\|x64 编译验证通过） |
 | L2 | Ctrl+C 复制到剪贴板（多行 TSV / 导出 CSV） | 已完成（TSV 复制 + CSV 导出；默认开启，可用 `enable_copy` / `enable_csv_export` 关闭） |
 | L3 | 行筛选 / 表头筛选器 | 待办 |
 | L4 | 自定义单元格渲染器 | 待办 |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 待办 |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成（C3 首期：文本 / 数值 / 日期；Debug\|x64 编译验证通过） |
 | P1 | 单元格存储堆分配开销（连续内存 / SoA） | 已完成（Phase 0–3 全部完成并验收；Phase 4 已核实无需实施；SoA 备选未采用） |
 | P2 | 列存储与行优先访问开销 | 已完成（无需改存储布局，仅局部去分配；Release 同会话 A/B：13.804 → 13.300 ms/帧，无劣化） |
 | P3 | 冻结列横向滚动范围（是否扣除冻结宽度） | 已核实（无需改动：内容宽与视口宽均含冻结宽，自然抵消） |
@@ -172,6 +172,7 @@
 | C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
 | C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，冻结列区域内 CheckBox 无法勾选的问题，以及单元格选择模式（`kCell`）下行级 CheckBox（每行行首）与表头 CheckBox 点击无响应的问题（根因为 `OnListBoxItemMouseEvent` 消费事件导致 Item 自身 `ButtonUp` 被跳过，修复为 `CheckBoxTemplate::IsMouseOnCheckBoxIcon` + `ListCtrlReportView::IsMouseOnItemCheckBox` 放行 + `ListCtrlHeader::GetCheckBoxMousePos` override），详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
 | C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
+| C3 | 单元格编辑（F2 进入编辑 + 按列编辑器类型：文本 / 数值 / 日期） | 已完成首期（F2 立即进入编辑、Enter 提交后当前格下移一行、Esc 取消、失焦提交；按列声明 ListCtrlEditorType 并做输入校验，非法输入丢弃；复用 kEventEnterEdit / kEventLeaveEdit，未新增事件；未做双击/直接键入进入编辑与 Tab 提交；下拉/勾选编辑器待办；Debug\|x64 编译验证通过） |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 实施中（C0 / C1 / C1b 已完成；后续 C2–C7 待实施） |
 
 > 注：本文档为 ListCtrl 专项跟进清单，条目完成后请同步更新本表状态；控件级的新增规划仍以 [Control-Roadmap.md](Control-Roadmap.md) 为准。

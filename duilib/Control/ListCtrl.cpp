@@ -8,6 +8,8 @@
 #include "duilib/Utils/Clipboard.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Control/Calendar.h"
 #include <set>
 #include <algorithm>
 
@@ -1291,7 +1293,12 @@ ListCtrlHeaderItem* ListCtrl::InsertColumn(int32_t columnIndex, const ListCtrlCo
         return nullptr;
     }
     else {
-        return m_pHeaderCtrl->InsertColumn(columnIndex, columnInfo);
+        ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->InsertColumn(columnIndex, columnInfo);
+        if (pHeaderItem != nullptr) {
+            //按列声明的编辑器类型：记录该列的编辑器类型（按列ID保存，列序变化不影响）
+            SetColumnEditorTypeById(pHeaderItem->GetColumnId(), columnInfo.nEditorType);
+        }
+        return pHeaderItem;
     }
 }
 
@@ -1819,6 +1826,7 @@ void ListCtrl::OnHeaderColumnAdded(size_t nColumnId)
 void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 {
     m_columnSortFlagMap.erase(nColumnId);
+    m_columnEditorTypes.erase(nColumnId);
     m_pData->RemoveColumn(nColumnId);
 }
 
@@ -2487,6 +2495,39 @@ bool ListCtrl::IsSubItemEditable(size_t itemIndex, size_t columnIndex) const
 bool ListCtrl::IsSubItemEditableById(size_t itemIndex, size_t columnId) const
 {
     return m_pData->IsSubItemEditable(itemIndex, columnId);
+}
+
+void ListCtrl::SetColumnEditorType(size_t columnIndex, ListCtrlEditorType editorType)
+{
+    SetColumnEditorTypeById(GetColumnId(columnIndex), editorType);
+}
+
+void ListCtrl::SetColumnEditorTypeById(size_t columnId, ListCtrlEditorType editorType)
+{
+    if (!IsValidColumnId(columnId)) {
+        return;
+    }
+    if (editorType == ListCtrlEditorType::kEditText) {
+        //默认值不入表，避免无意义条目
+        m_columnEditorTypes.erase(columnId);
+    }
+    else {
+        m_columnEditorTypes[columnId] = editorType;
+    }
+}
+
+ListCtrlEditorType ListCtrl::GetColumnEditorType(size_t columnIndex) const
+{
+    return GetColumnEditorTypeById(GetColumnId(columnIndex));
+}
+
+ListCtrlEditorType ListCtrl::GetColumnEditorTypeById(size_t columnId) const
+{
+    auto iter = m_columnEditorTypes.find(columnId);
+    if (iter != m_columnEditorTypes.end()) {
+        return iter->second;
+    }
+    return ListCtrlEditorType::kEditText;
 }
 
 bool ListCtrl::SetSubItemProgress(size_t itemIndex, size_t columnIndex, int32_t nProgress)
@@ -3206,6 +3247,13 @@ bool ListCtrl::OnCellKeyDown(const EventArgs& msg)
         return true;
     }
 
+    //F2：对当前单元格进入编辑状态（立即进入，不走进入编辑的600ms定时器）
+    if (msg.vkCode == kVK_F2) {
+        EnterCurrentCellEdit();
+        //无论是否成功进入编辑，都消费该按键，避免继续冒泡
+        return true;
+    }
+
     //方向键：移动当前单元格
     const bool bArrowKey = (msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN) ||
                             (msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
@@ -3675,10 +3723,21 @@ bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
     else {
         //Report视图
         ListCtrlItem* pItem = dynamic_cast<ListCtrlItem*>(editParam.pItem);
-        ASSERT((pItem != nullptr) && pItem->IsVisible() && pItem->IsSelected() && pItem->IsFocused());
-        if ((pItem == nullptr) || !pItem->IsVisible() || !pItem->IsSelected() || !pItem->IsFocused()) {
+        if (pItem == nullptr) {
+            ASSERT(pItem != nullptr);
             return false;
         }
+        if (!pItem->IsVisible()) {
+            return false;
+        }
+        if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+            //行选择模式：沿用原有"已选择且已聚焦"的要求
+            ASSERT(pItem->IsSelected() && pItem->IsFocused());
+            if (!pItem->IsSelected() || !pItem->IsFocused()) {
+                return false;
+            }
+        }
+        //单元格选择模式下，"行选择"不参与（切到kCell时已清空行选择），不作要求
         ASSERT(m_pReportView != nullptr);
         if (m_pReportView == nullptr) {
             return false;
@@ -3874,6 +3933,11 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         LeaveEditMode();
         return;
     }
+    if (m_selectionMode == ListCtrlSelectionMode::kCell) {
+        //记录正在编辑的单元格（退出编辑态时由ClearEditEvents清除）
+        m_editingCell.nRowIndex = editParam.nItemIndex;
+        m_editingCell.nColumnId = editParam.nColumnId;
+    }
 
     m_pRichEdit->SetFloat(true);
     m_pRichEdit->SetVisible(true);
@@ -3887,7 +3951,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         });
 
     //编辑结束的时候，触发事件
-    auto OnLeaveRichEdit = [this, sOldItemText, RestoreItemFocus, editParam]() {
+    auto OnLeaveRichEdit = [this, sOldItemText, RestoreItemFocus, editParam]() -> bool {
         DString sNewItemText;
         if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
             sNewItemText = m_pRichEdit->GetText();
@@ -3895,8 +3959,9 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         }
         if ((sNewItemText != sOldItemText) && IsValidItemEditParam(editParam)) {
             //文本内容发生变化
-            OnItemEdited(editParam, sNewItemText);
+            return OnItemEdited(editParam, sNewItemText);
         }
+        return false;
         };
 
     //按回车：应用修改
@@ -3904,7 +3969,10 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->AttachReturn([this, RestoreItemFocus, OnLeaveRichEdit](const EventArgs&) {
         ClearEditEvents();
         RestoreItemFocus();
-        OnLeaveRichEdit();
+        if (OnLeaveRichEdit() && (m_selectionMode == ListCtrlSelectionMode::kCell)) {
+            //单元格选择模式下：提交成功后，当前格下移一行
+            MoveCurrentCellToNextRow();
+        }
         return false;
         });
     //按ESC键：取消修改
@@ -4011,8 +4079,13 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
     }
 }
 
-void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText)
+bool ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText)
 {
+    //编辑器类型校验：非法输入不写回数据、也不派发事件（等同丢弃本次编辑，保持原值）
+    const ListCtrlEditorType editorType = GetColumnEditorTypeById(editParam.nColumnId);
+    if (!IsValidCellEditText(newItemText, editorType)) {
+        return false;
+    }
     //触发事件：结束编辑，如果用户取消编辑，那么不执行修改操作
     ListCtrlEditParam leaveEditParam = editParam;
     leaveEditParam.sNewText = newItemText;
@@ -4020,8 +4093,157 @@ void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& n
     SendEvent(kEventLeaveEdit, (WPARAM)&leaveEditParam);
     if (!leaveEditParam.bCancelled) {
         //用户未取消编辑
-        SetSubItemText(editParam.nItemIndex, editParam.nColumnIndex, newItemText);
+        return SetSubItemText(editParam.nItemIndex, editParam.nColumnIndex, newItemText);
     }    
+    return false;
+}
+
+ListCtrlItem* ListCtrl::GetDisplayItemByIndex(size_t nItemIndex) const
+{
+    ListCtrlItem* pDestItem = nullptr;
+    ListCtrlItem* pNextItem = GetFirstDisplayItem();
+    while (pNextItem != nullptr) {
+        if (pNextItem->GetElementIndex() == nItemIndex) {
+            pDestItem = pNextItem;
+            break;
+        }
+        pNextItem = GetNextDisplayItem(pNextItem);
+    }
+    return pDestItem;
+}
+
+bool ListCtrl::IsValidCellEditText(const DString& strNewText, ListCtrlEditorType editorType)
+{
+    DString strValue = strNewText;
+    StringUtil::Trim(strValue);
+    if (strValue.empty()) {
+        //空串：表示清空单元格，一律视为有效
+        return true;
+    }
+    if (editorType == ListCtrlEditorType::kEditText) {
+        return true;
+    }
+    if (editorType == ListCtrlEditorType::kEditNumber) {
+        //十进制数值：可选正负号、至多一个小数点、至少一位数字
+        bool bHasDigit = false;
+        bool bHasDot = false;
+        for (size_t i = 0; i < strValue.size(); ++i) {
+            const DString::value_type ch = strValue[i];
+            if ((ch >= _T('0')) && (ch <= _T('9'))) {
+                bHasDigit = true;
+            }
+            else if ((ch == _T('.')) && !bHasDot) {
+                bHasDot = true;
+            }
+            else if (((ch == _T('+')) || (ch == _T('-'))) && (i == 0)) {
+                //符号位
+            }
+            else {
+                return false;
+            }
+        }
+        return bHasDigit;
+    }
+    //日期：复用日历的日期解析（支持 yyyy-mm-dd / yyyy/mm/dd）
+    struct tm date = {};
+    return Calendar::ParseDateString(strValue, date);
+}
+
+bool ListCtrl::EnterCellEdit(size_t nRowIndex, size_t nColumnId)
+{
+    if (!IsEnableItemEdit() || (m_selectionMode != ListCtrlSelectionMode::kCell)) {
+        return false;
+    }
+    if ((m_listCtrlType != ListCtrlType::Report) || (m_pReportView == nullptr) || (m_pData == nullptr)) {
+        return false;
+    }
+    if ((nRowIndex >= GetDataItemCount()) || !IsValidColumnId(nColumnId)) {
+        return false;
+    }
+    if (!IsSubItemEditableById(nRowIndex, nColumnId)) {
+        //该单元格不可编辑
+        return false;
+    }
+    if (m_editingCell.IsValid() && (m_editingCell.nRowIndex == nRowIndex) && (m_editingCell.nColumnId == nColumnId)) {
+        //已经在编辑该单元格
+        return true;
+    }
+    //如果正在编辑其它单元格，先结束其编辑状态（避免同时存在两个编辑框）
+    LeaveEditMode();
+
+    //先把当前格定位到该单元格
+    if (!SetCurrentCell(nRowIndex, nColumnId)) {
+        return false;
+    }
+    if (!IsDataItemDisplay(nRowIndex)) {
+        //该行不在可视区：先滚动到可视区
+        EnsureDataItemVisible(nRowIndex, false);
+    }
+    ListCtrlItem* pItem = GetDisplayItemByIndex(nRowIndex);
+    if ((pItem == nullptr) || !pItem->IsSelectableType()) {
+        //不可选的行（比如置顶行）不允许编辑
+        return false;
+    }
+    //按列ID，在行内找到对应的单元格控件
+    ListCtrlSubItem* pSubItem = nullptr;
+    size_t nItemCount = pItem->GetItemCount();
+    for (size_t nItem = 0; nItem < nItemCount; ++nItem) {
+        ListCtrlSubItem* pNextSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nItem));
+        if ((pNextSubItem != nullptr) && (pNextSubItem->GetDataColumnId() == nColumnId)) {
+            pSubItem = pNextSubItem;
+            break;
+        }
+    }
+    if (pSubItem == nullptr) {
+        return false;
+    }
+
+    //组装编辑参数，直接进入编辑状态（不走进入编辑的600ms定时器）
+    ListCtrlEditParam editParam;
+    editParam.listCtrlType = m_listCtrlType;
+    editParam.nItemIndex = nRowIndex;
+    editParam.nColumnId = nColumnId;
+    editParam.nColumnIndex = GetColumnIndex(nColumnId);
+    editParam.pItem = pItem;
+    editParam.pSubItem = pSubItem;
+    m_editModeFlag.Cancel();
+    OnItemEditMode(editParam);
+    return true;
+}
+
+bool ListCtrl::EnterCurrentCellEdit()
+{
+    if (m_selectionMode != ListCtrlSelectionMode::kCell) {
+        return false;
+    }
+    const ListCtrlCellId cell = GetCurrentCell();
+    if (!cell.IsValid()) {
+        return false;
+    }
+    return EnterCellEdit(cell.nRowIndex, cell.nColumnId);
+}
+
+bool ListCtrl::IsCellEditing() const
+{
+    return m_editingCell.IsValid();
+}
+
+bool ListCtrl::GetEditingCell(ListCtrlCellId& cell) const
+{
+    cell = m_editingCell;
+    return IsCellEditing();
+}
+
+void ListCtrl::MoveCurrentCellToNextRow()
+{
+    const ListCtrlCellId cell = GetCurrentCell();
+    if (!cell.IsValid() || ((cell.nRowIndex + 1) >= GetDataItemCount())) {
+        //当前格无效或者已在最后一行：不移动
+        return;
+    }
+    const size_t nNextRowIndex = cell.nRowIndex + 1;
+    SetCurrentCell(nNextRowIndex, cell.nColumnId);
+    EnsureDataItemVisible(nNextRowIndex, false);
 }
 
 void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
@@ -4069,6 +4291,8 @@ void ListCtrl::ClearEditEvents()
         m_pRichEdit->DetachEvent(kEventTextChanged);
         m_pRichEdit->DetachEvent(kEventKeyDown);
     }
+    //退出编辑态：清除正在编辑的单元格
+    m_editingCell = ListCtrlCellId();
 }
 
 }//namespace ui

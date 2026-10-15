@@ -1896,6 +1896,7 @@ DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`Tr
 
 ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性    
 ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性设置:[Box.md](Box.md)，视图的属性需要在`global.xml` 中设置。
+单元格编辑器类型不通过 XML 属性设置，而是在代码里通过 `ListCtrlColumn::nEditorType` 声明（详见下文"ListCtrl 表格增强"中的"按列编辑器类型"）。
 
 ### ListCtrl 表格增强
 
@@ -1921,6 +1922,8 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 列级比较模式 | `SetColumnSortFlag(ById)` / `GetColumnSortFlag(ById)`，标志位 `ListCtrlSubItemSortFlag` | 按列声明排序的比较方式（文本/数值/日期/进度等），鼠标点击该列表头排序时自动采用；`kSortByProgress` 按进度值排序，`kSortByTextAsNumber` 文本按数值比较（`"10" > "9"`），`kSortByTextAsDate` 文本按日期时间先后比较（`"2024-3-7" < "2024-10-1"`） |
 | 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序、可含越界/重复项，重复与越界项被忽略），内部按行身份去重后对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移；返回实际删除行数 |
 | 存储压缩 | `CompactStorage()` | 显式的整表维护操作：行身份重编号 + 存储页全量压缩，回收多次增删后遗留的墓碑槽位与空页内存。仅在无填充/绘制进行时调用；调用后内部已发出的单元格原始指针失效。单行/批量删除时，整页全部变为墓碑的存储页会被自动回收 |
+| 单元格编辑 | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell 模式 + Report 视图；`F2` 或"选中后单击一次"进入编辑（单击链路沿用原有、未改动）；`Enter` 提交并下移一行、`Esc` 取消、失焦提交不移动；需 `enable_item_edit="true"` |
+| 按列编辑器类型 | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | 枚举 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`；列声明字段 `ListCtrlColumn::nEditorType`（默认 `kEditText`）；提交时按类型校验输入（空串视为清空单元格合法；数值列为十进制数值；日期列为 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）；`kEditCombo`（下拉）/ `kEditCheck`（勾选）待办；**不引入 XML 属性**（列由代码声明） |
 
 **列级比较模式（排序）：**
 
@@ -1972,6 +1975,22 @@ subItemData.text = _T("60%");
 subItemData.nProgress = 60;      // -1 表示不显示进度条
 pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
 ```
+
+**单元格编辑（C3）：**
+
+仅 kCell 模式 + Report 视图生效，且需 `enable_item_edit="true"`。按 `F2`（等价于调用 `EnterCurrentCellEdit`，绕过 600ms 延时立即进入编辑；行不在可视区时会先滚动到可视区）或"选中该格后单击一次"（沿用原有单击链路）进入编辑；`Enter` 提交并把当前格下移一行、`Esc` 取消且不移动、点击其它区域失焦则提交但不移动；置顶行 / 不可编辑单元格 / `enable_item_edit="false"` 时按 `F2` 无反应。
+
+```cpp
+// 声明第 2 列为数值、第 5 列为日期（列序从 0 开始）
+pListCtrl->SetColumnEditorType(1, ui::ListCtrlEditorType::kEditNumber);
+pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
+// 或按列ID（列序变化不影响）
+// pListCtrl->SetColumnEditorTypeById(columnId, ui::ListCtrlEditorType::kEditNumber);
+// 对当前单元格进入编辑（等价于按 F2）
+pListCtrl->EnterCurrentCellEdit();
+```
+
+提交时按列声明的编辑器类型校验输入：空串一律合法（视为清空单元格），`kEditText` 恒合法，`kEditNumber` 仅接受合法十进制数值，`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`（复用 `Calendar::ParseDateString`）；非法输入被丢弃（不写回数据、不派发 `kEventLeaveEdit`）。复用既有事件 `kEventEnterEdit` / `kEventLeaveEdit`，不新增事件；三种类型共用同一个 RichEdit 编辑器；`kEditCombo` / `kEditCheck` 待办。
 
 **单元格富文本：**
 
