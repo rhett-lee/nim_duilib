@@ -23,6 +23,7 @@ class ListCtrlItem;
 class ListCtrlSubItem;
 class ListCtrlIconViewItem;
 class ListCtrlListViewItem;
+class ListCtrlComboFlyout;
 
 /** ListCtrl控件
 */
@@ -930,6 +931,26 @@ public:
     */
     ListCtrlEditorType GetColumnEditorTypeById(size_t columnId) const;
 
+    /** 按列的序号设置候选值列表（kEditCombo 编辑器使用）
+    * @param [in] columnIndex 列的序号，有效范围：[0, GetColumnCount())
+    * @param [in] candidates 候选值列表（纯文本，按传入顺序显示）；传入空列表表示清空候选
+    */
+    void SetColumnCandidates(size_t columnIndex, const std::vector<DString>& candidates);
+
+    /** 按列的ID设置候选值列表（推荐：列ID稳定，列序可变）
+    * @param [in] columnId 列的ID
+    * @param [in] candidates 候选值列表（纯文本，按传入顺序显示）；传入空列表表示清空候选
+    */
+    void SetColumnCandidatesById(size_t columnId, const std::vector<DString>& candidates);
+
+    /** 获取某列序号的候选值列表（未设置时返回空列表）
+    */
+    std::vector<DString> GetColumnCandidates(size_t columnIndex) const;
+
+    /** 获取某列ID的候选值列表（未设置时返回空列表）
+    */
+    std::vector<DString> GetColumnCandidatesById(size_t columnId) const;
+
     /** 进入指定单元格的编辑状态（等同于对当前格按 F2）
     * 前置条件：enable_item_edit 为 true、kCell 模式、Report 视图、该单元格"可编辑"且所在行可选；
     *           行不在可视区时先滚动到可视区
@@ -1556,6 +1577,26 @@ private:
     */
     static bool IsValidCellEditText(const DString& strNewText, ListCtrlEditorType editorType);
 
+    /** 进入下拉候选编辑状态（kEditCombo 编辑器）：在单元格下方弹出候选浮层
+    * @param [in] editParam 编辑参数（进入编辑时创建）
+    * @param [in] pSubItem 命中单元格的文本控件（作为浮层锚点）
+    */
+    void EnterComboEditMode(const ListCtrlEditParam& editParam, ListCtrlLabel* pSubItem);
+
+    /** 下拉候选编辑：候选项被选中（鼠标点选/键盘回车）后提交
+    * @param [in] nIndex 候选项序号
+    * @return 返回 true 表示已提交写回
+    */
+    bool OnComboCandidateSelected(size_t nIndex);
+
+    /** 关闭下拉候选浮层（未打开时为空操作）
+    */
+    void CloseComboFlyout();
+
+    /** 判断下拉候选浮层是否处于打开状态
+    */
+    bool IsComboEditOpened() const;
+
     /** 提交成功后，把当前格下移一行（kCell 模式；已在最后一行则不移动）
     */
     void MoveCurrentCellToNextRow();
@@ -1653,6 +1694,13 @@ private:
     * @return 返回是否已处理
     */
     bool OnCellKeyDown(const EventArgs& msg);
+
+    /** 处理下拉候选浮层的键盘事件（行选择模式与单元格选择模式通用）
+    *  浮层处于打开状态时：上/下方向键移动候选项、回车提交、Esc取消（均消费按键）
+    * @param [in] msg 键盘事件消息
+    * @return 返回是否已处理（浮层未打开时返回false，按键继续按常规流程处理）
+    */
+    bool OnComboKeyDown(const EventArgs& msg);
 
 private:
     /** 表头控件
@@ -1864,6 +1912,14 @@ private:
     /** 正在编辑的单元格（仅 kCell 模式成立；非编辑态时为无效值）
     */
     ListCtrlCellId m_editingCell;
+
+    /** 列ID -> 候选值列表（按列ID保存，供 kEditCombo 编辑器使用）
+    */
+    std::map<size_t, std::vector<DString>> m_columnCandidates;
+
+    /** 当前候选浮层（kEditCombo 编辑器；关闭后由框架自动销毁，指针同时置空）
+    */
+    ListCtrlComboFlyout* m_pComboFlyout;
 };
 
 }//namespace ui

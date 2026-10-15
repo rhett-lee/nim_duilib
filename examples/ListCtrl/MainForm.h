@@ -44,6 +44,10 @@ private:
     */
     void SetAllColumnsEditable(ui::ListCtrl* pListCtrl, bool bEditable);
 
+    /** 设置/取消演示列的"下拉候选编辑器"（kEditCombo）：勾选时可演示单元格下拉候选选择
+    */
+    void SetComboColumnEditor(ui::ListCtrl* pListCtrl, bool bEnabled);
+
     /** 执行一些功能测试
     */
     void RunListCtrlTest();
@@ -163,6 +167,10 @@ private:
     /** "所有列可编辑"勾选框的状态：数据被重新载入后，按该状态重新应用单元格的可编辑属性
     */
     bool m_bAllColumnsEditable;
+
+    /** "Combo列编辑器"勾选框的状态：数据被重新载入后，按该状态重新应用列编辑器类型
+    */
+    bool m_bComboEditor;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

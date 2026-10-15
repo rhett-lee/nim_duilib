@@ -10,11 +10,277 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Control/Calendar.h"
+#include "duilib/Control/Flyout.h"
+#include "duilib/Box/ListBox.h"
+#include "duilib/Box/ListBoxItem.h"
 #include <set>
 #include <algorithm>
 
 namespace ui
 {
+
+/** ListCtrl 单元格下拉候选浮层（供 kEditCombo 编辑器使用）
+*   特点：
+*   1. 复用 Flyout（默认不抢焦点）：父窗口保持激活状态，列表控件的键盘事件可继续派发，
+*      上下方向键/回车/Esc 由 ListCtrl::OnComboKeyDown 统一处理（行选择模式与单元格选择模式通用）
+*   2. 鼠标点击候选项立即提交（通过回调通知宿主），点击浮层外部自动关闭（视为放弃编辑）
+*   3. 非模态窗口：对象在窗口关闭后由框架自动 delete，调用方不需要手动释放
+*/
+class ListCtrlComboFlyout : public Flyout
+{
+    typedef Flyout BaseClass;
+public:
+    /** 单个候选项被选中（鼠标点击）的回调，参数为候选项序号（从0开始）
+    */
+    typedef std::function<void(size_t nIndex)> ItemSelectEvent;
+
+    /** 构造函数
+    * @param [in] pParentWindow 父窗口（锚点控件必须属于该窗口）
+    */
+    explicit ListCtrlComboFlyout(Window* pParentWindow) :
+        Flyout(pParentWindow),
+        m_nSelectedIndex(Box::InvalidIndex),
+        m_nMaxVisible(8),
+        m_nGapDip(4),
+        m_pList(nullptr),
+        m_pContent(nullptr)
+    {
+        //不抢焦点：父窗口保持激活，列表控件可继续接收键盘事件
+        SetNoFocus(true);
+        //点浮层外部自动关闭
+        SetAutoDismiss(true);
+        //固定显示在锚点下方，不做上下翻转
+        SetAllowFlip(false);
+        SetGap(m_nGapDip);
+    }
+    ListCtrlComboFlyout(const ListCtrlComboFlyout& r) = delete;
+    ListCtrlComboFlyout& operator=(const ListCtrlComboFlyout& r) = delete;
+
+    /** 在锚点控件（单元格）下方显示候选浮层
+    * @param [in] pAnchor 锚点控件（命中单元格的文本控件）
+    * @param [in] items 候选项文本列表（不可为空）
+    * @param [in] nSelectedIndex 初始选中项序号
+    * @param [in] nWidthDip 浮层宽度（DIP，通常取单元格宽度）
+    * @param [in] placement 期望弹出方位
+    * @return 显示成功返回 true；失败时对象已被框架销毁
+    */
+    bool ShowAt(Control* pAnchor, const std::vector<DString>& items, size_t nSelectedIndex,
+                int32_t nWidthDip, Placement placement = Placement::Bottom)
+    {
+        if ((pAnchor == nullptr) || items.empty() || (nWidthDip <= 0)) {
+            delete this;
+            return false;
+        }
+        m_items = items;
+        m_nSelectedIndex = nSelectedIndex;
+        m_nWidthDip = nWidthDip;
+
+        const int32_t nRows = std::min<int32_t>(static_cast<int32_t>(m_items.size()), m_nMaxVisible);
+        const int32_t nHeight = nRows * GetItemHeight();
+
+        //内嵌皮肤 XML：Window size 为不含阴影的客户区尺寸，框架自动附加阴影
+        DString sXml = StringUtil::Printf(
+            _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" ")
+            _T("shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">")
+            _T("<VBox class=\"list_ctrl_combo_flyout\" name=\"list_ctrl_combo_content\" width=\"%d\" height=\"%d\">")
+            _T("<VListBox class=\"list_ctrl_combo_list\" name=\"list_ctrl_combo_list\" ")
+            _T("width=\"stretch\" height=\"stretch\"/>")
+            _T("</VBox></Window>"),
+            m_nWidthDip, nHeight, m_nWidthDip, nHeight);
+
+        return Flyout::ShowAt(pAnchor, sXml, placement);
+    }
+
+    /** 获取当前选中项序号，无选中项返回 Box::InvalidIndex
+    */
+    size_t GetSelectedIndex() const
+    {
+        if (m_pList != nullptr) {
+            return m_pList->GetCurSel();
+        }
+        return (m_nSelectedIndex < m_items.size()) ? m_nSelectedIndex : Box::InvalidIndex;
+    }
+
+    /** 设置当前选中项（不触发选择事件）
+    */
+    void SetSelectedIndex(size_t nIndex)
+    {
+        if (nIndex >= m_items.size()) {
+            return;
+        }
+        m_nSelectedIndex = nIndex;
+        if (m_pList != nullptr) {
+            m_pList->SelectItem(nIndex, false, false);
+            m_pList->EnsureVisible(nIndex, ListBoxVerVisible::kVisible, ListBoxHorVisible::kVisible);
+        }
+    }
+
+    /** 移动当前选中项（键盘上下方向键）
+    * @param [in] nDelta +1 向下一项，-1 向上一项；到达首尾后停留在边界
+    */
+    void MoveSelection(int32_t nDelta)
+    {
+        if (m_items.empty()) {
+            return;
+        }
+        size_t nCurrent = GetSelectedIndex();
+        if (nCurrent == Box::InvalidIndex) {
+            SetSelectedIndex(nDelta > 0 ? 0 : (m_items.size() - 1));
+            return;
+        }
+        int32_t nIndex = static_cast<int32_t>(nCurrent) + nDelta;
+        if (nIndex < 0) {
+            nIndex = 0;
+        }
+        if (nIndex >= static_cast<int32_t>(m_items.size())) {
+            nIndex = static_cast<int32_t>(m_items.size()) - 1;
+        }
+        SetSelectedIndex(static_cast<size_t>(nIndex));
+    }
+
+    /** 获取候选项文本列表
+    */
+    const std::vector<DString>& GetItems() const { return m_items; }
+
+    /** 监听候选项选中事件（鼠标点击）
+    */
+    void AttachItemSelect(const ItemSelectEvent& callback) { m_itemSelectCallbacks.push_back(callback); }
+
+public:
+    //WindowImplBase 接口
+    virtual void OnInitWindow() override
+    {
+        BaseClass::OnInitWindow();
+        InitControls();
+    }
+
+private:
+    /** 初始化内部控件、绑定事件
+    */
+    void InitControls()
+    {
+        ASSERT(m_pList == nullptr);
+        if (m_pList != nullptr) {
+            return;
+        }
+        m_pList = dynamic_cast<VListBox*>(FindControl(_T("list_ctrl_combo_list")));
+        ASSERT(m_pList != nullptr);
+        if (m_pList == nullptr) {
+            return;
+        }
+        //内容容器：高度随候选行数变化
+        m_pContent = dynamic_cast<Box*>(FindControl(_T("list_ctrl_combo_content")));
+
+        //按候选项行数（含容器内边距）确定初始高度，避免出现不必要的滚动条
+        ApplyContentHeight();
+
+        //鼠标点击列表项：确认选择
+        m_pList->AttachClick([this](const EventArgs& msg) {
+            const size_t nIndex = static_cast<size_t>(msg.wParam);
+            if (nIndex < m_items.size()) {
+                std::vector<ItemSelectEvent> callbacks = m_itemSelectCallbacks;
+                for (const ItemSelectEvent& callback : callbacks) {
+                    callback(nIndex);
+                }
+            }
+            return true;
+            });
+
+        //鼠标悬停列表项：同步高亮（与键盘导航状态保持一致）
+        m_pList->AttachItemMouseEnter([this](const EventArgs& msg) {
+            const size_t nIndex = static_cast<size_t>(msg.wParam);
+            if (nIndex < m_items.size()) {
+                m_pList->SelectItem(nIndex, false, false);
+            }
+            return true;
+            });
+
+        RebuildList();
+    }
+
+    /** 按 m_items 构建列表内容
+    */
+    void RebuildList()
+    {
+        ASSERT(m_pList != nullptr);
+        if (m_pList == nullptr) {
+            return;
+        }
+        m_pList->RemoveAllItems();
+        for (const DString& text : m_items) {
+            ListBoxItem* pItem = new ListBoxItem(this);
+            pItem->SetClass(_T("list_ctrl_combo_item"));
+            pItem->SetText(text.c_str());
+            pItem->SetFixedHeight(UiFixedInt(GetItemHeight()), true, true);
+            m_pList->AddItem(pItem);
+        }
+        if (m_nSelectedIndex < m_items.size()) {
+            m_pList->SelectItem(m_nSelectedIndex, false, false);
+            m_pList->EnsureVisible(m_nSelectedIndex, ListBoxVerVisible::kVisible, ListBoxHorVisible::kVisible);
+        }
+    }
+
+    /** 按当前候选行数调整内容容器（及根容器）的高度
+    *   容器高度 = 行数 * 单行高度 + 容器自身内边距；
+    *   忽略内边距会导致列表可用高度不足，从而错误地出现滚动条
+    */
+    void ApplyContentHeight()
+    {
+        if (m_pContent == nullptr) {
+            return;
+        }
+        const int32_t nItemHeight = Dpi().GetScaleInt(GetItemHeight());
+        const int32_t nRows = std::min<int32_t>(static_cast<int32_t>(m_items.size()), m_nMaxVisible);
+
+        const UiPadding rcPadding = m_pContent->GetPadding();
+        const int32_t nContentHeight = nRows * nItemHeight + rcPadding.top + rcPadding.bottom;
+        m_pContent->SetFixedHeight(UiFixedInt(nContentHeight), true, false);
+
+        //根容器（阴影容器）的高度需同步更新，否则窗口大小不会随候选行数变化
+        Box* pRoot = GetRoot();
+        if ((pRoot != nullptr) && (pRoot != m_pContent)) {
+            const UiPadding rcShadow = pRoot->GetPadding();
+            pRoot->SetFixedHeight(UiFixedInt(nContentHeight + rcShadow.top + rcShadow.bottom), true, false);
+        }
+    }
+
+    /** 计算单个列表项高度（DIP）
+    */
+    int32_t GetItemHeight() const { return 28; }
+
+private:
+    /** 候选项文本
+    */
+    std::vector<DString> m_items;
+
+    /** 当前选中项序号
+    */
+    size_t m_nSelectedIndex;
+
+    /** 最多可见行数
+    */
+    int32_t m_nMaxVisible;
+
+    /** 浮层宽度（DIP）
+    */
+    int32_t m_nWidthDip;
+
+    /** 浮层与锚点的间距（DIP）
+    */
+    int32_t m_nGapDip;
+
+    /** 内部候选列表控件
+    */
+    VListBox* m_pList;
+
+    /** 浮层内容容器（高度随候选行数变化）
+    */
+    Box* m_pContent;
+
+    /** 候选项选中回调
+    */
+    std::vector<ItemSelectEvent> m_itemSelectCallbacks;
+};
 
 ListCtrl::ListCtrl(Window* pWindow):
     VBox(pWindow),
@@ -43,7 +309,8 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_nHeaderHeight(0),
     m_pData(nullptr),
     m_nSortedColumnId(Box::InvalidIndex),
-    m_bSortedUp(false)
+    m_bSortedUp(false),
+    m_pComboFlyout(nullptr)
 {
     size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
     for (size_t i = 0; i < nCount; ++i) {
@@ -1827,6 +2094,7 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 {
     m_columnSortFlagMap.erase(nColumnId);
     m_columnEditorTypes.erase(nColumnId);
+    m_columnCandidates.erase(nColumnId);
     m_pData->RemoveColumn(nColumnId);
 }
 
@@ -2530,6 +2798,39 @@ ListCtrlEditorType ListCtrl::GetColumnEditorTypeById(size_t columnId) const
     return ListCtrlEditorType::kEditText;
 }
 
+void ListCtrl::SetColumnCandidates(size_t columnIndex, const std::vector<DString>& candidates)
+{
+    SetColumnCandidatesById(GetColumnId(columnIndex), candidates);
+}
+
+void ListCtrl::SetColumnCandidatesById(size_t columnId, const std::vector<DString>& candidates)
+{
+    if (!IsValidColumnId(columnId)) {
+        return;
+    }
+    if (candidates.empty()) {
+        //空列表：清空候选，不入表，避免无意义条目
+        m_columnCandidates.erase(columnId);
+    }
+    else {
+        m_columnCandidates[columnId] = candidates;
+    }
+}
+
+std::vector<DString> ListCtrl::GetColumnCandidates(size_t columnIndex) const
+{
+    return GetColumnCandidatesById(GetColumnId(columnIndex));
+}
+
+std::vector<DString> ListCtrl::GetColumnCandidatesById(size_t columnId) const
+{
+    auto iter = m_columnCandidates.find(columnId);
+    if (iter != m_columnCandidates.end()) {
+        return iter->second;
+    }
+    return std::vector<DString>();
+}
+
 bool ListCtrl::SetSubItemProgress(size_t itemIndex, size_t columnIndex, int32_t nProgress)
 {
     return SetSubItemProgressById(itemIndex, GetColumnId(columnIndex), nProgress);
@@ -3210,6 +3511,33 @@ void ListCtrl::BeginCellDrag(const EventArgs& msg, size_t nRowIndex, size_t nCol
     m_bCellDragSelecting = true;
 }
 
+bool ListCtrl::OnComboKeyDown(const EventArgs& msg)
+{
+    if ((msg.eventType != kEventKeyDown) || !IsComboEditOpened()) {
+        return false;
+    }
+    //下拉候选编辑状态：上下方向键移动候选、回车提交、Esc取消，均需优先处理并消费按键
+    if (msg.vkCode == kVK_UP) {
+        m_pComboFlyout->MoveSelection(-1);
+        return true;
+    }
+    if (msg.vkCode == kVK_DOWN) {
+        m_pComboFlyout->MoveSelection(1);
+        return true;
+    }
+    if (msg.vkCode == kVK_RETURN) {
+        //提交当前选中的候选项
+        OnComboCandidateSelected(m_pComboFlyout->GetSelectedIndex());
+        return true;
+    }
+    if (msg.vkCode == kVK_ESCAPE) {
+        //取消编辑：关闭浮层，不做数据写回
+        CloseComboFlyout();
+        return true;
+    }
+    return false;
+}
+
 bool ListCtrl::OnCellKeyDown(const EventArgs& msg)
 {
     if ((m_selectionMode != ListCtrlSelectionMode::kCell) || (msg.eventType != kEventKeyDown)) {
@@ -3669,15 +3997,21 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
     editParam.pItem = pItem;
     editParam.pSubItem = pSubItem;
 
-    if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
+    //编辑请求有效需同时满足"编辑状态有效"与"编辑参数有效"；任一无效则放弃进入编辑
+    //（此处为同步点击链路，正常情况下二者都应有效，故保留断言）
+    if (!IsValidItemEditState(editParam) || !IsValidItemEditParam(editParam)) {
         ASSERT(0);
         return;
     }
 
-    DString editClass = GetRichEditClass();
-    ASSERT(!editClass.empty());
-    if (editClass.empty()) {
-        return;
+    //下拉候选编辑器不需要富文本编辑框类，其它编辑器必须配置
+    const ListCtrlEditorType editorType = GetColumnEditorTypeById(nColumnId);
+    if (editorType != ListCtrlEditorType::kEditCombo) {
+        DString editClass = GetRichEditClass();
+        ASSERT(!editClass.empty());
+        if (editClass.empty()) {
+            return;
+        }
     }
 
     //启动定时器, 只执行一次(使用定时器的原因：避免影响双击操作)
@@ -3858,13 +4192,22 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
 
 void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
 {
+    //编辑状态或编辑参数任一失效则放弃进入编辑
+    //（例如定时器触发时数据行已被滚动/复用，此时编辑参数可能已失效）
+    if (!IsValidItemEditState(editParam) || !IsValidItemEditParam(editParam)) {
+        return;
+    }
+    //按列声明的编辑器类型分流：下拉候选编辑器不使用富文本编辑框
+    const ListCtrlEditorType editorType = GetColumnEditorTypeById(editParam.nColumnId);
+    if (editorType == ListCtrlEditorType::kEditCombo) {
+        //下拉候选编辑器：在单元格下方弹出候选浮层（行选择模式与单元格选择模式均支持）
+        EnterComboEditMode(editParam, editParam.pSubItem);
+        return;
+    }
+
     DString editClass = GetRichEditClass();
     ASSERT(!editClass.empty());
     if (editClass.empty()) {
-        return;
-    }
-    if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
-        //状态已经失效
         return;
     }
     if (m_pRichEdit == nullptr) {
@@ -4123,6 +4466,10 @@ bool ListCtrl::IsValidCellEditText(const DString& strNewText, ListCtrlEditorType
     if (editorType == ListCtrlEditorType::kEditText) {
         return true;
     }
+    if (editorType == ListCtrlEditorType::kEditCombo) {
+        //下拉候选编辑器：候选值由调用方配置，提交的文本即为候选文本，无需再做格式校验
+        return true;
+    }
     if (editorType == ListCtrlEditorType::kEditNumber) {
         //十进制数值：可选正负号、至多一个小数点、至少一位数字
         bool bHasDigit = false;
@@ -4147,6 +4494,139 @@ bool ListCtrl::IsValidCellEditText(const DString& strNewText, ListCtrlEditorType
     //日期：复用日历的日期解析（支持 yyyy-mm-dd / yyyy/mm/dd）
     struct tm date = {};
     return Calendar::ParseDateString(strValue, date);
+}
+
+void ListCtrl::EnterComboEditMode(const ListCtrlEditParam& editParam, ListCtrlLabel* pSubItem)
+{
+    if ((pSubItem == nullptr) || (m_listCtrlType != ListCtrlType::Report)) {
+        return;
+    }
+    const std::vector<DString> candidates = GetColumnCandidatesById(editParam.nColumnId);
+    if (candidates.empty()) {
+        //该列未配置候选值：不进入编辑状态（避免弹出空浮层）
+        return;
+    }
+
+    //若已存在候选浮层（例如重复点击同一单元格进入编辑）：先关闭旧浮层，
+    //再设置本函数后续的新编辑单元格状态。
+    //原因：Flyout::ShowAt 内部会关闭"当前活动浮层"并同步触发其关闭回调，
+    //若此时旧浮层仍未关闭，该回调会把本函数刚设置的新编辑单元格状态清空，
+    //导致提交时行列信息失效并触发断言
+    CloseComboFlyout();
+
+    //触发事件：开始编辑（应用可以取消本次编辑）
+    ListCtrlEditParam enterEditParam = editParam;
+    enterEditParam.sNewText.clear();
+    enterEditParam.bCancelled = false;
+    SendEvent(kEventEnterEdit, (WPARAM)&enterEditParam);
+    if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) || !IsValidItemEditParam(editParam)) {
+        //用户取消编辑，或者状态已经失效
+        return;
+    }
+
+    //记录正在编辑的单元格（退出编辑态时由ClearEditEvents清除）
+    m_editingCell.nRowIndex = editParam.nItemIndex;
+    m_editingCell.nColumnId = editParam.nColumnId;
+
+    //浮层宽度与单元格宽度一致（GetPos 为物理像素，而拼入XML的尺寸单位为DIP，需换算）
+    int32_t nWidth = pSubItem->GetPos().Width();
+    Window* pOwnerWindow = GetWindow();
+    if ((nWidth > 0) && (pOwnerWindow != nullptr)) {
+        if (pOwnerWindow->Dpi().HasPixelDensity()) {
+            pOwnerWindow->Dpi().ClientSizeToWindowSize(nWidth);
+        }
+        else {
+            nWidth = pOwnerWindow->Dpi().GetUnscaleWindowSize(nWidth);
+        }
+    }
+    if (nWidth <= 0) {
+        //兜底宽度，避免浮层宽度不可用导致弹出失败
+        nWidth = 120;
+    }
+
+    //初始选中项：当前单元格文本在候选列表中的序号（无匹配时选中第1项）
+    size_t nSelectedIndex = 0;
+    const DString strCellText = pSubItem->GetText();
+    for (size_t nIndex = 0; nIndex < candidates.size(); ++nIndex) {
+        if (candidates[nIndex] == strCellText) {
+            nSelectedIndex = nIndex;
+            break;
+        }
+    }
+
+    ListCtrlComboFlyout* pFlyout = new ListCtrlComboFlyout(GetWindow());
+    pFlyout->AttachItemSelect(UiBind(&ListCtrl::OnComboCandidateSelected, this, std::placeholders::_1));
+    pFlyout->AttachClosed(UiBind(this, [this, pFlyout](Flyout::CloseReason /*reason*/) {
+        //浮层关闭（点选外部/失去焦点）：视为放弃本次编辑，不做数据写回
+        if (m_pComboFlyout == pFlyout) {
+            //仅当被关闭的仍是当前记录的浮层时才清理状态：
+            //避免旧浮层的关闭回调误清随后新建的浮层状态
+            m_pComboFlyout = nullptr;
+            m_editingCell = ListCtrlCellId();
+        }
+        }, std::placeholders::_1));
+
+    //ShowAt 失败时对象已被框架销毁，回调不会再触发
+    if (!pFlyout->ShowAt(pSubItem, candidates, nSelectedIndex, nWidth, Flyout::Placement::Bottom)) {
+        //弹出失败：结束编辑状态
+        ClearEditEvents();
+    }
+    else {
+        m_pComboFlyout = pFlyout;
+    }
+}
+
+bool ListCtrl::OnComboCandidateSelected(size_t nIndex)
+{
+    ListCtrlComboFlyout* pFlyout = m_pComboFlyout;
+    if (pFlyout == nullptr) {
+        return false;
+    }
+    if (!m_editingCell.IsValid()) {
+        //编辑单元格已失效（例如浮层被重新打开导致旧状态被清理）：放弃本次提交，避免用无效行列写回数据
+        CloseComboFlyout();
+        return false;
+    }
+    const std::vector<DString>& candidates = pFlyout->GetItems();
+    if (nIndex >= candidates.size()) {
+        return false;
+    }
+    //组装编辑参数（浮层关闭后编辑态会被清除，故先取出回调需要的信息）
+    ListCtrlEditParam editParam;
+    editParam.listCtrlType = m_listCtrlType;
+    editParam.nItemIndex = m_editingCell.nRowIndex;
+    editParam.nColumnId = m_editingCell.nColumnId;
+    editParam.nColumnIndex = GetColumnIndex(editParam.nColumnId);
+    editParam.pItem = GetDisplayItemByIndex(editParam.nItemIndex);
+    editParam.pSubItem = dynamic_cast<ListCtrlLabel*>(pFlyout->GetAnchor());
+    const DString strNewText = candidates[nIndex];
+
+    //先关闭浮层，再提交写回（避免回调期间重复进入编辑流程）
+    CloseComboFlyout();
+
+    const bool bEdited = OnItemEdited(editParam, strNewText);
+    if (bEdited && (m_selectionMode == ListCtrlSelectionMode::kCell)) {
+        //提交成功后，当前格下移一行（与富文本编辑器按回车提交的语义保持一致）
+        MoveCurrentCellToNextRow();
+    }
+    return bEdited;
+}
+
+void ListCtrl::CloseComboFlyout()
+{
+    if (m_pComboFlyout != nullptr) {
+        //先置空，避免 Dismiss 回调期间重入
+        ListCtrlComboFlyout* pFlyout = m_pComboFlyout;
+        m_pComboFlyout = nullptr;
+        pFlyout->Dismiss();
+    }
+    //退出编辑态：清除正在编辑的单元格
+    m_editingCell = ListCtrlCellId();
+}
+
+bool ListCtrl::IsComboEditOpened() const
+{
+    return (m_pComboFlyout != nullptr) && m_pComboFlyout->IsOpen();
 }
 
 bool ListCtrl::EnterCellEdit(size_t nRowIndex, size_t nColumnId)
@@ -4264,6 +4744,11 @@ void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
 
 void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
 {
+    if (IsComboEditOpened()) {
+        //下拉候选浮层处于打开状态：按键已由视图层优先处理（OnComboKeyDown），
+        //此处不再结束编辑状态，否则浮层会在按键冒泡过程中被误关闭
+        return;
+    }
     if (msg.GetSender() != m_pRichEdit) {
         LeaveEditMode();
     }    
@@ -4273,6 +4758,8 @@ void ListCtrl::LeaveEditMode()
 {
     //取消编辑状态的定时器
     m_editModeFlag.Cancel();
+    //下拉候选编辑状态：关闭候选浮层（不写回数据）
+    CloseComboFlyout();
     if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible() && m_pRichEdit->IsFocused()) {
         m_pRichEdit->SendEvent(kEventKillFocus);
     }

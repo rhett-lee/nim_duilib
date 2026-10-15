@@ -37,6 +37,12 @@ public:
     */
     virtual bool OnListBoxItemMouseEvent(const EventArgs& msg) override;
 
+    /** 键盘事件(来源于子控件的消息转发)：下拉候选浮层打开时拦截，用于优先消费回车/ESC/上下方向键
+    * @param [in] msg 键盘事件的内容
+    * @return 返回true表示已消费该按键，子项不再处理
+    */
+    virtual bool OnListBoxItemKeyEvent(const EventArgs& msg) override;
+
     /** 设置ListCtrl控件接口
     */
     void SetListCtrl(ListCtrl* pListCtrl);
@@ -334,6 +340,18 @@ protected:
     bool IsChildInFrozenColumn(const PlaceHolder* pChild) const;
 
 private:
+    /** 给单元格添加CheckBox，并挂载勾选/取消勾选事件
+    * @param [in] pSubItem 单元格控件
+    * @param [in] nColumnId 列ID
+    * @param [in] nElementIndex 数据项的索引号
+    * @param [in] bChecked 勾选状态
+    */
+    void AddSubItemCheckBox(ListCtrlSubItem* pSubItem, size_t nColumnId, size_t nElementIndex, bool bChecked);
+
+    /** 移除单元格的CheckBox，并解绑勾选/取消勾选事件
+    */
+    void RemoveSubItemCheckBox(ListCtrlSubItem* pSubItem);
+
     /** 绘制网格线
     */
     void PaintGridLines(IRender* pRender);

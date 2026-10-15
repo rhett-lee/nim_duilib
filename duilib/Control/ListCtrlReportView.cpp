@@ -35,11 +35,16 @@ ListCtrlReportView::~ListCtrlReportView()
 
 void ListCtrlReportView::HandleEvent(const EventArgs& msg)
 {
-    //单元格选择模式下，键盘事件优先用于移动当前格 / 扩展选择区域
-    if ((msg.eventType == kEventKeyDown) && (m_pListCtrl != nullptr) &&
-        (m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell) &&
-        m_pListCtrl->OnCellKeyDown(msg)) {
-        return;
+    if ((msg.eventType == kEventKeyDown) && (m_pListCtrl != nullptr)) {
+        //下拉候选浮层处于打开状态时（行选择模式与单元格选择模式通用）：键盘事件优先由浮层消费
+        if (m_pListCtrl->OnComboKeyDown(msg)) {
+            return;
+        }
+        //单元格选择模式下，键盘事件优先用于移动当前格 / 扩展选择区域
+        if ((m_pListCtrl->GetSelectionMode() == ListCtrlSelectionMode::kCell) &&
+            m_pListCtrl->OnCellKeyDown(msg)) {
+            return;
+        }
     }
     //鼠标移出控件时清除单元格悬停高亮，避免残留
     if ((msg.eventType == kEventMouseLeave) && (m_pListCtrl != nullptr) &&
@@ -138,6 +143,16 @@ bool ListCtrlReportView::OnListBoxItemMouseEvent(const EventArgs& msg)
         }
     }
     return BaseClass::OnListBoxItemMouseEvent(msg);
+}
+
+bool ListCtrlReportView::OnListBoxItemKeyEvent(const EventArgs& msg)
+{
+    if (m_pListCtrl == nullptr) {
+        return false;
+    }
+    //下拉候选浮层打开时，键盘事件优先由浮层消费（上下移动候选、回车提交、ESC取消）：
+    //若不在子项层拦截，回车会被 ListBoxItem 消费并转为 kEventReturn，导致浮层收不到回车、无法提交
+    return m_pListCtrl->OnComboKeyDown(msg);
 }
 
 bool ListCtrlReportView::HitTestCell(const UiPoint& ptMouse, size_t& nRowIndex, size_t& nColumnId, ListCtrlItem** ppItem) const
@@ -1638,26 +1653,11 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
             pSubItem->SetBkColor(defaultSubItem.GetBkColor());
         }
         if (pStorage->bShowCheckBox) {
-            //添加CheckBox
-            pSubItem->SetShowCheckBox(true);
-            //挂载CheckBox的事件处理
-            pSubItem->DetachEvent(kEventCheck);
-            pSubItem->DetachEvent(kEventUnCheck);
-            pSubItem->SetChecked(pStorage->bChecked, false);
-            pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                OnSubItemColumnChecked(nElementIndex, nColumnId, true);
-                return true;
-                });
-            pSubItem->AttachUnCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
-                OnSubItemColumnChecked(nElementIndex, nColumnId, false);
-                return true;
-                });
+            //数据声明了CheckBox
+            AddSubItemCheckBox(pSubItem, nColumnId, nElementIndex, pStorage->bChecked);
         }
         else {
-            pSubItem->SetShowCheckBox(false);
-            pSubItem->DetachEvent(kEventCheck);
-            pSubItem->DetachEvent(kEventUnCheck);
-            pSubItem->SetChecked(false, false);
+            RemoveSubItemCheckBox(pSubItem);
         }
         pSubItem->SetImageId(pStorage->nImageId);
         pSubItem->SetProgress(pStorage->nProgress);
@@ -1672,13 +1672,44 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
             pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
         }
         pSubItem->SetBkColor(defaultSubItem.GetBkColor());
-        pSubItem->SetShowCheckBox(false);
-        pSubItem->DetachEvent(kEventCheck);
-        pSubItem->DetachEvent(kEventUnCheck);
-        pSubItem->SetChecked(false, false);
+        RemoveSubItemCheckBox(pSubItem);
         pSubItem->SetImageId(-1);
         pSubItem->SetProgress(-1);
     }
+}
+
+void ListCtrlReportView::AddSubItemCheckBox(ListCtrlSubItem* pSubItem, size_t nColumnId, size_t nElementIndex, bool bChecked)
+{
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    //添加CheckBox
+    pSubItem->SetShowCheckBox(true);
+    //挂载CheckBox的事件处理（先解绑，避免重复挂载）
+    pSubItem->DetachEvent(kEventCheck);
+    pSubItem->DetachEvent(kEventUnCheck);
+    pSubItem->SetChecked(bChecked, false);
+    pSubItem->AttachCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+        OnSubItemColumnChecked(nElementIndex, nColumnId, true);
+        return true;
+        });
+    pSubItem->AttachUnCheck([this, nColumnId, nElementIndex](const EventArgs& /*args*/) {
+        OnSubItemColumnChecked(nElementIndex, nColumnId, false);
+        return true;
+        });
+}
+
+void ListCtrlReportView::RemoveSubItemCheckBox(ListCtrlSubItem* pSubItem)
+{
+    ASSERT(pSubItem != nullptr);
+    if (pSubItem == nullptr) {
+        return;
+    }
+    pSubItem->SetShowCheckBox(false);
+    pSubItem->DetachEvent(kEventCheck);
+    pSubItem->DetachEvent(kEventUnCheck);
+    pSubItem->SetChecked(false, false);
 }
 
 bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumnId)

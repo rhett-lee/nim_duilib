@@ -40,6 +40,8 @@
                 </CheckBox>
                 <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
                 <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="12,0,0,0" valign="center"/>
+                <!-- 演示：把倒数第2列设置为下拉候选编辑器（kEditCombo），单元格编辑时弹出候选列表 -->
+                <CheckBox class="checkbox_1" name="checkbox_combo_editor" text_id="STRID_LISTCTRL_COMBO_EDITOR" margin="12,0,0,0" valign="center"/>
             </HBox>
             <HBox height="auto">
                 <GroupVBox class="group_box_round" name="report_group" height="auto" width="820" margin="2,0,0,0" text_id="STRID_LISTCTRL_REPORT_TYPE">

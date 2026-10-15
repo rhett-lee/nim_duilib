@@ -1923,7 +1923,8 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 批量删除行 | `DeleteDataItems(const std::vector<size_t>&)` | 一次删除多行（索引可乱序、可含越界/重复项，重复与越界项被忽略），内部按行身份去重后对显示顺序表做单趟压缩，避免逐行删除的 O(K×N) 搬移；返回实际删除行数 |
 | 存储压缩 | `CompactStorage()` | 显式的整表维护操作：行身份重编号 + 存储页全量压缩，回收多次增删后遗留的墓碑槽位与空页内存。仅在无填充/绘制进行时调用；调用后内部已发出的单元格原始指针失效。单行/批量删除时，整页全部变为墓碑的存储页会被自动回收 |
 | 单元格编辑 | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell 模式 + Report 视图；`F2` 或"选中后单击一次"进入编辑（单击链路沿用原有、未改动）；`Enter` 提交并下移一行、`Esc` 取消、失焦提交不移动；需 `enable_item_edit="true"` |
-| 按列编辑器类型 | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | 枚举 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`；列声明字段 `ListCtrlColumn::nEditorType`（默认 `kEditText`）；提交时按类型校验输入（空串视为清空单元格合法；数值列为十进制数值；日期列为 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）；`kEditCombo`（下拉）/ `kEditCheck`（勾选）待办；**不引入 XML 属性**（列由代码声明） |
+| 按列编辑器类型 | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | 枚举 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`；列声明字段 `ListCtrlColumn::nEditorType`（默认 `kEditText`）；提交时按类型校验输入（空串视为清空单元格合法；数值列为十进制数值；日期列为 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）；`kEditCombo` 为下拉候选编辑器（需配合 `SetColumnCandidates(ById)` 配置候选，kCell 模式与行选择模式均支持）；**不引入 XML 属性**（列由代码声明） |
+| 按列候选值（下拉编辑器） | `SetColumnCandidates` / `SetColumnCandidatesById` / `GetColumnCandidates` / `GetColumnCandidatesById` | 按列保存纯文本候选列表（`std::vector<DString>`，按列ID存储），供 `kEditCombo` 使用；传入空列表表示清空候选；`kEditCombo` 列未配置候选时按 `F2` / 单击不会进入编辑状态；候选浮层复用 `Flyout` + `VListBox`（主题类 `list_ctrl_combo_flyout` / `list_ctrl_combo_list` / `list_ctrl_combo_item`），鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回 |
 
 **列级比较模式（排序）：**
 
@@ -1990,7 +1991,30 @@ pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
 pListCtrl->EnterCurrentCellEdit();
 ```
 
-提交时按列声明的编辑器类型校验输入：空串一律合法（视为清空单元格），`kEditText` 恒合法，`kEditNumber` 仅接受合法十进制数值，`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`（复用 `Calendar::ParseDateString`）；非法输入被丢弃（不写回数据、不派发 `kEventLeaveEdit`）。复用既有事件 `kEventEnterEdit` / `kEventLeaveEdit`，不新增事件；三种类型共用同一个 RichEdit 编辑器；`kEditCombo` / `kEditCheck` 待办。
+提交时按列声明的编辑器类型校验输入：空串一律合法（视为清空单元格），`kEditText` 恒合法，`kEditNumber` 仅接受合法十进制数值，`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`（复用 `Calendar::ParseDateString`）；非法输入被丢弃（不写回数据、不派发 `kEventLeaveEdit`）。复用既有事件 `kEventEnterEdit` / `kEventLeaveEdit`，不新增事件；`kEditText` / `kEditNumber` / `kEditDate` 共用同一个 RichEdit 编辑器。
+
+**单元格编辑器：下拉候选（kEditCombo）：**
+
+候选值按列配置（纯文本列表，按列ID保存），不使用 RichEdit，而是在单元格下方弹出候选浮层（内部复用 `Flyout` + `VListBox`，不抢焦点：父窗口保持激活，键盘事件仍由 `ListCtrl` 处理）。
+
+```cpp
+// 声明第 8 列为下拉候选编辑器，并配置候选值（列序从 0 开始）
+std::vector<DString> candidates = { _T("Red"), _T("Green"), _T("Blue") };
+pListCtrl->SetColumnCandidates(7, candidates);
+pListCtrl->SetColumnEditorType(7, ui::ListCtrlEditorType::kEditCombo);
+
+// 按列ID（列ID稳定，列序可变）
+// pListCtrl->SetColumnCandidatesById(columnId, candidates);
+// std::vector<DString> items = pListCtrl->GetColumnCandidatesById(columnId);
+// 传入空列表即清空候选：pListCtrl->SetColumnCandidates(7, std::vector<DString>());
+```
+
+交互说明：
+- 进入编辑：按 `F2` 或"选中该格后单击一次"，与其它编辑器同一链路；浮层初始选中项＝当前单元格文本在候选列表中的序号（无匹配取第 1 项）。
+- 鼠标点击候选项 或 按 `Enter`：立即提交并关闭浮层，写回单元格文本（提交成功后当前格下移一行，与 RichEdit 编辑器的 `Enter` 语义一致）。
+- 按 `↑` / `↓`：移动候选高亮；按 `Esc`、点击浮层外部、或在列表其它位置点击/滚动：关闭浮层且**不写回**（视为放弃本次编辑）。
+- 该列未配置候选值时，按 `F2` / 单击不会进入编辑状态（不弹出空浮层）。
+- kCell 模式与行选择模式 + Report 视图均生效，仍受 `enable_item_edit="true"` 与单元格可编辑属性约束；行选择模式下由既有"选中后单击一次"链路进入编辑，`F2` 快捷键仍仅 kCell 模式支持。
 
 **单元格富文本：**
 

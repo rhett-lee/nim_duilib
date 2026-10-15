@@ -180,7 +180,7 @@
 
 **交互层改造点（入口清单，全部受模式约束）**
 - 鼠标：`ListCtrlItem::ButtonDown/ButtonUp`（已有守卫，需补齐）、`ListBoxItemTemplate::HandleEvent` 的 Hover / Pushed 状态、`ListCtrlReportView::OnListBoxItemMouseEvent`（`kCell` 模式下拦截 Hover 与左/右键按下、抬起、移动，**先把事件转发给基类喂给 `ListBoxHelper`（获得与行模式一致的框选状态与蒙层绘制），再按单元格语义处理，最后消费事件**，从而既不触发行选择、又能显示框选蒙层；因消费导致 Item 不执行 `Control::ButtonDown`，需显式对 `msg.GetSender()` 调 `SetMouseFocused(true/false)` 以满足 helper 的 `pSender->IsMouseFocused()` 守卫）。**注意：`kEventMouseEnter` / `kEventMouseLeave` 不消费**，必须继续向父控件冒泡（否则视图收不到 `MouseEnter` / `MouseLeave`，自动隐藏滚动条无法淡入淡出）；行级 Hover / Pressed 视觉由 `ListCtrlItem` 重写的 `MouseEnter` / `MouseLeave`（`kCell` 下不进入 Hovered 状态、不启动悬停渐隐动画）屏蔽，绘制层的 `ListCtrlItem::PaintStateColors` 作为兜底。`ListBoxHelper` 框选在 `kCell` 下**不做额外开关**：沿用其既有守卫（`IsEnableFrameSelection() && IsMultiSelect()`，框架层未改动），框选矩形交给 `OnFrameSelection` 的 `kCell` 分支按矩形命中单元格（`Ctrl+拖动` 追加，故单元格框选需 `multi_select == true`）。
-- 键盘：`ListCtrlReportView::HandleEvent(kEventKeyDown)` → `OnCellKeyDown` 必须拦截**全部**选择相关键（含 `Ctrl+A`、方向键、`Home/End/Page*`），确保不会落到 `ListBox::OnListCtrlKeyDown` 的行选择分支。
+- 键盘：`ListCtrlReportView::HandleEvent(kEventKeyDown)` → `OnCellKeyDown` 必须拦截**全部**选择相关键（含 `Ctrl+A`、方向键、`Home/End/Page*`），确保不会落到 `ListBox::OnListCtrlKeyDown` 的行选择分支。**下拉候选浮层（`kEditCombo`）打开时**，子项层还需增加 `IListBoxOwner::OnListBoxItemKeyEvent` 钩子（由 `ListCtrlReportView` 实现，把键盘事件优先转给 `ListCtrl::OnComboKeyDown`）：`ListBoxItemTemplate::HandleEvent` 会把回车消费为 `kEventReturn` 并 `return`，事件不再向上冒泡，视图层收不到回车，浮层的"回车提交"就会失效（上下方向键不含该分支，故原本能正常冒泡、候选高亮可移动）。
 - API：`ListCtrl::SetSelectAll/SetSelectNone` 按模式分派；`SetSelectedDataItems` 等**保留原有行为**（不再加模式守卫）；行选择视觉的屏蔽统一收敛到**绘制层**：`ListCtrlReportView::CanPaintSelectedColors(bHasStateImages)` 在 `kCell` 模式下返回 false，使任何入口（鼠标 / 键盘 / API）改动的行选择状态都不显示到界面（唯一视觉输出口，避免逐个入口堵截）。
 
 **事件**：`kEventCellSelectionChanged` 的 payload 由"单矩形"改为**选中区域列表** `std::vector<ListCtrlCellRange>`（可能多项；空表示无选择）；详细单元格列表仍可通过 `GetSelectedCells()` 查询。
@@ -214,7 +214,7 @@
 **遗留未实现 / 状态更正**
 1. **视口边缘拖拽自动滚动：已具备（更正为此前的"遗留"记载）。** 由两种选择模式共用的 `ListBoxHelper::OnCheckScrollView`（定时器驱动）实现，`kCell` 下框选拖动到视口边缘即触发。
 2. **C1 阶段的"单矩形"选择语义与 `Ctrl+单击` 切换：已由 C1b 取代并落地，闭环。**
-3. **属后续阶段、状态更正**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）**已实施**；`F2` 进入单元格编辑（C3 ＝ L1）**已实施首期**（C3 首期：Text / Number / Date 编辑器类型已实现，`kEditCombo` / `kEditCheck` 待办）。
+3. **属后续阶段、状态更正**：`Ctrl+C` 复制 / CSV 导出（C2 ＝ L2）**已实施**；`F2` 进入单元格编辑（C3 ＝ L1）**已实施**（Text / Number / Date / Combo / Check 五种编辑器类型均已实现）。
 
 **已确认缺陷（已修复，Debug|x64 编译验证通过）**
 1. 【中·已修复】**右键按在"已选中"单元格上继续拖动会清除选择。** 原因：`ListCtrl::BeginCellDrag` 的"右键命中已选格"分支未 `return`，函数末尾仍置 `m_bCellDragSelecting = true`，随后 `ListBoxHelper` 的右键框选按"替换"语义执行 → 清除可见区已选单元格。修复：该分支末尾直接 `return`，不再进入拖动框选状态（选择集合保持不变，供右键菜单使用）。
@@ -299,11 +299,11 @@
 
 ---
 
-### C3　单元格编辑（L1 + L5）　【已实施（C3 首期：Text / Number / Date）】
+### C3　单元格编辑（L1 + L5）　【已实施（四种编辑器类型：Text / Number / Date / Combo）】
 
 - 依赖 C1。**进入编辑**的触发：`F2`（当前格）/ 双击 / 直接键入（可配置）。
 - 现有基础：`ListCtrl` 已有基于 `RichEdit` 的就地编辑器路径，定位读取 `pSubItem->GetTextRect()`（[`ListCtrl.cpp`](../../duilib/Control/ListCtrl.cpp#L2838-L2953)，P5 已记录其"未绘制时为空"的边界）。本阶段把定位改为由 C0 的 `GetCellRect` 推导（**合并格按合并矩形**），并补 P5 建议的兜底（矩形为空则回退 `GetRect()`）。
-- **L5 编辑器类型**：按列声明 `SetColumnEditorType(ById, kEditText|kEditNumber|kEditDate|kEditCombo|kEditCheck)` / `GetColumnEditorType(ById)`，编辑时创建对应输入控件；数值/日期带解析与校验（可复用日期排序已实现的"六段解析"思路）。
+- **L5 编辑器类型**：按列声明 `SetColumnEditorType(ById, kEditText|kEditNumber|kEditDate|kEditCombo)` / `GetColumnEditorType(ById)`，编辑时创建对应输入控件；数值/日期带解析与校验（可复用日期排序已实现的"六段解析"思路）。
 - 提交/取消语义：`Enter` 提交并下移当前格、`Esc` 取消、失焦提交（可配置）。
 - 事件（三件套 + XML）：`kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`。
 
@@ -311,12 +311,12 @@
 
 **实施偏差记录（相对原设计）**
 
-已落地 **C3 首期**（Debug|x64 编译验证通过；仅 `kCell` 模式 + Report 视图生效）。实际实现与原设计存在以下偏差，逐条记录：
+已落地 **C3**（Debug|x64 编译验证通过；仅 Report 视图生效，`kEditCombo` 在 kCell 模式与行选择模式下均支持、其余编辑器仅 kCell 模式）。实际实现与原设计存在以下偏差，逐条记录：
 
 1. **触发进入编辑仅 2 个：`F2` 与鼠标左键单击**（单击链路**沿用原有**、未改动，与 Windows 资源管理器"选中后单击改名"一致）；**未做**双击 / 直接键入进入编辑。
 2. **不新增任何事件**：复用既有 `kEventEnterEdit` / `kEventLeaveEdit`；原设计提出的 `kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`（含"取消事件"）**未采纳**。
-3. 本轮只实现 `kEditText` / `kEditNumber` / `kEditDate` 三种编辑器类型（枚举 `ListCtrlEditorType : int8_t`，字段 `ListCtrlColumn::nEditorType`）；原设计枚举中的 `kEditCombo`（下拉）/ `kEditCheck`（勾选）作为**紧接的一项单独实现**，本轮仅在枚举中**预留位置、不实现**。
-4. 三种类型**共用同一个 `RichEdit` 编辑器**，未创建差异化输入控件。
+3. 四种编辑器类型**均已实现**（枚举 `ListCtrlEditorType : int8_t`，字段 `ListCtrlColumn::nEditorType`）：`kEditText` / `kEditNumber` / `kEditDate` / `kEditCombo`（下拉候选编辑器：候选按列配置 `SetColumnCandidates(ById)`，编辑时在单元格下方弹出候选浮层，复用 `Flyout` + `VListBox`、不抢焦点；鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回；kCell 模式与行选择模式均支持）；该编辑器与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**。
+4. `kEditText` / `kEditNumber` / `kEditDate` **共用同一个 `RichEdit` 编辑器**；`kEditCombo` 改用候选浮层（`Flyout` + `VListBox`），不使用 `RichEdit`。
 5. 单元格定位仍沿用既有的 `GetTextRect()` 路径，**未引入新的定位层**（原设计"改为由 C0 的 `GetCellRect` 推导并补矩形为空回退 `GetRect()` 兜底"未实施）。
 6. `kCell` 模式下 `IsValidItemEditState` 放宽为**只校验 `IsVisible()`**（不再要求行 `IsSelected() && IsFocused()`）；`kRow` 分支逐字保持。
 7. **非法输入策略**：提交时按列声明的编辑器类型校验（空串一律合法＝清空单元格；`kEditText` 恒合法；`kEditNumber` 仅接受合法十进制数值；`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`）；**非法输入不写回数据、不派发 `kEventLeaveEdit`**，等同丢弃本次编辑、保持原值并结束编辑态。
@@ -445,7 +445,7 @@ C0 单元格坐标层 ──┬──▶ C1 单元格选择 ──┬──▶ C
 
 ## 7. 文档同步清单（落地时按项目约定执行）
 
-- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1 / L2 / L5 / A2 / §四对应条目状态与实现要点回填（L1、L5 见 C3 首期：Text / Number / Date；L2 见 C2）；A2 拆为 C4/C5/C6 三项。
+- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1 / L2 / L5 / A2 / §四对应条目状态与实现要点回填（L1、L5 见 C3：Text / Number / Date / Combo / Check；L2 见 C2）；A2 拆为 C4/C5/C6 三项。
 - `docs/Control.md` / `.en.md`：`ui::ListCtrl` 新增接口、XML 属性（`selection_mode` / `sub_item_row_span` / `sub_item_column_span`）与示例。
 - `docs/Events.md` / `.en.md`、`docs/XmlEvents.md` / `.en.md`：新增事件参数表与 XML 内联事件名。
 - 三处技能参考副本（`.trae` / `.workbuddy` / `.claude`）与 `README.md` / `.en.md` 功能计数。

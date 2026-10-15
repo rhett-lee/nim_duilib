@@ -44,6 +44,11 @@ public:
     */
     virtual bool OnListBoxItemMouseEvent(const EventArgs& msg) = 0;
 
+    /** 列表项的子项收到键盘事件
+    * @return true表示截获该消息，子项不再处理该消息；返回false表示子项继续处理该消息
+    */
+    virtual bool OnListBoxItemKeyEvent(const EventArgs& /*msg*/) { return false; }
+
     /** 列表项的子项收到窗口失去焦点事件
     */
     virtual void OnListBoxItemWindowKillFocus() = 0;
@@ -409,6 +414,13 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
     else if (msg.eventType == kEventWindowKillFocus) {
         if (m_pOwner != nullptr) {
             m_pOwner->OnListBoxItemWindowKillFocus();
+        }
+    }
+    else if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
+        //将键盘相关消息转发给父容器优先处理
+        //（例如下拉候选浮层打开时，回车键需由父容器优先消费，否则会被下面的 kEventReturn 分支拦截）
+        if ((m_pOwner != nullptr) && m_pOwner->OnListBoxItemKeyEvent(msg)) {
+            return;
         }
     }
 

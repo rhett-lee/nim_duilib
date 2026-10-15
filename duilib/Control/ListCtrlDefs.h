@@ -25,14 +25,13 @@ enum class ListCtrlSelectionMode : int8_t
 };
 
 /** 单元格的编辑器类型（按列声明）
-    本轮实现 kEditText / kEditNumber / kEditDate；
-    kEditCombo / kEditCheck 作为紧接的一项单独实现（本轮仅预留位置，不实现）
 */
 enum class ListCtrlEditorType : int8_t
 {
     kEditText   = 0, //文本编辑器（默认）
     kEditNumber = 1, //数值编辑器（提交时校验：允许为空，或为合法的十进制数值）
-    kEditDate   = 2  //日期编辑器（提交时校验：允许为空，或为 yyyy-mm-dd / yyyy/mm/dd）
+    kEditDate   = 2, //日期编辑器（提交时校验：允许为空，或为 yyyy-mm-dd / yyyy/mm/dd）
+    kEditCombo  = 3  //下拉候选编辑器（候选值按列配置，参见 ListCtrl::SetColumnCandidatesById）
 };
 
 /** 表格中单元格的定位标识（CellId）

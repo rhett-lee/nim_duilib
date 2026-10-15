@@ -83,7 +83,7 @@
 | L2 | Ctrl+C 复制选中内容到剪贴板 | 已完成（Debug\|x64 编译验证通过） | 已实现：`kRow` 复制选中行、`kCell` 复制选中区域，均生成 TSV 写入剪贴板（`Ctrl+C`）；`Ctrl+Shift+C` 生成 CSV 写入剪贴板；`ExportToCsvFile(路径, 是否仅选中)` 导出 CSV 文件（UTF-8 BOM）；与编辑态互斥（先提交再复制）。两个独立开关默认开启、可通过 `enable_copy` / `enable_csv_export` 关闭（关闭时快捷键与接口均 inert）。未做：复制完成事件（可选，未实现）、"粘贴 TSV" |
 | L3 | 行筛选 / 表头筛选器 | 缺失（现仅有排序分组 `nSortGroup`，无按条件过滤） | 提供按条件过滤行的接口 + 表头筛选器下拉 UI |
 | L4 | 自定义单元格渲染器 | 缺失（仅内置文本 / 图标 / CheckBox / 进度条 / 富文本几种渲染） | 允许在单元格内嵌入任意子控件（自定义绘制） |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成（C3 首期：文本 / 数值 / 日期；Debug\|x64 编译验证通过） | 已实现：按列声明编辑器类型 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`（`ListCtrlColumn::nEditorType`、`SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`，按列ID保存、列序变化不影响）；提交编辑时按类型校验输入（`kEditNumber` 允许空串或十进制数值、`kEditDate` 允许空串或 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），**非法输入不写回数据、不派发 `kEventLeaveEdit`**（等同丢弃本次编辑，保持原值）；三种类型当前共用同一个 `RichEdit` 编辑器（未创建差异化输入控件）。**待做（紧接的一项）**：`kEditCombo`（下拉）与 `kEditCheck`（勾选），以及为各类型创建对应的差异化输入控件 |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉；Debug\|x64 编译验证通过） | 已实现：按列声明编辑器类型 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`（`ListCtrlColumn::nEditorType`、`SetColumnEditorType(ById)` / `GetColumnEditorType(ById)`，按列ID保存、列序变化不影响）；提交编辑时按类型校验输入（`kEditNumber` 允许空串或十进制数值、`kEditDate` 允许空串或 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），**非法输入不写回数据、不派发 `kEventLeaveEdit`**（等同丢弃本次编辑，保持原值）；`kEditCombo` 已实现为下拉候选浮层（候选按列配置 `SetColumnCandidates(ById)`；复用 `Flyout` + `VListBox`，不抢焦点；鼠标点选 / `Enter` 提交、`↑`/`↓` 移动、`Esc` 取消不写回；kCell 模式与行选择模式均支持）；它与既有 Text / Number / Date **共用 `kEventEnterEdit` / `kEventLeaveEdit`、不新增事件、不新增 XML 属性**；未做：双击 / 直接键入进入编辑、`Tab` 提交并右移、为各类型创建完全差异化的输入控件 |
 
 ### 三、候选优化项（待评估 / 待核实 / 架构性）
 
@@ -160,7 +160,7 @@
 | L2 | Ctrl+C 复制到剪贴板（多行 TSV / 导出 CSV） | 已完成（TSV 复制 + CSV 导出；默认开启，可用 `enable_copy` / `enable_csv_export` 关闭） |
 | L3 | 行筛选 / 表头筛选器 | 待办 |
 | L4 | 自定义单元格渲染器 | 待办 |
-| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 部分完成（C3 首期：文本 / 数值 / 日期；Debug\|x64 编译验证通过） |
+| L5 | 单元格级编辑器（下拉 / 日期 / 数值） | 已完成（C3：文本 / 数值 / 日期 / 下拉 / 勾选；Debug\|x64 编译验证通过） |
 | P1 | 单元格存储堆分配开销（连续内存 / SoA） | 已完成（Phase 0–3 全部完成并验收；Phase 4 已核实无需实施；SoA 备选未采用） |
 | P2 | 列存储与行优先访问开销 | 已完成（无需改存储布局，仅局部去分配；Release 同会话 A/B：13.804 → 13.300 ms/帧，无劣化） |
 | P3 | 冻结列横向滚动范围（是否扣除冻结宽度） | 已核实（无需改动：内容宽与视口宽均含冻结宽，自然抵消） |
@@ -172,7 +172,7 @@
 | C1b | 统一选择模型（位图存储 + 区域列表事件 + 模式分派 + Ctrl+拖动追加） | 已完成 |
 | C1-复查 | C1 复查（冻结列命中口径 + 5 项已确认缺陷） | 已完成（6 项缺陷 + 冻结列命中口径均已修复并通过 Debug 编译验证，另修复冻结列命中遍历触发的 Debug 断言 `ptOrg == ptMouse`、点击冻结列表头触发的 Debug 断言 `itemStatus.m_rcPos.ContainsPt(m_ptMouseDown)`，冻结列区域内 CheckBox 无法勾选的问题，以及单元格选择模式（`kCell`）下行级 CheckBox（每行行首）与表头 CheckBox 点击无响应的问题（根因为 `OnListBoxItemMouseEvent` 消费事件导致 Item 自身 `ButtonUp` 被跳过，修复为 `CheckBoxTemplate::IsMouseOnCheckBoxIcon` + `ListCtrlReportView::IsMouseOnItemCheckBox` 放行 + `ListCtrlHeader::GetCheckBoxMousePos` override），详见 [设计方案](misc/ListCtrl单元格交互与结构升级设计方案.md)「C1 复查结论」） |
 | C1c | 单元格选择：单选语义对齐 | 已完成（单选下至多一个单元格：Shift/Ctrl 单击与 `Ctrl+A` 失效、批量 API 只取首格、切回单选自动裁剪为首格；当前格焦点框保留） |
-| C3 | 单元格编辑（F2 进入编辑 + 按列编辑器类型：文本 / 数值 / 日期） | 已完成首期（F2 立即进入编辑、Enter 提交后当前格下移一行、Esc 取消、失焦提交；按列声明 ListCtrlEditorType 并做输入校验，非法输入丢弃；复用 kEventEnterEdit / kEventLeaveEdit，未新增事件；未做双击/直接键入进入编辑与 Tab 提交；下拉/勾选编辑器待办；Debug\|x64 编译验证通过） |
+| C3 | 单元格编辑（F2 进入编辑 + 按列编辑器类型：文本 / 数值 / 日期 / 下拉） | 已完成（F2 立即进入编辑、Enter 提交后当前格下移一行、Esc 取消、失焦提交；按列声明 ListCtrlEditorType 并做输入校验，非法输入丢弃；下拉候选（kEditCombo）编辑器已实现，kCell 模式与行选择模式均支持；复用 kEventEnterEdit / kEventLeaveEdit，未新增事件、未新增 XML 属性；未做双击/直接键入进入编辑与 Tab 提交；Debug\|x64 编译验证通过） |
 | A2 | 多级表头 / 单元格合并 / 内嵌树 / 行分组折叠 | 实施中（C0 / C1 / C1b 已完成；后续 C2–C7 待实施） |
 
 > 注：本文档为 ListCtrl 专项跟进清单，条目完成后请同步更新本表状态；控件级的新增规划仍以 [Control-Roadmap.md](Control-Roadmap.md) 为准。

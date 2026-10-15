@@ -627,6 +627,17 @@
                                     pressed_color="bg_list_item_pressed"
                                     disabled_color="bg_list_item_disabled"
                                     selected_normal_color="bg_list_item_selected"/>
+
+    <!-- ListCtrl 单元格下拉候选浮层（kEditCombo 编辑器使用） -->
+    <Class name="list_ctrl_combo_flyout" width="260" height="auto" bkcolor="bg_window_card"
+                                          border_size="1" border_color="border_window" border_round="6,6"
+                                          padding="1,1,1,1"/>
+    <Class name="list_ctrl_combo_list" bkcolor="bg_window_card" vscrollbar="true" paint_selected_colors="true"/>
+    <Class name="list_ctrl_combo_item" text_padding="10,0,10,0" fade_hovered="false"
+                                        hovered_color="bg_list_item_hovered"
+                                        pressed_color="bg_list_item_pressed"
+                                        disabled_color="bg_list_item_disabled"
+                                        selected_normal_color="bg_list_item_selected"/>
     
     <!-- 富文本基本属性 -->
     <Class name="rich_text" text_color="text_default" 

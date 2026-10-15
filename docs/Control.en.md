@@ -1923,7 +1923,8 @@ For report-style scenarios (similar to Qt QTableView / WPF DataGrid), ListCtrl p
 | Batch row deletion | `DeleteDataItems(const std::vector<size_t>&)` | Deletes many rows at once (indices may be unordered and may include out-of-range/duplicate entries, which are ignored); deduplicates by row identity and performs a single-pass compaction of the display-order table, avoiding the O(K×N) shifting of row-by-row deletion; returns the number of rows actually deleted |
 | Storage compaction | `CompactStorage()` | An explicit whole-table maintenance operation: renumbers row identities and compacts the storage pages, reclaiming the tombstone slots and empty pages left by repeated insert/delete. Call it only when no fill/paint is in progress; afterwards all outstanding internal cell raw pointers become invalid. During single/batch deletion, a storage page whose slots are all tombstones is released automatically |
 | Cell editing | `EnterCellEdit` / `EnterCurrentCellEdit` / `IsCellEditing` / `GetEditingCell` | kCell mode + Report view; enter editing with `F2` or "a single click after the cell is selected" (the click path is unchanged); `Enter` commits and moves down one row, `Esc` cancels, focus loss commits without moving; requires `enable_item_edit="true"` |
-| Per-column editor type | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | Enum `ListCtrlEditorType { kEditText, kEditNumber, kEditDate }`; column declaration field `ListCtrlColumn::nEditorType` (defaults to `kEditText`); input is validated on commit by the declared type (an empty string clears the cell and is always valid; a number column accepts decimal numbers; a date column accepts `yyyy-mm-dd` / `yyyy/mm/dd`, reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired); `kEditCombo` (dropdown) / `kEditCheck` (checkbox) are TODO; **no XML attribute is introduced** (columns are declared in code) |
+| Per-column editor type | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | Enum `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`; column declaration field `ListCtrlColumn::nEditorType` (defaults to `kEditText`); input is validated on commit by the declared type (an empty string clears the cell and is always valid; a number column accepts decimal numbers; a date column accepts `yyyy-mm-dd` / `yyyy/mm/dd`, reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired); `kEditCombo` is the dropdown-candidate editor (configure candidates with `SetColumnCandidates(ById)`, supported in both kCell and row selection modes); **no XML attribute is introduced** (columns are declared in code) |
+| Per-column candidates (dropdown editor) | `SetColumnCandidates` / `SetColumnCandidatesById` / `GetColumnCandidates` / `GetColumnCandidatesById` | Stores a plain-text candidate list per column (`std::vector<DString>`, stored by column ID) for `kEditCombo`; passing an empty list clears the candidates; a `kEditCombo` column with no candidates does not enter editing on `F2` / click; the candidate flyout reuses `Flyout` + `VListBox` (theme classes `list_ctrl_combo_flyout` / `list_ctrl_combo_list` / `list_ctrl_combo_item`); commit with a mouse click or `Enter`, move the highlight with `↑`/`↓`, and cancel without write-back with `Esc` or by clicking outside |
 
 **Column-level compare mode (sorting):**
 
@@ -1990,7 +1991,30 @@ pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
 pListCtrl->EnterCurrentCellEdit();
 ```
 
-On commit the input is validated by the column's declared editor type: an empty string is always valid (it clears the cell), `kEditText` is always valid, `kEditNumber` accepts only a valid decimal number, and `kEditDate` accepts only `yyyy-mm-dd` / `yyyy/mm/dd` (reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired). The existing events `kEventEnterEdit` / `kEventLeaveEdit` are reused — no new event is added; the three types share the same RichEdit editor; `kEditCombo` / `kEditCheck` are TODO.
+On commit the input is validated by the column's declared editor type: an empty string is always valid (it clears the cell), `kEditText` is always valid, `kEditNumber` accepts only a valid decimal number, and `kEditDate` accepts only `yyyy-mm-dd` / `yyyy/mm/dd` (reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired). The existing events `kEventEnterEdit` / `kEventLeaveEdit` are reused — no new event is added; the three types share the same RichEdit editor.
+
+**Cell editor: dropdown candidates (kEditCombo):**
+
+Candidates are configured per column (a plain-text list, stored by column ID). It does not use a RichEdit; instead it pops up a candidate flyout below the cell (internally reusing `Flyout` + `VListBox` without stealing focus: the parent window stays active and keyboard events are still handled by the `ListCtrl`).
+
+```cpp
+// Declare column 8 as a dropdown-candidate editor and configure its candidates (column index starts at 0)
+std::vector<DString> candidates = { _T("Red"), _T("Green"), _T("Blue") };
+pListCtrl->SetColumnCandidates(7, candidates);
+pListCtrl->SetColumnEditorType(7, ui::ListCtrlEditorType::kEditCombo);
+
+// By column ID (column IDs are stable while the column order may change)
+// pListCtrl->SetColumnCandidatesById(columnId, candidates);
+// std::vector<DString> items = pListCtrl->GetColumnCandidatesById(columnId);
+// Passing an empty list clears the candidates: pListCtrl->SetColumnCandidates(7, std::vector<DString>());
+```
+
+Interaction:
+- Enter editing: press `F2` or "a single click after the cell is selected", the same path as the other editors; the initially highlighted candidate is the index of the current cell text in the candidate list (the first item if there is no match).
+- Click a candidate or press `Enter`: commits immediately and closes the flyout, writing the text back to the cell (on success the current cell moves down one row, matching the `Enter` semantics of the RichEdit editor).
+- Press `↑` / `↓`: moves the candidate highlight; press `Esc`, click outside the flyout, or click/scroll elsewhere in the list: closes the flyout **without write-back** (treated as abandoning this edit).
+- When the column has no candidates configured, pressing `F2` / clicking does not enter editing (no empty flyout is shown).
+- Effective in both kCell and row selection modes + Report view, and still subject to `enable_item_edit="true"` and the cell's editable attribute; in row selection mode editing is entered through the existing "a single click after the cell is selected" path, while the `F2` shortcut is still supported only in kCell mode.
 
 **Cell rich text:**
 

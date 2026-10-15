@@ -15,7 +15,8 @@ MainForm::MainForm():
     m_fLoadingPercent(0),
     m_imageId(0),
     m_bStressDataLoaded(false),
-    m_bAllColumnsEditable(false)
+    m_bAllColumnsEditable(false),
+    m_bComboEditor(false)
 {
 }
 
@@ -543,6 +544,23 @@ void MainForm::InitListCtrlEvents(ui::ListCtrl* pListCtrl)
             });
     }
 
+    //演示：下拉候选编辑器（kEditCombo）
+    //勾选状态保存在成员变量中：数据被重新载入（切换语言、还原演示数据等）后会自动重新应用
+    ui::CheckBox* pComboEditor = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_combo_editor")));
+    if (pComboEditor != nullptr) {
+        pComboEditor->Selected(m_bComboEditor, false);
+        pComboEditor->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
+            m_bComboEditor = true;
+            SetComboColumnEditor(pListCtrl, true);
+            return true;
+            });
+        pComboEditor->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
+            m_bComboEditor = false;
+            SetComboColumnEditor(pListCtrl, false);
+            return true;
+            });
+    }
+
     //选择方式：按行选择 / 按单元格选择（单元格模式仅Report视图有效）
     ui::Option* pSelectionModeRow = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_row")));
     ui::Option* pSelectionModeCell = dynamic_cast<ui::Option*>(FindControl(_T("selection_mode_cell")));
@@ -649,6 +667,31 @@ void MainForm::SetAllColumnsEditable(ui::ListCtrl* pListCtrl, bool bEditable)
     pListCtrl->SetEnableRefresh(bOldEnableRefresh);
     if (bOldEnableRefresh) {
         pListCtrl->Refresh();
+    }
+}
+
+void MainForm::SetComboColumnEditor(ui::ListCtrl* pListCtrl, bool bEnabled)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    //演示列：倒数第2列（该列文本为通用演示数据，便于演示下拉候选选择）
+    const size_t nColumnIndex = 7;
+    if (nColumnIndex >= pListCtrl->GetColumnCount()) {
+        return;
+    }
+    if (bEnabled) {
+        //下拉候选编辑器的候选值按列配置（纯文本，按列ID保存）
+        const std::vector<DString> candidates = {
+            _T("Red"), _T("Green"), _T("Blue"), _T("Yellow"), _T("Purple"), _T("Orange")
+        };
+        pListCtrl->SetColumnCandidates(nColumnIndex, candidates);
+        pListCtrl->SetColumnEditorType(nColumnIndex, ui::ListCtrlEditorType::kEditCombo);
+    }
+    else {
+        //还原为默认的文本编辑器，并清空候选值
+        pListCtrl->SetColumnEditorType(nColumnIndex, ui::ListCtrlEditorType::kEditText);
+        pListCtrl->SetColumnCandidates(nColumnIndex, std::vector<DString>());
     }
 }
 
@@ -1634,6 +1677,9 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     if (columnCount > 4) {
         pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);  //第5列（日期文本列）按日期校验
     }
+    //C3后续项：按列声明下拉候选编辑器（kEditCombo）
+    //      勾选框状态保存在成员变量中，数据重新载入后按该状态重新应用
+    SetComboColumnEditor(pListCtrl, m_bComboEditor);
     //填充数据
     pListCtrl->SetDataItemCount(rowCount);
     ASSERT(pListCtrl->GetDataItemCount() == rowCount);
