@@ -435,6 +435,16 @@ UiSize64 VLayout::EstimateLayoutSize(const std::vector<Control*>& items, UiSize 
     UiSize64 totalSize(0, 0);  // 64位计算避免溢出
     int32_t validCount = 0;    // 统计参与间隔计算的有效控件（有高度或边距）
 
+    // 扣除容器内边距后，才是子控件的可用区域：必须与真实布局（ArrangeChildren 中的 DeflatePadding）
+    // 保持同一口径，否则自动换行的子控件会按偏大的宽度估算高度，导致容器高度偏小、内容被裁剪
+    UiPadding rcPadding;
+    if (GetOwner() != nullptr) {
+        rcPadding = GetOwner()->GetPadding();
+    }
+    szAvailable.cx -= (rcPadding.left + rcPadding.right);
+    szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
+    szAvailable.Validate();
+
     for (Control* pControl : items) {
         if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
             continue;
@@ -490,11 +500,7 @@ UiSize64 VLayout::EstimateLayoutSize(const std::vector<Control*>& items, UiSize 
         totalSize.cy += (int64_t)(validCount - 1) * GetChildMarginY();
     }
 
-    // 累加容器内边距（无条件计入）
-    UiPadding rcPadding;
-    if (GetOwner() != nullptr) {
-        rcPadding = GetOwner()->GetPadding();
-    }
+    // 累加容器内边距（无条件计入，rcPadding 已在函数开头算好）
     totalSize.cx += rcPadding.left + rcPadding.right;
     totalSize.cy += rcPadding.top + rcPadding.bottom;
 

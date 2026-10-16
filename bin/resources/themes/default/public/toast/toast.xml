@@ -11,7 +11,8 @@
                 <Control name="toast_icon" width="20" height="20" valign="center" margin="0,0,12,0"
                          mouse_enabled="false" tab_stop="false"/>
                 <!-- 文本宽度必须为固定值 296（=360 外宽 - 左右内边距 16*2 - 图标 20 - 图标右 margin 12）：
-                     多行 stretch 标签在估算高度时会按容器可用宽（360）而非扣除固定宽兄弟后的实际宽（296）换行，
+                     布局估算时容器内边距已扣除（VLayout/HLayout 估算与真实布局口径一致），
+                     但不会扣除同行固定宽兄弟所占宽度，即多行 stretch 标签会按 328（而非 296）换行，
                      英文按词换行时会少算行数，导致窗口高度偏短、末行被裁切。固定宽可保证估算与实际布局一致 -->
                 <Label name="toast_text" width="296" height="auto" min_height="20"
                        mouse_enabled="false" tab_stop="false" auto_tooltip="true"

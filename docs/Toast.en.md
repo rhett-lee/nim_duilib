@@ -185,14 +185,16 @@ framework; keep them in mind if you develop similar controls:
    implementation.
 4. **An auto-height multi-line `stretch` label next to a fixed-width sibling in an HBox can
    underestimate its height**: the auto-height window calls `EstimateSize` only once, and
-   during layout estimation a stretch child receives the **container's** available width
-   (360), not the width it actually gets after fixed-width siblings such as the icon are
-   subtracted (296). With Chinese text (which can wrap at every character) the line count is
-   often the same at both widths; with English word wrapping, the wider estimate width
-   produces fewer lines, so the window ends up too short and the last line is clipped.
+   during layout estimation a stretch child now receives the container's available width with
+   the container padding already removed (`VLayout`/`HLayout` estimation matches the real
+   layout's `DeflatePadding`), but the width of fixed-width siblings sharing the row is still
+   **not** subtracted: the stretch label gets 328 (360 outer width − 32 horizontal padding)
+   instead of its actual layout width 296 (minus the 20 icon and its 12 right margin). With
+   Chinese text (which can wrap at every character) the line count is often the same at both
+   widths; with English word wrapping, the wider estimate width produces fewer lines, so the
+   window ends up too short and the last line is clipped.
    The fix is to give the Label a **fixed width equal to its actual layout width**
-   (`width="296"` in toast.xml = 360 outer width − 32 horizontal padding − 20 icon −
-   12 icon right margin), so estimation and rendering use the same wrap width.
+   (`width="296"` in toast.xml), so estimation and rendering use the same wrap width.
 
 In addition, the toast window is created as an owned window of the parent, so it is destroyed
 together with the parent when the parent closes. `OnFinalMessage` removes the toast from the
