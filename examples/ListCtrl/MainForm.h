@@ -93,9 +93,6 @@ private:
     */
     void InitCheckCopyTests(ui::ListCtrl* pListCtrl);
 
-    //临时调试代码：定位"复制为CSV"失败的原因（验证后必须删除）
-    void DebugCheckCopy(ui::ListCtrl* pListCtrl);
-
     /** 初始化"进度条与编辑器"面板：进度条外观、单格进度、逐列编辑器类型切换
     */
     void InitProgressEditorTests(ui::ListCtrl* pListCtrl);

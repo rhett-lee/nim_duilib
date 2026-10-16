@@ -127,71 +127,7 @@ void MainForm::OnInitWindow()
     //    return true;
     //    });
 
-    //临时调试代码（验证后必须删除）
-    DebugCheckCopy(pListCtrl);
 }
-
-//==== 临时调试代码：定位"复制为CSV"失败的原因（验证后必须删除） ====
-void MainForm::DebugCheckCopy(ui::ListCtrl* pListCtrl)
-{
-    if (pListCtrl == nullptr) {
-        return;
-    }
-    std::ofstream log("c:/develop/nim_duilib/bin/lc_debug.txt");
-    std::vector<size_t> colIds;
-    for (size_t i = 0; i < pListCtrl->GetColumnCount(); ++i) {
-        colIds.push_back(pListCtrl->GetColumnId(i));
-    }
-    log << "dataCount=" << pListCtrl->GetDataItemCount()
-        << " columnCount=" << pListCtrl->GetColumnCount()
-        << " mode=" << (int32_t)pListCtrl->GetSelectionMode()
-        << " flag_multi=" << (pListCtrl->IsMultiSelect() ? 1 : 0)
-        << " flag_copy=" << (pListCtrl->IsEnableCopy() ? 1 : 0)
-        << " flag_csv=" << (pListCtrl->IsEnableCsvExport() ? 1 : 0) << "\n";
-    log << "colIds=";
-    for (size_t id : colIds) {
-        log << id << ",";
-    }
-    log << "\n";
-
-    //kRow 模式
-    pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kRow);
-    pListCtrl->SetSelectedDataItems(std::vector<size_t>{ 0, 1, 2 }, true);
-    std::vector<size_t> rows;
-    pListCtrl->GetSelectedDataItems(rows);
-    log << "[kRow] selectedRows=" << rows.size() << " -> ";
-    for (size_t r : rows) {
-        log << r << ",";
-    }
-    log << "\n";
-    log << "[kRow] copy(tsv)=" << (pListCtrl->CopySelectionToClipboard(false) ? 1 : 0)
-        << " copy(csv)=" << (pListCtrl->CopySelectionToClipboard(true) ? 1 : 0) << "\n";
-    {
-        ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
-        csvPath /= ui::FilePath(_T("lc_dbg_all.csv"));
-        log << "[all] exportCsv=" << (pListCtrl->ExportToCsvFile(csvPath.ToString(), false) ? 1 : 0) << "\n";
-    }
-
-    //kCell 模式（模拟"选择第2~4行、第0~2列"）
-    pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kCell);
-    if (colIds.size() >= 3) {
-        ui::ListCtrlCellId a;
-        ui::ListCtrlCellId b;
-        a.nRowIndex = 2; a.nColumnId = colIds[0];
-        b.nRowIndex = 4; b.nColumnId = colIds[2];
-        const bool bSet = pListCtrl->SetCellSelection(a, b, false);
-        std::vector<ui::ListCtrlCellId> cells;
-        const size_t nCells = pListCtrl->GetSelectedCells(cells);
-        log << "[kCell] setRet=" << (bSet ? 1 : 0) << " selectedCells=" << nCells
-            << " (2,c0)=" << (pListCtrl->IsCellSelected(2, colIds[0]) ? 1 : 0)
-            << " (2,c1)=" << (pListCtrl->IsCellSelected(2, colIds[1]) ? 1 : 0)
-            << " (3,c1)=" << (pListCtrl->IsCellSelected(3, colIds[1]) ? 1 : 0) << "\n";
-        log << "[kCell] copy(tsv)=" << (pListCtrl->CopySelectionToClipboard(false) ? 1 : 0)
-            << " copy(csv)=" << (pListCtrl->CopySelectionToClipboard(true) ? 1 : 0) << "\n";
-    }
-    log.flush();
-}
-//==== 临时调试代码结束 ====
 
 bool MainForm::OnLanguageChanged()
 {
@@ -1691,7 +1627,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 
     bool bColumnDataHasCheckBox = false;
     bool bColumnDataHasIcon = false;
-    bool bColumnEditable = pListCtrl->IsSubItemEditable(0, 0);
+    bool bColumnEditable = pListCtrl->IsSubItemEditable(0, pListCtrl->GetColumnIndex(nColumnId));
     ui::ListCtrlItem* pItem = pListCtrl->GetFirstDisplayItem();
     if (pItem != nullptr) {
         ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(pListCtrl->GetColumnIndex(nColumnId));
@@ -1833,18 +1769,17 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 
     //设置特殊属性
     if (nRows > 100) {
+        //置顶行
         pListCtrl->SetDataItemAlwaysAtTop(100, 0);
-        pListCtrl->SetDataItemAlwaysAtTop(101, 1);
+        pListCtrl->SetSubItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
+        pListCtrl->SetSubItemBkColor(100, 3, ui::UiColor(ui::UiColors::MistyRose));
 
-        pListCtrl->SetDataItemVisible(103, false);
-        pListCtrl->SetDataItemHeight(1, 100, true);
-        pListCtrl->SetDataItemHeight(2, 200, true);
+        //调整行高
+        pListCtrl->SetDataItemHeight(21, 100, true);
+        pListCtrl->SetDataItemHeight(22, 200, true);
 
-        //pListCtrl->SetSubItemBkColor(100, 0, ui::UiColor(ui::UiColors::MistyRose));
-        //pListCtrl->SetSubItemBkColor(101, 0, ui::UiColor(ui::UiColors::MistyRose));
-        //pListCtrl->SetSubItemBkColor(102, 0, ui::UiColor(ui::UiColors::MistyRose));
-        //pListCtrl->SetSubItemBkColor(103, 0, ui::UiColor(ui::UiColors::MistyRose));
-        //pListCtrl->SetSubItemBkColor(104, 0, ui::UiColor(ui::UiColors::MistyRose));
+        //调整行数据是否可见
+        pListCtrl->SetDataItemVisible(23, false);
     }
     //保持"所有列可编辑"勾选框的状态：数据被重新载入后，按当前状态重新应用一次
     if (m_bAllColumnsEditable) {
@@ -2340,7 +2275,7 @@ void MainForm::InitCheckCopyTests(ui::ListCtrl* pListCtrl)
         pButton->AttachClick([this, pListCtrl, setLabel](const ui::EventArgs&) {
             const bool bRet = pListCtrl->CopySelectionToClipboard(true);
             DString msg = bRet ? DString(_T("CopySelectionToClipboard(csv=true) -> OK, paste into Excel to verify"))
-                               : DString(_T("CopySelectionToClipboard(csv=true) -> FAILED (no selection, or enable_csv_export is false)"));
+                               : DString(_T("CopySelectionToClipboard(csv=true) -> FAILED (no selection, or enable_copy is false)"));
             setLabel(msg);
             ui::SystemUtil::ShowMessageBox(this, msg, _T("Copy as CSV"));
             return true;

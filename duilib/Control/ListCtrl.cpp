@@ -1448,15 +1448,8 @@ DString ListCtrl::BuildSelectionText(bool bCsvFormat, bool bSelectedOnly) const
 bool ListCtrl::CopySelectionToClipboard(bool bCsvFormat)
 {
     //开关关闭时不做任何处理（inert：不改变编辑状态、不改数据）
-    if (bCsvFormat) {
-        if (!m_bEnableCsvExport) {
-            return false;
-        }
-    }
-    else {
-        if (!m_bEnableCopy) {
-            return false;
-        }
+    if (!m_bEnableCopy) {
+        return false;
     }
 
     //与编辑态互斥：编辑中先提交编辑内容，再执行复制，避免丢失编辑结果
