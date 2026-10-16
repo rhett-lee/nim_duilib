@@ -83,6 +83,20 @@ void MainForm::OnInitWindow()
     //初始化"压力测试"面板（Phase 0 性能基线）
     InitStressTest(pListCtrl);
 
+    //压力测试仅适用于 Windows 平台（内存读数依赖 Windows API）：其他平台上隐藏该分组
+#if defined (DUILIB_BUILD_FOR_WIN)
+    bool bSupportStressTest = true;
+#else
+    bool bSupportStressTest = false;
+#endif
+    if (!bSupportStressTest) {
+        ui::Control* pStressGroup = FindControl(_T("stress_test_group"));
+        ASSERT(pStressGroup != nullptr);
+        if (pStressGroup != nullptr) {
+            pStressGroup->SetVisible(false);
+        }
+    }
+
     //pListCtrl->AttachViewSizeChanged([this, pListCtrl](const ui::EventArgs& args) {
     //    if (args.listCtrlType == (int32_t)ui::ListCtrlType::Report) {
     //        //视图大小变化时，自动调整列宽
@@ -1123,9 +1137,9 @@ void MainForm::StressTestCompact(ui::ListCtrl* pListCtrl)
         return;
     }
 
-    //压缩前的内存快照
+    //压缩前的内存快照（内存读数仅 Windows 平台提供，其他平台返回 false）
     uint64_t nWorkingSet0 = 0, nPeakWorkingSet0 = 0, nPrivateUsage0 = 0;
-    GetProcessMemorySnapshot(nWorkingSet0, nPeakWorkingSet0, nPrivateUsage0);
+    const bool bHasMemory = GetProcessMemorySnapshot(nWorkingSet0, nPeakWorkingSet0, nPrivateUsage0);
 
     //执行存储压缩（重编号 + 整体压缩），并测量耗时
     pListCtrl->SetEnableRefresh(false);
@@ -1140,12 +1154,21 @@ void MainForm::StressTestCompact(ui::ListCtrl* pListCtrl)
     GetProcessMemorySnapshot(nWorkingSet1, nPeakWorkingSet1, nPrivateUsage1);
 
     const double dTotalMs = PerfTickToMs(nTick1 - nTick0);
-    const double dMb = 1024.0 * 1024.0;
-    DString msg = ui::StringUtil::Printf(
-        _T("Compact storage\nRows: %zu\nTotal: %.1f ms\nWorking set: %.1f -> %.1f MB\nPrivate: %.1f -> %.1f MB"),
-        pListCtrl->GetDataItemCount(), dTotalMs,
-        (double)nWorkingSet0 / dMb, (double)nWorkingSet1 / dMb,
-        (double)nPrivateUsage0 / dMb, (double)nPrivateUsage1 / dMb);
+    DString msg;
+    if (bHasMemory) {
+        const double dMb = 1024.0 * 1024.0;
+        msg = ui::StringUtil::Printf(
+            _T("Compact storage\nRows: %zu\nTotal: %.1f ms\nWorking set: %.1f -> %.1f MB\nPrivate: %.1f -> %.1f MB"),
+            pListCtrl->GetDataItemCount(), dTotalMs,
+            (double)nWorkingSet0 / dMb, (double)nWorkingSet1 / dMb,
+            (double)nPrivateUsage0 / dMb, (double)nPrivateUsage1 / dMb);
+    }
+    else {
+        //非 Windows 平台不支持内存读数
+        msg = ui::StringUtil::Printf(
+            _T("Compact storage\nRows: %zu\nTotal: %.1f ms\n(Working set reading is not supported on this platform.)"),
+            pListCtrl->GetDataItemCount(), dTotalMs);
+    }
     ui::SystemUtil::ShowMessageBox(this, msg, ui::GlobalManager::GetTextById(_T("STRID_LISTCTRL_STRESS_TEST")));
 }
 

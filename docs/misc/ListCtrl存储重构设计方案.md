@@ -153,7 +153,7 @@
 ## 5. 分阶段实施（每阶段独立验收、可回退）
 
 ### Phase 0 — 基线与护栏（不改架构）✅ 面板、现状基线与 Phase 1 后数据均已留档（2026-10-13）
-- 在 `examples/ListCtrl` 增加"压力测试"面板：**批量插入 10 万行 / 中间插入 / 删除 500 行 / 排序 / 滚动绘制**，用 `QueryPerformanceCounter` 打印耗时。（**✅ 已落地**，见 §10）
+- 在 `examples/ListCtrl` 增加"压力测试"面板：**批量插入 10 万行 / 中间插入 / 删除 500 行 / 排序 / 滚动绘制**，用 `QueryPerformanceCounter` 打印耗时（非 Windows 平台退化为 `std::chrono::steady_clock`，内存读数仅 Windows 提供）。（**✅ 已落地**，见 §10）
 - 采集**现状基线**（记录到本文件），作为后续对比依据。（**✅ 重构前现状基线与 Phase 1 后实测数据均已按 x64 Release 手动采集并留档**，见 §10）
 - 增加 `_DEBUG` 断言函数 `AssertDataConsistency()`（可先对旧模型做等价校验，作为回归网）。（**✅ 已随 Phase 1 落地**）
 - **验收**：基线数据留档；断言函数可运行。
@@ -389,8 +389,8 @@
 
 **改动文件**：
 
-- `examples/ListCtrl/MainForm.h` / `MainForm.cpp`：新增压力测试面板方法（`InitStressTest` / `StressTestLoad` / `StressTestLoadSparse` / `StressTestMemory` / `StressTestInsert` / `StressTestDelete` / `StressTestDeleteBatch` / `StressTestCompact` / `StressTestSort` / `StressTestRepaint` / `StressTestRestore`）与成员 `m_bStressDataLoaded`；新增文件级计时助手 `GetPerfTick()` / `PerfTickToMs()`（Windows 走 `QueryPerformanceCounter` / `QueryPerformanceFrequency`，其他平台退化为 `std::chrono::steady_clock`）与内存读取助手 `GetProcessMemorySnapshot()`（Windows 走 `GetProcessMemoryInfo`）；在 `OnInitWindow()` 中调用 `InitStressTest(pListCtrl)` 绑定全部按钮。
-- `bin/resources/themes/default/list_ctrl/list_ctrl.xml`：新增全宽"压力测试"分组行（`GroupVBox` + `btn_global` 按钮；Phase 0 首版 1 行 6 个，Phase 2/3 追加稀疏载入 / 内存读数 / 批量删除 / 压缩存储，现为 2 行共 10 个）。
+- `examples/ListCtrl/MainForm.h` / `MainForm.cpp`：新增压力测试面板方法（`InitStressTest` / `StressTestLoad` / `StressTestLoadSparse` / `StressTestMemory` / `StressTestInsert` / `StressTestDelete` / `StressTestDeleteBatch` / `StressTestCompact` / `StressTestSort` / `StressTestRepaint` / `StressTestRestore`）与成员 `m_bStressDataLoaded`；新增文件级计时助手 `GetPerfTick()` / `PerfTickToMs()`（Windows 走 `QueryPerformanceCounter` / `QueryPerformanceFrequency`，其他平台退化为 `std::chrono::steady_clock`）与内存读取助手 `GetProcessMemorySnapshot()`（Windows 走 `GetProcessMemoryInfo`，其他平台返回 `false` 表示不支持）；在 `OnInitWindow()` 中调用 `InitStressTest(pListCtrl)` 绑定全部按钮，并在非 Windows 平台隐藏"压力测试"分组（`stress_test_group`，因压测的内存读数依赖 Windows API；耗时类压测项本身可跨平台运行）。
+- `bin/resources/themes/default/list_ctrl/list_ctrl.xml`：新增"压力测试"分组（`GroupVBox name="stress_test_group"` + `btn_global` 按钮，共 10 个；Phase 0 首版 6 个，Phase 2/3 追加稀疏载入 / 内存读数 / 批量删除 / 压缩存储。后续界面重排后该分组移入左侧设置面板，按钮由 `HFlowBox` 自动换行；非 Windows 平台由 `MainForm::OnInitWindow()` 调用 `SetVisible(false)` 整组隐藏）。
 - `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt`：新增 / 扩充压力测试面板 `STRID_LISTCTRL_STRESS_*` 文案（含面板标题与"未载入数据"提示，现共 12 条）。
 
 **面板按钮与测量口径**：
@@ -402,7 +402,7 @@
 | 中间插入1000行 | `STRID_LISTCTRL_STRESS_INSERT` | 在 `GetDataItemCount()/2` 处循环 `InsertDataItem` 1000 行 | 总耗时 + 单行均值（触发中间位置搬移） |
 | 删除500行 | `STRID_LISTCTRL_STRESS_DELETE` | 在 `GetDataItemCount()/2` 处循环 `DeleteDataItem` 500 行 | 总耗时 + 单行均值（触发中间位置搬移） |
 | 批量删除500行（乱序） | `STRID_LISTCTRL_STRESS_DELETE_BATCH` | 构造 500 个乱序显示索引 → `DeleteDataItems` 单趟批量删除 | 总耗时（单趟压缩 `m_displayOrder`，O(N) 搬 4B，不做 K 次 `erase`） |
-| 压缩存储 | `STRID_LISTCTRL_STRESS_COMPACT` | `CompactStorage()` 按显示顺序重编号存活行 + 整体压缩各列分页存储 | 总耗时 + 压缩前后工作集 / 私有提交对比（MB）；调用后内部单元格指针失效，仅应在无填充 / 绘制进行时点击 |
+| 压缩存储 | `STRID_LISTCTRL_STRESS_COMPACT` | `CompactStorage()` 按显示顺序重编号存活行 + 整体压缩各列分页存储 | 总耗时 + 压缩前后工作集 / 私有提交对比（MB）；调用后内部单元格指针失效，仅应在无填充 / 绘制进行时点击；非 Windows 平台不支持内存读数，此时仅显示耗时并提示"该平台不支持工作集读数" |
 | 排序 | `STRID_LISTCTRL_STRESS_SORT` | `SortDataItems(0, true)` 整表按第 1 列升序 | 总耗时 + 返回值 |
 | 滚动重绘 | `STRID_LISTCTRL_STRESS_REPAINT` | 20 帧，每帧 `EnsureDataItemVisible(index, true)` 置顶后 `Refresh(true)` 同步重绘 | 总耗时 + 单帧均值（含绘制） |
 | 还原演示数据 | `STRID_LISTCTRL_STRESS_RESTORE` | 清空后 `InsertItemData(400, 9, imageId)` 回到初始演示态 | 无（退出压测态） |

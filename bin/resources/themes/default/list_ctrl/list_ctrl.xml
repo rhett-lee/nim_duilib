@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="85%,85%" min_size="80,50" use_system_caption="false" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
+<Window size="85%,85%" min_size="720,480" use_system_caption="false" caption="0,0,0,36" shadow_attached="true" size_box="4,4,4,4">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏区域 -->
@@ -24,189 +24,251 @@
         </HBox>
         <!-- 标题栏区域结束 -->
 
-
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox bkcolor="bg_container" >
-            <HBox height="auto">
-                <Label text_id="STRID_LISTCTRL_TABLE_TYPE" valign="center" margin="2,0,2,0"/>
-                <Combo class="combo" name="list_ctrl_type_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,1" valign="center">
-                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_REPORT" user_dataid="0"/>
-                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_ICON" user_dataid="1"/>
-                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_LIST" user_dataid="2"/>
-                </Combo>
-                <CheckBox class="checkbox_1" name="checkbox_multi_select" text_id="STRID_LISTCTRL_SUPPORT_MULTI_SELECT" margin="4,0,0,0" valign="center">
-                    <Event type="select" receiver="list_ctrl" apply_attribute="multi_select={true}" />
-                    <Event type="unselect" receiver="list_ctrl" apply_attribute="multi_select={false}" />
-                </CheckBox>
-                <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
-                <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="12,0,0,0" valign="center"/>
-                <!-- 演示：把倒数第2列设置为下拉候选编辑器（kEditCombo），单元格编辑时弹出候选列表 -->
-                <CheckBox class="checkbox_1" name="checkbox_combo_editor" text_id="STRID_LISTCTRL_COMBO_EDITOR" margin="12,0,0,0" valign="center"/>
-            </HBox>
-            <HBox height="auto">
-                <GroupVBox class="group_box_round" name="report_group" height="auto" width="820" margin="2,0,0,0" text_id="STRID_LISTCTRL_REPORT_TYPE">
-                    <HBox minheight="18" height="auto" margin="4,18,4,0">
-                        <Label text_id="STRID_LISTCTRL_HEADER_CONTROL" valign="center" margin="2,0,2,0"/>
-                        <Option class="option_2" group="show" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="show_header={false}" />
-                        </Option>
-                        <Option class="option_2" group="show" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="show_header={true}" />
-                        </Option>
-                        <Line vertical="true" margin="0,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_DRAG_HEADER_REORDER" valign="center" margin="2,0,2,0"/>
-                        <Option class="option_2" group="drag_order" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_DISABLE" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="enable_header_drag_order={false}" />
-                        </Option>
-                        <Option class="option_2" group="drag_order" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ENABLE" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="enable_header_drag_order={true}" />
-                        </Option>
-                        <Line vertical="true" margin="0,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_HEADER_HEIGHT" valign="center" margin="2,0,2,0"/>
-                        <RichEdit class="simple simple_border rich_edit_spin" name="header_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
-                        <Button class="btn_primary_global" name="set_column_stretch" text_id="STRID_LISTCTRL_SET_COLUMN_WIDTH_BY_RATIO" width="auto" height="30" border_round="3,3" text_padding="8,0,8,0" margin="4,0,0,0"/>
-                    </HBox>
-
-                    <HBox minheight="18" height="auto" margin="4,0,4,0">
-                        <Label text_id="STRID_LISTCTRL_COLUMN_CONTROL" valign="center" margin="2,0,2,0"/>
-                        <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,1" valign="center"/>
-                        <Line vertical="true" margin="8,4,4,4" width="2"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_show" text_id="STRID_LISTCTRL_SHOW_THIS_COLUMN" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_width" text_id="STRID_LISTCTRL_RESIZABLE_COLUMN_WIDTH" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_sort" text_id="STRID_LISTCTRL_SORTABLE" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_icon_at_top" text_id="STRID_LISTCTRL_SORT_ICON_AT_TOP" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_drag_order" text_id="STRID_LISTCTRL_DRAG_REORDERABLE" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_editable" text_id="STRID_LISTCTRL_EDITABLE_TEXT" margin="4,0,0,0" valign="center"/>
-                    </HBox>
-                    <HBox minheight="18" height="auto" margin="4,0,4,0">
-                        <Control width="153"/>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX_TIPS"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_show_header_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_show_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_EACH_COLUMN" margin="4,0,0,0" valign="center"/>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_COLUMN_LEVEL_ICON" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_LEVEL_ICON_TIPS"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_show_header_icon" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_column_show_icon" text_id="STRID_LISTCTRL_SHOW_IN_EACH_COLUMN" margin="4,0,0,0" valign="center"/>
-                    </HBox>
-                    <HBox minheight="18" height="auto" margin="4,0,4,0">
-                        <Control width="153"/>
-                        <Line vertical="true" margin="8,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_HEADER_TEXT" valign="center" margin="6,0,2,0"/>
-                        <Option class="option_2" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                        <Option class="option_2" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                        <Option class="option_2" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                        <Line vertical="true" margin="8,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_TABLE_TEXT" valign="center" margin="6,0,2,0"/>
-                        <Option class="option_2" name="column_text_align_left" group="column_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                        <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                        <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" valign="center"/>
-                    </HBox>
-
-                    <HBox minheight="18" height="auto" margin="4,0,4,0">
-                        <Label text_id="STRID_LISTCTRL_TABLE_PROPERTIES" valign="center" margin="2,0,2,0"/>
-                        <Label text_id="STRID_LISTCTRL_HORIZONTAL_GRID" valign="center" margin="2,0,2,0"/>
-                        <Option class="option_2" group="grid_line_row" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="row_grid_line_width={0}" />
-                        </Option>
-                        <Option class="option_2" group="grid_line_row" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="row_grid_line_width={1}" />
-                        </Option>
-                        <Line vertical="true" margin="0,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_VERTICAL_GRID" valign="center" margin="2,0,2,0"/>
-                        <Option class="option_2" group="grid_line_column" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="column_grid_line_width={0}" />
-                        </Option>
-                        <Option class="option_2" group="grid_line_column" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="column_grid_line_width={1}" />
-                        </Option>
-                        <Line vertical="true" margin="0,8,4,8" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_ROW_HEIGHT" valign="center" margin="2,0,2,0"/>
-                        <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,2,0,0"/>
-                    </HBox>                    
-                    <HBox minheight="18" height="auto" margin="4,0,4,8">
-                        <Control width="153"/>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX_TIPS"/>
-                        <CheckBox class="checkbox_1" name="checkbox_show_header_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_1" name="checkbox_show_checkbox" text_id="STRID_LISTCTRL_SHOW_AT_ROW_START" margin="4,0,0,0" valign="center"/>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_ROW_LEVEL_ICON" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_ROW_LEVEL_ICON_TIPS"/>
-                        <CheckBox class="checkbox_1" name="checkbox_show_icon" text_id="STRID_LISTCTRL_SHOW_AT_ROW_START" margin="4,0,0,0" valign="center"/>
-                    </HBox>
-                    <HBox minheight="18" height="auto" margin="4,0,4,8">
-                        <Label text_id="STRID_LISTCTRL_FROZEN_COLUMN" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_FROZEN_COLUMN_TIPS"/>
-                        <Option class="option_2" group="frozen_column" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_DISABLE" margin="2,0,2,0" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={0}" />
-                        </Option>
-                        <Option class="option_2" group="frozen_column" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ENABLE" margin="2,0,2,0" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={1}" />
-                        </Option>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_COLUMN_VISIBLE_API" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_VISIBLE_API_TIPS"/>
-                        <Option class="option_2" name="column_visible_hide" group="column_visible_api" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_HIDE" margin="2,0,2,0" border_round="2,2" valign="center" halign="left"/>
-                        <Option class="option_2" name="column_visible_show" group="column_visible_api" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SHOW" margin="2,0,2,0" border_round="2,2" valign="center" halign="left"/>
-
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Label text_id="STRID_LISTCTRL_CELL_WORD_WRAP" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_CELL_WORD_WRAP_TIPS"/>
-                        <Option class="option_2" name="cell_single_line" group="cell_wrap" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SINGLE_LINE" margin="2,0,2,0" border_round="2,2" valign="center"/>
-                        <Option class="option_2" name="cell_word_wrap" group="cell_wrap" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_WORD_WRAP" margin="2,0,2,0" border_round="2,2" valign="center"/>
-                    </HBox>
-                    <HBox minheight="18" height="auto" margin="4,0,4,8">
-                        <Label text_id="STRID_LISTCTRL_SELECTION_MODE" valign="center" margin="2,0,2,0" tooltip_text_id="STRID_LISTCTRL_SELECTION_MODE_TIPS"/>
-                        <Option class="option_2" name="selection_mode_row" group="selection_mode" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SELECTION_ROW" margin="2,0,2,0" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="selection_mode='row'" />
-                        </Option>
-                        <Option class="option_2" name="selection_mode_cell" group="selection_mode" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_SELECTION_CELL" margin="2,0,2,0" border_round="2,2" valign="center">
-                            <Event type="select" receiver="list_ctrl" apply_attribute="selection_mode='cell'" />
-                        </Option>
-                        <Line vertical="true" margin="8,2,4,2" width="2"/>
-                        <Button class="btn_global" name="copy_selection_btn" text_id="STRID_LISTCTRL_COPY_SELECTION" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="export_csv_btn" text_id="STRID_LISTCTRL_EXPORT_CSV" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="enter_cell_edit_btn" text_id="STRID_LISTCTRL_ENTER_CELL_EDIT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                    </HBox>
-                </GroupVBox>
-                <HBox>
-                    <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="2,0,2,0">
-                        <Button class="btn_global" name="loading_progress_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS1" width="200" height="28" border_round="3,3" margin="20,25,10,0"/>
-                        <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
-                        <!-- Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="200" height="28" border_round="3,3" margin="20,4,10,0"/ -->
-                        <!-- Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="200" height="28" border_round="3,3" margin="20,4,10,0"/ -->
-                        <Button class="btn_global" name="loading_skeleton_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_LIST" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_skeleton_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_CARD" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_stop_btn" text_id="STRID_LISTCTRL_LOADING_TEST_STOP" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+        <!-- 工作区域：左侧为设置面板（可纵向滚动），右侧为表格区，中间用分隔条调整宽度 -->
+        <HBox bkcolor="bg_container" height="stretch" padding="4,4,4,4">
+            <!-- 左侧：设置面板 -->
+            <VScrollBox name="settings_panel" vscrollbar="true" hscrollbar="false"
+                        width="380" min_width="350" height="stretch" bkcolor="bg_container" padding="2,2,2,0">
+                <VBox width="stretch" height="auto">
+                    <!-- 视图与数据 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_VIEW_GROUP">
+                        <!-- 布局约定：把"标签 + 其选项"封装为一个不换行的 HBox 逻辑单元，
+                             换行只发生在逻辑单元之间，避免标签与其选项被拆到两行；
+                             child_margin_y 与各行 margin 的纵向间距保持一致（均为 6） -->
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_TABLE_TYPE" height="20" valign="center" margin="0,0,10,0"/>
+                                <Combo class="combo" name="list_ctrl_type_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,0" valign="center">
+                                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_REPORT" user_dataid="0"/>
+                                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_ICON" user_dataid="1"/>
+                                    <TreeNode class="tree_node" padding="4" text_id="STRID_LISTCTRL_LIST" user_dataid="2"/>
+                                </Combo>
+                            </HBox>
+                            <CheckBox class="checkbox_1" name="checkbox_multi_select" text_id="STRID_LISTCTRL_SUPPORT_MULTI_SELECT" margin="0,0,0,0" valign="center">
+                                <Event type="select" receiver="list_ctrl" apply_attribute="multi_select={true}" />
+                                <Event type="unselect" receiver="list_ctrl" apply_attribute="multi_select={false}" />
+                            </CheckBox>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
+                            <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="0,0,16,0" valign="center"/>
+                            <!-- 演示：把倒数第2列设置为下拉候选编辑器（kEditCombo），单元格编辑时弹出候选列表 -->
+                            <CheckBox class="checkbox_1" name="checkbox_combo_editor" text_id="STRID_LISTCTRL_COMBO_EDITOR" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center">
+                            <Button class="btn_primary_global" name="set_column_stretch" text_id="STRID_LISTCTRL_SET_COLUMN_WIDTH_BY_RATIO"
+                                    width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                        </HBox>
                     </GroupVBox>
-                    <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_OTHER_TESTS" margin="0,0,2,0">
-                        <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="200" height="28" border_round="3,3" margin="20,25,10,0"/>
-                        <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn5" text_id="STRID_LISTCTRL_LOADING_TEST5" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
-                        <Button class="btn_global" name="loading_btn6" text_id="STRID_LISTCTRL_LOADING_TEST6" width="200" height="28" border_round="3,3" margin="20,4,10,0"/>
+
+                    <!-- 表头控制 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_HEADER_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_HEADER_CONTROL" height="20" valign="center" margin="0,0,10,0"/>
+                                <Option class="option_2" group="show" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_HIDE"
+                                        padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="show_header={false}" />
+                                </Option>
+                                <Option class="option_2" group="show" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SHOW"
+                                        padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="show_header={true}" />
+                                </Option>
+                            </HBox>
+                            <HBox width="auto" height="auto">
+                                <Label text_id="STRID_LISTCTRL_DRAG_HEADER_REORDER" height="20" valign="center" margin="0,0,10,0"/>
+                                <Option class="option_2" group="drag_order" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_DISABLE"
+                                        padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="enable_header_drag_order={false}" />
+                                </Option>
+                                <Option class="option_2" group="drag_order" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ENABLE"
+                                        padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="enable_header_drag_order={true}" />
+                                </Option>
+                            </HBox>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center">
+                            <Label text_id="STRID_LISTCTRL_HEADER_HEIGHT" height="20" valign="center" margin="0,0,10,0"/>
+                            <RichEdit class="simple simple_border rich_edit_spin" name="header_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,0,0,0"/>
+                        </HBox>
                     </GroupVBox>
-                </HBox>
-            </HBox>
-            <!-- 压力测试面板（Phase 0 性能基线）：验证大数据量下的增删改/排序/滚动绘制性能 -->
-            <HBox height="auto">
-                <GroupVBox class="group_box_round" text_id="STRID_LISTCTRL_STRESS_TEST" height="auto" margin="2,0,2,0" width="stretch">
-                    <HBox minheight="18" height="auto" margin="8,22,8,8">
-                        <Button class="btn_global" name="stress_load_btn" text_id="STRID_LISTCTRL_STRESS_LOAD" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_insert_btn" text_id="STRID_LISTCTRL_STRESS_INSERT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_delete_btn" text_id="STRID_LISTCTRL_STRESS_DELETE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_sort_btn" text_id="STRID_LISTCTRL_STRESS_SORT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_repaint_btn" text_id="STRID_LISTCTRL_STRESS_REPAINT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_restore_btn" text_id="STRID_LISTCTRL_STRESS_RESTORE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_load_sparse_btn" text_id="STRID_LISTCTRL_STRESS_LOAD_SPARSE" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_memory_btn" text_id="STRID_LISTCTRL_STRESS_MEMORY" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_delete_batch_btn" text_id="STRID_LISTCTRL_STRESS_DELETE_BATCH" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                        <Button class="btn_global" name="stress_compact_btn" text_id="STRID_LISTCTRL_STRESS_COMPACT" width="auto" height="28" border_round="3,3" margin="0,0,6,0" padding="4,0,4,0"/>
-                    </HBox>
-                </GroupVBox>
-            </HBox>
-            <!-- 横向分割条，用于调整上下区域大小 -->
-            <Split class="split_horizontal"/>
-            <VBox valign="center" halign="center">
-                <ListCtrl class="list_ctrl" name="list_ctrl" bkcolor="YellowGreen" enable_copy="true" enable_csv_export="true"
+
+                    <!-- 列控制 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_COLUMN_GROUP">
+                        <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
+                            <Label text_id="STRID_LISTCTRL_COLUMN_CONTROL" height="20" valign="center" margin="0,0,10,0"/>
+                            <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="120" margin="0,0,0,0" valign="center"/>
+                        </HBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <CheckBox class="checkbox_1" name="checkbox_column_show" text_id="STRID_LISTCTRL_SHOW_THIS_COLUMN" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_column_width" text_id="STRID_LISTCTRL_RESIZABLE_COLUMN_WIDTH" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_column_sort" text_id="STRID_LISTCTRL_SORTABLE" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_column_icon_at_top" text_id="STRID_LISTCTRL_SORT_ICON_AT_TOP" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_column_drag_order" text_id="STRID_LISTCTRL_DRAG_REORDERABLE" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_column_editable" text_id="STRID_LISTCTRL_EDITABLE_TEXT" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
+                            <Label text_id="STRID_LISTCTRL_HEADER_TEXT" height="20" valign="center" margin="0,0,10,0"/>
+                            <Option class="option_2" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                        </HBox>
+                        <HBox width="stretch" height="auto" child_valign="center">
+                            <Label text_id="STRID_LISTCTRL_TABLE_TEXT" height="20" valign="center" margin="0,0,10,0"/>
+                            <Option class="option_2" name="column_text_align_left" group="column_text_align" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_LEFT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_CENTER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_ALIGN_RIGHT" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                        </HBox>
+                    </GroupVBox>
+
+                    <!-- 列级 / 行级 CheckBox 与图标 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_CELL_LEVEL_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_LEVEL_CHECKBOX_TIPS"/>
+                                <CheckBox class="checkbox_1" name="checkbox_column_show_header_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="0,0,0,0" valign="center"/>
+                            </HBox>
+                            <CheckBox class="checkbox_1" name="checkbox_column_show_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_EACH_COLUMN" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_COLUMN_LEVEL_ICON" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_LEVEL_ICON_TIPS"/>
+                                <CheckBox class="checkbox_1" name="checkbox_column_show_header_icon" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="0,0,0,0" valign="center"/>
+                            </HBox>
+                            <CheckBox class="checkbox_1" name="checkbox_column_show_icon" text_id="STRID_LISTCTRL_SHOW_IN_EACH_COLUMN" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_ROW_LEVEL_CHECKBOX_TIPS"/>
+                                <CheckBox class="checkbox_1" name="checkbox_show_header_checkbox" text_id="STRID_LISTCTRL_SHOW_IN_HEADER" margin="0,0,0,0" valign="center"/>
+                            </HBox>
+                            <CheckBox class="checkbox_1" name="checkbox_show_checkbox" text_id="STRID_LISTCTRL_SHOW_AT_ROW_START" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center">
+                            <Label text_id="STRID_LISTCTRL_ROW_LEVEL_ICON" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_ROW_LEVEL_ICON_TIPS"/>
+                            <CheckBox class="checkbox_1" name="checkbox_show_icon" text_id="STRID_LISTCTRL_SHOW_AT_ROW_START" margin="0,0,0,0" valign="center"/>
+                        </HBox>
+                    </GroupVBox>
+
+                    <!-- 表格外观 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_TABLE_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_TABLE_PROPERTIES" height="20" valign="center" margin="0,0,10,0"/>
+                                <Label text_id="STRID_LISTCTRL_HORIZONTAL_GRID" height="20" valign="center" margin="0,0,10,0"/>
+                                <Option class="option_2" group="grid_line_row" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="row_grid_line_width={0}" />
+                                </Option>
+                                <Option class="option_2" group="grid_line_row" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="row_grid_line_width={1}" />
+                                </Option>
+                            </HBox>
+                            <HBox width="auto" height="auto">
+                                <Label text_id="STRID_LISTCTRL_VERTICAL_GRID" height="20" valign="center" margin="0,0,10,0"/>
+                                <Option class="option_2" group="grid_line_column" selected="false" width="64" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="column_grid_line_width={0}" />
+                                </Option>
+                                <Option class="option_2" group="grid_line_column" selected="true" width="64" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="column_grid_line_width={1}" />
+                                </Option>
+                            </HBox>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
+                            <Label text_id="STRID_LISTCTRL_ROW_HEIGHT" height="20" valign="center" margin="0,0,10,0"/>
+                            <RichEdit class="simple simple_border rich_edit_spin" name="list_item_height_edit" min_number="0" max_number="512" limit_text="3" text="0" margin="0,0,0,0"/>
+                        </HBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto" margin="0,0,16,0">
+                                <Label text_id="STRID_LISTCTRL_FROZEN_COLUMN" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_FROZEN_COLUMN_TIPS"/>
+                                <Option class="option_2" group="frozen_column" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_DISABLE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={0}" />
+                                </Option>
+                                <Option class="option_2" group="frozen_column" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_ENABLE" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                    <Event type="select" receiver="list_ctrl" apply_attribute="frozen_column_count={1}" />
+                                </Option>
+                            </HBox>
+                            <HBox width="auto" height="auto">
+                                <Label text_id="STRID_LISTCTRL_COLUMN_VISIBLE_API" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_COLUMN_VISIBLE_API_TIPS"/>
+                                <Option class="option_2" name="column_visible_hide" group="column_visible_api" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_HIDE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                                <Option class="option_2" name="column_visible_show" group="column_visible_api" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SHOW" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                            </HBox>
+                        </HFlowBox>
+                        <HBox width="stretch" height="auto" child_valign="center">
+                            <Label text_id="STRID_LISTCTRL_CELL_WORD_WRAP" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_CELL_WORD_WRAP_TIPS"/>
+                            <Option class="option_2" name="cell_single_line" group="cell_wrap" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SINGLE_LINE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                            <Option class="option_2" name="cell_word_wrap" group="cell_wrap" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_WORD_WRAP" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                        </HBox>
+                    </GroupVBox>
+
+                    <!-- 选择与编辑 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_SELECTION_GROUP">
+                        <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
+                            <Label text_id="STRID_LISTCTRL_SELECTION_MODE" height="20" valign="center" margin="0,0,10,0" tooltip_text_id="STRID_LISTCTRL_SELECTION_MODE_TIPS"/>
+                            <Option class="option_2" name="selection_mode_row" group="selection_mode" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_SELECTION_ROW" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center">
+                                <Event type="select" receiver="list_ctrl" apply_attribute="selection_mode='row'" />
+                            </Option>
+                            <Option class="option_2" name="selection_mode_cell" group="selection_mode" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_SELECTION_CELL" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center">
+                                <Event type="select" receiver="list_ctrl" apply_attribute="selection_mode='cell'" />
+                            </Option>
+                        </HBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
+                            <Button class="btn_global" name="copy_selection_btn" text_id="STRID_LISTCTRL_COPY_SELECTION" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="export_csv_btn" text_id="STRID_LISTCTRL_EXPORT_CSV" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="enter_cell_edit_btn" text_id="STRID_LISTCTRL_ENTER_CELL_EDIT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,0,0"/>
+                        </HFlowBox>
+                    </GroupVBox>
+
+                    <!-- Loading 测试 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_LOADING_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
+                            <Button class="btn_global" name="loading_progress_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS1" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_progress_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_PROGRESS2" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn1" text_id="STRID_LISTCTRL_LOADING_TEST1" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn2" text_id="STRID_LISTCTRL_LOADING_TEST2" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn3" text_id="STRID_LISTCTRL_LOADING_TEST3" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn4" text_id="STRID_LISTCTRL_LOADING_TEST4" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn5" text_id="STRID_LISTCTRL_LOADING_TEST5" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_btn6" text_id="STRID_LISTCTRL_LOADING_TEST6" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_skeleton_btn1" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_LIST" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_skeleton_btn2" text_id="STRID_LISTCTRL_LOADING_TEST_SKELETON_CARD" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="loading_stop_btn" text_id="STRID_LISTCTRL_LOADING_TEST_STOP" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,0,0"/>
+                        </HFlowBox>
+                    </GroupVBox>
+
+                    <!-- 压力测试（Phase 0 性能基线）：验证大数据量下的增删改/排序/滚动绘制性能 -->
+                    <GroupVBox class="group_box_round" name="stress_test_group" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_STRESS_TEST">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
+                            <Button class="btn_global" name="stress_load_btn" text_id="STRID_LISTCTRL_STRESS_LOAD" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_insert_btn" text_id="STRID_LISTCTRL_STRESS_INSERT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_delete_btn" text_id="STRID_LISTCTRL_STRESS_DELETE" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_delete_batch_btn" text_id="STRID_LISTCTRL_STRESS_DELETE_BATCH" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_compact_btn" text_id="STRID_LISTCTRL_STRESS_COMPACT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_sort_btn" text_id="STRID_LISTCTRL_STRESS_SORT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_repaint_btn" text_id="STRID_LISTCTRL_STRESS_REPAINT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_restore_btn" text_id="STRID_LISTCTRL_STRESS_RESTORE" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_load_sparse_btn" text_id="STRID_LISTCTRL_STRESS_LOAD_SPARSE" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="stress_memory_btn" text_id="STRID_LISTCTRL_STRESS_MEMORY" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,0,0"/>
+                        </HFlowBox>
+                    </GroupVBox>
+                </VBox>
+            </VScrollBox>
+
+            <!-- 左右分隔条：可拖动调整设置面板的宽度 -->
+            <Split class="split_vertical"/>
+
+            <!-- 右侧：表格区 -->
+            <VBox bkcolor="bg_container" width="stretch" height="stretch" padding="4,0,0,0">
+                <ListCtrl class="list_ctrl" name="list_ctrl" width="stretch" height="stretch" enable_copy="true" enable_csv_export="true"
                           loading="file='loading_progress1.xml' width='0' height='0' offset_x='-1' offset_y='-1' valign='center' halign='center' fade='255' animation_control='loading_animation' auto_stop='true'"/>
             </VBox>
-        </VBox>
+        </HBox>
     </VBox>
 </Window>
