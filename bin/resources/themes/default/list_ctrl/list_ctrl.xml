@@ -26,16 +26,16 @@
 
         <!-- 工作区域：左侧为设置面板（可纵向滚动），右侧为表格区，中间用分隔条调整宽度 -->
         <HBox bkcolor="bg_container" height="stretch" padding="4,4,4,4">
-            <!-- 左侧：设置面板 -->
+            <!-- 左侧：设置面板（按功能关联度分组：表格结构 -> 选择/勾选 -> 复制与编辑 -> 其他）
+                 布局约定：把"标签 + 其选项"封装为一个不换行的 HBox 逻辑单元，
+                 换行只发生在逻辑单元之间，避免标签与其选项被拆到两行；
+                 child_margin_y 与各行 margin 的纵向间距保持一致（均为 6） -->
             <VScrollBox name="settings_panel" vscrollbar="true" hscrollbar="false"
                         width="380" min_width="350" height="stretch" bkcolor="bg_container" padding="2,2,2,0">
                 <VBox width="stretch" height="auto">
-                    <!-- 视图与数据 -->
+                    <!-- 视图与数据：视图类型、多选、列宽比例 -->
                     <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
                                padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_VIEW_GROUP">
-                        <!-- 布局约定：把"标签 + 其选项"封装为一个不换行的 HBox 逻辑单元，
-                             换行只发生在逻辑单元之间，避免标签与其选项被拆到两行；
-                             child_margin_y 与各行 margin 的纵向间距保持一致（均为 6） -->
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
                             <HBox width="auto" height="auto" margin="0,0,16,0">
                                 <Label text_id="STRID_LISTCTRL_TABLE_TYPE" height="20" valign="center" margin="0,0,10,0"/>
@@ -49,12 +49,6 @@
                                 <Event type="select" receiver="list_ctrl" apply_attribute="multi_select={true}" />
                                 <Event type="unselect" receiver="list_ctrl" apply_attribute="multi_select={false}" />
                             </CheckBox>
-                        </HFlowBox>
-                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
-                            <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
-                            <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="0,0,16,0" valign="center"/>
-                            <!-- 演示：把倒数第2列设置为下拉候选编辑器（kEditCombo），单元格编辑时弹出候选列表 -->
-                            <CheckBox class="checkbox_1" name="checkbox_combo_editor" text_id="STRID_LISTCTRL_COMBO_EDITOR" margin="0,0,0,0" valign="center"/>
                         </HFlowBox>
                         <HBox width="stretch" height="auto" child_valign="center">
                             <Button class="btn_primary_global" name="set_column_stretch" text_id="STRID_LISTCTRL_SET_COLUMN_WIDTH_BY_RATIO"
@@ -205,7 +199,7 @@
                         </HBox>
                     </GroupVBox>
 
-                    <!-- 选择与编辑 -->
+                    <!-- 选择模式与选择操作：选择模式切换 + 行/单元格选择的 API 测试与回调输出 -->
                     <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
                                padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_SELECTION_GROUP">
                         <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,6">
@@ -217,16 +211,6 @@
                                 <Event type="select" receiver="list_ctrl" apply_attribute="selection_mode='cell'" />
                             </Option>
                         </HBox>
-                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
-                            <Button class="btn_global" name="copy_selection_btn" text_id="STRID_LISTCTRL_COPY_SELECTION" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
-                            <Button class="btn_global" name="export_csv_btn" text_id="STRID_LISTCTRL_EXPORT_CSV" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
-                            <Button class="btn_global" name="enter_cell_edit_btn" text_id="STRID_LISTCTRL_ENTER_CELL_EDIT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,0,0"/>
-                        </HFlowBox>
-                    </GroupVBox>
-
-                    <!-- 单元格选择与勾选 -->
-                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
-                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_CELL_SELECTION_GROUP">
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
                             <Button class="btn_global" name="cell_set_current_btn" text_id="STRID_LISTCTRL_CELL_SET_CURRENT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                             <Button class="btn_global" name="cell_query_current_btn" text_id="STRID_LISTCTRL_CELL_QUERY_CURRENT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
@@ -241,6 +225,13 @@
                             <Button class="btn_global" name="cell_set_selected_cells_btn" text_id="STRID_LISTCTRL_CELL_SET_SELECTED_CELLS" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                             <Button class="btn_global" name="cell_query_state_btn" text_id="STRID_LISTCTRL_CELL_QUERY_STATE" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                         </HFlowBox>
+                        <Label name="cell_selection_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
+                        <Label name="row_selection_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
+                    </GroupVBox>
+
+                    <!-- 勾选操作：行/单元格的勾选 API 测试 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_CELL_SELECTION_GROUP">
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
                             <Button class="btn_global" name="check_first5_btn" text_id="STRID_LISTCTRL_CHECK_FIRST5" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                             <Button class="btn_global" name="check_query_btn" text_id="STRID_LISTCTRL_CHECK_QUERY" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
@@ -248,15 +239,17 @@
                         <HBox width="stretch" height="auto" child_valign="center" margin="0,0,0,4">
                             <CheckBox class="checkbox_1" name="checkbox_auto_check_select" text_id="STRID_LISTCTRL_AUTO_CHECK_SELECT" margin="0,0,0,0" valign="center"/>
                         </HBox>
-                        <Label name="cell_selection_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
-                        <Label name="row_selection_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
                     </GroupVBox>
 
-                    <!-- 复制与导出 -->
+                    <!-- 复制与导出：复制选中内容、导出 CSV（含复制/导出开关） -->
                     <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
                                padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_CHECK_COPY_GROUP">
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <Button class="btn_global" name="copy_selection_btn" text_id="STRID_LISTCTRL_COPY_SELECTION" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                             <Button class="btn_global" name="copy_csv_btn" text_id="STRID_LISTCTRL_COPY_AS_CSV" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <Button class="btn_global" name="export_csv_btn" text_id="STRID_LISTCTRL_EXPORT_CSV" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                             <Button class="btn_global" name="export_all_csv_btn" text_id="STRID_LISTCTRL_EXPORT_ALL_CSV" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                         </HFlowBox>
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,4">
@@ -266,7 +259,31 @@
                         <Label name="copy_export_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
                     </GroupVBox>
 
-                    <!-- 进度条与编辑器 -->
+                    <!-- 单元格编辑：可编辑开关、编辑器类型、进入编辑 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_CELL_EDIT_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <!-- 所有列是否可编辑：勾选时把所有行、所有列的数据均设置为可编辑；不勾选时全部不可编辑（默认状态） -->
+                            <CheckBox class="checkbox_1" name="checkbox_all_columns_editable" text_id="STRID_LISTCTRL_ALL_COLUMNS_EDITABLE" margin="0,0,16,0" valign="center"/>
+                            <!-- 演示：把倒数第2列设置为下拉候选编辑器（kEditCombo），单元格编辑时弹出候选列表 -->
+                            <CheckBox class="checkbox_1" name="checkbox_combo_editor" text_id="STRID_LISTCTRL_COMBO_EDITOR" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                            <HBox width="auto" height="auto">
+                                <Label text_id="STRID_LISTCTRL_EDITOR_TYPE" height="20" valign="center" margin="0,0,10,0"/>
+                                <Option class="option_2" name="editor_type_text" group="editor_type" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_TEXT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                                <Option class="option_2" name="editor_type_number" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_NUMBER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                                <Option class="option_2" name="editor_type_date" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_DATE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
+                                <Option class="option_2" name="editor_type_combo" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_COMBO" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
+                            </HBox>
+                        </HFlowBox>
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
+                            <Button class="btn_global" name="enter_cell_edit_btn" text_id="STRID_LISTCTRL_ENTER_CELL_EDIT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
+                        </HFlowBox>
+                        <Label name="edit_state_label" width="stretch" height="auto" margin="0,2,0,0" text="" multi_line="true"/>
+                    </GroupVBox>
+
+                    <!-- 进度条：进度文字位置、进度颜色、设置单格进度 -->
                     <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
                                padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_PROGRESS_EDITOR_GROUP">
                         <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
@@ -278,7 +295,7 @@
                                 <Option class="option_2" name="progress_pos_outside" group="progress_pos" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_POS_OUTSIDE" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
                             </HBox>
                         </HFlowBox>
-                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6" margin="0,0,0,6">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
                             <HBox width="auto" height="auto" margin="0,0,16,0">
                                 <Label text_id="STRID_LISTCTRL_PROGRESS_COLOR" height="20" valign="center" margin="0,0,10,0"/>
                                 <Option class="option_2" name="progress_color_default" group="progress_color" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_COLOR_DEFAULT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
@@ -286,15 +303,6 @@
                                 <Option class="option_2" name="progress_color_red" group="progress_color" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_COLOR_RED" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
                             </HBox>
                             <Button class="btn_global" name="cell_progress_btn" text_id="STRID_LISTCTRL_SET_CELL_PROGRESS" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,0,0"/>
-                        </HFlowBox>
-                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
-                            <HBox width="auto" height="auto">
-                                <Label text_id="STRID_LISTCTRL_EDITOR_TYPE" height="20" valign="center" margin="0,0,10,0"/>
-                                <Option class="option_2" name="editor_type_text" group="editor_type" selected="true" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_TEXT" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                                <Option class="option_2" name="editor_type_number" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_NUMBER" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                                <Option class="option_2" name="editor_type_date" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_DATE" padding="2,2,2,2" border_round="2,2" margin="0,0,4,0" valign="center"/>
-                                <Option class="option_2" name="editor_type_combo" group="editor_type" selected="false" width="auto" height="32" text_id="STRID_LISTCTRL_EDITOR_COMBO" padding="2,2,2,2" border_round="2,2" margin="0,0,0,0" valign="center"/>
-                            </HBox>
                         </HFlowBox>
                     </GroupVBox>
 
@@ -305,7 +313,6 @@
                             <Button class="btn_global" name="custom_sort_btn" text_id="STRID_LISTCTRL_CUSTOM_SORT" width="auto" height="28" border_round="3,3" padding="10,0,10,0" margin="0,0,8,0"/>
                         </HFlowBox>
                         <Label name="column_event_label" width="stretch" height="auto" margin="0,2,0,2" text="" multi_line="true"/>
-                        <Label name="edit_state_label" width="stretch" height="auto" margin="0,0,0,0" text="" multi_line="true"/>
                     </GroupVBox>
 
                     <!-- Loading 测试 -->
