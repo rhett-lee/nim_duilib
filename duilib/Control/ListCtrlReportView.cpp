@@ -315,6 +315,22 @@ void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
     }
 }
 
+void ListCtrlReportView::InvalidateRowElementIndexes()
+{
+    //第0个子项是表头控件，从第1个开始（数据行控件）
+    const size_t nItemCount = GetItemCount();
+    for (size_t nItemIndex = 1; nItemIndex < nItemCount; ++nItemIndex) {
+        Control* pControl = GetItemAt(nItemIndex);
+        if (pControl == nullptr) {
+            continue;
+        }
+        IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+        if (pListBoxItem != nullptr) {
+            pListBoxItem->SetElementIndex(Box::InvalidIndex);
+        }
+    }
+}
+
 void ListCtrlReportView::Refresh(bool bSync)
 {
     if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
@@ -329,6 +345,10 @@ void ListCtrlReportView::Refresh(bool bSync)
     }
     //调整UI控件的个数，以满足显示使用
     AjustItemCount();
+
+    //结构性刷新（排序/增删行/行高/置顶行/隐藏行等）后，数据元素与UI控件的绑定关系可能已经失效，
+    //清除所有行的元素索引绑定，使下面重新布局时按需重新填充数据（绑定关系未失效的行不再重复填充）
+    InvalidateRowElementIndexes();
 
     //刷新UI控件的显示内容
     if (GetElementCount() > 0) {
@@ -827,6 +847,14 @@ void ListCtrlReportView::MoveTopItemsToLast(std::vector<Control*>& items, std::v
         atTopItems.push_back(pHeader);
     }    
     ASSERT(items.size() == m_items.size());
+}
+
+void ListCtrlReportView::OnThemeChanged(bool bRedraw)
+{
+    //主题变化后，单元格的文本样式/颜色需要重新从主题类解析，
+    //清除所有行的元素索引绑定，使下次布局时重新填充单元格数据，避免沿用旧主题的样式
+    InvalidateRowElementIndexes();
+    BaseClass::OnThemeChanged(bRedraw);
 }
 
 void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
@@ -1501,7 +1529,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         }
         elementDataList.push_back(data);
     }
-    
+
     ASSERT(!elementDataList.empty());
     if (elementDataList.empty()) {
         return false;
@@ -2592,15 +2620,19 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            // 填充数据
-            //TODO: 优化代码，避免每次刷新都Fill
-            pDataView->FillElementData(pControl, nElementIndex);
-            diplayItemIndexList.push_back(nElementIndex);
+            //按需填充数据：如果该控件已经绑定了同一个数据元素，则不需要重新填充数据
+            //（避免在滚动/骨架屏、主题刷新、重复布局等场景下，对未变化的行做"整表重填"）
+            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+            const bool bNeedFillData = (pListBoxItem == nullptr) || (pListBoxItem->GetElementIndex() != nElementIndex);
+            if (bNeedFillData) {
+                pDataView->FillElementData(pControl, nElementIndex);
 
-            refreshData.nItemIndex = index;
-            refreshData.pControl = pControl;
-            refreshData.nElementIndex = nElementIndex;
-            refreshDataList.push_back(refreshData);
+                refreshData.nItemIndex = index;
+                refreshData.pControl = pControl;
+                refreshData.nElementIndex = nElementIndex;
+                refreshDataList.push_back(refreshData);
+            }
+            diplayItemIndexList.push_back(nElementIndex);
 
             ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
             if (pListCtrlItem != nullptr) {
@@ -2726,13 +2758,19 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
             if (!pControl->IsVisible()) {
                 pControl->SetVisible(true);
             }
-            pDataView->FillElementData(pControl, nElementIndex);
-            diplayItemIndexList.push_back(nElementIndex);
+            //按需填充数据：如果该控件已经绑定了同一个数据元素，则不需要重新填充数据
+            //（避免在重复布局、主题刷新等场景下，对未变化的行做"整表重填"）
+            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
+            const bool bNeedFillData = (pListBoxItem == nullptr) || (pListBoxItem->GetElementIndex() != nElementIndex);
+            if (bNeedFillData) {
+                pDataView->FillElementData(pControl, nElementIndex);
 
-            refreshData.nItemIndex = index;
-            refreshData.pControl = pControl;
-            refreshData.nElementIndex = nElementIndex;
-            refreshDataList.push_back(refreshData);
+                refreshData.nItemIndex = index;
+                refreshData.pControl = pControl;
+                refreshData.nElementIndex = nElementIndex;
+                refreshDataList.push_back(refreshData);
+            }
+            diplayItemIndexList.push_back(nElementIndex);
         }
         else {
             if (pControl->IsVisible()) {

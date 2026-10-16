@@ -211,6 +211,12 @@ public:
     bool RefreshSubItemData(size_t nElementIndex, size_t nColumnId);
 
 protected:
+    /** 主题发生变化时的处理
+    *  主题变化后，单元格的文本样式/颜色需要重新从主题类解析，所以清除所有行的元素索引绑定，
+    *  使下次布局时重新填充单元格数据（避免复用控件时沿用旧主题的样式）
+    */
+    virtual void OnThemeChanged(bool bRedraw) override;
+
     /** 绘制子控件
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
@@ -340,6 +346,13 @@ protected:
     bool IsChildInFrozenColumn(const PlaceHolder* pChild) const;
 
 private:
+    /** 清除所有数据行的元素索引绑定
+    *  清空后，下次布局时这些行控件需要重新填充数据（按需填充：绑定关系未失效的行不重复填充）。
+    *  用于"数据元素与UI控件的绑定关系失效"的场景：结构性刷新（排序/增删行/行高/置顶行/隐藏行等）、
+    *  主题变化等，避免复用控件时显示陈旧的数据或样式
+    */
+    void InvalidateRowElementIndexes();
+
     /** 给单元格添加CheckBox，并挂载勾选/取消勾选事件
     * @param [in] pSubItem 单元格控件
     * @param [in] nColumnId 列ID
