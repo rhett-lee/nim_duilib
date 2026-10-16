@@ -85,6 +85,45 @@ private:
     */
     void TestColumnVisibleApi(ui::ListCtrl* pListCtrl);
 
+    /** 初始化"单元格选择与勾选"面板：单元格选择 API、勾选 API、自动勾选、单元格选择事件
+    */
+    void InitCellSelectionTests(ui::ListCtrl* pListCtrl);
+
+    /** 初始化"复制与导出"面板：复制为CSV、整表导出CSV、复制/导出开关
+    */
+    void InitCheckCopyTests(ui::ListCtrl* pListCtrl);
+
+    //临时调试代码：定位"复制为CSV"失败的原因（验证后必须删除）
+    void DebugCheckCopy(ui::ListCtrl* pListCtrl);
+
+    /** 初始化"进度条与编辑器"面板：进度条外观、单格进度、逐列编辑器类型切换
+    */
+    void InitProgressEditorTests(ui::ListCtrl* pListCtrl);
+
+    /** 初始化"事件与状态显示"面板：列布局事件、自定义排序、编辑状态事件
+    */
+    void InitEventStateTests(ui::ListCtrl* pListCtrl);
+
+    /** 更新"最近列事件"显示文本
+    */
+    void UpdateColumnEventLabel(const DString& strEvent);
+
+    /** 更新"当前格 / 选中区域"显示文本
+    */
+    void UpdateCellStateLabel(ui::ListCtrl* pListCtrl);
+
+    /** 更新"选中行"显示文本（行选择模式）
+    */
+    void UpdateRowSelectionLabel(ui::ListCtrl* pListCtrl);
+
+    /** 把进度条外观（文字位置 + 前景色/背景色）应用到单个单元格
+    */
+    void ApplyProgressAppearanceToSubItem(ui::ListCtrlSubItem* pSubItem);
+
+    /** 把进度条外观应用到"进度列"的所有可见单元格
+    */
+    void ApplyProgressAppearance(ui::ListCtrl* pListCtrl);
+
     /** 初始化"压力测试"面板（Phase 0 性能基线）：绑定各按钮事件
     */
     void InitStressTest(ui::ListCtrl* pListCtrl);
@@ -171,6 +210,18 @@ private:
     /** "Combo列编辑器"勾选框的状态：数据被重新载入后，按该状态重新应用列编辑器类型
     */
     bool m_bComboEditor;
+
+    /** 进度条文字位置（"center"/"left"/"right"/"outside"）
+    */
+    DString m_progressTextPos;
+
+    /** 进度条前景色（语义色名或 #AARRGGBB；空表示不覆盖默认值）
+    */
+    DString m_progressColor;
+
+    /** 进度条背景色（语义色名或 #AARRGGBB；空表示不覆盖默认值）
+    */
+    DString m_progressBkColor;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

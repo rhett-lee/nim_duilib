@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <chrono>
+#include <fstream>
 
 #include "duilib/Utils/FilePath.h"
 
@@ -16,7 +17,10 @@ MainForm::MainForm():
     m_imageId(0),
     m_bStressDataLoaded(false),
     m_bAllColumnsEditable(false),
-    m_bComboEditor(false)
+    m_bComboEditor(false),
+    m_progressTextPos(_T("center")),
+    m_progressColor(),
+    m_progressBkColor()
 {
 }
 
@@ -80,6 +84,18 @@ void MainForm::OnInitWindow()
     //演示ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）
     TestColumnVisibleApi(pListCtrl);
 
+    //事件与状态显示：列布局事件、自定义排序、编辑状态事件
+    InitEventStateTests(pListCtrl);
+
+    //单元格选择与勾选：单元格选择 API、勾选 API、自动勾选、单元格选择事件
+    InitCellSelectionTests(pListCtrl);
+
+    //复制与导出：复制为CSV、整表导出CSV、复制/导出开关
+    InitCheckCopyTests(pListCtrl);
+
+    //进度条与编辑器：进度条外观、单格进度、逐列编辑器类型切换
+    InitProgressEditorTests(pListCtrl);
+
     //初始化"压力测试"面板（Phase 0 性能基线）
     InitStressTest(pListCtrl);
 
@@ -110,7 +126,72 @@ void MainForm::OnInitWindow()
     //    }        
     //    return true;
     //    });
+
+    //临时调试代码（验证后必须删除）
+    DebugCheckCopy(pListCtrl);
 }
+
+//==== 临时调试代码：定位"复制为CSV"失败的原因（验证后必须删除） ====
+void MainForm::DebugCheckCopy(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    std::ofstream log("c:/develop/nim_duilib/bin/lc_debug.txt");
+    std::vector<size_t> colIds;
+    for (size_t i = 0; i < pListCtrl->GetColumnCount(); ++i) {
+        colIds.push_back(pListCtrl->GetColumnId(i));
+    }
+    log << "dataCount=" << pListCtrl->GetDataItemCount()
+        << " columnCount=" << pListCtrl->GetColumnCount()
+        << " mode=" << (int32_t)pListCtrl->GetSelectionMode()
+        << " flag_multi=" << (pListCtrl->IsMultiSelect() ? 1 : 0)
+        << " flag_copy=" << (pListCtrl->IsEnableCopy() ? 1 : 0)
+        << " flag_csv=" << (pListCtrl->IsEnableCsvExport() ? 1 : 0) << "\n";
+    log << "colIds=";
+    for (size_t id : colIds) {
+        log << id << ",";
+    }
+    log << "\n";
+
+    //kRow 模式
+    pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kRow);
+    pListCtrl->SetSelectedDataItems(std::vector<size_t>{ 0, 1, 2 }, true);
+    std::vector<size_t> rows;
+    pListCtrl->GetSelectedDataItems(rows);
+    log << "[kRow] selectedRows=" << rows.size() << " -> ";
+    for (size_t r : rows) {
+        log << r << ",";
+    }
+    log << "\n";
+    log << "[kRow] copy(tsv)=" << (pListCtrl->CopySelectionToClipboard(false) ? 1 : 0)
+        << " copy(csv)=" << (pListCtrl->CopySelectionToClipboard(true) ? 1 : 0) << "\n";
+    {
+        ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
+        csvPath /= ui::FilePath(_T("lc_dbg_all.csv"));
+        log << "[all] exportCsv=" << (pListCtrl->ExportToCsvFile(csvPath.ToString(), false) ? 1 : 0) << "\n";
+    }
+
+    //kCell 模式（模拟"选择第2~4行、第0~2列"）
+    pListCtrl->SetSelectionMode(ui::ListCtrlSelectionMode::kCell);
+    if (colIds.size() >= 3) {
+        ui::ListCtrlCellId a;
+        ui::ListCtrlCellId b;
+        a.nRowIndex = 2; a.nColumnId = colIds[0];
+        b.nRowIndex = 4; b.nColumnId = colIds[2];
+        const bool bSet = pListCtrl->SetCellSelection(a, b, false);
+        std::vector<ui::ListCtrlCellId> cells;
+        const size_t nCells = pListCtrl->GetSelectedCells(cells);
+        log << "[kCell] setRet=" << (bSet ? 1 : 0) << " selectedCells=" << nCells
+            << " (2,c0)=" << (pListCtrl->IsCellSelected(2, colIds[0]) ? 1 : 0)
+            << " (2,c1)=" << (pListCtrl->IsCellSelected(2, colIds[1]) ? 1 : 0)
+            << " (3,c1)=" << (pListCtrl->IsCellSelected(3, colIds[1]) ? 1 : 0) << "\n";
+        log << "[kCell] copy(tsv)=" << (pListCtrl->CopySelectionToClipboard(false) ? 1 : 0)
+            << " copy(csv)=" << (pListCtrl->CopySelectionToClipboard(true) ? 1 : 0) << "\n";
+    }
+    log.flush();
+}
+//==== 临时调试代码结束 ====
 
 bool MainForm::OnLanguageChanged()
 {
@@ -1883,6 +1964,549 @@ void MainForm::TestColumnVisibleApi(ui::ListCtrl* pListCtrl)
     //判断第2列当前是否显示：pListCtrl->IsColumnVisible(nColumnIndex)
 }
 
+namespace
+{
+/** 自定义排序函数：先按文本长度升序，长度相同时按文本字典序升序
+*/
+bool CustomCompareByTextLength(const ui::ListCtrlSubItemData2& a,
+                               const ui::ListCtrlSubItemData2& b,
+                               const ui::ListCtrlCompareParam& /*param*/)
+{
+    const size_t nLenA = ui::StringUtil::StringLen(a.text.c_str());
+    const size_t nLenB = ui::StringUtil::StringLen(b.text.c_str());
+    if (nLenA != nLenB) {
+        return nLenA < nLenB;
+    }
+    return ui::StringUtil::StringCompare(a.text.c_str(), b.text.c_str()) < 0;
+}
+} // namespace
+
+void MainForm::InitEventStateTests(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+
+    //第1项：列布局事件（列宽变化 / 列顺序变化 / 列排序变化），在"最近列事件"标签中显示
+    pListCtrl->AttachColumnWidthChanged([this, pListCtrl](const ui::EventArgs& args) {
+        const size_t nColumnIndex = pListCtrl->GetColumnIndex((size_t)args.wParam);
+        const size_t nRelatedIndex = pListCtrl->GetColumnIndex((size_t)args.lParam);
+        const DString strRelated = (nRelatedIndex == ui::Box::InvalidIndex) ?
+            DString(_T("none")) : ui::StringUtil::Printf(_T("%zu"), nRelatedIndex);
+        UpdateColumnEventLabel(ui::StringUtil::Printf(_T("kEventColumnWidthChanged: columnIndex=%zu, relatedColumnIndex=%s"),
+            nColumnIndex, strRelated.c_str()));
+        return true;
+        });
+    pListCtrl->AttachColumnOrderChanged([this](const ui::EventArgs& /*args*/) {
+        UpdateColumnEventLabel(_T("kEventColumnOrderChanged"));
+        return true;
+        });
+    pListCtrl->AttachColumnSorted([this, pListCtrl](const ui::EventArgs& args) {
+        UpdateColumnEventLabel(ui::StringUtil::Printf(_T("kEventColumnSorted: columnIndex=%zu, order=%s"),
+            pListCtrl->GetColumnIndex((size_t)args.wParam), (args.lParam == 0) ? _T("Desc") : _T("Asc")));
+        return true;
+        });
+
+    //第12项：编辑状态事件（进入编辑 / 结束编辑）
+    pListCtrl->AttachEnterEdit([this, pListCtrl](const ui::EventArgs& args) {
+        ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("edit_state_label")));
+        if (pLabel == nullptr) {
+            return true;
+        }
+        ui::ListCtrlEditParam* pEditParam = (ui::ListCtrlEditParam*)args.wParam;
+        if (pEditParam != nullptr) {
+            pLabel->SetText(ui::StringUtil::Printf(_T("kEventEnterEdit: row=%zu, columnIndex=%zu"),
+                pEditParam->nItemIndex, pListCtrl->GetColumnIndex(pEditParam->nColumnId)));
+        }
+        else {
+            pLabel->SetText(_T("kEventEnterEdit"));
+        }
+        return true;
+        });
+    pListCtrl->AttachLeaveEdit([this](const ui::EventArgs& /*args*/) {
+        ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("edit_state_label")));
+        if (pLabel != nullptr) {
+            pLabel->SetText(_T("kEventLeaveEdit"));
+        }
+        return true;
+        });
+
+    //第10项：自定义排序（SetSortCompareFunction 替换默认比较函数）
+    ui::Button* pCustomSortBtn = dynamic_cast<ui::Button*>(FindControl(_T("custom_sort_btn")));
+    if (pCustomSortBtn != nullptr) {
+        pCustomSortBtn->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetSortCompareFunction(CustomCompareByTextLength, nullptr);
+            const bool bRet = pListCtrl->SortDataItems(0, true);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetSortCompareFunction(CustomCompareByTextLength) done\nSortDataItems(0, true) -> %s"),
+                    bRet ? _T("true") : _T("false")),
+                _T("Custom Sort"));
+            return true;
+            });
+    }
+}
+
+void MainForm::UpdateColumnEventLabel(const DString& strEvent)
+{
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("column_event_label")));
+    if (pLabel != nullptr) {
+        pLabel->SetText(strEvent);
+    }
+}
+
+void MainForm::UpdateCellStateLabel(ui::ListCtrl* pListCtrl)
+{
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("cell_selection_label")));
+    if (pLabel == nullptr) {
+        return;
+    }
+    if (pListCtrl == nullptr) {
+        pLabel->SetText(_T(""));
+        return;
+    }
+    DString text;
+    const ui::ListCtrlCellId curCell = pListCtrl->GetCurrentCell();
+    if (curCell.IsValid()) {
+        text = ui::StringUtil::Printf(_T("CurrentCell: row=%zu, columnIndex=%zu; "),
+            curCell.nRowIndex, pListCtrl->GetColumnIndex(curCell.nColumnId));
+    }
+    else {
+        text = _T("CurrentCell: none; ");
+    }
+    std::vector<ui::ListCtrlCellId> cellList;
+    const size_t nSelectedCount = pListCtrl->GetSelectedCells(cellList);
+    text += ui::StringUtil::Printf(_T("SelectedCells=%zu"), nSelectedCount);
+    pLabel->SetText(text);
+}
+
+void MainForm::UpdateRowSelectionLabel(ui::ListCtrl* pListCtrl)
+{
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("row_selection_label")));
+    if (pLabel == nullptr) {
+        return;
+    }
+    if (pListCtrl == nullptr) {
+        pLabel->SetText(_T(""));
+        return;
+    }
+    std::vector<size_t> rowList;
+    pListCtrl->GetSelectedDataItems(rowList);
+    DString strRows;
+    for (size_t i = 0; (i < rowList.size()) && (i < 10); ++i) {
+        strRows += ui::StringUtil::Printf(_T("%zu "), rowList[i]);
+    }
+    pLabel->SetText(ui::StringUtil::Printf(_T("SelectedRows=%zu: %s"), rowList.size(), strRows.c_str()));
+}
+
+void MainForm::ApplyProgressAppearanceToSubItem(ui::ListCtrlSubItem* pSubItem)
+{
+    if (pSubItem == nullptr) {
+        return;
+    }
+    //进度条文字位置
+    pSubItem->SetProgressTextPos(m_progressTextPos);
+    //进度条前景色（为空表示不覆盖默认值）
+    if (!m_progressColor.empty()) {
+        pSubItem->SetAttribute(_T("progress_color"), m_progressColor);
+    }
+    //进度条背景色（为空表示不覆盖默认值）
+    if (!m_progressBkColor.empty()) {
+        pSubItem->SetAttribute(_T("progress_bkcolor"), m_progressBkColor);
+    }
+}
+
+void MainForm::ApplyProgressAppearance(ui::ListCtrl* pListCtrl)
+{
+    if ((pListCtrl == nullptr) || (pListCtrl->GetListCtrlType() != ui::ListCtrlType::Report)) {
+        return;
+    }
+    //进度列：第2列（列索引1）
+    const size_t nProgressColumnIndex = 1;
+    ui::ListCtrlItem* pItem = pListCtrl->GetFirstDisplayItem();
+    while (pItem != nullptr) {
+        ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(nProgressColumnIndex);
+        ApplyProgressAppearanceToSubItem(pSubItem);
+        pItem = pListCtrl->GetNextDisplayItem(pItem);
+    }
+}
+
+void MainForm::InitCellSelectionTests(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+
+    //第3项：单元格选择事件（当前格变化 / 选中区域变化），刷新状态标签
+    pListCtrl->AttachCurrentCellChanged([this, pListCtrl](const ui::EventArgs& /*args*/) {
+        UpdateCellStateLabel(pListCtrl);
+        return true;
+        });
+    pListCtrl->AttachCellSelectionChanged([this, pListCtrl](const ui::EventArgs& /*args*/) {
+        UpdateCellStateLabel(pListCtrl);
+        //切换选择模式时会派发该事件（并清除另一模式的选择），在此同步刷新行选择状态显示
+        UpdateRowSelectionLabel(pListCtrl);
+        return true;
+        });
+    UpdateCellStateLabel(pListCtrl);
+
+    //单元格定位辅助（行用显示索引，列用列ID）
+    auto makeCell = [pListCtrl](size_t nRowIndex, size_t nColumnIndex) {
+        ui::ListCtrlCellId cell;
+        cell.nRowIndex = nRowIndex;
+        cell.nColumnId = pListCtrl->GetColumnId(nColumnIndex);
+        return cell;
+        };
+    //非单元格选择模式的提示后缀
+    auto modeTip = [pListCtrl]() -> DString {
+        return (pListCtrl->GetSelectionMode() == ui::ListCtrlSelectionMode::kCell) ?
+            DString() : DString(_T(" (need kCell mode)"));
+        };
+
+    //第2项：单元格选择 API
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_set_current_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, makeCell, modeTip](const ui::EventArgs&) {
+            const ui::ListCtrlCellId cell = makeCell(2, 0);
+            const bool bRet = pListCtrl->SetCurrentCell(cell.nRowIndex, cell.nColumnId);
+            UpdateCellStateLabel(pListCtrl);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetCurrentCell(row=%zu, columnIndex=%zu) -> %s%s"),
+                    cell.nRowIndex, pListCtrl->GetColumnIndex(cell.nColumnId), bRet ? _T("true") : _T("false"), modeTip().c_str()),
+                _T("SetCurrentCell"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_query_current_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            const ui::ListCtrlCellId cell = pListCtrl->GetCurrentCell();
+            ui::SystemUtil::ShowMessageBox(this,
+                cell.IsValid() ? ui::StringUtil::Printf(_T("GetCurrentCell -> row=%zu, columnIndex=%zu"),
+                    cell.nRowIndex, pListCtrl->GetColumnIndex(cell.nColumnId)) :
+                                 DString(_T("GetCurrentCell -> none")),
+                _T("GetCurrentCell"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_clear_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            pListCtrl->ClearCellSelection();
+            UpdateCellStateLabel(pListCtrl);
+            ui::SystemUtil::ShowMessageBox(this, _T("ClearCellSelection done"), _T("ClearCellSelection"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_set_selection_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, makeCell, modeTip](const ui::EventArgs&) {
+            const bool bRet = pListCtrl->SetCellSelection(makeCell(2, 0), makeCell(4, 2), false);
+            UpdateCellStateLabel(pListCtrl);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetCellSelection(rows 2-4, columns 0-2, additive=false) -> %s%s"),
+                    bRet ? _T("true") : _T("false"), modeTip().c_str()),
+                _T("SetCellSelection"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_add_selection_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, makeCell, modeTip](const ui::EventArgs&) {
+            const bool bRet = pListCtrl->SetCellSelection(makeCell(6, 1), makeCell(7, 1), true);
+            UpdateCellStateLabel(pListCtrl);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetCellSelection(rows 6-7, column 1, additive=true) -> %s%s"),
+                    bRet ? _T("true") : _T("false"), modeTip().c_str()),
+                _T("SetCellSelection(add)"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_query_selection_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            ui::ListCtrlCellId anchorCell, focusCell;
+            pListCtrl->GetCellSelection(anchorCell, focusCell);
+            std::vector<ui::ListCtrlCellId> cellList;
+            const size_t nCount = pListCtrl->GetSelectedCells(cellList);
+            const size_t nAnchorIndex = pListCtrl->GetColumnIndex(anchorCell.nColumnId);
+            const size_t nFocusIndex = pListCtrl->GetColumnIndex(focusCell.nColumnId);
+            const DString strAnchorIndex = (nAnchorIndex == ui::Box::InvalidIndex) ?
+                DString(_T("none")) : ui::StringUtil::Printf(_T("%zu"), nAnchorIndex);
+            const DString strFocusIndex = (nFocusIndex == ui::Box::InvalidIndex) ?
+                DString(_T("none")) : ui::StringUtil::Printf(_T("%zu"), nFocusIndex);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("GetCellSelection -> anchor(row=%zu, columnIndex=%s), focus(row=%zu, columnIndex=%s)\nGetSelectedCells count=%zu"),
+                    anchorCell.nRowIndex, strAnchorIndex.c_str(), focusCell.nRowIndex, strFocusIndex.c_str(), nCount),
+                _T("GetCellSelection"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_set_selected_cells_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, makeCell, modeTip](const ui::EventArgs&) {
+            std::vector<ui::ListCtrlCellId> cellList;
+            for (size_t nRow = 8; nRow <= 9; ++nRow) {
+                for (size_t nColumn = 0; nColumn <= 1; ++nColumn) {
+                    cellList.push_back(makeCell(nRow, nColumn));
+                }
+            }
+            pListCtrl->SetSelectedCells(cellList, true);
+            UpdateCellStateLabel(pListCtrl);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetSelectedCells(%zu cells, rows 8-9 columns 0-1, clearOthers=true)%s"),
+                    cellList.size(), modeTip().c_str()),
+                _T("SetSelectedCells"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_query_state_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, makeCell, modeTip](const ui::EventArgs&) {
+            const ui::ListCtrlCellId cell = makeCell(2, 0);
+            const bool bSelected = pListCtrl->IsCellSelected(cell.nRowIndex, cell.nColumnId);
+            const bool bCurrent = pListCtrl->IsCellCurrent(cell.nRowIndex, cell.nColumnId);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("Cell(row=%zu, columnIndex=%zu): IsCellSelected=%s, IsCellCurrent=%s%s"),
+                    cell.nRowIndex, pListCtrl->GetColumnIndex(cell.nColumnId), bSelected ? _T("true") : _T("false"), bCurrent ? _T("true") : _T("false"), modeTip().c_str()),
+                _T("Query cell state"));
+            return true;
+            });
+    }
+
+    //第5项：CheckBox 勾选 API
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("check_first5_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            std::vector<size_t> itemList = { 0, 1, 2, 3, 4 };
+            pListCtrl->SetCheckedDataItems(itemList, true);
+            //同时演示单元格级勾选：第1行第1列的单元格
+            const bool bSubRet = pListCtrl->SetSubItemCheck(0, 0, true);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetCheckedDataItems(rows 0-4, true) done\nSetSubItemCheck(row=0, columnIndex=0, true) -> %s"),
+                    bSubRet ? _T("true") : _T("false")),
+                _T("Check rows"));
+            return true;
+            });
+    }
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("check_query_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            std::vector<size_t> itemList;
+            pListCtrl->GetCheckedDataItems(itemList);
+            DString strIndices;
+            for (size_t i = 0; (i < itemList.size()) && (i < 10); ++i) {
+                strIndices += ui::StringUtil::Printf(_T("%zu "), itemList[i]);
+            }
+            const bool bItem0 = pListCtrl->IsDataItemCheck(0);
+            const bool bSub0 = pListCtrl->IsSubItemChecked(0, 0);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("GetCheckedDataItems count=%zu, rows: %s\nIsDataItemCheck(0)=%s, IsSubItemChecked(0,0)=%s"),
+                    itemList.size(), strIndices.c_str(), bItem0 ? _T("true") : _T("false"), bSub0 ? _T("true") : _T("false")),
+                _T("Read checked set"));
+            return true;
+            });
+    }
+
+    //第6项：auto_check_select 开关（勾选CheckBox即选中该行）
+    ui::CheckBox* pAutoCheck = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_auto_check_select")));
+    if (pAutoCheck != nullptr) {
+        pAutoCheck->Selected(pListCtrl->IsAutoCheckSelect(), false);
+        pAutoCheck->AttachSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetAutoCheckSelect(true);
+            return true;
+            });
+        pAutoCheck->AttachUnSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetAutoCheckSelect(false);
+            return true;
+            });
+    }
+}
+
+void MainForm::InitCheckCopyTests(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    auto setLabel = [this](const DString& text) {
+        ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("copy_export_label")));
+        if (pLabel != nullptr) {
+            pLabel->SetText(text);
+        }
+        };
+
+    //第7项：复制选中内容为CSV格式（CopySelectionToClipboard(true)）
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("copy_csv_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, setLabel](const ui::EventArgs&) {
+            const bool bRet = pListCtrl->CopySelectionToClipboard(true);
+            DString msg = bRet ? DString(_T("CopySelectionToClipboard(csv=true) -> OK, paste into Excel to verify"))
+                               : DString(_T("CopySelectionToClipboard(csv=true) -> FAILED (no selection, or enable_csv_export is false)"));
+            setLabel(msg);
+            ui::SystemUtil::ShowMessageBox(this, msg, _T("Copy as CSV"));
+            return true;
+            });
+    }
+    //第8项：整表导出CSV文件（ExportToCsvFile(path, false)）
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("export_all_csv_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl, setLabel](const ui::EventArgs&) {
+            ui::FilePath csvPath = ui::GlobalManager::GetResourceRootPath(false);
+            csvPath /= ui::FilePath(_T("list_ctrl_export_all.csv"));
+            const DString strFilePath = csvPath.ToString();
+            const bool bRet = pListCtrl->ExportToCsvFile(strFilePath, false);
+            DString msg;
+            if (bRet) {
+                msg = ui::StringUtil::Printf(_T("ExportToCsvFile(all rows) -> OK\nFile: %s"), strFilePath.c_str());
+            }
+            else {
+                msg = _T("ExportToCsvFile(all rows) -> FAILED (no data, or enable_csv_export is false)");
+            }
+            setLabel(msg);
+            ui::SystemUtil::ShowMessageBox(this, msg, _T("Export All CSV"));
+            return true;
+            });
+    }
+    //第9项：复制 / CSV 导出的开关（关闭后对应快捷键与接口不再生效）
+    ui::CheckBox* pEnableCopy = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_enable_copy")));
+    if (pEnableCopy != nullptr) {
+        pEnableCopy->Selected(pListCtrl->IsEnableCopy(), false);
+        pEnableCopy->AttachSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetEnableCopy(true);
+            return true;
+            });
+        pEnableCopy->AttachUnSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetEnableCopy(false);
+            return true;
+            });
+    }
+    ui::CheckBox* pEnableCsv = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_enable_csv_export")));
+    if (pEnableCsv != nullptr) {
+        pEnableCsv->Selected(pListCtrl->IsEnableCsvExport(), false);
+        pEnableCsv->AttachSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetEnableCsvExport(true);
+            return true;
+            });
+        pEnableCsv->AttachUnSelect([pListCtrl](const ui::EventArgs&) {
+            pListCtrl->SetEnableCsvExport(false);
+            return true;
+            });
+    }
+}
+
+void MainForm::InitProgressEditorTests(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+
+    //第4项：进度条外观（文字位置 + 前景色），应用到"进度列"
+    auto applyPos = [this, pListCtrl](const DString& strPos) {
+        m_progressTextPos = strPos;
+        ApplyProgressAppearance(pListCtrl);
+        };
+    auto applyColor = [this, pListCtrl](const DString& strColor) {
+        m_progressColor = strColor;
+        ApplyProgressAppearance(pListCtrl);
+        };
+
+    ui::Option* pOption = nullptr;
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_pos_center")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyPos](const ui::EventArgs&) { applyPos(_T("center")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_pos_left")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyPos](const ui::EventArgs&) { applyPos(_T("left")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_pos_right")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyPos](const ui::EventArgs&) { applyPos(_T("right")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_pos_outside")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyPos](const ui::EventArgs&) { applyPos(_T("outside")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_color_default")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyColor](const ui::EventArgs&) { applyColor(_T("bg_progress")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_color_green")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyColor](const ui::EventArgs&) { applyColor(_T("#FF00B42A")); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("progress_color_red")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyColor](const ui::EventArgs&) { applyColor(_T("#FFE81123")); return true; });
+    }
+
+    //单元格填充时，把进度条外观应用到"进度列"的单元格（应对滚动复用与单格刷新）
+    pListCtrl->AttachReportViewSubItemFilled([this](const ui::EventArgs& args) {
+        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+        if ((pSubItem != nullptr) && (pSubItem->GetDataColumnIndex() == 1)) {
+            ApplyProgressAppearanceToSubItem(pSubItem);
+        }
+        return true;
+        });
+
+    //第4项：直接修改第1行、进度列的进度值（SetSubItemProgressById）
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("cell_progress_btn")));
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, pListCtrl](const ui::EventArgs&) {
+            const size_t nRowIndex = 0;
+            const size_t nColumnId = pListCtrl->GetColumnId(1);
+            const int32_t nOldProgress = pListCtrl->GetSubItemProgressById(nRowIndex, nColumnId);
+            int32_t nNewProgress = nOldProgress + 25;
+            if (nNewProgress > 100) {
+                nNewProgress = 0;
+            }
+            const bool bRet = pListCtrl->SetSubItemProgressById(nRowIndex, nColumnId, nNewProgress);
+            ui::SystemUtil::ShowMessageBox(this,
+                ui::StringUtil::Printf(_T("SetSubItemProgressById(row=%zu, columnIndex=%zu, %d -> %d) -> %s"),
+                    nRowIndex, pListCtrl->GetColumnIndex(nColumnId), nOldProgress, nNewProgress, bRet ? _T("true") : _T("false")),
+                _T("Set cell progress"));
+            return true;
+            });
+    }
+
+    //第11项：逐列编辑器类型切换（SetColumnEditorTypeById）
+    auto applyEditorType = [this, pListCtrl](ui::ListCtrlEditorType editorType, bool bCombo) {
+        ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(_T("column_combo")));
+        if (pColumnCombo == nullptr) {
+            return;
+        }
+        size_t nColumnIndex = pColumnCombo->GetCurSel();
+        if (nColumnIndex >= pListCtrl->GetColumnCount()) {
+            nColumnIndex = 1;
+        }
+        const size_t nColumnId = pListCtrl->GetColumnId(nColumnIndex);
+        pListCtrl->SetColumnEditorTypeById(nColumnId, editorType);
+        if (bCombo) {
+            std::vector<DString> candidates = { _T("Alpha"), _T("Beta"), _T("Gamma"), _T("Delta") };
+            pListCtrl->SetColumnCandidatesById(nColumnId, candidates);
+        }
+        ui::SystemUtil::ShowMessageBox(this,
+            ui::StringUtil::Printf(_T("SetColumnEditorTypeById(columnIndex=%zu)%s done"),
+                nColumnIndex, bCombo ? _T(", SetColumnCandidatesById(4 items)") : _T("")),
+            _T("Set column editor type"));
+        };
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("editor_type_text")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyEditorType](const ui::EventArgs&) { applyEditorType(ui::ListCtrlEditorType::kEditText, false); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("editor_type_number")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyEditorType](const ui::EventArgs&) { applyEditorType(ui::ListCtrlEditorType::kEditNumber, false); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("editor_type_date")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyEditorType](const ui::EventArgs&) { applyEditorType(ui::ListCtrlEditorType::kEditDate, false); return true; });
+    }
+    pOption = dynamic_cast<ui::Option*>(FindControl(_T("editor_type_combo")));
+    if (pOption != nullptr) {
+        pOption->AttachSelect([applyEditorType](const ui::EventArgs&) { applyEditorType(ui::ListCtrlEditorType::kEditCombo, true); return true; });
+    }
+}
+
 void MainForm::RunListCtrlTest()
 {
     ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
@@ -2183,14 +2807,17 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         };
 
     //挂载事件，转接给外层
-    pListCtrl->AttachSelect([this, OnListCtrlEvent](const ui::EventArgs& args) {
+    pListCtrl->AttachSelect([this, OnListCtrlEvent, pListCtrl](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
+        UpdateRowSelectionLabel(pListCtrl);
         return true;
         });
-    pListCtrl->AttachSelChanged([this, OnListCtrlEvent](const ui::EventArgs& args) {
+    pListCtrl->AttachSelChanged([this, OnListCtrlEvent, pListCtrl](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
+        UpdateRowSelectionLabel(pListCtrl);
         return true;
         });
+    UpdateRowSelectionLabel(pListCtrl);
     pListCtrl->AttachDoubleClick([this, OnListCtrlEvent](const ui::EventArgs& args) {
         OnListCtrlEvent(args);
         return true;

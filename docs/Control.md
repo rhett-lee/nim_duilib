@@ -1926,6 +1926,8 @@ ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请
 | 按列编辑器类型 | `SetColumnEditorType` / `SetColumnEditorTypeById` / `GetColumnEditorType` / `GetColumnEditorTypeById` | 枚举 `ListCtrlEditorType { kEditText, kEditNumber, kEditDate, kEditCombo }`；列声明字段 `ListCtrlColumn::nEditorType`（默认 `kEditText`）；提交时按类型校验输入（空串视为清空单元格合法；数值列为十进制数值；日期列为 `yyyy-mm-dd` / `yyyy/mm/dd`，复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）；`kEditCombo` 为下拉候选编辑器（需配合 `SetColumnCandidates(ById)` 配置候选，kCell 模式与行选择模式均支持）；**不引入 XML 属性**（列由代码声明） |
 | 按列候选值（下拉编辑器） | `SetColumnCandidates` / `SetColumnCandidatesById` / `GetColumnCandidates` / `GetColumnCandidatesById` | 按列保存纯文本候选列表（`std::vector<DString>`，按列ID存储），供 `kEditCombo` 使用；传入空列表表示清空候选；`kEditCombo` 列未配置候选时按 `F2` / 单击不会进入编辑状态；候选浮层复用 `Flyout` + `VListBox`（主题类 `list_ctrl_combo_flyout` / `list_ctrl_combo_list` / `list_ctrl_combo_item`），鼠标点选或 `Enter` 提交、`↑`/`↓` 移动高亮、`Esc` 或点击外部取消不写回 |
 
+配套演示：`examples/ListCtrl` 左侧设置面板的「单元格选择与勾选」「复制与导出」「进度条与编辑器」「事件与状态显示」四个分组，逐项提供上述能力的手工测试入口——单元格选择 API 与单元格选择事件（含当前格 / 选中个数显示）、行选择事件（`Select` / `SelChanged`，含选中行个数与行索引显示）、CheckBox 勾选 API 与 `auto_check_select`、复制为 CSV、整表导出 CSV、复制 / CSV 导出开关、`progress_text_pos` / `progress_color` 运行时切换与单格进度修改、逐列编辑器类型切换（文本 / 数值 / 日期 / 下拉候选）、`SetSortCompareFunction` 自定义排序、编辑状态事件，以及列布局事件（"最近列事件"标签实时显示）。界面标签与弹窗中的列定位统一以**列索引（ColumnIndex）**显示（而非列ID），便于阅读。
+
 **列级比较模式（排序）：**
 
 排序的比较方式按列声明，鼠标点击表头排序时会自动采用该列声明的模式（由"列的语义"决定，而非按单元格当前状态推断）：

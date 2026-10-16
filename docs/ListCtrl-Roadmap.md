@@ -30,6 +30,8 @@
 
 配套演示：`examples/ListCtrl`（默认冻结首列、第 2 列为进度条、第 3 列为富文本；含单格刷新动态进度演示，界面可操作的列显隐测试项，以及"单元格换行"单行/多行切换测试项）。
 
+示例程序的手工测试面板已覆盖本节的列布局事件：`AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnSorted`（"事件与状态显示"分组中的"最近列事件"标签实时显示事件名与列索引 / 排序方向）；并新增「单元格选择与勾选」分组演示单元格选择 API（`SetCurrentCell` / `GetCurrentCell` / `SetCellSelection` / `ClearCellSelection` / `GetCellSelection` / `SetSelectedCells` / `GetSelectedCells` / `IsCellSelected` / `IsCellCurrent`）与单元格选择事件（`AttachCurrentCellChanged` / `AttachCellSelectionChanged`，并显示当前格与选中单元格个数）、行选择事件（`AttachSelect` / `AttachSelChanged`，并显示选中行个数与行索引）、CheckBox 勾选 API（`SetSubItemCheck` / `IsSubItemChecked` / `SetDataItemCheck` / `IsDataItemCheck` / `SetCheckedDataItems` / `GetCheckedDataItems`）与 `auto_check_select`（`SetAutoCheckSelect` / `IsAutoCheckSelect`）；「复制与导出」分组演示 `CopySelectionToClipboard(true)`（复制为 CSV）、`ExportToCsvFile(path, false)`（整表导出）与 `SetEnableCopy` / `SetEnableCsvExport` 开关；「进度条与编辑器」分组演示 `progress_text_pos` / `progress_color` 运行时切换（配合 `SetSubItemProgressById` 改单格进度）与 `SetColumnEditorTypeById` 逐列切换编辑器类型（文本 / 数值 / 日期 / 下拉候选）；「事件与状态显示」分组演示 `SetSortCompareFunction` 自定义排序与 `AttachEnterEdit` / `AttachLeaveEdit` 编辑状态。界面标签与弹窗中的列定位统一以列索引（ColumnIndex）显示（而非列ID）。
+
 #### 3. 单元格自动换行（Report 视图）
 
 | 能力 | 接口 | 说明 |
