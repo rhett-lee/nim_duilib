@@ -36,6 +36,10 @@ public:
     */
     bool HasStateColors() const;
 
+    /** 判断指定状态的颜色值是否相同
+    */
+    bool EqualsStateColor(ControlStateType stateType, const DString& color) const;
+
 public:
     /** 绘制指定状态的颜色
     */

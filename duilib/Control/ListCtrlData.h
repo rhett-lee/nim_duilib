@@ -824,6 +824,11 @@ private:
     */
     RowId m_nextRowId;
 
+    /** 填充元素时复用的缓冲区，避免每次填充行数据都重新分配临时容器
+        （仅在 FillElement 同步调用期间使用，不跨调用持有状态）
+    */
+    std::vector<ListCtrlSubItemData2Pair> m_subItemListBuffer;
+
     /** 外部设置的排序函数
     */
     ListCtrlDataCompareFunc m_pfnCompareFunc;

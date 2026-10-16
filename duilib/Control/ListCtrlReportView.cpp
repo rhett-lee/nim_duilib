@@ -1681,9 +1681,6 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
         if (!pStorage->textColor.IsEmpty()) {
             pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
         }
-        else {
-            pSubItem->SetStateTextColor(kControlStateNormal, pDefaultTextColors[kControlStateNormal]);
-        }
         if (!pStorage->bkColor.IsEmpty()) {
             pSubItem->SetBkColor(pStorage->bkColor);
         }

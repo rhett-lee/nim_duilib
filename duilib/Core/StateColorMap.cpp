@@ -2,6 +2,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Animation/AnimationManager.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui 
 {
@@ -41,6 +42,15 @@ bool StateColorMap::HasStateColor(ControlStateType stateType) const
     size_t nIndex = (size_t)stateType;
     if (nIndex < m_stateColors.size()) {
         return !m_stateColors[nIndex].empty();
+    }
+    return false;
+}
+
+bool StateColorMap::EqualsStateColor(ControlStateType stateType, const DString& color) const
+{
+    size_t nIndex = (size_t)stateType;
+    if (nIndex < m_stateColors.size()) {
+        return StringUtil::StringCompare(m_stateColors[nIndex].c_str(), color.c_str()) == 0;
     }
     return false;
 }

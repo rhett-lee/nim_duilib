@@ -50,8 +50,9 @@ bool ListCtrlData::FillElement(Control* pControl, size_t nElementIndex)
         return false;
     }
     const ListCtrlItemData& itemData = m_rowDataList[rowId];
-    std::vector<ListCtrlSubItemData2Pair> subItemList;
-    if (!GetSubItemStorageList(nElementIndex, subItemList)) {
+    //复用成员缓冲区，避免每次填充行数据都重新分配临时容器
+    std::vector<ListCtrlSubItemData2Pair>& subItemList = m_subItemListBuffer;
+    if (!GetSubItemStorageList(nElementIndex, subItemList)) {//内部会对subItemList做clear操作
         return false;
     }
 
