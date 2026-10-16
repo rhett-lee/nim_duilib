@@ -6,10 +6,12 @@
 >
 > **实施状态（当前）**：C0 / C1 / C1b / C1c / C2 / C3 已实施（详见各阶段标题标注）；**C4（单元格合并）、C5（行分组折叠 / 内嵌树）、C6（多级表头）、C7（行拖拽换序）经评审后决定「已取消（不实施）」**——这四项均需表头与行的布局模型整体升级、改动面过大，故不做。以下 §3 中 C4~C7 各阶段的标题已加【已取消（不实施）】标注，其"数据模型 / API / 事件"等属**历史设计记录**，不再作为实施依据；§4 依赖顺序、§5 风险、§6 已拍板事项中与之相关的条目亦已同步标注作废。
 >
-> **L4（自定义单元格渲染器）经评审后决定「已取消（不实施）」**：现有接口已具备"单元格渲染器"的基本能力——`ListCtrlSubItem` 本身即容器（`CheckBoxTemplate<HBox>`，可直接 `AddItem` 嵌入任意子控件），配合 `AttachReportViewSubItemFilled`（按格创建子控件，用 `GetItemCount()` 判重以适配虚表复用）+ `AttachSubItemMouseEnter` / `AttachSubItemMouseLeave`（悬停显隐）+ `SetFloat(true)` / `SetVisible(false)`（浮动子控件）即可实现"鼠标悬停单元格时显示一个删除按钮、移开时隐藏"。示例代码见 `examples/ListCtrl` 的 `MainForm::OnReportViewSubItemFilled` / `MainForm::OnReportViewSubItemMouseEnter` / `MainForm::OnReportViewSubItemMouseLeave`（该演示**默认关闭**）。§3 的「L4」小节作为**历史设计记录**保留，不再作为实施依据。
+> **L4（自定义单元格渲染器）经评审后决定「已取消（不实施）」**：现有接口已具备"单元格渲染器"的基本能力——`ListCtrlSubItem` 本身即容器（`CheckBoxTemplate<HBox>`，可直接 `AddItem` 嵌入任意子控件），配合 `AttachReportViewItemFilled`（按行创建子控件，用 `GetItemCount()` 判重以适配虚表复用）+ `AttachSubItemMouseEnter` / `AttachSubItemMouseLeave`（悬停显隐）+ `SetFloat(true)` / `SetVisible(false)`（浮动子控件）即可实现"鼠标悬停单元格时显示一个删除按钮、移开时隐藏"。示例代码见 `examples/ListCtrl` 的 `MainForm::OnReportViewSubItemMouseEnter` / `MainForm::OnReportViewSubItemMouseLeave`（该演示**默认关闭**）。§3 的「L4」小节作为**历史设计记录**保留，不再作为实施依据。
+>
+> **事件变更（后续）**：逐格填充事件 `kEventReportViewSubItemFilled`（及便捷方法 `AttachReportViewSubItemFilled`）已移除（事件过于频繁、对性能影响较大）；原有功能可使用整行填充事件 `kEventReportViewItemFilled` 替代。下文涉及该事件/方法的历史描述已同步更新为替代事件。
 >
 > 下文出现的以下事件名均为**本方案新提议**、源码中尚不存在（落地时才按"三件套"约定新增；其中 C4~C7 相关的 `kEventCellsMerged` / `kEventCellsUnmerged` / `kEventItemExpandedChanged` / `kEventGroupCollapsedChanged` / `kEventRowMoved` 随该四项取消而不再实施）：
-> <!-- verify:allow-missing kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint -->
+> <!-- verify:allow-missing kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled -->
 
 ---
 
@@ -311,7 +313,7 @@
 - 提交/取消语义：`Enter` 提交并下移当前格（仅 `kCell` 模式；`kRow` 行模式提交候选不移动选中行、不设置当前格、不滚动视图）、`Esc` 取消、失焦提交（可配置）。
 - 事件（三件套 + XML）：`kEventCellEditBegin` / `kEventCellEditCommit` / `kEventCellEditCancel`。
 
-**验收**：编辑 → 提交 → 写回数据层 → 单格刷新（复用 `kEventReportViewSubItemFilled` 通路）；数值/日期编辑器正确解析。
+**验收**：编辑 → 提交 → 写回数据层 → 单格刷新（走数据层刷新通路；原逐格填充事件 `kEventReportViewSubItemFilled` 已移除，如需填充回调请改用 `kEventReportViewItemFilled`）；数值/日期编辑器正确解析。
 
 **实施偏差记录（相对原设计）**
 
@@ -417,10 +419,10 @@
 
 > **评审结论：不实施。** 现有接口已具备"单元格渲染器"的基本能力，无需再新增渲染器/自定义绘制 API。理由与能力锚点：
 > - 单元格 `ListCtrlSubItem` 本身即 **HBox 容器**（`CheckBoxTemplate<HBox>`），可直接 `AddItem` 嵌入任意 `ui::Control` 派生控件（详见下文 L4.1 的"重要更正"）；
-> - `AttachReportViewSubItemFilled`（`kEventReportViewSubItemFilled`）提供**按格填充回调**，应用可在此**按格创建**子控件（用 `GetItemCount()==0` 判重即可安全适配虚表复用）；
+> - `AttachReportViewItemFilled`（`kEventReportViewItemFilled`）提供**按行填充回调**，应用可在此**按行创建/刷新**子控件（用 `GetItemCount()==0` 判重即可安全适配虚表复用）；（原 `AttachReportViewSubItemFilled` / `kEventReportViewSubItemFilled` 逐格填充事件已移除，功能由其替代）
 > - `AttachSubItemMouseEnter` / `AttachSubItemMouseLeave`（`kEventSubItemMouseEnter` / `kEventSubItemMouseLeave`）提供**单元格级鼠标进入/离开**回调，用于悬停显隐；
 > - 子控件用 `SetFloat(true)` + `SetVisible(false)` 可做"浮动覆盖在单元格上"的按钮。
-> - **示例**：`examples/ListCtrl` 的 `MainForm::OnReportViewSubItemFilled`（创建删除按钮） / `MainForm::OnReportViewSubItemMouseEnter`（显示） / `MainForm::OnReportViewSubItemMouseLeave`（隐藏），该演示**默认关闭**（函数首行 `return;`）。
+> - **示例**：`examples/ListCtrl` 的 `MainForm::OnReportViewSubItemMouseEnter`（显示） / `MainForm::OnReportViewSubItemMouseLeave`（隐藏），该演示**默认关闭**（函数首行 `return;`）。
 >
 > 对应路线图 §二 L4（原判"缺失"）。**下文为该功能的历史设计记录**（承载方式 / 渲染器声明方式 / 事件粒度等原为待拍板决策点），仅作留档，不再作为实施依据。
 
@@ -441,7 +443,7 @@
 | 同上（**重要更正**） | [`Label.h#L14`](../../duilib/Control/Label.h#L14)、[`Label.h#L621`](../../duilib/Control/Label.h#L621) | 早前调研曾把"`ListCtrlSubItem : ListCtrlLabel`"类比为 `ui::Label`（`LabelTemplate<Control>`，**非容器**）而误判"单元格非容器"。实际 `ListCtrlLabel` 的模板实参是 **`HBox`**，故**单元格可承载子控件**；`ui::Label`（`LabelTemplate<Control>`）才是非容器 |
 | 单元格 `SetPos` 会走 Box 布局 | [`Label.h#L434`](../../duilib/Control/Label.h#L434)（`LabelTemplate<T>::SetPos` 调 `BaseClass::SetPos`） | 子控件随单元格布局（`HBox` 横向排布）自动定位，**无需自行套用 C0 几何层** |
 | 单元格内容目前全部靠绘制产生（图标 / CheckBox / 文本 / 进度条） | [`ListCtrlSubItem.cpp#L258-L338`](../../duilib/Control/ListCtrlSubItem.cpp#L258-L338) | 嵌入控件与默认绘制**共存/互斥规则**必须显式定义 |
-| 单元格创建 / 复用 / 填充主路径 | [`ListCtrlReportView.cpp#L1510-L1616`](../../duilib/Control/ListCtrlReportView.cpp#L1510-L1616)（`FillDataItem`） | 复用 `pItem->GetItemAt(nColumn)` 或新建、`pItem->AddItem(pSubItem)`、末尾逐格 `SendEvent(kEventReportViewSubItemFilled, ..., pSubItem.get())` |
+| 单元格创建 / 复用 / 填充主路径 | [`ListCtrlReportView.cpp`](../../duilib/Control/ListCtrlReportView.cpp)（`FillDataItem`） | 复用 `pItem->GetItemAt(nColumn)` 或新建、`pItem->AddItem(pSubItem)`、末尾派发整行事件 `SendEvent(kEventReportViewItemFilled, ..., pItem)`（原逐格 `SendEvent(kEventReportViewSubItemFilled, ..., pSubItem)` 已移除） |
 | Report 视图是**虚表**，单元格控件滚动时被复用 | 同上 | 嵌入控件必须能**随填充创建 / 复用 / 移除**，不能只在首次填充挂一次（否则复用后残留前一行的控件） |
 | `SetDataSubItemClass` 经 `SetClass` 只套用 XML 样式、不改 C++ 类型 | [`ListCtrl.cpp#L1123-L1135`](../../duilib/Control/ListCtrl.cpp#L1123-L1135) | 因单元格是容器，**可在 `defaultSubItemClass` 指向的 XML 类里预置子控件**，`SetClass` 时随复合定义一并套用——这是"配置化"路的省力路径 |
 | 列结构 `ListCtrlColumn` 现无"渲染器 / 自定义控件 / 每条子控件类"字段 | [`ListCtrlDefs.h#L73-L87`](../../duilib/Control/ListCtrlDefs.h#L73-L87) | L4-B 需为其补字段 |
@@ -451,7 +453,7 @@
 
 **做什么**：给应用一个"在单元格矩形内自绘"的钩子，**不引入子控件、无生命周期问题**。
 
-- 现状：既有 `kEventReportViewSubItemFilled`（`pEventData = ListCtrlSubItem*`）已可改文本 / 颜色 / 图标 / 进度，但**不含绘制回调**。
+- 现状：既有 `kEventReportViewItemFilled`（`pEventData = ListCtrlItem*`，可按行设置各单元格的文本 / 颜色 / 图标 / 进度）已够用，但**不含绘制回调**。（原逐格事件 `kEventReportViewSubItemFilled` 已移除）
 - 新增钩子粒度（二选一，**待拍板**，决策点 3）：
   - **A1 单元格级**：新增受保护虚函数 `ListCtrlSubItem::PaintCustom(IRender*, rcClip)` 或单元格级回调，在**默认绘制之后**调用，应用可在单元格矩形内任意叠加绘制。简单、随单元格复用天然安全（回调按"当前行列数据"每帧重跑）。
   - **A2 视图级**：视图一次性接管整行/整格绘制（如 `AttachCustomDrawItem`），一次回调可画多格、性能更好，但会**绕过/破坏默认绘制通路**，复用性差、兼容风险高。
@@ -478,7 +480,7 @@
 
 1. 取该列的渲染器 / 子控件类；**无声明则完全走现有纯绘制路径**（零回归）。
 2. 有声明则：单元格内已存在该渲染器产出的子控件 → **复用**；否则**创建并 `AddItem`**；列渲染器变更或复用到无渲染器的列 → **移除**旧子控件。
-3. 复用既有 `kEventReportViewSubItemFilled`（`pEventData = ListCtrlSubItem*`）给应用"刷新嵌入控件内容"的机会（应用从 `ListCtrlSubItem` 取子控件刷新），**不新增事件**。
+3. 复用既有 `kEventReportViewItemFilled`（`pEventData = ListCtrlItem*`）给应用"刷新嵌入控件内容"的机会（应用从 `ListCtrlItem` 取单元格子控件刷新），**不新增事件**。
 4. `_DEBUG` 下断言"单元格内由渲染器产出的子控件数 ≤ 1"，防复用残留。
 
 **尺寸与行高**：嵌入控件建议**单行**；行高由 `SetDataItemHeight` 控制（与"单元格自动换行"同一约定），避免控件被裁剪。
@@ -501,7 +503,7 @@
 | `SetColumnCellRenderer(ById, fn)` / `GetColumnCellRenderer(ById)` | 按列声明嵌入控件工厂 | L4-B |
 | `SetColumnSubItemClass(ById, className)` / `GetColumnSubItemClass(ById)` | 按列声明子控件 XML 类（配置化路线，与上面的工厂回调二选一） | L4-B |
 | `SetEnableSubItemEmbeddedControls(bool)` | 嵌入控件总开关（默认关闭，opt-in） | L4-B |
-| 复用 `kEventReportViewSubItemFilled` | 嵌入控件内容刷新回调（`pEventData = ListCtrlSubItem*`），**不新增事件** | L4-B |
+| 复用 `kEventReportViewItemFilled` | 嵌入控件内容刷新回调（`pEventData = ListCtrlItem*`），**不新增事件** | L4-B |
 | `kEventSubItemCustomPaint`（可选，**待拍板**，决策点 7） | 若 L4-A 采用事件路线而非虚函数则新增（按"三件套"落地） | L4-A |
 
 #### L4.6 分阶段实施
@@ -588,7 +590,7 @@ C0 单元格坐标层 ──┬──▶ C1 单元格选择 ──┬──▶ C
 
 ## 7. 文档同步清单（落地时按项目约定执行）
 
-- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1 / L2 / L5 / A2 / §四对应条目状态与实现要点回填（L1、L5 见 C3：Text / Number / Date / Combo；L2 见 C2）；**A2 收尾：C0 / C1 / C1b / C1c / C2 / C3 已完成，C4 / C5 / C6 / C7 已取消（不实施）**；**L4 经评审后决定「已取消（不实施）」（现有接口已具备基本能力，示例见 `examples/ListCtrl` 的 `MainForm::OnReportViewSubItemFilled` / `MainForm::OnReportViewSubItemMouseEnter` / `MainForm::OnReportViewSubItemMouseLeave`，默认关闭）**。
+- `docs/ListCtrl-Roadmap.md` / `.en.md`：L1 / L2 / L5 / A2 / §四对应条目状态与实现要点回填（L1、L5 见 C3：Text / Number / Date / Combo；L2 见 C2）；**A2 收尾：C0 / C1 / C1b / C1c / C2 / C3 已完成，C4 / C5 / C6 / C7 已取消（不实施）**；**L4 经评审后决定「已取消（不实施）」（现有接口已具备基本能力，示例见 `examples/ListCtrl` 的 `MainForm::OnReportViewSubItemMouseEnter` / `MainForm::OnReportViewSubItemMouseLeave`，默认关闭）**。
 - `docs/Control.md` / `.en.md`：`ui::ListCtrl` 新增接口与 XML 属性（`selection_mode`）；**不再新增** `sub_item_row_span` / `sub_item_column_span`（随 C4 取消）。
 - `docs/Events.md` / `.en.md`、`docs/XmlEvents.md` / `.en.md`：新增事件参数表与 XML 内联事件名（**C4~C7 相关事件 `kEventCellsMerged` / `kEventCellsUnmerged` / `kEventItemExpandedChanged` / `kEventGroupCollapsedChanged` / `kEventRowMoved` 随该四项取消而不再新增**）。
 - 三处技能参考副本（`.trae` / `.workbuddy` / `.claude`）与 `README.md` / `.en.md` 功能计数。

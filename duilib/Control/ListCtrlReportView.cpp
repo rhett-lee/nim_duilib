@@ -1554,8 +1554,6 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         defaultTextColors[nState] = defaultSubItem.GetStateTextColor((ControlStateType)nState);
     }
 
-    std::vector<ListCtrlSubItem*> subItemPtrList;
-    subItemPtrList.reserve(showColumnCount);
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
         ListCtrlSubItem* pSubItem = nullptr;
@@ -1601,7 +1599,6 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 return true;
                 });
         }
-        subItemPtrList.push_back(pSubItem);
         //设置不获取焦点
         pSubItem->SetNoFocus();
 
@@ -1631,20 +1628,8 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
         FillSubItemData(pSubItem, elementData.pStorage, defaultSubItem, defaultTextColors, nColumnId, nElementIndex);
     }
-    auto viewFlag = GetWeakFlag();
-    //先给出各个列的数据填充回调
-    for (size_t nIndex = 0; nIndex < subItemPtrList.size(); ++nIndex) {
-        if (viewFlag.expired()) {
-            break;
-        }
-        ListCtrlSubItem* pSubItem = subItemPtrList[nIndex];
-        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pSubItem);
-    }
-
     //给出当前行的数据填充回调
-    if (!viewFlag.expired()) {
-        SendEvent(kEventReportViewItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pItem);
-    }
+    SendEventReportViewItemFilled(pItem->GetListBoxIndex(), pItem->GetDataItemIndex(), pItem, nullptr);
     return true;
 }
 
@@ -1711,6 +1696,29 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
         pSubItem->SetImageId(-1);
         pSubItem->SetProgress(-1);
     }
+}
+
+void ListCtrlReportView::SendEventReportViewItemFilled(size_t nListBoxIndex, size_t nElementIndex,
+                                                       ListCtrlItem* pItem, ListCtrlSubItem* pSubItem)
+{
+    EventArgs msg;
+    msg.SetSender(this);
+    msg.eventType = kEventReportViewItemFilled;
+    msg.vkCode = VirtualKeyCode::kVK_None;
+    msg.wParam = (WPARAM)nListBoxIndex;
+    msg.lParam = (LPARAM)nElementIndex;
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        msg.ptMouse = pWindow->GetLastMousePos();
+    }
+    msg.modifierKey = 0;
+    msg.eventData = 0;
+    msg.pEventData = pItem;
+    msg.pExtraData = pSubItem;
+    msg.listCtrlType = (int32_t)ListCtrlType::Report;
+
+    //派发消息
+    SendEventMsg(msg);
 }
 
 void ListCtrlReportView::AddSubItemCheckBox(ListCtrlSubItem* pSubItem, size_t nColumnId, size_t nElementIndex, bool bChecked)
@@ -1805,7 +1813,7 @@ bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumn
     FillSubItemData(pSubItem, pStorage, defaultSubItem, defaultTextColors, nColumnId, nElementIndex);
     pSubItem->Invalidate();
     //给出该单元格的数据填充回调（与整行填充保持一致，便于应用动态定制单元格的显示内容）
-    SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)nElementIndex, pSubItem);
+    SendEventReportViewItemFilled(pItem->GetListBoxIndex(), nElementIndex, pItem, pSubItem);
     return true;
 }
 

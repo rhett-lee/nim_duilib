@@ -695,12 +695,6 @@ void ListCtrl::InitReportView()
         SendEventMsg(newMsg);
         return true;
         });
-    m_pReportView->AttachReportViewSubItemFilled([this](const EventArgs& args) {
-        EventArgs newMsg = args;
-        newMsg.SetSender(this);
-        SendEventMsg(newMsg);
-        return true;
-        });
     m_pReportView->AttachPosChanged([this](const EventArgs&) {
         EventArgs newMsg;
         newMsg.listCtrlType = (int32_t)ListCtrlType::Report;

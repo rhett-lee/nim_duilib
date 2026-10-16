@@ -179,7 +179,8 @@ private:
 
 private:
     //测试功能: 鼠标划入时显示子控件，鼠标移出时隐藏子控件
-    void OnReportViewSubItemFilled(const ui::EventArgs& args);
+    void OnReportViewItemFilled(const ui::EventArgs& args);
+    void OnReportViewSubItemFilled(ui::ListCtrlSubItem* pSubItem);
     void OnReportViewSubItemMouseEnter(const ui::EventArgs& args);
     void OnReportViewSubItemMouseLeave(const ui::EventArgs& args);
 

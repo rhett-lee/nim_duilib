@@ -2069,7 +2069,10 @@ size_t nColumnId = pListCtrl->GetColumnId(1);
 pListCtrl->RefreshSubItemById(0, nColumnId);
 ```
 
-说明：该接口仅用于 Report 视图；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），则返回 false，此时数据本身已更新，滚动到可见范围后会显示最新数据。刷新时会触发 `kEventReportViewSubItemFilled` 回调（`pEventData` 为该单元格的 `ListCtrlSubItem*`），应用可在此回调中动态设置该单元格的显示内容。
+说明：该接口仅用于 Report 视图；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），则返回 false，此时数据本身已更新，滚动到可见范围后会显示最新数据。
+
+<!-- verify:allow-missing kEventReportViewSubItemFilled -->
+> 说明：逐格填充事件 `kEventReportViewSubItemFilled` 已移除（触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（整行填充，`pEventData` 为 `ListCtrlItem*`，可再通过 `GetSubItem(columnIndex)` 取到单元格）。
 
 **列显示/隐藏：**
 

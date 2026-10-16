@@ -2069,7 +2069,10 @@ size_t nColumnId = pListCtrl->GetColumnId(1);
 pListCtrl->RefreshSubItemById(0, nColumnId);
 ```
 
-Note: this API is for Report view only. If the cell is currently outside the visible range (no UI control exists for it), it returns false; the data itself is already updated and will be shown when scrolled into view. Refreshing fires the `kEventReportViewSubItemFilled` callback (`pEventData` is the cell's `ListCtrlSubItem*`), where the application can dynamically set the cell's display content.
+Note: this API is for Report view only. If the cell is currently outside the visible range (no UI control exists for it), it returns false; the data itself is already updated and will be shown when scrolled into view.
+
+<!-- verify:allow-missing kEventReportViewSubItemFilled -->
+> Note: the per-cell filled event `kEventReportViewSubItemFilled` has been removed (it fired too frequently and had a noticeable performance impact); the same functionality can be achieved with `kEventReportViewItemFilled` (row-level fill, `pEventData` is `ListCtrlItem*`, from which a cell can be obtained via `GetSubItem(columnIndex)`).
 
 **Column show/hide:**
 

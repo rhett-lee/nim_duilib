@@ -76,10 +76,10 @@ public:
     */
     size_t GetSubItemCount() const;
 
-    /** 获取第columnIndex个子控件
-    * @param [in] columnIndex 列索引序号：[0, GetSubItemCount())
+    /** 获取第nSubItemIndex个子控件
+    * @param [in] nSubItemIndex 列索引序号：[0, GetSubItemCount())
     */
-    ListCtrlSubItem* GetSubItem(size_t columnIndex) const;
+    ListCtrlSubItem* GetSubItem(size_t nSubItemIndex) const;
 
     /** 获取鼠标所在位置的子控件
     * @param [in] ptMouse 鼠标所在的位置，屏幕坐标点

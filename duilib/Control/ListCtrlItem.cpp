@@ -86,10 +86,10 @@ size_t ListCtrlItem::GetSubItemCount() const
     return GetItemCount();
 }
 
-ListCtrlSubItem* ListCtrlItem::GetSubItem(size_t columnIndex) const
+ListCtrlSubItem* ListCtrlItem::GetSubItem(size_t nSubItemIndex) const
 {
-    ASSERT(columnIndex < GetSubItemCount());
-    ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(columnIndex));
+    ASSERT(nSubItemIndex < GetSubItemCount());
+    ListCtrlSubItem* pSubItem = dynamic_cast<ListCtrlSubItem*>(GetItemAt(nSubItemIndex));
     ASSERT(pSubItem != nullptr);
     return pSubItem;
 }

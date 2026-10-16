@@ -1791,13 +1791,17 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
 {
     //演示：单格刷新（RefreshSubItem）
-    //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值，
-    //      不写入 ListCtrl 的数据模型，而是在单元格填充回调(kEventReportViewSubItemFilled)中设置显示内容；
+    //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值；
     //      后台进度更新时，只调用 RefreshSubItem 刷新对应的单元格，不刷新整行。
+    //说明：原逐格填充事件 kEventReportViewSubItemFilled 已移除（事件过于频繁，对性能影响较大），
+    //      如需在填充时自定义单元格显示内容，请改用整行填充事件 kEventReportViewItemFilled
+    //      （pEventData 为 ListCtrlItem*，可通过 GetSubItem(columnIndex) 取到单元格）；
+    //      单格刷新会从数据模型重新填充单元格，故应用侧的进度值需先写入数据模型再刷新。
     if (pListCtrl == nullptr) {
         return;
     }
     const size_t nProgressColumnIndex = 1;  //进度列的索引号（第 2 列）
+    const size_t nProgressColumnId = pListCtrl->GetColumnId(nProgressColumnIndex);
     const size_t nMaxTestRowCount = 20;     //参与演示的行数（避免演示数据过多影响性能）
     const size_t nDataCount = pListCtrl->GetDataItemCount();
 
@@ -1805,34 +1809,13 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
     m_progressValues.assign(nDataCount, 0);
     for (size_t nRow = 0; nRow < nDataCount; ++nRow) {
         m_progressValues[nRow] = (int32_t)((nRow * 7 + 15) % 101);
+        //写入数据模型，使单元格显示最新的进度值
+        pListCtrl->SetSubItemProgressById(nRow, nProgressColumnId, m_progressValues[nRow]);
+        pListCtrl->SetSubItemTextById(nRow, nProgressColumnId, ui::StringUtil::Printf(_T("%d%%"), m_progressValues[nRow]));
     }
 
-    //在单元格填充回调中：按数据项索引取出应用层维护的进度值，设置到该单元格上
-    pListCtrl->AttachReportViewSubItemFilled([this, nProgressColumnIndex](const ui::EventArgs& args) {
-        if (args.eventType != ui::kEventReportViewSubItemFilled) {
-            return true;
-        }
-        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
-        if (pSubItem == nullptr) {
-            return true;
-        }
-        if (pSubItem->GetDataColumnIndex() != nProgressColumnIndex) {
-            //仅处理进度列
-            return true;
-        }
-        size_t nRowIndex = pSubItem->GetDataItemIndex();
-        if (nRowIndex >= m_progressValues.size()) {
-            return true;
-        }
-        //设置进度条的进度值（-1 表示不显示进度条）和显示的文本
-        int32_t nProgress = m_progressValues[nRowIndex];
-        pSubItem->SetProgress(nProgress);
-        pSubItem->SetText(ui::StringUtil::Printf(_T("%d%%"), nProgress));
-        return true;
-        });
-
     //定时器回调：在UI线程中执行，可以安全访问控件
-    auto refreshCallback = [this, pListCtrl, nProgressColumnIndex, nMaxTestRowCount]() {
+    auto refreshCallback = [this, pListCtrl, nProgressColumnIndex, nProgressColumnId, nMaxTestRowCount]() {
         for (size_t nRow = 0; nRow < nMaxTestRowCount; ++nRow) {
             if (nRow >= m_progressValues.size()) {
                 break;
@@ -1844,7 +1827,10 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
             }
             m_progressValues[nRow] = nProgress;
 
-            //只刷新这一个单元格（如果该单元格不在可见范围内，RefreshSubItem 返回 false，无需额外处理）
+            //先把最新进度值写入数据模型，再只刷新这一个单元格
+            //（如果该单元格不在可见范围内，RefreshSubItem 返回 false，无需额外处理）
+            pListCtrl->SetSubItemProgressById(nRow, nProgressColumnId, nProgress);
+            pListCtrl->SetSubItemTextById(nRow, nProgressColumnId, ui::StringUtil::Printf(_T("%d%%"), nProgress));
             pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
         }
     };
@@ -2373,11 +2359,14 @@ void MainForm::InitProgressEditorTests(ui::ListCtrl* pListCtrl)
         pOption->AttachSelect([applyColor](const ui::EventArgs&) { applyColor(_T("#FFE81123")); return true; });
     }
 
-    //单元格填充时，把进度条外观应用到"进度列"的单元格（应对滚动复用与单格刷新）
-    pListCtrl->AttachReportViewSubItemFilled([this](const ui::EventArgs& args) {
-        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
-        if ((pSubItem != nullptr) && (pSubItem->GetDataColumnIndex() == 1)) {
-            ApplyProgressAppearanceToSubItem(pSubItem);
+    //行填充时，把进度条外观应用到"进度列"的单元格（应对滚动复用）
+    pListCtrl->AttachReportViewItemFilled([this](const ui::EventArgs& args) {
+        ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.pEventData;
+        if (pItem != nullptr) {
+            ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(1);
+            if (pSubItem != nullptr) {
+                ApplyProgressAppearanceToSubItem(pSubItem);
+            }
         }
         return true;
         });
@@ -2814,11 +2803,7 @@ void MainForm::TestListCtrlEvents(ui::ListCtrl* pListCtrl)
         };
     pListCtrl->AttachReportViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
         OnListCtrlItemFilledEvent(args);
-        return true;
-        });
-    pListCtrl->AttachReportViewSubItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
-        OnListCtrlItemFilledEvent(args);
-        OnReportViewSubItemFilled(args);
+        OnReportViewItemFilled(args);
         return true;
         });
     pListCtrl->AttachListViewItemFilled([this, OnListCtrlItemFilledEvent](const ui::EventArgs& args) {
@@ -3001,21 +2986,6 @@ DString MainForm::GetItemFilledEventDisplayInfo(const ui::EventArgs& args)
             ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
         }
     }
-    else if (args.eventType == ui::kEventReportViewSubItemFilled) {
-        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
-        ASSERT(pSubItem != nullptr);
-        if (pSubItem != nullptr) {
-            ASSERT(pSubItem->GetDataItemIndex() == (size_t)args.lParam);
-            ui::ListCtrlItem* pItem = pSubItem->GetListCtrlItem();
-            ASSERT(pItem != nullptr);
-            if (pItem != nullptr) {
-                ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
-                ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
-            }
-            sInfo += ui::StringUtil::Printf(_T("DataColumnIndex='%zu' "), pSubItem->GetDataColumnIndex());
-            sInfo += ui::StringUtil::Printf(_T("LabelText='%s' "), pSubItem->GetText().c_str());
-        }
-    }
     else if (args.eventType == ui::kEventListViewItemFilled) {
         ui::ListCtrlListViewItem* pItem = (ui::ListCtrlListViewItem*)args.pEventData;
         ASSERT(pItem != nullptr);
@@ -3044,15 +3014,39 @@ void MainForm::OutputDebugLog(const DString& logMsg)
 #endif
 }
 
-void MainForm::OnReportViewSubItemFilled(const ui::EventArgs& args)
+void MainForm::OnReportViewItemFilled(const ui::EventArgs& args)
 {
-    //默认不开启该测试
+    //默认关闭
     return;
 
-    if (args.eventType != ui::kEventReportViewSubItemFilled) {
+    ASSERT(args.eventType == ui::kEventReportViewItemFilled);
+    ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.pEventData;
+    ASSERT(pItem != nullptr);
+    if (pItem == nullptr) {
         return;
     }
-    ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pEventData;
+    ASSERT(pItem->GetListBoxIndex() == (size_t)args.wParam);
+    ASSERT(pItem->GetDataItemIndex() == (size_t)args.lParam);
+
+    if (args.pExtraData != nullptr) {
+        //只刷新了一个单元格
+        ui::ListCtrlSubItem* pSubItem = (ui::ListCtrlSubItem*)args.pExtraData;
+        OnReportViewSubItemFilled(pSubItem);
+    }
+    else {
+        //刷新了所有单元格
+        const size_t nSubItemCount = pItem->GetSubItemCount();
+        for (size_t nSubItem = 0; nSubItem < nSubItemCount; ++nSubItem) {
+            ui::ListCtrlSubItem* pSubItem = pItem->GetSubItem(nSubItem);
+            if (pSubItem != nullptr) {
+                OnReportViewSubItemFilled(pSubItem);
+            }
+        }
+    }
+}
+
+void MainForm::OnReportViewSubItemFilled(ui::ListCtrlSubItem* pSubItem)
+{
     ASSERT(pSubItem != nullptr);
     if (pSubItem == nullptr) {
         return;

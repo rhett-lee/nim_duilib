@@ -14,6 +14,7 @@ EventArgs::EventArgs() :
     modifierKey(0),
     eventData(0),
     pEventData(nullptr),
+    pExtraData(nullptr),
     listCtrlType(-1)
 {
     ptMouse.x = 0;
@@ -151,7 +152,6 @@ static void InitEventStringMap(std::unordered_map<EventType, DString>* typeMap,
         {kEventSubItemMouseEnter, _T("kEventSubItemMouseEnter"), _T("SubItemMouseEnter"), _T("sub_item_mouse_enter")},
         {kEventSubItemMouseLeave, _T("kEventSubItemMouseLeave"), _T("SubItemMouseLeave"), _T("sub_item_mouse_leave")},
         {kEventReportViewItemFilled, _T("kEventReportViewItemFilled"), _T("ReportViewItemFilled"), _T("report_view_item_filled")},
-        {kEventReportViewSubItemFilled, _T("kEventReportViewSubItemFilled"), _T("ReportViewSubItemFilled"), _T("report_view_sub_item_filled")},
         {kEventListViewItemFilled, _T("kEventListViewItemFilled"), _T("ListViewItemFilled"), _T("list_view_item_filled")},
         {kEventIconViewItemFilled, _T("kEventIconViewItemFilled"), _T("IconViewItemFilled"), _T("icon_view_item_filled")},
         {kEventViewTypeChanged, _T("kEventViewTypeChanged"), _T("ViewTypeChanged"), _T("view_type_changed")},

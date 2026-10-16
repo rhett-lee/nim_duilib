@@ -199,7 +199,6 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventSubItemMouseEnter|"SubItemMouseEnter"|"sub_item_mouse_enter"|
 |kEventSubItemMouseLeave|"SubItemMouseLeave"|"sub_item_mouse_leave"|
 |kEventReportViewItemFilled|"ReportViewItemFilled"|"report_view_item_filled"|
-|kEventReportViewSubItemFilled|"ReportViewSubItemFilled"|"report_view_sub_item_filled"|
 |kEventListViewItemFilled|"ListViewItemFilled"|"list_view_item_filled"|
 |kEventIconViewItemFilled|"IconViewItemFilled"|"icon_view_item_filled"|
 |kEventViewTypeChanged|"ViewTypeChanged"|"view_type_changed"|
@@ -229,3 +228,6 @@ The available event list is defined in the `InitEventStringMap` function in the 
 |kEventDisplayDateChanged|"DisplayDateChanged"|"display_date_changed"|
 
 In the list above, either "XML name 1 of the event" or "XML name 2 of the event" can be used in XML; both names are recognized.
+
+<!-- verify:allow-missing kEventReportViewSubItemFilled -->
+> Note: the `kEventReportViewSubItemFilled` event has been removed (the old per-cell filled event fired too frequently and had a noticeable performance impact); the same functionality can be achieved with `kEventReportViewItemFilled` (row-level fill, `pEventData` is `ListCtrlItem*`, from which a cell can be obtained via `GetSubItem(columnIndex)`).

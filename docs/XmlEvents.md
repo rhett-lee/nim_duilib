@@ -197,7 +197,6 @@ if (msg.eventType == eventType) {
 |kEventSubItemMouseEnter|"SubItemMouseEnter"|"sub_item_mouse_enter"|
 |kEventSubItemMouseLeave|"SubItemMouseLeave"|"sub_item_mouse_leave"|
 |kEventReportViewItemFilled|"ReportViewItemFilled"|"report_view_item_filled"|
-|kEventReportViewSubItemFilled|"ReportViewSubItemFilled"|"report_view_sub_item_filled"|
 |kEventListViewItemFilled|"ListViewItemFilled"|"list_view_item_filled"|
 |kEventIconViewItemFilled|"IconViewItemFilled"|"icon_view_item_filled"|
 |kEventViewTypeChanged|"ViewTypeChanged"|"view_type_changed"|
@@ -227,3 +226,6 @@ if (msg.eventType == eventType) {
 |kEventDisplayDateChanged|"DisplayDateChanged"|"display_date_changed"|
 
 以上列表中，在XML中使用"事件的XML名称1"或者"事件的XML名称2"均可，两个名称都认。
+
+<!-- verify:allow-missing kEventReportViewSubItemFilled -->
+> 说明：事件 `kEventReportViewSubItemFilled` 已移除（原逐格填充事件，触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（整行填充，`pEventData` 为 `ListCtrlItem*`，可再通过 `GetSubItem(columnIndex)` 取到单元格）。
