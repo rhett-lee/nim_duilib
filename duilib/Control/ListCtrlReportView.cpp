@@ -1548,6 +1548,11 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     DString defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
+    //缓存本行默认的状态文本颜色，供该行所有单元格复用，避免每个单元格重复取值
+    DString defaultTextColors[kControlStateCount];
+    for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+        defaultTextColors[nState] = defaultSubItem.GetStateTextColor((ControlStateType)nState);
+    }
 
     std::vector<ControlPtrT<ListCtrlSubItem>> subItemPtrList;
     subItemPtrList.reserve(showColumnCount);
@@ -1624,7 +1629,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 
         //填充数据，设置属性        
         pSubItem->SetFixedWidth(UiFixedInt(elementData.nColumnWidth), true, false);
-        FillSubItemData(pSubItem, elementData.pStorage, defaultSubItem, nColumnId, nElementIndex);
+        FillSubItemData(pSubItem, elementData.pStorage, defaultSubItem, defaultTextColors, nColumnId, nElementIndex);
     }
     auto viewFlag = GetWeakFlag();
     //先给出各个列的数据填充回调
@@ -1646,11 +1651,16 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
 void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
                                          const ListCtrlSubItemData2* pStorage,
                                          const ListCtrlSubItem& defaultSubItem,
+                                         const DString* pDefaultTextColors,
                                          size_t nColumnId,
                                          size_t nElementIndex)
 {
     ASSERT(pSubItem != nullptr);
     if (pSubItem == nullptr) {
+        return;
+    }
+    ASSERT(pDefaultTextColors != nullptr);
+    if (pDefaultTextColors == nullptr) {
         return;
     }
     if (pStorage != nullptr) {
@@ -1666,13 +1676,13 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
         pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
         for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
             ControlStateType stateType = (ControlStateType)nState;
-            pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+            pSubItem->SetStateTextColor(stateType, pDefaultTextColors[nState]);
         }
         if (!pStorage->textColor.IsEmpty()) {
             pSubItem->SetStateTextColor(kControlStateNormal, pSubItem->GetColorString(pStorage->textColor));
         }
         else {
-            pSubItem->SetStateTextColor(kControlStateNormal, defaultSubItem.GetStateTextColor(kControlStateNormal));
+            pSubItem->SetStateTextColor(kControlStateNormal, pDefaultTextColors[kControlStateNormal]);
         }
         if (!pStorage->bkColor.IsEmpty()) {
             pSubItem->SetBkColor(pStorage->bkColor);
@@ -1697,7 +1707,7 @@ void ListCtrlReportView::FillSubItemData(ListCtrlSubItem* pSubItem,
         pSubItem->SetTextPadding(defaultSubItem.GetTextPadding(), false);
         for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
             ControlStateType stateType = (ControlStateType)nState;
-            pSubItem->SetStateTextColor(stateType, defaultSubItem.GetStateTextColor(stateType));
+            pSubItem->SetStateTextColor(stateType, pDefaultTextColors[nState]);
         }
         pSubItem->SetBkColor(defaultSubItem.GetBkColor());
         RemoveSubItemCheckBox(pSubItem);
@@ -1732,6 +1742,10 @@ void ListCtrlReportView::RemoveSubItemCheckBox(ListCtrlSubItem* pSubItem)
 {
     ASSERT(pSubItem != nullptr);
     if (pSubItem == nullptr) {
+        return;
+    }
+    if (!pSubItem->IsShowCheckBox()) {
+        //当前未显示CheckBox，无需移除（避免多余的ClearStateImages与事件解绑）
         return;
     }
     pSubItem->SetShowCheckBox(false);
@@ -1784,9 +1798,14 @@ bool ListCtrlReportView::RefreshSubItemData(size_t nElementIndex, size_t nColumn
     DString defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
+    //缓存默认的状态文本颜色，供该单元格复用
+    DString defaultTextColors[kControlStateCount];
+    for (int32_t nState = kControlStateNormal; nState < kControlStateCount; ++nState) {
+        defaultTextColors[nState] = defaultSubItem.GetStateTextColor((ControlStateType)nState);
+    }
 
     //仅更新该单元格的数据，不改变其宽度和事件绑定
-    FillSubItemData(pSubItem, pStorage, defaultSubItem, nColumnId, nElementIndex);
+    FillSubItemData(pSubItem, pStorage, defaultSubItem, defaultTextColors, nColumnId, nElementIndex);
     pSubItem->Invalidate();
     //给出该单元格的数据填充回调（与整行填充保持一致，便于应用动态定制单元格的显示内容）
     SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)nElementIndex, pSubItem);

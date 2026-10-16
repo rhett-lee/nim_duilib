@@ -430,12 +430,15 @@ private:
     * @param [in] pSubItem 目标子项控件
     * @param [in] pStorage 单元格的数据，可以为空
     * @param [in] defaultSubItem 默认属性子项控件
+    * @param [in] pDefaultTextColors 缓存的默认状态文本颜色数组（长度为kControlStateCount），
+    *             由调用方按行预先计算一次，供该行所有单元格复用，避免每个单元格重复取值
     * @param [in] nColumnId 列的ID
     * @param [in] nElementIndex 数据元素的索引号
     */
     void FillSubItemData(ListCtrlSubItem* pSubItem,
                          const ListCtrlSubItemData2* pStorage,
                          const ListCtrlSubItem& defaultSubItem,
+                         const DString* pDefaultTextColors,
                          size_t nColumnId,
                          size_t nElementIndex);
 
