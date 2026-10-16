@@ -1554,13 +1554,13 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
         defaultTextColors[nState] = defaultSubItem.GetStateTextColor((ControlStateType)nState);
     }
 
-    std::vector<ControlPtrT<ListCtrlSubItem>> subItemPtrList;
+    std::vector<ListCtrlSubItem*> subItemPtrList;
     subItemPtrList.reserve(showColumnCount);
     for (size_t nColumn = 0; nColumn < showColumnCount; ++nColumn) {
         const ElementData& elementData = elementDataList[nColumn];
         ListCtrlSubItem* pSubItem = nullptr;
         if (nColumn < pItem->GetItemCount()) {
-            pSubItem = dynamic_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
+            pSubItem = static_cast<ListCtrlSubItem*>(pItem->GetItemAt(nColumn));
             ASSERT(pSubItem != nullptr);
             if (pSubItem == nullptr) {
                 return false;
@@ -1601,7 +1601,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
                 return true;
                 });
         }
-        subItemPtrList.push_back(ControlPtrT<ListCtrlSubItem>(pSubItem));
+        subItemPtrList.push_back(pSubItem);
         //设置不获取焦点
         pSubItem->SetNoFocus();
 
@@ -1634,11 +1634,11 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     auto viewFlag = GetWeakFlag();
     //先给出各个列的数据填充回调
     for (size_t nIndex = 0; nIndex < subItemPtrList.size(); ++nIndex) {
-        const ControlPtrT<ListCtrlSubItem>& pSubItem = subItemPtrList[nIndex];
-        if (viewFlag.expired() || pSubItem.expired()) {
+        if (viewFlag.expired()) {
             break;
         }
-        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pSubItem.get());
+        ListCtrlSubItem* pSubItem = subItemPtrList[nIndex];
+        SendEvent(kEventReportViewSubItemFilled, (WPARAM)pItem->GetListBoxIndex(), (LPARAM)pItem->GetDataItemIndex(), pSubItem);
     }
 
     //给出当前行的数据填充回调
@@ -2479,6 +2479,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 
     //记录可见的元素索引号列表
     std::vector<size_t> diplayItemIndexList;
+    diplayItemIndexList.reserve(nItemCount);
 
     //滚动条的Y坐标位置
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
@@ -2573,6 +2574,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
         int32_t yOffset;        //Y轴偏移量
     };
     std::vector<ShowItemIndex> itemIndexList;
+    itemIndexList.reserve(atTopItemIndexList.size() + showItemIndexList.size());
     for (const auto& info : atTopItemIndexList) {
         itemIndexList.push_back({ info.nItemIndex, info.nItemHeight, true, 0});
     }
@@ -2588,11 +2590,13 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
     ui::UiPoint ptTile(rc.left, rc.top);
 
     VirtualListBox::RefreshDataList refreshDataList;
+    refreshDataList.reserve(nItemCount);
     VirtualListBox::RefreshData refreshData;
 
     UiSize szItem;
     size_t iCount = 0;
     std::vector<size_t> atTopUiItemIndexList;
+    atTopUiItemIndexList.reserve(nItemCount);
     //第一个元素是表头控件，跳过填充数据，所以从1开始
     for (size_t index = 1; index < nItemCount; ++index) {
         Control* pControl = pDataView->GetItemAt(index);
@@ -2638,8 +2642,9 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             }
             //按需填充数据：如果该控件已经绑定了同一个数据元素，则不需要重新填充数据
             //（避免在滚动/骨架屏、主题刷新、重复布局等场景下，对未变化的行做"整表重填"）
-            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
-            const bool bNeedFillData = (pListBoxItem == nullptr) || (pListBoxItem->GetElementIndex() != nElementIndex);
+            //ListCtrlItem也是IListBoxItem的实现类，此处只做一次类型转换，避免每行重复dynamic_cast
+            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
+            const bool bNeedFillData = (pListCtrlItem == nullptr) || (pListCtrlItem->GetElementIndex() != nElementIndex);
             if (bNeedFillData) {
                 pDataView->FillElementData(pControl, nElementIndex);
 
@@ -2650,7 +2655,6 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
             }
             diplayItemIndexList.push_back(nElementIndex);
 
-            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
             if (pListCtrlItem != nullptr) {
                 //置顶项不允许选择
                 pListCtrlItem->SetSelectableType(bAlwaysAtTop ? false : true);
@@ -2732,6 +2736,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
 
     //记录可见的元素索引号列表
     std::vector<size_t> diplayItemIndexList;
+    diplayItemIndexList.reserve(nItemCount);
 
     // 顶部元素的索引号
     const size_t nTopElementIndex = GetTopElementIndex(orgRect);
@@ -2753,6 +2758,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
     ui::UiPoint ptTile(rc.left, rc.top - yOffset);
 
     VirtualListBox::RefreshDataList refreshDataList;
+    refreshDataList.reserve(nItemCount);
     VirtualListBox::RefreshData refreshData;
 
     size_t iCount = 0;
@@ -2776,8 +2782,9 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
             }
             //按需填充数据：如果该控件已经绑定了同一个数据元素，则不需要重新填充数据
             //（避免在重复布局、主题刷新等场景下，对未变化的行做"整表重填"）
-            IListBoxItem* pListBoxItem = dynamic_cast<IListBoxItem*>(pControl);
-            const bool bNeedFillData = (pListBoxItem == nullptr) || (pListBoxItem->GetElementIndex() != nElementIndex);
+            //ListCtrlItem也是IListBoxItem的实现类，此处只做一次类型转换，避免每行重复dynamic_cast
+            ListCtrlItem* pListCtrlItem = dynamic_cast<ListCtrlItem*>(pControl);
+            const bool bNeedFillData = (pListCtrlItem == nullptr) || (pListCtrlItem->GetElementIndex() != nElementIndex);
             if (bNeedFillData) {
                 pDataView->FillElementData(pControl, nElementIndex);
 
