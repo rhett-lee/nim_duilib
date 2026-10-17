@@ -17,6 +17,7 @@ MainForm::MainForm():
     m_bStressDataLoaded(false),
     m_bAllColumnsEditable(false),
     m_bComboEditor(false),
+    m_bReportViewItemFilled(false),
     m_progressTextPos(_T("center")),
     m_progressColor(),
     m_progressBkColor()
@@ -77,8 +78,8 @@ void MainForm::OnInitWindow()
     //测试loading功能
     TestListCtrlLoading(pListCtrl);
 
-    //演示单格刷新功能（RefreshSubItem）
-    //TestRefreshSubItem(pListCtrl);
+    //演示单格刷新功能（RefreshSubItem）：由界面上的勾选框开关控制开启/关闭
+    InitFillRefreshTests(pListCtrl);
 
     //演示ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）
     TestColumnVisibleApi(pListCtrl);
@@ -1791,31 +1792,23 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
 {
     //演示：单格刷新（RefreshSubItem）
-    //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值；
-    //      后台进度更新时，只调用 RefreshSubItem 刷新对应的单元格，不刷新整行。
-    //说明：原逐格填充事件 kEventReportViewSubItemFilled 已移除（事件过于频繁，对性能影响较大），
-    //      如需在填充时自定义单元格显示内容，请改用整行填充事件 kEventReportViewItemFilled
-    //      （pEventData 为 ListCtrlItem*，可通过 GetSubItem(columnIndex) 取到单元格）；
-    //      单格刷新会从数据模型重新填充单元格，故应用侧的进度值需先写入数据模型再刷新。
+    //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值（m_progressValues）；
+    //      后台进度更新时，只调用 RefreshSubItem 刷新对应的单元格，不刷新整行、不写数据模型。
     if (pListCtrl == nullptr) {
         return;
     }
     const size_t nProgressColumnIndex = 1;  //进度列的索引号（第 2 列）
-    const size_t nProgressColumnId = pListCtrl->GetColumnId(nProgressColumnIndex);
     const size_t nMaxTestRowCount = 20;     //参与演示的行数（避免演示数据过多影响性能）
     const size_t nDataCount = pListCtrl->GetDataItemCount();
 
-    //初始化进度值（模拟后台数据源，取值范围[0, 100]，与 InsertItemData 中的演示数据保持一致）
+    //初始化进度值（模拟后台数据源，取值范围[0, 100]）
     m_progressValues.assign(nDataCount, 0);
     for (size_t nRow = 0; nRow < nDataCount; ++nRow) {
         m_progressValues[nRow] = (int32_t)((nRow * 7 + 15) % 101);
-        //写入数据模型，使单元格显示最新的进度值
-        pListCtrl->SetSubItemProgressById(nRow, nProgressColumnId, m_progressValues[nRow]);
-        pListCtrl->SetSubItemTextById(nRow, nProgressColumnId, ui::StringUtil::Printf(_T("%d%%"), m_progressValues[nRow]));
     }
 
     //定时器回调：在UI线程中执行，可以安全访问控件
-    auto refreshCallback = [this, pListCtrl, nProgressColumnIndex, nProgressColumnId, nMaxTestRowCount]() {
+    auto refreshCallback = [this, pListCtrl, nProgressColumnIndex, nMaxTestRowCount]() {
         for (size_t nRow = 0; nRow < nMaxTestRowCount; ++nRow) {
             if (nRow >= m_progressValues.size()) {
                 break;
@@ -1827,15 +1820,69 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
             }
             m_progressValues[nRow] = nProgress;
 
-            //先把最新进度值写入数据模型，再只刷新这一个单元格
+            //暂时屏蔽此功能，稍后再修复
+
+            //更新底层存储的单元格数据，但不刷新界面（避免整行刷新界面）
+            //bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
+            //pListCtrl->SetSubItemProgress(nRow, nProgressColumnIndex, nProgress);
+            //pListCtrl->SetEnableRefresh(bOldRefresh);
+
+            //只刷新这一个单元格，填充回调会把最新进度值写入该单元格
             //（如果该单元格不在可见范围内，RefreshSubItem 返回 false，无需额外处理）
-            pListCtrl->SetSubItemProgressById(nRow, nProgressColumnId, nProgress);
-            pListCtrl->SetSubItemTextById(nRow, nProgressColumnId, ui::StringUtil::Printf(_T("%d%%"), nProgress));
-            pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
+            // pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
         }
     };
     //每 800ms 触发一次，重复执行；定时器与ListCtrl的生命周期绑定，控件销毁后自动取消
-    ui::GlobalManager::Instance().Timer().AddTimer(pListCtrl->GetWeakFlag(), refreshCallback, 800);
+    m_refreshSubItemFlag.Cancel();
+    ui::GlobalManager::Instance().Timer().AddTimer(m_refreshSubItemFlag.GetWeakFlag(), refreshCallback, 800);
+}
+
+void MainForm::StopRefreshSubItem(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+    //取消定时器（避免关闭演示后残留定时器继续刷新）
+    m_refreshSubItemFlag.Cancel();
+}
+
+void MainForm::InitFillRefreshTests(ui::ListCtrl* pListCtrl)
+{
+    if (pListCtrl == nullptr) {
+        return;
+    }
+
+    //"单元格填充回调（悬停按钮）"开关：控制 OnReportViewItemFilled 是否生效（默认关闭）
+    ui::CheckBox* pItemFilled = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_enable_report_view_item_filled")));
+    if (pItemFilled != nullptr) {
+        pItemFilled->Selected(m_bReportViewItemFilled, false);
+        ui::ControlPtrT<ui::ListCtrl> spListCtrl(pListCtrl);
+        pItemFilled->AttachSelect([this, spListCtrl](const ui::EventArgs&) {
+            m_bReportViewItemFilled = true;
+            if (spListCtrl != nullptr) {
+                spListCtrl->Refresh();//需要主动刷新才能立即生效
+            }
+            return true;
+            });
+        pItemFilled->AttachUnSelect([this, spListCtrl](const ui::EventArgs&) {
+            m_bReportViewItemFilled = false;
+            return true;
+            });
+    }
+
+    //"单格刷新演示"开关：勾选时启动定时器并注册填充回调；取消勾选时停止并解绑
+    ui::CheckBox* pRefreshSubItem = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_enable_refresh_subitem")));
+    if (pRefreshSubItem != nullptr) {
+        pRefreshSubItem->Selected(false, false);
+        pRefreshSubItem->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
+            TestRefreshSubItem(pListCtrl);
+            return true;
+            });
+        pRefreshSubItem->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
+            StopRefreshSubItem(pListCtrl);
+            return true;
+            });
+    }
 }
 
 void MainForm::TestColumnVisibleApi(ui::ListCtrl* pListCtrl)
@@ -3016,8 +3063,10 @@ void MainForm::OutputDebugLog(const DString& logMsg)
 
 void MainForm::OnReportViewItemFilled(const ui::EventArgs& args)
 {
-    //默认关闭
-    return;
+    //由界面上的勾选框开关控制是否生效（默认关闭）
+    if (!m_bReportViewItemFilled) {
+        return;
+    }
 
     ASSERT(args.eventType == ui::kEventReportViewItemFilled);
     ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.pEventData;
@@ -3045,6 +3094,17 @@ void MainForm::OnReportViewItemFilled(const ui::EventArgs& args)
     }
 }
 
+/** 自定义按钮类，便于识别
+*/
+class MyHoverButton : public ui::Button
+{
+public:
+    explicit MyHoverButton(ui::Window* pWindow):
+        ui::Button(pWindow)
+    {
+    }
+};
+
 void MainForm::OnReportViewSubItemFilled(ui::ListCtrlSubItem* pSubItem)
 {
     ASSERT(pSubItem != nullptr);
@@ -3054,7 +3114,7 @@ void MainForm::OnReportViewSubItemFilled(ui::ListCtrlSubItem* pSubItem)
 
     if (pSubItem->GetItemCount() == 0) {
         //功能演示：动态添加一个新按钮
-        ui::Button* pHoverButton = new ui::Button(pSubItem->GetWindow());
+        MyHoverButton* pHoverButton = new MyHoverButton(pSubItem->GetWindow());
         pHoverButton->SetClass(_T("btn_recycle"));
         pHoverButton->SetAttribute(_T("width"), _T("auto"));
         pHoverButton->SetAttribute(_T("height"), _T("auto"));
@@ -3097,9 +3157,18 @@ void MainForm::OnReportViewSubItemMouseEnter(const ui::EventArgs& args)
     }
     if (pSubItem->GetItemCount() > 0) {
         //鼠标划入时：如果存在子控件，则显示该子控件
-        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
-        if ((pDemoControl != nullptr) && !pDemoControl->IsVisible()) {
-            pDemoControl->SetVisible(true);
+        MyHoverButton* pHoverButton = dynamic_cast<MyHoverButton*>(pSubItem->GetItemAt(0));
+        if (pHoverButton != nullptr) {
+            if (m_bReportViewItemFilled) {
+                //功能开启
+                if (!pHoverButton->IsVisible()) {
+                    pHoverButton->SetVisible(true);
+                }
+            }
+            else {
+                //功能关闭，移除自定义的按钮
+                pSubItem->RemoveItem(pHoverButton);
+            }
         }
     }
 }
@@ -3119,9 +3188,11 @@ void MainForm::OnReportViewSubItemMouseLeave(const ui::EventArgs& args)
     }
     if (pSubItem->GetItemCount() > 0) {
         //鼠标划出时：如果存在子控件，则隐藏该子控件
-        ui::Control* pDemoControl = pSubItem->GetItemAt(0);
-        if ((pDemoControl != nullptr) && pDemoControl->IsVisible()) {
-            pDemoControl->SetVisible(false);
+        MyHoverButton* pHoverButton = dynamic_cast<MyHoverButton*>(pSubItem->GetItemAt(0));
+        if (pHoverButton != nullptr) {
+            if (pHoverButton->IsVisible()) {
+                pHoverButton->SetVisible(false);
+            }
         }
     }
 }

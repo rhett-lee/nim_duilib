@@ -81,6 +81,14 @@ private:
     */
     void TestRefreshSubItem(ui::ListCtrl* pListCtrl);
 
+    /** 停止单格刷新演示（RefreshSubItem）：取消定时器并解绑填充回调
+    */
+    void StopRefreshSubItem(ui::ListCtrl* pListCtrl);
+
+    /** 初始化"填充回调与单格刷新"面板：填充回调开关、单格刷新演示开关
+    */
+    void InitFillRefreshTests(ui::ListCtrl* pListCtrl);
+
     /** 测试ListCtrl级别的列显隐接口（SetColumnVisible/IsColumnVisible）与列显隐变化事件
     */
     void TestColumnVisibleApi(ui::ListCtrl* pListCtrl);
@@ -208,6 +216,14 @@ private:
     /** "Combo列编辑器"勾选框的状态：数据被重新载入后，按该状态重新应用列编辑器类型
     */
     bool m_bComboEditor;
+
+    /** "单元格填充回调（悬停按钮）"勾选框的状态：勾选后，整行/单格填充时会为单元格动态添加悬停按钮
+    */
+    bool m_bReportViewItemFilled;
+
+    /** 单格刷新演示的定时器回调标志：关闭演示时 Cancel 掉，避免残留定时器
+    */
+    ui::WeakCallbackFlag m_refreshSubItemFlag;
 
     /** 进度条文字位置（"center"/"left"/"right"/"outside"）
     */

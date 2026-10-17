@@ -228,4 +228,4 @@ if (msg.eventType == eventType) {
 以上列表中，在XML中使用"事件的XML名称1"或者"事件的XML名称2"均可，两个名称都认。
 
 <!-- verify:allow-missing kEventReportViewSubItemFilled -->
-> 说明：事件 `kEventReportViewSubItemFilled` 已移除（原逐格填充事件，触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（整行填充，`pEventData` 为 `ListCtrlItem*`，可再通过 `GetSubItem(columnIndex)` 取到单元格）。
+> 说明：事件 `kEventReportViewSubItemFilled` 已移除（原逐格填充事件，触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（`pEventData` 为 `ListCtrlItem*`；`pExtraData` 为本次填充的 `ListCtrlSubItem*`：整行填充时为 `nullptr`，调用 `RefreshSubItem` 单格刷新时指向该单元格；可再通过 `GetSubItem(columnIndex)` 取到单元格）。

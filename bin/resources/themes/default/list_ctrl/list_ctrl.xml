@@ -306,6 +306,15 @@
                         </HFlowBox>
                     </GroupVBox>
 
+                    <!-- 填充回调与单格刷新 -->
+                    <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
+                               padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_FILL_REFRESH_GROUP">
+                        <HFlowBox width="stretch" height="auto" child_halign="left" child_valign="center" child_margin_y="6">
+                            <CheckBox class="checkbox_1" name="checkbox_enable_report_view_item_filled" text_id="STRID_LISTCTRL_ENABLE_REPORT_ITEM_FILLED" margin="0,0,16,0" valign="center"/>
+                            <CheckBox class="checkbox_1" name="checkbox_enable_refresh_subitem" text_id="STRID_LISTCTRL_ENABLE_REFRESH_SUBITEM" margin="0,0,0,0" valign="center"/>
+                        </HFlowBox>
+                    </GroupVBox>
+
                     <!-- 事件与状态显示 -->
                     <GroupVBox class="group_box_round" width="stretch" height="auto" margin="0,0,0,8"
                                padding="10,26,10,8" control_padding="false" text_id="STRID_LISTCTRL_EVENT_STATE_GROUP">

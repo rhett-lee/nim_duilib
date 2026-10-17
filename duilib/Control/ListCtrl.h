@@ -1247,13 +1247,15 @@ public:
      */
     void AttachDataItemCountChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventDataItemCountChanged, callback, callbackID); }
 
-    /** 监听Report视图数据项UI元素填充事件（虚表，填充某行数据）
+    /** 监听Report视图数据项UI元素填充事件（虚表）
+     *  触发场景：整行填充数据时触发一次；调用RefreshSubItem单格刷新时也会触发一次
      * @param [in] callback 要绑定的回调函数
      * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
      * 参数说明:
      *   wParam: 关联的UI容器子项索引号，有效范围：[0, GetItemCount())，如果值为Box::InvalidIndex，表示未关联任何子项
      *   lParam: 关联的UI容器子项索引号对应的数据项索引号，有效范围：[0, GetDataItemCount())，如果值为Box::InvalidIndex，表示无关联的数据项
      *   pEventData: 关联的UI容器子项的界面控件接口指针，类型为：ListCtrlItem*指针，数据按行填充
+     *   pExtraData: 关联的单元格指针，类型为：ListCtrlSubItem*指针；为nullptr表示填充了本行的所有单元格；非nullptr表示只填充了该单元格（单格刷新）
      */
     void AttachReportViewItemFilled(const EventCallback& callback, EventCallbackID callbackID = 0) { this->AttachEvent(kEventReportViewItemFilled, callback, callbackID); }
 

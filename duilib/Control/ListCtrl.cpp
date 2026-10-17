@@ -763,6 +763,7 @@ void ListCtrl::InitIconView()
 
     m_pIconView->AttachIconViewItemFilled([this](const EventArgs& args) {
         EventArgs newMsg = args;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::Icon;
         newMsg.SetSender(this);
         SendEventMsg(newMsg);
         return true;
@@ -837,6 +838,7 @@ void ListCtrl::InitListView()
 
     m_pListView->AttachListViewItemFilled([this](const EventArgs& args) {
         EventArgs newMsg = args;
+        newMsg.listCtrlType = (int32_t)ListCtrlType::List;
         newMsg.SetSender(this);
         SendEventMsg(newMsg);
         return true;
