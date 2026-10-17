@@ -25,8 +25,7 @@ endif()
 # 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
 option(DUILIB_LOG "Print duilib debug log" OFF)
 
-# Skia的lib子目录名开关（默认情况下，Windows按规则拼接路径；其他平台则可以固定目录，比如llvm编译）
-option(DUILIB_SKIA_LIB_SUBPATH "Skia lib sub path" OFF)
+# Skia的lib子目录名开关（默认值在下方"编译类型"之后计算，此处不声明）
 
 # SDL功能：Windows平台默认不开启，其他平台默认开启
 if(DUILIB_OS_WINDOWS)
@@ -89,6 +88,25 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
     set(DUILIB_BUILD_TYPE "release")
 endif()
+
+#Skia的lib子目录名（默认值：Windows平台按 llvm.<CPU_ARCH>.<构建类型> 拼接；其他平台默认空，走下方自动拼接规则）
+# 规则与 build/msvc_build.bat 保持一致：llvm.<CPU_ARCH>.release / llvm.<CPU_ARCH>.debug，
+# 其中 CPU_ARCH 取 VS 目标架构（cmake -A 参数），缺省 x64，-A Win32 时为 x86。
+# 仅在外部未指定时才使用默认值：-DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准
+# （set(... CACHE ...) 不会覆盖已存在的缓存变量，因此外部指定值优先）
+set(DUILIB_SKIA_LIB_SUBPATH_DEFAULT "")
+if(DUILIB_OS_WINDOWS)
+    set(DUILIB_SKIA_CPU_ARCH "x64")
+    if(CMAKE_GENERATOR_PLATFORM)
+        if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+            set(DUILIB_SKIA_CPU_ARCH "x86")
+        else()
+            set(DUILIB_SKIA_CPU_ARCH "${CMAKE_GENERATOR_PLATFORM}")
+        endif()
+    endif()
+    set(DUILIB_SKIA_LIB_SUBPATH_DEFAULT "llvm.${DUILIB_SKIA_CPU_ARCH}.${DUILIB_BUILD_TYPE}")
+endif()
+set(DUILIB_SKIA_LIB_SUBPATH "${DUILIB_SKIA_LIB_SUBPATH_DEFAULT}" CACHE STRING "Skia lib sub path")
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)

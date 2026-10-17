@@ -376,8 +376,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 
 **⑥ 工程文件 `CMakeLists.txt`**
 
-四件套之一，关键是 `DUILIB_SKIA_LIB_SUBPATH` 的默认值必须写在 `include(duilib_common.cmake)` 之前
-（原因见第六节）：
+四件套之一，只需要两行 include。`DUILIB_SKIA_LIB_SUBPATH` 的默认值已下沉到
+`duilib_common.cmake` 内部计算，工程里**不必再设置**：
 
 ```cmake
 cmake_minimum_required(VERSION 3.18)
@@ -386,22 +386,17 @@ set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 project(hello_button CXX)                      # 需与 examples/ 下的目录名一致
 
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../" ABSOLUTE)
+get_filename_component(DUILIB_PROJECT_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/" ABSOLUTE)
 
-if(WIN32 AND NOT DEFINED DUILIB_SKIA_LIB_SUBPATH)
-    set(CPU_ARCH "x64")
-    if(CMAKE_GENERATOR_PLATFORM)
-        if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
-            set(CPU_ARCH "x86")
-        else()
-            set(CPU_ARCH "${CMAKE_GENERATOR_PLATFORM}")
-        endif()
-    endif()
-    set(DUILIB_SKIA_LIB_SUBPATH "llvm.${CPU_ARCH}.release")
-endif()
-
+# 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")
 ```
+
+默认值规则（详见 `cmake/README.md`）：Windows 为 `llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`
+（`CPU_ARCH` 取自 `cmake -A`，`-A Win32` → `x86`，缺省 `x64`），其他平台为空、按
+`${编译器}.${架构}.${构建类型}` 自动拼接；`set(... CACHE ...)` 不会覆盖已有缓存项，
+故外部 `-DDUILIB_SKIA_LIB_SUBPATH=...` 依然优先。
 
 整个过程不需要人去翻 `docs/Control.md` 查属性名，也不需要回忆按钮该叫什么——
 窗口类、XML、主线程、入口、CMake 都已经由 Skill 提供并验证，AI 直接取用即可。
@@ -442,9 +437,10 @@ SDK="C:/Program Files (x86)/Windows Kits/10/Include/<SDK版本>"
 
 `-utf-8` 不能省（源码有中文注释时否则报 C4819）。退出码 0 即通过。
 
-> 顺带说一个 CMake 的时序坑：工程里给 `DUILIB_SKIA_LIB_SUBPATH` 设默认值时，  
-> 必须写在 `include(duilib_common.cmake)` **之前**。因为那个脚本用 `option()` 声明了同名变量，  
-> `option()` 执行后变量必然已定义，此后再判断「是否未定义」永远为假。
+> 顺带说一个 CMake 的时序坑：`option()` 声明过的变量永远"已定义"，之后再判断「未定义」恒为假。  
+> `DUILIB_SKIA_LIB_SUBPATH` 就曾踩过它——旧模板要求工程把它写在 `include(duilib_common.cmake)` **之前**。  
+> 现已下沉到 `duilib_common.cmake` 内部计算，并改用 `set(... CACHE ...)` 声明（外部 `-D` 仍优先），  
+> 工程 `CMakeLists.txt` 不必再设置该变量。
 
 ---
 

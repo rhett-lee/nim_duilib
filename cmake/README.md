@@ -60,7 +60,7 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | 选项名称 | 默认值 | 说明 |
 |----------|--------|------|
 | `DUILIB_LOG` | OFF | 打印 duilib 调试日志 |
-| `DUILIB_SKIA_LIB_SUBPATH` | OFF | Skia 库子目录（OFF 表示自动拼接） |
+| `DUILIB_SKIA_LIB_SUBPATH` | Windows=`llvm.<CPU_ARCH>.<构建类型>`，其他=空 | Skia 库子目录（空表示按规则自动拼接） |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, 其他=ON | 启用 SDL 输入支持 |
 | `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持 |
 | `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7） |
@@ -91,14 +91,28 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | `DUILIB_CEF_LIBS` | libCEF 库列表 |
 
 **Skia 路径拼接规则：**
+
+`DUILIB_SKIA_LIB_SUBPATH` 的默认值在 `duilib_common.cmake` 内部计算（在 `DUILIB_BUILD_TYPE` 之后），各工程无需再自行设置：
+
 ```cmake
-# DUILIB_SKIA_LIB_SUBPATH 为 OFF 时，按规则自动拼接：
+# 默认值：
+#   Windows   : llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>
+#   Linux/macOS/FreeBSD : 空
+# 其中 CPU_ARCH 取 cmake -A 的目标架构：-A Win32 -> x86，缺省 -> x64，
+# 规则与 build/msvc_build.bat 保持一致；DUILIB_BUILD_TYPE 为 debug 或 release。
+# 外部用 -DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准（set(... CACHE ...) 不会覆盖已有缓存项）。
+
+# 最终 Skia 库目录：
+#   子目录名为空（或旧值 OFF）时，按规则自动拼接：
 ${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}
+#   子目录名非空时，直接使用：
+${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}
 
 # 示例：
-# skia/out/msvc.x64.release
-# skia/out/mingw64-gcc.x64.release
-# skia/out/llvm.x86.debug
+# Windows x64 + Release        -> skia/out/llvm.x64.release
+# Windows x64 + Debug          -> skia/out/llvm.x64.debug
+# Windows -A Win32 + Debug     -> skia/out/llvm.x86.debug
+# 非 Windows 自动拼接          -> skia/out/mingw64-gcc.x64.release
 ```
 
 ---
@@ -462,7 +476,7 @@ cmake --build ./build_llvm
 | 选项名称 | 类型 | 默认值 | 说明 |
 |----------|------|--------|------|
 | `DUILIB_LOG` | BOOL | OFF | 打印调试日志 |
-| `DUILIB_SKIA_LIB_SUBPATH` | STRING | OFF | Skia 库子目录 |
+| `DUILIB_SKIA_LIB_SUBPATH` | STRING | Windows=`llvm.<CPU_ARCH>.<构建类型>`，其他=空 | Skia 库子目录 |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, 其他=ON | 启用 SDL 支持 |
 | `DUILIB_ENABLE_CEF` | BOOL | OFF | 启用 CEF 支持 |
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 版本（Win7） |

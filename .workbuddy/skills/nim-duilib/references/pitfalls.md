@@ -162,14 +162,18 @@ git merge-base --is-ancestor <代码提交> <文档提交> && echo "文档写于
 ## 四点五、CMake 变量设置的时序陷阱
 
 **`option()` 声明过的变量永远"已定义"**，所以 `if(NOT DEFINED X)` 在 `option(X ...)` 之后判断恒为假。
-`duilib_common.cmake:29` 就是 `option(DUILIB_SKIA_LIB_SUBPATH "Skia lib sub path" OFF)`，
-想给 Skia 库子目录设默认值，**必须写在 `include(duilib_common.cmake)` 之前**（即 `# 包含公共实现代码` 之前），
-否则默认值永远设不进去，会退化成按 `${编译器}.${架构}.${构建类型}` 拼接的规则路径。
 
-Windows 下默认规则与 `build/msvc_build.bat:52-56` 一致：`llvm.<CPU_ARCH>.release`
+`DUILIB_SKIA_LIB_SUBPATH` 曾经踩过这个坑：旧实现是在 `duilib_common.cmake` 里用
+`option(DUILIB_SKIA_LIB_SUBPATH "Skia lib sub path" OFF)` 声明，于是工程里再写
+`if(NOT DEFINED DUILIB_SKIA_LIB_SUBPATH)` 永远不成立。
+**现已修正**：默认值改为在 `duilib_common.cmake` 内部计算（位于 `DUILIB_BUILD_TYPE` 之后），
+用 `set(... CACHE STRING ...)` 声明——`set(... CACHE ...)` 同样不会覆盖已存在的缓存项，
+因此外部 `-DDUILIB_SKIA_LIB_SUBPATH=...` 依然优先。
+**工程 `CMakeLists.txt` 无需再设置该变量**，模板里也已删除这段冗余代码。
+
+Windows 下默认值与 `build/msvc_build.bat` 一致：`llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`
 （`CPU_ARCH` 取 `cmake -A` 的目标架构，`-A Win32` 时为 `x86`，缺省 `x64`）。
-`msvc_build.bat` 会用 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release` 覆盖，所以工程里的默认值
-只在单独 configure 时生效——这正是"仅当未定义时才定义"的意义。
+其他平台默认为空，按 `${编译器}.${架构}.${构建类型}` 规则自动拼接。
 
 ## 五、易混淆的目录与大小写
 

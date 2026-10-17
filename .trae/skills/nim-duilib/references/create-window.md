@@ -129,5 +129,5 @@ window->ShowWindow(ui::kSW_SHOW_NORMAL);
 - [ ] XML 文件路径与 GetSkinFolder()/GetSkinFile() 返回值一致
 - [ ] 如果是示例工程，需要在 vcxproj 中添加引用
 - [ ] 标题栏按钮用的是 `btn_window_*` 新名，不是 `minbtn`/`closebtn` 旧名
-- [ ] `DUILIB_SKIA_LIB_SUBPATH` 的默认值写在 `include(duilib_common.cmake)` **之前**
-      （该脚本用 `option()` 声明它，include 后必然已定义，之后再判断"未定义"永远是假）
+- [ ] `DUILIB_SKIA_LIB_SUBPATH` 已由 `duilib_common.cmake` 内部计算，工程 `CMakeLists.txt`
+      无需再设置（模板已删除该段）；需要覆盖时用 `-DDUILIB_SKIA_LIB_SUBPATH=...`
