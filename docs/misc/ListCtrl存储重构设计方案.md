@@ -21,7 +21,7 @@
 
 ## 1. 现状与瓶颈（带量化）
 
-现状模型（见 [ListCtrlData.h](file:///c:/develop/nim_duilib/duilib/Control/ListCtrlData.h#L19-L24)）：
+现状模型（见 [ListCtrlData.h](../../duilib/Control/ListCtrlData.h#L19-L24)）：
 
 | 结构 | 定义 | 含义 |
 |------|------|------|
@@ -31,8 +31,8 @@
 
 瓶颈点：
 
-1. `InsertDataItem` / `DeleteDataItem` 对**每一列**做 `vector::insert/erase`（见 [ListCtrlData.cpp](file:///c:/develop/nim_duilib/duilib/Control/ListCtrlData.cpp#L503-L514) 与 [L534-L539](file:///c:/develop/nim_duilib/duilib/Control/ListCtrlData.cpp#L534-L539)）——搬移量随"列数 × 行数"放大。
-2. `SortDataItems` 写回时对**每列整列深拷贝**（见 [ListCtrlData.cpp](file:///c:/develop/nim_duilib/duilib/Control/ListCtrlData.cpp#L1578-L1592)）——O(N×C)。
+1. `InsertDataItem` / `DeleteDataItem` 对**每一列**做 `vector::insert/erase`（见 [ListCtrlData.cpp](../../duilib/Control/ListCtrlData.cpp#L503-L514) 与 [L534-L539](../../duilib/Control/ListCtrlData.cpp#L534-L539)）——搬移量随"列数 × 行数"放大。
+2. `SortDataItems` 写回时对**每列整列深拷贝**（见 [ListCtrlData.cpp](../../duilib/Control/ListCtrlData.cpp#L1578-L1592)）——O(N×C)。
 3. 每格 `shared_ptr` 独立堆分配：内存开销大（~120~136B/格）。
 
 **量化对比（N=10 万行、C=10 列，删除中间 1 行）：**

@@ -124,8 +124,10 @@ python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
 python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档.md>
 ```
 
-确实需要引用源码中不存在的名字时，在文档里加一行 HTML 注释走白名单：
-`<!-- verify:allow-missing 名字1 名字2 -->`。
+确实需要引用源码中不存在的名字时（例如讲解"已废弃的旧名"），登记到脚本旁的豁免名单
+`scripts/verify_allowlist.txt`，每行格式为 `<glob> :: 名字1 名字2 ...`，`glob` 留空表示对所有文件生效。
+
+**不要把豁免写成文档里的 HTML 注释** —— 注释会破坏 markdown 正文结构。
 
 ---
 

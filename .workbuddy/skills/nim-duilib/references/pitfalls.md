@@ -1,8 +1,5 @@
 # 已核实的陷阱与历史问题
 
-<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange -->
-<!-- 上面这些名字是刻意举例的"错误写法"，verify_docs.py 不应把它们当成文档漂移。 -->
-
 本文记录的都是**实际验证过**的坑，按"症状"分类。排查诡异问题时先查这里，
 每条都标注了源码依据，可据此复核结论是否仍然成立。
 
@@ -287,4 +284,3 @@ Enter/`IDOK` 对应 `kWindowCloseOK(1)`。
    中文按字换行时行数常常恰好一样，英文按词换行必现。解决：Label 宽度直接写
    与实际布局相等的固定 DIP 值（外宽−内边距−兄弟宽/margin），让估算与渲染
    使用同一换行宽度。Toast 的 toast.xml 中 label 固定 width="296"。
-

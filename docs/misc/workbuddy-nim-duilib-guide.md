@@ -417,7 +417,7 @@ python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --
 
 输出形如：`扫描文档 13 个，源码索引：121 个宏 / 96 个事件 / 2408 个类名 / 42 个字体 / 350 个色名，
 未发现文档漂移`。它第一次运行就抓出了源文档里一个真实错误：`bg_statusbar` 这个色名在三个  
-`global.xml` 里都不存在。<!-- verify:allow-missing bg_statusbar -->
+`global.xml` 里都不存在。
 
 **第二层：cmake configure。** 只配置不构建，即可验证 `CMakeLists.txt` 是否写对，几秒钟出结果。
 

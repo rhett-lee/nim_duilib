@@ -1,8 +1,5 @@
 # 已核实的陷阱与历史问题
 
-<!-- verify:allow-missing kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange kEventXxx -->
-<!-- 上面这些名字是刻意举例的"错误写法"，verify_docs.py 不应把它们当成文档漂移。 -->
-
 本文记录的都是**实际验证过**的坑，按"症状"分类。排查诡异问题时先查这里，
 每条都标注了源码依据，可据此复核结论是否仍然成立。
 
@@ -340,5 +337,3 @@ NavigationView 内部用 TabBox 切换内容页，早期对外直接 `SendEvent(
 ```
 
 `VBox`/`HBox`/`VScrollBox`/`TabBox`/`Line` 等可以前置声明，是否可前置声明以实际编译为准。
-
-

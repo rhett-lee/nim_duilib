@@ -60,7 +60,7 @@
 
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
-| PlaceHolder |nbase::SupportWeakCallback| [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | 所有控件和容器的顶层基类，封装了控件的位置、大小、外观形状等基本数据|
+| PlaceHolder | SupportWeakCallback | [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | 所有控件和容器的顶层基类，封装了控件的位置、大小、外观形状等基本数据|
 | Control | PlaceHolder | [duilib/Core/Control.h](../duilib/Core/Control.h) | 一个基本的控件，也是所有控件和容器的基类，包含了控件的位置、大小、状态、颜色、图片资源、动画、绘制、光标、鼠标、键盘、焦点、快捷键操作等基本功能|
 | Box | Control| [duilib/Core/Box.h](../duilib/Core/Box.h) | 所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
 

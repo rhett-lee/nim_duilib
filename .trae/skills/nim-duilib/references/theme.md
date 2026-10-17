@@ -1,6 +1,5 @@
 # 主题与样式定制
 
-<!-- verify:allow-missing my_card my_title_font my_font_16 -->
 <!-- my_card / my_title_font / my_font_16 是自定义样式举例名。
      以上均为刻意举例，verify_docs.py 不应判为漂移。 -->
 

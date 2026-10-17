@@ -24,7 +24,6 @@
 
 | 能力 | 接口 | 说明 |
 |------|------|------|
-<!-- verify:allow-missing kEventReportViewSubItemFilled -->
 | 单格刷新 | `RefreshSubItem` / `RefreshSubItemById` | 仅刷新指定单元格，避免整行刷新；仅 Report 视图有效，单元格不在可见范围时返回 `false`（数据已更新，滚动到可见后显示最新数据）。原逐格填充事件 `kEventReportViewSubItemFilled` 已移除（触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（整行填充，`pEventData` 为 `ListCtrlItem*`，可再通过 `GetSubItem(columnIndex)` 取到单元格） |
 | 列显示 / 隐藏 | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl 一级的列显隐接口，内部自动同步数据列，应用无需再绕过封装操作表头子项 |
 | 列布局事件 | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | 分别派发 `kEventColumnWidthChanged` / `kEventColumnOrderChanged` / `kEventColumnVisibleChanged` / `kEventColumnSorted`，应用可据此持久化列宽、列序、列显隐与排序状态 |
@@ -56,8 +55,6 @@
 日期模式（`kSortByTextAsDate`）：将文本按"年、月、日、时、分、秒"六个数字段解析为可比较的 64 位键值后排序；字段之间允许任意非数字分隔符、月/日/时等可不补零（如 `2024-3-7`、`2024/03/07`、`2024-03-07 13:45:00`）。无法解析为日期的文本视为最小值（与其他排序标志的"无效值最小"约定一致），键值相同时回退文本比较，保证比较结果是一个严格的全序。
 
 > 注：目前仅支持单列排序，且为整表排序 + 全量刷新；增量 / 局部排序经评审后决定**不做（不实施）**。
-
-<!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 
 #### 5. 键盘导航（已具备）
 

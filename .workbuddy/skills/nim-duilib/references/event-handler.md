@@ -1,8 +1,5 @@
 # 事件处理
 
-<!-- verify:allow-missing kEventResize -->
-<!-- kEventResize 是刻意举例的"错误写法"（正确为 kEventSizeChanged），verify_docs.py 不应判为漂移。 -->
-
 ## 方式一: XML 内联事件（无需 C++ 代码）
 
 ### 语法

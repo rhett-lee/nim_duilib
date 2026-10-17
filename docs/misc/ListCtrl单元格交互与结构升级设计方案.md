@@ -1,7 +1,7 @@
 # ListCtrl 单元格交互与结构升级设计方案
 
 > 本文档给出 `ui::ListCtrl` 一系列"结构相关"规划项的**统一设计方案**：单元格选择 / 单元格编辑 / 单元格复制 / 单元格合并 / 多级表头 / 内嵌树 / 行分组折叠 / 行拖拽换序 / **自定义单元格渲染器（L4）。**
-> 跟踪清单见 [ListCtrl-Roadmap.md](../ListCtrl-Roadmap.md)（§二 L1~L5、§三 A2、§四功能对照、§五第 12 项）；存储层方案见 [ListCtrl存储重构设计方案.md](ListCtrl存储重构设计方案.md)。
+> 跟踪清单见 [ListCtrl-Roadmap.md](ListCtrl-Roadmap.md)（§二 L1~L5、§三 A2、§四功能对照、§五第 12 项）；存储层方案见 [ListCtrl存储重构设计方案.md](ListCtrl存储重构设计方案.md)。
 > 本文档只做**设计**，不含实现；文中所有"现有代码锚点"均已在源码中核实。
 >
 > **实施状态（当前）**：C0 / C1 / C1b / C1c / C2 / C3 已实施（详见各阶段标题标注）；**C4（单元格合并）、C5（行分组折叠 / 内嵌树）、C6（多级表头）、C7（行拖拽换序）经评审后决定「已取消（不实施）」**——这四项均需表头与行的布局模型整体升级、改动面过大，故不做。以下 §3 中 C4~C7 各阶段的标题已加【已取消（不实施）】标注，其"数据模型 / API / 事件"等属**历史设计记录**，不再作为实施依据；§4 依赖顺序、§5 风险、§6 已拍板事项中与之相关的条目亦已同步标注作废。
@@ -11,7 +11,6 @@
 > **事件变更（后续）**：逐格填充事件 `kEventReportViewSubItemFilled`（及便捷方法 `AttachReportViewSubItemFilled`）已移除（事件过于频繁、对性能影响较大）；原有功能可使用整行填充事件 `kEventReportViewItemFilled` 替代。下文涉及该事件/方法的历史描述已同步更新为替代事件。
 >
 > 下文出现的以下事件名均为**本方案新提议**、源码中尚不存在（落地时才按"三件套"约定新增；其中 C4~C7 相关的 `kEventCellsMerged` / `kEventCellsUnmerged` / `kEventItemExpandedChanged` / `kEventGroupCollapsedChanged` / `kEventRowMoved` 随该四项取消而不再实施）：
-> <!-- verify:allow-missing kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled -->
 
 ---
 
