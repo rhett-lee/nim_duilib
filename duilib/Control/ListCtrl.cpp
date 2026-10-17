@@ -4956,7 +4956,10 @@ void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
         return;
     }
     if ((msg.GetSender() != m_pRichEdit) && (msg.GetSender() != m_pDateTime)) {
-        LeaveEditMode();
+        if (msg.vkCode != kVK_F2) {
+            //使用F2进入编辑状态，不自动退出编辑状态，避免F2功能失效
+            LeaveEditMode();
+        }
     }    
 }
 
