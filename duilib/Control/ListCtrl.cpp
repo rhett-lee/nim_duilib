@@ -4091,6 +4091,18 @@ bool ListCtrl::IsValidItemEditState(const ListCtrlEditParam& editParam) const
                 return false;
             }
         }
+        else {
+            //单元格选择模式：进入编辑前要求目标单元格仍是"当前单元格"。
+            //单击进入编辑走600ms定时器链路；若用户在定时器触发前又点击了其它单元格，
+            //此时"当前单元格"已改变，而目标单元格的行项仍然可见，会导致定时器仍对旧单元格生效、
+            //旧单元格错误进入编辑状态（不符合预期），故此处按"当前单元格是否一致"做校验。
+            const ListCtrlCellId curCell = GetCurrentCell();
+            if (!curCell.IsValid() ||
+                (curCell.nRowIndex != editParam.nItemIndex) ||
+                (curCell.nColumnId != editParam.nColumnId)) {
+                return false;
+            }
+        }
         //单元格选择模式下，"行选择"不参与（切到kCell时已清空行选择），不作要求
         ASSERT(m_pReportView != nullptr);
         if (m_pReportView == nullptr) {
@@ -4561,6 +4573,12 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
     //编辑器控件会被复用：清除上一次编辑遗留的"抑制重开"状态，
     //否则重新获得焦点时日历浮层不会自动弹出（需要再点一次鼠标才弹出）
     m_pDateTime->ResetCalendarFlyoutState();
+    //控件被复用时，其布局矩形不会随margin的修改立即更新（SetMargin仅标记待布局），
+    //而日历浮层在SetFocus时会按控件当前的矩形来定位；因此需先刷新一次窗口布局，
+    //否则浮层仍停留在上一次编辑所在单元格的位置（与当前单元格不同步）
+    if (GetWindow() != nullptr) {
+        GetWindow()->UpdateWindow();
+    }
     //获得焦点后，DateTime控件会自动弹出月日历
     m_pDateTime->SetFocus();
 
