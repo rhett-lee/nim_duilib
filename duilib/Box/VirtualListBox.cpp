@@ -461,7 +461,13 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
 {
     VirtualListBox::RefreshDataList refreshDataList;
     VirtualListBox::RefreshData refreshData;
-    size_t nItemCount = m_items.size();
+    const size_t nItemCount = m_items.size();
+    refreshDataList.reserve(nItemCount);
+
+    //需要更新的元素个数：每个元素只会绑定到一个界面控件，命中足量的元素后即可提前结束扫描
+    //（区间长度大于1时同样有效，越靠近视图顶部越快命中，无需扫描剩余可见项）
+    const size_t nTargetCount = (nEndElementIndex >= nStartElementIndex) ? (nEndElementIndex - nStartElementIndex + 1) : 0;
+    size_t nFilledCount = 0;
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = m_items[nItemIndex];
         if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -479,6 +485,12 @@ void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndEl
                 refreshData.pControl = pControl;
                 refreshData.nElementIndex = nElementIndex;
                 refreshDataList.push_back(refreshData);
+
+                ++nFilledCount;
+                if (nFilledCount >= nTargetCount) {
+                    //已覆盖区间内的全部元素，提前结束扫描
+                    break;
+                }
             }
         }
     }
