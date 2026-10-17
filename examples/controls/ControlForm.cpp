@@ -7,6 +7,7 @@
 #include "MarqueeForm.h"
 #include "TimelineForm.h"
 #include "StatusBarForm.h"
+#include "ToolBarForm.h"
 
 #include <fstream>
 
@@ -346,6 +347,15 @@ void ControlForm::OnInitWindow()
             });
     }
 
+    //ToolBar 工具条演示
+    ui::Button* pToolBarBtn = dynamic_cast<ui::Button*>(FindControl(_T("toolbar_btn")));
+    if (pToolBarBtn != nullptr) {
+        pToolBarBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowToolBarWindow();
+            return true;
+            });
+    }
+
     //托盘图标功能
     ui::CheckBox* pTrayIconCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_tray_icon")));
     if (pTrayIconCheckBox != nullptr) {
@@ -577,6 +587,18 @@ void ControlForm::ShowStatusBarWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("StatusBarWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowToolBarWindow()
+{
+    ToolBarForm* testForm = new ToolBarForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("ToolBarWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

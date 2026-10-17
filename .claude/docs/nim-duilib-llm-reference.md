@@ -361,6 +361,11 @@ C++：`SetFrozenColumnCount/GetFrozenColumnCount`；`SetSubItemProgress(ById)/Ge
 属性：`separator_width`（1，像素，0 表示不绘制分隔线）、`separator_color`（`border_window`）、`size_grip`（false，仅视觉提示，不改变窗口可调整大小行为）、`size_grip_color`（`border_window`）。
 C++：`SetSeparatorWidth/GetSeparatorWidth`、`SetSeparatorColor/GetSeparatorColor`、`SetShowSizeGrip/IsShowSizeGrip`、`SetSizeGripColor/GetSizeGripColor`。示例：`<StatusBar width="stretch" height="30" border_size="0,1,0,0" bordercolor="border_window" size_grip="true"><Label text="就绪" width="110"/><Progress width="stretch" progress_color="bg_progress" bkcolor="bg_progress_track"/></StatusBar>`。
 
+### ToolBar 属性(继承 HBox，工具条/工具栏)
+`duilib/Control/ToolBar.h`，XML 节点 `ToolBar`。用于承载一排工具按钮与分隔线（编辑器/IDE/办公类软件常用壳层元素）。继承 HBox：子控件水平排列，分隔线直接用 `Line` 控件（`vertical="true"`）。当可用宽度不足、尾部子控件放不下时，自动隐藏这些子控件，并在右端显示"更多"按钮（默认文本 `>>`）：点击后弹出浮层列出被收纳项，点击浮层中的项会触发回调（参数为被点击子控件的 `name`）；窗口宽度变化时自动重新计算收纳，宽度足够时自动恢复。跨平台通用。
+属性：`overflow`（true，是否启用溢出收纳）、`overflow_button_class`（"更多"按钮样式 Class，引用 global.xml 样式）、`overflow_button_width`（0，像素，0 表示按内容自适应）、`overflow_button_text`（`>>`）。
+C++：`AttachOverflowItemActivated/ ClearOverflowItemActivated`（回调原型 `std::function<void(const DString& itemName)>`）、`SetOverflowEnabled/IsOverflowEnabled`、`SetOverflowButtonClass/GetOverflowButtonClass`、`SetOverflowButtonWidth/GetOverflowButtonWidth`、`SetOverflowButtonText/GetOverflowButtonText`、`IsOverflowing`。示例：`<ToolBar width="stretch" height="36" padding="8,0,8,0" child_margin_x="4" overflow_button_width="28" overflow_button_text="&#187;"><Button name="tb_new" text="新建" width="64" height="28"/><Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/><Button name="tb_save" text="保存" width="64" height="28"/></ToolBar>`。
+
 ### Progress 属性(继承 Label)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|

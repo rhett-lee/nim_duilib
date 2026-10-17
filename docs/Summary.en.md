@@ -260,6 +260,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Control used to display icons; if icon data is not set, it is compatible with all functions of the base class Control |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control, used to display the path of the local file system |
 | StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control; draws separators automatically between adjacent status panes and offers an optional bottom-right size grip. See [Control.en.md](Control.en.md#attributes-of-statusbar-inherits-hbox-attributes) |
+| ToolBar | HBox | [duilib/Control/ToolBar.h](../duilib/Control/ToolBar.h) | Toolbar control holding tool buttons and separators; automatically collapses trailing children and shows a "more" button at the right end when the width is insufficient. See [Control.en.md](Control.en.md#attributes-of-toolbar-inherits-hbox-attributes) |
 
 * Global Resources
 

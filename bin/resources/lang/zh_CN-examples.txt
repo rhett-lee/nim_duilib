@@ -639,6 +639,7 @@ STRID_CONTROLS_CHART_TEST = 图表测试
 STRID_CONTROLS_MARQUEE_TEST = 跑马灯测试
 STRID_CONTROLS_TIMELINE_TEST = 时间轴测试
 STRID_CONTROLS_STATUSBAR_TEST = 状态栏测试
+STRID_CONTROLS_TOOLBAR_TEST = 工具条测试
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline 时间轴控件测试
 STRID_TIMELINE_HINT = 提示：点击节点触发回调，正文随宽度自适应换行
@@ -734,6 +735,26 @@ STRID_STATUSBAR_CONN_OFF = 连接：未连接
 STRID_STATUSBAR_POS_TEXT = 行 128，列 24 · 字数 2048
 STRID_STATUSBAR_BACKEND = 后台进度：
 STRID_STATUSBAR_PLAIN_TEXT = 第二个状态栏：separator_width="0"（不绘制分隔线）
+# controls/ToolBar
+STRID_TOOLBAR_WINDOW_TITLE = ToolBar 工具条控件测试
+STRID_TOOLBAR_HINT = 提示：拖动窗口边缘改变宽度，尾部按钮会自动收进右端的“»”按钮，点击可查看被收纳的按钮
+STRID_TOOLBAR_NEW = 新建
+STRID_TOOLBAR_OPEN = 打开
+STRID_TOOLBAR_SAVE = 保存
+STRID_TOOLBAR_UNDO = 撤销
+STRID_TOOLBAR_REDO = 重做
+STRID_TOOLBAR_CUT = 剪切
+STRID_TOOLBAR_COPY = 复制
+STRID_TOOLBAR_PASTE = 粘贴
+STRID_TOOLBAR_FIND = 查找
+STRID_TOOLBAR_REPLACE = 替换
+STRID_TOOLBAR_ZOOM_IN = 放大
+STRID_TOOLBAR_ZOOM_OUT = 缩小
+STRID_TOOLBAR_FULLSCREEN = 全屏
+STRID_TOOLBAR_CONTENT_TITLE = ToolBar 工具条容器
+STRID_TOOLBAR_CONTENT_BODY = ToolBar 继承 HBox，用于承载一排工具按钮；按钮组之间可使用 Line 控件绘制竖向分隔线。当可用宽度不足时，尾部按钮会被自动收纳（隐藏），并在右端显示“»”按钮；点击该按钮会弹出浮层，列出被收纳的按钮。收纳发生时，通过 AttachOverflowItemActivated 注册的回调会收到被点击按钮的名称，便于应用层派发命令。
+STRID_TOOLBAR_EVENT_NONE = 尚未点击任何被收纳的按钮
+STRID_TOOLBAR_EVENT_ITEM = 上次点击的溢出项：
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart 图表控件测试
 STRID_CHART_CARD_LINE = 折线图 · 多系列（直线）

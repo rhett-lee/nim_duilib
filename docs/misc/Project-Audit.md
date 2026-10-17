@@ -62,7 +62,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | # | 控件 | 用途 / 缺失影响 | 优先级 | 状态 |
 | :--- | :--- | :--- | :--- | :--- |
 | B1 | StatusBar 状态栏 | 光标位置、字数、连接状态、后台进度等状态提示；编辑器 / IDE / 通信类软件标配 | 高 | ✅ 已完成（`duilib/Control/StatusBar.h/.cpp`，节点 `StatusBar`；示例 `examples/controls/StatusBarForm`） |
-| B2 | ToolBar 工具栏容器 | 目前只有 `MenuBar`，工具条需手写布局（按钮 + 分隔 + 溢出菜单）；属于"应用壳层"刚需 | 高 | 待办 |
+| B2 | ToolBar 工具栏容器 | 目前只有 `MenuBar`，工具条需手写布局（按钮 + 分隔 + 溢出菜单）；属于"应用壳层"刚需 | 高 | ✅ 已完成（`duilib/Control/ToolBar.h/.cpp`，节点 `ToolBar`；宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，点击弹出浮层并通过 `AttachOverflowItemActivated` 回调通知应用层；示例 `examples/controls/ToolBarForm`） |
 | B3 | RangeSlider 双滑块范围选择 | 价格 / 时间区间筛选；现有 `Slider` 只有单值 | 中 | 待办 |
 | B4 | Wizard / Step 向导步骤条 | 安装、注册、配置向导；`Timeline` 只能模拟，语义不符 | 中 | 待办 |
 | B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 | 待办 |

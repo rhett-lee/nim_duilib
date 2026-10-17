@@ -89,6 +89,10 @@ private:
     */
     void ShowStatusBarWindow();
 
+    /** 显示 ToolBar 工具条演示窗口
+    */
+    void ShowToolBarWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

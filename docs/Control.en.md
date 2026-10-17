@@ -2321,3 +2321,50 @@ void SetShowSizeGrip(bool bShow);            // bottom-right size grip
 void SetSizeGripColor(const DString& strColor);
 ```
 
+## Attributes of ToolBar (inherits HBox attributes)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| overflow | true | bool | Whether to enable overflow collapsing (automatically hide trailing children when there is not enough width) |
+| overflow_button_class |  | string | Style Class of the "more" button on the right (a style from global.xml; empty means no style) |
+| overflow_button_width | 0 | int | Width of the "more" button in pixels (0 means auto-size to content) |
+| overflow_button_text | ">>" | string | Text shown on the "more" button |
+
+The ToolBar control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+A toolbar holds a row of tool buttons and is a common shell element in editors, IDEs and office apps.
+ToolBar is a horizontal container (it inherits from `HBox`); its children are laid out horizontally and keep all the layout capabilities of `HBox`.
+Separators inside a toolbar can simply use the `Line` control (`vertical="true"`).
+When there is not enough width for trailing children, they are hidden automatically and a "more" button (default text `>>`) is shown at the right end.
+Clicking that button pops up a flyout listing the collapsed children; clicking an item in the flyout fires the callback registered via `AttachOverflowItemActivated`
+(its argument is the `name` of the clicked child), so the application layer can dispatch commands.
+Collapsing is recalculated automatically when the window width changes, and previously collapsed items are restored when there is enough width again.
+
+XML example:
+```xml
+<ToolBar name="main_toolbar" width="stretch" height="36" padding="8,0,8,0" child_margin_x="4"
+         overflow_button_class="btn_global" overflow_button_width="28" overflow_button_text="&#187;">
+    <Button class="btn_global" name="tb_new" text="New" width="64" height="28"/>
+    <Button class="btn_global" name="tb_open" text="Open" width="64" height="28"/>
+    <Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/>
+    <Button class="btn_global" name="tb_save" text="Save" width="64" height="28"/>
+</ToolBar>
+```
+
+Related C++ APIs:
+```cpp
+// Callback invoked when an overflow item is activated (its argument is the name of the clicked child)
+void AttachOverflowItemActivated(OverflowItemActivatedEvent callback);
+void ClearOverflowItemActivated();
+
+void SetOverflowEnabled(bool bEnabled);                // enable overflow collapsing (enabled by default)
+bool IsOverflowEnabled() const;
+void SetOverflowButtonClass(const DString& strClass);  // style Class of the "more" button
+DString GetOverflowButtonClass() const;
+void SetOverflowButtonWidth(int32_t nWidth);           // "more" button width (0 means auto)
+int32_t GetOverflowButtonWidth() const;
+void SetOverflowButtonText(const DString& strText);    // text of the "more" button
+DString GetOverflowButtonText() const;
+
+bool IsOverflowing() const;                            // whether any child is currently collapsed
+```
+
