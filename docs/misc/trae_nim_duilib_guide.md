@@ -326,9 +326,9 @@ std::wstring path = GetCurrentModuleDirectory() + L"\\resources\\";
 
 ---
 
-## 五、CMakeLists.txt 里的一个隐藏陷阱
+## 五、CMakeLists.txt 里的一个隐藏陷阱（现已消除）
 
-如果你用 CMake 构建，`DUILIB_SKIA_LIB_SUBPATH` 变量的设置位置至关重要。它必须写在 `include(duilib_common.cmake)` **之前**：
+早期模板要求每个工程自己写一段 `DUILIB_SKIA_LIB_SUBPATH` 的默认值，并且**必须写在** `include(duilib_common.cmake)` **之前**：
 
 ```cmake
 # Skia 库子目录名（仅 Windows 平台）
@@ -345,14 +345,19 @@ if(WIN32 AND NOT DEFINED DUILIB_SKIA_LIB_SUBPATH)
     endif()
     set(DUILIB_SKIA_LIB_SUBPATH "llvm.${CPU_ARCH}.release")
 endif()
-
-# 包含公共实现代码（在这之后）
-include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 ```
 
 原因：`duilib_common.cmake` 内部用 `option()` 声明这个变量。`option()` 的语义是"如果变量未定义才设置默认值"——但 `option()` 执行后变量就必然已定义了（值为 `OFF`）。所以如果你把 `set()` 写在 `include()` 后面，`NOT DEFINED` 判断永远为假，你的设置永远不会生效。
 
-Skill 的模板已经按正确顺序写好了，照抄即可。
+**现在这段冗余代码已经下沉到 `duilib_common.cmake` 内部**，在每个工程 include 它之后自动计算默认值：Windows 下为 `llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`（`CPU_ARCH` 取自 `cmake -A` 的目标架构，`-A Win32` → `x86`，缺省 `x64`），其他平台为空、按 `${编译器}.${架构}.${构建类型}` 自动拼接；声明方式也从 `option()` 换成 `set(... CACHE STRING ...)`——它同样不会覆盖已存在的缓存项，所以外部 `-DDUILIB_SKIA_LIB_SUBPATH=...` 依旧优先。于是每个工程的 `CMakeLists.txt` 里只剩两行 include：
+
+```cmake
+# 包含公共实现代码
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")
+```
+
+这个坑本身没有消失（凡是 `option()` 声明过的变量，事后判断"未定义"都恒为假），只是不再需要每个工程各自规避。
 
 ---
 

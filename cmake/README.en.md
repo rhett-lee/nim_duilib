@@ -62,7 +62,7 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | Option | Default value | Description |
 |----------|--------|------|
 | `DUILIB_LOG` | OFF | Print duilib debug logs |
-| `DUILIB_SKIA_LIB_SUBPATH` | OFF | Skia library subdirectory (OFF means auto-concatenated) |
+| `DUILIB_SKIA_LIB_SUBPATH` | Windows=`llvm.<CPU_ARCH>.<build type>`, others=empty | Skia library subdirectory (empty means auto-concatenated) |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, others=ON | Enable SDL input support |
 | `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support |
 | `DUILIB_CEF_109` | OFF | Use CEF 109 version (supports Win7) |
@@ -93,14 +93,29 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | `DUILIB_CEF_LIBS` | libCEF library list |
 
 **Skia path concatenation rule:**
+
+The default value of `DUILIB_SKIA_LIB_SUBPATH` is computed inside `duilib_common.cmake` (right after
+`DUILIB_BUILD_TYPE`), so individual projects no longer need to set it themselves:
+
 ```cmake
-# When DUILIB_SKIA_LIB_SUBPATH is OFF, auto-concatenate by rule:
+# Default value:
+#   Windows             : llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>
+#   Linux/macOS/FreeBSD : empty
+# CPU_ARCH comes from the cmake -A target architecture: -A Win32 -> x86, default -> x64,
+# consistent with build/msvc_build.bat; DUILIB_BUILD_TYPE is debug or release.
+# An external -DDUILIB_SKIA_LIB_SUBPATH=... always wins (set(... CACHE ...) never overwrites an existing cache entry).
+
+# Final Skia library directory:
+#   When the subdirectory name is empty (or the legacy value OFF), auto-concatenate by rule:
 ${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}
+#   When the subdirectory name is non-empty, use it directly:
+${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}
 
 # Examples:
-# skia/out/msvc.x64.release
-# skia/out/mingw64-gcc.x64.release
-# skia/out/llvm.x86.debug
+# Windows x64 + Release    -> skia/out/llvm.x64.release
+# Windows x64 + Debug      -> skia/out/llvm.x64.debug
+# Windows -A Win32 + Debug -> skia/out/llvm.x86.debug
+# Non-Windows auto-concat  -> skia/out/mingw64-gcc.x64.release
 ```
 
 ---
@@ -464,7 +479,7 @@ cmake --build ./build_llvm
 | Option | Type | Default value | Description |
 |----------|------|--------|------|
 | `DUILIB_LOG` | BOOL | OFF | Print debug logs |
-| `DUILIB_SKIA_LIB_SUBPATH` | STRING | OFF | Skia library subdirectory |
+| `DUILIB_SKIA_LIB_SUBPATH` | STRING | Windows=`llvm.<CPU_ARCH>.<build type>`, others=empty | Skia library subdirectory |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, others=ON | Enable SDL support |
 | `DUILIB_ENABLE_CEF` | BOOL | OFF | Enable CEF support |
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 version (Win7) |

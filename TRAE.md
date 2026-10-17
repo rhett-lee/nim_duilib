@@ -47,7 +47,8 @@ msvc_build.bat
   `<仓库根>\..\skia\out\llvm.<arch>.release` 是否存在，不存在则提示先跑第 1 步。
 - 依次 cmake 构建：第三方库 `zlib,libpng,cximage,libwebp,libcef\libcef_win` → `duilib` →
   `examples` 下的各示例程序。
-- 默认 Release；架构取 VS 目标架构（缺省 x64），并据此设置 `DUILIB_SKIA_LIB_SUBPATH=llvm.<arch>.release`。
+- 默认 Release（Debug 时子目录为 `llvm.<arch>.debug`）；架构取 VS 目标架构（缺省 x64），并据此设置
+  `DUILIB_SKIA_LIB_SUBPATH=llvm.<arch>.<构建类型>`。
 
 ### 2.2 非 Windows：一步
 
@@ -158,9 +159,10 @@ python .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra
 4. 把新示例加入构建：`examples.sln` 需**手工**添加工程；若希望 `build\msvc_build.bat` 一并编译，
    把工程名加进脚本里的 `DUILIB_PROGRAMS` 列表。
 
-`CMakeLists.txt` 中 `DUILIB_SKIA_LIB_SUBPATH` 的默认设置必须写在
-`include(duilib_common.cmake)` **之前**——该脚本用 `option()` 声明此变量，include 之后它必然已定义，
-再判断"是否未定义"永远为假。模板已按此规则写好，照抄即可。
+`CMakeLists.txt` **无需**再给 `DUILIB_SKIA_LIB_SUBPATH` 设默认值：该默认值已由
+`duilib_common.cmake` 内部计算（Windows 为 `llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`，其他平台为空、
+走 `${编译器}.${架构}.${构建类型}` 自动拼接），模板照抄即可。需要覆盖时用
+`-DDUILIB_SKIA_LIB_SUBPATH=...` 传入（外部值优先）。
 
 ### 4.2 关键代码模式
 
