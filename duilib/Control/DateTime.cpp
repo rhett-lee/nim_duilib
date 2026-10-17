@@ -105,6 +105,11 @@ void DateTime::ClearTime()
     SetDateTime(dateTime);
 }
 
+void DateTime::ResetCalendarFlyoutState()
+{
+    m_bSuppressCalendarReopen = false;
+}
+
 const struct tm& DateTime::GetDateTime() const
 {
     return m_dateTime;

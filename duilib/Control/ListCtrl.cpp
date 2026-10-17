@@ -4513,6 +4513,9 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
     }
     else {
         m_pDateTime->SetDateTimeString(sOldItemText);
+        //SetDateTimeString 只更新内部日期值，不刷新显示文本；
+        //编辑器控件会被复用（OnInit 不会再解析文本），必须显式设置文本，否则编辑态显示为空白
+        m_pDateTime->SetText(m_pDateTime->GetDateTimeString());
     }
     m_pDateTime->SetFloat(true);
     m_pDateTime->SetVisible(true);
@@ -4547,6 +4550,9 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
     }
 
     m_pDateTime->SetVisible(true);
+    //编辑器控件会被复用：清除上一次编辑遗留的"抑制重开"状态，
+    //否则重新获得焦点时日历浮层不会自动弹出（需要再点一次鼠标才弹出）
+    m_pDateTime->ResetCalendarFlyoutState();
     //获得焦点后，DateTime控件会自动弹出月日历
     m_pDateTime->SetFocus();
 

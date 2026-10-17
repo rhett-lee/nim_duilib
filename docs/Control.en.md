@@ -523,6 +523,8 @@ The CheckCombo control inherits the `Box` attributes. For more available attribu
 
 The DateTime control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 
+> Reuse note: after the calendar flyout closes, the `DateTime` control suppresses "immediate reopen caused by focus falling back". When the control is reused as an editor (for example, the `ListCtrl` `kEditDate` cell editor), call `ResetCalendarFlyoutState()` before entering editing each time to clear that state; otherwise the calendar flyout will not pop up automatically when the control regains focus (a second mouse click is required).
+
 ## Attributes of Calendar
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

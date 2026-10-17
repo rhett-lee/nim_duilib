@@ -31,6 +31,13 @@ public:
     */
     void ClearTime();
 
+    /** 重置日历浮层的"抑制重开"状态
+    *  说明：DateTime控件在日历浮层关闭后，会设置内部抑制标志，避免焦点回落到控件时立即重开日历浮层；
+    *  当该控件被复用为编辑器（例如ListCtrl的日期单元格编辑器）时，每次进入编辑前需调用本函数清除该状态，
+    *  以保证控件重新获得焦点后能正常弹出日历浮层。
+    */
+    void ResetCalendarFlyoutState();
+
     /** 获取日期时间值
     */
     const struct tm& GetDateTime() const;
