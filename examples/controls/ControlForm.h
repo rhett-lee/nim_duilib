@@ -85,6 +85,10 @@ private:
     */
     void ShowTimelineWindow();
 
+    /** 显示 StatusBar 状态栏演示窗口
+    */
+    void ShowStatusBarWindow();
+
 private:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID

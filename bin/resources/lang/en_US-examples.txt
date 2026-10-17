@@ -633,6 +633,7 @@ STRID_CONTROLS_NAVIGATION_TEST = Nav Test
 STRID_CONTROLS_CHART_TEST = Chart Test
 STRID_CONTROLS_MARQUEE_TEST = Marquee Test
 STRID_CONTROLS_TIMELINE_TEST = Timeline Test
+STRID_CONTROLS_STATUSBAR_TEST = StatusBar Test
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline Control Test
 STRID_TIMELINE_HINT = Hint: click a node to fire the callback
@@ -713,6 +714,21 @@ STRID_MARQUEE_TEXT_STATIC = Short text
 STRID_MARQUEE_TEXT_UPDATE_1 = This is a left-scrolling announcement: welcome to the nim_duilib cross-platform UI library! The Marquee control supports both horizontal and vertical scrolling with customizable speed and direction.
 STRID_MARQUEE_TEXT_UPDATE_2 = Text updated dynamically: the marquee resets its scroll position automatically when the content changes, and the speed can be adjusted at runtime via SetScrollSpeed. This demo switches to a medium speed.
 STRID_MARQUEE_TEXT_UPDATE_3 = Third content: speed, direction, pause and resume can all be adjusted via the API in real time; the text loops automatically when it exceeds the display area and is centered statically when it fits.
+# controls/StatusBar
+STRID_STATUSBAR_WINDOW_TITLE = StatusBar Control Test
+STRID_STATUSBAR_HINT = Hint: a status bar is a set of status panes; separators are drawn automatically between adjacent panes
+STRID_STATUSBAR_BTN_STATE = Toggle State
+STRID_STATUSBAR_BTN_CONN = Toggle Connection
+STRID_STATUSBAR_BTN_ADVANCE = Advance Progress
+STRID_STATUSBAR_CONTENT_TITLE = Main content area (simulated editor / IDE)
+STRID_STATUSBAR_CONTENT_BODY = The status bar sits at the bottom of the window and shows status hints such as cursor position, character count, connection state and background progress. It is a common element in editors, IDEs and communication apps. StatusBar derives from the horizontal container (HBox); each child control is a status pane, and vertical separators are drawn automatically between adjacent panes. Set separator_width to 0 to hide them, and use separator_color to change the color. An optional size grip (size_grip) can be drawn at the bottom-right corner to hint that the window is resizable. Click the buttons above to update the panes dynamically.
+STRID_STATUSBAR_STATUS_READY = State: Ready
+STRID_STATUSBAR_STATUS_BUSY = State: Busy
+STRID_STATUSBAR_CONN_ON = Link: Connected
+STRID_STATUSBAR_CONN_OFF = Link: Disconnected
+STRID_STATUSBAR_POS_TEXT = Line 128, Col 24 · 2048 chars
+STRID_STATUSBAR_BACKEND = Background:
+STRID_STATUSBAR_PLAIN_TEXT = Second status bar: separator_width="0" (no separators)
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart Control Test
 STRID_CHART_CARD_LINE = Line · Multi-series

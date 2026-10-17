@@ -2288,3 +2288,36 @@ The AddressBar control inherits the `HBox` attributes. For more available attrib
 | child_window_margin |   | UiMargin | Set the margin of the child window; other controls can be placed in the margin space |
 
 The ChildWindow control inherits the `Box` attributes. For more available attributes, please refer to the `Box` attributes.
+
+## Attributes of StatusBar (inherits HBox attributes)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| separator_width | 1 | int | Width of the separator line between adjacent status panes (pixels; 0 disables the separator) |
+| separator_color | "border_window" | string | Separator line color (semantic color name or color value) |
+| size_grip | false | bool | Whether to draw a size grip at the bottom-right corner (purely a visual hint; it does not change the window's actual resize behavior) |
+| size_grip_color | "border_window" | string | Size grip color (semantic color name or color value) |
+
+The StatusBar control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+A status bar shows status hints such as cursor position, character count, connection state and background progress; it is a common element in editors, IDEs and communication apps.
+StatusBar is a horizontal container (it inherits from `HBox`); each child control is a "status pane" (usually a `Label` / `IconControl` / `Progress`):
+panes can use a fixed width or stretch (width="stretch") and otherwise keep all the layout capabilities of `HBox`. Vertical separators are drawn automatically
+between adjacent panes, and can be disabled or resized via `separator_width` and recolored via `separator_color`. An optional size grip (`size_grip`) can be drawn at the bottom-right corner.
+
+XML example:
+```xml
+<StatusBar name="status_bar" width="stretch" height="30" bkcolor="bg_window_card" border_size="0,1,0,0" bordercolor="border_window" size_grip="true">
+    <Label name="sb_state" text="Ready" width="110" valign="center" padding="10,0,10,0"/>
+    <Label name="sb_conn" text="Connected" width="140" valign="center" padding="10,0,10,0"/>
+    <Progress name="sb_progress" width="stretch" min="0" max="100" value="60" valign="center" bkcolor="bg_progress_track" progress_color="bg_progress"/>
+</StatusBar>
+```
+
+Related C++ APIs:
+```cpp
+void SetSeparatorWidth(int32_t nWidth);      // separator width (0 disables it)
+void SetSeparatorColor(const DString& strColor);
+void SetShowSizeGrip(bool bShow);            // bottom-right size grip
+void SetSizeGripColor(const DString& strColor);
+```
+

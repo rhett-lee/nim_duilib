@@ -2289,3 +2289,36 @@ AddressBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的�
 
 ChildWindow 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
+## StatusBar 控件（继承 HBox 属性）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| separator_width | 1 | int | 相邻状态面板之间分隔线的宽度（像素，0 表示不绘制分隔线）|
+| separator_color | "border_window" | string | 分隔线颜色（语义色名或颜色值）|
+| size_grip | false | bool | 是否绘制右下角的尺寸手柄（仅作视觉提示，不改变窗口本身的可调整大小行为）|
+| size_grip_color | "border_window" | string | 尺寸手柄颜色（语义色名或颜色值）|
+
+StatusBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+状态栏用于显示光标位置、字数、连接状态、后台进度等状态提示，是编辑器 / IDE / 通信类软件的常用界面元素。
+StatusBar 是一个水平容器（继承 `HBox`），其中的每个子控件就是一个"状态面板"（通常为 `Label` / `IconControl` / `Progress` 等）：
+面板可以设置固定宽度、拉伸（width="stretch"）等，沿用 `HBox` 的全部布局能力；相邻面板之间会自动绘制竖直分隔线，
+可通过 `separator_width` 关闭或调整宽度、通过 `separator_color` 调整颜色；右下角可选绘制尺寸手柄（`size_grip`）。
+
+XML 示例：
+```xml
+<StatusBar name="status_bar" width="stretch" height="30" bkcolor="bg_window_card" border_size="0,1,0,0" bordercolor="border_window" size_grip="true">
+    <Label name="sb_state" text="就绪" width="110" valign="center" padding="10,0,10,0"/>
+    <Label name="sb_conn" text="已连接" width="140" valign="center" padding="10,0,10,0"/>
+    <Progress name="sb_progress" width="stretch" min="0" max="100" value="60" valign="center" bkcolor="bg_progress_track" progress_color="bg_progress"/>
+</StatusBar>
+```
+
+对应的 C++ 接口：
+```cpp
+void SetSeparatorWidth(int32_t nWidth);      // 分隔线宽度（0 表示不绘制）
+void SetSeparatorColor(const DString& strColor);
+void SetShowSizeGrip(bool bShow);            // 右下角尺寸手柄
+void SetSizeGripColor(const DString& strColor);
+```
+
+

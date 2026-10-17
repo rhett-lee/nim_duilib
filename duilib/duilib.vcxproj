@@ -549,6 +549,7 @@
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
+    <ClCompile Include="Control\StatusBar.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
     <ClCompile Include="Utils\SystemUtil_SDL.cpp" />
     <ClCompile Include="Utils\SystemUtil_Windows.cpp" />
@@ -903,6 +904,7 @@
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\Slider.h" />
+    <ClInclude Include="Control\StatusBar.h" />
     <ClInclude Include="Control\TreeView.h" />
     <ClInclude Include="WebView2\ComCallback.h" />
     <ClInclude Include="WebView2\ComPtr.h" />
