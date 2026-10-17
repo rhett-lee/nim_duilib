@@ -571,7 +571,7 @@ C++ 接口：
   **不要**用 `(max-min)-fValue` 翻转绝对值：min≠0 时会算出越界/负比例（Progress 与 CircleProgress 同此坑，已修）。
 - marquee 回绕周期 = 轨道长度 + 块宽，取模并处理负值；轨道长度 <= 0 时pos 复位为 0。
 
-C++ 接口：`SetValue/GetValue`、`SetMinValue/SetMaxValue`、`ClampCurrentValue`、`SetHorizontal`、`SetProgressColor`、`SetProgressRadius`、`SetBufferValue/SetBufferColor`、`SetShowPercent`、`SetAnimationEnabled/SetAnimationDuration`、`SetAnimationEasing(EasingFunctionType)`、`SetAnimationEasingName/GetAnimationEasingName`、`SetMarquee`、`SetReverse`、`SetTextFormatCallback`（自定义进度文本格式）。
+C++ 接口：`SetValue/GetValue/SetValueNoEvent`、`SetMinValue/SetMaxValue`、`ClampCurrentValue`、`SetHorizontal`、`SetProgressColor`、`SetProgressRadius`、`SetBufferValue/SetBufferColor`、`SetShowPercent`、`SetAnimationEnabled/SetAnimationDuration`、`SetAnimationEasing(EasingFunctionType)`、`SetAnimationEasingName/GetAnimationEasingName`、`SetMarquee`、`SetReverse`、`SetTextFormatCallback`（自定义进度文本格式）。
 事件：`AttachValueChanged`（值变化）、`AttachProgressCompleted`（到达完成端点：正向 max / 倒数 min）。
 
 ### Slider 属性(继承 Progress)
