@@ -1,0 +1,43 @@
+# nim_duilib 文档校验豁免名单
+#
+# 用途：verify_docs.py 会检查文档里引用的控件宏（DUI_CTR_*）、事件名（kEvent*）、
+#       类名（ui::Xxx）、字体 ID、语义色名是否真实存在于源码。下列名字属于
+#       **示例占位符 / 通配写法 / 尚未落地的规划项**，是文档有意引用的，不算漂移。
+#
+# 语法：
+#   <glob> :: <名字1> <名字2> ...
+#       glob 相对于仓库根（也可用文件名匹配），支持 * 通配；多个 glob 用空格分隔。
+#       glob 与名字列表之间用 "::" 分隔。
+#   :: <名字1> <名字2> ...
+#       不限定文件，对所有被扫描文档生效。
+#   # 开头为注释，空行忽略。
+#
+# 维护约定：优先写带 glob 的形式，避免豁免范围过大让检查失去敏感度。
+#         本文件只登记"故意引用"，不得用于掩盖真实漂移。
+
+# ---------------------------------------------------------------------------
+# 文档正文中的示例占位符
+# ---------------------------------------------------------------------------
+docs/Box.md docs/Box.en.md :: border_dash_style
+docs/Control.md docs/Control.en.md :: border_dash_style EasingFunctionType ListCtrlSubItemSortFlag kEventReportViewSubItemFilled
+docs/Global.md docs/Global.en.md :: roboto_mono_12 Buttons
+docs/Menu.md docs/Menu.en.md :: Checkbox
+docs/Theme.md docs/Theme.en.md :: color_aquatic color_desert color_dusk color_night_sky color_xxx color_mybrand btn_global_blue_80x30_normal btn_global_gray_80x30_normal
+docs/ThemeColor.md docs/ThemeColor.en.md :: color_blue_deep bg_window_dark bg_window_light color_splitline_ color_progress bg_selected_inactive bg_text_highlight
+docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
+
+# ---------------------------------------------------------------------------
+# 规划 / 设计文档中"已移除"或"尚未落地"的名字
+# ---------------------------------------------------------------------------
+docs/misc/ListCtrl-Roadmap.md docs/misc/ListCtrl-Roadmap.en.md :: kEventReportViewSubItemFilled ListCtrlSubItemSortFlag
+docs/misc/ListCtrl单元格交互与结构升级设计方案.md :: kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled
+docs/misc/workbuddy-nim-duilib-guide.md :: bg_statusbar
+docs/misc/Development-Plan.md :: kEventThemeChanged kEventLanguageChanged border_dash_style color_aquatic color_desert color_dusk color_night_sky color_xxx color_mybrand color_blue_deep bg_window_dark bg_window_light color_splitline_ color_progress bg_selected_inactive bg_text_highlight
+
+# ---------------------------------------------------------------------------
+# Skill 文档 / LLM 参考中的举例名
+# ---------------------------------------------------------------------------
+api-reference.md nim-duilib-llm-reference.md :: btn_default
+event-handler.md nim-duilib-event-handler.md :: kEventResize
+theme.md nim-duilib-theme.md :: my_card my_title_font my_font_16 bk_main_wnd_title
+pitfalls.md :: kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange kEventXxx

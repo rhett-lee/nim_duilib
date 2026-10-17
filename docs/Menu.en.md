@@ -28,7 +28,7 @@ This preview is the menu in the `examples/controls` example program.
         <HBox class="menu_split_box" height="36">
             <Label class="menu_text" text="Volume" textpadding="0,0,6,0" mouse_enabled="false" keyboard_enabled="false"/>
             <Control width="auto" height="auto" bkimage="menu_speaker.png" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
-            <Slider class="slider_green" value="70" tooltip_text="ui::Slider"/>
+            <Slider class="slider_horizontal_green" value="70" tooltip_text="ui::Slider"/>
         </HBox>
         
         <!-- Separator line between menu items -->

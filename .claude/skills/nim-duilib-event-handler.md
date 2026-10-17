@@ -4,9 +4,6 @@ description: 为 nim_duilib 控件添加事件处理（支持 XML 内联事件�
 trigger: 当用户需要处理控件事件、响应用户操作、绑定回调时触发
 ---
 
-<!-- verify:allow-missing kEventResize -->
-<!-- kEventResize 是刻意举例的"错误写法"（正确为 kEventSizeChanged），verify_docs.py 不应判为漂移。 -->
-
 # nim_duilib 事件处理
 
 ## 方式一: XML 内联事件（无需 C++ 代码）

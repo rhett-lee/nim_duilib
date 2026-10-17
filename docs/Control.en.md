@@ -1,6 +1,5 @@
 English | [简体中文](Control.md)
 
-<!-- verify:allow-missing border_dash_style EasingFunctionType -->
 <!-- Exemption note: border_dash_style is a real XML attribute name (parsed in Control.cpp) and EasingFunctionType is a real
      enum name (defined in duilib/Animation/EasingFunctions.h); both exist in the source and are only reported because the
      checker's symbol index does not cover them. -->
@@ -1945,7 +1944,6 @@ uint8_t flag = pListCtrl->GetColumnSortFlag(3); // read the column's compare mod
 
 Common flags (`ListCtrlSubItemSortFlag`, bitwise-combinable): `kSortByText` (default, lexicographic text), `kSortByTextAsNumber` (numeric text, `"10" > "9"`), `kSortByTextAsDate` (chronological text, e.g. `"2024-3-7" < "2024-10-1"`; fields may be separated by any non-digit characters and month/day need not be zero-padded; text that cannot be parsed as a date is treated as the minimum value), `kSortByProgress` (by `nProgress`), `kSortByUserDataN` / `kSortByUserDataS` (by user data), `kSortByGroup` (group by `nSortGroup` first), `kSortNoCase` (case-insensitive strings).
 
-<!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 **Frozen columns (freeze first column):**
 
 ```cpp
@@ -2080,7 +2078,6 @@ pListCtrl->RefreshSubItemById(0, nColumnId);
 
 Note: this API is for Report view only. It returns `false` while `IsEnableRefresh()` is `false` (i.e. still inside the `SetEnableRefresh(false)` "no-refresh window"), so restore refresh before calling it. It also returns `false` if the cell is currently outside the visible range (no UI control exists for it); the data itself is already updated and will be shown when scrolled into view.
 
-<!-- verify:allow-missing kEventReportViewSubItemFilled -->
 > Note: the per-cell filled event `kEventReportViewSubItemFilled` has been removed (it fired too frequently and had a noticeable performance impact); the same functionality can be achieved with `kEventReportViewItemFilled` (`pEventData` is `ListCtrlItem*`; `pExtraData` is the `ListCtrlSubItem*` filled this time — `nullptr` for a whole-row fill, and pointing to the cell when `RefreshSubItem` refreshes a single cell; a cell can also be obtained from the item via `GetSubItem(columnIndex)`).
 
 **Column show/hide:**
@@ -2367,4 +2364,3 @@ DString GetOverflowButtonText() const;
 
 bool IsOverflowing() const;                            // whether any child is currently collapsed
 ```
-

@@ -1,8 +1,5 @@
 # nim_duilib 完整 API 速查
 
-<!-- verify:allow-missing btn_default -->
-<!-- btn_default 是自定义样式的举例名，verify_docs.py 不应判为漂移。 -->
-
 仅在需要查具体 API / 属性 / 容器定义时载入本文。日常任务优先读对应的专题文档。
 
 ---
@@ -1114,7 +1111,6 @@ pListCtrl->StartLoading(33, -1);   // 33ms 心跳，-1 = 不靠次数停止
 
 完整章节见 [docs/Control.md](../../docs/Control.md#controlloading-与骨架屏)，
 演示见 `examples/ListCtrl` 的「骨架屏测试（列表）/（卡片）/ 停止Loading」三个按钮。
-
 
 ### 弱回调保护
 

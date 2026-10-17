@@ -1,6 +1,5 @@
 简体中文 | [English](Control.en.md)
 
-<!-- verify:allow-missing border_dash_style EasingFunctionType -->
 <!-- 豁免说明：border_dash_style 是真实的 XML 属性名（由 Control.cpp 解析），EasingFunctionType 是真实的枚举名
      （定义于 duilib/Animation/EasingFunctions.h）；二者均存在于源码中，仅因校验脚本的符号索引未覆盖而被误报。 -->
 
@@ -1945,7 +1944,6 @@ uint8_t flag = pListCtrl->GetColumnSortFlag(3); // 读取该列的比较模式
 
 常用标志位（`ListCtrlSubItemSortFlag`，可按位组合）：`kSortByText`（默认，按文本字典序）、`kSortByTextAsNumber`（文本按数值比较，`"10" > "9"`）、`kSortByTextAsDate`（文本按日期时间先后比较，如 `"2024-3-7" < "2024-10-1"`；字段间允许任意非数字分隔符、月/日可不补零，无法解析为日期的文本视为最小值）、`kSortByProgress`（按 `nProgress` 进度值）、`kSortByUserDataN` / `kSortByUserDataS`（按用户数据）、`kSortByGroup`（先按 `nSortGroup` 分组）、`kSortNoCase`（字符串忽略大小写）。
 
-<!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 **列冻结（冻结首列）：**
 
 ```cpp
@@ -2080,7 +2078,6 @@ pListCtrl->RefreshSubItemById(0, nColumnId);
 
 说明：该接口仅用于 Report 视图。当 `IsEnableRefresh()` 为 `false`（即仍处于 `SetEnableRefresh(false)` 的"禁刷窗口"内）时返回 `false`，因此需先恢复刷新再调用；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），同样返回 `false`，此时数据本身已更新，滚动到可见范围后会显示最新数据。
 
-<!-- verify:allow-missing kEventReportViewSubItemFilled -->
 > 说明：逐格填充事件 `kEventReportViewSubItemFilled` 已移除（触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（`pEventData` 为 `ListCtrlItem*`；`pExtraData` 为本次填充的 `ListCtrlSubItem*`：整行填充时为 `nullptr`，调用 `RefreshSubItem` 单格刷新时指向该单元格；可再通过 `GetSubItem(columnIndex)` 取到单元格）。
 
 **列显示/隐藏：**
@@ -2365,5 +2362,3 @@ DString GetOverflowButtonText() const;
 
 bool IsOverflowing() const;                            //当前是否存在被自动收纳的子控件
 ```
-
-

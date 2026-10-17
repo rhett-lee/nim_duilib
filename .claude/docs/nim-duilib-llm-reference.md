@@ -1,5 +1,3 @@
-<!-- verify:allow-missing btn_default -->
-<!-- btn_default 是自定义样式的举例名，verify_docs.py 不应判为漂移。 -->
 
 # nim_duilib LLM 快速参考
 

@@ -24,7 +24,6 @@ Status legend: **Done** | **Existing** (framework capability, not added this rou
 
 | Capability | API | Description |
 |-----------|-----|-------------|
-<!-- verify:allow-missing kEventReportViewSubItemFilled -->
 | Single-cell refresh | `RefreshSubItem` / `RefreshSubItemById` | Refreshes only the specified cell to avoid a full-row refresh. Report view only; returns `false` when the cell is outside the visible range (the data is already updated and will be shown once scrolled into view). The old per-cell filled event `kEventReportViewSubItemFilled` has been removed (it fired too frequently and had a noticeable performance impact); the same functionality can be achieved with `kEventReportViewItemFilled` (row-level fill, `pEventData` is `ListCtrlItem*`, from which a cell can be obtained via `GetSubItem(columnIndex)`) |
 | Column show/hide | `SetColumnVisible(ById)` / `IsColumnVisible(ById)` | ListCtrl-level column visibility API; the data column is synchronized internally, so apps no longer need to bypass the wrapper to touch header sub-items |
 | Column layout events | `AttachColumnWidthChanged` / `AttachColumnOrderChanged` / `AttachColumnVisibleChanged` / `AttachColumnSorted` | Dispatch `kEventColumnWidthChanged` / `kEventColumnOrderChanged` / `kEventColumnVisibleChanged` / `kEventColumnSorted` respectively, letting the app persist column width, order, visibility and sort state |
@@ -56,8 +55,6 @@ Demo: in `examples/ListCtrl`, column 2 (the progress column) declares `kSortByPr
 Date mode (`kSortByTextAsDate`): parses the text into a comparable 64-bit key by taking the "year, month, day, hour, minute, second" numeric fields in order; fields may be separated by any non-digit characters and month/day/hour need not be zero-padded (e.g. `2024-3-7`, `2024/03/07`, `2024-03-07 13:45:00`). Text that cannot be parsed as a date is treated as the minimum value (consistent with the "invalid value is smallest" convention of the other flags), and equal keys fall back to a text compare, guaranteeing a strict total order.
 
 > Note: only single-column sorting is supported, and it is a full-table sort with a full refresh; incremental / partial sorting was decided to be **cancelled (not implemented)** after review.
-
-<!-- verify:allow-missing ListCtrlSubItemSortFlag -->
 
 #### 1.5 Keyboard navigation (existing)
 

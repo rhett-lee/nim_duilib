@@ -62,7 +62,7 @@ For detailed interface descriptions of each class, please refer to the associate
 
 | Class Name | Base Class Name | Associated Header File | Purpose |
 | :--- | :--- | :--- | :--- |
-| PlaceHolder | nbase::SupportWeakCallback | [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | The top-level base class of all controls and containers; encapsulates basic data such as the position, size, and appearance shape of a control |
+| PlaceHolder | SupportWeakCallback | [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | The top-level base class of all controls and containers; encapsulates basic data such as the position, size, and appearance shape of a control |
 | Control | PlaceHolder | [duilib/Core/Control.h](../duilib/Core/Control.h) | A basic control, and also the base class of all controls and containers; includes basic functions such as the position, size, state, color, image resources, animation, drawing, cursor, mouse, keyboard, focus, and shortcut key operations of a control |
 | Box | Control | [duilib/Core/Box.h](../duilib/Core/Box.h) | The base class of all containers; encapsulates the position, size, appearance shape, and child control management (add, delete, modify, draw, operate, drag-and-drop, layout, etc.) of a container |
 

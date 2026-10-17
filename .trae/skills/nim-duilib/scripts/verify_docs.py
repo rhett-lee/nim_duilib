@@ -23,13 +23,17 @@
     python scripts/verify_docs.py --repo . \
         --extra examples/hello_button bin/resources/themes/default/hello_button
 
-文档内可用注释声明"此处提到的名字本就应该是缺失的"（例如讲解"不存在的旧名"时）：
-    <!-- verify:allow-missing kEventResize kEventChecked arial_12 -->
+豁免名单：脚本同目录的 verify_allowlist.txt，每行格式为
+    <glob> :: 名字1 名字2 ...
+glob 为空表示对所有文件生效。**不要把豁免写成文档里的 HTML 注释**——
+注释会污染 markdown 正文结构。
 
 退出码：0 = 全部命中；1 = 发现疑似漂移。
 """
 
 import argparse
+import fnmatch
+import os
 import re
 import sys
 from pathlib import Path
@@ -141,14 +145,66 @@ def probe_paths(repo: Path) -> list:
 # 文档扫描
 # ---------------------------------------------------------------------------
 
-ALLOW_MISSING_RE = re.compile(r"<!--\s*verify:allow-missing\s+([^>]+?)-->")
+ALLOWLIST_FILE = "verify_allowlist.txt"
+# 兼容旧写法：文档里若还残留内联豁免注释，仍能解析（但不应再新增）。
+INLINE_ALLOW_RE = re.compile(r"<!--\s*verify:allow-missing\s+([^>]+?)-->")
 
 
-def scan_file(md: Path, idx: dict, fallback: list) -> list:
+def load_allowlist(allowlist: Path) -> tuple:
+    """读豁免名单，返回 ([(glob 集合, {名字}), ...], {全局名字})。"""
+    rules: list = []
+    glob_ally: set = set()
+    if not allowlist.is_file():
+        return rules, glob_ally
+    for raw in _read(allowlist).splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if "::" in line:
+            globs, names = line.split("::", 1)
+            targets = {g.strip().replace("\\", "/") for g in globs.split() if g.strip()}
+            bucket = set(names.split())
+        else:
+            targets, bucket = set(), set(line.split())
+        if not bucket:
+            continue
+        if not targets:
+            glob_ally |= bucket
+        else:
+            rules.append((targets, bucket))
+    return rules, glob_ally
+
+
+def _match_glob(md: Path, repo: Path, targets: set) -> bool:
+    """目标文件是否命中任一 glob（同时用仓库相对路径与文件名匹配）。"""
+    names = {md.name, md.as_posix()}
+    try:
+        names.add(md.resolve().relative_to(repo.resolve()).as_posix())
+    except (ValueError, OSError):
+        pass
+    for t in targets:
+        pat = t.replace("\\", "/")
+        stem, ext = os.path.splitext(pat)
+        for n in names:
+            if fnmatch.fnmatch(n, pat):
+                return True
+            # "docs/Menu.md" 这类写法也匹配 "docs/Menu.en.md"
+            if ext and fnmatch.fnmatch(n, stem + "*.md"):
+                return True
+            if stem and fnmatch.fnmatch(os.path.splitext(n)[0], stem):
+                return True
+    return False
+
+
+def scan_file(md: Path, idx: dict, fallback: list, repo: Path,
+              rules: list, glob_ally: set) -> list:
     """扫描单个 markdown，返回 [(行号, 标识符, 类别)] 缺失列表。"""
     text = _read(md)
-    allow = set()
-    for m in ALLOW_MISSING_RE.finditer(text):
+    allow = set(glob_ally)
+    for targets, bucket in rules:
+        if _match_glob(md, repo, targets):
+            allow |= bucket
+    for m in INLINE_ALLOW_RE.finditer(text):
         allow.update(m.group(1).split())
 
     missing = []
@@ -174,6 +230,8 @@ def main() -> int:
     ap.add_argument("--extra", nargs="*", default=[], metavar="PATH",
                     help="额外要校验的文件或目录（目录递归取 *.md/*.xml/*.h/*.cpp），"
                          "用于校验自己写出的应用代码与布局")
+    ap.add_argument("--allowlist", default=None, metavar="PATH",
+                    help="豁免名单文件（默认取脚本同目录的 " + ALLOWLIST_FILE + "）")
     ap.add_argument("--quiet", action="store_true", help="只打印汇总，不逐条列出")
     args = ap.parse_args()
 
@@ -213,10 +271,16 @@ def main() -> int:
     idx = build_index(repo)
     fallback = probe_paths(repo)
 
+    allowlist = Path(args.allowlist).resolve() if args.allowlist \
+        else Path(__file__).resolve().parent / ALLOWLIST_FILE
+    rules, glob_ally = load_allowlist(allowlist)
+    if not allowlist.is_file():
+        print(f"警告：豁免名单 {allowlist} 不存在，未加载任何豁免项。")
+
     total_missing = 0
     per_file = {}
     for md in targets:
-        miss = scan_file(md, idx, fallback)
+        miss = scan_file(md, idx, fallback, repo, rules, glob_ally)
         if miss:
             per_file[md] = miss
             total_missing += len(miss)
@@ -236,8 +300,8 @@ def main() -> int:
         print("结果：全部命中，未发现文档漂移。")
         return 0
     print(f"结果：发现 {total_missing} 处疑似漂移（文档引用了源码中不存在的名字）。")
-    print("提示：若某处是刻意举例（如讲解'不存在'的旧名），在该文件加注释：")
-    print("      <!-- verify:allow-missing 名字1 名字2 -->")
+    print("提示：若某处是刻意举例（如讲解'不存在'的旧名），登记到豁免名单：")
+    print(f"      {ALLOWLIST_FILE}（每行 <glob> :: 名字1 名字2）")
     return 1
 
 
