@@ -1823,13 +1823,13 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
             //暂时屏蔽此功能，稍后再修复
 
             //更新底层存储的单元格数据，但不刷新界面（避免整行刷新界面）
-            //bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
-            //pListCtrl->SetSubItemProgress(nRow, nProgressColumnIndex, nProgress);
-            //pListCtrl->SetEnableRefresh(bOldRefresh);
+            bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
+            pListCtrl->SetSubItemProgress(nRow, nProgressColumnIndex, nProgress);
+            pListCtrl->SetEnableRefresh(bOldRefresh);
 
             //只刷新这一个单元格，填充回调会把最新进度值写入该单元格
             //（如果该单元格不在可见范围内，RefreshSubItem 返回 false，无需额外处理）
-            // pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
+            pListCtrl->RefreshSubItem(nRow, nProgressColumnIndex);
         }
     };
     //每 800ms 触发一次，重复执行；定时器与ListCtrl的生命周期绑定，控件销毁后自动取消

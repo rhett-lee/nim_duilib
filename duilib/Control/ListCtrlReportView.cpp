@@ -361,6 +361,24 @@ void ListCtrlReportView::Refresh(bool bSync)
     }
 }
 
+void ListCtrlReportView::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
+{
+    if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
+        //刷新功能已经禁止
+        return;
+    }
+    BaseClass::OnModelDataChanged(nStartElementIndex, nEndElementIndex);
+}
+
+void ListCtrlReportView::OnModelCountChanged()
+{
+    if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
+        //刷新功能已经禁止
+        return;
+    }
+    BaseClass::OnModelCountChanged();
+}
+
 void ListCtrlReportView::AjustItemCount()
 {
     VirtualLayout* pVirtualLayout = GetVirtualLayout();

@@ -52,6 +52,7 @@ VirtualListBox::VirtualListBox(Window* pWindow, Layout* pLayout)
     , m_pVirtualLayout(nullptr)
     , m_nLastNoShiftIndex(0)
     , m_bEnableUpdateProvider(true)
+    , m_bEnableRefresh(true)
 {
     ASSERT(pLayout != nullptr);
 }
@@ -412,13 +413,31 @@ void VirtualListBox::SetSelectNoneExclude(const std::vector<size_t>& excludeInde
     }
 }
 
+bool VirtualListBox::SetEnableRefresh(bool bEnable)
+{
+    bool bOldEnable = m_bEnableRefresh;
+    m_bEnableRefresh = bEnable;
+    return bOldEnable;
+}
+
+bool VirtualListBox::IsEnableRefresh() const
+{
+    return m_bEnableRefresh;
+}
+
 void VirtualListBox::RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex)
 {
+    if (!IsEnableRefresh()) {
+        return;//禁止刷新界面
+    }
     OnModelDataChanged(nStartElementIndex, nEndElementIndex);
 }
 
 void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
 {
+    if (!IsEnableRefresh()) {
+        return;//禁止刷新界面
+    }
     if (elementIndexs.empty()) {
         return;
     }
@@ -433,6 +452,9 @@ void VirtualListBox::RefreshElements(const std::vector<size_t>& elementIndexs)
 
 void VirtualListBox::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
 {
+    if (!IsEnableRefresh()) {
+        return;//禁止刷新界面
+    }
     if (nEndElementIndex < nStartElementIndex) {
         return;
     }
@@ -515,6 +537,9 @@ void VirtualListBox::OnFilledElements(const RefreshDataList& refreshDataList)
 
 void VirtualListBox::OnModelCountChanged()
 {
+    if (!IsEnableRefresh()) {
+        return;//禁止刷新界面
+    }
     //元素的个数发生变化（有添加或者删除）
     Refresh();
 }
@@ -526,6 +551,9 @@ bool VirtualListBox::IsEnableUpdateProvider() const
 
 void VirtualListBox::Refresh(bool bSync)
 {
+    if (!IsEnableRefresh()) {
+        return;//禁止刷新界面
+    }
     if (!HasDataProvider()) {
         return;
     }

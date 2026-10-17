@@ -226,6 +226,17 @@ public:
     */
     void EnsureVisible(size_t nElementIndex, bool bToTop);
 
+    /** 是否允许刷新界面
+    * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh系列函数刷新界面，
+                          如果禁用刷新界面，则数据变化的时候也不会自动刷新界面
+    * @return 返回旧的IsEnableRefresh()状态
+    */
+    bool SetEnableRefresh(bool bEnable);
+
+    /** 判断是否允许刷新界面
+    */
+    bool IsEnableRefresh() const;
+
     /** 刷新指定范围的数据，保持数据与界面显示同步，数据范围: [nStartElementIndex, nEndElementIndex]
     * @param [in] nStartElementIndex 数据的开始下标
     * @param [in] nEndElementIndex 数据的结束下标
@@ -477,6 +488,15 @@ public:
     virtual void OnFilledElements(const RefreshDataList& refreshDataList);
 
 protected:
+    /** 数据内容发生变化，在事件中需要重新加载展示数据，子类可重写此函数，来拦截自动刷新界面
+    */
+    virtual void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
+
+    /** 数据个数发生变化，在事件中需要重新加载展示数据，子类可重写此函数，来拦截自动刷新界面
+    */
+    virtual void OnModelCountChanged();
+
+protected:
     /** 创建一个子项
     * @return 返回创建后的子项指针
     */
@@ -493,19 +513,11 @@ protected:
     */
     void ReArrangeChild(bool bForce);
 
-    /** 数据内容发生变化，在事件中需要重新加载展示数据
-    */
-    void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
-
     /** 刷新可见区域内满足条件的数据元素（OnModelDataChanged 与 RefreshElements 的公共扫描逻辑）
     * @param [in] isElementNeedRefresh 判断一个数据元素是否需要刷新的回调
     * @param [in] nTargetCount 需要刷新的元素个数，为0表示不限制（命中足量元素后提前结束扫描）
     */
     void RefreshVisibleElements(const std::function<bool(size_t)>& isElementNeedRefresh, size_t nTargetCount);
-
-    /** 数据个数发生变化，在事件中需要重新加载展示数据
-    */
-    void OnModelCountChanged();
 
     /** 是否允许从界面状态同步到存储状态
     */
@@ -582,6 +594,10 @@ private:
     /** 是否允许从界面状态同步到存储状态
     */
     bool m_bEnableUpdateProvider;
+
+    /** 是否允许刷新界面
+    */
+    bool m_bEnableRefresh;
 };
 
 /** 横向布局的虚表ListBox

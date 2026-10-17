@@ -335,6 +335,15 @@ protected:
     */
     bool IsChildInFrozenColumn(const PlaceHolder* pChild) const;
 
+protected:
+    /** 数据内容发生变化，在事件中需要重新加载展示数据，子类可重写此函数，来拦截自动刷新界面
+    */
+    virtual void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex) override;
+
+    /** 数据个数发生变化，在事件中需要重新加载展示数据，子类可重写此函数，来拦截自动刷新界面
+    */
+    virtual void OnModelCountChanged() override;
+
 private:
     /** 清除所有数据行的元素索引绑定
     *  清空后，下次布局时这些行控件需要重新填充数据（按需填充：绑定关系未失效的行不重复填充）。
