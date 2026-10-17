@@ -4239,6 +4239,8 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         m_pRichEdit = new RichEdit(GetWindow());
         AddItem(m_pRichEdit);
         m_pRichEdit->SetClass(editClass);
+        //记录控件类中声明的字符白名单，供非数值编辑器恢复（避免复用控件时被数值编辑器的临时白名单覆盖）
+        m_richEditLimitChars = m_pRichEdit->GetLimitChars();
     }
     else if(GetItemCount() > 0) {
         //将Edit控件，调整到最后
@@ -4273,7 +4275,8 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         m_pRichEdit->SetLimitChars(_T("0123456789+-."));
     }
     else {
-        m_pRichEdit->SetLimitChars(_T(""));
+        //非数值编辑器：恢复控件类中声明的字符白名单（可能为空，表示不做限制）
+        m_pRichEdit->SetLimitChars(m_richEditLimitChars);
     }
     m_pRichEdit->SetText(sOldItemText);
     m_pRichEdit->SetSelAll();
@@ -4507,8 +4510,10 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
     //日期编辑器：固定使用"年-月-日 + 下拉日历"的编辑格式
     //（DateTime控件会被复用，因此每次进入编辑都要重新设置编辑格式）
     m_pDateTime->SetEditFormat(DateTime::EditFormat::kDateCalendar);
-    if (sOldItemText.empty()) {
-        //空文本：SetDateTimeString 解析失败会触发断言，直接清空日期值
+    const ListCtrlEditorType editorType = GetColumnEditorTypeById(editParam.nColumnId);
+    if (sOldItemText.empty() || !IsValidCellEditText(sOldItemText, editorType)) {
+        //空文本或非法日期文本：SetDateTimeString 解析失败会触发断言并保留旧值，
+        //此处直接清空日期值（编辑态从空开始，用户选择日期后才会写回）
         m_pDateTime->ClearTime();
     }
     else {
@@ -4517,6 +4522,9 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
         //编辑器控件会被复用（OnInit 不会再解析文本），必须显式设置文本，否则编辑态显示为空白
         m_pDateTime->SetText(m_pDateTime->GetDateTimeString());
     }
+    //以编辑器当前文本作为"修改前"基线：日期值会被规范化为固定格式，
+    //若以原始单元格文本为基线，未做修改也会被误判为发生变化而触发无谓写回
+    const DString sEditBaseText = m_pDateTime->GetDateTimeString();
     m_pDateTime->SetFloat(true);
     m_pDateTime->SetVisible(true);
     UpdateDateTimeSize(pSubItem);
@@ -4558,13 +4566,13 @@ void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLab
 
     //提交：读取当前日期文本
     //（仅当控件仍可见时才提交，避免重复提交时因控件已隐藏而误判为清空单元格）
-    auto OnLeaveDateTime = [this, sOldItemText, RestoreItemFocus, editParam]() -> bool {
+    auto OnLeaveDateTime = [this, sEditBaseText, RestoreItemFocus, editParam]() -> bool {
         DString sNewItemText;
         if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
             sNewItemText = m_pDateTime->GetDateTimeString();
             m_pDateTime->SetVisible(false);
         }
-        if ((sNewItemText != sOldItemText) && IsValidItemEditParam(editParam)) {
+        if ((sNewItemText != sEditBaseText) && IsValidItemEditParam(editParam)) {
             //日期文本发生变化
             return OnItemEdited(editParam, sNewItemText);
         }
@@ -4983,6 +4991,10 @@ void ListCtrl::LeaveEditMode()
     }
     if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible() && m_pDateTime->IsFocused()) {
         m_pDateTime->SendEvent(kEventKillFocus);
+    }
+    if (m_pDateTime != nullptr) {
+        //先关闭可能仍处于打开状态的日历浮层，避免隐藏锚点控件后遗留悬空的置顶月历窗口
+        m_pDateTime->CloseCalendarFlyout();
     }
     if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
         m_pDateTime->SetVisible(false);

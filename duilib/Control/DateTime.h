@@ -38,6 +38,13 @@ public:
     */
     void ResetCalendarFlyoutState();
 
+    /** 关闭已打开的日历浮层（未打开时为空操作）
+    *  说明：当该控件被复用为编辑器（例如ListCtrl的日期单元格编辑器）时，
+    *  若在日历浮层仍处于打开状态下直接隐藏控件，浮层会因锚点控件不可见而遗留为悬空的置顶窗口；
+    *  退出编辑态前调用本函数可先关闭日历浮层。
+    */
+    void CloseCalendarFlyout();
+
     /** 获取日期时间值
     */
     const struct tm& GetDateTime() const;

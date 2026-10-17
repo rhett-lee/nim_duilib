@@ -520,7 +520,7 @@ CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属
 
 DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
-> 复用提示：`DateTime` 控件在日历浮层关闭后会抑制"焦点回落导致的立即重开"。当该控件被复用为编辑器（例如 `ListCtrl` 的 `kEditDate` 单元格编辑器）时，每次进入编辑前应调用 `ResetCalendarFlyoutState()` 清除该状态，否则控件重新获得焦点时日历浮层不会自动弹出（需要再点一次鼠标）。
+> 复用提示：`DateTime` 控件在日历浮层关闭后会抑制"焦点回落导致的立即重开"。当该控件被复用为编辑器（例如 `ListCtrl` 的 `kEditDate` 单元格编辑器）时，每次进入编辑前应调用 `ResetCalendarFlyoutState()` 清除该状态，否则控件重新获得焦点时日历浮层不会自动弹出（需要再点一次鼠标）。另外，若要在日历浮层仍处于打开状态下隐藏控件（例如退出编辑态），应先调用 `CloseCalendarFlyout()` 关闭浮层，避免浮层因锚点控件不可见而遗留为悬空的置顶窗口。
 
 ## Calendar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -2063,7 +2063,13 @@ pListCtrl->SetDataItemHeight(64, true);
 当只有个别单元格的数据发生变化时（例如进度、状态列），可使用 `RefreshSubItem` 只更新该单元格，避免整行刷新：
 
 ```cpp
-// 更新第 0 行、第 1 列单元格的显示
+// 场景：进度/状态类列的数值由后台任务推进，应用层自己维护数值
+// 1) 用 SetEnableRefresh(false) 包裹"数据写入"，避免数据变化触发整行自动刷新界面；写完后再恢复
+bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
+pListCtrl->SetSubItemProgress(0, 1, 42);   // 只写数据，不刷新界面
+pListCtrl->SetEnableRefresh(bOldRefresh);
+
+// 2) 恢复刷新后，只刷新这一个单元格（填充回调会把最新数值写入该单元格）
 pListCtrl->RefreshSubItem(0, 1);
 
 // 也可按列ID刷新
@@ -2071,7 +2077,7 @@ size_t nColumnId = pListCtrl->GetColumnId(1);
 pListCtrl->RefreshSubItemById(0, nColumnId);
 ```
 
-说明：该接口仅用于 Report 视图；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），则返回 false，此时数据本身已更新，滚动到可见范围后会显示最新数据。
+说明：该接口仅用于 Report 视图。当 `IsEnableRefresh()` 为 `false`（即仍处于 `SetEnableRefresh(false)` 的"禁刷窗口"内）时返回 `false`，因此需先恢复刷新再调用；如果该单元格当前不在可见范围内（未生成对应的 UI 控件），同样返回 `false`，此时数据本身已更新，滚动到可见范围后会显示最新数据。
 
 <!-- verify:allow-missing kEventReportViewSubItemFilled -->
 > 说明：逐格填充事件 `kEventReportViewSubItemFilled` 已移除（触发过于频繁、对性能影响较大），原有功能可使用 `kEventReportViewItemFilled` 替代（`pEventData` 为 `ListCtrlItem*`；`pExtraData` 为本次填充的 `ListCtrlSubItem*`：整行填充时为 `nullptr`，调用 `RefreshSubItem` 单格刷新时指向该单元格；可再通过 `GetSubItem(columnIndex)` 取到单元格）。

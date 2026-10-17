@@ -1803,6 +1803,12 @@ private:
     */
     UiString m_listCtrlDateTimeClass;
 
+    /** 富文本编辑框类中声明的字符白名单（limit_chars）
+    *  说明：编辑框控件会被复用，数值编辑器进入编辑时会临时改写白名单；
+    *  为避免抹掉控件类上声明的白名单配置，首次创建编辑框时记录该值，切换回非数值编辑器时恢复。
+    */
+    DString m_richEditLimitChars;
+
     /** 图片列表
     */
     ImageListPtr m_imageList[3];

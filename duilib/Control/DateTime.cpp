@@ -110,6 +110,14 @@ void DateTime::ResetCalendarFlyoutState()
     m_bSuppressCalendarReopen = false;
 }
 
+void DateTime::CloseCalendarFlyout()
+{
+    if (m_pCalendarFlyout != nullptr) {
+        //关闭浮层（内部关闭回调会把 m_pCalendarFlyout 置空）
+        m_pCalendarFlyout->Dismiss();
+    }
+}
+
 const struct tm& DateTime::GetDateTime() const
 {
     return m_dateTime;
