@@ -497,6 +497,12 @@ protected:
     */
     void OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex);
 
+    /** 刷新可见区域内满足条件的数据元素（OnModelDataChanged 与 RefreshElements 的公共扫描逻辑）
+    * @param [in] isElementNeedRefresh 判断一个数据元素是否需要刷新的回调
+    * @param [in] nTargetCount 需要刷新的元素个数，为0表示不限制（命中足量元素后提前结束扫描）
+    */
+    void RefreshVisibleElements(const std::function<bool(size_t)>& isElementNeedRefresh, size_t nTargetCount);
+
     /** 数据个数发生变化，在事件中需要重新加载展示数据
     */
     void OnModelCountChanged();

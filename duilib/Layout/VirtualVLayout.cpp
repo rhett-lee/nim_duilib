@@ -245,6 +245,7 @@ void VirtualVLayout::LazyArrangeChild(UiRect rc) const
     size_t nTopIndex = GetTopElementIndex(rc);
     size_t iCount = 0;
     size_t nItemCount = pOwnerBox->m_items.size();
+    refreshDataList.reserve(nItemCount);
     for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
         Control* pControl = pOwnerBox->m_items[nItemIndex];
         if (pControl == nullptr) {
