@@ -634,6 +634,7 @@ STRID_CONTROLS_CHART_TEST = Chart Test
 STRID_CONTROLS_MARQUEE_TEST = Marquee Test
 STRID_CONTROLS_TIMELINE_TEST = Timeline Test
 STRID_CONTROLS_STATUSBAR_TEST = StatusBar Test
+STRID_CONTROLS_TOOLBAR_TEST = ToolBar Test
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline Control Test
 STRID_TIMELINE_HINT = Hint: click a node to fire the callback
@@ -729,6 +730,26 @@ STRID_STATUSBAR_CONN_OFF = Link: Disconnected
 STRID_STATUSBAR_POS_TEXT = Line 128, Col 24 · 2048 chars
 STRID_STATUSBAR_BACKEND = Background:
 STRID_STATUSBAR_PLAIN_TEXT = Second status bar: separator_width="0" (no separators)
+# controls/ToolBar
+STRID_TOOLBAR_WINDOW_TITLE = ToolBar Control Test
+STRID_TOOLBAR_HINT = Hint: drag the window edge to change the width; items that no longer fit are collapsed into the "»" button at the right end, click it to see them
+STRID_TOOLBAR_NEW = New
+STRID_TOOLBAR_OPEN = Open
+STRID_TOOLBAR_SAVE = Save
+STRID_TOOLBAR_UNDO = Undo
+STRID_TOOLBAR_REDO = Redo
+STRID_TOOLBAR_CUT = Cut
+STRID_TOOLBAR_COPY = Copy
+STRID_TOOLBAR_PASTE = Paste
+STRID_TOOLBAR_FIND = Find
+STRID_TOOLBAR_REPLACE = Replace
+STRID_TOOLBAR_ZOOM_IN = Zoom In
+STRID_TOOLBAR_ZOOM_OUT = Zoom Out
+STRID_TOOLBAR_FULLSCREEN = Full Screen
+STRID_TOOLBAR_CONTENT_TITLE = ToolBar container
+STRID_TOOLBAR_CONTENT_BODY = ToolBar inherits HBox and hosts a row of tool buttons; use the Line control to draw vertical separators between button groups. When the available width is not enough, the trailing items are automatically collapsed (hidden) and a "»" button is shown at the right end; clicking it opens a flyout listing the collapsed items. When this happens, the callback registered by AttachOverflowItemActivated receives the name of the clicked item, so the application can dispatch the command.
+STRID_TOOLBAR_EVENT_NONE = No collapsed item has been clicked yet
+STRID_TOOLBAR_EVENT_ITEM = Last activated overflow item: 
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart Control Test
 STRID_CHART_CARD_LINE = Line · Multi-series

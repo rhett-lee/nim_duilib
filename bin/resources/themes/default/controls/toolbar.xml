@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="720,480" text="ToolBar Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="420,300">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_TOOLBAR_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_TOOLBAR_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 工具条：按钮从左到右排列，按钮组之间用 Line 分隔线；
+             宽度不足时，尾部按钮会自动收进右端的"更多"按钮中 -->
+        <ToolBar name="main_toolbar" width="stretch" height="36" bkcolor="bg_titlebar"
+                 padding="8,0,8,0" child_margin_x="4"
+                 overflow_button_class="btn_global" overflow_button_width="28" overflow_button_text="&#187;">
+            <Button class="btn_global" name="tb_new" text_id="STRID_TOOLBAR_NEW" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_open" text_id="STRID_TOOLBAR_OPEN" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_save" text_id="STRID_TOOLBAR_SAVE" width="64" height="28" border_round="3,3"/>
+            <Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/>
+            <Button class="btn_global" name="tb_undo" text_id="STRID_TOOLBAR_UNDO" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_redo" text_id="STRID_TOOLBAR_REDO" width="64" height="28" border_round="3,3"/>
+            <Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/>
+            <Button class="btn_global" name="tb_cut" text_id="STRID_TOOLBAR_CUT" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_copy" text_id="STRID_TOOLBAR_COPY" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_paste" text_id="STRID_TOOLBAR_PASTE" width="64" height="28" border_round="3,3"/>
+            <Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/>
+            <Button class="btn_global" name="tb_find" text_id="STRID_TOOLBAR_FIND" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_replace" text_id="STRID_TOOLBAR_REPLACE" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_zoom_in" text_id="STRID_TOOLBAR_ZOOM_IN" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_zoom_out" text_id="STRID_TOOLBAR_ZOOM_OUT" width="64" height="28" border_round="3,3"/>
+            <Button class="btn_global" name="tb_fullscreen" text_id="STRID_TOOLBAR_FULLSCREEN" width="64" height="28" border_round="3,3"/>
+        </ToolBar>
+
+        <!-- 内容区 -->
+        <VBox padding="12,8,12,12" width="stretch" height="stretch">
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="12,12,12,12" width="stretch" height="stretch">
+                <Label text_id="STRID_TOOLBAR_CONTENT_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Label text_id="STRID_TOOLBAR_CONTENT_BODY" text_color="text_default" multi_line="true" text_align="left,top" height="stretch" width="stretch"/>
+                <Label name="tb_event" text_id="STRID_TOOLBAR_EVENT_NONE" text_color="text_muted" valign="center" margin="0,8,0,0" auto_tooltip="true"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</Window>

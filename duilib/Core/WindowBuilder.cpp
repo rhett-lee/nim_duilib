@@ -37,6 +37,7 @@
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
 #include "duilib/Control/StatusBar.h"
+#include "duilib/Control/ToolBar.h"
 
 #include "duilib/Control/ColorControl.h"
 #include "duilib/Control/ColorSlider.h"
@@ -197,6 +198,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
         {DUI_CTR_MENU_BAR, [](Window* pWindow) { return new MenuBar(pWindow); }},
         {DUI_CTR_STATUS_BAR, [](Window* pWindow) { return new StatusBar(pWindow); }},
+        {DUI_CTR_TOOL_BAR, [](Window* pWindow) { return new ToolBar(pWindow); }},
         {DUI_CTR_CHILD_WINDOW, [](Window* pWindow) { return new ChildWindow(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},

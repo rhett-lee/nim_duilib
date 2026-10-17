@@ -135,6 +135,9 @@
     <ClCompile Include="Control\StatusBar.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ToolBar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\TreeView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -1017,6 +1020,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\StatusBar.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ToolBar.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\TreeView.h">

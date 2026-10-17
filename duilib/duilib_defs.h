@@ -75,6 +75,8 @@ namespace ui
 
     #define  DUI_CTR_STATUS_BAR                      (_T("StatusBar"))
 
+    #define  DUI_CTR_TOOL_BAR                        (_T("ToolBar"))
+
     #define  DUI_CTR_SCROLLBOX                       (_T("ScrollBox"))
     #define  DUI_CTR_HSCROLLBOX                      (_T("HScrollBox"))
     #define  DUI_CTR_VSCROLLBOX                      (_T("VScrollBox"))

@@ -2321,4 +2321,49 @@ void SetShowSizeGrip(bool bShow);            // 右下角尺寸手柄
 void SetSizeGripColor(const DString& strColor);
 ```
 
+## ToolBar 控件（继承 HBox 属性）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| overflow | true | bool | 是否启用溢出收纳（可用宽度不足时自动隐藏尾部子控件）|
+| overflow_button_class |  | string | 右端"更多"按钮的样式 Class 名称（引用 global.xml 中的样式，为空表示不设置样式）|
+| overflow_button_width | 0 | int | "更多"按钮的宽度（像素，0 表示按内容自适应）|
+| overflow_button_text | ">>" | string | "更多"按钮显示的文本 |
+
+ToolBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+工具条用于承载一排工具按钮，是编辑器 / IDE / 办公类软件的常用壳层元素。
+ToolBar 是一个水平容器（继承 `HBox`），子控件水平排列，沿用 `HBox` 的全部布局能力；工具条中的分隔线可直接使用 `Line` 控件（`vertical="true"`）。
+当可用宽度不足、尾部子控件放不下时，会自动隐藏这些子控件，并在右端显示一个"更多"按钮（默认文本 `>>`）：
+点击该按钮会弹出浮层，列出被收纳的子控件；点击浮层中的项会触发 `AttachOverflowItemActivated` 注册的回调（参数为被点击子控件的 `name`），
+便于应用层派发命令。窗口宽度变化时会自动重新计算收纳，宽度足够时被收纳的项会自动恢复显示。
+
+XML 示例：
+```xml
+<ToolBar name="main_toolbar" width="stretch" height="36" padding="8,0,8,0" child_margin_x="4"
+         overflow_button_class="btn_global" overflow_button_width="28" overflow_button_text="&#187;">
+    <Button class="btn_global" name="tb_new" text="新建" width="64" height="28"/>
+    <Button class="btn_global" name="tb_open" text="打开" width="64" height="28"/>
+    <Line vertical="true" line_color="border_window" line_width="1" width="9" height="18" valign="center"/>
+    <Button class="btn_global" name="tb_save" text="保存" width="64" height="28"/>
+</ToolBar>
+```
+
+对应的 C++ 接口：
+```cpp
+//溢出项被激活（点击浮层中的项）时的回调（参数为被点击子控件的 name）
+void AttachOverflowItemActivated(OverflowItemActivatedEvent callback);
+void ClearOverflowItemActivated();
+
+void SetOverflowEnabled(bool bEnabled);                //是否启用溢出收纳（默认启用）
+bool IsOverflowEnabled() const;
+void SetOverflowButtonClass(const DString& strClass);  //"更多"按钮的样式 Class
+DString GetOverflowButtonClass() const;
+void SetOverflowButtonWidth(int32_t nWidth);           //"更多"按钮宽度（0 表示自适应）
+int32_t GetOverflowButtonWidth() const;
+void SetOverflowButtonText(const DString& strText);    //"更多"按钮显示的文本
+DString GetOverflowButtonText() const;
+
+bool IsOverflowing() const;                            //当前是否存在被自动收纳的子控件
+```
+
 

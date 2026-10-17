@@ -127,6 +127,8 @@
 #include "Control/AddressBar.h"
 #include "Control/ChildWindow.h"
 #include "Control/GroupBox.h"
+#include "Control/StatusBar.h"
+#include "Control/ToolBar.h"
 
 #include "Control/ListCtrl.h"
 #include "Control/ListCtrlReportView.h"
