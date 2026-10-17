@@ -3,6 +3,7 @@
 #include "duilib/Control/ListCtrlIconView.h"
 #include "duilib/Control/ListCtrlListView.h"
 #include "duilib/Control/RichEdit.h"
+#include "duilib/Control/DateTime.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/Clipboard.h"
@@ -302,6 +303,7 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_bDataItemShowCheckBox(false),
     m_listCtrlType(ListCtrlType::Report),
     m_pRichEdit(nullptr),
+    m_pDateTime(nullptr),
     m_bEnableCopy(true),
     m_bEnableCsvExport(true),
     m_bEnableItemEdit(true),
@@ -349,6 +351,10 @@ ListCtrl::~ListCtrl()
     if (!IsInited() && (m_pRichEdit != nullptr)) {
         delete m_pRichEdit;
         m_pRichEdit = nullptr;
+    }
+    if (!IsInited() && (m_pDateTime != nullptr)) {
+        delete m_pDateTime;
+        m_pDateTime = nullptr;
     }
 }
 
@@ -515,6 +521,9 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if (strName == _T("list_ctrl_richedit_class")) {
         SetRichEditClass(strValue);
+    }
+    else if (strName == _T("list_ctrl_datetime_class")) {
+        SetDateTimeClass(strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -1227,6 +1236,16 @@ void ListCtrl::SetRichEditClass(const DString& richEditClass)
     }
 }
 
+void ListCtrl::SetDateTimeClass(const DString& dateTimeClass)
+{
+    if (m_listCtrlDateTimeClass != dateTimeClass) {
+        m_listCtrlDateTimeClass = dateTimeClass;
+        if (IsInited() && (m_pDateTime != nullptr)) {
+            m_pDateTime->SetClass(dateTimeClass);
+        }
+    }
+}
+
 void ListCtrl::SetEnableItemEdit(bool bEnableItemEdit)
 {
     m_bEnableItemEdit = bEnableItemEdit;
@@ -1490,6 +1509,11 @@ RichEdit* ListCtrl::GetRichEdit() const
 DString ListCtrl::GetRichEditClass() const
 {
     return m_listCtrlRichEditClass.c_str();
+}
+
+DString ListCtrl::GetDateTimeClass() const
+{
+    return m_listCtrlDateTimeClass.c_str();
 }
 
 void ListCtrl::SetRowGridLineWidth(float fLineWidth, bool bNeedDpiScale)
@@ -4200,6 +4224,11 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         EnterComboEditMode(editParam, editParam.pSubItem);
         return;
     }
+    if (editorType == ListCtrlEditorType::kEditDate) {
+        //日期编辑器：在单元格上浮出 DateTime 控件，聚焦后弹出月日历（不使用富文本编辑框）
+        EnterDateEditMode(editParam, editParam.pSubItem);
+        return;
+    }
 
     DString editClass = GetRichEditClass();
     ASSERT(!editClass.empty());
@@ -4424,6 +4453,157 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
         m_pRichEdit->SetMaxHeight(nMaxHeight, false);
         m_pRichEdit->SetMinHeight(rcItem.Height(), false);
     }
+}
+
+void ListCtrl::UpdateDateTimeSize(ListCtrlLabel* pSubItem)
+{
+    if ((pSubItem == nullptr) || (m_pDateTime == nullptr)) {
+        return;
+    }
+    UiRect rcItem = pSubItem->GetTextRect();
+    UiPoint offsetPt = pSubItem->GetScrollOffsetInScrollBox();
+    rcItem.Offset(-offsetPt.x, -offsetPt.y);
+    UiRect rect = GetRect();
+    //宽度：与单元格文本区域一致；高度：不小于默认高度，避免日期文本被裁剪
+    const int32_t nHeight = std::max(rcItem.Height(), Dpi().GetScaleInt(28));
+    m_pDateTime->SetFixedWidth(UiFixedInt(rcItem.Width()), false, false);
+    m_pDateTime->SetFixedHeight(UiFixedInt(nHeight), false, false);
+    UiMargin rcMargin(rcItem.left - rect.left, rcItem.top - rect.top, 0, 0);
+    rcMargin.Validate();
+    m_pDateTime->SetMargin(rcMargin, false);
+}
+
+void ListCtrl::EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLabel* pSubItem)
+{
+    if ((pSubItem == nullptr) || (m_listCtrlType != ListCtrlType::Report)) {
+        //日期编辑器仅在报表视图使用
+        return;
+    }
+    DString dateTimeClass = GetDateTimeClass();
+    ASSERT(!dateTimeClass.empty());
+    if (dateTimeClass.empty()) {
+        return;
+    }
+    if (m_pDateTime == nullptr) {
+        m_pDateTime = new DateTime(GetWindow());
+        AddItem(m_pDateTime);
+        m_pDateTime->SetClass(dateTimeClass);
+    }
+    else if (GetItemCount() > 0) {
+        //将DateTime控件调整到最后，保证绘制在其它子项之上
+        size_t nItem = GetItemIndex(m_pDateTime);
+        size_t nLastItemIndex = GetItemCount() - 1;
+        if (nItem != nLastItemIndex) {
+            SetItemIndex(m_pDateTime, nLastItemIndex);
+        }
+    }
+    if (m_pDateTime == nullptr) {
+        return;
+    }
+
+    const size_t nDataItemIndex = editParam.nItemIndex;
+    const DString sOldItemText = pSubItem->GetText();
+
+    //日期编辑器：固定使用"年-月-日 + 下拉日历"的编辑格式
+    //（DateTime控件会被复用，因此每次进入编辑都要重新设置编辑格式）
+    m_pDateTime->SetEditFormat(DateTime::EditFormat::kDateCalendar);
+    if (sOldItemText.empty()) {
+        //空文本：SetDateTimeString 解析失败会触发断言，直接清空日期值
+        m_pDateTime->ClearTime();
+    }
+    else {
+        m_pDateTime->SetDateTimeString(sOldItemText);
+    }
+    m_pDateTime->SetFloat(true);
+    m_pDateTime->SetVisible(true);
+    UpdateDateTimeSize(pSubItem);
+
+    //还原焦点：将编辑控件的焦点还原到原来的列表控件
+    auto RestoreItemFocus = [this, nDataItemIndex]() {
+            if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible() && m_pDateTime->IsFocused()) {
+                ListCtrlItem* pDestItem = GetDisplayItemByIndex(nDataItemIndex);
+                if (pDestItem != nullptr) {
+                    pDestItem->SetFocus();
+                }
+            }
+        };
+
+    //触发事件：开始编辑
+    ListCtrlEditParam enterEditParam = editParam;
+    enterEditParam.sNewText.clear();
+    enterEditParam.bCancelled = false;
+    SendEvent(kEventEnterEdit, (WPARAM)&enterEditParam);
+    if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) || !IsValidItemEditParam(editParam)) {
+        //状态已经失效, 或者用户取消编辑
+        ClearEditEvents();
+        RestoreItemFocus();
+        LeaveEditMode();
+        return;
+    }
+    if (m_selectionMode == ListCtrlSelectionMode::kCell) {
+        //记录正在编辑的单元格（退出编辑态时由ClearEditEvents清除）
+        m_editingCell.nRowIndex = editParam.nItemIndex;
+        m_editingCell.nColumnId = editParam.nColumnId;
+    }
+
+    m_pDateTime->SetVisible(true);
+    //获得焦点后，DateTime控件会自动弹出月日历
+    m_pDateTime->SetFocus();
+
+    //提交：读取当前日期文本
+    //（仅当控件仍可见时才提交，避免重复提交时因控件已隐藏而误判为清空单元格）
+    auto OnLeaveDateTime = [this, sOldItemText, RestoreItemFocus, editParam]() -> bool {
+        DString sNewItemText;
+        if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
+            sNewItemText = m_pDateTime->GetDateTimeString();
+            m_pDateTime->SetVisible(false);
+        }
+        if ((sNewItemText != sOldItemText) && IsValidItemEditParam(editParam)) {
+            //日期文本发生变化
+            return OnItemEdited(editParam, sNewItemText);
+        }
+        return false;
+        };
+
+    //日期变化（日历中选中日期 / 清除）：应用修改
+    m_pDateTime->DetachEvent(kEventValueChanged);
+    m_pDateTime->AttachTimeChanged([this, RestoreItemFocus, OnLeaveDateTime](const EventArgs&) {
+        ClearEditEvents();
+        RestoreItemFocus();
+        if (OnLeaveDateTime() && (m_selectionMode == ListCtrlSelectionMode::kCell)) {
+            //单元格选择模式下：提交成功后，当前格下移一行
+            MoveCurrentCellToNextRow();
+        }
+        return false;
+        });
+
+    //按ESC键：取消修改
+    m_pDateTime->DetachEvent(kEventKeyDown);
+    m_pDateTime->AttachEvent(kEventKeyDown, [this, RestoreItemFocus](const EventArgs& msg) {
+        if ((msg.eventType == kEventKeyDown) && (msg.vkCode == kVK_ESCAPE)) {
+            ClearEditEvents();
+            RestoreItemFocus();
+            if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
+                m_pDateTime->SetVisible(false);
+            }
+            return false;
+        }
+        else {
+            return true;
+        }
+        }, 0);
+
+    //控件失去焦点: 应用修改
+    //（注意：日历浮层为抢焦点模式，弹出时会先触发窗口级失焦事件 kEventWindowKillFocus，
+    // 因此这里只监听控件级 kEventKillFocus，不监听 kEventWindowKillFocus，
+    // 否则日历刚弹出就会误提交并立即结束编辑）
+    m_pDateTime->DetachEvent(kEventKillFocus);
+    m_pDateTime->AttachKillFocus([this, RestoreItemFocus, OnLeaveDateTime](const EventArgs&) {
+        ClearEditEvents();
+        RestoreItemFocus();
+        OnLeaveDateTime();
+        return false;
+        });
 }
 
 bool ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText)
@@ -4762,7 +4942,7 @@ void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
         (msg.eventType == kEventMouseRButtonUp) ||
         (msg.eventType == kEventMouseRDoubleClick) ||
         (msg.eventType == kEventContextMenu)) {
-        if (msg.GetSender() != m_pRichEdit) {
+        if ((msg.GetSender() != m_pRichEdit) && (msg.GetSender() != m_pDateTime)) {
             LeaveEditMode();
         }
     }    
@@ -4775,7 +4955,7 @@ void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
         //此处不再结束编辑状态，否则浮层会在按键冒泡过程中被误关闭
         return;
     }
-    if (msg.GetSender() != m_pRichEdit) {
+    if ((msg.GetSender() != m_pRichEdit) && (msg.GetSender() != m_pDateTime)) {
         LeaveEditMode();
     }    
 }
@@ -4792,6 +4972,12 @@ void ListCtrl::LeaveEditMode()
     if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
         m_pRichEdit->SetVisible(false);
     }
+    if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible() && m_pDateTime->IsFocused()) {
+        m_pDateTime->SendEvent(kEventKillFocus);
+    }
+    if ((m_pDateTime != nullptr) && m_pDateTime->IsVisible()) {
+        m_pDateTime->SetVisible(false);
+    }
     ClearEditEvents();
 }
 
@@ -4803,6 +4989,11 @@ void ListCtrl::ClearEditEvents()
         m_pRichEdit->DetachEvent(kEventReturn);
         m_pRichEdit->DetachEvent(kEventTextChanged);
         m_pRichEdit->DetachEvent(kEventKeyDown);
+    }
+    if (m_pDateTime != nullptr) {
+        m_pDateTime->DetachEvent(kEventValueChanged);
+        m_pDateTime->DetachEvent(kEventKillFocus);
+        m_pDateTime->DetachEvent(kEventKeyDown);
     }
     //退出编辑态：清除正在编辑的单元格
     m_editingCell = ListCtrlCellId();

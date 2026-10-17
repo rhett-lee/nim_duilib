@@ -1993,7 +1993,7 @@ pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
 pListCtrl->EnterCurrentCellEdit();
 ```
 
-提交时按列声明的编辑器类型校验输入：空串一律合法（视为清空单元格），`kEditText` 恒合法，`kEditNumber` 仅接受合法十进制数值，`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`（复用 `Calendar::ParseDateString`）；非法输入被丢弃（不写回数据、不派发 `kEventLeaveEdit`）。其中 `kEditNumber` 列在编辑过程中即限制输入字符：只允许输入数字、正负号和小数点（基于 RichEdit 的字符白名单，键盘输入与粘贴均生效），非数字字符无法录入。复用既有事件 `kEventEnterEdit` / `kEventLeaveEdit`，不新增事件；`kEditText` / `kEditNumber` / `kEditDate` 共用同一个 RichEdit 编辑器。
+提交时按列声明的编辑器类型校验输入：空串一律合法（视为清空单元格），`kEditText` 恒合法，`kEditNumber` 仅接受合法十进制数值，`kEditDate` 仅接受 `yyyy-mm-dd` / `yyyy/mm/dd`（复用 `Calendar::ParseDateString`）；非法输入被丢弃（不写回数据、不派发 `kEventLeaveEdit`）。其中 `kEditNumber` 列在编辑过程中即限制输入字符：只允许输入数字、正负号和小数点（基于 RichEdit 的字符白名单，键盘输入与粘贴均生效），非数字字符无法录入。`kEditDate` 列使用 `DateTime` 控件编辑（编辑格式 `date_calendar`，主题类 `list_ctrl_datetime`，不再复用 RichEdit）：进入编辑后自动弹出月日历浮层，在日历中选中日期即提交写回（`kCell` 模式提交成功后当前格下移一行），点击日历"清除"写回空单元格，`Esc` 关闭日历不写回；提交前仍以 `Calendar::ParseDateString` 校验非法日期并丢弃。复用既有事件 `kEventEnterEdit` / `kEventLeaveEdit`，不新增事件；`kEditText` / `kEditNumber` 共用同一个 RichEdit 编辑器，`kEditDate` 使用 `DateTime` 控件。
 
 **单元格编辑器：下拉候选（kEditCombo）：**
 

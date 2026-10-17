@@ -685,7 +685,8 @@
                             list_view_item_class="list_ctrl_list_view_item"
                             list_view_item_image_class="list_ctrl_list_view_item_image"
                             list_view_item_label_class="list_ctrl_list_view_item_label"
-                            list_ctrl_richedit_class="list_ctrl_richedit"/>
+                            list_ctrl_richedit_class="list_ctrl_richedit"
+                            list_ctrl_datetime_class="list_ctrl_datetime"/>
         
     <!-- ListCtrl表头 -->
     <Class name="list_ctrl_header" icon_spacing="4" bkcolor="bg_list_ctrl_header" width="100%"/>
@@ -767,6 +768,12 @@
                                      text_align="left,vcenter" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" 
                                      want_return="false" want_tab="false" rich_text="false" 
                                      text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" 
+                                     bkcolor="bg_richedit"/>
+    
+    <!-- ListCtrl日期编辑框（DateTime控件） -->
+    <Class name="list_ctrl_datetime" class="simple_border"
+                                     text_align="left,vcenter" height="28" border_size="1"
+                                     text_padding="2,0,2,0" padding="1,1,1,1"
                                      bkcolor="bg_richedit"/>
     
     <!-- TabCtrl控件 -->

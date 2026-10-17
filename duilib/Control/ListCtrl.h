@@ -12,6 +12,7 @@
 namespace ui
 {
 class RichEdit;
+class DateTime;
 
 class ListCtrlData;
 class ListCtrlReportView;
@@ -1463,6 +1464,11 @@ protected:
     void SetRichEditClass(const DString& richEditClass);
     DString GetRichEditClass() const;
 
+    /** 日期编辑框的Class属性（kEditDate 编辑器使用的 DateTime 控件）
+    */
+    void SetDateTimeClass(const DString& dateTimeClass);
+    DString GetDateTimeClass() const;
+
 protected:
     /** 增加一列
     * @param [in] nColumnId 列的ID
@@ -1554,6 +1560,10 @@ private:
     */
     void UpdateRichEditSize(ListCtrlLabel* pSubItem);
 
+    /** 更新DateTime控件的位置和大小（kEditDate 编辑器）
+    */
+    void UpdateDateTimeSize(ListCtrlLabel* pSubItem);
+
     /** 子项编辑事件
     * @return 返回 true 表示已写回数据（用户未取消、且输入通过编辑器类型校验）
     */
@@ -1574,6 +1584,12 @@ private:
     * @param [in] pSubItem 命中单元格的文本控件（作为浮层锚点）
     */
     void EnterComboEditMode(const ListCtrlEditParam& editParam, ListCtrlLabel* pSubItem);
+
+    /** 进入日期编辑状态（kEditDate 编辑器）：在单元格上浮出 DateTime 控件，聚焦后弹出月日历
+    * @param [in] editParam 编辑参数（进入编辑时创建）
+    * @param [in] pSubItem 命中单元格的文本控件
+    */
+    void EnterDateEditMode(const ListCtrlEditParam& editParam, ListCtrlLabel* pSubItem);
 
     /** 下拉候选编辑：候选项被选中（鼠标点选/键盘回车）后提交
     * @param [in] nIndex 候选项序号
@@ -1783,6 +1799,10 @@ private:
     */
     UiString m_listCtrlRichEditClass;
 
+    /** ListCtrl的日期编辑框Class属性（kEditDate 编辑器）
+    */
+    UiString m_listCtrlDateTimeClass;
+
     /** 图片列表
     */
     ImageListPtr m_imageList[3];
@@ -1790,6 +1810,10 @@ private:
     /** 编辑框控件
     */
     RichEdit* m_pRichEdit;
+
+    /** 日期编辑框控件（kEditDate 编辑器）
+    */
+    DateTime* m_pDateTime;
 
     /** 表头的高度
     */
