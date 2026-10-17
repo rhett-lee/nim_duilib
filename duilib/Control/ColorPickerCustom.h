@@ -130,11 +130,6 @@ private:
     */
     bool m_bPickerInited;
 
-    /** 是否正在同步（更新）各颜色分量控件的值
-    * 在更新过程中，控件的值变化事件会被屏蔽，避免RGB/HSV/HSL控件之间的值变化事件互相触发形成循环调用
-    */
-    bool m_bUpdatingColorUI;
-
     /** 旧的颜色
     */
     UiColor m_oldColor;

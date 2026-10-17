@@ -680,6 +680,7 @@ Progress 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 - `progress_radius` 现在**同时作用于纯色主进度、buffer 次级进度与 marquee 滚动块**，三者风格一致。
 - marquee 以「轨道长度 + 滚动块宽度」为周期循环回绕（取模并处理负值），轨道长度 <= 0 时复位为 0。
 - 值变化事件：`AttachValueChanged`（`EventArgs::wParam` 为新值、`lParam` 为旧值，均按整数截断；精确浮点值从 `GetValue()` 读取）。
+- 程序内部同步数值时请使用 `SetValueNoEvent()`：赋值但不派发 `kEventValueChanged` 事件（与文本控件的 `SetTextNoEvent` 语义一致）。用于"一个事件源驱动多个控件同步显示"的场景，避免值变化回调被再次触发形成循环调用；`Slider`、`ColorSlider` 自动继承该接口。
 - 完成事件：`AttachProgressCompleted`——进度值到达完成端点（正向到 `max`、倒数到 `min`）时触发一次。
 - 推荐语义色：前景 `bg_progress`、轨道 `bg_progress_track`（随深浅色主题自动切换）。
 

@@ -683,6 +683,7 @@ Notes:
 - `progress_radius` now applies to the **solid main progress, the buffer progress, and the marquee block alike**, so all three share the same style.
 - The marquee wraps with a period of "track length + block width" (modulo, with negative-value handling) and resets to 0 when the track length is <= 0.
 - Value-change event: `AttachValueChanged` (`EventArgs::wParam` = new value, `lParam` = old value, both truncated to integer; read the exact floating-point value via `GetValue()`).
+- When syncing values inside the framework or application code, use `SetValueNoEvent()`: it sets the value without firing `kEventValueChanged` (same semantics as `SetTextNoEvent` for text controls). Intended for the case where one event source drives several controls at once, so value-change callbacks are not re-triggered into a loop; `Slider` and `ColorSlider` inherit this API.
 - Completion event: `AttachProgressCompleted` — fired once when the value reaches the completion endpoint (max for forward, min for countdown).
 - Recommended semantic colors: foreground `bg_progress`, track `bg_progress_track` (auto-switch with light/dark theme).
 

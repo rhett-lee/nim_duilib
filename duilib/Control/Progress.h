@@ -79,6 +79,13 @@ public:
      */
     void SetValue(double fValue);
 
+    /** 设置当前进度百分比（不触发 kEventValueChanged 事件）
+     * 用于程序内部同步数值的场景（例如一个事件源驱动多个控件同步显示），
+     * 避免值变化事件回调被再次触发，形成循环调用
+     * @param[in] fValue 要设置的百分比数值
+     */
+    void SetValueNoEvent(double fValue);
+
     /** 进度条前景图片是否缩放显示
      * @return 返回 true 为缩放显示，false 为不缩放显示
      */
@@ -340,6 +347,9 @@ private:
 
     //是否自动显示百分比文本
     bool m_bShowPercent;
+
+    //是否禁止发送进度值变化事件（SetValueNoEvent 期间为 true）
+    bool m_bDisableValueChangeEvent;
 
     //纯色前景的圆角半径（DPI 缩放前原始值）
     int32_t m_nProgressRadius;

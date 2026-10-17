@@ -28,6 +28,7 @@ Progress::Progress(Window* pWindow) :
     m_strAnimationEasing(_T("EaseOutQuad")),
     m_pAnimPlayer(nullptr),
     m_bShowPercent(false),
+    m_bDisableValueChangeEvent(false),
     m_nProgressRadius(0),
     m_fBufferValue(-1),
     m_strBufferColor(),
@@ -252,6 +253,15 @@ void Progress::SetValue(double fValue)
     }
 
     Invalidate();
+}
+
+void Progress::SetValueNoEvent(double fValue)
+{
+    //设置值，但不触发 kEventValueChanged 事件（与文本控件的 SetTextNoEvent 语义一致）
+    bool bOldValue = m_bDisableValueChangeEvent;
+    m_bDisableValueChangeEvent = true;
+    SetValue(fValue);
+    m_bDisableValueChangeEvent = bOldValue;
 }
 
 bool Progress::IsStretchForeImage()
@@ -731,6 +741,10 @@ void Progress::DrawSolidProgressRect(IRender* pRender, const UiRect& rcProgressC
 
 void Progress::SendValueChangedEvent(double newValue, double oldValue)
 {
+    if (m_bDisableValueChangeEvent) {
+        //禁止发送值变化事件（SetValueNoEvent 期间）
+        return;
+    }
     //值按整数截断传递（与 Slider 一致）；精确浮点值可从 GetValue() 读取
     SendEvent(kEventValueChanged, (WPARAM)newValue, (LPARAM)oldValue);
 }
