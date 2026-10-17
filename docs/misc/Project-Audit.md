@@ -35,7 +35,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 * 实测：修复前进程 5 秒内消耗 CPU 时间 9.25s、`Responding=False`；修复后 0.078s、`Responding=True`，界面数值一致（RGB `255/255/255`、HSV `H0 S0 V100`、HSL `H0 S0 L100`）。
 * 已落地修复：`ColorPickerCustom` 增加 `m_bUpdatingColorUI` 重入守卫（[ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h#L133-L136)、[ColorPickerCustom.cpp](../duilib/Control/ColorPickerCustom.cpp#L150-L157)、[ColorPickerCustom.cpp](../duilib/Control/ColorPickerCustom.cpp#L209)）。
 
-### 1.2 框架级缺口（未实施）
+### 1.2 框架级缺口（部分实施：A1/A3 已完成，A2 未实施）
 
 | # | 缺口 | 证据 | 影响 |
 | :--- | :--- | :--- | :--- |
@@ -49,9 +49,9 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 ### 1.4 建议动作
 
-1. 在 `Progress` / `Slider` 层增加 `SetValueNoEvent()`（对标既有 `SetTextNoEvent` 语义），并把控件内部所有"同步其它视图"的赋值统一切换到该接口；
-2. 提供通用重入守卫（基类成员或宏），并在 `_DEBUG` 下增加"事件派发重入深度"断言，使同类缺陷在开发期暴露；
-3. 按 1.3 清单做一次专项排查，结论回写到本文档。
+1. 在 `Progress` / `Slider` 层增加 `SetValueNoEvent()`（对标既有 `SetTextNoEvent` 语义），并把控件内部所有"同步其它视图"的赋值统一切换到该接口；**（✅ 已完成：`Progress::SetValueNoEvent`，`Slider`/`ColorSlider` 继承；`ColorPickerCustom` 的 7 处同步赋值已切换）**
+2. 提供通用重入守卫（基类成员或宏），并在 `_DEBUG` 下增加"事件派发重入深度"断言，使同类缺陷在开发期暴露；**（⏳ 未实施：经 A3 排查确认同类回环均已具备防护，暂不引入框架级守卫）**
+3. 按 1.3 清单做一次专项排查，结论回写到本文档。**（✅ 已完成：见 1.3 结论）**
 
 ---
 
@@ -59,18 +59,18 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 ### 2.1 确认缺失的控件（类名与 `DUI_CTR_*` 宏均无命中）
 
-| # | 控件 | 用途 / 缺失影响 | 优先级 |
-| :--- | :--- | :--- | :--- |
-| B1 | StatusBar 状态栏 | 光标位置、字数、连接状态、后台进度等状态提示；编辑器 / IDE / 通信类软件标配 | 高 |
-| B2 | ToolBar 工具栏容器 | 目前只有 `MenuBar`，工具条需手写布局（按钮 + 分隔 + 溢出菜单）；属于"应用壳层"刚需 | 高 |
-| B3 | RangeSlider 双滑块范围选择 | 价格 / 时间区间筛选；现有 `Slider` 只有单值 | 中 |
-| B4 | Wizard / Step 向导步骤条 | 安装、注册、配置向导；`Timeline` 只能模拟，语义不符 | 中 |
-| B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 |
-| B6 | FontDialog / PrintDialog / PrintPreview | 编辑器与报表类必需；当前系统对话框只有 `FileDialog` | 中 |
-| B7 | Carousel / 分页器 / 无限滚动 | 图片轮播、卡片流 | 中 |
-| B8 | 富内容 Tooltip | `Tooltip` 仅纯文本（Windows 侧还是系统原生实现）；`Flyout` 地基已就绪，但未封装为富提示控件 | 中 |
-| B9 | 树表格 TreeGrid / 列筛选 | ListCtrl 规划中已明确取消（含内嵌树、分组折叠、L3 筛选），若出现企业报表需求需重新评估 | 低（按需） |
-| B10 | 打印 / 导出通道 | 除 ListCtrl 的 CSV 导出外，无统一打印与导出（PDF / XLSX）通路 | 低 |
+| # | 控件 | 用途 / 缺失影响 | 优先级 | 状态 |
+| :--- | :--- | :--- | :--- | :--- |
+| B1 | StatusBar 状态栏 | 光标位置、字数、连接状态、后台进度等状态提示；编辑器 / IDE / 通信类软件标配 | 高 | ✅ 已完成（`duilib/Control/StatusBar.h/.cpp`，节点 `StatusBar`；示例 `examples/controls/StatusBarForm`） |
+| B2 | ToolBar 工具栏容器 | 目前只有 `MenuBar`，工具条需手写布局（按钮 + 分隔 + 溢出菜单）；属于"应用壳层"刚需 | 高 | 待办 |
+| B3 | RangeSlider 双滑块范围选择 | 价格 / 时间区间筛选；现有 `Slider` 只有单值 | 中 | 待办 |
+| B4 | Wizard / Step 向导步骤条 | 安装、注册、配置向导；`Timeline` 只能模拟，语义不符 | 中 | 待办 |
+| B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 | 待办 |
+| B6 | FontDialog / PrintDialog / PrintPreview | 编辑器与报表类必需；当前系统对话框只有 `FileDialog` | 中 | 待办 |
+| B7 | Carousel / 分页器 / 无限滚动 | 图片轮播、卡片流 | 中 | 待办 |
+| B8 | 富内容 Tooltip | `Tooltip` 仅纯文本（Windows 侧还是系统原生实现）；`Flyout` 地基已就绪，但未封装为富提示控件 | 中 | 待办 |
+| B9 | 树表格 TreeGrid / 列筛选 | ListCtrl 规划中已明确取消（含内嵌树、分组折叠、L3 筛选），若出现企业报表需求需重新评估 | 低（按需） | 待办 |
+| B10 | 打印 / 导出通道 | 除 ListCtrl 的 CSV 导出外，无统一打印与导出（PDF / XLSX）通路 | 低 | 待办 |
 
 ### 2.2 既有控件的补强点
 

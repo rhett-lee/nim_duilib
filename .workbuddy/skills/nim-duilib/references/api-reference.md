@@ -62,6 +62,7 @@
 | Box | 浮动(Layout) | 自由定位，子控件绝对或相对布局 |
 | VBox | 垂直(VLayout) | 子控件从上到下依次排列 |
 | HBox | 水平(HLayout) | 子控件从左到右依次排列 |
+| StatusBar | 水平(HLayout) | 状态栏：子控件即状态面板，相邻面板之间自动绘制分隔线（可配置宽度/颜色），可选右下角尺寸手柄（继承 HBox） |
 | VFlowBox | 垂直流式 | 垂直排列，自动换列 |
 | HFlowBox | 水平流式 | 水平排列，自动换行 |
 | Panel | 浮动(Layout) | 带标题栏的面板容器（`PanelTemplate<Box>`），可折叠/手风琴 |

@@ -73,6 +73,8 @@ namespace ui
     #define  DUI_CTR_PANEL_HBOX                      (_T("PanelHBox"))
     #define  DUI_CTR_PANEL_VBOX                      (_T("PanelVBox"))
 
+    #define  DUI_CTR_STATUS_BAR                      (_T("StatusBar"))
+
     #define  DUI_CTR_SCROLLBOX                       (_T("ScrollBox"))
     #define  DUI_CTR_HSCROLLBOX                      (_T("HScrollBox"))
     #define  DUI_CTR_VSCROLLBOX                      (_T("VScrollBox"))

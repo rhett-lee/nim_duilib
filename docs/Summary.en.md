@@ -259,6 +259,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | Control used to display icons; if icon data is not set, it is compatible with all functions of the base class Control |
 | AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | Address bar control, used to display the path of the local file system |
+| StatusBar | HBox | [duilib/Control/StatusBar.h](../duilib/Control/StatusBar.h) | Status bar control; draws separators automatically between adjacent status panes and offers an optional bottom-right size grip. See [Control.en.md](Control.en.md#attributes-of-statusbar-inherits-hbox-attributes) |
 
 * Global Resources
 

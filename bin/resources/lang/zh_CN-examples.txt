@@ -638,6 +638,7 @@ STRID_CONTROLS_NAVIGATION_TEST = 导航测试
 STRID_CONTROLS_CHART_TEST = 图表测试
 STRID_CONTROLS_MARQUEE_TEST = 跑马灯测试
 STRID_CONTROLS_TIMELINE_TEST = 时间轴测试
+STRID_CONTROLS_STATUSBAR_TEST = 状态栏测试
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline 时间轴控件测试
 STRID_TIMELINE_HINT = 提示：点击节点触发回调，正文随宽度自适应换行
@@ -718,6 +719,21 @@ STRID_MARQUEE_TEXT_STATIC = 短文本
 STRID_MARQUEE_TEXT_UPDATE_1 = 这是一条正在横向向左滚动的公告：欢迎使用 nim_duilib 跨平台界面库！跑马灯控件支持横向与纵向两种滚动方式，可自定义滚动速度与方向。
 STRID_MARQUEE_TEXT_UPDATE_2 = 文本已动态更新：跑马灯支持运行时修改文本内容并自动重置滚动位置，同时支持通过 SetScrollSpeed 接口实时调整滚动速度，本条演示速度已调整为中等速度。
 STRID_MARQUEE_TEXT_UPDATE_3 = 第三段内容：滚动速度、方向、暂停与恢复均可通过接口实时调整，文本超出显示区域时自动循环滚动，未超出时静态居中显示。
+# controls/StatusBar
+STRID_STATUSBAR_WINDOW_TITLE = StatusBar 状态栏控件测试
+STRID_STATUSBAR_HINT = 提示：状态栏是一组状态面板，相邻面板之间会自动绘制分隔线
+STRID_STATUSBAR_BTN_STATE = 切换状态
+STRID_STATUSBAR_BTN_CONN = 切换连接
+STRID_STATUSBAR_BTN_ADVANCE = 推进进度
+STRID_STATUSBAR_CONTENT_TITLE = 主内容区（模拟编辑器 / IDE）
+STRID_STATUSBAR_CONTENT_BODY = 状态栏位于窗口底部，用于显示光标位置、字数、连接状态、后台进度等状态提示，是编辑器、IDE、通信类软件的常见界面元素。状态栏继承自水平容器（HBox），其中的每个子控件就是一个状态面板，相邻面板之间会自动绘制竖直分隔线，可通过 separator_width 属性关闭或调整宽度、通过 separator_color 属性调整颜色；右下角可选择绘制尺寸手柄（size_grip），用于提示窗口可调整大小。点击上方按钮可动态更新各个状态面板的内容。
+STRID_STATUSBAR_STATUS_READY = 状态：就绪
+STRID_STATUSBAR_STATUS_BUSY = 状态：忙碌
+STRID_STATUSBAR_CONN_ON = 连接：已连接
+STRID_STATUSBAR_CONN_OFF = 连接：未连接
+STRID_STATUSBAR_POS_TEXT = 行 128，列 24 · 字数 2048
+STRID_STATUSBAR_BACKEND = 后台进度：
+STRID_STATUSBAR_PLAIN_TEXT = 第二个状态栏：separator_width="0"（不绘制分隔线）
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart 图表控件测试
 STRID_CHART_CARD_LINE = 折线图 · 多系列（直线）

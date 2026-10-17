@@ -6,6 +6,7 @@
 #include "ChartForm.h"
 #include "MarqueeForm.h"
 #include "TimelineForm.h"
+#include "StatusBarForm.h"
 
 #include <fstream>
 
@@ -336,6 +337,15 @@ void ControlForm::OnInitWindow()
             });
     }
 
+    //StatusBar 状态栏演示
+    ui::Button* pStatusBarBtn = dynamic_cast<ui::Button*>(FindControl(_T("statusbar_btn")));
+    if (pStatusBarBtn != nullptr) {
+        pStatusBarBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowStatusBarWindow();
+            return true;
+            });
+    }
+
     //托盘图标功能
     ui::CheckBox* pTrayIconCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_tray_icon")));
     if (pTrayIconCheckBox != nullptr) {
@@ -555,6 +565,18 @@ void ControlForm::ShowTimelineWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("TimelineWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowStatusBarWindow()
+{
+    StatusBarForm* testForm = new StatusBarForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("StatusBarWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="900,560" text="StatusBar Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_STATUSBAR_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 控制区 -->
+        <HBox height="44" padding="12,8,12,0">
+            <Button class="btn_global" name="btn_toggle_state" text_id="STRID_STATUSBAR_BTN_STATE" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+            <Button class="btn_global" name="btn_toggle_conn" text_id="STRID_STATUSBAR_BTN_CONN" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+            <Button class="btn_global" name="btn_advance" text_id="STRID_STATUSBAR_BTN_ADVANCE" width="auto" height="28" border_round="3,3" padding="8,0,8,0"/>
+            <Label text_id="STRID_STATUSBAR_HINT" text_color="text_muted" valign="center" text_align="left,vcenter" width="stretch" margin="4,0,0,0" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 演示区：模拟一个编辑器 / IDE 的主内容区 -->
+        <VBox padding="12,8,12,12" width="stretch" height="stretch">
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" width="stretch" height="stretch">
+                <Label text_id="STRID_STATUSBAR_CONTENT_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,8"/>
+                <Label text_id="STRID_STATUSBAR_CONTENT_BODY" text_color="text_default" multi_line="true" text_align="left,top" height="stretch" width="stretch"/>
+            </VBox>
+        </VBox>
+
+        <!-- 状态栏（主）：相邻面板间自动绘制分隔线，右下角绘制尺寸手柄 -->
+        <StatusBar name="status_bar_main" width="stretch" height="30" bkcolor="bg_window_card"
+                   border_size="0,1,0,0" bordercolor="border_window" size_grip="true">
+            <Label name="sb_state" text_id="STRID_STATUSBAR_STATUS_READY" width="110" valign="center" text_color="text_default" padding="10,0,10,0" auto_tooltip="true"/>
+            <Label name="sb_conn" text_id="STRID_STATUSBAR_CONN_ON" width="140" valign="center" text_color="text_default" padding="10,0,10,0" auto_tooltip="true"/>
+            <Label name="sb_pos" text_id="STRID_STATUSBAR_POS_TEXT" width="210" valign="center" text_color="text_muted" padding="10,0,10,0" auto_tooltip="true"/>
+            <HBox width="stretch">
+                <Label text_id="STRID_STATUSBAR_BACKEND" valign="center" text_color="text_muted" padding="10,0,8,0"/>
+                <Progress name="sb_progress" width="stretch" min="0" max="100" value="0" valign="center" margin="0,0,10,0"
+                          bkcolor="bg_progress_track" progress_color="bg_progress" progress_radius="6"/>
+            </HBox>
+        </StatusBar>
+
+        <!-- 状态栏（次）：关闭分隔线，演示属性差异 -->
+        <StatusBar name="status_bar_plain" width="stretch" height="24" bkcolor="bg_titlebar" separator_width="0">
+            <Label text_id="STRID_STATUSBAR_PLAIN_TEXT" width="stretch" valign="center" text_color="text_muted" padding="10,0,0,0"/>
+        </StatusBar>
+    </VBox>
+</Window>
