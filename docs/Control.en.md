@@ -1993,7 +1993,7 @@ pListCtrl->SetColumnEditorType(4, ui::ListCtrlEditorType::kEditDate);
 pListCtrl->EnterCurrentCellEdit();
 ```
 
-On commit the input is validated by the column's declared editor type: an empty string is always valid (it clears the cell), `kEditText` is always valid, `kEditNumber` accepts only a valid decimal number, and `kEditDate` accepts only `yyyy-mm-dd` / `yyyy/mm/dd` (reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired). The existing events `kEventEnterEdit` / `kEventLeaveEdit` are reused — no new event is added; the three types share the same RichEdit editor.
+On commit the input is validated by the column's declared editor type: an empty string is always valid (it clears the cell), `kEditText` is always valid, `kEditNumber` accepts only a valid decimal number, and `kEditDate` accepts only `yyyy-mm-dd` / `yyyy/mm/dd` (reusing `Calendar::ParseDateString`); invalid input is discarded (no write-back, and `kEventLeaveEdit` is not fired). For `kEditNumber` columns the input is also restricted while editing: only digits, a sign and a decimal point can be entered (implemented with the RichEdit character whitelist, effective for both typing and pasting), so non-numeric characters cannot be typed. The existing events `kEventEnterEdit` / `kEventLeaveEdit` are reused — no new event is added; the three types share the same RichEdit editor.
 
 **Cell editor: dropdown candidates (kEditCombo):**
 
@@ -2058,18 +2058,10 @@ pListCtrl->SetDataItemHeight(64, true);
 
 **Single-cell refresh:**
 
-When only individual cells change (e.g. progress or status columns), use `RefreshSubItem` to update just that cell instead of the whole row.
-
-Note: writing data through a public setter (such as `SetSubItemProgress` / `SetSubItemData`) emits a data-changed notification and refreshes the whole row automatically. To refresh just one cell, wrap the data write with `SetEnableRefresh(false)` (to suppress the automatic refresh) and then call `RefreshSubItem`:
+When only individual cells change (e.g. progress or status columns), use `RefreshSubItem` to update just that cell instead of the whole row:
 
 ```cpp
-// Refresh only the cell at row 0, column 1 (without a whole-row refresh)
-// 1) Temporarily disable the refresh switch so the data write does not refresh the UI
-bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
-pListCtrl->SetSubItemProgress(0, 1, 60);   // update the underlying data only
-pListCtrl->SetEnableRefresh(bOldRefresh);  // restore the refresh switch
-
-// 2) Refresh just that cell
+// Update the cell at row 0, column 1
 pListCtrl->RefreshSubItem(0, 1);
 
 // Or refresh by column ID

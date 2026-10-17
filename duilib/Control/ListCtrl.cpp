@@ -4238,6 +4238,14 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->SetMargin(rcMargin, false);
     m_pRichEdit->SetFloat(true);
     m_pRichEdit->SetVisible(true);
+    //按编辑器类型限制可输入的字符：数值编辑器只允许输入数字、正负号和小数点
+    //（RichEdit编辑器会被复用，因此每次进入编辑都要重新设置，避免上一次的限制残留）
+    if (editorType == ListCtrlEditorType::kEditNumber) {
+        m_pRichEdit->SetLimitChars(_T("0123456789+-."));
+    }
+    else {
+        m_pRichEdit->SetLimitChars(_T(""));
+    }
     m_pRichEdit->SetText(sOldItemText);
     m_pRichEdit->SetSelAll();
     UpdateRichEditSize(pSubItem);
