@@ -2058,10 +2058,18 @@ pListCtrl->SetDataItemHeight(64, true);
 
 **单格刷新：**
 
-当只有个别单元格的数据发生变化时（例如进度、状态列），可使用 `RefreshSubItem` 只更新该单元格，避免整行刷新：
+当只有个别单元格的数据发生变化时（例如进度、状态列），可使用 `RefreshSubItem` 只更新该单元格，避免整行刷新。
+
+注意：通过公开的 setter（如 `SetSubItemProgress` / `SetSubItemData`）写数据时会触发数据变化通知，从而自动刷新整行；若要真正做到只刷新一个单元格，需要先用 `SetEnableRefresh(false)` 包裹数据写入以屏蔽自动刷新，再调用 `RefreshSubItem`：
 
 ```cpp
-// 更新第 0 行、第 1 列单元格的显示
+// 只刷新第 0 行、第 1 列单元格的进度（不触发整行刷新）
+// 1) 临时关闭刷新开关，数据写入时不会自动刷新界面
+bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
+pListCtrl->SetSubItemProgress(0, 1, 60);   // 只更新底层数据
+pListCtrl->SetEnableRefresh(bOldRefresh);  // 恢复刷新开关
+
+// 2) 只刷新该单元格
 pListCtrl->RefreshSubItem(0, 1);
 
 // 也可按列ID刷新

@@ -804,7 +804,8 @@ public:
     bool RefreshSubItemById(size_t dataItemIndex, size_t columnId);
 
     /** 是否允许刷新界面
-    * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh()函数刷新界面
+    * @param [in] bEnable 如果为true，允许通过Refresh系列函数刷新界面; 如果为false，则禁止通过Refresh系列函数刷新界面，
+                          并且数据变化的时候也不会自动刷新界面
     * @return 返回旧的IsEnableRefresh()状态
     */
     bool SetEnableRefresh(bool bEnable);

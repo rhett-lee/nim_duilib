@@ -180,6 +180,24 @@ void ListCtrlListView::Refresh(bool bSync)
     BaseClass::Refresh(bSync);
 }
 
+void ListCtrlListView::OnModelDataChanged(size_t nStartElementIndex, size_t nEndElementIndex)
+{
+    if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
+        //刷新功能已经禁止
+        return;
+    }
+    BaseClass::OnModelDataChanged(nStartElementIndex, nEndElementIndex);
+}
+
+void ListCtrlListView::OnModelCountChanged()
+{
+    if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsEnableRefresh()) {
+        //刷新功能已经禁止
+        return;
+    }
+    BaseClass::OnModelCountChanged();
+}
+
 Control* ListCtrlListView::CreateDataItem()
 {
     ASSERT(m_pListCtrl != nullptr);

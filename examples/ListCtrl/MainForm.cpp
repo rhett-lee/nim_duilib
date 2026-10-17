@@ -1793,7 +1793,8 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
 {
     //演示：单格刷新（RefreshSubItem）
     //场景：进度类列（第 2 列，列索引为 1）的进度来自后台任务，应用层自己维护进度值（m_progressValues）；
-    //      后台进度更新时，只调用 RefreshSubItem 刷新对应的单元格，不刷新整行、不写数据模型。
+    //      后台进度更新时，先用 SetEnableRefresh(false) 包裹数据写入（避免数据变化触发整行自动刷新界面），
+    //      再调用 RefreshSubItem 只刷新对应的单元格。
     if (pListCtrl == nullptr) {
         return;
     }
@@ -1819,8 +1820,6 @@ void MainForm::TestRefreshSubItem(ui::ListCtrl* pListCtrl)
                 nProgress = 0;
             }
             m_progressValues[nRow] = nProgress;
-
-            //暂时屏蔽此功能，稍后再修复
 
             //更新底层存储的单元格数据，但不刷新界面（避免整行刷新界面）
             bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
@@ -1874,12 +1873,17 @@ void MainForm::InitFillRefreshTests(ui::ListCtrl* pListCtrl)
     ui::CheckBox* pRefreshSubItem = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_enable_refresh_subitem")));
     if (pRefreshSubItem != nullptr) {
         pRefreshSubItem->Selected(false, false);
-        pRefreshSubItem->AttachSelect([this, pListCtrl](const ui::EventArgs&) {
-            TestRefreshSubItem(pListCtrl);
+        ui::ControlPtrT<ui::ListCtrl> spListCtrl(pListCtrl);
+        pRefreshSubItem->AttachSelect([this, spListCtrl](const ui::EventArgs&) {
+            if (spListCtrl.get() != nullptr) {
+                TestRefreshSubItem(spListCtrl.get());
+            }
             return true;
             });
-        pRefreshSubItem->AttachUnSelect([this, pListCtrl](const ui::EventArgs&) {
-            StopRefreshSubItem(pListCtrl);
+        pRefreshSubItem->AttachUnSelect([this, spListCtrl](const ui::EventArgs&) {
+            if (spListCtrl.get() != nullptr) {
+                StopRefreshSubItem(spListCtrl.get());
+            }
             return true;
             });
     }

@@ -427,9 +427,7 @@ bool VirtualListBox::IsEnableRefresh() const
 
 void VirtualListBox::RefreshElements(size_t nStartElementIndex, size_t nEndElementIndex)
 {
-    if (!IsEnableRefresh()) {
-        return;//禁止刷新界面
-    }
+    //是否允许刷新的判断，在OnModelDataChanged函数中统一处理
     OnModelDataChanged(nStartElementIndex, nEndElementIndex);
 }
 
@@ -537,10 +535,8 @@ void VirtualListBox::OnFilledElements(const RefreshDataList& refreshDataList)
 
 void VirtualListBox::OnModelCountChanged()
 {
-    if (!IsEnableRefresh()) {
-        return;//禁止刷新界面
-    }
     //元素的个数发生变化（有添加或者删除）
+    //是否允许刷新的判断，在Refresh函数中统一处理
     Refresh();
 }
 

@@ -2058,10 +2058,18 @@ pListCtrl->SetDataItemHeight(64, true);
 
 **Single-cell refresh:**
 
-When only individual cells change (e.g. progress or status columns), use `RefreshSubItem` to update just that cell instead of the whole row:
+When only individual cells change (e.g. progress or status columns), use `RefreshSubItem` to update just that cell instead of the whole row.
+
+Note: writing data through a public setter (such as `SetSubItemProgress` / `SetSubItemData`) emits a data-changed notification and refreshes the whole row automatically. To refresh just one cell, wrap the data write with `SetEnableRefresh(false)` (to suppress the automatic refresh) and then call `RefreshSubItem`:
 
 ```cpp
-// Update the cell at row 0, column 1
+// Refresh only the cell at row 0, column 1 (without a whole-row refresh)
+// 1) Temporarily disable the refresh switch so the data write does not refresh the UI
+bool bOldRefresh = pListCtrl->SetEnableRefresh(false);
+pListCtrl->SetSubItemProgress(0, 1, 60);   // update the underlying data only
+pListCtrl->SetEnableRefresh(bOldRefresh);  // restore the refresh switch
+
+// 2) Refresh just that cell
 pListCtrl->RefreshSubItem(0, 1);
 
 // Or refresh by column ID
