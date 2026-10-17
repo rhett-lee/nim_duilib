@@ -9,6 +9,7 @@ namespace ui
 ColorPickerCustom::ColorPickerCustom(Window* pWindow) :
     Box(pWindow),
     m_bPickerInited(false),
+    m_bUpdatingColorUI(false),
     m_pRegularPicker(nullptr),
     m_pSpectrumControl(nullptr),
     m_pNewColorEdit(nullptr)
@@ -148,6 +149,13 @@ bool ColorPickerCustom::IsValidColorString(const DString& colorText) const
 
 void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReason reason)
 {
+    if (m_bUpdatingColorUI) {
+        //正在同步各颜色分量控件的值：此时由控件的值变化事件触发的重复调用直接返回，
+        //避免RGB/HSV/HSL三种颜色分量控件的值变化事件互相触发，形成无限递归调用
+        return;
+    }
+    m_bUpdatingColorUI = true;
+
     UiColor newColor((uint32_t)wParam);
     if (reason != ChangeReason::NewColorEdit) {
         if (m_pNewColorEdit != nullptr) {
@@ -198,6 +206,7 @@ void ColorPickerCustom::OnColorChanged(WPARAM wParam, LPARAM lParam, ChangeReaso
 
     SendEvent(kEventSelectColor, wParam, lParam);
     m_oldColor = newColor;
+    m_bUpdatingColorUI = false;
 }
 
 void ColorPickerCustom::InitRGB(const ColorUI& colorUI, ChangeReason reason)
