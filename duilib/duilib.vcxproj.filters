@@ -132,6 +132,9 @@
     <ClCompile Include="Control\Slider.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\RangeSlider.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\StatusBar.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -1017,6 +1020,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Slider.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RangeSlider.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\StatusBar.h">

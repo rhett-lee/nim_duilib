@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,700" use_system_caption="true">
+<Window size="980,900" use_system_caption="true">
     <VBox bkcolor="bg_window_main">
         <VBox>
             <HBox height="auto">
@@ -30,6 +30,12 @@
                 <!-- 进度条测试：独立窗口入口 -->
                 <GroupHBox height="80" width="auto" margin="6,6,6,6" text="Progress" corner_size="4,4">
                     <Button class="btn_global" text="Progress Test" name="progress_btn" margin="20,30,20,0" width="140" height="30" border_round="3,3"/>
+                </GroupHBox>
+
+                <!-- 范围滑块测试：独立窗口入口 -->
+                <GroupHBox height="80" width="auto" margin="6,6,6,6" text="RangeSlider" corner_size="4,4">
+                    <Button class="btn_global" name="rangeslider_btn" text_id="STRID_CONTROLS_RANGESLIDER_TEST"
+                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
                 </GroupHBox>
                 
                 <!-- 上下文菜单：一行代码为任意控件绑定右键菜单(Control::AttachPopupMenu) -->

@@ -16,6 +16,7 @@
 #include "duilib/Control/FilterCombo.h"
 #include "duilib/Control/CheckCombo.h"
 #include "duilib/Control/Slider.h"
+#include "duilib/Control/RangeSlider.h"
 #include "duilib/Control/Progress.h"
 #include "duilib/Control/CircleProgress.h"
 #include "duilib/Control/RichEdit.h"
@@ -159,6 +160,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_FILTER_COMBO, [](Window* pWindow) { return new FilterCombo(pWindow); }},
         {DUI_CTR_CHECK_COMBO, [](Window* pWindow) { return new CheckCombo(pWindow); }},
         {DUI_CTR_SLIDER, [](Window* pWindow) { return new Slider(pWindow); }},
+        {DUI_CTR_RANGE_SLIDER, [](Window* pWindow) { return new RangeSlider(pWindow); }},
         {DUI_CTR_PROGRESS, [](Window* pWindow) { return new Progress(pWindow); }},
         {DUI_CTR_CIRCLEPROGRESS, [](Window* pWindow) { return new CircleProgress(pWindow); }},
         {DUI_CTR_RICHTEXT, [](Window* pWindow) { return new RichText(pWindow); }},

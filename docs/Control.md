@@ -796,6 +796,71 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 `click_to_jump=true`（默认）为**按下即跳值**：在轨道任意位置按下鼠标左键，值立即跳到该位置，并进入拖动状态（可继续按住拖动）。这是桌面端更常见的交互。
 `click_to_jump=false` 保留原有行为：仅在松开鼠标时跳到松开位置。
 
+## RangeSlider 控件（继承 Progress 属性）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| low_value | 0 | double | 下限值（支持浮点），如"200" |
+| high_value | max | double | 上限值（支持浮点），与基类的 `value` 等价 |
+| min_range | 0 | double | 下限与上限之间的最小间距（下限不得超过"上限 - min_range"）|
+| range_color |  | string | 高亮选中区间的颜色（语义色名或颜色值，为空则回退使用 `progress_color`）|
+| range_radius | 0 | int | 高亮选中区间的圆角半径（像素，自动DPI缩放，0为直角）|
+| click_to_jump | true | bool | 点击轨道是否**按下即跳值**；false 则保持"松开鼠标才跳值"的旧行为 |
+| thumb_size | 10,10 | size | 两个滑块的统一大小，如"10,10" |
+| thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | 下限滑块各状态图片 |
+| high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | 上限滑块各状态图片（为空时回退使用下限滑块的图片）|
+
+RangeSlider 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
+
+双滑块范围控件在一条轨道上放置下限、上限两个滑块，被选中的区间以高亮显示，常用于价格 / 时间等区间筛选场景。
+上限值直接复用基类的进度值（`value` / `GetValue`），下限值独立维护（`low_value` / `GetLowValue`）；边界 `min` / `max` 同样复用基类属性。
+下限与上限都会自动钳位：下限落在 `[min, high - min_range]`、上限落在 `[low + min_range, max]`；拖动、点击轨道与 `SetXXX` 均遵循该规则。
+
+XML 示例：
+```xml
+<RangeSlider class="range_slider_horizontal" name="price_range" min="0" max="1000"
+             low_value="200" value="800" min_range="50" width="stretch"/>
+```
+
+对应的 C++ 接口：
+```cpp
+double GetLowValue() const;                          //下限值
+void SetLowValue(double fValue);                     //设置下限（自动钳位，触发值变化事件）
+void SetLowValueNoEvent(double fValue);              //设置下限（不触发事件）
+double GetHighValue() const;                         //上限值（与 GetValue() 等价）
+void SetHighValue(double fValue);                    //设置上限（自动钳位，触发事件）
+void SetHighValueNoEvent(double fValue);             //设置上限（不触发事件）
+void SetRange(double fLowValue, double fHighValue);  //同时设置下限与上限（触发一次事件）
+void SetRangeNoEvent(double fLowValue, double fHighValue);
+double GetMinRange() const;                          //最小间距
+void SetMinRange(double fMinRange);
+void SetThumbSize(UiSize szXY, bool bNeedDpiScale);  //滑块大小
+UiSize GetThumbSize() const;
+UiRect GetLowThumbRect() const;                      //下限滑块矩形
+UiRect GetHighThumbRect() const;                     //上限滑块矩形
+DString GetThumbStateImage(ControlStateType stateType) const;       //下限滑块图片
+void SetThumbStateImage(ControlStateType stateType, const DString& strImage);
+DString GetHighThumbStateImage(ControlStateType stateType) const;   //上限滑块图片
+void SetHighThumbStateImage(ControlStateType stateType, const DString& strImage);
+void SetRangeColor(const DString& strColor);         //高亮区间颜色
+const DString& GetRangeColor() const;
+void SetRangeRadius(int32_t nRadius);                //高亮区间圆角
+int32_t GetRangeRadius() const;
+void SetClickToJump(bool bEnable);                   //点击轨道是否按下即跳值
+bool IsClickToJump() const;
+void AttachRangeChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //范围值变化事件
+```
+
+值变化事件：`AttachRangeChanged`——范围值变化时触发，事件编码为 `kEventValueChanged`（`wParam` 为 `1`），下限与上限通过 `EventArgs::pEventData` 携带（指向 `RangeSlider::RangeValue`，含 `lowValue` / `highValue`，仅在本次回调派发期间有效，请勿保存该指针）：
+```cpp
+pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pRange = static_cast<const ui::RangeSlider::RangeValue*>(msg.pEventData);
+        // 读取 pRange->lowValue / pRange->highValue
+    }
+    return true;
+});
+```
+
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

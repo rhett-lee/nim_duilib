@@ -1,0 +1,7 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 按下状态：白色圆面 + 更深光晕，圆面略微收缩 -->
+    <circle cx="16" cy="16" r="15.5" fill="#000000" opacity="0.16"/>
+    <circle cx="16" cy="17.6" r="13.5" fill="#000000" opacity="0.12"/>
+    <circle cx="16" cy="16" r="12" fill="#FFFFFF"/>
+    <circle cx="16" cy="16" r="12" fill="none" stroke="#B9C0CB" stroke-width="1.2"/>
+</svg>

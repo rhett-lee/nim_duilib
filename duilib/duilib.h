@@ -105,6 +105,7 @@
 #include "Control/Marquee.h"
 #include "Control/Timeline.h"
 #include "Control/Slider.h"
+#include "Control/RangeSlider.h"
 
 #include "Control/RichEdit.h"
 #include "Control/SpinBox.h"
