@@ -37,6 +37,14 @@ private:
     */
     void AdvanceProgress();
 
+    /** 演示分格索引接口：按索引直接读写状态面板的文本
+    */
+    void SetPanelTextByIndex();
+
+    /** 切换尺寸手柄是否参与窗口拖拽缩放
+    */
+    void ToggleSizeGripResize();
+
 private:
     //当前是否为忙碌状态
     bool m_bBusy;
@@ -47,8 +55,14 @@ private:
     //后台进度值（0 - 100）
     int32_t m_nProgress;
 
+    //分格索引演示的轮换计数
+    int32_t m_nPanelTextRound;
+
     //后台进度条控件接口
     ui::Progress* m_pProgress;
+
+    //主状态栏控件接口（用于演示分格索引与手柄拖拽开关）
+    ui::StatusBar* m_pStatusBar;
 };
 
 #endif //EXAMPLES_STATUSBAR_FORM_H_

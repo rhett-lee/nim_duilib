@@ -726,8 +726,10 @@ STRID_STATUSBAR_HINT = 提示：状态栏是一组状态面板，相邻面板之
 STRID_STATUSBAR_BTN_STATE = 切换状态
 STRID_STATUSBAR_BTN_CONN = 切换连接
 STRID_STATUSBAR_BTN_ADVANCE = 推进进度
+STRID_STATUSBAR_BTN_PANEL = 分格索引设文本
+STRID_STATUSBAR_BTN_GRIP = 切换手柄拖拽
 STRID_STATUSBAR_CONTENT_TITLE = 主内容区（模拟编辑器 / IDE）
-STRID_STATUSBAR_CONTENT_BODY = 状态栏位于窗口底部，用于显示光标位置、字数、连接状态、后台进度等状态提示，是编辑器、IDE、通信类软件的常见界面元素。状态栏继承自水平容器（HBox），其中的每个子控件就是一个状态面板，相邻面板之间会自动绘制竖直分隔线，可通过 separator_width 属性关闭或调整宽度、通过 separator_color 属性调整颜色；右下角可选择绘制尺寸手柄（size_grip），用于提示窗口可调整大小。点击上方按钮可动态更新各个状态面板的内容。
+STRID_STATUSBAR_CONTENT_BODY = 状态栏位于窗口底部，用于显示光标位置、字数、连接状态、后台进度等状态提示，是编辑器、IDE、通信类软件的常见界面元素。状态栏继承自水平容器（HBox），其中的每个子控件就是一个状态面板，相邻面板之间会自动绘制竖直分隔线，可通过 separator_width 属性关闭或调整宽度、通过 separator_color 属性调整颜色；右下角可选择绘制尺寸手柄（size_grip）。当状态栏停靠在窗口右下角时，手柄会自动并入窗口的可拖拽缩放区，可以直接用鼠标拖拽调整窗口大小（不需要时设 size_grip_resize="false"）。状态面板还可按索引访问：GetPanelCount / GetPanel / SetPanelText 等，无需再 FindControl 找子控件。点击上方按钮可动态更新各个状态面板的内容。
 STRID_STATUSBAR_STATUS_READY = 状态：就绪
 STRID_STATUSBAR_STATUS_BUSY = 状态：忙碌
 STRID_STATUSBAR_CONN_ON = 连接：已连接

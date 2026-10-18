@@ -721,8 +721,10 @@ STRID_STATUSBAR_HINT = Hint: a status bar is a set of status panes; separators a
 STRID_STATUSBAR_BTN_STATE = Toggle State
 STRID_STATUSBAR_BTN_CONN = Toggle Connection
 STRID_STATUSBAR_BTN_ADVANCE = Advance Progress
+STRID_STATUSBAR_BTN_PANEL = Set Text by Pane Index
+STRID_STATUSBAR_BTN_GRIP = Toggle Grip Drag
 STRID_STATUSBAR_CONTENT_TITLE = Main content area (simulated editor / IDE)
-STRID_STATUSBAR_CONTENT_BODY = The status bar sits at the bottom of the window and shows status hints such as cursor position, character count, connection state and background progress. It is a common element in editors, IDEs and communication apps. StatusBar derives from the horizontal container (HBox); each child control is a status pane, and vertical separators are drawn automatically between adjacent panes. Set separator_width to 0 to hide them, and use separator_color to change the color. An optional size grip (size_grip) can be drawn at the bottom-right corner to hint that the window is resizable. Click the buttons above to update the panes dynamically.
+STRID_STATUSBAR_CONTENT_BODY = The status bar sits at the bottom of the window and shows status hints such as cursor position, character count, connection state and background progress. It is a common element in editors, IDEs and communication apps. StatusBar derives from the horizontal container (HBox); each child control is a status pane, and vertical separators are drawn automatically between adjacent panes. Set separator_width to 0 to hide them, and use separator_color to change the color. An optional size grip (size_grip) can be drawn at the bottom-right corner. When the status bar sits at the bottom-right corner of the window, the grip is merged into the window's draggable resize area, so you can drag it to resize the window directly (set size_grip_resize="false" to disable). Panes can also be addressed by index via GetPanelCount / GetPanel / SetPanelText, with no need to FindControl the child controls. Click the buttons above to update the panes dynamically.
 STRID_STATUSBAR_STATUS_READY = State: Ready
 STRID_STATUSBAR_STATUS_BUSY = State: Busy
 STRID_STATUSBAR_CONN_ON = Link: Connected

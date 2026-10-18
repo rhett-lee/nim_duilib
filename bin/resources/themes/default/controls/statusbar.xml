@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="900,560" text="StatusBar Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+<Window size="900,560" text="StatusBar Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default" size_box="0,0,4,4">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -13,7 +13,9 @@
         <HBox height="44" padding="12,8,12,0">
             <Button class="btn_global" name="btn_toggle_state" text_id="STRID_STATUSBAR_BTN_STATE" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
             <Button class="btn_global" name="btn_toggle_conn" text_id="STRID_STATUSBAR_BTN_CONN" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
-            <Button class="btn_global" name="btn_advance" text_id="STRID_STATUSBAR_BTN_ADVANCE" width="auto" height="28" border_round="3,3" padding="8,0,8,0"/>
+            <Button class="btn_global" name="btn_advance" text_id="STRID_STATUSBAR_BTN_ADVANCE" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+            <Button class="btn_global" name="btn_panel_text" text_id="STRID_STATUSBAR_BTN_PANEL" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
+            <Button class="btn_global" name="btn_grip_resize" text_id="STRID_STATUSBAR_BTN_GRIP" width="auto" height="28" border_round="3,3" padding="8,0,8,0" margin="0,0,8,0"/>
             <Label text_id="STRID_STATUSBAR_HINT" text_color="text_muted" valign="center" text_align="left,vcenter" width="stretch" margin="4,0,0,0" auto_tooltip="true"/>
         </HBox>
 
@@ -25,7 +27,10 @@
             </VBox>
         </VBox>
 
-        <!-- 状态栏（主）：相邻面板间自动绘制分隔线，右下角绘制尺寸手柄 -->
+        <!-- 状态栏（主）：相邻面板间自动绘制分隔线，右下角绘制尺寸手柄。
+             手柄默认参与窗口拖拽缩放（size_grip_resize 默认 true）：
+             状态栏停靠在窗口客户区右下角时，会自动把窗口右下角可拉伸区域扩大到覆盖手柄，
+             因此本窗口无需再写 size_box 也能用鼠标拖拽调整大小。 -->
         <StatusBar name="status_bar_main" width="stretch" height="30" bkcolor="bg_window_card"
                    border_size="0,1,0,0" bordercolor="border_window" size_grip="true">
             <Label name="sb_state" text_id="STRID_STATUSBAR_STATUS_READY" width="110" valign="center" text_color="text_default" padding="10,0,10,0" auto_tooltip="true"/>

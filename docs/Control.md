@@ -2291,7 +2291,8 @@ ChildWindow 控件继承了 `Box` 属性，更多可用属性请参考`Box`的�
 | :--- | :--- | :--- | :--- |
 | separator_width | 1 | int | 相邻状态面板之间分隔线的宽度（像素，0 表示不绘制分隔线）|
 | separator_color | "border_window" | string | 分隔线颜色（语义色名或颜色值）|
-| size_grip | false | bool | 是否绘制右下角的尺寸手柄（仅作视觉提示，不改变窗口本身的可调整大小行为）|
+| size_grip | false | bool | 是否绘制右下角的尺寸手柄|
+| size_grip_resize | true | bool | 尺寸手柄是否参与窗口拖拽缩放：true 时若状态栏停靠在窗口客户区右下角，会自动把窗口右下角可拉伸区域（size_box 的 right/bottom）扩大到覆盖手柄，从而能真正拖拽调整窗口大小；false 时手柄仅作视觉提示。注意该效果是窗口级的，扩大后窗口底边一带也会成为可拉伸区域。前提是窗口本身具备可缩放能力：Windows 默认具备；SDL 等平台需在 XML 中给 Window 声明非零 `size_box`|
 | size_grip_color | "border_window" | string | 尺寸手柄颜色（语义色名或颜色值）|
 
 StatusBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
@@ -2300,6 +2301,9 @@ StatusBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的�
 StatusBar 是一个水平容器（继承 `HBox`），其中的每个子控件就是一个"状态面板"（通常为 `Label` / `IconControl` / `Progress` 等）：
 面板可以设置固定宽度、拉伸（width="stretch"）等，沿用 `HBox` 的全部布局能力；相邻面板之间会自动绘制竖直分隔线，
 可通过 `separator_width` 关闭或调整宽度、通过 `separator_color` 调整颜色；右下角可选绘制尺寸手柄（`size_grip`）。
+
+状态面板支持**按索引访问**，索引从 0 开始、按布局顺序编号，且只统计可见面板（不可见面板不占索引），与视觉上看到的分格顺序一致。
+业务代码无需再 `FindControl` + `dynamic_cast` 找子 `Label`，可直接用索引读写面板内容；面板内容变化（增删子控件、改可见性）后索引会重新编号。
 
 XML 示例：
 ```xml
@@ -2312,10 +2316,37 @@ XML 示例：
 
 对应的 C++ 接口：
 ```cpp
+// 分隔线
 void SetSeparatorWidth(int32_t nWidth);      // 分隔线宽度（0 表示不绘制）
 void SetSeparatorColor(const DString& strColor);
+
+// 尺寸手柄
 void SetShowSizeGrip(bool bShow);            // 右下角尺寸手柄
+void SetSizeGripResize(bool bResize);        // 手柄是否参与窗口拖拽缩放（默认 true）
+bool  IsSizeGripResize() const;
 void SetSizeGripColor(const DString& strColor);
+
+// 状态面板（分格）索引接口
+size_t   GetPanelCount() const;                          // 面板数量（不含不可见面板）
+Control* GetPanel(size_t nIndex) const;                  // 按索引取面板，越界返回 nullptr
+int32_t  GetPanelIndex(Control* pPanel) const;           // 取面板索引，不是面板返回 -1
+Control* FindPanel(const DString& strName) const;        // 按 name 找面板
+bool     SetPanelText(size_t nIndex, const DString& strText); // 设面板文本（需 Label/RichEdit 类）
+DString  GetPanelText(size_t nIndex) const;              // 取面板文本
+```
+
+分格索引用法示例：
+```cpp
+ui::StatusBar* pStatusBar = dynamic_cast<ui::StatusBar*>(FindControl(_T("status_bar")));
+if (pStatusBar != nullptr) {
+    //第 0 格是"状态"面板，直接按索引设置文本，无需 FindControl 找子 Label
+    pStatusBar->SetPanelText(0, _T("状态：忙碌"));
+
+    //回读与反查
+    DString strText = pStatusBar->GetPanelText(0);
+    ui::Control* pPanel = pStatusBar->GetPanel(0);
+    int32_t nIndex = pStatusBar->GetPanelIndex(pPanel);   // 结果为 0
+}
 ```
 
 ## ToolBar 控件（继承 HBox 属性）
