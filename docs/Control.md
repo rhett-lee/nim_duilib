@@ -983,9 +983,29 @@ SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索�
 | prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
 | prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
 | debounce_interval | 0 | int(ms) | 防抖间隔（毫秒）：搜索文本连续变化时，仅在输入停顿达到该间隔后才触发 `kEventTextChanged`；0=每次变化立即触发（默认，向后兼容），用于避免搜索场景每次按键都触发搜索请求 |
+| suggestions | "" | string | 建议数据源，多项以分号";"分隔（搜索历史由控件在提交搜索时自动记录，无需在此配置） |
+| max_visible | 8 | int | 下拉浮层最多可见候选行数（超出显示滚动条） |
+| history_enabled | true | bool | 是否记录并展示搜索历史（历史同时作为候选项展示） |
+| max_history | 10 | int | 搜索历史最多保留条数（超过后丢弃最旧，最近使用的置顶） |
+| filter_enabled | true | bool | 是否按输入文本过滤候选：true（默认）时，输入达到 `min_chars` 才按 `match_mode`/`ignore_case` 过滤候选项；false 时始终全量展示（不过滤），适合候选项较少或希望总览全部候选项的场景 |
+| min_chars | 1 | int | 过滤模式下触发过滤的最少输入字符数；输入为空或不足该值时展示全部（聚焦态） |
+| match_mode | prefix | string | 过滤匹配模式：`prefix`前缀匹配（候选项以输入文本开头）；`contains`包含匹配（任意位置包含） |
+| ignore_case | true | bool | 过滤时是否忽略大小写 |
 
 对应C++接口：`SetSearchText/GetSearchText`、`GetEditControl()`（获取内部RichEdit控件）、`SetDebounceInterval/GetDebounceInterval`（防抖间隔，单位毫秒）。
-文本变化时触发`kEventTextChanged`事件（可通过 `debounce_interval` 设置防抖间隔，仅在输入停顿后才触发，避免每次按键都发起搜索）；按下回车键时触发`kEventReturn`事件（可用于发起搜索）。
+联想（建议+历史）相关接口：`SetCandidates/GetCandidates/AddCandidate/ClearCandidates`（建议数据源）、`SetMaxVisible/GetMaxVisible`、`SetHistoryEnabled/IsHistoryEnabled`、`SetMaxHistory/GetMaxHistory`、`GetHistory/ClearHistory/AddSearchHistory`（搜索历史）、`SetFilterEnabled/IsFilterEnabled`、`SetMinChars/GetMinChars`、`SetMatchMode/GetMatchMode`、`SetIgnoreCase/IsIgnoreCase`（过滤参数）。
+文本变化时触发`kEventTextChanged`事件（可通过 `debounce_interval` 设置防抖间隔，仅在输入停顿后才触发，避免每次按键都发起搜索）；**回车语义**：若用户未用上下方向键导航候选（即未高亮任何候选项），回车提交“输入框当前文本”并触发`kEventReturn`事件（可用于发起搜索）；若用户已用上下方向键导航并高亮某候选项，回车选中该候选项（回填编辑框）并触发`kEventAutoCompleteSelect`事件，其 WPARAM 为候选项在当前候选列表中的序号，此时`GetSearchText()`已被回填为候选项文本。
+下拉联想浮层复用 `AutoComplete` 的皮肤类 `auto_complete_flyout`/`auto_complete_list`/`auto_complete_item`（定义在 global.xml），跟随搜索框宽度在下方弹出，不抢焦点。
+
+联想浮层展示规则（明确且一致）：
+- **聚焦即评估**：编辑框获得焦点时立即评估，有可展示内容则展开，否则不弹。
+- **输入实时刷新**：文本每次变化实时刷新；无可展示内容时浮层关闭。
+- **过滤开关 `filter_enabled`（默认 true）**：开启时，输入达到 `min_chars` 才按 `match_mode`/`ignore_case` 过滤候选项；输入为空或不足 `min_chars` 时展示全部（历史置顶、最近使用的在前）。关闭时始终全量展示（历史与建议合并去重，不做输入过滤），适合候选项较少的场景。
+- **浮层不抢焦点**：编辑框失焦不作为关闭条件；点击浮层与搜索框以外区域时浮层自动关闭。
+- **选中后焦点归还**：鼠标点击候选项时，框架会先把原生键盘焦点移到浮层窗口，浮层关闭前会统一交还搜索框所在窗口，保证选中后可以继续用键盘输入（按 Esc 收起浮层时同样归还焦点，且不会重新弹出）。
+- **选中不重开**：选中候选项回填文本后不会因重新聚焦而再次弹出（避免刚选中又抖出浮层）。
+- **回车不误选**：未导航候选时回车提交输入文本，不会把列表里默认高亮的首项误当作搜索词。
+- 重复提交同一搜索词不会在列表中产生重复项（去重）。
 清除按钮复用RichEdit内置的`clear_btn_class`机制：编辑框聚焦且有文本时显示，点击清空文本，失焦后自动隐藏。
 使用示例（参考 rich_edit 示例程序）：
 

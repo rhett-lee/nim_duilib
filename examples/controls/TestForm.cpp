@@ -2,6 +2,7 @@
 #include "MessageBoxForm.h"
 #include "ToastForm.h"
 #include "ProgressForm.h"
+#include "duilib/Control/SearchBox.h"
 #include <ctime>
 
 TestForm::TestForm()
@@ -211,6 +212,24 @@ void TestForm::OnInitWindow()
         pAutoComplete2->AttachSelect([this, pAutoComplete2](const ui::EventArgs& /*args*/) {
             DString text = pAutoComplete2->GetText();
             ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), text.c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+            return true;
+            });
+    }
+
+    //SearchBox 搜索框：选中建议或回车搜索后用 Toast 提示（并演示搜索历史记录）
+    ui::SearchBox* pSearchBox = dynamic_cast<ui::SearchBox*>(FindControl(_T("search_box")));
+    if (pSearchBox != nullptr) {
+        //搜索场景防抖：连续输入仅在停顿 300ms 后才触发 kEventTextChanged
+        pSearchBox->SetDebounceInterval(300);
+        pSearchBox->AttachSelect([this, pSearchBox](const ui::EventArgs& /*args*/) {
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Selected: %s"), pSearchBox->GetSearchText().c_str()),
+                               ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
+            return true;
+            });
+        pSearchBox->AttachReturn([this, pSearchBox](const ui::EventArgs& /*args*/) {
+            ui::ToastWnd::Show(this, ui::StringUtil::Printf(_T("Search: %s  (history=%d)"),
+                               pSearchBox->GetSearchText().c_str(), static_cast<int>(pSearchBox->GetHistory().size())),
                                ui::ToastWnd::kTypeInfo, 1500, ui::ToastWnd::kPosTop, false);
             return true;
             });

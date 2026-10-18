@@ -429,7 +429,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 | **E-7** | `TabCtrl` | **无 `Add`/`Insert`/`Remove` 的程序化管理 API** —— 一个标签栏控件不能增删标签，必须绕道操作 `TabBox`。另无垂直标签、无固定标签、无溢出滚动 | 最大 API 缺陷 |
 | **E-8** | `Menu` / `MenuItem` ✅ 已完成（2026-10-18） | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
 | **E-9** | `DateTime` 不处理（架构债，留待重构） | `DateTime.h:35-46` 两处专门为"被复用为 ListCtrl 编辑器"打的补丁（`ResetCalendarFlyoutState`/`CloseCalendarFlyout`）+ 成员 `m_bSuppressCalendarReopen` —— **抽象缺失导致实现细节外泄**；`DateTimeWnd` 与 `kDateCalendar` 两套编辑路径并存 | 本轮不处理 |
-| **E-10** | `SearchBox` ✅ 防抖已完成（2026-10-18）；初始化顺序债已解决；AutoComplete 整合不做 | 原"无防抖"已补 `debounce_interval` 属性（默认 0 立即触发，>0 输入停顿后才发 `kEventTextChanged`）；"初始化顺序债"实为 `SetAttribute` 缓存 + `OnInit` 转发，已正确处理，无需改动；"无历史/建议"系 `AutoComplete` 独立控件，两控件未整合，本轮不做 | 中低 |
+| **E-10** | `SearchBox` ✅ 已完成（2026-10-18）：防抖 + 建议/历史下拉整合 | 原"无防抖"已补 `debounce_interval`（默认 0 立即触发，>0 输入停顿后才发 `kEventTextChanged`）；"初始化顺序债"实为 `SetAttribute` 缓存 + `OnInit` 转发，已正确处理，无需改动；"无历史/建议"已整合——`SearchBox` 复用 `AutoCompleteFlyout` 实现下拉联想：建议数据源（`suggestions`/SetCandidates）+ 搜索历史（提交时自动 MRU 记录，`history_enabled`/`max_history` 可配），支持 prefix/contains 匹配、键盘上下/回车/Esc 导航、复用 `kEventAutoCompleteSelect` 事件 | 中低 |
 | **E-11** | `Chart` ✅ ①③已完成（2026-10-18）；②④不做（用户决定） | ① **只有全量 `SetSeries`，无增量更新 API** → 实时监控场景基本不可用；② 无导出 PNG/SVG；③ 无坐标轴格式化回调（对比 `Slider` 有 `TickLabelCallback`）；④ `Chart.cpp` 93KB 单文件 | ①③已落地；②④不做 |
 
 ---
@@ -557,7 +557,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 - [ ] **D-11** Breadcrumb / Rating / Carousel　｜ 各低 ｜ 完成日期：______
 - [ ] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：______
 - [ ] **E-9** DateTime 编辑器抽象泄漏修正（不处理，架构债留待重构）　｜ 中 ｜ 完成日期：______
-- [ ] **E-10** SearchBox 防抖（已完成 2026-10-18）；与 AutoComplete 整合不做　｜ 中低 ｜ 完成日期：______
+- [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18
 - [ ] **E-11** Chart 增量数据 API + 轴格式化（①③已完成 2026-10-18；②④不做）　｜ 约 600 行 ｜ 完成日期：______
 
 ### P3 — 架构与生态（目标：60–90 人天）
