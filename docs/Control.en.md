@@ -2291,7 +2291,8 @@ The ChildWindow control inherits the `Box` attributes. For more available attrib
 | :--- | :--- | :--- | :--- |
 | separator_width | 1 | int | Width of the separator line between adjacent status panes (pixels; 0 disables the separator) |
 | separator_color | "border_window" | string | Separator line color (semantic color name or color value) |
-| size_grip | false | bool | Whether to draw a size grip at the bottom-right corner (purely a visual hint; it does not change the window's actual resize behavior) |
+| size_grip | false | bool | Whether to draw a size grip at the bottom-right corner |
+| size_grip_resize | true | bool | Whether the size grip participates in window drag-resize. When true and the status bar sits at the bottom-right corner of the window client area, the window's bottom-right resize area (the right/bottom of `size_box`) is enlarged automatically to cover the grip, so the window can really be resized by dragging. When false the grip is only a visual hint. Note the effect is window-level: after enlarging, a strip along the window bottom edge also becomes resizable. The window must be resizable in the first place: Windows is by default; on SDL and similar platforms declare a non-zero `size_box` on the Window in XML |
 | size_grip_color | "border_window" | string | Size grip color (semantic color name or color value) |
 
 The StatusBar control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
@@ -2300,6 +2301,10 @@ A status bar shows status hints such as cursor position, character count, connec
 StatusBar is a horizontal container (it inherits from `HBox`); each child control is a "status pane" (usually a `Label` / `IconControl` / `Progress`):
 panes can use a fixed width or stretch (width="stretch") and otherwise keep all the layout capabilities of `HBox`. Vertical separators are drawn automatically
 between adjacent panes, and can be disabled or resized via `separator_width` and recolored via `separator_color`. An optional size grip (`size_grip`) can be drawn at the bottom-right corner.
+
+Status panes can also be addressed **by index**: indexes start at 0, follow layout order, and count only visible panes (invisible panes do not occupy an index), so they match the pane order you see.
+Application code no longer needs `FindControl` + `dynamic_cast` to reach a child `Label`; pane contents can be read and written by index directly.
+Indexes are renumbered whenever the pane set changes (children added/removed, visibility changed).
 
 XML example:
 ```xml
@@ -2312,10 +2317,37 @@ XML example:
 
 Related C++ APIs:
 ```cpp
+// separators
 void SetSeparatorWidth(int32_t nWidth);      // separator width (0 disables it)
 void SetSeparatorColor(const DString& strColor);
+
+// size grip
 void SetShowSizeGrip(bool bShow);            // bottom-right size grip
+void SetSizeGripResize(bool bResize);        // whether the grip drag-resizes the window (default true)
+bool  IsSizeGripResize() const;
 void SetSizeGripColor(const DString& strColor);
+
+// status pane (cell) index APIs
+size_t   GetPanelCount() const;                          // pane count (visible panes only)
+Control* GetPanel(size_t nIndex) const;                  // pane by index; nullptr when out of range
+int32_t  GetPanelIndex(Control* pPanel) const;           // index of a pane; -1 when not a pane
+Control* FindPanel(const DString& strName) const;        // pane by name
+bool     SetPanelText(size_t nIndex, const DString& strText); // set pane text (Label/RichEdit-like panes)
+DString  GetPanelText(size_t nIndex) const;              // get pane text
+```
+
+Using the pane index APIs:
+```cpp
+ui::StatusBar* pStatusBar = dynamic_cast<ui::StatusBar*>(FindControl(_T("status_bar")));
+if (pStatusBar != nullptr) {
+    //pane 0 is the "state" pane: set its text by index, no need to FindControl the child Label
+    pStatusBar->SetPanelText(0, _T("State: Busy"));
+
+    //read back and reverse lookup
+    DString strText = pStatusBar->GetPanelText(0);
+    ui::Control* pPanel = pStatusBar->GetPanel(0);
+    int32_t nIndex = pStatusBar->GetPanelIndex(pPanel);   // 0
+}
 ```
 
 ## Attributes of ToolBar (inherits HBox attributes)

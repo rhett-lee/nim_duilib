@@ -356,8 +356,8 @@ C++：`SetFrozenColumnCount/GetFrozenColumnCount`；`SetSubItemProgress(ById)/Ge
 
 ### StatusBar 属性(继承 HBox，状态栏)
 `duilib/Control/StatusBar.h`，XML 节点 `StatusBar`。用于显示光标位置、字数、连接状态、后台进度等状态提示（编辑器/IDE/通信类软件常用）。继承 HBox：子控件即一个个"状态面板"（Label/IconControl/Progress 等），可设固定宽度或 `width="stretch"`；相邻面板之间自动绘制竖直分隔线，右下角可选绘制尺寸手柄。跨平台通用。
-属性：`separator_width`（1，像素，0 表示不绘制分隔线）、`separator_color`（`border_window`）、`size_grip`（false，仅视觉提示，不改变窗口可调整大小行为）、`size_grip_color`（`border_window`）。
-C++：`SetSeparatorWidth/GetSeparatorWidth`、`SetSeparatorColor/GetSeparatorColor`、`SetShowSizeGrip/IsShowSizeGrip`、`SetSizeGripColor/GetSizeGripColor`。示例：`<StatusBar width="stretch" height="30" border_size="0,1,0,0" bordercolor="border_window" size_grip="true"><Label text="就绪" width="110"/><Progress width="stretch" progress_color="bg_progress" bkcolor="bg_progress_track"/></StatusBar>`。
+属性：`separator_width`（1，像素，0 表示不绘制分隔线）、`separator_color`（`border_window`）、`size_grip`（false，是否绘制右下角尺寸手柄）、`size_grip_resize`（true，手柄是否参与窗口拖拽缩放：true 时若状态栏停靠在窗口客户区右下角，会自动把窗口右下角可拉伸区域 size_box 的 right/bottom 扩大到覆盖手柄，从而能真正拖拽调整窗口大小；false 时仅视觉提示。注意该效果是窗口级的，扩大后窗口底边一带也成为可拉伸区域；且要求窗口本身可缩放——Windows 默认具备，SDL 等平台需在 XML 给 Window 声明非零 size_box）、`size_grip_color`（`border_window`）。
+C++：`SetSeparatorWidth/GetSeparatorWidth`、`SetSeparatorColor/GetSeparatorColor`、`SetShowSizeGrip/IsShowSizeGrip`、`SetSizeGripResize/IsSizeGripResize`、`SetSizeGripColor/GetSizeGripColor`；分格索引接口 `GetPanelCount()`（可见面板数）/`GetPanel(index)`（越界返回 nullptr）/`GetPanelIndex(pPanel)`（非面板返回 -1）/`FindPanel(name)`/`SetPanelText(index,text)`（需 Label/RichEdit 类，否则 false）/`GetPanelText(index)`。面板索引从 0 起、按布局顺序、只统计可见面板，增删子控件或改可见性后会重新编号。示例：`<StatusBar width="stretch" height="30" border_size="0,1,0,0" bordercolor="border_window" size_grip="true"><Label text="就绪" width="110"/><Progress width="stretch" progress_color="bg_progress" bkcolor="bg_progress_track"/></StatusBar>`。
 
 ### ToolBar 属性(继承 HBox，工具条/工具栏)
 `duilib/Control/ToolBar.h`，XML 节点 `ToolBar`。用于承载一排工具按钮与分隔线（编辑器/IDE/办公类软件常用壳层元素）。继承 HBox：子控件水平排列，分隔线直接用 `Line` 控件（`vertical="true"`）。当可用宽度不足、尾部子控件放不下时，自动隐藏这些子控件，并在右端显示"更多"按钮（默认文本 `>>`）：点击后弹出浮层列出被收纳项，点击浮层中的项会触发回调（参数为被点击子控件的 `name`）；窗口宽度变化时自动重新计算收纳，宽度足够时自动恢复。跨平台通用。

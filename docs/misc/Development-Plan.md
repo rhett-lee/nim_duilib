@@ -299,11 +299,34 @@ M4 生态（远期）             ← 打包发布、系统级能力
 
 | ID | 项 | 现状依据 | 动作 | 工作量 |
 | :--- | :--- | :--- | :--- | :--- |
-| **E-1** | **StatusBar 分格索引 API** | `StatusBar.h` 无 `SetStatusText(格,文本)` / `GetStatusText`，只能业务层 `FindControl` 找子 Label；且 size grip 头文件自认"仅作视觉提示，不改变窗口可调整大小行为"= **装饰性死控件** | 补 4–6 个方法；明确 size grip 是否要接真实拖拽 | 极低 |
+| **E-1** | **StatusBar 分格索引 API** ✅ 已完成（2026-10-18） | `StatusBar.h` 无 `SetStatusText(格,文本)` / `GetStatusText`，只能业务层 `FindControl` 找子 Label；且 size grip 头文件自认"仅作视觉提示，不改变窗口可调整大小行为"= **装饰性死控件** | 补 4–6 个方法；明确 size grip 是否要接真实拖拽 | 极低 |
 | **E-2** | **NavigationView 属性文档** | `docs/Control.md` 中 `NavigationView` 出现 0 次——**唯一已实现但主文档无章节的控件** | 补中英双章节 + `Summary` / `XmlNode` / `Events` 四处 | 极低（纯文档） |
 | **E-3** | **通用 Dialog 控件** | 只有 `MessageBoxWnd` 五种固定按钮，无法放任意内容。**地基已齐**（`Mask` 遮罩 + `Flyout` 浮层），只差组装 | 新增 `Dialog` 基类，可放任意内容 + 自定义底部按钮区 + `DoModal` | 低（约 600 行） |
 | **E-4** | **Pagination 分页器** | 全仓无命中。报表/表格类软件刚需，当前全靠业务层手写按钮组 | HBox + 若干 Button 组合 | 低（约 250 行） |
 | **E-5** | **ScrollBar 键盘导航** | `ScrollBar` 无 PageUp/PageDown/方向键/Home/End 处理（对比 `Slider.h:215 HandleKeyDown` 有完整键盘支持）；`ScrollBar.cpp:50` 还有 TODO"DPI 自适应参数，需要确认一下" | 补键盘处理 + 修 DPI TODO | 低 |
+
+#### E-1 实施记录（2026-10-18 完成）
+
+**决策：size grip 接真实拖拽，默认开启。** 未采用"控件内自建拖拽循环 + `MoveWindow`"方案——
+那样会绕过系统的模态缩放循环，丢失贴靠布局、最小/最大尺寸约束（`WM_GETMINMAXINFO` 在 `SetWindowPos` 路径上不生效）
+与多显示器边界处理。改为**放大窗口的 `size_box`**：`StatusBar` 在 `SetPos` 时判断自身是否停靠在窗口客户区右下角
+（允许 1 逻辑像素布局误差），是则把 `size_box` 的 `right`/`bottom` 扩大到覆盖手柄（仅放大、不缩小，保留用户原值并可在离开右下角时还原）；
+Windows 侧沿用 `WM_NCHITTEST`，SDL 侧沿用命中测试回调，两端都零平台代码改动。新增属性 `size_grip_resize`（默认 `true`）可关掉该行为。
+
+**分格索引 API（6 个方法）**：`GetPanelCount` / `GetPanel` / `GetPanelIndex` / `FindPanel` / `SetPanelText` / `GetPanelText`。
+文本读写通过 `LabelOwner` 接口（`LabelImpl.h`）做 `dynamic_cast`，Label / RichEdit 等文本类面板通用，非文本面板（Progress 等）返回 `false` 而非崩溃。
+索引只统计**可见**面板，与视觉分格顺序一致；增删子控件或改可见性后重新编号（已在头文件与 `docs/Control.md` 双语说明）。
+
+**已知取舍**：`size_box` 是窗口级属性，放大后窗口底边一带也会成为可拉伸区域（标准行为，Qt 的 size grip 同理）；
+若状态栏右下角放的是可交互控件（按钮等），其右侧约 12 逻辑像素会被缩放区占用。
+**平台前提**：Windows 默认带 `WS_THICKFRAME`，直接生效；SDL 等平台只有 XML 里声明了非零 `size_box` 才会把窗口建成可缩放的，
+因此演示窗口 `statusbar.xml` 已补 `size_box="0,0,4,4"`。若要在运行期动态开启窗口可缩放，需要给 `WindowBase` 加
+`SetWindowResizable`（涉及 `INativeWindow` 接口 + Windows/SDL 两份实现），未在本次范围内做。
+
+**验证**：`cl /Zs` 语法检查 `duilib/Control/StatusBar.cpp` 与 `examples/controls/StatusBarForm.cpp` 均退出码 0；
+文档（`docs/Control.md` / `.en.md` / `Summary.md` / `.en.md` / 三处 skill / `.claude` 参考）已同步；
+`examples/controls/statusbar.xml` 增补两个演示按钮，语言文件中英各加 2 条 STRID。
+**未做运行期验证**（本机无法完整链接 Skia），拖拽行为需在真机确认。
 
 ### D 组：中优先级
 
@@ -437,7 +460,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
 - [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______
 - [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖 A-3 ｜ 完成日期：______
 - [ ] **C-7** CMake 平台判定健壮化　｜ 0.5 天 ｜ 完成日期：______
-- [ ] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：______
+- [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
 - [ ] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：______
 - [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：______
