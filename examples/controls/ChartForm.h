@@ -42,8 +42,37 @@ private:
     void SwitchPieData();
 
     /** 演示数据点点击选中回调
-    */
+     */
     void AttachChartPointClick(ui::Chart* pChart, const DString& strChartName);
+
+    /** 初始化实时监控演示图表（滚动窗口 + 轴格式化回调）
+     */
+    void OnInitRealtime(ui::Chart* pChart);
+
+    /** 实时监控定时器回调：向图表流式追加数据点
+     */
+    void OnRealtimeTimer();
+
+    /** 开始/暂停实时监控
+     */
+    void ToggleRealtime(ui::Chart* pChart, ui::Button* pBtn);
+
+    /** 随机扰动：原地修改一个已有数据点（演示 SetDataPoint 增量更新）
+     */
+    void JitterRealtime(ui::Chart* pChart);
+
+private:
+    /** 实时监控是否运行中
+     */
+    bool m_bRealtimeRunning = false;
+
+    /** 实时监控定时器任务 ID（0 表示未启动）
+     */
+    size_t m_nRealtimeTaskId = 0;
+
+    /** 实时监控随机游走当前值
+     */
+    double m_fRealtimeValue = 30.0;
 };
 
 #endif //EXAMPLES_CHART_FORM_H_

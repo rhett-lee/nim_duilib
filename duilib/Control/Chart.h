@@ -4,6 +4,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include <vector>
+#include <functional>
 
 namespace ui {
 
@@ -289,6 +290,75 @@ public:
     */
     size_t GetSeriesCount() const { return m_series.size(); }
 
+    /** 坐标轴刻度标签格式化回调（类比 Slider 的 TickLabelCallback）
+     *  @param value 刻度对应的数值（Y 轴为刻度值；X 轴为类目索引）
+     *  @param index 刻度序号（从 0 开始）
+     *  @return 要显示的文本（如 "1.2k"、"50%"、"03:20"）
+     *  @note 回调置空则恢复默认的 FormatValue 数值格式化（X 轴回退为 data_labels 字符串）
+     */
+    typedef std::function<DString(double value, int32_t index)> AxisLabelFormatter;
+
+    /** 设置 Y 轴刻度标签格式化回调（置空恢复默认数值格式化）
+     */
+    void SetYAxisLabelFormatter(const AxisLabelFormatter& callback);
+
+    /** 获取 Y 轴刻度标签格式化回调
+     */
+    const AxisLabelFormatter& GetYAxisLabelFormatter() const { return m_yAxisLabelFormatter; }
+
+    /** 设置 X 轴类目标签格式化回调（置空恢复默认：使用 data_labels 字符串）
+     *  @note X 轴回调的 value 为类目索引（double），index 为类目序号
+     */
+    void SetXAxisLabelFormatter(const AxisLabelFormatter& callback);
+
+    /** 获取 X 轴类目标签格式化回调
+     */
+    const AxisLabelFormatter& GetXAxisLabelFormatter() const { return m_xAxisLabelFormatter; }
+
+    /** 增量更新：在指定系列末尾追加一个数据点（实时监控流式追加）
+     *  @return 成功返回 true（seriesIndex 越界返回 false）
+     *  @note 追加后若超过 SetMaxDataPoints 设定的上限，自动丢弃最旧的点
+     */
+    bool AddDataPoint(size_t seriesIndex, double value);
+
+    /** 增量更新：在指定系列指定位置插入一个数据点
+     *  @note dataIndex 超过当前长度时等价于在末尾追加
+     */
+    bool InsertDataPoint(size_t seriesIndex, size_t dataIndex, double value);
+
+    /** 增量更新：原地修改指定系列指定位置的数据点（不改变数据长度）
+     */
+    bool SetDataPoint(size_t seriesIndex, size_t dataIndex, double value);
+
+    /** 增量更新：删除指定系列指定位置的数据点
+     */
+    bool RemoveDataPoint(size_t seriesIndex, size_t dataIndex);
+
+    /** 读取指定系列指定位置的数据点（越界返回 0.0）
+     */
+    double GetDataPoint(size_t seriesIndex, size_t dataIndex) const;
+
+    /** 获取指定系列的数据（只读引用，越界返回空向量）
+     */
+    const std::vector<double>& GetSeriesData(size_t seriesIndex) const;
+
+    /** 清空指定系列的数据（保留系列本身，颜色/名称不变）
+     */
+    bool ClearSeries(size_t seriesIndex);
+
+    /** 删除指定系列（含其数据）
+     */
+    bool RemoveSeries(size_t seriesIndex);
+
+    /** 设置滚动窗口最大数据点数：追加/插入超过上限时自动丢弃最旧的点（0 表示不限制）
+     *  用于实时监控场景下的内存有界，避免无限累积
+     */
+    void SetMaxDataPoints(size_t nMax);
+
+    /** 获取滚动窗口最大数据点数（0 表示不限制）
+     */
+    size_t GetMaxDataPoints() const { return m_nMaxDataPoints; }
+
     /** 设置系列主色（单系列，语义色名或颜色值）
     */
     void SetSeriesColor(const DString& strColor);
@@ -397,6 +467,10 @@ private:
     /** 将值格式化为字符串（保留合适精度）
     */
     static DString FormatValue(double value);
+
+    /** 格式化 Y 轴刻度值：优先使用 m_yAxisLabelFormatter，否则回退 FormatValue
+     */
+    DString FormatAxisValue(double value, int32_t index) const;
 
     /** 绘制文本（简化封装）
     */
@@ -668,6 +742,18 @@ private:
     /** 拖拽起始可视窗口 start
     */
     double m_panStartView;
+
+    /** Y 轴刻度标签格式化回调（空则使用默认 FormatValue）
+     */
+    AxisLabelFormatter m_yAxisLabelFormatter;
+
+    /** X 轴类目标签格式化回调（空则使用 data_labels 字符串）
+     */
+    AxisLabelFormatter m_xAxisLabelFormatter;
+
+    /** 滚动窗口最大数据点数（0 表示不限制）
+     */
+    size_t m_nMaxDataPoints;
 };
 
 } // namespace ui

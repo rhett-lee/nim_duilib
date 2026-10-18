@@ -1252,8 +1252,10 @@ Chart是轻量图表控件，继承自Control，纯自绘实现（不依赖第�
 - 数值标签自动格式化：整数不显示小数，非整数保留两位小数。
 - **交互能力**：①数据点悬停 Tooltip（显示"系列名 / 类目: 值"）；②点击选中（饼图扇区分离高亮 + 引导线外部标签、柱状单柱描边高亮，再次点击取消）；③折线图滚轮缩放 + 拖拽平移（实时曲线场景）。Tooltip/选中均可用 `SetEnableTooltip`/`SetEnableSelect` 开关。
 - **视觉打磨**：柱状图支持圆角（`bar_radius`）与渐变填充（`bar_gradient`）；折线图支持发光/阴影（`line_glow`）；数据更新时柱体生长/折线渐入动画（`animation_enabled`/`animation_duration`）。
+- **增量更新（实时监控）**：除全量 `SetSeriesData` 外，提供按系列的点级增量接口 `AddDataPoint`/`InsertDataPoint`/`SetDataPoint`/`RemoveDataPoint`（越界安全返回 `false`），以及 `ClearSeries`/`RemoveSeries`、`GetDataPoint`/`GetSeriesData`（`Get` 系列只读、越界返回空/0.0）；可配合 `SetMaxDataPoints` 设置滚动窗口（超出上限自动丢弃最旧数据点），避免无限累积，适合实时曲线 / 监控场景。
+- **坐标轴格式化回调**：提供 `SetYAxisLabelFormatter`/`SetXAxisLabelFormatter`（回调签名为 `std::function<DString(double value, int32_t index)>`，类比 Slider 的 TickLabelCallback），可将 Y 轴刻度值（如 `"50%"`、`"1.2k"`）与 X 轴类目标签（如相对时间）自定义格式化；回调置空时恢复默认的 `FormatValue` 数值格式（X 轴回退为 `data_labels` 字符串）。
 
-对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetTitleId`、`SetXAxisTitleId`、`SetYAxisTitleId`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetDataLabelsId`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`、`SetBarRadius`、`SetBarGradient`、`SetLineGlow`、`SetAnimationEnabled`、`SetAnimationDuration`；交互：`SetEnableTooltip/IsEnableTooltip`、`SetEnableSelect/IsEnableSelect`、`GetSelected/ClearSelection`、`AttachPointClick/AttachPointHover`、`GetHitFromEvent`。
+对应C++接口：`SetChartType/GetChartType`、`SetTitle`、`SetXAxisTitle`、`SetYAxisTitle`、`SetTitleId`、`SetXAxisTitleId`、`SetYAxisTitleId`、`SetData/AddData/ClearData/GetData`、`SetSeriesData/AddSeries/GetSeries/GetSeriesCount`、`SetDataLabels/GetDataLabels`、`SetDataLabelsId`、`SetSeriesColor`、`SetAxisColor`、`SetLabelColor`、`SetShowValue`、`SetShowGrid`、`SetShowAxisValues`、`SetAxisDivisions`、`SetLegendVisible`、`SetLineWidth`、`SetLineMode`、`SetAreaFill`、`SetShowDataPoints`、`SetBarMode`、`SetDonut`、`SetShowPercent`、`SetBarRadius`、`SetBarGradient`、`SetLineGlow`、`SetAnimationEnabled`、`SetAnimationDuration`；增量更新：`AddDataPoint/InsertDataPoint/SetDataPoint/RemoveDataPoint/GetDataPoint/GetSeriesData/ClearSeries/RemoveSeries/SetMaxDataPoints/GetMaxDataPoints`；坐标轴格式化：`SetYAxisLabelFormatter/GetYAxisLabelFormatter/SetXAxisLabelFormatter/GetXAxisLabelFormatter`；交互：`SetEnableTooltip/IsEnableTooltip`、`SetEnableSelect/IsEnableSelect`、`GetSelected/ClearSelection`、`AttachPointClick/AttachPointHover`、`GetHitFromEvent`。
 
 ### XML使用示例
 
@@ -1310,6 +1312,36 @@ if (pChart != nullptr) {
     pChart->AddData(152.0);
 }
 ```
+
+### 增量更新与坐标轴格式化示例
+
+```cpp
+ui::Chart* pChart = dynamic_cast<ui::Chart*>(pWindow->FindControl(_T("chart_rt")));
+if (pChart != nullptr) {
+    // ① 增量更新：构造两个系列后，逐个追加点（无需每次替换全量数据）
+    pChart->SetSeriesData({
+        { _T("CPU"),   { 30.0, 32.0, 28.0 }, _T("color_accent") },
+        { _T("内存"), { 55.0, 57.0, 53.0 }, _T("color_warning") }
+    });
+    pChart->AddDataPoint(0, 36.0);   // 向第 0 个系列末尾追加（返回 true）
+    pChart->AddDataPoint(1, 60.0);   // 向第 1 个系列末尾追加
+    pChart->SetDataPoint(0, 1, 40.0); // 原地修改第 0 系列第 1 个点（不改变长度）
+    double v = pChart->GetDataPoint(0, 2); // 读取第 0 系列第 2 个点
+
+    // 滚动窗口：最多保留最近 60 个点，超出自动丢弃最旧点（实时监控内存有界）
+    pChart->SetMaxDataPoints(60);
+
+    // ③ 坐标轴格式化回调：Y 轴刻度显示为百分比，X 轴类目标签显示为相对时间
+    pChart->SetYAxisLabelFormatter([](double value, int32_t /*index*/) {
+        return ui::StringUtil::Printf(_T("%.0f%%"), value);
+    });
+    pChart->SetXAxisLabelFormatter([](double /*value*/, int32_t index) {
+        return ui::StringUtil::Printf(_T("%.1fs"), static_cast<double>(index) * 0.25);
+    });
+}
+```
+
+> 说明：增量接口（如 `AddDataPoint`）越界时安全返回 `false`，不会抛异常；`GetDataPoint`/`GetSeriesData` 越界时返回 `0.0`/空向量。坐标轴格式化回调置空即恢复默认数值格式。
 
 ### 交互使用示例
 
