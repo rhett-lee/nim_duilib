@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,640" use_system_caption="true">
+<Window size="800,700" use_system_caption="true">
     <VBox bkcolor="bg_window_main">
         <VBox>
             <HBox height="auto">
@@ -69,6 +69,16 @@
                     <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
                                   width="260" margin="8,2,0,2"
                                   prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
+                </HBox>
+            </GroupVBox>
+
+            <!-- SearchBox 搜索框（建议 + 历史） -->
+            <GroupVBox text="SearchBox 搜索框（建议 + 历史）" height="auto" margin="6,6,6,6" corner_size="4,4">
+                <HBox height="auto" margin="8,28,8,8">
+                    <SearchBox class="search_box" name="search_box" width="360"
+                               prompt_text="搜索控件 / 输入关键词（回车记录历史）"
+                               suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32;DirectUI;Electron;Flutter;duilib"
+                               history_enabled="true" max_history="10" max_visible="8"/>
                 </HBox>
             </GroupVBox>
 

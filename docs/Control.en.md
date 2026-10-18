@@ -983,9 +983,29 @@ SearchBox is a composite search input control derived from HBox. It combines a s
 | prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
 | prompt_color | "" | string | Color of the placeholder text (semantic color name) |
 | debounce_interval | 0 | int(ms) | Debounce interval (milliseconds): when search text changes continuously, `kEventTextChanged` is fired only after typing pauses for this interval; 0 = fire immediately on every change (default, backward compatible), used to avoid triggering a search request on every keystroke |
+| suggestions | "" | string | Suggestion data source, multiple items separated by ";". (Search history is recorded automatically by the control when a search is committed, and need not be configured here) |
+| max_visible | 8 | int | Maximum number of visible candidate rows in the dropdown (a scrollbar appears beyond this) |
+| history_enabled | true | bool | Whether to record and display search history (history is also shown as candidates) |
+| max_history | 10 | int | Maximum number of retained search history entries (oldest dropped beyond this, most-recently-used promoted to top) |
+| filter_enabled | true | bool | Whether to filter candidates by the typed text: when true (default), candidates are filtered by `match_mode`/`ignore_case` only after the input reaches `min_chars`; when false the full list is always shown (no filtering), suitable when there are few candidates or a full overview is wanted |
+| min_chars | 1 | int | Minimum input length to trigger filtering in filter mode; when empty or shorter, the full list is shown (focus state) |
+| match_mode | prefix | string | Filter matching mode: `prefix` matches candidates starting with the input; `contains` matches candidates containing the input anywhere |
+| ignore_case | true | bool | Whether to ignore case while filtering |
 
 Corresponding C++ interfaces: `SetSearchText/GetSearchText`, `GetEditControl()` (returns the inner RichEdit control), `SetDebounceInterval/GetDebounceInterval` (debounce interval in milliseconds).
-The `kEventTextChanged` event is fired when the text changes (use `debounce_interval` to set a debounce interval so it fires only after typing pauses, avoiding a search on every keystroke); the `kEventReturn` event is fired when the Enter key is pressed (can be used to start a search).
+Suggestion (suggestion + history) related interfaces: `SetCandidates/GetCandidates/AddCandidate/ClearCandidates` (suggestion data source), `SetMaxVisible/GetMaxVisible`, `SetHistoryEnabled/IsHistoryEnabled`, `SetMaxHistory/GetMaxHistory`, `GetHistory/ClearHistory/AddSearchHistory` (search history), `SetFilterEnabled/IsFilterEnabled`, `SetMinChars/GetMinChars`, `SetMatchMode/GetMatchMode`, `SetIgnoreCase/IsIgnoreCase` (filter parameters).
+The `kEventTextChanged` event is fired when the text changes (use `debounce_interval` to set a debounce interval so it fires only after typing pauses, avoiding a search on every keystroke); **Enter semantics**: if the user has not navigated candidates with the Up/Down arrow keys (i.e. no candidate is highlighted), Enter commits the "current text in the edit box" and fires `kEventReturn` (can be used to start a search); if the user has navigated and highlighted a candidate with the arrow keys, Enter chooses that candidate (writing it back to the edit box) and fires `kEventAutoCompleteSelect`, with its WPARAM being the candidate's index in the current candidate list and `GetSearchText()` already filled with the chosen candidate text.
+The dropdown suggestion flyout reuses `AutoComplete`'s skin classes `auto_complete_flyout`/`auto_complete_list`/`auto_complete_item` (defined in global.xml), popping up below the search box following its width, without stealing focus.
+
+Dropdown flyout display rules (clear and consistent):
+- **Evaluate on focus**: when the edit box gains focus it is evaluated immediately; the flyout opens if there is content to show, otherwise it does not pop up.
+- **Refresh on typing**: the flyout refreshes on every text change; it closes when there is no content to show.
+- **Filter switch `filter_enabled` (default true)**: when enabled, candidates are filtered by `match_mode`/`ignore_case` only after the input reaches `min_chars`; when the input is empty or shorter than `min_chars`, the full list is shown (history first, most-recently-used on top). When disabled, the full merged/deduplicated list (history + suggestions) is always shown without filtering, suitable when there are few candidates.
+- **No focus stealing**: the flyout does not take focus, and edit-box blur is not a close condition; the flyout closes automatically when a mouse button is pressed outside the flyout and the search box.
+- **Focus returned after select**: when a candidate is clicked with the mouse, the framework first moves the native keyboard focus to the flyout window; before the flyout closes, the focus is returned to the search box's window, so keyboard input continues to work right after selection (the same applies when dismissing the flyout with Esc, which also does not re-pop it).
+- **No reopen after select**: choosing a candidate writes the text back and will not re-pop the flyout due to the regained focus (avoids flicker right after selection).
+- **No mis-selection on Enter**: pressing Enter without navigating candidates commits the typed text, so the list's default-highlighted first item is never mistaken for the search term.
+- Re-submitting the same search term does not create duplicate entries in the list (deduplication).
 The clear button reuses RichEdit's built-in `clear_btn_class` mechanism: it is shown when the edit box is focused and has text, clears the text when clicked, and is automatically hidden after losing focus.
 Example (see the rich_edit example program):
 
