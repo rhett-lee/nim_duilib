@@ -3,6 +3,7 @@
 #include "ToastForm.h"
 #include "ProgressForm.h"
 #include "TabCtrlForm.h"
+#include "RangeSliderForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -40,6 +41,15 @@ void TestForm::OnInitWindow()
     if (pTabCtrlBtn != nullptr) {
         pTabCtrlBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowTabCtrlWindow();
+            return true;
+            });
+    }
+
+    //范围滑块测试窗口（双滑块范围选择控件）
+    ui::Button* pRangeSliderBtn = dynamic_cast<ui::Button*>(FindControl(_T("rangeslider_btn")));
+    if (pRangeSliderBtn != nullptr) {
+        pRangeSliderBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowRangeSliderWindow();
             return true;
             });
     }
@@ -341,6 +351,18 @@ void TestForm::ShowTabCtrlWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("TabCtrlForm");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowRangeSliderWindow()
+{
+    RangeSliderForm* testForm = new RangeSliderForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("RangeSliderWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

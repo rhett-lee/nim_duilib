@@ -84,7 +84,7 @@
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
     <tr>
-        <td rowspan="42">新增控件/新增容器</td>
+        <td rowspan="43">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -128,6 +128,7 @@
     <tr><td align="left">40. Mask：遮罩/蒙版层控件（继承Box），用于模态对话框背景遮罩、新手引导蒙层、加载遮罩；支持镂空高亮指定控件、镂空区域内点击穿透到目标控件、语义色适配深浅色</td></tr>
     <tr><td align="left">41. StatusBar：状态栏控件（继承HBox），用于显示光标位置、字数、连接状态、后台进度等状态提示；子控件即状态面板，相邻面板之间自动绘制分隔线（可配置宽度与颜色），可选右下角尺寸手柄，详见 docs/Control.md</td></tr>
     <tr><td align="left">42. ToolBar：工具条（工具栏）控件（继承HBox），用于承载一排工具按钮与分隔线；当可用宽度不足时，自动隐藏尾部子控件并在右端显示"更多"按钮，点击弹出浮层列出被收纳的项，并通过回调通知应用层，窗口宽度变化时自动重新计算，详见 docs/Control.md</td></tr>
+    <tr><td align="left">43. RangeSlider：双滑块范围选择控件（继承Progress），在一条轨道上放置下限/上限两个滑块并高亮选中区间，支持最小间距、区间颜色/圆角与范围变化回调（pEventData 携带 low/high），详见 docs/Control.md</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

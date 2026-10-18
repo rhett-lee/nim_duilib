@@ -123,6 +123,7 @@ namespace ui
     #define  DUI_CTR_FILTER_COMBO                    (_T("FilterCombo"))
     #define  DUI_CTR_CHECK_COMBO                     (_T("CheckCombo"))
     #define  DUI_CTR_SLIDER                          (_T("Slider"))
+    #define  DUI_CTR_RANGE_SLIDER                    (_T("RangeSlider"))
     #define  DUI_CTR_PROGRESS                        (_T("Progress"))
     #define  DUI_CTR_CIRCLEPROGRESS                  (_T("CircleProgress"))
     #define  DUI_CTR_SCROLLBAR                       (_T("ScrollBar"))

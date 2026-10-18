@@ -30,6 +30,10 @@ private:
     */
     void ShowTabCtrlWindow();
 
+    /** 显示 RangeSlider 双滑块范围控件演示窗口
+    */
+    void ShowRangeSliderWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

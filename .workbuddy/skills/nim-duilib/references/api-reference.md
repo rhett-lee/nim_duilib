@@ -154,6 +154,7 @@
 | RichText | Control | 富文本显示(HTML子集) |
 | Progress | Label | 进度条（水平/垂直、浮点值、圆角、缓冲 buffer、百分比、值动画、marquee，`duilib/Control/Progress.h`），XML 节点名 `Progress` |
 | Slider | Progress | 滑块（可拖动、步长、值变化事件，`duilib/Control/Slider.h`），XML 节点名 `Slider` |
+| RangeSlider | Progress | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间；最小间距/区间颜色/圆角；节点名 `RangeSlider`），`duilib/Control/RangeSlider.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
@@ -596,6 +597,24 @@ C++ 接口：`SetValue/GetValue/SetValueNoEvent`、`SetMinValue/SetMaxValue`、`
 键盘操作（无障碍，Tab 可聚焦，处理 `kEventKeyDown`）：←/→（垂直为 ↑/↓）按 `step` 步进；Shift+方向键与 PageUp/PageDown 按 `page_step` 大步进；Home/End 跳到 min/max；滚轮按 `step` 步进。均自动钳位到 [min,max] 并触发 `kEventValueChanged`。
 刻度按滑块可移动区间定位，与滑块中心对齐；整数刻度去掉小数。带标签的刻度为长主刻度、其余为短次刻度（标尺层级），标签半宽按刻度间距自适应收窄（从设计上避免重叠），首尾标签改为左/右靠边对齐（垂直为顶/底），文字向内展开，不裁剪也不侵占相邻标签空间。自定义刻度文本用 `SetTickLabelCallback(std::function<DString(double value, int32_t index)>)`。
 C++ 接口：`SetPageStep/GetPageStep`、`SetClickToJump/IsClickToJump`、`SetShowTicks`、`SetTickCount`、`SetTickLength`、`SetTickColor`、`SetTickPos(SliderTickPos)`、`SetShowTickLabels`、`SetTickLabelInterval`、`SetTickFontId`、`SetTickLabelColor`、`SetTickLabelCallback`。
+
+### RangeSlider 属性(继承 Progress)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| low_value | 0 | double | 下限值（浮点） |
+| high_value | max | double | 上限值（与基类 value 等价） |
+| min_range | 0 | double | 下限与上限之间的最小间距 |
+| range_color |  | string | 高亮选中区间颜色（为空回退 progress_color） |
+| range_radius | 0 | int | 高亮区间圆角半径（DPI 自适应） |
+| click_to_jump | true | bool | 点击轨道是否按下即跳值（false=松开才跳值） |
+| thumb_size | 10,10 | size | 两个滑块的统一大小 |
+| thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | 下限滑块各状态图片 |
+| high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | 上限滑块各状态图片（为空回退下限滑块图片） |
+
+双滑块范围控件：一条轨道上放置下限、上限两个滑块并高亮选中区间，常用于价格/时间区间筛选。上限复用基类值（value），下限独立维护（low_value）；下限钳位到 `[min, high - min_range]`、上限钳位到 `[low + min_range, max]`。
+C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHighValue/SetHighValueNoEvent`、`SetRange/SetRangeNoEvent`、`GetMinRange/SetMinRange`、`SetThumbSize/GetThumbSize`、`GetLowThumbRect/GetHighThumbRect`、`SetThumbStateImage/GetThumbStateImage`、`SetHighThumbStateImage/GetHighThumbStateImage`、`SetRangeColor/GetRangeColor`、`SetRangeRadius/GetRangeRadius`、`SetClickToJump/IsClickToJump`。
+事件：`AttachRangeChanged`——范围值变化时触发，事件编码 `kEventValueChanged`（wParam=1），low/high 由 `EventArgs::pEventData`（指向 `RangeSlider::RangeValue`）携带，仅在回调派发期间有效。
 
 ### CircleProgress 属性(继承 Progress)
 

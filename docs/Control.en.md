@@ -796,6 +796,71 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 `click_to_jump=true` (the default) jumps **on mouse down**: pressing the left mouse button anywhere on the track immediately moves the value there and enters the dragging state (you can keep holding to drag). This is the more common desktop interaction.
 `click_to_jump=false` keeps the legacy behavior: the value jumps to the release position on mouse up.
 
+## Attributes of RangeSlider (inherits Progress attributes)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| low_value | 0 | double | Low value (floating point), e.g. "200" |
+| high_value | max | double | High value (floating point), equivalent to the base `value` |
+| min_range | 0 | double | Minimum distance between low and high (low must not exceed high - min_range) |
+| range_color |  | string | Color of the highlighted selected range (semantic color name or color value; falls back to `progress_color` when empty) |
+| range_radius | 0 | int | Corner radius of the highlighted range (pixels, auto DPI scaled, 0 = square corners) |
+| click_to_jump | true | bool | Whether clicking the track jumps **on mouse down**; false keeps the legacy "jump on mouse up" behavior |
+| thumb_size | 10,10 | size | Shared size of both thumbs, e.g. "10,10" |
+| thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | State images of the low thumb |
+| high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | State images of the high thumb (fall back to the low thumb images when empty) |
+
+RangeSlider inherits the `Progress` attributes; for more available attributes, please refer to the `Progress` attributes.
+
+A range slider places two thumbs (low / high) on a single track and highlights the selected range; it is commonly used for price / time range filtering.
+The high value reuses the base progress value (`value` / `GetValue`), while the low value is maintained separately (`low_value` / `GetLowValue`); the `min` / `max` bounds reuse the base attributes.
+Both values are clamped automatically: the low value stays within `[min, high - min_range]` and the high value within `[low + min_range, max]`; dragging, track clicks and `SetXXX` all follow this rule.
+
+XML example:
+```xml
+<RangeSlider class="range_slider_horizontal" name="price_range" min="0" max="1000"
+             low_value="200" value="800" min_range="50" width="stretch"/>
+```
+
+Corresponding C++ API:
+```cpp
+double GetLowValue() const;                          //low value
+void SetLowValue(double fValue);                     //set low value (clamped, fires value-change event)
+void SetLowValueNoEvent(double fValue);              //set low value (no event)
+double GetHighValue() const;                         //high value (same as GetValue())
+void SetHighValue(double fValue);                    //set high value (clamped, fires event)
+void SetHighValueNoEvent(double fValue);             //set high value (no event)
+void SetRange(double fLowValue, double fHighValue);  //set both low and high (fires one event)
+void SetRangeNoEvent(double fLowValue, double fHighValue);
+double GetMinRange() const;                          //minimum distance
+void SetMinRange(double fMinRange);
+void SetThumbSize(UiSize szXY, bool bNeedDpiScale);  //thumb size
+UiSize GetThumbSize() const;
+UiRect GetLowThumbRect() const;                      //low thumb rect
+UiRect GetHighThumbRect() const;                     //high thumb rect
+DString GetThumbStateImage(ControlStateType stateType) const;       //low thumb image
+void SetThumbStateImage(ControlStateType stateType, const DString& strImage);
+DString GetHighThumbStateImage(ControlStateType stateType) const;   //high thumb image
+void SetHighThumbStateImage(ControlStateType stateType, const DString& strImage);
+void SetRangeColor(const DString& strColor);         //highlighted range color
+const DString& GetRangeColor() const;
+void SetRangeRadius(int32_t nRadius);                //highlighted range corner radius
+int32_t GetRangeRadius() const;
+void SetClickToJump(bool bEnable);                   //whether clicking the track jumps on mouse down
+bool IsClickToJump() const;
+void AttachRangeChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //range-change event
+```
+
+Value-change event: `AttachRangeChanged` — fired when the range changes; encoded as `kEventValueChanged` (`wParam` is `1`), with the low and high values carried through `EventArgs::pEventData` (pointing to `RangeSlider::RangeValue` with `lowValue` / `highValue`; valid only during the callback dispatch, do not store the pointer):
+```cpp
+pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pRange = static_cast<const ui::RangeSlider::RangeValue*>(msg.pEventData);
+        // read pRange->lowValue / pRange->highValue
+    }
+    return true;
+});
+```
+
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

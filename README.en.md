@@ -86,7 +86,7 @@ English | [简体中文](README.md)
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr><td align="left">23. Unified context-menu API: Control::AttachPopupMenu binds a right-click menu to any control in one line (auto-creates the menu, resolves coordinates, invokes the item callback, and supports adjusting the menu after it pops up); the paired DetachPopupMenu unbinds it.</td></tr>
     <tr>
-        <td rowspan="42">New Controls / New Containers</td>
+        <td rowspan="43">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -130,6 +130,7 @@ English | [简体中文](README.md)
     <tr><td align="left">40. Mask: Mask/overlay layer control (derived from Box) for modal-dialog background dimming, onboarding masks and loading overlays; supports punching out a highlight over a target control and passing clicks inside the highlight through to it, with semantic colors adapted to light/dark themes.</td></tr>
     <tr><td align="left">41. StatusBar: Status bar control (derived from HBox) for status hints such as cursor position, character count, connection state and background progress; each child control is a status pane, separators (with configurable width and color) are drawn automatically between adjacent panes, and an optional size grip can be shown at the bottom-right corner. See docs/Control.en.md.</td></tr>
     <tr><td align="left">42. ToolBar: Toolbar control (derived from HBox) holding a row of tool buttons and separators; when the available width is insufficient it automatically hides trailing children and shows a "more" button at the right end, which pops up a flyout listing the collapsed items and notifies the application layer through a callback; the layout is recalculated when the window width changes. See docs/Control.en.md.</td></tr>
+    <tr><td align="left">43. RangeSlider: Range slider control with two thumbs (derived from Progress) that places a low/high thumb on a single track and highlights the selected range; supports a minimum range, range color/radius and a range-change callback (low/high carried in pEventData). See docs/Control.en.md.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>
