@@ -619,6 +619,21 @@ void Flyout::DoClose(CloseReason reason)
         callback(reason);
     }
 
+    //不抢焦点模式下，鼠标点击浮层内容时框架会把原生键盘焦点移到浮层窗口
+    //（Window::OnButtonDown 中“确保被点击的窗口有输入焦点”的逻辑），而窗口关闭是
+    //异步的（CloseWnd 内部为 PostMessage WM_CLOSE）：若不在关闭前把焦点交还父窗口，
+    //浮层销毁后原生焦点丢失，父窗口中的编辑框虽持有框架虚拟焦点也收不到键盘消息
+    //（表现为“点击候选项后无法继续输入”）。
+    //仅在“浮层自身持有焦点、父窗口仍为前台且尚未持有焦点”时恢复，避免抢走其它窗口
+    //或父窗口内子窗口（如 CEF 原生子窗口）的焦点。
+    if (m_bNoFocus && IsWindowForeground() &&
+        (m_pParentWindow != nullptr) && !m_pParentWindow->IsWindowFocused()) {
+        if (!m_pParentWindow->IsWindowForeground()) {
+            m_pParentWindow->SetWindowForeground();
+        }
+        m_pParentWindow->SetWindowFocus();
+    }
+
     if (IsWindow()) {
         CloseWnd();
     }
