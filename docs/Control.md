@@ -1,8 +1,5 @@
 简体中文 | [English](Control.en.md)
 
-<!-- 豁免说明：border_dash_style 是真实的 XML 属性名（由 Control.cpp 解析），EasingFunctionType 是真实的枚举名
-     （定义于 duilib/Animation/EasingFunctions.h）；二者均存在于源码中，仅因校验脚本的符号索引未覆盖而被误报。 -->
-
 ## `Control`（基础控件）的属性
 
 `Control` 控件为所有可用控件的基类，包含了控件常用的属性，如宽度、高度、边距等属性。一般情况下不作为具体可用控件使用，但常用于一些占位符，请参考示例。
@@ -270,6 +267,9 @@ pListCtrl->StartLoading(33, -1);   // 33ms 一次心跳，-1 表示不靠次数�
 | auto_hide_scroll | true | bool | 是否自动隐藏滚动条,如"true"|
 
 ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+说明：滚动条的键盘操作（方向键、PageUp / PageDown、Home / End）不由 ScrollBar 自身处理，
+而由使用该滚动条的 ScrollBox 容器统一实现，详见 `Box.md` 文档中 ScrollBox 的"键盘导航"一节。
 
 ## Label的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -2392,4 +2392,224 @@ void SetOverflowButtonText(const DString& strText);    //"更多"按钮显示的
 DString GetOverflowButtonText() const;
 
 bool IsOverflowing() const;                            //当前是否存在被自动收纳的子控件
+```
+
+## NavigationView 控件（继承 HBox 属性）
+
+NavigationView 是侧边栏导航容器，内部组合"左侧导航窗格 + 右侧内容区（页头 + TabBox 页面）"：
+窗格含汉堡按钮、窗格标题、可纵向滚动的导航项列表与底部可选的设置项；点击导航项会按 `page` 名联动切换内容页并更新页头；
+汉堡按钮在展开/紧凑两态间切换（紧凑态仅显示图标，分组标题/分隔线隐藏，导航项以 tooltip 显示完整文字）。
+适用于设置页、桌面客户端等"多页面 + 侧边导航"场景。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| pane_width | 220 | int | 展开态窗格宽度（像素，DPI 自适应；仅接受正值，<=0 保持默认值）|
+| compact_pane_width | 48 | int | 紧凑态窗格宽度（像素，DPI 自适应；仅接受正值，<=0 保持默认值）|
+| pane_title |  | string | 窗格标题文字（紧凑态下标题自动隐藏）|
+| pane_title_id |  | string | 窗格标题文字 ID（多语言，优先于 pane_title）|
+| toggle_icon |  | string | 汉堡按钮图标图片属性串，如 file='nav/hamburger.svg' width='16' height='16' |
+| collapsed | false | bool | 初始是否为紧凑态（true=仅显示图标）|
+| show_header | true | bool | 是否显示内容区页头（显示当前选中项文字）|
+| settings_item | false | bool | 是否在窗格底部显示设置项（不随导航列表滚动，不参与序号统计）|
+| settings_page | settings | string | 设置项关联的内容页 name |
+| settings_text_id |  | string | 设置项文字 ID（多语言，由使用方提供）|
+| settings_icon |  | string | 设置项图标图片属性串（由使用方提供）|
+| selected_id |  | string | 初始选中项对应的 page name；为空或找不到时选中第一个可选项（不含设置项）|
+
+NavigationView 继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+
+### 直接子节点的分流规则
+
+NavigationView 重写了 `AddItem`，直接子节点按类型分流：
+
+- `NavigationViewItem`：进入左侧窗格的导航项列表（header/separator 同样进入列表，仅渲染形态不同）；
+- `TabBox`：接管为内容区页面容器（仅允许一个；显式提供便于外部直接操控页面切换）；
+- 其他控件：作为内容页进入内容区；未显式提供 TabBox 时自动创建一个。
+
+导航项与内容页按 `name` 联动：`NavigationViewItem` 的 `page` 属性写内容页控件的 `name`，
+选中该导航项时内容区 TabBox 自动切换到对应页面，并同步页头文字。
+**序号约定**：`GetSelectedIndex` 等接口返回的序号仅统计 item 形态的可选项（不含 header/separator 与底部设置项），
+无选中时返回 `Box::InvalidIndex`。
+
+### NavigationViewItem 控件（继承 Control 属性）
+
+`NavigationViewItem` 是导航项控件，作为 NavigationView 的直接子节点使用，自绘"图标 + 文字"行，支持三种形态：
+
+- `item`（默认）：可点击导航项，选中时灰底圆角热区 + 强调色文字；
+- `header`：分组标题（小号、弱化色，不可点击，紧凑态下隐藏）；
+- `separator`：分隔线（紧凑态下隐藏）。
+
+各形态使用固定高度（DIP，DPI 自适应）：item 36、header 32、separator 9。
+支持键盘导航：item 形态可通过 `Tab` 聚焦，上/下方向键在可选项之间循环移动焦点，回车/空格激活当前项；
+禁用态（`enabled="false"`）不响应点击与键盘，文字与图标弱化；禁用当前选中项会取消其选中态并清空页头（不会自动切换到其它项）。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| text |  | string | 项文字 |
+| text_id |  | string | 项文字 ID（多语言，优先于 text）|
+| icon |  | string | 图标图片属性串，如 file='nav/home.svg' width='16' height='16' |
+| page |  | string | 关联的内容页控件 name（与内容区页面联动）|
+| item_type | item | string | 形态：item（默认，可点击导航项）/ header（分组标题，兼容 group_header）/ separator（分隔线，兼容 sep）|
+| icon_size | 16 | int | 图标尺寸（DIP，DPI 自适应；仅接受正值）|
+| icon_left | 16 | int | 展开态图标左边距（DIP）|
+| text_left | 44 | int | 展开态文字左边距（DIP）|
+| text_right | 8 | int | 展开态文字右边距（DIP）|
+| pill_radius | 6 | int | 选中/悬停热区圆角半径（DIP）|
+| pill_inset_x | 6 | int | 热区水平内缩量（DIP）|
+| pill_inset_y | 3 | int | 热区垂直内缩量（DIP）|
+| selected_bg_color | bg_list_item_selected | string | 选中背景色名 |
+| hovered_bg_color | bg_list_item_hovered | string | 悬停背景色名 |
+| selected_text_color | color_accent | string | 选中文字色名 |
+| normal_text_color | text_default | string | 普通文字色名 |
+| disabled_text_color | text_disabled | string | 禁用文字色名 |
+| header_text_color | text_muted | string | 分组标题文字色名 |
+| separator_color | border_window | string | 分隔线颜色名 |
+
+NavigationViewItem 继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+### XML 使用示例
+
+```xml
+<NavigationView name="nav" height="stretch"
+                pane_width="220" compact_pane_width="48"
+                pane_title_id="STRID_NAV_DEMO_TITLE" show_header="true"
+                toggle_icon="file='nav/hamburger.svg' width='16' height='16'"
+                settings_item="true" settings_page="page_settings"
+                settings_text_id="STRID_NAV_SETTINGS"
+                settings_icon="file='nav/settings.svg' width='16' height='16'"
+                selected_id="page_home">
+    <!-- 可点击导航项：page 与内容页 name 对应，点击即联动切换 -->
+    <NavigationViewItem text_id="STRID_NAV_PAGE_HOME"
+                        icon="file='nav/home.svg' width='16' height='16'"
+                        page="page_home"/>
+    <NavigationViewItem text_id="STRID_NAV_PAGE_DASHBOARD"
+                        icon="file='nav/dashboard.svg' width='16' height='16'"
+                        page="page_dashboard"/>
+
+    <!-- 分组标题与分隔线：不可点击，不参与序号统计 -->
+    <NavigationViewItem item_type="header" text_id="STRID_NAV_GROUP_WORKSPACE"/>
+    <NavigationViewItem item_type="separator"/>
+
+    <!-- 内容区：显式 TabBox 承载所有页面，便于外部直接操控页面容器 -->
+    <TabBox name="nav_content">
+        <VBox name="page_home" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_PAGE_HOME" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+        <VBox name="page_dashboard" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_PAGE_DASHBOARD" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+        <VBox name="page_settings" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_SETTINGS" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+    </TabBox>
+</NavigationView>
+```
+
+完整演示可参考 controls 示例程序中的"导航测试"按钮（`bin/resources/themes/default/controls/navigation.xml`）：
+含 11 个可点击导航项、2 个分组标题、2 条分隔线与底部设置项，内容区为显式 TabBox 多页面，并演示动态添加/移除导航项与程序化切换。
+
+### C++ 使用示例
+
+```cpp
+ui::NavigationView* pNav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")));
+
+//事件监听（均由 NavigationView 自身作为发送者触发）
+//选中变化：wParam 新序号，lParam 旧序号（无选中时为 Box::InvalidIndex）
+pNav->AttachNavSelectionChanged([](const ui::EventArgs& args) {
+    size_t nNewIndex = (size_t)args.wParam;
+    size_t nOldIndex = (size_t)args.lParam;
+    return true;
+});
+//重复点击已选中项也会触发（适合"刷新/回顶"类需求）：wParam 为可选项序号
+pNav->AttachNavItemClick([](const ui::EventArgs& args) {
+    size_t nIndex = (size_t)args.wParam;
+    return true;
+});
+//窗格即将收起/展开：wParam 为目标状态（1=收起，0=展开），回调返回 false 可取消本次切换
+pNav->AttachNavPaneToggling([](const ui::EventArgs& args) {
+    return true;
+});
+//窗格收起/展开完成：wParam 为当前状态（1=收起，0=展开）
+pNav->AttachNavPaneToggled([](const ui::EventArgs& args) {
+    return true;
+});
+
+//程序化选中：按内容页 name / 按可选项序号 / 按控件指针
+pNav->SelectItem(_T("page_tools"));
+pNav->SelectItemByIndex(0);
+
+//回读当前选中状态
+size_t nIndex = pNav->GetSelectedIndex();       //无选中返回 Box::InvalidIndex
+DString strPage = pNav->GetSelectedPage();
+
+//展开/收起导航窗格
+pNav->SetCollapsed(!pNav->IsCollapsed());
+
+//动态追加导航项：第 4 参传入页面控件时，自动挂到内容区并与导航项按 name 联动
+ui::VBox* pPage = new ui::VBox(pNav->GetWindow());
+pPage->SetName(_T("page_dynamic"));
+ui::NavigationViewItem* pItem = pNav->AddNavItem(DString(),
+                                                 _T("file='nav/star.svg' width='16' height='16'"),
+                                                 _T("page_dynamic"), pPage);
+if (pItem != nullptr) {
+    pItem->SetItemText(_T("动态项"));
+    pNav->SelectItem(pItem);   //立即选中新建项
+}
+
+//移除导航项：第 2 参 true 时一并移除关联内容页。
+//注意：容器默认 auto_destroy_child=true，移除后指针即失效，不要继续使用
+pNav->RemoveNavItem(pItem, true);
+```
+
+### 事件
+
+| 事件 | 参数(wParam) | 参数(lParam) | 说明 |
+| :--- | :--- | :--- | :--- |
+| kEventNavigationItemClick | 可选项序号 |  | 点击可选择导航项时触发，重复点击已选中项也会触发 |
+| kEventNavigationSelectionChanged | 新序号 | 旧序号 | 选中项发生变化时触发，无选中时为 Box::InvalidIndex |
+| kEventNavigationPaneToggling | 目标状态：1=收起，0=展开 |  | 窗格即将收起/展开时触发，回调返回 false 可取消本次切换 |
+| kEventNavigationPaneToggled | 当前状态：1=收起，0=展开 |  | 窗格收起/展开完成时触发 |
+
+主要 C++ 接口：
+
+```cpp
+//选中相关
+bool SelectItem(NavigationViewItem* pItem, bool bFireEvent = true);  //按控件指针选中
+bool SelectItem(const DString& strPageName);                          //按内容页 name 选中
+bool SelectItemByIndex(size_t nIndex);                                //按可选项序号选中
+NavigationViewItem* GetSelectedItem() const;                          //当前选中项（无选中返回 nullptr）
+size_t GetSelectedIndex() const;                                      //当前选中项序号（无选中返回 Box::InvalidIndex）
+DString GetSelectedPage() const;                                      //当前选中项关联的内容页 name
+
+//窗格状态
+void SetCollapsed(bool bCollapsed);   //展开/收起导航窗格
+bool IsCollapsed() const;
+
+//事件监听（等价于 AttachEvent，事件参数见上表）
+void AttachNavItemClick(const EventCallback& callback, EventCallbackID callbackID = 0);
+void AttachNavSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+void AttachNavPaneToggling(const EventCallback& callback, EventCallbackID callbackID = 0);  //返回 false 可取消
+void AttachNavPaneToggled(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+//动态增删导航项
+NavigationViewItem* AddNavItem(const DString& strTextId, const DString& strIcon,
+                               const DString& strPage, Control* pPage = nullptr);
+bool AddPage(Control* pPage);                                            //单独把页面加入内容区
+bool RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage = false); //一并移除关联内容页
+void RemoveAllNavItems();                                                //清空导航项（不移除内容页）
+void SetItemEnabled(NavigationViewItem* pItem, bool bEnabled);           //禁用时不响应点击/键盘
+```
+
+NavigationViewItem 的常用接口：
+
+```cpp
+void SetItemText(const DString& strText);        DString GetItemText() const;
+void SetItemTextId(const DString& strTextId);    DString GetItemTextId() const;
+DString GetDisplayText() const;                  //text_id 优先解析为当前语言文本
+void SetIconAttr(const DString& strIcon);        DString GetIconAttr() const;
+void SetPageName(const DString& strPage);        DString GetPageName() const;
+void SetItemType(ItemType itemType);             ItemType GetItemType() const;  //kItem/kHeader/kSeparator
+bool IsSelectable() const;                       //是否可点击选择（仅 item 形态）
+void SetSelected(bool bSelected);                bool IsSelected() const;       //选中态由 NavigationView 管理
+void SetCompact(bool bCompact);                  bool IsCompact() const;        //紧凑态由 NavigationView 统一切换
 ```

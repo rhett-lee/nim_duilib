@@ -1,9 +1,5 @@
 English | [简体中文](Control.md)
 
-<!-- Exemption note: border_dash_style is a real XML attribute name (parsed in Control.cpp) and EasingFunctionType is a real
-     enum name (defined in duilib/Animation/EasingFunctions.h); both exist in the source and are only reported because the
-     checker's symbol index does not cover them. -->
-
 > Last synced: 2026-09-29
 
 ## Attributes of `Control` (Basic Control)
@@ -273,6 +269,9 @@ See the "Skeleton Test (List)", "Skeleton Test (Card)" and "Stop Loading" button
 | auto_hide_scroll | true | bool | Whether to automatically hide the scrollbar, e.g. "true"|
 
 The ScrollBar control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
+
+Note: keyboard operations on the scrollbar (arrow keys, PageUp / PageDown, Home / End) are not handled by ScrollBar itself,
+but by the ScrollBox container that uses the scrollbar. See the "Keyboard navigation" section of ScrollBox in the `Box.md` documentation.
 
 ## Attributes of Label
 | Attribute name | Default value | Parameter type | Purpose |
@@ -2395,4 +2394,228 @@ void SetOverflowButtonText(const DString& strText);    // text of the "more" but
 DString GetOverflowButtonText() const;
 
 bool IsOverflowing() const;                            // whether any child is currently collapsed
+```
+
+## Attributes of NavigationView (inherits HBox attributes)
+
+NavigationView is a sidebar navigation container that combines "a left navigation pane + a right content area (page header + TabBox pages)" internally:
+the pane holds a hamburger button, a pane title, a vertically scrollable nav item list and an optional bottom settings item;
+clicking a nav item switches the content page by its `page` name and updates the page header;
+the hamburger button toggles between expanded and compact states (compact mode shows icons only, hides group headers/separators,
+and shows the full item text as a tooltip). It fits settings pages and desktop clients with "multiple pages + sidebar navigation".
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| pane_width | 220 | int | Pane width in the expanded state (pixels, DPI-aware; only positive values are accepted, <= 0 keeps the default) |
+| compact_pane_width | 48 | int | Pane width in the compact state (pixels, DPI-aware; only positive values are accepted, <= 0 keeps the default) |
+| pane_title |  | string | Pane title text (hidden automatically in the compact state) |
+| pane_title_id |  | string | Pane title text ID (localized; takes precedence over pane_title) |
+| toggle_icon |  | string | Image attribute string of the hamburger button icon, e.g. file='nav/hamburger.svg' width='16' height='16' |
+| collapsed | false | bool | Whether the initial state is compact (true = icons only) |
+| show_header | true | bool | Whether to show the content-area page header (shows the current item text) |
+| settings_item | false | bool | Whether to show a settings item at the bottom of the pane (does not scroll with the list, excluded from index counting) |
+| settings_page | settings | string | Content page name associated with the settings item |
+| settings_text_id |  | string | Settings item text ID (localized; provided by the user) |
+| settings_icon |  | string | Image attribute string of the settings item icon (provided by the user) |
+| selected_id |  | string | Page name of the initially selected item; when empty or not found, the first selectable item (excluding the settings item) is selected |
+
+The NavigationView control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
+
+### Routing rules for direct children
+
+NavigationView overrides `AddItem`; direct children are routed by type:
+
+- `NavigationViewItem`: goes to the nav item list in the left pane (header/separator also enter the list, only their rendering differs);
+- `TabBox`: taken over as the content-area page container (only one is allowed; providing one explicitly lets the application drive page switching directly);
+- other controls: enter the content area as pages; a TabBox is created automatically when none is provided explicitly.
+
+Nav items and content pages are linked by `name`: the `page` attribute of a `NavigationViewItem` is the `name` of the content page control;
+selecting that nav item switches the content-area TabBox to the matching page and syncs the page header text.
+**Index convention**: indices returned by APIs such as `GetSelectedIndex` count only selectable items of the `item` form
+(header/separator and the bottom settings item are excluded); `Box::InvalidIndex` is returned when nothing is selected.
+
+### Attributes of NavigationViewItem (inherits Control attributes)
+
+`NavigationViewItem` is the nav item control, used as a direct child of NavigationView. It custom-draws an "icon + text" row and supports three forms:
+
+- `item` (default): a clickable nav item; when selected it shows a gray rounded pill + accent-colored text;
+- `header`: a group header (small, muted color, not clickable, hidden in the compact state);
+- `separator`: a separator line (hidden in the compact state).
+
+Each form uses a fixed height (DIP, DPI-aware): item 36, header 32, separator 9.
+Keyboard navigation is supported: items of the `item` form can receive focus via `Tab`, the Up/Down arrow keys move focus cyclically
+among selectable items, and Enter/Space activates the current item; the disabled state (`enabled="false"`) ignores clicks and keys,
+dims the text and icon, and disabling the currently selected item clears its selection and the page header (no implicit switch to another item).
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| text |  | string | Item text |
+| text_id |  | string | Item text ID (localized; takes precedence over text) |
+| icon |  | string | Image attribute string, e.g. file='nav/home.svg' width='16' height='16' |
+| page |  | string | Name of the associated content page control (linked to the content area) |
+| item_type | item | string | Form: item (default, clickable nav item) / header (group header; group_header is also accepted) / separator (separator line; sep is also accepted) |
+| icon_size | 16 | int | Icon size (DIP, DPI-aware; only positive values are accepted) |
+| icon_left | 16 | int | Left margin of the icon in the expanded state (DIP) |
+| text_left | 44 | int | Left margin of the text in the expanded state (DIP) |
+| text_right | 8 | int | Right margin of the text in the expanded state (DIP) |
+| pill_radius | 6 | int | Corner radius of the selected/hovered pill (DIP) |
+| pill_inset_x | 6 | int | Horizontal inset of the pill (DIP) |
+| pill_inset_y | 3 | int | Vertical inset of the pill (DIP) |
+| selected_bg_color | bg_list_item_selected | string | Selected background color name |
+| hovered_bg_color | bg_list_item_hovered | string | Hovered background color name |
+| selected_text_color | color_accent | string | Selected text color name |
+| normal_text_color | text_default | string | Normal text color name |
+| disabled_text_color | text_disabled | string | Disabled text color name |
+| header_text_color | text_muted | string | Group header text color name |
+| separator_color | border_window | string | Separator line color name |
+
+The NavigationViewItem control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
+
+### XML example
+
+```xml
+<NavigationView name="nav" height="stretch"
+                pane_width="220" compact_pane_width="48"
+                pane_title_id="STRID_NAV_DEMO_TITLE" show_header="true"
+                toggle_icon="file='nav/hamburger.svg' width='16' height='16'"
+                settings_item="true" settings_page="page_settings"
+                settings_text_id="STRID_NAV_SETTINGS"
+                settings_icon="file='nav/settings.svg' width='16' height='16'"
+                selected_id="page_home">
+    <!-- Clickable nav items: page matches the content page name, clicking switches the page -->
+    <NavigationViewItem text_id="STRID_NAV_PAGE_HOME"
+                        icon="file='nav/home.svg' width='16' height='16'"
+                        page="page_home"/>
+    <NavigationViewItem text_id="STRID_NAV_PAGE_DASHBOARD"
+                        icon="file='nav/dashboard.svg' width='16' height='16'"
+                        page="page_dashboard"/>
+
+    <!-- Group header and separator: not clickable, excluded from index counting -->
+    <NavigationViewItem item_type="header" text_id="STRID_NAV_GROUP_WORKSPACE"/>
+    <NavigationViewItem item_type="separator"/>
+
+    <!-- Content area: an explicit TabBox hosts all pages, so the application can drive the page container directly -->
+    <TabBox name="nav_content">
+        <VBox name="page_home" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_PAGE_HOME" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+        <VBox name="page_dashboard" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_PAGE_DASHBOARD" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+        <VBox name="page_settings" bkcolor="bg_window_main">
+            <Label text_id="STRID_NAV_SETTINGS" font="system_bold_16" text_color="text_default"/>
+        </VBox>
+    </TabBox>
+</NavigationView>
+```
+
+For a full demo, see the "Nav Test" button in the controls sample (`bin/resources/themes/default/controls/navigation.xml`):
+11 clickable nav items, 2 group headers, 2 separators and a bottom settings item, an explicit TabBox with multiple pages,
+plus demos of dynamically adding/removing nav items and programmatic selection.
+
+### C++ example
+
+```cpp
+ui::NavigationView* pNav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")));
+
+//Event listeners (all fired with NavigationView itself as the sender)
+//Selection changed: wParam = new index, lParam = old index (Box::InvalidIndex when nothing was selected)
+pNav->AttachNavSelectionChanged([](const ui::EventArgs& args) {
+    size_t nNewIndex = (size_t)args.wParam;
+    size_t nOldIndex = (size_t)args.lParam;
+    return true;
+});
+//Also fires when clicking the already-selected item (useful for "refresh/scroll to top"): wParam = selectable item index
+pNav->AttachNavItemClick([](const ui::EventArgs& args) {
+    size_t nIndex = (size_t)args.wParam;
+    return true;
+});
+//Pane about to collapse/expand: wParam = target state (1=collapsed, 0=expanded); returning false cancels the toggle
+pNav->AttachNavPaneToggling([](const ui::EventArgs& args) {
+    return true;
+});
+//Pane collapse/expand completed: wParam = current state (1=collapsed, 0=expanded)
+pNav->AttachNavPaneToggled([](const ui::EventArgs& args) {
+    return true;
+});
+
+//Programmatic selection: by content page name / by selectable index / by control pointer
+pNav->SelectItem(_T("page_tools"));
+pNav->SelectItemByIndex(0);
+
+//Read back the current selection
+size_t nIndex = pNav->GetSelectedIndex();       //Box::InvalidIndex when nothing is selected
+DString strPage = pNav->GetSelectedPage();
+
+//Expand/collapse the navigation pane
+pNav->SetCollapsed(!pNav->IsCollapsed());
+
+//Dynamically append a nav item: when the 4th argument is a page control, it is attached to the content area
+//and linked with the nav item by name
+ui::VBox* pPage = new ui::VBox(pNav->GetWindow());
+pPage->SetName(_T("page_dynamic"));
+ui::NavigationViewItem* pItem = pNav->AddNavItem(DString(),
+                                                 _T("file='nav/star.svg' width='16' height='16'"),
+                                                 _T("page_dynamic"), pPage);
+if (pItem != nullptr) {
+    pItem->SetItemText(_T("Dynamic item"));
+    pNav->SelectItem(pItem);   //select the new item immediately
+}
+
+//Remove a nav item: the 2nd argument true also removes the associated content page.
+//Note: containers default to auto_destroy_child=true, so the pointer is invalid after removal
+pNav->RemoveNavItem(pItem, true);
+```
+
+### Events
+
+| Event | wParam | lParam | Description |
+| :--- | :--- | :--- | :--- |
+| kEventNavigationItemClick | Selectable item index |  | Fired when a selectable nav item is clicked; also fires when clicking the already-selected item |
+| kEventNavigationSelectionChanged | New index | Old index | Fired when the selection changes; Box::InvalidIndex when nothing is selected |
+| kEventNavigationPaneToggling | Target state: 1=collapsed, 0=expanded |  | Fired before the pane collapses/expands; returning false from the handler cancels the toggle |
+| kEventNavigationPaneToggled | Current state: 1=collapsed, 0=expanded |  | Fired after the pane has collapsed/expanded |
+
+Main C++ APIs:
+
+```cpp
+//Selection
+bool SelectItem(NavigationViewItem* pItem, bool bFireEvent = true);  //select by control pointer
+bool SelectItem(const DString& strPageName);                          //select by content page name
+bool SelectItemByIndex(size_t nIndex);                                //select by selectable index
+NavigationViewItem* GetSelectedItem() const;                          //current item (nullptr when nothing is selected)
+size_t GetSelectedIndex() const;                                      //current index (Box::InvalidIndex when nothing is selected)
+DString GetSelectedPage() const;                                      //content page name of the current item
+
+//Pane state
+void SetCollapsed(bool bCollapsed);   //expand/collapse the navigation pane
+bool IsCollapsed() const;
+
+//Event listeners (equivalent to AttachEvent; event parameters see the table above)
+void AttachNavItemClick(const EventCallback& callback, EventCallbackID callbackID = 0);
+void AttachNavSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+void AttachNavPaneToggling(const EventCallback& callback, EventCallbackID callbackID = 0);  //return false to cancel
+void AttachNavPaneToggled(const EventCallback& callback, EventCallbackID callbackID = 0);
+
+//Dynamically add/remove nav items
+NavigationViewItem* AddNavItem(const DString& strTextId, const DString& strIcon,
+                               const DString& strPage, Control* pPage = nullptr);
+bool AddPage(Control* pPage);                                            //add a page to the content area alone
+bool RemoveNavItem(NavigationViewItem* pItem, bool bRemovePage = false); //also remove the associated content page
+void RemoveAllNavItems();                                                //remove all nav items (content pages are kept)
+void SetItemEnabled(NavigationViewItem* pItem, bool bEnabled);           //disabled items ignore clicks/keys
+```
+
+Common NavigationViewItem APIs:
+
+```cpp
+void SetItemText(const DString& strText);        DString GetItemText() const;
+void SetItemTextId(const DString& strTextId);    DString GetItemTextId() const;
+DString GetDisplayText() const;                  //resolves text_id to the current language text first
+void SetIconAttr(const DString& strIcon);        DString GetIconAttr() const;
+void SetPageName(const DString& strPage);        DString GetPageName() const;
+void SetItemType(ItemType itemType);             ItemType GetItemType() const;  //kItem/kHeader/kSeparator
+bool IsSelectable() const;                       //whether it can be clicked/selected (item form only)
+void SetSelected(bool bSelected);                bool IsSelected() const;       //selection is managed by NavigationView
+void SetCompact(bool bCompact);                  bool IsCompact() const;        //compact state is switched by NavigationView
 ```

@@ -300,10 +300,10 @@ M4 生态（远期）             ← 打包发布、系统级能力
 | ID | 项 | 现状依据 | 动作 | 工作量 |
 | :--- | :--- | :--- | :--- | :--- |
 | **E-1** | **StatusBar 分格索引 API** ✅ 已完成（2026-10-18） | `StatusBar.h` 无 `SetStatusText(格,文本)` / `GetStatusText`，只能业务层 `FindControl` 找子 Label；且 size grip 头文件自认"仅作视觉提示，不改变窗口可调整大小行为"= **装饰性死控件** | 补 4–6 个方法；明确 size grip 是否要接真实拖拽 | 极低 |
-| **E-2** | **NavigationView 属性文档** | `docs/Control.md` 中 `NavigationView` 出现 0 次——**唯一已实现但主文档无章节的控件** | 补中英双章节 + `Summary` / `XmlNode` / `Events` 四处 | 极低（纯文档） |
+| **E-2** | **NavigationView 属性文档** ✅ 已完成（2026-10-18） | `docs/Control.md` 中 `NavigationView` 出现 0 次——**唯一已实现但主文档无章节的控件** | 补中英双章节 + `Summary` / `XmlNode` / `Events` 四处 | 极低（纯文档） |
 | **E-3** | **通用 Dialog 控件** | 只有 `MessageBoxWnd` 五种固定按钮，无法放任意内容。**地基已齐**（`Mask` 遮罩 + `Flyout` 浮层），只差组装 | 新增 `Dialog` 基类，可放任意内容 + 自定义底部按钮区 + `DoModal` | 低（约 600 行） |
 | **E-4** | **Pagination 分页器** | 全仓无命中。报表/表格类软件刚需，当前全靠业务层手写按钮组 | HBox + 若干 Button 组合 | 低（约 250 行） |
-| **E-5** | **ScrollBar 键盘导航** | `ScrollBar` 无 PageUp/PageDown/方向键/Home/End 处理（对比 `Slider.h:215 HandleKeyDown` 有完整键盘支持）；`ScrollBar.cpp:50` 还有 TODO"DPI 自适应参数，需要确认一下" | 补键盘处理 + 修 DPI TODO | 低 |
+| **E-5** | **ScrollBar 键盘导航** ✅ 已完成（2026-10-18 核实：现有代码已支持，无需开发） | `ScrollBar` 无 PageUp/PageDown/方向键/Home/End 处理（对比 `Slider.h:215 HandleKeyDown` 有完整键盘支持）；`ScrollBar.cpp:50` 还有 TODO"DPI 自适应参数，需要确认一下" | 补键盘处理 + 修 DPI TODO | 低 |
 
 #### E-1 实施记录（2026-10-18 完成）
 
@@ -327,6 +327,47 @@ Windows 侧沿用 `WM_NCHITTEST`，SDL 侧沿用命中测试回调，两端都�
 文档（`docs/Control.md` / `.en.md` / `Summary.md` / `.en.md` / 三处 skill / `.claude` 参考）已同步；
 `examples/controls/statusbar.xml` 增补两个演示按钮，语言文件中英各加 2 条 STRID。
 **未做运行期验证**（本机无法完整链接 Skia），拖拽行为需在真机确认。
+
+#### E-2 实施记录（2026-10-18 完成）
+
+**内容**：`docs/Control.md` / `Control.en.md` 各新增 `NavigationView`（12 个属性）与 `NavigationViewItem`（17 个属性）两节，
+含属性表、直接子节点分流规则（NavigationViewItem / TabBox / 其它控件三类）、序号约定（仅统计 item 形态可选项，
+不含 header/separator 与设置项）、键盘导航（Tab 聚焦、上下方向键循环、回车/空格激活）、XML 示例、C++ 示例与事件表。
+属性名与默认值逐条对照 `NavigationView.cpp` 的 `SetAttribute` 与构造函数核实（`pane_width`/`compact_pane_width`/`icon_size`
+仅接受正值；三种形态固定高度 36/32/9 DIP）；10 个语义色名已在 color_light + color_dark 双主题 grep 验证。
+
+**`Summary` / `XmlNode` / `Events` 三处（各中英）原有条目已逐条核对无需改动**：4 个事件的 wParam/lParam 语义
+与 `duilib_defs.h:435-438`、`EventArgs.cpp:121-124` 的实现一致；`Summary` 两行（NavigationView / NavigationViewItem）
+与 `XmlNode` 两行的头文件链接均有效。
+
+**附加清理**：`Control.md` / `Control.en.md` 顶部各有一条历史遗留的 HTML 豁免注释（`border_dash_style` /
+`EasingFunctionType`），已删除——这两个名字登记在 `verify_allowlist.txt` 的 `docs/Control.md docs/Control.en.md` 行，
+注释属冗余，且不符合"md 正文不插 HTML 注释"的约定。
+
+**验证**：`verify_docs.py --extra docs` 89 份文档零漂移；章节内 XML 示例通过 ElementTree 解析；
+改动文件全部保持 CRLF；markdown 行尾硬换行空格零丢失。
+
+#### E-5 实施记录（2026-10-18 完成）
+
+**结论：现有代码已支持，无需开发。** E-5 的前提找错了类——键盘导航不在 `ScrollBar` 控件里，而在其宿主容器
+`ScrollBox::HandleEvent`（`duilib/Box/ScrollBox.cpp:452-523`）中完整实现：竖向滚动条可滚动时响应
+↑/↓（`LineUp`/`LineDown`，步长 `vscroll_unit`，默认 30 像素）、PageUp/PageDown（翻页，步长为可视区高度）、
+Home/End（`HomeUp`/`EndDown`，跳到首/末）；仅当竖向不可滚动时，横向滚动条响应同样的按键
+（`LineLeft`/`LineRight`、`PageLeft`/`PageRight`、`HomeLeft`/`EndRight`）。
+ScrollBar 是悬浮子控件、不参与焦点链，键盘由容器统一处理是合理架构；与 `Slider` 的差异源于
+Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对比。
+
+**事件冒泡机制**：容器内的子控件获得焦点时，未处理的 `kEventKeyDown` 经 `Control::HandleEvent`
+（`Control.cpp:2886-2889`）沿父链冒泡到 ScrollBox，因此无需给容器单独设置焦点，
+焦点在滚动区域内任意子控件上时按键均生效。
+
+**TODO 清理**：`ScrollBar.cpp:50` 的 "TODO: DPI自适应参数，需要确认一下" 已删除。该处是构造函数里的
+`SetFixedWidth(UiFixedInt(DEFAULT_SCROLLBAR_SIZE), false, false)`，第三参 `bNeedDpiScale=false`
+表示 12px 默认宽度不随 DPI 缩放——经确认无问题。
+
+**文档标注**：`Box.md` / `Box.en.md` 的 ScrollBox 节新增"键盘导航 / Keyboard navigation"小节
+（按键映射表、冒泡机制、竖横优先级、步长说明）；`Control.md` / `Control.en.md` 的 ScrollBar 节
+补充交叉引用说明（键盘由所属 ScrollBox 实现，不在 ScrollBar 自身）。
 
 ### D 组：中优先级
 
@@ -461,10 +502,10 @@ Windows 侧沿用 `WM_NCHITTEST`，SDL 侧沿用命中测试回调，两端都�
 - [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖 A-3 ｜ 完成日期：______
 - [ ] **C-7** CMake 平台判定健壮化　｜ 0.5 天 ｜ 完成日期：______
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
-- [ ] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：______
+- [x] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：2026-10-18
 - [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：______
-- [ ] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：______
+- [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [ ] **E-6** ListCtrl 排序稳定性 + 汇总行 + 单元格合并入口　｜ 低 ｜ 完成日期：______
 - [ ] **E-7** TabCtrl 增删标签 API　｜ 低 ｜ 完成日期：______
 - [ ] **E-8** MenuItem 勾选/禁用/图标/快捷键 API　｜ 低 ｜ 完成日期：______
