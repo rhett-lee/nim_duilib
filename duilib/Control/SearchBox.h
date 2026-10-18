@@ -20,6 +20,9 @@ class RichEdit;
 *     prompt_color    占位提示文字颜色
 *     text            初始搜索文本
 *     text_id         初始搜索文本的多语言 ID（与 text 同时设置时，后设置的属性生效）
+*     debounce_interval 防抖间隔（毫秒）：搜索文本连续变化时，仅在输入停顿达到该间隔后才触发
+*                      kEventTextChanged；设为 0（默认）则每次变化立即触发，向后兼容。
+*                      用于避免搜索场景下每次按键都触发搜索请求。
 *
 *   事件：
 *   - kEventTextChanged：搜索文本变化时触发（内部编辑框事件转发）
@@ -35,7 +38,7 @@ public:
     explicit SearchBox(Window* pWindow);
     SearchBox(const SearchBox& r) = delete;
     SearchBox& operator=(const SearchBox& r) = delete;
-    virtual ~SearchBox() override = default;
+    virtual ~SearchBox() override;
 
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
@@ -55,6 +58,14 @@ public:
     /** 获取搜索文本
     */
     DString GetSearchText() const;
+
+    /** 设置防抖间隔（毫秒）
+     *   搜索文本连续变化时，仅在输入停顿达到该间隔后才触发 kEventTextChanged；
+     *   设为 0（默认）则每次变化立即触发（向后兼容）。搜索场景可用此避免每次按键都触发搜索请求。
+     * @note 防抖同样作用于程序化 SetSearchText 引起的文本变化。
+     */
+    void SetDebounceInterval(size_t nIntervalMs);
+    size_t GetDebounceInterval() const { return m_nDebounceIntervalMs; }
 
 public:
     /** 监听回车按键按下事件
@@ -92,6 +103,18 @@ private:
     /** 占位提示文字颜色（OnInit 前缓存）
     */
     UiString m_promptColor;
+
+    /** 防抖间隔（毫秒），0 表示不防抖（立即触发）
+    */
+    size_t m_nDebounceIntervalMs = 0;
+
+    /** 待触发的防抖任务 ID（PostDelayedTask 返回值），0 表示无待触发任务
+    */
+    size_t m_nDebounceTaskId = 0;
+
+    /** 文本变化处理：按防抖间隔决定是否延迟触发 kEventTextChanged
+    */
+    void OnEditInput();
 };
 
 } // namespace ui
