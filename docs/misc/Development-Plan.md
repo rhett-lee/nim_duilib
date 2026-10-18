@@ -369,6 +369,41 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 （按键映射表、冒泡机制、竖横优先级、步长说明）；`Control.md` / `Control.en.md` 的 ScrollBar 节
 补充交叉引用说明（键盘由所属 ScrollBox 实现，不在 ScrollBar 自身）。
 
+#### E-6 实施记录（2026-10-18 完成 ②③；① 保持开放）
+
+**② 排序稳定性（已修复）**：`ListCtrlData::SortStorageData`（`duilib/Control/ListCtrlData.cpp`）
+原用 `std::sort`，且降序是"升序排完再 `std::reverse` 整体反转"——后者即使换成 `stable_sort`
+也会把同值行的相对顺序一并颠倒。现改为：
+
+1. 两个比较分支（自定义 `pfnCompareFunc` / 默认 `SortDataCompareFunc`）均改用 `std::stable_sort`；
+2. 降序改为**转置比较**（交换 a/b 位置后按同一升序语义排），同值元素在升降序两个方向都保持原始相对顺序；
+3. 无单元格数据（`pStorage` 为 nullptr）的行仍统一视为最小值：升序在最前、降序在最后（与原行为一致）；
+4. 新增文件内辅助函数 `StableSortDisplayData`（匿名命名空间，迭代器 + 比较器模板），
+   稳定性与转置逻辑集中一处，两个分支只贡献各自的比较语义。
+
+`ListCtrl.h` / `ListCtrlData.h` 的排序接口文档已补稳定性说明。验证：`cl /Zs` 通过；
+另写独立测试程序复刻该算法跑 11 项断言（同值升降序稳定性、空数据边界、2000 元素大规模验证、
+旧路径 bug 复现对比）全部通过。
+
+**③ 单元格合并（核实后结论：不实施，仅清理误导注释）**：该项前提有误，两处核实：
+
+1. **归并逻辑并非"已写好"**：全仓无任何 span / merge 代码（`grep -rni "merge\|span"` 于
+   `duilib/Control/` 零命中）；代码里唯一的"归并"是 `GetSelectedCellRanges` 把**选中单元格**
+   合并为矩形区域（用于 `kEventCellSelectionChanged` 事件上报与复制导出），已完整实现，
+   与"单元格合并（跨行/跨列 span）"是两回事。
+2. **单元格合并（原设计方案 C4）已在评审中取消**：见 `docs/misc/ListCtrl-Roadmap.md`
+   （"单元格合并 ｜ 已取消（不实施）"）与设计方案 §3 C4 节【已取消（不实施）】标注——
+   理由是需表头与行的布局模型整体升级、改动面过大；设计方案还明确"不再新增
+   `sub_item_row_span` / `sub_item_column_span`"（即数据入口也不加）。
+
+因此未实施合并功能（避免推翻既定评审结论），仅清理两处会误导后续维护者的注释：
+`ListCtrl.h` 的 `GetSelectedCells` 文档（原写"跳过被合并覆盖的单元格，后续合并功能落地后生效"，
+改为说明合并已评审决定不实施、不存在被覆盖的单元格）；`ListCtrl.cpp` 的 `BuildSelectionText`
+内部注释（原写"C4 实施后按合并锚点格展开"，改为说明已取消、按单元格逐一取文本）。
+`docs/Control.md` / `.en.md` 中对应的两处"跳过被合并覆盖的单元格"描述同步删除。
+
+**① 列汇总行 / 分组行（保持开放，本轮未做）**：属布局模型新增能力，需单独设计与评审。
+
 ### D 组：中优先级
 
 | ID | 项 | 现状依据 | 工作量 |
@@ -390,7 +425,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 
 | ID | 控件 | 缺口 | 备注 |
 | :--- | :--- | :--- | :--- |
-| **E-6** | `ListCtrl` | ① 无列汇总行 / 分组行（只有 `nSortGroup` 排序分组）；② 排序用 `std::sort` 非 `stable_sort`，同值行会乱序，同组文件夹/文件可能交错；③ `ListCtrl.h:741` 自认单元格合并"尚未实现"，归并逻辑已写好但缺数据入口 | 后两项成本低、收益明确 |
+| **E-6** | `ListCtrl` ✅ ②③已完成（2026-10-18）；① 保持开放（未做） | ① 无列汇总行 / 分组行（只有 `nSortGroup` 排序分组）；② 排序用 `std::sort` 非 `stable_sort`，同值行会乱序，同组文件夹/文件可能交错；③ `ListCtrl.h:741` 自认单元格合并"尚未实现"，归并逻辑已写好但缺数据入口 | 后两项成本低、收益明确 |
 | **E-7** | `TabCtrl` | **无 `Add`/`Insert`/`Remove` 的程序化管理 API** —— 一个标签栏控件不能增删标签，必须绕道操作 `TabBox`。另无垂直标签、无固定标签、无溢出滚动 | 最大 API 缺陷 |
 | **E-8** | `Menu` / `MenuItem` | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
 | **E-9** | `DateTime` | `DateTime.h:35-46` 两处专门为"被复用为 ListCtrl 编辑器"打的补丁（`ResetCalendarFlyoutState`/`CloseCalendarFlyout`）+ 成员 `m_bSuppressCalendarReopen` —— **抽象缺失导致实现细节外泄**；`DateTimeWnd` 与 `kDateCalendar` 两套编辑路径并存 | 架构债 |
@@ -506,7 +541,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 - [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：______
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
-- [ ] **E-6** ListCtrl 排序稳定性 + 汇总行 + 单元格合并入口　｜ 低 ｜ 完成日期：______
+- [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）
 - [ ] **E-7** TabCtrl 增删标签 API　｜ 低 ｜ 完成日期：______
 - [ ] **E-8** MenuItem 勾选/禁用/图标/快捷键 API　｜ 低 ｜ 完成日期：______
 - [ ] **D-1** RangeSlider 双滑块　｜ 约 400 行 ｜ 完成日期：______

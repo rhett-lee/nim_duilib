@@ -558,6 +558,7 @@ public:
     * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    * 说明：稳定排序（同值元素保持原始相对顺序），升序/降序均保持该特性
     */
     bool SortDataItems(size_t nColumnId, size_t nColumnIndex,
                        bool bSortedUp, uint8_t nSortFlag,
@@ -778,6 +779,8 @@ private:
     * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    * 说明：稳定排序（同值元素保持原始相对顺序）；降序通过转置比较实现，
+    *       而非"升序排完再整体反转"（那会颠倒同值元素的相对顺序）
     */
     bool SortStorageData(std::vector<StorageData>& dataList, size_t nColumnId, size_t nColumnIndex,
                          bool bSortedUp, uint8_t nSortFlag,

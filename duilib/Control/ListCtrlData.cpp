@@ -2110,6 +2110,35 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex,
     return true;
 }
 
+namespace
+{
+/** 按 fnLess 实现的 "(a < b)" 升序语义，对数据列表做稳定排序
+* @param [in] first/last 待排序区间
+* @param [in] bDescending true 表示降序，false 表示升序
+* @param [in] fnLess 升序比较函数，实现 (a < b) 的语义
+* 说明：
+* 1) 使用 std::stable_sort 而非 std::sort：比较结果相等（同值）的元素保持原始相对顺序，
+*    同组（如文件夹/文件）或同值的行不会因排序而乱序、交错；
+* 2) 降序通过"转置比较"（交换 a/b 的位置）直接排序，而不是"升序排完再整体 std::reverse"——
+*    整体反转会把同值元素的相对顺序一并颠倒，同样造成乱序；
+* 3) 无单元格数据（pStorage 为 nullptr）的行统一视为最小值：升序排在最前，降序排在最后，
+*    与转置前的行为一致。
+*/
+template <typename IterType, typename LessFunc>
+void StableSortDisplayData(IterType first, IterType last, bool bDescending, LessFunc fnLess)
+{
+    if (!bDescending) {
+        std::stable_sort(first, last, fnLess);
+    }
+    else {
+        std::stable_sort(first, last, [&fnLess](const auto& a, const auto& b) {
+                return fnLess(b, a);
+            });
+    }
+}
+
+}//namespace
+
 bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, size_t nColumnId, size_t nColumnIndex,
                                    bool bSortedUp, uint8_t nSortFlag,
                                    ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
@@ -2125,43 +2154,37 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, size_t nC
     }
 
     if (pfnCompareFunc != nullptr) {
-        //使用自定义的比较函数排序
+        //使用自定义的比较函数排序（稳定排序：同值元素保持原始相对顺序）
         ListCtrlCompareParam param;
         param.nColumnId = nColumnId;
         param.nColumnIndex = nColumnIndex;
         param.nSortFlag = nSortFlag;
         param.pUserData = pUserData;
-        std::sort(dataList.begin(), dataList.end(), [this, pfnCompareFunc, &param](const StorageData& a, const StorageData& b) {
-                //实现(a < b)的比较逻辑
-                if (b.pStorage == nullptr) {
-                    return false;
-                }
-                if (a.pStorage == nullptr) {
-                    return true;
-                }
-                const Storage& storageA = *a.pStorage;
-                const Storage& storageB = *b.pStorage;
-                return pfnCompareFunc(storageA, storageB, param);
-            });
+        auto fnLess = [&pfnCompareFunc, &param](const StorageData& a, const StorageData& b) -> bool {
+            //实现(a < b)的比较逻辑
+            if (b.pStorage == nullptr) {
+                return false;
+            }
+            if (a.pStorage == nullptr) {
+                return true;
+            }
+            return pfnCompareFunc(*a.pStorage, *b.pStorage, param);
+        };
+        StableSortDisplayData(dataList.begin(), dataList.end(), !bSortedUp, fnLess);
     }
     else {
-        //排序：升序，使用默认的排序函数
-        std::sort(dataList.begin(), dataList.end(), [this, nSortFlag](const StorageData& a, const StorageData& b) {
-                //实现(a < b)的比较逻辑
-                if (b.pStorage == nullptr) {
-                    return false;
-                }
-                if (a.pStorage == nullptr) {
-                    return true;
-                }
-                const Storage& storageA = *a.pStorage;
-                const Storage& storageB = *b.pStorage;
-                return SortDataCompareFunc(storageA, storageB, nSortFlag);
-            });
-    }
-    if (!bSortedUp) {
-        //降序
-        std::reverse(dataList.begin(), dataList.end());
+        //排序：升序，使用默认的排序函数（稳定排序：同值元素保持原始相对顺序）
+        auto fnLess = [this, nSortFlag](const StorageData& a, const StorageData& b) -> bool {
+            //实现(a < b)的比较逻辑
+            if (b.pStorage == nullptr) {
+                return false;
+            }
+            if (a.pStorage == nullptr) {
+                return true;
+            }
+            return SortDataCompareFunc(*a.pStorage, *b.pStorage, nSortFlag);
+        };
+        StableSortDisplayData(dataList.begin(), dataList.end(), !bSortedUp, fnLess);
     }
     return true;
 }

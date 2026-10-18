@@ -647,6 +647,8 @@ public:
     * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 自定义的比较函数，如果为nullptr, 则使用默认的比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
+    * 说明：排序是稳定的（std::stable_sort），比较结果相等（同值）的元素保持原始相对顺序，
+    *       因此同组（如文件夹/文件）或同值的行不会因排序而乱序、交错；升序和降序均保持该特性。
     */
     bool SortDataItems(size_t columnIndex, bool bSortedUp, uint8_t nSortFlag = ListCtrlSubItemSortFlag::kDefault,
                        ListCtrlDataCompareFunc pfnCompareFunc = nullptr,
@@ -738,9 +740,10 @@ public:
     void SetSelectedCells(const std::vector<ListCtrlCellId>& cellList, bool bClearOthers);
 
     /** 获取选择的单元格列表（规范化区域内展开的单元格，按行优先顺序）
-        说明：跳过被合并覆盖的单元格（当前尚未实现单元格合并，后续合并功能落地后生效）
     * @param [in] cellList 返回选择的单元格列表
     * @return 返回选择的单元格个数
+    * 说明：返回选中的全部单元格；单元格合并（跨行/跨列）经评审后决定不实施
+    *       （需表头与行的布局模型整体升级，改动面过大），故不存在"被合并覆盖的单元格"。
     */
     size_t GetSelectedCells(std::vector<ListCtrlCellId>& cellList) const;
 
