@@ -404,6 +404,31 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 
 **① 列汇总行 / 分组行（保持开放，本轮未做）**：属布局模型新增能力，需单独设计与评审。
 
+#### E-7 实施记录（2026-10-18 完成：垂直标签 / 固定标签 / 溢出滚动）
+
+**范围澄清（用户指令）**：原条目的"无 `Add`/`Insert`/`Remove` 程序化管理 API"经用户确认这些接口在 `TabCtrl` 中**已存在**，
+不开发；本轮只做其余三项。
+
+**① 垂直标签**：新增 `TabCtrlOrientation` 枚举与 `SetTabCtrlOrientation` / `GetTabCtrlOrientation`，
+XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::ResetLayout(new VLayout() / new HLayout())`
++ `FreeLayout` 完成（`OnInit` 与运行期均可切）；`PaintStateColors` 的底部分割线在垂直时改为右侧竖线，
+`PaintTabItemSelected` 的选中轮廓 / 竖线在垂直时贴右边缘（`rc.right -= outlineWidth/2` 防止 1 像素溢出）。
+
+**② 固定标签**：`TabCtrlItem::SetFixed(bool)`（XML 属性 `fixed`），实现为 `SetEnableDragOrder(!bFixed)`——
+`ControlDragableT` 原生支持跳过非 draggable 项（拖拽时与作为放置点时均跳过），无需自写拦截。
+锚定约束写在三处：`AddItem`（固定项插到固定块末尾 `GetFixedItemCount()`）、`AddItemAt`、`SetItemIndex`——
+因 `Box::AddItemAt` 经 `DoAddItemAt` 不回调 `SetItemIndex`，只改一处会漏。固定项的关闭按钮经
+`UpdateCloseButtonVisible` 统一收口强制隐藏。
+
+**③ 溢出滚动**：`SetEnableOverflowScroll` / `IsEnableOverflowScroll`（XML `overflow_scroll`，默认 `true`）。
+`OnInit` 末尾按方向启用对应滚动条并设 `SetScrollBarFloat(true)` 悬浮条（不占布局空间，仅内容溢出时 `IsValid()`）；
+拖拽靠近边缘的自动滚动由 `ControlDragableT` 内置。`global.xml` 已有 `vscrollbar` / `hscrollbar` 皮肤，无需新增。
+运行期重设方向时一并重配滚动条并 `Invalidate()`。
+
+**验证**：`controls_d.exe` 构建 EXITCODE=0（`duilib_d.lib` 同批产出），启动冒烟 SMOKE_OK；
+`test.xml` 新增垂直标签栏（首页/收藏 fixed）与 12 项水平溢出两个演示卡，XML 解析 OK。
+**真机视觉 / 交互验证待用户确认**（垂直选中轮廓、固定项拖拽拦截、溢出滚动交互）。
+
 ### D 组：中优先级
 
 | ID | 项 | 现状依据 | 工作量 |
@@ -426,7 +451,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 | ID | 控件 | 缺口 | 备注 |
 | :--- | :--- | :--- | :--- |
 | **E-6** | `ListCtrl` ✅ ②③已完成（2026-10-18）；① 保持开放（未做） | ① 无列汇总行 / 分组行（只有 `nSortGroup` 排序分组）；② 排序用 `std::sort` 非 `stable_sort`，同值行会乱序，同组文件夹/文件可能交错；③ `ListCtrl.h:741` 自认单元格合并"尚未实现"，归并逻辑已写好但缺数据入口 | 后两项成本低、收益明确 |
-| **E-7** | `TabCtrl` | **无 `Add`/`Insert`/`Remove` 的程序化管理 API** —— 一个标签栏控件不能增删标签，必须绕道操作 `TabBox`。另无垂直标签、无固定标签、无溢出滚动 | 最大 API 缺陷 |
+| **E-7** | `TabCtrl` ✅ 已完成（2026-10-18）：垂直标签 / 固定标签 / 溢出滚动 | 原条目称"无 `Add`/`Insert`/`Remove` 的程序化管理 API"——经用户核实这些接口**已存在，不开发**；实际缺口为：另无垂直标签、无固定标签、无溢出滚动 | 三项均已落地；真机视觉/交互待确认 |
 | **E-8** | `Menu` / `MenuItem` ✅ 已完成（2026-10-18） | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
 | **E-9** | `DateTime` 不处理（架构债，留待重构） | `DateTime.h:35-46` 两处专门为"被复用为 ListCtrl 编辑器"打的补丁（`ResetCalendarFlyoutState`/`CloseCalendarFlyout`）+ 成员 `m_bSuppressCalendarReopen` —— **抽象缺失导致实现细节外泄**；`DateTimeWnd` 与 `kDateCalendar` 两套编辑路径并存 | 本轮不处理 |
 | **E-10** | `SearchBox` ✅ 已完成（2026-10-18）：防抖 + 建议/历史下拉整合 | 原"无防抖"已补 `debounce_interval`（默认 0 立即触发，>0 输入停顿后才发 `kEventTextChanged`）；"初始化顺序债"实为 `SetAttribute` 缓存 + `OnInit` 转发，已正确处理，无需改动；"无历史/建议"已整合——`SearchBox` 复用 `AutoCompleteFlyout` 实现下拉联想：建议数据源（`suggestions`/SetCandidates）+ 搜索历史（提交时自动 MRU 记录，`history_enabled`/`max_history` 可配），支持 prefix/contains 匹配、键盘上下/回车/Esc 导航、复用 `kEventAutoCompleteSelect` 事件 | 中低 |
@@ -542,7 +567,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 - [ ] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：______
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）
-- [ ] **E-7** TabCtrl 增删标签 API　｜ 低 ｜ 完成日期：______
+- [x] **E-7** TabCtrl 垂直标签 / 固定标签 / 溢出滚动（增删 API 经核实已存在，不开发）　｜ 低 ｜ 完成日期：2026-10-18
 - [x] **E-8** MenuItem 勾选/单选/图标/快捷键 API + 清理 TODO　｜ 低 ｜ 完成日期：2026-10-18
 - [ ] **D-1** RangeSlider 双滑块　｜ 约 400 行 ｜ 完成日期：______
 - [ ] **D-2** 富内容 Tooltip　｜ 约 200 行 ｜ 完成日期：______

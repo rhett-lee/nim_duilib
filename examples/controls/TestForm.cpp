@@ -2,6 +2,7 @@
 #include "MessageBoxForm.h"
 #include "ToastForm.h"
 #include "ProgressForm.h"
+#include "TabCtrlForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -30,6 +31,15 @@ void TestForm::OnInitWindow()
     if (pProgressBtn != nullptr) {
         pProgressBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowProgressWindow();
+            return true;
+            });
+    }
+
+    //标签栏测试窗口（垂直标签 / 固定标签 / 溢出滚动 / 程序化增删标签）
+    ui::Button* pTabCtrlBtn = dynamic_cast<ui::Button*>(FindControl(_T("tab_ctrl_test_btn")));
+    if (pTabCtrlBtn != nullptr) {
+        pTabCtrlBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowTabCtrlWindow();
             return true;
             });
     }
@@ -319,6 +329,18 @@ void TestForm::ShowProgressWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ProgressWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowTabCtrlWindow()
+{
+    TabCtrlForm* testForm = new TabCtrlForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("TabCtrlForm");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

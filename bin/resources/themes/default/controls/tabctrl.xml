@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TabCtrl 测试窗口皮肤
+  ⑤ 张卡片对应 E-7 的能力 + 角标演示：
+    ① 布局方向（水平 / 垂直）
+    ② 固定标签（不可拖动、无关闭按钮、恒在前端）
+    ③ 水平溢出滚动
+    ④ 垂直溢出滚动
+    ⑤ 标签角标（数字角标 / 超大数字 / 小红点 / 关闭按钮）
+  所有可见文案一律用 text_id / title_id / tooltip_text_id 引用语言文件，支持中英双语。
+-->
+<Window size="1000,860" text_id="STRID_TABCTRL_WINDOW_TITLE" use_system_caption="false" caption="0,0,0,36" shadow_type="default" size_box="2,2,2,2">
+    <VBox bkcolor="bg_window_main" height="stretch">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_TABCTRL_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_switch_theme" height="32" width="40" name="btn_window_theme" margin="0,2,0,2"/>
+            <Button class="btn_switch_lang" height="32" width="40" name="btn_window_language" margin="0,2,0,2"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="btn_window_min" margin="0,2,0,2"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="btn_window_max"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="btn_window_restore" visible="false"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 内容区：内容较多，放进纵向滚动容器 -->
+        <VScrollBox height="stretch" vscrollbar="true" hscrollbar="false" padding="12,12,12,12">
+            <VBox height="auto" width="stretch">
+
+                <!-- ① 布局方向：水平 / 垂直 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_ORIENT" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_orient_state" text_id="STRID_TABCTRL_STATE_HORZ" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_orient_vert" text_id="STRID_TABCTRL_BTN_VERT" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_orient_horz" text_id="STRID_TABCTRL_BTN_HORZ" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_orient_overflow" text_id="STRID_TABCTRL_BTN_OVERFLOW_ON" width="130" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_ORIENT" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <!-- 高度 180：垂直模式 5 项（5×36=180）刚好满高不溢出，本卡片只演示方向，不掺杂溢出 -->
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_orient" width="stretch" height="180"
+                             tooltip_text_id="STRID_TABCTRL_TIP_CARD_ORIENT">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FEED"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" badge_count="12"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ② 固定标签 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_FIXED" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_fixed_state" text_id="STRID_TABCTRL_STATE_FIXED_INIT" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_fix_add" text_id="STRID_TABCTRL_BTN_FIX_ADD" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_fix_toggle" text_id="STRID_TABCTRL_BTN_FIX_TOGGLE" width="140" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_fix_remove" text_id="STRID_TABCTRL_BTN_FIX_REMOVE" width="120" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_fix_reset" text_id="STRID_TABCTRL_BTN_RESET" width="70" height="28" border_round="3,3"/>
+                        <Control/>
+                        <Label text_id="STRID_TABCTRL_TIP_FIXED" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_fixed" width="stretch" height="36"
+                             tooltip_text_id="STRID_TABCTRL_TIP_CARD_FIXED">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" fixed="true"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" fixed="true"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" badge_count="3"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FEED"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS"/>
+                    </TabCtrl>
+                </VBox>
+
+                <!-- ③ 水平溢出滚动 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_HOVERFLOW" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_hoverflow_state" text_id="STRID_TABCTRL_STATE_COUNT0" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_h_fill" text_id="STRID_TABCTRL_BTN_FILL10" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_h_toggle" text_id="STRID_TABCTRL_BTN_OVERFLOW_ON" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_h_home" text_id="STRID_TABCTRL_BTN_HOME_LEFT" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_h_end" text_id="STRID_TABCTRL_BTN_END_RIGHT" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_h_page" text_id="STRID_TABCTRL_BTN_PAGE_RIGHT" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_h_clear" text_id="STRID_TABCTRL_BTN_CLEAR" width="70" height="28" border_round="3,3"/>
+                    </HBox>
+                    <HBox height="auto">
+                        <!-- 宽度 300 < 10×96，加满后必然溢出；标签文字由代码按序号本地化生成 -->
+                        <TabCtrl class="tab_ctrl" name="tab_ctrl_hoverflow" width="300" height="36" overflow_scroll="true"
+                                 tooltip_text_id="STRID_TABCTRL_TIP_CARD_HOVERFLOW">
+                            <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_TAB_1" width="96"/>
+                            <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_TAB_2" width="96"/>
+                            <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TABCTRL_TAB_3" width="96"/>
+                        </TabCtrl>
+                        <VBox width="stretch" height="auto" margin="12,0,0,0">
+                            <Label name="label_hoverflow_range" height="auto" text_color="text_muted" font="system_regular_12" text_id="STRID_TABCTRL_RANGE_H_INIT"/>
+                            <Label name="label_hoverflow_pos" height="auto" text_color="text_muted" font="system_regular_12" margin="0,4,0,0" text_id="STRID_TABCTRL_POS_H_INIT"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- ④ 垂直溢出滚动 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12" margin="0,0,0,10">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_VOVERFLOW" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Label name="label_voverflow_state" text_id="STRID_TABCTRL_STATE_COUNT0" text_color="text_muted" valign="center"/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Button class="btn_global" name="btn_v_fill" text_id="STRID_TABCTRL_BTN_FILL8" width="110" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_toggle" text_id="STRID_TABCTRL_BTN_OVERFLOW_ON" width="130" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_home" text_id="STRID_TABCTRL_BTN_HOME_UP" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_end" text_id="STRID_TABCTRL_BTN_END_DOWN" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_page" text_id="STRID_TABCTRL_BTN_PAGE_DOWN" width="100" height="28" border_round="3,3" margin="0,0,8,0"/>
+                        <Button class="btn_global" name="btn_v_clear" text_id="STRID_TABCTRL_BTN_CLEAR" width="70" height="28" border_round="3,3"/>
+                    </HBox>
+                    <HBox height="auto">
+                        <!-- 高度 110 < 8×36，加满后必然纵向溢出 -->
+                        <TabCtrl class="tab_ctrl" name="tab_ctrl_voverflow" width="180" height="110" tab_ctrl_orientation="vert"
+                                 overflow_scroll="true" tooltip_text_id="STRID_TABCTRL_TIP_CARD_VOVERFLOW">
+                            <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_HOME" fixed="true"/>
+                            <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FAVORITE" fixed="true"/>
+                        </TabCtrl>
+                        <VBox width="stretch" height="auto" margin="12,0,0,0">
+                            <Label name="label_voverflow_range" height="auto" text_color="text_muted" font="system_regular_12" text_id="STRID_TABCTRL_RANGE_V_INIT"/>
+                            <Label name="label_voverflow_pos" height="auto" text_color="text_muted" font="system_regular_12" margin="0,4,0,0" text_id="STRID_TABCTRL_POS_V_INIT"/>
+                            <Label height="auto" text_color="text_muted" font="system_regular_12" margin="0,4,0,0"
+                                   text_id="STRID_TABCTRL_TIP_CARD_VOVERFLOW2"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- ⑤ 标签角标：数字角标 / 超大数字（99+）/ 小红点 / 关闭按钮 -->
+                <VBox height="auto" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                    <HBox height="24" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_CARD_BADGE" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="auto" margin="0,0,0,10">
+                        <Label text_id="STRID_TABCTRL_TIP_BADGE" text_color="text_muted" font="system_regular_12" valign="center"/>
+                    </HBox>
+                    <!-- 从 test.xml 迁移过来的角标演示：四种角标类型 -->
+                    <TabCtrl class="tab_ctrl" name="tab_ctrl_badge" width="stretch" height="36"
+                             selected_id="3" tooltip_text_id="STRID_TABCTRL_TIP_CARD_BADGE">
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_MSG" badge_count="5"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_NOTIFY" badge_count="120"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_FEED" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>
+                        <TabCtrlItem class="tab_ctrl_item" title_id="STRID_TAB_CTRL_SETTINGS"/>
+                    </TabCtrl>
+                </VBox>
+
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

@@ -1304,3 +1304,94 @@ STRID_PANEL_STATUS_SLOT_SETTINGS = Title bar slot: 'Settings' clicked (panel not
 STRID_PANEL_STATUS_SLOT_REFRESH = Title bar slot: 'Refresh' clicked (panel not collapsed)
 STRID_PANEL_STATUS_VETO_CANCELLED = Collapse cancelled: check 'Allow collapsing this panel' first
 STRID_PANEL_STATUS_VETO_COLLAPSED = Protected panel collapsed (the before-collapse event allowed it)
+
+# ============================================================
+# TabCtrl test window (examples/controls/TabCtrlForm)
+# Skin: controls/tabctrl.xml - key set must match zh_CN-examples.txt
+# ============================================================
+STRID_TABCTRL_WINDOW_TITLE = TabCtrl Test
+
+# Card titles
+STRID_TABCTRL_CARD_ORIENT = (1) Layout Orientation (switch horizontal / vertical at runtime)
+STRID_TABCTRL_CARD_FIXED = (2) Fixed Tabs (not draggable, no close button, always at the front)
+STRID_TABCTRL_CARD_HOVERFLOW = (3) Horizontal Overflow Scroll (bar width 300, tab width 96)
+STRID_TABCTRL_CARD_VOVERFLOW = (4) Vertical Overflow Scroll (bar height 110, tab height 36)
+STRID_TABCTRL_CARD_BADGE = (5) Tab Badges (count / 99+ / red dot / close button)
+
+# Buttons
+STRID_TABCTRL_BTN_VERT = Switch to Vertical
+STRID_TABCTRL_BTN_HORZ = Switch to Horizontal
+STRID_TABCTRL_BTN_OVERFLOW_ON = Overflow Scroll: On
+STRID_TABCTRL_BTN_OVERFLOW_OFF = Overflow Scroll: Off
+STRID_TABCTRL_BTN_FIX_ADD = Add Fixed Tab
+STRID_TABCTRL_BTN_FIX_TOGGLE = Fix / Unfix Selected
+STRID_TABCTRL_BTN_FIX_REMOVE = Remove Selected
+STRID_TABCTRL_BTN_RESET = Reset
+STRID_TABCTRL_BTN_FILL10 = Fill to 10
+STRID_TABCTRL_BTN_FILL8 = Fill to 8
+STRID_TABCTRL_BTN_HOME_LEFT = Scroll to Start
+STRID_TABCTRL_BTN_END_RIGHT = Scroll to End
+STRID_TABCTRL_BTN_PAGE_RIGHT = Page Right
+STRID_TABCTRL_BTN_HOME_UP = Scroll to Top
+STRID_TABCTRL_BTN_END_DOWN = Scroll to Bottom
+STRID_TABCTRL_BTN_PAGE_DOWN = Page Down
+STRID_TABCTRL_BTN_CLEAR = Clear
+
+# Tab titles (shared by cards 1/2/4/5 and programmatic creation)
+STRID_TAB_CTRL_HOME = Home
+STRID_TAB_CTRL_FAVORITE = Favorites
+STRID_TAB_CTRL_MSG = Messages
+STRID_TAB_CTRL_NOTIFY = Notifications
+STRID_TAB_CTRL_FEED = Feed
+STRID_TAB_CTRL_SETTINGS = Settings
+STRID_TABCTRL_TAB_1 = Tab 1
+STRID_TABCTRL_TAB_2 = Tab 2
+STRID_TABCTRL_TAB_3 = Tab 3
+STRID_TABCTRL_TAB_N = Tab %d
+STRID_TABCTRL_FIXED_N = Fixed%d
+
+# Initial state texts (refreshed by code once layout is done)
+STRID_TABCTRL_STATE_HORZ = Orientation: Horizontal
+STRID_TABCTRL_STATE_FIXED_INIT = Fixed tabs: 0
+STRID_TABCTRL_STATE_COUNT0 = Tabs: 0
+STRID_TABCTRL_RANGE_H_INIT = Visible width: 0  |  Content width: 0  |  Overflow: 0
+STRID_TABCTRL_RANGE_V_INIT = Visible height: 0  |  Content height: 0  |  Overflow: 0
+STRID_TABCTRL_POS_H_INIT = Scroll pos: 0 / 0  |  Scrollbar: none
+STRID_TABCTRL_POS_V_INIT = Scroll pos: 0 / 0  |  Scrollbar: none
+
+# Dynamic state texts (formatted by code, keep %d / %s order)
+STRID_TABCTRL_STATE_ORIENT = Orientation: %s
+STRID_TABCTRL_STATE_SCROLLBAR =  |  %s scrollbar: %s
+STRID_TABCTRL_STATE_DIR_VERT = Vertical
+STRID_TABCTRL_STATE_DIR_HORZ = Horizontal
+STRID_TABCTRL_STATE_AXIS_VERT = Vertical
+STRID_TABCTRL_STATE_AXIS_HORZ = Horizontal
+STRID_TABCTRL_STATE_BAR_SHOWN = shown (content overflows)
+STRID_TABCTRL_STATE_BAR_NONE = none
+STRID_TABCTRL_STATE_BAR_DISABLED = none (overflow scroll disabled)
+STRID_TABCTRL_STATE_FIXED = Tabs: %d  |  Fixed: %d
+STRID_TABCTRL_STATE_SELECTED =  |  Selected: %s (%s)
+STRID_TABCTRL_STATE_KIND_FIXED = Fixed
+STRID_TABCTRL_STATE_KIND_NORMAL = Normal
+STRID_TABCTRL_STATE_COUNT = Tabs: %d
+STRID_TABCTRL_STATE_OVERFLOW_OFF =  |  Overflow scroll disabled
+STRID_TABCTRL_RANGE_H = Visible width: %d  |  Content width: %d  |  Overflow: %d
+STRID_TABCTRL_RANGE_V = Visible height: %d  |  Content height: %d  |  Overflow: %d
+STRID_TABCTRL_POS = Scroll pos: %d / %d  |  Scrollbar: %s
+STRID_TABCTRL_BAR_SHOWN_SHORT = shown
+
+# Hints
+STRID_TABCTRL_TIP_ORIENT = Hint: in vertical mode tabs stretch to fill the bar width, height stays fixed
+STRID_TABCTRL_TIP_FIXED = Hint: drag grey normal tabs to reorder; fixed tabs on the left cannot be dragged
+STRID_TABCTRL_TIP_BADGE = Four badge types: count / 99+ overflow / red dot / close button on hover
+STRID_TABCTRL_TIP_CARD_ORIENT = Switch layout direction at runtime via SetTabCtrlOrientation
+STRID_TABCTRL_TIP_CARD_FIXED = Fixed tabs: not draggable, no close button
+STRID_TABCTRL_TIP_CARD_HOVERFLOW = A floating scrollbar appears on overflow; dragging a tab near the right edge auto-scrolls
+STRID_TABCTRL_TIP_CARD_VOVERFLOW = Vertical tab bar: a vertical floating scrollbar appears on overflow
+STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = Hint: SetTabCtrlOrientation switches the overflow scrollbar axis automatically
+STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
+
+# TabCtrl standalone test window entry (controls/test.xml)
+STRID_CONTROLS_TABCTRL_FULL = TabCtrl: Vertical / Fixed / Overflow / Badge
+STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test
+STRID_CONTROLS_TABCTRL_TEST_TIP = Vertical tabs / Fixed tabs / Overflow scroll / Badges / Programmatic add-remove

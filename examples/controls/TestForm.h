@@ -26,6 +26,10 @@ private:
     */
     void ShowProgressWindow();
 
+    /** 显示标签栏控件测试窗口（垂直标签 / 固定标签 / 溢出滚动）
+    */
+    void ShowTabCtrlWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

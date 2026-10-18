@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 程序化创建 TabCtrlItem 时填充的模板（参考 cef_browser/tab_item.xml）
+
+     只固定 width，不写 min_width / max_width：
+     布局里宽度会走 std::clamp(宽度, GetMinWidth(), GetMaxWidth())，
+     一旦 min/max 被固定成 96，调用方再想改成 stretch 时就会把宽度 clamp 成 0（标签不可见）。
+     min/max 留给调用方在运行时按需设置。 -->
+<Window>
+    <TabCtrlItem class="tab_ctrl_item" width="96" height="32" valign="center" halign="center"/>
+</Window>

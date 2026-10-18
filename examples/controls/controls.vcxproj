@@ -167,6 +167,7 @@
     <ClInclude Include="StatusBarForm.h" />
     <ClInclude Include="ToolBarForm.h" />
     <ClInclude Include="ProgressForm.h" />
+    <ClInclude Include="TabCtrlForm.h" />
     <ClInclude Include="ControlForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="MessageBoxForm.h" />
@@ -186,6 +187,7 @@
     <ClCompile Include="StatusBarForm.cpp" />
     <ClCompile Include="ToolBarForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />
+    <ClCompile Include="TabCtrlForm.cpp" />
     <ClCompile Include="ControlForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
