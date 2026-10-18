@@ -417,23 +417,31 @@
                                          progress_bar_padding="0,5,0,5" 
                                          progress_image="${PATH_SLIDER}/slider_blue_fg.png"
                                          bkimage="file='${PATH_SLIDER}/slider_hor_bk.png' valign='center' height='4' width='1200'" 
-                                         thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"/>
+                                         thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"
+                                         thumb_hovered_image="file='${PATH_SLIDER}/slider_thumb_hovered.svg' width='14' height='14'"
+                                         thumb_pressed_image="file='${PATH_SLIDER}/slider_thumb_pressed.svg' width='14' height='14'"/>
     <Class name="slider_vertical_blue"   horizontal="false" width="14" height="stretch" margin="0,4,0,0" halign="center" 
                                          thumb_size="14,14" min="0" max="255" 
                                          progress_bar_padding="5,0,5,0" 
                                          progress_image="${PATH_SLIDER}/slider_blue_fg_ver.png"
                                          bkimage="file='${PATH_SLIDER}/slider_ver_bk.png' halign='center' width='4' height='1200'" 
-                                         thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"/>
+                                         thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"
+                                         thumb_hovered_image="file='${PATH_SLIDER}/slider_thumb_hovered.svg' width='14' height='14'"
+                                         thumb_pressed_image="file='${PATH_SLIDER}/slider_thumb_pressed.svg' width='14' height='14'"/>
     <Class name="slider_horizontal" horizontal="true" width="stretch" height="14" margin="4,0,0,0" valign="center" 
                                     thumb_size="14,14" min="0" max="255" 
                                     progress_bar_padding="0,5,0,5" 
                                     progress_color="bg_progress" bkcolor="bg_progress_track" 
-                                    thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"/>
+                                    thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"
+                                         thumb_hovered_image="file='${PATH_SLIDER}/slider_thumb_hovered.svg' width='14' height='14'"
+                                         thumb_pressed_image="file='${PATH_SLIDER}/slider_thumb_pressed.svg' width='14' height='14'"/>
     <Class name="slider_vertical" horizontal="false" width="14" height="stretch" margin="0,4,0,0" halign="center" 
                                   thumb_size="14,14" min="0" max="255" 
                                   progress_bar_padding="5,0,5,0" 
                                   progress_color="bg_progress" bkcolor="bg_progress_track"
-                                  thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"/>
+                                  thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"
+                                         thumb_hovered_image="file='${PATH_SLIDER}/slider_thumb_hovered.svg' width='14' height='14'"
+                                         thumb_pressed_image="file='${PATH_SLIDER}/slider_thumb_pressed.svg' width='14' height='14'"/>
     <!-- 双滑块范围选择控件 -->
     <Class name="range_slider_horizontal" horizontal="true" width="stretch" height="20" margin="4,0,0,0" valign="center" 
                                           thumb_size="14,14" min="0" max="100" 
