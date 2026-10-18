@@ -80,6 +80,120 @@ void ChartForm::OnInitWindow()
     AttachChartPointClick(pLineChart, _T("chart_line"));
     AttachChartPointClick(dynamic_cast<ui::Chart*>(FindControl(_T("chart_bar"))), _T("chart_bar"));
     AttachChartPointClick(dynamic_cast<ui::Chart*>(FindControl(_T("chart_pie"))), _T("chart_pie"));
+
+    //实时监控演示：流式追加（增量更新 API）+ 滚动窗口 + Y/X 轴格式化回调
+    ui::Chart* pRealtime = dynamic_cast<ui::Chart*>(FindControl(_T("chart_realtime")));
+    if (pRealtime != nullptr) {
+        OnInitRealtime(pRealtime);
+    }
+    ui::Button* pRealtimeToggle = dynamic_cast<ui::Button*>(FindControl(_T("btn_realtime_toggle")));
+    if ((pRealtimeToggle != nullptr) && (pRealtime != nullptr)) {
+        pRealtimeToggle->AttachClick([this, pRealtime, pRealtimeToggle](const ui::EventArgs& /*args*/) {
+            ToggleRealtime(pRealtime, pRealtimeToggle);
+            return true;
+            });
+    }
+    ui::Button* pRealtimeClear = dynamic_cast<ui::Button*>(FindControl(_T("btn_realtime_clear")));
+    if ((pRealtimeClear != nullptr) && (pRealtime != nullptr)) {
+        pRealtimeClear->AttachClick([pRealtime](const ui::EventArgs& /*args*/) {
+            pRealtime->ClearSeries(0);
+            return true;
+            });
+    }
+    ui::Button* pRealtimeJitter = dynamic_cast<ui::Button*>(FindControl(_T("btn_realtime_jitter")));
+    if ((pRealtimeJitter != nullptr) && (pRealtime != nullptr)) {
+        pRealtimeJitter->AttachClick([this, pRealtime](const ui::EventArgs& /*args*/) {
+            JitterRealtime(pRealtime);
+            return true;
+            });
+    }
+}
+
+void ChartForm::OnInitRealtime(ui::Chart* pChart)
+{
+    if (pChart == nullptr) {
+        return;
+    }
+    //滚动窗口：最多保留最近 60 个点（约 15 秒 @250ms），避免无限累积
+    pChart->SetMaxDataPoints(60);
+    //初始化一个空系列（否则首次 AddDataPoint 因系列不存在而失败）
+    ui::Chart::Series s;
+    s.name = _T("CPU");
+    s.color = _T("color_accent");
+    pChart->AddSeries(s);
+    //关闭生长动画，保证高频流式刷新平滑
+    pChart->SetAnimationEnabled(false);
+    //Y 轴刻度格式化为百分比（演示坐标轴格式化回调 ③）
+    pChart->SetYAxisLabelFormatter([](double value, int32_t /*index*/) {
+        return ui::StringUtil::Printf(_T("%.0f%%"), value);
+        });
+    //X 轴类目标签格式化为相对时间（演示 X 轴格式化回调 ③；未设置 data_labels 时也能显示）
+    pChart->SetXAxisLabelFormatter([](double /*value*/, int32_t index) {
+        return ui::StringUtil::Printf(_T("%.1fs"), static_cast<double>(index) * 0.25);
+        });
+    m_fRealtimeValue = 30.0;
+}
+
+void ChartForm::OnRealtimeTimer()
+{
+    ui::Chart* pChart = dynamic_cast<ui::Chart*>(FindControl(_T("chart_realtime")));
+    if (pChart == nullptr) {
+        return;
+    }
+    //随机游走，限制在 0~100
+    double delta = static_cast<double>(std::rand() % 21) - 10.0; // -10..+10
+    m_fRealtimeValue += delta;
+    if (m_fRealtimeValue < 0.0) {
+        m_fRealtimeValue = 0.0;
+    }
+    if (m_fRealtimeValue > 100.0) {
+        m_fRealtimeValue = 100.0;
+    }
+    //增量更新：仅追加一个新点（演示 ① AddDataPoint），滚动窗口自动丢弃最旧点
+    pChart->AddDataPoint(0, m_fRealtimeValue);
+}
+
+void ChartForm::ToggleRealtime(ui::Chart* pChart, ui::Button* pBtn)
+{
+    if ((pChart == nullptr) || (pBtn == nullptr)) {
+        return;
+    }
+    m_bRealtimeRunning = !m_bRealtimeRunning;
+    if (m_bRealtimeRunning) {
+        //启动定时器：每 250ms 追加一个数据点
+        m_nRealtimeTaskId = ui::GlobalManager::Instance().Thread().PostRepeatedTask(
+            ui::kThreadUI, ui::UiBind(this, [this]() { OnRealtimeTimer(); }), 250);
+        pBtn->SetText(_T("暂停"));
+    }
+    else {
+        if (m_nRealtimeTaskId != 0) {
+            ui::GlobalManager::Instance().Thread().CancelTask(m_nRealtimeTaskId);
+            m_nRealtimeTaskId = 0;
+        }
+        pBtn->SetText(_T("开始"));
+    }
+}
+
+void ChartForm::JitterRealtime(ui::Chart* pChart)
+{
+    if (pChart == nullptr) {
+        return;
+    }
+    const size_t nCount = pChart->GetSeriesData(0).size();
+    if (nCount == 0) {
+        return;
+    }
+    //随机选一个已有数据点，原地修改（演示 ① SetDataPoint 增量更新，不改变数据长度）
+    const size_t nIdx = static_cast<size_t>(std::rand()) % nCount;
+    double v = pChart->GetDataPoint(0, nIdx);
+    v += (static_cast<double>(std::rand() % 41) - 20.0);
+    if (v < 0.0) {
+        v = 0.0;
+    }
+    if (v > 100.0) {
+        v = 100.0;
+    }
+    pChart->SetDataPoint(0, nIdx, v);
 }
 
 void ChartForm::AttachChartPointClick(ui::Chart* pChart, const DString& strChartName)

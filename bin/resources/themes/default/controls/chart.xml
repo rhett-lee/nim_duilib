@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1100,760" text="Chart Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
+<Window size="1180,1000" text="Chart Test" use_system_caption="false" caption="0,0,0,36" shadow_type="default">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -86,6 +86,27 @@
                            series_color="color_accent" label_color="text_default"
                            legend_visible="true" show_value="false" show_percent="true"
                            donut="true"/>
+                </VBox>
+            </HBox>
+
+            <!-- 第三行：实时监控演示（增量更新 API + 滚动窗口 + 坐标轴格式化回调） -->
+            <HBox height="stretch" padding="0,12,0,0">
+                <VBox width="stretch" bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4" padding="12,12,12,12">
+                    <HBox height="28">
+                        <Label text="实时监控（增量更新 + 滚动窗口 + 轴格式化）" font="system_bold_15" text_color="text_default" valign="center"/>
+                        <Control/>
+                        <Button class="btn_global" name="btn_realtime_toggle" text="开始" width="80" height="26" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="btn_realtime_clear" text="清空" width="70" height="26" border_round="3,3" margin="0,0,6,0"/>
+                        <Button class="btn_global" name="btn_realtime_jitter" text="随机扰动" width="90" height="26" border_round="3,3"/>
+                    </HBox>
+                    <Chart name="chart_realtime" height="stretch" chart_type="line"
+                           title="实时监控：CPU 占用率（模拟）"
+                           x_axis_title="时间" y_axis_title="占用率"
+                           legend_visible="false"
+                           series_color="color_accent" axis_color="border_control_normal"
+                           label_color="text_default" show_value="false" show_grid="true"
+                           show_axis_values="true" axis_divisions="4" line_width="2"
+                           line_mode="curve" show_data_points="false"/>
                 </VBox>
             </HBox>
         </VBox>

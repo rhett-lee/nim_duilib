@@ -71,7 +71,8 @@ Chart::Chart(Window* pWindow) :
     m_bPanning(false),
     m_bPanMoved(false),
     m_panStartX(0),
-    m_panStartView(0.0)
+    m_panStartView(0.0),
+    m_nMaxDataPoints(0)
 {
     //折线/柱状默认不显示图例（单系列时无意义），饼图默认显示
     //图例默认值在 SetAttribute 时由 chart_type 决定；此处给 false，饼图默认在构造后由外部显式开启
@@ -335,6 +336,12 @@ void Chart::AddData(double value)
         m_series[0].color = m_strSeriesColor;
     }
     m_series[0].data.push_back(value);
+    //滚动窗口：超出上限丢弃最旧的点（与 AddDataPoint 保持一致）
+    if ((m_nMaxDataPoints > 0) && (m_series[0].data.size() > m_nMaxDataPoints)) {
+        const size_t nDrop = m_series[0].data.size() - m_nMaxDataPoints;
+        m_series[0].data.erase(m_series[0].data.begin(),
+                               m_series[0].data.begin() + static_cast<std::ptrdiff_t>(nDrop));
+    }
     StartDataAnimation();
     Invalidate();
 }
@@ -379,6 +386,148 @@ void Chart::AddSeries(const Series& series)
     m_series.push_back(series);
     StartDataAnimation();
     Invalidate();
+}
+
+void Chart::SetYAxisLabelFormatter(const AxisLabelFormatter& callback)
+{
+    m_yAxisLabelFormatter = callback;
+    Invalidate();
+}
+
+void Chart::SetXAxisLabelFormatter(const AxisLabelFormatter& callback)
+{
+    m_xAxisLabelFormatter = callback;
+    Invalidate();
+}
+
+bool Chart::AddDataPoint(size_t seriesIndex, double value)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    if (m_series[seriesIndex].color.empty()) {
+        m_series[seriesIndex].color = m_strSeriesColor;
+    }
+    m_series[seriesIndex].data.push_back(value);
+    //滚动窗口：超出上限丢弃最旧的点
+    if ((m_nMaxDataPoints > 0) && (m_series[seriesIndex].data.size() > m_nMaxDataPoints)) {
+        const size_t nDrop = m_series[seriesIndex].data.size() - m_nMaxDataPoints;
+        m_series[seriesIndex].data.erase(
+            m_series[seriesIndex].data.begin(),
+            m_series[seriesIndex].data.begin() + static_cast<std::ptrdiff_t>(nDrop));
+    }
+    StartDataAnimation();
+    Invalidate();
+    return true;
+}
+
+bool Chart::InsertDataPoint(size_t seriesIndex, size_t dataIndex, double value)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    std::vector<double>& data = m_series[seriesIndex].data;
+    if (dataIndex > data.size()) {
+        dataIndex = data.size(); //允许在末尾插入（等价于追加）
+    }
+    if (m_series[seriesIndex].color.empty()) {
+        m_series[seriesIndex].color = m_strSeriesColor;
+    }
+    data.insert(data.begin() + static_cast<std::ptrdiff_t>(dataIndex), value);
+    if ((m_nMaxDataPoints > 0) && (data.size() > m_nMaxDataPoints)) {
+        const size_t nDrop = data.size() - m_nMaxDataPoints;
+        data.erase(data.begin(), data.begin() + static_cast<std::ptrdiff_t>(nDrop));
+    }
+    StartDataAnimation();
+    Invalidate();
+    return true;
+}
+
+bool Chart::SetDataPoint(size_t seriesIndex, size_t dataIndex, double value)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    std::vector<double>& data = m_series[seriesIndex].data;
+    if (dataIndex >= data.size()) {
+        return false;
+    }
+    data[dataIndex] = value;
+    //原地更新：不触发生长动画，仅重绘
+    Invalidate();
+    return true;
+}
+
+bool Chart::RemoveDataPoint(size_t seriesIndex, size_t dataIndex)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    std::vector<double>& data = m_series[seriesIndex].data;
+    if (dataIndex >= data.size()) {
+        return false;
+    }
+    data.erase(data.begin() + static_cast<std::ptrdiff_t>(dataIndex));
+    StartDataAnimation();
+    Invalidate();
+    return true;
+}
+
+double Chart::GetDataPoint(size_t seriesIndex, size_t dataIndex) const
+{
+    if (seriesIndex >= m_series.size()) {
+        return 0.0;
+    }
+    const std::vector<double>& data = m_series[seriesIndex].data;
+    if (dataIndex >= data.size()) {
+        return 0.0;
+    }
+    return data[dataIndex];
+}
+
+const std::vector<double>& Chart::GetSeriesData(size_t seriesIndex) const
+{
+    static const std::vector<double> kEmptyData;
+    if (seriesIndex >= m_series.size()) {
+        return kEmptyData;
+    }
+    return m_series[seriesIndex].data;
+}
+
+bool Chart::ClearSeries(size_t seriesIndex)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    m_series[seriesIndex].data.clear();
+    m_selected = HitResult();
+    Invalidate();
+    return true;
+}
+
+bool Chart::RemoveSeries(size_t seriesIndex)
+{
+    if (seriesIndex >= m_series.size()) {
+        return false;
+    }
+    m_series.erase(m_series.begin() + static_cast<std::ptrdiff_t>(seriesIndex));
+    m_selected = HitResult();
+    Invalidate();
+    return true;
+}
+
+void Chart::SetMaxDataPoints(size_t nMax)
+{
+    m_nMaxDataPoints = nMax;
+    if (nMax > 0) {
+        for (auto& s : m_series) {
+            if (s.data.size() > nMax) {
+                const size_t nDrop = s.data.size() - nMax;
+                s.data.erase(s.data.begin(), s.data.begin() + static_cast<std::ptrdiff_t>(nDrop));
+            }
+        }
+        Invalidate();
+    }
 }
 
 void Chart::SetSeriesColor(const DString& strColor)
@@ -687,6 +836,15 @@ DString Chart::FormatValue(double value)
     return StringUtil::Printf(_T("%.2f"), value);
 }
 
+DString Chart::FormatAxisValue(double value, int32_t index) const
+{
+    //Y 轴刻度格式化：优先使用回调，否则回退默认数值格式
+    if (m_yAxisLabelFormatter) {
+        return m_yAxisLabelFormatter(value, index);
+    }
+    return FormatValue(value);
+}
+
 void Chart::DrawChartText(IRender* pRender, const DString& strText, const UiRect& rc, uint32_t uFormat)
 {
     if ((pRender == nullptr) || strText.empty()) {
@@ -813,7 +971,7 @@ int32_t Chart::MeasureAxisValueWidth(IRender* pRender) const
     int32_t nMaxWidth = 0;
     for (int32_t i = 0; i <= nDivisions; ++i) {
         double val = dMax - dRange * (static_cast<double>(i) / static_cast<double>(nDivisions));
-        nMaxWidth = std::max(nMaxWidth, MeasureTextWidth(pRender, FormatValue(val)));
+        nMaxWidth = std::max(nMaxWidth, MeasureTextWidth(pRender, FormatAxisValue(val, i)));
     }
     return nMaxWidth;
 }
@@ -1451,7 +1609,7 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
     if (m_bShowAxisValues) {
         for (int32_t i = 0; i <= nDiv; ++i) {
             double val = dMax - dRange * (static_cast<double>(i) / static_cast<double>(nDiv));
-            nAxisValueWidth = std::max(nAxisValueWidth, GetSafeTextWidth(pRender, FormatValue(val)));
+            nAxisValueWidth = std::max(nAxisValueWidth, GetSafeTextWidth(pRender, FormatAxisValue(val, i)));
         }
     }
 
@@ -1467,7 +1625,7 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
             //Y 轴刻度值（靠右对齐在左侧）
             if (m_bShowAxisValues) {
                 double val = dMax - dRange * (static_cast<double>(i) / static_cast<double>(nDiv));
-                DString strVal = FormatValue(val);
+                DString strVal = FormatAxisValue(val, i);
                 UiRect rcText;
                 rcText.right = nLeft - Dpi().GetScaleInt(4);
                 rcText.left = rcText.right - nAxisValueWidth - Dpi().GetScaleInt(4);
@@ -1656,9 +1814,11 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
     }
     spPlotClip.reset(); //恢复裁剪：X 轴类目标签绘制在绘图区下方
 
-    //X 轴类目标签（跟随可视窗口）
-    if (!m_dataLabels.empty()) {
-        const size_t nLabelCount = std::min(m_dataLabels.size(), layout.nMaxCount);
+    //X 轴类目标签（跟随可视窗口；支持 X 轴格式化回调覆盖默认 data_labels）
+    if ((!m_dataLabels.empty()) || m_xAxisLabelFormatter) {
+        const size_t nLabelCount = !m_dataLabels.empty()
+            ? std::min(m_dataLabels.size(), layout.nMaxCount)
+            : layout.nMaxCount;
         int32_t nLabelTop = nBottom + Dpi().GetScaleInt(2);
         int32_t nLabelBottom = nBottom + Dpi().GetScaleInt(18);
         //先计算所有标签矩形（实测宽度 + 钳位到图表区域内）
@@ -1669,8 +1829,20 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
                 labelRects[i] = UiRect(); //不可见，宽度为0
                 continue;
             }
+            //标签文本：优先使用 X 轴格式化回调，否则使用 data_labels（缺失则为空）
+            DString strLabel;
+            if (m_xAxisLabelFormatter) {
+                strLabel = m_xAxisLabelFormatter(idx, static_cast<int32_t>(i));
+            }
+            else if (i < m_dataLabels.size()) {
+                strLabel = m_dataLabels[i];
+            }
+            if (strLabel.empty()) {
+                labelRects[i] = UiRect(); //无文本，跳过
+                continue;
+            }
             float fx = layout.XToPixel(idx);
-            int32_t nTextWidth = GetSafeTextWidth(pRender, m_dataLabels[i]);
+            int32_t nTextWidth = GetSafeTextWidth(pRender, strLabel);
             if (nTextWidth <= 0) {
                 nTextWidth = Dpi().GetScaleInt(20);
             }
@@ -1712,7 +1884,18 @@ void Chart::PaintLine(IRender* pRender, const UiRect& rcChart)
             }
         }
         for (size_t i : drawn) {
-            DrawChartText(pRender, m_dataLabels[i], labelRects[i], TEXT_HCENTER | TEXT_TOP | TEXT_SINGLELINE | TEXT_END_ELLIPSIS);
+            //标签文本：优先使用 X 轴格式化回调，否则使用 data_labels
+            DString strLabel;
+            if (m_xAxisLabelFormatter) {
+                strLabel = m_xAxisLabelFormatter(static_cast<double>(i), static_cast<int32_t>(i));
+            }
+            else if (i < m_dataLabels.size()) {
+                strLabel = m_dataLabels[i];
+            }
+            if (strLabel.empty()) {
+                continue;
+            }
+            DrawChartText(pRender, strLabel, labelRects[i], TEXT_HCENTER | TEXT_TOP | TEXT_SINGLELINE | TEXT_END_ELLIPSIS);
         }
     }
 
@@ -1796,7 +1979,7 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
     if (m_bShowAxisValues) {
         for (int32_t i = 0; i <= nDiv; ++i) {
             double val = dMax - dRange * (static_cast<double>(i) / static_cast<double>(nDiv));
-            nAxisValueWidth = std::max(nAxisValueWidth, GetSafeTextWidth(pRender, FormatValue(val)));
+            nAxisValueWidth = std::max(nAxisValueWidth, GetSafeTextWidth(pRender, FormatAxisValue(val, i)));
         }
     }
 
@@ -1811,7 +1994,7 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
             }
             if (m_bShowAxisValues) {
                 double val = dMax - dRange * (static_cast<double>(i) / static_cast<double>(nDiv));
-                DString strVal = FormatValue(val);
+                DString strVal = FormatAxisValue(val, i);
                 UiRect rcText;
                 rcText.right = nLeft - Dpi().GetScaleInt(4);
                 rcText.left = rcText.right - nAxisValueWidth - Dpi().GetScaleInt(4);
@@ -1971,8 +2154,8 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
         }
     }
 
-    //X 轴类目标签
-    if (!m_dataLabels.empty()) {
+    //X 轴类目标签（支持 X 轴格式化回调覆盖默认 data_labels）
+    if ((!m_dataLabels.empty()) || m_xAxisLabelFormatter) {
         for (size_t i = 0; (i < m_dataLabels.size()) && (i < nCategoryCount); ++i) {
             float fCenterX = static_cast<float>(nLeft) + fSlotWidth * (static_cast<float>(i) + 0.5f);
             UiRect rcLabel;
@@ -1980,7 +2163,14 @@ void Chart::PaintBar(IRender* pRender, const UiRect& rcChart)
             rcLabel.right = static_cast<int32_t>(fCenterX) + static_cast<int32_t>(fSlotWidth / 2.0f);
             rcLabel.top = nBottom + Dpi().GetScaleInt(2);
             rcLabel.bottom = nBottom + Dpi().GetScaleInt(18);
-            DrawChartText(pRender, m_dataLabels[i], rcLabel, TEXT_HCENTER | TEXT_TOP | TEXT_SINGLELINE | TEXT_END_ELLIPSIS);
+            DString strLabel;
+            if (m_xAxisLabelFormatter) {
+                strLabel = m_xAxisLabelFormatter(static_cast<double>(i), static_cast<int32_t>(i));
+            }
+            else {
+                strLabel = m_dataLabels[i];
+            }
+            DrawChartText(pRender, strLabel, rcLabel, TEXT_HCENTER | TEXT_TOP | TEXT_SINGLELINE | TEXT_END_ELLIPSIS);
         }
     }
 

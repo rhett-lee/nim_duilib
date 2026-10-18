@@ -1252,8 +1252,10 @@ Notes:
 - Value labels are auto-formatted: integers drop decimals, non-integers keep two decimal places.
 - **Interactivity**: ① data-point hover tooltip (shows "series / category: value"); ② click-to-select (pie slice separates with highlight + leader-line external label, bar gets an outline highlight; click again to deselect); ③ line chart wheel zoom + drag pan (for real-time curves). Tooltip/select can be toggled via `SetEnableTooltip`/`SetEnableSelect`.
 - **Visual polish**: bars support rounded corners (`bar_radius`) and gradient fill (`bar_gradient`); line charts support glow/shadow (`line_glow`); data updates animate bar growth / line fade-in (`animation_enabled`/`animation_duration`).
+- **Incremental update (real-time monitoring)**: in addition to the full `SetSeriesData`, per-series point-level incremental APIs are provided — `AddDataPoint`/`InsertDataPoint`/`SetDataPoint`/`RemoveDataPoint` (return `false` safely on out-of-range), plus `ClearSeries`/`RemoveSeries`, `GetDataPoint`/`GetSeriesData` (read-only; return empty / 0.0 on out-of-range). Combined with `SetMaxDataPoints` you can set a rolling window (oldest points are dropped automatically beyond the cap) to avoid unbounded growth, ideal for real-time curves / monitoring.
+- **Axis label formatter**: `SetYAxisLabelFormatter`/`SetXAxisLabelFormatter` (signature `std::function<DString(double value, int32_t index)>`, analogous to Slider's TickLabelCallback) let you custom-format Y-axis tick values (e.g. `"50%"`, `"1.2k"`) and X-axis category labels (e.g. relative time). When the callback is cleared, the default `FormatValue` numeric format is restored (X axis falls back to the `data_labels` string).
 
-C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetTitleId`, `SetXAxisTitleId`, `SetYAxisTitleId`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetDataLabelsId`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`, `SetBarRadius`, `SetBarGradient`, `SetLineGlow`, `SetAnimationEnabled`, `SetAnimationDuration`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
+C++ API: `SetChartType/GetChartType`, `SetTitle`, `SetXAxisTitle`, `SetYAxisTitle`, `SetTitleId`, `SetXAxisTitleId`, `SetYAxisTitleId`, `SetData/AddData/ClearData/GetData`, `SetSeriesData/AddSeries/GetSeries/GetSeriesCount`, `SetDataLabels/GetDataLabels`, `SetDataLabelsId`, `SetSeriesColor`, `SetAxisColor`, `SetLabelColor`, `SetShowValue`, `SetShowGrid`, `SetShowAxisValues`, `SetAxisDivisions`, `SetLegendVisible`, `SetLineWidth`, `SetLineMode`, `SetAreaFill`, `SetShowDataPoints`, `SetBarMode`, `SetDonut`, `SetShowPercent`, `SetBarRadius`, `SetBarGradient`, `SetLineGlow`, `SetAnimationEnabled`, `SetAnimationDuration`; incremental update: `AddDataPoint/InsertDataPoint/SetDataPoint/RemoveDataPoint/GetDataPoint/GetSeriesData/ClearSeries/RemoveSeries/SetMaxDataPoints/GetMaxDataPoints`; axis formatter: `SetYAxisLabelFormatter/GetYAxisLabelFormatter/SetXAxisLabelFormatter/GetXAxisLabelFormatter`; interactivity: `SetEnableTooltip/IsEnableTooltip`, `SetEnableSelect/IsEnableSelect`, `GetSelected/ClearSelection`, `AttachPointClick/AttachPointHover`, `GetHitFromEvent`.
 
 ### XML Usage Example
 
@@ -1310,6 +1312,38 @@ if (pChart != nullptr) {
     pChart->AddData(152.0);
 }
 ```
+
+### Incremental Update & Axis Formatter Example
+
+```cpp
+ui::Chart* pChart = dynamic_cast<ui::Chart*>(pWindow->FindControl(_T("chart_rt")));
+if (pChart != nullptr) {
+    // ① Incremental update: build two series, then append points one by one
+    //    (no need to replace the full dataset each time)
+    pChart->SetSeriesData({
+        { _T("CPU"),   { 30.0, 32.0, 28.0 }, _T("color_accent") },
+        { _T("Memory"), { 55.0, 57.0, 53.0 }, _T("color_warning") }
+    });
+    pChart->AddDataPoint(0, 36.0);    // append to series 0 (returns true)
+    pChart->AddDataPoint(1, 60.0);    // append to series 1
+    pChart->SetDataPoint(0, 1, 40.0); // in-place update of point 1 in series 0
+    double v = pChart->GetDataPoint(0, 2); // read point 2 in series 0
+
+    // Rolling window: keep at most the latest 60 points, dropping the oldest
+    // automatically beyond the cap (bounded memory for real-time monitoring)
+    pChart->SetMaxDataPoints(60);
+
+    // ③ Axis formatter callbacks: Y ticks as percent, X labels as relative time
+    pChart->SetYAxisLabelFormatter([](double value, int32_t /*index*/) {
+        return ui::StringUtil::Printf(_T("%.0f%%"), value);
+    });
+    pChart->SetXAxisLabelFormatter([](double /*value*/, int32_t index) {
+        return ui::StringUtil::Printf(_T("%.1fs"), static_cast<double>(index) * 0.25);
+    });
+}
+```
+
+> Note: incremental APIs (e.g. `AddDataPoint`) safely return `false` on out-of-range; `GetDataPoint`/`GetSeriesData` return `0.0`/empty on out-of-range. Clearing the axis formatter restores the default numeric format.
 
 ### Interaction Usage Example
 
