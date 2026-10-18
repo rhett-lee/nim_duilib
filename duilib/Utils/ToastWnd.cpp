@@ -86,6 +86,11 @@ namespace ui
             s_toasts.front()->RequestClose();
         }
 
+        //不抢焦点：TOPMOST 浮层在创建/显示过程中可能意外成为前台窗口，
+        //导致父窗口（及内部编辑框）失去激活状态与键盘焦点，从而无法继续输入。
+        //这里记录创建前的父窗口前台状态，显示后若被抢占则显式恢复（与 Flyout 的 no-focus 模式一致）。
+        const bool bParentWasForeground = (pParentWindow != nullptr) && pParentWindow->IsWindowForeground();
+
         ToastWnd* pToastWnd = new ToastWnd();
         pToastWnd->m_pParentWindow = pParentWindow;
         pToastWnd->m_text = text;
@@ -121,6 +126,13 @@ namespace ui
         pToastWnd->SetLayeredWindowAlpha(0);
         pToastWnd->MoveToWindowPos(nX, nY);
         pToastWnd->ShowWindow(kSW_SHOW_NA);
+
+        //不抢焦点：若父窗口在浮层创建/显示期间被抢占了前台状态，显式恢复父窗口的
+        //前台激活与输入焦点，避免 Toast 夺走焦点后编辑框无法继续输入（例如搜索框回车后）。
+        if (bParentWasForeground && (pParentWindow != nullptr) && !pParentWindow->IsWindowForeground()) {
+            pParentWindow->SetWindowForeground();
+            pParentWindow->SetWindowFocus();
+        }
 
         pToastWnd->PlayEnterAnimation();
         pToastWnd->StartAutoCloseTimer(nDurationMs);
