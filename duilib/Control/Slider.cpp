@@ -496,24 +496,24 @@ void Slider::PaintStateImages(IRender* pRender)
     rcThumb.right -= GetRect().left;
     rcThumb.bottom -= GetRect().top;
 
+    //按状态绘制滑块 thumb：优先 pressed，其次 hovered，最后回退 normal。
+    //这里不能再用 return 提前结束，否则会跳过末尾的刻度绘制（悬停/按下滑块时刻度消失）
+    bool bThumbPainted = false;
     if (IsMouseFocused()) {
         m_sImageModify.clear();
         m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-        if (PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePressed), m_sImageModify.c_str())) {
-            return;
-        }
+        bThumbPainted = PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePressed), m_sImageModify.c_str());
     }
     else if (GetState() == kControlStateHovered) {
         m_sImageModify.clear();
         m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-        if (PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHovered), m_sImageModify.c_str())) {
-            return;
-        }
+        bThumbPainted = PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHovered), m_sImageModify.c_str());
     }
-
-    m_sImageModify.clear();
-    m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
-    PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify.c_str());
+    if (!bThumbPainted) {
+        m_sImageModify.clear();
+        m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+        PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify.c_str());
+    }
 
     //刻度线与刻度值文本（轨道之外，不影响滑块与进度条本体绘制）
     PaintTicks(pRender);
