@@ -982,9 +982,10 @@ SearchBox is a composite search input control derived from HBox. It combines a s
 | prompt_text | "" | string | Placeholder text shown when the edit box is empty |
 | prompt_text_id | "" | string | Multi-language string ID of the placeholder text |
 | prompt_color | "" | string | Color of the placeholder text (semantic color name) |
+| debounce_interval | 0 | int(ms) | Debounce interval (milliseconds): when search text changes continuously, `kEventTextChanged` is fired only after typing pauses for this interval; 0 = fire immediately on every change (default, backward compatible), used to avoid triggering a search request on every keystroke |
 
-Corresponding C++ interfaces: `SetSearchText/GetSearchText`, `GetEditControl()` (returns the inner RichEdit control).
-The `kEventTextChanged` event is fired when the text changes; the `kEventReturn` event is fired when the Enter key is pressed (can be used to start a search).
+Corresponding C++ interfaces: `SetSearchText/GetSearchText`, `GetEditControl()` (returns the inner RichEdit control), `SetDebounceInterval/GetDebounceInterval` (debounce interval in milliseconds).
+The `kEventTextChanged` event is fired when the text changes (use `debounce_interval` to set a debounce interval so it fires only after typing pauses, avoiding a search on every keystroke); the `kEventReturn` event is fired when the Enter key is pressed (can be used to start a search).
 The clear button reuses RichEdit's built-in `clear_btn_class` mechanism: it is shown when the edit box is focused and has text, clears the text when clicked, and is automatically hidden after losing focus.
 Example (see the rich_edit example program):
 

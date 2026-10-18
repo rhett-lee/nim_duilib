@@ -1,13 +1,18 @@
 #include "SearchBox.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Core/Control.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Callback.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
 
 SearchBox::SearchBox(Window* pWindow) :
     BaseClass(pWindow),
-    m_pEdit(nullptr)
+    m_pEdit(nullptr),
+    m_nDebounceIntervalMs(0),
+    m_nDebounceTaskId(0)
 {
 }
 
@@ -51,6 +56,9 @@ void SearchBox::SetAttribute(const DString& strName, const DString& strValue2)
         if (m_pEdit != nullptr) {
             m_pEdit->SetAttribute(strName, strValue);
         }
+    }
+    else if (strName == _T("debounce_interval")) {
+        SetDebounceInterval(static_cast<size_t>(StringUtil::StringToInt32(strValue.c_str())));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -98,7 +106,7 @@ void SearchBox::OnInit()
 
     //转发内部编辑框事件：文本变化、回车搜索
     m_pEdit->AttachTextChanged([this](const EventArgs& /*args*/) {
-        SendEvent(kEventTextChanged);
+        OnEditInput();
         return true;
         });
     m_pEdit->AttachReturn([this](const EventArgs& /*args*/) {
@@ -138,6 +146,40 @@ DString SearchBox::GetSearchText() const
         return m_pEdit->GetText();
     }
     return DString(m_initText.c_str());
+}
+
+void SearchBox::SetDebounceInterval(size_t nIntervalMs)
+{
+    m_nDebounceIntervalMs = nIntervalMs;
+}
+
+void SearchBox::OnEditInput()
+{
+    if (m_nDebounceIntervalMs > 0) {
+        //取消上一次未触发的防抖任务，确保仅在输入停顿达到间隔后触发一次
+        if (m_nDebounceTaskId != 0) {
+            GlobalManager::Instance().Thread().CancelTask(m_nDebounceTaskId);
+            m_nDebounceTaskId = 0;
+        }
+        m_nDebounceTaskId = GlobalManager::Instance().Thread().PostDelayedTask(
+            ui::kThreadUI,
+            UiBind(this, [this]() {
+                m_nDebounceTaskId = 0;
+                SendEvent(kEventTextChanged);
+            }),
+            static_cast<int32_t>(m_nDebounceIntervalMs));
+    }
+    else {
+        SendEvent(kEventTextChanged);
+    }
+}
+
+SearchBox::~SearchBox()
+{
+    if (m_nDebounceTaskId != 0) {
+        GlobalManager::Instance().Thread().CancelTask(m_nDebounceTaskId);
+        m_nDebounceTaskId = 0;
+    }
 }
 
 } // namespace ui

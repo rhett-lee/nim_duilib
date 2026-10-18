@@ -982,9 +982,10 @@ SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索�
 | prompt_text | "" | string | 编辑框为空时显示的占位提示文本 |
 | prompt_text_id | "" | string | 占位提示文本的多语言字符串ID |
 | prompt_color | "" | string | 占位提示文本的颜色（语义色名） |
+| debounce_interval | 0 | int(ms) | 防抖间隔（毫秒）：搜索文本连续变化时，仅在输入停顿达到该间隔后才触发 `kEventTextChanged`；0=每次变化立即触发（默认，向后兼容），用于避免搜索场景每次按键都触发搜索请求 |
 
-对应C++接口：`SetSearchText/GetSearchText`、`GetEditControl()`（获取内部RichEdit控件）。
-文本变化时触发`kEventTextChanged`事件；按下回车键时触发`kEventReturn`事件（可用于发起搜索）。
+对应C++接口：`SetSearchText/GetSearchText`、`GetEditControl()`（获取内部RichEdit控件）、`SetDebounceInterval/GetDebounceInterval`（防抖间隔，单位毫秒）。
+文本变化时触发`kEventTextChanged`事件（可通过 `debounce_interval` 设置防抖间隔，仅在输入停顿后才触发，避免每次按键都发起搜索）；按下回车键时触发`kEventReturn`事件（可用于发起搜索）。
 清除按钮复用RichEdit内置的`clear_btn_class`机制：编辑框聚焦且有文本时显示，点击清空文本，失焦后自动隐藏。
 使用示例（参考 rich_edit 示例程序）：
 
