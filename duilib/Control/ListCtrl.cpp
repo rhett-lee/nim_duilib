@@ -1447,7 +1447,8 @@ DString ListCtrl::BuildSelectionText(bool bCsvFormat, bool bSelectedOnly) const
                 //未选中单元格输出空串，保证行列对齐、内容不串位
                 continue;
             }
-            //C4 单元格合并实施后，此处应按合并锚点格的展开区域填同一文本
+            //注：单元格合并（跨行/跨列，原 C4）经评审后决定不实施（需表头与行的布局模型整体升级），
+            //    故此处按单元格逐一取文本
             const DString strText = GetSubItemTextById(nRowIndex, columnIdList[nColumnIndex]);
             strLine += EscapeText(strText, bCsvFormat);
         }
