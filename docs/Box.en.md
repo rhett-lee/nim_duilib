@@ -249,6 +249,24 @@ The HTileBox control inherits the `Box` attributes. For more available attribute
 
 The ScrollBox control inherits the `Box` attributes. For more available attributes, please refer to the `Box` attributes.
 
+#### Keyboard navigation
+
+ScrollBox and its subclasses (VScrollBox / HScrollBox / ListBox, etc.) have built-in keyboard scrolling support.
+Keys are handled by the container itself (`ScrollBox::HandleEvent`), so no extra application code is needed.
+When a child control inside the container has focus, unhandled key messages bubble up the parent chain to the
+container, so the keys work whenever focus is on any child inside the scrollable area:
+
+| Key | Vertical scrolling (vscrollbar="true") | Horizontal scrolling (hscrollbar="true") |
+| :--- | :--- | :--- |
+| Up / Down | Scroll up / down one line | Scroll left / right one line |
+| PageUp / PageDown | Scroll up / down one page | Scroll left / right one page |
+| Home / End | Scroll to top / bottom | Scroll to far left / far right |
+
+Notes:
+- The single-line step of the arrow keys is the container's `vscroll_unit` / `hscroll_unit` (30 pixels by default; 0 means use the default step); the page step is the visible area height (minus padding and the horizontal scrollbar's space).
+- Vertical/horizontal priority: when the vertical scrollbar can scroll (content overflows and the scrollbar is enabled), it responds to the keys; the horizontal scrollbar responds only when vertical scrolling is unavailable.
+- Keys are ignored when the scrollbar is disabled or its scroll range is 0 (content does not overflow); the mouse wheel is also handled by the container (vertical containers scroll up/down, horizontal containers scroll left/right).
+
 ### 9. VScrollBox Attributes
 The VScrollBox control inherits the `ScrollBox` attributes. For more available attributes, please refer to the `ScrollBox` attributes.
 
