@@ -8,7 +8,7 @@
 
 namespace ui {
 
-//TODO: 静态对象集中管理
+//菜单Observer对象：函数局部静态对象，进程内唯一，随进程生命周期管理
 ContextMenuObserver& Menu::GetMenuObserver()
 {
     static ContextMenuObserver s_context_menu_observer;

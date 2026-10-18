@@ -427,7 +427,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 | :--- | :--- | :--- | :--- |
 | **E-6** | `ListCtrl` ✅ ②③已完成（2026-10-18）；① 保持开放（未做） | ① 无列汇总行 / 分组行（只有 `nSortGroup` 排序分组）；② 排序用 `std::sort` 非 `stable_sort`，同值行会乱序，同组文件夹/文件可能交错；③ `ListCtrl.h:741` 自认单元格合并"尚未实现"，归并逻辑已写好但缺数据入口 | 后两项成本低、收益明确 |
 | **E-7** | `TabCtrl` | **无 `Add`/`Insert`/`Remove` 的程序化管理 API** —— 一个标签栏控件不能增删标签，必须绕道操作 `TabBox`。另无垂直标签、无固定标签、无溢出滚动 | 最大 API 缺陷 |
-| **E-8** | `Menu` / `MenuItem` | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
+| **E-8** | `Menu` / `MenuItem` ✅ 已完成（2026-10-18） | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
 | **E-9** | `DateTime` | `DateTime.h:35-46` 两处专门为"被复用为 ListCtrl 编辑器"打的补丁（`ResetCalendarFlyoutState`/`CloseCalendarFlyout`）+ 成员 `m_bSuppressCalendarReopen` —— **抽象缺失导致实现细节外泄**；`DateTimeWnd` 与 `kDateCalendar` 两套编辑路径并存 | 架构债 |
 | **E-10** | `SearchBox` | 仅 150 行；**无防抖**（每次按键都触发 `kEventTextChanged`，搜索场景必须业务层自己加定时器）；无历史/建议（那是 `AutoComplete`，两个控件未整合）；`SearchBox.cpp:22` 自认"这些属性需要转发给内部编辑框；OnInit 之前子控件尚未创建，先缓存"= 初始化顺序债 | 中低 |
 | **E-11** | `Chart` | ① **只有全量 `SetSeries`，无增量更新 API** → 实时监控场景基本不可用；② 无导出 PNG/SVG；③ 无坐标轴格式化回调（对比 `Slider` 有 `TickLabelCallback`）；④ `Chart.cpp` 93KB 单文件 | 中（约 600 行） |
@@ -543,7 +543,7 @@ Slider 是单个可聚焦控件、ScrollBox 是容器，二者不构成同类对
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）
 - [ ] **E-7** TabCtrl 增删标签 API　｜ 低 ｜ 完成日期：______
-- [ ] **E-8** MenuItem 勾选/禁用/图标/快捷键 API　｜ 低 ｜ 完成日期：______
+- [x] **E-8** MenuItem 勾选/单选/图标/快捷键 API + 清理 TODO　｜ 低 ｜ 完成日期：2026-10-18
 - [ ] **D-1** RangeSlider 双滑块　｜ 约 400 行 ｜ 完成日期：______
 - [ ] **D-2** 富内容 Tooltip　｜ 约 200 行 ｜ 完成日期：______
 - [ ] **D-3** SpinBox 小数与格式化　｜ 低 ｜ 完成日期：______

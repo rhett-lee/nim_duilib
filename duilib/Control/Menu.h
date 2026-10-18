@@ -143,8 +143,8 @@ private:
     //获取全局菜单Observer对象
     static ContextMenuObserver& GetMenuObserver();
 
-    //与父菜单对象接触关联关系
-    void DetachOwner();        //add by djj 20200506
+    //与父菜单对象解除关联关系
+    void DetachOwner();
 
 private:
     // 重新调整菜单的大小
