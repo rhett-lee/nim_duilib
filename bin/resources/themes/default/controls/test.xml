@@ -39,14 +39,11 @@
                 </GroupHBox>
             </HBox>
             
-            <!-- TabCtrl (Badge) -->
-            <GroupHBox text_id="STRID_CONTROLS_TABCTRL" height="70" margin="6,6,6,6">
-                <TabCtrl class="tab_ctrl" width="stretch" height="36" margin="12,24,12,10" selected_id="3" tooltip_text="ui::TabCtrl + ui::TabCtrlItem (badge)">
-                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_MSG" badge_count="5"/>
-                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_NOTIFY" badge_count="120"/>
-                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_FEED" badge_class="tab_ctrl_item_badge_dot" badge_dot="true"/>
-                    <TabCtrlItem class="tab_ctrl_item" title_id="STRID_CONTROLS_TAB_SETTINGS"/>
-                </TabCtrl>
+            <!-- TabCtrl (垂直标签 / 固定标签 / 溢出滚动 / 角标)：独立演示窗口入口 -->
+            <GroupHBox text_id="STRID_CONTROLS_TABCTRL_FULL" height="80" margin="6,6,6,6" corner_size="4,4">
+                <Button class="btn_global" name="tab_ctrl_test_btn" text_id="STRID_CONTROLS_TABCTRL_TEST_BTN" margin="20,30,0,0"
+                        width="160" height="30" border_round="3,3"
+                        tooltip_text_id="STRID_CONTROLS_TABCTRL_TEST_TIP"/>
             </GroupHBox>
 
             <!-- TagInput 标签输入框 -->

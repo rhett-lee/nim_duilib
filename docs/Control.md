@@ -21,6 +21,11 @@
 | min_height | -1 | int | SetMinHeight|控件的最小高度,如"30" |
 | max_width | INT32_MAX | int / string | SetMaxWidth|控件的最大宽度,描述同width |
 | max_height | INT32_MAX | int / string | SetMaxHeight|控件的最大高度,描述同height |
+
+> **注意**：布局阶段控件的实际尺寸会经过 `std::clamp(尺寸, GetMinWidth(), GetMaxWidth())` 钳制。
+> 因此运行时若要把某个已设了 `min_width`/`max_width` 的控件改回 `stretch`，
+> 必须同时把上下限放开（`SetMinWidth(0)` + `SetMaxWidth(INT32_MAX)`），否则宽度会被钳死在原值上；
+> 若上下限被设为 0，控件宽度会变成 0 而完全不可见。
 | margin | 0,0,0,0 | rect | SetMargin|外边距,如"2,2,2,2" |
 | padding | 0,0,0,0 | rect | SetPadding|内边距,如"2,2,2,2" |
 | control_padding | true | bool | SetEnableControlPadding|是否允许控件自身运用内边距 |
@@ -1738,6 +1743,10 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | selected_tab_item_outline_color  |   | string | 选择标签项的外部轮廓边线的颜色 |
 | tab_ctrl_bottom_line_height      | 0 | float  | 标签栏底部的边线高度（这个边线，选择标签的区域不绘制，其他区域绘制） |
 | tab_ctrl_bottom_line_color       |   | string | 设置标签栏底部的边线颜色 |
+| tab_ctrl_orientation | horz | string | 标签栏的布局方向：`horz`(水平，默认值) / `vert`(垂直)。垂直时标签位于左侧、内容区在右侧，选中项轮廓与分隔线自动适配为右侧 |
+| overflow_scroll | true | bool | 是否启用溢出滚动：标签总宽度（水平）或总高度（垂直）超出可视区域时，自动显示滚动条。滚动条悬浮在子控件之上，不占用布局空间；拖动标签靠近边缘时会自动滚动 |
+
+**对应 C++ 接口：** `SetTabCtrlOrientation`/`GetTabCtrlOrientation`、`SetEnableOverflowScroll`/`IsEnableOverflowScroll`。
 
 TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
 
@@ -1756,6 +1765,7 @@ TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`�
 | hovered_round_corner | | size | 标签页悬停状态时的圆角大小|
 | hovered_padding | | UiPadding | 标签页悬停状态的背景色的内边距|
 | auto_hide_close_button | false | bool | 关闭按钮是否自动隐藏|
+| fixed | false | bool | 是否为固定标签：固定标签不可拖动、不可作为拖放目标，且不显示关闭按钮；多个固定标签始终位于标签栏前端，构成“固定块”（普通标签只能在固定块之后移动，且不可越过固定块）|
 | badge_count | 0 | int64 | 角标数量：大于0时显示角标，小于等于0时自动隐藏；未设置badge_class时不创建角标控件|
 | badge_max_count | 99 | int64 | 角标数量上限，超过上限时显示"上限+"（如"99+"）|
 | badge_dot | false | bool | 角标红点模式：true为纯小圆点，不显示数字；需配合badge_class或badge属性使用|
@@ -1790,6 +1800,67 @@ ui::TabCtrlItem* pTabItem = dynamic_cast<ui::TabCtrlItem*>(pWindow->FindControl(
 if (pTabItem != nullptr) {
     pTabItem->SetBadgeCount(pTabItem->GetBadgeCount() + 1);   // 未读+1
     pTabItem->SetBadgeCount(0);                               // 清零，角标自动隐藏
+}
+```
+
+**垂直标签栏、固定标签与溢出滚动：**
+
+```xml
+<!-- 垂直标签栏：标签位于左侧，内容区在右侧；选中项轮廓与分隔线自动适配为右侧 -->
+<TabCtrl class="tab_ctrl" tab_ctrl_orientation="vert" width="160" height="stretch">
+    <!-- 固定标签：始终位于前端、不可拖动、无关闭按钮 -->
+    <TabCtrlItem class="tab_ctrl_item" title="首页" fixed="true"/>
+    <TabCtrlItem class="tab_ctrl_item" title="收藏" fixed="true"/>
+    <!-- 普通标签：可拖动调序，但不能越过前端的固定块 -->
+    <TabCtrlItem class="tab_ctrl_item" title="消息" badge_count="5"/>
+    <TabCtrlItem class="tab_ctrl_item" title="设置"/>
+</TabCtrl>
+
+<!-- 水平标签栏 + 溢出滚动：标签过多时自动显示滚动条 -->
+<TabCtrl class="tab_ctrl" overflow_scroll="true" width="stretch" height="36">
+    <TabCtrlItem class="tab_ctrl_item" title="标签1"/>
+    <TabCtrlItem class="tab_ctrl_item" title="标签2"/>
+    <TabCtrlItem class="tab_ctrl_item" title="标签3"/>
+    ...
+</TabCtrl>
+```
+
+- `tab_ctrl_orientation="vert"` 将标签栏切换为垂直布局（内部改用 `VLayout`，选中项轮廓与分隔线自动适配为右侧）。
+- `fixed="true"` 的标签构成前端的"固定块"：不可拖动、不可作为拖放目标、不显示关闭按钮；普通标签只能在固定块之后移动，且不可越过固定块；固定标签始终位于标签栏前端（即使通过 `AddItem` 追加也会插入到固定块末尾）。
+- `overflow_scroll="true"`（默认值）在标签总尺寸超出可视区域时自动显示滚动条，滚动条悬浮在子控件之上、不占用布局空间；拖动标签靠近可视区域边缘时会自动滚动。
+
+**触发溢出的前提：标签项要有确定宽度**
+
+默认皮肤中 `tab_ctrl_item` 未定义 `width`，控件基类默认宽度为 `stretch`（见 `PlaceHolder` 构造函数），
+因此标签项会被**等分拉伸**填满标签栏——这种情况下无论有多少个标签，内容宽度都不会超出，滚动条也就不会出现。
+要让溢出滚动生效，需要给标签项一个确定宽度（`width="96"` 等）或自适应内容宽度（`width="auto"`）。
+
+- 水平溢出：`TabCtrl` 宽度 < 标签项宽度之和；
+- 垂直溢出：`TabCtrl` 高度 < 标签项高度之和（`tab_ctrl_orientation="vert"` 时由 `SetTabCtrlOrientation` 自动启用纵向滚动条）。
+
+```xml
+<!-- 水平溢出：标签栏宽 300，标签项宽 96，第 4 个标签起开始溢出 -->
+<TabCtrl class="tab_ctrl" width="300" height="36" overflow_scroll="true">
+    <TabCtrlItem class="tab_ctrl_item" title="标签1" width="96"/>
+    ...
+</TabCtrl>
+```
+
+**固定块的归位规则**（`SetFixed` 运行时切换同样遵循）：
+
+- 固定块恒为标签栏前端的一段连续区间，XML 中未按顺序书写时会在初始化阶段自动归位（保持各自的相对顺序）；
+- 运行期调用 `TabCtrlItem::SetFixed(true)` 会把该标签移动到固定块末尾，`SetFixed(false)` 会移动到固定块之后的第一个位置；
+- 插入与移动均受锚定约束：`AddItem` 固定标签插到固定块末尾、普通标签追加到末尾；`AddItemAt`/`SetItemIndex` 固定标签只能落在 `[0, 固定数]`，普通标签只能落在 `[固定数, 标签数]`。
+
+```cpp
+ui::TabCtrl* pTabCtrl = dynamic_cast<ui::TabCtrl*>(pWindow->FindControl(_T("tab_ctrl")));
+if (pTabCtrl != nullptr) {
+    //固定/取消固定：标签会自动移动到对应区块的边界
+    ui::TabCtrlItem* pItem = dynamic_cast<ui::TabCtrlItem*>(pTabCtrl->GetItemAt(0));
+    if (pItem != nullptr) {
+        pItem->SetFixed(true);
+    }
+    const size_t nFixedCount = pTabCtrl->GetFixedItemCount();   //固定标签数量
 }
 ```
 

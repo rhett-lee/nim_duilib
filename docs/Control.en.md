@@ -23,6 +23,11 @@ English | [简体中文](Control.md)
 | min_height | -1 | int | SetMinHeight|Minimum height of the control, e.g. "30" |
 | max_width | INT32_MAX | int / string | SetMaxWidth|Maximum width of the control; description same as width |
 | max_height | INT32_MAX | int / string | SetMaxHeight|Maximum height of the control; description same as height |
+
+> **Note**: during layout the actual control size is clamped via `std::clamp(size, GetMinWidth(), GetMaxWidth())`.
+> So if you change a control that already has `min_width`/`max_width` set back to `stretch` at runtime,
+> you must release the bounds as well (`SetMinWidth(0)` + `SetMaxWidth(INT32_MAX)`), otherwise the size stays
+> clamped to the old value; and if the bounds are set to 0, the control width becomes 0 and it is completely invisible.
 | margin | 0,0,0,0 | rect | SetMargin|Margin, e.g. "2,2,2,2" |
 | padding | 0,0,0,0 | rect | SetPadding|Padding, e.g. "2,2,2,2" |
 | control_padding | true | bool | SetEnableControlPadding|Whether the control itself is allowed to use padding |
@@ -1739,6 +1744,10 @@ The SplitBox control inherits the `Box` attributes. For more available attribute
 | selected_tab_item_outline_color  |   | string | Color of the outer outline of the selected tab item |
 | tab_ctrl_bottom_line_height      | 0 | float  | Height of the bottom line of the tab bar (this line is not drawn in the selected tab area, but drawn in other areas) |
 | tab_ctrl_bottom_line_color       |   | string | Set the color of the bottom line of the tab bar |
+| tab_ctrl_orientation | horz | string | Layout direction of the tab bar: `horz` (horizontal, default) / `vert` (vertical). In vertical mode, tabs are on the left and the content area on the right, and the selected-item outline and divider are automatically adapted to the right side |
+| overflow_scroll | true | bool | Whether to enable overflow scrolling: when the total tab width (horizontal) or total height (vertical) exceeds the visible area, a scrollbar is shown automatically. The scrollbar floats above child controls and does not take up layout space; dragging a tab near the visible edge auto-scrolls |
+
+**Corresponding C++ interfaces:** `SetTabCtrlOrientation`/`GetTabCtrlOrientation`, `SetEnableOverflowScroll`/`IsEnableOverflowScroll`.
 
 The TabCtrl control inherits the `ListBox` attributes. For more available attributes, please refer to the `ListBox` attributes.
 
@@ -1757,6 +1766,7 @@ The TabCtrl control inherits the `ListBox` attributes. For more available attrib
 | hovered_round_corner | | size | Rounded corner size of the tab page in hovered state|
 | hovered_padding | | UiPadding | Padding of the background color of the tab page in hovered state|
 | auto_hide_close_button | false | bool | Whether the close button is automatically hidden|
+| fixed | false | bool | Whether the tab is a fixed tab: a fixed tab cannot be dragged, cannot be a drop target, and shows no close button; multiple fixed tabs always stay at the front of the tab bar, forming a "fixed block" (normal tabs can only move after the fixed block and cannot cross it)|
 | badge_count | 0 | int64 | Badge count: shows the badge when greater than 0, automatically hidden when less than or equal to 0; the badge control is not created unless badge_class is set |
 | badge_max_count | 99 | int64 | Badge count limit; when exceeded, "limit+" is displayed (e.g. "99+") |
 | badge_dot | false | bool | Badge dot mode: true for a plain dot without digits; should be used together with badge_class or the badge attribute |
@@ -1791,6 +1801,68 @@ ui::TabCtrlItem* pTabItem = dynamic_cast<ui::TabCtrlItem*>(pWindow->FindControl(
 if (pTabItem != nullptr) {
     pTabItem->SetBadgeCount(pTabItem->GetBadgeCount() + 1);   // Unread +1
     pTabItem->SetBadgeCount(0);                               // Reset to zero, the badge is hidden automatically
+}
+```
+
+**Vertical tab bar, fixed tabs and overflow scrolling:**
+
+```xml
+<!-- Vertical tab bar: tabs on the left, content area on the right; the selected-item outline and divider adapt to the right side automatically -->
+<TabCtrl class="tab_ctrl" tab_ctrl_orientation="vert" width="160" height="stretch">
+    <!-- Fixed tabs: always at the front, not draggable, no close button -->
+    <TabCtrlItem class="tab_ctrl_item" title="Home" fixed="true"/>
+    <TabCtrlItem class="tab_ctrl_item" title="Favorites" fixed="true"/>
+    <!-- Normal tabs: draggable to reorder, but cannot cross the front fixed block -->
+    <TabCtrlItem class="tab_ctrl_item" title="Messages" badge_count="5"/>
+    <TabCtrlItem class="tab_ctrl_item" title="Settings"/>
+</TabCtrl>
+
+<!-- Horizontal tab bar + overflow scrolling: a scrollbar appears automatically when there are too many tabs -->
+<TabCtrl class="tab_ctrl" overflow_scroll="true" width="stretch" height="36">
+    <TabCtrlItem class="tab_ctrl_item" title="Tab1"/>
+    <TabCtrlItem class="tab_ctrl_item" title="Tab2"/>
+    <TabCtrlItem class="tab_ctrl_item" title="Tab3"/>
+    ...
+</TabCtrl>
+```
+
+- `tab_ctrl_orientation="vert"` switches the tab bar to a vertical layout (internally uses `VLayout`; the selected-item outline and divider adapt to the right side automatically).
+- `fixed="true"` tabs form the front "fixed block": they cannot be dragged, cannot be drop targets, and show no close button; normal tabs can only move after the fixed block and cannot cross it; fixed tabs always stay at the front of the tab bar (even when appended via `AddItem`, they are inserted at the end of the fixed block).
+- `overflow_scroll="true"` (default) shows a scrollbar automatically when the total tab size exceeds the visible area. The scrollbar floats above child controls and does not take up layout space; dragging a tab near the visible edge auto-scrolls.
+
+**Prerequisite for overflow: tab items need a definite width**
+
+The default skin's `tab_ctrl_item` class does not define `width`, and the control base class defaults to `stretch`
+(see the `PlaceHolder` constructor). Tab items are therefore **divided equally to fill** the tab bar — in that case the
+content width never exceeds the visible width no matter how many tabs exist, so the scrollbar never appears.
+To make overflow scrolling work, give each tab item a definite width (e.g. `width="96"`) or let it size to its content (`width="auto"`).
+
+- Horizontal overflow: `TabCtrl` width < sum of tab item widths.
+- Vertical overflow: `TabCtrl` height < sum of tab item heights (with `tab_ctrl_orientation="vert"`, `SetTabCtrlOrientation` enables the vertical scrollbar automatically).
+
+```xml
+<!-- Horizontal overflow: tab bar is 300 wide, items are 96 wide, overflow starts at the 4th tab -->
+<TabCtrl class="tab_ctrl" width="300" height="36" overflow_scroll="true">
+    <TabCtrlItem class="tab_ctrl_item" title="Tab1" width="96"/>
+    ...
+</TabCtrl>
+```
+
+**Fixed block positioning rules** (also honored when toggling at runtime via `SetFixed`):
+
+- The fixed block is always a contiguous range at the front of the tab bar; if the XML does not list fixed tabs first, they are normalized during initialization (their relative order is preserved).
+- Calling `TabCtrlItem::SetFixed(true)` at runtime moves that tab to the end of the fixed block; `SetFixed(false)` moves it to the first position after the fixed block.
+- Insertion and moving are constrained: `AddItem` inserts fixed tabs at the end of the fixed block and normal tabs at the end; `AddItemAt`/`SetItemIndex` only allow fixed tabs within `[0, fixed count]` and normal tabs within `[fixed count, item count]`.
+
+```cpp
+ui::TabCtrl* pTabCtrl = dynamic_cast<ui::TabCtrl*>(pWindow->FindControl(_T("tab_ctrl")));
+if (pTabCtrl != nullptr) {
+    // Toggle fixed: the tab moves to the corresponding block boundary automatically
+    ui::TabCtrlItem* pItem = dynamic_cast<ui::TabCtrlItem*>(pTabCtrl->GetItemAt(0));
+    if (pItem != nullptr) {
+        pItem->SetFixed(true);
+    }
+    const size_t nFixedCount = pTabCtrl->GetFixedItemCount();   // number of fixed tabs
 }
 ```
 

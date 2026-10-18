@@ -1309,3 +1309,94 @@ STRID_PANEL_STATUS_SLOT_SETTINGS = 标题栏槽位：点击了『设置』按钮
 STRID_PANEL_STATUS_SLOT_REFRESH = 标题栏槽位：点击了『刷新』按钮（面板未折叠）
 STRID_PANEL_STATUS_VETO_CANCELLED = 折叠被取消：请先勾选『允许折叠本面板』
 STRID_PANEL_STATUS_VETO_COLLAPSED = 受保护面板已折叠（折叠前事件已放行）
+
+# ============================================================
+# TabCtrl 测试窗口（examples/controls/TabCtrlForm）
+# 对应皮肤 controls/tabctrl.xml，必须与 en_US-examples.txt 保持键集合一致
+# ============================================================
+STRID_TABCTRL_WINDOW_TITLE = TabCtrl 标签栏测试
+
+# 卡片标题
+STRID_TABCTRL_CARD_ORIENT = ① 布局方向（运行时切换水平 / 垂直）
+STRID_TABCTRL_CARD_FIXED = ② 固定标签（不可拖动、无关闭按钮、恒在前端）
+STRID_TABCTRL_CARD_HOVERFLOW = ③ 水平溢出滚动（标签栏宽 300，标签项宽 96）
+STRID_TABCTRL_CARD_VOVERFLOW = ④ 垂直溢出滚动（标签栏高 110，标签项高 36）
+STRID_TABCTRL_CARD_BADGE = ⑤ 标签角标（数字角标 / 超大数字 / 小红点 / 关闭按钮）
+
+# 按钮
+STRID_TABCTRL_BTN_VERT = 切换为垂直
+STRID_TABCTRL_BTN_HORZ = 切换为水平
+STRID_TABCTRL_BTN_OVERFLOW_ON = 溢出滚动：开
+STRID_TABCTRL_BTN_OVERFLOW_OFF = 溢出滚动：关
+STRID_TABCTRL_BTN_FIX_ADD = 追加固定标签
+STRID_TABCTRL_BTN_FIX_TOGGLE = 固定/取消选中项
+STRID_TABCTRL_BTN_FIX_REMOVE = 删除选中项
+STRID_TABCTRL_BTN_RESET = 重置
+STRID_TABCTRL_BTN_FILL10 = 加满 10 个
+STRID_TABCTRL_BTN_FILL8 = 加满 8 个
+STRID_TABCTRL_BTN_HOME_LEFT = 滚到最左
+STRID_TABCTRL_BTN_END_RIGHT = 滚到最右
+STRID_TABCTRL_BTN_PAGE_RIGHT = 右翻一页
+STRID_TABCTRL_BTN_HOME_UP = 滚到顶部
+STRID_TABCTRL_BTN_END_DOWN = 滚到底部
+STRID_TABCTRL_BTN_PAGE_DOWN = 下翻一页
+STRID_TABCTRL_BTN_CLEAR = 清空
+
+# 标签文字（①②④⑤ 卡片与代码动态创建共用）
+STRID_TAB_CTRL_HOME = 首页
+STRID_TAB_CTRL_FAVORITE = 收藏
+STRID_TAB_CTRL_MSG = 消息
+STRID_TAB_CTRL_NOTIFY = 通知
+STRID_TAB_CTRL_FEED = 动态
+STRID_TAB_CTRL_SETTINGS = 设置
+STRID_TABCTRL_TAB_1 = 标签 1
+STRID_TABCTRL_TAB_2 = 标签 2
+STRID_TABCTRL_TAB_3 = 标签 3
+STRID_TABCTRL_TAB_N = 标签 %d
+STRID_TABCTRL_FIXED_N = 固定%d
+
+# 状态栏初始文案（布局完成后由代码刷新）
+STRID_TABCTRL_STATE_HORZ = 当前方向：水平
+STRID_TABCTRL_STATE_FIXED_INIT = 固定标签：0 个
+STRID_TABCTRL_STATE_COUNT0 = 标签数：0
+STRID_TABCTRL_RANGE_H_INIT = 可视宽度：0　|　内容宽度：0　|　溢出：0
+STRID_TABCTRL_RANGE_V_INIT = 可视高度：0　|　内容高度：0　|　溢出：0
+STRID_TABCTRL_POS_H_INIT = 滚动位置：0 / 0　|　滚动条：无
+STRID_TABCTRL_POS_V_INIT = 滚动位置：0 / 0　|　滚动条：无
+
+# 状态栏动态文案（代码格式化，占位符 %d / %s 保持顺序）
+STRID_TABCTRL_STATE_ORIENT = 当前方向：%s
+STRID_TABCTRL_STATE_SCROLLBAR = 　|　%s滚动条：%s
+STRID_TABCTRL_STATE_DIR_VERT = 垂直
+STRID_TABCTRL_STATE_DIR_HORZ = 水平
+STRID_TABCTRL_STATE_AXIS_VERT = 纵向
+STRID_TABCTRL_STATE_AXIS_HORZ = 横向
+STRID_TABCTRL_STATE_BAR_SHOWN = 已出现（内容溢出）
+STRID_TABCTRL_STATE_BAR_NONE = 无
+STRID_TABCTRL_STATE_BAR_DISABLED = 无（溢出滚动已关闭）
+STRID_TABCTRL_STATE_FIXED = 标签数：%d　|　固定标签：%d 个
+STRID_TABCTRL_STATE_SELECTED = 　|　选中：%s（%s）
+STRID_TABCTRL_STATE_KIND_FIXED = 固定
+STRID_TABCTRL_STATE_KIND_NORMAL = 普通
+STRID_TABCTRL_STATE_COUNT = 标签数：%d
+STRID_TABCTRL_STATE_OVERFLOW_OFF = 　|　溢出滚动已关闭
+STRID_TABCTRL_RANGE_H = 可视宽度：%d　|　内容宽度：%d　|　溢出：%d
+STRID_TABCTRL_RANGE_V = 可视高度：%d　|　内容高度：%d　|　溢出：%d
+STRID_TABCTRL_POS = 滚动位置：%d / %d　|　滚动条：%s
+STRID_TABCTRL_BAR_SHOWN_SHORT = 已出现
+
+# 说明性提示
+STRID_TABCTRL_TIP_ORIENT = 提示：垂直模式下标签项改为拉伸填满标签栏宽度，高度仍固定
+STRID_TABCTRL_TIP_FIXED = 提示：拖动灰色普通标签可重排，拖不动最左侧的固定标签
+STRID_TABCTRL_TIP_BADGE = 四种角标：数字角标 / 超大数字（显示为 99+）/ 小红点 / 悬停显示关闭按钮
+STRID_TABCTRL_TIP_CARD_ORIENT = 运行时 SetTabCtrlOrientation 切换布局方向
+STRID_TABCTRL_TIP_CARD_FIXED = 固定标签：不可拖动、无关闭按钮
+STRID_TABCTRL_TIP_CARD_HOVERFLOW = 标签超出后出现悬浮滚动条；可拖动标签靠近右边缘自动滚动
+STRID_TABCTRL_TIP_CARD_VOVERFLOW = 垂直标签栏：标签超出后出现纵向悬浮滚动条
+STRID_TABCTRL_TIP_CARD_VOVERFLOW2 = 提示：垂直方向的溢出滚动由 SetTabCtrlOrientation 自动切换到纵向滚动条
+STRID_TABCTRL_TIP_CARD_BADGE = ui::TabCtrl + ui::TabCtrlItem (badge)
+
+# TabCtrl 独立测试窗口入口（controls/test.xml）
+STRID_CONTROLS_TABCTRL_FULL = TabCtrl：垂直 / 固定 / 溢出滚动 / 角标
+STRID_CONTROLS_TABCTRL_TEST_BTN = TabCtrl Test
+STRID_CONTROLS_TABCTRL_TEST_TIP = 垂直标签 / 固定标签 / 溢出滚动 / 标签角标 / 程序化增删标签
