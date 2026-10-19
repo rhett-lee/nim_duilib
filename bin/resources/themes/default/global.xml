@@ -31,6 +31,7 @@
     <Var name="PATH_ADDRESS_BAR" value="public/address_bar"/>
     <Var name="PATH_PROGRESS" value="public/progress"/>
     <Var name="PATH_SLIDER" value="public/slider"/>
+    <Var name="PATH_STEPPER" value="public/stepper"/>
     <Var name="PATH_CAPTION" value="public/caption"/>
     <Var name="PATH_COMBO" value="public/combo"/>
     <Var name="PATH_MENU" value="public/menu"/>
@@ -455,6 +456,10 @@
                                         thumb_normal_image="file='${PATH_SLIDER}/range_slider_thumb_normal.svg' width='14' height='14'"
                                         thumb_hovered_image="file='${PATH_SLIDER}/range_slider_thumb_hovered.svg' width='14' height='14'"
                                         thumb_pressed_image="file='${PATH_SLIDER}/range_slider_thumb_pressed.svg' width='14' height='14'"/>
+    <!-- 步骤条（Stepper）：节点悬停/按下态光晕环图标（颜色跟随主题强调色） -->
+    <Class name="stepper_node" 
+           node_hovered_image="file='${PATH_STEPPER}/stepper_node_hovered.svg' width='48' height='48' svg_replace_colors='#0078D4|color_accent'"
+           node_pressed_image="file='${PATH_STEPPER}/stepper_node_pressed.svg' width='48' height='48' svg_replace_colors='#0078D4|color_accent'"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 

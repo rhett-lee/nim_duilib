@@ -21,8 +21,14 @@ Stepper::Stepper(Window* pWindow) :
     m_strConnectorActiveColor(_T("color_success")),
     m_strDescColor(_T("text_muted")),
     m_strTitleFont(_T("system_bold_14")),
-    m_strDescFont(_T("system_regular_12"))
+    m_strDescFont(_T("system_regular_12")),
+    m_nodeStateImage(),
+    m_nHoverStep(-1),
+    m_nPressedStep(-1)
 {
+    //节点状态图片需要关联控件接口，以便解析相对路径与缓存管理
+    m_nodeStateImage.SetControl(this);
+
     //各状态节点默认色（语义色名，索引对应 StepStatus）
     m_stateColors[static_cast<int>(StepStatus::kPending)] = _T("text_muted");
     m_stateColors[static_cast<int>(StepStatus::kActive)] = _T("color_accent");
@@ -119,6 +125,12 @@ void Stepper::SetAttribute(const DString& strName, const DString& strValue2)
     }
     else if ((strName == _T("desc_font")) || (strName == _T("descfont"))) {
         SetDescFont(strValue);
+    }
+    else if ((strName == _T("node_hovered_image")) || (strName == _T("node_hot_image")) || (strName == _T("nodehoveredimage"))) {
+        SetNodeStateImage(kControlStateHovered, strValue);
+    }
+    else if ((strName == _T("node_pressed_image")) || (strName == _T("node_pushed_image")) || (strName == _T("nodepressedimage"))) {
+        SetNodeStateImage(kControlStatePressed, strValue);
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -519,6 +531,23 @@ void Stepper::SetDescFont(const DString& strFontId)
     }
 }
 
+void Stepper::SetNodeStateImage(ControlStateType stateType, const DString& strImage)
+{
+    m_nodeStateImage.SetImageString(stateType, strImage, Dpi());
+    Invalidate();
+}
+
+DString Stepper::GetNodeStateImage(ControlStateType stateType) const
+{
+    return m_nodeStateImage.GetImageString(stateType);
+}
+
+void Stepper::ClearImageCache()
+{
+    BaseClass::ClearImageCache();
+    m_nodeStateImage.ClearImageCache();
+}
+
 UiRect Stepper::CalcStepSlotRect(const UiRect& rc, size_t nCount, size_t index) const
 {
     if (nCount == 0) {
@@ -572,12 +601,56 @@ bool Stepper::ButtonDown(const EventArgs& msg)
     rc.Deflate(GetControlPadding());
     if (m_bClickToJump) {
         const int32_t nHit = HitTestStep(rc, m_steps.size(), msg.ptMouse);
-        if (nHit >= 0) {
+        if ((nHit >= 0) && (GetStepStatus(static_cast<size_t>(nHit)) != StepStatus::kDisabled)) {
+            //记录按下态，并获取鼠标焦点，使按住期间持续收到鼠标消息以结束按下态
+            m_nPressedStep = nHit;
+            SetMouseFocused(true);
+            Invalidate();
             GoTo(static_cast<size_t>(nHit));
             return true;
         }
     }
     return BaseClass::ButtonDown(msg);
+}
+
+bool Stepper::ButtonUp(const EventArgs& msg)
+{
+    if (m_nPressedStep >= 0) {
+        m_nPressedStep = -1;
+        Invalidate();
+    }
+    return BaseClass::ButtonUp(msg);
+}
+
+bool Stepper::MouseMove(const EventArgs& msg)
+{
+    if (msg.eventType == kEventMouseMove) {
+        //更新悬停步骤（仅可交互步骤参与，用于显示悬停态图标）
+        int32_t nHit = -1;
+        if (IsEnabled() && IsMouseEnabled() && m_bClickToJump && !m_steps.empty()) {
+            UiRect rc = GetRect();
+            rc.Deflate(GetControlPadding());
+            nHit = HitTestStep(rc, m_steps.size(), msg.ptMouse);
+            if ((nHit >= 0) && (GetStepStatus(static_cast<size_t>(nHit)) == StepStatus::kDisabled)) {
+                nHit = -1;
+            }
+        }
+        if (nHit != m_nHoverStep) {
+            m_nHoverStep = nHit;
+            Invalidate();
+        }
+    }
+    return BaseClass::MouseMove(msg);
+}
+
+bool Stepper::MouseLeave(const EventArgs& msg)
+{
+    if ((m_nHoverStep >= 0) || (m_nPressedStep >= 0)) {
+        m_nHoverStep = -1;
+        m_nPressedStep = -1;
+        Invalidate();
+    }
+    return BaseClass::MouseLeave(msg);
 }
 
 void Stepper::PaintStateImages(IRender* pRender)
@@ -639,6 +712,7 @@ void Stepper::PaintHorizontal(IRender* pRender, const UiRect& rc)
     for (size_t i = 0; i < nCount; ++i) {
         const int32_t cx = rc.left + static_cast<int32_t>(slotW * (static_cast<double>(i) + 0.5));
         const StepStatus status = GetStepStatus(i);
+        PaintNodeStateIcon(pRender, UiPoint(cx, nNodeCenterY), nRadius, status, i);
         PaintNode(pRender, UiPoint(cx, nNodeCenterY), nRadius, status, i, status == StepStatus::kDisabled);
 
         const int32_t slotLeft = rc.left + static_cast<int32_t>(slotW * static_cast<double>(i));
@@ -702,6 +776,7 @@ void Stepper::PaintVertical(IRender* pRender, const UiRect& rc)
     for (size_t i = 0; i < nCount; ++i) {
         const int32_t cy = rc.top + static_cast<int32_t>(slotH * (static_cast<double>(i) + 0.5));
         const StepStatus status = GetStepStatus(i);
+        PaintNodeStateIcon(pRender, UiPoint(nNodeCenterX, cy), nRadius, status, i);
         PaintNode(pRender, UiPoint(nNodeCenterX, cy), nRadius, status, i, status == StepStatus::kDisabled);
 
         UiRect rcText(nTextLeft, rc.top, rc.right, rc.bottom);
@@ -736,6 +811,50 @@ void Stepper::PaintVertical(IRender* pRender, const UiRect& rc)
                             GetUiColor(m_strDescColor), m_strDescFont);
         }
     }
+}
+
+void Stepper::PaintNodeStateIcon(IRender* pRender, const UiPoint& ptCenter, int32_t nRadius,
+                                 StepStatus status, size_t index)
+{
+    //仅对可交互步骤绘制悬停/按下态图标
+    if ((pRender == nullptr) || !IsEnabled() || !IsMouseEnabled() || !m_bClickToJump) {
+        return;
+    }
+    if ((status == StepStatus::kDisabled) || IsStepDisabled(index)) {
+        return;
+    }
+    if (!m_nodeStateImage.HasImage()) {
+        return;
+    }
+
+    ControlStateType stateType = kControlStateNormal;
+    if (m_nPressedStep == static_cast<int32_t>(index)) {
+        stateType = kControlStatePressed;
+    }
+    else if (m_nHoverStep == static_cast<int32_t>(index)) {
+        stateType = kControlStateHovered;
+    }
+    else {
+        return;
+    }
+
+    Image* pImage = m_nodeStateImage.GetStateImage(stateType);
+    if ((pImage == nullptr) && (stateType == kControlStatePressed)) {
+        //按下态未配置图片时，回退使用悬停态图片
+        pImage = m_nodeStateImage.GetStateImage(kControlStateHovered);
+    }
+    if (pImage == nullptr) {
+        return;
+    }
+
+    //图标以节点圆心为中心，比节点略大（形成外圈光晕/描边效果）；目标区域为控件相对坐标
+    const int32_t nIconSize = nRadius * 2 + Dpi().GetScaleInt(10);
+    const UiRect rcCtrl = GetRect();
+    const int32_t nLeft = (ptCenter.x - nIconSize / 2) - rcCtrl.left;
+    const int32_t nTop = (ptCenter.y - nIconSize / 2) - rcCtrl.top;
+    const DString strModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"),
+                                                 nLeft, nTop, nLeft + nIconSize, nTop + nIconSize);
+    PaintImage(pRender, pImage, strModify);
 }
 
 void Stepper::PaintNode(IRender* pRender, const UiPoint& ptCenter, int32_t nRadius, StepStatus status,

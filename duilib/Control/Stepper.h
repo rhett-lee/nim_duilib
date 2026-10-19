@@ -2,6 +2,7 @@
 #define UI_CONTROL_STEPPER_H_
 
 #include "duilib/Core/Control.h"
+#include "duilib/Image/StateImage.h"
 #include <vector>
 
 namespace ui {
@@ -37,6 +38,11 @@ enum class StepStatus
  *  - title_color_active / title_color_completed / title_color_pending：各状态标题颜色
  *  - desc_color：描述文本颜色
  *  - title_font / desc_font：标题 / 描述的字体 ID
+ *  - node_hovered_image（别名 node_hot_image）：节点悬停态图片，可选
+ *  - node_pressed_image（别名 node_pushed_image）：节点按下态图片，可选；未配置时回退悬停态图片
+ *
+ *  说明：悬停/按下态图片绘制在节点圆形下层，仅对"可交互步骤"（控件启用、click_to_jump 开启且该步非禁用）
+ *        在鼠标悬停/按下时显示，用于呈现强调色光晕/描边等反馈，不影响节点本色与序号/对勾。
  */
 class DUILIB_API Stepper : public Control
 {
@@ -84,6 +90,22 @@ public:
     /** 鼠标左键按下：点击步骤跳转
     */
     bool ButtonDown(const EventArgs& msg) override;
+
+    /** 鼠标左键抬起：结束按下态
+    */
+    bool ButtonUp(const EventArgs& msg) override;
+
+    /** 鼠标移动：更新悬停的步骤（用于 hover 态显示）
+    */
+    bool MouseMove(const EventArgs& msg) override;
+
+    /** 鼠标离开控件：清除悬停/按下态
+    */
+    bool MouseLeave(const EventArgs& msg) override;
+
+    /** 清理图片缓存
+    */
+    void ClearImageCache() override;
 
 public:
     /** 追加一个步骤
@@ -269,6 +291,17 @@ public:
     */
     void AttachStepChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
 
+    /** 设置节点状态图片（可选，用于悬停/按下态的视觉反馈）
+    * @param [in] stateType 状态类型（有效值：kControlStateHovered / kControlStatePressed）
+    * @param [in] strImage 图片属性字符串，例如 "file='public/stepper/stepper_node_hovered.svg'"
+    */
+    void SetNodeStateImage(ControlStateType stateType, const DString& strImage);
+
+    /** 获取节点状态图片属性字符串
+    * @param [in] stateType 状态类型（kControlStateHovered / kControlStatePressed）
+    */
+    DString GetNodeStateImage(ControlStateType stateType) const;
+
 private:
     /** 解析 XML 数据绑定字段（`|` 分隔）
     * @param [in] strValue 字段值字符串
@@ -319,6 +352,15 @@ private:
     /** 测量文本高度
     */
     int32_t MeasureTextHeight(IRender* pRender, const DString& strText, int32_t nWidth, const DString& strFontId);
+
+    /** 绘制节点悬停/按下态图标（绘制在节点圆形下层；未配置或非可交互步骤时不绘制）
+    * @param [in] ptCenter 节点圆心（控件坐标）
+    * @param [in] nRadius 节点半径（已 DPI 缩放）
+    * @param [in] status 该步骤的派生状态
+    * @param [in] index 步骤索引
+    */
+    void PaintNodeStateIcon(IRender* pRender, const UiPoint& ptCenter, int32_t nRadius,
+                            StepStatus status, size_t index);
 
 private:
     /** 步骤数据
@@ -381,6 +423,18 @@ private:
     */
     DString m_strItemTitleIds;
     DString m_strItemDescIds;
+
+    /** 节点状态图片（悬停态 kControlStateHovered / 按下态 kControlStatePressed，可选）
+    */
+    StateImage m_nodeStateImage;
+
+    /** 鼠标悬停的步骤索引（-1 表示无）
+    */
+    int32_t m_nHoverStep;
+
+    /** 鼠标按下的步骤索引（-1 表示无）
+    */
+    int32_t m_nPressedStep;
 };
 
 } // namespace ui

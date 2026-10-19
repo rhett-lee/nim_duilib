@@ -879,15 +879,19 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 | title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | Title color of each state |
 | desc_color | text_muted | string | Description text color |
 | title_font / desc_font | system_bold_14 / system_regular_12 | string | Title / description font ID |
+| node_hovered_image (alias node_hot_image) |  | string | Hovered-state image of the node, optional; shown when the mouse hovers a clickable step (painted below the node circle) |
+| node_pressed_image (alias node_pushed_image) |  | string | Pressed-state image of the node, optional; shown when the mouse presses a clickable step, falls back to the hovered image when unset |
 
 Stepper inherits the `Control` attributes; for more available attributes, please refer to the `Control` attributes.
 
 A stepper is used for install / register / config wizards, approval flows and other "process state machine" scenarios (`Timeline` is time-axis semantics and does not carry process steps).
 The step state is derived from the "current index + disabled set": steps before the current index are completed (the node shows a check mark), the current step is active, and the following ones are pending; an explicitly disabled step takes precedence and is shown as disabled. Connectors are colored by finished segments.
 
+The hovered/pressed images are shown only for "interactive steps" (control enabled, `click_to_jump` on, and the step not disabled) when the mouse hovers/presses, providing an accent glow/outline feedback without affecting the node color or the number/check mark. The default skin's `stepper_node` class already ships a set of glow-ring icons (colored via `svg_replace_colors` to follow the theme accent color); just reference it as `class="stepper_node"`.
+
 XML example:
 ```xml
-<Stepper name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
+<Stepper class="stepper_node" name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
          step_title_id="STRID_S1_TITLE|STRID_S2_TITLE|STRID_S3_TITLE|STRID_S4_TITLE"
          step_desc_id="STRID_S1_DESC|STRID_S2_DESC|STRID_S3_DESC|STRID_S4_DESC"/>
 ```
@@ -923,6 +927,8 @@ void SetTitleColor(StepStatus status, const DString& strColor);   //title color 
 void SetConnectorColor(const DString& strColor);                  //connector color of unfinished segments
 void SetConnectorActiveColor(const DString& strColor);            //connector color of finished segments
 void SetDescColor(const DString& strColor);                       //description text color
+void SetNodeStateImage(ControlStateType stateType, const DString& strImage); //node hovered/pressed image
+DString GetNodeStateImage(ControlStateType stateType) const;
 void AttachStepChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //step-change event
 ```
 
