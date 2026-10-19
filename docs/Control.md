@@ -879,15 +879,19 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 | title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | 各状态标题颜色 |
 | desc_color | text_muted | string | 描述文本颜色 |
 | title_font / desc_font | system_bold_14 / system_regular_12 | string | 标题 / 描述字体 ID |
+| node_hovered_image（别名 node_hot_image） |  | string | 节点悬停态图片，可选；鼠标悬停于可点击步骤上时显示（绘制在节点圆形下层） |
+| node_pressed_image（别名 node_pushed_image） |  | string | 节点按下态图片，可选；鼠标按下可点击步骤时显示，未配置时回退悬停态图片 |
 
 Stepper 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
 
 向导步骤条用于安装 / 注册 / 配置向导、审批流程等"流程状态机"场景（`Timeline` 是时间轴语义，不承载流程步骤）。
 步骤状态由"当前索引 + 禁用集合"派生：位于当前索引之前的步骤为已完成（节点显示对勾），当前步骤为进行中，之后的为待开始；被显式禁用的步骤优先显示为禁用态。连接线按已完成段着色。
 
+悬停/按下态图片仅对"可交互步骤"（控件启用、`click_to_jump` 开启且该步非禁用）在鼠标悬停/按下时显示，用于呈现强调色光晕/描边等反馈，不影响节点本色与序号/对勾。默认皮肤的 `stepper_node` 类已内置一组光晕环图标（颜色经 `svg_replace_colors` 跟随主题强调色），可直接 `class="stepper_node"` 引用。
+
 XML 示例：
 ```xml
-<Stepper name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
+<Stepper class="stepper_node" name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
          step_title_id="STRID_S1_TITLE|STRID_S2_TITLE|STRID_S3_TITLE|STRID_S4_TITLE"
          step_desc_id="STRID_S1_DESC|STRID_S2_DESC|STRID_S3_DESC|STRID_S4_DESC"/>
 ```
@@ -923,6 +927,8 @@ void SetTitleColor(StepStatus status, const DString& strColor);   //各状态标
 void SetConnectorColor(const DString& strColor);                  //未完成段连接线颜色
 void SetConnectorActiveColor(const DString& strColor);            //已完成段连接线颜色
 void SetDescColor(const DString& strColor);                       //描述文本颜色
+void SetNodeStateImage(ControlStateType stateType, const DString& strImage); //节点悬停/按下态图片
+DString GetNodeStateImage(ControlStateType stateType) const;
 void AttachStepChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //当前步骤变化事件
 ```
 

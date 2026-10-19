@@ -633,9 +633,12 @@ C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHig
 | title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | 各状态标题颜色 |
 | desc_color | text_muted | string | 描述文本颜色 |
 | title_font / desc_font | system_bold_14 / system_regular_12 | string | 标题 / 描述字体 ID |
+| node_hovered_image（别名 node_hot_image） |  | string | 节点悬停态图片，可选；悬停于可点击步骤上时显示（绘制在节点下层） |
+| node_pressed_image（别名 node_pushed_image） |  | string | 节点按下态图片，可选；未配置时回退悬停态图片 |
 
 向导步骤条（安装/注册/配置向导、审批流程）：状态由"当前索引 + 禁用集合"派生——索引小于当前者为已完成（节点显示对勾），等于者为进行中，大于者为待开始，被显式禁用者优先显示禁用态；连接线按完成度着色。
-C++ 接口：`GetStepCount/GetStepAt/AddStep/InsertStep/RemoveStepAt/ClearSteps/SetSteps`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`Next/NextNoEvent/Back/BackNoEvent/GoTo/GoToNoEvent`、`SetStepDisabled/IsStepDisabled/SetDisabledSteps/GetStepStatus`、`SetHorizontal/IsHorizontal`、`SetNodeSize/GetNodeSize`、`SetClickToJump/IsClickToJump`、`SetStateColor/SetTitleColor/SetConnectorColor/SetConnectorActiveColor/SetDescColor`。
+悬停/按下态图片仅对可交互步骤（控件启用、click_to_jump 开启且该步非禁用）显示；默认皮肤 `stepper_node` 类内置光晕环图标（颜色经 svg_replace_colors 跟随主题强调色），XML 中 `class="stepper_node"` 即可引用。
+C++ 接口：`GetStepCount/GetStepAt/AddStep/InsertStep/RemoveStepAt/ClearSteps/SetSteps`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`Next/NextNoEvent/Back/BackNoEvent/GoTo/GoToNoEvent`、`SetStepDisabled/IsStepDisabled/SetDisabledSteps/GetStepStatus`、`SetHorizontal/IsHorizontal`、`SetNodeSize/GetNodeSize`、`SetClickToJump/IsClickToJump`、`SetStateColor/SetTitleColor/SetConnectorColor/SetConnectorActiveColor/SetDescColor`、`SetNodeStateImage/GetNodeStateImage`。
 事件：`AttachStepChanged`——当前步骤变化时触发，事件编码 `kEventValueChanged`（wParam=2），`currentIndex`/`oldIndex` 由 `EventArgs::pEventData`（指向 `Stepper::StepValue`）携带，仅在回调派发期间有效。
 
 ### CircleProgress 属性(继承 Progress)
