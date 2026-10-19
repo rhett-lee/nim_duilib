@@ -84,7 +84,7 @@
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
     <tr>
-        <td rowspan="44">新增控件/新增容器</td>
+        <td rowspan="45">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -130,6 +130,7 @@
     <tr><td align="left">42. ToolBar：工具条（工具栏）控件（继承HBox），用于承载一排工具按钮与分隔线；当可用宽度不足时，自动隐藏尾部子控件并在右端显示"更多"按钮，点击弹出浮层列出被收纳的项，并通过回调通知应用层，窗口宽度变化时自动重新计算，详见 docs/Control.md</td></tr>
     <tr><td align="left">43. RangeSlider：双滑块范围选择控件（继承Progress），在一条轨道上放置下限/上限两个滑块并高亮选中区间，支持最小间距、区间颜色/圆角与范围变化回调（pEventData 携带 low/high），详见 docs/Control.md</td></tr>
     <tr><td align="left">44. Stepper：向导步骤条控件，安装/注册/配置向导与审批流程场景；水平/垂直排列，节点显示序号或对勾，状态由当前索引+禁用集合派生（待开始/进行中/已完成/禁用），连接线按完成度着色，支持 Next/Back/GoTo 与点击跳转、多语言标题/描述，步骤变化回调的 pEventData 携带 currentIndex/oldIndex，详见 docs/Control.md</td></tr>
+    <tr><td align="left">45. Rating：星级评分控件</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

@@ -144,6 +144,7 @@ namespace ui
     #define  DUI_CTR_MARQUEE                         (_T("Marquee"))
     #define  DUI_CTR_TIMELINE                        (_T("Timeline"))
     #define  DUI_CTR_STEPPER                         (_T("Stepper"))
+    #define  DUI_CTR_RATING                          (_T("Rating"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
 

@@ -943,6 +943,69 @@ pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Attributes of Rating (star rating)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| value | 0 | double | Current rating value, clamped to `[0, max]` and aligned to the step |
+| max (alias star_count) | 5 | int | Number of stars |
+| allow_half | false | bool | Whether half stars are allowed (step 0.5, otherwise 1) |
+| read_only (alias readonly) | false | bool | Read-only display mode, mouse interaction disabled |
+| star_size | 20 | int | Diameter of a single star in pixels (auto DPI scaled) |
+| star_gap | 4 | int | Gap between stars in pixels (auto DPI scaled) |
+| star_filled_image (alias star_full_image) |  | string | Filled star image |
+| star_half_image |  | string | Half star image (optional; when absent, the filled star is drawn clipped to its left half) |
+| star_empty_image |  | string | Empty star image |
+| star_hovered_image (alias star_hover_image) |  | string | Star hover-state icon, optional (drawn under the star as an outer glow / outline) |
+| star_pressed_image (alias star_pushed_image) |  | string | Star pressed-state icon, optional; falls back to the hovered-state icon when absent |
+
+The Rating control inherits the `Control` attributes; for more available attributes, please refer to the `Control` attributes.
+
+Star rating is used for review / scoring / satisfaction surveys; it supports read-only display, half stars, mouse hover preview, and click / drag rating. The appearance is entirely driven by SVG images (no code-drawn stars):
+
+- The star content images (filled / half / empty) are mapped to theme semantic colors via `svg_replace_colors` and follow theme changes automatically;
+- The hover / pressed icons are optional state-feedback images drawn under the star (forming an outer glow / outline); they are shown only for interactive stars (control enabled, not read-only, and mouse enabled) when hovered / pressed.
+
+The default skin's `rating` class already ships five images (filled / half / hovered / pressed map to `color_accent`, empty maps to `border_control_normal`), so `class="rating"` can be referenced directly.
+
+XML example:
+```xml
+<Rating class="rating" name="rating_demo" value="3" star_size="28" star_gap="6" width="170" height="40"/>
+```
+
+Corresponding C++ interfaces:
+```cpp
+double GetValue() const;
+void SetValue(double fValue);                  //clamp + step alignment, fires the event on change
+void SetValueNoEvent(double fValue);           //set value (no event)
+int32_t GetMax() const;                        //star count (alias GetStarCount)
+void SetMax(int32_t nMax);                     //smaller max also clamps the value
+bool IsAllowHalf() const;  void SetAllowHalf(bool bAllow);
+bool IsReadOnly() const;   void SetReadOnly(bool bReadOnly);
+int32_t GetStarSize() const;  void SetStarSize(int32_t nSize);
+int32_t GetStarGap() const;   void SetStarGap(int32_t nGap);
+void SetStarImage(StarImageType type, const DString& strImage);  //StarImageType: kFilled/kHalf/kEmpty
+DString GetStarImage(StarImageType type) const;
+void SetFilledImage(const DString& strImage);  //filled star image
+void SetHalfImage(const DString& strImage);    //half star image
+void SetEmptyImage(const DString& strImage);   //empty star image
+void SetStarStateImage(ControlStateType stateType, const DString& strImage); //star state icon: kControlStateHovered/kControlStatePressed
+DString GetStarStateImage(ControlStateType stateType) const;
+void SetHoveredImage(const DString& strImage); //star hover-state icon
+void SetPressedImage(const DString& strImage); //star pressed-state icon
+void AttachRatingChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //rating-change event
+```
+
+Value-change event: `AttachRatingChanged` — fired when the rating value changes; encoded as `kEventValueChanged`, with the new / old value carried through `EventArgs::pEventData` (pointing to `RatingValue` with `value` / `oldValue`; valid only during the callback dispatch, do not store the pointer):
+```cpp
+pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::RatingValue*>(msg.pEventData);
+        // read pValue->value / pValue->oldValue
+    }
+    return true;
+});
+```
+
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

@@ -32,6 +32,7 @@
     <Var name="PATH_PROGRESS" value="public/progress"/>
     <Var name="PATH_SLIDER" value="public/slider"/>
     <Var name="PATH_STEPPER" value="public/stepper"/>
+    <Var name="PATH_RATING" value="public/rating"/>
     <Var name="PATH_CAPTION" value="public/caption"/>
     <Var name="PATH_COMBO" value="public/combo"/>
     <Var name="PATH_MENU" value="public/menu"/>
@@ -460,6 +461,13 @@
     <Class name="stepper_node" 
            node_hovered_image="file='${PATH_STEPPER}/stepper_node_hovered.svg' width='48' height='48' svg_replace_colors='#0078D4|color_accent'"
            node_pressed_image="file='${PATH_STEPPER}/stepper_node_pressed.svg' width='48' height='48' svg_replace_colors='#0078D4|color_accent'"/>
+    <!-- 星级评分（Rating）：星形外观由 SVG 图片驱动，颜色随主题语义色自动切换 -->
+    <Class name="rating" cursor_type="hand"
+           star_filled_image="file='${PATH_RATING}/star_filled.svg' svg_replace_colors='#0078D4|color_accent'"
+           star_half_image="file='${PATH_RATING}/star_half.svg' svg_replace_colors='#0078D4|color_accent'"
+           star_empty_image="file='${PATH_RATING}/star_empty.svg' svg_replace_colors='#0078D4|border_control_normal'"
+           star_hovered_image="file='${PATH_RATING}/star_hovered.svg' svg_replace_colors='#0078D4|color_accent'"
+           star_pressed_image="file='${PATH_RATING}/star_pressed.svg' svg_replace_colors='#0078D4|color_accent'"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 

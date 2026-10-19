@@ -943,6 +943,69 @@ pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Rating 控件（星级评分）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| value | 0 | double | 当前评分值，钳位到 `[0, max]`，按 `allow_half` 对齐步长 |
+| max（别名 star_count） | 5 | int | 星星数量 |
+| allow_half | false | bool | 是否允许半星（步长 0.5，否则 1） |
+| read_only（别名 readonly） | false | bool | 只读展示模式，禁止鼠标交互 |
+| star_size | 20 | int | 单颗星绘制直径（像素，自动 DPI 缩放） |
+| star_gap | 4 | int | 星星间距（像素，自动 DPI 缩放） |
+| star_filled_image（别名 star_full_image） |  | string | 实心星图片 |
+| star_half_image |  | string | 半星图片（可选，未配置时对实心星做左半裁剪绘制） |
+| star_empty_image |  | string | 空心星图片 |
+| star_hovered_image（别名 star_hover_image） |  | string | 星悬停态图标，可选（绘制在星形下层，形成外圈光晕 / 描边） |
+| star_pressed_image（别名 star_pushed_image） |  | string | 星按下态图标，可选；未配置时回退悬停态图标 |
+
+Rating 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
+
+星级评分用于评价 / 打分 / 满意度调查等场景，支持只读展示、半星、鼠标悬停预览与点击 / 拖拽打分。外观完全由 SVG 图片驱动（不做星形自绘）：
+
+- 星形内容图（实心 / 半星 / 空心）经 `svg_replace_colors` 映射到主题语义色，切换主题时自动跟随；
+- 悬停 / 按下态图标为可选的状态反馈图，绘制在星形下层（形成外圈光晕 / 描边效果），仅对"可交互的星星"（控件启用、非只读且鼠标启用）在鼠标悬停 / 按下时显示。
+
+默认皮肤的 `rating` 类已内置五张图（实心 / 半星 / 悬停态 / 按下态映射 `color_accent`，空心星映射 `border_control_normal`），可直接 `class="rating"` 引用。
+
+XML 示例：
+```xml
+<Rating class="rating" name="rating_demo" value="3" star_size="28" star_gap="6" width="170" height="40"/>
+```
+
+对应的 C++ 接口：
+```cpp
+double GetValue() const;
+void SetValue(double fValue);                  //钳位 + 步长对齐，变化触发事件
+void SetValueNoEvent(double fValue);           //设置值（不触发事件）
+int32_t GetMax() const;                        //星星数量（别名 GetStarCount）
+void SetMax(int32_t nMax);                     //调小 max 时同步钳位 value
+bool IsAllowHalf() const;  void SetAllowHalf(bool bAllow);
+bool IsReadOnly() const;   void SetReadOnly(bool bReadOnly);
+int32_t GetStarSize() const;  void SetStarSize(int32_t nSize);
+int32_t GetStarGap() const;   void SetStarGap(int32_t nGap);
+void SetStarImage(StarImageType type, const DString& strImage);  //StarImageType: kFilled/kHalf/kEmpty
+DString GetStarImage(StarImageType type) const;
+void SetFilledImage(const DString& strImage);  //实心星图片
+void SetHalfImage(const DString& strImage);    //半星图片
+void SetEmptyImage(const DString& strImage);   //空心星图片
+void SetStarStateImage(ControlStateType stateType, const DString& strImage); //星状态图标: kControlStateHovered/kControlStatePressed
+DString GetStarStateImage(ControlStateType stateType) const;
+void SetHoveredImage(const DString& strImage); //星悬停态图标
+void SetPressedImage(const DString& strImage); //星按下态图标
+void AttachRatingChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //评分值变化事件
+```
+
+值变化事件：`AttachRatingChanged`——评分值变化时触发，事件编码为 `kEventValueChanged`，新/旧值通过 `EventArgs::pEventData` 携带（指向 `RatingValue`，含 `value` / `oldValue`，仅在本次回调派发期间有效，请勿保存该指针）：
+```cpp
+pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::RatingValue*>(msg.pEventData);
+        // 读取 pValue->value / pValue->oldValue
+    }
+    return true;
+});
+```
+
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

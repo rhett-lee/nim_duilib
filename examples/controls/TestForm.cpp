@@ -5,6 +5,7 @@
 #include "TabCtrlForm.h"
 #include "RangeSliderForm.h"
 #include "StepperForm.h"
+#include "RatingForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -60,6 +61,15 @@ void TestForm::OnInitWindow()
     if (pStepperBtn != nullptr) {
         pStepperBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowStepperWindow();
+            return true;
+            });
+    }
+
+    //Rating 星级评分测试窗口
+    ui::Button* pRatingBtn = dynamic_cast<ui::Button*>(FindControl(_T("rating_btn")));
+    if (pRatingBtn != nullptr) {
+        pRatingBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowRatingWindow();
             return true;
             });
     }
@@ -385,6 +395,18 @@ void TestForm::ShowStepperWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("StepperWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowRatingWindow()
+{
+    RatingForm* testForm = new RatingForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("RatingWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

@@ -443,7 +443,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** | 现有 4 种形态 + `ColorSlider` 已很全，但**无透明度选择**（WinUI/Qt 均有），无数值输入面板。`ScreenCapture` 已存在可做吸管 | 中（约 400 行） |
 | **D-9** | **CascadingSelect 级联选择器** | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级 | 中（约 600 行） |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
-| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | Breadcrumb 全仓无命中（`AddressBar` 是浏览器地址栏，语义不同）；Rating 全仓无命中（B5 待办）；Carousel 无命中（B7 待办） | 各低 |
+| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | Breadcrumb 全仓无命中（`AddressBar` 是浏览器地址栏，语义不同）；Rating 已实现（B5 完成，见 `duilib/Control/Rating.h`）；Carousel 无命中（B7 待办） | 各低 |
 | **D-12** | **原生系统通知** | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。macOS 通知中心 / Windows 桌面通知 / Linux D-Bus | 中高 |
 
 ### 现有控件的补强点（不新增控件，只补 API）
@@ -579,7 +579,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [ ] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 完成日期：______
 - [ ] **D-9** CascadingSelect 级联选择器　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
-- [ ] **D-11** Breadcrumb / Rating / Carousel　｜ 各低 ｜ 完成日期：______
+- [ ] **D-11** Breadcrumb / Carousel（Rating 已完成，见 B5）　｜ 各低 ｜ 完成日期：______
 - [ ] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：______
 - [ ] **E-9** DateTime 编辑器抽象泄漏修正（不处理，架构债留待重构）　｜ 中 ｜ 完成日期：______
 - [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18

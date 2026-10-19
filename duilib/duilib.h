@@ -105,6 +105,7 @@
 #include "Control/Marquee.h"
 #include "Control/Timeline.h"
 #include "Control/Stepper.h"
+#include "Control/Rating.h"
 #include "Control/Slider.h"
 #include "Control/RangeSlider.h"
 

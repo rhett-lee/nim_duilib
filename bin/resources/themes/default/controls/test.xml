@@ -51,6 +51,12 @@
                         margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
             </GroupHBox>
 
+            <!-- Rating 星级评分：独立演示窗口入口 -->
+            <GroupHBox text="Rating" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
+                <Button class="btn_global" name="rating_btn" text_id="STRID_CONTROLS_RATING_TEST"
+                        margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
+            </GroupHBox>
+
             <!-- TabCtrl (垂直标签 / 固定标签 / 溢出滚动 / 角标)：独立演示窗口入口 -->
             <GroupHBox text_id="STRID_CONTROLS_TABCTRL_FULL" height="80" margin="6,6,6,6" corner_size="4,4">
                 <Button class="btn_global" name="tab_ctrl_test_btn" text_id="STRID_CONTROLS_TABCTRL_TEST_BTN" margin="20,30,0,0"

@@ -637,6 +637,7 @@ STRID_CONTROLS_STATUSBAR_TEST = StatusBar Test
 STRID_CONTROLS_TOOLBAR_TEST = ToolBar Test
 STRID_CONTROLS_RANGESLIDER_TEST = RangeSlider Test
 STRID_CONTROLS_STEPPER_TEST = Stepper Test
+STRID_CONTROLS_RATING_TEST = Rating Test
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline Control Test
 STRID_TIMELINE_HINT = Hint: click a node to fire the callback
@@ -788,6 +789,17 @@ STRID_STEPPER_GOTO = Go to step 3
 STRID_STEPPER_RESET = Reset
 STRID_STEPPER_EVENT_NONE = Current step: 2 / 4
 STRID_STEPPER_EVENT_PREFIX = Current step: 
+# controls/Rating
+STRID_RATING_WINDOW_TITLE = Rating Control Test
+STRID_RATING_HINT = Hint: when not read-only, click or drag stars to rate; hover to preview; read-only rows are display only
+STRID_RATING_READONLY_TITLE = Read-only average (4.5, with half star)
+STRID_RATING_READONLY_DESC = Average rating 4.5 / 5
+STRID_RATING_INTERACTIVE_TITLE = Interactive rating (integer mode)
+STRID_RATING_HALF_TITLE = Half-star mode (step 0.5)
+STRID_RATING_CLEAR = Clear
+STRID_RATING_SET45 = Set to 4.5
+STRID_RATING_EVENT_NONE = Rating: 3 / 5
+STRID_RATING_EVENT_PREFIX = Rating: 
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart Control Test
 STRID_CHART_CARD_LINE = Line · Multi-series

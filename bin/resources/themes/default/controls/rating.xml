@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="720,540" text="Rating Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="520,440">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_RATING_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_RATING_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VBox padding="12,8,12,12" width="stretch" height="stretch">
+            <!-- 只读平均分（含半星） -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,14,16,14" width="stretch" height="auto">
+                <Label text_id="STRID_RATING_READONLY_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,10"/>
+                <HBox height="auto" child_margin="10">
+                    <Rating class="rating" name="rating_readonly" cursor_type="arrow"
+                            read_only="true" allow_half="true" value="4.5"
+                            star_size="26" star_gap="6" width="160" height="40" valign="center"/>
+                    <Label text_id="STRID_RATING_READONLY_DESC" text_color="text_muted" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+            </VBox>
+
+            <!-- 交互打分（整数模式） -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                <Label text_id="STRID_RATING_INTERACTIVE_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,10"/>
+                <HBox height="auto" child_margin="10">
+                    <Rating class="rating" name="rating_demo" value="3"
+                            star_size="28" star_gap="6" width="170" height="40" valign="center"/>
+                    <Label name="rating_event" text_id="STRID_RATING_EVENT_NONE" text_color="text_default" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                </HBox>
+            </VBox>
+
+            <!-- 半星模式 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                <Label text_id="STRID_RATING_HALF_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,10"/>
+                <HBox height="auto" child_margin="10">
+                    <Rating class="rating" name="rating_half" allow_half="true" value="2.5"
+                            star_size="30" star_gap="6" width="185" height="42" valign="center"/>
+                    <Control/>
+                </HBox>
+            </VBox>
+
+            <!-- 操作按钮 -->
+            <HBox height="40" child_margin="8" margin="0,10,0,0">
+                <Button class="btn_global" name="btn_rating_clear" text_id="STRID_RATING_CLEAR" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_rating_set45" text_id="STRID_RATING_SET45" width="120" height="28" border_round="3,3"/>
+                <Control/>
+            </HBox>
+        </VBox>
+    </VBox>
+</Window>

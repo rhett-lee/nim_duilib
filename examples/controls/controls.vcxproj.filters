@@ -66,6 +66,9 @@
     <ClInclude Include="StepperForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RatingForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StepperForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RatingForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">

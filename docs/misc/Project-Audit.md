@@ -65,7 +65,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | B2 | ToolBar 工具栏容器 | 目前只有 `MenuBar`，工具条需手写布局（按钮 + 分隔 + 溢出菜单）；属于"应用壳层"刚需 | 高 | ✅ 已完成（`duilib/Control/ToolBar.h/.cpp`，节点 `ToolBar`；宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，点击弹出浮层并通过 `AttachOverflowItemActivated` 回调通知应用层；示例 `examples/controls/ToolBarForm`） |
 | B3 | RangeSlider 双滑块范围选择 | 价格 / 时间区间筛选；现有 `Slider` 只有单值 | 中 | ✅ 已完成（`duilib/Control/RangeSlider.h/.cpp`，节点 `RangeSlider`；一条轨道上放置下限/上限两个滑块并高亮选中区间，支持 `min_range` 最小间距、`range_color`/`range_radius` 高亮样式、点击轨道跳值；范围变化通过 `AttachRangeChanged` 回调，`pEventData` 指向 `RangeValue` 携带 low/high；示例 `examples/controls/RangeSliderForm`） |
 | B4 | Wizard / Step 向导步骤条 | 安装、注册、配置向导；`Timeline` 只能模拟，语义不符 | 中 | ✅ 已完成（`duilib/Control/Stepper.h/.cpp`，节点 `Stepper`；水平/垂直排列，节点显示序号或对勾，状态由"当前索引 + 禁用集合"派生为待开始/进行中/已完成/禁用，连接线按完成度着色，支持 `Next`/`Back`/`GoTo` 与点击跳转、多语言 `step_title_id`/`step_desc_id`；步骤变化通过 `AttachStepChanged` 回调，`pEventData` 携带 currentIndex/oldIndex；示例 `examples/controls/StepperForm`） |
-| B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 | 待办 |
+| B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 | ✅ 已完成（`duilib/Control/Rating.h/.cpp`，节点 `Rating`；星形完全由 SVG 图片驱动（不自绘），四类星图 实心/半星/空心/悬停，颜色经 `svg_replace_colors` 映射主题语义色随主题切换；支持只读展示、半星（`allow_half`，步长 0.5）、悬停预览、点击/拖拽打分，数值经 `value`/`max` 钳位并按步长对齐；评分变化通过 `AttachRatingChanged` 回调，`pEventData` 指向 `RatingValue` 携带 value/oldValue；默认皮肤 `rating` 类内置星图，XML 中 `class="rating"` 即可引用；示例 `examples/controls/RatingForm`） |
 | B6 | FontDialog / PrintDialog / PrintPreview | 编辑器与报表类必需；当前系统对话框只有 `FileDialog` | 中 | 待办 |
 | B7 | Carousel / 分页器 / 无限滚动 | 图片轮播、卡片流 | 中 | 待办 |
 | B8 | 富内容 Tooltip | `Tooltip` 仅纯文本（Windows 侧还是系统原生实现）；`Flyout` 地基已就绪，但未封装为富提示控件 | 中 | 待办 |

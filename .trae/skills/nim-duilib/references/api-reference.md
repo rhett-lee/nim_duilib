@@ -231,6 +231,7 @@ NavigationViewItem（继承 Control）属性：
 | Slider | Progress | 滑块（可拖动、步长、值变化事件，`duilib/Control/Slider.h`），XML 节点名 `Slider` |
 | RangeSlider | Progress | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间；最小间距/区间颜色/圆角；节点名 `RangeSlider`），`duilib/Control/RangeSlider.h` |
 | Stepper | Control | 向导步骤条（水平/垂直；节点显示序号或对勾，状态由当前索引+禁用集合派生：待开始/进行中/已完成/禁用；连接线按完成度着色；Next/Back/GoTo 与点击跳转；多语言 `step_title_id`/`step_desc_id`；节点名 `Stepper`），`duilib/Control/Stepper.h` |
+| Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
@@ -640,6 +641,27 @@ C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHig
 悬停/按下态图片仅对可交互步骤（控件启用、click_to_jump 开启且该步非禁用）显示；默认皮肤 `stepper_node` 类内置光晕环图标（颜色经 svg_replace_colors 跟随主题强调色），XML 中 `class="stepper_node"` 即可引用。
 C++ 接口：`GetStepCount/GetStepAt/AddStep/InsertStep/RemoveStepAt/ClearSteps/SetSteps`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`Next/NextNoEvent/Back/BackNoEvent/GoTo/GoToNoEvent`、`SetStepDisabled/IsStepDisabled/SetDisabledSteps/GetStepStatus`、`SetHorizontal/IsHorizontal`、`SetNodeSize/GetNodeSize`、`SetClickToJump/IsClickToJump`、`SetStateColor/SetTitleColor/SetConnectorColor/SetConnectorActiveColor/SetDescColor`、`SetNodeStateImage/GetNodeStateImage`。
 事件：`AttachStepChanged`——当前步骤变化时触发，事件编码 `kEventValueChanged`（wParam=2），`currentIndex`/`oldIndex` 由 `EventArgs::pEventData`（指向 `Stepper::StepValue`）携带，仅在回调派发期间有效。
+
+### Rating 属性(继承 Control)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| value | 0 | double | 当前评分值，钳位到 [0, max]，按 allow_half 对齐步长 |
+| max（别名 star_count） | 5 | int | 星星数量 |
+| allow_half | false | bool | 是否允许半星（步长 0.5，否则 1） |
+| read_only（别名 readonly） | false | bool | 只读展示模式，禁止鼠标交互 |
+| star_size | 20 | int | 单颗星绘制直径（像素，DPI 自适应） |
+| star_gap | 4 | int | 星星间距（像素，DPI 自适应） |
+| star_filled_image（别名 star_full_image） |  | string | 实心星图片 |
+| star_half_image |  | string | 半星图片（可选，未配置时对实心星做左半裁剪绘制） |
+| star_empty_image |  | string | 空心星图片 |
+| star_hovered_image（别名 star_hover_image） |  | string | 星悬停态图标，可选（绘制在星形下层，形成外圈光晕 / 描边） |
+| star_pressed_image（别名 star_pushed_image） |  | string | 星按下态图标，可选；未配置时回退悬停态图标 |
+
+星级评分（评价/打分/满意度调查）：星形外观完全由 SVG 图片驱动（不做星形自绘），颜色经 svg_replace_colors 映射主题语义色随主题切换；支持只读展示、半星、鼠标悬停预览、点击/拖拽打分。
+C++ 接口：`GetValue/SetValue/SetValueNoEvent`、`GetMax/GetStarCount/SetMax`、`IsAllowHalf/SetAllowHalf`、`IsReadOnly/SetReadOnly`、`GetStarSize/SetStarSize`、`GetStarGap/SetStarGap`、`SetStarImage/GetStarImage`、`SetFilledImage/SetHalfImage/SetEmptyImage`、`SetStarStateImage/GetStarStateImage`、`SetHoveredImage/SetPressedImage`、`ClearImageCache`；星图类型枚举 `StarImageType`（kFilled/kHalf/kEmpty）。
+事件：`AttachRatingChanged`——评分值变化时触发，事件编码 `kEventValueChanged`，`value`/`oldValue` 由 `EventArgs::pEventData`（指向 `Rating::RatingValue`）携带，仅在回调派发期间有效。
+默认皮肤 `rating` 类内置五张图（实心/半星/悬停态/按下态映射 color_accent，空心星映射 border_control_normal），XML 中 `class="rating"` 即可引用。
 
 ### CircleProgress 属性(继承 Progress)
 
