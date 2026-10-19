@@ -221,13 +221,13 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 并分别设置了普通状态、焦点状态和按下状态不同的背景图片，最后还启用了动画效果。当我们需要给一个按钮应用这个通用样式时，可以这样写：
 
 ```xml
-<Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
+<Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Button"/>
 ```
 
 要注意的是，**`class` 属性必须在所有属性最前面**，当你需要覆盖一个通用样式中指定过的属性时，只需要在 `class` 属性之后再重新定义这个属性就可以了。比如我希望我的按钮不使用通用样式的字体样色，可以这样写：
 
 ```xml
-<Button class="btn_global_blue_80x30" font="system_bold_12" text="ui::Buttons"/>
+<Button class="btn_global_blue_80x30" font="system_bold_12" text="ui::Button"/>
 ```
 
 在定义通用样式的时候，如果属性值被包含在双引号中的时候，里面就不能再用双引号了（如果非要用，可以用双引号的XML转义字符），这种情况下，可以使用单引号或者花括号来提高可读性。例如，以下是定义了一个下拉框的通用样式，其中使用了单引号（padding='1,1,1,1'）和花括号（padding={1,0,0,0}）。

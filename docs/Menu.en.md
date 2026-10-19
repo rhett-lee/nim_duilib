@@ -81,10 +81,10 @@ This preview is the menu in the `examples/controls` example program.
         
         <!-- Menu item with a checkbox -->
         <MenuItem class="menu_element" name="menu_check_01" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="Sort Order: Ascending" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="Sort Order: Ascending" margin="0,5,0,10" selected="true" tooltiptext="ui::CheckBox" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_check_02" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="Sort Order: Descending" margin="0,5,0,10" selected="false" tooltiptext="ui::Checkbox" mouse_enabled="false" keyboard_enabled="false"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="Sort Order: Descending" margin="0,5,0,10" selected="false" tooltiptext="ui::CheckBox" mouse_enabled="false" keyboard_enabled="false"/>
         </MenuItem>
         
         <!-- Separator line between menu items -->

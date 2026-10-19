@@ -18,12 +18,8 @@
 # ---------------------------------------------------------------------------
 # 文档正文中的示例占位符
 # ---------------------------------------------------------------------------
-docs/Box.md docs/Box.en.md :: border_dash_style
-docs/Control.md docs/Control.en.md :: border_dash_style EasingFunctionType ListCtrlSubItemSortFlag kEventReportViewSubItemFilled
-docs/Global.md docs/Global.en.md :: roboto_mono_12 Buttons
-docs/Menu.md docs/Menu.en.md :: Checkbox
-docs/Theme.md docs/Theme.en.md :: color_aquatic color_desert color_dusk color_night_sky color_xxx color_mybrand btn_global_blue_80x30_normal btn_global_gray_80x30_normal
-docs/ThemeColor.md docs/ThemeColor.en.md :: color_blue_deep bg_window_dark bg_window_light color_splitline_ color_progress bg_selected_inactive bg_text_highlight
+docs/Control.md docs/Control.en.md :: kEventReportViewSubItemFilled
+docs/ThemeColor.md docs/ThemeColor.en.md :: bg_selected_inactive bg_text_highlight
 docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
 
 # ---------------------------------------------------------------------------
@@ -32,7 +28,7 @@ docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
 docs/misc/ListCtrl-Roadmap.md docs/misc/ListCtrl-Roadmap.en.md :: kEventReportViewSubItemFilled ListCtrlSubItemSortFlag
 docs/misc/ListCtrl单元格交互与结构升级设计方案.md :: kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled
 docs/misc/workbuddy-nim-duilib-guide.md :: bg_statusbar
-docs/misc/Development-Plan.md :: kEventThemeChanged kEventLanguageChanged border_dash_style color_aquatic color_desert color_dusk color_night_sky color_xxx color_mybrand color_blue_deep bg_window_dark bg_window_light color_splitline_ color_progress bg_selected_inactive bg_text_highlight
+docs/misc/Development-Plan.md :: kEventThemeChanged kEventLanguageChanged bg_selected_inactive bg_text_highlight
 
 # ---------------------------------------------------------------------------
 # Skill 文档 / LLM 参考中的举例名

@@ -68,11 +68,13 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | B5 | Rating 评分（星级） | 评价类界面高频控件 | 中 | ✅ 已完成（`duilib/Control/Rating.h/.cpp`，节点 `Rating`；星形完全由 SVG 图片驱动（不自绘），四类星图 实心/半星/空心/悬停，颜色经 `svg_replace_colors` 映射主题语义色随主题切换；支持只读展示、半星（`allow_half`，步长 0.5）、悬停预览、点击/拖拽打分，数值经 `value`/`max` 钳位并按步长对齐；评分变化通过 `AttachRatingChanged` 回调，`pEventData` 指向 `RatingValue` 携带 value/oldValue；默认皮肤 `rating` 类内置星图，XML 中 `class="rating"` 即可引用；示例 `examples/controls/RatingForm`） |
 | B6 | FontDialog / PrintDialog / PrintPreview | 编辑器与报表类必需；当前系统对话框只有 `FileDialog` | 中 | ❌ 不开发（无使用场景） |
 | B7 | Carousel / 分页器 / 无限滚动 | 图片轮播、卡片流 | 中 | ✅ 已完成（`duilib/Control/Carousel.h/.cpp`，节点 `Carousel`，图片轮播：`item_image` 幻灯片列表 + 左右导航按钮 + 底部页码指示点，外观全由 SVG 图片驱动、颜色经 `svg_replace_colors` 映射主题语义色；支持 `loop` 无限循环 / `auto_play`+`hover_pause` / `transition_ms` 水平滑动动画 / 鼠标拖拽翻页；索引变化 `AttachCarouselChanged` → `kEventValueChanged`，`pEventData` 指向 `CarouselValue`。`duilib/Control/Pagination.h/.cpp`，节点 `Pagination`，继承 `HBox` 的分页器：动态创建页码按钮、超出 `max_visible_count` 以 `…` 收纳并保留首尾、当前页选中高亮；页码变化 `AttachPageChanged` → `kEventValueChanged`，`pEventData` 指向 `PaginationValue`。示例 `examples/controls/CarouselForm`） |
-| B8 | 富内容 Tooltip | `Tooltip` 仅纯文本（Windows 侧还是系统原生实现）；`Flyout` 地基已就绪，但未封装为富提示控件 | 中 | 待办 |
+| B8 | 富内容 Tooltip | `Tooltip` 仅纯文本；Windows 平台使用系统原生 Tooltip 实现，其他平台使用自绘 Tooltip；`Flyout` 地基已就绪，但未封装为富提示控件 | 中 | ❌ 不处理 |
 | B9 | 树表格 TreeGrid / 列筛选 | ListCtrl 规划中已明确取消（含内嵌树、分组折叠、L3 筛选），若出现企业报表需求需重新评估 | 低（按需） | ✅ 已完成（改为**新增独立控件**落地，不改动 `ListCtrl`；`duilib/Control/TreeGrid.h/.cpp`，节点 `TreeGrid`：继承 `VBox`，内部由"固定不滚动的表头 + 自带纵向滚动条的列表体（VListBox）"组成，表头与数据行复用同一列宽数组天然逐列对齐；`column_title`/`column_width`/`column_id`/`column_align` 配置多列，`tree_column`+`indent` 控制层级缩进（缩进用树列单元格内嵌缩进占位，其它列不错位）；展开/收起切换子孙行可见性，右键 `Left`/`Right` 收起/展开；`multi_select` 行多选；`check_mode`+`check_cascade` 行首复选框父子三态级联（全选/部分选/未选）；数据节点 `TreeGridNode` 提供增删查与 `SetCellText`/`SetUserData`；勾选变化 `AttachCheckChanged` → `kEventTreeGridCheckChanged`（`pEventData` 指向 `TreeGridCheckValue`），其余事件 `kEventExpand`/`kEventCollapse`/`kEventClick`/`kEventSelect`/`kEventUnSelect`/`kEventSelChanged`（`pEventData` 为 `TreeGridNode*`）；主题 `tree_grid` 及子类走语义色，展开箭头与三态复选框复用 `${PATH_TREE}`/`${PATH_CHECKBOX}` 既有 SVG；示例 `examples/controls/TreeGridForm`。**L3 列筛选不做**） |
 | B10 | 打印 / 导出通道 | 除 ListCtrl 的 CSV 导出外，无统一打印与导出（PDF / XLSX）通路 | 低 | ❌ 不开发（无使用场景） |
 
 ### 2.2 既有控件的补强点
+
+本节列出的既有控件补强点**均不处理**。
 
 | 控件 | 补强建议 |
 | :--- | :--- |

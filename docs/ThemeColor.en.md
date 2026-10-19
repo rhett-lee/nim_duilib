@@ -265,7 +265,7 @@ When the user sets a new accent color new_accent = #RGB:
     comment_en="Light primary variant - for hover states"
 />
 <ThemeColor 
-    name="color_blue_deep" 
+    name="color_blue_dark" 
     value="#FF005A9E" 
     role="primary_dark"
     derived_from="color_blue"
@@ -409,7 +409,7 @@ To add a new custom theme:
 | Category | Covered color examples | Count | Completeness |
 |-----|--------------|------|-------|
 | **Basic colors** | color_white, color_black, color_gray* | 19 | ✅ Complete |
-| **Window system** | bg_window_dark, bg_window_light, bg_titlebar, border_window | 4 | ✅ Complete |
+| **Window system** | bg_window_main, bg_window_card, bg_titlebar, border_window | 4 | ✅ Complete |
 | **Text system** | text_default, text_disabled, text_link_*, text_menu_bar | 14 | ✅ Complete |
 | **Button controls** | bg_btn_*, border_btn_*, text_btn_* (normal + primary buttons) | 16 | ✅ Complete |
 | **Menu system** | bg_menu, bg_menu_item_*, bg_menu_bar_* | 7 | ✅ Complete |
@@ -420,38 +420,38 @@ To add a new custom theme:
 | **Property grid** | bg_property_grid_*, text_property_grid_* | 10 | ✅ Complete |
 | **Address bar** | bg_address_bar, bg_address_bar_btn_* | 3 | ✅ Complete |
 | **Semantic colors** | color_red*, color_green* (error/success states) | 5 | ✅ Complete |
-| **Split lines** | color_splitline_* | 3 | ✅ Complete |
-| **Progress bar** | color_progress | 1 | ✅ Present |
+| **Split lines** | border_split_level* | 3 | ✅ Complete |
+| **Progress bar** | bg_progress | 1 | ✅ Present |
 
-### 7.2 Suggested Additional Color Definitions ⭐
+### 7.2 Adoption Status of the Suggested Color Definitions ⭐
 
-The following colors are **missing** from the existing 119 definitions; it is suggested to add them to enhance the completeness and flexibility of the theme:
+The colors below were suggested additions in the v2.0 plan. **Most of them have already been adopted in the current themes (`global.xml` of `color_light` / `color_dark`)**, so no further addition is needed.
 
-| Missing color name | Suggested value (light/dark) | Usage description | Importance |
-|-------------|-------------------|---------|-------|
-| `bg_container` | `#FFF8F8F8` / `#FF202020` | **General container background** - default background for dialogs, panels, group boxes | 🔴 High |
-| `bg_content` | `#FFFFFFFF` / `#FF1A1A1A` | **Content area background** - base background for scrollable content areas | 🔴 High |
-| `bg_header` | `#FFF0F0F0` / `#FF2D2D2D` | **Header background** - header background for lists/trees/tables (currently reuses bg_titlebar) | 🟡 Medium |
-| `bg_overlay` | `#80000000` / `#80000000` | **Overlay background** - black semi-transparent overlay for popups/drawers (Alpha=128) | 🟡 Medium |
-| `bg_tooltip` | `#FFFFFFE6` / `#FF2B2B2B` | **Tooltip background** - Tooltip control background | 🟡 Medium |
-| `bg_selected_inactive` | `#FFE8E8E8` / `#FF3D3D3D` | **Inactive selected state background** - background of selected items when focus is lost | 🟡 Medium |
-| `border_focus_ring` | `#4D0078D4` / `#4D3B82F6` | **Focus ring / glow** - high-contrast focus indicator (semi-transparent) | 🟡 Medium |
-| `shadow_control` | ~~N/A~~ | Control shadow (not a color value, requires DPI awareness) | ⚪ Low |
-| `text_selected` | `#FFFFFFFF` / `#FFFFFFFF` | **Selected text color** - foreground color when text is selected | 🟡 Medium |
-| `bg_text_highlight` | `#FFFFFF00` / `#FFE5A000` | **Text highlight background** - highlight marker for search/find results | ⚪ Low |
-| `bg_scrollbar` | `#FFE0E0E0` / `#FF434343` | **Scrollbar background** | 🟡 Medium |
-| `bg_scrollbar_thumb` | `#FFB0B0B0` / `#FF6A6A6A` | **Scrollbar thumb background** | 🟡 Medium |
-| `bg_scrollbar_thumb_hover` | `#FF808080` / `#FF858585` | **Scrollbar thumb hover state** | 🟡 Medium |
+**Already adopted (10 items)**:
 
-**Total colors after supplement**: 119 + 13 = **132**
+| Planned color name | Actual adopted name | Usage description |
+|---------|-----------|---------|
+| `bg_container` | `bg_container` | **General container background** - default background for dialogs, panels, group boxes |
+| `bg_content` | `bg_content` | **Content area background** - base background for scrollable content areas |
+| `bg_header` | `bg_header` | **Header background** - header background for lists/trees/tables |
+| `bg_overlay` | `bg_overlay` | **Overlay background** - semi-transparent overlay for popups/drawers |
+| `bg_tooltip` | `bg_tooltip` | **Tooltip background** - Tooltip control background |
+| `border_focus_ring` | `border_focus_ring` | **Focus ring / glow** - high-contrast focus indicator |
+| `text_selected` | `text_selected` | **Selected text color** - foreground color when text is selected |
+| `bg_scrollbar` | `bg_scrollbar_normal` / `bg_scrollbar_hovered` | **Scrollbar background** (adopted, split by state) |
+| `bg_scrollbar_thumb` | `bg_scrollbar_thumb_normal` / `bg_scrollbar_thumb_hovered` | **Scrollbar thumb background** (adopted, split by state) |
+| `bg_scrollbar_thumb_hover` | `bg_scrollbar_thumb_hovered` | **Scrollbar thumb hover state** |
 
-### 7.3 Priority Description for Missing Color Definitions
+> `shadow_control` is N/A: a control shadow is not a color value; it requires DPI awareness and is handled directly by the framework.
 
-| Priority | Colors | Reason |
-|-------|------|------|
-| 🔴 High | bg_container, bg_content | Base background for most controls; currently relies on bg_window_dark/light but with unclear semantics |
-| 🟡 Medium | bg_header, bg_tooltip, scrollbar* | Improve theme completeness; some controls currently reuse similar colors |
-| ⚪ Low | shadow, highlight | Used in specific scenarios; partially rendered by the system |
+### 7.3 Priority Description for the Still-Missing Color Definitions
+
+The following 2 items are still missing from the current themes; it is suggested to add them to enhance the completeness and flexibility of the theme:
+
+| Priority | Colors | Suggested value (light/dark) | Reason |
+|-------|------|-------------------|------|
+| � Medium | `bg_selected_inactive` | `#FFE8E8E8` / `#FF3D3D3D` | **Inactive selected state background** - background of selected items when focus is lost |
+| ⚪ Low | `bg_text_highlight` | `#FFFFFF00` / `#FFE5A000` | **Text highlight background** - highlight marker for search/find results, only used in specific scenarios |
 
 ---
 

@@ -48,7 +48,7 @@ if hasattr(sys.stdout, "reconfigure"):
 # 文档中会出现的、长得像颜色名但其实不是颜色的东西（XML 属性名 / 目录名 / 事件名）
 EXCLUDE_IDENTS = {
     # XML 属性名
-    "border_size", "border_color", "border_round",
+    "border_size", "border_color", "border_round", "border_dash_style",
     "text_align", "text_padding", "text_id", "text_changed", "text_color",
     "text_left", "text_right",
     # 目录名 / 分类值
@@ -101,6 +101,9 @@ def build_index(repo: Path) -> dict:
         # class DUILIB_API Xxx / class Xxx / struct Xxx / typedef ... Xxx; / using Xxx =
         idx["C++ 类名"].update(re.findall(r"class\s+(?:DUILIB_API\s+)?([A-Za-z_]\w*)", text))
         idx["C++ 类名"].update(re.findall(r"struct\s+(?:DUILIB_API\s+)?([A-Za-z_]\w*)", text))
+        # enum Xxx / enum class Xxx / enum DUILIB_API Xxx ——枚举名同样是文档里会出现、
+        # 且必须以 ui:: 限定的公开类型名（匿名枚举以 "{" 开头，不会被此正则捕获）
+        idx["C++ 类名"].update(re.findall(r"enum\s+(?:class\s+)?(?:DUILIB_API\s+)?([A-Za-z_]\w*)", text))
         idx["C++ 类名"].update(re.findall(r"typedef\s+[^;]*?\b([A-Za-z_]\w*)\s*;", text))
         idx["C++ 类名"].update(re.findall(r"using\s+([A-Za-z_]\w*)\s*=", text))
         # 自由函数 / 函数模板（如 auto UiBind(F&&...)）——不是类但同样可调用
@@ -206,6 +209,10 @@ def scan_file(md: Path, idx: dict, fallback: list, repo: Path,
             allow |= bucket
     for m in INLINE_ALLOW_RE.finditer(text):
         allow.update(m.group(1).split())
+    # 文档自身定义的字体 ID（<Font id="...">）视为已存在：例如讲解 FontFile 用法时
+    # 由用户在示例里自定义的字体 ID（并非 global.xml 中的内置字体）
+    for fid in re.findall(r'<Font\s+id="([^"]+)"', text):
+        allow.add(fid)
 
     missing = []
     for lineno, line in enumerate(text.splitlines(), 1):

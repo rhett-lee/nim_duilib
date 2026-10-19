@@ -222,13 +222,13 @@ The above code defines a button common style named `btn_global_blue_80x30`, usin
 and sets different background images for the normal state, focus state, and pressed state respectively, and finally enables the animation effect. When we need to apply this common style to a button, we can write:
 
 ```xml
-<Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Buttons"/>
+<Button class="btn_global_blue_80x30" text="blue" tooltip_text="ui::Button"/>
 ```
 
 It should be noted that **the `class` attribute must be at the very front of all attributes**. When you need to override an attribute specified in a common style, you only need to redefine this attribute after the `class` attribute. For example, if I want my button not to use the font color of the common style, I can write:
 
 ```xml
-<Button class="btn_global_blue_80x30" font="system_bold_12" text="ui::Buttons"/>
+<Button class="btn_global_blue_80x30" font="system_bold_12" text="ui::Button"/>
 ```
 
 When defining a common style, if the attribute value is enclosed in double quotes, you cannot use double quotes inside it again (if you really need to, you can use the XML escape character for double quotes). In this case, you can use single quotes or curly braces to improve readability. For example, the following defines a common style for a combo box, using single quotes (padding='1,1,1,1') and curly braces (padding={1,0,0,0}).

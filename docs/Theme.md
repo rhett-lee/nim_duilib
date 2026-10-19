@@ -41,16 +41,12 @@ resources/
     │
     ├── color_light/            # 浅色主题（颜色定义）
     │   └── global.xml
-    ├── color_dark/             # 深色主题（颜色定义）
-    │   └── global.xml
-    ├── color_aquatic/          # 其他可选主题
-    ├── color_desert/
-    ├── color_dusk/
-    └── color_night_sky/
+    └── color_dark/             # 深色主题（颜色定义）
+        └── global.xml
 ```
 
 - `default/`：存放**公用资源**（图片、控件 Class、字体定义等），**所有主题共享**。
-- `color_xxx/`：每个子目录代表一套**颜色主题**，目录下放 `global.xml`，其中主要包含 `<Theme>` 节点和大量 `<ThemeColor>` 颜色定义。
+- `color_light/`：每个子目录代表一套**颜色主题**，目录下放 `global.xml`，其中主要包含 `<Theme>` 节点和大量 `<ThemeColor>` 颜色定义。
 - 资源查找顺序：先在当前**颜色主题目录**查找 → 再到**图标主题目录**查找 → 最后回退到 `default/`，详见 [主题资源查找](#_7-主题资源查找)。
 
 ---
@@ -398,17 +394,17 @@ ui::GlobalManager::Instance().Startup(resParam);
         <HBox bkcolor="bg_titlebar" height="36" width="stretch">
             <Label text="标题" normal_text_color="text_default" font="system_bold"/>
         </HBox>
-        <Button class="btn_global_blue_80x30_normal" text="确定" normal_text_color="text_link_normal"/>
+        <Button class="btn_global_blue_80x30" text="确定" normal_text_color="text_link_normal"/>
     </VBox>
 </Window>
 ```
 
-`btn_global_blue_80x30_normal` 的 Class 样式可在 `default/global.xml` 或 `color_xxx/global.xml` 中定义，可使用 `bkcolor="color_blue"` 等主题色实现"随主题变色"。
+`btn_global_blue_80x30` 的 Class 样式可在 `default/global.xml` 或 `color_light/global.xml` 中定义，可使用 `bkcolor="color_blue"` 等主题色实现"随主题变色"。
 
 ### 10.3 用 `Event` 动态切换主题
 
 ```xml
-<Button class="btn_global_gray_80x30_normal" text="切换深色">
+<Button class="btn_global_gray_80x30" text="切换深色">
     <Event type="click" receiver="#window#" apply_attribute="0" />
 </Button>
 ```
@@ -438,7 +434,7 @@ btn->AttachClick([](const ui::EventArgs&) {
 4. **调整 SVG 颜色替换**：通过 `svg_replace_colors="#B5B5B5|color_gray_light"` 等机制，让 SVG 图标在不同主题下显示不同颜色（详见 [Global.md#图片](./Global.md#_5-图片包括动画图片)）。
 5. **将主题目录放到 `themes/` 下**，启动时或运行时通过路径引用即可。
 
-> 主题目录名即为 `themePath`（如 `color_mybrand`），与代码中 `FilePath(_T("color_mybrand"))` 一一对应。
+> 主题目录名即为 `themePath`（如 `color_dark`），与代码中 `FilePath(_T("color_dark"))` 一一对应。
 
 ---
 

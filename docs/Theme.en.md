@@ -43,16 +43,12 @@ resources/
     │
     ├── color_light/            # Light theme (color definitions)
     │   └── global.xml
-    ├── color_dark/             # Dark theme (color definitions)
-    │   └── global.xml
-    ├── color_aquatic/          # Other optional themes
-    ├── color_desert/
-    ├── color_dusk/
-    └── color_night_sky/
+    └── color_dark/             # Dark theme (color definitions)
+        └── global.xml
 ```
 
 - `default/`: stores **shared resources** (images, control Class, font definitions, etc.), **shared by all themes**.
-- `color_xxx/`: each subdirectory represents a **color theme**; a `global.xml` is placed in the directory, which mainly contains the `<Theme>` node and a large number of `<ThemeColor>` color definitions.
+- `color_light/`: each subdirectory represents a **color theme**; a `global.xml` is placed in the directory, which mainly contains the `<Theme>` node and a large number of `<ThemeColor>` color definitions.
 - Resource lookup order: first look in the current **color theme directory** -> then look in the **icon theme directory** -> finally fall back to `default/`, see [Theme Resource Lookup](#7-theme-resource-lookup) for details.
 
 ---
@@ -400,17 +396,17 @@ ui::GlobalManager::Instance().Startup(resParam);
         <HBox bkcolor="bg_titlebar" height="36" width="stretch">
             <Label text="Title" normal_text_color="text_default" font="system_bold"/>
         </HBox>
-        <Button class="btn_global_blue_80x30_normal" text="OK" normal_text_color="text_link_normal"/>
+        <Button class="btn_global_blue_80x30" text="OK" normal_text_color="text_link_normal"/>
     </VBox>
 </Window>
 ```
 
-The Class style for `btn_global_blue_80x30_normal` can be defined in `default/global.xml` or `color_xxx/global.xml`, and theme colors such as `bkcolor="color_blue"` can be used to achieve "color change with the theme".
+The Class style for `btn_global_blue_80x30` can be defined in `default/global.xml` or `color_light/global.xml`, and theme colors such as `bkcolor="color_blue"` can be used to achieve "color change with the theme".
 
 ### 10.3 Dynamically Switching Themes with `Event`
 
 ```xml
-<Button class="btn_global_gray_80x30_normal" text="Switch to Dark">
+<Button class="btn_global_gray_80x30" text="Switch to Dark">
     <Event type="click" receiver="#window#" apply_attribute="0" />
 </Button>
 ```
@@ -440,7 +436,7 @@ To add a new theme, it is recommended to follow these steps:
 4. **Adjust SVG color replacement**: through mechanisms such as `svg_replace_colors="#B5B5B5|color_gray_light"`, allow SVG icons to display different colors under different themes (see [Global.md#Image](./Global.en.md#5-image-including-animated-images)).
 5. **Place the theme directory under `themes/`**, and reference it by path at startup or runtime.
 
-> The theme directory name is the `themePath` (e.g., `color_mybrand`), which corresponds one-to-one with `FilePath(_T("color_mybrand"))` in the code.
+> The theme directory name is the `themePath` (e.g., `color_dark`), which corresponds one-to-one with `FilePath(_T("color_dark"))` in the code.
 
 ---
 

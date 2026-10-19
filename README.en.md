@@ -143,7 +143,7 @@ English | [简体中文](README.md)
     <tr><td align="left">2. Optimized the animation drawing process and merged timer trigger events to avoid UI lag when playing control animations or animation images</td></tr>
     <tr><td align="left">3. The virtual-list-based ListBox control and its associated controls: by optimizing the implementation mechanism, both usability and performance were significantly improved</td></tr>
     <tr>
-        <td rowspan="15">Example Program Improvements</td>
+        <td rowspan="16">Example Program Improvements</td>
         <td align="left">1. examples/ColorPicker: added a color picker example program</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl: added a list example program demonstrating the list's distinctive features</td></tr>
@@ -159,7 +159,8 @@ English | [简体中文](README.md)
     <tr><td align="left">12. examples/ChildWindow: demonstrates the child window control</td></tr>
     <tr><td align="left">13. examples/XmlPreview: tests the XML file UI preview feature (testing the XmlBox container)</td></tr>
     <tr><td align="left">14. examples/ColorTheme: a preview and test program for color themes</td></tr>
-    <tr><td align="left">15. Other example programs: most have undergone code compatibility modifications and optimizations, allowing the example programs to also be used as test programs</td></tr>
+    <tr><td align="left">15. examples/panel: demonstrates the titled panel container (Pane/PanelHBox/PanelVBox), including collapse/expand animation, title-bar slot buttons, pre-collapse veto and dynamically modifying the title</td></tr>
+    <tr><td align="left">16. Other example programs: most have undergone code compatibility modifications and optimizations, allowing the example programs to also be used as test programs</td></tr>
     <tr>
         <td rowspan="8">Documentation Improvements</td>
         <td align="left">1. Reorganized the README.md and the documentation in the docs subdirectory, making it easier for readers to understand the GUI library's functions and usage, and easier to get started</td>

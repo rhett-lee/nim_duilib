@@ -263,7 +263,7 @@ adjust="lightness:+20,saturation:-15"
     comment_en="Light primary variant - for hover states"
 />
 <ThemeColor 
-    name="color_blue_deep" 
+    name="color_blue_dark" 
     value="#FF005A9E" 
     role="primary_dark"
     derived_from="color_blue"
@@ -407,7 +407,7 @@ bin/resources/themes/
 | 分类 | 已覆盖颜色示例 | 数量 | 完整度 |
 |-----|--------------|------|-------|
 | **基础色彩** | color_white, color_black, color_gray* | 19 | ✅ 完整 |
-| **窗口系统** | bg_window_dark, bg_window_light, bg_titlebar, border_window | 4 | ✅ 完整 |
+| **窗口系统** | bg_window_main, bg_window_card, bg_titlebar, border_window | 4 | ✅ 完整 |
 | **文本系统** | text_default, text_disabled, text_link_*, text_menu_bar | 14 | ✅ 完整 |
 | **按钮控件** | bg_btn_*, border_btn_*, text_btn_*（普通+主要按钮） | 16 | ✅ 完整 |
 | **菜单系统** | bg_menu, bg_menu_item_*, bg_menu_bar_* | 7 | ✅ 完整 |
@@ -418,38 +418,38 @@ bin/resources/themes/
 | **属性网格** | bg_property_grid_*, text_property_grid_* | 10 | ✅ 完整 |
 | **地址栏** | bg_address_bar, bg_address_bar_btn_* | 3 | ✅ 完整 |
 | **语义颜色** | color_red*, color_green*（错误/成功状态） | 5 | ✅ 完整 |
-| **分割线** | color_splitline_* | 3 | ✅ 完整 |
-| **进度条** | color_progress | 1 | ✅ 存在 |
+| **分割线** | border_split_level* | 3 | ✅ 完整 |
+| **进度条** | bg_progress | 1 | ✅ 存在 |
 
-### 7.2 建议补充的颜色定义 ⭐
+### 7.2 颜色补充项的落地情况 ⭐
 
-以下颜色在现有 119 个定义中**缺失**，建议补充以增强主题的完整性和灵活性：
+下表颜色曾是 v2.0 规划中建议补充的定义，**绝大多数已在当前主题（`color_light` / `color_dark` 的 `global.xml`）中落地**，无需再补充。
 
-| 缺失颜色名称 | 建议值（浅色/深色） | 用途说明 | 重要性 |
-|-------------|-------------------|---------|-------|
-| `bg_container` | `#FFF8F8F8` / `#FF202020` | **通用容器背景** - 对话框、面板、分组框的默认背景 | 🔴 高 |
-| `bg_content` | `#FFFFFFFF` / `#FF1A1A1A` | **内容区域背景** - 可滚动内容区域的基础背景 | 🔴 高 |
-| `bg_header` | `#FFF0F0F0` / `#FF2D2D2D` | **页眉背景** - 列表/树/表格的表头背景（当前复用 bg_titlebar） | 🟡 中 |
-| `bg_overlay` | `#80000000` / `#80000000` | **蒙层背景** - 弹窗/抽屉的黑色半透明蒙层（Alpha=128） | 🟡 中 |
-| `bg_tooltip` | `#FFFFFFE6` / `#FF2B2B2B` | **工具提示背景** - Tooltip 控件背景 | 🟡 中 |
-| `bg_selected_inactive` | `#FFE8E8E8` / `#FF3D3D3D` | **非活动选中态背景** - 失去焦点时的选中项背景 | 🟡 中 |
-| `border_focus_ring` | `#4D0078D4` / `#4D3B82F6` | **焦点环/光晕** - 高对比度焦点指示器（半透明） | 🟡 中 |
-| `shadow_control` | ~~不适用~~ | 控件阴影（非颜色值，需 DPI 感知） | ⚪ 低 |
-| `text_selected` | `#FFFFFFFF` / `#FFFFFFFF` | **选中文本颜色** - 文本选中时的前景色 | 🟡 中 |
-| `bg_text_highlight` | `#FFFFFF00` / `#FFE5A000` | **文本高亮背景** - 搜索/查找结果的高亮标记 | ⚪ 低 |
-| `bg_scrollbar` | `#FFE0E0E0` / `#FF434343` | **滚动条背景** | 🟡 中 |
-| `bg_scrollbar_thumb` | `#FFB0B0B0` / `#FF6A6A6A` | **滚动条滑块背景** | 🟡 中 |
-| `bg_scrollbar_thumb_hover` | `#FF808080` / `#FF858585` | **滚动条滑块悬浮态** | 🟡 中 |
+**已落地（10 项）**：
 
-**补充后总颜色数**：119 + 13 = **132 个**
+| 规划色名 | 实际落地名 | 用途说明 |
+|---------|-----------|---------|
+| `bg_container` | `bg_container` | **通用容器背景** - 对话框、面板、分组框的默认背景 |
+| `bg_content` | `bg_content` | **内容区域背景** - 可滚动内容区域的基础背景 |
+| `bg_header` | `bg_header` | **页眉背景** - 列表/树/表格的表头背景 |
+| `bg_overlay` | `bg_overlay` | **蒙层背景** - 弹窗/抽屉的半透明蒙层 |
+| `bg_tooltip` | `bg_tooltip` | **工具提示背景** - Tooltip 控件背景 |
+| `border_focus_ring` | `border_focus_ring` | **焦点环/光晕** - 高对比度焦点指示器 |
+| `text_selected` | `text_selected` | **选中文本颜色** - 文本选中时的前景色 |
+| `bg_scrollbar` | `bg_scrollbar_normal` / `bg_scrollbar_hovered` | **滚动条轨道背景**（按状态拆分落地） |
+| `bg_scrollbar_thumb` | `bg_scrollbar_thumb_normal` / `bg_scrollbar_thumb_hovered` | **滚动条滑块背景**（按状态拆分落地） |
+| `bg_scrollbar_thumb_hover` | `bg_scrollbar_thumb_hovered` | **滚动条滑块悬浮态** |
 
-### 7.3 缺失颜色的定义优先级说明
+> `shadow_control` 不适用：控件阴影并非颜色值，需 DPI 感知，由框架直接处理。
 
-| 优先级 | 颜色 | 理由 |
-|-------|------|------|
-| 🔴 高 | bg_container, bg_content | 多数控件的基础背景，当前依赖于 bg_window_dark/light 但语义不明确 |
-| 🟡 中 | bg_header, bg_tooltip, scrollbar* | 提升主题完整性，当前部分控件复用相近颜色 |
-| ⚪ 低 | shadow, highlight | 特定场景使用，部分由系统渲染 |
+### 7.3 仍缺失颜色的定义优先级说明
+
+以下 2 项在当前主题中仍缺失，建议补充以增强主题的完整性和灵活性：
+
+| 优先级 | 颜色 | 建议值（浅色/深色） | 理由 |
+|-------|------|-------------------|------|
+| � 中 | `bg_selected_inactive` | `#FFE8E8E8` / `#FF3D3D3D` | **非活动选中态背景** - 失去焦点时的选中项背景，补全选中反馈 |
+| ⚪ 低 | `bg_text_highlight` | `#FFFFFF00` / `#FFE5A000` | **文本高亮背景** - 搜索/查找结果的高亮标记，仅特定场景使用 |
 
 ---
 

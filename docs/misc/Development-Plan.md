@@ -152,12 +152,14 @@ M4 生态（远期）             ← 打包发布、系统级能力
   | `docs/misc/*.md`（6 个文件） | 35 处 `file:` 协议的本机绝对路径链接 —— 只在作者本机可点 | ✅ 改为按文件深度计算的相对路径 |
   | `docs/misc/Control-Roadmap.*.md` | 跨目录引用 `docs/` 下文档时缺 `../` 前缀 | ✅ 11+11 处补前缀 |
   | `docs/misc/ListCtrl-Roadmap.*.md`、`Project-Audit.md` | 在 `misc/` 下引用同目录文档时多套了一层 `misc/`；另有指向仓库根的层级错位 | ✅ 共 13 处修正 |
-- **豁免名单**（`scripts/verify_allowlist.txt`，均为示例占位符/通配写法/未落地规划项，非漂移）：
-  `Checkbox`、`Buttons`（`tooltiptext="ui::..."` 双语文案占位符）、`roboto_mono_12`（自定义字体 ID 示例）、
-  `border_dash_style`（属性名而非色名）、`color_aquatic`/`color_desert`/`color_dusk`/`color_night_sky`/`color_xxx`/`color_mybrand`/`color_blue_deep`（自定义主题举例）、
-  `bg_window_dark`/`bg_window_light`/`color_splitline_`（通配写法）、`color_progress`（实际为 `bg_progress`）、
-  `bg_selected_inactive`/`bg_text_highlight`（ThemeColor §7.2「建议补充」章节，尚未落地）、
-  `btn_global_*_80x30_normal`（示例中自定义的 Class 名）、
+- **豁免名单**（`scripts/verify_allowlist.txt`）：
+  C4 后已把其中的**真实漂移公开修复**，不再用豁免掩盖：`border_dash_style` 属 XML 属性名，已纳入 `verify_docs.py` 的 `EXCLUDE_IDENTS`；
+  `roboto_mono_12` 是文档示例内自行定义的字体 ID，已让脚本接受"同文档内定义"的字体引用；
+  `tooltiptext` 里带 `ui::` 前缀的假类名占位符、以及 `Theme*.md` 中的虚构主题目录 / `Class` 名 / 色名，均已按源码实际名改写
+  （如 `bg_window_main`、`bg_window_card`、`border_split_level*`、`bg_progress`、`color_blue_dark`）。
+  `verify_docs.py` 的类名索引原先只收集 `class`/`struct`，遗漏 `enum`，已补上（`EasingFunctionType`、`ListCtrlSubItemSortFlag` 等真实枚举不再误报）。
+  ThemeColor §7.2「建议补充的颜色」表亦按源码实况改写为「落地情况」：13 项中 10 项现已落地（部分按状态拆分为 `bg_scrollbar_normal` / `bg_scrollbar_thumb_hovered` 等），仅 2 项仍缺失。
+  仍保留豁免的只有真正**尚未落地**的名字：`bg_selected_inactive`/`bg_text_highlight`（ThemeColor §7.3「仍缺失颜色」章节）、
   `kEventThemeChanged`/`kEventLanguageChanged`（E 组待实现项）。
   名单按 `<glob> :: 名字1 名字2` 分文件登记，**不写入 markdown 正文**（HTML 注释会破坏文档结构）。
 - **验收结果**（2026-10-17）：
