@@ -411,7 +411,7 @@ bool ControlMovableT<T>::IsInDraggableArea(const UiPoint& ptMouse) const
     if (!rect.ContainsPt(pt)) {
         return false;
     }
-    if (!m_rcNonDraggableMargin.IsEmpty() || !m_rcNonDraggableMargin.IsEmpty()) {
+    if (!m_rcNonDraggableMargin.IsEmpty() || !m_rcDraggableBorder.IsEmpty()) {
         if (!m_rcNonDraggableMargin.IsEmpty()) {
             UiRect rc = rect;
             UiMargin rcMargin = m_rcNonDraggableMargin;
