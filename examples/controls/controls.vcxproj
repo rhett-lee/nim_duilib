@@ -167,6 +167,7 @@
     <ClInclude Include="StatusBarForm.h" />
     <ClInclude Include="ToolBarForm.h" />
     <ClInclude Include="RangeSliderForm.h" />
+    <ClInclude Include="StepperForm.h" />
     <ClInclude Include="ProgressForm.h" />
     <ClInclude Include="TabCtrlForm.h" />
     <ClInclude Include="ControlForm.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="StatusBarForm.cpp" />
     <ClCompile Include="ToolBarForm.cpp" />
     <ClCompile Include="RangeSliderForm.cpp" />
+    <ClCompile Include="StepperForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />
     <ClCompile Include="TabCtrlForm.cpp" />
     <ClCompile Include="ControlForm.cpp" />

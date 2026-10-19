@@ -861,6 +861,82 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Stepper 控件（向导步骤条）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| step_title |  | string | 各步骤标题，多条之间用 `|` 分隔，如"选择安装位置\|许可协议\|安装中\|完成" |
+| step_title_id |  | string | 各步骤标题的多语言 ID（`|` 分隔），语言切换时自动刷新 |
+| step_desc |  | string | 各步骤描述，多条之间用 `|` 分隔 |
+| step_desc_id |  | string | 各步骤描述的多语言 ID（`|` 分隔），语言切换时自动刷新 |
+| current / current_index | 0 | int | 当前步骤索引（0 起），位于其前的步骤显示为已完成 |
+| direction / orientation | horizontal | string | 排列方向：`horizontal`（水平，默认）/ `vertical`（垂直） |
+| click_to_jump | true | bool | 鼠标点击步骤是否跳转到该步骤 |
+| node_size | 24 | int | 节点直径（像素，自动 DPI 缩放） |
+| disabled_steps |  | string | 禁用步骤索引列表，用 `|` 或 `,` 分隔，如"2\|3"（禁用步骤不可跳转） |
+| node_color_pending / node_color_active / node_color_completed / node_color_disabled | text_muted / color_accent / color_success / border_control_normal | string | 各状态节点颜色（语义色名或颜色值） |
+| connector_color | border_control_normal | string | 未完成段连接线颜色 |
+| connector_active_color | color_success | string | 已完成段连接线颜色 |
+| title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | 各状态标题颜色 |
+| desc_color | text_muted | string | 描述文本颜色 |
+| title_font / desc_font | system_bold_14 / system_regular_12 | string | 标题 / 描述字体 ID |
+
+Stepper 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
+
+向导步骤条用于安装 / 注册 / 配置向导、审批流程等"流程状态机"场景（`Timeline` 是时间轴语义，不承载流程步骤）。
+步骤状态由"当前索引 + 禁用集合"派生：位于当前索引之前的步骤为已完成（节点显示对勾），当前步骤为进行中，之后的为待开始；被显式禁用的步骤优先显示为禁用态。连接线按已完成段着色。
+
+XML 示例：
+```xml
+<Stepper name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
+         step_title_id="STRID_S1_TITLE|STRID_S2_TITLE|STRID_S3_TITLE|STRID_S4_TITLE"
+         step_desc_id="STRID_S1_DESC|STRID_S2_DESC|STRID_S3_DESC|STRID_S4_DESC"/>
+```
+
+对应的 C++ 接口：
+```cpp
+size_t GetStepCount() const;                          //步骤数量
+const Step* GetStepAt(size_t index) const;            //指定步骤数据
+void AddStep(const Step& step);                       //追加步骤
+void AddStep(const DString& title, const DString& description = DString());
+bool InsertStep(size_t index, const Step& step);
+bool RemoveStepAt(size_t index);
+void ClearSteps();
+void SetSteps(const std::vector<Step>& steps);
+size_t GetCurrentIndex() const;                       //当前步骤索引（已钳位）
+void SetCurrentIndex(size_t nIndex);                  //设置当前步骤（自动钳位，索引变化触发事件）
+void SetCurrentIndexNoEvent(size_t nIndex);           //设置当前步骤（不触发事件）
+bool Next();  bool NextNoEvent();                     //前进到下一步（跳过禁用步骤，失败返回 false）
+bool Back();  bool BackNoEvent();                     //后退到上一步
+bool GoTo(size_t nIndex);  bool GoToNoEvent(size_t nIndex); //跳转到指定步骤（禁用步骤返回 false）
+void SetStepDisabled(size_t index, bool bDisabled);   //设置步骤是否禁用
+bool IsStepDisabled(size_t index) const;
+void SetDisabledSteps(const std::vector<size_t>& disabledSteps);
+StepStatus GetStepStatus(size_t index) const;         //派生状态：kPending/kActive/kCompleted/kDisabled
+void SetHorizontal(bool bHorizontal);                 //排列方向
+bool IsHorizontal() const;
+void SetNodeSize(int32_t nSize);                      //节点直径
+int32_t GetNodeSize() const;
+void SetClickToJump(bool bEnable);                    //点击步骤是否跳转
+bool IsClickToJump() const;
+void SetStateColor(StepStatus status, const DString& strColor);   //各状态节点颜色
+void SetTitleColor(StepStatus status, const DString& strColor);   //各状态标题颜色
+void SetConnectorColor(const DString& strColor);                  //未完成段连接线颜色
+void SetConnectorActiveColor(const DString& strColor);            //已完成段连接线颜色
+void SetDescColor(const DString& strColor);                       //描述文本颜色
+void AttachStepChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //当前步骤变化事件
+```
+
+值变化事件：`AttachStepChanged`——当前步骤变化时触发，事件编码为 `kEventValueChanged`（`wParam` 为 `2`），新/旧索引通过 `EventArgs::pEventData` 携带（指向 `Stepper::StepValue`，含 `currentIndex` / `oldIndex`，仅在本次回调派发期间有效，请勿保存该指针）：
+```cpp
+pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::Stepper::StepValue*>(msg.pEventData);
+        // 读取 pValue->currentIndex / pValue->oldIndex
+    }
+    return true;
+});
+```
+
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

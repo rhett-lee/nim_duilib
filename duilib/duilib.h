@@ -104,6 +104,7 @@
 #include "Control/Chart.h"
 #include "Control/Marquee.h"
 #include "Control/Timeline.h"
+#include "Control/Stepper.h"
 #include "Control/Slider.h"
 #include "Control/RangeSlider.h"
 

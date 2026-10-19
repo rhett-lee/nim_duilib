@@ -230,6 +230,7 @@ NavigationViewItem（继承 Control）属性：
 | Progress | Label | 进度条（水平/垂直、浮点值、圆角、缓冲 buffer、百分比、值动画、marquee，`duilib/Control/Progress.h`），XML 节点名 `Progress` |
 | Slider | Progress | 滑块（可拖动、步长、值变化事件，`duilib/Control/Slider.h`），XML 节点名 `Slider` |
 | RangeSlider | Progress | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间；最小间距/区间颜色/圆角；节点名 `RangeSlider`），`duilib/Control/RangeSlider.h` |
+| Stepper | Control | 向导步骤条（水平/垂直；节点显示序号或对勾，状态由当前索引+禁用集合派生：待开始/进行中/已完成/禁用；连接线按完成度着色；Next/Back/GoTo 与点击跳转；多语言 `step_title_id`/`step_desc_id`；节点名 `Stepper`），`duilib/Control/Stepper.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
@@ -615,6 +616,27 @@ C++ 接口：`SetPageStep/GetPageStep`、`SetClickToJump/IsClickToJump`、`SetSh
 双滑块范围控件：一条轨道上放置下限、上限两个滑块并高亮选中区间，常用于价格/时间区间筛选。上限复用基类值（value），下限独立维护（low_value）；下限钳位到 `[min, high - min_range]`、上限钳位到 `[low + min_range, max]`。
 C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHighValue/SetHighValueNoEvent`、`SetRange/SetRangeNoEvent`、`GetMinRange/SetMinRange`、`SetThumbSize/GetThumbSize`、`GetLowThumbRect/GetHighThumbRect`、`SetThumbStateImage/GetThumbStateImage`、`SetHighThumbStateImage/GetHighThumbStateImage`、`SetRangeColor/GetRangeColor`、`SetRangeRadius/GetRangeRadius`、`SetClickToJump/IsClickToJump`。
 事件：`AttachRangeChanged`——范围值变化时触发，事件编码 `kEventValueChanged`（wParam=1），low/high 由 `EventArgs::pEventData`（指向 `RangeSlider::RangeValue`）携带，仅在回调派发期间有效。
+
+### Stepper 属性(继承 Control)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| step_title / step_title_id |  | string | 各步骤标题（多条用 `|` 分隔；`_id` 为多语言 ID，语言切换自动刷新） |
+| step_desc / step_desc_id |  | string | 各步骤描述（多条用 `|` 分隔；`_id` 为多语言 ID） |
+| current / current_index | 0 | int | 当前步骤索引（0 起） |
+| direction / orientation | horizontal | string | 排列方向：horizontal（默认）/ vertical |
+| click_to_jump | true | bool | 鼠标点击步骤是否跳转 |
+| node_size | 24 | int | 节点直径（像素，DPI 自适应） |
+| disabled_steps |  | string | 禁用步骤索引列表（`|` 或 `,` 分隔，如 "2\|3"） |
+| node_color_pending / node_color_active / node_color_completed / node_color_disabled | text_muted / color_accent / color_success / border_control_normal | string | 各状态节点颜色 |
+| connector_color / connector_active_color | border_control_normal / color_success | string | 未完成段 / 已完成段连接线颜色 |
+| title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | 各状态标题颜色 |
+| desc_color | text_muted | string | 描述文本颜色 |
+| title_font / desc_font | system_bold_14 / system_regular_12 | string | 标题 / 描述字体 ID |
+
+向导步骤条（安装/注册/配置向导、审批流程）：状态由"当前索引 + 禁用集合"派生——索引小于当前者为已完成（节点显示对勾），等于者为进行中，大于者为待开始，被显式禁用者优先显示禁用态；连接线按完成度着色。
+C++ 接口：`GetStepCount/GetStepAt/AddStep/InsertStep/RemoveStepAt/ClearSteps/SetSteps`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`Next/NextNoEvent/Back/BackNoEvent/GoTo/GoToNoEvent`、`SetStepDisabled/IsStepDisabled/SetDisabledSteps/GetStepStatus`、`SetHorizontal/IsHorizontal`、`SetNodeSize/GetNodeSize`、`SetClickToJump/IsClickToJump`、`SetStateColor/SetTitleColor/SetConnectorColor/SetConnectorActiveColor/SetDescColor`。
+事件：`AttachStepChanged`——当前步骤变化时触发，事件编码 `kEventValueChanged`（wParam=2），`currentIndex`/`oldIndex` 由 `EventArgs::pEventData`（指向 `Stepper::StepValue`）携带，仅在回调派发期间有效。
 
 ### CircleProgress 属性(继承 Progress)
 
