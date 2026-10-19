@@ -1120,6 +1120,136 @@ void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID
 
 页码变化事件：`AttachPageChanged`——当前页码变化时触发，事件编码为 `kEventValueChanged`，新/旧页码通过 `EventArgs::pEventData` 携带（指向 `PaginationValue`，含 `page` / `oldPage`，仅在本次回调派发期间有效，请勿保存该指针）。
 
+## TreeGrid 控件（树表格）
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| column_title |  | string | 列标题列表，`\|` 分隔（每项可为多语言 ID 或字面文本） |
+| column_width |  | string | 列宽列表，`\|` 分隔（原始像素值，自动 DPI 缩放） |
+| column_id |  | string | 列 ID 列表，`\|` 分隔（缺省按列索引从 0 起） |
+| column_align |  | string | 列对齐列表，`\|` 分隔：left / center / right |
+| default_column_width | 120 | int | 未显式指定列宽时使用的默认列宽（原始像素） |
+| tree_column | 0 | int | 承载缩进与展开开关的树列索引 |
+| indent | 20 | int | 每一层级的缩进量（原始像素，自动 DPI 缩放） |
+| header_height | 30 | int | 表头高度（原始像素，自动 DPI 缩放） |
+| row_height | 28 | int | 数据行高（原始像素，自动 DPI 缩放） |
+| show_header | true | bool | 是否显示表头 |
+| multi_select | false | bool | 是否允许选择多行 |
+| check_mode | false | bool | 是否在行首显示复选框 |
+| check_cascade | true | bool | 父子复选框是否级联（关闭时仅改自身） |
+| expand_image_class | tree_grid_expand | string | 展开 / 收起开关引用的皮肤 Class（两态图片） |
+| check_image_class | tree_grid_check | string | 行复选框引用的皮肤 Class（三态图片） |
+| header_cell_class | tree_grid_header_cell | string | 表头标题单元格引用的皮肤 Class |
+| cell_class | tree_grid_cell | string | 数据单元格引用的皮肤 Class |
+| row_class | tree_grid_row | string | 数据行引用的皮肤 Class |
+
+TreeGrid 控件继承了 `VBox` 的全部布局属性；表头固定不滚动，列表体自带纵向滚动条。
+
+树表格在同一控件内呈现"可展开 / 收起的层级行 + 多列表格"，用于文件树、报表、组织架构等场景：
+
+- 控件内部由"固定不滚动的表头 + 自带滚动条的列表体"组成；表头与数据行复用同一套列宽数组，天然逐列对齐，末列右侧预留滚动条宽度避免重叠；
+- 展开 / 收起通过切换子孙行的可见性实现（隐藏的行不占空间），因此无需重建行；
+- 缩进使用"树列单元格内嵌缩进占位"实现，而非给整行加 padding，故其它列不会随层级错位；
+- 列标题支持多语言 ID：优先按语言管理器解析，未命中则按字面文本显示。
+
+XML 示例：
+```xml
+<TreeGrid class="tree_grid" name="tree_grid_demo" width="stretch" height="230"
+          column_title="名称|大小|类型" column_width="260|120|140" column_align="left|right|left"
+          tree_column="0" indent="18" header_height="30" row_height="26"
+          multi_select="true" check_mode="true" check_cascade="true"/>
+```
+
+对应的 C++ 接口：
+```cpp
+//列管理
+void AddColumn(const TreeGridColumn& column);            //追加一列（重建表头并刷新所有行）
+size_t GetColumnCount() const;
+bool GetColumn(size_t nColumnIndex, TreeGridColumn& column) const;
+bool SetColumnWidthById(size_t nColumnId, int32_t nWidth);
+int32_t GetColumnWidthById(size_t nColumnId) const;
+bool SetColumnTitleById(size_t nColumnId, const DString& title);
+void ClearColumns();
+
+//节点与数据
+TreeGridNode* GetRootNode() const;                       //虚拟根（不可见）
+TreeGridNode* AddNode(TreeGridNode* pParent);            //在父节点下新建并返回节点
+bool RemoveNode(TreeGridNode* pNode);
+void RemoveAllNodes();
+bool SetCellText(TreeGridNode* pNode, size_t nColumnId, const DString& text);
+DString GetCellText(TreeGridNode* pNode, size_t nColumnId) const;
+bool SetNodeRowHeight(TreeGridNode* pNode, int32_t nHeight);  //0 = 使用全局 row_height
+
+//展开 / 收起
+bool SetNodeExpand(TreeGridNode* pNode, bool bExpand, bool bTriggerEvent = false);
+bool IsNodeExpand(TreeGridNode* pNode) const;
+bool ExpandNode(TreeGridNode* pNode);                    //级联展开祖先 + 自身
+bool EnsureNodeVisible(TreeGridNode* pNode);             //展开祖先并滚动到可见
+
+//选择
+void SetMultiSelect(bool bMultiSelect);   bool IsMultiSelect() const;
+size_t GetSelectNodeCount() const;        TreeGridNode* GetSelectNodeAt(size_t nIndex) const;
+std::vector<TreeGridNode*> GetSelectNodes() const;
+bool IsNodeSelected(TreeGridNode* pNode) const;
+bool SelectNode(TreeGridNode* pNode, bool bSelect = true, bool bTriggerEvent = true);
+void SelectAllNodes(bool bSelect = true); void ClearSelectNodes();
+
+//复选框（级联三态）
+bool IsCheckMode() const;      void SetCheckMode(bool bCheckMode);
+bool IsCheckCascade() const;   void SetCheckCascade(bool bCascade);
+bool IsNodeChecked(TreeGridNode* pNode) const;
+bool SetNodeChecked(TreeGridNode* pNode, bool bChecked, bool bTriggerEvent = true);
+TreeGridCheck GetNodeCheckState(TreeGridNode* pNode) const;  //UnCheck / CheckedAll / CheckedPartly
+void SetAllNodesChecked(bool bChecked);
+std::vector<TreeGridNode*> GetCheckedNodes() const;
+```
+
+`TreeGridNode`（数据节点，不继承 `Control`）常用接口：
+```cpp
+TreeGridNode* AddChildNode(TreeGridNode* pNode);   bool RemoveChildNode(TreeGridNode* pNode);
+void RemoveAllChildNodes();
+size_t GetChildNodeCount() const;                  TreeGridNode* GetChildNode(size_t iIndex) const;
+size_t GetChildNodeIndex(TreeGridNode* pNode) const;
+size_t GetDescendantNodeCount() const;             bool IsChildOf(TreeGridNode* pNode) const;
+TreeGridNode* GetParentNode() const;               size_t GetDepth() const;
+bool IsExpand() const;   bool SetExpand(bool bExpand);
+bool IsChecked() const;  bool SetChecked(bool bChecked);   TreeGridCheck GetCheckState() const;
+bool IsSelected() const; bool SetSelected(bool bSelected);
+bool SetCellText(size_t nColumnId, const DString& text);   DString GetCellText(size_t nColumnId) const;
+void SetUserData(void* pData);                     void* GetUserData() const;
+```
+
+交互与事件：
+
+- 点击展开开关 → 切换展开并派发 `kEventExpand` / `kEventCollapse`；
+- 点击行复选框 → 级联勾选（不改变行选择）；`check_cascade` 打开时向下级联子孙、向上回溯祖先；
+- 点击行 → 选择该行并派发 `kEventClick`；
+- 键盘 `Left` / `Right` → 收起 / 展开当前选中节点（方向键上下沿用 `ListBox` 原生导航）。
+
+```cpp
+void AttachNodeExpanded(const EventCallback& callback, EventCallbackID callbackID = 0);  //kEventExpand
+void AttachNodeCollapsed(const EventCallback& callback, EventCallbackID callbackID = 0); //kEventCollapse
+void AttachNodeClick(const EventCallback& callback, EventCallbackID callbackID = 0);     //kEventClick
+void AttachNodeSelect(const EventCallback& callback, EventCallbackID callbackID = 0);   //kEventSelect
+void AttachNodeUnSelect(const EventCallback& callback, EventCallbackID callbackID = 0); //kEventUnSelect
+void AttachSelectChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //kEventSelChanged
+void AttachCheckChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //kEventTreeGridCheckChanged
+```
+
+上述前 6 个事件的 `EventArgs::pEventData` 均为 `TreeGridNode*`（发生事件的数据节点）；勾选变化事件携带的是 `TreeGridCheckValue`（含 `pNode` 与 `bChecked`，仅在本次回调派发期间有效，请勿保存该指针）：
+
+```cpp
+pTreeGrid->AttachCheckChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::TreeGridCheckValue*>(msg.pEventData);
+        // 读取 pValue->pNode / pValue->bChecked
+    }
+    return true;
+});
+```
+
+默认皮肤的 `tree_grid` 类及其子类（`tree_grid_header_cell` / `tree_grid_cell` / `tree_grid_row` / `tree_grid_expand` / `tree_grid_check`）均走语义色；展开箭头与三态复选框复用 `${PATH_TREE}` / `${PATH_CHECKBOX}` 下的既有 SVG 图片。
+
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

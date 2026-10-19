@@ -1120,6 +1120,136 @@ void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID
 
 Page-change event: `AttachPageChanged` — fired when the current page changes; encoded as `kEventValueChanged`, with the new / old page carried through `EventArgs::pEventData` (pointing to `PaginationValue` with `page` / `oldPage`; valid only during the callback dispatch, do not store the pointer).
 
+## Attributes of TreeGrid (tree grid)
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| column_title |  | string | Column title list, separated by `\|` (each item may be a language ID or literal text) |
+| column_width |  | string | Column width list, separated by `\|` (raw pixels, DPI-scaled automatically) |
+| column_id |  | string | Column ID list, separated by `\|` (defaults to the column index from 0) |
+| column_align |  | string | Column alignment list, separated by `\|`: left / center / right |
+| default_column_width | 120 | int | Default column width used when no explicit width is given (raw pixels) |
+| tree_column | 0 | int | Index of the tree column that carries the indent and the expand toggle |
+| indent | 20 | int | Indent per level (raw pixels, DPI-scaled automatically) |
+| header_height | 30 | int | Header height (raw pixels, DPI-scaled automatically) |
+| row_height | 28 | int | Data row height (raw pixels, DPI-scaled automatically) |
+| show_header | true | bool | Whether to show the header |
+| multi_select | false | bool | Whether multiple rows can be selected |
+| check_mode | false | bool | Whether to show a checkbox at the start of each row |
+| check_cascade | true | bool | Whether parent/child checkboxes cascade (when off, only the node itself changes) |
+| expand_image_class | tree_grid_expand | string | Skin Class referenced by the expand / collapse toggle (two-state images) |
+| check_image_class | tree_grid_check | string | Skin Class referenced by the row checkbox (tri-state images) |
+| header_cell_class | tree_grid_header_cell | string | Skin Class referenced by the header title cell |
+| cell_class | tree_grid_cell | string | Skin Class referenced by the data cell |
+| row_class | tree_grid_row | string | Skin Class referenced by the data row |
+
+TreeGrid inherits all layout attributes of `VBox`; the header is fixed and does not scroll, while the list body has its own vertical scrollbar.
+
+The tree grid presents "expandable / collapsible hierarchical rows + a multi-column table" in a single control, for file trees, reports, org charts, and similar scenarios:
+
+- Internally it consists of a "fixed non-scrolling header + a list body with its own scrollbar"; the header and data rows share the same column-width array, so they align column by column by construction, and the last column reserves the scrollbar width on the right to avoid overlap;
+- Expand / collapse is implemented by toggling the visibility of descendant rows (hidden rows take no space), so there is no need to rebuild rows;
+- Indentation is implemented via an "indent placeholder nested inside the tree-column cell" rather than padding on the whole row, so other columns never shift with the level;
+- Column titles support language IDs: resolved via the language manager first, otherwise the literal text is shown.
+
+XML example:
+```xml
+<TreeGrid class="tree_grid" name="tree_grid_demo" width="stretch" height="230"
+          column_title="Name|Size|Type" column_width="260|120|140" column_align="left|right|left"
+          tree_column="0" indent="18" header_height="30" row_height="26"
+          multi_select="true" check_mode="true" check_cascade="true"/>
+```
+
+Corresponding C++ interface:
+```cpp
+// Column management
+void AddColumn(const TreeGridColumn& column);            // appends a column (rebuilds the header and refreshes all rows)
+size_t GetColumnCount() const;
+bool GetColumn(size_t nColumnIndex, TreeGridColumn& column) const;
+bool SetColumnWidthById(size_t nColumnId, int32_t nWidth);
+int32_t GetColumnWidthById(size_t nColumnId) const;
+bool SetColumnTitleById(size_t nColumnId, const DString& title);
+void ClearColumns();
+
+// Nodes and data
+TreeGridNode* GetRootNode() const;                       // virtual root (invisible)
+TreeGridNode* AddNode(TreeGridNode* pParent);            // creates and returns a node under the parent
+bool RemoveNode(TreeGridNode* pNode);
+void RemoveAllNodes();
+bool SetCellText(TreeGridNode* pNode, size_t nColumnId, const DString& text);
+DString GetCellText(TreeGridNode* pNode, size_t nColumnId) const;
+bool SetNodeRowHeight(TreeGridNode* pNode, int32_t nHeight);  // 0 = use the global row_height
+
+// Expand / collapse
+bool SetNodeExpand(TreeGridNode* pNode, bool bExpand, bool bTriggerEvent = false);
+bool IsNodeExpand(TreeGridNode* pNode) const;
+bool ExpandNode(TreeGridNode* pNode);                    // expands ancestors + the node itself
+bool EnsureNodeVisible(TreeGridNode* pNode);             // expands ancestors and scrolls into view
+
+// Selection
+void SetMultiSelect(bool bMultiSelect);   bool IsMultiSelect() const;
+size_t GetSelectNodeCount() const;        TreeGridNode* GetSelectNodeAt(size_t nIndex) const;
+std::vector<TreeGridNode*> GetSelectNodes() const;
+bool IsNodeSelected(TreeGridNode* pNode) const;
+bool SelectNode(TreeGridNode* pNode, bool bSelect = true, bool bTriggerEvent = true);
+void SelectAllNodes(bool bSelect = true); void ClearSelectNodes();
+
+// Checkbox (cascading tri-state)
+bool IsCheckMode() const;      void SetCheckMode(bool bCheckMode);
+bool IsCheckCascade() const;   void SetCheckCascade(bool bCascade);
+bool IsNodeChecked(TreeGridNode* pNode) const;
+bool SetNodeChecked(TreeGridNode* pNode, bool bChecked, bool bTriggerEvent = true);
+TreeGridCheck GetNodeCheckState(TreeGridNode* pNode) const;  // UnCheck / CheckedAll / CheckedPartly
+void SetAllNodesChecked(bool bChecked);
+std::vector<TreeGridNode*> GetCheckedNodes() const;
+```
+
+Common `TreeGridNode` (data node, does not inherit `Control`) interfaces:
+```cpp
+TreeGridNode* AddChildNode(TreeGridNode* pNode);   bool RemoveChildNode(TreeGridNode* pNode);
+void RemoveAllChildNodes();
+size_t GetChildNodeCount() const;                  TreeGridNode* GetChildNode(size_t iIndex) const;
+size_t GetChildNodeIndex(TreeGridNode* pNode) const;
+size_t GetDescendantNodeCount() const;             bool IsChildOf(TreeGridNode* pNode) const;
+TreeGridNode* GetParentNode() const;               size_t GetDepth() const;
+bool IsExpand() const;   bool SetExpand(bool bExpand);
+bool IsChecked() const;  bool SetChecked(bool bChecked);   TreeGridCheck GetCheckState() const;
+bool IsSelected() const; bool SetSelected(bool bSelected);
+bool SetCellText(size_t nColumnId, const DString& text);   DString GetCellText(size_t nColumnId) const;
+void SetUserData(void* pData);                     void* GetUserData() const;
+```
+
+Interaction and events:
+
+- Click the expand toggle → toggles expansion and fires `kEventExpand` / `kEventCollapse`;
+- Click the row checkbox → cascading check (does not change row selection); when `check_cascade` is on, descendants cascade down and ancestors are updated up the chain;
+- Click a row → selects that row and fires `kEventClick`;
+- Keyboard `Left` / `Right` → collapses / expands the currently selected node (up/down keep the native `ListBox` navigation).
+
+```cpp
+void AttachNodeExpanded(const EventCallback& callback, EventCallbackID callbackID = 0);  // kEventExpand
+void AttachNodeCollapsed(const EventCallback& callback, EventCallbackID callbackID = 0); // kEventCollapse
+void AttachNodeClick(const EventCallback& callback, EventCallbackID callbackID = 0);     // kEventClick
+void AttachNodeSelect(const EventCallback& callback, EventCallbackID callbackID = 0);   // kEventSelect
+void AttachNodeUnSelect(const EventCallback& callback, EventCallbackID callbackID = 0); // kEventUnSelect
+void AttachSelectChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // kEventSelChanged
+void AttachCheckChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // kEventTreeGridCheckChanged
+```
+
+For the first 6 events above, `EventArgs::pEventData` is a `TreeGridNode*` (the data node on which the event occurred); the check-change event carries a `TreeGridCheckValue` (with `pNode` and `bChecked`; valid only during the callback dispatch, do not store the pointer):
+
+```cpp
+pTreeGrid->AttachCheckChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::TreeGridCheckValue*>(msg.pEventData);
+        // read pValue->pNode / pValue->bChecked
+    }
+    return true;
+});
+```
+
+The default skin's `tree_grid` class and its sub-classes (`tree_grid_header_cell` / `tree_grid_cell` / `tree_grid_row` / `tree_grid_expand` / `tree_grid_check`) all use semantic colors; the expand arrow and the tri-state checkbox reuse the existing SVGs under `${PATH_TREE}` / `${PATH_CHECKBOX}`.
+
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

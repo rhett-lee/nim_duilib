@@ -72,6 +72,9 @@
     <ClInclude Include="CarouselForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TreeGridForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -135,6 +138,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CarouselForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeGridForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">

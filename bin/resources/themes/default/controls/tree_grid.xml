@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="880,760" text="TreeGrid Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="680,520">
+    <VBox bkcolor="bg_window_main" height="stretch">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_TREE_GRID_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="34" padding="12,6,12,0">
+            <Label text_id="STRID_TREE_GRID_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 演示区 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="12,6,12,12">
+            <VBox height="auto" width="stretch">
+                <!-- 基础树表格：多列 + 展开收起 -->
+                <Label text_id="STRID_TREE_GRID_BASIC_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,2,0,6"/>
+                <TreeGrid class="tree_grid" name="tree_grid_basic" height="230" width="stretch"
+                          column_title="STRID_TREE_GRID_COL_NAME|STRID_TREE_GRID_COL_SIZE|STRID_TREE_GRID_COL_TYPE"
+                          column_width="260|120|140"
+                          column_align="left|right|left"
+                          tree_column="0" indent="18" header_height="30" row_height="26"/>
+                <HBox height="30" child_margin="8" margin="0,6,0,0">
+                    <Label name="tree_grid_basic_event" text_id="STRID_TREE_GRID_EVENT_NONE" text_color="text_default"
+                           valign="center" auto_tooltip="true" width="stretch"/>
+                    <Button class="btn_global" name="tree_grid_expand_all" text_id="STRID_TREE_GRID_EXPAND_ALL" width="90" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_collapse_all" text_id="STRID_TREE_GRID_COLLAPSE_ALL" width="90" height="28" border_round="3,3"/>
+                </HBox>
+
+                <!-- 勾选级联 + 多选 -->
+                <Label text_id="STRID_TREE_GRID_CHECK_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,14,0,6"/>
+                <TreeGrid class="tree_grid" name="tree_grid_check" height="250" width="stretch"
+                          column_title="STRID_TREE_GRID_COL_NAME|STRID_TREE_GRID_COL_SIZE|STRID_TREE_GRID_COL_TYPE"
+                          column_width="280|120|140"
+                          column_align="left|right|left"
+                          tree_column="0" indent="18" header_height="30" row_height="26"
+                          multi_select="true" check_mode="true" check_cascade="true"/>
+                <HBox height="30" child_margin="8" margin="0,6,0,0">
+                    <Label name="tree_grid_check_event" text_id="STRID_TREE_GRID_CHECK_EVENT_NONE" text_color="text_default"
+                           valign="center" auto_tooltip="true" width="stretch"/>
+                    <Button class="btn_global" name="tree_grid_check_all" text_id="STRID_TREE_GRID_CHECK_ALL" width="90" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_check_none" text_id="STRID_TREE_GRID_CHECK_NONE" width="90" height="28" border_round="3,3"/>
+                </HBox>
+
+                <!-- 功能测试：动态增删节点 / 模式切换 / 读取勾选状态 -->
+                <Label text_id="STRID_TREE_GRID_TEST_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,14,0,6"/>
+                <HBox height="30" child_margin="8">
+                    <Button class="btn_global" name="tree_grid_test_add_node" text_id="STRID_TREE_GRID_ADD_NODE" width="110" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_add_child" text_id="STRID_TREE_GRID_ADD_CHILD" width="110" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_remove_node" text_id="STRID_TREE_GRID_REMOVE_NODE" width="120" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_check_mode" text_id="STRID_TREE_GRID_TOGGLE_CHECK_MODE" width="130" height="28" border_round="3,3"/>
+                </HBox>
+                <HBox height="30" child_margin="8" margin="0,6,0,0">
+                    <Button class="btn_global" name="tree_grid_test_cascade" text_id="STRID_TREE_GRID_TOGGLE_CASCADE" width="90" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_multi" text_id="STRID_TREE_GRID_TOGGLE_MULTI" width="90" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_show_checked" text_id="STRID_TREE_GRID_SHOW_CHECKED" width="110" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="tree_grid_test_expand2" text_id="STRID_TREE_GRID_EXPAND_LEVEL2" width="120" height="28" border_round="3,3"/>
+                </HBox>
+                <HBox height="30" margin="0,6,0,0">
+                    <Label name="tree_grid_test_status" text_id="STRID_TREE_GRID_TEST_NONE" text_color="text_default"
+                           valign="center" auto_tooltip="true" width="stretch"/>
+                </HBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

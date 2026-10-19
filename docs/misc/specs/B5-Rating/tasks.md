@@ -1,0 +1,51 @@
+# Rating 星级评分控件 Tasks
+
+- [x] T1 控件骨架与注册：新增 `Rating` 类并接入工厂 / 构建工程
+  - [x] T1.1 `duilib/duilib_defs.h` 新增 `DUI_CTR_RATING (_T("Rating"))`
+  - [x] T1.2 新建 `duilib/Control/Rating.h`（继承 `Control`，声明 `StarImageType` / `RatingValue`、XML 属性、C++ 接口、私有绘制/交互辅助、成员）
+  - [x] T1.3 新建 `duilib/Control/Rating.cpp`（构造初始化、`GetType`、`SetAttribute` 解析）
+  - [x] T1.4 `duilib/Core/WindowBuilder.cpp` include + 在 `createControlMap` 注册 `DUI_CTR_RATING`（并在 `duilib/duilib.h` 汇总头引入 `Control/Rating.h`）
+  - [x] T1.5 `duilib/duilib.vcxproj` / `.filters` 增加 `Rating.cpp` / `Rating.h`
+- [x] T2 数值模型：值 / 数量 / 半星 / 只读
+  - [x] T2.1 `GetValue/SetValue/SetValueNoEvent`（钳位到 `[0,max]` 且按 0.5/1 对齐步长）
+  - [x] T2.2 `GetMax/SetMax`（调小 `max` 时钳位 `value`）；别名 `star_count`
+  - [x] T2.3 `IsAllowHalf/SetAllowHalf`、`IsReadOnly/SetReadOnly`
+  - [x] T2.4 `AttachRatingChanged` → `kEventValueChanged`（`RatingValue{value,oldValue}`）
+- [x] T3 星形 SVG 资源与主题映射
+  - [x] T3.1 新增 `public/rating/star_filled.svg` / `star_half.svg` / `star_empty.svg`（`#0078D4` 占位色；空心星映射语义色）
+  - [x] T3.2 （可选）新增 `public/rating/star_hovered.svg`
+  - [x] T3.3 `global.xml` 新增 `<Var name="PATH_RATING">` 与 `<Class name="rating">`（三/四张星图 + `svg_replace_colors`）
+- [x] T4 外观与绘制（图片驱动，非自绘）
+  - [x] T4.1 尺寸 / 间距属性与 getter/setter（含 DPI 缩放）
+  - [x] T4.2 四类星图属性（`star_filled_image` / `star_half_image` / `star_empty_image` / `star_hovered_image`）与 `SetStarImage/GetStarImage`
+  - [x] T4.3 星图缓存：用 `StateImage` 承载各类星图，覆写 `ClearImageCache()`
+  - [x] T4.4 `PaintStateImages` 覆写：按 `value`/`max` 逐星 `PaintImage`（`destscale='false' dest='x,y,x,y'`）
+  - [x] T4.5 半星：有 `star_half_image` 用之；否则对实心星 `SetClip` 左半裁剪绘制（图片裁剪，非自绘）
+  - [x] T4.6 禁用态降透明
+- [x] T5 交互：悬停预览 / 点击 / 拖拽 / 只读
+  - [x] T5.1 命中检测：由鼠标 x 计算星索引与左右半边
+  - [x] T5.2 `ButtonDown`（非只读才可交互，`SetValue` 派发事件，进入拖动）
+  - [x] T5.3 `MouseMove`（拖动中连续更新；否则更新悬停预览并 `Invalidate`）
+  - [x] T5.4 `ButtonUp` / `MouseLeave`（结束拖动 / 清除预览）
+  - [x] T5.5 悬停预览回退：未配置 `star_hovered_image` 时用实心星
+- [x] T6 演示资源与示例接入
+  - [x] T6.1 新增 `bin/resources/themes/default/controls/rating.xml` 演示窗口
+  - [x] T6.2 `bin/resources/themes/default/controls/test.xml` 新增 `rating_btn`
+  - [x] T6.3 新增 `examples/controls/RatingForm.h` / `.cpp`
+  - [x] T6.4 `examples/controls/TestForm.h` / `.cpp` 增加 `ShowRatingWindow()` 与按钮处理
+  - [x] T6.5 `examples/controls/controls.vcxproj` / `.filters` 增加 `RatingForm` 条目
+  - [x] T6.6 `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` 增加 `STRID_RATING_*`
+- [ ] T7 编译与运行时核对
+  - [x] T7.1 `build/examples_no_cef.sln` Debug | x64 编译通过
+  - [ ] T7.2 运行时截图核对：只读 4.5、悬停预览、点击打分、半星、事件回显、svg_replace_colors 主题映射（交互视觉核对由人工手动测试）
+- [x] T8 文档同步与校验
+  - [x] T8.1 `docs/Control.md` / `docs/Control.en.md` 新增 Rating 小节
+  - [x] T8.2 两份 `api-reference.md` 与 `nim-duilib-llm-reference.md` 同步
+  - [x] T8.3 `verify_docs.py` 全量扫描无漂移
+- [x] T9 盘点状态更新：`Project-Audit.md` B5、`Development-Plan.md` D-11（Rating）标记完成
+
+# Task Dependencies
+- T2 / T3 / T4 / T5 依赖 T1
+- T4 依赖 T3（星图资源与类）
+- T6 依赖 T1、T3
+- T7 依赖 T1–T6；T8 可与 T7 并行；T9 依赖 T7、T8

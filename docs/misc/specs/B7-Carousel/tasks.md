@@ -1,0 +1,69 @@
+# Carousel / 分页器 控件 Tasks（B7）
+
+- [x] T1 控件骨架与注册（Carousel）
+  - [x] T1.1 `duilib/duilib_defs.h` 新增 `DUI_CTR_CAROUSEL (_T("Carousel"))`
+  - [x] T1.2 新建 `duilib/Control/Carousel.h`（继承 `Control`，声明 `CarouselValue`、XML 属性、C++ 接口、私有绘制/动画/交互辅助、成员）
+  - [x] T1.3 新建 `duilib/Control/Carousel.cpp`（构造初始化、`GetType`、`SetAttribute` 解析）
+  - [x] T1.4 `duilib/Core/WindowBuilder.cpp` include + 注册 `DUI_CTR_CAROUSEL`；`duilib/duilib.h` 汇总头引入
+  - [x] T1.5 `duilib/duilib.vcxproj` / `.filters` 增加 `Carousel.cpp` / `Carousel.h`
+- [x] T2 分页器骨架与注册（Pagination）
+  - [x] T2.1 `duilib/duilib_defs.h` 新增 `DUI_CTR_PAGINATION (_T("Pagination"))`
+  - [x] T2.2 新建 `duilib/Control/Pagination.h`（继承 `HBox`，声明 `PaginationValue`、XML 属性、C++ 接口、私有重建辅助、成员）
+  - [x] T2.3 新建 `duilib/Control/Pagination.cpp`（属性解析、数据模型、动态按钮创建/刷新、`AttachClick` 接线）
+  - [x] T2.4 `duilib/Core/WindowBuilder.cpp` include + 注册 `DUI_CTR_PAGINATION`；`duilib/duilib.h` 汇总头引入
+  - [x] T2.5 `duilib/duilib.vcxproj` / `.filters` 增加 `Pagination.cpp` / `Pagination.h`
+- [x] T3 幻灯片数据模型（Carousel）
+  - [x] T3.1 `GetItemCount` / `AddItem` / `InsertItem` / `RemoveItem` / `ClearItems` / `SetItems` / `GetItem`
+  - [x] T3.2 `GetCurrentIndex` / `SetCurrentIndex` / `SetCurrentIndexNoEvent`（越界钳位；数量变化后同步钳位）
+  - [x] T3.3 `Next` / `Prev` / `GoTo`（含 `NoEvent` 变体）；`loop` 越界首尾相接，非 loop 越界返回 false
+  - [x] T3.4 `AttachCarouselChanged` → `kEventValueChanged`（`CarouselValue{index, oldIndex}`）
+- [x] T4 Carousel 外观绘制（图片驱动，非自绘图形）
+  - [x] T4.1 幻灯片图片属性（`item_image`，`|` 分隔）解析与 `StateImage` 缓存（覆写 `ClearImageCache`）
+  - [x] T4.2 `PaintStateImages` 覆写：按内容区铺满当前幻灯片（`destscale='false' dest='x,y,x,y'`）
+  - [x] T4.3 导航按钮图片（`btn_prev_image` / `btn_next_image` + 可选悬停/按下态）与命中区域
+  - [x] T4.4 指示点图片（`indicator_normal_image` / `indicator_active_image`）与底部居中布局
+  - [x] T4.5 属性：`loop` / `auto_play` / `interval` / `hover_pause` / `transition_ms` / `show_indicator` / `show_nav_button` / `indicator_gap` / `indicator_bottom`（DPI 缩放）
+  - [x] T4.6 禁用态降透明
+- [x] T5 Carousel 动画与自动播放（定时器）
+  - [x] T5.1 切换动画：`transition_ms` 内按进度绘制"上一张 / 下一张"两张并施加水平偏移（0 = 立即）
+  - [x] T5.2 自动播放：`GlobalManager::Instance().Timer().AddTimer(...)`（参照 `Marquee`），间隔前进一张
+  - [x] T5.3 `hover_pause`：`MouseEnter` / `MouseLeave` 暂停 / 恢复自动播放
+  - [x] T5.4 `SetWindow` 变更 / 析构时清理定时器与取消标志（`WeakCallbackFlag`）
+- [x] T6 Carousel 交互
+  - [x] T6.1 `ButtonDown`：记录起点，判定是否命中导航按钮 / 指示点
+  - [x] T6.2 `MouseMove`：拖动超过阈值按方向切换（松手吸附），更新按钮悬停 / 按下态
+  - [x] T6.3 `ButtonUp` / `MouseLeave`：结束拖拽 / 清除交互态
+  - [x] T6.4 点击导航按钮 → `Prev/Next`；点击指示点 → `GoTo`
+- [x] T7 Pagination 数据模型与按钮
+  - [x] T7.1 `page_count` / `current_page` / `max_visible_count` / `total_count`+`page_size` 解析与钳位
+  - [x] T7.2 动态创建 / 刷新页码按钮（首尾 + 当前页附近 + `…` 收纳），引用 `button_class`
+  - [x] T7.3 当前页按钮 `SetSelected(true)` 高亮；`prev/next/first/last` 按钮
+  - [x] T7.4 `Next` / `Prev` / `GoTo` 与 `AttachPageChanged` → `kEventValueChanged`（`PaginationValue{page, oldPage}`）
+  - [x] T7.5 尺寸 / 文本属性（`button_width` / `button_height` / `prev_text` / `next_text` / `ellipsis_text`，DPI 缩放）
+- [x] T8 主题资源
+  - [x] T8.1 新增 `public/carousel/nav_prev.svg` / `nav_next.svg` / `nav_prev_hovered.svg` / `nav_next_hovered.svg`（`#0078D4` 占位色）
+  - [x] T8.2 新增 `public/carousel/indicator_normal.svg` / `indicator_active.svg`（另含 `slide1/2/3.svg` 演示横幅）
+  - [x] T8.3 `global.xml` 新增 `<Var name="PATH_CAROUSEL">` 与 `<Class name="carousel">`（导航 / 指示点图片 + `svg_replace_colors`）
+  - [x] T8.4 `global.xml` 新增 `<Class name="pagination_button">`（常态 / 悬停 / 选中态，走语义色）
+- [x] T9 演示资源与示例接入
+  - [x] T9.1 新增 `bin/resources/themes/default/controls/carousel.xml` 演示窗口
+  - [x] T9.2 `bin/resources/themes/default/controls/test.xml` 新增 `carousel_btn`
+  - [x] T9.3 新增 `examples/controls/CarouselForm.h` / `.cpp`
+  - [x] T9.4 `examples/controls/TestForm.h` / `.cpp` 增加 `ShowCarouselWindow()` 与按钮处理
+  - [x] T9.5 `examples/controls/controls.vcxproj` / `.filters` 增加 `CarouselForm` 条目
+  - [x] T9.6 `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` 增加 `STRID_CAROUSEL_*` / `STRID_PAGINATION_*`
+- [x] T10 编译与运行时核对
+  - [x] T10.1 `build/examples_no_cef.sln` Debug | x64 编译通过
+  - [ ] T10.2 运行时截图核对：手动切换、无限循环、自动播放 / 悬停暂停、指示点跳转、分页器翻页与省略收纳、`svg_replace_colors` 主题映射（交互视觉核对由人工手动测试）
+- [x] T11 文档同步与校验
+  - [x] T11.1 `docs/Control.md` / `docs/Control.en.md` 新增 Carousel / Pagination 小节
+  - [x] T11.2 两份 `api-reference.md` 与 `nim-duilib-llm-reference.md` 同步
+  - [x] T11.3 `verify_docs.py` 全量扫描无漂移
+- [x] T12 盘点状态更新：`Project-Audit.md` B7、`Development-Plan.md` D-11（Carousel）与 E-4（Pagination）标记完成
+
+# Task Dependencies
+- T3 / T4 / T5 / T6 依赖 T1
+- T7 依赖 T2
+- T4 依赖 T8（图片资源与类）
+- T9 依赖 T1、T2、T8
+- T10 依赖 T1–T9；T11 可与 T10 并行；T12 依赖 T10、T11

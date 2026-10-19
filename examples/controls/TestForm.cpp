@@ -7,6 +7,7 @@
 #include "StepperForm.h"
 #include "RatingForm.h"
 #include "CarouselForm.h"
+#include "TreeGridForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -80,6 +81,15 @@ void TestForm::OnInitWindow()
     if (pCarouselBtn != nullptr) {
         pCarouselBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowCarouselWindow();
+            return true;
+            });
+    }
+
+    //TreeGrid 树表格测试窗口
+    ui::Button* pTreeGridBtn = dynamic_cast<ui::Button*>(FindControl(_T("tree_grid_btn")));
+    if (pTreeGridBtn != nullptr) {
+        pTreeGridBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowTreeGridWindow();
             return true;
             });
     }
@@ -429,6 +439,18 @@ void TestForm::ShowCarouselWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("CarouselWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowTreeGridWindow()
+{
+    TreeGridForm* testForm = new TreeGridForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("TreeGridWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

@@ -41,3 +41,8 @@ api-reference.md nim-duilib-llm-reference.md :: btn_default
 event-handler.md nim-duilib-event-handler.md :: kEventResize
 theme.md nim-duilib-theme.md :: my_card my_title_font my_font_16 bk_main_wnd_title
 pitfalls.md :: kEventResize kEventChecked kEventTextChange kEventSelChange kEventValueChange kEventVisibleChange kEventStateChange kEventXxx
+
+# ---------------------------------------------------------------------------
+# 示例代码中的局部辅助函数（带 ui:: 限定但非公开 API，仅示例内部使用）
+# ---------------------------------------------------------------------------
+examples/controls/TreeGridForm.cpp :: TreeGridLangText

@@ -39,6 +39,7 @@
 #include "duilib/Control/Rating.h"
 #include "duilib/Control/Carousel.h"
 #include "duilib/Control/Pagination.h"
+#include "duilib/Control/TreeGrid.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
 #include "duilib/Control/StatusBar.h"
@@ -191,6 +192,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_RATING, [](Window* pWindow) { return new Rating(pWindow); }},
         {DUI_CTR_CAROUSEL, [](Window* pWindow) { return new Carousel(pWindow); }},
         {DUI_CTR_PAGINATION, [](Window* pWindow) { return new Pagination(pWindow); }},
+        {DUI_CTR_TREE_GRID, [](Window* pWindow) { return new TreeGrid(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},
         {DUI_CTR_COLOR_PICKER_REGULAR, [](Window* pWindow) { return new ColorPickerRegular(pWindow); }},

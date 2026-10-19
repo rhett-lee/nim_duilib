@@ -402,6 +402,28 @@
                                    collapse_disabled_image="file='${PATH_TREE}/collapse_normal.svg' margin='2,0,0,0' valign='center' fade='80' svg_replace_colors='#363636|border_svg_image'"
                                    icon_image_right_space="4"/>
     
+    <!-- 树表格（TreeGrid） -->
+    <Class name="tree_grid" bkcolor="bg_tree_view"/>
+    <Class name="tree_grid_header_cell" height="100%" text_align="vcenter,left" text_padding="4,0,4,0"
+                                          hovered_color="bg_list_ctrl_header_hovered"/>
+    <Class name="tree_grid_cell" text_align="vcenter,left" text_padding="4,0,4,0" auto_tooltip="true" single_line="true"/>
+    <Class name="tree_grid_row" hovered_color="bg_list_ctrl_item_hovered" 
+                               pressed_color="bg_list_ctrl_item_pressed" 
+                               selected_normal_color="bg_list_ctrl_item_selected" 
+                               fade_hovered="false"/>
+    <!-- 注意：图标图片的宽度必须与控件固定宽度一致（TreeGrid 中为 16 原始像素），
+         因此这里不能再给图片属性设置 margin；否则图片会被裁切掉右侧边缘 -->
+    <Class name="tree_grid_expand" normal_image="file='${PATH_TREE}/collapse_normal.svg' valign='center' svg_replace_colors='#363636|border_svg_image'" 
+                                   selected_normal_image="file='${PATH_TREE}/expand_normal.svg' valign='center' svg_replace_colors='#363636|border_svg_image'" 
+                                   disabled_image="file='${PATH_TREE}/collapse_normal.svg' valign='center' fade='80' svg_replace_colors='#363636|border_svg_image'" 
+                                   selected_disabled_image="file='${PATH_TREE}/expand_normal.svg' valign='center' fade='80' svg_replace_colors='#363636|border_svg_image'"/>
+    <Class name="tree_grid_check" normal_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' valign='center' svg_replace_colors='#808080|border_svg_image'" 
+                                  disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'" 
+                                  selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' svg_replace_colors='#808080|border_svg_image'" 
+                                  selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-checked.svg' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'" 
+                                  part_selected_normal_image="file='${PATH_CHECKBOX}/checkbox-outline-mixed.svg' valign='center' svg_replace_colors='#808080|border_svg_image'" 
+                                  part_selected_disabled_image="file='${PATH_CHECKBOX}/checkbox-outline-mixed.svg' valign='center' fade='80' svg_replace_colors='#808080|border_svg_image'"/>
+    
     <!-- 进度条 -->
     <Class name="progress_horizontal_blue" valign="center" horizontal="true" height="4" width="stretch" value="0" max="100" min="0" 
                                            bkimage="${PATH_PROGRESS}/progress_blue_bg.png" 

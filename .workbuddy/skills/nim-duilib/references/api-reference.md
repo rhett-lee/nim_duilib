@@ -159,6 +159,7 @@
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
 | Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
 | Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
+| TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
@@ -710,6 +711,39 @@ C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItem
 分页器（报表/表格/列表页码导航）：继承 HBox 全部布局属性；页面按钮由控件内部按数据动态创建（延迟定时器重建，规避子控件自删的 use-after-free）；当前页按钮选中高亮，页码超出上限以 `…` 收纳并保留首尾与当前页附近；颜色走 button_class 引用的皮肤语义色，C++ 无写死色值。
 C++ 接口：`GetPageCount/SetPageCount`、`GetCurrentPage/SetCurrentPage/SetCurrentPageNoEvent`、`SetTotalCount`、`Next/Prev/GoTo`、`GetMaxVisibleCount/SetMaxVisibleCount`、`SetButtonClass/GetButtonClass`。
 事件：`AttachPageChanged`——当前页码变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
+
+### TreeGrid 属性(继承 VBox)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| column_title | | string | 列标题列表，`\|` 分隔（每项可为多语言 ID 或字面文本） |
+| column_width | | string | 列宽列表，`\|` 分隔（原始像素值） |
+| column_id | | string | 列 ID 列表，`\|` 分隔（缺省按列索引从 0 起） |
+| column_align | | string | 列对齐列表，`\|` 分隔：left / center / right |
+| default_column_width | 120 | int | 未显式指定列宽时使用的默认列宽（原始像素） |
+| tree_column | 0 | int | 承载缩进与展开开关的树列索引 |
+| indent | 20 | int | 每一层级的缩进量（原始像素） |
+| header_height | 30 | int | 表头高度（原始像素） |
+| row_height | 28 | int | 数据行高（原始像素） |
+| show_header | true | bool | 是否显示表头 |
+| multi_select | false | bool | 是否允许选择多行 |
+| check_mode | false | bool | 是否在行首显示复选框 |
+| check_cascade | true | bool | 父子复选框是否级联（关闭时仅改自身） |
+| expand_image_class | tree_grid_expand | string | 展开 / 收起开关引用的皮肤 Class（两态图片） |
+| check_image_class | tree_grid_check | string | 行复选框引用的皮肤 Class（三态图片） |
+| header_cell_class | tree_grid_header_cell | string | 表头标题单元格引用的皮肤 Class |
+| cell_class | tree_grid_cell | string | 数据单元格引用的皮肤 Class |
+| row_class | tree_grid_row | string | 数据行引用的皮肤 Class |
+
+树表格（文件树 / 报表 / 组织架构）：在同一控件内呈现"可展开/收起的层级行 + 多列表格"。控件继承 VBox，内部由固定不滚动的表头 HBox 与自带纵向滚动条的列表体 VListBox 组成；表头与行复用同一列宽数组，天然逐列对齐；展开 / 收起通过切换子孙行的可见性实现（隐藏行不占空间）。缩进用"树列单元格内嵌缩进占位"而非整行 padding，故各列不会错位。列标题支持多语言 ID（优先按 LanguageManager 解析，未命中则用字面文本）。
+C++ 接口（列）：`AddColumn/GetColumnCount/GetColumn/SetColumnWidthById/GetColumnWidthById/SetColumnTitleById/ClearColumns`。
+C++ 接口（节点与数据）：`GetRootNode/AddNode/RemoveNode/RemoveAllNodes`、`SetCellText/GetCellText`、`SetNodeRowHeight`；`TreeGridNode` 提供 `AddChildNode/RemoveChildNode/RemoveAllChildNodes/GetChildNodeCount/GetChildNode/GetChildNodeIndex/GetDescendantNodeCount/IsChildOf`、`GetParentNode/GetDepth`、`IsExpand/SetExpand`、`IsChecked/SetChecked/GetCheckState`、`IsSelected/SetSelected`、`SetCellText/GetCellText`、`SetUserData/GetUserData`。
+C++ 接口（展开）：`SetNodeExpand/IsNodeExpand/ExpandNode/EnsureNodeVisible`。
+C++ 接口（选择）：`SetMultiSelect/IsMultiSelect/GetSelectNodeCount/GetSelectNodeAt/GetSelectNodes/IsNodeSelected/SelectNode/SelectAllNodes/ClearSelectNodes`。
+C++ 接口（复选）：`IsCheckMode/SetCheckMode/IsCheckCascade/SetCheckCascade/IsNodeChecked/SetNodeChecked/GetNodeCheckState/SetAllNodesChecked/GetCheckedNodes`。
+交互：点击展开开关切换展开并派发展开 / 收起事件；点击行复选框做级联勾选（不改变行选择）；点击行选择该行并派发点击事件；键盘 Left / Right 收起 / 展开当前选中节点（沿用 ListBox 方向键导航）。
+事件：`AttachNodeExpanded`/`AttachNodeCollapsed`（事件编码 `kEventExpand`/`kEventCollapse`）、`AttachNodeClick`（`kEventClick`）、`AttachNodeSelect`/`AttachNodeUnSelect`/`AttachSelectChanged`（`kEventSelect`/`kEventUnSelect`/`kEventSelChanged`）——`EventArgs::pEventData` 均为 `TreeGridNode*`；`AttachCheckChanged`——事件编码 `kEventTreeGridCheckChanged`，`EventArgs::pEventData` 指向 `TreeGridCheckValue`（`pNode` + `bChecked`），仅在回调派发期间有效。
+默认皮肤 `tree_grid` 与 `tree_grid_header_cell`/`tree_grid_cell`/`tree_grid_row`/`tree_grid_expand`/`tree_grid_check` 类均走语义色，展开箭头与三态复选框复用 `${PATH_TREE}` / `${PATH_CHECKBOX}` 下的既有 SVG。
 
 ### CircleProgress 属性(继承 Progress)
 

@@ -1,0 +1,69 @@
+# 树表格 TreeGrid 控件 Tasks（B9）
+
+- [x] T1 控件骨架与注册
+  - [x] T1.1 `duilib/duilib_defs.h` 新增 `DUI_CTR_TREE_GRID (_T("TreeGrid"))` 与事件 `kEventTreeGridCheckChanged`
+  - [x] T1.2 新建 `duilib/Control/TreeGrid.h`（`TreeGrid : VBox`、`TreeGridNode`、`TreeGridColumn`、`TreeGridCheck`、`TreeGridCheckValue`）
+  - [x] T1.3 新建 `duilib/Control/TreeGrid.cpp`（构造：内部创建表头 + 列表体；`GetType`、`SetAttribute` 解析）
+  - [x] T1.4 `duilib/Core/WindowBuilder.cpp` include + 注册 `DUI_CTR_TREE_GRID`；`duilib/duilib.h` 汇总头引入
+  - [x] T1.5 `duilib/duilib.vcxproj` / `.filters` 增加 `TreeGrid.cpp` / `TreeGrid.h`
+- [x] T2 列模型与表头
+  - [x] T2.1 `TreeGridColumn` 定义与 `AddColumn` / `GetColumn` / `ClearColumns` / `GetColumnCount`
+  - [x] T2.2 表头构建：为每列创建标题 `Label`（宽=列宽、class=`header_cell_class`、对齐）
+  - [x] T2.3 列宽 / 标题修改接口（`SetColumnWidthById` / `SetColumnTitleById`）同步表头与所有已建行
+  - [x] T2.4 表头右侧预留滚动条宽度，避免末列与滚动条重叠
+- [x] T3 节点数据模型
+  - [x] T3.1 `TreeGridNode`：父子指针、子节点列表、深度、展开态、勾选态、选中态、列文本映射、用户数据
+  - [x] T3.2 `GetRootNode` / `AddNode` / `RemoveNode` / `RemoveAllNodes`；深度与祖先维护
+  - [x] T3.3 `TreeGridNode` 便捷 API（`AddChildNode` / `GetChildNode` / `GetDepth` / `IsChildOf` 等）
+  - [x] T3.4 `SetCellText` / `GetCellText`（按列ID）
+- [x] T4 行控件与行刷新
+  - [x] T4.1 `TreeGridRow`（`ListBoxItemH`）：N 个单元格 + 树列单元格（缩进占位 / 展开开关 / 复选框 / 文本）
+  - [x] T4.2 行创建 / 更新 / 销毁与列表体（`VListBox`）的项同步（按可见性跳过）
+  - [x] T4.3 展开 / 收起：切换子孙行 `SetVisible`，刷新行序与缩进
+  - [x] T4.4 行高（全局 `row_height` + 逐行高度）与 DPI 缩放
+  - [x] T4.5 单元格对齐（left / center / right）与文本省略
+- [x] T5 选择模型
+  - [x] T5.1 `multi_select` 与 `ListBox` 选择模型对接（单选 / 多选）
+  - [x] T5.2 `SelectNode` / `IsNodeSelected` / `GetSelectNodes` / `SelectAllNodes` / `ClearSelectNodes`
+  - [x] T5.3 选择事件转发（`kEventSelect` / `kEventUnSelect` / `kEventSelChanged`）
+- [x] T6 复选框级联
+  - [x] T6.1 `check_mode` / `check_cascade` 开关与行首 `CheckBox` 的显隐
+  - [x] T6.2 三态计算 `GetNodeCheckState`（全选 / 全不选 / 部分选）
+  - [x] T6.3 `SetNodeChecked` 向下级联子孙、向上回溯祖先（`check_cascade` 关闭时仅改自身）
+  - [x] T6.4 `GetCheckedNodes` / `SetAllNodesChecked`
+  - [x] T6.5 勾选变化派发 `kEventTreeGridCheckChanged`（`TreeGridCheckValue`）
+- [x] T7 交互与事件
+  - [x] T7.1 点击展开开关 → 切换展开并派发 `kEventExpand` / `kEventCollapse`
+  - [x] T7.2 点击行复选框 → 级联勾选（不改变行选择）
+  - [x] T7.3 点击行 → 选择 + 派发 `kEventClick`（`pEventData` = `TreeGridNode*`）
+  - [x] T7.4 键盘：`Left` / `Right` 收起 / 展开当前选中节点；沿用 `ListBox` 方向键导航
+  - [x] T7.5 禁用态降透明且不响应交互；`EnsureNodeVisible` 滚动到可见
+- [x] T8 主题资源
+  - [x] T8.1 展开 / 收起箭头复用既有 `${PATH_TREE}` 下 SVG（`collapse_normal.svg` / `expand_normal.svg`），**不新增图片**
+  - [x] T8.2 行复选框复用既有 `${PATH_CHECKBOX}` 下三态 SVG（unchecked / checked / mixed），**不新增图片**
+  - [x] T8.3 `global.xml` 复用既有 `${PATH_TREE}` / `${PATH_CHECKBOX}` Var（**不新增 `PATH_TREE_GRID`**），新增根类 `tree_grid`
+  - [x] T8.4 `global.xml` 新增 `tree_grid_header_cell` / `tree_grid_cell` / `tree_grid_row` / `tree_grid_expand` / `tree_grid_check` 类（字体 / 颜色 / 状态图，走语义色）
+- [x] T9 演示资源与示例接入
+  - [x] T9.1 新增 `bin/resources/themes/default/controls/tree_grid.xml` 演示窗口
+  - [x] T9.2 `bin/resources/themes/default/controls/test.xml` 新增 `tree_grid_btn`
+  - [x] T9.3 新增 `examples/controls/TreeGridForm.h` / `.cpp`（多层节点树 + 列文本 + 事件回显 + 多选 / 勾选开关）
+  - [x] T9.4 `examples/controls/TestForm.h` / `.cpp` 增加 `ShowTreeGridWindow()` 与按钮处理
+  - [x] T9.5 `examples/controls/controls.vcxproj` / `.filters` 增加 `TreeGridForm` 条目
+  - [x] T9.6 `bin/resources/lang/zh_CN-examples.txt` / `en_US-examples.txt` 增加 `STRID_TREE_GRID_*`
+- [x] T10 编译与运行时核对
+  - [x] T10.1 `build/examples_no_cef.sln` Debug | x64 编译通过（`duilib` 与 `controls` 均无 error / warning）
+  - [ ] T10.2 运行时截图核对：列对齐、展开 / 收起、深层缩进、单选 / 多选、复选框级联三态、主题色跟随（交互视觉核对由人工手动测试）
+- [x] T11 文档同步与校验
+  - [x] T11.1 `docs/Control.md` / `docs/Control.en.md` 新增 TreeGrid 小节
+  - [x] T11.2 两份 `api-reference.md` 与 `nim-duilib-llm-reference.md` 同步
+  - [x] T11.3 `verify_docs.py` 全量扫描无漂移（两份 skill 各 13 个文档全部命中）
+- [x] T12 盘点状态更新：`Project-Audit.md` B9、`Development-Plan.md`（按需再评估表）标记完成
+
+# Task Dependencies
+- T2 / T3 依赖 T1
+- T4 依赖 T2、T3
+- T5 / T6 依赖 T4
+- T7 依赖 T4、T5、T6
+- T4 依赖 T8（展开 / 勾选图片与类）
+- T9 依赖 T1–T8
+- T10 依赖 T1–T9；T11 可与 T10 并行；T12 依赖 T10、T11

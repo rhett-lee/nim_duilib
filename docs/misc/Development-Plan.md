@@ -2,7 +2,7 @@
 # nim_duilib 开发执行规划（Development Plan）
 
 > 本文档是**可跟踪执行**的开发规划，与其它规划类文档的分工见下表。
-> 基线日期：**2026-10-17**（A-5 已完成）　｜　覆盖平台：**Windows / macOS / Linux / FreeBSD**
+> 基线日期：**2026-10-19**（A-5、B9 TreeGrid 已完成）　｜　覆盖平台：**Windows / macOS / Linux / FreeBSD**
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 
 ## 与其它文档的关系
@@ -523,7 +523,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | 项 | 决定 | 理由 |
 | :--- | :--- | :--- |
 | Docking 可停靠布局 / MDI | **不做** | `Control-Roadmap.md` 第三节已明确"成本极高，不建议做" |
-| TreeGrid / 内嵌树 / 分组折叠 / L3 列筛选 | **按需再评估** | `Project-Audit.md` B9 已明确 ListCtrl 规划中取消；若出现企业报表需求需重新评估 |
+| TreeGrid / 内嵌树 / 分组折叠 / L3 列筛选 | **独立控件已落地，内嵌路线仍不做** | `Project-Audit.md` B9：已新增独立控件 `TreeGrid`（不改动 `ListCtrl`）；**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不开发**（改动面过大） |
 | Pivot 透视表 | **不做** | 属 BI 而非 UI 库职责 |
 | FreeBSD + CEF | **不做** | Chromium 不官方支持 FreeBSD；`freebsd_build.sh:77` 已注释掉 `cef`/`CefBrowser`，`README.md:562` 已声明。**但 A-1/A-2 要把宏与源码的矛盾清干净** |
 | Windows 独占工具（`InlineHook`/`ApiWrapper`/`DllManager`/`DiskUtils`/`libudis86`） | **不跨平台化** | 功能本身即 Windows 专属，非缺陷 |

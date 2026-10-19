@@ -147,6 +147,7 @@ namespace ui
     #define  DUI_CTR_RATING                          (_T("Rating"))
     #define  DUI_CTR_CAROUSEL                        (_T("Carousel"))
     #define  DUI_CTR_PAGINATION                      (_T("Pagination"))
+    #define  DUI_CTR_TREE_GRID                       (_T("TreeGrid"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
 
@@ -524,6 +525,8 @@ namespace ui
 
         kEventViewModeChanged,          //Calendar类：当日历视图模式（月/年/十年）发生变化时触发，wParam是新视图模式(0=月,1=年,2=十年)，lParam是旧视图模式
         kEventDisplayDateChanged,       //Calendar类：当显示周期（月视图的月份、年/十年视图的年份）发生变化时触发，标题栏等需据此刷新；wParam/lParam 暂未使用
+
+        kEventTreeGridCheckChanged,     //TreeGrid类：当节点的复选框状态（含父子级联）发生变化时触发，wParam 为节点指针(TreeGridNode*)，pEventData 为 TreeGridCheckValue*
 
         kEventLast,                     //控件的最后一个消息
 
