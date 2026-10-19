@@ -34,6 +34,10 @@ private:
     */
     void ShowRangeSliderWindow();
 
+    /** 显示 Stepper 向导步骤条演示窗口
+    */
+    void ShowStepperWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

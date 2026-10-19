@@ -861,6 +861,82 @@ pRange->AttachRangeChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Attributes of Stepper (wizard step indicator)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| step_title |  | string | Title of each step, items separated by `|`, e.g. "Choose location\|License\|Installing\|Finish" |
+| step_title_id |  | string | Multi-language ID of each step title (`|` separated), refreshed on language change |
+| step_desc |  | string | Description of each step, items separated by `|` |
+| step_desc_id |  | string | Multi-language ID of each step description (`|` separated), refreshed on language change |
+| current / current_index | 0 | int | Current step index (0-based); steps before it are shown as completed |
+| direction / orientation | horizontal | string | Layout direction: `horizontal` (default) / `vertical` |
+| click_to_jump | true | bool | Whether clicking a step jumps to it |
+| node_size | 24 | int | Node diameter (pixels, auto DPI scaled) |
+| disabled_steps |  | string | Disabled step index list, separated by `|` or `,`, e.g. "2\|3" (disabled steps cannot be jumped to) |
+| node_color_pending / node_color_active / node_color_completed / node_color_disabled | text_muted / color_accent / color_success / border_control_normal | string | Node color of each state (semantic color name or color value) |
+| connector_color | border_control_normal | string | Connector color of unfinished segments |
+| connector_active_color | color_success | string | Connector color of finished segments |
+| title_color_active / title_color_completed / title_color_pending | text_default / color_success / text_muted | string | Title color of each state |
+| desc_color | text_muted | string | Description text color |
+| title_font / desc_font | system_bold_14 / system_regular_12 | string | Title / description font ID |
+
+Stepper inherits the `Control` attributes; for more available attributes, please refer to the `Control` attributes.
+
+A stepper is used for install / register / config wizards, approval flows and other "process state machine" scenarios (`Timeline` is time-axis semantics and does not carry process steps).
+The step state is derived from the "current index + disabled set": steps before the current index are completed (the node shows a check mark), the current step is active, and the following ones are pending; an explicitly disabled step takes precedence and is shown as disabled. Connectors are colored by finished segments.
+
+XML example:
+```xml
+<Stepper name="stepper_demo" width="stretch" height="stretch" node_size="28" current="1"
+         step_title_id="STRID_S1_TITLE|STRID_S2_TITLE|STRID_S3_TITLE|STRID_S4_TITLE"
+         step_desc_id="STRID_S1_DESC|STRID_S2_DESC|STRID_S3_DESC|STRID_S4_DESC"/>
+```
+
+Corresponding C++ API:
+```cpp
+size_t GetStepCount() const;                          //number of steps
+const Step* GetStepAt(size_t index) const;            //step data
+void AddStep(const Step& step);                       //append a step
+void AddStep(const DString& title, const DString& description = DString());
+bool InsertStep(size_t index, const Step& step);
+bool RemoveStepAt(size_t index);
+void ClearSteps();
+void SetSteps(const std::vector<Step>& steps);
+size_t GetCurrentIndex() const;                       //current step index (clamped)
+void SetCurrentIndex(size_t nIndex);                  //set current step (clamped, fires event when it changes)
+void SetCurrentIndexNoEvent(size_t nIndex);           //set current step (no event)
+bool Next();  bool NextNoEvent();                     //advance to next step (skips disabled steps, false on failure)
+bool Back();  bool BackNoEvent();                     //go back to previous step
+bool GoTo(size_t nIndex);  bool GoToNoEvent(size_t nIndex); //jump to a step (false for a disabled step)
+void SetStepDisabled(size_t index, bool bDisabled);   //set whether a step is disabled
+bool IsStepDisabled(size_t index) const;
+void SetDisabledSteps(const std::vector<size_t>& disabledSteps);
+StepStatus GetStepStatus(size_t index) const;         //derived state: kPending/kActive/kCompleted/kDisabled
+void SetHorizontal(bool bHorizontal);                 //layout direction
+bool IsHorizontal() const;
+void SetNodeSize(int32_t nSize);                      //node diameter
+int32_t GetNodeSize() const;
+void SetClickToJump(bool bEnable);                    //whether clicking a step jumps
+bool IsClickToJump() const;
+void SetStateColor(StepStatus status, const DString& strColor);   //node color of each state
+void SetTitleColor(StepStatus status, const DString& strColor);   //title color of each state
+void SetConnectorColor(const DString& strColor);                  //connector color of unfinished segments
+void SetConnectorActiveColor(const DString& strColor);            //connector color of finished segments
+void SetDescColor(const DString& strColor);                       //description text color
+void AttachStepChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //step-change event
+```
+
+Value-change event: `AttachStepChanged` — fired when the current step changes; encoded as `kEventValueChanged` (`wParam` is `2`), with the new / old index carried through `EventArgs::pEventData` (pointing to `Stepper::StepValue` with `currentIndex` / `oldIndex`; valid only during the callback dispatch, do not store the pointer):
+```cpp
+pStepper->AttachStepChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::Stepper::StepValue*>(msg.pEventData);
+        // read pValue->currentIndex / pValue->oldIndex
+    }
+    return true;
+});
+```
+
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

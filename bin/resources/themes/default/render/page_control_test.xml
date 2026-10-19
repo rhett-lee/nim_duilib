@@ -7,8 +7,8 @@
         </HBox>
         <HBox height="300" margin="10,10,10,10" padding="4,4,4,4"  border_size="1" border_color="border_richedit_normal">
             <Label text_id="STRID_RENDER_CTRL_TEST_MOVABLE_DESC" mouse_enabled="false"/>
-            <ControlMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,40,8,8" valign="top" halign="left"
-                            move_pos_reserve_width="40" move_pos_reserve_height="40"
+            <ControlMovable bkcolor="green" width="160" height="160" border_round="8,8" margin="8,40,8,8" valign="top" halign="left"
+                            move_pos_reserve_width="40" move_pos_reserve_height="40" move_pos_non_draggable_margin="12,12,12,12" move_pos_draggable_border="12,12,12,12"
                             move_pos_keep_within_parent="true"/>
             <BoxMovable bkcolor="Salmon" width="160" height="160" border_round="8,8" margin="8,8,8,8" valign="top" halign="right">
                 <Label text_id="STRID_RENDER_CTRL_TEST_MOVABLE_BOX" valign="center" halign="center" mouse_enabled="false"/>

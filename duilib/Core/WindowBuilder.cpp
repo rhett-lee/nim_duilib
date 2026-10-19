@@ -35,6 +35,7 @@
 #include "duilib/Control/Chart.h"
 #include "duilib/Control/Marquee.h"
 #include "duilib/Control/Timeline.h"
+#include "duilib/Control/Stepper.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/GroupBox.h"
 #include "duilib/Control/StatusBar.h"
@@ -183,6 +184,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_CHART, [](Window* pWindow) { return new Chart(pWindow); }},
         {DUI_CTR_MARQUEE, [](Window* pWindow) { return new Marquee(pWindow); }},
         {DUI_CTR_TIMELINE, [](Window* pWindow) { return new Timeline(pWindow); }},
+        {DUI_CTR_STEPPER, [](Window* pWindow) { return new Stepper(pWindow); }},
         {DUI_CTR_COLOR_CONTROL, [](Window* pWindow) { return new ColorControl(pWindow); }},
         {DUI_CTR_COLOR_SLIDER, [](Window* pWindow) { return new ColorSlider(pWindow); }},
         {DUI_CTR_COLOR_PICKER_REGULAR, [](Window* pWindow) { return new ColorPickerRegular(pWindow); }},

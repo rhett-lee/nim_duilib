@@ -147,6 +147,7 @@
 | Progress | Label | 进度条 |
 | Slider | Progress | 滑块 |
 | CircleProgress | Progress | 圆形进度条 |
+| Stepper | Control | 向导步骤条（水平/垂直、节点序号/对勾、4态派生、连接线着色、Next/Back/GoTo与点击跳转） |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
 | TreeView | ListBox | 树形控件 |
 | TreeNode | ListBoxItem | 树节点 |
