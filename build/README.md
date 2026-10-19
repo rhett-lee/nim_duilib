@@ -429,6 +429,21 @@ nim_duilib/
 
 ---
 
+### Q6：Linux 下所有文本都不显示（字体列表为空）
+
+**原因：** Skia 未启用 fontconfig 字体后端。`FontMgr_Skia.cpp` 在非Windows / 非 macOS 平台调用
+`SkFontMgr_New_FontConfig`，若 Skia 构建时未开启该后端，会**静默返回空字体集**——不报错、不崩溃，
+只是所有文字都不渲染，很容易被误判为布局或主题色问题。
+
+`build_duilib_all_in_one.sh` 的 Linux 分支（clang 与 gcc 两条路径）已显式传入
+`skia_enable_fontmgr_fontconfig=true skia_use_freetype=true`，不依赖 Skia 上游默认值。
+若自行编译 Skia，必须带上这两个开关。
+
+**排查方式：** 启动日志中检索 `[WARN] FontManager::GetFontNameList`。
+出现该告警即确认是字体后端问题（Windows 下输出到调试器，Linux 下经 `SDL_Log` 输出到标准错误）。
+
+---
+
 ## 维护注意事项
 
 ### 1. 清理编译缓存

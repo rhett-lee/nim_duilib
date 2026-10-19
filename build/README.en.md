@@ -431,6 +431,23 @@ nim_duilib/
 
 ---
 
+### Q6: No text is rendered on Linux (font list is empty)
+
+**Cause:** Skia was not built with the fontconfig font backend enabled. On platforms that are
+neither Windows nor macOS, `FontMgr_Skia.cpp` calls `SkFontMgr_New_FontConfig`; if Skia was built
+without that backend it **silently returns an empty font set** — no error, no crash, just no glyphs
+at all. This is easily mistaken for a layout or theme-color problem.
+
+The Linux branches of `build_duilib_all_in_one.sh` (both the clang and gcc paths) pass
+`skia_enable_fontmgr_fontconfig=true skia_use_freetype=true` explicitly, so the build does not rely
+on Skia's upstream defaults. If you compile Skia yourself, include both flags.
+
+**How to diagnose:** search the startup log for `[WARN] FontManager::GetFontNameList`. That warning
+confirms the font backend is the cause (on Windows it goes to the debugger; on Linux it is written to
+stderr via `SDL_Log`).
+
+---
+
 ## Maintenance Notes
 
 ### 1. Cleaning the build cache

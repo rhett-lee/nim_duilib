@@ -4,6 +4,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/LogUtil.h"
 #include <memory>
 
 namespace ui 
@@ -553,6 +554,16 @@ void FontManager::GetFontNameList(std::vector<DString>& fontNameList) const
     }
     if (!fontNameList.empty()) {
         std::sort(fontNameList.begin(), fontNameList.end());
+    }
+    else {
+        //字体列表为空通常意味着平台字体后端未启用：Linux/FreeBSD 走 Skia 的 fontconfig 后端
+        //（FontMgr_Skia.cpp 的 SkFontMgr_New_FontConfig），一旦 Skia 未开启该后端就会静默返回空集，
+        //表现为所有文本都无法显示且没有任何报错。此处输出告警，便于定位到构建配置而非误判为布局问题。
+        DString log = StringUtil::Printf(
+            _T("[WARN] FontManager::GetFontNameList: font list is empty, please check the font backend "
+               "of the platform (Linux/FreeBSD requires Skia built with "
+               "skia_enable_fontmgr_fontconfig=true and skia_use_freetype=true)"));
+        LogUtil::OutputLine(log);
     }
 }
 

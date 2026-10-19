@@ -2,7 +2,7 @@
 # nim_duilib 开发执行规划（Development Plan）
 
 > 本文档是**可跟踪执行**的开发规划，与其它规划类文档的分工见下表。
-> 基线日期：**2026-10-19**（A-5、B9 TreeGrid 已完成）　｜　覆盖平台：**Windows / macOS / Linux / FreeBSD**
+> 基线日期：**2026-10-19**（已完成 A-4、A-5、
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 
 ## 与其它文档的关系
@@ -22,8 +22,8 @@
 
 | 维度 | 现状数据 | 判断 |
 | :--- | :--- | :--- |
-| 源码规模 | 602 个第一方文件，12 个模块，3529 次提交 | — |
-| 控件数量 | `duilib/Control/` 159 个文件，Roadmap 1–17 项已全部落地 | 数量充足，**重心应从"补控件"转向"补地基"** |
+| 源码规模 | 626 个第一方 `.h/.cpp/.mm`（其中 `duilib/` 618 个），3550 次提交 | — |
+| 控件数量 | `duilib/Control/` 171 个文件；Roadmap 1–17 项已全部落地，2026-10-17~19 又新增 8 个控件（StatusBar / ToolBar / RangeSlider / Rating / Carousel / Pagination / Stepper / TreeGrid） | 数量充足，**重心应从"补控件"转向"补地基"** |
 | 示例程序 | 24 个，是目前**唯一**的质量验证手段 | 无自动化 |
 | 单元测试 | **0 个**（无 gtest/catch2/doctest，无 `tests/`） | 🔴 最大短板 |
 | CI | **0 条**（`.github/` 下只有 issue/PR 模板，无 `workflows/`） | 🔴 |
@@ -126,11 +126,19 @@ M4 生态（远期）             ← 打包发布、系统级能力
 - **验收**：从零执行 `build_duilib_all_in_one.sh` 时 SDL 落到指定 commit。
 - **工作量**：0.5 人天　**依赖**：无
 
-### A-4 Skia 构建脚本 Linux 分支缺 `skia_enable_fontmgr_fontconfig=true` 🟡
+### A-4 Skia 构建脚本 Linux 分支缺 `skia_enable_fontmgr_fontconfig=true` ✅ 已完成（2026-10-19）
 
-- **现状**：`build_duilib_all_in_one.sh:431` FreeBSD 分支显式传入该开关，`:433` Linux 分支未传。而字体枚举依赖 `duilib/RenderSkia/FontMgr_Skia.cpp:212` 的 `SkFontMgr_New_FontConfig`。若上游默认值变化，Linux 会**静默返回空字体列表**（`FontManager.cpp:546` 无告警）。
-- **动作**：Linux 分支补齐该开关；在 `FontManager.cpp` 字体列表为空时输出一条 WARN 日志。
-- **验收**：Linux 上 `GetFontNameList` 返回非空；空列表时有可检索的日志。
+- **原审计结论**（复核后**修正了风险等级**，但结论与动作不变）：
+  `build/build_duilib_all_in_one.sh:431` FreeBSD 分支显式传入该开关，Linux 分支未传。字体枚举依赖 `duilib/RenderSkia/FontMgr_Skia.cpp:212` 的 `SkFontMgr_New_FontConfig`；一旦该后端未启用，Linux 会**静默返回空字体列表**（`FontManager.cpp` 无告警），表现为"所有文本都不显示"且无任何报错，极易误判为布局或主题色问题。
+- **复核补充（对本地 `skia` 源码求值，审计未展开的一层）**：
+  `gn/skia.gni:173` 中 `skia_enable_fontmgr_fontconfig = skia_use_freetype && skia_use_fontconfig`，而 `skia_use_fontconfig = is_linux`（`:58`）、`skia_use_freetype = is_android || is_linux || is_canvaskit`（`:61`）。**即当前上游默认值在 Linux 上恰好为 `true`，此前的 Linux 构建实际能正常枚举字体**——所以这不是"当前已坏"的缺陷，而是**隐式依赖上游默认值**的脆弱性（上游若把 `skia_use_fontconfig` 改为跟随发行版探测或收紧条件即会失效）。显式声明的价值在于把"碰巧对"变成"确定对"，并与 FreeBSD 分支保持一致的显式风格。
+- **已完成的改动**：
+  | 文件 | 改动 |
+  | :--- | :--- |
+  | `build/build_duilib_all_in_one.sh` | clang 路径在 FreeBSD 与 `else` 之间插入显式 `Linux` 分支；gcc 路径同样加 Linux 判断（该路径原先连 FreeBSD 都没判断）。两条 Linux 分支均传 `skia_enable_fontmgr_fontconfig=true skia_use_freetype=true`。**macOS 与 MSYS2 仍走原 `else`，不带该开关**（macOS 用 CoreText、Windows 用 DirectWrite，加了反而错） |
+  | `duilib/Core/FontManager.cpp` | `GetFontNameList` 在列表为空时输出 `[WARN] FontManager::GetFontNameList: font list is empty...`，指向具体构建开关 |
+  | `build/README.md` / `build/README.en.md` | 新增 Q6「Linux 下所有文本都不显示」，给出排查关键字 |
+- **验收**：`bash -n` 语法检查通过；用桩函数替换 `gn` 实测四个平台（Linux / FreeBSD / Darwin / MINGW64）走 clang 与 gcc 两条路径，确认仅 Linux 与 FreeBSD 带上 fontconfig、macOS 与 MSYS2 未被污染；`duilib.vcxproj` Debug x64 编译通过。
 - **工作量**：0.5 人天　**依赖**：无
 
 ### A-5 文档硬伤（5 处路径 / 2 处名称 / 22 个死链 / 1 处历史残留）✅ 已完成
@@ -431,6 +439,30 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 `test.xml` 新增垂直标签栏（首页/收藏 fixed）与 12 项水平溢出两个演示卡，XML 解析 OK。
 **真机视觉 / 交互验证待用户确认**（垂直选中轮廓、固定项拖拽拦截、溢出滚动交互）。
 
+#### 2026-10-17~19 提交对照（不在原跟踪表编号内的变更）
+
+原跟踪表只列了带编号的规划项，实际同期还有一批**未挂编号**的变更落地，一并登记以便追溯：
+
+| 提交 | 日期 | 类型 | 内容 |
+| :--- | :--- | :--- | :--- |
+| `ce567279` | 10-17 | 新控件 | `StatusBar`（继承 `HBox`，子控件即状态面板 + 可选右下角尺寸手柄） |
+| `25a534f1` | 10-17 | 新控件 | `ToolBar`（继承 `HBox`，宽度不足自动收纳尾部子控件并弹出"更多"浮层） |
+| `001352c5` | 10-17 | API 增强 | `Progress` / `Slider` / `ColorPicker` 新增 `SetValueNoEvent`：设值但不触发 `kEventValueChanged`，用于"一个事件源驱动多个控件同步显示"避免回调循环 |
+| `98d89248` | 10-17 | Bug 修复 | `ColorPicker` 界面启动即卡死 |
+| `df2ac755` / `62385554` | 10-17 | Bug 修复 | `ListCtrl` 日期/数字类型编辑细节（修复日历浮窗弹出位置错位） |
+| `d0281bd4` / `ccf5e714` | 10-17 | 性能 | `ListCtrl::RefreshSubItem` 重写为真正的按单元格刷新 |
+| `51363f88` / `d0458009` | 10-18 | Bug 修复 | `Flyout` / `ToastWnd` 弹出后关闭时抢焦点 |
+| `0d987cb6` | 10-18 | API 增强 | `Chart` 实时监控数据（对应 E-11 ①③） |
+| `7794515a` | 10-19 | Bug 修复 | `Slider` 鼠标 hover 状态下刻度线不绘制 |
+| `2595e34d` | 10-19 | 视觉 | 进度条图标重新设计 |
+| `6ca1d303` | 10-19 | Bug 修复 | `ControlMovableT` 的 `move_pos_draggable_border` 属性无效（issue #479） |
+| `e76376cf` / `46e92b35` / `269c0171` / `65962133` / `2421d21f` / `27b9a497` | 10-18~19 | 新控件 | `Rating` / `Carousel`+`Pagination` / `Stepper`（含图标完善）/ `RangeSlider` / `TreeGrid` |
+| `009fb5ce` | 10-19 | 文档 | 修复文档漂移（A-5 的延续维护） |
+
+> **规律**：10-17~10-19 的产出集中在「新增控件 + 已有控件的交互/Bug 修复」，**规划表里的 P0（A 组）与 P1（B 组）
+> 零进展** —— 与「不要跳过 M1 直接做 M3」的原始建议相反，实际执行是从 M2 控件侧切入的。
+> 文档校验（B-2 的手工版）目前靠人工跑 `verify_docs.py`，尚未进 CI。
+
 ### D 组：中优先级
 
 | ID | 项 | 现状依据 | 工作量 |
@@ -441,12 +473,13 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-4** | **TreeView 节点拖拽重排** | `TreeView.cpp` 中 `drag`/`drop` **零命中**。树控件头号缺失（文件树/权限树/组织树通用需求）。另 `TreeView` 无排序（`sort` 零命中）、继承 `ListBox` 非 `VirtualListBox` 无虚拟化 | 中（约 700 行） |
 | **D-5** | **TimePicker 时间选择弹层** | `DateTime.h:117` 自认 `kDateCalendar`「不支持选择时间」，时间只能靠 spin 按钮逐格调。日程/工单/预约场景刚需。另无 min/max 日期约束、无禁用日期、无周起始日配置 | 中（约 800 行） |
 | **D-6** | **Stepper / Steps 向导步骤条** | `Timeline` 语义不符（时间轴 ≠ 流程状态机）；`Project-Audit.md` B4 登记待办 | 低-中（约 400 行） |
-| **D-7** | **ToolBar 工具项抽象** | `ToolBar` 只是"会收纳的 HBox"，**无项管理 API**（无 `AddTool`/`SetToolChecked`），checkable 工具项只能塞 CheckBox，分隔符靠 `Line` 手工拼 | 中（约 500 行） |
+| **D-7** | **ToolBar 工具项抽象** | `ToolBar`（10-17 新增，继承 `HBox`）已具备溢出收纳与回调，但**仍无项管理 API**（无 `AddTool`/`SetToolChecked`/`RemoveTool`），checkable 工具项只能塞 CheckBox，分隔符靠 `Line` 手工拼 | 中（约 500 行） |
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** | 现有 4 种形态 + `ColorSlider` 已很全，但**无透明度选择**（WinUI/Qt 均有），无数值输入面板。`ScreenCapture` 已存在可做吸管 | 中（约 400 行） |
 | **D-9** | **CascadingSelect 级联选择器** | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级 | 中（约 600 行） |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
-| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | Breadcrumb 全仓无命中（`AddressBar` 是浏览器地址栏，语义不同）；Rating 已实现（B5 完成，见 `duilib/Control/Rating.h`）；Carousel 已实现（B7 完成，见 `duilib/Control/Carousel.h`） | 各低 |
+| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | NavigationView（E-2 已补文档）、Rating（B5 完成，提交 `e76376cf`，见 `duilib/Control/Rating.h`）、Carousel（B7 完成，提交 `46e92b35`，见 `duilib/Control/Carousel.h`）均已落地；**Breadcrumb 仍全仓无命中**（`AddressBar` 是浏览器地址栏，语义不同） | 低（仅剩 Breadcrumb） |
 | **D-12** | **原生系统通知** | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。macOS 通知中心 / Windows 桌面通知 / Linux D-Bus | 中高 |
+| **D-13** | **TreeGrid 树表格** ✅ 已完成（2026-10-19，提交 `27b9a497`） | 原审计 B9 的落地方式：**不改 `ListCtrl`，新增独立控件** `duilib/Control/TreeGrid.h/.cpp`（继承 `VBox`，固定表头 + 自带滚动条的列表体，表头与数据行复用同一列宽数组）；`tree_column`+`indent` 层级缩进、`multi_select` 多选、`check_mode`+`check_cascade` 父子三态级联。**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做**（见第八节） | 已完成 |
 
 ### 现有控件的补强点（不新增控件，只补 API）
 
@@ -454,10 +487,10 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | :--- | :--- | :--- | :--- |
 | **E-6** | `ListCtrl` ✅ ②③已完成（2026-10-18）；① 保持开放（未做） | ① 无列汇总行 / 分组行（只有 `nSortGroup` 排序分组）；② 排序用 `std::sort` 非 `stable_sort`，同值行会乱序，同组文件夹/文件可能交错；③ `ListCtrl.h:741` 自认单元格合并"尚未实现"，归并逻辑已写好但缺数据入口 | 后两项成本低、收益明确 |
 | **E-7** | `TabCtrl` ✅ 已完成（2026-10-18）：垂直标签 / 固定标签 / 溢出滚动 | 原条目称"无 `Add`/`Insert`/`Remove` 的程序化管理 API"——经用户核实这些接口**已存在，不开发**；实际缺口为：另无垂直标签、无固定标签、无溢出滚动 | 三项均已落地；真机视觉/交互待确认 |
-| **E-8** | `Menu` / `MenuItem` ✅ 已完成（2026-10-18） | `MenuItem` 几乎没有自己的 API：**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**，勾选/禁用/图标/快捷键在专业菜单里是标配。`Menu.cpp:11` TODO"静态对象集中管理"；`Menu.cpp:147` 遗留 2020 年代码注释 | 成本低收益高 |
+| **E-8** | `Menu` / `MenuItem` ⚠️ **仅完成注释清理（2026-10-18），API 未做** | `MenuItem` 至今**无 `SetCheck`/`SetEnabled`/`SetIcon`/`SetShortcutText`/`SetRadio`**（`Menu.h:260-317` 逐条核实，公开方法只有子菜单增删查与 `Activate`），勾选/禁用/图标/快捷键在专业菜单里是标配。当前勾选只能靠内嵌 `CheckBox` 手工拼（见 `bin/resources/themes/default/controls/menu/settings_menu.xml:69-73`）。提交 `79307ecd` 只清理了 `Menu.cpp:11` 的 TODO 与 `Menu.h` 的遗留注释，**未新增任何 API** | 成本低收益高 |
 | **E-9** | `DateTime` 不处理（架构债，留待重构） | `DateTime.h:35-46` 两处专门为"被复用为 ListCtrl 编辑器"打的补丁（`ResetCalendarFlyoutState`/`CloseCalendarFlyout`）+ 成员 `m_bSuppressCalendarReopen` —— **抽象缺失导致实现细节外泄**；`DateTimeWnd` 与 `kDateCalendar` 两套编辑路径并存 | 本轮不处理 |
 | **E-10** | `SearchBox` ✅ 已完成（2026-10-18）：防抖 + 建议/历史下拉整合 | 原"无防抖"已补 `debounce_interval`（默认 0 立即触发，>0 输入停顿后才发 `kEventTextChanged`）；"初始化顺序债"实为 `SetAttribute` 缓存 + `OnInit` 转发，已正确处理，无需改动；"无历史/建议"已整合——`SearchBox` 复用 `AutoCompleteFlyout` 实现下拉联想：建议数据源（`suggestions`/SetCandidates）+ 搜索历史（提交时自动 MRU 记录，`history_enabled`/`max_history` 可配），支持 prefix/contains 匹配、键盘上下/回车/Esc 导航、复用 `kEventAutoCompleteSelect` 事件 | 中低 |
-| **E-11** | `Chart` ✅ ①③已完成（2026-10-18）；②④不做（用户决定） | ① **只有全量 `SetSeries`，无增量更新 API** → 实时监控场景基本不可用；② 无导出 PNG/SVG；③ 无坐标轴格式化回调（对比 `Slider` 有 `TickLabelCallback`）；④ `Chart.cpp` 93KB 单文件 | ①③已落地；②④不做 |
+| **E-11** | `Chart` ✅ ①③已完成（2026-10-18，提交 `0d987cb6`）；②④不做（用户决定） | ① 增量更新已落地：`AddDataPoint` / `InsertDataPoint` / `SetDataPoint` / `RemoveDataPoint` / `ClearSeries` / `RemoveSeries` / `SetMaxDataPoints`（超出上限自动丢弃最旧点）；③ `SetXAxisLabelFormatter` / `SetYAxisLabelFormatter`（类比 `Slider` 的 `TickLabelCallback`）。② 无导出 PNG/SVG；④ `Chart.cpp` 约 2600 行单文件 | ①③已落地；②④不做 |
 
 ---
 
@@ -538,10 +571,12 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 
 ### P0 — 阻塞级（目标：3.5 人天）
 
+> **实际进展（截至 2026-10-19）**：A 组 5 项中已完成 2 项（A-4、A-5），A-1~A-3 仍开放。
+
 - [ ] **A-1** FreeBSD CEF 宏矛盾　`duilib_config.h:74`　｜ 0.5d ｜ 完成日期：______
 - [ ] **A-2** CEF 层 4 文件 FreeBSD 守卫　｜ 1d ｜ 依赖 A-1 ｜ 完成日期：______
 - [ ] **A-3** SDL3 版本锁定　`build_duilib_all_in_one.sh:196`　｜ 0.5d ｜ 完成日期：______
-- [ ] **A-4** Linux Skia fontconfig 开关 + 空字体告警　｜ 0.5d ｜ 完成日期：______
+- [x] **A-4** Linux Skia fontconfig 开关 + 空字体告警　｜ 0.5d ｜ 完成日期：2026-10-19（复核修正风险等级：上游默认值在 Linux 上本就为 `true`，本次是把隐式依赖改为显式声明）
 - [x] **A-5** 文档硬伤 8 类修正　｜ 1d ｜ 完成日期：2026-10-17
 
 ### P1 — 立网（目标：6–8 周）
@@ -555,6 +590,8 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [ ] **B-4** 分级日志 + 文件输出 + 崩溃 dump + 异常规范　｜ 1–1.5 周 ｜ 完成日期：______
 
 ### P2 — 一致性与控件（目标：25–35 人天）
+
+> **实际进展（截至 2026-10-19）**：C 组（跨平台一致性）**7 项零进展**；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
 - [ ] **C-1** `ASSERT` 跨平台行为统一（推荐方案 A 双宏）　｜ 3–5 天 ｜ 依赖 B-4 ｜ 完成日期：______
 - [ ] **C-2** IME 组合输入非 Windows 平台补齐　｜ 3–5 天 ｜ 依赖 M1 ｜ 完成日期：______
@@ -570,7 +607,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）
 - [x] **E-7** TabCtrl 垂直标签 / 固定标签 / 溢出滚动（增删 API 经核实已存在，不开发）　｜ 低 ｜ 完成日期：2026-10-18
-- [x] **E-8** MenuItem 勾选/单选/图标/快捷键 API + 清理 TODO　｜ 低 ｜ 完成日期：2026-10-18
+- [ ] **E-8** MenuItem 勾选/单选/图标/快捷键 API　｜ 低 ｜ 完成日期：______（2026-10-18 仅清理了 `Menu.cpp:11` TODO 与 `Menu.h` 遗留注释，**API 一项未做**，见 E-8 行）
 - [x] **D-1** RangeSlider 双滑块　｜ 约 400 行 ｜ 完成日期：2026-10-18
 - [ ] **D-2** 富内容 Tooltip　｜ 约 200 行 ｜ 完成日期：______
 - [ ] **D-3** SpinBox 小数与格式化　｜ 低 ｜ 完成日期：______
@@ -581,11 +618,13 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [ ] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 完成日期：______
 - [ ] **D-9** CascadingSelect 级联选择器　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
-- [ ] **D-11** Breadcrumb / Carousel（Rating 已完成，见 B5；Carousel 已完成 2026-10-19，见 B7）　｜ 各低 ｜ 完成日期：______
+- [x] **D-11** Carousel 图片轮播（提交 `46e92b35`，B7；同批完成 Pagination，见 E-4）　｜ 低 ｜ 完成日期：2026-10-19
+  - [ ] D-11.1 Breadcrumb 面包屑导航（全仓无命中，**唯一剩余子项**）
 - [ ] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：______
+- [x] **D-13** TreeGrid 树表格独立控件（B9，提交 `27b9a497`）　｜ 中 ｜ 完成日期：2026-10-19（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做）
 - [ ] **E-9** DateTime 编辑器抽象泄漏修正（不处理，架构债留待重构）　｜ 中 ｜ 完成日期：______
 - [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18
-- [ ] **E-11** Chart 增量数据 API + 轴格式化（①③已完成 2026-10-18；②④不做）　｜ 约 600 行 ｜ 完成日期：______
+- [x] **E-11** Chart ①增量数据 API + ③坐标轴格式化回调（提交 `0d987cb6`）　｜ 约 600 行 ｜ 完成日期：2026-10-18（②导出 PNG/SVG、④拆分单文件，经用户决定不做）
 
 ### P3 — 架构与生态（目标：60–90 人天）
 
