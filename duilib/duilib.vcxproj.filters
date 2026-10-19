@@ -978,6 +978,12 @@
     <ClCompile Include="Control\Rating.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Carousel.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\Pagination.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -2034,6 +2040,12 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Rating.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Carousel.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Pagination.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>

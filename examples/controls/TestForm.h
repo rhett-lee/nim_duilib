@@ -42,6 +42,10 @@ private:
     */
     void ShowRatingWindow();
 
+    /** 显示 Carousel 图片轮播 / Pagination 分页器演示窗口
+    */
+    void ShowCarouselWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

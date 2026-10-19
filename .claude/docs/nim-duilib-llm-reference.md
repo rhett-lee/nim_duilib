@@ -149,6 +149,8 @@
 | CircleProgress | Progress | 圆形进度条 |
 | Stepper | Control | 向导步骤条（水平/垂直、节点序号/对勾、4态派生、连接线着色、Next/Back/GoTo与点击跳转、节点 hover/按下态图标） |
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 SVG 图片驱动、svg_replace_colors 主题色自适应；悬停/按下态图标叠加；悬停预览 + 点击/拖拽打分） |
+| Carousel | Control | 图片轮播（item_image 幻灯片列表、左右导航按钮 + 底部页码指示点，SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页） |
+| Pagination | HBox | 分页器（page_count/current_page 或 total_count+page_size；动态创建页码按钮、超出 max_visible_count 以 … 收纳保留首尾、当前页选中高亮；button_class 皮肤类走语义色） |
 | DateTime | HBox | 日期时间选择器（`LabelTemplate<HBox>`） |
 | TreeView | ListBox | 树形控件 |
 | TreeNode | ListBoxItem | 树节点 |

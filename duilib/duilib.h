@@ -106,6 +106,8 @@
 #include "Control/Timeline.h"
 #include "Control/Stepper.h"
 #include "Control/Rating.h"
+#include "Control/Carousel.h"
+#include "Control/Pagination.h"
 #include "Control/Slider.h"
 #include "Control/RangeSlider.h"
 

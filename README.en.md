@@ -86,7 +86,7 @@ English | [简体中文](README.md)
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr><td align="left">23. Unified context-menu API: Control::AttachPopupMenu binds a right-click menu to any control in one line (auto-creates the menu, resolves coordinates, invokes the item callback, and supports adjusting the menu after it pops up); the paired DetachPopupMenu unbinds it.</td></tr>
     <tr>
-        <td rowspan="45">New Controls / New Containers</td>
+        <td rowspan="47">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -132,7 +132,9 @@ English | [简体中文](README.md)
     <tr><td align="left">42. ToolBar: Toolbar control (derived from HBox) holding a row of tool buttons and separators; when the available width is insufficient it automatically hides trailing children and shows a "more" button at the right end, which pops up a flyout listing the collapsed items and notifies the application layer through a callback; the layout is recalculated when the window width changes. See docs/Control.en.md.</td></tr>
     <tr><td align="left">43. RangeSlider: Range slider control with two thumbs (derived from Progress) that places a low/high thumb on a single track and highlights the selected range; supports a minimum range, range color/radius and a range-change callback (low/high carried in pEventData). See docs/Control.en.md.</td></tr>
     <tr><td align="left">44. Stepper: Wizard step indicator for install/register/config wizards and approval flows; horizontal/vertical layout, nodes show a number or check mark, state derived from the current index + disabled set (pending/active/completed/disabled), connectors colored by completion, supports Next/Back/GoTo and click-to-jump, multi-language titles/descriptions, and a step-change callback carrying currentIndex/oldIndex in pEventData. See docs/Control.en.md.</td></tr>
-    <tr><td align="left">45. Rating: Star rating</td></tr>
+    <tr><td align="left">45. Rating: Star rating control</td></tr>
+    <tr><td align="left">46. Carousel: image carousel control</td></tr>
+    <tr><td align="left">47. Pagination: pager control</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>

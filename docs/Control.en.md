@@ -1006,6 +1006,120 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Attributes of Carousel (image carousel)
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| item_image |  | string | Slide image list: `\|`-separated image attribute strings, each item like `file='.../slide1.png'` |
+| current_index | 0 | int | Current slide index (0-based), clamped to `[0, count-1]` |
+| loop | true | bool | Whether to loop (wrap around for infinite scrolling) |
+| auto_play (alias autoplay) | false | bool | Whether to auto-play |
+| interval | 3000 | int | Auto-play interval (milliseconds) |
+| hover_pause | true | bool | Pause auto-play while the mouse hovers over the control |
+| transition_ms | 300 | int | Transition animation duration (milliseconds; 0 = switch immediately) |
+| show_indicator | true | bool | Whether to show the page indicator dots |
+| indicator_normal_image |  | string | Image for a normal indicator dot |
+| indicator_active_image |  | string | Image for the active (current page) indicator dot |
+| indicator_size | 8 | int | Indicator dot size (pixels, DPI-scaled automatically) |
+| indicator_gap | 8 | int | Gap between indicator dots (pixels, DPI-scaled automatically) |
+| indicator_bottom | 10 | int | Distance from the dots to the bottom of the content area (pixels, DPI-scaled automatically) |
+| show_nav_button | true | bool | Whether to show the previous / next navigation buttons |
+| btn_prev_image / btn_next_image |  | string | Images for the previous / next buttons |
+| btn_prev_hovered_image / btn_next_hovered_image |  | string | Hover-state images for the buttons (optional) |
+| btn_prev_pressed_image / btn_next_pressed_image |  | string | Pressed-state images for the buttons (optional; falls back to hovered / normal) |
+| btn_size | 32 | int | Navigation button size (pixels, DPI-scaled automatically) |
+| btn_margin | 12 | int | Distance from the navigation buttons to the content-area edge (pixels, DPI-scaled automatically) |
+
+Carousel inherits the `Control` attributes; for more available attributes please refer to the attributes of `Control`.
+
+The image carousel is used for home banners, ad slots, image galleries, and similar scenarios, displaying one slide at a time. Its appearance is fully driven by SVG images (no self-drawn graphics):
+
+- Slides, the previous/next buttons, and the bottom page indicator dots are all carried by images; `svg_replace_colors` maps placeholder colors to theme semantic colors, so switching themes takes effect automatically;
+- Supports previous/next navigation, clickable bottom indicator dots (with the current page highlighted), `loop` infinite cycling, `auto_play` with `hover_pause`, `transition_ms` horizontal sliding animation, and press-and-drag horizontal paging.
+
+The `carousel` class in the default skin already provides the navigation buttons, indicator dots, and semantic color mapping; reference it directly with `class="carousel"`.
+
+XML example:
+```xml
+<Carousel class="carousel" name="carousel_demo" width="stretch" height="150"
+          item_image="file='.../slide1.svg'|file='.../slide2.svg'|file='.../slide3.svg'"
+          auto_play="true" interval="2500" loop="true" transition_ms="350"/>
+```
+
+Corresponding C++ interface:
+```cpp
+int32_t GetCurrentIndex() const;                 // current index, -1 when there are no slides
+void SetCurrentIndex(int32_t nIndex);            // clamps + dispatches event on change
+void SetCurrentIndexNoEvent(int32_t nIndex);
+int32_t GetItemCount() const;
+void AddItem(const DString& strImage);           // append one slide (image attribute string)
+void InsertItem(int32_t nIndex, const DString& strImage);
+bool RemoveItem(int32_t nIndex);
+void ClearItems();
+void SetItems(const std::vector<DString>& items);
+DString GetItem(int32_t nIndex) const;
+bool Next();  bool Prev();  bool GoTo(int32_t nIndex);       // loop wraps around at ends; non-loop out-of-range returns false
+bool NextNoEvent();  bool PrevNoEvent();  bool GoToNoEvent(int32_t nIndex);
+bool IsLoop() const;       void SetLoop(bool bLoop);
+bool IsAutoPlay() const;   void SetAutoPlay(bool bAutoPlay);
+int32_t GetInterval() const; void SetInterval(int32_t nIntervalMs);
+bool IsHoverPause() const; void SetHoverPause(bool bHoverPause);
+int32_t GetTransitionMs() const; void SetTransitionMs(int32_t nMs);
+void AttachCarouselChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // index-change event
+```
+
+Index-change event: `AttachCarouselChanged` — fired when the current index changes; encoded as `kEventValueChanged`, with the new / old index carried through `EventArgs::pEventData` (pointing to `CarouselValue` with `index` / `oldIndex`; valid only during the callback dispatch, do not store the pointer):
+```cpp
+pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::CarouselValue*>(msg.pEventData);
+        // read pValue->index / pValue->oldIndex
+    }
+    return true;
+});
+```
+
+## Attributes of Pagination (pager)
+
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| page_count (alias total_page) | 0 | int | Total number of pages |
+| current_page (alias page) | 1 | int | Current page number (1-based), clamped to `[1, page_count]` |
+| total_count | 0 | int | Total number of records (combined with `page_size` to derive `page_count`; optional) |
+| page_size | 0 | int | Records per page (optional; when `total_count` + `page_size` > 0, derived from them first) |
+| max_visible_count | 7 | int | Maximum number of page buttons shown in the number area (including first/last); extra ones are collapsed with `…` |
+| show_prev_next | true | bool | Whether to show the previous / next buttons |
+| show_first_last | false | bool | Whether to show the first / last page buttons |
+| prev_text / next_text | ‹ / › | string | Previous / next button text |
+| first_text / last_text | « / » | string | First / last button text |
+| ellipsis_text | … | string | Ellipsis text |
+| button_class | pagination_button | string | Skin Class referenced by page buttons (with normal / hovered / selected states) |
+| button_width / button_height | 32 / 32 | int | Page button size (pixels, DPI-scaled automatically; 0 = auto-size) |
+
+Pagination inherits all layout attributes of `HBox` (such as `child_margin` / `padding` / `halign`); the page buttons are created dynamically by the control based on the data.
+
+The pager is used for page navigation in reports / tables / lists: previous / next plus page buttons, with the current page button highlighted; when pages exceed the display limit they are collapsed with `…`, always keeping the first / last pages and the area near the current page. Colors are determined by the skin style referenced by `button_class` (using semantic colors); no color values are hard-coded in C++.
+
+XML example:
+```xml
+<Pagination name="pagination_demo" width="stretch" height="40" child_margin="2"
+            page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+```
+
+Corresponding C++ interface:
+```cpp
+int32_t GetPageCount() const;    void SetPageCount(int32_t nPageCount);
+int32_t GetCurrentPage() const;  void SetCurrentPage(int32_t nPage);     // clamps + dispatches event on change
+void SetCurrentPageNoEvent(int32_t nPage);
+void SetTotalCount(int32_t nTotalCount, int32_t nPageSize);             // derive page_count from the total
+bool Next();  bool Prev();  bool GoTo(int32_t nPage);
+int32_t GetMaxVisibleCount() const; void SetMaxVisibleCount(int32_t nCount);
+void SetButtonClass(const DString& strClass);  DString GetButtonClass() const;
+void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // page-change event
+```
+
+Page-change event: `AttachPageChanged` — fired when the current page changes; encoded as `kEventValueChanged`, with the new / old page carried through `EventArgs::pEventData` (pointing to `PaginationValue` with `page` / `oldPage`; valid only during the callback dispatch, do not store the pointer).
+
 ## Attributes of CircleProgress
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

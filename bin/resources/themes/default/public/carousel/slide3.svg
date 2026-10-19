@@ -1,0 +1,8 @@
+<svg width="640" height="240" viewBox="0 0 640 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Carousel 演示幻灯片 3（橙色主题横幅，抽象几何装饰） -->
+    <rect width="640" height="240" fill="#C9621A"/>
+    <circle cx="90" cy="50" r="110" fill="#FFFFFF" opacity="0.08"/>
+    <rect x="420" y="-40" width="260" height="260" rx="40" fill="#FFFFFF" opacity="0.06"/>
+    <rect x="48" y="150" width="150" height="10" rx="5" fill="#FFFFFF" opacity="0.85"/>
+    <rect x="48" y="172" width="96" height="10" rx="5" fill="#FFFFFF" opacity="0.5"/>
+</svg>

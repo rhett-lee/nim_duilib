@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="980,900" use_system_caption="true">
-    <VBox bkcolor="bg_window_main">
-        <VBox>
+<Window size="980,740" use_system_caption="true">
+    <VBox bkcolor="bg_window_main" height="stretch">
+        <!-- 入口列表：内容较多，放入纵向滚动容器，窗口变矮时不会被裁掉 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
+        <VBox height="auto" width="stretch">
             <HBox height="auto">
                 <GroupHBox height="80" margin="6,6,6,6" text="MessageBox" corner_size="4,4">
                     <Button class="btn_global" text="MessageBox Test" name="message_box_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
@@ -17,9 +19,7 @@
                         <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_LEFT" name="flyout_left" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
                         <Button class="btn_global" text_id="STRID_FLYOUT_DEMO_RIGHT" name="flyout_right" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
                     </HBox>
-                </GroupVBox>                
-            </HBox>
-            <HBox height="auto">
+                </GroupVBox>
                 <!-- Calendar 演示：单选/范围 两个按钮 -->
                 <GroupVBox height="80" width="auto" margin="6,6,6,6" text_id="STRID_CALENDAR_DEMO_GROUP" corner_size="4,4">
                     <HBox margin="8,28,8,8" height="28" width="auto">
@@ -27,6 +27,8 @@
                         <Button class="btn_global" text_id="STRID_CALENDAR_DEMO_RANGE" name="calendar_range" width="56" height="28" border_round="3,3" margin="6,0,0,0"/>
                     </HBox>
                 </GroupVBox>
+            </HBox>
+            <HBox height="auto">
                 <!-- 进度条测试：独立窗口入口 -->
                 <GroupHBox height="80" width="auto" margin="6,6,6,6" text="Progress" corner_size="4,4">
                     <Button class="btn_global" text="Progress Test" name="progress_btn" margin="20,30,20,0" width="140" height="30" border_round="3,3"/>
@@ -43,26 +45,32 @@
                     <Button class="btn_global" name="context_menu_btn" text_id="STRID_CONTROLS_CONTEXT_MENU_HINT"
                             margin="20,30,20,0" width="220" height="30" border_round="3,3"/>
                 </GroupHBox>
+                <!-- Stepper 向导步骤条：独立演示窗口入口 -->
+                <GroupHBox text="Stepper" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="stepper_btn" text_id="STRID_CONTROLS_STEPPER_TEST"
+                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
+                </GroupHBox>
             </HBox>
+            <HBox height="auto">
+                <!-- Rating 星级评分：独立演示窗口入口 -->
+                <GroupHBox text="Rating" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="rating_btn" text_id="STRID_CONTROLS_RATING_TEST"
+                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
+                </GroupHBox>
 
-            <!-- Stepper 向导步骤条：独立演示窗口入口 -->
-            <GroupHBox text="Stepper" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                <Button class="btn_global" name="stepper_btn" text_id="STRID_CONTROLS_STEPPER_TEST"
-                        margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-            </GroupHBox>
+                <!-- TabCtrl (垂直标签 / 固定标签 / 溢出滚动 / 角标)：独立演示窗口入口 -->
+                <GroupHBox text_id="STRID_CONTROLS_TABCTRL_FULL" height="80" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="tab_ctrl_test_btn" text_id="STRID_CONTROLS_TABCTRL_TEST_BTN" margin="20,30,0,0"
+                            width="160" height="30" border_round="3,3"
+                            tooltip_text_id="STRID_CONTROLS_TABCTRL_TEST_TIP"/>
+                </GroupHBox>
 
-            <!-- Rating 星级评分：独立演示窗口入口 -->
-            <GroupHBox text="Rating" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
-                <Button class="btn_global" name="rating_btn" text_id="STRID_CONTROLS_RATING_TEST"
-                        margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
-            </GroupHBox>
-
-            <!-- TabCtrl (垂直标签 / 固定标签 / 溢出滚动 / 角标)：独立演示窗口入口 -->
-            <GroupHBox text_id="STRID_CONTROLS_TABCTRL_FULL" height="80" margin="6,6,6,6" corner_size="4,4">
-                <Button class="btn_global" name="tab_ctrl_test_btn" text_id="STRID_CONTROLS_TABCTRL_TEST_BTN" margin="20,30,0,0"
-                        width="160" height="30" border_round="3,3"
-                        tooltip_text_id="STRID_CONTROLS_TABCTRL_TEST_TIP"/>
-            </GroupHBox>
+                <!-- Carousel 图片轮播 / Pagination 分页器：独立演示窗口入口 -->
+                <GroupHBox text="Carousel" height="80" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="carousel_btn" text_id="STRID_CONTROLS_CAROUSEL_TEST"
+                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
+                </GroupHBox>
+            </HBox>
 
             <!-- TagInput 标签输入框 -->
             <GroupVBox text_id="STRID_CONTROLS_TAG_INPUT" height="auto" margin="6,6,6,6" corner_size="4,4">
@@ -109,6 +117,7 @@
                         margin="8,24,0,10" width="120" height="30" border_round="3,3"/>
             </GroupHBox>
         </VBox>
+        </VScrollBox>
 
         <!-- 模态遮罩：铺满整个窗口、拦截鼠标输入，中间显示一个模态卡片 -->
         <Mask class="mask" name="mask_modal" visible="false">

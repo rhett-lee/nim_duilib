@@ -301,6 +301,8 @@
     <ClCompile Include="Control\Timeline.cpp" />
     <ClCompile Include="Control\Stepper.cpp" />
     <ClCompile Include="Control\Rating.cpp" />
+    <ClCompile Include="Control\Carousel.cpp" />
+    <ClCompile Include="Control\Pagination.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
@@ -691,6 +693,8 @@
     <ClInclude Include="Control\Timeline.h" />
     <ClInclude Include="Control\Stepper.h" />
     <ClInclude Include="Control\Rating.h" />
+    <ClInclude Include="Control\Carousel.h" />
+    <ClInclude Include="Control\Pagination.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />
     <ClInclude Include="Core\Callback.h" />

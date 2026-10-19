@@ -1006,6 +1006,120 @@ pRating->AttachRatingChanged([](const ui::EventArgs& msg) {
 });
 ```
 
+## Carousel 控件（图片轮播）
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| item_image |  | string | 幻灯片图片列表，`\|` 分隔的图片属性串，每项如 `file='.../slide1.png'` |
+| current_index | 0 | int | 当前幻灯片索引（0 起），钳位到 `[0, count-1]` |
+| loop | true | bool | 是否循环（首尾相接，无限滚动） |
+| auto_play（别名 autoplay） | false | bool | 是否自动播放 |
+| interval | 3000 | int | 自动播放间隔（毫秒） |
+| hover_pause | true | bool | 鼠标悬停时暂停自动播放 |
+| transition_ms | 300 | int | 切换动画时长（毫秒，0 = 立即切换） |
+| show_indicator | true | bool | 是否显示页码指示点 |
+| indicator_normal_image |  | string | 指示点常态图 |
+| indicator_active_image |  | string | 指示点当前页图 |
+| indicator_size | 8 | int | 指示点尺寸（像素，自动 DPI 缩放） |
+| indicator_gap | 8 | int | 指示点间距（像素，自动 DPI 缩放） |
+| indicator_bottom | 10 | int | 指示点距内容区底边距离（像素，自动 DPI 缩放） |
+| show_nav_button | true | bool | 是否显示左右切换按钮 |
+| btn_prev_image / btn_next_image |  | string | 上一张 / 下一张按钮图 |
+| btn_prev_hovered_image / btn_next_hovered_image |  | string | 按钮悬停态图片（可选） |
+| btn_prev_pressed_image / btn_next_pressed_image |  | string | 按钮按下态图片（可选，回退悬停 / 常态） |
+| btn_size | 32 | int | 切换按钮尺寸（像素，自动 DPI 缩放） |
+| btn_margin | 12 | int | 切换按钮距内容区边缘距离（像素，自动 DPI 缩放） |
+
+Carousel 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性。
+
+图片轮播用于首页横幅、广告位、图片集等场景，逐张展示幻灯片（同一时刻显示一张）。外观完全由 SVG 图片驱动（不做图形自绘）：
+
+- 幻灯片、左右切换按钮、底部页码指示点均以图片承载，经 `svg_replace_colors` 把占位色映射到主题语义色，切换主题自动生效；
+- 支持左右切换、底部可点击的页码指示点（当前页高亮）、`loop` 无限循环、`auto_play` 自动播放 + `hover_pause` 悬停暂停、`transition_ms` 水平滑动动画，以及按住鼠标左右拖拽翻页。
+
+默认皮肤的 `carousel` 类已内置导航按钮与指示点图片及语义色映射，可直接 `class="carousel"` 引用。
+
+XML 示例：
+```xml
+<Carousel class="carousel" name="carousel_demo" width="stretch" height="150"
+          item_image="file='.../slide1.svg'|file='.../slide2.svg'|file='.../slide3.svg'"
+          auto_play="true" interval="2500" loop="true" transition_ms="350"/>
+```
+
+对应的 C++ 接口：
+```cpp
+int32_t GetCurrentIndex() const;                 //当前索引，无幻灯片为 -1
+void SetCurrentIndex(int32_t nIndex);            //钳位 + 变化时派发事件
+void SetCurrentIndexNoEvent(int32_t nIndex);
+int32_t GetItemCount() const;
+void AddItem(const DString& strImage);           //追加一张（图片属性串）
+void InsertItem(int32_t nIndex, const DString& strImage);
+bool RemoveItem(int32_t nIndex);
+void ClearItems();
+void SetItems(const std::vector<DString>& items);
+DString GetItem(int32_t nIndex) const;
+bool Next();  bool Prev();  bool GoTo(int32_t nIndex);       //loop 越界首尾相接；非 loop 越界返回 false
+bool NextNoEvent();  bool PrevNoEvent();  bool GoToNoEvent(int32_t nIndex);
+bool IsLoop() const;       void SetLoop(bool bLoop);
+bool IsAutoPlay() const;   void SetAutoPlay(bool bAutoPlay);
+int32_t GetInterval() const; void SetInterval(int32_t nIntervalMs);
+bool IsHoverPause() const; void SetHoverPause(bool bHoverPause);
+int32_t GetTransitionMs() const; void SetTransitionMs(int32_t nMs);
+void AttachCarouselChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //索引变化事件
+```
+
+索引变化事件：`AttachCarouselChanged`——当前索引变化时触发，事件编码为 `kEventValueChanged`，新/旧索引通过 `EventArgs::pEventData` 携带（指向 `CarouselValue`，含 `index` / `oldIndex`，仅在本次回调派发期间有效，请勿保存该指针）：
+```cpp
+pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
+    if (msg.pEventData != nullptr) {
+        auto* pValue = static_cast<const ui::CarouselValue*>(msg.pEventData);
+        // 读取 pValue->index / pValue->oldIndex
+    }
+    return true;
+});
+```
+
+## Pagination 控件（分页器）
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| page_count（别名 total_page） | 0 | int | 总页数 |
+| current_page（别名 page） | 1 | int | 当前页码（1 起），钳位到 `[1, page_count]` |
+| total_count | 0 | int | 总记录数（与 `page_size` 配合推导 `page_count`，可选） |
+| page_size | 0 | int | 每页记录数（可选；`total_count` + `page_size` > 0 时优先推导） |
+| max_visible_count | 7 | int | 序号区最多显示的页码按钮数（含首尾），超出用 `…` 收纳 |
+| show_prev_next | true | bool | 是否显示上一页 / 下一页 |
+| show_first_last | false | bool | 是否显示首页 / 末页按钮 |
+| prev_text / next_text | ‹ / › | string | 上一页 / 下一页文本 |
+| first_text / last_text | « / » | string | 首页 / 末页文本 |
+| ellipsis_text | … | string | 省略号文本 |
+| button_class | pagination_button | string | 页码按钮引用的皮肤 Class（含常态 / 悬停 / 选中态） |
+| button_width / button_height | 32 / 32 | int | 页码按钮尺寸（像素，自动 DPI 缩放；0 = 自适应） |
+
+Pagination 控件继承了 `HBox` 的全部布局属性（如 `child_margin` / `padding` / `halign`）；页面按钮由控件内部按数据动态创建。
+
+分页器用于报表 / 表格 / 列表等场景的页码导航：上一页 / 下一页 + 页码按钮，当前页按钮呈选中态；页码超出显示上限时以 `…` 收纳，始终保留首页 / 末页与当前页附近。颜色由 `button_class` 引用的皮肤样式决定（走语义色），C++ 侧不写死色值。
+
+XML 示例：
+```xml
+<Pagination name="pagination_demo" width="stretch" height="40" child_margin="2"
+            page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+```
+
+对应的 C++ 接口：
+```cpp
+int32_t GetPageCount() const;    void SetPageCount(int32_t nPageCount);
+int32_t GetCurrentPage() const;  void SetCurrentPage(int32_t nPage);     //钳位 + 变化时派发事件
+void SetCurrentPageNoEvent(int32_t nPage);
+void SetTotalCount(int32_t nTotalCount, int32_t nPageSize);             //由总数推导 page_count
+bool Next();  bool Prev();  bool GoTo(int32_t nPage);
+int32_t GetMaxVisibleCount() const; void SetMaxVisibleCount(int32_t nCount);
+void SetButtonClass(const DString& strClass);  DString GetButtonClass() const;
+void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //页码变化事件
+```
+
+页码变化事件：`AttachPageChanged`——当前页码变化时触发，事件编码为 `kEventValueChanged`，新/旧页码通过 `EventArgs::pEventData` 携带（指向 `PaginationValue`，含 `page` / `oldPage`，仅在本次回调派发期间有效，请勿保存该指针）。
+
 ## CircleProgress的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

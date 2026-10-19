@@ -33,6 +33,7 @@
     <Var name="PATH_SLIDER" value="public/slider"/>
     <Var name="PATH_STEPPER" value="public/stepper"/>
     <Var name="PATH_RATING" value="public/rating"/>
+    <Var name="PATH_CAROUSEL" value="public/carousel"/>
     <Var name="PATH_CAPTION" value="public/caption"/>
     <Var name="PATH_COMBO" value="public/combo"/>
     <Var name="PATH_MENU" value="public/menu"/>
@@ -468,6 +469,29 @@
            star_empty_image="file='${PATH_RATING}/star_empty.svg' svg_replace_colors='#0078D4|border_control_normal'"
            star_hovered_image="file='${PATH_RATING}/star_hovered.svg' svg_replace_colors='#0078D4|color_accent'"
            star_pressed_image="file='${PATH_RATING}/star_pressed.svg' svg_replace_colors='#0078D4|color_accent'"/>
+    <!-- 图片轮播（Carousel）：幻灯片、切换按钮、页码指示点均由 SVG 图片驱动，颜色随主题语义色自动切换 -->
+    <Class name="carousel" cursor_type="hand" btn_size="28" btn_margin="10"
+           indicator_size="10" indicator_gap="8" indicator_bottom="10" 
+           btn_prev_image="file='${PATH_CAROUSEL}/nav_prev.svg' width='28' height='28' svg_replace_colors='#0078D4|color_accent'"
+           btn_next_image="file='${PATH_CAROUSEL}/nav_next.svg' width='28' height='28' svg_replace_colors='#0078D4|color_accent'"
+           btn_prev_hovered_image="file='${PATH_CAROUSEL}/nav_prev_hovered.svg' width='28' height='28' svg_replace_colors='#0078D4|color_accent'"
+           btn_next_hovered_image="file='${PATH_CAROUSEL}/nav_next_hovered.svg' width='28' height='28' svg_replace_colors='#0078D4|color_accent'"
+           indicator_normal_image="file='${PATH_CAROUSEL}/indicator_normal.svg' width='10' height='10' svg_replace_colors='#0078D4|border_control_normal'"
+           indicator_active_image="file='${PATH_CAROUSEL}/indicator_active.svg' width='10' height='10' svg_replace_colors='#0078D4|color_accent'"/>
+    <!-- 分页器（Pagination）页码按钮（CheckBox）：常态 / 悬停 / 按下 / 禁用 + 选中态，颜色走语义色 -->
+    <Class name="pagination_button" height="32" width="32" text_align="center" valign="center"
+                                        normal_text_color="text_default" normal_color="" 
+                                        hovered_color="bg_list_item_hovered" hovered_color_round="4,4" 
+                                        pressed_color="bg_list_item_selected" pressed_color_round="4,4" 
+                                        selected_normal_color="color_accent" selected_normal_color_round="4,4" 
+                                        selected_normal_text_color="color_white" 
+                                        disabled_color="" disabled_text_color="text_disabled"/>
+    <!-- 分页器（Pagination）导航 / 省略按钮（Button）：仅含 Button 支持的状态，颜色走语义色 -->
+    <Class name="pagination_nav_button" height="32" width="32" text_align="center" valign="center"
+                                        normal_text_color="text_default" normal_color="" 
+                                        hovered_color="bg_list_item_hovered" hovered_color_round="4,4" 
+                                        pressed_color="bg_list_item_selected" pressed_color_round="4,4" 
+                                        disabled_color="" disabled_text_color="text_disabled"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 

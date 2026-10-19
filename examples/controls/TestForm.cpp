@@ -6,6 +6,7 @@
 #include "RangeSliderForm.h"
 #include "StepperForm.h"
 #include "RatingForm.h"
+#include "CarouselForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -70,6 +71,15 @@ void TestForm::OnInitWindow()
     if (pRatingBtn != nullptr) {
         pRatingBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowRatingWindow();
+            return true;
+            });
+    }
+
+    //Carousel 图片轮播 / Pagination 分页器测试窗口
+    ui::Button* pCarouselBtn = dynamic_cast<ui::Button*>(FindControl(_T("carousel_btn")));
+    if (pCarouselBtn != nullptr) {
+        pCarouselBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowCarouselWindow();
             return true;
             });
     }
@@ -407,6 +417,18 @@ void TestForm::ShowRatingWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("RatingWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowCarouselWindow()
+{
+    CarouselForm* testForm = new CarouselForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("CarouselWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

@@ -302,7 +302,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
 | **E-1** | **StatusBar 分格索引 API** ✅ 已完成（2026-10-18） | `StatusBar.h` 无 `SetStatusText(格,文本)` / `GetStatusText`，只能业务层 `FindControl` 找子 Label；且 size grip 头文件自认"仅作视觉提示，不改变窗口可调整大小行为"= **装饰性死控件** | 补 4–6 个方法；明确 size grip 是否要接真实拖拽 | 极低 |
 | **E-2** | **NavigationView 属性文档** ✅ 已完成（2026-10-18） | `docs/Control.md` 中 `NavigationView` 出现 0 次——**唯一已实现但主文档无章节的控件** | 补中英双章节 + `Summary` / `XmlNode` / `Events` 四处 | 极低（纯文档） |
 | **E-3** | **通用 Dialog 控件** | 只有 `MessageBoxWnd` 五种固定按钮，无法放任意内容。**地基已齐**（`Mask` 遮罩 + `Flyout` 浮层），只差组装 | 新增 `Dialog` 基类，可放任意内容 + 自定义底部按钮区 + `DoModal` | 低（约 600 行） |
-| **E-4** | **Pagination 分页器** | 全仓无命中。报表/表格类软件刚需，当前全靠业务层手写按钮组 | HBox + 若干 Button 组合 | 低（约 250 行） |
+| **E-4** | **Pagination 分页器** ✅ 已完成（2026-10-19） | 全仓无命中。报表/表格类软件刚需，当前全靠业务层手写按钮组 | HBox + 若干 Button 组合 | 低（约 250 行） |
 | **E-5** | **ScrollBar 键盘导航** ✅ 已完成（2026-10-18 核实：现有代码已支持，无需开发） | `ScrollBar` 无 PageUp/PageDown/方向键/Home/End 处理（对比 `Slider.h:215 HandleKeyDown` 有完整键盘支持）；`ScrollBar.cpp:50` 还有 TODO"DPI 自适应参数，需要确认一下" | 补键盘处理 + 修 DPI TODO | 低 |
 
 #### E-1 实施记录（2026-10-18 完成）
@@ -443,7 +443,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** | 现有 4 种形态 + `ColorSlider` 已很全，但**无透明度选择**（WinUI/Qt 均有），无数值输入面板。`ScreenCapture` 已存在可做吸管 | 中（约 400 行） |
 | **D-9** | **CascadingSelect 级联选择器** | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级 | 中（约 600 行） |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
-| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | Breadcrumb 全仓无命中（`AddressBar` 是浏览器地址栏，语义不同）；Rating 已实现（B5 完成，见 `duilib/Control/Rating.h`）；Carousel 无命中（B7 待办） | 各低 |
+| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | Breadcrumb 全仓无命中（`AddressBar` 是浏览器地址栏，语义不同）；Rating 已实现（B5 完成，见 `duilib/Control/Rating.h`）；Carousel 已实现（B7 完成，见 `duilib/Control/Carousel.h`） | 各低 |
 | **D-12** | **原生系统通知** | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。macOS 通知中心 / Windows 桌面通知 / Linux D-Bus | 中高 |
 
 ### 现有控件的补强点（不新增控件，只补 API）
@@ -564,7 +564,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
 - [x] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：2026-10-18
 - [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______
-- [ ] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：______
+- [x] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：2026-10-19
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）
 - [x] **E-7** TabCtrl 垂直标签 / 固定标签 / 溢出滚动（增删 API 经核实已存在，不开发）　｜ 低 ｜ 完成日期：2026-10-18
@@ -579,7 +579,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [ ] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 完成日期：______
 - [ ] **D-9** CascadingSelect 级联选择器　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
-- [ ] **D-11** Breadcrumb / Carousel（Rating 已完成，见 B5）　｜ 各低 ｜ 完成日期：______
+- [ ] **D-11** Breadcrumb / Carousel（Rating 已完成，见 B5；Carousel 已完成 2026-10-19，见 B7）　｜ 各低 ｜ 完成日期：______
 - [ ] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：______
 - [ ] **E-9** DateTime 编辑器抽象泄漏修正（不处理，架构债留待重构）　｜ 中 ｜ 完成日期：______
 - [x] **E-10** SearchBox 防抖 + 建议/历史下拉整合（已完成 2026-10-18）　｜ 中低 ｜ 完成日期：2026-10-18

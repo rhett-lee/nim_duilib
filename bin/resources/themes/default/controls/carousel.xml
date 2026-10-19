@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="880,820" text="Carousel Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="680,520">
+    <VBox bkcolor="bg_window_main" height="stretch">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_CAROUSEL_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="34" padding="12,6,12,0">
+            <Label text_id="STRID_CAROUSEL_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 演示区：内容较多，放入纵向滚动容器，窗口变矮时也不会被裁掉 -->
+        <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false" padding="12,6,12,12">
+            <VBox height="auto" width="stretch">
+                <!-- 自动播放 + 无限循环 -->
+                <Label text_id="STRID_CAROUSEL_AUTO_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,2,0,6"/>
+                <Carousel class="carousel" name="carousel_auto" height="150" width="stretch"
+                          item_image="file='${PATH_CAROUSEL}/slide1.svg'|file='${PATH_CAROUSEL}/slide2.svg'|file='${PATH_CAROUSEL}/slide3.svg'"
+                          current_index="0" auto_play="true" interval="2500" loop="true" transition_ms="350"/>
+
+                <!-- 手动切换（非循环）+ 事件回显 -->
+                <Label text_id="STRID_CAROUSEL_MANUAL_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                <Carousel class="carousel" name="carousel_manual" height="120" width="stretch"
+                          item_image="file='${PATH_CAROUSEL}/slide1.svg'|file='${PATH_CAROUSEL}/slide2.svg'|file='${PATH_CAROUSEL}/slide3.svg'"
+                          current_index="0" loop="false" transition_ms="250"/>
+                <HBox height="32" child_margin="8" margin="0,8,0,0">
+                    <Label name="carousel_event" text_id="STRID_CAROUSEL_EVENT_NONE" text_color="text_default" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                    <Button class="btn_global" name="carousel_prev" text_id="STRID_CAROUSEL_PREV" width="84" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="carousel_next" text_id="STRID_CAROUSEL_NEXT" width="84" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="carousel_goto_first" text_id="STRID_CAROUSEL_GOTO_FIRST" width="84" height="28" border_round="3,3"/>
+                </HBox>
+
+                <!-- 指示点样式（隐藏左右切换按钮） -->
+                <Label text_id="STRID_CAROUSEL_DOTS_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                <Carousel class="carousel" name="carousel_dots" height="110" width="stretch"
+                          item_image="file='${PATH_CAROUSEL}/slide1.svg'|file='${PATH_CAROUSEL}/slide2.svg'|file='${PATH_CAROUSEL}/slide3.svg'"
+                          current_index="1" show_nav_button="false" auto_play="true" interval="3000" hover_pause="true"/>
+
+                <!-- 分页器 -->
+                <Label text_id="STRID_PAGINATION_BASIC_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                <Pagination name="pagination_basic" width="stretch" height="40" child_margin="2"
+                            page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+                <HBox height="30" child_margin="8" margin="0,6,0,0">
+                    <Label name="pagination_event" text_id="STRID_PAGINATION_EVENT_NONE" text_color="text_default" valign="center" auto_tooltip="true"/>
+                    <Control/>
+                    <Button class="btn_global" name="pagination_prev" text_id="STRID_CAROUSEL_PREV" width="84" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="pagination_next" text_id="STRID_CAROUSEL_NEXT" width="84" height="28" border_round="3,3"/>
+                </HBox>
+
+                <!-- 分页器：由总数推导 + 首页/末页 + 省略收纳 -->
+                <Label text_id="STRID_PAGINATION_MANY_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                <Pagination name="pagination_many" width="stretch" height="40" child_margin="2"
+                            total_count="995" page_size="20" current_page="12" show_first_last="true" max_visible_count="7"/>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

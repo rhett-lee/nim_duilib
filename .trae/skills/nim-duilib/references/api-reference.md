@@ -232,6 +232,8 @@ NavigationViewItem（继承 Control）属性：
 | RangeSlider | Progress | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间；最小间距/区间颜色/圆角；节点名 `RangeSlider`），`duilib/Control/RangeSlider.h` |
 | Stepper | Control | 向导步骤条（水平/垂直；节点显示序号或对勾，状态由当前索引+禁用集合派生：待开始/进行中/已完成/禁用；连接线按完成度着色；Next/Back/GoTo 与点击跳转；多语言 `step_title_id`/`step_desc_id`；节点名 `Stepper`），`duilib/Control/Stepper.h` |
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
+| Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
+| Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
 | Timeline | Control | 垂直时间轴（节点+连接线+内容，数据驱动、4态配色、正序/倒序、多语言 `item_*_id` 绑定、节点点击事件、空/加载状态、滚动条 hover 显隐可拖动，`duilib/Control/Timeline.h`），XML 节点名 `Timeline` |
@@ -662,6 +664,52 @@ C++ 接口：`GetStepCount/GetStepAt/AddStep/InsertStep/RemoveStepAt/ClearSteps/
 C++ 接口：`GetValue/SetValue/SetValueNoEvent`、`GetMax/GetStarCount/SetMax`、`IsAllowHalf/SetAllowHalf`、`IsReadOnly/SetReadOnly`、`GetStarSize/SetStarSize`、`GetStarGap/SetStarGap`、`SetStarImage/GetStarImage`、`SetFilledImage/SetHalfImage/SetEmptyImage`、`SetStarStateImage/GetStarStateImage`、`SetHoveredImage/SetPressedImage`、`ClearImageCache`；星图类型枚举 `StarImageType`（kFilled/kHalf/kEmpty）。
 事件：`AttachRatingChanged`——评分值变化时触发，事件编码 `kEventValueChanged`，`value`/`oldValue` 由 `EventArgs::pEventData`（指向 `Rating::RatingValue`）携带，仅在回调派发期间有效。
 默认皮肤 `rating` 类内置五张图（实心/半星/悬停态/按下态映射 color_accent，空心星映射 border_control_normal），XML 中 `class="rating"` 即可引用。
+
+### Carousel 属性(继承 Control)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| item_image | | string | 幻灯片图片列表，`\|` 分隔的图片属性串（每项如 `file='.../slide1.svg'`） |
+| current_index | 0 | int | 当前幻灯片索引（0 起），钳位到 [0, count-1] |
+| loop | true | bool | 是否循环（首尾相接，无限滚动） |
+| auto_play（别名 autoplay） | false | bool | 是否自动播放 |
+| interval | 3000 | int | 自动播放间隔（毫秒） |
+| hover_pause | true | bool | 悬停时暂停自动播放 |
+| transition_ms | 300 | int | 切换动画时长（毫秒，0 = 立即切换） |
+| show_indicator | true | bool | 是否显示页码指示点 |
+| indicator_normal_image / indicator_active_image | | string | 指示点常态 / 当前页图片 |
+| indicator_size / indicator_gap / indicator_bottom | 8 / 8 / 10 | int | 指示点尺寸 / 间距 / 距内容区底边距离（像素，DPI 自适应） |
+| show_nav_button | true | bool | 是否显示左右切换按钮 |
+| btn_prev_image / btn_next_image | | string | 上一张 / 下一张按钮图 |
+| btn_prev_hovered_image / btn_next_hovered_image | | string | 按钮悬停态图片（可选） |
+| btn_prev_pressed_image / btn_next_pressed_image | | string | 按钮按下态图片（可选，回退悬停 / 常态） |
+| btn_size / btn_margin | 32 / 12 | int | 切换按钮尺寸 / 距内容区边缘距离（像素，DPI 自适应） |
+
+图片轮播（首页横幅/广告位/图片集）：外观完全由 SVG 图片驱动（幻灯片 + 导航按钮 + 指示点），颜色经 svg_replace_colors 映射主题语义色随主题切换；支持左右切换、可点击页码指示点（当前页高亮）、loop 无限循环、auto_play 自动播放 + hover_pause 悬停暂停、transition_ms 水平滑动动画、鼠标拖拽翻页。
+C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItemCount/AddItem/InsertItem/RemoveItem/ClearItems/SetItems/GetItem`、`Next/Prev/GoTo`（含 `NoEvent` 变体）、`IsLoop/SetLoop`、`IsAutoPlay/SetAutoPlay`、`GetInterval/SetInterval`、`IsHoverPause/SetHoverPause`、`GetTransitionMs/SetTransitionMs`。
+事件：`AttachCarouselChanged`——当前索引变化时触发，事件编码 `kEventValueChanged`，`index`/`oldIndex` 由 `EventArgs::pEventData`（指向 `Carousel::CarouselValue`）携带，仅在回调派发期间有效。
+默认皮肤 `carousel` 类内置导航按钮与指示点图片及语义色映射，XML 中 `class="carousel"` 即可引用。
+
+### Pagination 属性(继承 HBox)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| page_count（别名 total_page） | 0 | int | 总页数 |
+| current_page（别名 page） | 1 | int | 当前页码（1 起），钳位到 [1, page_count] |
+| total_count | 0 | int | 总记录数（与 page_size 配合推导 page_count，可选） |
+| page_size | 0 | int | 每页记录数（可选；total_count + page_size > 0 时优先推导） |
+| max_visible_count | 7 | int | 序号区最多显示的页码按钮数（含首尾），超出用 `…` 收纳 |
+| show_prev_next | true | bool | 是否显示上一页 / 下一页 |
+| show_first_last | false | bool | 是否显示首页 / 末页按钮 |
+| prev_text / next_text | ‹ / › | string | 上一页 / 下一页文本 |
+| first_text / last_text | « / » | string | 首页 / 末页文本 |
+| ellipsis_text | … | string | 省略号文本 |
+| button_class | pagination_button | string | 页码按钮引用的皮肤 Class（含常态/悬停/选中态） |
+| button_width / button_height | 32 / 32 | int | 页码按钮尺寸（像素，DPI 自适应；0 = 自适应） |
+
+分页器（报表/表格/列表页码导航）：继承 HBox 全部布局属性；页面按钮由控件内部按数据动态创建（延迟定时器重建，规避子控件自删的 use-after-free）；当前页按钮选中高亮，页码超出上限以 `…` 收纳并保留首尾与当前页附近；颜色走 button_class 引用的皮肤语义色，C++ 无写死色值。
+C++ 接口：`GetPageCount/SetPageCount`、`GetCurrentPage/SetCurrentPage/SetCurrentPageNoEvent`、`SetTotalCount`、`Next/Prev/GoTo`、`GetMaxVisibleCount/SetMaxVisibleCount`、`SetButtonClass/GetButtonClass`。
+事件：`AttachPageChanged`——当前页码变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
 
 ### CircleProgress 属性(继承 Progress)
 

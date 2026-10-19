@@ -638,6 +638,7 @@ STRID_CONTROLS_TOOLBAR_TEST = ToolBar Test
 STRID_CONTROLS_RANGESLIDER_TEST = RangeSlider Test
 STRID_CONTROLS_STEPPER_TEST = Stepper Test
 STRID_CONTROLS_RATING_TEST = Rating Test
+STRID_CONTROLS_CAROUSEL_TEST = Carousel / Pagination Test
 # controls/Timeline
 STRID_TIMELINE_WINDOW_TITLE = Timeline Control Test
 STRID_TIMELINE_HINT = Hint: click a node to fire the callback
@@ -800,6 +801,21 @@ STRID_RATING_CLEAR = Clear
 STRID_RATING_SET45 = Set to 4.5
 STRID_RATING_EVENT_NONE = Rating: 3 / 5
 STRID_RATING_EVENT_PREFIX = Rating: 
+# controls/Carousel
+STRID_CAROUSEL_WINDOW_TITLE = Carousel / Pagination Control Test
+STRID_CAROUSEL_HINT = Hint: the carousel supports auto-play, infinite loop, prev/next, indicator click and drag; the pager navigates by page number or prev/next
+STRID_CAROUSEL_AUTO_TITLE = Auto play + infinite loop (switch every 2.5s, pause on hover)
+STRID_CAROUSEL_MANUAL_TITLE = Manual switch (no loop, with slide animation)
+STRID_CAROUSEL_DOTS_TITLE = Indicator only (nav buttons hidden)
+STRID_CAROUSEL_EVENT_NONE = Current index: 0 / 3
+STRID_CAROUSEL_EVENT_PREFIX = Current index: 
+STRID_CAROUSEL_PREV = Previous
+STRID_CAROUSEL_NEXT = Next
+STRID_CAROUSEL_GOTO_FIRST = Go to first
+STRID_PAGINATION_BASIC_TITLE = Pagination (10 pages, current page 3)
+STRID_PAGINATION_MANY_TITLE = Pagination (derived: 995 items / 20 per page, with first/last and ellipsis)
+STRID_PAGINATION_EVENT_NONE = Current page: 3 / 10
+STRID_PAGINATION_EVENT_PREFIX = Current page: 
 # controls/Chart
 STRID_CHART_WINDOW_TITLE = Chart Control Test
 STRID_CHART_CARD_LINE = Line · Multi-series
