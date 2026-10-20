@@ -851,12 +851,34 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
 
 bool NativeWindow_SDL::CreateWindowAndRender(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
 {
+#if defined (DUILIB_BUILD_FOR_WIN)
+    //创建新窗口前，记录当前拥有键盘焦点的窗口：
+    //SDL的Windows后端在创建任意新窗口时会调用 WIN_StopTextInput(新窗口)，而其内部的 IME_Init
+    //在已初始化时直接返回，不会把 ime_hwnd_current 切换到新窗口，于是 IME_Disable 执行的是
+    //ImmAssociateContext(当前主窗口, NULL)，即解除了【主窗口】的输入法上下文关联；
+    //但主窗口的 text_input_active 标志仍为 true，所以现象是"英文/ASCII可输入、中文不可输入"，
+    //并且 duilib 侧的 SetImeOpenStatus(true) 会因 SDL_TextInputActive() 为 true 而直接返回，
+    //无法自行恢复（SDL_StartTextInput 在已激活时也不会调用后端的 StartTextInput）。
+    SDL_Window* pPrevFocusWnd = SDL_GetKeyboardFocus();
+#endif
+
     //创建SDL窗口
     m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return false;
     }
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    //创建新窗口后，对创建前的键盘焦点窗口做一次 Stop/Start 往返：
+    //Stop 使 text_input_active 变为 false，随后的 Start 才能真正执行后端的
+    //WIN_StartTextInput -> IME_Enable -> ImmAssociateContext(hwnd, ime_himc)，
+    //从而把输入法上下文重新关联回主窗口（该问题仅Windows平台的IMM32实现存在）。
+    if ((pPrevFocusWnd != nullptr) && (pPrevFocusWnd != m_sdlWindow) && SDL_TextInputActive(pPrevFocusWnd)) {
+        SDL_StopTextInput(pPrevFocusWnd);
+        SDL_StartTextInput(pPrevFocusWnd);
+    }
+#endif
 
     //创建SDL渲染接口
     m_sdlRenderer = CreateSdlRenderer(createAttributes.m_sdlRenderName);
