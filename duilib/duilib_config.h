@@ -71,7 +71,13 @@
     //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
     #define DUILIB_BUILD_FOR_SDL    1
     //定义是否支持CEF
-    #define DUILIB_BUILD_FOR_CEF    1
+    //注意：Chromium 官方不提供 FreeBSD 构建，FreeBSD 上不支持 CEF 控件，
+    //      故此处不定义 DUILIB_BUILD_FOR_CEF。CMakeLists.txt 已同步排除
+    //      CEFControl 全部源码与 include 路径，build/freebsd_build.sh 亦已
+    //      注释掉 cef / CefBrowser 示例程序。
+    #if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_MACOS)
+        #define DUILIB_BUILD_FOR_CEF    1
+    #endif
 #endif
 
 #if defined (__MINGW32__) || defined (__MINGW64__)

@@ -79,6 +79,8 @@ CefManager* CefManager::GetInstance()
     static CefManager_MacOS self;
     return &self;
 #else
+    //FreeBSD 不支持 CEF 控件（DUILIB_BUILD_FOR_CEF 未定义），
+    //整个文件已被上方 #ifdef 排除，此分支不可达
     ASSERT(0);
     return nullptr;
 #endif

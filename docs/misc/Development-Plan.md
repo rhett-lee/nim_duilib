@@ -103,27 +103,75 @@ M4 生态（远期）             ← 打包发布、系统级能力
 
 > 这一组全部是「现在不做，将来某次无关改动就会炸」的项，总量约 2.5 人天。
 
-### A-1 `DUILIB_BUILD_FOR_CEF` 在 FreeBSD 上被定义但源码已排除 🔴
+### A-1 `DUILIB_BUILD_FOR_CEF` 在 FreeBSD 上被定义但源码已排除 ✅ 已完成（2026-10-20）
 
-- **现状**：`duilib/duilib_config.h:74` 对**所有非 Windows 平台**无条件定义 `DUILIB_BUILD_FOR_CEF 1`，但 `duilib/CMakeLists.txt:68-73, 92-99` 在 FreeBSD 上排除了 CEF 的 include 路径与全部源码。
-- **当前只是靠巧合没炸**：`duilib/duilib.cpp:4-7` 有单点防护 `#if !defined(__FreeBSD__)` 屏蔽了 `duilib_cef.h`。任何人新增一处 `#include "duilib/CEFControl/CefManager.h"`（该头在 `DUILIB_BUILD_FOR_CEF` 下会 `#include "include/cef_app.h"`）就会立即编译失败。
-- **动作**：把 `duilib_config.h:74` 改为仅对 Windows/Linux/macOS 定义。
-- **验收**：在 FreeBSD 上 `#define DUILIB_BUILD_FOR_CEF` 不再出现；全仓 grep 确认无其它位置依赖 FreeBSD 的 CEF 宏。
+- **原审计结论**：`duilib/duilib_config.h:74`对**所有非 Windows 平台**无条件定义
+  `DUILIB_BUILD_FOR_CEF1`，但 `duilib/CMakeLists.txt:68-73, 92-99` 在 FreeBSD 上排除了 CEF 的
+  include 路径与全部源码。此前只靠 `duilib/duilib.cpp:4-7` 的单点防护
+  `#if !defined(__FreeBSD__)` 侥幸没炸——任何人新增一处
+  `#include "duilib/CEFControl/CefManager.h"`（该头在 `DUILIB_BUILD_FOR_CEF` 下会
+  `#include "include/cef_app.h"`）就会立即编译失败。
+- **已完成的改动**（`duilib/duilib_config.h`，非 Windows 分支）：
+  | 项 | 改动 |
+  | :--- | :--- |
+  | 原 | `#define DUILIB_BUILD_FOR_CEF    1`（对 Linux / macOS / FreeBSD 一律定义） |
+  | 现 | 改为 `#if defined (DUILIB_BUILD_FOR_LINUX) \|\| defined (DUILIB_BUILD_FOR_MACOS)` 包裹，
+  并补注释说明 Chromium 官方不提供 FreeBSD 构建 |
+  **Windows 分支未动**（第 46/50行两处定义由 `#ifndef DUILIB_CEF` 保护，语义不变） |
+- **连带解决（超出原计划）**：原 A-2 描述的「FreeBSD 下编译为空 TU → 链接期 undefined symbol」，
+  根因就是本宏被误定义。A-1 落地后 `duilib/CEFControl/` 下**全部 23 个源文件的外层
+  `#ifdef DUILIB_BUILD_FOR_CEF` 同时失效**，整个 CEF 层在 FreeBSD 上自动塌缩为空 TU，
+  不再产生任何符号。已写脚本逐文件核对守卫覆盖范围（23/23 完整包裹）。
+- **验收**：读磁盘真实文本求值新增的 `#if` 块，四个平台结论
+  Windows=不定义 / Linux=定义 / macOS=定义 / **FreeBSD=不定义**，与预期一致；
+  `duilib_config.h` 预处理指令配平（22 / 22）；Windows Debug x64 编译 `EXITCODE=0`。
 - **工作量**：0.5 人天　**依赖**：无
 
-### A-2 CEF 层 4 个文件缺 FreeBSD 守卫 🟡
+### A-2 CEF 层 4 个文件缺 FreeBSD 守卫 ✅ 已完成（2026-10-20，与 A-1 一并处理）
 
-- **现状**：`CefManager.cpp:13-19, 72-84` 的三平台分支无 FreeBSD 落点（`GetInstance()` 会落入 `#else ASSERT(0); return nullptr`）；`CefClientApp.cpp:9,21,28,56` 与 `CefManager_Linux.cpp:3` 在 FreeBSD 下编译为空 TU → 链接期 undefined symbol。
-- **参照**：`CefControlOffScreen.cpp:153` 与 `CefControlNative.cpp:101` 已正确写了 `|| defined (DUILIB_BUILD_FOR_FREEBSD)`，说明 FreeBSD CEF 曾被规划但未完成。
-- **动作**：4 个文件补齐 FreeBSD 条件分支。
-- **验收**：FreeBSD 构建开启 CEF 时无空 TU 警告、无 undefined symbol。
+- **原审计结论**：`CefManager.cpp:13-19, 72-84` 的三平台分支无 FreeBSD 落点
+  （`GetInstance()` 会落入 `#else ASSERT(0); return nullptr`）；`CefClientApp.cpp` 与
+  `CefManager_Linux.cpp` 在 FreeBSD 下编译为空 TU → 链接期 undefined symbol。
+  审计同时指出 `CefControlOffScreen.cpp:153` 与 `CefControlNative.cpp:101` 已写了
+  `|| defined (DUILIB_BUILD_FOR_FREEBSD)`，说明 FreeBSD CEF 曾被规划但未完成。
+- **处理原则变更**：任务下发时明确「**FreeBSD 平台不支持 CEF**」，因此**不做**「补齐 FreeBSD 分支」，
+  改为清除「FreeBSD 曾被支持」的残留痕迹。下列 `|| defined (DUILIB_BUILD_FOR_FREEBSD)`
+  正是该残留，与新原则冲突：
+  | 文件 | 原判定 | 现判定 |
+  | :--- | :--- | :--- |
+  | `duilib/CEFControl/CefWindowUtils_Linux.cpp` | `(LINUX \|\| FREEBSD) && CEF` | `LINUX && CEF` |
+  | `duilib/CEFControl/CefControlNative.cpp` | `LINUX \|\| FREEBSD` | `LINUX` |
+  | `duilib/CEFControl/CefControlOffScreen.cpp` | `LINUX \|\| FREEBSD` | `LINUX` |
+  | `duilib/CEFControl/CefManager.cpp` | 三分支 + 裸 `#else ASSERT(0)` | 补注释说明该分支不可达 |
+  **范围严格限定在 `CEFControl/` 目录**——`duilib/Core` / `Utils` / `Control` 下另有 27 处
+  `LINUX || FREEBSD` 判定，属SDL / X11 / Wayland 平台适配，**与 CEF 无关，全部保留不动**。
+- **为什么不需要给 `CefManager.cpp` 补 FreeBSD 实现**：`GetInstance()` 所在的整个文件已被
+  外层 `#ifdef DUILIB_BUILD_FOR_CEF` 包裹，A-1 之后该文件在 FreeBSD 上根本不参与编译，
+  `#else` 分支不可达。补实现等于凭空引入一个永不执行的分支。
+- **验收**：`grep -rn DUILIB_BUILD_FOR_FREEBSD duilib/CEFControl/` 结果为空；
+  非 CEF 层 27 处判定计数不变；5 个改动文件 CRLF 无混入；
+  `duilib.vcxproj` Debug x64 编译 `EXITCODE=0`。
 - **工作量**：1 人天　**依赖**：A-1
 
-### A-3 SDL3 未锁定版本，全平台共同暴露面 🟡
+### A-3 SDL3 未锁定版本，全平台共同暴露面 ⏸ 暂缓（2026-10-20 决策）
 
-- **现状**：`build/build_duilib_all_in_one.sh:196` 直接 `git clone` SDL3 主干，而同文件 `:228` 对 Skia 做了 `git checkout <commit>` 锁定。SDL3 上游一次 API 变动会同时击穿四个平台。
-- **动作**：为 SDL 补 `git checkout <tag>`，并在 `WORKBUDDY.md` / `build/README.md` 记录当前锁定版本。
-- **验收**：从零执行 `build_duilib_all_in_one.sh` 时 SDL 落到指定 commit。
+- **原审计结论（仍然成立，保留备查）**：`build/build_duilib_all_in_one.sh:196` 直接
+  `git clone https://github.com/libsdl-org/SDL.git` 拉主干，重复执行时走 `:198` 的 `git pull`，
+  全程无 `git checkout <tag>`。而同文件对 Skia 做了 `git checkout <commit>` 锁定 ——
+  SDL3 上游一次 API 变动会同时击穿 Windows / Linux / macOS / FreeBSD 四个平台。
+- **决策：暂不处理**（2026-10-20，用户明确要求）。当前 SDL3 主干在四平台上均可正常编译，
+  属于「已知风险但当前无实际损失」，不占用本轮修复名额。
+- **重新评估的触发条件**（命中任一条即应重启本项）：
+  | 触发条件 | 说明 |
+  | :--- | :--- |
+  | SDL3 上游发布 breaking change | SDL3 仍处于 3.0 正式版前的活跃迭代期，
+API 变动频率高 |
+  | 任一平台出现与 SDL 相关的编译失败 | 先确认是否为上游 commit 引入
+  | 同一份代码在不同机器上编译行为不一致 | `git pull` 导致各机器 commit 不同步 |
+  | 需要对外发布稳定版本 | 发布前必须锁定，否则无法复现构建 |
+- **临时缓解手段**（无需改脚本）：若日后 SDL 拉取导致编译失败，
+  在 `SDL/` 目录执行 `git log -1` 确认 commit 后回退到可用版本即可，
+  例如 `git -C SDL checkout <上一个可用 commit>`。
 - **工作量**：0.5 人天　**依赖**：无
 
 ### A-4 Skia 构建脚本 Linux 分支缺 `skia_enable_fontmgr_fontconfig=true` ✅ 已完成（2026-10-19）
@@ -290,7 +338,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
 - **现状**：`FileDialog_SDL.cpp` 的 `nFileTypeIndex` / `defaultExt` / `defaultLocation` 三个参数在签名中被注释掉（即**未生效**）；`:333` 有代码内 TODO 标注 SDL3 多选返回值有 bug。
 - **动作**：补齐三个参数；多选 bug 等 SDL3 上游修复或自己做校正。
 - **验收**：打开对话框时初始目录与默认扩展名正确。
-- **工作量**：1–2 人天　**依赖**：A-3（SDL 版本锁定）
+- **工作量**：1–2 人天　**依赖**：无（A-3 已暂缓，C-6 不必等待 SDL 版本锁定；若实施中确因 SDL 版本差异受阻，再回头处理 A-3）
 
 ### C-7 `DUILIB_SRC_MACOS` 平台判定脆弱 🟢
 
@@ -571,11 +619,11 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 
 ### P0 — 阻塞级（目标：3.5 人天）
 
-> **实际进展（截至 2026-10-19）**：A 组 5 项中已完成 2 项（A-4、A-5），A-1~A-3 仍开放。
+A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁定）经 2026-10-20 评估后**主动暂缓**，当前 SDL3 主干四平台编译正常，触发条件见 A-3 小节
 
-- [ ] **A-1** FreeBSD CEF 宏矛盾　`duilib_config.h:74`　｜ 0.5d ｜ 完成日期：______
-- [ ] **A-2** CEF 层 4 文件 FreeBSD 守卫　｜ 1d ｜ 依赖 A-1 ｜ 完成日期：______
-- [ ] **A-3** SDL3 版本锁定　`build_duilib_all_in_one.sh:196`　｜ 0.5d ｜ 完成日期：______
+- [x] **A-1** FreeBSD CEF 宏矛盾　`duilib_config.h`　｜ 0.5d ｜ 完成日期：2026-10-20
+- [x] **A-2** CEF 层 4 文件 FreeBSD 守卫　｜ 1d ｜ 依赖 A-1 ｜ 完成日期：2026-10-20
+- [~] **A-3** SDL3 版本锁定　`build/build_duilib_all_in_one.sh:196`　｜ 0.5d ｜ 状态：⏸ 暂缓（2026-10-20 决策，触发条件见 A-3 小节）
 - [x] **A-4** Linux Skia fontconfig 开关 + 空字体告警　｜ 0.5d ｜ 完成日期：2026-10-19（复核修正风险等级：上游默认值在 Linux 上本就为 `true`，本次是把隐式依赖改为显式声明）
 - [x] **A-5** 文档硬伤 8 类修正　｜ 1d ｜ 完成日期：2026-10-17
 
@@ -598,7 +646,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖 B-1 ｜ 完成日期：______
 - [ ] **C-4** Linux/FreeBSD 系统阴影（先评估是否做）　｜ 5–8 天 ｜ 完成日期：______
 - [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______
-- [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖 A-3 ｜ 完成日期：______
+- [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖：无（A-3 暂缓）｜ 完成日期：______
 - [ ] **C-7** CMake 平台判定健壮化　｜ 0.5 天 ｜ 完成日期：______
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
 - [x] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：2026-10-18
