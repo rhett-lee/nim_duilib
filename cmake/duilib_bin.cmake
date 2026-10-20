@@ -12,17 +12,21 @@ message(STATUS "C compiler  : ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ID} ${CMAKE
 message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 #设置项目的include路径（duilib）
-include_directories(${DUILIB_ROOT})
-
-#设置该程序的根目录到include路径
-include_directories(${DUILIB_PROJECT_SRC_DIR})
+# 说明：先收集到列表，等可执行目标创建后，用 target_include_directories/target_link_directories
+#       应用到目标上（CM-17：避免目录级的全局设置影响其它目标）
+list(APPEND DUILIB_TARGET_INCLUDE_DIRS
+    "${DUILIB_ROOT}"
+    "${DUILIB_PROJECT_SRC_DIR}"
+)
 
 #设置项目的link路径
-link_directories("${DUILIB_LIB_PATH}")          #duilib库所在路径
-link_directories("${DUILIB_SKIA_LIB_PATH}")     #skia库所在路径
+list(APPEND DUILIB_TARGET_LINK_DIRS
+    "${DUILIB_LIB_PATH}"        #duilib库所在路径
+    "${DUILIB_SKIA_LIB_PATH}"   #skia库所在路径
+)
 
 if(DUILIB_ENABLE_SDL)
-    link_directories("${DUILIB_SDL_LIB_PATH}")  #SDL库所在路径
+    list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_SDL_LIB_PATH}")  #SDL库所在路径
 endif()
 
 #设置可执行文件的输出目录
@@ -39,6 +43,15 @@ if(DUILIB_SRC_SUB_DIRS)
         list(APPEND SRC_FILES ${SUB_DIR_SRC_FILES})  # 合并列表
     endforeach()
 endif()
+
+# 把上面收集的include/link目录应用到已创建的可执行目标上（CM-17）
+# 需在各平台的 add_executable() 之后调用
+function(duilib_apply_target_directories)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_INCLUDE_DIRS})
+    if(DUILIB_TARGET_LINK_DIRS)
+        target_link_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_LINK_DIRS})
+    endif()
+endfunction()
 
 #按平台，分开实现
 if(DUILIB_OS_WINDOWS)

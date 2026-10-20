@@ -48,10 +48,10 @@ endif()
 
 if(DUILIB_ENABLE_CEF)
     #使用CEF模块：需要添加CEF源码根目录到include路径
-    include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
+    list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${DUILIB_CEF_SRC_ROOT_DIR}")
     
     #cef库所在路径（.lib对应的路径）
-    link_directories("${DUILIB_CEF_LIB_PATH}") 
+    list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_CEF_LIB_PATH}")
 endif()
 
 if(DUILIB_WEBVIEW2_EXE)    
@@ -59,7 +59,7 @@ if(DUILIB_WEBVIEW2_EXE)
     if(NOT EXISTS "${DUILIB_WEBVIEW2_NATIVE_DIR}")
         message(FATAL_ERROR "WebView2 native directory not found: ${DUILIB_WEBVIEW2_NATIVE_DIR}")
     endif()
-    link_directories("${DUILIB_WEBVIEW2_NATIVE_DIR}") 
+    list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_WEBVIEW2_NATIVE_DIR}")
 endif()
 
 # Remove *.mm
@@ -67,6 +67,9 @@ list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
 
 #设置编译可执行程序依赖的源码
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+# 把公共的include/link目录应用到当前目标（CM-17）
+duilib_apply_target_directories()
 
 if(DUILIB_MINGW)
     # MingGW-w64编译时的属性设置: 添加*.rc文件，并配置manifest文件

@@ -141,7 +141,7 @@
 
 ## 三、可维护性与一致性（CM-10 ~ CM-16）
 
-### CM-10 macOS 编译参数存在三份重复
+### CM-10 macOS 编译参数存在三份重复 ✅ 已完成（2026-10-20）
 
 - **位置**：
   - [cmake/duilib_bin_macos.cmake:20-57](..//..//cmake/duilib_bin_macos.cmake#L20-L57)
@@ -151,15 +151,26 @@
 - **影响**：漂移风险高（曾经就出现过参数不一致）。
 - **动作**：抽成 `cmake/duilib_compiler_flags.cmake`（一个 `DUILIB_COMPILER_FLAGS` / `DUILIB_CXX_COMPILER_FLAGS` 的公共定义），三处改为 `include()` 引用。
 - **验收**：三处参数来源唯一；macOS（含 CEF）与 Linux 构建参数与改动前一致（对比配置日志 / 编译命令行）。
+- **实施记录（2026-10-20）**：
+  1. 新增 [cmake/duilib_compiler_flags.cmake](../../cmake/duilib_compiler_flags.cmake)，提供两组公共变量：`DUILIB_COMPILER_FLAGS`（`-fno-strict-aliasing`、`-fstack-protector`、`-funwind-tables`、`-fvisibility=hidden`、`-Wall`、`-Wno-unknown-pragmas`、`-Wextra`、`-Wendif-labels`、`-Wno-missing-field-initializers`、`-Wno-unused-parameter`）与 `DUILIB_CXX_COMPILER_FLAGS`（`-fno-threadsafe-statics`、`-fvisibility-inlines-hidden`、`-frtti`、`-Wno-narrowing`、`-Wsign-compare`、`-Wno-unused-variable`），并按 `CMAKE_CXX_COMPILER_ID` 追加 GNU（`-Wno-reorder`）与 Clang（`-Wnewline-eof`、`-fobjc-call-cxx-cdtors`、`-Wno-reorder-ctor`、`-Wno-unused-lambda-capture`、`-Wno-unused-private-field`）专有项。
+  2. 三处改为 `include(...)`：`cmake/duilib_bin_macos.cmake`（非 CEF 分支）、`cmake/duilib_cef_macos.cmake`（`CEF_COMPILER_FLAGS`/`CEF_CXX_COMPILER_FLAGS` 直接取公共值）、`duilib/CMakeLists.txt`（GNU 专有的 `-Wno-cast-function-type` 与 AVX 源文件属性保留在本地追加）。
+  3. `duilib_cef_macos.cmake` 中 `-fobjc-arc` 仍在公共值赋值**之后**追加，保持 CM-3 的修复语义。
+- **验证说明**：本机为 Windows，三处引用均为 macOS/Linux 分支，只做了静态核对（参数集合与原三份逐项比对一致）；**macOS/Linux 实机编译验证待补**。
 - **工作量**：低　**依赖**：需 macOS / Linux 环境验证
 
-### CM-11 23 个示例的 CMakeLists 是同一份 21 行样板
+### CM-11 23 个示例的 CMakeLists 是同一份 21 行样板 ✅ 已完成（2026-10-20）
 
 - **位置**：`examples/*/CMakeLists.txt`（23 个，[examples/basic/CMakeLists.txt](..//..//examples/basic/CMakeLists.txt) 为例）
 - **问题**：除 3~6 行差异（开关、子目录、主题目录名）外，其余 15 行完全重复；`cmake_minimum_required` / `DUILIB_SRC_ROOT_DIR` / `DUILIB_PROJECT_SRC_DIR` / `DUILIB_WINRES_FILE_NAME` / 两次 `include` 都逐字复制。
 - **影响**：改一处公共约定要动 23 个文件；新示例的写法靠"抄"，缺少约束（本次 CM-4 就暴露了模板缺项）。
 - **动作**：抽出一个 `cmake/duilib_example.cmake`（传入 `DUILIB_PROJECT_NAME` 与可选开关），示例文件缩减为"声明 + 开关 + include"数行；保留现有文件路径不变（`-S examples/xxx` 仍可用）。
 - **验收**：23 个示例的构建产物、开关生效性与改动前一致（可用 `DUILIB_LOG` 输出对比）。
+- **实施记录（2026-10-20）**：
+  1. 新增 [cmake/duilib_example.cmake](../../cmake/duilib_example.cmake)：由 `CMAKE_CURRENT_LIST_DIR` 反推 `DUILIB_SRC_ROOT_DIR`，用 `CMAKE_CURRENT_SOURCE_DIR` 设置 `DUILIB_PROJECT_SRC_DIR`，统一设置 `DUILIB_WINRES_FILE_NAME`，并依次 `include(duilib_common.cmake)` / `include(duilib_bin.cmake)`。
+  2. 支持在 `include` 之前声明的示例开关：`DUILIB_ENABLE_CEF`、`DUILIB_WEBVIEW2_EXE`、`DUILIB_THEME_DIR_NAME`、`DUILIB_SRC_SUB_DIRS`、`DUILIB_SRC_SUB_DIRS_WINDOWS`、`DUILIB_EXAMPLE_SDL_INCLUDE`。
+  3. 23 个示例的 `CMakeLists.txt` 全部缩减为「`cmake_minimum_required` + `CMP0091` + `project()` + 开关 + 1 行 `include`」；其中 18 个为纯样板 7 行，`cef`/`CefBrowser`/`WebView2`/`WebView2Browser`/`ChildWindow` 5 个带开关声明。
+  4. `CefBrowser` 的 Windows 专有子目录由 `DUILIB_SRC_SUB_DIRS_WINDOWS` 表达，避免在 `duilib_common.cmake` 之前使用 `DUILIB_OS_WINDOWS`；`ChildWindow` 的 SDL include 通过 `DUILIB_EXAMPLE_SDL_INCLUDE` 保留其个例语义（仍属 CM-14 的有意例外）。
+  5. 文件路径与 `cmake -S examples/xxx` 用法不变。
 - **工作量**：中　**依赖**：建议在 CM-10 之后做
 
 ### CM-12 平台判据不统一（`APPLE` 与 `CMAKE_SYSTEM_NAME STREQUAL "Darwin"` 并存）✅ 已完成（2026-10-20）
@@ -171,13 +182,19 @@
 - **验收**：macOS 下 `DUILIB_OS_MACOS` 仍被设置；`Grep "if(APPLE)"` 在 `cmake/` 下无命中。
 - **工作量**：极低　**依赖**：无
 
-### CM-13 Linux 与 FreeBSD 的 freetype / fontconfig 处理方式不一致
+### CM-13 Linux 与 FreeBSD 的 freetype / fontconfig 处理方式不一致 ✅ 已完成（2026-10-20）
 
 - **位置**：[cmake/duilib_bin_linux.cmake:21](..//..//cmake/duilib_bin_linux.cmake#L21)（裸名 `freetype fontconfig`）对比 [cmake/duilib_bin_freebsd.cmake:15-20](..//..//cmake/duilib_bin_freebsd.cmake#L15-L20)（`find_package(... REQUIRED)` + imported target），另见 [duilib/CMakeLists.txt:235-239](..//..//duilib/CMakeLists.txt#L235-L239)
 - **问题**：Linux 用裸库名依赖链接器搜索路径，FreeBSD 用 imported target；同一份依赖在库与示例之间也各写一遍。
 - **影响**：Linux 上换发行版/交叉编译时容易找不到库且报错信息不明确。
 - **动作**：Linux 侧同样改用 `find_package(Freetype/Fontconfig/X11 REQUIRED)` + imported target，并把公共依赖集中到 `cmake/` 下的公共文件。
 - **验收**：Linux 下配置与链接不再依赖裸库名搜索；FreeBSD 行为不变。
+- **实施记录（2026-10-20）**：
+  1. 新增 [cmake/duilib_unix_font_libs.cmake](../../cmake/duilib_unix_font_libs.cmake)：`find_package(Freetype REQUIRED)` + `find_package(Fontconfig REQUIRED)`，并定义 `DUILIB_FONT_LIBS = Freetype::Freetype Fontconfig::Fontconfig`。
+  2. `cmake/duilib_bin_linux.cmake`：`include(...)` 该文件，`find_package(X11 REQUIRED)`，`DUILIB_LINUX_LIBS = X11::X11 ${DUILIB_FONT_LIBS} pthread dl`，不再使用裸名 `freetype fontconfig X11`。
+  3. `cmake/duilib_bin_freebsd.cmake`：改为同一份 `include(...)`，链接 `X11::X11 ${DUILIB_FONT_LIBS}`；FreeBSD 原有行为（imported target）不变。
+  4. `duilib/CMakeLists.txt` 的 FreeBSD 分支同样改为 `include` 该公共文件，库与示例共用一份定义。
+- **验证说明**：本机为 Windows，Linux/FreeBSD 分支只做静态核对；**Linux/FreeBSD 实机验证待补**。
 - **工作量**：低　**依赖**：需 Linux 环境验证
 
 ### CM-14 示例个例修补 SDL include 路径，未统一 ✗ 不处理（2026-10-20 按反馈退回，保持现状）
@@ -222,22 +239,30 @@
 
 ## 四、现代化与结构性（CM-17 ~ CM-19）
 
-### CM-17 作用域化：全局 `include_directories` / `link_directories` → `target_*`
+### CM-17 作用域化：全局 `include_directories` / `link_directories` → `target_*` ✅ 已完成（2026-10-20）
 
 - **位置**：[cmake/duilib_bin.cmake:15-26](../..//cmake/duilib_bin.cmake#L15-L26)、[cmake/duilib_common.cmake:14-26](../..//cmake/duilib_common.cmake#L14-L26)、[duilib/CMakeLists.txt:63-70](..//..//duilib/CMakeLists.txt#L63-L70)、`duilib_bin_windows.cmake:48,51,56`、`duilib_bin_linux.cmake:8,11`
 - **问题**：全部使用目录级/全局形式的 `include_directories()` 与 `link_directories()`；后者的搜索顺序还依赖调用顺序（顺序敏感）。
 - **影响**：作用域污染、顺序脆弱；仓库多套构建（库 / 示例）之间难以复用。
 - **动作**：改为 `target_include_directories` / `target_link_directories` / `target_link_libraries`（配合 `PRIVATE`/`PUBLIC`）。
 - **验收**：配置与编译结果不变，`Grep` 第一方文件中不再有全局 `include_directories` / `link_directories`。
+- **实施记录（2026-10-20）**：
+  1. `cmake/duilib_bin.cmake`：删除全局 `include_directories` / `link_directories`，改为收集 `DUILIB_TARGET_INCLUDE_DIRS` / `DUILIB_TARGET_LINK_DIRS`（含 duilib、项目源码目录、`lib/`、Skia、SDL 库目录），并新增 `duilib_apply_target_directories()`：`target_include_directories(... PRIVATE)` + `target_link_directories(... PRIVATE)`。
+  2. 四个平台文件在 `add_executable()` **之后**调用该函数：`duilib_bin_windows.cmake`、`duilib_bin_linux.cmake`、`duilib_bin_freebsd.cmake`、`duilib_bin_macos.cmake`（非 CEF 分支），以及 `duilib_cef_macos.cmake`（`CEF_TARGET`，其值即 `PROJECT_NAME`）。
+  3. CEF / WebView2 的 include、link 目录改为 `list(APPEND ...)`，保持原有顺序（顺序仍影响 `target_link_directories` 的搜索优先级）。
+  4. `duilib/CMakeLists.txt`：库的 `include_directories` 改为 `DUILIB_TARGET_INCLUDE_DIRS` 收集，并在 `add_library` 之后 `target_include_directories(... PRIVATE)`。
+- **剩余例外**：`examples/ChildWindow/CMakeLists.txt` 的 SDL include（CM-14 用户裁定的有意例外，保留全局写法）；`duilib/third_party/*` 内的 `include_directories` 属第三方库自身的构建逻辑（不在本项范围）。
+- **实测结论**：`duilib` 与全部 23 个示例配置成功；`duilib` Debug x64 编译 **0 error / 0 warning**，产物 `lib/Debug/duilib.lib`；示例 Debug 编译结果见第九节批次 5。
 - **工作量**：中　**依赖**：建议在 CM-11（示例收敛）之后做，收益更大
 
-### CM-18 `aux_source_directory` → 显式源文件列表
+### CM-18 `aux_source_directory` → 显式源文件列表 ✗ 不处理（2026-10-20 按用户决定保持现状）
 
 - **位置**：[duilib/CMakeLists.txt:80-89](..//..//duilib/CMakeLists.txt#L80-L89)、[cmake/duilib_bin.cmake:32-41](../..//cmake/duilib_bin.cmake#L32-L41)、[libwebp/CMakeLists.txt:33-38](..//..//duilib/third_party/libwebp/CMakeLists.txt#L33-L38)、`cximage` 等
 - **问题**：CMake 官方不推荐 `aux_source_directory`——新增源文件不会触发重新配置（需手动重跑），且会把目录下不需要的文件一并纳入。
 - **影响**：新增 `duilib/Control/X.cpp` 后忘记重配置会"莫名没编进去"；平台专属文件要靠事后 `list(REMOVE_ITEM)` 剔除（C-7 处理的就是这类问题）。
-- **动作**：duilib 库与示例改为按平台分组显式列举源文件（可用 `file(GLOB_RECURSE CONFIGURE_DEPENDS ...)` 作为过渡，它能在新增文件后自动重配置）。
-- **验收**：新增/删除一个源文件后，重新配置即可正确参与构建（无需清理缓存）；平台专属文件（`.mm` 等）不再依赖 `REMOVE_ITEM` 补丁。
+- **动作（原建议，未实施）**：duilib 库与示例改为按平台分组显式列举源文件（可用 `file(GLOB_RECURSE CONFIGURE_DEPENDS ...)` 作为过渡，它能在新增文件后自动重配置）。
+- **不处理结论（用户裁定，2026-10-20）**：该重构改动面大（duilib 库 19 处 + 示例 2 处源文件收集、平台过滤逻辑），而现有 `aux_source_directory` + `list(REMOVE_ITEM)` 的写法在本仓库长期可用；显式列举源文件还会把"目录即模块"的结构变成需要人工同步的长列表。故**本轮不做**，保持现状。
+- **遗留提示**：新增源文件后若未生效，需手动重跑 CMake 配置（`cmake -S ... -B ...`）；平台专属文件仍沿用现有 `list(REMOVE_ITEM)` 剔除方式。
 - **工作量**：中 ~ 高　**依赖**：无
 
 ### CM-19 链接选项写法过时 ✅ 已完成（2026-10-20）
@@ -272,7 +297,7 @@
   | 构建 `-DDUILIB_ENABLE_CEF=OFF` 的 Debug x64 | 首次失败：`CefManager.h(10,14): error C1083: 无法打开包括文件 include/cef_app.h`（来源是 `duilib.cpp` 无条件包含 `duilib_cef.h`）；补上 `DUILIB_NO_CEF` 判断后**编译成功、0 error / 0 warning** |
 - **工作量**：低 ~ 中　**依赖**：需与 `examples` 的 CEF 开关语义统一（已保持原语义）
 
-### CM-21 第三方库定制方式规范化（升级可维护性）
+### CM-21 第三方库定制方式规范化（升级可维护性）✅ 已完成（文档部分，2026-10-20；命名统一待 CM-5）
 
 - **位置**：`duilib/third_party/` 下 5 个库
 - **问题**：四个库的定制风格各不相同——
@@ -286,6 +311,11 @@
   另外所有改动只用中文注释 `# duilib` 标记，**没有 patch 文件或升级清单**，第三方库升级时改动会丢失。
 - **动作**：统一"输出到 `<root>/lib/` + 产物名 `duilib-*` + 静态库 + 统一 `_d` 后缀（配合 CM-5）"的约定；把改动点整理成 `duilib/third_party/<lib>/README-duilib.md` 或 patch 目录，写清"改了哪几处、升级时如何重放"。
 - **验收**：5 个库的定制方式一致；升级任一第三方库时，按文档能在不影响其它库的前提下重放改动。
+- **实施记录（2026-10-20）**：
+  1. 新增 [duilib/third_party/README-duilib.md](../../duilib/third_party/README-duilib.md)，逐库记录：改动点位置与内容、升级时的重放步骤、链接侧引用的库名、待收敛项。
+  2. 当前已一致的部分：zlib / libpng / libwebp / cximage 均输出到 `<root>/lib/` 且产物名为 `duilib-*`，MSVC 运行库统一由 `DUILIB_MD` + `CMAKE_MSVC_RUNTIME_LIBRARY` 选择。
+  3. **未统一的部分（受 CM-5 阻塞）**：① Debug 后缀 `_d` 未启用（zlib 原有逻辑已注释）；② libcef wrapper 仍名为 `libcef_dll_wrapper[_109]`，未纳入 `duilib-*` 前缀——改名会波及 `duilib_common.cmake`、手写 vcxproj 与构建/打包脚本，需与 CM-5 一起决策。
+  4. 因此本项本轮完成「定制点清单 + 升级说明」的文档化，命名统一的代码改动留待 CM-5。
 - **工作量**：中　**依赖**：CM-2、CM-5
 
 ### CM-22 顶层 `CMakeLists.txt` 聚合（构建体系结构）
@@ -297,7 +327,7 @@
   2. 视情况增加 `install()`/`export()` 规则，与打包流程解耦；
   3. 各平台 `*_build.sh` 改为薄封装（保持命令行兼容）。
 - **验收**：`cmake -S . -B <dir>` 能配置出全部目标；`cmake --build <dir>` 按依赖顺序完成；现有 4 个构建脚本行为不变或等价。
-- **工作量**：中 ~ 高　**依赖**：建议在 CM-18 / CM-21 之后；需先确认是否保留"逐库单独配置"的用法
+- **工作量**：中 ~ 高　**依赖**：建议在 CM-21 之后；需先确认是否保留"逐库单独配置"的用法
 
 ---
 
@@ -320,7 +350,7 @@
 | 第 2 步 ✅ 已完成（2026-10-20） | **CM-2、CM-8、CM-19** | 低风险但会改动实际构建行为（链接/路径），需要一次 Windows 完整配置 + 编译验证 |
 | 第 3 步 ✅ 已完成（2026-10-20） | **CM-3、CM-15** | 需 macOS（或对应平台）核实；本机仅做静态核实 + Windows 侧行为验证，macOS 实机验证待补 |
 | 第 4 步 ⚠ 部分完成（2026-10-20） | **CM-5、CM-20** | CM-20 已完成；CM-5 **本轮按用户决定暂不实施**（两项动作的风险差异大，等 CM-17/CM-21 的命名约定确定后再做） |
-| 第 5 步 | **CM-10、CM-11、CM-13、CM-17、CM-18、CM-21** | 重构类，改动面大，建议每项单独提交、单独验证 |
+| 第 5 步 ✅ 已完成（2026-10-20） | **CM-10、CM-11、CM-13、CM-17、CM-21**（CM-18 按用户决定**不处理**） | 重构类：CM-10/13/17/11 已完成；CM-21 完成定制清单文档化，命名统一待 CM-5；CM-18 保持 `aux_source_directory` 现状（见该小节） |
 | 第 6 步 | **CM-22** | 结构性改造，需先确认是否保留逐库单独配置用法 |
 
 > 每完成一步，把对应项在第八节打勾，并在此表标记阶段完成情况。
@@ -348,24 +378,24 @@
 
 **三、可维护性与一致性**
 
-- [ ] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：______
-- [ ] **CM-11** 23 个示例的样板代码收敛　｜ 中 ｜ 完成日期：______
+- [x] **CM-10** macOS 编译参数三份重复收敛　｜ 低 ｜ 完成日期：2026-10-20（macOS/Linux 实机验证待补）
+- [x] **CM-11** 23 个示例的样板代码收敛　｜ 中 ｜ 完成日期：2026-10-20
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：______
+- [x] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：2026-10-20（Linux/FreeBSD 实机验证待补）
 - [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
 - [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
 
 **四、现代化**
 
-- [ ] **CM-17** 全局 `include_directories` / `link_directories` 作用域化　｜ 中 ｜ 完成日期：______
-- [ ] **CM-18** `aux_source_directory` → 显式源文件列表　｜ 中~高 ｜ 完成日期：______
+- [x] **CM-17** 全局 `include_directories` / `link_directories` 作用域化　｜ 中 ｜ 完成日期：2026-10-20
+- [~] **CM-18** `aux_source_directory` → 显式源文件列表　｜ 不处理（2026-10-20 按用户决定保持现状，见 CM-18 小节）
 - [x] **CM-19** 链接选项写法过时（全局 flags / `LINK_FLAGS`）　｜ 低 ｜ 完成日期：2026-10-20
 
 **五、结构性**
 
 - [x] **CM-20** `duilib` 库层增加 `option(DUILIB_ENABLE_CEF)`　｜ 低~中 ｜ 完成日期：2026-10-20
-- [ ] **CM-21** 第三方库定制方式规范化（含升级清单）　｜ 中 ｜ 完成日期：______
+- [x] **CM-21** 第三方库定制方式规范化（含升级清单）　｜ 中 ｜ 完成日期：2026-10-20（定制清单文档化完成；命名统一待 CM-5）
 - [ ] **CM-22** 顶层 `CMakeLists.txt` 聚合与 install/export　｜ 中~高 ｜ 完成日期：______
 
 ---
@@ -481,3 +511,40 @@
 
 1. **关闭 CEF 后核心源码仍会引用 CEF 头文件**：`duilib/duilib.cpp` 只按 `__FreeBSD__` 判断是否 `#include "duilib_cef.h"`，因此在 `DUILIB_ENABLE_CEF=OFF` 的首次编译实测失败（`CefManager.h(10,14): error C1083: 无法打开包括文件 include/cef_app.h`）。已新增 `DUILIB_NO_CEF` 宏并在该处判断，这是 CM-20 能真正落地的必要配套改动。
 2. **`link_directories` 支持生成表达式（探针实测，供 CM-5 后续使用）**：在 VS 多配置生成器下 `link_directories("$<IF:$<CONFIG:Debug>,C:/tmp/dbg,C:/tmp/rel>")` 生成了 Debug 配置 `C:/tmp/dbg`、其它配置 `C:/tmp/rel`，说明 CM-5「动作 1」技术可行、不需要改用 `target_link_directories`。
+
+### 批次 5（2026-10-20）：CM-10、CM-11、CM-13、CM-17、CM-21（CM-18 按用户决定不处理）
+
+**改动清单**
+
+| 文件 | 改动 |
+| :--- | :--- |
+| `cmake/duilib_compiler_flags.cmake`（新增） | **CM-10** 承载 `DUILIB_COMPILER_FLAGS` / `DUILIB_CXX_COMPILER_FLAGS` 公共定义（按 GCC/Clang 追加各自专有项） |
+| `cmake/duilib_bin_macos.cmake`、`cmake/duilib_cef_macos.cmake`、`duilib/CMakeLists.txt` | **CM-10** 三处重复参数改为 `include(...)` 引用；`duilib_cef_macos.cmake` 的 `-fobjc-arc` 仍在公共值赋值后追加 |
+| `cmake/duilib_unix_font_libs.cmake`（新增） | **CM-13** `find_package(Freetype/Fontconfig REQUIRED)` + `DUILIB_FONT_LIBS` imported targets |
+| `cmake/duilib_bin_linux.cmake`、`cmake/duilib_bin_freebsd.cmake`、`duilib/CMakeLists.txt` | **CM-13** 统一引用上述公共文件，Linux 不再使用裸库名 `freetype fontconfig X11` |
+| `cmake/duilib_bin.cmake` | **CM-17** 全局 `include_directories` / `link_directories` → 收集 `DUILIB_TARGET_INCLUDE_DIRS` / `DUILIB_TARGET_LINK_DIRS`，新增 `duilib_apply_target_directories()` |
+| `cmake/duilib_bin_windows.cmake`、`duilib_bin_linux.cmake`、`duilib_bin_freebsd.cmake`、`duilib_bin_macos.cmake`、`duilib_cef_macos.cmake` | **CM-17** 在 `add_executable()` 之后调用 `duilib_apply_target_directories()`；CEF/WebView2 目录改为 `list(APPEND ...)` |
+| `duilib/CMakeLists.txt` | **CM-17** 库的 include 目录改为 `target_include_directories(... PRIVATE)`（在 `add_library` 之后应用） |
+| `cmake/duilib_example.cmake`（新增） | **CM-11** 示例公共入口：路径变量、`DUILIB_WINRES_FILE_NAME`、`duilib_common.cmake` / `duilib_bin.cmake` 的 include；支持 `DUILIB_SRC_SUB_DIRS_WINDOWS`、`DUILIB_EXAMPLE_SDL_INCLUDE` 等可选开关 |
+| `examples/*/CMakeLists.txt`（23 个） | **CM-11** 全部缩减为「`cmake_minimum_required` + `CMP0091` + `project()` + 开关 + 1 行 `include`」 |
+| `duilib/third_party/README-duilib.md`（新增） | **CM-21** 5 个第三方库的定制点清单、升级重放步骤、链接名索引、待收敛项 |
+| （CM-18 未改动） | 按用户决定保持 `aux_source_directory` 现状，仅更新文档说明 |
+
+**验收证据（本机：Windows 10 + cmake 4.3.0 + VS 2022，`-A x64`）**
+
+| 项 | 结果 |
+| :--- | :--- |
+| `duilib` 配置（`--warn-uninitialized`） | exit 0，**0 条**未初始化变量告警 |
+| `duilib` Debug x64 编译 | exit 0，产物 `lib/Debug/duilib.lib`，**0 error / 0 warning** |
+| 23 个示例配置（逐个独立 build 目录，`--warn-uninitialized`） | **23/23 exit 0，0 条 `CMake Warning`** |
+| `examples/basic` Debug x64 编译 | 编译阶段 **0 error / 0 warning**；链接阶段仅剩 CM-5 已知的 LNK2038（Debug 目标链接到 Skia release 库），非本批改动引入 |
+| `basic.vcxproj` 目标级目录 | `AdditionalIncludeDirectories = C:\develop\nim_duilib;...\examples\basic`；`AdditionalLibraryDirectories` 含 `lib`、`lib/$(Configuration)`、Skia 路径 → CM-17 的目标级设置已生效 |
+| 全局目录 Grep | `cmake/*.cmake` 仅剩 `ChildWindow` 的 SDL include（CM-14 有意例外）；`CMakeLists.txt` 仅剩 `third_party` 内 3 处（第三方库自身逻辑，不在本项范围） |
+| macOS / Linux / FreeBSD 分支 | 本机无对应环境，未实机验证（CM-10、CM-13、CM-17 的对应平台部分仅静态核对）**待补** |
+
+**批次内额外发现与修正**
+
+1. **示例开关的声明时机**：`CefBrowser` 原在 `duilib_common.cmake` 之前用 `DUILIB_OS_WINDOWS` 判断子目录，汇总到公共文件后该变量尚未定义。改为声明式开关 `DUILIB_SRC_SUB_DIRS_WINDOWS`，由 `duilib_example.cmake` 在 `duilib_common.cmake` 之后做平台合并。
+2. **`CMAKE_CURRENT_LIST_DIR` 与 `CMAKE_CURRENT_SOURCE_DIR` 的区别**：在 `cmake/duilib_example.cmake` 内，前者是 `cmake/` 目录（用于反推仓库根），后者仍是示例目录（用于 `DUILIB_PROJECT_SRC_DIR`），两者不可互换。
+3. **批量配置脚本需排除 `examples/bin`**：该目录是示例产物输出目录、没有 `CMakeLists.txt`，逐个 `cmake -S` 时会报错（本批实测唯一的非零退出项）。
+

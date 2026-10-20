@@ -70,15 +70,17 @@ get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOL
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 
-# Always include these directories
-include_directories(${DUILIB_SRC_ROOT_DIR})
-include_directories(${SKIA_SRC_ROOT_DIR})
-include_directories("${SDL_SRC_ROOT_DIR}/include")
+# Always include these directories（收集到列表，等库目标创建后应用到目标上，见 CM-17）
+list(APPEND DUILIB_TARGET_INCLUDE_DIRS
+    "${DUILIB_SRC_ROOT_DIR}"
+    "${SKIA_SRC_ROOT_DIR}"
+    "${SDL_SRC_ROOT_DIR}/include"
+)
 
 # Conditionally include CEF directory（仅在开启CEF功能时添加）
 if(DUILIB_ENABLE_CEF)
     get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
-    include_directories(${CEF_INCLUDE_ROOT_DIR})
+    list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${CEF_INCLUDE_ROOT_DIR}")
     message(STATUS "CEF include path: ${CEF_INCLUDE_ROOT_DIR}")
 else()
     message(STATUS "CEF includes disabled (DUILIB_ENABLE_CEF=OFF)")
@@ -259,14 +261,17 @@ if(DUILIB_ENABLE_CEF)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    find_package(Freetype REQUIRED)
-    find_package(Fontconfig REQUIRED)
+    # 字体相关依赖（与示例程序共用同一份定义）
+    include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_unix_font_libs.cmake")
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
-    target_link_libraries(${PROJECT_NAME} Freetype::Freetype Fontconfig::Fontconfig)
+    target_link_libraries(${PROJECT_NAME} ${DUILIB_FONT_LIBS})
 else()
     # Create the library with the filtered sources
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
 endif()
+
+# 把include目录应用到库目标上（CM-17：不再使用目录级的全局 include_directories）
+target_include_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_INCLUDE_DIRS})
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(DUILIB_ENABLE_SDL)
@@ -289,31 +294,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     # 由于Skia内部会自动开启AVX/AVX2等编译参数，duilib内部直接引用了部分源码，需要保持编译选项一致
     include(${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiles.cmake)
 
-    # 编译器的参数
-    set(DUILIB_COMPILER_FLAGS
-        -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
-        -fstack-protector               # Protect some vulnerable functions from stack-smashing (security feature)
-        -funwind-tables                 # Support stack unwinding for backtrace()
-        -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
-        -Wall                           # Enable all warnings
-#        -Werror                         # Treat warnings as errors
-        -Wno-unknown-pragmas
-        -Wextra                         # Enable additional warnings
-        -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
-        -Wno-missing-field-initializers # Don't warn about missing field initializers
-        -Wno-unused-parameter           # Don't warn about unused parameters
-    )
-    set(DUILIB_CXX_COMPILER_FLAGS
-        -fno-threadsafe-statics         # Don't generate thread-safe statics
-        -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-        -frtti
-        -Wno-narrowing                  # Don't warn about type narrowing
-        -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
-        -Wno-unused-variable
-    )
+    # 编译器的参数（公共定义见 cmake/duilib_compiler_flags.cmake）
+    include(${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiler_flags.cmake)
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         list(APPEND DUILIB_CXX_COMPILER_FLAGS
-            -Wno-reorder
             -Wno-cast-function-type
           )
           set_source_files_properties("${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.c" PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough")
@@ -323,19 +308,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
             set_source_files_properties("${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" PROPERTIES COMPILE_OPTIONS "-mavx")
           endif()
     endif()
-    
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        list(APPEND DUILIB_COMPILER_FLAGS
-            -Wnewline-eof                   # Warn about no newline at end of file
-          )
-        list(APPEND DUILIB_CXX_COMPILER_FLAGS
-            -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
-            -Wno-reorder-ctor
-            -Wno-unused-lambda-capture
-            -Wno-unused-private-field
-          )
-    endif()
-    
+
     target_compile_options(${PROJECT_NAME} PRIVATE ${DUILIB_COMPILER_FLAGS})
     target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${DUILIB_CXX_COMPILER_FLAGS}>)
 endif()

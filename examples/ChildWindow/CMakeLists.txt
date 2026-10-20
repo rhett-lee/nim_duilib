@@ -6,22 +6,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 # 定义项目名称和开发语言
 project(ChildWindow CXX)
 
-# duilib 的源码根目录
-get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../" ABSOLUTE) 
+# 该示例包含系统原生子窗口，需要直接使用SDL渲染子窗口的内容，
+# 所以需要把SDL的include目录加入本示例。
+set(DUILIB_EXAMPLE_SDL_INCLUDE ON)
 
-# 项目源码目录
-get_filename_component(DUILIB_PROJECT_SRC_DIR "${CMAKE_CURRENT_LIST_DIR}/" ABSOLUTE) 
-
-# 定义资源（*.rc）名，默认名称是 "项目名称.rc"，文件编码需要改为UTF8编码
-# 资源文件需要放在源码所在目录中，只有Windows平台有效，其他平台忽略该定义
-set(DUILIB_WINRES_FILE_NAME "${PROJECT_NAME}.rc")
-
-# 包含公共实现代码
-include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
-
-# SDL库的头文件所在路径（该示例程序需要直接使用SDL的头文件，所以需要包含SDL的include目录）
-if(DUILIB_ENABLE_SDL)
-    include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")
-endif()
-
-include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")
+# 包含示例程序的公共实现（CM-11）
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/duilib_example.cmake")

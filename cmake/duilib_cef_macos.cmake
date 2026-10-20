@@ -86,47 +86,13 @@ if(OS_MAC)
     # Main app bundle target.
     add_executable(${CEF_TARGET} MACOSX_BUNDLE ${CEF_PROJECT_RESOURCES_SRCS} ${CEF_PROJECT_SRCS})
     
-    # duilib
-    set(CEF_COMPILER_FLAGS
-        -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
-        -fstack-protector               # Protect some vulnerable functions from stack-smashing (security feature)
-        -funwind-tables                 # Support stack unwinding for backtrace()
-        -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
-        -Wall                           # Enable all warnings
-#        -Werror                         # Treat warnings as errors
-        -Wno-unknown-pragmas
-        -Wextra                         # Enable additional warnings
-        -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
-        -Wno-missing-field-initializers # Don't warn about missing field initializers
-        -Wno-unused-parameter           # Don't warn about unused parameters
-    )
-        
-    set(CEF_CXX_COMPILER_FLAGS
-        -fno-threadsafe-statics         # Don't generate thread-safe statics
-        -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-        -frtti
-        -Wno-narrowing                  # Don't warn about type narrowing
-        -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
-        -Wno-unused-variable
-    )
+    # 把公共的include/link目录应用到当前目标（CM-17）
+    duilib_apply_target_directories()
     
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-        list(APPEND CEF_CXX_COMPILER_FLAGS
-            -Wno-reorder
-          )
-    endif()
-    
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        list(APPEND CEF_COMPILER_FLAGS
-            -Wnewline-eof                   # Warn about no newline at end of file
-          )
-        list(APPEND CEF_CXX_COMPILER_FLAGS
-            -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
-            -Wno-reorder-ctor
-            -Wno-unused-lambda-capture
-            -Wno-unused-private-field
-          )
-    endif()
+    # duilib: 编译参数改用公共定义（cmake/duilib_compiler_flags.cmake）
+    include("${CMAKE_CURRENT_LIST_DIR}/duilib_compiler_flags.cmake")
+    set(CEF_COMPILER_FLAGS ${DUILIB_COMPILER_FLAGS})
+    set(CEF_CXX_COMPILER_FLAGS ${DUILIB_CXX_COMPILER_FLAGS})
     
     # 开启ARC（自动引用计数）：
     # 必须在目标创建之后设置属性，且 CEF_COMPILER_FLAGS 在上方被整体赋值，
