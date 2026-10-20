@@ -32,17 +32,6 @@ if(MSVC)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
-#MingGW-w64编译时的属性设置
-if(DUILIB_MINGW)
-    #生成Windows程序，而不是控制台程序
-    set(CMAKE_EXE_LINKER_FLAGS "-mwindows ${CMAKE_EXE_LINKER_FLAGS}")
-    
-    if(DUILIB_MINGW_STATIC)
-        # 使用静态链接
-        set(CMAKE_EXE_LINKER_FLAGS "-static ${CMAKE_EXE_LINKER_FLAGS}")
-    endif()
-endif()
-
 if(DUILIB_ENABLE_CEF)
     #使用CEF模块：需要添加CEF源码根目录到include路径
     include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
@@ -85,9 +74,10 @@ if(MSVC)
         ${DUILIB_WIN_MANIFEST}
     )
     
-    # 使用MSVC编译时，需要设置子系统属性
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup"
+    # 使用MSVC编译时，设置子系统和入口点（UNICODE下入口函数为wWinMain）
+    target_link_options(${PROJECT_NAME} PRIVATE
+        "/SUBSYSTEM:WINDOWS"
+        "/ENTRY:wWinMainCRTStartup"
     )
     
     if(DUILIB_ENABLE_CEF)
@@ -95,6 +85,14 @@ if(MSVC)
         target_link_options(${PROJECT_NAME} PRIVATE
             "/DELAYLOAD:libcef.dll"  # 指定延迟加载的DLL文件名
         )
+    endif()
+elseif(DUILIB_MINGW)
+    # MingGW-w64编译时的链接选项：生成Windows程序，而不是控制台程序
+    target_link_options(${PROJECT_NAME} PRIVATE -mwindows)
+    
+    if(DUILIB_MINGW_STATIC)
+        # 使用静态链接（链接选项仅作用于当前目标，不影响其它目标）
+        target_link_options(${PROJECT_NAME} PRIVATE -static)
     endif()
 endif()
 

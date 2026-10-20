@@ -112,6 +112,10 @@ set(DUILIB_BIN_PATH "${DUILIB_ROOT}/bin")
 set(DUILIB_LIBS duilib duilib-cximage duilib-webp duilib-png duilib-zlib)
 
 #CEF模块的源码根目录（CEF模块为可选项）
+# CEF/SDL 的库名列表先给出默认空值，开启对应开关后再填充，
+# 避免在链接处引用未定义的变量（开关关闭时为空展开）
+set(DUILIB_CEF_LIBS "")
+set(DUILIB_SDL_LIBS "")
 if(DUILIB_ENABLE_CEF)
     if(DUILIB_OS_WINDOWS)
         # Winows平台

@@ -1,7 +1,7 @@
 # CMake 构建脚本改进计划（CMake Improvement Plan）
 
 > 本文档是 2026-10-20 对 `nim_duilib` 仓库**全部 CMake 脚本**的审核结论，作为后续**逐项实施**的跟踪入口。
-> 基线日期：**2026-10-20**　｜　当前状态：**第 1 批（CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-14、CM-16）已完成（2026-10-20，见第九节实施记录），其余各项未开始**
+> 基线日期：**2026-10-20**　｜　当前状态：**第 1 批（CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16；CM-14 按反馈退回、不处理）与第 2 批（CM-2、CM-8、CM-19）已完成（2026-10-20，见第九节实施记录），其余各项未开始**
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 > 关联文档：[Development-Plan.md](Development-Plan.md)（整体开发规划）、[Project-Audit.md](Project-Audit.md)（项目盘点）
 > 前置工作：C-7（`DUILIB_SRC_MACOS` 平台判定脆弱）已于 2026-10-20 完成，见 [Development-Plan.md](Development-Plan.md) 的 C-7 小节。
@@ -37,15 +37,17 @@
 - **验收**：该分支被触发时（可临时构造匹配失败的 `CMAKE_SYSTEM_PROCESSOR`）变量值为 `unknown`，且 `--warn-uninitialized` 不再提示。
 - **工作量**：极低　**依赖**：无
 
-### CM-2 `libpng` 中硬编码的 `ZLIB_LIBRARY` 路径与扩展名均错误
+### CM-2 `libpng` 中硬编码的 `ZLIB_LIBRARY` 路径与扩展名均错误 ✅ 已完成（2026-10-20）
 
-- **位置**：[duilib/third_party/libpng/CMakeLists.txt:140-142](..//..//duilib/third_party/libpng/CMakeLists.txt#L140-L142) → `set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/duilib/lib/libduilib-zlib.a")`
+- **位置**：[duilib/third_party/libpng/CMakeLists.txt:139-150](..//..//duilib/third_party/libpng/CMakeLists.txt#L139-L150)（修复前 `set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/duilib/lib/libduilib-zlib.a")`）
 - **问题**：两处错——
   1. 路径**多了一层 `duilib/`**：zlib 的产物实际输出到 `${DUILIB_SRC_ROOT_DIR}/lib/`（见 [zlib/CMakeLists.txt:15-18](..//..//duilib/third_party/zlib/CMakeLists.txt#L15-L18) 与 [libpng/CMakeLists.txt:726](..//..//duilib/third_party/libpng/CMakeLists.txt#L726)）；
-  2. 扩展名 `.a` 是 Unix 静态库格式，Windows/MSVC 下 zlib 产物是 `duilib-zlib.lib`（已实测 `lib/x64/duilib-zlib.lib` 存在）。
+  2. 扩展名 `.a` 是 Unix 静态库格式，Windows/MSVC 下 zlib 产物是 `duilib-zlib.lib`（实测位于 `lib/Debug/`，VS 多配置生成器按配置分子目录）。
 - **影响**：该"提示路径"永远不存在，`find_package(ZLIB)` 会静默转去搜索**系统 zlib**，导致链接到哪个 zlib 不可控（Windows 上尤其危险）；属从 Linux 构建脚本移植时的残留。
-- **动作**：改为按平台取 `${DUILIB_SRC_ROOT_DIR}/lib/libduilib-zlib.a` / `duilib-zlib.lib`（或用 `CMAKE_STATIC_LIBRARY_PREFIX/SUFFIX` 拼接），并去掉多余的 `duilib/` 层级。
+- **动作**（已实施）：去掉多余的 `duilib/` 层级；库名前缀/后缀改用 `CMAKE_STATIC_LIBRARY_PREFIX` / `CMAKE_STATIC_LIBRARY_SUFFIX`；配置目录用 `CMAKE_CFG_INTDIR` 拼接（多配置生成器展开为 `$(Configuration)`，单配置为 `.`）。
 - **验收**：Windows/Linux 下配置 libpng 后，`ZLIB_LIBRARY` 指向真实存在的文件（`EXISTS` 为真）；libpng 构建日志中不再有落到系统 zlib 的迹象。
+- **实测结论**：配置后 `Found ZLIB: C:/develop/nim_duilib/lib/$(Configuration)/duilib-zlib.lib (found version "1.3.2")`，且 `ZLIB_INCLUDE_DIR` 为仓库内 `duilib/third_party/zlib`；libpng 编译通过（exit 0）。
+- **注意**：`$<CONFIG>` **不能**用在这里——实测它会被原样写入 `IMPORTED_LOCATION`→vcxproj 的 `AdditionalDependencies`（`$<CONFIG>\x.lib`），链接器无法识别。
 - **工作量**：低　**依赖**：无
 
 ### CM-3 `duilib_cef_macos.cmake` 引用了未定义的 `${target}`
@@ -76,6 +78,7 @@
   1. 用 `$<CONFIG>` 生成表达式替代 `CMAKE_BUILD_TYPE`（例如 `llvm.${ARCH}.$<IF:$<CONFIG:Debug>,debug,release>`），使多配置生成器自动切换；
   2. 给第三方面向仓库的产物统一加 `CMAKE_DEBUG_POSTFIX "_d"`，并把 `DUILIB_LIBS` 的引用方式改为按配置后缀取值（或改用 imported target）。
 - **验收**：在 VS 生成器下分别生成 Debug / Release，Skia 与 SDL 库路径各自正确；两种配置的产物不再互相覆盖（文件可同时存在）。
+- **实测证据（2026-10-20 批次 2 期间）**：`build/msvc_build.bat` 只用 `-DCMAKE_BUILD_TYPE=Release` + 多配置生成器，并显式传 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.<ARCH>.release` 规避本问题；若**不走**该脚本、直接在 VS 生成器下构建 `Debug` 配置，`examples/ChildWindow` 实测报 **1694 个 LNK2038**（`_ITERATOR_DEBUG_LEVEL` 0 vs 2、`RuntimeLibrary` `MT_StaticRelease` vs `MTd_StaticDebug`）+ `LNK1319`——即 Debug 配置链接到了 Release 版 Skia/第三方库。修复后此项应消失。
 - **工作量**：低 ~ 中（涉及 `duilib_common.cmake` + 5 个第三方 CMakeLists）　**依赖**：需先确定 Debug/Release 命名规则（见 CM-17）
 
 ---
@@ -110,13 +113,14 @@
 - **验收**：全仓 `Grep "PROJECT_SOURCES"` 无命中；Windows 与 FreeBSD 的 CMake 配置行为不变。
 - **工作量**：极低　**依赖**：无
 
-### CM-8 未定义变量被直接链接（静默空展开）
+### CM-8 未定义变量被直接链接（静默空展开）✅ 已完成（2026-10-20）
 
-- **位置**：[cmake/duilib_bin_windows.cmake:130](..//..//cmake/duilib_bin_windows.cmake#L130)（`${DUILIB_SDL_LIBS}`、`${DUILIB_CEF_LIBS}`）、[cmake/duilib_bin_linux.cmake:24](..//..//cmake/duilib_bin_linux.cmake#L24)、[cmake/duilib_bin_macos.cmake:68](..//..//cmake/duilib_bin_macos.cmake#L68)
-- **问题**：`DUILIB_SDL_LIBS` 仅在 `DUILIB_ENABLE_SDL` 为真时定义（[duilib_common.cmake:169-181](..//..//cmake/duilib_common.cmake#L169-L181)），`DUILIB_CEF_LIBS` 仅在 `DUILIB_ENABLE_CEF` 为真时定义（[L115-155](..//..//cmake/duilib_common.cmake#L115-L155)）；关闭开关后它们在链接语句中静默展开为空。
+- **位置**：[cmake/duilib_bin_windows.cmake:126](..//..//cmake/duilib_bin_windows.cmake#L126)（`${DUILIB_SDL_LIBS}`、`${DUILIB_CEF_LIBS}`）、[cmake/duilib_bin_linux.cmake:24](..//..//cmake/duilib_bin_linux.cmake#L24)、[cmake/duilib_bin_macos.cmake:68](..//..//cmake/duilib_bin_macos.cmake#L68)
+- **问题**：`DUILIB_SDL_LIBS` 仅在 `DUILIB_ENABLE_SDL` 为真时定义（[duilib_common.cmake:169-183](..//..//cmake/duilib_common.cmake#L169-L183)），`DUILIB_CEF_LIBS` 仅在 `DUILIB_ENABLE_CEF` 为真时定义（[L119-157](..//..//cmake/duilib_common.cmake#L119-L157)）；关闭开关后它们在链接语句中静默展开为空。
 - **影响**：无功能影响，但与 C-7 已消除的"静默操作未定义变量"属同一类问题，口径应统一。
-- **动作**：在 `duilib_common.cmake` 开头为这两个变量给出默认空值（`set(DUILIB_SDL_LIBS "")` / `set(DUILIB_CEF_LIBS "")`），或在链接语句处显式判断。
+- **动作**（已实施）：在 `duilib_common.cmake` 的两个条件块**之前**给出默认空值（[L117-118](..//..//cmake/duilib_common.cmake#L117-L118)）：`set(DUILIB_CEF_LIBS "")` / `set(DUILIB_SDL_LIBS "")`，开启开关后再填充。不改变任何链接行为。
 - **验收**：关闭 SDL / CEF 后配置并检查链接命令，不含空展开痕迹；`--warn-uninitialized` 0 告警（与 CM-6 一并验收）。
+- **实测结论**：`duilib`、`examples/basic`、`examples/ChildWindow`、`examples/CefBrowser`、`examples/WebView2Browser` 五项配置 exit 0，`--warn-uninitialized` 均为 **0 条**（libpng 剩余的 10 条全部来自其上游脚本，属非目标）。
 - **工作量**：极低　**依赖**：无
 
 ### CM-9 `libwebp` 对纯 C 库定义 `UNICODE`/`_UNICODE` ✅ 已完成（2026-10-20）
@@ -171,14 +175,13 @@
 - **验收**：Linux 下配置与链接不再依赖裸库名搜索；FreeBSD 行为不变。
 - **工作量**：低　**依赖**：需 Linux 环境验证
 
-### CM-14 示例个例修补 SDL include 路径，未统一 ✅ 已完成（2026-10-20）
+### CM-14 示例个例修补 SDL include 路径，未统一 ✗ 不处理（2026-10-20 按反馈退回，保持现状）
 
-- **位置**：`examples/ChildWindow/CMakeLists.txt:22-25`（原 `include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")` 写在 `include(duilib_common.cmake)` 之后，已删除）→ 改为在 [cmake/duilib_bin.cmake:24-27](..//..//cmake/duilib_bin.cmake#L24-L27) 的 `if(DUILIB_ENABLE_SDL)` 分支内统一添加
-- **问题**：该路径只在 ChildWindow 里加；`duilib_bin.cmake` 只添加了 SDL 的 `link_directories`（[duilib_bin.cmake:24-26](..//..//cmake/duilib_bin.cmake#L24-L26)），没有 include 目录。其他示例"恰好"没直接包含 SDL 头文件才没暴露。
-- **影响**：新增直接使用 SDL API 的示例容易编译失败，且不知道该加在哪。
-- **动作**：在 `duilib_bin.cmake` 的 `if(DUILIB_ENABLE_SDL)` 分支内统一 `include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")`，移除 ChildWindow 的个例写法。
-- **验收**：ChildWindow 与其它示例编译结果不变；新示例无需再手写该 include。
-- **工作量**：极低　**依赖**：无
+- **位置**：`examples/ChildWindow/CMakeLists.txt:22-25` → `include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")`（**保持现状**，未做改动）
+- **审核结论（已作废）**：曾建议把该 include 上收到 `duilib_bin.cmake` 的 `if(DUILIB_ENABLE_SDL)` 分支内统一添加。
+- **退回原因（用户裁定）**：**SDL 的 include 目录不开放给各个示例程序**——仅 duilib 库内部使用 SDL，属内部实现范畴；`ChildWindow` 是**有意的例外**，该示例包含系统原生子窗口，需要直接使用 SDL 渲染子窗口内容，因此它单独显式包含 SDL 头文件目录是正确写法。
+- **结论**：本项**不处理**，审核结论作废；`cmake/duilib_bin.cmake` 只保留 SDL 的 `link_directories`，不添加 SDL 的 `include_directories`。
+- **工作量**：—　**依赖**：无
 
 ### CM-15 硬编码路径集中清理
 
@@ -227,12 +230,14 @@
 - **验收**：新增/删除一个源文件后，重新配置即可正确参与构建（无需清理缓存）；平台专属文件（`.mm` 等）不再依赖 `REMOVE_ITEM` 补丁。
 - **工作量**：中 ~ 高　**依赖**：无
 
-### CM-19 链接选项写法过时
+### CM-19 链接选项写法过时 ✅ 已完成（2026-10-20）
 
-- **位置**：[duilib_bin_windows.cmake:38,42](..//..//cmake/duilib_bin_windows.cmake#L38-L43)（`set(CMAKE_EXE_LINKER_FLAGS ...)` 覆盖式追加）、[duilib_bin_windows.cmake:89-91](..//..//cmake/duilib_bin_windows.cmake#L89-L91)（`LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup"`）
+- **位置**：[duilib_bin_windows.cmake:35-44](..//..//cmake/duilib_bin_windows.cmake#L35-L44)（原 `set(CMAKE_EXE_LINKER_FLAGS ...)`，MinGW 的 `-mwindows` / `-static`）、[duilib_bin_windows.cmake:77-97](..//..//cmake/duilib_bin_windows.cmake#L77-L97)（原 `set_target_properties(... LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")`）
 - **问题**：用全局变量覆盖链接参数会**同时影响**该目录下所有 target 及后续子目录；`LINK_FLAGS` 属性已是过时写法；显式 `/ENTRY:wWinMainCRTStartup` 一般不需要（`/SUBSYSTEM:WINDOWS` 会自动推导入口）。
-- **动作**：改为 `target_link_options(${PROJECT_NAME} PRIVATE ...)`；`-mwindows`/`-static`（MinGW）同样用 target 形式；评估后决定是否去掉 `/ENTRY`。
+- **动作**（已实施）：删除原文件顶部 `set(CMAKE_EXE_LINKER_FLAGS ...)` 全局覆盖块；MSVC 的 `/SUBSYSTEM:WINDOWS` + `/ENTRY:wWinMainCRTStartup` + `/DELAYLOAD:libcef.dll` 改为 `target_link_options(${PROJECT_NAME} PRIVATE ...)`；MinGW 的 `-mwindows` / `-static` 移入新增的 `elseif(DUILIB_MINGW)` 分支，同样用 `target_link_options`（不再影响其它目标）。
 - **验收**：示例产物仍为 Windows 子系统、可正常启动（含 MinGW 构建）；注入的全局 `CMAKE_EXE_LINKER_FLAGS` 不再被覆盖。
+- **实测结论**：`examples/ChildWindow` 生成的 vcxproj 含 `<SubSystem>Windows</SubSystem>` 与 `<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>`，且 vcxproj 中已无 `CMAKE_EXE_LINKER_FLAGS` 的痕迹；链接错误仅剩既有的 LNK2038 运行库不匹配（属 CM-5 范围，非本次改动引入）。MinGW 分支本机无工具链，未做实机验证。
+- **`/ENTRY` 评估结论：保留**——`examples/*/main_windows.cpp` 同时定义了 `WinMain` 与 `wWinMain`，UNICODE 下入口为 `wWinMain`；显式指定入口点与现有手写 `.vcxproj` 行为一致，去掉会改变既有行为，故保留。
 - **工作量**：低　**依赖**：无
 
 ---
@@ -291,11 +296,11 @@
 
 | 阶段 | 项 | 说明 |
 | :--- | :--- | :--- |
-| 第 1 步 ✅ 已完成（2026-10-20） | **CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-14、CM-16** | 全是极低工作量、零行为风险或纯注释类，可一批完成，一次配置 + 一次 Debug 编译即可验收 |
-| 第 2 步 | **CM-2、CM-8、CM-19** | 低风险但会改动实际构建行为（链接/路径），需要一次 Windows 完整配置 + 编译验证 |
+| 第 1 步 ✅ 已完成（2026-10-20） | **CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16**（CM-14 已按反馈退回、不处理） | 全是极低工作量、零行为风险或纯注释类，可一批完成，一次配置 + 一次 Debug 编译即可验收 |
+| 第 2 步 ✅ 已完成（2026-10-20） | **CM-2、CM-8、CM-19** | 低风险但会改动实际构建行为（链接/路径），需要一次 Windows 完整配置 + 编译验证 |
 | 第 3 步 | **CM-3、CM-15** | 需 macOS（或对应平台）核实，建议与第 2 步一并出改动、分开验收 |
 | 第 4 步 | **CM-5、CM-20** | 涉及 Debug/Release 命名规则与库层开关，需先定约定再改 |
-| 第 5 步 | **CM-10、CM-11、CM-13、CM-17、CM-18、CM-19（剩余）、CM-21** | 重构类，改动面大，建议每项单独提交、单独验证 |
+| 第 5 步 | **CM-10、CM-11、CM-13、CM-17、CM-18、CM-21** | 重构类，改动面大，建议每项单独提交、单独验证 |
 | 第 6 步 | **CM-22** | 结构性改造，需先确认是否保留逐库单独配置用法 |
 
 > 每完成一步，把对应项在第八节打勾，并在此表标记阶段完成情况。
@@ -309,7 +314,7 @@
 **一、缺陷**
 
 - [x] **CM-1** `duilib_common.cmake` 变量名含逗号　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：______
+- [x] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：2026-10-20
 - [ ] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（需 macOS 核实）｜ 完成日期：______
 - [x] **CM-4** skill 模板缺 `DUILIB_WINRES_FILE_NAME`　｜ 极低 ｜ 完成日期：2026-10-20
 - [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______
@@ -318,7 +323,7 @@
 
 - [x] **CM-6** `DUILIB_MD` 未定义变量（实际 6 处 + 2 份文档）　｜ 极低 ｜ 完成日期：2026-10-20
 - [x] **CM-7** `PROJECT_SOURCES` 死变量 + 冗余条件（3 处）　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-8** 未定义变量被链接（SDL / CEF 库变量）　｜ 极低 ｜ 完成日期：______
+- [x] **CM-8** 未定义变量被链接（SDL / CEF 库变量）　｜ 极低 ｜ 完成日期：2026-10-20
 - [x] **CM-9** `libwebp` 对纯 C 库加 `UNICODE` 宏　｜ 极低 ｜ 完成日期：2026-10-20
 
 **三、可维护性与一致性**
@@ -327,7 +332,7 @@
 - [ ] **CM-11** 23 个示例的样板代码收敛　｜ 中 ｜ 完成日期：______
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
 - [ ] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：______
-- [x] **CM-14** SDL include 路径上收到公共模块　｜ 极低 ｜ 完成日期：2026-10-20
+- [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
 - [ ] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低 ｜ 完成日期：______
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
 
@@ -335,7 +340,7 @@
 
 - [ ] **CM-17** 全局 `include_directories` / `link_directories` 作用域化　｜ 中 ｜ 完成日期：______
 - [ ] **CM-18** `aux_source_directory` → 显式源文件列表　｜ 中~高 ｜ 完成日期：______
-- [ ] **CM-19** 链接选项写法过时（全局 flags / `LINK_FLAGS`）　｜ 低 ｜ 完成日期：______
+- [x] **CM-19** 链接选项写法过时（全局 flags / `LINK_FLAGS`）　｜ 低 ｜ 完成日期：2026-10-20
 
 **五、结构性**
 
@@ -347,7 +352,7 @@
 
 ## 九、实施记录
 
-### 批次 1（2026-10-20）：CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-14、CM-16
+### 批次 1（2026-10-20）：CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 实施后按反馈退回、不处理）
 
 **改动清单**
 
@@ -355,12 +360,12 @@
 | :--- | :--- |
 | `cmake/duilib_common.cmake` | CM-1 去掉变量名中的逗号；CM-12 `APPLE` → `CMAKE_SYSTEM_NAME STREQUAL "Darwin"`；CM-16-2 把 `DUILIB_MINGW_STATIC`、`DUILIB_WEBVIEW2_EXE` 的 `option()` 提到顶层；CM-16-3 修正 Skia 子目录注释；CM-16-4 日志块外移为 `include(...)` |
 | `cmake/duilib_log_variables.cmake`（新增） | CM-16-4 承载原 `duilib_common.cmake` 末尾的 `DUILIB_LOG` 日志块 |
-| `cmake/duilib_bin.cmake` | CM-14 在 `if(DUILIB_ENABLE_SDL)` 分支内统一添加 SDL 头文件目录 |
+| `cmake/duilib_bin.cmake` | ~~CM-14 在 `if(DUILIB_ENABLE_SDL)` 分支内统一添加 SDL 头文件目录~~ → **已按用户反馈退回**，该文件仅保留 SDL 的 `link_directories` |
 | `cmake/duilib_compiles.cmake` | CM-16-1 `include(CMakePushCheckState)` + 追加式 `CMAKE_REQUIRED_FLAGS` + `push/pop` |
 | `cmake/duilib_bin_windows.cmake` | CM-6 `if(DUILIB_MD)`；CM-7 删除 Windows 专用文件内重复的平台判断 |
 | `duilib/CMakeLists.txt` | CM-6 `if(DUILIB_MD)`；CM-7 删除 `PROJECT_SOURCES` 行、`if(CEF_LIB_DIR) ` 简化；顺带消除 C-7 引入的重复 CEF 日志（同义 `message` 出现两次） |
 | `duilib/third_party/zlib|libpng|libwebp|cximage` 的 `CMakeLists.txt` | CM-6 `if(DUILIB_MD)`（6 处之一）；libwebp 另含 CM-9（删 `-DUNICODE -D_UNICODE`）与 CM-16-5（`cmake_minimum_required` 3.16 → 3.18） |
-| `examples/ChildWindow/CMakeLists.txt` | CM-14 删除个例的 SDL include 写法 |
+| `examples/ChildWindow/CMakeLists.txt` | ~~CM-14 删除个例的 SDL include 写法~~ → **已按用户反馈退回**，保留原有的个例 `include_directories` |
 | `cmake/README.md`、`cmake/README.en.md` | CM-6 同步文档中的同款示例代码块 |
 | `.trae/skills/nim-duilib/assets/templates/CMakeLists.txt`、`.workbuddy/skills/nim-duilib/assets/templates/CMakeLists.txt` | CM-4 补 `DUILIB_WINRES_FILE_NAME` 与「开关 / 可选变量」注释 |
 
@@ -379,3 +384,31 @@
 1. CM-6 实际命中 **6 处**（审核时记为 4 处，遗漏 `libpng/CMakeLists.txt:22`、`cximage/CMakeLists.txt:10`），另加 2 份 README 示例；正文已更正为 6 处。
 2. 「已实测验证的事实」表原记录「CMake 产物在 `lib/x64/` 且无 `_d`」有误，实为：**CMake 产物在 `lib/Debug/`**（VS 多配置生成器按配置自动分子目录），**`lib/x64/` 是手写 vcxproj 的产物目录**；CM-5 第 2 点的「同名同目录互相覆盖」仅在**单配置生成器**（Linux/macOS）下成立。已更正。
 3. CM-2 新增证据：`find_package(ZLIB)` 在 `ZLIB_LIBRARY` 被预置为**不存在的路径**时仍输出 `Found ZLIB: .../duilib/lib/libduilib-zlib.a (found version "1.3.2")`，不报任何错误——即该错误路径是**静默**生效的，CM-2 的判定成立（配置日志实测）。
+
+### 批次 2（2026-10-20）：CM-2、CM-8、CM-19（CM-14 按反馈退回、不处理）
+
+**改动清单**
+
+| 文件 | 改动 |
+| :--- | :--- |
+| `duilib/third_party/libpng/CMakeLists.txt` | CM-2 重建 `ZLIB_LIBRARY`：去掉多余的 `duilib/` 层级；库名前缀/后缀改用 `CMAKE_STATIC_LIBRARY_PREFIX/SUFFIX`；配置目录用 `CMAKE_CFG_INTDIR` 拼接（多配置生成器展开为 `$(Configuration)`，单配置为 `.`） |
+| `cmake/duilib_common.cmake` | CM-8 在 CEF / SDL 条件块**之前**新增 `set(DUILIB_CEF_LIBS "")` 与 `set(DUILIB_SDL_LIBS "")`，使链接处不再引用未定义变量 |
+| `cmake/duilib_bin_windows.cmake` | CM-19 删除顶部 `set(CMAKE_EXE_LINKER_FLAGS ...)` 全局覆盖块；MSVC 的 `/SUBSYSTEM:WINDOWS`、`/ENTRY:wWinMainCRTStartup`、`/DELAYLOAD:libcef.dll` 改为 `target_link_options(... PRIVATE)`；MinGW 的 `-mwindows` / `-static` 移入 `elseif(DUILIB_MINGW)` 分支并改为 `target_link_options` |
+| `cmake/duilib_bin.cmake`、`examples/ChildWindow/CMakeLists.txt` | CM-14 **保持现状**（未改动，已按用户反馈退回） |
+
+**验收证据（本机：Windows 10 + cmake 4.3.0 + VS 2022 17.14，生成器 `-G"Visual Studio 17 2022"` + `-A x64`）**
+
+| 项 | 结果 |
+| :--- | :--- |
+| CM-2：`libpng` 配置输出 | `ZLIB_LIBRARY: C:/develop/nim_duilib/lib/$(Configuration)/duilib-zlib.lib`；`Found ZLIB: C:/develop/nim_duilib/lib/$(Configuration)/duilib-zlib.lib (found version "1.3.2")`；`ZLIB_INCLUDE_DIR` 为仓库内 `duilib/third_party/zlib`（不再落到系统 zlib）→ CM-2 验收达标 |
+| CM-2：`libpng` Release 编译 | exit 0 |
+| CM-8：`--warn-uninitialized` 配置 `duilib`、`examples/basic`、`examples/ChildWindow`、`examples/CefBrowser`、`examples/WebView2Browser` | 5 项全部 exit 0，**0 条**未初始化变量告警 → CM-8 验收达标 |
+| CM-19：`examples/ChildWindow` 生成的 vcxproj | 含 `<SubSystem>Windows</SubSystem>` 与 `<EntryPointSymbol>wWinMainCRTStartup</EntryPointSymbol>`；vcxproj 中已无 `CMAKE_EXE_LINKER_FLAGS` 覆盖痕迹 |
+| CM-19：`examples/ChildWindow` Debug 链接 | 仅剩既有的 LNK2038 运行库不匹配（`MT_StaticRelease` vs `MTd_StaticDebug`）+ 少量 LNK4098 警告，属 CM-5 范围（VS 多配置下 `DUILIB_BUILD_TYPE` 恒为 release → 链接到 Skia release 库），**非本次改动引入** |
+| CM-19：MinGW 分支 | 本机无 MinGW 工具链，未做实机验证（仅人工审查 + 分支逻辑检查） |
+
+**批次内额外发现与修正**
+
+1. **`$<CONFIG>` 在 `IMPORTED_LOCATION` 中不会被展开**（实测）：先用 `$<CONFIG>` 的方案，被原样写入 vcxproj 的 `AdditionalDependencies`（形如 `$<CONFIG>\x.lib`，XML 转义为 `&lt;CONFIG&gt;`），链接器无法识别；改用 `CMAKE_CFG_INTDIR` 后实测写出 `...\lib\$(Configuration)\duilib-zlib.lib`，MSBuild 可展开。已在 CM-2 小节记录该注意点。
+2. `build/msvc_build.bat` 仅编译 **Release**，且第三方库走**多配置生成器**（`-G"Visual Studio 17 2022"`）→ 第三方库产物落 `lib/Release/`；脚本通过显式传 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.<ARCH>.release` 规避 CM-5 的 Debug/Release 路径问题。
+3. 裸 VS 生成器下构建 Debug 配置（不走 `msvc_build.bat`）实测 `examples/ChildWindow` 出现 **1694 个 LNK2038**（`_ITERATOR_DEBUG_LEVEL` 0 vs 2、`RuntimeLibrary` `MT_StaticRelease` vs `MTd_StaticDebug`）+ `LNK1319`；根因是 CM-5（多配置下 `DUILIB_BUILD_TYPE` 恒为 release）+ MT/MTd 运行库不一致，属 CM-5 处理范围。该新证据已补入 CM-5 小节潜在影响。
