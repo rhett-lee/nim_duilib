@@ -3,7 +3,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(DUILIB_OS_WINDOWS 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(DUILIB_OS_LINUX 1)
-elseif(APPLE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DUILIB_OS_MACOS 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     set(DUILIB_OS_FREEBSD 1)
@@ -12,20 +12,19 @@ else()
     message(WARNING "Unknown OS: ${CMAKE_SYSTEM_NAME}")
 endif()
 
+# 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
+option(DUILIB_LOG "Print duilib debug log" OFF)
+
+# MingGW-w64编译时，使用静态链接（仅在 MINGW 开发环境下生效）
+option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
+
+# Skia的lib子目录名开关：默认值在下方"编译类型"之后计算，最终以 CACHE 变量 DUILIB_SKIA_LIB_SUBPATH 声明
+
 # MINGW 开发环境
 if(MINGW)
     set(DUILIB_MINGW 1)
     set(DUILIB_MINGW_NAME "mingw64-")
-    
-    # MingGW-w64编译时，使用静态链接
-    option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
-    
 endif()
-
-# 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
-option(DUILIB_LOG "Print duilib debug log" OFF)
-
-# Skia的lib子目录名开关（默认值在下方"编译类型"之后计算，此处不声明）
 
 # SDL功能：Windows平台默认不开启，其他平台默认开启
 if(DUILIB_OS_WINDOWS)
@@ -40,10 +39,8 @@ option(DUILIB_ENABLE_CEF "Enable CEF" OFF)
 # CEF 109版本是否开启，默认不开启（CEF109版本兼容Win7系统，其他CEF版本只能运行在Win10及高版本操作系统）
 option(DUILIB_CEF_109 "Enable CEF 109" OFF)
 
-# WebView2控件的二进制
-if(DUILIB_OS_WINDOWS)
-    option(DUILIB_WEBVIEW2_EXE "Is Windows WebView2 exe" OFF)
-endif()
+# WebView2控件的二进制（仅Windows平台有效，其他平台忽略该定义）
+option(DUILIB_WEBVIEW2_EXE "Is Windows WebView2 exe" OFF)
 
 #编译器类型: msvc,gcc,llvm
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -73,7 +70,7 @@ elseif(lower_processor MATCHES "i[3-6]86")
 elseif(lower_processor MATCHES "x86_64|amd64")
     set(DUILIB_SYSTEM_PROCESSOR "x64")
 else()
-    set(DUILIB_SYSTEM_PROCESSOR, "unknown")
+    set(DUILIB_SYSTEM_PROCESSOR "unknown")
     message(WARNING "Unknown CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
@@ -183,84 +180,5 @@ if(DUILIB_ENABLE_SDL)
     endif()
 endif()
 
-#输出日志：打印变量数据
-if(DUILIB_LOG)
-    message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
-    message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
-    if(DUILIB_OS_WINDOWS)
-        message(STATUS "DUILIB_WINRES_FILE_NAME: ${DUILIB_WINRES_FILE_NAME}")
-    endif()
-    message(STATUS "") 
-
-    if(DUILIB_OS_WINDOWS)
-        message(STATUS "DUILIB_OS: Windows")
-    endif()
-    if(DUILIB_OS_LINUX)
-        message(STATUS "DUILIB_OS: Linux")
-    endif()
-    if(DUILIB_OS_MACOS)
-        message(STATUS "DUILIB_OS: MacOS")
-    endif()
-    if(DUILIB_OS_FREEBSD)
-        message(STATUS "DUILIB_OS: FreeBSD")
-    endif()
-
-    message(STATUS "DUILIB_COMPILER_NAME: ${DUILIB_COMPILER_NAME}")
-    message(STATUS "DUILIB_SYSTEM_PROCESSOR: ${DUILIB_SYSTEM_PROCESSOR}")
-
-    if(DUILIB_MINGW)
-        message(STATUS "DUILIB_MINGW: ON")
-        message(STATUS "DUILIB_MINGW_STATIC: ${DUILIB_MINGW_STATIC}")
-    else()
-        message(STATUS "DUILIB_MINGW: OFF")
-    endif()
-
-    if(DUILIB_BITS_64)
-        message(STATUS "DUILIB_BITS_64: ON")
-    else()
-        message(STATUS "DUILIB_BITS_64: OFF")
-    endif()
-
-    message(STATUS "DUILIB_BUILD_TYPE: ${DUILIB_BUILD_TYPE}")
-    
-    if(MSVC)
-        # MSVC 编译器：打印代码的运行库
-        message(STATUS "CMAKE_MSVC_RUNTIME_LIBRARY: ${CMAKE_MSVC_RUNTIME_LIBRARY}") 
-    endif()
-    
-    message(STATUS "") 
-    
-    message(STATUS "DUILIB_ROOT: ${DUILIB_ROOT}")
-    message(STATUS "DUILIB_BIN_PATH: ${DUILIB_BIN_PATH}")
-    message(STATUS "DUILIB_LIB_PATH: ${DUILIB_LIB_PATH}")    
-    message(STATUS "DUILIB_LIBS: ${DUILIB_LIBS}") 
-    message(STATUS "") 
-    
-    message(STATUS "DUILIB_SKIA_SRC_ROOT_DIR: ${DUILIB_SKIA_SRC_ROOT_DIR}")
-    message(STATUS "DUILIB_SKIA_LIB_SUBPATH: ${DUILIB_SKIA_LIB_SUBPATH}")
-    message(STATUS "DUILIB_SKIA_LIB_PATH: ${DUILIB_SKIA_LIB_PATH}")
-    message(STATUS "DUILIB_SKIA_LIBS: ${DUILIB_SKIA_LIBS}")
-    message(STATUS "") 
-    
-    message(STATUS "DUILIB_ENABLE_CEF: ${DUILIB_ENABLE_CEF}") 
-    if (DUILIB_ENABLE_CEF) 
-        message(STATUS "DUILIB_CEF_SRC_ROOT_DIR: ${DUILIB_CEF_SRC_ROOT_DIR}") 
-        message(STATUS "DUILIB_CEF_LIB_PATH: ${DUILIB_CEF_LIB_PATH}") 
-        message(STATUS "DUILIB_CEF_109: ${DUILIB_CEF_109}") 
-        message(STATUS "DUILIB_CEF_LIBS: ${DUILIB_CEF_LIBS}")
-    endif()
-    message(STATUS "") 
-    
-    if(DUILIB_OS_WINDOWS)
-        message(STATUS "DUILIB_WEBVIEW2_EXE: ${DUILIB_WEBVIEW2_EXE}") 
-        message(STATUS "") 
-    endif()
-    
-    message(STATUS "DUILIB_ENABLE_SDL: ${DUILIB_ENABLE_SDL}")
-    if(DUILIB_ENABLE_SDL)        
-        message(STATUS "DUILIB_SDL_SRC_ROOT_DIR: ${DUILIB_SDL_SRC_ROOT_DIR}")
-        message(STATUS "DUILIB_SDL_LIB_PATH: ${DUILIB_SDL_LIB_PATH}")
-        message(STATUS "DUILIB_SDL_LIBS: ${DUILIB_SDL_LIBS}")
-    endif()
-    message(STATUS "") 
-endif()
+#输出日志：打印变量数据（实现在 duilib_log_variables.cmake 中）
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_log_variables.cmake")

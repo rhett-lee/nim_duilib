@@ -10,6 +10,7 @@
 | 文档 | 定位 | 与本文档的关系 |
 | :--- | :--- | :--- |
 | `docs/misc/Project-Audit.md` | 一次性审计报告（现状 + 建议） | **本文档的上游输入**。审计已提出但未进入本文档跟踪的条目，视为「已记录、不排期」 |
+| `docs/misc/CMake-Improvement-Plan.md` | CMake 构建脚本改进计划（CM-1 ~ CM-22） | **本文档的下游专项计划**：全仓 CMake 脚本的缺陷与改进项由该文档逐项跟踪（不重复登记到本文档），完成情况回写该文档的跟踪清单 |
 | `docs/misc/Control-Roadmap.md` | 控件规划清单 1–20 项 | 已完成的 1–17 项不再重复；其 18–20 项（无障碍 / 原生通知 / 应用内更新）并入本文档 D、E 组跟踪 |
 | `docs/misc/跨平台开发相关事项.md` | 跨平台历史决策记录 | 已完成的条目标记为存量；本文档只跟踪**新增**跨平台工作 |
 | `docs/misc/ListCtrl-Roadmap.md` / `ListCtrl-Performance.md` | ListCtrl 专项 | ListCtrl 内的单元格/性能议题仍由这两份文档负责，本文只跟踪其**结论对全局的影响**（见 B-4） |

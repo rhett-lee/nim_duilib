@@ -5,7 +5,7 @@ endif()
 
 if(MSVC)
     # MSVC 编译器：设置代码的运行库
-    if("${DUILIB_MD}" STREQUAL "ON")
+    if(DUILIB_MD)
         # MD/MDd
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
     else()
@@ -102,10 +102,8 @@ endif()
 set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
 
 if(DUILIB_ENABLE_SDL)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        # Enable SDL support for windows
-        target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
-    endif()
+    # Enable SDL support for windows
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
     
     # 添加SDL依赖的lib
     list(APPEND DUILIB_WINDOWS_LIBS Version.lib Winmm.lib Setupapi.lib)

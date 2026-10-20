@@ -19,7 +19,7 @@ set(DUILIB_WINRES_FILE_NAME "${PROJECT_NAME}.rc")
 # 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 
-# SDL库的头文件所在路径
+# SDL库的头文件所在路径（该示例程序需要直接使用SDL的头文件，所以需要包含SDL的include目录）
 if(DUILIB_ENABLE_SDL)
     include_directories("${DUILIB_SDL_SRC_ROOT_DIR}/include")
 endif()

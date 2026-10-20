@@ -1,0 +1,82 @@
+# 输出日志：打印 duilib 构建相关的变量数据（由 DUILIB_LOG 开关控制）
+# 该文件在 duilib_common.cmake 末尾被包含，此时相关变量均已定义完成
+if(DUILIB_LOG)
+    message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
+    message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
+    if(DUILIB_OS_WINDOWS)
+        message(STATUS "DUILIB_WINRES_FILE_NAME: ${DUILIB_WINRES_FILE_NAME}")
+    endif()
+    message(STATUS "") 
+
+    if(DUILIB_OS_WINDOWS)
+        message(STATUS "DUILIB_OS: Windows")
+    endif()
+    if(DUILIB_OS_LINUX)
+        message(STATUS "DUILIB_OS: Linux")
+    endif()
+    if(DUILIB_OS_MACOS)
+        message(STATUS "DUILIB_OS: MacOS")
+    endif()
+    if(DUILIB_OS_FREEBSD)
+        message(STATUS "DUILIB_OS: FreeBSD")
+    endif()
+
+    message(STATUS "DUILIB_COMPILER_NAME: ${DUILIB_COMPILER_NAME}")
+    message(STATUS "DUILIB_SYSTEM_PROCESSOR: ${DUILIB_SYSTEM_PROCESSOR}")
+
+    if(DUILIB_MINGW)
+        message(STATUS "DUILIB_MINGW: ON")
+        message(STATUS "DUILIB_MINGW_STATIC: ${DUILIB_MINGW_STATIC}")
+    else()
+        message(STATUS "DUILIB_MINGW: OFF")
+    endif()
+
+    if(DUILIB_BITS_64)
+        message(STATUS "DUILIB_BITS_64: ON")
+    else()
+        message(STATUS "DUILIB_BITS_64: OFF")
+    endif()
+
+    message(STATUS "DUILIB_BUILD_TYPE: ${DUILIB_BUILD_TYPE}")
+    
+    if(MSVC)
+        # MSVC 编译器：打印代码的运行库
+        message(STATUS "CMAKE_MSVC_RUNTIME_LIBRARY: ${CMAKE_MSVC_RUNTIME_LIBRARY}") 
+    endif()
+    
+    message(STATUS "") 
+    
+    message(STATUS "DUILIB_ROOT: ${DUILIB_ROOT}")
+    message(STATUS "DUILIB_BIN_PATH: ${DUILIB_BIN_PATH}")
+    message(STATUS "DUILIB_LIB_PATH: ${DUILIB_LIB_PATH}")    
+    message(STATUS "DUILIB_LIBS: ${DUILIB_LIBS}") 
+    message(STATUS "") 
+    
+    message(STATUS "DUILIB_SKIA_SRC_ROOT_DIR: ${DUILIB_SKIA_SRC_ROOT_DIR}")
+    message(STATUS "DUILIB_SKIA_LIB_SUBPATH: ${DUILIB_SKIA_LIB_SUBPATH}")
+    message(STATUS "DUILIB_SKIA_LIB_PATH: ${DUILIB_SKIA_LIB_PATH}")
+    message(STATUS "DUILIB_SKIA_LIBS: ${DUILIB_SKIA_LIBS}")
+    message(STATUS "") 
+    
+    message(STATUS "DUILIB_ENABLE_CEF: ${DUILIB_ENABLE_CEF}") 
+    if (DUILIB_ENABLE_CEF) 
+        message(STATUS "DUILIB_CEF_SRC_ROOT_DIR: ${DUILIB_CEF_SRC_ROOT_DIR}") 
+        message(STATUS "DUILIB_CEF_LIB_PATH: ${DUILIB_CEF_LIB_PATH}") 
+        message(STATUS "DUILIB_CEF_109: ${DUILIB_CEF_109}") 
+        message(STATUS "DUILIB_CEF_LIBS: ${DUILIB_CEF_LIBS}")
+    endif()
+    message(STATUS "") 
+    
+    if(DUILIB_OS_WINDOWS)
+        message(STATUS "DUILIB_WEBVIEW2_EXE: ${DUILIB_WEBVIEW2_EXE}") 
+        message(STATUS "") 
+    endif()
+    
+    message(STATUS "DUILIB_ENABLE_SDL: ${DUILIB_ENABLE_SDL}")
+    if(DUILIB_ENABLE_SDL)        
+        message(STATUS "DUILIB_SDL_SRC_ROOT_DIR: ${DUILIB_SDL_SRC_ROOT_DIR}")
+        message(STATUS "DUILIB_SDL_LIB_PATH: ${DUILIB_SDL_LIB_PATH}")
+        message(STATUS "DUILIB_SDL_LIBS: ${DUILIB_SDL_LIBS}")
+    endif()
+    message(STATUS "") 
+endif()

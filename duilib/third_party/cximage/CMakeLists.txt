@@ -7,7 +7,7 @@ endif()
 # duilib
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
-if("${DUILIB_MD}" STREQUAL "ON")
+if(DUILIB_MD)
     # MD/MDd
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
 else()

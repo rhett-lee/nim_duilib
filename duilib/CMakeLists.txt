@@ -7,7 +7,7 @@ endif()
 # duilib
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
-if("${DUILIB_MD}" STREQUAL "ON")
+if(DUILIB_MD)
     # MD/MDd
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
 else()
@@ -64,7 +64,7 @@ include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
 
 # Conditionally include CEF directory
-if(CEF_LIB_DIR AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(CEF_LIB_DIR)
     get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
     include_directories(${CEF_INCLUDE_ROOT_DIR})
 else()
@@ -91,7 +91,6 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
-    list(APPEND PROJECT_SOURCES ${CEF_CONTROL_SRC} ${CEF_CONTROL_INTERNAL_SRC})
     message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
 
     # Windows平台专有的CEF源文件
@@ -232,7 +231,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
     )
 endif()
 
-# CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持
+# CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持（收集与过滤见上方同名判断）
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     list(APPEND LIBRARY_SOURCES
         ${CEF_CONTROL_SRC}
@@ -244,9 +243,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
             ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
         )
     endif()
-    message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
-else()
-    message(STATUS "CEF support disabled (FreeBSD is not supported)")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
