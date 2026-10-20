@@ -114,7 +114,13 @@
     #include "duilib_config_windows.h"
 
     #ifndef ASSERT
-        #define ASSERT(expr)  _ASSERTE(expr)
+        // 与 Linux / macOS / FreeBSD 对齐：仅 Debug 生效，Release 完全不校验。
+        // 若发行版用户看到断言弹窗，根因就是这里原先缺少 _DEBUG 判断。
+        #ifdef _DEBUG
+            #define ASSERT(expr)  _ASSERTE(expr)
+        #else
+            #define ASSERT(expr)  ((void)(0))
+        #endif
     #endif
 
 #elif defined DUILIB_BUILD_FOR_LINUX

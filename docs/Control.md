@@ -121,6 +121,25 @@
 | row_span  | 1 | int | SetRowSpan  | 单元格合并属性，占几行（默认占1行），仅在GridLayout布局中生效|
 | col_span  | 1 | int | SetColumnSpan  | 单元格合并属性，占几列（默认占1列），仅在GridLayout布局中生效|
 
+## `ASSERT` 的生效范围
+
+`ASSERT(expr)` 由 `duilib/duilib_config.h` 定义，**四个平台的展开方式完全一致：Debug 生效，Release 不校验**。
+
+| 平台 | Debug | Release |
+| :--- | :--- | :--- |
+| Windows | `_ASSERTE(expr)`，失败弹断言框 | `((void)(0))`，空操作 |
+| Linux / macOS / FreeBSD | `assert(expr)` | `((void)(0))`，空操作 |
+
+**对使用者的影响**：
+
+- **Release 版遇到断言失败不会中断程序**，会带着非法状态继续执行，可能表现为样式不对、数据异常或后续崩溃，而不是明确的断言弹窗。因此断言覆盖的入参校验（例如 `halign` / `valign` 填了非法值）在 Release 下应视为「无保护」。
+- **不要把 `ASSERT` 当运行期校验用**。它只用于「不应该发生」的前提检查，不校验来自外部的输入（XML 属性、用户输入、网络数据）。这些应由业务代码显式判断并处理。
+- `ASSERT` 的表达式**在 Release 下不会被求值**，因此不要在里面写带副作用的语句。
+
+**给「Release 也要生效的校验」的写法**：用普通的 `if` 判断 + 处理分支，不要用 `ASSERT`。需要同时在两种构建下都检查时，可写成一个普通函数在两条路径上都调用。
+
+配套宏 `ASSERT_UNUSED_VARIABLE(expr)` 在 Release 下展开为 `UNUSED_VARIABLE(expr)`（即 `((void)(expr))`），会引用表达式而不执行检查，用于避免「仅在断言中使用的变量」触发未使用告警。
+
 ## ControlLoading 与骨架屏
 
 所有控件都继承自 `Control`，因此都支持 `loading` 属性与 `StartLoading` / `StopLoading` 接口，可用于列表、表格、卡片区域的加载占位。
@@ -175,7 +194,7 @@ for (size_t i = 0; i < pLoadingUiRootBox->GetItemCount(); ++i) {
 
 ### 骨架屏 XML 的两条额外注意
 
-- **`valign` 只能填 `top` / `center` / `bottom`**，`vcenter` 只在 `text_align` 属性里有效。填错值时 `Control::SetAttribute` 末尾是 `else { ASSERT(0); }`，debug 版直接崩溃。`halign` 同理只能填 `left` / `center` / `right`。
+- **`valign` 只能填 `top` / `center` / `bottom`**，`vcenter` 只在 `text_align` 属性里有效。填错值时 `Control::SetAttribute` 末尾是 `else { ASSERT(0); }`，Debug 版弹断言框。`halign` 同理只能填 `left` / `center` / `right`。**Release 版不做校验**（见下节「`ASSERT` 的生效范围」），写错不会报错但也不会正确对齐。
 - **同层级兄弟节点要么统一 `height="stretch"`，要么都别混用 `auto`**。混用会导致一个被拉伸、一个按内容高度，视觉上留白不对称。行间距用 margin 实现（上行 `margin="0,0,0,12"`、下行 `margin="0,12,0,0"`）。
 
 ### 示例代码

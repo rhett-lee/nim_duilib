@@ -123,6 +123,25 @@ English | [简体中文](Control.md)
 | row_span  | 1 | int | SetRowSpan  | Cell merging attribute, spanning how many rows (default 1 row), only takes effect in GridLayout |
 | col_span  | 1 | int | SetColumnSpan  | Cell merging attribute, spanning how many columns (default 1 column), only takes effect in GridLayout |
 
+## Scope of `ASSERT`
+
+`ASSERT(expr)` is defined in `duilib/duilib_config.h` and **expands identically on all four platforms: active in Debug, not checked in Release**.
+
+| Platform | Debug | Release |
+| :--- | :--- | :--- |
+| Windows | `_ASSERTE(expr)`, pops an assertion dialog on failure | `((void)(0))`, no-op |
+| Linux / macOS / FreeBSD | `assert(expr)` | `((void)(0))`, no-op |
+
+**What this means for you**:
+
+- **A failing assertion does not stop the program in Release**. Execution continues with an invalid state, which may surface as wrong styling, corrupted data, or a later crash instead of a clear assertion dialog. Argument validation covered by assertions (for example an illegal `halign` / `valign` value) should therefore be treated as **unprotected in Release**.
+- **Do not use `ASSERT` as runtime validation.** It is meant for preconditions that "should never happen"; it does not validate external input (XML attributes, user input, network data). Handle those explicitly in your own code.
+- The expression inside `ASSERT` **is not evaluated in Release**, so never put side effects in it.
+
+**How to write a check that must also run in Release**: use a plain `if` with a handling branch instead of `ASSERT`. If the check is needed in both builds, put it in an ordinary function and call that function from both paths.
+
+The companion macro `ASSERT_UNUSED_VARIABLE(expr)` expands to `UNUSED_VARIABLE(expr)` (i.e. `((void)(expr))`) in Release, which references the expression without checking it — this prevents "variable used only inside an assertion" warnings.
+
 ## ControlLoading and Skeleton Screens
 
 Every control derives from `Control`, so all of them support the `loading` attribute plus the `StartLoading` / `StopLoading` interfaces, which can be used for loading placeholders over lists, tables and card areas.
