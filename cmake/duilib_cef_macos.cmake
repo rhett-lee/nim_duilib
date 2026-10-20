@@ -6,7 +6,27 @@
 # CEF_ROOT setup.
 # This variable must be set to locate the binary distribution.
 #
-get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../cef_binary" ABSOLUTE) 
+# macOS 上需要的是「CEF二进制分发包」的根目录（其中含 Release/Chromium Embedded
+# Framework.framework、Resources/、cmake/、include/、libcef_dll/），供
+# COPY_MAC_FRAMEWORK 拷贝框架、find_package(CEF) 加载 cmake 配置使用；
+# 这与仓库内 duilib/third_party/libcef/libcef_macos（只含 cmake/include/libcef_dll，
+# 用于编译 libcef_dll_wrapper）不是同一个目录，两者用途不同。
+#
+# 默认值与 build_duilib_all_in_one.sh 的目录约定一致：即 nim_duilib 的同级目录 cef_binary
+# 优先顺序：-DCEF_ROOT=... > 环境变量 CEF_ROOT > 默认目录
+if(NOT DEFINED CEF_ROOT OR NOT IS_DIRECTORY "${CEF_ROOT}")
+    if(DEFINED ENV{CEF_ROOT} AND IS_DIRECTORY "$ENV{CEF_ROOT}")
+        file(TO_CMAKE_PATH "$ENV{CEF_ROOT}" CEF_ROOT)
+    else()
+        get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../cef_binary" ABSOLUTE)
+    endif()
+endif()
+if(NOT IS_DIRECTORY "${CEF_ROOT}")
+    message(FATAL_ERROR
+        "CEF_ROOT not found: ${CEF_ROOT}\n"
+        "Please download the CEF binary distribution (see build/build_duilib_all_in_one.sh), "
+        "or pass -DCEF_ROOT=<path-to-cef_binary>.")
+endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 
 message(STATUS "CEF_ROOT: ${CEF_ROOT}")
@@ -55,12 +75,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CEF_TARGET_OUT_DIR}")
 
 if(OS_MAC)
     option(OPTION_USE_ARC "Build with ARC (automatic Reference Counting) on macOS." ON)
-    if(OPTION_USE_ARC)
-        list(APPEND CEF_COMPILER_FLAGS -fobjc-arc)
-        set_target_properties(${target} PROPERTIES
-        CLANG_ENABLE_OBJC_ARC "YES"
-    )
-    endif()
 
     # Output path for the main app bundle.
     set(CEF_APP "${CEF_TARGET_OUT_DIR}/${CEF_TARGET}.app")
@@ -112,6 +126,14 @@ if(OS_MAC)
             -Wno-unused-lambda-capture
             -Wno-unused-private-field
           )
+    endif()
+    
+    # 开启ARC（自动引用计数）：
+    # 必须在目标创建之后设置属性，且 CEF_COMPILER_FLAGS 在上方被整体赋值，
+    # 因此 -fobjc-arc 也要在上方赋值之后再追加，否则会被覆盖丢失
+    if(OPTION_USE_ARC)
+        list(APPEND CEF_COMPILER_FLAGS -fobjc-arc)
+        set_target_properties(${CEF_TARGET} PROPERTIES CLANG_ENABLE_OBJC_ARC "YES")
     endif()
     
     unset(CMAKE_OSX_DEPLOYMENT_TARGET)

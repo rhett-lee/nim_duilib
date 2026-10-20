@@ -26,6 +26,20 @@ endif()
 # Windows 系统中使用Unicode编码
 add_definitions(-DUNICODE -D_UNICODE) 
 
+# WebView2 的库文件与 DLL 所在目录（仅 Windows 平台有效）
+# 目录名与 CPU 架构对应：x64 → native/x64，x86 → native/x86
+set(DUILIB_WEBVIEW2_NATIVE_DIR "${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}")
+
+# 需要嵌入的manifest文件路径
+if(DUILIB_BITS_64)
+    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x64.manifest")
+else()
+    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")
+endif()
+if(NOT EXISTS "${DUILIB_WIN_MANIFEST}")
+    message(FATAL_ERROR "manifest file not found: ${DUILIB_WIN_MANIFEST}")
+endif()
+
 if(MSVC)
     # MSVC需要单独设置Debug还是Release，否则它会自动创建子目录Debug/Release
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -42,7 +56,10 @@ endif()
 
 if(DUILIB_WEBVIEW2_EXE)    
     #WEBVIEW2库所在路径（.lib对应的路径）
-    link_directories("${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}") 
+    if(NOT EXISTS "${DUILIB_WEBVIEW2_NATIVE_DIR}")
+        message(FATAL_ERROR "WebView2 native directory not found: ${DUILIB_WEBVIEW2_NATIVE_DIR}")
+    endif()
+    link_directories("${DUILIB_WEBVIEW2_NATIVE_DIR}") 
 endif()
 
 # Remove *.mm
@@ -51,13 +68,6 @@ list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
 #设置编译可执行程序依赖的源码
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-# 需要嵌入manifest文件路径
-if(DUILIB_BITS_64)
-    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x64.manifest")
-else()
-    set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")
-endif()
-     
 if(DUILIB_MINGW)
     # MingGW-w64编译时的属性设置: 添加*.rc文件，并配置manifest文件
     # 创建manifest.rc文件
@@ -114,7 +124,7 @@ if(DUILIB_WEBVIEW2_EXE)
     # 复制WebView2Loader.dll到bin目录
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD  # 在目标构建后执行
                        COMMAND ${CMAKE_COMMAND} -E copy
-                               "${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}/WebView2Loader.dll"
+                               "${DUILIB_WEBVIEW2_NATIVE_DIR}/WebView2Loader.dll"
                                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/WebView2Loader.dll"
                        COMMENT "Copying WebView2Loader.dll to runtime directory"
                       )

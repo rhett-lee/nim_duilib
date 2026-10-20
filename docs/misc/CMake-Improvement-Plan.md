@@ -1,7 +1,7 @@
 # CMake 构建脚本改进计划（CMake Improvement Plan）
 
 > 本文档是 2026-10-20 对 `nim_duilib` 仓库**全部 CMake 脚本**的审核结论，作为后续**逐项实施**的跟踪入口。
-> 基线日期：**2026-10-20**　｜　当前状态：**第 1 批（CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16；CM-14 按反馈退回、不处理）与第 2 批（CM-2、CM-8、CM-19）已完成（2026-10-20，见第九节实施记录），其余各项未开始**
+> 基线日期：**2026-10-20**　｜　当前状态：**第 1~3 批已完成（2026-10-20）：第 1 批 CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 按反馈退回、不处理）；第 2 批 CM-2、CM-8、CM-19；第 3 批 CM-3、CM-15（后两项的 macOS 实机验证待补）。见第九节实施记录，其余各项未开始**
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 > 关联文档：[Development-Plan.md](Development-Plan.md)（整体开发规划）、[Project-Audit.md](Project-Audit.md)（项目盘点）
 > 前置工作：C-7（`DUILIB_SRC_MACOS` 平台判定脆弱）已于 2026-10-20 完成，见 [Development-Plan.md](Development-Plan.md) 的 C-7 小节。
@@ -50,13 +50,17 @@
 - **注意**：`$<CONFIG>` **不能**用在这里——实测它会被原样写入 `IMPORTED_LOCATION`→vcxproj 的 `AdditionalDependencies`（`$<CONFIG>\x.lib`），链接器无法识别。
 - **工作量**：低　**依赖**：无
 
-### CM-3 `duilib_cef_macos.cmake` 引用了未定义的 `${target}`
+### CM-3 `duilib_cef_macos.cmake` 引用了未定义的 `${target}` ✅ 已完成（2026-10-20）
 
-- **位置**：[cmake/duilib_cef_macos.cmake:60-62](..//..//cmake/duilib_cef_macos.cmake#L60-L62) → `set_target_properties(${target} PROPERTIES CLANG_ENABLE_OBJC_ARC "YES")`，但本文件内的目标变量名是 `CEF_TARGET`（[同文件 L44](..//..//cmake/duilib_cef_macos.cmake#L44)）。
+- **位置**：修复前 [cmake/duilib_cef_macos.cmake:58-63](..//..//cmake/duilib_cef_macos.cmake#L58-L63) → `set_target_properties(${target} PROPERTIES CLANG_ENABLE_OBJC_ARC "YES")`；修正后位于 [同文件:113-119](..//..//cmake/duilib_cef_macos.cmake#L113-L119)。本文件内目标变量名为 `CEF_TARGET`（[:46](..//..//cmake/duilib_cef_macos.cmake#L46)）。
 - **问题**：`target` 从未在本文件内定义（只在 CEF 上游示例的 `foreach(target ...)` 循环里出现过），此处应为 `${CEF_TARGET}`。
 - **影响**：`OPTION_USE_ARC` 默认为 `ON`，因此 **macOS + CEF 构建时会在配置阶段报错**（`set_target_properties` 参数错误），或该 ARC 属性根本没设上。
-- **动作**：改为 `${CEF_TARGET}`；同时核实该文件是否仍在用（见 CM-15 的 `CEF_ROOT` 问题）。
+- **动作**（已实施）：
+  1. 改为 `${CEF_TARGET}`；
+  2. 该代码块整体下移到「`CEF_COMPILER_FLAGS` 被整体赋值之后 + `add_executable(${CEF_TARGET} ...)` 之后」——原位置在 `add_executable` 之前，`set_target_properties` 会因目标不存在而失败；同时原位置的 `list(APPEND CEF_COMPILER_FLAGS -fobjc-arc)` 会被随后第 72 行的 `set(CEF_COMPILER_FLAGS ...)` 整体覆盖、导致 `-fobjc-arc` 静默丢失，下移后两处一并修正。
+  3. 核实结果：该文件**仍在用**——仅由 [cmake/duilib_bin_macos.cmake:15-17](..//..//cmake/duilib_bin_macos.cmake#L15-L17) 在 `macOS + DUILIB_ENABLE_CEF` 时 `include`，与 CM-15 的 `CEF_ROOT` 问题是同一文件。
 - **验收**：macOS 上配置 `examples/cef`（或 `CefBrowser`）无报错，且目标确实带 `CLANG_ENABLE_OBJC_ARC` 属性。
+- **实测结论**：本机为 Windows，无法实机配置 macOS 分支；已做**静态核实**——`CEF_TARGET` 在同文件 L46 赋值、`add_executable` 在 L69 创建目标，修正后的代码块（L113-119）在二者之后，`${CEF_TARGET}` 与 `CEF_COMPILER_FLAGS` 均已成定义。**macOS 实机验证待补**。
 - **工作量**：极低　**依赖**：需 macOS 环境核实
 
 ### CM-4 两份 skill 模板缺 `DUILIB_WINRES_FILE_NAME`，新建示例会漏资源 ✅ 已完成（2026-10-20）
@@ -183,16 +187,21 @@
 - **结论**：本项**不处理**，审核结论作废；`cmake/duilib_bin.cmake` 只保留 SDL 的 `link_directories`，不添加 SDL 的 `include_directories`。
 - **工作量**：—　**依赖**：无
 
-### CM-15 硬编码路径集中清理
+### CM-15 硬编码路径集中清理 ✅ 已完成（2026-10-20）
 
 - **位置与问题**：
   | 硬编码 | 位置 | 说明 |
   | :--- | :--- | :--- |
-  | WebView2 库目录 `duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}` | [duilib_bin_windows.cmake:56](..//..//cmake/duilib_bin_windows.cmake#L56)、[121](..//..//cmake/duilib_bin_windows.cmake#L121) | 目录名与 `DUILIB_SYSTEM_PROCESSOR` 取值（`x64`/`x86`）强耦合，且未做存在性检查 |
-  | manifest 文件 `msvc/manifest/duilib.x64.manifest` / `.x86.manifest` | [duilib_bin_windows.cmake:67-69](..//..//cmake/duilib_bin_windows.cmake#L67-L69) | 与 `DUILIB_BITS_64` 手工配对 |
-  | CEF 根目录 `../../cef_binary` | [duilib_cef_macos.cmake:9](..//..//cmake/duilib_cef_macos.cmake#L9) | 解析结果为**仓库之外**的目录，与 `third_party/libcef/libcef_macos` 的存放方式完全不一致，疑似该文件已与现状脱节 |
-- **动作**：WebView2 与 manifest 路径改为统一变量（并在 `EXISTS` 校验失败时给出明确错误）；**macOS 的 CEF 路径必须先核实该分支是否仍在使用**——若在用，改为指向 `third_party/libcef/libcef_macos`，若已废弃，标注后删除对它的引用。
+  | WebView2 库目录 `duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}` | [duilib_bin_windows.cmake:45](..//..//cmake/duilib_bin_windows.cmake#L45)、[117](..//..//cmake/duilib_bin_windows.cmake#L117) | 目录名与 `DUILIB_SYSTEM_PROCESSOR` 取值（`x64`/`x86`）强耦合，且未做存在性检查 |
+  | manifest 文件 `msvc/manifest/duilib.x64.manifest` / `.x86.manifest` | [duilib_bin_windows.cmake:67-69](..//..//cmake/duilib_bin_windows.cmake#L67-L69) | 与 `DUILIB_BITS_64` 手工配对，且**同一段代码在文件内重复定义两次**（L55-59 与 L67-69） |
+  | CEF 根目录 `../../cef_binary` | [duilib_cef_macos.cmake:9](..//..//cmake/duilib_cef_macos.cmake#L9) | 解析结果为**仓库之外**的目录；审核时判断为"与 `third_party/libcef/libcef_macos` 的存放方式不一致、疑似脱节" |
+- **动作**（已实施）：
+  1. **WebView2**：新增 `DUILIB_WEBVIEW2_NATIVE_DIR`（[duilib_bin_windows.cmake:29-31](..//..//cmake/duilib_bin_windows.cmake#L29-L31)），`link_directories` 与 DLL 复制两处改用它；在 `if(DUILIB_WEBVIEW2_EXE)` 分支内加 `EXISTS` 校验，缺失时报 `FATAL_ERROR` 并给出完整路径。
+  2. **manifest**：`DUILIB_WIN_MANIFEST` 的定义上移并**去掉重复定义**（[L33-41](..//..//cmake/duilib_bin_windows.cmake#L33-L41)），加 `EXISTS` 校验（缺失时报 `FATAL_ERROR`）；MSVC / MinGW 两处使用点不变。
+  3. **macOS CEF_ROOT**：**核实结论与审核判断不同**——`third_party/libcef/libcef_macos` 只有 `cmake/ include/ libcef_dll/`（用于编译 `libcef_dll_wrapper`），**不含** `Release/Chromium Embedded Framework.framework` 与 `Resources/`；而 `COPY_MAC_FRAMEWORK` 需要从 `CEF_BINARY_DIR`（= `${CEF_ROOT}/$<CONFIGURATION>`）拷贝框架，因此不能指向仓库内目录。`../../cef_binary` 与 [build/build_duilib_all_in_one.sh:369-403](../../build/build_duilib_all_in_one.sh#L369-L403) 的"下载并解压到 `nim_duilib` 同级 `cef_binary`"约定一致，**默认值保持不变**；改为：允许 `-DCEF_ROOT=...` 或环境变量 `CEF_ROOT` 覆盖（`FindCEF.cmake` 本身优先采用外部值），并在目录不存在时给出明确的 `FATAL_ERROR`（原来会在 `find_package(CEF)` 处报模糊错误）。
 - **验收**：三条路径均来自单一变量定义处；macOS + CEF 的配置能定位到真实存在的目录。
+- **实测结论（Windows 部分）**：`examples/basic`、`examples/CefBrowser`、`examples/WebView2Browser` 三项配置 exit 0、0 告警；生成的 `WebView2Browser.vcxproj` 中复制命令为 `.../Microsoft.Web.WebView2/build/native/x64/WebView2Loader.dll`，`basic.vcxproj` 中为 `AdditionalManifestFiles = C:\develop\nim_duilib\msvc\manifest\duilib.x64.manifest`（路径均正确、且来自单一变量）。
+- **macOS 部分**：本机无法实机验证，仅做路径与 `COPY_MAC_FRAMEWORK`/`FindCEF.cmake` 的静态核对。**macOS 实机验证待补**。
 - **工作量**：低（含核实）　**依赖**：需 macOS 环境核实 CEF 分支
 
 ### CM-16 小项合集（6 条全部处理）✅ 已完成（2026-10-20）
@@ -298,7 +307,7 @@
 | :--- | :--- | :--- |
 | 第 1 步 ✅ 已完成（2026-10-20） | **CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16**（CM-14 已按反馈退回、不处理） | 全是极低工作量、零行为风险或纯注释类，可一批完成，一次配置 + 一次 Debug 编译即可验收 |
 | 第 2 步 ✅ 已完成（2026-10-20） | **CM-2、CM-8、CM-19** | 低风险但会改动实际构建行为（链接/路径），需要一次 Windows 完整配置 + 编译验证 |
-| 第 3 步 | **CM-3、CM-15** | 需 macOS（或对应平台）核实，建议与第 2 步一并出改动、分开验收 |
+| 第 3 步 ✅ 已完成（2026-10-20） | **CM-3、CM-15** | 需 macOS（或对应平台）核实；本机仅做静态核实 + Windows 侧行为验证，macOS 实机验证待补 |
 | 第 4 步 | **CM-5、CM-20** | 涉及 Debug/Release 命名规则与库层开关，需先定约定再改 |
 | 第 5 步 | **CM-10、CM-11、CM-13、CM-17、CM-18、CM-21** | 重构类，改动面大，建议每项单独提交、单独验证 |
 | 第 6 步 | **CM-22** | 结构性改造，需先确认是否保留逐库单独配置用法 |
@@ -315,7 +324,7 @@
 
 - [x] **CM-1** `duilib_common.cmake` 变量名含逗号　｜ 极低 ｜ 完成日期：2026-10-20
 - [x] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：2026-10-20
-- [ ] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（需 macOS 核实）｜ 完成日期：______
+- [x] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-4** skill 模板缺 `DUILIB_WINRES_FILE_NAME`　｜ 极低 ｜ 完成日期：2026-10-20
 - [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______
 
@@ -333,7 +342,7 @@
 - [x] **CM-12** 平台判据统一（`APPLE` → `Darwin`）　｜ 极低 ｜ 完成日期：2026-10-20
 - [ ] **CM-13** Linux / FreeBSD 的 freetype+fontconfig 处理统一　｜ 低 ｜ 完成日期：______
 - [~] **CM-14** SDL include 路径上收到公共模块　｜ 不处理（2026-10-20 按反馈退回，保持现状，见 CM-14 小节）
-- [ ] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低 ｜ 完成日期：______
+- [x] **CM-15** 硬编码路径清理（WebView2 / manifest / macOS CEF_ROOT）　｜ 低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-16** 小项合集（6 条）　｜ 低 ｜ 完成日期：2026-10-20
 
 **四、现代化**
@@ -412,3 +421,27 @@
 1. **`$<CONFIG>` 在 `IMPORTED_LOCATION` 中不会被展开**（实测）：先用 `$<CONFIG>` 的方案，被原样写入 vcxproj 的 `AdditionalDependencies`（形如 `$<CONFIG>\x.lib`，XML 转义为 `&lt;CONFIG&gt;`），链接器无法识别；改用 `CMAKE_CFG_INTDIR` 后实测写出 `...\lib\$(Configuration)\duilib-zlib.lib`，MSBuild 可展开。已在 CM-2 小节记录该注意点。
 2. `build/msvc_build.bat` 仅编译 **Release**，且第三方库走**多配置生成器**（`-G"Visual Studio 17 2022"`）→ 第三方库产物落 `lib/Release/`；脚本通过显式传 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.<ARCH>.release` 规避 CM-5 的 Debug/Release 路径问题。
 3. 裸 VS 生成器下构建 Debug 配置（不走 `msvc_build.bat`）实测 `examples/ChildWindow` 出现 **1694 个 LNK2038**（`_ITERATOR_DEBUG_LEVEL` 0 vs 2、`RuntimeLibrary` `MT_StaticRelease` vs `MTd_StaticDebug`）+ `LNK1319`；根因是 CM-5（多配置下 `DUILIB_BUILD_TYPE` 恒为 release）+ MT/MTd 运行库不一致，属 CM-5 处理范围。该新证据已补入 CM-5 小节潜在影响。
+
+### 批次 3（2026-10-20）：CM-3、CM-15
+
+**改动清单**
+
+| 文件 | 改动 |
+| :--- | :--- |
+| `cmake/duilib_cef_macos.cmake` | **CM-3** `${target}` → `${CEF_TARGET}`，并把 ARC 代码块下移到 `add_executable` 之后、`CEF_COMPILER_FLAGS` 整体赋值之后（顺带修复 `-fobjc-arc` 被覆盖丢失）；**CM-15-3** `CEF_ROOT` 允许 `-DCEF_ROOT` / 环境变量覆盖，并在目录不存在时给出明确的 `FATAL_ERROR`（默认值仍为 `../../cef_binary`） |
+| `cmake/duilib_bin_windows.cmake` | **CM-15-1** 新增 `DUILIB_WEBVIEW2_NATIVE_DIR`，`link_directories` 与 `WebView2Loader.dll` 复制两处改用它，并加 `EXISTS` 校验；**CM-15-2** `DUILIB_WIN_MANIFEST` 定义上移、删除重复定义、加 `EXISTS` 校验 |
+
+**验收证据（本机：Windows 10 + cmake 4.3.0 + VS 2022，生成器 `-G"Visual Studio 17 2022"` + `-A x64`）**
+
+| 项 | 结果 |
+| :--- | :--- |
+| 配置 `examples/basic`、`examples/CefBrowser`、`examples/WebView2Browser`（`--warn-uninitialized`） | 3 项全部 exit 0，**0 条**未初始化告警、0 错误 |
+| `WebView2Browser.vcxproj` 中的 DLL 复制命令 | `cmake -E copy C:/develop/nim_duilib/duilib/third_party/Microsoft.Web.WebView2/build/native/x64/WebView2Loader.dll ...` → 路径来自 `DUILIB_WEBVIEW2_NATIVE_DIR` |
+| `basic.vcxproj` 中的 manifest | `<AdditionalManifestFiles>C:\develop\nim_duilib\msvc\manifest\duilib.x64.manifest;</AdditionalManifestFiles>` → 路径来自 `DUILIB_WIN_MANIFEST` |
+| macOS 分支（CM-3、CM-15-3） | 本机无 macOS，未实机验证；仅静态核对了 `CEF_TARGET` 定义顺序、`add_executable` 位置、`COPY_MAC_FRAMEWORK` 对 `CEF_BINARY_DIR` 的依赖与 `FindCEF.cmake` 的 `CEF_ROOT` 优先级。**待 macOS 实机验证** |
+
+**批次内额外发现与修正**
+
+1. **CM-15-3 的审核判断有误**：`third_party/libcef/libcef_macos` 只是 `libcef_dll_wrapper` 的源码/配置来源（含 `cmake/ include/ libcef_dll/`），**不含** `Release/Chromium Embedded Framework.framework` 与 `Resources/`；而 `COPY_MAC_FRAMEWORK` 必须从 `CEF_BINARY_DIR`（`${CEF_ROOT}/$<CONFIGURATION>`）拷贝框架。因此不能改为指向仓库内目录，实际需要的是「CEF 二进制分发包」根目录（`build_duilib_all_in_one.sh` 解压到 `nim_duilib` 同级 `cef_binary`）。已改为保留默认值 + 支持外部覆盖 + 缺失时明确报错。
+2. **CM-3 连带发现两处同源缺陷**：原 `set_target_properties` 写在 `add_executable` **之前**（目标尚不存在），且 `list(APPEND CEF_COMPILER_FLAGS -fobjc-arc)` 会被随后的 `set(CEF_COMPILER_FLAGS ...)` 整体覆盖。已随 CM-3 一并修正。
+3. **`DUILIB_WIN_MANIFEST` 在 `duilib_bin_windows.cmake` 内被重复定义两次**（原 L55-59 与 L67-69，内容完全相同），已合并为一处。
