@@ -850,6 +850,13 @@ private:
     */
     bool m_bIsLayeredWindow;
 
+    /** 是否正处于输入法组合输入过程中
+    *   SDL 只有一个 SDL_EVENT_TEXT_EDITING 事件，需要靠这个标志区分
+    *   「开始组合 / 组合内容更新 / 组合结束」三种状态。
+    *   在失去焦点时复位，避免焦点切换后仍停留在组合态。
+    */
+    bool m_bImeComposing;
+
     /** 窗口更新的区域（需要绘制）
     */
     UiRect m_rcUpdateRect;

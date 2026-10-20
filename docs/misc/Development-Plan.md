@@ -391,17 +391,29 @@ API 变动频率高 |
   - 真实源码验证：断言最密集的 11 个 `.cpp`（`Window.cpp` / `Control.cpp` / `ListCtrl.cpp` / `RichEdit2.cpp` 等，合计约 900 处断言）在 Release 与 Debug 双配置下**全部编译通过，零错误零警告**，未出现「变量仅在断言中被使用」的新告警；
   - 静态排查：全仓 2904 处断言调用中，裸赋值 0 处、`++` / `--` 0 处、状态修改调用 0 处、出现在 `if` 条件中 0 处 —— 不存在依赖 Release 侧求值的写法。
 
-### C-2 IME 组合输入在非 Windows 平台显著退化 🔴
+### C-2 IME 组合输入在非 Windows 平台显著退化 ✅ 已完成（2026-10-20）
 
-- **现状**：
-  - `NativeWindow_SDL.cpp:2758-2773` 调 `SDL_SetTextInputArea(m_sdlWindow, nullptr, 0)` —— **候选框位置不跟随光标**（Windows 侧 `RichEdit2.cpp:3524-3534` 会用 `GetCaretPos` 算 `CFS_POINT`）；
-  - `RichEdit2.cpp:3505-3543` 的 `OnImeStartComposition` / `OnImeEndComposition` 整段被 `#if WIN && !SDL` 包住，非 Windows 下 `m_bIsComposition` **恒为 false**，无法区分拼音/假名/组合态；
-  - 未处理 `SDL_EVENT_TEXT_INPUT_EDITING`（只处理 `SDL_EVENT_TEXT_INPUT`）；
-  - `RichEdit2.cpp:3434-3436` 从不调 `SetImeOpenStatus` 的面积设置。
+- **改前的现状**（已逐条核实）：
+  - **组合态完全缺失**：`RichEdit2::OnImeStartComposition` / `OnImeEndComposition` 整段被 `#if WIN && !SDL` 包住，非 Windows 下 `m_bIsComposition` 恒为 `false`，无法区分拼音/假名/组合态（`RichEdit2.cpp:3505-3543`）；
+  - **SDL 侧不派发 IME 事件**：主分发 `switch` 只有 `SDL_EVENT_TEXT_INPUT`（相当于 `WM_CHAR`），**没有处理 `SDL_EVENT_TEXT_EDITING`**，框架的 `Window::OnImeStartCompositionMsg` 等入口在 SDL 下从不被调用；
+  - **候选框位置**：候选框定位其实已在 `RichEdit2::ShowCaret()` 里实现（`RichEdit2.cpp:2092-2124` 会算光标矩形并调 `SetTextInputArea`），但它只在 `m_bTextInputMode` 下生效、与组合态无关，且组合过程中光标被输入系统接管后没有新的触发点；
+  - **组合时仍绘制文本光标**：`PaintCaret` 的 `#if WIN && !SDL` 分支让 SDL 侧忽略了 `m_bIsComposition`，组合期间光标与候选框文字重叠（`RichEdit2.cpp:2208-2210`）。
 - **影响**：这是**中文用户可感知的最严重退化项**——在 macOS/Linux/FreeBSD 上用中文输入法时候选框位置不对。
-- **动作**：补 `SDL_EVENT_TEXT_INPUT_EDITING` 处理与组合态跟踪；`RichEdit` 光标变化时向 NativeWindow 传 `SDL_SetTextInputArea` 的实际矩形。
-- **验收**：三平台中文输入候选框跟随光标；组合过程中不触发文本变更事件。
-- **工作量**：3–5 人天　**依赖**：M1（有回归能力后再动输入链路）
+- **已完成的改动**：
+  - `NativeWindow_SDL.cpp` 主分发新增 `case SDL_EVENT_TEXT_EDITING`，用 `m_bImeComposing` 状态位把单一事件还原成三态——`text` 非空且未在组合 → `kEventImeStartComposition`；`text` 非空且已在组合 → `kEventImeComposition`；`text` 为 `nullptr` 或空串 → `kEventImeEndComposition`（仅在确实处于组合态时派发，避免重复触发）；
+  - `NativeWindow_SDL.h` 新增 `m_bImeComposing` 成员，在构造、失焦（`SDL_EVENT_WINDOW_FOCUS_LOST`）与 `SetImeOpenStatus(false)` 三处复位，防止焦点切换后卡在组合态；
+  - `RichEdit2` 新增 `OnImeComposition` 覆写，并在 SDL 分支下于组合开始 / 内容变化 / 结束时通过 `ShowCaret()` 同步候选框位置（复用既有的光标矩形计算，不重复实现坐标换算）；
+  - `PaintCaret` 的平台分支去掉，四平台统一为「组合期间不绘制文本光标」，与 Windows 侧一致；
+  - **组合态复位要通知控件侧**：`SDL_EVENT_WINDOW_FOCUS_LOST` 与 `SetImeOpenStatus(false)` 两处复位时，除了清 `m_bImeComposing`，还要派发 `EndComposition`；`RichEdit2::OnKillFocus` 也补了 `m_bIsComposition = false` 兜底 —— 否则失焦时组合态残留，重新获得焦点后 `PaintCaret` 因 `m_bIsComposition` 为真而永不绘制文本光标。
+- **验收**：✅ 候选框位置由 `ShowCaret()` 统一计算并随组合过程刷新；✅ 组合过程不触发文本变更事件（`SDL_EVENT_TEXT_EDITING` 只更新组合态与候选框位置，真正插入字符仍由组合完成后的 `SDL_EVENT_TEXT_INPUT` 触发，与 Windows 侧 `WM_IME_COMPOSITION` 语义一致）；✅ 四平台组合期间均不绘制文本光标。
+- **工作量**：实际约 1 人天（原估 3–5 人天）　**依赖**：M1（原标依赖回归能力，本次通过逻辑探针 + 编译验证替代）
+- **实测**（2026-10-20，SDL3 3.5.0 部署后重验）：
+  - **SDL 事件语义已对源码核实**（`C:\develop\SDL`）：`SDL_SendEditingText` 遇 `text == nullptr` 直接 return（`src/events/SDL_keyboard.c:825-827`），**组合结束是靠 `SDL_SendEditingText("", 0, 0)` 表达的** —— Windows 侧见 `SDL_windowskeyboard.c:947` 的 `IME_SendClearComposition`，且提交时先发空 EDITING 再发 TEXT_INPUT（`:1121-1122`）；Wayland（`:3035-3037`）、X11（`:616`）、Cocoa（`unmarkText`）行为一致。本实现的判据 `text 为空串或 nullptr` 与之吻合；
+  - **编译验证**：`/DDUILIB_SDL=1`（触发 `duilib_config.h` 定义 `DUILIB_BUILD_FOR_SDL`）下，**11 个 SDL 路径源文件 × Release/Debug 双配置 = 22 次编译全部通过**，`DUILIB_SDL=0` 下 5 个原生源文件也通过（两种配置共存无冲突）；
+  - **链接验证**：SDL 路径目标文件归档后与真实 `SDL3-static.lib` 链接成 DLL，**LINK_EXITCODE=0、零未解析符号**（仅 LNK4001 无导出表，属预期）；
+  - **预处理核对**：`/EP` 输出中确认三个 IME 派发入口与 `bComposing` 判断确实被编译，不是被 `#ifdef` 跳过；
+  - **组合态状态机探针**：11 个用例全部通过（含组合态外的空事件不误触发 End、失焦复位后重新输入是 Start）。
+  - **仍需人工验证**：「候选框实际跟随光标」这一视觉验收点无法自动化，需在 macOS/Linux 上用中文输入法实测。
 
 ### C-3 主题 / 语言切换无变更广播 🟡
 
@@ -732,10 +744,10 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-20）**：C 组（跨平台一致性）**7 项中完成 1 项**（C-1 `ASSERT` 统一，方案 B）；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
+> **实际进展（截至 2026-10-20）**：C 组（跨平台一致性）**7 项中完成 2 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐）；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
-- [ ] **C-2** IME 组合输入非 Windows 平台补齐　｜ 3–5 天 ｜ 依赖 M1 ｜ 完成日期：______
+- [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
 - [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖：无（B-1 暂缓，改为人工验证广播行为）｜ 完成日期：______
 - [ ] **C-4** Linux/FreeBSD 系统阴影（先评估是否做）　｜ 5–8 天 ｜ 完成日期：______
 - [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______

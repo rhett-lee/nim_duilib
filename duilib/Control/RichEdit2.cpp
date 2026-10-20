@@ -46,8 +46,8 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_bSelAllOnFocus(false),    
     m_bNoCaretReadonly(false),
     m_bIsCaretVisible(false),
+    m_bIsComposition(false),
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_bIsComposition(false),    
     #ifdef DUILIB_UNICODE
         m_chHighSurrogate(L'\0'),
     #else
@@ -2177,7 +2177,7 @@ void RichEdit2::SetCaretPosInternal(int32_t xPos, int32_t yPos)
 
     m_iCaretPosX = xPos;
     m_iCaretPosY = yPos;
-    ShowCaret(m_bActive && !HasSelText());   
+    ShowCaret(m_bActive && !HasSelText());
 }
 
 void RichEdit2::GetCaretPos(int32_t& xPos, int32_t& yPos) const
@@ -2205,11 +2205,9 @@ void RichEdit2::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
     if (IsReadOnly() && m_bNoCaretReadonly) {
         return;
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    //组合输入过程中不绘制文本光标，避免与输入法候选框的文字重叠。
+    //四个平台行为一致（SDL 侧由 kEventImeStartComposition / kEventImeEndComposition 维护该标志）。
     if (m_bIsCaretVisible && !m_bIsComposition) {
-#else
-    if (m_bIsCaretVisible) {
-#endif
         int32_t xPos = 0;
         int32_t yPos = 0;
         GetCaretPos(xPos, yPos);
@@ -3476,6 +3474,9 @@ bool RichEdit2::OnKillFocus(const EventArgs& msg)
         SetSelNone();
     }
     m_bTextInputMode = false;
+    //失去焦点时务必清掉组合态：SDL 不保证在失焦时发出「空组合文本」事件，
+    //若组合态残留，重新获得焦点后 PaintCaret 会因 m_bIsComposition 为真而不再绘制光标。
+    m_bIsComposition = false;
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
@@ -3538,6 +3539,25 @@ bool RichEdit2::OnImeStartComposition(const EventArgs& /*msg*/)
     ::ImmSetCompositionWindow(hImc, &cfs);
     ::ImmReleaseContext(hWnd, hImc);
     m_bIsComposition = true;
+#elif defined (DUILIB_BUILD_FOR_SDL)
+    //SDL 由系统输入法自行绘制候选框，框架这边只需把候选框位置同步到光标处。
+    //位置计算统一由 ShowCaret() 承担（它在 m_bTextInputMode 为真时会设置输入区域）。
+    m_bIsComposition = true;
+    //组合过程中隐藏文本光标（PaintCaret 会因 m_bIsComposition 为真而不绘制），
+    //但仍需要用 ShowCaret 走一遍，以便把候选框位置更新到当前光标处。
+    ShowCaret(false);
+#endif
+    return true;
+}
+
+bool RichEdit2::OnImeComposition(const EventArgs& /*msg*/)
+{
+#if defined (DUILIB_BUILD_FOR_SDL)
+    //组合内容发生变化（拼音候选词变长、被替换等）时，候选框位置需要重新计算。
+    //这里传 false 避免重启光标闪烁定时器——组合期间光标本就不该闪烁。
+    if (m_bIsComposition) {
+        ShowCaret(false);
+    }
 #endif
     return true;
 }
@@ -3546,6 +3566,18 @@ bool RichEdit2::OnImeEndComposition(const EventArgs& /*msg*/)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_bIsComposition = false;
+#elif defined (DUILIB_BUILD_FOR_SDL)
+    m_bIsComposition = false;
+    //组合过程中用 ShowCaret(false) 隐藏了文本光标，这里需要恢复闪烁
+    if (m_bActive && !HasSelText()) {
+        ShowCaret(true);
+    }
+    //组合结束后 SDL 才会发出 SDL_EVENT_TEXT_INPUT 并把组合结果真正插入正文。
+    //此时组合文本已并入正文，输入区域需恢复为「不限定区域」。
+    Window* pWindow = GetWindow();
+    if ((pWindow != nullptr) && (pWindow->NativeWnd() != nullptr)) {
+        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+    }
 #endif
     return true;
 }

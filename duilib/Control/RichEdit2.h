@@ -851,6 +851,7 @@ protected:
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
     virtual bool OnImeStartComposition(const EventArgs& msg) override;
+    virtual bool OnImeComposition(const EventArgs& msg) override;
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
 
     /** 文本字符输入消息
@@ -1203,9 +1204,9 @@ private:
 
     bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
+    bool m_bIsComposition;      //输入法合成窗口是否可见
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    bool m_bIsComposition;      //输入法合成窗口是否可见    
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)    
     #ifdef DUILIB_UNICODE
         WCHAR m_chHighSurrogate;          //文字输入字符的第一部分
     #else

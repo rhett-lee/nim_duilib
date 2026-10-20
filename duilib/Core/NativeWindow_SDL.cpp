@@ -556,6 +556,15 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case SDL_EVENT_WINDOW_FOCUS_LOST:
         {
+            //失去焦点时结束输入法组合态，否则焦点切换后会一直停留在「组合中」，
+            //导致下次输入时不再触发 kEventImeStartComposition。
+            //注意必须派发 EndComposition 通知焦点控件：否则控件侧的组合态标志
+            //（如 RichEdit2::m_bIsComposition）会停留在 true，重新获得焦点后文本光标不再显示。
+            if (m_bImeComposing) {
+                m_bImeComposing = false;
+                pOwner->OnNativeImeEndCompositionMsg(
+                    NativeMsg(SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0), bHandled);
+            }
             INativeWindow* pSetFocusWindow = nullptr;//此参数得不到，只能间接获取（这个参数代码中使用的较多，需要获取到）
             SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
             if (pKeyboardFocus != nullptr) {
@@ -596,6 +605,42 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                     uint32_t modifierKey = GetModifiers(SDL_GetModState());
                     NativeMsg nativeMsg(SDL_EVENT_TEXT_INPUT, (WPARAM)textW.c_str(), (LPARAM)textW.size());//wParam: 整个字符串的地址，lParam：字符数量
                     lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, nativeMsg, bHandled);
+                }
+            }
+        }
+        break;
+    case SDL_EVENT_TEXT_EDITING:
+        {
+            //输入法组合输入（拼音/假名等）的中间态。
+            //相当于Windows下的WM_IME_STARTCOMPOSITION / WM_IME_COMPOSITION / WM_IME_ENDCOMPOSITION，
+            //但SDL只有一个事件，所以需要自行维护组合态的进入与退出：
+            //  - text 非空且之前不在组合中 -> 开始组合
+            //  - text 非空且已在组合中   -> 组合内容更新（相当于WM_IME_COMPOSITION）
+            //  - text 为nullptr或空字符串 -> 组合结束（组合被提交或被取消）
+            //注意：本事件只传递组合过程中的中间文本，不修改控件的文本内容，
+            //      组合完成后SDL会另外发出SDL_EVENT_TEXT_INPUT，那时才真正插入字符。
+            if (m_pOwner != nullptr) {
+                const char* pEditingText = sdlEvent.edit.text;
+                bool bComposing = (pEditingText != nullptr) && (pEditingText[0] != '\0');
+                if (!bComposing) {
+                    //组合结束；仅在确实处于组合态时才派发，避免重复触发
+                    if (m_bImeComposing) {
+                        m_bImeComposing = false;
+                        lResult = m_pOwner->OnNativeImeEndCompositionMsg(
+                            NativeMsg(SDL_EVENT_TEXT_EDITING, 0, 0), bHandled);
+                    }
+                }
+                else if (!m_bImeComposing) {
+                    //开始组合
+                    m_bImeComposing = true;
+                    lResult = m_pOwner->OnNativeImeStartCompositionMsg(
+                        NativeMsg(SDL_EVENT_TEXT_EDITING, 0, 0), bHandled);
+                }
+                else {
+                    //组合内容更新：wParam传组合文本的地址，lParam传字符数量
+                    DStringW textW = StringConvert::UTF8ToWString(pEditingText);
+                    lResult = m_pOwner->OnNativeImeCompositionMsg(
+                        NativeMsg(SDL_EVENT_TEXT_EDITING, (WPARAM)textW.c_str(), (LPARAM)textW.size()), bHandled);
                 }
             }
         }
@@ -729,6 +774,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bFullscreenMaximized(false),
     m_ptLastMousePos(-1, -1),
     m_bInitWindowPosFlag(false),
+    m_bImeComposing(false),
     m_systemShadowType(NativeWindowShadowType::kShadowSystemDisabled)
 {
     ASSERT(m_pOwner != nullptr);    
@@ -2759,16 +2805,27 @@ void NativeWindow_SDL::SetImeOpenStatus(bool bOpen)
 {
     if (m_sdlWindow == nullptr) {
         return;
-    }    
+    }
     if (bOpen) {
         if (!SDL_TextInputActive(m_sdlWindow)) {
             SDL_StartTextInput(m_sdlWindow);
             SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
-        }        
+        }
     }
     else {
+        //关闭输入法时结束组合态，与失焦保持一致。
+        //同样需要派发 EndComposition 通知焦点控件，否则控件侧的组合态标志会残留，
+        //重新获得焦点后该控件的文本光标将不再显示。
+        if (m_bImeComposing) {
+            m_bImeComposing = false;
+            if (m_pOwner != nullptr) {
+                bool bHandled = false;
+                m_pOwner->OnNativeImeEndCompositionMsg(
+                    NativeMsg(SDL_EVENT_TEXT_EDITING, 0, 0), bHandled);
+            }
+        }
         SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
-        SDL_StopTextInput(m_sdlWindow);        
+        SDL_StopTextInput(m_sdlWindow);
     }
 }
 
