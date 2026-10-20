@@ -31,3 +31,10 @@
 | WM_CLOSE    |  wParam 无意义，lParam 无意义  | https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-close  |
 | WM_TASKBARBUTTONCREATED |  任务栏按钮创建通知，应用程序启动时由系统发送，无参数   | https://learn.microsoft.com/zh-cn/windows/win32/shell/taskbar |
 | WM_SHOWWINDOW| wParam 指示是否显示窗口。 如果 wParam 为 TRUE，则显示窗口。 如果 wParam 为 FALSE，则表示窗口处于隐藏状态。| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow |
+
+## 备注
+
+- `WM_IME_COMPOSITION`（对应控件事件 `kEventImeComposition`）的参数在不同平台下语义不同：
+    - Windows：`wParam` 为输入法上下文句柄（HIMC），`lParam` 为组合标志（GCS_* 等），与系统消息一致；
+    - SDL：`wParam` 为组合文本（UTF-16 字符串）的**临时地址**，`lParam` 为字符数量。该地址**仅在事件派发期间有效**，事件处理函数内不可保存该指针留待后续使用，如需保留组合文本请在处理函数内立即拷贝。
+

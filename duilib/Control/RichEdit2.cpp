@@ -45,8 +45,8 @@ RichEdit2::RichEdit2(Window* pWindow) :
     m_bNoSelOnKillFocus(true), 
     m_bSelAllOnFocus(false),    
     m_bNoCaretReadonly(false),
-    m_bIsCaretVisible(false),
     m_bIsComposition(false),
+    m_bIsCaretVisible(false),
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #ifdef DUILIB_UNICODE
         m_chHighSurrogate(L'\0'),
