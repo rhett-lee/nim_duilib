@@ -2189,7 +2189,17 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             pShadow->CheckMouseClickOnShadow(eventType, pt);
         }        
     }
-    if (!bWindowFocused && !windowFlag.expired()) {
+    //是否需要把键盘焦点设置到当前窗口：
+    //1) 点击时窗口本来没有焦点，需要重新获取输入焦点；
+    //2) 窗口内有CEF等原生子窗口模式的控件时，子窗口(如CEF页面)可能已获得键盘焦点，
+    //   而SDL平台的IsWindowFocused()判断不正确(它依据GetForegroundWindow判断，仍认为窗口有焦点)，
+    //   此时点击普通控件(如地址栏)，需要把键盘焦点从原生子窗口切换回当前窗口，
+    //   否则会出现"页面与界面控件双焦点、地址栏无法输入中文"的问题。
+    bool bNeedSetWindowFocus = !bWindowFocused;
+    if (!bNeedSetWindowFocus && (pControl != nullptr) && IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+        bNeedSetWindowFocus = true;
+    }
+    if (bNeedSetWindowFocus && !windowFlag.expired()) {
         //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)
         CheckSetWindowFocus();
     }

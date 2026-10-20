@@ -38,6 +38,12 @@ void CefControlNative::Init()
         ::SetWindowLong(hWnd, GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
         //无法在分层窗口内使用本控件, Native模式不支持分层窗口
         ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("CefControlNative::Init WS_EX_LAYERED error!"));
+
+        //CEF控件是原生子窗口模式：CEF页面(子窗口)获得键盘焦点后，SDL平台会误认为窗口仍有焦点，
+        //导致点击地址栏等普通控件时，键盘焦点无法从页面切换回该控件(现象是页面与控件双焦点、
+        //地址栏无法输入中文)；开启该开关后，设置普通控件焦点时会把窗口焦点一并设置回来
+        //(设置CEF控件自身的焦点时，不会与原生子窗口争抢输入焦点)
+        GetWindow()->SetCheckSetWindowFocus(true);
 #endif
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
