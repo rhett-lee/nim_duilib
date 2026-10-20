@@ -105,7 +105,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
 
 ### A-1 `DUILIB_BUILD_FOR_CEF` 在 FreeBSD 上被定义但源码已排除 ✅ 已完成（2026-10-20）
 
-- **原审计结论**：`duilib/duilib_config.h:74`对**所有非 Windows 平台**无条件定义
+- **原审计结论**：`duilib/duilib_config.h:74` 对**所有非 Windows 平台**无条件定义
   `DUILIB_BUILD_FOR_CEF1`，但 `duilib/CMakeLists.txt:68-73, 92-99` 在 FreeBSD 上排除了 CEF 的
   include 路径与全部源码。此前只靠 `duilib/duilib.cpp:4-7` 的单点防护
   `#if !defined(__FreeBSD__)` 侥幸没炸——任何人新增一处
@@ -117,7 +117,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
   | 原 | `#define DUILIB_BUILD_FOR_CEF    1`（对 Linux / macOS / FreeBSD 一律定义） |
   | 现 | 改为 `#if defined (DUILIB_BUILD_FOR_LINUX) \|\| defined (DUILIB_BUILD_FOR_MACOS)` 包裹，
   并补注释说明 Chromium 官方不提供 FreeBSD 构建 |
-  **Windows 分支未动**（第 46/50行两处定义由 `#ifndef DUILIB_CEF` 保护，语义不变） |
+  **Windows 分支未动**（第 46/50 行两处定义由 `#ifndef DUILIB_CEF` 保护，语义不变） |
 - **连带解决（超出原计划）**：原 A-2 描述的「FreeBSD 下编译为空 TU → 链接期 undefined symbol」，
   根因就是本宏被误定义。A-1 落地后 `duilib/CEFControl/` 下**全部 23 个源文件的外层
   `#ifdef DUILIB_BUILD_FOR_CEF` 同时失效**，整个 CEF 层在 FreeBSD 上自动塌缩为空 TU，
@@ -144,7 +144,7 @@ M4 生态（远期）             ← 打包发布、系统级能力
   | `duilib/CEFControl/CefControlOffScreen.cpp` | `LINUX \|\| FREEBSD` | `LINUX` |
   | `duilib/CEFControl/CefManager.cpp` | 三分支 + 裸 `#else ASSERT(0)` | 补注释说明该分支不可达 |
   **范围严格限定在 `CEFControl/` 目录**——`duilib/Core` / `Utils` / `Control` 下另有 27 处
-  `LINUX || FREEBSD` 判定，属SDL / X11 / Wayland 平台适配，**与 CEF 无关，全部保留不动**。
+  `LINUX || FREEBSD` 判定，属 SDL / X11 / Wayland 平台适配，**与 CEF 无关，全部保留不动**。
 - **为什么不需要给 `CefManager.cpp` 补 FreeBSD 实现**：`GetInstance()` 所在的整个文件已被
   外层 `#ifdef DUILIB_BUILD_FOR_CEF` 包裹，A-1 之后该文件在 FreeBSD 上根本不参与编译，
   `#else` 分支不可达。补实现等于凭空引入一个永不执行的分支。
@@ -233,52 +233,141 @@ API 变动频率高 |
 
 ## 三、P1 组 — 立网：测试、CI、打包
 
-### B-1 引入单元测试框架 🟢 最高优先级
+### B-1 引入单元测试框架 ⏸ 暂缓（2026-10-20 决策）
 
-- **现状**：全仓零测试目录、零测试框架、零覆盖率工具。24 个示例程序是唯一回归手段。而 `ListCtrl.cpp`（176KB，单元格选择 + 就地编辑状态机）、`Calendar.cpp`（1400 行，三级导航）、`RichEdit2.cpp`（160KB，纯自绘）三大状态机**零覆盖**，且都在近期做过大改。
-- **`verify_screenshots/` 是空目录**（0 文件、未纳入 git、未在 `.gitignore`）——它不是视觉回归测试，是一个会误导新开发者的空壳。
-- **动作**（分三步）：
-  1. 引入 GoogleTest + CTest，先只测**纯函数/纯逻辑模块**（`Ui*` 类型运算、`StringUtil`、`FilePathUtil`、`ColorConverter`、`AttributeUtil`、`EasingFunctions`）——这些无窗口依赖，成本最低；
-  2. 为 `ListCtrl` 数据层、`Calendar` 日期换算、`RichEdit2` 文本排版补逻辑单测；
-  3. 借助 Skia CPU 后端支持离屏渲染的特性，做"加载 XML → 离屏渲染 → 与基线 PNG 比对"的截图回归（`Project-Audit.md` C2 已提出，此处落到具体阶段）。
-- **验收**：`ctest` 可运行；首批 ≥200 个用例覆盖上述纯逻辑模块；三块大状态机各有 ≥20 个用例；`verify_screenshots/` 要么变成真实回归目录，要么删除。
-- **工作量**：3–4 周（框架搭建 3 天 + 首批用例 2 周 + CI 集成 3 天）
-- **依赖**：M0 全部完成
+- **原审计结论（仍然成立，保留备查）**：全仓零测试目录、零测试框架、零覆盖率工具，
+  24 个示例程序是唯一回归手段；`verify_screenshots/` 是空目录（0 文件、未纳入 git），
+  既不是视觉回归测试也没被 `.gitignore` 收编，属遗留物。原计划分三步引入 GoogleTest + CTest，
+  工作量 3–4 周。
+- **决策：暂不处理**（2026-10-20，用户明确要求）。核心理由：**引入后长期维护成本很高**——
+  测试框架一旦落地就需持续跟进（用例随重构失效、新平台需补齐、CI 需维护），
+  对当前以人工回归 + 24 个示例程序验证为主的开发节奏而言性价比不足。
+- **重新评估的触发条件**（命中任一条即应重启本项）：
+  | 触发条件 | 说明 |
+  | :--- | :--- |
+  | 出现过一次「改动 A 却在平台 B 出问题」且难以定位 | 测试安全网的核心价值场景已经发生 |
+  | 开始实施 F-1 / F-4 等架构级重构 | 这些改动波及面大，人工回归不再可靠 |
+  | 对外发布并需要长期维护承诺 | 回归手段将从"人工抽查"升级为硬要求 |
+  | 团队规模扩大、多人并行开发 | 回归成本随人数线性上升，自测会失效 |
+- **当前替代方案（零维护成本）**：沿用 24 个示例程序作为回归入口——
+  `build/msvc_build.bat` 一次编译全部示例，任一编译失败即阻断，这是目前唯一的自动化守门；
+  文档侧由 `verify_docs.py --repo . --extra docs` 兜底（本轮已用它扫 85 份文档零漂移）。
+- **工作量**：3–4 周　**依赖**：M0 全部完成
 
-### B-2 CI 流水线（四平台构建矩阵）🟢
+### B-2 CI 流水线（四平台构建矩阵）⏸ 暂缓（2026-10-20 决策）
 
-- **现状**：`.github/` 下只有 `ISSUE_TEMPLATE/` 与 `pull_request_template.md`，**无 `workflows/` 目录**；gitlab / travis / jenkins / azure / appveyor / drone 全部不存在。
-- **动作**：
-  1. Windows（MSVC）、Linux（GCC + Clang）、macOS（Clang）三平台构建矩阵；
-  2. FreeBSD 用 `cross` 镜像或定期任务，先只做 configure + 编译 smoke；
-  3. 接入 B-1 的 `ctest`；
-  4. 接入 `verify_docs.py --extra docs` 做文档回归。
-- **验收**：任一平台编译失败即阻断 PR；文档漂移能在 CI 里被捕获。
-- **工作量**：1–1.5 周　**依赖**：B-1（可并行启动，测试接入部分后置）
+- **原审计结论（仍然成立，保留备查）**：`.github/` 下只有 `ISSUE_TEMPLATE/` 与
+  `pull_request_template.md`，**无 `workflows/`**，即四平台编译失败无法在 PR 阶段被拦截。
+  原计划建 Windows / Linux / macOS 三平台矩阵 + FreeBSD smoke，1–1.5 周。
+- **决策：暂不处理**（2026-10-20，用户明确要求）。核心理由：**引入后长期维护成本很高**——
+  CI 矩阵需要持续维护构建环境（工具链升级、系统镜像变更、四平台依赖差异），
+  且仓库当前无 commit 频率压力，尚不足以摊平这份运维成本。
+- **重新评估的触发条件**（命中任一条即应重启本项）：
+  | 触发条件 | 说明 |
+  | :--- | :--- |
+  | 出现「本地能编过、某平台编不过」且反复发生 | CI 的核心价值场景已经发生 |
+  | 贡献者增多，不再能靠单一维护者手工验证四平台 | 验证能力成为瓶颈 |
+  | 开始对外发布稳定版| 四平台构建可复现性成为硬要求 |
+  | 现有 24 个示例的编译耗时已明显影响日常迭代 | 有了缓存与并行收益，CI 才划算 |
+- **当前替代方案（零维护成本）**：本地一次编译全部示例
+  （`build/msvc_build.bat` 覆盖 zlib/libpng/libwebp → duilib → examples 全量），
+  任何编译错误都会当场暴露；文档漂移由 `verify_docs.py` 本地执行覆盖。
+- **风险与对冲**：无 CI 意味着**编译错误由人工发现**，漏测平台存在风险。
+  本项目当前的个人开发节奏下可接受；若日后出现跨平台编译事故，优先补 B-2 的最小子集
+  （仅 Windows + Linux 两平台 build smoke），而非一步到位做完整四平台矩阵。
+- **工作量**：1–1.5 周　**依赖**：无（原依赖 B-1，可并行；B-1 暂缓后本项亦暂缓）
 
-### B-3 补齐发布与打包流程 🟡
+### B-3 补齐发布与打包流程 ✅ 已完成（2026-10-20，暂缓提交）
 
-- **现状**：零 `CPack`、零 `install()` 规则、零 NSIS/WiX/DEB/DMG 配置。`build/README.md`(510 行) 只讲如何编译，**没有任何一节讲如何打包与发版**。
-- **动作**：
-  1. 补 `install(TARGETS / FILES / DIRECTORY)` 规则，资源目录（`bin/resources/**`）必须完整安装——注意 `themes/color_light/` 与 `themes/color_dark/` 两套都要带上，缺一套深浅色切换会失效；
-  2. CPack：Windows（NSIS/ZIP）、macOS（DragNDrop）、Linux（TGZ/deb）、FreeBSD（TGZ）；
-  3. 编写 `docs/Release.md`，覆盖四平台的产物、版本号、签名与公证流程。
-- **验收**：四平台各能一条命令产出可分发包；`docs/Release.md` 有可执行的命令序列。
+- **原审计结论**（复核后**方案整体更换**，问题描述仍然成立）：零 `CPack`、零 `install()` 规则、
+  零 NSIS/WiX/DEB/DMG 配置；`build/README.md` 只讲如何编译，没有一节讲如何打包与发版。
+- **复核：原方案的三步在本仓库都走不通**，原因不是遗漏而是架构不匹配：
+  1. **补 `install()` 规则 —— 无处可补**。本仓库**没有根 `CMakeLists.txt`**，
+     `duilib/`、`examples/*/`、`duilib/third_party/*/` 各自独立 `project()`，
+     由 `msvc_build.bat`、`linux_build.sh` 等脚本逐个 configure + build。
+     `install()` 只能挂在单个项目里，没有任何单一 CMake 项目能覆盖全部产物。
+  2. **CPack —— 需要顶层项目才能挂载**，同上。更关键的是 Windows 有两条构建路径
+     （`build/*.sln` 共 36 个 `.vcxproj` 的 MSBuild 路径、`msvc_build.bat` 的 CMake 路径），
+     产物混在同一 `lib/`、`bin/` 下，CPack 产物对 MSBuild 用户是空的。
+  3. `docs/Release.md` —— 唯一按原计划完成的一项。
+  因此改为「**独立打包脚本**」路线：与构建体系解耦，按文件名白名单收集，
+  两条构建路径的产物都能收，也不需要新增顶层工程。
+- **详细工作记录**（成果清单、技术决策依据、踩过的坑、已知缺口与后续跟进）：
+  [发布打包工作记录](Release-Packaging-Notes.md) / [Release Packaging Work Record](Release-Packaging-Notes.en.md)。
+- **已完成的改动**：
+  | 文件 | 改动 |
+  | :--- | :--- |
+  | `VERSION`（新增） | 版本号单一事实源，四段式 `1.0.2026.0416`。包名、包内 `VERSION`、
+  `MANIFEST.txt` 全部由它派生 |
+  | `build/pack.py`（新增） | 纯标准库、跨平台。不参与编译，只收集产物 |
+  | `docs/Release.md` / `docs/Release.en.md`（新增） | 打包流程、产物结构、版本规则、签名与公证、四平台差异 |
+  | `.gitignore` | 新增 `/dist` |
+  | `docs/Summary.md` / `Summary.en.md` | 索引登记 `Release.md` |
+  | `build/README.md` / `README.en.md` | 新增「发布打包 / Release packaging」章节 |
+- **产物契约**（`pack.py` 强制）：
+  | 项 | 规则 | 依据 |
+  | :--- | :--- | :--- |
+  | 头文件路径 | 必须是 `include/duilib/xxx.h`，**不可压平** | 下游写法是 `#include "duilib/duilib.h"`（`examples/basic/MainForm.h:5`），压平则下游全部编译失败 |
+  | `RenderSkia/` | 不对外 | `duilib.h` 不引用它，是渲染后端实现细节 |
+  | `third_party` 转发 | zlib / libpng / giflib / Microsoft.Web.WebView2 | 有 5 个对外头文件直接 include 了它们（`Core/ZipStreamIO.h`、`Image/APngDecoder.h`、`Image/FrameSequence_gif.h`、`WebView2/*.h`），不转发下游编译失败 |
+  | zlib / libpng | 整目录转发头文件，不逐文件筛选 | 存在传递依赖（`pngpriv.h` → `pnglibconf.h`） |
+  | Debug 库 | **默认排除**，需 `--allow-debug-libs` | Debug 库带调试 CRT 与 `/MTd`，混进 Release SDK 会让下游链接异常 |
+  | CEF wrapper 库 | 默认不打，需 `--with-cef-libs` | 单个 80–100 MB |
+  | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳 |
+- **`--with-examples` 的资源范围差异**（本项最容易出错处）：
+  - 关闭：仅保留 `resources/themes/default/public/` 与 `global.xml`；
+    排除 22 个示例私有主题目录（`controls`、`render`、`chat`、`layout`、`tree_view` 等）。
+    `global.xml` **必须保留** —— `GlobalManager.cpp:440` 在本地文件模式下找不到它
+    会直接 `return false`，框架初始化失败。
+  - 打开：整个 `resources/`，无排除项（实测 389/389 文件，与仓库一致）。
+- **Debug 库判定踩过的坑**：Debug 来源有**两处**，只看文件名会漏。
+  CMake 路径是 `duilib_d.lib`（`_d` 后缀），MSBuild 路径是 `lib/Debug/duilib.lib`
+  （**无后缀**，只靠目录名区分，见 `msvc/PropertySheets/DuilibSettings.props`）。
+  首版只认 `_d`，结果把 232MB 的 Debug 库当成 Release 打进了包，
+  压缩后体积从 4.8MB 涨到 45.8MB。现按「后缀 + 目录名」双条件判定。
+- **验收实测**：
+  - **下游编译验证**（本项的关键验收）：解压产物后，在包外写 `probe.cpp` 只加
+    `/Iinclude`，`#include "duilib/duilib.h"` 编译 **EXITCODE=0**；
+    再验 4 个依赖 third_party 的头文件（`ZipStreamIO.h` / `APngDecoder.h` /
+    `FrameSequence_gif.h` / `WebView2Control.h`）同样 **EXITCODE=0**。
+    这项证明「包外独立工程可编译」，比检查文件数量有效得多。
+  - 资源排除精确性：关闭示例时包内 `themes/default/` 下只有 `global.xml` 与 `public/`；
+    打开时 389 个文件与仓库完全一致。
+  - `SHA256SUMS` 独立复算 587/587 全部一致；zip 与 tgz 两种格式包结构均正确。
+- **未做的部分（有意为之）**：
+  - **签名与公证未自动化**。本项目产出纯静态库（`add_library` 未指定 `SHARED`，
+    `msvc/dllRes/dllmain.cpp` 只在 `.vcxproj` 中编译），SDK 包本身无需签名；
+    文档只给手工流程。自动化签名等同B-2 的 CI —— 需要证书管理，是长期维护负担。
+  - **只实测了 Windows**。脚本本身跨平台（纯标准库，四平台共用一份代码），
+    但其它平台的库文件名后缀与静态库格式（`.a` vs `.lib`）差异
+    可能需要按实际构建结果调整 `LIB_BASENAMES`，文档中已标注「未在本机验证」。
+- **已知缺口**：`msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION` 文件
+  目前**两处独立维护**，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。
+  升级版本须同时改两处。后续应让 `version.h` 改为从 `VERSION` 派生。
+- **原计划中已放弃的子项**：NSIS/WiX（安装程序）与 DEB/dmg（系统包）不做——
+  静态库 SDK 用 zip / tgz 足够，制作安装程序对当前阶段是过度设计。
 - **工作量**：4–6 天　**依赖**：无（可与 B 组并行）
 
-### B-4 分级日志 + 文件输出 + 崩溃 dump 🟡
+### B-4 分级日志 + 文件输出 + 崩溃 dump ⏸ 暂缓（2026-10-20 决策）
 
-- **现状**：`duilib/Utils/LogUtil.h` 只有 `Output` / `OutputLine` 两个方法，**无级别枚举、无文件输出**；Windows 走 `OutputDebugString`（`LogUtil.cpp:38`），**Release 版用户永远看不到**；`SetUnhandledExceptionFilter` / `MiniDumpWriteDump` / `backtrace` 全库 0 命中。
-- **影响**：用户报"界面卡死/崩溃"时库侧零诊断信息。提交 `98d89248`（ColorPicker 启动即卡死）这类问题只能靠人工复现定位。
-- **动作**：
-  1. `LogUtil` 增加级别（Debug/Info/Warn/Error）+ 滚动文件输出；把 `cmake/duilib_common.cmake:26` 的 `DUILIB_LOG` 从编译期开关升级为**运行期级别**开关；
-  2. Windows 用 `MiniDumpWriteDump`，Linux/macOS/FreeBSD 用 `backtrace()`；
-  3. 全库 14 处 `catch (...)` 吞噬式异常处理**逐个补日志**（当前 16 个 catch 中 14 个是 `catch(...)` 且完全不记录）；
-  4. 统一异常规范：库内不 `throw`（改返回值/错误码）。当前 `throw` 35 处 / `try` 16 处，至少 19 处 throw 会穿透到应用层。
-- **验收**：Release 版出问题能从日志文件定位；崩溃有 dump。
-- **工作量**：1–1.5 周　**依赖**：A-5（先把日志需求写清文档）
-
----
+- **原审计结论（仍然成立，保留备查）**：项目已有 `duilib/Utils/LogUtil.h` 的
+  `LogUtil::OutputLine`（本轮 A-4 的字体告警即用它），但**无日志分级、无文件输出、
+  无崩溃 dump**，排查线上问题只能靠复现。原计划 1–1.5 周。
+- **决策：暂不处理**（2026-10-20，用户明确要求）。核心理由是**投入产出比不足**：
+  完整的分级日志 + 文件轮转 + 跨平台崩溃 dump 是需要长期打磨的基础设施
+  （日志体积与性能开销、用户隐私合规、dump 文件分发流程），
+  而当前阶段的问题基本都能在开发期复现，不需要事后取证能力。
+- **重新评估的触发条件**（命中任一条即应重启本项）：
+  | 触发条件 | 说明 |
+  | :--- | :--- |
+  | 开始收到无法本地复现的用户侧问题报告 | 需要事后取证能力，这是本项的核心价值 |
+  | C-1 采用方案 A（引入 `DUILIB_ASSERT` 恒定生效） | Release 下校验开始生效，失败需要落地位置 |
+  | H-8 异常处理规范落地 | 二者原计划合并推进 |
+- **对下游的影响（已化解，非阻塞）**：C-1 原本标注「依赖 B-4（先有日志，校验失败才有地方记录）」。
+  但 C-1 自带**方案 B：仅给 Windows 侧加 `#ifdef _DEBUG` 包裹，0.5 天、不依赖日志**，
+  可独立消除「Windows Release 弹断言框」这一最严重的症状。
+  因此 C-1 改为「依赖：无（可选依赖 B-4）」——**B-4 暂缓不会卡死 C-1**。
+- **工作量**：1–1.5 周　**依赖**：无
 
 ## 四、P2 组 — 跨平台一致性与质量
 
@@ -296,7 +385,7 @@ API 变动频率高 |
   - **方案 A（推荐）**：引入双宏区分语义——`DUILIB_ASSERT`（恒定生效的"不可违背前提"）+ `DUILIB_VERIFY`（Release 生效的"运行期校验"），然后全量审阅 1970 处断言分类；
   - **方案 B（低成本）**：Windows 侧加 `#ifdef _DEBUG` 包裹与其余三平台对齐，其余不动。缺点是 Windows Release 仍无校验。
 - **验收**：四平台 Release 行为一致；`docs/Control.md` 增加一节说明两个宏的用法差异。
-- **工作量**：方案 A 3–5 天 / 方案 B 0.5 天　**依赖**：B-4（先有日志，校验失败才有地方记录）
+- **工作量**：方案 A 3–5 天 / 方案 B 0.5 天　**依赖**：无（原标「依赖 B-4（先有日志，校验失败才有地方记录）」；B-4 已于 2026-10-20 暂缓，但**方案 B 不需要日志**，可独立消除「Windows Release 弹断言框」这一最严重症状）
 
 ### C-2 IME 组合输入在非 Windows 平台显著退化 🔴
 
@@ -316,7 +405,7 @@ API 变动频率高 |
 - **影响**：切主题/语言后出现"部分控件不刷新"的 bug，且每新增一个控件都要在应用层再写一遍刷新代码，极易漏。
 - **动作**：引入 `kEventThemeChanged` / `kEventLanguageChanged`，由 `Window` 统一广播并自动 `Invalidate` 全树。
 - **验收**：切主题/语言后无需应用层写任何刷新代码，全部控件同步更新。
-- **工作量**：1 周　**依赖**：B-1
+- **工作量**：1 周　**依赖**：无（B-1 已暂缓；主题 / 语言切换的广播行为可用 24 个示例人工验证）
 
 ### C-4 Linux/FreeBSD 无系统阴影 🟡
 
@@ -550,7 +639,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 - **影响**：这是一个**架构级缺口**——同类需求（TreeView 节点模板、卡片内嵌自定义内容、报表列扩展）都会撞到同一堵墙。
 - **动作**：设计声明式模板 / Selector 机制，让列的呈现形态可由 XML 或回调定义。
 - **工作量**：高（架构级重构）
-- **依赖**：**必须先有 B-1 测试安全网**；完成后 F-1 才能解锁 TreeView 节点模板、Sparkline 内嵌等下游工作
+- **依赖**：~~必须先有 B-1 测试安全网~~ → **B-1 已于 2026-10-20 暂缓**。若仍要推进 F-1，改为「小步拆分 + 每步回归 24 个示例」的方式控制风险；完成后 F-1 才能解锁 TreeView 节点模板、Sparkline 内嵌等下游工作
 
 ### F-2 无障碍基础（Roadmap 第 18 项，企业/政务合规刚需）
 
@@ -572,7 +661,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 
 - **现状**：`RichEdit`（Windows 原生 EM_RECT）vs `RichEdit2`（纯自绘跨平台）双实现并存。**同一份 XML 在 Windows 有富文本、在 Linux/macOS 退化为纯文本**。`RichEdit2` 无表格、无项目符号/编号列表、无缩进、无行距段距、无对齐、无上下标、无字符样式、无拼写检查、无 HTML/Markdown 导入导出（`RichText.h` 是**只读**渲染器，不能反向序列化）。`RichEdit_Windows.cpp` 有 6 处"不支持文件拖放操作"。
 - **影响**：这是"同代码不同表现"的一致性底线问题。
-- **工作量**：高　**依赖**：C-2（IME 先修）+ B-1
+- **工作量**：高　**依赖**：C-2（IME 先修）；B-1 已暂缓，不再作为前置
 
 ---
 
@@ -629,21 +718,21 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P1 — 立网（目标：6–8 周）
 
-- [ ] **B-1** 引入 GoogleTest + CTest（分三步）　｜ 3–4 周 ｜ 完成日期：______
-  - [ ] B-1.1 纯逻辑模块单测（`Ui*` / `StringUtil` / `FilePathUtil` / `ColorConverter` / `AttributeUtil` / `EasingFunctions`）≥200 用例
-  - [ ] B-1.2 三块大状态机逻辑单测（ListCtrl / Calendar / RichEdit2）各 ≥20 用例
-  - [ ] B-1.3 离屏渲染截图回归（`verify_screenshots/` 二选一：做成真回归 或 删除）
-- [ ] **B-2** CI 四平台构建矩阵 + 测试 + 文档校验　｜ 1–1.5 周 ｜ 完成日期：______
-- [ ] **B-3** 发布与打包流程（install 规则 + CPack + `docs/Release.md`）　｜ 4–6 天 ｜ 完成日期：______
-- [ ] **B-4** 分级日志 + 文件输出 + 崩溃 dump + 异常规范　｜ 1–1.5 周 ｜ 完成日期：______
+- [~] **B-1** 引入 GoogleTest + CTest（分三步）　｜ 3–4 周 ｜ 状态：⏸ 暂缓（2026-10-20 决策，触发条件见 B-1 小节）
+  - [~] B-1.1 纯逻辑模块单测（`Ui*` / `StringUtil` / `FilePathUtil` / `ColorConverter` / `AttributeUtil` / `EasingFunctions`）≥200 用例　｜ ⏸ 随 B-1 暂缓
+  - [~] B-1.2 三块大状态机逻辑单测（ListCtrl / Calendar / RichEdit2）各 ≥20 用例　｜ ⏸ 随 B-1 暂缓
+  - [~] B-1.3 离屏渲染截图回归（`verify_screenshots/` 二选一：做成真回归 或 删除）　｜ ⏸ 随 B-1 暂缓
+- [~] **B-2** CI 四平台构建矩阵 + 测试 + 文档校验　｜ 1–1.5 周 ｜ 状态：⏸ 暂缓（2026-10-20 决策，触发条件见 B-2 小节）
+- [x] **B-3** 发布与打包流程（install 规则 + CPack + `docs/Release.md`）　｜ 4–6 天 ｜ 完成日期：2026-10-20（`build/pack.py` + `VERSION` + `docs/Release.md`）｜ ⏸ 改动暂留在工作区未提交（2026-10-20 决策），提交清单与后续待办见 [发布打包工作记录](Release-Packaging-Notes.md)
+- [~] **B-4** 分级日志 + 文件输出 + 崩溃 dump + 异常规范　｜ 1–1.5 周 ｜ 状态：⏸ 暂缓（2026-10-20 决策，触发条件见 B-4 小节）
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
 > **实际进展（截至 2026-10-19）**：C 组（跨平台一致性）**7 项零进展**；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
-- [ ] **C-1** `ASSERT` 跨平台行为统一（推荐方案 A 双宏）　｜ 3–5 天 ｜ 依赖 B-4 ｜ 完成日期：______
+- [ ] **C-1** `ASSERT` 跨平台行为统一（推荐方案 A 双宏）　｜ 3–5 天 ｜ 依赖：无（可选 B-4；方案 B 0.5 天可独立做）｜ 完成日期：______
 - [ ] **C-2** IME 组合输入非 Windows 平台补齐　｜ 3–5 天 ｜ 依赖 M1 ｜ 完成日期：______
-- [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖 B-1 ｜ 完成日期：______
+- [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖：无（B-1 暂缓，改为人工验证广播行为）｜ 完成日期：______
 - [ ] **C-4** Linux/FreeBSD 系统阴影（先评估是否做）　｜ 5–8 天 ｜ 完成日期：______
 - [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______
 - [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖：无（A-3 暂缓）｜ 完成日期：______
@@ -676,13 +765,13 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P3 — 架构与生态（目标：60–90 人天）
 
-- [ ] **F-1** ListCtrl DataTemplate 机制　｜ 高 ｜ 依赖 B-1 ｜ 完成日期：______
+- [ ] **F-1** ListCtrl DataTemplate 机制　｜ 高 ｜ 依赖：无（B-1 暂缓；架构级重构建议改为「小步拆分 + 逐版回归示例」推进）｜ 完成日期：______
 - [ ] **F-2** 无障碍基础（阶段 1 属性标注 + 焦点管理）　｜ 1–2 周 ｜ 完成日期：______
   - [ ] F-2.1 `accessibility` 属性（role/label/description）+ 焦点遍历顺序
   - [ ] F-2.2 Windows UI Automation 适配
   - [ ] F-2.3 macOS AX / Linux AT-SPI
 - [ ] **F-3** RTL 布局（**先做决策**）　｜ 2–3 周 ｜ 完成日期：______
-- [ ] **F-4** RichEdit 跨平台能力对齐　｜ 高 ｜ 依赖 C-2 + B-1 ｜ 完成日期：______
+- [ ] **F-4** RichEdit 跨平台能力对齐　｜ 高 ｜ 依赖：C-2（B-1 暂缓）｜ 完成日期：______
 - [ ] **H-1** `.clang-format` + `.clang-tidy`　｜ 3–5 天 ｜ 完成日期：______
 - [ ] **H-2** 图片/解压炸弹防护　｜ 3–5 天 ｜ 完成日期：______
 - [ ] **H-3** `docs/misc` 过时文档归档　｜ 1–2 天 ｜ 完成日期：______
@@ -690,7 +779,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [ ] **H-5** 公共 PCH　｜ 1–2 天 ｜ 完成日期：______
 - [ ] **H-6** `ListCtrl-Performance.md` 行号改函数名锚点　｜ 2–3 天 ｜ 完成日期：______
 - [ ] **H-7** README 双语同步标记　｜ 10 分钟 ｜ 完成日期：______
-- [ ] **H-8** 异常处理规范落地　｜ 5–8 天 ｜ 与 B-4 合并 ｜ 完成日期：______
+- [ ] **H-8** 异常处理规范落地　｜ 5–8 天 ｜ 依赖：无（B-4 暂缓，两者不再合并）｜ 完成日期：______
 - [ ] **H-9** `LangManager` 多语言共存　｜ 1 周 ｜ 完成日期：______
 - [ ] **H-10** 性能测试体系（Google Benchmark）　｜ 1–1.5 周 ｜ 完成日期：______
 

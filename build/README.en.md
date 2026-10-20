@@ -448,7 +448,37 @@ stderr via `SDL_Log`).
 
 ---
 
+## Release packaging
+
+After building, package with `build/pack.py`. The script only collects
+files that have already been built; it does not trigger compilation.
+
+```
+# SDK only (recommended)
+python build/pack.py
+
+# SDK plus example programs
+python build/pack.py --with-examples
+
+# list what would be collected without packaging
+python build/pack.py --list
+```
+
+Artifacts go to `dist/` (already in .gitignore), named
+`nim_duilib-<version>-<system>-<arch>.zip`, containing `include/duilib/`,
+`lib/`, `resources/`, `licenses/`, plus `MANIFEST.txt` and `SHA256SUMS`.
+
+Two easy mistakes to avoid:
+
+- Headers must keep the `include/duilib/xxx.h` hierarchy, since downstream
+  code uses `#include "duilib/duilib.h"`. Flattening breaks every build.
+- Release libraries are packaged by default. Debug libraries carry the
+  debug CRT and break downstream linking when mixed into a Release SDK.
+
+See [docs/Release.en.md](../docs/Release.en.md) for the full description.
+
 ## Maintenance Notes
+
 
 ### 1. Cleaning the build cache
 

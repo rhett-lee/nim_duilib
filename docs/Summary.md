@@ -18,6 +18,8 @@
 * [XML文件中直接响应控件的事件](XmlEvents.md)
 * [主题参考文档](Theme.md)
 * [CEF控件](CEF.md)
+* [发布与打包](Release.md)
+* [发布打包工作记录](misc/Release-Packaging-Notes.md)
 * [项目编译相关文档和脚本](../build/build.md)
 
 ## 项目中主要类的简表

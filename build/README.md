@@ -444,7 +444,35 @@ nim_duilib/
 
 ---
 
+## 发布打包
+
+编译完成后用 `build/pack.py` 打包，脚本只收集已构建好的文件，不参与编译。
+
+```
+# 只打SDK（推荐）
+python build/pack.py
+
+# SDK + 示例程序
+python build/pack.py --with-examples
+
+# 只看会收集哪些文件，不实际打包
+python build/pack.py --list
+```
+
+产物输出到 `dist/`（已在 .gitignore 中），包名为
+`nim_duilib-<版本>-<系统>-<架构>.zip`，内含 `include/duilib/`、`lib/`、
+`resources/`、`licenses/`，以及 `MANIFEST.txt` 与 `SHA256SUMS`。
+
+两个容易踩的点：
+
+- 包内头文件必须保持 `include/duilib/xxx.h` 层级，下游写法是
+  `#include "duilib/duilib.h"`；压平会导致下游全部编译失败。
+- 默认只打 Release 库。Debug 库带调试 CRT，混进 Release SDK 会让下游链接异常。
+
+完整说明见 [docs/Release.md](../docs/Release.md)。
+
 ## 维护注意事项
+
 
 ### 1. 清理编译缓存
 

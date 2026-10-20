@@ -20,6 +20,8 @@ English | [简体中文](Summary.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
 * [Theme Reference Document](Theme.en.md)
 * [CEF Control](CEF.en.md)
+* [Release and Packaging](Release.en.md)
+* [Release Packaging Work Record](misc/Release-Packaging-Notes.en.md)
 * [Project Build Related Documents and Scripts](../build/build.md)
 
 ## Brief Table of Main Classes in the Project
