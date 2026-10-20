@@ -1,7 +1,7 @@
 # CMake 构建脚本改进计划（CMake Improvement Plan）
 
 > 本文档是 2026-10-20 对 `nim_duilib` 仓库**全部 CMake 脚本**的审核结论，作为后续**逐项实施**的跟踪入口。
-> 基线日期：**2026-10-20**　｜　当前状态：**第 1~3 批已完成（2026-10-20）：第 1 批 CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 按反馈退回、不处理）；第 2 批 CM-2、CM-8、CM-19；第 3 批 CM-3、CM-15（后两项的 macOS 实机验证待补）。见第九节实施记录，其余各项未开始**
+> 基线日期：**2026-10-20**　｜　当前状态：**第 1~3 批已完成（2026-10-20）：第 1 批 CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 按反馈退回、不处理）；第 2 批 CM-2、CM-8、CM-19；第 3 批 CM-3、CM-15（后两项的 macOS 实机验证待补）。第 4 批：CM-20 已完成、CM-5 本轮暂不实施。见第九节实施记录，其余各项未开始**
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 > 关联文档：[Development-Plan.md](Development-Plan.md)（整体开发规划）、[Project-Audit.md](Project-Audit.md)（项目盘点）
 > 前置工作：C-7（`DUILIB_SRC_MACOS` 平台判定脆弱）已于 2026-10-20 完成，见 [Development-Plan.md](Development-Plan.md) 的 C-7 小节。
@@ -84,6 +84,7 @@
 - **验收**：在 VS 生成器下分别生成 Debug / Release，Skia 与 SDL 库路径各自正确；两种配置的产物不再互相覆盖（文件可同时存在）。
 - **实测证据（2026-10-20 批次 2 期间）**：`build/msvc_build.bat` 只用 `-DCMAKE_BUILD_TYPE=Release` + 多配置生成器，并显式传 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.<ARCH>.release` 规避本问题；若**不走**该脚本、直接在 VS 生成器下构建 `Debug` 配置，`examples/ChildWindow` 实测报 **1694 个 LNK2038**（`_ITERATOR_DEBUG_LEVEL` 0 vs 2、`RuntimeLibrary` `MT_StaticRelease` vs `MTd_StaticDebug`）+ `LNK1319`——即 Debug 配置链接到了 Release 版 Skia/第三方库。修复后此项应消失。
 - **工作量**：低 ~ 中（涉及 `duilib_common.cmake` + 5 个第三方 CMakeLists）　**依赖**：需先确定 Debug/Release 命名规则（见 CM-17）
+- **实施状态（2026-10-20）**：本轮按用户决定**暂不实施**（两项动作风险差异大，留待 CM-17/CM-21 定命名约定后一起做）。已用探针工程验证「动作 1」技术可行：`link_directories` 支持 `$<CONFIG>` 生成表达式（VS 多配置下 Debug 生成 `.../dbg`、Release 生成 `.../rel`）；`c:\develop\skia\out\` 下同时存在 `llvm.x64.debug` 与 `llvm.x64.release`，路径切换后即可消除 Debug 链接 Release 库的 LNK2038。
 
 ---
 
@@ -253,13 +254,23 @@
 
 ## 五、结构性建议（CM-20 ~ CM-22，改动面较大，需先决策）
 
-### CM-20 `duilib` 库层缺少 `option(DUILIB_ENABLE_CEF)`
+### CM-20 `duilib` 库层缺少 `option(DUILIB_ENABLE_CEF)` ✅ 已完成（2026-10-20）
 
-- **位置**：[duilib/CMakeLists.txt:89-108](..//..//duilib/CMakeLists.txt#L89-L108)
+- **位置**：修复前 [duilib/CMakeLists.txt:42-72](..//..//duilib/CMakeLists.txt#L42-L72)（include 路径）与 [duilib/CMakeLists.txt:103-119](..//..//duilib/CMakeLists.txt#L103-L119)、[247-259](..//..//duilib/CMakeLists.txt#L247-L259)（源文件收集与追加）
 - **问题**：CEF 源文件在所有非 FreeBSD 平台**无条件编译**，没有库层开关；而仓库存在 `build/duilib_no_cef.sln` / `build/examples_no_cef.sln`，说明"不编译 CEF"是真实需求，却只有手写工程通道能满足。
-- **动作**：`duilib/CMakeLists.txt` 增加 `option(DUILIB_ENABLE_CEF ...)`，并在该开关关闭时跳过 CEF 源与 CEF include 路径；`examples` 侧同名开关与之联动。
+- **动作**（已实施）：
+  1. `duilib/CMakeLists.txt` 在平台判定之后新增 `option(DUILIB_ENABLE_CEF "Enable CEF" ON)`（非 Windows/Linux/macOS 即 `CEF_LIB_DIR` 为空时默认 `OFF`）；若外部强制 `ON` 但平台不支持，则降级为 `OFF` 并给出 `WARNING`；
+  2. CEF include 路径、CEF 源文件收集、CEF 源文件追加三处均改由 `if(DUILIB_ENABLE_CEF)` 控制，原来各自的 `NOT FreeBSD` 判断随之简化；
+  3. 关闭时给 duilib 目标加 `DUILIB_NO_CEF=1` 编译宏，并在 [duilib.cpp:6](..//..//duilib.cpp#L6) 增加该宏的判断——否则核心文件 `duilib.cpp` 仍会无条件 `#include "duilib_cef.h"` 导致编译失败（实测发现，见下）；
+  4. `examples` 侧保持原有语义：`examples/cef`、`examples/CefBrowser` 在各自的 `CMakeLists.txt` 中 `set(DUILIB_ENABLE_CEF ON)`，与库层开关联动。
 - **验收**：`-DDUILIB_ENABLE_CEF=OFF` 下 duilib 不编译 CEF 源、不依赖 libcef 头文件；`ON` 时行为与现状一致。
-- **工作量**：低 ~ 中　**依赖**：需与 `examples` 的 CEF 开关语义统一
+- **实测结论**：
+  | 场景 | 结果 |
+  | :--- | :--- |
+  | 配置 `-DDUILIB_ENABLE_CEF=ON`（默认） | 输出 `CEF include path: .../libcef_win`、`CEF sources enabled (Windows)`；`duilib.vcxproj` 中 `CEFControl` 相关条目 **22** 个 |
+  | 配置 `-DDUILIB_ENABLE_CEF=OFF` | 输出 `CEF includes disabled` / `CEF sources disabled`；`duilib.vcxproj` 中 `CEFControl` 相关条目 **0** 个 |
+  | 构建 `-DDUILIB_ENABLE_CEF=OFF` 的 Debug x64 | 首次失败：`CefManager.h(10,14): error C1083: 无法打开包括文件 include/cef_app.h`（来源是 `duilib.cpp` 无条件包含 `duilib_cef.h`）；补上 `DUILIB_NO_CEF` 判断后**编译成功、0 error / 0 warning** |
+- **工作量**：低 ~ 中　**依赖**：需与 `examples` 的 CEF 开关语义统一（已保持原语义）
 
 ### CM-21 第三方库定制方式规范化（升级可维护性）
 
@@ -308,7 +319,7 @@
 | 第 1 步 ✅ 已完成（2026-10-20） | **CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16**（CM-14 已按反馈退回、不处理） | 全是极低工作量、零行为风险或纯注释类，可一批完成，一次配置 + 一次 Debug 编译即可验收 |
 | 第 2 步 ✅ 已完成（2026-10-20） | **CM-2、CM-8、CM-19** | 低风险但会改动实际构建行为（链接/路径），需要一次 Windows 完整配置 + 编译验证 |
 | 第 3 步 ✅ 已完成（2026-10-20） | **CM-3、CM-15** | 需 macOS（或对应平台）核实；本机仅做静态核实 + Windows 侧行为验证，macOS 实机验证待补 |
-| 第 4 步 | **CM-5、CM-20** | 涉及 Debug/Release 命名规则与库层开关，需先定约定再改 |
+| 第 4 步 ⚠ 部分完成（2026-10-20） | **CM-5、CM-20** | CM-20 已完成；CM-5 **本轮按用户决定暂不实施**（两项动作的风险差异大，等 CM-17/CM-21 的命名约定确定后再做） |
 | 第 5 步 | **CM-10、CM-11、CM-13、CM-17、CM-18、CM-21** | 重构类，改动面大，建议每项单独提交、单独验证 |
 | 第 6 步 | **CM-22** | 结构性改造，需先确认是否保留逐库单独配置用法 |
 
@@ -326,7 +337,7 @@
 - [x] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：2026-10-20
 - [x] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-4** skill 模板缺 `DUILIB_WINRES_FILE_NAME`　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______
+- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______（2026-10-20 按用户决定**本轮暂不实施**）
 
 **二、未定义变量与静默行为**
 
@@ -353,7 +364,7 @@
 
 **五、结构性**
 
-- [ ] **CM-20** `duilib` 库层增加 `option(DUILIB_ENABLE_CEF)`　｜ 低~中 ｜ 完成日期：______
+- [x] **CM-20** `duilib` 库层增加 `option(DUILIB_ENABLE_CEF)`　｜ 低~中 ｜ 完成日期：2026-10-20
 - [ ] **CM-21** 第三方库定制方式规范化（含升级清单）　｜ 中 ｜ 完成日期：______
 - [ ] **CM-22** 顶层 `CMakeLists.txt` 聚合与 install/export　｜ 中~高 ｜ 完成日期：______
 
@@ -445,3 +456,28 @@
 1. **CM-15-3 的审核判断有误**：`third_party/libcef/libcef_macos` 只是 `libcef_dll_wrapper` 的源码/配置来源（含 `cmake/ include/ libcef_dll/`），**不含** `Release/Chromium Embedded Framework.framework` 与 `Resources/`；而 `COPY_MAC_FRAMEWORK` 必须从 `CEF_BINARY_DIR`（`${CEF_ROOT}/$<CONFIGURATION>`）拷贝框架。因此不能改为指向仓库内目录，实际需要的是「CEF 二进制分发包」根目录（`build_duilib_all_in_one.sh` 解压到 `nim_duilib` 同级 `cef_binary`）。已改为保留默认值 + 支持外部覆盖 + 缺失时明确报错。
 2. **CM-3 连带发现两处同源缺陷**：原 `set_target_properties` 写在 `add_executable` **之前**（目标尚不存在），且 `list(APPEND CEF_COMPILER_FLAGS -fobjc-arc)` 会被随后的 `set(CEF_COMPILER_FLAGS ...)` 整体覆盖。已随 CM-3 一并修正。
 3. **`DUILIB_WIN_MANIFEST` 在 `duilib_bin_windows.cmake` 内被重复定义两次**（原 L55-59 与 L67-69，内容完全相同），已合并为一处。
+
+### 批次 4（2026-10-20）：CM-20（CM-5 按用户决定暂不实施）
+
+**范围决策**：CM-5 的两项动作风险差异大，用户决定**本轮不做**——「动作 1」（`$<CONFIG>` 多配置 Skia 路径）虽小但会改变库路径解析逻辑；「动作 2」（`CMAKE_DEBUG_POSTFIX=_d`）波及 5 个第三方库产物命名与打包流程，且计划中本就依赖 CM-17（命名约定，第 5 步）。故本轮只实施 CM-20，CM-5 保持原状、留待 CM-17/CM-21 一同决策。
+
+**改动清单**
+
+| 文件 | 改动 |
+| :--- | :--- |
+| `duilib/CMakeLists.txt` | **CM-20** 新增 `option(DUILIB_ENABLE_CEF "Enable CEF" ON)`（平台不支持时默认 `OFF`，外部强制 `ON` 时降级并 `WARNING`）；CEF include 路径、源文件收集、源文件追加三处改由该开关控制；关闭时给目标加 `DUILIB_NO_CEF=1` |
+| `duilib/duilib.cpp` | **CM-20** `#include "duilib_cef.h"` 的条件由 `!__FreeBSD__` 改为 `!__FreeBSD__ && !DUILIB_NO_CEF` |
+
+**验收证据（本机：Windows 10 + cmake 4.3.0 + VS 2022，`-G"Visual Studio 17 2022"` + `-A x64`）**
+
+| 项 | 结果 |
+| :--- | :--- |
+| `duilib` 配置（默认 `DUILIB_ENABLE_CEF=ON`） | `CEF include path: .../libcef_win`、`CEF sources enabled (Windows)`；`duilib.vcxproj` 中 `CEFControl` 条目 **22** 个（与改动前一致） |
+| `duilib` 配置（`-DDUILIB_ENABLE_CEF=OFF`） | `CEF includes disabled` / `CEF sources disabled`；vcxproj 中 `CEFControl` 条目 **0** 个、无 libcef include 路径 |
+| `duilib` Debug x64 编译（`DUILIB_ENABLE_CEF=OFF`） | 编译成功，**0 error / 0 warning** |
+| `examples/cef` 语义 | 保持原样：示例在自身 `CMakeLists.txt` 中 `set(DUILIB_ENABLE_CEF ON)`，不受库层默认值影响 |
+
+**批次内额外发现与修正**
+
+1. **关闭 CEF 后核心源码仍会引用 CEF 头文件**：`duilib/duilib.cpp` 只按 `__FreeBSD__` 判断是否 `#include "duilib_cef.h"`，因此在 `DUILIB_ENABLE_CEF=OFF` 的首次编译实测失败（`CefManager.h(10,14): error C1083: 无法打开包括文件 include/cef_app.h`）。已新增 `DUILIB_NO_CEF` 宏并在该处判断，这是 CM-20 能真正落地的必要配套改动。
+2. **`link_directories` 支持生成表达式（探针实测，供 CM-5 后续使用）**：在 VS 多配置生成器下 `link_directories("$<IF:$<CONFIG:Debug>,C:/tmp/dbg,C:/tmp/rel>")` 生成了 Debug 配置 `C:/tmp/dbg`、其它配置 `C:/tmp/rel`，说明 CM-5「动作 1」技术可行、不需要改用 `target_link_directories`。

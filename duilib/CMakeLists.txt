@@ -53,6 +53,18 @@ else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
+# CEF功能开关：默认开启（与加入本开关前的行为一致）
+# FreeBSD平台不支持CEF，默认关闭；若外部强制打开，则在此关闭并给出提示
+if(CEF_LIB_DIR)
+    option(DUILIB_ENABLE_CEF "Enable CEF" ON)
+else()
+    option(DUILIB_ENABLE_CEF "Enable CEF" OFF)
+endif()
+if(DUILIB_ENABLE_CEF AND NOT CEF_LIB_DIR)
+    message(WARNING "DUILIB_ENABLE_CEF is ON, but CEF is not supported on ${CMAKE_SYSTEM_NAME}: CEF is disabled")
+    set(DUILIB_ENABLE_CEF OFF)
+endif()
+
 # Set include directories
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
@@ -63,12 +75,13 @@ include_directories(${DUILIB_SRC_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
 
-# Conditionally include CEF directory
-if(CEF_LIB_DIR)
+# Conditionally include CEF directory（仅在开启CEF功能时添加）
+if(DUILIB_ENABLE_CEF)
     get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef/${CEF_LIB_DIR}/" ABSOLUTE)
     include_directories(${CEF_INCLUDE_ROOT_DIR})
+    message(STATUS "CEF include path: ${CEF_INCLUDE_ROOT_DIR}")
 else()
-    message(STATUS "CEF includes disabled - not supported on this platform")
+    message(STATUS "CEF includes disabled (DUILIB_ENABLE_CEF=OFF)")
 endif()
 
 #设置库文件的输出目录
@@ -88,10 +101,10 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RenderSkia RENDER_SKIA_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
 # CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(DUILIB_ENABLE_CEF)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
-    message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
+    message(STATUS "CEF sources enabled (${CMAKE_SYSTEM_NAME})")
 
     # Windows平台专有的CEF源文件
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -104,7 +117,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
         message(STATUS "CEF macOS-only sources removed (${CMAKE_SYSTEM_NAME} is not Darwin)")
     endif()
 else()
-    message(STATUS "CEF support disabled (FreeBSD is not supported)")
+    message(STATUS "CEF sources disabled (DUILIB_ENABLE_CEF=OFF)")
 endif()
 
 # 非macOS平台，删除macOS专有的源文件(*.mm/*.h)，避免出现编译错误
@@ -232,7 +245,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
 endif()
 
 # CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持（收集与过滤见上方同名判断）
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(DUILIB_ENABLE_CEF)
     list(APPEND LIBRARY_SOURCES
         ${CEF_CONTROL_SRC}
         ${CEF_CONTROL_INTERNAL_SRC}
@@ -260,6 +273,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         # Enable SDL support for windows
         target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
     endif()
+endif()
+
+if(NOT DUILIB_ENABLE_CEF)
+    # 关闭CEF功能时，源码中不再包含CEF的头文件（见 duilib.cpp）
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_NO_CEF=1)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
