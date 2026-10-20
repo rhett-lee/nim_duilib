@@ -1148,7 +1148,9 @@ void MainForm::OnOpenFile()
 
     ui::FilePath filePath;
     ui::FileDialog openFileDlg;
-    if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+    //初始的目录：当前文件所在的目录
+    ui::FilePath defaultLocation = m_filePath.GetParentPath();
+    if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
         if (LoadFile(filePath)) {
             m_filePath = filePath;
             if (m_pRichEdit != nullptr) {
@@ -1191,7 +1193,9 @@ void MainForm::OnSaveAsFile()
 
     ui::FilePath filePath;
     ui::FileDialog openFileDlg;
-    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+    //初始的目录：当前文件所在的目录
+    ui::FilePath defaultLocation = m_filePath.GetParentPath();
+    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName, defaultLocation)) {
         if (SaveFile(filePath)) {
             m_filePath = filePath;
             if (m_pRichEdit != nullptr) {

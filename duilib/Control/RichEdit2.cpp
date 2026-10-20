@@ -3142,7 +3142,9 @@ bool RichEdit2::GetRichTextForDraw(const std::vector<std::wstring_view>& textVie
         return false;
     }
     DString sFontId = GetCurrentFontId();
-    ASSERT(!sFontId.empty());
+    if (sFontId.empty()) {
+        return false;
+    }
     IFont* pFont = GetIFontInternal(sFontId);
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {

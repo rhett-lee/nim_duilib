@@ -3500,9 +3500,14 @@ void PropertyGridFileProperty::EnableEditControl(bool bEnable)
 
 void PropertyGridFileProperty::OnBrowseButtonClicked()
 {
+    //以当前的属性值(文件路径)作为初始的目录和文件名
+    const FilePath currentPath(GetPropertyValue());
+    FilePath defaultLocation = currentPath.GetParentPath();
+    DString fileName = currentPath.GetFileName();
+
     FilePath filePath;
     FileDialog fileDlg;
-    if (fileDlg.BrowseForFile(GetWindow(), filePath, m_bOpenFileDialog, m_fileTypes, m_nFileTypeIndex, m_defaultExt)) {
+    if (fileDlg.BrowseForFile(GetWindow(), filePath, m_bOpenFileDialog, m_fileTypes, m_nFileTypeIndex, m_defaultExt, fileName, defaultLocation)) {
         RichEdit* pRichEdit = GetRichEdit();
         if (pRichEdit != nullptr) {
             pRichEdit->SetText(filePath.ToString());
