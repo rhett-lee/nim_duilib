@@ -564,6 +564,10 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 m_bImeComposing = false;
                 pOwner->OnNativeImeEndCompositionMsg(
                     NativeMsg(SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0), bHandled);
+                //派发给用户回调后，窗口可能已被销毁，需要检查接口生命周期标志
+                if (ownerFlag.expired()) {
+                    return true;
+                }
             }
             INativeWindow* pSetFocusWindow = nullptr;//此参数得不到，只能间接获取（这个参数代码中使用的较多，需要获取到）
             SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
@@ -2819,9 +2823,14 @@ void NativeWindow_SDL::SetImeOpenStatus(bool bOpen)
         if (m_bImeComposing) {
             m_bImeComposing = false;
             if (m_pOwner != nullptr) {
+                //派发给用户回调后，窗口可能已被销毁，需要检查接口生命周期标志
+                std::weak_ptr<WeakFlag> ownerFlag = m_pOwner->GetWeakFlag();
                 bool bHandled = false;
                 m_pOwner->OnNativeImeEndCompositionMsg(
                     NativeMsg(SDL_EVENT_TEXT_EDITING, 0, 0), bHandled);
+                if (ownerFlag.expired()) {
+                    return;
+                }
             }
         }
         SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);

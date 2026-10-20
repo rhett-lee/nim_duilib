@@ -3568,15 +3568,13 @@ bool RichEdit2::OnImeEndComposition(const EventArgs& /*msg*/)
     m_bIsComposition = false;
 #elif defined (DUILIB_BUILD_FOR_SDL)
     m_bIsComposition = false;
-    //组合过程中用 ShowCaret(false) 隐藏了文本光标，这里需要恢复闪烁
+    //组合过程中用 ShowCaret(false) 隐藏了文本光标，这里需要恢复闪烁。
+    //注意：此处不要调用 SetTextInputArea(nullptr, 0) 清空输入区域——
+    //提交组合时会紧接着派发 SDL_EVENT_TEXT_INPUT，插入正文后光标移动会重新设置输入区域，
+    //清空是多余的；而取消组合时不会插入正文、光标不移动，清空后输入区域停留在零矩形，
+    //会让下一次组合的首个候选框锚定到窗口原点。输入区域的清理交由 SetImeOpenStatus(false) 完成。
     if (m_bActive && !HasSelText()) {
         ShowCaret(true);
-    }
-    //组合结束后 SDL 才会发出 SDL_EVENT_TEXT_INPUT 并把组合结果真正插入正文。
-    //此时组合文本已并入正文，输入区域需恢复为「不限定区域」。
-    Window* pWindow = GetWindow();
-    if ((pWindow != nullptr) && (pWindow->NativeWnd() != nullptr)) {
-        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
     }
 #endif
     return true;
