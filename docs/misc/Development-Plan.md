@@ -2,7 +2,7 @@
 # nim_duilib 开发执行规划（Development Plan）
 
 > 本文档是**可跟踪执行**的开发规划，与其它规划类文档的分工见下表。
-> 基线日期：**2026-10-19**（已完成 A-4、A-5、
+> 基线日期：**2026-10-20**（已完成 A-1、A-2、A-4、A-5、B-3、C-1、C-2、C-6、C-7；A-3 与 B-1~B-4 暂缓，C-4 明确不处理）
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 
 ## 与其它文档的关系
@@ -423,13 +423,19 @@ API 变动频率高 |
 - **验收**：切主题/语言后无需应用层写任何刷新代码，全部控件同步更新。
 - **工作量**：1 周　**依赖**：无（B-1 已暂缓；主题 / 语言切换的广播行为可用 24 个示例人工验证）
 
-### C-4 Linux/FreeBSD 无系统阴影 🟡
+### C-4 Linux/FreeBSD 无系统阴影 ⏸ 不处理（2026-10-20 决策）
 
 - **现状**：`NativeWindow_SDL.cpp:3331-3332` 对 Linux/FreeBSD 返回 `false` → 无系统阴影，降级为自绘 SVG（`Shadow.cpp:584-601` 自动降级逻辑已实现，视觉略有差异）。
 - **文档准确性**：`docs/WindowShadow.md:99-103` 的表格与代码一致，**没有夸大**，无需改文档。
-- **动作**：评估接入 libdecor（X11/Wayland 社区方案），或明确接受自绘降级并在 README 标注。
-- **验收**：Linux 下阴影视觉可接受，或文档明确说明降级。
-- **工作量**：5–8 人天（libdecor 集成风险高）　**依赖**：无　**优先级建议**：先做评估，不一定做
+- **决策：不处理，保持现状**（2026-10-20，用户明确要求）。理由：自绘 SVG 降级路径已可用、差异可接受；文档已如实标注；libdecor 属 X11/Wayland 社区方案，集成需引入新外部依赖并覆盖各合成器差异，风险高（原估 5–8 人天）而收益仅限视觉效果，与当前优先级（编译埋雷 / 测试网 / 打包）不匹配。
+- **重新评估的触发条件**（命中任一条即重新评估本项）：
+  | 触发条件 | 说明 |
+  | :--- | :--- |
+  | Linux/FreeBSD 用户明确反馈"无阴影不可接受" | 视觉差异升级为实际需求 |
+  | libdecor 成为 X11/Wayland 事实标准且被主流发行版默认启用 | 外部风险与集成成本大幅下降 |
+  | 需要对外承诺"跨平台视觉像素级一致" | 自绘降级不再可接受 |
+- **保持现状的行为**（无需任何代码改动）：Linux/FreeBSD 下自动走自绘 SVG 阴影，Windows / macOS 仍用系统阴影。
+- **工作量**：0（本次决策不实施；若日后重启用原估 5–8 人天）　**依赖**：无
 
 ### C-5 非 Windows 无系统气泡通知 🟡
 
@@ -438,19 +444,46 @@ API 变动频率高 |
 - **验收**：三平台托盘气泡可弹出。
 - **工作量**：2 人天　**依赖**：无
 
-### C-6 文件对话框参数部分失效 🟢
+### C-6 文件对话框参数部分失效 ✅ 已完成（2026-10-20）
 
-- **现状**：`FileDialog_SDL.cpp` 的 `nFileTypeIndex` / `defaultExt` / `defaultLocation` 三个参数在签名中被注释掉（即**未生效**）；`:333` 有代码内 TODO 标注 SDL3 多选返回值有 bug。
-- **动作**：补齐三个参数；多选 bug 等 SDL3 上游修复或自己做校正。
-- **验收**：打开对话框时初始目录与默认扩展名正确。
-- **工作量**：1–2 人天　**依赖**：无（A-3 已暂缓，C-6 不必等待 SDL 版本锁定；若实施中确因 SDL 版本差异受阻，再回头处理 A-3）
+- **改前的现状**（已逐条核实）：
+  - `FileDialog_SDL.cpp` 的 `BrowseForFile` / `BrowseForFiles` 把 `nFileTypeIndex` / `defaultExt` / `defaultLocation` 三个形参写成 `/*...*/`（未命名，**完全未生效**）；`BrowseForFile` 还把 `fileName` 误当作 SDL 的 `default_location` 使用；
+  - `BrowseForFolders` 的 `allow_many` 恒为 `false`（拷贝错误），"多选目录"退化为单选 —— Windows 原生后端用的是 `FOS_ALLOWMULTISELECT`；
+  - **全仓库没有任何调用方传入 `defaultLocation`**（`PropertyGridFileProperty` 与 `RichEdit` 示例都只用到前 6 个参数），参数即使补齐也无观测途径；
+  - SDL3 的能力边界（对照 `C:\develop\SDL` 源码）：`SDL_Show*Dialog` 只有 `default_location` 一个位置参数（其 Windows 实现按最后一个 `/` 或 `\` 拆成 `SetFolder` + `SetFileName`，**以分隔符结尾则只当目录**），**没有预选筛选器索引的接口**，其 Windows 实现也**从未调用** `IFileDialog::SetDefaultExtension`。
+- **动作（已完成）**：
+  - 新增文件内静态辅助函数：`DlgFileFilter`、`ConvertFileTypes`（合并 `BrowseForFile` / `BrowseForFiles` 中重复的筛选器转换代码）、`GetDefaultExtension`（`"*.txt"`→`txt`、`"doc;docx"`→`doc`、`"*.*"`→空）、`GetDefaultLocation`（目录补齐结尾分隔符后与文件名拼接）；
+  - `BrowseForFile`：`defaultLocation` + `fileName` 组合成 `default_location`；`defaultExt` 为空且 `nFileTypeIndex` 有效时用该文件类型的扩展名作为默认扩展名，并预填到文件名（`abc` → `abc.txt`）；保存对话框返回路径无扩展名时**追加默认扩展名**（等价于 Windows 的 `SetDefaultExtension`）；
+  - `BrowseForFiles`：形参恢复命名、`defaultLocation` 生效、删除恒空的死代码；
+  - `BrowseForFolders`：`allow_many` 修正为 `true`；两个目录函数统一用 `GetDefaultLocation` 规范化目录；
+  - 调用侧启用：`PropertyGridFileProperty::OnBrowseButtonClicked` 由当前属性值推导 `fileName` / `defaultLocation`；`examples/RichEdit/MainForm.cpp` 打开/另存为传入当前文件所在目录；
+  - `FileDialog.h` 与 `FileDialog_Windows.cpp` **未改动**（签名不变、Windows 原生后端行为不变、未改 SDL 源码）。
+- **上游核对**（SDL 3.5.0）：改前位于 `FileDialog_SDL.cpp:333` 的代码内 TODO「SDL 3.0 多选返回值不对」在当前 SDL 版本**已不成立** —— 多选改走 `IFileOpenDialog::GetResults`，返回以 NULL 结尾的完整路径数组；该 TODO 已替换为准确注释（现位于 `FileDialog_SDL.cpp:394-396`），**不写额外兼容代码**。
+- **验收**：初始目录与默认文件名/扩展名由传入参数决定；保存对话框返回路径的扩展名被校正。⚠️ **原生模态对话框的交互无法自动化（duilib 自绘 UI、无 UI Automation 提供程序），需人工核对**，核对清单见 [C-6 spec](specs/C-6-FileDialog-SDL-Params/spec.md) 的 T7/T8。
+- **已知能力差异**（SDL3 无对应接口，已记入代码注释与 spec）：筛选器下拉的**预选索引**在 SDL 后端仍无效（`nFileTypeIndex` 只用于推导默认扩展名）；`defaultLocation` 若指向不存在的目录，SDL 会回退到旧版 COM32 对话框（不会卡死，返回值扩展名校正仍生效）。
+- **工作量**：实际约 0.5 人天（原估 1–2 人天）　**依赖**：无（A-3 暂缓不影响本项；SDL3 无法预选筛选器索引属平台能力限制，不构成 A-3 的触发条件）
+- **实测**（2026-10-20）：
+  - Debug x64 增量编译 `build/examples.sln`：**0 error / 0 warning**，全部示例链接成功；`FileDialog_SDL.obj`、`PropertyGrid.obj` 与 `bin/*_d.exe` 时间戳已更新（改动进入产物）；
+  - grep 核对：三个 `/*...*/` 形式的被注释形参 **0 处**残留、`BrowseForFolders` 的 `allow_many = true` 已生效、过期 TODO **0 处**；
+  - **仍需人工验证**：对话框的初始目录 / 默认文件名 / 保存返回值扩展名、多选目录（`BrowseForFiles` / `BrowseForFolders` 当前无示例调用点）。
 
-### C-7 `DUILIB_SRC_MACOS` 平台判定脆弱 🟢
+### C-7 `DUILIB_SRC_MACOS` 平台判定脆弱 ✅ 已完成（2026-10-20）
 
-- **现状**：`duilib/CMakeLists.txt:45, 102` 用自设变量 `DUILIB_SRC_MACOS` 而非 `CMAKE_SYSTEM_NAME STREQUAL "Darwin"` 判断；若将来新增平台（如 OpenBSD），会误删 macOS 的 `.mm` 文件。另外 `:106` 的 `list(REMOVE_ITEM CEF_CONTROL_SRC ...)` 在 FreeBSD 下变量未定义，**静默无操作无报错**。
-- **动作**：改用 CMake 原生判断；对未定义变量加保护。
-- **验收**：构建日志中不再有静默跳过。
-- **工作量**：0.5 人天　**依赖**：无
+- **改前的现状**：
+  1. `duilib/CMakeLists.txt` 用**自设变量** `DUILIB_SRC_MACOS`（仅在 `Darwin` 分支被 `set`）代替 CMake 原生的 `CMAKE_SYSTEM_NAME STREQUAL "Darwin"` 判定，平台的"真值"藏在变量里，新增 / 调整平台分支时容易断链；
+  2. `list(REMOVE_ITEM CEF_CONTROL_SRC ...)` 在 FreeBSD 下对**未定义变量**执行 —— CMake 对未定义变量静默无操作，**无任何日志**；
+  3. 同类隐患（本次一并处理）：`CEF_CONTROL_INTERNAL_WINDOWS_SRC`（Linux/macOS 下未定义）、`SKIA_WGL_SRCS` / `UDIS_HDRS` / `UDIS_SRCS`（非 Windows 下未定义）被 `LIBRARY_SOURCES` 直接引用，同样是静默空追加；Windows 专有源文件的 `aux_source_directory` 还散落在 CEF 块之外。
+- **动作（已完成）**：
+  1. 删除 `set(DUILIB_SRC_MACOS 1)`，改用 `CMAKE_SYSTEM_NAME STREQUAL "Darwin"`；全仓 `DUILIB_SRC_MACOS` 现为 **0 处**（代码）；
+  2. CEF 源文件的收集、macOS 专有 `.mm` 的移除、Windows 专有源文件的收集，**收敛进同一个** `if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")` 块 —— 这些语句所用到的变量在该块内必然已定义；
+  3. `CEF_CONTROL_INTERNAL_WINDOWS_SRC` / `SKIA_WGL_SRCS` / `UDIS_HDRS` / `UDIS_SRCS` 移入各自的 `if(CMAKE_SYSTEM_NAME STREQUAL "Windows")` 分支，非 Windows 平台不再引用未定义变量；
+  4. 平台分支补齐 `STATUS` 日志：`CEF support enabled/disabled (...)`、`CEF macOS-only sources removed (... is not Darwin)`、`macOS-only sources removed (... is not Darwin)`。
+- **验收结果**：
+  - 验收项「构建日志中不再有静默跳过」：本机 CMake 配置（Windows）`exit 0`，日志包含 `CEF support enabled (Windows)` 与两条 `... is not Darwin` 移除日志，分支全部显式可见；
+  - 额外的 `cmake --warn-uninitialized` 全量配置：除既有的可选缓存变量 `DUILIB_MD`（`CMakeLists.txt:10` 的 `-DDUILIB_MD` 开关，属正常写法）外，**0 条未初始化变量警告**；
+  - Debug x64 编译（`build/duilib.sln`）：**0 error / 0 warning**（注：仓库 `build/*.sln` 是手写 `.vcxproj` 工程、不经过 CMake；本项改动影响的是 CMake 构建路径，即 `build/msvc_build.bat`、`build/linux_build.sh`、`build/macos_build.sh`、`build/freebsd_build.sh`）；
+  - ⚠️ macOS / Linux / FreeBSD 分支本机**无法实机构建**（缺对应编译器，交叉配置无法通过编译器检测），本次以「变量定义域审查 + 分支日志」覆盖，需在对应平台构建时按上述日志核对。
+- **工作量**：实际约 0.25 人天（原估 0.5 天）　**依赖**：无
 
 ---
 
@@ -715,6 +748,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | Pivot 透视表 | **不做** | 属 BI 而非 UI 库职责 |
 | FreeBSD + CEF | **不做** | Chromium 不官方支持 FreeBSD；`freebsd_build.sh:77` 已注释掉 `cef`/`CefBrowser`，`README.md:562` 已声明。**但 A-1/A-2 要把宏与源码的矛盾清干净** |
 | Windows 独占工具（`InlineHook`/`ApiWrapper`/`DllManager`/`DiskUtils`/`libudis86`） | **不跨平台化** | 功能本身即 Windows 专属，非缺陷 |
+| Linux/FreeBSD 系统阴影（**C-4**） | **不做，保持现状** | 2026-10-20 决策：`Shadow.cpp` 的自绘 SVG 降级路径已可用、`docs/WindowShadow.md` 已如实标注；libdecor 集成需引入新外部依赖且覆盖各合成器差异，风险高（原估 5–8 人天）而收益仅限视觉效果。重新评估的触发条件见 C-4 小节 |
 
 ---
 
@@ -744,15 +778,15 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-20）**：C 组（跨平台一致性）**7 项中完成 2 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐）；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
+> **实际进展（截至 2026-10-20）**：C 组（跨平台一致性）**7 项中完成 4 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），另有 C-4 经决策**明确不处理（保持现状）**；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
 - [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖：无（B-1 暂缓，改为人工验证广播行为）｜ 完成日期：______
-- [ ] **C-4** Linux/FreeBSD 系统阴影（先评估是否做）　｜ 5–8 天 ｜ 完成日期：______
+- [~] **C-4** Linux/FreeBSD 系统阴影　｜ 状态：⏸ **不处理，保持现状**（2026-10-20 决策，理由与重新评估触发条件见 C-4 小节；原估 5–8 天）
 - [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______
-- [ ] **C-6** 文件对话框参数补齐　｜ 1–2 天 ｜ 依赖：无（A-3 暂缓）｜ 完成日期：______
-- [ ] **C-7** CMake 平台判定健壮化　｜ 0.5 天 ｜ 完成日期：______
+- [x] **C-6** 文件对话框参数补齐　｜ 实际约 0.5 天（原估 1–2 天）｜ 依赖：无（A-3 暂缓）｜ 完成日期：2026-10-20 ｜ ⚠️ 原生对话框的交互需**人工核对**（见 C-6 小节，清单见 [C-6 spec](specs/C-6-FileDialog-SDL-Params/spec.md)）
+- [x] **C-7** CMake 平台判定健壮化　｜ 实际约 0.25 天（原估 0.5 天）｜ 依赖：无 ｜ 完成日期：2026-10-20 ｜ ⚠️ macOS / Linux / FreeBSD 分支本机无法实机构建，需在对应平台按分支日志核对（见 C-7 小节）
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
 - [x] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：2026-10-18
 - [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______

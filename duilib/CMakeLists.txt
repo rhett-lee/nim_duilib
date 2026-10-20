@@ -42,7 +42,6 @@ add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 #设置libcef目录路径
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")  # macOS
     set(CEF_LIB_DIR "libcef_macos")
-    set(DUILIB_SRC_MACOS 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
     set(CEF_LIB_DIR "libcef_linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
@@ -88,27 +87,34 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Render RENDER_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RenderSkia RENDER_SKIA_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
-# Only include CEF sources on supported platforms (Windows, Linux, macOS)
+# CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
     list(APPEND PROJECT_SOURCES ${CEF_CONTROL_SRC} ${CEF_CONTROL_INTERNAL_SRC})
     message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
+
+    # Windows平台专有的CEF源文件
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal/Windows CEF_CONTROL_INTERNAL_WINDOWS_SRC)
+    endif()
+
+    # 非macOS平台，删除macOS专有的CEF源文件(*.mm)，避免出现编译错误
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        list(REMOVE_ITEM CEF_CONTROL_SRC ${CMAKE_CURRENT_LIST_DIR}/CEFControl/CefWindowUtils_MacOS.mm)
+        message(STATUS "CEF macOS-only sources removed (${CMAKE_SYSTEM_NAME} is not Darwin)")
+    endif()
 else()
     message(STATUS "CEF support disabled (FreeBSD is not supported)")
 endif()
 
-# 非MacOS平台，删除*.mm文件，避免出现编译错误
-if(NOT DUILIB_SRC_MACOS)
+# 非macOS平台，删除macOS专有的源文件(*.mm/*.h)，避免出现编译错误
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.mm)
-    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.h)    
-    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/ClickThrough_MacOS.mm)    
-    list(REMOVE_ITEM CEF_CONTROL_SRC ${CMAKE_CURRENT_LIST_DIR}/CEFControl/CefWindowUtils_MacOS.mm)    
+    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.h)
+    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/ClickThrough_MacOS.mm)
     list(REMOVE_ITEM UTILS_SRC ${CMAKE_CURRENT_LIST_DIR}/Utils/ScreenCapture_MacOS.mm)
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
-    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal/Windows CEF_CONTROL_INTERNAL_WINDOWS_SRC)
+    message(STATUS "macOS-only sources removed (${CMAKE_SYSTEM_NAME} is not Darwin)")
 endif()
 
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/apng APNG_SRC)
@@ -208,9 +214,6 @@ set(LIBRARY_SOURCES
     ${GIFLIB_SRCS}
     ${SKIA_HDRS}
     ${SKIA_SRCS}
-    ${SKIA_WGL_SRCS}
-    ${UDIS_HDRS}
-    ${UDIS_SRCS}
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
@@ -218,15 +221,29 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
     list(APPEND LIBRARY_SOURCES
         ${WEBVIEW2_CONTROL_SRC}
     )
+    # Windows平台专有的Skia源码文件
+    list(APPEND LIBRARY_SOURCES
+        ${SKIA_WGL_SRCS}
+    )
+    # Windows平台专有的源码文件
+    list(APPEND LIBRARY_SOURCES
+        ${UDIS_HDRS}
+        ${UDIS_SRCS}
+    )
 endif()
 
-# Only include CEF sources on supported platforms (Windows, Linux, macOS)
+# CEF源文件仅支持Windows、Linux、macOS平台，其他平台不支持
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     list(APPEND LIBRARY_SOURCES
         ${CEF_CONTROL_SRC}
         ${CEF_CONTROL_INTERNAL_SRC}
-        ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
     )
+    # Windows平台专有的CEF源文件
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        list(APPEND LIBRARY_SOURCES
+            ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
+        )
+    endif()
     message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
 else()
     message(STATUS "CEF support disabled (FreeBSD is not supported)")
