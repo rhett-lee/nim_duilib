@@ -9,6 +9,10 @@ nor steals the focus** when it pops up. It disappears automatically after a give
 and supports fade in/out animations, multi-toast stacking, click-to-dismiss, and
 hover-to-pause interactions.
 
+> To deliver a message to the operating system notification center (still visible after the user
+> switches away), use native system notifications: [SystemNotification.en.md](SystemNotification.en.md).
+> The two mechanisms are independent; choose one based on the scenario.
+
 * Associated header file: [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h)
 * Skin file: `bin/resources/themes/default/public/toast/toast.xml` (skin folder `public/toast`)
 * Icon resources: `toast_info.svg`, `toast_success.svg`, `toast_warning.svg`, `toast_error.svg` in the same folder

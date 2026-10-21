@@ -94,6 +94,27 @@ void TestForm::OnInitWindow()
             });
     }
 
+    //系统原生通知（SystemNotification）：与Toast无关，走操作系统通知通道
+    ui::Button* pSystemNotificationBtn = dynamic_cast<ui::Button*>(FindControl(_T("system_notification_btn")));
+    if (pSystemNotificationBtn != nullptr) {
+        pSystemNotificationBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            if (!ui::SystemNotification::IsSupported()) {
+                ui::ToastWnd::Show(this, _T("System notification is not supported on this platform"),
+                                   ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
+                return true;
+            }
+            ui::SystemNotification::RequestPermission();
+            uint32_t notificationId = ui::SystemNotification::Show(_T("nim_duilib"),
+                _T("This is a native system notification."),
+                ui::SystemNotificationPriority::kNormal, 5000);
+            if (notificationId == 0) {
+                ui::ToastWnd::Show(this, _T("Failed to show system notification"),
+                                   ui::ToastWnd::kTypeWarning, 2000, ui::ToastWnd::kPosTop, false);
+            }
+            return true;
+            });
+    }
+
     //显示MessageBox的测试界面
     ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("message_box_btn")));
     if (pButton != nullptr) {

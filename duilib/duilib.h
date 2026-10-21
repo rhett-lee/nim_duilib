@@ -13,6 +13,7 @@
 #include "Utils/Clipboard.h"
 #include "Utils/FileTime.h"
 #include "Utils/TrayIcon.h"
+#include "Utils/SystemNotification.h"
 #include "Utils/MessageBoxWnd.h"
 #include "Utils/Dialog.h"
 #include "Utils/ToastWnd.h"

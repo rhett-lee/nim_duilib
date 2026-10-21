@@ -7,6 +7,9 @@
 Toast 弹出后**不阻塞父窗口、不抢占焦点**，停留指定时间后自动消失，并支持淡入淡出、
 多条堆叠、点击关闭与鼠标悬停暂停等交互。
 
+> 如果需要把消息送到操作系统的通知中心（用户切出应用后仍可见），请使用系统原生通知
+> [SystemNotification.md](SystemNotification.md)；两者相互独立，可按场景选用。
+
 * 关联头文件：[duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h)
 * 皮肤文件：`bin/resources/themes/default/public/toast/toast.xml`（皮肤目录 `public/toast`）
 * 图标资源：同目录下的 `toast_info.svg`、`toast_success.svg`、`toast_warning.svg`、`toast_error.svg`

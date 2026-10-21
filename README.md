@@ -135,6 +135,7 @@
     <tr><td align="left">47. Pagination：分页器控件（继承 HBox），用于报表/表格/列表的页码导航；上一页/下一页（可选首页/末页）+ 按数据动态生成的页码按钮，当前页呈选中态，页码超出显示上限时以"…"收纳并始终保留首尾与当前页附近，按钮配色由 button_class 皮肤类（走语义色）驱动，页码变化回调的 pEventData 携带 page/oldPage，详见 docs/Control.md</td></tr>
     <tr><td align="left">48. TreeGrid：树表格控件（继承 VBox），在同一控件内呈现"可展开/收起的层级行 + 多列表格"，用于文件树/报表/组织架构；表头固定不滚动、列表体自带纵向滚动条，表头与数据行复用同一列宽数组而天然逐列对齐（缩进由树列单元格内嵌占位实现，其它列不错位）；列标题/列宽/对齐可配置，支持多选（multi_select）与行首复选框父子三态级联（check_mode + check_cascade），勾选变化事件的 pEventData 携带 TreeGridCheckValue，详见 docs/Control.md</td></tr>
     <tr><td align="left">49. Dialog：通用模态对话框（duilib/Utils/Dialog.h），内容区支持任意 XML 片段，底部按钮的数量/文字/默认按钮可自定义，不依赖额外的 XML 文件；DoModal 返回被点击按钮的索引，支持 ESC 与标题栏关闭取消、Enter 触发当前焦点按钮、多语言文本 ID，以及关闭前执行的按钮点击回调（返回 false 可阻止关闭，便于读取内容区数据或校验输入）</td></tr>
+    <tr><td align="left">50. SystemNotification：系统原生通知（duilib/Utils/SystemNotification.h），使用SDL3构建时通过SDL系统通知API发送到系统通知中心（Windows/macOS/Linux/FreeBSD），不使用SDL的Windows构建通过Shell_NotifyIcon托盘气泡实现（兼容Windows 7及以上）；提供 IsSupported/RequestPermission/Show/Remove 接口，支持通知优先级，通知的显示与销毁由系统负责，详见 docs/SystemNotification.md</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -690,6 +691,7 @@ nim_duilib/.claude/
  - [菜单的样式](docs/Menu.md)
  - [模态消息框（MessageBoxWnd）](docs/MessageBox.md)
  - [非模态通知框（ToastWnd）](docs/Toast.md)
+ - [系统原生通知（SystemNotification）](docs/SystemNotification.md)
  - [控件的事件/消息](docs/Events.md)
  - [XML文件中各控件的节点名称](docs/XmlNode.md)
  - [XML文件中直接响应控件的事件](docs/XmlEvents.md)

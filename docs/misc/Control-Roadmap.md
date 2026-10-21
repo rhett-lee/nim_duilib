@@ -96,7 +96,7 @@
 | # | 能力 | 现状 | 说明 | 优先级 | 状态（2026-10-21） |
 |---|------|------|------|------|------|
 | 18 | 无障碍（Accessibility/屏幕阅读器） | **缺失** | Windows 需接 UI Automation、macOS 接 NSAccessibility、Linux 接 AT-SPI；企业/政务软件合规刚需，也是跨平台桌面库的硬门槛。可先做"控件名/值/角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐 | 高 | ❌ 未启动（跟踪 Development-Plan F-2） |
-| 19 | 原生系统通知 | Toast 为应用内自绘 | 接入 macOS 通知中心、Windows 桌面通知、Linux（D-Bus/Freedesktop）的原生通知，与现有 Toast 形成"应用内 + 系统级"双通道 | 高 | 🟡 部分完成（托盘气泡已通过 SDL 系统通知在非 Windows 落地，2026-10-21；Toast 仍为应用内自绘，通用通知 API 未封装） |
+| 19 | 原生系统通知 | Toast 为应用内自绘 | 接入 macOS 通知中心、Windows 桌面通知、Linux（D-Bus/Freedesktop）的原生通知，与现有 Toast 形成"应用内 + 系统级"双通道 | 高 | ✅ 已完成（2026-10-21：新增 `SystemNotification` 独立类，SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡并兼容 Win7+；Toast 保持应用内自绘，两者互不影响） |
 | 20 | 应用内更新框架 | **缺失** | 跨平台自更新：Windows 自研或 WinSparkle、macOS Sparkle、Linux 走包管理器/AppImage | 中高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | 21 | 文件关联 / URL Scheme / 深链 | **缺失** | 注册协议→唤起应用→解析参数，桌面软件"打开方式"与"外部唤起"标配 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | 22 | 开机自启 + 托盘菜单联动 | TrayIcon 已有 | 补齐托盘右键菜单 API、开机自启注册（登录项/启动项） | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |

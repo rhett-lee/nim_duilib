@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="980,740" use_system_caption="true">
+<Window size="980,640" use_system_caption="true">
     <VBox bkcolor="bg_window_main" height="stretch">
         <!-- 入口列表：内容较多，放入纵向滚动容器，窗口变矮时不会被裁掉 -->
         <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
@@ -78,38 +78,46 @@
                 </GroupHBox>
             </HBox>
 
-            <!-- TagInput 标签输入框 -->
-            <GroupVBox text_id="STRID_CONTROLS_TAG_INPUT" height="auto" margin="6,6,6,6" corner_size="4,4">
-                <HBox height="auto" margin="8,28,8,8">
-                    <TagInput class="tag_input" name="tag_input" tags="nim_duilib;C++;Desktop UI"
-                              prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT"/>
-                    <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30" border_round="3,3" margin="8,2,0,2" valign="center"/>
-                    <TagInput class="tag_input" name="tag_input2" delimiter="," width="240" margin="8,2,0,2"
-                              prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
-                </HBox>
-            </GroupVBox>
+            <HBox height="auto">
+                <!-- TagInput 标签输入框 -->
+                <GroupVBox text_id="STRID_CONTROLS_TAG_INPUT" height="auto" margin="6,6,6,6" corner_size="4,4">
+                    <HBox height="auto" margin="8,28,8,8">
+                        <TagInput class="tag_input" name="tag_input" tags="nim_duilib;C++;Desktop UI"
+                                  prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT"/>
+                        <Button class="btn_global" name="btn_add_tag" text_id="STRID_CONTROLS_TAG_ADD" width="100" height="30" border_round="3,3" margin="8,2,0,2" valign="center"/>
+                        <TagInput class="tag_input" name="tag_input2" delimiter="," width="240" margin="8,2,0,2"
+                                  prompt_text_id="STRID_CONTROLS_TAG_INPUT_PROMPT2"/>
+                    </HBox>
+                </GroupVBox>
+                <!-- 系统通知  -->
+                <GroupHBox height="stretch" width="220" margin="6,6,6,6" text="System Notification" corner_size="4,4">
+                    <Button class="btn_global" text="Notify Test" name="system_notification_btn" margin="20,30,0,0" width="160" height="30" border_round="3,3"/>
+                </GroupHBox>
+            </HBox>
 
-            <!-- AutoComplete 自动完成输入框 -->
-            <GroupVBox text_id="STRID_CONTROLS_AUTO_COMPLETE" height="auto" margin="6,6,6,6" corner_size="4,4">
-                <HBox height="auto" margin="8,28,8,8">
-                    <AutoComplete class="auto_complete" name="auto_complete"
-                                  items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London;Los Angeles;New York;Paris;Seattle;Shanghai;Shenzhen;Singapore;Sydney;Tokyo;Toronto"
-                                  prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT"/>
-                    <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
-                                  width="260" margin="8,2,0,2"
-                                  prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
-                </HBox>
-            </GroupVBox>
+            <HBox height="auto">
+                <!-- AutoComplete 自动完成输入框 -->
+                <GroupVBox text_id="STRID_CONTROLS_AUTO_COMPLETE" height="auto" margin="6,6,6,6" corner_size="4,4">
+                    <HBox height="auto" margin="8,28,8,8">
+                        <AutoComplete class="auto_complete" name="auto_complete"
+                                      items="Beijing;Berlin;Budapest;Bangkok;Boston;Brisbane;Chicago;London;Los Angeles;New York;Paris;Seattle;Shanghai;Shenzhen;Singapore;Sydney;Tokyo;Toronto"
+                                      prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT"/>
+                        <AutoComplete class="auto_complete" name="auto_complete2" match_mode="contains" max_visible="6"
+                                      width="260" margin="8,2,0,2"
+                                      prompt_text_id="STRID_CONTROLS_AUTO_COMPLETE_PROMPT2"/>
+                    </HBox>
+                </GroupVBox>
 
-            <!-- SearchBox 搜索框（建议 + 历史） -->
-            <GroupVBox text="SearchBox 搜索框（建议 + 历史）" height="auto" margin="6,6,6,6" corner_size="4,4">
-                <HBox height="auto" margin="8,28,8,8">
-                    <SearchBox class="search_box" name="search_box" width="360"
-                               prompt_text="搜索控件 / 输入关键词（回车记录历史）"
-                               suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32;DirectUI;Electron;Flutter;duilib"
-                               history_enabled="true" max_history="10" max_visible="8"/>
-                </HBox>
-            </GroupVBox>
+                <!-- SearchBox 搜索框（建议 + 历史） -->
+                <GroupVBox text="SearchBox 搜索框（建议 + 历史）" height="auto" width="400" margin="6,6,6,6" corner_size="4,4">
+                    <HBox height="auto" margin="8,28,8,8">
+                        <SearchBox class="search_box" name="search_box" width="360"
+                                   prompt_text="搜索控件 / 输入关键词（回车记录历史）"
+                                   suggestions="nim_duilib;C++;Desktop UI;Skia;Qt;WPF;MFC;Win32;DirectUI;Electron;Flutter;duilib"
+                                   history_enabled="true" max_history="10" max_visible="8"/>
+                    </HBox>
+                </GroupVBox>
+            </HBox>
 
             <!-- 遮罩/蒙版层（Mask）：模态遮罩 / 新手引导 / 加载遮罩 -->
             <GroupHBox text_id="STRID_CONTROLS_MASK" height="70" margin="6,6,6,6" corner_size="4,4">

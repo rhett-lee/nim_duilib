@@ -137,6 +137,7 @@ English | [简体中文](README.md)
     <tr><td align="left">47. Pagination: Pager control (derived from HBox) for page navigation in reports, tables and lists; prev/next (optionally first/last) plus page buttons generated dynamically from the data, with the current page shown selected, pages beyond the display limit collapsed into an ellipsis while always keeping the first/last and the pages around the current one, button colors driven by the button_class skin class (semantic colors), and a page-change callback carrying page/oldPage in pEventData. See docs/Control.en.md.</td></tr>
     <tr><td align="left">48. TreeGrid: Tree grid control (derived from VBox) presenting "expandable/collapsible hierarchical rows + a multi-column table" in a single control, for file trees, reports and org charts; the header is fixed and does not scroll while the list body has its own vertical scrollbar, and the header and data rows share the same column-width array so they align column by column by construction (indentation is an indent placeholder nested inside the tree-column cell, so other columns never shift); column titles/widths/alignment are configurable, with multi-row selection (multi_select) and parent/child tri-state checkbox cascade at the start of each row (check_mode + check_cascade), and a check-change event carrying TreeGridCheckValue in pEventData. See docs/Control.en.md.</td></tr>
     <tr><td align="left">49. Dialog: Generic modal dialog (duilib/Utils/Dialog.h) whose content can be any XML fragment, with fully customizable footer buttons (count, text and default button) and no extra XML file required; DoModal returns the index of the clicked button, and it supports ESC/title-bar close as cancel, Enter activating the focused button, text IDs for multi-language support, and a button-click callback executed before closing (returning false keeps the dialog open, making it possible to read content data or validate input).</td></tr>
+    <tr><td align="left">50. SystemNotification: Native system notifications (duilib/Utils/SystemNotification.h). SDL builds send notifications to the system notification center through the SDL notification API (Windows/macOS/Linux/FreeBSD); Windows builds without SDL use a Shell_NotifyIcon tray balloon (Windows 7 and later). Provides IsSupported/RequestPermission/Show/Remove, supports notification priority, and leaves display and dismissal to the system. See docs/SystemNotification.en.md.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>
@@ -691,6 +692,7 @@ nim_duilib/.claude/
  - [Menu Styles](docs/Menu.en.md)
  - [Modal Message Box (MessageBoxWnd)](docs/MessageBox.en.md)
  - [Non-Modal Toast Notification (ToastWnd)](docs/Toast.en.md)
+ - [Native System Notification (SystemNotification)](docs/SystemNotification.en.md)
  - [Control Events/Messages](docs/Events.en.md)
  - [Node Names of Each Control in XML Files](docs/XmlNode.en.md)
  - [Responding to Control Events Directly in XML Files](docs/XmlEvents.en.md)

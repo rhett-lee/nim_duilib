@@ -1,6 +1,6 @@
 # 项目盘点与改进建议（源码 / 文档 / 跨平台）
 
-> 本文档是一次全项目盘点结论，用于后续排期与跟踪。**状态截至 2026-10-21**：第一章的 ColorPicker 回环与静默赋值已完成，B1–B5 / B7 / B9 已完成，第三章文档漂移已回写，第四章 C3 / C4 已完成；**C1 / C2 / C7 / C8 已明确不做、不再跟进**。剩余项见各表「状态」列、第五章顺序与文末附录。
+> 本文档是一次全项目盘点结论，用于后续排期与跟踪。**状态截至 2026-10-21**：第一章的 ColorPicker 回环与静默赋值已完成，B1–B5 / B7 / B9 已完成，第三章文档漂移已回写，第四章 C3 / C4 / C6 已完成；**C1 / C2 / C7 / C8 已明确不做、不再跟进**。剩余项见各表「状态」列、第五章顺序与文末附录。
 
 ## 扫描范围与方法
 
@@ -13,7 +13,7 @@
 
 ### 与既有规划文档的关系
 
-* [Control-Roadmap.md](Control-Roadmap.md) 的控件新增清单（第 1–18 项）**已全部清空**；其"平台整合能力"（第 18–23 项）与"开发者体验与工程化"（第 24–26 项）中，原生系统通知、打包签名为部分完成，平台适配矩阵文档已完成，其余未启动（详见该文档第五、六节状态列）；
+* [Control-Roadmap.md](Control-Roadmap.md) 的控件新增清单（第 1–18 项）**已全部清空**；其"平台整合能力"（第 18–23 项）与"开发者体验与工程化"（第 24–26 项）中，原生系统通知已完成，打包签名为部分完成，平台适配矩阵文档已完成，其余未启动或明确不做（详见该文档第五、六节状态列）；
 * 本文档补充的是 Roadmap 中**尚未识别**的三类问题：① 健壮性类缺陷（控件值同步回环）；② 规划清单之外的控件空白（壳层/工具条类）；③ 跨平台矩阵的实际状态与文档漂移。
 
 ---
@@ -160,7 +160,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 | C3 | 平台适配矩阵文档 | 规划中（Roadmap 第 26 项），且现有跨平台文档已过期 | 直接以本文档第三章为基线，替换过期描述 | 高 | ✅ 已完成（本文档第三章 + `跨平台开发相关事项.md` 已回写，2026-10-21；HotKey / macOS / FreeBSD 实测仍待补） |
 | C4 | 文档漂移 | 全库存在约 50 处示例 / 占位名与源码不符（集中在中英双语的 Box / Global / Menu / Theme / ThemeColor 章节） | 跑 `verify_docs.py` 清理，不要用豁免注释掩盖 | 中 | ✅ 已完成（`verify_docs.py --extra docs` 零漂移，2026-10-21） |
 | C5 | 无障碍（Accessibility） | **完全缺失**：全库无 `IAccessible` / UI Automation / AT-SPI / NSAccessibility 相关代码 | 先做"控件名 / 值 / 角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐；企业 / 政务合规刚需 | 高 | ❌ 未启动（跟踪 Development-Plan F-2） |
-| C6 | 原生系统通知 | Toast 为应用内自绘 | 接入 Windows 桌面通知、macOS 通知中心、Linux D-Bus 通知，形成双通道 | 高 | 🟡 部分完成（非 Windows 托盘气泡已接入 SDL 系统通知，2026-10-21；Toast 仍应用内自绘，通用通知 API 未封装） |
+| C6 | 原生系统通知 | Toast 为应用内自绘 | 接入 Windows 桌面通知、macOS 通知中心、Linux D-Bus 通知，形成双通道 | 高 | ✅ 已完成（2026-10-21：`duilib/Utils/SystemNotification.h`，SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 并兼容 Win7+；controls 示例已加入口，Toast 未改动） |
 | C7 | 应用内更新框架 | **缺失** | Windows 自研或 WinSparkle、macOS Sparkle、Linux 包管理器 / AppImage | 中高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | C8 | 文件关联 / URL Scheme | **缺失** | 注册协议 → 唤起应用 → 解析参数 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | C9 | 安装 / 打包 / 签名 / 公证 | **缺失** | 各平台安装器（NSIS / MSIX、DMG、AppImage / deb / rpm）、代码签名、macOS 公证；以文档化标准流程落地即可 | 高（工程化） | 🟡 部分完成（B-3 已完成 `build/pack.py` + `docs/Release.md`，2026-10-20；安装器不做，签名 / 公证仍为手工流程） |
@@ -185,7 +185,7 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 **剩余优先级**：
 
 1. **跨平台实测**：macOS / FreeBSD 构建与冒烟；Linux 已知问题（标题栏双击、调整大小黑屏、最大化位置、Wayland）；核实 `HotKey` 与控件级拖拽源；
-2. **系统级能力**：无障碍（C5 / F-2，先属性标注 + Windows UIA）、通用原生通知（C6，托盘气泡已部分落地）；
+2. **系统级能力**：无障碍（C5 / F-2，先属性标注 + Windows UIA）；
 3. **工程化**：打包 / 签名 / 公证（C9，B-3 已打底）、可视化编辑器（C10，远期）；
 4. **平台差异**：GPU 渲染后端、Web 嵌入的非 Windows 替代方案，按实际需求评估。
 

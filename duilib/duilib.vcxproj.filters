@@ -867,6 +867,12 @@
     <ClCompile Include="Utils\TrayIcon_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\SystemNotification_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\SystemNotification_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="Utils\TrayIcon_Windows.cpp">
       <Filter>Utils\Windows</Filter>
     </ClCompile>
@@ -1923,6 +1929,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Utils\TrayIcon.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\SystemNotification.h">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\msvc\dllRes\framework.h">

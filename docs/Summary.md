@@ -13,6 +13,7 @@
 * [菜单的样式](Menu.md)
 * [模态消息框（MessageBoxWnd）](MessageBox.md)
 * [非模态通知框（ToastWnd）](Toast.md)
+* [系统原生通知（SystemNotification）](SystemNotification.md)
 * [控件的事件/消息](Events.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [XML文件中直接响应控件的事件](XmlEvents.md)
@@ -256,6 +257,7 @@
 | MessageBoxWnd | WindowImplBase | [duilib/Utils/MessageBoxWnd.h](../duilib/Utils/MessageBoxWnd.h) | 自绘皮肤的模态消息框，独立窗口，详见[MessageBox.md](MessageBox.md) |
 | Dialog | WindowImplBase | [duilib/Utils/Dialog.h](../duilib/Utils/Dialog.h) | 通用模态对话框：内容区接受任意 XML 片段，底部按钮由调用方自定义，`DoModal` 返回按钮索引 |
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | 自绘皮肤的非模态通知框，独立窗口，自动消失、可堆叠，详见[Toast.md](Toast.md) |
+| SystemNotification | 静态工具类 | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | 系统原生通知：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走托盘气泡（Win7+），与 ToastWnd 相互独立，详见[SystemNotification.md](SystemNotification.md) |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |

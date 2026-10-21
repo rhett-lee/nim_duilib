@@ -15,6 +15,7 @@ English | [简体中文](Summary.md)
 * [Menu Styles](Menu.en.md)
 * [Modal Message Box (MessageBoxWnd)](MessageBox.en.md)
 * [Non-Modal Toast Notification (ToastWnd)](Toast.en.md)
+* [Native System Notification (SystemNotification)](SystemNotification.en.md)
 * [Control Events / Messages](Events.en.md)
 * [Node Names of Each Control in XML Files](XmlNode.en.md)
 * [Directly Responding to Control Events in XML Files](XmlEvents.en.md)
@@ -258,6 +259,7 @@ For detailed interface descriptions of each class, please refer to the associate
 | MessageBoxWnd | WindowImplBase | [duilib/Utils/MessageBoxWnd.h](../duilib/Utils/MessageBoxWnd.h) | Owner-drawn skin modal message box, independent window; see [MessageBox.en.md](MessageBox.en.md) for details |
 | Dialog | WindowImplBase | [duilib/Utils/Dialog.h](../duilib/Utils/Dialog.h) | Generic modal dialog: the content area accepts any XML fragment, footer buttons are caller-defined, `DoModal` returns the button index |
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | Owner-drawn skin non-modal toast notification, independent window, auto-dismiss and stackable; see [Toast.en.md](Toast.en.md) for details |
+| SystemNotification | Static utility | [duilib/Utils/SystemNotification.h](../duilib/Utils/SystemNotification.h) | Native system notifications: SDL builds use SDL system notifications, non-SDL Windows builds use a tray balloon (Windows 7+); independent of ToastWnd. See [SystemNotification.en.md](SystemNotification.en.md) for details |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
 | HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | Supports adjusting the order of child controls within the same Box by dragging |
