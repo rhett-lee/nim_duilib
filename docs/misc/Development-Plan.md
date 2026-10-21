@@ -454,12 +454,27 @@ API 变动频率高 |
 - **保持现状的行为**（无需任何代码改动）：Linux/FreeBSD 下自动走自绘 SVG 阴影，Windows / macOS 仍用系统阴影。
 - **工作量**：0（本次决策不实施；若日后重启用原估 5–8 人天）　**依赖**：无
 
-### C-5 非 Windows 无系统气泡通知 🟡
+### C-5 非 Windows 无系统气泡通知 ✅ 已完成（2026-10-21）
 
-- **现状**：`TrayIcon_SDL.cpp:248-256` 的 `ShowBalloon` 恒 `return false`（注释说明 SDL3 托盘 API 不支持）；`Hide()` 也被标注为"只能销毁后重建"。
-- **动作**：macOS 走 `UNUserNotificationCenter`，Linux/FreeBSD 走 D-Bus `org.freedesktop.Notifications`。
-- **验收**：三平台托盘气泡可弹出。
-- **工作量**：2 人天　**依赖**：无
+- **调研结论（2026-10-21）**：SDL3 的托盘 API（`SDL_Tray`）确实没有气泡接口，但 SDL 在 3.6.0 版本新增了独立的系统通知 API（`SDL_ShowNotification`、`SDL_ShowNotificationWithProperties`、`SDL_RemoveNotification`、`SDL_RequestNotificationPermission`），内部已封装原计划要手写的三平台实现：
+  - Windows 10+：系统 Toast 通知；
+  - macOS 10.14+：`UNUserNotificationCenter`；
+  - Linux/FreeBSD：`org.freedesktop.Notifications`（D-Bus；容器内走 `org.freedesktop.portal.Notification`）。
+  - 仓库使用的 SDL 源码（`C:\develop\SDL`，3.5.0-dev，2026-10-19）已包含该 API，已安装的 `SDL3-static.lib` 也已导出 `SDL_ShowNotification` 等符号。
+- **改前现状**：`TrayIcon_SDL.cpp:248-256` 的 `ShowBalloon` 恒 `return false`（SDL 托盘 API 不支持气泡）。
+- **动作（已完成）**：
+  - `TrayIcon_SDL.cpp::ShowBalloon` 改为调用 `SDL_ShowNotification`（标题/正文经 `StringConvert::TToUTF8` 转换），返回 `SDL_NotificationID != 0`；
+  - 用 `__has_include(<SDL3/SDL_notification.h>)` + `DUILIB_SDL_HAS_NOTIFICATION` 做编译期保护：旧版 SDL（< 3.6.0）仍可编译，此时保持 `return false`；
+  - `TrayIcon.h` 补充接口说明：macOS 需运行在 `*.app` 包内、Linux/FreeBSD 需通知守护进程、`timeoutMs` 在 SDL 实现下不生效（显示时长由系统策略决定）。
+- **未处理（能力边界）**：
+  - 气泡点击回调 `kShowBalloon` 仍未发送：SDL 只上报 `SDL_EVENT_NOTIFICATION_ACTION_INVOKED`，需在 `MessageLoop_SDL` 增加事件路由；Linux 端能否收到正文点击取决于通知守护进程是否支持 `default-action`；
+  - `timeoutMs` 无法映射到 SDL 通知（通知无超时属性）。
+- **验收**：三平台托盘气泡可弹出（`controls` 示例勾选托盘图标时会调用 `ShowBalloon`）。
+  - Windows：现有原生托盘气泡路径不变；
+  - macOS：普通示例是裸可执行文件，**必须在打包为 `.app` 后验证**，裸二进制会明确返回失败；
+  - Linux/FreeBSD：需有运行中的通知守护进程，无守护进程时返回 false；
+  - ⚠️ 本机为 Windows，macOS / Linux / FreeBSD 需在对应平台人工验证。
+- **工作量**：实际约 0.25 人天（原估 2 人天，平台差异已由 SDL 封装）　**依赖**：无
 
 ### C-6 文件对话框参数部分失效 ✅ 已完成（2026-10-20）
 
@@ -810,13 +825,13 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-21）**：C 组（跨平台一致性）**7 项中完成 4 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），另有 C-4 经决策**明确不处理（保持现状）**；D / E 组（控件）**已完成 14 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
+> **实际进展（截至 2026-10-21）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），另有 C-4 经决策**明确不处理（保持现状）**；D / E 组（控件）**已完成 14 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
-- [ ] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖：无（B-1 暂缓，改为人工验证广播行为）｜ 完成日期：______
+- [x] **C-3** 主题 / 语言切换变更广播　｜ 1 周 ｜ 依赖：无（B-1 暂缓，改为人工验证广播行为）｜ 完成日期：2026-10-21
 - [~] **C-4** Linux/FreeBSD 系统阴影　｜ 状态：⏸ **不处理，保持现状**（2026-10-20 决策，理由与重新评估触发条件见 C-4 小节；原估 5–8 天）
-- [ ] **C-5** 非 Windows 托盘气泡通知　｜ 2 天 ｜ 完成日期：______
+- [x] **C-5** 非 Windows 托盘气泡通知　｜ 实际约 0.25 天（原估 2 天，改用 SDL 系统通知 API）｜ 完成日期：2026-10-21 ｜ ⚠️ macOS 需在 `.app` 内验证，Linux/FreeBSD 需通知守护进程（见 C-5 小节）
 - [x] **C-6** 文件对话框参数补齐　｜ 实际约 0.5 天（原估 1–2 天）｜ 依赖：无（A-3 暂缓）｜ 完成日期：2026-10-20 ｜ ⚠️ 原生对话框的交互需**人工核对**（见 C-6 小节，清单见 [C-6 spec](specs/C-6-FileDialog-SDL-Params/spec.md)）
 - [x] **C-7** CMake 平台判定健壮化　｜ 实际约 0.25 天（原估 0.5 天）｜ 依赖：无 ｜ 完成日期：2026-10-20 ｜ ⚠️ macOS / Linux / FreeBSD 分支本机无法实机构建，需在对应平台按分支日志核对（见 C-7 小节）
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18

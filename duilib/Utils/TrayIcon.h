@@ -66,10 +66,13 @@ public:
     virtual bool SetTooltip(const DString& tooltip) = 0;
 
     /** 显示气泡提示
-    * @param [in] title 气泡标题
+    * @param [in] title 气泡标题（不能为空）
     * @param [in] content 气泡内容
-    * @param [in] timeoutMs 显示超时时间（毫秒），默认3000ms
+    * @param [in] timeoutMs 显示超时时间（毫秒），默认3000ms；
+    *                       非Windows平台使用SDL实现时，显示时长由系统通知策略决定，该参数不生效
     * @return 显示成功返回true，失败返回false
+    * 说明：非Windows平台使用SDL实现时，气泡通过SDL系统通知API实现：
+    *       macOS要求程序运行在*.app包内，否则失败；Linux/FreeBSD需要系统存在通知守护进程（D-Bus）。
     */
     virtual bool ShowBalloon(const DString& title, const DString& content, uint32_t timeoutMs = 3000) = 0;
 

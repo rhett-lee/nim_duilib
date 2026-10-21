@@ -10,6 +10,13 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_tray.h>
+#if defined(__has_include)
+    #if __has_include(<SDL3/SDL_notification.h>)
+        #include <SDL3/SDL_notification.h>
+        //当前使用的SDL版本包含系统通知API（头文件标注 since SDL 3.6.0），可用于实现托盘气泡提示
+        #define DUILIB_SDL_HAS_NOTIFICATION 1
+    #endif
+#endif
 
 namespace ui
 {
@@ -247,12 +254,27 @@ bool TrayIconImpl::SetTooltip(const DString& tooltip)
 
 bool TrayIconImpl::ShowBalloon(const DString& title, const DString& content, uint32_t timeoutMs)
 {
-    // SDL3的托盘API目前不直接支持气泡提示
-    // 可以考虑使用SDL_ShowSimpleMessageBox或其他方式实现
+#ifdef DUILIB_SDL_HAS_NOTIFICATION
+    //SDL3的托盘API不支持气泡提示，改用SDL的系统通知API实现（三平台均由SDL封装系统原生通知）：
+    //1. Windows 10+：系统Toast通知；
+    //2. macOS 10.14+：UNUserNotificationCenter，要求程序运行在*.app包内，否则SDK返回失败；
+    //3. Linux/FreeBSD：org.freedesktop.Notifications（D-Bus），需要系统有通知守护进程。
+    //注意：通知的显示时长由系统策略决定，SDL未提供超时参数，timeoutMs 对SDL实现不生效。
+    std::string titleUTF8 = StringConvert::TToUTF8(title);
+    std::string contentUTF8 = StringConvert::TToUTF8(content);
+    if (titleUTF8.empty()) {
+        return false;
+    }
+    SDL_NotificationID notificationId = SDL_ShowNotification(titleUTF8.c_str(), contentUTF8.c_str(), nullptr, nullptr, 0);
+    UNUSED_VARIABLE(timeoutMs);
+    return notificationId != 0;
+#else
+    //当前使用的SDL版本不包含系统通知API（SDL 3.6.0之前），无法显示气泡提示
     UNUSED_VARIABLE(title);
     UNUSED_VARIABLE(content);
     UNUSED_VARIABLE(timeoutMs);
     return false;
+#endif
 }
 
 bool TrayIconImpl::Hide()
