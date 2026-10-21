@@ -84,7 +84,7 @@
     <tr><td align="left">22. 完善控件动画的功能细节，并引入缓动函数，支持设置控件动画的属性，比如设置缓动函数类型，设置动画总时长和播放间隔等</td></tr>
     <tr><td align="left">23. 上下文菜单统一 API：Control::AttachPopupMenu 一行代码把右键菜单绑定到任意控件（自动创建菜单、坐标换算、菜单项回调，支持菜单弹出后动态调整），配套 DetachPopupMenu 解除绑定</td></tr>
     <tr>
-        <td rowspan="48">新增控件/新增容器</td>
+        <td rowspan="50">新增控件/新增容器</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>

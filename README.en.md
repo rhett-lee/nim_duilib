@@ -86,7 +86,7 @@ English | [简体中文](README.md)
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr><td align="left">23. Unified context-menu API: Control::AttachPopupMenu binds a right-click menu to any control in one line (auto-creates the menu, resolves coordinates, invokes the item callback, and supports adjusting the menu after it pops up); the paired DetachPopupMenu unbinds it.</td></tr>
     <tr>
-        <td rowspan="48">New Controls / New Containers</td>
+        <td rowspan="50">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
