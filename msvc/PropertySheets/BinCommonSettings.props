@@ -27,8 +27,8 @@
         <DuilibBinIncludeDir>$(SolutionDir)\..;$(ProjectDir)</DuilibBinIncludeDir>
 
         <!-- 库文件Include: DLL模式仅依赖DLL导出的lib -->
-        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' == '1'">$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
-        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' != '1'">$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' == '1'">$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\</DuilibBinLibIncludeDir>
+        <DuilibBinLibIncludeDir Condition="'$(EnableDuilibDll)' != '1'">$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\</DuilibBinLibIncludeDir>
         
         <!-- 库文件列表: DLL模式仅依赖DLL导出的lib  -->
         <DuilibBinLibList Condition="'$(EnableDuilibDll)' == '1'">$(DuilibMainLib);</DuilibBinLibList>

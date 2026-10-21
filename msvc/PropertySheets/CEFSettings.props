@@ -33,8 +33,8 @@
 
         <!-- libCEF的库的lib名称 -->
         <LibCefLibs Condition="'$(LibCefEnabled)' == '0'"></LibCefLibs>
-        <LibCefLibs Condition="'$(LibCefEnabled)' != '0' And '$(Configuration)' == 'Debug'">libcef.lib;$(LibCefDllWrapperName)_d.lib</LibCefLibs>
-        <LibCefLibs Condition="'$(LibCefEnabled)' != '0' And '$(Configuration)' == 'Release'">libcef.lib;$(LibCefDllWrapperName).lib</LibCefLibs>
+        <!-- D-2：wrapper 库不再带 _d，Debug/Release 同名，由 lib/<arch>/<Configuration>/ 目录区分 -->
+        <LibCefLibs Condition="'$(LibCefEnabled)' != '0'">libcef.lib;$(LibCefDllWrapperName).lib</LibCefLibs>
 
     </PropertyGroup>
 </Project>

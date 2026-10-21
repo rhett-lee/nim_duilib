@@ -56,6 +56,10 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <!-- duilib：库文件名与 CMake 侧一致，Debug/Release 同名（D-1 / D-2） -->
+  <PropertyGroup>
+    <TargetName>duilib-zlib</TargetName>
+  </PropertyGroup>
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">

@@ -100,12 +100,12 @@
 | :--- | :--- | :--- | :--- |
 | **P1 CMake 布局** ✅ 已完成（2026-10-21） | 新增公共脚本 `cmake/duilib_lib_output.cmake` 统一规则：Windows `lib/<arch>/<Config>/`、Unix `lib/<Config>/`（显式设置 `CMAKE_ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>` / `CMAKE_LIBRARY_OUTPUT_DIRECTORY_<CONFIG>` 共 4 组；4 个标准配置各自成目录，互不覆盖）；duilib、zlib、libpng、libwebp、cximage 与 CEF wrapper 全部接入 | 新增 `cmake/duilib_lib_output.cmake`；`duilib/CMakeLists.txt`、`duilib/third_party/{zlib,libpng,libwebp,cximage}/CMakeLists.txt`、4 个 `libcef_*/CMakeLists.txt`、`cmake/duilib_common.cmake` | 已验收：Windows Debug 产物落 `lib/x64/Debug`（`duilib.lib`、`duilib-zlib/libpng/webp/cximage.lib`）；生成工程中 4 个配置的 `OutDir` 分别为 `lib/x64/<Config>`，`TargetName` 无 `_d`；CEF wrapper 同规则 |
 | **P2 链接路径** ✅ 已完成（2026-10-21） | `DUILIB_LIB_PATH` 用 `$<CONFIG>`（P1 已随布局落地），并以 `DUILIB_LIB_BASE` 作为不含 genex 的基础路径供日志使用；`DUILIB_SKIA_LIB_SUBPATH` 默认改为空（不再按 `DUILIB_BUILD_TYPE` 预先拼死），`DUILIB_SKIA_LIB_PATH` 改为 Windows `llvm.<arch>.$<IF:$<CONFIG:Debug>,debug,release>`、Unix 恒 `<编译器>.<arch>.release`（解决 I-1）；外部 `-DDUILIB_SKIA_LIB_SUBPATH=...` 仍为固定路径、优先 | `cmake/duilib_common.cmake`、`cmake/duilib_log_variables.cmake` | 已验收：VS 生成器 Debug 工程的库目录为 `llvm.x64.debug`、Release 为 `llvm.x64.release`，Debug 直接编译链接成功（不再报 1694 个 LNK2038）；`-A Win32` 为 `llvm.x86.<cfg>` |
-| **P3 VS 布局** | `CommonSettings.props`：`OutDir` → `..\lib\$(Platform)\$(Configuration)\`，删除 `TargetName` 的 `_d`；4 个第三方 vcxproj 设置常量 `TargetName`（`duilib-*`）；`DuilibThirdLibs` 两配置同名；exe 的两个属性表不动 | `msvc/PropertySheets/CommonSettings.props`、4 个 `*.vcxproj` | VS 全量 Debug/Release 编译通过，产物路径符合 D-2，示例链接 Debug 目录库 |
+| **P3 VS 布局** ✅ 已完成（2026-10-21） | `CommonSettings.props`：新增 `DuilibLibPlatform`（`Win32 → x86`），`OutDir` → `..\lib\$(DuilibLibPlatform)\$(Configuration)\`，删除 `TargetName` 的 `_d` 块；`DuilibThirdLibs` / `DuilibMainLib` 两配置同名（`duilib-*` / `duilib.lib`）；4 个第三方 vcxproj 在 `Microsoft.Cpp.props` 之后设常量 `TargetName`；`DuilibSettings.props` / `BinCommonSettings.props` / `CEFSettings.props` 的库目录、导入库、wrapper 依赖同步；`cef` / `CefBrowser` 的 `LibraryPath` 同步；exe 的两个输出属性表不动 | `msvc/PropertySheets/CommonSettings.props`、`DuilibSettings.props`、`BinCommonSettings.props`、`CEFSettings.props`、`duilib/third_party/{zlib/win32,libwebp,cximage,libpng/projects/vstudio/libpng}/*.vcxproj`、`examples/{cef,CefBrowser}/*.vcxproj` | 已验收：VS Debug x64 下 `duilib.lib`、`duilib-zlib/libpng/webp/cximage.lib` 落 `lib/x64/Debug`；`examples/basic` 输出 `bin/basic_d.exe` 并链接新目录库；CEF wrapper 的 `TargetName` 无 `_d`、`OutDir` 同规则 |
 | **P4 pack** | `default_lib_dirs()` 改为 `lib/<arch>/Release`（默认）/ `lib/<arch>/Debug`；删除旧库名与 `_d` 判定；`--allow-debug-libs` 语义改为显式选择 Debug 目录；修正注释 | `build/pack.py` | `pack.py --list` 与打包结果只含 Release 库，路径正确 |
 | **P5 文档/脚本** | 更新 `cmake/README*.md`、`msvc/PropertySheets/README*.md`、`duilib/third_party/README-duilib.md`；Unix 脚本放开 `CMAKE_BUILD_TYPE`（Skia/SDL 仍只建 release，见 D-3） | 各 README、`build/*.sh` | 文档示例命令可直接执行；Unix Debug/Release 互不覆盖 |
 
 - 下游迁移影响：`lib\x64\duilib_d.lib` → `lib\x64\Debug\duilib.lib`；`zlib.lib` → `duilib-zlib.lib`。需在发布说明中单列。
-- **实施状态（2026-10-20 → 10-21）**：2026-10-20 按用户决定暂不实施，探针已验证 `link_directories` 支持 `$<CONFIG>`、`c:\develop\skia\out\` 同时存在 `llvm.x64.debug` 与 `llvm.x64.release`；10-21 决策 D-1 ~ D-7 全部确认、实施方案定稿；**10-21 已完成 P1（CMake 侧布局）与 P2（链接路径 / Skia 按配置切换）**，P3~P5 待实施。
+- **实施状态（2026-10-20 → 10-21）**：2026-10-20 按用户决定暂不实施，探针已验证 `link_directories` 支持 `$<CONFIG>`、`c:\develop\skia\out\` 同时存在 `llvm.x64.debug` 与 `llvm.x64.release`；10-21 决策 D-1 ~ D-7 全部确认、实施方案定稿；**10-21 已完成 P1（CMake 侧布局）、P2（链接路径 / Skia 按配置切换）、P3（VS 侧布局）**，P4~P5 待实施。
 - **P1 实施记录（2026-10-21）**：
   1. 新增 [duilib_lib_output.cmake](..//..//cmake/duilib_lib_output.cmake)：计算 `DUILIB_LIB_BASE`（Windows 追加 arch 层，arch 优先取 `CMAKE_GENERATOR_PLATFORM` 并做 `Win32 → x86` 映射，缺省回退 `CMAKE_SIZEOF_VOID_P`）；对 `Debug`/`Release`/`RelWithDebInfo`/`MinSizeRel` 设置 `CMAKE_ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>` 与 `CMAKE_LIBRARY_OUTPUT_DIRECTORY_<CONFIG>`，4 个配置各自成目录（不映射到 `Release`，避免不同编译选项的产物互相覆盖）；单配置生成器的非标准 `CMAKE_BUILD_TYPE` 也单独成目录。
   2. 接入 9 个库：`duilib/CMakeLists.txt`、`third_party/{zlib,libpng,libwebp,cximage}/CMakeLists.txt`、`third_party/libcef/libcef_{win,win_109,linux,macos}/CMakeLists.txt`，原各自的 `CMAKE_ARCHIVE_OUTPUT_DIRECTORY` 设置替换为 `include(...)`。
@@ -121,6 +121,16 @@
   4. 实测（VS 2022）：`examples/basic` 不传任何 Skia 参数时，Debug 工程库目录为 `lib/x64/Debug` + `C:/develop/skia/out/llvm.x64.debug`，Release 为 `llvm.x64.release`；Debug 直接 `cmake --build --config Debug` 链接成功产出 `bin/basic.exe`（此前同样的命令报 1694 个 LNK2038 + LNK1319）。`-A Win32` 时为 `lib/x86/<Config>` + `llvm.x86.<cfg>`；外部 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release` 时两个配置都指向该固定目录（向后兼容）。
   5. 注意：`DUILIB_SKIA_LIB_SUBPATH` 是 CACHE 变量，**已有构建目录中的旧值会被继续使用**，需清除缓存（或 `--fresh`）才会走新的按配置规则。
   6. 文档口径待 P5 同步：`cmake/README*.md` 中「Windows 默认 `llvm.<CPU_ARCH>.<构建类型>`」的描述已不准确（现默认空、按配置自动拼接）。
+- **P3 实施记录（2026-10-21）**：
+  1. [CommonSettings.props](..//..//msvc/PropertySheets/CommonSettings.props#L6-L15)：新增 `DuilibLibPlatform`（`$(Platform)==Win32 → x86`，其余同 `$(Platform)`），`OutDir` 改为 `..\lib\$(DuilibLibPlatform)\$(Configuration)\`；删除按配置设置 `TargetName`（`_d`）的两个 `PropertyGroup`。
+  2. 同文件 `DuilibThirdLibs` 改为单行 `duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib`，`DuilibMainLib` 改为 `duilib.lib`（两配置同名）。
+  3. 4 个第三方项目的 `TargetName` 常量（均在 `Microsoft.Cpp.props` 之后）：[zlib.vcxproj](..//..//duilib/third_party/zlib/win32/zlib.vcxproj#L59-L62) `duilib-zlib`、[libpng.vcxproj](..//..//duilib/third_party/libpng/projects/vstudio/libpng/libpng.vcxproj#L47-L50) `duilib-png`、[libwebp.vcxproj](..//..//duilib/third_party/libwebp/libwebp.vcxproj#L138-L141) `duilib-webp`、[cximage.vcxproj](..//..//duilib/third_party/cximage/cximage.vcxproj#L78-L81) `duilib-cximage`。
+  4. 库目录消费侧同步：[DuilibSettings.props](..//..//msvc/PropertySheets/DuilibSettings.props#L53-L56) 的 `ImportLibrary`（DLL 模式）改为 `lib\$(DuilibLibPlatform)\$(Configuration)\$(ProjectName).lib`（去掉 `_d`、合并为单条 Link）；`DuilibSettings.props` 与 [BinCommonSettings.props](..//..//msvc/PropertySheets/BinCommonSettings.props#L30-L31) 的 `DuilibBinLibIncludeDir` 加上 arch/配置层。
+  5. [CEFSettings.props](..//..//msvc/PropertySheets/CEFSettings.props#L35-L37)：`LibCefLibs` 合并为 `libcef.lib;$(LibCefDllWrapperName).lib`（Debug 不再加 `_d`）；wrapper 的 `TargetName` 随 CommonSettings 改动自然变为 `libcef_dll_wrapper[_109]`，未单独改动其 vcxproj。
+  6. [cef.vcxproj](..//..//examples/cef/cef.vcxproj#L65-L84) 与 [CefBrowser.vcxproj](..//..//examples/CefBrowser/CefBrowser.vcxproj#L51-L68) 的 `LibraryPath` 由 `..\..\lib[x64]\` 改为 `..\..\lib\$(DuilibLibPlatform)\$(Configuration)\`（原写法会指向旧布局）。
+  7. 未改动：`BinOutSettings.props`（exe 仍 `bin\` + `_d`），`DuilibSettings.props` 里 DLL 模式的 `bin\` + `duilib[_d|32]` 运行时命名（DLL 与 exe 同属 `bin\` 运行时产物）。
+  8. 实测（VS 2022 / Debug / x64，`SolutionDir=build\`）：`duilib.lib`、`duilib-zlib.lib`、`duilib-webp.lib`、`duilib-cximage.lib`、`duilib-png.lib`、`libcef_dll_wrapper.lib` 全部输出到 `lib\x64\Debug\`；`examples/basic` 输出 `bin\basic_d.exe` 并成功链接上述库。Release 未实编译（按用户约定），仅通过属性表推导确认输出到 `lib\x64\Release\`。
+  9. 已知遗留：`lib/x64/` 根部的旧 `*_d.lib`（含 `duilib_d.lib`、`zlib_d.lib` 等）与旧 `lib/Debug`、`lib/Release` 目录仍在，属迁移前产物；P4 改为只认新布局后不会被打包。
 
 ---
 
@@ -403,7 +413,7 @@
 - [x] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：2026-10-20
 - [x] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-4** skill 模板缺 `DUILIB_WINRES_FILE_NAME`　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______（2026-10-20 按用户决定暂不实施；2026-10-21 决策 D-1 ~ D-7 全部确认，布局定为方案 B、pack 定为方案 C；**2026-10-21 P1、P2 已完成**，P3~P5 待实施）
+- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______（2026-10-20 按用户决定暂不实施；2026-10-21 决策 D-1 ~ D-7 全部确认，布局定为方案 B、pack 定为方案 C；**2026-10-21 P1、P2、P3 已完成**，P4~P5 待实施）
 
 **二、未定义变量与静默行为**
 

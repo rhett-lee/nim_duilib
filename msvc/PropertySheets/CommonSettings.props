@@ -3,17 +3,16 @@
     <ImportGroup Label="PropertySheets" />
     <PropertyGroup Label="UserMacros" />
 
-    <!-- duilib项目，所有工程的输出公共配置 -->
+    <!-- duilib项目，所有工程的输出公共配置（D-2：库输出到 lib/<arch>/<Configuration>/） -->
     <PropertyGroup>
-        <OutDir>$(SolutionDir)\..\lib\$(Platform)\</OutDir>
+        <!-- 库目录中的平台名：VS 的 Win32 对应 CMake 的 x86，保证两套体系落到同一目录 -->
+        <DuilibLibPlatform Condition="'$(Platform)'=='Win32'">x86</DuilibLibPlatform>
+        <DuilibLibPlatform Condition="'$(Platform)'!='Win32'">$(Platform)</DuilibLibPlatform>
+        <OutDir>$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\</OutDir>
         <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
-    </PropertyGroup>    
-    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-        <TargetName>$(ProjectName)_d</TargetName>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <TargetName>$(ProjectName)</TargetName>
-    </PropertyGroup>
+    <!-- 库文件名不再带 _d（D-2）：Debug/Release 同名，由目录区分。
+         可执行程序的 _d 由 DuilibSettings.props / BinOutSettings.props 自行覆盖。 -->
     
     <!-- duilib项目，支持VS2026(v145)和VS2022(v143)[主分支]，支持VS2019(v142)和VS2017(v141)[develop-cpp17分支] -->
     <PropertyGroup Condition="'$(VisualStudioVersion)' == '18.0'" Label="Configuration">
@@ -84,9 +83,8 @@
     <!-- duilib项目，自身的基础Lib名称列表，不含CEF、WebView2 -->
     <PropertyGroup Label="Globals">
         <DuilibSystemLibs>opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;</DuilibSystemLibs>
-        <DuilibThirdLibs Condition="'$(Configuration)'=='Debug'">zlib_d.lib;cximage_d.lib;libpng_d.lib;libwebp_d.lib</DuilibThirdLibs>
-        <DuilibThirdLibs Condition="'$(Configuration)'=='Release'">zlib.lib;cximage.lib;libpng.lib;libwebp.lib</DuilibThirdLibs>
-        <DuilibMainLib Condition="'$(Configuration)'=='Debug'">duilib_d.lib</DuilibMainLib>
-        <DuilibMainLib Condition="'$(Configuration)'=='Release'">duilib.lib</DuilibMainLib>
+        <!-- D-1/D-2：与 CMake 侧库名一致，Debug/Release 同名，由 lib/<arch>/<Configuration>/ 目录区分 -->
+        <DuilibThirdLibs>duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib</DuilibThirdLibs>
+        <DuilibMainLib>duilib.lib</DuilibMainLib>
     </PropertyGroup>
 </Project>

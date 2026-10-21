@@ -50,11 +50,9 @@
         <ClCompile>
             <PreprocessorDefinitions>DUILIB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
-        <Link Condition="'$(Configuration)'=='Debug'">
-            <ImportLibrary>$(SolutionDir)\..\lib\$(Platform)\$(ProjectName)_d.lib</ImportLibrary>
-        </Link>
-        <Link Condition="'$(Configuration)'=='Release'">
-            <ImportLibrary>$(SolutionDir)\..\lib\$(Platform)\$(ProjectName).lib</ImportLibrary>
+        <!-- D-2：导入库输出到 lib/<arch>/<Configuration>/，库名不再带 _d -->
+        <Link>
+            <ImportLibrary>$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\$(ProjectName).lib</ImportLibrary>
         </Link>
     </ItemDefinitionGroup>
     
@@ -96,7 +94,7 @@
     <!-- duilib项目，当使用DLL时，添加公共依赖lib文件的路径和lib库列表 -->
     <PropertyGroup Condition="'$(EnableDuilibDll)' == '1'" Label="Globals">
         <!-- 库文件Include -->
-        <DuilibBinLibIncludeDir>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(Platform)\</DuilibBinLibIncludeDir>
+        <DuilibBinLibIncludeDir>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(LibPagLibDir);$(SolutionDir)\..\lib\$(DuilibLibPlatform)\$(Configuration)\</DuilibBinLibIncludeDir>
 
         <!-- 库文件列表 -->
         <DuilibBinLibList>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);$(LibPagLibs);$(DuilibThirdLibs);$(DuilibSystemLibs);</DuilibBinLibList>
