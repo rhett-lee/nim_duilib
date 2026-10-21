@@ -847,6 +847,62 @@ ui::MessageBoxWnd::Show(this, _T("..."), _T("..."),
 - `WindowBase::DoModal(pParentWindow, createParam, bCloseByEsc=true, bCloseByEnter=false)`
   默认 ESC 关窗、Enter 不关窗；只有传 `bCloseByEnter=true` 时 IDOK 才会关闭窗口。
 
+### 通用模态对话框 Dialog
+
+框架自绘的通用模态对话框，头文件 `duilib/Utils/Dialog.h`（已在 `duilib/duilib.h` 中 include）。
+与 `MessageBoxWnd` 的区别：内容区可放任意 XML 片段，底部按钮的数量、文字、默认按钮由调用方自定义。
+窗口 XML 由类在运行时按「标题栏 + 内容区 + 按钮区」组装，不依赖独立皮肤文件；默认资源目录 `public`。
+演示见 `examples/controls`（MessageBoxForm 的「通用 Dialog」按钮）。
+
+```cpp
+#include "duilib/duilib.h"
+
+ui::Dialog dlg;
+dlg.SetTitle(_T("STRID_EDIT_TITLE"));      //SetTextIdMode(true) 时按多语言 ID 解析
+dlg.SetTextIdMode(true);
+dlg.SetSize(460, 300);                      //不含阴影，默认 480 x 360，最小 160 x 120
+dlg.SetContentXml(_T("<VBox width=\"stretch\" height=\"stretch\">")
+                  _T("<Label text_id=\"STRID_EDIT_TEXT\" multi_line=\"true\" width=\"stretch\" height=\"auto\"/>")
+                  _T("<CheckBox name=\"chk_remember\" text=\"记住选择\" margin=\"0,16,0,0\"/>")
+                  _T("</VBox>"));
+dlg.AddButton(_T("ok"), _T("STRID_MSGBOX_OK"), true);   //默认按钮：蓝色样式 + 初始焦点
+dlg.AddButton(_T("cancel"), _T("STRID_MSGBOX_CANCEL"));
+
+//按钮点击回调在窗口销毁前执行，可读取/校验内容区控件；返回 false 阻止关闭
+bool bRemember = false;
+dlg.AttachButtonClick([&bRemember](ui::Dialog* pDialog, int32_t nIndex) {
+    if ((nIndex >= 0) && (pDialog->GetClickedButtonId() == _T("ok"))) {
+        ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(pDialog->FindControl(_T("chk_remember")));
+        bRemember = (pCheckBox != nullptr) && pCheckBox->IsSelected();
+    }
+    return true;
+});
+
+int32_t nIndex = dlg.DoModal(this);         //返回按钮索引
+```
+
+| 接口 | 说明 |
+|------|------|
+| `SetTitle` / `SetTextIdMode` | 标题；多语言模式影响标题与按钮文字，任务栏原生标题也显示译文 |
+| `SetSkinFolder` | 资源目录（相对资源根目录），默认 `public`；内容 XML 中的资源路径建议按资源根目录写 |
+| `SetSize` | 窗口大小（不含阴影），默认 480 x 360，最小 160 x 120 |
+| `SetTitleBarVisible` | 是否显示标题栏（默认 true）；隐藏后只能 ESC 或按钮关闭 |
+| `SetContentXml` | 内容区 XML 片段（如 `<VBox>...</VBox>`），为空则内容区留空 |
+| `AddButton(id, text, bDefault=false)` | 按添加顺序从左到右排列；`id` 必须非空且唯一，供 `GetClickedButtonId` 返回；id 为空或重复时添加失败并返回 false |
+| `AttachInit(callback)` | 窗口创建完成后的回调，可 `FindControl` 填数据；在默认按钮获得焦点之后执行 |
+| `AttachButtonClick(callback)` | 按钮点击/Enter 触发时、关闭前执行；回调返回 false 保持对话框打开 |
+| `DoModal(parent)` | 返回被点击按钮的索引；ESC/标题栏关闭返回 `kResultCancel`(-1)；创建失败返回 `kResultFailed`(-2) |
+| `GetClickedButtonIndex` / `GetClickedButtonId` | 被点击按钮的索引 / 业务标识；取消时分别为 -1 / 空 |
+
+要点：
+
+- 标题、内容 XML、按钮列表必须在 `DoModal` 之前配置：窗口 XML 在创建窗口时组装。
+- 默认按钮初始获得焦点，Enter 触发当前焦点按钮；TAB 在按钮与内容区可聚焦控件间循环，标题栏关闭按钮不参与 TAB。
+- ESC 与标题栏 X 一律返回 `kResultCancel`，不会映射成默认按钮。
+- 未添加任何按钮时自动补一个"确定"按钮，避免对话框无法关闭。
+- 内容区不提供滚动，超长内容请自行用 `ScrollBox` 包裹；内容区不做表单校验，校验逻辑放在 `AttachButtonClick` 中。
+- 与 `MessageBoxWnd` 相同，Enter 能派发给焦点按钮依赖 `NativeWindow_Windows::SetEnterKeyPassthrough` 的注册/注销（Dialog 内部已处理）；SDL 平台的模态循环不做 Enter 关闭，避免吞掉输入控件的回车。
+
 ### 非模态通知框 ToastWnd
 
 框架自带的自绘皮肤非模态通知框（Toast），头文件 `duilib/Utils/ToastWnd.h`

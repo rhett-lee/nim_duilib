@@ -959,6 +959,12 @@ STRID_MSGBOX_BTN_RETRY_CANCEL   = Retry + Cancel
 STRID_MSGBOX_BTN_ICONS          = Four standard icons
 STRID_MSGBOX_BTN_LONG_TEXT      = Long text (auto-wrap, adaptive height)
 STRID_MSGBOX_BTN_CUSTOM_TEXT    = Custom button text (Save/Don't Save/Cancel)
+STRID_MSGBOX_BTN_DIALOG         = Generic Dialog (any content + custom buttons)
+
+# Generic Dialog demo
+STRID_DIALOG_DEMO_TITLE = Generic Dialog
+STRID_DIALOG_DEMO_TEXT  = The content area accepts any XML control combination; footer buttons are defined by the caller.
+STRID_DIALOG_DEMO_CHECK = This is a CheckBox example
 
 # Demo: OK
 STRID_MSGBOX_DEMO_OK_TEXT   = This is a normal informational message.

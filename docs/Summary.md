@@ -254,6 +254,7 @@
 | 拾色器实现类 | | [duilib/Control/ColorPickerStandardGray.h](../duilib/Control/ColorPickerStandardGray.h) | ColorPicker的实现类，标准颜色，灰色 |
 | 拾色器实现类 | | [duilib/Control/ColorSlider.h](../duilib/Control/ColorSlider.h) | ColorPicker的实现类 |
 | MessageBoxWnd | WindowImplBase | [duilib/Utils/MessageBoxWnd.h](../duilib/Utils/MessageBoxWnd.h) | 自绘皮肤的模态消息框，独立窗口，详见[MessageBox.md](MessageBox.md) |
+| Dialog | WindowImplBase | [duilib/Utils/Dialog.h](../duilib/Utils/Dialog.h) | 通用模态对话框：内容区接受任意 XML 片段，底部按钮由调用方自定义，`DoModal` 返回按钮索引 |
 | ToastWnd | WindowImplBase | [duilib/Utils/ToastWnd.h](../duilib/Utils/ToastWnd.h) | 自绘皮肤的非模态通知框，独立窗口，自动消失、可堆叠，详见[Toast.md](Toast.md) |
 | ControlDragable | Control | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |

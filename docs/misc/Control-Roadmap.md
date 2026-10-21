@@ -22,7 +22,7 @@
 | 其他控件 | Split（分割条）、GroupBox、Line、ScrollBar、PropertyGrid（属性表）、AddressBar（地址栏）、ChildWindow、IconControl、BitmapControl |
 | 拖拽增强 | ControlDragable/HBoxDragable/VBoxDragable（拖动调整子控件顺序）、BoxMovable、BoxResizable |
 | Web 嵌入 | CefControl、WebView2Control |
-| 窗口工具 | ToastWnd（非模态通知框）、MessageBoxWnd（模态消息框）、Tooltip（悬停提示）、FileDialog、TrayIcon（托盘）、Clipboard、ScreenCapture |
+| 窗口工具 | ToastWnd（非模态通知框）、MessageBoxWnd（模态消息框）、Dialog（通用模态对话框）、Tooltip（悬停提示）、FileDialog、TrayIcon（托盘）、Clipboard、ScreenCapture |
 | 基础设施 | SVG（nanosvg）、GIF/WebP/APNG/Lottie/PAG 动图、深浅色主题、多语言、DPI 自适应、文件拖放、动画系统、SDL 跨平台后端（Linux/MacOS/FreeBSD） |
 
 大件控件（列表、表格、树、虚表、属性表、拾色器、Web 嵌入）均已具备，覆盖面完整。对照主流框架，缺口集中在**现代交互控件**与**浮层体系**两块。

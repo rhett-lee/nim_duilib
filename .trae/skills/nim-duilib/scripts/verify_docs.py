@@ -55,6 +55,8 @@ EXCLUDE_IDENTS = {
     "color_theme", "color_light", "color_dark", "bg_color", "color_picker",
     # 事件字符串（XML type）
     "value_changed", "visible_changed",
+    # 第三方库源码的字段名（SDL 的 SDL_Window::text_input_active），非主题色名
+    "text_input_active",
 }
 
 PATTERNS = [

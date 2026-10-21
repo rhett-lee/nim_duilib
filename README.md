@@ -134,6 +134,7 @@
     <tr><td align="left">46. Carousel：图片轮播控件（继承 Control），用于首页横幅/广告位/图片集；幻灯片、左右切换按钮与底部可点击页码指示点均由 SVG 图片承载并映射语义色，支持自动播放+悬停暂停、无限循环（loop）、切换动画（transition_ms）与鼠标按住左右拖拽翻页，索引变化回调的 pEventData 携带 index/oldIndex，详见 docs/Control.md</td></tr>
     <tr><td align="left">47. Pagination：分页器控件（继承 HBox），用于报表/表格/列表的页码导航；上一页/下一页（可选首页/末页）+ 按数据动态生成的页码按钮，当前页呈选中态，页码超出显示上限时以"…"收纳并始终保留首尾与当前页附近，按钮配色由 button_class 皮肤类（走语义色）驱动，页码变化回调的 pEventData 携带 page/oldPage，详见 docs/Control.md</td></tr>
     <tr><td align="left">48. TreeGrid：树表格控件（继承 VBox），在同一控件内呈现"可展开/收起的层级行 + 多列表格"，用于文件树/报表/组织架构；表头固定不滚动、列表体自带纵向滚动条，表头与数据行复用同一列宽数组而天然逐列对齐（缩进由树列单元格内嵌占位实现，其它列不错位）；列标题/列宽/对齐可配置，支持多选（multi_select）与行首复选框父子三态级联（check_mode + check_cascade），勾选变化事件的 pEventData 携带 TreeGridCheckValue，详见 docs/Control.md</td></tr>
+    <tr><td align="left">49. Dialog：通用模态对话框（duilib/Utils/Dialog.h），内容区支持任意 XML 片段，底部按钮的数量/文字/默认按钮可自定义，不依赖额外的 XML 文件；DoModal 返回被点击按钮的索引，支持 ESC 与标题栏关闭取消、Enter 触发当前焦点按钮、多语言文本 ID，以及关闭前执行的按钮点击回调（返回 false 可阻止关闭，便于读取内容区数据或校验输入）</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window text_id="STRID_MSGBOX_MAIN_TITLE" size="500,560" min_size="360,300"
+<Window text_id="STRID_MSGBOX_MAIN_TITLE" size="500,620" min_size="360,300"
         caption="0,0,0,36" use_system_caption="false"
         snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36"
         shadow_type="default" shadow_attached="true"
@@ -40,6 +40,8 @@
             <Button class="btn_global" name="btn_demo_long_text" text_id="STRID_MSGBOX_BTN_LONG_TEXT"
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
             <Button class="btn_global" name="btn_demo_custom_text" text_id="STRID_MSGBOX_BTN_CUSTOM_TEXT"
+                    width="320" height="34" halign="center" margin="0,0,0,10"/>
+            <Button class="btn_global" name="btn_demo_dialog" text_id="STRID_MSGBOX_BTN_DIALOG"
                     width="320" height="34" halign="center" margin="0,0,0,10"/>
 
             <Label name="label_result" text_id="STRID_MSGBOX_MAIN_RESULT_NONE"

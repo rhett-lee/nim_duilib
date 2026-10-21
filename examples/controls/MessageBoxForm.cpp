@@ -141,6 +141,28 @@ void MessageBoxForm::OnInitWindow()
             return true;
         });
     }
+
+    //通用 Dialog：任意内容 + 自定义底部按钮
+    ui::Button* pDialogButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_demo_dialog")));
+    if (pDialogButton != nullptr) {
+        pDialogButton->AttachClick([this](const ui::EventArgs&) {
+            ui::Dialog dlg;
+            dlg.SetTitle(_T("STRID_DIALOG_DEMO_TITLE"));
+            dlg.SetTextIdMode(true);
+            dlg.SetSize(460, 300);
+            dlg.SetContentXml(_T("<VBox width=\"stretch\" height=\"stretch\">")
+                              _T("<Label text_id=\"STRID_DIALOG_DEMO_TEXT\" multi_line=\"true\" width=\"stretch\" height=\"auto\"/>")
+                              _T("<CheckBox text_id=\"STRID_DIALOG_DEMO_CHECK\" margin=\"0,16,0,0\"/>")
+                              _T("</VBox>"));
+            dlg.AddButton(_T("ok"), _T("STRID_MSGBOX_OK"), true);
+            dlg.AddButton(_T("cancel"), _T("STRID_MSGBOX_CANCEL"));
+            int32_t nIndex = dlg.DoModal(this);
+            //按按钮标识判断结果，避免依赖按钮的添加顺序
+            const bool bOk = (nIndex >= 0) && (dlg.GetClickedButtonId() == _T("ok"));
+            ShowResult(bOk ? ui::MessageBoxWnd::kResultOK : ui::MessageBoxWnd::kResultCancel);
+            return true;
+        });
+    }
 }
 
 bool MessageBoxForm::OnLanguageChanged()

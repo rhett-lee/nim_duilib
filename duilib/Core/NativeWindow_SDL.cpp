@@ -994,7 +994,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     //创建SDL窗口和Render
     if (!CreateWindowAndRender(pParentWindow, createAttributes)) {
-        return false;
+        return -1;
     }
     
     //标记为模式对话框状态
@@ -1017,7 +1017,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     SDL_WindowID currentWindowId = SDL_GetWindowID(m_sdlWindow);
     if (currentWindowId == 0) {
         m_bDoModal = false;
-        return 0;
+        return -1;
     }
 
     //设置未模态对话框

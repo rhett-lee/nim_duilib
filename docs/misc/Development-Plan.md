@@ -502,7 +502,7 @@ API 变动频率高 |
 | :--- | :--- | :--- | :--- | :--- |
 | **E-1** | **StatusBar 分格索引 API** ✅ 已完成（2026-10-18） | `StatusBar.h` 无 `SetStatusText(格,文本)` / `GetStatusText`，只能业务层 `FindControl` 找子 Label；且 size grip 头文件自认"仅作视觉提示，不改变窗口可调整大小行为"= **装饰性死控件** | 补 4–6 个方法；明确 size grip 是否要接真实拖拽 | 极低 |
 | **E-2** | **NavigationView 属性文档** ✅ 已完成（2026-10-18） | `docs/Control.md` 中 `NavigationView` 出现 0 次——**唯一已实现但主文档无章节的控件** | 补中英双章节 + `Summary` / `XmlNode` / `Events` 四处 | 极低（纯文档） |
-| **E-3** | **通用 Dialog 控件** | 只有 `MessageBoxWnd` 五种固定按钮，无法放任意内容。**地基已齐**（`Mask` 遮罩 + `Flyout` 浮层），只差组装 | 新增 `Dialog` 基类，可放任意内容 + 自定义底部按钮区 + `DoModal` | 低（约 600 行） |
+| **E-3** | **通用 Dialog 控件** ✅ 已完成（2026-10-21） | 只有 `MessageBoxWnd` 五种固定按钮，无法放任意内容。**地基已齐**（`Mask` 遮罩 + `Flyout` 浮层），只差组装 | 新增 `Dialog` 基类，可放任意内容 + 自定义底部按钮区 + `DoModal` | 低（约 600 行） |
 | **E-4** | **Pagination 分页器** ✅ 已完成（2026-10-19） | 全仓无命中。报表/表格类软件刚需，当前全靠业务层手写按钮组 | HBox + 若干 Button 组合 | 低（约 250 行） |
 | **E-5** | **ScrollBar 键盘导航** ✅ 已完成（2026-10-18 核实：现有代码已支持，无需开发） | `ScrollBar` 无 PageUp/PageDown/方向键/Home/End 处理（对比 `Slider.h:215 HandleKeyDown` 有完整键盘支持）；`ScrollBar.cpp:50` 还有 TODO"DPI 自适应参数，需要确认一下" | 补键盘处理 + 修 DPI TODO | 低 |
 
@@ -547,6 +547,21 @@ Windows 侧沿用 `WM_NCHITTEST`，SDL 侧沿用命中测试回调，两端都�
 
 **验证**：`verify_docs.py --extra docs` 89 份文档零漂移；章节内 XML 示例通过 ElementTree 解析；
 改动文件全部保持 CRLF；markdown 行尾硬换行空格零丢失。
+
+#### E-3 实施记录（2026-10-21 完成）
+
+**实现**：新增 `duilib/Utils/Dialog.h` / `Dialog.cpp`，继承 `WindowImplBase`；窗口 XML 在 `GetSkinFile()` 中按
+「标题栏 + 内容区 + 按钮区」运行时组装，`SetContentXml()` 注入任意 XML 片段，`AddButton()` 自定义底部按钮，
+`DoModal()` 返回被点击按钮的索引（取消/ESC/标题栏关闭统一返回 `kResultCancel`，创建失败返回 `kResultFailed`），
+`AttachButtonClick()` 可在关闭前读取内容区数据或阻止关闭，`GetClickedButtonId()` 取业务标识。
+标题与按钮文字支持多语言 ID（`SetTextIdMode`），`AttachInit()` 可在初始化后向内容区动态填数据。
+
+**边界**：不做内嵌式弹层（该场景继续用 `Flyout` + `Mask`），不做内建表单校验，内容与业务逻辑由调用方负责。
+Windows 下复用 `MessageBoxWnd` 的 Enter 键放行与 TAB 焦点环处理；SDL 下关闭模态循环的 Enter 自动关窗，
+避免吞掉内容区输入控件的回车（Enter 仍由焦点按钮响应）。
+
+**示例**：`examples/controls/MessageBoxForm` 新增「通用 Dialog」按钮（Label + CheckBox + 确定/取消），
+`Debug|x64` 下 `duilib` 与 `controls` 均编译通过。
 
 #### E-5 实施记录（2026-10-18 完成）
 
@@ -783,7 +798,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-20）**：C 组（跨平台一致性）**7 项中完成 4 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），另有 C-4 经决策**明确不处理（保持现状）**；D / E 组（控件）**已完成 13 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
+> **实际进展（截至 2026-10-21）**：C 组（跨平台一致性）**7 项中完成 4 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），另有 C-4 经决策**明确不处理（保持现状）**；D / E 组（控件）**已完成 14 项**，其中 10 项集中在 10-17~10-19 四天内。当前瓶颈仍是 A 组（编译埋雷）与 B 组（测试 / CI / 打包）—— 控件越加越多，回归网还是零。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
@@ -794,7 +809,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [x] **C-7** CMake 平台判定健壮化　｜ 实际约 0.25 天（原估 0.5 天）｜ 依赖：无 ｜ 完成日期：2026-10-20 ｜ ⚠️ macOS / Linux / FreeBSD 分支本机无法实机构建，需在对应平台按分支日志核对（见 C-7 小节）
 - [x] **E-1** StatusBar 分格索引 API　｜ 极低 ｜ 完成日期：2026-10-18
 - [x] **E-2** NavigationView 属性文档（中英 4 处）　｜ 极低 ｜ 完成日期：2026-10-18
-- [ ] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：______
+- [x] **E-3** 通用 Dialog 控件　｜ 约 600 行 ｜ 完成日期：2026-10-21（`duilib/Utils/Dialog.h/.cpp`：任意内容 XML + 自定义底部按钮 + `DoModal`；示例见 controls 的 MessageBoxForm）
 - [x] **E-4** Pagination 分页器　｜ 约 250 行 ｜ 完成日期：2026-10-19
 - [x] **E-5** ScrollBar 键盘导航 + 修 DPI TODO　｜ 低 ｜ 完成日期：2026-10-18（核实：现有代码已支持，无需开发）
 - [x] **E-6** ListCtrl ②排序稳定性 + ③合并注释清理　｜ 低 ｜ 完成日期：2026-10-18（① 汇总行/分组行保持开放，未做）

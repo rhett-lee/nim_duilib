@@ -24,7 +24,7 @@ This document is based on a full scan of the existing code (`duilib/Control`, `d
 | Misc Controls | Split, GroupBox, Line, ScrollBar, PropertyGrid, AddressBar, ChildWindow, IconControl, BitmapControl |
 | Drag Enhancements | ControlDragable/HBoxDragable/VBoxDragable (drag to reorder children), BoxMovable, BoxResizable |
 | Web Embedding | CefControl, WebView2Control |
-| Window Utilities | ToastWnd (non-modal toast), MessageBoxWnd (modal message box), Tooltip, FileDialog, TrayIcon, Clipboard, ScreenCapture |
+| Window Utilities | ToastWnd (non-modal toast), MessageBoxWnd (modal message box), Dialog (generic modal dialog), Tooltip, FileDialog, TrayIcon, Clipboard, ScreenCapture |
 | Infrastructure | SVG (nanosvg), GIF/WebP/APNG/Lottie/PAG animations, light/dark themes, multi-language, DPI scaling, file drag-and-drop, animation system, SDL cross-platform backend (Linux/MacOS/FreeBSD) |
 
 The heavyweight controls (lists, tables, trees, virtual lists, property grid, color picker, web embedding) are all in place with complete coverage. Compared with mainstream frameworks, the gaps concentrate in **modern interaction controls** and the **flyout/popup system**.

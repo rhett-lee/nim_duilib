@@ -964,6 +964,12 @@ STRID_MSGBOX_BTN_RETRY_CANCEL   = 重试 + 取消（RetryCancel）
 STRID_MSGBOX_BTN_ICONS          = 四种标准图标（信息/警告/错误/疑问）
 STRID_MSGBOX_BTN_LONG_TEXT      = 长文本（自动换行，窗口高度自适应）
 STRID_MSGBOX_BTN_CUSTOM_TEXT    = 自定义按钮文字（保存/不保存/取消）
+STRID_MSGBOX_BTN_DIALOG         = 通用 Dialog（任意内容 + 自定义按钮）
+
+# 通用 Dialog 演示
+STRID_DIALOG_DEMO_TITLE = 通用 Dialog
+STRID_DIALOG_DEMO_TEXT  = 内容区可以放任意 XML 控件组合，底部按钮由调用方自定义。
+STRID_DIALOG_DEMO_CHECK = 这是一个 CheckBox 示例
 
 # 演示：确定
 STRID_MSGBOX_DEMO_OK_TEXT   = 这是一条普通提示消息。
