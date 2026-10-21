@@ -347,14 +347,17 @@ NavigationViewItem（继承 Control）属性：
 
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
-| step | 1 | int | 步长（步进按钮/上下方向键每次调整值） |
-| value | 0 | int64 | 初始值（超范围时自动修正） |
+| decimals | 0 | int(0~10) | 小数位数；0 为普通整数模式 |
+| step | 1 | double | 步长（必须 > 0，支持小数） |
+| value | 0 | double | 初始值（超范围时钳位，并按 decimals 四舍五入） |
+| min_number / max_number | 无限制 | double | 数值范围（别名 `min_value` / `max_value`） |
+| prefix / suffix | "" | string | 显示前缀 / 后缀（如 `"$ "`、`" kg"`） |
+| group_separator | "" | string | 千分位分隔符（别名 `thousand_separator`） |
 | spin_class | | string | 步进按钮样式（同 RichEdit，如 `rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down`） |
-| min_number / max_number | | int64 | 数字范围 |
 
-C++ 接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。数值变化触发 `kEventTextChanged`。
+C++ 接口：`SetStep/GetStep/GetStepDouble`、`SetValue/GetValue/GetValueDouble`、`SetRange`、`SetMinValue/GetMinValue`、`SetMaxValue/GetMaxValue`、`SetDecimals`、`SetPrefix/SetSuffix`、`SetGroupSeparator`。数值变化触发 `kEventTextChanged`；失焦时按格式重写文本，非法输入回退到最近有效值。
 
-注意：需设置 `spin_class` 属性才会显示步进按钮，否则只有上下方向键能调整数值。
+注意：需设置 `spin_class` 属性才会显示步进按钮，否则只有上下方向键能调整数值；纯整数模式保持 RichEdit 的 `number_only` 输入过滤，设置小数/前后缀/千分位后改为 `limit_chars` 过滤。
 
 ### SearchBox 属性(继承 HBox，搜索框组合控件)
 

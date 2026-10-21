@@ -19,7 +19,7 @@
 | 情况 | 做法 |
 |------|------|
 | 语义是全新控件（如步骤条、评分、轮播） | **新增独立控件**，走本文 |
-| 只是已有控件缺一两个 XML 属性 / API | 扩展已有控件，走 `framework-extend.md` |
+| 只是已有控件缺一两个 XML 属性 / API | 扩展已有控件，走 `framework-extend.md`（数值/格式化类扩展见其第六节） |
 | 组合几个已有控件即可（如搜索框） | 优先新增轻量组合控件，避免堆属性 |
 | 已有控件能"勉强模拟"但语义不符 | 新增独立控件，但在 spec 里写清与既有控件的语义差异 |
 
@@ -352,6 +352,7 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 | 改了头文件后示例崩溃 0xC0000005 | duilib 库未重建，ODR 布局冲突 | 先重建 `duilib`，再重建示例 |
 | 文档检查报"不存在" | 文档名与源码不一致，或引用了控件内部 name | 改文档；确属有意引用才进 allowlist |
 | 英文文档链接 404 | Summary 用了中文锚点 | 英文锚点按英文标题生成 |
+| 扩展控件时 `value` 被格式属性舍入 | XML 属性按声明顺序生效，`value` 先于 `decimals` | 格式类属性写在数值之前（详见 `framework-extend.md` 6.5） |
 
 ---
 
@@ -363,4 +364,5 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 | RangeSlider | `docs/misc/specs/B3-RangeSlider/` | 双滑块交互、`kEventValueChanged` 的 `wParam` 模式标记 |
 | Carousel | `docs/misc/specs/B7-Carousel/` | 图片驱动 + 主题色替换、定时器与生命周期 |
 | TreeGrid | `docs/misc/specs/B9-TreeGrid/` | 新控件而非改 ListCtrl 的边界判断 |
+| SpinBox 小数/格式化（D-3） | `docs/misc/specs/D-3-SpinBox-Decimal/` | 已有控件能力扩展：基类回调改虚、双模式输入过滤、XML 属性顺序、解析/格式化成对 |
 | SystemNotification | `docs/SystemNotification.md` | 大型能力独立成类 + 独立专题文档（中英） |

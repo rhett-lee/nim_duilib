@@ -254,10 +254,15 @@
 ### SpinBox 属性(继承 RichEdit，数字输入框)
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
-| step | 1 | int | 步长（步进按钮/上下方向键每次调整值） |
-| value | 0 | int | 初始值（超范围时自动修正） |
+| decimals | 0 | int(0~10) | 小数位数；0 为普通整数模式 |
+| step | 1 | double | 步长（必须 > 0，支持小数） |
+| value | 0 | double | 初始值（超范围时钳位，并按 decimals 四舍五入） |
+| min_number / max_number | 无限制 | double | 数值范围（别名 `min_value` / `max_value`） |
+| prefix / suffix | "" | string | 显示前缀 / 后缀（如 `"$ "`、`" kg"`） |
+| group_separator | "" | string | 千分位分隔符（别名 `thousand_separator`） |
 | spin_class | | string | 步进按钮样式（同 RichEdit） |
-| min_number / max_number | | int | 数字范围 |
+
+C++ 接口：`SetStep/GetStep/GetStepDouble`、`SetValue/GetValue/GetValueDouble`、`SetRange`、`SetMinValue/SetMaxValue`、`SetDecimals`、`SetPrefix/SetSuffix`、`SetGroupSeparator`。数值变化触发 `kEventTextChanged`；失焦格式化，非法输入回退最近有效值。
 
 ### SearchBox 属性(继承 HBox，搜索框组合控件)
 左图标 + 内部 RichEdit + 清除按钮（`duilib/Control/SearchBox.h`），XML 节点名 `SearchBox`。

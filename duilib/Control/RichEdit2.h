@@ -771,9 +771,9 @@ public:
     */
     void SetTextNumber(int64_t nValue);
 
-    /** 调整文本数字值
+    /** 调整文本数字值（虚函数：SpinBox 等子类可重写，以支持小数或自定义格式）
     */
-    void AdjustTextNumber(int32_t nDelta);
+    virtual void AdjustTextNumber(int32_t nDelta);
 
     /** 设置是否替换换行符(将字符串"\\n"替换为换行符"\n"，这样可以在XML中使用括号中这两个字符(\n)来当作换行符，从而支持多行文本)
     * @param [in] bReplaceNewline true表示替换，false表示不替换

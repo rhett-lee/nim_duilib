@@ -1432,23 +1432,33 @@ Functional description of the RichEdit2 class:
 
 ## Attributes of SpinBox
 SpinBox is a numeric input control derived from RichEdit. It enables `number_only` mode by default and provides numeric input plus spin buttons and up/down arrow key adjustment.    
-In addition to RichEdit's common attributes (`spin_class`, `min_number`, `max_number`, `limit_text`, etc.), it adds the following attributes:    
+When `decimals` is greater than 0, or a prefix/suffix/group separator is set, the control switches to formatted input mode: digits, sign, decimal point, group separator, and characters used by the prefix/suffix are accepted; on focus loss the text is regenerated in the current format, and unparsable input falls back to the last valid value.    
+In addition to RichEdit's common attributes (`spin_class`, `limit_text`, etc.), it adds the following attributes:    
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
-| step | 1 | int | Step value (positive integer); the amount added/subtracted by each spin button click or up/down arrow key press |
-| value | 0 | int64 | Initial numeric value (clamped to the min/max range if out of bounds) |
+| decimals | 0 | int(0~10) | Number of decimal places; 0 keeps the plain integer SpinBox behavior |
+| step | 1 | double | Step value (must be > 0); the amount added/subtracted by each spin button click or up/down arrow key press |
+| value | 0 | double | Initial value (clamped to the min/max range and rounded to `decimals`) |
+| min_number / max_number | unlimited | double | Value range (aliases: `min_value` / `max_value`) |
+| prefix | "" | string | Display prefix (e.g. `"$ "`) |
+| suffix | "" | string | Display suffix (e.g. `" kg"`) |
+| group_separator | "" | string | Thousands separator (e.g. `","`); empty means no grouping. Alias: `thousand_separator` |
 
-Corresponding C++ interfaces: `SetStep/GetStep`, `SetValue/GetValue`, `SetRange(min, max)`.    
+Corresponding C++ interfaces: `SetStep/GetStep/GetStepDouble`, `SetValue/GetValue/GetValueDouble`, `SetRange(min, max)`, `SetMinValue/GetMinValue`, `SetMaxValue/GetMaxValue`, `SetDecimals/GetDecimals`, `SetPrefix/GetPrefix`, `SetSuffix/GetSuffix`, `SetGroupSeparator/GetGroupSeparator`.    
 The `kEventTextChanged` event is fired when the value changes (same as RichEdit).    
 Example (see the rich_edit example program):    
 
 ```xml
 <SpinBox class="simple simple_border rich_edit_spin" min_number="0" max_number="100" step="5" value="50"/>
+<!-- Decimal + grouping + prefix/suffix: displays "$ 1,234.50 kg" -->
+<SpinBox class="simple simple_border rich_edit_spin" min_number="-10000" max_number="10000"
+         step="0.25" decimals="2" value="1234.5" group_separator=","
+         prefix="$ " suffix=" kg"/>
 ```
 
 The `spin_class` styles (rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down) are defined in the `rich_edit_spin` class of global.xml.    
-Note: the spin buttons are only shown when the `spin_class` attribute is set; otherwise only the up/down arrow keys can adjust the value.    
+Note: the spin buttons are only shown when the `spin_class` attribute is set; otherwise only the up/down arrow keys can adjust the value. If `limit_chars` is set explicitly, the control no longer generates its own input character set.    
 
 ## Attributes of SearchBox
 SearchBox is a composite search input control derived from HBox. It combines a search icon on the left, a text edit box (RichEdit), and a clear button on the right, intended for keyword input and search scenarios. Header file: `duilib/Control/SearchBox.h`.

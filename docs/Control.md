@@ -1432,23 +1432,33 @@ RichEdit2类的功能说明：
 
 ## SpinBox的属性
 SpinBox是数字输入框控件，继承自RichEdit，默认开启`number_only`模式，提供数字输入 + 步进按钮 + 上下方向键调整的完整数字输入能力。    
-除RichEdit的通用属性（`spin_class`、`min_number`、`max_number`、`limit_text`等）外，新增以下属性：    
+当设置小数（`decimals` 大于 0）或前后缀/千分位时，控件自动切换为格式化输入模式：允许输入数字、正负号、小数点、千分位分隔符以及前后缀中的字符；失焦时按当前格式重新生成文本，无法解析的输入恢复为最近一次有效值。    
+除RichEdit的通用属性（`spin_class`、`limit_text`等）外，新增以下属性：    
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| step | 1 | int | 步长值（正整数），步进按钮和上下方向键每次调整的数值 |
-| value | 0 | int64 | 初始数值（超出min/max范围时会被修正到边界值） |
+| decimals | 0 | int(0~10) | 小数位数；0 时与普通整数 SpinBox 行为一致 |
+| step | 1 | double | 步长值（必须大于 0），步进按钮和上下方向键每次调整的数值 |
+| value | 0 | double | 初始数值（超出min/max范围时会被修正到边界值，并按 decimals 四舍五入） |
+| min_number / max_number | 无限制 | double | 数值范围（别名 `min_value` / `max_value`） |
+| prefix | "" | string | 显示前缀（如 `"$ "`） |
+| suffix | "" | string | 显示后缀（如 `" kg"`） |
+| group_separator | "" | string | 千分位分隔符（如 `","`），空表示不分组；别名 `thousand_separator` |
 
-对应C++接口：`SetStep/GetStep`、`SetValue/GetValue`、`SetRange(min, max)`。    
+对应C++接口：`SetStep/GetStep/GetStepDouble`、`SetValue/GetValue/GetValueDouble`、`SetRange(min, max)`、`SetMinValue/GetMinValue`、`SetMaxValue/GetMaxValue`、`SetDecimals/GetDecimals`、`SetPrefix/GetPrefix`、`SetSuffix/GetSuffix`、`SetGroupSeparator/GetGroupSeparator`。    
 数值变化时触发`kEventTextChanged`事件（与RichEdit一致）。    
 使用示例（参考 rich_edit 示例程序）：    
 
 ```xml
 <SpinBox class="simple simple_border rich_edit_spin" min_number="0" max_number="100" step="5" value="50"/>
+<!-- 小数 + 千分位 + 前后缀：显示为 "$ 1,234.50 kg" -->
+<SpinBox class="simple simple_border rich_edit_spin" min_number="-10000" max_number="10000"
+         step="0.25" decimals="2" value="1234.5" group_separator=","
+         prefix="$ " suffix=" kg"/>
 ```
 
 其中`spin_class`样式（rich_edit_spin_box / rich_edit_spin_btn_up / rich_edit_spin_btn_down）在 global.xml 的`rich_edit_spin`类中定义。    
-注意：需设置 `spin_class` 属性才会显示步进按钮；否则只有上下方向键能调整数值。    
+注意：需设置 `spin_class` 属性才会显示步进按钮；否则只有上下方向键能调整数值。若自行设置了 `limit_chars`，控件不再自动生成输入字符集。    
 
 ## SearchBox的属性
 SearchBox是搜索框组合控件，继承自HBox，内部组合了左侧搜索图标、文本编辑框（RichEdit）与右侧清除按钮，用于关键词输入与搜索场景。对应头文件`duilib/Control/SearchBox.h`。
