@@ -85,9 +85,9 @@
 #### 后续顺序建议
 
 1. **第三梯队补充项已全部完成**：TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）、ListCtrl 交互增强（第 18 项）均已落地。至此控制层规划清单已清空，后续新需求按实际需要再排期。
-2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
+2. **平台整合能力与工程化（见第五、六部分）**：原生系统通知已完成；无障碍与安装/签名/公证剩余项**明确不做**（2026-10-21 决策，不再跟进）；应用内更新、文件关联 / URL Scheme、开机自启 + 托盘菜单 API 同样明确不做。
 3. **第 16 项遮罩/蒙版层与骨架屏的关系（已解决）**：蒙层已由 `Mask` 控件统一提供（模态遮罩/新手引导/加载遮罩）；骨架屏的 loading 层仍是"叠加绘制"语义，二者定位不同——需要拦截交互或镂空高亮时用 `Mask`，仅需视觉占位时用骨架屏。
-4. **审计新增控件已全部落地**：Project-Audit 的 B1 StatusBar、B2 ToolBar、B3 RangeSlider、B4 Stepper、B5 Rating、B7 Carousel/Pagination、B9 TreeGrid 均已完成；B6 FontDialog/PrintDialog、B8 富内容 Tooltip、B10 打印/导出通道明确不做。
+4. **审计新增控件已全部落地**：Project-Audit 的 B1 StatusBar、B2 ToolBar、B3 RangeSlider、B4 Stepper、B5 Rating、B7 Carousel/Pagination、B9 TreeGrid 均已完成；B6 FontDialog/PrintDialog、B8 富内容 Tooltip、B10 打印/导出通道明确不做；ListCtrl 列汇总行 / 分组行（Development-Plan E-6①）也明确不做，不再跟进。
 
 ### 五、平台整合能力规划（应用骨架层）
 
@@ -95,12 +95,12 @@
 
 | # | 能力 | 现状 | 说明 | 优先级 | 状态（2026-10-21） |
 |---|------|------|------|------|------|
-| 18 | 无障碍（Accessibility/屏幕阅读器） | **缺失** | Windows 需接 UI Automation、macOS 接 NSAccessibility、Linux 接 AT-SPI；企业/政务软件合规刚需，也是跨平台桌面库的硬门槛。可先做"控件名/值/角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐 | 高 | ❌ 未启动（跟踪 Development-Plan F-2） |
+| 18 | 无障碍（Accessibility/屏幕阅读器） | **缺失** | Windows 需接 UI Automation、macOS 接 NSAccessibility、Linux 接 AT-SPI；企业/政务软件合规刚需，也是跨平台桌面库的硬门槛。可先做"控件名/值/角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐 | 高 | ❌ 明确不做（2026-10-21 决策，不再跟进；对应 Development-Plan F-2） |
 | 19 | 原生系统通知 | Toast 为应用内自绘 | 接入 macOS 通知中心、Windows 桌面通知、Linux（D-Bus/Freedesktop）的原生通知，与现有 Toast 形成"应用内 + 系统级"双通道 | 高 | ✅ 已完成（2026-10-21：新增 `SystemNotification` 独立类，SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡并兼容 Win7+；Toast 保持应用内自绘，两者互不影响） |
 | 20 | 应用内更新框架 | **缺失** | 跨平台自更新：Windows 自研或 WinSparkle、macOS Sparkle、Linux 走包管理器/AppImage | 中高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | 21 | 文件关联 / URL Scheme / 深链 | **缺失** | 注册协议→唤起应用→解析参数，桌面软件"打开方式"与"外部唤起"标配 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
 | 22 | 开机自启 + 托盘菜单联动 | TrayIcon 已有 | 补齐托盘右键菜单 API、开机自启注册（登录项/启动项） | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
-| 23 | 安装/打包/签名/公证 | **缺失** | 各平台安装器（NSIS/MSIX、DMG、AppImage/deb/rpm）、代码签名、macOS 公证（notarization）。这是"桌面开发成本"的大头，提供文档化标准流程即可，不必造轮子 | 高（工程化） | 🟡 部分完成（B-3 已完成 `build/pack.py` + `docs/Release.md`，2026-10-20；安装器不做，签名/公证仍为手工流程） |
+| 23 | 安装/打包/签名/公证 | **缺失** | 各平台安装器（NSIS/MSIX、DMG、AppImage/deb/rpm）、代码签名、macOS 公证（notarization）。这是"桌面开发成本"的大头，提供文档化标准流程即可，不必造轮子 | 高（工程化） | ❌ 明确不做（2026-10-21 决策，不再跟进；B-3 已交付 `build/pack.py` + `VERSION` + `docs/Release.md`，安装器与签名/公证交由使用方按目标平台处理） |
 
 ### 六、开发者体验与工程化
 
