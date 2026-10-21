@@ -45,7 +45,7 @@ if "%VS_VERSION%"=="vs2026" (
 )
 
 SET DUILIB_MAKE=cmake --build
-SET DUILIB_BUILD_TYPE=Release
+SET DUILIB_BUILD_TYPE=Debug
 SET DUILIB_BUILD_PARAM=--config %DUILIB_BUILD_TYPE%
 
 @REM # Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这段

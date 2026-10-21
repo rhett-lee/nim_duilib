@@ -107,7 +107,9 @@ set(DUILIB_SKIA_LIB_SUBPATH "${DUILIB_SKIA_LIB_SUBPATH_DEFAULT}" CACHE STRING "S
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-set(DUILIB_LIB_PATH "${DUILIB_ROOT}/lib")
+# 库输出目录规则（D-2：<root>/lib/<arch>/<Config> 或 <root>/lib/<Config>）
+include("${DUILIB_ROOT}/cmake/duilib_lib_output.cmake")
+set(DUILIB_LIB_PATH "${DUILIB_LIB_BASE}/$<CONFIG>")
 set(DUILIB_BIN_PATH "${DUILIB_ROOT}/bin")
 set(DUILIB_LIBS duilib duilib-cximage duilib-webp duilib-png duilib-zlib)
 

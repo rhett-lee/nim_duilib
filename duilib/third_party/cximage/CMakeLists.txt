@@ -28,8 +28,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++17
 
 # duilib
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+# 库输出目录（D-2：按平台/配置分目录）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../zlib)
 

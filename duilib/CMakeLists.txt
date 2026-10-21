@@ -86,9 +86,8 @@ else()
     message(STATUS "CEF includes disabled (DUILIB_ENABLE_CEF=OFF)")
 endif()
 
-#设置库文件的输出目录
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+#设置库文件的输出目录（D-2：按平台/配置分目录，规则见 cmake/duilib_lib_output.cmake）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 
 #添加源代码文件
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)

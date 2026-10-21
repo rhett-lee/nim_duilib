@@ -210,7 +210,8 @@ find_package(CEF REQUIRED)
 
 # duilib
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../" ABSOLUTE)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+# 库输出目录（D-2：按平台/配置分目录，wrapper 与 duilib 库同规则）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 # duilib end
 
 #

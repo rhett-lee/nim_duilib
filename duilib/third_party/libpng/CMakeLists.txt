@@ -138,13 +138,14 @@ message(STATUS "Building for target architecture: ${PNG_TARGET_ARCHITECTURE}")
 
 # duilib: please build zlib first
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+# 库输出目录（D-2：按平台/配置分目录）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
 # zlib库的文件名：zlib的输出名是duilib-zlib，库文件名的前缀/后缀由CMake按编译器给出
 # （Linux/FreeBSD/macOS: libduilib-zlib.a，Windows: duilib-zlib.lib）
 set(DUILIB_ZLIB_LIB_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}duilib-zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
-# CMAKE_CFG_INTDIR：多配置生成器（VS/Xcode）展开为 $(Configuration)，单配置生成器为 "."
-# （不能用 $<CONFIG>，它在 IMPORTED_LOCATION 中不会被展开）
-set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/lib/${CMAKE_CFG_INTDIR}/${DUILIB_ZLIB_LIB_NAME}")
+# zlib 库路径：D-2 后为 <root>/lib[<arch>]/<Config>；$<CONFIG> 由 CMake 在链接时展开
+set(ZLIB_LIBRARY "${DUILIB_LIB_BASE}/$<CONFIG>/${DUILIB_ZLIB_LIB_NAME}")
 message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
 message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
 # duilib end
@@ -727,8 +728,7 @@ if(PNG_SHARED)
                         PUBLIC ${PNG_LINK_LIBRARIES})
 endif()
 
-#duilib
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+#duilib: 输出目录已由 cmake/duilib_lib_output.cmake 设置（D-2）
 
 if(PNG_STATIC)
   add_library(png_static STATIC ${libpng_sources})

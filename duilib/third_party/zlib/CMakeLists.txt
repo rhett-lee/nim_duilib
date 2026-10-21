@@ -13,8 +13,6 @@ endif()
 
 # output lib directory and lib file name
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 set(DUILIB_ZLIB_OUTPUT_NAME "duilib-zlib")
 
 set(ZLIB_BUILD_TESTING "OFF")
@@ -28,6 +26,9 @@ project(
     VERSION 1.3.2
     HOMEPAGE_URL "https://zlib.net/"
     DESCRIPTION "a general-purpose lossless data-compression library")
+
+# 库输出目录（D-2：按平台/配置分目录）
+include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
 
 # ============================================================================
 # CPack
