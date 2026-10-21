@@ -1,6 +1,6 @@
 English | [简体中文](Control-Roadmap.md)
 
-> Last synced: 2026-10-13 (roadmap merged: Tier-3 supplement controls, platform integration, engineering; Chart completed; Mask/Overlay item 16 completed)
+> Last synced: 2026-10-21 (status sync: roadmap 1–18 complete; audit-added controls StatusBar/ToolBar/RangeSlider/Stepper/Rating/Carousel/Pagination/TreeGrid complete; platform integration and engineering status columns added in the Chinese version)
 
 ## Control Library Capability Inventory and New Control Roadmap
 
@@ -21,7 +21,7 @@ This document is based on a full scan of the existing code (`duilib/Control`, `d
 | Menus | Menu/MenuItem/SubMenu/MenuBar |
 | Colors | Full ColorPicker family (Regular/Standard/StandardGray/Custom) plus ColorSlider, ColorControl |
 | Containers / Layout | HBox/VBox/ScrollBox/TileBox/GridBox/FlowBox/Panel (titled collapsible panel with accordion grouping), SplitBox + 13 layout engines (including virtual layouts) |
-| Misc Controls | Split, GroupBox, Line, ScrollBar, PropertyGrid, AddressBar, ChildWindow, IconControl, BitmapControl |
+| Misc Controls | Split, GroupBox, Line, ScrollBar, PropertyGrid, AddressBar, ChildWindow, IconControl, BitmapControl, StatusBar, ToolBar, RangeSlider, Stepper, Rating, Carousel, Pagination, TreeGrid |
 | Drag Enhancements | ControlDragable/HBoxDragable/VBoxDragable (drag to reorder children), BoxMovable, BoxResizable |
 | Web Embedding | CefControl, WebView2Control |
 | Window Utilities | ToastWnd (non-modal toast), MessageBoxWnd (modal message box), Dialog (generic modal dialog), Tooltip, FileDialog, TrayIcon, Clipboard, ScreenCapture |
@@ -86,7 +86,7 @@ Tier 1 (form essentials 1–5), Tier 2 (flyout system 6–9), the Tier 3 Chart (
 
 #### Subsequent Ordering
 
-1. **The Tier 3 supplement items are all complete**: TagInput (item 13), AutoComplete (item 14), the Unified context-menu API (item 15), the Mask/Overlay layer (item 16), ListCtrl table enhancements (item 17) and ListCtrl interactions (item 18) are all delivered. The control-layer roadmap is now empty; new items can be scheduled as actual needs arise.
+1. **The Tier 3 supplement items are all complete**: TagInput (item 13), AutoComplete (item 14), the Unified context-menu API (item 15), the Mask/Overlay layer (item 16), ListCtrl table enhancements (item 17) and ListCtrl interactions (item 18) are all delivered. The audit-added controls (StatusBar, ToolBar, RangeSlider, Stepper, Rating, Carousel, Pagination, TreeGrid) are also delivered; FontDialog/PrintDialog, rich Tooltip and the print/export channel are explicitly not planned. The control-layer roadmap is now empty; new items can be scheduled as actual needs arise.
 2. **Platform integration and engineering (sections 5 and 6)**: run in parallel with the control roadmap; accessibility and packaging/signing are hard requirements for "cross-platform desktop development" and should start early.
 3. **Relationship between item 16 (mask/overlay layer) and skeleton screens (resolved)**: the mask layer is now provided uniformly by the `Mask` control (modal dimming / onboarding / loading); a skeleton loading layer is still "painted on top" rather than a mask. They serve different purposes — use `Mask` when you need to block interaction or punch out a highlight, and use skeleton screens for pure visual placeholder.
 
@@ -94,21 +94,21 @@ Tier 1 (form essentials 1–5), Tier 2 (flyout system 6–9), the Tier 3 Chart (
 
 Beyond the control layer, desktop software depends on a set of "system integration" capabilities. The library currently has only a few of these (ProcessSingleton, TrayIcon, Clipboard, FileDialog, ScreenCapture). The following are missing and are the key gaps for "reducing cross-platform desktop development cost" — proposed as a second evolution line parallel to the control layer:
 
-| # | Capability | Current State | Description | Priority |
-|---|-----------|---------------|-------------|----------|
-| 18 | Accessibility / screen reader | **Missing** | Windows needs UI Automation, macOS needs NSAccessibility, Linux needs AT-SPI; a compliance requirement for enterprise/government software and a hard threshold for any cross-platform desktop library. Start with "accessible name/value/role annotation + Windows UI Automation adaptation", then cover other platforms gradually | High |
-| 19 | Native system notifications | Toast is in-app and self-drawn | Integrate macOS Notification Center, Windows desktop notifications, and Linux (D-Bus/Freedesktop) native notifications, forming a dual channel (in-app + system-level) with the existing Toast | High |
-| 20 | In-app update framework | **Missing** | Cross-platform self-update: Windows (custom or WinSparkle), macOS (Sparkle), Linux (package manager / AppImage) | Medium-High |
-| 21 | File association / URL scheme / deep links | **Missing** | Register protocol → launch app → parse parameters; standard for "open with" and external invocation of desktop software | Medium |
-| 22 | Auto-start + tray menu integration | TrayIcon exists | Add a tray right-click menu API and auto-start registration (login item / startup entry) | Medium |
-| 23 | Install / package / sign / notarize | **Missing** | Platform installers (NSIS/MSIX, DMG, AppImage/deb/rpm), code signing, macOS notarization. This is the bulk of "desktop development cost"; a documented standard process is enough — no need to reinvent wheels | High (engineering) |
+| # | Capability | Current State | Description | Priority | Status (2026-10-21) |
+|---|-----------|---------------|-------------|----------|------|
+| 18 | Accessibility / screen reader | **Missing** | Windows needs UI Automation, macOS needs NSAccessibility, Linux needs AT-SPI; a compliance requirement for enterprise/government software and a hard threshold for any cross-platform desktop library. Start with "accessible name/value/role annotation + Windows UI Automation adaptation", then cover other platforms gradually | High | ❌ Not started (tracked by Development-Plan F-2) |
+| 19 | Native system notifications | Toast is in-app and self-drawn | Integrate macOS Notification Center, Windows desktop notifications, and Linux (D-Bus/Freedesktop) native notifications, forming a dual channel (in-app + system-level) with the existing Toast | High | 🟡 Partial (tray balloon uses SDL system notifications on non-Windows since 2026-10-21; Toast remains in-app, no general notification API yet) |
+| 20 | In-app update framework | **Missing** | Cross-platform self-update: Windows (custom or WinSparkle), macOS (Sparkle), Linux (package manager / AppImage) | Medium-High | ❌ Not planned (2026-10-21 decision, no further follow-up) |
+| 21 | File association / URL scheme / deep links | **Missing** | Register protocol → launch app → parse parameters; standard for "open with" and external invocation of desktop software | Medium | ❌ Not planned (2026-10-21 decision, no further follow-up) |
+| 22 | Auto-start + tray menu integration | TrayIcon exists | Add a tray right-click menu API and auto-start registration (login item / startup entry) | Medium | ❌ Not planned (2026-10-21 decision, no further follow-up) |
+| 23 | Install / package / sign / notarize | **Missing** | Platform installers (NSIS/MSIX, DMG, AppImage/deb/rpm), code signing, macOS notarization. This is the bulk of "desktop development cost"; a documented standard process is enough — no need to reinvent wheels | High (engineering) | 🟡 Partial (B-3 delivered `build/pack.py` + `docs/Release.md` on 2026-10-20; installers not planned, signing/notarization still manual) |
 
 ### 6. Developer Experience and Engineering
 
-| # | Item | Description | Priority |
-|---|------|------|----------|
-| 24 | Visual layout / theme editor | XML is currently hand-written with no designer. This is the most direct lever for "reducing UI development cost", but the engineering effort is huge; propose it as a standalone long-term project outside the main control roadmap | Long-term strategy |
-| 25 | Control unit-test infrastructure | No C++ test framework is currently integrated; add basic tests for control state machines (calendar, table, tree) to lower regression risk | Medium |
-| 26 | Platform adaptation matrix doc | Support differences of each control across Windows/Linux/macOS/FreeBSD are scattered across docs; add a summary table clarifying "which controls are degraded/unimplemented on which platform" | Medium |
+| # | Item | Description | Priority | Status (2026-10-21) |
+|---|------|------|----------|------|
+| 24 | Visual layout / theme editor | XML is currently hand-written with no designer. This is the most direct lever for "reducing UI development cost", but the engineering effort is huge; propose it as a standalone long-term project outside the main control roadmap | Long-term strategy | ❌ Not started |
+| 25 | Control unit-test infrastructure | No C++ test framework is currently integrated; add basic tests for control state machines (calendar, table, tree) to lower regression risk | Medium | ❌ Not planned (2026-10-21 decision, no further follow-up) |
+| 26 | Platform adaptation matrix doc | Support differences of each control across Windows/Linux/macOS/FreeBSD are scattered across docs; add a summary table clarifying "which controls are degraded/unimplemented on which platform" | Medium | ✅ Done (Project-Audit chapter 3 + `跨平台开发相关事项.md` synced on 2026-10-21; HotKey / macOS / FreeBSD testing still pending) |
 
 > Note: this is a planning document. Concrete designs (interfaces, XML attributes, skin resources) will be produced when each item starts.

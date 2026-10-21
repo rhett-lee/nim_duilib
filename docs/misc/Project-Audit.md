@@ -1,6 +1,6 @@
 # 项目盘点与改进建议（源码 / 文档 / 跨平台）
 
-> 本文档是一次全项目盘点结论，**尚未开始任何开发项**，仅用于后续排期与跟踪。
+> 本文档是一次全项目盘点结论，用于后续排期与跟踪。**状态截至 2026-10-21**：第一章的 ColorPicker 回环与静默赋值已完成，B1–B5 / B7 / B9 已完成，第三章文档漂移已回写，第四章 C3 / C4 已完成；**C1 / C2 / C7 / C8 已明确不做、不再跟进**。剩余项见各表「状态」列、第五章顺序与文末附录。
 
 ## 扫描范围与方法
 
@@ -13,7 +13,7 @@
 
 ### 与既有规划文档的关系
 
-* [Control-Roadmap.md](Control-Roadmap.md) 的控件新增清单（第 1–18 项）**已全部清空**，其"平台整合能力"（第 18–23 项）与"开发者体验与工程化"（第 24–26 项）仍为未启动状态；
+* [Control-Roadmap.md](Control-Roadmap.md) 的控件新增清单（第 1–18 项）**已全部清空**；其"平台整合能力"（第 18–23 项）与"开发者体验与工程化"（第 24–26 项）中，原生系统通知、打包签名为部分完成，平台适配矩阵文档已完成，其余未启动（详见该文档第五、六节状态列）；
 * 本文档补充的是 Roadmap 中**尚未识别**的三类问题：① 健壮性类缺陷（控件值同步回环）；② 规划清单之外的控件空白（壳层/工具条类）；③ 跨平台矩阵的实际状态与文档漂移。
 
 ---
@@ -46,6 +46,8 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 ### 1.3 待核实清单（同类风险候选）
 
 以下联动对与 ColorPicker 模式相同（事件回调中写另一个控件、被写控件又派发事件），需要逐一核实是否存在环、是否已有防护：颜色类控件（`ColorSlider` / `ColorControl` / `ColorPickerRegular` / `ColorPickerStandardGray`）、`ComboBox` 与 `ListBox`（选中联动）、`DateTime` 与 `CalendarFlyout`、`SpinBox` 与 `RichEdit`、`TabBox` / `TabCtrl` 与 `NavigationView`（选中与页面切换联动）、`PropertyGrid`、`TreeView` 勾选级联、`ListCtrl` 与 `ListCtrlHeader`（排序 / 列显隐联动）。
+
+**排查结论（2026-10-21）**：上述候选已逐一核对，除 `ColorPickerCustom` 外未发现新的实际回环；相关联动均已具备重入保护或采用单向事件。新增控件统一使用 `Progress::SetValueNoEvent`（见 1.4 第 1 条），框架级重入守卫仍不引入（1.4 第 2 条）。
 
 ### 1.4 建议动作
 
@@ -151,33 +153,46 @@ Window::OnPreparePaint → ArrangeRoot → ColorPickerCustom::SetPos → InitPic
 
 ## 四、工程化与文档
 
-| # | 项 | 现状 | 建议 | 优先级 |
-| :--- | :--- | :--- | :--- | :--- |
-| C1 | CI 构建 | `.github` 下只有 ISSUE / PR 模板，**无任何 workflow** | 至少增加 Windows + Linux 的编译矩阵，阻止跨平台回归 | 高 |
-| C2 | 单元 / 回归测试 | 无 `tests/` 目录，未接入测试框架 | Skia CPU 后端支持**离屏无窗口渲染**，建议做"控件截图回归测试"（无头加载 XML → 比对 PNG），另对控件状态机（日历、表格、树）加逻辑单测 | 高 |
-| C3 | 平台适配矩阵文档 | 规划中（Roadmap 第 26 项），且现有跨平台文档已过期 | 直接以本文档第三章为基线，替换过期描述 | 高 |
-| C4 | 文档漂移 | 全库存在约 50 处示例 / 占位名与源码不符（集中在中英双语的 Box / Global / Menu / Theme / ThemeColor 章节） | 跑 `verify_docs.py` 清理，不要用豁免注释掩盖 | 中 |
-| C5 | 无障碍（Accessibility） | **完全缺失**：全库无 `IAccessible` / UI Automation / AT-SPI / NSAccessibility 相关代码 | 先做"控件名 / 值 / 角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐；企业 / 政务合规刚需 | 高 |
-| C6 | 原生系统通知 | Toast 为应用内自绘 | 接入 Windows 桌面通知、macOS 通知中心、Linux D-Bus 通知，形成双通道 | 高 |
-| C7 | 应用内更新框架 | **缺失** | Windows 自研或 WinSparkle、macOS Sparkle、Linux 包管理器 / AppImage | 中高 |
-| C8 | 文件关联 / URL Scheme | **缺失** | 注册协议 → 唤起应用 → 解析参数 | 中 |
-| C9 | 安装 / 打包 / 签名 / 公证 | **缺失** | 各平台安装器（NSIS / MSIX、DMG、AppImage / deb / rpm）、代码签名、macOS 公证；以文档化标准流程落地即可 | 高（工程化） |
-| C10 | 可视化布局 / 主题编辑器 | 无，XML 手写 | 工程量极大，建议独立长期立项，不进控件规划主线 | 远期 |
+| # | 项 | 现状 | 建议 | 优先级 | 状态（2026-10-21） |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| C1 | CI 构建 | `.github` 下只有 ISSUE / PR 模板，**无任何 workflow** | 至少增加 Windows + Linux 的编译矩阵，阻止跨平台回归 | 高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| C2 | 单元 / 回归测试 | 无 `tests/` 目录，未接入测试框架 | Skia CPU 后端支持**离屏无窗口渲染**，建议做"控件截图回归测试"（无头加载 XML → 比对 PNG），另对控件状态机（日历、表格、树）加逻辑单测 | 高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| C3 | 平台适配矩阵文档 | 规划中（Roadmap 第 26 项），且现有跨平台文档已过期 | 直接以本文档第三章为基线，替换过期描述 | 高 | ✅ 已完成（本文档第三章 + `跨平台开发相关事项.md` 已回写，2026-10-21；HotKey / macOS / FreeBSD 实测仍待补） |
+| C4 | 文档漂移 | 全库存在约 50 处示例 / 占位名与源码不符（集中在中英双语的 Box / Global / Menu / Theme / ThemeColor 章节） | 跑 `verify_docs.py` 清理，不要用豁免注释掩盖 | 中 | ✅ 已完成（`verify_docs.py --extra docs` 零漂移，2026-10-21） |
+| C5 | 无障碍（Accessibility） | **完全缺失**：全库无 `IAccessible` / UI Automation / AT-SPI / NSAccessibility 相关代码 | 先做"控件名 / 值 / 角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐；企业 / 政务合规刚需 | 高 | ❌ 未启动（跟踪 Development-Plan F-2） |
+| C6 | 原生系统通知 | Toast 为应用内自绘 | 接入 Windows 桌面通知、macOS 通知中心、Linux D-Bus 通知，形成双通道 | 高 | 🟡 部分完成（非 Windows 托盘气泡已接入 SDL 系统通知，2026-10-21；Toast 仍应用内自绘，通用通知 API 未封装） |
+| C7 | 应用内更新框架 | **缺失** | Windows 自研或 WinSparkle、macOS Sparkle、Linux 包管理器 / AppImage | 中高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| C8 | 文件关联 / URL Scheme | **缺失** | 注册协议 → 唤起应用 → 解析参数 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| C9 | 安装 / 打包 / 签名 / 公证 | **缺失** | 各平台安装器（NSIS / MSIX、DMG、AppImage / deb / rpm）、代码签名、macOS 公证；以文档化标准流程落地即可 | 高（工程化） | 🟡 部分完成（B-3 已完成 `build/pack.py` + `docs/Release.md`，2026-10-20；安装器不做，签名 / 公证仍为手工流程） |
+| C10 | 可视化布局 / 主题编辑器 | 无，XML 手写 | 工程量极大，建议独立长期立项，不进控件规划主线 | 远期 | ❌ 未启动 |
 
 ---
 
-## 五、建议落地顺序
+## 五、建议落地顺序（2026-10-21 更新）
 
-1. **健壮性加固（第一章）**：新增静默赋值 API + 统一重入守卫 + `_DEBUG` 重入断言，并按 1.3 清单完成专项排查——这是唯一会产生"启动即卡死"级别故障的问题类别；
-2. **补 StatusBar + ToolBar（B1 / B2）**：壳层刚需、实现成本低，可显著减少各平台应用的重复布局代码；
-3. **重建平台适配矩阵 + 接入 CI（C1 / C3）**：先让跨平台状态"可见、可回归"，并补 macOS / FreeBSD 的构建与冒烟验证；
-4. **测试基建（C2）**：离屏截图回归 + 控件状态机单测；
-5. 之后按需推进 GPU 渲染后端、Web 嵌入替代方案、无障碍（C5）与打包工程化（C9）。
+**已完成（不再排期）**：
 
-## 附录：待核实项清单
+- 第一章健壮性：ColorPicker 回环修复、`Progress::SetValueNoEvent`、同类回环专项排查；
+- 控件层：B1 StatusBar、B2 ToolBar、B3 RangeSlider、B4 Stepper、B5 Rating、B7 Carousel / Pagination、B9 TreeGrid（B6 / B8 / B10 明确不做）；
+- 第三章平台矩阵与文档回写（C3）、第四章文档漂移清理（C4）。
 
-1. 1.3 节列出的同类回环候选，需逐一确认"是否存在环 / 是否已有防护"；
-2. `HotKey`、控件级拖拽源（`RichEditDragSource`）在非 Windows 平台的实现状态；
-3. FreeBSD 复用 Linux / X11 分支的实际可运行性；
-4. macOS 各项能力的实测结论（当前无记录）；
-5. `Control-Roadmap.md` 已取消项（ListCtrl 内嵌树 / 分组折叠 / 列筛选等）是否需要按新需求重新评估。
+**明确不做（2026-10-21 决策，不再跟进）**：
+
+- 工程化：CI 构建（C1）、单元 / 回归测试（C2）、应用内更新（C7）、文件关联 / URL Scheme（C8）；
+- 控件层：B6 FontDialog / PrintDialog / PrintPreview、B8 富内容 Tooltip、B10 打印 / 导出通道；
+- 既有控件补强（2.2 节全部）。
+
+**剩余优先级**：
+
+1. **跨平台实测**：macOS / FreeBSD 构建与冒烟；Linux 已知问题（标题栏双击、调整大小黑屏、最大化位置、Wayland）；核实 `HotKey` 与控件级拖拽源；
+2. **系统级能力**：无障碍（C5 / F-2，先属性标注 + Windows UIA）、通用原生通知（C6，托盘气泡已部分落地）；
+3. **工程化**：打包 / 签名 / 公证（C9，B-3 已打底）、可视化编辑器（C10，远期）；
+4. **平台差异**：GPU 渲染后端、Web 嵌入的非 Windows 替代方案，按实际需求评估。
+
+## 附录：待核实项清单（2026-10-21 更新）
+
+1. ~~1.3 节同类回环候选~~：✅ 已完成（2026-10-21，除 `ColorPickerCustom` 外未发现新增回环）；
+2. `HotKey`、控件级拖拽源（`RichEditDragSource`）在非 Windows 平台的实现状态：仍待核实；
+3. FreeBSD 复用 Linux / X11 分支的实际可运行性：仍待实测；
+4. macOS 各项能力的实测结论：仍无记录；原生通知还需在 `.app` 包内验证；
+5. `Control-Roadmap.md` 已取消项（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选）：已决定不做，TreeGrid 独立控件已落地；如出现企业报表需求再重新评估。

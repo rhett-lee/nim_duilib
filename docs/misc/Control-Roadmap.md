@@ -19,7 +19,7 @@
 | 菜单 | Menu/MenuItem/SubMenu/MenuBar |
 | 颜色 | ColorPicker 全家桶（Regular/Standard/StandardGray/Custom）及 ColorSlider、ColorControl |
 | 容器/布局 | HBox/VBox/ScrollBox/TileBox/GridBox/FlowBox/Panel（带标题栏可折叠面板，支持手风琴分组）、SplitBox + 13 种布局引擎（含虚表布局） |
-| 其他控件 | Split（分割条）、GroupBox、Line、ScrollBar、PropertyGrid（属性表）、AddressBar（地址栏）、ChildWindow、IconControl、BitmapControl |
+| 其他控件 | Split（分割条）、GroupBox、Line、ScrollBar、PropertyGrid（属性表）、AddressBar（地址栏）、ChildWindow、IconControl、BitmapControl、StatusBar（状态栏）、ToolBar（工具栏）、RangeSlider（范围滑块）、Stepper（步骤条）、Rating（评分）、Carousel（轮播）、Pagination（分页器）、TreeGrid（树表格） |
 | 拖拽增强 | ControlDragable/HBoxDragable/VBoxDragable（拖动调整子控件顺序）、BoxMovable、BoxResizable |
 | Web 嵌入 | CefControl、WebView2Control |
 | 窗口工具 | ToastWnd（非模态通知框）、MessageBoxWnd（模态消息框）、Dialog（通用模态对话框）、Tooltip（悬停提示）、FileDialog、TrayIcon（托盘）、Clipboard、ScreenCapture |
@@ -87,26 +87,27 @@
 1. **第三梯队补充项已全部完成**：TagInput（第 13 项）、AutoComplete（第 14 项）、上下文菜单统一 API（第 15 项）、遮罩/蒙版层（第 16 项）、ListCtrl 表格增强（第 17 项）、ListCtrl 交互增强（第 18 项）均已落地。至此控制层规划清单已清空，后续新需求按实际需要再排期。
 2. **平台整合能力与工程化（见第五、六部分）**：与控件规划并行，其中无障碍与打包签名是"覆盖各平台桌面开发"的硬门槛，建议尽早启动。
 3. **第 16 项遮罩/蒙版层与骨架屏的关系（已解决）**：蒙层已由 `Mask` 控件统一提供（模态遮罩/新手引导/加载遮罩）；骨架屏的 loading 层仍是"叠加绘制"语义，二者定位不同——需要拦截交互或镂空高亮时用 `Mask`，仅需视觉占位时用骨架屏。
+4. **审计新增控件已全部落地**：Project-Audit 的 B1 StatusBar、B2 ToolBar、B3 RangeSlider、B4 Stepper、B5 Rating、B7 Carousel/Pagination、B9 TreeGrid 均已完成；B6 FontDialog/PrintDialog、B8 富内容 Tooltip、B10 打印/导出通道明确不做。
 
 ### 五、平台整合能力规划（应用骨架层）
 
 控件层之外，桌面软件还依赖一组"系统整合"能力。当前库只有 ProcessSingleton（单实例）、TrayIcon（托盘）、Clipboard、FileDialog、ScreenCapture 等少数几个，以下能力缺失，是"减少各平台桌面开发成本"的关键空白，建议作为与控件层并列的第二条演进线：
 
-| # | 能力 | 现状 | 说明 | 优先级 |
-|---|------|------|------|------|
-| 18 | 无障碍（Accessibility/屏幕阅读器） | **缺失** | Windows 需接 UI Automation、macOS 接 NSAccessibility、Linux 接 AT-SPI；企业/政务软件合规刚需，也是跨平台桌面库的硬门槛。可先做"控件名/值/角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐 | 高 |
-| 19 | 原生系统通知 | Toast 为应用内自绘 | 接入 macOS 通知中心、Windows 桌面通知、Linux（D-Bus/Freedesktop）的原生通知，与现有 Toast 形成"应用内 + 系统级"双通道 | 高 |
-| 20 | 应用内更新框架 | **缺失** | 跨平台自更新：Windows 自研或 WinSparkle、macOS Sparkle、Linux 走包管理器/AppImage | 中高 |
-| 21 | 文件关联 / URL Scheme / 深链 | **缺失** | 注册协议→唤起应用→解析参数，桌面软件"打开方式"与"外部唤起"标配 | 中 |
-| 22 | 开机自启 + 托盘菜单联动 | TrayIcon 已有 | 补齐托盘右键菜单 API、开机自启注册（登录项/启动项） | 中 |
-| 23 | 安装/打包/签名/公证 | **缺失** | 各平台安装器（NSIS/MSIX、DMG、AppImage/deb/rpm）、代码签名、macOS 公证（notarization）。这是"桌面开发成本"的大头，提供文档化标准流程即可，不必造轮子 | 高（工程化） |
+| # | 能力 | 现状 | 说明 | 优先级 | 状态（2026-10-21） |
+|---|------|------|------|------|------|
+| 18 | 无障碍（Accessibility/屏幕阅读器） | **缺失** | Windows 需接 UI Automation、macOS 接 NSAccessibility、Linux 接 AT-SPI；企业/政务软件合规刚需，也是跨平台桌面库的硬门槛。可先做"控件名/值/角色的可访问属性标注 + Windows UI Automation 适配"，其余平台逐步补齐 | 高 | ❌ 未启动（跟踪 Development-Plan F-2） |
+| 19 | 原生系统通知 | Toast 为应用内自绘 | 接入 macOS 通知中心、Windows 桌面通知、Linux（D-Bus/Freedesktop）的原生通知，与现有 Toast 形成"应用内 + 系统级"双通道 | 高 | 🟡 部分完成（托盘气泡已通过 SDL 系统通知在非 Windows 落地，2026-10-21；Toast 仍为应用内自绘，通用通知 API 未封装） |
+| 20 | 应用内更新框架 | **缺失** | 跨平台自更新：Windows 自研或 WinSparkle、macOS Sparkle、Linux 走包管理器/AppImage | 中高 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| 21 | 文件关联 / URL Scheme / 深链 | **缺失** | 注册协议→唤起应用→解析参数，桌面软件"打开方式"与"外部唤起"标配 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| 22 | 开机自启 + 托盘菜单联动 | TrayIcon 已有 | 补齐托盘右键菜单 API、开机自启注册（登录项/启动项） | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| 23 | 安装/打包/签名/公证 | **缺失** | 各平台安装器（NSIS/MSIX、DMG、AppImage/deb/rpm）、代码签名、macOS 公证（notarization）。这是"桌面开发成本"的大头，提供文档化标准流程即可，不必造轮子 | 高（工程化） | 🟡 部分完成（B-3 已完成 `build/pack.py` + `docs/Release.md`，2026-10-20；安装器不做，签名/公证仍为手工流程） |
 
 ### 六、开发者体验与工程化
 
-| # | 项 | 说明 | 优先级 |
-|---|------|------|------|
-| 24 | 可视化布局/主题编辑器 | 目前 XML 手写无设计器。这是"减少界面开发成本"最直接的杠杆，但工程量极大，建议作为独立长期项目单独立项，不进控件规划主流程 | 远期战略 |
-| 25 | 控件单元测试基建 | 当前无 C++ 测试框架接入；为控件状态机（日历、表格、树）补基础测试，降低回归风险 | 中 |
-| 26 | 平台适配矩阵文档 | 各控件在 Windows/Linux/macOS/FreeBSD 的支持差异散落各文档，补一张总表，明确"哪些控件在哪些平台降级/未实现" | 中 |
+| # | 项 | 说明 | 优先级 | 状态（2026-10-21） |
+|---|------|------|------|------|
+| 24 | 可视化布局/主题编辑器 | 目前 XML 手写无设计器。这是"减少界面开发成本"最直接的杠杆，但工程量极大，建议作为独立长期项目单独立项，不进控件规划主流程 | 远期战略 | ❌ 未启动 |
+| 25 | 控件单元测试基建 | 当前无 C++ 测试框架接入；为控件状态机（日历、表格、树）补基础测试，降低回归风险 | 中 | ❌ 明确不做（2026-10-21 决策，不再跟进） |
+| 26 | 平台适配矩阵文档 | 各控件在 Windows/Linux/macOS/FreeBSD 的支持差异散落各文档，补一张总表，明确"哪些控件在哪些平台降级/未实现" | 中 | ✅ 已完成（Project-Audit 第 3 章 + `跨平台开发相关事项.md` 已回写，2026-10-21；HotKey / macOS / FreeBSD 实测仍待补） |
 
 > 注：本文档为规划性质，具体实现方案（接口、XML 属性、皮肤资源）待各项启动时另行设计。
