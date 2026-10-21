@@ -113,13 +113,9 @@
    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
    ```
 
-**当前差异**：
-- 本库**未**像其它库那样把产物名改为 `duilib-*`，目标名仍为 `libcef_dll_wrapper`。
-- 链接侧在 `cmake/duilib_common.cmake` 中以 `DUILIB_CEF_WRAPPER_LIB_NAME` 引用它（`libcef_dll_wrapper` / `libcef_dll_wrapper_109`）。
-- 若未来要统一命名，需同步修改：
-  1. 各平台 `libcef_*/CMakeLists.txt` 中 `OUTPUT_NAME`（或 `add_library` 改名）
-  2. `cmake/duilib_common.cmake` 中 `DUILIB_CEF_WRAPPER_LIB_NAME`
-  3. 手写 `.vcxproj` 及构建脚本中的库引用（如果有）
+**当前差异（已定，D-5）**：
+- 本库**不**改为 `duilib-*` 前缀，目标名保持 `libcef_dll_wrapper` / `libcef_dll_wrapper_109`（该决定已于 2026-10-21 确认，后续不再变更）。
+- 链接侧在 `cmake/duilib_common.cmake` 中以 `DUILIB_CEF_WRAPPER_LIB_NAME` 引用它，因此 CMake 与 VS 两套体系都不需要改链接名。
 
 **升级重放**：CEF wrapper 的 CMake 来自 CEF 官方二进制分发包，升级时通常是替换整个目录；只需在替换后补回上述 3 行即可。
 
@@ -139,5 +135,6 @@
 
 ## 四、待收敛项（依赖 CM-5）
 
-- **Debug 后缀 `_d`**：目前 5 个库中，zlib 原逻辑已注释掉 `CMAKE_DEBUG_POSTFIX`，其余库均未设置；统一需要决定 `CMAKE_DEBUG_POSTFIX` 还是手动在链接变量中拼接 `_d`，并与手写 `.vcxproj` 保持一致。
-- **libcef wrapper 命名**：是否纳入 `duilib-*` 前缀，需要评估对构建脚本、打包脚本的影响范围。
+- **命名统一方向（已定，2026-10-21，D-1）**：统一为 `duilib-*`。CMake 侧已满足；**待实施**的是 VS 侧 4 个库的 `TargetName` 改为 `duilib-zlib` / `duilib-png` / `duilib-webp` / `duilib-cximage`（**不再加 `_d`，见下条**），并同步 `msvc/PropertySheets/CommonSettings.props` 的 `DuilibThirdLibs`、属性表 README、`build/pack.py`。详细改动清单见 [CM-5-Build-Artifacts-Inventory.md](../../docs/misc/CM-5-Build-Artifacts-Inventory.md) 5.2 节。
+- **Debug 后缀 `_d`（已定，2026-10-21，D-2）**：**不启用**。库产物统一放到 `lib/<arch>/<Configuration>/`（Windows）或 `lib/<Configuration>/`（Unix），Debug/Release 同名不同目录；VS 侧移除 `TargetName` 的 `_d`，exe 仍保留 `_d`。
+- **libcef wrapper 命名（已定，2026-10-21，D-5）**：**不纳入** `duilib-*` 前缀，名称保持 `libcef_dll_wrapper` / `libcef_dll_wrapper_109`；`_d` 后缀按 D-2 一并取消，产物进入配置目录。本库的 duilib 定制仅保留"输出目录指向配置目录"一项，链接侧名称无需任何改动。

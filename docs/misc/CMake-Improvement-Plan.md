@@ -1,7 +1,7 @@
 # CMake 构建脚本改进计划（CMake Improvement Plan）
 
 > 本文档是 2026-10-20 对 `nim_duilib` 仓库**全部 CMake 脚本**的审核结论，作为后续**逐项实施**的跟踪入口。
-> 基线日期：**2026-10-20**　｜　当前状态：**第 1~3 批已完成（2026-10-20）：第 1 批 CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 按反馈退回、不处理）；第 2 批 CM-2、CM-8、CM-19；第 3 批 CM-3、CM-15（后两项的 macOS 实机验证待补）。第 4 批：CM-20 已完成、CM-5 本轮暂不实施。见第九节实施记录，其余各项未开始**
+> 基线日期：**2026-10-20**　｜　当前状态：**第 1~3 批已完成（2026-10-20）：第 1 批 CM-1、CM-4、CM-6、CM-7、CM-9、CM-12、CM-16（CM-14 按反馈退回、不处理）；第 2 批 CM-2、CM-8、CM-19；第 3 批 CM-3、CM-15（后两项的 macOS 实机验证待补）。第 4 批：CM-20 已完成、CM-5 暂不实施；第 5 批 CM-10、CM-11、CM-13、CM-17、CM-21 已完成（CM-18 按用户决定不处理）。CM-5 已于 2026-10-21 完成方案设计（D-1 ~ D-7 全部确认，布局=方案 B、pack=方案 C），待实施。见第九节实施记录，其余各项未开始**
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 > 关联文档：[Development-Plan.md](Development-Plan.md)（整体开发规划）、[Project-Audit.md](Project-Audit.md)（项目盘点）
 > 前置工作：C-7（`DUILIB_SRC_MACOS` 平台判定脆弱）已于 2026-10-20 完成，见 [Development-Plan.md](Development-Plan.md) 的 C-7 小节。
@@ -84,7 +84,28 @@
 - **验收**：在 VS 生成器下分别生成 Debug / Release，Skia 与 SDL 库路径各自正确；两种配置的产物不再互相覆盖（文件可同时存在）。
 - **实测证据（2026-10-20 批次 2 期间）**：`build/msvc_build.bat` 只用 `-DCMAKE_BUILD_TYPE=Release` + 多配置生成器，并显式传 `-DDUILIB_SKIA_LIB_SUBPATH=llvm.<ARCH>.release` 规避本问题；若**不走**该脚本、直接在 VS 生成器下构建 `Debug` 配置，`examples/ChildWindow` 实测报 **1694 个 LNK2038**（`_ITERATOR_DEBUG_LEVEL` 0 vs 2、`RuntimeLibrary` `MT_StaticRelease` vs `MTd_StaticDebug`）+ `LNK1319`——即 Debug 配置链接到了 Release 版 Skia/第三方库。修复后此项应消失。
 - **工作量**：低 ~ 中（涉及 `duilib_common.cmake` + 5 个第三方 CMakeLists）　**依赖**：需先确定 Debug/Release 命名规则（见 CM-17）
-- **实施状态（2026-10-20）**：本轮按用户决定**暂不实施**（两项动作风险差异大，留待 CM-17/CM-21 定命名约定后一起做）。已用探针工程验证「动作 1」技术可行：`link_directories` 支持 `$<CONFIG>` 生成表达式（VS 多配置下 Debug 生成 `.../dbg`、Release 生成 `.../rel`）；`c:\develop\skia\out\` 下同时存在 `llvm.x64.debug` 与 `llvm.x64.release`，路径切换后即可消除 Debug 链接 Release 库的 LNK2038。
+- **现状盘点（2026-10-21）**：产物、命名、CRT、配置覆盖与冲突清单已整理到 [CM-5-Build-Artifacts-Inventory.md](CM-5-Build-Artifacts-Inventory.md)，方案设计以该文档为依据。
+- **已确认决策 D-1（2026-10-21）**：第三方静态库统一 `duilib-` 前缀——Unix 侧保持不变（前缀用于避免误链系统 `libz`/`libpng`/`libwebp`，详见盘点文档 5.1）；VS 侧 4 个库的 `TargetName` 改为 `duilib-zlib`/`duilib-png`/`duilib-webp`/`duilib-cximage`（Debug 仍加 `_d`），并同步 `CommonSettings.props` 的 `DuilibThirdLibs`、属性表 README 与 `build/pack.py` 白名单/注释。`duilib.lib` / `duilib_d.lib` 不改名。连带改动清单见盘点文档 5.2。
+- **已确认决策 D-5（2026-10-21）**：`libcef_dll_wrapper` **不纳入** `duilib-*` 前缀，保持现状（CMake 与 VS 名称均不变）；各平台 `libcef_*/CMakeLists.txt` 仅保留"输出到 `<root>/lib/`"的定制。
+- **已确认决策 D-4a（2026-10-21）**：**libjpeg-turbo 不提供 Debug 版本**，只保留现有 Release 预编译库，保持现状；Debug 构建下不启用该特性。（盘点时另发现：`JpegTurboSettings.props` 当前未被任何 vcxproj 导入，两套构建实际都未链接它。）
+- **已确认决策 D-4b（2026-10-21）**：**SDL 不提供 Debug 版本**，只保留现有 Release 版（Windows `SDL3-static.lib`，Unix 侧现有 `.so`/`.dylib`），保持现状；Debug 构建直接链接该 Release 库（VS Debug 实测可产出 `bin/ChildWindow_d.exe`），构建脚本不新增 SDL Debug 构建。
+- **已确认决策 D-3（2026-10-21）**：**Debug 能力边界**——① Skia：Windows 不提供真正的 Debug，但必须同时编译 debug/release 两个变体（均为 release 模式代码，仅 CRT 不同：`/MTd` vs `/MT`）；Linux/macOS/FreeBSD 只编译一个 release 版。② SDL：所有系统只编译一个 release 版。③ nim_duilib（库与示例）：四个平台均提供 Debug。因此 Unix 侧需放开脚本的固定 `Release` 限制，但 Skia/SDL 仍只建 release。
+- **已确认决策 D-6（2026-10-21）**：**CMake 与 VS 解决方案长期并存**（保留 VS 是因为大量 Windows 开发者习惯 VS、不习惯 CMake）。CM-22 顶层聚合只覆盖 CMake 入口，不替代 VS 工程；两套体系在产物命名（D-1）与 Debug 边界（D-3）上保持一致。
+- **已确认决策 D-2（2026-10-21）**：布局采用**方案 B（CMake 风格）**——库输出统一为 `lib/<arch>/<Configuration>/`（Windows，arch 为 x64/x86）与 `lib/<Configuration>/`（Linux/macOS/FreeBSD），**文件名不再带 `_d`**；VS 改 `CommonSettings.props` 的 `OutDir` 并移除 `TargetName` 的 `_d`；**exe 保持现状**（VS `bin\` + `_d`）。
+- **已确认决策 D-7（2026-10-21）**：pack 采用**方案 C**——按 D-2 的配置目录取库、默认 Release，删除双套白名单、`_d` 判定与目录优先级猜测，并修正 `pack.py` 中写反的注释。
+
+**实施方案（已定，尚未执行）**
+
+| 阶段 | 内容 | 主要文件 | 验收 |
+| :--- | :--- | :--- | :--- |
+| **P1 CMake 布局** | 库输出改为按配置目录：Windows `lib/<arch>/<Config>/`、Unix `lib/<Config>/`（显式设置 `CMAKE_ARCHIVE_OUTPUT_DIRECTORY_<CONFIG>` 等 4 组变量；RelWithDebInfo/MinSizeRel 映射到 `Release`）；CEF wrapper 同规则 | `duilib/CMakeLists.txt`、`duilib/third_party/libcef/libcef_{win,win_109,linux,macos}/CMakeLists.txt` | Windows 下 Debug/Release 分别落到 `lib/x64/Debug`、`lib/x64/Release`，互不覆盖 |
+| **P2 链接路径** | `DUILIB_LIB_PATH` 改为含 `$<CONFIG>` 的目录（CM-17 已验证 `target_link_directories` 支持 genex），另留一个不含 genex 的基础路径供日志/配置期使用；`DUILIB_SKIA_LIB_PATH` 改为 `$<IF:$<CONFIG:Debug>,debug,release>`（Windows），Unix 恒为 `release`（解决 I-1） | `cmake/duilib_common.cmake`、`cmake/duilib_log_variables.cmake` | VS 生成器 Debug 构建链接 `llvm.x64.debug`；Release 链接 `llvm.x64.release` |
+| **P3 VS 布局** | `CommonSettings.props`：`OutDir` → `..\lib\$(Platform)\$(Configuration)\`，删除 `TargetName` 的 `_d`；4 个第三方 vcxproj 设置常量 `TargetName`（`duilib-*`）；`DuilibThirdLibs` 两配置同名；exe 的两个属性表不动 | `msvc/PropertySheets/CommonSettings.props`、4 个 `*.vcxproj` | VS 全量 Debug/Release 编译通过，产物路径符合 D-2，示例链接 Debug 目录库 |
+| **P4 pack** | `default_lib_dirs()` 改为 `lib/<arch>/Release`（默认）/ `lib/<arch>/Debug`；删除旧库名与 `_d` 判定；`--allow-debug-libs` 语义改为显式选择 Debug 目录；修正注释 | `build/pack.py` | `pack.py --list` 与打包结果只含 Release 库，路径正确 |
+| **P5 文档/脚本** | 更新 `cmake/README*.md`、`msvc/PropertySheets/README*.md`、`duilib/third_party/README-duilib.md`；Unix 脚本放开 `CMAKE_BUILD_TYPE`（Skia/SDL 仍只建 release，见 D-3） | 各 README、`build/*.sh` | 文档示例命令可直接执行；Unix Debug/Release 互不覆盖 |
+
+- 下游迁移影响：`lib\x64\duilib_d.lib` → `lib\x64\Debug\duilib.lib`；`zlib.lib` → `duilib-zlib.lib`。需在发布说明中单列。
+- **实施状态（2026-10-20 → 10-21）**：2026-10-20 按用户决定暂不实施，探针已验证 `link_directories` 支持 `$<CONFIG>`、`c:\develop\skia\out\` 同时存在 `llvm.x64.debug` 与 `llvm.x64.release`；10-21 决策 D-1 ~ D-7 全部确认、实施方案定稿，**代码尚未改动**。
 
 ---
 
@@ -314,8 +335,8 @@
 - **实施记录（2026-10-20）**：
   1. 新增 [duilib/third_party/README-duilib.md](../../duilib/third_party/README-duilib.md)，逐库记录：改动点位置与内容、升级时的重放步骤、链接侧引用的库名、待收敛项。
   2. 当前已一致的部分：zlib / libpng / libwebp / cximage 均输出到 `<root>/lib/` 且产物名为 `duilib-*`，MSVC 运行库统一由 `DUILIB_MD` + `CMAKE_MSVC_RUNTIME_LIBRARY` 选择。
-  3. **未统一的部分（受 CM-5 阻塞）**：① Debug 后缀 `_d` 未启用（zlib 原有逻辑已注释）；② libcef wrapper 仍名为 `libcef_dll_wrapper[_109]`，未纳入 `duilib-*` 前缀——改名会波及 `duilib_common.cmake`、手写 vcxproj 与构建/打包脚本，需与 CM-5 一起决策。
-  4. 因此本项本轮完成「定制点清单 + 升级说明」的文档化，命名统一的代码改动留待 CM-5。
+  3. **未统一的部分**：① Debug 后缀 `_d` 未启用（zlib 原有逻辑已注释），留待 CM-5 的 D-2；② libcef wrapper 保持 `libcef_dll_wrapper[_109]`，**已确定不纳入 `duilib-*` 前缀（D-5）**。
+  4. 因此本项本轮完成「定制点清单 + 升级说明」的文档化，命名统一的代码改动留待 CM-5。**2026-10-21 已确定（D-1）**：以 `duilib-*` 为统一前缀，VS 侧 4 个库同步改名（清单见盘点文档 5.2）；**D-5 已确定**：`libcef_dll_wrapper` 不纳入前缀、保持现状。
 - **工作量**：中　**依赖**：CM-2、CM-5
 
 ### CM-22 顶层 `CMakeLists.txt` 聚合（构建体系结构）
@@ -367,7 +388,7 @@
 - [x] **CM-2** `libpng` 的 `ZLIB_LIBRARY` 路径与扩展名错误　｜ 低 ｜ 完成日期：2026-10-20
 - [x] **CM-3** `duilib_cef_macos.cmake` 的 `${target}` 未定义　｜ 极低（macOS 实机验证待补）｜ 完成日期：2026-10-20
 - [x] **CM-4** skill 模板缺 `DUILIB_WINRES_FILE_NAME`　｜ 极低 ｜ 完成日期：2026-10-20
-- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______（2026-10-20 按用户决定**本轮暂不实施**）
+- [ ] **CM-5** 多配置生成器下 `DUILIB_BUILD_TYPE` 恒为 release（含 Debug/Release 产物同名）　｜ 低~中 ｜ 依赖：CM-17/CM-21 的命名约定 ｜ 完成日期：______（2026-10-20 按用户决定暂不实施；2026-10-21 决策 D-1 ~ D-7 全部确认，布局定为方案 B、pack 定为方案 C，实施方案见 CM-5 小节，**待实施**）
 
 **二、未定义变量与静默行为**
 
