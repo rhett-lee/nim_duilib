@@ -1,6 +1,6 @@
 # CM-5 / P4：pack.py 适配统一布局与 SDK 可交付性（方案设计）
 
-> 状态：**Q1~Q14 已全部确认，代码与文档已实施（2026-10-21）**。Debug 侧自测通过；Release 包由用户构建后验收。
+> 状态：**Q1~Q14 已全部确认，代码与文档已实施（2026-10-21）**。Debug 侧自测通过；Release 包与最小消费工程验收已由用户确认（2026-10-21），构建系统的系统性测试后续单独形成计划。
 > 依据：[CM-5 产物盘点](CM-5-Build-Artifacts-Inventory.md) 的 D-2（方案 B，统一布局）与 D-7（pack 采用方案 C，只认一套布局）。
 > 范围：只改 `build/pack.py` 与描述其 CLI 的文档；不改构建脚本、CMake、vcxproj、产物布局。
 > 日期：2026-10-21。
@@ -357,4 +357,4 @@ Unix   : -lskia -lsvg -lskshaper -lskottie -lsksg -ljsonreader
    `docs/misc/Release-Packaging-Notes.md/.en.md`、`Development-Plan.md`、
    `CMake-Improvement-Plan.md`、`CM-5-Build-Artifacts-Inventory.md`。
 
-剩余：用户构建 Release 后做最终验收；最小消费工程链接测试与运行测试。
+验收：**已完成（用户确认，2026-10-21）**——Release 包验收、最小消费工程链接测试与运行测试均已确认通过。构建系统（含四平台打包、Release 产物）的**系统性测试后续单独形成计划**，不在本方案内展开。

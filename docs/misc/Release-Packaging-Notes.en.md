@@ -4,11 +4,11 @@ This document is the **work record** for B-3 "Release and packaging process": it
 
 The user-facing operation guide lives in [Release and Packaging](../Release.en.md). This document does not repeat that content; it records **why things were done this way** and **what is still not finished**.
 
-> Status: the feature is implemented and tested on Windows, but the work is **currently uncommitted** (on 2026-10-20 it was decided to hold off committing because the scope turned out to be broader than expected; to be picked up in follow-up). The "Current working tree state" section below lists the complete set of files to commit.
+> Status: the feature is implemented and tested on Windows, and the changes are **committed** (B-3 in `e4064ba8`; the CM-5 P4 follow-up in `25d34686`). The "Current working tree state" section below is kept as a record of what was committed.
 
 ## 1. Current working tree state
 
-All changes are **still in the working tree**; the last commit is `5c836967` ("FreeBSD platform, explicitly does not support CEF").
+The changes are **committed**: B-3 in `e4064ba8`, CM-5 P1~P5 in `7f8f1500` ~ `6e2a2f0f`. The list below is kept as a historical record of the committed content.
 
 ### Files that should be committed
 

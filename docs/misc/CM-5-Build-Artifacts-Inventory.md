@@ -264,4 +264,4 @@ Release : duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib
 | **D-4a** | 2026-10-21 | **libjpeg-turbo 不提供 Debug 版本**，只保留现有 Release 预编译库（`turbojpeg-static.lib`，`/MT`），保持现状；Debug 构建下不启用该特性，也不补建 Debug 版。 | 第七节 I-6 定性关闭；不涉及代码改动 |
 | **D-4b** | 2026-10-21 | **SDL 不提供 Debug 版本**，只保留现有 Release 版（Windows `SDL3-static.lib`；Unix 侧现有 `.so`/`.dylib`），保持现状；Debug 构建直接链接该 Release 库（VS Debug 实测可行）。各构建脚本不新增 SDL Debug 构建。 | 第七节 I-5 定性关闭；不涉及代码改动 |
 
-**决策状态：D-1 ~ D-7 已全部确认（2026-10-21），无待决策项。** 下一步为 CM-5 的分阶段实施（方案见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md) 的 CM-5 小节）。
+**决策状态：D-1 ~ D-7 已全部确认（2026-10-21），无待决策项。** CM-5 的分阶段实施（P1~P5）已于 2026-10-21 完成并通过用户验收（见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md) 的 CM-5 小节）；构建系统的系统性测试（含 Unix 侧打包实测）后续单独形成计划。
