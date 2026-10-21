@@ -48,13 +48,19 @@ if(DUILIB_LOG)
     
     message(STATUS "DUILIB_ROOT: ${DUILIB_ROOT}")
     message(STATUS "DUILIB_BIN_PATH: ${DUILIB_BIN_PATH}")
-    message(STATUS "DUILIB_LIB_PATH: ${DUILIB_LIB_PATH}")    
+    message(STATUS "DUILIB_LIB_BASE: ${DUILIB_LIB_BASE}")
+    # 以下路径可能含生成表达式（$<CONFIG> 等），仅打印时替换为可读文本
+    set(_duilib_lib_path_display "${DUILIB_LIB_PATH}")
+    string(REPLACE "$<CONFIG>" "<Config>" _duilib_lib_path_display "${_duilib_lib_path_display}")
+    message(STATUS "DUILIB_LIB_PATH: ${_duilib_lib_path_display}")    
     message(STATUS "DUILIB_LIBS: ${DUILIB_LIBS}") 
     message(STATUS "") 
     
     message(STATUS "DUILIB_SKIA_SRC_ROOT_DIR: ${DUILIB_SKIA_SRC_ROOT_DIR}")
     message(STATUS "DUILIB_SKIA_LIB_SUBPATH: ${DUILIB_SKIA_LIB_SUBPATH}")
-    message(STATUS "DUILIB_SKIA_LIB_PATH: ${DUILIB_SKIA_LIB_PATH}")
+    set(_duilib_skia_lib_path_display "${DUILIB_SKIA_LIB_PATH}")
+    string(REPLACE "$<IF:$<CONFIG:Debug>,debug,release>" "<debug|release>" _duilib_skia_lib_path_display "${_duilib_skia_lib_path_display}")
+    message(STATUS "DUILIB_SKIA_LIB_PATH: ${_duilib_skia_lib_path_display}")
     message(STATUS "DUILIB_SKIA_LIBS: ${DUILIB_SKIA_LIBS}")
     message(STATUS "") 
     

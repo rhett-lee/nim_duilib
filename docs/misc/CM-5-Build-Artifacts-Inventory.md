@@ -208,14 +208,14 @@ Release : duilib-zlib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib
 
 | 编号 | 问题 | 触发条件 | 后果 |
 | :--- | :--- | :--- | :--- |
-| **I-1** | CMake 的 Skia 路径由 `CMAKE_BUILD_TYPE` 推导，VS 生成器下为空 → 恒为 `release` | 用 VS/Ninja Multi-Config 生成器直接构建 Debug | Debug 目标链接 Release Skia，`LNK2038`（CM-5 主体问题） |
+| **I-1** | CMake 的 Skia 路径由 `CMAKE_BUILD_TYPE` 推导，VS 生成器下为空 → 恒为 `release` | 用 VS/Ninja Multi-Config 生成器直接构建 Debug | Debug 目标链接 Release Skia，`LNK2038`（CM-5 主体问题）。**已解决（P2，2026-10-21）**：Windows 用 `$<IF:$<CONFIG:Debug>,debug,release>` 按配置选择，Unix 固定 release；VS 生成器 Debug 可直接构建 |
 | **I-2** | CMake 可执行程序 `bin/<name>` 不区分配置、无 `_d` | 单配置生成器下分别构建 Debug 与 Release | 后构建者覆盖前者。**D-2 明确 exe 保持现状**，本项为已知遗留，不在 CM-5 范围（VS 用 `_d` 区分，不受影响） |
-| **I-3** | CMake 库输出到 `lib/<Config>/` 且无 `_d`；VS 输出到 `lib/x64/` 且有 `_d` | 两套体系混用同一 `lib/` 根 | **已定（D-2，方案 B）解决**：两套统一为 `lib/<arch>/<Configuration>/`，库名不再带 `_d` |
+| **I-3** | CMake 库输出到 `lib/<Config>/` 且无 `_d`；VS 输出到 `lib/x64/` 且有 `_d` | 两套体系混用同一 `lib/` 根 | **已定（D-2，方案 B）解决**：两套统一为 `lib/<arch>/<Configuration>/`，库名不再带 `_d`。CMake 侧已实施（P1）；VS 侧待 P3 |
 | **I-4** | 第三方库命名两套并存（`duilib-zlib` vs `zlib[_d]`） | 修改任一命名 | 需同步 `duilib_common.cmake`（`DUILIB_LIBS`）与 `CommonSettings.props`（`DuilibThirdLibs`），遗漏即链接失败 |
 | **I-5** | SDL3 只有 Release 版（不提供 Debug 版） | Windows Debug 构建启用 SDL 的目标 | **不是阻塞项**：实测 VS Debug 已正常链接并产出 `bin/ChildWindow_d.exe`。**已定（D-4b）：保持现状，不补 Debug 版** |
 | **I-6** | libjpeg-turbo 只有 Release 预编译库（`/MT`），且当前无项目导入其属性表 | 项目显式导入 `JpegTurboSettings.props` 后做 Debug 构建 | 链接该 Release 静态库会 `LNK2038`。**已定（D-4a）：不提供 Debug 版，保持现状**；即 Debug 下不启用该特性 |
 | **I-7** | 非 Windows 平台 Skia 仅 Release | 在这些平台构建 Debug | **按 D-3 不是阻塞项**：`nim_duilib` 提供 Debug，直接链接 release 版 Skia/SDL（Unix 无 MSVC CRT 标记机制）。需要放开脚本里固定 `Release` 的限制 |
-| **I-8** | 单配置生成器（Ninja/Makefile）下 Debug/Release 都写 `lib/` 根 | Linux/macOS/FreeBSD 分别构建两种配置 | 同名库互相覆盖。**已定（D-2，方案 B）解决**：单配置显式设置 `CMAKE_*_OUTPUT_DIRECTORY_<CONFIG>`，落到 `lib/Debug`、`lib/Release` |
+| **I-8** | 单配置生成器（Ninja/Makefile）下 Debug/Release 都写 `lib/` 根 | Linux/macOS/FreeBSD 分别构建两种配置 | 同名库互相覆盖。**已定（D-2，方案 B）解决**：单配置显式设置 `CMAKE_*_OUTPUT_DIRECTORY_<CONFIG>`，落到 `lib/Debug`、`lib/Release`。**已实施（P1，2026-10-21）** |
 
 ---
 

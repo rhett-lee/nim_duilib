@@ -86,12 +86,13 @@ else()
     set(DUILIB_BUILD_TYPE "release")
 endif()
 
-#Skia的lib子目录名（默认值：Windows平台按 llvm.<CPU_ARCH>.<构建类型> 拼接；其他平台默认空，走下方自动拼接规则）
-# 规则与 build/msvc_build.bat 保持一致：llvm.<CPU_ARCH>.release / llvm.<CPU_ARCH>.debug，
-# 其中 CPU_ARCH 取 VS 目标架构（cmake -A 参数），缺省 x64，-A Win32 时为 x86。
-# 仅在外部未指定时才使用默认值：-DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准
+#Skia的lib子目录名：默认留空，由下方的自动规则按配置拼接（P2 / I-1）
+# 规则与 build/msvc_build.bat 保持一致：Windows 为 llvm.<CPU_ARCH>.debug 或 llvm.<CPU_ARCH>.release，
+# 其中 CPU_ARCH 取 VS 目标架构（cmake -A 参数），缺省 x64，-A Win32 时为 x86；
+# 其他平台 Skia 只有 release 变体，固定 <编译器>.<CPU_ARCH>.release（见 D-3）。
+# 仅在外部未指定时才走自动规则：-DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准
 # （set(... CACHE ...) 不会覆盖已存在的缓存变量，因此外部指定值优先）
-set(DUILIB_SKIA_LIB_SUBPATH_DEFAULT "")
+set(DUILIB_SKIA_CPU_ARCH "")
 if(DUILIB_OS_WINDOWS)
     set(DUILIB_SKIA_CPU_ARCH "x64")
     if(CMAKE_GENERATOR_PLATFORM)
@@ -101,9 +102,8 @@ if(DUILIB_OS_WINDOWS)
             set(DUILIB_SKIA_CPU_ARCH "${CMAKE_GENERATOR_PLATFORM}")
         endif()
     endif()
-    set(DUILIB_SKIA_LIB_SUBPATH_DEFAULT "llvm.${DUILIB_SKIA_CPU_ARCH}.${DUILIB_BUILD_TYPE}")
 endif()
-set(DUILIB_SKIA_LIB_SUBPATH "${DUILIB_SKIA_LIB_SUBPATH_DEFAULT}" CACHE STRING "Skia lib sub path")
+set(DUILIB_SKIA_LIB_SUBPATH "" CACHE STRING "Skia lib sub path")
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
@@ -162,12 +162,15 @@ endif()
 
 #Skia源码根目录，lib文件目录（Skia必选项）
 get_filename_component(DUILIB_SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-if(DUILIB_SKIA_LIB_SUBPATH STREQUAL "" OR DUILIB_SKIA_LIB_SUBPATH STREQUAL "OFF")
-    # 根据规则拼接
-    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}")
-else()
-    # 外部指定的子目录名
+if(NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "" AND NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "OFF")
+    # 外部指定的子目录名：固定路径，不随配置变化
     set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}")
+elseif(DUILIB_OS_WINDOWS)
+    # 按配置自动选择（P2 / I-1）：$<CONFIG> 由生成器展开；Debug 用 debug 变体，其余用 release 变体
+    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/llvm.${DUILIB_SKIA_CPU_ARCH}.$<IF:$<CONFIG:Debug>,debug,release>")
+else()
+    # 非Windows平台：Skia 只提供 release 变体（D-3）
+    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.release")
 endif()
 set(DUILIB_SKIA_LIBS svg skshaper skottie sksg jsonreader skia)
 
