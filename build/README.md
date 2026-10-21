@@ -449,8 +449,11 @@ nim_duilib/
 编译完成后用 `build/pack.py` 打包，脚本只收集已构建好的文件，不参与编译。
 
 ```
-# 只打SDK（推荐）
+# 只打SDK（推荐，默认 Release）
 python build/pack.py
+
+# Debug SDK（包名带 -debug）
+python build/pack.py --config Debug
 
 # SDK + 示例程序
 python build/pack.py --with-examples
@@ -460,14 +463,18 @@ python build/pack.py --list
 ```
 
 产物输出到 `dist/`（已在 .gitignore 中），包名为
-`nim_duilib-<版本>-<系统>-<架构>.zip`，内含 `include/duilib/`、`lib/`、
+`nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，内含 `include/duilib/`、
+`lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
 `resources/`、`licenses/`，以及 `MANIFEST.txt` 与 `SHA256SUMS`。
 
-两个容易踩的点：
+几个容易踩的点：
 
 - 包内头文件必须保持 `include/duilib/xxx.h` 层级，下游写法是
   `#include "duilib/duilib.h"`；压平会导致下游全部编译失败。
-- 默认只打 Release 库。Debug 库带调试 CRT，混进 Release SDK 会让下游链接异常。
+- 库目录只有一套布局：Windows `lib/<arch>/<Release|Debug>/`，
+  Unix `lib/<Release|Debug>/`；配置由 `--config` 选择，不再靠 `_d` 判定。
+- Debug 库带调试 CRT，只能给 Debug 下游使用，混进 Release SDK 会让链接异常。
+- Windows 默认不打包 SDL3，需要时加 `--with-sdl`；CEF 开发包需要 `--with-cef`。
 
 完整说明见 [docs/Release.md](../docs/Release.md)。
 

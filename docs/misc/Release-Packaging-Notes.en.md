@@ -53,8 +53,12 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | `RenderSkia/` | Not exposed | `duilib.h` does not reference it; it is a rendering-backend implementation detail |
 | `third_party` forwarding | zlib / libpng / giflib / Microsoft.Web.WebView2 | 5 public headers include them directly; without forwarding, downstream builds fail |
 | zlib / libpng | Forward whole directory trees of headers, no per-file filtering | Conditional transitive dependencies; a whitelist would miss them (see section 4) |
-| Debug libraries | **Excluded by default**, needs `--allow-debug-libs` | Debug libraries carry the debug CRT and `/MTd`; mixing them into a Release SDK breaks downstream linking |
-| CEF wrapper library | Not packaged by default, needs `--with-cef-libs` | 80–100 MB per library |
+| Library directory | Only one layout (Windows `lib/<arch>/<Config>`, Unix `lib/<Config>`) | CM-5 D-2 option B; configuration comes from the directory, no `_d` detection or directory merging |
+| Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT and `/MTd` and only serve Debug downstream builds; never mix the two |
+| Skia libraries | Whole directory shipped, plus a link list in the manifest | The `duilib` static library contains Skia symbols; linking fails without them |
+| WebView2 / JPEG | Windows ships loader libraries and `turbojpeg-static` by default | VS enables WebView2 and libjpeg-turbo by default; `duilib.lib` contains those symbols |
+| SDL3 | Always shipped on Unix; on Windows only with `--with-sdl` | SDL is off by default on Windows; on Unix it is enabled and built as a shared library |
+| CEF development set | Off by default, needs `--with-cef` (optionally `--cef-version 109`) | Each wrapper is 80–100 MB; the runtime still has to be supplied separately |
 | `bin/resources.zip` | Always excluded | An empty shell file of only 748 bytes |
 | Version number | Single source of truth is the root `VERSION` file | Package name, in-package `VERSION` and `MANIFEST.txt` are all derived from it |
 
@@ -78,17 +82,21 @@ The 22 example-private theme directories excluded in SDK mode are:
 ### Command line interface
 
 ```
-python build/pack.py                      # SDK package (no examples)
+python build/pack.py                      # Release SDK package (no examples)
+python build/pack.py --config Debug       # Debug SDK package (name gains -debug)
 python build/pack.py --with-examples      # SDK plus example programs
-python build/pack.py --with-cef-libs      # additionally include CEF wrapper static libraries
-python build/pack.py --allow-debug-libs   # allow packaging libraries that only exist as Debug
+python build/pack.py --with-cef           # additionally include the CEF development set
+python build/pack.py --with-sdl           # additionally include SDL3 on Windows
 python build/pack.py --list               # print the file list that would be collected, do not package
 python build/pack.py --format tgz         # force tgz (Windows defaults to zip)
-python build/pack.py --lib-dir lib/x64    # specify the library directory
+python build/pack.py --lib-dir lib/x86/Debug  # explicit library directory
 python build/pack.py --out-dir dist       # specify the output directory
 ```
 
-Artifacts go to `dist/`, named `nim_duilib-<version>-<system>-<arch>.zip`, containing `VERSION`, `MANIFEST.txt`, `SHA256SUMS`, `LICENSE`, `include/duilib/`, `lib/`, `resources/` and `licenses/`.
+Artifacts go to `dist/`, named `nim_duilib-<version>-<system>-<arch>[-debug].zip`,
+containing `VERSION`, `MANIFEST.txt`, `SHA256SUMS`, `LICENSE`,
+`include/duilib/`, `lib/` (including Skia and third-party link libraries),
+`resources/` and `licenses/`.
 
 ## 3. Key technical decisions and their rationale
 
@@ -191,7 +199,7 @@ git tags are recommended in the form `v<version>`. The repository's existing tag
 
 1. **The version number is maintained in two places.** The `DUILIB_VER_*` macros in `msvc/dllRes/version.h` and the `VERSION` file are currently updated independently, and those macros are used only by the `.vcxproj` — the CMake side cannot read them. A version bump requires changing both. **The follow-up should make `version.h` derive from `VERSION`.**
 
-2. **Only Windows was tested.** The script itself is cross-platform (pure standard library, one codebase for all four platforms), but library filename suffixes and static library formats (`.a` vs `.lib`) on the other platforms may require adjusting `LIB_BASENAMES` and the format detection once real build results are available. `docs/Release.en.md` already marks these as "not verified on this machine".
+2. **Only Windows was tested.** The script itself is cross-platform (pure standard library, one codebase for all four platforms). Unix `.a` collection and `lib` prefix normalization are implemented, but the resulting packages have not yet been verified on Linux/macOS/FreeBSD. `docs/Release.en.md` already marks these as "not verified on this machine".
 
 3. **Signing and notarization are not automated.** The project produces pure static libraries (`add_library` does not specify `SHARED`, and `msvc/dllRes/dllmain.cpp` only compiles in the `.vcxproj`), so the SDK package itself needs no signature; the documentation only gives the manual procedure. Automated signing is equivalent to B-2's CI — it needs certificate management, which is a long-term maintenance burden.
 

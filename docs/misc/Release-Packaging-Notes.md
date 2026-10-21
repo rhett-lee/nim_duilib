@@ -53,8 +53,12 @@ write_release_docs.py
 | `RenderSkia/` | 不对外暴露 | `duilib.h` 不引用它，是渲染后端实现细节 |
 | `third_party` 转发 | zlib / libpng / giflib / Microsoft.Web.WebView2 | 有 5 个对外头文件直接 include 了它们，不转发下游编译失败 |
 | zlib / libpng | 整目录转发头文件，不逐文件筛选 | 存在条件分支的传递依赖，白名单会漏（见第四节） |
-| Debug 库 | **默认排除**，需 `--allow-debug-libs` | Debug 库带调试 CRT 与 `/MTd`，混进 Release SDK 会让下游链接异常 |
-| CEF wrapper 库 | 默认不打，需 `--with-cef-libs` | 单个 80–100 MB |
+| 库目录 | 只认一套布局（Windows `lib/<arch>/<Config>`、Unix `lib/<Config>`） | CM-5 D-2 方案 B；配置由目录表达，删除 `_d` 判定与多目录合并 |
+| Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT 与 `/MTd`，只能给 Debug 下游；两套不可混用 |
+| Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
+| WebView2 / JPEG | Windows 默认随包 loader 库与 `turbojpeg-static` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号 |
+| SDL3 | Unix 始终随包；Windows 仅 `--with-sdl` | Windows 默认关闭 SDL；Unix 默认启用且为动态库 |
+| CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
 | 版本号 | 单一事实源为根目录 `VERSION` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生 |
 
@@ -78,17 +82,20 @@ SDK 模式下被排除的是 22 个示例私有主题目录：
 ### 命令行接口
 
 ```
-python build/pack.py                      # SDK 包（不含示例）
+python build/pack.py                      # Release SDK 包（不含示例）
+python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
 python build/pack.py --with-examples      # SDK + 示例程序
-python build/pack.py --with-cef-libs      # 额外带上 CEF wrapper 静态库
-python build/pack.py --allow-debug-libs   # 允许打进仅有 Debug 版的库
+python build/pack.py --with-cef           # 额外带上 CEF 开发包
+python build/pack.py --with-sdl           # Windows 额外带上 SDL3
 python build/pack.py --list               # 只打印将收集的文件，不打包
 python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
-python build/pack.py --lib-dir lib/x64    # 指定库目录
+python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
 python build/pack.py --out-dir dist       # 指定输出目录
 ```
 
-产物输出到 `dist/`，包名格式 `nim_duilib-<版本>-<系统>-<架构>.zip`，内含 `VERSION`、`MANIFEST.txt`、`SHA256SUMS`、`LICENSE`、`include/duilib/`、`lib/`、`resources/`、`licenses/`。
+产物输出到 `dist/`，包名格式 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，
+内含 `VERSION`、`MANIFEST.txt`、`SHA256SUMS`、`LICENSE`、`include/duilib/`、
+`lib/`（含 Skia 与第三方链接库）、`resources/`、`licenses/`。
 
 ## 三、关键技术决策与依据
 
@@ -191,7 +198,7 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 1. **版本号两处独立维护。** `msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION` 文件目前各改各的，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。升级版本须同时改两处。**后续应让 `version.h` 改为从 `VERSION` 派生。**
 
-2. **只实测了 Windows。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），但其它平台的库文件名后缀、静态库格式（`.a` vs `.lib`）差异可能需要按实际构建结果调整 `LIB_BASENAMES` 与格式判定。`docs/Release.md` 中已标注「未在本机验证」。
+2. **只实测了 Windows。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），Unix 的 `.a` 收集与 `lib` 前缀归一化已实现，但产物尚未在 Linux/macOS/FreeBSD 上实测。`docs/Release.md` 中已标注「未在本机验证」。
 
 3. **签名与公证未自动化。** 本项目产出纯静态库（`add_library` 未指定 `SHARED`，`msvc/dllRes/dllmain.cpp` 只在 `.vcxproj` 中编译），SDK 包本身无需签名，文档只给手工流程。自动化签名等同 B-2 的 CI —— 需要证书管理，是长期维护负担。
 

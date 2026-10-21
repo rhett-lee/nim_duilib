@@ -312,8 +312,8 @@ API 变动频率高 |
   | `RenderSkia/` | 不对外 | `duilib.h` 不引用它，是渲染后端实现细节 |
   | `third_party` 转发 | zlib / libpng / giflib / Microsoft.Web.WebView2 | 有 5 个对外头文件直接 include 了它们（`Core/ZipStreamIO.h`、`Image/APngDecoder.h`、`Image/FrameSequence_gif.h`、`WebView2/*.h`），不转发下游编译失败 |
   | zlib / libpng | 整目录转发头文件，不逐文件筛选 | 存在传递依赖（`pngpriv.h` → `pnglibconf.h`） |
-  | Debug 库 | **默认排除**，需 `--allow-debug-libs` | Debug 库带调试 CRT 与 `/MTd`，混进 Release SDK 会让下游链接异常 |
-  | CEF wrapper 库 | 默认不打，需 `--with-cef-libs` | 单个 80–100 MB |
+  | Debug 包 | 由 `--config Debug` 选择，包名加 `-debug` | 配置只由目录表达（CM-5 D-2），Debug 库带 `/MTd`，只能给 Debug 下游 |
+  | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB，运行库仍需外置 |
   | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳 |
 - **`--with-examples` 的资源范围差异**（本项最容易出错处）：
   - 关闭：仅保留 `resources/themes/default/public/` 与 `global.xml`；
@@ -326,6 +326,10 @@ API 变动频率高 |
   （**无后缀**，只靠目录名区分，见 `msvc/PropertySheets/DuilibSettings.props`）。
   首版只认 `_d`，结果把 232MB 的 Debug 库当成 Release 打进了包，
   压缩后体积从 4.8MB 涨到 45.8MB。现按「后缀 + 目录名」双条件判定。
+  > **P4（2026-10-21）已取代该判定**：库布局统一为目录区分配置，
+  > `_d` 判定与 `--allow-debug-libs` 已删除，改用 `--config {Release,Debug}`；
+  > 同时补入 Skia / WebView2 / JPEG / SDL / CEF 链接库。详见
+  > [CM-5 P4 打包方案](CM-5-P4-Pack-Plan.md)。
 - **验收实测**：
   - **下游编译验证**（本项的关键验收）：解压产物后，在包外写 `probe.cpp` 只加
     `/Iinclude`，`#include "duilib/duilib.h"` 编译 **EXITCODE=0**；

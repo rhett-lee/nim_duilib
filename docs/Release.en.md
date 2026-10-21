@@ -15,18 +15,28 @@ configured and built one by one by scripts such as `build/msvc_build.bat`,
 project, so "adding `install()` rules" is not a viable path here.
 
 Moreover Windows has two build paths — `build/*.sln` (MSBuild) and
-`msvc_build.bat` (CMake) — whose artifacts land in the same `lib/` and `bin/`
-directories. No single build system can cover both. `pack.py` collects files
-by whitelist, so artifacts from either path are picked up.
+`msvc_build.bat` (CMake). Their library artifacts now share one layout:
+
+| Platform | Library directory |
+| :--- | :--- |
+| Windows | `lib/<x64\|x86\|arm64>/<Release\|Debug>/` |
+| Linux / macOS / FreeBSD | `lib/<Release\|Debug>/` |
+
+Configuration is expressed purely by the directory; library names no longer
+carry a `_d` suffix. The convention is that **a given `<arch>|<Config>` is
+fully built by only one build system at a time**; the later build overwrites
+the earlier one (including `.pdb`). `pack.py` reads only the single directory
+selected by `--config` — it no longer merges candidate directories or guesses
+by priority.
 
 ## Quick start
 
-You must complete a Release build before packaging; the script does not
-trigger compilation:
+You must complete a build of the matching configuration before packaging; the
+script does not trigger compilation:
 
 ```
 # Windows (MSBuild path)
-build\duilib.sln      # Configuration: Release
+build\duilib.sln      # Configuration: Release or Debug
 
 # Windows (CMake path)
 build\msvc_build.bat
@@ -40,18 +50,22 @@ build\msvc_build.bat
 Then package:
 
 ```
-# SDK only (recommended)
+# SDK only (recommended, Release by default)
 python build/pack.py
+
+# Debug SDK (package name gains -debug)
+python build/pack.py --config Debug
 
 # SDK plus example programs
 python build/pack.py --with-examples
 ```
 
 Output goes to `dist/`, with package names of the form
-`nim_duilib-<version>-<system>-<arch>.zip`:
+`nim_duilib-<version>-<system>-<arch>[-debug].zip`:
 
 ```
 dist/nim_duilib-1.0.2026.0416-win-x64.zip
+dist/nim_duilib-1.0.2026.0416-win-x64-debug.zip
 ```
 
 ## Package layout
@@ -62,12 +76,39 @@ nim_duilib-<version>-<system>-<arch>/
   MANIFEST.txt          Package contents and caveats
   SHA256SUMS            SHA256 of every file, verifiable with sha256sum -c
   LICENSE               Main license
-  include/duilib/       Public headers
-  lib/                  Static libraries
+  include/duilib/       Public headers (plus include/SDL3/ when SDL is used)
+  lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
   resources/            Theme, language and font resources
   licenses/             Third-party licenses
   bin/                  Present only with --with-examples
 ```
+
+### SDK usage contract
+
+To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
+
+1. **Include path**: `include/` (`#include "duilib/duilib.h"`). When CEF is
+   included, also add `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`.
+2. **Library path**: `lib/` (flat).
+3. **Link list**:
+   - Core: `duilib`, `duilib-cximage`, `duilib-webp`, `duilib-png`, `duilib-zlib`
+   - Skia: `skia`, `svg`, `skshaper`, `skottie`, `sksg`, `jsonreader`
+     (`bentleyottmann`, `expat`, `skcms`, `skresources` are shipped; add them
+     if unresolved symbols appear)
+   - WebView2: `WebView2LoaderStatic` (VS) or `WebView2Loader.dll` (CMake,
+     requires the DLL at runtime)
+   - JPEG (Windows): `turbojpeg-static`
+   - SDL (optional): `SDL3-static` (Windows) / `SDL3` (Unix)
+   - CEF (optional): `libcef` + `libcef_dll_wrapper[_109]`
+4. **Platform system libraries**: with SDL on Windows add
+   `Version/Winmm/Imm32/Setupapi`; on Unix `X11`/`freetype`/`fontconfig` come
+   from the system and are not packaged.
+5. **Runtime**: `resources/` must sit next to the executable; the CEF runtime
+   is external; on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
+   etc.).
+6. **Configuration consistency**: a Debug package serves Debug downstream
+   builds (`/MTd`) only, and a Release package serves Release (`/MT`) only.
+   Never mix the two.
 
 ### The header path layout must not change
 
@@ -128,33 +169,34 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 
 | Option | Description |
 | :--- | :--- |
+| `--config Release\|Debug` | Library configuration; defaults to `Release` (case-insensitive) |
+| `--arch x64\|x86\|arm64` | Library architecture; selects the library directory on Windows and affects the package name everywhere |
+| `--lib-dir <path>` | Fully explicit library directory, overriding `--arch`/`--config` path computation |
+| `--skia-lib-dir <path>` | Skia static library directory; defaults to probing `../skia/out/llvm.<arch>.<config>` |
+| `--sdl-dir <path>` | SDL3 root directory; defaults to `../SDL3` |
+| `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
+| `--with-cef` | Package the CEF development set: headers + `libcef.lib` + wrapper (large) |
+| `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest` |
 | `--with-examples` | Include example programs and all per-example resources |
-| `--with-cef-libs` | Include CEF wrapper static libraries (80–100 MB each, off by default) |
-| `--allow-debug-libs` | Allow packaging libraries for which only a Debug build exists (excluded by default, see below) |
 | `--format zip\|tgz\|tarbz2` | Archive format; defaults to `zip` on Windows, `tgz` elsewhere |
-| `--lib-dir <path>` | Library directory; auto-detected by default |
 | `--out-dir <path>` | Output directory; defaults to `dist/` |
 | `--list` | Print the file list that would be collected without packaging |
 
-## Debug libraries are excluded by default
+## Debug packages
 
-The script distinguishes Release from Debug libraries and **packages Release
-only** by default. Debug libraries carry the debug CRT and the `/MTd` runtime;
-mixing them into a Release SDK breaks downstream linking.
+Configuration is determined solely by the directory (`lib/<arch>/Debug` or
+`lib/Debug`); the `_d` suffix is no longer inspected.
 
-Debug detection has two sources, and both are required:
-
-- A `_d` suffix on the file name (the CMake path, e.g. `duilib_d.lib`)
-- The containing directory being named `Debug` (the MSBuild path, e.g.
-  `lib/Debug/duilib.lib`)
-
-Looking only at file names misses the second case and packages a 200 MB-plus
-Debug library as if it were Release. Use `--allow-debug-libs` when you really
-need it.
-
-If no candidate directory contains the main `duilib` library, the script
-warns explicitly — such a package has no linkable duilib and is only useful
-as a reference for headers and resources.
+- With `--config Debug` the package name gains `-debug` and `MANIFEST.txt`
+  records `Configuration : Debug`.
+- Debug libraries carry the debug CRT and `/MTd` and may be used only by Debug
+  downstream builds — **never mix them into a Release SDK**.
+- With `--with-examples`: Release packages skip `*_d.exe`; Debug packages
+  cannot distinguish CMake Debug executables (same name as Release), so the
+  script warns that Release executables may be mixed in.
+- If the library directory is missing or the main `duilib` library is absent,
+  the script exits with code 1 instead of producing a package with no linkable
+  libraries.
 
 ## CEF limitations
 
@@ -165,8 +207,8 @@ Consequently:
 - The CEF-based examples (`cef`, `CefBrowser`) cannot run straight from the
   package
 - `MANIFEST.txt` lists those examples and notes the limitation
-- CEF wrapper static libraries are excluded by default; pass
-  `--with-cef-libs` to include them
+- The CEF development set is excluded by default; pass `--with-cef` to include
+  it (use `--cef-version 109` for the older version)
 
 ## Versioning
 
@@ -262,10 +304,11 @@ Verify after publishing with `gpg --verify`.
 
 The script itself is cross-platform (standard library only, no external
 dependencies) and a single implementation serves all four platforms.
-However, **only the Windows artifacts have been verified**. Differences in
-library file name suffixes and static library formats (`.a` vs `.lib`) on the
-other platforms may require adjusting `LIB_BASENAMES` and the format
-detection once real build results are available.
+Windows `.lib` and Unix `.a` files are both collected by the directory
+whitelist; the Unix `lib` prefix is normalized automatically (e.g.
+`libduilib-zlib.a` → `duilib-zlib`). However, **only the Windows artifacts have
+been verified so far**; the library list on the other platforms should still be
+checked after the first package is produced.
 
 ## Related documentation
 

@@ -454,8 +454,11 @@ After building, package with `build/pack.py`. The script only collects
 files that have already been built; it does not trigger compilation.
 
 ```
-# SDK only (recommended)
+# SDK only (recommended, Release by default)
 python build/pack.py
+
+# Debug SDK (package name gains -debug)
+python build/pack.py --config Debug
 
 # SDK plus example programs
 python build/pack.py --with-examples
@@ -465,15 +468,22 @@ python build/pack.py --list
 ```
 
 Artifacts go to `dist/` (already in .gitignore), named
-`nim_duilib-<version>-<system>-<arch>.zip`, containing `include/duilib/`,
-`lib/`, `resources/`, `licenses/`, plus `MANIFEST.txt` and `SHA256SUMS`.
+`nim_duilib-<version>-<system>-<arch>[-debug].zip`, containing
+`include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
+and WebView2/JPEG link libraries), `resources/`, `licenses/`, plus
+`MANIFEST.txt` and `SHA256SUMS`.
 
-Two easy mistakes to avoid:
+Easy mistakes to avoid:
 
 - Headers must keep the `include/duilib/xxx.h` hierarchy, since downstream
   code uses `#include "duilib/duilib.h"`. Flattening breaks every build.
-- Release libraries are packaged by default. Debug libraries carry the
-  debug CRT and break downstream linking when mixed into a Release SDK.
+- There is only one library layout: `lib/<arch>/<Release|Debug>/` on Windows
+  and `lib/<Release|Debug>/` on Unix. The configuration comes from `--config`,
+  not from a `_d` suffix.
+- Debug libraries carry the debug CRT and may only serve Debug downstream
+  builds; mixing them into a Release SDK breaks linking.
+- SDL3 is not packaged on Windows by default (use `--with-sdl`); the CEF
+  development set requires `--with-cef`.
 
 See [docs/Release.en.md](../docs/Release.en.md) for the full description.
 

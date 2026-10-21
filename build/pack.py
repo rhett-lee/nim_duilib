@@ -12,10 +12,13 @@
    不要试图"补 install() 规则"来替代本脚本 —— 没有任何单一 CMake 项目
    能覆盖全部产物。
 
-2. Windows 有两条构建路径，产物混在同一 lib/ 与 bin/ 下：
-   - MSBuild ：build/*.sln + duilib/与 examples/ 下的 .vcxproj
-   - CMake   ：build/msvc_build.bat
-   本脚本只按文件名白名单收集，不关心是哪条路径产出的。
+2. 库目录只有一套布局（CM-5 D-2 方案 B），配置由目录表达，不再靠 `_d`
+   后缀或多目录合并猜测：
+   - Windows：lib/<x64|x86|arm64>/<Release|Debug>/
+   - Unix   ：lib/<Release|Debug>/
+   只读取 --config 选中的一个目录，不合并、不按优先级回退。
+   VS 与 CMake 写入同一目录，约定"同一个 <arch>|<Config> 一次只由一套
+   体系完整构建"，后构建者覆盖前者（含 .pdb）。
 
 3. 头文件必须保持 `duilib/xxx.h` 的仓库根相对路径，因为下游工程的
    include 写法是 `#include "duilib/duilib.h"`（见 examples/basic/MainForm.h:5）。
@@ -28,15 +31,24 @@
    - Image/FrameSequence_gif.h     -> giflib/gif_lib.h
    - WebView2/*.h                  -> Microsoft.Web.WebView2/.../WebView2.h
 
-5. CEF 运行时（libcef.dll、*.pak、icudtl.dat）**不在本仓库内**，由使用者
-   自行放入。因此含 CEF 的示例程序打包后不能直接运行，脚本会在清单中标注。
+5. SDK 必须能独立支撑下游编译、链接、运行，因此除 5 个 duilib 库外还随包：
+   - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
+   - WebView2 loader 库（Windows：静态 loader + 动态 loader 导入库）；
+   - turbojpeg-static（Windows：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
+   - SDL3（Unix 始终；Windows 需 --with-sdl）；
+   - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）。
+   CEF 运行时（libcef.dll、*.pak、icudtl.dat、locales/）**不在本仓库内**，
+   由使用者自行放入，含 CEF 的示例程序打包后不能直接运行，清单中会标注。
 
 用法：
-    python build/pack.py                      # SDK 包（不含示例）
+    python build/pack.py                      # Release SDK 包（不含示例）
+    python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
     python build/pack.py --with-examples      # SDK + 示例程序
     python build/pack.py --list               # 只打印将收集的文件，不打包
     python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
-    python build/pack.py --lib-dir lib/x64    # 指定库目录
+    python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
+    python build/pack.py --with-sdl           # Windows 额外打包 SDL3
+    python build/pack.py --with-cef           # 额外打包 CEF 开发包
     python build/pack.py --out-dir dist       # 指定输出目录
 
 退出码：0 成功；1 参数或产物缺失；2 打包异常。
@@ -63,9 +75,18 @@ VERSION_FILE = os.path.join(REPO_ROOT, 'VERSION')
 DEFAULT_OUT_DIR = os.path.join(REPO_ROOT, 'dist')
 
 DUIBIB_SRC_DIR = os.path.join(REPO_ROOT, 'duilib')
+THIRD_PARTY_DIR = os.path.join(DUIBIB_SRC_DIR, 'third_party')
+WEBVIEW2_NATIVE_DIR = os.path.join(
+    THIRD_PARTY_DIR, 'Microsoft.Web.WebView2', 'build', 'native')
+JPEG_TURBO_DIR = os.path.join(THIRD_PARTY_DIR, 'libjpeg-turbo')
+CEF_DIR = os.path.join(THIRD_PARTY_DIR, 'libcef')
 RESOURCES_DIR = os.path.join(REPO_ROOT, 'bin', 'resources')
 LICENSES_DIR = os.path.join(REPO_ROOT, 'licenses')
 BIN_DIR = os.path.join(REPO_ROOT, 'bin')
+
+# 外部依赖（与仓库同级），可用命令行参数覆盖
+SKIA_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'skia')
+SDL3_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'SDL3')
 
 # --------------------------------------------------------------------------
 # 收集规则
@@ -87,32 +108,34 @@ THIRD_PARTY_INCLUDE_TREE_ROOTS = (
     'libpng',
 )
 
-# 静态库白名单：基名 -> 说明。缺失时告警但不中断（CEF 是可选的）。
-#
-# 两套构建路径的命名不同，都列出：
-#   CMake   ：zlib.lib / libpng.lib / libwebp.lib / cximage.lib（Debug 加 _d 后缀）
-#   MSBuild ：duilib-zlib.lib / duilib-png.lib / ...（Debug 放在 lib/Debug/ 子目录）
+# 静态库白名单（D-1/D-2 统一命名后的唯一一套）。
 LIB_BASENAMES = (
     'duilib',
     'duilib-cximage',
     'duilib-png',
     'duilib-webp',
     'duilib-zlib',
-    'cximage',
-    'libpng',
-    'libwebp',
-    'zlib',
 )
 
-# CEF wrapper 库：仅 --with-cef-libs 时收集，默认不带（体积巨大）。
-CEF_LIB_BASENAMES = (
-    'libcef_dll_wrapper',
-    'libcef_dll_wrapper_109',
-)
+# CEF wrapper / 源码目录：--with-cef 时按版本只收集一套。
+CEF_WRAPPER_BY_VERSION = {
+    'latest': 'libcef_dll_wrapper',
+    '109': 'libcef_dll_wrapper_109',
+}
+CEF_SRC_BY_VERSION = {
+    'latest': 'libcef_win',
+    '109': 'libcef_win_109',
+}
 
-# 明确排除的文件扩展名：调试符号、中间产物、导入库。
+# 下游链接 Skia 的推荐顺序（与 example 工程一致）；其余 4 个是 Skia 的
+# 传递依赖，整目录随包，出现未解析符号时补链。
+SKIA_LINK_ORDER = ('skia', 'svg', 'skshaper', 'skottie', 'sksg', 'jsonreader')
+SKIA_EXTRA_LIBS = ('bentleyottmann', 'expat', 'skcms', 'skresources')
+
+# 明确排除的文件扩展名：调试符号、中间产物、动态库。
+# 注意：.a 是 Unix 静态库，不能排除（P4-B1）。
 EXCLUDE_LIB_SUFFIXES = (
-    '.pdb', '.ilk', '.exp', '.idb', '.obj', '.o', '.a', '.so', '.dylib',
+    '.pdb', '.ilk', '.exp', '.idb', '.obj', '.o', '.so', '.dylib',
 )
 
 # 运行时 dll：示例程序运行必需（非 CEF 部分）。
@@ -284,123 +307,277 @@ def collect_headers(collector):
     return count
 
 
-def _is_debug_dir(lib_dir):
-    """判断目录本身是否代表 Debug 构建。
+class PackageError(Exception):
+    """打包前置条件不满足（目录/库缺失等），由 main 统一转为退出码 1。"""
 
-    MSBuild 路径的 Debug 库**没有 _d 后缀**，只靠放在 lib/Debug/ 区分
-    （见 msvc/PropertySheets/DuilibSettings.props：ImportLibrary 指向
-    lib/$(Platform)/$(ProjectName).lib，Debug/Release 由目录区分）。
-    只看文件名后缀会漏掉这一半，把 232MB 的 Debug 库当成 Release 打进去。
+
+def _rel(path):
+    """转成相对仓库根的展示路径。"""
+    try:
+        return os.path.relpath(path, REPO_ROOT).replace(os.sep, '/')
+    except ValueError:
+        return path
+
+
+def _lib_base_name(stem, wanted):
+    """Unix 静态库去掉 lib 前缀后匹配白名单（P4-B2）。
+
+    libduilib-zlib.a -> duilib-zlib；libcef_dll_wrapper.a 去掉后为
+    cef_dll_wrapper（不在白名单），保留原名匹配。
     """
-    return os.path.basename(os.path.normpath(lib_dir)).lower() == 'debug'
+    if stem.startswith('lib') and stem[3:] in wanted:
+        return stem[3:]
+    return stem
 
 
 def _scan_lib_dir(lib_dir):
-    """扫描一个目录，返回 (release_map, debug_only_map)，均为 {基名: 文件名}。
+    """扫描唯一库目录，返回 {基名: 文件名}。
 
-    Debug 判定有两个来源，缺一不可：
-      1. 文件名带 _d 后缀（CMake 路径）
-      2. 目录名是 Debug（MSBuild 路径）
-    同基名同时存在 Release 与 Debug 时 Release 胜出；只有 Debug 版的
-    单独返回，交给调用方决定 —— **Debug 库绝不能进 Release SDK**
-    （下游会链到调试 CRT / /MTd），见 collect_libs。
+    配置只由目录决定（Release/Debug），文件名不再参与判断（D-2）。
+    Windows 只接受 .lib，Unix 只接受 .a。
     """
-    dir_is_debug = _is_debug_dir(lib_dir)
-    release = {}
-    debug_only = {}
-    for name in os.listdir(lib_dir):
+    is_windows = platform.system().lower().startswith('win')
+    wanted = set(LIB_BASENAMES) | set(CEF_WRAPPER_BY_VERSION.values())
+    available = {}
+    for name in sorted(os.listdir(lib_dir)):
         full = os.path.join(lib_dir, name)
         if not os.path.isfile(full):
             continue
         if name.lower().endswith(EXCLUDE_LIB_SUFFIXES):
             continue
         stem, ext = os.path.splitext(name)
-        if ext.lower() not in ('.lib', '.a'):
+        ext = ext.lower()
+        if is_windows and ext != '.lib':
             continue
-        if dir_is_debug or stem.endswith('_d'):
-            debug_only.setdefault(stem[:-2] if stem.endswith('_d') else stem, name)
-        else:
-            release.setdefault(stem, name)
-    return release, debug_only
+        if not is_windows and ext != '.a':
+            continue
+        base = _lib_base_name(stem, wanted)
+        if base in wanted and base not in available:
+            available[base] = name
+    return available
 
 
-def collect_libs(collector, lib_dirs, with_cef_libs, allow_debug_libs=False):
-    """按白名单收集静态库。
+def collect_libs(collector, lib_dir, config, with_cef, cef_version):
+    """按白名单收集唯一库目录中的静态库。
 
-    lib_dirs 是按优先级排列的候选目录列表。**合并**所有存在的目录 ——
-    两条构建路径的命名不同（CMake 产 lib/x64/zlib.lib，MSBuild 产
-    lib/Debug/duilib-zlib.lib），只取第一个目录会漏掉另一半。
-    同名库由高优先级目录胜出。
-
-    只有 Debug 版的库默认排除：Debug 库带调试 CRT 符号与 /MTd 运行时，
-    混进 Release SDK 会让下游链接失败或体积暴涨。需要时用
-    --allow-debug-libs 显式打开。
+    目录或主库 duilib 缺失直接失败（Q1）；其余第三方库缺失只告警。
+    配置由目录决定，不再做 _d 后缀或多目录合并判断。
     """
-    existing = [d for d in lib_dirs if d and os.path.isdir(d)]
-    if not existing:
-        collector.warn('未找到任何库目录（尝试过：%s），请先完成编译'
-                       % ', '.join('lib/x64', 'lib/Debug', 'lib'))
-        return 0
+    available = _scan_lib_dir(lib_dir)
 
-    # 低优先级先合入，高优先级后合入覆盖 —— dict.update 语义
-    release_map = {}
-    debug_map = {}
-    for lib_dir in reversed(existing):
-        rel_map, dbg_map = _scan_lib_dir(lib_dir)
-        release_map.update(rel_map)
-        debug_map.update(dbg_map)
-
-    available = dict(debug_map)
-    available.update(release_map)
-
-    def locate(name):
-        return next(d for d in existing if os.path.isfile(os.path.join(d, name)))
+    if with_cef:
+        wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
+        if wrapper not in available:
+            raise PackageError('启用了 --with-cef，但库目录中缺少 %s（目录：%s）'
+                               % (wrapper, _rel(lib_dir)))
+    else:
+        for base in CEF_WRAPPER_BY_VERSION.values():
+            name = available.get(base)
+            if name is not None:
+                full = os.path.join(lib_dir, name)
+                collector.warn('存在 CEF 库 %s（%s），未打包；需要请加 --with-cef'
+                               % (name, human_size(os.path.getsize(full))))
 
     wanted = list(LIB_BASENAMES)
-    if with_cef_libs:
-        wanted += list(CEF_LIB_BASENAMES)
+    if with_cef:
+        wanted.append(CEF_WRAPPER_BY_VERSION[cef_version])
+
+    missing = [b for b in wanted if b not in available]
+    if 'duilib' in missing:
+        raise PackageError('未找到 duilib 主库（目录：%s），请先完成 %s 编译'
+                           % (_rel(lib_dir), config))
 
     count = 0
-    missing = []
-    skipped_debug = []
     for base in wanted:
         name = available.get(base)
         if name is None:
-            if base.startswith('libcef'):
-                continue  # CEF wrapper 缺失属正常，未开 --with-cef-libs
-            missing.append(base)
             continue
-        # 只有 Debug 版、且未显式允许 —— 跳过
-        if base not in release_map and not allow_debug_libs:
-            skipped_debug.append('%s（%s，%s）' % (
-                name, base, human_size(os.path.getsize(os.path.join(locate(name), name)))))
-            continue
-        if collector.add('lib/' + name, os.path.join(locate(name), name)):
+        if collector.add('lib/' + name, os.path.join(lib_dir, name)):
             count += 1
 
-    if skipped_debug:
-        collector.warn('已排除仅有 Debug 版的库（%d 个）：%s'
-                       % (len(skipped_debug), '；'.join(skipped_debug)))
-        if not allow_debug_libs:
-            collector.warn('  -> Release SDK 不应包含 Debug 库。需要时加 --allow-debug-libs')
+    optional_missing = [b for b in missing if b != 'duilib']
+    if optional_missing:
+        collector.warn('缺少库：%s（目录：%s）'
+                       % (', '.join(optional_missing), _rel(lib_dir)))
+    return count
 
-    if missing:
-        collector.warn('缺少库：%s（已搜索：%s）'
-                       % (', '.join(missing),
-                          ', '.join(os.path.relpath(d, REPO_ROOT).replace(os.sep, '/')
-                                    for d in existing)))
-        if 'duilib' in missing:
-            collector.warn('  -> 未找到 duilib 主库，本包不含可链接的 duilib，'
-                           '仅可用于资源/头文件参考。请先完成 Release 编译。')
 
-    # CEF wrapper 即使不在白名单里，只要存在就提示体积，避免用户以为漏了
-    if not with_cef_libs:
-        for base in CEF_LIB_BASENAMES:
-            name = available.get(base)
-            if name is not None:
-                full = os.path.join(locate(name), name)
-                collector.warn('存在 CEF 库 %s（%s），未打包；需要请加 --with-cef-libs'
-                               % (name, human_size(os.path.getsize(full))))
+def _collect_tree(collector, src_root, dst_prefix):
+    """把 src_root 下所有文件按相对路径转发到 dst_prefix。"""
+    count = 0
+    if not os.path.isdir(src_root):
+        return count
+    for abs_path, rel in iter_files(src_root):
+        if collector.add('%s/%s' % (dst_prefix, rel), abs_path):
+            count += 1
+    return count
+
+
+def collect_skia_libs(collector, skia_lib_dir):
+    """收集 Skia 全部静态库（P4-B3：整目录打包）。"""
+    is_windows = platform.system().lower().startswith('win')
+    ext = '.lib' if is_windows else '.a'
+    count = 0
+    for name in sorted(os.listdir(skia_lib_dir)):
+        full = os.path.join(skia_lib_dir, name)
+        if not os.path.isfile(full) or not name.lower().endswith(ext):
+            continue
+        if collector.add('lib/' + name, full):
+            count += 1
+    if count == 0:
+        raise PackageError('Skia 目录中没有 %s 静态库：%s'
+                           % (ext, _rel(skia_lib_dir)))
+    return count
+
+
+def resolve_skia_lib_dir(explicit_dir, config, arch_tag):
+    """解析 Skia 库目录。显式指定优先，否则按平台/配置探测。"""
+    if explicit_dir:
+        path = explicit_dir if os.path.isabs(explicit_dir) \
+            else os.path.join(REPO_ROOT, explicit_dir)
+        if not os.path.isdir(path):
+            raise PackageError('--skia-lib-dir 不存在：%s' % path)
+        return path
+
+    out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
+    is_windows = platform.system().lower().startswith('win')
+    if is_windows:
+        variant = 'llvm.%s.%s' % (
+            arch_tag, 'debug' if config == 'Debug' else 'release')
+        candidates = [os.path.join(out_dir, variant)]
+    else:
+        candidates = [
+            os.path.join(out_dir, 'llvm.%s.release' % arch_tag),
+            os.path.join(out_dir, 'gcc.%s.release' % arch_tag),
+        ]
+
+    for path in candidates:
+        if os.path.isdir(path):
+            return path
+
+    available = []
+    if os.path.isdir(out_dir):
+        available = sorted(d for d in os.listdir(out_dir)
+                           if os.path.isdir(os.path.join(out_dir, d)))
+    raise PackageError('未找到 Skia 库目录（尝试过：%s；可用：%s）。'
+                       '可用 --skia-lib-dir 指定'
+                       % (', '.join(candidates),
+                          ', '.join(available) if available else '无'))
+
+
+def collect_sdl(collector, sdl_dir, config, with_sdl):
+    """收集 SDL3 库、头文件与许可证（P4-B3/B4）。
+
+    Windows 默认不打包，仅 --with-sdl 时收集；Unix 始终收集。
+    """
+    is_windows = platform.system().lower().startswith('win')
+    if is_windows and not with_sdl:
+        return 0
+
+    root = sdl_dir if sdl_dir else SDL3_SRC_ROOT
+    if sdl_dir and not os.path.isabs(sdl_dir):
+        root = os.path.join(REPO_ROOT, sdl_dir)
+    if not os.path.isdir(root):
+        raise PackageError('SDL3 目录不存在：%s（可用 --sdl-dir 指定）' % root)
+
+    count = 0
+    if is_windows:
+        lib = os.path.join(root, 'lib', 'SDL3-static.lib')
+        if not os.path.isfile(lib):
+            raise PackageError('启用了 --with-sdl，但缺少 %s' % lib)
+        if collector.add('lib/SDL3-static.lib', lib):
+            count += 1
+    else:
+        lib_dirs = [os.path.join(root, 'lib64'), os.path.join(root, 'lib')]
+        found = False
+        for lib_dir in lib_dirs:
+            if not os.path.isdir(lib_dir):
+                continue
+            for name in sorted(os.listdir(lib_dir)):
+                full = os.path.join(lib_dir, name)
+                if not os.path.isfile(full):
+                    continue
+                low = name.lower()
+                if not (low.startswith('libsdl3') and
+                        ('.so' in low or low.endswith('.dylib'))):
+                    continue
+                if collector.add('lib/' + name, full):
+                    count += 1
+                found = True
+            if found:
+                break
+        if not found:
+            raise PackageError('SDL3 动态库不存在（查找 %s）' % ', '.join(lib_dirs))
+
+    count += _collect_tree(collector, os.path.join(root, 'include', 'SDL3'),
+                           'include/SDL3')
+    count += _collect_tree(collector, os.path.join(root, 'licenses'),
+                           'licenses/SDL3')
+    return count
+
+
+def collect_webview2_loader(collector, arch_tag):
+    """收集 WebView2 loader 库（默认随包，P4-B4/Q11）。"""
+    if not platform.system().lower().startswith('win'):
+        return 0
+    arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
+    count = 0
+    if arch_dir is None:
+        collector.warn('WebView2 没有 %s 架构的 loader，已跳过' % arch_tag)
+        return count
+    root = os.path.join(WEBVIEW2_NATIVE_DIR, arch_dir)
+    for name in ('WebView2Loader.dll.lib', 'WebView2LoaderStatic.lib'):
+        full = os.path.join(root, name)
+        if os.path.isfile(full):
+            if collector.add('lib/' + name, full):
+                count += 1
+        else:
+            collector.warn('缺少 WebView2 loader：%s' % _rel(full))
+    return count
+
+
+def collect_jpeg_turbo(collector, arch_tag):
+    """收集 libjpeg-turbo 静态库与头文件（Windows 默认随包，P4-B4/Q12）。"""
+    if not platform.system().lower().startswith('win'):
+        return 0
+    arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
+    count = 0
+    if arch_dir is None:
+        collector.warn('libjpeg-turbo 没有 %s 架构的预编译库，已跳过' % arch_tag)
+        return count
+    root = os.path.join(JPEG_TURBO_DIR, 'libjpeg-turbo6-win-vc-%s' % arch_dir)
+    lib = os.path.join(root, 'lib', 'turbojpeg-static.lib')
+    if os.path.isfile(lib):
+        if collector.add('lib/turbojpeg-static.lib', lib):
+            count += 1
+    else:
+        collector.warn('缺少 turbojpeg-static.lib：%s' % _rel(lib))
+
+    include_dir = os.path.join(root, 'include')
+    count += _collect_tree(collector, include_dir,
+                           'include/duilib/third_party/libjpeg-turbo')
+    return count
+
+
+def collect_cef(collector, arch_tag, cef_version):
+    """收集 CEF 开发包：头文件 + libcef.lib（wrapper 在 collect_libs 中）。"""
+    if not platform.system().lower().startswith('win'):
+        raise PackageError('--with-cef 目前仅支持 Windows 打包')
+    src_name = CEF_SRC_BY_VERSION[cef_version]
+    arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
+    if arch_dir is None:
+        raise PackageError('CEF 没有 %s 架构的库' % arch_tag)
+
+    src_root = os.path.join(CEF_DIR, src_name)
+    lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
+    if not os.path.isfile(lib):
+        raise PackageError('缺少 %s' % _rel(lib))
+
+    count = 0
+    if collector.add('lib/libcef.lib', lib):
+        count += 1
+    count += _collect_tree(collector, os.path.join(src_root, 'include'),
+                           'include/duilib/third_party/libcef/%s/include' % src_name)
     return count
 
 
@@ -434,7 +611,7 @@ def collect_resources(collector, with_examples):
     return count
 
 
-def collect_licenses(collector):
+def collect_licenses(collector, skia_lib_dir):
     if not os.path.isdir(LICENSES_DIR):
         collector.warn('许可证目录不存在：%s' % LICENSES_DIR)
         return 0
@@ -447,15 +624,30 @@ def collect_licenses(collector):
     if os.path.isfile(root_license):
         collector.add('LICENSE', root_license)
         count += 1
+    # Skia 的许可证不在本仓库内（Skia 源码树同级）；仓库 licenses/ 已有时不重复
+    skia_root = os.path.dirname(os.path.dirname(skia_lib_dir))
+    skia_license = os.path.join(skia_root, 'LICENSE')
+    has_skia_license = any(r.startswith('licenses/skia') for r, _ in collector.items)
+    if not has_skia_license and os.path.isfile(skia_license):
+        if collector.add('licenses/skia/LICENSE', skia_license):
+            count += 1
+    elif not has_skia_license:
+        collector.warn('缺少 Skia 许可证：%s' % skia_license)
     return count
 
 
-def collect_examples(collector):
-    """收集示例程序可执行文件与运行时 dll。"""
+def collect_examples(collector, config):
+    """收集示例程序可执行文件与运行时 dll。
+
+    Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
+    Debug exe 与 Release 同名，无法区分，全部收集并告警。
+    """
     if not os.path.isdir(BIN_DIR):
         collector.warn('bin 目录不存在：%s' % BIN_DIR)
         return 0
     count = 0
+    exe_count = 0
+    skipped_debug = []
     exec_exts = ('.exe',)
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
@@ -469,8 +661,17 @@ def collect_examples(collector):
             continue
         if not low.endswith(exec_exts):
             continue
+        if config == 'Release' and low.endswith('_d.exe'):
+            skipped_debug.append(name)
+            continue
         if collector.add('bin/' + name, full):
             count += 1
+            exe_count += 1
+    if config == 'Debug' and exe_count:
+        collector.warn('Debug 包中的示例程序可能混有 Release 版本'
+                       '（CMake 的 Debug exe 与 Release 同名），请确认后再分发')
+    if skipped_debug:
+        collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
     return count
 
 
@@ -481,47 +682,136 @@ def collect_examples(collector):
 CEF_EXAMPLES = ('cef.exe', 'cef_d.exe', 'CefBrowser.exe', 'CefBrowser_d.exe')
 
 
-def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag, with_examples):
-    """生成包内 MANIFEST.txt 与 SHA256SUMS。"""
+def _lib_stems(collector):
+    """包内 lib/ 下所有库的文件名主干（Unix 去掉 lib 前缀）。"""
+    stems = set()
+    for rel, _abs in collector.items:
+        if not rel.startswith('lib/'):
+            continue
+        stem = os.path.splitext(rel.rsplit('/', 1)[-1])[0]
+        if stem.startswith('lib'):
+            stem = stem[3:]
+        stems.add(stem)
+    return stems
+
+
+def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
+                   config, with_examples, with_sdl, with_cef, cef_version):
+    """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。"""
+    is_windows = sys_tag == 'win'
+    stems = _lib_stems(collector)
     lines = []
+
+    def section(title):
+        lines.append('')
+        lines.append(title)
+        lines.append('-' * 60)
+
+    def fmt_libs(names):
+        if is_windows:
+            return ';'.join('%s.lib' % n for n in names)
+        return ' '.join('-l%s' % n for n in names)
+
     lines.append('nim_duilib SDK')
     lines.append('=' * 60)
     lines.append('版本      : %s' % version)
+    lines.append('包名      : %s' % pkg_root_name)
     lines.append('平台      : %s-%s' % (sys_tag, arch_tag))
+    lines.append('配置      : %s' % config)
     lines.append('打包时间  : %s' % time.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('包含示例  : %s' % ('是' if with_examples else '否'))
     lines.append('文件总数  : %d' % len(collector.items))
-    lines.append('')
-    lines.append('目录结构')
-    lines.append('-' * 60)
+
+    section('目录结构')
     lines.append('  include/duilib/**.h   对外头文件，保持仓库根相对路径')
     lines.append('                         用法：#include "duilib/duilib.h"')
-    lines.append('  lib/                  静态库（.lib / .a）')
+    lines.append('  lib/                  静态库（.lib / .a），平面结构')
     lines.append('  resources/            主题、语言、字体资源')
     lines.append('  licenses/             第三方许可证')
     lines.append('  VERSION               版本号')
-    lines.append('')
+
+    section('开发接入')
+    lines.append('1) 包含路径：include/')
+    if with_cef:
+        src_name = CEF_SRC_BY_VERSION[cef_version]
+        lines.append('   使用 CEF 时追加：include/duilib/third_party/libcef/%s'
+                     % src_name)
+    if with_sdl or not is_windows:
+        lines.append('   使用 SDL 时 <SDL3/SDL.h> 也由 include/ 覆盖')
+    lines.append('2) 库路径  ：lib/')
+    lines.append('3) 链接列表（按需取用，顺序仅供参考）')
+
+    base_links = [n for n in LIB_BASENAMES if n in stems]
+    lines.append('   基础    : %s' % fmt_libs(base_links))
+
+    skia_links = [n for n in SKIA_LINK_ORDER if n in stems]
+    if skia_links:
+        lines.append('   Skia    : %s' % fmt_libs(skia_links))
+        extra = [n for n in SKIA_EXTRA_LIBS if n in stems]
+        if extra:
+            lines.append('             随包的传递依赖：%s'
+                         '（出现未解析符号时补链）' % ', '.join(extra))
+
+    if 'WebView2LoaderStatic' in stems:
+        lines.append('   WebView2: WebView2LoaderStatic.lib（静态 loader，无需 DLL）')
+    if 'WebView2Loader.dll' in stems:
+        lines.append('   WebView2: WebView2Loader.dll.lib（动态 loader，'
+                     '运行期需 WebView2Loader.dll）')
+    if 'turbojpeg-static' in stems:
+        lines.append('   JPEG    : turbojpeg-static.lib')
+    if 'SDL3-static' in stems:
+        lines.append('   SDL3    : SDL3-static.lib（静态）')
+    elif 'SDL3' in stems:
+        lines.append('   SDL3    : -lSDL3（动态库，见运行期）')
+    if with_cef:
+        wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
+        lines.append('   CEF     : libcef.lib;%s.lib' % wrapper)
+
+    section('运行期')
+    lines.append('  resources/ 必须放在可执行文件同级目录（框架启动必需）。')
+    if is_windows:
+        if 'WebView2Loader.dll' in stems:
+            lines.append('  动态 WebView2 loader 需要 WebView2Loader.dll 与可执行文件')
+            lines.append('  同级；可从 bin/ 或 third_party 同名文件复制。')
+        if 'SDL3-static' in stems:
+            lines.append('  SDL3 为静态库，无需额外 DLL；下游需定义 DUILIB_SDL=1，')
+            lines.append('  并补链系统库：Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib')
+        if with_cef:
+            lines.append('  CEF 运行时不在本包内，需从 libcef 发布包放入可执行文件同级：')
+            lines.append('  libcef.dll、icudtl.dat、*.pak、locales/ 等。')
+    else:
+        lines.append('  Skia 为静态库；SDL3 为动态库，需让 libSDL3.so* 可被找到：')
+        lines.append('  复制到可执行文件同级，或设置 LD_LIBRARY_PATH'
+                     '（macOS：DYLD_LIBRARY_PATH）。')
+        lines.append('  X11 / freetype / fontconfig 由系统提供，不随包。')
+
+    section('配置一致性')
+    if config == 'Debug':
+        lines.append('  本包是 Debug 版本，仅用于 Debug 构建的下游工程（/MTd），')
+        lines.append('  必须使用 Debug 运行库；与 Release 包不可混用。')
+    else:
+        lines.append('  本包是 Release 版本，仅用于 Release 构建的下游工程（/MT），')
+        lines.append('  与 Debug 包不可混用。')
+
     if with_examples:
-        lines.append('示例程序')
-        lines.append('-' * 60)
+        section('示例程序')
         lines.append('  bin/*.exe             示例可执行文件，需与 resources/ 同级')
-        lines.append('')
         missing_cef = [e for e in CEF_EXAMPLES
                        if any(r.endswith('/' + e) for r, _ in collector.items)]
         if missing_cef:
+            lines.append('')
             lines.append('  [注意] 以下示例依赖 CEF 运行时，本仓库不含该运行时，')
             lines.append('         直接运行会失败。需自行从 libcef 发布包放入：')
             for e in missing_cef:
                 lines.append('           %s' % e)
-            lines.append('')
     else:
-        lines.append('本包不含示例程序资源。resources/themes/ 下只保留了 public/ 与')
-        lines.append('global.xml；各示例的私有主题目录未包含。')
-        lines.append('')
-    lines.append('校验')
-    lines.append('-' * 60)
+        section('资源说明')
+        lines.append('  本包不含示例程序资源。resources/themes/ 下只保留了 public/ 与')
+        lines.append('  global.xml；各示例的私有主题目录未包含。')
+
+    section('校验')
     lines.append('  SHA256SUMS 可用 sha256sum -c SHA256SUMS 校验')
-    lines.append('')
+
     manifest_text = '\n'.join(lines).replace('\n', '\r\n')
 
     sums = []
@@ -594,19 +884,38 @@ def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_te
 # 主流程
 # --------------------------------------------------------------------------
 
-def default_lib_dirs():
-    """返回按优先级排列的库目录候选列表。
+def resolve_lib_dir(lib_dir_opt, config, arch_tag):
+    """解析唯一的 duilib 库目录（CM-5 D-2 方案 B）。
 
-    两条构建路径的产物位置不同：
-      CMake   —— lib/x64（Windows 多配置生成器会再加一层 Debug/Release）
-      MSBuild —— lib/Debug、lib/Release
-    因此这里给出多个候选，由 collect_libs 取第一个存在的。
-    非Windows 平台只有 lib/。
+    显式 --lib-dir 优先；否则 Windows 为 lib/<arch>/<Config>、
+    Unix 为 lib/<Config>。目录不存在直接失败，不在多个候选之间回退。
     """
-    rels = ['lib/x64', 'lib/Debug', 'lib/Release', 'lib']
-    if not platform.system().lower().startswith('win'):
-        rels = ['lib', 'lib/Release', 'lib/Debug']
-    return [os.path.join(REPO_ROOT, *rel.split('/')) for rel in rels]
+    if lib_dir_opt:
+        path = lib_dir_opt if os.path.isabs(lib_dir_opt) \
+            else os.path.join(REPO_ROOT, lib_dir_opt)
+        if not os.path.isdir(path):
+            raise PackageError('--lib-dir 不存在：%s' % path)
+        return path
+
+    if platform.system().lower().startswith('win'):
+        parts = ['lib', arch_tag, config]
+    else:
+        parts = ['lib', config]
+    path = os.path.join(REPO_ROOT, *parts)
+    if not os.path.isdir(path):
+        raise PackageError('库目录不存在：%s（请先完成 %s|%s 的构建）'
+                           % (_rel(path), arch_tag, config))
+    return path
+
+
+def _parse_config(value):
+    """--config 大小写不敏感，统一规范化为 Release / Debug。"""
+    norm = value.strip().lower()
+    if norm == 'release':
+        return 'Release'
+    if norm == 'debug':
+        return 'Debug'
+    raise argparse.ArgumentTypeError('配置只能是 Release 或 Debug：%r' % value)
 
 
 def main(argv=None):
@@ -614,17 +923,31 @@ def main(argv=None):
         description='nim_duilib 发布打包脚本',
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument('--config', type=_parse_config, default='Release',
+                        metavar='{Release,Debug}',
+                        help='库配置，决定读取 lib/.../Release 或 lib/.../Debug'
+                             '（默认 Release）')
+    parser.add_argument('--arch', choices=('x64', 'x86', 'arm64'), default=None,
+                        help='库架构；Windows 影响库目录，所有平台影响包名'
+                             '（默认主机架构）')
+    parser.add_argument('--lib-dir', default=None,
+                        help='显式指定 duilib 库目录，此时 --arch/--config 不再参与'
+                             '路径计算，但仍决定包名与示例过滤')
+    parser.add_argument('--skia-lib-dir', default=None,
+                        help='Skia 静态库目录（默认探测 ../skia/out/llvm.<arch>.<config>）')
+    parser.add_argument('--sdl-dir', default=None,
+                        help='SDL3 根目录（默认 ../SDL3）')
+    parser.add_argument('--with-sdl', action='store_true',
+                        help='Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）')
+    parser.add_argument('--with-cef', action='store_true',
+                        help='打包 CEF 开发包：头文件 + libcef.lib + wrapper'
+                             '（体积巨大，默认不带）')
+    parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
+                        help='配合 --with-cef 选择 CEF 版本（默认 latest）')
     parser.add_argument('--with-examples', action='store_true',
                         help='包含示例程序与全部示例私有资源（默认只打 SDK）')
-    parser.add_argument('--with-cef-libs', action='store_true',
-                        help='包含 CEF wrapper 静态库（体积巨大，默认不带）')
-    parser.add_argument('--allow-debug-libs', action='store_true',
-                        help='允许把仅有 Debug 版的库打进包（默认排除，'
-                             '因Debug 库带调试 CRT，混进 Release SDK 会让下游链接异常）')
     parser.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'), default=None,
                         help='压缩格式，默认 Windows 用 zip、其它用 tgz')
-    parser.add_argument('--lib-dir', default=None,
-                        help='静态库目录，默认按构建路径自动探测 lib/x64 等')
     parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help='输出目录，默认 dist/')
     parser.add_argument('--list', action='store_true',
                         help='只打印将收集的文件清单，不实际打包')
@@ -634,34 +957,52 @@ def main(argv=None):
     if version is None:
         return 1
 
-    sys_tag, arch_tag = detect_platform_tag()
+    sys_tag, host_arch = detect_platform_tag()
+    arch_tag = args.arch or host_arch
+    config = args.config
     fmt = args.format
     if fmt is None:
         fmt = 'zip' if sys_tag == 'win' else 'tgz'
 
-    lib_dirs = [args.lib_dir] if args.lib_dir else default_lib_dirs()
-    lib_dirs = [d for d in lib_dirs if d]
+    try:
+        lib_dir = resolve_lib_dir(args.lib_dir, config, arch_tag)
+        skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag)
 
-    collector = Collector()
-    n_headers = collect_headers(collector)
-    n_libs = collect_libs(collector, lib_dirs, args.with_cef_libs,
-                          args.allow_debug_libs)
+        collector = Collector()
+        n_headers = collect_headers(collector)
+        n_libs = collect_libs(collector, lib_dir, config,
+                              args.with_cef, args.cef_version)
+        n_skia = collect_skia_libs(collector, skia_dir)
+        n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
+        n_wv2 = collect_webview2_loader(collector, arch_tag)
+        n_jpeg = collect_jpeg_turbo(collector, arch_tag)
+        n_cef = 0
+        if args.with_cef:
+            n_cef = collect_cef(collector, arch_tag, args.cef_version)
+    except PackageError as exc:
+        eprint('[ERROR] %s' % exc)
+        return 1
+
     n_res = collect_resources(collector, args.with_examples)
-    n_lic = collect_licenses(collector)
-    n_exe = collect_examples(collector) if args.with_examples else 0
+    n_lic = collect_licenses(collector, skia_dir)
+    n_exe = collect_examples(collector, config) if args.with_examples else 0
     collector.sort()
-
-    lib_dir_label = ', '.join(os.path.relpath(d, REPO_ROOT).replace(os.sep, '/')
-                              for d in lib_dirs if os.path.isdir(d)) or '(无)'
 
     print('版本      : %s' % version)
     print('平台      : %s-%s' % (sys_tag, arch_tag))
-    print('库目录    : %s' % lib_dir_label)
+    print('配置      : %s' % config)
+    print('库目录    : %s' % _rel(lib_dir))
+    print('Skia 目录 : %s' % _rel(skia_dir))
     print('格式      : %s' % fmt)
     print('包含示例  : %s' % ('是' if args.with_examples else '否'))
     print('-' * 60)
     print('头文件    : %d' % n_headers)
     print('静态库    : %d' % n_libs)
+    print('Skia 库   : %d' % n_skia)
+    print('SDL3      : %d' % n_sdl)
+    print('WebView2  : %d' % n_wv2)
+    print('JPEG      : %d' % n_jpeg)
+    print('CEF       : %d' % n_cef)
     print('资源文件  : %d' % n_res)
     print('许可证    : %d' % n_lic)
     print('示例程序  : %d' % n_exe)
@@ -680,8 +1021,11 @@ def main(argv=None):
         return 0
 
     pkg_root_name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
+    if config == 'Debug':
+        pkg_root_name += '-debug'
     manifest_text, sums_text = write_manifest(
-        collector, pkg_root_name, version, sys_tag, arch_tag, args.with_examples)
+        collector, pkg_root_name, version, sys_tag, arch_tag, config,
+        args.with_examples, args.with_sdl, args.with_cef, args.cef_version)
 
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)

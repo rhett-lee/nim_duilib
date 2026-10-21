@@ -12,16 +12,24 @@
 "补 `install()` 规则" 这条路在本仓库走不通。
 
 此外 Windows 有两条构建路径 —— `build/*.sln`（MSBuild）与 `msvc_build.bat`
-（CMake）—— 产物混在同一 `lib/`、`bin/` 下，任何单一构建系统都覆盖不全。
-`pack.py` 按文件名白名单收集，两条路径的产物都能收。
+（CMake）。两者的库产物现在统一落在同一套目录：
+
+| 平台 | 库目录 |
+| :--- | :--- |
+| Windows | `lib/<x64\|x86\|arm64>/<Release\|Debug>/` |
+| Linux / macOS / FreeBSD | `lib/<Release\|Debug>/` |
+
+配置只由目录表达，库名不再带 `_d`。约定**同一个 `<arch>|<Config>` 一次只由
+一套体系完整构建**，后构建者覆盖前者（含 `.pdb`）。`pack.py` 只读取
+`--config` 选中的一个目录，不再合并候选目录或按优先级猜测。
 
 ## 快速开始
 
-打包前必须先完成 Release 编译，脚本不会触发编译：
+打包前必须先完成对应配置的编译，脚本不会触发编译：
 
 ```
 # Windows（MSBuild 路径）
-build\duilib.sln      # 配置选 Release，平台按需
+build\duilib.sln      # 配置选 Release 或 Debug，平台按需
 
 # Windows（CMake 路径）
 build\msvc_build.bat
@@ -35,17 +43,22 @@ build\msvc_build.bat
 编译完成后打包：
 
 ```
-# 只打 SDK（推荐）
+# 只打 SDK（推荐，默认 Release）
 python build/pack.py
+
+# Debug SDK（包名带 -debug）
+python build/pack.py --config Debug
 
 # SDK + 示例程序
 python build/pack.py --with-examples
 ```
 
-产物输出到 `dist/`，包名格式为 `nim_duilib-<版本>-<系统>-<架构>.zip`：
+产物输出到 `dist/`，包名格式为
+`nim_duilib-<版本>-<系统>-<架构>[-debug].zip`：
 
 ```
 dist/nim_duilib-1.0.2026.0416-win-x64.zip
+dist/nim_duilib-1.0.2026.0416-win-x64-debug.zip
 ```
 
 ## 产物结构
@@ -56,12 +69,34 @@ nim_duilib-<版本>-<系统>-<架构>/
   MANIFEST.txt          包内容说明与注意事项
   SHA256SUMS            每个文件的 SHA256，可用 sha256sum -c 校验
   LICENSE               主许可证
-  include/duilib/       对外头文件
-  lib/                  静态库
+  include/duilib/       对外头文件（使用 SDL 时含 include/SDL3/）
+  lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
   resources/            主题、语言、字体资源
   licenses/             第三方许可证
   bin/                  仅 --with-examples 时存在
 ```
+
+### SDK 使用契约
+
+为保证下游能完成**编译、链接、运行**，`MANIFEST.txt` 固化以下内容：
+
+1. **包含路径**：`include/`（`#include "duilib/duilib.h"`）。
+   使用 CEF 时追加 `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`。
+2. **库路径**：`lib/`（平面结构）。
+3. **链接列表**：
+   - 基础：`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`
+   - Skia：`skia`、`svg`、`skshaper`、`skottie`、`sksg`、`jsonreader`
+     （`bentleyottmann`、`expat`、`skcms`、`skresources` 随包，出现未解析符号时补链）
+   - WebView2：`WebView2LoaderStatic`（VS）或 `WebView2Loader.dll`（CMake，运行期需 DLL）
+   - JPEG（Windows）：`turbojpeg-static`
+   - SDL（可选）：`SDL3-static`（Windows）/ `SDL3`（Unix）
+   - CEF（可选）：`libcef` + `libcef_dll_wrapper[_109]`
+4. **平台系统库**：Windows 启用 SDL 时补 `Version/Winmm/Imm32/Setupapi`；
+   Unix 的 `X11`/`freetype`/`fontconfig` 由系统提供，不随包。
+5. **运行期**：`resources/` 与可执行文件同级；CEF 运行时外置；
+   Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
+6. **配置一致性**：Debug 包只给 Debug 下游（`/MTd`），Release 包只给
+   Release 下游（`/MT`），两套不可混用。
 
 ### 头文件路径不可改动
 
@@ -119,29 +154,29 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 
 | 参数 | 说明 |
 | :--- | :--- |
+| `--config Release\|Debug` | 选择库配置，默认 `Release`（大小写不敏感） |
+| `--arch x64\|x86\|arm64` | 库架构；Windows 决定库目录，所有平台影响包名 |
+| `--lib-dir <路径>` | 完全显式指定库目录，覆盖 `--arch`/`--config` 的路径计算 |
+| `--skia-lib-dir <路径>` | Skia 静态库目录，默认探测 `../skia/out/llvm.<arch>.<config>` |
+| `--sdl-dir <路径>` | SDL3 根目录，默认 `../SDL3` |
+| `--with-sdl` | Windows 下额外打包 SDL3（Unix 始终打包） |
+| `--with-cef` | 打包 CEF 开发包：头文件 + `libcef.lib` + wrapper（体积大） |
+| `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest` |
 | `--with-examples` | 包含示例程序与全部示例私有资源 |
-| `--with-cef-libs` | 包含 CEF wrapper 静态库（单个 80–100 MB，默认不带） |
-| `--allow-debug-libs` | 允许把仅有 Debug 版的库打进包（默认排除，见下） |
 | `--format zip\|tgz\|tarbz2` | 压缩格式，默认 Windows 用 `zip`、其它用 `tgz` |
-| `--lib-dir <路径>` | 指定静态库目录，默认自动探测 |
 | `--out-dir <路径>` | 输出目录，默认 `dist/` |
 | `--list` | 只打印将收集的文件清单，不实际打包 |
 
-## Debug 库默认被排除
+## Debug 包
 
-脚本会区分 Release 与 Debug 库，**默认只打 Release**。
-Debug 库带调试 CRT 与 `/MTd` 运行时，混进 Release SDK 会让下游链接异常。
+配置只由目录决定（`lib/<arch>/Debug` 或 `lib/Debug`），不再靠 `_d` 后缀判断。
 
-Debug 判定有两个来源，缺一不可：
-
-- 文件名带 `_d` 后缀（CMake 路径的 `duilib_d.lib`）
-- 所在目录名为 `Debug`（MSBuild 路径的 `lib/Debug/duilib.lib`）
-
-只看文件名会漏掉第二种，把 200MB 以上的 Debug 库当成 Release 打进去。
-确实需要时用 `--allow-debug-libs`。
-
-若所有候选目录里都找不到 `duilib` 主库，脚本会明确告警 ——
-此时打出的包不含可链接的 duilib，只能作为头文件与资源的参考。
+- `--config Debug` 时包名追加 `-debug`，`MANIFEST.txt` 标注 `配置 : Debug`。
+- Debug 库带调试 CRT 与 `/MTd`，只能用于 Debug 下游，**不可混进 Release SDK**。
+- `--with-examples` 时：Release 包跳过 `*_d.exe`；Debug 包因 CMake 的 Debug
+  exe 与 Release 同名，无法区分，脚本会告警提示可能混有 Release 版本。
+- 库目录不存在或主库 `duilib` 缺失时，脚本直接以退出码 1 失败，不会打出
+  没有可链接库的半成品包。
 
 ## CEF 相关限制
 
@@ -150,7 +185,7 @@ CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）**不在本仓库内**�
 
 - 含 CEF 的示例程序（`cef`、`CefBrowser`）打包后**不能直接运行**
 - `--with-examples` 的 `MANIFEST.txt` 会列出这些示例并标注该限制
-- CEF wrapper 静态库默认不打，需要时加 `--with-cef-libs`
+- CEF 开发包默认不打，需要时加 `--with-cef`（可用 `--cef-version 109` 选旧版）
 
 ## 版本号
 
@@ -238,9 +273,9 @@ gpg --detach-sign --armor dist/nim_duilib-<版本>-<平台>-<架构>.tar.gz
 | FreeBSD | `tgz` | 脚本同构，产物未在本机验证 |
 
 打包脚本本身跨平台（纯标准库，无外部依赖），四平台共用同一份代码。
-但**产物正确性只有 Windows 被实测过** —— 其它平台的库文件名后缀、
-静态库格式（`.a` vs `.lib`）差异可能需要按实际构建结果调整
-`LIB_BASENAMES` 与格式判定。
+Windows 的 `.lib` 与 Unix 的 `.a` 均按目录白名单收集；Unix 的 `lib` 前缀
+会自动归一化（如 `libduilib-zlib.a` → `duilib-zlib`）。但**产物正确性目前
+只有 Windows 被实测过**，其它平台首次打包后仍需核对库清单。
 
 ## 相关文档
 
