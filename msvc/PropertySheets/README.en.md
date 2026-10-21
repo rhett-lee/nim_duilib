@@ -48,13 +48,14 @@ PropertySheets/
 
 - **Runtime library configuration:** Automatically switch between MT/MTd or MD/MDd mode by detecting the `duilib_dll.flag` file
 
-- **Base library list:**
+- **Base library list** (after CM-5 the names are unified; Debug no longer adds `_d`,
+  the configuration is distinguished by the output directory):
   ```xml
-  duilib.lib / duilib_d.lib          # Main library
-  zlib.lib / zlib_d.lib              # Compression library
-  cximage.lib / cximage_d.lib        # Image processing library
-  libpng.lib / libpng_d.lib          # PNG image library
-  libwebp.lib / libwebp_d.lib        # WebP image library
+  duilib.lib              # Main library
+  duilib-zlib.lib         # Compression library
+  duilib-cximage.lib      # Image processing library
+  duilib-png.lib          # PNG image library
+  duilib-webp.lib         # WebP image library
   ```
 
 **Important variables:**
@@ -89,7 +90,8 @@ DuilibSettings.props
   <ConfigurationType>StaticLibrary</ConfigurationType>   <!-- Static library mode -->
   ```
 
-- **Output configuration:** In DLL mode output to the `bin\` directory; in static library mode output to the `lib\$(Platform)\` directory
+- **Output configuration:** In DLL mode output to `bin\`; in static library mode output to
+  `lib\<platform arch>\$(Configuration)\` (where `DuilibLibPlatform` maps `Win32` to `x86`)
 
 - **Feature module macro definitions:**
   - `DUILIB_SDL`: SDL support switch
@@ -457,9 +459,12 @@ If you need to add a new third-party library dependency, it is recommended to:
 
 ### 5. Debug/Release configuration differences
 
-- In Debug mode, the library name automatically gets a `_d` suffix
+- Static library names no longer carry `_d`; the configuration is distinguished only by the
+  output directory: `lib\<x64|x86>\Debug\` vs `lib\<x64|x86>\Release\`
+- In Debug mode, executable target names still get a `_d` suffix (executables only, not libraries)
 - In Debug mode, the `libcmt.lib` default library is disabled
-- Skia, SDL, JpegTurbo, and other libraries use different output directories in Debug and Release
+- Skia uses different directories for Debug/Release (`llvm.<arch>.debug` / `llvm.<arch>.release`);
+  SDL and libjpeg-turbo each have a single library path regardless of configuration
 
 ---
 

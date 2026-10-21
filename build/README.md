@@ -337,6 +337,17 @@ cd nim_duilib\build
 msvc_build.bat
 ```
 
+### 方式四：Linux / macOS / FreeBSD 编译脚本
+
+```bash
+./build/linux_build.sh                    # Release（默认）
+DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh   # Debug
+```
+
+`macos_build.sh`、`freebsd_build.sh` 用法相同。编译临时目录按配置分到
+`build_temp/<编译器>_build/<Debug|Release>/`，Debug 与 Release 互不覆盖；
+Skia 在 Unix 仍只使用 release 变体。
+
 ---
 
 ## 编译输出说明
@@ -351,27 +362,35 @@ nim_duilib/
 │   ├── controls.exe
 │   └── ...
 │
-├── lib/                         # 静态库目录
+├── lib/                         # 静态库目录（配置由子目录表达）
 │   ├── x64/
-│   │   ├── duilib.lib
-│   │   └── ...
-│   └── Win32/
-│       └── ...
+│   │   ├── Release/
+│   │   │   ├── duilib.lib
+│   │   │   ├── duilib-zlib.lib
+│   │   │   └── ...
+│   │   └── Debug/
+│   │       └── ...
+│   └── x86/
+│       ├── Release/
+│       └── Debug/
 │
 ├── build_temp/                   # 编译临时目录（可安全删除）
-│   ├── msvc/
+│   ├── x64/                      # VS
+│   ├── msvc/                     # CMake
 │   └── ...
 │
 └── .vs/                          # VS 缓存目录（可定期清理）
 ```
+
+Linux / macOS / FreeBSD 没有架构层：`lib/Debug/`、`lib/Release/`。
 
 ### 编译目标文件说明
 
 | 文件类型 | 路径 | 说明 |
 |----------|------|------|
 | 动态库 | `bin\duilib.dll` | duilib 动态链接库 |
-| 静态库 | `lib\x64\duilib.lib` | duilib 静态库 |
-| 可执行程序 | `bin\*.exe` | 示例程序 |
+| 静态库 | `lib\x64\<Release\|Debug>\duilib.lib` | duilib 静态库 |
+| 可执行程序 | `bin\*.exe` | 示例程序（Debug 带 `_d`） |
 | 资源文件 | `bin\resources\` | UI 资源文件 |
 
 ---

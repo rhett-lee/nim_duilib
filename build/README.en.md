@@ -339,6 +339,18 @@ cd nim_duilib\build
 msvc_build.bat
 ```
 
+### Method 4: Linux / macOS / FreeBSD build scripts
+
+```bash
+./build/linux_build.sh                    # Release (default)
+DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh   # Debug
+```
+
+`macos_build.sh` and `freebsd_build.sh` work the same way. Temporary build
+directories are split by configuration under
+`build_temp/<compiler>_build/<Debug|Release>/`, so Debug and Release never
+overwrite each other. Skia still uses only the release variant on Unix.
+
 ---
 
 ## Build Output Description
@@ -353,26 +365,34 @@ nim_duilib/
 │   ├── controls.exe
 │   └── ...
 │
-├── lib/                         # Static library directory
+├── lib/                         # Static library directory (config in subdirectory)
 │   ├── x64/
-│   │   ├── duilib.lib
-│   │   └── ...
-│   └── Win32/
-│       └── ...
+│   │   ├── Release/
+│   │   │   ├── duilib.lib
+│   │   │   ├── duilib-zlib.lib
+│   │   │   └── ...
+│   │   └── Debug/
+│   │       └── ...
+│   └── x86/
+│       ├── Release/
+│       └── Debug/
 │
 ├── build_temp/                   # Build temp directory (safe to delete)
-│   ├── msvc/
+│   ├── x64/                      # VS
+│   ├── msvc/                     # CMake
 │   └── ...
 │
 └── .vs/                          # VS cache directory (clean periodically)
 ```
+
+Linux / macOS / FreeBSD have no architecture level: `lib/Debug/`, `lib/Release/`.
 
 ### Build Target Files Description
 
 | File type | Path | Description |
 |----------|------|------|
 | Dynamic library | `bin\duilib.dll` | duilib dynamic-link library (DLL) |
-| Static library | `lib\x64\duilib.lib` | duilib static library |
+| Static library | `lib\x64\<Release\|Debug>\duilib.lib` | duilib static library |
 | Executable program | `bin\*.exe` | Example programs |
 | Resource files | `bin\resources\` | UI resource files |
 

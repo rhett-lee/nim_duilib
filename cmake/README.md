@@ -60,7 +60,7 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | 选项名称 | 默认值 | 说明 |
 |----------|--------|------|
 | `DUILIB_LOG` | OFF | 打印 duilib 调试日志 |
-| `DUILIB_SKIA_LIB_SUBPATH` | Windows=`llvm.<CPU_ARCH>.<构建类型>`，其他=空 | Skia 库子目录（空表示按规则自动拼接） |
+| `DUILIB_SKIA_LIB_SUBPATH` | 空 | Skia 库子目录；空表示按平台/配置自动拼接（见下方规则） |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, 其他=ON | 启用 SDL 输入支持 |
 | `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持 |
 | `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7） |
@@ -92,27 +92,29 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 
 **Skia 路径拼接规则：**
 
-`DUILIB_SKIA_LIB_SUBPATH` 的默认值在 `duilib_common.cmake` 内部计算（在 `DUILIB_BUILD_TYPE` 之后），各工程无需再自行设置：
+`DUILIB_SKIA_LIB_SUBPATH` 默认**为空**，由 `duilib_common.cmake` 按平台与配置自动拼接，各工程无需再自行设置：
 
 ```cmake
-# 默认值：
-#   Windows   : llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>
-#   Linux/macOS/FreeBSD : 空
-# 其中 CPU_ARCH 取 cmake -A 的目标架构：-A Win32 -> x86，缺省 -> x64，
-# 规则与 build/msvc_build.bat 保持一致；DUILIB_BUILD_TYPE 为 debug 或 release。
-# 外部用 -DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准（set(... CACHE ...) 不会覆盖已有缓存项）。
+# 默认值：空（不再预先写死 llvm.<arch>.<构建类型>）
+# 外部用 -DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准（固定路径，不随配置变化）。
+
+# 子目录名为空时，自动规则：
+#   Windows : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
+#             由生成器表达式按 $<CONFIG> 选择，Debug 取 debug 变体，其余取 release
+#   Linux/macOS/FreeBSD : <编译器>.<CPU_ARCH>.release
+#             Skia 在 Unix 只编译 release 变体（D-3）
 
 # 最终 Skia 库目录：
-#   子目录名为空（或旧值 OFF）时，按规则自动拼接：
-${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}
-#   子目录名非空时，直接使用：
-${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}
+${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
 
 # 示例：
-# Windows x64 + Release        -> skia/out/llvm.x64.release
 # Windows x64 + Debug          -> skia/out/llvm.x64.debug
+# Windows x64 + Release        -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug     -> skia/out/llvm.x86.debug
-# 非 Windows 自动拼接          -> skia/out/mingw64-gcc.x64.release
+# Linux/macOS/FreeBSD          -> skia/out/llvm.x64.release（clang）
+#                                skia/out/gcc.x64.release（gcc）
+# MSYS2 Windows + Debug        -> skia/out/llvm.<arch>.debug（按配置自动选）
+# 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录
 ```
 
 ---
@@ -142,6 +144,20 @@ link_directories("${DUILIB_SDL_LIB_PATH}")       # SDL 库目录（如果启用�
 ```cmake
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_BIN_PATH}")
 ```
+
+**库输出目录（CM-5 / D-2 方案 B）：**
+
+各库在 `project()` 之后 `include` [duilib_lib_output.cmake](duilib_lib_output.cmake)，
+统一按平台与配置输出，配置只由目录表达（库名不再带 `_d`）：
+
+| 平台 | 库目录 |
+| :--- | :--- |
+| Windows | `<root>/lib/<x64\|x86\|arm64>/<Debug\|Release\|RelWithDebInfo\|MinSizeRel>/` |
+| Linux / macOS / FreeBSD | `<root>/lib/<Debug\|Release\|RelWithDebInfo\|MinSizeRel>/` |
+
+- Windows 的 arch 由 `CMAKE_GENERATOR_PLATFORM` 推导（`Win32 → x86`，缺省 x64）。
+- `DUILIB_LIB_PATH` 为 `${DUILIB_LIB_BASE}/$<CONFIG>`，由生成器展开。
+- 同一 `<arch>|<Config>` 约定一次只由一套构建体系（CMake 或 VS）完整构建，后构建者覆盖前者。
 
 #### 2.4 源码收集
 ```cmake
@@ -401,6 +417,22 @@ cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 
+**Unix 下的 Debug 构建**（单配置生成器，构建目录与产物目录都与 Release 分离）：
+
+```bash
+cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
+cmake --build ./build_debug
+```
+
+也可直接用 `build/linux_build.sh`、`build/macos_build.sh`、`build/freebsd_build.sh`：
+
+```bash
+DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh
+```
+
+脚本的编译临时目录会按配置分到 `build_temp/<编译器>_build/<Debug|Release>/`，
+Debug 与 Release 互不覆盖；Skia 在 Unix 仍只使用 release 变体（D-3）。
+
 ---
 
 ### 高级使用示例
@@ -476,7 +508,7 @@ cmake --build ./build_llvm
 | 选项名称 | 类型 | 默认值 | 说明 |
 |----------|------|--------|------|
 | `DUILIB_LOG` | BOOL | OFF | 打印调试日志 |
-| `DUILIB_SKIA_LIB_SUBPATH` | STRING | Windows=`llvm.<CPU_ARCH>.<构建类型>`，其他=空 | Skia 库子目录 |
+| `DUILIB_SKIA_LIB_SUBPATH` | STRING | 空 | Skia 库子目录；空表示按平台/配置自动拼接 |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, 其他=ON | 启用 SDL 支持 |
 | `DUILIB_ENABLE_CEF` | BOOL | OFF | 启用 CEF 支持 |
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 版本（Win7） |

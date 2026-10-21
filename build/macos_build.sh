@@ -28,8 +28,18 @@ DUILIB_CMAKE="cmake ${DUILIB_CMAKE_REFRESH} -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAK
 DUILIB_MAKE="cmake --build"
 DUILIB_MAKE_THREADS="-j 6"
 
-# 编译类型：Debug还是Release
-DUILIB_BUILD_TYPE=Release
+# 编译类型：Debug 还是 Release（默认 Release，可用环境变量覆盖）
+# 用法：DUILIB_BUILD_TYPE=Debug ./build/macos_build.sh
+DUILIB_BUILD_TYPE="${DUILIB_BUILD_TYPE:-Release}"
+case "$DUILIB_BUILD_TYPE" in
+    [Dd][Ee][Bb][Uu][Gg]) DUILIB_BUILD_TYPE=Debug ;;
+    [Rr][Ee][Ll][Ee][Aa][Ss][Ee]) DUILIB_BUILD_TYPE=Release ;;
+    *)
+        echo "Invalid DUILIB_BUILD_TYPE: $DUILIB_BUILD_TYPE (expected Debug or Release)"
+        exit 1
+        ;;
+esac
+echo "DUILIB_BUILD_TYPE: $DUILIB_BUILD_TYPE"
 
 # Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这部分代码
 # 获取CPU架构
@@ -55,8 +65,8 @@ if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
     exit 1
 fi
 
-# 编译临时目录
-DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build"
+# 编译临时目录：按配置分目录，Debug/Release 互不覆盖
+DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build/${DUILIB_BUILD_TYPE}"
 
 target_dir="$DUILIB_BUILD_DIR"
 if [[ ! -d "$target_dir" ]]; then

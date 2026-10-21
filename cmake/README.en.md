@@ -62,7 +62,7 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | Option | Default value | Description |
 |----------|--------|------|
 | `DUILIB_LOG` | OFF | Print duilib debug logs |
-| `DUILIB_SKIA_LIB_SUBPATH` | Windows=`llvm.<CPU_ARCH>.<build type>`, others=empty | Skia library subdirectory (empty means auto-concatenated) |
+| `DUILIB_SKIA_LIB_SUBPATH` | empty | Skia library subdirectory; empty means auto-concatenated per platform and configuration (see below) |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, others=ON | Enable SDL input support |
 | `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support |
 | `DUILIB_CEF_109` | OFF | Use CEF 109 version (supports Win7) |
@@ -94,28 +94,30 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 
 **Skia path concatenation rule:**
 
-The default value of `DUILIB_SKIA_LIB_SUBPATH` is computed inside `duilib_common.cmake` (right after
-`DUILIB_BUILD_TYPE`), so individual projects no longer need to set it themselves:
+`DUILIB_SKIA_LIB_SUBPATH` defaults to **empty**; `duilib_common.cmake` concatenates the path
+from the platform and configuration, so individual projects no longer need to set it:
 
 ```cmake
-# Default value:
-#   Windows             : llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>
-#   Linux/macOS/FreeBSD : empty
-# CPU_ARCH comes from the cmake -A target architecture: -A Win32 -> x86, default -> x64,
-# consistent with build/msvc_build.bat; DUILIB_BUILD_TYPE is debug or release.
-# An external -DDUILIB_SKIA_LIB_SUBPATH=... always wins (set(... CACHE ...) never overwrites an existing cache entry).
+# Default: empty (no longer pre-set to llvm.<arch>.<build type>)
+# An external -DDUILIB_SKIA_LIB_SUBPATH=... always wins (a fixed path that does not follow the configuration).
+
+# When the subdirectory name is empty, the automatic rule is:
+#   Windows : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
+#             selected by $<CONFIG>: Debug uses the debug variant, everything else uses release
+#   Linux/macOS/FreeBSD : <compiler>.<CPU_ARCH>.release
+#             Skia is only built as release on Unix (D-3)
 
 # Final Skia library directory:
-#   When the subdirectory name is empty (or the legacy value OFF), auto-concatenate by rule:
-${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}
-#   When the subdirectory name is non-empty, use it directly:
-${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}
+${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
 
 # Examples:
-# Windows x64 + Release    -> skia/out/llvm.x64.release
 # Windows x64 + Debug      -> skia/out/llvm.x64.debug
+# Windows x64 + Release    -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug -> skia/out/llvm.x86.debug
-# Non-Windows auto-concat  -> skia/out/mingw64-gcc.x64.release
+# Linux/macOS/FreeBSD      -> skia/out/llvm.x64.release (clang)
+#                            skia/out/gcc.x64.release (gcc)
+# MSYS2 Windows + Debug    -> skia/out/llvm.<arch>.debug (selected per configuration)
+# -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> both configurations use that fixed directory
 ```
 
 ---
@@ -145,6 +147,21 @@ link_directories("${DUILIB_SDL_LIB_PATH}")       # SDL library directory (if ena
 ```cmake
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_BIN_PATH}")
 ```
+
+**Library output directories (CM-5 / D-2 option B):**
+
+Each library includes [duilib_lib_output.cmake](duilib_lib_output.cmake) after `project()`.
+Configuration is expressed by the directory only (library names no longer carry `_d`):
+
+| Platform | Library directory |
+| :--- | :--- |
+| Windows | `<root>/lib/<x64\|x86\|arm64>/<Debug\|Release\|RelWithDebInfo\|MinSizeRel>/` |
+| Linux / macOS / FreeBSD | `<root>/lib/<Debug\|Release\|RelWithDebInfo\|MinSizeRel>/` |
+
+- The Windows arch comes from `CMAKE_GENERATOR_PLATFORM` (`Win32 → x86`, default x64).
+- `DUILIB_LIB_PATH` is `${DUILIB_LIB_BASE}/$<CONFIG>`, expanded by the generator.
+- A given `<arch>|<Config>` is fully built by only one build system (CMake or VS) at a time;
+  the later build overwrites the earlier one.
 
 #### 2.4 Source collection
 ```cmake
@@ -404,6 +421,24 @@ cmake -S .. -B . -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 ```
 
+**Debug builds on Unix** (single-config generator; the build and artifact directories are
+separate from Release):
+
+```bash
+cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
+cmake --build ./build_debug
+```
+
+Or use the build scripts directly:
+
+```bash
+DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh
+```
+
+The scripts' temporary build directories are split by configuration under
+`build_temp/<compiler>_build/<Debug|Release>/`, so Debug and Release never overwrite
+each other. Skia still uses only the release variant on Unix (D-3).
+
 ---
 
 ### Advanced usage examples
@@ -479,7 +514,7 @@ cmake --build ./build_llvm
 | Option | Type | Default value | Description |
 |----------|------|--------|------|
 | `DUILIB_LOG` | BOOL | OFF | Print debug logs |
-| `DUILIB_SKIA_LIB_SUBPATH` | STRING | Windows=`llvm.<CPU_ARCH>.<build type>`, others=empty | Skia library subdirectory |
+| `DUILIB_SKIA_LIB_SUBPATH` | STRING | empty | Skia library subdirectory; empty means auto-concatenated per platform/configuration |
 | `DUILIB_ENABLE_SDL` | BOOL | Windows=OFF, others=ON | Enable SDL support |
 | `DUILIB_ENABLE_CEF` | BOOL | OFF | Enable CEF support |
 | `DUILIB_CEF_109` | BOOL | OFF | CEF 109 version (Win7) |

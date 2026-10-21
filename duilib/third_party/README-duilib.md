@@ -8,10 +8,10 @@
 
 | 维度 | 约定 |
 | :--- | :--- |
-| 产物输出目录 | 统一指向仓库根目录 `<root>/lib/` |
+| 产物输出目录 | 由 [`cmake/duilib_lib_output.cmake`](../../cmake/duilib_lib_output.cmake) 统一设置：Windows `<root>/lib/<arch>/<Config>/`，Unix `<root>/lib/<Config>/` |
 | 产物命名 | 以 `duilib-` 为前缀（如 `duilib-zlib`、`duilib-png`、`duilib-webp`、`duilib-cximage`） |
 | 库类型 | 优先静态库（静态库名前缀/后缀由 CMake 按平台自动补全） |
-| Debug 后缀 | `_d` 后缀受 **CM-5** 阻塞，目前暂未统一启用；升级时请关注该专项 |
+| Debug 后缀 | `_d` 已取消（CM-5 / D-2）；Debug 与 Release 同名、不同目录，exe 仍保留 `_d` |
 | MSVC 运行库 | 统一通过 `CMAKE_POLICY_DEFAULT_CMP0091 NEW` + `CMAKE_MSVC_RUNTIME_LIBRARY` 按 `DUILIB_MD` 开关选择 MT/MTd 或 MD/MDd |
 
 ---
@@ -24,12 +24,15 @@
 
 **改动点**：
 1. 文件头部插入 `DUILIB_MD` 运行库选择块（`CMAKE_POLICY_DEFAULT_CMP0091 NEW` + `CMAKE_MSVC_RUNTIME_LIBRARY`）
-2. 文件头部插入产物输出目录 + 产物名变量：
+2. 文件头部插入产物名变量；`project()` 之后 include 输出目录脚本：
    ```cmake
    get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
-   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  "${DUILIB_SRC_ROOT_DIR}/lib/")
-   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  "${DUILIB_SRC_ROOT_DIR}/lib/")
    set(DUILIB_ZLIB_OUTPUT_NAME "duilib-zlib")
+
+   project(zlib ...)
+
+   # 库输出目录（D-2：按平台/配置分目录）
+   include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
    ```
 3. 屏蔽自带测试/安装/共享库开关（对 duilib 场景不需要）：
    ```cmake
@@ -53,15 +56,17 @@
 
 **改动点**：
 1. 文件头部插入 `DUILIB_MD` 运行库选择块
-2. 文件中部插入 zlib 查找适配：
+2. 文件中部插入 zlib 查找适配与输出目录脚本：
    ```cmake
    get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+   include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
    set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
    set(DUILIB_ZLIB_LIB_NAME "${CMAKE_STATIC_LIBRARY_PREFIX}duilib-zlib${CMAKE_STATIC_LIBRARY_SUFFIX}")
-   set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/lib/${CMAKE_CFG_INTDIR}/${DUILIB_ZLIB_LIB_NAME}")
+   # D-2 后为 <root>/lib[<arch>]/<Config>；$<CONFIG> 在链接时展开
+   set(ZLIB_LIBRARY "${DUILIB_LIB_BASE}/$<CONFIG>/${DUILIB_ZLIB_LIB_NAME}")
    ```
 3. 在 `if(PNG_STATIC)` 块尾部，将 `png_static` 的 `OUTPUT_NAME` 改为 `duilib-png`
-4. 在目标生成区之前设置全局 `CMAKE_ARCHIVE_OUTPUT_DIRECTORY`
+4. 注释掉 `png_static` 自带的 `DEBUG_POSTFIX`（配置由目录表达，不再加 `_d`）
 
 **升级重放**：
 - 按上述 4 处重插；注意 libpng 官方升级后 `PNG_STATIC` 判断逻辑可能变化，需确认 `png_static` 目标名是否改变。
@@ -75,11 +80,10 @@
 
 **改动点**：
 1. 文件头部插入 `DUILIB_MD` 运行库选择块
-2. 文件头部插入产物输出目录：
+2. `project()` 之后 include 输出目录脚本：
    ```cmake
    get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
-   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
-   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+   include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
    ```
 3. 将源码收集方式改为 `aux_source_directory(...)`（与原仓库一致，参见 CM-18 结论）
 4. 显式定义静态库目标名：`add_library(duilib-webp STATIC ...)`
@@ -94,7 +98,7 @@
 
 **改动点**：
 1. 文件头部插入 `DUILIB_MD` 运行库选择块
-2. 文件头部插入产物输出目录
+2. `project()` 之后 include 输出目录脚本（`cmake/duilib_lib_output.cmake`）
 3. `add_library(duilib-cximage STATIC ...)`（直接自定义目标名）
 4. 为 GNU/Clang 追加 `-frtti` 编译选项
 
@@ -107,10 +111,10 @@
 **位置**：`duilib/third_party/libcef/libcef_{win|win_109|linux|macos}/CMakeLists.txt`
 
 **改动点**：
-1. 仅追加产物输出目录：
+1. `project()` 之后 include 输出目录脚本（与 duilib 库同一套规则）：
    ```cmake
    get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../" ABSOLUTE)
-   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+   include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_lib_output.cmake")
    ```
 
 **当前差异（已定，D-5）**：
@@ -133,8 +137,18 @@
 
 ---
 
-## 四、待收敛项（依赖 CM-5）
+## 四、CM-5 收敛结果（已完成）
 
-- **命名统一方向（已定，2026-10-21，D-1）**：统一为 `duilib-*`。CMake 侧已满足；**待实施**的是 VS 侧 4 个库的 `TargetName` 改为 `duilib-zlib` / `duilib-png` / `duilib-webp` / `duilib-cximage`（**不再加 `_d`，见下条**），并同步 `msvc/PropertySheets/CommonSettings.props` 的 `DuilibThirdLibs`、属性表 README、`build/pack.py`。详细改动清单见 [CM-5-Build-Artifacts-Inventory.md](../../docs/misc/CM-5-Build-Artifacts-Inventory.md) 5.2 节。
-- **Debug 后缀 `_d`（已定，2026-10-21，D-2）**：**不启用**。库产物统一放到 `lib/<arch>/<Configuration>/`（Windows）或 `lib/<Configuration>/`（Unix），Debug/Release 同名不同目录；VS 侧移除 `TargetName` 的 `_d`，exe 仍保留 `_d`。
-- **libcef wrapper 命名（已定，2026-10-21，D-5）**：**不纳入** `duilib-*` 前缀，名称保持 `libcef_dll_wrapper` / `libcef_dll_wrapper_109`；`_d` 后缀按 D-2 一并取消，产物进入配置目录。本库的 duilib 定制仅保留"输出目录指向配置目录"一项，链接侧名称无需任何改动。
+- **命名统一（D-1，已完成）**：CMake 与 VS 两侧的 4 个库统一为
+  `duilib-zlib` / `duilib-png` / `duilib-webp` / `duilib-cximage`；
+  `msvc/PropertySheets/CommonSettings.props` 的 `DuilibThirdLibs`、属性表 README
+  与 `build/pack.py` 白名单已同步。
+- **Debug 后缀 `_d`（D-2，已完成）**：**不启用**。库产物统一放到
+  `lib/<arch>/<Configuration>/`（Windows）或 `lib/<Configuration>/`（Unix），
+  Debug/Release 同名不同目录；VS 侧已移除库的 `_d`，exe 仍保留 `_d`。
+- **libcef wrapper 命名（D-5，已完成）**：**不纳入** `duilib-*` 前缀，名称保持
+  `libcef_dll_wrapper` / `libcef_dll_wrapper_109`；`_d` 后缀按 D-2 一并取消，
+  产物进入配置目录。本库的 duilib 定制仅保留"输出目录指向配置目录"一项。
+- **打包侧（P4，已完成）**：`build/pack.py` 只认这一套布局，`--config` 选择配置，
+  Unix `.a` 与 `lib` 前缀已处理；Skia / WebView2 / turbojpeg / SDL3 / CEF 链接库
+  已纳入 SDK 包。

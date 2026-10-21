@@ -46,13 +46,13 @@ PropertySheets/
 
 - **运行库配置**：通过检测 `duilib_dll.flag` 文件自动切换 MT/MTd 或 MD/MDd 模式
 
-- **基础库列表**：
+- **基础库列表**（CM-5 后库名统一，Debug 不再加 `_d`，配置由输出目录区分）：
   ```xml
-  duilib.lib / duilib_d.lib          # 主库
-  zlib.lib / zlib_d.lib              # 压缩库
-  cximage.lib / cximage_d.lib        # 图像处理库
-  libpng.lib / libpng_d.lib          # PNG 图像库
-  libwebp.lib / libwebp_d.lib        # WebP 图像库
+  duilib.lib              # 主库
+  duilib-zlib.lib         # 压缩库
+  duilib-cximage.lib      # 图像处理库
+  duilib-png.lib          # PNG 图像库
+  duilib-webp.lib         # WebP 图像库
   ```
 
 **重要变量：**
@@ -87,7 +87,8 @@ DuilibSettings.props
   <ConfigurationType>StaticLibrary</ConfigurationType>   <!-- 静态库模式 -->
   ```
 
-- **输出配置**：DLL 模式下输出到 `bin\` 目录，静态库模式下输出到 `lib\$(Platform)\` 目录
+- **输出配置**：DLL 模式下输出到 `bin\` 目录；静态库模式输出到
+  `lib\<平台架构>\$(Configuration)\`（由 `DuilibLibPlatform` 把 `Win32` 映射为 `x86`）
 
 - **功能模块宏定义**：
   - `DUILIB_SDL`：SDL 支持开关
@@ -455,9 +456,11 @@ BinCommonSettingsWebView2.props
 
 ### 5. Debug/Release 配置差异
 
-- Debug 模式下，库名称会自动添加 `_d` 后缀
+- 静态库名称不再带 `_d`，配置只由输出目录区分：`lib\<x64|x86>\Debug\` 与 `lib\<x64|x86>\Release\`
+- Debug 模式下，可执行程序的目标名称仍会自动添加 `_d` 后缀（仅 exe，库不适用）
 - Debug 模式下会禁用 `libcmt.lib` 默认库
-- Skia、SDL、JpegTurbo 等库在 Debug 和 Release 下使用不同的输出目录
+- Skia 在 Debug/Release 下使用不同目录（`llvm.<arch>.debug` / `llvm.<arch>.release`）；
+  SDL 与 libjpeg-turbo 只有一套库路径，不区分配置
 
 ---
 
