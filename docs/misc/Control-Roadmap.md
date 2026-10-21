@@ -19,7 +19,7 @@
 | 菜单 | Menu/MenuItem/SubMenu/MenuBar |
 | 颜色 | ColorPicker 全家桶（Regular/Standard/StandardGray/Custom）及 ColorSlider、ColorControl |
 | 容器/布局 | HBox/VBox/ScrollBox/TileBox/GridBox/FlowBox/Panel（带标题栏可折叠面板，支持手风琴分组）、SplitBox + 13 种布局引擎（含虚表布局） |
-| 其他控件 | Split（分割条）、GroupBox、Line、ScrollBar、PropertyGrid（属性表）、AddressBar（地址栏）、ChildWindow、IconControl、BitmapControl、StatusBar（状态栏）、ToolBar（工具栏）、RangeSlider（范围滑块）、Stepper（步骤条）、Rating（评分）、Carousel（轮播）、Pagination（分页器）、TreeGrid（树表格） |
+| 其他控件 | Split（分割条）、GroupBox、Line、ScrollBar、PropertyGrid（属性表）、AddressBar（地址栏）、ChildWindow、IconControl、BitmapControl、StatusBar（状态栏）、ToolBar（工具栏，含工具项管理 API）、RangeSlider（范围滑块）、Stepper（步骤条）、Rating（评分）、Carousel（轮播）、Pagination（分页器）、TreeGrid（树表格） |
 | 拖拽增强 | ControlDragable/HBoxDragable/VBoxDragable（拖动调整子控件顺序）、BoxMovable、BoxResizable |
 | Web 嵌入 | CefControl、WebView2Control |
 | 窗口工具 | ToastWnd（非模态通知框）、MessageBoxWnd（模态消息框）、Dialog（通用模态对话框）、Tooltip（悬停提示）、FileDialog、TrayIcon（托盘）、Clipboard、ScreenCapture |

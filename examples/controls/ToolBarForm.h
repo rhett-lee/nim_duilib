@@ -29,6 +29,25 @@ private:
     * @param [in] itemName 被激活按钮的名称
     */
     void OnOverflowItemActivated(const DString& itemName);
+
+    /** 动态工具条的工具项点击回调
+    * @param [in] itemName 工具项名称
+    */
+    void OnToolItemClick(const DString& itemName);
+
+    /** 动态工具条的工具项勾选状态变化回调
+    * @param [in] itemName 工具项名称
+    * @param [in] bChecked 变化后的勾选状态
+    */
+    void OnToolItemCheckedChanged(const DString& itemName, bool bChecked);
+
+    /** 更新窗口内的事件提示文本
+    */
+    void SetEventText(const DString& strText);
+
+private:
+    //动态工具条（由代码创建工具项）
+    ui::ToolBar* m_pDynamicToolBar;
 };
 
 #endif // EXAMPLES_CONTROLS_TOOL_BAR_FORM_H_

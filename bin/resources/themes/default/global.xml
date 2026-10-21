@@ -212,6 +212,14 @@
                              border_size="${border_btn_size}"
                              normal_border_color="border_btn_normal" hovered_border_color="border_btn_hovered"
                              pressed_border_color="border_btn_pressed" disabled_border_color="border_btn_disabled"/>
+
+    <!-- 工具条动态工具项的推荐样式（ToolBar::AddToolButton / AddToolCheckBox / AddToolSeparator） -->
+    <Class name="toolbar_button" class="btn_global" width="64" height="28" border_round="3,3"/>
+    <Class name="toolbar_check" class="btn_global" width="64" height="28" border_round="3,3"
+                             selected_normal_color="bg_btn_hovered" selected_hovered_color="bg_btn_pressed"
+                             selected_pressed_color="bg_btn_pressed" selected_text_color="color_accent"/>
+    <Class name="toolbar_separator" width="9" height="18" valign="center"
+                             vertical="true" line_color="border_window" line_width="1"/>
     <Class name="btn_primary_global" text_align="hcenter,vcenter" 
                                      normal_text_color="text_primary_btn_normal" disabled_text_color="text_primary_btn_disabled" 
                                      normal_color="bg_primary_btn_normal" hovered_color="bg_primary_btn_hovered" 

@@ -2967,6 +2967,9 @@ if (pStatusBar != nullptr) {
 | overflow_button_class |  | string | 右端"更多"按钮的样式 Class 名称（引用 global.xml 中的样式，为空表示不设置样式）|
 | overflow_button_width | 0 | int | "更多"按钮的宽度（像素，0 表示按内容自适应）|
 | overflow_button_text | ">>" | string | "更多"按钮显示的文本 |
+| tool_class |  | string | 动态创建工具按钮时使用的默认样式 Class |
+| tool_checkbox_class |  | string | 动态创建勾选类工具项时使用的默认样式 Class（为空时回退 `tool_class`）|
+| tool_separator_class |  | string | 动态创建分隔线时使用的默认样式 Class |
 
 ToolBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
 
@@ -2975,6 +2978,36 @@ ToolBar 是一个水平容器（继承 `HBox`），子控件水平排列，沿�
 当可用宽度不足、尾部子控件放不下时，会自动隐藏这些子控件，并在右端显示一个"更多"按钮（默认文本 `>>`）：
 点击该按钮会弹出浮层，列出被收纳的子控件；点击浮层中的项会触发 `AttachOverflowItemActivated` 注册的回调（参数为被点击子控件的 `name`），
 便于应用层派发命令。窗口宽度变化时会自动重新计算收纳，宽度足够时被收纳的项会自动恢复显示。
+
+### 工具项管理
+
+除在 XML 中直接写 `Button` / `CheckBox` / `Line` 外，ToolBar 还提供工具项管理 API，适合动态创建与增删：
+
+- `AddToolButton` / `AddToolCheckBox` / `AddToolSeparator` / `AddTool` / `InsertTool`：创建并加入工具项；
+- `RemoveTool` / `RemoveToolAt` / `RemoveAllTools`：删除工具项（控件随之销毁）；
+- `FindTool` / `GetToolAt` / `GetToolCount` / `GetToolIndex`：按名称或索引查询；
+- `SetToolChecked` / `IsToolChecked`、`SetToolEnabled` / `IsToolEnabled`、`SetToolVisible` / `IsToolVisible`：状态控制。
+
+约定：
+
+- `name` 为空时自动生成 `tool_1`、`tool_2`……；与已有工具项重名时添加失败；
+- 索引类接口（`GetToolAt` / `RemoveToolAt` / `GetToolIndex`）只统计工具项，**不含内部"更多"按钮**；
+- 勾选类工具项使用 `CheckBox` 的**选中态**（`IsSelected` / `Selected`）表示勾选，而不是勾选图标模式；
+- 通过 `AddTool*` 创建的工具项、以及 XML 中静态写的 `Button` / `CheckBox` 都会自动绑定工具项事件。
+
+工具项事件：
+
+```cpp
+//工具项被点击（直接点击或从"更多"浮层激活），参数为工具项的 name
+void AttachToolItemClick(ToolItemClickEvent callback);
+void ClearToolItemClick();
+
+//勾选类工具项的勾选状态变化，参数为工具项的 name 与变化后的状态
+void AttachToolItemCheckedChanged(ToolItemCheckedChangedEvent callback);
+void ClearToolItemCheckedChanged();
+```
+
+从"更多"浮层激活勾选类工具项时，会先切换其选中态，再派发点击与勾选变化回调，随后仍触发 `OverflowItemActivated`。
 
 XML 示例：
 ```xml
@@ -2987,8 +3020,69 @@ XML 示例：
 </ToolBar>
 ```
 
+动态创建示例：
+```xml
+<ToolBar name="dynamic_toolbar" width="stretch" height="30"
+         tool_class="toolbar_button" tool_checkbox_class="toolbar_check"
+         tool_separator_class="toolbar_separator"/>
+```
+
+```cpp
+ui::ToolBar* pToolBar = dynamic_cast<ui::ToolBar*>(FindControl(_T("dynamic_toolbar")));
+pToolBar->AttachToolItemClick([](const DString& itemName) {
+    //itemName 即工具项的 name
+});
+pToolBar->AttachToolItemCheckedChanged([](const DString& itemName, bool bChecked) {
+    //勾选状态变化
+});
+pToolBar->AddToolButton(_T("tb_bold"), _T("加粗"));
+pToolBar->AddToolCheckBox(_T("tb_italic"), _T("斜体"), false);
+pToolBar->AddToolSeparator();
+pToolBar->SetToolChecked(_T("tb_italic"), true);       //不触发回调
+pToolBar->RemoveTool(_T("tb_bold"));                   //删除并销毁控件
+```
+
 对应的 C++ 接口：
 ```cpp
+//工具项管理与查询
+Button* AddToolButton(const DString& strName, const DString& strText,
+                      const DString& strClass = DString(), bool bTextId = false);
+CheckBox* AddToolCheckBox(const DString& strName, const DString& strText,
+                          bool bChecked = false, const DString& strClass = DString(),
+                          bool bTextId = false);
+Line* AddToolSeparator(const DString& strName = DString(), const DString& strClass = DString());
+bool AddTool(Control* pControl, const DString& strName = DString());
+bool InsertTool(size_t nIndex, Control* pControl, const DString& strName = DString());
+
+size_t GetToolCount() const;                           //工具项数量（不含"更多"按钮）
+Control* GetToolAt(size_t nIndex) const;               //按索引获取工具项
+Control* FindTool(const DString& strName) const;       //按名称查找
+size_t GetToolIndex(const DString& strName) const;     //按名称取索引，找不到返回 Box::InvalidIndex
+bool HasTool(const DString& strName) const;
+
+bool RemoveTool(const DString& strName);               //删除并销毁控件
+bool RemoveToolAt(size_t nIndex);
+void RemoveAllTools();
+
+//工具项状态
+bool SetToolChecked(const DString& strName, bool bChecked, bool bTriggerEvent = false);
+bool IsToolChecked(const DString& strName) const;
+bool SetToolEnabled(const DString& strName, bool bEnabled);
+bool IsToolEnabled(const DString& strName) const;
+bool SetToolVisible(const DString& strName, bool bVisible);
+bool IsToolVisible(const DString& strName) const;
+
+//工具项事件
+void AttachToolItemClick(ToolItemClickEvent callback);
+void ClearToolItemClick();
+void AttachToolItemCheckedChanged(ToolItemCheckedChangedEvent callback);
+void ClearToolItemCheckedChanged();
+
+//默认样式 Class
+void SetToolClass(const DString& strClass);
+void SetToolCheckBoxClass(const DString& strClass);
+void SetToolSeparatorClass(const DString& strClass);
+
 //溢出项被激活（点击浮层中的项）时的回调（参数为被点击子控件的 name）
 void AttachOverflowItemActivated(OverflowItemActivatedEvent callback);
 void ClearOverflowItemActivated();

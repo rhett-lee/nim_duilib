@@ -38,7 +38,7 @@
 
 | 分组 | 状态 | 未完成项 |
 | :--- | :--- | :--- |
-| P2 控件 | 待做 | D-5、D-7、D-9、D-10、D-11.1 |
+| P2 控件 | 待做 | D-5、D-9、D-10、D-11.1 |
 | P3 架构 | 待做 | F-1、F-4 |
 | P3 工程化 | 待做 | H-1 ~ H-10 |
 | 应用层能力（Control-Roadmap 第五、六节） | 待做 | 可视化编辑器（远期）；打包见 B-3 |
@@ -710,7 +710,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-4** | **TreeView 节点拖拽重排** ❌ 明确不做（2026-10-21 决策，不再跟进） | `TreeView.cpp` 中 `drag`/`drop` **零命中**。树控件头号缺失（文件树/权限树/组织树通用需求）。另 `TreeView` 无排序（`sort` 零命中）、继承 `ListBox` 非 `VirtualListBox` 无虚拟化 | 原估中（约 700 行），不排期 |
 | **D-5** | **TimePicker 时间选择弹层** | `DateTime.h:117` 自认 `kDateCalendar`「不支持选择时间」，时间只能靠 spin 按钮逐格调。日程/工单/预约场景刚需。另无 min/max 日期约束、无禁用日期、无周起始日配置 | 中（约 800 行） |
 | **D-6** | **Stepper / Steps 向导步骤条** ✅ 已完成（2026-10-19） | `Timeline` 语义不符（时间轴 ≠ 流程状态机）；`Project-Audit.md` B4 登记待办。已新增独立控件 `Stepper`（`duilib/Control/Stepper.h/.cpp`）：水平/垂直排列、当前索引 + 禁用集合派生状态、连接线完成度着色、Next/Back/GoTo 与点击跳转；示例 `examples/controls/StepperForm` | 已完成 |
-| **D-7** | **ToolBar 工具项抽象** | `ToolBar`（10-17 新增，继承 `HBox`）已具备溢出收纳与回调，但**仍无项管理 API**（无 `AddTool`/`SetToolChecked`/`RemoveTool`），checkable 工具项只能塞 CheckBox，分隔符靠 `Line` 手工拼 | 中（约 500 行） |
+| **D-7** | **ToolBar 工具项抽象** ✅ 已完成（2026-10-21） | 已扩展 `ToolBar`：`AddToolButton`/`AddToolCheckBox`/`AddToolSeparator`/`AddTool`/`InsertTool` 动态创建，`RemoveTool`/`RemoveToolAt`/`RemoveAllTools` 删除，`FindTool`/`GetToolAt`/`GetToolCount`/`GetToolIndex` 查询，`SetToolChecked`/`SetToolEnabled`/`SetToolVisible` 状态控制；`AttachToolItemClick`/`AttachToolItemCheckedChanged` 统一回调；XML 静态 `Button`/`CheckBox` 与溢出浮层激活复用同一路径；新增 `tool_class`/`tool_checkbox_class`/`tool_separator_class` 属性与 `toolbar_button`/`toolbar_check`/`toolbar_separator` 样式。示例见 toolbar.xml / ToolBarForm | 已完成 |
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** ❌ 不再跟进（已有 Alpha 通道输入） | 原有 4 种形态 + `ColorSlider`；**Alpha 通道输入已存在**：`ColorPickerCustom` 已提供 `color_picker_slider_RGB_A` / `color_picker_edit_RGB_A`，HSV 三个分量也有对应的滑块 + 数值输入框；Hex 颜色文本由 `color_picker_new_color_edit` 统一输入解析。无需再补 | 不再跟进（2026-10-21 决策） |
 | **D-9** | **CascadingSelect 级联选择器** | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级 | 中（约 600 行） |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
@@ -842,7 +842,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-21）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 15 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 5 项（D-5、D-7、D-9、D-10、D-11.1；D-3 已完成，D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
+> **实际进展（截至 2026-10-21）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 16 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 4 项（D-5、D-9、D-10、D-11.1；D-3、D-7 已完成，D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
@@ -865,7 +865,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [~] **D-4** TreeView 节点拖拽重排　｜ 约 700 行 ｜ 状态：❌ 明确不做（2026-10-21 决策，不再跟进）
 - [ ] **D-5** TimePicker 弹层 + DateTime 日期约束　｜ 约 800 行 ｜ 完成日期：______
 - [x] **D-6** Stepper 向导步骤条　｜ 约 400 行 ｜ 完成日期：2026-10-19
-- [ ] **D-7** ToolBar 工具项抽象　｜ 约 500 行 ｜ 完成日期：______
+- [x] **D-7** ToolBar 工具项抽象　｜ 约 500 行 ｜ 完成日期：2026-10-21
 - [~] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 状态：❌ 不再跟进（已有 Alpha 通道输入，2026-10-21 决策）
 - [ ] **D-9** CascadingSelect 级联选择器　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______

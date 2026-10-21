@@ -39,6 +39,17 @@
             <Button class="btn_global" name="tb_fullscreen" text_id="STRID_TOOLBAR_FULLSCREEN" width="64" height="28" border_round="3,3"/>
         </ToolBar>
 
+        <!-- 动态工具条：由 ToolBarForm 通过 AddToolButton / AddToolCheckBox / AddToolSeparator 创建，
+             演示工具项管理 API 与点击/勾选回调 -->
+        <HBox height="34" padding="12,6,12,0">
+            <Label text_id="STRID_TOOLBAR_DYNAMIC_HINT" text_color="text_muted" valign="center" margin="0,0,8,0"/>
+            <ToolBar name="dynamic_toolbar" width="stretch" height="30" bkcolor="bg_window_card"
+                     padding="8,0,8,0" child_margin_x="4"
+                     tool_class="toolbar_button" tool_checkbox_class="toolbar_check"
+                     tool_separator_class="toolbar_separator"
+                     overflow_button_class="btn_global" overflow_button_width="28" overflow_button_text="&#187;"/>
+        </HBox>
+
         <!-- 内容区 -->
         <VBox padding="12,8,12,12" width="stretch" height="stretch">
             <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"

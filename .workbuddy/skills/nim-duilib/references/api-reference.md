@@ -60,7 +60,7 @@
 | VBox | 垂直(VLayout) | 子控件从上到下依次排列 |
 | HBox | 水平(HLayout) | 子控件从左到右依次排列 |
 | StatusBar | 水平(HLayout) | 状态栏：子控件即状态面板，相邻面板之间自动绘制分隔线（可配置宽度/颜色）；支持按索引读写面板（GetPanelCount/GetPanel/SetPanelText）；右下角尺寸手柄可真正拖拽调整窗口大小（size_grip_resize，默认 true）（继承 HBox） |
-| ToolBar | 水平(HLayout) | 工具条：承载工具按钮与分隔线（分隔线用 Line）；宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，点击弹出浮层列出被收纳项并通过回调通知应用层（继承 HBox） |
+| ToolBar | 水平(HLayout) | 工具条：承载工具按钮与分隔线（分隔线用 Line，或用 AddToolSeparator）；提供工具项管理 API（AddToolButton/AddToolCheckBox/AddToolSeparator/RemoveTool/SetToolChecked/FindTool 等）与 ToolItemClick/ToolItemCheckedChanged 回调；宽度不足时自动收纳尾部子控件并在右端显示"更多"按钮，浮层激活同样走工具项回调（继承 HBox） |
 | VFlowBox | 垂直流式 | 垂直排列，自动换列 |
 | HFlowBox | 水平流式 | 水平排列，自动换行 |
 | Panel | 浮动(Layout) | 带标题栏的面板容器（`PanelTemplate<Box>`），可折叠/手风琴 |

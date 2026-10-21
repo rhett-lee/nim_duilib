@@ -125,7 +125,7 @@
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text_id="STRID_RICHEDIT_SPINBOX_DECIMAL" valign="center"/>
-                        <SpinBox class="simple simple_border rich_edit_spin" min_number="-10000" max_number="10000" step="0.25" decimals="2" value="1234.5" group_separator="," prefix="$ " suffix=" kg" margin="4,6,4,4"/>
+                        <SpinBox class="simple simple_border rich_edit_spin" min_number="-10000" max_number="10000" step="0.25" decimals="2" value="1234.5" group_separator="," prefix="$ " suffix=" kg" width="128" margin="4,6,4,4"/>
                         <Label text_id="STRID_RICHEDIT_SPINBOX_DECIMAL_DESC" valign="center"/>
                     </HBox>
                     <HBox height="40" margin="8,0,8,0">

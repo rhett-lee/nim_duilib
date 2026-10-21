@@ -21,7 +21,7 @@ This document is based on a full scan of the existing code (`duilib/Control`, `d
 | Menus | Menu/MenuItem/SubMenu/MenuBar |
 | Colors | Full ColorPicker family (Regular/Standard/StandardGray/Custom) plus ColorSlider, ColorControl |
 | Containers / Layout | HBox/VBox/ScrollBox/TileBox/GridBox/FlowBox/Panel (titled collapsible panel with accordion grouping), SplitBox + 13 layout engines (including virtual layouts) |
-| Misc Controls | Split, GroupBox, Line, ScrollBar, PropertyGrid, AddressBar, ChildWindow, IconControl, BitmapControl, StatusBar, ToolBar, RangeSlider, Stepper, Rating, Carousel, Pagination, TreeGrid |
+| Misc Controls | Split, GroupBox, Line, ScrollBar, PropertyGrid, AddressBar, ChildWindow, IconControl, BitmapControl, StatusBar, ToolBar (with tool item management APIs), RangeSlider, Stepper, Rating, Carousel, Pagination, TreeGrid |
 | Drag Enhancements | ControlDragable/HBoxDragable/VBoxDragable (drag to reorder children), BoxMovable, BoxResizable |
 | Web Embedding | CefControl, WebView2Control |
 | Window Utilities | ToastWnd (non-modal toast), MessageBoxWnd (modal message box), Dialog (generic modal dialog), Tooltip, FileDialog, TrayIcon, Clipboard, ScreenCapture |

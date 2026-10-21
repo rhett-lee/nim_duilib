@@ -66,6 +66,16 @@ void ToolBar::SetAttribute(const DString& strName, const DString& strValue2)
     else if ((strName == _T("overflow_button_text")) || (strName == _T("overflowbuttontext"))) {
         SetOverflowButtonText(strValue);
     }
+    else if ((strName == _T("tool_class")) || (strName == _T("toolclass"))) {
+        SetToolClass(strValue);
+    }
+    else if ((strName == _T("tool_checkbox_class")) || (strName == _T("toolcheck_box_class")) ||
+             (strName == _T("toolcheckboxclass"))) {
+        SetToolCheckBoxClass(strValue);
+    }
+    else if ((strName == _T("tool_separator_class")) || (strName == _T("toolseparatorclass"))) {
+        SetToolSeparatorClass(strValue);
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -81,6 +91,499 @@ void ToolBar::AttachOverflowItemActivated(OverflowItemActivatedEvent callback)
 void ToolBar::ClearOverflowItemActivated()
 {
     m_callbackList.clear();
+}
+
+void ToolBar::AttachToolItemClick(ToolItemClickEvent callback)
+{
+    if (callback != nullptr) {
+        m_toolClickCallbacks.push_back(callback);
+    }
+}
+
+void ToolBar::ClearToolItemClick()
+{
+    m_toolClickCallbacks.clear();
+}
+
+void ToolBar::AttachToolItemCheckedChanged(ToolItemCheckedChangedEvent callback)
+{
+    if (callback != nullptr) {
+        m_toolCheckedCallbacks.push_back(callback);
+    }
+}
+
+void ToolBar::ClearToolItemCheckedChanged()
+{
+    m_toolCheckedCallbacks.clear();
+}
+
+void ToolBar::SetToolClass(const DString& strClass)
+{
+    m_toolClass = strClass;
+}
+
+DString ToolBar::GetToolClass() const
+{
+    return m_toolClass.c_str();
+}
+
+void ToolBar::SetToolCheckBoxClass(const DString& strClass)
+{
+    m_toolCheckBoxClass = strClass;
+}
+
+DString ToolBar::GetToolCheckBoxClass() const
+{
+    return m_toolCheckBoxClass.c_str();
+}
+
+void ToolBar::SetToolSeparatorClass(const DString& strClass)
+{
+    m_toolSeparatorClass = strClass;
+}
+
+DString ToolBar::GetToolSeparatorClass() const
+{
+    return m_toolSeparatorClass.c_str();
+}
+
+bool ToolBar::AddItem(Control* pControl)
+{
+    if (!BaseClass::AddItem(pControl)) {
+        return false;
+    }
+    BindToolEvents(pControl);
+    return true;
+}
+
+bool ToolBar::AddItemAt(Control* pControl, size_t iIndex)
+{
+    if (!BaseClass::AddItemAt(pControl, iIndex)) {
+        return false;
+    }
+    BindToolEvents(pControl);
+    return true;
+}
+
+Button* ToolBar::AddToolButton(const DString& strName, const DString& strText,
+                               const DString& strClass, bool bTextId)
+{
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    Button* pButton = new Button(pWindow);
+    const DString strFinalClass = strClass.empty() ? DString(m_toolClass.c_str()) : strClass;
+    if (!strFinalClass.empty()) {
+        pButton->SetClass(strFinalClass);
+    }
+    if (bTextId) {
+        pButton->SetTextId(strText);
+    }
+    else {
+        pButton->SetText(strText);
+    }
+    if (!AddTool(pButton, strName)) {
+        delete pButton;
+        return nullptr;
+    }
+    return pButton;
+}
+
+CheckBox* ToolBar::AddToolCheckBox(const DString& strName, const DString& strText,
+                                   bool bChecked, const DString& strClass, bool bTextId)
+{
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    CheckBox* pCheckBox = new CheckBox(pWindow);
+    DString strFinalClass = strClass;
+    if (strFinalClass.empty()) {
+        strFinalClass = m_toolCheckBoxClass.c_str();
+    }
+    if (strFinalClass.empty()) {
+        strFinalClass = m_toolClass.c_str();
+    }
+    if (!strFinalClass.empty()) {
+        pCheckBox->SetClass(strFinalClass);
+    }
+    if (bTextId) {
+        pCheckBox->SetTextId(strText);
+    }
+    else {
+        pCheckBox->SetText(strText);
+    }
+    if (!AddTool(pCheckBox, strName)) {
+        delete pCheckBox;
+        return nullptr;
+    }
+    pCheckBox->Selected(bChecked, false);
+    return pCheckBox;
+}
+
+Line* ToolBar::AddToolSeparator(const DString& strName, const DString& strClass)
+{
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
+    Line* pLine = new Line(pWindow);
+    pLine->SetLineVertical(true);
+    const DString strFinalClass = strClass.empty() ? DString(m_toolSeparatorClass.c_str()) : strClass;
+    if (!strFinalClass.empty()) {
+        pLine->SetClass(strFinalClass);
+    }
+    if (!AddTool(pLine, strName)) {
+        delete pLine;
+        return nullptr;
+    }
+    return pLine;
+}
+
+bool ToolBar::AddTool(Control* pControl, const DString& strName)
+{
+    return InsertTool(GetToolCount(), pControl, strName);
+}
+
+bool ToolBar::InsertTool(size_t nIndex, Control* pControl, const DString& strName)
+{
+    Window* pWindow = GetWindow();
+    if ((pControl == nullptr) || (pWindow == nullptr)) {
+        return false;
+    }
+    if (IsChildControl(pControl)) {
+        //已经是本容器的子控件，不重复添加
+        return false;
+    }
+
+    DString strFinalName = strName;
+    if (strFinalName.empty()) {
+        strFinalName = pControl->GetName();
+    }
+    if (strFinalName.empty()) {
+        strFinalName = MakeToolName();
+    }
+    else if (!IsToolNameAvailable(strFinalName)) {
+        return false;
+    }
+    if (!pControl->GetName().empty() && (pControl->GetName() != strFinalName)) {
+        //控件已有其它名称时，不覆盖调用方设置
+        return false;
+    }
+    pControl->SetName(strFinalName);
+
+    //把工具项索引换算为实际的子项索引（跳过内部的"更多"按钮）
+    size_t nItemIndex = GetItemCount();
+    if (nIndex < GetToolCount()) {
+        size_t nToolIndex = 0;
+        for (size_t i = 0; i < GetItemCount(); ++i) {
+            if (GetItemAt(i) == m_pOverflowButton.get()) {
+                continue;
+            }
+            if (nToolIndex == nIndex) {
+                nItemIndex = i;
+                break;
+            }
+            ++nToolIndex;
+        }
+    }
+
+    bool bOk = false;
+    if (nItemIndex >= GetItemCount()) {
+        bOk = AddItem(pControl);
+    }
+    else {
+        bOk = AddItemAt(pControl, nItemIndex);
+    }
+    if (bOk) {
+        Invalidate();
+    }
+    return bOk;
+}
+
+size_t ToolBar::GetToolCount() const
+{
+    size_t nCount = 0;
+    const size_t nItemCount = GetItemCount();
+    for (size_t i = 0; i < nItemCount; ++i) {
+        if (GetItemAt(i) != m_pOverflowButton.get()) {
+            ++nCount;
+        }
+    }
+    return nCount;
+}
+
+Control* ToolBar::GetToolAt(size_t nIndex) const
+{
+    size_t nToolIndex = 0;
+    const size_t nItemCount = GetItemCount();
+    for (size_t i = 0; i < nItemCount; ++i) {
+        Control* pItem = GetItemAt(i);
+        if (pItem == m_pOverflowButton.get()) {
+            continue;
+        }
+        if (nToolIndex == nIndex) {
+            return pItem;
+        }
+        ++nToolIndex;
+    }
+    return nullptr;
+}
+
+Control* ToolBar::FindTool(const DString& strName) const
+{
+    if (strName.empty()) {
+        return nullptr;
+    }
+    const size_t nItemCount = GetItemCount();
+    for (size_t i = 0; i < nItemCount; ++i) {
+        Control* pItem = GetItemAt(i);
+        if ((pItem != nullptr) && (pItem != m_pOverflowButton.get()) &&
+            (pItem->GetName() == strName)) {
+            return pItem;
+        }
+    }
+    return nullptr;
+}
+
+size_t ToolBar::GetToolIndex(const DString& strName) const
+{
+    if (strName.empty()) {
+        return Box::InvalidIndex;
+    }
+    size_t nToolIndex = 0;
+    const size_t nItemCount = GetItemCount();
+    for (size_t i = 0; i < nItemCount; ++i) {
+        Control* pItem = GetItemAt(i);
+        if (pItem == m_pOverflowButton.get()) {
+            continue;
+        }
+        if ((pItem != nullptr) && (pItem->GetName() == strName)) {
+            return nToolIndex;
+        }
+        ++nToolIndex;
+    }
+    return Box::InvalidIndex;
+}
+
+bool ToolBar::HasTool(const DString& strName) const
+{
+    return FindTool(strName) != nullptr;
+}
+
+bool ToolBar::RemoveTool(const DString& strName)
+{
+    Control* pControl = FindTool(strName);
+    if (pControl == nullptr) {
+        return false;
+    }
+    return RemoveToolAt(GetToolIndex(strName));
+}
+
+bool ToolBar::RemoveToolAt(size_t nIndex)
+{
+    Control* pControl = GetToolAt(nIndex);
+    if (pControl == nullptr) {
+        return false;
+    }
+    //RemoveItem 在 AutoDestroyChild 为 true 时会销毁控件，不能重复 delete
+    const bool bAutoDestroyChild = IsAutoDestroyChild();
+    ForgetHiddenItem(pControl);
+    auto iter = std::find(m_boundToolItems.begin(), m_boundToolItems.end(), pControl);
+    if (iter != m_boundToolItems.end()) {
+        m_boundToolItems.erase(iter);
+    }
+    if (!RemoveItem(pControl)) {
+        return false;
+    }
+    if (!bAutoDestroyChild) {
+        delete pControl;
+    }
+    Invalidate();
+    return true;
+}
+
+void ToolBar::RemoveAllTools()
+{
+    for (size_t nIndex = GetToolCount(); nIndex > 0; --nIndex) {
+        RemoveToolAt(nIndex - 1);
+    }
+}
+
+bool ToolBar::SetToolChecked(const DString& strName, bool bChecked, bool bTriggerEvent)
+{
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(FindTool(strName));
+    if (pCheckBox == nullptr) {
+        return false;
+    }
+    if (pCheckBox->IsSelected() == bChecked) {
+        return true;
+    }
+    //不触发 Select/UnSelect 事件，避免被误判为点击；需要时单独派发勾选变化回调
+    pCheckBox->Selected(bChecked, false);
+    if (bTriggerEvent) {
+        FireToolItemCheckedChanged(strName, bChecked);
+    }
+    return true;
+}
+
+bool ToolBar::IsToolChecked(const DString& strName) const
+{
+    const CheckBox* pCheckBox = dynamic_cast<const CheckBox*>(FindTool(strName));
+    if (pCheckBox == nullptr) {
+        return false;
+    }
+    return pCheckBox->IsSelected();
+}
+
+bool ToolBar::SetToolEnabled(const DString& strName, bool bEnabled)
+{
+    Control* pControl = FindTool(strName);
+    if (pControl == nullptr) {
+        return false;
+    }
+    pControl->SetEnabled(bEnabled);
+    return true;
+}
+
+bool ToolBar::IsToolEnabled(const DString& strName) const
+{
+    Control* pControl = FindTool(strName);
+    if (pControl == nullptr) {
+        return false;
+    }
+    return pControl->IsEnabled();
+}
+
+bool ToolBar::SetToolVisible(const DString& strName, bool bVisible)
+{
+    Control* pControl = FindTool(strName);
+    if (pControl == nullptr) {
+        return false;
+    }
+    if (!bVisible) {
+        //应用层主动隐藏时，从自动收纳列表移除，避免宽度恢复后被错误地重新显示
+        ForgetHiddenItem(pControl);
+    }
+    pControl->SetVisible(bVisible);
+    return true;
+}
+
+bool ToolBar::IsToolVisible(const DString& strName) const
+{
+    Control* pControl = FindTool(strName);
+    if (pControl == nullptr) {
+        return false;
+    }
+    return pControl->IsVisible();
+}
+
+void ToolBar::FireToolItemClick(const DString& itemName)
+{
+    std::vector<ToolItemClickEvent> callbackList(m_toolClickCallbacks);
+    for (const ToolItemClickEvent& callback : callbackList) {
+        if (callback != nullptr) {
+            callback(itemName);
+        }
+    }
+}
+
+void ToolBar::FireToolItemCheckedChanged(const DString& itemName, bool bChecked)
+{
+    std::vector<ToolItemCheckedChangedEvent> callbackList(m_toolCheckedCallbacks);
+    for (const ToolItemCheckedChangedEvent& callback : callbackList) {
+        if (callback != nullptr) {
+            callback(itemName, bChecked);
+        }
+    }
+}
+
+void ToolBar::ActivateTool(Control* pControl)
+{
+    if ((pControl == nullptr) || (pControl == m_pOverflowButton.get())) {
+        return;
+    }
+    if (!IsChildControl(pControl) || !pControl->IsEnabled() || !pControl->IsVisible()) {
+        return;
+    }
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pControl);
+    if (pCheckBox != nullptr) {
+        //切换选中态：会触发 kEventSelect/kEventUnSelect，由绑定的事件派发点击与勾选回调
+        pCheckBox->Selected(!pCheckBox->IsSelected(), true);
+    }
+    else {
+        FireToolItemClick(pControl->GetName().c_str());
+    }
+}
+
+void ToolBar::BindToolEvents(Control* pControl)
+{
+    if ((pControl == nullptr) || (pControl == m_pOverflowButton.get())) {
+        return;
+    }
+    if (ContainsItem(m_boundToolItems, pControl)) {
+        return;
+    }
+    if (dynamic_cast<Button*>(pControl) == nullptr) {
+        return;
+    }
+    m_boundToolItems.push_back(pControl);
+
+    const std::weak_ptr<WeakFlag> toolbarFlag = GetWeakFlag();
+    const DString strItemName = pControl->GetName().c_str();
+    Button* pButton = dynamic_cast<Button*>(pControl);
+    if (pButton != nullptr) {
+        pButton->AttachClick([this, toolbarFlag, strItemName](const EventArgs& /*args*/) {
+            if (!toolbarFlag.expired()) {
+                FireToolItemClick(strItemName);
+            }
+            return true;
+            });
+    }
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(pControl);
+    if (pCheckBox != nullptr) {
+        pCheckBox->AttachSelect([this, toolbarFlag, strItemName](const EventArgs& /*args*/) {
+            if (!toolbarFlag.expired()) {
+                FireToolItemClick(strItemName);
+                FireToolItemCheckedChanged(strItemName, true);
+            }
+            return true;
+            });
+        pCheckBox->AttachUnSelect([this, toolbarFlag, strItemName](const EventArgs& /*args*/) {
+            if (!toolbarFlag.expired()) {
+                FireToolItemClick(strItemName);
+                FireToolItemCheckedChanged(strItemName, false);
+            }
+            return true;
+            });
+    }
+}
+
+DString ToolBar::MakeToolName() const
+{
+    for (int32_t nIndex = 1; ; ++nIndex) {
+        DString strName = _T("tool_") + StringUtil::Int32ToString(nIndex);
+        if (FindTool(strName) == nullptr) {
+            return strName;
+        }
+    }
+}
+
+bool ToolBar::IsToolNameAvailable(const DString& strName) const
+{
+    if (strName.empty()) {
+        return true;
+    }
+    return FindTool(strName) == nullptr;
+}
+
+void ToolBar::ForgetHiddenItem(Control* pControl)
+{
+    auto iter = std::find(m_hiddenItems.begin(), m_hiddenItems.end(), pControl);
+    if (iter != m_hiddenItems.end()) {
+        m_hiddenItems.erase(iter);
+    }
 }
 
 void ToolBar::SetOverflowEnabled(bool bEnabled)
@@ -219,7 +722,7 @@ void ToolBar::CreateOverflowButton()
         ShowOverflowFlyout();
         return true;
         });
-    if (AddItem(pButton)) {
+    if (BaseClass::AddItem(pButton)) {
         m_pOverflowButton = pButton;
     }
     else {
@@ -248,6 +751,12 @@ void ToolBar::UpdateOverflow(const UiRect& rc)
         //未创建"更多"按钮时，按普通容器布局
         BaseClass::SetPos(rc);
         return;
+    }
+
+    //确保"更多"按钮始终位于末尾（后续动态添加工具项时可能把它挤到中间）
+    const size_t nOverflowIndex = GetItemIndex(pButton);
+    if ((nOverflowIndex != Box::InvalidIndex) && ((nOverflowIndex + 1) != GetItemCount())) {
+        SetItemIndex(pButton, GetItemCount() - 1);
     }
 
     const UiPadding padding = GetPadding();
@@ -461,6 +970,8 @@ void ToolBar::ShowOverflowFlyout()
         DString strItemName = itemNames[nIndex];
         pItemButton->AttachClick([this, toolbarFlag, strItemName, pFlyout](const EventArgs& /*args*/) {
             if (!toolbarFlag.expired()) {
+                //与直接点击工具项走同一套回调：勾选类会切换选中态并派发勾选变化
+                ActivateTool(FindTool(strItemName));
                 FireOverflowItemActivated(strItemName);
             }
             pFlyout->Dismiss();

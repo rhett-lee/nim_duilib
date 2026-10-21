@@ -2970,6 +2970,9 @@ if (pStatusBar != nullptr) {
 | overflow_button_class |  | string | Style Class of the "more" button on the right (a style from global.xml; empty means no style) |
 | overflow_button_width | 0 | int | Width of the "more" button in pixels (0 means auto-size to content) |
 | overflow_button_text | ">>" | string | Text shown on the "more" button |
+| tool_class |  | string | Default style Class used when creating tool buttons dynamically |
+| tool_checkbox_class |  | string | Default style Class used when creating checkable tool items dynamically (falls back to `tool_class` when empty) |
+| tool_separator_class |  | string | Default style Class used when creating separators dynamically |
 
 The ToolBar control inherits the `HBox` attributes. For more available attributes, please refer to the `HBox` attributes.
 
@@ -2980,6 +2983,36 @@ When there is not enough width for trailing children, they are hidden automatica
 Clicking that button pops up a flyout listing the collapsed children; clicking an item in the flyout fires the callback registered via `AttachOverflowItemActivated`
 (its argument is the `name` of the clicked child), so the application layer can dispatch commands.
 Collapsing is recalculated automatically when the window width changes, and previously collapsed items are restored when there is enough width again.
+
+### Tool item management
+
+Besides writing `Button` / `CheckBox` / `Line` directly in XML, ToolBar provides item management APIs for dynamic creation and removal:
+
+- `AddToolButton` / `AddToolCheckBox` / `AddToolSeparator` / `AddTool` / `InsertTool`: create and append/insert items;
+- `RemoveTool` / `RemoveToolAt` / `RemoveAllTools`: remove items (the controls are destroyed);
+- `FindTool` / `GetToolAt` / `GetToolCount` / `GetToolIndex`: query by name or index;
+- `SetToolChecked` / `IsToolChecked`, `SetToolEnabled` / `IsToolEnabled`, `SetToolVisible` / `IsToolVisible`: state control.
+
+Conventions:
+
+- when `name` is empty, `tool_1`, `tool_2`... is generated automatically; adding an item with an existing name fails;
+- index-based APIs (`GetToolAt` / `RemoveToolAt` / `GetToolIndex`) count tool items only and **exclude the internal "more" button**;
+- a checkable tool item uses the `CheckBox` **selected state** (`IsSelected` / `Selected`) rather than the check-icon mode;
+- items created through `AddTool*` and static `Button` / `CheckBox` children in XML are both bound to the tool item events automatically.
+
+Tool item events:
+
+```cpp
+// A tool item was clicked (directly or activated from the "more" flyout); the argument is the item name
+void AttachToolItemClick(ToolItemClickEvent callback);
+void ClearToolItemClick();
+
+// The checked state of a checkable tool item changed
+void AttachToolItemCheckedChanged(ToolItemCheckedChangedEvent callback);
+void ClearToolItemCheckedChanged();
+```
+
+When a checkable item is activated from the "more" flyout, its selected state is toggled first, then the click and checked-changed callbacks fire, and finally `OverflowItemActivated` is still dispatched.
 
 XML example:
 ```xml
@@ -2992,8 +3025,69 @@ XML example:
 </ToolBar>
 ```
 
+Dynamic creation example:
+```xml
+<ToolBar name="dynamic_toolbar" width="stretch" height="30"
+         tool_class="toolbar_button" tool_checkbox_class="toolbar_check"
+         tool_separator_class="toolbar_separator"/>
+```
+
+```cpp
+ui::ToolBar* pToolBar = dynamic_cast<ui::ToolBar*>(FindControl(_T("dynamic_toolbar")));
+pToolBar->AttachToolItemClick([](const DString& itemName) {
+    // itemName is the tool item name
+});
+pToolBar->AttachToolItemCheckedChanged([](const DString& itemName, bool bChecked) {
+    // checked state changed
+});
+pToolBar->AddToolButton(_T("tb_bold"), _T("Bold"));
+pToolBar->AddToolCheckBox(_T("tb_italic"), _T("Italic"), false);
+pToolBar->AddToolSeparator();
+pToolBar->SetToolChecked(_T("tb_italic"), true);       // does not fire callbacks
+pToolBar->RemoveTool(_T("tb_bold"));                   // removes and destroys the control
+```
+
 Related C++ APIs:
 ```cpp
+// Tool item management and queries
+Button* AddToolButton(const DString& strName, const DString& strText,
+                      const DString& strClass = DString(), bool bTextId = false);
+CheckBox* AddToolCheckBox(const DString& strName, const DString& strText,
+                          bool bChecked = false, const DString& strClass = DString(),
+                          bool bTextId = false);
+Line* AddToolSeparator(const DString& strName = DString(), const DString& strClass = DString());
+bool AddTool(Control* pControl, const DString& strName = DString());
+bool InsertTool(size_t nIndex, Control* pControl, const DString& strName = DString());
+
+size_t GetToolCount() const;                           // tool item count (excluding the "more" button)
+Control* GetToolAt(size_t nIndex) const;               // get a tool item by index
+Control* FindTool(const DString& strName) const;       // find by name
+size_t GetToolIndex(const DString& strName) const;     // index by name; Box::InvalidIndex when not found
+bool HasTool(const DString& strName) const;
+
+bool RemoveTool(const DString& strName);               // remove and destroy the control
+bool RemoveToolAt(size_t nIndex);
+void RemoveAllTools();
+
+// Tool item state
+bool SetToolChecked(const DString& strName, bool bChecked, bool bTriggerEvent = false);
+bool IsToolChecked(const DString& strName) const;
+bool SetToolEnabled(const DString& strName, bool bEnabled);
+bool IsToolEnabled(const DString& strName) const;
+bool SetToolVisible(const DString& strName, bool bVisible);
+bool IsToolVisible(const DString& strName) const;
+
+// Tool item events
+void AttachToolItemClick(ToolItemClickEvent callback);
+void ClearToolItemClick();
+void AttachToolItemCheckedChanged(ToolItemCheckedChangedEvent callback);
+void ClearToolItemCheckedChanged();
+
+// Default style Classes
+void SetToolClass(const DString& strClass);
+void SetToolCheckBoxClass(const DString& strClass);
+void SetToolSeparatorClass(const DString& strClass);
+
 // Callback invoked when an overflow item is activated (its argument is the name of the clicked child)
 void AttachOverflowItemActivated(OverflowItemActivatedEvent callback);
 void ClearOverflowItemActivated();
