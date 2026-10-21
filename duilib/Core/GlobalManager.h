@@ -129,11 +129,12 @@ public:
                    如果为空，表示使用Startup时初始化的语言文件路径；
                    如果为相对路径，则对应于压缩包中的相对路径
      * @param [in] languageFileName 当前使用语言文件的文件名（不含路径）
-     * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
+     * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后自动广播语言变化并刷新所有窗口，
+     *                          false表示不刷新界面显示（仅更新字符串表，适合启动阶段或批量切换后自行统一刷新）
      */
     bool ReloadLanguage(const FilePath& languagePath = FilePath(),
                         const DString& languageFileName = _T("zh_CN.txt"),
-                        bool bInvalidate = false);
+                        bool bInvalidate = true);
 
     /** 获取语言文件列表和显示名称（以支持多语言切换）
     * @param [in] languageNameID 用于读取显示名称的字符串ID，如果为空则不读取显示名称

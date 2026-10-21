@@ -666,8 +666,8 @@ bool Window::OpenColorThemeData(const std::string& themeXmlFileData)
     //私有颜色主题设置成功：保存原始XML数据，供弹出子窗口（如Flyout）继承
     m_colorThemeXmlData = themeXmlFileData;
 
-    //主题变化后，重绘界面
-    InvalidateAll();
+    //主题变化后：广播主题变化事件、通知控件树重新应用主题并重绘
+    NotifyThemeChanged();
     return true;
 }
 
@@ -675,8 +675,8 @@ void Window::CloseColorTheme()
 {
     m_pColorManager.reset();
     m_colorThemeXmlData.clear();
-    //主题变化后，重绘界面
-    InvalidateAll();
+    //主题变化后：广播主题变化事件、通知控件树重新应用主题并重绘
+    NotifyThemeChanged();
 }
 
 const std::string& Window::GetColorThemeXmlData() const
@@ -2764,17 +2764,51 @@ void Window::OnDwmCompositionChangedMsg(bool bDwmCompositionEnabled)
 
 void Window::NotifyLanguageChanged()
 {
+    //支持多语言时，TextId优先：更新窗口标题栏文本
+    if (!GetTextId().empty()) {
+        SetTextId(GetTextId());
+    }
+
+    //通知全部控件重新应用语言资源，并重新布局
+    Box* pBox = GetRoot();
+    if (pBox != nullptr) {
+        pBox->OnLanguageChanged(false);
+        pBox->SetPos(pBox->GetPos());
+    }
+
+    //通知窗口自身（子类可重写），并发送语言变化事件
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (OnLanguageChanged() && !windowFlag.expired()) {
         SendWindowEvent(kWindowLanguageChangedMsg);
+    }
+
+    //语言变化后，重绘界面
+    if (!windowFlag.expired()) {
+        InvalidateAll();
     }
 }
 
 void Window::NotifyThemeChanged()
 {
+    //通知全部控件重新应用主题，并重新布局
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    Box* pBox = GetRoot();
+    if (pBox != nullptr) {
+        pBox->OnThemeChanged(false);
+        pBox->SetPos(pBox->GetPos());
+    }
+    if (windowFlag.expired()) {
+        return;
+    }
+
+    //通知窗口自身（子类可重写），并发送主题变化事件
+    
     if (OnThemeChanged() && !windowFlag.expired()) {
         SendWindowEvent(kWindowThemeChangedMsg);
+    }
+    //主题变化后，重绘界面
+    if (!windowFlag.expired()) {
+        InvalidateAll();
     }
 }
 

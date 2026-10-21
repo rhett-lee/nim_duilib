@@ -333,6 +333,8 @@ ui::GlobalManager::Instance().Theme().RemoveThemeChangeCallback(callback, 1);
 
 窗口内置 `OnThemeChanged()` 虚函数（`Window.h`）和 `kWindowThemeChangedMsg` 事件，也可以重写它来响应主题变化。
 
+`SwitchColorTheme()` / `SwitchIconTheme()`（全局主题）、`ReloadLanguage(..., true)`（语言）以及窗口级 `OpenColorTheme()` / `OpenColorThemeData()` / `CloseColorTheme()` 都会自动调用 `Window::NotifyThemeChanged()` / `NotifyLanguageChanged()`：这两个函数会更新窗口标题（语言变化时）、通知整棵控件树重新应用主题/语言资源并重新布局，然后发送 `kWindowThemeChangedMsg` / `kWindowLanguageChangedMsg` 事件并重绘，应用层不需要再遍历控件刷新。
+
 ---
 
 ## 9. 跟随系统深浅色

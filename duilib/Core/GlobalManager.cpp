@@ -216,21 +216,11 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //挂载主题变化事件
     m_themeManager.AddThemeChangeCallback([this](const ThemeInfo&) {
-        //刷新界面显示
+        //刷新界面显示：由窗口统一广播主题变化事件、通知控件树重新应用主题并重绘
         std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
         for (const WindowPtr& pWindow : windowList) {
             if (pWindow != nullptr) {
                 pWindow->NotifyThemeChanged();
-            }
-            if (pWindow != nullptr) {
-                Box* pBox = pWindow->GetRoot();
-                if (pBox != nullptr) {
-                    pBox->OnThemeChanged(false);
-                    pBox->SetPos(pBox->GetPos());
-                }
-            }
-            if (pWindow != nullptr) {
-                pWindow->InvalidateAll();
             }
         }
         }, (size_t)this);
@@ -612,27 +602,11 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
 
     ASSERT(bReadOk && "ReloadLanguage");
     if (bReadOk && bInvalidate) {
-        //刷新界面显示
+        //刷新界面显示：由窗口统一广播语言变化事件、通知控件树重新应用语言资源并重绘
         std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
         for (const WindowPtr& pWindow : windowList) {
-            if (pWindow == nullptr) {
-                continue;
-            }
-            Box* pBox = pWindow->GetRoot();
-            //支持多语言时，TextId优先
-            if (!pWindow->GetTextId().empty()) {
-                //更新窗口标题栏文本
-                pWindow->SetTextId(pWindow->GetTextId());
-            }
-            if (pBox != nullptr) {
-                pBox->OnLanguageChanged(false);
-                pBox->SetPos(pBox->GetPos());
-            }
             if (pWindow != nullptr) {
                 pWindow->NotifyLanguageChanged();
-            }
-            if (pWindow != nullptr) {
-                pWindow->InvalidateAll();
             }
         }
     }

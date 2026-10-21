@@ -335,6 +335,8 @@ ui::GlobalManager::Instance().Theme().RemoveThemeChangeCallback(callback, 1);
 
 The window has a built-in `OnThemeChanged()` virtual function (`Window.h`) and the `kWindowThemeChangedMsg` event, which can also be overridden to respond to theme changes.
 
+`SwitchColorTheme()` / `SwitchIconTheme()` (global themes), `ReloadLanguage(..., true)` (language) and the window-level `OpenColorTheme()` / `OpenColorThemeData()` / `CloseColorTheme()` all call `Window::NotifyThemeChanged()` / `NotifyLanguageChanged()` automatically. These functions update the window title (for language changes), notify the whole control tree to re-apply theme/language resources and re-layout, then send the `kWindowThemeChangedMsg` / `kWindowLanguageChangedMsg` event and redraw, so the application layer does not need to walk the controls and refresh them manually.
+
 ---
 
 ## 9. Follow System Light/Dark Mode

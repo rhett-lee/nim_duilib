@@ -503,10 +503,12 @@ public:
 
 public:
     /** 语言发生变化
+    *   更新窗口标题，通知控件树重新应用语言资源并重新布局，然后发送 kWindowLanguageChangedMsg 事件并重绘
     */
     void NotifyLanguageChanged();
 
     /** 主题发生变化
+    *   通知窗口自身和控件树重新应用主题并重新布局，发送 kWindowThemeChangedMsg 事件，并重绘界面
     */
     void NotifyThemeChanged();
 

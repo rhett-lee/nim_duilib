@@ -216,8 +216,8 @@ API 变动频率高 |
   （如 `bg_window_main`、`bg_window_card`、`border_split_level*`、`bg_progress`、`color_blue_dark`）。
   `verify_docs.py` 的类名索引原先只收集 `class`/`struct`，遗漏 `enum`，已补上（`EasingFunctionType`、`ListCtrlSubItemSortFlag` 等真实枚举不再误报）。
   ThemeColor §7.2「建议补充的颜色」表亦按源码实况改写为「落地情况」：13 项中 10 项现已落地（部分按状态拆分为 `bg_scrollbar_normal` / `bg_scrollbar_thumb_hovered` 等），仅 2 项仍缺失。
-  仍保留豁免的只有真正**尚未落地**的名字：`bg_selected_inactive`/`bg_text_highlight`（ThemeColor §7.3「仍缺失颜色」章节）、
-  `kEventThemeChanged`/`kEventLanguageChanged`（E 组待实现项）。
+  仍保留豁免的只有真正**尚未落地**的名字：`bg_selected_inactive`/`bg_text_highlight`（ThemeColor §7.3「仍缺失颜色」章节）。
+  C-3 复核确认原先登记的两个虚构事件名并非仓库中的真实事件名（实际为 `kWindowThemeChangedMsg` / `kWindowLanguageChangedMsg`），已从豁免名单移除。
   名单按 `<glob> :: 名字1 名字2` 分文件登记，**不写入 markdown 正文**（HTML 注释会破坏文档结构）。
 - **验收结果**（2026-10-17）：
   | 检查项 | 修前 | 修后 |
@@ -420,13 +420,25 @@ API 变动频率高 |
   - **组合态状态机探针**：11 个用例全部通过（含组合态外的空事件不误触发 End、失焦复位后重新输入是 Start）。
   - **仍需人工验证**：「候选框实际跟随光标」这一视觉验收点无法自动化，需在 macOS/Linux 上用中文输入法实测。
 
-### C-3 主题 / 语言切换无变更广播 🟡
+### C-3 主题 / 语言切换无变更广播 ✅ 已完成（2026-10-21）
 
-- **现状**：`ColorManager::SetColorThemeDarkMode`（`ColorManager.cpp:93-96`）**只设一个 flag，不触发任何失效重绘**，调用方必须自己 `Invalidate()` 全窗口树。语言切换同理：`LangManager` 换表后应用层要自行遍历所有控件重新应用文本，框架无通知事件。
-- **影响**：切主题/语言后出现"部分控件不刷新"的 bug，且每新增一个控件都要在应用层再写一遍刷新代码，极易漏。
-- **动作**：引入 `kEventThemeChanged` / `kEventLanguageChanged`，由 `Window` 统一广播并自动 `Invalidate` 全树。
-- **验收**：切主题/语言后无需应用层写任何刷新代码，全部控件同步更新。
-- **工作量**：1 周　**依赖**：无（B-1 已暂缓；主题 / 语言切换的广播行为可用 24 个示例人工验证）
+- **原审计结论**（复核后修正）：`ColorManager::SetColorThemeDarkMode` 确实只设置 flag，但主题/语言的实际切换入口并不直接调用它：
+  主题切换走 `ThemeManager::SwitchColorTheme` / `SwitchIconTheme`（会触发已注册的主题变化回调），语言切换走 `GlobalManager::ReloadLanguage(..., bInvalidate=true)`。
+  这两条路径此前已在 `GlobalManager` 中遍历窗口，分别调用 `Window::NotifyThemeChanged()` / `NotifyLanguageChanged()`、控件树 `OnThemeChanged` / `OnLanguageChanged`、`SetPos` 与 `InvalidateAll`；
+  窗口事件 `kWindowThemeChangedMsg` / `kWindowLanguageChangedMsg` 也已存在。原审计所列的两个事件名并非仓库中的真实事件名。
+- **复核后仍存在的缺口**：
+  1. 刷新逻辑分散在 `GlobalManager`，`Window::Notify*Changed()` 只负责发送事件；应用层自行调用该接口时不会刷新控件树。
+  2. 窗口级 `Window::OpenColorThemeData()` / `CloseColorTheme()` 只调用 `InvalidateAll()`，既不通知控件树重新应用主题，也不发送 `kWindowThemeChangedMsg`。
+- **已完成的改动**：
+  | 文件 | 改动 |
+  | :--- | :--- |
+  | `duilib/Core/Window.cpp` | `NotifyLanguageChanged()` 统一完成「更新窗口标题 → 控件树 `OnLanguageChanged` → 重新布局 → 发送 `kWindowLanguageChangedMsg` → 重绘」；`NotifyThemeChanged()` 统一完成「窗口/控件树 `OnThemeChanged` → 重新布局 → 发送 `kWindowThemeChangedMsg` → 重绘」 |
+  | `duilib/Core/GlobalManager.cpp` | 主题变化回调与 `ReloadLanguage` 的刷新循环简化为逐窗口调用 `Window::Notify*Changed()`，删除重复的控件树通知、布局与重绘代码 |
+  | `duilib/Core/Window.cpp` | `OpenColorThemeData()` / `CloseColorTheme()` 由 `InvalidateAll()` 改为 `NotifyThemeChanged()`，窗口级主题切换同样自动广播并刷新全树 |
+  | `duilib/Core/Window.h` | 补充两个通知函数的语义注释 |
+- **验收**：`SwitchColorTheme` / `SwitchIconTheme` / `ReloadLanguage(..., true)` / `OpenColorTheme` / `CloseColorTheme` 均自动刷新全部控件并发送对应窗口事件，应用层无需遍历控件；
+  `duilib`、`examples/controls`、`examples/ColorTheme` 的 Debug x64 编译通过；运行时主题/语言切换需人工验证。
+- **工作量**：约 0.5 人天（原估 1 周，因窗口事件与全局刷新骨架已在源码中存在）　**依赖**：无
 
 ### C-4 Linux/FreeBSD 无系统阴影 ⏸ 不处理（2026-10-20 决策）
 

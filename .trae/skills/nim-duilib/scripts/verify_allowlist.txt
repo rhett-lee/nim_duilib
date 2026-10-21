@@ -28,7 +28,7 @@ docs/XmlEvents.md docs/XmlEvents.en.md :: kEventReportViewSubItemFilled
 docs/misc/ListCtrl-Roadmap.md docs/misc/ListCtrl-Roadmap.en.md :: kEventReportViewSubItemFilled ListCtrlSubItemSortFlag
 docs/misc/ListCtrl单元格交互与结构升级设计方案.md :: kEventCurrentCellChanged kEventCellSelectionChanged kEventCellsCopied kEventCellEditBegin kEventCellEditCommit kEventCellEditCancel kEventCellsMerged kEventCellsUnmerged kEventItemExpandedChanged kEventGroupCollapsedChanged kEventRowMoved kEventSubItemCustomPaint kEventReportViewSubItemFilled AttachReportViewSubItemFilled
 docs/misc/workbuddy-nim-duilib-guide.md :: bg_statusbar
-docs/misc/Development-Plan.md :: kEventThemeChanged kEventLanguageChanged bg_selected_inactive bg_text_highlight
+docs/misc/Development-Plan.md :: bg_selected_inactive bg_text_highlight
 
 # ---------------------------------------------------------------------------
 # Skill 文档 / LLM 参考中的举例名
