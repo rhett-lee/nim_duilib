@@ -1,4 +1,5 @@
 #include "CascadingSelect.h"
+#include "duilib/Control/Flyout.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Render/IRender.h"
@@ -46,6 +47,17 @@ CascadingSelect::CascadingSelect(Window* pWindow) :
     m_strDividerColor = _T("border_split_level1");
     m_strChevronColor = _T("color_gray");
     m_strScrollbarColor = _T("color_gray");
+
+    //下拉列表框形态的默认样式
+    m_strPopupClass = _T("cascading_select_popup");
+    m_strTextColor = _T("text_default");
+    m_strPlaceholderColor = _T("text_muted");
+    m_strDisabledTextColor = _T("text_disabled");
+    m_strBgColor = _T("bg_window_card");
+    m_strBorderColor = _T("border_control_normal");
+    m_strHoverBorderColor = _T("border_btn_hovered");
+    m_strClearColor = _T("color_gray");
+    m_strClearHoverColor = _T("text_default");
 }
 
 CascadingSelect::~CascadingSelect()
@@ -133,6 +145,60 @@ void CascadingSelect::SetAttribute(const DString& strName, const DString& strVal
     else if ((strName == _T("scrollbar_color")) || (strName == _T("scrollbarcolor"))) {
         SetScrollbarColor(strValue);
     }
+    else if (strName == _T("dropdown")) {
+        SetDropdown(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("expand_on_hover")) || (strName == _T("expandonhover"))) {
+        SetExpandOnHover(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("allow_clear")) || (strName == _T("allowclear"))) {
+        SetAllowClear(StringUtil::IsValueTrue(strValue));
+    }
+    else if (strName == _T("placeholder")) {
+        SetPlaceholder(strValue);
+    }
+    else if (strName == _T("placeholder_id")) {
+        SetPlaceholderId(strValue);
+    }
+    else if ((strName == _T("popup_width")) || (strName == _T("popupwidth"))) {
+        SetPopupWidth(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("popup_max_rows")) || (strName == _T("popupmaxrows"))) {
+        SetPopupMaxRows(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("popup_class")) || (strName == _T("popupclass"))) {
+        SetPopupClass(strValue);
+    }
+    else if ((strName == _T("text_color")) || (strName == _T("textcolor"))) {
+        SetTextColor(strValue);
+    }
+    else if ((strName == _T("placeholder_color")) || (strName == _T("placeholdercolor"))) {
+        SetPlaceholderColor(strValue);
+    }
+    else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
+        SetDisabledTextColor(strValue);
+    }
+    else if ((strName == _T("bg_color")) || (strName == _T("bgcolor"))) {
+        SetBgColor(strValue);
+    }
+    else if ((strName == _T("border_color")) || (strName == _T("bordercolor"))) {
+        SetBorderColor(strValue);
+    }
+    else if ((strName == _T("hover_border_color")) || (strName == _T("hoverbordercolor"))) {
+        SetHoverBorderColor(strValue);
+    }
+    else if ((strName == _T("clear_color")) || (strName == _T("clearcolor"))) {
+        SetClearColor(strValue);
+    }
+    else if ((strName == _T("clear_hover_color")) || (strName == _T("clearhovercolor"))) {
+        SetClearHoverColor(strValue);
+    }
+    else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
+        SetBorderRound(StringUtil::StringToInt32(strValue));
+    }
+    else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
+        SetBorderSize(StringUtil::StringToInt32(strValue));
+    }
     else if (strName == _T("font")) {
         SetFont(strValue);
     }
@@ -151,6 +217,11 @@ void CascadingSelect::OnLanguageChanged(bool bRedraw)
 void CascadingSelect::PaintStateImages(IRender* pRender)
 {
     if (pRender == nullptr) {
+        return;
+    }
+    if (m_bDropdown) {
+        //下拉列表框形态：只绘制选择框，多列内容在浮层中绘制
+        PaintDropdown(pRender);
         return;
     }
     BaseClass::PaintStateImages(pRender);
@@ -225,6 +296,25 @@ void CascadingSelect::PaintStateImages(IRender* pRender)
 
 bool CascadingSelect::ButtonDown(const EventArgs& msg)
 {
+    if (m_bDropdown) {
+        if (!IsEnabled() || !IsMouseEnabled()) {
+            return BaseClass::ButtonDown(msg);
+        }
+        const UiRect rcClear = GetClearRect();
+        if (!rcClear.IsEmpty() && rcClear.ContainsPt(msg.ptMouse)) {
+            //清空按钮：先关闭浮层，再清空选择
+            ClosePopup();
+            ClearSelection();
+            return true;
+        }
+        if (IsPopupOpen()) {
+            ClosePopup();
+        }
+        else {
+            OpenPopup();
+        }
+        return true;
+    }
     if (!IsEnabled() || !IsMouseEnabled()) {
         return BaseClass::ButtonDown(msg);
     }
@@ -254,6 +344,18 @@ bool CascadingSelect::ButtonDown(const EventArgs& msg)
 
 bool CascadingSelect::MouseMove(const EventArgs& msg)
 {
+    if (m_bDropdown) {
+        const bool bHovered = IsEnabled() && IsMouseEnabled() && GetRect().ContainsPt(msg.ptMouse);
+        const UiRect rcClear = bHovered ? GetClearRect() : UiRect();
+        const bool bClearHovered = !rcClear.IsEmpty() && rcClear.ContainsPt(msg.ptMouse);
+        if ((bHovered != m_bHovered) || (bClearHovered != m_bClearHovered)) {
+            m_bHovered = bHovered;
+            m_bClearHovered = bClearHovered;
+            UpdateCursor();
+            Invalidate();
+        }
+        return BaseClass::MouseMove(msg);
+    }
     if (!IsEnabled() || !IsMouseEnabled()) {
         if (m_nHoverLevel >= 0) {
             m_nHoverLevel = -1;
@@ -272,6 +374,25 @@ bool CascadingSelect::MouseMove(const EventArgs& msg)
         nHoverLevel = static_cast<int32_t>(nLevel);
         nHoverIndex = static_cast<int32_t>(nIndex);
     }
+    //移入展开：悬停在父项上时静默展开子列（不派发选择事件，点击才提交）
+    if (m_bExpandOnHover && (nHoverLevel >= 0)) {
+        const Node* pNode = GetNode(static_cast<size_t>(nHoverLevel), static_cast<size_t>(nHoverIndex));
+        if ((pNode != nullptr) && !pNode->children.empty()) {
+            std::vector<size_t> indexes;
+            bool bValid = true;
+            for (int32_t i = 0; i < nHoverLevel; ++i) {
+                if ((i >= static_cast<int32_t>(m_selection.size())) || (m_selection[i] < 0)) {
+                    bValid = false;
+                    break;
+                }
+                indexes.push_back(static_cast<size_t>(m_selection[i]));
+            }
+            if (bValid) {
+                indexes.push_back(static_cast<size_t>(nHoverIndex));
+                SetSelection(indexes, false);
+            }
+        }
+    }
     if ((nHoverLevel != m_nHoverLevel) || (nHoverIndex != m_nHoverIndex)) {
         m_nHoverLevel = nHoverLevel;
         m_nHoverIndex = nHoverIndex;
@@ -283,6 +404,15 @@ bool CascadingSelect::MouseMove(const EventArgs& msg)
 
 bool CascadingSelect::MouseLeave(const EventArgs& msg)
 {
+    if (m_bDropdown) {
+        if (m_bHovered) {
+            m_bHovered = false;
+            m_bClearHovered = false;
+            UpdateCursor();
+            Invalidate();
+        }
+        return BaseClass::MouseLeave(msg);
+    }
     if (m_nHoverLevel >= 0) {
         m_nHoverLevel = -1;
         m_nHoverIndex = -1;
@@ -294,6 +424,10 @@ bool CascadingSelect::MouseLeave(const EventArgs& msg)
 
 bool CascadingSelect::MouseWheel(const EventArgs& msg)
 {
+    if (m_bDropdown) {
+        //下拉形态：滚轮由浮层内的级联列表处理
+        return BaseClass::MouseWheel(msg);
+    }
     if (!IsEnabled() || !IsMouseEnabled()) {
         return BaseClass::MouseWheel(msg);
     }
@@ -325,6 +459,14 @@ bool CascadingSelect::MouseWheel(const EventArgs& msg)
 void CascadingSelect::SetItems(const std::vector<DString>& paths)
 {
     m_strIdPaths.clear();
+    m_strItemPaths.clear();
+    m_bItemIdMode = false;
+    for (size_t i = 0; i < paths.size(); ++i) {
+        if (i > 0) {
+            m_strItemPaths += _T("|");
+        }
+        m_strItemPaths += paths[i];
+    }
     BuildTree(paths, false);
     m_selection.assign(GetDepth(), -1);
     ResetAllScroll();
@@ -334,6 +476,8 @@ void CascadingSelect::SetItems(const std::vector<DString>& paths)
 void CascadingSelect::SetItemIds(const std::vector<DString>& pathIds)
 {
     m_strIdPaths.clear();
+    m_strItemPaths.clear();
+    m_bItemIdMode = true;
     for (size_t i = 0; i < pathIds.size(); ++i) {
         if (i > 0) {
             m_strIdPaths += _T("|");
@@ -348,7 +492,20 @@ void CascadingSelect::SetItemIds(const std::vector<DString>& pathIds)
 
 void CascadingSelect::AddPath(const DString& path)
 {
-    InsertPath(path, false);
+    if (m_bItemIdMode) {
+        if (!m_strIdPaths.empty()) {
+            m_strIdPaths += _T("|");
+        }
+        m_strIdPaths += path;
+        InsertPath(path, true);
+    }
+    else {
+        if (!m_strItemPaths.empty()) {
+            m_strItemPaths += _T("|");
+        }
+        m_strItemPaths += path;
+        InsertPath(path, false);
+    }
     const std::vector<int32_t> oldSelection = m_selection;
     ClampSelection();
     Invalidate();
@@ -361,6 +518,8 @@ void CascadingSelect::ClearItems()
 {
     m_roots.clear();
     m_strIdPaths.clear();
+    m_strItemPaths.clear();
+    m_bItemIdMode = false;
     m_selection.clear();
     m_columnScroll.clear();
     m_columns.clear();
@@ -589,6 +748,155 @@ void CascadingSelect::SetScrollbarColor(const DString& strColor)
 void CascadingSelect::SetFont(const DString& strFontId)
 {
     m_strFont = strFontId;
+    Invalidate();
+}
+
+void CascadingSelect::SetDropdown(bool bDropdown)
+{
+    if (m_bDropdown == bDropdown) {
+        return;
+    }
+    m_bDropdown = bDropdown;
+    if (!m_bDropdown) {
+        ClosePopup();
+        m_bHovered = false;
+    }
+    UpdateCursor();
+    Invalidate();
+}
+
+void CascadingSelect::SetExpandOnHover(bool bExpand)
+{
+    m_bExpandOnHover = bExpand;
+    Invalidate();
+}
+
+void CascadingSelect::SetAllowClear(bool bAllow)
+{
+    m_bAllowClear = bAllow;
+    if (!m_bAllowClear) {
+        m_bClearHovered = false;
+    }
+    Invalidate();
+}
+
+void CascadingSelect::SetPlaceholder(const DString& strText)
+{
+    m_strPlaceholder = strText;
+    Invalidate();
+}
+
+DString CascadingSelect::GetPlaceholder() const
+{
+    if (!m_strPlaceholderId.empty()) {
+        DString strText = GlobalManager::GetTextById(m_strPlaceholderId);
+        if (!strText.empty()) {
+            return strText;
+        }
+    }
+    return m_strPlaceholder;
+}
+
+void CascadingSelect::SetPlaceholderId(const DString& strTextId)
+{
+    m_strPlaceholderId = strTextId;
+    Invalidate();
+}
+
+void CascadingSelect::SetPopupWidth(int32_t nWidth)
+{
+    m_nPopupWidth = std::max(0, nWidth);
+    Invalidate();
+}
+
+void CascadingSelect::SetPopupMaxRows(int32_t nRows)
+{
+    m_nPopupMaxRows = std::max(1, nRows);
+    Invalidate();
+}
+
+void CascadingSelect::SetPopupClass(const DString& strClass)
+{
+    m_strPopupClass = strClass.empty() ? _T("cascading_select_popup") : strClass;
+    Invalidate();
+}
+
+DString CascadingSelect::GetDisplayText() const
+{
+    CascadingSelectValue value;
+    BuildValue(value);
+    if (m_displayTextCallback) {
+        DString strText = m_displayTextCallback(value);
+        if (!strText.empty()) {
+            return strText;
+        }
+    }
+    return value.text;
+}
+
+void CascadingSelect::AttachDisplayText(const DisplayTextEvent& callback)
+{
+    m_displayTextCallback = callback;
+    Invalidate();
+}
+
+void CascadingSelect::SetTextColor(const DString& strColor)
+{
+    m_strTextColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetPlaceholderColor(const DString& strColor)
+{
+    m_strPlaceholderColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetDisabledTextColor(const DString& strColor)
+{
+    m_strDisabledTextColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetBgColor(const DString& strColor)
+{
+    m_strBgColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetBorderColor(const DString& strColor)
+{
+    m_strBorderColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetHoverBorderColor(const DString& strColor)
+{
+    m_strHoverBorderColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetClearColor(const DString& strColor)
+{
+    m_strClearColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetClearHoverColor(const DString& strColor)
+{
+    m_strClearHoverColor = strColor;
+    Invalidate();
+}
+
+void CascadingSelect::SetBorderRound(int32_t nRound)
+{
+    m_nBorderRound = std::max(0, nRound);
+    Invalidate();
+}
+
+void CascadingSelect::SetBorderSize(int32_t nSize)
+{
+    m_nBorderSize = std::max(0, nSize);
     Invalidate();
 }
 
@@ -1002,8 +1310,315 @@ void CascadingSelect::DrawScrollbar(IRender* pRender, const UiRect& rcColumn, in
         static_cast<float>(nTrackWidth) / 2.0f, color);
 }
 
+void CascadingSelect::PaintDropdown(IRender* pRender)
+{
+    const UiRect rc = GetRect();
+    if (rc.IsEmpty()) {
+        return;
+    }
+    const int32_t nRadius = Dpi().GetScaleInt(std::max(0, m_nBorderRound));
+    const UiColor bgColor = GetUiColor(m_strBgColor);
+    if (!bgColor.IsEmpty()) {
+        pRender->FillRoundRect(UiRectF::MakeFromRect(rc),
+            static_cast<float>(nRadius), static_cast<float>(nRadius), bgColor);
+    }
+
+    DString strBorderColor = (m_bHovered || IsPopupOpen()) ? m_strHoverBorderColor : m_strBorderColor;
+    if (!IsEnabled()) {
+        strBorderColor = m_strBorderColor;
+    }
+    const int32_t nBorderSize = Dpi().GetScaleInt(std::max(0, m_nBorderSize));
+    if ((nBorderSize > 0) && !strBorderColor.empty()) {
+        pRender->DrawRoundRect(UiRectF::MakeFromRect(rc),
+            static_cast<float>(nRadius), static_cast<float>(nRadius),
+            GetUiColor(strBorderColor), static_cast<float>(nBorderSize));
+    }
+
+    const UiRect rcChevron = GetChevronRect();
+    const UiRect rcClear = m_bHovered ? GetClearRect() : UiRect();
+    const int32_t nPadding = Dpi().GetScaleInt(std::max(0, m_nTextPadding));
+    UiRect rcText = GetContentRect();
+    rcText.left += nPadding;
+    const int32_t nTextRight = rcClear.IsEmpty() ? rcChevron.left : rcClear.left;
+    rcText.right = nTextRight - nPadding / 2;
+    if (rcText.right < rcText.left) {
+        rcText.right = rcText.left;
+    }
+
+    DString strText;
+    DString strTextColor;
+    DString strSelectionText = GetSelectionText();
+    if (!IsEnabled()) {
+        strText = strSelectionText.empty() ? GetPlaceholder() : GetDisplayText();
+        strTextColor = m_strDisabledTextColor;
+    }
+    else if (strSelectionText.empty()) {
+        strText = GetPlaceholder();
+        strTextColor = m_strPlaceholderColor;
+    }
+    else {
+        strText = GetDisplayText();
+        strTextColor = m_strTextColor;
+    }
+
+    AutoClip clip(pRender, GetContentRect());
+    DrawItemText(pRender, strText, rcText, GetUiColor(strTextColor));
+    DrawDownChevron(pRender, rcChevron, GetUiColor(m_strChevronColor));
+    if (!rcClear.IsEmpty()) {
+        DrawClearIcon(pRender, rcClear, GetUiColor(m_bClearHovered ? m_strClearHoverColor : m_strClearColor));
+    }
+}
+
+void CascadingSelect::OpenPopup()
+{
+    if (!m_bDropdown || !IsEnabled() || !IsMouseEnabled()) {
+        return;
+    }
+    const size_t nDepth = GetDepth();
+    if (nDepth == 0) {
+        return;
+    }
+    const int32_t nColumnWidth = GetPopupColumnWidth();
+    const int32_t nPadding = 8;
+    int32_t nWidth = (m_nPopupWidth > 0) ? m_nPopupWidth
+                                        : static_cast<int32_t>(nDepth) * nColumnWidth + nPadding;
+    //显式设置的宽度不足以容纳全部列时，按列数自动放宽，避免右侧列被裁切
+    nWidth = std::max(nWidth, static_cast<int32_t>(nDepth) * nColumnWidth + nPadding);
+    const int32_t nRows = std::clamp(EstimateMaxRows(), 1, std::max(1, m_nPopupMaxRows));
+    const int32_t nHeight = nRows * std::max(1, m_nRowHeight) + nPadding;
+
+    Flyout* pFlyout = new Flyout(GetWindow());
+    pFlyout->SetGap(4);
+    if (!pFlyout->ShowAt(this, BuildPopupXml(nWidth, nHeight), Flyout::Placement::Bottom)) {
+        //创建失败时 ShowAt 内部已销毁对象
+        return;
+    }
+    CascadingSelect* pList = dynamic_cast<CascadingSelect*>(pFlyout->FindControl(_T("cascading_popup_list")));
+    if (pList == nullptr) {
+        pFlyout->Dismiss();
+        return;
+    }
+
+    //把当前数据与样式复制到浮层内的级联列表
+    pList->SetPathSeparator(m_strPathSeparator);
+    pList->SetValueSeparator(m_strValueSeparator);
+    pList->SetColumnWidth(nColumnWidth);
+    pList->SetRowHeight(m_nRowHeight);
+    pList->SetTextPadding(m_nTextPadding);
+    pList->SetFont(m_strFont);
+    pList->SetItemColor(m_strItemColor);
+    pList->SetSelectedColor(m_strSelectedColor);
+    pList->SetDisabledColor(m_strDisabledColor);
+    pList->SetHoverBgColor(m_strHoverBgColor);
+    pList->SetSelectedBgColor(m_strSelectedBgColor);
+    pList->SetDividerColor(m_strDividerColor);
+    pList->SetChevronColor(m_strChevronColor);
+    pList->SetScrollbarColor(m_strScrollbarColor);
+    pList->SetExpandOnHover(m_bExpandOnHover);
+    if (m_bItemIdMode) {
+        pList->SetItemIds(SplitPathList(m_strIdPaths));
+    }
+    else {
+        pList->SetItems(SplitPathList(m_strItemPaths));
+    }
+    pList->SetDisabledPaths(m_disabledPaths);
+
+    std::vector<size_t> indexes;
+    for (int32_t nIndex : m_selection) {
+        if (nIndex < 0) {
+            break;
+        }
+        indexes.push_back(static_cast<size_t>(nIndex));
+    }
+    if (!indexes.empty()) {
+        pList->SetSelection(indexes, false);
+    }
+
+    //浮层内选满整条路径时提交到本控件并关闭浮层
+    pList->AttachSelectionChanged([pFlyout](const EventArgs& args) {
+        CascadingSelect* pOwner = dynamic_cast<CascadingSelect*>(pFlyout->GetAnchor());
+        if (pOwner == nullptr) {
+            return true;
+        }
+        const CascadingSelectValue* pValue = static_cast<const CascadingSelectValue*>(args.pEventData);
+        if (pValue != nullptr) {
+            pOwner->OnPopupSelection(*pValue);
+        }
+        return true;
+    });
+    Invalidate();
+}
+
+bool CascadingSelect::IsPopupOpen() const
+{
+    Flyout* pFlyout = Flyout::GetActiveFlyout();
+    return (pFlyout != nullptr) && (pFlyout->GetAnchor() == this);
+}
+
+void CascadingSelect::ClosePopup()
+{
+    Flyout* pFlyout = Flyout::GetActiveFlyout();
+    if ((pFlyout != nullptr) && (pFlyout->GetAnchor() == this)) {
+        pFlyout->Dismiss();
+    }
+}
+
+DString CascadingSelect::BuildPopupXml(int32_t nWidth, int32_t nHeight) const
+{
+    const DString strClass = m_strPopupClass.empty() ? _T("cascading_select_popup") : m_strPopupClass;
+    return StringUtil::Printf(
+        _T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" size_box=\"0,0,0,0\">")
+        _T("<VBox bkcolor=\"bg_window_card\" width=\"%d\" height=\"%d\" padding=\"4,4,4,4\" border_round=\"6,6\">")
+        _T("<CascadingSelect class=\"%s\" name=\"cascading_popup_list\" width=\"stretch\" height=\"stretch\"/>")
+        _T("</VBox></Window>"),
+        nWidth, nHeight, nWidth, nHeight, strClass.c_str());
+}
+
+void CascadingSelect::OnPopupSelection(const CascadingSelectValue& value)
+{
+    if (value.indexes.empty()) {
+        return;
+    }
+    if (std::find(value.indexes.begin(), value.indexes.end(), -1) != value.indexes.end()) {
+        //未选满整条路径：只展开子列，不提交
+        return;
+    }
+    std::vector<size_t> indexes;
+    indexes.reserve(value.indexes.size());
+    for (int32_t nIndex : value.indexes) {
+        indexes.push_back(static_cast<size_t>(nIndex));
+    }
+    SetSelection(indexes);
+    ClosePopup();
+}
+
+int32_t CascadingSelect::EstimateMaxRows() const
+{
+    int32_t nMaxRows = static_cast<int32_t>(m_roots.size());
+    std::vector<const std::vector<Node>*> current;
+    current.push_back(&m_roots);
+    while (!current.empty()) {
+        std::vector<const std::vector<Node>*> next;
+        for (const std::vector<Node>* pNodes : current) {
+            for (const Node& node : *pNodes) {
+                if (!node.children.empty()) {
+                    nMaxRows = std::max(nMaxRows, static_cast<int32_t>(node.children.size()));
+                    next.push_back(&node.children);
+                }
+            }
+        }
+        current.swap(next);
+    }
+    return std::max(1, nMaxRows);
+}
+
+int32_t CascadingSelect::GetPopupColumnWidth() const
+{
+    return (m_nColumnWidth > 0) ? m_nColumnWidth : 140;
+}
+
+void CascadingSelect::BuildValue(CascadingSelectValue& value) const
+{
+    value.indexes = m_selection;
+    MakeSelectionText(m_selection, value.text, value.path);
+}
+
+std::vector<DString> CascadingSelect::SplitPathList(const DString& strList)
+{
+    std::vector<DString> paths;
+    std::list<DString> parts = StringUtil::Split(strList, _T("|"));
+    for (DString part : parts) {
+        StringUtil::Trim(part);
+        if (!part.empty()) {
+            paths.push_back(part);
+        }
+    }
+    return paths;
+}
+
+UiRect CascadingSelect::GetChevronRect() const
+{
+    const UiRect rc = GetRect();
+    const int32_t nSize = Dpi().GetScaleInt(12);
+    const int32_t nMargin = Dpi().GetScaleInt(10);
+    UiRect rcChevron;
+    rcChevron.right = rc.right - nMargin;
+    rcChevron.left = rcChevron.right - nSize;
+    const int32_t nTop = rc.top + (rc.Height() - nSize) / 2;
+    rcChevron.top = nTop;
+    rcChevron.bottom = nTop + nSize;
+    return rcChevron;
+}
+
+UiRect CascadingSelect::GetClearRect() const
+{
+    if (!m_bDropdown || !m_bAllowClear || !IsEnabled() || m_selection.empty() || GetSelectionText().empty()) {
+        return UiRect();
+    }
+    const UiRect rc = GetRect();
+    const UiRect rcChevron = GetChevronRect();
+    const int32_t nSize = Dpi().GetScaleInt(14);
+    const int32_t nGap = Dpi().GetScaleInt(4);
+    UiRect rcClear;
+    rcClear.right = rcChevron.left - nGap;
+    rcClear.left = rcClear.right - nSize;
+    const int32_t nTop = rc.top + (rc.Height() - nSize) / 2;
+    rcClear.top = nTop;
+    rcClear.bottom = nTop + nSize;
+    return rcClear;
+}
+
+void CascadingSelect::DrawDownChevron(IRender* pRender, const UiRect& rc, UiColor color)
+{
+    if ((pRender == nullptr) || color.IsEmpty()) {
+        return;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory == nullptr) {
+        return;
+    }
+    const float cx = (rc.left + rc.right) / 2.0f;
+    const float cy = (rc.top + rc.bottom) / 2.0f;
+    const int32_t nWidth = Dpi().GetScaleInt(10);
+    const int32_t nHeight = Dpi().GetScaleInt(6);
+    std::array<UiPointF, 3> pts = { {
+        UiPointF(cx - nWidth / 2.0f, cy - nHeight / 2.0f),
+        UiPointF(cx + nWidth / 2.0f, cy - nHeight / 2.0f),
+        UiPointF(cx, cy + nHeight / 2.0f),
+    } };
+    std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
+    if (path == nullptr) {
+        return;
+    }
+    path->AddPolygon(pts.data(), static_cast<int32_t>(pts.size()));
+    path->Close();
+    std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(color));
+    if (brush != nullptr) {
+        pRender->FillPath(path.get(), brush.get());
+    }
+}
+
+void CascadingSelect::DrawClearIcon(IRender* pRender, const UiRect& rc, UiColor color)
+{
+    if ((pRender == nullptr) || color.IsEmpty() || rc.IsEmpty()) {
+        return;
+    }
+    const float cx = (rc.left + rc.right) / 2.0f;
+    const float cy = (rc.top + rc.bottom) / 2.0f;
+    const float fRadius = std::min(rc.Width(), rc.Height()) / 2.0f;
+    const float fPenWidth = static_cast<float>(Dpi().GetScaleInt(1));
+    pRender->DrawRoundRect(UiRectF::MakeFromRect(rc), fRadius, fRadius, color, fPenWidth);
+    const float fCross = static_cast<float>(std::max(2, Dpi().GetScaleInt(3)));
+    pRender->DrawLine(UiPointF(cx - fCross, cy - fCross), UiPointF(cx + fCross, cy + fCross), color, fPenWidth);
+    pRender->DrawLine(UiPointF(cx + fCross, cy - fCross), UiPointF(cx - fCross, cy + fCross), color, fPenWidth);
+}
+
 void CascadingSelect::UpdateCursor()
 {
+    if (m_bDropdown) {
+        SetCursorType(m_bHovered ? CursorType::kCursorHand : CursorType::kCursorArrow);
+        return;
+    }
     if (m_nHoverLevel >= 0) {
         SetCursorType(CursorType::kCursorHand);
     }

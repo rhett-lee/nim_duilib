@@ -2,9 +2,12 @@
 #define UI_CONTROL_CASCADINGSELECT_H_
 
 #include "duilib/Core/Control.h"
+#include <functional>
 #include <vector>
 
 namespace ui {
+
+class Flyout;
 
 /** CascadingSelect 选择变化数据（用于 kEventValueChanged 事件，pEventData 指向本结构）
  */
@@ -30,8 +33,10 @@ struct CascadingSelectValue
  *  点击某一列后，深层选择立即被截断（自动重置），子列内容立即切换（自动过滤）。
  *  与 Combo（只能模拟两级、无重置语义）和 TreeView（树形展开，非列式）语义不同，故独立实现。
  *
- *  与下拉的关系：本控件是内嵌形态，可直接放进任意面板；业务侧若要下拉效果，
- *  可把它放进 Flyout 浮层中，控件本身不实现弹层。
+ *  两种形态：
+ *  - 内嵌形态（默认）：在自身矩形内直接绘制多列；
+ *  - 下拉列表框形态（dropdown="true"）：自身绘制一个选择框，点击后弹出 Flyout 浮层，
+ *    浮层内是同一套多列级联逻辑；支持清空按钮、自定义显示文本、移入展开与禁用路径。
  *
  *  数据模型（XML 为路径列表，相同前缀自动合并为同一节点）：
  *  - items：字面路径，`|` 分隔多条路径，路径内用 path_separator 分隔层级
@@ -52,6 +57,19 @@ struct CascadingSelectValue
  *  - divider_color：列分隔线颜色；chevron_color：父项右侧箭头颜色
  *  - scrollbar_color：列溢出时右缘滚动条颜色
  *  - font：字体 ID，默认 system_regular_14
+ *
+ *  下拉列表框形态额外属性：
+ *  - dropdown：true = 下拉列表框形态，默认 false
+ *  - placeholder / placeholder_id：未选择时的提示文本
+ *  - allow_clear：是否显示清空按钮（悬停且已有选择时显示），默认 true
+ *  - expand_on_hover：鼠标悬停在父项上时自动展开子列，默认 false
+ *  - popup_width：浮层宽度（像素）；0 = 按列数 × 列宽自动计算，显式值不足时自动放宽到可容纳全部列，默认 0
+ *  - popup_max_rows：浮层最多可见行数，默认 8
+ *  - popup_class：浮层内级联列表的样式 Class，默认 "cascading_select_popup"
+ *  - text_color / placeholder_color / disabled_text_color：选择框文本颜色
+ *  - bg_color / border_color / hover_border_color：选择框背景与边框颜色
+ *  - clear_color / clear_hover_color：清空按钮颜色
+ *  - border_round / border_size：选择框圆角与边框宽度（像素）
  *
  *  说明：列内容超出可见行数时，在对应列上滚轮可滚动（每格 3 行）；
  *        禁用优先于选中/悬停；未选满前缀的列留空（不绘制内容）。
@@ -108,7 +126,8 @@ public:
      */
     void SetItemIds(const std::vector<DString>& pathIds);
 
-    /** 追加一条字面路径（相同前缀自动合并；尽量保留仍有效的选择）
+    /** 追加一条路径（相同前缀自动合并；尽量保留仍有效的选择）
+     * @param [in] path 完整路径串；items_id 模式下每段为语言 ID，items 模式下为字面文本
      */
     void AddPath(const DString& path);
 
@@ -277,6 +296,119 @@ public:
      */
     void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0) { AttachEvent(kEventValueChanged, callback, callbackID); }
 
+public:
+    /** 自定义显示文本回调：返回空串时回退为默认的 value_separator 文本
+     */
+    typedef std::function<DString(const CascadingSelectValue& value)> DisplayTextEvent;
+
+    /** 是否下拉列表框形态
+     */
+    bool IsDropdown() const { return m_bDropdown; }
+
+    /** 设置下拉列表框形态（true = 选择框 + 浮层；false = 内嵌多列）
+     */
+    void SetDropdown(bool bDropdown);
+
+    /** 是否移入展开（悬停父项时自动展开子列）
+     */
+    bool IsExpandOnHover() const { return m_bExpandOnHover; }
+
+    /** 设置移入展开
+     */
+    void SetExpandOnHover(bool bExpand);
+
+    /** 是否允许清空按钮（悬停且已有选择时显示）
+     */
+    bool IsAllowClear() const { return m_bAllowClear; }
+
+    /** 设置是否允许清空按钮
+     */
+    void SetAllowClear(bool bAllow);
+
+    /** 设置未选择时的提示文本（字面文本）
+     */
+    void SetPlaceholder(const DString& strText);
+    /** 获取未选择时的提示文本（多语言 ID 优先） */
+    DString GetPlaceholder() const;
+    /** 设置未选择时的提示文本（多语言 ID） */
+    void SetPlaceholderId(const DString& strTextId);
+
+    /** 设置浮层宽度（像素；0 = 按列数 × 列宽自动计算）
+     */
+    void SetPopupWidth(int32_t nWidth);
+    /** 获取浮层宽度（0 = 自动） */
+    int32_t GetPopupWidth() const { return m_nPopupWidth; }
+
+    /** 设置浮层最多可见行数
+     */
+    void SetPopupMaxRows(int32_t nRows);
+    /** 获取浮层最多可见行数 */
+    int32_t GetPopupMaxRows() const { return m_nPopupMaxRows; }
+
+    /** 设置浮层内级联列表的样式 Class
+     */
+    void SetPopupClass(const DString& strClass);
+    /** 获取浮层内级联列表的样式 Class */
+    const DString& GetPopupClass() const { return m_strPopupClass; }
+
+    /** 获取选择框当前显示文本（自定义显示回调优先，否则为默认选择文本）
+     */
+    DString GetDisplayText() const;
+
+    /** 监听自定义显示文本（返回空串时回退默认文本）
+     */
+    void AttachDisplayText(const DisplayTextEvent& callback);
+
+    /** 设置选择框文本颜色 */
+    void SetTextColor(const DString& strColor);
+    /** 获取选择框文本颜色 */
+    const DString& GetTextColor() const { return m_strTextColor; }
+
+    /** 设置选择框提示文本颜色 */
+    void SetPlaceholderColor(const DString& strColor);
+    /** 获取选择框提示文本颜色 */
+    const DString& GetPlaceholderColor() const { return m_strPlaceholderColor; }
+
+    /** 设置选择框禁用文本颜色 */
+    void SetDisabledTextColor(const DString& strColor);
+    /** 获取选择框禁用文本颜色 */
+    const DString& GetDisabledTextColor() const { return m_strDisabledTextColor; }
+
+    /** 设置选择框背景色（留空则不绘制） */
+    void SetBgColor(const DString& strColor);
+    /** 获取选择框背景色 */
+    const DString& GetBgColor() const { return m_strBgColor; }
+
+    /** 设置选择框边框颜色 */
+    void SetBorderColor(const DString& strColor);
+    /** 获取选择框边框颜色 */
+    const DString& GetBorderColor() const { return m_strBorderColor; }
+
+    /** 设置选择框悬停/展开状态的边框颜色 */
+    void SetHoverBorderColor(const DString& strColor);
+    /** 获取选择框悬停/展开状态的边框颜色 */
+    const DString& GetHoverBorderColor() const { return m_strHoverBorderColor; }
+
+    /** 设置清空按钮颜色 */
+    void SetClearColor(const DString& strColor);
+    /** 获取清空按钮颜色 */
+    const DString& GetClearColor() const { return m_strClearColor; }
+
+    /** 设置清空按钮悬停颜色 */
+    void SetClearHoverColor(const DString& strColor);
+    /** 获取清空按钮悬停颜色 */
+    const DString& GetClearHoverColor() const { return m_strClearHoverColor; }
+
+    /** 设置选择框圆角（像素） */
+    void SetBorderRound(int32_t nRound);
+    /** 获取选择框圆角 */
+    int32_t GetBorderRound() const { return m_nBorderRound; }
+
+    /** 设置选择框边框宽度（像素） */
+    void SetBorderSize(int32_t nSize);
+    /** 获取选择框边框宽度 */
+    int32_t GetBorderSize() const { return m_nBorderSize; }
+
 private:
     /** 树节点
      */
@@ -399,6 +531,64 @@ private:
      */
     void UpdateCursor();
 
+    /** 下拉形态：绘制选择框（背景、边框、文本、箭头、清空按钮）
+     */
+    void PaintDropdown(IRender* pRender);
+
+    /** 打开浮层（无数据或控件禁用时不打开）
+     */
+    void OpenPopup();
+
+    /** 当前是否已打开本控件的浮层
+     */
+    bool IsPopupOpen() const;
+
+    /** 关闭本控件的浮层
+     */
+    void ClosePopup();
+
+    /** 构造浮层窗口 XML
+     * @param [in] nWidth 浮层宽度（未缩放像素）
+     * @param [in] nHeight 浮层高度（未缩放像素）
+     */
+    DString BuildPopupXml(int32_t nWidth, int32_t nHeight) const;
+
+    /** 浮层内列表的选择变化：只有选满整条路径才提交并关闭浮层
+     */
+    void OnPopupSelection(const CascadingSelectValue& value);
+
+    /** 估算浮层最大行数（各列兄弟节点数量的最大值）
+     */
+    int32_t EstimateMaxRows() const;
+
+    /** 获取浮层使用的列宽（固定列宽或默认 140）
+     */
+    int32_t GetPopupColumnWidth() const;
+
+    /** 构建当前选择值（不发事件）
+     */
+    void BuildValue(CascadingSelectValue& value) const;
+
+    /** 按 `|` 拆分路径列表
+     */
+    static std::vector<DString> SplitPathList(const DString& strList);
+
+    /** 选择框右侧箭头矩形
+     */
+    UiRect GetChevronRect() const;
+
+    /** 选择框清空按钮矩形（不允许清空或未选择时返回空矩形）
+     */
+    UiRect GetClearRect() const;
+
+    /** 绘制选择框向下箭头
+     */
+    void DrawDownChevron(IRender* pRender, const UiRect& rc, UiColor color);
+
+    /** 绘制选择框清空按钮
+     */
+    void DrawClearIcon(IRender* pRender, const UiRect& rc, UiColor color);
+
 private:
     /** 根节点列表
      */
@@ -407,6 +597,14 @@ private:
     /** items_id 模式的原始 ID 串（语言切换时重建显示文本）
      */
     DString m_strIdPaths;
+
+    /** items 模式的原始字面路径串（`|` 分隔；下拉形态复制给浮层）
+     */
+    DString m_strItemPaths;
+
+    /** 数据是否为 items_id 模式
+     */
+    bool m_bItemIdMode = false;
 
     /** 每级选中索引（长度等于深度，-1 = 未选）
      */
@@ -467,6 +665,47 @@ private:
     DString m_strDividerColor;
     DString m_strChevronColor;
     DString m_strScrollbarColor;
+
+    /** 下拉列表框形态 */
+    bool m_bDropdown = false;
+
+    /** 移入展开 */
+    bool m_bExpandOnHover = false;
+
+    /** 是否允许清空按钮 */
+    bool m_bAllowClear = true;
+
+    /** 选择框是否处于悬停状态 */
+    bool m_bHovered = false;
+
+    /** 鼠标是否悬停在清空按钮上 */
+    bool m_bClearHovered = false;
+
+    /** 提示文本（字面 / 多语言 ID） */
+    DString m_strPlaceholder;
+    DString m_strPlaceholderId;
+
+    /** 浮层宽度（0 = 自动）与最多可见行数 */
+    int32_t m_nPopupWidth = 0;
+    int32_t m_nPopupMaxRows = 8;
+
+    /** 浮层内级联列表的样式 Class */
+    DString m_strPopupClass;
+
+    /** 选择框颜色与边框 */
+    DString m_strTextColor;
+    DString m_strPlaceholderColor;
+    DString m_strDisabledTextColor;
+    DString m_strBgColor;
+    DString m_strBorderColor;
+    DString m_strHoverBorderColor;
+    DString m_strClearColor;
+    DString m_strClearHoverColor;
+    int32_t m_nBorderRound = 4;
+    int32_t m_nBorderSize = 1;
+
+    /** 自定义显示文本回调 */
+    DisplayTextEvent m_displayTextCallback;
 };
 
 } // namespace ui

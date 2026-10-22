@@ -536,6 +536,20 @@
                                         hover_bg_color="bg_list_item_hovered" selected_bg_color="bg_list_item_selected"
                                         divider_color="border_split_level1" chevron_color="color_gray"
                                         scrollbar_color="color_gray"/>
+    <!-- 级联选择器（下拉列表框形态）：选择框 + 弹出多列级联 -->
+    <Class name="cascader" font="system_regular_14" row_height="32" text_padding="10"
+                                        bg_color="bg_window_card" border_color="border_control_normal"
+                                        hover_border_color="border_btn_hovered" text_color="text_default"
+                                        placeholder_color="text_muted" disabled_text_color="text_disabled"
+                                        chevron_color="color_gray" clear_color="color_gray"
+                                        clear_hover_color="text_default" border_round="4" border_size="1"/>
+    <!-- 级联选择器下拉浮层内的多列列表 -->
+    <Class name="cascading_select_popup" font="system_regular_14" row_height="32" text_padding="12"
+                                        item_color="text_default" selected_color="color_accent"
+                                        disabled_color="text_disabled"
+                                        hover_bg_color="bg_list_item_hovered" selected_bg_color="bg_list_item_selected"
+                                        divider_color="border_split_level1" chevron_color="color_gray"
+                                        scrollbar_color="color_gray"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 

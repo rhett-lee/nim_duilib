@@ -67,10 +67,8 @@ void CascadingSelectForm::OnInitWindow()
         pAddBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ui::CascadingSelect* p = dynamic_cast<ui::CascadingSelect*>(FindControl(_T("cascading_basic")));
             if (p != nullptr) {
-                DString strPath = GetLangText(_T("STRID_CS_CENTRAL")) + _T("/") +
-                                  GetLangText(_T("STRID_CS_WUHAN")) + _T("/") +
-                                  GetLangText(_T("STRID_CS_WUCHANG"));
-                p->AddPath(strPath);
+                //items_id 模式下，AddPath 的每一段都按语言 ID 解析，因此这里传 ID 而不是译后的文本
+                p->AddPath(_T("STRID_CS_CENTRAL/STRID_CS_WUHAN/STRID_CS_WUCHANG"));
                 UpdateSelectionText(p);
             }
             return true;
@@ -125,6 +123,71 @@ void CascadingSelectForm::OnInitWindow()
             return true;
             });
     }
+
+    //下拉列表框形态：选择框 + 弹出多列级联浮层
+    ui::CascadingSelect* pDropdownBasic = dynamic_cast<ui::CascadingSelect*>(FindControl(_T("cascader_basic")));
+    if (pDropdownBasic != nullptr) {
+        //初始回显
+        UpdateDropdownText(pDropdownBasic, _T("cascader_event"));
+
+        //选择变化事件
+        pDropdownBasic->AttachSelectionChanged([this](const ui::EventArgs& args) {
+            ui::CascadingSelect* p = dynamic_cast<ui::CascadingSelect*>(args.GetSender());
+            if (p != nullptr) {
+                UpdateDropdownText(p, _T("cascader_event"));
+            }
+            return true;
+            });
+    }
+
+    //选中"华东 / 上海 / 浦东"
+    ui::Button* pDropdownSelectBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_cascader_select")));
+    if ((pDropdownSelectBtn != nullptr) && (pDropdownBasic != nullptr)) {
+        pDropdownSelectBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::CascadingSelect* p = dynamic_cast<ui::CascadingSelect*>(FindControl(_T("cascader_basic")));
+            if (p != nullptr) {
+                p->SetSelection({ 0, 0, 0 });
+            }
+            return true;
+            });
+    }
+
+    //清空选择
+    ui::Button* pDropdownClearBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_cascader_clear")));
+    if ((pDropdownClearBtn != nullptr) && (pDropdownBasic != nullptr)) {
+        pDropdownClearBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::CascadingSelect* p = dynamic_cast<ui::CascadingSelect*>(FindControl(_T("cascader_basic")));
+            if (p != nullptr) {
+                p->ClearSelection();
+            }
+            return true;
+            });
+    }
+
+    //切换自定义显示：选择框文本与浮层内的选项文本分离
+    ui::Button* pDropdownDisplayBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_cascader_display")));
+    if (pDropdownDisplayBtn != nullptr) {
+        pDropdownDisplayBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ui::CascadingSelect* p = dynamic_cast<ui::CascadingSelect*>(FindControl(_T("cascader_custom")));
+            if (p == nullptr) {
+                return true;
+            }
+            m_bCustomDisplay = !m_bCustomDisplay;
+            if (m_bCustomDisplay) {
+                p->AttachDisplayText([this](const ui::CascadingSelectValue& value) -> DString {
+                    if (value.text.empty()) {
+                        return DString();
+                    }
+                    return GetLangText(_T("STRID_CASCADING_SELECT_DISPLAY_PREFIX")) + value.text;
+                    });
+            }
+            else {
+                p->AttachDisplayText(nullptr);
+            }
+            UpdateDropdownText(p, _T("cascader_event"));
+            return true;
+            });
+    }
 }
 
 void CascadingSelectForm::UpdateSelectionText(ui::CascadingSelect* pCascadingSelect)
@@ -139,6 +202,20 @@ void CascadingSelectForm::UpdateSelectionText(ui::CascadingSelect* pCascadingSel
     const DString strPath = pCascadingSelect->GetSelectionPath();
     const DString strPrefix = GetLangText(_T("STRID_CASCADING_SELECT_EVENT_PREFIX"));
     pLabel->SetText(strPrefix + (strPath.empty() ? GetLangText(_T("STRID_CASCADING_SELECT_EMPTY")) : strPath));
+}
+
+void CascadingSelectForm::UpdateDropdownText(ui::CascadingSelect* pCascadingSelect, const DString& strLabelName)
+{
+    if (pCascadingSelect == nullptr) {
+        return;
+    }
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(strLabelName));
+    if (pLabel == nullptr) {
+        return;
+    }
+    const DString strText = pCascadingSelect->GetDisplayText();
+    const DString strPrefix = GetLangText(_T("STRID_CASCADING_SELECT_EVENT_DROPDOWN_PREFIX"));
+    pLabel->SetText(strPrefix + (strText.empty() ? GetLangText(_T("STRID_CASCADING_SELECT_EVENT_DROPDOWN_NONE")) : strText));
 }
 
 DString CascadingSelectForm::GetLangText(const DString& strId) const

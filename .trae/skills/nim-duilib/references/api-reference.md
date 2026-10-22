@@ -235,7 +235,7 @@ NavigationViewItem（继承 Control）属性：
 | Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
 | Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
 | Breadcrumb | Control | 面包屑导航（`item_text`/`item_text_id` 以 `\|` 分隔条目；`current` 缺省跟随末项；点击祖先项切换当前项；`disabled_items`；自定义 `separator`（默认 ›）/`spacing`/`item_padding`/`item_round`/`click_to_jump`；祖先项链接蓝 + 悬停/按下胶囊背景、当前项加粗 `current_font`；节点名 `Breadcrumb`），`duilib/Control/Breadcrumb.h` |
-| CascadingSelect | Control | 级联选择器（内嵌多列，父项变更自动过滤子列、深层旧选择自动重置；`items`/`items_id` 路径数据（`\|` 分路径、`path_separator` 分层级，相同前缀自动合并）、任意层级、`disabled_paths` 禁用子树、`column_width`/`row_height`/`text_padding`、列内滚轮滚动 + 比例滚动条；事件 `AttachSelectionChanged`（`wParam=4`，pEventData 为 CascadingSelectValue）；节点名 `CascadingSelect`），`duilib/Control/CascadingSelect.h` |
+| CascadingSelect | Control | 级联选择器（内嵌多列 / 下拉列表框两种形态，父项变更自动过滤子列、深层旧选择自动重置；`items`/`items_id` 路径数据（`\|` 分路径、`path_separator` 分层级，相同前缀自动合并）、任意层级、`disabled_paths` 禁用子树、`column_width`/`row_height`/`text_padding`、列内滚轮滚动 + 比例滚动条；下拉形态支持 `dropdown`/`placeholder(_id)`/`allow_clear`/`expand_on_hover`/`popup_width`/`popup_max_rows`/`popup_class` 与自定义显示 `AttachDisplayText`；事件 `AttachSelectionChanged`（`wParam=4`，pEventData 为 CascadingSelectValue）；节点名 `CascadingSelect`），`duilib/Control/CascadingSelect.h` |
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
@@ -756,11 +756,22 @@ C++ 接口：`AddItem/InsertItem/RemoveItemAt/ClearItems/SetItems/GetItemCount/G
 | hover_bg_color / selected_bg_color | bg_list_item_hovered / bg_list_item_selected | string | 悬停 / 选中行背景色（留空则不绘制） |
 | divider_color / chevron_color / scrollbar_color | border_split_level1 / color_gray / color_gray | string | 列分隔线 / 父项箭头 / 滚动条颜色 |
 | font | system_regular_14 | string | 文本字体 ID |
+| dropdown | false | bool | true = 下拉列表框形态（选择框 + Flyout 浮层）；false = 内嵌多列 |
+| placeholder / placeholder_id | 空 | string | 未选择时的提示文本（字面 / 多语言 ID，ID 优先） |
+| allow_clear | true | bool | 悬停且已有选择时是否显示清空按钮（×） |
+| expand_on_hover | false | bool | 悬停父项时自动展开子列（只展开，不提交） |
+| popup_width | 0 | int | 浮层宽度（像素）；0 = 按列数 × 列宽自动计算，显式值不足时自动放宽到可容纳全部列 |
+| popup_max_rows | 8 | int | 浮层最多可见行数，超出时列内滚动 |
+| popup_class | cascading_select_popup | string | 浮层内级联列表使用的样式 Class |
+| text_color / placeholder_color / disabled_text_color | text_default / text_muted / text_disabled | string | 选择框已选 / 提示 / 禁用文本颜色 |
+| bg_color / border_color / hover_border_color | bg_window_card / border_control_normal / border_btn_hovered | string | 选择框背景、边框、悬停（或展开）边框颜色 |
+| clear_color / clear_hover_color | color_gray / text_default | string | 清空按钮颜色 / 悬停颜色 |
+| border_round / border_size | 4 / 1 | int | 选择框圆角与边框宽度（像素） |
 
-级联选择（地区、分类、组织层级等）：纯自绘内嵌多列，列数 = 数据最大深度；点击某列后子列内容立即过滤为该节点子集，深层旧选择立即重置。未选满前缀的列留空；有子项的节点行右侧绘制矢量箭头。禁用优先于选中/悬停；列溢出时在该列滚轮可滚动（每格 3 行），右缘绘制比例滚动条。声明为内嵌形态，需要下拉时由业务侧放入 `Flyout`；暂不支持键盘导航。
-C++ 接口：`SetItems/SetItemIds/AddPath/ClearItems/GetDepth/GetItemCount/GetItemText`、`GetSelection/SetSelection/SetSelectionByText/ClearSelection/GetSelectionText/GetSelectionPath`、`SetDisabledPaths/GetDisabledPaths/IsItemDisabled`、`SetPathSeparator/GetPathSeparator`、`SetValueSeparator/GetValueSeparator`、`SetColumnWidth/GetColumnWidth`、`SetRowHeight/GetRowHeight`、`SetTextPadding/GetTextPadding`、各颜色 Set/Get、`SetFont/GetFont`。
+级联选择（地区、分类、组织层级等）：支持内嵌多列与下拉列表框两种形态。内嵌形态纯自绘，列数 = 数据最大深度；点击某列后子列内容立即过滤为该节点子集，深层旧选择立即重置。未选满前缀的列留空；有子项的节点行右侧绘制矢量箭头。禁用优先于选中/悬停；列溢出时在该列滚轮可滚动（每格 3 行），右缘绘制比例滚动条。下拉形态点击选择框用 `Flyout` 弹出同一套列表，支持提示文本、悬停清空、移入展开、自定义显示文本与浮层尺寸估算；暂不支持键盘导航。
+C++ 接口：`SetItems/SetItemIds/AddPath/ClearItems/GetDepth/GetItemCount/GetItemText`、`GetSelection/SetSelection/SetSelectionByText/ClearSelection/GetSelectionText/GetSelectionPath`、`SetDisabledPaths/GetDisabledPaths/IsItemDisabled`、`SetPathSeparator/GetPathSeparator`、`SetValueSeparator/GetValueSeparator`、`SetColumnWidth/GetColumnWidth`、`SetRowHeight/GetRowHeight`、`SetTextPadding/GetTextPadding`、各颜色 Set/Get、`SetFont/GetFont`；下拉形态另有 `SetDropdown/IsDropdown`、`SetPlaceholder/SetPlaceholderId/GetPlaceholder`、`SetExpandOnHover/IsExpandOnHover`、`SetAllowClear/IsAllowClear`、`SetPopupWidth/GetPopupWidth`、`SetPopupMaxRows/GetPopupMaxRows`、`SetPopupClass/GetPopupClass`、`AttachDisplayText/GetDisplayText` 及选择框样式 Set/Get。
 事件：`AttachSelectionChanged`——选择实际变化时触发一次，事件编码 `kEventValueChanged`（`wParam=4`），`indexes`/`text`/`path` 由 `EventArgs::pEventData`（指向 `ui::CascadingSelectValue`）携带，仅在回调派发期间有效；`SetSelection(..., false)` / `ClearSelection(false)` 不派发。
-默认皮肤 `cascading_select` 类只定义颜色、字体与尺寸，无图片资源。
+默认皮肤 `cascading_select`（内嵌）/ `cascader`（下拉）/ `cascading_select_popup`（浮层列表）类只定义颜色、字体与尺寸，无图片资源。
 
 ### TreeGrid 属性(继承 VBox)
 

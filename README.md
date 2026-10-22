@@ -137,7 +137,7 @@
     <tr><td align="left">49. Dialog：通用模态对话框（duilib/Utils/Dialog.h），内容区支持任意 XML 片段，底部按钮的数量/文字/默认按钮可自定义，不依赖额外的 XML 文件；DoModal 返回被点击按钮的索引，支持 ESC 与标题栏关闭取消、Enter 触发当前焦点按钮、多语言文本 ID，以及关闭前执行的按钮点击回调（返回 false 可阻止关闭，便于读取内容区数据或校验输入）</td></tr>
     <tr><td align="left">50. SystemNotification：系统原生通知（duilib/Utils/SystemNotification.h），使用SDL3构建时通过SDL系统通知API发送到系统通知中心（Windows/macOS/Linux/FreeBSD），不使用SDL的Windows构建通过Shell_NotifyIcon托盘气泡实现（兼容Windows 7及以上）；提供 IsSupported/RequestPermission/Show/Remove 接口，支持通知优先级，通知的显示与销毁由系统负责，详见 docs/SystemNotification.md</td></tr>
     <tr><td align="left">51. Breadcrumb：面包屑导航控件（duilib/Control/Breadcrumb.h），纯自绘，支持 `|` 分隔条目、当前项高亮、点击祖先项跳转、禁用项、自定义分隔符/间距/字体与语义色，多语言 `item_text_id`，当前项变化事件 `AttachCurrentChanged`；宽度不足时右对齐裁剪以保证当前项可见</td></tr>
-    <tr><td align="left">52. CascadingSelect：级联选择器（duilib/Control/CascadingSelect.h），纯自绘内嵌多列，父项变更自动过滤子列并重置深层旧选择，支持任意层级、`items`/`items_id` 路径数据（相同前缀自动合并）、禁用路径及子树、固定/等分列宽、列内滚轮滚动、多语言与语义色，选择变化事件 `AttachSelectionChanged`</td></tr>
+    <tr><td align="left">52. CascadingSelect：级联选择器（duilib/Control/CascadingSelect.h），支持内嵌多列与下拉列表框两种形态，父项变更自动过滤子列并重置深层旧选择，支持任意层级、`items`/`items_id` 路径数据（相同前缀自动合并）、禁用路径及子树、固定/等分列宽、列内滚轮滚动、多语言与语义色，下拉形态支持提示文本、清空按钮、移入展开、自定义显示文本与浮层尺寸控制，选择变化事件 `AttachSelectionChanged`</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>

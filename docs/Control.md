@@ -1254,7 +1254,11 @@ void AttachCurrentChanged(const EventCallback& callback, EventCallbackID callbac
 
 ## CascadingSelect 控件（级联选择器）
 
-CascadingSelect 是级联选择控件，继承自 `Control`，纯自绘（不创建子控件），对应头文件 `duilib/Control/CascadingSelect.h`。控件在自身矩形内按数据深度绘制多列：点击某一列后，子列内容立即过滤为该节点的子集，深层旧选择立即重置。这正是它与 `Combo`（Tree 形态只能手工模拟两级）和 `TreeView`（树形展开，非列式）的核心语义差异。控件是内嵌形态，可直接放进任意面板；需要下拉效果时由业务侧把它放进 `Flyout` 中。
+CascadingSelect 是级联选择控件，继承自 `Control`，纯自绘（不创建子控件），对应头文件 `duilib/Control/CascadingSelect.h`。控件在自身矩形内按数据深度绘制多列：点击某一列后，子列内容立即过滤为该节点的子集，深层旧选择立即重置。这正是它与 `Combo`（Tree 形态只能手工模拟两级）和 `TreeView`（树形展开，非列式）的核心语义差异。
+
+控件支持两种形态：
+- 内嵌形态（默认）：多列直接绘制在自身矩形内，可直接放进任意面板；
+- 下拉列表框形态（`dropdown="true"`）：自身绘制一个选择框（带提示文本、清空按钮与箭头），点击后在 `Flyout` 浮层中弹出同一套多列级联列表，适合表单中的紧凑布局。
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
@@ -1276,6 +1280,29 @@ CascadingSelect 是级联选择控件，继承自 `Control`，纯自绘（不创
 | scrollbar_color | color_gray | string | 列内容溢出时右缘滚动条颜色 |
 | font | system_regular_14 | string | 文本字体 ID |
 
+下拉列表框形态（`dropdown="true"`）额外属性：
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| dropdown | false | bool | true = 下拉列表框形态（选择框 + 浮层）；false = 内嵌多列 |
+| placeholder | 空 | string | 未选择时的提示文本（字面文本） |
+| placeholder_id | 空 | string | 未选择时的提示文本（多语言 ID，优先于 `placeholder`） |
+| allow_clear | true | bool | 悬停且已有选择时是否显示清空按钮（×） |
+| expand_on_hover | false | bool | 鼠标悬停在父项上时自动展开子列（仅展开，不提交） |
+| popup_width | 0 | int | 浮层宽度（像素）；0 表示按“列数 × 列宽”自动计算，显式值不足时自动放宽到可容纳全部列 |
+| popup_max_rows | 8 | int | 浮层最多可见行数，超出时列内滚动 |
+| popup_class | cascading_select_popup | string | 浮层内级联列表使用的样式 Class |
+| text_color | text_default | string | 已选择时的文本颜色 |
+| placeholder_color | text_muted | string | 提示文本颜色 |
+| disabled_text_color | text_disabled | string | 控件禁用时的文本颜色 |
+| bg_color | bg_window_card | string | 选择框背景色（留空则不绘制） |
+| border_color | border_control_normal | string | 选择框边框颜色 |
+| hover_border_color | border_btn_hovered | string | 悬停或浮层展开时的边框颜色 |
+| clear_color | color_gray | string | 清空按钮颜色 |
+| clear_hover_color | text_default | string | 清空按钮悬停颜色 |
+| border_round | 4 | int | 选择框圆角（像素，自动 DPI 缩放） |
+| border_size | 1 | int | 选择框边框宽度（像素，自动 DPI 缩放） |
+
 XML 示例（`class` 属性必须写在所有属性最前面）：
 
 ```xml
@@ -1287,6 +1314,17 @@ XML 示例（`class` 属性必须写在所有属性最前面）：
 <CascadingSelect class="cascading_select" path_separator="&gt;" column_width="150"
                  disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
                  items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
+
+<!-- 下拉列表框形态：选择框 + 悬浮多列浮层 -->
+<CascadingSelect class="cascader" name="cascader_basic" dropdown="true" width="stretch" height="32"
+                 placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER"
+                 items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN"/>
+
+<!-- 移入展开 + 禁用路径 + 自定义浮层宽度 -->
+<CascadingSelect class="cascader" dropdown="true" width="stretch" height="32"
+                 placeholder="请选择" expand_on_hover="true" popup_width="440"
+                 disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                 items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
 ```
 
 对应的 C++ 接口：
@@ -1294,7 +1332,8 @@ XML 示例（`class` 属性必须写在所有属性最前面）：
 ```cpp
 void SetItems(const std::vector<DString>& paths);       // 字面路径，替换全部并清空选择
 void SetItemIds(const std::vector<DString>& pathIds);   // 每段为语言 ID
-void AddPath(const DString& path);                      void ClearItems();
+void AddPath(const DString& path);                      // items_id 模式下每段为语言 ID
+void ClearItems();
 size_t GetDepth() const;                                // 列数
 size_t GetItemCount(size_t level) const;                // 该列当前可见条目数
 bool GetItemText(size_t level, size_t index, DString& text) const;
@@ -1311,6 +1350,18 @@ void SetTextPadding(int32_t nPadding);                  void SetFont(const DStri
 //颜色：SetItemColor / SetSelectedColor / SetDisabledColor / SetDividerColor / SetChevronColor / SetScrollbarColor
 //背景：SetHoverBgColor / SetSelectedBgColor（留空则不绘制）
 void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+//下拉列表框形态
+void SetDropdown(bool bDropdown);                       bool IsDropdown() const;
+void SetPlaceholder(const DString& strText);            void SetPlaceholderId(const DString& strTextId);
+void SetExpandOnHover(bool bExpand);                    void SetAllowClear(bool bAllow);
+void SetPopupWidth(int32_t nWidth);                     void SetPopupMaxRows(int32_t nRows);
+void SetPopupClass(const DString& strClass);
+DString GetDisplayText() const;                         //选择框当前显示文本
+void AttachDisplayText(const DisplayTextEvent& callback); //返回空串时回退默认文本
+DString GetSelectionText() const;                       //默认显示文本（value_separator 连接）
+//选择框样式：SetTextColor / SetPlaceholderColor / SetDisabledTextColor / SetBgColor
+//            SetBorderColor / SetHoverBorderColor / SetClearColor / SetClearHoverColor
+//            SetBorderRound / SetBorderSize
 ```
 
 选择变化事件：`AttachSelectionChanged`——选择实际变化时触发一次，事件编码为 `kEventValueChanged`，`wParam` 为 4（级联选择模式标记），新选择通过 `EventArgs::pEventData` 携带（指向 `CascadingSelectValue`，含 `indexes` / `text` / `path`；仅在本次回调派发期间有效，请勿保存该指针）。`SetSelection(..., false)` / `ClearSelection(false)` 不派发事件。
@@ -1323,8 +1374,13 @@ void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callb
 - 列内容超出可见行数时，鼠标在该列上滚轮可滚动（每格 3 行），右缘绘制按比例缩放的滚动条。
 - 文本按 `TEXT_END_ELLIPSIS` 截断；有子项的节点在行右侧绘制矢量箭头，不依赖字体字形。
 - 语言切换只重建显示文本，树形与选择索引保持不变；`items`（字面路径）不参与多语言刷新。
+- 下拉列表框形态下：点击选择框打开浮层，再次点击或选择满整条路径时关闭；浮层内的列内容、禁用、移入展开与滚轮滚动均复用内嵌形态的同一套逻辑。
+- 清空按钮仅在“允许清空 + 已有选择 + 鼠标悬停选择框”时显示，点击后清空选择并派发一次事件；`allow_clear="false"` 时不显示。
+- `expand_on_hover="true"` 时，悬停父项即展开其子列，但只有点击叶子节点才会提交选择并关闭浮层。
+- 选择框文本可用 `AttachDisplayText` 自定义（如“已选择：华东 / 上海 / 浦东”），返回空串时回退默认 `value_separator` 文本；浮层内的选项文本不受影响。
+- 浮层尺寸按“列数 × 列宽（或 `popup_width`）”与 `popup_max_rows` 估算，超出可见行数的列可滚轮滚动。
 - 本控件暂不支持键盘导航；需要键盘操作时由业务侧转发方向键 / 回车到 `SetSelection`。
-- 默认皮肤在 global.xml 中定义 `cascading_select` Class（仅颜色、字体与尺寸，无图片资源），自动适配深浅色主题。
+- 默认皮肤在 global.xml 中定义 `cascading_select`（内嵌形态）与 `cascader`（下拉形态）、`cascading_select_popup`（浮层列表）Class（仅颜色、字体与尺寸，无图片资源），自动适配深浅色主题。
 
 ## TreeGrid 控件（树表格）
 

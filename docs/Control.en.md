@@ -1254,7 +1254,11 @@ Behavior notes:
 
 ## Attributes of CascadingSelect (cascading selector)
 
-CascadingSelect is a cascading selection control derived from `Control`, fully self-drawn (no child controls are created). Header file: `duilib/Control/CascadingSelect.h`. It draws multiple columns inside its own rectangle according to the data depth: after a column item is clicked, the child columns are filtered to that node's subset and deeper old selections are reset immediately. This is the core semantic difference from `Combo` (whose Tree form can only simulate two levels by hand) and `TreeView` (tree expansion, not columns). The control is inline; wrap it in a `Flyout` on the business side if a drop-down look is desired.
+CascadingSelect is a cascading selection control derived from `Control`, fully self-drawn (no child controls are created). Header file: `duilib/Control/CascadingSelect.h`. It draws multiple columns inside its own rectangle according to the data depth: after a column item is clicked, the child columns are filtered to that node's subset and deeper old selections are reset immediately. This is the core semantic difference from `Combo` (whose Tree form can only simulate two levels by hand) and `TreeView` (tree expansion, not columns).
+
+The control supports two forms:
+- Inline form (default): the columns are drawn directly inside the control rectangle, so it can be placed in any panel;
+- Dropdown form (`dropdown="true"`): the control paints a trigger box (placeholder, clear button and chevron); clicking it pops up the same cascading columns in a `Flyout`, which suits compact form layouts.
 
 | Attribute | Default | Type | Purpose |
 | :--- | :--- | :--- | :--- |
@@ -1276,6 +1280,29 @@ CascadingSelect is a cascading selection control derived from `Control`, fully s
 | scrollbar_color | color_gray | string | Color of the per-column scrollbar shown when a column overflows |
 | font | system_regular_14 | string | Font ID of the text |
 
+Extra attributes of the dropdown form (`dropdown="true"`):
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| dropdown | false | bool | true = dropdown form (trigger box + flyout); false = inline columns |
+| placeholder | empty | string | Placeholder text shown when nothing is selected (literal) |
+| placeholder_id | empty | string | Placeholder text as a language ID (takes precedence over `placeholder`) |
+| allow_clear | true | bool | Show the clear button (×) on hover when a selection exists |
+| expand_on_hover | false | bool | Expand the child column when hovering a parent item (expand only, does not commit) |
+| popup_width | 0 | int | Flyout width (pixels); 0 = computed from "columns × column width", and an explicit value that is too small is widened to fit all columns |
+| popup_max_rows | 8 | int | Maximum visible rows in the flyout; extra rows scroll within the column |
+| popup_class | cascading_select_popup | string | Style class used by the cascading list inside the flyout |
+| text_color | text_default | string | Text color when a value is selected |
+| placeholder_color | text_muted | string | Placeholder text color |
+| disabled_text_color | text_disabled | string | Text color when the control is disabled |
+| bg_color | bg_window_card | string | Trigger box background (leave empty to disable) |
+| border_color | border_control_normal | string | Trigger box border color |
+| hover_border_color | border_btn_hovered | string | Border color while hovered or while the flyout is open |
+| clear_color | color_gray | string | Clear button color |
+| clear_hover_color | text_default | string | Clear button hover color |
+| border_round | 4 | int | Trigger box corner radius (pixels, auto DPI scaled) |
+| border_size | 1 | int | Trigger box border width (pixels, auto DPI scaled) |
+
 XML example (`class` must be the first attribute):
 
 ```xml
@@ -1287,6 +1314,17 @@ XML example (`class` must be the first attribute):
 <CascadingSelect class="cascading_select" path_separator="&gt;" column_width="150"
                  disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
                  items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
+
+<!-- Dropdown form: trigger box + multi-column flyout -->
+<CascadingSelect class="cascader" name="cascader_basic" dropdown="true" width="stretch" height="32"
+                 placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER"
+                 items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN"/>
+
+<!-- Expand on hover + disabled path + custom flyout width -->
+<CascadingSelect class="cascader" dropdown="true" width="stretch" height="32"
+                 placeholder="Please select" expand_on_hover="true" popup_width="440"
+                 disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                 items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
 ```
 
 Corresponding C++ interfaces:
@@ -1294,7 +1332,8 @@ Corresponding C++ interfaces:
 ```cpp
 void SetItems(const std::vector<DString>& paths);       // literal paths, replaces all data and clears the selection
 void SetItemIds(const std::vector<DString>& pathIds);   // every segment is a language ID
-void AddPath(const DString& path);                      void ClearItems();
+void AddPath(const DString& path);                      // every segment is a language ID in items_id mode
+void ClearItems();
 size_t GetDepth() const;                                // number of columns
 size_t GetItemCount(size_t level) const;                // visible item count of that column
 bool GetItemText(size_t level, size_t index, DString& text) const;
@@ -1311,6 +1350,18 @@ void SetTextPadding(int32_t nPadding);                  void SetFont(const DStri
 //Colors: SetItemColor / SetSelectedColor / SetDisabledColor / SetDividerColor / SetChevronColor / SetScrollbarColor
 //Backgrounds: SetHoverBgColor / SetSelectedBgColor (leave empty to disable)
 void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+//Dropdown form
+void SetDropdown(bool bDropdown);                       bool IsDropdown() const;
+void SetPlaceholder(const DString& strText);            void SetPlaceholderId(const DString& strTextId);
+void SetExpandOnHover(bool bExpand);                    void SetAllowClear(bool bAllow);
+void SetPopupWidth(int32_t nWidth);                     void SetPopupMaxRows(int32_t nRows);
+void SetPopupClass(const DString& strClass);
+DString GetDisplayText() const;                         // current trigger text
+void AttachDisplayText(const DisplayTextEvent& callback); // empty string falls back to the default text
+DString GetSelectionText() const;                       // default text (joined with value_separator)
+//Trigger box style: SetTextColor / SetPlaceholderColor / SetDisabledTextColor / SetBgColor
+//                   SetBorderColor / SetHoverBorderColor / SetClearColor / SetClearHoverColor
+//                   SetBorderRound / SetBorderSize
 ```
 
 Selection change event: `AttachSelectionChanged` fires once when the selection actually changes. The event type is `kEventValueChanged`, `wParam` is 4 (cascading-select mode marker), and the new selection is carried in `EventArgs::pEventData` (pointing to `CascadingSelectValue` with `indexes` / `text` / `path`; valid only during the callback dispatch, do not store the pointer). `SetSelection(..., false)` / `ClearSelection(false)` do not fire the event.
@@ -1323,8 +1374,13 @@ Behavior notes:
 - When a column overflows, the mouse wheel over that column scrolls it (3 rows per notch) and a proportional scrollbar is drawn on the right edge.
 - Text is truncated with `TEXT_END_ELLIPSIS`; nodes with children draw a vector arrow on the right, independent of font glyphs.
 - Language switching only rebuilds the display texts; the tree shape and selection indexes stay unchanged. `items` (literal paths) does not participate in localization refresh.
+- In the dropdown form, clicking the trigger box opens the flyout; clicking it again, or selecting a complete path, closes it. Column content, disabled paths, expand-on-hover and wheel scrolling all reuse the inline form logic.
+- The clear button is shown only when "clearing is allowed + a selection exists + the trigger box is hovered"; clicking it clears the selection and fires one event. With `allow_clear="false"` it is never shown.
+- With `expand_on_hover="true"`, hovering a parent expands its child column immediately, but only clicking a leaf commits the selection and closes the flyout.
+- The trigger text can be customized with `AttachDisplayText` (e.g. "Selected: East / Shanghai / Pudong"); returning an empty string falls back to the default `value_separator` text. Option texts inside the flyout are unaffected.
+- The flyout size is estimated from "columns × column width (or `popup_width`)" and `popup_max_rows`; columns with more rows scroll with the wheel.
 - Keyboard navigation is not implemented; the business side can forward arrow keys / Enter to `SetSelection` if needed.
-- The default skin defines a `cascading_select` class in global.xml (colors, font and sizes only, no image resources), adapting automatically to light/dark themes.
+- The default skin defines `cascading_select` (inline), `cascader` (dropdown) and `cascading_select_popup` (flyout list) classes in global.xml (colors, font and sizes only, no image resources), adapting automatically to light/dark themes.
 
 ## Attributes of TreeGrid (tree grid)
 

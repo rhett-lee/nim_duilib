@@ -712,7 +712,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-6** | **Stepper / Steps 向导步骤条** ✅ 已完成（2026-10-19） | `Timeline` 语义不符（时间轴 ≠ 流程状态机）；`Project-Audit.md` B4 登记待办。已新增独立控件 `Stepper`（`duilib/Control/Stepper.h/.cpp`）：水平/垂直排列、当前索引 + 禁用集合派生状态、连接线完成度着色、Next/Back/GoTo 与点击跳转；示例 `examples/controls/StepperForm` | 已完成 |
 | **D-7** | **ToolBar 工具项抽象** ✅ 已完成（2026-10-21） | 已扩展 `ToolBar`：`AddToolButton`/`AddToolCheckBox`/`AddToolSeparator`/`AddTool`/`InsertTool` 动态创建，`RemoveTool`/`RemoveToolAt`/`RemoveAllTools` 删除，`FindTool`/`GetToolAt`/`GetToolCount`/`GetToolIndex` 查询，`SetToolChecked`/`SetToolEnabled`/`SetToolVisible` 状态控制；`AttachToolItemClick`/`AttachToolItemCheckedChanged` 统一回调；XML 静态 `Button`/`CheckBox` 与溢出浮层激活复用同一路径；新增 `tool_class`/`tool_checkbox_class`/`tool_separator_class` 属性与 `toolbar_button`/`toolbar_check`/`toolbar_separator` 样式。示例见 toolbar.xml / ToolBarForm | 已完成 |
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** ❌ 不再跟进（已有 Alpha 通道输入） | 原有 4 种形态 + `ColorSlider`；**Alpha 通道输入已存在**：`ColorPickerCustom` 已提供 `color_picker_slider_RGB_A` / `color_picker_edit_RGB_A`，HSV 三个分量也有对应的滑块 + 数值输入框；Hex 颜色文本由 `color_picker_new_color_edit` 统一输入解析。无需再补 | 不再跟进（2026-10-21 决策） |
-| **D-9** | **CascadingSelect 级联选择器** ✅ 已完成（2026-10-22） | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级。已新增内嵌多列级联选择器（路径树 + 逐级选择索引，父项变更自动截断/过滤子列，支持禁用路径、列滚动、语言切换保持选择）：`duilib/Control/CascadingSelect.h/.cpp`，示例 `examples/controls/CascadingSelectForm.*` + `controls/cascading_select.xml` | 已完成 |
+| **D-9** | **CascadingSelect 级联选择器** ✅ 已完成（2026-10-22） | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级。已新增内嵌多列级联选择器（路径树 + 逐级选择索引，父项变更自动截断/过滤子列，支持禁用路径、列滚动、语言切换保持选择）：`duilib/Control/CascadingSelect.h/.cpp`，示例 `examples/controls/CascadingSelectForm.*` + `controls/cascading_select.xml`。**D-9.2（2026-10-22）**：新增下拉列表框形态（`dropdown="true"`，选择框 + `Flyout` 多列浮层），支持提示文本、悬停清空按钮、自定义显示文本、移入展开与浮层尺寸控制 | 已完成 |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
 | **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** ✅ 已完成（2026-10-22） | NavigationView（E-2 已补文档）、Rating（B5 完成，提交 `e76376cf`，见 `duilib/Control/Rating.h`）、Carousel（B7 完成，提交 `46e92b35`，见 `duilib/Control/Carousel.h`）均已落地；Breadcrumb 本次补齐（`duilib/Control/Breadcrumb.h/.cpp`，示例 `examples/controls/BreadcrumbForm.*`） | 已完成 |
 | **D-12** | **原生系统通知** ✅ 已完成（2026-10-21） | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。已新增独立类 `SystemNotification`（`duilib/Utils/SystemNotification.h`）：SDL 构建走 SDL 系统通知（全平台），非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡（Win7+）；与 Toast 实现完全独立 | 已完成 |
@@ -868,6 +868,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [x] **D-7** ToolBar 工具项抽象　｜ 约 500 行 ｜ 完成日期：2026-10-21
 - [~] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 状态：❌ 不再跟进（已有 Alpha 通道输入，2026-10-21 决策）
 - [x] **D-9** CascadingSelect 级联选择器（纯自绘 Control，见 `duilib/Control/CascadingSelect.h`；示例 `examples/controls/CascadingSelectForm.*`）　｜ 约 600 行 ｜ 完成日期：2026-10-22
+  - [x] D-9.2 下拉列表框形态（`dropdown="true"`：选择框 + Flyout 多列浮层、清空按钮、自定义显示、移入展开、禁用路径、浮层尺寸控制）　｜ 约 400 行 ｜ 完成日期：2026-10-22
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
 - [x] **D-11** Carousel 图片轮播（提交 `46e92b35`，B7；同批完成 Pagination，见 E-4）　｜ 低 ｜ 完成日期：2026-10-19
   - [x] D-11.1 Breadcrumb 面包屑导航（纯自绘 Control，见 `duilib/Control/Breadcrumb.h`）　｜ 低 ｜ 完成日期：2026-10-22

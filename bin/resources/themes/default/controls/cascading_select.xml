@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="860,620" text="CascadingSelect Test" use_system_caption="false" caption="0,0,0,36"
-        shadow_type="default" size_box="4,4,4,4" min_size="700,520">
+<Window size="860,840" text="CascadingSelect Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="700,760">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -53,6 +53,40 @@
                                  disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
                                  items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_DPI"/>
             </VBox>
+            <!-- 下拉列表框形态：选择框 + 弹出多列级联浮层 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,16,16,16" width="stretch" height="auto" margin="0,10,0,0">
+                <Label text_id="STRID_CASCADING_SELECT_DROPDOWN_TITLE" font="system_bold_15" text_color="text_default"
+                       valign="center" margin="0,0,0,12"/>
+                <HBox height="32" child_margin="0,0,8,0">
+                    <CascadingSelect class="cascader" name="cascader_basic" dropdown="true" width="stretch" height="32"
+                                     placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER"
+                                     items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_XUHUI|STRID_CS_EAST/STRID_CS_HANGZHOU/STRID_CS_XIHU|STRID_CS_SOUTH/STRID_CS_GUANGZHOU/STRID_CS_TIANHE|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN|STRID_CS_NORTH/STRID_CS_BEIJING/STRID_CS_HAIDIAN"/>
+                    <CascadingSelect class="cascader" name="cascader_custom" dropdown="true" width="stretch" height="32"
+                                     placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER_CUSTOM"
+                                     path_separator="&gt;" value_separator="&gt;"
+                                     disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                                     items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_DPI"/>
+                </HBox>
+                <HBox height="32" child_margin="0,0,8,0" margin="0,8,0,0">
+                    <CascadingSelect class="cascader" name="cascader_hover" dropdown="true" width="stretch" height="32"
+                                     placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER_HOVER" expand_on_hover="true"
+                                     items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_EAST/STRID_CS_HANGZHOU/STRID_CS_XIHU|STRID_CS_SOUTH/STRID_CS_GUANGZHOU/STRID_CS_TIANHE|STRID_CS_NORTH/STRID_CS_BEIJING/STRID_CS_HAIDIAN"/>
+                    <CascadingSelect class="cascader" name="cascader_no_clear" dropdown="true" width="stretch" height="32"
+                                     placeholder_id="STRID_CASCADING_SELECT_PLACEHOLDER_NO_CLEAR" allow_clear="false"
+                                     items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN"/>
+                </HBox>
+                <HBox height="40" child_margin="8" margin="0,10,0,0">
+                    <Button class="btn_global" name="btn_cascader_select" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_SELECT" width="96" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="btn_cascader_clear" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_CLEAR" width="80" height="28" border_round="3,3"/>
+                    <Button class="btn_global" name="btn_cascader_display" text_id="STRID_CASCADING_SELECT_BTN_DROPDOWN_DISPLAY" width="110" height="28" border_round="3,3"/>
+                </HBox>
+                <HBox height="30" margin="0,4,0,0">
+                    <Label name="cascader_event" text_id="STRID_CASCADING_SELECT_EVENT_DROPDOWN_NONE" text_color="text_default"
+                           valign="center" width="stretch" auto_tooltip="true"/>
+                </HBox>
+            </VBox>
+
             <!-- 占位：把剩余空间留在底部，避免卡片被拉高产生大片空白 -->
             <Control height="stretch" mouse_enabled="false"/>
         </VBox>
