@@ -1,0 +1,7 @@
+<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 难过表情图标（禁用示例）：灰色圆脸 + 白色眼睛与嘴角，兼容 nanosvg（仅使用填充） -->
+    <circle cx="6" cy="6" r="5" fill="#BFBFBF"/>
+    <circle cx="4.2" cy="4.8" r="0.8" fill="#FFFFFF"/>
+    <circle cx="7.8" cy="4.8" r="0.8" fill="#FFFFFF"/>
+    <path d="M3.7 8.4 A2.6 2.6 0 0 1 8.3 8.4 L7.4 8.8 A1.6 1.6 0 0 0 4.6 8.8 Z" fill="#FFFFFF"/>
+</svg>

@@ -60,6 +60,10 @@ else if ((strName == _T("title_id")) || (strName == _T("titleid"))) {
 }
 ```
 
+> **变量展开**：`SetAttribute` 收到的 `strValue` 是 XML 原始字符串，`${VAR}` 不会自动展开。
+> 新增的若是图片路径/图片属性串等属性，必须在函数入口先 `DString strValue = GetExpandVarStrings(strValue2);`
+> 再做分支判断，否则运行时会报 `Image File Not Found!` 断言（详见 pitfalls.md 第 20 条）。
+
 **5. 重写 `OnLanguageChanged`**：
 
 ```cpp

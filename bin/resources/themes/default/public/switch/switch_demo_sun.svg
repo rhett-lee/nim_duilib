@@ -1,0 +1,12 @@
+<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 太阳图标（选中态）：实心圆 + 8 个点状光芒，兼容 nanosvg（仅使用填充） -->
+    <circle cx="6" cy="6" r="2.6" fill="#FFFFFF"/>
+    <circle cx="6" cy="1.2" r="0.7" fill="#FFFFFF"/>
+    <circle cx="6" cy="10.8" r="0.7" fill="#FFFFFF"/>
+    <circle cx="1.2" cy="6" r="0.7" fill="#FFFFFF"/>
+    <circle cx="10.8" cy="6" r="0.7" fill="#FFFFFF"/>
+    <circle cx="2.6" cy="2.6" r="0.7" fill="#FFFFFF"/>
+    <circle cx="9.4" cy="2.6" r="0.7" fill="#FFFFFF"/>
+    <circle cx="2.6" cy="9.4" r="0.7" fill="#FFFFFF"/>
+    <circle cx="9.4" cy="9.4" r="0.7" fill="#FFFFFF"/>
+</svg>

@@ -28,6 +28,8 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateColors(IRender* pRender) override;
     virtual void PaintStateImages(IRender* pRender) override;
+    virtual void PaintText(IRender* pRender) override;
+    virtual void Activate(const EventArgs* pMsg) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
 
 public:
@@ -85,6 +87,56 @@ public:
     void SetThumbPadding(int32_t nPadding, bool bNeedDpiScale = true);
     int32_t GetThumbPadding() const { return m_nThumbPadding; }
 
+    /** 设置/获取轨道内文字（选中状态）
+    */
+    void SetTextOn(const DString& strText);
+    DString GetTextOn() const { return m_strTextOn; }
+
+    /** 设置/获取轨道内文字（未选中状态）
+    */
+    void SetTextOff(const DString& strText);
+    DString GetTextOff() const { return m_strTextOff; }
+
+    /** 设置/获取轨道内文字颜色（选中状态）
+    */
+    void SetTextOnColor(const DString& strColor);
+    DString GetTextOnColor() const { return m_strTextOnColor; }
+
+    /** 设置/获取轨道内文字颜色（未选中状态）
+    */
+    void SetTextOffColor(const DString& strColor);
+    DString GetTextOffColor() const { return m_strTextOffColor; }
+
+    /** 设置轨道内图标（选中状态），strImage 为空表示清除
+    */
+    void SetImageOn(const DString& strImage);
+    DString GetImageOn() const { return m_strImageOn; }
+
+    /** 设置轨道内图标（未选中状态），strImage 为空表示清除
+    */
+    void SetImageOff(const DString& strImage);
+    DString GetImageOff() const { return m_strImageOff; }
+
+    /** 设置/获取加载中状态（加载中时在滑块内绘制旋转指示器，并禁止用户点击切换）
+    */
+    void SetLoading(bool bLoading);
+    bool IsLoading() const { return m_bLoading; }
+
+    /** 设置/获取加载指示器颜色
+    */
+    void SetLoadingColor(const DString& strColor);
+    DString GetLoadingColor() const { return m_strLoadingColor; }
+
+    /** 设置/获取禁用状态的轨道颜色
+    */
+    void SetTrackDisabledColor(const DString& strColor);
+    DString GetTrackDisabledColor() const { return m_strTrackDisabledColor; }
+
+    /** 设置/获取禁用状态的滑块颜色
+    */
+    void SetThumbDisabledColor(const DString& strColor);
+    DString GetThumbDisabledColor() const { return m_strThumbDisabledColor; }
+
 protected:
     /** 选中状态变化时触发（来自CheckBox），用于启动切换动画
     */
@@ -94,6 +146,28 @@ private:
     /** 计算滑块图片方形框（按当前动画进度沿轨道平移，垂直居中）
     */
     UiRect GetThumbRect() const;
+
+    /** 获取有效动画进度：禁用时直接返回目标值（0 或 100）
+    */
+    int32_t GetEffectiveAnimValue() const;
+
+    /** 绘制轨道内文字/图标（可用区域内居中，图标与文字可组合）
+    * @param [in] rcContent 可用区域
+    * @param [in] strText   文字内容
+    * @param [in] pImage    图标（可为空）
+    * @param [in] textColor 文字颜色
+    * @param [in] nAlpha    透明度[0, 255]
+    */
+    void PaintSwitchContent(IRender* pRender, const UiRect& rcContent, const DString& strText,
+                            Image* pImage, UiColor textColor, uint8_t nAlpha) const;
+
+    /** 绘制加载中的旋转指示器
+    */
+    void PaintLoading(IRender* pRender, const UiRect& rcThumb) const;
+
+    /** 加载动画定时器回调
+    */
+    void OnLoadingTimer();
 
     /** 两颜色按进度插值
     * @param [in] t 进度值，范围[0, 1]
@@ -136,6 +210,16 @@ private:
     DString m_strThumbOffImage;     //滑块图片属性（未选中）
     DString m_strThumbOnImage;      //滑块图片属性（选中）
 
+    DString m_strTextOn;            //轨道内文字（选中）
+    DString m_strTextOff;           //轨道内文字（未选中）
+    DString m_strTextOnColor;       //轨道内文字颜色（选中）
+    DString m_strTextOffColor;      //轨道内文字颜色（未选中）
+    DString m_strImageOn;           //轨道内图标属性（选中）
+    DString m_strImageOff;          //轨道内图标属性（未选中）
+    DString m_strTrackDisabledColor; //禁用状态的轨道颜色
+    DString m_strThumbDisabledColor; //禁用状态的滑块颜色
+    DString m_strLoadingColor;       //加载指示器颜色
+
     /** 滑块图片方形框与轨道边缘的距离（DPI缩放后的物理像素）
     */
     int32_t m_nThumbPadding;
@@ -144,6 +228,20 @@ private:
     std::unique_ptr<Image> m_pTrackOnImage;
     std::unique_ptr<Image> m_pThumbOffImage;
     std::unique_ptr<Image> m_pThumbOnImage;
+    std::unique_ptr<Image> m_pImageOn;
+    std::unique_ptr<Image> m_pImageOff;
+
+    /** 加载中状态
+    */
+    bool m_bLoading;
+
+    /** 加载指示器的旋转角度（度）
+    */
+    int32_t m_nLoadingAngle;
+
+    /** 加载指示器定时器
+    */
+    WeakCallbackFlag m_loadingTimer;
 
     /** 切换动画播放器
     */

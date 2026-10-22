@@ -10,6 +10,7 @@
 #include "TreeGridForm.h"
 #include "BreadcrumbForm.h"
 #include "CascadingSelectForm.h"
+#include "SwitchForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -110,6 +111,15 @@ void TestForm::OnInitWindow()
     if (pCascadingSelectBtn != nullptr) {
         pCascadingSelectBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowCascadingSelectWindow();
+            return true;
+            });
+    }
+
+    //Switch 开关测试窗口
+    ui::Button* pSwitchBtn = dynamic_cast<ui::Button*>(FindControl(_T("switch_btn")));
+    if (pSwitchBtn != nullptr) {
+        pSwitchBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowSwitchWindow();
             return true;
             });
     }
@@ -516,6 +526,18 @@ void TestForm::ShowCascadingSelectWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("CascadingSelectWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowSwitchWindow()
+{
+    SwitchForm* testForm = new SwitchForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("SwitchWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

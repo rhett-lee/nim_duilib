@@ -142,6 +142,11 @@
                     <Button class="btn_global" name="cascading_select_btn" text_id="STRID_CONTROLS_CASCADING_SELECT_TEST"
                             margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
                 </GroupHBox>
+                <!-- Switch 开关：独立演示窗口入口 -->
+                <GroupHBox text="Switch" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="switch_btn" text_id="STRID_SWITCH_TEST"
+                            margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
+                </GroupHBox>
             </HBox>
         </VBox>
         </VScrollBox>
@@ -174,6 +179,6 @@
                 <Label text_id="STRID_CONTROLS_MASK_LOADING_TEXT" width="stretch" height="auto"
                        margin="0,16,0,0" text_align="center" font="system_regular_14"/>
             </VBox>
-        </Mask>
+        </Mask>        
     </VBox>
 </Window>

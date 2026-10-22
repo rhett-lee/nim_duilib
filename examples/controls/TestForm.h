@@ -58,6 +58,10 @@ private:
     */
     void ShowCascadingSelectWindow();
 
+    /** 显示 Switch 开关演示窗口
+    */
+    void ShowSwitchWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

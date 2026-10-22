@@ -1896,13 +1896,29 @@ Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。
 | thumb_off_image | | string | 未选中状态的滑块图片（方形图片，与thumb_on_image成对配置） |
 | thumb_on_image | | string | 选中状态的滑块图片（方形图片，与thumb_off_image成对配置） |
 | thumb_padding | 0 | int | 滑块图片方形框与轨道边缘的距离（自动DPI缩放）。方形框边长等于轨道高度，阴影等留白需绘制在图片内部 |
+| switch_text_on | | string | 选中状态下轨道内显示的文字（对应 Ant Design 的 checkedChildren） |
+| switch_text_off | | string | 未选中状态下轨道内显示的文字（对应 Ant Design 的 unCheckedChildren） |
+| switch_text_on_color | bg_switch_thumb_on | string | 选中状态轨道内文字颜色（语义色名） |
+| switch_text_off_color | text_default | string | 未选中状态轨道内文字颜色（语义色名） |
+| switch_image_on | | string | 选中状态轨道内显示的图标（图片属性串，可与文字同时使用） |
+| switch_image_off | | string | 未选中状态轨道内显示的图标（图片属性串，可与文字同时使用） |
+| switch_loading | false | bool | 加载中状态：滑块内绘制旋转指示器，并屏蔽用户点击切换 |
+| switch_loading_color | color_accent | string | 加载指示器颜色（语义色名） |
+| track_disabled_color | bg_switch_track_off | string | 禁用状态的轨道颜色（语义色名，无轨道图片时生效） |
+| thumb_disabled_color | bg_switch_thumb_on | string | 禁用状态的滑块颜色（语义色名，无滑块图片时生效） |
 
 说明：
 - 轨道图片会被拉伸铺满整个轨道矩形，滑块图片在轨道高度的方形框内平移，图片属性串中不要再设置width/height/valign/halign，否则绘制位置将固定不动。
 - 图片内的固定颜色可用`svg_replace_colors`替换为语义色（多组替换用分号分隔），以适配深浅色主题。
 - 轨道和滑块两层独立：只配置滑块图片时，轨道仍由颜色自绘（iOS风格皮肤即如此）。
+- 轨道内文字/图标分别绘制在滑块未占用的左右区域内，随切换动画进度交叉淡入淡出；同时配置图标与文字时，按「图标 + 2px间距 + 文字」水平排列并整体居中。
+- 所有属性字符串支持`${VAR}`变量展开（如`switch_image_on="file='${PATH_SWITCH}/switch_demo_sun.svg'"`），与Class属性写法一致。
+- 图标尺寸为 `max(8px, 轨道高度/2)`，随控件尺寸自适应；禁用时文字改用`text_disabled`，图标透明度减半。
+- 禁用状态下滑块位置直接取当前选中状态（不做动画插值）；配置了轨道/滑块图片时，禁用态轨道固定绘制`track_off_image`，滑块按选中状态取图。
 
 对应C++接口：`SetAnimationDuration/GetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`。
+轨道内文字/图标与加载状态：`SetTextOn/GetTextOn`、`SetTextOff/GetTextOff`、`SetTextOnColor/GetTextOnColor`、`SetTextOffColor/GetTextOffColor`、`SetImageOn/GetImageOn`、`SetImageOff/GetImageOff`、`SetLoading/IsLoading`、`SetLoadingColor/GetLoadingColor`、`SetTrackDisabledColor/GetTrackDisabledColor`、`SetThumbDisabledColor/GetThumbDisabledColor`。
+加载中仅屏蔽用户点击，程序调用`Selected()`/`SetSelected()`仍可改变状态；加载定时器只在该状态开启时运行。
 选中状态变化触发`kEventSelect`/`kEventUnSelect`事件（与CheckBox一致）。
 
 ### XML使用示例（参考 controls 和 color_theme 示例程序）
@@ -1930,12 +1946,32 @@ Switch是滑块开关控件，继承自CheckBox，用于开关状态的切换。
     <Event type="select" receiver="target_control" apply_attribute="visible='true'"/>
     <Event type="unselect" receiver="target_control" apply_attribute="visible='false'"/>
 </Switch>
+
+<!-- 轨道内文字：选中显示On，未选中显示Off -->
+<Switch class="switch" switch_text_on="On" switch_text_off="Off"/>
+<Switch class="switch" selected="true" switch_text_on="1" switch_text_off="0"
+        switch_text_on_color="bg_switch_thumb_on" switch_text_off_color="text_default"/>
+
+<!-- 轨道内图标（可与文字同时使用，图标在左、文字在右） -->
+<Switch class="switch" selected="true"
+        switch_image_on="file='public/switch/switch_demo_sun.svg'"
+        switch_image_off="file='public/switch/switch_demo_moon.svg'"/>
+
+<!-- 加载中：滑块内旋转指示器，用户点击不切换 -->
+<Switch class="switch" selected="true" switch_loading="true"
+        switch_loading_color="color_accent"/>
+
+<!-- 禁用态：轨道/滑块使用专用颜色 -->
+<Switch class="switch" enabled="false" switch_text_off="Off"
+        track_disabled_color="bg_switch_track_off"
+        thumb_disabled_color="bg_switch_thumb_on"/>
 ```
 
-默认皮肤在global.xml中定义了3套Class（SVG资源在`public/switch/`目录）：
+默认皮肤在global.xml中定义了4套Class（SVG资源在`public/switch/`目录）：
 - `switch`（别名`switch_ios`）：iOS风格，51x31，白色大滑块带柔和投影，轨道颜色随主题色；
 - `switch_fluent`：Windows 11 Fluent风格，48x24（padding=2，轨道44x20），描边小轨道+14px小滑块；
-- `switch_material`：Material Design 3风格，52x32，未选中为描边轨道+16px小滑块，选中为主题色轨道+24px带对勾大滑块。
+- `switch_material`：Material Design 3风格，52x32，未选中为描边轨道+16px小滑块，选中为主题色轨道+24px带对勾大滑块；
+- `switch_small`：小号尺寸，40x20，字形`system_regular_12`，其余样式沿用iOS皮肤。
 
 语义色在color_light和color_dark的global.xml中分别定义了`bg_switch_track_on/off`、`bg_switch_thumb_on/off`，Fluent/Material皮肤中的SVG颜色通过`svg_replace_colors`映射到这些语义色或`color_accent`。
 
@@ -1962,6 +1998,15 @@ if (pSwitch != nullptr) {
     // 动态设置外观（颜色自绘；如需图片皮肤改用 SetTrackXxxImage/SetThumbXxxImage）
     pSwitch->SetTrackOnColor(_T("#FF0078D4"));
     pSwitch->SetAnimationDuration(200);
+
+    // 轨道内文字与图标（图标为空则只显示文字；两者都配置时图标在左、文字在右）
+    pSwitch->SetTextOn(_T("On"));
+    pSwitch->SetTextOff(_T("Off"));
+    pSwitch->SetImageOn(_T("file='public/switch/switch_demo_sun.svg'"));
+    pSwitch->SetImageOff(_T("file='public/switch/switch_demo_moon.svg'"));
+
+    // 加载中：滑块内旋转指示器，用户点击不再切换（程序仍可调用 Selected 修改状态）
+    pSwitch->SetLoading(true);
 }
 ```
 

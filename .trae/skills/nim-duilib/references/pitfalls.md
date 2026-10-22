@@ -346,3 +346,30 @@ NavigationView 内部用 TabBox 切换内容页，早期对外直接 `SendEvent(
 ```
 
 `VBox`/`HBox`/`VScrollBox`/`TabBox`/`Line` 等可以前置声明，是否可前置声明以实际编译为准。
+
+### 24. 扩展控件新增图片/路径属性时，`SetAttribute` 必须展开 `${VAR}` 变量
+
+**症状**：XML 中给控件属性写 `${PATH_SWITCH}/xxx.svg`，运行 Debug 版在
+`GlobalManager::ExistsResFullPath` 断言（`Image File Not Found!`，`m_filePath` 里仍是未展开的
+`${PATH_SWITCH}`），程序直接无法运行；Release 版不崩溃，但图片静默不显示。
+
+**原因**：`${VAR}` 不会在 XML 解析阶段对所有控件属性统一展开。只有窗口内 `<Class>` 属性
+（`WindowBuilder::ParseWindowShareAttributes`）以及字体/颜色等少数属性会展开；控件自身的属性串
+由该控件的 `SetAttribute` 负责展开。现有控件大多在入口第一行调用 `GetExpandVarStrings`
+（如 `TabCtrl`、`TreeView`、`TagInput`、`ToolBar`），新写/扩展控件时容易漏掉。
+
+**修复**：在 `SetAttribute` 开头统一展开，再进入各属性分支：
+
+```cpp
+void MyControl::SetAttribute(const DString& strName, const DString& strValue2)
+{
+    DString strValue = GetExpandVarStrings(strValue2);  // 展开 ${VAR}
+    if (strName == _T("my_image")) {
+        SetMyImage(strValue);
+    }
+    ...
+}
+```
+
+**判断特征**：同一个图片写在 `global.xml` 的 `<Class>` 里正常、直接写在控件节点上就失败，
+基本就是漏了这一步。保存成员变量时要保存展开后的值，`ChangeDpiScale` 重新加载图片才能拿到正确路径。

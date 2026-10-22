@@ -299,6 +299,11 @@
     <Class name="switch_ios" height="31" width="51" valign="center" cursor_type="hand"
                                     thumb_off_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"
                                     thumb_on_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"/>
+    <!-- 小号 Switch：20x40，拇随轨道高度自动缩放 -->
+    <Class name="switch_small" height="20" width="40" valign="center" cursor_type="hand"
+                                    thumb_padding="0" animation_ms="200" font="system_regular_12"
+                                    thumb_off_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"
+                                    thumb_on_image="file='${PATH_SWITCH}/switch_ios_thumb.svg'"/>
     <!-- Fluent(Windows 11) 风格：48x24，描边小轨道 + 14px 小滑块 -->
     <Class name="switch_fluent" height="24" width="48" padding="2,2,2,2" valign="center" cursor_type="hand"
                                     track_off_image="file='${PATH_SWITCH}/switch_fluent_track_off.svg' svg_replace_colors='#E9E9EA|bg_switch_track_off;#8A8886|bg_switch_thumb_off'"

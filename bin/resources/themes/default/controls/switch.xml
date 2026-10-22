@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="980,760" text="Switch Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="760,600">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_SWITCH_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_SWITCH_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VScrollBox padding="12,8,12,12" width="stretch" height="stretch" vscrollbar="true">
+            <VBox width="stretch" height="auto">
+                <!-- 第一行：基本 / 不可用 -->
+                <HBox width="stretch" height="auto">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_SWITCH_GROUP_BASIC" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_BASIC_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="48" margin="0,10,0,0" child_margin="12">
+                            <Switch class="switch"/>
+                            <Label text="Off" text_color="text_muted" valign="center"/>
+                            <Switch class="switch" selected="true" margin="24,0,0,0"/>
+                            <Label text="On" text_color="text_muted" valign="center"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_SWITCH_GROUP_DISABLED" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_DISABLED_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="48" margin="0,10,0,0" child_margin="12">
+                            <Switch class="switch" enabled="false"/>
+                            <Label text="Off" text_color="text_disabled" valign="center"/>
+                            <Switch class="switch" selected="true" enabled="false" margin="24,0,0,0"/>
+                            <Label text="On" text_color="text_disabled" valign="center"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- 第二行：文字和图标 / 两种大小 -->
+                <HBox width="stretch" height="auto" margin="0,10,0,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_SWITCH_GROUP_TEXT" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_TEXT_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="40" margin="0,10,0,0" child_margin="16">
+                            <Switch class="switch" selected="true" switch_text_on="On"/>
+                            <Switch class="switch" selected="true" switch_text_on="1"/>
+                            <Switch class="switch" switch_text_off="Off"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="40" margin="0,6,0,0" child_margin="16">
+                            <Switch class="switch" selected="true"
+                                    switch_image_on="file='${PATH_SWITCH}/switch_demo_sun.svg'"/>
+                            <Switch class="switch"
+                                    switch_image_off="file='${PATH_SWITCH}/switch_demo_moon.svg'"/>
+                            <Switch class="switch"
+                                    switch_image_off="file='${PATH_SWITCH}/switch_demo_close.svg'"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="40" margin="0,6,0,0" child_margin="16">
+                            <Switch class="switch" width="86" enabled="false"
+                                    switch_image_off="file='${PATH_SWITCH}/switch_demo_sad.svg'"
+                                    switch_text_off="Sad"/>
+                            <Label text_id="STRID_SWITCH_TEXT_TIP" text_color="text_muted" valign="center" auto_tooltip="true"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_SWITCH_GROUP_SIZE" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_SIZE_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="48" margin="0,10,0,0" child_margin="12">
+                            <Switch class="switch"/>
+                            <Label text_id="STRID_SWITCH_DEFAULT" text_color="text_muted" valign="center"/>
+                            <Switch class="switch" selected="true" margin="24,0,0,0"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="40" margin="0,6,0,0" child_margin="12">
+                            <Switch class="switch_small"/>
+                            <Label text_id="STRID_SWITCH_SMALL" text_color="text_muted" valign="center"/>
+                            <Switch class="switch_small" selected="true" margin="24,0,0,0"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- 第三行：加载中 / 自定义样式 -->
+                <HBox width="stretch" height="auto" margin="0,10,0,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_SWITCH_GROUP_LOADING" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_LOADING_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="48" margin="0,10,0,0" child_margin="12">
+                            <Switch class="switch" name="switch_loading_demo" selected="true" switch_loading="true"/>
+                            <Button class="btn_global" name="btn_loading_on" text_id="STRID_SWITCH_LOADING_ON"
+                                    width="100" height="28" border_round="3,3" valign="center"/>
+                            <Button class="btn_global" name="btn_loading_off" text_id="STRID_SWITCH_LOADING_OFF"
+                                    width="100" height="28" border_round="3,3" valign="center"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_SWITCH_GROUP_CUSTOM" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_SWITCH_CUSTOM_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                        <HBox height="40" margin="0,10,0,0" child_margin="16">
+                            <Switch class="switch" selected="true" track_on_color="color_success"/>
+                            <Switch class="switch" selected="true" track_on_color="color_error"/>
+                            <Switch class="switch" selected="true" track_on_color="color_warning"/>
+                            <Switch class="switch"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="40" margin="0,6,0,0" child_margin="16">
+                            <Switch class="switch_fluent" selected="true"/>
+                            <Switch class="switch_material" selected="true"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- 事件回显 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <Label text_id="STRID_SWITCH_GROUP_EVENT" font="system_bold_15" text_color="text_default"/>
+                    <HBox height="44" margin="0,8,0,0" child_margin="16">
+                        <Switch class="switch" name="switch_event_demo"/>
+                        <Label name="switch_event_label" text_id="STRID_SWITCH_EVENT_NONE" text_color="text_default"
+                               valign="center" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

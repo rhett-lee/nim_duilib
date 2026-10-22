@@ -1896,13 +1896,29 @@ In addition to the common attributes of CheckBox, the following new attributes a
 | thumb_off_image | | string | Thumb image in unselected state (square image, paired with thumb_on_image) |
 | thumb_on_image | | string | Thumb image in selected state (square image, paired with thumb_off_image) |
 | thumb_padding | 0 | int | Distance between the thumb image square box and the track edges (auto DPI scaled). The square box side equals the track height; shadow padding must be drawn inside the image itself |
+| switch_text_on | | string | Text drawn inside the track in selected state (Ant Design's checkedChildren) |
+| switch_text_off | | string | Text drawn inside the track in unselected state (Ant Design's unCheckedChildren) |
+| switch_text_on_color | bg_switch_thumb_on | string | Text color inside the track in selected state (semantic color name) |
+| switch_text_off_color | text_default | string | Text color inside the track in unselected state (semantic color name) |
+| switch_image_on | | string | Icon drawn inside the track in selected state (image attribute string, can be combined with text) |
+| switch_image_off | | string | Icon drawn inside the track in unselected state (image attribute string, can be combined with text) |
+| switch_loading | false | bool | Loading state: draws a spinning indicator inside the thumb and blocks user clicks from toggling |
+| switch_loading_color | color_accent | string | Loading indicator color (semantic color name) |
+| track_disabled_color | bg_switch_track_off | string | Track color in disabled state (semantic color name, effective without track images) |
+| thumb_disabled_color | bg_switch_thumb_on | string | Thumb color in disabled state (semantic color name, effective without thumb images) |
 
 Notes:
 - Track images are stretched to fill the whole track rectangle; thumb images translate inside a square box as high as the track. Do not set width/height/valign/halign in the image attribute string, otherwise the draw position will be fixed.
 - Fixed colors inside images can be replaced with semantic colors via `svg_replace_colors` (multiple replacements separated by semicolons) to adapt to light/dark themes.
 - Track and thumb layers are independent: when only thumb images are configured, the track is still self-drawn with colors (this is how the iOS-style skin works).
+- In-track text/icons are drawn in the left/right areas not occupied by the thumb and cross-fade with the toggle animation progress; when both an icon and text are configured they are laid out horizontally as "icon + 2px gap + text" and centered as a whole.
+- All attribute strings support `${VAR}` variable expansion (e.g. `switch_image_on="file='${PATH_SWITCH}/switch_demo_sun.svg'"`), consistent with Class attributes.
+- Icon size is `max(8px, track height / 2)` and scales with the control; in disabled state text switches to `text_disabled` and icon opacity is halved.
+- In disabled state the thumb position follows the current selected state directly (no animation interpolation); with track/thumb images configured, the disabled track always draws `track_off_image` while the thumb uses the image matching the selected state.
 
 Corresponding C++ interfaces: `SetAnimationDuration/GetAnimationDuration`, `SetTrackOffColor/GetTrackOffColor`, `SetTrackOnColor/GetTrackOnColor`, `SetThumbOffColor/GetThumbOffColor`, `SetThumbOnColor/GetThumbOnColor`, `SetTrackOffImage/GetTrackOffImage`, `SetTrackOnImage/GetTrackOnImage`, `SetThumbOffImage/GetThumbOffImage`, `SetThumbOnImage/GetThumbOnImage`, `SetThumbPadding/GetThumbPadding`.
+In-track text/icons and loading state: `SetTextOn/GetTextOn`, `SetTextOff/GetTextOff`, `SetTextOnColor/GetTextOnColor`, `SetTextOffColor/GetTextOffColor`, `SetImageOn/GetImageOn`, `SetImageOff/GetImageOff`, `SetLoading/IsLoading`, `SetLoadingColor/GetLoadingColor`, `SetTrackDisabledColor/GetTrackDisabledColor`, `SetThumbDisabledColor/GetThumbDisabledColor`.
+Loading only blocks user clicks; programmatic `Selected()`/`SetSelected()` still changes the state, and the loading timer runs only while this state is enabled.
 Selection state changes trigger `kEventSelect`/`kEventUnSelect` events (same as CheckBox).
 
 ### XML Usage Example (see the controls and color_theme example programs)
@@ -1930,12 +1946,32 @@ Selection state changes trigger `kEventSelect`/`kEventUnSelect` events (same as 
     <Event type="select" receiver="target_control" apply_attribute="visible='true'"/>
     <Event type="unselect" receiver="target_control" apply_attribute="visible='false'"/>
 </Switch>
+
+<!-- In-track text: "On" when selected, "Off" when unselected -->
+<Switch class="switch" switch_text_on="On" switch_text_off="Off"/>
+<Switch class="switch" selected="true" switch_text_on="1" switch_text_off="0"
+        switch_text_on_color="bg_switch_thumb_on" switch_text_off_color="text_default"/>
+
+<!-- In-track icons (can be combined with text: icon left, text right) -->
+<Switch class="switch" selected="true"
+        switch_image_on="file='public/switch/switch_demo_sun.svg'"
+        switch_image_off="file='public/switch/switch_demo_moon.svg'"/>
+
+<!-- Loading: spinning indicator inside the thumb, clicks do not toggle -->
+<Switch class="switch" selected="true" switch_loading="true"
+        switch_loading_color="color_accent"/>
+
+<!-- Disabled state: dedicated track/thumb colors -->
+<Switch class="switch" enabled="false" switch_text_off="Off"
+        track_disabled_color="bg_switch_track_off"
+        thumb_disabled_color="bg_switch_thumb_on"/>
 ```
 
-Three skin classes are defined in global.xml by default (SVG assets are in the `public/switch/` directory):
+Four skin classes are defined in global.xml by default (SVG assets are in the `public/switch/` directory):
 - `switch` (alias `switch_ios`): iOS style, 51x31, large white thumb with soft shadow, track color follows the theme accent color;
 - `switch_fluent`: Windows 11 Fluent style, 48x24 (padding=2, track 44x20), outlined small track + 14px small thumb;
-- `switch_material`: Material Design 3 style, 52x32; unselected shows an outlined track with a 16px small thumb, selected shows an accent-filled track with a 24px large thumb carrying a check mark.
+- `switch_material`: Material Design 3 style, 52x32; unselected shows an outlined track with a 16px small thumb, selected shows an accent-filled track with a 24px large thumb carrying a check mark;
+- `switch_small`: small size, 40x20, font `system_regular_12`, other styles follow the iOS skin.
 
 Semantic colors are defined in the `color_light` and `color_dark` global.xml files as `bg_switch_track_on/off` and `bg_switch_thumb_on/off`; SVG colors in the Fluent/Material skins are mapped to these semantic colors or `color_accent` via `svg_replace_colors`.
 
@@ -1962,6 +1998,15 @@ if (pSwitch != nullptr) {
     // Set the appearance dynamically (color self-drawing; use SetTrackXxxImage/SetThumbXxxImage for image skins)
     pSwitch->SetTrackOnColor(_T("#FF0078D4"));
     pSwitch->SetAnimationDuration(200);
+
+    // In-track text and icons (text only when no icon; when both are set the icon is left of the text)
+    pSwitch->SetTextOn(_T("On"));
+    pSwitch->SetTextOff(_T("Off"));
+    pSwitch->SetImageOn(_T("file='public/switch/switch_demo_sun.svg'"));
+    pSwitch->SetImageOff(_T("file='public/switch/switch_demo_moon.svg'"));
+
+    // Loading: spinning indicator inside the thumb; user clicks no longer toggle (Selected still works programmatically)
+    pSwitch->SetLoading(true);
 }
 ```
 

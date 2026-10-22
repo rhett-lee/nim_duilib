@@ -430,16 +430,28 @@ C++ 接口：`SetCandidates/GetCandidates`、`AddCandidate`（去重）、`Clear
 | thumb_off_image / thumboffimage | | string | 滑块未选中图片（方形，须与 thumb_on_image 成对） |
 | thumb_on_image / thumbonimage | | string | 滑块选中图片（方形框边长=轨道高，阴影留白画在图内） |
 | thumb_padding | 0 | int | 滑块方形框距轨道边缘距离（自动 DPI 缩放） |
+| switch_text_on / switchtexton | | string | 轨道内文字（选中态，对应 Ant 的 checkedChildren） |
+| switch_text_off / switchtextoff | | string | 轨道内文字（未选中态，对应 Ant 的 unCheckedChildren） |
+| switch_text_on_color / switchtextoncolor | `bg_switch_thumb_on` | string | 轨道内文字颜色（选中态） |
+| switch_text_off_color / switchtextoffcolor | `text_default` | string | 轨道内文字颜色（未选中态） |
+| switch_image_on / switchimageon | | string | 轨道内图标（选中态，图片属性串，可与文字组合） |
+| switch_image_off / switchimageoff | | string | 轨道内图标（未选中态，图片属性串，可与文字组合） |
+| switch_loading / switchloading | false | bool | 加载中：滑块内 8 点旋转指示器，且屏蔽用户点击切换 |
+| switch_loading_color / switchloadingcolor | `color_accent` | string | 加载指示器颜色 |
+| track_disabled_color / trackdisabledcolor | `bg_switch_track_off` | string | 禁用态轨道颜色（无轨道图时生效） |
+| thumb_disabled_color / thumbdisabledcolor | `bg_switch_thumb_on` | string | 禁用态滑块颜色（无滑块图时生效） |
 
 注意：滑块/轨道图片属性串中不要带 width/height/valign/halign（否则绘制位置固定不平移）；
 图片内固定色用 `svg_replace_colors='#XXXXXX|语义色名'` 替换适配深浅色（多组分号分隔）。
+轨道内文字/图标按动画进度交叉淡入淡出；同时配置时按「图标 + 文字」水平排列并居中；禁用时文字用 `text_disabled`。
 
-C++ 接口：`SetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`。
+C++ 接口：`SetAnimationDuration`、`SetTrackOffColor/GetTrackOffColor`、`SetTrackOnColor/GetTrackOnColor`、`SetThumbOffColor/GetThumbOffColor`、`SetThumbOnColor/GetThumbOnColor`、`SetTrackOffImage/GetTrackOffImage`、`SetTrackOnImage/GetTrackOnImage`、`SetThumbOffImage/GetThumbOffImage`、`SetThumbOnImage/GetThumbOnImage`、`SetThumbPadding/GetThumbPadding`、`SetTextOn/GetTextOn`、`SetTextOff/GetTextOff`、`SetTextOnColor/GetTextOnColor`、`SetTextOffColor/GetTextOffColor`、`SetImageOn/GetImageOn`、`SetImageOff/GetImageOff`、`SetLoading/IsLoading`、`SetLoadingColor/GetLoadingColor`、`SetTrackDisabledColor/GetTrackDisabledColor`、`SetThumbDisabledColor/GetThumbDisabledColor`。
 事件：状态变化触发 `kEventSelect` / `kEventUnSelect`（继承 CheckBox）。
-三套默认皮肤类（SVG 在 `public/switch/`）：
+四套默认皮肤类（SVG 在 `public/switch/`）：
 - `switch`（别名 `switch_ios`）：iOS 风格 51x31，白色大滑块带柔和投影，轨道色随 `color_accent`；
 - `switch_fluent`：Win11 Fluent 风格 48x24（padding 2），描边小轨道 + 14px 小滑块；
-- `switch_material`：Material 3 风格 52x32，未选中描边轨道+16px 小滑块，选中主题色轨道+24px 带对勾大滑块。
+- `switch_material`：Material 3 风格 52x32，未选中描边轨道+16px 小滑块，选中主题色轨道+24px 带对勾大滑块；
+- `switch_small`：小号 40x20，字体 `system_regular_12`，其余沿用 iOS 皮肤。
 
 ### Badge 属性(继承 Label，角标)
 
