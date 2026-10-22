@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 下载图标：箭头 + 底部横线（仅使用填充，兼容 nanosvg） -->
+    <path d="M7.2 2h1.6v6.1h2.9L8 12.2 4.3 8.1h2.9V2z" fill="#333333"/>
+    <rect x="3" y="13.2" width="10" height="1.6" rx="0.8" fill="#333333"/>
+</svg>

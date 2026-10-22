@@ -147,6 +147,11 @@
                     <Button class="btn_global" name="switch_btn" text_id="STRID_SWITCH_TEST"
                             margin="20,30,20,0" width="160" height="30" border_round="3,3"/>
                 </GroupHBox>
+                <!-- Button / CheckBox / Option：独立演示窗口入口 -->
+                <GroupHBox text="Button / CheckBox / Option" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="button_checkbox_btn" text_id="STRID_BCB_TEST"
+                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
+                </GroupHBox>
             </HBox>
         </VBox>
         </VScrollBox>

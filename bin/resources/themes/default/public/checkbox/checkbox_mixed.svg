@@ -1,0 +1,5 @@
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 半选态：圆角方块 + 白色减号（方块颜色通过 svg_replace_colors 映射为语义色） -->
+    <rect x="1" y="1" width="16" height="16" rx="4" fill="#2F6FED"/>
+    <rect x="4.6" y="8" width="8.8" height="2" rx="1" fill="#FFFFFF"/>
+</svg>

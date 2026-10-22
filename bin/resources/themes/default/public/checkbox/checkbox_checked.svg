@@ -1,0 +1,5 @@
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- 全选态：圆角方块 + 白色对勾（方块颜色通过 svg_replace_colors 映射为语义色） -->
+    <rect x="1" y="1" width="16" height="16" rx="4" fill="#2F6FED"/>
+    <path d="M4.4 9.0L6.0 7.4 8.2 9.6 12.0 5.8 13.6 7.4 8.2 12.8z" fill="#FFFFFF"/>
+</svg>

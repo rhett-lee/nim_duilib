@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="1020,820" text="Button CheckBox Option Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="820,640">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_BCB_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_BCB_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VScrollBox padding="12,8,12,12" width="stretch" height="stretch" vscrollbar="true">
+            <VBox width="stretch" height="auto">
+                <!-- 第一行：按钮类型与状态 / 按钮尺寸与图标 -->
+                <HBox width="stretch" height="auto">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_BCB_GROUP_BTN_TYPE" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_BTN_TYPE_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <HBox height="38" margin="0,10,0,0">
+                            <Button class="btn_primary_global" text_id="STRID_BCB_BTN_PRIMARY" text_align="hcenter,vcenter"
+                                    width="84" height="32" border_round="4,4" margin="0,0,8,0"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_SECONDARY" text_align="hcenter,vcenter"
+                                    width="84" height="32" border_round="4,4" margin="0,0,8,0"/>
+                            <Button class="btn_global_white_80x30" text_id="STRID_BCB_BTN_IMAGE" text_align="hcenter,vcenter"
+                                    margin="0,0,8,0"/>
+                            <Button class="btn_global_red_80x30" text_id="STRID_BCB_BTN_DANGER" text_align="hcenter,vcenter"
+                                    margin="0,0,8,0"/>
+                            <Button class="btn_global_gray_80x30" text_id="STRID_BCB_BTN_GRAY" text_align="hcenter,vcenter"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="38" margin="0,8,0,0">
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_GHOST" text_align="hcenter,vcenter"
+                                    width="96" height="32" border_round="4,4" margin="0,0,8,0"
+                                    border_size="1"
+                                    normal_color="bg_window_card" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"
+                                    normal_text_color="color_accent" hovered_text_color="color_accent"
+                                    pressed_text_color="color_accent" disabled_text_color="text_disabled"
+                                    normal_border_color="color_accent" hovered_border_color="color_accent"
+                                    pressed_border_color="color_accent" disabled_border_color="border_window"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_LINK" text_align="hcenter,vcenter"
+                                    width="80" height="32" border_size="0"
+                                    normal_color="bg_window_card" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"
+                                    normal_text_color="color_accent" hovered_text_color="color_accent"
+                                    pressed_text_color="color_accent" disabled_text_color="text_disabled"
+                                    margin="0,0,8,0"/>
+                            <Button class="btn_primary_global" text_id="STRID_BCB_BTN_DISABLED" text_align="hcenter,vcenter"
+                                    width="84" height="32" border_round="4,4" enabled="false" margin="0,0,8,0"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_DISABLED" text_align="hcenter,vcenter"
+                                    width="84" height="32" border_round="4,4" enabled="false"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_BCB_GROUP_BTN_SIZE" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_BTN_SIZE_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <!-- 三种尺寸 -->
+                        <HBox height="44" margin="0,8,0,0">
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_LARGE" text_align="hcenter,vcenter"
+                                    width="120" height="38" border_round="4,4" font="system_regular_14" margin="0,0,8,0"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_MEDIUM" text_align="hcenter,vcenter"
+                                    width="88" height="32" border_round="4,4" margin="0,0,8,0"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_SMALL" text_align="hcenter,vcenter"
+                                    width="64" height="24" border_round="4,4" font="system_regular_12"/>
+                            <Control/>
+                        </HBox>
+
+                        <!-- 图标 + 文字 -->
+                        <HBox height="38" margin="0,8,0,0">
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_ICON_TEXT"
+                                    width="140" height="32" border_round="4,4" margin="0,0,8,0"
+                                    text_align="left,vcenter" text_padding="34,0,0,0"
+                                    normal_image="file='${PATH_BUTTON}/icon_download.svg' width='16' height='16' valign='center' halign='left' margin='12,0,0,0' svg_replace_colors='#333333|border_svg_image'"/>
+                            <Button class="btn_primary_global" text_id="STRID_BCB_BTN_DOWNLOAD"
+                                    width="140" height="32" border_round="4,4"
+                                    text_align="left,vcenter" text_padding="34,0,0,0"
+                                    normal_image="file='${PATH_BUTTON}/icon_download.svg' width='16' height='16' valign='center' halign='left' margin='12,0,0,0' svg_replace_colors='#333333|color_white'"/>
+                            <Control/>
+                        </HBox>
+
+                        <!-- 纯图标按钮 -->
+                        <HBox height="38" margin="0,8,0,0">
+                            <Button class="btn_global" tooltip_text_id="STRID_BCB_BTN_ICON_SETTINGS"
+                                    width="34" height="34" border_round="4,4" margin="0,0,8,0"
+                                    normal_image="file='${PATH_BUTTON}/icon_settings.svg' width='18' height='18' valign='center' halign='center' svg_replace_colors='#333333|border_svg_image'"
+                                    hovered_image="file='${PATH_BUTTON}/icon_settings.svg' width='18' height='18' valign='center' halign='center' svg_replace_colors='#333333|color_accent'"/>
+                            <Button class="btn_global" tooltip_text_id="STRID_BCB_BTN_ICON_DELETE"
+                                    width="34" height="34" border_round="4,4" margin="0,0,8,0"
+                                    normal_image="file='${PATH_BUTTON}/icon_trash.svg' width='16' height='16' valign='center' halign='center' svg_replace_colors='#333333|color_error'"/>
+                            <Button class="btn_global" text_id="STRID_BCB_BTN_LINK" text_align="left,vcenter"
+                                    width="110" height="34" border_size="0"
+                                    normal_color="bg_window_card" hovered_color="bg_btn_hovered" pressed_color="bg_btn_pressed"
+                                    normal_text_color="color_accent" hovered_text_color="color_accent"
+                                    pressed_text_color="color_accent"
+                                    text_padding="6,0,0,0"
+                                    normal_image="file='${PATH_BUTTON}/icon_arrow_right.svg' width='14' height='14' valign='center' halign='right' margin='0,0,0,0' svg_replace_colors='#333333|color_accent'"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- 第二行：CheckBox 基础 / CheckBox 三态与开关 -->
+                <HBox width="stretch" height="auto" margin="0,10,0,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_BCB_GROUP_CHECK_BASIC" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_CHECK_BASIC_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <HBox height="24" margin="0,10,0,0" child_margin="14">
+                            <CheckBox class="checkbox_1" text_id="STRID_BCB_CHECK_1"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_BCB_CHECK_1" selected="true"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_BCB_CHECK_DISABLED" enabled="false"/>
+                            <CheckBox class="checkbox_1" text_id="STRID_BCB_CHECK_DISABLED" enabled="false" selected="true"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="24" margin="0,8,0,0" child_margin="14">
+                            <CheckBox class="checkbox_2" text_id="STRID_BCB_CHECK_2"/>
+                            <CheckBox class="checkbox_2" text_id="STRID_BCB_CHECK_2" selected="true"/>
+                            <Control/>
+                        </HBox>
+
+                        <!-- 自定义图标的 CheckBox -->
+                        <HBox height="24" margin="0,8,0,0" child_margin="14">
+                            <CheckBox name="check_heart" width="auto" height="20" text_padding="24,0,0,0"
+                                      text_align="vcenter" valign="center" text_id="STRID_BCB_CHECK_HEART"
+                                      selected_text_color="color_error"
+                                      normal_image="file='${PATH_CHECKBOX}/heart_outline.svg' width='16' height='16' valign='center' svg_replace_colors='#808080|text_muted'"
+                                      selected_normal_image="file='${PATH_CHECKBOX}/heart_filled.svg' width='16' height='16' valign='center' svg_replace_colors='#E5484D|color_error'"/>
+                            <CheckBox name="check_star" width="auto" height="20" text_padding="24,0,0,0"
+                                      text_align="vcenter" valign="center" text_id="STRID_BCB_CHECK_STAR"
+                                      selected_text_color="color_warning"
+                                      normal_image="file='${PATH_CHECKBOX}/star_outline.svg' width='16' height='16' valign='center' svg_replace_colors='#808080|text_muted'"
+                                      selected_normal_image="file='${PATH_CHECKBOX}/star_filled.svg' width='16' height='16' valign='center' svg_replace_colors='#F5A623|color_warning'"/>
+                            <CheckBox name="check_bell" width="auto" height="20" text_padding="24,0,0,0"
+                                      text_align="vcenter" valign="center" text_id="STRID_BCB_CHECK_BELL"
+                                      selected_text_color="color_accent"
+                                      normal_image="file='${PATH_CHECKBOX}/bell_outline.svg' width='16' height='16' valign='center' svg_replace_colors='#808080|text_muted'"
+                                      selected_normal_image="file='${PATH_CHECKBOX}/bell_filled.svg' width='16' height='16' valign='center' svg_replace_colors='#2F6FED|color_accent'"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_BCB_GROUP_CHECK_STATE" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_CHECK_STATE_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <!-- 三态复选框 -->
+                        <HBox height="24" margin="0,10,0,0">
+                            <CheckBox name="check_tristate_demo" support_check_mode="true"
+                                      width="auto" height="20" text_id="STRID_BCB_CHECK_TRISTATE"
+                                      text_padding="22,0,0,0" text_align="vcenter" valign="center"
+                                      normal_image="file='${PATH_CHECKBOX}/checkbox-outline-unchecked.svg' width='18' height='18' valign='center' svg_replace_colors='#808080|border_svg_image'"
+                                      selected_normal_image="file='${PATH_CHECKBOX}/checkbox_checked.svg' width='18' height='18' valign='center' svg_replace_colors='#2F6FED|color_accent'"
+                                      part_selected_normal_image="file='${PATH_CHECKBOX}/checkbox_mixed.svg' width='18' height='18' valign='center' svg_replace_colors='#2F6FED|color_accent'"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="30" margin="0,6,0,0">
+                            <Button class="btn_global" name="btn_check_all" text_id="STRID_BCB_TRISTATE_ALL"
+                                    text_align="hcenter,vcenter" width="72" height="26" border_round="3,3" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="btn_check_part" text_id="STRID_BCB_TRISTATE_PART"
+                                    text_align="hcenter,vcenter" width="72" height="26" border_round="3,3" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="btn_check_none" text_id="STRID_BCB_TRISTATE_NONE"
+                                    text_align="hcenter,vcenter" width="72" height="26" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                        <Label name="bcb_tristate_label" text_id="STRID_BCB_TRISTATE_NONE_TEXT"
+                               text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <!-- 开关样式 -->
+                        <HBox height="26" margin="0,8,0,0" child_margin="10">
+                            <CheckBox class="checkbox_toggle_1" name="check_toggle_1"/>
+                            <Label text_id="STRID_BCB_CHECK_TOGGLE_1" text_color="text_muted" valign="center" margin="0,0,10,0"/>
+                            <CheckBox class="checkbox_toggle_1" name="check_toggle_2" selected="true"/>
+                            <Label text_id="STRID_BCB_CHECK_TOGGLE_1" text_color="text_muted" valign="center" margin="0,0,10,0"/>
+                            <CheckBox class="checkbox_toggle_2" name="check_toggle_3"/>
+                            <Label text_id="STRID_BCB_CHECK_TOGGLE_2" text_color="text_muted" valign="center"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- 第三行：Option 单选 / 综合表单 -->
+                <HBox width="stretch" height="auto" margin="0,10,0,0">
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="0,0,6,0">
+                        <Label text_id="STRID_BCB_GROUP_OPTION" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_OPTION_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <HBox height="24" margin="0,10,0,0" child_margin="16">
+                            <Option class="option_1" name="option_a" group="bcb_opt_1"
+                                    text_id="STRID_BCB_OPTION_A" selected="true"/>
+                            <Option class="option_1" name="option_b" group="bcb_opt_1"
+                                    text_id="STRID_BCB_OPTION_B"/>
+                            <Option class="option_1" name="option_c" group="bcb_opt_1"
+                                    text_id="STRID_BCB_OPTION_C"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="22" margin="0,8,0,0" child_margin="16">
+                            <Option class="option_2" name="option_x" group="bcb_opt_2"
+                                    text_id="STRID_BCB_OPTION_X" selected="true"/>
+                            <Option class="option_2" name="option_y" group="bcb_opt_2"
+                                    text_id="STRID_BCB_OPTION_Y"/>
+                            <Option class="option_2" name="option_z" group="bcb_opt_2"
+                                    text_id="STRID_BCB_OPTION_Z"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="24" margin="0,8,0,0" child_margin="16">
+                            <Option class="option_1" name="option_disabled" group="bcb_opt_3"
+                                    text_id="STRID_BCB_OPTION_DISABLED" enabled="false"/>
+                            <Control/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                          padding="16,14,16,14" width="50%" height="auto" margin="6,0,0,0">
+                        <Label text_id="STRID_BCB_GROUP_FORM" font="system_bold_15" text_color="text_default"/>
+                        <Label text_id="STRID_BCB_FORM_DESC" text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+
+                        <HBox height="26" margin="0,10,0,0">
+                            <CheckBox class="checkbox_toggle_1" name="form_notify" valign="center"/>
+                            <Label text_id="STRID_BCB_FORM_NOTIFY" valign="center" margin="10,0,0,0"/>
+                            <Control/>
+                        </HBox>
+                        <HBox height="24" margin="0,6,0,0">
+                            <CheckBox class="checkbox_1" name="form_auto_update" selected="true" valign="center"/>
+                            <Label text_id="STRID_BCB_FORM_AUTO_UPDATE" valign="center" margin="10,0,0,0"/>
+                            <Control/>
+                        </HBox>
+
+                        <Label text_id="STRID_BCB_FORM_CHANNEL" text_color="text_muted" margin="0,8,0,0"/>
+                        <HBox height="22" margin="0,4,0,0" child_margin="16">
+                            <Option class="option_2" name="form_channel_stable" group="bcb_channel"
+                                    text_id="STRID_BCB_FORM_STABLE" selected="true"/>
+                            <Option class="option_2" name="form_channel_beta" group="bcb_channel"
+                                    text_id="STRID_BCB_FORM_BETA"/>
+                            <Control/>
+                        </HBox>
+
+                        <HBox height="30" margin="0,10,0,0">
+                            <Button class="btn_primary_global" name="form_save" text_id="STRID_BCB_FORM_SAVE"
+                                    text_align="hcenter,vcenter" width="88" height="30" border_round="3,3" margin="0,0,8,0"/>
+                            <Button class="btn_global" name="form_cancel" text_id="STRID_BCB_FORM_CANCEL"
+                                    text_align="hcenter,vcenter" width="88" height="30" border_round="3,3"/>
+                            <Control/>
+                        </HBox>
+                        <Label name="bcb_form_label" text_id="STRID_BCB_FORM_HINT"
+                               text_color="text_muted" margin="0,4,0,0" auto_tooltip="true"/>
+                    </VBox>
+                </HBox>
+
+                <!-- 第四行：事件回显 -->
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="6,6"
+                      padding="16,14,16,14" width="stretch" height="auto" margin="0,10,0,0">
+                    <Label text_id="STRID_BCB_GROUP_EVENT" font="system_bold_15" text_color="text_default"/>
+                    <HBox height="34" margin="0,8,0,0">
+                        <Button class="btn_global" name="bcb_btn_counter" text_id="STRID_BCB_EVENT_CLICK_BTN"
+                                text_align="hcenter,vcenter" width="96" height="30" border_round="3,3" margin="0,0,12,0"/>
+                        <Label name="bcb_click_label" text_id="STRID_BCB_EVENT_CLICK_NONE"
+                               text_color="text_default" valign="center" auto_tooltip="true" margin="0,0,24,0"/>
+                        <CheckBox class="checkbox_1" name="check_event_demo" text_id="STRID_BCB_CHECK_1" valign="center"/>
+                        <Label name="bcb_check_label" text_id="STRID_BCB_EVENT_NONE"
+                               text_color="text_default" valign="center" margin="12,0,0,0" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                    <HBox height="24" margin="0,6,0,0">
+                        <Label name="bcb_option_label" text_id="STRID_BCB_EVENT_NONE"
+                               text_color="text_default" valign="center" auto_tooltip="true"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VScrollBox>
+    </VBox>
+</Window>

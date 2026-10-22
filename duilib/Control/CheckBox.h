@@ -427,7 +427,7 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     else if ((strName == _T("switch_select")) || (strName == _T("switchselect"))) {
         Selected(!IsSelected());
     }
-    else if (strName == _T("support_check_Mode")) {
+    else if ((strName == _T("support_check_mode")) || (strName == _T("supportcheckmode"))) {
         SetSupportCheckMode(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("auto_check_select")) {

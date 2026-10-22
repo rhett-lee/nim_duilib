@@ -434,6 +434,7 @@ The ButtonVBox control inherits the `VBox` attributes. For more available attrib
 | selected_pressed_text_color |  | string | Font color in pressed state when selected; if not specified, the default color is used, e.g. "blue" |
 | selected_disabled_text_color |  | string | Font color in disabled state when selected; if not specified, the default color is used, e.g. "blue" |
 | normal_first | false | bool | When the control is in the selected state and no background color or background image is set, draw using the corresponding attribute of the non-selected state |
+| support_check_mode | false | bool | Enables check mode: images are drawn based on the check state (IsChecked), and partial check is supported (part_selected_* images require IsChecked to be true) |
 
 The CheckBox control inherits the `Button` attributes. For more available attributes, please refer to the `Button` attributes.
 

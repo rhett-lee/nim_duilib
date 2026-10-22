@@ -432,6 +432,7 @@ ButtonVBox 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的�
 | selected_pressed_text_color |  | string | 选择状态的鼠标按下状态字体颜色,不指定则使用默认颜色,如"blue" |
 | selected_disabled_text_color |  | string | 选择状态的禁用状态字体颜色,不指定则使用默认颜色,如"blue" |
 | normal_first | false | bool | 控件在选择状态下，没有设置背景色或背景图时，用非选择状态的对应属性来绘制 |
+| support_check_mode | false | bool | 是否开启勾选模式：开启后按勾选状态（IsChecked）绘制图片，并支持部分勾选（part_selected_* 图片需配合 IsChecked 为 true） |
 
 CheckBox 控件继承了 `Button` 属性，更多可用属性请参考`Button`的属性
 

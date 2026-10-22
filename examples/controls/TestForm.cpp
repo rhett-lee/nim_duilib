@@ -11,6 +11,7 @@
 #include "BreadcrumbForm.h"
 #include "CascadingSelectForm.h"
 #include "SwitchForm.h"
+#include "ButtonCheckBoxForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -120,6 +121,15 @@ void TestForm::OnInitWindow()
     if (pSwitchBtn != nullptr) {
         pSwitchBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowSwitchWindow();
+            return true;
+            });
+    }
+
+    //Button / CheckBox / Option 演示窗口
+    ui::Button* pButtonCheckBoxBtn = dynamic_cast<ui::Button*>(FindControl(_T("button_checkbox_btn")));
+    if (pButtonCheckBoxBtn != nullptr) {
+        pButtonCheckBoxBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowButtonCheckBoxWindow();
             return true;
             });
     }
@@ -538,6 +548,18 @@ void TestForm::ShowSwitchWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("SwitchWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowButtonCheckBoxWindow()
+{
+    ButtonCheckBoxForm* testForm = new ButtonCheckBoxForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("ButtonCheckBoxForm");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();
