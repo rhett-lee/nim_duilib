@@ -9,6 +9,7 @@
 #include "CarouselForm.h"
 #include "TreeGridForm.h"
 #include "BreadcrumbForm.h"
+#include "CascadingSelectForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -100,6 +101,15 @@ void TestForm::OnInitWindow()
     if (pBreadcrumbBtn != nullptr) {
         pBreadcrumbBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowBreadcrumbWindow();
+            return true;
+            });
+    }
+
+    //CascadingSelect 级联选择器测试窗口
+    ui::Button* pCascadingSelectBtn = dynamic_cast<ui::Button*>(FindControl(_T("cascading_select_btn")));
+    if (pCascadingSelectBtn != nullptr) {
+        pCascadingSelectBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowCascadingSelectWindow();
             return true;
             });
     }
@@ -494,6 +504,18 @@ void TestForm::ShowBreadcrumbWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("BreadcrumbWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowCascadingSelectWindow()
+{
+    CascadingSelectForm* testForm = new CascadingSelectForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("CascadingSelectWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

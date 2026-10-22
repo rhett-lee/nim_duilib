@@ -135,6 +135,11 @@
                     <Button class="btn_global" name="breadcrumb_btn" text_id="STRID_CONTROLS_BREADCRUMB_TEST"
                             margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
                 </GroupHBox>
+                <!-- CascadingSelect 级联选择器：独立演示窗口入口 -->
+                <GroupHBox text="CascadingSelect" height="70" width="auto" margin="6,6,6,6" corner_size="4,4">
+                    <Button class="btn_global" name="cascading_select_btn" text_id="STRID_CONTROLS_CASCADING_SELECT_TEST"
+                            margin="20,30,20,0" width="180" height="30" border_round="3,3"/>
+                </GroupHBox>
             </HBox>
         </VBox>
         </VScrollBox>

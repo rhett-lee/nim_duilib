@@ -54,6 +54,10 @@ private:
     */
     void ShowBreadcrumbWindow();
 
+    /** 显示 CascadingSelect 级联选择器演示窗口
+    */
+    void ShowCascadingSelectWindow();
+
     /** 显示 Flyout 浮层演示
     * @param [in] pAnchor 锚点按钮（事件发送者）
     * @param [in] placement 期望弹出方位

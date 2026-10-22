@@ -86,7 +86,7 @@ English | [简体中文](README.md)
     <tr><td align="left">22. Improved the details of control animation functions and introduced easing functions, supporting the configuration of control animation properties, such as setting the easing function type, total animation duration, and playback interval</td></tr>
     <tr><td align="left">23. Unified context-menu API: Control::AttachPopupMenu binds a right-click menu to any control in one line (auto-creates the menu, resolves coordinates, invokes the item callback, and supports adjusting the menu after it pops up); the paired DetachPopupMenu unbinds it.</td></tr>
     <tr>
-        <td rowspan="51">New Controls / New Containers</td>
+        <td rowspan="52">New Controls / New Containers</td>
         <td align="left">1. GroupBox: grouping container</td>
     </tr>
     <tr><td align="left">2. HotKey: hotkey control</td></tr>
@@ -139,6 +139,7 @@ English | [简体中文](README.md)
     <tr><td align="left">49. Dialog: Generic modal dialog (duilib/Utils/Dialog.h) whose content can be any XML fragment, with fully customizable footer buttons (count, text and default button) and no extra XML file required; DoModal returns the index of the clicked button, and it supports ESC/title-bar close as cancel, Enter activating the focused button, text IDs for multi-language support, and a button-click callback executed before closing (returning false keeps the dialog open, making it possible to read content data or validate input).</td></tr>
     <tr><td align="left">50. SystemNotification: Native system notifications (duilib/Utils/SystemNotification.h). SDL builds send notifications to the system notification center through the SDL notification API (Windows/macOS/Linux/FreeBSD); Windows builds without SDL use a Shell_NotifyIcon tray balloon (Windows 7 and later). Provides IsSupported/RequestPermission/Show/Remove, supports notification priority, and leaves display and dismissal to the system. See docs/SystemNotification.en.md.</td></tr>
     <tr><td align="left">51. Breadcrumb: Breadcrumb navigation control (duilib/Control/Breadcrumb.h), fully self-drawn. Supports `|`-separated items, a highlighted current item, click-to-jump on ancestor items, disabled items, configurable separator/spacing/font and semantic colors, multi-language `item_text_id`, and the `AttachCurrentChanged` event. When the width is insufficient it right-aligns and clips so the current item stays visible.</td></tr>
+    <tr><td align="left">52. CascadingSelect: Cascading selector (duilib/Control/CascadingSelect.h), fully self-drawn with inline columns. Changing a parent filters child columns and resets deeper old selections automatically. Supports unlimited depth, `items`/`items_id` path data (common prefixes merged), disabled paths and subtrees, fixed or equal column widths, per-column wheel scrolling, localization and semantic colors, and the `AttachSelectionChanged` event.</td></tr>
     <tr>
         <td rowspan="3">Performance Optimization</td>
         <td align="left">1. Optimized the memory usage of Control and its child controls, greatly reducing memory footprint when there are many UI elements</td>

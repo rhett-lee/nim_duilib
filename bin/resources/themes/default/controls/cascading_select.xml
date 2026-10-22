@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="860,620" text="CascadingSelect Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="700,520">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_CASCADING_SELECT_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_CASCADING_SELECT_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VBox padding="12,8,12,12" width="stretch" height="stretch">
+            <!-- 基础形态：三级级联，父项变更自动过滤并重置子项 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,16,16,16" width="stretch" height="auto">
+                <Label text_id="STRID_CASCADING_SELECT_BASIC_TITLE" font="system_bold_15" text_color="text_default"
+                       valign="center" margin="0,0,0,12"/>
+                <CascadingSelect class="cascading_select" name="cascading_basic" width="stretch" height="174"
+                                 items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_XUHUI|STRID_CS_EAST/STRID_CS_HANGZHOU/STRID_CS_XIHU|STRID_CS_SOUTH/STRID_CS_GUANGZHOU/STRID_CS_TIANHE|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN|STRID_CS_NORTH/STRID_CS_BEIJING/STRID_CS_HAIDIAN"/>
+            </VBox>
+
+            <!-- 操作按钮与当前选择回显 -->
+            <HBox height="40" child_margin="8" margin="0,10,0,0">
+                <Button class="btn_global" name="btn_cs_select" text_id="STRID_CASCADING_SELECT_BTN_SELECT" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_clear" text_id="STRID_CASCADING_SELECT_BTN_CLEAR" width="80" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_add" text_id="STRID_CASCADING_SELECT_BTN_ADD" width="110" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_disable" text_id="STRID_CASCADING_SELECT_BTN_DISABLE" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_enable" text_id="STRID_CASCADING_SELECT_BTN_ENABLE" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_cs_read" text_id="STRID_CASCADING_SELECT_BTN_READ" width="96" height="28" border_round="3,3"/>
+            </HBox>
+
+            <!-- 事件回显 -->
+            <HBox height="30" margin="0,4,0,0">
+                <Label name="cascading_event" text_id="STRID_CASCADING_SELECT_EVENT_NONE" text_color="text_default"
+                       valign="center" width="stretch" auto_tooltip="true"/>
+            </HBox>
+
+            <!-- 自定义形态：自定义路径分隔符 + 固定列宽 + 禁用路径 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,16,16,16" width="stretch" height="auto" margin="0,10,0,0">
+                <Label text_id="STRID_CASCADING_SELECT_CUSTOM_TITLE" font="system_bold_15" text_color="text_default"
+                       valign="center" margin="0,0,0,12"/>
+                <CascadingSelect class="cascading_select" name="cascading_custom" width="stretch" height="116"
+                                 path_separator="&gt;" column_width="150"
+                                 disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                                 items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_DPI"/>
+            </VBox>
+            <!-- 占位：把剩余空间留在底部，避免卡片被拉高产生大片空白 -->
+            <Control height="stretch" mouse_enabled="false"/>
+        </VBox>
+    </VBox>
+</Window>

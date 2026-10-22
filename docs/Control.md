@@ -1252,6 +1252,80 @@ void AttachCurrentChanged(const EventCallback& callback, EventCallbackID callbac
 - 宽度不足时整体右对齐绘制、左端裁剪，保证末项 / 当前项可见；条目过多时建议业务侧先截短路径。
 - 默认皮肤在 global.xml 中定义 `breadcrumb` Class（仅颜色与字体，无图片资源），自动适配深浅色主题。
 
+## CascadingSelect 控件（级联选择器）
+
+CascadingSelect 是级联选择控件，继承自 `Control`，纯自绘（不创建子控件），对应头文件 `duilib/Control/CascadingSelect.h`。控件在自身矩形内按数据深度绘制多列：点击某一列后，子列内容立即过滤为该节点的子集，深层旧选择立即重置。这正是它与 `Combo`（Tree 形态只能手工模拟两级）和 `TreeView`（树形展开，非列式）的核心语义差异。控件是内嵌形态，可直接放进任意面板；需要下拉效果时由业务侧把它放进 `Flyout` 中。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| items | 空 | string | 字面路径列表，`\|` 分隔多条路径，路径内用 `path_separator` 分隔层级，如 `华东/上海/浦东\|华南/深圳/南山` |
+| items_id | 空 | string | 多语言路径列表，格式同 `items` 但每段是语言 ID；语言切换时自动刷新 |
+| path_separator | / | string | 路径层级分隔符 |
+| value_separator | " / " | string | `GetSelectionText()` 使用的连接符 |
+| column_width | 0 | int | 固定列宽（像素，自动 DPI 缩放）；0 表示按控件宽度等分 |
+| row_height | 28 | int | 行高（像素，自动 DPI 缩放） |
+| text_padding | 10 | int | 行内文本左右内边距（像素，自动 DPI 缩放） |
+| disabled_paths | 空 | string | 禁用路径列表，`\|` 分隔；路径等于节点文本路径或 ID 路径、或作为其前缀时，该节点及整棵子树禁用 |
+| item_color | text_default | string | 普通行文本颜色（语义色名或颜色值） |
+| selected_color | color_accent | string | 选中行文本颜色 |
+| disabled_color | text_disabled | string | 禁用行文本颜色 |
+| hover_bg_color | bg_list_item_hovered | string | 悬停行背景色（留空则不绘制） |
+| selected_bg_color | bg_list_item_selected | string | 选中行背景色（留空则不绘制） |
+| divider_color | border_split_level1 | string | 列分隔线颜色 |
+| chevron_color | color_gray | string | 有子项的节点右侧箭头颜色 |
+| scrollbar_color | color_gray | string | 列内容溢出时右缘滚动条颜色 |
+| font | system_regular_14 | string | 文本字体 ID |
+
+XML 示例（`class` 属性必须写在所有属性最前面）：
+
+```xml
+<!-- 基础用法：三级级联 + 多语言路径（相同前缀自动合并） -->
+<CascadingSelect class="cascading_select" name="cascading_basic" width="stretch" height="174"
+                 items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_XUHUI|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN"/>
+
+<!-- 自定义路径分隔符 + 固定列宽 + 禁用路径（含 ID 路径） -->
+<CascadingSelect class="cascading_select" path_separator="&gt;" column_width="150"
+                 disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                 items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
+```
+
+对应的 C++ 接口：
+
+```cpp
+void SetItems(const std::vector<DString>& paths);       // 字面路径，替换全部并清空选择
+void SetItemIds(const std::vector<DString>& pathIds);   // 每段为语言 ID
+void AddPath(const DString& path);                      void ClearItems();
+size_t GetDepth() const;                                // 列数
+size_t GetItemCount(size_t level) const;                // 该列当前可见条目数
+bool GetItemText(size_t level, size_t index, DString& text) const;
+const std::vector<int32_t>& GetSelection() const;       // 每级索引，-1 = 未选
+bool SetSelection(const std::vector<size_t>& indexes, bool bTriggerEvent = true);
+bool SetSelectionByText(const DString& strText, bool bTriggerEvent = true);  // 按 value_separator 文本匹配
+void ClearSelection(bool bTriggerEvent = true);
+DString GetSelectionText() const;                       // value_separator 连接
+DString GetSelectionPath() const;                       // path_separator 连接
+void SetDisabledPaths(const std::vector<DString>& paths);  bool IsItemDisabled(size_t level, size_t index) const;
+void SetPathSeparator(const DString& strSeparator);     void SetValueSeparator(const DString& strSeparator);
+void SetColumnWidth(int32_t nWidth);                    void SetRowHeight(int32_t nHeight);
+void SetTextPadding(int32_t nPadding);                  void SetFont(const DString& strFontId);
+//颜色：SetItemColor / SetSelectedColor / SetDisabledColor / SetDividerColor / SetChevronColor / SetScrollbarColor
+//背景：SetHoverBgColor / SetSelectedBgColor（留空则不绘制）
+void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+```
+
+选择变化事件：`AttachSelectionChanged`——选择实际变化时触发一次，事件编码为 `kEventValueChanged`，`wParam` 为 4（级联选择模式标记），新选择通过 `EventArgs::pEventData` 携带（指向 `CascadingSelectValue`，含 `indexes` / `text` / `path`；仅在本次回调派发期间有效，请勿保存该指针）。`SetSelection(..., false)` / `ClearSelection(false)` 不派发事件。
+
+行为说明：
+- 列数等于数据最大深度；第 `i` 列的条目由前 `i` 级选择决定，前缀未选满时该列留空。
+- 路径列表按首次出现顺序合并相同前缀；选择只影响显示，不会修改数据顺序。
+- 点击某列某行后，选择被截断到该层（深层旧选择立即重置），子列在同一帧内切换内容，随后派发一次事件（值未变化不派发）。
+- 禁用优先级最高：`disabled_paths` 命中节点后，该节点及其整棵子树置灰且不可点击；若此前已选中被禁用节点，选择会自动截断到其上层并派发一次事件。
+- 列内容超出可见行数时，鼠标在该列上滚轮可滚动（每格 3 行），右缘绘制按比例缩放的滚动条。
+- 文本按 `TEXT_END_ELLIPSIS` 截断；有子项的节点在行右侧绘制矢量箭头，不依赖字体字形。
+- 语言切换只重建显示文本，树形与选择索引保持不变；`items`（字面路径）不参与多语言刷新。
+- 本控件暂不支持键盘导航；需要键盘操作时由业务侧转发方向键 / 回车到 `SetSelection`。
+- 默认皮肤在 global.xml 中定义 `cascading_select` Class（仅颜色、字体与尺寸，无图片资源），自动适配深浅色主题。
+
 ## TreeGrid 控件（树表格）
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |

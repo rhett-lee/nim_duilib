@@ -172,6 +172,7 @@
     <ClInclude Include="CarouselForm.h" />
     <ClInclude Include="TreeGridForm.h" />
     <ClInclude Include="BreadcrumbForm.h" />
+    <ClInclude Include="CascadingSelectForm.h" />
     <ClInclude Include="ProgressForm.h" />
     <ClInclude Include="TabCtrlForm.h" />
     <ClInclude Include="ControlForm.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="CarouselForm.cpp" />
     <ClCompile Include="TreeGridForm.cpp" />
     <ClCompile Include="BreadcrumbForm.cpp" />
+    <ClCompile Include="CascadingSelectForm.cpp" />
     <ClCompile Include="ProgressForm.cpp" />
     <ClCompile Include="TabCtrlForm.cpp" />
     <ClCompile Include="ControlForm.cpp" />

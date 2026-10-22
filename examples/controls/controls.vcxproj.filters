@@ -78,6 +78,9 @@
     <ClInclude Include="BreadcrumbForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CascadingSelectForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageBoxForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -147,6 +150,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BreadcrumbForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CascadingSelectForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MessageBoxForm.cpp">

@@ -1252,6 +1252,80 @@ Behavior notes:
 - When the width is insufficient, the content is drawn right-aligned and clipped on the left, so the last/current item stays visible; for very long paths, shorten the path on the business side.
 - The default skin defines a `breadcrumb` class in global.xml (colors and font only, no image resources), adapting automatically to light/dark themes.
 
+## Attributes of CascadingSelect (cascading selector)
+
+CascadingSelect is a cascading selection control derived from `Control`, fully self-drawn (no child controls are created). Header file: `duilib/Control/CascadingSelect.h`. It draws multiple columns inside its own rectangle according to the data depth: after a column item is clicked, the child columns are filtered to that node's subset and deeper old selections are reset immediately. This is the core semantic difference from `Combo` (whose Tree form can only simulate two levels by hand) and `TreeView` (tree expansion, not columns). The control is inline; wrap it in a `Flyout` on the business side if a drop-down look is desired.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| items | empty | string | Literal paths separated by `\|`; levels inside a path are separated by `path_separator`, e.g. `East/Shanghai/Pudong\|South/Shenzhen/Nanshan` |
+| items_id | empty | string | Localized paths in the same format as `items`, where every segment is a language ID; refreshed on language change |
+| path_separator | / | string | Separator between levels |
+| value_separator | " / " | string | Connector used by `GetSelectionText()` |
+| column_width | 0 | int | Fixed column width (pixels, auto DPI scaled); 0 divides the control width equally |
+| row_height | 28 | int | Row height (pixels, auto DPI scaled) |
+| text_padding | 10 | int | Horizontal text padding inside a row (pixels, auto DPI scaled) |
+| disabled_paths | empty | string | Disabled paths separated by `\|`; a path equal to a node's text path or ID path, or a prefix of it, disables that node and its whole subtree |
+| item_color | text_default | string | Text color of normal rows (semantic color name or color value) |
+| selected_color | color_accent | string | Text color of the selected row |
+| disabled_color | text_disabled | string | Text color of disabled rows |
+| hover_bg_color | bg_list_item_hovered | string | Background of the hovered row (leave empty to disable) |
+| selected_bg_color | bg_list_item_selected | string | Background of the selected row (leave empty to disable) |
+| divider_color | border_split_level1 | string | Color of the column divider lines |
+| chevron_color | color_gray | string | Color of the right arrow drawn for nodes with children |
+| scrollbar_color | color_gray | string | Color of the per-column scrollbar shown when a column overflows |
+| font | system_regular_14 | string | Font ID of the text |
+
+XML example (`class` must be the first attribute):
+
+```xml
+<!-- Basic usage: three levels + localized paths (common prefixes are merged automatically) -->
+<CascadingSelect class="cascading_select" name="cascading_basic" width="stretch" height="174"
+                 items_id="STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_PUDONG|STRID_CS_EAST/STRID_CS_SHANGHAI/STRID_CS_XUHUI|STRID_CS_SOUTH/STRID_CS_SHENZHEN/STRID_CS_NANSHAN"/>
+
+<!-- Custom path separator + fixed column width + disabled path (ID path) -->
+<CascadingSelect class="cascading_select" path_separator="&gt;" column_width="150"
+                 disabled_paths="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_DNS"
+                 items_id="STRID_CS_SYSTEM&gt;STRID_CS_NETWORK&gt;STRID_CS_PROXY|STRID_CS_SYSTEM&gt;STRID_CS_DISPLAY&gt;STRID_CS_THEME"/>
+```
+
+Corresponding C++ interfaces:
+
+```cpp
+void SetItems(const std::vector<DString>& paths);       // literal paths, replaces all data and clears the selection
+void SetItemIds(const std::vector<DString>& pathIds);   // every segment is a language ID
+void AddPath(const DString& path);                      void ClearItems();
+size_t GetDepth() const;                                // number of columns
+size_t GetItemCount(size_t level) const;                // visible item count of that column
+bool GetItemText(size_t level, size_t index, DString& text) const;
+const std::vector<int32_t>& GetSelection() const;       // index per level, -1 = unselected
+bool SetSelection(const std::vector<size_t>& indexes, bool bTriggerEvent = true);
+bool SetSelectionByText(const DString& strText, bool bTriggerEvent = true);  // matches with value_separator
+void ClearSelection(bool bTriggerEvent = true);
+DString GetSelectionText() const;                       // joined with value_separator
+DString GetSelectionPath() const;                       // joined with path_separator
+void SetDisabledPaths(const std::vector<DString>& paths);  bool IsItemDisabled(size_t level, size_t index) const;
+void SetPathSeparator(const DString& strSeparator);     void SetValueSeparator(const DString& strSeparator);
+void SetColumnWidth(int32_t nWidth);                    void SetRowHeight(int32_t nHeight);
+void SetTextPadding(int32_t nPadding);                  void SetFont(const DString& strFontId);
+//Colors: SetItemColor / SetSelectedColor / SetDisabledColor / SetDividerColor / SetChevronColor / SetScrollbarColor
+//Backgrounds: SetHoverBgColor / SetSelectedBgColor (leave empty to disable)
+void AttachSelectionChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+```
+
+Selection change event: `AttachSelectionChanged` fires once when the selection actually changes. The event type is `kEventValueChanged`, `wParam` is 4 (cascading-select mode marker), and the new selection is carried in `EventArgs::pEventData` (pointing to `CascadingSelectValue` with `indexes` / `text` / `path`; valid only during the callback dispatch, do not store the pointer). `SetSelection(..., false)` / `ClearSelection(false)` do not fire the event.
+
+Behavior notes:
+- The number of columns equals the maximum data depth; items of column `i` are determined by selections at levels `0..i-1`, and the column stays empty until its prefix is fully selected.
+- Path lists merge common prefixes in first-appearance order; selection only affects display and never reorders the data.
+- After clicking a row, the selection is truncated to that level (deeper old selections reset immediately), the child columns switch content in the same frame, and one event is fired afterwards (no event when the value is unchanged).
+- Disabled wins over every other state: when `disabled_paths` matches a node, that node and its whole subtree are grayed out and unclickable; if a disabled node was selected before, the selection is truncated to its parent and one event is fired.
+- When a column overflows, the mouse wheel over that column scrolls it (3 rows per notch) and a proportional scrollbar is drawn on the right edge.
+- Text is truncated with `TEXT_END_ELLIPSIS`; nodes with children draw a vector arrow on the right, independent of font glyphs.
+- Language switching only rebuilds the display texts; the tree shape and selection indexes stay unchanged. `items` (literal paths) does not participate in localization refresh.
+- Keyboard navigation is not implemented; the business side can forward arrow keys / Enter to `SetSelection` if needed.
+- The default skin defines a `cascading_select` class in global.xml (colors, font and sizes only, no image resources), adapting automatically to light/dark themes.
+
 ## Attributes of TreeGrid (tree grid)
 
 | Attribute name | Default value | Parameter type | Purpose |

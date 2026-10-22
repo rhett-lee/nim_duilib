@@ -148,6 +148,7 @@ namespace ui
     #define  DUI_CTR_CAROUSEL                        (_T("Carousel"))
     #define  DUI_CTR_PAGINATION                      (_T("Pagination"))
     #define  DUI_CTR_BREADCRUMB                      (_T("Breadcrumb"))
+    #define  DUI_CTR_CASCADING_SELECT                (_T("CascadingSelect"))
     #define  DUI_CTR_TREE_GRID                       (_T("TreeGrid"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
     #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
