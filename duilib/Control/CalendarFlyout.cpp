@@ -8,7 +8,6 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
-#include <array>
 #include <ctime>
 
 namespace ui
@@ -22,9 +21,6 @@ namespace
  */
 Control* CreateCalendarCustomControl(const DString& strControlName)
 {
-    if (strControlName == _T("CalendarTitleButton")) {
-        return new CalendarTitleButton(nullptr);
-    }
     if (strControlName == _T("CalendarNavButton")) {
         return new CalendarNavButton(nullptr);
     }
@@ -44,84 +40,23 @@ void EnsureCalendarControlClassesRegistered()
 
 } // namespace
 
-void CalendarTitleButton::Paint(IRender* pRender, const UiRect& rcPaint)
-{
-    // 先绘制按钮本身（背景、边框、文本），保持原有交互外观
-    BaseClass::Paint(pRender, rcPaint);
-
-    // 仅在按钮可用状态（月视图/年视图：标题可上钻）绘制向下箭头；
-    // 十年视图下按钮被禁用，不绘制箭头，与"已是最粗粒度、无可再上钻层级"的语义一致。
-    if (!IsEnabled()) {
-        return;
-    }
-
-    // 箭头颜色与按钮文本当前状态色保持一致（普通/悬停/按下）
-    UiColor arrowColor = GetArrowColor();
-    if (arrowColor.IsEmpty()) {
-        return;
-    }
-
-    const UiRect rc = GetRect();
-    // 箭头绘制在按钮右侧预留的文本内边距区域内（见 XML 的 text_padding 右侧值）
-    const int32_t arrowSize = Dpi().GetScaleInt(7);  // 三角形的底宽与高度（像素），适当放大便于跨平台辨识
-    const int32_t marginRight = Dpi().GetScaleInt(5); // 距右边框的内边距，适当左移远离边缘
-    const int32_t cx = rc.right - marginRight - arrowSize / 2;
-    const int32_t cy = (rc.top + rc.bottom) / 2;
-    std::array<UiPointF, 3> pts = {{
-        UiPointF(static_cast<float>(cx - arrowSize / 2), static_cast<float>(cy - arrowSize / 2)),
-        UiPointF(static_cast<float>(cx + arrowSize / 2), static_cast<float>(cy - arrowSize / 2)),
-        UiPointF(static_cast<float>(cx),                       static_cast<float>(cy + arrowSize / 2)),
-    }};
-
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    if (pRenderFactory == nullptr) {
-        return;
-    }
-    std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
-    if (path == nullptr) {
-        return;
-    }
-    path->AddPolygon(pts.data(), static_cast<int32_t>(pts.size()));
-    path->Close();
-    std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(arrowColor));
-    if (brush != nullptr) {
-        pRender->FillPath(path.get(), brush.get());
-    }
-}
-
-UiColor CalendarTitleButton::GetArrowColor() const
-{
-    ControlStateType state = GetState();
-    DString colorStr;
-    if (state == kControlStatePressed) {
-        colorStr = GetStateTextColor(kControlStatePressed);
-        if (colorStr.empty()) {
-            state = kControlStateHovered;
-        }
-    }
-    if (state == kControlStateHovered) {
-        DString hovered = GetStateTextColor(kControlStateHovered);
-        if (!hovered.empty()) {
-            colorStr = hovered;
-        }
-        else {
-            state = kControlStateNormal;
-        }
-    }
-    if (colorStr.empty()) {
-        colorStr = GetStateTextColor(kControlStateNormal);
-    }
-    if (colorStr.empty()) {
-        return UiColor();
-    }
-    return GetUiColor(colorStr);
-}
-
 void CalendarNavButton::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("direction")) {
-        // left=上一月（‹），right=下一月（›）；缺省视为 left，兼容遗漏配置
-        m_direction = (strValue == _T("right")) ? Direction::kRight : Direction::kLeft;
+        // left=上一月（‹），right=下一月（›），left_year=上一年（«），right_year=下一年（»）
+        // 缺省视为 left，兼容遗漏配置
+        if (strValue == _T("right")) {
+            m_direction = Direction::kRight;
+        }
+        else if (strValue == _T("left_year")) {
+            m_direction = Direction::kLeftYear;
+        }
+        else if (strValue == _T("right_year")) {
+            m_direction = Direction::kRightYear;
+        }
+        else {
+            m_direction = Direction::kLeft;
+        }
         return;
     }
     BaseClass::SetAttribute(strName, strValue);
@@ -137,46 +72,45 @@ void CalendarNavButton::Paint(IRender* pRender, const UiRect& rcPaint)
     if (arrowColor.IsEmpty()) {
         return;
     }
-
-    const UiRect rc = GetRect();
-    // 居中绘制矢量三角（chevron）：与标题的向下箭头同源、风格统一；
-    // 导航按钮在浮层生命周期内始终可用，故始终绘制（不做禁用判断）。
-    const int32_t arrowSize = Dpi().GetScaleInt(8); // 三角形边长（像素），DPI 自适应
-    const int32_t cx = (rc.left + rc.right) / 2;
-    const int32_t cy = (rc.top + rc.bottom) / 2;
-    const float half = static_cast<float>(arrowSize) / 2.0f;
-
-    std::array<UiPointF, 3> pts;
-    if (m_direction == Direction::kRight) {
-        // 向右三角：apex 在右、底边在左（下一月 ›）
-        pts = std::array<UiPointF, 3>{{
-            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy)),
-            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy) - half),
-            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy) + half),
-        }};
-    }
-    else {
-        // 向左三角：apex 在左、底边在右（上一月 ‹）
-        pts = std::array<UiPointF, 3>{{
-            UiPointF(static_cast<float>(cx) - half, static_cast<float>(cy)),
-            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy) - half),
-            UiPointF(static_cast<float>(cx) + half, static_cast<float>(cy) + half),
-        }};
-    }
-
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory == nullptr) {
         return;
     }
+
+    const UiRect rc = GetRect();
+    const float cx = (rc.left + rc.right) / 2.0f;
+    const float cy = (rc.top + rc.bottom) / 2.0f;
+    // 箭头几何参数（DPI 自适应）：轻量的线条 chevron，替代原先粗重的实心三角
+    const float arrowWidth = (float)Dpi().GetScaleInt(4);   // chevron 的水平跨度
+    const float halfHeight = (float)Dpi().GetScaleInt(5);   // chevron 的半高
+    const float strokeWidth = Dpi().GetScaleFloat(1.5f);    // 线条宽度
+    const float step = (float)Dpi().GetScaleInt(6);         // 双 chevron 的间距
+
+    const bool bLeft = (m_direction == Direction::kLeft) || (m_direction == Direction::kLeftYear);
+    const bool bDouble = (m_direction == Direction::kLeftYear) || (m_direction == Direction::kRightYear);
+    const int32_t count = bDouble ? 2 : 1;
+    const float totalWidth = arrowWidth + (bDouble ? step : 0.0f);
+    const float leftmost = cx - totalWidth / 2.0f;
+
     std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
     if (path == nullptr) {
         return;
     }
-    path->AddPolygon(pts.data(), static_cast<int32_t>(pts.size()));
-    path->Close();
-    std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(arrowColor));
-    if (brush != nullptr) {
-        pRender->FillPath(path.get(), brush.get());
+    for (int32_t i = 0; i < count; ++i) {
+        // 左侧箭头：尖角在左、两个端点朝右；右侧箭头：尖角在右、两个端点朝左
+        const float vertexX = bLeft ? (leftmost + i * step) : (leftmost + arrowWidth + i * step);
+        const float endX = bLeft ? (vertexX + arrowWidth) : (vertexX - arrowWidth);
+        path->AddLine(endX, cy - halfHeight, vertexX, cy);
+        path->AddLine(vertexX, cy, endX, cy + halfHeight);
+    }
+
+    std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(arrowColor, strokeWidth));
+    if (pen != nullptr) {
+        // 圆笔帽/圆角联接，使 chevron 端点与转折更柔和
+        pen->SetStartCap(IPen::kRound_Cap);
+        pen->SetEndCap(IPen::kRound_Cap);
+        pen->SetLineJoin(IPen::kRound_Join);
+        pRender->DrawPath(path.get(), pen.get());
     }
 }
 
@@ -218,6 +152,8 @@ CalendarFlyout::CalendarFlyout(Window* pParentWindow):
     m_bShowCalendar(true),
     m_bShowSeconds(true),
     m_pTitleBtn(nullptr),
+    m_pPrevYearBtn(nullptr),
+    m_pNextYearBtn(nullptr),
     m_pCalendar(nullptr),
     m_pHourSpin(nullptr),
     m_pMinSpin(nullptr),
@@ -337,13 +273,15 @@ DString CalendarFlyout::BuildXml() const
                              width, height, padding, padding, padding, padding);
 
     if (m_bShowCalendar) {
-        //标题栏：上一月/标题/下一月
+        //标题栏：上一年/上一月/标题/下一月/下一年（图标按钮无边框，悬停时显示浅色背景）
         xml += _T("    <HBox height=\"32\" child_valign=\"center\">\n"
-                  "      <CalendarNavButton name=\"cal_prev\" direction=\"left\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
+                  "      <CalendarNavButton name=\"cal_prev_year\" direction=\"left_year\" width=\"24\" height=\"24\" normal_text_color=\"text_disabled\" hot_text_color=\"text_default\" pushed_text_color=\"text_default\" border_round=\"4,4\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_YEAR\"/>\n"
+                  "      <CalendarNavButton name=\"cal_prev\" direction=\"left\" width=\"24\" height=\"24\" normal_text_color=\"text_disabled\" hot_text_color=\"text_default\" pushed_text_color=\"text_default\" border_round=\"4,4\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
                   "      <Control/>\n"
-                  "      <CalendarTitleButton name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,22,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
+                  "      <Button name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"24\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,8,0\" border_round=\"4,4\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_disabled\"/>\n"
                   "      <Control/>\n"
-                  "      <CalendarNavButton name=\"cal_next\" direction=\"right\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
+                  "      <CalendarNavButton name=\"cal_next\" direction=\"right\" width=\"24\" height=\"24\" normal_text_color=\"text_disabled\" hot_text_color=\"text_default\" pushed_text_color=\"text_default\" border_round=\"4,4\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
+                  "      <CalendarNavButton name=\"cal_next_year\" direction=\"right_year\" width=\"24\" height=\"24\" normal_text_color=\"text_disabled\" hot_text_color=\"text_default\" pushed_text_color=\"text_default\" border_round=\"4,4\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_YEAR\"/>\n"
                   "    </HBox>\n"
                   "    <Calendar name=\"cal_grid\" height=\"240\" width=\"stretch\" calendar_mode=\"single\"/>\n");
     }
@@ -542,6 +480,22 @@ void CalendarFlyout::InitControls()
         });
     }
 
+    //上一年/下一年按钮（月视图下按年切换）
+    m_pPrevYearBtn = pThisWindow->FindControl(_T("cal_prev_year"));
+    if (m_pPrevYearBtn != nullptr) {
+        m_pPrevYearBtn->AttachClick([this](const EventArgs&) {
+            OnPrevYearClicked();
+            return true;
+        });
+    }
+    m_pNextYearBtn = pThisWindow->FindControl(_T("cal_next_year"));
+    if (m_pNextYearBtn != nullptr) {
+        m_pNextYearBtn->AttachClick([this](const EventArgs&) {
+            OnNextYearClicked();
+            return true;
+        });
+    }
+
     //标题按钮点击（切换视图）
     if (m_pTitleBtn != nullptr) {
         m_pTitleBtn->AttachClick([this](const EventArgs&) {
@@ -694,15 +648,25 @@ void CalendarFlyout::UpdateTitle()
     }
 
     //标题按钮的"可交互/禁用"状态需与当前视图层级一致：
-    // - 月视图 / 年视图：标题可点击上钻（月→年→十年），由 CalendarTitleButton 自绘向下箭头提示"可展开"。
+    // - 月视图 / 年视图：标题可点击上钻（月→年→十年）。
     // - 十年视图（viewMode==2）：已是最粗粒度层级，标题再无可上钻的视图，
-    //   故将按钮置为禁用状态；CalendarTitleButton 在禁用时不绘制箭头，使"点击无反应"在视觉上成立，
-    //   避免用户误以为还能继续上钻（配合 disabled_text_color / disabled_border_color 呈现禁用外观）。
+    //   故将按钮置为禁用状态，配合 disabled_text_color 呈现禁用外观，
+    //   避免用户误以为还能继续上钻。
     if (viewMode == 2) {
         m_pTitleBtn->SetEnabled(false);
     }
     else {
         m_pTitleBtn->SetEnabled(true);
+    }
+
+    //"上一年/下一年"按钮仅在月视图显示：年/十年视图已可通过左右箭头按页切换，
+    //隐藏后避免出现两组功能重复的箭头
+    const bool bShowYearNav = (viewMode == 0);
+    if (m_pPrevYearBtn != nullptr) {
+        m_pPrevYearBtn->SetVisible(bShowYearNav);
+    }
+    if (m_pNextYearBtn != nullptr) {
+        m_pNextYearBtn->SetVisible(bShowYearNav);
     }
 
     m_pTitleBtn->SetText(text);
@@ -724,6 +688,37 @@ void CalendarFlyout::OnNextClicked()
         pCalendar->NavigateNext();
         UpdateTitle();
     }
+}
+
+void CalendarFlyout::OnPrevYearClicked()
+{
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar == nullptr) {
+        return;
+    }
+    //月视图：保持月份不变，仅切换年份；年/十年视图：按页切换
+    if (pCalendar->GetViewMode() == 0) {
+        pCalendar->SetDisplayMonth(pCalendar->GetDisplayYear() - 1, pCalendar->GetDisplayMonth());
+    }
+    else {
+        pCalendar->NavigatePrev();
+    }
+    UpdateTitle();
+}
+
+void CalendarFlyout::OnNextYearClicked()
+{
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar == nullptr) {
+        return;
+    }
+    if (pCalendar->GetViewMode() == 0) {
+        pCalendar->SetDisplayMonth(pCalendar->GetDisplayYear() + 1, pCalendar->GetDisplayMonth());
+    }
+    else {
+        pCalendar->NavigateNext();
+    }
+    UpdateTitle();
 }
 
 void CalendarFlyout::OnTitleClicked()

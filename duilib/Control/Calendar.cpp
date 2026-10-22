@@ -1037,7 +1037,8 @@ void Calendar::DrawWeekdayHeader(IRender* pRender, const UiRect& rect, IFont* pF
         return;
     }
     int32_t cellWidth = rect.Width() / kDaysPerWeek;
-    UiColor textColor = GetUiColor(_T("text_muted"));
+    //星期标题使用灰色，与正文日期形成层次（参考 Ant Design 日期面板）
+    UiColor textColor = GetUiColor(_T("color_gray"));
     if (textColor.IsEmpty()) {
         textColor = UiColor(0xFF888888);
     }
@@ -1179,7 +1180,13 @@ void Calendar::DrawDayCell(IRender* pRender, const DayCell& cell, IFont* pFont)
         borderWidth = 1.0f;
     }
     else if (!cell.bCurrentMonth) {
-        textColor = GetUiColor(_T("text_muted"));
+        //非本月的日期使用更淡的颜色，与本月日期形成层次（参考 Ant Design 日期面板）
+        textColor = GetUiColor(_T("text_disabled"));
+        if (!textColor.IsEmpty()) {
+            //在禁用色的基础上降低不透明度，使非本月日期比星期标题更淡
+            textColor = UiColor(static_cast<uint8_t>(textColor.GetA() / 2),
+                                textColor.GetR(), textColor.GetG(), textColor.GetB());
+        }
     }
     else {
         textColor = GetUiColor(_T("text_default"));

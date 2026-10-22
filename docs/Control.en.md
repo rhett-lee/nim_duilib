@@ -605,11 +605,12 @@ CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar contro
 
 Key features:
 - Inherits Flyout: 8 placement directions, auto-flip on insufficient space, click-outside/Esc to close;
-- Built-in XML layout is generated dynamically per mode: date mode has header navigation (prev/title/next) + Calendar + footer buttons (Today/Clear); time mode adds an hour:minute[:second] row plus Cancel/OK; time-only mode does not create a Calendar;
+- Built-in XML layout is generated dynamically per mode: date mode has header navigation (prev year/prev month/title/next month/next year) + Calendar + footer buttons (Today/Clear); time mode adds an hour:minute[:second] row plus Cancel/OK; time-only mode does not create a Calendar;
 - Single mode: auto-close and trigger `AttachDateSelected` after date selection;
 - Range mode: drag to select start/end dates, auto-close and trigger `AttachDateSelected`;
 - Time mode (`SetTimeMode`): clicking a date does not close; only "OK" triggers `AttachDateTimeSelected` and closes; "Cancel"/Esc/click-outside do not commit;
 - Three-level navigation: click title to cycle month/year/decade views.
+- In month view the header shows previous-year ("«") / next-year ("»") buttons for direct year jumps; they are hidden in year/decade views, where the single arrows page by year/decade. Days outside the displayed month are drawn in a lighter gray to distinguish them from the current month.
 
 ### C++ Interfaces
 

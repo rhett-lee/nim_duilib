@@ -14,43 +14,15 @@ namespace ui
 class Calendar;
 class SpinBox;
 
-/** 日历标题按钮：在 Button 基础上自绘一个"向下箭头"（矢量三角形），替代原先依赖字体的 ▾ 字符。
- *
- *  背景：原实现把 ▾(U+25BE) 字符拼接到标题文本末尾来提示"可上钻"。该几何形状字符在部分平台
- *        （Linux/macOS/FreeBSD 等）的默认字体中缺失，会渲染成豆腐块或空白，导致"显示异常"。
- *        改为矢量绘制（IRender + IPath）后，所有平台渲染一致、字体内存无关。
- *
- *  行为：箭头仅在按钮可用时（月视图/年视图：标题可上钻）绘制；十年视图下按钮被禁用，不绘制箭头，
- *        与"已是最粗粒度、无可再上钻层级"的语义一致。箭头颜色跟随按钮文本当前状态色（普通/悬停/按下）。
- */
-class DUILIB_API CalendarTitleButton : public Button
-{
-    typedef Button BaseClass;
-public:
-    explicit CalendarTitleButton(Window* pWindow) : Button(pWindow) {}
-    CalendarTitleButton(const CalendarTitleButton&) = delete;
-    CalendarTitleButton& operator=(const CalendarTitleButton&) = delete;
-    virtual ~CalendarTitleButton() override = default;
-
-    /** 自绘：先绘制按钮本身（背景/边框/文本），再在其右侧预留区域内绘制向下箭头
-     */
-    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
-
-private:
-    /** 解析箭头颜色：与按钮文本当前状态色一致（普通 -> 悬停 -> 按下 的回退逻辑）
-     */
-    UiColor GetArrowColor() const;
-};
-
 /** 日历上一月/下一月导航按钮：自绘矢量 chevron（左/右），替代原先依赖字体的 ‹ / › 字符。
  *
  *  背景：原实现用 text="&#x2039;"(‹) / "&#x203A;"(›) 作为导航箭头。这两枚字符属"通用标点"区块，
- *        虽比已修复的 ▾(U+25BE) 几何形状字符覆盖率更好，但仍依赖运行字体有对应字形；在字体缺失或
- *        回退链不达的环境下同样可能变豆腐块。改为矢量绘制（IRender + IPath）后，与标题的向下箭头
- *        同源、全平台一致、字体内存无关，且三个指示符（左/下/右）视觉风格统一。
+ *        依赖运行字体有对应字形；在字体缺失或回退链不达的环境下可能变豆腐块。
+ *        改为矢量绘制（IRender + IPath）后，全平台一致、字体内存无关。
  *
  *  行为：图标颜色跟随按钮文本当前状态色（普通/悬停/按下）；方向由 XML 的 direction 属性指定
- *        （left=上一月，right=下一月），缺省视为 left。导航按钮在浮层生命周期内始终可用，故始终绘制。
+ *        （left=上一月，right=下一月，left_year/right_year=上一年/下一年，双 chevron）。
+ *        导航按钮在浮层生命周期内始终可用，故始终绘制。
  */
 class DUILIB_API CalendarNavButton : public Button
 {
@@ -58,8 +30,10 @@ class DUILIB_API CalendarNavButton : public Button
 public:
     enum class Direction
     {
-        kLeft,  // 上一月：‹
-        kRight, // 下一月：›
+        kLeft,      // 上一月：‹
+        kRight,     // 下一月：›
+        kLeftYear,  // 上一年：«
+        kRightYear, // 下一年：»
     };
 
     explicit CalendarNavButton(Window* pWindow) : Button(pWindow), m_direction(Direction::kLeft) {}
@@ -249,6 +223,14 @@ private:
     */
     void OnNextClicked();
 
+    /** 上一年点击处理（月视图下按年切换）
+    */
+    void OnPrevYearClicked();
+
+    /** 下一年点击处理（月视图下按年切换）
+    */
+    void OnNextYearClicked();
+
     /** 标题点击（切换视图模式）
     */
     void OnTitleClicked();
@@ -311,6 +293,8 @@ private:
     /** 内部控件指针
     */
     Button* m_pTitleBtn;
+    Control* m_pPrevYearBtn;
+    Control* m_pNextYearBtn;
     Control* m_pCalendar;
     SpinBox* m_pHourSpin;
     SpinBox* m_pMinSpin;
