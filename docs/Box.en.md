@@ -141,7 +141,21 @@ Available attributes inherit those of `Floating Layout (Layout)`.
 ```
 
 ### 5. Vertical Flow Layout (VFlowLayout)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| justify | Not set | string | Distribution of the remaining main-axis (in-column) space. Values: "none" (reset to not set), "start", "center", "end", "space-between", "space-around", "space-evenly"; when not set, `child_valign` is used |
+
 Available attributes inherit those of `Floating Layout (Layout)`.
+
+**justify**: distributes the child controls in each column when the column is shorter than the container (only effective when the column height is smaller than the container height). Once set explicitly, the in-column main-axis behavior is no longer controlled by `child_valign`. Setting `justify` to `none` at runtime resets it to the not-set state and restores the original `child_valign` behavior. Example:
+
+```xml
+<VFlowBox child_valign="top" justify="space-between" width="400" height="stretch">
+    <Label text="Tag 1" width="80" height="24"/>
+    <Label text="Tag 2" width="80" height="24"/>
+    <Label text="Tag 3" width="80" height="24"/>
+</VFlowBox>
+```
 
 ### 6. Horizontal Tile Layout (HTileLayout)
 | Attribute name | Default value | Parameter type | Purpose |

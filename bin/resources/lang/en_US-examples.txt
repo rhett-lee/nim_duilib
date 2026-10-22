@@ -1407,7 +1407,8 @@ STRID_LAYOUT_PAGE_32 = Space between
 STRID_LAYOUT_PAGE_33 = Space around
 STRID_LAYOUT_PAGE_34 = Space evenly
 STRID_LAYOUT_PAGE_35 = Default (start)
-STRID_LAYOUT_PAGE_36 = (Overrides child_halign when set)
+STRID_LAYOUT_PAGE_36 = (Overrides child_halign / child_valign when set)
+STRID_LAYOUT_PAGE_37 = Not set (original logic)
 
 # examples/ColorTheme
 STRID_COLORTHEME_BTN_OPEN_THEME_MGR    = Open Theme Color Manager

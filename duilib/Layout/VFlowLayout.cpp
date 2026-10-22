@@ -5,10 +5,115 @@
 namespace ui 
 {
 
-VFlowLayout::VFlowLayout()
+namespace
+{
+/** 解析 justify 属性值
+*/
+bool ParseJustify(const DString& strValue, VFlowLayout::JustifyContent& justifyContent)
+{
+    if ((strValue == _T("none")) || (strValue == _T("not-set")) || (strValue == _T("not_set"))) {
+        //复位为未设置，恢复 child_valign 的原有行为
+        justifyContent = VFlowLayout::JustifyContent::kNotSet;
+    }
+    else if (strValue == _T("start")) {
+        justifyContent = VFlowLayout::JustifyContent::kStart;
+    }
+    else if (strValue == _T("center")) {
+        justifyContent = VFlowLayout::JustifyContent::kCenter;
+    }
+    else if (strValue == _T("end")) {
+        justifyContent = VFlowLayout::JustifyContent::kEnd;
+    }
+    else if ((strValue == _T("space-between")) || (strValue == _T("space_between")) || (strValue == _T("spacebetween"))) {
+        justifyContent = VFlowLayout::JustifyContent::kSpaceBetween;
+    }
+    else if ((strValue == _T("space-around")) || (strValue == _T("space_around")) || (strValue == _T("spacearound"))) {
+        justifyContent = VFlowLayout::JustifyContent::kSpaceAround;
+    }
+    else if ((strValue == _T("space-evenly")) || (strValue == _T("space_evenly")) || (strValue == _T("spaceevenly"))) {
+        justifyContent = VFlowLayout::JustifyContent::kSpaceEvenly;
+    }
+    else {
+        return false;
+    }
+    return true;
+}
+
+/** 计算主轴剩余空间的分布偏移（返回值长度 = nCount，单位：像素）
+*/
+std::vector<int32_t> CalcJustifyOffsets(size_t nCount, int32_t nExtra, VFlowLayout::JustifyContent justifyContent)
+{
+    std::vector<int32_t> offsets(nCount, 0);
+    if ((nCount == 0) || (nExtra <= 0)) {
+        return offsets;
+    }
+    switch (justifyContent) {
+    case VFlowLayout::JustifyContent::kCenter:
+        for (int32_t& nOffset : offsets) {
+            nOffset = nExtra / 2;
+        }
+        break;
+    case VFlowLayout::JustifyContent::kEnd:
+        for (int32_t& nOffset : offsets) {
+            nOffset = nExtra;
+        }
+        break;
+    case VFlowLayout::JustifyContent::kSpaceBetween:
+        if (nCount > 1) {
+            const int64_t nDivisor = (int64_t)(nCount - 1);
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)nIndex / nDivisor);
+            }
+        }
+        break;
+    case VFlowLayout::JustifyContent::kSpaceAround:
+        //每个子项两侧各占半个间距：第 i 项之前共有 (2i + 1) 个半间距
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)(2 * nIndex + 1) / (int64_t)(2 * nCount));
+        }
+        break;
+    case VFlowLayout::JustifyContent::kSpaceEvenly:
+        //首尾与相邻子项之间的间隙相等：第 i 项之前共有 (i + 1) 个间距
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)(nIndex + 1) / (int64_t)(nCount + 1));
+        }
+        break;
+    default:
+        break;
+    }
+    return offsets;
+}
+} // namespace
+
+VFlowLayout::VFlowLayout() :
+    m_justifyContent(JustifyContent::kNotSet)
 {
     //默认靠上对齐
     SetChildVAlignType(VerAlignType::kAlignTop);
+}
+
+void VFlowLayout::SetJustifyContent(JustifyContent justifyContent)
+{
+    if (m_justifyContent != justifyContent) {
+        m_justifyContent = justifyContent;
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
+        }
+    }
+}
+
+bool VFlowLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
+{
+    if ((strName == _T("justify")) || (strName == _T("justify_content"))) {
+        JustifyContent justifyContent = JustifyContent::kNotSet;
+        if (!ParseJustify(strValue, justifyContent)) {
+            ASSERT(0);
+            return false;
+        }
+        SetJustifyContent(justifyContent);
+        return true;
+    }
+    return BaseClass::SetAttribute(strName, strValue, dpiManager);
 }
 
 UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly, bool bEstimateLayoutSize) const
@@ -240,31 +345,63 @@ UiSize64 VFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         }
     }
 
-    if ((GetChildVAlignType() == VerAlignType::kAlignCenter) || (GetChildVAlignType() == VerAlignType::kAlignBottom)) {
-        //垂直方向的对齐方式: 按列设置对齐
-        const VerAlignType vAlignType = GetChildVAlignType();
-        for (TColumnControls& control : columnControlList) {
-            UiRect& rowRect = control.m_columnRect;
-            if (rowRect.Height() < rcBox.Height()) {
-                int32_t nOffsetY = 0;
-                if (vAlignType == VerAlignType::kAlignCenter) {
-                    //垂直居中对齐
-                    nOffsetY = (rcBox.Height() - rowRect.Height()) / 2;
-                }
-                else if (vAlignType == VerAlignType::kAlignBottom) {
-                    //靠下对齐
-                    nOffsetY = rcBox.Height() - rowRect.Height();
-                }
-                if (nOffsetY != 0) {
-                    rowRect.Offset(0, nOffsetY);
-                    for (UiRect& rcChild : control.m_pControlRects) {
-                        rcChild.Offset(0, nOffsetY);
+    //处理主轴（垂直方向）的对齐与分布
+    if (m_justifyContent == JustifyContent::kNotSet) {
+        //未设置 justify：严格保持原有逻辑，仅当 child_valign 为居中/靠下时按列整体偏移
+        if ((GetChildVAlignType() == VerAlignType::kAlignCenter) || (GetChildVAlignType() == VerAlignType::kAlignBottom)) {
+            //垂直方向的对齐方式: 按列设置对齐
+            const VerAlignType vAlignType = GetChildVAlignType();
+            for (TColumnControls& control : columnControlList) {
+                UiRect& columnRect = control.m_columnRect;
+                if (columnRect.Height() < rcBox.Height()) {
+                    int32_t nOffsetY = 0;
+                    if (vAlignType == VerAlignType::kAlignCenter) {
+                        //垂直居中对齐
+                        nOffsetY = (rcBox.Height() - columnRect.Height()) / 2;
                     }
+                    else if (vAlignType == VerAlignType::kAlignBottom) {
+                        //靠下对齐
+                        nOffsetY = rcBox.Height() - columnRect.Height();
+                    }
+                    if (nOffsetY != 0) {
+                        columnRect.Offset(0, nOffsetY);
+                        for (UiRect& rcChild : control.m_pControlRects) {
+                            rcChild.Offset(0, nOffsetY);
+                        }
 
-                    //返回的区域大小，需要包含向下调整的偏移量
-                    childrenRect.Union(control.m_columnRect);
+                        //返回的区域大小，需要包含向下调整的偏移量
+                        childrenRect.Union(control.m_columnRect);
+                    }
                 }
             }
+        }
+    }
+    else if (m_justifyContent != JustifyContent::kStart) {
+        //显式设置 justify：按列分布剩余空间
+        for (TColumnControls& control : columnControlList) {
+            const size_t nCount = control.m_pControlRects.size();
+            if ((nCount == 0) || (nCount != control.m_pControlList.size())) {
+                continue;
+            }
+            const int32_t nExtra = rcBox.Height() - control.m_columnRect.Height();
+            if (nExtra <= 0) {
+                continue;
+            }
+            const std::vector<int32_t> offsets = CalcJustifyOffsets(nCount, nExtra, m_justifyContent);
+            UiRect columnRect;
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                UiRect& rcChild = control.m_pControlRects[nIndex];
+                rcChild.Offset(0, offsets[nIndex]);
+
+                //重新计算本列的矩形范围（包含子控件的外边距）
+                UiRect rcItem = rcChild;
+                rcItem.Inflate(control.m_pControlList[nIndex]->GetMargin());
+                columnRect.Union(rcItem);
+            }
+            control.m_columnRect = columnRect;
+
+            //返回的区域大小，需要包含分布调整后的偏移量
+            childrenRect.Union(control.m_columnRect);
         }
     }
 

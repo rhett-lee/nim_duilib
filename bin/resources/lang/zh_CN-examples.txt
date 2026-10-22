@@ -1412,7 +1412,7 @@ STRID_LAYOUT_PAGE_32 = 两端对齐(space-between)
 STRID_LAYOUT_PAGE_33 = 环绕分布(space-around)
 STRID_LAYOUT_PAGE_34 = 均匀分布(space-evenly)
 STRID_LAYOUT_PAGE_35 = 默认分布(start)
-STRID_LAYOUT_PAGE_36 = （设置后覆盖 child_halign）
+STRID_LAYOUT_PAGE_36 = （设置后覆盖 child_halign / child_valign）
 STRID_LAYOUT_PAGE_37 = 未设置(兼容原逻辑)
 
 # examples/ColorTheme

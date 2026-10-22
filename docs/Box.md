@@ -137,7 +137,21 @@
 ```
 
 ### 5. 垂直流式布局（VFlowLayout）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| justify | 未设置 | string | 主轴（列内）剩余空间的分布方式。可选值："none"（复位为未设置）、"start","center","end","space-between","space-around","space-evenly"；未设置时沿用 child_valign |
+
 可用属性继承`浮动布局（Layout）`的属性
+
+**justify 说明**：对每一列内未占满容器高度的子控件进行分布（仅当列高小于容器高度时生效）；显式设置后，列内主轴行为不再受 `child_valign` 控制。运行时将 `justify` 设为 `none` 可复位为未设置状态，恢复 `child_valign` 的原有行为。示例：
+
+```xml
+<VFlowBox child_valign="top" justify="space-between" width="400" height="stretch">
+    <Label text="标签1" width="80" height="24"/>
+    <Label text="标签2" width="80" height="24"/>
+    <Label text="标签3" width="80" height="24"/>
+</VFlowBox>
+```
 
 ### 6. 水平瓦片布局（HTileLayout）
 | 属性名称 | 默认值 | 参数类型 | 用途 |

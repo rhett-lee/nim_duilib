@@ -31,3 +31,5 @@
 - `kNotSet` 分支已改回原逻辑代码块（不经过 `CalcJustifyOffsets`），确保与原行为逐条一致。
 - 测试程序新增 `justify='none'`（`STRID_LAYOUT_PAGE_37`，默认选中）用于验证兼容性；`none`/`not-set`/`not_set` 均复位为 `kNotSet`。
 - 补充修改后重新编译 Debug|x64：EXIT=0；`verify_docs.py`：EXIT=0。
+- `VFlowLayout` 已按完全对称方式补齐：`JustifyContent`、`justify`/`justify_content` 解析（含 `none` 复位）、按列沿 Y 轴分布；`kNotSet` 保留原 `child_valign` 代码块。
+- `page_vflow_box.xml` 增加同组 justify 选项；`docs/Box.md` / `Box.en.md` 第 5 节同步补齐。

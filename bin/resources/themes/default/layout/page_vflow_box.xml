@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
     <Class name="page_vflowbox" multi_line="true" margin="6,6,6,6" width="80" height="60" bkcolor="Sienna" border_size="1" border_color="green"/>
-    <VBox height="84" padding="6,0,6,0" >
+    <VBox height="112" padding="6,0,6,0" >
         <HBox width="auto" height="auto">
             <Label text="VFlowBox " height="28" valign="center"/>
             <Label text_id="STRID_LAYOUT_TEST_TITLE" height="28" valign="center"/>
@@ -31,6 +31,25 @@
                 <Event type="select" receiver="vflowbox_test" apply_attribute="child_valign='bottom'" />
             </Option>
             <Label text_id="STRID_LAYOUT_PAGE_30" valign="center"/>
+        </HBox>
+        <HBox height="28">
+            <Label text_id="STRID_LAYOUT_PAGE_31" valign="center"/>
+            <Option class="option_1" group="vflowbox_group_justify" text_id="STRID_LAYOUT_PAGE_37" height="28" valign="center" margin="8,0,0,0" selected="true">
+                <Event type="select" receiver="vflowbox_test" apply_attribute="justify='none'" />
+            </Option>
+            <Option class="option_1" group="vflowbox_group_justify" text_id="STRID_LAYOUT_PAGE_35" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflowbox_test" apply_attribute="justify='start'" />
+            </Option>
+            <Option class="option_1" group="vflowbox_group_justify" text_id="STRID_LAYOUT_PAGE_32" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflowbox_test" apply_attribute="justify='space-between'" />
+            </Option>
+            <Option class="option_1" group="vflowbox_group_justify" text_id="STRID_LAYOUT_PAGE_33" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflowbox_test" apply_attribute="justify='space-around'" />
+            </Option>
+            <Option class="option_1" group="vflowbox_group_justify" text_id="STRID_LAYOUT_PAGE_34" height="28" valign="center" margin="8,0,0,0" selected="false">
+                <Event type="select" receiver="vflowbox_test" apply_attribute="justify='space-evenly'" />
+            </Option>
+            <Label text_id="STRID_LAYOUT_PAGE_36" valign="center"/>
         </HBox>
     </VBox>
     <VBox>

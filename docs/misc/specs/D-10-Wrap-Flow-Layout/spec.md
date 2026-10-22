@@ -23,17 +23,17 @@
 1. `HFlowLayout` 新增 XML 属性 `justify`（别名 `justify_content`）。
 2. 取值：`none`（复位为未设置）、`start`、`center`、`end`、`space-between`、`space-around`、`space-evenly`（分隔符 `-` 与 `_` 均可）。
 3. `justify` 显式设置后优先于 `child_halign` 的行内对齐行为；未设置时保持现有行为，**零回归**。
-4. 补齐 `examples/layout` 的 HFlowBox 演示与中英文文档。
+4. 补齐 `examples/layout` 的 HFlowBox / VFlowBox 演示与中英文文档。
 5. 更新 Development-Plan，D-10 标记完成。
 
 ### 非目标
 
 - 不修改 `duilib/Layout/Layout.h/.cpp`（枚举、成员、解析、偏移计算都在 HFlowLayout 内）。
 - 不改 `LayoutType` 枚举、不新建控件类、不改 `WindowBuilder`、不改 `HFlowBox`。
-- 本次不改 `VFlowLayout`（D-10 的诉求是「按内容宽度换行」，纵向流式布局不在本条范围）。
+- 本次不改 `HTileLayout` / `VTileLayout`（等宽布局不在本条范围）；`VFlowLayout` 采用与 `HFlowLayout` 完全对称的实现（主轴为列内垂直方向）。
 - 不实现统一 `item_width` / `item_height`、交叉轴拉伸或 `align_items`。
 
-## 三、API 设计（仅 `HFlowLayout`）
+## 三、API 设计（HFlowLayout 与 VFlowLayout 对称）
 
 ### 3.1 `duilib/Layout/HFlowLayout.h`
 
@@ -144,9 +144,20 @@ if (生效方式 != kStart):
 - 保留垂直方向整块对齐逻辑（含 `ScrollBox` 纵向滚动条判断）不变。
 - 评估模式（`bEstimateLayoutSize`）仍提前返回，不参与分布。
 
+### 3.4 `VFlowLayout`（与 HFlowLayout 完全对称）
+
+- `VFlowLayout.h`：同样在类内新增嵌套 `JustifyContent` 枚举、`GetJustifyContent` / `SetJustifyContent`、`SetAttribute` override 与成员 `m_justifyContent`。
+- `VFlowLayout.cpp`：匿名命名空间实现同样的 `ParseJustify` / `CalcJustifyOffsets`；`SetAttribute` 解析 `justify` / `justify_content`（含 `none` 复位）。
+- 布局应用位置：替换「垂直方向按列对齐」代码块（`VFlowLayout.cpp:243-269`）：
+  - `m_justifyContent == kNotSet` 时**原样保留原逻辑**（仅 `child_valign` 为 center/bottom 时按列整体偏移）；
+  - 其它取值按列沿 Y 轴分布：`nExtra = rcBox.Height() - columnRect.Height()`，逐项 `rcChild.Offset(0, offsets[i])` 后用「子项矩形 + margin」重算 `columnRect`。
+- 交叉轴（水平方向）整块对齐逻辑与 `ScrollBox` 判断保持不变。
+
 ## 四、示例与文档改动
 
-### 4.1 layout 示例（仅横向流式页面）
+### 4.1 layout 示例（横向与纵向流式页面）
+
+`page_hflow_box.xml` / `page_vflow_box.xml` 均增加一行 justify 选项（含 `none` 复位选项），选项区高度 `84` → `112`；HFlow 页面 hint 使用 `STRID_LAYOUT_PAGE_36`，VFlow 页面复用同一组语言 ID。
 
 `bin/resources/themes/default/layout/page_hflow_box.xml`：
 
