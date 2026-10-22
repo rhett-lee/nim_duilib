@@ -1447,7 +1447,9 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
         // Process attributes
         if(!node.attributes().empty()) {
             //读取节点的属性，设置控件的属性
+#ifdef _DEBUG
             int32_t i = 0;
+#endif
             for (pugi::xml_attribute attr : node.attributes()) {
 #ifdef _DEBUG
                 // 约束class必须是第一个属性,否则可能会出现属性的值被class中的同名属性覆盖的问题
@@ -1455,8 +1457,8 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
                 if ((StringUtil::StringCompare(attr.name(), _T("class")) == 0) && (i != 0)) {
                     ASSERT(i == 0);
                 }
-#endif  
                 ++i;
+#endif
                 pControl->SetAttribute(attr.name(), attr.value());
             }
         }

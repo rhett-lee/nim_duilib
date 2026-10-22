@@ -383,6 +383,9 @@ public:
     void SetBorderColor(const DString& strColor);
     /** 获取选择框边框颜色 */
     const DString& GetBorderColor() const { return m_strBorderColor; }
+    /** 引入基类的 GetBorderColor(ControlStateType) 重载，避免被本类的无参版本隐藏
+        （消除 GCC -Woverloaded-virtual 警告） */
+    using BaseClass::GetBorderColor;
 
     /** 设置选择框悬停/展开状态的边框颜色 */
     void SetHoverBorderColor(const DString& strColor);
