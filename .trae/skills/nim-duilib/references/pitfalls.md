@@ -44,6 +44,11 @@ grep -o '<ThemeColor name="[^"]*"' bin/resources/themes/color_light/global.xml
 `bg_window_main` 浅色是 `#FFF4F4F4`、深色是另一个值。写死 `#FFF4F4F4` 后切到深色主题不会变。
 一律写语义色名。
 
+**C++ 绘制代码同样适用**：`SetBkColor(_T("white"))` 这类写法在深色主题下会出现白底/黑字
+（典型案例：`DateTimeWnd` 的编辑态白底）。自绘控件必须用 `GetUiColor(_T("语义色名"))`，
+固定色只能作为 `IsEmpty()` 时的兜底。新增色名要同时写进 `color_light` 与 `color_dark`。
+完整检查清单与自查命令见 `theme.md` 第五节。
+
 ### 5. 用旧标题栏名 → 仍能工作，但走的是 fallback
 
 `WindowImplBase::GetBtnWindowByName`（`WinImplBase.cpp:439-458`）**先按新名查找，找不到才用旧名**

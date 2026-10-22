@@ -119,7 +119,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
             pRichEdit->SetAttribute(_T("hide_selection"), _T("true"));
             pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
             pRichEdit->SetAttribute(_T("want_return_msg"), _T("false"));
-            pRichEdit->SetBkColor(_T("white"));
+            pRichEdit->SetBkColor(_T("bg_richedit"));
             pRichEdit->SetTabStop(true);
         }
     }
@@ -128,7 +128,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     Control* pEmpty = new Control(m_pOwner->GetWindow());
     pEmpty->SetAttribute(_T("width"), _T("100%"));
     pEmpty->SetAttribute(_T("height"), _T("100%"));
-    pEmpty->SetBkColor(_T("white"));
+    pEmpty->SetBkColor(_T("bg_richedit"));
     pEmpty->SetTabStop(false);
     pEmpty->SetNoFocus();
     pEmpty->SetMouseEnabled(false);
@@ -398,7 +398,7 @@ Control* DateTimeWnd::CreateLabel(const DString& text) const
     pLabel->SetAttribute(_T("width"), _T("auto"));
     pLabel->SetAttribute(_T("min_width"), _T("4"));
     pLabel->SetAttribute(_T("height"), _T("100%"));
-    pLabel->SetBkColor(_T("white"));
+    pLabel->SetBkColor(_T("bg_richedit"));
     pLabel->SetTabStop(false);
     pLabel->SetNoFocus();
     pLabel->SetMouseEnabled(false);

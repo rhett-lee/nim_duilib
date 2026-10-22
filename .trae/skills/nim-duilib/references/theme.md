@@ -277,3 +277,52 @@ bkimage="file='../public/shadow/shadow_big.svg' corner='64,64,68,70'"
 ```
 
 **注意：class 属性必须写在所有属性最前面。** 后续属性可覆盖 class 中的同名属性。
+
+## 五、浅色/深色双主题兼容性检查（改控件绘制后必做）
+
+### 必须遵守
+
+1. **C++ 绘制代码禁止硬编码颜色**：不要写 `SetBkColor(_T("white"))`、`UiColor(0xFF000000)` 之类，
+   一律使用语义色名（`GetUiColor(_T("text_default"))`、`SetBkColor(_T("bg_richedit"))`），
+   由主题在浅色/深色之间自动切换。
+2. **硬编码色只能作为兜底**：仅允许在 `GetUiColor()` 返回空（色名未定义）时用固定色兜底，
+   且兜底色只用于异常场景，不能承担正常主题下的背景/文本。
+3. **新增色名必须双主题同步**：`color_light/global.xml` 与 `color_dark/global.xml` 的
+   `<ThemeColor name>` 集合必须完全一致；只加一边会导致另一主题取不到色值（常见退化为黑/白）。
+4. **自绘控件的派生色**：需要"更淡/更透明"的颜色时，优先基于语义色降低 alpha
+   （如取 `text_disabled` 再 `alpha/2`），这样深浅主题自动跟随；
+   若同一色名在两种主题下需要不同取值，则新增专用 `<ThemeColor>` 而不是在代码里调。
+5. **固定灰的陷阱**：`color_gray` 等基础色在两个主题中取值相同（#FF808080），
+   在深色背景上对比度不足；文本类颜色应使用会随主题变化的 `text_disabled` / `text_muted`。
+
+### 已踩过的坑（回归案例）
+
+| 位置 | 错误写法 | 现象 | 正确做法 |
+|------|----------|------|----------|
+| `DateTimeWnd.cpp`（DateTime 编辑态） | `SetBkColor(_T("white"))` | 深色主题下编辑框出现白底 + 浅灰字，几乎不可读 | 改为 `bg_richedit`（浅色 #FCFCFC / 深色 #272727） |
+| `Calendar.cpp` 星期行 | `GetUiColor(_T("color_gray"))` | 深色背景上星期文字偏暗 | 改为 `text_disabled`，随主题自适应 |
+| 自绘文本/背景 | `UiColor(0xFF000000)` / `UiColor(0xFFFFFFFF)` | 深色主题下不可见或刺眼 | 取语义色名，仅在 `IsEmpty()` 时兜底 |
+
+### 快速自查
+
+```powershell
+# 1) 查找 C++ 中的颜色硬编码（除兜底外都应改为语义色名）
+rg -n 'SetBkColor\(_T\("(white|black|#)|GetUiColor\(_T\("(white|black)"\)|UiColor\(0xFF' duilib/Control duilib/Core
+
+# 2) 两主题色名集合是否一致（无输出即一致）
+python -c "import re;g=lambda p:set(re.findall(r'<ThemeColor name=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read()));a=g('bin/resources/themes/color_light/global.xml');b=g('bin/resources/themes/color_dark/global.xml');print('only_light=',sorted(a-b));print('only_dark=',sorted(b-a))"
+
+# 3) 抽查两主题同值 token（品牌色/状态色同值正常，text_*/bg_* 同值需确认是否合理）
+python -c "import re;L=lambda p:{m[0]:m[1] for m in re.findall(r'<ThemeColor name=\"([^\"]+)\" value=\"([^\"]+)\"',open(p,encoding='utf-8-sig').read())};a=L('bin/resources/themes/color_light/global.xml');b=L('bin/resources/themes/color_dark/global.xml');print([k for k in a if k in b and a[k]==b[k]])"
+```
+
+### 验证方法
+
+运行示例程序并切换主题后截图对比，不要只看浅色：
+
+```cpp
+ui::GlobalManager::Instance().Theme().SwitchColorTheme(ui::FilePath(_T("color_dark")));
+```
+
+检查项：自绘控件（Calendar/CalendarFlyout、RangeSlider、Timeline、Stepper、NavigationView 等）
+的背景、文字、边框、悬停/选中态是否都取到了主题色；是否存在局部白底、黑字、固定灰。

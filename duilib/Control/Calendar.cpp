@@ -1037,8 +1037,8 @@ void Calendar::DrawWeekdayHeader(IRender* pRender, const UiRect& rect, IFont* pF
         return;
     }
     int32_t cellWidth = rect.Width() / kDaysPerWeek;
-    //星期标题使用灰色，与正文日期形成层次（参考 Ant Design 日期面板）
-    UiColor textColor = GetUiColor(_T("color_gray"));
+    //星期标题使用灰色（text_disabled 在浅色/深色主题下分别为中灰/浅灰），与正文日期形成层次
+    UiColor textColor = GetUiColor(_T("text_disabled"));
     if (textColor.IsEmpty()) {
         textColor = UiColor(0xFF888888);
     }
