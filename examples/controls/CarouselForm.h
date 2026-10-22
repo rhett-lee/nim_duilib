@@ -34,6 +34,11 @@ private:
     * @param [in] pPagination 分页器控件
     */
     void UpdatePaginationText(ui::Pagination* pPagination);
+
+    /** 把分页器当前页码与每页条数回显到标签
+    * @param [in] pPagination 分页器控件
+    */
+    void UpdatePageSizeText(ui::Pagination* pPagination);
 };
 
 #endif // EXAMPLES_CONTROLS_CAROUSEL_FORM_H_

@@ -1,9 +1,11 @@
 #include "Pagination.h"
 #include "duilib/Control/Button.h"
 #include "duilib/Control/CheckBox.h"
+#include "duilib/Control/Combo.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
+#include <algorithm>
 
 namespace ui
 {
@@ -27,6 +29,11 @@ Pagination::Pagination(Window* pWindow) :
     m_nButtonHeight(32),
     m_bRebuildPending(false),
     m_bMuteEvent(false),
+    m_bShowPageSize(false),
+    m_pageSizeOptions({ 10, 20, 50, 100 }),
+    m_strPageSizeClass(_T("pagination_page_size")),
+    m_strPageSizeFormat(_T("%d")),
+    m_nPageSizeWidth(112),
     m_rebuildFlag()
 {
 }
@@ -68,6 +75,24 @@ void Pagination::SetAttribute(const DString& strName, const DString& strValue2)
         if ((m_nTotalCount > 0) && (m_nPageSize > 0)) {
             SetPageCount((m_nTotalCount + m_nPageSize - 1) / m_nPageSize);
         }
+    }
+    else if ((strName == _T("show_page_size")) || (strName == _T("showpagesize"))) {
+        SetShowPageSize(StringUtil::IsValueTrue(strValue));
+    }
+    else if ((strName == _T("page_size_options")) || (strName == _T("pagesizeoptions"))) {
+        SetPageSizeOptions(strValue);
+    }
+    else if ((strName == _T("page_size_format")) || (strName == _T("pagesizeformat"))) {
+        SetPageSizeFormat(strValue);
+    }
+    else if ((strName == _T("page_size_format_id")) || (strName == _T("pagesizeformatid"))) {
+        SetPageSizeFormatId(strValue);
+    }
+    else if ((strName == _T("page_size_class")) || (strName == _T("pagesizeclass"))) {
+        SetPageSizeClass(strValue);
+    }
+    else if ((strName == _T("page_size_width")) || (strName == _T("pagesizewidth"))) {
+        SetPageSizeWidth(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("max_visible_count")) || (strName == _T("maxvisiblecount"))) {
         SetMaxVisibleCount(StringUtil::StringToInt32(strValue));
@@ -132,7 +157,7 @@ void Pagination::ClampCurrentPage()
     }
 }
 
-void Pagination::EmitPageChanged(int32_t nOldPage)
+void Pagination::EmitPageChanged(int32_t nOldPage, int32_t nOldPageSize)
 {
     if (m_bMuteEvent) {
         return;
@@ -141,6 +166,8 @@ void Pagination::EmitPageChanged(int32_t nOldPage)
     PaginationValue value;
     value.page = m_nCurrentPage;
     value.oldPage = nOldPage;
+    value.pageSize = m_nPageSize;
+    value.oldPageSize = nOldPageSize;
     SendEvent(kEventValueChanged, 0, 0, static_cast<void*>(&value));
 }
 
@@ -177,7 +204,7 @@ void Pagination::SetCurrentPage(int32_t nPage)
     }
     m_nCurrentPage = nNewPage;
     RequestRebuild();
-    EmitPageChanged(nOldPage);
+    EmitPageChanged(nOldPage, m_nPageSize);
 }
 
 void Pagination::SetCurrentPageNoEvent(int32_t nPage)
@@ -239,6 +266,208 @@ void Pagination::SetButtonClass(const DString& strClass)
 {
     if (m_strButtonClass != strClass) {
         m_strButtonClass = strClass;
+        RequestRebuild();
+    }
+}
+
+// ---- 每页条数选择器 ----
+
+void Pagination::SetShowPageSize(bool bShow)
+{
+    if (m_bShowPageSize == bShow) {
+        return;
+    }
+    m_bShowPageSize = bShow;
+    RequestRebuild();
+}
+
+void Pagination::SetPageSize(int32_t nPageSize)
+{
+    if ((nPageSize <= 0) || (nPageSize == m_nPageSize)) {
+        return;
+    }
+    const int32_t nOldPage = m_nCurrentPage;
+    const int32_t nOldPageSize = m_nPageSize;
+    m_nPageSize = nPageSize;
+    if (m_nTotalCount > 0) {
+        SetPageCount((m_nTotalCount + m_nPageSize - 1) / m_nPageSize);
+    }
+    //切换每页条数后回到第 1 页
+    if (m_nPageCount > 0) {
+        m_nCurrentPage = 1;
+    }
+    RequestRebuild();
+    EmitPageChanged(nOldPage, nOldPageSize);
+}
+
+void Pagination::SetPageSizeOptions(const std::vector<int32_t>& options)
+{
+    std::vector<int32_t> validOptions;
+    for (int32_t nValue : options) {
+        if ((nValue > 0) && (std::find(validOptions.begin(), validOptions.end(), nValue) == validOptions.end())) {
+            validOptions.push_back(nValue);
+        }
+    }
+    if (validOptions.empty() || (validOptions == m_pageSizeOptions)) {
+        return;
+    }
+    m_pageSizeOptions = validOptions;
+    RequestRebuild();
+}
+
+void Pagination::SetPageSizeOptions(const DString& strOptions)
+{
+    DString strValue = strOptions;
+    StringUtil::ReplaceAll(_T("|"), _T(","), strValue);
+    std::vector<int32_t> options;
+    const std::list<DString> items = StringUtil::Split(strValue, _T(","));
+    for (const DString& strItem : items) {
+        DString strText = strItem;
+        StringUtil::Trim(strText);
+        const int32_t nValue = StringUtil::StringToInt32(strText);
+        if (nValue > 0) {
+            options.push_back(nValue);
+        }
+    }
+    SetPageSizeOptions(options);
+}
+
+void Pagination::SetPageSizeFormat(const DString& strFormat)
+{
+    if (m_strPageSizeFormat == strFormat) {
+        return;
+    }
+    m_strPageSizeFormat = strFormat;
+    if (m_bShowPageSize) {
+        RequestRebuild();
+    }
+}
+
+void Pagination::SetPageSizeFormatId(const DString& strFormatId)
+{
+    if (m_strPageSizeFormatId == strFormatId) {
+        return;
+    }
+    m_strPageSizeFormatId = strFormatId;
+    if (m_bShowPageSize) {
+        RequestRebuild();
+    }
+}
+
+void Pagination::SetPageSizeClass(const DString& strClass)
+{
+    if (m_strPageSizeClass == strClass) {
+        return;
+    }
+    m_strPageSizeClass = strClass;
+    if (m_bShowPageSize) {
+        RequestRebuild();
+    }
+}
+
+void Pagination::SetPageSizeWidth(int32_t nWidth)
+{
+    if (nWidth < 0) {
+        nWidth = 0;
+    }
+    if (m_nPageSizeWidth == nWidth) {
+        return;
+    }
+    m_nPageSizeWidth = nWidth;
+    if (m_bShowPageSize) {
+        RequestRebuild();
+    }
+}
+
+DString Pagination::FormatPageSizeText(int32_t nPageSize) const
+{
+    DString strFormat = m_strPageSizeFormat;
+    if (!m_strPageSizeFormatId.empty()) {
+        const DString strLangText = GlobalManager::GetTextById(m_strPageSizeFormatId);
+        if (!strLangText.empty()) {
+            strFormat = strLangText;
+        }
+    }
+    if (strFormat.empty()) {
+        strFormat = _T("%d");
+    }
+    //使用文本替换而不是 printf，避免格式串中出现其他 % 转义导致未定义行为
+    const DString strValue = StringUtil::Printf(_T("%d"), nPageSize);
+    if (strFormat.find(_T("%d")) == DString::npos) {
+        return strFormat + strValue;
+    }
+    StringUtil::ReplaceAll(_T("%d"), strValue, strFormat);
+    return strFormat;
+}
+
+Control* Pagination::CreatePageSizeCombo()
+{
+    Window* pWindow = GetWindow();
+    if ((pWindow == nullptr) || m_pageSizeOptions.empty()) {
+        return nullptr;
+    }
+
+    std::vector<int32_t> options = m_pageSizeOptions;
+    //当前每页条数不在候选项内时补到最前面，保证选择框能正确回显
+    if ((m_nPageSize > 0) && (std::find(options.begin(), options.end(), m_nPageSize) == options.end())) {
+        options.insert(options.begin(), m_nPageSize);
+    }
+
+    Combo* pCombo = new Combo(pWindow);
+    pCombo->SetClass(m_strPageSizeClass.empty() ? _T("pagination_page_size") : m_strPageSizeClass);
+    pCombo->SetComboType(Combo::kCombo_DropList);
+    if (m_nButtonHeight > 0) {
+        pCombo->SetFixedHeight(UiFixedInt(m_nButtonHeight), false, true);
+    }
+    if (m_nPageSizeWidth > 0) {
+        pCombo->SetFixedWidth(UiFixedInt(m_nPageSizeWidth), false, true);
+    }
+    const int32_t nDropWidth = (m_nPageSizeWidth > 0) ? m_nPageSizeWidth : 96;
+    const int32_t nDropHeight = static_cast<int32_t>(options.size()) * 26 + 8;
+    pCombo->SetDropBoxSize(UiSize(nDropWidth, nDropHeight), true);
+
+    size_t nSelIndex = Box::InvalidIndex;
+    for (size_t i = 0; i < options.size(); ++i) {
+        const size_t nItemIndex = pCombo->AddTextItem(FormatPageSizeText(options[i]));
+        pCombo->SetItemData(nItemIndex, static_cast<size_t>(options[i]));
+        if (options[i] == m_nPageSize) {
+            nSelIndex = nItemIndex;
+        }
+    }
+    //未设置每页条数时，默认选中第一个候选项
+    if ((nSelIndex == Box::InvalidIndex) && !options.empty()) {
+        nSelIndex = 0;
+        m_nPageSize = options[0];
+    }
+    if (nSelIndex != Box::InvalidIndex) {
+        pCombo->SetCurSel(nSelIndex, false);
+    }
+
+    pCombo->AttachSelect([this](const EventArgs& args) -> bool {
+        Combo* pSender = dynamic_cast<Combo*>(args.GetSender());
+        if (pSender == nullptr) {
+            return true;
+        }
+        const size_t nIndex = pSender->GetCurSel();
+        if ((nIndex == Box::InvalidIndex) || !pSender->HasItemData(nIndex)) {
+            return true;
+        }
+        SetPageSize(static_cast<int32_t>(pSender->GetItemData(nIndex)));
+        return true;
+        });
+
+    if (!AddItem(pCombo)) {
+        delete pCombo;
+        return nullptr;
+    }
+    return pCombo;
+}
+
+void Pagination::OnLanguageChanged(bool bRedraw)
+{
+    BaseClass::OnLanguageChanged(bRedraw);
+    //多语言切换后，每页条数候选项的文本需要重新生成
+    if (m_bShowPageSize && !m_strPageSizeFormatId.empty()) {
         RequestRebuild();
     }
 }
@@ -451,6 +680,11 @@ void Pagination::RebuildButtons()
                 return true;
             });
         }
+    }
+
+    //每页条数选择器（可选功能，默认不显示）
+    if (m_bShowPageSize) {
+        CreatePageSizeCombo();
     }
 
     Invalidate();

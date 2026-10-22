@@ -522,6 +522,18 @@
                                         hovered_color="bg_list_item_hovered" hovered_color_round="4,4" 
                                         pressed_color="bg_list_item_selected" pressed_color_round="4,4" 
                                         disabled_color="" disabled_text_color="text_disabled"/>
+    <!-- 分页器（Pagination）每页条数选择器（Combo）：圆角描边样式，文本左对齐 + 右侧箭头 -->
+    <Class name="pagination_page_size" class="combo" padding="0,0,0,0"
+                                        border_size="1" border_round="4,4"
+                                        border_color="border_combo_normal" hovered_border_color="border_combo_hovered"
+                                        bkcolor="bg_combo"
+                                        combo_icon_class=""
+                                        combo_tree_node_class="class='tree_node' text_padding='10,0,6,0'"
+                                        combo_edit_class="bkcolor='' border_size='0,0,0,0' text_align='vcenter' text_padding='4,0,2,0' single_line='true' word_wrap='false' auto_hscroll='false'"
+                                        combo_button_class="height='stretch' width='16' margin='0' padding='0' border_size='0' valign='center'
+                                                            hovered_color='' pressed_color='' disabled_color=''
+                                                            normal_image={file='${PATH_COMBO}/arrow_normal.svg' valign='center'}
+                                                            hovered_image={file='${PATH_COMBO}/arrow_hovered.svg' valign='center'}"/>
     <!-- 面包屑导航（Breadcrumb）：链接式层级 + 悬停胶囊反馈 -->
     <Class name="breadcrumb" font="system_regular_14" current_font="system_bold_14"
                                         item_color="color_blue" current_color="text_default"

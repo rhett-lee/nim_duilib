@@ -1149,6 +1149,11 @@ pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
 | current_page (alias page) | 1 | int | Current page number (1-based), clamped to `[1, page_count]` |
 | total_count | 0 | int | Total number of records (combined with `page_size` to derive `page_count`; optional) |
 | page_size | 0 | int | Records per page (optional; when `total_count` + `page_size` > 0, derived from them first) |
+| show_page_size | false | bool | Whether to show the "records per page" selector (optional feature, off by default) |
+| page_size_options | 10,20,50,100 | string | Candidate page sizes, separated by `,` or `\|` |
+| page_size_format / page_size_format_id | %d | string | Text format of each candidate (contains the `%d` placeholder, e.g. `%d / page`); the ID takes precedence and supports multiple languages |
+| page_size_class | pagination_page_size | string | Skin Class referenced by the page-size selector (`Combo`) |
+| page_size_width | 112 | int | Width of the page-size selector (pixels, DPI-scaled automatically; 0 = auto-size) |
 | max_visible_count | 7 | int | Maximum number of page buttons shown in the number area (including first/last); extra ones are collapsed with `…` |
 | show_prev_next | true | bool | Whether to show the previous / next buttons |
 | show_first_last | false | bool | Whether to show the first / last page buttons |
@@ -1166,6 +1171,12 @@ XML example:
 ```xml
 <Pagination name="pagination_demo" width="stretch" height="40" child_margin="2"
             page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+
+<!-- Optional: show the page-size selector (off by default) -->
+<Pagination name="pagination_pagesize" width="stretch" height="40" child_margin="2"
+            total_count="995" page_size="10" show_page_size="true"
+            page_size_options="10,20,50,100"
+            page_size_format="%d / page"/>
 ```
 
 Corresponding C++ interface:
@@ -1177,10 +1188,20 @@ void SetTotalCount(int32_t nTotalCount, int32_t nPageSize);             // deriv
 bool Next();  bool Prev();  bool GoTo(int32_t nPage);
 int32_t GetMaxVisibleCount() const; void SetMaxVisibleCount(int32_t nCount);
 void SetButtonClass(const DString& strClass);  DString GetButtonClass() const;
-void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // page-change event
+// page-size selector (optional feature, off by default)
+bool IsShowPageSize() const;     void SetShowPageSize(bool bShow);
+int32_t GetPageSize() const;     void SetPageSize(int32_t nPageSize);    // resets to page 1 + dispatches event on change
+const std::vector<int32_t>& GetPageSizeOptions() const;
+void SetPageSizeOptions(const std::vector<int32_t>& options);
+void SetPageSizeOptions(const DString& strOptions);                   // separated by , or |
+void SetPageSizeFormat(const DString& strFormat);  void SetPageSizeFormatId(const DString& strFormatId);
+void SetPageSizeClass(const DString& strClass);    void SetPageSizeWidth(int32_t nWidth);
+void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); // page / page-size change event
 ```
 
-Page-change event: `AttachPageChanged` — fired when the current page changes; encoded as `kEventValueChanged`, with the new / old page carried through `EventArgs::pEventData` (pointing to `PaginationValue` with `page` / `oldPage`; valid only during the callback dispatch, do not store the pointer).
+Page-change event: `AttachPageChanged` — fired when the current page or the page size changes; encoded as `kEventValueChanged`, with `pEventData` pointing to `PaginationValue` (`page` / `oldPage` / `pageSize` / `oldPageSize`); valid only during the callback dispatch, do not store the pointer.
+
+Page-size selector notes: with `show_page_size` enabled, a `Combo` selector is appended at the end of the pager; the candidate text is produced from `page_size_format` (or the language ID). When the user changes the page size, the control re-derives `page_count` from `total_count`, resets the current page to 1, and dispatches one `kEventValueChanged`. If `page_size` is not in the candidate list, it is inserted at the head of the list so the selector can display it correctly. The feature is off by default and does not affect the original layout.
 
 ## Attributes of Breadcrumb (breadcrumb navigation)
 

@@ -107,6 +107,19 @@ void CarouselForm::OnInitWindow()
             return true;
             });
     }
+
+    //分页器：可选的每页条数选择器（页码或每页条数变化时均派发同一事件）
+    ui::Pagination* pPageSize = dynamic_cast<ui::Pagination*>(FindControl(_T("pagination_pagesize")));
+    if (pPageSize != nullptr) {
+        UpdatePageSizeText(pPageSize);
+        pPageSize->AttachPageChanged([this](const ui::EventArgs& args) {
+            ui::Pagination* p = dynamic_cast<ui::Pagination*>(args.GetSender());
+            if (p != nullptr) {
+                UpdatePageSizeText(p);
+            }
+            return true;
+            });
+    }
 }
 
 void CarouselForm::UpdateCarouselText(ui::Carousel* pCarousel)
@@ -135,4 +148,19 @@ void CarouselForm::UpdatePaginationText(ui::Pagination* pPagination)
     const DString strPrefix = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PAGINATION_EVENT_PREFIX"));
     pLabel->SetText(strPrefix + ui::StringUtil::Printf(_T("%d / %d"),
                    pPagination->GetCurrentPage(), pPagination->GetPageCount()));
+}
+
+void CarouselForm::UpdatePageSizeText(ui::Pagination* pPagination)
+{
+    if (pPagination == nullptr) {
+        return;
+    }
+    ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("pagination_pagesize_event")));
+    if (pLabel == nullptr) {
+        return;
+    }
+    const DString strPrefix = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PAGINATION_PAGESIZE_EVENT_PREFIX"));
+    const DString strFormat = ui::GlobalManager::Instance().Lang().GetStringByID(_T("STRID_PAGINATION_PAGESIZE_EVENT_INFO"));
+    pLabel->SetText(strPrefix + ui::StringUtil::Printf(strFormat.c_str(),
+                   pPagination->GetCurrentPage(), pPagination->GetPageCount(), pPagination->GetPageSize()));
 }

@@ -233,7 +233,7 @@ NavigationViewItem（继承 Control）属性：
 | Stepper | Control | 向导步骤条（水平/垂直；节点显示序号或对勾，状态由当前索引+禁用集合派生：待开始/进行中/已完成/禁用；连接线按完成度着色；Next/Back/GoTo 与点击跳转；多语言 `step_title_id`/`step_desc_id`；节点名 `Stepper`），`duilib/Control/Stepper.h` |
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
 | Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
-| Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
+| Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；可选每页条数选择器 `show_page_size` 默认关闭；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
 | Breadcrumb | Control | 面包屑导航（`item_text`/`item_text_id` 以 `\|` 分隔条目；`current` 缺省跟随末项；点击祖先项切换当前项；`disabled_items`；自定义 `separator`（默认 ›）/`spacing`/`item_padding`/`item_round`/`click_to_jump`；祖先项链接蓝 + 悬停/按下胶囊背景、当前项加粗 `current_font`；节点名 `Breadcrumb`），`duilib/Control/Breadcrumb.h` |
 | CascadingSelect | Control | 级联选择器（内嵌多列 / 下拉列表框两种形态，父项变更自动过滤子列、深层旧选择自动重置；`items`/`items_id` 路径数据（`\|` 分路径、`path_separator` 分层级，相同前缀自动合并）、任意层级、`disabled_paths` 禁用子树、`column_width`/`row_height`/`text_padding`、列内滚轮滚动 + 比例滚动条；下拉形态支持 `dropdown`/`placeholder(_id)`/`allow_clear`/`expand_on_hover`/`popup_width`/`popup_max_rows`/`popup_class` 与自定义显示 `AttachDisplayText`；事件 `AttachSelectionChanged`（`wParam=4`，pEventData 为 CascadingSelectValue）；节点名 `CascadingSelect`），`duilib/Control/CascadingSelect.h` |
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
@@ -704,6 +704,11 @@ C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItem
 | current_page（别名 page） | 1 | int | 当前页码（1 起），钳位到 [1, page_count] |
 | total_count | 0 | int | 总记录数（与 page_size 配合推导 page_count，可选） |
 | page_size | 0 | int | 每页记录数（可选；total_count + page_size > 0 时优先推导） |
+| show_page_size | false | bool | 是否显示“每页条数”选择器（可选功能，默认关闭） |
+| page_size_options | 10,20,50,100 | string | 每页条数候选项，逗号或 `\|` 分隔 |
+| page_size_format / page_size_format_id | %d | string | 候选项文本格式（含 `%d` 占位符，如 `%d 条/页`）；ID 优先并支持多语言 |
+| page_size_class | pagination_page_size | string | 每页条数选择器（Combo）引用的皮肤 Class |
+| page_size_width | 112 | int | 每页条数选择器宽度（像素，DPI 自适应；0 = 自适应） |
 | max_visible_count | 7 | int | 序号区最多显示的页码按钮数（含首尾），超出用 `…` 收纳 |
 | show_prev_next | true | bool | 是否显示上一页 / 下一页 |
 | show_first_last | false | bool | 是否显示首页 / 末页按钮 |
@@ -715,7 +720,8 @@ C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItem
 
 分页器（报表/表格/列表页码导航）：继承 HBox 全部布局属性；页面按钮由控件内部按数据动态创建（延迟定时器重建，规避子控件自删的 use-after-free）；当前页按钮选中高亮，页码超出上限以 `…` 收纳并保留首尾与当前页附近；颜色走 button_class 引用的皮肤语义色，C++ 无写死色值。
 C++ 接口：`GetPageCount/SetPageCount`、`GetCurrentPage/SetCurrentPage/SetCurrentPageNoEvent`、`SetTotalCount`、`Next/Prev/GoTo`、`GetMaxVisibleCount/SetMaxVisibleCount`、`SetButtonClass/GetButtonClass`。
-事件：`AttachPageChanged`——当前页码变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
+每页条数选择器（可选，默认关闭）：`IsShowPageSize/SetShowPageSize`、`GetPageSize/SetPageSize`（切换后按 total_count 重算页数、重置到第 1 页并派发事件）、`GetPageSizeOptions/SetPageSizeOptions`（vector 或逗号/`|` 分隔字符串）、`SetPageSizeFormat/SetPageSizeFormatId`、`SetPageSizeClass/SetPageSizeWidth`；`page_size` 不在候选项时自动补到首位。
+事件：`AttachPageChanged`——当前页码或每页条数变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage`/`pageSize`/`oldPageSize` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
 
 ### Breadcrumb 属性(继承 Control)
 

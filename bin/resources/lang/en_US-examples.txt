@@ -831,7 +831,12 @@ STRID_CAROUSEL_GOTO_FIRST = Go to first
 STRID_PAGINATION_BASIC_TITLE = Pagination (10 pages, current page 3)
 STRID_PAGINATION_MANY_TITLE = Pagination (derived: 995 items / 20 per page, with first/last and ellipsis)
 STRID_PAGINATION_EVENT_NONE = Current page: 3 / 10
-STRID_PAGINATION_EVENT_PREFIX = Current page: 
+STRID_PAGINATION_EVENT_PREFIX = Current page:
+STRID_PAGINATION_PAGESIZE_TITLE = Pagination (optional page-size selector, 995 items)
+STRID_PAGINATION_PAGE_SIZE_FORMAT = %d / page
+STRID_PAGINATION_PAGESIZE_EVENT_NONE = Status: page 1 / 100, 10 per page
+STRID_PAGINATION_PAGESIZE_EVENT_PREFIX = Status:
+STRID_PAGINATION_PAGESIZE_EVENT_INFO = page %d / %d, %d per page 
 # controls/TreeGrid
 STRID_TREE_GRID_WINDOW_TITLE = TreeGrid Control Test
 STRID_TREE_GRID_HINT = Hint: fixed header with vertically scrolling body; click the arrow to expand/collapse, with multi-select and parent/child check cascade

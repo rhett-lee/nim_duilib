@@ -1149,6 +1149,11 @@ pCarousel->AttachCarouselChanged([](const ui::EventArgs& msg) {
 | current_page（别名 page） | 1 | int | 当前页码（1 起），钳位到 `[1, page_count]` |
 | total_count | 0 | int | 总记录数（与 `page_size` 配合推导 `page_count`，可选） |
 | page_size | 0 | int | 每页记录数（可选；`total_count` + `page_size` > 0 时优先推导） |
+| show_page_size | false | bool | 是否显示“每页条数”选择器（可选功能，默认关闭） |
+| page_size_options | 10,20,50,100 | string | 每页条数候选项，逗号或 `\|` 分隔 |
+| page_size_format / page_size_format_id | %d | string | 候选项文本格式（含 `%d` 占位符，如 `%d 条/页`）；ID 优先并支持多语言 |
+| page_size_class | pagination_page_size | string | 每页条数选择器（Combo）引用的皮肤 Class |
+| page_size_width | 112 | int | 每页条数选择器宽度（像素，自动 DPI 缩放；0 = 自适应） |
 | max_visible_count | 7 | int | 序号区最多显示的页码按钮数（含首尾），超出用 `…` 收纳 |
 | show_prev_next | true | bool | 是否显示上一页 / 下一页 |
 | show_first_last | false | bool | 是否显示首页 / 末页按钮 |
@@ -1166,6 +1171,12 @@ XML 示例：
 ```xml
 <Pagination name="pagination_demo" width="stretch" height="40" child_margin="2"
             page_count="10" current_page="3" show_prev_next="true" max_visible_count="7"/>
+
+<!-- 可选：显示每页条数选择器（默认关闭） -->
+<Pagination name="pagination_pagesize" width="stretch" height="40" child_margin="2"
+            total_count="995" page_size="10" show_page_size="true"
+            page_size_options="10,20,50,100"
+            page_size_format="%d 条/页"/>
 ```
 
 对应的 C++ 接口：
@@ -1177,10 +1188,20 @@ void SetTotalCount(int32_t nTotalCount, int32_t nPageSize);             //由总
 bool Next();  bool Prev();  bool GoTo(int32_t nPage);
 int32_t GetMaxVisibleCount() const; void SetMaxVisibleCount(int32_t nCount);
 void SetButtonClass(const DString& strClass);  DString GetButtonClass() const;
-void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //页码变化事件
+//每页条数选择器（可选功能，默认关闭）
+bool IsShowPageSize() const;     void SetShowPageSize(bool bShow);
+int32_t GetPageSize() const;     void SetPageSize(int32_t nPageSize);    //重置到第 1 页 + 变化时派发事件
+const std::vector<int32_t>& GetPageSizeOptions() const;
+void SetPageSizeOptions(const std::vector<int32_t>& options);
+void SetPageSizeOptions(const DString& strOptions);                   //逗号或 | 分隔
+void SetPageSizeFormat(const DString& strFormat);  void SetPageSizeFormatId(const DString& strFormatId);
+void SetPageSizeClass(const DString& strClass);    void SetPageSizeWidth(int32_t nWidth);
+void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //页码 / 每页条数变化事件
 ```
 
-页码变化事件：`AttachPageChanged`——当前页码变化时触发，事件编码为 `kEventValueChanged`，新/旧页码通过 `EventArgs::pEventData` 携带（指向 `PaginationValue`，含 `page` / `oldPage`，仅在本次回调派发期间有效，请勿保存该指针）。
+页码变化事件：`AttachPageChanged`——当前页码或每页条数变化时触发，事件编码为 `kEventValueChanged`，数据通过 `EventArgs::pEventData` 携带（指向 `PaginationValue`，含 `page` / `oldPage` / `pageSize` / `oldPageSize`，仅在本次回调派发期间有效，请勿保存该指针）。
+
+每页条数选择器说明：开启 `show_page_size` 后，分页器末尾追加一个 `Combo` 选择器，候选项文本由 `page_size_format`（或语言 ID）生成；用户切换每页条数时，控件按 `total_count` 重新推导总页数、把当前页重置为第 1 页，并派发一次 `kEventValueChanged`。`page_size` 不在候选项列表时会自动补到列表首位，保证选择框能正确回显。该功能默认关闭，不影响原有布局。
 
 ## Breadcrumb 控件（面包屑导航）
 

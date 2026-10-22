@@ -218,7 +218,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
     }
     m_bIsClosed = true;
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+    if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
         m_pOwner->GetTreeView()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
@@ -259,12 +259,13 @@ void CComboWnd::OnInitWindow()
 void CComboWnd::OnCloseWindow()
 {
     Box* pRootBox = GetRoot();
-    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+    if ((m_pOwner != nullptr) && (pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
         m_pOwner->GetTreeView()->SetWindow(nullptr);
         m_pOwner->GetTreeView()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
-    if ((m_pOwner->GetWindow() != nullptr) && m_pOwner->GetWindow()->IsWindow()) {
+    //宿主控件可能已在下拉窗口关闭完成前被销毁（例如宿主在选中事件中重建了子控件），需判空
+    if ((m_pOwner != nullptr) && (m_pOwner->GetWindow() != nullptr) && m_pOwner->GetWindow()->IsWindow()) {
         m_pOwner->SetPos(m_pOwner->GetPos());
         m_pOwner->SetFocus();
     }    

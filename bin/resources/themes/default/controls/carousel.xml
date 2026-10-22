@@ -59,6 +59,17 @@
                 <Label text_id="STRID_PAGINATION_MANY_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
                 <Pagination name="pagination_many" width="stretch" height="40" child_margin="2"
                             total_count="995" page_size="20" current_page="12" show_first_last="true" max_visible_count="7"/>
+
+                <!-- 分页器：可选的每页条数选择器（show_page_size 默认关闭，此处显式开启） -->
+                <Label text_id="STRID_PAGINATION_PAGESIZE_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                <Pagination name="pagination_pagesize" width="stretch" height="40" child_margin="2"
+                            total_count="995" page_size="10" show_page_size="true"
+                            page_size_options="10,20,50,100"
+                            page_size_format_id="STRID_PAGINATION_PAGE_SIZE_FORMAT"/>
+                <HBox height="30" child_margin="8" margin="0,6,0,0">
+                    <Label name="pagination_pagesize_event" text_id="STRID_PAGINATION_PAGESIZE_EVENT_NONE"
+                           text_color="text_default" valign="center" auto_tooltip="true"/>
+                </HBox>
             </VBox>
         </VScrollBox>
     </VBox>
