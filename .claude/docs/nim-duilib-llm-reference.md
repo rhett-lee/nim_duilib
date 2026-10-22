@@ -396,11 +396,15 @@ C++：`AttachToolItemClick/ClearToolItemClick`（`std::function<void(const DStri
 | 属性 | 默认值 | 类型 | 说明 |
 |------|--------|------|------|
 | format | | string | 日期格式，具体可参考 `DateTime.h` 中 `SetStringFormat` 的说明（基于 `std::put_time`） |
-| edit_format | "date_calendar" | string | 编辑格式：`date_calendar` / `date_up_down` / `date_time_up_down` / `date_minute_up_down` / `time_up_down` / `minute_up_down` |
-| spin_class | | string | Spin 控件的 Class 属性（容器,上按钮,下按钮），仅非 `date_calendar` 编辑格式生效 |
+| edit_format | "date_calendar" | string | 编辑格式：`date_calendar` / `date_time_calendar` / `time_calendar` / `date_up_down` / `date_time_up_down` / `date_minute_up_down` / `time_up_down` / `minute_up_down` |
+| spin_class | | string | Spin 控件的 Class 属性（容器,上按钮,下按钮），仅 `*_up_down` 编辑格式生效 |
+| min_date / max_date | | string | 可选日期范围（yyyy-mm-dd，空=不限），仅日历类格式生效 |
+| disabled_dates | | string | 业务禁用日期，`,`/`;` 分隔；单日或 `start~end`；键盘焦点会跳过禁用日 |
+| first_day_of_week | "monday" | string | 每周第一天：`monday` / `sunday` / 0~6（0=周日） |
+| show_seconds | "true" | bool | 时间弹层是否显示秒，仅 `date_time_calendar` / `time_calendar` 生效 |
 | current_time | | bool | 初始化为当前本地时间（`"true"` 或 `"1"` 时生效），无需在代码中手动调用 `InitLocalTime()`；与 `text` 同时使用时 `current_time` 优先 |
 
-C++ 接口：`InitLocalTime()`（设为当前时间）、`ClearTime()`、`SetDateTime/GetDateTime(tm)`、`SetDateTimeString/GetDateTimeString()`、`SetStringFormat/GetStringFormat()`、`SetEditFormat/GetEditFormat()`、`SetSpinClass/GetSpinClass()`。值变化触发 `kEventValueChanged`。
+C++ 接口：`InitLocalTime()`（设为当前时间）、`ClearTime()`、`SetDateTime/GetDateTime(tm)`、`SetDateTimeString/GetDateTimeString()`、`SetStringFormat/GetStringFormat()`、`SetEditFormat/GetEditFormat()`、`SetSpinClass/GetSpinClass()`、`SetDateLimit/GetMinDate/GetMaxDate()`、`SetDisabledDates/GetDisabledDates()`、`SetFirstDayOfWeek/GetFirstDayOfWeek()`、`SetShowSeconds/IsShowSeconds()`。值变化触发 `kEventValueChanged`。
 
 ## 四、全局资源 (global.xml)
 

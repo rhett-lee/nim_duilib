@@ -18,6 +18,8 @@ DateTime::DateTime(Window* pWindow):
     m_pDateWindow(nullptr),
     m_pCalendarFlyout(nullptr),
     m_bSuppressCalendarReopen(false),
+    m_firstDayOfWeek(1),
+    m_bShowSeconds(true),
     m_editFormat(EditFormat::kDateCalendar),
     m_dateSeparator(_T('-'))
 {
@@ -68,12 +70,50 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue2)
         else if (strValue == _T("minute_up_down")) {
             SetEditFormat(EditFormat::kMinuteUpDown);
         }
+        else if (strValue == _T("date_time_calendar")) {
+            SetEditFormat(EditFormat::kDateTimeCalendar);
+        }
+        else if (strValue == _T("time_calendar")) {
+            SetEditFormat(EditFormat::kTimeCalendar);
+        }
         else {
             ASSERT(0);
         }
     }
     else if (strName == _T("spin_class")) {
         SetSpinClass(strValue);
+    }
+    else if (strName == _T("min_date")) {
+        m_minDate = strValue;
+        if (m_pCalendarFlyout != nullptr) {
+            m_pCalendarFlyout->SetDateLimit(m_minDate.c_str(), m_maxDate.c_str());
+        }
+    }
+    else if (strName == _T("max_date")) {
+        m_maxDate = strValue;
+        if (m_pCalendarFlyout != nullptr) {
+            m_pCalendarFlyout->SetDateLimit(m_minDate.c_str(), m_maxDate.c_str());
+        }
+    }
+    else if (strName == _T("disabled_dates")) {
+        SetDisabledDates(strValue);
+    }
+    else if (strName == _T("first_day_of_week")) {
+        if ((strValue == _T("sunday")) || (strValue == _T("0"))) {
+            SetFirstDayOfWeek(0);
+        }
+        else if ((strValue == _T("monday")) || (strValue == _T("1"))) {
+            SetFirstDayOfWeek(1);
+        }
+        else {
+            int32_t dayOfWeek = StringUtil::StringToInt32(strValue);
+            if ((dayOfWeek >= 0) && (dayOfWeek <= 6)) {
+                SetFirstDayOfWeek(dayOfWeek);
+            }
+        }
+    }
+    else if (strName == _T("show_seconds")) {
+        SetShowSeconds(StringUtil::IsValueTrue(strValue));
     }
     else if (strName == _T("current_time")) {
         //初始化为当前本地时间，方便使用：无需在代码中手动调用 InitLocalTime()
@@ -309,6 +349,12 @@ DString DateTime::GetStringFormat() const
         case EditFormat::kMinuteUpDown:
             sFormat = _T("%H:%M");
             break;
+        case EditFormat::kDateTimeCalendar:
+            sFormat = m_bShowSeconds ? _T("%Y-%m-%d %H:%M:%S") : _T("%Y-%m-%d %H:%M");
+            break;
+        case EditFormat::kTimeCalendar:
+            sFormat = m_bShowSeconds ? _T("%H:%M:%S") : _T("%H:%M");
+            break;
         default:
             sFormat = _T("%Y-%m-%d");
             break;
@@ -397,30 +443,8 @@ void DateTime::HandleEvent(const EventArgs& msg)
             GetWindow()->UpdateWindow();
         }
         if (IsFocused() && IsEnabled()) {
-            if (GetEditFormat() == EditFormat::kDateCalendar) {
-                //使用新的 CalendarFlyout 弹层
-                m_pCalendarFlyout = new CalendarFlyout(GetWindow());
-                m_pCalendarFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
-                    if (wParam == 0) {
-                        time_t t = (time_t)lParam;
-                        struct tm date = Calendar::TimeTToDate(t);
-                        SetDateTime(date);
-                    }
-                });
-                m_pCalendarFlyout->AttachDateCleared([this]() {
-                    ClearTime();
-                });
-                m_pCalendarFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
-                    m_pCalendarFlyout = nullptr;
-                    //浮层关闭后焦点回落到本控件会触发 SetFocus，需抑制重开
-                    m_bSuppressCalendarReopen = true;
-                    return true;
-                });
-                struct tm initDate = IsValidDateTime() ? m_dateTime : Calendar::GetToday();
-                if (!m_pCalendarFlyout->ShowAt(this, initDate, ui::Flyout::Placement::Bottom)) {
-                    //创建失败时 ShowAt 内部已销毁对象，需置空避免悬空指针
-                    m_pCalendarFlyout = nullptr;
-                }
+            if (IsCalendarEditFormat()) {
+                OpenCalendarFlyout();
             }
             else {
                 //其他格式使用统一的 DateTimeWnd 实现
@@ -448,31 +472,8 @@ void DateTime::HandleEvent(const EventArgs& msg)
         //用户主动点击，清除抑制标志
         m_bSuppressCalendarReopen = false;
         if (IsFocused() && IsEnabled() && (m_pDateWindow == nullptr) && (m_pCalendarFlyout == nullptr)) {
-            if (GetEditFormat() == EditFormat::kDateCalendar) {
-                //使用新的 CalendarFlyout 弹层
-                m_pCalendarFlyout = new CalendarFlyout(GetWindow());
-                m_pCalendarFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
-                    if (wParam == 0) {
-                        //单选模式
-                        time_t t = (time_t)lParam;
-                        struct tm date = Calendar::TimeTToDate(t);
-                        SetDateTime(date);
-                    }
-                });
-                m_pCalendarFlyout->AttachDateCleared([this]() {
-                    ClearTime();
-                });
-                m_pCalendarFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
-                    m_pCalendarFlyout = nullptr;
-                    //浮层关闭后焦点恢复触发的 SetFocus 不再重开
-                    m_bSuppressCalendarReopen = true;
-                    return true;
-                });
-                struct tm initDate = IsValidDateTime() ? m_dateTime : Calendar::GetToday();
-                if (!m_pCalendarFlyout->ShowAt(this, initDate, ui::Flyout::Placement::Bottom)) {
-                    //创建失败时 ShowAt 内部已销毁对象，需置空避免悬空指针
-                    m_pCalendarFlyout = nullptr;
-                }
+            if (IsCalendarEditFormat()) {
+                OpenCalendarFlyout();
             }
             else {
                 //其他格式使用统一的 DateTimeWnd 实现
@@ -533,6 +534,135 @@ DString DateTime::GetSpinClass() const
     return m_spinClass.c_str();
 }
 
+void DateTime::SetDateLimit(const DString& minDate, const DString& maxDate)
+{
+    m_minDate = minDate;
+    m_maxDate = maxDate;
+    if (m_pCalendarFlyout != nullptr) {
+        m_pCalendarFlyout->SetDateLimit(minDate, maxDate);
+    }
+}
+
+DString DateTime::GetMinDate() const
+{
+    return m_minDate.c_str();
+}
+
+DString DateTime::GetMaxDate() const
+{
+    return m_maxDate.c_str();
+}
+
+void DateTime::SetDisabledDates(const DString& disabledDates)
+{
+    m_disabledDates = disabledDates;
+    if (m_pCalendarFlyout != nullptr) {
+        m_pCalendarFlyout->SetDisabledDates(disabledDates);
+    }
+}
+
+DString DateTime::GetDisabledDates() const
+{
+    return m_disabledDates.c_str();
+}
+
+void DateTime::SetFirstDayOfWeek(int32_t dayOfWeek)
+{
+    m_firstDayOfWeek = dayOfWeek;
+    if (m_pCalendarFlyout != nullptr) {
+        m_pCalendarFlyout->SetFirstDayOfWeek(dayOfWeek);
+    }
+}
+
+int32_t DateTime::GetFirstDayOfWeek() const
+{
+    return m_firstDayOfWeek;
+}
+
+void DateTime::SetShowSeconds(bool bShow)
+{
+    if (m_bShowSeconds == bShow) {
+        return;
+    }
+    m_bShowSeconds = bShow;
+    if (!IsInited()) {
+        return;
+    }
+    //显式设置的 format 优先，不受 show_seconds 影响
+    if (!m_sFormat.empty()) {
+        return;
+    }
+    if (IsCalendarTimeFormat()) {
+        //更新显示文本
+        SetText(GetDateTimeString());
+        //触发变化事件
+        SendEvent(kEventValueChanged);
+    }
+}
+
+bool DateTime::IsShowSeconds() const
+{
+    return m_bShowSeconds;
+}
+
+bool DateTime::IsCalendarEditFormat() const
+{
+    const EditFormat editFormat = GetEditFormat();
+    return (editFormat == EditFormat::kDateCalendar) ||
+           (editFormat == EditFormat::kDateTimeCalendar) ||
+           (editFormat == EditFormat::kTimeCalendar);
+}
+
+bool DateTime::IsCalendarTimeFormat() const
+{
+    const EditFormat editFormat = GetEditFormat();
+    return (editFormat == EditFormat::kDateTimeCalendar) ||
+           (editFormat == EditFormat::kTimeCalendar);
+}
+
+void DateTime::OpenCalendarFlyout()
+{
+    CalendarFlyout* pFlyout = new CalendarFlyout(GetWindow());
+    m_pCalendarFlyout = pFlyout;
+
+    if (IsCalendarTimeFormat()) {
+        //时间模式：日历(可选) + 时:分[:秒]，点"确定"统一提交
+        pFlyout->SetTimeMode(GetEditFormat() == EditFormat::kDateTimeCalendar, m_bShowSeconds);
+        pFlyout->AttachDateTimeSelected([this](const struct tm& dateTime) {
+            SetDateTime(dateTime);
+        });
+    }
+    else {
+        //旧的 date_calendar：点日期即提交并关闭
+        pFlyout->AttachDateSelected([this](WPARAM wParam, LPARAM lParam) {
+            if (wParam == 0) {
+                time_t t = (time_t)lParam;
+                struct tm date = Calendar::TimeTToDate(t);
+                SetDateTime(date);
+            }
+        });
+        pFlyout->AttachDateCleared([this]() {
+            ClearTime();
+        });
+    }
+
+    pFlyout->SetDateLimit(m_minDate.c_str(), m_maxDate.c_str());
+    pFlyout->SetDisabledDates(m_disabledDates.c_str());
+    pFlyout->SetFirstDayOfWeek(m_firstDayOfWeek);
+    pFlyout->AttachClosed([this](ui::Flyout::CloseReason) {
+        m_pCalendarFlyout = nullptr;
+        //浮层关闭后焦点回落到本控件会触发 SetFocus，需抑制重开
+        m_bSuppressCalendarReopen = true;
+        return true;
+    });
+
+    struct tm initDate = IsValidDateTime() ? m_dateTime : Calendar::GetToday();
+    if (!pFlyout->ShowAt(this, initDate, ui::Flyout::Placement::Bottom)) {
+        //创建失败时 ShowAt 内部已销毁对象，需置空避免悬空指针
+        m_pCalendarFlyout = nullptr;
+    }
+}
+
 void DateTime::SendEventMsg(const EventArgs& msg)
 {
     if ((msg.GetSender() == this) && (msg.eventType == kEventKillFocus)) {
@@ -582,7 +712,7 @@ UiSize DateTime::EstimateText(UiSize szAvailable)
     //支持 Spin（spin_class 不为空）时，预留 Spin 按钮容器所占的宽度，
     //使 width 为 auto 的 DateTime 在显示态也能为编辑态的 Spin 留出空间，
     //避免进入编辑态后 Spin 被挤压或显示不全。
-    if (GetEditFormat() != EditFormat::kDateCalendar) {
+    if (!IsCalendarEditFormat()) {
         DString spinClass = GetSpinClass();
         if (!spinClass.empty()) {
             int32_t nSpinWidth = GetSpinBoxWidth(spinClass);

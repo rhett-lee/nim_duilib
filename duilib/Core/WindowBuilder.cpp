@@ -1445,7 +1445,13 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             //读取节点的属性，设置控件的属性
             int32_t i = 0;
             for (pugi::xml_attribute attr : node.attributes()) {
-                ASSERT_UNUSED_VARIABLE(i == 0 || StringUtil::StringCompare(attr.name(), _T("class")) != 0);    //class必须是第一个属性
+#ifdef _DEBUG
+                // 约束class必须是第一个属性,否则可能会出现属性的值被class中的同名属性覆盖的问题
+                // 仅在Debug版本进行校验
+                if ((StringUtil::StringCompare(attr.name(), _T("class")) == 0) && (i != 0)) {
+                    ASSERT(i == 0);
+                }
+#endif  
                 ++i;
                 pControl->SetAttribute(attr.name(), attr.value());
             }

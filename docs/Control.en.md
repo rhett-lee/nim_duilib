@@ -539,13 +539,32 @@ The CheckCombo control inherits the `Box` attributes. For more available attribu
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |
 | format | | string | Date format; for details, please refer to the function descriptions in `DateTime.h` |
-| edit_format | | string | Edit format of the date when editing, optional values: "date_calendar": year-month-day, modify the date by displaying a month calendar in a drop-down box; "date_up_down": when editing, display year-month-day, modify the date via an up-down control placed on the right side of the control; "date_time_up_down": when editing, display year-month-day hour:minute:second; "date_minute_up_down": when editing, display year-month-day hour:minute; "time_up_down": when editing, display hour:minute:second; "minute_up_down": when editing, display hour:minute|
+| edit_format | | string | Edit format of the date when editing, optional values: "date_calendar": year-month-day, modify the date by displaying a month calendar in a drop-down box; "date_time_calendar": year-month-day hour:minute:second, calendar + time picker flyout, committed by "OK"; "time_calendar": hour:minute:second, time-only flyout (no calendar); "date_up_down": when editing, display year-month-day, modify the date via an up-down control placed on the right side of the control; "date_time_up_down": when editing, display year-month-day hour:minute:second; "date_minute_up_down": when editing, display year-month-day hour:minute; "time_up_down": when editing, display hour:minute:second; "minute_up_down": when editing, display hour:minute|
 | spin_class | | string | Class attribute of the Spin control in the date; only valid when using SDL; default value: "rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" |
+| min_date | | string | Minimum selectable date (yyyy-mm-dd, empty means no limit); calendar edit formats only |
+| max_date | | string | Maximum selectable date (yyyy-mm-dd, empty means no limit); calendar edit formats only |
+| disabled_dates | | string | Business-disabled date list; calendar edit formats only; items separated by `,` or `;`, each `yyyy-mm-dd` or `yyyy-mm-dd~yyyy-mm-dd` (inclusive range) |
+| first_day_of_week | "monday" | string | First day of week: "monday", "sunday", or 0~6 (0=Sunday); calendar edit formats only |
+| show_seconds | "true" | bool | Whether the time picker shows seconds; when false the format is `%H:%M`; only effective for `date_time_calendar` / `time_calendar` |
 | current_time | | bool | Initialize to the current local time (effective when `"true"` or `"1"`), convenient to use without manually calling `InitLocalTime()` in code; when used together with the `text` attribute, `current_time` takes precedence |
 
 The DateTime control inherits the `Label` attributes. For more available attributes, please refer to the `Label` attributes.
 
 > Reuse note: after the calendar flyout closes, the `DateTime` control suppresses "immediate reopen caused by focus falling back". When the control is reused as an editor (for example, the `ListCtrl` `kEditDate` cell editor), call `ResetCalendarFlyoutState()` before entering editing each time to clear that state; otherwise the calendar flyout will not pop up automatically when the control regains focus (a second mouse click is required). Also, if the control is hidden while the calendar flyout is still open (e.g. when leaving edit mode), call `CloseCalendarFlyout()` first to close it, avoiding a dangling topmost calendar window left behind because the anchor control is no longer visible.
+
+### DateTime date limits and time-picker interfaces
+| Interface | Description |
+| :--- | :--- |
+| `SetDateLimit(minDate, maxDate)` | Set selectable date range (yyyy-mm-dd, empty = unlimited); applies immediately if the flyout is open |
+| `GetMinDate()` / `GetMaxDate()` | Read the current date limits |
+| `SetDisabledDates(disabledDates)` | Set business-disabled dates (`;`/`,` separated, single date or `start~end`) |
+| `GetDisabledDates()` | Read the disabled date list text |
+| `SetFirstDayOfWeek(dayOfWeek)` | Set first day of week: 0=Sunday, 1=Monday |
+| `GetFirstDayOfWeek()` | Read first day of week |
+| `SetShowSeconds(bShow)` | Whether the time picker shows seconds; refreshes the displayed text when `format` is not explicitly set |
+| `IsShowSeconds()` | Whether seconds are shown |
+
+Commit semantics for `date_time_calendar` / `time_calendar`: clicking a date only updates the calendar selection and does not close the flyout; "OK" commits the complete date-time; "Cancel", Esc, or clicking outside does not commit. `date_calendar` keeps its original "click date = commit and close" behavior.
 
 ## Attributes of Calendar
 | Attribute name | Default value | Parameter type | Purpose |
@@ -554,8 +573,11 @@ The DateTime control inherits the `Label` attributes. For more available attribu
 | first_day_of_week | "monday" | string | First day of week: "monday" or "sunday" |
 | min_date | | string | Minimum selectable date (yyyy-mm-dd), empty means no limit |
 | max_date | | string | Maximum selectable date (yyyy-mm-dd), empty means no limit |
+| disabled_dates | | string | Business-disabled date list; items separated by `,` or `;`, each `yyyy-mm-dd` or `yyyy-mm-dd~yyyy-mm-dd` (inclusive range) |
 
 The Calendar control inherits the `Control` attributes. For more available attributes, please refer to the `Control` attributes.
+
+Calendar also provides `AddDisabledDate` / `AddDisabledDateRange` / `AddDisabledDates` / `ClearDisabledDates` / `IsDateDisabled` for maintaining disabled dates dynamically; disabled dates are merged with `min_date` / `max_date` into the same non-selectable state.
 
 The Calendar control triggers the `kEventViewModeChanged` event when its view mode (month/year/decade) changes (wParam = new view mode 0/1/2, lParam = old view mode 0/1/2), which can be subscribed via `AttachViewModeChanged`; it triggers the `kEventDisplayDateChanged` event when the displayed period (the month in month-view, the year in year/decade-view) changes, which can be subscribed via `AttachDisplayDateChanged` (typically used to refresh the flyout title bar on page-turn or cross-month focus moves); it also triggers `kEventValueChanged` when the selected date or date range changes (consistent with DateTime).
 
@@ -573,17 +595,18 @@ The calendar flyout supports the following keyboard interactions (effective once
 | Shift + ← / → / ↑ / ↓ (range mode) | Extend range from focused anchor (live highlight of start/end), Enter/Space again to confirm | — | — |
 
 Additional notes:
-- Focus movement and page-turning are both clamped to the `min_date`/`max_date` limits, so the focus ring never lands on a disabled date; page-turning stops at the earliest/latest selectable period boundary.
+- Focus movement and page-turning are both clamped to the `min_date`/`max_date` limits and skip business-disabled dates in `disabled_dates`, so the focus ring never lands on a disabled date; page-turning stops at the earliest/latest selectable period boundary.
 - Keyboard range extension in range mode shares the same start/end logic and live-preview drawing with mouse dragging.
 
 ## CalendarFlyout
-CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar control, corresponding to header `duilib/Control/CalendarFlyout.h`. It displays a calendar panel around an anchor control, supporting single/range selection and month/year/decade navigation.
+CalendarFlyout is a date picker flyout based on Flyout hosting a Calendar control, corresponding to header `duilib/Control/CalendarFlyout.h`. It displays a calendar panel around an anchor control, supporting single/range selection, month/year/decade navigation, and "calendar + time" or "time only" selection.
 
 Key features:
 - Inherits Flyout: 8 placement directions, auto-flip on insufficient space, click-outside/Esc to close;
-- Built-in XML layout: header navigation (prev/title/next) + Calendar + footer buttons (Today/Clear);
+- Built-in XML layout is generated dynamically per mode: date mode has header navigation (prev/title/next) + Calendar + footer buttons (Today/Clear); time mode adds an hour:minute[:second] row plus Cancel/OK; time-only mode does not create a Calendar;
 - Single mode: auto-close and trigger `AttachDateSelected` after date selection;
 - Range mode: drag to select start/end dates, auto-close and trigger `AttachDateSelected`;
+- Time mode (`SetTimeMode`): clicking a date does not close; only "OK" triggers `AttachDateTimeSelected` and closes; "Cancel"/Esc/click-outside do not commit;
 - Three-level navigation: click title to cycle month/year/decade views.
 
 ### C++ Interfaces
@@ -597,6 +620,10 @@ Key features:
 | `SetInitRange(start, end)` | Set initial range for range mode |
 | `SetFirstDayOfWeek(dayOfWeek)` | Set first day of week: 0=Sunday, 1=Monday (default 1) |
 | `SetDateLimit(minDate, maxDate)` | Set min/max date limit (yyyy-mm-dd) |
+| `SetTimeMode(bShowCalendar, bShowSeconds)` | Enable time-selection mode (must be called before `ShowAt`): `bShowCalendar=true` for calendar + time, `false` for time only; `bShowSeconds` controls the seconds column |
+| `SetDisabledDates(disabledDates)` | Set business-disabled dates (`;`/`,` separated, single date or `start~end` inclusive range) |
+| `ClearDisabledDates()` | Clear business-disabled dates |
+| `AttachDateTimeSelected(callback)` | Register the date-time commit callback `(const struct tm& dateTime)`; triggered by "OK" in time mode |
 | `AttachDateSelected(callback)` | Register date selection callback (two-arg signature, single mode only) with `(WPARAM wParam, LPARAM lParam)`; wParam=0 single, 1 range; lParam is time_t for single, meaningless for range |
 | `AttachDateSelectedEx(callback)` | Register date selection callback (three-arg signature, recommended) with `(WPARAM wParam, LPARAM lParam, const Calendar::DateRange* pRange)`; read full 64-bit start/end from pRange for range mode |
 | `AttachDateCleared(callback)` | Register clear callback (triggered by "Clear" button) |
@@ -630,9 +657,23 @@ pFlyout->AttachDateSelectedEx([this](WPARAM wParam, LPARAM lParam, const ui::Cal
         //Handle selected range
     }
 });
+
+//Calendar + time (or time only when bShowCalendar=false)
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetTimeMode(true, false);      //Show calendar, hide seconds
+pFlyout->SetDateLimit(_T("2026-01-01"), _T("2026-12-31"));
+pFlyout->SetDisabledDates(_T("2026-10-01~2026-10-07,2026-12-25"));
+pFlyout->SetFirstDayOfWeek(1);
+pFlyout->AttachDateTimeSelected([this](const struct tm& dateTime) {
+    ui::DateTime* pDateTime = dynamic_cast<ui::DateTime*>(pAnchor);
+    if (pDateTime != nullptr) {
+        pDateTime->SetDateTime(dateTime);
+    }
+});
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
 ```
 
-The DateTime control (`edit_format="date_calendar"`) already uses CalendarFlyout internally; no manual creation needed.
+The DateTime control (`edit_format="date_calendar"` / `"date_time_calendar"` / `"time_calendar"`) already uses CalendarFlyout internally; no manual creation needed.
 
 ## Attributes of HotKey
 | Attribute name | Default value | Parameter type | Purpose |

@@ -537,13 +537,32 @@ CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | format | | string | 日期的格式，具体可参考：`DateTime.h`中函数的说明 |
-| edit_format | | string | 编辑状态时，日期的编辑格式，可选值："date_calendar"：年-月-日，通过下拉框展示月日历的方式来修改日期；"date_up_down"： 编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期；"date_time_up_down"：编辑时显示：年-月-日 时:分:秒；"date_minute_up_down"：编辑时显示：年-月-日 时:分；"time_up_down"：编辑时显示：时:分:秒；"minute_up_down"：编辑时显示：时:分|
+| edit_format | | string | 编辑状态时，日期的编辑格式，可选值："date_calendar"：年-月-日，通过下拉框展示月日历的方式来修改日期；"date_time_calendar"：年-月-日 时:分:秒，日历 + 时间选择弹层，点"确定"提交；"time_calendar"：时:分:秒，仅时间选择弹层（无日历）；"date_up_down"： 编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期；"date_time_up_down"：编辑时显示：年-月-日 时:分:秒；"date_minute_up_down"：编辑时显示：年-月-日 时:分；"time_up_down"：编辑时显示：时:分:秒；"minute_up_down"：编辑时显示：时:分|
 | spin_class | | string | 日期中的Spin控件的Class属性，仅当使用SDL时有效，默认值为："rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" |
+| min_date | | string | 最小可选日期（yyyy-mm-dd，空表示不限制），仅日历类编辑格式生效 |
+| max_date | | string | 最大可选日期（yyyy-mm-dd，空表示不限制），仅日历类编辑格式生效 |
+| disabled_dates | | string | 业务禁用日期列表，仅日历类编辑格式生效；多个项用 `,` 或 `;` 分隔，每项为 `yyyy-mm-dd` 或 `yyyy-mm-dd~yyyy-mm-dd`（闭区间） |
+| first_day_of_week | "monday" | string | 每周第一天："monday"周一，"sunday"周日，也接受 0~6（0=周日），仅日历类编辑格式生效 |
+| show_seconds | "true" | bool | 时间弹层是否显示秒列；为 false 时格式为 `%H:%M`，仅 `date_time_calendar` / `time_calendar` 生效 |
 | current_time | | bool | 初始化为当前本地时间（`"true"` 或 `"1"` 时生效），方便使用，无需在代码中手动调用 `InitLocalTime()`；与 `text` 属性同时使用时，`current_time` 优先 |
 
 DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
 > 复用提示：`DateTime` 控件在日历浮层关闭后会抑制"焦点回落导致的立即重开"。当该控件被复用为编辑器（例如 `ListCtrl` 的 `kEditDate` 单元格编辑器）时，每次进入编辑前应调用 `ResetCalendarFlyoutState()` 清除该状态，否则控件重新获得焦点时日历浮层不会自动弹出（需要再点一次鼠标）。另外，若要在日历浮层仍处于打开状态下隐藏控件（例如退出编辑态），应先调用 `CloseCalendarFlyout()` 关闭浮层，避免浮层因锚点控件不可见而遗留为悬空的置顶窗口。
+
+### DateTime 日期约束与时间弹层接口
+| 接口 | 说明 |
+| :--- | :--- |
+| `SetDateLimit(minDate, maxDate)` | 设置可选日期范围（yyyy-mm-dd，空表示不限制），浮层已打开时立即生效 |
+| `GetMinDate()` / `GetMaxDate()` | 读取当前日期约束 |
+| `SetDisabledDates(disabledDates)` | 设置业务禁用日期列表（`,` / `;` 分隔，单日或 `start~end`） |
+| `GetDisabledDates()` | 读取禁用日期列表文本 |
+| `SetFirstDayOfWeek(dayOfWeek)` | 设置每周第一天：0=周日，1=周一 |
+| `GetFirstDayOfWeek()` | 读取每周第一天 |
+| `SetShowSeconds(bShow)` | 时间弹层是否显示秒；未显式设置 `format` 时同步刷新显示文本 |
+| `IsShowSeconds()` | 是否显示秒 |
+
+`date_time_calendar` 与 `time_calendar` 的提交语义：点击日期只更新日历选中态，不关闭浮层；点击"确定"后一次性提交完整日期时间；"取消"、Esc、点击浮层外部均不提交。`date_calendar` 保持原有"点日期即提交并关闭"的行为。
 
 ## Calendar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -552,8 +571,11 @@ DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 | first_day_of_week | "monday" | string | 每周第一天："monday"周一，"sunday"周日 |
 | min_date | | string | 最小可选日期（格式：yyyy-mm-dd），空表示不限制 |
 | max_date | | string | 最大可选日期（格式：yyyy-mm-dd），空表示不限制 |
+| disabled_dates | | string | 业务禁用日期列表；多个项用 `,` 或 `;` 分隔，每项为 `yyyy-mm-dd` 或 `yyyy-mm-dd~yyyy-mm-dd`（闭区间） |
 
 Calendar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+Calendar 也提供 `AddDisabledDate` / `AddDisabledDateRange` / `AddDisabledDates` / `ClearDisabledDates` / `IsDateDisabled` 接口用于动态维护业务禁用日期；禁用日期与 `min_date` / `max_date` 会合并为统一的不可选状态。
 
 Calendar 控件在视图模式（月/年/十年）发生变化时触发 `kEventViewModeChanged` 事件（wParam=新视图模式，取值 0/1/2；lParam=旧视图模式，取值 0/1/2），可通过 `AttachViewModeChanged` 订阅；显示周期（月视图的月份、年/十年视图的年份）发生变化时触发 `kEventDisplayDateChanged` 事件，可通过 `AttachDisplayDateChanged` 订阅（常用于浮层标题栏随翻页/跨月移动刷新）；选中日期或日期范围变化时触发 `kEventValueChanged` 事件（与 DateTime 一致）。
 
@@ -571,17 +593,18 @@ Calendar 控件在视图模式（月/年/十年）发生变化时触发 `kEventV
 | 范围模式下 Shift + ← / → / ↑ / ↓ | 以焦点为锚点扩展范围选择（实时高亮起止区间），再次 Enter/Space 确认 | — | — |
 
 补充说明：
-- 焦点移动与翻页都会收敛到 `min_date`/`max_date` 限制范围内，焦点环不会落在禁用日期上；翻到最早/最晚可选周期边界后不再继续前翻/后翻。
+- 焦点移动与翻页都会收敛到 `min_date`/`max_date` 限制范围内，并跳过 `disabled_dates` 中的业务禁用日期，焦点环不会落在禁用日期上；翻到最早/最晚可选周期边界后不再继续前翻/后翻。
 - 范围模式的键盘扩展与鼠标拖拽共用同一套起止逻辑与实时预览绘制。
 
 ## CalendarFlyout日历浮层
-CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应头文件`duilib/Control/CalendarFlyout.h`。用于在锚点控件周围弹出日历面板，支持单选/范围选择、月/年/十年三级导航。
+CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应头文件`duilib/Control/CalendarFlyout.h`。用于在锚点控件周围弹出日历面板，支持单选/范围选择、月/年/十年三级导航，以及"日历 + 时间"或"仅时间"选择。
 
 核心特性：
 - 继承Flyout：自动获得8方位弹出、空间不足自动翻转、点击外部/Esc关闭等能力；
-- 内嵌XML布局：头部导航（上一月/标题/下一月）+ Calendar + 底部按钮（今天/清除）；
+- 内嵌XML布局按模式动态生成：日期模式为头部导航（上一月/标题/下一月）+ Calendar + 底部按钮（今天/清除）；时间模式额外增加时:分[:秒]选择行与取消/确定按钮；仅时间模式不创建Calendar；
 - 单选模式：点击日期后自动关闭并触发`AttachDateSelected`回调；
 - 范围模式：拖拽选择起止日期后自动关闭并触发`AttachDateSelected`回调；
+- 时间模式（`SetTimeMode`）：点击日期不关闭，只有点击"确定"才触发`AttachDateTimeSelected`并关闭；"取消"/Esc/点击外部不提交；
 - 三级导航：点击标题在月/年/十年视图间循环切换。
 
 ### C++接口
@@ -595,6 +618,10 @@ CalendarFlyout是基于Flyout承载Calendar控件的日期选择浮层，对应�
 | `SetInitRange(start, end)` | 设置范围选择的初始范围 |
 | `SetFirstDayOfWeek(dayOfWeek)` | 设置每周第一天：0=周日，1=周一（默认1） |
 | `SetDateLimit(minDate, maxDate)` | 设置可选日期范围限制（yyyy-mm-dd格式） |
+| `SetTimeMode(bShowCalendar, bShowSeconds)` | 启用时间选择模式（必须在`ShowAt`之前调用）：`bShowCalendar=true`为日历+时间，`false`为仅时间；`bShowSeconds`控制秒列 |
+| `SetDisabledDates(disabledDates)` | 设置业务禁用日期（`,` / `;` 分隔，单日或 `start~end`闭区间） |
+| `ClearDisabledDates()` | 清空业务禁用日期 |
+| `AttachDateTimeSelected(callback)` | 注册日期时间提交回调，参数为`(const struct tm& dateTime)`；时间模式下点击"确定"触发 |
 | `AttachDateSelected(callback)` | 注册日期选择完成回调（两参数签名，仅适用于单选模式），参数为`(WPARAM wParam, LPARAM lParam)`；wParam=0单选、1范围；lParam单选时为time_t，范围时无意义 |
 | `AttachDateSelectedEx(callback)` | 注册日期选择完成回调（三参数签名，推荐），参数为`(WPARAM wParam, LPARAM lParam, const Calendar::DateRange* pRange)`；范围模式从pRange读取完整64位start/end |
 | `AttachDateCleared(callback)` | 注册清除日期回调（点击"清除"按钮时触发） |
@@ -628,9 +655,23 @@ pFlyout->AttachDateSelectedEx([this](WPARAM wParam, LPARAM lParam, const ui::Cal
         //处理选中范围
     }
 });
+
+//日历 + 时间（或仅时间）：bShowCalendar=false 时只有时间行
+ui::CalendarFlyout* pFlyout = new ui::CalendarFlyout(this);
+pFlyout->SetTimeMode(true, false);      //显示日历，不显示秒
+pFlyout->SetDateLimit(_T("2026-01-01"), _T("2026-12-31"));
+pFlyout->SetDisabledDates(_T("2026-10-01~2026-10-07,2026-12-25"));
+pFlyout->SetFirstDayOfWeek(1);
+pFlyout->AttachDateTimeSelected([this](const struct tm& dateTime) {
+    ui::DateTime* pDateTime = dynamic_cast<ui::DateTime*>(pAnchor);
+    if (pDateTime != nullptr) {
+        pDateTime->SetDateTime(dateTime);
+    }
+});
+pFlyout->ShowAt(pAnchor, today, ui::Flyout::Placement::Bottom);
 ```
 
-DateTime控件（`edit_format="date_calendar"`）已内置使用CalendarFlyout，无需手动创建。
+DateTime控件（`edit_format="date_calendar"` / `"date_time_calendar"` / `"time_calendar"`）已内置使用CalendarFlyout，无需手动创建。
 
 ## HotKey的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

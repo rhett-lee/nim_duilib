@@ -12,6 +12,7 @@ namespace ui
 {
 
 class Calendar;
+class SpinBox;
 
 /** 日历标题按钮：在 Button 基础上自绘一个"向下箭头"（矢量三角形），替代原先依赖字体的 ▾ 字符。
  *
@@ -149,6 +150,31 @@ public:
     */
     void SetDateLimit(const DString& minDate, const DString& maxDate);
 
+    /** 设置时间选择模式（必须在 ShowAt 之前调用）
+    * @param [in] bShowCalendar true=日历+时间；false=仅时间选择（无日历）
+    * @param [in] bShowSeconds true=显示秒列；false=仅时:分
+    */
+    void SetTimeMode(bool bShowCalendar, bool bShowSeconds);
+
+    /** 设置业务禁用日期
+    * @param [in] disabledDates 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 yyyy-mm-dd 或 yyyy-mm-dd~yyyy-mm-dd；非法项忽略
+    */
+    void SetDisabledDates(const DString& disabledDates);
+
+    /** 清空业务禁用日期
+    */
+    void ClearDisabledDates();
+
+    /** 日期时间选择完成事件回调类型（时间模式下点击"确定"时触发）
+    * @param [in] dateTime 完整日期时间（已归一化）
+    */
+    typedef std::function<void(const struct tm& dateTime)> DateTimeSelectedEvent;
+
+    /** 监听日期时间选择完成事件
+    */
+    void AttachDateTimeSelected(const DateTimeSelectedEvent& callback);
+
     /** 日期选择完成事件回调类型（选择日期/范围后自动关闭前触发）
     * @param [in] wParam 0=单选模式，1=范围模式
     * @param [in] lParam 单选模式时为选中日期的 time_t 值；范围模式时无意义。
@@ -194,6 +220,22 @@ private:
     /** 初始化内部控件
     */
     void InitControls();
+
+    /** 按当前模式生成浮层 XML（日历/日历+时间/仅时间）
+    */
+    DString BuildXml() const;
+
+    /** 组合当前选择的完整日期时间（已归一化）
+    */
+    struct tm ComposeValue() const;
+
+    /** 确定按钮点击
+    */
+    void OnOkClicked();
+
+    /** 取消按钮点击
+    */
+    void OnCancelClicked();
 
     /** 更新标题文本（根据当前视图模式）
     */
@@ -256,10 +298,27 @@ private:
     DString m_minDate;
     DString m_maxDate;
 
+    /** 业务禁用日期列表文本
+    */
+    DString m_disabledDates;
+
+    /** 时间选择模式：是否显示时间/是否显示日历/是否显示秒
+    */
+    bool m_bTimeMode;
+    bool m_bShowCalendar;
+    bool m_bShowSeconds;
+
     /** 内部控件指针
     */
     Button* m_pTitleBtn;
     Control* m_pCalendar;
+    SpinBox* m_pHourSpin;
+    SpinBox* m_pMinSpin;
+    SpinBox* m_pSecSpin;
+
+    /** 日期时间选择完成回调（时间模式）
+    */
+    std::vector<DateTimeSelectedEvent> m_dateTimeSelectedCallbacks;
 
     /** 日期选择完成回调（旧版两参数）
     */

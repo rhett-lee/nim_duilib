@@ -3,6 +3,8 @@
 
 #include "duilib/Core/Control.h"
 #include <ctime>
+#include <utility>
+#include <vector>
 
 namespace ui
 {
@@ -120,6 +122,31 @@ public:
     * @param [in] maxDate 最大日期（空表示不限制）
     */
     void SetDateLimit(const DString& minDate, const DString& maxDate);
+
+    /** 添加一个禁用日期
+    * @param [in] date 日期字符串（yyyy-mm-dd 或 yyyy/mm/dd）
+    */
+    void AddDisabledDate(const DString& date);
+
+    /** 添加一个禁用日期区间（闭区间，起止顺序可颠倒）
+    * @param [in] start 开始日期（yyyy-mm-dd）
+    * @param [in] end 结束日期（yyyy-mm-dd）
+    */
+    void AddDisabledDateRange(const DString& start, const DString& end);
+
+    /** 添加一组禁用日期
+    * @param [in] disabledDates 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 yyyy-mm-dd 或 yyyy-mm-dd~yyyy-mm-dd；非法项忽略
+    */
+    void AddDisabledDates(const DString& disabledDates);
+
+    /** 清空禁用日期
+    */
+    void ClearDisabledDates();
+
+    /** 判断日期是否被业务规则禁用（不包含 min_date/max_date 判断）
+    */
+    bool IsDateDisabled(const struct tm& date) const;
 
     /** 跳转到今天
     */
@@ -344,6 +371,10 @@ private:
     struct tm m_maxDate;
     bool m_bHasMinDate;
     bool m_bHasMaxDate;
+
+    /** 业务禁用的日期区间集合（闭区间；单日禁用时 start == end）
+    */
+    std::vector<std::pair<struct tm, struct tm>> m_disabledDateRanges;
 
     /** 当前月份格子缓存（用于命中测试）
     */

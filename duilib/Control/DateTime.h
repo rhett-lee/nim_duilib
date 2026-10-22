@@ -120,6 +120,8 @@ public:
         kDateMinuteUpDown,  //编辑时显示：年-月-日 时:分，通过控件的右侧放置一个向上-向下的控件以修改日期和时间
         kTimeUpDown,        //编辑时显示：时:分:秒，通过控件的右侧放置一个向上-向下的控件以修改时间，不支持修改日期
         kMinuteUpDown,      //编辑时显示：时:分，通过控件的右侧放置一个向上-向下的控件以修改时间，不支持修改日期
+        kDateTimeCalendar,  //编辑时显示：年-月-日 时:分:秒，日历 + 时间选择弹层，点“确定”提交
+        kTimeCalendar,      //编辑时显示：时:分:秒，仅时间选择弹层（无日历），点“确定”提交
     };
 
     /** 设置编辑格式
@@ -145,6 +147,47 @@ public:
     /** 获取Spin功能的Class名称
     */
     DString GetSpinClass() const;
+
+    /** 设置可选日期范围限制（仅日历类编辑格式生效）
+    * @param [in] minDate 最小日期（yyyy-mm-dd，空表示不限制）
+    * @param [in] maxDate 最大日期（yyyy-mm-dd，空表示不限制）
+    */
+    void SetDateLimit(const DString& minDate, const DString& maxDate);
+
+    /** 获取最小可选日期
+    */
+    DString GetMinDate() const;
+
+    /** 获取最大可选日期
+    */
+    DString GetMaxDate() const;
+
+    /** 设置业务禁用日期（仅日历类编辑格式生效）
+    * @param [in] disabledDates 列表文本，多个项用 ',' 或 ';' 分隔；
+    *            每项为 yyyy-mm-dd 或 yyyy-mm-dd~yyyy-mm-dd
+    */
+    void SetDisabledDates(const DString& disabledDates);
+
+    /** 获取业务禁用日期列表文本
+    */
+    DString GetDisabledDates() const;
+
+    /** 设置每周第一天（仅日历类编辑格式生效）
+    * @param [in] dayOfWeek 0=周日, 1=周一（默认 1）
+    */
+    void SetFirstDayOfWeek(int32_t dayOfWeek);
+
+    /** 获取每周第一天
+    */
+    int32_t GetFirstDayOfWeek() const;
+
+    /** 设置时间弹层是否显示秒（kDateTimeCalendar / kTimeCalendar 生效）
+    */
+    void SetShowSeconds(bool bShow);
+
+    /** 时间弹层是否显示秒
+    */
+    bool IsShowSeconds() const;
 
     /** 添加日期时间值变化监听事件
     * @param [in] callback 要绑定的回调函数
@@ -193,6 +236,18 @@ private:
     */
     void EndEditDateTime();
 
+    /** 是否为日历类编辑格式（kDateCalendar / kDateTimeCalendar / kTimeCalendar）
+    */
+    bool IsCalendarEditFormat() const;
+
+    /** 是否为带时间选择的日历格式（kDateTimeCalendar / kTimeCalendar）
+    */
+    bool IsCalendarTimeFormat() const;
+
+    /** 创建并显示日历浮层
+    */
+    void OpenCalendarFlyout();
+
 private:
     /** 当前的日期时间值
     */
@@ -225,6 +280,23 @@ private:
     /** Spin功能的Class名称
     */
     UiString m_spinClass;
+
+    /** 可选日期范围限制
+    */
+    UiString m_minDate;
+    UiString m_maxDate;
+
+    /** 业务禁用日期列表文本
+    */
+    UiString m_disabledDates;
+
+    /** 每周第一天（0=周日, 1=周一）
+    */
+    int32_t m_firstDayOfWeek;
+
+    /** 时间弹层是否显示秒
+    */
+    bool m_bShowSeconds;
 };
 
 }//namespace ui

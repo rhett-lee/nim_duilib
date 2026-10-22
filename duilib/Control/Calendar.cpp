@@ -97,6 +97,9 @@ void Calendar::SetAttribute(const DString& strName, const DString& strValue2)
             m_bCellsDirty = true;   //可选范围变化，需重算 bDisabled
         }
     }
+    else if (strName == _T("disabled_dates")) {
+        AddDisabledDates(strValue);
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -212,6 +215,78 @@ void Calendar::SetDateLimit(const DString& minDate, const DString& maxDate)
     m_bHasMaxDate = ParseDateString(maxDate, m_maxDate);
     m_bCellsDirty = true;   //可选范围变化，需重算格子的 bDisabled
     Invalidate();
+}
+
+void Calendar::AddDisabledDate(const DString& date)
+{
+    struct tm day = {0, };
+    if (!ParseDateString(date, day)) {
+        return;
+    }
+    m_disabledDateRanges.emplace_back(day, day);
+    m_bCellsDirty = true;   //禁用日期变化，需重算格子的 bDisabled
+    Invalidate();
+}
+
+void Calendar::AddDisabledDateRange(const DString& start, const DString& end)
+{
+    struct tm startDate = {0, };
+    struct tm endDate = {0, };
+    if (!ParseDateString(start, startDate) || !ParseDateString(end, endDate)) {
+        return;
+    }
+    if (IsDateLess(endDate, startDate)) {
+        std::swap(startDate, endDate);
+    }
+    m_disabledDateRanges.emplace_back(startDate, endDate);
+    m_bCellsDirty = true;
+    Invalidate();
+}
+
+void Calendar::AddDisabledDates(const DString& disabledDates)
+{
+    if (disabledDates.empty()) {
+        return;
+    }
+    //多个项用 ',' 或 ';' 分隔；每项为单日或 start~end 闭区间
+    std::list<DString> items = StringUtil::Split(disabledDates, _T(",;"));
+    for (DString item : items) {
+        StringUtil::Trim(item);
+        if (item.empty()) {
+            continue;
+        }
+        std::list<DString> range = StringUtil::Split(item, _T("~"));
+        if (range.size() >= 2) {
+            DString start = range.front();
+            DString end = range.back();
+            StringUtil::Trim(start);
+            StringUtil::Trim(end);
+            AddDisabledDateRange(start, end);
+        }
+        else {
+            AddDisabledDate(item);
+        }
+    }
+}
+
+void Calendar::ClearDisabledDates()
+{
+    if (m_disabledDateRanges.empty()) {
+        return;
+    }
+    m_disabledDateRanges.clear();
+    m_bCellsDirty = true;
+    Invalidate();
+}
+
+bool Calendar::IsDateDisabled(const struct tm& date) const
+{
+    for (const auto& range : m_disabledDateRanges) {
+        if (IsDateInRange(date, range.first, range.second)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Calendar::RefreshToday()
@@ -467,6 +542,9 @@ void Calendar::SelectFocusedDay(const EventArgs& msg)
     if (m_bHasMaxDate && IsDateLess(m_maxDate, m_focusDate)) {
         return;
     }
+    if (IsDateDisabled(m_focusDate)) {
+        return;
+    }
     if (m_mode == Mode::kSingle) {
         SetDate(m_focusDate);
         //SetDate 触发 kEventValueChanged，可能同步关闭浮层并销毁本控件，需检测过期后停止访问 this
@@ -517,6 +595,35 @@ void Calendar::ClampFocusToLimits(struct tm& date)
     }
     if (m_bHasMaxDate && IsDateLess(m_maxDate, date)) {
         date = m_maxDate;
+    }
+    if (!IsDateDisabled(date)) {
+        return;
+    }
+
+    //命中业务禁用日期时，先向后、再向前寻找最近可用日（最多跨 366 天，避免死循环）
+    struct tm candidate = date;
+    for (int32_t i = 0; i < 366; ++i) {
+        candidate.tm_mday += 1;
+        NormalizeTm(candidate);
+        if (m_bHasMaxDate && IsDateLess(m_maxDate, candidate)) {
+            break;
+        }
+        if (!IsDateDisabled(candidate)) {
+            date = candidate;
+            return;
+        }
+    }
+    candidate = date;
+    for (int32_t i = 0; i < 366; ++i) {
+        candidate.tm_mday -= 1;
+        NormalizeTm(candidate);
+        if (m_bHasMinDate && IsDateLess(candidate, m_minDate)) {
+            break;
+        }
+        if (!IsDateDisabled(candidate)) {
+            date = candidate;
+            return;
+        }
     }
 }
 
@@ -852,6 +959,10 @@ void Calendar::GetMonthCells(int32_t year, int32_t month, std::vector<DayCell>& 
             cell.bDisabled = true;
         }
         if (m_bHasMaxDate && IsDateLess(m_maxDate, day)) {
+            cell.bDisabled = true;
+        }
+        //业务禁用的日期（单日或区间）同样不可选
+        if (!cell.bDisabled && IsDateDisabled(day)) {
             cell.bDisabled = true;
         }
 

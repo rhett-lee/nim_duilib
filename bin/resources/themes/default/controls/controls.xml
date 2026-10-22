@@ -168,6 +168,17 @@
                                 <DateTime width="auto" height="24" edit_format="date_time_up_down" />
                                 <DateTime width="auto" height="24" edit_format="minute_up_down" />
                             </HBox>
+                            <HBox child_margin="4" width="420">
+                                <Label text_id="STRID_CONTROLS_DATE_TIME" height="24" text_align="vcenter" />
+                                <DateTime width="auto" height="24" text="2026-10-21 09:30"
+                                          edit_format="date_time_calendar" show_seconds="false"
+                                          min_date="2020-01-01" max_date="2035-12-31"
+                                          disabled_dates="2026-10-01~2026-10-07,2026-12-25"
+                                          first_day_of_week="sunday"
+                                          tooltip_text="date_time_calendar + min/max + disabled_dates"/>
+                                <DateTime width="auto" height="24" edit_format="time_calendar"
+                                          tooltip_text="time_calendar"/>
+                            </HBox>
                         </VBox>
                     </HBox>
                     <!-- IPAddress / RichEdit With Spin -->

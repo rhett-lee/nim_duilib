@@ -1,6 +1,7 @@
 #include "CalendarFlyout.h"
 #include "duilib/Control/Calendar.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Control/SpinBox.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/Keycode.h"
 #include "duilib/Core/GlobalManager.h"
@@ -8,27 +9,10 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
 #include <array>
+#include <ctime>
 
 namespace ui
 {
-
-static const DString kCalendarFlyoutXml = _T("<Window size=\"280,320\" caption=\"0,0,0,0\" use_system_caption=\"false\" shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">\n"
-                                              "  <VBox bkcolor=\"bg_window_card\" width=\"280\" height=\"320\" padding=\"8,8,8,8\">\n"
-                                              "    <HBox height=\"32\" child_valign=\"center\">\n"
-                                              "      <CalendarNavButton name=\"cal_prev\" direction=\"left\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
-                                              "      <Control/>\n"
-                                              "      <CalendarTitleButton name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,22,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
-                                              "      <Control/>\n"
-                                              "      <CalendarNavButton name=\"cal_next\" direction=\"right\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
-                                              "    </HBox>\n"
-                                              "    <Calendar name=\"cal_grid\" height=\"240\" width=\"stretch\" calendar_mode=\"single\"/>\n"
-                                              "    <HBox height=\"32\" child_valign=\"center\">\n"
-                                              "      <Button name=\"cal_today\" text_id=\"STRID_PUBLIC_CALENDAR_TODAY\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n"
-                                              "      <Control/>\n"
-                                              "      <Button name=\"cal_clear\" text_id=\"STRID_PUBLIC_CALENDAR_CLEAR\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"text_muted\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n"
-                                              "    </HBox>\n"
-                                              "  </VBox>\n"
-                                              "</Window>");
 
 namespace
 {
@@ -230,8 +214,14 @@ CalendarFlyout::CalendarFlyout(Window* pParentWindow):
     m_bHasInitDate(false),
     m_bHasInitRange(false),
     m_firstDayOfWeek(1),
+    m_bTimeMode(false),
+    m_bShowCalendar(true),
+    m_bShowSeconds(true),
     m_pTitleBtn(nullptr),
-    m_pCalendar(nullptr)
+    m_pCalendar(nullptr),
+    m_pHourSpin(nullptr),
+    m_pMinSpin(nullptr),
+    m_pSecSpin(nullptr)
 {
     m_initDate = Calendar::GetToday();
     m_initRangeStart = m_initDate;
@@ -247,7 +237,7 @@ bool CalendarFlyout::ShowAt(Control* pAnchor, const struct tm& initDate, Placeme
     //日历需要接收键盘事件（方向键/回车导航），故浮层必须抢占焦点。
     //DateTime 侧已有 m_bSuppressCalendarReopen 标志，关闭后焦点回落不会造成重开死循环。
     SetNoFocus(false);
-    return Flyout::ShowAt(pAnchor, kCalendarFlyoutXml, placement);
+    return Flyout::ShowAt(pAnchor, BuildXml(), placement);
 }
 
 void CalendarFlyout::SetMode(int32_t mode)
@@ -287,6 +277,129 @@ void CalendarFlyout::SetDateLimit(const DString& minDate, const DString& maxDate
     if (pCalendar != nullptr) {
         pCalendar->SetDateLimit(minDate, maxDate);
     }
+}
+
+void CalendarFlyout::SetTimeMode(bool bShowCalendar, bool bShowSeconds)
+{
+    m_bTimeMode = true;
+    m_bShowCalendar = bShowCalendar;
+    m_bShowSeconds = bShowSeconds;
+}
+
+void CalendarFlyout::SetDisabledDates(const DString& disabledDates)
+{
+    m_disabledDates = disabledDates;
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar != nullptr) {
+        //Set 语义为替换，避免重复调用导致禁用日期累加
+        pCalendar->ClearDisabledDates();
+        pCalendar->AddDisabledDates(disabledDates);
+    }
+}
+
+void CalendarFlyout::ClearDisabledDates()
+{
+    m_disabledDates.clear();
+    Calendar* pCalendar = GetCalendar();
+    if (pCalendar != nullptr) {
+        pCalendar->ClearDisabledDates();
+    }
+}
+
+void CalendarFlyout::AttachDateTimeSelected(const DateTimeSelectedEvent& callback)
+{
+    if (callback) {
+        m_dateTimeSelectedCallbacks.push_back(callback);
+    }
+}
+
+DString CalendarFlyout::BuildXml() const
+{
+    const int32_t width = 280;
+    const int32_t headerHeight = 32;
+    const int32_t bottomHeight = 32;
+    const int32_t calendarHeight = 240;
+    const int32_t timeHeight = 36;
+    const int32_t padding = 8;
+
+    int32_t height = padding * 2 + headerHeight + bottomHeight;
+    if (m_bShowCalendar) {
+        height += calendarHeight;
+    }
+    if (m_bTimeMode) {
+        height += timeHeight;
+    }
+
+    DString xml;
+    xml += StringUtil::Printf(_T("<Window size=\"%d,%d\" caption=\"0,0,0,0\" use_system_caption=\"false\" shadow_type=\"default\" shadow_attached=\"true\" layered_window=\"true\" size_box=\"0,0,0,0\">\n"),
+                             width, height);
+    xml += StringUtil::Printf(_T("  <VBox bkcolor=\"bg_window_card\" width=\"%d\" height=\"%d\" padding=\"%d,%d,%d,%d\">\n"),
+                             width, height, padding, padding, padding, padding);
+
+    if (m_bShowCalendar) {
+        //标题栏：上一月/标题/下一月
+        xml += _T("    <HBox height=\"32\" child_valign=\"center\">\n"
+                  "      <CalendarNavButton name=\"cal_prev\" direction=\"left\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_PREV_MONTH\"/>\n"
+                  "      <Control/>\n"
+                  "      <CalendarTitleButton name=\"cal_title\" text=\"2025-01\" width=\"auto\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_SWITCH_VIEW\" text_padding=\"8,0,22,0\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" disabled_text_color=\"text_muted\" disabled_border_color=\"border_control_disabled\"/>\n"
+                  "      <Control/>\n"
+                  "      <CalendarNavButton name=\"cal_next\" direction=\"right\" width=\"28\" height=\"28\" normal_text_color=\"text_default\" hot_text_color=\"color_accent\" pushed_text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\" tooltip_text_id=\"STRID_PUBLIC_CALENDAR_NEXT_MONTH\"/>\n"
+                  "    </HBox>\n"
+                  "    <Calendar name=\"cal_grid\" height=\"240\" width=\"stretch\" calendar_mode=\"single\"/>\n");
+    }
+    else {
+        //仅时间模式：用标题行展示"时间"文案
+        xml += _T("    <HBox height=\"32\" child_valign=\"center\" child_margin=\"4\">\n"
+                  "      <Control/>\n"
+                  "      <Label text_id=\"STRID_PUBLIC_CALENDAR_TIME\" height=\"28\" font=\"system_bold_14\" normal_text_color=\"text_default\" text_align=\"hcenter,vcenter\"/>\n"
+                  "      <Control/>\n"
+                  "    </HBox>\n");
+    }
+
+    if (m_bTimeMode) {
+        //时间行：时 : 分 [: 秒]；SpinBox 属性顺序遵循 D-3 经验（min/max 在 value 之前）
+        xml += _T("    <HBox height=\"36\" child_valign=\"center\" child_margin=\"4\">\n"
+                  "      <Control/>\n");
+        int32_t hour = m_initDate.tm_hour;
+        int32_t minute = m_initDate.tm_min;
+        int32_t second = m_initDate.tm_sec;
+        if (hour < 0 || hour > 23) {
+            hour = 0;
+        }
+        if (minute < 0 || minute > 59) {
+            minute = 0;
+        }
+        if (second < 0 || second > 59) {
+            second = 0;
+        }
+        xml += StringUtil::Printf(_T("      <SpinBox class=\"simple simple_border rich_edit_spin\" name=\"cal_hour\" width=\"56\" height=\"28\" min_number=\"0\" max_number=\"23\" step=\"1\" value=\"%d\"/>\n"), hour);
+        xml += _T("      <Label text=\":\" width=\"8\" height=\"28\" text_align=\"hcenter,vcenter\" normal_text_color=\"text_default\"/>\n");
+        xml += StringUtil::Printf(_T("      <SpinBox class=\"simple simple_border rich_edit_spin\" name=\"cal_min\" width=\"56\" height=\"28\" min_number=\"0\" max_number=\"59\" step=\"1\" value=\"%d\"/>\n"), minute);
+        if (m_bShowSeconds) {
+            xml += _T("      <Label text=\":\" width=\"8\" height=\"28\" text_align=\"hcenter,vcenter\" normal_text_color=\"text_default\"/>\n");
+            xml += StringUtil::Printf(_T("      <SpinBox class=\"simple simple_border rich_edit_spin\" name=\"cal_sec\" width=\"56\" height=\"28\" min_number=\"0\" max_number=\"59\" step=\"1\" value=\"%d\"/>\n"), second);
+        }
+        xml += _T("      <Control/>\n"
+                  "    </HBox>\n");
+    }
+
+    //底部按钮行
+    xml += _T("    <HBox height=\"32\" child_valign=\"center\" child_margin=\"4\">\n");
+    if (m_bShowCalendar) {
+        xml += _T("      <Button name=\"cal_today\" text_id=\"STRID_PUBLIC_CALENDAR_TODAY\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"color_accent\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n");
+    }
+    xml += _T("      <Control/>\n");
+    if (m_bTimeMode) {
+        xml += _T("      <Button name=\"cal_cancel\" text_id=\"STRID_PUBLIC_STRING_CANCEL\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"text_muted\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n"
+                  "      <Button class=\"btn_primary_global\" name=\"cal_ok\" text_id=\"STRID_PUBLIC_STRING_OK\" width=\"60\" height=\"28\" font=\"system_regular_12\"/>\n");
+    }
+    else {
+        xml += _T("      <Button name=\"cal_clear\" text_id=\"STRID_PUBLIC_CALENDAR_CLEAR\" width=\"60\" height=\"28\" font=\"system_regular_12\" text_color=\"text_muted\" border_size=\"1\" border_round=\"4,4\" normal_border_color=\"border_control_normal\" hovered_border_color=\"border_btn_hovered\" hovered_color=\"bg_btn_hovered\" pressed_color=\"bg_btn_pressed\"/>\n");
+    }
+    xml += _T("    </HBox>\n"
+              "  </VBox>\n"
+              "</Window>");
+    return xml;
 }
 
 void CalendarFlyout::AttachDateSelected(const DateSelectedEvent& callback)
@@ -337,6 +450,9 @@ void CalendarFlyout::InitControls()
         if (!m_minDate.empty() || !m_maxDate.empty()) {
             pCalendar->SetDateLimit(m_minDate, m_maxDate);
         }
+        if (!m_disabledDates.empty()) {
+            pCalendar->AddDisabledDates(m_disabledDates);
+        }
         if (m_bHasInitRange && (m_mode == 1)) {
             //范围模式：用初始范围
             pCalendar->SetDateRange(m_initRangeStart, m_initRangeEnd);
@@ -353,6 +469,10 @@ void CalendarFlyout::InitControls()
 
         //绑定日期变化事件
         pCalendar->AttachDateChanged([this](const EventArgs& msg) {
+            if (m_bTimeMode) {
+                //时间模式：日期点击只更新日历的内部选中态，等待"确定"按钮统一提交
+                return true;
+            }
             //范围模式下 pEventData 指向 Calendar::DateRange（完整 64 位起止值），单选模式为 nullptr。
             //该指针仅在本次事件同步派发期间有效，传递给外部回调时须在本次回调内用完。
             const Calendar::DateRange* pRange = nullptr;
@@ -448,7 +568,103 @@ void CalendarFlyout::InitControls()
         });
     }
 
+    if (m_bTimeMode) {
+        //时间选择控件
+        m_pHourSpin = dynamic_cast<SpinBox*>(pThisWindow->FindControl(_T("cal_hour")));
+        m_pMinSpin = dynamic_cast<SpinBox*>(pThisWindow->FindControl(_T("cal_min")));
+        m_pSecSpin = dynamic_cast<SpinBox*>(pThisWindow->FindControl(_T("cal_sec")));
+        if (m_pHourSpin != nullptr) {
+            m_pHourSpin->SetValue(static_cast<int64_t>(m_initDate.tm_hour));
+        }
+        if (m_pMinSpin != nullptr) {
+            m_pMinSpin->SetValue(static_cast<int64_t>(m_initDate.tm_min));
+        }
+        if (m_pSecSpin != nullptr) {
+            m_pSecSpin->SetValue(static_cast<int64_t>(m_initDate.tm_sec));
+        }
+
+        //确定/取消按钮
+        Control* pOkBtn = pThisWindow->FindControl(_T("cal_ok"));
+        if (pOkBtn != nullptr) {
+            pOkBtn->AttachClick([this](const EventArgs&) {
+                OnOkClicked();
+                return true;
+            });
+        }
+        Control* pCancelBtn = pThisWindow->FindControl(_T("cal_cancel"));
+        if (pCancelBtn != nullptr) {
+            pCancelBtn->AttachClick([this](const EventArgs&) {
+                OnCancelClicked();
+                return true;
+            });
+        }
+
+        //仅时间模式没有 Calendar，键盘焦点交给小时输入框
+        if (GetCalendar() == nullptr) {
+            GlobalManager::Instance().Thread().PostDelayedTask(
+                kThreadUI,
+                UiBind(this, [this]() {
+                    if (IsWindow() && (m_pHourSpin != nullptr) && (m_pHourSpin->GetWindow() != nullptr)) {
+                        m_pHourSpin->SetFocus();
+                    }
+                }),
+                0);
+        }
+    }
+
     UpdateTitle();
+}
+
+struct tm CalendarFlyout::ComposeValue() const
+{
+    struct tm value = m_initDate;
+    if (m_bShowCalendar) {
+        Calendar* pCalendar = GetCalendar();
+        if ((pCalendar != nullptr) && pCalendar->HasSelection()) {
+            value = pCalendar->GetDate();
+        }
+    }
+    if (m_bTimeMode) {
+        if (m_pHourSpin != nullptr) {
+            value.tm_hour = static_cast<int32_t>(m_pHourSpin->GetValue());
+        }
+        if (m_pMinSpin != nullptr) {
+            value.tm_min = static_cast<int32_t>(m_pMinSpin->GetValue());
+        }
+        if (m_pSecSpin != nullptr) {
+            value.tm_sec = static_cast<int32_t>(m_pSecSpin->GetValue());
+        }
+        else {
+            value.tm_sec = 0;
+        }
+    }
+    value.tm_isdst = -1;
+    time_t timeValue = std::mktime(&value);
+    if (timeValue != (time_t)-1) {
+        struct tm normalized = {0, };
+#if defined (_WIN32) || defined (_WIN64)
+        ::localtime_s(&normalized, &timeValue);
+#else
+        ::localtime_r(&timeValue, &normalized);
+#endif
+        value = normalized;
+    }
+    return value;
+}
+
+void CalendarFlyout::OnOkClicked()
+{
+    struct tm value = ComposeValue();
+    std::vector<DateTimeSelectedEvent> callbacks = m_dateTimeSelectedCallbacks;
+    for (const DateTimeSelectedEvent& callback : callbacks) {
+        callback(value);
+    }
+    Dismiss();
+}
+
+void CalendarFlyout::OnCancelClicked()
+{
+    Dismiss();
 }
 
 void CalendarFlyout::UpdateTitle()

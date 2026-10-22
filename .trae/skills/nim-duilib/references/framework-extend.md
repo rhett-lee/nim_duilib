@@ -1,4 +1,4 @@
-# 给框架控件扩展新属性（以 Panel 的 title_id 为例）
+﻿# 给框架控件扩展新属性（以 Panel 的 title_id 为例）
 
 本文沉淀"给一个已有框架控件新增 XML 属性"的完整流程，以及中途会踩到的硬坑。
 以本次给 `PanelTemplate` 新增 `title_id`（标题多语言 ID）为实例，但流程对其它模板类控件通用。
@@ -325,3 +325,168 @@ AdjustValue((nDelta > 0) ? m_step : -m_step);
 | 输入框能输入 `e`/`x` 等字符 | 仅靠 `limit_chars` 未收紧或未更新 | 每次格式属性变化重建 `limit_chars` |
 | 用户删除千分位后无法提交 | 解析未先删除分隔符/前后缀 | 解析顺序：去前后缀 → 删分隔符 → 校验 |
 | `GetSpinStep()` 值突变 | `SetStep(double)` 未同步整数步长 | 按 `round(step)` 同步并做溢出保护 |
+
+---
+
+## 七、容器子项的所有权与"移除即销毁"（D-7 ToolBar 实例）
+
+以 `D-7 ToolBar 工具项抽象`（spec：`docs/misc/specs/D-7-ToolBar-Items/`）为实例。
+适用场景：给已有容器控件（ToolBar 继承 HBox）增加动态子项管理 API（Add/Remove/Find/SetState）。
+这类需求的风险不在"添加"，而在"删除"：容器的子项所有权规则决定了能否手工 `delete`。
+
+### 7.1 核心规则：`Box::RemoveItem` 已经销毁控件
+
+`Box::DoRemoveItem`（`duilib/Core/Box.cpp`）的实现要点：
+
+```cpp
+m_items.erase(it);
+if (m_bAutoDestroyChild) {              // 默认 true
+    if (pControl->HasDestroyEventCallback()) {
+        pControl->SendEvent(kEventDestroy);
+    }
+    delete pControl;                    // 这里已经销毁
+}
+else {
+    pControl->SetParent(nullptr);
+}
+Arrange();
+```
+
+因此包装层必须写成：
+
+```cpp
+const bool bAutoDestroyChild = IsAutoDestroyChild();
+if (!RemoveItem(pControl)) {
+    return false;
+}
+if (!bAutoDestroyChild) {
+    delete pControl;                    // 只有"不自动销毁"时才手动删除
+}
+```
+
+- 错误写法：`RemoveItem` 后无条件 `delete` → 双重释放，点击删除即崩溃（典型 `0xC0000005`）。
+- 另一种错误：以为 `RemoveItem` 只摘除不销毁 → `AutoDestroyChild == false` 时内存泄漏。
+- `RemoveItemAt` / `RemoveAllItems` 同理，都按 `AutoDestroyChild` 决定是否销毁。
+
+### 7.2 删除子项时的清理清单
+
+删除控件前后，所有保存该控件指针的缓存都必须同步清理，否则下次布局或查询会访问悬空指针：
+
+1. 名称→控件、控件→绑定状态等查找缓存（本次为 `m_boundToolItems`）；
+2. 自动收纳 / 隐藏列表（本次为 `m_hiddenItems`）；
+3. 捕获了控件指针的自定义回调；
+4. 状态索引（当前选中项、当前页等）；
+5. 删除后不要再解引用该指针，只允许做指针值比较（如从 `std::vector` 中 erase）。
+
+```cpp
+ForgetHiddenItem(pControl);
+m_boundToolItems.erase(std::remove(m_boundToolItems.begin(), m_boundToolItems.end(), pControl),
+                       m_boundToolItems.end());
+if (!RemoveItem(pControl)) { return false; }
+if (!IsAutoDestroyChild()) { delete pControl; }
+```
+
+注意：`RemoveItem` 内部会 `Arrange()`，一般不需要再额外 `Invalidate()`。
+
+### 7.3 不要在自己的事件回调里删除自身
+
+从"移除一项"工具按钮的点击回调里删除**另一个**工具项是安全的；
+但如果回调里删除的是正在派发事件的那个控件，事件分发栈仍持有它的 `this`，会立即崩溃。
+需要"点击后删除自己"时，用 `PostTask` / 定时器延迟到消息循环下一轮再删除。
+
+### 7.4 索引 API 必须排除内部控件
+
+ToolBar 内部会创建"更多"按钮；`GetToolCount` / `GetToolAt` / `GetToolIndex` / `RemoveToolAt`
+必须统一跳过它，否则应用按索引删除时可能删掉框架内部控件。
+做法：写一个私有的索引映射函数（`GetToolAt`）供所有索引接口复用，而不是每处各自遍历。
+
+### 7.5 动态插入后维护内部控件的位置
+
+内部按钮（"更多"）必须始终位于子项末尾。应用动态追加工具项后，需要把它移回末尾：
+
+```cpp
+const size_t nIndex = GetItemIndex(pButton);
+if ((nIndex != Box::InvalidIndex) && ((nIndex + 1) != GetItemCount())) {
+    SetItemIndex(pButton, GetItemCount() - 1);
+}
+```
+
+`SetItemIndex` 内部会调用 `Arrange()`，应在布局函数的"布局中"保护标记（`m_bInLayout`）下调用，
+避免重入布局。
+
+### 7.6 验证清单
+
+| 验证项 | 通过标准 |
+|--------|----------|
+| 删除单项 | 点击"移除一项"后控件消失，程序不崩溃 |
+| 连续删除 | 删除到最后一个工具项、再 `RemoveAllTools` 均正常 |
+| 删除收纳中的项 | 被自动隐藏的项删除后，下次布局不访问悬空指针 |
+| 索引删除 | `RemoveToolAt` 不会删到内部"更多"按钮 |
+| 动态追加 | 追加后"更多"按钮仍在最右端 |
+| 编译与运行 | Debug\|x64 编译零错误，且**实际点一次删除**（不能只看编译通过） |
+
+### 7.7 本次坑表
+
+| 现象 | 根因 | 处理 |
+|------|------|------|
+| 点击删除立即崩溃，调用栈落在 `delete` 行 | `Box::RemoveItem` 已 `delete`，包装层又 `delete` 一次 | 先判断 `IsAutoDestroyChild()` |
+| 删除后下次布局崩溃 | 隐藏列表 / 事件绑定缓存仍保存悬空指针 | 删除前清理所有缓存 |
+| 按索引删到了"更多"按钮 | 索引接口未排除内部控件 | 统一走一个索引映射函数 |
+| 动态添加后"更多"按钮跑到中间 | 内部按钮位置未维护 | 布局时固定到末尾 |
+| 删除自身时崩溃 | 控件在自己的事件派发中被销毁 | 延迟删除（`PostTask`） |
+| 内存持续增长 | `AutoDestroyChild == false` 时未手动删除 | 显式判断并 `delete` |
+
+## 八、实战：D-5 DateTime 时间弹层（弹层组合扩展）
+
+### 8.1 判断"扩展还是新增"
+
+- 旧 `DateTime::EditFormat::kDateCalendar` 已经承载"日期弹层"，且被业务依赖"点日期即提交并关闭"。
+  直接改它会破坏旧语义 → **新增枚举值** `kDateTimeCalendar` / `kTimeCalendar`，不改旧值；
+- 新枚举走同一套 `CalendarFlyout`，通过 `SetTimeMode` 切换形态，避免复制浮层代码。
+
+### 8.2 弹层 XML 动态生成的取舍
+
+- 固定 XML + 隐藏控件会留下空白（仅时间模式不需要 240px 日历）；
+- 改为 `BuildXml()` 按模式拼接，高度 = 固定内边距 + 标题 + 日历(可选) + 时间行(可选) + 底部；
+- 动态 XML 里每个控件名必须与 `InitControls` 的 `FindControl` 字符串完全一致；
+- `InitControls` 必须容忍某类控件不存在（本次：仅时间模式没有 `Calendar`），所有 `GetCalendar()` 结果先判空。
+
+### 8.3 时间控件复用 SpinBox
+
+- 直接使用 D-3 的 `SpinBox`（`min_number`/`max_number`/`step`/`value`），不要在浮层里再弹 ComboBox；
+- XML 属性顺序仍是 `min_number`/`max_number` 在 `value` 之前；
+- 类名用全局已有的 `simple simple_border rich_edit_spin`，不要引用具体窗口的局部 Class；
+- `SetValue` 有 `int64_t` 与 `double` 重载，传 `int` 会二义，必须显式 `static_cast<int64_t>`。
+
+### 8.4 提交语义要显式区分
+
+- 时间模式：日期变化回调只更新内部选中态（`return true`，不回调、不 `Dismiss`）；
+  只有"确定"才组合完整 `struct tm` 并触发 `AttachDateTimeSelected`；
+- 取消/Esc/点外部：只 `Dismiss`，不触发回调；
+- 组合时间后调用 `mktime` 归一化，再过 `localtime_s/localtime_r` 回填 `tm_wday/tm_yday/tm_isdst`；
+  `mktime` 返回 -1 时直接沿用原值，避免提交非法时间。
+
+### 8.5 禁用日期与键盘焦点
+
+- 禁用日期在 `Calendar` 内统一转成 `DayCell::bDisabled`，与 min/max 合并，鼠标路径无需改；
+- 键盘路径必须单独处理：`ClampFocusToLimits` 收敛 min/max 后再向前/向后找可用日（最多 366 天），
+  `SelectFocusedDay` 再判一次，防止 Enter/Space 提交禁用日；
+- 禁用日期只在日期粒度比较，不处理"某天部分时段禁用"。
+
+### 8.6 属性分层的顺序
+
+- XML / C++ 属性先存到 `DateTime` 成员；
+- 创建浮层前统一调用 `CalendarFlyout::SetTimeMode/SetDateLimit/SetDisabledDates/SetFirstDayOfWeek`；
+- 浮层已打开时，setter 再转发给 `CalendarFlyout`，保证运行期修改立即生效。
+
+### 8.7 验证清单（本次）
+
+| 验证项 | 通过标准 |
+|--------|----------|
+| 编译 | Debug\|x64 零错误 |
+| 日期+时间 | 点日期不关闭；调时/分后"确定"提交；"取消"/Esc 不改变原值 |
+| 仅时间 | 无日历；确定后日期不变 |
+| 约束 | min/max 与禁用日期均置灰不可点；键盘焦点不落到禁用日 |
+| 周起始/秒 | `first_day_of_week`、`show_seconds` 对标题、网格、文本格式同时生效 |
+| 旧行为 | `date_calendar` 仍点日期即提交并关闭；`*_up_down` 不变 |
+| 文档 | `verify_docs.py --extra docs` 零漂移 |

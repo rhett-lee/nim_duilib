@@ -353,6 +353,8 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 | 文档检查报"不存在" | 文档名与源码不一致，或引用了控件内部 name | 改文档；确属有意引用才进 allowlist |
 | 英文文档链接 404 | Summary 用了中文锚点 | 英文锚点按英文标题生成 |
 | 扩展控件时 `value` 被格式属性舍入 | XML 属性按声明顺序生效，`value` 先于 `decimals` | 格式类属性写在数值之前（详见 `framework-extend.md` 6.5） |
+| 删除子控件时重复 `delete` | `Box::RemoveItem` 在 `AutoDestroyChild=true` 时会销毁控件 | 先判断 `IsAutoDestroyChild()`，仅在 false 时手动 delete（详见 `framework-extend.md` 第七节） |
+| 编译通过但一操作就崩溃 | 只验证了编译，未执行实际交互路径 | 增删/事件类改动必须实际点击一次，不能只看编译结果 |
 
 ---
 
@@ -365,4 +367,6 @@ MSBuild "c:\develop\nim_duilib\build\examples.sln" /p:Configuration=Debug /p:Pla
 | Carousel | `docs/misc/specs/B7-Carousel/` | 图片驱动 + 主题色替换、定时器与生命周期 |
 | TreeGrid | `docs/misc/specs/B9-TreeGrid/` | 新控件而非改 ListCtrl 的边界判断 |
 | SpinBox 小数/格式化（D-3） | `docs/misc/specs/D-3-SpinBox-Decimal/` | 已有控件能力扩展：基类回调改虚、双模式输入过滤、XML 属性顺序、解析/格式化成对 |
+| ToolBar 工具项管理（D-7） | `docs/misc/specs/D-7-ToolBar-Items/` | 已有容器加子项管理：删除所有权、索引排除内部控件、动态插入维护内部按钮位置 |
+| DateTime 时间弹层（D-5） | `docs/misc/specs/D-5-TimePicker/` | 已有控件加弹层：新增枚举避免破坏旧语义、动态 XML 三种形态、SpinBox 复用、确定/取消提交语义、禁用日期与键盘焦点跳过 |
 | SystemNotification | `docs/SystemNotification.md` | 大型能力独立成类 + 独立专题文档（中英） |
