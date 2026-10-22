@@ -475,14 +475,14 @@
                                   thumb_normal_image="file='${PATH_SLIDER}/slider_thumb.svg' width='14' height='14'"
                                          thumb_hovered_image="file='${PATH_SLIDER}/slider_thumb_hovered.svg' width='14' height='14'"
                                          thumb_pressed_image="file='${PATH_SLIDER}/slider_thumb_pressed.svg' width='14' height='14'"/>
-    <!-- 双滑块范围选择控件 -->
-    <Class name="range_slider_horizontal" horizontal="true" width="stretch" height="20" margin="4,0,0,0" valign="center" 
+    <!-- 双滑块范围选择控件：允许在控件矩形外绘制值气泡与刻度标签（clip=false） -->
+    <Class name="range_slider_horizontal" horizontal="true" width="stretch" height="20" margin="4,0,0,0" valign="center" clip="false"
                                           thumb_size="14,14" min="0" max="100" 
                                           range_color="bg_progress" bkcolor="bg_progress_track" range_radius="2"
                                           thumb_normal_image="file='${PATH_SLIDER}/range_slider_thumb_normal.svg' width='14' height='14'"
                                           thumb_hovered_image="file='${PATH_SLIDER}/range_slider_thumb_hovered.svg' width='14' height='14'"
                                           thumb_pressed_image="file='${PATH_SLIDER}/range_slider_thumb_pressed.svg' width='14' height='14'"/>
-    <Class name="range_slider_vertical" horizontal="false" width="20" height="stretch" margin="0,4,0,0" halign="center" 
+    <Class name="range_slider_vertical" horizontal="false" width="20" height="stretch" margin="0,4,0,0" halign="center" clip="false"
                                         thumb_size="14,14" min="0" max="100" 
                                         range_color="bg_progress" bkcolor="bg_progress_track" range_radius="2"
                                         thumb_normal_image="file='${PATH_SLIDER}/range_slider_thumb_normal.svg' width='14' height='14'"

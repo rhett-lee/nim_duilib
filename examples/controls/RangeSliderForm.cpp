@@ -37,6 +37,20 @@ void RangeSliderForm::OnInitWindow()
             });
     }
 
+    //带刻度/气泡的示例：同样回显当前范围
+    for (const DString& strName : { DString(_T("marks_range")), DString(_T("excluded_range")), DString(_T("thermo_range")) }) {
+        ui::RangeSlider* pSlider = dynamic_cast<ui::RangeSlider*>(FindControl(strName.c_str()));
+        if (pSlider != nullptr) {
+            pSlider->AttachRangeChanged([this](const ui::EventArgs& args) {
+                ui::RangeSlider* pSender = dynamic_cast<ui::RangeSlider*>(args.GetSender());
+                if (pSender != nullptr) {
+                    UpdateRangeText(pSender);
+                }
+                return true;
+                });
+        }
+    }
+
     //重置区间：恢复到 200 ~ 800
     ui::Button* pResetBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_range_reset")));
     if ((pResetBtn != nullptr) && (pRange != nullptr)) {

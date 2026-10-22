@@ -870,6 +870,17 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | thumb_size | 10,10 | size | 两个滑块的统一大小，如"10,10" |
 | thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | 下限滑块各状态图片 |
 | high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | 上限滑块各状态图片（为空时回退使用下限滑块的图片）|
+| tooltip_open | false | bool | 是否始终显示两个滑块的值气泡（false 时：拖动中与悬停该滑块时显示，松开鼠标后延迟 1 秒自动消失）|
+| tooltip_format / tooltip_format_id |  | string | 值气泡文本格式（如 `%.0f`）/ 其多语言 ID（优先，语言切换时自动刷新）|
+| tooltip_bkcolor（别名 tooltip_bg_color） | bg_tooltip | string | 值气泡背景色 |
+| tooltip_text_color | text_tooltip | string | 值气泡文本颜色 |
+| marks |  | string | 刻度列表，语法 `value=label@color\|value=label\|value`，多个刻度用 `\|` 分隔，如 `0=0°C\|100=100°C@color_error` |
+| mark_color（别名 mark_dot_color） | text_disabled | string | 刻度点的颜色 |
+| mark_label_color | text_muted | string | 刻度标签的默认颜色（`marks` 中 `@color` 可覆盖单个标签）|
+| mark_dot_size | 6 | int | 刻度点直径（像素，DPI 缩放）|
+| mark_label_gap | 6 | int | 刻度标签与轨道之间的距离（像素，DPI 缩放）|
+| snap_to_marks | false | bool | 是否把取值吸附到最近的刻度（拖动、点击轨道与 `SetXXX` 均生效）|
+| included | true | bool | true 高亮两个滑块之间；false 高亮滑块外侧的两段区间 |
 
 RangeSlider 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 
@@ -881,7 +892,17 @@ XML 示例：
 ```xml
 <RangeSlider class="range_slider_horizontal" name="price_range" min="0" max="1000"
              low_value="200" value="800" min_range="50" width="stretch"/>
+
+<!-- 刻度 + 常显值气泡；100°C 标签使用自定义颜色 -->
+<RangeSlider class="range_slider_horizontal" min="0" max="100" low_value="26" value="37"
+             marks="0=0°C|26=26°C|37=37°C|100=100°C@color_error" tooltip_open="true"/>
+
+<!-- 高亮滑块外侧区间，并且只能取刻度值 -->
+<RangeSlider class="range_slider_horizontal" min="0" max="100" low_value="25" value="75"
+             included="false" snap_to_marks="true" marks="0=0|25=25|50=50|75=75|100=100"/>
 ```
+
+> 值气泡与刻度标签可能绘制到控件矩形之外，因此控件本身及包含它的容器需要设置 `clip="false"`（主题中的 `range_slider_horizontal` / `range_slider_vertical` 样式已默认设置）。水平方向气泡在滑块上方，垂直方向气泡在滑块左侧、刻度标签在轨道右侧。垂直方向的两个滑块重合在最小值/最大值时，继续拖动会自动切换为拖动另一个滑块。
 
 对应的 C++ 接口：
 ```cpp
@@ -909,6 +930,27 @@ void SetRangeRadius(int32_t nRadius);                //高亮区间圆角
 int32_t GetRangeRadius() const;
 void SetClickToJump(bool bEnable);                   //点击轨道是否按下即跳值
 bool IsClickToJump() const;
+
+//值气泡
+bool IsTooltipOpen() const; void SetTooltipOpen(bool bOpen);          //是否常显气泡（false：拖动/悬停时显示，松开后延迟消失）
+const DString& GetTooltipFormat() const; void SetTooltipFormat(const DString& strFormat);
+void SetTooltipFormatId(const DString& strFormatId);                  //优先于 tooltip_format
+void SetTooltipBkColor(const DString& strColor);
+void SetTooltipTextColor(const DString& strColor);
+
+//刻度（marks）
+struct SliderMark { double value; DString label; DString labelColor; };
+const std::vector<SliderMark>& GetMarks() const;
+void SetMarks(const std::vector<SliderMark>& marks);
+void SetMarks(const DString& strMarks);              //"value=label@color|value=label|value"
+void SetMarkColor(const DString& strColor);          //刻度点颜色
+void SetMarkLabelColor(const DString& strColor);     //刻度标签默认颜色
+void SetMarkDotSize(int32_t nSize, bool bNeedDpiScale);
+void SetMarkLabelGap(int32_t nGap, bool bNeedDpiScale);
+void SetSnapToMarks(bool bSnap); bool IsSnapToMarks() const;          //取值吸附到最近刻度
+
+//区间高亮方式
+void SetIncluded(bool bIncluded); bool IsIncluded() const;            //false 高亮滑块外侧两段
 void AttachRangeChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //范围值变化事件
 ```
 

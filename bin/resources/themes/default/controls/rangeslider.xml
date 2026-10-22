@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="720,480" text="RangeSlider Test" use_system_caption="false" caption="0,0,0,36"
-        shadow_type="default" size_box="4,4,4,4" min_size="480,360">
+<Window size="760,900" text="RangeSlider Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="520,420">
     <VBox bkcolor="bg_window_main">
         <!-- 标题栏 -->
         <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
@@ -18,33 +18,72 @@
 
         <!-- 内容区 -->
         <VBox padding="12,8,12,12" width="stretch" height="stretch">
-            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
-                  padding="12,12,12,12" width="stretch" height="stretch">
+            <VScrollBox width="stretch" height="stretch" vscrollbar="true" hscrollbar="false">
+                <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                      padding="12,12,12,12" width="stretch">
 
-                <!-- 水平方向：价格区间 -->
-                <Label text_id="STRID_RANGESLIDER_PRICE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,6"/>
-                <HBox height="36" child_margin="8">
-                    <RangeSlider class="range_slider_horizontal" name="price_range"
-                                 min="0" max="1000" low_value="200" value="800" min_range="50" width="stretch"/>
-                </HBox>
-                <Label name="rs_event" text_id="STRID_RANGESLIDER_EVENT_NONE" text_color="text_muted" valign="center"
-                       margin="0,6,0,0" auto_tooltip="true"/>
+                    <!-- 水平方向：价格区间（原有功能） -->
+                    <Label text_id="STRID_RANGESLIDER_PRICE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,6"/>
+                    <HBox height="36" child_margin="8" clip="false">
+                        <RangeSlider class="range_slider_horizontal" name="price_range"
+                                     min="0" max="1000" low_value="200" value="800" min_range="50" width="stretch"/>
+                    </HBox>
+                    <Label name="rs_event" text_id="STRID_RANGESLIDER_EVENT_NONE" text_color="text_muted" valign="center"
+                           margin="0,6,0,0" auto_tooltip="true"/>
 
-                <!-- 操作按钮 -->
-                <HBox height="34" child_margin="8" margin="0,8,0,0">
-                    <Button class="btn_global" name="btn_range_reset" text_id="STRID_RANGESLIDER_RESET" width="96" height="28" border_round="3,3"/>
-                    <Button class="btn_global" name="btn_range_full" text_id="STRID_RANGESLIDER_FULL" width="96" height="28" border_round="3,3"/>
-                    <Control/>
-                </HBox>
+                    <!-- 操作按钮 -->
+                    <HBox height="34" child_margin="8" margin="0,8,0,0">
+                        <Button class="btn_global" name="btn_range_reset" text_id="STRID_RANGESLIDER_RESET" width="96" height="28" border_round="3,3"/>
+                        <Button class="btn_global" name="btn_range_full" text_id="STRID_RANGESLIDER_FULL" width="96" height="28" border_round="3,3"/>
+                        <Control/>
+                    </HBox>
 
-                <!-- 垂直方向：音量区间 -->
-                <Label text_id="STRID_RANGESLIDER_LEVEL" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
-                <HBox height="stretch" width="stretch">
-                    <RangeSlider class="range_slider_vertical" name="level_range"
-                                 min="0" max="100" low_value="30" value="70" height="stretch"/>
-                    <Control/>
-                </HBox>
-            </VBox>
+                    <!-- 刻度 + 常显值气泡（水平） -->
+                    <Label text_id="STRID_RANGESLIDER_MARKS" font="system_bold_15" text_color="text_default" valign="center" margin="0,16,0,6"/>
+                    <Label text_id="STRID_RANGESLIDER_MARKS_HINT" text_color="text_muted" valign="center" margin="0,0,0,10"
+                           text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+                    <HBox height="46" clip="false">
+                        <RangeSlider class="range_slider_horizontal" name="marks_range"
+                                     min="0" max="100" low_value="26" value="37" valign="top" margin="4,4,4,0"
+                                     marks="0=0°C|26=26°C|37=37°C|100=100°C@color_error"
+                                     mark_dot_size="8"/>
+                    </HBox>
+
+                    <!-- 外侧高亮（included=false）+ 刻度吸附（snap_to_marks） -->
+                    <Label text_id="STRID_RANGESLIDER_EXCLUDED" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                    <Label text_id="STRID_RANGESLIDER_EXCLUDED_HINT" text_color="text_muted" valign="center" margin="0,0,0,10"
+                           text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+                    <HBox height="46" clip="false">
+                        <RangeSlider class="range_slider_horizontal" name="excluded_range"
+                                     min="0" max="100" low_value="25" value="75" valign="top" margin="4,4,4,0"
+                                     included="false" snap_to_marks="true"
+                                     marks="0=0|25=25|50=50|75=75|100=100" mark_dot_size="8"/>
+                    </HBox>
+
+                    <!-- 垂直方向：音量区间（原有功能）/ 温度计效果 -->
+                    <Label text_id="STRID_RANGESLIDER_LEVEL" font="system_bold_15" text_color="text_default" valign="center" margin="0,12,0,6"/>
+                    <Label text_id="STRID_RANGESLIDER_LEVEL_HINT" text_color="text_muted" valign="center" margin="0,0,0,10"
+                           text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+                    <HBox height="240" width="stretch" clip="false">
+                        <!-- 左侧留白：垂直值气泡绘制在滑块左侧，避免被卡片边界裁剪 -->
+                        <Control width="56"/>
+                        <!-- 左侧：音量区间（刻度点） -->
+                        <RangeSlider class="range_slider_vertical" name="level_range"
+                                     min="0" max="100" low_value="30" value="70" height="stretch" width="20"
+                                     marks="0=0|50=50|100=100" mark_label_gap="8" mark_dot_size="8"/>
+                        <!-- 为左侧刻度标签与右侧温度计气泡留出空间 -->
+                        <Control width="84"/>
+                        <!-- 右侧：温度计效果（刻度文字 + 拖动时显示的 °C 值气泡） -->
+                        <RangeSlider class="range_slider_vertical" name="thermo_range"
+                                     min="0" max="100" low_value="26" value="37" height="stretch" width="20"
+                                     marks="0=0°C|26=26°C|37=37°C|100=100°C@color_error"
+                                     mark_label_gap="8" mark_dot_size="8"
+                                     tooltip_format="%.0f°C"/>
+                        <Control width="150"/>
+                        <Control/>
+                    </HBox>
+                </VBox>
+            </VScrollBox>
         </VBox>
     </VBox>
 </Window>

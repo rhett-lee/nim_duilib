@@ -786,6 +786,12 @@ STRID_RANGESLIDER_RESET = 重置区间
 STRID_RANGESLIDER_FULL = 全选区间
 STRID_RANGESLIDER_EVENT_NONE = 当前范围：200 ~ 800
 STRID_RANGESLIDER_EVENT_PREFIX = 当前范围：
+STRID_RANGESLIDER_MARKS = 刻度与值气泡（水平，拖动时显示）
+STRID_RANGESLIDER_MARKS_HINT = 提示：轨道上的圆点为 marks 刻度，气泡在拖动/悬停时显示、松开后延迟消失，100°C 的标签使用自定义颜色
+STRID_RANGESLIDER_EXCLUDED = 外侧高亮与刻度吸附（included=false）
+STRID_RANGESLIDER_EXCLUDED_HINT = 提示：高亮滑块外侧的两段区间，且取值只能吸附到 0、25、50、75、100 这几个刻度
+STRID_RANGESLIDER_LEVEL = 垂直方向示例（音量区间 / 温度计）
+STRID_RANGESLIDER_LEVEL_HINT = 提示：左侧为音量区间（带明显的刻度点）；右侧为温度计效果，刻度文字显示温度，拖动时显示 °C 值气泡
 # controls/Stepper
 STRID_STEPPER_WINDOW_TITLE = Stepper 向导步骤条控件测试
 STRID_STEPPER_HINT = 提示：点击步骤可跳转，或用下方按钮驱动"上一步 / 下一步 / 跳转 / 重置"

@@ -870,6 +870,17 @@ pSlider->SetTickLabelCallback([](double value, int32_t /*index*/) {
 | thumb_size | 10,10 | size | Shared size of both thumbs, e.g. "10,10" |
 | thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | State images of the low thumb |
 | high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | State images of the high thumb (fall back to the low thumb images when empty) |
+| tooltip_open | false | bool | Whether the value tooltip of both thumbs is always shown (false = shown while dragging or hovering that thumb, and hidden automatically 1 second after the mouse is released) |
+| tooltip_format / tooltip_format_id |  | string | Value tooltip text format (e.g. `%.0f`) / its multi-language ID (takes precedence, refreshed on language change) |
+| tooltip_bkcolor (alias tooltip_bg_color) | bg_tooltip | string | Tooltip background color |
+| tooltip_text_color | text_tooltip | string | Tooltip text color |
+| marks |  | string | Mark list, syntax `value=label@color\|value=label\|value`, separated by `\|`, e.g. `0=0°C\|100=100°C@color_error` |
+| mark_color (alias mark_dot_color) | text_disabled | string | Color of the mark dots |
+| mark_label_color | text_muted | string | Default color of the mark labels (`@color` in `marks` overrides a single label) |
+| mark_dot_size | 6 | int | Mark dot diameter (pixels, DPI scaled) |
+| mark_label_gap | 6 | int | Distance between a mark label and the track (pixels, DPI scaled) |
+| snap_to_marks | false | bool | Whether values snap to the nearest mark (dragging, track clicks and `SetXXX` all follow this) |
+| included | true | bool | true highlights the range between the thumbs; false highlights the two outer segments |
 
 RangeSlider inherits the `Progress` attributes; for more available attributes, please refer to the `Progress` attributes.
 
@@ -881,7 +892,17 @@ XML example:
 ```xml
 <RangeSlider class="range_slider_horizontal" name="price_range" min="0" max="1000"
              low_value="200" value="800" min_range="50" width="stretch"/>
+
+<!-- marks + always-open value tooltip; the 100°C label uses a custom color -->
+<RangeSlider class="range_slider_horizontal" min="0" max="100" low_value="26" value="37"
+             marks="0=0°C|26=26°C|37=37°C|100=100°C@color_error" tooltip_open="true"/>
+
+<!-- highlight the outer segments and only allow mark values -->
+<RangeSlider class="range_slider_horizontal" min="0" max="100" low_value="25" value="75"
+             included="false" snap_to_marks="true" marks="0=0|25=25|50=50|75=75|100=100"/>
 ```
+
+> The value tooltips and mark labels may be painted outside the control rect, so the control and its containers need `clip="false"` (the `range_slider_horizontal` / `range_slider_vertical` theme classes already do this). In horizontal mode the tooltip sits above the thumb; in vertical mode the tooltip is placed to the left of the thumb while mark labels stay on the right of the track. When both thumbs coincide at the minimum/maximum, continuing to drag automatically switches to the other thumb.
 
 Corresponding C++ API:
 ```cpp
@@ -909,6 +930,27 @@ void SetRangeRadius(int32_t nRadius);                //highlighted range corner 
 int32_t GetRangeRadius() const;
 void SetClickToJump(bool bEnable);                   //whether clicking the track jumps on mouse down
 bool IsClickToJump() const;
+
+//value tooltip
+bool IsTooltipOpen() const; void SetTooltipOpen(bool bOpen);          //always show the tooltips
+const DString& GetTooltipFormat() const; void SetTooltipFormat(const DString& strFormat);
+void SetTooltipFormatId(const DString& strFormatId);                  //takes precedence over tooltip_format
+void SetTooltipBkColor(const DString& strColor);
+void SetTooltipTextColor(const DString& strColor);
+
+//marks
+struct SliderMark { double value; DString label; DString labelColor; };
+const std::vector<SliderMark>& GetMarks() const;
+void SetMarks(const std::vector<SliderMark>& marks);
+void SetMarks(const DString& strMarks);              //"value=label@color|value=label|value"
+void SetMarkColor(const DString& strColor);          //mark dot color
+void SetMarkLabelColor(const DString& strColor);     //default mark label color
+void SetMarkDotSize(int32_t nSize, bool bNeedDpiScale);
+void SetMarkLabelGap(int32_t nGap, bool bNeedDpiScale);
+void SetSnapToMarks(bool bSnap); bool IsSnapToMarks() const;          //snap values to the nearest mark
+
+//highlight mode
+void SetIncluded(bool bIncluded); bool IsIncluded() const;            //false highlights the outer segments
 void AttachRangeChanged(const EventCallback& callback, EventCallbackID callbackID = 0); //range-change event
 ```
 

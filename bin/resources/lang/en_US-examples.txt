@@ -781,6 +781,12 @@ STRID_RANGESLIDER_RESET = Reset range
 STRID_RANGESLIDER_FULL = Full range
 STRID_RANGESLIDER_EVENT_NONE = Current range: 200 ~ 800
 STRID_RANGESLIDER_EVENT_PREFIX = Current range: 
+STRID_RANGESLIDER_MARKS = Marks and value tooltip (horizontal, shown while dragging)
+STRID_RANGESLIDER_MARKS_HINT = Hint: the dots on the track are marks; the tooltip appears while dragging or hovering and hides shortly after release; the 100°C label uses a custom color
+STRID_RANGESLIDER_EXCLUDED = Excluded range and snapping (included=false)
+STRID_RANGESLIDER_EXCLUDED_HINT = Hint: the two outer segments are highlighted, and values snap to the marks 0, 25, 50, 75 and 100
+STRID_RANGESLIDER_LEVEL = Vertical examples (volume / thermometer)
+STRID_RANGESLIDER_LEVEL_HINT = Hint: left is the volume range with visible mark dots; right is a thermometer with temperature labels and a °C tooltip shown while dragging
 # controls/Stepper
 STRID_STEPPER_WINDOW_TITLE = Stepper Control Test
 STRID_STEPPER_HINT = Hint: click a step to jump, or use the buttons below (Prev / Next / GoTo / Reset)

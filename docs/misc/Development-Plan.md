@@ -704,7 +704,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 
 | ID | 项 | 现状依据 | 工作量 |
 | :--- | :--- | :--- | :--- |
-| **D-1** | **RangeSlider 双滑块** ✅ 已完成（2026-10-18） | `Slider.h` 仅单值 `SetValue`；`Project-Audit.md` B3 已登记待办。底子好（有刻度、标签、click-to-jump、键盘支持）。已新增独立控件 `RangeSlider`（`duilib/Control/RangeSlider.h/.cpp`）：双滑块 + 选中区间高亮 + `min_range` 最小间距 + 点击轨道跳值 + `AttachRangeChanged` 回调；示例 `examples/controls/RangeSliderForm` | 已完成 |
+| **D-1** | **RangeSlider 双滑块** ✅ 已完成（2026-10-18；2026-10-22 扩展） | `Slider.h` 仅单值 `SetValue`；`Project-Audit.md` B3 已登记待办。底子好（有刻度、标签、click-to-jump、键盘支持）。已新增独立控件 `RangeSlider`（`duilib/Control/RangeSlider.h/.cpp`）：双滑块 + 选中区间高亮 + `min_range` 最小间距 + 点击轨道跳值 + `AttachRangeChanged` 回调；后续扩展值气泡 Tooltip（常显/悬停）、`marks` 刻度点与标签、`included` 外侧高亮、`snap_to_marks` 刻度吸附；示例 `examples/controls/RangeSliderForm` | 已完成 |
 | **D-2** | **富内容 Tooltip** ❌ 明确不做（2026-10-21 决策，不再跟进） | `ToolTip.h` 仅 `ShowToolTip` 单方法**纯文本**，Windows 侧还是系统原生实现；`Flyout` 地基已就绪未封装（`Project-Audit.md` B8） | 低（约 200 行） |
 | **D-3** | **SpinBox 支持小数与格式化** ✅ 已完成（2026-10-21） | 原 `SpinBox.h` 的步长/数值/范围全为 `int64_t`。已扩展：`decimals`（0~10）、`step`/`value`/`min_number`/`max_number` 支持 `double`、`prefix`/`suffix`、`group_separator`（千分位），失焦按格式重写、非法输入回退最近有效值；纯整数模式保持原 `number_only` 行为。示例见 rich_edit.exe | 已完成 |
 | **D-4** | **TreeView 节点拖拽重排** ❌ 明确不做（2026-10-21 决策，不再跟进） | `TreeView.cpp` 中 `drag`/`drop` **零命中**。树控件头号缺失（文件树/权限树/组织树通用需求）。另 `TreeView` 无排序（`sort` 零命中）、继承 `ListBox` 非 `VirtualListBox` 无虚拟化 | 原估中（约 700 行），不排期 |

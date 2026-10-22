@@ -474,6 +474,10 @@ void Control::SetAttribute(const DString& strName, const DString& strValue2)
     else if (strName == _T("visible")) {
         SetVisible(StringUtil::IsValueTrue(strValue));
     }
+    else if (strName == _T("clip")) {
+        //是否按控件矩形裁剪绘制内容（默认true）；值为false时允许内容绘制到矩形外
+        SetClip(StringUtil::IsValueTrue(strValue));
+    }
     else if ((strName == _T("fade_visible")) || (strName == _T("fadevisible"))) {
         SetFadeVisible(StringUtil::IsValueTrue(strValue));
     }

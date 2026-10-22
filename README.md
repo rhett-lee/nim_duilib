@@ -128,7 +128,7 @@
     <tr><td align="left">40. Mask：遮罩/蒙版层控件（继承Box），用于模态对话框背景遮罩、新手引导蒙层、加载遮罩；支持镂空高亮指定控件、镂空区域内点击穿透到目标控件、语义色适配深浅色</td></tr>
     <tr><td align="left">41. StatusBar：状态栏控件（继承HBox），用于显示光标位置、字数、连接状态、后台进度等状态提示；子控件即状态面板，相邻面板之间自动绘制分隔线（可配置宽度与颜色），可选右下角尺寸手柄，详见 docs/Control.md</td></tr>
     <tr><td align="left">42. ToolBar：工具条（工具栏）控件（继承HBox），用于承载一排工具按钮与分隔线；当可用宽度不足时，自动隐藏尾部子控件并在右端显示"更多"按钮，点击弹出浮层列出被收纳的项，并通过回调通知应用层，窗口宽度变化时自动重新计算，详见 docs/Control.md</td></tr>
-    <tr><td align="left">43. RangeSlider：双滑块范围选择控件（继承Progress），在一条轨道上放置下限/上限两个滑块并高亮选中区间，支持最小间距、区间颜色/圆角与范围变化回调（pEventData 携带 low/high），详见 docs/Control.md</td></tr>
+    <tr><td align="left">43. RangeSlider：双滑块范围选择控件（继承Progress），在一条轨道上放置下限/上限两个滑块并高亮选中区间，支持最小间距、区间颜色/圆角、值气泡 Tooltip、marks 刻度与标签、included 外侧高亮、刻度吸附与范围变化回调（pEventData 携带 low/high），详见 docs/Control.md</td></tr>
     <tr><td align="left">44. Stepper：向导步骤条控件，安装/注册/配置向导与审批流程场景；水平/垂直排列，节点显示序号或对勾，状态由当前索引+禁用集合派生（待开始/进行中/已完成/禁用），连接线按完成度着色，支持 Next/Back/GoTo 与点击跳转、多语言标题/描述，步骤变化回调的 pEventData 携带 currentIndex/oldIndex，详见 docs/Control.md</td></tr>
     <tr><td align="left">45. Rating：星级评分控件（继承 Control），用于评价/打分/满意度调查；支持只读展示、半星（allow_half）、鼠标悬停预览与点击/拖拽打分，实心星/半星/空心星及悬停/按下态外观全部由 SVG 图片驱动并映射语义色，可配置星星数量（max/star_count）、尺寸与间距，值变化回调的 pEventData 携带 value/oldValue，详见 docs/Control.md</td></tr>
     <tr><td align="left">46. Carousel：图片轮播控件（继承 Control），用于首页横幅/广告位/图片集；幻灯片、左右切换按钮与底部可点击页码指示点均由 SVG 图片承载并映射语义色，支持自动播放+悬停暂停、无限循环（loop）、切换动画（transition_ms）与鼠标按住左右拖拽翻页，索引变化回调的 pEventData 携带 index/oldIndex，详见 docs/Control.md</td></tr>

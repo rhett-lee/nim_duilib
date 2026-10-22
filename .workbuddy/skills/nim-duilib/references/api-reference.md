@@ -621,9 +621,20 @@ C++ 接口：`SetPageStep/GetPageStep`、`SetClickToJump/IsClickToJump`、`SetSh
 | thumb_size | 10,10 | size | 两个滑块的统一大小 |
 | thumb_normal_image / thumb_hovered_image / thumb_pressed_image / thumb_disabled_image |  | string | 下限滑块各状态图片 |
 | high_thumb_normal_image / high_thumb_hovered_image / high_thumb_pressed_image / high_thumb_disabled_image |  | string | 上限滑块各状态图片（为空回退下限滑块图片） |
+| tooltip_open | false | bool | 是否始终显示两个滑块的值气泡（false=拖动/悬停时显示，松开后延迟 1 秒消失） |
+| tooltip_format / tooltip_format_id |  | string | 值气泡文本格式（如 `%.0f`）/ 其多语言 ID（优先，语言切换自动刷新） |
+| tooltip_bkcolor（别名 tooltip_bg_color） | bg_tooltip | string | 值气泡背景色 |
+| tooltip_text_color | text_tooltip | string | 值气泡文本颜色 |
+| marks |  | string | 刻度列表，语法 `value=label@color\|value=label\|value`，多个用 `\|` 分隔 |
+| mark_color（别名 mark_dot_color） | text_disabled | string | 刻度点颜色 |
+| mark_label_color | text_muted | string | 刻度标签默认颜色（`marks` 中 `@color` 可覆盖单个标签） |
+| mark_dot_size | 6 | int | 刻度点直径（DPI 自适应） |
+| mark_label_gap | 6 | int | 刻度标签与轨道之间的距离（DPI 自适应） |
+| snap_to_marks | false | bool | 是否把取值吸附到最近的刻度（拖动/点击/SetXXX 均生效） |
+| included | true | bool | true 高亮两个滑块之间；false 高亮滑块外侧两段 |
 
 双滑块范围控件：一条轨道上放置下限、上限两个滑块并高亮选中区间，常用于价格/时间区间筛选。上限复用基类值（value），下限独立维护（low_value）；下限钳位到 `[min, high - min_range]`、上限钳位到 `[low + min_range, max]`。
-C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHighValue/SetHighValueNoEvent`、`SetRange/SetRangeNoEvent`、`GetMinRange/SetMinRange`、`SetThumbSize/GetThumbSize`、`GetLowThumbRect/GetHighThumbRect`、`SetThumbStateImage/GetThumbStateImage`、`SetHighThumbStateImage/GetHighThumbStateImage`、`SetRangeColor/GetRangeColor`、`SetRangeRadius/GetRangeRadius`、`SetClickToJump/IsClickToJump`。
+C++ 接口：`GetLowValue/SetLowValue/SetLowValueNoEvent`、`GetHighValue/SetHighValue/SetHighValueNoEvent`、`SetRange/SetRangeNoEvent`、`GetMinRange/SetMinRange`、`SetThumbSize/GetThumbSize`、`GetLowThumbRect/GetHighThumbRect`、`SetThumbStateImage/GetThumbStateImage`、`SetHighThumbStateImage/GetHighThumbStateImage`、`SetRangeColor/GetRangeColor`、`SetRangeRadius/GetRangeRadius`、`SetClickToJump/IsClickToJump`、`SetTooltipOpen/IsTooltipOpen`、`SetTooltipFormat/GetTooltipFormat`、`SetTooltipFormatId`、`SetTooltipBkColor/SetTooltipTextColor`、`SetMarks（vector 或字符串）/GetMarks`、`SetMarkColor/SetMarkLabelColor`、`SetMarkDotSize/SetMarkLabelGap`、`SetSnapToMarks/IsSnapToMarks`、`SetIncluded/IsIncluded`。
 事件：`AttachRangeChanged`——范围值变化时触发，事件编码 `kEventValueChanged`（wParam=1），low/high 由 `EventArgs::pEventData`（指向 `RangeSlider::RangeValue`）携带，仅在回调派发期间有效。
 
 ### Stepper 属性(继承 Control)

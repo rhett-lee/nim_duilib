@@ -4,6 +4,7 @@
 #include "duilib/Control/Progress.h"
 #include "duilib/Image/StateImage.h"
 #include <string>
+#include <vector>
 
 namespace ui
 {
@@ -24,8 +25,18 @@ public:
         double highValue = 0;   //上限值
     };
 
+    /** 刻度标记（marks）：轨道上的刻度点及其标签
+    */
+    struct SliderMark
+    {
+        double value = 0;       //刻度对应的数值
+        DString label;          //刻度标签文本（为空时只绘制刻度点）
+        DString labelColor;     //刻度标签颜色（语义色名或颜色值，为空时使用 mark_label_color）
+    };
+
 public:
     explicit RangeSlider(Window* pWindow);
+    virtual ~RangeSlider() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
@@ -150,6 +161,70 @@ public:
     */
     bool IsClickToJump() const { return m_bClickToJump; }
 
+    /** 是否始终显示值气泡（true：两个滑块的气泡常显；false：拖动或悬停该滑块时显示，松开鼠标后延迟 1 秒消失）
+    */
+    bool IsTooltipOpen() const { return m_bTooltipOpen; }
+
+    /** 设置是否始终显示值气泡
+    */
+    void SetTooltipOpen(bool bOpen);
+
+    /** 获取值气泡的文本格式（为空时按数值自动格式化）
+    */
+    const DString& GetTooltipFormat() const { return m_strTooltipFormat; }
+
+    /** 设置值气泡的文本格式（使用 %f / %.0f 等浮点占位符，如 "%.0f"）*/
+    void SetTooltipFormat(const DString& strFormat);
+
+    /** 设置值气泡文本格式的多语言 ID（优先于 tooltip_format；语言切换时自动刷新）*/
+    void SetTooltipFormatId(const DString& strFormatId);
+
+    /** 设置值气泡的背景色（语义色名或颜色值，默认 bg_tooltip）*/
+    void SetTooltipBkColor(const DString& strColor);
+
+    /** 设置值气泡的文本颜色（语义色名或颜色值，默认 text_tooltip）*/
+    void SetTooltipTextColor(const DString& strColor);
+
+    /** 获取刻度标记列表
+    */
+    const std::vector<SliderMark>& GetMarks() const { return m_marks; }
+
+    /** 设置刻度标记列表
+    */
+    void SetMarks(const std::vector<SliderMark>& marks);
+
+    /** 设置刻度标记（字符串形式）
+    * 语法：value=label@color|value=label|value，多个刻度用 | 分隔；
+    * 如 "0=0°C|26=26°C|37=37°C|100=100°C@color_error"（label 与 color 可省略）
+    */
+    void SetMarks(const DString& strMarks);
+
+    /** 设置刻度点的颜色（语义色名或颜色值，默认 text_disabled）*/
+    void SetMarkColor(const DString& strColor);
+
+    /** 设置刻度标签的颜色（语义色名或颜色值，默认 text_muted）*/
+    void SetMarkLabelColor(const DString& strColor);
+
+    /** 设置刻度点的直径（像素，默认 4，自动 DPI 缩放）*/
+    void SetMarkDotSize(int32_t nSize, bool bNeedDpiScale);
+
+    /** 设置刻度标签与轨道之间的距离（像素，默认 6，自动 DPI 缩放）*/
+    void SetMarkLabelGap(int32_t nGap, bool bNeedDpiScale);
+
+    /** 是否把取值吸附到最近的刻度标记（默认 false）
+    * 开启后，拖动/点击轨道及 SetXXX 设置的值都会吸附到 marks 中的刻度值
+    */
+    void SetSnapToMarks(bool bSnap);
+    bool IsSnapToMarks() const { return m_bSnapToMarks; }
+
+    /** 是否高亮两个滑块之间的区间（默认 true；false 时高亮滑块外侧的两段区间）*/
+    void SetIncluded(bool bIncluded);
+    bool IsIncluded() const { return m_bIncluded; }
+
+    /** 语言发生变化（tooltip_format_id 的文本需要刷新）
+    */
+    virtual void OnLanguageChanged(bool bRedraw) override;
+
     /** 监听范围值变化事件
     * @param [in] callback 范围值变化后的回调函数
     * @param [in] callbackID 该回调函数对应的ID（用于删除回调函数）
@@ -183,6 +258,10 @@ protected:
     */
     double ValueFromMousePt(const UiPoint& ptMouse) const;
 
+    /** 把数值吸附到最近的刻度（未启用吸附或没有刻度时原样返回）
+    */
+    double SnapValueToMark(double fValue) const;
+
     /** 把下限值钳位到 [min, high - min_range] 区间内
     */
     void ClampLowValue();
@@ -206,6 +285,46 @@ private:
     * @param [in] part 要绘制的滑块（下限/上限）
     */
     void PaintThumb(IRender* pRender, ThumbPart part);
+
+    /** 绘制刻度点与刻度标签
+    */
+    void PaintMarks(IRender* pRender);
+
+    /** 绘制值气泡（按 tooltip_open 与拖动/悬停/延迟隐藏状态决定是否绘制）
+    */
+    void PaintTooltips(IRender* pRender);
+
+    /** 绘制单个滑块的值气泡
+    */
+    void PaintTooltip(IRender* pRender, ThumbPart part);
+
+    /** 获取值气泡要显示的文本
+    */
+    DString GetTooltipText(double fValue) const;
+
+    /** 数值的默认格式化（整数不带小数点，小数最多保留两位并去掉末尾的 0）
+    */
+    DString AutoFormatValue(double fValue) const;
+
+    /** 计算刻度值在控件内的位置（水平为 x 坐标，垂直为 y 坐标，均为相对控件左上角）
+    */
+    int32_t MarkPosFromValue(double fValue) const;
+
+    /** 重绘包含值气泡/刻度标签在内的外扩区域（这些内容可能绘制到控件矩形之外）
+    */
+    void InvalidateExtras();
+
+    /** 取消待触发的气泡隐藏任务
+    */
+    void CancelTooltipHideTask();
+
+    /** 开始保持显示指定滑块的气泡（拖动/悬停结束前有效）
+    */
+    void KeepTooltip(ThumbPart part);
+
+    /** 延迟隐藏气泡（拖动结束后调用）
+    */
+    void ScheduleTooltipHide();
 
     /** 下限值
     */
@@ -254,6 +373,66 @@ private:
     /** 鼠标当前悬停的滑块
     */
     ThumbPart m_hoverThumb;
+
+    /** 是否始终显示值气泡
+    */
+    bool m_bTooltipOpen;
+
+    /** 拖动/悬停结束后继续保持显示的气泡所属滑块（kThumbNone 表示无）
+    */
+    ThumbPart m_keepTooltipThumb;
+
+    /** 气泡延迟隐藏的定时任务ID（0 表示无待触发任务）
+    */
+    size_t m_nTooltipHideTaskId;
+
+    /** 延迟隐藏后抑制悬停气泡显示，直到鼠标离开控件后再次进入
+    */
+    bool m_bTooltipSuppressed;
+
+    /** 值气泡文本格式（为空时自动格式化）
+    */
+    DString m_strTooltipFormat;
+
+    /** 值气泡文本格式的多语言 ID
+    */
+    DString m_strTooltipFormatId;
+
+    /** 值气泡背景色
+    */
+    DString m_strTooltipBkColor;
+
+    /** 值气泡文本颜色
+    */
+    DString m_strTooltipTextColor;
+
+    /** 刻度标记列表（按数值升序）
+    */
+    std::vector<SliderMark> m_marks;
+
+    /** 刻度点颜色
+    */
+    DString m_strMarkColor;
+
+    /** 刻度标签颜色
+    */
+    DString m_strMarkLabelColor;
+
+    /** 刻度点直径（未缩放原始值）
+    */
+    int32_t m_nMarkDotSize;
+
+    /** 刻度标签与轨道之间的距离（未缩放原始值）
+    */
+    int32_t m_nMarkLabelGap;
+
+    /** 是否把取值吸附到最近的刻度
+    */
+    bool m_bSnapToMarks;
+
+    /** 是否高亮两个滑块之间的区间（false 时高亮滑块外侧的两段）
+    */
+    bool m_bIncluded;
 
     /** 滑块图片绘制参数缓存
     */
