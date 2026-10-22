@@ -1402,6 +1402,12 @@ STRID_LAYOUT_PAGE_27 = Container child_halign: Not supported, set on child
 STRID_LAYOUT_PAGE_28 = Child alignment: halign: Yes, valign: No
 STRID_LAYOUT_PAGE_29 = (Child width < display area width)
 STRID_LAYOUT_PAGE_30 = (Aligned in same column)
+STRID_LAYOUT_PAGE_31 = Main-axis distribution (justify):
+STRID_LAYOUT_PAGE_32 = Space between
+STRID_LAYOUT_PAGE_33 = Space around
+STRID_LAYOUT_PAGE_34 = Space evenly
+STRID_LAYOUT_PAGE_35 = Default (start)
+STRID_LAYOUT_PAGE_36 = (Overrides child_halign when set)
 
 # examples/ColorTheme
 STRID_COLORTHEME_BTN_OPEN_THEME_MGR    = Open Theme Color Manager

@@ -1407,6 +1407,13 @@ STRID_LAYOUT_PAGE_27 = 容器内容水平对齐方式（child_halign）: 不支�
 STRID_LAYOUT_PAGE_28 = 子控件自身设置的对齐方式: 水平对齐方式（halign）：支持，垂直对齐方式（valign）：不支持
 STRID_LAYOUT_PAGE_29 = （仅当子控件总宽度小于显示区域宽度时生效）
 STRID_LAYOUT_PAGE_30 = （在同一列内对齐）
+STRID_LAYOUT_PAGE_31 = 主轴分布方式（justify）：
+STRID_LAYOUT_PAGE_32 = 两端对齐(space-between)
+STRID_LAYOUT_PAGE_33 = 环绕分布(space-around)
+STRID_LAYOUT_PAGE_34 = 均匀分布(space-evenly)
+STRID_LAYOUT_PAGE_35 = 默认分布(start)
+STRID_LAYOUT_PAGE_36 = （设置后覆盖 child_halign）
+STRID_LAYOUT_PAGE_37 = 未设置(兼容原逻辑)
 
 # examples/ColorTheme
 STRID_COLORTHEME_BTN_OPEN_THEME_MGR    = 打开主题配色管理器

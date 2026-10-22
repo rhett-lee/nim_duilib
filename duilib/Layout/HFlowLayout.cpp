@@ -5,10 +5,115 @@
 namespace ui 
 {
 
-HFlowLayout::HFlowLayout()
+namespace
+{
+/** 解析 justify 属性值
+*/
+bool ParseJustify(const DString& strValue, HFlowLayout::JustifyContent& justifyContent)
+{
+    if ((strValue == _T("none")) || (strValue == _T("not-set")) || (strValue == _T("not_set"))) {
+        //复位为未设置，恢复 child_halign 的原有行为
+        justifyContent = HFlowLayout::JustifyContent::kNotSet;
+    }
+    else if (strValue == _T("start")) {
+        justifyContent = HFlowLayout::JustifyContent::kStart;
+    }
+    else if (strValue == _T("center")) {
+        justifyContent = HFlowLayout::JustifyContent::kCenter;
+    }
+    else if (strValue == _T("end")) {
+        justifyContent = HFlowLayout::JustifyContent::kEnd;
+    }
+    else if ((strValue == _T("space-between")) || (strValue == _T("space_between")) || (strValue == _T("spacebetween"))) {
+        justifyContent = HFlowLayout::JustifyContent::kSpaceBetween;
+    }
+    else if ((strValue == _T("space-around")) || (strValue == _T("space_around")) || (strValue == _T("spacearound"))) {
+        justifyContent = HFlowLayout::JustifyContent::kSpaceAround;
+    }
+    else if ((strValue == _T("space-evenly")) || (strValue == _T("space_evenly")) || (strValue == _T("spaceevenly"))) {
+        justifyContent = HFlowLayout::JustifyContent::kSpaceEvenly;
+    }
+    else {
+        return false;
+    }
+    return true;
+}
+
+/** 计算主轴剩余空间的分布偏移（返回值长度 = nCount，单位：像素）
+*/
+std::vector<int32_t> CalcJustifyOffsets(size_t nCount, int32_t nExtra, HFlowLayout::JustifyContent justifyContent)
+{
+    std::vector<int32_t> offsets(nCount, 0);
+    if ((nCount == 0) || (nExtra <= 0)) {
+        return offsets;
+    }
+    switch (justifyContent) {
+    case HFlowLayout::JustifyContent::kCenter:
+        for (int32_t& nOffset : offsets) {
+            nOffset = nExtra / 2;
+        }
+        break;
+    case HFlowLayout::JustifyContent::kEnd:
+        for (int32_t& nOffset : offsets) {
+            nOffset = nExtra;
+        }
+        break;
+    case HFlowLayout::JustifyContent::kSpaceBetween:
+        if (nCount > 1) {
+            const int64_t nDivisor = (int64_t)(nCount - 1);
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)nIndex / nDivisor);
+            }
+        }
+        break;
+    case HFlowLayout::JustifyContent::kSpaceAround:
+        //每个子项两侧各占半个间距：第 i 项之前共有 (2i + 1) 个半间距
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)(2 * nIndex + 1) / (int64_t)(2 * nCount));
+        }
+        break;
+    case HFlowLayout::JustifyContent::kSpaceEvenly:
+        //首尾与相邻子项之间的间隙相等：第 i 项之前共有 (i + 1) 个间距
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            offsets[nIndex] = (int32_t)((int64_t)nExtra * (int64_t)(nIndex + 1) / (int64_t)(nCount + 1));
+        }
+        break;
+    default:
+        break;
+    }
+    return offsets;
+}
+} // namespace
+
+HFlowLayout::HFlowLayout() :
+    m_justifyContent(JustifyContent::kNotSet)
 {
     //默认靠左对齐
     SetChildHAlignType(HorAlignType::kAlignLeft);
+}
+
+void HFlowLayout::SetJustifyContent(JustifyContent justifyContent)
+{
+    if (m_justifyContent != justifyContent) {
+        m_justifyContent = justifyContent;
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
+        }
+    }
+}
+
+bool HFlowLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
+{
+    if ((strName == _T("justify")) || (strName == _T("justify_content"))) {
+        JustifyContent justifyContent = JustifyContent::kNotSet;
+        if (!ParseJustify(strValue, justifyContent)) {
+            ASSERT(0);
+            return false;
+        }
+        SetJustifyContent(justifyContent);
+        return true;
+    }
+    return BaseClass::SetAttribute(strName, strValue, dpiManager);
 }
 
 UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly, bool bEstimateLayoutSize) const
@@ -205,33 +310,64 @@ UiSize64 HFlowLayout::ArrangeChildInternal(const std::vector<Control*>& items, U
         return szChildren;
     }
 
-    //处理总体的对齐方式（在Box容器布局上设置的子控件对齐方式）    
-    if ((GetChildHAlignType() == HorAlignType::kAlignCenter) || (GetChildHAlignType() == HorAlignType::kAlignRight)) {
+    //处理主轴（水平方向）的对齐与分布
+    if (m_justifyContent == JustifyContent::kNotSet) {
+        //未设置 justify：严格保持原有逻辑，仅当 child_halign 为居中/靠右时按行整体偏移
         const HorAlignType hAlignType = GetChildHAlignType();
-        //水平方向的对齐方式: 按行设置对齐
-        for (TRowControls& control : rowControlList) {
-            UiRect& rowRect = control.m_rowRect;
-            if (rowRect.Width() < rcBox.Width()) {
-                int32_t nOffsetX = 0;
-                if (hAlignType == HorAlignType::kAlignCenter) {
-                    //水平居中对齐
-                    nOffsetX = (rcBox.Width() - rowRect.Width()) / 2;
-                }
-                else if (hAlignType == HorAlignType::kAlignRight) {
-                    //靠右对齐
-                    nOffsetX = rcBox.Width() - rowRect.Width();
-                }
-                if (nOffsetX != 0) {
-                    rowRect.Offset(nOffsetX, 0);
-                    for (UiRect& rcChild : control.m_pControlRects) {
-                        rcChild.Offset(nOffsetX, 0);
+        if ((hAlignType == HorAlignType::kAlignCenter) || (hAlignType == HorAlignType::kAlignRight)) {
+            //水平方向的对齐方式: 按行设置对齐
+            for (TRowControls& control : rowControlList) {
+                UiRect& rowRect = control.m_rowRect;
+                if (rowRect.Width() < rcBox.Width()) {
+                    int32_t nOffsetX = 0;
+                    if (hAlignType == HorAlignType::kAlignCenter) {
+                        //水平居中对齐
+                        nOffsetX = (rcBox.Width() - rowRect.Width()) / 2;
                     }
+                    else if (hAlignType == HorAlignType::kAlignRight) {
+                        //靠右对齐
+                        nOffsetX = rcBox.Width() - rowRect.Width();
+                    }
+                    if (nOffsetX != 0) {
+                        rowRect.Offset(nOffsetX, 0);
+                        for (UiRect& rcChild : control.m_pControlRects) {
+                            rcChild.Offset(nOffsetX, 0);
+                        }
 
-                    //返回的区域大小，需要包含向右调整的偏移量
-                    childrenRect.Union(control.m_rowRect);
+                        //返回的区域大小，需要包含向右调整的偏移量
+                        childrenRect.Union(control.m_rowRect);
+                    }
                 }
             }
-        }        
+        }
+    }
+    else if (m_justifyContent != JustifyContent::kStart) {
+        //显式设置 justify：按行分布剩余空间
+        for (TRowControls& control : rowControlList) {
+            const size_t nCount = control.m_pControlRects.size();
+            if ((nCount == 0) || (nCount != control.m_pControlList.size())) {
+                continue;
+            }
+            const int32_t nExtra = rcBox.Width() - control.m_rowRect.Width();
+            if (nExtra <= 0) {
+                continue;
+            }
+            const std::vector<int32_t> offsets = CalcJustifyOffsets(nCount, nExtra, m_justifyContent);
+            UiRect rowRect;
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                UiRect& rcChild = control.m_pControlRects[nIndex];
+                rcChild.Offset(offsets[nIndex], 0);
+
+                //重新计算本行的矩形范围（包含子控件的外边距）
+                UiRect rcItem = rcChild;
+                rcItem.Inflate(control.m_pControlList[nIndex]->GetMargin());
+                rowRect.Union(rcItem);
+            }
+            control.m_rowRect = rowRect;
+
+            //返回的区域大小，需要包含分布调整后的偏移量
+            childrenRect.Union(control.m_rowRect);
+        }
     }
 
     if (cyNeeded < rcBox.Height()) {

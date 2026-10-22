@@ -14,11 +14,33 @@ class DUILIB_API HFlowLayout : public Layout
 {
     typedef Layout BaseClass;
 public:
+    /** 主轴（水平方向）的分布方式
+    */
+    enum class JustifyContent
+    {
+        kNotSet,        //未设置：沿用 child_halign 的原有行为
+        kStart,         //起始端对齐
+        kCenter,        //居中
+        kEnd,           //末端对齐
+        kSpaceBetween,  //两端对齐，相邻子项之间均分剩余空间
+        kSpaceAround,   //每个子项两侧均分剩余空间（首尾各半个间距）
+        kSpaceEvenly    //所有间隙（含首尾）相等
+    };
+
+public:
     HFlowLayout();
 
     /** 布局类型
     */
     virtual LayoutType GetLayoutType() const override { return LayoutType::HFlowLayout; }
+
+    /** 获取主轴分布方式
+    */
+    JustifyContent GetJustifyContent() const { return m_justifyContent; }
+
+    /** 设置主轴分布方式（值变化且存在Owner时触发重新布局）
+    */
+    void SetJustifyContent(JustifyContent justifyContent);
 
     /** 按布局策略调整内部所有子控件的位置和大小
      * @param [in] items 子控件列表
@@ -35,6 +57,16 @@ public:
      */
     virtual UiSize64 EstimateLayoutSize(const std::vector<Control*>& items, UiSize szAvailable) override;
 
+    /** 设置布局属性
+     * @param [in] strName 要设置的属性名
+     * @param [in] strValue 要设置的属性值
+     * @param [in] dpiManager DPI管理接口
+     * @return true 设置成功，false 属性不存在
+     */
+    virtual bool SetAttribute(const DString& strName,
+                              const DString& strValue,
+                              const DpiManager& dpiManager) override;
+
 private:
     /** 调整内部所有控件的位置信息
      * @param [in] items 控件列表
@@ -44,6 +76,11 @@ private:
      * @return 返回排列后最终盒子的宽度和高度信息，包含Owner Box的内边距，不包含外边距
      */
     UiSize64 ArrangeChildInternal(const std::vector<Control*>& items, UiRect rc, bool bEstimateOnly, bool bEstimateLayoutSize) const;
+
+private:
+    /** 主轴（水平方向）的分布方式
+    */
+    JustifyContent m_justifyContent;
 };
 
 } // namespace ui

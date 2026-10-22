@@ -124,7 +124,21 @@ Available attributes inherit those of `Floating Layout (Layout)`.
 Available attributes inherit those of `Floating Layout (Layout)`.
 
 ### 4. Horizontal Flow Layout (HFlowLayout)
+| Attribute name | Default value | Parameter type | Purpose |
+| :--- | :--- | :--- | :--- |
+| justify | Not set | string | Distribution of the remaining main-axis (in-row) space. Values: "none" (reset to not set), "start", "center", "end", "space-between", "space-around", "space-evenly"; when not set, `child_halign` is used |
+
 Available attributes inherit those of `Floating Layout (Layout)`.
+
+**justify**: distributes the child controls in each row when the row is narrower than the container (only effective when the row width is smaller than the container width). Once set explicitly, the in-row main-axis behavior is no longer controlled by `child_halign`. Setting `justify` to `none` at runtime resets it to the not-set state and restores the original `child_halign` behavior. Example:
+
+```xml
+<HFlowBox child_halign="left" justify="space-between" width="stretch" height="200">
+    <Label text="Tag 1" width="auto" height="28"/>
+    <Label text="Tag 2" width="auto" height="28"/>
+    <Label text="Tag 3" width="auto" height="28"/>
+</HFlowBox>
+```
 
 ### 5. Vertical Flow Layout (VFlowLayout)
 Available attributes inherit those of `Floating Layout (Layout)`.

@@ -2,7 +2,7 @@
 # nim_duilib 开发执行规划（Development Plan）
 
 > 本文档是**可跟踪执行**的开发规划，与其它规划类文档的分工见下表。
-> 基线日期：**2026-10-21**（已完成 A-1、A-2、A-4、A-5、B-3、C-1、C-2、C-3、C-5、C-6、C-7；**明确不做、后续不再跟进**：A-3、B-1（含 B-1.1 ~ B-1.3）、B-2、B-4、C-4、D-2、D-4、D-8、E-6①、E-8、E-9、E-11 ②④、F-2（含 F-2.1 ~ F-2.3）、F-3，以及 Control-Roadmap 的无障碍、安装/签名/公证剩余项、应用内更新 / 文件关联 / 开机自启 + 托盘菜单。另有下游专项 CM-5「CMake/VS 布局统一」的 P1~P5 已于 2026-10-21 完成，见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md)）
+> 基线日期：**2026-10-22**（已完成 A-1、A-2、A-4、A-5、B-3、C-1、C-2、C-3、C-5、C-6、C-7、D-10；**明确不做、后续不再跟进**：A-3、B-1（含 B-1.1 ~ B-1.3）、B-2、B-4、C-4、D-2、D-4、D-8、E-6①、E-8、E-9、E-11 ②④、F-2（含 F-2.1 ~ F-2.3）、F-3，以及 Control-Roadmap 的无障碍、安装/签名/公证剩余项、应用内更新 / 文件关联 / 开机自启 + 托盘菜单。另有下游专项 CM-5「CMake/VS 布局统一」的 P1~P5 已于 2026-10-21 完成，见 [CMake-Improvement-Plan.md](CMake-Improvement-Plan.md)）
 > 更新规则：每完成一项把 `- [ ]` 改为 `- [x]` 并填写「完成日期」；新增项追加到对应小节末尾，不要重排既有编号。
 
 ## 与其它文档的关系
@@ -34,11 +34,11 @@
 | 无障碍 | 全库零实现（仅 CEF 子控件自带）；**明确不做**（2026-10-21 决策，不再跟进） | ❌ 明确不做 |
 | 跨平台架构 | SDL3 主轴覆盖窗口/输入/渲染/剪贴板/托盘/文件对话框/系统原生通知全链路 | 🟢 设计扎实，风险集中在细节 |
 
-### 未完成项速览（2026-10-21）
+### 未完成项速览（2026-10-22）
 
 | 分组 | 状态 | 未完成项 |
 | :--- | :--- | :--- |
-| P2 控件 | 待做 | D-10 |
+| P2 控件 | 已完成 | — |
 | P3 架构 | 待做 | F-1、F-4 |
 | P3 工程化 | 待做 | H-1 ~ H-10 |
 | 应用层能力（Control-Roadmap 第五、六节） | 待做 | 可视化编辑器（远期）；打包见 B-3 |
@@ -713,7 +713,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-7** | **ToolBar 工具项抽象** ✅ 已完成（2026-10-21） | 已扩展 `ToolBar`：`AddToolButton`/`AddToolCheckBox`/`AddToolSeparator`/`AddTool`/`InsertTool` 动态创建，`RemoveTool`/`RemoveToolAt`/`RemoveAllTools` 删除，`FindTool`/`GetToolAt`/`GetToolCount`/`GetToolIndex` 查询，`SetToolChecked`/`SetToolEnabled`/`SetToolVisible` 状态控制；`AttachToolItemClick`/`AttachToolItemCheckedChanged` 统一回调；XML 静态 `Button`/`CheckBox` 与溢出浮层激活复用同一路径；新增 `tool_class`/`tool_checkbox_class`/`tool_separator_class` 属性与 `toolbar_button`/`toolbar_check`/`toolbar_separator` 样式。示例见 toolbar.xml / ToolBarForm | 已完成 |
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** ❌ 不再跟进（已有 Alpha 通道输入） | 原有 4 种形态 + `ColorSlider`；**Alpha 通道输入已存在**：`ColorPickerCustom` 已提供 `color_picker_slider_RGB_A` / `color_picker_edit_RGB_A`，HSV 三个分量也有对应的滑块 + 数值输入框；Hex 颜色文本由 `color_picker_new_color_edit` 统一输入解析。无需再补 | 不再跟进（2026-10-21 决策） |
 | **D-9** | **CascadingSelect 级联选择器** ✅ 已完成（2026-10-22） | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级。已新增内嵌多列级联选择器（路径树 + 逐级选择索引，父项变更自动截断/过滤子列，支持禁用路径、列滚动、语言切换保持选择）：`duilib/Control/CascadingSelect.h/.cpp`，示例 `examples/controls/CascadingSelectForm.*` + `controls/cascading_select.xml`。**D-9.2（2026-10-22）**：新增下拉列表框形态（`dropdown="true"`，选择框 + `Flyout` 多列浮层），支持提示文本、悬停清空按钮、自定义显示文本、移入展开与浮层尺寸控制 | 已完成 |
-| **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
+| **D-10** | **WrapPanel 不等宽换行布局** ✅ 已完成（2026-10-22） | 不等宽换行已由 `HFlowBox`/`HFlowLayout` 提供；本次为 `HFlowLayout` 增加 `justify` 主轴分布（`start`/`center`/`end`/`space-between`/`space-around`/`space-evenly`），示例见 `bin/resources/themes/default/layout/page_hflow_box.xml`；未修改 `Layout` 基类 | 已完成 |
 | **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** ✅ 已完成（2026-10-22） | NavigationView（E-2 已补文档）、Rating（B5 完成，提交 `e76376cf`，见 `duilib/Control/Rating.h`）、Carousel（B7 完成，提交 `46e92b35`，见 `duilib/Control/Carousel.h`）均已落地；Breadcrumb 本次补齐（`duilib/Control/Breadcrumb.h/.cpp`，示例 `examples/controls/BreadcrumbForm.*`） | 已完成 |
 | **D-12** | **原生系统通知** ✅ 已完成（2026-10-21） | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。已新增独立类 `SystemNotification`（`duilib/Utils/SystemNotification.h`）：SDL 构建走 SDL 系统通知（全平台），非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡（Win7+）；与 Toast 实现完全独立 | 已完成 |
 | **D-13** | **TreeGrid 树表格** ✅ 已完成（2026-10-19，提交 `27b9a497`） | 原审计 B9 的落地方式：**不改 `ListCtrl`，新增独立控件** `duilib/Control/TreeGrid.h/.cpp`（继承 `VBox`，固定表头 + 自带滚动条的列表体，表头与数据行复用同一列宽数组）；`tree_column`+`indent` 层级缩进、`multi_select` 多选、`check_mode`+`check_cascade` 父子三态级联。**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做**（见第八节） | 已完成 |
@@ -842,7 +842,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 
 ### P2 — 一致性与控件（目标：25–35 人天）
 
-> **实际进展（截至 2026-10-22）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 19 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 1 项（D-10；D-3、D-5、D-7、D-9、D-11.1 已完成，D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
+> **实际进展（截至 2026-10-22）**：C 组（跨平台一致性）**7 项中完成 6 项**（C-1 `ASSERT` 统一，方案 B；C-2 IME 组合输入补齐；C-3 主题/语言切换变更广播；C-5 非 Windows 气泡通知；C-6 文件对话框参数补齐；C-7 CMake 平台判定健壮化），C-4 明确不做；D / E 组（控件）**已完成 20 项**、E-6① / E-8 / E-9 明确不做。剩余集中在 D 组 0 项（D-10 于 2026-10-22 完成；D-4、D-8 明确不做）、F 组 2 项与 H 组 10 项；F-2 无障碍明确不做；测试 / CI / 日志已明确不做，回归仍依赖 24 个示例 + `verify_docs.py`。
 
 - [x] **C-1** `ASSERT` 跨平台行为统一　｜ 0.5 天（方案 B）｜ 依赖：无　｜ 完成日期：2026-10-20（Windows 侧加 `#ifdef _DEBUG` 包裹，方案 A 双宏未采纳）
 - [x] **C-2** IME 组合输入非 Windows 平台补齐　｜ 约 1 人天（原估 3–5）｜ 依赖：无（原标 M1，本次以逻辑探针替代）｜ 完成日期：2026-10-20
@@ -869,7 +869,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [~] **D-8** ColorPicker Alpha 通道 + 数值输入　｜ 约 400 行 ｜ 状态：❌ 不再跟进（已有 Alpha 通道输入，2026-10-21 决策）
 - [x] **D-9** CascadingSelect 级联选择器（纯自绘 Control，见 `duilib/Control/CascadingSelect.h`；示例 `examples/controls/CascadingSelectForm.*`）　｜ 约 600 行 ｜ 完成日期：2026-10-22
   - [x] D-9.2 下拉列表框形态（`dropdown="true"`：选择框 + Flyout 多列浮层、清空按钮、自定义显示、移入展开、禁用路径、浮层尺寸控制）　｜ 约 400 行 ｜ 完成日期：2026-10-22
-- [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
+- [x] **D-10** WrapPanel 不等宽换行布局（`HFlowLayout` 新增 `justify`：start/center/end/space-between/space-around/space-evenly；不等宽换行由 `HFlowBox` 提供）　｜ 约 200 行 ｜ 完成日期：2026-10-22
 - [x] **D-11** Carousel 图片轮播（提交 `46e92b35`，B7；同批完成 Pagination，见 E-4）　｜ 低 ｜ 完成日期：2026-10-19
   - [x] D-11.1 Breadcrumb 面包屑导航（纯自绘 Control，见 `duilib/Control/Breadcrumb.h`）　｜ 低 ｜ 完成日期：2026-10-22
 - [x] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：2026-10-21（新增 `SystemNotification`：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡并兼容 Win7+；Toast 保持应用内自绘，未改动）

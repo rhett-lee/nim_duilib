@@ -120,7 +120,21 @@
 可用属性继承`浮动布局（Layout）`的属性
 
 ### 4. 水平流式布局（HFlowLayout）
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| justify | 未设置 | string | 主轴（行内）剩余空间的分布方式。可选值："none"（复位为未设置）、"start","center","end","space-between","space-around","space-evenly"；未设置时沿用 child_halign |
+
 可用属性继承`浮动布局（Layout）`的属性
+
+**justify 说明**：对每一行内未占满容器宽度的子控件进行分布（仅当行宽小于容器宽度时生效）；显式设置后，行内主轴行为不再受 `child_halign` 控制。运行时将 `justify` 设为 `none` 可复位为未设置状态，恢复 `child_halign` 的原有行为。示例：
+
+```xml
+<HFlowBox child_halign="left" justify="space-between" width="stretch" height="200">
+    <Label text="标签1" width="auto" height="28"/>
+    <Label text="标签2" width="auto" height="28"/>
+    <Label text="标签3" width="auto" height="28"/>
+</HFlowBox>
+```
 
 ### 5. 垂直流式布局（VFlowLayout）
 可用属性继承`浮动布局（Layout）`的属性
