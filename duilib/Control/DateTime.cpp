@@ -568,6 +568,9 @@ DString DateTime::GetDisabledDates() const
 
 void DateTime::SetFirstDayOfWeek(int32_t dayOfWeek)
 {
+    if ((dayOfWeek < 0) || (dayOfWeek > 6)) {
+        return;
+    }
     m_firstDayOfWeek = dayOfWeek;
     if (m_pCalendarFlyout != nullptr) {
         m_pCalendarFlyout->SetFirstDayOfWeek(dayOfWeek);

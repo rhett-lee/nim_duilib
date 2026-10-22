@@ -564,6 +564,8 @@ DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的�
 
 `date_time_calendar` 与 `time_calendar` 的提交语义：点击日期只更新日历选中态，不关闭浮层；点击"确定"后一次性提交完整日期时间；"取消"、Esc、点击浮层外部均不提交。`date_calendar` 保持原有"点日期即提交并关闭"的行为。
 
+键盘操作：日历获得焦点时，方向键 / PageUp / PageDown / Home / End 导航日期；时间输入框（时/分/秒）获得焦点时，Up / Down 按步长调整数值，Left / Right 移动光标。
+
 ## Calendar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

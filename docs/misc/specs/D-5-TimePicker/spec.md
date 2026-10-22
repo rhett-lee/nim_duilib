@@ -264,3 +264,42 @@ python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
 - 时间模式依赖浮层抢占焦点（`SetNoFocus(false)`）；否则键盘/失焦提交行为在非 Windows 平台不一致——维持现有设置。
 - 禁用日期只按日期比较，不处理"某天部分时段禁用"；该场景不在本期范围。
 - 12 小时制/AM-PM 不在本期范围，时间统一 24 小时制。
+
+## 8. 崩溃修复与新增代码复查（2026-10-22）
+
+### 8.1 崩溃根因（已修复）
+
+- 现象：点击 `date_time_calendar` / `time_calendar` 的 DateTime，浮层未弹出即 `0xC0000005`。
+- 根因：`CalendarFlyout::BuildXml()` 生成的 `<SpinBox>` 把 `class` 放在 `name` 之后。`WindowBuilder` 在 Debug 下断言 `class` 必须是节点第一个属性（原因：`class` 中的同名属性会覆盖节点显式属性），断言触发后进程中断。
+- 修复：`cal_hour` / `cal_min` / `cal_sec` 三个 `SpinBox` 与 `cal_ok` 的 `Button` 均把 `class` 调整为第一个属性。
+- 复查：最近一次提交新增的 XML 中，所有 `class` 属性（共 4 处，均在 `CalendarFlyout.cpp`）已位于首位；`controls.xml` 新增示例节点不含 `class`；`simple` / `simple_border` / `rich_edit_spin` / `btn_primary_global` 均在 `global.xml` 中有定义。
+
+### 8.2 复查发现的健壮性问题与修复
+
+1. `Calendar::SetDateLimit`（`Calendar.cpp:212`）未校验 `min_date > max_date`。两者顺序颠倒时，`GetMonthCells` 会把所有日期置灰，`ClampFocusToLimits` 也无法收敛。
+   - 修复：两个日期均解析成功且 `min > max` 时交换后再保存。
+2. `Calendar::SetAttribute("disabled_dates")`（`Calendar.cpp:99`）使用追加语义，与 `CalendarFlyout::SetDisabledDates` / `DateTime::SetDisabledDates` 的"替换"语义不一致；同一控件重复设置会累加。
+   - 修复：该属性分支先 `ClearDisabledDates()` 再 `AddDisabledDates()`。
+3. `DateTime::SetFirstDayOfWeek`（`DateTime.cpp:569`）未校验入参范围，非法值会被存入成员并转发给浮层。
+   - 修复：仅接受 `0..6`，非法值忽略（与 `Calendar::SetFirstDayOfWeek` 一致）。
+4. 文档/注释补齐：
+   - `Calendar.h` 类注释的 XML 属性列表补充 `disabled_dates`；
+   - `DateTime.h` 的 `SetShowSeconds` 注释注明"浮层已打开时仅在下次打开生效"（浮层 XML 在 `ShowAt` 时生成，运行中无法重建）。
+
+### 8.3 复查确认无需改动的点
+
+- 新增 `disabled_dates` 解析使用 `StringUtil::Split`（`wcstok` 语义，分隔符按字符集合处理），`,` / `;` / `~` 的用法正确。
+- `Calendar::IsDateDisabled` 只比较年月日；`GetMonthCells`、`SelectFocusedDay`、`ClampFocusToLimits` 三处均已接入。
+- `ComposeValue()` 在不显示秒时强制 `tm_sec = 0`，与 `%H:%M` 的显示精度一致，属预期行为。
+- 时间模式点击日期只更新日历选中态、由"确定"统一提交；`cal_sec` 不存在时安全置空，无空指针路径。
+
+### 8.4 验证
+
+```powershell
+& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
+  "build\examples.sln" /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly /m:1 /nologo
+python .trae/skills/nim-duilib/scripts/verify_docs.py --extra docs
+```
+
+- 运行 `bin\controls_d.exe`，点击 `date_time_calendar` 与 `time_calendar` 两个示例，确认浮层正常弹出、无断言/崩溃。
+- 旧 `date_calendar` 与 `*_up_down` 格式行为不变。

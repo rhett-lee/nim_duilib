@@ -98,6 +98,8 @@ void Calendar::SetAttribute(const DString& strName, const DString& strValue2)
         }
     }
     else if (strName == _T("disabled_dates")) {
+        //属性语义为替换，避免重复设置导致禁用日期累加（与 SetDisabledDates 保持一致）
+        ClearDisabledDates();
         AddDisabledDates(strValue);
     }
     else {
@@ -213,6 +215,10 @@ void Calendar::SetDateLimit(const DString& minDate, const DString& maxDate)
 {
     m_bHasMinDate = ParseDateString(minDate, m_minDate);
     m_bHasMaxDate = ParseDateString(maxDate, m_maxDate);
+    if (m_bHasMinDate && m_bHasMaxDate && IsDateLess(m_maxDate, m_minDate)) {
+        //容错：起止顺序颠倒时会交换，否则所有日期都会被置灰且键盘焦点无法收敛
+        std::swap(m_minDate, m_maxDate);
+    }
     m_bCellsDirty = true;   //可选范围变化，需重算格子的 bDisabled
     Invalidate();
 }

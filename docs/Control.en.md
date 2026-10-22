@@ -566,6 +566,8 @@ The DateTime control inherits the `Label` attributes. For more available attribu
 
 Commit semantics for `date_time_calendar` / `time_calendar`: clicking a date only updates the calendar selection and does not close the flyout; "OK" commits the complete date-time; "Cancel", Esc, or clicking outside does not commit. `date_calendar` keeps its original "click date = commit and close" behavior.
 
+Keyboard: when the calendar has focus, arrow keys / PageUp / PageDown / Home / End navigate dates; when a time input (hour/minute/second) has focus, Up / Down adjust its value by the step and Left / Right move the caret.
+
 ## Attributes of Calendar
 | Attribute name | Default value | Parameter type | Purpose |
 | :--- | :--- | :--- | :--- |

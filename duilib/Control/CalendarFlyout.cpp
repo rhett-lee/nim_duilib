@@ -780,6 +780,21 @@ Calendar* CalendarFlyout::GetCalendar() const
 
 LRESULT CalendarFlyout::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+    //时间输入框（SpinBox）获得焦点时，按键交由输入框自身处理：
+    //Up/Down 调整时/分/秒、Left/Right 移动光标，不能被下面的日历导航逻辑劫持
+    //（日期+时间模式下浮层同时存在日历时尤其明显）。
+    if (m_bTimeMode) {
+        Control* pFocus = GetFocusControl();
+        if ((pFocus != nullptr) && ((pFocus == m_pHourSpin) || (pFocus == m_pMinSpin) || (pFocus == m_pSecSpin))) {
+            if ((vkCode == kVK_UP) || (vkCode == kVK_DOWN)) {
+                dynamic_cast<SpinBox*>(pFocus)->AdjustTextNumber((vkCode == kVK_UP) ? 1 : -1);
+                bHandled = true;
+                return 0;
+            }
+            return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+        }
+    }
+
     Calendar* pCalendar = GetCalendar();
     if (pCalendar != nullptr) {
         bool bHandledLocal = false;

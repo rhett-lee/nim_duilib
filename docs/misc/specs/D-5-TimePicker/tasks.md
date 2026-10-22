@@ -46,3 +46,14 @@
 - [x] 6.1 Debug|x64 编译零错误。
 - [x] 6.2 `verify_docs.py --extra docs` 零漂移。
 - [x] 6.3 代码自查：所有权、空指针、回调重入、`Dismiss` 后不访问已销毁对象。
+
+## 任务 7：崩溃修复与复查（2026-10-22）
+
+- [x] 7.1 `CalendarFlyout::BuildXml` 的 `SpinBox` / `Button` 把 `class` 移到第一个属性（崩溃根因）。
+- [x] 7.2 复查最近提交全部 XML：新增 `class` 共 4 处且均位于首位；示例节点无 `class`。
+- [x] 7.3 `Calendar::SetDateLimit`：`min > max` 时交换。
+- [x] 7.4 `Calendar::SetAttribute("disabled_dates")` 改为替换语义（先 Clear 再 Add）。
+- [x] 7.5 `DateTime::SetFirstDayOfWeek` 校验 `0..6`，非法值忽略。
+- [x] 7.6 注释补齐：`Calendar.h` 属性列表加 `disabled_dates`；`DateTime.h` 的 `SetShowSeconds` 注明下次打开生效。
+- [x] 7.7 Debug|x64 编译 + `verify_docs.py --extra docs`。
+- [ ] 7.8 运行 `controls_d.exe` 点击两个新示例，确认浮层正常弹出（用户验证）。

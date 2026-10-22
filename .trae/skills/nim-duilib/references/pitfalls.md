@@ -11,6 +11,10 @@
 
 `class` 必须写在所有属性最前面。写在中间或末尾时，控件没有任何样式，且无任何提示。
 
+Debug 版更严重：`WindowBuilder` 会断言 `class` 必须是节点的第一个属性（否则 `class` 里的同名属性
+会覆盖节点上写在它前面的显式属性），断言中断后常表现为 `0xC0000005`，崩溃栈落在
+`WindowBuilder::ParseXmlNodeChildren` 的属性循环里。动态拼接的 XML（如 `BuildXml()`）同样要检查。
+
 ```xml
 <!-- ❌ 错：class 在后面，样式失效 -->
 <Button name="ok" text="确定" class="btn_global_blue_80x30"/>

@@ -479,7 +479,19 @@ if ((nIndex != Box::InvalidIndex) && ((nIndex + 1) != GetItemCount())) {
 - 创建浮层前统一调用 `CalendarFlyout::SetTimeMode/SetDateLimit/SetDisabledDates/SetFirstDayOfWeek`；
 - 浮层已打开时，setter 再转发给 `CalendarFlyout`，保证运行期修改立即生效。
 
-### 8.7 验证清单（本次）
+### 8.7 `class` 必须是第一个属性：本次 0xC0000005 复盘
+
+- 现象：点击 `date_time_calendar` / `time_calendar`，浮层没有弹出就崩溃，栈顶落在
+  `WindowBuilder::ParseXmlNodeChildren` 的属性循环里。
+- 根因：`BuildXml()` 动态拼出的 `<SpinBox name="cal_hour" class="...">` 把 `class` 放在了 `name` 之后。
+  Debug 版 `WindowBuilder` 会断言 `class` 必须是节点第一个属性（否则 `class` 里的同名属性会覆盖
+  节点上写在它前面的显式属性）；断言中断后表现为 `0xC0000005`，比"样式被忽略"严重得多。
+- 规则：**动态拼接的 XML 同样必须保证 `class` 位于第一个属性**，属性顺序是语义问题而非风格问题。
+- 排查路径：崩溃栈出现 `WindowBuilder::ParseXmlNodeChildren` → 查 `BuildXml()`/XML 中同名节点的
+  属性顺序；`xml +=` 拼接时尤其容易把 `class` 写到中间。
+- 复查：本次提交新增的 4 处 `class`（3 个 `SpinBox` + `cal_ok`）已全部前置；示例 XML 不含 `class`。
+
+### 8.8 验证清单（本次）
 
 | 验证项 | 通过标准 |
 |--------|----------|
@@ -489,4 +501,5 @@ if ((nIndex != Box::InvalidIndex) && ((nIndex + 1) != GetItemCount())) {
 | 约束 | min/max 与禁用日期均置灰不可点；键盘焦点不落到禁用日 |
 | 周起始/秒 | `first_day_of_week`、`show_seconds` 对标题、网格、文本格式同时生效 |
 | 旧行为 | `date_calendar` 仍点日期即提交并关闭；`*_up_down` 不变 |
+| 动态 XML | 新增/修改节点的 `class` 均位于首位，点击不触发 Debug 断言 |
 | 文档 | `verify_docs.py --extra docs` 零漂移 |

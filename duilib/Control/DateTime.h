@@ -182,6 +182,7 @@ public:
     int32_t GetFirstDayOfWeek() const;
 
     /** 设置时间弹层是否显示秒（kDateTimeCalendar / kTimeCalendar 生效）
+    * @note 弹层 XML 在打开时生成，浮层已打开时调用仅在下次打开生效
     */
     void SetShowSeconds(bool bShow);
 

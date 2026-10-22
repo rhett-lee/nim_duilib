@@ -190,7 +190,7 @@ btn->AttachClick([this](const ui::EventArgs& args) { return true; });
 
 违反这些不会报错，只会静默出问题，排查成本极高。
 
-1. **`class` 属性写在所有属性最前面**（写在后面整个 class 的样式被忽略）。
+1. **`class` 属性写在所有属性最前面**（写在后面整个 class 的样式被忽略；Debug 版会触发断言，常表现为 0xC0000005 崩溃，动态拼接的 XML 同样适用）。
 2. **标题栏与按钮用新名**：容器 `window_title_bar`；按钮 `btn_window_min` / `btn_window_max` /
    `btn_window_restore` / `btn_window_close` / `btn_window_fullscreen`。旧名（`minbtn`、`closebtn` …）
    只是 fallback，新代码不要用（依据 `duilib/duilib_defs.h:145-152`）。

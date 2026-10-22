@@ -25,6 +25,7 @@ namespace ui
  *    first_day_of_week   monday / sunday（默认 monday）
  *    show_today_button   true / false（默认 true，预留）
  *    min_date / max_date 可选日期范围限制（格式：yyyy-mm-dd）
+ *    disabled_dates     业务禁用日期（yyyy-mm-dd 或 yyyy-mm-dd~yyyy-mm-dd，多个用 , 或 ; 分隔）
  *
  *  皮肤类（global.xml）：
  *    calendar              整体容器

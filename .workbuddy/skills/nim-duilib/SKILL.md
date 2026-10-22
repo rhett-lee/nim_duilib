@@ -39,7 +39,8 @@ nim_duilib 是一个 XML 驱动皮肤 + C++ 逻辑的跨平台桌面 UI 框架�
 
 违反这些不会报错，只会静默出问题，排查成本极高。
 
-1. **`class` 属性必须写在所有属性最前面。** 写在后面则整个 class 的样式被忽略。
+1. **`class` 属性必须写在所有属性最前面。** 写在后面则整个 class 的样式被忽略；
+   Debug 版会触发 `WindowBuilder` 断言，常表现为 `0xC0000005` 崩溃，动态拼接的 XML 同样适用。
    `<Button class="btn_global_blue_80x30" name="ok" text="确定"/>` 正确；反过来则控件无任何样式。
 
 2. **标题栏与按钮必须用新名。** 容器 `window_title_bar`，按钮 `btn_window_min` / `btn_window_max` /
