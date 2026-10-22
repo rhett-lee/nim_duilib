@@ -66,6 +66,7 @@
 | Panel | 浮动(Layout) | 带标题栏的面板容器（`PanelTemplate<Box>`），可折叠/手风琴 |
 | PanelHBox | 水平(HLayout) | 带标题栏的水平面板（`PanelTemplate<HBox>`） |
 | PanelVBox | 垂直(VLayout) | 带标题栏的垂直面板（`PanelTemplate<VBox>`） |
+| NavigationView | 水平(HLayout) | 侧边栏导航容器（左导航窗格+右内容区），窗格可收起为图标条 |
 | VTileBox | 垂直瓦片 | 网格式垂直排列，columns属性 |
 | HTileBox | 水平瓦片 | 网格式水平排列，rows属性 |
 | GridBox | 网格(GridLayout) | 网格布局，支持单元格合并 |
@@ -77,7 +78,6 @@
 | HListBox | 水平列表 | 可选择的水平列表 |
 | VirtualVListBox | 虚拟垂直列表 | 大数据量虚拟列表(垂直) |
 | VirtualHListBox | 虚拟水平列表 | 大数据量虚拟列表(水平) |
-| NavigationView | 水平(HLayout) | 侧边栏导航容器（左导航窗格+右内容区），窗格可收起为图标条 |
 
 ### 容器属性
 
@@ -136,6 +136,81 @@
   `kEventPanelCollapsing` / `kEventPanelExpanding`，回调返回 false 可取消
   （XML 初始 `collapsed` 与手风琴内部联动不触发取消事件）。
 
+### NavigationView 侧边栏导航属性（NavigationView / NavigationViewItem）
+
+左侧导航窗格 + 右侧内容区的组合导航容器，头文件 `duilib/Control/NavigationView.h`。
+节点 `<NavigationView>` / `<NavigationViewItem>` 已在 `WindowBuilder::CreateControlByClass` 的
+`createControlMap` 中注册（`WindowBuilder.cpp`）——自定义 XML 标签必须走这条路径，仅靠
+`GlobalManager::AddCreateControlCallback` 会因"回调在控件自身构造里才注册"而首个控件永远创建不了。
+完整示例见 `examples/controls`（NavigationForm + `themes/default/controls/navigation.xml`）。
+
+NavigationView（继承 HBox）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| pane_width | 220 | int | 展开态窗格宽度（DPI 自适应） |
+| compact_pane_width | 48 | int | 收起态窗格宽度（仅显示图标） |
+| pane_title | | string | 窗格顶部标题文字 |
+| pane_title_id | | string | 窗格标题多语言资源 ID，切换语言自动刷新 |
+| toggle_icon | | string | 汉堡按钮图标图片属性串 |
+| collapsed | false | bool | 初始是否为收起（紧凑）态 |
+| show_header | true | bool | 内容区是否显示页头（随选中项同步文字） |
+| settings_item | false | bool | 是否在窗格底部生成内置"设置"导航项 |
+| settings_page | | string | 设置项关联的内容页 name |
+| settings_text_id | | string | 设置项文字多语言 ID |
+| settings_icon | | string | 设置项图标图片属性串 |
+| selected_id | | string | 初始选中项关联的 page name，缺省为第一个可选项 |
+
+NavigationViewItem（继承 Control）属性：
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| text | | string | 项文字（header 形态显示为分组标题） |
+| text_id | | string | 项文字多语言资源 ID（优先于 text） |
+| icon | | string | 图标图片属性串（separator 形态忽略） |
+| page | | string | 关联内容页的控件 name，点击后切换页面并同步页头 |
+| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题）/ separator（分隔线） |
+| icon_size | 16 | int | 图标尺寸（DIP） |
+| icon_left | 16 | int | 展开态图标左边距（DIP） |
+| text_left | 44 | int | 展开态文字左边距（DIP） |
+| text_right | 8 | int | 展开态文字右边距（DIP） |
+| pill_radius | 6 | int | 选中/悬停热区圆角半径（DIP） |
+| pill_inset_x | 6 | int | 热区水平内缩（DIP） |
+| pill_inset_y | 3 | int | 热区垂直内缩（DIP） |
+| selected_bg_color | bg_list_item_selected | string | 选中背景色名 |
+| hovered_bg_color | bg_list_item_hovered | string | 悬停背景色名 |
+| selected_text_color | color_accent | string | 选中文字色名 |
+| normal_text_color | text_default | string | 普通文字色名 |
+| disabled_text_color | text_disabled | string | 禁用文字色名 |
+| header_text_color | text_muted | string | 分组标题文字色名 |
+| separator_color | border_window | string | 分隔线颜色名 |
+
+子节点路由规则（AddItem 分流）：
+
+- `NavigationViewItem` 子节点 → 加入窗格导航项列表（header/separator 同样入列，仅渲染形态不同）；
+- `TabBox` 子节点 → 仅允许一个，被接管为内容区宿主（推荐显式提供，页面结构完全自控）；
+- 其他子控件 → 自动加入惰性创建的内容区 TabBox 作为页面，按 `page`/`name` 联动切换。
+
+要点：
+
+- 收起态仅显示图标，鼠标悬停导航项显示文字 tooltip；设置项固定在窗格底部，不参与默认选中与序号统计。
+- 序号仅统计可选中导航项（item 形态），header / separator 与设置项均不计入。
+- C++：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
+  `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`、
+  `SetCollapsed(bool)`、`IsCollapsed()`、
+  `AddNavItem(strTextId, strIcon, strPageName, pPage=nullptr)`（传入 pPage 时一步完成"建内容页+加导航项+按 name 联动"，不传则仅加导航项）、
+  `AddPage(Control*)`（单独把页面加入内容区）、
+  `RemoveNavItem(NavigationViewItem*, bool bRemovePage=false)`（bRemovePage=true 时一并移除关联内容页）、
+  `RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`、
+  `MoveFocusByKey(NavigationViewItem*, bool bForward)`。
+- 键盘：item 形态 tab 可聚焦，上/下方向键在可选项间移动焦点，回车/空格选中；聚焦时绘制强调色焦点环。
+- 禁用态：`SetItemEnabled(pItem,false)` 或 XML `enabled="false"`，禁用项不响应点击/键盘，文字走 `disabled_text_color`。
+- 事件由 NavigationView 自身触发，与内部 TabBox 的 `kEventTabSelect` 互不干扰（详见"XML 事件系统"一节）：
+  `AttachNavItemClick`（重复点击已选中项也触发，wParam 可选项序号）、
+  `AttachNavSelectionChanged`（wParam 新序号、lParam 旧序号，无选中为 `Box::InvalidIndex`）、
+  `AttachNavPaneToggling`（wParam 目标状态 1=收起/0=展开，回调返回 false 取消切换）、
+  `AttachNavPaneToggled`（wParam 当前状态）。
+
 ## 三、控件类型速查
 
 | XML节点 | 基类 | 说明 |
@@ -159,6 +234,7 @@
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
 | Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
 | Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
+| Breadcrumb | Control | 面包屑导航（`item_text`/`item_text_id` 以 `\|` 分隔条目；`current` 缺省跟随末项；点击祖先项切换当前项；`disabled_items`；自定义 `separator`（默认 ›）/`spacing`/`item_padding`/`item_round`/`click_to_jump`；祖先项链接蓝 + 悬停/按下胶囊背景、当前项加粗 `current_font`；节点名 `Breadcrumb`），`duilib/Control/Breadcrumb.h` |
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
@@ -471,81 +547,6 @@ C++ 接口：`SetMaskColor/GetMaskColor`、`SetHighlightControl/GetHighlightCont
 - 示例：`<ListCtrl class="list_ctrl" name="list_ctrl" frozen_column_count="1"/>`。
 - 单元格编辑（C3）：`ListCtrlColumn::nEditorType`（默认 `ListCtrlEditorType::kEditText`）按列保存编辑器类型；`EnterCellEdit(nRowIndex, nColumnId)` 进入指定单元格编辑（等同对当前格按 F2，行不可视时先滚动到可视区），`EnterCurrentCellEdit()` 对当前格进入编辑（F2 实现入口），`GetEditingCell(ListCtrlCellId&)` 取编辑中单元格（无编辑态返回无效值）。触发进入编辑仅 `F2`（立即进入，不走单击链路的 600ms 定时器）与鼠标左键单击（沿用原有链路，未做双击/直接键入）。提交校验：空串合法（清空单元格）、`kEditNumber` 为十进制数值、`kEditDate` 为 `yyyy-mm-dd`/`yyyy/mm/dd`（复用 `Calendar::ParseDateString`），非法输入丢弃（不写回、不派发 `kEventLeaveEdit`）。
 
-### NavigationView 侧边栏导航(继承 HBox)
-
-复合容器（`duilib/Control/NavigationView.h`，已在 duilib.h 中 include），把汉堡按钮+窗格标题+分组导航项+页头+内容区联动封装成现代设置页/客户端导航框架，对标 WinUI NavigationView。
-XML 节点 `<NavigationView>` 与 `<NavigationViewItem>`（`item_type` 分 item / header / separator 三种形态），
-**已在 `WindowBuilder::CreateControlByClass` 的 `createControlMap` 中注册**（`WindowBuilder.cpp`）。
-演示见 `examples/controls`（NavigationForm + `themes/default/controls/navigation.xml`）。
-
-NavigationView（继承 HBox）属性：
-
-| 属性 | 默认值 | 类型 | 说明 |
-|------|--------|------|------|
-| pane_width | 220 | int | 展开态窗格宽度（DPI 自适应） |
-| compact_pane_width | 48 | int | 收起态（紧凑）窗格宽度，仅显示图标 |
-| pane_title | | string | 窗格顶部标题文字 |
-| pane_title_id | | string | 窗格标题多语言资源 ID |
-| toggle_icon | | string | 汉堡按钮图标图片属性串 |
-| collapsed | false | bool | 初始是否紧凑态 |
-| show_header | true | bool | 内容区是否显示页头（随选中项同步文字） |
-| settings_item | false | bool | 是否在窗格底部生成内置"设置"导航项 |
-| settings_page | settings | string | 设置项关联的内容页 name |
-| settings_text_id | | string | 设置项文字多语言 ID |
-| settings_icon | | string | 设置项图标图片属性串 |
-| selected_id | | string | 初始选中项关联的 page name，缺省为第一个可选项 |
-
-NavigationViewItem（继承 Control）属性：
-
-| 属性 | 默认值 | 类型 | 说明 |
-|------|--------|------|------|
-| text | | string | 项文字（header 形态显示为分组标题） |
-| text_id | | string | 项文字多语言资源 ID（优先于 text） |
-| icon | | string | 图标图片属性串（separator 形态忽略） |
-| page | | string | 关联内容页的控件 name，点击后切换页面并同步页头 |
-| item_type | item | string | 形态：item（可选中导航项）/ header（分组标题）/ separator（分隔线） |
-| icon_size | 16 | int | 图标尺寸（DIP） |
-| icon_left | 16 | int | 展开态图标左边距（DIP） |
-| text_left | 44 | int | 展开态文字左边距（DIP） |
-| text_right | 8 | int | 展开态文字右边距（DIP） |
-| pill_radius | 6 | int | 选中/悬停热区圆角半径（DIP） |
-| pill_inset_x | 6 | int | 热区水平内缩（DIP） |
-| pill_inset_y | 3 | int | 热区垂直内缩（DIP） |
-| selected_bg_color | bg_list_item_selected | string | 选中背景色名 |
-| hovered_bg_color | bg_list_item_hovered | string | 悬停背景色名 |
-| selected_text_color | color_accent | string | 选中文字色名 |
-| normal_text_color | text_default | string | 普通文字色名 |
-| disabled_text_color | text_disabled | string | 禁用文字色名 |
-| header_text_color | text_muted | string | 分组标题文字色名 |
-| separator_color | border_window | string | 分隔线颜色名 |
-
-子节点路由规则（AddItem 分流）：
-
-- `NavigationViewItem` 子节点 → 加入窗格导航项列表（header/separator 同样入列，仅渲染形态不同）；
-- `TabBox` 子节点 → 仅允许一个，被接管为内容区页面宿主（推荐显式提供，页面结构与切换动画完全自控）；
-- 其他子控件 → 作为页面进入内容区；若未显式提供 TabBox 则惰性自动创建一个。
-
-序号约定：序号仅统计**可选中导航项**（item 形态）；header / separator 与底部设置项均不计入。
-
-C++ 接口：
-
-- 选择：`SelectItem(NavigationViewItem*, bool bFireEvent=true)`、`SelectItem(const DString& pageName)`、
-  `SelectItemByIndex(size_t)`、`GetSelectedItem()`、`GetSelectedIndex()`、`GetSelectedPage()`；
-- 窗格：`SetCollapsed(bool)` / `IsCollapsed()`（汉堡按钮点击触发切换）；
-- 项管理：`AddNavItem(strTextId, strIcon, strPageName, pPage=nullptr)`（传 pPage 则一步完成"建内容页+加导航项+按 name 联动"）、
-  `AddPage(Control*)`、`RemoveNavItem(NavigationViewItem*, bool bRemovePage=false)`（true 时一并移除关联内容页）、
-  `RemoveAllNavItems()`、`SetItemEnabled(NavigationViewItem*, bool)`；
-- 键盘：`MoveFocusByKey(NavigationViewItem*, bool bForward)`（tab 可聚焦，上/下方向键移动，回车/空格选中）。
-
-事件（由 NavigationView 自身触发，与内部 TabBox 的 `kEventTabSelect` 互不干扰）：
-
-- `AttachNavItemClick` / `kEventNavigationItemClick`：点击可选项即触发（重复点击已选中项也触发），wParam=可选项序号；
-- `AttachNavSelectionChanged` / `kEventNavigationSelectionChanged`：选中变化，wParam=新序号、lParam=旧序号（无选中为 `Box::InvalidIndex`）；
-- `AttachNavPaneToggling` / `kEventNavigationPaneToggling`：窗格即将收起/展开，wParam=目标状态（1=收起/0=展开），回调返回 false 可取消；
-- `AttachNavPaneToggled` / `kEventNavigationPaneToggled`：窗格收起/展开完成，wParam=当前状态。
-
-禁用态：`SetItemEnabled(pItem,false)` 或 XML `enabled="false"`，禁用项不响应点击/键盘，文字走 `disabled_text_color`、图标降透明度。
-
 ### Progress 属性(继承 Label)
 
 | 属性 | 默认值 | 类型 | 说明 |
@@ -714,6 +715,29 @@ C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItem
 分页器（报表/表格/列表页码导航）：继承 HBox 全部布局属性；页面按钮由控件内部按数据动态创建（延迟定时器重建，规避子控件自删的 use-after-free）；当前页按钮选中高亮，页码超出上限以 `…` 收纳并保留首尾与当前页附近；颜色走 button_class 引用的皮肤语义色，C++ 无写死色值。
 C++ 接口：`GetPageCount/SetPageCount`、`GetCurrentPage/SetCurrentPage/SetCurrentPageNoEvent`、`SetTotalCount`、`Next/Prev/GoTo`、`GetMaxVisibleCount/SetMaxVisibleCount`、`SetButtonClass/GetButtonClass`。
 事件：`AttachPageChanged`——当前页码变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
+
+### Breadcrumb 属性(继承 Control)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| item_text | 空 | string | 条目文本，`\|` 分隔多条 |
+| item_text_id | 空 | string | 条目文本的多语言 ID，`\|` 分隔多条；语言切换自动刷新 |
+| current（别名 current_index） | -1 | int | 当前项索引（0 起）；-1 = 自动跟随最后一项 |
+| separator（别名 separator_text） | › | string | 条目之间的分隔符 |
+| spacing | 4 | int | 分隔符两侧间距（像素，DPI 自适应） |
+| item_padding | 6 | int | 条目点击区域左右内边距（像素，DPI 自适应） |
+| item_round | 4 | int | 悬停/按下胶囊背景圆角（像素，DPI 自适应） |
+| click_to_jump | true | bool | 是否允许点击祖先项切换当前项 |
+| disabled_items | 空 | string | 禁用项索引列表，`\|` 或 `,` 分隔 |
+| item_color / current_color / hovered_color / pressed_color / disabled_color | color_blue / text_default / color_blue_light / color_blue / text_disabled | string | 各状态文本颜色（语义色名） |
+| separator_color | color_gray | string | 分隔符颜色 |
+| hover_bg_color / pressed_bg_color | bg_btn_hovered / bg_btn_pressed | string | 悬停/按下胶囊背景色（留空则不绘制） |
+| font / current_font | system_regular_14 / system_bold_14 | string | 普通条目字体 / 当前项加粗字体 |
+
+面包屑导航（文件/目录路径、站点层级、设置页层级）：纯自绘，一行显示可点击的祖先路径 + 当前项；祖先项默认链接蓝、当前项加粗，悬停/按下绘制圆角胶囊背景（`hover_bg_color`/`pressed_bg_color`，可留空关闭）；状态颜色优先级为 禁用 > 按下 > 悬停 > 当前 > 普通；宽度不足时右对齐裁剪，保证末项/当前项可见。
+C++ 接口：`AddItem/InsertItem/RemoveItemAt/ClearItems/SetItems/GetItemCount/GetItemAt/GetItems`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent/GoTo/GoToNoEvent`、`SetItemEnabled/IsItemEnabled/SetDisabledItems/GetDisabledItems`、`SetSeparator/GetSeparator`、`SetSpacing/GetSpacing`、`SetItemPadding/GetItemPadding`、`SetItemRound/GetItemRound`、`SetClickToJump/IsClickToJump`、各颜色 Set/Get、`SetHoveredBgColor/SetPressedBgColor`、`SetFont/GetFont`、`SetCurrentFont/GetCurrentFont`。
+事件：`AttachCurrentChanged`——当前项变化时触发，事件编码 `kEventValueChanged`（`wParam=3`），`currentIndex`/`oldIndex` 由 `EventArgs::pEventData`（指向 `ui::BreadcrumbValue`）携带，仅在回调派发期间有效。
+默认皮肤 `breadcrumb` 类只定义颜色与字体（祖先项链接蓝、当前项加粗、分隔符灰色、悬停/按下胶囊背景），无图片资源。
 
 ### TreeGrid 属性(继承 VBox)
 
@@ -922,6 +946,9 @@ strikeout / fullstyle（四者全开），字号支持 12/14/16/18/20/22。`defa
 | value_changed | 值变化 |
 | expand / collapse | Panel 面板展开/折叠完成 |
 | panel_expanding / panel_collapsing | Panel 即将展开/折叠（C++ 回调返回 false 可取消；XML 内联仅用于 apply_attribute） |
+| navigation_item_click | NavigationView 导航项被点击（重复点击已选中项也触发） |
+| navigation_selection_changed | NavigationView 选中项变化（wParam 新序号、lParam 旧序号） |
+| navigation_pane_toggling / navigation_pane_toggled | NavigationView 窗格即将收起/展开 / 完成（前者回调返回 false 可取消） |
 | key_down / key_up | 按键 |
 | return | 回车 |
 | visible_changed | 可见性变化 |
@@ -1125,6 +1152,54 @@ if (panel != nullptr) {
 
 手风琴：多个 Panel 设置相同 `group` 属性后，展开其中一个会自动折叠同窗口同组的其他面板；
 初始展开哪个由 XML 的 `collapsed` 决定，允许全部折叠。
+
+### NavigationView 侧边栏导航
+
+```cpp
+// 头文件 duilib/Control/NavigationView.h
+ui::NavigationView* nav = dynamic_cast<ui::NavigationView*>(FindControl(_T("nav")));
+if (nav != nullptr) {
+    // 编程式切换页面（按导航项 page 属性对应的 name，或可选项序号）
+    nav->SelectItem(_T("page_tools"));
+    nav->SelectItemByIndex(0);
+
+    // 动态追加导航项：两种方式——
+    //  a) 内容页已存在于内容区 TabBox，仅加导航项：
+    ui::NavigationViewItem* pItem = nav->AddNavItem(
+        _T("STRID_NAV_NEW"),
+        _T("file='nav/star.svg' width='16' height='16' svg_replace_colors='#333333|border_svg_image'"),
+        _T("page_new"));
+    //  b) 同时新建内容页（推荐）：第 4 参传页面控件，自动挂到内容区 TabBox 并按 name 联动，
+    //     避免"只加了左侧节点、点击后右侧空白"
+    ui::VBox* pPage = new ui::VBox(nav->GetWindow());
+    pPage->SetBkColor(_T("bg_window_main"));
+    pPage->AddItem(new ui::Label(nav->GetWindow()));   // 填充页内内容…
+    ui::NavigationViewItem* pItem2 = nav->AddNavItem(
+        _T("STRID_NAV_NEW2"), _T("file='nav/star.svg' width='16' height='16'"),
+        _T("page_new2"), pPage);
+    // 也可单独加页：nav->AddPage(pPage);
+
+    // 窗格收起/展开（AttachNavPaneToggling 回调返回 false 可阻止）
+    nav->SetCollapsed(!nav->IsCollapsed());
+
+    // 项管理：禁用/启用、移除（第 2 参 true 一并移除关联内容页）、清空
+    nav->SetItemEnabled(pItem, false);
+    nav->RemoveNavItem(pItem);          // 仅移除导航项，保留内容页
+    nav->RemoveNavItem(pItem2, true);   // 连内容页一起移除
+    // nav->RemoveAllNavItems();
+
+    // 选中变化：wParam 新序号、lParam 旧序号（无选中为 ui::Box::InvalidIndex）
+    nav->AttachNavSelectionChanged([](const ui::EventArgs& args) {
+        size_t nNew = (size_t)args.wParam;
+        return true;
+    });
+    // 点击项（重复点击已选中项也触发）；另有 AttachNavPaneToggled 监听切换完成
+    nav->AttachNavItemClick([](const ui::EventArgs&) { return true; });
+}
+```
+
+内容区推荐显式提供一个 `<TabBox name="nav_content">` 子节点承载各页面，导航项的 `page`
+属性与页面控件的 `name` 一一对应；完整示例见 `examples/controls/NavigationForm.cpp`。
 
 ### ListBox 动态添加项
 

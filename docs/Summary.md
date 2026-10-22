@@ -217,6 +217,7 @@
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件（可拖动、步长、键盘无障碍操作、刻度标尺、点击轨道跳转、值变化事件），详见[Control.md](Control.md#slider的属性) |
 | RangeSlider | Progress| [duilib/Control/RangeSlider.h](../duilib/Control/RangeSlider.h) | 双滑块范围选择控件（下限/上限两个滑块 + 高亮选中区间，支持最小间距、区间颜色/圆角、点击轨道跳值；范围变化事件 `AttachRangeChanged` 的 `pEventData` 携带 low/high），详见[Control.md](Control.md#rangeslider-控件继承-progress-属性) |
 | Stepper | Control| [duilib/Control/Stepper.h](../duilib/Control/Stepper.h) | 向导步骤条控件（水平/垂直排列，节点显示序号或对勾，状态由当前索引+禁用集合派生：待开始/进行中/已完成/禁用，连接线按完成度着色；支持 Next/Back/GoTo 与点击跳转、多语言标题/描述；步骤变化事件 `AttachStepChanged` 的 `pEventData` 携带 currentIndex/oldIndex），详见[Control.md](Control.md#stepper-控件向导步骤条) |
+| Breadcrumb | Control| [duilib/Control/Breadcrumb.h](../duilib/Control/Breadcrumb.h) | 面包屑导航控件（`\|` 分隔条目、当前项高亮、点击祖先项跳转、禁用项、自定义分隔符与语义色；当前项变化事件 `AttachCurrentChanged` 的 `pEventData` 携带 currentIndex/oldIndex），详见[Control.md](Control.md#breadcrumb-控件面包屑导航) |
 | CircleProgress | Progress| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条（渐变、指示图标、逆时针、indeterminate 转圈、仪表盘/缺口环、中心自定义内容），详见[Control.md](Control.md#circleprogress的属性) |
 | Chart | Control| [duilib/Control/Chart.h](../duilib/Control/Chart.h) | 轻量图表控件（折线/柱状/饼图自绘，支持数据绑定），详见[Control.md](Control.md#chart的属性) |
 | Timeline | Control| [duilib/Control/Timeline.h](../duilib/Control/Timeline.h) | 垂直时间轴控件（节点+连接线+内容，数据驱动、状态配色、正序/倒序、多语言绑定、滚动条），详见[Control.md](Control.md#timeline的属性) |

@@ -110,6 +110,7 @@
 #include "Control/Rating.h"
 #include "Control/Carousel.h"
 #include "Control/Pagination.h"
+#include "Control/Breadcrumb.h"
 #include "Control/TreeGrid.h"
 #include "Control/Slider.h"
 #include "Control/RangeSlider.h"

@@ -8,6 +8,7 @@
 #include "RatingForm.h"
 #include "CarouselForm.h"
 #include "TreeGridForm.h"
+#include "BreadcrumbForm.h"
 #include "duilib/Control/SearchBox.h"
 #include <ctime>
 
@@ -90,6 +91,15 @@ void TestForm::OnInitWindow()
     if (pTreeGridBtn != nullptr) {
         pTreeGridBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
             ShowTreeGridWindow();
+            return true;
+            });
+    }
+
+    //Breadcrumb 面包屑导航测试窗口
+    ui::Button* pBreadcrumbBtn = dynamic_cast<ui::Button*>(FindControl(_T("breadcrumb_btn")));
+    if (pBreadcrumbBtn != nullptr) {
+        pBreadcrumbBtn->AttachClick([this](const ui::EventArgs& /*args*/) {
+            ShowBreadcrumbWindow();
             return true;
             });
     }
@@ -472,6 +482,18 @@ void TestForm::ShowTreeGridWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("TreeGridWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void TestForm::ShowBreadcrumbWindow()
+{
+    BreadcrumbForm* testForm = new BreadcrumbForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("BreadcrumbWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

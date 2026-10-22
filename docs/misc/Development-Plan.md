@@ -38,7 +38,7 @@
 
 | 分组 | 状态 | 未完成项 |
 | :--- | :--- | :--- |
-| P2 控件 | 待做 | D-9、D-10、D-11.1 |
+| P2 控件 | 待做 | D-9、D-10 |
 | P3 架构 | 待做 | F-1、F-4 |
 | P3 工程化 | 待做 | H-1 ~ H-10 |
 | 应用层能力（Control-Roadmap 第五、六节） | 待做 | 可视化编辑器（远期）；打包见 B-3 |
@@ -714,7 +714,7 @@ XML 属性 `tab_ctrl_orientation`（`horz` / `vert`）。方向切换经 `Box::R
 | **D-8** | **ColorPicker 补 Alpha 通道 + HSV/Hex 数值输入** ❌ 不再跟进（已有 Alpha 通道输入） | 原有 4 种形态 + `ColorSlider`；**Alpha 通道输入已存在**：`ColorPickerCustom` 已提供 `color_picker_slider_RGB_A` / `color_picker_edit_RGB_A`，HSV 三个分量也有对应的滑块 + 数值输入框；Hex 颜色文本由 `color_picker_new_color_edit` 统一输入解析。无需再补 | 不再跟进（2026-10-21 决策） |
 | **D-9** | **CascadingSelect 级联选择器** | 无"父变更自动重置/过滤子项"语义；`Combo` 的 Tree 形态只能手工模拟两级 | 中（约 600 行） |
 | **D-10** | **WrapPanel 不等宽换行布局** | 有等宽 `HTileBox`/`VTileBox`，缺按内容宽度换行。`TagInput` 内部已自行实现（需求已被验证） | 中（约 400 行） |
-| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** | NavigationView（E-2 已补文档）、Rating（B5 完成，提交 `e76376cf`，见 `duilib/Control/Rating.h`）、Carousel（B7 完成，提交 `46e92b35`，见 `duilib/Control/Carousel.h`）均已落地；**Breadcrumb 仍全仓无命中**（`AddressBar` 是浏览器地址栏，语义不同） | 低（仅剩 Breadcrumb） |
+| **D-11** | **NavigationView / Breadcrumb / Rating / Carousel** ✅ 已完成（2026-10-22） | NavigationView（E-2 已补文档）、Rating（B5 完成，提交 `e76376cf`，见 `duilib/Control/Rating.h`）、Carousel（B7 完成，提交 `46e92b35`，见 `duilib/Control/Carousel.h`）均已落地；Breadcrumb 本次补齐（`duilib/Control/Breadcrumb.h/.cpp`，示例 `examples/controls/BreadcrumbForm.*`） | 已完成 |
 | **D-12** | **原生系统通知** ✅ 已完成（2026-10-21） | `Control-Roadmap.md` 第 19 项；Toast 仅应用内自绘。已新增独立类 `SystemNotification`（`duilib/Utils/SystemNotification.h`）：SDL 构建走 SDL 系统通知（全平台），非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡（Win7+）；与 Toast 实现完全独立 | 已完成 |
 | **D-13** | **TreeGrid 树表格** ✅ 已完成（2026-10-19，提交 `27b9a497`） | 原审计 B9 的落地方式：**不改 `ListCtrl`，新增独立控件** `duilib/Control/TreeGrid.h/.cpp`（继承 `VBox`，固定表头 + 自带滚动条的列表体，表头与数据行复用同一列宽数组）；`tree_column`+`indent` 层级缩进、`multi_select` 多选、`check_mode`+`check_cascade` 父子三态级联。**ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做**（见第八节） | 已完成 |
 
@@ -870,7 +870,7 @@ A 组 5 项中已完成 4 项（A-1、A-2、A-4、A-5）；A-3（SDL3 版本锁�
 - [ ] **D-9** CascadingSelect 级联选择器　｜ 约 600 行 ｜ 完成日期：______
 - [ ] **D-10** WrapPanel 不等宽换行布局　｜ 约 400 行 ｜ 完成日期：______
 - [x] **D-11** Carousel 图片轮播（提交 `46e92b35`，B7；同批完成 Pagination，见 E-4）　｜ 低 ｜ 完成日期：2026-10-19
-  - [ ] D-11.1 Breadcrumb 面包屑导航（全仓无命中，**唯一剩余子项**）
+  - [x] D-11.1 Breadcrumb 面包屑导航（纯自绘 Control，见 `duilib/Control/Breadcrumb.h`）　｜ 低 ｜ 完成日期：2026-10-22
 - [x] **D-12** 原生系统通知三平台通道　｜ 中高 ｜ 完成日期：2026-10-21（新增 `SystemNotification`：SDL 构建走 SDL 系统通知，非 SDL 的 Windows 构建走 `Shell_NotifyIcon` 托盘气泡并兼容 Win7+；Toast 保持应用内自绘，未改动）
 - [x] **D-13** TreeGrid 树表格独立控件（B9，提交 `27b9a497`）　｜ 中 ｜ 完成日期：2026-10-19（ListCtrl 内嵌树 / 分组折叠 / L3 列筛选仍不做）
 - [~] **E-9** DateTime 编辑器抽象泄漏修正　｜ 中 ｜ 状态：❌ 明确不做（2026-10-21 决策，不再跟进；架构债留待后续重构）

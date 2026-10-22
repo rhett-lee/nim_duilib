@@ -1182,6 +1182,76 @@ void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID
 
 Page-change event: `AttachPageChanged` — fired when the current page changes; encoded as `kEventValueChanged`, with the new / old page carried through `EventArgs::pEventData` (pointing to `PaginationValue` with `page` / `oldPage`; valid only during the callback dispatch, do not store the pointer).
 
+## Attributes of Breadcrumb (breadcrumb navigation)
+
+Breadcrumb is a breadcrumb navigation control derived from `Control`, fully self-drawn (no child controls are created). Header file: `duilib/Control/Breadcrumb.h`. It is used for file/directory paths, site hierarchies, settings-page hierarchies and similar scenarios: one line shows a clickable ancestor path plus the current item, and clicking an ancestor switches the current item and fires an event. It differs semantically from `AddressBar` (browser address bar) and `Stepper` (process state machine), so it is implemented as a standalone control.
+
+| Attribute | Default | Type | Purpose |
+| :--- | :--- | :--- | :--- |
+| item_text | empty | string | Item texts separated by `\|`, e.g. `Home\|Products\|Docs` |
+| item_text_id | empty | string | Multi-language IDs of item texts separated by `\|`; refreshed automatically on language change |
+| current (alias current_index) | -1 | int | Current item index (0-based); -1 means follow the last item automatically |
+| separator (alias separator_text) | › | string | Text placed between items |
+| spacing | 4 | int | Gap on both sides of the separator (pixels, auto DPI scaled) |
+| item_padding | 6 | int | Horizontal padding of each item's clickable area (pixels, auto DPI scaled) |
+| item_round | 4 | int | Corner radius of the hover/pressed pill background (pixels, auto DPI scaled) |
+| click_to_jump | true | bool | Whether clicking an ancestor item switches the current item |
+| disabled_items | empty | string | Disabled item indexes separated by `\|` or `,`, e.g. `1\|2` |
+| item_color | color_blue | string | Color of clickable ancestor items (semantic color name or color value) |
+| current_color | text_default | string | Color of the current item |
+| hovered_color | color_blue_light | string | Hover color of ancestor items |
+| pressed_color | color_blue | string | Pressed color of ancestor items |
+| disabled_color | text_disabled | string | Color of disabled items |
+| separator_color | color_gray | string | Color of the separator text |
+| hover_bg_color | bg_btn_hovered | string | Pill background of the hovered item (leave empty to disable) |
+| pressed_bg_color | bg_btn_pressed | string | Pill background of the pressed item (leave empty to disable) |
+| font | system_regular_14 | string | Font ID for normal items and separators |
+| current_font | system_bold_14 | string | Font ID of the current item (bold emphasis) |
+
+XML example (`class` must be the first attribute):
+
+```xml
+<!-- Basic usage: the current item follows the last item by default -->
+<Breadcrumb class="breadcrumb" name="breadcrumb_demo" width="stretch" height="32"
+            item_text="Home|Products|Docs|Controls"/>
+
+<!-- Multi-language + custom separator + explicit current item + disabled third item -->
+<Breadcrumb class="breadcrumb" name="breadcrumb_custom" separator="&gt;" current="1" disabled_items="2"
+            item_text_id="STRID_HOME|STRID_NETWORK|STRID_PROXY|STRID_DETAIL"/>
+```
+
+Corresponding C++ interfaces:
+
+```cpp
+void AddItem(const DString& text);                 bool InsertItem(size_t index, const DString& text);
+bool RemoveItemAt(size_t index);                   void ClearItems();
+void SetItems(const std::vector<Item>& items);     size_t GetItemCount() const;
+const Item* GetItemAt(size_t index) const;
+size_t GetCurrentIndex() const;                    void SetCurrentIndex(size_t index);      // clamps and fires the event on change
+void SetCurrentIndexNoEvent(size_t index);         bool GoTo(size_t index);                // returns false when disabled/out of range
+bool GoToNoEvent(size_t index);
+void SetItemEnabled(size_t index, bool bEnabled);  bool IsItemEnabled(size_t index) const;
+void SetDisabledItems(const std::vector<size_t>& items);
+void SetSeparator(const DString& strSeparator);    void SetSpacing(int32_t nSpacing);
+void SetItemPadding(int32_t nPadding);             void SetClickToJump(bool bEnable);
+void SetItemRound(int32_t nRound);                 void SetFont(const DString& strFontId);
+void SetCurrentFont(const DString& strFontId);
+//Colors: SetItemColor / SetCurrentColor / SetHoveredColor / SetPressedColor / SetDisabledColor / SetSeparatorColor
+//Backgrounds: SetHoveredBgColor / SetPressedBgColor (leave empty to disable the pill background)
+void AttachCurrentChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+```
+
+Current-item change event: `AttachCurrentChanged` fires when the current item changes. The event type is `kEventValueChanged`, `wParam` is 3 (breadcrumb mode marker), and the new/old indexes are carried in `EventArgs::pEventData` (pointing to `BreadcrumbValue` with `currentIndex` / `oldIndex`; valid only during the callback dispatch, do not store the pointer). `SetCurrentIndexNoEvent` / `GoToNoEvent` do not fire the event.
+
+Behavior notes:
+- With the default `current="-1"`, the current item follows the last item automatically; `GetCurrentIndex()` returns the resolved, clamped index.
+- Only ancestor items that satisfy "control enabled + mouse enabled + `click_to_jump` on + item not disabled + not the current item" are clickable, and they show hover/pressed colors plus a hand cursor.
+- Ancestor items use link blue (`color_blue`) by default, the current item is dark and bold (`current_font`), and separators are gray `›`, making "clickable path / current level" visually clear.
+- Hover/pressed items draw a rounded pill background (`hover_bg_color` / `pressed_bg_color`); leave the color empty to disable it.
+- Text color priority: disabled > pressed > hovered > current > normal.
+- When the width is insufficient, the content is drawn right-aligned and clipped on the left, so the last/current item stays visible; for very long paths, shorten the path on the business side.
+- The default skin defines a `breadcrumb` class in global.xml (colors and font only, no image resources), adapting automatically to light/dark themes.
+
 ## Attributes of TreeGrid (tree grid)
 
 | Attribute name | Default value | Parameter type | Purpose |

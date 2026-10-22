@@ -303,6 +303,7 @@
     <ClCompile Include="Control\Rating.cpp" />
     <ClCompile Include="Control\Carousel.cpp" />
     <ClCompile Include="Control\Pagination.cpp" />
+    <ClCompile Include="Control\Breadcrumb.cpp" />
     <ClCompile Include="Control\TreeGrid.cpp" />
     <ClCompile Include="Core\Box.cpp" />
     <ClCompile Include="Core\BoxShadow.cpp" />
@@ -699,6 +700,7 @@
     <ClInclude Include="Control\Rating.h" />
     <ClInclude Include="Control\Carousel.h" />
     <ClInclude Include="Control\Pagination.h" />
+    <ClInclude Include="Control\Breadcrumb.h" />
     <ClInclude Include="Control\TreeGrid.h" />
     <ClInclude Include="Core\Box.h" />
     <ClInclude Include="Core\BoxShadow.h" />

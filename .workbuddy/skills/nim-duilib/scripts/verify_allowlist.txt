@@ -42,3 +42,9 @@ pitfalls.md :: kEventResize kEventChecked kEventTextChange kEventSelChange kEven
 # 示例代码中的局部辅助函数（带 ui:: 限定但非公开 API，仅示例内部使用）
 # ---------------------------------------------------------------------------
 examples/controls/TreeGridForm.cpp :: TreeGridLangText
+
+# ---------------------------------------------------------------------------
+# 示例主题 XML 的 tooltip 描述性文字（仅作提示标签，并非真实控件类引用）
+# ---------------------------------------------------------------------------
+bin/resources/themes/default/controls/controls.xml :: Buttons Checkbox
+bin/resources/themes/default/controls/menu/settings_menu.xml :: Checkbox

@@ -1182,6 +1182,76 @@ void AttachPageChanged(const EventCallback& callback, EventCallbackID callbackID
 
 页码变化事件：`AttachPageChanged`——当前页码变化时触发，事件编码为 `kEventValueChanged`，新/旧页码通过 `EventArgs::pEventData` 携带（指向 `PaginationValue`，含 `page` / `oldPage`，仅在本次回调派发期间有效，请勿保存该指针）。
 
+## Breadcrumb 控件（面包屑导航）
+
+Breadcrumb 是面包屑导航控件，继承自 `Control`，纯自绘实现（不创建子控件），对应头文件 `duilib/Control/Breadcrumb.h`。用于文件 / 目录路径、站点层级、设置页层级等场景：一行显示可点击的祖先路径 + 当前项，点击祖先项可切换当前项并触发事件。与 `AddressBar`（浏览器地址栏）、`Stepper`（流程状态机）语义不同，故独立实现。
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| item_text | 空 | string | 条目文本，`\|` 分隔多条，如 `首页\|产品\|文档` |
+| item_text_id | 空 | string | 条目文本的多语言 ID，`\|` 分隔多条；语言切换时自动刷新 |
+| current（别名 current_index） | -1 | int | 当前项索引（0 起）；-1 表示自动跟随最后一项 |
+| separator（别名 separator_text） | › | string | 条目之间的分隔符 |
+| spacing | 4 | int | 分隔符两侧的间距（像素，自动 DPI 缩放） |
+| item_padding | 6 | int | 条目点击区域左右内边距（像素，自动 DPI 缩放） |
+| item_round | 4 | int | 悬停 / 按下胶囊背景的圆角半径（像素，自动 DPI 缩放） |
+| click_to_jump | true | bool | 是否允许点击祖先项切换当前项 |
+| disabled_items | 空 | string | 禁用项索引列表，`\|` 或 `,` 分隔，如 `1\|2` |
+| item_color | color_blue | string | 可点击祖先项颜色（语义色名或颜色值） |
+| current_color | text_default | string | 当前项颜色 |
+| hovered_color | color_blue_light | string | 祖先项悬停颜色 |
+| pressed_color | color_blue | string | 祖先项按下颜色 |
+| disabled_color | text_disabled | string | 禁用项颜色 |
+| separator_color | color_gray | string | 分隔符颜色 |
+| hover_bg_color | bg_btn_hovered | string | 悬停状态胶囊背景色（留空则不绘制） |
+| pressed_bg_color | bg_btn_pressed | string | 按下状态胶囊背景色（留空则不绘制） |
+| font | system_regular_14 | string | 普通条目与分隔符的字体 ID |
+| current_font | system_bold_14 | string | 当前项字体 ID（加粗强调） |
+
+XML 示例（`class` 属性必须写在所有属性最前面）：
+
+```xml
+<!-- 基础用法：当前项默认跟随最后一项 -->
+<Breadcrumb class="breadcrumb" name="breadcrumb_demo" width="stretch" height="32"
+            item_text="首页|产品中心|文档|控件库"/>
+
+<!-- 多语言 + 自定义分隔符 + 显式当前项 + 禁用第 3 项 -->
+<Breadcrumb class="breadcrumb" name="breadcrumb_custom" separator="&gt;" current="1" disabled_items="2"
+            item_text_id="STRID_HOME|STRID_NETWORK|STRID_PROXY|STRID_DETAIL"/>
+```
+
+对应的 C++ 接口：
+
+```cpp
+void AddItem(const DString& text);                 bool InsertItem(size_t index, const DString& text);
+bool RemoveItemAt(size_t index);                   void ClearItems();
+void SetItems(const std::vector<Item>& items);     size_t GetItemCount() const;
+const Item* GetItemAt(size_t index) const;
+size_t GetCurrentIndex() const;                    void SetCurrentIndex(size_t index);      //钳位 + 变化时派发事件
+void SetCurrentIndexNoEvent(size_t index);         bool GoTo(size_t index);                //禁用/越界返回 false
+bool GoToNoEvent(size_t index);
+void SetItemEnabled(size_t index, bool bEnabled);  bool IsItemEnabled(size_t index) const;
+void SetDisabledItems(const std::vector<size_t>& items);
+void SetSeparator(const DString& strSeparator);    void SetSpacing(int32_t nSpacing);
+void SetItemPadding(int32_t nPadding);             void SetClickToJump(bool bEnable);
+void SetItemRound(int32_t nRound);                 void SetFont(const DString& strFontId);
+void SetCurrentFont(const DString& strFontId);
+//颜色：SetItemColor / SetCurrentColor / SetHoveredColor / SetPressedColor / SetDisabledColor / SetSeparatorColor
+//背景：SetHoveredBgColor / SetPressedBgColor（留空则不绘制胶囊背景）
+void AttachCurrentChanged(const EventCallback& callback, EventCallbackID callbackID = 0);
+```
+
+当前项变化事件：`AttachCurrentChanged`——当前项变化时触发，事件编码为 `kEventValueChanged`，`wParam` 为 3（面包屑模式标记），新旧索引通过 `EventArgs::pEventData` 携带（指向 `BreadcrumbValue`，含 `currentIndex` / `oldIndex`，仅在本次回调派发期间有效，请勿保存该指针）。`SetCurrentIndexNoEvent` / `GoToNoEvent` 不派发事件。
+
+行为说明：
+- 当前项缺省（`current="-1"`）时自动跟随最后一项；`GetCurrentIndex()` 返回钳位后的有效索引。
+- 只有"控件启用 + 鼠标启用 + `click_to_jump` 开启 + 条目未禁用 + 非当前项"的祖先项可点击，并显示悬停/按下态与手型光标。
+- 祖先项默认为链接蓝（`color_blue`），当前项为深色加粗（`current_font`），分隔符为灰色 `›`，形成"可点击路径 / 当前层级"的清晰层级。
+- 悬停/按下时在条目下方绘制圆角胶囊背景（`hover_bg_color` / `pressed_bg_color`），背景色留空可关闭。
+- 文本颜色优先级：禁用 > 按下 > 悬停 > 当前 > 普通。
+- 宽度不足时整体右对齐绘制、左端裁剪，保证末项 / 当前项可见；条目过多时建议业务侧先截短路径。
+- 默认皮肤在 global.xml 中定义 `breadcrumb` Class（仅颜色与字体，无图片资源），自动适配深浅色主题。
+
 ## TreeGrid 控件（树表格）
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |

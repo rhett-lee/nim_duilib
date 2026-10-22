@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="760,520" text="Breadcrumb Test" use_system_caption="false" caption="0,0,0,36"
+        shadow_type="default" size_box="4,4,4,4" min_size="560,420">
+    <VBox bkcolor="bg_window_main">
+        <!-- 标题栏 -->
+        <HBox name="window_title_bar" width="stretch" height="36" bkcolor="bg_titlebar">
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
+            <Label name="label_title" text_id="STRID_BREADCRUMB_WINDOW_TITLE" valign="center" margin="8" mouse_enabled="false"/>
+            <Control/>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="btn_window_close" margin="0,0,0,2"/>
+        </HBox>
+
+        <!-- 提示区 -->
+        <HBox height="38" padding="12,8,12,0">
+            <Label text_id="STRID_BREADCRUMB_HINT" text_color="text_muted" valign="center"
+                   text_align="left,vcenter" width="stretch" auto_tooltip="true"/>
+        </HBox>
+
+        <!-- 内容区 -->
+        <VBox padding="12,8,12,12" width="stretch" height="stretch">
+            <!-- 默认形态：当前项自动跟随最后一项 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,16,16,16" width="stretch" height="auto">
+                <Label text_id="STRID_BREADCRUMB_BASIC_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,12"/>
+                <Breadcrumb class="breadcrumb" name="breadcrumb_demo" width="stretch" height="32"
+                            item_text_id="STRID_BREADCRUMB_ITEM_HOME|STRID_BREADCRUMB_ITEM_PRODUCTS|STRID_BREADCRUMB_ITEM_DOCS|STRID_BREADCRUMB_ITEM_CONTROLS"/>
+            </VBox>
+
+            <!-- 操作按钮与当前项回显 -->
+            <HBox height="40" child_margin="8" margin="0,10,0,0">
+                <Button class="btn_global" name="btn_bc_up" text_id="STRID_BREADCRUMB_UP" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_bc_root" text_id="STRID_BREADCRUMB_ROOT" width="110" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_bc_add" text_id="STRID_BREADCRUMB_ADD" width="96" height="28" border_round="3,3"/>
+                <Button class="btn_global" name="btn_bc_remove" text_id="STRID_BREADCRUMB_REMOVE" width="96" height="28" border_round="3,3"/>
+                <Label name="breadcrumb_event" text_id="STRID_BREADCRUMB_EVENT_NONE" text_color="text_default" valign="center"
+                       margin="8,0,0,0" auto_tooltip="true"/>
+                <Control/>
+            </HBox>
+
+            <!-- 自定义形态：显式当前项 + 自定义分隔符 + 禁用项 -->
+            <VBox bkcolor="bg_window_card" border_size="1" bordercolor="border_window" border_round="4,4"
+                  padding="16,16,16,16" width="stretch" height="auto" margin="0,10,0,0">
+                <Label text_id="STRID_BREADCRUMB_CUSTOM_TITLE" font="system_bold_15" text_color="text_default" valign="center" margin="0,0,0,12"/>
+                <Breadcrumb class="breadcrumb" name="breadcrumb_custom" width="stretch" height="32"
+                            separator="&gt;" current="1" disabled_items="2"
+                            item_text_id="STRID_BREADCRUMB_ITEM_SYSTEM|STRID_BREADCRUMB_ITEM_NETWORK|STRID_BREADCRUMB_ITEM_PROXY|STRID_BREADCRUMB_ITEM_DETAIL"
+                            tooltip_text="separator='&gt;' current=1 disabled_items=2"/>
+            </VBox>
+            <!-- 占位：把剩余空间留在底部，避免卡片被拉高产生大片空白 -->
+            <Control height="stretch" mouse_enabled="false"/>
+        </VBox>
+    </VBox>
+</Window>

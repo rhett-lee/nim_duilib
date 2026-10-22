@@ -522,6 +522,13 @@
                                         hovered_color="bg_list_item_hovered" hovered_color_round="4,4" 
                                         pressed_color="bg_list_item_selected" pressed_color_round="4,4" 
                                         disabled_color="" disabled_text_color="text_disabled"/>
+    <!-- 面包屑导航（Breadcrumb）：链接式层级 + 悬停胶囊反馈 -->
+    <Class name="breadcrumb" font="system_regular_14" current_font="system_bold_14"
+                                        item_color="color_blue" current_color="text_default"
+                                        hovered_color="color_blue_light" pressed_color="color_blue"
+                                        disabled_color="text_disabled" separator_color="color_gray"
+                                        hover_bg_color="bg_btn_hovered" pressed_bg_color="bg_btn_pressed"
+                                        item_round="4" spacing="4" item_padding="6"/>
     <!-- 菜单 -->
     <Class name="menu" width="auto" height="auto" bkcolor="bg_menu"/>
     <Class name="menu_element" height="32" padding="20,0,20,0" margin="1,1,1,1" 

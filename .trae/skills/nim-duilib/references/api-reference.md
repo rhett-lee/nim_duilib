@@ -234,6 +234,7 @@ NavigationViewItem（继承 Control）属性：
 | Rating | Control | 星级评分（value/max/allow_half/read_only/star_size/star_gap；星形内容图：实心/半星/空心 + 悬停/按下态图标，SVG 图片驱动、svg_replace_colors 主题色自适应；悬停预览 + 点击/拖拽打分；节点名 `Rating`），`duilib/Control/Rating.h` |
 | Carousel | Control | 图片轮播（`item_image` 幻灯片列表；左右导航按钮 + 底部页码指示点，均 SVG 图片驱动、svg_replace_colors 主题色自适应；loop 无限循环 / auto_play 自动播放 + hover_pause / transition_ms 滑动动画 / 鼠标拖拽翻页；节点名 `Carousel`），`duilib/Control/Carousel.h` |
 | Pagination | HBox | 分页器（`page_count`/`current_page` 或 `total_count`+`page_size`；动态创建页码按钮，超出 max_visible_count 以 `…` 收纳保留首尾；当前页按钮选中高亮；`button_class` 皮肤类走语义色；节点名 `Pagination`），`duilib/Control/Pagination.h` |
+| Breadcrumb | Control | 面包屑导航（`item_text`/`item_text_id` 以 `\|` 分隔条目；`current` 缺省跟随末项；点击祖先项切换当前项；`disabled_items`；自定义 `separator`（默认 ›）/`spacing`/`item_padding`/`item_round`/`click_to_jump`；祖先项链接蓝 + 悬停/按下胶囊背景、当前项加粗 `current_font`；节点名 `Breadcrumb`），`duilib/Control/Breadcrumb.h` |
 | TreeGrid | VBox | 树表格（同一控件内呈现"可展开/收起的层级行 + 多列表格"；表头固定不滚动、列表体自带纵向滚动条，表头与行复用同一列宽天然对齐；`column_title`/`column_width`/`column_align`/`tree_column`/`indent`；`multi_select` 多选、`check_mode`+`check_cascade` 行首复选框父子三态级联；节点名 `TreeGrid`），`duilib/Control/TreeGrid.h` |
 | CircleProgress | Progress | 环形进度条（渐变/指示图标/逆时针/indeterminate 转圈，`duilib/Control/CircleProgress.h`），XML 节点名 `CircleProgress` |
 | Chart | Control | 轻量图表（折线/柱状/饼图自绘；多系列/坐标轴/负值/堆叠/曲线/面积/环形；悬停Tooltip/点击选中/缩放平移；圆角/渐变/发光/动画，`duilib/Control/Chart.h`），XML 节点名 `Chart` |
@@ -714,6 +715,29 @@ C++ 接口：`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent`、`GetItem
 分页器（报表/表格/列表页码导航）：继承 HBox 全部布局属性；页面按钮由控件内部按数据动态创建（延迟定时器重建，规避子控件自删的 use-after-free）；当前页按钮选中高亮，页码超出上限以 `…` 收纳并保留首尾与当前页附近；颜色走 button_class 引用的皮肤语义色，C++ 无写死色值。
 C++ 接口：`GetPageCount/SetPageCount`、`GetCurrentPage/SetCurrentPage/SetCurrentPageNoEvent`、`SetTotalCount`、`Next/Prev/GoTo`、`GetMaxVisibleCount/SetMaxVisibleCount`、`SetButtonClass/GetButtonClass`。
 事件：`AttachPageChanged`——当前页码变化时触发，事件编码 `kEventValueChanged`，`page`/`oldPage` 由 `EventArgs::pEventData`（指向 `Pagination::PaginationValue`）携带，仅在回调派发期间有效。
+
+### Breadcrumb 属性(继承 Control)
+
+| 属性 | 默认值 | 类型 | 说明 |
+|------|--------|------|------|
+| item_text | 空 | string | 条目文本，`\|` 分隔多条 |
+| item_text_id | 空 | string | 条目文本的多语言 ID，`\|` 分隔多条；语言切换自动刷新 |
+| current（别名 current_index） | -1 | int | 当前项索引（0 起）；-1 = 自动跟随最后一项 |
+| separator（别名 separator_text） | › | string | 条目之间的分隔符 |
+| spacing | 4 | int | 分隔符两侧间距（像素，DPI 自适应） |
+| item_padding | 6 | int | 条目点击区域左右内边距（像素，DPI 自适应） |
+| item_round | 4 | int | 悬停/按下胶囊背景圆角（像素，DPI 自适应） |
+| click_to_jump | true | bool | 是否允许点击祖先项切换当前项 |
+| disabled_items | 空 | string | 禁用项索引列表，`\|` 或 `,` 分隔 |
+| item_color / current_color / hovered_color / pressed_color / disabled_color | color_blue / text_default / color_blue_light / color_blue / text_disabled | string | 各状态文本颜色（语义色名） |
+| separator_color | color_gray | string | 分隔符颜色 |
+| hover_bg_color / pressed_bg_color | bg_btn_hovered / bg_btn_pressed | string | 悬停/按下胶囊背景色（留空则不绘制） |
+| font / current_font | system_regular_14 / system_bold_14 | string | 普通条目字体 / 当前项加粗字体 |
+
+面包屑导航（文件/目录路径、站点层级、设置页层级）：纯自绘，一行显示可点击的祖先路径 + 当前项；祖先项默认链接蓝、当前项加粗，悬停/按下绘制圆角胶囊背景（`hover_bg_color`/`pressed_bg_color`，可留空关闭）；状态颜色优先级为 禁用 > 按下 > 悬停 > 当前 > 普通；宽度不足时右对齐裁剪，保证末项/当前项可见。
+C++ 接口：`AddItem/InsertItem/RemoveItemAt/ClearItems/SetItems/GetItemCount/GetItemAt/GetItems`、`GetCurrentIndex/SetCurrentIndex/SetCurrentIndexNoEvent/GoTo/GoToNoEvent`、`SetItemEnabled/IsItemEnabled/SetDisabledItems/GetDisabledItems`、`SetSeparator/GetSeparator`、`SetSpacing/GetSpacing`、`SetItemPadding/GetItemPadding`、`SetItemRound/GetItemRound`、`SetClickToJump/IsClickToJump`、各颜色 Set/Get、`SetHoveredBgColor/SetPressedBgColor`、`SetFont/GetFont`、`SetCurrentFont/GetCurrentFont`。
+事件：`AttachCurrentChanged`——当前项变化时触发，事件编码 `kEventValueChanged`（`wParam=3`），`currentIndex`/`oldIndex` 由 `EventArgs::pEventData`（指向 `ui::BreadcrumbValue`）携带，仅在回调派发期间有效。
+默认皮肤 `breadcrumb` 类只定义颜色与字体（祖先项链接蓝、当前项加粗、分隔符灰色、悬停/按下胶囊背景），无图片资源。
 
 ### TreeGrid 属性(继承 VBox)
 

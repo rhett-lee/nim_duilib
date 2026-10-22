@@ -993,6 +993,9 @@
     <ClCompile Include="Control\Pagination.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Control\Breadcrumb.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
     <ClCompile Include="Control\TreeGrid.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -2064,6 +2067,9 @@
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\Pagination.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\Breadcrumb.h">
       <Filter>Control</Filter>
     </ClInclude>
     <ClInclude Include="Control\TreeGrid.h">
