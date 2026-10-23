@@ -14,6 +14,8 @@
   - 需要时：SDL3、CEF、示例程序。
 - [ ] 确认库目录符合约定：Windows `lib/<arch>/<Config>/`，Unix `lib/<Config>/`。
 - [ ] 确认 `dist/` 不参与提交（已在 `.gitignore` 中）。
+- [ ] 若本次新增随包二进制组件，已在 `licenses/` 补充许可文本，并更新
+      [许可合规对照表](License-Compliance.md)。
 
 ## 2. 更新版本与变更记录
 
@@ -77,6 +79,8 @@ python build/release.py finalize
 - [ ] 存在 `MANIFEST.txt`、`VERSION`、`include/duilib/duilib.h`；
 - [ ] `VERSION` 内容与当前版本一致；
 - [ ] 包内文档相对链接无断链；
+- [ ] 包内 `licenses/` 覆盖所有随包组件（对照
+      [许可合规对照表](License-Compliance.md)）；
 - [ ] 生成 `dist/<版本>/SHA256SUMS.txt`；
 - [ ] 生成 `dist/<版本>/RELEASE-NOTES.md` 与 `RELEASE-NOTES.en.md`。
 

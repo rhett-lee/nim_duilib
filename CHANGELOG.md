@@ -26,6 +26,9 @@
   常见问题说明。
 - 发布文档与 `MANIFEST.txt` 增加 Windows 下的包校验命令
   （PowerShell `Get-FileHash`、`certutil -hashfile`），无需安装 `sha256sum`。
+- 许可合规：补充 `licenses/expat.LICENSE.txt`（Skia 静态链接的 expat，MIT）
+  与 `licenses/RobotoMono.LICENSE.txt`（资源字体，Apache-2.0），并新增
+  `docs/misc/License-Compliance.md` 随包组件许可对照表。
 - 发布相关文档：`docs/Release.md`、`docs/misc/Release-Checklist.md` 与打包工作记录。
 
 ### 变更

@@ -187,6 +187,8 @@
 |pugixml   |duilib/third_party/xml      | 支持资源描述XML的解析               |[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|MIT 许可协议|
 |ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码转换         |[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|Apache License Version 2.0 为主，<br>LLVM 例外条款补充，<br>历史版本兼容 legacy 协议|
 |skia      |项目未包含skia源码          | 界面库渲染引擎<br>支持SVG图片格式<br>支持Lottie JSON动画|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3条款许可协议|
+|expat     |Skia 源码树 third_party/expat| Skia SVG 解析                     |[expat.LICENSE.txt](licenses/expat.LICENSE.txt)|MIT 许可协议|
+|Roboto Mono|bin/resources/fonts       | 界面字体（示例资源）                 |[RobotoMono.LICENSE.txt](licenses/RobotoMono.LICENSE.txt)|Apache License 2.0|
 |SDL       |项目未包含SDL源码           | 跨平台窗口管理                     |[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|zlib 许可协议|
 |duilib    |                            | NIM_Duilib_Framework<br>是基于duilib开发  |[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|BSD 2条款许可协议|
 |NIM_Duilib<br>Framework|               | 本项目是基于<br>NIM_Duilib_Framework开发   |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT 许可协议|

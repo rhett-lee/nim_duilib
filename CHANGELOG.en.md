@@ -32,6 +32,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - The release documentation and `MANIFEST.txt` add Windows package verification
   commands (PowerShell `Get-FileHash`, `certutil -hashfile`) that do not require
   `sha256sum`.
+- License compliance: added `licenses/expat.LICENSE.txt` (expat bundled by Skia,
+  MIT) and `licenses/RobotoMono.LICENSE.txt` (bundled font, Apache-2.0), plus
+  `docs/misc/License-Compliance.md` mapping shipped components to their
+  licenses and package files.
 - Release documentation: `docs/Release.md`, `docs/misc/Release-Checklist.md` and
   the packaging work record.
 

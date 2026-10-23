@@ -206,9 +206,19 @@
 
 #### P1-6 许可合规复查
 
-- [ ] 逐项确认随包分发的第三方组件许可：Skia 及其第三方（expat、skcms、bentleyottmann、skresources 等）、CEF、WebView2、SDL、libjpeg-turbo、libwebp、libpng、zlib。
-- 现状：`licenses/` 已覆盖主要组件，但未逐项核对分发条款。
-- 验收：形成“组件 → 许可证 → 随包分发是否允许 → 包内文件”的对照表。
+- [x] 逐项确认随包分发的第三方组件许可：Skia 及其第三方（expat、skcms、bentleyottmann、skresources 等）、CEF、WebView2、SDL、libjpeg-turbo、libwebp、libpng、zlib。
+- 现状（2026-10-24 已实施）：新增 [License-Compliance.md](License-Compliance.md)，
+  按“组件 → 许可证 → 是否允许随包分发 → 包内文件”逐项列出 25 个组件/模块
+  （含字体资源）。随包组件均为 MIT / BSD-2/3 / zlib / libpng / Apache-2.0
+  （含 LLVM 例外）等宽松许可，允许二进制分发；未发现 GPL/AGPL/LGPL。
+- 复查发现两处许可文本缺失：Skia 静态链接的 expat（MIT）、资源字体
+  Roboto Mono（Apache-2.0）。已新增 `licenses/expat.LICENSE.txt` 与
+  `licenses/RobotoMono.LICENSE.txt`，并在 README 第三方库表中登记；
+  打包脚本会随 `licenses/` 一并收集。
+- 确认 Skia 实际仅启用 expat 一个 third_party（`args.gn` 关闭了 libpng、zlib、
+  libjpeg-turbo、libwebp、ICU），因此无需补充其余 Skia 第三方许可。
+- 验收：对照表覆盖全部随包二进制与许可文本；`--list` 中 `lib/expat.lib`、
+  `licenses/expat.LICENSE.txt` 与 `licenses/RobotoMono.LICENSE.txt` 均已随包。
 
 ### P2：维护与体验
 
@@ -263,3 +273,4 @@
 | 2026-10-23 | P1-2 已实施：支持 `SOURCE_DATE_EPOCH`，统一归档条目/gzip 头/MANIFEST 时间；未设置时用源文件与产物最新 mtime，条目排序，两次打包摘要一致 |
 | 2026-10-23 | P1-4 已实施：MANIFEST 运行期与 Release 文档标注 WebView2 依赖系统 Evergreen Runtime，补充 loader 用法与常见问题 |
 | 2026-10-23 | P1-5 已实施：MANIFEST 与 Release 文档补充 PowerShell `Get-FileHash` 全包校验脚本及 `SHA256SUMS.txt` 用法 |
+| 2026-10-24 | P1-6 已实施：新增许可合规对照表；补充 expat（MIT）与 Roboto Mono 字体（Apache-2.0）许可文本并在 README 登记；确认随包组件均为宽松许可、无 GPL/AGPL/LGPL |

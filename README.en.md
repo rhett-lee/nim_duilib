@@ -189,6 +189,8 @@ English | [简体中文](README.md)
 |pugixml |duilib/third_party/xml | Supports parsing of resource description XML |[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|MIT License|
 |ConvertUTF |duilib/third_party/convert_utf| Used for UTF-8/UTF-16 encoding conversion |[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|Primarily Apache License Version 2.0,<br>supplemented by LLVM exception clauses,<br>legacy protocol for historical versions|
 |skia |Project does not include skia source code | GUI library rendering engine<br>Supports SVG image format<br>Supports Lottie JSON animation|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|BSD 3-Clause License|
+|expat |Skia source tree third_party/expat | Used by Skia for SVG parsing |[expat.LICENSE.txt](licenses/expat.LICENSE.txt)|MIT License|
+|Roboto Mono |bin/resources/fonts | UI font (example assets) |[RobotoMono.LICENSE.txt](licenses/RobotoMono.LICENSE.txt)|Apache License 2.0|
 |SDL |Project does not include SDL source code | Cross-platform window management |[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|zlib License|
 |duilib | | NIM_Duilib_Framework<br>is developed based on duilib |[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|BSD 2-Clause License|
 |NIM_Duilib<br>Framework| | This project is developed based on<br>NIM_Duilib_Framework |[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|MIT License|
