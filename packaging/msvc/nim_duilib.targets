@@ -8,7 +8,7 @@
 
         额外属性：
             NimDuilibCopyRuntime    0=不复制 bin/*.dll（默认 1）
-            NimDuilibCopyResources  1=复制 resources/ 到 $(OutDir)resources（默认 0）
+            NimDuilibCopyResources  1=复制 bin/resources/ 到 $(OutDir)resources（默认 0）
             NimDuilibSkipValidation 1=跳过包完整性/架构/配置校验
     -->
 
@@ -52,7 +52,7 @@
                Text="SDK 声明支持 CEF，但缺少 lib\$(NimDuilibPackageCefWrapper).lib。" />
     </Target>
 
-    <!-- 运行期：bin/*.dll 始终与可执行文件同级；resources/ 按需复制 -->
+    <!-- 运行期：bin/*.dll 始终与可执行文件同级；bin/resources/ 按需复制 -->
     <Target Name="NimDuilibCopyRuntime" AfterTargets="Build"
             Condition="'$(NimDuilibCopyRuntime)'!='0'">
         <ItemGroup>
@@ -62,7 +62,7 @@
               SkipUnchangedFiles="true"
               Condition="'@(NimDuilibRuntimeDll)'!=''" />
         <ItemGroup Condition="'$(NimDuilibCopyResources)'=='1'">
-            <NimDuilibResourceFile Include="$(NimDuilibDir)resources\**\*.*" />
+            <NimDuilibResourceFile Include="$(NimDuilibDir)bin\resources\**\*.*" />
         </ItemGroup>
         <Copy SourceFiles="@(NimDuilibResourceFile)"
               DestinationFiles="@(NimDuilibResourceFile->'$(OutDir)resources\%(RecursiveDir)%(Filename)%(Extension)')"

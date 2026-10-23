@@ -72,12 +72,12 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 
 ### Resource scope difference with `--with-examples`
 
-This is the easiest thing to get wrong when packaging. `resources/themes/default/` holds both public resources and each example's private theme directories:
+This is the easiest thing to get wrong when packaging. `bin/resources/themes/default/` holds both public resources and each example's private theme directories:
 
-| Mode | `resources/` scope |
+| Mode | `bin/resources/` scope |
 | :--- | :--- |
 | Default (SDK) | Only `themes/default/public/` and `themes/default/global.xml` |
-| `--with-examples` | The entire `resources/`, no exclusions |
+| `--with-examples` | The entire `bin/resources/`, no exclusions |
 
 `global.xml` **must be kept** in SDK mode. It is a startup requirement of the framework — `GlobalManager.cpp:440` returns `false` outright when it cannot be found in local-file mode, and initialization fails.
 
@@ -104,7 +104,8 @@ python build/pack.py --out-dir dist       # specify the output directory
 Artifacts go to `dist/`, named `nim_duilib-<version>-<system>-<arch>[-debug].zip`,
 containing `VERSION`, `MANIFEST.txt`, `SHA256SUMS`, `LICENSE`,
 `include/duilib/`, `lib/` (including Skia and third-party link libraries),
-`resources/`, `licenses/` and `docs/` (top-level user documentation).
+`bin/` (DLLs and `bin/resources/`), `licenses/` and `docs/` (top-level user
+documentation).
 
 ## 3. Key technical decisions and their rationale
 
@@ -240,7 +241,8 @@ the **actually collected files**:
   `nim_duilib.props` and `nim_duilib.sdk.props` automatically and handles
   include paths, `DUILIB_*` defines, `stdcpp20`, libraries/system libraries,
   MSVC runtime alignment, the manifest, and post-build `bin/*.dll` copying;
-  `NimDuilibCopyResources=1` also copies `resources/`.
+  `NimDuilibCopyResources=1` also copies `bin/resources/` to `resources/` in
+  the output directory (next to the executable).
 - **CMake (all platforms)**: `lib/cmake/nim_duilib/nim_duilibConfig.cmake`
   provides `nim_duilib::duilib`; it validates platform/toolchain/arch/config/
   runtime and provides `nim_duilib_copy_runtime(<target> [RESOURCES]
@@ -293,7 +295,8 @@ are not written to disk):
 | Original link | Handling inside the package |
 | :--- | :--- |
 | `../duilib/xxx.h` | Rewritten to `../include/duilib/xxx.h` when that header ships |
-| `../bin/resources/...`, `../../bin/resources/...` | Rewritten to `../resources/...` |
+| `../bin/resources/...` | Unchanged (resources also live under `bin/` in the package) |
+| `../../bin/resources/...` | Rewritten to `../bin/resources/...` |
 | `../examples/`, `../build/`, `*.cpp`, internal headers not shipped | Link removed, display text kept |
 
 No link is left broken inside the package, while the repository docs stay

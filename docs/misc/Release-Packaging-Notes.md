@@ -72,12 +72,12 @@ write_release_docs.py
 
 ### `--with-examples` 的资源范围差异
 
-这是打包时最容易搞错的一点。`resources/themes/default/` 下同时放着公共资源和各示例的私有主题目录：
+这是打包时最容易搞错的一点。`bin/resources/themes/default/` 下同时放着公共资源和各示例的私有主题目录：
 
-| 模式 | `resources/` 收录范围 |
+| 模式 | `bin/resources/` 收录范围 |
 | :--- | :--- |
 | 默认（SDK） | 仅 `themes/default/public/` 与 `themes/default/global.xml` |
-| `--with-examples` | 整个 `resources/`，无排除项 |
+| `--with-examples` | 整个 `bin/resources/`，无排除项 |
 
 `global.xml` 在 SDK 模式下**必须保留**。它是框架启动的必需文件，`GlobalManager.cpp:440` 在本地文件模式下找不到它会直接 `return false`，初始化直接失败。
 
@@ -103,7 +103,8 @@ python build/pack.py --out-dir dist       # 指定输出目录
 
 产物输出到 `dist/`，包名格式 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，
 内含 `VERSION`、`MANIFEST.txt`、`SHA256SUMS`、`LICENSE`、`include/duilib/`、
-`lib/`（含 Skia 与第三方链接库）、`resources/`、`licenses/`、`docs/`
+`lib/`（含 Skia 与第三方链接库）、`bin/`（DLL 与 `bin/resources/`）、
+`licenses/`、`docs/`
 （顶层使用文档）。
 
 ## 三、关键技术决策与依据
@@ -269,7 +270,8 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 - **VS（Windows + MSVC）**：`msvc/nim_duilib.targets` 自动导入
   `nim_duilib.props` 与 `nim_duilib.sdk.props`，完成 include、`DUILIB_*` 宏、
   `stdcpp20`、库列表/系统库、MSVC 运行库对齐、manifest 嵌入，并在构建后
-  复制 `bin/*.dll`；`NimDuilibCopyResources=1` 时再复制 `resources/`。
+  复制 `bin/*.dll`；`NimDuilibCopyResources=1` 时再复制 `bin/resources/` 到
+  输出目录的 `resources/`（与可执行文件同级）。
 - **CMake（全平台）**：`lib/cmake/nim_duilib/nim_duilibConfig.cmake` 提供
   `nim_duilib::duilib`；校验平台/工具链/架构/配置/运行库，并提供
   `nim_duilib_copy_runtime(<target> [RESOURCES] [DESTINATION <dir>])`。
@@ -312,7 +314,8 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 | 原链接 | 包内处理 |
 | :--- | :--- |
 | `../duilib/xxx.h` | 该头文件随包时改为 `../include/duilib/xxx.h` |
-| `../bin/resources/...`、`../../bin/resources/...` | 改为 `../resources/...` |
+| `../bin/resources/...` | 保持不变（包内资源同样位于 `bin/` 下） |
+| `../../bin/resources/...` | 改为 `../bin/resources/...` |
 | `../examples/`、`../build/`、`*.cpp`、未随包的内部头文件 | 去掉链接，只保留显示文字 |
 
 这样包内文档不存在断链，仓库内文档保持原样、仍可在源码树中跳转。

@@ -7,7 +7,7 @@
 #   nim_duilib_copy_runtime(my_app RESOURCES DESTINATION "${CMAKE_BINARY_DIR}/bin")
 #
 # - 默认把 SDK 的 bin/*.dll 复制到可执行文件同级目录；
-# - RESOURCES 时额外把 SDK 的 resources/ 复制到同级 resources/；
+# - RESOURCES 时额外把 SDK 的 bin/resources/ 复制到同级 resources/；
 # - DESTINATION 可覆盖目标目录（多目标共享输出目录时使用）。
 
 function(nim_duilib_copy_runtime target)
@@ -43,13 +43,13 @@ function(nim_duilib_copy_runtime target)
     endforeach()
 
     if(_nim_copy_RESOURCES)
-        if(NOT EXISTS "${_nim_root}/resources")
+        if(NOT EXISTS "${_nim_root}/bin/resources")
             message(WARNING
-                "nim_duilib_copy_runtime: SDK 中没有 resources 目录：${_nim_root}")
+                "nim_duilib_copy_runtime: SDK 中没有 bin/resources 目录：${_nim_root}")
         else()
             add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
-                        "${_nim_root}/resources"
+                        "${_nim_root}/bin/resources"
                         "${_nim_dest}/resources"
                 COMMENT "Copying nim_duilib resources")
         endif()

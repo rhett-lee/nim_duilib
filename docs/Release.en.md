@@ -78,12 +78,12 @@ nim_duilib-<version>-<system>-<arch>/
   LICENSE               Main license
   include/duilib/       Public headers (plus include/SDL3/ when SDL is used)
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
-  resources/            Theme, language and font resources
   licenses/             Third-party licenses
   docs/                 User documentation (top level only; links rewritten for the package layout)
   msvc/                 Downstream integration: props/targets/manifest (both x64 and x86)
   lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
   bin/                  Runtime DLLs; example programs with --with-examples
+  bin/resources/        Theme, language and font resources (next to the example programs)
 ```
 
 ### SDK usage contract
@@ -109,7 +109,8 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    `Version/Winmm/Imm32/Setupapi` (`-lversion -lwinmm -limm32 -lsetupapi`
    for MinGW); on Unix `X11`/`freetype`/`fontconfig` come from the system and
    are not packaged.
-5. **Runtime**: `resources/` must sit next to the executable; the CEF runtime
+5. **Runtime**: `bin/resources/` must sit next to the executable (inside the
+   package's `bin/`); the CEF runtime
    is external; `bin/duilib*.dll` must sit next to the executable when duilib
    is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
@@ -197,7 +198,7 @@ Available properties:
 | :--- | :--- | :--- |
 | `NimDuilibDir` | `<SDK root>` | SDK root directory, trailing `\` required |
 | `NimDuilibCopyRuntime` | `1` | Copy `bin/*.dll` after build |
-| `NimDuilibCopyResources` | `0` | Copy `resources/` after build |
+| `NimDuilibCopyResources` | `0` | Copy `bin/resources/` to `resources/` after build |
 | `NimDuilibForceRuntimeLibrary` | `1` | Align MSVC runtime; set `0` to opt out |
 | `NimDuilibSkipValidation` | `0` | Skip toolchain/arch/config/library checks |
 
@@ -246,7 +247,8 @@ cmake -S . -B build -Dnim_duilib_DIR=C:/SDK/nim_duilib-...-debug/lib/cmake/nim_d
 **Copy resources on demand / choose the destination**:
 
 ```cmake
-# Also copy resources/ (overwrites an existing resources/ in the target dir)
+# Also copy bin/resources/ to resources/ in the output dir
+# (overwrites an existing resources/ there)
 nim_duilib_copy_runtime(my_app RESOURCES)
 
 # Share one output directory between targets
@@ -279,7 +281,7 @@ cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
 
 The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) still has to be placed
 next to the executable manually; `nim_duilib_copy_runtime` only copies the
-SDK's `bin/*.dll` and `resources/`.
+SDK's `bin/*.dll` and `bin/resources/`.
 
 ### The header path layout must not change
 
@@ -356,14 +358,14 @@ downstream code only needs `#include "duilib/duilib.h"` to compile.
 
 ## Resource scope differences with --with-examples
 
-This is the easiest thing to get wrong. `resources/themes/default/` holds
+This is the easiest thing to get wrong. `bin/resources/themes/default/` holds
 both shared resources and per-example private theme directories, and the two
 modes differ in what they collect:
 
-| Mode | `resources/` scope |
+| Mode | `bin/resources/` scope |
 | :--- | :--- |
 | Default (SDK) | Only `themes/default/public/` and `themes/default/global.xml` |
-| `--with-examples` | The entire `resources/`, no exclusions |
+| `--with-examples` | The entire `bin/resources/`, no exclusions |
 
 `global.xml` **must** be kept in SDK mode. It is required at framework
 startup: in local-file mode `GlobalManager.cpp` returns `false` outright when

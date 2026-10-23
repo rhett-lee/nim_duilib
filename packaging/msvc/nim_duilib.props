@@ -12,7 +12,7 @@
             NimDuilibForceRuntimeLibrary  1=按 SDK 元数据设置 RuntimeLibrary（默认）
             NimDuilibUseManifest          0=不嵌入 Common Controls manifest
             NimDuilibCopyRuntime          0=不复制 bin/*.dll（在 .targets 中）
-            NimDuilibCopyResources        1=复制 resources/ 到输出目录（默认 0）
+            NimDuilibCopyResources        1=复制 bin/resources/ 到输出目录（默认 0）
             NimDuilibSkipValidation       1=跳过架构/配置/依赖校验
     -->
 

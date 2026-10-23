@@ -71,8 +71,9 @@
    misc/、specs/ 等子目录一律不打包。Release.*（发布流程）、
    Getting-Started.* / Examples.*（库内部文档）与感谢名单.txt 也不打包。
    Summary.* 作为包内文档索引，不包含指向包外目录的链接。
-   文档按实际收集结果重写链接：../duilib/x.h -> ../include/duilib/x.h，
-   ../bin/resources/ -> ../resources/；指向未随包内容的链接退化为纯文字。
+   文档按实际收集结果重写链接：../duilib/x.h -> ../include/duilib/x.h；../bin/resources/ 与包内一致
+   （资源位于 bin/ 下），../../bin/resources/ 改为 ../bin/resources/；
+   指向未随包内容的链接退化为纯文字。
    新增顶层文档默认随包，如需排除请加入 DOC_EXCLUDE_FILES。
 
 用法：
@@ -269,7 +270,7 @@ EXCLUDED_RESOURCE_FILES = (
     'resources.zip',
 )
 
-# --with-examples 关闭时，resources/themes/default/ 下只保留 public 子目录
+# --with-examples 关闭时，bin/resources/themes/default/ 下只保留 public 子目录
 # 与 global.xml（global.xml 是框架启动必需，见 GlobalManager.cpp:440，
 # 缺失会直接 return false 导致初始化失败）。
 EXAMPLE_THEME_DIR = os.path.join('themes', 'default')
@@ -822,7 +823,7 @@ def collect_resources(collector, with_examples):
     for abs_path, rel in iter_files(RESOURCES_DIR):
         if not _resource_rel_ok(rel, with_examples):
             continue
-        if collector.add('resources/' + rel, abs_path):
+        if collector.add('bin/resources/' + rel, abs_path):
             count += 1
     return count
 
@@ -858,7 +859,7 @@ def collect_docs(collector):
     只取一级文件，跳过 DOC_EXCLUDE_FILES 中的维护文档。文档里有大量
     指向源码树的相对链接，打包后源码不存在，因此按实际收集结果改写：
       - ../duilib/xxx      -> ../include/duilib/xxx（该头文件随包时）
-      - ../bin/resources/  -> ../resources/
+      - ../../bin/resources -> ../bin/resources（资源位于包内 bin/ 下）
     目标不在包内的链接（.cpp、examples/、build/、未打包的内部头文件）
     去掉链接，只保留显示文字，避免包内出现断链。
     """
@@ -909,13 +910,13 @@ def _resolve_doc_link(url, packaged):
         pkg = 'include/' + rest
         new_url = '../include/' + rest + suffix
     elif target.startswith('../bin/resources/'):
-        rest = target[len('../bin/resources/'):]
-        pkg = 'resources/' + rest
-        new_url = '../resources/' + rest + suffix
+        # 包内资源同样位于 bin/ 下，链接保持不变。
+        pkg = target[len('../'):]
+        new_url = url
     elif target.startswith('../../bin/resources/'):
         rest = target[len('../../bin/resources/'):]
-        pkg = 'resources/' + rest
-        new_url = '../resources/' + rest + suffix
+        pkg = 'bin/resources/' + rest
+        new_url = '../bin/resources/' + rest + suffix
     elif target.startswith('../'):
         # 源码树中的其它目录（examples/、build/、README），包内不存在。
         return 'drop', url
@@ -1311,7 +1312,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  include/duilib/**.h   对外头文件，保持仓库根相对路径')
     lines.append('                         用法：#include "duilib/duilib.h"')
     lines.append('  lib/                  静态库（.lib / .a），平面结构')
-    lines.append('  resources/            主题、语言、字体资源')
+    lines.append('  bin/                  运行期 DLL；--with-examples 时还含示例程序')
+    lines.append('  bin/resources/        主题、语言、字体资源（与示例程序同级）')
     lines.append('  licenses/             第三方许可证')
     lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
@@ -1379,13 +1381,14 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('    target_link_libraries(<target> PRIVATE nim_duilib::duilib)')
     lines.append('    nim_duilib_copy_runtime(<target> [RESOURCES])')
     lines.append('  nim_duilib_copy_runtime 在构建后复制 bin/*.dll；RESOURCES 额外复制')
-    lines.append('  resources/（默认不复制，避免覆盖应用自己的主题）。')
+    lines.append('  bin/resources 到输出目录的 resources/（默认不复制，避免覆盖应用自己的主题）。')
     lines.append('  可设置 NIM_DUILIB_SET_MSVC_RUNTIME=OFF 退出运行库强制对齐；')
     lines.append('  NIM_DUILIB_ALLOW_{ARCH,CONFIG}_MISMATCH=ON 放行不匹配（不推荐）。')
     lines.append('  注意：发布包是单架构、单配置的，Debug/Release 需各用各的包。')
 
     section('运行期')
-    lines.append('  resources/ 必须放在可执行文件同级目录（框架启动必需）。')
+    lines.append('  bin/resources/ 必须与可执行文件同级（框架启动必需）；从 bin/ 取用')
+    lines.append('  程序时请连同 bin/resources/ 一起复制。')
     if is_windows:
         if 'WebView2Loader.dll' in bin_dlls:
             lines.append('  WebView2Loader.dll 随包（bin/）；使用动态 loader 时复制到')
@@ -1430,7 +1433,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
 
     if with_examples:
         section('示例程序')
-        lines.append('  bin/*.exe             示例可执行文件，需与 resources/ 同级')
+        lines.append('  bin/*.exe             示例可执行文件（bin/resources/ 已在其同级）')
         missing_cef = [e for e in CEF_EXAMPLES
                        if any(r.endswith('/' + e) for r, _ in collector.items)]
         if missing_cef:
@@ -1441,7 +1444,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                 lines.append('           %s' % e)
     else:
         section('资源说明')
-        lines.append('  本包不含示例程序资源。resources/themes/ 下只保留了 public/ 与')
+        lines.append('  本包不含示例程序资源。bin/resources/themes/ 下只保留了 public/ 与')
         lines.append('  global.xml；各示例的私有主题目录未包含。')
 
     section('校验')

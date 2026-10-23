@@ -487,7 +487,7 @@ python build/pack.py --msvc-runtime md
 产物输出到 `dist/`（已在 .gitignore 中），包名为
 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，内含 `include/duilib/`、
 `lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
-`resources/`、`licenses/`、`docs/`（顶层使用文档，链接已按包内布局重写），
+`bin/`（运行期 DLL 与 `bin/resources/`）、`licenses/`、`docs/`（顶层使用文档，链接已按包内布局重写），
 以及 `MANIFEST.txt` 与 `SHA256SUMS`。
 
 包内还带**下游接入层**，不需要手动拼 include 路径、库列表和宏：

@@ -71,12 +71,12 @@ nim_duilib-<版本>-<系统>-<架构>/
   LICENSE               主许可证
   include/duilib/       对外头文件（使用 SDL 时含 include/SDL3/）
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
-  resources/            主题、语言、字体资源
   licenses/             第三方许可证
   docs/                 使用文档（仅顶层；链接已按包内布局重写）
   msvc/                 下游接入：props/targets/manifest（x64/x86 均随包）
   lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置
   bin/                  运行期 DLL；--with-examples 时还含示例程序
+  bin/resources/        主题、语言、字体资源（与示例程序同级）
 ```
 
 ### SDK 使用契约
@@ -98,7 +98,8 @@ nim_duilib-<版本>-<系统>-<架构>/
 4. **平台系统库**：Windows 启用 SDL 时补 `Version/Winmm/Imm32/Setupapi`
    （MinGW 写作 `-lversion -lwinmm -limm32 -lsetupapi`）；
    Unix 的 `X11`/`freetype`/`fontconfig` 由系统提供，不随包。
-5. **运行期**：`resources/` 与可执行文件同级；CEF 运行时外置；
+5. **运行期**：`bin/resources/` 与可执行文件同级（位于包内 `bin/` 下）；
+   CEF 运行时外置；
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
    Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
    Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
@@ -178,7 +179,7 @@ SDL/WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL），无需手工抄写�
 | :--- | :--- | :--- |
 | `NimDuilibDir` | `<SDK根>` | SDK 根目录，末尾带 `\` |
 | `NimDuilibCopyRuntime` | `1` | 构建后复制 `bin/*.dll` |
-| `NimDuilibCopyResources` | `0` | 构建后复制 `resources/` |
+| `NimDuilibCopyResources` | `0` | 构建后复制 `bin/resources/` 到输出目录 `resources/` |
 | `NimDuilibForceRuntimeLibrary` | `1` | 对齐 MSVC 运行库；`0` 可退出 |
 | `NimDuilibSkipValidation` | `0` | 跳过工具链/架构/配置/库存在性校验 |
 
@@ -227,7 +228,8 @@ cmake -S . -B build -Dnim_duilib_DIR=C:/SDK/nim_duilib-...-debug/lib/cmake/nim_d
 **按需复制资源 / 指定输出目录**：
 
 ```cmake
-# 同时复制 resources/（会覆盖目标目录下已有的 resources/）
+# 同时复制 bin/resources/ 到输出目录的 resources/
+# （会覆盖目标目录下已有的 resources/）
 nim_duilib_copy_runtime(my_app RESOURCES)
 
 # 多目标共享输出目录时，显式指定 DESTINATION
@@ -256,7 +258,7 @@ cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
 ```
 
 CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）仍需自行放到程序目录；
-`nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `resources/`。
+`nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `bin/resources/`。
 
 ### 头文件路径不可改动
 
@@ -324,13 +326,13 @@ Windows 包未启用 `--with-sdl` 时不打包。
 
 ## --with-examples 的资源范围差异
 
-这是打包时最容易搞错的一点。`resources/themes/default/` 下同时放着
+这是打包时最容易搞错的一点。`bin/resources/themes/default/` 下同时放着
 公共资源和各示例的私有主题目录，两种模式收录范围不同：
 
-| 模式 | `resources/` 收录范围 |
+| 模式 | `bin/resources/` 收录范围 |
 | :--- | :--- |
 | 默认（SDK） | 仅 `themes/default/public/` 与 `themes/default/global.xml` |
-| `--with-examples` | 整个 `resources/`，无排除项 |
+| `--with-examples` | 整个 `bin/resources/`，无排除项 |
 
 `global.xml` 在 SDK 模式下**必须保留**。它是框架启动的必需文件，
 `GlobalManager.cpp` 在本地文件模式下找不到它会直接 `return false`，
