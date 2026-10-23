@@ -80,6 +80,7 @@ nim_duilib-<version>-<system>-<arch>/
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
   resources/            Theme, language and font resources
   licenses/             Third-party licenses
+  docs/                 User documentation (top level only; misc/, specs/ excluded)
   msvc/                 Downstream integration: props/targets/manifest (Windows + MSVC only)
   lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
   bin/                  Runtime DLLs; example programs with --with-examples

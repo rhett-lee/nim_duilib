@@ -67,6 +67,12 @@
    元数据（架构/配置/工具链/DLL/SDL/CEF/运行库/运行期 DLL）必须与实际
    收集结果一致，否则下游会链接到错误产物。
 
+8. docs/ 只打包顶层的使用文档（Summary、Control、Theme、CEF 等）；
+   misc/、specs/ 等子目录一律不打包。Release.*（发布流程）、
+   Getting-Started.* / Examples.*（库内部文档）与感谢名单.txt 也不打包。
+   Summary.* 作为包内文档索引，不包含指向包外目录的链接。
+   新增顶层文档默认随包，如需排除请加入 DOC_EXCLUDE_FILES。
+
 用法：
     python build/pack.py                      # Release SDK 包（不含示例）
     python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
@@ -111,6 +117,7 @@ JPEG_TURBO_DIR = os.path.join(THIRD_PARTY_DIR, 'libjpeg-turbo')
 CEF_DIR = os.path.join(THIRD_PARTY_DIR, 'libcef')
 RESOURCES_DIR = os.path.join(REPO_ROOT, 'bin', 'resources')
 LICENSES_DIR = os.path.join(REPO_ROOT, 'licenses')
+DOCS_DIR = os.path.join(REPO_ROOT, 'docs')
 BIN_DIR = os.path.join(REPO_ROOT, 'bin')
 PACKAGING_DIR = os.path.join(REPO_ROOT, 'packaging')
 MSVC_MANIFEST_DIR = os.path.join(REPO_ROOT, 'msvc', 'manifest')
@@ -163,6 +170,22 @@ INTERNAL_HEADER_FILES = (
 SDL_HEADER_FILES = (
     'Core/DragWindowFilter_SDL.h',
 )
+
+# 随 SDK 打包的顶层文档：docs/ 下的一级文件，子目录（misc/、specs/）一律不打包。
+# 以下文件属于库自身的维护文档，不适合发给下游：
+# - Release.*：发布与打包流程（版本、签名、公证、构建脚本），面向维护者；
+# - Getting-Started.* / Examples.*：库内部的快速上手与示例程序说明；
+# - 感谢名单.txt：项目致谢，不是 SDK 使用文档。
+# Summary.* 是文档索引，已移除指向包外目录的链接，随包提供。
+DOC_EXCLUDE_FILES = frozenset((
+    'Release.md',
+    'Release.en.md',
+    'Getting-Started.md',
+    'Getting-Started.en.md',
+    'Examples.md',
+    'Examples.en.md',
+    '感谢名单.txt',
+))
 
 # 图片解码实现相关的头文件（相对 duilib/）：只在库内部使用，不对外转发。
 # duilib.h 只引用 Image/Image.h、ImageDecoder.h、ImageDecoderFactory.h 等基础
@@ -827,6 +850,27 @@ def collect_licenses(collector, skia_lib_dir):
     return count
 
 
+def collect_docs(collector):
+    """收集 docs/ 顶层的用户文档（子目录一律不打包）。
+
+    只取一级文件，跳过 DOC_EXCLUDE_FILES 中的维护文档，避免把发布流程、
+    文档索引、致谢名单等发给下游。新增的顶层使用文档默认随包。
+    """
+    if not os.path.isdir(DOCS_DIR):
+        collector.warn('文档目录不存在：%s' % DOCS_DIR)
+        return 0
+    count = 0
+    for name in sorted(os.listdir(DOCS_DIR)):
+        if name in DOC_EXCLUDE_FILES:
+            continue
+        abs_path = os.path.join(DOCS_DIR, name)
+        if not os.path.isfile(abs_path):
+            continue
+        if collector.add('docs/' + name, abs_path):
+            count += 1
+    return count
+
+
 def collect_examples(collector, config, is_windows):
     """收集示例程序可执行文件与运行时 dll。
 
@@ -1190,6 +1234,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  lib/                  静态库（.lib / .a），平面结构')
     lines.append('  resources/            主题、语言、字体资源')
     lines.append('  licenses/             第三方许可证')
+    lines.append('  docs/                 使用文档（顶层；misc/ 等子目录不在包内）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
     lines.append('  lib/cmake/nim_duilib/ CMake 接入：find_package(nim_duilib)')
     lines.append('  VERSION               版本号')
@@ -1505,6 +1550,7 @@ def main(argv=None):
 
     n_res = collect_resources(collector, args.with_examples)
     n_lic = collect_licenses(collector, skia_dir)
+    n_docs = collect_docs(collector)
     n_exe = collect_examples(collector, config, sys_tag == 'win') \
         if args.with_examples else 0
 
@@ -1538,6 +1584,7 @@ def main(argv=None):
     print('CEF       : %d' % n_cef)
     print('资源文件  : %d' % n_res)
     print('许可证    : %d' % n_lic)
+    print('文档      : %d' % n_docs)
     print('示例程序  : %d' % n_exe)
     print('接入文件  : %d（生成 %d）'
           % (n_integration + len(virtual_files), len(virtual_files)))

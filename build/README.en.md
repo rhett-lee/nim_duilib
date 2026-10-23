@@ -494,8 +494,8 @@ python build/pack.py --msvc-runtime md
 Artifacts go to `dist/` (already in .gitignore), named
 `nim_duilib-<version>-<system>-<arch>[-debug].zip`, containing
 `include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
-and WebView2/JPEG link libraries), `resources/`, `licenses/`, plus
-`MANIFEST.txt` and `SHA256SUMS`.
+and WebView2/JPEG link libraries), `resources/`, `licenses/`, `docs/`
+(top-level user documentation), plus `MANIFEST.txt` and `SHA256SUMS`.
 
 The package also ships a **downstream integration layer**, so consumers do
 not have to assemble include paths, link lists and defines manually:

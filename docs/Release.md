@@ -73,6 +73,7 @@ nim_duilib-<版本>-<系统>-<架构>/
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
   resources/            主题、语言、字体资源
   licenses/             第三方许可证
+  docs/                 使用文档（仅顶层；misc/、specs/ 等子目录不打包）
   msvc/                 下游接入：props/targets/manifest（仅 Windows + MSVC）
   lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置
   bin/                  运行期 DLL；--with-examples 时还含示例程序

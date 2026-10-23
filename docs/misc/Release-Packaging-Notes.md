@@ -67,6 +67,7 @@ write_release_docs.py
 | SDL3 | Unix 始终随包；Windows 仅 `--with-sdl`；按产物收集静态库或导入库，动态时连同 `bin/SDL3.dll` | Windows 默认关闭 SDL；Unix 默认启用且为动态库；MinGW 的 CMake 构建链接动态 SDL3（`libSDL3.dll.a`） |
 | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
+| `docs/` | 只打包顶层使用文档；`misc/`、`specs/` 等子目录一律不打包 | 使用文档随 SDK 提供；`Release.*`（发布流程）、`Getting-Started.*` / `Examples.*`（库内部文档）与 `感谢名单.txt`（致谢）面向维护者，不适合分发；`Summary.*` 已去掉指向包外目录的链接，随包 |
 | 版本号 | 单一事实源为根目录 `VERSION` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生 |
 
 ### `--with-examples` 的资源范围差异
@@ -102,7 +103,8 @@ python build/pack.py --out-dir dist       # 指定输出目录
 
 产物输出到 `dist/`，包名格式 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，
 内含 `VERSION`、`MANIFEST.txt`、`SHA256SUMS`、`LICENSE`、`include/duilib/`、
-`lib/`（含 Skia 与第三方链接库）、`resources/`、`licenses/`。
+`lib/`（含 Skia 与第三方链接库）、`resources/`、`licenses/`、`docs/`
+（顶层使用文档）。
 
 ## 三、关键技术决策与依据
 
@@ -288,6 +290,23 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
   MSVC 运行库不一致（MD 工程消费 MT 包）均按预期 `FATAL_ERROR`。
 - 伪造 MinGW 库目录：不生成 `msvc/`，只输出 4 个 CMake 接入文件；
   `--with-sdl` / `--with-cef` 变体 `--list` 均正常。
+
+### 3.4 docs 文档打包（2026-10-23）
+
+`docs/` 顶层的使用文档随 SDK 打进包内 `docs/`，只取一级文件，
+`misc/`、`specs/` 等子目录一律不打包。以下属于库自身的维护文档，不打包：
+
+- `Release.md` / `Release.en.md`：发布与打包流程（版本、签名、公证、构建脚本）；
+- `Getting-Started.md` / `Getting-Started.en.md`、`Examples.md` / `Examples.en.md`：
+  库内部的快速上手与示例程序说明；
+- `感谢名单.txt`：项目致谢。
+
+`Summary.md` / `Summary.en.md` 是包内文档索引，已移除指向其他目录的链接
+（`../README.md`、`../build/build.md`、`misc/` 等），以及未随包文档的条目。
+
+排除名单集中在 `pack.py` 的 `DOC_EXCLUDE_FILES`，新增顶层文档默认随包。
+Windows x64 Debug `--list` 验证：文档 32 个（16 对中英文），
+没有混入 `Release.*`、`Getting-Started.*`、`Examples.*` 与 `misc/` 内容。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 

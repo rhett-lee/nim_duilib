@@ -67,6 +67,7 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | SDL3 | Always shipped on Unix; on Windows only with `--with-sdl`; collects the static or import library actually built, plus `bin/SDL3.dll` for dynamic builds | SDL is off by default on Windows; on Unix it is enabled and built as a shared library; MinGW CMake builds link the shared SDL3 (`libSDL3.dll.a`) |
 | CEF development set | Off by default, needs `--with-cef` (optionally `--cef-version 109`) | Each wrapper is 80–100 MB; the runtime still has to be supplied separately |
 | `bin/resources.zip` | Always excluded | An empty shell file of only 748 bytes |
+| `docs/` | Only top-level user docs are shipped; subdirectories such as `misc/` and `specs/` are never packaged | User docs ship with the SDK; `Release.*` (release process), `Getting-Started.*` / `Examples.*` (library-internal docs) and the credits list target maintainers, not consumers; `Summary.*` ships after its links to outside directories were removed |
 | Version number | Single source of truth is the root `VERSION` file | Package name, in-package `VERSION` and `MANIFEST.txt` are all derived from it |
 
 ### Resource scope difference with `--with-examples`
@@ -103,7 +104,7 @@ python build/pack.py --out-dir dist       # specify the output directory
 Artifacts go to `dist/`, named `nim_duilib-<version>-<system>-<arch>[-debug].zip`,
 containing `VERSION`, `MANIFEST.txt`, `SHA256SUMS`, `LICENSE`,
 `include/duilib/`, `lib/` (including Skia and third-party link libraries),
-`resources/` and `licenses/`.
+`resources/`, `licenses/` and `docs/` (top-level user documentation).
 
 ## 3. Key technical decisions and their rationale
 
@@ -264,6 +265,28 @@ the **actually collected files**:
   expected `FATAL_ERROR`.
 - A mocked MinGW library directory produces no `msvc/` and only the 4 CMake
   integration files; `--with-sdl` / `--with-cef` `--list` variants succeed.
+
+### 3.3 docs packaging (2026-10-23)
+
+Top-level user documentation under `docs/` is shipped inside the package as
+`docs/`, using first-level files only; subdirectories such as `misc/` and
+`specs/` are never packaged. The following are the library's own maintenance
+documents and are excluded:
+
+- `Release.md` / `Release.en.md`: release and packaging process (versioning,
+  signing, notarization, build scripts);
+- `Getting-Started.md` / `Getting-Started.en.md` and `Examples.md` /
+  `Examples.en.md`: library-internal quick-start and example descriptions;
+- `感谢名单.txt`: project credits.
+
+`Summary.md` / `Summary.en.md` is the in-package documentation index. Links to
+other directories (`../README.md`, `../build/build.md`, `misc/`, etc.) and
+entries for documents not shipped in the package were removed.
+
+The exclusion list lives in `DOC_EXCLUDE_FILES` in `pack.py`; new top-level
+documents ship by default. Windows x64 Debug `--list` verification: 32 docs
+(16 Chinese/English pairs), with no `Release.*`, `Getting-Started.*`,
+`Examples.*` or `misc/` content.
 
 ### 4. Debug library detection: suffix plus directory name
 
