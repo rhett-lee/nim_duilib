@@ -94,10 +94,15 @@
 
 发布流程请使用 build/release.py（check / package / finalize / clean）。
 
+可复现构建：设置环境变量 SOURCE_DATE_EPOCH（秒）后，所有归档条目与 gzip 头
+统一使用该时间；未设置时条目用源文件 mtime、生成文件用收集产物中的最新 mtime，
+输入不变时连续两次打包的字节一致。
+
 退出码：0 成功；1 参数或产物缺失；2 打包异常。
 """
 
 import argparse
+import gzip
 import hashlib
 import io
 import os
@@ -1387,8 +1392,15 @@ def _lib_filenames(collector):
 
 def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                    config, with_examples, with_sdl, with_cef, cef_version,
-                   toolchain=None, virtual_files=None, msvc_runtime=None):
-    """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。"""
+                   toolchain=None, virtual_files=None, msvc_runtime=None,
+                   package_time=None):
+    """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。
+
+    package_time 为 MANIFEST 里“打包时间”使用的 Unix 时间；None 表示取当前时间。
+    调用方应传入与归档一致的确定性时间，否则包摘要不可复现。
+    """
+    if package_time is None:
+        package_time = int(time.time())
     is_windows = sys_tag == 'win'
     is_mingw = toolchain == 'mingw'
     virtual_files = virtual_files or {}
@@ -1396,6 +1408,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lib_names = _lib_filenames(collector)
     bin_dlls = [r.split('/', 1)[1] for r, _abs in collector.items
                 if r.startswith('bin/') and r.lower().endswith('.dll')]
+    has_webview2 = (('WebView2LoaderStatic' in stems) or
+                    ('WebView2Loader.dll' in stems) or
+                    ('WebView2Loader.dll' in bin_dlls))
     # SDL3 静态库：MSVC 的 SDL3-static.lib 或 MinGW 的 libSDL3.a；
     # 动态库：Windows 的导入库（SDL3.lib / libSDL3.dll.a）或 Unix 的 libSDL3.so*。
     sdl_static = ('SDL3-static.lib' in lib_names) or ('libSDL3.a' in lib_names)
@@ -1432,7 +1447,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('配置      : %s' % config)
     if is_windows and toolchain:
         lines.append('工具链    : %s' % ('MinGW' if is_mingw else 'MSVC'))
-    lines.append('打包时间  : %s' % time.strftime('%Y-%m-%d %H:%M:%S'))
+    lines.append('打包时间  : %s UTC'
+                 % time.strftime('%Y-%m-%d %H:%M:%S',
+                                 time.gmtime(package_time)))
     lines.append('包含示例  : %s' % ('是' if with_examples else '否'))
     lines.append('文件总数  : %d' % (len(collector.items) + len(virtual_files)))
 
@@ -1521,6 +1538,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  bin/resources/ 必须与可执行文件同级（框架启动必需）；从 bin/ 取用')
     lines.append('  程序时请连同 bin/resources/ 一起复制。')
     if is_windows:
+        if has_webview2:
+            lines.append('  WebView2 依赖系统已安装的 Microsoft Edge WebView2 Evergreen')
+            lines.append('  Runtime；本包只带 loader（WebView2Loader.dll / '
+                         'WebView2LoaderStatic.lib），')
+            lines.append('  不含浏览器内核。未安装时创建环境失败（常见 0x80070002），')
+            lines.append('  安装：https://developer.microsoft.com/microsoft-edge/webview2/')
         if 'WebView2Loader.dll' in bin_dlls:
             lines.append('  WebView2Loader.dll 随包（bin/）；使用动态 loader 时复制到')
             lines.append('  可执行文件同级。')
@@ -1587,7 +1610,14 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     section('校验')
     lines.append('  SHA256SUMS 覆盖包内全部普通文件（符号链接不计入，解包时按链接还原）。')
     lines.append('  Unix 包保留源文件权限与 .so 链接链；Windows 包条目权限无实际作用。')
-    lines.append('  可用 sha256sum -c SHA256SUMS 校验')
+    lines.append('  Unix/macOS：在包根目录执行 sha256sum -c SHA256SUMS')
+    lines.append('  Windows PowerShell（在包根目录执行，全部通过输出 OK，否则列出失败项）：')
+    lines.append("    $bad = Get-Content SHA256SUMS | ForEach-Object {")
+    lines.append("        $h, $p = $_ -split '  ', 2")
+    lines.append("        if ((Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash -ne $h) { $p }")
+    lines.append("    }")
+    lines.append("    if ($bad) { $bad; exit 1 } else { 'OK' }")
+    lines.append('  也可用 certutil -hashfile <文件> SHA256 逐个比对。')
 
     manifest_text = '\n'.join(lines).replace('\n', '\r\n')
 
@@ -1606,7 +1636,40 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     return manifest_text, sums_text
 
 
-def _write_virtual(zip_obj, tar_obj, arcname, text):
+def read_source_date_epoch():
+    """读取 SOURCE_DATE_EPOCH（秒）；未设置返回 None，非法值直接失败。"""
+    value = os.environ.get('SOURCE_DATE_EPOCH', '').strip()
+    if not value:
+        return None
+    try:
+        epoch = int(value)
+    except ValueError:
+        raise PackageError('SOURCE_DATE_EPOCH 必须是整数秒：%r' % value)
+    if epoch < 0:
+        raise PackageError('SOURCE_DATE_EPOCH 不能为负数：%d' % epoch)
+    return epoch
+
+
+def _default_archive_time(collector):
+    """未设置 SOURCE_DATE_EPOCH 时，取收集文件中最新的 mtime 作为生成时间。
+
+    连续两次打包（输入不变）得到完全相同的字节，不再依赖墙钟时间。
+    """
+    latest = 0
+    for _rel, abs_path in collector.items:
+        try:
+            latest = max(latest, int(os.lstat(abs_path).st_mtime))
+        except OSError:
+            pass
+    return latest or int(time.time())
+
+
+def _zip_datetime(timestamp):
+    """zip 条目时间：按 UTC 归一，且不早于 1980-01-01（zip 格式下限）。"""
+    return time.gmtime(max(int(timestamp), 315532800))[:6]
+
+
+def _write_virtual(zip_obj, tar_obj, arcname, text, timestamp):
     """把内存中的文本同时（或分别）写入 zip / tar。
 
     zip_obj 与 tar_obj 只有一个非 None —— 调用方按目标格式二选一。
@@ -1614,18 +1677,18 @@ def _write_virtual(zip_obj, tar_obj, arcname, text):
     """
     if zip_obj is not None:
         data = text.encode('utf-8')
-        zip_obj.writestr(_zip_info(arcname, len(data)), data)
+        zip_obj.writestr(_zip_info(arcname, len(data), timestamp), data)
     if tar_obj is not None:
         raw = text.replace('\r\n', '\n').encode('utf-8')
         tinfo = tarfile.TarInfo(arcname)
         tinfo.size = len(raw)
-        tinfo.mtime = int(time.time())
+        tinfo.mtime = int(timestamp)
         tinfo.mode = 0o644
         tar_obj.addfile(tinfo, io.BytesIO(raw))
 
 
-def _zip_info(arcname, size):
-    info = zipfile.ZipInfo(arcname, date_time=time.localtime()[:6])
+def _zip_info(arcname, size, timestamp):
+    info = zipfile.ZipInfo(arcname, date_time=_zip_datetime(timestamp))
     info.create_system = 3  # Unix，解包端才会按 external_attr 建链接/权限
     info.compress_type = zipfile.ZIP_DEFLATED
     info.external_attr = (stat.S_IFREG | 0o644) << 16
@@ -1645,15 +1708,18 @@ def _archive_file_mode(abs_path):
     return mode or 0o644
 
 
-def _zip_add_file(zf, abs_path, arc):
+def _zip_add_file(zf, abs_path, arc, timestamp=None):
     """按条目类型写入 zip。
 
     符号链接必须写成 S_IFLNK 条目（内容为链接目标），否则 zipfile.write
     会跟随链接，把 `libSDL3.so -> libSDL3.so.0 -> ...` 展开成多份实体文件。
+    timestamp 为 None 时条目时间取源文件 mtime。
     """
-    info = zipfile.ZipInfo(arc, date_time=time.localtime()[:6])
+    st = os.lstat(abs_path)
+    entry_time = st.st_mtime if timestamp is None else timestamp
+    info = zipfile.ZipInfo(arc, date_time=_zip_datetime(entry_time))
     info.create_system = 3
-    if os.path.islink(abs_path):
+    if stat.S_ISLNK(st.st_mode):
         info.external_attr = (stat.S_IFLNK | 0o777) << 16
         info.compress_type = zipfile.ZIP_STORED
         zf.writestr(info, os.readlink(abs_path).encode('utf-8'))
@@ -1665,11 +1731,14 @@ def _zip_add_file(zf, abs_path, arc):
             dst.write(chunk)
 
 
-def _tar_add_file(tf, abs_path, arc):
-    """按条目类型写入 tar：符号链接保留目标路径，普通文件按类型设置权限。"""
+def _tar_add_file(tf, abs_path, arc, timestamp=None):
+    """按条目类型写入 tar：符号链接保留目标路径，普通文件按类型设置权限。
+
+    timestamp 为 None 时条目时间取源文件 mtime。
+    """
     st = os.lstat(abs_path)
     info = tarfile.TarInfo(arc)
-    info.mtime = int(st.st_mtime)
+    info.mtime = int(st.st_mtime if timestamp is None else timestamp)
     info.uid = info.gid = 0
     info.uname = info.gname = 'root'
     if stat.S_ISLNK(st.st_mode):
@@ -1686,35 +1755,62 @@ def _tar_add_file(tf, abs_path, arc):
 
 
 def build_package(collector, staging_root, pkg_root_name, version, manifest_text,
-                  sums_text, fmt, out_path, virtual_files=None):
-    """把收集到的文件写成压缩包。staging_root 用于统一路径前缀。"""
+                  sums_text, fmt, out_path, virtual_files=None,
+                  source_date_epoch=None, generated_time=None):
+    """把收集到的文件写成压缩包。staging_root 用于统一路径前缀。
+
+    source_date_epoch 非 None 时，所有条目与 gzip 头统一使用该时间（可复现构建）。
+    为 None 时普通条目用源文件 mtime，生成的文件用 generated_time
+    （默认取收集产物中的最新 mtime），因此输入不变时连续两次打包字节一致。
+    """
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     virtual_files = virtual_files or {}
     version_text = version + '\n'
+    # 条目顺序影响压缩结果，按包内路径排序，避免文件系统遍历顺序差异
+    items = sorted(collector.items, key=lambda kv: kv[0])
+    if generated_time is None:
+        generated_time = (source_date_epoch if source_date_epoch is not None
+                          else _default_archive_time(collector))
+
+    def write_tar(tf):
+        for rel, abs_path in items:
+            _tar_add_file(tf, abs_path, '%s/%s' % (pkg_root_name, rel),
+                          source_date_epoch)
+        for rel in sorted(virtual_files):
+            _write_virtual(None, tf, '%s/%s' % (pkg_root_name, rel),
+                           virtual_files[rel], generated_time)
+        _write_virtual(None, tf, '%s/MANIFEST.txt' % pkg_root_name, manifest_text,
+                       generated_time)
+        _write_virtual(None, tf, '%s/SHA256SUMS' % pkg_root_name, sums_text,
+                       generated_time)
+        _write_virtual(None, tf, '%s/VERSION' % pkg_root_name, version_text,
+                       generated_time)
 
     if fmt == 'zip':
         with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-            for rel, abs_path in collector.items:
-                arc = '%s/%s' % (pkg_root_name, rel)
-                _zip_add_file(zf, abs_path, arc)
+            for rel, abs_path in items:
+                _zip_add_file(zf, abs_path, '%s/%s' % (pkg_root_name, rel),
+                              source_date_epoch)
             for rel in sorted(virtual_files):
                 _write_virtual(zf, None, '%s/%s' % (pkg_root_name, rel),
-                               virtual_files[rel])
-            _write_virtual(zf, None, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
-            _write_virtual(zf, None, '%s/SHA256SUMS' % pkg_root_name, sums_text)
-            _write_virtual(zf, None, '%s/VERSION' % pkg_root_name, version_text)
+                               virtual_files[rel], generated_time)
+            _write_virtual(zf, None, '%s/MANIFEST.txt' % pkg_root_name, manifest_text,
+                           generated_time)
+            _write_virtual(zf, None, '%s/SHA256SUMS' % pkg_root_name, sums_text,
+                           generated_time)
+            _write_virtual(zf, None, '%s/VERSION' % pkg_root_name, version_text,
+                           generated_time)
+    elif fmt == 'tgz':
+        # gzip 头里的 mtime 默认取墙钟时间，必须显式指定，否则包摘要不稳定；
+        # filename 置空避免写入本机绝对路径。
+        with open(out_path, 'wb') as raw:
+            with gzip.GzipFile(fileobj=raw, mode='wb', compresslevel=9,
+                               mtime=generated_time, filename='') as gz:
+                with tarfile.open(fileobj=gz, mode='w|') as tf:
+                    write_tar(tf)
     else:
-        gz_mode = 'w:gz' if fmt == 'tgz' else 'w:bz2'
-        with tarfile.open(out_path, gz_mode) as tf:
-            for rel, abs_path in collector.items:
-                arc = '%s/%s' % (pkg_root_name, rel)
-                _tar_add_file(tf, abs_path, arc)
-            for rel in sorted(virtual_files):
-                _write_virtual(None, tf, '%s/%s' % (pkg_root_name, rel),
-                               virtual_files[rel])
-            _write_virtual(None, tf, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
-            _write_virtual(None, tf, '%s/SHA256SUMS' % pkg_root_name, sums_text)
-            _write_virtual(None, tf, '%s/VERSION' % pkg_root_name, version_text)
+        with tarfile.open(out_path, 'w:bz2') as tf:
+            write_tar(tf)
 
     return out_path
 
@@ -1799,6 +1895,12 @@ def main(argv=None):
 
     version = read_version()
     if version is None:
+        return 1
+
+    try:
+        source_date_epoch = read_source_date_epoch()
+    except PackageError as exc:
+        eprint('[ERROR] %s' % exc)
         return 1
 
     sys_tag, host_arch = detect_platform_tag()
@@ -1901,18 +2003,22 @@ def main(argv=None):
     pkg_root_name = build_package_name(
         version, sys_tag, arch_tag, config,
         args.with_sdl, args.with_cef, args.cef_version, args.with_examples)
+    package_time = (source_date_epoch if source_date_epoch is not None
+                    else _default_archive_time(collector))
     manifest_text, sums_text = write_manifest(
         collector, pkg_root_name, version, sys_tag, arch_tag, config,
         args.with_examples, args.with_sdl, args.with_cef, args.cef_version,
         toolchain, virtual_files=virtual_files,
-        msvc_runtime=meta['msvc_runtime'])
+        msvc_runtime=meta['msvc_runtime'], package_time=package_time)
 
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)
 
     try:
         build_package(collector, REPO_ROOT, pkg_root_name, version, manifest_text,
-                      sums_text, fmt, out_path, virtual_files=virtual_files)
+                      sums_text, fmt, out_path, virtual_files=virtual_files,
+                      source_date_epoch=source_date_epoch,
+                      generated_time=package_time)
     except Exception as exc:  # noqa: BLE001 - 顶层兜底，避免半成品包
         if os.path.exists(out_path):
             os.remove(out_path)

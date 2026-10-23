@@ -83,7 +83,7 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 nim_duilib-<version>-<system>-<arch>[-feature]/
   VERSION               Version number, parsed from duilib/duilib_version.h
   MANIFEST.txt          Package contents and caveats
-  SHA256SUMS            SHA256 of every file, verifiable with sha256sum -c
+  SHA256SUMS            SHA256 of every file; see "Verifying a release package"
   LICENSE               Main license
   include/duilib/       Public headers (plus include/SDL3/ when SDL is used)
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
@@ -119,8 +119,11 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    for MinGW); on Unix `X11`/`freetype`/`fontconfig` come from the system and
    are not packaged.
 5. **Runtime**: `bin/resources/` must sit next to the executable (inside the
-   package's `bin/`); the CEF runtime
-   is external; `bin/duilib*.dll` must sit next to the executable when duilib
+   package's `bin/`); the CEF runtime ships with `--with-cef` under its own
+   subdirectory (configure it manually otherwise); WebView2 only provides a
+   loader and depends on the Microsoft Edge WebView2 Evergreen Runtime installed
+   on the system;
+   `bin/duilib*.dll` must sit next to the executable when duilib
    is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
    etc.).
@@ -436,6 +439,55 @@ Configuration is determined solely by the directory (`lib/<arch>/Debug` or
 - `SHA256SUMS` covers regular files only; symbolic links are excluded so that
   `sha256sum -c` does not fail by following them.
 
+## Verifying a release package
+
+The in-package `SHA256SUMS` covers every file except symbolic links. Run the
+following in the **extracted package root**:
+
+```bash
+sha256sum -c SHA256SUMS        # Linux / macOS / MSYS2
+```
+
+```powershell
+# Windows PowerShell 5+: prints OK when everything matches, otherwise lists failures
+$bad = Get-Content SHA256SUMS | ForEach-Object {
+    $h, $p = $_ -split '  ', 2
+    if ((Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash -ne $h) { $p }
+}
+if ($bad) { $bad; exit 1 } else { 'OK' }
+```
+
+For a single file you can also run `Get-FileHash -Algorithm SHA256 <file>` or
+`certutil -hashfile <file> SHA256` and compare with the value in `SHA256SUMS`.
+
+`release.py finalize` also writes an archive-level `SHA256SUMS.txt` into
+`dist/<version>/` using the same format; run the same command from that
+directory. To check one archive only:
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\nim_duilib-<version>-win-x64.zip
+```
+
+## Reproducible builds
+
+With `SOURCE_DATE_EPOCH` (Unix seconds) set, every archive entry, the gzip
+header and the "build time" in `MANIFEST.txt` use that value (rendered in UTC),
+so identical inputs produce identical packages on different machines:
+
+```powershell
+$env:SOURCE_DATE_EPOCH = 1700000000
+python build/release.py package --config Release --arch x64
+```
+
+```bash
+SOURCE_DATE_EPOCH=1700000000 python build/release.py package --config Release --arch x64
+```
+
+Without it, regular entries use their source mtime, generated files and the
+gzip header use the newest mtime among collected artifacts, and entries are
+sorted by in-package path — two consecutive packings of unchanged input are
+still byte-identical. A non-integer value makes the script exit with code 1.
+
 ## CEF packaging
 
 CEF development files (headers, `libcef.lib`, wrapper) are only included with
@@ -461,6 +513,35 @@ copy that subdirectory next to their executable.
 When the runtime directory is missing, packaging only warns and still
 succeeds; `MANIFEST.txt` then states that the CEF runtime is not included and
 that CEF examples cannot run directly.
+
+## WebView2 runtime
+
+WebView2 is Windows-only. The SDK ships `bin/WebView2Loader.dll` plus
+`lib/WebView2LoaderStatic.lib` and `lib/WebView2Loader.dll.lib`, but the
+**loader is not the browser engine**: WebView2 depends on the Microsoft Edge
+WebView2 Evergreen Runtime installed on the system (Windows 10/11 machines with
+Microsoft Edge usually already have it).
+
+- With the static loader (default) `WebView2Loader.dll` is not required, but the
+  system runtime still is;
+- With the dynamic loader (`DUILIB_USE_WEBVIEW2_LOADER_DLL`) you must also copy
+  `bin/WebView2Loader.dll` next to the executable — the framework looks only
+  there;
+- For offline or pinned deployments use the WebView2 Fixed Version Runtime and
+  point `WebView2Manager::Initialize(..., browserExecutableFolder)` at its
+  directory.
+
+Troubleshooting:
+
+- Blank control or failed initialization with `0x80070002`: the Evergreen
+  Runtime is not installed; install it from
+  <https://developer.microsoft.com/microsoft-edge/webview2/>;
+- "WebView2Loader.dll not found": the dynamic loader is used but
+  `bin/WebView2Loader.dll` was not copied next to the executable;
+- Failure with `0x8007000B`: the loader does not match the process architecture;
+  use a package built for the same architecture.
+
+The runtime section of `MANIFEST.txt` states the same dependency.
 
 ## Versioning
 

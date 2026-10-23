@@ -75,7 +75,7 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 nim_duilib-<版本>-<系统>-<架构>[-特性]/
   VERSION               版本号，来自 duilib/duilib_version.h
   MANIFEST.txt          包内容说明与注意事项
-  SHA256SUMS            每个文件的 SHA256，可用 sha256sum -c 校验
+  SHA256SUMS            每个文件的 SHA256，校验方式见“校验发布包”
   LICENSE               主许可证
   include/duilib/       对外头文件（使用 SDL 时含 include/SDL3/）
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
@@ -107,7 +107,9 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    （MinGW 写作 `-lversion -lwinmm -limm32 -lsetupapi`）；
    Unix 的 `X11`/`freetype`/`fontconfig` 由系统提供，不随包。
 5. **运行期**：`bin/resources/` 与可执行文件同级（位于包内 `bin/` 下）；
-   CEF 运行时外置；
+   CEF 运行时在 `--with-cef` 时随包（保持子目录结构），否则需自行配置；
+   WebView2 只提供 loader，依赖系统安装的 Microsoft Edge WebView2 Evergreen
+   Runtime；
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
    Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
    Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
@@ -395,6 +397,52 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 - `SHA256SUMS` 只覆盖普通文件，符号链接不计入，避免 `sha256sum -c` 跟随链接后
   校验失败。
 
+## 校验发布包
+
+包内 `SHA256SUMS` 覆盖除符号链接外的每个文件。在**解压后的包根目录**执行：
+
+```bash
+sha256sum -c SHA256SUMS        # Linux / macOS / MSYS2
+```
+
+```powershell
+# Windows PowerShell 5+：全部通过输出 OK，否则列出失败的文件
+$bad = Get-Content SHA256SUMS | ForEach-Object {
+    $h, $p = $_ -split '  ', 2
+    if ((Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash -ne $h) { $p }
+}
+if ($bad) { $bad; exit 1 } else { 'OK' }
+```
+
+也可以对单个文件执行 `Get-FileHash -Algorithm SHA256 <文件>` 或
+`certutil -hashfile <文件> SHA256`，再与 `SHA256SUMS` 中的值比对。
+
+`release.py finalize` 还会在 `dist/<版本>/` 生成压缩包级 `SHA256SUMS.txt`，
+格式相同，把上面的命令换成在 `dist/<版本>/` 目录执行即可。只校验单个压缩包时：
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\nim_duilib-<版本>-win-x64.zip
+```
+
+## 可复现构建
+
+设置 `SOURCE_DATE_EPOCH`（Unix 秒）后，所有归档条目、gzip 头与 `MANIFEST.txt`
+里的“打包时间”统一使用该时间（按 UTC 渲染），同样的输入在不同机器上也能得到
+一致的包：
+
+```powershell
+$env:SOURCE_DATE_EPOCH = 1700000000
+python build/release.py package --config Release --arch x64
+```
+
+```bash
+SOURCE_DATE_EPOCH=1700000000 python build/release.py package --config Release --arch x64
+```
+
+未设置时：普通条目取源文件 mtime，生成文件与 gzip 头取收集产物中的最新 mtime，
+条目按包内路径排序——输入不变时连续两次打包的字节仍然完全一致。
+环境变量不是整数秒时脚本直接以退出码 1 失败。
+
 ## CEF 打包
 
 CEF 开发文件（头文件、`libcef.lib`、wrapper）仅在 `--with-cef` 时随包，
@@ -414,6 +462,29 @@ CEF 开发文件（头文件、`libcef.lib`、wrapper）仅在 `--with-cef` 时�
 
 仓库中缺少对应运行时目录时脚本只告警、不阻断出包，`MANIFEST.txt` 会注明
 CEF 运行时未随包、相关示例不能直接运行。
+
+## WebView2 运行时
+
+WebView2 仅在 Windows 提供。SDK 随包 `bin/WebView2Loader.dll` 与
+`lib/WebView2LoaderStatic.lib`、`lib/WebView2Loader.dll.lib`，但 **loader 不是
+浏览器内核**：WebView2 依赖系统中已安装的 Microsoft Edge WebView2 Evergreen
+Runtime（安装了 Microsoft Edge 的 Windows 10/11 通常已具备）。
+
+- 使用静态 loader（默认）时不需要 `WebView2Loader.dll`，但仍需要系统运行时；
+- 使用动态 loader（`DUILIB_USE_WEBVIEW2_LOADER_DLL`）时，还需把
+  `bin/WebView2Loader.dll` 复制到可执行文件同级——框架只在该目录查找；
+- 需要离线或固定版本时，可使用 WebView2 Fixed Version Runtime，并通过
+  `WebView2Manager::Initialize(..., browserExecutableFolder)` 指向其目录。
+
+常见问题：
+
+- 控件空白、初始化失败、错误码 `0x80070002`：系统未安装 Evergreen Runtime，
+  从 <https://developer.microsoft.com/microsoft-edge/webview2/> 安装；
+- 提示找不到 `WebView2Loader.dll`：使用了动态 loader，但未把包内
+  `bin/WebView2Loader.dll` 放到可执行文件同级；
+- 加载失败并返回 `0x8007000B`：loader 与进程架构不匹配，需使用同架构的 SDK 包。
+
+`MANIFEST.txt` 的运行期章节会同步标注该依赖。
 
 ## 版本号
 

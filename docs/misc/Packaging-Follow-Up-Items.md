@@ -131,8 +131,17 @@
 
 #### P1-2 可复现构建
 
-- [ ] 支持 `SOURCE_DATE_EPOCH`，固定 zip 条目时间与 tar mtime/gzip 头。
-- 现状：条目时间取当前时间，同一输入两次打包 SHA256 不同。
+- [x] 支持 `SOURCE_DATE_EPOCH`，固定 zip 条目时间与 tar mtime/gzip 头。
+- 现状（2026-10-23 已实施）：`read_source_date_epoch()` 读取并校验环境变量；
+  设置后所有归档条目、gzip 头与 `MANIFEST.txt` 的“打包时间”统一使用该值
+  （按 UTC 渲染）。未设置时普通条目取源文件 mtime，生成文件与 gzip 头取收集
+  产物中的最新 mtime；条目按包内路径排序。`--format tarbz2` 无时间戳头，
+  同样稳定。
+- 实测：Debug x64 包连续两次打包，zip 摘要
+  `616D5FDB…36FAD36`、tgz 摘要 `C78FAF5F…0B171E` 两次一致；
+  `SOURCE_DATE_EPOCH=1700000000` 时 zip 摘要 `BEEF0E1A…0A9EDC`、tgz 摘要
+  `2DBDFB19…C52473` 两次一致，条目时间全部为 `2023-11-14 22:13:20`，
+  gzip 头 mtime 同为 `1700000000` 且不写文件名；非法值退出码 1。
 - 验收：同一输入、同一环境连续两次打包，`SHA256SUMS` 与包文件摘要一致。
 
 #### P1-3 CEF 运行时打包
@@ -173,15 +182,27 @@
 
 #### P1-4 WebView2 运行时说明
 
-- [ ] 在 `MANIFEST.txt` 与接入文档中明确“依赖系统 Evergreen Runtime”。
-- 现状：只带 `WebView2Loader.dll`，容易被误认为开箱即用。
-- 验收：文档与 MANIFEST 均有说明，并有对应的常见问题条目。
+- [x] 在 `MANIFEST.txt` 与接入文档中明确“依赖系统 Evergreen Runtime”。
+- 现状（2026-10-23 已实施）：`write_manifest()` 的“运行期”章节在包内含
+  WebView2 loader（`WebView2LoaderStatic.lib`、`WebView2Loader.dll.lib` 或
+  `bin/WebView2Loader.dll`）时，注明依赖系统已安装的 Microsoft Edge WebView2
+  Evergreen Runtime、本包不含浏览器内核、`0x80070002` 错误与安装地址。
+  `docs/Release.md` / `Release.en.md` 新增“WebView2 运行时”章节，说明
+  静态/动态 loader 的差异、Fixed Version Runtime 方式与常见问题。
+- 验收：Windows 包的 `MANIFEST.txt` 与文档均有说明，常见问题覆盖运行时缺失、
+  `WebView2Loader.dll` 缺失与架构不匹配三种情况。
 
 #### P1-5 校验方式对 Windows 友好
 
-- [ ] 提供 `verify.py` 或 PowerShell `Get-FileHash` 示例。
-- 现状：文档只写 `sha256sum -c`，Windows 默认没有该命令。
-- 验收：Windows 用户可按文档一步完成全包校验。
+- [x] 提供 `verify.py` 或 PowerShell `Get-FileHash` 示例。
+- 现状（2026-10-23 已实施）：`MANIFEST.txt` 的“校验”章节与
+  `docs/Release.md` / `Release.en.md` 的“校验发布包”章节给出 PowerShell 5+
+  校验 `SHA256SUMS` 的脚本（全部通过输出 `OK`，否则列出失败项并 `exit 1`），
+  并补充 `Get-FileHash` / `certutil -hashfile` 的单文件用法；
+  `release.py finalize` 生成的压缩包级 `SHA256SUMS.txt` 格式相同，可在
+  `dist/<版本>/` 直接复用同一脚本。
+- 验收：Windows 用户无需 `sha256sum`，在包根目录执行文档中的命令即可完成
+  全包校验；已在解压后的实测包上执行该脚本，输出 `OK`。
 
 #### P1-6 许可合规复查
 
@@ -239,3 +260,6 @@
 | 2026-10-23 | 版本号单一源已实施：`pack.py` 解析新头文件，`--list` 版本为 `1.0.2026.1023`；`VERSION.txt` 已删除 |
 | 2026-10-23 | P1-3 Windows 运行时已随包：`collect_cef_runtime()` 收集 `bin/libcef_win[_109]/<架构>/`，排除 `.lib`；Linux 待 `--with-cef` 支持，macOS 按设计手动 |
 | 2026-10-23 | P1-1 已实施：tar 按源权限写模式（保留可执行/setuid），zip 用 `S_IFLNK` 条目保存符号链接，`iter_files()` 补目录链接，符号链接不计入 `SHA256SUMS` |
+| 2026-10-23 | P1-2 已实施：支持 `SOURCE_DATE_EPOCH`，统一归档条目/gzip 头/MANIFEST 时间；未设置时用源文件与产物最新 mtime，条目排序，两次打包摘要一致 |
+| 2026-10-23 | P1-4 已实施：MANIFEST 运行期与 Release 文档标注 WebView2 依赖系统 Evergreen Runtime，补充 loader 用法与常见问题 |
+| 2026-10-23 | P1-5 已实施：MANIFEST 与 Release 文档补充 PowerShell `Get-FileHash` 全包校验脚本及 `SHA256SUMS.txt` 用法 |

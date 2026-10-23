@@ -21,6 +21,11 @@
 - 顶层使用文档随 SDK 打包，并按包内布局重写 Markdown 链接。
 - `--with-cef` 同时打包 CEF 运行时：保持 `bin/libcef_win[_109]/<架构>/` 结构，
   含 `libcef.dll`、`*.pak`、`icudtl.dat`、`locales/` 等（Windows）。
+- `MANIFEST.txt` 与发布文档标注 WebView2 依赖系统安装的 Microsoft Edge
+  WebView2 Evergreen Runtime，SDK 仅提供 loader；补充动态/静态 loader 与
+  常见问题说明。
+- 发布文档与 `MANIFEST.txt` 增加 Windows 下的包校验命令
+  （PowerShell `Get-FileHash`、`certutil -hashfile`），无需安装 `sha256sum`。
 - 发布相关文档：`docs/Release.md`、`docs/misc/Release-Checklist.md` 与打包工作记录。
 
 ### 变更
@@ -33,6 +38,9 @@
 - 归档语义：tar 按源文件权限写入（保留可执行与 setuid 位），zip 用 `S_IFLNK`
   条目保存符号链接；Unix 包解包后 `.so` 链接链与示例程序的可执行权限得以保留，
   符号链接不再计入 `SHA256SUMS`。
+- 支持可复现构建：设置 `SOURCE_DATE_EPOCH` 后统一归档条目、gzip 头与
+  `MANIFEST.txt` 的打包时间；未设置时按源文件/产物 mtime 生成并排序条目，
+  输入不变时连续两次打包摘要一致。
 
 ### 修复
 

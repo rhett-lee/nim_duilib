@@ -25,6 +25,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - `--with-cef` now also packages the CEF runtime, keeping the
   `bin/libcef_win[_109]/<arch>/` layout (`libcef.dll`, `*.pak`, `icudtl.dat`,
   `locales/`, ...) on Windows.
+- `MANIFEST.txt` and the release documentation state that WebView2 depends on
+  the Microsoft Edge WebView2 Evergreen Runtime installed on the system and
+  that the SDK only ships the loader; dynamic/static loader usage and
+  troubleshooting are documented.
+- The release documentation and `MANIFEST.txt` add Windows package verification
+  commands (PowerShell `Get-FileHash`, `certutil -hashfile`) that do not require
+  `sha256sum`.
 - Release documentation: `docs/Release.md`, `docs/misc/Release-Checklist.md` and
   the packaging work record.
 
@@ -41,6 +48,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   setuid bits preserved) and zip stores symbolic links as `S_IFLNK` entries, so
   Unix packages keep the `.so` link chain and executable permissions after
   extraction; symbolic links are no longer listed in `SHA256SUMS`.
+- Reproducible builds: `SOURCE_DATE_EPOCH` normalizes archive entry times, the
+  gzip header and the build time in `MANIFEST.txt`; without it, entries use
+  source/artifact mtimes and are sorted, so consecutive packings of unchanged
+  input are byte-identical.
 
 ### Fixed
 

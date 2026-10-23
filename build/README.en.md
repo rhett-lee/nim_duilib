@@ -590,6 +590,9 @@ Easy mistakes to avoid:
   (executable/setuid preserved) and zip stores symlinks as `S_IFLNK`; `.so`
   chains and executable bits survive extraction, and symlinks are excluded from
   `SHA256SUMS`.
+- Reproducible builds: `SOURCE_DATE_EPOCH` normalizes entry times, the gzip
+  header and the MANIFEST build time; without it, entries use source/artifact
+  mtimes and are sorted, so unchanged input packs byte-identically.
 
 See [docs/Release.en.md](../docs/Release.en.md) for the full description.
 

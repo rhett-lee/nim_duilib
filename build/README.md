@@ -570,6 +570,8 @@ nim_duilib_copy_runtime(my_app)
 - 归档权限与符号链接：tar 按源权限写条目（保留可执行/setuid），zip 用
   `S_IFLNK` 条目保存符号链接；`.so` 链接链与示例程序可执行位在解包后保留，
   符号链接不计入 `SHA256SUMS`。
+- 可复现构建：`SOURCE_DATE_EPOCH` 统一条目时间、gzip 头与 MANIFEST 打包时间；
+  未设置时按源文件/产物 mtime 生成并排序，输入不变时两次打包摘要一致。
 
 完整说明见 [docs/Release.md](../docs/Release.md)。
 
