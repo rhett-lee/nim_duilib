@@ -487,14 +487,15 @@ python build/pack.py --msvc-runtime md
 产物输出到 `dist/`（已在 .gitignore 中），包名为
 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，内含 `include/duilib/`、
 `lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
-`resources/`、`licenses/`、`docs/`（顶层使用文档），以及 `MANIFEST.txt`
-与 `SHA256SUMS`。
+`resources/`、`licenses/`、`docs/`（顶层使用文档，链接已按包内布局重写），
+以及 `MANIFEST.txt` 与 `SHA256SUMS`。
 
 包内还带**下游接入层**，不需要手动拼 include 路径、库列表和宏：
 
 - `msvc/`（仅 Windows + MSVC）：`nim_duilib.props`、`nim_duilib.targets`、
-  `nim_duilib.sdk.props` 与 `manifest/`。下游 `.vcxproj` 末尾导入一次
-  `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期 DLL 复制。
+  `nim_duilib.sdk.props` 与 `manifest/`（x64、x86 两份）。下游 `.vcxproj`
+  末尾导入一次 `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期
+  DLL 复制。
 - `lib/cmake/nim_duilib/`（全平台）：`find_package(nim_duilib CONFIG REQUIRED)`
   得到 `nim_duilib::duilib`，并提供 `nim_duilib_copy_runtime(<target> [RESOURCES])`。
 - 两套机制都会校验架构/配置/工具链；发布包是单架构、单配置的，Debug 与

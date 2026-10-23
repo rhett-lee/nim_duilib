@@ -495,15 +495,16 @@ Artifacts go to `dist/` (already in .gitignore), named
 `nim_duilib-<version>-<system>-<arch>[-debug].zip`, containing
 `include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
 and WebView2/JPEG link libraries), `resources/`, `licenses/`, `docs/`
-(top-level user documentation), plus `MANIFEST.txt` and `SHA256SUMS`.
+(top-level user documentation with links rewritten for the package layout),
+plus `MANIFEST.txt` and `SHA256SUMS`.
 
 The package also ships a **downstream integration layer**, so consumers do
 not have to assemble include paths, link lists and defines manually:
 
 - `msvc/` (Windows + MSVC only): `nim_duilib.props`, `nim_duilib.targets`,
-  `nim_duilib.sdk.props` and `manifest/`. Import `nim_duilib.targets` once at
-  the end of a `.vcxproj` to get compile/link settings, the manifest, and
-  post-build DLL copying.
+  `nim_duilib.sdk.props` and `manifest/` (both x64 and x86). Import
+  `nim_duilib.targets` once at the end of a `.vcxproj` to get compile/link
+  settings, the manifest, and runtime DLL copying.
 - `lib/cmake/nim_duilib/` (all platforms): `find_package(nim_duilib CONFIG
   REQUIRED)` provides `nim_duilib::duilib` and
   `nim_duilib_copy_runtime(<target> [RESOURCES])`.

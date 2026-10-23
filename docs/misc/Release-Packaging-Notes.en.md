@@ -59,7 +59,7 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | Windows toolchain | Detected from the library directory: `duilib.lib` → MSVC, `libduilib*.a` → MinGW; MinGW collects `.a` / `.dll.a` and probes `mingw64-gcc.*` / `mingw64-llvm.*` for Skia | `build/gcc-mingw-w64_build.bat` and `llvm-mingw-w64_build.bat` produce exactly those names and Skia directories; the two artifacts must not be mixed |
 | DLL-mode runtime | On Windows, `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` are shipped when present; `lib/` then holds the import library | With `EnableDuilibDll` (`duilib_dll.flag`) enabled, `DuilibSettings.props` writes the DLL to `bin/` and the import library to `lib/<arch>/<Config>/duilib.lib`; downstream fails at runtime without the DLL |
 | Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT (`/MTd`, or `/MDd` in DLL mode) and only serve Debug downstream builds; never mix the two |
-| VS integration layer | Windows + MSVC packages generate `msvc/nim_duilib.props`, `.targets`, `nim_duilib.sdk.props` and `msvc/manifest/` | Importing `.targets` once gives include paths, defines, link list, manifest and post-build DLL copying; metadata comes from the actual collected files |
+| VS integration layer | Windows + MSVC packages generate `msvc/nim_duilib.props`, `.targets`, `nim_duilib.sdk.props` and `msvc/manifest/` (both x64 and x86) | Importing `.targets` once gives include paths, defines, link list, manifest and post-build DLL copying; both manifests ship so x86 programs can be built on x64 machines; metadata comes from the actual collected files |
 | CMake integration layer | All platforms generate `lib/cmake/nim_duilib/*.cmake` with `nim_duilib::duilib` and `nim_duilib_copy_runtime()` | `find_package(nim_duilib CONFIG REQUIRED)`; arch/config/toolchain/runtime mismatches fail with `FATAL_ERROR` by default |
 | MSVC runtime metadata | `--msvc-runtime auto` infers `MD` for DLL mode, otherwise `MT`, and writes it into package metadata | Mixing `/MT` and `/MD` triggers LNK2038, so the runtime is aligned for consumers by default, with an opt-out switch |
 | Skia libraries | Whole directory shipped, plus a link list in the manifest | The `duilib` static library contains Skia symbols; linking fails without them |
@@ -253,9 +253,12 @@ the **actually collected files**:
 
 **Verification (2026-10-23):**
 
-- `py_compile` passes; Windows x64 Debug `--list` reports 505 files / 315.0 MB,
-  including 8 integration files (1 manifest + 7 generated), with the original
+- `py_compile` passes; Windows x64 Debug `--list` reports 538 files / 315.0 MB,
+  including 9 integration files (2 manifests + 7 generated), with the original
   497 files unchanged.
+- Windows packages include both `duilib.x64.manifest` and
+  `duilib.x86.manifest`; the project's Platform selects the right one, so x86
+  programs can be built on an x64 machine.
 - All three props/targets files parse as XML; props carry a UTF-8 BOM and the
   virtual files' hashes in `SHA256SUMS` match the bytes in the archive.
 - A temporary CMake consumer configures successfully with
@@ -283,10 +286,26 @@ documents and are excluded:
 other directories (`../README.md`, `../build/build.md`, `misc/`, etc.) and
 entries for documents not shipped in the package were removed.
 
+The docs contain many links into the source tree, so they are rewritten at pack
+time based on the actual collected files (`docs/` entries are virtual files and
+are not written to disk):
+
+| Original link | Handling inside the package |
+| :--- | :--- |
+| `../duilib/xxx.h` | Rewritten to `../include/duilib/xxx.h` when that header ships |
+| `../bin/resources/...`, `../../bin/resources/...` | Rewritten to `../resources/...` |
+| `../examples/`, `../build/`, `*.cpp`, internal headers not shipped | Link removed, display text kept |
+
+No link is left broken inside the package, while the repository docs stay
+unchanged and still navigate the source tree. The conversion is done by
+`collect_docs()` in `pack.py`; docs are written into zip/tar as virtual files.
+The "文档" (docs) section of `MANIFEST.txt` lists every packaged doc, and
+`SHA256SUMS` covers all of them.
+
 The exclusion list lives in `DOC_EXCLUDE_FILES` in `pack.py`; new top-level
-documents ship by default. Windows x64 Debug `--list` verification: 32 docs
-(16 Chinese/English pairs), with no `Release.*`, `Getting-Started.*`,
-`Examples.*` or `misc/` content.
+documents ship by default. Windows x64 Debug verification: 32 docs (16
+Chinese/English pairs); all relative links in the packaged docs resolve inside
+the package (0 broken links), and SHA256SUMS matches.
 
 ### 4. Debug library detection: suffix plus directory name
 

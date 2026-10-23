@@ -71,6 +71,8 @@
    misc/、specs/ 等子目录一律不打包。Release.*（发布流程）、
    Getting-Started.* / Examples.*（库内部文档）与感谢名单.txt 也不打包。
    Summary.* 作为包内文档索引，不包含指向包外目录的链接。
+   文档按实际收集结果重写链接：../duilib/x.h -> ../include/duilib/x.h，
+   ../bin/resources/ -> ../resources/；指向未随包内容的链接退化为纯文字。
    新增顶层文档默认随包，如需排除请加入 DOC_EXCLUDE_FILES。
 
 用法：
@@ -851,24 +853,98 @@ def collect_licenses(collector, skia_lib_dir):
 
 
 def collect_docs(collector):
-    """收集 docs/ 顶层的用户文档（子目录一律不打包）。
+    """把 docs/ 顶层文档渲染为包内虚拟文件，并修正指向源码的链接。
 
-    只取一级文件，跳过 DOC_EXCLUDE_FILES 中的维护文档，避免把发布流程、
-    文档索引、致谢名单等发给下游。新增的顶层使用文档默认随包。
+    只取一级文件，跳过 DOC_EXCLUDE_FILES 中的维护文档。文档里有大量
+    指向源码树的相对链接，打包后源码不存在，因此按实际收集结果改写：
+      - ../duilib/xxx      -> ../include/duilib/xxx（该头文件随包时）
+      - ../bin/resources/  -> ../resources/
+    目标不在包内的链接（.cpp、examples/、build/、未打包的内部头文件）
+    去掉链接，只保留显示文字，避免包内出现断链。
     """
     if not os.path.isdir(DOCS_DIR):
         collector.warn('文档目录不存在：%s' % DOCS_DIR)
-        return 0
-    count = 0
+        return {}
+
+    doc_names = []
     for name in sorted(os.listdir(DOCS_DIR)):
         if name in DOC_EXCLUDE_FILES:
             continue
-        abs_path = os.path.join(DOCS_DIR, name)
-        if not os.path.isfile(abs_path):
-            continue
-        if collector.add('docs/' + name, abs_path):
-            count += 1
-    return count
+        if os.path.isfile(os.path.join(DOCS_DIR, name)):
+            doc_names.append(name)
+
+    # 链接目标是否在包内：已收集的实体文件 + 即将生成的文档本身。
+    packaged = {rel for rel, _abs in collector.items}
+    packaged.update('docs/' + name for name in doc_names)
+
+    virtual = {}
+    for name in doc_names:
+        text = _read_text(os.path.join(DOCS_DIR, name))
+        virtual['docs/' + name] = _rewrite_doc_links(text, packaged)
+    return virtual
+
+
+_DOC_LINK_RE = re.compile(r'\[([^\]]*)\]\(([^)\s]+)(\s+"[^"]*")?\)')
+
+
+def _read_text(path):
+    """按 UTF-8 读取文本，去掉 BOM 并统一换行，保证 zip/tar 的摘要一致。"""
+    with open(path, 'rb') as f:
+        data = f.read()
+    return data.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n')
+
+
+def _resolve_doc_link(url, packaged):
+    """把文档中的相对链接映射到包内路径。
+
+    返回 (动作, 新地址)：keep 原样保留；rewrite 改写；drop 删除链接。
+    """
+    target, sep, fragment = url.partition('#')
+    suffix = ('#' + fragment) if sep else ''
+    if not target or url.startswith(('http://', 'https://', 'mailto:')):
+        return 'keep', url
+
+    if target.startswith('../duilib/'):
+        rest = target[len('../'):]
+        pkg = 'include/' + rest
+        new_url = '../include/' + rest + suffix
+    elif target.startswith('../bin/resources/'):
+        rest = target[len('../bin/resources/'):]
+        pkg = 'resources/' + rest
+        new_url = '../resources/' + rest + suffix
+    elif target.startswith('../../bin/resources/'):
+        rest = target[len('../../bin/resources/'):]
+        pkg = 'resources/' + rest
+        new_url = '../resources/' + rest + suffix
+    elif target.startswith('../'):
+        # 源码树中的其它目录（examples/、build/、README），包内不存在。
+        return 'drop', url
+    elif target.startswith('./'):
+        pkg = 'docs/' + target[2:]
+        new_url = url
+    elif target.endswith('.md'):
+        pkg = 'docs/' + target
+        new_url = url
+    else:
+        return 'keep', url
+
+    if pkg not in packaged:
+        return 'drop', url
+    return ('keep', url) if new_url == url else ('rewrite', new_url)
+
+
+def _rewrite_doc_links(text, packaged):
+    """改写文档中的 Markdown 链接；目标缺失时退化为纯文字。"""
+    def repl(match):
+        label, url, title = match.group(1), match.group(2), match.group(3) or ''
+        action, new_url = _resolve_doc_link(url, packaged)
+        if action == 'keep':
+            return match.group(0)
+        if action == 'rewrite':
+            return '[%s](%s%s)' % (label, new_url, title)
+        return label
+
+    return _DOC_LINK_RE.sub(repl, text)
 
 
 def collect_examples(collector, config, is_windows):
@@ -1131,14 +1207,17 @@ def collect_integration_files(collector, meta):
     virtual = {}
 
     if meta['system'] == 'win' and meta['arch'] in ('x64', 'x86'):
-        manifest_name = 'duilib.%s.manifest' % meta['arch']
-        manifest = os.path.join(MSVC_MANIFEST_DIR, manifest_name)
-        if os.path.isfile(manifest):
-            if collector.add('msvc/manifest/' + manifest_name, manifest):
-                count += 1
-        else:
-            collector.warn('缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）'
-                           % _rel(manifest))
+        # x64 机器上也能开发 x86 程序，两种 manifest 都随包，供下游按
+        # Platform 选择（props 里按 NimDuilibPlatform 取对应的那个）。
+        for manifest_arch in ('x64', 'x86'):
+            manifest_name = 'duilib.%s.manifest' % manifest_arch
+            manifest = os.path.join(MSVC_MANIFEST_DIR, manifest_name)
+            if os.path.isfile(manifest):
+                if collector.add('msvc/manifest/' + manifest_name, manifest):
+                    count += 1
+            else:
+                collector.warn('缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）'
+                               % _rel(manifest))
 
     if meta['system'] == 'win' and meta['toolchain'] == 'msvc':
         virtual['msvc/nim_duilib.props'] = _with_bom(
@@ -1234,10 +1313,19 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  lib/                  静态库（.lib / .a），平面结构')
     lines.append('  resources/            主题、语言、字体资源')
     lines.append('  licenses/             第三方许可证')
-    lines.append('  docs/                 使用文档（顶层；misc/ 等子目录不在包内）')
+    lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
     lines.append('  lib/cmake/nim_duilib/ CMake 接入：find_package(nim_duilib)')
     lines.append('  VERSION               版本号')
+
+    section('文档')
+    doc_files = sorted(rel for rel in virtual_files if rel.startswith('docs/'))
+    if doc_files:
+        lines.append('  随包使用文档（相对链接已按包内布局重写）：')
+        for rel in doc_files:
+            lines.append('    %s' % rel)
+    else:
+        lines.append('  本包不含使用文档。')
 
     section('开发接入')
     lines.append('1) 包含路径：include/')
@@ -1357,7 +1445,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  global.xml；各示例的私有主题目录未包含。')
 
     section('校验')
-    lines.append('  SHA256SUMS 可用 sha256sum -c SHA256SUMS 校验')
+    lines.append('  SHA256SUMS 覆盖包内全部文件（含 docs/ 文档与生成的接入文件），')
+    lines.append('  可用 sha256sum -c SHA256SUMS 校验')
 
     manifest_text = '\n'.join(lines).replace('\n', '\r\n')
 
@@ -1550,7 +1639,8 @@ def main(argv=None):
 
     n_res = collect_resources(collector, args.with_examples)
     n_lic = collect_licenses(collector, skia_dir)
-    n_docs = collect_docs(collector)
+    doc_files = collect_docs(collector)
+    n_docs = len(doc_files)
     n_exe = collect_examples(collector, config, sys_tag == 'win') \
         if args.with_examples else 0
 
@@ -1558,7 +1648,10 @@ def main(argv=None):
         meta = build_package_meta(collector, version, sys_tag, arch_tag, config,
                                   toolchain, args.with_cef, args.cef_version,
                                   args.msvc_runtime)
-        n_integration, virtual_files = collect_integration_files(collector, meta)
+        n_integration, gen_files = collect_integration_files(collector, meta)
+        n_generated = len(gen_files)
+        virtual_files = dict(gen_files)
+        virtual_files.update(doc_files)
     except PackageError as exc:
         eprint('[ERROR] %s' % exc)
         return 1
@@ -1587,7 +1680,7 @@ def main(argv=None):
     print('文档      : %d' % n_docs)
     print('示例程序  : %d' % n_exe)
     print('接入文件  : %d（生成 %d）'
-          % (n_integration + len(virtual_files), len(virtual_files)))
+          % (n_integration + n_generated, n_generated))
     print('合计      : %d 个文件，%s'
           % (len(collector.items) + len(virtual_files),
              human_size(collector.total_size())))
@@ -1602,7 +1695,10 @@ def main(argv=None):
         for rel, _abs in collector.items:
             print('  %s' % rel)
         for rel in sorted(virtual_files):
-            print('  [gen] %s' % rel)
+            if rel.startswith('docs/'):
+                print('  %s' % rel)
+            else:
+                print('  [gen] %s' % rel)
         return 0
 
     pkg_root_name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)

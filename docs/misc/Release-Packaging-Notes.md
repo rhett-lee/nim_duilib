@@ -59,7 +59,7 @@ write_release_docs.py
 | Windows 工具链 | 按库目录内容判定：`duilib.lib` → MSVC，`libduilib*.a` → MinGW；MinGW 收集 `.a` / `.dll.a`，Skia 探测 `mingw64-gcc.*` / `mingw64-llvm.*` | `build/gcc-mingw-w64_build.bat` 与 `llvm-mingw-w64_build.bat` 分别产出上述库名与 Skia 目录；两类产物不可混用 |
 | DLL 模式运行库 | Windows 下若存在 `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` 则随包，`lib/` 中为导入库 | `EnableDuilibDll`（`duilib_dll.flag`）开启时 `DuilibSettings.props` 输出 DLL 到 `bin/`，导入库仍写 `lib/<arch>/<Config>/duilib.lib`；缺 DLL 下游运行失败 |
 | Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT（静态 `/MTd`，DLL 模式 `/MDd`），只能给 Debug 下游；两套不可混用 |
-| VS 接入层 | Windows + MSVC 包内生成 `msvc/nim_duilib.props`、`.targets`、`nim_duilib.sdk.props` 与 `msvc/manifest/` | 下游导入一次 `.targets` 即可完成 include/宏/链接/manifest/DLL 复制；元数据来自实际收集结果 |
+| VS 接入层 | Windows + MSVC 包内生成 `msvc/nim_duilib.props`、`.targets`、`nim_duilib.sdk.props` 与 `msvc/manifest/`（x64、x86 两份） | 下游导入一次 `.targets` 即可完成 include/宏/链接/manifest/DLL 复制；x64 机器上也能开发 x86 程序，故两种 manifest 都随包；元数据来自实际收集结果 |
 | CMake 接入层 | 所有平台生成 `lib/cmake/nim_duilib/*.cmake`，提供 `nim_duilib::duilib` 与 `nim_duilib_copy_runtime()` | `find_package(nim_duilib CONFIG REQUIRED)`；架构/配置/工具链/运行库不匹配默认 FATAL |
 | MSVC 运行库元数据 | `--msvc-runtime auto` 时按模式推断：DLL 模式 `MD`，否则 `MT`；写入包元数据供下游对齐 | 混用 `/MT` 与 `/MD` 会触发 LNK2038，因此默认强制对齐，可用开关退出 |
 | Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
@@ -281,8 +281,10 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 
 **验证（2026-10-23）：**
 
-- `py_compile` 通过；Windows x64 Debug `--list` 共 505 个文件 / 315.0 MB，
-  其中接入文件 8 个（manifest 1 + 生成 7），原有 497 个文件未减少。
+- `py_compile` 通过；Windows x64 Debug `--list` 共 538 个文件 / 315.0 MB，
+  其中接入文件 9 个（manifest 2 + 生成 7），原有 497 个文件未减少。
+- Windows 包同时带 `duilib.x64.manifest` 与 `duilib.x86.manifest`，
+  下游按工程 Platform 选择（x64 机器上也能开发 x86 程序）。
 - 三份 props/targets 均通过 XML 解析；props 带 UTF-8 BOM，虚拟文件在
   `SHA256SUMS` 中的摘要与包内字节一致。
 - 临时 CMake 消费工程 `find_package(nim_duilib CONFIG REQUIRED)` 配置成功，
@@ -304,9 +306,22 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 `Summary.md` / `Summary.en.md` 是包内文档索引，已移除指向其他目录的链接
 （`../README.md`、`../build/build.md`、`misc/` 等），以及未随包文档的条目。
 
+文档里有大量指向源码树的链接，打包时按实际收集结果重写（`docs/` 是虚拟文件，
+不落盘）：
+
+| 原链接 | 包内处理 |
+| :--- | :--- |
+| `../duilib/xxx.h` | 该头文件随包时改为 `../include/duilib/xxx.h` |
+| `../bin/resources/...`、`../../bin/resources/...` | 改为 `../resources/...` |
+| `../examples/`、`../build/`、`*.cpp`、未随包的内部头文件 | 去掉链接，只保留显示文字 |
+
+这样包内文档不存在断链，仓库内文档保持原样、仍可在源码树中跳转。
+`pack.py` 的 `collect_docs()` 负责该转换，文档作为虚拟文件写入 zip/tar；
+`MANIFEST.txt` 的“文档”章节逐条列出随包文档，`SHA256SUMS` 覆盖全部文档。
+
 排除名单集中在 `pack.py` 的 `DOC_EXCLUDE_FILES`，新增顶层文档默认随包。
-Windows x64 Debug `--list` 验证：文档 32 个（16 对中英文），
-没有混入 `Release.*`、`Getting-Started.*`、`Examples.*` 与 `misc/` 内容。
+Windows x64 Debug 验证：文档 32 个（16 对中英文）；包内 32 篇文档的相对链接
+全部指向包内文件（0 断链），SHA256SUMS 校验一致。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 
