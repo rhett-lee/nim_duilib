@@ -73,7 +73,9 @@ nim_duilib-<版本>-<系统>-<架构>/
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
   resources/            主题、语言、字体资源
   licenses/             第三方许可证
-  bin/                  仅 --with-examples 时存在
+  msvc/                 下游接入：props/targets/manifest（仅 Windows + MSVC）
+  lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置
+  bin/                  运行期 DLL；--with-examples 时还含示例程序
 ```
 
 ### SDK 使用契约
@@ -99,8 +101,160 @@ nim_duilib-<版本>-<系统>-<架构>/
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
    Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
    Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
-6. **配置一致性**：Debug 包只给 Debug 下游（`/MTd`），Release 包只给
-   Release 下游（`/MT`），两套不可混用。
+6. **配置一致性**：Debug 包只给 Debug 下游，Release 包只给 Release 下游，
+   两套不可混用。MSVC 运行库随包固定：静态模式为 `/MT`（Debug 为 `/MTd`），
+   DLL 模式为 `/MD`（Debug 为 `/MDd`），下游默认由接入层强制对齐。
+
+### 下游接入机制
+
+SDK 附带两套接入层，读取同一份包元数据（架构、配置、工具链、DLL 模式、
+SDL/WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL），无需手工抄写库列表。
+包是单架构、单配置的：Debug 工程必须用 `-debug` 包，Release 工程用正式包。
+
+#### Visual Studio（MSVC）
+
+**最简接入**：在 `.vcxproj` 末尾（`Microsoft.Cpp.targets` 之前）导入一次：
+
+```xml
+<Import Project="C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\msvc\nim_duilib.targets" />
+```
+
+属性表会自动完成：
+
+- include：`include`（CEF 时再追加 wrapper 源码根）；
+- 宏：`DUILIB_SDL/CEF/WEBVIEW2/JPEG_TURBO/LIB_PAG`、`UNICODE`、DLL 模式 `DUILIB_DLL`；
+- 语言与编码：`stdcpp20`、`/utf-8`；
+- 链接：静态库全套或 DLL 导入库 + 系统库；
+- MSVC 运行库：按包元数据强制对齐；
+- manifest：嵌入 `msvc/manifest/duilib.<arch>.manifest`；
+- 构建后：复制 `bin/*.dll` 到 `$(OutDir)`。
+
+**SDK 路径不固定时**，先定义属性再导入（属性必须在 Import 之前）：
+
+```xml
+<PropertyGroup>
+  <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  <NimDuilibCopyResources>1</NimDuilibCopyResources>
+</PropertyGroup>
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+```
+
+`NimDuilibDir` 末尾必须带反斜杠；也可以放在 `Directory.Build.props` 或同名环境变量中。
+
+**项目文件关键片段**（顺序很重要）：
+
+```xml
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 常规的 ProjectConfigurations / Globals 等配置 -->
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <!-- 自己的源文件与工程设置 -->
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+
+  <!-- nim_duilib 接入：放在 Microsoft.Cpp.targets 之前 -->
+  <PropertyGroup>
+    <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  </PropertyGroup>
+  <Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
+```
+
+**只要编译/链接设置、不要构建后复制**时，改为导入 `nim_duilib.props`：
+
+```xml
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.props" />
+```
+
+可用属性：
+
+| 属性 | 默认 | 说明 |
+| :--- | :--- | :--- |
+| `NimDuilibDir` | `<SDK根>` | SDK 根目录，末尾带 `\` |
+| `NimDuilibCopyRuntime` | `1` | 构建后复制 `bin/*.dll` |
+| `NimDuilibCopyResources` | `0` | 构建后复制 `resources/` |
+| `NimDuilibForceRuntimeLibrary` | `1` | 对齐 MSVC 运行库；`0` 可退出 |
+| `NimDuilibSkipValidation` | `0` | 跳过工具链/架构/配置/库存在性校验 |
+
+常见报错：
+
+| 报错 | 原因 | 处理 |
+| :--- | :--- | :--- |
+| 找不到 `duilib\duilib.h` | `NimDuilibDir` 未指向包根目录，或末尾缺 `\` | 指向解压后的 `nim_duilib-...` 目录 |
+| SDK 架构 / 配置不匹配 | 用了另一架构或另一配置的包 | 换对应包；Debug 用 `-debug` |
+| 该 SDK 是 MinGW 产物 | MSVC 工程导入了 MinGW 包 | 换 MSVC 包 |
+| LNK2038 / 运行库不匹配 | 工程自己覆盖了 `RuntimeLibrary` | 保留默认对齐，或 `NimDuilibForceRuntimeLibrary=0` 后自行保证一致 |
+
+#### CMake（全平台）
+
+**最简 CMakeLists.txt**：
+
+```cmake
+cmake_minimum_required(VERSION 3.18)
+project(my_app LANGUAGES CXX)
+
+# SDK 解压目录（包根，不是 lib/cmake 子目录）
+list(APPEND CMAKE_PREFIX_PATH "C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug")
+find_package(nim_duilib CONFIG REQUIRED)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+
+# 构建后把 bin/*.dll 复制到可执行文件同级
+nim_duilib_copy_runtime(my_app)
+```
+
+**配置与构建**：
+
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug
+cmake --build build
+```
+
+也可以直接指定配置文件所在目录：
+
+```
+cmake -S . -B build -Dnim_duilib_DIR=C:/SDK/nim_duilib-...-debug/lib/cmake/nim_duilib
+```
+
+**按需复制资源 / 指定输出目录**：
+
+```cmake
+# 同时复制 resources/（会覆盖目标目录下已有的 resources/）
+nim_duilib_copy_runtime(my_app RESOURCES)
+
+# 多目标共享输出目录时，显式指定 DESTINATION
+nim_duilib_copy_runtime(my_app DESTINATION "${CMAKE_BINARY_DIR}/bin")
+nim_duilib_copy_runtime(my_tool RESOURCES DESTINATION "${CMAKE_BINARY_DIR}/bin")
+```
+
+**校验与开关**：`find_package` 会校验平台、工具链、架构、配置与 MSVC 运行库，
+不匹配默认直接 `FATAL_ERROR`：
+
+| 变量 | 默认 | 说明 |
+| :--- | :--- | :--- |
+| `NIM_DUILIB_SET_MSVC_RUNTIME` | `ON` | 按包设置 `CMAKE_MSVC_RUNTIME_LIBRARY` |
+| `NIM_DUILIB_ALLOW_ARCH_MISMATCH` | `OFF` | 架构不匹配只告警（不推荐） |
+| `NIM_DUILIB_ALLOW_CONFIG_MISMATCH` | `OFF` | 配置不匹配只告警（不推荐） |
+
+**多配置生成器（VS）注意**：发布包是单配置的。用 VS 生成器时 `CMAKE_BUILD_TYPE`
+不生效，构建非包配置（例如 Release 包构建 Debug）会链接到不匹配的运行库。
+建议每个配置使用独立的构建目录和对应的包：
+
+```
+cmake -S . -B build-debug   -G "Visual Studio 17 2022" -A x64 ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-...-debug
+cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-...
+```
+
+CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）仍需自行放到程序目录；
+`nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `resources/`。
 
 ### 头文件路径不可改动
 
@@ -200,6 +354,7 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 | `--with-sdl` | Windows 下额外打包 SDL3（Unix 始终打包） |
 | `--with-cef` | 打包 CEF 开发包：头文件 + `libcef.lib` + wrapper（体积大） |
 | `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest` |
+| `--msvc-runtime auto\|mt\|md` | 写入包元数据的 MSVC 运行库；默认 `auto`（DLL 模式 MD，否则 MT） |
 | `--with-examples` | 包含示例程序与全部示例私有资源 |
 | `--format zip\|tgz\|tarbz2` | 压缩格式，默认 Windows 用 `zip`、其它用 `tgz` |
 | `--out-dir <路径>` | 输出目录，默认 `dist/` |
@@ -210,7 +365,8 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 配置只由目录决定（`lib/<arch>/Debug` 或 `lib/Debug`），不再靠 `_d` 后缀判断。
 
 - `--config Debug` 时包名追加 `-debug`，`MANIFEST.txt` 标注 `配置 : Debug`。
-- Debug 库带调试 CRT 与 `/MTd`，只能用于 Debug 下游，**不可混进 Release SDK**。
+- Debug 库带调试 CRT（静态 `/MTd`，DLL 模式 `/MDd`），只能用于 Debug 下游，
+  **不可混进 Release SDK**。
 - `--with-examples` 时：Release 包跳过 `*_d.exe`；Debug 包因 CMake 的 Debug
   exe 与 Release 同名，无法区分，脚本会告警提示可能混有 Release 版本。
 - 库目录不存在或主库 `duilib` 缺失时，脚本直接以退出码 1 失败，不会打出

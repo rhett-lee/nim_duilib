@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!--
+        nim_duilib SDK 接入目标（发布包内使用）
+
+        在 .vcxproj 末尾导入本文件即可（本文件会自动导入 nim_duilib.props）：
+            <Import Project="$(NimDuilibDir)\msvc\nim_duilib.targets" />
+
+        额外属性：
+            NimDuilibCopyRuntime    0=不复制 bin/*.dll（默认 1）
+            NimDuilibCopyResources  1=复制 resources/ 到 $(OutDir)resources（默认 0）
+            NimDuilibSkipValidation 1=跳过包完整性/架构/配置校验
+    -->
+
+    <Import Project="$(MSBuildThisFileDirectory)nim_duilib.props" />
+
+    <PropertyGroup>
+        <NimDuilibSkipValidation Condition="'$(NimDuilibSkipValidation)'==''">0</NimDuilibSkipValidation>
+        <NimDuilibCopyRuntime Condition="'$(NimDuilibCopyRuntime)'==''">1</NimDuilibCopyRuntime>
+        <NimDuilibCopyResources Condition="'$(NimDuilibCopyResources)'==''">0</NimDuilibCopyResources>
+    </PropertyGroup>
+
+    <!-- 尽早失败：避免链接期才报 LNK2019 / LNK2038 -->
+    <Target Name="NimDuilibValidate" BeforeTargets="PrepareForBuild"
+            Condition="'$(NimDuilibSkipValidation)'!='1'">
+        <Error Condition="!Exists('$(NimDuilibIncludeDir)\duilib\duilib.h')"
+               Text="nim_duilib SDK 不完整：找不到 $(NimDuilibIncludeDir)\duilib\duilib.h。请检查 NimDuilibDir 是否指向发布包根目录。" />
+        <Error Condition="'$(NimDuilibPackageToolchain)'=='mingw'"
+               Text="该 SDK 是 MinGW 产物（.a/.dll.a），不能用于 VS/MSVC。请换用 MSVC 发布包，或改用 CMake 工程接入。" />
+        <Error Condition="'$(NimDuilibPlatform)'!='$(NimDuilibPackageArch)'"
+               Text="SDK 架构为 $(NimDuilibPackageArch)，与工程 Platform=$(Platform) 不匹配。请换用对应架构的发布包，或为不同 Platform 分别导入 SDK。" />
+        <Error Condition="'$(Configuration)'!='$(NimDuilibPackageConfig)'"
+               Text="SDK 配置为 $(NimDuilibPackageConfig)，与工程 Configuration=$(Configuration) 不匹配。发布包是单配置的，请为 Debug/Release 分别导入对应包，或设置 NimDuilibSkipValidation=1。" />
+
+        <Error Condition="'$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\duilib.lib')"
+               Text="nim_duilib SDK 缺少 lib\duilib.lib：$(NimDuilibLibDir)" />
+        <Error Condition="'$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\duilib-cximage.lib')"
+               Text="nim_duilib SDK 缺少 lib\duilib-cximage.lib：$(NimDuilibLibDir)" />
+        <Error Condition="'$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\skia.lib')"
+               Text="nim_duilib SDK 缺少 lib\skia.lib：$(NimDuilibLibDir)" />
+        <Error Condition="'$(NimDuilibPackageHasSdl)'=='1' And !Exists('$(NimDuilibLibDir)\$(NimDuilibSdlLib)')"
+               Text="SDK 声明支持 SDL，但缺少 $(NimDuilibLibDir)\$(NimDuilibSdlLib)。" />
+        <Error Condition="'$(NimDuilibPackageSdlKind)'=='shared' And !Exists('$(NimDuilibDir)bin\SDL3.dll')"
+               Text="SDK 的 SDL3 为动态库，但缺少 bin\SDL3.dll，运行期会失败。" />
+        <Error Condition="'$(NimDuilibPackageHasJpeg)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\turbojpeg-static.lib')"
+               Text="SDK 声明支持 libjpeg-turbo，但缺少 lib\turbojpeg-static.lib。" />
+        <Error Condition="'$(NimDuilibPackageHasWebView2)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\WebView2LoaderStatic.lib')"
+               Text="SDK 声明支持 WebView2，但缺少 lib\WebView2LoaderStatic.lib。" />
+        <Error Condition="'$(NimDuilibPackageHasCef)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\libcef.lib')"
+               Text="SDK 声明支持 CEF，但缺少 lib\libcef.lib。" />
+        <Error Condition="'$(NimDuilibPackageHasCef)'=='1' And '$(NimDuilibPackageIsDll)'!='1' And !Exists('$(NimDuilibLibDir)\$(NimDuilibPackageCefWrapper).lib')"
+               Text="SDK 声明支持 CEF，但缺少 lib\$(NimDuilibPackageCefWrapper).lib。" />
+    </Target>
+
+    <!-- 运行期：bin/*.dll 始终与可执行文件同级；resources/ 按需复制 -->
+    <Target Name="NimDuilibCopyRuntime" AfterTargets="Build"
+            Condition="'$(NimDuilibCopyRuntime)'!='0'">
+        <ItemGroup>
+            <NimDuilibRuntimeDll Include="$(NimDuilibDir)bin\*.dll" />
+        </ItemGroup>
+        <Copy SourceFiles="@(NimDuilibRuntimeDll)" DestinationFolder="$(OutDir)"
+              SkipUnchangedFiles="true"
+              Condition="'@(NimDuilibRuntimeDll)'!=''" />
+        <ItemGroup Condition="'$(NimDuilibCopyResources)'=='1'">
+            <NimDuilibResourceFile Include="$(NimDuilibDir)resources\**\*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(NimDuilibResourceFile)"
+              DestinationFiles="@(NimDuilibResourceFile->'$(OutDir)resources\%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true"
+              Condition="'$(NimDuilibCopyResources)'=='1' And '@(NimDuilibResourceFile)'!=''" />
+    </Target>
+</Project>

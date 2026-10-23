@@ -485,6 +485,10 @@ python build/pack.py --with-examples
 
 # list what would be collected without packaging
 python build/pack.py --list
+
+# choose the MSVC runtime recorded in package metadata
+# (auto by default: MD for DLL mode, otherwise MT)
+python build/pack.py --msvc-runtime md
 ```
 
 Artifacts go to `dist/` (already in .gitignore), named
@@ -492,6 +496,45 @@ Artifacts go to `dist/` (already in .gitignore), named
 `include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
 and WebView2/JPEG link libraries), `resources/`, `licenses/`, plus
 `MANIFEST.txt` and `SHA256SUMS`.
+
+The package also ships a **downstream integration layer**, so consumers do
+not have to assemble include paths, link lists and defines manually:
+
+- `msvc/` (Windows + MSVC only): `nim_duilib.props`, `nim_duilib.targets`,
+  `nim_duilib.sdk.props` and `manifest/`. Import `nim_duilib.targets` once at
+  the end of a `.vcxproj` to get compile/link settings, the manifest, and
+  post-build DLL copying.
+- `lib/cmake/nim_duilib/` (all platforms): `find_package(nim_duilib CONFIG
+  REQUIRED)` provides `nim_duilib::duilib` and
+  `nim_duilib_copy_runtime(<target> [RESOURCES])`.
+- Both validate architecture/configuration/toolchain. Packages are
+  single-arch and single-config, so Debug and Release builds must use
+  their own packages. The MSVC runtime is aligned to the package by default
+  (can be disabled).
+
+Minimal integration examples (see
+[Release and Packaging](../docs/Release.en.md#downstream-integration) for the
+full examples and property reference):
+
+Visual Studio, placed at the end of the `.vcxproj` before `Microsoft.Cpp.targets`:
+
+```xml
+<PropertyGroup>
+  <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  <NimDuilibCopyResources>1</NimDuilibCopyResources>
+</PropertyGroup>
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+```
+
+CMake:
+
+```cmake
+list(APPEND CMAKE_PREFIX_PATH "C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug")
+find_package(nim_duilib CONFIG REQUIRED)
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+nim_duilib_copy_runtime(my_app)
+```
 
 Easy mistakes to avoid:
 

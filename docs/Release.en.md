@@ -80,7 +80,9 @@ nim_duilib-<version>-<system>-<arch>/
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
   resources/            Theme, language and font resources
   licenses/             Third-party licenses
-  bin/                  Present only with --with-examples
+  msvc/                 Downstream integration: props/targets/manifest (Windows + MSVC only)
+  lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
+  bin/                  Runtime DLLs; example programs with --with-examples
 ```
 
 ### SDK usage contract
@@ -112,8 +114,169 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
    etc.).
 6. **Configuration consistency**: a Debug package serves Debug downstream
-   builds (`/MTd`) only, and a Release package serves Release (`/MT`) only.
-   Never mix the two.
+   builds only, and a Release package serves Release only. Never mix the two.
+   The MSVC runtime is fixed by the package: `/MT` (Debug `/MTd`) for static
+   mode, `/MD` (Debug `/MDd`) for DLL mode. The integration layer aligns it
+   for consumers by default.
+
+### Downstream integration
+
+The SDK ships two integration layers driven by the same package metadata
+(arch, configuration, toolchain, DLL mode, SDL/WebView2/JPEG/CEF, MSVC
+runtime, runtime DLLs). Packages are single-arch and single-config: a Debug
+build must use the `-debug` package and a Release build the normal package.
+
+#### Visual Studio (MSVC)
+
+**Minimal setup**: import once near the end of the `.vcxproj` (before
+`Microsoft.Cpp.targets`):
+
+```xml
+<Import Project="C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\msvc\nim_duilib.targets" />
+```
+
+The property sheets handle:
+
+- include paths: `include` (plus the CEF wrapper root when present);
+- defines: `DUILIB_SDL/CEF/WEBVIEW2/JPEG_TURBO/LIB_PAG`, `UNICODE`, and
+  `DUILIB_DLL` in DLL mode;
+- language/encoding: `stdcpp20`, `/utf-8`;
+- linking: the full static set or the DLL import library plus system libraries;
+- MSVC runtime alignment to the package;
+- manifest: `msvc/manifest/duilib.<arch>.manifest`;
+- post-build copy of `bin/*.dll` into `$(OutDir)`.
+
+**When the SDK path is not fixed**, define the property before the import:
+
+```xml
+<PropertyGroup>
+  <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  <NimDuilibCopyResources>1</NimDuilibCopyResources>
+</PropertyGroup>
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+```
+
+`NimDuilibDir` must end with a backslash. It can also live in
+`Directory.Build.props` or an environment variable of the same name.
+
+**Key project-file fragment** (order matters):
+
+```xml
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- usual ProjectConfigurations / Globals settings -->
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <!-- your sources and project settings -->
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+
+  <!-- nim_duilib integration: before Microsoft.Cpp.targets -->
+  <PropertyGroup>
+    <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  </PropertyGroup>
+  <Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
+```
+
+**Compile/link settings without the copy step**: import only the props file:
+
+```xml
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.props" />
+```
+
+Available properties:
+
+| Property | Default | Meaning |
+| :--- | :--- | :--- |
+| `NimDuilibDir` | `<SDK root>` | SDK root directory, trailing `\` required |
+| `NimDuilibCopyRuntime` | `1` | Copy `bin/*.dll` after build |
+| `NimDuilibCopyResources` | `0` | Copy `resources/` after build |
+| `NimDuilibForceRuntimeLibrary` | `1` | Align MSVC runtime; set `0` to opt out |
+| `NimDuilibSkipValidation` | `0` | Skip toolchain/arch/config/library checks |
+
+Common errors:
+
+| Error | Cause | Fix |
+| :--- | :--- | :--- |
+| `duilib\duilib.h` not found | `NimDuilibDir` is not the package root, or misses the trailing `\` | Point it at the extracted `nim_duilib-...` directory |
+| SDK arch/config mismatch | Wrong arch or wrong configuration package | Use the matching package; Debug needs the `-debug` one |
+| "SDK is a MinGW build" | An MSVC project imported a MinGW package | Use the MSVC package |
+| LNK2038 / runtime mismatch | The project overrides `RuntimeLibrary` | Keep the default alignment, or set `NimDuilibForceRuntimeLibrary=0` and align manually |
+
+#### CMake (all platforms)
+
+**Minimal CMakeLists.txt**:
+
+```cmake
+cmake_minimum_required(VERSION 3.18)
+project(my_app LANGUAGES CXX)
+
+# Extracted SDK root (not the lib/cmake subdirectory)
+list(APPEND CMAKE_PREFIX_PATH "C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug")
+find_package(nim_duilib CONFIG REQUIRED)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+
+# Copy bin/*.dll next to the executable after build
+nim_duilib_copy_runtime(my_app)
+```
+
+**Configure and build**:
+
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug
+cmake --build build
+```
+
+Alternatively point directly at the config directory:
+
+```
+cmake -S . -B build -Dnim_duilib_DIR=C:/SDK/nim_duilib-...-debug/lib/cmake/nim_duilib
+```
+
+**Copy resources on demand / choose the destination**:
+
+```cmake
+# Also copy resources/ (overwrites an existing resources/ in the target dir)
+nim_duilib_copy_runtime(my_app RESOURCES)
+
+# Share one output directory between targets
+nim_duilib_copy_runtime(my_app DESTINATION "${CMAKE_BINARY_DIR}/bin")
+nim_duilib_copy_runtime(my_tool RESOURCES DESTINATION "${CMAKE_BINARY_DIR}/bin")
+```
+
+**Validation and switches**: `find_package` validates platform, toolchain,
+architecture, configuration and the MSVC runtime, and fails with
+`FATAL_ERROR` by default on mismatch:
+
+| Variable | Default | Meaning |
+| :--- | :--- | :--- |
+| `NIM_DUILIB_SET_MSVC_RUNTIME` | `ON` | Set `CMAKE_MSVC_RUNTIME_LIBRARY` from the package |
+| `NIM_DUILIB_ALLOW_ARCH_MISMATCH` | `OFF` | Warn only on arch mismatch (not recommended) |
+| `NIM_DUILIB_ALLOW_CONFIG_MISMATCH` | `OFF` | Warn only on config mismatch (not recommended) |
+
+**Multi-config generators (VS)**: packages are single-config.
+`CMAKE_BUILD_TYPE` has no effect with the Visual Studio generator, so
+building a configuration other than the package's (for example Debug with a
+Release package) links an incompatible runtime. Use a separate build
+directory and the matching package per configuration:
+
+```
+cmake -S . -B build-debug   -G "Visual Studio 17 2022" -A x64 ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-...-debug
+cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
+      -DCMAKE_PREFIX_PATH=C:/SDK/nim_duilib-...
+```
+
+The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) still has to be placed
+next to the executable manually; `nim_duilib_copy_runtime` only copies the
+SDK's `bin/*.dll` and `resources/`.
 
 ### The header path layout must not change
 
@@ -223,6 +386,7 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
 | `--with-cef` | Package the CEF development set: headers + `libcef.lib` + wrapper (large) |
 | `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest` |
+| `--msvc-runtime auto\|mt\|md` | MSVC runtime recorded in package metadata; `auto` (MD for DLL mode, otherwise MT) by default |
 | `--with-examples` | Include example programs and all per-example resources |
 | `--format zip\|tgz\|tarbz2` | Archive format; defaults to `zip` on Windows, `tgz` elsewhere |
 | `--out-dir <path>` | Output directory; defaults to `dist/` |
@@ -235,8 +399,9 @@ Configuration is determined solely by the directory (`lib/<arch>/Debug` or
 
 - With `--config Debug` the package name gains `-debug` and `MANIFEST.txt`
   records `Configuration : Debug`.
-- Debug libraries carry the debug CRT and `/MTd` and may be used only by Debug
-  downstream builds — **never mix them into a Release SDK**.
+- Debug libraries carry the debug CRT (`/MTd`, or `/MDd` in DLL mode) and may
+  be used only by Debug downstream builds — **never mix them into a Release
+  SDK**.
 - With `--with-examples`: Release packages skip `*_d.exe`; Debug packages
   cannot distinguish CMake Debug executables (same name as Release), so the
   script warns that Release executables may be mixed in.

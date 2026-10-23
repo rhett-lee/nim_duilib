@@ -58,7 +58,10 @@ write_release_docs.py
 | 库目录 | 只认一套布局（Windows `lib/<arch>/<Config>`、Unix `lib/<Config>`） | CM-5 D-2 方案 B；配置由目录表达，删除 `_d` 判定与多目录合并 |
 | Windows 工具链 | 按库目录内容判定：`duilib.lib` → MSVC，`libduilib*.a` → MinGW；MinGW 收集 `.a` / `.dll.a`，Skia 探测 `mingw64-gcc.*` / `mingw64-llvm.*` | `build/gcc-mingw-w64_build.bat` 与 `llvm-mingw-w64_build.bat` 分别产出上述库名与 Skia 目录；两类产物不可混用 |
 | DLL 模式运行库 | Windows 下若存在 `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` 则随包，`lib/` 中为导入库 | `EnableDuilibDll`（`duilib_dll.flag`）开启时 `DuilibSettings.props` 输出 DLL 到 `bin/`，导入库仍写 `lib/<arch>/<Config>/duilib.lib`；缺 DLL 下游运行失败 |
-| Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT 与 `/MTd`，只能给 Debug 下游；两套不可混用 |
+| Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT（静态 `/MTd`，DLL 模式 `/MDd`），只能给 Debug 下游；两套不可混用 |
+| VS 接入层 | Windows + MSVC 包内生成 `msvc/nim_duilib.props`、`.targets`、`nim_duilib.sdk.props` 与 `msvc/manifest/` | 下游导入一次 `.targets` 即可完成 include/宏/链接/manifest/DLL 复制；元数据来自实际收集结果 |
+| CMake 接入层 | 所有平台生成 `lib/cmake/nim_duilib/*.cmake`，提供 `nim_duilib::duilib` 与 `nim_duilib_copy_runtime()` | `find_package(nim_duilib CONFIG REQUIRED)`；架构/配置/工具链/运行库不匹配默认 FATAL |
+| MSVC 运行库元数据 | `--msvc-runtime auto` 时按模式推断：DLL 模式 `MD`，否则 `MT`；写入包元数据供下游对齐 | 混用 `/MT` 与 `/MD` 会触发 LNK2038，因此默认强制对齐，可用开关退出 |
 | Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
 | WebView2 / JPEG | Windows 默认随包 loader 库、`bin/WebView2Loader.dll` 与 `turbojpeg-static` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号；CMake 使用动态 loader，运行期需要该 DLL |
 | SDL3 | Unix 始终随包；Windows 仅 `--with-sdl`；按产物收集静态库或导入库，动态时连同 `bin/SDL3.dll` | Windows 默认关闭 SDL；Unix 默认启用且为动态库；MinGW 的 CMake 构建链接动态 SDL3（`libSDL3.dll.a`） |
@@ -255,6 +258,36 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 **验证：** MSVC x64 Debug `--list` 仍为 497 个文件 / 314.8 MB，与改动前一致；
 用临时目录模拟 MinGW 产物，得到 5 个 `.a`、`mingw64-gcc.x64.release` 的 Skia 目录、
 `libSDL3.dll.a` + `bin/SDL3.dll` 与 `bin/duilib.dll`，清单按 `-lxxx` 输出。
+
+### 3.3 下游接入层（2026-10-23）
+
+发布包此前只有头文件与库，下游要自己拼 include、库列表、宏、manifest 和
+运行期 DLL 复制。现在由 `pack.py` 按**实际收集结果**生成两套接入机制：
+
+- **VS（Windows + MSVC）**：`msvc/nim_duilib.targets` 自动导入
+  `nim_duilib.props` 与 `nim_duilib.sdk.props`，完成 include、`DUILIB_*` 宏、
+  `stdcpp20`、库列表/系统库、MSVC 运行库对齐、manifest 嵌入，并在构建后
+  复制 `bin/*.dll`；`NimDuilibCopyResources=1` 时再复制 `resources/`。
+- **CMake（全平台）**：`lib/cmake/nim_duilib/nim_duilibConfig.cmake` 提供
+  `nim_duilib::duilib`；校验平台/工具链/架构/配置/运行库，并提供
+  `nim_duilib_copy_runtime(<target> [RESOURCES] [DESTINATION <dir>])`。
+- 元数据字段：版本、系统、架构、配置、工具链、DLL 模式、SDL 形态、
+  WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL。MinGW 包不生成 `msvc/`；
+  WebView2/JPEG/CEF 只在 MSVC 下声明为可用。
+- `--msvc-runtime auto|mt|md` 控制写入元数据的运行库；`auto` 为 DLL 模式
+  `MD`、否则 `MT`。
+
+**验证（2026-10-23）：**
+
+- `py_compile` 通过；Windows x64 Debug `--list` 共 505 个文件 / 315.0 MB，
+  其中接入文件 8 个（manifest 1 + 生成 7），原有 497 个文件未减少。
+- 三份 props/targets 均通过 XML 解析；props 带 UTF-8 BOM，虚拟文件在
+  `SHA256SUMS` 中的摘要与包内字节一致。
+- 临时 CMake 消费工程 `find_package(nim_duilib CONFIG REQUIRED)` 配置成功，
+  target 的 include/宏/库列表正确；架构不匹配（Win32 工程消费 x64 包）与
+  MSVC 运行库不一致（MD 工程消费 MT 包）均按预期 `FATAL_ERROR`。
+- 伪造 MinGW 库目录：不生成 `msvc/`，只输出 4 个 CMake 接入文件；
+  `--with-sdl` / `--with-cef` 变体 `--list` 均正常。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 

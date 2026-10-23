@@ -58,7 +58,10 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | Library directory | Only one layout (Windows `lib/<arch>/<Config>`, Unix `lib/<Config>`) | CM-5 D-2 option B; configuration comes from the directory, no `_d` detection or directory merging |
 | Windows toolchain | Detected from the library directory: `duilib.lib` → MSVC, `libduilib*.a` → MinGW; MinGW collects `.a` / `.dll.a` and probes `mingw64-gcc.*` / `mingw64-llvm.*` for Skia | `build/gcc-mingw-w64_build.bat` and `llvm-mingw-w64_build.bat` produce exactly those names and Skia directories; the two artifacts must not be mixed |
 | DLL-mode runtime | On Windows, `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` are shipped when present; `lib/` then holds the import library | With `EnableDuilibDll` (`duilib_dll.flag`) enabled, `DuilibSettings.props` writes the DLL to `bin/` and the import library to `lib/<arch>/<Config>/duilib.lib`; downstream fails at runtime without the DLL |
-| Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT and `/MTd` and only serve Debug downstream builds; never mix the two |
+| Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT (`/MTd`, or `/MDd` in DLL mode) and only serve Debug downstream builds; never mix the two |
+| VS integration layer | Windows + MSVC packages generate `msvc/nim_duilib.props`, `.targets`, `nim_duilib.sdk.props` and `msvc/manifest/` | Importing `.targets` once gives include paths, defines, link list, manifest and post-build DLL copying; metadata comes from the actual collected files |
+| CMake integration layer | All platforms generate `lib/cmake/nim_duilib/*.cmake` with `nim_duilib::duilib` and `nim_duilib_copy_runtime()` | `find_package(nim_duilib CONFIG REQUIRED)`; arch/config/toolchain/runtime mismatches fail with `FATAL_ERROR` by default |
+| MSVC runtime metadata | `--msvc-runtime auto` infers `MD` for DLL mode, otherwise `MT`, and writes it into package metadata | Mixing `/MT` and `/MD` triggers LNK2038, so the runtime is aligned for consumers by default, with an opt-out switch |
 | Skia libraries | Whole directory shipped, plus a link list in the manifest | The `duilib` static library contains Skia symbols; linking fails without them |
 | WebView2 / JPEG | Windows ships loader libraries, `bin/WebView2Loader.dll` and `turbojpeg-static` by default | VS enables WebView2 and libjpeg-turbo by default; `duilib.lib` contains those symbols; CMake uses the dynamic loader, which needs the DLL at runtime |
 | SDL3 | Always shipped on Unix; on Windows only with `--with-sdl`; collects the static or import library actually built, plus `bin/SDL3.dll` for dynamic builds | SDL is off by default on Windows; on Unix it is enabled and built as a shared library; MinGW CMake builds link the shared SDL3 (`libSDL3.dll.a`) |
@@ -224,6 +227,43 @@ Image/ImageDecoder_WEBP.h
   when SDL is off on Windows; with `--with-sdl`, `DragWindowFilter_SDL.h` is added automatically (246 headers).
 - Unix packages: `DragWindowFilter_SDL.h` is kept; excluding the WebView2 headers leaves 238 headers with a complete closure.
 - Macro combos: Windows + `--with-cef` gives 270 headers; Unix + CEF gives 263, both with a complete closure.
+
+### 3.2 Downstream integration layer (2026-10-23)
+
+Previously the package only contained headers and libraries, leaving consumers
+to assemble include paths, link lists, defines, manifests and runtime DLL
+copying themselves. `pack.py` now generates two integration mechanisms from
+the **actually collected files**:
+
+- **VS (Windows + MSVC)**: `msvc/nim_duilib.targets` imports
+  `nim_duilib.props` and `nim_duilib.sdk.props` automatically and handles
+  include paths, `DUILIB_*` defines, `stdcpp20`, libraries/system libraries,
+  MSVC runtime alignment, the manifest, and post-build `bin/*.dll` copying;
+  `NimDuilibCopyResources=1` also copies `resources/`.
+- **CMake (all platforms)**: `lib/cmake/nim_duilib/nim_duilibConfig.cmake`
+  provides `nim_duilib::duilib`; it validates platform/toolchain/arch/config/
+  runtime and provides `nim_duilib_copy_runtime(<target> [RESOURCES]
+  [DESTINATION <dir>])`.
+- Metadata fields: version, system, arch, config, toolchain, DLL mode, SDL
+  kind, WebView2/JPEG/CEF, MSVC runtime, runtime DLLs. MinGW packages do not
+  generate `msvc/`; WebView2/JPEG/CEF are only declared available for MSVC.
+- `--msvc-runtime auto|mt|md` controls the runtime written into metadata;
+  `auto` means `MD` for DLL mode and `MT` otherwise.
+
+**Verification (2026-10-23):**
+
+- `py_compile` passes; Windows x64 Debug `--list` reports 505 files / 315.0 MB,
+  including 8 integration files (1 manifest + 7 generated), with the original
+  497 files unchanged.
+- All three props/targets files parse as XML; props carry a UTF-8 BOM and the
+  virtual files' hashes in `SHA256SUMS` match the bytes in the archive.
+- A temporary CMake consumer configures successfully with
+  `find_package(nim_duilib CONFIG REQUIRED)` and gets the expected include/
+  define/link properties; an arch mismatch (Win32 consumer, x64 package) and
+  an MSVC runtime mismatch (MD consumer, MT package) both fail with the
+  expected `FATAL_ERROR`.
+- A mocked MinGW library directory produces no `msvc/` and only the 4 CMake
+  integration files; `--with-sdl` / `--with-cef` `--list` variants succeed.
 
 ### 4. Debug library detection: suffix plus directory name
 

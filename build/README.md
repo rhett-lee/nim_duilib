@@ -479,12 +479,48 @@ python build/pack.py --with-examples
 
 # 只看会收集哪些文件，不实际打包
 python build/pack.py --list
+
+# 指定 MSVC 运行库（默认 auto：DLL 模式 MD，否则 MT）
+python build/pack.py --msvc-runtime md
 ```
 
 产物输出到 `dist/`（已在 .gitignore 中），包名为
 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，内含 `include/duilib/`、
 `lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
 `resources/`、`licenses/`，以及 `MANIFEST.txt` 与 `SHA256SUMS`。
+
+包内还带**下游接入层**，不需要手动拼 include 路径、库列表和宏：
+
+- `msvc/`（仅 Windows + MSVC）：`nim_duilib.props`、`nim_duilib.targets`、
+  `nim_duilib.sdk.props` 与 `manifest/`。下游 `.vcxproj` 末尾导入一次
+  `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期 DLL 复制。
+- `lib/cmake/nim_duilib/`（全平台）：`find_package(nim_duilib CONFIG REQUIRED)`
+  得到 `nim_duilib::duilib`，并提供 `nim_duilib_copy_runtime(<target> [RESOURCES])`。
+- 两套机制都会校验架构/配置/工具链；发布包是单架构、单配置的，Debug 与
+  Release 必须各用各的包。MSVC 运行库默认按包元数据强制对齐（可关闭）。
+
+最小接入示例（完整示例与属性说明见
+[发布与打包](../docs/Release.md#下游接入机制)）：
+
+Visual Studio，写在 `.vcxproj` 末尾、`Microsoft.Cpp.targets` 之前：
+
+```xml
+<PropertyGroup>
+  <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
+  <NimDuilibCopyResources>1</NimDuilibCopyResources>
+</PropertyGroup>
+<Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
+```
+
+CMake：
+
+```cmake
+list(APPEND CMAKE_PREFIX_PATH "C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug")
+find_package(nim_duilib CONFIG REQUIRED)
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+nim_duilib_copy_runtime(my_app)
+```
 
 几个容易踩的点：
 

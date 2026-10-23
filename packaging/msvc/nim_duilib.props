@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!--
+        nim_duilib SDK 接入属性表（发布包内使用）
+
+        用法：在 .vcxproj 末尾导入配套的 nim_duilib.targets（它会自动导入本文件）：
+            <Import Project="$(NimDuilibDir)\msvc\nim_duilib.targets" />
+        只复制运行期 DLL 和做校验；只需编译/链接设置时也可直接导入本文件。
+
+        导入前可覆盖的属性：
+            NimDuilibDir                  SDK 根目录（默认本文件上一级）
+            NimDuilibForceRuntimeLibrary  1=按 SDK 元数据设置 RuntimeLibrary（默认）
+            NimDuilibUseManifest          0=不嵌入 Common Controls manifest
+            NimDuilibCopyRuntime          0=不复制 bin/*.dll（在 .targets 中）
+            NimDuilibCopyResources        1=复制 resources/ 到输出目录（默认 0）
+            NimDuilibSkipValidation       1=跳过架构/配置/依赖校验
+    -->
+
+    <!-- pack.py 生成的包元数据：版本、配置、架构、工具链、特性、运行库 -->
+    <Import Project="$(MSBuildThisFileDirectory)nim_duilib.sdk.props"
+            Condition="Exists('$(MSBuildThisFileDirectory)nim_duilib.sdk.props')" />
+
+    <PropertyGroup Label="NimDuilibSdk">
+        <NimDuilibDir Condition="'$(NimDuilibDir)'==''">$(MSBuildThisFileDirectory)..\</NimDuilibDir>
+        <NimDuilibIncludeDir>$(NimDuilibDir)include</NimDuilibIncludeDir>
+        <NimDuilibLibDir>$(NimDuilibDir)lib</NimDuilibLibDir>
+
+        <!-- VS 的 Win32 对应 SDK 的 x86 -->
+        <NimDuilibPlatform Condition="'$(Platform)'=='Win32'">x86</NimDuilibPlatform>
+        <NimDuilibPlatform Condition="'$(Platform)'!='Win32'">$(Platform)</NimDuilibPlatform>
+
+        <NimDuilibForceRuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'==''">1</NimDuilibForceRuntimeLibrary>
+        <NimDuilibUseManifest Condition="'$(NimDuilibUseManifest)'==''">1</NimDuilibUseManifest>
+    </PropertyGroup>
+
+    <!-- CEF 头文件按 "include/cef_xxx.h" 引用，需要把 wrapper 源码根加入 include -->
+    <PropertyGroup Condition="'$(NimDuilibPackageHasCef)'=='1'">
+        <NimDuilibCefIncludeDir Condition="'$(NimDuilibCefIncludeDir)'=='' And Exists('$(NimDuilibIncludeDir)\duilib\third_party\libcef\libcef_win\include')">$(NimDuilibIncludeDir)\duilib\third_party\libcef\libcef_win</NimDuilibCefIncludeDir>
+        <NimDuilibCefIncludeDir Condition="'$(NimDuilibCefIncludeDir)'=='' And Exists('$(NimDuilibIncludeDir)\duilib\third_party\libcef\libcef_win_109\include')">$(NimDuilibIncludeDir)\duilib\third_party\libcef\libcef_win_109</NimDuilibCefIncludeDir>
+    </PropertyGroup>
+
+    <PropertyGroup Label="NimDuilibLink">
+        <NimDuilibSystemLibs>Comctl32.lib;Imm32.lib;Opengl32.lib;User32.lib;shlwapi.lib</NimDuilibSystemLibs>
+        <NimDuilibSystemLibs Condition="'$(NimDuilibPackageHasSdl)'=='1'">$(NimDuilibSystemLibs);Version.lib;Winmm.lib;Setupapi.lib</NimDuilibSystemLibs>
+        <NimDuilibSystemLibs Condition="'$(NimDuilibPackageHasWebView2)'=='1'">$(NimDuilibSystemLibs);WinInet.lib</NimDuilibSystemLibs>
+
+        <NimDuilibSdlLib Condition="'$(NimDuilibPackageSdlKind)'=='shared'">SDL3.lib</NimDuilibSdlLib>
+        <NimDuilibSdlLib Condition="'$(NimDuilibPackageSdlKind)'!='shared'">SDL3-static.lib</NimDuilibSdlLib>
+
+        <!-- 静态库：Skia + 可选依赖 + duilib 全部库 + 系统库 -->
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1'">skia.lib;svg.lib;skshaper.lib;skottie.lib;sksg.lib;jsonreader.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1' And Exists('$(NimDuilibLibDir)\bentleyottmann.lib')">$(NimDuilibLinkLibs);bentleyottmann.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1' And Exists('$(NimDuilibLibDir)\expat.lib')">$(NimDuilibLinkLibs);expat.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1' And Exists('$(NimDuilibLibDir)\skcms.lib')">$(NimDuilibLinkLibs);skcms.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1' And Exists('$(NimDuilibLibDir)\skresources.lib')">$(NimDuilibLinkLibs);skresources.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageHasSdl)'=='1' And '$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);$(NimDuilibSdlLib)</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageHasJpeg)'=='1' And '$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);turbojpeg-static.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageHasWebView2)'=='1' And '$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);WebView2LoaderStatic.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageHasCef)'=='1' And '$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);libcef.lib;$(NimDuilibPackageCefWrapper).lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);duilib.lib;duilib-cximage.lib;duilib-png.lib;duilib-webp.lib;duilib-zlib.lib</NimDuilibLinkLibs>
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'!='1'">$(NimDuilibLinkLibs);$(NimDuilibSystemLibs)</NimDuilibLinkLibs>
+
+        <!-- DLL 模式：只链导入库 + 系统库，其余依赖已在 duilib.dll 内 -->
+        <NimDuilibLinkLibs Condition="'$(NimDuilibPackageIsDll)'=='1'">duilib.lib;$(NimDuilibSystemLibs)</NimDuilibLinkLibs>
+    </PropertyGroup>
+
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>$(NimDuilibIncludeDir);$(NimDuilibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <!-- 显式写 0/1：duilib_config.h 在未定义 DUILIB_CEF 时默认开启 CEF -->
+            <PreprocessorDefinitions>DUILIB_SDL=$(NimDuilibPackageHasSdl);DUILIB_CEF=$(NimDuilibPackageHasCef);DUILIB_WEBVIEW2=$(NimDuilibPackageHasWebView2);DUILIB_JPEG_TURBO=$(NimDuilibPackageHasJpeg);DUILIB_LIB_PAG=0;UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions Condition="'$(NimDuilibPackageIsDll)'=='1'">DUILIB_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <LanguageStandard>stdcpp20</LanguageStandard>
+            <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+            <RuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'!='0' And '$(Configuration)'=='Release' And '$(NimDuilibPackageMsvcRuntime)'=='MT'">MultiThreaded</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'!='0' And '$(Configuration)'=='Debug' And '$(NimDuilibPackageMsvcRuntime)'=='MT'">MultiThreadedDebug</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'!='0' And '$(Configuration)'=='Release' And '$(NimDuilibPackageMsvcRuntime)'=='MD'">MultiThreadedDLL</RuntimeLibrary>
+            <RuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'!='0' And '$(Configuration)'=='Debug' And '$(NimDuilibPackageMsvcRuntime)'=='MD'">MultiThreadedDebugDLL</RuntimeLibrary>
+        </ClCompile>
+        <Link>
+            <AdditionalLibraryDirectories>$(NimDuilibLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(NimDuilibLinkLibs);%(AdditionalDependencies)</AdditionalDependencies>
+            <DelayLoadDLLs Condition="'$(NimDuilibPackageHasCef)'=='1' And '$(NimDuilibPackageIsDll)'!='1'">libcef.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <!-- Common Controls v6 + 系统版本声明；arm64 没有配套 manifest，跳过 -->
+    <ItemGroup Condition="'$(NimDuilibUseManifest)'!='0' And ('$(NimDuilibPlatform)'=='x64' Or '$(NimDuilibPlatform)'=='x86')">
+        <Manifest Include="$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibPlatform).manifest"
+                  Condition="Exists('$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibPlatform).manifest')" />
+    </ItemGroup>
+</Project>

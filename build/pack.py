@@ -61,6 +61,12 @@
             mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release。
    因此 MinGW 的清单链接写法是 -lxxx，MSVC 是 xxx.lib。
 
+7. 包内还要提供“下游接入层”，由 packaging/ 下的模板渲染生成（不手工落盘）：
+   - Windows+MSVC：msvc/nim_duilib.props、nim_duilib.targets、nim_duilib.sdk.props；
+   - 全平台：lib/cmake/nim_duilib/*.cmake（find_package(nim_duilib)）。
+   元数据（架构/配置/工具链/DLL/SDL/CEF/运行库/运行期 DLL）必须与实际
+   收集结果一致，否则下游会链接到错误产物。
+
 用法：
     python build/pack.py                      # Release SDK 包（不含示例）
     python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
@@ -70,6 +76,7 @@
     python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
     python build/pack.py --with-sdl           # Windows 额外打包 SDL3
     python build/pack.py --with-cef           # 额外打包 CEF 开发包
+    python build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
     python build/pack.py --out-dir dist       # 指定输出目录
 
 退出码：0 成功；1 参数或产物缺失；2 打包异常。
@@ -80,6 +87,7 @@ import hashlib
 import io
 import os
 import platform
+import re
 import stat
 import sys
 import tarfile
@@ -104,6 +112,8 @@ CEF_DIR = os.path.join(THIRD_PARTY_DIR, 'libcef')
 RESOURCES_DIR = os.path.join(REPO_ROOT, 'bin', 'resources')
 LICENSES_DIR = os.path.join(REPO_ROOT, 'licenses')
 BIN_DIR = os.path.join(REPO_ROOT, 'bin')
+PACKAGING_DIR = os.path.join(REPO_ROOT, 'packaging')
+MSVC_MANIFEST_DIR = os.path.join(REPO_ROOT, 'msvc', 'manifest')
 
 # 外部依赖（与仓库同级），可用命令行参数覆盖
 SKIA_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'skia')
@@ -859,6 +869,252 @@ def collect_examples(collector, config, is_windows):
 
 
 # --------------------------------------------------------------------------
+# 下游接入文件（VS property sheet / CMake package）
+# --------------------------------------------------------------------------
+
+def _render_template(rel_path, mapping):
+    """读取 packaging/ 下的模板并替换 @KEY@ 占位符。
+
+    模板缺失、或替换后仍有占位符，都视为打包错误：宁可失败，
+    也不要把带 @...@ 的半成品 property sheet / CMake 文件发给下游。
+    """
+    path = os.path.join(PACKAGING_DIR, rel_path.replace('/', os.sep))
+    if not os.path.isfile(path):
+        raise PackageError('接入模板不存在：%s（应位于仓库 packaging/ 目录）'
+                           % _rel(path))
+    with io.open(path, 'r', encoding='utf-8-sig') as f:
+        text = f.read()
+    for key, value in mapping.items():
+        text = text.replace('@%s@' % key, str(value))
+    leftover = re.findall(r'@[A-Z0-9_]+@', text)
+    if leftover:
+        raise PackageError('接入模板 %s 存在未替换的占位符：%s'
+                           % (rel_path, ', '.join(sorted(set(leftover)))))
+    return text
+
+
+def _with_bom(text):
+    """VS 读取 UTF-8 属性表时带 BOM 最稳妥（中文注释不会变乱码）。"""
+    return u'\ufeff' + text
+
+
+def _package_lib_names(collector):
+    return set(rel.rsplit('/', 1)[-1] for rel, _abs in collector.items
+               if rel.startswith('lib/'))
+
+
+def _package_lib_stems(lib_names):
+    """库文件名主干：duilib.lib -> duilib，libskia.a -> skia，libSDL3.dll.a -> SDL3。
+
+    只对 .a（Unix/MinGW）去掉 lib 前缀：MSVC 的 libcef_dll_wrapper.lib
+    本身就带 lib 前缀，不能误删。
+    """
+    stems = set()
+    for name in lib_names:
+        if name.lower().endswith('.a'):
+            stem = name[:-2]
+            if stem.lower().endswith('.dll'):
+                stem = stem[:-4]
+            if stem.startswith('lib'):
+                stem = stem[3:]
+        else:
+            stem = os.path.splitext(name)[0]
+        stems.add(stem)
+    return stems
+
+
+def build_package_meta(collector, version, sys_tag, arch_tag, config,
+                       toolchain, with_cef, cef_version, msvc_runtime):
+    """汇总发布包的接入元数据（VS props 与 CMake package info 共用）。
+
+    所有特性均以“实际进了包的文件”为准，而不是命令行开关，
+    避免声明了 SDL/CEF 但包里没有对应库。
+    """
+    lib_names = _package_lib_names(collector)
+    stems = _package_lib_stems(lib_names)
+    bin_dlls = sorted(rel.rsplit('/', 1)[-1] for rel, _abs in collector.items
+                      if rel.startswith('bin/') and rel.lower().endswith('.dll'))
+    is_dll = any(name.lower().startswith('duilib') for name in bin_dlls)
+
+    sdl_static = ('SDL3-static.lib' in lib_names) or ('libSDL3.a' in lib_names)
+    sdl_shared = (('SDL3.lib' in lib_names) or ('libSDL3.dll.a' in lib_names)
+                  or any(name.lower().startswith('libsdl3') and
+                         ('.so' in name.lower() or name.lower().endswith('.dylib'))
+                         for name in lib_names))
+    has_sdl = sdl_static or sdl_shared
+    sdl_kind = 'static' if sdl_static else ('shared' if sdl_shared else '')
+
+    # WebView2 / JPEG / CEF 的预编译产物只有 MSVC 可用的 .lib；
+    # MinGW 包即使随包带了这些文件，也不能声明为可用特性。
+    is_msvc = toolchain == 'msvc'
+    has_webview2 = is_msvc and ('WebView2LoaderStatic.lib' in lib_names or
+                                'WebView2Loader.dll.lib' in lib_names)
+    has_jpeg = is_msvc and any(name.lower().startswith('turbojpeg')
+                               for name in lib_names)
+
+    cef_wrapper = ''
+    cef_src = ''
+    has_cef = False
+    if with_cef and is_msvc:
+        wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
+        if 'libcef.lib' in lib_names and wrapper in stems:
+            has_cef = True
+            cef_wrapper = wrapper
+            cef_src = CEF_SRC_BY_VERSION[cef_version]
+
+    if sys_tag == 'win' and toolchain == 'msvc':
+        if msvc_runtime == 'auto':
+            msvc_runtime = 'MD' if is_dll else 'MT'
+        else:
+            msvc_runtime = msvc_runtime.upper()
+    else:
+        msvc_runtime = ''
+
+    return {
+        'version': version,
+        'system': sys_tag,
+        'arch': arch_tag,
+        'config': config,
+        'toolchain': toolchain or '',
+        'is_dll': is_dll,
+        'has_sdl': has_sdl,
+        'sdl_kind': sdl_kind,
+        'has_webview2': has_webview2,
+        'has_jpeg': has_jpeg,
+        'has_cef': has_cef,
+        'cef_src': cef_src,
+        'cef_wrapper': cef_wrapper,
+        'msvc_runtime': msvc_runtime,
+        'runtime_dlls': bin_dlls,
+    }
+
+
+def _build_sdk_props(meta):
+    """生成 nim_duilib.sdk.props（MSBuild 可读的包元数据）。"""
+    def flag(value):
+        return '1' if value else '0'
+
+    lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
+        '    <!-- 由 build/pack.py 生成，勿手工修改。 -->',
+        '    <PropertyGroup Label="NimDuilibPackage">',
+        '        <NimDuilibPackageVersion>%s</NimDuilibPackageVersion>' % meta['version'],
+        '        <NimDuilibPackageConfig>%s</NimDuilibPackageConfig>' % meta['config'],
+        '        <NimDuilibPackageArch>%s</NimDuilibPackageArch>' % meta['arch'],
+        '        <NimDuilibPackageToolchain>%s</NimDuilibPackageToolchain>' % meta['toolchain'],
+        '        <NimDuilibPackageIsDll>%s</NimDuilibPackageIsDll>' % flag(meta['is_dll']),
+        '        <NimDuilibPackageHasSdl>%s</NimDuilibPackageHasSdl>' % flag(meta['has_sdl']),
+        '        <NimDuilibPackageSdlKind>%s</NimDuilibPackageSdlKind>' % meta['sdl_kind'],
+        '        <NimDuilibPackageHasWebView2>%s</NimDuilibPackageHasWebView2>' % flag(meta['has_webview2']),
+        '        <NimDuilibPackageHasJpeg>%s</NimDuilibPackageHasJpeg>' % flag(meta['has_jpeg']),
+        '        <NimDuilibPackageHasCef>%s</NimDuilibPackageHasCef>' % flag(meta['has_cef']),
+        '        <NimDuilibPackageCefSrc>%s</NimDuilibPackageCefSrc>' % meta['cef_src'],
+        '        <NimDuilibPackageCefWrapper>%s</NimDuilibPackageCefWrapper>' % meta['cef_wrapper'],
+        '        <NimDuilibPackageMsvcRuntime>%s</NimDuilibPackageMsvcRuntime>' % meta['msvc_runtime'],
+        '        <NimDuilibPackageRuntimeDlls>%s</NimDuilibPackageRuntimeDlls>' % ';'.join(meta['runtime_dlls']),
+        '    </PropertyGroup>',
+        '</Project>',
+        '',
+    ]
+    return '\n'.join(lines)
+
+
+def _build_package_info_cmake(meta):
+    """生成 nim_duilibPackageInfo.cmake（CMake 可读的包元数据）。"""
+    def flag(value):
+        return '1' if value else '0'
+
+    lines = [
+        '# 由 build/pack.py 生成，勿手工修改。',
+        'set(NIM_DUILIB_PACKAGE_VERSION "%s")' % meta['version'],
+        'set(NIM_DUILIB_PACKAGE_SYSTEM "%s")' % meta['system'],
+        'set(NIM_DUILIB_PACKAGE_ARCH "%s")' % meta['arch'],
+        'set(NIM_DUILIB_PACKAGE_CONFIG "%s")' % meta['config'],
+        'set(NIM_DUILIB_PACKAGE_TOOLCHAIN "%s")' % meta['toolchain'],
+        'set(NIM_DUILIB_PACKAGE_IS_DLL %s)' % flag(meta['is_dll']),
+        'set(NIM_DUILIB_PACKAGE_HAS_SDL %s)' % flag(meta['has_sdl']),
+        'set(NIM_DUILIB_PACKAGE_SDL_KIND "%s")' % meta['sdl_kind'],
+        'set(NIM_DUILIB_PACKAGE_HAS_WEBVIEW2 %s)' % flag(meta['has_webview2']),
+        'set(NIM_DUILIB_PACKAGE_HAS_JPEG %s)' % flag(meta['has_jpeg']),
+        'set(NIM_DUILIB_PACKAGE_HAS_CEF %s)' % flag(meta['has_cef']),
+        'set(NIM_DUILIB_PACKAGE_CEF_SRC "%s")' % meta['cef_src'],
+        'set(NIM_DUILIB_PACKAGE_CEF_WRAPPER "%s")' % meta['cef_wrapper'],
+        'set(NIM_DUILIB_PACKAGE_MSVC_RUNTIME "%s")' % meta['msvc_runtime'],
+        'set(NIM_DUILIB_PACKAGE_RUNTIME_DLLS "%s")' % ';'.join(meta['runtime_dlls']),
+        '',
+    ]
+    return '\n'.join(lines)
+
+
+def _build_config_version(meta):
+    """生成 nim_duilibConfigVersion.cmake：同主版本、且不高于包版本即兼容。"""
+    version = meta['version']
+    major = version.split('.')[0]
+    lines = [
+        '# 由 build/pack.py 生成，勿手工修改。',
+        'set(PACKAGE_VERSION "%s")' % version,
+        '',
+        'if(PACKAGE_FIND_VERSION)',
+        '    if(PACKAGE_FIND_VERSION VERSION_GREATER PACKAGE_VERSION)',
+        '        set(PACKAGE_VERSION_COMPATIBLE FALSE)',
+        '    else()',
+        '        set(PACKAGE_VERSION_COMPATIBLE TRUE)',
+        '        if(PACKAGE_FIND_VERSION VERSION_EQUAL PACKAGE_VERSION)',
+        '            set(PACKAGE_VERSION_EXACT TRUE)',
+        '        endif()',
+        '        set(_nim_package_major "%s")' % major,
+        '        set(_nim_find_major "${PACKAGE_FIND_VERSION_MAJOR}")',
+        '        if(NOT _nim_find_major STREQUAL _nim_package_major)',
+        '            set(PACKAGE_VERSION_COMPATIBLE FALSE)',
+        '        endif()',
+        '    endif()',
+        'else()',
+        '    set(PACKAGE_VERSION_COMPATIBLE TRUE)',
+        'endif()',
+        '',
+    ]
+    return '\n'.join(lines)
+
+
+def collect_integration_files(collector, meta):
+    """收集/生成下游接入文件。
+
+    实体文件（Windows manifest）直接进 collector；其余是内存中生成的
+    虚拟文件，返回 {包内相对路径: 文本}，由 build_package 写入压缩包。
+    """
+    count = 0
+    virtual = {}
+
+    if meta['system'] == 'win' and meta['arch'] in ('x64', 'x86'):
+        manifest_name = 'duilib.%s.manifest' % meta['arch']
+        manifest = os.path.join(MSVC_MANIFEST_DIR, manifest_name)
+        if os.path.isfile(manifest):
+            if collector.add('msvc/manifest/' + manifest_name, manifest):
+                count += 1
+        else:
+            collector.warn('缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）'
+                           % _rel(manifest))
+
+    if meta['system'] == 'win' and meta['toolchain'] == 'msvc':
+        virtual['msvc/nim_duilib.props'] = _with_bom(
+            _render_template('msvc/nim_duilib.props', {}))
+        virtual['msvc/nim_duilib.targets'] = _with_bom(
+            _render_template('msvc/nim_duilib.targets', {}))
+        virtual['msvc/nim_duilib.sdk.props'] = _with_bom(_build_sdk_props(meta))
+
+    cmake_dir = 'lib/cmake/nim_duilib/'
+    virtual[cmake_dir + 'nim_duilibConfig.cmake'] = _render_template(
+        'cmake/nim_duilibConfig.cmake', {})
+    virtual[cmake_dir + 'nim_duilibHelpers.cmake'] = _render_template(
+        'cmake/nim_duilibHelpers.cmake', {})
+    virtual[cmake_dir + 'nim_duilibPackageInfo.cmake'] = _build_package_info_cmake(meta)
+    virtual[cmake_dir + 'nim_duilibConfigVersion.cmake'] = _build_config_version(meta)
+
+    return count, virtual
+
+
+# --------------------------------------------------------------------------
 # 清单与打包
 # --------------------------------------------------------------------------
 
@@ -888,10 +1144,11 @@ def _lib_filenames(collector):
 
 def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                    config, with_examples, with_sdl, with_cef, cef_version,
-                   toolchain=None):
+                   toolchain=None, virtual_files=None, msvc_runtime=None):
     """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。"""
     is_windows = sys_tag == 'win'
     is_mingw = toolchain == 'mingw'
+    virtual_files = virtual_files or {}
     stems = _lib_stems(collector)
     lib_names = _lib_filenames(collector)
     bin_dlls = [r.split('/', 1)[1] for r, _abs in collector.items
@@ -925,7 +1182,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('工具链    : %s' % ('MinGW' if is_mingw else 'MSVC'))
     lines.append('打包时间  : %s' % time.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('包含示例  : %s' % ('是' if with_examples else '否'))
-    lines.append('文件总数  : %d' % len(collector.items))
+    lines.append('文件总数  : %d' % (len(collector.items) + len(virtual_files)))
 
     section('目录结构')
     lines.append('  include/duilib/**.h   对外头文件，保持仓库根相对路径')
@@ -933,6 +1190,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  lib/                  静态库（.lib / .a），平面结构')
     lines.append('  resources/            主题、语言、字体资源')
     lines.append('  licenses/             第三方许可证')
+    lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
+    lines.append('  lib/cmake/nim_duilib/ CMake 接入：find_package(nim_duilib)')
     lines.append('  VERSION               版本号')
 
     section('开发接入')
@@ -974,6 +1233,24 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
         lines.append('   CEF     : libcef.lib;%s.lib' % wrapper)
 
+    section('下游接入')
+    if is_windows and not is_mingw:
+        lines.append('  VS（MSVC）：在 .vcxproj 末尾加入（属性表会带上 include/lib/宏/')
+        lines.append('  系统库/manifest，并在构建后复制 bin/*.dll）：')
+        lines.append('    <Import Project="<SDK根>\\msvc\\nim_duilib.targets" />')
+        lines.append('  只想设置编译/链接、不要复制时，可只导入 msvc\\nim_duilib.props。')
+        lines.append('  可用属性：NimDuilibCopyRuntime=0、NimDuilibCopyResources=1、')
+        lines.append('            NimDuilibForceRuntimeLibrary=0、NimDuilibSkipValidation=1')
+    lines.append('  CMake（全平台）：')
+    lines.append('    find_package(nim_duilib CONFIG REQUIRED)')
+    lines.append('    target_link_libraries(<target> PRIVATE nim_duilib::duilib)')
+    lines.append('    nim_duilib_copy_runtime(<target> [RESOURCES])')
+    lines.append('  nim_duilib_copy_runtime 在构建后复制 bin/*.dll；RESOURCES 额外复制')
+    lines.append('  resources/（默认不复制，避免覆盖应用自己的主题）。')
+    lines.append('  可设置 NIM_DUILIB_SET_MSVC_RUNTIME=OFF 退出运行库强制对齐；')
+    lines.append('  NIM_DUILIB_ALLOW_{ARCH,CONFIG}_MISMATCH=ON 放行不匹配（不推荐）。')
+    lines.append('  注意：发布包是单架构、单配置的，Debug/Release 需各用各的包。')
+
     section('运行期')
     lines.append('  resources/ 必须放在可执行文件同级目录（框架启动必需）。')
     if is_windows:
@@ -1003,12 +1280,20 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  X11 / freetype / fontconfig 由系统提供，不随包。')
 
     section('配置一致性')
-    if config == 'Debug':
-        lines.append('  本包是 Debug 版本，仅用于 Debug 构建的下游工程（/MTd），')
-        lines.append('  必须使用 Debug 运行库；与 Release 包不可混用。')
+    if is_windows and msvc_runtime:
+        if msvc_runtime == 'MD':
+            runtime_flag = '/MDd' if config == 'Debug' else '/MD'
+        else:
+            runtime_flag = '/MTd' if config == 'Debug' else '/MT'
+        lines.append('  本包是 %s 版本，仅用于 %s 构建的下游工程（%s），'
+                     % (config, config, runtime_flag))
+        lines.append('  MSVC 运行库为 %s；VS/CMake 接入默认会强制对齐，'
+                     % msvc_runtime)
+        lines.append('  不一致会触发 LNK2038。与另一配置的包不可混用。')
     else:
-        lines.append('  本包是 Release 版本，仅用于 Release 构建的下游工程（/MT），')
-        lines.append('  与 Debug 包不可混用。')
+        lines.append('  本包是 %s 版本，仅用于 %s 构建的下游工程，'
+                     % (config, config))
+        lines.append('  必须使用对应配置；与另一配置的包不可混用。')
 
     if with_examples:
         section('示例程序')
@@ -1034,6 +1319,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     sums = []
     for rel, abs_path in sorted(collector.items, key=lambda kv: kv[0]):
         sums.append('%s  %s' % (sha256_of(abs_path), rel))
+    for rel in sorted(virtual_files):
+        digest = hashlib.sha256(virtual_files[rel].encode('utf-8')).hexdigest()
+        sums.append('%s  %s' % (digest, rel))
     sums_text = '\n'.join(sums) + '\n'
 
     return manifest_text, sums_text
@@ -1065,15 +1353,19 @@ def _zip_info(arcname, size):
 
 
 def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_text,
-                  fmt, out_path):
+                  fmt, out_path, virtual_files=None):
     """把收集到的文件写成压缩包。staging_root 用于统一路径前缀。"""
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    virtual_files = virtual_files or {}
 
     if fmt == 'zip':
         with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
             for rel, abs_path in collector.items:
                 arc = '%s/%s' % (pkg_root_name, rel)
                 zf.write(abs_path, arc)
+            for rel in sorted(virtual_files):
+                _write_virtual(zf, None, '%s/%s' % (pkg_root_name, rel),
+                               virtual_files[rel])
             _write_virtual(zf, None, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
             _write_virtual(zf, None, '%s/SHA256SUMS' % pkg_root_name, sums_text)
             _write_virtual(zf, None, '%s/VERSION' % pkg_root_name,
@@ -1089,6 +1381,9 @@ def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_te
                 info.mode = 0o644
                 with open(abs_path, 'rb') as f:
                     tf.addfile(info, f)
+            for rel in sorted(virtual_files):
+                _write_virtual(None, tf, '%s/%s' % (pkg_root_name, rel),
+                               virtual_files[rel])
             _write_virtual(None, tf, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
             _write_virtual(None, tf, '%s/SHA256SUMS' % pkg_root_name, sums_text)
             _write_virtual(None, tf, '%s/VERSION' % pkg_root_name,
@@ -1163,6 +1458,9 @@ def main(argv=None):
                              '（体积巨大，默认不带）')
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
                         help='配合 --with-cef 选择 CEF 版本（默认 latest）')
+    parser.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'), default='auto',
+                        help='MSVC 运行库：auto（DLL 模式 MD，否则 MT）/ mt / md；'
+                             '仅影响包内元数据与下游校验，不改变已构建产物')
     parser.add_argument('--with-examples', action='store_true',
                         help='包含示例程序与全部示例私有资源（默认只打 SDK）')
     parser.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'), default=None,
@@ -1209,6 +1507,15 @@ def main(argv=None):
     n_lic = collect_licenses(collector, skia_dir)
     n_exe = collect_examples(collector, config, sys_tag == 'win') \
         if args.with_examples else 0
+
+    try:
+        meta = build_package_meta(collector, version, sys_tag, arch_tag, config,
+                                  toolchain, args.with_cef, args.cef_version,
+                                  args.msvc_runtime)
+        n_integration, virtual_files = collect_integration_files(collector, meta)
+    except PackageError as exc:
+        eprint('[ERROR] %s' % exc)
+        return 1
     collector.sort()
 
     print('版本      : %s' % version)
@@ -1232,8 +1539,11 @@ def main(argv=None):
     print('资源文件  : %d' % n_res)
     print('许可证    : %d' % n_lic)
     print('示例程序  : %d' % n_exe)
-    print('合计      : %d 个文件，%s' % (len(collector.items),
-                                         human_size(collector.total_size())))
+    print('接入文件  : %d（生成 %d）'
+          % (n_integration + len(virtual_files), len(virtual_files)))
+    print('合计      : %d 个文件，%s'
+          % (len(collector.items) + len(virtual_files),
+             human_size(collector.total_size())))
     if collector.warnings:
         print('-' * 60)
         print('告警：')
@@ -1244,6 +1554,8 @@ def main(argv=None):
         print('-' * 60)
         for rel, _abs in collector.items:
             print('  %s' % rel)
+        for rel in sorted(virtual_files):
+            print('  [gen] %s' % rel)
         return 0
 
     pkg_root_name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
@@ -1252,14 +1564,15 @@ def main(argv=None):
     manifest_text, sums_text = write_manifest(
         collector, pkg_root_name, version, sys_tag, arch_tag, config,
         args.with_examples, args.with_sdl, args.with_cef, args.cef_version,
-        toolchain)
+        toolchain, virtual_files=virtual_files,
+        msvc_runtime=meta['msvc_runtime'])
 
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)
 
     try:
         build_package(collector, REPO_ROOT, pkg_root_name, manifest_text,
-                      sums_text, fmt, out_path)
+                      sums_text, fmt, out_path, virtual_files=virtual_files)
     except Exception as exc:  # noqa: BLE001 - 顶层兜底，避免半成品包
         if os.path.exists(out_path):
             os.remove(out_path)
