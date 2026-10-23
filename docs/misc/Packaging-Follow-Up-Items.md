@@ -19,6 +19,17 @@
 
 尚未覆盖：Release、x86/arm64、MinGW、DLL 模式、Linux/macOS/FreeBSD、SDL/CEF/示例程序组合。
 
+### 平台与特性约束
+
+| 平台 | 架构 | CEF | 说明 |
+| :--- | :--- | :--- | :--- |
+| Windows | x64 / x86 | 支持 | CEF 二进制按版本与架构位于 `bin/libcef_win/{x64,Win32}/`、`bin/libcef_win_109/{x64,Win32}/` |
+| Linux | 仅 x64（不支持 x86） | 支持 | CEF 运行时位于 `bin/libcef_linux/`，与 Windows 的分架构结构不同 |
+| macOS | 待确认 | 结构待补充 | CEF 目录结构与 Windows/Linux 均不同，尚未提供 |
+| FreeBSD | 待确认 | 不支持 | 目录结构参考 Linux，但包内不包含 CEF |
+
+说明：上表是平台能力与目录约束，包内最终布局以打包脚本为准；CEF 运行时的收集与落包见 P1-3。
+
 ## 二、状态说明
 
 - `[ ]` 未开始
@@ -37,11 +48,11 @@
 - 现状：只验证了 Windows x64 Debug 静态包。
 - 待覆盖：
   - 配置：Debug / Release；
-  - 架构：x64 / x86 / arm64；
+  - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
   - 工具链：MSVC / MinGW；
   - 模式：静态 / DLL（`EnableDuilibDll`）；
-  - 平台：Windows / Linux / macOS / FreeBSD；
-  - 特性：`--with-sdl`、`--with-cef`、`--with-examples`。
+  - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
+  - 特性：`--with-sdl`、`--with-cef`（Windows/Linux/macOS）、`--with-examples`。
 - 验收：矩阵中每个格子都有记录（命令、文件数、关键文件存在性、告警），异常项有结论。
 
 #### P0-2 关键产物缺失时阻止出包
@@ -70,7 +81,7 @@
 
 - [ ] 版本递增检查、CHANGELOG / Release Notes、git tag、产物归档。
 - [ ] `dist/` 旧产物清理策略。
-- 现状：`VERSION` 手工维护，无固定发布 checklist。
+- 现状：仓库根 `VERSION.txt` 手工维护，无固定发布 checklist。
 - 验收：按 checklist 可从干净工作区产出唯一版本包，步骤可复现。
 
 ### P1：发布质量
@@ -80,8 +91,13 @@
 - [ ] tar 内文件权限按类型设置，不再统一 `0o644`。
 - [ ] 符号链接按 `lstat` 处理，避免 zip 展开 `.so` 版本链产生重复实体。
 - 现状：`--with-examples` 的 Unix 示例程序解包后不可执行；zip 与 tar 对符号链接行为不一致。
+- 实测结构（Linux SDL3）：`libSDL3.so -> libSDL3.so.0 -> libSDL3.so.0.5.0`，
+  打包需保留完整符号链接链，不能只留实体文件。
+- 其它受影响文件：Linux `bin/` 下的示例程序（无扩展名，可执行）、
+  CEF 的 `chrome-sandbox`（需要可执行权限）。
 - 依据：`build/pack.py` 的 `build_package()` 与 `iter_files()`。
-- 验收：Linux/macOS 包内示例程序可直接执行；`libSDL3.so*` 等链接结构与构建目录一致。
+- 验收：Linux/macOS 包内示例程序与 `chrome-sandbox` 可直接执行；
+  `libSDL3.so*` 等链接结构与构建目录一致。
 
 #### P1-2 可复现构建
 
@@ -91,15 +107,20 @@
 
 #### P1-3 CEF 运行时打包
 
-- [x] 仓库侧：Windows 的 CEF 二进制已放到 `bin/` 下，按版本和架构组织：
-  `bin/libcef_win/{x64,Win32}/`、`bin/libcef_win_109/{x64,Win32}/`。
-- [ ] 打包脚本从 `bin/` 收集对应架构的 CEF 运行时（`libcef.dll`、`*.pak`、
-  `icudtl.dat`、`v8_context_snapshot.bin`、`locales/` 等），并保持相对结构放入包内 `bin/`。
-- [ ] Linux / macOS：CEF 的目录结构与 Windows 不同，待目录结构补充后再实现。
-- [x] FreeBSD：不支持 CEF，打包时不做处理。
-- 现状：仅打包 CEF 头文件与 `libcef.lib`，运行时尚未随包；目前只覆盖 Windows。
-- 验收：带 CEF 的 Windows 示例程序在干净机器上无需额外拷贝即可启动；Linux/macOS
-  在补充结构后各自验证；FreeBSD 包内不出现任何 CEF 内容。
+- [x] Windows：运行时二进制位于 `bin/libcef_win/{x64,Win32}/`、
+  `bin/libcef_win_109/{x64,Win32}/`，含 `libcef.dll`、`*.pak`、`icudtl.dat`、
+  `v8_context_snapshot.bin`、`locales/`。
+- [x] Linux：运行时位于 `bin/libcef_linux/`（扁平，不再分架构），含
+  `libcef.so`、`libEGL.so`、`libGLESv2.so`、`libvk_swiftshader.so`、
+  `libvulkan.so.1`、`chrome-sandbox`、`vk_swiftshader_icd.json`、
+  `resources.pak`、`chrome_100_percent.pak`、`chrome_200_percent.pak`、
+  `icudtl.dat`、`v8_context_snapshot.bin`、`locales/*.pak`。
+- [ ] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
+- [ ] macOS：CEF 目录结构与 Windows/Linux 不同，待结构补充后再实现。
+- [x] FreeBSD：不支持 CEF，包内不出现任何 CEF 内容。
+- 现状：仅打包 CEF 头文件与 `libcef.lib`，运行时尚未随包。
+- 验收：带 CEF 的 Windows/Linux 示例程序在干净机器上无需额外拷贝即可启动；
+  `chrome-sandbox` 的可执行权限正确；macOS 待补充结构后验证。
 
 #### P1-4 WebView2 运行时说明
 
@@ -160,3 +181,5 @@
 | :--- | :--- |
 | 2026-10-23 | 创建，整理当前基线与待办清单 |
 | 2026-10-23 | P0-2、P0-4 明确关闭；P1-3 补充 CEF 二进制目录现状与平台范围 |
+| 2026-10-23 | 补充平台约束（Linux 无 x86、FreeBSD 无 CEF）；记录 Windows/Linux CEF 运行时结构与 SDL3 符号链接结构 |
+| 2026-10-23 | 修复 macOS 编译错误：仓库根 `VERSION` 重命名为 `VERSION.txt`，避免与标准头 `<version>` 冲突 |

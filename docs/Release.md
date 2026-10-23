@@ -65,7 +65,7 @@ dist/nim_duilib-1.0.2026.0416-win-x64-debug.zip
 
 ```
 nim_duilib-<版本>-<系统>-<架构>/
-  VERSION               版本号，与仓库根 VERSION 一致
+  VERSION               版本号，与仓库根 VERSION.txt 一致
   MANIFEST.txt          包内容说明与注意事项
   SHA256SUMS            每个文件的 SHA256，可用 sha256sum -c 校验
   LICENSE               主许可证
@@ -387,7 +387,7 @@ CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）**不在本仓库内**�
 
 ## 版本号
 
-版本号的单一事实源是仓库根的 `VERSION` 文件，格式为
+版本号的单一事实源是仓库根的 `VERSION.txt` 文件，格式为
 `主版本.次版本.修订号.构建号`，例如 `1.0.2026.0416`。
 
 `pack.py` 从该文件读取版本，用于包名、包内 `VERSION` 与 `MANIFEST.txt`。
@@ -396,7 +396,7 @@ CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）**不在本仓库内**�
 `msvc/dllRes/version.h` 中的 `DUILIB_VER_*` 宏目前是**独立维护**的，
 只被 `.vcxproj` 的版本资源使用，CMake 侧读不到。
 升级版本时两处都要改 —— 这是当前的已知缺口，后续应让 `version.h`
-改为从 `VERSION` 派生。
+改为从 `VERSION.txt` 派生。
 
 git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 仓库现有 tag（`2026-06-08(main)` 等）是历史格式，含括号，
@@ -405,7 +405,7 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 ## 发布流程
 
 1. 确认工作区干净，编译产物为 Release
-2. 更新 `VERSION` 与 `msvc/dllRes/version.h`
+2. 更新 `VERSION.txt` 与 `msvc/dllRes/version.h`
 3. 打包并校验：
 
    ```

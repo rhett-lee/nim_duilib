@@ -14,7 +14,7 @@ The changes are **committed**: B-3 in `e4064ba8`, CM-5 P1~P5 in `7f8f1500` ~ `6e
 
 | File | Type | Content |
 | :--- | :--- | :--- |
-| `VERSION` | new | Single source of truth for the version number, four-segment `1.0.2026.0416` |
+| `VERSION.txt` | new | Single source of truth for the version number, four-segment `1.0.2026.0416` |
 | `build/pack.py` | new | Packaging script, pure standard library, cross-platform, does not participate in compilation |
 | `docs/Release.md` / `docs/Release.en.md` | new | User-facing packaging and release guide |
 | `docs/misc/Release-Packaging-Notes.md` / `.en.md` | new | This document |
@@ -68,7 +68,7 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | CEF development set | Off by default, needs `--with-cef` (optionally `--cef-version 109`) | Each wrapper is 80–100 MB; the runtime still has to be supplied separately |
 | `bin/resources.zip` | Always excluded | An empty shell file of only 748 bytes |
 | `docs/` | Only top-level user docs are shipped; subdirectories such as `misc/` and `specs/` are never packaged | User docs ship with the SDK; `Release.*` (release process), `Getting-Started.*` / `Examples.*` (library-internal docs) and the credits list target maintainers, not consumers; `Summary.*` ships after its links to outside directories were removed |
-| Version number | Single source of truth is the root `VERSION` file | Package name, in-package `VERSION` and `MANIFEST.txt` are all derived from it |
+| Version number | Single source of truth is the root `VERSION.txt` file | Package name, in-package `VERSION` and `MANIFEST.txt` are all derived from it; renamed to avoid clashing with the standard `<version>` header |
 
 ### Resource scope difference with `--with-examples`
 
@@ -321,7 +321,7 @@ The first version recognized only `_d`, and consequently packaged a 232 MB Debug
 
 ### 5. Version number: single source of truth and the known gap
 
-The single source of truth for the version is the root `VERSION` file, formatted as `major.minor.patch.build`, e.g. `1.0.2026.0416`. `pack.py` reads it and derives the package name, the in-package `VERSION` and `MANIFEST.txt`; on a malformed value (not four numeric segments) the script errors out rather than producing a half-finished package.
+The single source of truth for the version is the root `VERSION.txt` file, formatted as `major.minor.patch.build`, e.g. `1.0.2026.0416`. `pack.py` reads it and derives the package name, the in-package `VERSION` and `MANIFEST.txt`; on a malformed value (not four numeric segments) the script errors out rather than producing a half-finished package.
 
 git tags are recommended in the form `v<version>`. The repository's existing tags (`2026-06-08(main)` and similar) use a historical format that contains parentheses and cannot be used directly as package names or CPack version numbers.
 
@@ -343,7 +343,7 @@ git tags are recommended in the form `v<version>`. The repository's existing tag
 
 ### Gaps
 
-1. **The version number is maintained in two places.** The `DUILIB_VER_*` macros in `msvc/dllRes/version.h` and the `VERSION` file are currently updated independently, and those macros are used only by the `.vcxproj` — the CMake side cannot read them. A version bump requires changing both. **The follow-up should make `version.h` derive from `VERSION`.**
+1. **The version number is maintained in two places.** The `DUILIB_VER_*` macros in `msvc/dllRes/version.h` and the `VERSION.txt` file are currently updated independently, and those macros are used only by the `.vcxproj` — the CMake side cannot read them. A version bump requires changing both. **The follow-up should make `version.h` derive from `VERSION.txt`.**
 
 2. **Only Windows was tested.** The script itself is cross-platform (pure standard library, one codebase for all four platforms). Unix `.a` collection and `lib` prefix normalization are implemented, but the resulting packages have not yet been verified on Linux/macOS/FreeBSD. `docs/Release.en.md` already marks these as "not verified on this machine".
 

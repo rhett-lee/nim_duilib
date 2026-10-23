@@ -14,7 +14,7 @@
 
 | 文件 | 类型 | 内容 |
 | :--- | :--- | :--- |
-| `VERSION` | 新增 | 版本号单一事实源，四段式 `1.0.2026.0416` |
+| `VERSION.txt` | 新增 | 版本号单一事实源，四段式 `1.0.2026.0416` |
 | `build/pack.py` | 新增 | 打包脚本，纯标准库、跨平台、不参与编译 |
 | `docs/Release.md` / `docs/Release.en.md` | 新增 | 面向使用者的打包与发布说明 |
 | `docs/misc/Release-Packaging-Notes.md` / `.en.md` | 新增 | 本文档 |
@@ -68,7 +68,7 @@ write_release_docs.py
 | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
 | `docs/` | 只打包顶层使用文档；`misc/`、`specs/` 等子目录一律不打包 | 使用文档随 SDK 提供；`Release.*`（发布流程）、`Getting-Started.*` / `Examples.*`（库内部文档）与 `感谢名单.txt`（致谢）面向维护者，不适合分发；`Summary.*` 已去掉指向包外目录的链接，随包 |
-| 版本号 | 单一事实源为根目录 `VERSION` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生 |
+| 版本号 | 单一事实源为根目录 `VERSION.txt` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生；改名避免与标准头 `<version>` 冲突 |
 
 ### `--with-examples` 的资源范围差异
 
@@ -337,7 +337,7 @@ Debug 来源有**两处**，只看一个都会漏：
 
 ### 5. 版本号：单一事实源与已知缺口
 
-版本号的单一事实源是仓库根的 `VERSION` 文件，格式为 `主版本.次版本.修订号.构建号`，例如 `1.0.2026.0416`。`pack.py` 从该文件读取版本，用于包名、包内 `VERSION` 与 `MANIFEST.txt`；格式非法（不是四段数字）时脚本报错退出，不会打出半成品包。
+版本号的单一事实源是仓库根的 `VERSION.txt` 文件，格式为 `主版本.次版本.修订号.构建号`，例如 `1.0.2026.0416`。`pack.py` 从该文件读取版本，用于包名、包内 `VERSION` 与 `MANIFEST.txt`；格式非法（不是四段数字）时脚本报错退出，不会打出半成品包。
 
 git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 等）是历史格式，含括号，不能直接用作包名或 CPack 版本号。
 
@@ -361,7 +361,7 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 ### 缺口
 
-1. **版本号两处独立维护。** `msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION` 文件目前各改各的，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。升级版本须同时改两处。**后续应让 `version.h` 改为从 `VERSION` 派生。**
+1. **版本号两处独立维护。** `msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION.txt` 文件目前各改各的，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。升级版本须同时改两处。**后续应让 `version.h` 改为从 `VERSION.txt` 派生。**
 
 2. **只实测了 Windows。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），Unix 的 `.a` 收集与 `lib` 前缀归一化已实现，但产物尚未在 Linux/macOS/FreeBSD 上实测。`docs/Release.md` 中已标注「未在本机验证」。
 

@@ -109,7 +109,7 @@ import zipfile
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-VERSION_FILE = os.path.join(REPO_ROOT, 'VERSION')
+VERSION_FILE = os.path.join(REPO_ROOT, 'VERSION.txt')
 DEFAULT_OUT_DIR = os.path.join(REPO_ROOT, 'dist')
 
 DUIBIB_SRC_DIR = os.path.join(REPO_ROOT, 'duilib')
@@ -287,7 +287,9 @@ def eprint(*args):
 
 
 def read_version():
-    """读取根目录 VERSION 文件。格式：MAJOR.MINOR.PATCH.BUILD"""
+    """读取根目录 VERSION.txt 文件。格式：MAJOR.MINOR.PATCH.BUILD
+    仓库根会被加入 include 路径，文件名不能与 C++ 标准头 <version> 冲突
+    （macOS 文件系统大小写不敏感）。"""
     if not os.path.isfile(VERSION_FILE):
         eprint('[ERROR] 找不到版本文件：%s' % VERSION_FILE)
         return None

@@ -428,7 +428,7 @@ Consequently:
 
 ## Versioning
 
-The single source of truth for the version is the `VERSION` file at the
+The single source of truth for the version is the `VERSION.txt` file at the
 repository root, formatted as `major.minor.patch.build`, for example
 `1.0.2026.0416`.
 
@@ -441,7 +441,7 @@ The `DUILIB_VER_*` macros in `msvc/dllRes/version.h` are currently
 **maintained independently**. They are used only by the `.vcxproj` version
 resource and are invisible to the CMake side. A version bump must update both
 places — this is a known gap that should later be resolved by deriving
-`version.h` from `VERSION`.
+`version.h` from `VERSION.txt`.
 
 Git tags are recommended in `v<version>` form so they line up with package
 names. The existing tags in this repository (such as `2026-06-08(main)`) use a
@@ -451,7 +451,7 @@ used directly as a package name or CPack version.
 ## Release process
 
 1. Confirm the working tree is clean and that build artifacts are Release
-2. Update `VERSION` and `msvc/dllRes/version.h`
+2. Update `VERSION.txt` and `msvc/dllRes/version.h`
 3. Package and verify:
 
    ```
