@@ -25,7 +25,7 @@
 | :--- | :--- | :--- | :--- |
 | Windows | x64 / x86 | 支持 | CEF 二进制按版本与架构位于 `bin/libcef_win/{x64,Win32}/`、`bin/libcef_win_109/{x64,Win32}/` |
 | Linux | 仅 x64（不支持 x86） | 支持 | CEF 运行时位于 `bin/libcef_linux/`，与 Windows 的分架构结构不同 |
-| macOS | 待确认 | 结构待补充 | CEF 目录结构与 Windows/Linux 均不同，尚未提供 |
+| macOS | 待确认 | 以 `.app` 内嵌 | CEF 随示例生成 `cef.app`、`CefBrowser.app`；框架与 Helper 位于 bundle 内，SDK 包暂不自动收集 |
 | FreeBSD | 待确认 | 不支持 | 目录结构参考 Linux，但包内不包含 CEF |
 
 说明：上表是平台能力与目录约束，包内最终布局以打包脚本为准；CEF 运行时的收集与落包见 P1-3。
@@ -94,7 +94,10 @@
 - 实测结构（Linux SDL3）：`libSDL3.so -> libSDL3.so.0 -> libSDL3.so.0.5.0`，
   打包需保留完整符号链接链，不能只留实体文件。
 - 其它受影响文件：Linux `bin/` 下的示例程序（无扩展名，可执行）、
+  macOS `bin/` 下的示例程序与 `.app` bundle 内的可执行文件、
   CEF 的 `chrome-sandbox`（需要可执行权限）。
+- macOS `bin/` 的示例为无扩展名可执行文件（`-rwxr-xr-x`），CEF 示例为
+  `cef.app`、`CefBrowser.app`；打包需保留 bundle 目录结构与内部符号链接。
 - 依据：`build/pack.py` 的 `build_package()` 与 `iter_files()`。
 - 验收：Linux/macOS 包内示例程序与 `chrome-sandbox` 可直接执行；
   `libSDL3.so*` 等链接结构与构建目录一致。
@@ -116,11 +119,21 @@
   `resources.pak`、`chrome_100_percent.pak`、`chrome_200_percent.pak`、
   `icudtl.dat`、`v8_context_snapshot.bin`、`locales/*.pak`。
 - [ ] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
-- [ ] macOS：CEF 目录结构与 Windows/Linux 不同，待结构补充后再实现。
+- [x] macOS：结构已确认，CEF 随示例以 `.app` 形式生成：
+  `Contents/MacOS/<exe>`、`Contents/Frameworks/Chromium Embedded Framework.framework`
+  （`Versions/A/...` 及顶层符号链接）、`Contents/Frameworks/<name> Helper*.app`
+  （Helper / GPU / Plugin / Renderer）、`Contents/Resources/`。
+  按既定设计，SDK 包不自动收集 macOS 的框架与 Helper，由下游手动配置。
+- [x] macOS 的 CEF 二进制分发包位于与仓库平级的 `cef_binary/`（可用 `-DCEF_ROOT`
+  或环境变量 `CEF_ROOT` 覆盖），内含 `include/`、`libcef_dll/`、`cmake/`、
+  `Release/Chromium Embedded Framework.framework`；构建时由 `COPY_MAC_FRAMEWORK`
+  把框架与 Helper 拷入 `.app` 的 `Contents/Frameworks/`。
+  注意：仓库内 `duilib/third_party/libcef/libcef_macos` 只用于编译 wrapper，
+  不是运行时分发包，两者不能混用。
 - [x] FreeBSD：不支持 CEF，包内不出现任何 CEF 内容。
 - 现状：仅打包 CEF 头文件与 `libcef.lib`，运行时尚未随包。
 - 验收：带 CEF 的 Windows/Linux 示例程序在干净机器上无需额外拷贝即可启动；
-  `chrome-sandbox` 的可执行权限正确；macOS 待补充结构后验证。
+  `chrome-sandbox` 的可执行权限正确；macOS 按手动配置流程验证。
 
 #### P1-4 WebView2 运行时说明
 
@@ -183,3 +196,5 @@
 | 2026-10-23 | P0-2、P0-4 明确关闭；P1-3 补充 CEF 二进制目录现状与平台范围 |
 | 2026-10-23 | 补充平台约束（Linux 无 x86、FreeBSD 无 CEF）；记录 Windows/Linux CEF 运行时结构与 SDL3 符号链接结构 |
 | 2026-10-23 | 修复 macOS 编译错误：仓库根 `VERSION` 重命名为 `VERSION.txt`，避免与标准头 `<version>` 冲突 |
+| 2026-10-23 | 记录 macOS `bin/` 结构：示例为可执行文件，CEF 示例为 `cef.app`/`CefBrowser.app`（含 Framework 与 Helper）；明确 macOS CEF 仍由下游手动配置 |
+| 2026-10-23 | 记录 macOS CEF 分发包位置与结构：同级 `cef_binary/`，含 `Release/Chromium Embedded Framework.framework`；与仓库内 wrapper 目录用途不同 |
