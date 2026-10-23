@@ -501,12 +501,30 @@ Easy mistakes to avoid:
   (`Image/ImageDecoder_*.h`, `Image/Image_*.h`, `APngDecoder.h`,
   `FrameSequence_gif.h`, etc.), and neither are the internal
   `Core/ZipStreamIO.h`, `Core/ControlDropTarget*`, `Core/WindowDropTarget_*`
-  or `Core/SDL_MacOS.h`. From `third_party`, only WebView2 (Windows only)
+  or `Core/SDL_MacOS.h`, nor the `.cpp`-only `Core/SDL_Linux.h`,
+  `Core/MessageLoop_*`, `Utils/ProcessSingleton_*`, `Utils/BitmapHelper_*`,
+  `Utils/ApiWrapper_Windows.h`, `Utils/Macros_Windows.h`, `Utils/DiskUtils_Windows.h`,
+  `Utils/DllManager_Windows.h`, `Utils/InlineHook_Windows.h` and
+  `Control/RichEdit*_Windows/_SDL`. From `third_party`, only WebView2 (Windows only)
   headers are forwarded; `zlib`, `libpng`, `giflib` and `libjpeg-turbo`
   headers are no longer forwarded (their static libraries are still shipped).
 - `Core/DragWindowFilter_SDL.h` is the exception: always kept on non-Windows,
   and on Windows packaged only with `--with-sdl` (`ControlDragable.h` includes
   it under `DUILIB_BUILD_FOR_SDL`).
+- Windows packages carry `bin/WebView2Loader.dll` for the dynamic loader; packaging
+  fails when any of `duilib`, `duilib-cximage`, `duilib-png`, `duilib-webp` or
+  `duilib-zlib` is missing (no longer a warning).
+- MinGW builds produce `libduilib*.a` (static) or `libduilib*.dll.a` (import)
+  libraries, and Skia lives in `mingw64-gcc.<arch>.release` /
+  `mingw64-llvm.<arch>.release`. The script detects the toolchain (MSVC/MinGW)
+  from the library directory and writes `-lxxx` links for MinGW in the manifest.
+- In DLL mode (`msvc/PropertySheets/duilib_dll.flag` exists) `bin/duilib*.dll`
+  (`duilib[_d].dll` on x64/arm64, `duilib32[_d].dll` on x86) is packaged and
+  `lib/` holds the matching import library; static builds have no such file and
+  are skipped automatically.
+- With `--with-sdl`, SDL3 is collected based on the actual artifact: MSVC static
+  `SDL3-static.lib`; dynamic import `SDL3.lib` / `libSDL3.dll.a` plus
+  `bin/SDL3.dll`; or MinGW static `libSDL3.a`.
 - There is only one library layout: `lib/<arch>/<Release|Debug>/` on Windows
   and `lib/<Release|Debug>/` on Unix. The configuration comes from `--config`,
   not from a `_d` suffix.

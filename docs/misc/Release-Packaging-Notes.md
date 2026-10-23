@@ -52,14 +52,16 @@ write_release_docs.py
 | 头文件路径 | 必须是 `include/duilib/xxx.h`，**不可压平** | 下游写法是 `#include "duilib/duilib.h"`（`examples/basic/MainForm.h:5`），压平则下游全部编译失败 |
 | `RenderSkia/` | 不对外暴露 | `duilib.h` 不引用它，是渲染后端实现细节 |
 | `Core/ZipStreamIO.h` | 不对外暴露 | 只被 `ZipManager.cpp` 使用，`duilib.h` / `ZipManager.h` 都不引用；不转发后 zlib 头文件也无需随包 |
-| `Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、`Core/SDL_MacOS.h` | 不对外暴露 | 只被 `.cpp` / `.mm` 包含，任何对外头文件都不引用 |
+| `Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、`Core/SDL_MacOS.h` 及 `MessageLoop_*` / `ProcessSingleton_*` / `RichEdit*_Windows/_SDL` 等平台实现头 | 不对外暴露 | 只被 `.cpp` / `.mm` 包含，任何对外头文件都不引用 |
 | `Core/DragWindowFilter_SDL.h` | 非 Windows 必带；Windows 仅 `--with-sdl` | `ControlDragable.h`（在 `duilib.h` 链上）于 `DUILIB_BUILD_FOR_SDL` 下包含它；非 Windows 该宏恒为开 |
 | `third_party` 转发 | 仅 Microsoft.Web.WebView2（且仅 Windows） | 对外头文件只有这一处依赖；图片解码实现头文件与 `Core/ZipStreamIO.h` 均只在库内部使用，libpng / giflib / zlib 头文件随之不再需要 |
 | 库目录 | 只认一套布局（Windows `lib/<arch>/<Config>`、Unix `lib/<Config>`） | CM-5 D-2 方案 B；配置由目录表达，删除 `_d` 判定与多目录合并 |
+| Windows 工具链 | 按库目录内容判定：`duilib.lib` → MSVC，`libduilib*.a` → MinGW；MinGW 收集 `.a` / `.dll.a`，Skia 探测 `mingw64-gcc.*` / `mingw64-llvm.*` | `build/gcc-mingw-w64_build.bat` 与 `llvm-mingw-w64_build.bat` 分别产出上述库名与 Skia 目录；两类产物不可混用 |
+| DLL 模式运行库 | Windows 下若存在 `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` 则随包，`lib/` 中为导入库 | `EnableDuilibDll`（`duilib_dll.flag`）开启时 `DuilibSettings.props` 输出 DLL 到 `bin/`，导入库仍写 `lib/<arch>/<Config>/duilib.lib`；缺 DLL 下游运行失败 |
 | Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT 与 `/MTd`，只能给 Debug 下游；两套不可混用 |
 | Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
-| WebView2 / JPEG | Windows 默认随包 loader 库与 `turbojpeg-static` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号 |
-| SDL3 | Unix 始终随包；Windows 仅 `--with-sdl` | Windows 默认关闭 SDL；Unix 默认启用且为动态库 |
+| WebView2 / JPEG | Windows 默认随包 loader 库、`bin/WebView2Loader.dll` 与 `turbojpeg-static` | VS 默认启用 WebView2 与 libjpeg-turbo，`duilib.lib` 有对应符号；CMake 使用动态 loader，运行期需要该 DLL |
+| SDL3 | Unix 始终随包；Windows 仅 `--with-sdl`；按产物收集静态库或导入库，动态时连同 `bin/SDL3.dll` | Windows 默认关闭 SDL；Unix 默认启用且为动态库；MinGW 的 CMake 构建链接动态 SDL3（`libSDL3.dll.a`） |
 | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
 | 版本号 | 单一事实源为根目录 `VERSION` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生 |
@@ -209,6 +211,13 @@ Image/ImageDecoder_WEBP.h
   `Core/ControlDropTargetImpl_SDL.h`、`Core/ControlDropTargetImpl_Windows.h`、
   `Core/ControlDropTargetUtils.h`、`Core/SDL_MacOS.h`、`Core/WindowDropTarget_SDL.h`、
   `Core/WindowDropTarget_Windows.h`。它们只被 `.cpp` / `.mm` 包含。
+- 2026-10-23 补充：`INTERNAL_HEADER_FILES` 再纳入 17 个仅被 `.cpp` 包含的实现头：
+  `Core/SDL_Linux.h`、`Core/MessageLoop_SDL.h`、`Core/MessageLoop_Windows.h`、
+  `Utils/ProcessSingleton_{Linux,MacOS,Windows}.h`、`Utils/BitmapHelper_{SDL,Windows}.h`、
+  `Utils/ApiWrapper_Windows.h`、`Utils/Macros_Windows.h`、`Utils/DiskUtils_Windows.h`、
+  `Utils/DllManager_Windows.h`、`Utils/InlineHook_Windows.h`、
+  `Control/RichEditHost_Windows.h`、`Control/RichEditDragSource_Windows.h`、
+  `Control/RichEditDropTarget_Windows.h`、`Control/RichEditDropTarget_SDL.h`。
 - 新增 `SDL_HEADER_FILES = ('Core/DragWindowFilter_SDL.h',)`：`Core/ControlDragable.h`
   在 `DUILIB_BUILD_FOR_SDL` 下包含它。非 Windows 平台该宏恒为开，必须保留；
   Windows 仅在 `--with-sdl` 时保留。
@@ -217,12 +226,35 @@ Image/ImageDecoder_WEBP.h
 
 **验证（2026-10-23，Windows x64 Debug `--list`，EXIT=0）：**
 
-- 头文件共 262 个（未启用 `--with-sdl`）：`duilib/` 261 个 + WebView2 1 个。
-- `Image/` 仅 10 个基础头文件，无任何解码实现头文件泄漏；`Core/ZipStreamIO.h` 与 6 个平台实现头文件均不在包内。
-- 对 262 个包内头文件扫描 `#include "duilib/..."`：除 `ControlDragable.h` 中
+- 头文件共 245 个（未启用 `--with-sdl`）：`duilib/` 244 个 + WebView2 1 个。
+- `Image/` 仅 10 个基础头文件，无任何解码实现头文件泄漏；`Core/ZipStreamIO.h`、6 个平台实现头与新增的 17 个内部实现头均不在包内。
+- 对 245 个包内头文件扫描 `#include "duilib/..."`：除 `ControlDragable.h` 中
   `#ifdef DUILIB_BUILD_FOR_SDL` 的条件包含外，**0 处缺失**；Windows 未启用 SDL 时该分支不编译，
-  启用 `--with-sdl` 时会自动把 `DragWindowFilter_SDL.h` 打进包（263 个头文件）。
-- Unix 包：保留 `DragWindowFilter_SDL.h`，排除 WebView2 头文件后共 255 个头文件，闭包完整。
+  启用 `--with-sdl` 时会自动把 `DragWindowFilter_SDL.h` 打进包（246 个头文件）。
+- Unix 包：保留 `DragWindowFilter_SDL.h`，排除 WebView2 头文件后共 238 个头文件，闭包完整。
+- 宏组合预演：Windows + `--with-cef` 270 个、Unix + CEF 263 个，闭包同样完整。
+
+### 3.2 库收集：MinGW 与 DLL 模式（2026-10-23）
+
+此前 `pack.py` 在 Windows 只认 `.lib`：MinGW 构建的 SDK 会因找不到基础库直接失败，
+Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` 不随包，
+下游能链接但运行期缺 DLL。现已修正：
+
+- `_scan_lib_dir` / `collect_skia_libs` 在 Windows 同时接受 `.lib` 与 `.a`；
+  `libduilib-zlib.a` → `duilib-zlib`，导入库 `libduilib.dll.a` → `duilib`。
+- `detect_windows_toolchain` 按库目录内容判定：`duilib.lib` 为 MSVC，
+  `libduilib*.a` 为 MinGW；`resolve_skia_lib_dir` 据此只探测对应的 Skia 目录
+  （MSVC `llvm.<arch>.<release|debug>`，MinGW `mingw64-gcc|llvm.<arch>.release`）。
+- DLL 模式收集 `bin/duilib[_d].dll` / `duilib32[_d].dll`（存在才收集）；清单
+  运行期注明需与下游可执行文件同级。
+- `--with-sdl` 按产物收集：`SDL3-static.lib`（MSVC 静态）、`SDL3.lib` /
+  `libSDL3.dll.a` + `bin/SDL3.dll`（动态）、`libSDL3.a`（MinGW 静态）。
+- MANIFEST 工具链为 MinGW 时链接列表输出 `-lxxx`，系统库也改写为
+  `-lversion -lwinmm -limm32 -lsetupapi`。
+
+**验证：** MSVC x64 Debug `--list` 仍为 497 个文件 / 314.8 MB，与改动前一致；
+用临时目录模拟 MinGW 产物，得到 5 个 `.a`、`mingw64-gcc.x64.release` 的 Skia 目录、
+`libSDL3.dll.a` + `bin/SDL3.dll` 与 `bin/duilib.dll`，清单按 `-lxxx` 输出。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 
@@ -301,7 +333,7 @@ cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
 2026-10-20 在 Windows 上的实测结果：
 
 - **下游编译验证**：`duilib/duilib.h` 与依赖 third_party 的头文件（`ZipStreamIO.h` / `WebView2Control.h`）**全部 EXITCODE=0**；2026-10-23 起 `APngDecoder.h` / `FrameSequence_gif.h` / `ZipStreamIO.h` 已改为不随包，当前探针只需 `duilib.h` + `WebView2Control.h`。
-- **头文件闭包（2026-10-23 补充）**：Windows x64 Debug 包共 262 个头文件（`duilib/` 261 + WebView2 1），除 `ControlDragable.h` 的 `#ifdef DUILIB_BUILD_FOR_SDL` 条件包含外 **0 处缺失**；Unix 包 255 个，闭包完整。
+- **头文件闭包（2026-10-23 补充）**：Windows x64 Debug 包共 245 个头文件（`duilib/` 244 + WebView2 1），除 `ControlDragable.h` 的 `#ifdef DUILIB_BUILD_FOR_SDL` 条件包含外 **0 处缺失**；Unix 包 238 个，闭包完整。
 - **资源排除精确性**：关闭示例时包内 `themes/default/` 下只有 `global.xml` 与 `public/`；打开时 389 个文件与仓库完全一致。
 - **校验和**：`SHA256SUMS` 独立复算 587/587 全部一致。
 - **包结构**：zip 与 tgz 两种格式均正确。

@@ -83,17 +83,21 @@ nim_duilib-<版本>-<系统>-<架构>/
 1. **包含路径**：`include/`（`#include "duilib/duilib.h"`）。
    使用 CEF 时追加 `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`。
 2. **库路径**：`lib/`（平面结构）。
-3. **链接列表**：
+3. **链接列表**（MSVC 为 `xxx.lib`；MinGW 产物为 `.a` / `.dll.a`，写作 `-lxxx`）：
    - 基础：`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`
    - Skia：`skia`、`svg`、`skshaper`、`skottie`、`sksg`、`jsonreader`
      （`bentleyottmann`、`expat`、`skcms`、`skresources` 随包，出现未解析符号时补链）
    - WebView2：`WebView2LoaderStatic`（VS）或 `WebView2Loader.dll`（CMake，运行期需 DLL）
    - JPEG（Windows）：`turbojpeg-static`
-   - SDL（可选）：`SDL3-static`（Windows）/ `SDL3`（Unix）
+   - SDL（可选）：`SDL3-static`（MSVC 静态）/ `SDL3` 导入库 + `bin/SDL3.dll`
+     （动态）/ `libSDL3.a`（MinGW 静态）；Unix 为 `SDL3`
    - CEF（可选）：`libcef` + `libcef_dll_wrapper[_109]`
-4. **平台系统库**：Windows 启用 SDL 时补 `Version/Winmm/Imm32/Setupapi`；
+4. **平台系统库**：Windows 启用 SDL 时补 `Version/Winmm/Imm32/Setupapi`
+   （MinGW 写作 `-lversion -lwinmm -limm32 -lsetupapi`）；
    Unix 的 `X11`/`freetype`/`fontconfig` 由系统提供，不随包。
 5. **运行期**：`resources/` 与可执行文件同级；CEF 运行时外置；
+   duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
+   Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
    Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
 6. **配置一致性**：Debug 包只给 Debug 下游（`/MTd`），Release 包只给
    Release 下游（`/MT`），两套不可混用。
@@ -138,6 +142,13 @@ nim_duilib-<版本>-<系统>-<架构>/
 * `Core/SDL_MacOS.h`
 * `Core/WindowDropTarget_SDL.h`
 * `Core/WindowDropTarget_Windows.h`
+* `Core/SDL_Linux.h`、`Core/MessageLoop_SDL.h`、`Core/MessageLoop_Windows.h`
+* `Utils/ProcessSingleton_Linux.h`、`Utils/ProcessSingleton_MacOS.h`、`Utils/ProcessSingleton_Windows.h`
+* `Utils/BitmapHelper_SDL.h`、`Utils/BitmapHelper_Windows.h`
+* `Utils/ApiWrapper_Windows.h`、`Utils/Macros_Windows.h`
+* `Utils/DiskUtils_Windows.h`、`Utils/DllManager_Windows.h`、`Utils/InlineHook_Windows.h`
+* `Control/RichEditHost_Windows.h`、`Control/RichEditDragSource_Windows.h`、
+  `Control/RichEditDropTarget_Windows.h`、`Control/RichEditDropTarget_SDL.h`
 
 例外：`Core/DragWindowFilter_SDL.h` 被 `Core/ControlDragable.h` 在
 `DUILIB_BUILD_FOR_SDL` 下条件包含。非 Windows 平台该宏始终开启，Unix 包会保留该头文件；

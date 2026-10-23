@@ -52,14 +52,16 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | Header path | Must be `include/duilib/xxx.h`, **never flattened** | Downstream code writes `#include "duilib/duilib.h"` (`examples/basic/MainForm.h:5`); flattening breaks every downstream build |
 | `RenderSkia/` | Not exposed | `duilib.h` does not reference it; it is a rendering-backend implementation detail |
 | `Core/ZipStreamIO.h` | Not exposed | Only `ZipManager.cpp` includes it; neither `duilib.h` nor `ZipManager.h` references it. Once excluded, zlib headers are no longer needed either |
-| `Core/ControlDropTarget*`, `Core/WindowDropTarget_*`, `Core/SDL_MacOS.h` | Not exposed | Only `.cpp` / `.mm` files include them; no public header references them |
+| `Core/ControlDropTarget*`, `Core/WindowDropTarget_*`, `Core/SDL_MacOS.h`, plus platform implementation headers such as `MessageLoop_*` / `ProcessSingleton_*` / `RichEdit*_Windows/_SDL` | Not exposed | Only `.cpp` / `.mm` files include them; no public header references them |
 | `Core/DragWindowFilter_SDL.h` | Always on non-Windows; on Windows only with `--with-sdl` | `ControlDragable.h` (on the `duilib.h` chain) includes it under `DUILIB_BUILD_FOR_SDL`; that macro is always defined on non-Windows |
 | `third_party` forwarding | Microsoft.Web.WebView2 only (and Windows only) | Public headers depend on this one place only; image decoder implementation headers and `Core/ZipStreamIO.h` are internal, so libpng / giflib / zlib headers are no longer needed |
 | Library directory | Only one layout (Windows `lib/<arch>/<Config>`, Unix `lib/<Config>`) | CM-5 D-2 option B; configuration comes from the directory, no `_d` detection or directory merging |
+| Windows toolchain | Detected from the library directory: `duilib.lib` → MSVC, `libduilib*.a` → MinGW; MinGW collects `.a` / `.dll.a` and probes `mingw64-gcc.*` / `mingw64-llvm.*` for Skia | `build/gcc-mingw-w64_build.bat` and `llvm-mingw-w64_build.bat` produce exactly those names and Skia directories; the two artifacts must not be mixed |
+| DLL-mode runtime | On Windows, `bin/duilib.dll` / `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll` are shipped when present; `lib/` then holds the import library | With `EnableDuilibDll` (`duilib_dll.flag`) enabled, `DuilibSettings.props` writes the DLL to `bin/` and the import library to `lib/<arch>/<Config>/duilib.lib`; downstream fails at runtime without the DLL |
 | Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT and `/MTd` and only serve Debug downstream builds; never mix the two |
 | Skia libraries | Whole directory shipped, plus a link list in the manifest | The `duilib` static library contains Skia symbols; linking fails without them |
-| WebView2 / JPEG | Windows ships loader libraries and `turbojpeg-static` by default | VS enables WebView2 and libjpeg-turbo by default; `duilib.lib` contains those symbols |
-| SDL3 | Always shipped on Unix; on Windows only with `--with-sdl` | SDL is off by default on Windows; on Unix it is enabled and built as a shared library |
+| WebView2 / JPEG | Windows ships loader libraries, `bin/WebView2Loader.dll` and `turbojpeg-static` by default | VS enables WebView2 and libjpeg-turbo by default; `duilib.lib` contains those symbols; CMake uses the dynamic loader, which needs the DLL at runtime |
+| SDL3 | Always shipped on Unix; on Windows only with `--with-sdl`; collects the static or import library actually built, plus `bin/SDL3.dll` for dynamic builds | SDL is off by default on Windows; on Unix it is enabled and built as a shared library; MinGW CMake builds link the shared SDL3 (`libSDL3.dll.a`) |
 | CEF development set | Off by default, needs `--with-cef` (optionally `--cef-version 109`) | Each wrapper is 80–100 MB; the runtime still has to be supplied separately |
 | `bin/resources.zip` | Always excluded | An empty shell file of only 748 bytes |
 | Version number | Single source of truth is the root `VERSION` file | Package name, in-package `VERSION` and `MANIFEST.txt` are all derived from it |
@@ -208,18 +210,20 @@ Image/ImageDecoder_WEBP.h
 - `THIRD_PARTY_INCLUDE_TREE_ROOTS` removed: `libpng` was referenced only by `Image/APngDecoder.h`, and `zlib` only by `Core/ZipStreamIO.h`.
 - `THIRD_PARTY_INCLUDE_DIRS` removed: `giflib` was referenced only by `Image/FrameSequence_gif.h`.
 - New `INTERNAL_HEADER_FILES`: besides `Core/ZipStreamIO.h`, it includes 6 platform implementation headers — `Core/ControlDropTargetImpl_SDL.h`, `Core/ControlDropTargetImpl_Windows.h`, `Core/ControlDropTargetUtils.h`, `Core/SDL_MacOS.h`, `Core/WindowDropTarget_SDL.h`, `Core/WindowDropTarget_Windows.h`. They are included only by `.cpp` / `.mm` files.
+- 2026-10-23 follow-up: 17 more implementation-only headers were added to `INTERNAL_HEADER_FILES` — `Core/SDL_Linux.h`, `Core/MessageLoop_SDL.h`, `Core/MessageLoop_Windows.h`, `Utils/ProcessSingleton_{Linux,MacOS,Windows}.h`, `Utils/BitmapHelper_{SDL,Windows}.h`, `Utils/ApiWrapper_Windows.h`, `Utils/Macros_Windows.h`, `Utils/DiskUtils_Windows.h`, `Utils/DllManager_Windows.h`, `Utils/InlineHook_Windows.h`, `Control/RichEditHost_Windows.h`, `Control/RichEditDragSource_Windows.h`, `Control/RichEditDropTarget_Windows.h`, `Control/RichEditDropTarget_SDL.h`.
 - New `SDL_HEADER_FILES = ('Core/DragWindowFilter_SDL.h',)`: `Core/ControlDragable.h` includes it under `DUILIB_BUILD_FOR_SDL`. That macro is always defined on non-Windows, so the header must stay there; on Windows it is kept only with `--with-sdl`.
 - `collect_jpeg_turbo` no longer forwards `turbojpeg.h` and friends; `turbojpeg-static.lib` is still shipped because Windows linking needs it.
 - Only `Microsoft.Web.WebView2` (Windows only) is forwarded.
 
 **Verification (2026-10-23, Windows x64 Debug `--list`, EXIT=0):**
 
-- 262 headers in total (without `--with-sdl`): 261 under `duilib/`, 1 from WebView2.
-- `Image/` contains only the 10 base headers; no decoder implementation header leaks. `Core/ZipStreamIO.h` and the 6 platform implementation headers are not in the package.
-- Scanning every `#include "duilib/..."` across the 262 packaged headers: apart from the conditional
+- 245 headers in total (without `--with-sdl`): 244 under `duilib/`, 1 from WebView2.
+- `Image/` contains only the 10 base headers; no decoder implementation header leaks. `Core/ZipStreamIO.h`, the 6 platform implementation headers and the 17 new internal headers are not in the package.
+- Scanning every `#include "duilib/..."` across the 245 packaged headers: apart from the conditional
   `#ifdef DUILIB_BUILD_FOR_SDL` include in `ControlDragable.h`, **0 unresolved**. That branch is not compiled
-  when SDL is off on Windows; with `--with-sdl`, `DragWindowFilter_SDL.h` is added automatically (263 headers).
-- Unix packages: `DragWindowFilter_SDL.h` is kept; excluding the WebView2 headers leaves 255 headers with a complete closure.
+  when SDL is off on Windows; with `--with-sdl`, `DragWindowFilter_SDL.h` is added automatically (246 headers).
+- Unix packages: `DragWindowFilter_SDL.h` is kept; excluding the WebView2 headers leaves 238 headers with a complete closure.
+- Macro combos: Windows + `--with-cef` gives 270 headers; Unix + CEF gives 263, both with a complete closure.
 
 ### 4. Debug library detection: suffix plus directory name
 
@@ -298,7 +302,8 @@ Expected result: **EXITCODE=0**. This proves "a standalone project outside the p
 Measured on Windows on 2026-10-20:
 
 - **Downstream compile verification**: `duilib/duilib.h` and the third_party-dependent headers (`ZipStreamIO.h` / `WebView2Control.h`) all returned **EXITCODE=0**. Since 2026-10-23 `APngDecoder.h` / `FrameSequence_gif.h` / `ZipStreamIO.h` are no longer packaged, so the current probe only needs `duilib.h` + `WebView2Control.h`.
-- **Header closure (added 2026-10-23)**: the Windows x64 Debug package contains 262 headers (261 under `duilib/` + 1 from WebView2); apart from the conditional `#ifdef DUILIB_BUILD_FOR_SDL` include in `ControlDragable.h`, **0 unresolved**. The Unix package has 255 headers with a complete closure.
+- **Header closure (added 2026-10-23)**: the Windows x64 Debug package contains 245 headers (244 under `duilib/` + 1 from WebView2); apart from the conditional `#ifdef DUILIB_BUILD_FOR_SDL` include in `ControlDragable.h`, **0 unresolved**. The Unix package has 238 headers with a complete closure.
+- **Library collection (added 2026-10-23)**: Windows accepts both `.lib` and `.a`; the toolchain is detected from the library directory (MSVC `llvm.*`, MinGW `mingw64-gcc|llvm.*` Skia directories); DLL-mode `bin/duilib*.dll` and dynamic SDL3 `bin/SDL3.dll` are shipped; the manifest writes `-lxxx` for MinGW. Verified with a mocked MinGW tree; the MSVC x64 Debug `--list` is unchanged at 497 files / 314.8 MB.
 - **Resource exclusion precision**: with examples off, only `global.xml` and `public/` remain under `themes/default/` in the package; with examples on, all 389 files match the repository exactly.
 - **Checksums**: `SHA256SUMS` independently recomputed, 587/587 all matching.
 - **Package structure**: both zip and tgz formats are correct.

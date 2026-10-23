@@ -90,7 +90,8 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
 1. **Include path**: `include/` (`#include "duilib/duilib.h"`). When CEF is
    included, also add `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`.
 2. **Library path**: `lib/` (flat).
-3. **Link list**:
+3. **Link list** (MSVC uses `xxx.lib`; MinGW artifacts are `.a` / `.dll.a`,
+   written as `-lxxx`):
    - Core: `duilib`, `duilib-cximage`, `duilib-webp`, `duilib-png`, `duilib-zlib`
    - Skia: `skia`, `svg`, `skshaper`, `skottie`, `sksg`, `jsonreader`
      (`bentleyottmann`, `expat`, `skcms`, `skresources` are shipped; add them
@@ -98,13 +99,17 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    - WebView2: `WebView2LoaderStatic` (VS) or `WebView2Loader.dll` (CMake,
      requires the DLL at runtime)
    - JPEG (Windows): `turbojpeg-static`
-   - SDL (optional): `SDL3-static` (Windows) / `SDL3` (Unix)
+   - SDL (optional): `SDL3-static` (MSVC static) / `SDL3` import library plus
+     `bin/SDL3.dll` (dynamic) / `libSDL3.a` (MinGW static); on Unix `SDL3`
    - CEF (optional): `libcef` + `libcef_dll_wrapper[_109]`
 4. **Platform system libraries**: with SDL on Windows add
-   `Version/Winmm/Imm32/Setupapi`; on Unix `X11`/`freetype`/`fontconfig` come
-   from the system and are not packaged.
+   `Version/Winmm/Imm32/Setupapi` (`-lversion -lwinmm -limm32 -lsetupapi`
+   for MinGW); on Unix `X11`/`freetype`/`fontconfig` come from the system and
+   are not packaged.
 5. **Runtime**: `resources/` must sit next to the executable; the CEF runtime
-   is external; on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
+   is external; `bin/duilib*.dll` must sit next to the executable when duilib
+   is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
+   on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
    etc.).
 6. **Configuration consistency**: a Debug package serves Debug downstream
    builds (`/MTd`) only, and a Release package serves Release (`/MT`) only.
@@ -155,6 +160,13 @@ The following platform implementation headers are included only by `.cpp` /
 * `Core/SDL_MacOS.h`
 * `Core/WindowDropTarget_SDL.h`
 * `Core/WindowDropTarget_Windows.h`
+* `Core/SDL_Linux.h`, `Core/MessageLoop_SDL.h`, `Core/MessageLoop_Windows.h`
+* `Utils/ProcessSingleton_Linux.h`, `Utils/ProcessSingleton_MacOS.h`, `Utils/ProcessSingleton_Windows.h`
+* `Utils/BitmapHelper_SDL.h`, `Utils/BitmapHelper_Windows.h`
+* `Utils/ApiWrapper_Windows.h`, `Utils/Macros_Windows.h`
+* `Utils/DiskUtils_Windows.h`, `Utils/DllManager_Windows.h`, `Utils/InlineHook_Windows.h`
+* `Control/RichEditHost_Windows.h`, `Control/RichEditDragSource_Windows.h`,
+  `Control/RichEditDropTarget_Windows.h`, `Control/RichEditDropTarget_SDL.h`
 
 Exception: `Core/ControlDragable.h` conditionally includes
 `Core/DragWindowFilter_SDL.h` under `DUILIB_BUILD_FOR_SDL`. That macro is always

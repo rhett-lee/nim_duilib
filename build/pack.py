@@ -31,7 +31,8 @@
    - 图片解码实现（Image/ImageDecoder_*.h、Image_*.h、APngDecoder.h、
      FrameSequence_gif.h 等）；
    - 内部实现头文件（Core/ZipStreamIO.h、Core/ControlDropTarget*、
-     Core/WindowDropTarget_*、Core/SDL_MacOS.h）。
+     Core/WindowDropTarget_*、Core/SDL_MacOS.h、MessageLoop_*、
+     ProcessSingleton_*、RichEdit*_Windows 等）。
    随之 libpng / giflib / zlib / libjpeg-turbo 的头文件也不再转发。
 
    例外：Core/DragWindowFilter_SDL.h 被 Core/ControlDragable.h 在
@@ -45,12 +46,20 @@
 
 5. SDK 必须能独立支撑下游编译、链接、运行，因此除 5 个 duilib 库外还随包：
    - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
-   - WebView2 loader 库（Windows：静态 loader + 动态 loader 导入库）；
+   - WebView2 loader 库（Windows：静态 loader + 动态 loader 导入库 + DLL）；
    - turbojpeg-static（Windows：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
-   - SDL3（Unix 始终；Windows 需 --with-sdl）；
-   - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）。
+   - SDL3（Unix 始终；Windows 需 --with-sdl；动态库时同时带运行期 DLL）；
+   - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）；
+   - DLL 模式运行库（Windows：bin/duilib*.dll，lib/ 中为对应的导入库）。
    CEF 运行时（libcef.dll、*.pak、icudtl.dat、locales/）**不在本仓库内**，
    由使用者自行放入，含 CEF 的示例程序打包后不能直接运行，清单中会标注。
+
+6. Windows 工具链按库目录内容自动判断：存在 duilib.lib 为 MSVC，
+   存在 libduilib*.a 为 MinGW。两者产物不同，不能混用：
+   - MSVC ：库为 .lib，Skia 目录 llvm.<arch>.<release|debug>；
+   - MinGW：静态库 .a、导入库 .dll.a，Skia 目录为仅有的 release 变体
+            mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release。
+   因此 MinGW 的清单链接写法是 -lxxx，MSVC 是 xxx.lib。
 
 用法：
     python build/pack.py                      # Release SDK 包（不含示例）
@@ -107,15 +116,35 @@ SDL3_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'SDL3')
 # 内部实现头文件（相对 duilib/），不对外转发。
 # 判定依据：只被库内 .cpp / .mm 包含，任何对外头文件都不引用。
 # - Core/ZipStreamIO.h 直接 include zlib 的 minizip 头文件，只被 ZipManager.cpp 使用；
-# - DropTarget / SDL_MacOS 系列是 Windows / SDL 平台的具体实现，只被 .cpp / .mm 使用。
+# - DropTarget / SDL_MacOS 系列是 Windows / SDL 平台的具体实现，只被 .cpp / .mm 使用；
+# - MessageLoop_* / NativeWindow 之外的平台适配（SDL_Linux、ProcessSingleton_*、
+#   BitmapHelper_*、ApiWrapper_Windows、Macros_Windows、DiskUtils/DllManager/
+#   InlineHook_Windows、RichEdit*_Windows/_SDL）同样只被 .cpp 包含。
 INTERNAL_HEADER_FILES = (
+    'Control/RichEditDragSource_Windows.h',
+    'Control/RichEditDropTarget_SDL.h',
+    'Control/RichEditDropTarget_Windows.h',
+    'Control/RichEditHost_Windows.h',
     'Core/ControlDropTargetImpl_SDL.h',
     'Core/ControlDropTargetImpl_Windows.h',
     'Core/ControlDropTargetUtils.h',
+    'Core/MessageLoop_SDL.h',
+    'Core/MessageLoop_Windows.h',
+    'Core/SDL_Linux.h',
     'Core/SDL_MacOS.h',
     'Core/WindowDropTarget_SDL.h',
     'Core/WindowDropTarget_Windows.h',
     'Core/ZipStreamIO.h',
+    'Utils/ApiWrapper_Windows.h',
+    'Utils/BitmapHelper_SDL.h',
+    'Utils/BitmapHelper_Windows.h',
+    'Utils/DiskUtils_Windows.h',
+    'Utils/DllManager_Windows.h',
+    'Utils/InlineHook_Windows.h',
+    'Utils/Macros_Windows.h',
+    'Utils/ProcessSingleton_Linux.h',
+    'Utils/ProcessSingleton_MacOS.h',
+    'Utils/ProcessSingleton_Windows.h',
 )
 
 # SDL 拖动过滤器：Core/ControlDragable.h（duilib.h 的包含链）在
@@ -384,23 +413,49 @@ def _rel(path):
 
 
 def _lib_base_name(stem, wanted):
-    """Unix 静态库去掉 lib 前缀后匹配白名单（P4-B2）。
+    """归一化库文件名主干后匹配白名单。
 
-    libduilib-zlib.a -> duilib-zlib；libcef_dll_wrapper.a 去掉后为
-    cef_dll_wrapper（不在白名单），保留原名匹配。
+    - Unix/MinGW：libduilib-zlib.a -> duilib-zlib；
+    - MinGW 导入库：libduilib.dll.a -> duilib；
+    - MSVC：duilib.lib -> duilib。
+    不在白名单中的名字原样返回，由调用方忽略。
     """
-    if stem.startswith('lib') and stem[3:] in wanted:
-        return stem[3:]
+    names = [stem]
+    if stem.lower().endswith('.dll'):
+        names.append(stem[:-4])
+    for name in names:
+        if name.startswith('lib') and name[3:] in wanted:
+            return name[3:]
+        if name in wanted:
+            return name
     return stem
+
+
+def detect_windows_toolchain(lib_dir):
+    """根据库目录内容判断 Windows 工具链：'msvc' / 'mingw' / None。
+
+    用于区分 .lib（MSVC）与 .a（MinGW）产物，并据此选择 Skia 输出目录。
+    """
+    if not platform.system().lower().startswith('win'):
+        return None
+    if os.path.isfile(os.path.join(lib_dir, 'duilib.lib')):
+        return 'msvc'
+    for name in os.listdir(lib_dir):
+        low = name.lower()
+        if low.startswith('libduilib') and low.endswith('.a'):
+            return 'mingw'
+    return None
 
 
 def _scan_lib_dir(lib_dir):
     """扫描唯一库目录，返回 {基名: 文件名}。
 
     配置只由目录决定（Release/Debug），文件名不再参与判断（D-2）。
-    Windows 只接受 .lib，Unix 只接受 .a。
+    Windows 同时接受 MSVC 的 .lib 与 MinGW 的 .a（含 .dll.a 导入库）；
+    Unix 只接受 .a。
     """
     is_windows = platform.system().lower().startswith('win')
+    allowed_exts = ('.lib', '.a') if is_windows else ('.a',)
     wanted = set(LIB_BASENAMES) | set(CEF_WRAPPER_BY_VERSION.values())
     available = {}
     for name in sorted(os.listdir(lib_dir)):
@@ -411,9 +466,7 @@ def _scan_lib_dir(lib_dir):
             continue
         stem, ext = os.path.splitext(name)
         ext = ext.lower()
-        if is_windows and ext != '.lib':
-            continue
-        if not is_windows and ext != '.a':
+        if ext not in allowed_exts:
             continue
         base = _lib_base_name(stem, wanted)
         if base in wanted and base not in available:
@@ -424,7 +477,8 @@ def _scan_lib_dir(lib_dir):
 def collect_libs(collector, lib_dir, config, with_cef, cef_version):
     """按白名单收集唯一库目录中的静态库。
 
-    目录或主库 duilib 缺失直接失败（Q1）；其余第三方库缺失只告警。
+    5 个基础库（LIB_BASENAMES）任一缺失直接失败：缺少任何一个，
+    下游链接 duilib 时都会失败，不应产出残缺 SDK。
     配置由目录决定，不再做 _d 后缀或多目录合并判断。
     """
     available = _scan_lib_dir(lib_dir)
@@ -446,10 +500,10 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version):
     if with_cef:
         wanted.append(CEF_WRAPPER_BY_VERSION[cef_version])
 
-    missing = [b for b in wanted if b not in available]
-    if 'duilib' in missing:
-        raise PackageError('未找到 duilib 主库（目录：%s），请先完成 %s 编译'
-                           % (_rel(lib_dir), config))
+    missing_base = [b for b in LIB_BASENAMES if b not in available]
+    if missing_base:
+        raise PackageError('缺少基础库：%s（目录：%s），请先完成 %s 编译'
+                           % (', '.join(missing_base), _rel(lib_dir), config))
 
     count = 0
     for base in wanted:
@@ -458,11 +512,6 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version):
             continue
         if collector.add('lib/' + name, os.path.join(lib_dir, name)):
             count += 1
-
-    optional_missing = [b for b in missing if b != 'duilib']
-    if optional_missing:
-        collector.warn('缺少库：%s（目录：%s）'
-                       % (', '.join(optional_missing), _rel(lib_dir)))
     return count
 
 
@@ -478,24 +527,27 @@ def _collect_tree(collector, src_root, dst_prefix):
 
 
 def collect_skia_libs(collector, skia_lib_dir):
-    """收集 Skia 全部静态库（P4-B3：整目录打包）。"""
+    """收集 Skia 全部静态库（P4-B3：整目录打包）。
+
+    Windows 同时接受 MSVC 的 .lib 与 MinGW 的 .a，Unix 只接受 .a。
+    """
     is_windows = platform.system().lower().startswith('win')
-    ext = '.lib' if is_windows else '.a'
+    exts = ('.lib', '.a') if is_windows else ('.a',)
     count = 0
     for name in sorted(os.listdir(skia_lib_dir)):
         full = os.path.join(skia_lib_dir, name)
-        if not os.path.isfile(full) or not name.lower().endswith(ext):
+        if not os.path.isfile(full) or not name.lower().endswith(exts):
             continue
         if collector.add('lib/' + name, full):
             count += 1
     if count == 0:
         raise PackageError('Skia 目录中没有 %s 静态库：%s'
-                           % (ext, _rel(skia_lib_dir)))
+                           % ('/'.join(exts), _rel(skia_lib_dir)))
     return count
 
 
-def resolve_skia_lib_dir(explicit_dir, config, arch_tag):
-    """解析 Skia 库目录。显式指定优先，否则按平台/配置探测。"""
+def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None):
+    """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。"""
     if explicit_dir:
         path = explicit_dir if os.path.isabs(explicit_dir) \
             else os.path.join(REPO_ROOT, explicit_dir)
@@ -506,9 +558,21 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag):
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
     is_windows = platform.system().lower().startswith('win')
     if is_windows:
-        variant = 'llvm.%s.%s' % (
-            arch_tag, 'debug' if config == 'Debug' else 'release')
-        candidates = [os.path.join(out_dir, variant)]
+        # MSVC：llvm.<arch>.debug / release
+        msvc_variant = os.path.join(
+            out_dir, 'llvm.%s.%s' % (
+                arch_tag, 'debug' if config == 'Debug' else 'release'))
+        # MinGW：Skia 只有 release 变体，目录名带 mingw64 前缀
+        mingw_variants = [
+            os.path.join(out_dir, 'mingw64-gcc.%s.release' % arch_tag),
+            os.path.join(out_dir, 'mingw64-llvm.%s.release' % arch_tag),
+        ]
+        if toolchain == 'mingw':
+            candidates = mingw_variants
+        elif toolchain == 'msvc':
+            candidates = [msvc_variant]
+        else:
+            candidates = [msvc_variant] + mingw_variants
     else:
         candidates = [
             os.path.join(out_dir, 'llvm.%s.release' % arch_tag),
@@ -546,11 +610,38 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
 
     count = 0
     if is_windows:
-        lib = os.path.join(root, 'lib', 'SDL3-static.lib')
-        if not os.path.isfile(lib):
-            raise PackageError('启用了 --with-sdl，但缺少 %s' % lib)
-        if collector.add('lib/SDL3-static.lib', lib):
+        # 按工具链产物依次探测：MSVC 静态 SDL3-static.lib；MSVC 动态 SDL3.lib；
+        # MinGW 动态导入库 libSDL3.dll.a；MinGW 静态库 libSDL3.a。
+        lib_root = os.path.join(root, 'lib')
+        candidates = (
+            ('SDL3-static.lib', False),
+            ('SDL3.lib', True),
+            ('libSDL3.dll.a', True),
+            ('libSDL3.a', False),
+        )
+        chosen = None
+        for name, needs_dll in candidates:
+            full = os.path.join(lib_root, name)
+            if os.path.isfile(full):
+                chosen = (name, needs_dll, full)
+                break
+        if chosen is None:
+            raise PackageError('启用了 --with-sdl，但 %s 下没有 SDL3 静态库或导入库'
+                               '（尝试过：%s）'
+                               % (_rel(lib_root),
+                                  ', '.join(n for n, _ in candidates)))
+        name, needs_dll, full = chosen
+        if collector.add('lib/' + name, full):
             count += 1
+        # 动态导入库必须有运行期 DLL，否则下游能链接但运行失败。
+        if needs_dll:
+            dll = os.path.join(root, 'bin', 'SDL3.dll')
+            if os.path.isfile(dll):
+                if collector.add('bin/SDL3.dll', dll):
+                    count += 1
+            else:
+                collector.warn('缺少 SDL3 运行期 DLL：%s（下游运行会失败）'
+                               % _rel(dll))
     else:
         lib_dirs = [os.path.join(root, 'lib64'), os.path.join(root, 'lib')]
         found = False
@@ -597,7 +688,34 @@ def collect_webview2_loader(collector, arch_tag):
                 count += 1
         else:
             collector.warn('缺少 WebView2 loader：%s' % _rel(full))
+    # 动态 loader 的运行期 DLL：SDK-only 包也必须自带，否则 CMake 构建的下游
+    # 在运行期找不到 WebView2Loader.dll。
+    dll = os.path.join(root, 'WebView2Loader.dll')
+    if os.path.isfile(dll):
+        if collector.add('bin/WebView2Loader.dll', dll):
+            count += 1
+    else:
+        collector.warn('缺少 WebView2 loader：%s' % _rel(dll))
     return count
+
+
+def collect_duilib_runtime_dll(collector, arch_tag, config):
+    """收集 DLL 模式下的 duilib 运行库（bin/duilib*.dll）。
+
+    命名由 msvc/PropertySheets/DuilibSettings.props 决定：
+    x64/arm64 为 duilib[_d].dll，x86（VS 的 Win32）为 duilib32[_d].dll。
+    此时 lib/ 下打包的是同名导入库，下游运行必须带上这个 DLL。
+    静态库模式（含 CMake 构建）没有该文件，返回 0，不告警。
+    """
+    if not platform.system().lower().startswith('win'):
+        return 0
+    base = 'duilib32' if arch_tag == 'x86' else 'duilib'
+    if config == 'Debug':
+        base += '_d'
+    full = os.path.join(BIN_DIR, base + '.dll')
+    if not os.path.isfile(full):
+        return 0
+    return 1 if collector.add('bin/%s.dll' % base, full) else 0
 
 
 def collect_jpeg_turbo(collector, arch_tag):
@@ -704,7 +822,8 @@ def collect_examples(collector, config, is_windows):
 
     Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
     Debug exe 与 Release 同名，无法区分，全部收集并告警。
-    运行时 dll 仅 Windows 收集（当前只有 WebView2Loader.dll）。
+    运行时 dll 仅 Windows 收集（此处只有 WebView2Loader.dll；
+    duilib 与 SDL3 的运行的 DLL 由各自 collect 函数收集）。
     """
     if not os.path.isdir(BIN_DIR):
         collector.warn('bin 目录不存在：%s' % BIN_DIR)
@@ -747,7 +866,7 @@ CEF_EXAMPLES = ('cef.exe', 'cef_d.exe', 'CefBrowser.exe', 'CefBrowser_d.exe')
 
 
 def _lib_stems(collector):
-    """包内 lib/ 下所有库的文件名主干（Unix 去掉 lib 前缀）。"""
+    """包内 lib/ 下所有库的文件名主干（Unix/MinGW 去掉 lib 前缀与 .dll 中缀）。"""
     stems = set()
     for rel, _abs in collector.items:
         if not rel.startswith('lib/'):
@@ -755,15 +874,34 @@ def _lib_stems(collector):
         stem = os.path.splitext(rel.rsplit('/', 1)[-1])[0]
         if stem.startswith('lib'):
             stem = stem[3:]
+        if stem.lower().endswith('.dll'):
+            stem = stem[:-4]
         stems.add(stem)
     return stems
 
 
+def _lib_filenames(collector):
+    """包内 lib/ 下所有库的完整文件名（用于区分静态库与导入库）。"""
+    return set(rel.rsplit('/', 1)[-1] for rel, _abs in collector.items
+               if rel.startswith('lib/'))
+
+
 def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
-                   config, with_examples, with_sdl, with_cef, cef_version):
+                   config, with_examples, with_sdl, with_cef, cef_version,
+                   toolchain=None):
     """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。"""
     is_windows = sys_tag == 'win'
+    is_mingw = toolchain == 'mingw'
     stems = _lib_stems(collector)
+    lib_names = _lib_filenames(collector)
+    bin_dlls = [r.split('/', 1)[1] for r, _abs in collector.items
+                if r.startswith('bin/') and r.lower().endswith('.dll')]
+    # SDL3 静态库：MSVC 的 SDL3-static.lib 或 MinGW 的 libSDL3.a；
+    # 动态库：Windows 的导入库（SDL3.lib / libSDL3.dll.a）或 Unix 的 libSDL3.so*。
+    sdl_static = ('SDL3-static.lib' in lib_names) or ('libSDL3.a' in lib_names)
+    sdl_dynamic = (('SDL3.lib' in lib_names) or ('libSDL3.dll.a' in lib_names) or
+                   any(n.startswith('libSDL3.so') or n.startswith('libSDL3.')
+                       and n.endswith('.dylib') for n in lib_names))
     lines = []
 
     def section(title):
@@ -772,7 +910,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('-' * 60)
 
     def fmt_libs(names):
-        if is_windows:
+        # MinGW 产物是 libxxx.a / libxxx.dll.a，链接写法与 Unix 一致。
+        if is_windows and not is_mingw:
             return ';'.join('%s.lib' % n for n in names)
         return ' '.join('-l%s' % n for n in names)
 
@@ -782,6 +921,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('包名      : %s' % pkg_root_name)
     lines.append('平台      : %s-%s' % (sys_tag, arch_tag))
     lines.append('配置      : %s' % config)
+    if is_windows and toolchain:
+        lines.append('工具链    : %s' % ('MinGW' if is_mingw else 'MSVC'))
     lines.append('打包时间  : %s' % time.strftime('%Y-%m-%d %H:%M:%S'))
     lines.append('包含示例  : %s' % ('是' if with_examples else '否'))
     lines.append('文件总数  : %d' % len(collector.items))
@@ -823,9 +964,11 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                      '运行期需 WebView2Loader.dll）')
     if 'turbojpeg-static' in stems:
         lines.append('   JPEG    : turbojpeg-static.lib')
-    if 'SDL3-static' in stems:
-        lines.append('   SDL3    : SDL3-static.lib（静态）')
-    elif 'SDL3' in stems:
+    if sdl_static:
+        sdl_static_name = ('SDL3-static.lib' if 'SDL3-static.lib' in lib_names
+                           else 'libSDL3.a')
+        lines.append('   SDL3    : %s（静态）' % sdl_static_name)
+    elif sdl_dynamic:
         lines.append('   SDL3    : -lSDL3（动态库，见运行期）')
     if with_cef:
         wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
@@ -834,12 +977,22 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     section('运行期')
     lines.append('  resources/ 必须放在可执行文件同级目录（框架启动必需）。')
     if is_windows:
-        if 'WebView2Loader.dll' in stems:
-            lines.append('  动态 WebView2 loader 需要 WebView2Loader.dll 与可执行文件')
-            lines.append('  同级；可从 bin/ 或 third_party 同名文件复制。')
-        if 'SDL3-static' in stems:
+        if 'WebView2Loader.dll' in bin_dlls:
+            lines.append('  WebView2Loader.dll 随包（bin/）；使用动态 loader 时复制到')
+            lines.append('  可执行文件同级。')
+        duilib_dlls = [n for n in bin_dlls if n.lower().startswith('duilib')]
+        if duilib_dlls:
+            lines.append('  duilib 为 DLL 模式：%s 随包（bin/），需与下游可执行文件'
+                         % ', '.join(sorted(duilib_dlls)))
+            lines.append('  放在同级目录；lib/ 中的 duilib 库为导入库。')
+        if sdl_dynamic:
+            lines.append('  SDL3 为动态库：lib/ 中为导入库，SDL3.dll 随包（bin/），')
+            lines.append('  需复制到可执行文件同级；下游需定义 DUILIB_SDL=1。')
+        elif sdl_static:
+            sys_libs = ('-lversion -lwinmm -limm32 -lsetupapi' if is_mingw
+                        else 'Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib')
             lines.append('  SDL3 为静态库，无需额外 DLL；下游需定义 DUILIB_SDL=1，')
-            lines.append('  并补链系统库：Version.lib;Winmm.lib;Imm32.lib;Setupapi.lib')
+            lines.append('  并补链系统库：%s' % sys_libs)
         if with_cef:
             lines.append('  CEF 运行时不在本包内，需从 libcef 发布包放入可执行文件同级：')
             lines.append('  libcef.dll、icudtl.dat、*.pak、locales/ 等。')
@@ -998,7 +1151,9 @@ def main(argv=None):
                         help='显式指定 duilib 库目录，此时 --arch/--config 不再参与'
                              '路径计算，但仍决定包名与示例过滤')
     parser.add_argument('--skia-lib-dir', default=None,
-                        help='Skia 静态库目录（默认探测 ../skia/out/llvm.<arch>.<config>）')
+                        help='Skia 静态库目录（默认按平台/工具链探测，'
+                             '如 ../skia/out/llvm.<arch>.<config> 或 '
+                             'mingw64-gcc.<arch>.release）')
     parser.add_argument('--sdl-dir', default=None,
                         help='SDL3 根目录（默认 ../SDL3）')
     parser.add_argument('--with-sdl', action='store_true',
@@ -1030,7 +1185,9 @@ def main(argv=None):
 
     try:
         lib_dir = resolve_lib_dir(args.lib_dir, config, arch_tag)
-        skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag)
+        toolchain = detect_windows_toolchain(lib_dir) if sys_tag == 'win' else None
+        skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
+                                        toolchain)
 
         collector = Collector()
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
@@ -1039,6 +1196,7 @@ def main(argv=None):
         n_skia = collect_skia_libs(collector, skia_dir)
         n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
         n_wv2 = collect_webview2_loader(collector, arch_tag)
+        n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)
         n_jpeg = collect_jpeg_turbo(collector, arch_tag)
         n_cef = 0
         if args.with_cef:
@@ -1056,6 +1214,8 @@ def main(argv=None):
     print('版本      : %s' % version)
     print('平台      : %s-%s' % (sys_tag, arch_tag))
     print('配置      : %s' % config)
+    if sys_tag == 'win' and toolchain:
+        print('工具链    : %s' % ('MinGW' if toolchain == 'mingw' else 'MSVC'))
     print('库目录    : %s' % _rel(lib_dir))
     print('Skia 目录 : %s' % _rel(skia_dir))
     print('格式      : %s' % fmt)
@@ -1066,6 +1226,7 @@ def main(argv=None):
     print('Skia 库   : %d' % n_skia)
     print('SDL3      : %d' % n_sdl)
     print('WebView2  : %d' % n_wv2)
+    print('DLL运行库 : %d' % n_dll)
     print('JPEG      : %d' % n_jpeg)
     print('CEF       : %d' % n_cef)
     print('资源文件  : %d' % n_res)
@@ -1090,7 +1251,8 @@ def main(argv=None):
         pkg_root_name += '-debug'
     manifest_text, sums_text = write_manifest(
         collector, pkg_root_name, version, sys_tag, arch_tag, config,
-        args.with_examples, args.with_sdl, args.with_cef, args.cef_version)
+        args.with_examples, args.with_sdl, args.with_cef, args.cef_version,
+        toolchain)
 
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)

@@ -493,11 +493,27 @@ python build/pack.py --list
 - 图片解码实现头文件不打包（`Image/ImageDecoder_*.h`、`Image/Image_*.h`、
   `APngDecoder.h`、`FrameSequence_gif.h` 等），内部实现头文件
   `Core/ZipStreamIO.h`、`Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、
-  `Core/SDL_MacOS.h` 也不打包；`third_party` 头文件只转发 WebView2
+  `Core/SDL_MacOS.h`，以及只被 `.cpp` 包含的 `Core/SDL_Linux.h`、
+  `Core/MessageLoop_*`、`Utils/ProcessSingleton_*`、`Utils/BitmapHelper_*`、
+  `Utils/ApiWrapper_Windows.h`、`Utils/Macros_Windows.h`、`Utils/DiskUtils_Windows.h`、
+  `Utils/DllManager_Windows.h`、`Utils/InlineHook_Windows.h`、
+  `Control/RichEdit*_Windows/_SDL` 均不打包；`third_party` 头文件只转发 WebView2
   （仅 Windows），`zlib` / `libpng` / `giflib` / `libjpeg-turbo` 的头文件
   均不再转发（对应静态库仍随包）。
 - `Core/DragWindowFilter_SDL.h` 例外：非 Windows 必带；Windows 仅在
   `--with-sdl` 时打包（`ControlDragable.h` 在 `DUILIB_BUILD_FOR_SDL` 下包含它）。
+- Windows 包在 `bin/WebView2Loader.dll` 自带动态 loader 的 DLL；
+  `duilib` / `duilib-cximage` / `duilib-png` / `duilib-webp` / `duilib-zlib`
+  任一缺失时打包直接失败，不再只告警。
+- MinGW 构建的库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库），
+  Skia 目录为 `mingw64-gcc.<arch>.release` / `mingw64-llvm.<arch>.release`；
+  打包脚本按库目录内容自动判断工具链（MSVC/MinGW），清单中链接写法为 `-lxxx`。
+- DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll`
+  （x64/arm64 为 `duilib[_d].dll`，x86 为 `duilib32[_d].dll`）随包，
+  `lib/` 中为对应的导入库；静态模式没有这些文件，打包时自动跳过。
+- `--with-sdl` 时按实际产物收集 SDL3：MSVC 静态 `SDL3-static.lib`；
+  动态导入库 `SDL3.lib` / `libSDL3.dll.a` 并随包 `bin/SDL3.dll`；
+  MinGW 静态 `libSDL3.a`。
 - 库目录只有一套布局：Windows `lib/<arch>/<Release|Debug>/`，
   Unix `lib/<Release|Debug>/`；配置由 `--config` 选择，不再靠 `_d` 判定。
 - Debug 库带调试 CRT，只能给 Debug 下游使用，混进 Release SDK 会让链接异常。
