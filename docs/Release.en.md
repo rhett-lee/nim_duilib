@@ -125,22 +125,56 @@ Therefore there must be a `duilib/` level under `include/`. Flattening it to
 `RenderSkia/` is not exposed: the rendering backend is an implementation
 detail and `duilib.h` does not reference it.
 
-### third_party headers are forwarded too
+### Only the required third_party headers are forwarded
 
-Five public headers include headers from `third_party` directly, so those
-must be forwarded with the package or downstream builds fail:
+The packaged `Image/` directory keeps only the public base headers
+(`Image.h`, `ImageAttribute.h`, `ImageInfo.h`, `ImageLoadParam.h`,
+`ImageDecoder.h`, `ImageDecoderFactory.h`, `ImageUtil.h`, `StateImage.h`,
+`StateImageMap.h`, `ImagePlayer.h`).
 
-| Public header | Depends on |
-| :--- | :--- |
-| `Core/ZipStreamIO.h` | `zlib` |
-| `Image/APngDecoder.h` | `zlib`, `libpng` |
-| `Image/FrameSequence_gif.h` | `giflib` |
-| `WebView2/WebView2Control.h` | `Microsoft.Web.WebView2` |
-| `WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` |
+Format-specific decoder implementation headers are **not packaged**: they are
+used only by `.cpp` files inside the library, and the `duilib.h` include chain
+never references them:
 
-`zlib` and `libpng` have internal transitive dependencies (for example
-`pngpriv.h` includes `pnglibconf.h`), so those two are forwarded as whole
-directory trees rather than filtered file by file.
+* `Image/ImageDecoder_*.h` (PNG / GIF / JPEG / WEBP / SVG / ICO / Icon /
+  LOTTIE / PAG / Common)
+* `Image/Image_*.h` (PNG / GIF / JPEG / WEBP / SVG / ICO / LOTTIE / PAG /
+  Bitmap / Animation)
+* `Image/APngDecoder.h`, `Image/FrameSequence_gif.h`, `Image/ImageDecoderUtil.h`
+
+`Core/ZipStreamIO.h` is likewise internal (only `ZipManager.cpp` includes it;
+neither `duilib.h` nor `ZipManager.h` references it), so it is not packaged
+either.
+
+The following platform implementation headers are included only by `.cpp` /
+`.mm` files inside the library and are not packaged:
+
+* `Core/ControlDropTargetImpl_SDL.h`
+* `Core/ControlDropTargetImpl_Windows.h`
+* `Core/ControlDropTargetUtils.h`
+* `Core/SDL_MacOS.h`
+* `Core/WindowDropTarget_SDL.h`
+* `Core/WindowDropTarget_Windows.h`
+
+Exception: `Core/ControlDragable.h` conditionally includes
+`Core/DragWindowFilter_SDL.h` under `DUILIB_BUILD_FOR_SDL`. That macro is always
+defined on non-Windows platforms, so Unix packages keep this header; Windows
+packages omit it unless `--with-sdl` is used.
+
+Public headers depend on only one kind of `third_party` headers, which is
+forwarded with the package:
+
+| Public header | Depends on | Notes |
+| :--- | :--- | :--- |
+| `WebView2/WebView2Control.h`, `WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` | Forwarded on Windows only |
+
+Accordingly, `zlib`, `libpng`, `giflib` and `libjpeg-turbo` headers are no
+longer forwarded. The `duilib-zlib` and `turbojpeg-static` libraries are still
+shipped because linking needs them; only their headers are omitted.
+
+These include relationships were verified one by one: every
+`#include "duilib/..."` in the packaged `duilib/` headers resolves, so
+downstream code only needs `#include "duilib/duilib.h"` to compile.
 
 ## Resource scope differences with --with-examples
 

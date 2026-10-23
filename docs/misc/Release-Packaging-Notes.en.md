@@ -51,8 +51,10 @@ The rules enforced by `pack.py`, each with an explicit rationale:
 | :--- | :--- | :--- |
 | Header path | Must be `include/duilib/xxx.h`, **never flattened** | Downstream code writes `#include "duilib/duilib.h"` (`examples/basic/MainForm.h:5`); flattening breaks every downstream build |
 | `RenderSkia/` | Not exposed | `duilib.h` does not reference it; it is a rendering-backend implementation detail |
-| `third_party` forwarding | zlib / libpng / giflib / Microsoft.Web.WebView2 | 5 public headers include them directly; without forwarding, downstream builds fail |
-| zlib / libpng | Forward whole directory trees of headers, no per-file filtering | Conditional transitive dependencies; a whitelist would miss them (see section 4) |
+| `Core/ZipStreamIO.h` | Not exposed | Only `ZipManager.cpp` includes it; neither `duilib.h` nor `ZipManager.h` references it. Once excluded, zlib headers are no longer needed either |
+| `Core/ControlDropTarget*`, `Core/WindowDropTarget_*`, `Core/SDL_MacOS.h` | Not exposed | Only `.cpp` / `.mm` files include them; no public header references them |
+| `Core/DragWindowFilter_SDL.h` | Always on non-Windows; on Windows only with `--with-sdl` | `ControlDragable.h` (on the `duilib.h` chain) includes it under `DUILIB_BUILD_FOR_SDL`; that macro is always defined on non-Windows |
+| `third_party` forwarding | Microsoft.Web.WebView2 only (and Windows only) | Public headers depend on this one place only; image decoder implementation headers and `Core/ZipStreamIO.h` are internal, so libpng / giflib / zlib headers are no longer needed |
 | Library directory | Only one layout (Windows `lib/<arch>/<Config>`, Unix `lib/<Config>`) | CM-5 D-2 option B; configuration comes from the directory, no `_d` detection or directory merging |
 | Debug package | With `--config Debug` the name gains `-debug` and the manifest records the config | Debug libraries carry the debug CRT and `/MTd` and only serve Debug downstream builds; never mix the two |
 | Skia libraries | Whole directory shipped, plus a link list in the manifest | The `duilib` static library contains Skia symbols; linking fails without them |
@@ -118,7 +120,9 @@ The first version of the packaging script flattened headers to `include/duilib.h
 
 This is the most thoroughly derived part of the work. The chain of reasoning:
 
-**Step one — who references it.** There are 313 public headers under `duilib/` (excluding `third_party/` and `RenderSkia/`), as measured on 2026-10-20. Scanning every `#include`, only 5 reference `duilib/third_party/...`, via 9 include directives in total:
+**Step one — who references it.** There are 313 public headers under `duilib/` (excluding `third_party/` and `RenderSkia/`), as measured on 2026-10-20. Scanning every `#include`, only 5 referenced `duilib/third_party/...` at that time, via 9 include directives in total:
+
+> Updated 2026-10-23: `Image/APngDecoder.h`, `Image/FrameSequence_gif.h` and `Core/ZipStreamIO.h` in the table below are no longer packaged. The only `third_party` headers shipped now are WebView2 (Windows only); zlib, libpng and giflib are no longer forwarded. See section 3.1.
 
 | Public header | Third-party headers referenced |
 | :--- | :--- |
@@ -141,7 +145,7 @@ giflib    1 required: gif_lib.h (depends only on <stdbool.h> / <stddef.h>)
 WebView2  1 required: WebView2.h
 ```
 
-**Step three — why zlib / libpng must be forwarded as whole trees.** The headers of these two libraries are chained by **same-directory relative includes**, and the chains are guarded by conditions:
+**Step three — why zlib / libpng had to be forwarded as whole trees (historical decision of 2026-10-20; no longer forwarded since 2026-10-23).** The headers of these two libraries are chained by **same-directory relative includes**, and the chains are guarded by conditions:
 
 - `pngpriv.h:85` `#include "pngprefix.h"` — only when `PNG_PREFIX`
 - `pngpriv.h:89` `#include "pngusr.h"` — only when `PNG_USER_CONFIG`
@@ -162,7 +166,60 @@ Forwarding by file whitelist would require enumerating every macro combination; 
 | giflib | 3 | 1 |
 | Microsoft.Web.WebView2 | 1 | 1 |
 
-38 extra headers, all a few KB of text each. The volume is negligible; in exchange, nothing is missed because of a macro combination or an upstream patch-level upgrade.
+38 extra headers, all a few KB of text each. The volume is negligible; in exchange, nothing is missed because of a macro combination or an upstream patch-level upgrade. (The table reflects the whole-tree forwarding policy as of 2026-10-20; since 2026-10-23 libpng / giflib / zlib are no longer forwarded — only the single WebView2 header is shipped. See section 3.1.)
+
+### 3.1 Image decoder and internal implementation headers excluded from the package (2026-10-23)
+
+**Conclusion.** Format-specific decoder implementation headers are used only by `.cpp` files inside the library. The `duilib.h` include chain never references them, so they are no longer shipped in the SDK.
+
+Image entry points in `duilib.h` and their transitive dependencies:
+
+```
+Image.h               -> ImageInfo.h / ImageAttribute.h / ImageLoadParam.h
+                      -> StateImageMap.h -> StateImage.h
+ImageInfo.h           -> ImageDecoder.h
+ImageDecoderFactory.h -> ImageDecoder.h / ImageUtil.h
+```
+
+The packaged `Image/` directory therefore keeps only 10 base headers: `Image.h`,
+`ImageAttribute.h`, `ImageInfo.h`, `ImageLoadParam.h`, `ImageDecoder.h`,
+`ImageDecoderFactory.h`, `ImageUtil.h`, `StateImage.h`, `StateImageMap.h`,
+`ImagePlayer.h`.
+
+**Exclusion list (`IMAGE_DECODER_HEADER_FILES` in `pack.py`, 23 files):**
+
+```
+Image/APngDecoder.h              Image/FrameSequence_gif.h
+Image/Image_Animation.h          Image/Image_Bitmap.h
+Image/Image_GIF.h                Image/Image_ICO.h
+Image/Image_JPEG.h               Image/Image_LOTTIE.h
+Image/Image_PAG.h                Image/Image_PNG.h
+Image/Image_Svg.h                Image/Image_WEBP.h
+Image/ImageDecoderUtil.h         Image/ImageDecoder_Common.h
+Image/ImageDecoder_GIF.h         Image/ImageDecoder_ICO.h
+Image/ImageDecoder_Icon.h        Image/ImageDecoder_JPEG.h
+Image/ImageDecoder_LOTTIE.h      Image/ImageDecoder_PAG.h
+Image/ImageDecoder_PNG.h         Image/ImageDecoder_SVG.h
+Image/ImageDecoder_WEBP.h
+```
+
+**Resulting `third_party` scope:**
+
+- `THIRD_PARTY_INCLUDE_TREE_ROOTS` removed: `libpng` was referenced only by `Image/APngDecoder.h`, and `zlib` only by `Core/ZipStreamIO.h`.
+- `THIRD_PARTY_INCLUDE_DIRS` removed: `giflib` was referenced only by `Image/FrameSequence_gif.h`.
+- New `INTERNAL_HEADER_FILES`: besides `Core/ZipStreamIO.h`, it includes 6 platform implementation headers — `Core/ControlDropTargetImpl_SDL.h`, `Core/ControlDropTargetImpl_Windows.h`, `Core/ControlDropTargetUtils.h`, `Core/SDL_MacOS.h`, `Core/WindowDropTarget_SDL.h`, `Core/WindowDropTarget_Windows.h`. They are included only by `.cpp` / `.mm` files.
+- New `SDL_HEADER_FILES = ('Core/DragWindowFilter_SDL.h',)`: `Core/ControlDragable.h` includes it under `DUILIB_BUILD_FOR_SDL`. That macro is always defined on non-Windows, so the header must stay there; on Windows it is kept only with `--with-sdl`.
+- `collect_jpeg_turbo` no longer forwards `turbojpeg.h` and friends; `turbojpeg-static.lib` is still shipped because Windows linking needs it.
+- Only `Microsoft.Web.WebView2` (Windows only) is forwarded.
+
+**Verification (2026-10-23, Windows x64 Debug `--list`, EXIT=0):**
+
+- 262 headers in total (without `--with-sdl`): 261 under `duilib/`, 1 from WebView2.
+- `Image/` contains only the 10 base headers; no decoder implementation header leaks. `Core/ZipStreamIO.h` and the 6 platform implementation headers are not in the package.
+- Scanning every `#include "duilib/..."` across the 262 packaged headers: apart from the conditional
+  `#ifdef DUILIB_BUILD_FOR_SDL` include in `ControlDragable.h`, **0 unresolved**. That branch is not compiled
+  when SDL is off on Windows; with `--with-sdl`, `DragWindowFilter_SDL.h` is added automatically (263 headers).
+- Unix packages: `DragWindowFilter_SDL.h` is kept; excluding the WebView2 headers leaves 255 headers with a complete closure.
 
 ### 4. Debug library detection: suffix plus directory name
 
@@ -189,9 +246,9 @@ git tags are recommended in the form `v<version>`. The repository's existing tag
 | `global.xml` dropped in SDK mode | Downstream startup fails outright | The resource exclusion also removed `global.xml` | Keep `global.xml` and `public/` explicitly |
 | Duplicate entry in `Summary.en.md` | "Release and Packaging" listed twice in the index | The registration script had no existence guard | Fixed; check for duplicates before registering |
 | README section hierarchy broken | "Maintenance Notes" became an empty heading, and its 5 `###` subsections got re-parented under "Release packaging" | The new section was inserted between a `##` heading and its subsections, and consumed the blank line after the heading | Fixed; the whole section was moved before its parent heading |
-| `pngpriv.h` dependency chain incomplete | The doc said "`pngpriv.h` → `pnglibconf.h`", but there is also `pngdebug.h` | Only the first few includes were checked while writing | See the closure in section 3; all 13 files verified one by one |
+| `pngpriv.h` dependency chain incomplete | The doc said "`pngpriv.h` → `pnglibconf.h`", but there is also `pngdebug.h` | Only the first few includes were checked while writing | See the closure in section 3; all 13 files verified one by one (libpng is no longer packaged as of 2026-10-23) |
 
-**There is also an ordering dependency worth remembering**: `libpng/pngstruct.h:28-29` includes `"zlib.h"` only `#ifndef ZLIB_H`, and there is no `zlib.h` in the `libpng/` directory. It compiles only because `APngDecoder.h:5` includes `zlib/zlib.h` first, defining `ZLIB_H`. The in-package `include/duilib/third_party/libpng/pngstruct.h` preserves that order, which is what makes the closure self-consistent.
+**There is also an ordering dependency worth remembering**: `libpng/pngstruct.h:28-29` includes `"zlib.h"` only `#ifndef ZLIB_H`, and there is no `zlib.h` in the `libpng/` directory. It compiles only because `APngDecoder.h:5` includes `zlib/zlib.h` first, defining `ZLIB_H`. This dependency exists only inside the source tree; since 2026-10-23 neither `libpng` nor `APngDecoder.h` is packaged, so it no longer affects the released artifact.
 
 ## 5. Known gaps and follow-up
 
@@ -203,7 +260,7 @@ git tags are recommended in the form `v<version>`. The repository's existing tag
 
 3. **Signing and notarization are not automated.** The project produces pure static libraries (`add_library` does not specify `SHARED`, and `msvc/dllRes/dllmain.cpp` only compiles in the `.vcxproj`), so the SDK package itself needs no signature; the documentation only gives the manual procedure. Automated signing is equivalent to B-2's CI — it needs certificate management, which is a long-term maintenance burden.
 
-4. **Two constant names in `pack.py` are misleading.** `THIRD_PARTY_INCLUDE_DIRS` ("specified subdirectory") and `THIRD_PARTY_INCLUDE_TREE_ROOTS` ("whole tree") are **exactly equivalent in implementation** — both blocks at `pack.py:260-282` recursively walk `iter_files(root)`; the only difference is how the path is assembled. `giflib` sits in DIRS but has its **entire directory** forwarded (3 headers), not "only the one specified file". What the two constants really encode is "**single-component shortcut path** vs **multi-component path tuple**". `('giflib',)` could be merged into TREE_ROOTS with zero behavioral change. **The comments and constant wording should be adjusted** (not a bug, a wording inaccuracy).
+4. **Two constant names in `pack.py` are misleading (no longer applicable).** `THIRD_PARTY_INCLUDE_DIRS` ("specified subdirectory") and `THIRD_PARTY_INCLUDE_TREE_ROOTS` ("whole tree") are **exactly equivalent in implementation**; only the path assembly differs. Since 2026-10-23 `giflib` was removed along with the image decoder headers, `THIRD_PARTY_INCLUDE_DIRS` is an empty tuple and only `WEBVIEW2_INCLUDE_DIR` is appended per platform, so this wording inaccuracy has no practical effect anymore.
 
 5. **Deliberately dropped sub-items.** NSIS/WiX (installers) and DEB/dmg (system packages) are not done — zip / tgz is enough for a static-library SDK, and building an installer is over-engineering at this stage.
 
@@ -229,19 +286,19 @@ Step 4 is **the most effective acceptance check**: unzip the artifact, write a `
 
 ```cpp
 #include "duilib/duilib.h"
-#include "duilib/Core/ZipStreamIO.h"
-#include "duilib/Image/APngDecoder.h"
-#include "duilib/Image/FrameSequence_gif.h"
 #include "duilib/WebView2/WebView2Control.h"
 ```
 
 Expected result: **EXITCODE=0**. This proves "a standalone project outside the package can compile", which is far more convincing than counting files.
 
+> Since 2026-10-23 the image decoder implementation headers (`Image/APngDecoder.h`, `Image/FrameSequence_gif.h`, etc.) and the internal `Core/ZipStreamIO.h` are no longer packaged; do not reference them in the probe.
+
 ## 6. Acceptance results already obtained
 
 Measured on Windows on 2026-10-20:
 
-- **Downstream compile verification**: `duilib/duilib.h` and the 4 third_party-dependent headers (`ZipStreamIO.h` / `APngDecoder.h` / `FrameSequence_gif.h` / `WebView2Control.h`) all returned **EXITCODE=0**.
+- **Downstream compile verification**: `duilib/duilib.h` and the third_party-dependent headers (`ZipStreamIO.h` / `WebView2Control.h`) all returned **EXITCODE=0**. Since 2026-10-23 `APngDecoder.h` / `FrameSequence_gif.h` / `ZipStreamIO.h` are no longer packaged, so the current probe only needs `duilib.h` + `WebView2Control.h`.
+- **Header closure (added 2026-10-23)**: the Windows x64 Debug package contains 262 headers (261 under `duilib/` + 1 from WebView2); apart from the conditional `#ifdef DUILIB_BUILD_FOR_SDL` include in `ControlDragable.h`, **0 unresolved**. The Unix package has 255 headers with a complete closure.
 - **Resource exclusion precision**: with examples off, only `global.xml` and `public/` remain under `themes/default/` in the package; with examples on, all 389 files match the repository exactly.
 - **Checksums**: `SHA256SUMS` independently recomputed, 587/587 all matching.
 - **Package structure**: both zip and tgz formats are correct.

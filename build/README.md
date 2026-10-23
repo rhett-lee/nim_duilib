@@ -490,6 +490,14 @@ python build/pack.py --list
 
 - 包内头文件必须保持 `include/duilib/xxx.h` 层级，下游写法是
   `#include "duilib/duilib.h"`；压平会导致下游全部编译失败。
+- 图片解码实现头文件不打包（`Image/ImageDecoder_*.h`、`Image/Image_*.h`、
+  `APngDecoder.h`、`FrameSequence_gif.h` 等），内部实现头文件
+  `Core/ZipStreamIO.h`、`Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、
+  `Core/SDL_MacOS.h` 也不打包；`third_party` 头文件只转发 WebView2
+  （仅 Windows），`zlib` / `libpng` / `giflib` / `libjpeg-turbo` 的头文件
+  均不再转发（对应静态库仍随包）。
+- `Core/DragWindowFilter_SDL.h` 例外：非 Windows 必带；Windows 仅在
+  `--with-sdl` 时打包（`ControlDragable.h` 在 `DUILIB_BUILD_FOR_SDL` 下包含它）。
 - 库目录只有一套布局：Windows `lib/<arch>/<Release|Debug>/`，
   Unix `lib/<Release|Debug>/`；配置由 `--config` 选择，不再靠 `_d` 判定。
 - Debug 库带调试 CRT，只能给 Debug 下游使用，混进 Release SDK 会让链接异常。

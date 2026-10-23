@@ -497,6 +497,16 @@ Easy mistakes to avoid:
 
 - Headers must keep the `include/duilib/xxx.h` hierarchy, since downstream
   code uses `#include "duilib/duilib.h"`. Flattening breaks every build.
+- Image decoder implementation headers are not packaged
+  (`Image/ImageDecoder_*.h`, `Image/Image_*.h`, `APngDecoder.h`,
+  `FrameSequence_gif.h`, etc.), and neither are the internal
+  `Core/ZipStreamIO.h`, `Core/ControlDropTarget*`, `Core/WindowDropTarget_*`
+  or `Core/SDL_MacOS.h`. From `third_party`, only WebView2 (Windows only)
+  headers are forwarded; `zlib`, `libpng`, `giflib` and `libjpeg-turbo`
+  headers are no longer forwarded (their static libraries are still shipped).
+- `Core/DragWindowFilter_SDL.h` is the exception: always kept on non-Windows,
+  and on Windows packaged only with `--with-sdl` (`ControlDragable.h` includes
+  it under `DUILIB_BUILD_FOR_SDL`).
 - There is only one library layout: `lib/<arch>/<Release|Debug>/` on Windows
   and `lib/<Release|Debug>/` on Unix. The configuration comes from `--config`,
   not from a `_d` suffix.

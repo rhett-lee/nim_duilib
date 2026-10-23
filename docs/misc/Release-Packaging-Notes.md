@@ -51,8 +51,10 @@ write_release_docs.py
 | :--- | :--- | :--- |
 | 头文件路径 | 必须是 `include/duilib/xxx.h`，**不可压平** | 下游写法是 `#include "duilib/duilib.h"`（`examples/basic/MainForm.h:5`），压平则下游全部编译失败 |
 | `RenderSkia/` | 不对外暴露 | `duilib.h` 不引用它，是渲染后端实现细节 |
-| `third_party` 转发 | zlib / libpng / giflib / Microsoft.Web.WebView2 | 有 5 个对外头文件直接 include 了它们，不转发下游编译失败 |
-| zlib / libpng | 整目录转发头文件，不逐文件筛选 | 存在条件分支的传递依赖，白名单会漏（见第四节） |
+| `Core/ZipStreamIO.h` | 不对外暴露 | 只被 `ZipManager.cpp` 使用，`duilib.h` / `ZipManager.h` 都不引用；不转发后 zlib 头文件也无需随包 |
+| `Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、`Core/SDL_MacOS.h` | 不对外暴露 | 只被 `.cpp` / `.mm` 包含，任何对外头文件都不引用 |
+| `Core/DragWindowFilter_SDL.h` | 非 Windows 必带；Windows 仅 `--with-sdl` | `ControlDragable.h`（在 `duilib.h` 链上）于 `DUILIB_BUILD_FOR_SDL` 下包含它；非 Windows 该宏恒为开 |
+| `third_party` 转发 | 仅 Microsoft.Web.WebView2（且仅 Windows） | 对外头文件只有这一处依赖；图片解码实现头文件与 `Core/ZipStreamIO.h` 均只在库内部使用，libpng / giflib / zlib 头文件随之不再需要 |
 | 库目录 | 只认一套布局（Windows `lib/<arch>/<Config>`、Unix `lib/<Config>`） | CM-5 D-2 方案 B；配置由目录表达，删除 `_d` 判定与多目录合并 |
 | Debug 包 | `--config Debug` 时包名加 `-debug`、MANIFEST 标注 | Debug 库带调试 CRT 与 `/MTd`，只能给 Debug 下游；两套不可混用 |
 | Skia 库 | 整目录随包，并写入链接列表 | `duilib` 静态库含 Skia 符号，缺 Skia 无法链接 |
@@ -117,7 +119,9 @@ python build/pack.py --out-dir dist       # 指定输出目录
 
 这是本次工作中推导最细的一块，判定链路如下：
 
-**第一步 —— 谁在引用。** 对外头文件（`duilib/` 下排除 `third_party/` 与 `RenderSkia/`）共 313 个（2026-10-20 实测）。逐个扫描 `#include`，只有 5 个引用了 `duilib/third_party/...`，共 9 条引用：
+**第一步 —— 谁在引用。** 对外头文件（`duilib/` 下排除 `third_party/` 与 `RenderSkia/`）共 313 个（2026-10-20 实测）。逐个扫描 `#include`，当时只有 5 个引用了 `duilib/third_party/...`，共 9 条引用：
+
+> 2026-10-23 更新：下表中 `Image/APngDecoder.h`、`Image/FrameSequence_gif.h`、`Core/ZipStreamIO.h` 已改为不随包；当前随包的 third_party 头文件只剩 WebView2（且仅 Windows），zlib / libpng / giflib 均不再转发，详见 3.1 节。
 
 | 对外头文件 | 引用的第三方头文件 |
 | :--- | :--- |
@@ -140,7 +144,7 @@ giflib    必需 1：gif_lib.h（只依赖 <stdbool.h> / <stddef.h>）
 WebView2  必需 1：WebView2.h
 ```
 
-**第三步 —— 为什么 zlib / libpng 必须整树转发。** 这两个库的头文件之间是**同目录相对 include 链**，且带条件分支：
+**第三步 —— 为什么 zlib / libpng 必须整树转发（2026-10-20 的历史决策，2026-10-23 起已不再转发）。** 这两个库的头文件之间是**同目录相对 include 链**，且带条件分支：
 
 - `pngpriv.h:85` `#include "pngprefix.h"` —— 仅当 `PNG_PREFIX`
 - `pngpriv.h:89` `#include "pngusr.h"` —— 仅当 `PNG_USER_CONFIG`
@@ -161,7 +165,64 @@ WebView2  必需 1：WebView2.h
 | giflib | 3 | 1 |
 | Microsoft.Web.WebView2 | 1 | 1 |
 
-多带 38 个头文件，全是几 KB 的文本文件，体积可忽略，换来不因宏组合或上游小版本升级而漏文件。
+多带 38 个头文件，全是几 KB 的文本文件，体积可忽略，换来不因宏组合或上游小版本升级而漏文件。（该表是 2026-10-20 的整树转发口径；2026-10-23 起 libpng / giflib / zlib 均已不再转发，实际只转发 WebView2 的 1 个头文件，见 3.1 节。）
+
+### 3.1 图片解码头与内部实现头文件已排除打包（2026-10-23）
+
+**结论。** 具体图片解码实现头文件只在库内部被 `.cpp` 使用，`duilib.h` 的包含链完全不引用，因此不再随 SDK 转发。
+
+`duilib.h` 的图片入口及传递依赖：
+
+```
+Image.h               -> ImageInfo.h / ImageAttribute.h / ImageLoadParam.h
+                      -> StateImageMap.h -> StateImage.h
+ImageInfo.h           -> ImageDecoder.h
+ImageDecoderFactory.h -> ImageDecoder.h / ImageUtil.h
+```
+
+包内 `Image/` 因此只保留 10 个基础头文件：`Image.h`、`ImageAttribute.h`、
+`ImageInfo.h`、`ImageLoadParam.h`、`ImageDecoder.h`、`ImageDecoderFactory.h`、
+`ImageUtil.h`、`StateImage.h`、`StateImageMap.h`、`ImagePlayer.h`。
+
+**排除清单（`pack.py` 的 `IMAGE_DECODER_HEADER_FILES`，共 23 个）：**
+
+```
+Image/APngDecoder.h              Image/FrameSequence_gif.h
+Image/Image_Animation.h          Image/Image_Bitmap.h
+Image/Image_GIF.h                Image/Image_ICO.h
+Image/Image_JPEG.h               Image/Image_LOTTIE.h
+Image/Image_PAG.h                Image/Image_PNG.h
+Image/Image_Svg.h                Image/Image_WEBP.h
+Image/ImageDecoderUtil.h         Image/ImageDecoder_Common.h
+Image/ImageDecoder_GIF.h         Image/ImageDecoder_ICO.h
+Image/ImageDecoder_Icon.h        Image/ImageDecoder_JPEG.h
+Image/ImageDecoder_LOTTIE.h      Image/ImageDecoder_PAG.h
+Image/ImageDecoder_PNG.h         Image/ImageDecoder_SVG.h
+Image/ImageDecoder_WEBP.h
+```
+
+**third_party 随之收敛：**
+
+- `THIRD_PARTY_INCLUDE_TREE_ROOTS` 删除：`libpng` 只被 `Image/APngDecoder.h` 引用，而 `zlib` 只被 `Core/ZipStreamIO.h` 引用。
+- `THIRD_PARTY_INCLUDE_DIRS` 删除：`giflib` 只被 `Image/FrameSequence_gif.h` 引用。
+- 新增 `INTERNAL_HEADER_FILES`：除 `Core/ZipStreamIO.h` 外，还包含 6 个平台实现头文件
+  `Core/ControlDropTargetImpl_SDL.h`、`Core/ControlDropTargetImpl_Windows.h`、
+  `Core/ControlDropTargetUtils.h`、`Core/SDL_MacOS.h`、`Core/WindowDropTarget_SDL.h`、
+  `Core/WindowDropTarget_Windows.h`。它们只被 `.cpp` / `.mm` 包含。
+- 新增 `SDL_HEADER_FILES = ('Core/DragWindowFilter_SDL.h',)`：`Core/ControlDragable.h`
+  在 `DUILIB_BUILD_FOR_SDL` 下包含它。非 Windows 平台该宏恒为开，必须保留；
+  Windows 仅在 `--with-sdl` 时保留。
+- `collect_jpeg_turbo` 不再转发 `turbojpeg.h` 等头文件；`turbojpeg-static.lib` 仍随包（Windows 链接需要）。
+- 最终只转发 `Microsoft.Web.WebView2`（仅 Windows）。
+
+**验证（2026-10-23，Windows x64 Debug `--list`，EXIT=0）：**
+
+- 头文件共 262 个（未启用 `--with-sdl`）：`duilib/` 261 个 + WebView2 1 个。
+- `Image/` 仅 10 个基础头文件，无任何解码实现头文件泄漏；`Core/ZipStreamIO.h` 与 6 个平台实现头文件均不在包内。
+- 对 262 个包内头文件扫描 `#include "duilib/..."`：除 `ControlDragable.h` 中
+  `#ifdef DUILIB_BUILD_FOR_SDL` 的条件包含外，**0 处缺失**；Windows 未启用 SDL 时该分支不编译，
+  启用 `--with-sdl` 时会自动把 `DragWindowFilter_SDL.h` 打进包（263 个头文件）。
+- Unix 包：保留 `DragWindowFilter_SDL.h`，排除 WebView2 头文件后共 255 个头文件，闭包完整。
 
 ### 4. Debug 库判定：后缀 + 目录名双条件
 
@@ -188,9 +249,9 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 | SDK 模式丢了 `global.xml` | 下游启动直接失败 | 资源排除时把 `global.xml` 一起排掉了 | 单独保留 `global.xml` 与 `public/` |
 | `Summary.en.md` 重复登记 | 索引里「Release and Packaging」出现两次 | 登记脚本无存在性守卫 | 已修，登记前先查重 |
 | README 章节层级断裂 | 「维护注意事项」变成空标题，5 个 `###` 子节被挂到「发布打包」下 | 新章节被插在 `##` 标题与其子节之间，且吃掉了标题后的空行 | 已修，章节整段移到父标题之前 |
-| `pngpriv.h` 依赖链漏项 | 文档写「`pngpriv.h` → `pnglibconf.h`」，实际还有 `pngdebug.h` | 写文档时只看了前几处 include | 见第三节闭包，13 个文件已逐个核实 |
+| `pngpriv.h` 依赖链漏项 | 文档写「`pngpriv.h` → `pnglibconf.h`」，实际还有 `pngdebug.h` | 写文档时只看了前几处 include | 见第三节闭包，13 个文件已逐个核实（2026-10-23 起 libpng 不再随包） |
 
-**另有一条顺序依赖**值得记住：`libpng/pngstruct.h:28-29` 是 `#ifndef ZLIB_H` 才 `#include "zlib.h"`，而 `libpng/` 目录下并没有 `zlib.h`。它能编过完全靠 `APngDecoder.h:5` 先包含了 `zlib/zlib.h` 把 `ZLIB_H` 定义掉。包内 `include/duilib/third_party/libpng/pngstruct.h` 仍保持这个顺序，闭包才自洽。
+**另有一条顺序依赖**值得记住：`libpng/pngstruct.h:28-29` 是 `#ifndef ZLIB_H` 才 `#include "zlib.h"`，而 `libpng/` 目录下并没有 `zlib.h`。它能编过完全靠 `APngDecoder.h:5` 先包含了 `zlib/zlib.h` 把 `ZLIB_H` 定义掉。该依赖只存在于源码树内部；2026-10-23 起 `libpng` 与 `APngDecoder.h` 都不再随包，因此不影响发布产物。
 
 ## 五、已知缺口与后续跟进
 
@@ -202,7 +263,7 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 3. **签名与公证未自动化。** 本项目产出纯静态库（`add_library` 未指定 `SHARED`，`msvc/dllRes/dllmain.cpp` 只在 `.vcxproj` 中编译），SDK 包本身无需签名，文档只给手工流程。自动化签名等同 B-2 的 CI —— 需要证书管理，是长期维护负担。
 
-4. **`pack.py` 两处常量命名有误导。** `THIRD_PARTY_INCLUDE_DIRS`（"指定子目录"）与 `THIRD_PARTY_INCLUDE_TREE_ROOTS`（"整树"）在实现上**完全等价** —— `pack.py:260-282` 两段代码都是 `iter_files(root)` 递归遍历，区别仅在路径拼接层数。`giflib` 放在 DIRS 里转发的是**整个 giflib 目录**（3 个 .h），并不是「只转发指定的那个文件」。两个常量真正承载的语义是「**单层快捷路径** vs **多级路径分量元组**」。`('giflib',)` 完全可以并入 TREE_ROOTS，行为零变化。**建议调整注释与常量名的措辞**（不是 bug，是表述偏差）。
+4. **`pack.py` 两处常量命名有误导（已不适用）。** `THIRD_PARTY_INCLUDE_DIRS`（"指定子目录"）与 `THIRD_PARTY_INCLUDE_TREE_ROOTS`（"整树"）在实现上**完全等价**，区别仅在路径拼接层数。2026-10-23 起 `giflib` 已随图片解码头文件一同移除，`THIRD_PARTY_INCLUDE_DIRS` 改为空元组，仅由 `WEBVIEW2_INCLUDE_DIR` 按平台追加，这条表述偏差不再有实际影响。
 
 5. **已放弃的子项。** NSIS/WiX（安装程序）与 DEB/dmg（系统包）不做 —— 静态库 SDK 用 zip / tgz 足够，制作安装程序对当前阶段是过度设计。
 
@@ -228,19 +289,19 @@ cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
 
 ```cpp
 #include "duilib/duilib.h"
-#include "duilib/Core/ZipStreamIO.h"
-#include "duilib/Image/APngDecoder.h"
-#include "duilib/Image/FrameSequence_gif.h"
 #include "duilib/WebView2/WebView2Control.h"
 ```
 
 期望 **EXITCODE=0**。这项证明「包外独立工程可编译」，比检查文件数量有效得多。
 
+> 2026-10-23 起，图片解码实现头文件（`Image/APngDecoder.h`、`Image/FrameSequence_gif.h` 等）与内部实现头文件 `Core/ZipStreamIO.h` 都不再随包，探针里不要再引用它们。
+
 ## 六、当前已有的验收结果
 
 2026-10-20 在 Windows 上的实测结果：
 
-- **下游编译验证**：`duilib/duilib.h` 与 4 个依赖 third_party 的头文件（`ZipStreamIO.h` / `APngDecoder.h` / `FrameSequence_gif.h` / `WebView2Control.h`）**全部 EXITCODE=0**。
+- **下游编译验证**：`duilib/duilib.h` 与依赖 third_party 的头文件（`ZipStreamIO.h` / `WebView2Control.h`）**全部 EXITCODE=0**；2026-10-23 起 `APngDecoder.h` / `FrameSequence_gif.h` / `ZipStreamIO.h` 已改为不随包，当前探针只需 `duilib.h` + `WebView2Control.h`。
+- **头文件闭包（2026-10-23 补充）**：Windows x64 Debug 包共 262 个头文件（`duilib/` 261 + WebView2 1），除 `ControlDragable.h` 的 `#ifdef DUILIB_BUILD_FOR_SDL` 条件包含外 **0 处缺失**；Unix 包 255 个，闭包完整。
 - **资源排除精确性**：关闭示例时包内 `themes/default/` 下只有 `global.xml` 与 `public/`；打开时 389 个文件与仓库完全一致。
 - **校验和**：`SHA256SUMS` 独立复算 587/587 全部一致。
 - **包结构**：zip 与 tgz 两种格式均正确。

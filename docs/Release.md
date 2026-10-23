@@ -112,21 +112,48 @@ nim_duilib-<版本>-<系统>-<架构>/
 
 `RenderSkia/` 不对外暴露 —— 渲染后端是实现细节，`duilib.h` 不引用它。
 
-### third_party 头文件会一并转发
+### third_party 头文件只转发必需项
 
-有 5 个对外头文件直接 include 了 `third_party` 下的头文件，
-必须随包转发，否则下游编译失败：
+包内 `Image/` 只保留对外的基础接口头文件（`Image.h`、`ImageAttribute.h`、
+`ImageInfo.h`、`ImageLoadParam.h`、`ImageDecoder.h`、`ImageDecoderFactory.h`、
+`ImageUtil.h`、`StateImage.h`、`StateImageMap.h`、`ImagePlayer.h`）。
 
-| 对外头文件 | 依赖 |
-| :--- | :--- |
-| `Core/ZipStreamIO.h` | `zlib` |
-| `Image/APngDecoder.h` | `zlib`、`libpng` |
-| `Image/FrameSequence_gif.h` | `giflib` |
-| `WebView2/WebView2Control.h` | `Microsoft.Web.WebView2` |
-| `WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` |
+具体图片解码实现头文件**不随包**，因为它们只被库内 `.cpp` 使用，
+`duilib.h` 的包含链不引用：
 
-`zlib` 与 `libpng` 内部存在传递依赖（如 `pngpriv.h` 又 include
-`pnglibconf.h`），因此这两个库按整目录转发头文件，不做逐文件筛选。
+* `Image/ImageDecoder_*.h`（PNG / GIF / JPEG / WEBP / SVG / ICO / Icon /
+  LOTTIE / PAG / Common）
+* `Image/Image_*.h`（PNG / GIF / JPEG / WEBP / SVG / ICO / LOTTIE / PAG /
+  Bitmap / Animation）
+* `Image/APngDecoder.h`、`Image/FrameSequence_gif.h`、`Image/ImageDecoderUtil.h`
+
+`Core/ZipStreamIO.h` 同样只在库内部使用（只被 `ZipManager.cpp` 包含，
+`duilib.h` 与 `ZipManager.h` 都不引用），因此也不随包。
+
+下列平台实现头文件只被库内 `.cpp` / `.mm` 包含，也不随包：
+
+* `Core/ControlDropTargetImpl_SDL.h`
+* `Core/ControlDropTargetImpl_Windows.h`
+* `Core/ControlDropTargetUtils.h`
+* `Core/SDL_MacOS.h`
+* `Core/WindowDropTarget_SDL.h`
+* `Core/WindowDropTarget_Windows.h`
+
+例外：`Core/DragWindowFilter_SDL.h` 被 `Core/ControlDragable.h` 在
+`DUILIB_BUILD_FOR_SDL` 下条件包含。非 Windows 平台该宏始终开启，Unix 包会保留该头文件；
+Windows 包未启用 `--with-sdl` 时不打包。
+
+对外头文件真正依赖的 `third_party` 头文件只有一处，随包转发：
+
+| 对外头文件 | 依赖 | 说明 |
+| :--- | :--- | :--- |
+| `WebView2/WebView2Control.h`、`WebView2/WebView2EnvironmentOptions.h` | `Microsoft.Web.WebView2` | 仅 Windows 转发 |
+
+相应地，`zlib`、`libpng`、`giflib`、`libjpeg-turbo` 的头文件都不再转发。
+其中 `duilib-zlib`、`turbojpeg-static` 静态库仍随包（链接需要），只是不提供头文件。
+
+上述包含关系已逐个核对：包内 `duilib/` 头文件的 `#include "duilib/..."`
+全部可以解析，下游只需 `#include "duilib/duilib.h"` 即可编译。
 
 ## --with-examples 的资源范围差异
 

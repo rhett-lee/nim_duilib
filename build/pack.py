@@ -24,12 +24,24 @@
    include 写法是 `#include "duilib/duilib.h"`（见 examples/basic/MainForm.h:5）。
    若改成 include/xxx.h，下游全部编译失败。
 
-4. 5 个对外头文件直接 include 了 third_party 下的头文件，必须一并转发，
-   否则下游编译失败：
-   - Core/ZipStreamIO.h            -> zlib/contrib/minizip/ioapi.h
-   - Image/APngDecoder.h           -> zlib/zlib.h、libpng/*.h
-   - Image/FrameSequence_gif.h     -> giflib/gif_lib.h
+4. 对外头文件对 third_party 的依赖只有一处，必须一并转发，否则下游编译失败：
    - WebView2/*.h                  -> Microsoft.Web.WebView2/.../WebView2.h
+
+   以下头文件只在库内部使用，duilib.h 的包含链不引用，因此不转发：
+   - 图片解码实现（Image/ImageDecoder_*.h、Image_*.h、APngDecoder.h、
+     FrameSequence_gif.h 等）；
+   - 内部实现头文件（Core/ZipStreamIO.h、Core/ControlDropTarget*、
+     Core/WindowDropTarget_*、Core/SDL_MacOS.h）。
+   随之 libpng / giflib / zlib / libjpeg-turbo 的头文件也不再转发。
+
+   例外：Core/DragWindowFilter_SDL.h 被 Core/ControlDragable.h 在
+   DUILIB_BUILD_FOR_SDL 下包含，非 Windows 平台必须转发（该宏恒为开），
+   Windows 仅 --with-sdl 时转发。
+
+   注意两类头文件按条件转发：
+   - WebView2 只有 Windows 支持，非 Windows 平台不转发 WebView2/、
+     duilib_webview2.h 与 third_party/Microsoft.Web.WebView2 的头文件；
+   - CEF 相关头文件（CEFControl/、duilib_cef.h）仅在 --with-cef 时转发。
 
 5. SDK 必须能独立支撑下游编译、链接、运行，因此除 5 个 duilib 库外还随包：
    - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
@@ -92,21 +104,66 @@ SDL3_SRC_ROOT = os.path.join(os.path.dirname(REPO_ROOT), 'SDL3')
 # 收集规则
 # --------------------------------------------------------------------------
 
-# 对外头文件需要一并转发的 third_party 子树（见文件头约束 4）。
-# 每项都是「相对 third_party 的路径分量元组」—— 注意不要写成单个字符串，
-# os.path.join('giflib') 会返回 str，迭代它得到的是单个字符。
-THIRD_PARTY_INCLUDE_DIRS = (
-    ('giflib',),
-    ('Microsoft.Web.WebView2', 'build', 'native', 'include'),
+# 内部实现头文件（相对 duilib/），不对外转发。
+# 判定依据：只被库内 .cpp / .mm 包含，任何对外头文件都不引用。
+# - Core/ZipStreamIO.h 直接 include zlib 的 minizip 头文件，只被 ZipManager.cpp 使用；
+# - DropTarget / SDL_MacOS 系列是 Windows / SDL 平台的具体实现，只被 .cpp / .mm 使用。
+INTERNAL_HEADER_FILES = (
+    'Core/ControlDropTargetImpl_SDL.h',
+    'Core/ControlDropTargetImpl_Windows.h',
+    'Core/ControlDropTargetUtils.h',
+    'Core/SDL_MacOS.h',
+    'Core/WindowDropTarget_SDL.h',
+    'Core/WindowDropTarget_Windows.h',
+    'Core/ZipStreamIO.h',
 )
 
-# zlib / libpng 的头文件被多个对外头文件直接 include，且彼此有传递依赖
-# （pngpriv.h -> pnglibconf.h / png.h / pngstruct.h / pnginfo.h），
-# 按文件白名单转发不现实，直接整目录转发头文件。
-THIRD_PARTY_INCLUDE_TREE_ROOTS = (
-    'zlib',
-    'libpng',
+# SDL 拖动过滤器：Core/ControlDragable.h（duilib.h 的包含链）在
+# DUILIB_BUILD_FOR_SDL 下包含它。非 Windows 平台该宏始终定义（duilib_config.h），
+# 因此必须转发；Windows 仅 --with-sdl 时转发。
+SDL_HEADER_FILES = (
+    'Core/DragWindowFilter_SDL.h',
 )
+
+# 图片解码实现相关的头文件（相对 duilib/）：只在库内部使用，不对外转发。
+# duilib.h 只引用 Image/Image.h、ImageDecoder.h、ImageDecoderFactory.h 等基础
+# 接口，包含链不涉及下列头文件（ImageDecoderFactory.h -> ImageUtil.h 属工具类，
+# 不在此列表）。
+IMAGE_DECODER_HEADER_FILES = (
+    'Image/APngDecoder.h',
+    'Image/FrameSequence_gif.h',
+    'Image/Image_Animation.h',
+    'Image/Image_Bitmap.h',
+    'Image/Image_GIF.h',
+    'Image/Image_ICO.h',
+    'Image/Image_JPEG.h',
+    'Image/Image_LOTTIE.h',
+    'Image/Image_PAG.h',
+    'Image/Image_PNG.h',
+    'Image/Image_Svg.h',
+    'Image/Image_WEBP.h',
+    'Image/ImageDecoderUtil.h',
+    'Image/ImageDecoder_Common.h',
+    'Image/ImageDecoder_GIF.h',
+    'Image/ImageDecoder_ICO.h',
+    'Image/ImageDecoder_Icon.h',
+    'Image/ImageDecoder_JPEG.h',
+    'Image/ImageDecoder_LOTTIE.h',
+    'Image/ImageDecoder_PAG.h',
+    'Image/ImageDecoder_PNG.h',
+    'Image/ImageDecoder_SVG.h',
+    'Image/ImageDecoder_WEBP.h',
+)
+
+# WebView2 仅在 Windows 下支持，其他平台不转发该子树。
+WEBVIEW2_INCLUDE_DIR = ('Microsoft.Web.WebView2', 'build', 'native', 'include')
+
+# 平台/模块相关的对外头文件（相对 duilib/ 的路径）：
+# WebView2 仅 Windows 转发；CEF 头文件仅 --with-cef 时转发。
+WEBVIEW2_HEADER_DIRS = ('WebView2/',)
+WEBVIEW2_HEADER_FILES = ('duilib_webview2.h',)
+CEF_HEADER_DIRS = ('CEFControl/',)
+CEF_HEADER_FILES = ('duilib_cef.h',)
 
 # 静态库白名单（D-1/D-2 统一命名后的唯一一套）。
 LIB_BASENAMES = (
@@ -260,13 +317,29 @@ class Collector(object):
         self.items.sort(key=lambda kv: kv[0])
 
 
-def collect_headers(collector):
+def collect_headers(collector, with_cef, with_sdl, is_windows):
     """收集对外头文件 + 必需的 third_party 头文件。
 
     路径前缀必须是 `include/duilib/`，不能是 `include/`——
     下游的写法是 `#include "duilib/duilib.h"`（见 examples/basic/MainForm.h:5），
     所以包内必须保留仓库根的相对路径层级。少了这一层下游直接编译失败。
+
+    WebView2 头文件仅 Windows 转发；CEF 头文件仅 --with-cef 时转发；
+    图片解码实现头文件与内部实现头文件（IMAGE_DECODER_HEADER_FILES /
+    INTERNAL_HEADER_FILES）不转发；SDL_HEADER_FILES 仅在 Windows 未启用
+    --with-sdl 时排除。
     """
+    excluded_dirs = []
+    excluded_files = list(INTERNAL_HEADER_FILES) + list(IMAGE_DECODER_HEADER_FILES)
+    if is_windows and not with_sdl:
+        excluded_files.extend(SDL_HEADER_FILES)
+    if not is_windows:
+        excluded_dirs.extend(WEBVIEW2_HEADER_DIRS)
+        excluded_files.extend(WEBVIEW2_HEADER_FILES)
+    if not with_cef:
+        excluded_dirs.extend(CEF_HEADER_DIRS)
+        excluded_files.extend(CEF_HEADER_FILES)
+
     count = 0
     for abs_path, rel in iter_files(DUIBIB_SRC_DIR):
         if not rel.endswith(('.h', '.hpp', '.inl')):
@@ -276,33 +349,24 @@ def collect_headers(collector):
         # RenderSkia 是渲染后端实现细节，duilib.h 不引用它，不对外暴露。
         if rel.startswith('RenderSkia/'):
             continue
+        if rel in excluded_files or any(rel.startswith(d) for d in excluded_dirs):
+            continue
         if collector.add('include/duilib/' + rel, abs_path):
             count += 1
 
-    # third_party 整树转发（zlib / libpng）
-    for sub in THIRD_PARTY_INCLUDE_TREE_ROOTS:
-        root = os.path.join(DUIBIB_SRC_DIR, 'third_party', sub)
-        if not os.path.isdir(root):
-            collector.warn('third_party/%s 不存在，头文件可能不完整' % sub)
-            continue
-        for abs_path, rel in iter_files(root):
-            if not rel.endswith(('.h', '.hpp', '.inl')):
-                continue
-            if collector.add('include/duilib/third_party/%s/%s' % (sub, rel), abs_path):
-                count += 1
-
-    # third_party 指定子目录转发（giflib / WebView2）
-    for parts in THIRD_PARTY_INCLUDE_DIRS:
+    # third_party 头文件：只有 WebView2 需要转发（且仅 Windows）
+    if is_windows:
+        parts = WEBVIEW2_INCLUDE_DIR
         root = os.path.join(DUIBIB_SRC_DIR, 'third_party', *parts)
         if not os.path.isdir(root):
             collector.warn('third_party/%s 不存在，头文件可能不完整' % os.path.join(*parts))
-            continue
-        prefix = 'include/duilib/third_party/' + '/'.join(parts)
-        for abs_path, rel in iter_files(root):
-            if not rel.endswith(('.h', '.hpp', '.inl')):
-                continue
-            if collector.add('%s/%s' % (prefix, rel), abs_path):
-                count += 1
+        else:
+            prefix = 'include/duilib/third_party/' + '/'.join(parts)
+            for abs_path, rel in iter_files(root):
+                if not rel.endswith(('.h', '.hpp', '.inl')):
+                    continue
+                if collector.add('%s/%s' % (prefix, rel), abs_path):
+                    count += 1
 
     return count
 
@@ -537,7 +601,10 @@ def collect_webview2_loader(collector, arch_tag):
 
 
 def collect_jpeg_turbo(collector, arch_tag):
-    """收集 libjpeg-turbo 静态库与头文件（Windows 默认随包，P4-B4/Q12）。"""
+    """收集 libjpeg-turbo 静态库（Windows 默认随包，P4-B4/Q12）。
+
+    头文件只在库内部使用，不对外转发（图片解码头文件不打包）。
+    """
     if not platform.system().lower().startswith('win'):
         return 0
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
@@ -552,10 +619,6 @@ def collect_jpeg_turbo(collector, arch_tag):
             count += 1
     else:
         collector.warn('缺少 turbojpeg-static.lib：%s' % _rel(lib))
-
-    include_dir = os.path.join(root, 'include')
-    count += _collect_tree(collector, include_dir,
-                           'include/duilib/third_party/libjpeg-turbo')
     return count
 
 
@@ -636,11 +699,12 @@ def collect_licenses(collector, skia_lib_dir):
     return count
 
 
-def collect_examples(collector, config):
+def collect_examples(collector, config, is_windows):
     """收集示例程序可执行文件与运行时 dll。
 
     Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
     Debug exe 与 Release 同名，无法区分，全部收集并告警。
+    运行时 dll 仅 Windows 收集（当前只有 WebView2Loader.dll）。
     """
     if not os.path.isdir(BIN_DIR):
         collector.warn('bin 目录不存在：%s' % BIN_DIR)
@@ -655,7 +719,7 @@ def collect_examples(collector, config):
             continue
         low = name.lower()
         if low.endswith('.dll'):
-            if name in INCLUDE_RUNTIME_DLLS:
+            if is_windows and name in INCLUDE_RUNTIME_DLLS:
                 if collector.add('bin/' + name, full):
                     count += 1
             continue
@@ -969,7 +1033,7 @@ def main(argv=None):
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag)
 
         collector = Collector()
-        n_headers = collect_headers(collector)
+        n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
         n_libs = collect_libs(collector, lib_dir, config,
                               args.with_cef, args.cef_version)
         n_skia = collect_skia_libs(collector, skia_dir)
@@ -985,7 +1049,8 @@ def main(argv=None):
 
     n_res = collect_resources(collector, args.with_examples)
     n_lic = collect_licenses(collector, skia_dir)
-    n_exe = collect_examples(collector, config) if args.with_examples else 0
+    n_exe = collect_examples(collector, config, sys_tag == 'win') \
+        if args.with_examples else 0
     collector.sort()
 
     print('版本      : %s' % version)
