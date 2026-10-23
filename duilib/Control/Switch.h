@@ -163,7 +163,7 @@ private:
 
     /** 绘制加载中的旋转指示器
     */
-    void PaintLoading(IRender* pRender, const UiRect& rcThumb) const;
+    void PaintLoadingIndicator(IRender* pRender, const UiRect& rcThumb) const;
 
     /** 加载动画定时器回调
     */

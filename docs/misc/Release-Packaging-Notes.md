@@ -357,6 +357,8 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 ## 五、已知缺口与后续跟进
 
+逐项待办与验收标准已整理到 [Packaging-Follow-Up-Items.md](Packaging-Follow-Up-Items.md)，后续以该清单为准推进；本节保留已完成工作的缺口记录。
+
 ### 缺口
 
 1. **版本号两处独立维护。** `msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION` 文件目前各改各的，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。升级版本须同时改两处。**后续应让 `version.h` 改为从 `VERSION` 派生。**

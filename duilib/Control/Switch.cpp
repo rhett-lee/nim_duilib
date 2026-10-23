@@ -423,7 +423,7 @@ void Switch::PaintStateImages(IRender* pRender)
                 DrawSwitchImage(pRender, IsSelected() ? m_pThumbOnImage.get() : m_pThumbOffImage.get(), thumbRect, 255);
             }
             if (m_bLoading) {
-                PaintLoading(pRender, thumbRect);
+                PaintLoadingIndicator(pRender, thumbRect);
             }
         }
         return;
@@ -465,7 +465,7 @@ void Switch::PaintStateImages(IRender* pRender)
     pRender->FillRoundRect(UiRectF((float)thumbRect.left, (float)thumbRect.top, (float)thumbRect.right, (float)thumbRect.bottom), fRound, fRound, thumbColor, GetAlpha());
 
     if (m_bLoading) {
-        PaintLoading(pRender, thumbRect);
+        PaintLoadingIndicator(pRender, thumbRect);
     }
 }
 
@@ -550,7 +550,7 @@ void Switch::PaintSwitchContent(IRender* pRender, const UiRect& rcContent, const
     }
 }
 
-void Switch::PaintLoading(IRender* pRender, const UiRect& rcThumb) const
+void Switch::PaintLoadingIndicator(IRender* pRender, const UiRect& rcThumb) const
 {
     if ((pRender == nullptr) || rcThumb.IsEmpty()) {
         return;
