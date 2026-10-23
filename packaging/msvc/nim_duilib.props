@@ -84,6 +84,14 @@
         </Link>
     </ItemDefinitionGroup>
 
+    <!-- 与仓库内 DuilibSettings.props / BinCommonSettings.props 一致：
+         Debug 下屏蔽 release CRT，避免第三方预编译库触发 LNK4098 -->
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+        <Link>
+            <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" %(AdditionalOptions)</AdditionalOptions>
+        </Link>
+    </ItemDefinitionGroup>
+
     <!-- Common Controls v6 + 系统版本声明；arm64 没有配套 manifest，跳过 -->
     <ItemGroup Condition="'$(NimDuilibUseManifest)'!='0' And ('$(NimDuilibPlatform)'=='x64' Or '$(NimDuilibPlatform)'=='x86')">
         <Manifest Include="$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibPlatform).manifest"

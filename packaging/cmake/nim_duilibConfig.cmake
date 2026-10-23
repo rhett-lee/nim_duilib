@@ -330,6 +330,10 @@ if(MSVC)
 endif()
 
 set(_nim_link_options "")
+if(MSVC AND NIM_DUILIB_PACKAGE_CONFIG STREQUAL "Debug")
+    # 与 VS 属性表一致：Debug 下屏蔽 release CRT，避免第三方预编译库触发 LNK4098
+    list(APPEND _nim_link_options "/NODEFAULTLIB:libcmt.lib")
+endif()
 if(WIN32)
     list(APPEND _nim_link
         Comctl32 Imm32 Opengl32 User32 shlwapi)

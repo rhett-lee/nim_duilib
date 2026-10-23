@@ -398,7 +398,7 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--skia-lib-dir <path>` | Skia static library directory; defaults to probing `../skia/out/llvm.<arch>.<config>` |
 | `--sdl-dir <path>` | SDL3 root directory; defaults to `../SDL3` |
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
-| `--with-cef` | Package the CEF development set: headers + `libcef.lib` + wrapper (large) |
+| `--with-cef` | Package CEF: headers + `libcef.lib` + wrapper + runtime (large) |
 | `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest` |
 | `--msvc-runtime auto\|mt\|md` | MSVC runtime recorded in package metadata; `auto` (MD for DLL mode, otherwise MT) by default |
 | `--with-examples` | Include example programs and all per-example resources |
@@ -423,17 +423,44 @@ Configuration is determined solely by the directory (`lib/<arch>/Debug` or
   the script exits with code 1 instead of producing a package with no linkable
   libraries.
 
-## CEF limitations
+## Archive semantics
 
-The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) is **not part of this
-repository**; users must obtain it from the official libcef release.
-Consequently:
+- Regular files: tar entries use the source permissions (group/other write bits
+  removed, executable and setuid bits preserved). Windows sources have no POSIX
+  bits, so `0755`/`0644` is chosen by extension; zip records the same mode via
+  `external_attr` and extracts with it.
+- Symbolic links: zip stores `S_IFLNK` entries whose content is the link target,
+  tar stores `SYMTYPE` entries, so chains such as
+  `libSDL3.so -> libSDL3.so.0 -> libSDL3.so.0.5.0` are restored on extraction;
+  directory links (e.g. a macOS Framework `Versions/Current`) are preserved too.
+- `SHA256SUMS` covers regular files only; symbolic links are excluded so that
+  `sha256sum -c` does not fail by following them.
 
-- The CEF-based examples (`cef`, `CefBrowser`) cannot run straight from the
-  package
-- `MANIFEST.txt` lists those examples and notes the limitation
-- The CEF development set is excluded by default; pass `--with-cef` to include
-  it (use `--cef-version 109` for the older version)
+## CEF packaging
+
+CEF development files (headers, `libcef.lib`, wrapper) are only included with
+`--with-cef`; use `--cef-version 109` for the older version. The same switch
+also collects the CEF runtime:
+
+- Windows: `libcef.dll`, `*.pak`, `icudtl.dat`, `v8_context_snapshot.bin`,
+  `locales/`, etc. are taken from `bin/libcef_win[/_109]/{x64,Win32}/` in the
+  repository and kept under the same relative path in the package;
+- `libcef.lib` and `cef_sandbox.lib` inside the runtime directory are not
+  packaged (the former is already provided in `lib/`; the latter is unused by
+  this project and very large);
+- macOS ships its runtime as an embedded `.app` Framework, so the SDK package
+  does not collect it automatically (configure it downstream);
+- Linux runtime (`bin/libcef_linux/`) will be wired up once `--with-cef`
+  supports Linux packaging.
+
+The runtime is loaded from "executable directory + `libcef_win[/_109]/<arch>`"
+(`CefManager::AddCefDllToPath`), so with `--with-examples` the `cef` and
+`CefBrowser` programs under `bin` run directly; downstream applications must
+copy that subdirectory next to their executable.
+
+When the runtime directory is missing, packaging only warns and still
+succeeds; `MANIFEST.txt` then states that the CEF runtime is not included and
+that CEF examples cannot run directly.
 
 ## Versioning
 

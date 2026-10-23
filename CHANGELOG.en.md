@@ -22,6 +22,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `nim_duilib::duilib`.
 - Top-level user documentation ships with the SDK, with Markdown links rewritten
   for the package layout.
+- `--with-cef` now also packages the CEF runtime, keeping the
+  `bin/libcef_win[_109]/<arch>/` layout (`libcef.dll`, `*.pak`, `icudtl.dat`,
+  `locales/`, ...) on Windows.
 - Release documentation: `docs/Release.md`, `docs/misc/Release-Checklist.md` and
   the packaging work record.
 
@@ -34,11 +37,18 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `-debug`, so packages of the same version can coexist under `dist/`.
 - `docs/` ships only top-level user documentation; subdirectories such as
   `misc/` and `specs/` are not packaged.
+- Archive semantics: tar entries use the source file permissions (executable and
+  setuid bits preserved) and zip stores symbolic links as `S_IFLNK` entries, so
+  Unix packages keep the `.so` link chain and executable permissions after
+  extraction; symbolic links are no longer listed in `SHA256SUMS`.
 
 ### Fixed
 
 - Fixed the macOS build failure caused by the root `VERSION` file clashing with
   the standard `<version>` header.
+- The SDK integration layers (VS property sheet and CMake config) now add
+  `/NODEFAULTLIB:"libcmt.lib"` for Debug builds, removing the downstream
+  LNK4098 warning.
 
 ### Removed
 

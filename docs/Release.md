@@ -364,7 +364,7 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 | `--skia-lib-dir <路径>` | Skia 静态库目录，默认探测 `../skia/out/llvm.<arch>.<config>` |
 | `--sdl-dir <路径>` | SDL3 根目录，默认 `../SDL3` |
 | `--with-sdl` | Windows 下额外打包 SDL3（Unix 始终打包） |
-| `--with-cef` | 打包 CEF 开发包：头文件 + `libcef.lib` + wrapper（体积大） |
+| `--with-cef` | 打包 CEF：头文件 + `libcef.lib` + wrapper + 运行时（体积大） |
 | `--cef-version latest\|109` | 配合 `--with-cef` 选择版本，默认 `latest` |
 | `--msvc-runtime auto\|mt\|md` | 写入包元数据的 MSVC 运行库；默认 `auto`（DLL 模式 MD，否则 MT） |
 | `--with-examples` | 包含示例程序与全部示例私有资源 |
@@ -384,14 +384,36 @@ SDK 模式下被排除的是各示例的私有主题目录，共 22 个：
 - 库目录不存在或主库 `duilib` 缺失时，脚本直接以退出码 1 失败，不会打出
   没有可链接库的半成品包。
 
-## CEF 相关限制
+## 归档语义
 
-CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）**不在本仓库内**，
-由使用者自行从 libcef 官方发布包获取。因此：
+- 普通文件：tar 使用源文件权限（去掉组/其他可写位，保留可执行与 setuid 等特殊位），
+  Windows 源没有 POSIX 权限位，按扩展名给 `0755`/`0644`；zip 通过 `external_attr`
+  记录相同的权限，解包后同样可执行。
+- 符号链接：zip 写成 `S_IFLNK` 条目（内容为链接目标），tar 写成 `SYMTYPE`，
+  解包后还原 `libSDL3.so -> libSDL3.so.0 -> libSDL3.so.0.5.0` 这类链接链；
+  目录型链接（如 macOS Framework 的 `Versions/Current`）也会保留。
+- `SHA256SUMS` 只覆盖普通文件，符号链接不计入，避免 `sha256sum -c` 跟随链接后
+  校验失败。
 
-- 含 CEF 的示例程序（`cef`、`CefBrowser`）打包后**不能直接运行**
-- `--with-examples` 的 `MANIFEST.txt` 会列出这些示例并标注该限制
-- CEF 开发包默认不打，需要时加 `--with-cef`（可用 `--cef-version 109` 选旧版）
+## CEF 打包
+
+CEF 开发文件（头文件、`libcef.lib`、wrapper）仅在 `--with-cef` 时随包，
+可用 `--cef-version 109` 选择旧版。同一开关还会收集 CEF 运行时：
+
+- Windows：从仓库 `bin/libcef_win[/_109]/{x64,Win32}/` 收集
+  `libcef.dll`、`*.pak`、`icudtl.dat`、`v8_context_snapshot.bin`、`locales/` 等，
+  包内保持 `bin/libcef_win[/_109]/<架构>/` 相对结构；
+- 运行时目录中的 `libcef.lib` 与 `cef_sandbox.lib` 不随包（前者已在 `lib/` 提供，
+  后者本项目不使用沙箱且体积很大）；
+- macOS 的运行时以 `.app` 内嵌 Framework 提供，SDK 包不自动收集，由下游手动配置；
+- Linux 运行时（`bin/libcef_linux/`）待 `--with-cef` 支持 Linux 出包后再接入。
+
+包内运行时按“可执行文件目录 + `libcef_win[/_109]/<架构>`”被加载
+（`CefManager::AddCefDllToPath`），因此 `--with-examples` 时 `bin` 下的
+`cef`、`CefBrowser` 可直接运行；下游程序需把该子目录整体复制到可执行文件同级。
+
+仓库中缺少对应运行时目录时脚本只告警、不阻断出包，`MANIFEST.txt` 会注明
+CEF 运行时未随包、相关示例不能直接运行。
 
 ## 版本号
 

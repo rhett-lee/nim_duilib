@@ -51,8 +51,9 @@
    - SDL3（Unix 始终；Windows 需 --with-sdl；动态库时同时带运行期 DLL）；
    - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）；
    - DLL 模式运行库（Windows：bin/duilib*.dll，lib/ 中为对应的导入库）。
-   CEF 运行时（libcef.dll、*.pak、icudtl.dat、locales/）**不在本仓库内**，
-   由使用者自行放入，含 CEF 的示例程序打包后不能直接运行，清单中会标注。
+   --with-cef 时同时收集 CEF 运行时（libcef.dll、*.pak、icudtl.dat、locales/），
+   保持 bin/libcef_win[_109]/<arch>/ 结构；仓库中缺少该目录时只告警，
+   包内只有开发文件，含 CEF 的示例程序不能直接运行，清单中会标注。
 
 6. Windows 工具链按库目录内容自动判断：存在 duilib.lib 为 MSVC，
    存在 libduilib*.a 为 MinGW。两者产物不同，不能混用：
@@ -87,7 +88,7 @@
     python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
     python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
     python build/pack.py --with-sdl           # Windows 额外打包 SDL3（包名带 -sdl）
-    python build/pack.py --with-cef           # 额外打包 CEF 开发包（包名带 -cef）
+    python build/pack.py --with-cef           # 打包 CEF 开发文件 + 运行时（包名带 -cef）
     python build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
     python build/pack.py --out-dir dist       # 指定输出目录
 
@@ -254,6 +255,18 @@ CEF_SRC_BY_VERSION = {
     '109': 'libcef_win_109',
 }
 
+# CEF 运行时目录：仓库 bin/<源码目录>/<VS 平台目录>/（Windows）。
+# CefManager 按“可执行文件目录 + 该子目录”加载 libcef.dll
+# （见 duilib/CEFControl/CefManager_Windows.cpp: AddCefDllToPath），
+# 所以包内必须保持同样的相对结构，不能把运行时摊平到 bin/。
+CEF_RUNTIME_ARCH_DIRS = {'x64': 'x64', 'x86': 'Win32'}
+
+# CEF 运行时目录里混有开发用文件：libcef.lib 导入库已在 lib/ 下提供，
+# 109 版本的 cef_sandbox.lib 是 80 MB 级的链接库且本项目不使用沙箱，均不随包。
+CEF_RUNTIME_EXCLUDE_SUFFIXES = (
+    '.lib', '.pdb', '.ilk', '.exp', '.obj', '.o',
+)
+
 # 下游链接 Skia 的推荐顺序（与 example 工程一致）；其余 4 个是 Skia 的
 # 传递依赖，整目录随包，出现未解析符号时补链。
 SKIA_LINK_ORDER = ('skia', 'svg', 'skshaper', 'skottie', 'sksg', 'jsonreader')
@@ -403,8 +416,16 @@ def sha256_of(path):
 
 
 def iter_files(root):
-    """遍历 root 下所有文件，返回 (绝对路径, 相对 root 的路径)。"""
-    for dirpath, _dirnames, filenames in os.walk(root):
+    """遍历 root 下的文件与符号链接，返回 (绝对路径, 相对 root 的路径)。
+
+    os.walk 默认不跟随目录链接，链接目录本身也不会出现在结果里；
+    这里显式补上，否则 macOS 的 `Versions/Current` 之类链接目录会丢失。
+    """
+    for dirpath, dirnames, filenames in os.walk(root):
+        for name in dirnames:
+            abs_path = os.path.join(dirpath, name)
+            if os.path.islink(abs_path):
+                yield abs_path, os.path.relpath(abs_path, root).replace(os.sep, '/')
         for name in filenames:
             abs_path = os.path.join(dirpath, name)
             yield abs_path, os.path.relpath(abs_path, root).replace(os.sep, '/')
@@ -426,7 +447,7 @@ class Collector(object):
         rel = rel_path.replace(os.sep, '/').lstrip('/')
         if rel in self._seen:
             return False
-        if not os.path.isfile(abs_path):
+        if not (os.path.isfile(abs_path) or os.path.islink(abs_path)):
             return False
         self._seen.add(rel)
         self.items.append((rel, abs_path))
@@ -436,7 +457,8 @@ class Collector(object):
         self.warnings.append(msg)
 
     def total_size(self):
-        return sum(os.path.getsize(p) for _rel, p in self.items)
+        # 符号链接取链接本身的大小，不能用 getsize（会跟随到目标，重复计数）
+        return sum(os.lstat(p).st_size for _rel, p in self.items)
 
     def sort(self):
         self.items.sort(key=lambda kv: kv[0])
@@ -855,6 +877,43 @@ def collect_cef(collector, arch_tag, cef_version):
         count += 1
     count += _collect_tree(collector, os.path.join(src_root, 'include'),
                            'include/duilib/third_party/libcef/%s/include' % src_name)
+    return count
+
+
+def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
+    """收集 CEF 运行时（--with-cef 时随包）。
+
+    运行时按“可执行文件目录 + 固定子目录”被加载：
+      Windows：<exe>/libcef_win[/_109]/{x64,Win32}/
+    包内保持仓库 bin/ 下的同一相对结构（bin/libcef_win[_109]/<arch>/），
+    示例程序放在 bin/ 时可直接启动，下游把该子目录整体复制到可执行文件同级即可。
+    macOS 的运行时以 .app 内嵌 Framework 提供，SDK 包不自动收集（下游手动配置）。
+    Linux 的 CEF 运行时位于 bin/libcef_linux/，但当前 --with-cef 仅支持 Windows 出包。
+    """
+    if sys_tag == 'macos':
+        return 0
+    if sys_tag != 'win':
+        return 0
+
+    src_name = CEF_SRC_BY_VERSION[cef_version]
+    arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
+    if arch_dir is None:
+        collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag)
+        return 0
+
+    src_root = os.path.join(BIN_DIR, src_name, arch_dir)
+    if not os.path.isdir(src_root):
+        collector.warn('CEF 运行时目录不存在：%s（本包只有头文件与库，'
+                       '带 CEF 的示例程序无法直接运行）' % _rel(src_root))
+        return 0
+
+    dst_prefix = 'bin/%s/%s/' % (src_name, arch_dir)
+    count = 0
+    for abs_path, rel in iter_files(src_root):
+        if os.path.splitext(rel)[1].lower() in CEF_RUNTIME_EXCLUDE_SUFFIXES:
+            continue
+        if collector.add(dst_prefix + rel, abs_path):
+            count += 1
     return count
 
 
@@ -1343,6 +1402,15 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     sdl_dynamic = (('SDL3.lib' in lib_names) or ('libSDL3.dll.a' in lib_names) or
                    any(n.startswith('libSDL3.so') or n.startswith('libSDL3.')
                        and n.endswith('.dylib') for n in lib_names))
+    # CEF 运行时保持 bin/libcef_win[_109]/<arch>/ 结构，见 collect_cef_runtime。
+    cef_runtime_rel = ''
+    if with_cef and is_windows and not is_mingw:
+        cef_arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
+        if cef_arch_dir:
+            cef_runtime_rel = 'bin/%s/%s' % (
+                CEF_SRC_BY_VERSION[cef_version], cef_arch_dir)
+    cef_runtime_present = bool(cef_runtime_rel) and any(
+        rel.startswith(cef_runtime_rel + '/') for rel, _abs in collector.items)
     lines = []
 
     def section(title):
@@ -1374,6 +1442,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  lib/                  静态库（.lib / .a），平面结构')
     lines.append('  bin/                  运行期 DLL；--with-examples 时还含示例程序')
     lines.append('  bin/resources/        主题、语言、字体资源（与示例程序同级）')
+    if cef_runtime_present:
+        lines.append('  %s/  CEF 运行时（libcef.dll、*.pak、icudtl.dat、'
+                     'locales/）' % cef_runtime_rel)
     lines.append('  licenses/             第三方许可证')
     lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
@@ -1467,8 +1538,14 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
             lines.append('  SDL3 为静态库，无需额外 DLL；下游需定义 DUILIB_SDL=1，')
             lines.append('  并补链系统库：%s' % sys_libs)
         if with_cef:
-            lines.append('  CEF 运行时不在本包内，需从 libcef 发布包放入可执行文件同级：')
-            lines.append('  libcef.dll、icudtl.dat、*.pak、locales/ 等。')
+            if cef_runtime_present:
+                lines.append('  CEF 运行时随包（%s/）。框架启动时按“可执行文件目录 +'
+                             % cef_runtime_rel)
+                lines.append('  该子目录”加载 libcef.dll（CefManager::AddCefDllToPath），')
+                lines.append('  下游请把该子目录整体复制到可执行文件同级，不要摊平。')
+            else:
+                lines.append('  CEF 运行时不在本包内，需从 libcef 发布包放入可执行文件同级：')
+                lines.append('  libcef.dll、icudtl.dat、*.pak、locales/ 等。')
     else:
         lines.append('  Skia 为静态库；SDL3 为动态库，需让 libSDL3.so* 可被找到：')
         lines.append('  复制到可执行文件同级，或设置 LD_LIBRARY_PATH'
@@ -1496,9 +1573,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  bin/*.exe             示例可执行文件（bin/resources/ 已在其同级）')
         missing_cef = [e for e in CEF_EXAMPLES
                        if any(r.endswith('/' + e) for r, _ in collector.items)]
-        if missing_cef:
+        if missing_cef and not cef_runtime_present:
             lines.append('')
-            lines.append('  [注意] 以下示例依赖 CEF 运行时，本仓库不含该运行时，')
+            lines.append('  [注意] 以下示例依赖 CEF 运行时，本包未包含该运行时，')
             lines.append('         直接运行会失败。需自行从 libcef 发布包放入：')
             for e in missing_cef:
                 lines.append('           %s' % e)
@@ -1508,13 +1585,18 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  global.xml；各示例的私有主题目录未包含。')
 
     section('校验')
-    lines.append('  SHA256SUMS 覆盖包内全部文件（含 docs/ 文档与生成的接入文件），')
+    lines.append('  SHA256SUMS 覆盖包内全部普通文件（符号链接不计入，解包时按链接还原）。')
+    lines.append('  Unix 包保留源文件权限与 .so 链接链；Windows 包条目权限无实际作用。')
     lines.append('  可用 sha256sum -c SHA256SUMS 校验')
 
     manifest_text = '\n'.join(lines).replace('\n', '\r\n')
 
     sums = []
     for rel, abs_path in sorted(collector.items, key=lambda kv: kv[0]):
+        # 符号链接在归档里是链接条目（tar 的 SYMTYPE / zip 的 S_IFLNK），
+        # 没有独立内容；写进 SHA256SUMS 会让 sha256sum -c 跟随链接后校验失败。
+        if os.path.islink(abs_path):
+            continue
         sums.append('%s  %s' % (sha256_of(abs_path), rel))
     for rel in sorted(virtual_files):
         digest = hashlib.sha256(virtual_files[rel].encode('utf-8')).hexdigest()
@@ -1544,9 +1626,63 @@ def _write_virtual(zip_obj, tar_obj, arcname, text):
 
 def _zip_info(arcname, size):
     info = zipfile.ZipInfo(arcname, date_time=time.localtime()[:6])
+    info.create_system = 3  # Unix，解包端才会按 external_attr 建链接/权限
     info.compress_type = zipfile.ZIP_DEFLATED
-    info.external_attr = 0o644 << 16
+    info.external_attr = (stat.S_IFREG | 0o644) << 16
     return info
+
+
+def _archive_file_mode(abs_path):
+    """归档条目的权限：按源文件权限位，保留可执行与特殊位（如 chrome-sandbox）。
+
+    Windows 源没有 POSIX 权限位，按扩展名给 0755/0644，保证 tar 包在 Unix
+    解包后示例程序可执行。
+    """
+    if os.name == 'nt':
+        ext = os.path.splitext(abs_path)[1].lower()
+        return 0o755 if ext in ('.exe', '.dll', '.bat', '.cmd', '.ps1') else 0o644
+    mode = stat.S_IMODE(os.lstat(abs_path).st_mode) & ~0o022
+    return mode or 0o644
+
+
+def _zip_add_file(zf, abs_path, arc):
+    """按条目类型写入 zip。
+
+    符号链接必须写成 S_IFLNK 条目（内容为链接目标），否则 zipfile.write
+    会跟随链接，把 `libSDL3.so -> libSDL3.so.0 -> ...` 展开成多份实体文件。
+    """
+    info = zipfile.ZipInfo(arc, date_time=time.localtime()[:6])
+    info.create_system = 3
+    if os.path.islink(abs_path):
+        info.external_attr = (stat.S_IFLNK | 0o777) << 16
+        info.compress_type = zipfile.ZIP_STORED
+        zf.writestr(info, os.readlink(abs_path).encode('utf-8'))
+        return
+    info.external_attr = (stat.S_IFREG | _archive_file_mode(abs_path)) << 16
+    info.compress_type = zipfile.ZIP_DEFLATED
+    with zf.open(info, 'w') as dst, open(abs_path, 'rb') as src:
+        for chunk in iter(lambda: src.read(1024 * 1024), b''):
+            dst.write(chunk)
+
+
+def _tar_add_file(tf, abs_path, arc):
+    """按条目类型写入 tar：符号链接保留目标路径，普通文件按类型设置权限。"""
+    st = os.lstat(abs_path)
+    info = tarfile.TarInfo(arc)
+    info.mtime = int(st.st_mtime)
+    info.uid = info.gid = 0
+    info.uname = info.gname = 'root'
+    if stat.S_ISLNK(st.st_mode):
+        info.type = tarfile.SYMTYPE
+        info.linkname = os.readlink(abs_path)
+        info.mode = 0o777
+        tf.addfile(info)
+        return
+    info.type = tarfile.REGTYPE
+    info.mode = _archive_file_mode(abs_path)
+    info.size = st.st_size
+    with open(abs_path, 'rb') as f:
+        tf.addfile(info, f)
 
 
 def build_package(collector, staging_root, pkg_root_name, version, manifest_text,
@@ -1560,7 +1696,7 @@ def build_package(collector, staging_root, pkg_root_name, version, manifest_text
         with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
             for rel, abs_path in collector.items:
                 arc = '%s/%s' % (pkg_root_name, rel)
-                zf.write(abs_path, arc)
+                _zip_add_file(zf, abs_path, arc)
             for rel in sorted(virtual_files):
                 _write_virtual(zf, None, '%s/%s' % (pkg_root_name, rel),
                                virtual_files[rel])
@@ -1572,12 +1708,7 @@ def build_package(collector, staging_root, pkg_root_name, version, manifest_text
         with tarfile.open(out_path, gz_mode) as tf:
             for rel, abs_path in collector.items:
                 arc = '%s/%s' % (pkg_root_name, rel)
-                info = tf.gettarinfo(abs_path, arcname=arc)
-                info.uid = info.gid = 0
-                info.uname = info.gname = 'root'
-                info.mode = 0o644
-                with open(abs_path, 'rb') as f:
-                    tf.addfile(info, f)
+                _tar_add_file(tf, abs_path, arc)
             for rel in sorted(virtual_files):
                 _write_virtual(None, tf, '%s/%s' % (pkg_root_name, rel),
                                virtual_files[rel])
@@ -1650,8 +1781,8 @@ def main(argv=None):
     parser.add_argument('--with-sdl', action='store_true',
                         help='Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）')
     parser.add_argument('--with-cef', action='store_true',
-                        help='打包 CEF 开发包：头文件 + libcef.lib + wrapper'
-                             '（体积巨大，默认不带）')
+                        help='打包 CEF：头文件 + libcef.lib + wrapper + 运行时'
+                             '（运行时按架构目录，体积巨大，默认不带）')
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
                         help='配合 --with-cef 选择 CEF 版本（默认 latest）')
     parser.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'), default='auto',
@@ -1693,8 +1824,11 @@ def main(argv=None):
         n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)
         n_jpeg = collect_jpeg_turbo(collector, arch_tag)
         n_cef = 0
+        n_cef_rt = 0
         if args.with_cef:
             n_cef = collect_cef(collector, arch_tag, args.cef_version)
+            n_cef_rt = collect_cef_runtime(collector, sys_tag, arch_tag,
+                                           args.cef_version)
     except PackageError as exc:
         eprint('[ERROR] %s' % exc)
         return 1
@@ -1737,6 +1871,7 @@ def main(argv=None):
     print('DLL运行库 : %d' % n_dll)
     print('JPEG      : %d' % n_jpeg)
     print('CEF       : %d' % n_cef)
+    print('CEF运行时 : %d' % n_cef_rt)
     print('资源文件  : %d' % n_res)
     print('许可证    : %d' % n_lic)
     print('文档      : %d' % n_docs)

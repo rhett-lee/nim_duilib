@@ -583,8 +583,13 @@ Easy mistakes to avoid:
   not from a `_d` suffix.
 - Debug libraries carry the debug CRT and may only serve Debug downstream
   builds; mixing them into a Release SDK breaks linking.
-- SDL3 is not packaged on Windows by default (use `--with-sdl`); the CEF
-  development set requires `--with-cef`.
+- SDL3 is not packaged on Windows by default (use `--with-sdl`); CEF (headers,
+  libraries and runtime) requires `--with-cef`, with the runtime kept under
+  `bin/libcef_win[/_109]/<arch>/` in the package.
+- Archive permissions and symlinks: tar entries use the source permissions
+  (executable/setuid preserved) and zip stores symlinks as `S_IFLNK`; `.so`
+  chains and executable bits survive extraction, and symlinks are excluded from
+  `SHA256SUMS`.
 
 See [docs/Release.en.md](../docs/Release.en.md) for the full description.
 

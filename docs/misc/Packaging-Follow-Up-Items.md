@@ -15,7 +15,7 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查 |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；VS/CMake 端到端（x64 Debug） |
 
 尚未覆盖：Release、x86/arm64、MinGW、DLL 模式、Linux/macOS/FreeBSD、SDL/CEF/示例程序组合。
 
@@ -63,13 +63,25 @@
 
 #### P0-3 接入层端到端验证
 
-- [ ] 用真实发布包跑通 VS 与 CMake 的最小工程，而不仅是配置阶段。
-- 待验证：
-  - MSBuild：导入 `msvc/nim_duilib.targets`，Debug/x86 与 Debug/x64 各编译、链接、运行一次；
-  - CMake：Windows 与 Linux 各编译、运行一次；
-  - DLL 模式：`bin/*.dll` 复制、`bin/resources` 相对路径、manifest 嵌入效果；
-  - `NimDuilibCopyResources=1` / `nim_duilib_copy_runtime(... RESOURCES)` 的复制结果。
-- 验收：生成的可执行程序能启动，并能加载主题资源；失败项在文档中记录原因。
+- [~] Windows x64（Debug、静态、MSVC）已完成（2026-10-23）；其余组合待补。
+- 已完成：
+  - MSBuild：导入 `msvc/nim_duilib.targets` 的 Debug|x64 工程编译、链接、运行通过；
+    `NimDuilibCopyResources=1` 复制 `resources/`，`bin/*.dll` 复制 `WebView2Loader.dll`；
+    嵌入 manifest 已验证（Common Controls 6.0.0.0、AMD64、supportedOS 列表）。
+  - CMake：`find_package(nim_duilib CONFIG REQUIRED)` +
+    `nim_duilib_copy_runtime(... RESOURCES)` 的 Debug|x64 工程编译、链接、运行通过。
+  - 运行验证：`GlobalManager::Startup` 成功加载 `resources/themes/default/global.xml`，
+    程序输出 `duilib version: 1.0.2026.1023`。
+  - 负向验证：x64 包 + x86 工程在 CMake 配置阶段按架构不匹配拒绝，并给出明确提示。
+- 发现并修复：接入层 Debug 未屏蔽 release CRT，下游链接出现 LNK4098；
+  已在 `packaging/msvc/nim_duilib.props` 与 `packaging/cmake/nim_duilibConfig.cmake`
+  中补 `/NODEFAULTLIB:"libcmt.lib"`（与仓库内 `DuilibSettings.props` /
+  `BinCommonSettings.props` 一致）。修复后 VS 与 CMake 两条路径均无 LNK4098/LNK2038。
+- 未覆盖及原因：
+  - Windows x86：本机 Skia 只有 `llvm.x64.debug` / `llvm.x64.release`，缺 x86 产物，无法出包；
+  - DLL 模式：当前构建为静态，`bin/` 下没有 `duilib*.dll`；
+  - Linux/macOS/FreeBSD：无对应环境。
+- 验收（Windows x64）：可执行程序启动并成功加载主题资源，链接无 LNK2038/LNK4098。
 
 #### P0-4 签名与公证
 
@@ -93,9 +105,15 @@
 
 #### P1-1 Unix 归档语义
 
-- [ ] tar 内文件权限按类型设置，不再统一 `0o644`。
-- [ ] 符号链接按 `lstat` 处理，避免 zip 展开 `.so` 版本链产生重复实体。
-- 现状：`--with-examples` 的 Unix 示例程序解包后不可执行；zip 与 tar 对符号链接行为不一致。
+- [x] tar 内文件权限按类型设置，不再统一 `0o644`。
+- [x] 符号链接按 `lstat` 处理，避免 zip 展开 `.so` 版本链产生重复实体。
+- 现状（2026-10-23 已实施）：`_tar_add_file()` 用 `lstat` 生成条目，普通文件权限取自
+  源文件（清除组/其他可写位，保留可执行与 setuid 等特殊位）；Windows 源没有 POSIX
+  权限位，按扩展名给 `0755`/`0644`。`_zip_add_file()` 把符号链接写成 `S_IFLNK`
+  条目（内容为链接目标），普通文件按权限写 `external_attr`，解包端可还原权限。
+  `iter_files()` 额外产出目录型符号链接（如 macOS Framework 的 `Versions/Current`），
+  否则这类链接会丢失。符号链接不计入 `SHA256SUMS`，避免 `sha256sum -c` 跟随链接后
+  校验失败。
 - 实测结构（Linux SDL3）：`libSDL3.so -> libSDL3.so.0 -> libSDL3.so.0.5.0`，
   打包需保留完整符号链接链，不能只留实体文件。
 - 其它受影响文件：Linux `bin/` 下的示例程序（无扩展名，可执行）、
@@ -106,6 +124,10 @@
 - 依据：`build/pack.py` 的 `build_package()` 与 `iter_files()`。
 - 验收：Linux/macOS 包内示例程序与 `chrome-sandbox` 可直接执行；
   `libSDL3.so*` 等链接结构与构建目录一致。
+  Windows 侧已回归：Debug x64 zip 539 个文件，`SHA256SUMS` 全部匹配，
+  `.dll` 条目 `0755`、`.lib` 条目 `0644`，`zip` 可完整解压；
+  Unix 侧因无环境未实跑，链接与权限逻辑以构造用例验证
+  （zip 写 `S_IFLNK` 条目、tar 写 `SYMTYPE`，链接目标与模式均正确）。
 
 #### P1-2 可复现构建
 
@@ -123,7 +145,15 @@
   `libvulkan.so.1`、`chrome-sandbox`、`vk_swiftshader_icd.json`、
   `resources.pak`、`chrome_100_percent.pak`、`chrome_200_percent.pak`、
   `icudtl.dat`、`v8_context_snapshot.bin`、`locales/*.pak`。
-- [ ] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
+- [~] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
+  - [x] Windows（2026-10-23）：`--with-cef` 时从 `bin/libcef_win[_109]/{x64,Win32}/`
+    收集运行时，包内保持 `bin/libcef_win[_109]/<架构>/` 结构；
+    `libcef.lib`、`cef_sandbox.lib` 等库文件不随包（前者在 `lib/` 已提供，
+    后者本项目不使用沙箱且体积 80 MB 级）。
+  - [ ] Linux：`--with-cef` 目前仅支持 Windows 出包（`collect_cef` 直接报错），
+    待放开后再接入 `bin/libcef_linux/`。
+  - macOS 按既定设计不自动收集（见下条）。
+- 现状：Windows 运行时已随包；Linux 待 CEF 出包支持；macOS 仍由下游手动配置。
 - [x] macOS：结构已确认，CEF 随示例以 `.app` 形式生成：
   `Contents/MacOS/<exe>`、`Contents/Frameworks/Chromium Embedded Framework.framework`
   （`Versions/A/...` 及顶层符号链接）、`Contents/Frameworks/<name> Helper*.app`
@@ -136,9 +166,10 @@
   注意：仓库内 `duilib/third_party/libcef/libcef_macos` 只用于编译 wrapper，
   不是运行时分发包，两者不能混用。
 - [x] FreeBSD：不支持 CEF，包内不出现任何 CEF 内容。
-- 现状：仅打包 CEF 头文件与 `libcef.lib`，运行时尚未随包。
 - 验收：带 CEF 的 Windows/Linux 示例程序在干净机器上无需额外拷贝即可启动；
   `chrome-sandbox` 的可执行权限正确；macOS 按手动配置流程验证。
+  Windows 侧已满足运行时随包（`--with-cef --list`：latest 235 个、109 个 69 个
+  运行时文件，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
 
 #### P1-4 WebView2 运行时说明
 
@@ -206,3 +237,5 @@
 | 2026-10-23 | P0-5 方案定稿并存入 [Release-Process-Closure-Plan.md](Release-Process-Closure-Plan.md)，暂不实施 |
 | 2026-10-23 | 确定版本号单一源方案：`duilib/duilib_version.h` 为唯一编辑点，删除 `VERSION.txt`，`msvc/dllRes/version.h` 改为适配层，`BUILD` 段不补零 |
 | 2026-10-23 | 版本号单一源已实施：`pack.py` 解析新头文件，`--list` 版本为 `1.0.2026.1023`；`VERSION.txt` 已删除 |
+| 2026-10-23 | P1-3 Windows 运行时已随包：`collect_cef_runtime()` 收集 `bin/libcef_win[_109]/<架构>/`，排除 `.lib`；Linux 待 `--with-cef` 支持，macOS 按设计手动 |
+| 2026-10-23 | P1-1 已实施：tar 按源权限写模式（保留可执行/setuid），zip 用 `S_IFLNK` 条目保存符号链接，`iter_files()` 补目录链接，符号链接不计入 `SHA256SUMS` |
