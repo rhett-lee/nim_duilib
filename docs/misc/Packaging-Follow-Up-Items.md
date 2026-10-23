@@ -79,9 +79,14 @@
 
 #### P0-5 发布流程闭环
 
-- [ ] 版本递增检查、CHANGELOG / Release Notes、git tag、产物归档。
-- [ ] `dist/` 旧产物清理策略。
-- 现状：仓库根 `VERSION.txt` 手工维护，无固定发布 checklist。
+> 方案见 [Release-Process-Closure-Plan.md](Release-Process-Closure-Plan.md)，已于 2026-10-23 实施。
+> 版本号单一源为 `duilib/duilib_version.h`；`BUILD` 段不补零。
+
+- [x] 版本递增检查、CHANGELOG / Release Notes、git tag、产物归档。
+- [x] `dist/` 旧产物清理策略。
+- 现状：`build/release.py` 提供 check / package / finalize / clean；中英
+  `CHANGELOG.md` / `CHANGELOG.en.md` 与 `docs/misc/Release-Checklist.md` 已建立；
+  包名追加 `-sdl/-cef/-cef109/-examples/-debug` 特性后缀，产物按 `dist/<版本>/` 归档。
 - 验收：按 checklist 可从干净工作区产出唯一版本包，步骤可复现。
 
 ### P1：发布质量
@@ -198,3 +203,6 @@
 | 2026-10-23 | 修复 macOS 编译错误：仓库根 `VERSION` 重命名为 `VERSION.txt`，避免与标准头 `<version>` 冲突 |
 | 2026-10-23 | 记录 macOS `bin/` 结构：示例为可执行文件，CEF 示例为 `cef.app`/`CefBrowser.app`（含 Framework 与 Helper）；明确 macOS CEF 仍由下游手动配置 |
 | 2026-10-23 | 记录 macOS CEF 分发包位置与结构：同级 `cef_binary/`，含 `Release/Chromium Embedded Framework.framework`；与仓库内 wrapper 目录用途不同 |
+| 2026-10-23 | P0-5 方案定稿并存入 [Release-Process-Closure-Plan.md](Release-Process-Closure-Plan.md)，暂不实施 |
+| 2026-10-23 | 确定版本号单一源方案：`duilib/duilib_version.h` 为唯一编辑点，删除 `VERSION.txt`，`msvc/dllRes/version.h` 改为适配层，`BUILD` 段不补零 |
+| 2026-10-23 | 版本号单一源已实施：`pack.py` 解析新头文件，`--list` 版本为 `1.0.2026.1023`；`VERSION.txt` 已删除 |

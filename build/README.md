@@ -466,6 +466,8 @@ Linux / macOS / FreeBSD 没有架构层：`lib/Debug/`、`lib/Release/`。
 ## 发布打包
 
 编译完成后用 `build/pack.py` 打包，脚本只收集已构建好的文件，不参与编译。
+正式发布用 `build/release.py` 编排：它调用 `pack.py`、做版本与产物校验，
+但不执行 commit / tag / push。
 
 ```
 # 只打SDK（推荐，默认 Release）
@@ -474,7 +476,7 @@ python build/pack.py
 # Debug SDK（包名带 -debug）
 python build/pack.py --config Debug
 
-# SDK + 示例程序
+# SDK + 示例程序（包名带 -examples）
 python build/pack.py --with-examples
 
 # 只看会收集哪些文件，不实际打包
@@ -482,10 +484,18 @@ python build/pack.py --list
 
 # 指定 MSVC 运行库（默认 auto：DLL 模式 MD，否则 MT）
 python build/pack.py --msvc-runtime md
+
+# 发布：预检、打包、校验（产物输出到 dist/<版本>/）
+python build/release.py check
+python build/release.py package --config Release --arch x64 --dry-run
+python build/release.py finalize
+python build/release.py clean --list
 ```
 
-产物输出到 `dist/`（已在 .gitignore 中），包名为
-`nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，内含 `include/duilib/`、
+直接运行 `pack.py` 时产物输出到 `dist/`；通过 `release.py package` 时固定输出到
+`dist/<版本>/`（`dist/` 已在 .gitignore 中）。包名为
+`nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
+内含 `include/duilib/`、
 `lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
 `bin/`（运行期 DLL 与 `bin/resources/`）、`licenses/`、`docs/`（顶层使用文档，链接已按包内布局重写），
 以及 `MANIFEST.txt` 与 `SHA256SUMS`。

@@ -14,7 +14,7 @@
 
 | 文件 | 类型 | 内容 |
 | :--- | :--- | :--- |
-| `VERSION.txt` | 新增 | 版本号单一事实源，四段式 `1.0.2026.0416` |
+| `duilib/duilib_version.h` | 新增 | 版本号单一事实源，四段式（2026-10-23 取代原 `VERSION.txt` 方案） |
 | `build/pack.py` | 新增 | 打包脚本，纯标准库、跨平台、不参与编译 |
 | `docs/Release.md` / `docs/Release.en.md` | 新增 | 面向使用者的打包与发布说明 |
 | `docs/misc/Release-Packaging-Notes.md` / `.en.md` | 新增 | 本文档 |
@@ -68,7 +68,7 @@ write_release_docs.py
 | CEF 开发包 | 默认不打，需 `--with-cef`（可选 `--cef-version 109`） | wrapper 单个 80–100 MB；运行库仍需外置 |
 | `bin/resources.zip` | 一律排除 | 仅 748 字节的空壳文件 |
 | `docs/` | 只打包顶层使用文档；`misc/`、`specs/` 等子目录一律不打包 | 使用文档随 SDK 提供；`Release.*`（发布流程）、`Getting-Started.*` / `Examples.*`（库内部文档）与 `感谢名单.txt`（致谢）面向维护者，不适合分发；`Summary.*` 已去掉指向包外目录的链接，随包 |
-| 版本号 | 单一事实源为根目录 `VERSION.txt` | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生；改名避免与标准头 `<version>` 冲突 |
+| 版本号 | 单一事实源为 `duilib/duilib_version.h` 的四个数字宏 | 包名、包内 `VERSION`、`MANIFEST.txt` 全部由它派生；`pack.py` 忽略注释与无关宏，缺失/重复/越界时报错 |
 
 ### `--with-examples` 的资源范围差异
 
@@ -101,7 +101,9 @@ python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
 python build/pack.py --out-dir dist       # 指定输出目录
 ```
 
-产物输出到 `dist/`，包名格式 `nim_duilib-<版本>-<系统>-<架构>[-debug].zip`，
+直接运行 `pack.py` 时产物输出到 `dist/`；`release.py package` 固定输出到
+`dist/<版本>/`。包名格式
+`nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
 内含 `VERSION`、`MANIFEST.txt`、`SHA256SUMS`、`LICENSE`、`include/duilib/`、
 `lib/`（含 Skia 与第三方链接库）、`bin/`（DLL 与 `bin/resources/`）、
 `licenses/`、`docs/`
@@ -337,7 +339,7 @@ Debug 来源有**两处**，只看一个都会漏：
 
 ### 5. 版本号：单一事实源与已知缺口
 
-版本号的单一事实源是仓库根的 `VERSION.txt` 文件，格式为 `主版本.次版本.修订号.构建号`，例如 `1.0.2026.0416`。`pack.py` 从该文件读取版本，用于包名、包内 `VERSION` 与 `MANIFEST.txt`；格式非法（不是四段数字）时脚本报错退出，不会打出半成品包。
+版本号的单一事实源是 `duilib/duilib_version.h` 中的四个数字宏，例如 `1.0.2026.1023`。`pack.py` 逐行解析该头文件（忽略注释、`#undef` 与其它宏，缺失/重复/越界时报错），用于包名、包内 `VERSION` 与 `MANIFEST.txt`。`msvc/dllRes/version.h` 已改为 Windows 资源编译适配层，不再保存版本数字；`VERSION.txt` 已删除。
 
 git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 等）是历史格式，含括号，不能直接用作包名或 CPack 版本号。
 
@@ -361,7 +363,7 @@ git tag 建议用 `v<版本号>` 格式。仓库现有 tag（`2026-06-08(main)` 
 
 ### 缺口
 
-1. **版本号两处独立维护。** `msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION.txt` 文件目前各改各的，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。升级版本须同时改两处。**后续应让 `version.h` 改为从 `VERSION.txt` 派生。**
+1. **版本号两处独立维护（已解决，2026-10-23）。** 版本已统一到 `duilib/duilib_version.h`；`msvc/dllRes/version.h` 改为适配层，`VERSION.txt` 已删除。`DUILIB_VER_BUILD` 按 MMDD 书写且不补零，避免 C/RC 的八进制问题。
 
 2. **只实测了 Windows。** 脚本本身跨平台（纯标准库，四平台共用同一份代码），Unix 的 `.a` 收集与 `lib` 前缀归一化已实现，但产物尚未在 Linux/macOS/FreeBSD 上实测。`docs/Release.md` 中已标注「未在本机验证」。
 
@@ -383,7 +385,7 @@ python build/pack.py --list
 python build/pack.py
 
 # 3. 完整性校验
-cd dist && unzip -q nim_duilib-<版本>-<系统>-<架构>.zip -d /tmp/check
+cd dist/<版本> && unzip -q nim_duilib-<版本>-<系统>-<架构>[-特性].zip -d /tmp/check
 cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
 
 # 4. 下游编译验证（关键验收）

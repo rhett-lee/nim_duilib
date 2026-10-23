@@ -60,19 +60,28 @@ python build/pack.py --config Debug
 python build/pack.py --with-examples
 ```
 
-Output goes to `dist/`, with package names of the form
-`nim_duilib-<version>-<system>-<arch>[-debug].zip`:
+Running `pack.py` directly writes to `dist/`; `build/release.py package`
+always writes to `dist/<version>/`. Package names have the form
+`nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`,
+so feature packages of the same version can coexist:
 
 ```
-dist/nim_duilib-1.0.2026.0416-win-x64.zip
-dist/nim_duilib-1.0.2026.0416-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 ```
+
+- `-sdl`: only on Windows with an explicit `--with-sdl`; Unix always ships SDL
+  and gains no suffix;
+- `-cef` / `-cef109`: added by `--with-cef` according to `--cef-version`;
+- `-examples`: added by `--with-examples`;
+- `-debug`: always last, keeping the existing Debug package naming.
 
 ## Package layout
 
 ```
-nim_duilib-<version>-<system>-<arch>/
-  VERSION               Version number, identical to the root VERSION file
+nim_duilib-<version>-<system>-<arch>[-feature]/
+  VERSION               Version number, parsed from duilib/duilib_version.h
   MANIFEST.txt          Package contents and caveats
   SHA256SUMS            SHA256 of every file, verifiable with sha256sum -c
   LICENSE               Main license
@@ -428,20 +437,24 @@ Consequently:
 
 ## Versioning
 
-The single source of truth for the version is the `VERSION.txt` file at the
-repository root, formatted as `major.minor.patch.build`, for example
-`1.0.2026.0416`.
+The single source of truth for the version is the four numeric macros in
+`duilib/duilib_version.h`: `DUILIB_VER_MAJOR`, `DUILIB_VER_MINOR`,
+`DUILIB_VER_PATCH` and `DUILIB_VER_BUILD`, for example `1.0.2026.1023`.
 
-`pack.py` reads that file and uses it for the package name, the in-package
-`VERSION` and `MANIFEST.txt`. An invalid format (anything other than four
-numeric segments) makes the script exit with an error rather than producing a
+`pack.py` parses that header line by line and uses the result for the package
+name, the in-package `VERSION` and `MANIFEST.txt`. It matches only those four
+macros, ignores comments, `#undef` and unrelated macros, and validates each
+segment in the range `0..65535`. A missing or duplicated macro, or an
+out-of-range value, makes the script exit with an error instead of producing a
 half-finished package.
 
-The `DUILIB_VER_*` macros in `msvc/dllRes/version.h` are currently
-**maintained independently**. They are used only by the `.vcxproj` version
-resource and are invisible to the CMake side. A version bump must update both
-places — this is a known gap that should later be resolved by deriving
-`version.h` from `VERSION.txt`.
+`DUILIB_VER_BUILD` uses `MMDD` semantics but **must not have a leading zero**:
+`0105` is octal in C/RC, and `0108` / `0109` are invalid octal literals. Write
+January 5 as `105`, which displays as `1.0.2026.105` consistently everywhere.
+
+`msvc/dllRes/version.h` is only a Windows resource-compile adapter: it includes
+that header and adds string/product metadata, and no longer stores version
+numbers. CMake builds do not compile the RC script, so they are unaffected.
 
 Git tags are recommended in `v<version>` form so they line up with package
 names. The existing tags in this repository (such as `2026-06-08(main)`) use a
@@ -450,24 +463,51 @@ used directly as a package name or CPack version.
 
 ## Release process
 
-1. Confirm the working tree is clean and that build artifacts are Release
-2. Update `VERSION.txt` and `msvc/dllRes/version.h`
-3. Package and verify:
+The complete manual steps are in [Release-Checklist.md](misc/Release-Checklist.md)
+(not shipped in release packages). The automation lives in `build/release.py`:
+it only calls `pack.py` and verifies the output, and **never runs commit, tag or
+push**.
+
+1. Make sure the target configuration has been built; update
+   `duilib/duilib_version.h` and both changelogs (`CHANGELOG.md` /
+   `CHANGELOG.en.md`), then commit so the working tree is clean.
+2. Pre-flight check:
 
    ```
-   python build/pack.py --list
-   python build/pack.py
+   python build/release.py check
    ```
 
-4. Verify artifact integrity:
+3. Package (use `--dry-run` first to review the command and package name):
 
    ```
-   cd dist && unzip -q nim_duilib-<version>-<system>-<arch>.zip -d /tmp/check
-   cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
+   python build/release.py package --config Release --arch x64 --dry-run
+   python build/release.py package --config Release --arch x64
    ```
 
-5. Tag: `git tag -a v<version> -m "release <version>"`
-6. Push the tag and artifacts to the distribution channel
+   Artifacts go to `dist/<version>/`; add `--with-sdl`, `--with-cef`,
+   `--with-examples` as needed.
+4. Verify every archive and generate release notes:
+
+   ```
+   python build/release.py finalize
+   ```
+
+   This verifies SHA256, required files and documentation links, then writes
+   `SHA256SUMS.txt`, `RELEASE-NOTES.md` and `RELEASE-NOTES.en.md`.
+5. Commit and tag manually:
+
+   ```
+   git commit -m "release: <version>"
+   git tag -a v<version> -m "release <version>"
+   git push origin --tags
+   ```
+
+6. Upload the artifacts under `dist/<version>/`; list older artifacts with
+   `release.py clean --list` and delete them only with an explicit
+   `--version <old-version> --yes` (the current version is refused).
+
+You can still run `python build/pack.py` directly, but it performs neither the
+release pre-flight checks nor artifact verification.
 
 ## Signing and notarization
 
@@ -504,7 +544,7 @@ xcrun stapler staple <artifact>.zip
 Signing is usually unnecessary. If GPG signing is wanted:
 
 ```
-gpg --detach-sign --armor dist/nim_duilib-<version>-<platform>-<arch>.tar.gz
+gpg --detach-sign --armor dist/<version>/nim_duilib-<version>-<system>-<arch>[-feature].tar.gz
 ```
 
 Verify after publishing with `gpg --verify`.

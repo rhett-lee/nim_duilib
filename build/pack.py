@@ -76,17 +76,22 @@
    指向未随包内容的链接退化为纯文字。
    新增顶层文档默认随包，如需排除请加入 DOC_EXCLUDE_FILES。
 
+包名：nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]，
+同一版本的不同特性包可共存于同一目录。
+
 用法：
     python build/pack.py                      # Release SDK 包（不含示例）
     python build/pack.py --config Debug       # Debug SDK 包（包名带 -debug）
-    python build/pack.py --with-examples      # SDK + 示例程序
+    python build/pack.py --with-examples      # SDK + 示例程序（包名带 -examples）
     python build/pack.py --list               # 只打印将收集的文件，不打包
     python build/pack.py --format tgz         # 强制 tgz（默认 Windows 用 zip）
     python build/pack.py --lib-dir lib/x86/Debug  # 显式指定库目录
-    python build/pack.py --with-sdl           # Windows 额外打包 SDL3
-    python build/pack.py --with-cef           # 额外打包 CEF 开发包
+    python build/pack.py --with-sdl           # Windows 额外打包 SDL3（包名带 -sdl）
+    python build/pack.py --with-cef           # 额外打包 CEF 开发包（包名带 -cef）
     python build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
     python build/pack.py --out-dir dist       # 指定输出目录
+
+发布流程请使用 build/release.py（check / package / finalize / clean）。
 
 退出码：0 成功；1 参数或产物缺失；2 打包异常。
 """
@@ -109,7 +114,7 @@ import zipfile
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(SCRIPT_DIR)
-VERSION_FILE = os.path.join(REPO_ROOT, 'VERSION.txt')
+VERSION_HEADER = os.path.join(REPO_ROOT, 'duilib', 'duilib_version.h')
 DEFAULT_OUT_DIR = os.path.join(REPO_ROOT, 'dist')
 
 DUIBIB_SRC_DIR = os.path.join(REPO_ROOT, 'duilib')
@@ -286,20 +291,54 @@ def eprint(*args):
     sys.stderr.write(' '.join(str(a) for a in args) + '\n')
 
 
+_VERSION_MACROS = ('MAJOR', 'MINOR', 'PATCH', 'BUILD')
+_VERSION_RE = re.compile(
+    r'^\s*#\s*define\s+DUILIB_VER_(MAJOR|MINOR|PATCH|BUILD)\s+(\d+)\b')
+
+
 def read_version():
-    """读取根目录 VERSION.txt 文件。格式：MAJOR.MINOR.PATCH.BUILD
-    仓库根会被加入 include 路径，文件名不能与 C++ 标准头 <version> 冲突
-    （macOS 文件系统大小写不敏感）。"""
-    if not os.path.isfile(VERSION_FILE):
-        eprint('[ERROR] 找不到版本文件：%s' % VERSION_FILE)
+    """从 duilib/duilib_version.h 解析版本号，返回 MAJOR.MINOR.PATCH.BUILD。
+
+    该头文件是版本的唯一编辑点，后续可能加入版权、ABI 等其它内容，
+    因此只逐行匹配四个版本宏，忽略注释、#undef 与其它宏。
+    BUILD 段按 MMDD 语义书写但不补零（0105 在 C/RC 中是八进制）。
+    """
+    if not os.path.isfile(VERSION_HEADER):
+        eprint('[ERROR] 找不到版本头文件：%s' % VERSION_HEADER)
         return None
-    with io.open(VERSION_FILE, 'r', encoding='utf-8-sig') as f:
-        raw = f.read().strip()
-    parts = raw.split('.')
-    if len(parts) != 4 or not all(p.isdigit() for p in parts):
-        eprint('[ERROR] VERSION 格式非法（应为 MAJOR.MINOR.PATCH.BUILD）：%r' % raw)
+    values = {}
+    duplicated = set()
+    try:
+        with io.open(VERSION_HEADER, 'r', encoding='utf-8-sig') as f:
+            for line in f:
+                match = _VERSION_RE.match(line)
+                if match is None:
+                    continue
+                name, value = match.group(1), int(match.group(2))
+                if name in values:
+                    duplicated.add(name)
+                else:
+                    values[name] = value
+    except OSError as exc:
+        eprint('[ERROR] 读取版本头文件失败：%s' % exc)
         return None
-    return raw
+    if duplicated:
+        eprint('[ERROR] 版本宏重复定义：%s（%s）'
+               % (', '.join('DUILIB_VER_' + name for name in sorted(duplicated)),
+                  VERSION_HEADER))
+        return None
+    missing = [name for name in _VERSION_MACROS if name not in values]
+    if missing:
+        eprint('[ERROR] 版本宏缺失：%s（%s）'
+               % (', '.join('DUILIB_VER_' + name for name in missing),
+                  VERSION_HEADER))
+        return None
+    for name in _VERSION_MACROS:
+        if values[name] > 65535:
+            eprint('[ERROR] 版本宏超出范围（0..65535）：DUILIB_VER_%s=%s'
+                   % (name, values[name]))
+            return None
+    return '.'.join(str(values[name]) for name in _VERSION_MACROS)
 
 
 def detect_platform_tag():
@@ -326,6 +365,25 @@ def detect_platform_tag():
     else:
         arch_tag = machine or 'unknown'
     return sys_tag, arch_tag
+
+
+def build_package_name(version, sys_tag, arch_tag, config,
+                       with_sdl, with_cef, cef_version, with_examples):
+    """包名：nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]。
+
+    同一版本的不同特性包必须能共存于 dist/，否则会互相覆盖。
+    Unix 默认带 SDL，不追加 -sdl，避免改变既有 Unix 包名。
+    """
+    name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
+    if with_sdl and sys_tag == 'win':
+        name += '-sdl'
+    if with_cef:
+        name += '-cef109' if cef_version == '109' else '-cef'
+    if with_examples:
+        name += '-examples'
+    if config == 'Debug':
+        name += '-debug'
+    return name
 
 
 def human_size(num_bytes):
@@ -1491,11 +1549,12 @@ def _zip_info(arcname, size):
     return info
 
 
-def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_text,
-                  fmt, out_path, virtual_files=None):
+def build_package(collector, staging_root, pkg_root_name, version, manifest_text,
+                  sums_text, fmt, out_path, virtual_files=None):
     """把收集到的文件写成压缩包。staging_root 用于统一路径前缀。"""
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     virtual_files = virtual_files or {}
+    version_text = version + '\n'
 
     if fmt == 'zip':
         with zipfile.ZipFile(out_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
@@ -1507,8 +1566,7 @@ def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_te
                                virtual_files[rel])
             _write_virtual(zf, None, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
             _write_virtual(zf, None, '%s/SHA256SUMS' % pkg_root_name, sums_text)
-            _write_virtual(zf, None, '%s/VERSION' % pkg_root_name,
-                           open(VERSION_FILE, 'r', encoding='utf-8-sig').read().strip() + '\n')
+            _write_virtual(zf, None, '%s/VERSION' % pkg_root_name, version_text)
     else:
         gz_mode = 'w:gz' if fmt == 'tgz' else 'w:bz2'
         with tarfile.open(out_path, gz_mode) as tf:
@@ -1525,8 +1583,7 @@ def build_package(collector, staging_root, pkg_root_name, manifest_text, sums_te
                                virtual_files[rel])
             _write_virtual(None, tf, '%s/MANIFEST.txt' % pkg_root_name, manifest_text)
             _write_virtual(None, tf, '%s/SHA256SUMS' % pkg_root_name, sums_text)
-            _write_virtual(None, tf, '%s/VERSION' % pkg_root_name,
-                           open(VERSION_FILE, 'r', encoding='utf-8-sig').read().strip() + '\n')
+            _write_virtual(None, tf, '%s/VERSION' % pkg_root_name, version_text)
 
     return out_path
 
@@ -1706,9 +1763,9 @@ def main(argv=None):
                 print('  [gen] %s' % rel)
         return 0
 
-    pkg_root_name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
-    if config == 'Debug':
-        pkg_root_name += '-debug'
+    pkg_root_name = build_package_name(
+        version, sys_tag, arch_tag, config,
+        args.with_sdl, args.with_cef, args.cef_version, args.with_examples)
     manifest_text, sums_text = write_manifest(
         collector, pkg_root_name, version, sys_tag, arch_tag, config,
         args.with_examples, args.with_sdl, args.with_cef, args.cef_version,
@@ -1719,7 +1776,7 @@ def main(argv=None):
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)
 
     try:
-        build_package(collector, REPO_ROOT, pkg_root_name, manifest_text,
+        build_package(collector, REPO_ROOT, pkg_root_name, version, manifest_text,
                       sums_text, fmt, out_path, virtual_files=virtual_files)
     except Exception as exc:  # noqa: BLE001 - 顶层兜底，避免半成品包
         if os.path.exists(out_path):

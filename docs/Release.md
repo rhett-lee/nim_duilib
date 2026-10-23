@@ -53,19 +53,27 @@ python build/pack.py --config Debug
 python build/pack.py --with-examples
 ```
 
-产物输出到 `dist/`，包名格式为
-`nim_duilib-<版本>-<系统>-<架构>[-debug].zip`：
+直接运行 `pack.py` 时产物输出到 `dist/`；通过 `build/release.py package`
+执行时固定输出到 `dist/<版本>/`。包名格式为
+`nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
+同一版本的不同特性包可共存：
 
 ```
-dist/nim_duilib-1.0.2026.0416-win-x64.zip
-dist/nim_duilib-1.0.2026.0416-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 ```
+
+- `-sdl`：仅 Windows 显式 `--with-sdl` 时追加；Unix 默认带 SDL，不加后缀；
+- `-cef` / `-cef109`：`--with-cef` 时按 `--cef-version` 追加；
+- `-examples`：`--with-examples` 时追加；
+- `-debug`：始终在最后，兼容既有 Debug 包命名。
 
 ## 产物结构
 
 ```
-nim_duilib-<版本>-<系统>-<架构>/
-  VERSION               版本号，与仓库根 VERSION.txt 一致
+nim_duilib-<版本>-<系统>-<架构>[-特性]/
+  VERSION               版本号，来自 duilib/duilib_version.h
   MANIFEST.txt          包内容说明与注意事项
   SHA256SUMS            每个文件的 SHA256，可用 sha256sum -c 校验
   LICENSE               主许可证
@@ -387,16 +395,20 @@ CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）**不在本仓库内**�
 
 ## 版本号
 
-版本号的单一事实源是仓库根的 `VERSION.txt` 文件，格式为
-`主版本.次版本.修订号.构建号`，例如 `1.0.2026.0416`。
+版本号的单一事实源是 `duilib/duilib_version.h` 中的四个数字宏：
+`DUILIB_VER_MAJOR`、`DUILIB_VER_MINOR`、`DUILIB_VER_PATCH`、`DUILIB_VER_BUILD`，
+例如 `1.0.2026.1023`。
 
-`pack.py` 从该文件读取版本，用于包名、包内 `VERSION` 与 `MANIFEST.txt`。
-格式非法（不是四段数字）时脚本报错退出，不会打出半成品包。
+`pack.py` 逐行解析该头文件，用于包名、包内 `VERSION` 与 `MANIFEST.txt`；
+只匹配这四个宏，忽略注释、`#undef` 与其它宏，并校验每段范围 `0..65535`。
+缺失、重复定义或越界时脚本报错退出，不会打出半成品包。
 
-`msvc/dllRes/version.h` 中的 `DUILIB_VER_*` 宏目前是**独立维护**的，
-只被 `.vcxproj` 的版本资源使用，CMake 侧读不到。
-升级版本时两处都要改 —— 这是当前的已知缺口，后续应让 `version.h`
-改为从 `VERSION.txt` 派生。
+`DUILIB_VER_BUILD` 按 `MMDD` 书写，但**不要写前导零**：`0105` 在 C/RC 中
+是八进制，`0108`、`0109` 会直接编译失败。1 月 5 日写 `105`，版本显示为
+`1.0.2026.105`，全链路保持一致。
+
+`msvc/dllRes/version.h` 只是 Windows 资源编译的适配层，引用该头文件并补充
+字符串与产品信息宏，不再保存版本数字；CMake 构建不编译 RC，不受影响。
 
 git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 仓库现有 tag（`2026-06-08(main)` 等）是历史格式，含括号，
@@ -404,24 +416,47 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 
 ## 发布流程
 
-1. 确认工作区干净，编译产物为 Release
-2. 更新 `VERSION.txt` 与 `msvc/dllRes/version.h`
-3. 打包并校验：
+完整的人工步骤见 [Release-Checklist.md](misc/Release-Checklist.md)（不随发布包分发）。
+自动化部分由 `build/release.py` 提供：它只调用 `pack.py` 并校验产物，
+**不执行 commit、tag、push**。
+
+1. 确认目标配置的产物已编译；更新 `duilib/duilib_version.h` 与中英 CHANGELOG
+   （`CHANGELOG.md` / `CHANGELOG.en.md`），提交后工作区保持干净。
+2. 预检：
 
    ```
-   python build/pack.py --list
-   python build/pack.py
+   python build/release.py check
    ```
 
-4. 校验产物完整性：
+3. 打包（先 `--dry-run` 核对命令与包名）：
 
    ```
-   cd dist && unzip -q nim_duilib-<版本>-<系统>-<架构>.zip -d /tmp/check
-   cd /tmp/check/nim_duilib-* && sha256sum -c SHA256SUMS
+   python build/release.py package --config Release --arch x64 --dry-run
+   python build/release.py package --config Release --arch x64
    ```
 
-5. 打 tag：`git tag -a v<版本号> -m "release <版本号>"`
-6. 推 tag 与产物到发布渠道
+   产物输出到 `dist/<版本>/`；其它特性包按需追加 `--with-sdl`、`--with-cef`、
+   `--with-examples` 等参数。
+4. 校验全部压缩包并生成发布说明：
+
+   ```
+   python build/release.py finalize
+   ```
+
+   校验 SHA256、必备文件与包内文档链接，生成 `SHA256SUMS.txt`、
+   `RELEASE-NOTES.md` 与 `RELEASE-NOTES.en.md`。
+5. 手动提交并打 tag：
+
+   ```
+   git commit -m "release: <版本>"
+   git tag -a v<版本> -m "release <版本>"
+   git push origin --tags
+   ```
+
+6. 上传 `dist/<版本>/` 下的产物；历史产物用 `release.py clean --list` 查看，
+   删除需显式 `--version <旧版本> --yes`（脚本拒绝删除当前版本）。
+
+仍可直接执行 `python build/pack.py`，但不会做发布预检与产物校验。
 
 ## 签名与公证
 
@@ -456,7 +491,7 @@ xcrun stapler staple <产物.zip>
 通常不做签名。若需 GPG 签名：
 
 ```
-gpg --detach-sign --armor dist/nim_duilib-<版本>-<平台>-<架构>.tar.gz
+gpg --detach-sign --armor dist/<版本>/nim_duilib-<版本>-<系统>-<架构>[-特性].tar.gz
 ```
 
 发布后可用 `gpg --verify` 校验。

@@ -472,6 +472,8 @@ stderr via `SDL_Log`).
 
 After building, package with `build/pack.py`. The script only collects
 files that have already been built; it does not trigger compilation.
+Official releases use `build/release.py`, which orchestrates `pack.py` and
+verifies versions and artifacts, but never runs commit / tag / push.
 
 ```
 # SDK only (recommended, Release by default)
@@ -480,7 +482,7 @@ python build/pack.py
 # Debug SDK (package name gains -debug)
 python build/pack.py --config Debug
 
-# SDK plus example programs
+# SDK plus example programs (package name gains -examples)
 python build/pack.py --with-examples
 
 # list what would be collected without packaging
@@ -489,11 +491,18 @@ python build/pack.py --list
 # choose the MSVC runtime recorded in package metadata
 # (auto by default: MD for DLL mode, otherwise MT)
 python build/pack.py --msvc-runtime md
+
+# release: check, package, verify (artifacts go to dist/<version>/)
+python build/release.py check
+python build/release.py package --config Release --arch x64 --dry-run
+python build/release.py finalize
+python build/release.py clean --list
 ```
 
-Artifacts go to `dist/` (already in .gitignore), named
-`nim_duilib-<version>-<system>-<arch>[-debug].zip`, containing
-`include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
+Running `pack.py` directly writes to `dist/`; `release.py package` always writes
+to `dist/<version>/` (`dist/` is already in .gitignore). Package names are
+`nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`,
+containing `include/duilib/`, `lib/` (the 5 duilib libraries plus all Skia libraries
 and WebView2/JPEG link libraries), `bin/` (runtime DLLs and `bin/resources/`),
 `licenses/`, `docs/` (top-level user documentation with links rewritten for the
 package layout), plus `MANIFEST.txt` and `SHA256SUMS`.

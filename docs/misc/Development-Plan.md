@@ -350,9 +350,10 @@ API 变动频率高 |
   - **只实测了 Windows**。脚本本身跨平台（纯标准库，四平台共用一份代码），
     但其它平台的库文件名后缀与静态库格式（`.a` vs `.lib`）差异
     可能需要按实际构建结果调整 `LIB_BASENAMES`，文档中已标注「未在本机验证」。
-- **已知缺口**：`msvc/dllRes/version.h` 的 `DUILIB_VER_*` 宏与 `VERSION` 文件
-  目前**两处独立维护**，且该宏只被 `.vcxproj` 使用、CMake 侧读不到。
-  升级版本须同时改两处。后续应让 `version.h` 改为从 `VERSION` 派生。
+- **已知缺口（已解决，2026-10-23）**：版本号已统一到 `duilib/duilib_version.h`；
+  `msvc/dllRes/version.h` 改为 Windows 资源编译适配层，`VERSION.txt` 已删除。
+  发布流程闭环（P0-5）已完成：`build/release.py`（check/package/finalize/clean）、
+  中英 CHANGELOG、`docs/misc/Release-Checklist.md` 与包名特性后缀均已就位。
 - **原计划中已放弃的子项**：NSIS/WiX（安装程序）与 DEB/dmg（系统包）不做——
   静态库 SDK 用 zip / tgz 足够，制作安装程序对当前阶段是过度设计。
 - **工作量**：4–6 天　**依赖**：无（可与 B 组并行）
