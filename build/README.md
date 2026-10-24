@@ -699,7 +699,7 @@ skia/out/
 ```
 说明：
 - MSYS2 的 clang 与 MSVC 都使用 `llvm.<arch>.release` 这个目录名，但库文件名不同
-  （`lib*.a` 与 `*.lib`），可以放在同一目录共存；建议仍按工具链分开，便于排查。
+  （`lib*.a` 与 `*.lib`），可以放在同一目录共存。
 - MSYS2 只产出 release 变体；Debug 构建会回退到同编译器的 release 目录。
 - 找不到匹配目录时，CMake 在配置阶段直接报错，不会进入编译。
 

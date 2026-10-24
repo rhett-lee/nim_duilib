@@ -729,8 +729,7 @@ skia/out/
 ```
 Notes:
 - MSYS2 clang and MSVC both use `llvm.<arch>.release`, but the library file names
-  differ (`lib*.a` vs `*.lib`), so both can coexist in that directory; keeping them
-  separate per toolchain is still recommended for easier troubleshooting.
+  differ (`lib*.a` vs `*.lib`), so both can coexist in that directory.
 - MSYS2 only produces release variants; Debug builds fall back to the release
   directory of the same compiler.
 - When no matching directory is found, CMake fails at configure time instead of

@@ -298,7 +298,6 @@ else()
         list(APPEND _nim_link "${_nim_sdl_lib}")
     endif()
 
-    _nim_duilib_require_lib("skia")
     _nim_duilib_add_lib("svg")
     _nim_duilib_add_lib("skshaper")
     _nim_duilib_add_lib("skottie")
@@ -308,6 +307,9 @@ else()
     _nim_duilib_add_lib("expat")
     _nim_duilib_add_lib("skcms")
     _nim_duilib_add_lib("skresources")
+    # libskia 必须放在其他 Skia 库之后：GNU ld 对静态库只做单遍扫描，
+    # 放在前面会导致 skottie/skresources/jsonreader 引用的 Skia 符号无法解析
+    _nim_duilib_require_lib("skia")
 
     if(NIM_DUILIB_PACKAGE_HAS_JPEG)
         _nim_duilib_add_lib("turbojpeg-static")

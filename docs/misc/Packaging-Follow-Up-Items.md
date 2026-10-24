@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug 静态包；MinGW x64 Release）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包；MinGW x64 Release）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,9 +15,9 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x86 Debug 出包与解包校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64 Debug） |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包） |
 
-尚未覆盖：MSVC Release、arm64、DLL 模式、Linux/macOS/FreeBSD、MSYS2 工具链、SDL/示例程序组合。
+尚未覆盖：arm64、DLL 模式、Linux/macOS/FreeBSD、MSYS2 工具链、SDL/示例程序组合。
 
 ### 平台与特性约束
 
@@ -45,7 +45,8 @@
 #### P0-1 打包矩阵实测
 
 - [ ] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
-- 现状：已验证 Windows x64、x86 两个架构的 Debug 静态包（2026-10-24 补充 x86）；
+- 现状：已验证 Windows x64、x86 两个架构的 Debug 与 Release 静态包
+  （2026-10-24 补齐 x86 与 x64 Release）；
   x86 另以 `--with-cef --list` 核对 CEF 运行时按 `bin/libcef_win/Win32/` 收集。
   MinGW x64 Release 已完成 gcc 与 llvm 两套工具链验证：5 库 + 21 示例构建、
   `basic.exe` 运行、llvm 包解包/SHA 校验（2026-10-24）。
@@ -59,7 +60,7 @@
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
-  - 工具链：MSVC（Release 待补）/ MinGW（gcc、llvm 已完成）/ MSYS2（MINGW64、UCRT64、CLANG64）；
+  - 工具链：MSVC（Debug/Release 已完成）/ MinGW（gcc、llvm 已完成）/ MSYS2（MINGW64、UCRT64、CLANG64）；
   - 模式：静态 / DLL（`EnableDuilibDll`）；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
   - 特性：`--with-sdl`、`--with-cef`（Windows/Linux/macOS）、`--with-examples`。
@@ -73,7 +74,7 @@
 
 #### P0-3 接入层端到端验证
 
-- [~] Windows x64（Debug、静态、MSVC）已完成（2026-10-23）；其余组合待补。
+- [~] Windows x64、x86（Debug、Release）已完成（2026-10-24）；其余组合待补。
 - 已完成：
   - MSBuild：导入 `msvc/nim_duilib.targets` 的 Debug|x64 工程编译、链接、运行通过；
     `NimDuilibCopyResources=1` 复制 `resources/`，`bin/*.dll` 复制 `WebView2Loader.dll`；
@@ -83,6 +84,17 @@
   - 运行验证：`GlobalManager::Startup` 成功加载 `resources/themes/default/global.xml`，
     程序输出 `duilib version: 1.0.2026.1023`。
   - 负向验证：x64 包 + x86 工程在 CMake 配置阶段按架构不匹配拒绝，并给出明确提示。
+  - Windows x86（2026-10-24）：解包 `-win-x86-debug` / `-win-x86` 包后分别用 VS 与 CMake
+    建独立工程，Debug/Release 均为 32 位启动、加载资源、退出码 0；
+    VS 嵌入 manifest 为 X86（Common Controls 6.0.0.0、supportedOS 列表），
+    `NimDuilibCopyResources=1` 复制 214 个资源文件；CMake
+    `nim_duilib_copy_runtime(... RESOURCES)` 复制 `WebView2Loader.dll`（包内为 14C x86）
+    与 214 个资源文件；64 位工程配 x86 包在 CMake 配置阶段与 MSBuild 校验阶段均被架构拒绝。
+  - Windows x64 Release（2026-10-24）：解包 `-win-x64.zip` 后分别用 VS（`Release|x64`）与
+    CMake（VS2022 `-A x64`，`find_package` + `nim_duilib_copy_runtime`）建独立工程，
+    均为 64 位启动、加载资源、退出码 0；VS 嵌入 manifest 为 AMD64（Common Controls
+    6.0.0.0、supportedOS 列表），两条路径均复制 214 个资源文件与 `WebView2Loader.dll`
+    （包内为 8664 x64）；32 位工程配 x64 包在 CMake 配置阶段与 MSBuild 校验阶段均被架构拒绝。
 - 发现并修复：接入层 Debug 未屏蔽 release CRT，下游链接出现 LNK4098；
   已在 `packaging/msvc/nim_duilib.props` 与 `packaging/cmake/nim_duilibConfig.cmake`
   中补 `/NODEFAULTLIB:"libcmt.lib"`（与仓库内 `DuilibSettings.props` /
@@ -93,15 +105,18 @@
   （`skia.lib`），出现全量 `undefined reference`。两个脚本的示例配置行已补
   `-DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%`，复测全部链接通过。
 - 未覆盖及原因：
-  - Windows x86：Skia x86 产物已就绪，x86 Debug 包已可产出并通过解包/SHA 校验
-    （2026-10-24）；接入层（VS/CMake）x86 端到端验证待补；
-  - MinGW x64：示例已在源码树内用 CMake 构建并运行，尚未用解包后的
-    `find_package(nim_duilib)` 建独立工程做端到端验证；
+  - MinGW x64（2026-10-24）：源码树内 gcc / llvm 均已构建运行；已分别用解包后的
+    `-mingw-gcc` 与 `-mingw-llvm` 包通过 `find_package(nim_duilib)` +
+    `nim_duilib_copy_runtime` 建独立工程，两套工具链均构建运行成功（64 位启动、
+    资源加载、退出码 0；分别导入 `libstdc++-6.dll` / `libc++.dll`）；
+    MSVC 工程误用 MinGW 包会被工具链校验拒绝；
   - MSYS2：构建脚本与打包识别已支持，但未在真实 MSYS2 环境出包，
     也未做解包 SDK 的端到端验证；
   - DLL 模式：当前构建为静态，`bin/` 下没有 `duilib*.dll`；
   - Linux/macOS/FreeBSD：无对应环境。
-- 验收（Windows x64）：可执行程序启动并成功加载主题资源，链接无 LNK2038/LNK4098。
+- 验收（Windows x64）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 Win32 工程误用 x64 包。
+- 验收（Windows x86）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 x64 工程误用 x86 包。
+- 验收（MinGW x64）：同上；另确认 MSVC 工程误用 MinGW 包会被工具链校验拒绝。
 
 #### P0-4 签名与公证
 
@@ -298,8 +313,14 @@
 | 2026-10-23 | P1-5 已实施：MANIFEST 与 Release 文档补充 PowerShell `Get-FileHash` 全包校验脚本及 `SHA256SUMS.txt` 用法 |
 | 2026-10-24 | P1-6 已实施：新增许可合规对照表；补充 expat（MIT）与 Roboto Mono 字体（Apache-2.0）许可文本并在 README 登记；确认随包组件均为宽松许可、无 GPL/AGPL/LGPL |
 | 2026-10-24 | Windows x86 Debug 出包验证：补齐 4 个基础库与 CEF wrapper，`pack.py --arch x86` 产出 541 文件/242.1 MB；解包后 SHA256 全包通过，包内 20 个二进制均为 x86（14C machine）；`--with-cef --list` 收集 233 个 Win32 运行时文件 |
+| 2026-10-24 | Windows x86 接入层端到端验证：用解包 SDK 分别以 VS（`nim_duilib.targets`）与 CMake（`find_package` + `nim_duilib_copy_runtime`）构建 Debug 程序，32 位启动成功并加载资源（退出码 0）；x64 工程配 x86 包被架构校验拒绝 |
 | 2026-10-24 | MinGW x64 Release 验证：修复 gcc/llvm 构建脚本未向 CMake 传 `DUILIB_SKIA_LIB_SUBPATH`（此前示例链接 MSVC Skia，全量 undefined reference）；两套工具链均成功构建 5 库 + 21 示例，`basic.exe` 运行正常；llvm 包 538 文件/88.9 MB，zip 22.9 MB，解包 SHA256 通过 |
 | 2026-10-24 | MinGW 包区分编译器：`pack.py` 从静态库符号自动判断 gcc / llvm-mingw（可用 `--mingw-variant` 指定），包名追加 `-mingw-<变体>`，MANIFEST 工具链与 CMake/props 元数据同步；Skia 只选同源目录。MinGW 包不再收集 MSVC 专用的 `WebView2LoaderStatic.lib` 与 `turbojpeg-static.lib`，WebView2 只保留 `WebView2Loader.dll.lib` + DLL |
 | 2026-10-24 | MSYS2 构建脚本补齐：`msys2_build.sh` / `build_duilib_all_in_one.sh` 启用 `set -e`、去掉 `bc` 依赖、SDL 构建目录按生成器隔离；MSYS2 依赖安装命令写入 `build/README.md` |
 | 2026-10-24 | `pack.py` 支持 MSYS2 打包链路：识别 `gcc.<arch>.release` / `llvm.<arch>.release` 并按 `.a` 校验目录内容，显式 `--skia-lib-dir` 校验变体；新增 MSYS/Cygwin Python 的 Windows 主机判定；MinGW 禁止 `--with-cef` |
 | 2026-10-24 | MANIFEST 补充 MinGW 运行库（libstdc++ / libc++）说明与 MSYS2 MINGW64/UCRT64 包不可互换提示；`docs/Release.md` / `Release.en.md` 同步包名说明 |
+| 2026-10-24 | MinGW x64 接入层端到端验证：解包 `-mingw-llvm` 包后用 CMake `find_package` + `nim_duilib_copy_runtime` 建独立工程，llvm-mingw 构建运行成功（bits=64、startup=1、退出码 0，导入 `libc++.dll`）；MSVC 工程误用 MinGW 包被工具链校验拒绝 |
+| 2026-10-24 | 修复打包 CMake Config 的 Skia 静态库顺序：`libskia.a` 移到 `skresources` 等依赖库之后，解决 GNU ld 单遍扫描下 skottie/skresources/jsonreader 的 undefined reference（MSVC 与 lld 不受影响） |
+| 2026-10-24 | MinGW x64 gcc 包出包与验证：用 gcc 重建 5 个静态库后产出 536 文件/91.3 MB（zip 22.1 MB）；解包 SDK 用 gcc 建独立工程并运行成功（bits=64、startup=1、退出码 0，导入 `libstdc++-6.dll`）；修复顺序后 llvm 包复测同样通过 |
+| 2026-10-24 | Windows x86 Release 出包与端到端验证：构建 5 个 MSVC Win32 Release 静态库后产出 `-win-x86.zip`（541 文件/123.3 MB，zip 27.4 MB）；解包 SDK 分别以 VS（`nim_duilib.targets`，Release\|Win32）与 CMake（VS2022 `-A Win32`，`find_package` + `nim_duilib_copy_runtime`）建独立工程，均构建运行成功（bits=32、startup=1、退出码 0，复制 214 个资源文件；VS manifest 为 X86）；x64 工程配 x86 包在 CMake 配置与 MSBuild 校验阶段均被拒绝 |
+| 2026-10-24 | Windows x64 Release 出包与端到端验证：构建 5 个 MSVC x64 Release 静态库后产出 `-win-x64.zip`（541 文件/163.1 MB，zip 34.0 MB），解包 SHA256 全部匹配、`WebView2Loader.dll` 为 x64（8664）；解包 SDK 分别以 VS（`nim_duilib.targets`，Release\|x64）与 CMake（VS2022 `-A x64`，`find_package` + `nim_duilib_copy_runtime`）建独立工程，均构建运行成功（bits=64、startup=1、退出码 0，复制 214 个资源文件，manifest 为 AMD64）；Win32 工程配 x64 包在 CMake 配置与 MSBuild 校验阶段均被拒绝 |
