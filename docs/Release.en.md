@@ -407,7 +407,7 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--config Release\|Debug` | Library configuration; defaults to `Release` (case-insensitive) |
 | `--arch x64\|x86\|arm64` | Library architecture; selects the library directory on Windows and affects the package name everywhere |
 | `--lib-dir <path>` | Fully explicit library directory, overriding `--arch`/`--config` path computation |
-| `--skia-lib-dir <path>` | Skia static library directory; defaults to probing `../skia/out/llvm.<arch>.<config>` |
+| `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, validated by the presence of `.a` files) |
 | `--sdl-dir <path>` | SDL3 root directory; defaults to `../SDL3` |
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
 | `--with-cef` | Package CEF: headers + `libcef.lib` + wrapper + runtime (large) |

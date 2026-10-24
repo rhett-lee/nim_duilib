@@ -60,7 +60,10 @@
    存在 libduilib*.a 为 MinGW。两者产物不同，不能混用：
    - MSVC ：库为 .lib，Skia 目录 llvm.<arch>.<release|debug>；
    - MinGW：静态库 .a、导入库 .dll.a，Skia 目录为仅有的 release 变体
-            mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release。
+            mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release（独立 MinGW-w64），
+            或 gcc.<arch>.release / llvm.<arch>.release（MSYS2）。
+   MinGW 的 Skia 目录按内容（存在 .a）判定：MSYS2 CLANG64 的 llvm.<arch>.release
+   与 MSVC 目录同名，只看目录名无法区分，也会把 MSVC 的 .lib 误当 MinGW 库。
    因此 MinGW 的清单链接写法是 -lxxx，MSVC 是 xxx.lib。
    MinGW 还要区分 gcc（libstdc++）与 llvm-mingw（libc++），两者 C++ 运行时不兼容，
    库与 Skia 必须同源；包名追加 -mingw-gcc / -mingw-llvm，避免互相覆盖。
@@ -700,13 +703,39 @@ def _collect_tree(collector, src_root, dst_prefix):
     return count
 
 
-def collect_skia_libs(collector, skia_lib_dir):
+def _skia_lib_exts(toolchain=None):
+    """Skia 目录中可接受的静态库扩展名。
+
+    MinGW 只能用 .a，MSVC 只能用 .lib；工具链未知时 Windows 两者都接受
+    （与历史行为一致），Unix 只接受 .a。
+    """
+    if toolchain == 'mingw':
+        return ('.a',)
+    if toolchain == 'msvc':
+        return ('.lib',)
+    if platform.system().lower().startswith('win'):
+        return ('.lib', '.a')
+    return ('.a',)
+
+
+def _skia_dir_has_libs(path, toolchain=None):
+    """目录存在且包含该工具链可接受的静态库文件。"""
+    if not os.path.isdir(path):
+        return False
+    exts = _skia_lib_exts(toolchain)
+    for name in os.listdir(path):
+        if os.path.isfile(os.path.join(path, name)) and name.lower().endswith(exts):
+            return True
+    return False
+
+
+def collect_skia_libs(collector, skia_lib_dir, toolchain=None):
     """收集 Skia 全部静态库（P4-B3：整目录打包）。
 
-    Windows 同时接受 MSVC 的 .lib 与 MinGW 的 .a，Unix 只接受 .a。
+    按工具链过滤扩展名：MinGW 只收 .a，MSVC 只收 .lib。MSYS2 CLANG64 的
+    llvm.<arch>.release 与 MSVC 目录同名，若两者文件混放也不会打错库。
     """
-    is_windows = platform.system().lower().startswith('win')
-    exts = ('.lib', '.a') if is_windows else ('.a',)
+    exts = _skia_lib_exts(toolchain)
     count = 0
     for name in sorted(os.listdir(skia_lib_dir)):
         full = os.path.join(skia_lib_dir, name)
@@ -724,17 +753,25 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
                          mingw_variant=None):
     """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
 
-    MinGW 的 gcc 与 llvm-mingw 各自使用不同的 Skia 静态库，不能混用；
-    指定 mingw_variant 时只尝试对应的 mingw64-<变体> 目录。
+    MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
+    静态库，不能混用。目录名分两种前缀：
+      独立 MinGW-w64 : mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release
+      MSYS2          : gcc.<arch>.release / llvm.<arch>.release
+    MSYS2 的 llvm.<arch>.release 与 MSVC 目录同名，因此除目录名外还要检查目录
+    内容（.a / .lib），否则会把 MSVC 的 Skia 打进 MinGW 包。
     """
     if explicit_dir:
         path = explicit_dir if os.path.isabs(explicit_dir) \
             else os.path.join(REPO_ROOT, explicit_dir)
         if not os.path.isdir(path):
             raise PackageError('--skia-lib-dir 不存在：%s' % path)
+        if toolchain in ('mingw', 'msvc') and not _skia_dir_has_libs(path, toolchain):
+            raise PackageError(
+                '--skia-lib-dir 中没有 %s 静态库，与 %s 工具链不匹配：%s'
+                % ('/'.join(_skia_lib_exts(toolchain)), toolchain, path))
         if toolchain == 'mingw' and mingw_variant:
             base = os.path.basename(os.path.normpath(path))
-            match = re.match(r'mingw64-(gcc|llvm)\.', base)
+            match = re.match(r'(?:mingw64-)?(gcc|llvm)\.', base)
             if match and match.group(1) != mingw_variant:
                 raise PackageError(
                     '--skia-lib-dir 是 %s 的产物，与 MinGW 编译器 %s 不匹配：%s'
@@ -744,33 +781,36 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
     is_windows = platform.system().lower().startswith('win')
     if is_windows:
-        # MSVC：llvm.<arch>.debug / release
-        msvc_variant = os.path.join(
-            out_dir, 'llvm.%s.%s' % (
-                arch_tag, 'debug' if config == 'Debug' else 'release'))
-        # MinGW：Skia 只有 release 变体，目录名带 mingw64 前缀
-        mingw_variants = [
-            os.path.join(out_dir, 'mingw64-%s.%s.release' % (v, arch_tag))
-            for v in MINGW_VARIANTS
-        ]
+        # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
+        msvc_name = 'llvm.%s.%s' % (
+            arch_tag, 'debug' if config == 'Debug' else 'release')
+        # MinGW：Skia 只有 release 变体；独立 MinGW-w64 带 mingw64- 前缀，MSYS2 无前缀
+        mingw_names = []
+        for variant in MINGW_VARIANTS:
+            mingw_names.append('mingw64-%s.%s.release' % (variant, arch_tag))
+            mingw_names.append('%s.%s.release' % (variant, arch_tag))
         if toolchain == 'mingw':
             if mingw_variant in MINGW_VARIANTS:
-                candidates = [os.path.join(
-                    out_dir, 'mingw64-%s.%s.release' % (mingw_variant, arch_tag))]
+                # 同一变体的独立 MinGW 与 MSYS2 目录可能同时存在，优先独立 MinGW 命名；
+                # 需要强制使用 MSYS2 产物时用 --skia-lib-dir 指定
+                names = ['mingw64-%s.%s.release' % (mingw_variant, arch_tag),
+                         '%s.%s.release' % (mingw_variant, arch_tag)]
             else:
-                candidates = mingw_variants
+                names = mingw_names
         elif toolchain == 'msvc':
-            candidates = [msvc_variant]
+            names = [msvc_name]
         else:
-            candidates = [msvc_variant] + mingw_variants
+            names = [msvc_name] + mingw_names
+        candidates = [os.path.join(out_dir, name) for name in names]
     else:
         candidates = [
             os.path.join(out_dir, 'llvm.%s.release' % arch_tag),
             os.path.join(out_dir, 'gcc.%s.release' % arch_tag),
         ]
 
+    # 按目录内容过滤：目录名相同但库类型不符的候选（如 MSVC 的 .lib）直接跳过
     for path in candidates:
-        if os.path.isdir(path):
+        if _skia_dir_has_libs(path, toolchain):
             return path
 
     available = []
@@ -1977,13 +2017,16 @@ def main(argv=None):
                              '路径计算，但仍决定包名与示例过滤')
     parser.add_argument('--skia-lib-dir', default=None,
                         help='Skia 静态库目录（默认按平台/工具链探测，'
-                             '如 ../skia/out/llvm.<arch>.<config> 或 '
-                             'mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release）')
+                             '如 ../skia/out/llvm.<arch>.<config>、'
+                             'mingw64-gcc.<arch>.release（独立 MinGW-w64）或 '
+                             'gcc.<arch>.release（MSYS2）；'
+                             'MinGW 会按目录内是否存在 .a 校验）')
     parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                         default='auto',
                         help='MinGW 编译器变体（默认从静态库符号自动判断）；'
                              'gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，'
-                             '包名会追加 -mingw-gcc / -mingw-llvm')
+                             '包名会追加 -mingw-gcc / -mingw-llvm'
+                             '（MSYS2 CLANG64 使用 libc++，归为 llvm）')
     parser.add_argument('--sdl-dir', default=None,
                         help='SDL3 根目录（默认 ../SDL3）')
     parser.add_argument('--with-sdl', action='store_true',
@@ -2035,7 +2078,7 @@ def main(argv=None):
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
         n_libs = collect_libs(collector, lib_dir, config,
                               args.with_cef, args.cef_version)
-        n_skia = collect_skia_libs(collector, skia_dir)
+        n_skia = collect_skia_libs(collector, skia_dir, toolchain)
         n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
         n_wv2 = collect_webview2_loader(collector, arch_tag, toolchain)
         n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)

@@ -2,6 +2,9 @@
 
 # Linux / MacOS / FreeBSD / MSYS2(Windows)
 
+# 任一克隆、下载、配置或编译失败时立即退出，避免被后续命令的返回值掩盖
+set -e
+
 # Force enable SDL (MSYS2-Windows only)
 ENABLE_SDL=0
 if [ "$1" == "-sdl" ]; then
@@ -157,12 +160,13 @@ retry_delay=10
 # Retry clone nim_duilib
 echo "- Cloning nim_duilib ..."
 clone_nim_duilib() {
-    if [ ! -d "./nim_duilib/.git" ]; then
-        git clone https://github.com/rhett-lee/nim_duilib.git
-    else
-        git -C ./nim_duilib pull
-    fi
-    if [ $? -ne 0 ]; then
+    if ! {
+        if [ ! -d "./nim_duilib/.git" ]; then
+            git clone https://github.com/rhett-lee/nim_duilib.git
+        else
+            git -C ./nim_duilib pull
+        fi
+    }; then
         sleep $retry_delay
         clone_nim_duilib
     fi
@@ -177,14 +181,15 @@ fi
 # Retry clone skia
 echo "- Cloning skia ..."
 clone_skia() {
-    if [ ! -d "./skia/.git" ]; then
-        git clone https://github.com/google/skia.git
-    else
-        git -C ./skia stash
-        git -C ./skia checkout main
-        git -C ./skia pull
-    fi
-    if [ $? -ne 0 ]; then
+    if ! {
+        if [ ! -d "./skia/.git" ]; then
+            git clone https://github.com/google/skia.git
+        else
+            git -C ./skia stash
+            git -C ./skia checkout main
+            git -C ./skia pull
+        fi
+    }; then
         sleep $retry_delay
         clone_skia
     fi
@@ -199,12 +204,13 @@ fi
 # Retry clone skia_compile
 echo "- Cloning skia_compile ..."
 clone_skia_compile() {
-    if [ ! -d "./skia_compile/.git" ]; then
-        git clone https://github.com/rhett-lee/skia_compile.git
-    else
-        git -C ./skia_compile pull
-    fi
-    if [ $? -ne 0 ]; then
+    if ! {
+        if [ ! -d "./skia_compile/.git" ]; then
+            git clone https://github.com/rhett-lee/skia_compile.git
+        else
+            git -C ./skia_compile pull
+        fi
+    }; then
         sleep $retry_delay
         clone_skia_compile
     fi
@@ -219,12 +225,13 @@ fi
 # Retry clone SDL
 echo "- Cloning SDL ..."
 clone_SDL() {
-    if [ ! -d "./SDL/.git" ]; then
-        git clone https://github.com/libsdl-org/SDL.git
-    else
-        git -C ./SDL pull
-    fi
-    if [ $? -ne 0 ]; then
+    if ! {
+        if [ ! -d "./SDL/.git" ]; then
+            git clone https://github.com/libsdl-org/SDL.git
+        else
+            git -C ./SDL pull
+        fi
+    }; then
         sleep $retry_delay
         clone_SDL
     fi
@@ -252,16 +259,14 @@ if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
 fi
 
 cd skia
-git checkout 6f559bafbed4c8323a899df4008aa073df4eccc6
-if [ $? -ne 0 ]; then
+if ! git checkout 6f559bafbed4c8323a899df4008aa073df4eccc6; then
     echo "git checkout skia failed!"
     cd "$CURRENT_DIR"
     exit 1
 fi
 cd ..
 
-unzip -o skia_compile/$SKIA_PATCH_SRC_ZIP -d ./skia/
-if [ $? -ne 0 ]; then
+if ! unzip -o skia_compile/$SKIA_PATCH_SRC_ZIP -d ./skia/; then
     echo "./skia_compile/$SKIA_PATCH_SRC_ZIP unzip failed!"
     exit 1
 fi
@@ -298,14 +303,12 @@ curl_download_with_retry() {
         # -o: Specify output file path
         # --retry: Number of retries (only for network errors)
         # --connect-timeout: Timeout for establishing connection
-        curl -L -f -C - -o "$save_path" \
+        # Check download result
+        if curl -L -f -C - -o "$save_path" \
             --retry "$max_retries" \
             --connect-timeout "$timeout" \
             --retry-delay 30 --speed-limit 100 --speed-time 120 \
-            "$url"
-
-        # Check download result
-        if [ $? -eq 0 ]; then
+            "$url"; then
             echo "Download successful! File saved to: $save_path"
             return 0
         else
@@ -348,14 +351,12 @@ wget_download_with_retry() {
     # -t: Number of retries (0 = unlimited, here use max_retries)
     # --timeout: Timeout for connection and data transfer (in seconds)
     # -c: Resume broken download (supports resuming if download is interrupted)
-    wget -O "$save_path" \
+    # Check download result
+    if wget -O "$save_path" \
          -t "$max_retries" \
          --timeout "$timeout" \
          -c \
-         "$url"
-
-    # Check download result
-    if [ $? -eq 0 ]; then
+         "$url"; then
         echo "Download successful! File saved to: $save_path"
         return 0
     else
@@ -416,13 +417,19 @@ if [ "$has_curl$has_wget" != "00" ] && [ "$has_linux$has_macos" != "00" ]; then
     if [ "$libcef_file_name" != "" ]; then
         # download .tar.bz2
         libcef_local_file=${libcef_file_name}.tar.bz2
+        # CEF 下载失败不影响不带 CEF 的示例编译，因此这里只记录结果而不中断脚本
+        libcef_download_ok=1
         if [ "$has_curl" == "1" ]; then
-            curl_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30
+            if curl_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30; then
+                libcef_download_ok=0
+            fi
         else
-            wget_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30
+            if wget_download_with_retry "https://cef-builds.spotifycdn.com/${libcef_file_name}.tar.bz2" "$libcef_local_file" 100 30; then
+                libcef_download_ok=0
+            fi
         fi
-        
-        if [ $? -eq 0 ]; then
+
+        if [ "$libcef_download_ok" -eq 0 ]; then
             if [ -f "$libcef_local_file" ]; then
                 # Linux and MacOS: extract .tar.bz2
                 echo "Extracting: ${libcef_local_file} ..."
@@ -490,13 +497,18 @@ else
     fi
 fi
 
-cmake_version=$(cmake --version | grep -oE '[0-9]+\.[0-9]+')
-required_version=3.24
-if [ $(echo "$cmake_version >= $required_version" | bc) -eq 1 ]; then
-    DUILIB_CMAKE_REFRESH=--fresh
-else
-    DUILIB_CMAKE_REFRESH=
+# --fresh 需要 CMake 3.24+；低版本忽略该参数（仍然可编译）
+# 用 shell 内建比较，不依赖 bc（MSYS2 base 默认未安装 bc）
+DUILIB_CMAKE_REFRESH=""
+cmake_version=$(cmake --version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+') || true
+if [ -n "$cmake_version" ]; then
+    cmake_major=${cmake_version%%.*}
+    cmake_minor=${cmake_version#*.}
+    if [ "$cmake_major" -gt 3 ] || { [ "$cmake_major" -eq 3 ] && [ "$cmake_minor" -ge 24 ]; }; then
+        DUILIB_CMAKE_REFRESH=--fresh
+    fi
 fi
+echo "CMake version: ${cmake_version:-unknown}, refresh: ${DUILIB_CMAKE_REFRESH:-none}"
 
 if ! is_windows; then
     # build SDL on Linux/MacOS

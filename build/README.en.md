@@ -601,8 +601,11 @@ Easy mistakes to avoid:
 - MinGW builds produce `libduilib*.a` (static) or `libduilib*.dll.a` (import)
   libraries, and Skia lives in `mingw64-gcc.<arch>.release` /
   `mingw64-llvm.<arch>.release`. MSYS2 builds (`msys2_build.sh`) use
-  `gcc.<arch>.release` / `llvm.<arch>.release` instead; packaging only
-  auto-detects the former naming, so the latter needs `--skia-lib-dir`.
+  `gcc.<arch>.release` / `llvm.<arch>.release` instead; packaging probes both
+  namings and uses the presence of `.a` files to tell a MinGW directory apart
+  from the identically named MSVC `llvm.<arch>.release` (a `.lib`-only
+  directory is skipped). When both directories of the same variant exist, the
+  standalone MinGW name wins; pass `--skia-lib-dir` to force the MSYS2 one.
   The script detects the toolchain (MSVC/MinGW) from the library directory and
   writes `-lxxx` links for MinGW in the manifest.
 - In DLL mode (`msvc/PropertySheets/duilib_dll.flag` exists) `bin/duilib*.dll`

@@ -585,7 +585,9 @@ nim_duilib_copy_runtime(my_app)
 - MinGW 构建的库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库），
   Skia 目录为 `mingw64-gcc.<arch>.release` / `mingw64-llvm.<arch>.release`；
   MSYS2 构建（`msys2_build.sh`）的 Skia 目录为 `gcc.<arch>.release` /
-  `llvm.<arch>.release`，打包脚本目前只自动识别前一种命名，后者需用
+  `llvm.<arch>.release`，打包脚本两种命名都会探测，且按目录内是否存在 `.a`
+  区分 MinGW 与同名的 MSVC `llvm.<arch>.release`（只有 `.lib` 的目录会被跳过）；
+  同一变体的两种目录同时存在时优先独立 MinGW 命名，需要强制 MSYS2 产物时用
   `--skia-lib-dir` 显式指定；
   打包脚本按库目录内容自动判断工具链（MSVC/MinGW），清单中链接写法为 `-lxxx`。
 - DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll`
