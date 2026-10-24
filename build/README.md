@@ -637,7 +637,7 @@ nim_duilib_copy_runtime(my_app)
   `lib/` 中为对应的导入库；静态模式没有这些文件，打包时自动跳过。
   包名自动追加 `-dll`，避免与静态包同名覆盖。DLL 模式使用 `/MD`，
   Skia 也必须同 CRT：Release 用 `llvm.<arch>.release.md`，Debug 用
-  `llvm.<arch>.debug.mdd`（后者未提供）；打包脚本按上述目录名自动选择。
+  `llvm.<arch>.debug.mdd`，两者都需自行构建；打包脚本按目录名自动选择。
 - `--with-sdl` 时按实际产物收集 SDL3：MSVC 静态 `SDL3-static.lib`；
   动态导入库 `SDL3.lib` / `libSDL3.dll.a` 并随包 `bin/SDL3.dll`；
   MinGW 静态 `libSDL3.a`。

@@ -71,11 +71,17 @@ static. Delete the flag to return to static mode. The CMake build path
 (`msvc_build.bat`, `msys2_build.sh`, Unix scripts) currently produces static
 libraries only. DLL-mode duilib uses `/MD`, so Skia must be built with `/MD`
 too: `SkiaSettings.props` switches to `skia/out/llvm.<arch>.release.md` when
-`duilib_dll.flag` exists. Build that directory yourself with the same arguments
-as the normal Release build, replacing `/MT` with `/MD` in `extra_cflags`
-(Debug corresponds to `llvm.<arch>.debug.mdd`, not provided yet). In DLL mode
+`duilib_dll.flag` exists (Debug uses `llvm.<arch>.debug.mdd`). Build both
+directories yourself with the same arguments as the normal build, replacing
+`/MT` with `/MD` and `/MTd` with `/MDd` in `extra_cflags`. In DLL mode
 `pack.py` collects the runtime DLLs automatically, picks the matching Skia
 variant, and appends `-dll` to the package name.
+DLL-mode programs depend on the MSVC dynamic runtime (`msvcp140.dll`,
+`vcruntime140.dll`, etc.), so the target machine needs the Visual C++
+2015-2022 Redistributable matching the compiler version. Static builds (`/MT`)
+have no such dependency. If the system runtime is older than the compiler
+(e.g. 14.29 with a 14.4x toolset), ship the newer runtime with the program;
+otherwise startup may crash.
 
 Package names have the form
 `nim_duilib-<version>-<system>-<arch>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`,

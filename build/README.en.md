@@ -666,8 +666,8 @@ Easy mistakes to avoid:
   are skipped automatically. The package name gains `-dll` so it never
   overwrites the static package. DLL mode links with `/MD`, so Skia must match:
   Release uses `llvm.<arch>.release.md`, Debug uses
-  `llvm.<arch>.debug.mdd` (not provided yet); the packer picks them
-  automatically.
+  `llvm.<arch>.debug.mdd`; both must be built yourself and the packer picks
+  them automatically.
 - With `--with-sdl`, SDL3 is collected based on the actual artifact: MSVC static
   `SDL3-static.lib`; dynamic import `SDL3.lib` / `libSDL3.dll.a` plus
   `bin/SDL3.dll`; or MinGW static `libSDL3.a`.

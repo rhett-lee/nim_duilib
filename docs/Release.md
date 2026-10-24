@@ -63,10 +63,14 @@ python build/pack.py --with-examples
 （`msvc_build.bat`、`msys2_build.sh`、Unix 脚本）目前只产出静态库。
 DLL 模式的 duilib 使用 `/MD`，因此 Skia 也必须使用 `/MD` 版本：
 `SkiaSettings.props` 在检测到 `duilib_dll.flag` 时改用
-`skia/out/llvm.<arch>.release.md`，该目录需自行构建（参数与普通 Release 相同，
-仅把 `extra_cflags` 中的 `/MT` 换成 `/MD`；Debug 对应 `llvm.<arch>.debug.mdd`，
-目前未提供）。DLL 模式下 `pack.py` 会自动随包收集运行期 DLL、选用同一 Skia
-变体，包名追加 `-dll`。
+`skia/out/llvm.<arch>.release.md`（Debug 为 `llvm.<arch>.debug.mdd`），
+两个目录均需自行构建（参数与普通版本相同，仅把 `extra_cflags` 中的
+`/MT` 换成 `/MD`、`/MTd` 换成 `/MDd`）。DLL 模式下 `pack.py` 会自动随包
+收集运行期 DLL、选用同一 Skia 变体，包名追加 `-dll`。
+DLL 模式的下游程序依赖 MSVC 动态运行库（`msvcp140.dll`、`vcruntime140.dll` 等），
+目标机器需安装与编译工具版本匹配的 Visual C++ 2015-2022 Redistributable；
+静态模式（`/MT`）没有该依赖。系统自带运行库过旧时（例如 14.29 配 14.4x 编译器），
+需随程序附带新版运行库，否则可能出现启动崩溃。
 
 包名格式为
 `nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`，

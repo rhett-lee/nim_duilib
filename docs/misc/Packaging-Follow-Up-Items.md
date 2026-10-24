@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64 DLL（`/MD`）Release 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -17,7 +17,7 @@
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
 | 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端 |
 
-尚未覆盖：arm64、Linux/macOS/FreeBSD、SDL/示例程序组合、DLL 模式的 Debug/x86 配置。
+尚未覆盖：arm64、Linux/macOS/FreeBSD、SDL/示例程序组合。
 
 ### 平台与特性约束
 
@@ -77,13 +77,24 @@
   （需用相同 GN 参数、把 `extra_cflags` 的 `/MT` 换成 `/MD` 自行构建）。
   `pack.py` 自动收集 `duilib.dll`、按包元数据选择 `.md` Skia，包名为
   `-win-x64-dll`（542 文件/94.9 MB，zip 27.3 MB），`--verify` 545 条目 SHA 全匹配。
+- MSVC DLL 模式补齐 Debug/x86（2026-10-24）：构建 Skia `/MDd`、x86 `/MD` 变体
+  （`llvm.x64.debug.mdd`、`llvm.x86.release.md`、`llvm.x86.debug.mdd`），
+  `SkiaSettings.props` 增加 Debug 的 `.mdd` 路径。MSBuild 产出
+  `bin/duilib_d.dll`（24.7 MB）、`bin/duilib32.dll`（14.8 MB）、
+  `bin/duilib32_d.dll`（19.9 MB）及对应导入库；`pack.py` 产出
+  `-win-x64-dll-debug`（542 文件/100.4 MB，zip 27.8 MB）、
+  `-win-x86-dll`（542 文件/83.8 MB，zip 24.3 MB）、
+  `-win-x86-dll-debug`（542 文件/86.1 MB，zip 24.5 MB），三个包 `--verify`
+  均为 545 条目 SHA 全匹配。DLL 模式依赖 MSVC 动态运行库，x86 Release 在
+  系统 `MSVCP140.dll` 过旧（14.29 vs 编译器 14.44）时启动崩溃，随程序附带
+  新版运行库后正常；该限制已写入发布文档。
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
   - 工具链：MSVC（Debug/Release 已完成）/ MinGW（gcc、llvm 已完成）/
     MSYS2（UCRT64、CLANG64、MINGW64 均已完成，2026-10-24）；
-  - 模式：静态已完成；DLL（`EnableDuilibDll`）Release|x64 已完成（2026-10-24），
-    Debug/x86 未覆盖；
+  - 模式：静态已完成；DLL（`EnableDuilibDll`）x64/x86 × Debug/Release 均已完成
+    （2026-10-24）；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
   - 特性：`--with-sdl`（MSYS2 UCRT64 gcc 已完成，2026-10-24）、
     `--with-cef`（Windows/Linux/macOS）、`--with-examples`。
@@ -98,8 +109,8 @@
 #### P0-3 接入层端到端验证
 
 - [~] Windows x64、x86（Debug、Release）、MSYS2 UCRT64/CLANG64/MINGW64
-  与 MSVC DLL 模式（Release|x64）已完成（2026-10-24）；
-  Linux/macOS/FreeBSD 以及 DLL 模式的 Debug/x86 待补。
+  与 MSVC DLL 模式（x64/x86 × Debug/Release）已完成（2026-10-24）；
+  Linux/macOS/FreeBSD 待补。
 - 已完成：
   - MSBuild：导入 `msvc/nim_duilib.targets` 的 Debug|x64 工程编译、链接、运行通过；
     `NimDuilibCopyResources=1` 复制 `resources/`，`bin/*.dll` 复制 `WebView2Loader.dll`；
@@ -140,6 +151,13 @@
     `duilib.dll` / `WebView2Loader.dll` 与 214 个资源文件；运行输出
     bits=64、startup=1、dll=1、退出码 0。VS props 路径同样按元数据跳过静态库、
     只链 `duilib.lib` 导入库并定义 `DUILIB_DLL`（未单独建 VS 工程，已核对属性表条件）。
+  - MSVC DLL 模式补齐（2026-10-24）：分别解包 `-win-x64-dll-debug`、`-win-x86-dll`、
+    `-win-x86-dll-debug`，用 VS2022 CMake（`-A x64` / `-A Win32`）建独立工程，
+    包元数据自动设置 `DUILIB_DLL` 与 `MultiThreadedDLL`；运行输出依次为
+    bits=64/32/32、startup=1、dll=1、退出码 0，并自动复制对应
+    `duilib_d.dll` / `duilib32.dll` / `duilib32_d.dll`、`WebView2Loader.dll`
+    与 214 个资源文件。x86 Release 首次运行因系统 `MSVCP140.dll` 为 14.29
+    （编译器 14.44）而崩溃，随程序附带新版 VC++ 运行库后正常，属运行环境依赖。
 - 发现并修复：接入层 Debug 未屏蔽 release CRT，下游链接出现 LNK4098；
   已在 `packaging/msvc/nim_duilib.props` 与 `packaging/cmake/nim_duilibConfig.cmake`
   中补 `/NODEFAULTLIB:"libcmt.lib"`（与仓库内 `DuilibSettings.props` /
@@ -150,16 +168,15 @@
   （`skia.lib`），出现全量 `undefined reference`。两个脚本的示例配置行已补
   `-DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%`，复测全部链接通过。
 - 未覆盖及原因：
-  - DLL 模式的 Debug / x86 配置：Skia 尚无对应变体（Debug 需 `.mdd`、x86 需
-    `llvm.x86.release.md`），当前只验证了 Release|x64；
   - Linux/macOS/FreeBSD：无对应环境。
 - 验收（Windows x64）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 Win32 工程误用 x64 包。
 - 验收（Windows x86）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 x64 工程误用 x86 包。
 - 验收（MinGW x64）：同上；另确认 MSVC 工程误用 MinGW 包会被工具链校验拒绝。
 - 验收（MSYS2）：UCRT64 gcc、CLANG64 llvm、MINGW64 gcc(msvcrt) 三条链路的出包、解包 SHA
   与 CMake 端到端均通过；另确认 MSVC 与 MinGW 包双向误用会被工具链校验拒绝。
-- 验收（DLL 模式，Release|x64）：包内 `bin/duilib.dll` 与 `lib/x64/Release/duilib.lib`
-  导入库齐全；CMake 与 VS props 按包元数据只链导入库并定义 `DUILIB_DLL`，端到端运行通过。
+- 验收（DLL 模式）：x64/x86 × Debug/Release 四个包内均有对应
+  `bin/duilib*d.dll` 与 `lib/<arch>/<Config>/duilib.lib` 导入库；
+  CMake 与 VS props 按包元数据只链导入库并定义 `DUILIB_DLL`，四个组合端到端运行通过。
 
 #### P0-4 签名与公证
 
@@ -391,3 +408,5 @@
 | 2026-10-24 | MSYS2 MINGW64（msvcrt）全链路实测：新增 `gcc.msvcrt.x64.release` Skia 目录（MINGW64 与 UCRT64 的 gcc 静态库 CRT 不同，不可互换），`build_duilib_all_in_one.sh` 在 MINGW64 下自动选用；全量构建成功（5 库 + 21 示例），`basic.exe` 启动正常；`pack.py` 产出 `-win-x64-mingw-gcc.zip`（536 文件/90.5 MB，zip 27.3 MB），`--verify` 与解包 SHA 536/536 匹配；解包 SDK 用 MINGW64 gcc 建 CMake 工程运行成功（bits=64、startup=1、dll=0、退出码 0） |
 | 2026-10-24 | MSVC DLL 模式（`/MD`）Release\|x64 全链路：新增 `msvc/PropertySheets/duilib_dll.flag` 触发的 DLL 构建，修复导出类强制实例化导致的 C2280/C2338/C2027（`ListCtrlData` 禁止拷贝、`TabBox` 析构移入 cpp）；新建 `/MD` 版 Skia `skia/out/llvm.x64.release.md` 消除 LNK2038；`SkiaSettings.props` 按 flag 切换 Skia 目录，`pack.py` 新增 `detect_dll_mode()` 自动选择 `.md` Skia 并产出 `-win-x64-dll.zip`（542 文件/94.9 MB，zip 27.3 MB），`--verify` 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake 工程运行成功（bits=64、startup=1、dll=1、退出码 0，自动复制 `duilib.dll`/`WebView2Loader.dll` 与 214 个资源） |
 | 2026-10-24 | `build/test_pack.py` 增补 DLL 模式包名后缀用例（共 12 个），MINGW64 与工作区 Python 均通过；`--skia-lib-dir` 帮助与 `docs/Release.md`、`build/README.md` 补充 `.md/.mdd` Skia 说明 |
+| 2026-10-24 | MSVC DLL 模式补齐 Debug/x86：新建 Skia 变体 `llvm.x64.debug.mdd`、`llvm.x86.release.md`、`llvm.x86.debug.mdd`（GN 参数与普通版本一致，仅 `/MT`→`/MD`、`/MTd`→`/MDd`）；`SkiaSettings.props` 增加 Debug 的 `.mdd` 路径；MSBuild 产出 `duilib_d.dll`（24.7 MB）、`duilib32.dll`（14.8 MB）、`duilib32_d.dll`（19.9 MB）与导入库 |
+| 2026-10-24 | DLL 模式 Debug/x86 出包与端到端：`pack.py` 分别产出 `-win-x64-dll-debug.zip`（542 文件/100.4 MB，zip 27.8 MB）、`-win-x86-dll.zip`（542 文件/83.8 MB，zip 24.3 MB）、`-win-x86-dll-debug.zip`（542 文件/86.1 MB，zip 24.5 MB），`--verify` 均 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake（`-A x64`/`-A Win32`）建工程，运行分别为 bits=64/32/32、startup=1、dll=1、退出码 0；x86 Release 在系统 `MSVCP140.dll` 14.29 下启动崩溃，附带 14.4x 运行库后正常，`Release.md`/`Release.en.md` 已注明该依赖 |
