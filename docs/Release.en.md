@@ -76,7 +76,9 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 - `-mingw-gcc` / `-mingw-llvm`: added automatically when the library directory
   holds MinGW artifacts (or set explicitly with `--mingw-variant`). gcc static
   libraries bind libstdc++ while llvm-mingw binds libc++; the two are not
-  interchangeable and their Skia directories must match;
+  interchangeable and their Skia directories must match. MSYS2 MINGW64 (msvcrt)
+  and UCRT64 (ucrt) both produce `-mingw-gcc` packages, but their C runtimes
+  differ, so those packages are also not interchangeable;
 - `-sdl`: only on Windows with an explicit `--with-sdl`; Unix always ships SDL
   and gains no suffix;
 - `-cef` / `-cef109`: added by `--with-cef` according to `--cef-version`;

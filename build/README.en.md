@@ -1,6 +1,6 @@
 English | [简体中文](README.md)
 
-> Last synced: 2026-09-29
+> Last synced: 2026-10-24
 
 # nim_duilib MSVC Projects and Build Scripts Guide
 
@@ -25,7 +25,7 @@ build/
 │   └── build_duilib_all_in_one_mingw-w64.bat  # One-click build script (MinGW-w64)
 │
 ├── Build scripts (Linux/macOS/other platforms)
-│   ├── build_duilib_all_in_one.sh   # Linux/macOS/FreeBSD one-click build script
+│   ├── build_duilib_all_in_one.sh   # One-click build script (Linux/macOS/FreeBSD/MSYS2)
 │   ├── linux_build.sh               # Linux system build script
 │   ├── msys2_build.sh               # MSYS2 system build script
 │   ├── macos_build.sh               # macOS system build script
@@ -345,6 +345,8 @@ cd nim_duilib/build
   other compiler is used when available.
 - Skia directory: `gcc.<arch>.release` for gcc builds and `llvm.<arch>.release` for
   clang builds; only release variants exist, so Debug builds fall back to release.
+- With `-sdl`, the Windows SDL build directory is `SDL.build.msys2.gcc.ninja` or
+  `SDL.build.msys2.llvm.ninja`, also pinned to the Ninja generator.
 - The script stops at the first failed configure/build (`set -e`) instead of continuing
   with the remaining examples.
 - CEF is not supported; WebView2 and optional SDL are supported.

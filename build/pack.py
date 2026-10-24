@@ -368,10 +368,20 @@ def read_version():
     return '.'.join(str(values[name]) for name in _VERSION_MACROS)
 
 
+def is_windows_host():
+    """当前 Python 是否运行在 Windows 上（含 MSYS2 / Cygwin 的 POSIX 模拟层）。
+
+    MSYS2 的 MSYS Python 中 platform.system() 返回 MSYS_NT-*（sys.platform
+    为 msys），只判断 'win' 开头会把打包链路误判为 Linux；原生 Windows
+    Python 与 mingw-w64 Python 返回 Windows。
+    """
+    return platform.system().lower().startswith(('win', 'msys', 'cygwin'))
+
+
 def detect_platform_tag():
     """返回 (系统标签, 架构标签)，用于包名。"""
     sysname = platform.system().lower()
-    if sysname.startswith('win'):
+    if is_windows_host():
         sys_tag = 'win'
     elif sysname == 'darwin':
         sys_tag = 'macos'
@@ -573,7 +583,7 @@ def detect_windows_toolchain(lib_dir):
 
     用于区分 .lib（MSVC）与 .a（MinGW）产物，并据此选择 Skia 输出目录。
     """
-    if not platform.system().lower().startswith('win'):
+    if not is_windows_host():
         return None
     if os.path.isfile(os.path.join(lib_dir, 'duilib.lib')):
         return 'msvc'
@@ -631,7 +641,7 @@ def _scan_lib_dir(lib_dir):
     Windows 同时接受 MSVC 的 .lib 与 MinGW 的 .a（含 .dll.a 导入库）；
     Unix 只接受 .a。
     """
-    is_windows = platform.system().lower().startswith('win')
+    is_windows = is_windows_host()
     allowed_exts = ('.lib', '.a') if is_windows else ('.a',)
     wanted = set(LIB_BASENAMES) | set(CEF_WRAPPER_BY_VERSION.values())
     available = {}
@@ -713,7 +723,7 @@ def _skia_lib_exts(toolchain=None):
         return ('.a',)
     if toolchain == 'msvc':
         return ('.lib',)
-    if platform.system().lower().startswith('win'):
+    if is_windows_host():
         return ('.lib', '.a')
     return ('.a',)
 
@@ -779,7 +789,7 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
         return path
 
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
-    is_windows = platform.system().lower().startswith('win')
+    is_windows = is_windows_host()
     if is_windows:
         # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
         msvc_name = 'llvm.%s.%s' % (
@@ -828,7 +838,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
 
     Windows 默认不打包，仅 --with-sdl 时收集；Unix 始终收集。
     """
-    is_windows = platform.system().lower().startswith('win')
+    is_windows = is_windows_host()
     if is_windows and not with_sdl:
         return 0
 
@@ -907,7 +917,7 @@ def collect_webview2_loader(collector, arch_tag, toolchain=None):
     MinGW 只收动态 loader 的导入库（WebView2Loader.dll.lib，GNU ld 可用）；
     WebView2LoaderStatic.lib 是 MSVC 静态库，MinGW 无法链接，不随包。
     """
-    if not platform.system().lower().startswith('win'):
+    if not is_windows_host():
         return 0
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
     count = 0
@@ -943,7 +953,7 @@ def collect_duilib_runtime_dll(collector, arch_tag, config):
     此时 lib/ 下打包的是同名导入库，下游运行必须带上这个 DLL。
     静态库模式（含 CMake 构建）没有该文件，返回 0，不告警。
     """
-    if not platform.system().lower().startswith('win'):
+    if not is_windows_host():
         return 0
     base = 'duilib32' if arch_tag == 'x86' else 'duilib'
     if config == 'Debug':
@@ -961,7 +971,7 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
     预编译的 turbojpeg-static.lib 是 MSVC 静态库，MinGW 无法链接；MinGW
     构建也不使用它，因此 MinGW 包不收集，避免给下游一个不可用的库。
     """
-    if not platform.system().lower().startswith('win'):
+    if not is_windows_host():
         return 0
     if toolchain == 'mingw':
         return 0
@@ -982,7 +992,7 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
 
 def collect_cef(collector, arch_tag, cef_version):
     """收集 CEF 开发包：头文件 + libcef.lib（wrapper 在 collect_libs 中）。"""
-    if not platform.system().lower().startswith('win'):
+    if not is_windows_host():
         raise PackageError('--with-cef 目前仅支持 Windows 打包')
     src_name = CEF_SRC_BY_VERSION[cef_version]
     arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
@@ -1716,6 +1726,19 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
             else:
                 lines.append('  CEF 运行时不在本包内，需从 libcef 发布包放入可执行文件同级：')
                 lines.append('  libcef.dll、icudtl.dat、*.pak、locales/ 等。')
+        if is_mingw:
+            if mingw_variant == 'llvm':
+                runtime_dlls = 'libc++.dll、libc++abi.dll、libunwind.dll'
+            elif arch_tag == 'x86':
+                runtime_dlls = ('libstdc++-6.dll、libgcc_s_dw2-1.dll、'
+                                'libwinpthread-1.dll')
+            else:
+                runtime_dlls = ('libstdc++-6.dll、libgcc_s_seh-1.dll、'
+                                'libwinpthread-1.dll')
+            lines.append('  MinGW 运行库：下游未用 -static 链接时，需随程序提供 %s'
+                         % runtime_dlls)
+            lines.append('  （从所用编译器环境的 bin/ 目录获取）；本包示例程序已用 -static')
+            lines.append('  链接，可独立运行。')
     else:
         lines.append('  Skia 为静态库；SDL3 为动态库，需让 libSDL3.so* 可被找到：')
         lines.append('  复制到可执行文件同级，或设置 LD_LIBRARY_PATH'
@@ -1737,6 +1760,10 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  本包是 %s 版本，仅用于 %s 构建的下游工程，'
                      % (config, config))
         lines.append('  必须使用对应配置；与另一配置的包不可混用。')
+
+    if is_mingw and mingw_variant == 'gcc':
+        lines.append('  MSYS2 的 MINGW64（msvcrt）与 UCRT64（ucrt）都会生成')
+        lines.append('  -mingw-gcc 包，但 C 运行库不同，两者不可互换；请记录构建环境。')
 
     if with_examples:
         section('示例程序')
@@ -1979,7 +2006,7 @@ def resolve_lib_dir(lib_dir_opt, config, arch_tag):
             raise PackageError('--lib-dir 不存在：%s' % path)
         return path
 
-    if platform.system().lower().startswith('win'):
+    if is_windows_host():
         parts = ['lib', arch_tag, config]
     else:
         parts = ['lib', config]
@@ -2071,6 +2098,8 @@ def main(argv=None):
         mingw_variant = None
         if toolchain == 'mingw':
             mingw_variant = resolve_mingw_variant(lib_dir, args.mingw_variant)
+        if toolchain == 'mingw' and args.with_cef:
+            raise PackageError('--with-cef 仅支持 MSVC；MinGW（含 MSYS2）不支持 CEF')
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
                                         toolchain, mingw_variant)
 

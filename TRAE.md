@@ -63,6 +63,13 @@ chmod +x build_duilib_all_in_one.sh
 FreeBSD → `freebsd_build.sh`，MSYS2(Windows) → `msys2_build.sh`；同样会先下载并编译 Skia。
 **没有** `msvc_build.bat` 对应的第二步，非 Windows 不需要单独跑。
 
+MSYS2 额外前置（详见 `build/README.md` 第 7 节）：
+- `msys2_build.sh`：`pacman -S --needed $MINGW_PACKAGE_PREFIX-gcc $MINGW_PACKAGE_PREFIX-cmake $MINGW_PACKAGE_PREFIX-ninja`
+  （CLANG64 把 `gcc` 换成 `clang`）。
+- 一键脚本还需 `git unzip curl python $MINGW_PACKAGE_PREFIX-gn`。
+- 任一命令失败即退出（`set -e`）；不再依赖 `bc`，`--fresh` 需 CMake 3.24+；
+  Skia 目录为 `gcc.<arch>.release` / `llvm.<arch>.release`（仅 release 变体）。
+
 ### 2.3 产物与目录
 
 | 产物 | 路径 |

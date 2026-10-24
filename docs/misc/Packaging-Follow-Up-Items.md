@@ -17,7 +17,7 @@
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
 | 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x86 Debug 出包与解包校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64 Debug） |
 
-尚未覆盖：MSVC Release、arm64、DLL 模式、Linux/macOS/FreeBSD、SDL/示例程序组合。
+尚未覆盖：MSVC Release、arm64、DLL 模式、Linux/macOS/FreeBSD、MSYS2 工具链、SDL/示例程序组合。
 
 ### 平台与特性约束
 
@@ -51,10 +51,15 @@
   `basic.exe` 运行、llvm 包解包/SHA 校验（2026-10-24）。
   MinGW 包已按编译器区分：包名追加 `-mingw-gcc` / `-mingw-llvm`，MANIFEST
   工具链注明 gcc（libstdc++）/ llvm-mingw（libc++），并自动选择同源 Skia 目录。
+  MSYS2 构建/打包链路已支持（2026-10-24）：`msys2_build.sh` 与
+  `build_duilib_all_in_one.sh` 可在 MSYS2 运行（失败即停、无需 `bc`、SDL 构建目录隔离）；
+  `pack.py` 识别 MSYS2 的 `gcc.<arch>.release` / `llvm.<arch>.release`，按 `.a` 内容
+  与同名 MSVC 目录区分；MSYS/Cygwin Python 也能正确判定为 Windows 主机；
+  MinGW 包禁止 `--with-cef`。本机无 MSYS2，尚未用真实环境出包。
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
-  - 工具链：MSVC（Release 待补）/ MinGW（gcc、llvm 已完成）；
+  - 工具链：MSVC（Release 待补）/ MinGW（gcc、llvm 已完成）/ MSYS2（MINGW64、UCRT64、CLANG64）；
   - 模式：静态 / DLL（`EnableDuilibDll`）；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
   - 特性：`--with-sdl`、`--with-cef`（Windows/Linux/macOS）、`--with-examples`。
@@ -92,6 +97,8 @@
     （2026-10-24）；接入层（VS/CMake）x86 端到端验证待补；
   - MinGW x64：示例已在源码树内用 CMake 构建并运行，尚未用解包后的
     `find_package(nim_duilib)` 建独立工程做端到端验证；
+  - MSYS2：构建脚本与打包识别已支持，但未在真实 MSYS2 环境出包，
+    也未做解包 SDK 的端到端验证；
   - DLL 模式：当前构建为静态，`bin/` 下没有 `duilib*.dll`；
   - Linux/macOS/FreeBSD：无对应环境。
 - 验收（Windows x64）：可执行程序启动并成功加载主题资源，链接无 LNK2038/LNK4098。
@@ -172,10 +179,13 @@
     收集运行时，包内保持 `bin/libcef_win[_109]/<架构>/` 结构；
     `libcef.lib`、`cef_sandbox.lib` 等库文件不随包（前者在 `lib/` 已提供，
     后者本项目不使用沙箱且体积 80 MB 级）。
+  - [x] MinGW 包不支持 CEF（2026-10-24）：`pack.py` 对 MinGW 工具链的
+    `--with-cef` 直接报错，避免把 MSVC 的 `libcef.lib` 与 wrapper 打进 MinGW 包。
   - [ ] Linux：`--with-cef` 目前仅支持 Windows 出包（`collect_cef` 直接报错），
     待放开后再接入 `bin/libcef_linux/`。
   - macOS 按既定设计不自动收集（见下条）。
-- 现状：Windows 运行时已随包；Linux 待 CEF 出包支持；macOS 仍由下游手动配置。
+- 现状：Windows 运行时已随包；MinGW 包禁止 CEF；Linux 待 CEF 出包支持；
+  macOS 仍由下游手动配置。
 - [x] macOS：结构已确认，CEF 随示例以 `.app` 形式生成：
   `Contents/MacOS/<exe>`、`Contents/Frameworks/Chromium Embedded Framework.framework`
   （`Versions/A/...` 及顶层符号链接）、`Contents/Frameworks/<name> Helper*.app`
@@ -262,7 +272,7 @@
 
 ## 四、建议推进顺序
 
-1. P0-1 全矩阵与 P0-3 接入层冒烟，同步修复 P1-1 归档语义；
+1. P0-1 全矩阵与 P0-3 接入层冒烟（含真实 MSYS2 环境），同步修复 P1-1 归档语义；
 2. P0-5 发布 checklist；
 3. P1 其余项（优先 P1-3 CEF 运行时）、P2 长期项按版本节奏推进。
 
@@ -290,3 +300,6 @@
 | 2026-10-24 | Windows x86 Debug 出包验证：补齐 4 个基础库与 CEF wrapper，`pack.py --arch x86` 产出 541 文件/242.1 MB；解包后 SHA256 全包通过，包内 20 个二进制均为 x86（14C machine）；`--with-cef --list` 收集 233 个 Win32 运行时文件 |
 | 2026-10-24 | MinGW x64 Release 验证：修复 gcc/llvm 构建脚本未向 CMake 传 `DUILIB_SKIA_LIB_SUBPATH`（此前示例链接 MSVC Skia，全量 undefined reference）；两套工具链均成功构建 5 库 + 21 示例，`basic.exe` 运行正常；llvm 包 538 文件/88.9 MB，zip 22.9 MB，解包 SHA256 通过 |
 | 2026-10-24 | MinGW 包区分编译器：`pack.py` 从静态库符号自动判断 gcc / llvm-mingw（可用 `--mingw-variant` 指定），包名追加 `-mingw-<变体>`，MANIFEST 工具链与 CMake/props 元数据同步；Skia 只选同源目录。MinGW 包不再收集 MSVC 专用的 `WebView2LoaderStatic.lib` 与 `turbojpeg-static.lib`，WebView2 只保留 `WebView2Loader.dll.lib` + DLL |
+| 2026-10-24 | MSYS2 构建脚本补齐：`msys2_build.sh` / `build_duilib_all_in_one.sh` 启用 `set -e`、去掉 `bc` 依赖、SDL 构建目录按生成器隔离；MSYS2 依赖安装命令写入 `build/README.md` |
+| 2026-10-24 | `pack.py` 支持 MSYS2 打包链路：识别 `gcc.<arch>.release` / `llvm.<arch>.release` 并按 `.a` 校验目录内容，显式 `--skia-lib-dir` 校验变体；新增 MSYS/Cygwin Python 的 Windows 主机判定；MinGW 禁止 `--with-cef` |
+| 2026-10-24 | MANIFEST 补充 MinGW 运行库（libstdc++ / libc++）说明与 MSYS2 MINGW64/UCRT64 包不可互换提示；`docs/Release.md` / `Release.en.md` 同步包名说明 |

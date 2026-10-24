@@ -68,7 +68,8 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 
 - `-mingw-gcc` / `-mingw-llvm`：库目录为 MinGW 产物时自动追加（也可用
   `--mingw-variant` 指定）；gcc 的静态库绑定 libstdc++，llvm-mingw 绑定 libc++，
-  两者不可互换，Skia 目录也必须同源；
+  两者不可互换，Skia 目录也必须同源。MSYS2 的 MINGW64（msvcrt）与 UCRT64（ucrt）
+  生成的包名同为 `-mingw-gcc`，但 C 运行库不同，两种包同样不可互换；
 - `-sdl`：仅 Windows 显式 `--with-sdl` 时追加；Unix 默认带 SDL，不加后缀；
 - `-cef` / `-cef109`：`--with-cef` 时按 `--cef-version` 追加；
 - `-examples`：`--with-examples` 时追加；

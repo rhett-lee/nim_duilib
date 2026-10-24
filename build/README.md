@@ -23,7 +23,7 @@ build/
 │   └── build_duilib_all_in_one_mingw-w64.bat  # 一键编译脚本（MinGW-w64）
 │
 ├── 编译脚本（Linux/macOS/其他平台）
-│   ├── build_duilib_all_in_one.sh   # Linux/macOS/FreeBSD 一键编译脚本
+│   ├── build_duilib_all_in_one.sh   # 一键编译脚本（Linux/macOS/FreeBSD/MSYS2）
 │   ├── linux_build.sh               # Linux 系统编译脚本
 │   ├── msys2_build.sh               # MSYS2 系统编译脚本
 │   ├── macos_build.sh               # macOS 系统编译脚本
@@ -336,6 +336,8 @@ cd nim_duilib/build
 - 脚本会检查编译器目标；MSYS/Cygwin 目标的 gcc/clang 会被忽略，并在必要时回退到另一个编译器。
 - Skia 目录：gcc 构建用 `gcc.<arch>.release`，clang 构建用 `llvm.<arch>.release`；
   两者都只有 release 变体，Debug 构建缺失 debug 目录时回退 release。
+- 启用 `-sdl` 时，Windows 下的 SDL 构建目录为 `SDL.build.msys2.gcc.ninja` 或
+  `SDL.build.msys2.llvm.ninja`，同样固定使用 Ninja 生成器。
 - 任一目标配置或编译失败时脚本立即退出（`set -e`），不再继续执行后续示例。
 - 不支持 CEF；支持 WebView2 与可选的 SDL。
 
