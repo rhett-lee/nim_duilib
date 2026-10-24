@@ -41,7 +41,8 @@
 
     <PropertyGroup Label="NimDuilibLink">
         <NimDuilibSystemLibs>Comctl32.lib;Imm32.lib;Opengl32.lib;User32.lib;shlwapi.lib</NimDuilibSystemLibs>
-        <NimDuilibSystemLibs Condition="'$(NimDuilibPackageHasSdl)'=='1'">$(NimDuilibSystemLibs);Version.lib;Winmm.lib;Setupapi.lib</NimDuilibSystemLibs>
+        <!-- SDL3 静态库在 Windows 上还引用 hid/mincore/dinput8 中的符号 -->
+        <NimDuilibSystemLibs Condition="'$(NimDuilibPackageHasSdl)'=='1'">$(NimDuilibSystemLibs);Version.lib;Winmm.lib;Setupapi.lib;Hid.lib;Mincore.lib;Dinput8.lib</NimDuilibSystemLibs>
         <NimDuilibSystemLibs Condition="'$(NimDuilibPackageHasWebView2)'=='1'">$(NimDuilibSystemLibs);WinInet.lib</NimDuilibSystemLibs>
 
         <NimDuilibSdlLib Condition="'$(NimDuilibPackageSdlKind)'=='shared'">SDL3.lib</NimDuilibSdlLib>

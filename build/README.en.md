@@ -295,7 +295,7 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # SDL enabled
 **Prerequisites:**
 - Run inside an MSYS2 MINGW64 / UCRT64 / CLANG64 shell
 - A mingw-w64-target compiler: gcc/g++ or clang/clang++ (`x86_64-w64-mingw32-*` or `x86_64-w64-windows-gnu-*`)
-- CMake (3.24+ enables `--fresh`; older versions still build)
+- CMake (3.24+ supports the optional `DUILIB_CMAKE_FRESH=1` reconfigure; older versions still build)
 - One of ninja, make or mingw32-make
 
 **Dependencies (pacman):**
@@ -327,17 +327,31 @@ pacman -S --needed git unzip curl python \
   abort at the startup check or a later step if any of them is missing.
 - `python` is an MSYS package providing `/usr/bin/python3`; install it if the `python3`
   command is not available.
-- `bc` is no longer required: the CMake version check uses shell built-ins, and
-  `--fresh` is only enabled on CMake 3.24+ (older versions skip it).
+- `bc` is no longer required: the CMake version check uses shell built-ins.
+- `--fresh` is off by default: it wipes `CMakeFiles` (including Ninja depfiles), turning
+  incremental builds into full rebuilds. Build directories are already split per
+  compiler and configuration. Set `DUILIB_CMAKE_FRESH=1 ./msys2_build.sh` to force a
+  reconfigure (CMake 3.24+ only; older versions skip the flag).
 
 **Usage:**
 ```bash
 cd nim_duilib/build
-./msys2_build.sh        # SDL disabled
-./msys2_build.sh -sdl   # SDL enabled
+./msys2_build.sh                            # Release (default), SDL disabled
+DUILIB_BUILD_TYPE=Debug ./msys2_build.sh    # Debug
+DUILIB_MAKE_JOBS=8 ./msys2_build.sh         # override parallel jobs (default: nproc)
+DUILIB_CMAKE_FRESH=1 ./msys2_build.sh       # force reconfigure (full rebuild)
+./msys2_build.sh -sdl                       # SDL enabled
 ```
 
 **Notes:**
+- The build type is controlled by `DUILIB_BUILD_TYPE` (`Debug` / `Release` only). Temporary
+  build directories are split by configuration under
+  `build/build_temp/<compiler>_build/<Debug|Release>/`, so switching configurations never
+  reuses a stale generator cache.
+- Parallel jobs default to the CPU count (`nproc`), overridable with `DUILIB_MAKE_JOBS`;
+  it falls back to 6 when `nproc` is unavailable.
+- `build_duilib_all_in_one.sh` also honors `DUILIB_BUILD_TYPE`. Clone/update failures retry
+  at most `GIT_RETRY_MAX` times (default 5) so unattended runs cannot loop forever.
 - The script pins the CMake generator (Ninja first, then MSYS Makefiles, then MinGW Makefiles).
   A native Windows CMake (e.g. `/mingw64/bin/cmake`) defaults to the Visual Studio
   generator, which silently ignores `-DCMAKE_C_COMPILER` and builds MSVC artifacts.
@@ -414,7 +428,8 @@ DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh   # Debug
 `macos_build.sh` and `freebsd_build.sh` work the same way. Temporary build
 directories are split by configuration under
 `build_temp/<compiler>_build/<Debug|Release>/`, so Debug and Release never
-overwrite each other. Skia still uses only the release variant on Unix.
+overwrite each other. MSYS2's `msys2_build.sh` follows the same layout.
+Skia still uses only the release variant on Unix.
 
 ---
 

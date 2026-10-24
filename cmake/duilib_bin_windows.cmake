@@ -116,8 +116,11 @@ if(DUILIB_ENABLE_SDL)
     # Enable SDL support for windows
     target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
     
-    # 添加SDL依赖的lib
-    list(APPEND DUILIB_WINDOWS_LIBS Version.lib Winmm.lib Setupapi.lib)
+    # 添加SDL依赖的lib：除 Version/Winmm/Setupapi 外，SDL3 静态库在 Windows 上
+    # 还直接引用 hid/mincore/dinput8 中的符号（见 SDL3staticTargets.cmake 的
+    # INTERFACE_LINK_LIBRARIES），不补会导致 MinGW 链接出现 undefined reference
+    list(APPEND DUILIB_WINDOWS_LIBS Version.lib Winmm.lib Setupapi.lib
+                            Hid.lib Mincore.lib Dinput8.lib)
 endif()
 
 if(DUILIB_WEBVIEW2_EXE)

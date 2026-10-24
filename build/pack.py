@@ -906,7 +906,13 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
 
     count += _collect_tree(collector, os.path.join(root, 'include', 'SDL3'),
                            'include/SDL3')
-    count += _collect_tree(collector, os.path.join(root, 'licenses'),
+    # SDL3 的 CMake 安装把许可证放在 share/licenses/SDL3；兼容旧布局 licenses/SDL3
+    lic_root = os.path.join(root, 'licenses')
+    if not os.path.isdir(os.path.join(lic_root, 'SDL3')):
+        alt_root = os.path.join(root, 'share', 'licenses')
+        if os.path.isdir(os.path.join(alt_root, 'SDL3')):
+            lic_root = alt_root
+    count += _collect_tree(collector, os.path.join(lic_root, 'SDL3'),
                            'licenses/SDL3')
     return count
 
@@ -2017,6 +2023,141 @@ def resolve_lib_dir(lib_dir_opt, config, arch_tag):
     return path
 
 
+def verify_package(path):
+    """校验已有发布包：布局、MANIFEST、SHA256SUMS、文档内相对链接。
+
+    返回 True 表示通过（无错误），False 表示存在错误；告警不影响返回值。
+    """
+    if not os.path.isfile(path):
+        eprint('[ERROR] 包不存在：%s' % path)
+        return False
+
+    errors = []
+    warnings = []
+    try:
+        if path.lower().endswith('.zip'):
+            archive = zipfile.ZipFile(path)
+            members = {info.filename: info for info in archive.infolist()
+                       if not info.is_dir()}
+
+            def read(name):
+                with archive.open(name) as fp:
+                    return fp.read()
+
+            def is_symlink(name):
+                return stat.S_ISLNK((members[name].external_attr >> 16) & 0xFFFF)
+        else:
+            archive = tarfile.open(path, 'r:*')
+            members = {m.name: m for m in archive.getmembers()
+                       if m.isfile() or m.issym()}
+
+            def read(name):
+                fp = archive.extractfile(name)
+                return fp.read() if fp is not None else b''
+
+            def is_symlink(name):
+                return members[name].issym()
+    except (OSError, zipfile.BadZipFile, tarfile.TarError) as exc:
+        eprint('[ERROR] 无法打开包 %s：%s' % (path, exc))
+        return False
+
+    try:
+        files = [name for name in members if not is_symlink(name)]
+        symlinks = [name for name in members if is_symlink(name)]
+        roots = sorted({name.split('/', 1)[0] for name in members})
+        if len(roots) != 1:
+            errors.append('包根目录不唯一：%s' % ', '.join(roots[:5]))
+            root = ''
+        else:
+            root = roots[0] + '/'
+
+        def has(rel):
+            return root + rel in members
+
+        for required in ('MANIFEST.txt', 'SHA256SUMS'):
+            if not has(required):
+                errors.append('缺少 %s' % required)
+
+        headers = [name for name in files
+                   if name.startswith(root + 'include/duilib/')]
+        if not headers:
+            errors.append('缺少 include/duilib/ 头文件')
+        libs = [name for name in files
+                if name.startswith(root + 'lib/')
+                and (name.endswith('.a') or name.endswith('.lib'))]
+        if not libs:
+            errors.append('缺少 lib/ 静态库（.a / .lib）')
+
+        sums = {}
+        if has('SHA256SUMS'):
+            text = read(root + 'SHA256SUMS').decode('utf-8', 'replace')
+            for line in text.splitlines():
+                match = re.match(r'^([0-9a-fA-F]{64})\s+\*?(.+)$', line)
+                if not match:
+                    if line.strip():
+                        warnings.append('SHA256SUMS 行格式异常：%s' % line[:60])
+                    continue
+                sums[match.group(2)] = match.group(1).lower()
+
+        # MANIFEST.txt / VERSION 等虚拟文件按设计不写入 SHA256SUMS
+        virtual = {root + 'MANIFEST.txt', root + 'VERSION'}
+        listed = {root + rel for rel in sums}
+        actual = set(files) - {root + 'SHA256SUMS'} - virtual
+        for name in sorted(actual - listed):
+            warnings.append('未登记到 SHA256SUMS：%s' % name[len(root):])
+        for name in sorted(listed - actual):
+            errors.append('SHA256SUMS 登记了包内不存在的文件：%s' % name[len(root):])
+
+        mismatches = 0
+        for rel, digest in sums.items():
+            name = root + rel
+            if name not in files:
+                continue
+            if hashlib.sha256(read(name)).hexdigest().lower() != digest:
+                mismatches += 1
+                errors.append('SHA256 不匹配：%s' % rel)
+                if mismatches >= 20:
+                    errors.append('…（已发现 %d 处不匹配，不再逐个列出）' % mismatches)
+                    break
+
+        # 文档相对链接：只检查 SDK 文档（跳过 licenses/ 下逐字复制的上游文本）
+        for name in [item for item in files if item.endswith('.md')
+                     and not item.startswith(root + 'licenses/')]:
+            text = read(name).decode('utf-8', 'replace')
+            base = os.path.dirname(name)
+            for target in re.findall(r'\[[^\]]*\]\(([^)\s]+)\)', text):
+                if target.startswith(('#', 'http://', 'https://', 'mailto:')):
+                    continue
+                link = target.split('#', 1)[0]
+                if not link or link.startswith('/'):
+                    continue
+                dest = os.path.normpath(os.path.join(base, link)).replace('\\', '/')
+                if dest not in members and not any(
+                        item.startswith(dest + '/') for item in members):
+                    errors.append('文档链接失效：%s -> %s'
+                                  % (name[len(root):], target))
+
+        if symlinks:
+            warnings.append('包内含 %d 个符号链接（未计入 SHA256SUMS）' % len(symlinks))
+    finally:
+        archive.close()
+
+    for item in warnings:
+        sys.stdout.write('[WARN] %s\n' % item)
+    for item in errors:
+        sys.stdout.write('[ERROR] %s\n' % item)
+
+    if errors:
+        sys.stdout.write('[FAIL] %s：%d 个条目，%d 个错误，%d 个告警\n'
+                         % (path, len(members), len(errors), len(warnings)))
+        return False
+    sys.stdout.write('[OK] %s：%d 个条目（%d 文件 / %d 链接），%d 个头文件，'
+                     '%d 个库，SHA 全部匹配\n'
+                     % (path, len(members), len(files), len(symlinks),
+                        len(headers), len(libs)))
+    return True
+
+
 def _parse_config(value):
     """--config 大小写不敏感，统一规范化为 Release / Debug。"""
     norm = value.strip().lower()
@@ -2073,7 +2214,13 @@ def main(argv=None):
     parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help='输出目录，默认 dist/')
     parser.add_argument('--list', action='store_true',
                         help='只打印将收集的文件清单，不实际打包')
+    parser.add_argument('--verify', metavar='PACKAGE', default=None,
+                        help='只校验已有包：布局、MANIFEST、SHA256SUMS 与文档相对链接，'
+                             '不做打包；通过返回 0，发现错误返回 1')
     args = parser.parse_args(argv)
+
+    if args.verify:
+        return 0 if verify_package(args.verify) else 1
 
     version = read_version()
     if version is None:

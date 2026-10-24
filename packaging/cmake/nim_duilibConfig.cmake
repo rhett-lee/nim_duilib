@@ -340,7 +340,8 @@ if(WIN32)
     list(APPEND _nim_link
         Comctl32 Imm32 Opengl32 User32 shlwapi)
     if(NIM_DUILIB_PACKAGE_HAS_SDL)
-        list(APPEND _nim_link Version Winmm Setupapi)
+        # SDL3 静态库在 Windows 上还引用 hid/mincore/dinput8 中的符号
+        list(APPEND _nim_link Version Winmm Setupapi Hid Mincore Dinput8)
     endif()
     if(NIM_DUILIB_PACKAGE_HAS_WEBVIEW2)
         list(APPEND _nim_link WinInet)

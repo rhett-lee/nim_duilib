@@ -156,22 +156,39 @@ pwd
 
 start_time=$(date +%s)
 retry_delay=10
+# 无人值守运行时限制重试次数，避免网络故障时无限循环（可用 GIT_RETRY_MAX 覆盖）
+retry_max="${GIT_RETRY_MAX:-5}"
+
+# Skia 的固定基线提交：本地已有该提交时无需再拉取 main，
+# 否则 stash/checkout/pull 会刷新整棵源码树的 mtime，触发 Skia 全量重编。
+SKIA_COMMIT=6f559bafbed4c8323a899df4008aa073df4eccc6
 
 # Retry clone nim_duilib
 echo "- Cloning nim_duilib ..."
 clone_nim_duilib() {
-    if ! {
-        if [ ! -d "./nim_duilib/.git" ]; then
-            git clone https://github.com/rhett-lee/nim_duilib.git
-        else
-            git -C ./nim_duilib pull
+    local attempt="${1:-1}"
+    # 已有仓库时，更新失败只告警并沿用本地代码：无人值守运行时网络抖动
+    # 不应中断整个构建（克隆失败才是致命错误，仍按次数重试）。
+    if [ -d "./nim_duilib/.git" ]; then
+        if ! git -C ./nim_duilib pull; then
+            echo "- nim_duilib 更新失败，继续使用本地代码"
         fi
-    }; then
+        return 0
+    fi
+    if ! git clone https://github.com/rhett-lee/nim_duilib.git; then
+        if [ "$attempt" -ge "$retry_max" ]; then
+            echo "- nim_duilib 获取失败（已尝试 ${attempt} 次）"
+            return 1
+        fi
         sleep $retry_delay
-        clone_nim_duilib
+        clone_nim_duilib $((attempt + 1))
     fi
 }
-clone_nim_duilib
+if ! clone_nim_duilib; then
+    echo "clone nim_duilib failed!"
+    cd "$CURRENT_DIR"
+    exit 1
+fi
 if [ ! -d "./nim_duilib/.git" ]; then
     echo "clone nim_duilib failed!"
     cd "$CURRENT_DIR"
@@ -181,6 +198,13 @@ fi
 # Retry clone skia
 echo "- Cloning skia ..."
 clone_skia() {
+    local attempt="${1:-1}"
+    # 本地仓库已包含目标提交时直接复用，不做 stash/checkout/pull：
+    # 那些操作会刷新源码 mtime，导致 Ninja 重编整个 Skia。
+    if [ -d "./skia/.git" ] && git -C ./skia cat-file -e "${SKIA_COMMIT}^{commit}" 2>/dev/null; then
+        echo "- skia already contains ${SKIA_COMMIT}, skip update"
+        return 0
+    fi
     if ! {
         if [ ! -d "./skia/.git" ]; then
             git clone https://github.com/google/skia.git
@@ -190,11 +214,19 @@ clone_skia() {
             git -C ./skia pull
         fi
     }; then
+        if [ "$attempt" -ge "$retry_max" ]; then
+            echo "- skia 获取失败（已尝试 ${attempt} 次）"
+            return 1
+        fi
         sleep $retry_delay
-        clone_skia
+        clone_skia $((attempt + 1))
     fi
 }
-clone_skia
+if ! clone_skia; then
+    echo "clone skia failed!"
+    cd "$CURRENT_DIR"
+    exit 1
+fi
 if [ ! -d "./skia/.git" ]; then
     echo "clone skia failed!"
     cd "$CURRENT_DIR"
@@ -204,18 +236,28 @@ fi
 # Retry clone skia_compile
 echo "- Cloning skia_compile ..."
 clone_skia_compile() {
-    if ! {
-        if [ ! -d "./skia_compile/.git" ]; then
-            git clone https://github.com/rhett-lee/skia_compile.git
-        else
-            git -C ./skia_compile pull
+    local attempt="${1:-1}"
+    # 同 nim_duilib：已有仓库时更新失败只告警，继续使用本地补丁包
+    if [ -d "./skia_compile/.git" ]; then
+        if ! git -C ./skia_compile pull; then
+            echo "- skia_compile 更新失败，继续使用本地代码"
         fi
-    }; then
+        return 0
+    fi
+    if ! git clone https://github.com/rhett-lee/skia_compile.git; then
+        if [ "$attempt" -ge "$retry_max" ]; then
+            echo "- skia_compile 获取失败（已尝试 ${attempt} 次）"
+            return 1
+        fi
         sleep $retry_delay
-        clone_skia_compile
+        clone_skia_compile $((attempt + 1))
     fi
 }
-clone_skia_compile
+if ! clone_skia_compile; then
+    echo "clone skia_compile failed!"
+    cd "$CURRENT_DIR"
+    exit 1
+fi
 if [ ! -d "./skia_compile/.git" ]; then
     echo "clone skia_compile failed!"
     cd "$CURRENT_DIR"
@@ -225,15 +267,21 @@ fi
 # Retry clone SDL
 echo "- Cloning SDL ..."
 clone_SDL() {
-    if ! {
-        if [ ! -d "./SDL/.git" ]; then
-            git clone https://github.com/libsdl-org/SDL.git
-        else
-            git -C ./SDL pull
+    local attempt="${1:-1}"
+    # 同 nim_duilib：已有仓库时更新失败只告警，继续使用本地代码
+    if [ -d "./SDL/.git" ]; then
+        if ! git -C ./SDL pull; then
+            echo "- SDL 更新失败，继续使用本地代码"
         fi
-    }; then
+        return 0
+    fi
+    if ! git clone https://github.com/libsdl-org/SDL.git; then
+        if [ "$attempt" -ge "$retry_max" ]; then
+            echo "- SDL 获取失败（已尝试 ${attempt} 次）"
+            return 1
+        fi
         sleep $retry_delay
-        clone_SDL
+        clone_SDL $((attempt + 1))
     fi
 }
 
@@ -243,7 +291,11 @@ fi
 
 if ! is_windows || [ "$ENABLE_SDL" == "1" ]; then
     # clone SDL
-    clone_SDL
+    if ! clone_SDL; then
+        echo "clone SDL failed!"
+        cd "$CURRENT_DIR"
+        exit 1
+    fi
     if [ ! -d "./SDL/.git" ]; then
         echo "clone SDL failed!"
         cd "$CURRENT_DIR"
@@ -252,23 +304,45 @@ if ! is_windows || [ "$ENABLE_SDL" == "1" ]; then
 fi
 
 SKIA_PATCH_SRC_ZIP=skia.2026-09-16.src.zip
+SKIA_PATCH_STAMP=./skia/.patch_stamp
+
 if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
     echo "./skia_compile/$SKIA_PATCH_SRC_ZIP not found!"
     cd "$CURRENT_DIR"
     exit 1
 fi
 
-cd skia
-if ! git checkout 6f559bafbed4c8323a899df4008aa073df4eccc6; then
-    echo "git checkout skia failed!"
-    cd "$CURRENT_DIR"
-    exit 1
+# 仅在 HEAD 不是基线提交时才切换，避免每次运行都触发 checkout
+if [ "$(git -C ./skia rev-parse HEAD 2>/dev/null)" != "$SKIA_COMMIT" ]; then
+    cd skia
+    if ! git checkout "$SKIA_COMMIT"; then
+        echo "git checkout skia failed!"
+        cd "$CURRENT_DIR"
+        exit 1
+    fi
+    cd ..
 fi
-cd ..
 
-if ! unzip -o skia_compile/$SKIA_PATCH_SRC_ZIP -d ./skia/; then
-    echo "./skia_compile/$SKIA_PATCH_SRC_ZIP unzip failed!"
-    exit 1
+# 补丁是否真的落在源码树里：只信 stamp 不够，工作区被 git 操作还原后
+# stamp 仍存在，会导致 gn 用回默认工具链（Windows 下变成 cl.exe）而编译失败。
+skia_patch_applied() {
+    [ -f ./skia/gn/is_mingw.py ] && grep -q "is_mingw" ./skia/gn/BUILDCONFIG.gn 2>/dev/null
+}
+
+# 补丁内容与基线提交都没变、且补丁确实在源码树中时跳过解压：重复解压会刷新源码 mtime，
+# 让 Ninja 认为全部目标过期而重编整个 Skia（无人值守多次运行时尤其浪费）。
+patch_key="$SKIA_COMMIT-$(cksum "skia_compile/$SKIA_PATCH_SRC_ZIP" | awk '{print $1"-"$2}')"
+if [ -f "$SKIA_PATCH_STAMP" ] && [ "$(cat "$SKIA_PATCH_STAMP" 2>/dev/null)" = "$patch_key" ] && skia_patch_applied; then
+    echo "- Skia patch already applied, skip unzip"
+else
+    if ! skia_patch_applied; then
+        echo "- Skia patch missing in source tree, re-applying"
+    fi
+    if ! unzip -o "skia_compile/$SKIA_PATCH_SRC_ZIP" -d ./skia/; then
+        echo "./skia_compile/$SKIA_PATCH_SRC_ZIP unzip failed!"
+        exit 1
+    fi
+    printf '%s\n' "$patch_key" > "$SKIA_PATCH_STAMP"
 fi
 
 # download CEF

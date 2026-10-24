@@ -293,7 +293,7 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # 启用 SDL
 **前置条件：**
 - 在 MSYS2 的 MINGW64 / UCRT64 / CLANG64 shell 中运行
 - mingw-w64 目标的 gcc/g++ 或 clang/clang++（`x86_64-w64-mingw32-*` 或 `x86_64-w64-windows-gnu-*`）
-- cmake（3.24+ 才会启用 `--fresh`，低版本仍可编译）
+- cmake（3.24+ 才支持可选的 `DUILIB_CMAKE_FRESH=1` 重新配置，低版本仍可编译）
 - ninja、make、mingw32-make 三者之一
 
 **依赖安装（pacman）：**
@@ -320,16 +320,27 @@ pacman -S --needed git unzip curl python \
 - `build_duilib_all_in_one.sh` 同样支持在 MSYS2 中运行：自动克隆依赖、编译 Skia（及可选的 SDL），最后调用 `msys2_build.sh`。
 - MSYS2 的 `base` 环境不自带 cmake / ninja / gn / git / unzip / python3，缺少任一项时脚本会在启动检查或后续步骤报错退出。
 - `python` 为 MSYS 包，提供 `/usr/bin/python3`；若 `python3` 命令不存在，安装它即可。
-- 不再需要 `bc`：脚本已改为使用 shell 内建比较 CMake 版本；`--fresh` 仅在 CMake 3.24+ 时启用，低版本自动跳过。
+- 不再需要 `bc`：脚本已改为使用 shell 内建比较 CMake 版本。
+- 默认不使用 `--fresh`：它会清空 `CMakeFiles`（含 Ninja 依赖文件），使增量构建退化为全量重编；
+  构建目录已按“工具链 + 配置”隔离。需要强制重新配置时执行 `DUILIB_CMAKE_FRESH=1 ./msys2_build.sh`
+  （仅在 CMake 3.24+ 生效，低版本自动跳过）。
 
 **使用方法：**
 ```bash
 cd nim_duilib/build
-./msys2_build.sh        # 不启用 SDL
-./msys2_build.sh -sdl   # 启用 SDL
+./msys2_build.sh                            # Release（默认），不启用 SDL
+DUILIB_BUILD_TYPE=Debug ./msys2_build.sh    # Debug
+DUILIB_MAKE_JOBS=8 ./msys2_build.sh         # 覆盖并行任务数（默认取 nproc）
+DUILIB_CMAKE_FRESH=1 ./msys2_build.sh        # 强制重新配置（清空缓存，触发全量重编）
+./msys2_build.sh -sdl                       # 启用 SDL
 ```
 
 **说明：**
+- 构建类型由 `DUILIB_BUILD_TYPE` 控制，仅接受 `Debug` / `Release`；编译临时目录按配置隔离到
+  `build/build_temp/<工具链>_build/<Debug|Release>/`，切换配置不会复用生成器缓存。
+- 并行任务数默认取 CPU 核数（`nproc`），可用 `DUILIB_MAKE_JOBS` 覆盖；没有 `nproc` 时回退为 6。
+- `build_duilib_all_in_one.sh` 同样读取 `DUILIB_BUILD_TYPE`；克隆/更新依赖失败时最多重试
+  `GIT_RETRY_MAX` 次（默认 5），避免无人值守时无限等待。
 - 脚本显式指定 CMake 生成器（优先 Ninja，其次 MSYS Makefiles，最后 MinGW Makefiles）。
   原生 Windows 版 CMake（如 `/mingw64/bin/cmake`）默认使用 Visual Studio 生成器，
   会静默忽略 `-DCMAKE_C_COMPILER`，导致产物变成 MSVC 版本。
@@ -403,6 +414,7 @@ DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh   # Debug
 
 `macos_build.sh`、`freebsd_build.sh` 用法相同。编译临时目录按配置分到
 `build_temp/<编译器>_build/<Debug|Release>/`，Debug 与 Release 互不覆盖；
+MSYS2 的 `msys2_build.sh` 也使用同样的分目录规则。
 Skia 在 Unix 仍只使用 release 变体。
 
 ---

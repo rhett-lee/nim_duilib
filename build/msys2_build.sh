@@ -99,10 +99,12 @@ else
 fi
 echo "DUILIB_GENERATOR: $DUILIB_GENERATOR"
 
-# --fresh 需要 CMake 3.24+；低版本忽略该参数（仍然可编译）
+# --fresh 默认不启用：它会清空 CMakeFiles（含 Ninja 依赖文件），使增量构建退化为全量重编。
+# 构建目录已按“工具链 + 配置”隔离，缓存串味风险很小；需要强制重新配置时设置
+# DUILIB_CMAKE_FRESH=1（需要 CMake 3.24+，低版本忽略该参数）
 DUILIB_CMAKE_REFRESH=""
 cmake_version=$(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+') || true
-if [ -n "$cmake_version" ]; then
+if [ "${DUILIB_CMAKE_FRESH:-0}" = "1" ] && [ -n "$cmake_version" ]; then
     cmake_major=${cmake_version%%.*}
     cmake_minor=${cmake_version#*.}
     if [ "$cmake_major" -gt 3 ] || { [ "$cmake_major" -eq 3 ] && [ "$cmake_minor" -ge 24 ]; }; then
@@ -113,15 +115,25 @@ echo "CMake version: ${cmake_version:-unknown}, refresh: ${DUILIB_CMAKE_REFRESH:
 
 DUILIB_CMAKE="cmake ${DUILIB_CMAKE_REFRESH} -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_CXX"
 DUILIB_MAKE="cmake --build"
-DUILIB_MAKE_THREADS="-j 6"
+# 并行任务数：默认取 CPU 核数，可用 DUILIB_MAKE_JOBS 覆盖
+DUILIB_MAKE_JOBS="${DUILIB_MAKE_JOBS:-$(nproc 2>/dev/null || echo 6)}"
+DUILIB_MAKE_THREADS="-j ${DUILIB_MAKE_JOBS}"
 
-# 编译类型：Debug还是Release
-DUILIB_BUILD_TYPE=Release
+# 编译类型：Debug还是Release（可用环境变量 DUILIB_BUILD_TYPE 覆盖）
+DUILIB_BUILD_TYPE="${DUILIB_BUILD_TYPE:-Release}"
+case "$DUILIB_BUILD_TYPE" in
+    Debug|Release) ;;
+    *)
+        echo "无效的 DUILIB_BUILD_TYPE：${DUILIB_BUILD_TYPE}（仅支持 Debug / Release）"
+        exit 1
+        ;;
+esac
+echo "DUILIB_BUILD_TYPE: ${DUILIB_BUILD_TYPE}"
 
 # Skia库目录由 CMake 自动推导并校验，无需在此处指定
 
-# 编译临时目录
-DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build"
+# 编译临时目录（按配置隔离，切换 Debug/Release 时不复用生成器缓存）
+DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build/${DUILIB_BUILD_TYPE}"
 
 target_dir="$DUILIB_BUILD_DIR"
 if [[ ! -d "$target_dir" ]]; then

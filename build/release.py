@@ -276,6 +276,10 @@ def cmd_package(args):
     if code != 0:
         eprint('[ERROR] pack.py 退出码 %d' % code)
         return code
+    # 出包后立即对归档做一次体检（布局 / SHA / 文档链接），坏包不进入发布目录
+    if not pack.verify_package(out_path):
+        eprint('[ERROR] 包体检未通过：%s' % os.path.relpath(out_path, REPO_ROOT))
+        return 1
     return 0
 
 
