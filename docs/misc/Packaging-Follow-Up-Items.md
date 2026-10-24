@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64/x86 DLL（`/MD`）Debug/Release 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release；MSVC x64 `--with-sdl`、`--with-examples` 与 MSVC / MinGW 示例组合）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,9 +15,9 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端 |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端；MSVC x64/x86 与 MinGW x64 的 SDL/示例组合出包、`--verify` 与解包运行 |
 
-尚未覆盖：arm64、Linux/macOS/FreeBSD、SDL/示例程序组合。
+尚未覆盖：arm64、Linux/macOS/FreeBSD。
 
 ### 平台与特性约束
 
@@ -88,6 +88,24 @@
   均为 545 条目 SHA 全匹配。DLL 模式依赖 MSVC 动态运行库，x86 Release 在
   系统 `MSVCP140.dll` 过旧（14.29 vs 编译器 14.44）时启动崩溃，随程序附带
   新版运行库后正常；该限制已写入发布文档。
+- MSVC SDL 与示例组合（2026-10-24）：在独立构建目录 `build_temp/msvc_sdl_x64`
+  以 `-DDUILIB_ENABLE_SDL=ON` 重建 duilib 与 21 个示例（SDL3 为
+  `../SDL3/lib/SDL3-static.lib`），随后分别出包：
+  `--with-sdl`（`-win-x64-sdl`，621 文件/181.4 MB，zip 38.5 MB，624 条目）、
+  `--with-examples`（`-win-x64-examples`，757 文件/562.9 MB，zip 165.6 MB，760 条目）、
+  `--with-sdl --with-examples`（`-win-x64-sdl-examples`，837 文件/426.0 MB，
+  zip 146.0 MB，840 条目）；三个包 `--verify` 均为 SHA 全匹配，包内
+  `lib/SDL3-static.lib`、`include/SDL3/SDL.h` 与
+  `NIM_DUILIB_PACKAGE_SDL_KIND "static"` 正确。解包后 `basic.exe`、
+  `ChildWindow.exe`（唯一直接包含 SDL 头的示例）、`controls.exe` 均可启动。
+  x86 `--with-examples`（`-win-x86-examples`，757 文件/294.7 MB，zip 107.2 MB，
+  760 条目）使用 32 位示例，`--verify` 通过、解包后 `basic.exe` 为 x86 且运行正常。
+  MinGW（MINGW64 msvcrt）`-examples`（`-win-x64-mingw-gcc-examples`，752 文件/
+  739.1 MB，zip 208.5 MB，755 条目）与 `-sdl-examples`（832 文件/748.8 MB，
+  zip 211.1 MB，835 条目）`--verify` 通过，包内 `libSDL3.a` 与元数据为静态 SDL，
+  解包后 `basic.exe` 独立运行。
+  未覆盖：x86 SDL 组合——当前 `../SDL3` 只有 x64 的 `SDL3-static.lib`，
+  缺少 x86 SDL3 库。
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
@@ -96,8 +114,9 @@
   - 模式：静态已完成；DLL（`EnableDuilibDll`）x64/x86 × Debug/Release 均已完成
     （2026-10-24）；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
-  - 特性：`--with-sdl`（MSYS2 UCRT64 gcc 已完成，2026-10-24）、
-    `--with-cef`（Windows/Linux/macOS）、`--with-examples`。
+  - 特性：`--with-sdl`（MSVC x64、MSYS2 UCRT64 gcc 已完成，2026-10-24）、
+    `--with-cef`（Windows/Linux/macOS）、`--with-examples`（MSVC x64/x86 与
+    MinGW x64 已完成，2026-10-24）。
 - 验收：矩阵中每个格子都有记录（命令、文件数、关键文件存在性、告警），异常项有结论。
 
 #### P0-2 关键产物缺失时阻止出包
@@ -322,12 +341,19 @@
 
 #### P2-1 pack.py 自动化测试与 CI
 
-- [~] 为链接重写、MANIFEST、SHA256SUMS、元数据推断、接入文件生成编写测试。
-- [ ] 接入 CI，至少在 Windows 与一个 Unix 平台运行。
-- 现状（2026-10-24）：新增 `build/test_pack.py`（`python3 build/test_pack.py`），
-  12 个用例覆盖包体检正/负向（zip 与 tar.gz）、坏 zip、缺文件、包名组合、
-  DLL 模式后缀、`SOURCE_DATE_EPOCH` 校验，MSYS2 UCRT64 Python 全部通过；
-  链接重写/元数据推断/接入文件生成仍依赖整包构建验证，未纳入 CI。
+- [x] 为链接重写、MANIFEST、SHA256SUMS、元数据推断、接入文件生成编写测试。
+- [x] 不接入 CI（用户决策）；改为提供可本地重复执行的自动化脚本。
+- 现状（2026-10-24）：`build/test_pack.py` 扩展到 30 个用例，覆盖包体检正/负向
+  （zip 与 tar.gz）、文档断链、包名（含 arm64/DLL）、MSVC 运行库自动推断、
+  MANIFEST 生成与时间确定性、接入文件生成、arm64 manifest/Skia/CEF/JPEG 行为、
+  防回归；工作区 Python 与 MSYS2 UCRT64 Python 全部通过。
+  新增 `build/autotest.py`：预设化执行「环境检测 →（可选）构建 → 打包 →
+  `--verify` → 结构断言 →（可选）冒烟」，输出 `report.json` / `autotest.log`
+  到 `C:\develop\temp\autotest\<时间戳>/`，默认不写仓库 `bin/`、`lib/`、`dist/`；
+  支持 `unit`、`pack-msvc-x64-release/debug`、`pack-msvc-x86-release`、
+  `pack-mingw-x64-release`、`arm64-synthetic`、`all-ready` 与 `--dry-run`。
+  新增 `build/test_autotest.py`（17 个用例）。实测 `unit`、`arm64-synthetic`、
+  `pack-msvc-x64-release` 预设全部通过；CI 接入按决策不做。
 
 #### P2-2 包体检命令
 
@@ -352,9 +378,20 @@
 
 #### P2-4 arm64 策略
 
-- [ ] 明确 arm64 的支持范围，或补齐 manifest 与相关产物。
-- 现状：`--arch arm64` 允许出包，但没有对应 manifest，部分依赖可能缺失。
-- 验收：文档明确“支持/不支持”；若支持，矩阵中有对应验证记录。
+- [~] 明确 arm64 的支持范围，并补齐 manifest 与相关产物。
+- 现状（2026-10-24）：新增 `msvc/manifest/duilib.arm64.manifest`（ARM64 +
+  Common Controls + supportedOS）；`pack.py` 的 Windows 包统一收集 x64/x86/arm64
+  三份 manifest，并校验 `bin/*.dll` 的实际 PE 架构（交叉出包时跳过不匹配项）；
+  `nim_duilib.props` 按 `Platform` 选择 arm64 manifest；`nim_duilibConfig.cmake`
+  与 `duilib_common.cmake` 在无 generator platform 时用 `CMAKE_SYSTEM_PROCESSOR`
+  识别 ARM64；`SkiaSettings.props` 补 `llvm.arm64.release/debug` 与
+  `.md/.mdd` 目录。`arm64-synthetic` 预设用临时假库产出 arm64 包并通过
+  `--verify` 与结构断言（三份 manifest、arm64 架构、CMake config）。
+- 支持范围：接入文件与包结构**已就绪**；**未在 arm64 真机上做编译、打包、
+  运行验证**（无测试设备）；CEF 与 libjpeg-turbo 上游无 Windows arm64 预编译包，
+  `--with-cef --arch arm64` 明确报错，JPEG 告警跳过。
+- 验收：文档已明确“支持范围 + 未验证项”；发布矩阵中 arm64 仍标记为
+  “结构就绪、待真机验证”，不得声称已通过运行验证。
 
 ## 四、建议推进顺序
 
@@ -410,3 +447,7 @@
 | 2026-10-24 | `build/test_pack.py` 增补 DLL 模式包名后缀用例（共 12 个），MINGW64 与工作区 Python 均通过；`--skia-lib-dir` 帮助与 `docs/Release.md`、`build/README.md` 补充 `.md/.mdd` Skia 说明 |
 | 2026-10-24 | MSVC DLL 模式补齐 Debug/x86：新建 Skia 变体 `llvm.x64.debug.mdd`、`llvm.x86.release.md`、`llvm.x86.debug.mdd`（GN 参数与普通版本一致，仅 `/MT`→`/MD`、`/MTd`→`/MDd`）；`SkiaSettings.props` 增加 Debug 的 `.mdd` 路径；MSBuild 产出 `duilib_d.dll`（24.7 MB）、`duilib32.dll`（14.8 MB）、`duilib32_d.dll`（19.9 MB）与导入库 |
 | 2026-10-24 | DLL 模式 Debug/x86 出包与端到端：`pack.py` 分别产出 `-win-x64-dll-debug.zip`（542 文件/100.4 MB，zip 27.8 MB）、`-win-x86-dll.zip`（542 文件/83.8 MB，zip 24.3 MB）、`-win-x86-dll-debug.zip`（542 文件/86.1 MB，zip 24.5 MB），`--verify` 均 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake（`-A x64`/`-A Win32`）建工程，运行分别为 bits=64/32/32、startup=1、dll=1、退出码 0；x86 Release 在系统 `MSVCP140.dll` 14.29 下启动崩溃，附带 14.4x 运行库后正常，`Release.md`/`Release.en.md` 已注明该依赖 |
+| 2026-10-24 | P0-1 特性组合实测（MSVC）：以 `-DDUILIB_ENABLE_SDL=ON` 重建 duilib 与 21 个示例，出包 `-win-x64-sdl.zip`（621 文件，624 条目）、`-win-x64-examples.zip`（757 文件，760 条目）、`-win-x64-sdl-examples.zip`（837 文件，840 条目）；x86 示例重建后出包 `-win-x86-examples.zip`（757 文件，760 条目，示例为 32 位）。各包 `--verify` SHA 全匹配，解包后 `basic.exe`/`ChildWindow.exe`/`controls.exe` 均正常启动 |
+| 2026-10-24 | P0-1 特性组合实测（MinGW）：MINGW64 msvcrt 产物出包 `-win-x64-mingw-gcc-examples.zip`（752 文件，755 条目）与 `-win-x64-mingw-gcc-sdl-examples.zip`（832 文件，835 条目），`--verify` 通过，包内 `libSDL3.a` 为静态 SDL，解包后 `basic.exe` 独立运行；至此 P0-1 仅剩 arm64 与 Linux/macOS/FreeBSD 未覆盖，x86 SDL 因缺少 x86 SDL3 库暂未覆盖 |
+| 2026-10-24 | P2-1 自动化：`build/test_pack.py` 扩展到 30 个用例（链接重写、MANIFEST、MSVC 运行库推断、接入文件、arm64、防回归），工作区与 UCRT64 Python 全部通过；新增 `build/autotest.py`（预设化检测/可选构建/打包/`--verify`/结构断言/可选冒烟/JSON 报告）与 `build/test_autotest.py`（17 个用例）；`unit`、`arm64-synthetic`、`pack-msvc-x64-release` 实测通过；按用户决策不接入 CI |
+| 2026-10-24 | P2-4 arm64 接入：新增 `msvc/manifest/duilib.arm64.manifest`；`pack.py` 的 Windows 包收集 x64/x86/arm64 三份 manifest，并对 `bin/*.dll` 做 PE 架构校验（交叉出包时跳过不匹配 DLL）；`nim_duilib.props`/`nim_duilibConfig.cmake`/`duilib_common.cmake`/`SkiaSettings.props` 增加 ARM64 识别与目录映射；`arm64-synthetic` 预设用临时假库出包并通过 `--verify` 与结构断言。arm64 真机编译/运行验证未做（无设备），CEF/JPEG 无 arm64 预编译包 |

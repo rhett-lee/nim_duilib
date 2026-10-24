@@ -141,6 +141,10 @@ if(DUILIB_OS_WINDOWS)
         else()
             string(TOLOWER "${CMAKE_GENERATOR_PLATFORM}" DUILIB_SKIA_CPU_ARCH)
         endif()
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        # Ninja 等生成器没有 generator platform，ARM64 目标仅按指针宽度会被
+        # 误判为 x64，这里先看目标处理器。
+        set(DUILIB_SKIA_CPU_ARCH "arm64")
     elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
         # MinGW 32 位没有 generator platform，按指针宽度判断
         set(DUILIB_SKIA_CPU_ARCH "x86")

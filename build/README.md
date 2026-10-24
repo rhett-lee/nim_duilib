@@ -561,6 +561,39 @@ python build/release.py finalize
 python build/release.py clean --list
 ```
 
+### 打包自动化（本地）
+
+`build/autotest.py` 把「环境检测 →（可选）构建 → 打包 → `--verify` → 结构断言 →
+（可选）冒烟」串成一次可重复执行的任务，**不接入 CI**，默认不写仓库的
+`bin/`、`lib/`、`dist/`，输出与日志放在 `C:\develop\temp\autotest\<时间戳>/`。
+
+```
+# 单元测试（test_pack.py + test_autotest.py）
+python build/autotest.py --preset unit
+
+# 用现有产物出包并体检（不会重新编译）
+python build/autotest.py --preset pack-msvc-x64-release
+
+# 无 arm64 真机时验证 arm64 包结构（临时假库 + manifest/接入文件断言）
+python build/autotest.py --preset arm64-synthetic
+
+# 运行全部前置条件满足的预设
+python build/autotest.py --preset all-ready
+
+# 先调用现有构建脚本（需 VS 开发者环境 / MSYS2），再打包
+python build/autotest.py --preset pack-msvc-x64-release --build
+
+# 只打印命令，不执行
+python build/autotest.py --preset arm64-synthetic --dry-run
+```
+
+退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets`
+可查看预设与前置条件；报告写入 `report.json`，完整命令输出写入 `autotest.log`。
+
+`arm64` 支持范围：接入文件（manifest / props / CMake config）与包结构已就绪，
+但**未在 arm64 真机上做编译、打包、运行验证**；CEF 与 libjpeg-turbo 上游没有
+Windows arm64 预编译包，arm64 包不包含这两项。
+
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `release.py package` 时固定输出到
 `dist/<版本>/`（`dist/` 已在 .gitignore 中）。包名为
 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
@@ -572,7 +605,7 @@ python build/release.py clean --list
 包内还带**下游接入层**，不需要手动拼 include 路径、库列表和宏：
 
 - `msvc/`（仅 Windows + MSVC）：`nim_duilib.props`、`nim_duilib.targets`、
-  `nim_duilib.sdk.props` 与 `manifest/`（x64、x86 两份）。下游 `.vcxproj`
+  `nim_duilib.sdk.props` 与 `manifest/`（x64、x86、arm64 三份）。下游 `.vcxproj`
   末尾导入一次 `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期
   DLL 复制。
 - `lib/cmake/nim_duilib/`（全平台）：`find_package(nim_duilib CONFIG REQUIRED)`

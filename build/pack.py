@@ -116,6 +116,7 @@ import os
 import platform
 import re
 import stat
+import struct
 import sys
 import tarfile
 import time
@@ -275,6 +276,10 @@ CEF_SRC_BY_VERSION = {
 # （见 duilib/CEFControl/CefManager_Windows.cpp: AddCefDllToPath），
 # 所以包内必须保持同样的相对结构，不能把运行时摊平到 bin/。
 CEF_RUNTIME_ARCH_DIRS = {'x64': 'x64', 'x86': 'Win32'}
+
+# 随 Windows 包分发的 VS manifest 架构。x64 主机上也可能开发 x86/arm64 程序，
+# 三份都随包，由 props 按 Platform 选择。
+WINDOWS_MANIFEST_ARCHES = ('x64', 'x86', 'arm64')
 
 # CEF 运行时目录里混有开发用文件：libcef.lib 导入库已在 lib/ 下提供，
 # 109 版本的 cef_sandbox.lib 是 80 MB 级的链接库且本项目不使用沙箱，均不随包。
@@ -460,6 +465,26 @@ def sha256_of(path):
         for chunk in iter(lambda: f.read(1024 * 1024), b''):
             h.update(chunk)
     return h.hexdigest()
+
+
+# PE 文件头里的 Machine 字段值（IMAGE_FILE_MACHINE_*）。
+PE_MACHINE_BY_ARCH = {'x86': 0x014c, 'x64': 0x8664, 'arm64': 0xaa64}
+
+
+def pe_machine(path):
+    """读取 PE 文件的 Machine 字段；不是 PE 或读取失败时返回 None。"""
+    try:
+        with open(path, 'rb') as fp:
+            if fp.read(2) != b'MZ':
+                return None
+            fp.seek(0x3C)
+            offset = struct.unpack('<I', fp.read(4))[0]
+            fp.seek(offset)
+            if fp.read(4) != b'PE\0\0':
+                return None
+            return struct.unpack('<H', fp.read(2))[0]
+    except (OSError, struct.error):
+        return None
 
 
 def iter_files(root):
@@ -1014,6 +1039,14 @@ def collect_duilib_runtime_dll(collector, arch_tag, config):
     full = os.path.join(BIN_DIR, base + '.dll')
     if not os.path.isfile(full):
         return 0
+    # 交叉出包（例如在 x64 主机的 bin/ 里已有 DLL 时打 arm64 包）必须校验
+    # 实际架构，否则会把主机架构的 DLL 静默放进目标架构的包。
+    machine = pe_machine(full)
+    expected = PE_MACHINE_BY_ARCH.get(arch_tag)
+    if machine is not None and expected is not None and machine != expected:
+        collector.warn('bin/%s.dll 的架构（0x%04X）与目标 %s 不匹配，已跳过'
+                       % (base, machine, arch_tag))
+        return 0
     return 1 if collector.add('bin/%s.dll' % base, full) else 0
 
 
@@ -1031,7 +1064,7 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
     count = 0
     if arch_dir is None:
-        collector.warn('libjpeg-turbo 没有 %s 架构的预编译库，已跳过' % arch_tag)
+        collector.warn('libjpeg-turbo 上游没有 Windows %s 预编译库，已跳过' % arch_tag)
         return count
     root = os.path.join(JPEG_TURBO_DIR, 'libjpeg-turbo6-win-vc-%s' % arch_dir)
     lib = os.path.join(root, 'lib', 'turbojpeg-static.lib')
@@ -1050,7 +1083,7 @@ def collect_cef(collector, arch_tag, cef_version):
     src_name = CEF_SRC_BY_VERSION[cef_version]
     arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
     if arch_dir is None:
-        raise PackageError('CEF 没有 %s 架构的库' % arch_tag)
+        raise PackageError('CEF 上游没有 Windows %s 预编译包，无法随包' % arch_tag)
 
     src_root = os.path.join(CEF_DIR, src_name)
     lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
@@ -1519,10 +1552,10 @@ def collect_integration_files(collector, meta):
     count = 0
     virtual = {}
 
-    if meta['system'] == 'win' and meta['arch'] in ('x64', 'x86'):
-        # x64 机器上也能开发 x86 程序，两种 manifest 都随包，供下游按
-        # Platform 选择（props 里按 NimDuilibPlatform 取对应的那个）。
-        for manifest_arch in ('x64', 'x86'):
+    if meta['system'] == 'win':
+        # x64 机器上也能开发 x86/arm64 程序，三份 manifest 都随包，供下游按
+        # Platform 选择（props 里按 NimDuilibManifestArch 取对应的那个）。
+        for manifest_arch in WINDOWS_MANIFEST_ARCHES:
             manifest_name = 'duilib.%s.manifest' % manifest_arch
             manifest = os.path.join(MSVC_MANIFEST_DIR, manifest_name)
             if os.path.isfile(manifest):
@@ -1736,6 +1769,11 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  可设置 NIM_DUILIB_SET_MSVC_RUNTIME=OFF 退出运行库强制对齐；')
     lines.append('  NIM_DUILIB_ALLOW_{ARCH,CONFIG}_MISMATCH=ON 放行不匹配（不推荐）。')
     lines.append('  注意：发布包是单架构、单配置的，Debug/Release 需各用各的包。')
+    if is_windows and arch_tag == 'arm64':
+        lines.append('')
+        lines.append('  arm64 说明：manifest / props / CMake config 等接入文件与包结构')
+        lines.append('  已就绪，但未在 arm64 真机上做编译、打包、运行验证；')
+        lines.append('  CEF 与 libjpeg-turbo 上游没有 Windows arm64 预编译包，本包不含这两项。')
 
     section('运行期')
     lines.append('  bin/resources/ 必须与可执行文件同级（框架启动必需）；从 bin/ 取用')

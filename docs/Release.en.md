@@ -123,7 +123,7 @@ nim_duilib-<version>-<system>-<arch>[-feature]/
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
   licenses/             Third-party licenses
   docs/                 User documentation (top level only; links rewritten for the package layout)
-  msvc/                 Downstream integration: props/targets/manifest (both x64 and x86)
+  msvc/                 Downstream integration: props/targets/manifest (x64, x86 and arm64)
   lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
   bin/                  Runtime DLLs; example programs with --with-examples
   bin/resources/        Theme, language and font resources (next to the example programs)
@@ -194,9 +194,10 @@ The property sheets handle:
 - language/encoding: `stdcpp20`, `/utf-8`;
 - linking: the full static set or the DLL import library plus system libraries;
 - MSVC runtime alignment to the package;
-- manifest: `msvc/manifest/duilib.x64.manifest` or `duilib.x86.manifest`,
-  selected by the project's Platform (both ship, so x86 programs can be built
-  on an x64 machine);
+- manifest: `msvc/manifest/duilib.x64.manifest`, `duilib.x86.manifest` or
+  `duilib.arm64.manifest`, selected by the project's Platform (all three ship,
+  so x86/arm64 programs can be built on an x64 machine; the arm64 package
+  layout is ready but has not been verified on real hardware);
 - post-build copy of `bin/*.dll` into `$(OutDir)`.
 
 **When the SDK path is not fixed**, define the property before the import:

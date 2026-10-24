@@ -8,6 +8,8 @@
 ## 1. 准备
 
 - [ ] 确认目标平台与架构（Windows `x64`/`x86`/`arm64`；Linux/macOS/FreeBSD `x64`/`arm64`）。
+      arm64 目前仅完成 manifest / props / CMake 等接入文件与包结构；发布 arm64 包前
+      必须在真机完成编译、出包与运行验证（CEF、libjpeg-turbo 无 Windows arm64 预编译包）。
 - [ ] 确认依赖产物已按目标配置完整编译：
   - `duilib` 5 个库（`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`）；
   - Skia 静态库目录；

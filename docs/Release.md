@@ -108,7 +108,7 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
   licenses/             第三方许可证
   docs/                 使用文档（仅顶层；链接已按包内布局重写）
-  msvc/                 下游接入：props/targets/manifest（x64/x86 均随包）
+  msvc/                 下游接入：props/targets/manifest（x64/x86/arm64 均随包）
   lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置
   bin/                  运行期 DLL；--with-examples 时还含示例程序
   bin/resources/        主题、语言、字体资源（与示例程序同级）
@@ -167,8 +167,9 @@ SDL/WebView2/JPEG/CEF、MSVC 运行库、运行期 DLL），无需手工抄写�
 - 语言与编码：`stdcpp20`、`/utf-8`；
 - 链接：静态库全套或 DLL 导入库 + 系统库；
 - MSVC 运行库：按包元数据强制对齐；
-- manifest：按工程 Platform 嵌入 `msvc/manifest/duilib.x64.manifest` 或
-  `duilib.x86.manifest`（两份均随包，x64 机器上也能开发 x86 程序）；
+- manifest：按工程 Platform 嵌入 `msvc/manifest/duilib.x64.manifest`、
+  `duilib.x86.manifest` 或 `duilib.arm64.manifest`（三份均随包，x64 机器上也能
+  开发 x86/arm64 程序；arm64 包结构已就绪，但未做真机编译/运行验证）；
 - 构建后：复制 `bin/*.dll` 到 `$(OutDir)`。
 
 **SDK 路径不固定时**，先定义属性再导入（属性必须在 Import 之前）：

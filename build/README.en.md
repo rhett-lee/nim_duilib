@@ -579,6 +579,43 @@ python build/release.py finalize
 python build/release.py clean --list
 ```
 
+### Local packaging automation
+
+`build/autotest.py` runs environment detection, optional build, packaging,
+`--verify`, structural assertions, and optional smoke testing in one repeatable
+task. It is **not wired to CI**, and by default it does not write the repository's
+`bin/`, `lib/` or `dist/`; output and logs go to
+`C:\develop\temp\autotest\<timestamp>/`.
+
+```
+# unit tests (test_pack.py + test_autotest.py)
+python build/autotest.py --preset unit
+
+# package with existing artifacts and verify (no rebuild)
+python build/autotest.py --preset pack-msvc-x64-release
+
+# validate arm64 package structure without arm64 hardware
+python build/autotest.py --preset arm64-synthetic
+
+# run every preset whose prerequisites are met
+python build/autotest.py --preset all-ready
+
+# build with the existing build scripts first (VS dev shell / MSYS2), then package
+python build/autotest.py --preset pack-msvc-x64-release --build
+
+# print commands only
+python build/autotest.py --preset arm64-synthetic --dry-run
+```
+
+Exit codes: 0 when at least one preset passed and none failed; 1 on failure;
+2 when everything was skipped. See `--list-presets` for prerequisites; the run
+writes `report.json` and `autotest.log`.
+
+arm64 scope: integration files (manifest / props / CMake config) and package
+layout are ready, but **no compile/package/run verification was performed on
+real arm64 hardware**; CEF and libjpeg-turbo have no Windows arm64 prebuilt
+packages and are not included.
+
 Running `pack.py` directly writes to `dist/`; `release.py package` always writes
 to `dist/<version>/` (`dist/` is already in .gitignore). Package names are
 `nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`,
@@ -591,7 +628,7 @@ The package also ships a **downstream integration layer**, so consumers do
 not have to assemble include paths, link lists and defines manually:
 
 - `msvc/` (Windows + MSVC only): `nim_duilib.props`, `nim_duilib.targets`,
-  `nim_duilib.sdk.props` and `manifest/` (both x64 and x86). Import
+  `nim_duilib.sdk.props` and `manifest/` (x64, x86 and arm64). Import
   `nim_duilib.targets` once at the end of a `.vcxproj` to get compile/link
   settings, the manifest, and runtime DLL copying.
 - `lib/cmake/nim_duilib/` (all platforms): `find_package(nim_duilib CONFIG

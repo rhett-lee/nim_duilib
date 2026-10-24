@@ -15,6 +15,9 @@
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\skia\out\llvm.x64.debug</SkiaLibDir>
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.release</SkiaLibDir>
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDir>
+        <!-- ARM64 需预先用同样的 GN 参数构建 llvm.arm64.*；目录不存在时链接阶段会报路径错误 -->
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)\..\..\skia\out\llvm.arm64.release</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)\..\..\skia\out\llvm.arm64.debug</SkiaLibDir>
 
         <!-- DLL模式（存在 duilib_dll.flag 时）：duilib 用 /MD 动态运行库，
              必须链接同样使用 /MD 编译的 Skia，否则 LNK2038(RuntimeLibrary 不匹配)。
@@ -24,6 +27,8 @@
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.x86.release.md</SkiaLibDir>
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.x64.debug.mdd</SkiaLibDir>
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug.mdd</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.arm64.release.md</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.arm64.debug.mdd</SkiaLibDir>
 
         <!-- Skia的lib列表 -->
         <SkiaLibs>skia.lib;svg.lib;skshaper.lib;skottie.lib;sksg.lib;jsonreader.lib</SkiaLibs>

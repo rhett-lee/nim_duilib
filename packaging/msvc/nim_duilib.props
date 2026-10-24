@@ -3,6 +3,9 @@
     <!--
         nim_duilib SDK 接入属性表（发布包内使用）
 
+        arm64：包内已提供 duilib.arm64.manifest，props 按 Platform=ARM64 自动选择；
+        但 arm64 产物尚未在真机上做编译/运行验证。
+
         用法：在 .vcxproj 末尾导入配套的 nim_duilib.targets（它会自动导入本文件）：
             <Import Project="$(NimDuilibDir)\msvc\nim_duilib.targets" />
         只复制运行期 DLL 和做校验；只需编译/链接设置时也可直接导入本文件。
@@ -28,6 +31,11 @@
         <!-- VS 的 Win32 对应 SDK 的 x86 -->
         <NimDuilibPlatform Condition="'$(Platform)'=='Win32'">x86</NimDuilibPlatform>
         <NimDuilibPlatform Condition="'$(Platform)'!='Win32'">$(Platform)</NimDuilibPlatform>
+
+        <!-- manifest 文件名统一用小写架构（x64/x86/arm64），与包内文件一致 -->
+        <NimDuilibManifestArch Condition="'$(NimDuilibPlatform)'=='x64'">x64</NimDuilibManifestArch>
+        <NimDuilibManifestArch Condition="'$(NimDuilibPlatform)'=='x86'">x86</NimDuilibManifestArch>
+        <NimDuilibManifestArch Condition="'$(NimDuilibPlatform)'=='arm64'">arm64</NimDuilibManifestArch>
 
         <NimDuilibForceRuntimeLibrary Condition="'$(NimDuilibForceRuntimeLibrary)'==''">1</NimDuilibForceRuntimeLibrary>
         <NimDuilibUseManifest Condition="'$(NimDuilibUseManifest)'==''">1</NimDuilibUseManifest>
@@ -93,9 +101,9 @@
         </Link>
     </ItemDefinitionGroup>
 
-    <!-- Common Controls v6 + 系统版本声明；arm64 没有配套 manifest，跳过 -->
-    <ItemGroup Condition="'$(NimDuilibUseManifest)'!='0' And ('$(NimDuilibPlatform)'=='x64' Or '$(NimDuilibPlatform)'=='x86')">
-        <Manifest Include="$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibPlatform).manifest"
-                  Condition="Exists('$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibPlatform).manifest')" />
+    <!-- Common Controls v6 + 系统版本声明；x64/x86/arm64 各有配套 manifest -->
+    <ItemGroup Condition="'$(NimDuilibUseManifest)'!='0' And '$(NimDuilibManifestArch)'!=''">
+        <Manifest Include="$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibManifestArch).manifest"
+                  Condition="Exists('$(NimDuilibDir)msvc\manifest\duilib.$(NimDuilibManifestArch).manifest')" />
     </ItemGroup>
 </Project>

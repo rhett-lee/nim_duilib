@@ -80,6 +80,10 @@ if(NIM_DUILIB_PACKAGE_SYSTEM STREQUAL "win")
         if(_nim_arch STREQUAL "win32")
             set(_nim_arch "x86")
         endif()
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+        # Ninja 等单配置生成器没有 CMAKE_GENERATOR_PLATFORM，ARM64 主机
+        # 仅按指针宽度会被误判为 x64，这里先看目标处理器。
+        set(_nim_arch "arm64")
     elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
         set(_nim_arch "x86")
     else()

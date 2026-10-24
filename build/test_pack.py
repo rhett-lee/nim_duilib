@@ -9,6 +9,7 @@
 """
 import hashlib
 import os
+import shutil
 import sys
 import tarfile
 import tempfile
@@ -98,6 +99,16 @@ class VerifyPackageTest(unittest.TestCase):
             fp.write(b'not a zip')
         self.assertFalse(pack.verify_package(path))
 
+    def test_broken_doc_link(self):
+        payload = _payload()
+        payload['docs/Summary.md'] = b'[bad](missing.md)\n'
+        self.assertFalse(pack.verify_package(self._make_zip(payload)))
+
+    def test_broken_doc_link_tgz(self):
+        payload = _payload()
+        payload['docs/Summary.md'] = b'[bad](../build/missing.md)\n'
+        self.assertFalse(pack.verify_package(self._make_tgz(payload)))
+
 
 def _file_like(data):
     """tarfile.addfile 需要一个可读的文件对象。"""
@@ -138,6 +149,16 @@ class PackageNameTest(unittest.TestCase):
                                        is_dll=True)
         self.assertEqual(name, 'nim_duilib-1.0-win-x64-examples-dll-debug')
 
+    def test_arm64_variants(self):
+        name = pack.build_package_name('1.0', 'win', 'arm64', 'Release',
+                                       False, False, 'latest', False)
+        self.assertEqual(name, 'nim_duilib-1.0-win-arm64')
+        name = pack.build_package_name('1.0', 'win', 'arm64', 'Debug',
+                                       True, False, 'latest', True,
+                                       mingw_variant='gcc', is_dll=True)
+        self.assertEqual(
+            name, 'nim_duilib-1.0-win-arm64-mingw-gcc-sdl-examples-dll-debug')
+
 
 class SourceDateEpochTest(unittest.TestCase):
 
@@ -164,6 +185,209 @@ class SourceDateEpochTest(unittest.TestCase):
                 os.environ.pop('SOURCE_DATE_EPOCH', None)
             else:
                 os.environ['SOURCE_DATE_EPOCH'] = old
+
+
+class _TempDirTest(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp(prefix='pack_extra_')
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _touch(self, rel, data=b''):
+        path = os.path.join(self.tmp, *rel.split('/'))
+        parent = os.path.dirname(path)
+        if parent and not os.path.isdir(parent):
+            os.makedirs(parent)
+        with open(path, 'wb') as fp:
+            fp.write(data)
+        return path
+
+
+class ManifestFilesTest(_TempDirTest):
+
+    def test_all_arch_manifests_exist(self):
+        for arch in pack.WINDOWS_MANIFEST_ARCHES:
+            path = os.path.join(pack.MSVC_MANIFEST_DIR,
+                                'duilib.%s.manifest' % arch)
+            self.assertTrue(os.path.isfile(path), path)
+
+    def test_arm64_manifest_architecture(self):
+        path = os.path.join(pack.MSVC_MANIFEST_DIR, 'duilib.arm64.manifest')
+        with open(path, 'r', encoding='utf-8') as fp:
+            text = fp.read()
+        self.assertEqual(text.count('processorArchitecture="ARM64"'), 2)
+        self.assertIn('Microsoft.Windows.Common-Controls', text)
+        self.assertIn('supportedOS', text)
+
+    def test_x64_manifest_architecture(self):
+        path = os.path.join(pack.MSVC_MANIFEST_DIR, 'duilib.x64.manifest')
+        with open(path, 'r', encoding='utf-8') as fp:
+            text = fp.read()
+        self.assertIn('processorArchitecture="AMD64"', text)
+
+
+class IntegrationFilesTest(_TempDirTest):
+
+    def _collector(self, with_dll=False):
+        collector = pack.Collector()
+        collector.add('lib/duilib.lib', self._touch('lib/duilib.lib'))
+        if with_dll:
+            collector.add('bin/duilib.dll', self._touch('bin/duilib.dll'))
+        return collector
+
+    def _meta(self, arch='x64', collector=None):
+        collector = collector or self._collector()
+        return pack.build_package_meta(
+            collector, '1.0.0', 'win', arch, 'Release', 'msvc',
+            False, 'latest', 'auto')
+
+    def test_manifests_and_virtual_files(self):
+        collector = self._collector()
+        count, virtual = pack.collect_integration_files(collector, self._meta())
+        self.assertEqual(count, len(pack.WINDOWS_MANIFEST_ARCHES))
+        rels = {rel for rel, _abs in collector.items}
+        for arch in pack.WINDOWS_MANIFEST_ARCHES:
+            self.assertIn('msvc/manifest/duilib.%s.manifest' % arch, rels)
+        for rel in (
+                'msvc/nim_duilib.props',
+                'msvc/nim_duilib.targets',
+                'msvc/nim_duilib.sdk.props',
+                'lib/cmake/nim_duilib/nim_duilibConfig.cmake',
+                'lib/cmake/nim_duilib/nim_duilibConfigVersion.cmake',
+                'lib/cmake/nim_duilib/nim_duilibPackageInfo.cmake'):
+            self.assertIn(rel, virtual)
+
+    def test_arm64_metadata_in_generated_files(self):
+        meta = self._meta(arch='arm64')
+        _count, virtual = pack.collect_integration_files(self._collector(), meta)
+        sdk_props = virtual['msvc/nim_duilib.sdk.props']
+        self.assertIn('<NimDuilibPackageArch>arm64</NimDuilibPackageArch>',
+                      sdk_props)
+        package_info = virtual[
+            'lib/cmake/nim_duilib/nim_duilibPackageInfo.cmake']
+        self.assertIn('set(NIM_DUILIB_PACKAGE_ARCH "arm64")', package_info)
+
+    def test_cmake_config_has_arm64_detection(self):
+        _count, virtual = pack.collect_integration_files(self._collector(),
+                                                         self._meta(arch='arm64'))
+        config = virtual['lib/cmake/nim_duilib/nim_duilibConfig.cmake']
+        self.assertIn('CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64"',
+                      config)
+
+    def test_msvc_runtime_auto(self):
+        self.assertEqual(self._meta()['msvc_runtime'], 'MT')
+        meta = self._meta(collector=self._collector(with_dll=True))
+        self.assertEqual(meta['msvc_runtime'], 'MD')
+        self.assertTrue(meta['is_dll'])
+
+    def test_msvc_runtime_explicit(self):
+        collector = self._collector()
+        meta = pack.build_package_meta(
+            collector, '1.0.0', 'win', 'x64', 'Debug', 'msvc',
+            False, 'latest', 'md')
+        self.assertEqual(meta['msvc_runtime'], 'MD')
+
+
+class Arm64SupportTest(_TempDirTest):
+
+    def _collector(self):
+        collector = pack.Collector()
+        collector.add('include/duilib/duilib.h',
+                      self._touch('include/duilib/duilib.h', b'#pragma once\n'))
+        return collector
+
+    def test_skia_dir_detection(self):
+        old_root = pack.SKIA_SRC_ROOT
+        old_win = pack.is_windows_host
+        try:
+            pack.SKIA_SRC_ROOT = self.tmp
+            pack.is_windows_host = lambda: True
+            out_dir = os.path.join(self.tmp, 'out')
+            target = os.path.join(out_dir, 'llvm.arm64.release')
+            os.makedirs(target)
+            self._touch('out/llvm.arm64.release/skia.lib')
+            self.assertEqual(
+                pack.resolve_skia_lib_dir(None, 'Release', 'arm64', 'msvc'),
+                target)
+            shutil.rmtree(target)
+            with self.assertRaises(pack.PackageError) as ctx:
+                pack.resolve_skia_lib_dir(None, 'Release', 'arm64', 'msvc')
+            self.assertIn('arm64', str(ctx.exception))
+            self.assertIn('llvm.arm64.release', str(ctx.exception))
+        finally:
+            pack.SKIA_SRC_ROOT = old_root
+            pack.is_windows_host = old_win
+
+    def test_jpeg_arm64_is_skipped_with_warning(self):
+        old_win = pack.is_windows_host
+        try:
+            pack.is_windows_host = lambda: True
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_jpeg_turbo(collector, 'arm64', 'msvc'), 0)
+            self.assertEqual(collector.items, [])
+            self.assertTrue(any('arm64' in msg for msg in collector.warnings))
+        finally:
+            pack.is_windows_host = old_win
+
+    def test_cef_arm64_is_rejected(self):
+        old_win = pack.is_windows_host
+        try:
+            pack.is_windows_host = lambda: True
+            with self.assertRaises(pack.PackageError) as ctx:
+                pack.collect_cef(pack.Collector(), 'arm64', 'latest')
+            self.assertIn('arm64', str(ctx.exception))
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_cef_runtime(collector, 'win', 'arm64', 'latest'), 0)
+            self.assertTrue(any('arm64' in msg for msg in collector.warnings))
+        finally:
+            pack.is_windows_host = old_win
+
+    def test_manifest_notes_arm64_scope(self):
+        collector = self._collector()
+        text, _sums = pack.write_manifest(
+            collector, 'nim_duilib-1.0-win-arm64', '1.0', 'win', 'arm64',
+            'Release', False, False, False, 'latest', toolchain='msvc',
+            virtual_files={}, msvc_runtime='MT', package_time=0)
+        self.assertIn('平台      : win-arm64', text)
+        self.assertIn('arm64 说明', text)
+        self.assertIn('未在 arm64 真机上做编译、打包、运行验证', text)
+        self.assertIn('CEF 与 libjpeg-turbo', text)
+
+    def test_manifest_time_is_deterministic(self):
+        collector = self._collector()
+        text, _sums = pack.write_manifest(
+            collector, 'pkg', '1.0', 'win', 'x64', 'Release',
+            False, False, False, 'latest', toolchain='msvc',
+            virtual_files={}, msvc_runtime='MT', package_time=0)
+        self.assertIn('打包时间  : 1970-01-01 00:00:00 UTC', text)
+
+    def test_manifest_and_sums_cover_virtual_files(self):
+        collector = self._collector()
+        virtual = {'msvc/nim_duilib.props': 'hello'}
+        _text, sums = pack.write_manifest(
+            collector, 'pkg', '1.0', 'win', 'x64', 'Release',
+            False, False, False, 'latest', toolchain='msvc',
+            virtual_files=virtual, msvc_runtime='MT', package_time=0)
+        digest = hashlib.sha256(b'hello').hexdigest()
+        self.assertIn('%s  msvc/nim_duilib.props' % digest, sums)
+
+
+class DocLinkRewriteTest(unittest.TestCase):
+
+    def test_rewrite_and_drop(self):
+        packaged = {'include/duilib/duilib.h', 'docs/Summary.md'}
+        text = ('[h](../duilib/duilib.h) [s](./Summary.md) '
+                '[gone](../build/missing.md) [bad](Nope.md)')
+        result = pack._rewrite_doc_links(text, packaged)
+        self.assertIn('(../include/duilib/duilib.h)', result)
+        self.assertIn('[s](./Summary.md)', result)
+        self.assertNotIn('../build/missing.md', result)
+        self.assertNotIn('[bad](Nope.md)', result)
+        self.assertIn('bad', result)
 
 
 if __name__ == '__main__':
