@@ -18,7 +18,7 @@ option(DUILIB_LOG "Print duilib debug log" OFF)
 # MingGW-w64编译时，使用静态链接（仅在 MINGW 开发环境下生效）
 option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
 
-# Skia的lib子目录名开关：默认值在下方"编译类型"之后计算，最终以 CACHE 变量 DUILIB_SKIA_LIB_SUBPATH 声明
+# Skia的lib子目录名：默认值在下方按平台/工具链自动推导，不写缓存；可用 -DDUILIB_SKIA_LIB_SUBPATH 覆盖
 
 # MINGW 开发环境
 if(MINGW)
@@ -86,24 +86,34 @@ else()
     set(DUILIB_BUILD_TYPE "release")
 endif()
 
-#Skia的lib子目录名：默认留空，由下方的自动规则按配置拼接（P2 / I-1）
-# 规则与 build/msvc_build.bat 保持一致：Windows 为 llvm.<CPU_ARCH>.debug 或 llvm.<CPU_ARCH>.release，
-# 其中 CPU_ARCH 取 VS 目标架构（cmake -A 参数），缺省 x64，-A Win32 时为 x86；
-# 其他平台 Skia 只有 release 变体，固定 <编译器>.<CPU_ARCH>.release（见 D-3）。
-# 仅在外部未指定时才走自动规则：-DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准
-# （set(... CACHE ...) 不会覆盖已存在的缓存变量，因此外部指定值优先）
+#Skia的lib子目录名：默认由自动规则推导（P2 / I-1），不再声明为 CACHE 变量，
+# 避免缓存值在切换工具链/架构后静默沿用旧路径。
+# 仍可用 -DDUILIB_SKIA_LIB_SUBPATH=... 覆盖（固定路径，不随配置变化）。
+# 自动规则：
+#   Windows MSVC / clang-cl -> llvm.<arch>.debug|release
+#     Debug 必须匹配 debug 变体（Debug 版本无法链接 release Skia），缺失直接报错。
+#   Windows MinGW gcc       -> mingw64-gcc.<arch>.debug|release（MSYS2 为 gcc.<arch>.xxx）
+#     Debug 变体缺失时回退同编译器的 release 变体（MinGW 的 Debug 可以链接 release Skia）；
+#     gcc 与 llvm 的 Skia 不能混用：libstdc++ 与 libc++ 会重复定义 std 符号，链接失败
+#   Windows MinGW llvm      -> mingw64-llvm.<arch>.debug|release（MSYS2 为 llvm.<arch>.xxx）
+#     Debug 变体缺失时回退 release 变体
+#   其他平台                -> <编译器名>.<arch>.release（Skia 只有 release 变体，见 D-3）
+# 解析结果必须真实存在，否则在配置阶段直接报错，避免进入编译后才出现难以定位的链接错误。
 set(DUILIB_SKIA_CPU_ARCH "")
 if(DUILIB_OS_WINDOWS)
-    set(DUILIB_SKIA_CPU_ARCH "x64")
     if(CMAKE_GENERATOR_PLATFORM)
         if(CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
             set(DUILIB_SKIA_CPU_ARCH "x86")
         else()
-            set(DUILIB_SKIA_CPU_ARCH "${CMAKE_GENERATOR_PLATFORM}")
+            string(TOLOWER "${CMAKE_GENERATOR_PLATFORM}" DUILIB_SKIA_CPU_ARCH)
         endif()
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        # MinGW 32 位没有 generator platform，按指针宽度判断
+        set(DUILIB_SKIA_CPU_ARCH "x86")
+    else()
+        set(DUILIB_SKIA_CPU_ARCH "x64")
     endif()
 endif()
-set(DUILIB_SKIA_LIB_SUBPATH "" CACHE STRING "Skia lib sub path")
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_ROOT "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
@@ -162,16 +172,151 @@ endif()
 
 #Skia源码根目录，lib文件目录（Skia必选项）
 get_filename_component(DUILIB_SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-if(NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "" AND NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "OFF")
-    # 外部指定的子目录名：固定路径，不随配置变化
-    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}")
-elseif(DUILIB_OS_WINDOWS)
-    # 按配置自动选择（P2 / I-1）：$<CONFIG> 由生成器展开；Debug 用 debug 变体，其余用 release 变体
-    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/llvm.${DUILIB_SKIA_CPU_ARCH}.$<IF:$<CONFIG:Debug>,debug,release>")
-else()
-    # 非Windows平台：Skia 只提供 release 变体（D-3）
-    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.release")
+
+# 生成指定配置下的 Skia 子目录候选（按优先级排列）
+function(_duilib_skia_candidate_subdirs config out_var)
+    set(_candidates "")
+    if(DUILIB_OS_WINDOWS)
+        if(NOT DUILIB_MINGW)
+            # MSVC / clang-cl：Debug 必须使用 debug 变体，不做 release 回退
+            if(config STREQUAL "debug")
+                list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.debug")
+            else()
+                list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.release")
+            endif()
+        else()
+            # MinGW：独立 MinGW-w64 使用 mingw64- 前缀，MSYS2 使用 gcc./llvm.
+            # 库与 Skia 必须同源：gcc(libstdc++) 与 llvm-mingw(libc++) 的 C++ 运行时不兼容，
+            # 混用会在链接阶段出现 std 符号重复定义，因此不做跨编译器回退
+            if(DUILIB_COMPILER_GCC)
+                set(_compilers "gcc")
+            else()
+                set(_compilers "llvm")
+            endif()
+            foreach(_compiler IN LISTS _compilers)
+                if(config STREQUAL "debug")
+                    # Debug 变体优先；缺失时回退同编译器的 release 变体
+                    list(APPEND _candidates
+                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
+                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release"
+                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
+                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
+                else()
+                    list(APPEND _candidates
+                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release"
+                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
+                endif()
+            endforeach()
+        endif()
+    else()
+        # 非Windows平台：Skia 只提供 release 变体（D-3）
+        list(APPEND _candidates "${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.release")
+    endif()
+    set(${out_var} "${_candidates}" PARENT_SCOPE)
+endfunction()
+
+# 外部显式指定的子目录名（固定路径，不随配置变化）
+set(_duilib_skia_user_subpath "")
+if(DEFINED DUILIB_SKIA_LIB_SUBPATH AND
+   NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "" AND
+   NOT DUILIB_SKIA_LIB_SUBPATH STREQUAL "OFF")
+    set(_duilib_skia_user_subpath "${DUILIB_SKIA_LIB_SUBPATH}")
 endif()
+
+# 需要校验的配置（小写，去重）：多配置生成器逐个配置校验，单配置只看 CMAKE_BUILD_TYPE
+set(_duilib_skia_configs "")
+if(CMAKE_CONFIGURATION_TYPES)
+    foreach(_duilib_cfg IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOLOWER "${_duilib_cfg}" _duilib_cfg_lower)
+        if(_duilib_cfg_lower STREQUAL "debug")
+            list(APPEND _duilib_skia_configs "debug")
+        else()
+            list(APPEND _duilib_skia_configs "release")
+        endif()
+    endforeach()
+    list(REMOVE_DUPLICATES _duilib_skia_configs)
+else()
+    set(_duilib_skia_configs "${DUILIB_BUILD_TYPE}")
+endif()
+
+set(DUILIB_SKIA_LIB_SUBPATH "")
+set(DUILIB_SKIA_LIB_PATH "")
+if(_duilib_skia_user_subpath)
+    set(DUILIB_SKIA_LIB_SUBPATH "${_duilib_skia_user_subpath}")
+    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${_duilib_skia_user_subpath}")
+    if(DUILIB_SKIA_LIB_PATH MATCHES "\\$<")
+        # 含生成器表达式时无法在配置阶段确定最终路径，交由生成器展开
+        message(STATUS "DUILIB_SKIA_LIB_SUBPATH 含生成器表达式，跳过配置期存在性校验：${DUILIB_SKIA_LIB_SUBPATH}")
+    elseif(NOT EXISTS "${DUILIB_SKIA_LIB_PATH}")
+        message(FATAL_ERROR
+            "指定的 Skia 库目录不存在：\n"
+            "  ${DUILIB_SKIA_LIB_PATH}\n"
+            "请检查 -DDUILIB_SKIA_LIB_SUBPATH=${DUILIB_SKIA_LIB_SUBPATH} 是否正确，"
+            "或先编译 Skia。")
+    endif()
+else()
+    # 按配置解析候选目录，取第一个真实存在的候选
+    set(_duilib_skia_debug_sub "")
+    set(_duilib_skia_release_sub "")
+    set(_duilib_skia_error "")
+    foreach(_cfg IN LISTS _duilib_skia_configs)
+        _duilib_skia_candidate_subdirs("${_cfg}" _candidates)
+        set(_resolved "")
+        foreach(_candidate IN LISTS _candidates)
+            if(EXISTS "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${_candidate}")
+                set(_resolved "${_candidate}")
+                break()
+            endif()
+        endforeach()
+        if(_resolved STREQUAL "")
+            string(REPLACE ";" "\n    " _candidates_text "${_candidates}")
+            string(APPEND _duilib_skia_error
+                "  ${_cfg} 配置：未找到可用的 Skia 库目录，已尝试：\n    ${_candidates_text}\n")
+        elseif(_cfg STREQUAL "debug")
+            set(_duilib_skia_debug_sub "${_resolved}")
+        else()
+            set(_duilib_skia_release_sub "${_resolved}")
+        endif()
+    endforeach()
+
+    if(NOT _duilib_skia_error STREQUAL "")
+        message(FATAL_ERROR
+            "未找到可用的 Skia 库目录（${DUILIB_SKIA_SRC_ROOT_DIR}/out 下）：\n"
+            "${_duilib_skia_error}"
+            "请先编译 Skia，或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定。")
+    endif()
+
+    if(CMAKE_CONFIGURATION_TYPES)
+        # 多配置生成器：不同配置可能解析到不同目录，用生成器表达式按 $<CONFIG> 选择
+        if(NOT _duilib_skia_debug_sub STREQUAL "" AND
+           NOT _duilib_skia_release_sub STREQUAL "" AND
+           NOT _duilib_skia_debug_sub STREQUAL _duilib_skia_release_sub)
+            set(DUILIB_SKIA_LIB_SUBPATH
+                "$<IF:$<CONFIG:Debug>,${_duilib_skia_debug_sub},${_duilib_skia_release_sub}>")
+        elseif(NOT _duilib_skia_debug_sub STREQUAL "")
+            set(DUILIB_SKIA_LIB_SUBPATH "${_duilib_skia_debug_sub}")
+        else()
+            set(DUILIB_SKIA_LIB_SUBPATH "${_duilib_skia_release_sub}")
+        endif()
+    else()
+        if(DUILIB_BUILD_TYPE STREQUAL "debug")
+            set(DUILIB_SKIA_LIB_SUBPATH "${_duilib_skia_debug_sub}")
+        else()
+            set(DUILIB_SKIA_LIB_SUBPATH "${_duilib_skia_release_sub}")
+        endif()
+    endif()
+    set(DUILIB_SKIA_LIB_PATH "${DUILIB_SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}")
+endif()
+unset(_duilib_skia_user_subpath)
+unset(_duilib_skia_configs)
+unset(_duilib_cfg_lower)
+unset(_duilib_skia_debug_sub)
+unset(_duilib_skia_release_sub)
+unset(_duilib_skia_error)
+unset(_candidates)
+unset(_candidates_text)
+unset(_resolved)
+unset(_cfg)
 set(DUILIB_SKIA_LIBS svg skshaper skottie sksg jsonreader skia)
 
 #SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）

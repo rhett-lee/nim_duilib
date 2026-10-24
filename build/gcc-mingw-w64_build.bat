@@ -24,10 +24,6 @@ echo SDL_PARAM: %SDL_PARAM%
 SET DUILIB_SRC_ROOT_DIR=%bat_parent_dir%
 echo DUILIB_SRC_ROOT_DIR: "%DUILIB_SRC_ROOT_DIR%"
 
-@for %%i in ("%~dp0..\..\skia") do set "bat_parent_dir=%%~fi"
-SET SKIA_SRC_ROOT_DIR=%bat_parent_dir%
-echo SKIA_SRC_ROOT_DIR: "%SKIA_SRC_ROOT_DIR%"
-
 echo Checking the necessary software
 where cmake.exe >nul 2>&1
 if %errorlevel% equ 0 (
@@ -66,17 +62,7 @@ SET DUILIB_MAKE=cmake --build
 SET DUILIB_BUILD_TYPE=Release
 SET DUILIB_MAKE_THREADS=-j 6
 
-if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-    SET DUILIB_SKIA_LIB_SUBPATH=mingw64-gcc.x64.release
-) else (
-    SET DUILIB_SKIA_LIB_SUBPATH=mingw64-gcc.x86.release
-)
-echo "DUILIB_SKIA_LIB_SUBPATH:%DUILIB_SKIA_LIB_SUBPATH%"
-
-if not exist "%SKIA_SRC_ROOT_DIR%\out\%DUILIB_SKIA_LIB_SUBPATH%" (
-    echo "Please compile the skia first or run build_duilib_all_in_one_mingw-w64.bat."
-    exit /b 1
-)
+@REM # Skia 库目录由 CMake 自动推导并校验，无需在此处指定
 
 @REM # 编译临时目录
 SET DUILIB_BUILD_DIR=%DUILIB_SRC_ROOT_DIR%\build\build_temp\%DUILIB_COMPILER_ID%
@@ -102,7 +88,7 @@ for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
 @REM #编译examples下的各个程序
 SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,chat,layout,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView,WebView2,WebView2Browser,ChildWindow,XmlPreview,ColorTheme,panel
 for %%i in (%DUILIB_PROGRAMS%) do (
-    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% -DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH% %SDL_PARAM%
+    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% %SDL_PARAM%
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_MAKE_THREADS%
 )
 

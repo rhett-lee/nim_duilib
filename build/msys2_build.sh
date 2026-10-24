@@ -26,9 +26,7 @@ fi
 echo "SDL_PARAM: ${SDL_PARAM}"
 
 DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-SKIA_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../skia" && pwd)
 echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"
-echo "SKIA_SRC_ROOT_DIR: $SKIA_SRC_ROOT_DIR"
 
 # compiler flag
 has_gcc=0
@@ -68,36 +66,7 @@ DUILIB_MAKE_THREADS="-j 6"
 # 编译类型：Debug还是Release
 DUILIB_BUILD_TYPE=Release
 
-# Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这部分代码
-# 获取CPU架构
-CPU_ARCH_STR=$(uname -m)
-
-# 转换为标准架构标识
-if [ "$CPU_ARCH_STR" = "x86_64" ] || [ "$CPU_ARCH_STR" = "amd64" ]; then
-    CPU_ARCH=x64
-elif [ "$CPU_ARCH_STR" = "aarch64" ] || [ "$CPU_ARCH_STR" = "arm64" ]; then
-    CPU_ARCH=arm64
-elif [ "$CPU_ARCH_STR" = "armv7l" ]; then
-    CPU_ARCH=arm
-elif [ "$CPU_ARCH_STR" = "i386" ] || [ "$CPU_ARCH_STR" = "i686" ]; then
-    CPU_ARCH=x86
-else
-    CPU_ARCH=x64
-fi
-
-# 检测skia的可用lib
-if [ "$has_clang" -eq 1 ]; then
-    DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
-else
-    DUILIB_SKIA_LIB_SUBPATH=gcc.${CPU_ARCH}.release
-fi
-
-if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
-    echo "Please compile the skia first or run build_duilib_all_in_one.sh."
-    exit 1
-fi
-
-echo "DUILIB_SKIA_LIB_SUBPATH:${DUILIB_SKIA_LIB_SUBPATH}"
+# Skia库目录由 CMake 自动推导并校验，无需在此处指定
 
 # 编译临时目录
 DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build"
@@ -121,6 +90,6 @@ $DUILIB_MAKE "$DUILIB_BUILD_DIR/duilib" $DUILIB_MAKE_THREADS
 # 编译examples下的各个程序
 DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "chat" "layout" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "WebView2" "WebView2Browser" "ChildWindow" "XmlPreview" "ColorTheme" "panel")
 for duilib_bin in "${DUILIB_PROGRAMS[@]}"; do
-    $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=${DUILIB_BUILD_TYPE} -DDUILIB_SKIA_LIB_SUBPATH="$DUILIB_SKIA_LIB_SUBPATH" ${SDL_PARAM}
+    $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=${DUILIB_BUILD_TYPE} ${SDL_PARAM}
     $DUILIB_MAKE "$DUILIB_BUILD_DIR/$duilib_bin" $DUILIB_MAKE_THREADS
 done

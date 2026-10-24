@@ -42,12 +42,13 @@ msvc_build.bat
 - 网络失败会自动重试（每 10 秒一次），不用人工干预。
 
 **第 2 步 `msvc_build.bat`**（仅 Windows）：
-- 前置：`cmake`（最低 v3.21；用 VS2026 则需 v4.2）、VS2022+。Skia 必须已编译好——脚本会检查
-  `<仓库根>\..\skia\out\llvm.<arch>.release` 是否存在，不存在则提示先跑第 1 步。
+- 前置：`cmake`（最低 v3.21；用 VS2026 则需 v4.2）、VS2022+。Skia 必须已编译好——
+  脚本不再自行检查，由 CMake 在配置阶段解析目录，缺失时直接报错并列出尝试过的路径。
 - 依次 cmake 构建：第三方库 `zlib,libpng,cximage,libwebp,libcef\libcef_win` → `duilib` →
   `examples` 下的各示例程序。
-- 默认 Release（Debug 时子目录为 `llvm.<arch>.debug`）；架构取 VS 目标架构（缺省 x64），并据此设置
-  `DUILIB_SKIA_LIB_SUBPATH=llvm.<arch>.<构建类型>`。
+- 默认 Release；架构取 VS 目标架构（缺省 x64）。Skia 子目录由 CMake 自动推导
+  （MSVC 为 `llvm.<arch>.<构建类型>`，Debug 必须匹配 debug 变体），脚本无需设置
+  `DUILIB_SKIA_LIB_SUBPATH`。
 
 ### 2.2 非 Windows：一步
 

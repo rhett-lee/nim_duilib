@@ -101,9 +101,17 @@ from the platform and configuration, so individual projects no longer need to se
 # Default: empty (no longer pre-set to llvm.<arch>.<build type>)
 # An external -DDUILIB_SKIA_LIB_SUBPATH=... always wins (a fixed path that does not follow the configuration).
 
-# When the subdirectory name is empty, the automatic rule is:
-#   Windows : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
-#             selected by $<CONFIG>: Debug uses the debug variant, everything else uses release
+# When the subdirectory name is empty, the automatic rule is
+# (the resolved directory must exist, otherwise configuration fails immediately):
+#   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
+#             Debug must match the debug variant (a Debug build cannot link release
+#             Skia); a missing directory is a hard error
+#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.debug / .release (gcc.<arch>.* on MSYS2)
+#             falls back to the same compiler's release variant when debug is missing;
+#             gcc- and llvm-built Skia cannot be mixed (libstdc++/libc++ are incompatible
+#             at link time)
+#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.debug / .release (llvm.<arch>.* on MSYS2)
+#             falls back to the release variant
 #   Linux/macOS/FreeBSD : <compiler>.<CPU_ARCH>.release
 #             Skia is only built as release on Unix (D-3)
 
@@ -114,10 +122,13 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
 # Windows x64 + Debug      -> skia/out/llvm.x64.debug
 # Windows x64 + Release    -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug -> skia/out/llvm.x86.debug
+# MinGW gcc + Debug (no gcc debug)  -> skia/out/mingw64-gcc.x64.release
+# MinGW gcc + Debug (no gcc Skia)   -> configuration error (llvm-built Skia cannot be linked)
 # Linux/macOS/FreeBSD      -> skia/out/llvm.x64.release (clang)
 #                            skia/out/gcc.x64.release (gcc)
-# MSYS2 Windows + Debug    -> skia/out/llvm.<arch>.debug (selected per configuration)
+# MSYS2 Windows + Debug    -> skia/out/gcc.<arch>.debug first, then gcc.<arch>.release
 # -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> both configurations use that fixed directory
+#                                              (its existence is validated as well)
 ```
 
 ---

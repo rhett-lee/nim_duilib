@@ -98,9 +98,14 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 # 默认值：空（不再预先写死 llvm.<arch>.<构建类型>）
 # 外部用 -DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准（固定路径，不随配置变化）。
 
-# 子目录名为空时，自动规则：
-#   Windows : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
-#             由生成器表达式按 $<CONFIG> 选择，Debug 取 debug 变体，其余取 release
+# 子目录名为空时，自动规则（解析结果必须真实存在，否则配置阶段直接报错）：
+#   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
+#             Debug 必须匹配 debug 变体（Debug 版本无法链接 release Skia），缺失直接报错
+#   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.debug / .release（MSYS2 为 gcc.<arch>.*）
+#             Debug 变体缺失时回退同编译器的 release 变体；
+#             gcc 与 llvm 的 Skia 不能混用（libstdc++/libc++ 运行时不兼容，链接会失败）
+#   Windows MinGW llvm      : mingw64-llvm.<CPU_ARCH>.debug / .release（MSYS2 为 llvm.<arch>.*）
+#             Debug 变体缺失时回退 release 变体
 #   Linux/macOS/FreeBSD : <编译器>.<CPU_ARCH>.release
 #             Skia 在 Unix 只编译 release 变体（D-3）
 
@@ -111,10 +116,12 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
 # Windows x64 + Debug          -> skia/out/llvm.x64.debug
 # Windows x64 + Release        -> skia/out/llvm.x64.release
 # Windows -A Win32 + Debug     -> skia/out/llvm.x86.debug
+# MinGW gcc + Debug（无 gcc debug） -> skia/out/mingw64-gcc.x64.release
+# MinGW gcc + Debug（无 gcc Skia）  -> 配置期报错（不能链接 llvm 版 Skia）
 # Linux/macOS/FreeBSD          -> skia/out/llvm.x64.release（clang）
 #                                skia/out/gcc.x64.release（gcc）
-# MSYS2 Windows + Debug        -> skia/out/llvm.<arch>.debug（按配置自动选）
-# 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录
+# MSYS2 Windows + Debug        -> skia/out/gcc.<arch>.debug 优先，缺失时回退 gcc.<arch>.release
+# 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录（同样校验存在性）
 ```
 
 ---

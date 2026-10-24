@@ -11,10 +11,6 @@ set SCRIPT_DIR=%~dp0
 SET DUILIB_SRC_ROOT_DIR=%bat_parent_dir%
 echo DUILIB_SRC_ROOT_DIR: "%DUILIB_SRC_ROOT_DIR%"
 
-@for %%i in ("%~dp0..\..\skia") do set "bat_parent_dir=%%~fi"
-SET SKIA_SRC_ROOT_DIR=%bat_parent_dir%
-echo SKIA_SRC_ROOT_DIR: "%SKIA_SRC_ROOT_DIR%"
-
 @REM # 检测VS版本
 if exist "%SCRIPT_DIR%\detect_vs_version.bat" (
     call %SCRIPT_DIR%\detect_vs_version.bat
@@ -48,23 +44,10 @@ SET DUILIB_MAKE=cmake --build
 SET DUILIB_BUILD_TYPE=Release
 SET DUILIB_BUILD_PARAM=--config %DUILIB_BUILD_TYPE%
 
-@REM # Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这段
+@REM # Skia库目录由 CMake 自动推导并校验，无需在此处指定
 SET CPU_ARCH=%VSCMD_ARG_TGT_ARCH%
 if "%CPU_ARCH%"=="" (
     SET CPU_ARCH=x64
-)
-
-SET DUILIB_SKIA_LIB_SUBPATH=llvm.%CPU_ARCH%.release
-if "%DUILIB_COMPILER_ID%"=="msvc" (
-    if "%DUILIB_BUILD_TYPE%"=="Debug" (
-        SET "DUILIB_SKIA_LIB_SUBPATH=llvm.%CPU_ARCH%.debug"
-    )
-)
-echo "DUILIB_SKIA_LIB_SUBPATH:%DUILIB_SKIA_LIB_SUBPATH%"
-
-if not exist "%SKIA_SRC_ROOT_DIR%\out\%DUILIB_SKIA_LIB_SUBPATH%" (
-    echo "Please compile the skia first or run build_duilib_all_in_one.bat."
-    exit /b 1
 )
 
 if "%CPU_ARCH%"=="x86" (
@@ -102,6 +85,6 @@ for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
 @REM #编译examples下的各个程序
 SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,chat,layout,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView,cef,CefBrowser,WebView2,WebView2Browser,ChildWindow,XmlPreview,ColorTheme,panel
 for %%i in (%DUILIB_PROGRAMS%) do (
-    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% -DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%
+    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE%
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_BUILD_PARAM%
 )
