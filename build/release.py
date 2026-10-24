@@ -235,14 +235,30 @@ def cmd_package(args):
         cmd.append('--with-examples')
     if args.msvc_runtime != 'auto':
         cmd.extend(['--msvc-runtime', args.msvc_runtime])
+    if args.mingw_variant != 'auto':
+        cmd.extend(['--mingw-variant', args.mingw_variant])
     if args.format:
         cmd.extend(['--format', args.format])
+
+    mingw_variant = None
+    if sys_tag == 'win':
+        if args.mingw_variant != 'auto':
+            mingw_variant = args.mingw_variant
+        else:
+            # dry-run 时库可能尚未构建，探测失败则按无后缀包名展示
+            try:
+                lib_dir = pack.resolve_lib_dir(None, args.config, arch_tag)
+                if pack.detect_windows_toolchain(lib_dir) == 'mingw':
+                    mingw_variant = pack.resolve_mingw_variant(lib_dir, 'auto')
+            except pack.PackageError:
+                mingw_variant = None
 
     fmt = args.format or ('zip' if sys_tag == 'win' else 'tgz')
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     pkg_name = pack.build_package_name(
         version, sys_tag, arch_tag, args.config,
-        args.with_sdl, args.with_cef, args.cef_version, args.with_examples)
+        args.with_sdl, args.with_cef, args.cef_version, args.with_examples,
+        mingw_variant=mingw_variant)
     out_path = os.path.join(out_dir, pkg_name + ext)
 
     print('版本      : %s' % version)
@@ -582,6 +598,10 @@ def build_parser():
                          help='包含示例程序')
     package.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'),
                          default='auto', help='MSVC 运行库（默认 auto）')
+    package.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
+                         default='auto',
+                         help='MinGW 编译器变体（默认自动判断），'
+                              '包名追加 -mingw-gcc / -mingw-llvm')
     package.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'),
                          default=None, help='压缩格式（默认 Windows zip、其它 tgz）')
     package.add_argument('--dry-run', action='store_true',

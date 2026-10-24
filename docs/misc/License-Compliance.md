@@ -34,7 +34,7 @@
 | libpng | libpng-2.0（PNG Reference Library License v2） | 是 | `lib/duilib-png.lib` / `licenses/libpng.LICENSE.txt` | PNG/APNG |
 | libwebp | BSD-3-Clause | 是 | `lib/duilib-webp.lib` / `licenses/libwebp.LICENSE.txt` | WebP |
 | cximage | CxImage 自定义 MIT 风格 | 是 | `lib/duilib-cximage.lib` / `licenses/cximage.LICENSE.txt` | ICO 等图片格式 |
-| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib` / `licenses/libjpeg-turbo.LICENSE.md` | Windows 随包，头文件不转发 |
+| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib` / `licenses/libjpeg-turbo.LICENSE.md` | 仅 Windows MSVC 包随包（MinGW 不可链接，不收集），头文件不转发 |
 | Roboto Mono（字体） | Apache-2.0 | 是 | `bin/resources/fonts/RobotoMono-*.ttf` / `licenses/RobotoMono.LICENSE.txt` | 字体 name 表声明 Apache-2.0；随示例资源分发 |
 | giflib | MIT | 是 | 编译进 `lib/duilib.lib` / `licenses/giflib.LICENSE.txt` | GIF |
 | stb_image | MIT 或公有领域（二选一） | 是 | 编译进 `lib/duilib.lib` / `licenses/stb_image.LICENSE.txt` | BMP、缩放 |
@@ -43,7 +43,7 @@
 | ConvertUTF（LLVM） | Apache-2.0 WITH LLVM-exception | 是 | 编译进 `lib/duilib.lib` / `licenses/llvm.LICENSE.txt` | UTF-8/16 转换 |
 | udis86 | BSD-2-Clause | 是 | 编译进 `lib/duilib.lib` / `licenses/udis86.LICENSE.txt` | 指令长度计算 |
 | CEF（含 Chromium） | BSD-3-Clause | 是 | `--with-cef` 时 `bin/libcef_win[_109]/<arch>/**`、`lib/libcef_dll_wrapper*.lib`、`lib/libcef*.lib` / `licenses/libcef.LICENSE.txt` | 运行时来自官方二进制分发包 |
-| WebView2 SDK（loader） | BSD-3-Clause（Microsoft） | 是 | `bin/WebView2Loader.dll`、`lib/WebView2LoaderStatic.lib`、`lib/WebView2Loader.dll.lib`、`include/duilib/WebView2/**` / `licenses/Microsoft.Web.WebView2.LICENSE.txt` | loader 不是浏览器内核 |
+| WebView2 SDK（loader） | BSD-3-Clause（Microsoft） | 是 | `bin/WebView2Loader.dll`、`lib/WebView2Loader.dll.lib`、`include/duilib/WebView2/**` / `licenses/Microsoft.Web.WebView2.LICENSE.txt`；MSVC 包另有 `lib/WebView2LoaderStatic.lib` | loader 不是浏览器内核 |
 | WebView2 Runtime | Microsoft 许可（系统组件） | 不适用 | 不随包 | 依赖系统 Evergreen Runtime |
 | SDL3 | zlib | 是 | `-sdl` 时 `include/SDL3/**`、`lib/libSDL3*` / `bin/SDL3.dll`、SDL 源码树 `licenses/SDL3/**` + `licenses/SDL.LICENSE.txt` | 跨平台窗口管理 |
 | libpag | Apache-2.0（含大量第三方组件） | 是（需附带全部第三方许可） | 默认未随包 / `licenses/libpag.LICENSE.txt` | 默认关闭；启用时须一并分发 `duilib/third_party/libpag/licenses/**` |

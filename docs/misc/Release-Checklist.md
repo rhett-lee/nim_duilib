@@ -64,7 +64,8 @@ python build/release.py package --config Debug
 ```
 
 - [ ] 按发布计划逐项执行，包名后缀应为
-      `[-sdl][-cef|-cef109][-examples][-debug]`，同一版本不互相覆盖。
+      `[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-debug]`，
+      同一版本不互相覆盖；MinGW 的 gcc / llvm 包必须分别产出。
 - [ ] 抽查打包输出中的告警（如缺少 Skia、CEF 头文件等），确认可接受。
 
 ## 5. 产物校验

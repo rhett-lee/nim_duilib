@@ -55,15 +55,20 @@ python build/pack.py --with-examples
 
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `build/release.py package`
 执行时固定输出到 `dist/<版本>/`。包名格式为
-`nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
+`nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-debug]`，
 同一版本的不同特性包可共存：
 
 ```
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-gcc.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-llvm.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 ```
 
+- `-mingw-gcc` / `-mingw-llvm`：库目录为 MinGW 产物时自动追加（也可用
+  `--mingw-variant` 指定）；gcc 的静态库绑定 libstdc++，llvm-mingw 绑定 libc++，
+  两者不可互换，Skia 目录也必须同源；
 - `-sdl`：仅 Windows 显式 `--with-sdl` 时追加；Unix 默认带 SDL，不加后缀；
 - `-cef` / `-cef109`：`--with-cef` 时按 `--cef-version` 追加；
 - `-examples`：`--with-examples` 时追加；
@@ -98,8 +103,10 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    - 基础：`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`
    - Skia：`skia`、`svg`、`skshaper`、`skottie`、`sksg`、`jsonreader`
      （`bentleyottmann`、`expat`、`skcms`、`skresources` 随包，出现未解析符号时补链）
-   - WebView2：`WebView2LoaderStatic`（VS）或 `WebView2Loader.dll`（CMake，运行期需 DLL）
-   - JPEG（Windows）：`turbojpeg-static`
+   - WebView2：MSVC 为 `WebView2LoaderStatic`（VS）或 `WebView2Loader.dll.lib`
+     （CMake）；MinGW 只随包 `WebView2Loader.dll.lib`，写作 `-lWebView2Loader.dll`
+     运行期均需 `WebView2Loader.dll`
+   - JPEG（Windows MSVC）：`turbojpeg-static`；MinGW 包不包含该 MSVC 静态库
    - SDL（可选）：`SDL3-static`（MSVC 静态）/ `SDL3` 导入库 + `bin/SDL3.dll`
      （动态）/ `libSDL3.a`（MinGW 静态）；Unix 为 `SDL3`
    - CEF（可选）：`libcef` + `libcef_dll_wrapper[_109]`
@@ -465,12 +472,14 @@ CEF 运行时未随包、相关示例不能直接运行。
 
 ## WebView2 运行时
 
-WebView2 仅在 Windows 提供。SDK 随包 `bin/WebView2Loader.dll` 与
-`lib/WebView2LoaderStatic.lib`、`lib/WebView2Loader.dll.lib`，但 **loader 不是
+WebView2 仅在 Windows 提供。MSVC 包随包 `bin/WebView2Loader.dll` 与
+`lib/WebView2LoaderStatic.lib`、`lib/WebView2Loader.dll.lib`；MinGW 包只随包
+动态 loader 的导入库 `lib/WebView2Loader.dll.lib` 与 `bin/WebView2Loader.dll`
+（`WebView2LoaderStatic.lib` 是 MSVC 静态库，MinGW 无法链接）。但 **loader 不是
 浏览器内核**：WebView2 依赖系统中已安装的 Microsoft Edge WebView2 Evergreen
 Runtime（安装了 Microsoft Edge 的 Windows 10/11 通常已具备）。
 
-- 使用静态 loader（默认）时不需要 `WebView2Loader.dll`，但仍需要系统运行时；
+- 使用静态 loader（默认，仅 MSVC）时不需要 `WebView2Loader.dll`，但仍需要系统运行时；
 - 使用动态 loader（`DUILIB_USE_WEBVIEW2_LOADER_DLL`）时，还需把
   `bin/WebView2Loader.dll` 复制到可执行文件同级——框架只在该目录查找；
 - 需要离线或固定版本时，可使用 WebView2 Fixed Version Runtime，并通过

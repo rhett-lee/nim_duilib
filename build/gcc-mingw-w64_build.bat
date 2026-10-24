@@ -9,6 +9,9 @@
 @REM 确保本机已经安装了camke(最低版本号: v3.21)
 @REM 可使用 cmake --version 查看版本信息（本机: cmake version 4.0.2）
 
+SET PATH=%PATH%;C:\mingw64\x86_64-15.1.0-release-win32-seh-ucrt-rt_v12-rev0\mingw64\bin
+g++ -v
+
 :: Force enable SDL
 if "%1" == "-sdl" (   
     set SDL_PARAM=-DDUILIB_ENABLE_SDL=ON
@@ -99,7 +102,7 @@ for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
 @REM #编译examples下的各个程序
 SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,chat,layout,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView,WebView2,WebView2Browser,ChildWindow,XmlPreview,ColorTheme,panel
 for %%i in (%DUILIB_PROGRAMS%) do (
-    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% %SDL_PARAM%
+    %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%examples\%%i" -B "%DUILIB_BUILD_DIR%\%%i" -DCMAKE_BUILD_TYPE=%DUILIB_BUILD_TYPE% -DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH% %SDL_PARAM%
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_MAKE_THREADS%
 )
 

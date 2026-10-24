@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows x64 Debug 静态包）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug 静态包；MinGW x64 Release）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,9 +15,9 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；VS/CMake 端到端（x64 Debug） |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x86 Debug 出包与解包校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64 Debug） |
 
-尚未覆盖：Release、x86/arm64、MinGW、DLL 模式、Linux/macOS/FreeBSD、SDL/CEF/示例程序组合。
+尚未覆盖：MSVC Release、arm64、DLL 模式、Linux/macOS/FreeBSD、SDL/示例程序组合。
 
 ### 平台与特性约束
 
@@ -45,11 +45,16 @@
 #### P0-1 打包矩阵实测
 
 - [ ] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
-- 现状：只验证了 Windows x64 Debug 静态包。
+- 现状：已验证 Windows x64、x86 两个架构的 Debug 静态包（2026-10-24 补充 x86）；
+  x86 另以 `--with-cef --list` 核对 CEF 运行时按 `bin/libcef_win/Win32/` 收集。
+  MinGW x64 Release 已完成 gcc 与 llvm 两套工具链验证：5 库 + 21 示例构建、
+  `basic.exe` 运行、llvm 包解包/SHA 校验（2026-10-24）。
+  MinGW 包已按编译器区分：包名追加 `-mingw-gcc` / `-mingw-llvm`，MANIFEST
+  工具链注明 gcc（libstdc++）/ llvm-mingw（libc++），并自动选择同源 Skia 目录。
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
-  - 工具链：MSVC / MinGW；
+  - 工具链：MSVC（Release 待补）/ MinGW（gcc、llvm 已完成）；
   - 模式：静态 / DLL（`EnableDuilibDll`）；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
   - 特性：`--with-sdl`、`--with-cef`（Windows/Linux/macOS）、`--with-examples`。
@@ -77,8 +82,16 @@
   已在 `packaging/msvc/nim_duilib.props` 与 `packaging/cmake/nim_duilibConfig.cmake`
   中补 `/NODEFAULTLIB:"libcmt.lib"`（与仓库内 `DuilibSettings.props` /
   `BinCommonSettings.props` 一致）。修复后 VS 与 CMake 两条路径均无 LNK4098/LNK2038。
+- 发现并修复（2026-10-24）：`build/gcc-mingw-w64_build.bat`、
+  `build/llvm-mingw-w64_build.bat` 只把 `DUILIB_SKIA_LIB_SUBPATH` 设为环境变量，
+  未以 `-D` 传给示例的 CMake 配置，示例因此链接到 MSVC 的 `llvm.x64.release`
+  （`skia.lib`），出现全量 `undefined reference`。两个脚本的示例配置行已补
+  `-DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%`，复测全部链接通过。
 - 未覆盖及原因：
-  - Windows x86：本机 Skia 只有 `llvm.x64.debug` / `llvm.x64.release`，缺 x86 产物，无法出包；
+  - Windows x86：Skia x86 产物已就绪，x86 Debug 包已可产出并通过解包/SHA 校验
+    （2026-10-24）；接入层（VS/CMake）x86 端到端验证待补；
+  - MinGW x64：示例已在源码树内用 CMake 构建并运行，尚未用解包后的
+    `find_package(nim_duilib)` 建独立工程做端到端验证；
   - DLL 模式：当前构建为静态，`bin/` 下没有 `duilib*.dll`；
   - Linux/macOS/FreeBSD：无对应环境。
 - 验收（Windows x64）：可执行程序启动并成功加载主题资源，链接无 LNK2038/LNK4098。
@@ -177,8 +190,8 @@
 - [x] FreeBSD：不支持 CEF，包内不出现任何 CEF 内容。
 - 验收：带 CEF 的 Windows/Linux 示例程序在干净机器上无需额外拷贝即可启动；
   `chrome-sandbox` 的可执行权限正确；macOS 按手动配置流程验证。
-  Windows 侧已满足运行时随包（`--with-cef --list`：latest 235 个、109 个 69 个
-  运行时文件，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
+  Windows 侧已满足运行时随包（`--with-cef --list`：x64 latest 235 个、109 个 69 个
+  运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
 
 #### P1-4 WebView2 运行时说明
 
@@ -274,3 +287,6 @@
 | 2026-10-23 | P1-4 已实施：MANIFEST 运行期与 Release 文档标注 WebView2 依赖系统 Evergreen Runtime，补充 loader 用法与常见问题 |
 | 2026-10-23 | P1-5 已实施：MANIFEST 与 Release 文档补充 PowerShell `Get-FileHash` 全包校验脚本及 `SHA256SUMS.txt` 用法 |
 | 2026-10-24 | P1-6 已实施：新增许可合规对照表；补充 expat（MIT）与 Roboto Mono 字体（Apache-2.0）许可文本并在 README 登记；确认随包组件均为宽松许可、无 GPL/AGPL/LGPL |
+| 2026-10-24 | Windows x86 Debug 出包验证：补齐 4 个基础库与 CEF wrapper，`pack.py --arch x86` 产出 541 文件/242.1 MB；解包后 SHA256 全包通过，包内 20 个二进制均为 x86（14C machine）；`--with-cef --list` 收集 233 个 Win32 运行时文件 |
+| 2026-10-24 | MinGW x64 Release 验证：修复 gcc/llvm 构建脚本未向 CMake 传 `DUILIB_SKIA_LIB_SUBPATH`（此前示例链接 MSVC Skia，全量 undefined reference）；两套工具链均成功构建 5 库 + 21 示例，`basic.exe` 运行正常；llvm 包 538 文件/88.9 MB，zip 22.9 MB，解包 SHA256 通过 |
+| 2026-10-24 | MinGW 包区分编译器：`pack.py` 从静态库符号自动判断 gcc / llvm-mingw（可用 `--mingw-variant` 指定），包名追加 `-mingw-<变体>`，MANIFEST 工具链与 CMake/props 元数据同步；Skia 只选同源目录。MinGW 包不再收集 MSVC 专用的 `WebView2LoaderStatic.lib` 与 `turbojpeg-static.lib`，WebView2 只保留 `WebView2Loader.dll.lib` + DLL |

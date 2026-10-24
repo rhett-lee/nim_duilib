@@ -46,8 +46,9 @@
 
 5. SDK 必须能独立支撑下游编译、链接、运行，因此除 5 个 duilib 库外还随包：
    - Skia 全部静态库（duilib 的必选链接依赖，整目录打包）；
-   - WebView2 loader 库（Windows：静态 loader + 动态 loader 导入库 + DLL）；
-   - turbojpeg-static（Windows：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
+   - WebView2 loader 库（Windows：MSVC 带静态 loader + 动态 loader 导入库 + DLL；
+     MinGW 只带动态 loader 的导入库 + DLL，MSVC 静态 loader 不可链接）；
+   - turbojpeg-static（仅 Windows MSVC：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
    - SDL3（Unix 始终；Windows 需 --with-sdl；动态库时同时带运行期 DLL）；
    - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）；
    - DLL 模式运行库（Windows：bin/duilib*.dll，lib/ 中为对应的导入库）。
@@ -61,6 +62,8 @@
    - MinGW：静态库 .a、导入库 .dll.a，Skia 目录为仅有的 release 变体
             mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release。
    因此 MinGW 的清单链接写法是 -lxxx，MSVC 是 xxx.lib。
+   MinGW 还要区分 gcc（libstdc++）与 llvm-mingw（libc++），两者 C++ 运行时不兼容，
+   库与 Skia 必须同源；包名追加 -mingw-gcc / -mingw-llvm，避免互相覆盖。
 
 7. 包内还要提供“下游接入层”，由 packaging/ 下的模板渲染生成（不手工落盘）：
    - Windows+MSVC：msvc/nim_duilib.props、nim_duilib.targets、nim_duilib.sdk.props；
@@ -250,6 +253,9 @@ LIB_BASENAMES = (
     'duilib-zlib',
 )
 
+# MinGW 的两种编译器：静态库绑定不同 C++ 运行时，产物不可互换。
+MINGW_VARIANTS = ('gcc', 'llvm')
+
 # CEF wrapper / 源码目录：--with-cef 时按版本只收集一套。
 CEF_WRAPPER_BY_VERSION = {
     'latest': 'libcef_dll_wrapper',
@@ -386,13 +392,18 @@ def detect_platform_tag():
 
 
 def build_package_name(version, sys_tag, arch_tag, config,
-                       with_sdl, with_cef, cef_version, with_examples):
-    """包名：nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]。
+                       with_sdl, with_cef, cef_version, with_examples,
+                       mingw_variant=None):
+    """包名：nim_duilib-<版本>-<系统>-<架构>[-mingw-<变体>][-sdl][-cef|-cef109][-examples][-debug]。
 
     同一版本的不同特性包必须能共存于 dist/，否则会互相覆盖。
+    MinGW 的 gcc 与 llvm-mingw 产物绑定不同 C++ 运行时（libstdc++ / libc++），
+    不可互换，包名必须带 -mingw-gcc / -mingw-llvm 以便同时发布。
     Unix 默认带 SDL，不追加 -sdl，避免改变既有 Unix 包名。
     """
     name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
+    if sys_tag == 'win' and mingw_variant:
+        name += '-mingw-%s' % mingw_variant
     if with_sdl and sys_tag == 'win':
         name += '-sdl'
     if with_cef:
@@ -570,6 +581,46 @@ def detect_windows_toolchain(lib_dir):
     return None
 
 
+def detect_mingw_variant(lib_dir):
+    """判断 MinGW 静态库由 gcc 还是 llvm-mingw 编译：'gcc' / 'llvm' / None。
+
+    gcc 的 MinGW 使用 libstdc++（符号含 _ZNSt7__cxx11 / _ZNSt6vector），
+    llvm-mingw 默认使用 libc++（符号含 _ZNSt3__1）。两者 ABI 不兼容，
+    打包时必须与 Skia 库使用同一套工具链。
+    """
+    if not os.path.isdir(lib_dir):
+        return None
+    for name in sorted(os.listdir(lib_dir)):
+        low = name.lower()
+        if not (low.startswith('libduilib') and low.endswith('.a')):
+            continue
+        with open(os.path.join(lib_dir, name), 'rb') as f:
+            data = f.read()
+        if b'_ZNSt3__1' in data:
+            return 'llvm'
+        if (b'_ZNSt7__cxx11' in data or b'_ZNSt6vector' in data
+                or b'_ZNSt12basic_string' in data):
+            return 'gcc'
+    return None
+
+
+def resolve_mingw_variant(lib_dir, requested='auto'):
+    """确定 MinGW 变体；显式指定与库内特征冲突时直接失败。"""
+    detected = detect_mingw_variant(lib_dir)
+    if requested and requested != 'auto':
+        if detected and detected != requested:
+            raise PackageError(
+                '库目录 %s 看起来是 %s 编译的，与 --mingw-variant=%s 不一致'
+                % (_rel(lib_dir), 'llvm-mingw' if detected == 'llvm' else 'gcc',
+                   requested))
+        return requested
+    if detected is None:
+        raise PackageError(
+            '无法从 %s 判断 MinGW 编译器（gcc / llvm-mingw），'
+            '请用 --mingw-variant 指定' % _rel(lib_dir))
+    return detected
+
+
 def _scan_lib_dir(lib_dir):
     """扫描唯一库目录，返回 {基名: 文件名}。
 
@@ -669,13 +720,25 @@ def collect_skia_libs(collector, skia_lib_dir):
     return count
 
 
-def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None):
-    """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。"""
+def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
+                         mingw_variant=None):
+    """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
+
+    MinGW 的 gcc 与 llvm-mingw 各自使用不同的 Skia 静态库，不能混用；
+    指定 mingw_variant 时只尝试对应的 mingw64-<变体> 目录。
+    """
     if explicit_dir:
         path = explicit_dir if os.path.isabs(explicit_dir) \
             else os.path.join(REPO_ROOT, explicit_dir)
         if not os.path.isdir(path):
             raise PackageError('--skia-lib-dir 不存在：%s' % path)
+        if toolchain == 'mingw' and mingw_variant:
+            base = os.path.basename(os.path.normpath(path))
+            match = re.match(r'mingw64-(gcc|llvm)\.', base)
+            if match and match.group(1) != mingw_variant:
+                raise PackageError(
+                    '--skia-lib-dir 是 %s 的产物，与 MinGW 编译器 %s 不匹配：%s'
+                    % (match.group(1), mingw_variant, path))
         return path
 
     out_dir = os.path.join(SKIA_SRC_ROOT, 'out')
@@ -687,11 +750,15 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None):
                 arch_tag, 'debug' if config == 'Debug' else 'release'))
         # MinGW：Skia 只有 release 变体，目录名带 mingw64 前缀
         mingw_variants = [
-            os.path.join(out_dir, 'mingw64-gcc.%s.release' % arch_tag),
-            os.path.join(out_dir, 'mingw64-llvm.%s.release' % arch_tag),
+            os.path.join(out_dir, 'mingw64-%s.%s.release' % (v, arch_tag))
+            for v in MINGW_VARIANTS
         ]
         if toolchain == 'mingw':
-            candidates = mingw_variants
+            if mingw_variant in MINGW_VARIANTS:
+                candidates = [os.path.join(
+                    out_dir, 'mingw64-%s.%s.release' % (mingw_variant, arch_tag))]
+            else:
+                candidates = mingw_variants
         elif toolchain == 'msvc':
             candidates = [msvc_variant]
         else:
@@ -794,8 +861,12 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
     return count
 
 
-def collect_webview2_loader(collector, arch_tag):
-    """收集 WebView2 loader 库（默认随包，P4-B4/Q11）。"""
+def collect_webview2_loader(collector, arch_tag, toolchain=None):
+    """收集 WebView2 loader 库（默认随包，P4-B4/Q11）。
+
+    MinGW 只收动态 loader 的导入库（WebView2Loader.dll.lib，GNU ld 可用）；
+    WebView2LoaderStatic.lib 是 MSVC 静态库，MinGW 无法链接，不随包。
+    """
     if not platform.system().lower().startswith('win'):
         return 0
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
@@ -804,7 +875,9 @@ def collect_webview2_loader(collector, arch_tag):
         collector.warn('WebView2 没有 %s 架构的 loader，已跳过' % arch_tag)
         return count
     root = os.path.join(WEBVIEW2_NATIVE_DIR, arch_dir)
-    for name in ('WebView2Loader.dll.lib', 'WebView2LoaderStatic.lib'):
+    lib_names = (('WebView2Loader.dll.lib',) if toolchain == 'mingw'
+                 else ('WebView2Loader.dll.lib', 'WebView2LoaderStatic.lib'))
+    for name in lib_names:
         full = os.path.join(root, name)
         if os.path.isfile(full):
             if collector.add('lib/' + name, full):
@@ -841,12 +914,16 @@ def collect_duilib_runtime_dll(collector, arch_tag, config):
     return 1 if collector.add('bin/%s.dll' % base, full) else 0
 
 
-def collect_jpeg_turbo(collector, arch_tag):
-    """收集 libjpeg-turbo 静态库（Windows 默认随包，P4-B4/Q12）。
+def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
+    """收集 libjpeg-turbo 静态库（仅 Windows MSVC，P4-B4/Q12）。
 
     头文件只在库内部使用，不对外转发（图片解码头文件不打包）。
+    预编译的 turbojpeg-static.lib 是 MSVC 静态库，MinGW 无法链接；MinGW
+    构建也不使用它，因此 MinGW 包不收集，避免给下游一个不可用的库。
     """
     if not platform.system().lower().startswith('win'):
+        return 0
+    if toolchain == 'mingw':
         return 0
     arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
     count = 0
@@ -1169,7 +1246,8 @@ def _package_lib_stems(lib_names):
 
 
 def build_package_meta(collector, version, sys_tag, arch_tag, config,
-                       toolchain, with_cef, cef_version, msvc_runtime):
+                       toolchain, with_cef, cef_version, msvc_runtime,
+                       mingw_variant=None):
     """汇总发布包的接入元数据（VS props 与 CMake package info 共用）。
 
     所有特性均以“实际进了包的文件”为准，而不是命令行开关，
@@ -1189,11 +1267,15 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
     has_sdl = sdl_static or sdl_shared
     sdl_kind = 'static' if sdl_static else ('shared' if sdl_shared else '')
 
-    # WebView2 / JPEG / CEF 的预编译产物只有 MSVC 可用的 .lib；
-    # MinGW 包即使随包带了这些文件，也不能声明为可用特性。
+    # WebView2：MSVC 可用静态或动态 loader；MinGW 只随包动态 loader 的导入库。
+    # JPEG：预编译 turbojpeg-static.lib 仅 MSVC 可用，MinGW 包不收集。
     is_msvc = toolchain == 'msvc'
-    has_webview2 = is_msvc and ('WebView2LoaderStatic.lib' in lib_names or
-                                'WebView2Loader.dll.lib' in lib_names)
+    if is_msvc:
+        has_webview2 = ('WebView2LoaderStatic.lib' in lib_names or
+                        'WebView2Loader.dll.lib' in lib_names)
+    else:
+        has_webview2 = (toolchain == 'mingw' and
+                        'WebView2Loader.dll.lib' in lib_names)
     has_jpeg = is_msvc and any(name.lower().startswith('turbojpeg')
                                for name in lib_names)
 
@@ -1221,6 +1303,7 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
         'arch': arch_tag,
         'config': config,
         'toolchain': toolchain or '',
+        'mingw_variant': mingw_variant or '',
         'is_dll': is_dll,
         'has_sdl': has_sdl,
         'sdl_kind': sdl_kind,
@@ -1248,6 +1331,7 @@ def _build_sdk_props(meta):
         '        <NimDuilibPackageConfig>%s</NimDuilibPackageConfig>' % meta['config'],
         '        <NimDuilibPackageArch>%s</NimDuilibPackageArch>' % meta['arch'],
         '        <NimDuilibPackageToolchain>%s</NimDuilibPackageToolchain>' % meta['toolchain'],
+        '        <NimDuilibPackageMingwVariant>%s</NimDuilibPackageMingwVariant>' % meta['mingw_variant'],
         '        <NimDuilibPackageIsDll>%s</NimDuilibPackageIsDll>' % flag(meta['is_dll']),
         '        <NimDuilibPackageHasSdl>%s</NimDuilibPackageHasSdl>' % flag(meta['has_sdl']),
         '        <NimDuilibPackageSdlKind>%s</NimDuilibPackageSdlKind>' % meta['sdl_kind'],
@@ -1277,6 +1361,7 @@ def _build_package_info_cmake(meta):
         'set(NIM_DUILIB_PACKAGE_ARCH "%s")' % meta['arch'],
         'set(NIM_DUILIB_PACKAGE_CONFIG "%s")' % meta['config'],
         'set(NIM_DUILIB_PACKAGE_TOOLCHAIN "%s")' % meta['toolchain'],
+        'set(NIM_DUILIB_PACKAGE_MINGW_VARIANT "%s")' % meta['mingw_variant'],
         'set(NIM_DUILIB_PACKAGE_IS_DLL %s)' % flag(meta['is_dll']),
         'set(NIM_DUILIB_PACKAGE_HAS_SDL %s)' % flag(meta['has_sdl']),
         'set(NIM_DUILIB_PACKAGE_SDL_KIND "%s")' % meta['sdl_kind'],
@@ -1393,7 +1478,7 @@ def _lib_filenames(collector):
 def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                    config, with_examples, with_sdl, with_cef, cef_version,
                    toolchain=None, virtual_files=None, msvc_runtime=None,
-                   package_time=None):
+                   package_time=None, mingw_variant=None):
     """生成包内 MANIFEST.txt 与 SHA256SUMS，并固化 SDK 使用契约。
 
     package_time 为 MANIFEST 里“打包时间”使用的 Unix 时间；None 表示取当前时间。
@@ -1446,7 +1531,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('平台      : %s-%s' % (sys_tag, arch_tag))
     lines.append('配置      : %s' % config)
     if is_windows and toolchain:
-        lines.append('工具链    : %s' % ('MinGW' if is_mingw else 'MSVC'))
+        if is_mingw:
+            toolchain_label = ('MinGW（llvm-mingw）' if mingw_variant == 'llvm'
+                               else 'MinGW（gcc）')
+        else:
+            toolchain_label = 'MSVC'
+        lines.append('工具链    : %s' % toolchain_label)
     lines.append('打包时间  : %s UTC'
                  % time.strftime('%Y-%m-%d %H:%M:%S',
                                  time.gmtime(package_time)))
@@ -1486,6 +1576,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     if with_sdl or not is_windows:
         lines.append('   使用 SDL 时 <SDL3/SDL.h> 也由 include/ 覆盖')
     lines.append('2) 库路径  ：lib/')
+    if is_mingw:
+        variant_label = 'llvm-mingw（libc++）' if mingw_variant == 'llvm' \
+            else 'gcc（libstdc++）'
+        lines.append('   本包由 MinGW %s编译，lib/ 静态库与 Skia 均绑定该工具链的'
+                     % variant_label)
+        lines.append('   C++ 运行时；不要与另一 MinGW 变体的包混用。')
     lines.append('3) 链接列表（按需取用，顺序仅供参考）')
 
     base_links = [n for n in LIB_BASENAMES if n in stems]
@@ -1502,8 +1598,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     if 'WebView2LoaderStatic' in stems:
         lines.append('   WebView2: WebView2LoaderStatic.lib（静态 loader，无需 DLL）')
     if 'WebView2Loader.dll' in stems:
-        lines.append('   WebView2: WebView2Loader.dll.lib（动态 loader，'
-                     '运行期需 WebView2Loader.dll）')
+        if is_mingw:
+            lines.append('   WebView2: -lWebView2Loader.dll（动态 loader 导入库，'
+                         '运行期需 WebView2Loader.dll）')
+        else:
+            lines.append('   WebView2: WebView2Loader.dll.lib（动态 loader，'
+                         '运行期需 WebView2Loader.dll）')
     if 'turbojpeg-static' in stems:
         lines.append('   JPEG    : turbojpeg-static.lib')
     if sdl_static:
@@ -1539,9 +1639,16 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  程序时请连同 bin/resources/ 一起复制。')
     if is_windows:
         if has_webview2:
+            loader_files = []
+            if 'WebView2LoaderStatic.lib' in lib_names:
+                loader_files.append('WebView2LoaderStatic.lib')
+            if 'WebView2Loader.dll.lib' in lib_names:
+                loader_files.append('WebView2Loader.dll.lib')
+            if 'WebView2Loader.dll' in bin_dlls:
+                loader_files.append('WebView2Loader.dll')
             lines.append('  WebView2 依赖系统已安装的 Microsoft Edge WebView2 Evergreen')
-            lines.append('  Runtime；本包只带 loader（WebView2Loader.dll / '
-                         'WebView2LoaderStatic.lib），')
+            lines.append('  Runtime；本包只带 loader（%s），'
+                         % ' / '.join(loader_files))
             lines.append('  不含浏览器内核。未安装时创建环境失败（常见 0x80070002），')
             lines.append('  安装：https://developer.microsoft.com/microsoft-edge/webview2/')
         if 'WebView2Loader.dll' in bin_dlls:
@@ -1871,7 +1978,12 @@ def main(argv=None):
     parser.add_argument('--skia-lib-dir', default=None,
                         help='Skia 静态库目录（默认按平台/工具链探测，'
                              '如 ../skia/out/llvm.<arch>.<config> 或 '
-                             'mingw64-gcc.<arch>.release）')
+                             'mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release）')
+    parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
+                        default='auto',
+                        help='MinGW 编译器变体（默认从静态库符号自动判断）；'
+                             'gcc 与 llvm-mingw 产物绑定不同 C++ 运行时，'
+                             '包名会追加 -mingw-gcc / -mingw-llvm')
     parser.add_argument('--sdl-dir', default=None,
                         help='SDL3 根目录（默认 ../SDL3）')
     parser.add_argument('--with-sdl', action='store_true',
@@ -1913,8 +2025,11 @@ def main(argv=None):
     try:
         lib_dir = resolve_lib_dir(args.lib_dir, config, arch_tag)
         toolchain = detect_windows_toolchain(lib_dir) if sys_tag == 'win' else None
+        mingw_variant = None
+        if toolchain == 'mingw':
+            mingw_variant = resolve_mingw_variant(lib_dir, args.mingw_variant)
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
-                                        toolchain)
+                                        toolchain, mingw_variant)
 
         collector = Collector()
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
@@ -1922,9 +2037,9 @@ def main(argv=None):
                               args.with_cef, args.cef_version)
         n_skia = collect_skia_libs(collector, skia_dir)
         n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
-        n_wv2 = collect_webview2_loader(collector, arch_tag)
+        n_wv2 = collect_webview2_loader(collector, arch_tag, toolchain)
         n_dll = collect_duilib_runtime_dll(collector, arch_tag, config)
-        n_jpeg = collect_jpeg_turbo(collector, arch_tag)
+        n_jpeg = collect_jpeg_turbo(collector, arch_tag, toolchain)
         n_cef = 0
         n_cef_rt = 0
         if args.with_cef:
@@ -1945,7 +2060,7 @@ def main(argv=None):
     try:
         meta = build_package_meta(collector, version, sys_tag, arch_tag, config,
                                   toolchain, args.with_cef, args.cef_version,
-                                  args.msvc_runtime)
+                                  args.msvc_runtime, mingw_variant)
         n_integration, gen_files = collect_integration_files(collector, meta)
         n_generated = len(gen_files)
         virtual_files = dict(gen_files)
@@ -1959,7 +2074,12 @@ def main(argv=None):
     print('平台      : %s-%s' % (sys_tag, arch_tag))
     print('配置      : %s' % config)
     if sys_tag == 'win' and toolchain:
-        print('工具链    : %s' % ('MinGW' if toolchain == 'mingw' else 'MSVC'))
+        if toolchain == 'mingw':
+            toolchain_text = ('MinGW（llvm-mingw）' if mingw_variant == 'llvm'
+                              else 'MinGW（gcc）')
+        else:
+            toolchain_text = 'MSVC'
+        print('工具链    : %s' % toolchain_text)
     print('库目录    : %s' % _rel(lib_dir))
     print('Skia 目录 : %s' % _rel(skia_dir))
     print('格式      : %s' % fmt)
@@ -2002,14 +2122,16 @@ def main(argv=None):
 
     pkg_root_name = build_package_name(
         version, sys_tag, arch_tag, config,
-        args.with_sdl, args.with_cef, args.cef_version, args.with_examples)
+        args.with_sdl, args.with_cef, args.cef_version, args.with_examples,
+        mingw_variant=mingw_variant)
     package_time = (source_date_epoch if source_date_epoch is not None
                     else _default_archive_time(collector))
     manifest_text, sums_text = write_manifest(
         collector, pkg_root_name, version, sys_tag, arch_tag, config,
         args.with_examples, args.with_sdl, args.with_cef, args.cef_version,
         toolchain, virtual_files=virtual_files,
-        msvc_runtime=meta['msvc_runtime'], package_time=package_time)
+        msvc_runtime=meta['msvc_runtime'], package_time=package_time,
+        mingw_variant=mingw_variant)
 
     ext = {'zip': '.zip', 'tgz': '.tar.gz', 'tarbz2': '.tar.bz2'}[fmt]
     out_path = os.path.join(args.out_dir, pkg_root_name + ext)

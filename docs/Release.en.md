@@ -62,15 +62,21 @@ python build/pack.py --with-examples
 
 Running `pack.py` directly writes to `dist/`; `build/release.py package`
 always writes to `dist/<version>/`. Package names have the form
-`nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`,
+`nim_duilib-<version>-<system>-<arch>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-debug]`,
 so feature packages of the same version can coexist:
 
 ```
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-gcc.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-llvm.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
 ```
 
+- `-mingw-gcc` / `-mingw-llvm`: added automatically when the library directory
+  holds MinGW artifacts (or set explicitly with `--mingw-variant`). gcc static
+  libraries bind libstdc++ while llvm-mingw binds libc++; the two are not
+  interchangeable and their Skia directories must match;
 - `-sdl`: only on Windows with an explicit `--with-sdl`; Unix always ships SDL
   and gains no suffix;
 - `-cef` / `-cef109`: added by `--with-cef` according to `--cef-version`;
@@ -108,9 +114,12 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    - Skia: `skia`, `svg`, `skshaper`, `skottie`, `sksg`, `jsonreader`
      (`bentleyottmann`, `expat`, `skcms`, `skresources` are shipped; add them
      if unresolved symbols appear)
-   - WebView2: `WebView2LoaderStatic` (VS) or `WebView2Loader.dll` (CMake,
-     requires the DLL at runtime)
-   - JPEG (Windows): `turbojpeg-static`
+   - WebView2: MSVC ships `WebView2LoaderStatic` (VS) or
+     `WebView2Loader.dll.lib` (CMake); MinGW ships only
+     `WebView2Loader.dll.lib`, written as `-lWebView2Loader.dll`. Both need
+     `WebView2Loader.dll` at runtime
+   - JPEG (Windows MSVC): `turbojpeg-static`; MinGW packages omit this
+     MSVC-only static library
    - SDL (optional): `SDL3-static` (MSVC static) / `SDL3` import library plus
      `bin/SDL3.dll` (dynamic) / `libSDL3.a` (MinGW static); on Unix `SDL3`
    - CEF (optional): `libcef` + `libcef_dll_wrapper[_109]`
@@ -516,14 +525,16 @@ that CEF examples cannot run directly.
 
 ## WebView2 runtime
 
-WebView2 is Windows-only. The SDK ships `bin/WebView2Loader.dll` plus
-`lib/WebView2LoaderStatic.lib` and `lib/WebView2Loader.dll.lib`, but the
-**loader is not the browser engine**: WebView2 depends on the Microsoft Edge
-WebView2 Evergreen Runtime installed on the system (Windows 10/11 machines with
-Microsoft Edge usually already have it).
+WebView2 is Windows-only. MSVC packages ship `bin/WebView2Loader.dll` plus
+`lib/WebView2LoaderStatic.lib` and `lib/WebView2Loader.dll.lib`; MinGW packages
+ship only the dynamic loader import library `lib/WebView2Loader.dll.lib` and
+`bin/WebView2Loader.dll` (`WebView2LoaderStatic.lib` is an MSVC static library
+that MinGW cannot link). The **loader is not the browser engine**: WebView2
+depends on the Microsoft Edge WebView2 Evergreen Runtime installed on the system
+(Windows 10/11 machines with Microsoft Edge usually already have it).
 
-- With the static loader (default) `WebView2Loader.dll` is not required, but the
-  system runtime still is;
+- With the static loader (default, MSVC only) `WebView2Loader.dll` is not
+  required, but the system runtime still is;
 - With the dynamic loader (`DUILIB_USE_WEBVIEW2_LOADER_DLL`) you must also copy
   `bin/WebView2Loader.dll` next to the executable — the framework looks only
   there;
