@@ -296,6 +296,32 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # 启用 SDL
 - cmake（3.24+ 才会启用 `--fresh`，低版本仍可编译）
 - ninja、make、mingw32-make 三者之一
 
+**依赖安装（pacman）：**
+
+在对应的 MSYS2 shell 中执行。`$MINGW_PACKAGE_PREFIX` 由 MSYS2 自动设置（MINGW64 / UCRT64 / CLANG64 中分别为 `mingw-w64-x86_64`、`mingw-w64-ucrt-x86_64`、`mingw-w64-clang-x86_64`），无需硬编码环境名：
+
+```bash
+# msys2_build.sh（gcc 环境：MINGW64 / UCRT64）
+pacman -S --needed $MINGW_PACKAGE_PREFIX-gcc \
+                   $MINGW_PACKAGE_PREFIX-cmake \
+                   $MINGW_PACKAGE_PREFIX-ninja
+
+# CLANG64 环境把 gcc 换成 clang，其余相同
+pacman -S --needed $MINGW_PACKAGE_PREFIX-clang \
+                   $MINGW_PACKAGE_PREFIX-cmake \
+                   $MINGW_PACKAGE_PREFIX-ninja
+
+# build_duilib_all_in_one.sh 还会克隆依赖、编译 Skia 与 SDL，额外需要
+pacman -S --needed git unzip curl python \
+                   $MINGW_PACKAGE_PREFIX-gn \
+                   $MINGW_PACKAGE_PREFIX-ninja
+```
+
+- `build_duilib_all_in_one.sh` 同样支持在 MSYS2 中运行：自动克隆依赖、编译 Skia（及可选的 SDL），最后调用 `msys2_build.sh`。
+- MSYS2 的 `base` 环境不自带 cmake / ninja / gn / git / unzip / python3，缺少任一项时脚本会在启动检查或后续步骤报错退出。
+- `python` 为 MSYS 包，提供 `/usr/bin/python3`；若 `python3` 命令不存在，安装它即可。
+- 不再需要 `bc`：脚本已改为使用 shell 内建比较 CMake 版本；`--fresh` 仅在 CMake 3.24+ 时启用，低版本自动跳过。
+
 **使用方法：**
 ```bash
 cd nim_duilib/build

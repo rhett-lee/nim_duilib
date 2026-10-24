@@ -522,12 +522,13 @@ elif [ "$ENABLE_SDL" == "1" ]; then
     # 固定生成器与编译器：原生 Windows 版 CMake 的默认生成器是 Visual Studio，
     # 此时 -DCMAKE_C_COMPILER=gcc 会被静默忽略并改用 MSVC，导致 SDL 与 duilib 工具链不一致。
     # 本脚本已要求 ninja（Skia 构建），因此统一使用 Ninja 生成器。
+    # 目录名带上生成器：旧版本脚本创建的 VS 生成目录不会被复用，避免生成器不匹配的配置失败
     if [ "$has_clang" -eq 1 ]; then
-        DUILIB_SDL_DIR=SDL.build.msys2.llvm
+        DUILIB_SDL_DIR=SDL.build.msys2.llvm.ninja
         DUILIB_SDL_CC=clang
         DUILIB_SDL_CXX=clang++
     else
-        DUILIB_SDL_DIR=SDL.build.msys2.gcc
+        DUILIB_SDL_DIR=SDL.build.msys2.gcc.ninja
         DUILIB_SDL_CC=gcc
         DUILIB_SDL_CXX=g++
     fi

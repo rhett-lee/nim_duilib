@@ -298,6 +298,38 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # SDL enabled
 - CMake (3.24+ enables `--fresh`; older versions still build)
 - One of ninja, make or mingw32-make
 
+**Dependencies (pacman):**
+
+Run these in the matching MSYS2 shell. `$MINGW_PACKAGE_PREFIX` is set automatically by
+MSYS2 (`mingw-w64-x86_64`, `mingw-w64-ucrt-x86_64` or `mingw-w64-clang-x86_64` for
+MINGW64 / UCRT64 / CLANG64), so the environment name does not need to be hardcoded:
+
+```bash
+# msys2_build.sh (gcc environments: MINGW64 / UCRT64)
+pacman -S --needed $MINGW_PACKAGE_PREFIX-gcc \
+                   $MINGW_PACKAGE_PREFIX-cmake \
+                   $MINGW_PACKAGE_PREFIX-ninja
+
+# CLANG64: replace gcc with clang, everything else is the same
+pacman -S --needed $MINGW_PACKAGE_PREFIX-clang \
+                   $MINGW_PACKAGE_PREFIX-cmake \
+                   $MINGW_PACKAGE_PREFIX-ninja
+
+# build_duilib_all_in_one.sh also clones dependencies and builds Skia and SDL
+pacman -S --needed git unzip curl python \
+                   $MINGW_PACKAGE_PREFIX-gn \
+                   $MINGW_PACKAGE_PREFIX-ninja
+```
+
+- `build_duilib_all_in_one.sh` also runs in MSYS2: it clones the dependencies, builds
+  Skia (and optionally SDL), then calls `msys2_build.sh`.
+- MSYS2 `base` does not ship cmake / ninja / gn / git / unzip / python3; the scripts
+  abort at the startup check or a later step if any of them is missing.
+- `python` is an MSYS package providing `/usr/bin/python3`; install it if the `python3`
+  command is not available.
+- `bc` is no longer required: the CMake version check uses shell built-ins, and
+  `--fresh` is only enabled on CMake 3.24+ (older versions skip it).
+
 **Usage:**
 ```bash
 cd nim_duilib/build
