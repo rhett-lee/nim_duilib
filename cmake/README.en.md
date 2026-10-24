@@ -43,7 +43,7 @@ DUILIB_OS_FREEBSD  # FreeBSD system
 DUILIB_COMPILER_MSVC    # MSVC compiler
 DUILIB_COMPILER_GCC     # GCC compiler
 DUILIB_COMPILER_LLVM    # Clang/LLVM compiler
-DUILIB_COMPILER_NAME    # Compiler name (e.g. "msvc", "mingw64-gcc", "mingw64-llvm")
+DUILIB_COMPILER_NAME    # Compiler name (e.g. "msvc", "mingw64-gcc", "mingw64-llvm"; "gcc"/"llvm" on MSYS2)
 ```
 
 #### 1.3 CPU architecture detection
@@ -102,7 +102,9 @@ from the platform and configuration, so individual projects no longer need to se
 # An external -DDUILIB_SKIA_LIB_SUBPATH=... always wins (a fixed path that does not follow the configuration).
 
 # When the subdirectory name is empty, the automatic rule is
-# (the resolved directory must exist, otherwise configuration fails immediately):
+# (the resolved directory must exist, otherwise configuration fails immediately;
+#  MinGW builds also require *.a static libraries in the directory, so a same-named
+#  directory holding MSVC .lib files is not mistaken for a usable one):
 #   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
 #             Debug must match the debug variant (a Debug build cannot link release
 #             Skia); a missing directory is a hard error
@@ -114,6 +116,11 @@ from the platform and configuration, so individual projects no longer need to se
 #             falls back to the release variant
 #   Linux/macOS/FreeBSD : <compiler>.<CPU_ARCH>.release
 #             Skia is only built as release on Unix (D-3)
+
+# MSYS2 and standalone MinGW-w64 are distinguished by the compiler installation path
+# (an MSYS2 root contains usr/bin/pacman.exe); MSYSTEM is not used because Git Bash
+# sets MSYSTEM=MINGW64 too. The matching prefix is preferred, the other one is a fallback
+# (so a build still works when only one set of Skia libraries is present).
 
 # Final Skia library directory:
 ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
@@ -129,6 +136,7 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<subdirectory>
 # MSYS2 Windows + Debug    -> skia/out/gcc.<arch>.debug first, then gcc.<arch>.release
 # -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> both configurations use that fixed directory
 #                                              (its existence is validated as well)
+# MinGW pointing at an MSVC-only directory (.lib, e.g. the MSVC llvm.x64.release) -> configure error
 ```
 
 ---

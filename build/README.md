@@ -286,6 +286,35 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # 启用 SDL
 
 ---
 
+### 7. msys2_build.sh（MSYS2 编译）
+
+**功能：** 在 MSYS2 环境下使用 mingw-w64 gcc/g++ 或 clang/clang++ 编译第三方库、duilib 与全部示例。
+
+**前置条件：**
+- 在 MSYS2 的 MINGW64 / UCRT64 / CLANG64 shell 中运行
+- mingw-w64 目标的 gcc/g++ 或 clang/clang++（`x86_64-w64-mingw32-*` 或 `x86_64-w64-windows-gnu-*`）
+- cmake（3.24+ 才会启用 `--fresh`，低版本仍可编译）
+- ninja、make、mingw32-make 三者之一
+
+**使用方法：**
+```bash
+cd nim_duilib/build
+./msys2_build.sh        # 不启用 SDL
+./msys2_build.sh -sdl   # 启用 SDL
+```
+
+**说明：**
+- 脚本显式指定 CMake 生成器（优先 Ninja，其次 MSYS Makefiles，最后 MinGW Makefiles）。
+  原生 Windows 版 CMake（如 `/mingw64/bin/cmake`）默认使用 Visual Studio 生成器，
+  会静默忽略 `-DCMAKE_C_COMPILER`，导致产物变成 MSVC 版本。
+- 脚本会检查编译器目标；MSYS/Cygwin 目标的 gcc/clang 会被忽略，并在必要时回退到另一个编译器。
+- Skia 目录：gcc 构建用 `gcc.<arch>.release`，clang 构建用 `llvm.<arch>.release`；
+  两者都只有 release 变体，Debug 构建缺失 debug 目录时回退 release。
+- 任一目标配置或编译失败时脚本立即退出（`set -e`），不再继续执行后续示例。
+- 不支持 CEF；支持 WebView2 与可选的 SDL。
+
+---
+
 ## 编译配置对比
 
 | 特性 | MSVC | MinGW GCC | MinGW Clang |
@@ -555,6 +584,9 @@ nim_duilib_copy_runtime(my_app)
   任一缺失时打包直接失败，不再只告警。
 - MinGW 构建的库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库），
   Skia 目录为 `mingw64-gcc.<arch>.release` / `mingw64-llvm.<arch>.release`；
+  MSYS2 构建（`msys2_build.sh`）的 Skia 目录为 `gcc.<arch>.release` /
+  `llvm.<arch>.release`，打包脚本目前只自动识别前一种命名，后者需用
+  `--skia-lib-dir` 显式指定；
   打包脚本按库目录内容自动判断工具链（MSVC/MinGW），清单中链接写法为 `-lxxx`。
 - DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll`
   （x64/arm64 为 `duilib[_d].dll`，x86 为 `duilib32[_d].dll`）随包，
@@ -626,14 +658,20 @@ DuilibUseDynamicRuntime.bat
 duilib 依赖特定版本的 Skia，编译输出目录必须为：
 ```
 skia/out/
-├── llvm.x64.debug/
-├── llvm.x64.release/
+├── llvm.x64.debug/            # MSVC Debug
+├── llvm.x64.release/          # MSVC Release（与 MSYS2 clang 同名，可共存）
 ├── llvm.x86.debug/
 ├── llvm.x86.release/
-├── mingw64-gcc.x64.release/   # MinGW GCC 编译
-├── mingw64-llvm.x64.release/  # MinGW Clang 编译
-└── ...
+├── mingw64-gcc.x64.release/   # 独立 MinGW GCC 编译
+├── mingw64-llvm.x64.release/  # 独立 MinGW Clang 编译
+├── gcc.x64.release/           # MSYS2 GCC 编译
+└── llvm.x64.release/          # MSYS2 Clang 编译
 ```
+说明：
+- MSYS2 的 clang 与 MSVC 都使用 `llvm.<arch>.release` 这个目录名，但库文件名不同
+  （`lib*.a` 与 `*.lib`），可以放在同一目录共存；建议仍按工具链分开，便于排查。
+- MSYS2 只产出 release 变体；Debug 构建会回退到同编译器的 release 目录。
+- 找不到匹配目录时，CMake 在配置阶段直接报错，不会进入编译。
 
 ### 5. 支持的编译器版本
 

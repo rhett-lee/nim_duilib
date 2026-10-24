@@ -115,6 +115,33 @@ is_windows() {
     esac
 }
 
+# 判断编译器目标是否为 mingw-w64：MSYS shell 中的 gcc/clang 目标是 x86_64-pc-msys，
+# 用它编译 Skia 会得到无法链接的库；MSYS2 CLANG64 下 clang 的 triple 为 x86_64-w64-windows-gnu
+is_mingw_compiler() {
+    local triple
+    triple=$("$1" -dumpmachine 2>/dev/null) || return 1
+    case "$triple" in
+        *mingw*|*w64-windows-gnu*) return 0 ;;
+        *)                         return 1 ;;
+    esac
+}
+
+if is_windows; then
+    if [ "$has_gcc" -eq 1 ] && ! is_mingw_compiler gcc; then
+        echo "忽略 gcc：目标不是 mingw-w64（$(gcc -dumpmachine 2>/dev/null)）"
+        has_gcc=0
+    fi
+    if [ "$has_clang" -eq 1 ] && ! is_mingw_compiler clang; then
+        echo "忽略 clang：目标不是 mingw-w64（$(clang -dumpmachine 2>/dev/null)）"
+        has_clang=0
+    fi
+    if [ "$has_gcc$has_clang" == "00" ]; then
+        echo "- 未找到目标为 mingw-w64 的 gcc/clang"
+        echo "- 请在 MSYS2 的 MINGW64/UCRT64/CLANG64 环境下运行"
+        exit 1
+    fi
+fi
+
 cd "$SCRIPT_DIR"
 pwd
 if [ ! -d "./nim_duilib/.git" ]; then
@@ -480,12 +507,19 @@ if ! is_windows; then
 elif [ "$ENABLE_SDL" == "1" ]; then
     # build SDL on Windows
     echo "- Building SDL ..."
+    # 固定生成器与编译器：原生 Windows 版 CMake 的默认生成器是 Visual Studio，
+    # 此时 -DCMAKE_C_COMPILER=gcc 会被静默忽略并改用 MSVC，导致 SDL 与 duilib 工具链不一致。
+    # 本脚本已要求 ninja（Skia 构建），因此统一使用 Ninja 生成器。
     if [ "$has_clang" -eq 1 ]; then
         DUILIB_SDL_DIR=SDL.build.msys2.llvm
+        DUILIB_SDL_CC=clang
+        DUILIB_SDL_CXX=clang++
     else
         DUILIB_SDL_DIR=SDL.build.msys2.gcc
+        DUILIB_SDL_CC=gcc
+        DUILIB_SDL_CXX=g++
     fi
-    cmake ${DUILIB_CMAKE_REFRESH} -S "./SDL/" -B "./${DUILIB_SDL_DIR}" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake ${DUILIB_CMAKE_REFRESH} -G "Ninja" -DCMAKE_C_COMPILER=$DUILIB_SDL_CC -DCMAKE_CXX_COMPILER=$DUILIB_SDL_CXX -S "./SDL/" -B "./${DUILIB_SDL_DIR}" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
     cmake --build ./${DUILIB_SDL_DIR} -j 6
     cmake --install ./${DUILIB_SDL_DIR}
 fi

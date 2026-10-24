@@ -288,6 +288,37 @@ build_duilib_all_in_one_mingw-w64.bat -sdl # SDL enabled
 
 ---
 
+### 7. msys2_build.sh (MSYS2 build)
+
+**Function:** Build the third-party libraries, duilib and all examples in MSYS2 using mingw-w64 gcc/g++ or clang/clang++.
+
+**Prerequisites:**
+- Run inside an MSYS2 MINGW64 / UCRT64 / CLANG64 shell
+- A mingw-w64-target compiler: gcc/g++ or clang/clang++ (`x86_64-w64-mingw32-*` or `x86_64-w64-windows-gnu-*`)
+- CMake (3.24+ enables `--fresh`; older versions still build)
+- One of ninja, make or mingw32-make
+
+**Usage:**
+```bash
+cd nim_duilib/build
+./msys2_build.sh        # SDL disabled
+./msys2_build.sh -sdl   # SDL enabled
+```
+
+**Notes:**
+- The script pins the CMake generator (Ninja first, then MSYS Makefiles, then MinGW Makefiles).
+  A native Windows CMake (e.g. `/mingw64/bin/cmake`) defaults to the Visual Studio
+  generator, which silently ignores `-DCMAKE_C_COMPILER` and builds MSVC artifacts.
+- The compiler target is validated; MSYS/Cygwin-target gcc/clang are ignored and the
+  other compiler is used when available.
+- Skia directory: `gcc.<arch>.release` for gcc builds and `llvm.<arch>.release` for
+  clang builds; only release variants exist, so Debug builds fall back to release.
+- The script stops at the first failed configure/build (`set -e`) instead of continuing
+  with the remaining examples.
+- CEF is not supported; WebView2 and optional SDL are supported.
+
+---
+
 ## Build Configuration Comparison
 
 | Feature | MSVC | MinGW GCC | MinGW Clang |
@@ -569,8 +600,11 @@ Easy mistakes to avoid:
   `duilib-zlib` is missing (no longer a warning).
 - MinGW builds produce `libduilib*.a` (static) or `libduilib*.dll.a` (import)
   libraries, and Skia lives in `mingw64-gcc.<arch>.release` /
-  `mingw64-llvm.<arch>.release`. The script detects the toolchain (MSVC/MinGW)
-  from the library directory and writes `-lxxx` links for MinGW in the manifest.
+  `mingw64-llvm.<arch>.release`. MSYS2 builds (`msys2_build.sh`) use
+  `gcc.<arch>.release` / `llvm.<arch>.release` instead; packaging only
+  auto-detects the former naming, so the latter needs `--skia-lib-dir`.
+  The script detects the toolchain (MSVC/MinGW) from the library directory and
+  writes `-lxxx` links for MinGW in the manifest.
 - In DLL mode (`msvc/PropertySheets/duilib_dll.flag` exists) `bin/duilib*.dll`
   (`duilib[_d].dll` on x64/arm64, `duilib32[_d].dll` on x86) is packaged and
   `lib/` holds the matching import library; static builds have no such file and
@@ -647,14 +681,23 @@ DuilibUseDynamicRuntime.bat
 duilib depends on a specific version of Skia; the build output directory must be:
 ```
 skia/out/
-├── llvm.x64.debug/
-├── llvm.x64.release/
+├── llvm.x64.debug/            # MSVC Debug
+├── llvm.x64.release/          # MSVC Release (same name as the MSYS2 clang dir, can coexist)
 ├── llvm.x86.debug/
 ├── llvm.x86.release/
-├── mingw64-gcc.x64.release/   # MinGW GCC build
-├── mingw64-llvm.x64.release/  # MinGW Clang build
-└── ...
+├── mingw64-gcc.x64.release/   # standalone MinGW GCC build
+├── mingw64-llvm.x64.release/  # standalone MinGW Clang build
+├── gcc.x64.release/           # MSYS2 GCC build
+└── llvm.x64.release/          # MSYS2 Clang build
 ```
+Notes:
+- MSYS2 clang and MSVC both use `llvm.<arch>.release`, but the library file names
+  differ (`lib*.a` vs `*.lib`), so both can coexist in that directory; keeping them
+  separate per toolchain is still recommended for easier troubleshooting.
+- MSYS2 only produces release variants; Debug builds fall back to the release
+  directory of the same compiler.
+- When no matching directory is found, CMake fails at configure time instead of
+  proceeding to compilation.
 
 ### 5. Supported compiler versions
 

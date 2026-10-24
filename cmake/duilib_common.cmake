@@ -20,10 +20,38 @@ option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
 
 # Skia的lib子目录名：默认值在下方按平台/工具链自动推导，不写缓存；可用 -DDUILIB_SKIA_LIB_SUBPATH 覆盖
 
+# 判断 MinGW 工具链是否来自 MSYS2（决定 Skia 子目录前缀）：
+#   MSYS2 的编译器位于 <root>/<env>/bin（env = mingw64/ucrt64/clang64/clangarm64），
+#   安装根目录下存在 usr/bin/pacman.exe；独立 MinGW-w64 不满足该特征。
+# 不能用 MSYSTEM 环境变量判断：Git Bash 同样会设置 MSYSTEM=MINGW64。
+function(_duilib_detect_msys2 out_var)
+    set(_is_msys2 0)
+    set(_duilib_cc "${CMAKE_CXX_COMPILER}")
+    if(_duilib_cc STREQUAL "")
+        set(_duilib_cc "${CMAKE_C_COMPILER}")
+    endif()
+    if(NOT _duilib_cc STREQUAL "")
+        get_filename_component(_duilib_cc_dir "${_duilib_cc}" DIRECTORY)
+        get_filename_component(_duilib_env_dir "${_duilib_cc_dir}" DIRECTORY)
+        get_filename_component(_duilib_msys_root "${_duilib_env_dir}" DIRECTORY)
+        if(EXISTS "${_duilib_msys_root}/usr/bin/pacman.exe")
+            set(_is_msys2 1)
+        endif()
+    endif()
+    set(${out_var} "${_is_msys2}" PARENT_SCOPE)
+endfunction()
+
 # MINGW 开发环境
 if(MINGW)
     set(DUILIB_MINGW 1)
-    set(DUILIB_MINGW_NAME "mingw64-")
+    # Skia 目录前缀：MSYS2 无前缀（gcc./llvm.），独立 MinGW-w64 为 mingw64-
+    _duilib_detect_msys2(_duilib_is_msys2)
+    if(_duilib_is_msys2)
+        set(DUILIB_MINGW_NAME "")
+    else()
+        set(DUILIB_MINGW_NAME "mingw64-")
+    endif()
+    unset(_duilib_is_msys2)
 endif()
 
 # SDL功能：Windows平台默认不开启，其他平台默认开启
@@ -98,7 +126,10 @@ endif()
 #   Windows MinGW llvm      -> mingw64-llvm.<arch>.debug|release（MSYS2 为 llvm.<arch>.xxx）
 #     Debug 变体缺失时回退 release 变体
 #   其他平台                -> <编译器名>.<arch>.release（Skia 只有 release 变体，见 D-3）
-# 解析结果必须真实存在，否则在配置阶段直接报错，避免进入编译后才出现难以定位的链接错误。
+# MSYS2 与独立 MinGW-w64 由编译器安装位置判断（见 _duilib_detect_msys2），
+# 本工具链的前缀优先，另一组前缀作为回退。
+# 解析结果必须真实存在，且 MinGW 构建要求目录内存在 *.a 静态库；
+# 否则在配置阶段直接报错，避免进入编译后才出现难以定位的链接错误。
 set(DUILIB_SKIA_CPU_ARCH "")
 if(DUILIB_OS_WINDOWS)
     if(CMAKE_GENERATOR_PLATFORM)
@@ -185,27 +216,32 @@ function(_duilib_skia_candidate_subdirs config out_var)
                 list(APPEND _candidates "llvm.${DUILIB_SKIA_CPU_ARCH}.release")
             endif()
         else()
-            # MinGW：独立 MinGW-w64 使用 mingw64- 前缀，MSYS2 使用 gcc./llvm.
+            # MinGW：MSYS2 使用无前缀目录（gcc./llvm.），独立 MinGW-w64 使用 mingw64- 前缀。
+            # 优先本工具链的前缀，另一组作为回退，避免用户只准备了一份 Skia 时无法构建。
             # 库与 Skia 必须同源：gcc(libstdc++) 与 llvm-mingw(libc++) 的 C++ 运行时不兼容，
             # 混用会在链接阶段出现 std 符号重复定义，因此不做跨编译器回退
+            if(DUILIB_MINGW_NAME STREQUAL "")
+                set(_prefixes "" "mingw64-")
+            else()
+                set(_prefixes "mingw64-" "")
+            endif()
             if(DUILIB_COMPILER_GCC)
                 set(_compilers "gcc")
             else()
                 set(_compilers "llvm")
             endif()
-            foreach(_compiler IN LISTS _compilers)
-                if(config STREQUAL "debug")
-                    # Debug 变体优先；缺失时回退同编译器的 release 变体
-                    list(APPEND _candidates
-                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
-                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release"
-                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
-                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
-                else()
-                    list(APPEND _candidates
-                        "mingw64-${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release"
-                        "${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
-                endif()
+            foreach(_prefix IN LISTS _prefixes)
+                foreach(_compiler IN LISTS _compilers)
+                    if(config STREQUAL "debug")
+                        # Debug 变体优先；缺失时回退同编译器的 release 变体
+                        list(APPEND _candidates
+                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.debug"
+                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
+                    else()
+                        list(APPEND _candidates
+                            "${_prefix}${_compiler}.${DUILIB_SKIA_CPU_ARCH}.release")
+                    endif()
+                endforeach()
             endforeach()
         endif()
     else()
@@ -213,6 +249,25 @@ function(_duilib_skia_candidate_subdirs config out_var)
         list(APPEND _candidates "${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.release")
     endif()
     set(${out_var} "${_candidates}" PARENT_SCOPE)
+endfunction()
+
+# MinGW 构建要求 Skia 目录中存在 .a 静态库：
+# llvm.<arch>.release 这类目录名与 MSVC 产物相同，若只检查目录存在，
+# 会把 MSVC 的 .lib 误判为可用库，直到链接阶段才报错。
+function(_duilib_check_mingw_skia_lib dir)
+    if(NOT DUILIB_MINGW)
+        return()
+    endif()
+    file(GLOB _duilib_skia_a_files "${dir}/*.a")
+    if(NOT _duilib_skia_a_files)
+        message(FATAL_ERROR
+            "Skia 库目录中没有 .a 静态库，无法用于 MinGW 构建：\n"
+            "  ${dir}\n"
+            "该目录可能存放的是 MSVC 构建的 .lib 文件。\n"
+            "请用与当前工具链相同的编译器重新编译 Skia（MSYS2 用 gcc 或 CLANG64 的 clang，"
+            "独立 MinGW 用 gcc 或 llvm-mingw），"
+            "或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定正确的目录。")
+    endif()
 endfunction()
 
 # 外部显式指定的子目录名（固定路径，不随配置变化）
@@ -253,6 +308,8 @@ if(_duilib_skia_user_subpath)
             "  ${DUILIB_SKIA_LIB_PATH}\n"
             "请检查 -DDUILIB_SKIA_LIB_SUBPATH=${DUILIB_SKIA_LIB_SUBPATH} 是否正确，"
             "或先编译 Skia。")
+    else()
+        _duilib_check_mingw_skia_lib("${DUILIB_SKIA_LIB_PATH}")
     endif()
 else()
     # 按配置解析候选目录，取第一个真实存在的候选
@@ -284,6 +341,16 @@ else()
             "未找到可用的 Skia 库目录（${DUILIB_SKIA_SRC_ROOT_DIR}/out 下）：\n"
             "${_duilib_skia_error}"
             "请先编译 Skia，或用 -DDUILIB_SKIA_LIB_SUBPATH=<子目录名> 指定。")
+    endif()
+
+    # MinGW 构建逐个配置校验目录内的 .a 静态库（多配置下两种配置可能指向不同目录）
+    if(DUILIB_MINGW)
+        if(NOT _duilib_skia_debug_sub STREQUAL "")
+            _duilib_check_mingw_skia_lib("${DUILIB_SKIA_SRC_ROOT_DIR}/out/${_duilib_skia_debug_sub}")
+        endif()
+        if(NOT _duilib_skia_release_sub STREQUAL "")
+            _duilib_check_mingw_skia_lib("${DUILIB_SKIA_SRC_ROOT_DIR}/out/${_duilib_skia_release_sub}")
+        endif()
     endif()
 
     if(CMAKE_CONFIGURATION_TYPES)

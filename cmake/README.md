@@ -41,7 +41,7 @@ DUILIB_OS_FREEBSD  # FreeBSD 系统
 DUILIB_COMPILER_MSVC    # MSVC 编译器
 DUILIB_COMPILER_GCC     # GCC 编译器
 DUILIB_COMPILER_LLVM    # Clang/LLVM 编译器
-DUILIB_COMPILER_NAME    # 编译器名称（如 "msvc", "mingw64-gcc", "mingw64-llvm"）
+DUILIB_COMPILER_NAME    # 编译器名称（如 "msvc", "mingw64-gcc", "mingw64-llvm"；MSYS2 为 "gcc", "llvm"）
 ```
 
 #### 1.3 CPU 架构检测
@@ -98,7 +98,8 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 # 默认值：空（不再预先写死 llvm.<arch>.<构建类型>）
 # 外部用 -DDUILIB_SKIA_LIB_SUBPATH=... 传入时以外部值为准（固定路径，不随配置变化）。
 
-# 子目录名为空时，自动规则（解析结果必须真实存在，否则配置阶段直接报错）：
+# 子目录名为空时，自动规则（解析结果必须真实存在，否则配置阶段直接报错；
+# MinGW 构建还要求目录内存在 *.a 静态库，避免把同名目录中的 MSVC .lib 误判为可用库）：
 #   Windows MSVC / clang-cl : llvm.<CPU_ARCH>.debug / llvm.<CPU_ARCH>.release
 #             Debug 必须匹配 debug 变体（Debug 版本无法链接 release Skia），缺失直接报错
 #   Windows MinGW gcc       : mingw64-gcc.<CPU_ARCH>.debug / .release（MSYS2 为 gcc.<arch>.*）
@@ -108,6 +109,10 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 #             Debug 变体缺失时回退 release 变体
 #   Linux/macOS/FreeBSD : <编译器>.<CPU_ARCH>.release
 #             Skia 在 Unix 只编译 release 变体（D-3）
+
+# MSYS2 与独立 MinGW-w64 按编译器安装位置区分（MSYS2 安装根目录下存在 usr/bin/pacman.exe），
+# 不使用 MSYSTEM 变量（Git Bash 也会设置 MSYSTEM=MINGW64）；
+# 本工具链的前缀优先，另一组前缀作为回退（只有一组 Skia 时仍可构建）。
 
 # 最终 Skia 库目录：
 ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
@@ -122,6 +127,7 @@ ${DUILIB_SKIA_SRC_ROOT_DIR}/out/<子目录名>
 #                                skia/out/gcc.x64.release（gcc）
 # MSYS2 Windows + Debug        -> skia/out/gcc.<arch>.debug 优先，缺失时回退 gcc.<arch>.release
 # 外部指定 -DDUILIB_SKIA_LIB_SUBPATH=llvm.x64.release -> 两个配置都固定用该目录（同样校验存在性）
+# MinGW 指向只有 .lib 的 MSVC 目录（如 llvm.x64.release 的 MSVC 产物） -> 配置期报错
 ```
 
 ---
