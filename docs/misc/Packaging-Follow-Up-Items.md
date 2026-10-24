@@ -121,9 +121,16 @@
 
 #### P0-2 关键产物缺失时阻止出包
 
-- [-] **不处理**（2026-10-23 决策：必要性不大）。
-- 理由：产物是否齐全由构建流程负责；打包脚本保持“告警后继续出包”的宽松行为，便于缺项时先出包排查。
-- 说明：缺失项仍会在输出中逐条告警，但不作为失败条件，不引入 `--strict`。
+- [x] **已实施**（2026-10-25，取代 2026-10-23 的“不处理”决策）。
+- 关键产物：核心头文件 `include/duilib/duilib.h`、5 个基础库、Skia 库
+  （后两者原本已直接失败）、`bin/resources/`、Windows 三份 manifest、
+  显式请求时的 SDL3 运行期 DLL / CEF 运行时 / 示例程序。
+- 行为：收集完成后若存在关键缺失，逐条打印原因并以退出码 1 拒绝出包；
+  非关键项（许可证、文档、JPEG、WebView2 loader、PE 架构不匹配等）仍只告警。
+- 排查通道：`--allow-missing` 把关键缺失降级为告警继续出包（发布流程不应使用）；
+  `--list` 不受影响，只打印清单。
+- 验收：`test_pack.py` 覆盖各关键项缺失、`--allow-missing` 降级与真实仓库无缺失；
+  `arm64-synthetic` 与 MSVC x64 实际出包不受影响。
 
 #### P0-3 接入层端到端验证
 
@@ -343,7 +350,8 @@
 
 - [x] 为链接重写、MANIFEST、SHA256SUMS、元数据推断、接入文件生成编写测试。
 - [x] 不接入 CI（用户决策）；改为提供可本地重复执行的自动化脚本。
-- 现状（2026-10-24）：`build/test_pack.py` 扩展到 30 个用例，覆盖包体检正/负向
+- 现状（2026-10-25）：`build/test_pack.py` 扩展到 39 个用例（含 P0-2 关键产物
+  缺失与 `--allow-missing` 降级），覆盖包体检正/负向
   （zip 与 tar.gz）、文档断链、包名（含 arm64/DLL）、MSVC 运行库自动推断、
   MANIFEST 生成与时间确定性、接入文件生成、arm64 manifest/Skia/CEF/JPEG 行为、
   防回归；工作区 Python 与 MSYS2 UCRT64 Python 全部通过。
@@ -399,7 +407,7 @@
 2. P0-5 发布 checklist；
 3. P1 其余项（优先 P1-3 CEF 运行时）、P2 长期项按版本节奏推进。
 
-> P0-2 与 P0-4 已明确关闭，不再排期。
+> P0-2 已改为实施（2026-10-25）；P0-4 已明确关闭，不再排期。
 
 ## 五、更新记录
 
@@ -451,3 +459,4 @@
 | 2026-10-24 | P0-1 特性组合实测（MinGW）：MINGW64 msvcrt 产物出包 `-win-x64-mingw-gcc-examples.zip`（752 文件，755 条目）与 `-win-x64-mingw-gcc-sdl-examples.zip`（832 文件，835 条目），`--verify` 通过，包内 `libSDL3.a` 为静态 SDL，解包后 `basic.exe` 独立运行；至此 P0-1 仅剩 arm64 与 Linux/macOS/FreeBSD 未覆盖，x86 SDL 因缺少 x86 SDL3 库暂未覆盖 |
 | 2026-10-24 | P2-1 自动化：`build/test_pack.py` 扩展到 30 个用例（链接重写、MANIFEST、MSVC 运行库推断、接入文件、arm64、防回归），工作区与 UCRT64 Python 全部通过；新增 `build/autotest.py`（预设化检测/可选构建/打包/`--verify`/结构断言/可选冒烟/JSON 报告）与 `build/test_autotest.py`（17 个用例）；`unit`、`arm64-synthetic`、`pack-msvc-x64-release` 实测通过；按用户决策不接入 CI |
 | 2026-10-24 | P2-4 arm64 接入：新增 `msvc/manifest/duilib.arm64.manifest`；`pack.py` 的 Windows 包收集 x64/x86/arm64 三份 manifest，并对 `bin/*.dll` 做 PE 架构校验（交叉出包时跳过不匹配 DLL）；`nim_duilib.props`/`nim_duilibConfig.cmake`/`duilib_common.cmake`/`SkiaSettings.props` 增加 ARM64 识别与目录映射；`arm64-synthetic` 预设用临时假库出包并通过 `--verify` 与结构断言。arm64 真机编译/运行验证未做（无设备），CEF/JPEG 无 arm64 预编译包 |
+| 2026-10-25 | P0-2 改为实施：`pack.py` 增加关键产物缺失阻断（核心头文件、`bin/resources/`、Windows manifest、显式请求的 SDL3 运行期 DLL / CEF 运行时 / 示例程序；基础库与 Skia 原本已失败），以退出码 1 拒绝出包；新增 `--allow-missing` 仅供排查降级，`--list` 不受影响。`test_pack.py` 增至 39 个用例，覆盖各关键项缺失、降级与真实仓库无缺失；`unit`、`arm64-synthetic` 与 `pack-msvc-x64-release` 预设复测通过 |

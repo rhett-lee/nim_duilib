@@ -446,6 +446,7 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--format zip\|tgz\|tarbz2` | Archive format; defaults to `zip` on Windows, `tgz` elsewhere |
 | `--out-dir <path>` | Output directory; defaults to `dist/` |
 | `--list` | Print the file list that would be collected without packaging |
+| `--allow-missing` | Keep packaging even when critical artifacts are missing (troubleshooting only; do not use for releases) |
 | `--verify <package>` | Only verify an existing package: single root directory, presence of `MANIFEST.txt`/`SHA256SUMS`, header and static-library layout, every SHA256, and relative links in SDK docs; returns 0 on success, 1 on errors |
 
 ## Debug packages

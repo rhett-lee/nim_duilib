@@ -98,6 +98,7 @@ DLL 模式（运行期目录 bin/ 中有 duilib*.dll）自动追加 -dll，避�
     python build/pack.py --with-cef           # 打包 CEF 开发文件 + 运行时（包名带 -cef）
     python build/pack.py --msvc-runtime md    # 指定 MSVC 运行库（默认按模式推断）
     python build/pack.py --out-dir dist       # 指定输出目录
+    python build/pack.py --allow-missing      # 关键产物缺失时仍出包（仅排查用）
 
 发布流程请使用 build/release.py（check / package / finalize / clean）。
 
@@ -510,10 +511,13 @@ def iter_files(root):
 class Collector(object):
     """收集结果容器。items 为 (包内相对路径, 磁盘绝对路径)。"""
 
-    def __init__(self):
+    def __init__(self, allow_missing=False):
         self.items = []
         self._seen = set()
         self.warnings = []
+        # 关键产物缺失：默认阻止出包；allow_missing 仅供排查时降级为告警。
+        self.allow_missing = allow_missing
+        self.critical = []
 
     def add(self, rel_path, abs_path):
         rel = rel_path.replace(os.sep, '/').lstrip('/')
@@ -525,8 +529,10 @@ class Collector(object):
         self.items.append((rel, abs_path))
         return True
 
-    def warn(self, msg):
+    def warn(self, msg, critical=False):
         self.warnings.append(msg)
+        if critical and not self.allow_missing:
+            self.critical.append(msg)
 
     def total_size(self):
         # 符号链接取链接本身的大小，不能用 getsize（会跟随到目标，重复计数）
@@ -578,7 +584,8 @@ def collect_headers(collector, with_cef, with_sdl, is_windows):
         parts = WEBVIEW2_INCLUDE_DIR
         root = os.path.join(DUIBIB_SRC_DIR, 'third_party', *parts)
         if not os.path.isdir(root):
-            collector.warn('third_party/%s 不存在，头文件可能不完整' % os.path.join(*parts))
+            collector.warn('third_party/%s 不存在，头文件可能不完整'
+                           % os.path.join(*parts))
         else:
             prefix = 'include/duilib/third_party/' + '/'.join(parts)
             for abs_path, rel in iter_files(root):
@@ -586,6 +593,11 @@ def collect_headers(collector, with_cef, with_sdl, is_windows):
                     continue
                 if collector.add('%s/%s' % (prefix, rel), abs_path):
                     count += 1
+
+    if not any(rel == 'include/duilib/duilib.h'
+               for rel, _abs in collector.items):
+        collector.warn('缺少核心头文件 include/duilib/duilib.h（源目录：%s）'
+                       % _rel(DUIBIB_SRC_DIR), critical=True)
 
     return count
 
@@ -953,7 +965,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
                     count += 1
             else:
                 collector.warn('缺少 SDL3 运行期 DLL：%s（下游运行会失败）'
-                               % _rel(dll))
+                               % _rel(dll), critical=True)
     else:
         lib_dirs = [os.path.join(root, 'lib64'), os.path.join(root, 'lib')]
         found = False
@@ -1116,13 +1128,15 @@ def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
     src_name = CEF_SRC_BY_VERSION[cef_version]
     arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
     if arch_dir is None:
-        collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag)
+        collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag,
+                       critical=True)
         return 0
 
     src_root = os.path.join(BIN_DIR, src_name, arch_dir)
     if not os.path.isdir(src_root):
         collector.warn('CEF 运行时目录不存在：%s（本包只有头文件与库，'
-                       '带 CEF 的示例程序无法直接运行）' % _rel(src_root))
+                       '带 CEF 的示例程序无法直接运行）' % _rel(src_root),
+                       critical=True)
         return 0
 
     dst_prefix = 'bin/%s/%s/' % (src_name, arch_dir)
@@ -1154,7 +1168,8 @@ def _resource_rel_ok(rel, with_examples):
 
 def collect_resources(collector, with_examples):
     if not os.path.isdir(RESOURCES_DIR):
-        collector.warn('资源目录不存在：%s' % RESOURCES_DIR)
+        collector.warn('资源目录不存在：%s（框架启动必需）' % RESOURCES_DIR,
+                       critical=True)
         return 0
     count = 0
     for abs_path, rel in iter_files(RESOURCES_DIR):
@@ -1294,7 +1309,7 @@ def collect_examples(collector, config, is_windows):
     duilib 与 SDL3 的运行的 DLL 由各自 collect 函数收集）。
     """
     if not os.path.isdir(BIN_DIR):
-        collector.warn('bin 目录不存在：%s' % BIN_DIR)
+        collector.warn('bin 目录不存在：%s' % BIN_DIR, critical=True)
         return 0
     count = 0
     exe_count = 0
@@ -1323,6 +1338,9 @@ def collect_examples(collector, config, is_windows):
                        '（CMake 的 Debug exe 与 Release 同名），请确认后再分发')
     if skipped_debug:
         collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
+    if exe_count == 0:
+        collector.warn('启用了 --with-examples，但 %s 下没有可打包的示例程序'
+                       % _rel(BIN_DIR), critical=True)
     return count
 
 
@@ -1563,7 +1581,7 @@ def collect_integration_files(collector, meta):
                     count += 1
             else:
                 collector.warn('缺少 manifest：%s（VS 工程不会自动嵌入 Common Controls v6）'
-                               % _rel(manifest))
+                               % _rel(manifest), critical=True)
 
     if meta['system'] == 'win' and meta['toolchain'] == 'msvc':
         virtual['msvc/nim_duilib.props'] = _with_bom(
@@ -2300,6 +2318,9 @@ def main(argv=None):
     parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help='输出目录，默认 dist/')
     parser.add_argument('--list', action='store_true',
                         help='只打印将收集的文件清单，不实际打包')
+    parser.add_argument('--allow-missing', action='store_true',
+                        help='关键产物缺失时仍继续出包（仅用于排查，'
+                             '发布流程不应使用）')
     parser.add_argument('--verify', metavar='PACKAGE', default=None,
                         help='只校验已有包：布局、MANIFEST、SHA256SUMS 与文档相对链接，'
                              '不做打包；通过返回 0，发现错误返回 1')
@@ -2337,7 +2358,7 @@ def main(argv=None):
                                         toolchain, mingw_variant,
                                         dll_mode=(toolchain == 'msvc' and detect_dll_mode()))
 
-        collector = Collector()
+        collector = Collector(allow_missing=args.allow_missing)
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
         n_libs = collect_libs(collector, lib_dir, config,
                               args.with_cef, args.cef_version)
@@ -2425,6 +2446,13 @@ def main(argv=None):
             else:
                 print('  [gen] %s' % rel)
         return 0
+
+    if collector.critical:
+        eprint('[ERROR] 关键产物缺失，已阻止出包：')
+        for msg in collector.critical:
+            eprint('  - %s' % msg)
+        eprint('  仅需先出包排查时可加 --allow-missing（不要用于发布）。')
+        return 1
 
     pkg_root_name = build_package_name(
         version, sys_tag, arch_tag, config,

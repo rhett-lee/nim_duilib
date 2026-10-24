@@ -572,6 +572,9 @@ python build/pack.py --list
 # (auto by default: MD for DLL mode, otherwise MT)
 python build/pack.py --msvc-runtime md
 
+# troubleshooting only: keep packaging even when critical artifacts are missing
+python build/pack.py --allow-missing
+
 # release: check, package, verify (artifacts go to dist/<version>/)
 python build/release.py check
 python build/release.py package --config Release --arch x64 --dry-run

@@ -554,6 +554,9 @@ python build/pack.py --list
 # 指定 MSVC 运行库（默认 auto：DLL 模式 MD，否则 MT）
 python build/pack.py --msvc-runtime md
 
+# 仅排查：关键产物缺失时仍继续出包（发布流程不要使用）
+python build/pack.py --allow-missing
+
 # 发布：预检、打包、校验（产物输出到 dist/<版本>/）
 python build/release.py check
 python build/release.py package --config Release --arch x64 --dry-run

@@ -376,6 +376,115 @@ class Arm64SupportTest(_TempDirTest):
         self.assertIn('%s  msvc/nim_duilib.props' % digest, sums)
 
 
+class CriticalArtifactsTest(_TempDirTest):
+
+    def _empty_dir(self, name='empty'):
+        path = os.path.join(self.tmp, name)
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        return path
+
+    def test_collector_critical_default(self):
+        collector = pack.Collector()
+        collector.warn('missing', critical=True)
+        self.assertEqual(collector.critical, ['missing'])
+        self.assertIn('missing', collector.warnings)
+
+    def test_collector_allow_missing_downgrades(self):
+        collector = pack.Collector(allow_missing=True)
+        collector.warn('missing', critical=True)
+        self.assertEqual(collector.critical, [])
+        self.assertIn('missing', collector.warnings)
+
+    def test_missing_core_header(self):
+        old = pack.DUIBIB_SRC_DIR
+        try:
+            pack.DUIBIB_SRC_DIR = self._empty_dir()
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_headers(collector, False, False, True), 0)
+            self.assertTrue(any('duilib.h' in item
+                                for item in collector.critical))
+        finally:
+            pack.DUIBIB_SRC_DIR = old
+
+    def test_missing_resources(self):
+        old = pack.RESOURCES_DIR
+        try:
+            pack.RESOURCES_DIR = os.path.join(self.tmp, 'no-resources')
+            collector = pack.Collector()
+            self.assertEqual(pack.collect_resources(collector, False), 0)
+            self.assertTrue(any('资源目录' in item
+                                for item in collector.critical))
+        finally:
+            pack.RESOURCES_DIR = old
+
+    def test_missing_manifest(self):
+        old = pack.MSVC_MANIFEST_DIR
+        try:
+            pack.MSVC_MANIFEST_DIR = self._empty_dir()
+            collector = pack.Collector()
+            collector.add('lib/duilib.lib', self._touch('lib/duilib.lib'))
+            meta = pack.build_package_meta(
+                collector, '1.0', 'win', 'x64', 'Release', 'msvc',
+                False, 'latest', 'auto')
+            pack.collect_integration_files(collector, meta)
+            self.assertTrue(any('manifest' in item
+                                for item in collector.critical))
+        finally:
+            pack.MSVC_MANIFEST_DIR = old
+
+    def test_missing_sdl_runtime_dll(self):
+        old_root = pack.SDL3_SRC_ROOT
+        old_win = pack.is_windows_host
+        try:
+            pack.SDL3_SRC_ROOT = self.tmp
+            pack.is_windows_host = lambda: True
+            self._touch('lib/SDL3.lib')
+            collector = pack.Collector()
+            pack.collect_sdl(collector, None, 'Release', True)
+            self.assertTrue(any('SDL3' in item and 'DLL' in item
+                                for item in collector.critical))
+        finally:
+            pack.SDL3_SRC_ROOT = old_root
+            pack.is_windows_host = old_win
+
+    def test_missing_cef_runtime(self):
+        old = pack.BIN_DIR
+        try:
+            pack.BIN_DIR = self._empty_dir()
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_cef_runtime(collector, 'win', 'x64', 'latest'), 0)
+            self.assertTrue(any('CEF 运行时' in item
+                                for item in collector.critical))
+        finally:
+            pack.BIN_DIR = old
+
+    def test_missing_examples(self):
+        old = pack.BIN_DIR
+        try:
+            pack.BIN_DIR = self._empty_dir()
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_examples(collector, 'Release', False), 0)
+            self.assertTrue(any('示例程序' in item
+                                for item in collector.critical))
+        finally:
+            pack.BIN_DIR = old
+
+    def test_real_repo_has_no_critical_missing(self):
+        collector = pack.Collector()
+        pack.collect_headers(collector, False, False, True)
+        pack.collect_resources(collector, False)
+        collector.add('lib/duilib.lib', self._touch('lib/duilib.lib'))
+        meta = pack.build_package_meta(
+            collector, '1.0', 'win', 'x64', 'Release', 'msvc',
+            False, 'latest', 'auto')
+        pack.collect_integration_files(collector, meta)
+        self.assertEqual(collector.critical, [])
+
+
 class DocLinkRewriteTest(unittest.TestCase):
 
     def test_rewrite_and_drop(self):
