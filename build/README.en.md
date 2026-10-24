@@ -650,17 +650,24 @@ Easy mistakes to avoid:
 - MinGW builds produce `libduilib*.a` (static) or `libduilib*.dll.a` (import)
   libraries, and Skia lives in `mingw64-gcc.<arch>.release` /
   `mingw64-llvm.<arch>.release`. MSYS2 builds (`msys2_build.sh`) use
-  `gcc.<arch>.release` / `llvm.<arch>.release` instead; packaging probes both
-  namings and uses the presence of `.a` files to tell a MinGW directory apart
+  `gcc.<arch>.release` / `llvm.<arch>.release` instead, and the MSYS2 MINGW64
+  environment (msvcrt) uses `gcc.msvcrt.<arch>.release` because its gcc
+  artifacts cannot be mixed with UCRT64 ones. Packaging probes these namings
+  and uses the presence of `.a` files to tell a MinGW directory apart
   from the identically named MSVC `llvm.<arch>.release` (a `.lib`-only
-  directory is skipped). When both directories of the same variant exist, the
-  standalone MinGW name wins; pass `--skia-lib-dir` to force the MSYS2 one.
+  directory is skipped). When several directories of the same variant exist, the
+  standalone MinGW name wins, and the msvcrt one wins under MINGW64; pass
+  `--skia-lib-dir` to force a specific directory.
   The script detects the toolchain (MSVC/MinGW) from the library directory and
   writes `-lxxx` links for MinGW in the manifest.
 - In DLL mode (`msvc/PropertySheets/duilib_dll.flag` exists) `bin/duilib*.dll`
   (`duilib[_d].dll` on x64/arm64, `duilib32[_d].dll` on x86) is packaged and
   `lib/` holds the matching import library; static builds have no such file and
-  are skipped automatically.
+  are skipped automatically. The package name gains `-dll` so it never
+  overwrites the static package. DLL mode links with `/MD`, so Skia must match:
+  Release uses `llvm.<arch>.release.md`, Debug uses
+  `llvm.<arch>.debug.mdd` (not provided yet); the packer picks them
+  automatically.
 - With `--with-sdl`, SDL3 is collected based on the actual artifact: MSVC static
   `SDL3-static.lib`; dynamic import `SDL3.lib` / `libSDL3.dll.a` plus
   `bin/SDL3.dll`; or MinGW static `libSDL3.a`.

@@ -524,6 +524,19 @@ fi
 # download CEF end
 
 echo "- Building skia ..."
+# MSYS2 的 MINGW64 使用 msvcrt，与 UCRT64 的 gcc 静态库不能混用（同一份 .a 会引用
+# 不同 CRT 的符号，链接失败）。为 MINGW64 使用独立的 Skia 输出目录，避免两者互相覆盖。
+SKIA_GCC_SUFFIX=""
+if is_windows; then
+    gcc_prefix=""
+    if command -v gcc &> /dev/null; then
+        gcc_prefix=$(basename "$(cd "$(dirname "$(command -v gcc)")/.." && pwd)")
+    fi
+    if [ "$gcc_prefix" = "mingw64" ]; then
+        SKIA_GCC_SUFFIX=".msvcrt"
+    fi
+    echo "MSYS2 gcc prefix: ${gcc_prefix:-unknown}, Skia suffix: ${SKIA_GCC_SUFFIX:-none}"
+fi
 if [ "$has_clang" -eq 1 ]; then
     # clang/clang++
     echo "clang++ found at:"
@@ -559,14 +572,15 @@ else
         which gcc
 
         cd ./skia
+        SKIA_GCC_DIR="gcc${SKIA_GCC_SUFFIX}.${CPU_ARCH}.release"
         if [ "$(uname -s)" = "Linux" ]; then
             echo "Building for Linux"
             # 同clang 分支：显式锁定字体后端，不依赖 Skia 上游默认值
-            gn gen out/gcc.${CPU_ARCH}.release --args="target_cpu=\"${CPU_ARCH}\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true cc=\"gcc\" cxx=\"g++\" is_trivial_abi=false is_official_build=true skia_use_libwebp_encode=false skia_use_libwebp_decode=false skia_use_libpng_encode=false skia_use_libpng_decode=false skia_use_zlib=false skia_use_libjpeg_turbo_encode=false skia_use_libjpeg_turbo_decode=false skia_enable_fontmgr_win_gdi=false skia_use_icu=false skia_use_expat=false skia_use_xps=false skia_enable_pdf=false skia_use_wuffs=false skia_enable_svg=true skia_use_expat=true skia_use_system_expat=false skia_use_partition_alloc=false is_debug=false extra_cflags=[\"-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER\"]"
+            gn gen out/${SKIA_GCC_DIR} --args="target_cpu=\"${CPU_ARCH}\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true cc=\"gcc\" cxx=\"g++\" is_trivial_abi=false is_official_build=true skia_use_libwebp_encode=false skia_use_libwebp_decode=false skia_use_libpng_encode=false skia_use_libpng_decode=false skia_use_zlib=false skia_use_libjpeg_turbo_encode=false skia_use_libjpeg_turbo_decode=false skia_enable_fontmgr_win_gdi=false skia_use_icu=false skia_use_expat=false skia_use_xps=false skia_enable_pdf=false skia_use_wuffs=false skia_enable_svg=true skia_use_expat=true skia_use_system_expat=false skia_use_partition_alloc=false is_debug=false extra_cflags=[\"-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER\"]"
         else
-            gn gen out/gcc.${CPU_ARCH}.release --args="target_cpu=\"${CPU_ARCH}\" cc=\"gcc\" cxx=\"g++\" is_trivial_abi=false is_official_build=true skia_use_libwebp_encode=false skia_use_libwebp_decode=false skia_use_libpng_encode=false skia_use_libpng_decode=false skia_use_zlib=false skia_use_libjpeg_turbo_encode=false skia_use_libjpeg_turbo_decode=false skia_enable_fontmgr_win_gdi=false skia_use_icu=false skia_use_expat=false skia_use_xps=false skia_enable_pdf=false skia_use_wuffs=false skia_enable_svg=true skia_use_expat=true skia_use_system_expat=false skia_use_partition_alloc=false is_debug=false extra_cflags=[\"-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER\"]"
+            gn gen out/${SKIA_GCC_DIR} --args="target_cpu=\"${CPU_ARCH}\" cc=\"gcc\" cxx=\"g++\" is_trivial_abi=false is_official_build=true skia_use_libwebp_encode=false skia_use_libwebp_decode=false skia_use_libpng_encode=false skia_use_libpng_decode=false skia_use_zlib=false skia_use_libjpeg_turbo_encode=false skia_use_libjpeg_turbo_decode=false skia_enable_fontmgr_win_gdi=false skia_use_icu=false skia_use_expat=false skia_use_xps=false skia_enable_pdf=false skia_use_wuffs=false skia_enable_svg=true skia_use_expat=true skia_use_system_expat=false skia_use_partition_alloc=false is_debug=false extra_cflags=[\"-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER\"]"
         fi
-        ninja -C out/gcc.${CPU_ARCH}.release
+        ninja -C out/${SKIA_GCC_DIR}
         cd ..
     fi
 fi

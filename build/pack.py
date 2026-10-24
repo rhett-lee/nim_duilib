@@ -83,8 +83,9 @@
    指向未随包内容的链接退化为纯文字。
    新增顶层文档默认随包，如需排除请加入 DOC_EXCLUDE_FILES。
 
-包名：nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]，
+包名：nim_duilib-<版本>-<系统>-<架构>[-mingw-<变体>][-sdl][-cef|-cef109][-examples][-dll][-debug]，
 同一版本的不同特性包可共存于同一目录。
+DLL 模式（运行期目录 bin/ 中有 duilib*.dll）自动追加 -dll，避免与静态包同名覆盖。
 
 用法：
     python build/pack.py                      # Release SDK 包（不含示例）
@@ -378,6 +379,19 @@ def is_windows_host():
     return platform.system().lower().startswith(('win', 'msys', 'cygwin'))
 
 
+def detect_dll_mode():
+    """bin/ 中存在 duilib*.dll 时，本次构建为 DLL 模式（MSVC /MD 动态运行库）。
+
+    DLL 模式需要同样使用 /MD 编译的 Skia，目录名带 .md（Release）/ .mdd（Debug）。
+    """
+    if not os.path.isdir(BIN_DIR):
+        return False
+    for name in os.listdir(BIN_DIR):
+        if name.lower().startswith('duilib') and name.lower().endswith('.dll'):
+            return True
+    return False
+
+
 def detect_platform_tag():
     """返回 (系统标签, 架构标签)，用于包名。"""
     sysname = platform.system().lower()
@@ -406,12 +420,14 @@ def detect_platform_tag():
 
 def build_package_name(version, sys_tag, arch_tag, config,
                        with_sdl, with_cef, cef_version, with_examples,
-                       mingw_variant=None):
-    """包名：nim_duilib-<版本>-<系统>-<架构>[-mingw-<变体>][-sdl][-cef|-cef109][-examples][-debug]。
+                       mingw_variant=None, is_dll=False):
+    """包名：nim_duilib-<版本>-<系统>-<架构>[-mingw-<变体>][-sdl][-cef|-cef109][-examples][-dll][-debug]。
 
     同一版本的不同特性包必须能共存于 dist/，否则会互相覆盖。
     MinGW 的 gcc 与 llvm-mingw 产物绑定不同 C++ 运行时（libstdc++ / libc++），
     不可互换，包名必须带 -mingw-gcc / -mingw-llvm 以便同时发布。
+    DLL 模式与静态库模式（duilib.dll + 导入库 vs 纯静态库）同样不可互换，
+    包名追加 -dll。
     Unix 默认带 SDL，不追加 -sdl，避免改变既有 Unix 包名。
     """
     name = 'nim_duilib-%s-%s-%s' % (version, sys_tag, arch_tag)
@@ -423,6 +439,8 @@ def build_package_name(version, sys_tag, arch_tag, config,
         name += '-cef109' if cef_version == '109' else '-cef'
     if with_examples:
         name += '-examples'
+    if is_dll:
+        name += '-dll'
     if config == 'Debug':
         name += '-debug'
     return name
@@ -759,14 +777,31 @@ def collect_skia_libs(collector, skia_lib_dir, toolchain=None):
     return count
 
 
+def _msys2_env_name():
+    """当前运行的 Python 所属 MSYS2 环境名（mingw64/ucrt64/clang64/...）。
+
+    MSYS2 的 MINGW64 使用 msvcrt，而 UCRT64 使用 ucrt：两者编译出的 gcc 静态库
+    引用的 CRT 符号不同，不能混用。MINGW64 的 Skia 目录因此带 .msvcrt 后缀。
+    非 MSYS2 环境返回空字符串。
+    """
+    prefix = os.path.basename(os.path.dirname(os.path.dirname(sys.executable)))
+    name = prefix.lower()
+    if name in ('mingw64', 'ucrt64', 'clang64', 'clangarm64'):
+        return name
+    return os.environ.get('MSYSTEM', '').lower()
+
+
 def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
-                         mingw_variant=None):
+                         mingw_variant=None, dll_mode=False):
     """解析 Skia 库目录。显式指定优先，否则按平台/配置/工具链探测。
 
     MinGW 的 gcc 与 llvm-mingw（以及 MSYS2 的 gcc/clang）各自使用不同的 Skia
     静态库，不能混用。目录名分两种前缀：
       独立 MinGW-w64 : mingw64-gcc.<arch>.release / mingw64-llvm.<arch>.release
       MSYS2          : gcc.<arch>.release / llvm.<arch>.release
+      MSYS2 MINGW64  : gcc.msvcrt.<arch>.release（msvcrt，与 UCRT64 的 gcc 产物不兼容）
+    MSVC DLL 模式使用 /MD 动态运行库，必须链接同 CRT 的 Skia：
+      llvm.<arch>.release.md / llvm.<arch>.debug.mdd
     MSYS2 的 llvm.<arch>.release 与 MSVC 目录同名，因此除目录名外还要检查目录
     内容（.a / .lib），否则会把 MSVC 的 Skia 打进 MinGW 包。
     """
@@ -794,23 +829,35 @@ def resolve_skia_lib_dir(explicit_dir, config, arch_tag, toolchain=None,
         # MSVC：llvm.<arch>.debug / release（MSYS2 CLANG64 也用这个目录名，按内容区分）
         msvc_name = 'llvm.%s.%s' % (
             arch_tag, 'debug' if config == 'Debug' else 'release')
+        if dll_mode:
+            # DLL 模式：duilib 用 /MD，必须匹配同 CRT 的 Skia 变体
+            msvc_name += '.mdd' if config == 'Debug' else '.md'
         # MinGW：Skia 只有 release 变体；独立 MinGW-w64 带 mingw64- 前缀，MSYS2 无前缀
         mingw_names = []
         for variant in MINGW_VARIANTS:
             mingw_names.append('mingw64-%s.%s.release' % (variant, arch_tag))
             mingw_names.append('%s.%s.release' % (variant, arch_tag))
+        # MSYS2 MINGW64 的 gcc 产物使用 msvcrt，目录名带 .msvcrt 后缀
+        msvcrt_name = 'gcc.msvcrt.%s.release' % arch_tag
         if toolchain == 'mingw':
             if mingw_variant in MINGW_VARIANTS:
                 # 同一变体的独立 MinGW 与 MSYS2 目录可能同时存在，优先独立 MinGW 命名；
                 # 需要强制使用 MSYS2 产物时用 --skia-lib-dir 指定
                 names = ['mingw64-%s.%s.release' % (mingw_variant, arch_tag),
                          '%s.%s.release' % (mingw_variant, arch_tag)]
+                if mingw_variant == 'gcc':
+                    # MINGW64 环境下优先 msvcrt 目录；其他环境放在最后，
+                    # 只有前两个目录都不存在时才会选中，避免误用 msvcrt 库
+                    if _msys2_env_name() == 'mingw64':
+                        names.insert(0, msvcrt_name)
+                    else:
+                        names.append(msvcrt_name)
             else:
-                names = mingw_names
+                names = mingw_names + [msvcrt_name]
         elif toolchain == 'msvc':
             names = [msvc_name]
         else:
-            names = [msvc_name] + mingw_names
+            names = [msvc_name] + mingw_names + [msvcrt_name]
         candidates = [os.path.join(out_dir, name) for name in names]
     else:
         candidates = [
@@ -2188,6 +2235,7 @@ def main(argv=None):
                              '如 ../skia/out/llvm.<arch>.<config>、'
                              'mingw64-gcc.<arch>.release（独立 MinGW-w64）或 '
                              'gcc.<arch>.release（MSYS2）；'
+                             'DLL 模式为 llvm.<arch>.release.md；'
                              'MinGW 会按目录内是否存在 .a 校验）')
     parser.add_argument('--mingw-variant', choices=('auto', 'gcc', 'llvm'),
                         default='auto',
@@ -2248,7 +2296,8 @@ def main(argv=None):
         if toolchain == 'mingw' and args.with_cef:
             raise PackageError('--with-cef 仅支持 MSVC；MinGW（含 MSYS2）不支持 CEF')
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
-                                        toolchain, mingw_variant)
+                                        toolchain, mingw_variant,
+                                        dll_mode=(toolchain == 'msvc' and detect_dll_mode()))
 
         collector = Collector()
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
@@ -2342,7 +2391,7 @@ def main(argv=None):
     pkg_root_name = build_package_name(
         version, sys_tag, arch_tag, config,
         args.with_sdl, args.with_cef, args.cef_version, args.with_examples,
-        mingw_variant=mingw_variant)
+        mingw_variant=mingw_variant, is_dll=meta['is_dll'])
     package_time = (source_date_epoch if source_date_epoch is not None
                     else _default_archive_time(collector))
     manifest_text, sums_text = write_manifest(

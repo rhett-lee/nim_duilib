@@ -6,7 +6,7 @@
 
 ## 一、当前基线
 
-已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm x64 Release）：
+已完成并验证的内容（Windows：MSVC x64/x86 Debug、x64/x86 Release 静态包、MSVC x64 DLL（`/MD`）Release 包；MinGW x64 Release；MSYS2 UCRT64 gcc / CLANG64 llvm / MINGW64 gcc(msvcrt) x64 Release）：
 
 | 领域 | 状态 |
 | :--- | :--- |
@@ -15,9 +15,9 @@
 | 元数据与校验 | `MANIFEST.txt`（含文档清单）、`SHA256SUMS`、`VERSION` |
 | 下游接入 | VS props/targets、CMake Config/Helper、x64 + x86 manifest |
 | 文档处理 | 只打顶层使用文档，源码链接按包布局重写，无断链 |
-| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm）全量构建、出包、解包与 CMake 端到端 |
+| 已验证 | `--list`、XML 解析、CMake 配置、SHA/断链检查、真实 zip 抽查；x64/x86 Debug 与 Release 出包、解包及 SHA 校验；MinGW（gcc / llvm）5 库 + 21 示例构建与运行；VS/CMake 端到端（x64/x86 Debug、x64/x86 Release、MinGW x64 gcc/llvm 包、MSVC DLL 包）；MSYS2 真实环境（UCRT64 gcc、CLANG64 llvm、MINGW64 gcc/msvcrt）全量构建、出包、解包与 CMake 端到端；MSVC DLL 模式（`/MD`）构建、出包与端到端 |
 
-尚未覆盖：arm64、DLL 模式、Linux/macOS/FreeBSD、SDL/示例程序组合。
+尚未覆盖：arm64、Linux/macOS/FreeBSD、SDL/示例程序组合、DLL 模式的 Debug/x86 配置。
 
 ### 平台与特性约束
 
@@ -44,7 +44,7 @@
 
 #### P0-1 打包矩阵实测
 
-- [ ] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
+- [~] 覆盖“平台 × 配置 × 模式 × 特性”组合，每个组合至少执行一次 `--list` 与解包检查。
 - 现状：已验证 Windows x64、x86 两个架构的 Debug 与 Release 静态包
   （2026-10-24 补齐 x86 与 x64 Release）；
   x86 另以 `--with-cef --list` 核对 CEF 运行时按 `bin/libcef_win/Win32/` 收集。
@@ -64,11 +64,26 @@
   21 个示例均可启动；`pack.py` 产出 `-win-x64-mingw-gcc.zip`
   （536 文件/90.6 MB，zip 21.3 MB）与 `-win-x64-mingw-llvm.zip`
   （536 文件/77.0 MB，zip 20.3 MB），解包 539 条目 SHA 全匹配。
+- MSYS2 MINGW64（msvcrt，2026-10-24）：`msys2_build.sh` 全量构建成功
+  （Skia `out/gcc.msvcrt.x64.release`、5 库 + 21 示例），`basic.exe` 启动正常；
+  `pack.py` 产出 `-win-x64-mingw-gcc.zip`（536 文件/90.5 MB），Skia 目录为
+  `gcc.msvcrt.x64.release`，`--verify` 与解包 SHA 全匹配。MINGW64 与 UCRT64 的
+  gcc 静态库 C 运行库不同（msvcrt / ucrt），Skia 使用独立目录；两者包名相同，
+  不可互换，也不能归档到同一目录。
+- MSVC DLL 模式（Release|x64，2026-10-24）：创建 `msvc/PropertySheets/duilib_dll.flag`
+  后 MSBuild 产出 `bin/duilib.dll`（18.4 MB）与 `lib/x64/Release/duilib.lib`
+  导入库（4.3 MB），其余库仍为静态库；duilib 使用 `/MD`，Skia 必须同 CRT，
+  `SkiaSettings.props` 检测到 flag 后改用 `skia/out/llvm.x64.release.md`
+  （需用相同 GN 参数、把 `extra_cflags` 的 `/MT` 换成 `/MD` 自行构建）。
+  `pack.py` 自动收集 `duilib.dll`、按包元数据选择 `.md` Skia，包名为
+  `-win-x64-dll`（542 文件/94.9 MB，zip 27.3 MB），`--verify` 545 条目 SHA 全匹配。
 - 待覆盖：
   - 配置：Debug / Release；
   - 架构：Windows x64/x86；Linux 仅 x64（不支持 x86）；arm64 待定；
-  - 工具链：MSVC（Debug/Release 已完成）/ MinGW（gcc、llvm 已完成）/ MSYS2（UCRT64、CLANG64 已完成；MINGW64 待补）；
-  - 模式：静态 / DLL（`EnableDuilibDll`）；
+  - 工具链：MSVC（Debug/Release 已完成）/ MinGW（gcc、llvm 已完成）/
+    MSYS2（UCRT64、CLANG64、MINGW64 均已完成，2026-10-24）；
+  - 模式：静态已完成；DLL（`EnableDuilibDll`）Release|x64 已完成（2026-10-24），
+    Debug/x86 未覆盖；
   - 平台：Windows / Linux / macOS / FreeBSD（FreeBSD 无 CEF）；
   - 特性：`--with-sdl`（MSYS2 UCRT64 gcc 已完成，2026-10-24）、
     `--with-cef`（Windows/Linux/macOS）、`--with-examples`。
@@ -82,8 +97,9 @@
 
 #### P0-3 接入层端到端验证
 
-- [~] Windows x64、x86（Debug、Release）与 MSYS2 UCRT64/CLANG64 已完成（2026-10-24）；
-  DLL 模式、Linux/macOS/FreeBSD 待补。
+- [~] Windows x64、x86（Debug、Release）、MSYS2 UCRT64/CLANG64/MINGW64
+  与 MSVC DLL 模式（Release|x64）已完成（2026-10-24）；
+  Linux/macOS/FreeBSD 以及 DLL 模式的 Debug/x86 待补。
 - 已完成：
   - MSBuild：导入 `msvc/nim_duilib.targets` 的 Debug|x64 工程编译、链接、运行通过；
     `NimDuilibCopyResources=1` 复制 `resources/`，`bin/*.dll` 复制 `WebView2Loader.dll`；
@@ -104,13 +120,26 @@
     均为 64 位启动、加载资源、退出码 0；VS 嵌入 manifest 为 AMD64（Common Controls
     6.0.0.0、supportedOS 列表），两条路径均复制 214 个资源文件与 `WebView2Loader.dll`
     （包内为 8664 x64）；32 位工程配 x64 包在 CMake 配置阶段与 MSBuild 校验阶段均被架构拒绝。
-  - MSYS2（2026-10-24）：解包 `-win-x64-mingw-gcc` 与 `-win-x64-mingw-llvm` 包后，
-    分别用 UCRT64 gcc 14.2.0 与 CLANG64 clang 19.1.7 以 CMake
-    （`find_package` + `nim_duilib_copy_runtime`）建独立工程，均构建运行成功
-    （bits=64、startup=1、退出码 0，复制 214 个资源文件）；包内
-    `WebView2Loader.dll` 为 x64，静态库为 `coff-x86-64`；
-    MSVC 工程误用两个 MinGW 包均被工具链校验拒绝，MinGW 工程误用 MSVC
-    `-win-x64` 包同样被拒。
+  - MinGW x64（2026-10-24）：源码树内 gcc / llvm 均已构建运行；已分别用解包后的
+    `-mingw-gcc` 与 `-mingw-llvm` 包通过 `find_package(nim_duilib)` +
+    `nim_duilib_copy_runtime` 建独立工程，两套工具链均构建运行成功（64 位启动、
+    资源加载、退出码 0；分别导入 `libstdc++-6.dll` / `libc++.dll`）。
+  - MSYS2（UCRT64 / CLANG64，2026-10-24）：解包 `-win-x64-mingw-gcc` 与
+    `-win-x64-mingw-llvm` 包后，分别用 UCRT64 gcc 14.2.0 与 CLANG64 clang 19.1.7
+    以 CMake（`find_package` + `nim_duilib_copy_runtime`）建独立工程，均构建运行成功
+    （bits=64、startup=1、退出码 0，复制 214 个资源文件）；包内 `WebView2Loader.dll`
+    为 x64，静态库为 `coff-x86-64`；MSVC 工程误用两个 MinGW 包均被工具链校验拒绝，
+    MinGW 工程误用 MSVC `-win-x64` 包同样被拒。
+  - MSYS2 MINGW64（2026-10-24）：解包 `-win-x64-mingw-gcc`（msvcrt 构建）后，
+    用 MINGW64 gcc 14.2.0 以 CMake（`find_package` + `nim_duilib_copy_runtime`）
+    建独立工程，构建运行成功（bits=64、startup=1、dll=0、退出码 0，复制 214 个
+    资源文件）；包内 Skia 为 `gcc.msvcrt.x64.release` 的 `.a`。
+  - MSVC DLL 模式（2026-10-24）：解包 `-win-x64-dll` 后用 VS2022 以 CMake
+    （`find_package` + `nim_duilib_copy_runtime`，`-A x64`）建独立工程，
+    包元数据自动设置 `DUILIB_DLL` 与 `MultiThreadedDLL`，构建后自动复制
+    `duilib.dll` / `WebView2Loader.dll` 与 214 个资源文件；运行输出
+    bits=64、startup=1、dll=1、退出码 0。VS props 路径同样按元数据跳过静态库、
+    只链 `duilib.lib` 导入库并定义 `DUILIB_DLL`（未单独建 VS 工程，已核对属性表条件）。
 - 发现并修复：接入层 Debug 未屏蔽 release CRT，下游链接出现 LNK4098；
   已在 `packaging/msvc/nim_duilib.props` 与 `packaging/cmake/nim_duilibConfig.cmake`
   中补 `/NODEFAULTLIB:"libcmt.lib"`（与仓库内 `DuilibSettings.props` /
@@ -121,18 +150,16 @@
   （`skia.lib`），出现全量 `undefined reference`。两个脚本的示例配置行已补
   `-DDUILIB_SKIA_LIB_SUBPATH=%DUILIB_SKIA_LIB_SUBPATH%`，复测全部链接通过。
 - 未覆盖及原因：
-  - MinGW x64（2026-10-24）：源码树内 gcc / llvm 均已构建运行；已分别用解包后的
-    `-mingw-gcc` 与 `-mingw-llvm` 包通过 `find_package(nim_duilib)` +
-    `nim_duilib_copy_runtime` 建独立工程，两套工具链均构建运行成功（64 位启动、
-    资源加载、退出码 0；分别导入 `libstdc++-6.dll` / `libc++.dll`）；
-    MSVC 工程误用 MinGW 包会被工具链校验拒绝；
-  - DLL 模式：当前构建为静态，`bin/` 下没有 `duilib*.dll`；
+  - DLL 模式的 Debug / x86 配置：Skia 尚无对应变体（Debug 需 `.mdd`、x86 需
+    `llvm.x86.release.md`），当前只验证了 Release|x64；
   - Linux/macOS/FreeBSD：无对应环境。
 - 验收（Windows x64）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 Win32 工程误用 x64 包。
 - 验收（Windows x86）：同上（Debug/Release）；另确认 CMake 与 MSBuild 的架构校验均能拒绝 x64 工程误用 x86 包。
 - 验收（MinGW x64）：同上；另确认 MSVC 工程误用 MinGW 包会被工具链校验拒绝。
-- 验收（MSYS2）：UCRT64 gcc 与 CLANG64 llvm 两条链路的出包、解包 SHA 与 CMake 端到端均通过；
-  另确认 MSVC 与 MinGW 包双向误用会被工具链校验拒绝。
+- 验收（MSYS2）：UCRT64 gcc、CLANG64 llvm、MINGW64 gcc(msvcrt) 三条链路的出包、解包 SHA
+  与 CMake 端到端均通过；另确认 MSVC 与 MinGW 包双向误用会被工具链校验拒绝。
+- 验收（DLL 模式，Release|x64）：包内 `bin/duilib.dll` 与 `lib/x64/Release/duilib.lib`
+  导入库齐全；CMake 与 VS props 按包元数据只链导入库并定义 `DUILIB_DLL`，端到端运行通过。
 
 #### P0-4 签名与公证
 
@@ -281,9 +308,9 @@
 - [~] 为链接重写、MANIFEST、SHA256SUMS、元数据推断、接入文件生成编写测试。
 - [ ] 接入 CI，至少在 Windows 与一个 Unix 平台运行。
 - 现状（2026-10-24）：新增 `build/test_pack.py`（`python3 build/test_pack.py`），
-  11 个用例覆盖包体检正/负向（zip 与 tar.gz）、坏 zip、缺文件、包名组合、
-  `SOURCE_DATE_EPOCH` 校验，MSYS2 UCRT64 Python 全部通过；链接重写/元数据推断/
-  接入文件生成仍依赖整包构建验证，未纳入 CI。
+  12 个用例覆盖包体检正/负向（zip 与 tar.gz）、坏 zip、缺文件、包名组合、
+  DLL 模式后缀、`SOURCE_DATE_EPOCH` 校验，MSYS2 UCRT64 Python 全部通过；
+  链接重写/元数据推断/接入文件生成仍依赖整包构建验证，未纳入 CI。
 
 #### P2-2 包体检命令
 
@@ -300,7 +327,10 @@
 
 - [ ] 安装、升级、迁移说明。
 - [ ] 常见问题（运行期 DLL 缺失、资源目录、架构/配置不匹配、CEF 运行时）。
-- [ ] 发布 checklist。
+- [x] 发布 checklist。
+- 现状：发布 checklist 见 [Release-Checklist.md](Release-Checklist.md)
+  （版本递增、CHANGELOG、构建矩阵、出包与体检、归档与 tag 的勾选步骤）；
+  安装/升级/迁移与常见问题仍待补。
 - 验收：新用户按文档可从下载走到可运行程序。
 
 #### P2-4 arm64 策略
@@ -358,3 +388,6 @@
 | 2026-10-24 | 新增 `build/test_pack.py`（P2-1 部分完成）：11 个用例覆盖包体检正负向（zip/tar.gz）、坏 zip、缺文件、包名组合与 `SOURCE_DATE_EPOCH`，UCRT64 Python 运行通过；CI 接入仍待办 |
 | 2026-10-24 | CLANG64 增量复测：网络中断时 `git pull` 失败仅告警并继续（实测 GitHub 连接重置未中断构建）；随后自动发现 Skia 补丁缺失并重新解压，`gn gen` 恢复 clang 工具链；本地已有基线提交时跳过 stash/checkout/pull（日志确认 skip update）。5 库 + 21 示例重建成功，`basic.exe` 可启动，`lib/x64/Release` 为 clang 产物；tgz 出包后用 `--verify` 校验 539 条目全部通过 |
 | 2026-10-24 | SDL 特性出包与端到端验证（UCRT64 gcc）：`pack.py --with-sdl` 产出 `-win-x64-mingw-gcc-sdl.zip`（619 个条目 / 616 个登记 SHA，SDL3 79 项：头文件 + `libSDL3.a` + 许可证），解包 SHA 616/616 通过；解包 SDK 的 CMake 工程链接命令包含 `libSDL3.a` 与 `-lHid -lMincore -lDinput8`，构建运行成功（bits=64、startup=1、退出码 0）；`pack.py` 同时修复 SDL3 许可证路径（CMake 安装位于 `share/licenses/SDL3`） |
+| 2026-10-24 | MSYS2 MINGW64（msvcrt）全链路实测：新增 `gcc.msvcrt.x64.release` Skia 目录（MINGW64 与 UCRT64 的 gcc 静态库 CRT 不同，不可互换），`build_duilib_all_in_one.sh` 在 MINGW64 下自动选用；全量构建成功（5 库 + 21 示例），`basic.exe` 启动正常；`pack.py` 产出 `-win-x64-mingw-gcc.zip`（536 文件/90.5 MB，zip 27.3 MB），`--verify` 与解包 SHA 536/536 匹配；解包 SDK 用 MINGW64 gcc 建 CMake 工程运行成功（bits=64、startup=1、dll=0、退出码 0） |
+| 2026-10-24 | MSVC DLL 模式（`/MD`）Release\|x64 全链路：新增 `msvc/PropertySheets/duilib_dll.flag` 触发的 DLL 构建，修复导出类强制实例化导致的 C2280/C2338/C2027（`ListCtrlData` 禁止拷贝、`TabBox` 析构移入 cpp）；新建 `/MD` 版 Skia `skia/out/llvm.x64.release.md` 消除 LNK2038；`SkiaSettings.props` 按 flag 切换 Skia 目录，`pack.py` 新增 `detect_dll_mode()` 自动选择 `.md` Skia 并产出 `-win-x64-dll.zip`（542 文件/94.9 MB，zip 27.3 MB），`--verify` 545 条目 SHA 全匹配；解包 SDK 用 VS2022 CMake 工程运行成功（bits=64、startup=1、dll=1、退出码 0，自动复制 `duilib.dll`/`WebView2Loader.dll` 与 214 个资源） |
+| 2026-10-24 | `build/test_pack.py` 增补 DLL 模式包名后缀用例（共 12 个），MINGW64 与工作区 Python 均通过；`--skia-lib-dir` 帮助与 `docs/Release.md`、`build/README.md` 补充 `.md/.mdd` Skia 说明 |

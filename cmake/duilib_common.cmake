@@ -20,12 +20,13 @@ option(DUILIB_MINGW_STATIC "MINGW Static Link" ON)
 
 # Skia的lib子目录名：默认值在下方按平台/工具链自动推导，不写缓存；可用 -DDUILIB_SKIA_LIB_SUBPATH 覆盖
 
-# 判断 MinGW 工具链是否来自 MSYS2（决定 Skia 子目录前缀）：
+# 判断 MinGW 工具链是否来自 MSYS2，并返回环境名（决定 Skia 子目录前缀）：
 #   MSYS2 的编译器位于 <root>/<env>/bin（env = mingw64/ucrt64/clang64/clangarm64），
 #   安装根目录下存在 usr/bin/pacman.exe；独立 MinGW-w64 不满足该特征。
 # 不能用 MSYSTEM 环境变量判断：Git Bash 同样会设置 MSYSTEM=MINGW64。
+# 输出为空表示不是 MSYS2；否则输出 mingw64 / ucrt64 / clang64 / clangarm64。
 function(_duilib_detect_msys2 out_var)
-    set(_is_msys2 0)
+    set(_duilib_env_name "")
     set(_duilib_cc "${CMAKE_CXX_COMPILER}")
     if(_duilib_cc STREQUAL "")
         set(_duilib_cc "${CMAKE_C_COMPILER}")
@@ -35,23 +36,25 @@ function(_duilib_detect_msys2 out_var)
         get_filename_component(_duilib_env_dir "${_duilib_cc_dir}" DIRECTORY)
         get_filename_component(_duilib_msys_root "${_duilib_env_dir}" DIRECTORY)
         if(EXISTS "${_duilib_msys_root}/usr/bin/pacman.exe")
-            set(_is_msys2 1)
+            get_filename_component(_duilib_env_name "${_duilib_env_dir}" NAME)
         endif()
     endif()
-    set(${out_var} "${_is_msys2}" PARENT_SCOPE)
+    set(${out_var} "${_duilib_env_name}" PARENT_SCOPE)
 endfunction()
 
 # MINGW 开发环境
+set(DUILIB_MSYS2_ENV "")
 if(MINGW)
     set(DUILIB_MINGW 1)
     # Skia 目录前缀：MSYS2 无前缀（gcc./llvm.），独立 MinGW-w64 为 mingw64-
-    _duilib_detect_msys2(_duilib_is_msys2)
-    if(_duilib_is_msys2)
+    _duilib_detect_msys2(_duilib_msys2_env)
+    set(DUILIB_MSYS2_ENV "${_duilib_msys2_env}")
+    if(_duilib_msys2_env)
         set(DUILIB_MINGW_NAME "")
     else()
         set(DUILIB_MINGW_NAME "mingw64-")
     endif()
-    unset(_duilib_is_msys2)
+    unset(_duilib_msys2_env)
 endif()
 
 # SDL功能：Windows平台默认不开启，其他平台默认开启
@@ -227,6 +230,12 @@ function(_duilib_skia_candidate_subdirs config out_var)
             endif()
             if(DUILIB_COMPILER_GCC)
                 set(_compilers "gcc")
+                # MSYS2 的 MINGW64 环境使用 msvcrt，与 UCRT64 的 gcc 静态库不能混用：
+                # 该环境的 Skia 放在独立的 gcc.msvcrt.<arch>.release 目录，优先匹配。
+                if(DUILIB_MSYS2_ENV STREQUAL "mingw64")
+                    # MINGW64 暂无 debug 变体，Debug 构建同样复用 release Skia
+                    list(APPEND _candidates "gcc.msvcrt.${DUILIB_SKIA_CPU_ARCH}.release")
+                endif()
             else()
                 set(_compilers "llvm")
             endif()

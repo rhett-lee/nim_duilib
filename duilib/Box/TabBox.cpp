@@ -17,6 +17,8 @@ TabBox::TabBox(Window* pWindow, Layout* pLayout):
 {
 }
 
+TabBox::~TabBox() = default;
+
 DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
 void TabBox::SetAttribute(const DString& strName, const DString& strValue2)

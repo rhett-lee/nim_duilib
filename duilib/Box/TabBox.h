@@ -13,6 +13,11 @@ class DUILIB_API TabBox : public Box
 public:
     explicit TabBox(Window* pWindow, Layout* pLayout = new Layout());
 
+    /** 析构函数：声明在头文件、定义在 cpp，
+    *   避免 DLL 模式下（导出类）在 AnimationPlayer 类型不完整的编译单元实例化析构函数
+    */
+    virtual ~TabBox() override;
+
     // 用于初始化xml属性
     virtual void OnInit() override;
 

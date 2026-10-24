@@ -54,13 +54,28 @@ python build/pack.py --with-examples
 ```
 
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `build/release.py package`
-执行时固定输出到 `dist/<版本>/`。包名格式为
-`nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-debug]`，
+执行时固定输出到 `dist/<版本>/`。
+
+**DLL 模式**（仅 VS/MSBuild 路径）：在 `msvc/PropertySheets/` 下新建空文件
+`duilib_dll.flag` 后重新构建，duilib 工程会产出 `bin/duilib*.dll`
+（x86 为 `duilib32*.dll`，Debug 带 `_d`）与 `lib/<arch>/<Config>/duilib.lib`
+导入库，其余库仍为静态库；删除该文件即回到静态模式。CMake 构建路径
+（`msvc_build.bat`、`msys2_build.sh`、Unix 脚本）目前只产出静态库。
+DLL 模式的 duilib 使用 `/MD`，因此 Skia 也必须使用 `/MD` 版本：
+`SkiaSettings.props` 在检测到 `duilib_dll.flag` 时改用
+`skia/out/llvm.<arch>.release.md`，该目录需自行构建（参数与普通 Release 相同，
+仅把 `extra_cflags` 中的 `/MT` 换成 `/MD`；Debug 对应 `llvm.<arch>.debug.mdd`，
+目前未提供）。DLL 模式下 `pack.py` 会自动随包收集运行期 DLL、选用同一 Skia
+变体，包名追加 `-dll`。
+
+包名格式为
+`nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`，
 同一版本的不同特性包可共存：
 
 ```
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-dll.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-gcc.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-llvm.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
@@ -70,9 +85,11 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
   `--mingw-variant` 指定）；gcc 的静态库绑定 libstdc++，llvm-mingw 绑定 libc++，
   两者不可互换，Skia 目录也必须同源。MSYS2 的 MINGW64（msvcrt）与 UCRT64（ucrt）
   生成的包名同为 `-mingw-gcc`，但 C 运行库不同，两种包同样不可互换；
+  两者不能同时归档到同一目录（同名覆盖），需要分目录保存；
 - `-sdl`：仅 Windows 显式 `--with-sdl` 时追加；Unix 默认带 SDL，不加后缀；
 - `-cef` / `-cef109`：`--with-cef` 时按 `--cef-version` 追加；
 - `-examples`：`--with-examples` 时追加；
+- `-dll`：`bin/` 下存在 `duilib*.dll`（DLL 模式）时自动追加，与静态包区分；
 - `-debug`：始终在最后，兼容既有 Debug 包命名。
 
 ## 产物结构

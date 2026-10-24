@@ -16,6 +16,13 @@
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.release</SkiaLibDir>
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDir>
 
+        <!-- DLL模式（存在 duilib_dll.flag 时）：duilib 用 /MD 动态运行库，
+             必须链接同样使用 /MD 编译的 Skia，否则 LNK2038(RuntimeLibrary 不匹配)。
+             该版本 Skia 输出到 llvm.<arch>.release.md（Debug 为 .mdd，目前未提供） -->
+        <DuilibDllModeFlag Condition="Exists('$(MSBuildThisFileDirectory)duilib_dll.flag')">true</DuilibDllModeFlag>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.x64.release.md</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32' AND '$(DuilibDllModeFlag)'=='true'">$(SolutionDir)\..\..\skia\out\llvm.x86.release.md</SkiaLibDir>
+
         <!-- Skia的lib列表 -->
         <SkiaLibs>skia.lib;svg.lib;skshaper.lib;skottie.lib;sksg.lib;jsonreader.lib</SkiaLibs>
 

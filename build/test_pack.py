@@ -128,6 +128,16 @@ class PackageNameTest(unittest.TestCase):
                                        True, False, 'latest', False)
         self.assertEqual(name, 'nim_duilib-1.0-linux-x64')
 
+    def test_dll_mode_suffix(self):
+        name = pack.build_package_name('1.0', 'win', 'x64', 'Release',
+                                       False, False, 'latest', False,
+                                       is_dll=True)
+        self.assertEqual(name, 'nim_duilib-1.0-win-x64-dll')
+        name = pack.build_package_name('1.0', 'win', 'x64', 'Debug',
+                                       False, False, 'latest', True,
+                                       is_dll=True)
+        self.assertEqual(name, 'nim_duilib-1.0-win-x64-examples-dll-debug')
+
 
 class SourceDateEpochTest(unittest.TestCase):
 

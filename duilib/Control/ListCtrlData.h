@@ -55,6 +55,14 @@ public:
 public:
     ListCtrlData();
 
+    /** 本类持有数据页的唯一所有权（unique_ptr），禁止拷贝；
+    *   显式删除可避免导出类(DLL模式)强制实例化各成员函数时编译失败
+    */
+    ListCtrlData(const ListCtrlData&) = delete;
+    ListCtrlData& operator=(const ListCtrlData&) = delete;
+    ListCtrlData(ListCtrlData&&) = default;
+    ListCtrlData& operator=(ListCtrlData&&) = default;
+
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口
     * @return 返回创建后的数据项指针

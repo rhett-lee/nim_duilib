@@ -625,14 +625,19 @@ nim_duilib_copy_runtime(my_app)
 - MinGW 构建的库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库），
   Skia 目录为 `mingw64-gcc.<arch>.release` / `mingw64-llvm.<arch>.release`；
   MSYS2 构建（`msys2_build.sh`）的 Skia 目录为 `gcc.<arch>.release` /
-  `llvm.<arch>.release`，打包脚本两种命名都会探测，且按目录内是否存在 `.a`
+  `llvm.<arch>.release`；MSYS2 的 MINGW64 环境使用 msvcrt，其 Skia 目录为
+  `gcc.msvcrt.<arch>.release`（与 UCRT64 的 gcc 产物不能混用）；
+  打包脚本会探测这几种命名，且按目录内是否存在 `.a`
   区分 MinGW 与同名的 MSVC `llvm.<arch>.release`（只有 `.lib` 的目录会被跳过）；
-  同一变体的两种目录同时存在时优先独立 MinGW 命名，需要强制 MSYS2 产物时用
-  `--skia-lib-dir` 显式指定；
+  同一变体的多种目录同时存在时优先独立 MinGW 命名，MINGW64 环境下优先 msvcrt，
+  需要强制指定时用 `--skia-lib-dir`；
   打包脚本按库目录内容自动判断工具链（MSVC/MinGW），清单中链接写法为 `-lxxx`。
 - DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll`
   （x64/arm64 为 `duilib[_d].dll`，x86 为 `duilib32[_d].dll`）随包，
   `lib/` 中为对应的导入库；静态模式没有这些文件，打包时自动跳过。
+  包名自动追加 `-dll`，避免与静态包同名覆盖。DLL 模式使用 `/MD`，
+  Skia 也必须同 CRT：Release 用 `llvm.<arch>.release.md`，Debug 用
+  `llvm.<arch>.debug.mdd`（后者未提供）；打包脚本按上述目录名自动选择。
 - `--with-sdl` 时按实际产物收集 SDL3：MSVC 静态 `SDL3-static.lib`；
   动态导入库 `SDL3.lib` / `libSDL3.dll.a` 并随包 `bin/SDL3.dll`；
   MinGW 静态 `libSDL3.a`。

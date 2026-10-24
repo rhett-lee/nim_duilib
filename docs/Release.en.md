@@ -61,13 +61,30 @@ python build/pack.py --with-examples
 ```
 
 Running `pack.py` directly writes to `dist/`; `build/release.py package`
-always writes to `dist/<version>/`. Package names have the form
-`nim_duilib-<version>-<system>-<arch>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-debug]`,
+always writes to `dist/<version>/`.
+
+**DLL mode** (VS/MSBuild path only): create an empty file
+`msvc/PropertySheets/duilib_dll.flag` and rebuild. The duilib project then
+produces `bin/duilib*.dll` (x86 uses `duilib32*.dll`, Debug adds `_d`) plus the
+`lib/<arch>/<Config>/duilib.lib` import library; all other libraries stay
+static. Delete the flag to return to static mode. The CMake build path
+(`msvc_build.bat`, `msys2_build.sh`, Unix scripts) currently produces static
+libraries only. DLL-mode duilib uses `/MD`, so Skia must be built with `/MD`
+too: `SkiaSettings.props` switches to `skia/out/llvm.<arch>.release.md` when
+`duilib_dll.flag` exists. Build that directory yourself with the same arguments
+as the normal Release build, replacing `/MT` with `/MD` in `extra_cflags`
+(Debug corresponds to `llvm.<arch>.debug.mdd`, not provided yet). In DLL mode
+`pack.py` collects the runtime DLLs automatically, picks the matching Skia
+variant, and appends `-dll` to the package name.
+
+Package names have the form
+`nim_duilib-<version>-<system>-<arch>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109][-examples][-dll][-debug]`,
 so feature packages of the same version can coexist:
 
 ```
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-debug.zip
+dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-dll.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-gcc.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-mingw-llvm.zip
 dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
@@ -78,11 +95,14 @@ dist/1.0.2026.1023/nim_duilib-1.0.2026.1023-win-x64-cef109-examples-debug.zip
   libraries bind libstdc++ while llvm-mingw binds libc++; the two are not
   interchangeable and their Skia directories must match. MSYS2 MINGW64 (msvcrt)
   and UCRT64 (ucrt) both produce `-mingw-gcc` packages, but their C runtimes
-  differ, so those packages are also not interchangeable;
+  differ, so those packages are also not interchangeable and cannot be archived
+  into the same directory (same name, one overwrites the other);
 - `-sdl`: only on Windows with an explicit `--with-sdl`; Unix always ships SDL
   and gains no suffix;
 - `-cef` / `-cef109`: added by `--with-cef` according to `--cef-version`;
 - `-examples`: added by `--with-examples`;
+- `-dll`: added automatically when `bin/` contains `duilib*.dll` (DLL mode),
+  keeping it distinct from the static package;
 - `-debug`: always last, keeping the existing Debug package naming.
 
 ## Package layout
