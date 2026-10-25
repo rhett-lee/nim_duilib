@@ -12,6 +12,7 @@ import hashlib
 import io
 import os
 import shutil
+import struct
 import sys
 import tarfile
 import tempfile
@@ -691,6 +692,47 @@ class CefExampleSelectionTest(_TempDirTest):
             True, False, False, 'latest', package_time=0)
         self.assertNotIn('bin/*.app', text)
         self.assertIn('未打包', text)
+
+
+class PeArchCheckTest(_TempDirTest):
+    """Windows 的 bin/ 跨架构共用：PE 架构不符的产物被跳过并阻止出包。"""
+
+    @staticmethod
+    def _write_pe(path, machine):
+        data = bytearray(0x60)
+        data[0:2] = b'MZ'
+        data[0x3C:0x40] = struct.pack('<I', 0x40)
+        data[0x40:0x44] = b'PE\0\0'
+        data[0x44:0x46] = struct.pack('<H', machine)
+        with open(path, 'wb') as fp:
+            fp.write(data)
+
+    def test_pe_machine(self):
+        path = self._touch('x64.exe')
+        self._write_pe(path, pack.PE_MACHINE_BY_ARCH['x64'])
+        self.assertEqual(pack.pe_machine(path),
+                         pack.PE_MACHINE_BY_ARCH['x64'])
+        self.assertTrue(pack.pe_arch_matches(path, 'x64'))
+        self.assertFalse(pack.pe_arch_matches(path, 'x86'))
+        self.assertIsNone(pack.pe_machine(self._touch('plain.exe')))
+
+    def test_collect_examples_skips_other_arch(self):
+        bin_dir = os.path.join(self.tmp, 'bin')
+        os.makedirs(bin_dir)
+        self._write_pe(os.path.join(bin_dir, 'basic.exe'),
+                       pack.PE_MACHINE_BY_ARCH['x86'])
+        self._write_pe(os.path.join(bin_dir, 'layout.exe'),
+                       pack.PE_MACHINE_BY_ARCH['x64'])
+        self._write_pe(os.path.join(bin_dir, 'WebView2Loader.dll'),
+                       pack.PE_MACHINE_BY_ARCH['x64'])
+        collector = pack.Collector()
+        with mock.patch.object(pack, 'BIN_DIR', bin_dir):
+            count = pack.collect_examples(collector, 'Release', True,
+                                          arch_tag='x86')
+        self.assertEqual([rel for rel, _abs in collector.items],
+                         ['bin/basic.exe'])
+        self.assertEqual(count, 1)
+        self.assertTrue(any('架构' in msg for msg in collector.critical))
 
 
 if __name__ == '__main__':

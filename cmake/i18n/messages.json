@@ -128,6 +128,14 @@
       "en": "check schemaVersion, skia/sdl/cef sections and the selected default entries",
       "zh_CN": "检查 schemaVersion、skia/sdl/cef 段以及 default 指向的条目"
     },
+    "deps.ref_unknown": {
+      "en": "skia/sdl ref key '{key}' was not found in third_party_versions.json ({section})",
+      "zh_CN": "third_party_versions.json 中不存在 {section} ref 键 '{key}'"
+    },
+    "deps.ref_unknown_hint": {
+      "en": "add the key under '{section}.refs' in the manifest, or pass a valid --skia-ref/--sdl-ref",
+      "zh_CN": "在该清单的 '{section}.refs' 下补充对应键，或传入有效的 --skia-ref/--sdl-ref"
+    },
     "deps.skia_source_missing": {
       "en": "[ERROR] Skia source tree not found",
       "zh_CN": "[ERROR] 未找到 Skia 源码树"
@@ -296,6 +304,14 @@
       "en": "check the compiler output above, then re-run the same command",
       "zh_CN": "查看上面的编译输出，然后重新执行同一命令"
     },
+    "build.cef_archive_missing": {
+      "en": "[ERROR] CEF archive not found",
+      "zh_CN": "[ERROR] 未找到 CEF 归档文件"
+    },
+    "build.cef_archive_missing_hint": {
+      "en": "check the path passed to --cef-archive",
+      "zh_CN": "检查 --cef-archive 传入的路径"
+    },
     "build.python_missing": {
       "en": "[ERROR] Python 3.8+ not found",
       "zh_CN": "[ERROR] 未找到 Python 3.8+"
@@ -332,6 +348,14 @@
       "en": "[OK] dependency build products removed (source clones kept)",
       "zh_CN": "[OK] 依赖构建产物已删除（保留源码克隆）"
     },
+    "build.clean_failed": {
+      "en": "[ERROR] cannot remove {path}: {error}",
+      "zh_CN": "[ERROR] 无法删除 {path}：{error}"
+    },
+    "build.clean_failed_hint": {
+      "en": "close programs that use the build tree (editors, running examples, antivirus) and retry",
+      "zh_CN": "请关闭占用构建树的程序（编辑器、正在运行的示例、杀毒软件）后重试"
+    },
     "doctor.title": {
       "en": "Environment summary",
       "zh_CN": "环境摘要"
@@ -363,6 +387,10 @@
     "pack.failed_hint": {
       "en": "check the pack.py output above",
       "zh_CN": "查看上面的 pack.py 输出"
+    },
+    "pack.sdl_flag_hint": {
+      "en": "[HINT] --sdl only enables SDL for the build; add --with-sdl to include SDL3 in the package",
+      "zh_CN": "[提示] --sdl 只影响编译开关；包内包含 SDL3 需要额外加 --with-sdl"
     }
   }
 }

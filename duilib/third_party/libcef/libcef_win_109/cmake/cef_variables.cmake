@@ -389,6 +389,12 @@ if(OS_WINDOWS)
 
   # Consumers using different runtime types may want to pass different flags
   set(CEF_RUNTIME_LIBRARY_FLAG "/MT" CACHE STRING "Optional flag specifying which runtime to use")
+  # duilib: wrapper 的运行库必须与主工程一致（--md 使用 /MD，否则 /MT）
+  if(DUILIB_MD)
+    set(CEF_RUNTIME_LIBRARY_FLAG "/MD")
+  else()
+    set(CEF_RUNTIME_LIBRARY_FLAG "/MT")
+  endif()
   if (CEF_RUNTIME_LIBRARY_FLAG)
     list(APPEND CEF_COMPILER_FLAGS_DEBUG ${CEF_RUNTIME_LIBRARY_FLAG}d)
     list(APPEND CEF_COMPILER_FLAGS_RELEASE ${CEF_RUNTIME_LIBRARY_FLAG})

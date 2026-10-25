@@ -376,6 +376,13 @@ def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | N
         for existing in [name for name in env if name.upper() == key]:
             del env[existing]
         env[key] = value
+    # 目标架构的 MSVC 工具集未安装时，vcvarsall 仍返回成功但 PATH 中没有 cl，
+    # CMake 只会报 "No CMAKE_C_COMPILER could be found"；这里提前给出明确提示
+    if not shutil.which("cl", path=env.get("PATH")):
+        raise BuildError(
+            f"[ERROR] Visual Studio C++ tools for {arch} are not installed",
+            f"open the Visual Studio Installer and add the '{vs_arch}' MSVC build tools "
+            "(Individual components > MSVC ... build tools)")
     return env, install
 
 
@@ -510,8 +517,19 @@ def _prepare(args, messages, runner: Runner, toolchain: Toolchain,
         raise BuildError(messages.t("build.failed"), messages.hint("build.failed_hint"))
 
 
+def _check_cef_archive(args, messages) -> None:
+    """--cef-archive 指向不存在的文件时提前给出明确错误。"""
+    if not args.cef_archive:
+        return
+    path = Path(args.cef_archive).expanduser().resolve()
+    if not path.is_file():
+        raise BuildError(messages.t("build.cef_archive_missing") + f": {path}",
+                         messages.hint("build.cef_archive_missing_hint"))
+
+
 def cmd_deps(args, messages) -> int:
     _require_cmake(messages)
+    _check_cef_archive(args, messages)
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
@@ -523,6 +541,7 @@ def cmd_deps(args, messages) -> int:
 
 def cmd_build(args, messages) -> int:
     _require_cmake(messages)
+    _check_cef_archive(args, messages)
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
@@ -628,9 +647,12 @@ def cmd_doctor(args, messages) -> int:
 
 
 def cmd_test(args, messages) -> int:
-    print(messages.t("test.start"), flush=True)
     command = [sys.executable, "-m", "unittest", "discover", "-s", str(BUILD_DIR),
                "-p", "test_*.py", "-v"]
+    print("+ " + _format_command(command), flush=True)
+    if args.dry_run:
+        return 0
+    print(messages.t("test.start"), flush=True)
     completed = subprocess.run(command, cwd=str(REPO_ROOT))
     if completed.returncode != 0:
         raise BuildError(messages.t("test.failed"), messages.hint("test.failed_hint"))
@@ -639,6 +661,9 @@ def cmd_test(args, messages) -> int:
 
 def cmd_pack(args, messages) -> int:
     arch = resolve_arch(args.arch)
+    if args.sdl and not args.with_sdl:
+        # --sdl 是编译开关；打包走 pack.py 的 --with-sdl，两个开关容易混淆
+        print(messages.t("pack.sdl_flag_hint"), flush=True)
     command = [sys.executable, str(BUILD_DIR / "pack.py"),
                "--config", args.config, "--arch", arch]
     if args.with_cef:
@@ -654,6 +679,9 @@ def cmd_pack(args, messages) -> int:
     if args.md:
         command += ["--msvc-runtime", "md"]
     command += args.pack_arg
+    print("+ " + _format_command(command), flush=True)
+    if args.dry_run:
+        return 0
     print(messages.t("pack.start"), flush=True)
     completed = subprocess.run(command, cwd=str(REPO_ROOT))
     if completed.returncode != 0:
@@ -679,7 +707,12 @@ def cmd_clean(args, messages) -> int:
     for target in targets:
         print(f"[clean] {target}", flush=True)
         if not args.dry_run and target.exists():
-            shutil.rmtree(target, ignore_errors=False)
+            try:
+                shutil.rmtree(target)
+            except OSError as exc:
+                raise BuildError(
+                    messages.t("build.clean_failed").format(path=target, error=exc),
+                    messages.hint("build.clean_failed_hint"))
     print(messages.t("build.clean_deps_done") if args.deps else messages.t("build.clean_done"))
     return 0
 

@@ -112,6 +112,43 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `DUILIB_EXAMPLE_CEF`; `DUILIB_ENABLE_CEF` only decides whether the library compiles
   the CEF control sources.
 
+- CEF 109 (Windows CMake): the root project always added `libcef_win` (latest) for
+  the wrapper, and the 109 wrapper target was still named `libcef_dll_wrapper`
+  instead of the `libcef_dll_wrapper_109` the link side expects (link failure or
+  the latest sources compiled against 109 headers). The root project now picks the
+  directory from `DUILIB_CEF_VERSION`, and the 109 wrapper target is renamed to
+  `libcef_dll_wrapper_109`.
+- CEF 109 (Windows CMake, Debug): with `USE_SANDBOX=ON` the wrapper defines
+  `_HAS_ITERATOR_DEBUGGING=0`, conflicting with the Debug project's default
+  `_ITERATOR_DEBUG_LEVEL=2` (LNK2038). The project does not link
+  `cef_sandbox.lib`, so 109 configurations now force `USE_SANDBOX=OFF`.
+- `build.py pack --sdl`: `--sdl` is a build switch only; the package does not
+  include SDL3 (that needs `--with-sdl`). A hint is now printed so the package
+  contents are not misread.
+- `build.py --dry-run`: the `pack` and `test` subcommands used to ignore it and
+  run for real; they now print the command only, like the other subcommands.
+- `pack.py`: when one `lib/<arch>/<Config>` holds both MSVC `.lib` and MinGW
+  `.a` files (switching toolchains does not delete old libraries), toolchain
+  detection could pick the wrong one; packaging now fails with a request to
+  clean that directory instead of silently producing a wrong package.
+- MinGW example linking: a single Debug example can exceed 200 MB, so linking
+  several in parallel makes `ld` consume a lot of memory (`out of memory` on
+  8 GB machines). GNU ld now gets `-Wl,--no-keep-memory` to lower the peak (use
+  `--jobs 2` if memory is still tight); lld (clang/CLANG64) does not accept the
+  flag and is left unchanged.
+- Argument validation: an unknown `--skia-ref` / `--sdl-ref` key now names the
+  key and the fix instead of a generic "third_party_versions.json is invalid";
+  a missing `--cef-archive` file is reported immediately instead of failing
+  later during the CMake configure step.
+- `pack.py --with-cef`: when the wrapper for the selected version is missing
+  (typically a build made with `--cef-version 109` packed without that flag),
+  the error names the CEF version actually present in the lib directory and
+  the matching `--cef-version` to pass.
+- `pack.py --with-examples` (Windows): `bin/` is shared by all architectures,
+  so packing an x86 SDK used to collect leftover x64 examples. The PE COFF
+  Machine field is now checked; mismatching exe/dll files are skipped and
+  packaging is blocked (clean `bin/` or use `--allow-missing`).
+
 ## [1.0.2026.1023] - 2026-10-23
 
 ### Added

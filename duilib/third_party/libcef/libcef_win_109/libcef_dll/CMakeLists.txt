@@ -15,7 +15,9 @@ macro(LIBCEF_APPEND_PLATFORM_SOURCES name_of_list)
   endif()
 endmacro()
 
-set(CEF_TARGET libcef_dll_wrapper)
+# CEF 109 的 wrapper 必须与最新版区分（duilib_common.cmake 按
+# DUILIB_CEF_WRAPPER_LIB_NAME=libcef_dll_wrapper_109 链接；旧 VS 工程同名）
+set(CEF_TARGET libcef_dll_wrapper_109)
 
 set(LIBCEF_SRCS
   shutdown_checker.cc

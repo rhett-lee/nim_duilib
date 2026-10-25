@@ -7,7 +7,7 @@ if(MSVC)
     # MSVC 编译器：设置代码的运行库
     if(DUILIB_MD)
         # MD/MDd
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     else()
         # MT/MTd
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -106,6 +106,13 @@ if(MSVC)
 elseif(DUILIB_MINGW)
     # MingGW-w64编译时的链接选项：生成Windows程序，而不是控制台程序
     target_link_options(${PROJECT_NAME} PRIVATE -mwindows)
+
+    # MinGW Debug 示例单个体积可达 200 MB 以上，并行链接多个示例时 ld 峰值内存
+    # 很高（8 GB 机器上容易出现 "out of memory"）；用少量链接时间换取更低内存。
+    # lld（clang/CLANG64）不认识该参数，且本身内存占用就较低，只对 GNU ld 启用。
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_link_options(${PROJECT_NAME} PRIVATE -Wl,--no-keep-memory)
+    endif()
     
     if(DUILIB_MINGW_STATIC)
         # 使用静态链接（链接选项仅作用于当前目标，不影响其它目标）

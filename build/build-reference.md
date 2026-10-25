@@ -91,6 +91,9 @@ python3 build/build.py --config Release
 | `--with-cef` / `--with-sdl` / `--with-examples`（pack） | 包内包含对应内容 |
 | `--out-dir`（pack） | 指定包输出目录 |
 
+`--sdl` 只是编译开关；`pack` 要在包内包含 SDL3 时必须另加 `--with-sdl`
+（只写 `--sdl` 时 `build.py` 会打印提示，打包内容保持不变）。
+
 ## 5. 依赖准备
 
 依赖目录默认位于仓库同级（可用 `--deps-root` 覆盖）：
@@ -225,11 +228,26 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 - 非 Windows 的 Skia 与主工程工具链解耦：Skia 始终优先 clang/clang++（GCC 版 Skia
   运行性能明显较差），因此主工程用 gcc 时也不会改变 Skia 使用 clang 的选择。
 
+MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与 `PATH` 已就绪）：
+
+| 环境 | `MSYSTEM` | 工具链目录 | 建议的 `CC`/`CXX` | Skia 目录前缀 |
+| --- | --- | --- | --- | --- |
+| MINGW64（msvcrt） | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.<arch>` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>`（回退） |
+
+从 PowerShell 调用时同样导出 `MSYSTEM`，并把对应 `bin` 目录放到 `PATH` 最前面；
+只要设置了 `MSYSTEM`，`build.py` 就不会执行 vcvars，而是使用 `CC`/`CXX` 指定的编译器。
+独立版 llvm-mingw 也可用同样方式：设置 `MSYSTEM`，`CC`/`CXX` 指向其 `clang.exe` /
+`clang++.exe` 的绝对路径，并保证使用的 Skia 是 `mingw64-llvm.<arch>` 变体。
+
 ## 9. 运行库切换
 
 - 默认使用静态运行库（/MT、/MTd）。
 - `--md` 切换为动态运行库（/MD、/MDd）；`pack.py` 端为 `--msvc-runtime md`。
-- Skia 与 nim_duilib 的运行库必须一致；`deps` 会按配置构建对应的 Skia 变体。
+- Skia 与 nim_duilib 的运行库必须一致；`deps` 会按配置构建对应的 Skia 变体：
+  `/MT` 使用 `llvm.<arch>.debug` / `llvm.<arch>.release`，`/MD` 使用
+  `llvm.<arch>.debug.mdd` / `llvm.<arch>.release.md`。
 - 若 nim_duilib 最终编译为 DLL，必须使用动态运行库。
 
 ## 10. 排障
@@ -247,7 +265,17 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
 | 构建目录损坏 | `python3 build/build.py clean` 后重试 |
+| `clean` 删除失败（权限/占用） | 关闭占用构建树的程序（编辑器、运行中的示例、杀毒软件）后重试；错误信息会给出无法删除的具体路径 |
 | 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
+| `Visual Studio C++ tools for <arch> are not installed` | 在 Visual Studio Installer 中为对应架构安装 MSVC 生成工具（如 ARM64）；仅有 x64/x86 工具集时不要构建 arm64 |
+| MSYS2 CLANG64 配置期报 Skia 目录没有 `.a` | 已按候选顺序自动回退到 `mingw64-llvm.<arch>.release`；若仍无可用的 `.a` 目录，请用 `-DDUILIB_SKIA_LIB_SUBPATH=<目录>` 指定 clang64 编译的 Skia |
+| `--cef-version 109` 构建报找不到 `libcef_dll_wrapper_109` | 已修复：wrapper 的源码目录与目标名现在跟随 `DUILIB_CEF_VERSION`；旧构建树需 `build.py clean` 后重新配置 |
+| `--cef-version 109` Debug 链接报 `_ITERATOR_DEBUG_LEVEL` 0 vs 2（LNK2038） | 已修复：109 配置期强制 `USE_SANDBOX=OFF`，避免 wrapper 的 `_HAS_ITERATOR_DEBUGGING=0` 与 Debug 主工程冲突 |
+| `pack` 报“库目录同时包含 MSVC（.lib）与 MinGW（.a）产物” | 切换工具链后旧库仍留在 `lib/<arch>/<Config>`；删除该目录（或 `build.py clean`）后用单一工具链重新构建 |
+| `pack --with-cef` 报缺少所选版本的 wrapper | 编译与打包的 CEF 版本必须一致（如 `build --cef-version 109` 对应 `pack --with-cef --cef-version 109`）；错误信息会指出库目录中实际存在的版本 |
+| `pack --with-examples` 报“bin 的架构与目标 x86/x64 不一致” | Windows 的 `bin/` 被多个架构共用；清理 `bin/` 中其它架构的 exe/dll，或只保留目标架构的构建产物后重新打包 |
+| MinGW Debug 链接报 `out of memory allocating ...` | GNU ld 已追加 `-Wl,--no-keep-memory`；内存仍紧张时用 `--jobs 2` 降低并行链接数（clang/CLANG64 的 lld 不需要该参数） |
+| MinGW Debug 链接报 `No space left on device` | MinGW Debug 示例单个约 200–280 MB，全部示例约 10 GB；清理 `bin/` 后重试，或改用 Release 配置 |
 
 更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。
 

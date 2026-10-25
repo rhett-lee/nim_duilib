@@ -97,14 +97,31 @@ if(DUILIB_BUILD_THIRD_PARTY)
 endif()
 
 # CEF wrapper：仓库只跟踪头文件/导入库，wrapper 需要随工程编译
+# 目录必须跟随 DUILIB_CEF_VERSION（109 -> libcef_win_109），否则会用最新版
+# 的 wrapper 源码去编译 109 的头文件，且产物名与链接方期望的不一致。
 if(DUILIB_ENABLE_CEF)
-    if(DUILIB_OS_WINDOWS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/libcef_win/CMakeLists.txt")
-        add_subdirectory(duilib/third_party/libcef/libcef_win)
-    elseif(DUILIB_OS_LINUX AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/libcef_linux/CMakeLists.txt")
-        add_subdirectory(duilib/third_party/libcef/libcef_linux)
-    elseif(DUILIB_OS_MACOS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/libcef_macos/CMakeLists.txt")
+    if(DUILIB_OS_WINDOWS AND DUILIB_CEF_VERSION STREQUAL "109")
+        # CEF 109 在 USE_SANDBOX=ON 时会为 Debug 的 wrapper 追加
+        # _HAS_ITERATOR_DEBUGGING=0（等价 _ITERATOR_DEBUG_LEVEL=0），与 Debug
+        # 主工程的默认值 2 冲突，链接时报 LNK2038。本项目不链接 cef_sandbox.lib
+        # （打包也不随包），因此直接关闭沙箱。
+        set(USE_SANDBOX OFF CACHE BOOL "Enable or disable use of the sandbox." FORCE)
+    endif()
+    set(_duilib_cef_subdir "")
+    if(DUILIB_OS_WINDOWS)
+        if(DUILIB_CEF_VERSION STREQUAL "109")
+            set(_duilib_cef_subdir "libcef_win_109")
+        else()
+            set(_duilib_cef_subdir "libcef_win")
+        endif()
+    elseif(DUILIB_OS_LINUX)
+        set(_duilib_cef_subdir "libcef_linux")
+    elseif(DUILIB_OS_MACOS)
         # macOS 的 wrapper 同样需要随工程编译（产物输出到 lib/<Config>）
-        add_subdirectory(duilib/third_party/libcef/libcef_macos)
+        set(_duilib_cef_subdir "libcef_macos")
+    endif()
+    if(_duilib_cef_subdir AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/${_duilib_cef_subdir}/CMakeLists.txt")
+        add_subdirectory("duilib/third_party/libcef/${_duilib_cef_subdir}")
     endif()
 endif()
 

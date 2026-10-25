@@ -334,6 +334,40 @@ def eprint(*args):
     sys.stderr.write(' '.join(str(a) for a in args) + '\n')
 
 
+# PE 头（COFF Machine）字段：bin/ 在 Windows 上被 x86/x64/arm64 共用，
+# 打包时据此拦截其它架构的示例程序与运行时 dll。
+PE_MACHINE_BY_ARCH = {
+    'x86': 0x014C,
+    'x64': 0x8664,
+    'arm64': 0xAA64,
+}
+
+
+def pe_machine(path):
+    """读取 PE 文件的 Machine 字段；非 PE 或读取失败时返回 None。"""
+    try:
+        with open(path, 'rb') as handle:
+            if handle.read(2) != b'MZ':
+                return None
+            handle.seek(0x3C)
+            offset = struct.unpack('<I', handle.read(4))[0]
+            handle.seek(offset)
+            if handle.read(4) != b'PE\0\0':
+                return None
+            return struct.unpack('<H', handle.read(2))[0]
+    except (OSError, struct.error):
+        return None
+
+
+def pe_arch_matches(path, arch_tag):
+    """判断 PE 文件架构是否与目标架构一致；无法判断时按匹配处理。"""
+    expected = PE_MACHINE_BY_ARCH.get(arch_tag)
+    if expected is None:
+        return True
+    machine = pe_machine(path)
+    return machine is None or machine == expected
+
+
 _VERSION_MACROS = ('MAJOR', 'MINOR', 'PATCH', 'BUILD')
 _VERSION_RE = re.compile(
     r'^\s*#\s*define\s+DUILIB_VER_(MAJOR|MINOR|PATCH|BUILD)\s+(\d+)\b')
@@ -649,12 +683,23 @@ def detect_windows_toolchain(lib_dir):
     """
     if not is_windows_host():
         return None
-    if os.path.isfile(os.path.join(lib_dir, 'duilib.lib')):
+    if not os.path.isdir(lib_dir):
+        return None
+    has_msvc = os.path.isfile(os.path.join(lib_dir, 'duilib.lib'))
+    has_mingw = any(name.lower().startswith('libduilib') and
+                    name.lower().endswith('.a')
+                    for name in os.listdir(lib_dir))
+    if has_msvc and has_mingw:
+        # 切换工具链时旧库不会被自动删除，混在一起的产物无法判断该按哪套
+        # 命名与 Skia 变体收集，直接报错比悄悄打包错误的库更安全。
+        raise PackageError(
+            '库目录同时包含 MSVC（.lib）与 MinGW（.a）产物：%s；'
+            '请清理该目录（或先运行 build.py clean）后只用一个工具链重新构建'
+            % _rel(lib_dir))
+    if has_msvc:
         return 'msvc'
-    for name in os.listdir(lib_dir):
-        low = name.lower()
-        if low.startswith('libduilib') and low.endswith('.a'):
-            return 'mingw'
+    if has_mingw:
+        return 'mingw'
     return None
 
 
@@ -740,8 +785,18 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version, sys_tag):
     if pack_cef_libs:
         wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
         if wrapper not in available:
-            raise PackageError('启用了 --with-cef，但库目录中缺少 %s（目录：%s）'
-                               % (wrapper, _rel(lib_dir)))
+            # 常见原因是编译用了 --cef-version 109、打包时忘了同样指定；
+            # 直接指出库目录里实际存在的版本，避免用户只看到“缺少库”。
+            other = [v for v, name in CEF_WRAPPER_BY_VERSION.items()
+                     if v != cef_version and name in available]
+            hint = ''
+            if other:
+                # pack.py 内部用 'latest'，命令行上写作 142
+                label = '142' if other[0] == 'latest' else other[0]
+                hint = '；库目录中是 CEF %s 的 %s，打包时请加 --cef-version %s' % (
+                    label, CEF_WRAPPER_BY_VERSION[other[0]], label)
+            raise PackageError('启用了 --with-cef，但库目录中缺少 %s（目录：%s）%s'
+                               % (wrapper, _rel(lib_dir), hint))
     elif not with_cef and sys_tag != 'macos':
         for base in CEF_WRAPPER_BY_VERSION.values():
             name = available.get(base)
@@ -1346,7 +1401,8 @@ def _rewrite_doc_links(text, packaged):
     return _DOC_LINK_RE.sub(repl, text)
 
 
-def collect_examples(collector, config, is_windows, with_cef=True, is_macos=False):
+def collect_examples(collector, config, is_windows, with_cef=True, is_macos=False,
+                     arch_tag=None):
     """收集示例程序可执行文件与运行时 dll。
 
     Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
@@ -1358,6 +1414,8 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     未打包 CEF 时同样跳过。
     运行时 dll 仅 Windows 收集（此处只有 WebView2Loader.dll；
     duilib 与 SDL3 的运行的 DLL 由各自 collect 函数收集）。
+    Windows 的 bin/ 被多个架构共用：PE 架构与 arch_tag 不一致的 exe/dll
+    会造成包内程序与 SDK 库架构不符，直接按关键告警拦截。
     """
     if not os.path.isdir(BIN_DIR):
         collector.warn('bin 目录不存在：%s' % BIN_DIR, critical=True)
@@ -1366,6 +1424,7 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     exe_count = 0
     skipped_debug = []
     skipped_cef = []
+    skipped_arch = []
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
         if os.path.isdir(full):
@@ -1389,6 +1448,9 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
         low = name.lower()
         if low.endswith('.dll'):
             if is_windows and name in INCLUDE_RUNTIME_DLLS:
+                if arch_tag and not pe_arch_matches(full, arch_tag):
+                    skipped_arch.append(name)
+                    continue
                 if collector.add('bin/' + name, full):
                     count += 1
             continue
@@ -1397,6 +1459,9 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
                 continue
             if config == 'Release' and low.endswith('_d.exe'):
                 skipped_debug.append(name)
+                continue
+            if arch_tag and not pe_arch_matches(full, arch_tag):
+                skipped_arch.append(name)
                 continue
         elif '.' in name or not os.access(full, os.X_OK):
             # Unix 示例程序没有扩展名，用可执行位识别，顺带排除 .so/.zip 等文件
@@ -1415,6 +1480,12 @@ def collect_examples(collector, config, is_windows, with_cef=True, is_macos=Fals
     if skipped_cef:
         collector.warn('未打包 CEF 模块，已跳过 CEF 示例程序：%s'
                        % ', '.join(skipped_cef))
+    if skipped_arch:
+        # bin/ 由多个架构共用；把别的架构的 exe/dll 打进包会让下游启动失败
+        collector.warn('%s 的架构与目标 %s 不一致，已跳过：%s'
+                       '（请清理 bin 后只构建目标架构）'
+                       % (_rel(BIN_DIR), arch_tag, ', '.join(skipped_arch)),
+                       critical=True)
     if exe_count == 0:
         collector.warn('启用了 --with-examples，但 %s 下没有可打包的示例程序'
                        % _rel(BIN_DIR), critical=True)
@@ -2535,7 +2606,7 @@ def main(argv=None):
     doc_files = collect_docs(collector)
     n_docs = len(doc_files)
     n_exe = collect_examples(collector, config, sys_tag == 'win', args.with_cef,
-                             is_macos=(sys_tag == 'macos')) \
+                             is_macos=(sys_tag == 'macos'), arch_tag=arch_tag) \
         if args.with_examples else 0
 
     try:

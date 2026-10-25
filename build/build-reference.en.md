@@ -95,6 +95,10 @@ python3 build/build.py --config Release
 | `--with-cef` / `--with-sdl` / `--with-examples` (pack) | include the given content |
 | `--out-dir` (pack) | package output directory |
 
+`--sdl` is a build switch only; a package includes SDL3 only when `--with-sdl`
+is also given (using `--sdl` alone now prints a hint and leaves package contents
+unchanged).
+
 ## 5. Dependencies
 
 Dependency directories live next to the repository by default (`--deps-root` overrides):
@@ -226,6 +230,21 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
   always prefers clang/clang++ (GCC-built Skia performs noticeably worse), so a
   gcc-based main build does not change Skia's compiler.
 
+Each MSYS2 environment uses the toolchain in its own directory (inside an MSYS2
+terminal `MSYSTEM` and `PATH` are already set):
+
+| Environment | `MSYSTEM` | toolchain directory | `CC`/`CXX` | Skia directory prefix |
+| --- | --- | --- | --- | --- |
+| MINGW64 (msvcrt) | `MINGW64` | `E:\msys64\mingw64\bin` | `gcc` / `g++` | `gcc.<arch>` |
+| UCRT64 | `UCRT64` | `E:\msys64\ucrt64\bin` | `gcc` / `g++` | `gcc.<arch>` |
+| CLANG64 | `CLANG64` | `E:\msys64\clang64\bin` | `clang` / `clang++` | `mingw64-llvm.<arch>` (fallback) |
+
+When invoking from PowerShell, export `MSYSTEM` yourself and prepend the matching
+`bin` directory to `PATH`; `build.py` skips vcvars whenever `MSYSTEM` is set and
+uses the `CC`/`CXX` compilers. A standalone llvm-mingw works the same way: set
+`MSYSTEM`, point `CC`/`CXX` at its absolute `clang.exe` / `clang++.exe`, and make
+sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
+
 ## 9. Runtime selection
 
 - Static runtime (/MT, /MTd) is the default.
@@ -250,6 +269,13 @@ python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python3 build/build.py clean` and retry |
 | Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache and clears that directory |
+| `--cef-version 109` cannot find `libcef_dll_wrapper_109` | fixed: the wrapper source directory and target name now follow `DUILIB_CEF_VERSION`; run `build.py clean` and reconfigure an old build tree |
+| `--cef-version 109` Debug link fails with `_ITERATOR_DEBUG_LEVEL` 0 vs 2 (LNK2038) | fixed: 109 configurations force `USE_SANDBOX=OFF`, so the wrapper's `_HAS_ITERATOR_DEBUGGING=0` no longer conflicts with a Debug project |
+| `pack` reports that `lib/<arch>/<Config>` mixes MSVC `.lib` and MinGW `.a` | old libraries survive a toolchain switch; delete that directory (or run `build.py clean`) and rebuild with a single toolchain |
+| `pack --with-cef` reports the wrapper for the selected CEF version is missing | the build and pack CEF versions must match (e.g. `build --cef-version 109` with `pack --with-cef --cef-version 109`); the error names the version actually present in the lib directory |
+| `pack --with-examples` reports that `bin` does not match the target x86/x64 architecture | on Windows `bin/` is shared by all architectures; remove the other architecture's exe/dll files (or keep only the target build's artifacts) and repack |
+| MinGW Debug link fails with `out of memory allocating ...` | GNU ld now gets `-Wl,--no-keep-memory`; use `--jobs 2` if memory is still tight (lld on clang/CLANG64 does not need it) |
+| MinGW Debug link fails with `No space left on device` | a Debug example is roughly 200–280 MB and all examples take about 10 GB; clean `bin/` and retry, or use the Release configuration |
 
 Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
 

@@ -60,6 +60,21 @@
   目录设置和链接依赖。
 - 根 CMake 工程（macOS）：CEF wrapper（`libcef_dll_wrapper`）未随工程编译，而 CEF 示例
   链接时需要它；现在 macOS 也会构建 wrapper，产物输出到 `lib/<Config>`。
+- `build.py build --arch arm64`：目标架构的 MSVC 工具集未安装时，vcvarsall 仍返回成功，
+  CMake 只会报“C compiler identification is unknown”；现在初始化环境后检查 `cl`，
+  缺失时直接提示 `Visual Studio C++ tools for arm64 are not installed` 并给出安装位置。
+- `build.py clean`：删除构建树遇到文件被占用时抛出 Python 异常堆栈；现在输出
+  带路径的明确错误，并提示关闭占用程序后重试。
+- `build.py build --md`（MSVC）：Skia 目录候选没有区分 MSVC 运行库，`--md` 仍选到
+  `/MT` 编译的 `llvm.<arch>.debug`，配置期报 CRT mismatch；现在 Debug 选
+  `llvm.<arch>.debug.mdd`、Release 选 `llvm.<arch>.release.md`，`deps` 的候选命名同步修正。
+- `--md`（MSVC）生成的运行库表达式错误：`MultiThreadedDLL$<$<CONFIG:Debug>:Debug>`
+  在 Debug 展开为非法值 `MultiThreadedDLLDebug`，Generate 阶段直接失败；改为
+  `MultiThreaded$<$<CONFIG:Debug>:Debug>DLL`（根工程、duilib、zlib、libpng、libwebp、
+  cximage 与文档示例同步修正）。
+- Skia 目录选择（MSYS2 CLANG64）：`llvm.<arch>.debug` 这类目录名与 MSVC 产物重名，
+  但其中只有 `.lib`；现在 MinGW 只接受包含 `.a` 的候选目录，会按顺序回退到
+  `mingw64-llvm.<arch>.release`，避免配置期误判后报“没有 .a 静态库”。
 - CEF 示例（macOS/Linux）：wrapper 的链接名 `cef_dll_wrapper` 与目标名
   `libcef_dll_wrapper` 不一致，`target_link_libraries` 不会为它建立构建依赖，并行构建
   时 Helper 会在 wrapper 生成前链接，报 `ld: library 'cef_dll_wrapper' not found`；
@@ -90,6 +105,36 @@
   时所有示例都链接 `libcef`（Linux 下 `basic` 等程序的 `ldd` 出现 `libcef.so`）。
   现在由示例级 `DUILIB_EXAMPLE_CEF` 控制，`DUILIB_ENABLE_CEF` 只决定库是否编译
   CEF 控件源码。
+
+- CEF 109（Windows CMake）：根工程固定编译 `libcef_win`（最新版）的 wrapper，
+  且 109 的 wrapper 目标名仍为 `libcef_dll_wrapper`，与链接方期望的
+  `libcef_dll_wrapper_109` 不一致（会链接失败或误用最新版源码）；现在根工程按
+  `DUILIB_CEF_VERSION` 选择源码目录，109 的 wrapper 目标名改为
+  `libcef_dll_wrapper_109`。
+- CEF 109（Windows CMake，Debug）：`USE_SANDBOX=ON` 时 wrapper 会定义
+  `_HAS_ITERATOR_DEBUGGING=0`，与 Debug 主工程默认的 `_ITERATOR_DEBUG_LEVEL=2`
+  冲突（LNK2038）；本项目不链接 `cef_sandbox.lib`，现在 109 配置期强制
+  `USE_SANDBOX=OFF`。
+- `build.py pack --sdl`：`--sdl` 只是编译开关，包内不会包含 SDL3（需要
+  `--with-sdl`）；现在给出提示，避免误以为 SDL3 已随包。
+- `build.py --dry-run`：`pack` 与 `test` 子命令此前忽略该选项、直接真实执行；
+  现在与其他子命令一致，只打印将要执行的命令。
+- `pack.py`：同一 `lib/<arch>/<Config>` 中同时存在 MSVC `.lib` 与 MinGW `.a`
+  时，工具链判断会误选（切换工具链后旧库不会被自动清理）；现在打包直接报错，
+  提示先清理该目录，避免打出错误的包。
+- MinGW 示例链接：Debug 示例单个体积可达 200 MB 以上，并行链接多个示例时
+  `ld` 峰值内存很高（8 GB 机器上易报 `out of memory`）；现在 GNU ld 追加
+  `-Wl,--no-keep-memory` 降低峰值内存（内存仍紧张时可用 `--jobs 2`）；
+  clang/CLANG64 使用的 lld 不识别该参数，保持原样。
+- 参数校验：`--skia-ref` / `--sdl-ref` 传入清单中不存在的键时，不再笼统报
+  “third_party_versions.json 内容无效”，而是指出具体键与修正方式；
+  `--cef-archive` 指向不存在的文件时立即报错，不再等到 CMake 配置阶段。
+- `pack.py --with-cef`：库目录缺少所选版本的 wrapper 时（常见于编译用了
+  `--cef-version 109`、打包时漏加同一参数），错误信息会指出库目录中实际的
+  CEF 版本，并提示打包时应使用的 `--cef-version`。
+- `pack.py --with-examples`（Windows）：`bin/` 由多个架构共用，打包 x86 SDK 时
+  会把残留的 x64 示例程序一并收进包；现在按 PE 头的 Machine 字段校验架构，
+  不一致的 exe/dll 会被跳过并阻止出包（可清理 `bin/` 或加 `--allow-missing`）。
 
 ## [1.0.2026.1023] - 2026-10-23
 
