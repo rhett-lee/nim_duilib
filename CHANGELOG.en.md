@@ -72,6 +72,12 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Root CMake project (macOS): the CEF wrapper (`libcef_dll_wrapper`) was not built even
   though the CEF examples link against it; macOS now builds the wrapper as well, with
   output in `lib/<Config>`.
+- CEF examples (macOS/Linux): the wrapper's link name `cef_dll_wrapper` differs from its
+  target name `libcef_dll_wrapper`, so `target_link_libraries` created no build
+  dependency and Helpers could link before the wrapper was built, failing with
+  `ld: library 'cef_dll_wrapper' not found`. The wrapper target now also provides an
+  ALIAS named `cef_dll_wrapper`, so linkers referencing that name get the absolute path
+  and the build dependency (the link name is unchanged and packaging is unaffected).
 - Root CMake project: the libpng/zlib targets are renamed from `png_static`/`zlibstatic`
   to `duilib-png`/`duilib-zlib` so they match the library file names. `DUILIB_LIBS`
   previously linked by file name, so no build dependency was created and parallel builds

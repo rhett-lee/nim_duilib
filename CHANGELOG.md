@@ -60,6 +60,11 @@
   目录设置和链接依赖。
 - 根 CMake 工程（macOS）：CEF wrapper（`libcef_dll_wrapper`）未随工程编译，而 CEF 示例
   链接时需要它；现在 macOS 也会构建 wrapper，产物输出到 `lib/<Config>`。
+- CEF 示例（macOS/Linux）：wrapper 的链接名 `cef_dll_wrapper` 与目标名
+  `libcef_dll_wrapper` 不一致，`target_link_libraries` 不会为它建立构建依赖，并行构建
+  时 Helper 会在 wrapper 生成前链接，报 `ld: library 'cef_dll_wrapper' not found`；
+  现在 wrapper 目标额外提供同名 ALIAS `cef_dll_wrapper`，链接侧按其引用即可获得绝对
+  路径与构建依赖（链接名保持不变，不影响打包）。
 - 根 CMake 工程：libpng/zlib 的目标名由 `png_static`/`zlibstatic` 改为 `duilib-png`/
   `duilib-zlib`，与库文件名一致。此前 `DUILIB_LIBS` 按库文件名链接时不会自动建立构建
   依赖，并行构建可能在库文件生成前就执行链接，报 `library 'duilib-png' not found`；

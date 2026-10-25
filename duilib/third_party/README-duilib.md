@@ -140,6 +140,13 @@
 **当前差异（已定，D-5）**：
 - 本库**不**改为 `duilib-*` 前缀，目标名保持 `libcef_dll_wrapper` / `libcef_dll_wrapper_109`（该决定已于 2026-10-21 确认，后续不再变更）。
 - 链接侧在 `cmake/duilib_common.cmake` 中以 `DUILIB_CEF_WRAPPER_LIB_NAME` 引用它，因此 CMake 与 VS 两套体系都不需要改链接名。
+- macOS/Linux 上 `PREFIX ""` 使产物为 `cef_dll_wrapper.a`，与 Windows 链接名
+  `libcef_dll_wrapper` 不同。`libcef_dll/CMakeLists.txt` 在目标创建后补一个同名 ALIAS：
+  ```cmake
+  add_library(cef_dll_wrapper ALIAS ${CEF_TARGET})
+  ```
+  这样 `DUILIB_CEF_LIBS` 中的 `cef_dll_wrapper` 会解析为构建目标（绝对路径 + 构建依赖），
+  避免并行构建时在 wrapper 生成前链接而报 `library 'cef_dll_wrapper' not found`。
 
 **升级重放**：CEF wrapper 的 CMake 来自 CEF 官方二进制分发包，升级时通常是替换整个目录；只需在替换后补回上述 3 行即可。
 
@@ -153,7 +160,7 @@
 | libpng | `duilib-png` | `add_library(duilib-png ...)` 目标名 |
 | libwebp | `duilib-webp` | `add_library(duilib-webp ...)` 目标名 |
 | cximage | `duilib-cximage` | `add_library(duilib-cximage ...)` 目标名 |
-| libcef wrapper | `libcef_dll_wrapper` / `libcef_dll_wrapper_109` | `duilib_common.cmake` 变量 |
+| libcef wrapper | Windows：`libcef_dll_wrapper` / `libcef_dll_wrapper_109`（即目标名）；<br>macOS/Linux：`cef_dll_wrapper`（ALIAS，产物为 `cef_dll_wrapper.a`） | `duilib_common.cmake` 变量 + `libcef_dll/CMakeLists.txt` 的 ALIAS |
 
 ---
 

@@ -162,6 +162,12 @@ if(OS_MAC)
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})
 
+        # Helper 链接 CEF wrapper 时同样要等 wrapper 生成完毕（并行构建下 Helper
+        # 先于主目标构建，不能依赖主目标的依赖关系传递过来）
+        if(TARGET libcef_dll_wrapper)
+            add_dependencies(${_helper_target} libcef_dll_wrapper)
+        endif()
+
         # Add the Helper as a dependency of the main executable target.
         add_dependencies(${CEF_TARGET} "${_helper_target}")
 

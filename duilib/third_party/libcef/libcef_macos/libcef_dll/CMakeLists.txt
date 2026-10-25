@@ -836,6 +836,11 @@ add_library(${CEF_TARGET}
   )
 SET_LIBRARY_TARGET_PROPERTIES(${CEF_TARGET})
 
+# duilib: 产物名与链接名一致（PREFIX 为空时为 cef_dll_wrapper.a），
+#         提供一个同名 ALIAS 目标，链接侧按 cef_dll_wrapper 引用时
+#         即可解析为构建目标，自动获得构建依赖与库文件路径
+add_library(cef_dll_wrapper ALIAS ${CEF_TARGET})
+
 # Creating the CEF wrapper library. Do not define this for dependent targets.
 target_compile_definitions(${CEF_TARGET} PRIVATE -DWRAPPING_CEF_SHARED)
 
