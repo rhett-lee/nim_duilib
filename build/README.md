@@ -681,7 +681,11 @@ nim_duilib_copy_runtime(my_app)
   Unix `lib/<Release|Debug>/`；配置由 `--config` 选择，不再靠 `_d` 判定。
 - Debug 库带调试 CRT，只能给 Debug 下游使用，混进 Release SDK 会让链接异常。
 - Windows 默认不打包 SDL3，需要时加 `--with-sdl`；CEF（头文件、库与运行时）
-  需要 `--with-cef`，运行时按 `bin/libcef_win[/_109]/<架构>/` 结构随包。
+  需要 `--with-cef`：Windows 运行时按 `bin/libcef_win[/_109]/<架构>/` 结构随包，
+  Linux 运行时按扁平 `bin/libcef_linux/` 结构随包（`libcef.so` 不重复进 `lib/`，
+  链接用 `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`）；
+  `--cef-version 109` 仅 Windows。macOS 不自动收集 CEF 运行时，由下游手动部署
+  `.app`（见 [docs/Release.md](../docs/Release.md#macos手动部署-cef-运行时)）。
 - 归档权限与符号链接：tar 按源权限写条目（保留可执行/setuid），zip 用
   `S_IFLNK` 条目保存符号链接；`.so` 链接链与示例程序可执行位在解包后保留，
   符号链接不计入 `SHA256SUMS`。

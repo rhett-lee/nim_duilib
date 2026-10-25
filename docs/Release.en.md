@@ -134,7 +134,8 @@ nim_duilib-<version>-<system>-<arch>[-feature]/
 To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
 
 1. **Include path**: `include/` (`#include "duilib/duilib.h"`). When CEF is
-   included, also add `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`.
+   included, also add
+   `include/duilib/third_party/libcef/<libcef_win|libcef_win_109|libcef_linux>`.
 2. **Library path**: `lib/` (flat).
 3. **Link list** (MSVC uses `xxx.lib`; MinGW artifacts are `.a` / `.dll.a`,
    written as `-lxxx`):
@@ -150,16 +151,20 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
      MSVC-only static library
    - SDL (optional): `SDL3-static` (MSVC static) / `SDL3` import library plus
      `bin/SDL3.dll` (dynamic) / `libSDL3.a` (MinGW static); on Unix `SDL3`
-   - CEF (optional): `libcef` + `libcef_dll_wrapper[_109]`
+   - CEF (optional): on Windows `libcef` + `libcef_dll_wrapper[_109]`; on
+     Linux `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper` (`libcef.so` ships
+     in `bin/libcef_linux/` and is not duplicated into `lib/`); macOS does not
+     ship it in the SDK package and is configured downstream
 4. **Platform system libraries**: with SDL on Windows add
    `Version/Winmm/Imm32/Setupapi` (`-lversion -lwinmm -limm32 -lsetupapi`
    for MinGW); on Unix `X11`/`freetype`/`fontconfig` come from the system and
    are not packaged.
 5. **Runtime**: `bin/resources/` must sit next to the executable (inside the
-   package's `bin/`); the CEF runtime ships with `--with-cef` under its own
-   subdirectory (configure it manually otherwise); WebView2 only provides a
-   loader and depends on the Microsoft Edge WebView2 Evergreen Runtime installed
-   on the system;
+   package's `bin/`); the CEF runtime ships with `--with-cef` (Windows keeps
+   `bin/libcef_win[_109]/<arch>/`, Linux uses `bin/libcef_linux/`), and on macOS
+   it is deployed downstream; otherwise configure it manually; WebView2 only
+   provides a loader and depends on the Microsoft Edge WebView2 Evergreen
+   Runtime installed on the system;
    `bin/duilib*.dll` must sit next to the executable when duilib
    is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
@@ -439,8 +444,8 @@ Excluded in SDK mode are the 22 per-example private theme directories:
 | `--skia-lib-dir <path>` | Skia static library directory; auto-probed per platform/toolchain (MSVC `../skia/out/llvm.<arch>.<config>`; MinGW `mingw64-gcc\|llvm.<arch>.release` for standalone MinGW-w64 or `gcc\|llvm.<arch>.release` for MSYS2, validated by the presence of `.a` files) |
 | `--sdl-dir <path>` | SDL3 root directory; defaults to `../SDL3` |
 | `--with-sdl` | Additionally package SDL3 on Windows (Unix always packages it) |
-| `--with-cef` | Package CEF: headers + `libcef.lib` + wrapper + runtime (large) |
-| `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest` |
+| `--with-cef` | Package CEF: headers + import library/wrapper + runtime (large); Windows and Linux only |
+| `--cef-version latest\|109` | CEF version for `--with-cef`; defaults to `latest`; `109` is Windows-only (Linux has only `latest`) |
 | `--msvc-runtime auto\|mt\|md` | MSVC runtime recorded in package metadata; `auto` (MD for DLL mode, otherwise MT) by default |
 | `--with-examples` | Include example programs and all per-example resources |
 | `--format zip\|tgz\|tarbz2` | Archive format; defaults to `zip` on Windows, `tgz` elsewhere |
@@ -530,29 +535,77 @@ still byte-identical. A non-integer value makes the script exit with code 1.
 
 ## CEF packaging
 
-CEF development files (headers, `libcef.lib`, wrapper) are only included with
-`--with-cef`; use `--cef-version 109` for the older version. The same switch
-also collects the CEF runtime:
+CEF development files (headers, `libcef.lib`/wrapper) are only included with
+`--with-cef`; `--cef-version 109` is Windows-only. The same switch also collects
+the CEF runtime:
 
 - Windows: `libcef.dll`, `*.pak`, `icudtl.dat`, `v8_context_snapshot.bin`,
   `locales/`, etc. are taken from `bin/libcef_win[/_109]/{x64,Win32}/` in the
   repository and kept under the same relative path in the package;
+- Linux: every runtime file (`libcef.so`, `*.pak`, `icudtl.dat`, `locales/`,
+  `chrome-sandbox`, etc.) is taken from the flat `bin/libcef_linux/` directory
+  and kept flat in the package; `libcef.so` is not duplicated into `lib/`, so
+  link with `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`
+  (`find_package(nim_duilib)` links it by absolute path), and copy that directory
+  next to the executable at runtime;
 - `libcef.lib` and `cef_sandbox.lib` inside the runtime directory are not
   packaged (the former is already provided in `lib/`; the latter is unused by
   this project and very large);
 - macOS ships its runtime as an embedded `.app` Framework, so the SDK package
-  does not collect it automatically (configure it downstream);
-- Linux runtime (`bin/libcef_linux/`) will be wired up once `--with-cef`
-  supports Linux packaging.
+  does not collect it automatically (`--with-cef` fails on macOS); see below.
 
 The runtime is loaded from "executable directory + `libcef_win[/_109]/<arch>`"
 (`CefManager::AddCefDllToPath`), so with `--with-examples` the `cef` and
 `CefBrowser` programs under `bin` run directly; downstream applications must
-copy that subdirectory next to their executable.
+copy that subdirectory next to their executable. Linux applications copy the
+contents of `bin/libcef_linux/` next to their executable and make sure
+`libcef.so` can be loaded (same directory or `LD_LIBRARY_PATH`).
 
 When the runtime directory is missing, packaging only warns and still
 succeeds; `MANIFEST.txt` then states that the CEF runtime is not included and
 that CEF examples cannot run directly.
+
+### macOS: deploying the CEF runtime manually
+
+The SDK package contains no macOS CEF runtime (`--with-cef` exits with an error
+on macOS), so downstream projects deploy it following the official `.app`
+layout:
+
+1. Download the CEF binary distribution matching the target architecture and
+   point `-DCEF_ROOT=<cef_binary root>` (or the `CEF_ROOT` environment
+   variable) at it. The repository's `cmake/duilib_cef_macos.cmake` relies on
+   `cmake/FindCEF.cmake` and
+   `Release/Chromium Embedded Framework.framework` in that directory.
+2. The downstream target must be a `MACOSX_BUNDLE` (see
+   `examples/cef/CMakeLists.txt`). `COPY_MAC_FRAMEWORK(<target>
+   <CEF_BINARY_DIR> <app>)` copies `Chromium Embedded Framework.framework`
+   into `<app>/Contents/Frameworks/` and creates the version symlinks inside
+   the framework; `<App> Helper.app`, `Helper (GPU)`, `Helper (Renderer)` and
+   `Helper (Plugin)` are placed in `Contents/Frameworks/` as well.
+3. Final layout (all required):
+
+   ```
+   MyApp.app/Contents/
+     MacOS/MyApp
+     Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources (icudtl.dat, *.pak)
+     Frameworks/MyApp Helper.app/
+     Frameworks/MyApp Helper (GPU).app/
+     Frameworks/MyApp Helper (Renderer).app/
+     Frameworks/MyApp Helper (Plugin).app/
+     Resources/                                          # duilib theme, language and font resources
+   ```
+
+4. Do not split the framework or move it into `Contents/MacOS/` at runtime.
+   duilib's own `resources/` sits next to the executable as on Windows
+   (`Contents/MacOS/resources/`; follow the program's own path lookup).
+5. Before distribution, sign from the inside out and enable the hardened
+   runtime: Helpers → framework (including nested binaries) → main app. Add
+   `com.apple.security.cs.allow-jit`,
+   `com.apple.security.cs.disable-library-validation` and similar entitlements
+   when JIT or third-party frameworks are involved (see "Signing and
+   notarization / macOS").
+6. Gatekeeper refuses to launch an unsigned or incompletely signed `.app`; for
+   local testing use `codesign --deep --force --sign - MyApp.app`.
 
 ## WebView2 runtime
 

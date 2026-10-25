@@ -119,7 +119,7 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
 为保证下游能完成**编译、链接、运行**，`MANIFEST.txt` 固化以下内容：
 
 1. **包含路径**：`include/`（`#include "duilib/duilib.h"`）。
-   使用 CEF 时追加 `include/duilib/third_party/libcef/<libcef_win|libcef_win_109>`。
+   使用 CEF 时追加 `include/duilib/third_party/libcef/<libcef_win|libcef_win_109|libcef_linux>`。
 2. **库路径**：`lib/`（平面结构）。
 3. **链接列表**（MSVC 为 `xxx.lib`；MinGW 产物为 `.a` / `.dll.a`，写作 `-lxxx`）：
    - 基础：`duilib`、`duilib-cximage`、`duilib-webp`、`duilib-png`、`duilib-zlib`
@@ -131,12 +131,15 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    - JPEG（Windows MSVC）：`turbojpeg-static`；MinGW 包不包含该 MSVC 静态库
    - SDL（可选）：`SDL3-static`（MSVC 静态）/ `SDL3` 导入库 + `bin/SDL3.dll`
      （动态）/ `libSDL3.a`（MinGW 静态）；Unix 为 `SDL3`
-   - CEF（可选）：`libcef` + `libcef_dll_wrapper[_109]`
+   - CEF（可选）：Windows 为 `libcef.lib` + `libcef_dll_wrapper[_109].lib`；
+     Linux 为 `-Lbin/libcef_linux -lcef -lcef_dll_wrapper`（`libcef.so` 随包在
+     `bin/libcef_linux/`，不重复放入 `lib/`）；macOS 不在 SDK 包内，手动配置
 4. **平台系统库**：Windows 启用 SDL 时补 `Version/Winmm/Imm32/Setupapi`
    （MinGW 写作 `-lversion -lwinmm -limm32 -lsetupapi`）；
    Unix 的 `X11`/`freetype`/`fontconfig` 由系统提供，不随包。
 5. **运行期**：`bin/resources/` 与可执行文件同级（位于包内 `bin/` 下）；
-   CEF 运行时在 `--with-cef` 时随包（保持子目录结构），否则需自行配置；
+   CEF 运行时在 `--with-cef` 时随包（Windows 保持 `bin/libcef_win[_109]/<架构>/`，
+   Linux 为 `bin/libcef_linux/`），macOS 由下游手动部署；否则需自行配置；
    WebView2 只提供 loader，依赖系统安装的 Microsoft Edge WebView2 Evergreen
    Runtime；
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
@@ -477,23 +480,68 @@ SOURCE_DATE_EPOCH=1700000000 python build/release.py package --config Release --
 
 ## CEF 打包
 
-CEF 开发文件（头文件、`libcef.lib`、wrapper）仅在 `--with-cef` 时随包，
-可用 `--cef-version 109` 选择旧版。同一开关还会收集 CEF 运行时：
+CEF 开发文件（头文件、`libcef.lib`/wrapper）仅在 `--with-cef` 时随包；
+`--cef-version 109` 仅适用于 Windows。同一开关还会收集 CEF 运行时：
 
 - Windows：从仓库 `bin/libcef_win[/_109]/{x64,Win32}/` 收集
   `libcef.dll`、`*.pak`、`icudtl.dat`、`v8_context_snapshot.bin`、`locales/` 等，
   包内保持 `bin/libcef_win[/_109]/<架构>/` 相对结构；
+- Linux：从 `bin/libcef_linux/` 收集全部运行期文件（`libcef.so`、`*.pak`、
+  `icudtl.dat`、`locales/`、`chrome-sandbox` 等），包内保持
+  `bin/libcef_linux/` 扁平结构；`libcef.so` 不重复放进 `lib/`，链接时使用
+  `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`
+  （`find_package(nim_duilib)` 会按绝对路径自动链接），运行期把该目录内容
+  复制到可执行文件同级；
 - 运行时目录中的 `libcef.lib` 与 `cef_sandbox.lib` 不随包（前者已在 `lib/` 提供，
   后者本项目不使用沙箱且体积很大）；
-- macOS 的运行时以 `.app` 内嵌 Framework 提供，SDK 包不自动收集，由下游手动配置；
-- Linux 运行时（`bin/libcef_linux/`）待 `--with-cef` 支持 Linux 出包后再接入。
+- macOS 的运行时以 `.app` 内嵌 Framework 提供，SDK 包不自动收集，见下节。
 
 包内运行时按“可执行文件目录 + `libcef_win[/_109]/<架构>`”被加载
 （`CefManager::AddCefDllToPath`），因此 `--with-examples` 时 `bin` 下的
 `cef`、`CefBrowser` 可直接运行；下游程序需把该子目录整体复制到可执行文件同级。
+Linux 程序把 `bin/libcef_linux/` 的内容复制到可执行文件同级，并确保
+`libcef.so` 可被动态加载（同目录或 `LD_LIBRARY_PATH`）。
 
 仓库中缺少对应运行时目录时脚本只告警、不阻断出包，`MANIFEST.txt` 会注明
 CEF 运行时未随包、相关示例不能直接运行。
+
+### macOS：手动部署 CEF 运行时
+
+SDK 包不含 CEF 的 macOS 运行时（`--with-cef` 在 macOS 上会直接报错退出），
+下游需按 CEF 官方 `.app` 结构自行部署：
+
+1. 下载与目标架构一致的 CEF 二进制分发包，构建时用
+   `-DCEF_ROOT=<cef_binary 根目录>`（或环境变量 `CEF_ROOT`）指向它；
+   仓库 `cmake/duilib_cef_macos.cmake` 依赖该目录下的
+   `cmake/FindCEF.cmake` 与 `Release/Chromium Embedded Framework.framework`。
+2. 下游工程必须是 `MACOSX_BUNDLE`（参考 `examples/cef/CMakeLists.txt`）。
+   `COPY_MAC_FRAMEWORK(<target> <CEF_BINARY_DIR> <app>)` 会把
+   `Chromium Embedded Framework.framework` 复制到
+   `<app>/Contents/Frameworks/`，并生成 Framework 内的版本符号链接；
+   `<App> Helper.app`、`Helper (GPU)`、`Helper (Renderer)`、`Helper (Plugin)`
+   也落在 `Contents/Frameworks/`。
+3. 成品结构（缺一不可）：
+
+   ```
+   MyApp.app/Contents/
+     MacOS/MyApp
+     Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources（icudtl.dat、*.pak）
+     Frameworks/MyApp Helper.app/
+     Frameworks/MyApp Helper (GPU).app/
+     Frameworks/MyApp Helper (Renderer).app/
+     Frameworks/MyApp Helper (Plugin).app/
+     Resources/                                          # duilib 主题、语言、字体资源
+   ```
+
+4. 运行期不要拆散 Framework，也不要把它移到 `Contents/MacOS/`；
+   duilib 自己的 `resources/` 与 Windows 一样放在可执行文件同级
+   （`Contents/MacOS/resources/`，具体以程序的路径查找逻辑为准）。
+5. 分发前按“由内到外”签名并启用 hardened runtime：
+   Helper → Framework（含嵌套二进制）→ 主 app；需要 JIT/第三方框架时补
+   `com.apple.security.cs.allow-jit`、`com.apple.security.cs.disable-library-validation`
+   等 entitlements（见“签名与公证 / macOS”）。
+6. 未签名或签名不完整的 `.app` 会被 Gatekeeper 拒绝启动；本地自测可用
+   `codesign --deep --force --sign - MyApp.app` 做临时签名。
 
 ## WebView2 运行时
 

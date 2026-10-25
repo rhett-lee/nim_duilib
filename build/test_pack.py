@@ -337,7 +337,7 @@ class Arm64SupportTest(_TempDirTest):
         try:
             pack.is_windows_host = lambda: True
             with self.assertRaises(pack.PackageError) as ctx:
-                pack.collect_cef(pack.Collector(), 'arm64', 'latest')
+                pack.collect_cef(pack.Collector(), 'win', 'arm64', 'latest')
             self.assertIn('arm64', str(ctx.exception))
             collector = pack.Collector()
             self.assertEqual(
@@ -483,6 +483,82 @@ class CriticalArtifactsTest(_TempDirTest):
             False, 'latest', 'auto')
         pack.collect_integration_files(collector, meta)
         self.assertEqual(collector.critical, [])
+
+
+class CefLinuxPackagingTest(_TempDirTest):
+    """Linux 的 CEF 随包：头文件 + wrapper + bin/libcef_linux 运行时。"""
+
+    def _setup_cef(self):
+        old_cef, old_bin = pack.CEF_DIR, pack.BIN_DIR
+        pack.CEF_DIR = os.path.join(self.tmp, 'cef')
+        pack.BIN_DIR = os.path.join(self.tmp, 'bin')
+        self._touch('cef/libcef_linux/include/cef_version.h',
+                    b'#define CEF_VERSION "1"\n')
+        self._touch('bin/libcef_linux/libcef.so')
+        self._touch('bin/libcef_linux/icudtl.dat')
+        self._touch('bin/libcef_linux/locales/zh-CN.pak')
+        return old_cef, old_bin
+
+    def test_collect_headers_and_runtime(self):
+        old_cef, old_bin = self._setup_cef()
+        try:
+            collector = pack.Collector()
+            self.assertEqual(
+                pack.collect_cef(collector, 'linux', 'x64', 'latest'), 1)
+            collector.add('lib/libcef_dll_wrapper.a',
+                          self._touch('libcef_dll_wrapper.a'))
+            self.assertEqual(
+                pack.collect_cef_runtime(collector, 'linux', 'x64', 'latest'), 3)
+            rels = [rel for rel, _abs in collector.items]
+            self.assertIn('include/duilib/third_party/libcef/libcef_linux/'
+                          'include/cef_version.h', rels)
+            self.assertNotIn('lib/libcef.so', rels)
+            self.assertIn('bin/libcef_linux/libcef.so', rels)
+            self.assertIn('bin/libcef_linux/locales/zh-CN.pak', rels)
+            self.assertEqual(collector.critical, [])
+        finally:
+            pack.CEF_DIR, pack.BIN_DIR = old_cef, old_bin
+
+    def test_missing_libcef_so(self):
+        old_cef, old_bin = self._setup_cef()
+        try:
+            os.remove(os.path.join(pack.BIN_DIR, 'libcef_linux', 'libcef.so'))
+            with self.assertRaises(pack.PackageError) as ctx:
+                pack.collect_cef(pack.Collector(), 'linux', 'x64', 'latest')
+            self.assertIn('libcef.so', str(ctx.exception))
+        finally:
+            pack.CEF_DIR, pack.BIN_DIR = old_cef, old_bin
+
+    def test_macos_is_rejected(self):
+        with self.assertRaises(pack.PackageError) as ctx:
+            pack.collect_cef(pack.Collector(), 'macos', 'x64', 'latest')
+        self.assertIn('macOS', str(ctx.exception))
+
+    def test_package_meta_marks_cef(self):
+        collector = pack.Collector()
+        collector.add('lib/libcef_dll_wrapper.a',
+                      self._touch('libcef_dll_wrapper.a'))
+        collector.add('bin/libcef_linux/libcef.so', self._touch('libcef.so'))
+        meta = pack.build_package_meta(
+            collector, '1.0', 'linux', 'x64', 'Release', None,
+            True, 'latest', 'auto')
+        self.assertTrue(meta['has_cef'])
+        self.assertEqual(meta['cef_src'], 'libcef_linux')
+        self.assertEqual(meta['cef_wrapper'], 'libcef_dll_wrapper')
+
+    def test_manifest_documents_linux_runtime(self):
+        collector = pack.Collector()
+        collector.add('include/duilib/duilib.h', self._touch('duilib.h'))
+        collector.add('lib/duilib.a', self._touch('libduilib.a'))
+        collector.add('lib/libcef_dll_wrapper.a',
+                      self._touch('libcef_dll_wrapper.a'))
+        collector.add('bin/libcef_linux/libcef.so', self._touch('libcef.so'))
+        text, _sums = pack.write_manifest(
+            collector, 'pkg', '1.0', 'linux', 'x64', 'Release',
+            False, False, True, 'latest', package_time=0)
+        self.assertIn('bin/libcef_linux', text)
+        self.assertIn('-Lbin/libcef_linux -lcef', text)
+        self.assertIn('LD_LIBRARY_PATH', text)
 
 
 class DocLinkRewriteTest(unittest.TestCase):

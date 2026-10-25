@@ -275,18 +275,25 @@
   `libvulkan.so.1`、`chrome-sandbox`、`vk_swiftshader_icd.json`、
   `resources.pak`、`chrome_100_percent.pak`、`chrome_200_percent.pak`、
   `icudtl.dat`、`v8_context_snapshot.bin`、`locales/*.pak`。
-- [~] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
+- [x] 打包脚本按上述结构收集对应平台/架构的运行时，保持相对结构放入包内 `bin/`。
   - [x] Windows（2026-10-23）：`--with-cef` 时从 `bin/libcef_win[_109]/{x64,Win32}/`
     收集运行时，包内保持 `bin/libcef_win[_109]/<架构>/` 结构；
     `libcef.lib`、`cef_sandbox.lib` 等库文件不随包（前者在 `lib/` 已提供，
     后者本项目不使用沙箱且体积 80 MB 级）。
   - [x] MinGW 包不支持 CEF（2026-10-24）：`pack.py` 对 MinGW 工具链的
     `--with-cef` 直接报错，避免把 MSVC 的 `libcef.lib` 与 wrapper 打进 MinGW 包。
-  - [ ] Linux：`--with-cef` 目前仅支持 Windows 出包（`collect_cef` 直接报错），
-    待放开后再接入 `bin/libcef_linux/`。
+  - [x] Linux（2026-10-25）：`--with-cef` 接入 `bin/libcef_linux/`，包内保持
+    扁平结构 `bin/libcef_linux/`；`libcef.so` 不重复放进 `lib/`（避免上百 MB
+    重复），链接方式为 `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`，
+    `find_package(nim_duilib)` 按绝对路径自动链接；头文件收集到
+    `include/duilib/third_party/libcef/libcef_linux/include`；
+    `--cef-version 109` 仅 Windows（Linux 只有 latest），
+    `pack.py` 对非 Windows 传入 109 直接报错。仓库缺少 `bin/libcef_linux/libcef.so`
+    时按关键产物缺失处理（`PackageError`）。
   - macOS 按既定设计不自动收集（见下条）。
-- 现状：Windows 运行时已随包；MinGW 包禁止 CEF；Linux 待 CEF 出包支持；
-  macOS 仍由下游手动配置。
+- 现状（2026-10-25）：Windows 运行时已随包；MinGW 包禁止 CEF；Linux 已接入
+  `bin/libcef_linux/`（Windows 环境无法真机出包/运行验证）；macOS 仍由下游手动
+  配置，`docs/Release.md` 与 `Release.en.md` 已补充手动部署流程。
 - [x] macOS：结构已确认，CEF 随示例以 `.app` 形式生成：
   `Contents/MacOS/<exe>`、`Contents/Frameworks/Chromium Embedded Framework.framework`
   （`Versions/A/...` 及顶层符号链接）、`Contents/Frameworks/<name> Helper*.app`
@@ -303,6 +310,9 @@
   `chrome-sandbox` 的可执行权限正确；macOS 按手动配置流程验证。
   Windows 侧已满足运行时随包（`--with-cef --list`：x64 latest 235 个、109 个 69 个
   运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
+  Linux 侧由 `test_pack.py` 的 `CefLinuxPackagingTest` 覆盖收集、元数据、MANIFEST
+  与拒绝场景（5 个用例），真机出包与运行验证待补；macOS 手动部署流程见
+  `docs/Release.md` 的“macOS：手动部署 CEF 运行时”。
 
 #### P1-4 WebView2 运行时说明
 
@@ -460,3 +470,5 @@
 | 2026-10-24 | P2-1 自动化：`build/test_pack.py` 扩展到 30 个用例（链接重写、MANIFEST、MSVC 运行库推断、接入文件、arm64、防回归），工作区与 UCRT64 Python 全部通过；新增 `build/autotest.py`（预设化检测/可选构建/打包/`--verify`/结构断言/可选冒烟/JSON 报告）与 `build/test_autotest.py`（17 个用例）；`unit`、`arm64-synthetic`、`pack-msvc-x64-release` 实测通过；按用户决策不接入 CI |
 | 2026-10-24 | P2-4 arm64 接入：新增 `msvc/manifest/duilib.arm64.manifest`；`pack.py` 的 Windows 包收集 x64/x86/arm64 三份 manifest，并对 `bin/*.dll` 做 PE 架构校验（交叉出包时跳过不匹配 DLL）；`nim_duilib.props`/`nim_duilibConfig.cmake`/`duilib_common.cmake`/`SkiaSettings.props` 增加 ARM64 识别与目录映射；`arm64-synthetic` 预设用临时假库出包并通过 `--verify` 与结构断言。arm64 真机编译/运行验证未做（无设备），CEF/JPEG 无 arm64 预编译包 |
 | 2026-10-25 | P0-2 改为实施：`pack.py` 增加关键产物缺失阻断（核心头文件、`bin/resources/`、Windows manifest、显式请求的 SDL3 运行期 DLL / CEF 运行时 / 示例程序；基础库与 Skia 原本已失败），以退出码 1 拒绝出包；新增 `--allow-missing` 仅供排查降级，`--list` 不受影响。`test_pack.py` 增至 39 个用例，覆盖各关键项缺失、降级与真实仓库无缺失；`unit`、`arm64-synthetic` 与 `pack-msvc-x64-release` 预设复测通过 |
+| 2026-10-25 | P1-3 Linux 已接入：`collect_cef` 收集 `bin/libcef_linux/` 运行时与头文件，`libcef.so` 不进 `lib/`，CMake 按绝对路径链接；`--cef-version 109` 仅 Windows；`test_pack.py` 新增 5 个 Linux CEF 用例（共 44 个），`test_autotest.py` 17 个通过 |
+| 2026-10-25 | macOS CEF 文档补齐：`docs/Release.md` 与 `Release.en.md` 新增“手动部署 CEF 运行时”（CEF_ROOT、`MACOSX_BUNDLE`、`COPY_MAC_FRAMEWORK`、Helper、目录结构、签名顺序与 entitlements） |

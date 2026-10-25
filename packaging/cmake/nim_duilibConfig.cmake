@@ -231,6 +231,9 @@ function(_nim_duilib_lib_path OUT_VAR BASE_NAME)
             list(APPEND _candidates "${nim_duilib_LIB_DIR}/lib${BASE_NAME}.dll.a")
         endif()
         list(APPEND _candidates "${nim_duilib_LIB_DIR}/lib${BASE_NAME}.a")
+        # CEF 的 wrapper 目标名本身带 lib 前缀（libcef_dll_wrapper.a），
+        # 归一化后仍按原名查找。
+        list(APPEND _candidates "${nim_duilib_LIB_DIR}/${BASE_NAME}.a")
     endif()
     foreach(_candidate IN LISTS _candidates)
         if(EXISTS "${_candidate}")
@@ -322,7 +325,22 @@ else()
         _nim_duilib_add_lib("WebView2LoaderStatic")
     endif()
     if(NIM_DUILIB_PACKAGE_HAS_CEF)
-        _nim_duilib_add_lib("libcef")
+        if(WIN32)
+            _nim_duilib_add_lib("libcef")
+        elseif(APPLE)
+            # macOS 的 CEF 运行时不随 SDK 包收集，由下游按发布文档把
+            # Chromium Embedded Framework.framework 放入 .app；这里不提供库。
+        else()
+            # Linux 的 libcef.so 同时是链接库与运行库，随包放在
+            # bin/libcef_linux/，直接用绝对路径链接，避免重复打包。
+            set(_nim_cef_so "${nim_duilib_BIN_DIR}/libcef_linux/libcef.so")
+            if(EXISTS "${_nim_cef_so}")
+                list(APPEND _nim_link "${_nim_cef_so}")
+            else()
+                message(FATAL_ERROR
+                    "SDK 声明包含 CEF，但找不到 ${_nim_cef_so}。")
+            endif()
+        endif()
         if(NIM_DUILIB_PACKAGE_CEF_WRAPPER)
             _nim_duilib_add_lib("${NIM_DUILIB_PACKAGE_CEF_WRAPPER}")
         endif()

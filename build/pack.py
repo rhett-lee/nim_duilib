@@ -50,11 +50,14 @@
      MinGW 只带动态 loader 的导入库 + DLL，MSVC 静态 loader 不可链接）；
    - turbojpeg-static（仅 Windows MSVC：VS 默认启用 libjpeg-turbo，duilib.lib 有符号）；
    - SDL3（Unix 始终；Windows 需 --with-sdl；动态库时同时带运行期 DLL）；
-   - CEF 开发包（仅 --with-cef：头文件 + libcef.lib + wrapper）；
+   - CEF 开发包（仅 --with-cef：头文件 + libcef.lib/wrapper；Linux 无导入库，
+     链接时直接使用 bin/libcef_linux/libcef.so）；
    - DLL 模式运行库（Windows：bin/duilib*.dll，lib/ 中为对应的导入库）。
-   --with-cef 时同时收集 CEF 运行时（libcef.dll、*.pak、icudtl.dat、locales/），
-   保持 bin/libcef_win[_109]/<arch>/ 结构；仓库中缺少该目录时只告警，
-   包内只有开发文件，含 CEF 的示例程序不能直接运行，清单中会标注。
+   --with-cef 时同时收集 CEF 运行时（libcef.dll/libcef.so、*.pak、icudtl.dat、
+   locales/）：Windows 保持 bin/libcef_win[_109]/<arch>/ 结构，Linux 为
+   bin/libcef_linux/ 扁平结构；仓库中缺少该目录时只告警，包内只有开发文件，
+   含 CEF 的示例程序不能直接运行，清单中会标注。macOS 的 CEF 运行时以
+   .app 内嵌 Framework 提供，不自动收集，下游按发布文档手动部署。
 
 6. Windows 工具链按库目录内容自动判断：存在 duilib.lib 为 MSVC，
    存在 libduilib*.a 为 MinGW。两者产物不同，不能混用：
@@ -271,6 +274,14 @@ CEF_SRC_BY_VERSION = {
     'latest': 'libcef_win',
     '109': 'libcef_win_109',
 }
+
+
+def cef_src_name(sys_tag, cef_version):
+    """CEF 源码目录名：Windows 按版本区分，Linux 只有一套。"""
+    if sys_tag == 'linux':
+        return 'libcef_linux'
+    return CEF_SRC_BY_VERSION[cef_version]
+
 
 # CEF 运行时目录：仓库 bin/<源码目录>/<VS 平台目录>/（Windows）。
 # CefManager 按“可执行文件目录 + 该子目录”加载 libcef.dll
@@ -1088,23 +1099,43 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
     return count
 
 
-def collect_cef(collector, arch_tag, cef_version):
-    """收集 CEF 开发包：头文件 + libcef.lib（wrapper 在 collect_libs 中）。"""
-    if not is_windows_host():
-        raise PackageError('--with-cef 目前仅支持 Windows 打包')
-    src_name = CEF_SRC_BY_VERSION[cef_version]
-    arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
-    if arch_dir is None:
-        raise PackageError('CEF 上游没有 Windows %s 预编译包，无法随包' % arch_tag)
+def collect_cef(collector, sys_tag, arch_tag, cef_version):
+    """收集 CEF 开发包：头文件 + 链接库（wrapper 在 collect_libs 中）。
 
+    Windows：`libcef.lib` 导入库放入 lib/，运行时由 collect_cef_runtime 收集。
+    Linux：`libcef.so` 同时是链接库与运行库，只在 bin/libcef_linux/ 保留一份，
+    避免重复打包上百 MB；下游链接时把该目录加入库搜索路径（见 MANIFEST）。
+    macOS：运行时以 .app 内嵌 Framework 提供，不随 SDK 包自动收集。
+    """
+    if sys_tag == 'macos':
+        raise PackageError(
+            '--with-cef 不在 macOS 上自动收集 CEF；请按发布文档手动部署 '
+            '.app 内的 Framework')
+    if sys_tag not in ('win', 'linux'):
+        raise PackageError('--with-cef 仅支持 Windows / Linux')
+
+    src_name = cef_src_name(sys_tag, cef_version)
     src_root = os.path.join(CEF_DIR, src_name)
-    lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
-    if not os.path.isfile(lib):
-        raise PackageError('缺少 %s' % _rel(lib))
+    if not os.path.isdir(src_root):
+        raise PackageError('缺少 CEF 源码目录：%s' % _rel(src_root))
 
     count = 0
-    if collector.add('lib/libcef.lib', lib):
-        count += 1
+    if sys_tag == 'win':
+        arch_dir = {'x64': 'x64', 'x86': 'Win32'}.get(arch_tag)
+        if arch_dir is None:
+            raise PackageError('CEF 上游没有 Windows %s 预编译包，无法随包' % arch_tag)
+        lib = os.path.join(src_root, 'lib', arch_dir, 'libcef.lib')
+        if not os.path.isfile(lib):
+            raise PackageError('缺少 %s' % _rel(lib))
+        if collector.add('lib/libcef.lib', lib):
+            count += 1
+    else:
+        so = os.path.join(BIN_DIR, src_name, 'libcef.so')
+        if not os.path.isfile(so):
+            raise PackageError(
+                '缺少 %s：请把 CEF 二进制分发包的 Release/ 与 Resources/ '
+                '内容复制到 bin/%s/' % (_rel(so), src_name))
+
     count += _collect_tree(collector, os.path.join(src_root, 'include'),
                            'include/duilib/third_party/libcef/%s/include' % src_name)
     return count
@@ -1115,31 +1146,36 @@ def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
 
     运行时按“可执行文件目录 + 固定子目录”被加载：
       Windows：<exe>/libcef_win[/_109]/{x64,Win32}/
-    包内保持仓库 bin/ 下的同一相对结构（bin/libcef_win[_109]/<arch>/），
-    示例程序放在 bin/ 时可直接启动，下游把该子目录整体复制到可执行文件同级即可。
+      Linux：  <exe>/libcef_linux/（扁平结构，libcef.so 与资源文件同级）
+    包内保持仓库 bin/ 下的同一相对结构（bin/libcef_win[_109]/<arch>/、
+    bin/libcef_linux/），示例程序放在 bin/ 时可直接启动，下游把该子目录
+    整体复制到可执行文件同级即可。
     macOS 的运行时以 .app 内嵌 Framework 提供，SDK 包不自动收集（下游手动配置）。
-    Linux 的 CEF 运行时位于 bin/libcef_linux/，但当前 --with-cef 仅支持 Windows 出包。
     """
     if sys_tag == 'macos':
         return 0
-    if sys_tag != 'win':
+    if sys_tag not in ('win', 'linux'):
         return 0
 
-    src_name = CEF_SRC_BY_VERSION[cef_version]
-    arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
-    if arch_dir is None:
-        collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag,
-                       critical=True)
-        return 0
+    src_name = cef_src_name(sys_tag, cef_version)
+    if sys_tag == 'linux':
+        src_root = os.path.join(BIN_DIR, src_name)
+        dst_prefix = 'bin/%s/' % src_name
+    else:
+        arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
+        if arch_dir is None:
+            collector.warn('CEF 运行时没有 %s 架构的目录，已跳过' % arch_tag,
+                           critical=True)
+            return 0
+        src_root = os.path.join(BIN_DIR, src_name, arch_dir)
+        dst_prefix = 'bin/%s/%s/' % (src_name, arch_dir)
 
-    src_root = os.path.join(BIN_DIR, src_name, arch_dir)
     if not os.path.isdir(src_root):
         collector.warn('CEF 运行时目录不存在：%s（本包只有头文件与库，'
                        '带 CEF 的示例程序无法直接运行）' % _rel(src_root),
                        critical=True)
         return 0
 
-    dst_prefix = 'bin/%s/%s/' % (src_name, arch_dir)
     count = 0
     for abs_path, rel in iter_files(src_root):
         if os.path.splitext(rel)[1].lower() in CEF_RUNTIME_EXCLUDE_SUFFIXES:
@@ -1442,6 +1478,16 @@ def build_package_meta(collector, version, sys_tag, arch_tag, config,
             has_cef = True
             cef_wrapper = wrapper
             cef_src = CEF_SRC_BY_VERSION[cef_version]
+    elif with_cef and sys_tag == 'linux':
+        wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
+        # Linux 没有单独的导入库：以运行期 libcef.so 与 wrapper 都在包内为准。
+        cef_so = any(rel == 'bin/libcef_linux/libcef.so'
+                     for rel, _abs in collector.items)
+        # _lib_stems 会去掉 Unix 静态库的 lib 前缀，两种写法都接受。
+        if cef_so and (wrapper in stems or wrapper[3:] in stems):
+            has_cef = True
+            cef_wrapper = wrapper
+            cef_src = 'libcef_linux'
 
     if sys_tag == 'win' and toolchain == 'msvc':
         if msvc_runtime == 'auto':
@@ -1656,13 +1702,16 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     sdl_dynamic = (('SDL3.lib' in lib_names) or ('libSDL3.dll.a' in lib_names) or
                    any(n.startswith('libSDL3.so') or n.startswith('libSDL3.')
                        and n.endswith('.dylib') for n in lib_names))
-    # CEF 运行时保持 bin/libcef_win[_109]/<arch>/ 结构，见 collect_cef_runtime。
+    # CEF 运行时保持 bin/libcef_win[_109]/<arch>/ 或 bin/libcef_linux/ 结构，
+    # 见 collect_cef_runtime。
     cef_runtime_rel = ''
     if with_cef and is_windows and not is_mingw:
         cef_arch_dir = CEF_RUNTIME_ARCH_DIRS.get(arch_tag)
         if cef_arch_dir:
             cef_runtime_rel = 'bin/%s/%s' % (
                 CEF_SRC_BY_VERSION[cef_version], cef_arch_dir)
+    elif with_cef and sys_tag == 'linux':
+        cef_runtime_rel = 'bin/libcef_linux'
     cef_runtime_present = bool(cef_runtime_rel) and any(
         rel.startswith(cef_runtime_rel + '/') for rel, _abs in collector.items)
     lines = []
@@ -1704,8 +1753,12 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  bin/                  运行期 DLL；--with-examples 时还含示例程序')
     lines.append('  bin/resources/        主题、语言、字体资源（与示例程序同级）')
     if cef_runtime_present:
-        lines.append('  %s/  CEF 运行时（libcef.dll、*.pak、icudtl.dat、'
-                     'locales/）' % cef_runtime_rel)
+        if sys_tag == 'linux':
+            lines.append('  %s/  CEF 运行时（libcef.so、*.pak、icudtl.dat、'
+                         'locales/）' % cef_runtime_rel)
+        else:
+            lines.append('  %s/  CEF 运行时（libcef.dll、*.pak、icudtl.dat、'
+                         'locales/）' % cef_runtime_rel)
     lines.append('  licenses/             第三方许可证')
     lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
@@ -1724,7 +1777,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     section('开发接入')
     lines.append('1) 包含路径：include/')
     if with_cef:
-        src_name = CEF_SRC_BY_VERSION[cef_version]
+        src_name = cef_src_name(sys_tag, cef_version)
         lines.append('   使用 CEF 时追加：include/duilib/third_party/libcef/%s'
                      % src_name)
     if with_sdl or not is_windows:
@@ -1768,7 +1821,11 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('   SDL3    : -lSDL3（动态库，见运行期）')
     if with_cef:
         wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
-        lines.append('   CEF     : libcef.lib;%s.lib' % wrapper)
+        if sys_tag == 'linux':
+            lines.append('   CEF     : -Lbin/libcef_linux -lcef -l%s'
+                         '（libcef.so 随包在 bin/libcef_linux/）' % wrapper)
+        else:
+            lines.append('   CEF     : libcef.lib;%s.lib' % wrapper)
 
     section('下游接入')
     if is_windows and not is_mingw:
@@ -1853,6 +1910,11 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('  复制到可执行文件同级，或设置 LD_LIBRARY_PATH'
                      '（macOS：DYLD_LIBRARY_PATH）。')
         lines.append('  X11 / freetype / fontconfig 由系统提供，不随包。')
+        if with_cef and cef_runtime_present:
+            lines.append('  CEF 运行时随包（%s/）：把该目录全部内容复制到可执行文件'
+                         % cef_runtime_rel)
+            lines.append('  同级（libcef.so、*.pak、icudtl.dat、locales/ 等）；')
+            lines.append('  libcef.so 需可被动态加载（同目录或 LD_LIBRARY_PATH）。')
 
     section('配置一致性')
     if is_windows and msvc_runtime:
@@ -2304,8 +2366,9 @@ def main(argv=None):
     parser.add_argument('--with-sdl', action='store_true',
                         help='Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）')
     parser.add_argument('--with-cef', action='store_true',
-                        help='打包 CEF：头文件 + libcef.lib + wrapper + 运行时'
-                             '（运行时按架构目录，体积巨大，默认不带）')
+                        help='打包 CEF：头文件 + libcef.lib/wrapper + 运行时'
+                             '（Windows/Linux；macOS 不自动收集，按发布文档手动部署；'
+                             '体积巨大，默认不带）')
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
                         help='配合 --with-cef 选择 CEF 版本（默认 latest）')
     parser.add_argument('--msvc-runtime', choices=('auto', 'mt', 'md'), default='auto',
@@ -2354,6 +2417,9 @@ def main(argv=None):
             mingw_variant = resolve_mingw_variant(lib_dir, args.mingw_variant)
         if toolchain == 'mingw' and args.with_cef:
             raise PackageError('--with-cef 仅支持 MSVC；MinGW（含 MSYS2）不支持 CEF')
+        if args.with_cef and sys_tag != 'win' and args.cef_version != 'latest':
+            raise PackageError('--cef-version 109 仅适用于 Windows；'
+                               'Linux 只有 latest')
         skia_dir = resolve_skia_lib_dir(args.skia_lib_dir, config, arch_tag,
                                         toolchain, mingw_variant,
                                         dll_mode=(toolchain == 'msvc' and detect_dll_mode()))
@@ -2370,7 +2436,7 @@ def main(argv=None):
         n_cef = 0
         n_cef_rt = 0
         if args.with_cef:
-            n_cef = collect_cef(collector, arch_tag, args.cef_version)
+            n_cef = collect_cef(collector, sys_tag, arch_tag, args.cef_version)
             n_cef_rt = collect_cef_runtime(collector, sys_tag, arch_tag,
                                            args.cef_version)
     except PackageError as exc:

@@ -717,8 +717,12 @@ Easy mistakes to avoid:
 - Debug libraries carry the debug CRT and may only serve Debug downstream
   builds; mixing them into a Release SDK breaks linking.
 - SDL3 is not packaged on Windows by default (use `--with-sdl`); CEF (headers,
-  libraries and runtime) requires `--with-cef`, with the runtime kept under
-  `bin/libcef_win[/_109]/<arch>/` in the package.
+  libraries and runtime) requires `--with-cef`: on Windows the runtime is kept
+  under `bin/libcef_win[/_109]/<arch>/`, on Linux it is kept flat under
+  `bin/libcef_linux/` (`libcef.so` is not duplicated into `lib/`; link with
+  `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`); `--cef-version 109` is
+  Windows-only. macOS does not collect the runtime automatically; deploy the
+  `.app` manually (see [docs/Release.en.md](../docs/Release.en.md#cef-packaging)).
 - Archive permissions and symlinks: tar entries use the source permissions
   (executable/setuid preserved) and zip stores symlinks as `S_IFLNK`; `.so`
   chains and executable bits survive extraction, and symlinks are excluded from
