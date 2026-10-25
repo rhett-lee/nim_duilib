@@ -63,6 +63,10 @@
   指定后整个目录（含 `Contents/Frameworks` 内的 CEF Framework、Helper 与符号链接）
   按原结构收集。macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与运行时
   （Bundle 自带 Framework），原“直接报错”的行为移除。
+- CEF 只由 `cef` 与 `CefBrowser` 示例链接：此前根工程开启 `DUILIB_ENABLE_CEF`
+  时所有示例都链接 `libcef`（Linux 下 `basic` 等程序的 `ldd` 出现 `libcef.so`）。
+  现在由示例级 `DUILIB_EXAMPLE_CEF` 控制，`DUILIB_ENABLE_CEF` 只决定库是否编译
+  CEF 控件源码。
 
 ## [1.0.2026.1023] - 2026-10-23
 

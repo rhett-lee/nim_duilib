@@ -8,6 +8,7 @@ project(CefBrowser CXX)
 
 # 使用CEF模块
 set(DUILIB_ENABLE_CEF ON)
+set(DUILIB_EXAMPLE_CEF ON)
 
 # 定义源代码文件需要枚举的子目录（Windows平台额外枚举Windows相关子目录）
 set(DUILIB_SRC_SUB_DIRS "browser")

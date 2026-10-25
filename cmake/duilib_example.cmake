@@ -7,7 +7,8 @@
 #   include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/duilib_example.cmake")
 #
 # 可在 include 本文件之前设置的示例开关：
-#   DUILIB_ENABLE_CEF             使用CEF模块
+#   DUILIB_ENABLE_CEF             使用CEF模块（全局能力开关，见 duilib_root_options.cmake）
+#   DUILIB_EXAMPLE_CEF            本示例使用CEF模块（仅 cef/CefBrowser 设置；默认 OFF）
 #   DUILIB_WEBVIEW2_EXE           定义使用WebView2的可执行程序
 #   DUILIB_THEME_DIR_NAME         资源子目录名称（位于resources/themes/default下，macOS复制资源时使用）
 #   DUILIB_SRC_SUB_DIRS           需要枚举C++源码的子目录
@@ -19,6 +20,12 @@ get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOL
 
 # 项目源码目录
 get_filename_component(DUILIB_PROJECT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/" ABSOLUTE)
+
+# 只有显式声明的示例才链接 CEF：全局 DUILIB_ENABLE_CEF 只表示“库支持 CEF”，
+# 不能让所有示例都产生 libcef 依赖（否则 basic 等程序也会导入 libcef.so/dll）。
+if(NOT DEFINED DUILIB_EXAMPLE_CEF)
+    set(DUILIB_EXAMPLE_CEF OFF)
+endif()
 
 # 定义资源（*.rc）名，默认名称是 "项目名称.rc"，文件编码需要改为UTF8编码
 # 资源文件需要放在源码所在目录中，只有Windows平台有效，其他平台忽略该定义

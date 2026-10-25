@@ -147,7 +147,9 @@ Trimming `bin/resources` for release: delete `fonts/` when no custom fonts are u
 into `resources.zip`, replace `bin/resources.zip`, and rebuild; see `examples/basic`.
 
 Ship the CEF runtime directory with your application; see [docs/CEF.en.md](../docs/CEF.en.md)
-for usage.
+for usage. Only the `cef` and `CefBrowser` examples link CEF (`DUILIB_EXAMPLE_CEF`);
+other example executables do not import `libcef`. `DUILIB_ENABLE_CEF` only controls
+whether the library compiles the CEF control sources.
 
 ## 7. Packaging
 

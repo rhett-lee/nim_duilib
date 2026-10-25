@@ -64,7 +64,8 @@ DUILIB_BUILD_TYPE        # "debug" or "release"
 | `DUILIB_LOG` | OFF | Print duilib debug logs |
 | `DUILIB_SKIA_LIB_SUBPATH` | empty | Skia library subdirectory; empty means auto-concatenated per platform and configuration (see below) |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, others=ON | Enable SDL input support |
-| `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support |
+| `DUILIB_ENABLE_CEF` | OFF | Enable CEF browser support (library compiles CEF control sources) |
+| `DUILIB_EXAMPLE_CEF` | OFF | Example links CEF (set only by `cef`/`CefBrowser`) |
 | `DUILIB_CEF_109` | OFF | Use CEF 109 version (supports Win7) |
 | `DUILIB_WEBVIEW2_EXE` | OFF | WebView2 executable program (Windows only) |
 | `DUILIB_MINGW_STATIC` | ON | MinGW static linking |
@@ -286,17 +287,19 @@ set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
 **Main configuration content:**
 
 ```cmake
-# CEF support
-if(DUILIB_ENABLE_CEF)
-    include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
-    link_directories("${DUILIB_CEF_LIB_PATH}")
+# Only CEF examples (cef/CefBrowser) link CEF; others must not import libcef.so
+set(DUILIB_EXAMPLE_CEF_LIBS "")
+if(DUILIB_ENABLE_CEF AND DUILIB_EXAMPLE_CEF)
+    list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${DUILIB_CEF_SRC_ROOT_DIR}")
+    list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_CEF_LIB_PATH}")
+    set(DUILIB_EXAMPLE_CEF_LIBS ${DUILIB_CEF_LIBS})
 endif()
 
 # Linux system dependency libraries
 set(DUILIB_LINUX_LIBS X11 freetype fontconfig pthread dl)
 
 # Link command
-target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_LINUX_LIBS})
+target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_EXAMPLE_CEF_LIBS} ${DUILIB_LINUX_LIBS})
 ```
 
 ---

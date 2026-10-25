@@ -76,6 +76,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `Contents/Frameworks`) is collected with its original layout. On macOS `--with-cef`
   only controls examples; it collects no CEF development files or runtime (bundles
   carry the framework themselves). The previous "error out" behaviour is removed.
+- Only the `cef` and `CefBrowser` examples link CEF: with `DUILIB_ENABLE_CEF` enabled
+  in the root project, every example used to link `libcef` (`ldd` on Linux showed
+  `libcef.so` for `basic` and friends). This is now controlled per example by
+  `DUILIB_EXAMPLE_CEF`; `DUILIB_ENABLE_CEF` only decides whether the library compiles
+  the CEF control sources.
 
 ## [1.0.2026.1023] - 2026-10-23
 

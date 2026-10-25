@@ -46,12 +46,15 @@ if(MSVC)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
-if(DUILIB_ENABLE_CEF)
+# 仅 CEF 示例（cef/CefBrowser）链接 CEF；其他示例不应导入 libcef.dll
+set(DUILIB_EXAMPLE_CEF_LIBS "")
+if(DUILIB_ENABLE_CEF AND DUILIB_EXAMPLE_CEF)
     #使用CEF模块：需要添加CEF源码根目录到include路径
     list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${DUILIB_CEF_SRC_ROOT_DIR}")
     
     #cef库所在路径（.lib对应的路径）
     list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_CEF_LIB_PATH}")
+    set(DUILIB_EXAMPLE_CEF_LIBS ${DUILIB_CEF_LIBS})
 endif()
 
 if(DUILIB_WEBVIEW2_EXE)    
@@ -93,7 +96,7 @@ if(MSVC)
         "/ENTRY:wWinMainCRTStartup"
     )
     
-    if(DUILIB_ENABLE_CEF)
+    if(DUILIB_EXAMPLE_CEF_LIBS)
         #设置libcef.dll延迟加载（需要同时链接 delayimp.lib 提供 __delayLoadHelper2）
         target_link_options(${PROJECT_NAME} PRIVATE
             "/DELAYLOAD:libcef.dll"  # 指定延迟加载的DLL文件名
@@ -140,4 +143,4 @@ if(DUILIB_WEBVIEW2_EXE)
     list(APPEND DUILIB_WINDOWS_LIBS WinInet.lib WebView2Loader.dll.lib)
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
+target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_EXAMPLE_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})

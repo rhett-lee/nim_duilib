@@ -119,11 +119,11 @@ endif()
 # auto 模式：依赖准备先于所有编译
 duilib_link_dependency_targets()
 
-# CEF wrapper 也必须在示例链接之前完成
+# CEF wrapper 只需在 CEF 示例（cef/CefBrowser）链接之前完成
 if(TARGET libcef_dll_wrapper)
-    foreach(_duilib_example IN LISTS DUILIB_EXAMPLES)
-        if(TARGET ${_duilib_example})
-            add_dependencies(${_duilib_example} libcef_dll_wrapper)
+    foreach(_duilib_cef_example IN ITEMS cef CefBrowser)
+        if(TARGET ${_duilib_cef_example})
+            add_dependencies(${_duilib_cef_example} libcef_dll_wrapper)
         endif()
     endforeach()
 endif()

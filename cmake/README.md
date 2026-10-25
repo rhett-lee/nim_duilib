@@ -62,7 +62,8 @@ DUILIB_BUILD_TYPE        # "debug" 或 "release"
 | `DUILIB_LOG` | OFF | 打印 duilib 调试日志 |
 | `DUILIB_SKIA_LIB_SUBPATH` | 空 | Skia 库子目录；空表示按平台/配置自动拼接（见下方规则） |
 | `DUILIB_ENABLE_SDL` | Windows=OFF, 其他=ON | 启用 SDL 输入支持 |
-| `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持 |
+| `DUILIB_ENABLE_CEF` | OFF | 启用 CEF 浏览器支持（库编译 CEF 控件源码） |
+| `DUILIB_EXAMPLE_CEF` | OFF | 示例程序链接 CEF（仅 `cef`/`CefBrowser` 设置） |
 | `DUILIB_CEF_109` | OFF | 使用 CEF 109 版本（支持 Win7） |
 | `DUILIB_WEBVIEW2_EXE` | OFF | WebView2 可执行程序（仅 Windows） |
 | `DUILIB_MINGW_STATIC` | ON | MinGW 静态链接 |
@@ -248,7 +249,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 #### 3.7 CEF 延迟加载
 ```cmake
-if(DUILIB_ENABLE_CEF)
+# 只有 CEF 示例链接 libcef，因此也只为它们设置延迟加载
+if(DUILIB_EXAMPLE_CEF)
     target_link_options(${PROJECT_NAME} PRIVATE "/DELAYLOAD:libcef.dll")
 endif()
 ```
@@ -276,17 +278,19 @@ set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
 **主要配置内容：**
 
 ```cmake
-# CEF 支持
-if(DUILIB_ENABLE_CEF)
-    include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
-    link_directories("${DUILIB_CEF_LIB_PATH}")
+# 仅 CEF 示例链接 CEF（cef/CefBrowser）；其他示例不应产生 libcef.so 依赖
+set(DUILIB_EXAMPLE_CEF_LIBS "")
+if(DUILIB_ENABLE_CEF AND DUILIB_EXAMPLE_CEF)
+    list(APPEND DUILIB_TARGET_INCLUDE_DIRS "${DUILIB_CEF_SRC_ROOT_DIR}")
+    list(APPEND DUILIB_TARGET_LINK_DIRS "${DUILIB_CEF_LIB_PATH}")
+    set(DUILIB_EXAMPLE_CEF_LIBS ${DUILIB_CEF_LIBS})
 endif()
 
 # Linux 系统依赖库
 set(DUILIB_LINUX_LIBS X11 freetype fontconfig pthread dl)
 
 # 链接命令
-target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_LINUX_LIBS})
+target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_EXAMPLE_CEF_LIBS} ${DUILIB_LINUX_LIBS})
 ```
 
 ---

@@ -139,6 +139,8 @@ HEAD，CEF 校验跟踪头文件主版本），避免重复编译或重复下载
 后重新编译，参见 `examples/basic`。
 
 CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](../docs/CEF.md)。
+只有 `cef` 与 `CefBrowser` 示例链接 CEF（`DUILIB_EXAMPLE_CEF`），其余示例的可执行
+文件不导入 `libcef`；`DUILIB_ENABLE_CEF` 只决定库是否编译 CEF 控件源码。
 
 ## 7. 出包
 
