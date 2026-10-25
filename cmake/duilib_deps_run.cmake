@@ -424,8 +424,13 @@ function(_duilib_sdl_ready out_ready)
                     set(_ok TRUE)
                 endif()
             else()
-                if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.so" OR
-                   EXISTS "${DUILIB_SDL_ROOT}/lib64/libSDL3.so")
+                if(DUILIB_DEPS_PLATFORM STREQUAL "macos")
+                    # macOS 安装产物是 .dylib；用 .so 判断会把已完成的构建误判为失败。
+                    if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.dylib")
+                        set(_ok TRUE)
+                    endif()
+                elseif(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.so" OR
+                       EXISTS "${DUILIB_SDL_ROOT}/lib64/libSDL3.so")
                     set(_ok TRUE)
                 endif()
             endif()

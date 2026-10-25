@@ -53,6 +53,8 @@
 - 文档与命令示例：macOS/Linux/FreeBSD 通常只有 `python3`，按原文档执行
   `python build/build.py` 会报 command not found；示例已统一为
   `python3 build/build.py`，Windows 仍可直接运行 `build\build.bat`。
+- 依赖准备（macOS）：SDL3 已成功编译安装后仍报 `SDL3 build failed`；就绪检查只认
+  `libSDL3.so`，而 macOS 的安装产物是 `libSDL3.dylib`。现在 macOS 平台按 dylib 判断。
 - Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。

@@ -62,6 +62,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Docs and command examples: macOS/Linux/FreeBSD usually provide only `python3`, so the
   documented `python build/build.py` failed with "command not found"; examples now use
   `python3 build/build.py`, and Windows can keep using `build\build.bat` directly.
+- Dependency preparation (macOS): `SDL3 build failed` was reported even after a successful
+  SDL3 build and install; the readiness check only accepted `libSDL3.so`, while macOS
+  installs `libSDL3.dylib`. macOS is now checked for the dylib.
 - Skia's toolchain is now decoupled from the main build: non-Windows platforms prefer
   `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
   `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or
