@@ -348,19 +348,31 @@ endif()
 set(DUILIB_EXAMPLES "${_duilib_examples}" CACHE STRING "Example applications to build")
 
 # ---------------------------------------------------------------------------
-# Unix rpath：优先加载构建出的 SDL3 与 Linux CEF 运行时
+# Unix rpath：优先加载包内的 SDL3 与 CEF 运行时，构建树用依赖前缀兜底
+#
+# 相对条目必须排在绝对条目之前：打包后的示例程序与库的相对位置是
+#   bin/<exe>、lib/libSDL3.so*、bin/libcef_linux/libcef.so
+# 这样解包即可运行，不会反过来加载构建机上的同名库。
 # ---------------------------------------------------------------------------
 if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
-    set(_duilib_rpath "")
+    if(DUILIB_OS_MACOS)
+        set(_duilib_origin "@loader_path")
+    else()
+        set(_duilib_origin "$ORIGIN")
+    endif()
+    set(_duilib_rpath "${_duilib_origin}")
+    if(DUILIB_ENABLE_CEF AND DUILIB_OS_LINUX)
+        # 构建树中即 <repo>/bin/libcef_linux；包内路径相同
+        list(APPEND _duilib_rpath "${_duilib_origin}/libcef_linux")
+    endif()
     if(DUILIB_ENABLE_SDL)
+        # 包内 SDL3 在 lib/；构建树中没有该目录时才回退到依赖前缀
+        list(APPEND _duilib_rpath "${_duilib_origin}/../lib")
         if(EXISTS "${DUILIB_SDL_ROOT}/lib64")
             list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib64")
         else()
             list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib")
         endif()
-    endif()
-    if(DUILIB_ENABLE_CEF AND DUILIB_OS_LINUX)
-        list(APPEND _duilib_rpath "${DUILIB_ROOT}/bin/libcef_linux")
     endif()
     if(DUILIB_OS_FREEBSD)
         list(APPEND _duilib_rpath "/usr/local/lib")

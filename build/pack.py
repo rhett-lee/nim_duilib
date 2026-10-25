@@ -1915,8 +1915,9 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
             lines.append('  （从所用编译器环境的 bin/ 目录获取）；本包示例程序已用 -static')
             lines.append('  链接，可独立运行。')
     else:
-        lines.append('  Skia 为静态库；SDL3 为动态库，需让 libSDL3.so* 可被找到：')
-        lines.append('  复制到可执行文件同级，或设置 LD_LIBRARY_PATH'
+        lines.append('  Skia 为静态库；SDL3 为动态库，包内位于 lib/。示例程序已写入相对')
+        lines.append('  rpath（$ORIGIN/../lib、$ORIGIN/libcef_linux；macOS 为 @loader_path），')
+        lines.append('  解包后可直接运行；下游程序需自行设置 rpath，或设置 LD_LIBRARY_PATH'
                      '（macOS：DYLD_LIBRARY_PATH）。')
         lines.append('  X11 / freetype / fontconfig 由系统提供，不随包。')
         if with_cef and cef_runtime_present:

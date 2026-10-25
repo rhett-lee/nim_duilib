@@ -62,6 +62,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Fixed `SDL3 build failed` after a successful first SDL3 build: the `.duilib-sdl`
   completion marker was written after the readiness check, so the very first install
   always failed; it is now written before the check.
+- Unix examples now use relative rpaths (`$ORIGIN` / `@loader_path`, including
+  `../lib` and `libcef_linux`) so packaged binaries load the bundled SDL3/CEF
+  libraries instead of the builder's absolute paths; the packer also detects Unix
+  examples by the executable bit (previously `.exe` only).
 
 ## [1.0.2026.1023] - 2026-10-23
 

@@ -223,6 +223,7 @@ python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=
 | `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
+| 打包的示例程序加载了构建机的 `.so` | 示例程序已写入相对 rpath（`$ORIGIN/../lib`、`$ORIGIN/libcef_linux`），优先使用包内库；Linux 示例依赖 libcef 时请用 `pack --with-cef`，否则包内缺少 CEF 运行时 |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
 | 构建目录损坏 | `python build/build.py clean` 后重试 |

@@ -51,7 +51,10 @@
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。
 - 修复首次构建 SDL3 成功后仍报 `SDL3 build failed`：完成标记（`.duilib-sdl`）原先在
-  就绪校验之后写入，首次安装时校验必然失败；现在先写入再校验。
+  就绪检查之后写入，首次安装时校验必然失败；现在先写入再校验。
+- Unix 示例程序改用相对 rpath（`$ORIGIN` / `@loader_path`，含 `../lib` 与
+  `libcef_linux`），打包后优先加载包内 SDL3/CEF，不再复用构建机的绝对路径；
+  打包脚本按可执行位识别 Unix 示例程序（原先只认 `.exe`）。
 
 ## [1.0.2026.1023] - 2026-10-23
 

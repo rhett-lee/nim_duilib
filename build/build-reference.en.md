@@ -221,6 +221,7 @@ python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=
 | `gn/ninja not found` | use VS's bundled tools on Windows; on Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
+| Packaged examples load the builder's `.so` | examples carry a relative rpath (`$ORIGIN/../lib`, `$ORIGIN/libcef_linux`) so bundled libraries win; use `pack --with-cef` when examples depend on libcef |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python build/build.py clean` and retry |
