@@ -1355,7 +1355,6 @@ def collect_examples(collector, config, is_windows):
     count = 0
     exe_count = 0
     skipped_debug = []
-    exec_exts = ('.exe',)
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
         if not os.path.isfile(full):
@@ -1366,10 +1365,14 @@ def collect_examples(collector, config, is_windows):
                 if collector.add('bin/' + name, full):
                     count += 1
             continue
-        if not low.endswith(exec_exts):
-            continue
-        if config == 'Release' and low.endswith('_d.exe'):
-            skipped_debug.append(name)
+        if is_windows:
+            if not low.endswith('.exe'):
+                continue
+            if config == 'Release' and low.endswith('_d.exe'):
+                skipped_debug.append(name)
+                continue
+        elif not os.access(full, os.X_OK):
+            # Unix 示例程序没有扩展名，用可执行位识别
             continue
         if collector.add('bin/' + name, full):
             count += 1
@@ -1944,7 +1947,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
 
     if with_examples:
         section('示例程序')
-        lines.append('  bin/*.exe             示例可执行文件（bin/resources/ 已在其同级）')
+        exe_glob = 'bin/*.exe' if is_windows else 'bin/*'
+        lines.append('  %-22s 示例可执行文件（bin/resources/ 已在其同级）' % exe_glob)
         missing_cef = [e for e in CEF_EXAMPLES
                        if any(r.endswith('/' + e) for r, _ in collector.items)]
         if missing_cef and not cef_runtime_present:

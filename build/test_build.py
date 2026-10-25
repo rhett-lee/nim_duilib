@@ -7,7 +7,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import sys
 import tempfile
 import unittest
@@ -134,8 +136,10 @@ class ArgumentTests(unittest.TestCase):
         self.assertTrue(args.force)
 
     def test_invalid_config_rejected(self):
-        with self.assertRaises(SystemExit):
-            entry.parse_args(["build", "--config", "RelWithDebInfo"])
+        # argparse 会把用法和错误写到 stderr，这里属于预期失败，不打印到测试输出
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                entry.parse_args(["build", "--config", "RelWithDebInfo"])
 
     def test_clean_accepts_deps(self):
         args = entry.parse_args(["clean", "--deps"])
@@ -150,6 +154,9 @@ class ArgumentTests(unittest.TestCase):
 
 
 class StaleCacheTests(unittest.TestCase):
+    # 与平台无关的“另一个编译器”路径：测试只比较路径是否变化
+    OLD_COMPILER = Path(tempfile.gettempdir()) / "duilib-old-compiler"
+
     class _Messages:
         @staticmethod
         def t(_key):
@@ -163,31 +170,38 @@ class StaleCacheTests(unittest.TestCase):
             f"# cache\nCMAKE_CXX_COMPILER:FILEPATH={compiler}\n", encoding="utf-8")
         return root
 
+    def _reset(self, root, dry_run=False):
+        """执行清理逻辑并捕获它打印的提示。"""
+        stream = io.StringIO()
+        toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
+        with contextlib.redirect_stdout(stream):
+            entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=dry_run)
+        return stream.getvalue()
+
     def test_cached_compiler_reads_cache(self):
-        cached = Path("C:/tools/compiler.exe")
-        root = self._make_dir(str(cached))
-        self.assertEqual(entry._cached_compiler(root), cached)
+        root = self._make_dir(self.OLD_COMPILER)
+        self.assertEqual(entry._cached_compiler(root), self.OLD_COMPILER)
 
     def test_cached_compiler_without_cache(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertIsNone(entry._cached_compiler(Path(tmp)))
 
     def test_reset_on_compiler_change(self):
-        root = self._make_dir(Path("C:/tools/old-compiler.exe"))
-        toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
-        entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=False)
+        root = self._make_dir(self.OLD_COMPILER)
+        output = self._reset(root)
+        self.assertIn(str(self.OLD_COMPILER), output)
         self.assertFalse(root.exists())
 
     def test_keep_when_compiler_matches(self):
         root = self._make_dir(sys.executable)
-        toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
-        entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=False)
+        output = self._reset(root)
+        self.assertEqual(output, "")
         self.assertTrue(root.exists())
 
     def test_dry_run_keeps_directory(self):
-        root = self._make_dir(Path("C:/tools/old-compiler.exe"))
-        toolchain = entry.Toolchain({"CXX": sys.executable}, "Ninja", None, None)
-        entry.reset_stale_build_dir(root, toolchain, self._Messages(), dry_run=True)
+        root = self._make_dir(self.OLD_COMPILER)
+        output = self._reset(root, dry_run=True)
+        self.assertIn(str(self.OLD_COMPILER), output)
         self.assertTrue(root.exists())
 
 

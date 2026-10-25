@@ -7,7 +7,9 @@
 
 覆盖：正/负向包体检（zip 与 tar.gz）、包名组合、SOURCE_DATE_EPOCH 校验。
 """
+import contextlib
 import hashlib
+import io
 import os
 import shutil
 import sys
@@ -49,6 +51,13 @@ class VerifyPackageTest(unittest.TestCase):
             os.unlink(os.path.join(self.tmp, name))
         os.rmdir(self.tmp)
 
+    def _verify(self, path):
+        """执行体检并捕获输出；负向用例的报错属于预期，不应污染测试输出。"""
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream), contextlib.redirect_stderr(stream):
+            ok = pack.verify_package(path)
+        return ok, stream.getvalue()
+
     def _make_zip(self, payload, name='pkg.zip', omit=(), tamper=None):
         path = os.path.join(self.tmp, name)
         with zipfile.ZipFile(path, 'w') as zf:
@@ -75,39 +84,52 @@ class VerifyPackageTest(unittest.TestCase):
         return path
 
     def test_zip_ok(self):
-        self.assertTrue(pack.verify_package(self._make_zip(_payload())))
+        ok, output = self._verify(self._make_zip(_payload()))
+        self.assertTrue(ok)
+        self.assertIn('[OK]', output)
 
     def test_tgz_ok(self):
-        self.assertTrue(pack.verify_package(self._make_tgz(_payload())))
+        ok, output = self._verify(self._make_tgz(_payload()))
+        self.assertTrue(ok)
+        self.assertIn('[OK]', output)
 
     def test_missing_manifest(self):
-        path = self._make_zip(_payload(), omit=('MANIFEST.txt',))
-        self.assertFalse(pack.verify_package(path))
+        ok, output = self._verify(self._make_zip(_payload(), omit=('MANIFEST.txt',)))
+        self.assertFalse(ok)
+        self.assertIn('[FAIL]', output)
 
     def test_tampered_file(self):
-        path = self._make_zip(_payload(),
-                              tamper=('docs/Summary.md', b'changed\n'))
-        self.assertFalse(pack.verify_package(path))
+        ok, output = self._verify(
+            self._make_zip(_payload(), tamper=('docs/Summary.md', b'changed\n')))
+        self.assertFalse(ok)
+        self.assertIn('[FAIL]', output)
 
     def test_missing_file(self):
-        self.assertFalse(
-            pack.verify_package(os.path.join(self.tmp, 'not-exists.zip')))
+        ok, output = self._verify(os.path.join(self.tmp, 'not-exists.zip'))
+        self.assertFalse(ok)
+        self.assertIn('[ERROR]', output)
 
     def test_corrupt_zip(self):
         path = os.path.join(self.tmp, 'broken.zip')
         with open(path, 'wb') as fp:
             fp.write(b'not a zip')
-        self.assertFalse(pack.verify_package(path))
+        ok, output = self._verify(path)
+        self.assertFalse(ok)
+        self.assertIn('[ERROR]', output)
 
     def test_broken_doc_link(self):
         payload = _payload()
         payload['docs/Summary.md'] = b'[bad](missing.md)\n'
-        self.assertFalse(pack.verify_package(self._make_zip(payload)))
+        ok, output = self._verify(self._make_zip(payload))
+        self.assertFalse(ok)
+        self.assertIn('[FAIL]', output)
 
     def test_broken_doc_link_tgz(self):
         payload = _payload()
         payload['docs/Summary.md'] = b'[bad](../build/missing.md)\n'
-        self.assertFalse(pack.verify_package(self._make_tgz(payload)))
+        ok, output = self._verify(self._make_tgz(payload))
+        self.assertFalse(ok)
+        self.assertIn('[FAIL]', output)
 
 
 def _file_like(data):
