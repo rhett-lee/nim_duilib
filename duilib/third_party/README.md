@@ -25,7 +25,7 @@
 | libcef/libcef_linux  |2025-11-11|<div style="width: 160px">cef_binary_142.0.10+g29548e2+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#linuxarm64:142</div>  | <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2 </div>|
 | libcef/libcef_macos  |2025-11-11|<div style="width: 160px">cef_binary_142.0.10+g29548e2+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">x64版本：https://cef-builds.spotifycdn.com/index.html#macosx64:142</div>      | <div style="width: 360px">x64版本：  https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosx64.tar.bz2 </div>|
 | libcef/libcef_macos  |2025-11-11|<div style="width: 160px">cef_binary_142.0.10+g29548e2+chromium-142.0.7444.135</div> |有 |<div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/index.html#macosarm64:142</div>  | <div style="width: 360px">ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosarm64.tar.bz2 </div>|
-| WebView2      |2025-06-28|1.0.3296.44 |无 | 通过 NuGet 安装 WebView2 SDK: <br>Microsoft.Web.WebView2| |
+| WebView2      |2026-10-25|1.0.4314.35 |无 | 通过 NuGet 安装 WebView2 SDK: <br>Microsoft.Web.WebView2| |
 | libpag        |2025-11-13|main分支 |无 | https://github.com/Tencent/libpag| 无修改 |
 ## libpng 库更新说明
 1. 下载最新版本的压缩包：https://github.com/pnggroup/libpng/ 或者 https://sourceforge.net/projects/libpng/
