@@ -24,38 +24,38 @@
 | :--- | :--- | :--- | :--- | :--- |
 | nim_duilib（本项目） | MIT | 是 | `LICENSE`（包根） | 本项目主体许可 |
 | duilib（上游） | BSD-2-Clause | 是 | `lib/duilib.lib`、`bin/duilib*.dll`（DLL 模式）/ `licenses/duilib.LICENSE.txt` | 本项目在其基础上开发 |
-| NIM_Duilib_Framework | MIT | 是 | 同上 / `licenses/NIM_Duilib_Framework.LICENSE.txt` | 上游框架许可 |
-| Skia | BSD-3-Clause | 是 | `lib/skia.lib`、`svg.lib`、`skottie.lib`、`sksg.lib`、`skshaper.lib`、`jsonreader.lib` / `licenses/skia.LICENSE.txt` | 渲染引擎；源码不随包 |
+| NIM_Duilib_Framework | MIT | 是 | 同上 / `LICENSES/NIM_Duilib_Framework.LICENSE.txt` | 上游框架许可 |
+| Skia | BSD-3-Clause | 是 | `lib/skia.lib`、`svg.lib`、`skottie.lib`、`sksg.lib`、`skshaper.lib`、`jsonreader.lib` / `LICENSES/skia.LICENSE.txt` | 渲染引擎；源码不随包 |
 | skcms | BSD-3-Clause | 是 | `lib/skcms.lib` / 由 Skia 许可覆盖 | Skia 内置色彩管理模块 |
 | bentleyottmann | BSD-3-Clause | 是 | `lib/bentleyottmann.lib` / 由 Skia 许可覆盖 | Skia 内置几何模块 |
 | skresources | BSD-3-Clause | 是 | `lib/skresources.lib` / 由 Skia 许可覆盖 | Skia 内置资源模块 |
-| expat | MIT | 是 | `lib/expat.lib` / `licenses/expat.LICENSE.txt` | Skia SVG 解析依赖，静态链接 |
-| zlib | zlib | 是 | `lib/duilib-zlib.lib` / `licenses/zlib.LICENSE.txt` | PNG/APNG、Zip 解压 |
-| libpng | libpng-2.0（PNG Reference Library License v2） | 是 | `lib/duilib-png.lib` / `licenses/libpng.LICENSE.txt` | PNG/APNG |
-| libwebp | BSD-3-Clause | 是 | `lib/duilib-webp.lib` / `licenses/libwebp.LICENSE.txt` | WebP |
-| cximage | CxImage 自定义 MIT 风格 | 是 | `lib/duilib-cximage.lib` / `licenses/cximage.LICENSE.txt` | ICO 等图片格式 |
-| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib` / `licenses/libjpeg-turbo.LICENSE.md` | 仅 Windows MSVC 包随包（MinGW 不可链接，不收集），头文件不转发 |
-| Roboto Mono（字体） | Apache-2.0 | 是 | `bin/resources/fonts/RobotoMono-*.ttf` / `licenses/RobotoMono.LICENSE.txt` | 字体 name 表声明 Apache-2.0；随示例资源分发 |
-| giflib | MIT | 是 | 编译进 `lib/duilib.lib` / `licenses/giflib.LICENSE.txt` | GIF |
-| stb_image | MIT 或公有领域（二选一） | 是 | 编译进 `lib/duilib.lib` / `licenses/stb_image.LICENSE.txt` | BMP、缩放 |
-| nanosvg | zlib | 是 | 编译进 `lib/duilib.lib` / `licenses/nanosvg.LICENSE.txt` | SVG |
-| pugixml | MIT | 是 | 编译进 `lib/duilib.lib` / `licenses/pugixml.LICENSE.txt` | XML 解析 |
-| ConvertUTF（LLVM） | Apache-2.0 WITH LLVM-exception | 是 | 编译进 `lib/duilib.lib` / `licenses/llvm.LICENSE.txt` | UTF-8/16 转换 |
-| udis86 | BSD-2-Clause | 是 | 编译进 `lib/duilib.lib` / `licenses/udis86.LICENSE.txt` | 指令长度计算 |
-| CEF（含 Chromium） | BSD-3-Clause | 是 | `--with-cef` 时 `bin/libcef_win[_109]/<arch>/**`、`lib/libcef_dll_wrapper*.lib`、`lib/libcef*.lib` / `licenses/libcef.LICENSE.txt` | 运行时来自官方二进制分发包 |
-| WebView2 SDK（loader） | BSD-3-Clause（Microsoft） | 是 | `bin/WebView2Loader.dll`、`lib/WebView2Loader.dll.lib`、`include/duilib/WebView2/**` / `licenses/Microsoft.Web.WebView2.LICENSE.txt`；MSVC 包另有 `lib/WebView2LoaderStatic.lib` | loader 不是浏览器内核 |
+| expat | MIT | 是 | `lib/expat.lib` / `LICENSES/expat.LICENSE.txt` | Skia SVG 解析依赖，静态链接 |
+| zlib | zlib | 是 | `lib/duilib-zlib.lib` / `LICENSES/zlib.LICENSE.txt` | PNG/APNG、Zip 解压 |
+| libpng | libpng-2.0（PNG Reference Library License v2） | 是 | `lib/duilib-png.lib` / `LICENSES/libpng.LICENSE.txt` | PNG/APNG |
+| libwebp | BSD-3-Clause | 是 | `lib/duilib-webp.lib` / `LICENSES/libwebp.LICENSE.txt` | WebP |
+| cximage | CxImage 自定义 MIT 风格 | 是 | `lib/duilib-cximage.lib` / `LICENSES/cximage.LICENSE.txt` | ICO 等图片格式 |
+| libjpeg-turbo | IJG + BSD-3-Clause | 是 | `lib/turbojpeg-static.lib` / `LICENSES/libjpeg-turbo.LICENSE.md` | 仅 Windows MSVC 包随包（MinGW 不可链接，不收集），头文件不转发 |
+| Roboto Mono（字体） | Apache-2.0 | 是 | `bin/resources/fonts/RobotoMono-*.ttf` / `LICENSES/RobotoMono.LICENSE.txt` | 字体 name 表声明 Apache-2.0；随示例资源分发 |
+| giflib | MIT | 是 | 编译进 `lib/duilib.lib` / `LICENSES/giflib.LICENSE.txt` | GIF |
+| stb_image | MIT 或公有领域（二选一） | 是 | 编译进 `lib/duilib.lib` / `LICENSES/stb_image.LICENSE.txt` | BMP、缩放 |
+| nanosvg | zlib | 是 | 编译进 `lib/duilib.lib` / `LICENSES/nanosvg.LICENSE.txt` | SVG |
+| pugixml | MIT | 是 | 编译进 `lib/duilib.lib` / `LICENSES/pugixml.LICENSE.txt` | XML 解析 |
+| ConvertUTF（LLVM） | Apache-2.0 WITH LLVM-exception | 是 | 编译进 `lib/duilib.lib` / `LICENSES/llvm.LICENSE.txt` | UTF-8/16 转换 |
+| udis86 | BSD-2-Clause | 是 | 编译进 `lib/duilib.lib` / `LICENSES/udis86.LICENSE.txt` | 指令长度计算 |
+| CEF（含 Chromium） | BSD-3-Clause | 是 | `--with-cef` 时 `bin/libcef_win[_109]/<arch>/**`、`lib/libcef_dll_wrapper*.lib`、`lib/libcef*.lib` / `LICENSES/libcef.LICENSE.txt` | 运行时来自官方二进制分发包 |
+| WebView2 SDK（loader） | BSD-3-Clause（Microsoft） | 是 | `bin/WebView2Loader.dll`、`lib/WebView2Loader.dll.lib`、`include/duilib/WebView2/**` / `LICENSES/Microsoft.Web.WebView2.LICENSE.txt`；MSVC 包另有 `lib/WebView2LoaderStatic.lib` | loader 不是浏览器内核 |
 | WebView2 Runtime | Microsoft 许可（系统组件） | 不适用 | 不随包 | 依赖系统 Evergreen Runtime |
-| SDL3 | zlib | 是 | `-sdl` 时 `include/SDL3/**`、`lib/libSDL3*` / `bin/SDL3.dll`、SDL 源码树 `licenses/SDL3/**` + `licenses/SDL.LICENSE.txt` | 跨平台窗口管理 |
-| libpag | Apache-2.0（含大量第三方组件） | 是（需附带全部第三方许可） | 默认未随包 / `licenses/libpag.LICENSE.txt` | 默认关闭；启用时须一并分发 `duilib/third_party/libpag/licenses/**` |
+| SDL3 | zlib | 是 | `-sdl` 时 `include/SDL3/**`、`lib/libSDL3*` / `bin/SDL3.dll`、SDL 许可 `LICENSES/SDL3/**` + `LICENSES/SDL.LICENSE.txt` | 跨平台窗口管理 |
+| libpag | Apache-2.0（含大量第三方组件） | 是（需附带全部第三方许可） | 默认未随包 / `LICENSES/libpag.LICENSE.txt` | 默认关闭；启用时须一并分发 `duilib/third_party/libpag/licenses/**` |
 
 ## 复核要点
 
 1. **Skia 实际启用的第三方只有 expat**：`args.gn` 显式关闭了
    libpng、zlib、libjpeg-turbo、libwebp、ICU，构建产物中
    `out/*/obj/third_party` 仅出现 expat；因此不需要额外附带这些组件的许可。
-2. **宽松许可的义务是保留声明**：`licenses/` 已覆盖表中全部许可文本，
-   打包脚本会整体复制 `licenses/` 与根 `LICENSE`，并补充 Skia 源码树的
-   `LICENSE`（仓库内缺失时）。
+2. **宽松许可的义务是保留声明**：仓库 `licenses/` 已覆盖表中全部许可文本，
+   打包脚本会把 `licenses/` 复制为包内 `LICENSES/`，并带上根 `LICENSE` 与
+   `THIRD-PARTY-NOTICES.md`，同时补充 Skia 源码树的 `LICENSE`（仓库内缺失时）。
 3. **CEF**：`--with-cef` 只收集运行时（排除 `.lib`）与 wrapper 开发库，
    许可文本随包；CEF 官方二进制分发包本身即按 BSD-3 再分发。
    Chromium 内含的第三方组件声明未单独附带（沿用 CEF 官方分发方式），

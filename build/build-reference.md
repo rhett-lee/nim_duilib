@@ -201,6 +201,7 @@ macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
 | 构建目录损坏 | `python build/build.py clean` 后重试 |
+| 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
 
 更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。
 

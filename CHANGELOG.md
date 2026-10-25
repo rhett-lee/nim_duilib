@@ -30,6 +30,15 @@
 ### 移除
 
 - 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
+- 旧分平台构建脚本归档到 `build/legacy/`（不再参与构建，全平台验证后移除）。
+
+### 修复
+
+- `build.py`：写在子命令之前的选项（如 `--config Debug build`）会被子命令默认值覆盖，
+  现已在子命令侧抑制默认值。
+- `build.py`：同一 `out/<arch>/<Config>` 切换编译器（MSVC ↔ MinGW）时复用旧 CMake
+  缓存导致配置失败；现在检测到编译器变化会自动清空该构建目录。
+- `build.py`：`vcvarsall` 输出的 `Path` 与继承的 `PATH` 并存，导致工具查找读到旧值。
 
 ## [1.0.2026.1023] - 2026-10-23
 

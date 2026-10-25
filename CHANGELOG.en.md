@@ -31,6 +31,18 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 ### Removed
 
 - `build/build.md`; its content moved into `build/build-reference.md`.
+- Legacy per-platform build scripts are archived under `build/legacy/` (not part of
+  the build; removed after full-platform verification).
+
+### Fixed
+
+- `build.py`: options placed before a subcommand (e.g. `--config Debug build`) were
+  overwritten by the subcommand defaults; subcommand parsers now suppress defaults.
+- `build.py`: reusing the same `out/<arch>/<Config>` after switching compilers
+  (MSVC ↔ MinGW) kept the stale CMake cache and failed to configure; the build tree
+  is now cleared automatically when the compiler changes.
+- `build.py`: `vcvarsall` output (`Path`) and the inherited `PATH` coexisted, so tool
+  lookups saw the stale value.
 
 ## [1.0.2026.1023] - 2026-10-23
 

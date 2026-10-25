@@ -197,6 +197,7 @@ Per-distribution system packages (fonts, GL, X11, ibus, ...) and Skia build guid
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python build/build.py clean` and retry |
+| Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache and clears that directory |
 
 Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
 

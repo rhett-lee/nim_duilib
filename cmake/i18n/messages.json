@@ -248,6 +248,10 @@
       "en": "re-run 'build.py deps' with the same DUILIB_MD/toolchain, or use a separate build directory",
       "zh_CN": "使用相同的 DUILIB_MD/工具链重新执行 'build.py deps'，或改用独立的构建目录"
     },
+    "build.toolchain_changed": {
+      "en": "[build] compiler changed in {dir}: {cached} -> {expected}; discarding the stale CMake cache",
+      "zh_CN": "[build] 检测到 {dir} 的编译器已切换：{cached} → {expected}，将清理旧的 CMake 缓存"
+    },
     "build.configuring": {
       "en": "[build] configuring",
       "zh_CN": "[build] 正在配置"

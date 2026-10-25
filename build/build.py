@@ -19,6 +19,7 @@ import argparse
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -90,6 +91,50 @@ def resolve_build_dir(repo: Path, arch: str, config: str, override: str | None =
     return preset_build_dir(repo, arch, config)
 
 
+def _expected_compiler(toolchain: "Toolchain") -> Path | None:
+    env = toolchain.env
+    name = env.get("CXX") or ("cl" if sys.platform == "win32" and not env.get("MSYSTEM") else "c++")
+    found = shutil.which(name, path=env.get("PATH"))
+    return Path(found).resolve() if found else None
+
+
+def _cached_compiler(build_dir: Path) -> Path | None:
+    cache = build_dir / "CMakeCache.txt"
+    if not cache.is_file():
+        return None
+    try:
+        text = cache.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    match = re.search(r"^CMAKE_CXX_COMPILER:[^=]*=(.+)$", text, re.MULTILINE)
+    if not match or not match.group(1).strip():
+        return None
+    return Path(match.group(1).strip())
+
+
+def reset_stale_build_dir(build_dir: Path, toolchain: "Toolchain", messages, dry_run: bool) -> None:
+    """编译器切换后丢弃旧缓存。
+
+    同一 out/<arch>/<Config> 在 MSVC 与 MinGW 之间切换时，旧 CMakeCache 仍指向
+    原编译器：configure 会用新环境调用旧编译器（典型现象是 cl.exe 找不到
+    kernel32.lib）。目标文件本身也不兼容，因此直接清空生成目录。
+    """
+    expected = _expected_compiler(toolchain)
+    cached = _cached_compiler(build_dir)
+    if not expected or not cached:
+        return
+    try:
+        same = os.path.normcase(str(expected)) == os.path.normcase(str(cached.resolve()))
+    except OSError:
+        same = False
+    if same:
+        return
+    print(messages.t("build.toolchain_changed").format(dir=build_dir, cached=cached, expected=expected),
+          flush=True)
+    if not dry_run:
+        shutil.rmtree(build_dir)
+
+
 def load_manifest(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
@@ -129,62 +174,82 @@ def platform_name() -> str:
 # ---------------------------------------------------------------------------
 # 参数解析
 # ---------------------------------------------------------------------------
-def _add_common_options(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--config", choices=VALID_CONFIGS, default=DEFAULT_CONFIG,
+def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool = False) -> None:
+    """公共选项。
+
+    子命令解析器也定义同一批选项，以便 `build.py build --config Debug` 可用；
+    子命令侧必须抑制默认值，否则 argparse 会用子命令的默认值覆盖写在子命令
+    前面的选项（`build.py --config Debug build` 会变回 Release）。
+    """
+
+    def default(value):
+        return argparse.SUPPRESS if suppress_defaults else value
+
+    parser.add_argument("--config", choices=VALID_CONFIGS, default=default(DEFAULT_CONFIG),
                         help="构建配置（一次只构建一个，默认 Release）")
-    parser.add_argument("--arch", choices=VALID_ARCHES, default="auto",
+    parser.add_argument("--arch", choices=VALID_ARCHES, default=default("auto"),
                         help="目标架构（默认主机架构）")
-    parser.add_argument("--lang", choices=("auto", "zh_CN", "en"), default="auto",
+    parser.add_argument("--lang", choices=("auto", "zh_CN", "en"), default=default("auto"),
                         help="交互语言（默认跟随系统）")
-    parser.add_argument("--build-dir", default=None, help="覆盖构建目录（默认 out/<arch>/<Config>）")
-    parser.add_argument("--deps-root", default=None, help="依赖源码/安装根目录（默认仓库同级）")
-    parser.add_argument("--jobs", type=int, default=None, help="并行编译任务数")
-    parser.add_argument("--offline", action="store_true", help="只使用已缓存的依赖源码/归档")
-    parser.add_argument("--dry-run", action="store_true", help="只打印将执行的命令")
-    parser.add_argument("--cmake-arg", action="append", default=[], help="追加给 cmake configure 的参数")
-    parser.add_argument("--build-arg", action="append", default=[], help="追加给 cmake --build 的参数")
-    parser.add_argument("--vs-version", default=None, help="显式指定 Visual Studio 主版本（如 17）")
-    parser.add_argument("--cef-version", choices=("109", "142"), default=None,
+    parser.add_argument("--build-dir", default=default(None), help="覆盖构建目录（默认 out/<arch>/<Config>）")
+    parser.add_argument("--deps-root", default=default(None), help="依赖源码/安装根目录（默认仓库同级）")
+    parser.add_argument("--jobs", type=int, default=default(None), help="并行编译任务数")
+    parser.add_argument("--offline", action="store_true", default=default(False),
+                        help="只使用已缓存的依赖源码/归档")
+    parser.add_argument("--dry-run", action="store_true", default=default(False), help="只打印将执行的命令")
+    parser.add_argument("--cmake-arg", action="append", default=default([]),
+                        help="追加给 cmake configure 的参数")
+    parser.add_argument("--build-arg", action="append", default=default([]),
+                        help="追加给 cmake --build 的参数")
+    parser.add_argument("--vs-version", default=default(None),
+                        help="显式指定 Visual Studio 主版本（如 17）")
+    parser.add_argument("--cef-version", choices=("109", "142"), default=default(None),
                         help="CEF 版本（默认取 third_party_versions.json）")
-    parser.add_argument("--skia-ref", default=None, help="Skia ref key（默认取清单）")
-    parser.add_argument("--sdl-ref", default=None, help="SDL3 ref key（默认取清单）")
-    parser.add_argument("--sdl", dest="sdl", action="store_true", default=None, help="强制启用 SDL")
-    parser.add_argument("--no-sdl", dest="sdl", action="store_false", help="强制关闭 SDL")
-    parser.add_argument("--md", action="store_true", help="使用 MSVC 动态运行库 (/MD, /MDd)")
-    parser.add_argument("--cef-archive", default=None, help="本地 CEF 归档路径（跳过下载）")
+    parser.add_argument("--skia-ref", default=default(None), help="Skia ref key（默认取清单）")
+    parser.add_argument("--sdl-ref", default=default(None), help="SDL3 ref key（默认取清单）")
+    parser.add_argument("--sdl", dest="sdl", action="store_true", default=default(None),
+                        help="强制启用 SDL")
+    parser.add_argument("--no-sdl", dest="sdl", action="store_false", default=default(None),
+                        help="强制关闭 SDL")
+    parser.add_argument("--md", action="store_true", default=default(False),
+                        help="使用 MSVC 动态运行库 (/MD, /MDd)")
+    parser.add_argument("--cef-archive", default=default(None),
+                        help="本地 CEF 归档路径（跳过下载）")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    common = argparse.ArgumentParser(add_help=False)
-    _add_common_options(common)
+    main_common = argparse.ArgumentParser(add_help=False)
+    _add_common_options(main_common)
+    sub_common = argparse.ArgumentParser(add_help=False)
+    _add_common_options(sub_common, suppress_defaults=True)
 
     parser = argparse.ArgumentParser(
         prog="build.py",
         description="nim_duilib 统一构建入口",
-        parents=[common])
+        parents=[main_common])
     sub = parser.add_subparsers(dest="command")
 
-    build_parser_ = sub.add_parser("build", parents=[common], help="准备依赖并编译一个配置")
+    build_parser_ = sub.add_parser("build", parents=[sub_common], help="准备依赖并编译一个配置")
     build_parser_.add_argument("--no-deps", action="store_true", help="跳过依赖准备")
     build_parser_.add_argument("--target", default=None, help="只构建指定目标")
     build_parser_.add_argument("--no-examples", action="store_true", help="不编译示例")
 
-    deps_parser = sub.add_parser("deps", parents=[common], help="只准备 Skia/SDL3/CEF")
+    deps_parser = sub.add_parser("deps", parents=[sub_common], help="只准备 Skia/SDL3/CEF")
     deps_parser.add_argument("--force", action="store_true", help="重建依赖")
     deps_parser.add_argument("--no-examples", action="store_true", help=argparse.SUPPRESS)
 
-    sub.add_parser("doctor", parents=[common], help="环境自检（无副作用）")
+    sub.add_parser("doctor", parents=[sub_common], help="环境自检（无副作用）")
 
-    sub.add_parser("test", parents=[common], help="运行单元测试")
+    sub.add_parser("test", parents=[sub_common], help="运行单元测试")
 
-    pack_parser = sub.add_parser("pack", parents=[common], help="调用 pack.py 出包")
+    pack_parser = sub.add_parser("pack", parents=[sub_common], help="调用 pack.py 出包")
     pack_parser.add_argument("--with-cef", action="store_true", help="包内包含 CEF")
     pack_parser.add_argument("--with-sdl", action="store_true", help="包内包含 SDL3")
     pack_parser.add_argument("--with-examples", action="store_true", help="包内包含示例")
     pack_parser.add_argument("--out-dir", default=None, help="包输出目录")
     pack_parser.add_argument("--pack-arg", action="append", default=[], help="追加给 pack.py 的参数")
 
-    clean_parser = sub.add_parser("clean", parents=[common], help="清理构建树")
+    clean_parser = sub.add_parser("clean", parents=[sub_common], help="清理构建树")
     clean_parser.add_argument("--deps", action="store_true", help="同时清理依赖构建产物")
 
     return parser
@@ -300,6 +365,10 @@ def _msvc_environment(arch: str, vs_version: str | None) -> tuple[dict, Path | N
         if "=" not in line or line.startswith("="):
             continue
         key, value = line.split("=", 1)
+        # Windows 环境变量名不区分大小写，统一成大写，避免 "Path"/"PATH" 两份并存。
+        key = key.upper()
+        for existing in [name for name in env if name.upper() == key]:
+            del env[existing]
         env[key] = value
     return env, install
 
@@ -440,6 +509,7 @@ def cmd_deps(args, messages) -> int:
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
+    reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
     return 0
@@ -450,6 +520,7 @@ def cmd_build(args, messages) -> int:
     arch = resolve_arch(args.arch)
     build_dir = resolve_build_dir(REPO_ROOT, arch, args.config, args.build_dir)
     toolchain = detect_toolchain(arch, args.vs_version)
+    reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
 
     if not args.no_deps:
