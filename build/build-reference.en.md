@@ -165,6 +165,20 @@ Packages contain `include/`, `lib/<arch>/<Config>/`, `bin/`, `lib/cmake/nim_duil
 `LICENSES/` and `THIRD-PARTY-NOTICES.md`. Both compliance files must be kept when
 redistributing the SDK.
 
+With `--with-examples` but without `--with-cef`, the `cef` and `CefBrowser`
+binaries (`cef.exe`/`CefBrowser.exe` on Windows) are skipped automatically so the
+package never ships examples that cannot start without the libcef runtime; add
+`--with-cef` for runnable CEF examples.
+
+macOS is the exception: CEF examples are App Bundles (`bin/cef.app`,
+`bin/CefBrowser.app` directories). With `--with-examples`, `--with-cef` decides whether
+they ship: omitted means they are skipped with a warning, specified means the whole
+bundle (CEF framework and Helpers under `Contents/Frameworks`) is packaged with its
+original layout. Bundles carry their own runtime, so on macOS `--with-cef` only
+controls the examples and never collects CEF development files or a runtime directory
+(the SDK has no macOS CEF development files; build from the source tree as described
+in [Release.en.md](../docs/Release.en.md)).
+
 ## 8. Platform × compiler × dependencies × optional modules
 
 | Platform | Compiler | Skia | SDL3 | CEF | WebView2 |

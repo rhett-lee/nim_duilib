@@ -55,6 +55,14 @@
 - Unix 示例程序改用相对 rpath（`$ORIGIN` / `@loader_path`，含 `../lib` 与
   `libcef_linux`），打包后优先加载包内 SDL3/CEF，不再复用构建机的绝对路径；
   打包脚本按可执行位识别 Unix 示例程序（原先只认 `.exe`）。
+- 打包未包含 CEF 模块（未指定 `--with-cef`）时，自动跳过 `cef` 与 `CefBrowser`
+  示例程序（Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下必然启动失败的
+  二进制；包内 README 同步说明。
+- 打包支持 macOS 的 CEF 示例 App Bundle（`bin/cef.app`、`bin/CefBrowser.app`）：
+  `--with-examples` 时与其他平台一致由 `--with-cef` 联动控制——未指定则跳过并告警，
+  指定后整个目录（含 `Contents/Frameworks` 内的 CEF Framework、Helper 与符号链接）
+  按原结构收集。macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与运行时
+  （Bundle 自带 Framework），原“直接报错”的行为移除。
 
 ## [1.0.2026.1023] - 2026-10-23
 

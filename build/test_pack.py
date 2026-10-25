@@ -17,6 +17,7 @@ import tarfile
 import tempfile
 import unittest
 import zipfile
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -559,10 +560,12 @@ class CefLinuxPackagingTest(_TempDirTest):
         finally:
             pack.CEF_DIR, pack.BIN_DIR = old_cef, old_bin
 
-    def test_macos_is_rejected(self):
-        with self.assertRaises(pack.PackageError) as ctx:
-            pack.collect_cef(pack.Collector(), 'macos', 'x64', 'latest')
-        self.assertIn('macOS', str(ctx.exception))
+    def test_macos_collects_nothing(self):
+        """macOS 的 CEF 开发文件/运行时不随包，--with-cef 只控制示例 Bundle。"""
+        collector = pack.Collector()
+        self.assertEqual(pack.collect_cef(collector, 'macos', 'x64', 'latest'), 0)
+        self.assertEqual(list(collector.items), [])
+        self.assertTrue(any('--with-cef' in msg for msg in collector.warnings))
 
     def test_package_meta_marks_cef(self):
         collector = pack.Collector()
@@ -603,6 +606,91 @@ class DocLinkRewriteTest(unittest.TestCase):
         self.assertNotIn('../build/missing.md', result)
         self.assertNotIn('[bad](Nope.md)', result)
         self.assertIn('bad', result)
+
+
+class CefExampleSelectionTest(_TempDirTest):
+
+    def _collect(self, with_cef, is_macos=False):
+        bin_dir = os.path.join(self.tmp, 'bin')
+        os.makedirs(bin_dir, exist_ok=True)
+        collector = pack.Collector()
+        with mock.patch.object(pack, 'BIN_DIR', bin_dir):
+            count = pack.collect_examples(collector, 'Release', False, with_cef,
+                                          is_macos=is_macos)
+        return count, [rel for rel, _abs in collector.items], collector.warnings
+
+    def _make_bin(self):
+        names = ('basic', 'cef', 'CefBrowser', 'libSDL3.so', 'resources.zip')
+        for name in names:
+            path = self._touch('bin/' + name)
+            os.chmod(path, 0o755 if name in ('basic', 'cef', 'CefBrowser')
+                     else 0o644)
+
+    def _make_bin_app(self):
+        basic = self._touch('bin/basic')
+        os.chmod(basic, 0o755)
+        self._touch('bin/cef.app/Contents/MacOS/cef')
+        self._touch('bin/cef.app/Contents/Info.plist')
+        self._touch('bin/CefBrowser.app/Contents/MacOS/CefBrowser')
+
+    def test_is_cef_example(self):
+        for name in ('cef', 'CefBrowser', 'cef.exe', 'CefBrowser.exe',
+                     'cef_d.exe', 'CefBrowser_d.exe', 'cef.app',
+                     'CefBrowser.app'):
+            self.assertTrue(pack.is_cef_example(name), name)
+        for name in ('basic', 'basic.exe', 'cefclient', 'CefBrowser2',
+                     'basic.app'):
+            self.assertFalse(pack.is_cef_example(name), name)
+
+    def test_skip_cef_examples_without_cef(self):
+        self._make_bin()
+        count, items, warnings = self._collect(False)
+        self.assertEqual(count, 1)
+        self.assertEqual(items, ['bin/basic'])
+        self.assertTrue(any('CEF' in msg for msg in warnings))
+
+    def test_include_cef_examples_with_cef(self):
+        self._make_bin()
+        count, items, _warnings = self._collect(True)
+        self.assertEqual(count, 3)
+        self.assertEqual(items, ['bin/CefBrowser', 'bin/basic', 'bin/cef'])
+
+    def test_collect_macos_app_bundles(self):
+        """macOS 的 CEF 示例是 .app 目录：整个 Bundle 逐文件收集。"""
+        self._make_bin_app()
+        count, items, _warnings = self._collect(True, is_macos=True)
+        self.assertEqual(count, 4)
+        self.assertEqual(sorted(items), [
+            'bin/CefBrowser.app/Contents/MacOS/CefBrowser',
+            'bin/basic',
+            'bin/cef.app/Contents/Info.plist',
+            'bin/cef.app/Contents/MacOS/cef',
+        ])
+
+    def test_skip_macos_app_bundles_without_cef(self):
+        self._make_bin_app()
+        count, items, warnings = self._collect(False, is_macos=True)
+        self.assertEqual(count, 1)
+        self.assertEqual(items, ['bin/basic'])
+        self.assertTrue(any('cef.app' in msg for msg in warnings))
+
+    def test_manifest_documents_macos_app_bundles(self):
+        collector = pack.Collector()
+        collector.add('include/duilib/duilib.h', self._touch('duilib.h'))
+        collector.add('lib/duilib.a', self._touch('libduilib.a'))
+        collector.add('bin/cef.app/Contents/MacOS/cef',
+                      self._touch('cef.app/Contents/MacOS/cef'))
+        text, _sums = pack.write_manifest(
+            collector, 'pkg', '1.0', 'macos', 'x64', 'Release',
+            True, False, True, 'latest', package_time=0)
+        self.assertIn('bin/*.app', text)
+        self.assertNotIn('未打包', text)
+
+        text, _sums = pack.write_manifest(
+            collector, 'pkg', '1.0', 'macos', 'x64', 'Release',
+            True, False, False, 'latest', package_time=0)
+        self.assertNotIn('bin/*.app', text)
+        self.assertIn('未打包', text)
 
 
 if __name__ == '__main__':

@@ -25,7 +25,7 @@
 | :--- | :--- | :--- | :--- |
 | Windows | x64 / x86 | 支持 | CEF 二进制按版本与架构位于 `bin/libcef_win/{x64,Win32}/`、`bin/libcef_win_109/{x64,Win32}/` |
 | Linux | 仅 x64（不支持 x86） | 支持 | CEF 运行时位于 `bin/libcef_linux/`，与 Windows 的分架构结构不同 |
-| macOS | 待确认 | 以 `.app` 内嵌 | CEF 随示例生成 `cef.app`、`CefBrowser.app`；框架与 Helper 位于 bundle 内，SDK 包暂不自动收集 |
+| macOS | 待确认 | 以 `.app` 内嵌 | CEF 随示例生成 `cef.app`、`CefBrowser.app`；`--with-examples` 时由 `--with-cef` 控制是否随包（未指定则跳过并告警），随包时整目录（含 Framework/Helper）收集；CEF 运行时目录不单独收集 |
 | FreeBSD | 待确认 | 不支持 | 目录结构参考 Linux，但包内不包含 CEF |
 
 说明：上表是平台能力与目录约束，包内最终布局以打包脚本为准；CEF 运行时的收集与落包见 P1-3。
@@ -475,3 +475,4 @@
 | 2026-10-25 | P1-3 Linux 已接入：`collect_cef` 收集 `bin/libcef_linux/` 运行时与头文件，`libcef.so` 不进 `lib/`，CMake 按绝对路径链接；`--cef-version 109` 仅 Windows；`test_pack.py` 新增 5 个 Linux CEF 用例（共 44 个），`test_autotest.py` 17 个通过 |
 | 2026-10-25 | macOS CEF 文档补齐：`docs/Release.md` 与 `Release.en.md` 新增“macOS：下游手动配置 CEF”（CEF_ROOT 与分发包准备、构建命令、`MACOSX_BUNDLE`/`COPY_MAC_FRAMEWORK`/Helper/sandbox、`Contents/Resources/duilib` 资源布局、成品结构、签名公证与自检命令、常见问题表） |
 | 2026-10-25 | arm64 libjpeg-turbo 接入：上游 arm64 预编译库入库后，`collect_jpeg_turbo()` 收集 `libjpeg-turbo6-win-vc-arm64/lib/turbojpeg-static.lib`，`JpegTurboSettings.props` 增加 ARM64 的 include/lib 目录；MANIFEST 的 arm64 说明改为仅 CEF 缺席，测试与 README/Checklist 同步；真机编译/运行验证仍未做 |
+| 2026-10-25 | macOS 示例 Bundle 打包支持：`collect_examples()` 识别目录型 `bin/*.app`，逐文件收集（保留 `Contents/MacOS`、`Contents/Frameworks` 内的 CEF Framework/Helper 与原权限、符号链接）；`is_cef_example()` 支持 `.app`；是否随包与其他平台一致由 `--with-cef` 控制（未指定则跳过并告警）。macOS 的 `collect_cef()` 不再报错，只提示不收集 CEF 开发文件/运行时；`collect_libs()` 在 macOS 跳过 wrapper 校验；MANIFEST、`build-reference*.md`、`docs/Release*.md` 与 `test_pack.py` 同步 |

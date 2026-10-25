@@ -574,11 +574,18 @@ that CEF examples cannot run directly.
 
 On macOS the CEF runtime ships as a Framework embedded in the `.app` and cannot
 be placed in `bin/` like Windows/Linux. The SDK package therefore includes
-neither macOS CEF development files nor the runtime (`--with-cef` exits with an
-error on macOS). To use CEF on macOS, build from the source tree:
+neither macOS CEF development files nor the runtime (macOS `--with-cef` only
+controls whether the CEF example bundles ship; it collects no development files
+or runtime). To use CEF on macOS, build from the source tree:
 `cmake/duilib_cef_macos.cmake` wraps the wrapper build, framework copy, Helpers
 and resource copying. The SDK's CMake integration does not link CEF on macOS,
 so the SDK package alone cannot enable CEF.
+
+Example packaging follows the same flag: `pack.py --with-examples --with-cef`
+packages `bin/cef.app` and `bin/CefBrowser.app` as whole App Bundles (including
+the CEF framework and Helpers under `Contents/Frameworks`), runnable right after
+unpacking; with `--with-examples` alone these two bundles are skipped with a
+warning.
 
 #### 1. Prepare the CEF binary distribution
 

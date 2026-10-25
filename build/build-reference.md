@@ -156,6 +156,17 @@ python build/build.py pack --out-dir dist     # 指定输出目录
 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。合规要求：分发 SDK 时必须保留
 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。
 
+只给 `--with-examples` 而不给 `--with-cef` 时，会自动跳过 `cef` 与 `CefBrowser`
+（Windows 为 `cef.exe`/`CefBrowser.exe`），避免包内留下缺少 libcef 运行时、
+必然启动失败的程序；需要可运行的 CEF 示例请同时加 `--with-cef`。
+
+macOS 例外：CEF 示例是 App Bundle（`bin/cef.app`、`bin/CefBrowser.app` 目录）。
+`--with-examples` 时同样以 `--with-cef` 决定是否随包：未指定则跳过并告警，指定后
+整个目录（含 `Contents/Frameworks` 下的 CEF Framework 与 Helper）按原结构打包。
+Bundle 自带运行时，因此 macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与
+运行时目录（SDK 不含 macOS CEF 开发文件，需按 [Release.md](../docs/Release.md)
+的 macOS 章节从源码树构建）。
+
 ## 8. 平台 × 编译器 × 依赖 × 可选模块
 
 | 平台 | 编译器 | Skia | SDL3 | CEF | WebView2 |

@@ -505,10 +505,16 @@ CEF 运行时未随包、相关示例不能直接运行。
 ### macOS：下游手动配置 CEF
 
 macOS 的 CEF 运行时以 `.app` 内嵌 Framework 的形式提供，无法像 Windows/Linux 那样
-放进 `bin/`，因此 SDK 包不包含 macOS 的 CEF 开发文件与运行时（`--with-cef` 在
-macOS 上直接报错）。macOS 使用 CEF 请**从源码树构建**，`cmake/duilib_cef_macos.cmake`
-已封装 wrapper、Framework、Helper 与资源复制；SDK 的 CMake 接入层在 macOS 上
-不链接 CEF，仅使用 SDK 包无法启用 CEF。
+放进 `bin/`，因此 SDK 包不包含 macOS 的 CEF 开发文件与运行时（macOS 的
+`--with-cef` 只控制 CEF 示例 Bundle 是否随包，不收集开发文件/运行时）。macOS 使用
+CEF 请**从源码树构建**，`cmake/duilib_cef_macos.cmake` 已封装 wrapper、Framework、
+Helper 与资源复制；SDK 的 CMake 接入层在 macOS 上不链接 CEF，仅使用 SDK 包无法
+启用 CEF。
+
+示例程序随包同样由 `--with-cef` 控制：`pack.py --with-examples --with-cef` 时
+`bin/cef.app` 与 `bin/CefBrowser.app` 作为 App Bundle 整体随包（含
+`Contents/Frameworks` 内的 CEF Framework 与 Helper），解包后可直接运行；只给
+`--with-examples` 时这两个 Bundle 会被跳过并告警。
 
 #### 1. 准备 CEF 二进制分发包
 

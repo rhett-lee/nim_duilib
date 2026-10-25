@@ -725,21 +725,24 @@ def _scan_lib_dir(lib_dir):
     return available
 
 
-def collect_libs(collector, lib_dir, config, with_cef, cef_version):
+def collect_libs(collector, lib_dir, config, with_cef, cef_version, sys_tag):
     """按白名单收集唯一库目录中的静态库。
 
     5 个基础库（LIB_BASENAMES）任一缺失直接失败：缺少任何一个，
     下游链接 duilib 时都会失败，不应产出残缺 SDK。
     配置由目录决定，不再做 _d 后缀或多目录合并判断。
+    macOS 的 CEF wrapper 只在示例 Bundle 内使用，不随 SDK 包提供，
+    因此该平台不做 wrapper 缺失校验与未打包告警。
     """
     available = _scan_lib_dir(lib_dir)
+    pack_cef_libs = with_cef and sys_tag != 'macos'
 
-    if with_cef:
+    if pack_cef_libs:
         wrapper = CEF_WRAPPER_BY_VERSION[cef_version]
         if wrapper not in available:
             raise PackageError('启用了 --with-cef，但库目录中缺少 %s（目录：%s）'
                                % (wrapper, _rel(lib_dir)))
-    else:
+    elif not with_cef and sys_tag != 'macos':
         for base in CEF_WRAPPER_BY_VERSION.values():
             name = available.get(base)
             if name is not None:
@@ -748,7 +751,7 @@ def collect_libs(collector, lib_dir, config, with_cef, cef_version):
                                % (name, human_size(os.path.getsize(full))))
 
     wanted = list(LIB_BASENAMES)
-    if with_cef:
+    if pack_cef_libs:
         wanted.append(CEF_WRAPPER_BY_VERSION[cef_version])
 
     missing_base = [b for b in LIB_BASENAMES if b not in available]
@@ -1103,14 +1106,15 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
     Windows：`libcef.lib` 导入库放入 lib/，运行时由 collect_cef_runtime 收集。
     Linux：`libcef.so` 同时是链接库与运行库，只在 bin/libcef_linux/ 保留一份，
     避免重复打包上百 MB；下游链接时把该目录加入库搜索路径（见 MANIFEST）。
-    macOS：运行时以 .app 内嵌 Framework 提供，不随 SDK 包自动收集。
+    macOS：CEF 开发文件与运行时不随包（运行时以 .app 内嵌 Framework 提供），
+    `--with-cef` 只控制 CEF 示例 App Bundle 是否打包，见 collect_examples()。
     """
     if sys_tag == 'macos':
-        raise PackageError(
-            '--with-cef 不在 macOS 上自动收集 CEF；请按发布文档手动部署 '
-            '.app 内的 Framework')
+        collector.warn('macOS 不收集 CEF 开发文件与运行时，--with-cef 仅控制 '
+                       'CEF 示例（cef.app、CefBrowser.app）是否随包')
+        return 0
     if sys_tag not in ('win', 'linux'):
-        raise PackageError('--with-cef 仅支持 Windows / Linux')
+        raise PackageError('--with-cef 仅支持 Windows / Linux / macOS')
 
     src_name = cef_src_name(sys_tag, cef_version)
     src_root = os.path.join(CEF_DIR, src_name)
@@ -1127,7 +1131,7 @@ def collect_cef(collector, sys_tag, arch_tag, cef_version):
             raise PackageError('缺少 %s' % _rel(lib))
         if collector.add('lib/libcef.lib', lib):
             count += 1
-    else:
+    elif sys_tag == 'linux':
         so = os.path.join(BIN_DIR, src_name, 'libcef.so')
         if not os.path.isfile(so):
             raise PackageError(
@@ -1148,7 +1152,8 @@ def collect_cef_runtime(collector, sys_tag, arch_tag, cef_version):
     包内保持仓库 bin/ 下的同一相对结构（bin/libcef_win[_109]/<arch>/、
     bin/libcef_linux/），示例程序放在 bin/ 时可直接启动，下游把该子目录
     整体复制到可执行文件同级即可。
-    macOS 的运行时以 .app 内嵌 Framework 提供，SDK 包不自动收集（下游手动配置）。
+    macOS 的运行时以 .app 内嵌 Framework 提供，不随 SDK 包收集；该平台的
+    --with-cef 仅控制 CEF 示例 Bundle 是否打包。
     """
     if sys_tag == 'macos':
         return 0
@@ -1341,11 +1346,16 @@ def _rewrite_doc_links(text, packaged):
     return _DOC_LINK_RE.sub(repl, text)
 
 
-def collect_examples(collector, config, is_windows):
+def collect_examples(collector, config, is_windows, with_cef=True, is_macos=False):
     """收集示例程序可执行文件与运行时 dll。
 
     Release 包跳过 VS 的 Debug 可执行文件（*_d.exe）；Debug 包因 CMake 的
     Debug exe 与 Release 同名，无法区分，全部收集并告警。
+    未打包 CEF 模块（with_cef=False）时跳过 cef/CefBrowser，避免包内留下
+    缺少 libcef 运行时、必然启动失败的示例。
+    macOS 的 CEF 示例是 App Bundle（bin/cef.app、bin/CefBrowser.app 目录），
+    整个目录（含 Contents/ 下的可执行文件、Framework、Helper、资源）一并收集；
+    未打包 CEF 时同样跳过。
     运行时 dll 仅 Windows 收集（此处只有 WebView2Loader.dll；
     duilib 与 SDL3 的运行的 DLL 由各自 collect 函数收集）。
     """
@@ -1355,8 +1365,25 @@ def collect_examples(collector, config, is_windows):
     count = 0
     exe_count = 0
     skipped_debug = []
+    skipped_cef = []
     for name in sorted(os.listdir(BIN_DIR)):
         full = os.path.join(BIN_DIR, name)
+        if os.path.isdir(full):
+            # macOS 的 CEF 示例是 .app Bundle（目录），逐文件收集以保留结构；
+            # 与其他平台一致，未打包 CEF 模块（--with-cef）时跳过。
+            if not (is_macos and name.endswith('.app')):
+                continue
+            if not with_cef and is_cef_example(name):
+                skipped_cef.append(name)
+                continue
+            added = 0
+            for abs_path, rel in iter_files(full):
+                if collector.add('bin/%s/%s' % (name, rel), abs_path):
+                    added += 1
+            if added:
+                count += added
+                exe_count += 1
+            continue
         if not os.path.isfile(full):
             continue
         low = name.lower()
@@ -1371,8 +1398,11 @@ def collect_examples(collector, config, is_windows):
             if config == 'Release' and low.endswith('_d.exe'):
                 skipped_debug.append(name)
                 continue
-        elif not os.access(full, os.X_OK):
-            # Unix 示例程序没有扩展名，用可执行位识别
+        elif '.' in name or not os.access(full, os.X_OK):
+            # Unix 示例程序没有扩展名，用可执行位识别，顺带排除 .so/.zip 等文件
+            continue
+        if not with_cef and is_cef_example(name):
+            skipped_cef.append(name)
             continue
         if collector.add('bin/' + name, full):
             count += 1
@@ -1382,6 +1412,9 @@ def collect_examples(collector, config, is_windows):
                        '（CMake 的 Debug exe 与 Release 同名），请确认后再分发')
     if skipped_debug:
         collector.warn('已跳过 Debug 示例程序：%s' % ', '.join(skipped_debug))
+    if skipped_cef:
+        collector.warn('未打包 CEF 模块，已跳过 CEF 示例程序：%s'
+                       % ', '.join(skipped_cef))
     if exe_count == 0:
         collector.warn('启用了 --with-examples，但 %s 下没有可打包的示例程序'
                        % _rel(BIN_DIR), critical=True)
@@ -1659,7 +1692,21 @@ def collect_integration_files(collector, meta):
 # 清单与打包
 # --------------------------------------------------------------------------
 
-CEF_EXAMPLES = ('cef.exe', 'cef_d.exe', 'CefBrowser.exe', 'CefBrowser_d.exe')
+CEF_EXAMPLE_STEMS = ('cef', 'CefBrowser')
+
+
+def is_cef_example(name):
+    """是否为 CEF 示例程序。
+
+    覆盖三种形态：Windows 的 cef.exe/cef_d.exe、Unix 无扩展名的 cef、
+    macOS 的 App Bundle 目录 cef.app/CefBrowser.app。
+    """
+    stem = name
+    if stem.lower().endswith('.exe') or stem.lower().endswith('.app'):
+        stem = stem[:-4]
+    if stem.endswith('_d'):
+        stem = stem[:-2]
+    return stem in CEF_EXAMPLE_STEMS
 
 
 def _lib_stems(collector):
@@ -1695,6 +1742,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     if package_time is None:
         package_time = int(time.time())
     is_windows = sys_tag == 'win'
+    is_macos = sys_tag == 'macos'
     is_mingw = toolchain == 'mingw'
     virtual_files = virtual_files or {}
     stems = _lib_stems(collector)
@@ -1925,6 +1973,10 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
                          % cef_runtime_rel)
             lines.append('  同级（libcef.so、*.pak、icudtl.dat、locales/ 等）；')
             lines.append('  libcef.so 需可被动态加载（同目录或 LD_LIBRARY_PATH）。')
+        elif is_macos and with_cef:
+            lines.append('  CEF 运行期由 CEF 示例 .app 内嵌的 Framework 与 Helper 提供，')
+            lines.append('  不单独出包；SDK 不提供 macOS 的 CEF 开发文件，下游启用')
+            lines.append('  CEF 请按 docs/Release.md 的 macOS 章节从源码树构建。')
 
     section('配置一致性')
     if is_windows and msvc_runtime:
@@ -1948,16 +2000,39 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
 
     if with_examples:
         section('示例程序')
-        exe_glob = 'bin/*.exe' if is_windows else 'bin/*'
-        lines.append('  %-22s 示例可执行文件（bin/resources/ 已在其同级）' % exe_glob)
-        missing_cef = [e for e in CEF_EXAMPLES
-                       if any(r.endswith('/' + e) for r, _ in collector.items)]
-        if missing_cef and not cef_runtime_present:
+        if is_macos:
+            lines.append('  %-22s 示例可执行文件（bin/resources/ 已在其同级）'
+                         % 'bin/*')
+            if with_cef:
+                lines.append('  %-22s CEF 示例 App Bundle（自带 Chromium Embedded'
+                             % 'bin/*.app')
+                lines.append('                          Framework 与 Helper）')
+            else:
+                lines.append('')
+                lines.append('  本包未包含 CEF 模块，CEF 示例（cef.app、'
+                             'CefBrowser.app）未打包；')
+                lines.append('  需要时加 --with-cef 重新出包。')
+        else:
+            exe_glob = 'bin/*.exe' if is_windows else 'bin/*'
+            lines.append('  %-22s 示例可执行文件（bin/resources/ 已在其同级）'
+                         % exe_glob)
+        if not with_cef and not is_macos:
             lines.append('')
-            lines.append('  [注意] 以下示例依赖 CEF 运行时，本包未包含该运行时，')
-            lines.append('         直接运行会失败。需自行从 libcef 发布包放入：')
-            for e in missing_cef:
-                lines.append('           %s' % e)
+            lines.append('  本包未包含 CEF 模块，CEF 示例程序（cef、CefBrowser）未打包。')
+        elif not is_macos and not cef_runtime_present:
+            missing_cef = []
+            for rel, _abs in collector.items:
+                if not rel.startswith('bin/') or rel.count('/') < 2:
+                    continue
+                name = rel.split('/', 2)[1]
+                if is_cef_example(name) and name not in missing_cef:
+                    missing_cef.append(name)
+            if missing_cef:
+                lines.append('')
+                lines.append('  [注意] 以下示例依赖 CEF 运行时，本包未包含该运行时，')
+                lines.append('         直接运行会失败。需自行从 libcef 发布包放入：')
+                for e in missing_cef:
+                    lines.append('           %s' % e)
     else:
         section('资源说明')
         lines.append('  本包不含示例程序资源。bin/resources/themes/ 下只保留了 public/ 与')
@@ -2378,7 +2453,7 @@ def main(argv=None):
                         help='Windows 下额外打包 SDL3（Unix 始终打包，无需该参数）')
     parser.add_argument('--with-cef', action='store_true',
                         help='打包 CEF：头文件 + libcef.lib/wrapper + 运行时'
-                             '（Windows/Linux；macOS 不自动收集，按发布文档手动部署；'
+                             '（Windows/Linux；macOS 仅控制 CEF 示例 .app 是否随包；'
                              '体积巨大，默认不带）')
     parser.add_argument('--cef-version', choices=('latest', '109'), default='latest',
                         help='配合 --with-cef 选择 CEF 版本（默认 latest）')
@@ -2386,7 +2461,8 @@ def main(argv=None):
                         help='MSVC 运行库：auto（DLL 模式 MD，否则 MT）/ mt / md；'
                              '仅影响包内元数据与下游校验，不改变已构建产物')
     parser.add_argument('--with-examples', action='store_true',
-                        help='包含示例程序与全部示例私有资源（默认只打 SDK）')
+                        help='包含示例程序与全部示例私有资源（默认只打 SDK；'
+                             'macOS 的 cef.app/CefBrowser.app 按整目录随包）')
     parser.add_argument('--format', choices=('zip', 'tgz', 'tarbz2'), default=None,
                         help='压缩格式，默认 Windows 用 zip、其它用 tgz')
     parser.add_argument('--out-dir', default=DEFAULT_OUT_DIR, help='输出目录，默认 dist/')
@@ -2438,7 +2514,7 @@ def main(argv=None):
         collector = Collector(allow_missing=args.allow_missing)
         n_headers = collect_headers(collector, args.with_cef, args.with_sdl, sys_tag == 'win')
         n_libs = collect_libs(collector, lib_dir, config,
-                              args.with_cef, args.cef_version)
+                              args.with_cef, args.cef_version, sys_tag)
         n_skia = collect_skia_libs(collector, skia_dir, toolchain)
         n_sdl = collect_sdl(collector, args.sdl_dir, config, args.with_sdl)
         n_wv2 = collect_webview2_loader(collector, arch_tag, toolchain)
@@ -2458,7 +2534,8 @@ def main(argv=None):
     n_lic = collect_licenses(collector, skia_dir)
     doc_files = collect_docs(collector)
     n_docs = len(doc_files)
-    n_exe = collect_examples(collector, config, sys_tag == 'win') \
+    n_exe = collect_examples(collector, config, sys_tag == 'win', args.with_cef,
+                             is_macos=(sys_tag == 'macos')) \
         if args.with_examples else 0
 
     try:

@@ -66,6 +66,16 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `../lib` and `libcef_linux`) so packaged binaries load the bundled SDL3/CEF
   libraries instead of the builder's absolute paths; the packer also detects Unix
   examples by the executable bit (previously `.exe` only).
+- When packaging without CEF (`--with-cef` omitted), the `cef` and `CefBrowser`
+  examples (`cef.exe`/`CefBrowser.exe` on Windows) are skipped automatically so the
+  package never contains binaries that cannot start; the bundled README says so.
+- Packaging supports the macOS CEF example App Bundles (`bin/cef.app`,
+  `bin/CefBrowser.app`): with `--with-examples`, `--with-cef` controls whether they
+  ship, exactly like other platforms — omitted means skipped with a warning, specified
+  means the whole directory (CEF framework, Helpers and symlinks under
+  `Contents/Frameworks`) is collected with its original layout. On macOS `--with-cef`
+  only controls examples; it collects no CEF development files or runtime (bundles
+  carry the framework themselves). The previous "error out" behaviour is removed.
 
 ## [1.0.2026.1023] - 2026-10-23
 
