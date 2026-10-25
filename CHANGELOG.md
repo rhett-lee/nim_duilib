@@ -38,6 +38,8 @@
   现已在子命令侧抑制默认值。
 - `build.py`：同一 `out/<arch>/<Config>` 切换编译器（MSVC ↔ MinGW）时复用旧 CMake
   缓存导致配置失败；现在检测到编译器变化会自动清空该构建目录。
+- 依赖准备：Unix 上会误选 Skia 目录里的 Windows 版 `gn.exe`/`ninja.exe`，导致
+  `gn gen` 失败；改为只在 Windows 选用 `.exe`，Unix 使用本机工具。
 - `build.py`：`vcvarsall` 输出的 `Path` 与继承的 `PATH` 并存，导致工具查找读到旧值。
 
 ## [1.0.2026.1023] - 2026-10-23

@@ -41,6 +41,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - `build.py`: reusing the same `out/<arch>/<Config>` after switching compilers
   (MSVC ↔ MinGW) kept the stale CMake cache and failed to configure; the build tree
   is now cleared automatically when the compiler changes.
+- Dependency preparation: on Unix the Windows `gn.exe`/`ninja.exe` inside the Skia
+  tree was selected and `gn gen` failed; `.exe` files are now used on Windows only and
+  Unix uses native tools.
 - `build.py`: `vcvarsall` output (`Path`) and the inherited `PATH` coexisted, so tool
   lookups saw the stale value.
 

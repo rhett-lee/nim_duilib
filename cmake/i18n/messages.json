@@ -136,6 +136,14 @@
       "en": "[deps] building Skia with gn/ninja",
       "zh_CN": "[deps] 正在用 gn/ninja 编译 Skia"
     },
+    "deps.skia_gn_failed": {
+      "en": "[ERROR] Skia configure failed: {gn} gen out/{variant} returned {rc}",
+      "zh_CN": "[ERROR] Skia 配置失败：{gn} gen out/{variant} 返回 {rc}"
+    },
+    "deps.skia_gn_failed_hint": {
+      "en": "Linux/macOS must use the native gn (not bin/gn.exe); install gn or pass -DDUILIB_GN_EXECUTABLE=<path>",
+      "zh_CN": "Linux/macOS 必须使用本机 gn（不能是 bin/gn.exe）；请安装 gn 或传入 -DDUILIB_GN_EXECUTABLE=<path>"
+    },
     "deps.skia_failed": {
       "en": "[ERROR] Skia build failed",
       "zh_CN": "[ERROR] Skia 编译失败"

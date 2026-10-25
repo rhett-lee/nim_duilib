@@ -191,7 +191,7 @@ Per-distribution system packages (fonts, GL, X11, ibus, ...) and Skia build guid
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
 | `Skia not found` | run `python build/build.py deps` first, or check `--deps-root` |
-| `gn/ninja not found` | use VS's bundled tools on Windows; install `ninja` and `gn` elsewhere |
+| `gn/ninja not found` | use VS's bundled tools on Windows; on Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |

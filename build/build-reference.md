@@ -195,7 +195,7 @@ macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载；或用 `--vs-version` 指定版本 |
 | `Skia not found` | 首次执行 `python build/build.py deps`，或检查 `--deps-root` |
-| `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn` |
+| `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
