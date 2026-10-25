@@ -165,7 +165,13 @@ endif()
 
 # Find the zlib library.
 find_package(ZLIB REQUIRED)
-set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+# duilib: 优先链接本工程的 zlib 目标，避免 FindZLIB 生成的 ZLIB::ZLIB 导入目标
+#         把含 $<CONFIG> 的库路径带入依赖列表
+if(TARGET duilib-zlib)
+  set(PNG_LINK_LIBRARIES duilib-zlib)
+else()
+  set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+endif()
 
 # Find the math library (unless we already know it's not available or
 # not needed).
@@ -731,23 +737,25 @@ endif()
 #duilib: 输出目录已由 cmake/duilib_lib_output.cmake 设置（D-2）
 
 if(PNG_STATIC)
-  add_library(png_static STATIC ${libpng_sources})
-  add_dependencies(png_static png_genfiles)
-  list(APPEND PNG_LIBRARY_TARGETS png_static)
-#  set_target_properties(png_static
+  # duilib: 目标名与库文件名保持一致（duilib-png），便于 DUILIB_LIBS 直接按目标名链接
+  add_library(duilib-png STATIC ${libpng_sources})
+  add_dependencies(duilib-png png_genfiles)
+  list(APPEND PNG_LIBRARY_TARGETS duilib-png)
+#  set_target_properties(duilib-png
 #                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
 #                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
-  target_include_directories(png_static
+  target_include_directories(duilib-png
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-  target_include_directories(png_static
+  target_include_directories(duilib-png
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
-  target_include_directories(png_static
+  target_include_directories(duilib-png
                              SYSTEM
                              INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/libpng${PNGLIB_ABI_VERSION}>")
-  target_link_libraries(png_static
+  target_link_libraries(duilib-png
                         PUBLIC ${PNG_LINK_LIBRARIES})
   #duilib
-  set_target_properties(png_static PROPERTIES OUTPUT_NAME "duilib-png")
+  # 保留上游安装导出的名称（PNG::png_static），仅本地目标名与库文件名一致
+  set_target_properties(duilib-png PROPERTIES OUTPUT_NAME "duilib-png" EXPORT_NAME png_static)
 endif()
 
 if(PNG_FRAMEWORK AND NOT APPLE)
@@ -1094,8 +1102,8 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
 
   if(PNG_STATIC)
     if(NOT WIN32 OR CYGWIN OR MINGW)
-#      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET png_static)
-      install(FILES "$<TARGET_LINKER_FILE_DIR:png_static>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
+#      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET duilib-png)
+      install(FILES "$<TARGET_LINKER_FILE_DIR:duilib-png>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
               DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     endif()
   endif()

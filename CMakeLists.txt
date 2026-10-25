@@ -82,7 +82,11 @@ if(DUILIB_BUILD_THIRD_PARTY)
         add_subdirectory(duilib/third_party/zlib)
     endif()
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libpng/CMakeLists.txt")
+        # libpng 以源码内嵌方式构建，不安装/导出（duilib-png 链接本工程的 duilib-zlib
+        # 目标，开启导出时会因目标不在导出集中而生成失败）
+        set(SKIP_INSTALL_ALL ON)
         add_subdirectory(duilib/third_party/libpng)
+        unset(SKIP_INSTALL_ALL)
     endif()
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/cximage/CMakeLists.txt")
         add_subdirectory(duilib/third_party/cximage)

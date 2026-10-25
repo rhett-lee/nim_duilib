@@ -226,16 +226,18 @@ if(ZLIB_BUILD_SHARED)
 endif(ZLIB_BUILD_SHARED)
 
 if(ZLIB_BUILD_STATIC)
-    add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
-                                  ${ZLIB_PRIVATE_HDRS})
-    add_library(ZLIB::ZLIBSTATIC ALIAS zlibstatic)
+# duilib: 目标名与库文件名保持一致（duilib-zlib），便于 DUILIB_LIBS 直接按目标名链接，
+#         由 CMake 自动处理构建依赖和库文件路径
+    add_library(duilib-zlib STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS}
+                                   ${ZLIB_PRIVATE_HDRS})
+    add_library(ZLIB::ZLIBSTATIC ALIAS duilib-zlib)
     target_include_directories(
-        zlibstatic
+        duilib-zlib
         PUBLIC $<BUILD_INTERFACE:${zlib_BINARY_DIR}>
                $<BUILD_INTERFACE:${zlib_SOURCE_DIR}>
                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
     target_compile_definitions(
-        zlibstatic
+        duilib-zlib
         PRIVATE ZLIB_BUILD
                 $<$<BOOL:NOT:${HAVE_FSEEKO}>:NO_FSEEKO>
                 $<$<BOOL:${HAVE___ATTR__VIS_HIDDEN}>:HAVE_HIDDEN>
@@ -244,8 +246,8 @@ if(ZLIB_BUILD_STATIC)
         PUBLIC $<$<BOOL:${HAVE_OFF64_T}>:_LARGEFILE64_SOURCE=1>)
 # duilib
     set_target_properties(
-        zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
-                                                     ${DUILIB_ZLIB_OUTPUT_NAME})
+        duilib-zlib PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME
+                                                      ${DUILIB_ZLIB_OUTPUT_NAME})
 # duilib end
 endif(ZLIB_BUILD_STATIC)
 
@@ -276,7 +278,7 @@ if(ZLIB_INSTALL)
 
     if(ZLIB_BUILD_STATIC)
         install(
-            TARGETS zlibstatic
+            TARGETS duilib-zlib
             COMPONENT Development
             EXPORT zlibStaticExport
             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"

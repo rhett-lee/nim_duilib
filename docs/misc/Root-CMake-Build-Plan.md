@@ -697,11 +697,9 @@ endif()
 
 ### 4.3 目标顺序与链接
 
-- 第三方库目标名与库文件名不完全一致（如 `zlibstatic` 输出 `duilib-zlib`、
-  `png_static` 输出 `duilib-png`），示例仍按名称链接即可，但必须保证构建顺序：
-  建立一个聚合自定义目标 `duilib_deps`（依赖 ExternalProject）与
-  `duilib_link_deps`（依赖所有本地库目标），示例与 `duilib` 都
-  `add_dependencies(... duilib_link_deps duilib_deps)`；
+- 第三方库目标名与库文件名保持一致（`duilib-png`、`duilib-zlib`、`duilib-webp`、
+  `duilib-cximage`），`DUILIB_LIBS` 直接按目标名链接即可，CMake 会自动解析绝对路径
+  并建立构建依赖，避免并行构建时先链接后生成库文件；
 - `duilib`、`duilib-cximage`、`duilib-webp` 的目标名与库名一致，CMake 会自动解析；
   `libcef_dll_wrapper`（Linux 目标名）与链接名 `cef_dll_wrapper` 不同，需要显式依赖；
 - 输出目录继续由 `cmake/duilib_lib_output.cmake` / `duilib_bin.cmake` 决定，

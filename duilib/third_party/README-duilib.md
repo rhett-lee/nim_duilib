@@ -41,10 +41,14 @@
    set(ZLIB_INSTALL       "OFF")
    ```
 4. 注释掉原始 `zlib_static_suffix` / `CMAKE_DEBUG_POSTFIX` 逻辑（避免与上方 `CMAKE_MSVC_RUNTIME_LIBRARY` 冲突）
-5. 在 `if(ZLIB_BUILD_STATIC)` 块内，为 `zlibstatic` 目标追加属性：
+5. 在 `if(ZLIB_BUILD_STATIC)` 块内，将静态库目标改名为 `duilib-zlib`（与库文件名一致），
+   并保留上游别名与导出名：
    ```cmake
-   set_target_properties(zlibstatic PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME ${DUILIB_ZLIB_OUTPUT_NAME})
+   add_library(duilib-zlib STATIC ...)
+   add_library(ZLIB::ZLIBSTATIC ALIAS duilib-zlib)
+   set_target_properties(duilib-zlib PROPERTIES EXPORT_NAME ZLIBSTATIC OUTPUT_NAME ${DUILIB_ZLIB_OUTPUT_NAME})
    ```
+   目标名与库名一致后，`DUILIB_LIBS` 可直接按目标名链接，CMake 会自动建立构建依赖。
 
 **升级重放**：覆盖 `CMakeLists.txt` 后，把上述 5 处 `duilib` 标记块按行号重插（或对比 `diff` 自动合并）。
 
@@ -65,11 +69,27 @@
    # D-2 后为 <root>/lib[<arch>]/<Config>；$<CONFIG> 在链接时展开
    set(ZLIB_LIBRARY "${DUILIB_LIB_BASE}/$<CONFIG>/${DUILIB_ZLIB_LIB_NAME}")
    ```
-3. 在 `if(PNG_STATIC)` 块尾部，将 `png_static` 的 `OUTPUT_NAME` 改为 `duilib-png`
-4. 注释掉 `png_static` 自带的 `DEBUG_POSTFIX`（配置由目录表达，不再加 `_d`）
+3. 在 `if(PNG_STATIC)` 块中，将 `png_static` 目标改名为 `duilib-png`（与库文件名一致），
+   `OUTPUT_NAME` 设为 `duilib-png`，并保留上游导出名 `png_static`：
+   ```cmake
+   add_library(duilib-png STATIC ...)
+   set_target_properties(duilib-png PROPERTIES OUTPUT_NAME "duilib-png" EXPORT_NAME png_static)
+   ```
+4. 注释掉 `duilib-png` 自带的 `DEBUG_POSTFIX`（配置由目录表达，不再加 `_d`）
+5. `PNG_LINK_LIBRARIES` 优先链接本工程的 zlib 目标，避免 `FindZLIB` 生成的
+   `ZLIB::ZLIB` 导入目标把含 `$<CONFIG>` 的库路径带入依赖列表：
+   ```cmake
+   if(TARGET duilib-zlib)
+     set(PNG_LINK_LIBRARIES duilib-zlib)
+   else()
+     set(PNG_LINK_LIBRARIES ZLIB::ZLIB)
+   endif()
+   ```
+6. 根工程以 `SKIP_INSTALL_ALL` 内嵌构建 libpng（`duilib-png` 链接非导出目标 `duilib-zlib`，
+   开启安装导出会导致生成失败）
 
 **升级重放**：
-- 按上述 4 处重插；注意 libpng 官方升级后 `PNG_STATIC` 判断逻辑可能变化，需确认 `png_static` 目标名是否改变。
+- 按上述 6 处重插；注意 libpng 官方升级后 `PNG_STATIC` 判断逻辑可能变化，需确认 `png_static` 目标名是否改变。
 - 若上游新引入的 `png_shared` / `png_framework` 产物名称与 duilib 无关，可保留原样；duilib 只链接 `duilib-png`（静态）。
 
 ---
@@ -129,8 +149,8 @@
 
 | 库 | duilib 使用的链接名 | 定义位置 |
 | :--- | :--- | :--- |
-| zlib | `duilib-zlib` | `zlib` 目标属性 `OUTPUT_NAME` |
-| libpng | `duilib-png` | `png_static` 目标属性 `OUTPUT_NAME` |
+| zlib | `duilib-zlib` | `add_library(duilib-zlib ...)` 目标名 |
+| libpng | `duilib-png` | `add_library(duilib-png ...)` 目标名 |
 | libwebp | `duilib-webp` | `add_library(duilib-webp ...)` 目标名 |
 | cximage | `duilib-cximage` | `add_library(duilib-cximage ...)` 目标名 |
 | libcef wrapper | `libcef_dll_wrapper` / `libcef_dll_wrapper_109` | `duilib_common.cmake` 变量 |

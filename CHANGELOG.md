@@ -60,6 +60,11 @@
   目录设置和链接依赖。
 - 根 CMake 工程（macOS）：CEF wrapper（`libcef_dll_wrapper`）未随工程编译，而 CEF 示例
   链接时需要它；现在 macOS 也会构建 wrapper，产物输出到 `lib/<Config>`。
+- 根 CMake 工程：libpng/zlib 的目标名由 `png_static`/`zlibstatic` 改为 `duilib-png`/
+  `duilib-zlib`，与库文件名一致。此前 `DUILIB_LIBS` 按库文件名链接时不会自动建立构建
+  依赖，并行构建可能在库文件生成前就执行链接，报 `library 'duilib-png' not found`；
+  改名后 CMake 会自动使用库文件的绝对路径并建立依赖。libpng 以内嵌方式构建时关闭
+  安装导出（`SKIP_INSTALL_ALL`），避免其链接非导出目标 `duilib-zlib` 导致生成失败。
 - Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。

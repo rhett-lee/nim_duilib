@@ -72,6 +72,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Root CMake project (macOS): the CEF wrapper (`libcef_dll_wrapper`) was not built even
   though the CEF examples link against it; macOS now builds the wrapper as well, with
   output in `lib/<Config>`.
+- Root CMake project: the libpng/zlib targets are renamed from `png_static`/`zlibstatic`
+  to `duilib-png`/`duilib-zlib` so they match the library file names. `DUILIB_LIBS`
+  previously linked by file name, so no build dependency was created and parallel builds
+  could link before the libraries existed (`library 'duilib-png' not found`); with the
+  rename CMake uses absolute paths and tracks the dependencies automatically. libpng is
+  built embedded with `SKIP_INSTALL_ALL` to avoid export errors from linking the
+  non-exported `duilib-zlib` target.
 - Skia's toolchain is now decoupled from the main build: non-Windows platforms prefer
   `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
   `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or
