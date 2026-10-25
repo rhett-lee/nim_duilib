@@ -263,6 +263,8 @@ function(_duilib_check_deps_crt what dir)
     endif()
 endfunction()
 
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
+
 # 生成指定配置下的 Skia 子目录候选（按优先级排列）
 function(_duilib_skia_candidate_subdirs config out_var)
     set(_candidates "")
@@ -311,7 +313,12 @@ function(_duilib_skia_candidate_subdirs config out_var)
         endif()
     else()
         # 非Windows平台：Skia 只提供 release 变体（D-3）
-        list(APPEND _candidates "${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.release")
+        # 优先 clang 版（GCC 版运行性能较差）；未准备时允许复用已有 gcc 版
+        duilib_skia_toolchain(_duilib_skia_variant _duilib_skia_cc _duilib_skia_cxx)
+        list(APPEND _candidates "${_duilib_skia_variant}.${DUILIB_SYSTEM_PROCESSOR}.release")
+        if(_duilib_skia_variant STREQUAL "llvm")
+            list(APPEND _candidates "gcc.${DUILIB_SYSTEM_PROCESSOR}.release")
+        endif()
     endif()
     set(${out_var} "${_candidates}" PARENT_SCOPE)
 endfunction()

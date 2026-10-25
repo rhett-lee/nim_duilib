@@ -50,7 +50,7 @@ build\build.bat --config Debug
 | `build.py build` | 编译一个配置；默认先准备依赖，`--no-deps` 跳过 |
 | `build.py test` | 运行 `build/` 下的标准库 unittest（含 `test_build.py`） |
 | `build.py pack` | 调用 `pack.py` 出 SDK 包 |
-| `build.py doctor` | 环境自检：工具链、版本清单、依赖目录、根工程预检 |
+| `build.py doctor` | 环境自检：工具链、版本清单、依赖目录、根工程预检（含编译器、`gn`） |
 | `build.py clean` | 清理构建树；`--deps` 同时清理依赖产物 |
 
 一次调用只构建一个架构 + 一个配置。需要 Debug 与 Release 时调用两次：
@@ -103,8 +103,10 @@ python build/build.py --config Release
 版本由 [third_party_versions.json](../cmake/third_party_versions.json) 统一锁定：
 
 - **Skia**：固定 commit（`skia.default`）+ 对应补丁 zip；Windows 使用 VS 自带
-  clang/ninja，Unix 使用系统 LLVM。Debug 复用 Release 编译模式，仅切换运行库
-  （`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
+  clang/ninja。非 Windows 平台优先用 clang/clang++ 编译（GCC 版 Skia 运行性能明显
+  较差），只有 clang 不可用时才回退 gcc/g++；产物目录相应为
+  `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。Debug 复用 Release 编译
+  模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
 - **SDL3**：固定 tag（`sdl.default`）。Windows 默认不启用；显式启用时由 `deps`
   自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath。
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。只下载
@@ -181,6 +183,29 @@ Linux 各发行版所需的系统包（字体、GL、X11、ibus 等）参考下�
 各发行版的 Skia 编译细节见 skia_compile 仓库中的 `compile_skia_on_<platform>.md`。
 macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
 `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`。
+
+### 强制指定编译器
+
+默认由 CMake 选择编译器：`CC`/`CXX` 环境变量优先，否则使用 `cc`/`c++`
+（Linux 上通常指向 gcc/g++）。需要固定工具链时用以下任一方式：
+
+```bash
+# 方式一：环境变量（推荐，对 doctor/deps/build 全部生效）
+CC=clang CXX=clang++ python build/build.py
+CC=gcc   CXX=g++     python build/build.py
+
+# 方式二：通过 --cmake-arg 传给 CMake configure
+python build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
+```
+
+- 非 Windows 平台的 `build.py doctor` 会按 `CC`/`CXX` 报告实际将使用的编译器。
+- 切换编译器后无需手动删目录：`build.py` 发现 `out/<arch>/<Config>` 缓存中的编译器
+  变化时，会自动清空该构建目录后重新配置。
+- Windows/MSVC 不使用 `CC`/`CXX`，工具链由 vcvars 提供；MSYS2 中可用
+  `CC=gcc CXX=g++` 或 `CC=clang CXX=clang++` 指定。
+- 非 Windows 的 Skia 与主工程工具链解耦：Skia 始终优先 clang/clang++（GCC 版 Skia
+  运行性能明显较差），因此主工程用 gcc 时也不会改变 Skia 使用 clang 的选择。
 
 ## 9. 运行库切换
 

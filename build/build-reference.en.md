@@ -52,7 +52,7 @@ assets always go to `bin/`; libraries go to `lib/<arch>/<Config>/` (`lib/<Config
 | `build.py build` | build one configuration; prepares deps unless `--no-deps` |
 | `build.py test` | run the standard-library unittests under `build/` |
 | `build.py pack` | package an SDK via `pack.py` |
-| `build.py doctor` | environment check: toolchain, version manifest, dependency dirs, preflight |
+| `build.py doctor` | environment check: toolchain, version manifest, dependency dirs, preflight (including compiler, `gn`) |
 | `build.py clean` | remove the build tree; `--deps` also removes dependency artifacts |
 
 One invocation builds one architecture and one configuration. Build Debug and Release
@@ -106,9 +106,12 @@ Dependency directories live next to the repository by default (`--deps-root` ove
 Versions are pinned in [third_party_versions.json](../cmake/third_party_versions.json):
 
 - **Skia**: fixed commit (`skia.default`) plus a patch zip; Visual Studio's bundled
-  clang/ninja are used on Windows, system LLVM on Unix. Debug reuses the release build
-  mode and only changes the runtime (`/MTd` or `/MDd`), so each configuration needs its
-  own Skia variant directory.
+  clang/ninja are used on Windows. On non-Windows platforms Skia is built with
+  clang/clang++ whenever available (GCC-built Skia performs noticeably worse) and only
+  falls back to gcc/g++ when clang is missing; the artifact directory is
+  `out/llvm.<arch>.release` or `out/gcc.<arch>.release` accordingly. Debug reuses the
+  release build mode and only changes the runtime (`/MTd` or `/MDd`), so each
+  configuration needs its own Skia variant directory.
 - **SDL3**: fixed tag (`sdl.default`). Disabled on Windows by default; when enabled,
   `deps` builds Debug and Release static libraries. Unix builds shared libraries and
   writes rpath entries.
@@ -176,6 +179,30 @@ Per-distribution system packages (fonts, GL, X11, ibus, ...) and Skia build guid
 [skia_compile](https://github.com/rhett-lee/skia_compile). macOS needs
 `brew install cmake ninja` and `gn` built from source; FreeBSD uses
 `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`.
+
+### Forcing a toolchain
+
+CMake picks the compiler by default: `CC`/`CXX` environment variables win,
+otherwise `cc`/`c++` are used (usually gcc/g++ on Linux). To pin a toolchain:
+
+```bash
+# Option 1: environment variables (recommended; applies to doctor/deps/build)
+CC=clang CXX=clang++ python build/build.py
+CC=gcc   CXX=g++     python build/build.py
+
+# Option 2: pass it to the CMake configure step
+python build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
+```
+
+- On non-Windows platforms `build.py doctor` reports the compiler selected from `CC`/`CXX`.
+- No manual cleanup is needed after switching compilers: `build.py` detects the
+  changed compiler in the `out/<arch>/<Config>` cache and clears that build directory.
+- Windows/MSVC ignores `CC`/`CXX` (the toolchain comes from vcvars); in MSYS2 use
+  `CC=gcc CXX=g++` or `CC=clang CXX=clang++`.
+- On non-Windows platforms Skia's toolchain is decoupled from the main build: Skia
+  always prefers clang/clang++ (GCC-built Skia performs noticeably worse), so a
+  gcc-based main build does not change Skia's compiler.
 
 ## 9. Runtime selection
 

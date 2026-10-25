@@ -42,6 +42,14 @@
   PATH 查找时结果变量已被置空，`find_program` 直接跳过搜索，最终报“找不到 gn”。
   现在只在 Windows 选用 `.exe`，Unix 使用本机工具并用独立临时变量查找 PATH。
 - `build.py`：`vcvarsall` 输出的 `Path` 与继承的 `PATH` 并存，导致工具查找读到旧值。
+- `build.py doctor`：预检以 `DUILIB_DEPS_MODE=off` 运行时整体跳过依赖工具检查，输出的
+  环境摘要里没有 `gn`。现在 `gn` 始终检查，doctor 按 `prepare` 严格校验（缺失即失败）；
+  `build --no-deps` 的 `off` 模式下缺失只告警，不阻断复用已有依赖的构建。
+- 预检：非 Windows 平台新增编译器检查，要求 `gcc/g++` 或 `clang/clang++` 至少一组成对
+  可用；有 `CC`/`CXX` 时按环境变量检查，否则先查 gcc、再查 clang。
+- Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
+  运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
+  `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。
 
 ## [1.0.2026.1023] - 2026-10-23
 

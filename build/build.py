@@ -226,6 +226,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="build.py",
         description="nim_duilib 统一构建入口",
+        epilog=("子命令专属参数需查看子命令帮助（build.py <command> --help）：\n"
+                "  build.py build --help   # --no-deps / --target / --no-examples\n"
+                "  build.py deps --help    # --force\n"
+                "  build.py pack --help    # --with-cef / --with-sdl / --with-examples / --out-dir / --pack-arg\n"
+                "  build.py clean --help   # --deps"),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         parents=[main_common])
     sub = parser.add_subparsers(dest="command")
 
@@ -596,13 +602,14 @@ def cmd_doctor(args, messages) -> int:
         except BuildError:
             toolchain = None
     env = toolchain.env if toolchain else dict(os.environ)
-    deps_mode = os.environ.get("DUILIB_DEPS_MODE", "off")
+    # doctor 只做检查，preflight 脚本不会下载/安装依赖；用 prepare 让 gn 等
+    # 依赖工具成为硬性检查项，而不是在 off 模式下只告警。
     command = [cmake,
                f"-DDUILIB_LANG={messages.language}",
-               f"-DDUILIB_DEPS_MODE={deps_mode}",
+               "-DDUILIB_DEPS_MODE=prepare",
                f"-DDUILIB_DEPS_ROOT={deps_root}",
                f"-DDUILIB_SKIA_ROOT={skia_root}",
-               "-DDUILIB_GN_EXECUTABLE=",
+               f"-DDUILIB_GN_EXECUTABLE={os.environ.get('DUILIB_GN_EXECUTABLE', '')}",
                f"-DDUILIB_GENERATOR={toolchain.generator if toolchain else 'Ninja'}",
                "-P", str(PREFLIGHT_SCRIPT)]
     print("+ " + _format_command(command), flush=True)

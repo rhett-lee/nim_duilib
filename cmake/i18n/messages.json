@@ -40,6 +40,10 @@
       "en": "install gn, or use 'build.py deps' which prefers the gn bundled with the Skia tree",
       "zh_CN": "安装 gn，或使用 'build.py deps'（优先使用 Skia 源码树自带的 gn）"
     },
+    "preflight.compiler_missing_hint": {
+      "en": "install gcc/g++ or clang/clang++ (C++20 capable) and make sure both are in PATH",
+      "zh_CN": "安装 gcc/g++ 或 clang/clang++（需支持 C++20），并确保两者都在 PATH 中"
+    },
     "preflight.vs_missing": {
       "en": "[ERROR] Visual Studio 2022+ with the C++ workload was not found",
       "zh_CN": "[ERROR] 未找到安装了 C++ 工作负载的 Visual Studio 2022+"

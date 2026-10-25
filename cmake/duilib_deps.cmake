@@ -9,6 +9,7 @@
 # 走同一条路径。
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_skia_toolchain.cmake")
 # 函数体内不能依赖 CMAKE_CURRENT_LIST_DIR（那是调用者的目录），先固化本文件所在目录
 set(DUILIB_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
@@ -155,8 +156,15 @@ function(duilib_configure_dependencies)
             endforeach()
         endif()
     else()
+        # 与 duilib_skia_toolchain.cmake 保持一致：非 Windows 优先 clang 版 Skia，
+        # 未准备时允许复用已有的 gcc 版本（-DDUILIB_DEPS_MODE=off）
+        duilib_skia_toolchain(_duilib_skia_variant _duilib_skia_cc _duilib_skia_cxx)
         list(APPEND _duilib_skia_candidates
-            "${DUILIB_COMPILER_NAME}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
+            "${_duilib_skia_variant}.${DUILIB_TARGET_ARCH_RESOLVED}.release")
+        if(_duilib_skia_variant STREQUAL "llvm")
+            list(APPEND _duilib_skia_candidates
+                "gcc.${DUILIB_TARGET_ARCH_RESOLVED}.release")
+        endif()
     endif()
 
     set(_duilib_skia_found FALSE)

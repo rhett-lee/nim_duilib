@@ -48,6 +48,17 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   temporary variable.
 - `build.py`: `vcvarsall` output (`Path`) and the inherited `PATH` coexisted, so tool
   lookups saw the stale value.
+- `build.py doctor`: the preflight ran with `DUILIB_DEPS_MODE=off`, which skipped the
+  dependency tool checks entirely, so `gn` was missing from the environment summary.
+  `gn` is now always checked; `doctor` uses `prepare` and fails when it is missing,
+  while `build --no-deps` (`off`) only warns so builds reusing prepared dependencies
+  still work.
+- Preflight: non-Windows platforms now require a matching `gcc/g++` or `clang/clang++`
+  pair; `CC`/`CXX` are honoured when set, otherwise gcc is probed before clang.
+- Skia's toolchain is now decoupled from the main build: non-Windows platforms prefer
+  `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
+  `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or
+  `out/gcc.<arch>.release` accordingly.
 
 ## [1.0.2026.1023] - 2026-10-23
 
