@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "skia": {
+    "default": "6f559bafbed4c8323a899df4008aa073df4eccc6",
+    "repo": "https://skia.googlesource.com/skia.git",
+    "refs": {
+      "6f559bafbed4c8323a899df4008aa073df4eccc6": {
+        "type": "commit",
+        "value": "6f559bafbed4c8323a899df4008aa073df4eccc6",
+        "patchZip": "skia.2026-09-16.src.zip"
+      },
+      "chrome/m142": {
+        "type": "branch",
+        "value": "chrome/m142",
+        "patchZip": ""
+      }
+    }
+  },
+  "sdl": {
+    "default": "release-3.4.18",
+    "repo": "https://github.com/libsdl-org/SDL.git",
+    "refs": {
+      "release-3.4.18": {
+        "type": "tag",
+        "value": "release-3.4.18"
+      },
+      "main": {
+        "type": "branch",
+        "value": "main"
+      }
+    }
+  },
+  "cef": {
+    "default": "142",
+    "baseUrl": "https://cef-builds.spotifycdn.com",
+    "versions": {
+      "109": {
+        "archives": {
+          "windows/x86": {
+            "file": "cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows32.tar.bz2",
+            "sha256": ""
+          },
+          "windows/x64": {
+            "file": "cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64.tar.bz2",
+            "sha256": ""
+          }
+        }
+      },
+      "142": {
+        "archives": {
+          "windows/x86": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows32.tar.bz2",
+            "sha256": ""
+          },
+          "windows/x64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windows64.tar.bz2",
+            "sha256": ""
+          },
+          "windows/arm64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_windowsarm64.tar.bz2",
+            "sha256": ""
+          },
+          "linux/x64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linux64.tar.bz2",
+            "sha256": ""
+          },
+          "linux/arm64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_linuxarm64.tar.bz2",
+            "sha256": ""
+          },
+          "macos/x64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosx64.tar.bz2",
+            "sha256": ""
+          },
+          "macos/arm64": {
+            "file": "cef_binary_142.0.10%2Bg29548e2%2Bchromium-142.0.7444.135_macosarm64.tar.bz2",
+            "sha256": ""
+          }
+        }
+      }
+    }
+  }
+}

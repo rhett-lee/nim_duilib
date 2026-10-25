@@ -308,7 +308,7 @@ Skia 也只会探测 `llvm.<arch>.<config>`；DLL 模式的 `bin/duilib*.dll` �
 - `感谢名单.txt`：项目致谢。
 
 `Summary.md` / `Summary.en.md` 是包内文档索引，已移除指向其他目录的链接
-（`../README.md`、`../build/build.md`、`misc/` 等），以及未随包文档的条目。
+（`../README.md`、`../build/build-reference.md`、`build/README.md`、`misc/` 等），以及未随包文档的条目。
 
 文档里有大量指向源码树的链接，打包时按实际收集结果重写（`docs/` 是虚拟文件，
 不落盘）：

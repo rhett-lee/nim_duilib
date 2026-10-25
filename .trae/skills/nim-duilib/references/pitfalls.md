@@ -177,8 +177,8 @@ git merge-base --is-ancestor <代码提交> <文档提交> && echo "文档写于
 因此外部 `-DDUILIB_SKIA_LIB_SUBPATH=...` 依然优先。
 **工程 `CMakeLists.txt` 无需再设置该变量**，模板里也已删除这段冗余代码。
 
-Windows 下默认值与 `build/msvc_build.bat` 一致：`llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`
-（`CPU_ARCH` 取 `cmake -A` 的目标架构，`-A Win32` 时为 `x86`，缺省 `x64`）。
+Windows 下默认值与主导出规则一致：`llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`
+（`CPU_ARCH` 取目标架构，`x86` 对应 Win32，缺省 `x64`）。
 其他平台默认为空，按 `${编译器}.${架构}.${构建类型}` 规则自动拼接。
 
 ## 五、易混淆的目录与大小写

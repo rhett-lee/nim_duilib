@@ -437,14 +437,13 @@ cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build ./build_debug
 ```
 
-也可直接用 `build/linux_build.sh`、`build/macos_build.sh`、`build/freebsd_build.sh`：
+日常构建推荐使用统一入口（自动准备 Skia/SDL3/CEF）：
 
 ```bash
-DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh
+python build/build.py --config Debug
 ```
 
-脚本的编译临时目录会按配置分到 `build_temp/<编译器>_build/<Debug|Release>/`，
-Debug 与 Release 互不覆盖；Skia 在 Unix 仍只使用 release 变体（D-3）。
+构建树固定为 `out/<arch>/<Config>`；详见 `build/build-reference.md`。
 
 ---
 

@@ -8,6 +8,29 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 根 CMake 工程与统一构建入口 `python build/build.py`（Windows 可用
+  `build/build.bat`）：`build`（默认）、`deps`、`test`、`pack`、`doctor`、`clean`；
+  构建树统一为 `out/<arch>/<Config>`。
+- 依赖自动准备：版本清单 `cmake/third_party_versions.json` 锁定 Skia、SDL3 与 CEF，
+  支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
+- 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
+  `.en.md` 改为前置依赖与发布打包索引。
+- `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
+- 合规：`THIRD-PARTY-NOTICES.md`，SDK 包内许可证目录统一为 `LICENSES/`。
+
+### 变更
+
+- 统一入口一次只构建一个 `--config`（Debug/Release），需要两者时调用两次；
+  `build/autotest.py` 的构建步骤改为调用 `build.py`。
+- CEF 运行时按版本与架构输出到 `bin/libcef_win[/_109]/<arch>` 或 `bin/libcef_linux`，
+  编译使用仓库跟踪的头文件与导入库。
+
+### 移除
+
+- 删除 `build/build.md`，构建说明合并到 `build/build-reference.md`。
+
 ## [1.0.2026.1023] - 2026-10-23
 
 ### 新增

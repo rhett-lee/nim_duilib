@@ -12,7 +12,7 @@
 # 这与仓库内 duilib/third_party/libcef/libcef_macos（只含 cmake/include/libcef_dll，
 # 用于编译 libcef_dll_wrapper）不是同一个目录，两者用途不同。
 #
-# 默认值与 build_duilib_all_in_one.sh 的目录约定一致：即 nim_duilib 的同级目录 cef_binary
+# 默认值为 nim_duilib 源码树的同级目录 cef_binary（与 build/build.py deps 的目录约定一致）
 # 优先顺序：-DCEF_ROOT=... > 环境变量 CEF_ROOT > 默认目录
 if(NOT DEFINED CEF_ROOT OR NOT IS_DIRECTORY "${CEF_ROOT}")
     if(DEFINED ENV{CEF_ROOT} AND IS_DIRECTORY "$ENV{CEF_ROOT}")
@@ -24,7 +24,7 @@ endif()
 if(NOT IS_DIRECTORY "${CEF_ROOT}")
     message(FATAL_ERROR
         "CEF_ROOT not found: ${CEF_ROOT}\n"
-        "Please download the CEF binary distribution (see build/build_duilib_all_in_one.sh), "
+        "Please download the CEF binary distribution (see build/build-reference.md), "
         "or pass -DCEF_ROOT=<path-to-cef_binary>.")
 endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")

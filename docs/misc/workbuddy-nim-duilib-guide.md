@@ -55,37 +55,22 @@ btn->AttachClick([this](const ui::EventArgs& args) { /* ... */ return true; });
 
 仓库里**没有**编译好的依赖库，直接开工程会找不到库。第一次（以及升级 Skia、切换架构时）执行一次即可。
 
-### Windows：两步
-
-```bat
-cd /d <仓库根>\build
-
-REM 第 1 步：下载依赖库源码并编译（主要是 Skia，耗时数小时）
-build_duilib_all_in_one.bat
-
-REM 第 2 步：用 cmake/MSVC 编译第三方库 + duilib + 各示例
-msvc_build.bat
-```
-
-- 第 1 步会 `git clone` 三份源码（`nim_duilib`、`skia_compile`、`google/skia`），  
-  把 Skia 检出到固定 commit 并打补丁，然后编译 `llvm.x64.debug/release`、`llvm.x86.debug/release` 四套配置，  
-  最后用 `devenv` 构建 `build\examples.sln`。前置条件是 `git`、`python3`、`C:\LLVM`（Clang）、VS 2022+。  
-  可选参数 `/MD` 切到动态运行时库（默认 `/MT` 静态），**选定后中途不要混用**。
-- 第 2 步用 cmake 依次构建第三方库（`zlib`、`libpng`、`cximage`、`libwebp`、`libcef`）、`duilib`，  
-  再构建 `examples` 下的各示例程序。要求 cmake ≥ 3.21（用 VS2026 则需 4.2）。
-
-### 非 Windows：一步
+### 全平台通用（需要 Python 3）
 
 ```bash
-cd <仓库根>/build
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh      # MSYS2 下可加 -sdl
+cd <仓库根>
+
+# 第 1 步：下载依赖库源码并编译（主要是 Skia，耗时数小时）
+python build/build.py deps
+
+# 第 2 步：编译第三方库 + duilib + 各示例（默认 Release）
+python build/build.py
 ```
 
-脚本按 `uname` 自动分流到 `linux_build.sh` / `macos_build.sh` / `freebsd_build.sh` / `msys2_build.sh`。  
-**非 Windows 没有对应的第二步。**
-
-产物落在 `lib/` 与 `bin/`；`build/build_temp`、`build/.vs` 是临时目录，可随时清理。
+- 第 1 步按 `cmake/third_party_versions.json` 检出 Skia 固定 commit 并打补丁，下载 CEF 运行时，Windows 下用 `--sdl` 才会构建 SDL3；前置条件是 `git`、Python 3、CMake、Ninja 与对应编译器（Windows 需 VS 2022+，Skia 用 VS 自带 clang）。
+- 第 2 步一次性配置并构建全部目标，产物在 `lib/` 与 `bin/`，构建树在 `out/<arch>/<Config>/`，可随时清理。
+- 需要 Debug 时加 `--config Debug`；运行库默认 `/MT`，`--md` 切到 `/MD`，**选定后中途不要混用**。
+- Windows 也可以直接运行 `build\build.bat`（参数相同）；完整参数见 `build/build-reference.md`。
 
 ---
 

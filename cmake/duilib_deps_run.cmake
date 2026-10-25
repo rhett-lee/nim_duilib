@@ -1,0 +1,523 @@
+# 依赖准备脚本（cmake -P）
+#
+# 由 cmake/duilib_deps.cmake 的 duilib_deps 目标调用，也被 build.py 复用。
+# 所有输入通过 -D 传入；不依赖已生成的构建树。
+
+cmake_minimum_required(VERSION 3.24)
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
+# ---------------------------------------------------------------------------
+# 参数校验
+# ---------------------------------------------------------------------------
+if("${DUILIB_DEPS_MODE}" STREQUAL "")
+    set(DUILIB_DEPS_MODE "prepare")
+endif()
+if("${DUILIB_CONFIG}" STREQUAL "")
+    set(DUILIB_CONFIG "Release")
+endif()
+if(DUILIB_CONFIG STREQUAL "Debug")
+    set(DUILIB_BUILD_TYPE "debug")
+else()
+    set(DUILIB_BUILD_TYPE "release")
+endif()
+if("${DUILIB_DEPS_JOBS}" STREQUAL "")
+    set(DUILIB_DEPS_JOBS 6)
+endif()
+if("${DUILIB_DEPS_LOCK_TIMEOUT}" STREQUAL "")
+    set(DUILIB_DEPS_LOCK_TIMEOUT 5)
+endif()
+
+if(NOT EXISTS "${DUILIB_VERSIONS_FILE}")
+    duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+endif()
+file(READ "${DUILIB_VERSIONS_FILE}" DUILIB_VERSIONS_JSON)
+
+# 依赖根目录与锁（并发 deps 只允许一个进程写入）
+get_filename_component(DUILIB_DEPS_ROOT "${DUILIB_DEPS_ROOT}" ABSOLUTE)
+file(MAKE_DIRECTORY "${DUILIB_DEPS_ROOT}")
+set(_duilib_lock_file "${DUILIB_DEPS_ROOT}/.duilib_deps.lock")
+file(LOCK "${_duilib_lock_file}" GUARD PROCESS TIMEOUT "${DUILIB_DEPS_LOCK_TIMEOUT}"
+     RESULT_VARIABLE _duilib_lock_rc)
+if(NOT _duilib_lock_rc EQUAL 0)
+    duilib_error("deps.lock_failed" "deps.lock_failed_hint")
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_download.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_cef.cmake")
+
+# ---------------------------------------------------------------------------
+# Skia
+# ---------------------------------------------------------------------------
+function(_duilib_skia_candidates out_var)
+    set(_candidates "")
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        if(NOT DUILIB_MINGW)
+            if(DUILIB_BUILD_TYPE STREQUAL "debug")
+                list(APPEND _candidates "llvm.${DUILIB_ARCH}.debug")
+            else()
+                list(APPEND _candidates "llvm.${DUILIB_ARCH}.release")
+            endif()
+        else()
+            if(DUILIB_COMPILER_GCC)
+                if(DUILIB_MSYS2_ENV STREQUAL "mingw64")
+                    list(APPEND _candidates "gcc.msvcrt.${DUILIB_ARCH}.release")
+                endif()
+            endif()
+            if(DUILIB_MINGW_NAME STREQUAL "")
+                set(_prefixes "" "mingw64-")
+            else()
+                set(_prefixes "mingw64-" "")
+            endif()
+            if(DUILIB_COMPILER_GCC)
+                set(_compilers "gcc")
+            else()
+                set(_compilers "llvm")
+            endif()
+            foreach(_prefix IN LISTS _prefixes)
+                foreach(_compiler IN LISTS _compilers)
+                    if(DUILIB_BUILD_TYPE STREQUAL "debug")
+                        list(APPEND _candidates
+                            "${_prefix}${_compiler}.${DUILIB_ARCH}.debug"
+                            "${_prefix}${_compiler}.${DUILIB_ARCH}.release")
+                    else()
+                        list(APPEND _candidates
+                            "${_prefix}${_compiler}.${DUILIB_ARCH}.release")
+                    endif()
+                endforeach()
+            endforeach()
+        endif()
+    else()
+        list(APPEND _candidates "${DUILIB_COMPILER_NAME}.${DUILIB_ARCH}.release")
+    endif()
+    set(${out_var} "${_candidates}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_skia_lib_name out_var)
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows" AND NOT DUILIB_MINGW)
+        set(${out_var} "skia.lib" PARENT_SCOPE)
+    else()
+        set(${out_var} "libskia.a" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(_duilib_skia_stamp_value out_var)
+    set(${out_var}
+        "${DUILIB_SKIA_REF}|${DUILIB_SKIA_REF_VALUE}|${DUILIB_CRT_ID}|${DUILIB_ARCH}"
+        PARENT_SCOPE)
+endfunction()
+
+function(_duilib_write_crt dir)
+    file(WRITE "${dir}/.duilib-crt" "${DUILIB_CRT_ID}")
+endfunction()
+
+function(_duilib_git_head repo out_var)
+    execute_process(COMMAND git -C "${repo}" rev-parse HEAD
+                    OUTPUT_VARIABLE _head OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        set(_head "")
+    endif()
+    set(${out_var} "${_head}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_find_gn out_var)
+    set(_gn "")
+    if(NOT "${DUILIB_GN_EXECUTABLE}" STREQUAL "" AND EXISTS "${DUILIB_GN_EXECUTABLE}")
+        set(_gn "${DUILIB_GN_EXECUTABLE}")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/gn.exe")
+        set(_gn "${DUILIB_SKIA_ROOT}/bin/gn.exe")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/gn")
+        set(_gn "${DUILIB_SKIA_ROOT}/bin/gn")
+    else()
+        find_program(_gn gn)
+    endif()
+    set(${out_var} "${_gn}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_find_ninja out_var)
+    set(_ninja "")
+    if(NOT "${DUILIB_NINJA_EXECUTABLE}" STREQUAL "" AND EXISTS "${DUILIB_NINJA_EXECUTABLE}")
+        set(_ninja "${DUILIB_NINJA_EXECUTABLE}")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/ninja.exe")
+        set(_ninja "${DUILIB_SKIA_ROOT}/bin/ninja.exe")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/ninja")
+        set(_ninja "${DUILIB_SKIA_ROOT}/bin/ninja")
+    else()
+        find_program(_ninja ninja)
+    endif()
+    set(${out_var} "${_ninja}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_skia_gn_args out_var variant)
+    set(_common
+        "is_trivial_abi=false"
+        "is_official_build=true"
+        "skia_use_libwebp_encode=false"
+        "skia_use_libwebp_decode=false"
+        "skia_use_libpng_encode=false"
+        "skia_use_libpng_decode=false"
+        "skia_use_zlib=false"
+        "skia_use_libjpeg_turbo_encode=false"
+        "skia_use_libjpeg_turbo_decode=false"
+        "skia_enable_fontmgr_win_gdi=false"
+        "skia_use_icu=false"
+        "skia_use_expat=false"
+        "skia_use_xps=false"
+        "skia_enable_pdf=false"
+        "skia_use_wuffs=false"
+        "skia_enable_svg=true"
+        "skia_use_expat=true"
+        "skia_use_system_expat=false"
+        "skia_use_partition_alloc=false"
+        "is_debug=false")
+
+    set(_target_cpu "${DUILIB_ARCH}")
+    if(_target_cpu STREQUAL "x86")
+        set(_target_cpu "x86")
+    endif()
+
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        if(NOT DUILIB_MINGW)
+            if(DUILIB_CONFIG STREQUAL "Debug")
+                if(DUILIB_MD)
+                    set(_runtime "/MDd")
+                else()
+                    set(_runtime "/MTd")
+                endif()
+            else()
+                if(DUILIB_MD)
+                    set(_runtime "/MD")
+                else()
+                    set(_runtime "/MT")
+                endif()
+            endif()
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"clang\" cxx=\"clang++\" clang_win=\"${DUILIB_LLVM_ROOT}\"")
+        else()
+            if(DUILIB_COMPILER_GCC)
+                set(_args "target_cpu=\"${_target_cpu}\" cc=\"gcc\" cxx=\"g++\"")
+            else()
+                set(_args "target_cpu=\"${_target_cpu}\" cc=\"clang\" cxx=\"clang++\"")
+            endif()
+            set(_runtime "")
+        endif()
+    elseif(DUILIB_DEPS_PLATFORM STREQUAL "linux")
+        set(_compiler "clang")
+        if(DUILIB_COMPILER_GCC)
+            set(_compiler "gcc")
+        endif()
+        if(_compiler STREQUAL "gcc")
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"gcc\" cxx=\"g++\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true")
+        else()
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"clang\" cxx=\"clang++\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true")
+        endif()
+        set(_runtime "")
+    elseif(DUILIB_DEPS_PLATFORM STREQUAL "freebsd")
+        if(DUILIB_COMPILER_GCC)
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"gcc\" cxx=\"g++\" ar=\"llvm-ar\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true extra_ldflags=[\"-L/usr/local/lib\"]")
+        else()
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"clang\" cxx=\"clang++\" ar=\"llvm-ar\" skia_enable_fontmgr_fontconfig=true skia_use_freetype=true extra_ldflags=[\"-L/usr/local/lib\"]")
+        endif()
+        set(_runtime "")
+    else()
+        if(DUILIB_COMPILER_GCC)
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"gcc\" cxx=\"g++\"")
+        else()
+            set(_args "target_cpu=\"${_target_cpu}\" cc=\"clang\" cxx=\"clang++\"")
+        endif()
+        set(_runtime "")
+    endif()
+
+    set(_cflags "extra_cflags=[\"-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER\"")
+    if(NOT _runtime STREQUAL "")
+        string(APPEND _cflags ",\"${_runtime}\"")
+    endif()
+    if(DUILIB_DEPS_PLATFORM STREQUAL "linux" OR DUILIB_DEPS_PLATFORM STREQUAL "freebsd")
+        string(APPEND _cflags ",\"-I/usr/local/include/freetype2\",\"-I/usr/local/include\"")
+    endif()
+    string(APPEND _cflags "]")
+
+    # 组装 gn --args 参数（每个赋值用空格分隔）
+    set(_all_args "${_args}")
+    foreach(_item IN LISTS _common)
+        string(APPEND _all_args " ${_item}")
+    endforeach()
+    string(APPEND _all_args " ${_cflags}")
+    set(${out_var} "${_all_args}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_clone ref_type ref_value repo dest)
+    if(DUILIB_OFFLINE)
+        duilib_error("deps.offline_missing" "deps.offline_missing_hint")
+    endif()
+    if(NOT DUILIB_DEPS_AUTO_CLONE)
+        duilib_error_values("${dest} does not exist and automatic cloning is disabled"
+                            "clone the repository manually or enable DUILIB_DEPS_AUTO_CLONE")
+    endif()
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        set(_null "NUL")
+    else()
+        set(_null "/dev/null")
+    endif()
+    if(ref_type STREQUAL "commit")
+        execute_process(COMMAND git clone --filter=blob:none --no-checkout "${repo}" "${dest}"
+                        RESULT_VARIABLE _rc)
+        if(NOT _rc EQUAL 0)
+            duilib_error_values("git clone failed for ${repo}" "check the network/proxy settings")
+        endif()
+        execute_process(COMMAND git -C "${dest}" fetch --depth 1 origin "${ref_value}"
+                        RESULT_VARIABLE _rc)
+        if(NOT _rc EQUAL 0)
+            duilib_error_values("git fetch ${ref_value} failed" "check the network/proxy settings")
+        endif()
+        execute_process(COMMAND git -C "${dest}" checkout "${ref_value}"
+                        RESULT_VARIABLE _rc)
+    else()
+        execute_process(COMMAND git clone --depth 1 --branch "${ref_value}" "${repo}" "${dest}"
+                        RESULT_VARIABLE _rc)
+    endif()
+    if(NOT _rc EQUAL 0)
+        duilib_error_values("git clone/checkout failed for ${repo}" "check the network/proxy settings")
+    endif()
+endfunction()
+
+function(duilib_prepare_skia)
+    _duilib_skia_candidates(_candidates)
+    list(GET _candidates 0 _variant)
+    _duilib_skia_lib_name(_lib_name)
+    set(_out_dir "${DUILIB_SKIA_ROOT}/out/${_variant}")
+    set(_lib "${_out_dir}/${_lib_name}")
+    _duilib_skia_stamp_value(_stamp_expected)
+
+    if(NOT DUILIB_DEPS_FORCE AND EXISTS "${_lib}")
+        if(EXISTS "${_out_dir}/.duilib-ref")
+            file(READ "${_out_dir}/.duilib-ref" _stamp)
+            if(_stamp STREQUAL _stamp_expected)
+                _duilib_write_crt("${_out_dir}")
+                duilib_msg("deps.skia_ready" " (${_variant})")
+                return()
+            endif()
+        else()
+            # 迁移：已有构建产物但还没有 stamp 时，源码 HEAD 与清单一致则直接采纳，
+            # 避免为已有环境重复编译 Skia。
+            _duilib_git_head("${DUILIB_SKIA_ROOT}" _head)
+            if(NOT DUILIB_SKIA_REF_TYPE STREQUAL "commit" OR _head STREQUAL DUILIB_SKIA_REF_VALUE)
+                file(WRITE "${_out_dir}/.duilib-ref" "${_stamp_expected}")
+                _duilib_write_crt("${_out_dir}")
+                duilib_msg("deps.skia_ready" " (${_variant}, adopted existing build)")
+                return()
+            endif()
+        endif()
+    endif()
+
+    # 源码
+    if(NOT EXISTS "${DUILIB_SKIA_ROOT}")
+        _duilib_clone("${DUILIB_SKIA_REF_TYPE}" "${DUILIB_SKIA_REF_VALUE}"
+                      "https://skia.googlesource.com/skia.git" "${DUILIB_SKIA_ROOT}")
+    elseif(DUILIB_SKIA_REF_TYPE STREQUAL "commit")
+        _duilib_git_head("${DUILIB_SKIA_ROOT}" _head)
+        if(NOT _head STREQUAL DUILIB_SKIA_REF_VALUE)
+            if(DUILIB_OFFLINE)
+                duilib_error("deps.offline_missing" "deps.offline_missing_hint")
+            endif()
+            execute_process(COMMAND git -C "${DUILIB_SKIA_ROOT}" fetch origin "${DUILIB_SKIA_REF_VALUE}"
+                            RESULT_VARIABLE _rc)
+            execute_process(COMMAND git -C "${DUILIB_SKIA_ROOT}" checkout "${DUILIB_SKIA_REF_VALUE}"
+                            RESULT_VARIABLE _rc)
+            if(NOT _rc EQUAL 0)
+                duilib_error_values("cannot switch ${DUILIB_SKIA_ROOT} to ${DUILIB_SKIA_REF_VALUE}"
+                                    "clean the working tree or re-clone Skia")
+            endif()
+        endif()
+    endif()
+
+    # 补丁包
+    if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
+        set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
+        if(EXISTS "${_patch}")
+            message(STATUS "[deps] applying Skia patch ${_patch}")
+            file(REMOVE_RECURSE "${_out_dir}")
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
+                            WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
+                            RESULT_VARIABLE _tar_rc)
+            if(NOT _tar_rc EQUAL 0)
+                duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
+            endif()
+        elseif(DUILIB_SKIA_REQUIRE_PATCH)
+            duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
+        endif()
+    elseif(DUILIB_SKIA_REQUIRE_PATCH)
+        duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
+    endif()
+
+    _duilib_find_gn(_gn)
+    _duilib_find_ninja(_ninja)
+    if(_gn STREQUAL "")
+        duilib_error("preflight.tool_missing" "preflight.gn_missing_hint")
+    endif()
+    if(_ninja STREQUAL "")
+        duilib_error("preflight.tool_missing" "preflight.ninja_missing_hint")
+    endif()
+
+    duilib_msg("deps.skia_building" " (${_variant})")
+    file(REMOVE_RECURSE "${_out_dir}")
+    _duilib_skia_gn_args(_args "${_variant}")
+    execute_process(
+        COMMAND "${_gn}" gen "out/${_variant}" "--args=${_args}"
+        WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
+        RESULT_VARIABLE _gn_rc)
+    if(NOT _gn_rc EQUAL 0)
+        duilib_error("deps.skia_failed" "deps.skia_failed_hint")
+    endif()
+    execute_process(
+        COMMAND "${_ninja}" -C "out/${_variant}" -j "${DUILIB_DEPS_JOBS}"
+        WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
+        RESULT_VARIABLE _ninja_rc)
+    if(NOT _ninja_rc EQUAL 0 OR NOT EXISTS "${_lib}")
+        duilib_error("deps.skia_failed" "deps.skia_failed_hint")
+    endif()
+    file(WRITE "${_out_dir}/.duilib-ref" "${_stamp_expected}")
+    _duilib_write_crt("${_out_dir}")
+    duilib_msg("deps.skia_ready" " (${_variant})")
+endfunction()
+
+# ---------------------------------------------------------------------------
+# SDL3
+# ---------------------------------------------------------------------------
+function(_duilib_sdl_stamp_value out_var)
+    set(${out_var}
+        "${DUILIB_SDL_REF_VALUE}|${DUILIB_ARCH}|${DUILIB_CRT_ID}|${DUILIB_DEPS_PLATFORM}"
+        PARENT_SCOPE)
+endfunction()
+
+function(_duilib_sdl_ready out_ready)
+    set(_ok FALSE)
+    if(EXISTS "${DUILIB_SDL_ROOT}/.duilib-sdl" AND EXISTS "${DUILIB_SDL_ROOT}/include/SDL3/SDL.h")
+        file(READ "${DUILIB_SDL_ROOT}/.duilib-sdl" _stamp)
+        _duilib_sdl_stamp_value(_expected)
+        if(_stamp STREQUAL _expected)
+            if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+                if(DUILIB_MINGW)
+                    if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.a" OR
+                       EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3d.a")
+                        set(_ok TRUE)
+                    endif()
+                elseif(EXISTS "${DUILIB_SDL_ROOT}/lib/SDL3-static.lib")
+                    set(_ok TRUE)
+                endif()
+            else()
+                if(EXISTS "${DUILIB_SDL_ROOT}/lib/libSDL3.so" OR
+                   EXISTS "${DUILIB_SDL_ROOT}/lib64/libSDL3.so")
+                    set(_ok TRUE)
+                endif()
+            endif()
+        endif()
+    endif()
+    set(${out_ready} ${_ok} PARENT_SCOPE)
+endfunction()
+
+function(_duilib_run_checked what hint)
+    execute_process(COMMAND ${ARGN} RESULT_VARIABLE _rc)
+    if(NOT _rc EQUAL 0)
+        duilib_error_values("${what} failed" "${hint}")
+    endif()
+endfunction()
+
+function(_duilib_sdl_build_one build_dir config)
+    set(_args
+        -S "${DUILIB_SDL_SRC}"
+        -B "${build_dir}"
+        "-DCMAKE_INSTALL_PREFIX=${DUILIB_SDL_ROOT}"
+        "-DSDL_TEST_LIBRARY=OFF")
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        list(APPEND _args -G Ninja "-DCMAKE_BUILD_TYPE=${config}")
+        if(DUILIB_MINGW)
+            list(APPEND _args -DSDL_SHARED=OFF -DSDL_STATIC=ON)
+        else()
+            list(APPEND _args -DSDL_SHARED=OFF -DSDL_STATIC=ON)
+            if(DUILIB_MD)
+                if(config STREQUAL "Debug")
+                    list(APPEND _args "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebugDLL")
+                else()
+                    list(APPEND _args "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL")
+                endif()
+            else()
+                if(config STREQUAL "Debug")
+                    list(APPEND _args "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug")
+                else()
+                    list(APPEND _args "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded")
+                endif()
+            endif()
+        endif()
+    else()
+        list(APPEND _args -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=ON -DSDL_STATIC=OFF
+             -DSDL_X11_XSCRNSAVER=OFF -DSDL_X11_XTEST=OFF)
+    endif()
+
+    _duilib_run_checked("SDL3 configure (${config})"
+                        "check the SDL3 source tree and the compiler environment"
+                        "${DUILIB_CMAKE_COMMAND}" ${_args})
+    _duilib_run_checked("SDL3 build (${config})"
+                        "check the SDL3 compile output above"
+                        "${DUILIB_CMAKE_COMMAND}" --build "${build_dir}" --parallel "${DUILIB_DEPS_JOBS}")
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        _duilib_run_checked("SDL3 install (${config})"
+                            "check the SDL3 install output above"
+                            "${DUILIB_CMAKE_COMMAND}" --install "${build_dir}" --config "${config}")
+    else()
+        _duilib_run_checked("SDL3 install"
+                            "check the SDL3 install output above"
+                            "${DUILIB_CMAKE_COMMAND}" --install "${build_dir}")
+    endif()
+endfunction()
+
+function(duilib_prepare_sdl)
+    _duilib_sdl_ready(_ready)
+    if(_ready AND NOT DUILIB_DEPS_FORCE)
+        _duilib_write_crt("${DUILIB_SDL_ROOT}")
+        duilib_msg("deps.sdl_ready" " (${DUILIB_SDL_ROOT})")
+        return()
+    endif()
+
+    if(NOT EXISTS "${DUILIB_SDL_SRC}")
+        _duilib_clone("tag" "${DUILIB_SDL_REF_VALUE}"
+                      "https://github.com/libsdl-org/SDL.git" "${DUILIB_SDL_SRC}")
+    endif()
+
+    duilib_msg("deps.sdl_building" " (${DUILIB_SDL_REF_VALUE})")
+    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
+        if(DUILIB_DEPS_FORCE)
+            file(REMOVE_RECURSE "${DUILIB_SDL_BUILD_ROOT}")
+        endif()
+        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-debug" "Debug")
+        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
+    else()
+        _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
+    endif()
+
+    _duilib_sdl_ready(_ready)
+    if(NOT _ready)
+        duilib_error("deps.sdl_failed" "deps.sdl_failed_hint")
+    endif()
+    _duilib_sdl_stamp_value(_stamp)
+    file(WRITE "${DUILIB_SDL_ROOT}/.duilib-sdl" "${_stamp}")
+    _duilib_write_crt("${DUILIB_SDL_ROOT}")
+    duilib_msg("deps.sdl_ready" " (${DUILIB_SDL_ROOT})")
+endfunction()
+
+# ---------------------------------------------------------------------------
+# 主流程
+# ---------------------------------------------------------------------------
+if(DUILIB_DEPS_MODE STREQUAL "prepare" OR DUILIB_DEPS_MODE STREQUAL "auto")
+    duilib_prepare_skia()
+    if(DUILIB_ENABLE_SDL)
+        duilib_prepare_sdl()
+    endif()
+    if(DUILIB_ENABLE_CEF)
+        duilib_cef_prepare()
+    endif()
+    duilib_msg("deps.done")
+else()
+    message(STATUS "[deps] mode=${DUILIB_DEPS_MODE}: nothing to prepare")
+endif()
+
+file(LOCK "${_duilib_lock_file}" RELEASE)

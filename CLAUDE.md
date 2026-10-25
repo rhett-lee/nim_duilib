@@ -100,6 +100,6 @@ btn->AttachClick([this](const ui::EventArgs& args) {
   新代码一律用新名，否则 `WindowImplBase` 的标题栏按钮自动处理会退化到 fallback 路径
 
 ## 构建
-- Windows: 打开 `build/examples.sln`，选择 Debug|x64 或 Release|x64
-- 跨平台: `build/build_duilib_all_in_one.sh` 或 `build/build_duilib_all_in_one.bat`
-- 依赖: 需要先编译 Skia（参考 `build/build.md`）
+- 统一入口: `python build/build.py`（`--config Debug` 构建 Debug）
+- Windows: 先 `python build/build.py deps`，再打开 `build/examples.sln`
+- 依赖: 由 `python build/build.py deps` 自动准备（参考 `build/build-reference.md`）

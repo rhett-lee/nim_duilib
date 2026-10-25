@@ -59,4 +59,4 @@
 2. 项目中其他需要修改的内容
  - `README.md` CEF版本号需要修改    
  - `docs\CEF.md`    
- - `build\build_duilib_all_in_one.sh`    
+ - `cmake\third_party_versions.json`（CEF 版本、下载包与 sha256）    

@@ -1,0 +1,340 @@
+{
+  "messages": {
+    "lang.non_utf8_fallback": {
+      "en": "[WARN] Non-UTF-8 console; falling back to English. Run 'chcp 65001' or use build.bat.",
+      "zh_CN": "[WARN] 控制台不是 UTF-8；已回退为英文。请执行 'chcp 65001' 或使用 build.bat。"
+    },
+    "preflight.cmake_too_old": {
+      "en": "[ERROR] CMake 3.24 or newer is required",
+      "zh_CN": "[ERROR] 需要 CMake 3.24 或更高版本"
+    },
+    "preflight.cmake_too_old_hint": {
+      "en": "install CMake 3.24+ and make sure 'cmake --version' reports it",
+      "zh_CN": "安装 CMake 3.24+，并确认 'cmake --version' 输出的版本正确"
+    },
+    "preflight.python_missing": {
+      "en": "[ERROR] Python 3.8+ not found (required by the Skia build)",
+      "zh_CN": "[ERROR] 未找到 Python 3.8+（Skia 构建需要）"
+    },
+    "preflight.python_missing_hint": {
+      "en": "install Python 3.8+ and add it to PATH, then retry",
+      "zh_CN": "安装 Python 3.8+ 并加入 PATH 后重试"
+    },
+    "preflight.git_missing": {
+      "en": "[ERROR] git not found",
+      "zh_CN": "[ERROR] 未找到 git"
+    },
+    "preflight.git_missing_hint": {
+      "en": "install Git and make sure 'git --version' works",
+      "zh_CN": "安装 Git 并确认 'git --version' 可用"
+    },
+    "preflight.tool_missing": {
+      "en": "[ERROR] required tool not found",
+      "zh_CN": "[ERROR] 未找到必需的工具"
+    },
+    "preflight.ninja_missing_hint": {
+      "en": "install Ninja, use build.py (it locates the Ninja bundled with Visual Studio), or use -G \"Visual Studio 17 2022\"",
+      "zh_CN": "安装 Ninja，使用 build.py（会自动定位 Visual Studio 自带的 Ninja），或改用 -G \"Visual Studio 17 2022\""
+    },
+    "preflight.gn_missing_hint": {
+      "en": "install gn, or use 'build.py deps' which prefers the gn bundled with the Skia tree",
+      "zh_CN": "安装 gn，或使用 'build.py deps'（优先使用 Skia 源码树自带的 gn）"
+    },
+    "preflight.vs_missing": {
+      "en": "[ERROR] Visual Studio 2022+ with the C++ workload was not found",
+      "zh_CN": "[ERROR] 未找到安装了 C++ 工作负载的 Visual Studio 2022+"
+    },
+    "preflight.vs_missing_hint": {
+      "en": "install Visual Studio 2022 (or newer) with 'Desktop development with C++'",
+      "zh_CN": "安装 Visual Studio 2022（或更新版本），并勾选“使用 C++ 的桌面开发”"
+    },
+    "preflight.vs_too_old": {
+      "en": "[ERROR] Visual Studio 2022 (MSVC v143) or newer is required",
+      "zh_CN": "[ERROR] 需要 Visual Studio 2022（MSVC v143）或更新版本"
+    },
+    "preflight.arch_unsupported": {
+      "en": "[ERROR] unsupported target architecture",
+      "zh_CN": "[ERROR] 不支持的目标架构"
+    },
+    "preflight.arch_unsupported_hint": {
+      "en": "use -DDUILIB_TARGET_ARCH=x64 (or arm64; x86 is Windows only)",
+      "zh_CN": "使用 -DDUILIB_TARGET_ARCH=x64（或 arm64；x86 仅支持 Windows）"
+    },
+    "preflight.arch_mismatch": {
+      "en": "[ERROR] DUILIB_TARGET_ARCH does not match the configured toolchain",
+      "zh_CN": "[ERROR] DUILIB_TARGET_ARCH 与当前工具链不一致"
+    },
+    "preflight.arch_mismatch_hint": {
+      "en": "reconfigure with a matching -A/-DCMAKE_CXX_COMPILER, or change DUILIB_TARGET_ARCH",
+      "zh_CN": "使用匹配的 -A/-DCMAKE_CXX_COMPILER 重新配置，或修改 DUILIB_TARGET_ARCH"
+    },
+    "preflight.compiler_unsupported": {
+      "en": "[ERROR] unsupported compiler",
+      "zh_CN": "[ERROR] 不支持的编译器"
+    },
+    "preflight.compiler_unsupported_hint": {
+      "en": "use MSVC 2022+, gcc/g++, or clang/clang++",
+      "zh_CN": "请使用 MSVC 2022+、gcc/g++ 或 clang/clang++"
+    },
+    "preflight.cef_mingw": {
+      "en": "[ERROR] CEF is not available with MinGW/MSYS2 (MSVC ABI required)",
+      "zh_CN": "[ERROR] MinGW/MSYS2 不能使用 CEF（需要 MSVC ABI）"
+    },
+    "preflight.cef_mingw_hint": {
+      "en": "use -DDUILIB_ENABLE_CEF=OFF, or build with MSVC",
+      "zh_CN": "使用 -DDUILIB_ENABLE_CEF=OFF，或改用 MSVC 构建"
+    },
+    "preflight.preflight_only": {
+      "en": "[OK] preflight finished (DUILIB_PREFLIGHT_ONLY=ON)",
+      "zh_CN": "[OK] 预检完成（DUILIB_PREFLIGHT_ONLY=ON）"
+    },
+    "options.sdl_forced_on": {
+      "en": "[WARN] SDL is mandatory on this platform; DUILIB_ENABLE_SDL=OFF is ignored",
+      "zh_CN": "[WARN] 当前平台必须启用 SDL；DUILIB_ENABLE_SDL=OFF 已被忽略"
+    },
+    "options.cef_disabled_platform": {
+      "en": "[WARN] CEF is not supported on this platform or toolchain; CEF is disabled",
+      "zh_CN": "[WARN] 当前平台或工具链不支持 CEF；已关闭 CEF"
+    },
+    "options.cef_109_deprecated": {
+      "en": "[WARN] DUILIB_CEF_109 is deprecated; use -DDUILIB_CEF_VERSION=109",
+      "zh_CN": "[WARN] DUILIB_CEF_109 已弃用；请使用 -DDUILIB_CEF_VERSION=109"
+    },
+    "options.arch_resolved": {
+      "en": "[OK] target architecture",
+      "zh_CN": "[OK] 目标架构"
+    },
+    "deps.lock_failed": {
+      "en": "[ERROR] another dependency preparation is already running",
+      "zh_CN": "[ERROR] 已有另一个依赖准备任务在运行"
+    },
+    "deps.lock_failed_hint": {
+      "en": "wait for it to finish; if no other build is running, remove the stale .duilib_deps.lock",
+      "zh_CN": "等待其完成；若没有其他构建在运行，删除陈旧的 .duilib_deps.lock"
+    },
+    "deps.versions_invalid": {
+      "en": "[ERROR] third_party_versions.json is invalid",
+      "zh_CN": "[ERROR] third_party_versions.json 内容无效"
+    },
+    "deps.versions_invalid_hint": {
+      "en": "check schemaVersion, skia/sdl/cef sections and the selected default entries",
+      "zh_CN": "检查 schemaVersion、skia/sdl/cef 段以及 default 指向的条目"
+    },
+    "deps.skia_source_missing": {
+      "en": "[ERROR] Skia source tree not found",
+      "zh_CN": "[ERROR] 未找到 Skia 源码树"
+    },
+    "deps.skia_source_missing_hint": {
+      "en": "run 'build.py deps' (needs network), or clone skia next to the repository",
+      "zh_CN": "执行 'build.py deps'（需要网络），或在仓库同级目录克隆 skia"
+    },
+    "deps.skia_ready": {
+      "en": "[OK] Skia is ready",
+      "zh_CN": "[OK] Skia 已就绪"
+    },
+    "deps.skia_building": {
+      "en": "[deps] building Skia with gn/ninja",
+      "zh_CN": "[deps] 正在用 gn/ninja 编译 Skia"
+    },
+    "deps.skia_failed": {
+      "en": "[ERROR] Skia build failed",
+      "zh_CN": "[ERROR] Skia 编译失败"
+    },
+    "deps.skia_failed_hint": {
+      "en": "check the gn/ninja output above, then run 'build.py deps --force'",
+      "zh_CN": "查看上面的 gn/ninja 输出，然后执行 'build.py deps --force'"
+    },
+    "deps.skia_patch_missing": {
+      "en": "[ERROR] Skia patch archive not found",
+      "zh_CN": "[ERROR] 未找到 Skia 补丁包"
+    },
+    "deps.skia_patch_missing_hint": {
+      "en": "check DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT in third_party_versions.json",
+      "zh_CN": "检查 third_party_versions.json 中的 DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT"
+    },
+    "deps.sdl_ready": {
+      "en": "[OK] SDL3 is ready",
+      "zh_CN": "[OK] SDL3 已就绪"
+    },
+    "deps.sdl_missing": {
+      "en": "[ERROR] SDL3 installation not found",
+      "zh_CN": "[ERROR] 未找到 SDL3 安装目录"
+    },
+    "deps.sdl_missing_hint": {
+      "en": "run 'build.py deps', or pass -DDUILIB_SDL_ROOT=<installed SDL3 prefix>",
+      "zh_CN": "执行 'build.py deps'，或传入 -DDUILIB_SDL_ROOT=<已安装的 SDL3 前缀>"
+    },
+    "deps.sdl_building": {
+      "en": "[deps] building SDL3",
+      "zh_CN": "[deps] 正在编译 SDL3"
+    },
+    "deps.sdl_failed": {
+      "en": "[ERROR] SDL3 build failed",
+      "zh_CN": "[ERROR] SDL3 编译失败"
+    },
+    "deps.sdl_failed_hint": {
+      "en": "check the SDL3 build output above, then run 'build.py deps --force'",
+      "zh_CN": "查看上面的 SDL3 输出，然后执行 'build.py deps --force'"
+    },
+    "deps.cef_combo_missing": {
+      "en": "[ERROR] CEF archive is not configured for this version/platform/architecture",
+      "zh_CN": "[ERROR] 清单中没有该 CEF 版本/平台/架构的下载包"
+    },
+    "deps.cef_combo_missing_hint": {
+      "en": "add an archives entry in cmake/third_party_versions.json or choose another DUILIB_CEF_VERSION",
+      "zh_CN": "在 cmake/third_party_versions.json 中补充 archives 条目，或改选 DUILIB_CEF_VERSION"
+    },
+    "deps.cef_downloading": {
+      "en": "[deps] downloading CEF runtime",
+      "zh_CN": "[deps] 正在下载 CEF 运行时"
+    },
+    "deps.cef_download_failed": {
+      "en": "[ERROR] failed to download CEF",
+      "zh_CN": "[ERROR] 下载 CEF 失败"
+    },
+    "deps.cef_download_failed_hint": {
+      "en": "use '--offline' with a cached archive, or pass -DDUILIB_CEF_ARCHIVE=<local file>",
+      "zh_CN": "使用 '--offline' 配合已缓存的包，或传入 -DDUILIB_CEF_ARCHIVE=<本地文件>"
+    },
+    "deps.cef_hash_mismatch": {
+      "en": "[ERROR] CEF archive sha256 mismatch",
+      "zh_CN": "[ERROR] CEF 下载包 sha256 不匹配"
+    },
+    "deps.cef_hash_mismatch_hint": {
+      "en": "delete the cached archive and retry; if it persists, fix the sha256 in third_party_versions.json",
+      "zh_CN": "删除缓存的下载包后重试；若仍失败，修正 third_party_versions.json 中的 sha256"
+    },
+    "deps.cef_no_sha": {
+      "en": "[WARN] sha256 is empty for this CEF archive; integrity check skipped",
+      "zh_CN": "[WARN] 该 CEF 下载包未配置 sha256；已跳过完整性校验"
+    },
+    "deps.cef_version_mismatch": {
+      "en": "[ERROR] CEF runtime/header version mismatch",
+      "zh_CN": "[ERROR] CEF 运行时与仓库头文件版本不一致"
+    },
+    "deps.cef_version_mismatch_hint": {
+      "en": "use a matching DUILIB_CEF_VERSION, or update the tracked libcef headers",
+      "zh_CN": "改用匹配的 DUILIB_CEF_VERSION，或更新仓库内的 libcef 头文件"
+    },
+    "deps.cef_ready": {
+      "en": "[OK] CEF runtime is ready",
+      "zh_CN": "[OK] CEF 运行时已就绪"
+    },
+    "deps.cef_extract_failed": {
+      "en": "[ERROR] failed to extract the CEF archive",
+      "zh_CN": "[ERROR] 解压 CEF 下载包失败"
+    },
+    "deps.cef_extract_failed_hint": {
+      "en": "check free disk space and the archive integrity, then retry",
+      "zh_CN": "检查磁盘空间与下载包完整性后重试"
+    },
+    "deps.offline_missing": {
+      "en": "[ERROR] --offline was requested but the dependency is not cached",
+      "zh_CN": "[ERROR] 指定了 --offline，但依赖尚未缓存"
+    },
+    "deps.offline_missing_hint": {
+      "en": "drop --offline once to prepare the dependency, or point the cache variables at existing files",
+      "zh_CN": "去掉 --offline 准备一次依赖，或把缓存变量指向已有文件"
+    },
+    "deps.done": {
+      "en": "[OK] dependencies are ready",
+      "zh_CN": "[OK] 依赖已就绪"
+    },
+    "deps.crt_mismatch": {
+      "en": "[ERROR] CRT mismatch between the current build and prepared dependencies",
+      "zh_CN": "[ERROR] 当前构建与已准备依赖的 CRT 不一致"
+    },
+    "deps.crt_mismatch_hint": {
+      "en": "re-run 'build.py deps' with the same DUILIB_MD/toolchain, or use a separate build directory",
+      "zh_CN": "使用相同的 DUILIB_MD/工具链重新执行 'build.py deps'，或改用独立的构建目录"
+    },
+    "build.configuring": {
+      "en": "[build] configuring",
+      "zh_CN": "[build] 正在配置"
+    },
+    "build.building": {
+      "en": "[build] building",
+      "zh_CN": "[build] 正在编译"
+    },
+    "build.done": {
+      "en": "[OK] build finished",
+      "zh_CN": "[OK] 编译完成"
+    },
+    "build.failed": {
+      "en": "[ERROR] build failed",
+      "zh_CN": "[ERROR] 编译失败"
+    },
+    "build.failed_hint": {
+      "en": "check the compiler output above, then re-run the same command",
+      "zh_CN": "查看上面的编译输出，然后重新执行同一命令"
+    },
+    "build.python_missing": {
+      "en": "[ERROR] Python 3.8+ not found",
+      "zh_CN": "[ERROR] 未找到 Python 3.8+"
+    },
+    "build.python_missing_hint": {
+      "en": "install Python 3.8+ (required by the Skia build) and retry",
+      "zh_CN": "安装 Python 3.8+（Skia 构建需要）后重试"
+    },
+    "build.cmake_missing": {
+      "en": "[ERROR] CMake 3.24+ not found",
+      "zh_CN": "[ERROR] 未找到 CMake 3.24+"
+    },
+    "build.cmake_missing_hint": {
+      "en": "install CMake 3.24+ and add it to PATH",
+      "zh_CN": "安装 CMake 3.24+ 并加入 PATH"
+    },
+    "build.invalid_config": {
+      "en": "[ERROR] invalid configuration; expected Debug or Release",
+      "zh_CN": "[ERROR] 配置无效；应为 Debug 或 Release"
+    },
+    "build.invalid_arch": {
+      "en": "[ERROR] invalid architecture",
+      "zh_CN": "[ERROR] 架构无效"
+    },
+    "build.no_products": {
+      "en": "[ERROR] no build products found; run 'build.py build' first",
+      "zh_CN": "[ERROR] 未找到构建产物；请先执行 'build.py build'"
+    },
+    "build.clean_done": {
+      "en": "[OK] build tree removed",
+      "zh_CN": "[OK] 构建树已删除"
+    },
+    "build.clean_deps_done": {
+      "en": "[OK] dependency build products removed (source clones kept)",
+      "zh_CN": "[OK] 依赖构建产物已删除（保留源码克隆）"
+    },
+    "doctor.title": {
+      "en": "Environment summary",
+      "zh_CN": "环境摘要"
+    },
+    "doctor.cmake_missing": {
+      "en": "[WARN] cmake not found; using the built-in Python checks",
+      "zh_CN": "[WARN] 未找到 cmake；改用 Python 内置探测"
+    },
+    "test.start": {
+      "en": "[test] running unit tests",
+      "zh_CN": "[test] 正在运行单元测试"
+    },
+    "test.failed": {
+      "en": "[ERROR] tests failed",
+      "zh_CN": "[ERROR] 测试失败"
+    },
+    "test.failed_hint": {
+      "en": "check the unittest output above",
+      "zh_CN": "查看上面的 unittest 输出"
+    },
+    "pack.start": {
+      "en": "[pack] collecting build products",
+      "zh_CN": "[pack] 正在收集构建产物"
+    },
+    "pack.failed": {
+      "en": "[ERROR] packaging failed",
+      "zh_CN": "[ERROR] 打包失败"
+    },
+    "pack.failed_hint": {
+      "en": "check the pack.py output above",
+      "zh_CN": "查看上面的 pack.py 输出"
+    }
+  }
+}

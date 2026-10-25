@@ -1,551 +1,79 @@
-简体中文 | [English](README.en.md)
+# build 目录说明
 
-# nim_duilib MSVC 工程与编译脚本说明
-
-本文档详细介绍 `nim_duilib\build` 目录中 Visual Studio 解决方案文件（*.sln）和编译脚本文件（*.bat/*.sh）的用途及使用方法，供维护人员参考。
+本目录保存统一构建入口、出包/发布工具、单元测试与 Visual Studio 解决方案。
+完整的命令、参数、依赖与排障说明见 [build-reference.md](build-reference.md)（英文版
+[build-reference.en.md](build-reference.en.md)）。
 
 ## 目录文件概览
 
-```
-build/
-├── 解决方案文件（Visual Studio）
-│   ├── duilib.sln                   # 基础解决方案（含lib库，不含示例程序）
-│   ├── duilib_no_cef.sln            # 基础解决方案（不含CEF）
-│   ├── examples.sln                 # 完整解决方案（含lib库和示例程序）
-│   └── examples_no_cef.sln          # 完整解决方案（不含CEF）
-│
-├── 编译脚本（Windows/Batch）
-│   ├── detect_vs_version.bat         # 自动检测VS版本
-│   ├── msvc_build.bat                # CMake + MSVC 编译脚本
-│   ├── build_duilib_all_in_one.bat   # 一键编译脚本（MSVC + LLVM）
-│   ├── gcc-mingw-w64_build.bat       # CMake + MinGW-w64 gcc 编译脚本
-│   ├── llvm-mingw-w64_build.bat      # CMake + MinGW-w64 clang 编译脚本
-│   └── build_duilib_all_in_one_mingw-w64.bat  # 一键编译脚本（MinGW-w64）
-│
-├── 编译脚本（Linux/macOS/其他平台）
-│   ├── build_duilib_all_in_one.sh   # 一键编译脚本（Linux/macOS/FreeBSD/MSYS2）
-│   ├── linux_build.sh               # Linux 系统编译脚本
-│   ├── msys2_build.sh               # MSYS2 系统编译脚本
-│   ├── macos_build.sh               # macOS 系统编译脚本
-│   └── freebsd_build.sh             # FreeBSD 系统编译脚本
-│
-└── build.md                         # 项目编译相关文档
-```
-
----
-
-## 解决方案文件详解
-
-### 1. duilib.sln
-
-**功能：** Visual Studio 基础解决方案文件，包含 duilib 核心库工程。
-
-**包含内容：**
-- duilib 核心库工程
-- 第三方依赖库工程（zlib、libpng、cximage、libwebp）
-
-**特点：**
-- 不包含示例程序
-- 包含 CEF 和 WebView2 支持
-- 需要预先下载并编译 Skia
-
-**适用场景：**
-- 仅使用 duilib 核心库进行开发
-- 不需要参考示例程序
-
----
-
-### 2. duilib_no_cef.sln
-
-**功能：** 不包含 CEF 模块的基础解决方案。
-
-**与 duilib.sln 的区别：**
-- 不支持 CEF（libCEF）模块
-- WebView2 支持仍可用
-
----
-
-### 3. examples.sln
-
-**功能：** 完整的示例程序解决方案，包含 duilib 库和所有示例程序。
-
-**包含内容：**
-- duilib 核心库
-- 第三方依赖库
-- 完整示例程序集：
-  - `basic` - 基础示例
-  - `controls` - 控件示例
-  - `ColorPicker` - 颜色选择器
-  - `DpiAware` - DPI 感知示例
-  - `chat` - 聊天界面示例
-  - `layout` - 布局示例
-  - `ListBox` - 列表框示例
-  - `ListCtrl` - 列表控件示例
-  - `MoveControl` - 移动控件示例
-  - `MultiLang` - 多语言示例
-  - `render` - 渲染示例
-  - `RichEdit` - 富文本编辑器示例
-  - `VirtualListBox` - 虚拟列表框示例
-  - `threads` - 多线程示例
-  - `TreeView` - 树形视图示例
-  - `cef` - CEF 浏览器示例
-  - `CefBrowser` - CEF 浏览器完整示例
-  - `WebView2` - WebView2 示例
-  - `WebView2Browser` - WebView2 浏览器完整示例
-  - `ChildWindow` - 子窗口示例
-  - `XmlPreview` - XML 预览示例
-  - `ColorTheme` - 主题颜色预览与生成示例
-
-**注意：** CEF 模块需要手动下载配置，参见 [docs/CEF.md](../docs/CEF.md)。
-
----
-
-### 4. examples_no_cef.sln
-
-**功能：** 完整的示例程序解决方案，不包含 CEF 相关示例。
-
-**与 examples.sln 的区别：**
-- 不包含 `cef` 和 `CefBrowser` 示例程序
-- 其他所有示例程序和功能保持一致
-
----
-
-## 编译脚本详解
-
-### 1. detect_vs_version.bat（VS 版本检测）
-
-**功能：** 自动检测系统中安装的 Visual Studio 版本。
-
-**检测优先级：**
-1. **优先使用 vswhere.exe**：通过 VS 安装工具获取最新版本
-2. **目录遍历备选**：按版本从高到低遍历常见安装目录
-
-**检测的 VS 版本：**
-- VS2026 (v145)
-- VS2022 (v143)
-- VS2019 (v142)
-- VS2017 (v141)
-
-**输出变量：**
-| 变量名 | 说明 |
-|--------|------|
-| `VS_VERSION` | VS 版本标识（如 vs2022） |
-| `VS_PATH` | VS 安装路径 |
-| `VS_MAJOR_VERSION` | 主版本号（如 17） |
-
-**使用方式：**
-```batch
-call detect_vs_version.bat
-echo Detected: %VS_VERSION% (%VS_MAJOR_VERSION%)
-```
-
----
-
-### 2. msvc_build.bat（CMake + MSVC 编译）
-
-**功能：** 使用 CMake 和 MSVC 编译器在命令行环境下编译项目。
-
-**前置条件：**
-- Visual Studio 2022 (17.0) 或更高版本
-- CMake 3.21+（如使用 VS2026 则需 CMake 4.2+）
-- 预先下载并编译 Skia
-
-**使用方法：**
-```batch
-cd nim_duilib\build
-msvc_build.bat
-```
-
-**编译内容：**
-1. 第三方库：zlib、libpng、cximage、libwebp、libcef
-2. duilib 核心库
-3. 所有示例程序
-
-**Skia 路径要求：**
-- 期望 Skia 编译输出在 `..\..\skia\out\llvm.x64.release`
-
----
-
-### 3. build_duilib_all_in_one.bat（一键编译 - MSVC）
-
-**功能：** 全自动编译脚本，自动下载所有依赖项（包括 Skia）并完成编译。
-
-**前置条件：**
-- git.exe
-- python3.exe
-- LLVM Clang 编译器（位于 `C:\LLVM\bin`）
-- Visual Studio 2022 (17.0) 或更高版本
-
-**使用方法：**
-```batch
-cd nim_duilib\build
-build_duilib_all_in_one.bat        # 静态运行库（/MT）
-build_duilib_all_in_one.bat /MD    # 动态运行库（/MD）
-```
-
-**运行流程：**
-1. 检测必要软件（git、python3、clang）
-2. 检测 VS 版本
-3. 克隆 nim_duilib 仓库（如不存在）
-4. 克隆 skia_compile 工具仓库
-5. 克隆 skia 仓库
-6. 应用 Skia 补丁
-7. 编译 Skia（Debug/Release x64/x86）
-8. 设置 duilib 运行库模式
-9. 使用 devenv 编译整个解决方案
-
-**编译输出目录：**
-| 平台 | 输出目录 |
-|------|----------|
-| x64 Release | `..\bin\` |
-| x64 Debug | `..\bin\` |
-| x86 Release | `..\bin\` |
-| x86 Debug | `..\bin\` |
-
-**Skia 编译选项：**
-```
-llvm.x64.debug
-llvm.x64.release
-llvm.x86.debug
-llvm.x86.release
-```
-
----
-
-### 4. gcc-mingw-w64_build.bat（CMake + MinGW gcc）
-
-**功能：** 使用 CMake 和 MinGW-w64 GCC 编译器编译项目。
-
-**前置条件：**
-- MinGW-w64 GCC/G++ 编译器
-- CMake 3.21+
-
-**使用方法：**
-```batch
-cd nim_duilib\build
-gcc-mingw-w64_build.bat        # 不启用 SDL
-gcc-mingw-w64_build.bat -sdl   # 启用 SDL
-```
-
-**特点：**
-- 不支持 CEF 模块
-- 支持 WebView2
-- 支持 SDL 可选功能
-
----
-
-### 5. llvm-mingw-w64_build.bat（CMake + MinGW clang）
-
-**功能：** 使用 CMake 和 MinGW-w64 Clang/LLVM 编译器编译项目。
-
-**前置条件：**
-- MinGW-w64 Clang/LLVM 编译器
-- CMake 3.21+
-
-**使用方法：**
-```batch
-cd nim_duilib\build
-llvm-mingw-w64_build.bat        # 不启用 SDL
-llvm-mingw-w64_build.bat -sdl   # 启用 SDL
-```
-
-**特点：**
-- 使用 Clang 编译器，性能更好
-- 不支持 CEF 模块
-- 支持 WebView2
-- 支持 SDL 可选功能
-
----
-
-### 6. build_duilib_all_in_one_mingw-w64.bat（一键编译 - MinGW）
-
-**功能：** 全自动编译脚本，使用 MinGW-w64 编译器自动下载依赖并编译。
-
-**前置条件：**
-- git.exe
-- python3.exe
-- cmake.exe
-- GCC/G++ 或 Clang/Clang++ 编译器（二选一）
-
-**使用方法：**
-```batch
-cd nim_duilib\build
-build_duilib_all_in_one_mingw-w64.bat      # 不启用 SDL
-build_duilib_all_in_one_mingw-w64.bat -sdl # 启用 SDL
-```
-
-**运行流程：**
-1. 检测必要软件（git、python3、cmake、gcc/clang）
-2. 克隆 nim_duilib 仓库
-3. 克隆 skia_compile 工具仓库
-4. 克隆 skia 仓库
-5. 应用 Skia 补丁
-6. 编译 Skia（根据编译器选择 gcc 或 clang 版本）
-7. 可选：克隆并编译 SDL3
-8. 调用对应的 MinGW 编译脚本
-
----
-
-### 7. msys2_build.sh（MSYS2 编译）
-
-**功能：** 在 MSYS2 环境下使用 mingw-w64 gcc/g++ 或 clang/clang++ 编译第三方库、duilib 与全部示例。
-
-**前置条件：**
-- 在 MSYS2 的 MINGW64 / UCRT64 / CLANG64 shell 中运行
-- mingw-w64 目标的 gcc/g++ 或 clang/clang++（`x86_64-w64-mingw32-*` 或 `x86_64-w64-windows-gnu-*`）
-- cmake（3.24+ 才支持可选的 `DUILIB_CMAKE_FRESH=1` 重新配置，低版本仍可编译）
-- ninja、make、mingw32-make 三者之一
-
-**依赖安装（pacman）：**
-
-在对应的 MSYS2 shell 中执行。`$MINGW_PACKAGE_PREFIX` 由 MSYS2 自动设置（MINGW64 / UCRT64 / CLANG64 中分别为 `mingw-w64-x86_64`、`mingw-w64-ucrt-x86_64`、`mingw-w64-clang-x86_64`），无需硬编码环境名：
+| 文件 | 说明 |
+| :--- | :--- |
+| `build.py` | **唯一命令行入口**：生成依赖、编译、测试、出包、清理 |
+| `build.bat` | Windows 薄封装：定位 Python 3 后转调 `build.py` |
+| `build-reference.md` / `.en.md` | 编译参考手册（命令、依赖、产物、排障） |
+| `pack.py` | 生成 SDK 包（只收集已构建产物，不参与编译） |
+| `release.py` | 发布流程编排：预检、打包、校验（不做 commit/tag/push） |
+| `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
+| `test_build.py` | 构建入口自身的单元测试 |
+| `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
+| `duilib.sln` / `duilib_no_cef.sln` | Visual Studio 解决方案（只含库） |
+| `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
+| `README.md` / `README.en.md` | 本文件 |
+
+旧的分平台构建脚本已归档到 `legacy/`（不再参与构建，待全平台验证后删除），
+统一改用 `python build/build.py`。
+
+## 前置依赖
+
+- CMake 3.24+、Python 3（必需）、Git、Ninja。
+- Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64。
+- Linux/macOS/FreeBSD：gcc 10+/clang 12+，以及字体、GL、X11 等开发包。
+- 首次构建前执行 `python build/build.py deps` 准备 Skia/SDL3/CEF。
+
+各平台系统包清单与版本要求见 [build-reference.md](build-reference.md) 第 1、8 节。
+
+## Visual Studio 解决方案
+
+解决方案不会自动准备依赖，打开前先运行：
 
 ```bash
-# msys2_build.sh（gcc 环境：MINGW64 / UCRT64）
-pacman -S --needed $MINGW_PACKAGE_PREFIX-gcc \
-                   $MINGW_PACKAGE_PREFIX-cmake \
-                   $MINGW_PACKAGE_PREFIX-ninja
-
-# CLANG64 环境把 gcc 换成 clang，其余相同
-pacman -S --needed $MINGW_PACKAGE_PREFIX-clang \
-                   $MINGW_PACKAGE_PREFIX-cmake \
-                   $MINGW_PACKAGE_PREFIX-ninja
-
-# build_duilib_all_in_one.sh 还会克隆依赖、编译 Skia 与 SDL，额外需要
-pacman -S --needed git unzip curl python \
-                   $MINGW_PACKAGE_PREFIX-gn \
-                   $MINGW_PACKAGE_PREFIX-ninja
+python build/build.py deps
 ```
 
-- `build_duilib_all_in_one.sh` 同样支持在 MSYS2 中运行：自动克隆依赖、编译 Skia（及可选的 SDL），最后调用 `msys2_build.sh`。
-- MSYS2 的 `base` 环境不自带 cmake / ninja / gn / git / unzip / python3，缺少任一项时脚本会在启动检查或后续步骤报错退出。
-- `python` 为 MSYS 包，提供 `/usr/bin/python3`；若 `python3` 命令不存在，安装它即可。
-- 不再需要 `bc`：脚本已改为使用 shell 内建比较 CMake 版本。
-- 默认不使用 `--fresh`：它会清空 `CMakeFiles`（含 Ninja 依赖文件），使增量构建退化为全量重编；
-  构建目录已按“工具链 + 配置”隔离。需要强制重新配置时执行 `DUILIB_CMAKE_FRESH=1 ./msys2_build.sh`
-  （仅在 CMake 3.24+ 生效，低版本自动跳过）。
+- `duilib.sln` / `examples.sln`：启用 CEF。
+- `duilib_no_cef.sln` / `examples_no_cef.sln`：不编译 CEF，可缩短编译时间。
+- 解决方案的中间目录仍是 `build/build_temp` 与 `build/.vs`，与新入口的
+  `out/<arch>/<Config>` 互不影响。
 
-**使用方法：**
-```bash
-cd nim_duilib/build
-./msys2_build.sh                            # Release（默认），不启用 SDL
-DUILIB_BUILD_TYPE=Debug ./msys2_build.sh    # Debug
-DUILIB_MAKE_JOBS=8 ./msys2_build.sh         # 覆盖并行任务数（默认取 nproc）
-DUILIB_CMAKE_FRESH=1 ./msys2_build.sh        # 强制重新配置（清空缓存，触发全量重编）
-./msys2_build.sh -sdl                       # 启用 SDL
-```
+## 构建产物与清理
 
-**说明：**
-- 构建类型由 `DUILIB_BUILD_TYPE` 控制，仅接受 `Debug` / `Release`；编译临时目录按配置隔离到
-  `build/build_temp/<工具链>_build/<Debug|Release>/`，切换配置不会复用生成器缓存。
-- 并行任务数默认取 CPU 核数（`nproc`），可用 `DUILIB_MAKE_JOBS` 覆盖；没有 `nproc` 时回退为 6。
-- `build_duilib_all_in_one.sh` 同样读取 `DUILIB_BUILD_TYPE`；克隆/更新依赖失败时最多重试
-  `GIT_RETRY_MAX` 次（默认 5），避免无人值守时无限等待。
-- 脚本显式指定 CMake 生成器（优先 Ninja，其次 MSYS Makefiles，最后 MinGW Makefiles）。
-  原生 Windows 版 CMake（如 `/mingw64/bin/cmake`）默认使用 Visual Studio 生成器，
-  会静默忽略 `-DCMAKE_C_COMPILER`，导致产物变成 MSVC 版本。
-- 脚本会检查编译器目标；MSYS/Cygwin 目标的 gcc/clang 会被忽略，并在必要时回退到另一个编译器。
-- Skia 目录：gcc 构建用 `gcc.<arch>.release`，clang 构建用 `llvm.<arch>.release`；
-  两者都只有 release 变体，Debug 构建缺失 debug 目录时回退 release。
-- 启用 `-sdl` 时，Windows 下的 SDL 构建目录为 `SDL.build.msys2.gcc.ninja` 或
-  `SDL.build.msys2.llvm.ninja`，同样固定使用 Ninja 生成器。
-- 任一目标配置或编译失败时脚本立即退出（`set -e`），不再继续执行后续示例。
-- 不支持 CEF；支持 WebView2 与可选的 SDL。
-
----
-
-## 编译配置对比
-
-| 特性 | MSVC | MinGW GCC | MinGW Clang |
-|------|------|-----------|-------------|
-| 编译工具 | devenv.exe | mingw32-make.exe | mingw32-make.exe |
-| CEF 支持 | ✅ 支持 | ❌ 不支持 | ❌ 不支持 |
-| WebView2 支持 | ✅ 支持 | ✅ 支持 | ✅ 支持 |
-| SDL 支持 | ✅ 可选 | ✅ 可选 | ✅ 可选 |
-| 静态运行库 | ✅ /MT | ✅ | ✅ |
-| 动态运行库 | ✅ /MD | ✅ | ✅ |
-| 一键编译脚本 | ✅ | ❌ | ❌ |
-
----
-
-## 快速开始
-
-### 方式一：使用 Visual Studio IDE
-
-1. **仅编译库**：
-   ```
-   双击打开 duilib.sln 或 duilib_no_cef.sln
-   选择配置（Debug/Release）和平台（x64/Win32）
-   生成 → 重新生成解决方案
-   ```
-
-2. **编译完整示例**：
-   ```
-   双击打开 examples.sln 或 examples_no_cef.sln
-   选择配置和平台
-   生成 → 重新生成解决方案
-   ```
-
-### 方式二：使用一键编译脚本（推荐新手）
-
-```batch
-cd nim_duilib\build
-build_duilib_all_in_one.bat
-```
-
-脚本会自动处理：
-- 下载所有依赖
-- 编译 Skia
-- 编译 duilib 和所有示例
-
-### 方式三：使用 CMake 命令行编译
-
-```batch
-cd nim_duilib\build
-msvc_build.bat
-```
-
-### 方式四：Linux / macOS / FreeBSD 编译脚本
+| 路径 | 内容 | 是否可清理 |
+| :--- | :--- | :--- |
+| `out/<arch>/<Config>/` | 新入口的 CMake 构建树 | 可随时删除 |
+| `lib/<arch>/<Config>/` | 编译出的库 | 重新编译生成 |
+| `bin/` | 示例程序、`resources/`、CEF 运行时 | 运行必需 |
+| `build/build_temp/` | VS 解决方案的中间目录 | 可清理 |
+| `build/.vs/` | Visual Studio 缓存 | 可清理 |
+| `cef_cache/`、`webview2_cache/` | CEF / WebView2 运行时网络缓存 | 可清理 |
 
 ```bash
-./build/linux_build.sh                    # Release（默认）
-DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh   # Debug
+python build/build.py clean          # 删除整个 out/
+python build/build.py clean --deps   # 同时清理依赖构建产物
 ```
-
-`macos_build.sh`、`freebsd_build.sh` 用法相同。编译临时目录按配置分到
-`build_temp/<编译器>_build/<Debug|Release>/`，Debug 与 Release 互不覆盖；
-MSYS2 的 `msys2_build.sh` 也使用同样的分目录规则。
-Skia 在 Unix 仍只使用 release 变体。
-
----
-
-## 编译输出说明
-
-### 输出目录结构
-
-```
-nim_duilib/
-├── bin/                         # 编译输出目录
-│   ├── duilib.dll               # duilib DLL文件
-│   ├── basic.exe                # 示例程序
-│   ├── controls.exe
-│   └── ...
-│
-├── lib/                         # 静态库目录（配置由子目录表达）
-│   ├── x64/
-│   │   ├── Release/
-│   │   │   ├── duilib.lib
-│   │   │   ├── duilib-zlib.lib
-│   │   │   └── ...
-│   │   └── Debug/
-│   │       └── ...
-│   └── x86/
-│       ├── Release/
-│       └── Debug/
-│
-├── build_temp/                   # 编译临时目录（可安全删除）
-│   ├── x64/                      # VS
-│   ├── msvc/                     # CMake
-│   └── ...
-│
-└── .vs/                          # VS 缓存目录（可定期清理）
-```
-
-Linux / macOS / FreeBSD 没有架构层：`lib/Debug/`、`lib/Release/`。
-
-### 编译目标文件说明
-
-| 文件类型 | 路径 | 说明 |
-|----------|------|------|
-| 动态库 | `bin\duilib.dll` | duilib 动态链接库 |
-| 静态库 | `lib\x64\<Release\|Debug>\duilib.lib` | duilib 静态库 |
-| 可执行程序 | `bin\*.exe` | 示例程序（Debug 带 `_d`） |
-| 资源文件 | `bin\resources\` | UI 资源文件 |
-
----
-
-## 常见问题排查
-
-### Q1：编译报 "Visual Studio 2022 or newer is required"
-
-**原因：** 检测到系统安装的 VS 版本低于 2022。
-
-**解决方案：**
-1. 安装 Visual Studio 2022 或更高版本
-2. 确保使用 `detect_vs_version.bat` 正确检测到新版本
-
----
-
-### Q2：编译报 "Skia not found"
-
-**原因：** Skia 未编译或路径不正确。
-
-**解决方案：**
-1. 使用 `build_duilib_all_in_one.bat` 自动下载并编译 Skia
-2. 或手动编译 Skia，确保输出在 `..\..\skia\out\llvm.x64.release`
-
----
-
-### Q3：编译报 "clang.exe not found"
-
-**原因：** LLVM Clang 未安装或不在 PATH 中。
-
-**解决方案：**
-1. 安装 LLVM Clang（推荐版本 16+）
-2. 确保 `C:\LLVM\bin` 在系统 PATH 中
-3. 或修改 `build_duilib_all_in_one.bat` 中的 LLVM 路径
-
----
-
-### Q4：编译报 "CMake version is too old"
-
-**原因：** CMake 版本低于要求。
-
-**解决方案：**
-- MSVC 编译需要 CMake 3.21+（VS2026 需要 4.2+）
-- 下载最新 CMake：https://cmake.org/download/
-
----
-
-### Q5：CEF 示例程序无法运行
-
-**原因：** CEF 运行时文件未正确配置。
-
-**解决方案：**
-1. 手动下载 libCEF 并配置，参见 [docs/CEF.md](../docs/CEF.md)
-2. 将 libcef.dll 和相关资源复制到 `bin\libcef_win` 或 `bin\libcef_win_109`
-
----
-
-### Q6：Linux 下所有文本都不显示（字体列表为空）
-
-**原因：** Skia 未启用 fontconfig 字体后端。`FontMgr_Skia.cpp` 在非Windows / 非 macOS 平台调用
-`SkFontMgr_New_FontConfig`，若 Skia 构建时未开启该后端，会**静默返回空字体集**——不报错、不崩溃，
-只是所有文字都不渲染，很容易被误判为布局或主题色问题。
-
-`build_duilib_all_in_one.sh` 的 Linux 分支（clang 与 gcc 两条路径）已显式传入
-`skia_enable_fontmgr_fontconfig=true skia_use_freetype=true`，不依赖 Skia 上游默认值。
-若自行编译 Skia，必须带上这两个开关。
-
-**排查方式：** 启动日志中检索 `[WARN] FontManager::GetFontNameList`。
-出现该告警即确认是字体后端问题（Windows 下输出到调试器，Linux 下经 `SDL_Log` 输出到标准错误）。
-
----
 
 ## 发布打包
 
-编译完成后用 `build/pack.py` 打包，脚本只收集已构建好的文件，不参与编译。
-正式发布用 `build/release.py` 编排：它调用 `pack.py`、做版本与产物校验，
-但不执行 commit / tag / push。
+SDK 只由 `pack.py` 生成，根 CMake 工程不提供 `install()` 目标。正式发布用
+`release.py` 编排：它调用 `pack.py` 并做版本与产物校验，但不执行 commit/tag/push。
 
-```
-# 只打SDK（推荐，默认 Release）
+```bash
+# 只打 SDK（默认 Release）
 python build/pack.py
 
 # Debug SDK（包名带 -debug）
 python build/pack.py --config Debug
 
-# SDK + 示例程序（包名带 -examples）
+# SDK + 示例程序
 python build/pack.py --with-examples
 
 # 只看会收集哪些文件，不实际打包
@@ -557,234 +85,108 @@ python build/pack.py --msvc-runtime md
 # 仅排查：关键产物缺失时仍继续出包（发布流程不要使用）
 python build/pack.py --allow-missing
 
-# 发布：预检、打包、校验（产物输出到 dist/<版本>/）
+# 发布：预检、打包、校验
 python build/release.py check
 python build/release.py package --config Release --arch x64 --dry-run
 python build/release.py finalize
 python build/release.py clean --list
 ```
 
+也可以统一走新入口：
+
+```bash
+python build/build.py pack --with-cef
+python build/build.py pack --config Debug --out-dir dist
+```
+
+包名为 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
+内含 `include/duilib/`、`lib/<arch>/<Config>/`、`bin/`（运行期 DLL 与
+`bin/resources/`）、`lib/cmake/nim_duilib/`、`LICENSES/`、`docs/`、`MANIFEST.txt`
+与 `SHA256SUMS`。分发时必须保留 `LICENSES/` 与 `THIRD-PARTY-NOTICES.md`。
+
 ### 打包自动化（本地）
 
-`build/autotest.py` 把「环境检测 →（可选）构建 → 打包 → `--verify` → 结构断言 →
-（可选）冒烟」串成一次可重复执行的任务，**不接入 CI**，默认不写仓库的
-`bin/`、`lib/`、`dist/`，输出与日志放在 `C:\develop\temp\autotest\<时间戳>/`。
+`autotest.py` 把「环境检测 →（可选）构建 → 打包 → 校验 → 结构断言 →（可选）冒烟」
+串成可重复执行的任务，**不接入 CI**，默认不写仓库的 `bin/`、`lib/`、`dist/`，
+输出与日志放在 `C:\develop\temp\autotest\<时间戳>/`。
 
-```
-# 单元测试（test_pack.py + test_autotest.py）
-python build/autotest.py --preset unit
-
-# 用现有产物出包并体检（不会重新编译）
-python build/autotest.py --preset pack-msvc-x64-release
-
-# 无 arm64 真机时验证 arm64 包结构（临时假库 + manifest/接入文件断言）
-python build/autotest.py --preset arm64-synthetic
-
-# 运行全部前置条件满足的预设
-python build/autotest.py --preset all-ready
-
-# 先调用现有构建脚本（需 VS 开发者环境 / MSYS2），再打包
-python build/autotest.py --preset pack-msvc-x64-release --build
-
-# 只打印命令，不执行
-python build/autotest.py --preset arm64-synthetic --dry-run
+```bash
+python build/autotest.py --preset unit                    # 单元测试
+python build/autotest.py --preset pack-msvc-x64-release   # 用现有产物出包并体检
+python build/autotest.py --preset arm64-synthetic         # 无 arm64 真机时验证包结构
+python build/autotest.py --preset all-ready               # 全部前置条件满足的预设
+python build/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
+python build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
 ```
 
-退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets`
-可查看预设与前置条件；报告写入 `report.json`，完整命令输出写入 `autotest.log`。
+退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets` 可查看
+预设与前置条件；报告写入 `report.json`，完整输出写入 `autotest.log`。
 
-`arm64` 支持范围：接入文件（manifest / props / CMake config）与包结构已就绪，
-libjpeg-turbo 已提供 arm64 预编译库并随包；但**未在 arm64 真机上做编译、打包、
-运行验证**；CEF 上游没有 Windows arm64 预编译包，arm64 包不包含 CEF。
+`arm64` 支持范围：接入文件与包结构已就绪，libjpeg-turbo 提供 arm64 预编译库；
+但未在 arm64 真机上验证；CEF 上游没有 Windows arm64 预编译包，因此 arm64 包不含 CEF。
 
-直接运行 `pack.py` 时产物输出到 `dist/`；通过 `release.py package` 时固定输出到
-`dist/<版本>/`（`dist/` 已在 .gitignore 中）。包名为
-`nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
-内含 `include/duilib/`、
-`lib/`（duilib 5 个库 + Skia 全部库 + WebView2/JPEG 等链接库）、
-`bin/`（运行期 DLL 与 `bin/resources/`）、`licenses/`、`docs/`（顶层使用文档，链接已按包内布局重写），
-以及 `MANIFEST.txt` 与 `SHA256SUMS`。
+### 下游接入
 
-包内还带**下游接入层**，不需要手动拼 include 路径、库列表和宏：
+包内自带下游接入层，不需要手动拼 include 路径、库列表和宏：
 
 - `msvc/`（仅 Windows + MSVC）：`nim_duilib.props`、`nim_duilib.targets`、
-  `nim_duilib.sdk.props` 与 `manifest/`（x64、x86、arm64 三份）。下游 `.vcxproj`
-  末尾导入一次 `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期
-  DLL 复制。
+  `nim_duilib.sdk.props` 与 `manifest/`。下游 `.vcxproj` 末尾导入一次
+  `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期 DLL 复制。
 - `lib/cmake/nim_duilib/`（全平台）：`find_package(nim_duilib CONFIG REQUIRED)`
   得到 `nim_duilib::duilib`，并提供 `nim_duilib_copy_runtime(<target> [RESOURCES])`。
-- 两套机制都会校验架构/配置/工具链；发布包是单架构、单配置的，Debug 与
-  Release 必须各用各的包。MSVC 运行库默认按包元数据强制对齐（可关闭）。
+- 两套机制都会校验架构/配置/工具链；包是单架构、单配置的，Debug 与 Release
+  必须各用各的包。MSVC 运行库默认按包元数据强制对齐（可关闭）。
 
-最小接入示例（完整示例与属性说明见
-[发布与打包](../docs/Release.md#下游接入机制)）：
-
-Visual Studio，写在 `.vcxproj` 末尾、`Microsoft.Cpp.targets` 之前：
-
-```xml
-<PropertyGroup>
-  <NimDuilibDir>C:\SDK\nim_duilib-1.0.2026.1020-win-x64-debug\</NimDuilibDir>
-  <NimDuilibCopyResources>1</NimDuilibCopyResources>
-</PropertyGroup>
-<Import Project="$(NimDuilibDir)msvc\nim_duilib.targets" />
-```
-
-CMake：
-
-```cmake
-list(APPEND CMAKE_PREFIX_PATH "C:/SDK/nim_duilib-1.0.2026.1020-win-x64-debug")
-find_package(nim_duilib CONFIG REQUIRED)
-add_executable(my_app main.cpp)
-target_link_libraries(my_app PRIVATE nim_duilib::duilib)
-nim_duilib_copy_runtime(my_app)
-```
-
+最小接入示例与属性说明见 [docs/Release.md](../docs/Release.md#下游接入机制)。
 几个容易踩的点：
 
 - 包内头文件必须保持 `include/duilib/xxx.h` 层级，下游写法是
   `#include "duilib/duilib.h"`；压平会导致下游全部编译失败。
-- 图片解码实现头文件不打包（`Image/ImageDecoder_*.h`、`Image/Image_*.h`、
-  `APngDecoder.h`、`FrameSequence_gif.h` 等），内部实现头文件
-  `Core/ZipStreamIO.h`、`Core/ControlDropTarget*`、`Core/WindowDropTarget_*`、
-  `Core/SDL_MacOS.h`，以及只被 `.cpp` 包含的 `Core/SDL_Linux.h`、
-  `Core/MessageLoop_*`、`Utils/ProcessSingleton_*`、`Utils/BitmapHelper_*`、
-  `Utils/ApiWrapper_Windows.h`、`Utils/Macros_Windows.h`、`Utils/DiskUtils_Windows.h`、
-  `Utils/DllManager_Windows.h`、`Utils/InlineHook_Windows.h`、
-  `Control/RichEdit*_Windows/_SDL` 均不打包；`third_party` 头文件只转发 WebView2
-  （仅 Windows），`zlib` / `libpng` / `giflib` / `libjpeg-turbo` 的头文件
-  均不再转发（对应静态库仍随包）。
-- `Core/DragWindowFilter_SDL.h` 例外：非 Windows 必带；Windows 仅在
-  `--with-sdl` 时打包（`ControlDragable.h` 在 `DUILIB_BUILD_FOR_SDL` 下包含它）。
-- Windows 包在 `bin/WebView2Loader.dll` 自带动态 loader 的 DLL；
+- 图片解码实现头文件、内部实现头文件不打包；`third_party` 头文件只转发 WebView2，
+  `zlib` / `libpng` / `giflib` / `libjpeg-turbo` 的头文件不再转发（静态库仍随包）。
+- `Core/DragWindowFilter_SDL.h` 非 Windows 必带；Windows 仅在 `--with-sdl` 时打包。
+- Windows 包在 `bin/WebView2Loader.dll` 自带动态 loader；
   `duilib` / `duilib-cximage` / `duilib-png` / `duilib-webp` / `duilib-zlib`
-  任一缺失时打包直接失败，不再只告警。
-- MinGW 构建的库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库），
-  Skia 目录为 `mingw64-gcc.<arch>.release` / `mingw64-llvm.<arch>.release`；
-  MSYS2 构建（`msys2_build.sh`）的 Skia 目录为 `gcc.<arch>.release` /
-  `llvm.<arch>.release`；MSYS2 的 MINGW64 环境使用 msvcrt，其 Skia 目录为
-  `gcc.msvcrt.<arch>.release`（与 UCRT64 的 gcc 产物不能混用）；
-  打包脚本会探测这几种命名，且按目录内是否存在 `.a`
-  区分 MinGW 与同名的 MSVC `llvm.<arch>.release`（只有 `.lib` 的目录会被跳过）；
-  同一变体的多种目录同时存在时优先独立 MinGW 命名，MINGW64 环境下优先 msvcrt，
-  需要强制指定时用 `--skia-lib-dir`；
-  打包脚本按库目录内容自动判断工具链（MSVC/MinGW），清单中链接写法为 `-lxxx`。
-- DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll`
-  （x64/arm64 为 `duilib[_d].dll`，x86 为 `duilib32[_d].dll`）随包，
-  `lib/` 中为对应的导入库；静态模式没有这些文件，打包时自动跳过。
-  包名自动追加 `-dll`，避免与静态包同名覆盖。DLL 模式使用 `/MD`，
-  Skia 也必须同 CRT：Release 用 `llvm.<arch>.release.md`，Debug 用
-  `llvm.<arch>.debug.mdd`，两者都需自行构建；打包脚本按目录名自动选择。
-- `--with-sdl` 时按实际产物收集 SDL3：MSVC 静态 `SDL3-static.lib`；
-  动态导入库 `SDL3.lib` / `libSDL3.dll.a` 并随包 `bin/SDL3.dll`；
-  MinGW 静态 `libSDL3.a`。
-- 库目录只有一套布局：Windows `lib/<arch>/<Release|Debug>/`，
-  Unix `lib/<Release|Debug>/`；配置由 `--config` 选择，不再靠 `_d` 判定。
-- Debug 库带调试 CRT，只能给 Debug 下游使用，混进 Release SDK 会让链接异常。
-- Windows 默认不打包 SDL3，需要时加 `--with-sdl`；CEF（头文件、库与运行时）
-  需要 `--with-cef`：Windows 运行时按 `bin/libcef_win[/_109]/<架构>/` 结构随包，
-  Linux 运行时按扁平 `bin/libcef_linux/` 结构随包（`libcef.so` 不重复进 `lib/`，
-  链接用 `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`）；
-  `--cef-version 109` 仅 Windows。macOS 不自动收集 CEF 运行时，由下游手动部署
-  `.app`（见 [docs/Release.md](../docs/Release.md#macos下游手动配置-cef)）。
-- 归档权限与符号链接：tar 按源权限写条目（保留可执行/setuid），zip 用
-  `S_IFLNK` 条目保存符号链接；`.so` 链接链与示例程序可执行位在解包后保留，
-  符号链接不计入 `SHA256SUMS`。
-- 可复现构建：`SOURCE_DATE_EPOCH` 统一条目时间、gzip 头与 MANIFEST 打包时间；
-  未设置时按源文件/产物 mtime 生成并排序，输入不变时两次打包摘要一致。
+  任一缺失时打包直接失败。
+- MinGW 库为 `libduilib*.a`（静态）或 `libduilib*.dll.a`（导入库）；打包脚本按
+  库目录内容自动判断工具链（MSVC/MinGW），清单中的链接写法为 `-lxxx`。
+- DLL 模式（存在 `msvc/PropertySheets/duilib_dll.flag`）下 `bin/duilib*.dll` 随包，
+  `lib/` 中为导入库；包名自动追加 `-dll`。DLL 模式使用 `/MD`，Skia 必须同 CRT。
+- `--with-sdl` 时按实际产物收集 SDL3；Windows 默认不打包 SDL3。
+- CEF 需要 `--with-cef`：Windows 运行时按 `bin/libcef_win[/_109]/<架构>/` 随包，
+  Linux 按扁平 `bin/libcef_linux/` 随包；`--cef-version 109` 仅 Windows。
+- 归档权限与符号链接：tar 保留源权限；zip 用 `S_IFLNK` 保存符号链接，符号链接
+  不计入 `SHA256SUMS`。
+- 可复现构建：`SOURCE_DATE_EPOCH` 统一条目时间、gzip 头与 MANIFEST 时间。
 
 完整说明见 [docs/Release.md](../docs/Release.md)。
 
+## 排障索引
+
+| 现象 | 处理 |
+| :--- | :--- |
+| `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载，或用 `--vs-version` |
+| `Skia not found` | 先运行 `python build/build.py deps` |
+| `gn/ninja not found` | Windows 使用 VS 自带目录；其他平台安装 `ninja`、`gn` |
+| CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>` 或 `bin/libcef_linux` 含运行时 |
+| Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` |
+| 构建目录异常 | `python build/build.py clean` 后重试 |
+
 ## 维护注意事项
 
+### 添加新的示例程序
 
-### 1. 清理编译缓存
+1. 在 `examples/<名称>/` 下创建 `CMakeLists.txt` 与源码；
+2. 在 `cmake/duilib_root_options.cmake` 的示例列表中登记名称；
+3. 需要 CEF 的示例与 CEF 默认开关保持一致。
 
-编译过程中产生的临时文件可以安全清理：
+### Skia 变体与运行库
 
-```batch
-# 清理 VS 缓存
-rmdir /s /q nim_duilib\build\.vs
+Skia 变体目录由架构、工具链与运行库共同决定（如 `llvm.x64.release`、
+`llvm.x64.debug`、`mingw64-gcc.x64.release`）。切换 `--md` 或工具链时 `deps`
+会生成对应变体，`pack.py` 按目录内容自动识别。
 
-# 清理编译临时文件
-rmdir /s /q nim_duilib\build\build_temp
+### 支持的编译器版本
 
-# 清理 CEF 运行时缓存
-rmdir /s /q nim_duilib\cef_cache
-
-# 清理 WebView2 缓存
-rmdir /s /q nim_duilib\webview2_cache
-```
-
-### 2. 切换运行库模式
-
-**静态运行库（/MT）：**
-```batch
-cd nim_duilib\msvc\PropertySheets
-DuilibUseStaticRuntime.bat
-```
-
-**动态运行库（/MD）：**
-```batch
-cd nim_duilib\msvc\PropertySheets
-DuilibUseDynamicRuntime.bat
-```
-
-**重要：** 切换后必须关闭 VS 并重新打开解决方案。
-
-### 3. 添加新的示例程序
-
-1. 在 `examples\` 目录下创建新的工程
-2. 编辑示例的 `.vcxproj` 文件，添加属性表引用：
-   ```xml
-   <Import Project="$(SolutionDir)\..\msvc\PropertySheets\BinCommonSettings.props" />
-   ```
-3. 将新工程添加到 `examples.sln` 和 `examples_no_cef.sln`
-
-### 4. Skia 编译版本要求
-
-duilib 依赖特定版本的 Skia，编译输出目录必须为：
-```
-skia/out/
-├── llvm.x64.debug/            # MSVC Debug
-├── llvm.x64.release/          # MSVC Release（与 MSYS2 clang 同名，可共存）
-├── llvm.x86.debug/
-├── llvm.x86.release/
-├── mingw64-gcc.x64.release/   # 独立 MinGW GCC 编译
-├── mingw64-llvm.x64.release/  # 独立 MinGW Clang 编译
-├── gcc.x64.release/           # MSYS2 GCC 编译
-└── llvm.x64.release/          # MSYS2 Clang 编译
-```
-说明：
-- MSYS2 的 clang 与 MSVC 都使用 `llvm.<arch>.release` 这个目录名，但库文件名不同
-  （`lib*.a` 与 `*.lib`），可以放在同一目录共存。
-- MSYS2 只产出 release 变体；Debug 构建会回退到同编译器的 release 目录。
-- 找不到匹配目录时，CMake 在配置阶段直接报错，不会进入编译。
-
-### 5. 支持的编译器版本
-
-| 编译器 | 最低版本 | 推荐版本 |
-|--------|----------|----------|
-| Visual Studio | VS2022 (17.0) | VS2022 / VS2026 |
-| LLVM Clang    |      | 16.0+ |
-| MinGW GCC     |      | 13.2+ |
-| MinGW Clang   |      | 16.0+ |
-
-备注：VS2017/VS2019在develop-cpp17分支代码中支持，但主分支不支持。
-
----
-
-## 版本兼容性矩阵
-
-| 功能特性 | MSVC + VS2022/2026 | MinGW GCC | MinGW Clang | Linux GCC/Clang | macOS Clang |
-|----------|-------------------|-----------|-------------|-----------------|-------------|
-| 核心库 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Skia 渲染 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| CEF 浏览器 | ✅ | ❌ | ❌ | ✅ | ✅ |
-| WebView2 | ✅ | ✅ | ✅ | ❌ | ❌ |
-| SDL 输入 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 静态运行库 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 动态运行库 | ✅ | ❌ | ❌ | ❌ | ❌ |
-| C++20 标准 | ✅ (VS2022+) | ✅ | ✅ | ✅ | ✅ |
-| C++17 标准 | ✅ (VS2017/VS2019) | ✅ | ✅ | ✅ | ✅ |
-
-备注：VS2017/VS2019在develop-cpp17分支代码中支持，但主分支不支持。
+MSVC 19.30+（VS 2022）、gcc 10+、clang 12+；MSVC 2017/2019 仅在
+`develop-cpp17` 分支支持，且 VS 2017 不支持 CEF。

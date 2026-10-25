@@ -6,13 +6,14 @@
 
 ## 为什么不用 CPack
 
-本仓库没有根 `CMakeLists.txt`。`duilib/`、`examples/*/`、`duilib/third_party/*/`
-各自是独立的 `project()`，由 `build/msvc_build.bat`、`build/linux_build.sh` 等
-脚本逐个 configure + build。CPack 需要一个顶层项目才能挂载，
-"补 `install()` 规则" 这条路在本仓库走不通。
+本仓库的 SDK 不是普通的安装布局：除了库与头文件，还要带下游接入层
+（`msvc/*.props/.targets`、`lib/cmake/nim_duilib/`）、运行期 DLL、`bin/resources`、
+`LICENSES/` 与 `THIRD-PARTY-NOTICES.md`，并按单架构、单配置命名。这些内容由
+`build/pack.py` 统一收集与校验，比在根工程里维护一套 `install()` 规则更可控。
+根工程因此**不提供** `install()`，SDK 只由 `pack.py` 产出。
 
-此外 Windows 有两条构建路径 —— `build/*.sln`（MSBuild）与 `msvc_build.bat`
-（CMake）。两者的库产物现在统一落在同一套目录：
+构建统一走 `python build/build.py`（旧的 `msvc_build.bat`、`linux_build.sh` 等已废弃）。
+`pack.py` 只读取 `--config` 选中的一个库目录，不再合并候选目录或按优先级猜测。
 
 | 平台 | 库目录 |
 | :--- | :--- |
@@ -20,24 +21,18 @@
 | Linux / macOS / FreeBSD | `lib/<Release\|Debug>/` |
 
 配置只由目录表达，库名不再带 `_d`。约定**同一个 `<arch>|<Config>` 一次只由
-一套体系完整构建**，后构建者覆盖前者（含 `.pdb`）。`pack.py` 只读取
-`--config` 选中的一个目录，不再合并候选目录或按优先级猜测。
+一套体系完整构建**，后构建者覆盖前者（含 `.pdb`）。
 
 ## 快速开始
 
 打包前必须先完成对应配置的编译，脚本不会触发编译：
 
 ```
-# Windows（MSBuild 路径）
+# 推荐（Windows / Unix 通用）
+python build/build.py --config Release
+
+# 也可以先打开 Visual Studio 解决方案（先运行 build.py deps）
 build\duilib.sln      # 配置选 Release 或 Debug，平台按需
-
-# Windows（CMake 路径）
-build\msvc_build.bat
-
-# Linux / macOS / FreeBSD
-./build/linux_build.sh
-./build/macos_build.sh
-./build/freebsd_build.sh
 ```
 
 编译完成后打包：
@@ -59,8 +54,8 @@ python build/pack.py --with-examples
 **DLL 模式**（仅 VS/MSBuild 路径）：在 `msvc/PropertySheets/` 下新建空文件
 `duilib_dll.flag` 后重新构建，duilib 工程会产出 `bin/duilib*.dll`
 （x86 为 `duilib32*.dll`，Debug 带 `_d`）与 `lib/<arch>/<Config>/duilib.lib`
-导入库，其余库仍为静态库；删除该文件即回到静态模式。CMake 构建路径
-（`msvc_build.bat`、`msys2_build.sh`、Unix 脚本）目前只产出静态库。
+导入库，其余库仍为静态库；删除该文件即回到静态模式。`build.py` 构建路径默认
+静态库，加 `--md` 时使用动态运行库（/MD、/MDd）。
 DLL 模式的 duilib 使用 `/MD`，因此 Skia 也必须使用 `/MD` 版本：
 `SkiaSettings.props` 在检测到 `duilib_dll.flag` 时改用
 `skia/out/llvm.<arch>.release.md`（Debug 为 `llvm.<arch>.debug.mdd`），
@@ -106,7 +101,8 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
   LICENSE               主许可证
   include/duilib/       对外头文件（使用 SDL 时含 include/SDL3/）
   lib/                  静态库（duilib 5 个库 + Skia 全部库 + 第三方链接库）
-  licenses/             第三方许可证
+  LICENSES/             第三方许可证
+  THIRD-PARTY-NOTICES.md 第三方组件声明
   docs/                 使用文档（仅顶层；链接已按包内布局重写）
   msvc/                 下游接入：props/targets/manifest（x64/x86/arm64 均随包）
   lib/cmake/nim_duilib/ 下游接入：CMake find_package 配置
@@ -767,7 +763,7 @@ Windows 的 `.lib` 与 Unix 的 `.a` 均按目录白名单收集；Unix 的 `lib
 
 ## 相关文档
 
-* [编译流程与脚本说明](../build/README.md)
+* [编译参考手册](../build/build-reference.md)
 * [快速上手](Getting-Started.md)
 * [示例程序](Examples.md)
 * [CEF 控件](CEF.md)

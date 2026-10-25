@@ -94,9 +94,10 @@ if(MSVC)
     )
     
     if(DUILIB_ENABLE_CEF)
-        #设置libcef.dll延迟加载
+        #设置libcef.dll延迟加载（需要同时链接 delayimp.lib 提供 __delayLoadHelper2）
         target_link_options(${PROJECT_NAME} PRIVATE
             "/DELAYLOAD:libcef.dll"  # 指定延迟加载的DLL文件名
+            "/DEFAULTLIB:delayimp.lib"  # 提供 __delayLoadHelper2
         )
     endif()
 elseif(DUILIB_MINGW)

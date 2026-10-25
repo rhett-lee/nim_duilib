@@ -45,7 +45,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")  # macOS
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
     set(CEF_LIB_DIR "libcef_linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
-    set(CEF_LIB_DIR "libcef_win")
+    if(DUILIB_CEF_VERSION STREQUAL "109")
+        set(CEF_LIB_DIR "libcef_win_109")
+    else()
+        set(CEF_LIB_DIR "libcef_win")
+    endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")  # FreeBSD
     message(WARNING "CEF is not supported on FreeBSD - building without CEF support")
     set(CEF_LIB_DIR "")  # Empty or set to a dummy value
@@ -67,8 +71,16 @@ endif()
 
 # Set include directories
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
+if(DUILIB_SKIA_ROOT)
+    get_filename_component(SKIA_SRC_ROOT_DIR "${DUILIB_SKIA_ROOT}" ABSOLUTE)
+else()
+    get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
+endif()
+if(DUILIB_SDL_ROOT)
+    get_filename_component(SDL_SRC_ROOT_DIR "${DUILIB_SDL_ROOT}" ABSOLUTE)
+else()
+    get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
+endif()
 
 # Always include these directories（收集到列表，等库目标创建后应用到目标上，见 CM-17）
 list(APPEND DUILIB_TARGET_INCLUDE_DIRS

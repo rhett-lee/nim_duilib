@@ -231,379 +231,58 @@ The example programs written using this GUI library, demonstrating the display e
 - clang/clang++ (macOS)
 - clang/clang++ (FreeBSD)
 
-## A. Build Process (Windows Platform)
-### 1. Preparation: Install Required Software
-1. Install python3 (the major version of python must be 3, and it needs to be added to the Path environment variable)    
-(1) First install python3    
-(2) Go to the directory where `python.exe` is located, make a copy of `python.exe` and rename it to `python3.exe`: ensure that `python3.exe` can be accessed from the command line arguments   
-(3) Verify on the command line: `> python3.exe --version` can show the python version number     
-2. Install Git For Windows: version 2.44 (other versions are also acceptable); git needs to be added to the Path environment variable, ensuring `git.exe` can be accessed from the command line arguments    
-3. Install Visual Studio, and during installation pay attention to selecting the correct Windows SDK version    
-   It is recommended to install the Windows 11 SDK, because the CEF module depends on the Windows 11 SDK; the Windows 10 SDK will cause CEF-related modules to fail to compile;    
-   If you do not use the CEF feature, the Windows 10 SDK is also acceptable
-4. Install LLVM: version 21.1.4 Win64 (other versions are also acceptable)    
-(1) Installation directory: `C:\LLVM`    
-(2) Note: If installed in another directory, the installation directory must not contain spaces, otherwise compilation will encounter problems.
+## Build
 
-### 2. Automatic Build Using Script (Recommended)
-This script automatically completes the related source code download and build work.    
-Select a working directory (note: the path must not contain spaces, otherwise the build script will fail), create a script `build.bat`, copy the prepared script below into it, and save the file.    
-* For Visual Studio 2022/2026, the script file content is as follows:    
-```
-REM For Visual Studio 2022/2026
-echo OFF
-set retry_delay=10
+Requirements: CMake 3.24+, Python 3, Git, Ninja; on Windows also Visual Studio 2022+
+(or MSYS2 / MinGW-w64); on Linux/macOS/FreeBSD use gcc/clang.
 
-:retry_clone_duilib
-if not exist ".\nim_duilib\.git" (
-    git clone https://github.com/rhett-lee/nim_duilib
-) else (  
-    git -C ./nim_duilib pull
-)
-if %errorlevel% neq 0 (
-    timeout /t %retry_delay% >nul
-    goto retry_clone_duilib
-)
-if not exist ".\nim_duilib\.git" (
-    echo clone duilib failed!
-    exit /b 1
-)
-.\nim_duilib\build\build_duilib_all_in_one.bat
-```
-By default, the above script builds using the static runtime library (MT and MTd). If you need to use the dynamic runtime library (MD and MDd), append the `/MD` parameter to the last line of the above script, changing it to:    
-`.\nim_duilib\build\build_duilib_all_in_one.bat /MD`    
-Note 1: If nim_duilib is ultimately built as a DLL library, then the dynamic runtime library must be used.    
-Note 2: If nim_duilib uses the dynamic runtime library, then the Skia library must also use the dynamic runtime library; for the build method, please refer to the documentation of the skia_compile repository.    
-    
-* For Visual Studio 2017/2019 (you need to use the develop-cpp17 branch code), the script file content is as follows:    
-```
-REM For Visual Studio 2017/2019
-echo OFF
-set retry_delay=10
+### Quick Start
 
-:retry_clone_duilib
-if not exist ".\nim_duilib\.git" (
-    git clone https://github.com/rhett-lee/nim_duilib
-) else (  
-    git -C ./nim_duilib pull
-)
-if %errorlevel% neq 0 (
-    timeout /t %retry_delay% >nul
-    goto retry_clone_duilib
-)
-if not exist ".\nim_duilib\.git" (
-    echo clone duilib failed!
-    exit /b 1
-)
-
-:retry_pull_duilib
-git -C ./nim_duilib checkout develop-cpp17
-git -C ./nim_duilib pull
-if %errorlevel% neq 0 (
-    timeout /t %retry_delay% >nul
-    goto retry_pull_duilib
-)
-.\nim_duilib\build\build_duilib_all_in_one.bat
-```
-By default, the above script builds using the static runtime library (MT and MTd). If you need to use the dynamic runtime library (MD and MDd), append the `/MD` parameter to the last line of the above script, changing it to:    
-`.\nim_duilib\build\build_duilib_all_in_one.bat /MD`    
-Note 1: If nim_duilib is ultimately built as a DLL library, then the dynamic runtime library must be used.    
-Note 2: If nim_duilib uses the dynamic runtime library, then the Skia library must also use the dynamic runtime library; for the build method, please refer to the documentation of the skia_compile repository.    
-    
-* After the script file is prepared, enter the command line console and run the script: 
-```
-.\build.bat
-```
-The compiled example programs are located in the bin directory.
-
-### 3. Manual Build Process (Windows Platform)
-1. Set the working directory: `D:\develop`    
-2. Obtain the related code    
-(1) `git clone https://github.com/rhett-lee/nim_duilib`      
-(2) `git clone https://github.com/rhett-lee/skia_compile`    
-(3) `git clone https://github.com/google/skia.git`  
-3. Build the Skia source code    
-(1) nim_duilib internally uses Skia as the UI rendering engine, so you need to build skia first; it is recommended to use LLVM for building, which runs smoothly    
-(2) Follow the method in the [compile_skia_on_windows.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_windows.en.md) documentation in the skia_compile directory to build the skia-related .lib files      
-4. If you are using Visual Studio 2017/2019, you need to use the develop-cpp17 branch code, and run the following command in the command line:    
-   `git -C ./nim_duilib checkout develop-cpp17`
-5. Build nim_duilib: enter the `build` directory, open `examples.sln` (if you are using Visual Studio 2017, you need to open `examples_vs2017.sln`), then you can build; the compiled example programs are located in the bin directory.
-6. Notes on the CEF module:    
-(1) The CEF module depends on the Windows 11 SDK; if a lower version SDK is used, there will be compilation errors.    
-(2) The CEF module only supports Visual Studio 2019/2022/2026, and does not support Visual Studio 2017.    
-(3) If the CEF module is not needed, it can be disabled by editing the `msvc\PropertySheets\CEFSettings.props` file and changing the value of `LibCefEnabled` to `0`.    
-(4) After disabling the CEF module, you can use the `duilib_no_cef.sln` or `examples_no_cef.sln` project to build, thereby reducing the compilation of libCEF code.    
-7. Notes on the WebView2 module:    
-(1) If the WebView2 module is not needed, it can be disabled by editing the `msvc\PropertySheets\WebView2Settings.props` file and changing the value of `WebView2Enabled` to `0`.    
-8. The nim_duilib library uses the static runtime library (/MT and /MTd) by default, and also supports the dynamic runtime library (/MD and /MDd). The switching method is as follows:    
-(1) The runtime library used when building the Skia library must be the same as the one used by the nim_duilib library. For the Skia library's build method, please refer to the documentation of the skia_compile repository.    
-(2) To switch the nim_duilib library to use the dynamic runtime library, run the following script:    
-    `.\nim_duilib\msvc\PropertySheets\DuilibUseDynamicRuntime.bat`    
-(3) To switch the nim_duilib library to use the static runtime library, run the following script:    
-    `.\nim_duilib\msvc\PropertySheets\DuilibUseStaticRuntime.bat`    
-
-## B. Build Process (Linux Platform)
-### 1. Preparation: Install Required Software
-For different operating system platforms, you can install the required software according to the following list.
-| Operating System Platform | Desktop Type | Modules and Install Commands to Install (Required) | 
-| :--- | :--- | :--- |
-|OpenEuler |UKUI/DDE(X11) |`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel`| 
-|OpenKylin(openKylin) | Wayland |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|UbuntuKylin(Ubuntu Kylin) | X11 |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-devlibxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|NeoKylin | X11 |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|UnionTech UOS | X11 |`sudo apt install -y gcc g++ gdb make git cmake python3 ninja-build wget unzip libfontconfig1-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|Ubuntu |GNOME(Wayland)|`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip bzip2 libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|Debian |GNOME(Wayland)|`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|Fedora |GNOME(Wayland)|`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
-|OpenSuse |KDE(X11) |`sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
-
-### 2. Automatic Build Using Script (Recommended)
-This script automatically completes the related source code download and build work.    
-Select a working directory (note: the path must not contain spaces, otherwise the build script will fail), create a script `build.sh`, copy the prepared script below into it, and save the file.    
-Then, in the console, add executable permission to the script file, and finally run the script: 
-```
-chmod +x build.sh
-./build.sh
+```bash
+python build/build.py                 # Release: prepare Skia/SDL/CEF on first run, build lib + examples
+python build/build.py --config Debug  # Debug (separate build tree)
+python build/build.py doctor          # environment check
+python build/build.py pack            # build an SDK package
 ```
 
-The script file content is as follows:    
-```
-#!/bin/bash
+The build tree is `out/<arch>/<Config>`; libraries go to `lib/<arch>/<Config>`, examples
+and runtime assets go to `bin/`. One invocation builds one configuration; run it twice
+for Debug + Release.
 
-# Retry clone nim_duilib
-while true; do
-    if [ ! -d "./nim_duilib/.git" ]; then
-        git clone https://github.com/rhett-lee/nim_duilib
-    else
-        git -C ./nim_duilib pull
-    fi
-    if [ $? -ne 0 ]; then
-        sleep 10
-        continue
-    fi
-    break
-done
+### Which Way Should I Use?
 
-chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
-./nim_duilib/build/build_duilib_all_in_one.sh
-```
-The compiled example programs are located in the bin directory.    
-Note: For the UOS system, you need to install the required development environment first, then install it; you can refer to the documentation: [compile_skia_on_uos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.en.md).
+| Scenario | Command |
+| :--- | :--- |
+| Just get it running | `python build/build.py` |
+| Use Visual Studio | `python build/build.py deps`, then open `build/examples.sln` |
+| Library only | `python build/build.py build --target duilib` |
+| Build a release package | `python build/build.py pack --with-cef` |
+| Debug build | `python build/build.py --config Debug` |
+| Full options | [build/build-reference.en.md](build/build-reference.en.md) |
 
-### 3. Manual Build Process (Linux Platform)
-1. Set the working directory: `~/develop`    
-2. Obtain the related code    
-(1) `git clone https://github.com/rhett-lee/nim_duilib`      
-(2) `git clone https://github.com/rhett-lee/skia_compile`    
-(3) `git clone https://github.com/google/skia.git`  
-(4) `git clone https://github.com/libsdl-org/SDL.git`    
-3. Build the Skia library    
+On Windows you can also run `build\build.bat` with the same arguments. The legacy
+per-platform scripts (`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...)
+are archived under `build/legacy/`, no longer part of the build, and will be removed
+after validation on all platforms.
 
-| Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
-| :--- | :--- |:--- |
-|OpenEuler |[compile_skia_on_openeuler.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openeuler.en.md)|[compile_skia_on_openeuler.en.md](../skia_compile/compile_skia_on_openeuler.en.md)|
-|OpenKylin(openKylin) |[compile_skia_on_openkylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_openkylin.en.md)|[compile_skia_on_openkylin.en.md](../skia_compile/compile_skia_on_openkylin.en.md)|
-|UbuntuKylin(Ubuntu Kylin) |[compile_skia_on_ubuntukylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntukylin.en.md)  |[compile_skia_on_ubuntukylin.en.md](../skia_compile/compile_skia_on_ubuntukylin.en.md)|
-|NeoKylin |[compile_skia_on_neokylin.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_neokylin.en.md)  |[compile_skia_on_neokylin.en.md](../skia_compile/compile_skia_on_neokylin.en.md) |
-|UnionTech UOS |[compile_skia_on_uos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_uos.en.md)|[compile_skia_on_uos.en.md](../skia_compile/compile_skia_on_uos.en.md)|
-|Ubuntu |[compile_skia_on_ubuntu.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_ubuntu.en.md) | [compile_skia_on_ubuntu.en.md](../skia_compile/compile_skia_on_ubuntu.en.md) |
-|Debian |[compile_skia_on_debian.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_debian.en.md)  |[compile_skia_on_debian.en.md](../skia_compile/compile_skia_on_debian.en.md) |
-|Fedora |[compile_skia_on_fedora.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_fedora.en.md)  |[compile_skia_on_fedora.en.md](../skia_compile/compile_skia_on_fedora.en.md)|
-|OpenSuse |[compile_skia_on_opensuse.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_opensuse.en.md) | [compile_skia_on_opensuse.en.md](../skia_compile/compile_skia_on_opensuse.en.md) |
+### Dependencies and Platform Differences
 
-    Note: When compiling the skia source code, you should use LLVM for compilation, so that the program runs more smoothly.
-4. Build the SDL library 
-```
-#!/bin/bash
-cd ~/develop
-cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DSDL_X11_XSCRNSAVER=OFF -DSDL_X11_XTEST=OFF -DCMAKE_BUILD_TYPE=Release
-cmake --build ./SDL.build
-cmake --install ./SDL.build
-```
-5. Build nim_duilib
-```
-#!/bin/bash
-cd ~/develop/nim_duilib/
-chmod +x linux_build.sh
-./linux_build.sh
-```
-After the build is complete, the executable file is generated in the bin directory.    
-If you want to support CEF, you can refer to the relevant documentation [docs/CEF.en.md](docs/CEF.en.md).
+- **Skia**: required; built by `deps` from the pinned manifest
+  (`cmake/third_party_versions.json`). Windows uses Visual Studio's bundled clang/ninja;
+  Linux/macOS/FreeBSD use the system LLVM.
+- **SDL3**: off by default on Windows (enable with `--sdl`); forced on elsewhere.
+- **CEF**: on by default on Windows/Linux/macOS; not supported on FreeBSD or MinGW.
+  Runtime files go to `bin/libcef_win/<arch>`, `bin/libcef_win_109/<arch>` or
+  `bin/libcef_linux`.
+- **WebView2**: Windows only.
+- Per-distribution Linux packages (fonts, GL, X11, ibus, ...) are listed in
+  [build-reference.en.md](build/build-reference.en.md); macOS needs
+  `brew install cmake ninja` plus `gn` built from source; FreeBSD uses
+  `sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2`.
 
-## C. Build Process (macOS Platform)
-### 1. Preparation: Install Required Software
-After the system is installed, the work to be done is:    
-#### Install Xcode Command Line Tools
-```
-xcode-select --install
-```
-Verify the installation:
-```
-clang++ --version
-```
-#### Install Homebrew
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-If it fails, you can look for other sources to install.    
-Update Homebrew:    
-```
-brew update
-```
-#### Software Already Included in the System (No Need to Install)
-`git make unzip python3`
-#### Install cmake
-```
-brew install cmake
-```
-#### Install ninja
-```
-brew install ninja
-```
-#### Install gn (gn needs to be compiled from source)
-```
-mkdir ~/develop
-cd ~/develop
-git clone https://github.com/timniederhausen/gn
-cd gn
-python3 build/gen.py
-ninja -C out
-sudo cp out/gn /usr/local/bin/
-gn --version
-```
-
-### 2. Automatic Build Using Script (Recommended)
-This script automatically completes the related source code download and build work.    
-Select a working directory (note: the path must not contain spaces, otherwise the build script will fail), create a script `build.sh`, copy the prepared script below into it, and save the file.    
-Then, in the console, add executable permission to the script file, and finally run the script: 
-```
-chmod +x build.sh
-./build.sh
-```
-
-The script file content is as follows:    
-```
-#!/bin/bash
-
-# Retry clone nim_duilib
-while true; do
-    if [ ! -d "./nim_duilib/.git" ]; then
-        git clone https://github.com/rhett-lee/nim_duilib
-    else
-        git -C ./nim_duilib pull
-    fi
-    if [ $? -ne 0 ]; then
-        sleep 10
-        continue
-    fi
-    break
-done
-
-chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
-./nim_duilib/build/build_duilib_all_in_one.sh
-```
-The compiled example programs are located in the bin directory.    
-
-### 3. Manual Build Process (macOS Platform)
-1. Set the working directory: `~/develop`    
-2. Obtain the related code    
-(1) `git clone https://github.com/rhett-lee/nim_duilib`      
-(2) `git clone https://github.com/rhett-lee/skia_compile`    
-(3) `git clone https://github.com/google/skia.git`  
-(4) `git clone https://github.com/libsdl-org/SDL.git`  
-3. Build the Skia library    
-
-| Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
-| :--- | :--- |:--- |
-|macOS |[compile_skia_on_macos.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_macos.en.md) | [compile_skia_on_macos.en.md](../skia_compile/compile_skia_on_macos.en.md) |
-
-    Note: When compiling the skia source code, you should use LLVM for compilation, so that the program runs more smoothly.
-4. Build the SDL library 
-```
-#!/bin/bash
-cd ~/develop
-cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DSDL_X11_XSCRNSAVER=OFF -DSDL_X11_XTEST=OFF -DCMAKE_BUILD_TYPE=Release
-cmake --build ./SDL.build
-cmake --install ./SDL.build
-```
-5. Build nim_duilib
-```
-#!/bin/bash
-cd ~/develop/nim_duilib/
-chmod +x macos_build.sh
-./macos_build.sh
-```
-After the build is complete, the executable file is generated in the bin directory.    
-If you want to support CEF, you can refer to the relevant documentation [docs/CEF.en.md](docs/CEF.en.md).
-
-## D. Build Process (FreeBSD Platform)
-### 1. Preparation: Install Required Software
-```
-sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2
-```
-### 2. Automatic Build Using Script (Recommended)
-This script automatically completes the related source code download and build work.    
-Select a working directory (note: the path must not contain spaces, otherwise the build script will fail), create a script `build.sh`, copy the prepared script below into it, and save the file.    
-Then, in the console, add executable permission to the script file, and finally run the script: 
-```
-chmod +x build.sh
-./build.sh
-```
-
-The script file content is as follows:    
-```
-#!/usr/bin/env bash
-
-# Retry clone nim_duilib
-while true; do
-    if [ ! -d "./nim_duilib/.git" ]; then
-        git clone https://github.com/rhett-lee/nim_duilib
-    else
-        git -C ./nim_duilib pull
-    fi
-    if [ $? -ne 0 ]; then
-        sleep 10
-        continue
-    fi
-    break
-done
-
-chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
-./nim_duilib/build/build_duilib_all_in_one.sh
-```
-The compiled example programs are located in the bin directory.
-
-Note: The FreeBSD platform does not support CEF (Chromium Embedded Framework).
-### 3. Manual Build Process (FreeBSD Platform)
-1. Set the working directory: `~/develop`    
-2. Obtain the related code    
-(1) `git clone https://github.com/rhett-lee/nim_duilib`      
-(2) `git clone https://github.com/rhett-lee/skia_compile`    
-(3) `git clone https://github.com/google/skia.git`  
-(4) `git clone https://github.com/libsdl-org/SDL.git`  
-3. Build the Skia library    
-
-| Operating System Platform | Reference Documentation (Web Link) | Reference Documentation (Local File) |
-| :--- | :--- |:--- |
-|FreeBSD |[compile_skia_on_freebsd.en.md](https://github.com/rhett-lee/skia_compile/blob/main/compile_skia_on_freebsd.en.md) | [compile_skia_on_freebsd.en.md](../skia_compile/compile_skia_on_freebsd.en.md) |
-
-    Note: When compiling the skia source code, only LLVM compilation is supported.
-4. Build the SDL library 
-```
-#!/usr/bin/env bash
-cd ~/develop
-cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DSDL_X11_XSCRNSAVER=OFF -DSDL_X11_XTEST=OFF -DCMAKE_BUILD_TYPE=Release
-cmake --build ./SDL.build
-cmake --install ./SDL.build
-```
-5. Build nim_duilib
-```
-#!/usr/bin/env bash
-cd ~/develop/nim_duilib/
-chmod +x ./build/freebsd_build.sh
-./build/freebsd_build.sh
-```
-After the build is complete, the executable file is generated in the bin directory.    
+The static runtime (/MT, /MTd) is the default; add `--md` for the dynamic runtime
+(/MD, /MDd) and build Skia with the same runtime. SDKs are produced only by `pack.py`
+and include `LICENSES/` and `THIRD-PARTY-NOTICES.md`.
 
 ## Development Plan
  - Continue to enrich the controls of the GUI library and improve its functionality
@@ -701,7 +380,8 @@ nim_duilib/.claude/
  - [Node Names of Each Control in XML Files](docs/XmlNode.en.md)
  - [Responding to Control Events Directly in XML Files](docs/XmlEvents.en.md)
  - [CEF Control](docs/CEF.en.md)
- - [Project Build Documentation and Scripts](build/build.md)
+ - [Build Reference](build/build-reference.en.md)
+ - [build directory: prerequisites and packaging](build/README.en.md)
  - [Reference Documentation](docs/Summary.en.md)
 
 ## Related Links

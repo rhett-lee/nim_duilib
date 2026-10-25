@@ -287,7 +287,7 @@ documents and are excluded:
 - `感谢名单.txt`: project credits.
 
 `Summary.md` / `Summary.en.md` is the in-package documentation index. Links to
-other directories (`../README.md`, `../build/build.md`, `misc/`, etc.) and
+other directories (`../README.md`, `../build/build-reference.md`, `build/README.md`, `misc/`, etc.) and
 entries for documents not shipped in the package were removed.
 
 The docs contain many links into the source tree, so they are rewritten at pack

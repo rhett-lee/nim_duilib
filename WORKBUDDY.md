@@ -7,7 +7,7 @@
 
 | 事项 | 位置 / 命令 |
 |------|-------------|
-| 首次拉取源码后的依赖库预编译 | `build\build_duilib_all_in_one.bat` → `build\msvc_build.bat`（Windows） |
+| 首次拉取源码后的依赖库预编译 | `python build/build.py deps`（Windows/Unix 通用） |
 | WorkBuddy 专用 Skill | `.workbuddy\skills\nim-duilib\`（项目级）、`~/.workbuddy/skills/nim-duilib\`（用户级） |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
 | 改文档后自检 | `python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo .` |
@@ -20,54 +20,26 @@
 新克隆的仓库里**没有**编译好的依赖库（Skia、zlib、libpng、cximage、libwebp 等），直接开工程会报
 找不到库。**只需要在第一次（以及升级 Skia / 切换架构时）做一次**。
 
-### 2.1 Windows：两步
-
-```bat
-cd /d <仓库根>\build
-
-REM 第 1 步：拉取依赖库源码并编译（主要是 Skia）
-build_duilib_all_in_one.bat
-
-REM 第 2 步：用 cmake/MSVC 编译依赖库 + duilib + 各示例
-msvc_build.bat
-```
-
-**第 1 步 `build_duilib_all_in_one.bat`**（需要联网）：
-- 前置软件：`git`、`python3`、`C:\LLVM`（clang/clang++，Skia 用它编译）、Visual Studio 2022 或更高。
-  缺任一项脚本会直接退出并提示。
-- 依次 `git clone/pull`：`nim_duilib`、`skia_compile`（补丁与工具）、`google/skia`。
-- 编译 Skia 四种配置：`llvm.x64.debug`、`llvm.x64.release`、`llvm.x86.debug`、`llvm.x86.release`。
-- 最后用 `devenv` 编译 `build\examples.sln`（Debug|x64）。
-- 可选参数：`/MD` 切到动态运行时库（默认 `/MT` 静态）。运行库选择会影响后续所有工程，**中途不要混用**。
-- 网络失败会自动重试（每 10 秒一次），不用人工干预。
-
-**第 2 步 `msvc_build.bat`**（仅 Windows）：
-- 前置：`cmake`（最低 v3.21；用 VS2026 则需 v4.2）、VS2022+。Skia 必须已编译好——
-  脚本不再自行检查，由 CMake 在配置阶段解析目录，缺失时直接报错并列出尝试过的路径。
-- 依次 cmake 构建：第三方库 `zlib,libpng,cximage,libwebp,libcef\libcef_win` → `duilib` →
-  `examples` 下的各示例程序。
-- 默认 Release；架构取 VS 目标架构（缺省 x64）。Skia 子目录由 CMake 自动推导
-  （MSVC 为 `llvm.<arch>.<构建类型>`，Debug 必须匹配 debug 变体），脚本无需设置
-  `DUILIB_SKIA_LIB_SUBPATH`。
-
-### 2.2 非 Windows：一步
+### 2.1 统一入口（Windows / Unix 通用）
 
 ```bash
-cd <仓库根>/build
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh        # MSYS2 下可加 -sdl 启用 SDL
+python build/build.py                 # Release：准备依赖 + 编译库与示例
+python build/build.py --config Debug  # Debug
+python build/build.py deps            # 只准备 Skia/SDL3/CEF
+python build/build.py doctor          # 环境自检
 ```
 
-脚本按 `uname` 自动分流：Linux → `linux_build.sh`，macOS → `macos_build.sh`，
-FreeBSD → `freebsd_build.sh`，MSYS2(Windows) → `msys2_build.sh`；同样会先下载并编译 Skia。
-**没有** `msvc_build.bat` 对应的第二步，非 Windows 不需要单独跑。
+- 前置软件：`git`、Python 3、CMake 3.24+、Ninja；Windows 另需 Visual Studio 2022+
+  （Skia 使用 VS 自带 clang/ninja），Linux/macOS/FreeBSD 使用系统 LLVM。
+- `deps` 按 `cmake/third_party_versions.json` 锁定版本，自动下载/编译 Skia 与 CEF
+  运行时；SDL3 在 Windows 默认关闭（`--sdl` 启用），其他平台自动构建。
+- 构建目录为 `out/<arch>/<Config>`；库在 `lib/<arch>/<Config>`，示例在 `bin/`。
+- 运行库默认 `/MT`；`--md` 切换 `/MD`。Windows 旧脚本入口已废弃。
 
-MSYS2 额外前置（详见 `build/README.md` 第 7 节）：
-- `msys2_build.sh`：`pacman -S --needed $MINGW_PACKAGE_PREFIX-gcc $MINGW_PACKAGE_PREFIX-cmake $MINGW_PACKAGE_PREFIX-ninja`
-  （CLANG64 把 `gcc` 换成 `clang`）。
-- 一键脚本还需 `git unzip curl python $MINGW_PACKAGE_PREFIX-gn`。
-- 任一命令失败即退出（`set -e`）；不再依赖 `bc`，`--fresh` 需 CMake 3.24+；
-  Skia 目录为 `gcc.<arch>.release` / `llvm.<arch>.release`（仅 release 变体）。
+### 2.2 Visual Studio 解决方案
+
+先运行 `python build/build.py deps`，再打开 `build/examples.sln`（或 `duilib.sln`）。
+解决方案使用 `build/build_temp` 与 `build/.vs`，与新入口的 `out/` 互不影响。
 
 ### 2.3 产物与目录
 
@@ -149,8 +121,8 @@ python .workbuddy/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --
    `CMakeLists.txt` 里的 `project(<name>)` 改成工程目录名。
 3. 补主线程与入口（`MainThread` 继承 `ui::FrameworkThread`，`TestApplication` + `main_windows.cpp`，
    可参考 `examples/hello_button/`）。
-4. 把新示例加入构建：`examples.sln` 需**手工**添加工程；若希望 `build\msvc_build.bat` 一并编译，
-   把工程名加进脚本里的 `DUILIB_PROGRAMS` 列表。
+4. 把新示例加入构建：在 `cmake/duilib_root_options.cmake` 的示例列表中登记名称；
+   `examples.sln` 需**手工**添加工程。
 
 `CMakeLists.txt` **无需**再给 `DUILIB_SKIA_LIB_SUBPATH` 设默认值：该默认值已由
 `duilib_common.cmake` 内部计算（Windows 为 `llvm.<CPU_ARCH>.<DUILIB_BUILD_TYPE>`，其他平台为空、
@@ -254,7 +226,7 @@ cmake --build build/build_temp/hello_button --config Release
 
 **仓库文档**：`docs/Summary.md`（索引）、`Getting-Started.md`（入门）、`Control.md`、`Box.md`、
 `Global.md`、`Window.md`、`Theme.md`、`ThemeColor.md`、`Events.md`、`XmlEvents.md`、`XmlNode.md`、
-`Examples.md`、`build/build.md`（构建脚本对照表）、`docs/CEF.md`（CEF 模块）。
+`Examples.md`、`build/build-reference.md`（构建参考手册）、`docs/CEF.md`（CEF 模块）。
 
 **权威源（写不确定的名字前先查这里）**
 

@@ -20,7 +20,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         string(TOLOWER "${CMAKE_GENERATOR_PLATFORM}" _duilib_platform)
     endif()
 
-    if(_duilib_platform MATCHES "arm64")
+    if(DUILIB_TARGET_ARCH STREQUAL "x86" OR DUILIB_TARGET_ARCH STREQUAL "x64"
+       OR DUILIB_TARGET_ARCH STREQUAL "arm64")
+        set(_duilib_arch "${DUILIB_TARGET_ARCH}")
+    elseif(_duilib_platform MATCHES "arm64")
         set(_duilib_arch "arm64")
     elseif(_duilib_platform MATCHES "win32")
         set(_duilib_arch "x86")

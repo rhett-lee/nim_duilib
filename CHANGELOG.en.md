@@ -8,6 +8,30 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ## [Unreleased]
 
+### Added
+
+- Root CMake project and unified entry `python build/build.py` (or `build\build.bat`):
+  `build` (default), `deps`, `test`, `pack`, `doctor`, `clean`; build trees live in
+  `out/<arch>/<Config>`.
+- Automatic dependency preparation driven by `cmake/third_party_versions.json`
+  (Skia, SDL3, CEF), with download caches, sha256 checks, resume and a process lock;
+  existing artifacts are adopted through stamp files.
+- Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
+  and `README.en.md` now focus on prerequisites and packaging.
+- `build/test_build.py`: standard-library unit tests for the build entry and i18n.
+- Compliance: `THIRD-PARTY-NOTICES.md`; SDK license directory renamed to `LICENSES/`.
+
+### Changed
+
+- One invocation builds one `--config` (Debug/Release); invoke twice for both.
+  `build/autotest.py` now builds through `build.py`.
+- CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`;
+  compilation uses the tracked headers and import libraries.
+
+### Removed
+
+- `build/build.md`; its content moved into `build/build-reference.md`.
+
 ## [1.0.2026.1023] - 2026-10-23
 
 ### Added

@@ -448,15 +448,13 @@ cmake -S .. -B ./build_debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build ./build_debug
 ```
 
-Or use the build scripts directly:
+For everyday builds use the unified entry (it prepares Skia/SDL3/CEF automatically):
 
 ```bash
-DUILIB_BUILD_TYPE=Debug ./build/linux_build.sh
+python build/build.py --config Debug
 ```
 
-The scripts' temporary build directories are split by configuration under
-`build_temp/<compiler>_build/<Debug|Release>/`, so Debug and Release never overwrite
-each other. Skia still uses only the release variant on Unix (D-3).
+The build tree is always `out/<arch>/<Config>`; see `build/build-reference.en.md`.
 
 ---
 

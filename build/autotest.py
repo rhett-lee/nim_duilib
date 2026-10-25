@@ -205,15 +205,11 @@ def _build_command(preset, args):
     kind = preset.get('build')
     if not kind:
         return None, '该预设不支持自动构建'
-    if kind == 'msvc':
-        if not _which('cl'):
-            return None, '未检测到 cl.exe；请在 VS 开发者命令提示符中运行'
-        return ['cmd', '/c', os.path.join(BUILD_DIR, 'msvc_build.bat')], ''
-    if kind == 'mingw':
-        if not _which('bash'):
-            return None, '未检测到 bash；请使用 MSYS2 环境运行'
-        return ['bash', os.path.join('build', 'msys2_build.sh')], ''
-    return None, '未知构建类型：%s' % kind
+    command = [sys.executable, os.path.join(BUILD_DIR, 'build.py'),
+               '--config', preset.get('config', 'Release')]
+    if preset.get('arch'):
+        command += ['--arch', preset['arch']]
+    return command, ''
 
 
 def _run_step(name, cmd, log_fp, timeout, dry_run=False, env=None):

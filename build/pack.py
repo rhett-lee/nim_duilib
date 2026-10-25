@@ -6,11 +6,9 @@
 
 设计约束（改动前务必先读）：
 
-1. 本仓库**没有根 CMakeLists.txt**，25 个目录各自独立 project()，靠
-   build/msvc_build.bat、build/linux_build.sh 等脚本逐个 configure + build。
-   CPack 需要一个顶层项目才能挂载，因此这里不走 CPack，改用本脚本。
-   不要试图"补 install() 规则"来替代本脚本 —— 没有任何单一 CMake 项目
-   能覆盖全部产物。
+1. 根 CMake 工程存在但没有 install()：SDK 还需带上游接入层、运行期 DLL、
+   资源与合规文件，并按单架构、单配置命名，统一由本脚本收集与校验。
+   因此这里不走 CPack，也不要试图"补 install() 规则"来替代本脚本。
 
 2. 库目录只有一套布局（CM-5 D-2 方案 B），配置由目录表达，不再靠 `_d`
    后缀或多目录合并猜测：
@@ -1008,7 +1006,7 @@ def collect_sdl(collector, sdl_dir, config, with_sdl):
         if os.path.isdir(os.path.join(alt_root, 'SDL3')):
             lic_root = alt_root
     count += _collect_tree(collector, os.path.join(lic_root, 'SDL3'),
-                           'licenses/SDL3')
+                           'LICENSES/SDL3')
     return count
 
 
@@ -1222,19 +1220,26 @@ def collect_licenses(collector, skia_lib_dir):
         return 0
     count = 0
     for abs_path, rel in iter_files(LICENSES_DIR):
-        if collector.add('licenses/' + rel, abs_path):
+        if collector.add('LICENSES/' + rel, abs_path):
             count += 1
     # 仓库根的 LICENSE 也放进包
     root_license = os.path.join(REPO_ROOT, 'LICENSE')
     if os.path.isfile(root_license):
         collector.add('LICENSE', root_license)
         count += 1
+    # 第三方声明汇总（合规要求：包内必须带 THIRD-PARTY-NOTICES.md）
+    notices = os.path.join(REPO_ROOT, 'THIRD-PARTY-NOTICES.md')
+    if os.path.isfile(notices):
+        if collector.add('THIRD-PARTY-NOTICES.md', notices):
+            count += 1
+    else:
+        collector.warn('缺少第三方声明：%s' % notices)
     # Skia 的许可证不在本仓库内（Skia 源码树同级）；仓库 licenses/ 已有时不重复
     skia_root = os.path.dirname(os.path.dirname(skia_lib_dir))
     skia_license = os.path.join(skia_root, 'LICENSE')
-    has_skia_license = any(r.startswith('licenses/skia') for r, _ in collector.items)
+    has_skia_license = any(r.startswith('LICENSES/skia') for r, _ in collector.items)
     if not has_skia_license and os.path.isfile(skia_license):
-        if collector.add('licenses/skia/LICENSE', skia_license):
+        if collector.add('LICENSES/skia/LICENSE', skia_license):
             count += 1
     elif not has_skia_license:
         collector.warn('缺少 Skia 许可证：%s' % skia_license)
@@ -1759,7 +1764,8 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         else:
             lines.append('  %s/  CEF 运行时（libcef.dll、*.pak、icudtl.dat、'
                          'locales/）' % cef_runtime_rel)
-    lines.append('  licenses/             第三方许可证')
+    lines.append('  LICENSES/             第三方许可证')
+    lines.append('  THIRD-PARTY-NOTICES.md 第三方组件声明')
     lines.append('  docs/                 使用文档（顶层；清单见“文档”章节）')
     lines.append('  msvc/                 VS 接入：props/targets/manifest（仅 Windows+MSVC）')
     lines.append('  lib/cmake/nim_duilib/ CMake 接入：find_package(nim_duilib)')
@@ -2285,9 +2291,9 @@ def verify_package(path):
                     errors.append('…（已发现 %d 处不匹配，不再逐个列出）' % mismatches)
                     break
 
-        # 文档相对链接：只检查 SDK 文档（跳过 licenses/ 下逐字复制的上游文本）
+        # 文档相对链接：只检查 SDK 文档（跳过 LICENSES/ 下逐字复制的上游文本）
         for name in [item for item in files if item.endswith('.md')
-                     and not item.startswith(root + 'licenses/')]:
+                     and not item.startswith(root + 'LICENSES/')]:
             text = read(name).decode('utf-8', 'replace')
             base = os.path.dirname(name)
             for target in re.findall(r'\[[^\]]*\]\(([^)\s]+)\)', text):

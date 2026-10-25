@@ -18,27 +18,19 @@
 
 nim_duilib 依赖 Skia 渲染引擎和若干第三方库（zlib、libpng、cximage、libwebp 等），新克隆的仓库里没有编译好的库，直接开工程会报错。**只需要做一次。**
 
-### Windows（两步）
-
-```bat
-cd /d <仓库根>\build
-
-REM 第 1 步：拉取 Skia 源码并编译（需要联网，耗时较长）
-build_duilib_all_in_one.bat
-
-REM 第 2 步：用 cmake/MSVC 编译依赖库 + duilib + 示例
-msvc_build.bat
-```
-
-### Linux / macOS / FreeBSD（一步）
+### 全平台通用（需要 Python 3）
 
 ```bash
-cd <仓库根>/build
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh
+cd <仓库根>
+
+# 第 1 步：拉取依赖源码并编译（需要联网，耗时较长）
+python build/build.py deps
+
+# 第 2 步：编译依赖库 + duilib + 示例（默认 Release）
+python build/build.py
 ```
 
-脚本会按平台自动分流。完成后，`lib/` 目录下就有编译好的库了。
+Windows 也可以直接运行 `build\build.bat`（参数相同）。依赖版本固定在 `cmake/third_party_versions.json`；构建树在 `out/<arch>/<Config>/`，产物在 `lib/` 与 `bin/`。完成后 `lib/` 目录下就有编译好的库了。详细参数见 `build/build-reference.md`。
 
 > **小贴士**：Skia 源码在仓库外且体积巨大，日常开发不需要全量链接构建。后面会讲怎么用 `/Zs` 语法检查模式快速验证代码，不生成 obj、不链接，几秒就能确认 API 用法对不对。
 
@@ -332,7 +324,7 @@ std::wstring path = GetCurrentModuleDirectory() + L"\\resources\\";
 
 ```cmake
 # Skia 库子目录名（仅 Windows 平台）
-# 规则与 build/msvc_build.bat 保持一致：llvm.<CPU_ARCH>.release
+# 规则与 duilib_common.cmake 的自动拼接保持一致：llvm.<CPU_ARCH>.release
 # 必须放在 include(duilib_common.cmake) 之前！
 if(WIN32 AND NOT DEFINED DUILIB_SKIA_LIB_SUBPATH)
     set(CPU_ARCH "x64")

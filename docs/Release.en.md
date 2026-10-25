@@ -8,14 +8,22 @@ already been built; it does not trigger any compilation**.
 
 ## Why not CPack
 
-This repository has no root `CMakeLists.txt`. `duilib/`, `examples/*/` and
-`duilib/third_party/*/` are each independent `project()` definitions,
-configured and built one by one by scripts such as `build/msvc_build.bat`,
-`build/linux_build.sh` and so on. CPack must be attached to a top-level
-project, so "adding `install()` rules" is not a viable path here.
+The SDK is not a plain install layout: besides libraries and headers it must
+carry the downstream integration layers (`msvc/*.props/.targets`,
+`lib/cmake/nim_duilib/`), runtime DLLs, `bin/resources`, `LICENSES/` and
+`THIRD-PARTY-NOTICES.md`, all named per single arch and single configuration.
+`build/pack.py` collects and validates these in one place, which is easier to
+control than maintaining a set of `install()` rules in the root project. The
+root project therefore provides **no** `install()`; the SDK is produced only by
+`pack.py`.
 
-Moreover Windows has two build paths — `build/*.sln` (MSBuild) and
-`msvc_build.bat` (CMake). Their library artifacts now share one layout:
+Builds go through `python build/build.py` (the old `msvc_build.bat`,
+`linux_build.sh` and friends are gone). `pack.py` reads only the single
+library directory selected by `--config`; it no longer merges candidate
+directories or guesses by priority.
+
+The library layout is shared by both build systems — `build/*.sln` (MSBuild)
+and `build.py` (CMake):
 
 | Platform | Library directory |
 | :--- | :--- |
@@ -35,16 +43,11 @@ You must complete a build of the matching configuration before packaging; the
 script does not trigger compilation:
 
 ```
-# Windows (MSBuild path)
+# Recommended (Windows / Unix)
+python build/build.py --config Release
+
+# Or open the Visual Studio solution (run build.py deps first)
 build\duilib.sln      # Configuration: Release or Debug
-
-# Windows (CMake path)
-build\msvc_build.bat
-
-# Linux / macOS / FreeBSD
-./build/linux_build.sh
-./build/macos_build.sh
-./build/freebsd_build.sh
 ```
 
 Then package:
@@ -67,9 +70,9 @@ always writes to `dist/<version>/`.
 `msvc/PropertySheets/duilib_dll.flag` and rebuild. The duilib project then
 produces `bin/duilib*.dll` (x86 uses `duilib32*.dll`, Debug adds `_d`) plus the
 `lib/<arch>/<Config>/duilib.lib` import library; all other libraries stay
-static. Delete the flag to return to static mode. The CMake build path
-(`msvc_build.bat`, `msys2_build.sh`, Unix scripts) currently produces static
-libraries only. DLL-mode duilib uses `/MD`, so Skia must be built with `/MD`
+static. Delete the flag to return to static mode. The `build.py` build path
+produces static libraries by default; add `--md` to use the dynamic MSVC
+runtime (`/MD`, `/MDd`). DLL-mode duilib uses `/MD`, so Skia must be built with `/MD`
 too: `SkiaSettings.props` switches to `skia/out/llvm.<arch>.release.md` when
 `duilib_dll.flag` exists (Debug uses `llvm.<arch>.debug.mdd`). Build both
 directories yourself with the same arguments as the normal build, replacing
@@ -121,7 +124,8 @@ nim_duilib-<version>-<system>-<arch>[-feature]/
   LICENSE               Main license
   include/duilib/       Public headers (plus include/SDL3/ when SDL is used)
   lib/                  Static libraries (5 duilib libs + all Skia libs + third-party link libs)
-  licenses/             Third-party licenses
+  LICENSES/             Third-party licenses
+  THIRD-PARTY-NOTICES.md  Third-party component notices
   docs/                 User documentation (top level only; links rewritten for the package layout)
   msvc/                 Downstream integration: props/targets/manifest (x64, x86 and arm64)
   lib/cmake/nim_duilib/ Downstream integration: CMake find_package config
@@ -860,7 +864,7 @@ checked after the first package is produced.
 
 ## Related documentation
 
-* [Build process and scripts](../build/README.en.md)
+* [Build reference](../build/build-reference.en.md)
 * [Quick Start](Getting-Started.en.md)
 * [Example Programs](Examples.en.md)
 * [CEF Control](CEF.en.md)

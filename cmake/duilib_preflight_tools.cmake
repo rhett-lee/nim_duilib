@@ -1,0 +1,196 @@
+# 阶段 A：无编译器环境预检（cmake -P 脚本模式）
+#
+# 检查工具与系统库，不下载、不安装、不改文件。
+# 由根 CMakeLists.txt 在 project() 之前调用；也可由 build.py doctor 直接复用。
+#
+# 可传入：
+#   -DDUILIB_DEPS_MODE=off|prepare|auto
+#   -DDUILIB_GENERATOR=<generator name>
+#   -DDUILIB_DEPS_ROOT=<dir>
+#   -DDUILIB_SKIA_ROOT=<dir>
+
+cmake_minimum_required(VERSION 3.24)
+include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
+
+set(_duilib_pf_errors "")
+set(_duilib_pf_warnings "")
+
+function(_duilib_pf_need_tool out_var)
+    set(_found "")
+    foreach(_candidate IN LISTS ARGN)
+        find_program(_duilib_pf_path NAMES "${_candidate}" PATHS ENV PATH NO_DEFAULT_PATH NO_CACHE)
+        if(_duilib_pf_path)
+            set(_found "${_duilib_pf_path}")
+            break()
+        endif()
+    endforeach()
+    set(${out_var} "${_found}" PARENT_SCOPE)
+endfunction()
+
+function(_duilib_pf_python out_var out_version)
+    set(_found "")
+    set(_version "")
+    execute_process(COMMAND python3 --version OUTPUT_VARIABLE _v1 ERROR_VARIABLE _v1e RESULT_VARIABLE _r1)
+    if(_r1 EQUAL 0 AND _v1 MATCHES "Python ([0-9]+\\.[0-9]+\\.[0-9]+)")
+        set(_found "python3")
+        set(_version "${CMAKE_MATCH_1}")
+    else()
+        execute_process(COMMAND python --version OUTPUT_VARIABLE _v2 ERROR_VARIABLE _v2e RESULT_VARIABLE _r2)
+        if(_r2 EQUAL 0 AND _v2 MATCHES "Python 3\\.([0-9]+\\.[0-9]+)")
+            set(_found "python")
+            set(_version "3.${CMAKE_MATCH_1}")
+        else()
+            execute_process(COMMAND py -3 --version OUTPUT_VARIABLE _v3 ERROR_VARIABLE _v3e RESULT_VARIABLE _r3)
+            if(_r3 EQUAL 0 AND _v3 MATCHES "Python 3\\.([0-9]+\\.[0-9]+)")
+                set(_found "py -3")
+                set(_version "3.${CMAKE_MATCH_1}")
+            endif()
+        endif()
+    endif()
+    set(${out_var} "${_found}" PARENT_SCOPE)
+    set(${out_version} "${_version}" PARENT_SCOPE)
+endfunction()
+
+# CMake 版本
+if(CMAKE_VERSION VERSION_LESS "3.24")
+    duilib_t("preflight.cmake_too_old" _t)
+    duilib_t("preflight.cmake_too_old_hint" _h)
+    list(APPEND _duilib_pf_errors "${_t}\n  Hint: ${_h}")
+else()
+    message(STATUS "[OK]    cmake ${CMAKE_VERSION}")
+endif()
+
+# Python 3
+_duilib_pf_python(_duilib_pf_python_exe _duilib_pf_python_version)
+if(_duilib_pf_python_exe STREQUAL "")
+    duilib_t("preflight.python_missing" _t)
+    duilib_t("preflight.python_missing_hint" _h)
+    list(APPEND _duilib_pf_errors "${_t}\n  Hint: ${_h}")
+else()
+    message(STATUS "[OK]    ${_duilib_pf_python_exe} ${_duilib_pf_python_version}")
+endif()
+
+# Git
+_duilib_pf_need_tool(_duilib_pf_git git)
+if(_duilib_pf_git STREQUAL "")
+    duilib_t("preflight.git_missing" _t)
+    duilib_t("preflight.git_missing_hint" _h)
+    list(APPEND _duilib_pf_errors "${_t}\n  Hint: ${_h}")
+else()
+    message(STATUS "[OK]    git ${_duilib_pf_git}")
+endif()
+
+# 生成器工具
+set(_duilib_pf_generator "${DUILIB_GENERATOR}")
+if(_duilib_pf_generator MATCHES "Ninja")
+    _duilib_pf_need_tool(_duilib_pf_ninja ninja)
+    if(_duilib_pf_ninja STREQUAL "")
+        duilib_t("preflight.tool_missing" _t)
+        duilib_t("preflight.ninja_missing_hint" _h)
+        list(APPEND _duilib_pf_errors "${_t}: ninja\n  Hint: ${_h}")
+    else()
+        message(STATUS "[OK]    ninja ${_duilib_pf_ninja}")
+    endif()
+elseif(_duilib_pf_generator MATCHES "Makefiles")
+    _duilib_pf_need_tool(_duilib_pf_make make gmake)
+    if(_duilib_pf_make STREQUAL "")
+        duilib_t("preflight.tool_missing" _t)
+        list(APPEND _duilib_pf_errors "${_t}: make/gmake\n  Hint: install make (gmake on FreeBSD)")
+    endif()
+endif()
+
+# Visual Studio（Windows + MSVC 工具链）
+if(WIN32 AND NOT MINGW AND NOT DEFINED ENV{MSYSTEM})
+    find_program(_duilib_pf_vswhere vswhere.exe
+                 PATHS "C:/Program Files (x86)/Microsoft Visual Studio/Installer"
+                       "C:/Program Files/Microsoft Visual Studio/Installer"
+                 NO_CACHE)
+    if(NOT _duilib_pf_vswhere)
+        duilib_t("preflight.vs_missing" _t)
+        duilib_t("preflight.vs_missing_hint" _h)
+        list(APPEND _duilib_pf_errors "${_t}\n  Hint: ${_h}")
+    else()
+        execute_process(
+            COMMAND "${_duilib_pf_vswhere}" -latest -products "*" -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationVersion
+            OUTPUT_VARIABLE _duilib_pf_vs_version
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+            RESULT_VARIABLE _duilib_pf_vs_rc)
+        if(NOT _duilib_pf_vs_rc EQUAL 0 OR _duilib_pf_vs_version STREQUAL "")
+            duilib_t("preflight.vs_missing" _t)
+            duilib_t("preflight.vs_missing_hint" _h)
+            list(APPEND _duilib_pf_errors "${_t}\n  Hint: ${_h}")
+        else()
+            string(REGEX MATCH "^([0-9]+)" _duilib_pf_vs_major "${_duilib_pf_vs_version}")
+            if(CMAKE_MATCH_1 LESS 17)
+                duilib_t("preflight.vs_too_old" _t)
+                list(APPEND _duilib_pf_errors "${_t} (found ${_duilib_pf_vs_version})")
+            else()
+                message(STATUS "[OK]    Visual Studio ${_duilib_pf_vs_version}")
+            endif()
+        endif()
+    endif()
+endif()
+
+# 依赖准备工具
+if(NOT DUILIB_DEPS_MODE STREQUAL "off")
+    set(_duilib_pf_gn "")
+    if(NOT DUILIB_GN_EXECUTABLE STREQUAL "" AND EXISTS "${DUILIB_GN_EXECUTABLE}")
+        set(_duilib_pf_gn "${DUILIB_GN_EXECUTABLE}")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/gn.exe")
+        set(_duilib_pf_gn "${DUILIB_SKIA_ROOT}/bin/gn.exe")
+    elseif(EXISTS "${DUILIB_SKIA_ROOT}/bin/gn")
+        set(_duilib_pf_gn "${DUILIB_SKIA_ROOT}/bin/gn")
+    else()
+        _duilib_pf_need_tool(_duilib_pf_gn gn)
+    endif()
+    if(_duilib_pf_gn STREQUAL "")
+        duilib_t("preflight.tool_missing" _t)
+        duilib_t("preflight.gn_missing_hint" _h)
+        list(APPEND _duilib_pf_errors "${_t}: gn\n  Hint: ${_h}")
+    else()
+        message(STATUS "[OK]    gn ${_duilib_pf_gn}")
+    endif()
+
+    _duilib_pf_need_tool(_duilib_pf_curl curl)
+    if(_duilib_pf_curl STREQUAL "")
+        _duilib_pf_need_tool(_duilib_pf_wget wget)
+        if(_duilib_pf_wget STREQUAL "")
+            message(STATUS "[WARN]  curl/wget not found; CEF downloads will use CMake's file(DOWNLOAD) without resume")
+        else()
+            message(STATUS "[OK]    wget ${_duilib_pf_wget}")
+        endif()
+    else()
+        message(STATUS "[OK]    curl ${_duilib_pf_curl}")
+    endif()
+endif()
+
+# Linux 系统库（可选，缺失只告警）
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    _duilib_pf_need_tool(_duilib_pf_pkgconfig pkg-config)
+    if(_duilib_pf_pkgconfig STREQUAL "")
+        message(STATUS "[WARN]  pkg-config not found; skip the system library checks")
+    else()
+        set(_duilib_pf_libs "")
+        foreach(_lib fontconfig freetype2 x11 gl egl glesv2 vulkan xext xcursor xi xrandr dbus-1)
+            execute_process(COMMAND "${_duilib_pf_pkgconfig}" --exists "${_lib}"
+                            RESULT_VARIABLE _duilib_pf_lib_rc ERROR_QUIET OUTPUT_QUIET)
+            if(NOT _duilib_pf_lib_rc EQUAL 0)
+                list(APPEND _duilib_pf_libs "${_lib}")
+            endif()
+        endforeach()
+        if(_duilib_pf_libs)
+            string(REPLACE ";" " " _duilib_pf_libs_text "${_duilib_pf_libs}")
+            duilib_t("preflight.tool_missing" _t)
+            list(APPEND _duilib_pf_errors "${_t}: ${_duilib_pf_libs_text}\n  Hint: install the -dev packages listed in build/README.md")
+        endif()
+    endif()
+endif()
+
+if(_duilib_pf_errors)
+    set(_duilib_pf_all "")
+    foreach(_e IN LISTS _duilib_pf_errors)
+        string(APPEND _duilib_pf_all "\n${_e}")
+    endforeach()
+    message(FATAL_ERROR "${_duilib_pf_all}")
+endif()

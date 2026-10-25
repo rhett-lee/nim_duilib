@@ -1,0 +1,157 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "DUILIB_DEPS_MODE": "off",
+        "DUILIB_LANG": "auto",
+        "DUILIB_ENABLE_CEF": "ON",
+        "DUILIB_SDL_RPATH": "ON"
+      }
+    },
+    {
+      "name": "x64-debug",
+      "displayName": "x64 Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/x64/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DUILIB_TARGET_ARCH": "x64"
+      },
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Windows",
+          "Linux",
+          "Darwin",
+          "FreeBSD"
+        ]
+      }
+    },
+    {
+      "name": "x64-release",
+      "displayName": "x64 Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/x64/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DUILIB_TARGET_ARCH": "x64"
+      },
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Windows",
+          "Linux",
+          "Darwin",
+          "FreeBSD"
+        ]
+      }
+    },
+    {
+      "name": "arm64-debug",
+      "displayName": "arm64 Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/arm64/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DUILIB_TARGET_ARCH": "arm64"
+      },
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Windows",
+          "Linux",
+          "Darwin",
+          "FreeBSD"
+        ]
+      }
+    },
+    {
+      "name": "arm64-release",
+      "displayName": "arm64 Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/arm64/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DUILIB_TARGET_ARCH": "arm64"
+      },
+      "condition": {
+        "type": "inList",
+        "string": "${hostSystemName}",
+        "list": [
+          "Windows",
+          "Linux",
+          "Darwin",
+          "FreeBSD"
+        ]
+      }
+    },
+    {
+      "name": "x86-debug",
+      "displayName": "x86 Debug (Windows)",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/x86/Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DUILIB_TARGET_ARCH": "x86"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "x86-release",
+      "displayName": "x86 Release (Windows)",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/out/x86/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DUILIB_TARGET_ARCH": "x86"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "x64-debug",
+      "configurePreset": "x64-debug"
+    },
+    {
+      "name": "x64-release",
+      "configurePreset": "x64-release"
+    },
+    {
+      "name": "arm64-debug",
+      "configurePreset": "arm64-debug"
+    },
+    {
+      "name": "arm64-release",
+      "configurePreset": "arm64-release"
+    },
+    {
+      "name": "x86-debug",
+      "configurePreset": "x86-debug"
+    },
+    {
+      "name": "x86-release",
+      "configurePreset": "x86-release"
+    }
+  ]
+}
