@@ -50,6 +50,8 @@
 - Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。
+- 修复首次构建 SDL3 成功后仍报 `SDL3 build failed`：完成标记（`.duilib-sdl`）原先在
+  就绪校验之后写入，首次安装时校验必然失败；现在先写入再校验。
 
 ## [1.0.2026.1023] - 2026-10-23
 

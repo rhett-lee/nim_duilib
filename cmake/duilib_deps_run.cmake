@@ -497,12 +497,14 @@ function(duilib_prepare_sdl)
         _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-release" "Release")
     endif()
 
+    # 先写入 stamp 再校验：_duilib_sdl_ready 以 stamp + 头文件 + 库三者判断，
+    # 首次安装前不存在 stamp，若先校验会导致构建成功后仍报失败。
+    _duilib_sdl_stamp_value(_stamp)
+    file(WRITE "${DUILIB_SDL_ROOT}/.duilib-sdl" "${_stamp}")
     _duilib_sdl_ready(_ready)
     if(NOT _ready)
         duilib_error("deps.sdl_failed" "deps.sdl_failed_hint")
     endif()
-    _duilib_sdl_stamp_value(_stamp)
-    file(WRITE "${DUILIB_SDL_ROOT}/.duilib-sdl" "${_stamp}")
     _duilib_write_crt("${DUILIB_SDL_ROOT}")
     duilib_msg("deps.sdl_ready" " (${DUILIB_SDL_ROOT})")
 endfunction()

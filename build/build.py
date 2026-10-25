@@ -553,6 +553,10 @@ def _warn_line(text: str) -> None:
     print(f"[WARN]  {text}", flush=True)
 
 
+def _info_line(text: str) -> None:
+    print(f"[INFO]  {text}", flush=True)
+
+
 def cmd_doctor(args, messages) -> int:
     arch = resolve_arch(args.arch)
     print(messages.t("doctor.title"), flush=True)
@@ -591,7 +595,11 @@ def cmd_doctor(args, messages) -> int:
     skia_root = deps_root / "skia"
     sdl_root = deps_root / "SDL3"
     _ok_line(f"skia source {skia_root}") if skia_root.is_dir() else _warn_line(f"skia source missing: {skia_root}")
-    _ok_line(f"sdl prefix {sdl_root}") if sdl_root.is_dir() else _warn_line(f"sdl prefix missing: {sdl_root}")
+    if sdl_root.is_dir():
+        _ok_line(f"sdl prefix {sdl_root}")
+    else:
+        # 首次构建前 SDL3 前缀必然不存在，由 deps 生成，因此只作提示
+        _info_line(f"sdl prefix not built yet: {sdl_root} (build.py deps will build it)")
 
     if not cmake:
         return 1 if not shutil.which("git") else 0

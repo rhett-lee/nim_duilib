@@ -59,6 +59,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
   `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or
   `out/gcc.<arch>.release` accordingly.
+- Fixed `SDL3 build failed` after a successful first SDL3 build: the `.duilib-sdl`
+  completion marker was written after the readiness check, so the very first install
+  always failed; it is now written before the check.
 
 ## [1.0.2026.1023] - 2026-10-23
 
