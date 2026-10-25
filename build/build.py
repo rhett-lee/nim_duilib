@@ -1,13 +1,13 @@
 """nim_duilib 统一构建入口。
 
-用法：
-  python build/build.py [--config Debug|Release]      # 默认：准备依赖 + 编译一个配置
-  python build/build.py build [--no-deps] [--target X]
-  python build/build.py deps [--force]
-  python build/build.py doctor
-  python build/build.py test
-  python build/build.py pack [--with-cef]
-  python build/build.py clean [--deps] [--build-dir DIR]
+用法（macOS/Linux/FreeBSD；Windows 可运行 build\\build.bat，参数相同）：
+  python3 build/build.py [--config Debug|Release]      # 默认：准备依赖 + 编译一个配置
+  python3 build/build.py build [--no-deps] [--target X]
+  python3 build/build.py deps [--force]
+  python3 build/build.py doctor
+  python3 build/build.py test
+  python3 build/build.py pack [--with-cef]
+  python3 build/build.py clean [--deps] [--build-dir DIR]
 
 参数透传：--cmake-arg 追加给 cmake configure，--build-arg 追加给 cmake --build。
 本脚本只做环境识别与编排，构建逻辑全部在根 CMake 工程。

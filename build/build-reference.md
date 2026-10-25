@@ -2,7 +2,7 @@
 
 本文是 nim_duilib 的唯一编译参考手册，适用于命令行构建、依赖准备、出包与环境排查。
 旧的分平台构建脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
-已归档到 `build/legacy/`、不再参与构建（待全平台验证后删除），统一使用 `python build/build.py`。
+已归档到 `build/legacy/`、不再参与构建（待全平台验证后删除），统一使用 `python3 build/build.py`。
 
 英文版：[build-reference.en.md](build-reference.en.md)
 
@@ -11,7 +11,7 @@
 | 项目 | 要求 |
 | :--- | :--- |
 | CMake | 3.24 及以上（根工程使用 CMakePresets） |
-| Python | **Python 3（必需）**，Skia 的构建流程依赖 `python3` |
+| Python | **Python 3（必需）**；Skia 的构建脚本固定调用 `python3`，`python` / `py -3` 不能替代 |
 | Git | 用于获取依赖源码 |
 | Ninja | Windows 由 Visual Studio 自带；其他平台用包管理器安装 |
 | Windows | Visual Studio 2022 及以上（含 C++ 工作负载），或 MSYS2 / MinGW-w64 |
@@ -20,15 +20,20 @@
 | FreeBSD | clang、cmake、ninja、gn、fontconfig、freetype2 |
 
 Python 3 缺失时 `build.bat` / `build.py` 会直接报错并给出安装提示，不提供绕过
-Python 的构建路径。
+Python 的构建路径。只有 `python` / `py -3`、PATH 中没有 `python3` 时，预检给出
+告警，并在实际编译 Skia 前报错终止。
+
+本文命令统一写作 `python3`：macOS/Linux/FreeBSD 通常没有 `python` 命令；Windows
+可运行 `build\build.bat`（参数相同，无需 `python3`），或把命令中的 `python3`
+换成 `python`。
 
 ## 2. 快速开始
 
 ```bash
-python build/build.py                  # Release：自动准备依赖 + 编译库与示例
-python build/build.py --config Debug   # Debug（独立构建目录）
-python build/build.py doctor           # 环境自检（无副作用）
-python build/build.py pack --with-cef  # 出 SDK 包
+python3 build/build.py                  # Release：自动准备依赖 + 编译库与示例
+python3 build/build.py --config Debug   # Debug（独立构建目录）
+python3 build/build.py doctor           # 环境自检（无副作用）
+python3 build/build.py pack --with-cef  # 出 SDK 包
 ```
 
 Windows 也可以直接运行：
@@ -56,8 +61,8 @@ build\build.bat --config Debug
 一次调用只构建一个架构 + 一个配置。需要 Debug 与 Release 时调用两次：
 
 ```bash
-python build/build.py --config Debug
-python build/build.py --config Release
+python3 build/build.py --config Debug
+python3 build/build.py --config Release
 ```
 
 ## 4. 常用参数
@@ -147,11 +152,11 @@ CEF 运行时目录需要随程序一起发布；CEF 的用法见 [docs/CEF.md](
 SDK 只由 `pack.py` 生成，根 CMake 工程不提供 `install()` 目标。
 
 ```bash
-python build/build.py pack                    # Release SDK
-python build/build.py pack --config Debug     # Debug SDK（包名带 -debug）
-python build/build.py pack --with-cef         # 包含 CEF 运行时
-python build/build.py pack --with-examples    # 包含示例程序
-python build/build.py pack --out-dir dist     # 指定输出目录
+python3 build/build.py pack                    # Release SDK
+python3 build/build.py pack --config Debug     # Debug SDK（包名带 -debug）
+python3 build/build.py pack --with-cef         # 包含 CEF 运行时
+python3 build/build.py pack --with-examples    # 包含示例程序
+python3 build/build.py pack --out-dir dist     # 指定输出目录
 ```
 
 包内包含 `include/`、`lib/<arch>/<Config>/`、`bin/`、`lib/cmake/nim_duilib/`、
@@ -204,12 +209,12 @@ macOS 需要 `brew install cmake ninja` 并从源码安装 `gn`；FreeBSD 执行
 
 ```bash
 # 方式一：环境变量（推荐，对 doctor/deps/build 全部生效）
-CC=clang CXX=clang++ python build/build.py
-CC=gcc   CXX=g++     python build/build.py
+CC=clang CXX=clang++ python3 build/build.py
+CC=gcc   CXX=g++     python3 build/build.py
 
 # 方式二：通过 --cmake-arg 传给 CMake configure
-python build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
+python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
 ```
 
 - 非 Windows 平台的 `build.py doctor` 会按 `CC`/`CXX` 报告实际将使用的编译器。
@@ -232,14 +237,16 @@ python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=
 | 现象 | 处理 |
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载；或用 `--vs-version` 指定版本 |
-| `Skia not found` | 首次执行 `python build/build.py deps`，或检查 `--deps-root` |
+| `Skia not found` | 首次执行 `python3 build/build.py deps`，或检查 `--deps-root` |
 | `gn/ninja not found` | Windows 使用 VS 自带目录；Unix 安装 `ninja` 与 `gn`。Unix 不会使用 Skia 目录里的 `gn.exe`（Windows 版无法运行），只有 `gn.exe` 时必须另装原生 `gn` |
+| `python: command not found`（macOS/Linux） | 这些系统通常只有 `python3`：改用 `python3 build/build.py ...`；Windows 直接运行 `build\build.bat` |
+| `python3 not found`（编译 Skia 时报错） | Skia 构建脚本固定调用 `python3`，不认 `python` / `py -3`；安装 Python 3 并确认 `python3 --version` 可用（Windows 可把 Python 安装目录加入 PATH） |
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
 | 打包的示例程序加载了构建机的 `.so` | 示例程序已写入相对 rpath（`$ORIGIN/../lib`、`$ORIGIN/libcef_linux`），优先使用包内库；Linux 示例依赖 libcef 时请用 `pack --with-cef`，否则包内缺少 CEF 运行时 |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
-| 构建目录损坏 | `python build/build.py clean` 后重试 |
+| 构建目录损坏 | `python3 build/build.py clean` 后重试 |
 | 切换编译器后配置失败（如 cl.exe 找不到 `kernel32.lib`） | 无需手动清理：`build.py` 检测到 `out/<arch>/<Config>` 缓存中的编译器变化会自动清空该目录 |
 
 更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。
@@ -248,11 +255,11 @@ python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=
 
 | 项目 | 旧脚本 | 现在 |
 | :--- | :--- | :--- |
-| 入口 | 11 个 .bat/.sh | `python build/build.py` |
+| 入口 | 11 个 .bat/.sh | `python3 build/build.py` |
 | 配置 | 一次构建 Debug + Release | 一次一个 `--config`，调用两次 |
 | 构建树 | `build/build_temp` | `out/<arch>/<Config>` |
 | 依赖 | all-in-one 脚本内部处理 | `deps` 子命令，按版本清单准备 |
 | SDK | 手工整理 | `build.py pack`（含 `LICENSES/`、`THIRD-PARTY-NOTICES.md`） |
 
 VS 解决方案文件（`build/duilib.sln`、`examples.sln` 等）仍保留，使用前先运行
-`python build/build.py deps` 准备依赖。
+`python3 build/build.py deps` 准备依赖。

@@ -88,9 +88,9 @@ python scripts/verify_docs.py --repo <nim_duilib仓库根目录>
 完整构建需要 duilib 库与 Skia（Skia 源码通常在仓库外，全量构建耗时数小时）。
 
 > **首次拉取源码后必须先做一次依赖库预编译**，否则找不到库：
-> 运行 `python build/build.py deps`（Windows/Unix 通用，自动下载并编译 Skia、CEF 运行时；
-> SDL3 在 Windows 默认关闭，可用 `--sdl` 启用）。
-> 需要编译库与示例时运行 `python build/build.py --config Debug`（或默认的 Release）。
+> 运行 `python3 build/build.py deps`（macOS/Linux/FreeBSD；Windows 运行 `build\build.bat deps`，
+> 自动下载并编译 Skia、CEF 运行时；SDL3 在 Windows 默认关闭，可用 `--sdl` 启用）。
+> 需要编译库与示例时运行 `python3 build/build.py --config Debug`（或默认的 Release）。
 > 详见 `build/build-reference.md` 与仓库根目录的 `WORKBUDDY.md`。
 
 只想验证自己写的 C++ 是否用对了 API 时，用 MSVC 的**语法检查模式** `/Zs`（不生成 obj、不链接）：

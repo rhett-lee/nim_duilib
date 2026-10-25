@@ -77,6 +77,16 @@ else()
     message(STATUS "[OK]    ${_duilib_pf_python_exe} ${_duilib_pf_python_version}")
 endif()
 
+# Skia 的构建脚本固定调用 python3（不认 python / py -3）：这里只做早期告警，
+# 真正编译 Skia 前会在 cmake/duilib_deps_run.cmake 中硬性报错。
+if(_duilib_pf_deps_required)
+    _duilib_pf_need_tool(_duilib_pf_python3 python3)
+    if(_duilib_pf_python3 STREQUAL "")
+        duilib_t("preflight.python3_missing" _t)
+        message(STATUS "${_t}")
+    endif()
+endif()
+
 # Git
 _duilib_pf_need_tool(_duilib_pf_git git)
 if(_duilib_pf_git STREQUAL "")

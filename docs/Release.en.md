@@ -17,8 +17,10 @@ control than maintaining a set of `install()` rules in the root project. The
 root project therefore provides **no** `install()`; the SDK is produced only by
 `pack.py`.
 
-Builds go through `python build/build.py` (the old `msvc_build.bat`,
-`linux_build.sh` and friends are gone). `pack.py` reads only the single
+Builds go through `python3 build/build.py` (the old `msvc_build.bat`,
+`linux_build.sh` and friends are gone). macOS/Linux/FreeBSD usually have no `python`
+command; on Windows replace `python3` with `python`, and `build.py` can also be run
+as `build\build.bat`. `pack.py` reads only the single
 library directory selected by `--config`; it no longer merges candidate
 directories or guesses by priority.
 
@@ -43,8 +45,8 @@ You must complete a build of the matching configuration before packaging; the
 script does not trigger compilation:
 
 ```
-# Recommended (Windows / Unix)
-python build/build.py --config Release
+# Recommended (use python3 on macOS/Linux/FreeBSD; on Windows run build\build.bat)
+python3 build/build.py --config Release
 
 # Or open the Visual Studio solution (run build.py deps first)
 build\duilib.sln      # Configuration: Release or Debug
@@ -54,13 +56,13 @@ Then package:
 
 ```
 # SDK only (recommended, Release by default)
-python build/pack.py
+python3 build/pack.py
 
 # Debug SDK (package name gains -debug)
-python build/pack.py --config Debug
+python3 build/pack.py --config Debug
 
 # SDK plus example programs
-python build/pack.py --with-examples
+python3 build/pack.py --with-examples
 ```
 
 Running `pack.py` directly writes to `dist/`; `build/release.py package`
@@ -525,11 +527,11 @@ so identical inputs produce identical packages on different machines:
 
 ```powershell
 $env:SOURCE_DATE_EPOCH = 1700000000
-python build/release.py package --config Release --arch x64
+python3 build/release.py package --config Release --arch x64
 ```
 
 ```bash
-SOURCE_DATE_EPOCH=1700000000 python build/release.py package --config Release --arch x64
+SOURCE_DATE_EPOCH=1700000000 python3 build/release.py package --config Release --arch x64
 ```
 
 Without it, regular entries use their source mtime, generated files and the
@@ -777,14 +779,14 @@ push**.
 2. Pre-flight check:
 
    ```
-   python build/release.py check
+   python3 build/release.py check
    ```
 
 3. Package (use `--dry-run` first to review the command and package name):
 
    ```
-   python build/release.py package --config Release --arch x64 --dry-run
-   python build/release.py package --config Release --arch x64
+   python3 build/release.py package --config Release --arch x64 --dry-run
+   python3 build/release.py package --config Release --arch x64
    ```
 
    Artifacts go to `dist/<version>/`; add `--with-sdl`, `--with-cef`,
@@ -792,7 +794,7 @@ push**.
 4. Verify every archive and generate release notes:
 
    ```
-   python build/release.py finalize
+   python3 build/release.py finalize
    ```
 
    This verifies SHA256, required files and documentation links, then writes
@@ -809,7 +811,7 @@ push**.
    `release.py clean --list` and delete them only with an explicit
    `--version <old-version> --yes` (the current version is refused).
 
-You can still run `python build/pack.py` directly, but it performs neither the
+You can still run `python3 build/pack.py` directly, but it performs neither the
 release pre-flight checks nor artifact verification.
 
 ## Signing and notarization
@@ -857,17 +859,19 @@ Verify after publishing with `gpg --verify`.
 | Platform | Default format | Status |
 | :--- | :--- | :--- |
 | Windows | `zip` | Verified |
-| Linux | `tgz` | Same script; artifacts not verified on this machine |
+| Linux | `tgz` | Verified (x64 Release; default SDK, `--with-cef`, `--with-examples`) |
 | macOS | `tgz` | Same script; artifacts not verified on this machine |
-| FreeBSD | `tgz` | Same script; artifacts not verified on this machine |
+| FreeBSD | `tgz` | Verified (x64 Release; default SDK, `--with-examples`; no CEF) |
 
 The script itself is cross-platform (standard library only, no external
 dependencies) and a single implementation serves all four platforms.
 Windows `.lib` and Unix `.a` files are both collected by the directory
 whitelist; the Unix `lib` prefix is normalized automatically (e.g.
-`libduilib-zlib.a` → `duilib-zlib`). However, **only the Windows artifacts have
-been verified so far**; the library list on the other platforms should still be
-checked after the first package is produced.
+`libduilib-zlib.a` → `duilib-zlib`). The Windows (all toolchain combinations),
+Linux and FreeBSD (x64 Release) artifacts have been verified; Linux/FreeBSD still lack Debug
+packaging and post-unpack example startup runs. CEF is not supported on
+FreeBSD and `--with-cef` fails fast. The library list on macOS should still
+be checked after the first package is produced.
 
 ## Related documentation
 

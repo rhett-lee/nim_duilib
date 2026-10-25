@@ -159,6 +159,18 @@ function(_duilib_find_ninja out_var)
     set(${out_var} "${_ninja}" PARENT_SCOPE)
 endfunction()
 
+function(_duilib_find_python3 out_var)
+    # Skia 的构建脚本固定调用 python3（不认 python / py -3），因此这里必须查
+    # python3 本身，不能复用预检里对 Python 3 的宽松判断。
+    # 未命中时 find_program 会写入 <var>-NOTFOUND（非空），需显式归一为空串。
+    find_program(_duilib_python3_hit python3 PATHS ENV PATH NO_DEFAULT_PATH NO_CACHE)
+    if(_duilib_python3_hit)
+        set(${out_var} "${_duilib_python3_hit}" PARENT_SCOPE)
+    else()
+        set(${out_var} "" PARENT_SCOPE)
+    endif()
+endfunction()
+
 function(_duilib_skia_gn_args out_var variant)
     set(_common
         "is_trivial_abi=false"
@@ -349,11 +361,15 @@ function(duilib_prepare_skia)
 
     _duilib_find_gn(_gn)
     _duilib_find_ninja(_ninja)
+    _duilib_find_python3(_python3)
     if(_gn STREQUAL "")
         duilib_error("preflight.tool_missing" "preflight.gn_missing_hint")
     endif()
     if(_ninja STREQUAL "")
         duilib_error("preflight.tool_missing" "preflight.ninja_missing_hint")
+    endif()
+    if(_python3 STREQUAL "")
+        duilib_error("deps.python3_missing" "deps.python3_missing_hint")
     endif()
 
     duilib_msg("deps.skia_building" " (${_variant})")

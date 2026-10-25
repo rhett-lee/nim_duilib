@@ -454,7 +454,7 @@ cmake --build ./build_debug
 For everyday builds use the unified entry (it prepares Skia/SDL3/CEF automatically):
 
 ```bash
-python build/build.py --config Debug
+python3 build/build.py --config Debug
 ```
 
 The build tree is always `out/<arch>/<Config>`; see `build/build-reference.en.md`.

@@ -4,7 +4,7 @@ This is the single build reference for nim_duilib: command-line builds, dependen
 preparation, packaging and troubleshooting. The legacy per-platform scripts
 (`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...) are archived
 under `build/legacy/` and no longer part of the build (deleted after full-platform
-verification); use `python build/build.py` instead.
+verification); use `python3 build/build.py` instead.
 
 Chinese version: [build-reference.md](build-reference.md)
 
@@ -13,7 +13,7 @@ Chinese version: [build-reference.md](build-reference.md)
 | Item | Requirement |
 | :--- | :--- |
 | CMake | 3.24 or newer (the root project uses CMakePresets) |
-| Python | **Python 3 is required**; the Skia build flow needs `python3` |
+| Python | **Python 3 is required**; the Skia build scripts invoke `python3`, so `python` / `py -3` are not a substitute |
 | Git | to fetch dependency sources |
 | Ninja | bundled with Visual Studio on Windows; install via package manager elsewhere |
 | Windows | Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64 |
@@ -22,15 +22,21 @@ Chinese version: [build-reference.md](build-reference.md)
 | FreeBSD | clang, cmake, ninja, gn, fontconfig, freetype2 |
 
 Without Python 3, `build.bat` / `build.py` fail immediately and print installation
-hints; there is no Python-free build path.
+hints; there is no Python-free build path. If only `python` / `py -3` is available
+and `python3` is missing from PATH, the preflight prints a warning and the Skia
+build aborts with an error before compiling.
+
+Commands in this document use `python3`: macOS, Linux and FreeBSD usually have no
+`python` command. On Windows, run `build\build.bat` instead (same arguments, no
+`python3` needed), or replace `python3` with `python`.
 
 ## 2. Quick start
 
 ```bash
-python build/build.py                  # Release: prepare deps + build library and examples
-python build/build.py --config Debug   # Debug (separate build tree)
-python build/build.py doctor           # environment check (no side effects)
-python build/build.py pack --with-cef  # build an SDK package
+python3 build/build.py                  # Release: prepare deps + build library and examples
+python3 build/build.py --config Debug   # Debug (separate build tree)
+python3 build/build.py doctor           # environment check (no side effects)
+python3 build/build.py pack --with-cef  # build an SDK package
 ```
 
 On Windows you can also run:
@@ -59,8 +65,8 @@ One invocation builds one architecture and one configuration. Build Debug and Re
 by invoking the command twice:
 
 ```bash
-python build/build.py --config Debug
-python build/build.py --config Release
+python3 build/build.py --config Debug
+python3 build/build.py --config Release
 ```
 
 ## 4. Common options
@@ -156,11 +162,11 @@ whether the library compiles the CEF control sources.
 SDKs are produced only by `pack.py`; the root CMake project has no `install()` target.
 
 ```bash
-python build/build.py pack                    # Release SDK
-python build/build.py pack --config Debug     # Debug SDK (name has -debug)
-python build/build.py pack --with-cef         # include the CEF runtime
-python build/build.py pack --with-examples    # include examples
-python build/build.py pack --out-dir dist     # custom output directory
+python3 build/build.py pack                    # Release SDK
+python3 build/build.py pack --config Debug     # Debug SDK (name has -debug)
+python3 build/build.py pack --with-cef         # include the CEF runtime
+python3 build/build.py pack --with-examples    # include examples
+python3 build/build.py pack --out-dir dist     # custom output directory
 ```
 
 Packages contain `include/`, `lib/<arch>/<Config>/`, `bin/`, `lib/cmake/nim_duilib/`,
@@ -203,12 +209,12 @@ otherwise `cc`/`c++` are used (usually gcc/g++ on Linux). To pin a toolchain:
 
 ```bash
 # Option 1: environment variables (recommended; applies to doctor/deps/build)
-CC=clang CXX=clang++ python build/build.py
-CC=gcc   CXX=g++     python build/build.py
+CC=clang CXX=clang++ python3 build/build.py
+CC=gcc   CXX=g++     python3 build/build.py
 
 # Option 2: pass it to the CMake configure step
-python build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
+python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+python3 build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=g++
 ```
 
 - On non-Windows platforms `build.py doctor` reports the compiler selected from `CC`/`CXX`.
@@ -233,14 +239,16 @@ python build/build.py --cmake-arg -DCMAKE_C_COMPILER=gcc   -DCMAKE_CXX_COMPILER=
 | Symptom | Action |
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
-| `Skia not found` | run `python build/build.py deps` first, or check `--deps-root` |
+| `Skia not found` | run `python3 build/build.py deps` first, or check `--deps-root` |
 | `gn/ninja not found` | use VS's bundled tools on Windows; on Unix install `ninja` and `gn`. Unix ignores `gn.exe` inside the Skia tree (it cannot run there); install a native `gn` when only `gn.exe` exists |
+| `python: command not found` (macOS/Linux) | these systems usually provide only `python3`: use `python3 build/build.py ...`; on Windows run `build\build.bat` instead |
+| `python3 not found` (error while building Skia) | the Skia build scripts invoke `python3` and do not accept `python` / `py -3`; install Python 3 and make sure `python3 --version` works (on Windows add the Python install directory to PATH) |
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
 | Packaged examples load the builder's `.so` | examples carry a relative rpath (`$ORIGIN/../lib`, `$ORIGIN/libcef_linux`) so bundled libraries win; use `pack --with-cef` when examples depend on libcef |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
-| Corrupted build tree | `python build/build.py clean` and retry |
+| Corrupted build tree | `python3 build/build.py clean` and retry |
 | Configure fails after switching compilers (e.g. `cl.exe` cannot find `kernel32.lib`) | no manual cleanup needed: `build.py` detects the compiler change in the `out/<arch>/<Config>` cache and clears that directory |
 
 Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
@@ -249,11 +257,11 @@ Legacy troubleshooting notes from the script era remain in [build/README.en.md](
 
 | Item | Legacy | Now |
 | :--- | :--- | :--- |
-| Entry point | 11 .bat/.sh scripts | `python build/build.py` |
+| Entry point | 11 .bat/.sh scripts | `python3 build/build.py` |
 | Configuration | Debug + Release in one run | one `--config` per run, invoke twice |
 | Build tree | `build/build_temp` | `out/<arch>/<Config>` |
 | Dependencies | handled inside all-in-one scripts | `deps` subcommand driven by the version manifest |
 | SDK | assembled manually | `build.py pack` (with `LICENSES/`, `THIRD-PARTY-NOTICES.md`) |
 
 The Visual Studio solutions (`build/duilib.sln`, `examples.sln`, ...) are kept; run
-`python build/build.py deps` before opening them.
+`python3 build/build.py deps` before opening them.

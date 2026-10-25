@@ -47,6 +47,12 @@
   `build --no-deps` 的 `off` 模式下缺失只告警，不阻断复用已有依赖的构建。
 - 预检：非 Windows 平台新增编译器检查，要求 `gcc/g++` 或 `clang/clang++` 至少一组成对
   可用；有 `CC`/`CXX` 时按环境变量检查，否则先查 gcc、再查 clang。
+- 依赖准备：Skia 的构建脚本固定调用 `python3`（不认 `python` / `py -3`），而预检此前
+  接受 `python` 或 `py -3`，导致问题到编译 Skia 时才暴露。现在缺少 `python3` 时预检
+  给出告警，并在实际编译 Skia 前报错终止。
+- 文档与命令示例：macOS/Linux/FreeBSD 通常只有 `python3`，按原文档执行
+  `python build/build.py` 会报 command not found；示例已统一为
+  `python3 build/build.py`，Windows 仍可直接运行 `build\build.bat`。
 - Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。

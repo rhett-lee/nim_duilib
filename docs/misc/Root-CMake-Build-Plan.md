@@ -873,7 +873,8 @@ cmake --build --preset x64-release
 ## 7. 验收标准
 
 1. Linux（x64 / arm64）：干净环境只用 CMake 完成 Skia/SDL/CEF 准备与全量构建，
-   `bin/<示例>` 可启动，`pack.py` 能出包；
+   `bin/<示例>` 可启动，`pack.py` 能出包（x64 Release 编译与出包已实测，
+   2026-10-25；示例启动与 arm64 待验证）；
 2. Windows MSVC（Ninja，x86 / x64 / arm64，VS 2022+）：仅需 `vcvarsall` + CMake，
    产物结构与 `msvc_build.bat` 一致；三架构默认构建 CEF 与 WebView2（arm64 导入库已入库）；CEF 由构建期按
    清单只下载 `Release/*` + `Resources/*` 到 `bin/`（109 / 142 可切换），
@@ -881,7 +882,8 @@ cmake --build --preset x64-release
    `--with-cef` 出包通过 `--verify`；
 3. macOS（x64 / arm64）：两阶段构建出 `cef.app`，`Contents/Frameworks` 结构符合
    `Release.md` 的 macOS 章节；
-4. FreeBSD（x64 / arm64）：配置与构建通过，标注为待真机验证；
+4. FreeBSD（x64 / arm64）：配置与构建通过；x64 Release 已真机验证（编译与出包，
+   2026-10-25，不含 CEF），arm64 待真机验证；
 5. 架构校验：不支持的架构（如 Unix x86、Windows arm32）在配置期报错；
    Windows + Ninja 未显式指定 arm64 时给出明确提示而非静默产出 x64 产物；
 6. 语言：`zh_CN` 环境（`LANG=zh_CN.UTF-8`、Windows 简体中文系统）下输出中文，

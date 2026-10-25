@@ -444,7 +444,7 @@ cmake --build ./build_debug
 日常构建推荐使用统一入口（自动准备 Skia/SDL3/CEF）：
 
 ```bash
-python build/build.py --config Debug
+python3 build/build.py --config Debug
 ```
 
 构建树固定为 `out/<arch>/<Config>`；详见 `build/build-reference.md`。

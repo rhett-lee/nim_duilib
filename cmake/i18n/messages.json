@@ -20,6 +20,10 @@
       "en": "install Python 3.8+ and add it to PATH, then retry",
       "zh_CN": "安装 Python 3.8+ 并加入 PATH 后重试"
     },
+    "preflight.python3_missing": {
+      "en": "[WARN]  'python3' not found; the Skia build requires the 'python3' command",
+      "zh_CN": "[WARN]  未找到 'python3'；编译 Skia 需要 'python3' 命令"
+    },
     "preflight.git_missing": {
       "en": "[ERROR] git not found",
       "zh_CN": "[ERROR] 未找到 git"
@@ -139,6 +143,14 @@
     "deps.skia_building": {
       "en": "[deps] building Skia with gn/ninja",
       "zh_CN": "[deps] 正在用 gn/ninja 编译 Skia"
+    },
+    "deps.python3_missing": {
+      "en": "[ERROR] 'python3' not found; the Skia build invokes 'python3' directly",
+      "zh_CN": "[ERROR] 未找到 'python3'；Skia 的构建脚本固定调用 'python3'"
+    },
+    "deps.python3_missing_hint": {
+      "en": "Skia does not accept 'python' or 'py -3': install Python 3 and make sure 'python3 --version' works",
+      "zh_CN": "Skia 不认 'python' 或 'py -3'：请安装 Python 3，并确认 'python3 --version' 可用"
     },
     "deps.skia_gn_failed": {
       "en": "[ERROR] Skia configure failed: {gn} gen out/{variant} returned {rc}",

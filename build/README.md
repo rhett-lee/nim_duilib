@@ -20,15 +20,19 @@
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
 | `README.md` / `README.en.md` | 本文件 |
 
-旧的分平台构建脚本已归档到 `legacy/`（不再参与构建，待全平台验证后删除），
-统一改用 `python build/build.py`。
+旧的分平台构建脚本已归档到 `legacy/`（不再参与构建，待全平台验证后删除；
+Windows、Linux、FreeBSD 已验证，macOS 待验证），统一改用 `python3 build/build.py`。
 
 ## 前置依赖
 
-- CMake 3.24+、Python 3（必需）、Git、Ninja。
-- Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64。
-- Linux/macOS/FreeBSD：gcc 10+/clang 12+，以及字体、GL、X11 等开发包。
-- 首次构建前执行 `python build/build.py deps` 准备 Skia/SDL3/CEF。
+- CMake 3.24+、Python 3（必需；Unix 上命令为 `python3`）、Git、Ninja。
+- Windows：Visual Studio 2022+（C++ 工作负载），或 MSYS2 / MinGW-w64；可直接运行
+  `build\build.bat`（参数与 `build.py` 相同，无需 `python3` 命令）。
+- Linux/macOS/FreeBSD：gcc 10+/clang 12+，以及字体、GL、X11 等开发包；这些系统
+  通常只提供 `python3`，没有 `python`。
+- 首次构建前执行 `python3 build/build.py deps` 准备 Skia/SDL3/CEF。
+- 下文命令中的 `python3` 在 Windows 上可换成 `python`；`build.py` 入口也可直接运行
+  `build\build.bat`。
 
 各平台系统包清单与版本要求见 [build-reference.md](build-reference.md) 第 1、8 节。
 
@@ -37,7 +41,7 @@
 解决方案不会自动准备依赖，打开前先运行：
 
 ```bash
-python build/build.py deps
+python3 build/build.py deps
 ```
 
 - `duilib.sln` / `examples.sln`：启用 CEF。
@@ -57,8 +61,8 @@ python build/build.py deps
 | `cef_cache/`、`webview2_cache/` | CEF / WebView2 运行时网络缓存 | 可清理 |
 
 ```bash
-python build/build.py clean          # 删除整个 out/
-python build/build.py clean --deps   # 同时清理依赖构建产物
+python3 build/build.py clean          # 删除整个 out/
+python3 build/build.py clean --deps   # 同时清理依赖构建产物
 ```
 
 ## 发布打包
@@ -68,35 +72,35 @@ SDK 只由 `pack.py` 生成，根 CMake 工程不提供 `install()` 目标。正
 
 ```bash
 # 只打 SDK（默认 Release）
-python build/pack.py
+python3 build/pack.py
 
 # Debug SDK（包名带 -debug）
-python build/pack.py --config Debug
+python3 build/pack.py --config Debug
 
 # SDK + 示例程序
-python build/pack.py --with-examples
+python3 build/pack.py --with-examples
 
 # 只看会收集哪些文件，不实际打包
-python build/pack.py --list
+python3 build/pack.py --list
 
 # 指定 MSVC 运行库（默认 auto：DLL 模式 MD，否则 MT）
-python build/pack.py --msvc-runtime md
+python3 build/pack.py --msvc-runtime md
 
 # 仅排查：关键产物缺失时仍继续出包（发布流程不要使用）
-python build/pack.py --allow-missing
+python3 build/pack.py --allow-missing
 
 # 发布：预检、打包、校验
-python build/release.py check
-python build/release.py package --config Release --arch x64 --dry-run
-python build/release.py finalize
-python build/release.py clean --list
+python3 build/release.py check
+python3 build/release.py package --config Release --arch x64 --dry-run
+python3 build/release.py finalize
+python3 build/release.py clean --list
 ```
 
 也可以统一走新入口：
 
 ```bash
-python build/build.py pack --with-cef
-python build/build.py pack --config Debug --out-dir dist
+python3 build/build.py pack --with-cef
+python3 build/build.py pack --config Debug --out-dir dist
 ```
 
 包名为 `nim_duilib-<版本>-<系统>-<架构>[-sdl][-cef|-cef109][-examples][-debug]`，
@@ -111,12 +115,12 @@ python build/build.py pack --config Debug --out-dir dist
 输出与日志放在 `C:\develop\temp\autotest\<时间戳>/`。
 
 ```bash
-python build/autotest.py --preset unit                    # 单元测试
-python build/autotest.py --preset pack-msvc-x64-release   # 用现有产物出包并体检
-python build/autotest.py --preset arm64-synthetic         # 无 arm64 真机时验证包结构
-python build/autotest.py --preset all-ready               # 全部前置条件满足的预设
-python build/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
-python build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
+python3 build/autotest.py --preset unit                    # 单元测试
+python3 build/autotest.py --preset pack-msvc-x64-release   # 用现有产物出包并体检
+python3 build/autotest.py --preset arm64-synthetic         # 无 arm64 真机时验证包结构
+python3 build/autotest.py --preset all-ready               # 全部前置条件满足的预设
+python3 build/autotest.py --preset pack-msvc-x64-release --build  # 先构建再打包
+python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命令
 ```
 
 退出码：0 有预设通过且无失败；1 存在失败；2 全部跳过。`--list-presets` 可查看
@@ -166,11 +170,11 @@ python build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命�
 | 现象 | 处理 |
 | :--- | :--- |
 | `Visual Studio not found` | 安装 VS 2022+ 与 C++ 工作负载，或用 `--vs-version` |
-| `Skia not found` | 先运行 `python build/build.py deps` |
+| `Skia not found` | 先运行 `python3 build/build.py deps` |
 | `gn/ninja not found` | Windows 使用 VS 自带目录；其他平台安装 `ninja`、`gn` |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>` 或 `bin/libcef_linux` 含运行时 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` |
-| 构建目录异常 | `python build/build.py clean` 后重试 |
+| 构建目录异常 | `python3 build/build.py clean` 后重试 |
 
 ## 维护注意事项
 

@@ -234,15 +234,17 @@ The example programs written using this GUI library, demonstrating the display e
 ## Build
 
 Requirements: CMake 3.24+, Python 3, Git, Ninja; on Windows also Visual Studio 2022+
-(or MSYS2 / MinGW-w64); on Linux/macOS/FreeBSD use gcc/clang.
+(or MSYS2 / MinGW-w64); on Linux/macOS/FreeBSD use gcc/clang. macOS, Linux and FreeBSD
+usually only provide the `python3` command, so all examples below use `python3`; on
+Windows you can run `build\build.bat` instead (same arguments).
 
 ### Quick Start
 
 ```bash
-python build/build.py                 # Release: prepare Skia/SDL/CEF on first run, build lib + examples
-python build/build.py --config Debug  # Debug (separate build tree)
-python build/build.py doctor          # environment check
-python build/build.py pack            # build an SDK package
+python3 build/build.py                 # Release: prepare Skia/SDL/CEF on first run, build lib + examples
+python3 build/build.py --config Debug  # Debug (separate build tree)
+python3 build/build.py doctor          # environment check
+python3 build/build.py pack            # build an SDK package
 ```
 
 The build tree is `out/<arch>/<Config>`; libraries go to `lib/<arch>/<Config>`, examples
@@ -253,14 +255,14 @@ for Debug + Release.
 
 | Scenario | Command |
 | :--- | :--- |
-| Just get it running | `python build/build.py` |
-| Use Visual Studio | `python build/build.py deps`, then open `build/examples.sln` |
-| Library only | `python build/build.py build --target duilib` |
-| Build a release package | `python build/build.py pack --with-cef` |
-| Debug build | `python build/build.py --config Debug` |
+| Just get it running | `python3 build/build.py` |
+| Use Visual Studio | `python3 build/build.py deps`, then open `build/examples.sln` |
+| Library only | `python3 build/build.py build --target duilib` |
+| Build a release package | `python3 build/build.py pack --with-cef` |
+| Debug build | `python3 build/build.py --config Debug` |
 | Full options | [build/build-reference.en.md](build/build-reference.en.md) |
 
-On Windows you can also run `build\build.bat` with the same arguments. The legacy
+On Windows, prefer `build\build.bat` (same arguments, no `python3` command needed). The legacy
 per-platform scripts (`build_duilib_all_in_one.*`, `msvc_build.bat`, `linux_build.sh`, ...)
 are archived under `build/legacy/`, no longer part of the build, and will be removed
 after validation on all platforms.

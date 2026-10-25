@@ -55,6 +55,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   still work.
 - Preflight: non-Windows platforms now require a matching `gcc/g++` or `clang/clang++`
   pair; `CC`/`CXX` are honoured when set, otherwise gcc is probed before clang.
+- Dependency preparation: the Skia build scripts invoke `python3` and do not accept
+  `python` / `py -3`, while the preflight accepted either, so the failure only showed
+  up while compiling Skia. The preflight now warns when `python3` is missing, and the
+  Skia build step aborts with an error before compiling.
+- Docs and command examples: macOS/Linux/FreeBSD usually provide only `python3`, so the
+  documented `python build/build.py` failed with "command not found"; examples now use
+  `python3 build/build.py`, and Windows can keep using `build\build.bat` directly.
 - Skia's toolchain is now decoupled from the main build: non-Windows platforms prefer
   `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
   `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or

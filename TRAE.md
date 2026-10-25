@@ -8,10 +8,10 @@
 
 | 事项 | 位置 / 命令 |
 |------|-------------|
-| 首次拉取源码后的依赖库预编译 | `python build/build.py deps`（Windows/Unix 通用） |
+| 首次拉取源码后的依赖库预编译 | `python3 build/build.py deps`（macOS/Linux/FreeBSD；Windows 运行 `build\build.bat deps`） |
 | TRAE 专用 Skill | `.trae\skills\nim-duilib\`（项目级） |
 | 新建窗口骨架 | Skill 的 `assets/templates/`：CMakeLists.txt + MyForm.h + MyForm.cpp + my_form.xml |
-| 改文档后自检 | `python .trae/skills/nim-duilib/scripts/verify_docs.py --repo .` |
+| 改文档后自检 | `python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo .` |
 | 只验证 C++ 语法（不链接） | `cl.exe /Zs ...`（见第 6 节） |
 
 ---
@@ -21,13 +21,13 @@
 新克隆的仓库里**没有**编译好的依赖库（Skia、zlib、libpng、cximage、libwebp 等），直接开工程会报
 找不到库。**只需要在第一次（以及升级 Skia / 切换架构时）做一次**。
 
-### 2.1 统一入口（Windows / Unix 通用）
+### 2.1 统一入口（Windows 用 `build\build.bat`，macOS/Linux/FreeBSD 用 `python3`）
 
 ```bash
-python build/build.py                 # Release：准备依赖 + 编译库与示例
-python build/build.py --config Debug  # Debug
-python build/build.py deps            # 只准备 Skia/SDL3/CEF
-python build/build.py doctor          # 环境自检
+python3 build/build.py                 # Release：准备依赖 + 编译库与示例
+python3 build/build.py --config Debug  # Debug
+python3 build/build.py deps            # 只准备 Skia/SDL3/CEF
+python3 build/build.py doctor          # 环境自检
 ```
 
 - 前置软件：`git`、Python 3、CMake 3.24+、Ninja；Windows 另需 Visual Studio 2022+
@@ -39,7 +39,7 @@ python build/build.py doctor          # 环境自检
 
 ### 2.2 Visual Studio 解决方案
 
-先运行 `python build/build.py deps`，再打开 `build/examples.sln`（或 `duilib.sln`）。
+先运行 `python3 build/build.py deps`，再打开 `build/examples.sln`（或 `duilib.sln`）。
 解决方案使用 `build/build_temp` 与 `build/.vs`，与新入口的 `out/` 互不影响。
 
 ### 2.3 产物与目录
@@ -116,8 +116,8 @@ TRAE 按语义自动触发：提到建窗口/改 XML/加控件/绑事件/主题�
 颜色名是否与源码一致：
 
 ```bash
-python .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
-python .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档.md>
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根>
+python3 .trae/skills/nim-duilib/scripts/verify_docs.py --repo <仓库根> --extra <自己生成的文档.md>
 ```
 
 脚本用 `Path(__file__).parent.parent` 自动定位 Skill 根目录，从任意位置调用均可。

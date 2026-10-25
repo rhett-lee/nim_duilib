@@ -232,15 +232,17 @@
 ## 编译
 
 环境要求：CMake 3.24+、Python 3、Git、Ninja；Windows 另需 Visual Studio 2022+
-（或 MSYS2 / MinGW-w64），Linux/macOS/FreeBSD 使用 gcc/clang。
+（或 MSYS2 / MinGW-w64），Linux/macOS/FreeBSD 使用 gcc/clang。macOS/Linux/FreeBSD
+通常只提供 `python3` 命令，下方示例统一写作 `python3`；Windows 可直接用
+`build\build.bat`（参数相同）。
 
 ### 快速开始
 
 ```bash
-python build/build.py                 # Release：首次自动准备 Skia/SDL/CEF，构建库与示例
-python build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
-python build/build.py doctor          # 环境自检
-python build/build.py pack            # 出 SDK 包
+python3 build/build.py                 # Release：首次自动准备 Skia/SDL/CEF，构建库与示例
+python3 build/build.py --config Debug  # Debug（与 Release 使用不同构建目录）
+python3 build/build.py doctor          # 环境自检
+python3 build/build.py pack            # 出 SDK 包
 ```
 
 构建目录为 `out/<arch>/<Config>`，库输出到 `lib/<arch>/<Config>`，示例程序与运行时
@@ -250,16 +252,16 @@ python build/build.py pack            # 出 SDK 包
 
 | 场景 | 做法 |
 | :--- | :--- |
-| 只想跑起来 | `python build/build.py` |
-| 用 Visual Studio | 先 `python build/build.py deps`，再打开 `build/examples.sln` |
-| 只编库 | `python build/build.py build --target duilib` |
-| 出发布包 | `python build/build.py pack --with-cef` |
-| Debug 构建 | `python build/build.py --config Debug` |
+| 只想跑起来 | `python3 build/build.py` |
+| 用 Visual Studio | 先 `python3 build/build.py deps`，再打开 `build/examples.sln` |
+| 只编库 | `python3 build/build.py build --target duilib` |
+| 出发布包 | `python3 build/build.py pack --with-cef` |
+| Debug 构建 | `python3 build/build.py --config Debug` |
 | 完整参数 | 见 [build/build-reference.md](build/build-reference.md) / [build-reference.en.md](build/build-reference.en.md) |
 
-Windows 也可以直接运行 `build\build.bat`（参数与 `build.py` 相同）。旧的分平台
-脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）已归档到
-`build/legacy/`，不再参与构建，将在全平台验证后移除。
+Windows 推荐直接运行 `build\build.bat`（参数与 `build.py` 相同，无需 `python3` 命令）。
+旧的分平台脚本（`build_duilib_all_in_one.*`、`msvc_build.bat`、`linux_build.sh` 等）
+已归档到 `build/legacy/`，不再参与构建，将在全平台验证后移除。
 
 ### 前置依赖与平台差异
 

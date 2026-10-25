@@ -12,7 +12,9 @@
 `build/pack.py` 统一收集与校验，比在根工程里维护一套 `install()` 规则更可控。
 根工程因此**不提供** `install()`，SDK 只由 `pack.py` 产出。
 
-构建统一走 `python build/build.py`（旧的 `msvc_build.bat`、`linux_build.sh` 等已废弃）。
+构建统一走 `python3 build/build.py`（旧的 `msvc_build.bat`、`linux_build.sh` 等已废弃）。
+macOS/Linux/FreeBSD 通常没有 `python` 命令；Windows 上可将命令中的 `python3` 换成
+`python`，`build.py` 也可直接运行 `build\build.bat`。
 `pack.py` 只读取 `--config` 选中的一个库目录，不再合并候选目录或按优先级猜测。
 
 | 平台 | 库目录 |
@@ -28,8 +30,8 @@
 打包前必须先完成对应配置的编译，脚本不会触发编译：
 
 ```
-# 推荐（Windows / Unix 通用）
-python build/build.py --config Release
+# 推荐（macOS/Linux/FreeBSD 用 python3；Windows 可运行 build\build.bat）
+python3 build/build.py --config Release
 
 # 也可以先打开 Visual Studio 解决方案（先运行 build.py deps）
 build\duilib.sln      # 配置选 Release 或 Debug，平台按需
@@ -39,13 +41,13 @@ build\duilib.sln      # 配置选 Release 或 Debug，平台按需
 
 ```
 # 只打 SDK（推荐，默认 Release）
-python build/pack.py
+python3 build/pack.py
 
 # Debug SDK（包名带 -debug）
-python build/pack.py --config Debug
+python3 build/pack.py --config Debug
 
 # SDK + 示例程序
-python build/pack.py --with-examples
+python3 build/pack.py --with-examples
 ```
 
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `build/release.py package`
@@ -463,11 +465,11 @@ Get-FileHash -Algorithm SHA256 .\nim_duilib-<版本>-win-x64.zip
 
 ```powershell
 $env:SOURCE_DATE_EPOCH = 1700000000
-python build/release.py package --config Release --arch x64
+python3 build/release.py package --config Release --arch x64
 ```
 
 ```bash
-SOURCE_DATE_EPOCH=1700000000 python build/release.py package --config Release --arch x64
+SOURCE_DATE_EPOCH=1700000000 python3 build/release.py package --config Release --arch x64
 ```
 
 未设置时：普通条目取源文件 mtime，生成文件与 gzip 头取收集产物中的最新 mtime，
@@ -682,14 +684,14 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 2. 预检：
 
    ```
-   python build/release.py check
+   python3 build/release.py check
    ```
 
 3. 打包（先 `--dry-run` 核对命令与包名）：
 
    ```
-   python build/release.py package --config Release --arch x64 --dry-run
-   python build/release.py package --config Release --arch x64
+   python3 build/release.py package --config Release --arch x64 --dry-run
+   python3 build/release.py package --config Release --arch x64
    ```
 
    产物输出到 `dist/<版本>/`；其它特性包按需追加 `--with-sdl`、`--with-cef`、
@@ -697,7 +699,7 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 4. 校验全部压缩包并生成发布说明：
 
    ```
-   python build/release.py finalize
+   python3 build/release.py finalize
    ```
 
    校验 SHA256、必备文件与包内文档链接，生成 `SHA256SUMS.txt`、
@@ -713,7 +715,7 @@ git tag 建议用 `v<版本号>` 格式，便于与包名对应。
 6. 上传 `dist/<版本>/` 下的产物；历史产物用 `release.py clean --list` 查看，
    删除需显式 `--version <旧版本> --yes`（脚本拒绝删除当前版本）。
 
-仍可直接执行 `python build/pack.py`，但不会做发布预检与产物校验。
+仍可直接执行 `python3 build/pack.py`，但不会做发布预检与产物校验。
 
 ## 签名与公证
 
@@ -758,14 +760,16 @@ gpg --detach-sign --armor dist/<版本>/nim_duilib-<版本>-<系统>-<架构>[-�
 | 平台 | 默认格式 | 状态 |
 | :--- | :--- | :--- |
 | Windows | `zip` | 已实测 |
-| Linux | `tgz` | 脚本同构，产物未在本机验证 |
+| Linux | `tgz` | 已实测（x64 Release；默认 SDK、`--with-cef`、`--with-examples`） |
 | macOS | `tgz` | 脚本同构，产物未在本机验证 |
-| FreeBSD | `tgz` | 脚本同构，产物未在本机验证 |
+| FreeBSD | `tgz` | 已实测（x64 Release；默认 SDK、`--with-examples`；不支持 CEF） |
 
 打包脚本本身跨平台（纯标准库，无外部依赖），四平台共用同一份代码。
 Windows 的 `.lib` 与 Unix 的 `.a` 均按目录白名单收集；Unix 的 `lib` 前缀
-会自动归一化（如 `libduilib-zlib.a` → `duilib-zlib`）。但**产物正确性目前
-只有 Windows 被实测过**，其它平台首次打包后仍需核对库清单。
+会自动归一化（如 `libduilib-zlib.a` → `duilib-zlib`）。目前 Windows（各工具链
+组合）以及 Linux、FreeBSD（x64 Release）的产物已实测；Linux/FreeBSD 尚未覆盖 Debug
+配置与解包后示例启动运行。FreeBSD 不支持 CEF，`--with-cef` 会直接报错。
+macOS 首次打包后仍需核对库清单。
 
 ## 相关文档
 

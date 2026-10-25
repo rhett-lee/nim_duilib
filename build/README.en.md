@@ -22,14 +22,19 @@ and troubleshooting, see [build-reference.en.md](build-reference.en.md)
 | `README.md` / `README.en.md` | this document |
 
 The legacy per-platform scripts are archived under `legacy/` (not part of the
-build, to be deleted after full-platform verification); use `python build/build.py`.
+build, to be deleted after full-platform verification; Windows, Linux and FreeBSD
+are verified, macOS pending); use `python3 build/build.py`.
 
 ## Prerequisites
 
-- CMake 3.24+, Python 3 (required), Git, Ninja.
-- Windows: Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64.
-- Linux/macOS/FreeBSD: gcc 10+/clang 12+, plus font/GL/X11 development packages.
-- Run `python build/build.py deps` once to prepare Skia/SDL3/CEF.
+- CMake 3.24+, Python 3 (required; the command is `python3` on Unix), Git, Ninja.
+- Windows: Visual Studio 2022+ with the C++ workload, or MSYS2 / MinGW-w64; you can run
+  `build\build.bat` directly (same arguments, no `python3` command needed).
+- Linux/macOS/FreeBSD: gcc 10+/clang 12+, plus font/GL/X11 development packages; these
+  systems usually provide only `python3`, not `python`.
+- Run `python3 build/build.py deps` once to prepare Skia/SDL3/CEF.
+- On Windows, replace `python3` with `python` in the commands below; the `build.py`
+  entry point can also be run as `build\build.bat`.
 
 Per-platform package lists and version requirements are in
 [build-reference.en.md](build-reference.en.md), sections 1 and 8.
@@ -39,7 +44,7 @@ Per-platform package lists and version requirements are in
 Solutions do not prepare dependencies automatically; run this first:
 
 ```bash
-python build/build.py deps
+python3 build/build.py deps
 ```
 
 - `duilib.sln` / `examples.sln`: CEF enabled.
@@ -59,8 +64,8 @@ python build/build.py deps
 | `cef_cache/`, `webview2_cache/` | CEF / WebView2 network caches | yes |
 
 ```bash
-python build/build.py clean          # remove the whole out/
-python build/build.py clean --deps   # also remove dependency artifacts
+python3 build/build.py clean          # remove the whole out/
+python3 build/build.py clean --deps   # also remove dependency artifacts
 ```
 
 ## Packaging
@@ -70,24 +75,24 @@ SDKs are produced only by `pack.py`; the root CMake project has no `install()` t
 and artifacts, but never commits, tags or pushes.
 
 ```bash
-python build/pack.py                    # Release SDK
-python build/pack.py --config Debug     # Debug SDK (name has -debug)
-python build/pack.py --with-examples    # include examples
-python build/pack.py --list             # only list collected files
-python build/pack.py --msvc-runtime md  # MSVC dynamic runtime (auto: md for DLL builds, otherwise mt)
-python build/pack.py --allow-missing    # debug only: keep going when key artifacts are missing
+python3 build/pack.py                    # Release SDK
+python3 build/pack.py --config Debug     # Debug SDK (name has -debug)
+python3 build/pack.py --with-examples    # include examples
+python3 build/pack.py --list             # only list collected files
+python3 build/pack.py --msvc-runtime md  # MSVC dynamic runtime (auto: md for DLL builds, otherwise mt)
+python3 build/pack.py --allow-missing    # debug only: keep going when key artifacts are missing
 
-python build/release.py check
-python build/release.py package --config Release --arch x64 --dry-run
-python build/release.py finalize
-python build/release.py clean --list
+python3 build/release.py check
+python3 build/release.py package --config Release --arch x64 --dry-run
+python3 build/release.py finalize
+python3 build/release.py clean --list
 ```
 
 Or use the unified entry:
 
 ```bash
-python build/build.py pack --with-cef
-python build/build.py pack --config Debug --out-dir dist
+python3 build/build.py pack --with-cef
+python3 build/build.py pack --config Debug --out-dir dist
 ```
 
 Package name: `nim_duilib-<version>-<system>-<arch>[-sdl][-cef|-cef109][-examples][-debug]`.
@@ -103,12 +108,12 @@ write the repository's `bin/`, `lib/` or `dist/`, and stores output under
 `C:\develop\temp\autotest\<timestamp>/`.
 
 ```bash
-python build/autotest.py --preset unit
-python build/autotest.py --preset pack-msvc-x64-release
-python build/autotest.py --preset arm64-synthetic
-python build/autotest.py --preset all-ready
-python build/autotest.py --preset pack-msvc-x64-release --build
-python build/autotest.py --preset arm64-synthetic --dry-run
+python3 build/autotest.py --preset unit
+python3 build/autotest.py --preset pack-msvc-x64-release
+python3 build/autotest.py --preset arm64-synthetic
+python3 build/autotest.py --preset all-ready
+python3 build/autotest.py --preset pack-msvc-x64-release --build
+python3 build/autotest.py --preset arm64-synthetic --dry-run
 ```
 
 Exit codes: 0 some preset passed and none failed; 1 a failure; 2 all skipped.
@@ -165,11 +170,11 @@ See [docs/Release.en.md](../docs/Release.en.md) for the complete guide.
 | Symptom | Action |
 | :--- | :--- |
 | `Visual Studio not found` | install VS 2022+ with the C++ workload, or pass `--vs-version` |
-| `Skia not found` | run `python build/build.py deps` first |
+| `Skia not found` | run `python3 build/build.py deps` first |
 | `gn/ninja not found` | use VS's bundled tools on Windows; install `ninja`/`gn` elsewhere |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` or `bin/libcef_linux` has the runtime |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
-| Broken build tree | `python build/build.py clean` and retry |
+| Broken build tree | `python3 build/build.py clean` and retry |
 
 ## Maintenance notes
 
