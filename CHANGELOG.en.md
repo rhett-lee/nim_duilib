@@ -65,6 +65,13 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Dependency preparation (macOS): `SDL3 build failed` was reported even after a successful
   SDL3 build and install; the readiness check only accepted `libSDL3.so`, while macOS
   installs `libSDL3.dylib`. macOS is now checked for the dylib.
+- CEF examples (macOS): the Helper sub-targets did not receive duilib's include/link
+  directories, so compilation failed with `fatal error: 'duilib/duilib.h' file not
+  found`; Helpers now use the same directory settings and link dependencies as the
+  main target.
+- Root CMake project (macOS): the CEF wrapper (`libcef_dll_wrapper`) was not built even
+  though the CEF examples link against it; macOS now builds the wrapper as well, with
+  output in `lib/<Config>`.
 - Skia's toolchain is now decoupled from the main build: non-Windows platforms prefer
   `clang/clang++` (GCC-built Skia performs noticeably worse) and only fall back to
   `gcc/g++` when clang is missing; artifacts land in `out/llvm.<arch>.release` or

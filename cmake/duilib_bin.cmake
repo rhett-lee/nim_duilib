@@ -45,11 +45,16 @@ if(DUILIB_SRC_SUB_DIRS)
 endif()
 
 # 把上面收集的include/link目录应用到已创建的可执行目标上（CM-17）
-# 需在各平台的 add_executable() 之后调用
+# 需在各平台的 add_executable() 之后调用；不带参数时作用于 ${PROJECT_NAME}，
+# 传入目标名时作用于该目标（如 macOS 的 CEF Helper 子目标）。
 function(duilib_apply_target_directories)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_INCLUDE_DIRS})
+    set(_duilib_target "${PROJECT_NAME}")
+    if(ARGC GREATER 0 AND NOT "${ARGV0}" STREQUAL "")
+        set(_duilib_target "${ARGV0}")
+    endif()
+    target_include_directories(${_duilib_target} PRIVATE ${DUILIB_TARGET_INCLUDE_DIRS})
     if(DUILIB_TARGET_LINK_DIRS)
-        target_link_directories(${PROJECT_NAME} PRIVATE ${DUILIB_TARGET_LINK_DIRS})
+        target_link_directories(${_duilib_target} PRIVATE ${DUILIB_TARGET_LINK_DIRS})
     endif()
 endfunction()
 

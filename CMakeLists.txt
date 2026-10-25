@@ -98,6 +98,9 @@ if(DUILIB_ENABLE_CEF)
         add_subdirectory(duilib/third_party/libcef/libcef_win)
     elseif(DUILIB_OS_LINUX AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/libcef_linux/CMakeLists.txt")
         add_subdirectory(duilib/third_party/libcef/libcef_linux)
+    elseif(DUILIB_OS_MACOS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/duilib/third_party/libcef/libcef_macos/CMakeLists.txt")
+        # macOS 的 wrapper 同样需要随工程编译（产物输出到 lib/<Config>）
+        add_subdirectory(duilib/third_party/libcef/libcef_macos)
     endif()
 endif()
 

@@ -148,8 +148,16 @@ if(OS_MAC)
 
         # Create Helper executable target.
         add_executable(${_helper_target} MACOSX_BUNDLE ${CEF_PROJECT_HELPER_SRCS})
+        # Helper 的源码同样包含 duilib/CEF 头文件，需要与主目标相同的 include/link 目录
+        duilib_apply_target_directories("${_helper_target}")
         SET_EXECUTABLE_TARGET_PROPERTIES(${_helper_target})
-        target_link_libraries(${_helper_target} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
+        # Helper 也会从 duilib 静态库中拉取 CEF/UI 相关实现，链接依赖需与主目标一致
+        target_link_libraries(${_helper_target}
+                              ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS}
+                              ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} ${DUILIB_MACOS_LIBS}
+                              ${CEF_STANDARD_LIBS}
+                              "-framework AppKit" "-framework Foundation" "-framework Metal"
+                              )
         set_target_properties(${_helper_target} PROPERTIES
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})

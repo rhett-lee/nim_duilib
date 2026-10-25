@@ -55,6 +55,11 @@
   `python3 build/build.py`，Windows 仍可直接运行 `build\build.bat`。
 - 依赖准备（macOS）：SDL3 已成功编译安装后仍报 `SDL3 build failed`；就绪检查只认
   `libSDL3.so`，而 macOS 的安装产物是 `libSDL3.dylib`。现在 macOS 平台按 dylib 判断。
+- CEF 示例（macOS）：各 Helper 子目标未应用 duilib 的 include/link 目录，编译时报
+  `fatal error: 'duilib/duilib.h' file not found`；现在 Helper 目标与主目标使用相同的
+  目录设置和链接依赖。
+- 根 CMake 工程（macOS）：CEF wrapper（`libcef_dll_wrapper`）未随工程编译，而 CEF 示例
+  链接时需要它；现在 macOS 也会构建 wrapper，产物输出到 `lib/<Config>`。
 - Skia 编译工具链与主工程解耦：非 Windows 平台优先使用 `clang/clang++`（GCC 版 Skia
   运行性能明显较差），仅当 clang 不可用时回退 `gcc/g++`；构建产物目录相应为
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。
