@@ -312,7 +312,7 @@
   运行时文件；x86 latest 233 个，且不含任何 `.lib`）；示例程序尚未构建，运行验证待补。
   Linux 侧由 `test_pack.py` 的 `CefLinuxPackagingTest` 覆盖收集、元数据、MANIFEST
   与拒绝场景（5 个用例），真机出包与运行验证待补；macOS 手动部署流程见
-  `docs/Release.md` 的“macOS：手动部署 CEF 运行时”。
+  `docs/Release.md` 的“macOS：下游手动配置 CEF”。
 
 #### P1-4 WebView2 运行时说明
 
@@ -405,9 +405,11 @@
   识别 ARM64；`SkiaSettings.props` 补 `llvm.arm64.release/debug` 与
   `.md/.mdd` 目录。`arm64-synthetic` 预设用临时假库产出 arm64 包并通过
   `--verify` 与结构断言（三份 manifest、arm64 架构、CMake config）。
-- 支持范围：接入文件与包结构**已就绪**；**未在 arm64 真机上做编译、打包、
-  运行验证**（无测试设备）；CEF 与 libjpeg-turbo 上游无 Windows arm64 预编译包，
-  `--with-cef --arch arm64` 明确报错，JPEG 告警跳过。
+- 支持范围：接入文件与包结构**已就绪**；libjpeg-turbo 的 Windows arm64 预编译库
+  已入库（`libjpeg-turbo6-win-vc-arm64`），`pack.py` 与 `JpegTurboSettings.props`
+  已接入，arm64 包随包 `lib/turbojpeg-static.lib`；**未在 arm64 真机上做编译、
+  打包、运行验证**（无测试设备）；CEF 上游无 Windows arm64 预编译包，
+  `--with-cef --arch arm64` 明确报错。
 - 验收：文档已明确“支持范围 + 未验证项”；发布矩阵中 arm64 仍标记为
   “结构就绪、待真机验证”，不得声称已通过运行验证。
 
@@ -471,4 +473,5 @@
 | 2026-10-24 | P2-4 arm64 接入：新增 `msvc/manifest/duilib.arm64.manifest`；`pack.py` 的 Windows 包收集 x64/x86/arm64 三份 manifest，并对 `bin/*.dll` 做 PE 架构校验（交叉出包时跳过不匹配 DLL）；`nim_duilib.props`/`nim_duilibConfig.cmake`/`duilib_common.cmake`/`SkiaSettings.props` 增加 ARM64 识别与目录映射；`arm64-synthetic` 预设用临时假库出包并通过 `--verify` 与结构断言。arm64 真机编译/运行验证未做（无设备），CEF/JPEG 无 arm64 预编译包 |
 | 2026-10-25 | P0-2 改为实施：`pack.py` 增加关键产物缺失阻断（核心头文件、`bin/resources/`、Windows manifest、显式请求的 SDL3 运行期 DLL / CEF 运行时 / 示例程序；基础库与 Skia 原本已失败），以退出码 1 拒绝出包；新增 `--allow-missing` 仅供排查降级，`--list` 不受影响。`test_pack.py` 增至 39 个用例，覆盖各关键项缺失、降级与真实仓库无缺失；`unit`、`arm64-synthetic` 与 `pack-msvc-x64-release` 预设复测通过 |
 | 2026-10-25 | P1-3 Linux 已接入：`collect_cef` 收集 `bin/libcef_linux/` 运行时与头文件，`libcef.so` 不进 `lib/`，CMake 按绝对路径链接；`--cef-version 109` 仅 Windows；`test_pack.py` 新增 5 个 Linux CEF 用例（共 44 个），`test_autotest.py` 17 个通过 |
-| 2026-10-25 | macOS CEF 文档补齐：`docs/Release.md` 与 `Release.en.md` 新增“手动部署 CEF 运行时”（CEF_ROOT、`MACOSX_BUNDLE`、`COPY_MAC_FRAMEWORK`、Helper、目录结构、签名顺序与 entitlements） |
+| 2026-10-25 | macOS CEF 文档补齐：`docs/Release.md` 与 `Release.en.md` 新增“macOS：下游手动配置 CEF”（CEF_ROOT 与分发包准备、构建命令、`MACOSX_BUNDLE`/`COPY_MAC_FRAMEWORK`/Helper/sandbox、`Contents/Resources/duilib` 资源布局、成品结构、签名公证与自检命令、常见问题表） |
+| 2026-10-25 | arm64 libjpeg-turbo 接入：上游 arm64 预编译库入库后，`collect_jpeg_turbo()` 收集 `libjpeg-turbo6-win-vc-arm64/lib/turbojpeg-static.lib`，`JpegTurboSettings.props` 增加 ARM64 的 include/lib 目录；MANIFEST 的 arm64 说明改为仅 CEF 缺席，测试与 README/Checklist 同步；真机编译/运行验证仍未做 |

@@ -615,9 +615,9 @@ Exit codes: 0 when at least one preset passed and none failed; 1 on failure;
 writes `report.json` and `autotest.log`.
 
 arm64 scope: integration files (manifest / props / CMake config) and package
-layout are ready, but **no compile/package/run verification was performed on
-real arm64 hardware**; CEF and libjpeg-turbo have no Windows arm64 prebuilt
-packages and are not included.
+layout are ready, and libjpeg-turbo now ships a prebuilt arm64 library with the
+package, but **no compile/package/run verification was performed on real arm64
+hardware**; CEF has no Windows arm64 prebuilt package and is not included.
 
 Running `pack.py` directly writes to `dist/`; `release.py package` always writes
 to `dist/<version>/` (`dist/` is already in .gitignore). Package names are

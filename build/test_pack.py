@@ -320,17 +320,25 @@ class Arm64SupportTest(_TempDirTest):
             pack.SKIA_SRC_ROOT = old_root
             pack.is_windows_host = old_win
 
-    def test_jpeg_arm64_is_skipped_with_warning(self):
+    def test_jpeg_arm64_is_collected(self):
         old_win = pack.is_windows_host
+        old_dir = pack.JPEG_TURBO_DIR
         try:
             pack.is_windows_host = lambda: True
+            pack.JPEG_TURBO_DIR = self.tmp
+            self._touch('libjpeg-turbo6-win-vc-arm64/lib/turbojpeg-static.lib')
             collector = pack.Collector()
             self.assertEqual(
-                pack.collect_jpeg_turbo(collector, 'arm64', 'msvc'), 0)
-            self.assertEqual(collector.items, [])
-            self.assertTrue(any('arm64' in msg for msg in collector.warnings))
+                pack.collect_jpeg_turbo(collector, 'arm64', 'msvc'), 1)
+            self.assertEqual([rel for rel, _abs in collector.items],
+                             ['lib/turbojpeg-static.lib'])
+            self.assertEqual(collector.warnings, [])
+            # MinGW 仍不收集（MSVC 静态库无法链接）。
+            self.assertEqual(
+                pack.collect_jpeg_turbo(pack.Collector(), 'arm64', 'mingw'), 0)
         finally:
             pack.is_windows_host = old_win
+            pack.JPEG_TURBO_DIR = old_dir
 
     def test_cef_arm64_is_rejected(self):
         old_win = pack.is_windows_host
@@ -355,7 +363,7 @@ class Arm64SupportTest(_TempDirTest):
         self.assertIn('平台      : win-arm64', text)
         self.assertIn('arm64 说明', text)
         self.assertIn('未在 arm64 真机上做编译、打包、运行验证', text)
-        self.assertIn('CEF 与 libjpeg-turbo', text)
+        self.assertIn('CEF 上游没有 Windows arm64 预编译包', text)
 
     def test_manifest_time_is_deterministic(self):
         collector = self._collector()

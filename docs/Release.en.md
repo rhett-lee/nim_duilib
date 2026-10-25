@@ -551,8 +551,9 @@ the CEF runtime:
 - `libcef.lib` and `cef_sandbox.lib` inside the runtime directory are not
   packaged (the former is already provided in `lib/`; the latter is unused by
   this project and very large);
-- macOS ships its runtime as an embedded `.app` Framework, so the SDK package
-  does not collect it automatically (`--with-cef` fails on macOS); see below.
+- macOS ships CEF as an embedded `.app` Framework, so the SDK package collects
+  neither development files nor the runtime (`--with-cef` fails on macOS); see
+  the downstream setup section below.
 
 The runtime is loaded from "executable directory + `libcef_win[/_109]/<arch>`"
 (`CefManager::AddCefDllToPath`), so with `--with-examples` the `cef` and
@@ -565,47 +566,135 @@ When the runtime directory is missing, packaging only warns and still
 succeeds; `MANIFEST.txt` then states that the CEF runtime is not included and
 that CEF examples cannot run directly.
 
-### macOS: deploying the CEF runtime manually
+### macOS: configuring CEF downstream
 
-The SDK package contains no macOS CEF runtime (`--with-cef` exits with an error
-on macOS), so downstream projects deploy it following the official `.app`
-layout:
+On macOS the CEF runtime ships as a Framework embedded in the `.app` and cannot
+be placed in `bin/` like Windows/Linux. The SDK package therefore includes
+neither macOS CEF development files nor the runtime (`--with-cef` exits with an
+error on macOS). To use CEF on macOS, build from the source tree:
+`cmake/duilib_cef_macos.cmake` wraps the wrapper build, framework copy, Helpers
+and resource copying. The SDK's CMake integration does not link CEF on macOS,
+so the SDK package alone cannot enable CEF.
 
-1. Download the CEF binary distribution matching the target architecture and
-   point `-DCEF_ROOT=<cef_binary root>` (or the `CEF_ROOT` environment
-   variable) at it. The repository's `cmake/duilib_cef_macos.cmake` relies on
-   `cmake/FindCEF.cmake` and
-   `Release/Chromium Embedded Framework.framework` in that directory.
-2. The downstream target must be a `MACOSX_BUNDLE` (see
-   `examples/cef/CMakeLists.txt`). `COPY_MAC_FRAMEWORK(<target>
-   <CEF_BINARY_DIR> <app>)` copies `Chromium Embedded Framework.framework`
-   into `<app>/Contents/Frameworks/` and creates the version symlinks inside
-   the framework; `<App> Helper.app`, `Helper (GPU)`, `Helper (Renderer)` and
-   `Helper (Plugin)` are placed in `Contents/Frameworks/` as well.
-3. Final layout (all required):
+#### 1. Prepare the CEF binary distribution
 
-   ```
-   MyApp.app/Contents/
-     MacOS/MyApp
-     Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources (icudtl.dat, *.pak)
-     Frameworks/MyApp Helper.app/
-     Frameworks/MyApp Helper (GPU).app/
-     Frameworks/MyApp Helper (Renderer).app/
-     Frameworks/MyApp Helper (Plugin).app/
-     Resources/                                          # duilib theme, language and font resources
-   ```
+- Download the CEF binary distribution matching the target architecture
+  (x64 or arm64; do not mix), and make sure its version matches the wrapper
+  sources in `duilib/third_party/libcef/libcef_macos`;
+- `CEF_ROOT` points at the distribution root (containing
+  `Release/Chromium Embedded Framework.framework`, `Resources/`,
+  `cmake/FindCEF.cmake`, `include/`, `libcef_dll/`). Resolution order:
+  `-DCEF_ROOT=...` > `CEF_ROOT` environment variable > the `cef_binary/`
+  directory next to the source tree;
+- Do not confuse it with `duilib/third_party/libcef/libcef_macos`, which only
+  holds `cmake/include/libcef_dll` for building `libcef_dll_wrapper` and has no
+  runtime Framework or `Resources/`.
 
-4. Do not split the framework or move it into `Contents/MacOS/` at runtime.
-   duilib's own `resources/` sits next to the executable as on Windows
-   (`Contents/MacOS/resources/`; follow the program's own path lookup).
-5. Before distribution, sign from the inside out and enable the hardened
-   runtime: Helpers → framework (including nested binaries) → main app. Add
+#### 2. Build commands
+
+```
+# Build inside the repository (examples/cef shown)
+cd examples/cef
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+      -DCEF_ROOT=<cef_binary root>
+cmake --build build
+```
+
+`DUILIB_ENABLE_CEF` defaults to `ON` on CEF-capable platforms and is set
+explicitly by `examples/cef` and `examples/CefBrowser`. Downstream projects must
+set it in their own `CMakeLists.txt` before including
+`.../cmake/duilib_common.cmake`, and follow the same
+`cmake/duilib_bin_macos.cmake` → `duilib_cef_macos.cmake` path.
+
+#### 3. Required target configuration
+
+1. The main executable must be a `MACOSX_BUNDLE` with an `Info.plist`
+   (`CFBundleIdentifier` must be globally unique; `CFBundleExecutable` must
+   match the target name).
+2. `COPY_MAC_FRAMEWORK(<target> <CEF_BINARY_DIR> <app>)` must copy
+   `Chromium Embedded Framework.framework` into `<app>/Contents/Frameworks/` and
+   create the version symlinks inside the framework.
+3. Sub-process Helpers are mandatory: the `<App>_Helper` target compiles
+   `mac/process_helper_mac.cc` (with
+   `CefScopedLibraryLoader::LoadInHelper()` and optionally
+   `CefScopedSandboxContext`). Its products are `<App> Helper.app`,
+   `Helper (GPU)`, `Helper (Renderer)` and `Helper (Plugin)`, all under
+   `Contents/Frameworks/`.
+4. The main process must call `CefScopedLibraryLoader::LoadInMain()` before
+   initializing CEF (sandbox builds must not link libcef directly). Keep the
+   helper names in sync with `CEF_HELPER_APP_SUFFIXES`, otherwise CEF
+   sub-processes cannot start.
+5. The sandbox is enabled by default (`CEF_USE_SANDBOX`); to disable it, pass
+   `-DUSE_SANDBOX=OFF` at configure time and adjust the Helpers and
+   entitlements accordingly.
+
+#### 4. Resource directory
+
+For CEF apps the resource root comes from
+`GlobalManager::GetResourceRootPath(true)`: when
+`<app>/Contents/Resources/duilib/` exists it is used as the root, with themes
+under `themes/default/<DUILIB_THEME_DIR_NAME>` and languages/fonts under
+`lang/` and `fonts/`. `duilib_cef_macos.cmake` already copies it this way:
+
+```
+MyApp.app/Contents/Resources/duilib/
+  themes/default/public/
+  themes/default/<theme dir name>/
+  themes/default/global.xml
+  lang/
+  fonts/
+```
+
+Non-CEF or non-bundle macOS programs use `GetResourceRootPath(false)` and keep
+`resources/` next to the executable.
+
+#### 5. Final layout (all required)
+
+```
+MyApp.app/Contents/
+  MacOS/MyApp
+  Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources (icudtl.dat, *.pak)
+  Frameworks/MyApp Helper.app/
+  Frameworks/MyApp Helper (GPU).app/
+  Frameworks/MyApp Helper (Renderer).app/
+  Frameworks/MyApp Helper (Plugin).app/
+  Resources/duilib/                                   # theme, language and font resources
+```
+
+Do not split the framework or move it into `Contents/MacOS/` at runtime; the
+`@rpath` and framework location are guaranteed by `COPY_MAC_FRAMEWORK`, and any
+manual move requires re-signing.
+
+#### 6. Signing, notarization and verification
+
+1. Sign from the inside out with the hardened runtime: Helpers → framework
+   (including nested binaries) → main app. Add
    `com.apple.security.cs.allow-jit`,
    `com.apple.security.cs.disable-library-validation` and similar entitlements
    when JIT or third-party frameworks are involved (see "Signing and
    notarization / macOS").
-6. Gatekeeper refuses to launch an unsigned or incompletely signed `.app`; for
+2. Gatekeeper refuses to launch an unsigned or incompletely signed `.app`; for
    local testing use `codesign --deep --force --sign - MyApp.app`.
+3. Pre-release checks:
+
+   ```
+   codesign --verify --deep --strict --verbose=2 MyApp.app
+   codesign -dv --verbose=4 MyApp.app          # signature, entitlements, runtime
+   spctl -a -vv MyApp.app                      # Gatekeeper (after notarization)
+   otool -L "MyApp.app/Contents/MacOS/MyApp"   # no absolute-path leftovers
+   ```
+
+#### 7. Troubleshooting
+
+| Symptom | Cause | Fix |
+| :--- | :--- | :--- |
+| Exits immediately, no window | Missing Helpers or names not matching the app | Check `Contents/Frameworks/* Helper*.app`; `CFBundleExecutable` must be `"<App> Helper"` |
+| Blank page / page never loads | Framework missing or moved | Use `COPY_MAC_FRAMEWORK`; keep it in `Contents/Frameworks/` |
+| `libcef.dylib` fails to load | Main process links libcef directly, or bundle ids mismatch | Use `CefScopedLibraryLoader::LoadInMain()`; share a bundle-id prefix between framework and Helpers |
+| Empty window or crash in `CefInitialize` | Sandbox not initialized / incomplete helper args | Keep the sandbox init from `process_helper_mac.cc`, or switch consistently to `USE_SANDBOX=OFF` |
+| Theme or fonts not found | Resources not under `Contents/Resources/duilib/` | Check `DUILIB_THEME_DIR_NAME` and the copy destination |
+| "Cannot be opened because the developer cannot be verified" | Unsigned / not notarized | Sign and notarize per section 6, or ad-hoc sign for local tests |
+| Crash on Apple Silicon | CEF distribution does not match the target architecture | Use an arm64 distribution (or an x64 one with Rosetta throughout) |
 
 ## WebView2 runtime
 

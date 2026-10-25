@@ -594,8 +594,8 @@ python build/autotest.py --preset arm64-synthetic --dry-run
 可查看预设与前置条件；报告写入 `report.json`，完整命令输出写入 `autotest.log`。
 
 `arm64` 支持范围：接入文件（manifest / props / CMake config）与包结构已就绪，
-但**未在 arm64 真机上做编译、打包、运行验证**；CEF 与 libjpeg-turbo 上游没有
-Windows arm64 预编译包，arm64 包不包含这两项。
+libjpeg-turbo 已提供 arm64 预编译库并随包；但**未在 arm64 真机上做编译、打包、
+运行验证**；CEF 上游没有 Windows arm64 预编译包，arm64 包不包含 CEF。
 
 直接运行 `pack.py` 时产物输出到 `dist/`；通过 `release.py package` 时固定输出到
 `dist/<版本>/`（`dist/` 已在 .gitignore 中）。包名为
@@ -685,7 +685,7 @@ nim_duilib_copy_runtime(my_app)
   Linux 运行时按扁平 `bin/libcef_linux/` 结构随包（`libcef.so` 不重复进 `lib/`，
   链接用 `-L<SDK>/bin/libcef_linux -lcef -lcef_dll_wrapper`）；
   `--cef-version 109` 仅 Windows。macOS 不自动收集 CEF 运行时，由下游手动部署
-  `.app`（见 [docs/Release.md](../docs/Release.md#macos手动部署-cef-运行时)）。
+  `.app`（见 [docs/Release.md](../docs/Release.md#macos下游手动配置-cef)）。
 - 归档权限与符号链接：tar 按源权限写条目（保留可执行/setuid），zip 用
   `S_IFLNK` 条目保存符号链接；`.so` 链接链与示例程序可执行位在解包后保留，
   符号链接不计入 `SHA256SUMS`。

@@ -494,7 +494,8 @@ CEF 开发文件（头文件、`libcef.lib`/wrapper）仅在 `--with-cef` 时随
   复制到可执行文件同级；
 - 运行时目录中的 `libcef.lib` 与 `cef_sandbox.lib` 不随包（前者已在 `lib/` 提供，
   后者本项目不使用沙箱且体积很大）；
-- macOS 的运行时以 `.app` 内嵌 Framework 提供，SDK 包不自动收集，见下节。
+- macOS 的 CEF 开发文件与运行时都不随包（运行时以 `.app` 内嵌 Framework
+  提供），下游按下一节手动配置。
 
 包内运行时按“可执行文件目录 + `libcef_win[/_109]/<架构>`”被加载
 （`CefManager::AddCefDllToPath`），因此 `--with-examples` 时 `bin` 下的
@@ -505,43 +506,122 @@ Linux 程序把 `bin/libcef_linux/` 的内容复制到可执行文件同级，�
 仓库中缺少对应运行时目录时脚本只告警、不阻断出包，`MANIFEST.txt` 会注明
 CEF 运行时未随包、相关示例不能直接运行。
 
-### macOS：手动部署 CEF 运行时
+### macOS：下游手动配置 CEF
 
-SDK 包不含 CEF 的 macOS 运行时（`--with-cef` 在 macOS 上会直接报错退出），
-下游需按 CEF 官方 `.app` 结构自行部署：
+macOS 的 CEF 运行时以 `.app` 内嵌 Framework 的形式提供，无法像 Windows/Linux 那样
+放进 `bin/`，因此 SDK 包不包含 macOS 的 CEF 开发文件与运行时（`--with-cef` 在
+macOS 上直接报错）。macOS 使用 CEF 请**从源码树构建**，`cmake/duilib_cef_macos.cmake`
+已封装 wrapper、Framework、Helper 与资源复制；SDK 的 CMake 接入层在 macOS 上
+不链接 CEF，仅使用 SDK 包无法启用 CEF。
 
-1. 下载与目标架构一致的 CEF 二进制分发包，构建时用
-   `-DCEF_ROOT=<cef_binary 根目录>`（或环境变量 `CEF_ROOT`）指向它；
-   仓库 `cmake/duilib_cef_macos.cmake` 依赖该目录下的
-   `cmake/FindCEF.cmake` 与 `Release/Chromium Embedded Framework.framework`。
-2. 下游工程必须是 `MACOSX_BUNDLE`（参考 `examples/cef/CMakeLists.txt`）。
-   `COPY_MAC_FRAMEWORK(<target> <CEF_BINARY_DIR> <app>)` 会把
-   `Chromium Embedded Framework.framework` 复制到
+#### 1. 准备 CEF 二进制分发包
+
+- 下载与目标架构一致的 CEF 二进制分发包（x64 或 arm64，不能混用），
+  版本需与 `duilib/third_party/libcef/libcef_macos` 的 wrapper 源码匹配；
+- `CEF_ROOT` 指向分发包根目录（其中含 `Release/Chromium Embedded
+  Framework.framework`、`Resources/`、`cmake/FindCEF.cmake`、`include/`、
+  `libcef_dll/`）。解析顺序：`-DCEF_ROOT=...` > 环境变量 `CEF_ROOT` >
+  源码树同级的 `cef_binary/`；
+- 注意与 `duilib/third_party/libcef/libcef_macos` 区分：后者只含
+  `cmake/include/libcef_dll`，用于编译 `libcef_dll_wrapper`，不含运行期
+  Framework 与 `Resources/`。
+
+#### 2. 构建命令
+
+```
+# 仓库内构建（以 examples/cef 为例）
+cd examples/cef
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+      -DCEF_ROOT=<cef_binary 根目录>
+cmake --build build
+```
+
+`DUILIB_ENABLE_CEF` 在 CEF 支持的平台默认 `ON`，`examples/cef` 与
+`examples/CefBrowser` 会显式设置；下游工程需要在自己的 `CMakeLists.txt`
+中于 `include(.../cmake/duilib_common.cmake)` 之前设置，并沿用同一套
+`cmake/duilib_bin_macos.cmake` → `duilib_cef_macos.cmake` 路径。
+
+#### 3. 必需的目标配置
+
+1. 主程序必须是 `MACOSX_BUNDLE`，并提供 `Info.plist`（`CFBundleIdentifier`
+   全局唯一，`CFBundleExecutable` 与目标名一致）；
+2. 用 `COPY_MAC_FRAMEWORK(<target> <CEF_BINARY_DIR> <app>)` 把
+   `Chromium Embedded Framework.framework` 复制进
    `<app>/Contents/Frameworks/`，并生成 Framework 内的版本符号链接；
-   `<App> Helper.app`、`Helper (GPU)`、`Helper (Renderer)`、`Helper (Plugin)`
-   也落在 `Contents/Frameworks/`。
-3. 成品结构（缺一不可）：
+3. 子进程 Helper 不能省略：`<App>_Helper` 目标编译
+   `mac/process_helper_mac.cc`（其中 `CefScopedLibraryLoader::LoadInHelper()`
+   与可选的 `CefScopedSandboxContext`），产物为 `<App> Helper.app`、
+   `Helper (GPU)`、`Helper (Renderer)`、`Helper (Plugin)`，统一放在
+   `Contents/Frameworks/`；
+4. 主进程初始化前调用 `CefScopedLibraryLoader::LoadInMain()`
+   （沙箱构建不允许直接链接 libcef），Helper 名单与 `CEF_HELPER_APP_SUFFIXES`
+   保持一致，否则 CEF 子进程无法启动；
+5. 默认启用沙箱（`CEF_USE_SANDBOX`）；确实不需要时在配置阶段加
+   `-DUSE_SANDBOX=OFF`，并同步调整 Helper 与 entitlements。
 
-   ```
-   MyApp.app/Contents/
-     MacOS/MyApp
-     Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources（icudtl.dat、*.pak）
-     Frameworks/MyApp Helper.app/
-     Frameworks/MyApp Helper (GPU).app/
-     Frameworks/MyApp Helper (Renderer).app/
-     Frameworks/MyApp Helper (Plugin).app/
-     Resources/                                          # duilib 主题、语言、字体资源
-   ```
+#### 4. 资源目录
 
-4. 运行期不要拆散 Framework，也不要把它移到 `Contents/MacOS/`；
-   duilib 自己的 `resources/` 与 Windows 一样放在可执行文件同级
-   （`Contents/MacOS/resources/`，具体以程序的路径查找逻辑为准）。
-5. 分发前按“由内到外”签名并启用 hardened runtime：
-   Helper → Framework（含嵌套二进制）→ 主 app；需要 JIT/第三方框架时补
+CEF 应用的资源根由 `GlobalManager::GetResourceRootPath(true)` 决定：
+存在 `<app>/Contents/Resources/duilib/` 时以它为根，主题目录为
+`themes/default/<DUILIB_THEME_DIR_NAME>`，语言与字体分别在 `lang/`、`fonts/`。
+`duilib_cef_macos.cmake` 已按此复制：
+
+```
+MyApp.app/Contents/Resources/duilib/
+  themes/default/public/
+  themes/default/<主题目录名>/
+  themes/default/global.xml
+  lang/
+  fonts/
+```
+
+非 CEF 或非 bundle 的 macOS 程序使用 `GetResourceRootPath(false)`，资源放在
+可执行文件同级的 `resources/`。
+
+#### 5. 成品结构（缺一不可）
+
+```
+MyApp.app/Contents/
+  MacOS/MyApp
+  Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources（icudtl.dat、*.pak）
+  Frameworks/MyApp Helper.app/
+  Frameworks/MyApp Helper (GPU).app/
+  Frameworks/MyApp Helper (Renderer).app/
+  Frameworks/MyApp Helper (Plugin).app/
+  Resources/duilib/                                   # 主题、语言、字体
+```
+
+运行期不要拆散 Framework，也不要把它移到 `Contents/MacOS/`；`@rpath` 与
+Framework 的相对位置由 `COPY_MAC_FRAMEWORK` 保证，手工移动后需重新签名。
+
+#### 6. 签名、公证与验证
+
+1. 由内到外签名并启用 hardened runtime：Helper → Framework（含嵌套二进制）
+   → 主 app；需要 JIT 或第三方框架时补
    `com.apple.security.cs.allow-jit`、`com.apple.security.cs.disable-library-validation`
-   等 entitlements（见“签名与公证 / macOS”）。
-6. 未签名或签名不完整的 `.app` 会被 Gatekeeper 拒绝启动；本地自测可用
-   `codesign --deep --force --sign - MyApp.app` 做临时签名。
+   等 entitlements（见“签名与公证 / macOS”）；
+2. 未签名或签名不完整的 `.app` 会被 Gatekeeper 拒绝启动；本地自测可用
+   `codesign --deep --force --sign - MyApp.app` 做临时签名；
+3. 分发前自检：
+
+   ```
+   codesign --verify --deep --strict --verbose=2 MyApp.app
+   codesign -dv --verbose=4 MyApp.app          # 查看签名、entitlements、runtime
+   spctl -a -vv MyApp.app                      # Gatekeeper 评估（需已公证）
+   otool -L "MyApp.app/Contents/MacOS/MyApp"   # 确认未残留绝对路径依赖
+   ```
+
+#### 7. 常见问题
+
+| 现象 | 原因 | 处理 |
+| :--- | :--- | :--- |
+| 启动即退出，无窗口 | Helper 缺失或名称与主程序不匹配 | 检查 `Contents/Frameworks/* Helper*.app`，且 `CFBundleExecutable` 用 `"<App> Helper"` 形式 |
+| 白屏 / 页面不加载 | Framework 未随包或被移动 | 用 `COPY_MAC_FRAMEWORK` 复制，保持 `Contents/Frameworks/` 位置 |
+| `libcef.dylib` 加载失败 | 主进程直接链接了 libcef，或 bundle id 不一致 | 主进程用 `CefScopedLibraryLoader::LoadInMain()`；Framework 与 Helper 的 bundle id 同一前缀 |
+| 只显示空窗口或崩溃在 `CefInitialize` | 未初始化 sandbox / Helper 参数不全 | 保留 `process_helper_mac.cc` 的 sandbox 初始化，或统一改为 `USE_SANDBOX=OFF` |
+| 找不到主题、字体 | 资源未按 `Contents/Resources/duilib/` 布局 | 检查 `DUILIB_THEME_DIR_NAME` 与复制目标路径 |
+| 提示“无法打开，因为无法验证开发者” | 未签名 / 未公证 | 按第 6 节签名并公证，或本地临时签名自测 |
+| Apple Silicon 上闪退 | CEF 分发包与目标架构不一致 | 换用 arm64 分发包（或改用 x64 分发包 + Rosetta 全链路） |
 
 ## WebView2 运行时
 

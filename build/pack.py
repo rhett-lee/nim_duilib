@@ -1084,7 +1084,7 @@ def collect_jpeg_turbo(collector, arch_tag, toolchain=None):
         return 0
     if toolchain == 'mingw':
         return 0
-    arch_dir = {'x64': 'x64', 'x86': 'x86'}.get(arch_tag)
+    arch_dir = {'x64': 'x64', 'x86': 'x86', 'arm64': 'arm64'}.get(arch_tag)
     count = 0
     if arch_dir is None:
         collector.warn('libjpeg-turbo 上游没有 Windows %s 预编译库，已跳过' % arch_tag)
@@ -1848,7 +1848,7 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
         lines.append('')
         lines.append('  arm64 说明：manifest / props / CMake config 等接入文件与包结构')
         lines.append('  已就绪，但未在 arm64 真机上做编译、打包、运行验证；')
-        lines.append('  CEF 与 libjpeg-turbo 上游没有 Windows arm64 预编译包，本包不含这两项。')
+        lines.append('  CEF 上游没有 Windows arm64 预编译包，本包不含 CEF。')
 
     section('运行期')
     lines.append('  bin/resources/ 必须与可执行文件同级（框架启动必需）；从 bin/ 取用')

@@ -10,6 +10,7 @@
         <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboIncludeDir>
         <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Platform)'=='x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\include</JpegTurboIncludeDir>
         <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Platform)'=='Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\include</JpegTurboIncludeDir>
+        <JpegTurboIncludeDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Platform)'=='ARM64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-arm64\include</JpegTurboIncludeDir>
         
         <!-- libjpeg-turbo的lib目录 -->
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' == '0'"></JpegTurboLibDir>
@@ -17,6 +18,8 @@
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x64\lib</JpegTurboLibDir>
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
         <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-x86\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-arm64\lib</JpegTurboLibDir>
+        <JpegTurboLibDir Condition="'$(JpegTurboEnabled)' != '0' And '$(Configuration)|$(Platform)'=='Debug|ARM64'">$(SolutionDir)\..\duilib\third_party\libjpeg-turbo\libjpeg-turbo6-win-vc-arm64\lib</JpegTurboLibDir>
 
         <!-- lib列表 -->
         <JpegTurboLibs Condition="'$(JpegTurboEnabled)' != '0'">turbojpeg-static.lib</JpegTurboLibs>
