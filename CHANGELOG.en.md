@@ -50,6 +50,18 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build (macOS): linking example programs made ld64 report "ignoring duplicate
+  libraries" (`-lpthread`, `-lSDL3` and the Skia libraries were listed more than once;
+  the linker ignores duplicates anyway). The warning is suppressed by adding
+  `-Wl,-no_warn_duplicate_libraries` when the linker supports it.
+- Examples (controls): `TabCtrlForm.h`/`TabCtrlForm.cpp` lacked a trailing newline and
+  `TimelineForm.cpp` had an incremented but unread `nIndex`, triggering
+  `-Wnewline-eof` and `-Wunused-but-set-variable`; the newlines were added and the
+  unused variable removed.
+- Build (Windows/CEF): the main project uses C++20 while `libcef_dll_wrapper` is pinned
+  to C++17 upstream, so the compile line contained both `/std:c++20` and `/std:c++17`
+  and produced warning D9025. The wrapper targets (including the 109 variant) now set
+  `CXX_STANDARD 17` locally, so the global standard is no longer overridden.
 - Dependency preparation (UOS): like the legacy scripts, UnionTech UOS always uses
   `gcc/g++` (for both Skia and the main build) to avoid clang++ link errors there.
 - Dependency preparation: the Skia patch archive now records a content fingerprint and
