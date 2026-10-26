@@ -412,6 +412,45 @@ class Toolchain:
         return self.generator == "Ninja"
 
 
+def _is_uos() -> bool:
+    """统信 UOS：clang++ 链接会失败，旧脚本固定改用 gcc。"""
+    try:
+        text = Path("/etc/os-release").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    return any(line.strip().strip('"') == "ID=uos" for line in text.splitlines())
+
+
+def _compiler_triple(compiler: str, env: dict) -> str:
+    found = shutil.which(compiler, path=env.get("PATH"))
+    if not found:
+        return ""
+    try:
+        result = subprocess.run([found, "-dumpmachine"], capture_output=True,
+                                text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return (result.stdout or "").strip() if result.returncode == 0 else ""
+
+
+def _require_mingw_toolchain(env: dict) -> None:
+    """MSYS2 下只接受目标为 mingw-w64 的编译器，否则会产出 MSYS 程序。"""
+    env_cc, env_cxx = env.get("CC"), env.get("CXX")
+    explicit = bool(env_cc and env_cxx)
+    pairs = [(env_cc, env_cxx)] if explicit else [("clang", "clang++"), ("gcc", "g++")]
+    for cc, cxx in pairs:
+        if not cc or not cxx:
+            continue
+        triple = _compiler_triple(cc, env)
+        if ("mingw" in triple or "w64-windows-gnu" in triple) and _compiler_triple(cxx, env):
+            if not explicit:
+                env["CC"], env["CXX"] = cc, cxx
+            return
+    raise BuildError(
+        "[ERROR] no mingw-w64 targeted C/C++ compiler found",
+        "run from an MSYS2 MINGW64/UCRT64/CLANG64 shell, where gcc/clang target *mingw*")
+
+
 def detect_toolchain(arch: str, vs_version: str | None) -> Toolchain:
     env = dict(os.environ)
     vs_install = None
@@ -421,6 +460,11 @@ def detect_toolchain(arch: str, vs_version: str | None) -> Toolchain:
             raise BuildError(
                 "[ERROR] Visual Studio 2022+ with the C++ workload was not found",
                 "install Visual Studio 2022 (or newer) with 'Desktop development with C++'")
+    elif sys.platform == "win32" and env.get("MSYSTEM"):
+        _require_mingw_toolchain(env)
+    elif sys.platform != "win32" and not env.get("CC") and not env.get("CXX") and _is_uos():
+        # 与旧脚本一致：UOS 上 clang++ 链接会失败，未显式指定编译器时固定 gcc
+        env["CC"], env["CXX"] = "gcc", "g++"
     ninja = _find_ninja(env, vs_install)
     if ninja:
         env["PATH"] = str(ninja.parent) + os.pathsep + env.get("PATH", "")

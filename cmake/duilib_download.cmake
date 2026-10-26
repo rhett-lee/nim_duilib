@@ -78,8 +78,10 @@ function(duilib_download_file url dest)
     set(_attempt 1)
     while(TRUE)
         if(_duilib_curl)
+            # 连接建立后若长时间低速传输则中断本次尝试，避免无限重试下永久挂起
             execute_process(
                 COMMAND "${_duilib_curl}" -fL --continue-at - --connect-timeout "${_connect_timeout}"
+                        --speed-limit 100 --speed-time 120
                         -o "${dest}" "${url}"
                 RESULT_VARIABLE _rc)
         else()

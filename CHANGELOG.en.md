@@ -50,6 +50,19 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Dependency preparation (UOS): like the legacy scripts, UnionTech UOS always uses
+  `gcc/g++` (for both Skia and the main build) to avoid clang++ link errors there.
+- Dependency preparation: the Skia patch archive now records a content fingerprint and
+  an "already applied" check (`skia/.duilib-patch`); unchanged patches are not extracted
+  again, so source mtimes are preserved and Skia is not rebuilt from scratch.
+- Dependency preparation (CEF): a cached archive with a mismatching sha256 is removed
+  and downloaded again; archives passed through `DUILIB_CEF_ARCHIVE` still fail without
+  being deleted, so user-provided files are never destroyed.
+- Dependency preparation: curl downloads now use `--speed-limit 100 --speed-time 120`,
+  aborting a stalled transfer and retrying with the shared policy instead of hanging
+  forever under unlimited retries.
+- `build.py` (MSYS2): compilers must target mingw-w64 (clang first, then gcc) or a clear
+  error is shown, preventing MSYS-targeted compilers from producing non-Windows binaries.
 - Dependency preparation: the Skia source repository now matches the legacy scripts
   (`https://github.com/google/skia.git`); the previous `skia.googlesource.com` URL was
   unreachable on some networks. Skia/SDL clone URLs are read from the version manifest

@@ -45,6 +45,16 @@
 
 ### 修复
 
+- 依赖准备（UOS）：与旧脚本一致，统信 UOS 上固定使用 `gcc/g++`（Skia 与主工程一致），
+  避免 clang++ 在该平台的链接错误。
+- 依赖准备：Skia 补丁归档增加“已应用”校验与内容指纹（`skia/.duilib-patch`），补丁与
+  基线提交未变化时不再重复解压，避免刷新源码 mtime 导致整棵 Skia 重编。
+- 依赖准备（CEF）：缓存归档 sha256 不匹配时自动删除并重新下载；通过
+  `DUILIB_CEF_ARCHIVE` 指定的本地归档仍直接报错，避免误删用户文件。
+- 依赖准备：curl 下载增加 `--speed-limit 100 --speed-time 120`，连接后长时间低速
+  传输会中断本次尝试并按统一参数重试，避免无限重试下永久挂起。
+- `build.py`（MSYS2）：校验编译器目标为 mingw-w64（优先 clang、其次 gcc），否则给出
+  明确错误，避免误用 MSYS 目标编译器产出非 Windows 程序。
 - 依赖准备：Skia 源码仓库改为与旧脚本一致的 `https://github.com/google/skia.git`，
   原先的 `skia.googlesource.com` 在部分网络下无法访问；Skia/SDL 的克隆地址统一从
   版本清单读取，不再在脚本里硬编码。

@@ -392,6 +392,26 @@ function(_duilib_ensure_skia_patch out_patch)
     set(${out_patch} "${_patch}" PARENT_SCOPE)
 endfunction()
 
+# 补丁是否确实落在源码树中：只信 stamp 不够，git checkout 等操作可能还原工作区，
+# 而 stamp 仍在，会让 gn 用回默认工具链（Windows 下是 cl.exe）导致编译失败。
+function(_duilib_skia_patch_applied out_applied)
+    set(_applied FALSE)
+    if(EXISTS "${DUILIB_SKIA_ROOT}/gn/is_mingw.py"
+       AND EXISTS "${DUILIB_SKIA_ROOT}/gn/BUILDCONFIG.gn")
+        file(STRINGS "${DUILIB_SKIA_ROOT}/gn/BUILDCONFIG.gn" _lines REGEX "is_mingw")
+        if(_lines)
+            set(_applied TRUE)
+        endif()
+    endif()
+    set(${out_applied} ${_applied} PARENT_SCOPE)
+endfunction()
+
+# 补丁指纹：基线提交 + 归档内容哈希（与旧脚本的 cksum 语义一致）
+function(_duilib_skia_patch_key out_key patch)
+    file(SHA256 "${patch}" _hash)
+    set(${out_key} "${DUILIB_SKIA_REF_VALUE}:${_hash}" PARENT_SCOPE)
+endfunction()
+
 function(duilib_prepare_skia)
     _duilib_skia_candidates(_candidates)
     list(GET _candidates 0 _variant)
@@ -454,14 +474,32 @@ function(duilib_prepare_skia)
     # 补丁包：缺失时由本脚本克隆/更新 skia_compile 仓库（build.py 路径同样适用）
     if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
         _duilib_ensure_skia_patch(_patch)
-        message(STATUS "[deps] applying Skia patch ${_patch}")
-        file(REMOVE_RECURSE "${_out_dir}")
-        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
-                        WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
-                        RESULT_VARIABLE _tar_rc)
-        if(NOT _tar_rc EQUAL 0)
-            duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
+        _duilib_skia_patch_key(_patch_key "${_patch}")
+        _duilib_skia_patch_applied(_applied)
+        set(_patch_stamp "${DUILIB_SKIA_ROOT}/.duilib-patch")
+        set(_stamp_old "")
+        if(EXISTS "${_patch_stamp}")
+            file(READ "${_patch_stamp}" _stamp_old)
+            string(STRIP "${_stamp_old}" _stamp_old)
         endif()
+        # 补丁内容与基线提交未变且补丁确实在源码树中时跳过解压：重复解压会刷新
+        # 源码 mtime，让 Ninja 认为全部目标过期而重编整个 Skia（多配置构建尤其浪费）。
+        if(_applied AND _stamp_old STREQUAL _patch_key)
+            message(STATUS "[deps] Skia patch already applied, skip extraction")
+        else()
+            if(NOT _applied)
+                message(STATUS "[deps] Skia patch missing in source tree, re-applying")
+            endif()
+            message(STATUS "[deps] applying Skia patch ${_patch}")
+            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
+                            WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
+                            RESULT_VARIABLE _tar_rc)
+            if(NOT _tar_rc EQUAL 0)
+                duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
+            endif()
+            file(WRITE "${_patch_stamp}" "${_patch_key}")
+        endif()
+        file(REMOVE_RECURSE "${_out_dir}")
     elseif(DUILIB_SKIA_REQUIRE_PATCH)
         duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
     endif()

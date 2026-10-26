@@ -294,6 +294,35 @@ class DryRunOutputTests(unittest.TestCase):
             self.assertIn(str(target), lines[0])
 
 
+class ToolchainSelectionTests(unittest.TestCase):
+    def test_uos_detected_from_os_release(self):
+        with mock.patch.object(entry.Path, "read_text", return_value='NAME="UOS"\nID=uos\n'):
+            self.assertTrue(entry._is_uos())
+
+    def test_non_uos_os_release(self):
+        with mock.patch.object(entry.Path, "read_text", return_value="ID=ubuntu\nID_LIKE=debian\n"):
+            self.assertFalse(entry._is_uos())
+
+    def test_mingw_compiler_pair_is_selected(self):
+        env = {"PATH": ""}
+
+        def triple(name, _env):
+            if name in ("clang", "clang++"):
+                return "x86_64-w64-windows-gnu"
+            return "x86_64-pc-msys"
+
+        with mock.patch.object(entry, "_compiler_triple", side_effect=triple):
+            entry._require_mingw_toolchain(env)
+        self.assertEqual((env["CC"], env["CXX"]), ("clang", "clang++"))
+
+    def test_non_mingw_compilers_are_rejected(self):
+        env = {"PATH": ""}
+        with mock.patch.object(entry, "_compiler_triple", return_value="x86_64-pc-msys"):
+            with self.assertRaises(entry.BuildError):
+                entry._require_mingw_toolchain(env)
+        self.assertNotIn("CC", env)
+
+
 class SkiaPatchTests(unittest.TestCase):
     def _messages(self):
         return entry.make_messages("zh_CN")
