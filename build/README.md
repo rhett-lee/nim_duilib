@@ -16,6 +16,10 @@
 | `autotest.py` | 本地自动化：环境检测 → 构建 → 打包 → 校验 → 结构断言 |
 | `test_build.py` | 构建入口自身的单元测试 |
 | `test_pack.py` / `test_autotest.py` | 打包与自动化测试 |
+| `test_sdk_package.py` | SDK 包测试编排器的纯函数单元测试 |
+| `sdk_package_test.py` | 发布 SDK 包测试编排器（结构校验 + 消费者编译运行 + 负向用例） |
+| `sdk_test/` | SDK 消费者用例工程（仅依赖解包后的 SDK） |
+| `sdk-package-test.md` | SDK 包测试方法与用途说明 |
 | `duilib.sln` / `duilib_no_cef.sln` | Visual Studio 解决方案（只含库） |
 | `examples.sln` / `examples_no_cef.sln` | Visual Studio 解决方案（库 + 示例） |
 | `README.md` / `README.en.md` | 本文件 |
