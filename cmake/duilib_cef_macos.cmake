@@ -116,29 +116,30 @@ if(OS_MAC)
     set_target_properties(${CEF_TARGET} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist.in)
 
     # Copy the CEF framework into the Frameworks directory and create the necessary symlinks.
-    COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${CEF_BINARY_DIR}" "${CEF_APP}")
-
-    # SDL3 在 macOS 上是动态库（cmake/duilib_deps_run.cmake 使用 SDL_SHARED=ON），
-    # 必须随 App Bundle 分发：复制到 Contents/Frameworks，并让可执行文件用相对
-    # rpath 查找，否则只能靠构建机的绝对路径运行，换目录或换机器就会加载失败。
-    if(DUILIB_ENABLE_SDL)
-        # 在构建期复制：DUILIB_DEPS_MODE=auto 时 SDL3 由 duilib_deps 目标在
-        # 构建阶段安装，configure 阶段还看不到 dylib，因此由 -P 脚本内 glob。
-        add_custom_command(TARGET ${CEF_TARGET}
-                           POST_BUILD
-                           COMMAND ${CMAKE_COMMAND}
-                                   "-DSDL3_LIB_DIR=${DUILIB_SDL_LIB_PATH}"
-                                   "-DBUNDLE_FRAMEWORKS_DIR=${CEF_APP}/Contents/Frameworks"
-                                   -P "${CMAKE_CURRENT_LIST_DIR}/duilib_copy_sdl_bundle.cmake"
-                           COMMENT "Copying SDL3 runtime into ${CEF_TARGET}.app"
-                           VERBATIM)
-
-        # 主程序的 exe 在 Contents/MacOS，动态库在 Contents/Frameworks；
-        # 用安装期 rpath 覆盖构建树 rpath，避免把 SDL3 的绝对路径写进包内。
-        set_target_properties(${CEF_TARGET} PROPERTIES
-            BUILD_WITH_INSTALL_RPATH TRUE
-            INSTALL_RPATH "@executable_path/../Frameworks")
+    #
+    # CEF 的 macOS 二进制分发包通常只带 Release 框架，Debug 配置没有单独的
+    # Chromium Embedded Framework.framework。这里按实际存在的目录选择来源：
+    #   - Debug/Release 都存在：保持 CEF 默认的按配置选择（$<CONFIGURATION>）；
+    #   - 只有 Release：所有配置复用 Release 框架，避免 Debug 构建复制失败；
+    #   - 只有 Debug：所有配置复用 Debug 框架；
+    #   - 都没有：配置期直接报错，避免到构建后期才出现难懂的错误。
+    set(_cef_framework_debug "${CEF_ROOT}/Debug/Chromium Embedded Framework.framework")
+    set(_cef_framework_release "${CEF_ROOT}/Release/Chromium Embedded Framework.framework")
+    set(_cef_binary_dir "${CEF_BINARY_DIR}")
+    if(EXISTS "${_cef_framework_debug}" AND EXISTS "${_cef_framework_release}")
+        # 两种配置的框架都存在，使用 CEF 默认的按配置选择
+    elseif(EXISTS "${_cef_framework_release}")
+        set(_cef_binary_dir "${CEF_ROOT}/Release")
+        message(STATUS "CEF Debug framework not found; using Release framework: ${_cef_framework_release}")
+    elseif(EXISTS "${_cef_framework_debug}")
+        set(_cef_binary_dir "${CEF_ROOT}/Debug")
+        message(STATUS "CEF Release framework not found; using Debug framework: ${_cef_framework_debug}")
+    else()
+        message(FATAL_ERROR
+            "CEF framework not found under ${CEF_ROOT}/Debug or ${CEF_ROOT}/Release.\n"
+            "Please check that CEF_ROOT points to an extracted CEF binary distribution.")
     endif()
+    COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${_cef_binary_dir}" "${CEF_APP}")
 
     # temp build directory
     set(CEF_OLD_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR})

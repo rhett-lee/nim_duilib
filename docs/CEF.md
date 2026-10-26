@@ -168,4 +168,10 @@ Debug
 Release
 tests
 ```  
-编译后，cmake脚本会将依赖的文件复制到目标`*.app/Contents/Frameworks/Chromium Embedded Framework.framework/`路径中。    
+编译后，cmake脚本会将依赖的文件复制到目标`*.app/Contents/Frameworks/Chromium Embedded Framework.framework/`路径中。
+
+CEF 的 macOS 二进制分发包通常只在 `Release/` 下提供
+`Chromium Embedded Framework.framework`，Debug 配置会复用该框架。
+`duilib_cef_macos.cmake` 会在配置期检测 `Debug/` 与 `Release/`：
+Debug 框架缺失时自动回退到 Release 并打印提示；两者都不存在时直接报错。
+因此 Debug 构建无需手工复制框架。

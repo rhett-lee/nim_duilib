@@ -59,6 +59,10 @@
 
 ### 修复
 
+- 构建（macOS）：CEF 二进制分发包通常只带 Release 框架，Debug 构建复制
+  `Debug/Chromium Embedded Framework.framework` 时会失败。现在配置期检测
+  `Debug/` 与 `Release/`，Debug 框架缺失时自动回退到 Release 并打印提示；
+  两者都不存在时在配置期直接报错，提示检查 `CEF_ROOT`。
 - 构建工具：`autotest.py`、`sdk_package_test.py` 的默认输出目录改用系统临时目录
   （`tempfile.gettempdir()`），移除写死的 `C:\develop\temp`、`/tmp`，换机器无需改代码；
   `README`、`README.en.md`、`sdk-package-test.md` 中的相关示例同步更新。

@@ -172,8 +172,10 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   - Linux: `bin/libcef_linux`
   - macOS: `<deps-root>/cef_binary`
   Compilation uses the tracked headers and import libraries; the downloaded package's
-  `CEF_VERSION` must match the tracked headers. Debug uses the Release runtime. MinGW
-  does not support CEF.
+  `CEF_VERSION` must match the tracked headers. Debug uses the Release runtime and
+  framework (CEF distributions usually only ship
+  `Release/Chromium Embedded Framework.framework`; CMake falls back automatically).
+  MinGW does not support CEF.
 
 When dependency artifacts exist without a stamp file, `deps` validates and adopts them
 (Skia: source HEAD; CEF: tracked header major version) instead of rebuilding or
@@ -305,6 +307,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `python3 not found` (error while building Skia) | the Skia build scripts invoke `python3` and do not accept `python` / `py -3`; install Python 3 and make sure `python3 --version` works (on Windows add the Python install directory to PATH) |
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
+| macOS Debug build fails to copy `Chromium Embedded Framework.framework` | CEF distributions usually ship only the Release framework; CMake now detects this and falls back to `Release/`, printing `CEF Debug framework not found; using Release framework`. If neither exists, configuration fails early with a `CEF_ROOT` hint |
 | Packaged examples load the builder's `.so` | examples carry a relative rpath (`$ORIGIN/../lib`, `$ORIGIN/libcef_linux`) so bundled libraries win; use `pack --with-cef` when examples depend on libcef |
 | Build-machine absolute paths remain in the binary (`otool`/`readelf`) | They come from the `DUILIB_RPATH_ABSOLUTE=ON` SDL3 fallback; build packages with `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`, or disable rpath entirely with `DUILIB_SDL_RPATH=OFF` |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |

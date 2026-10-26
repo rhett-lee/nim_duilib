@@ -67,6 +67,12 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 ### Fixed
 
+- Build (macOS): CEF binary distributions usually ship only the Release framework,
+  so a Debug build failed while copying
+  `Debug/Chromium Embedded Framework.framework`. Configuration now checks both
+  `Debug/` and `Release/`, falls back to Release with a status message when the
+  Debug framework is missing, and fails early with a `CEF_ROOT` hint when neither
+  exists.
 - Build tools: `autotest.py` and `sdk_package_test.py` now default their output root to
   the system temp directory (`tempfile.gettempdir()`) instead of hard-coded
   `C:\develop\temp` and `/tmp`, so no code changes are needed on another machine. The

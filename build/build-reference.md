@@ -155,7 +155,9 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   - Linux：`bin/libcef_linux`
   - macOS：`<deps-root>/cef_binary`
   编译使用仓库中已跟踪的头文件与导入库；下载包内的 `CEF_VERSION` 必须与跟踪
-  头文件一致，否则报错。Debug 使用 Release 运行时。MinGW 不支持 CEF。
+  头文件一致，否则报错。Debug 使用 Release 运行时与框架（CEF 分发包通常只在
+  `Release/` 下提供 `Chromium Embedded Framework.framework`，CMake 会自动回退）。
+  MinGW 不支持 CEF。
 
 已有依赖产物但没有 stamp 文件时，`deps` 会校验版本后直接采纳（Skia 校验源码
 HEAD，CEF 校验跟踪头文件主版本），避免重复编译或重复下载。
@@ -293,6 +295,7 @@ MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与
 | `python3 not found`（编译 Skia 时报错） | Skia 构建脚本固定调用 `python3`，不认 `python` / `py -3`；安装 Python 3 并确认 `python3 --version` 可用（Windows 可把 Python 安装目录加入 PATH） |
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
+| macOS Debug 构建复制 `Chromium Embedded Framework.framework` 失败 | CEF 分发包通常只带 Release 框架；现已在配置期检测并自动回退到 `Release/`，日志会打印 `CEF Debug framework not found; using Release framework`。若 Debug/Release 都没有框架，配置期会直接报错并提示检查 `CEF_ROOT` |
 | 打包的示例程序加载了构建机的 `.so` | 示例程序已写入相对 rpath（`$ORIGIN/../lib`、`$ORIGIN/libcef_linux`），优先使用包内库；Linux 示例依赖 libcef 时请用 `pack --with-cef`，否则包内缺少 CEF 运行时 |
 | 产物中仍有构建机绝对路径（`otool`/`readelf` 可见） | 这些路径来自 `DUILIB_RPATH_ABSOLUTE=ON` 的 SDL3 兜底；发布构建可加 `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`，或改用 `DUILIB_SDL_RPATH=OFF` 完全关闭 rpath |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |

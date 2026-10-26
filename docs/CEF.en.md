@@ -171,4 +171,11 @@ Debug
 Release
 tests
 ```  
-After compilation, the cmake script will copy the dependent files to the target `*.app/Contents/Frameworks/Chromium Embedded Framework.framework/` path.    
+After compilation, the cmake script will copy the dependent files to the target `*.app/Contents/Frameworks/Chromium Embedded Framework.framework/` path.
+
+CEF's macOS binary distribution usually provides
+`Chromium Embedded Framework.framework` only under `Release/`, so Debug builds
+reuse that framework. `duilib_cef_macos.cmake` checks both `Debug/` and
+`Release/` at configure time: when the Debug framework is missing it falls back
+to Release and prints a hint; when neither exists it fails immediately. No
+manual framework copy is needed for Debug builds.
