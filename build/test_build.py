@@ -153,6 +153,42 @@ class ArgumentTests(unittest.TestCase):
         self.assertEqual(args.build_arg, ["-v"])
 
 
+class CmakeDefinePersistenceTests(unittest.TestCase):
+    """复用同一构建目录时，有状态的选项必须每次显式传入，避免上次取值残留。"""
+
+    def _defines(self, argv):
+        args = entry.parse_args(argv)
+        defines, _manifest = entry._cmake_defines(args, 'x64', 'prepare', False)
+        return defines
+
+    def test_defaults_are_explicit(self):
+        defines = self._defines([])
+        manifest = entry.load_manifest(entry.VERSIONS_FILE)
+        self.assertIn('-DDUILIB_BUILD_EXAMPLES=ON', defines)
+        self.assertIn('-DDUILIB_MD=OFF', defines)
+        expected_sdl = ('-DDUILIB_ENABLE_SDL=OFF' if sys.platform == 'win32'
+                        else '-DDUILIB_ENABLE_SDL=ON')
+        self.assertIn(expected_sdl, defines)
+        self.assertIn('-DDUILIB_CEF_VERSION=%s' % manifest['cef']['default'],
+                      defines)
+        self.assertIn('-DDUILIB_SKIA_REF=%s' % manifest['skia']['default'],
+                      defines)
+        self.assertIn('-DDUILIB_CEF_ARCHIVE=', defines)
+
+    def test_explicit_flags_override(self):
+        defines = self._defines(['build', '--no-examples', '--md', '--sdl',
+                                 '--cef-version', '109'])
+        self.assertIn('-DDUILIB_BUILD_EXAMPLES=OFF', defines)
+        self.assertIn('-DDUILIB_MD=ON', defines)
+        self.assertIn('-DDUILIB_ENABLE_SDL=ON', defines)
+        self.assertIn('-DDUILIB_CEF_VERSION=109', defines)
+
+    def test_cmake_arg_comes_last(self):
+        defines = self._defines(['build', '--md',
+                                 '--cmake-arg=-DDUILIB_MD=OFF'])
+        self.assertEqual(defines[-1], '-DDUILIB_MD=OFF')
+
+
 class StaleCacheTests(unittest.TestCase):
     # 与平台无关的“另一个编译器”路径：测试只比较路径是否变化
     OLD_COMPILER = Path(tempfile.gettempdir()) / "duilib-old-compiler"
@@ -227,6 +263,23 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(messages.t("k"), "你好")
         self.assertEqual(messages.t("only_en"), "only")
         self.assertEqual(messages.t("missing"), "missing")
+
+
+class DryRunOutputTests(unittest.TestCase):
+    def test_clean_dry_run_does_not_report_deletion(self):
+        with tempfile.TemporaryDirectory() as root:
+            target = Path(root) / "tree"
+            target.mkdir()
+            (target / "keep.txt").write_text("x", encoding="utf-8")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                code = entry.main(["--lang", "zh_CN", "clean",
+                                   "--build-dir", str(target), "--dry-run"])
+            self.assertEqual(code, 0)
+            self.assertTrue((target / "keep.txt").exists())
+            lines = [line for line in output.getvalue().splitlines() if line.strip()]
+            self.assertEqual(len(lines), 1)
+            self.assertIn(str(target), lines[0])
 
 
 if __name__ == "__main__":

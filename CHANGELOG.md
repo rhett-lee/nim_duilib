@@ -135,6 +135,17 @@
 - `pack.py --with-examples`（Windows）：`bin/` 由多个架构共用，打包 x86 SDK 时
   会把残留的 x64 示例程序一并收进包；现在按 PE 头的 Machine 字段校验架构，
   不一致的 exe/dll 会被跳过并阻止出包（可清理 `bin/` 或加 `--allow-missing`）。
+- `build.py`：`DUILIB_MD`、`DUILIB_BUILD_EXAMPLES`、`DUILIB_ENABLE_SDL`、
+  `DUILIB_CEF_VERSION`、`DUILIB_SKIA_REF` 等有状态选项此前只在传入时设置，
+  复用同一个 `out/<arch>/<Config>` 时旧取值会残留在 CMake 缓存中（例如先跑
+  `--no-examples` 后，默认构建不再编译示例）；现在每次调用都显式传入本次解析
+  后的取值，构建结果只由当前命令行决定。
+- 依赖准备：SDL3 的构建目录按“架构-配置”共享，与工具链无关。切换工具链或运行库
+  （MSVC ↔ MinGW、/MT ↔ /MD）后会复用旧 CMake 缓存并继续调用上次的编译器，
+  例如 MinGW 下 `--sdl` 仍调用 `cl.exe` 并因缺少 MSVC 环境而失败。现在按
+  `.duilib-sdl` stamp 判断，CRT 不一致时先清空 SDL3 构建目录再重新配置。
+- `build.py --dry-run`：`build` 与 `clean` 在只打印命令、未实际执行的情况下仍输出
+  “编译完成/已删除”；现在 dry-run 不再打印完成提示（与 `pack`/`test` 一致）。
 
 ## [1.0.2026.1023] - 2026-10-23
 

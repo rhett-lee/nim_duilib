@@ -518,7 +518,19 @@ function(duilib_prepare_sdl)
 
     duilib_msg("deps.sdl_building" " (${DUILIB_SDL_REF_VALUE})")
     if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-        if(DUILIB_DEPS_FORCE)
+        # SDL3 的构建目录按“架构-配置”命名、与工具链无关。若上次用别的方式
+        # （MSVC / MinGW / 不同运行库）构建过，目录里的 CMake 缓存仍指向旧编译器，
+        # 直接复用会失败（例如 MinGW 配置时仍调用 cl.exe）。stamp 记录上次成功
+        # 构建的 CRT，与本次不一致时清空构建目录重新配置。
+        _duilib_sdl_stamp_value(_stamp_expected)
+        set(_sdl_cache_reusable FALSE)
+        if(EXISTS "${DUILIB_SDL_ROOT}/.duilib-sdl")
+            file(READ "${DUILIB_SDL_ROOT}/.duilib-sdl" _sdl_old_stamp)
+            if(_sdl_old_stamp STREQUAL _stamp_expected)
+                set(_sdl_cache_reusable TRUE)
+            endif()
+        endif()
+        if(DUILIB_DEPS_FORCE OR NOT _sdl_cache_reusable)
             file(REMOVE_RECURSE "${DUILIB_SDL_BUILD_ROOT}")
         endif()
         _duilib_sdl_build_one("${DUILIB_SDL_BUILD_ROOT}/${DUILIB_ARCH}-debug" "Debug")

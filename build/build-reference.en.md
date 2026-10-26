@@ -99,6 +99,14 @@ python3 build/build.py --config Release
 is also given (using `--sdl` alone now prints a hint and leaves package contents
 unchanged).
 
+`out/<arch>/<Config>` reuses the CMake cache, and `DUILIB_MD`,
+`DUILIB_BUILD_EXAMPLES`, `DUILIB_ENABLE_SDL`, `DUILIB_CEF_VERSION`,
+`DUILIB_SKIA_REF` and friends are stateful options. `build.py` always passes the
+resolved values explicitly, so running `--no-examples --md` first and then a
+plain command does not inherit the old options. Only when configuring the same
+directory directly with `cmake` do you need to clear the cache (delete the build
+directory and reconfigure).
+
 ## 5. Dependencies
 
 Dependency directories live next to the repository by default (`--deps-root` overrides):
@@ -274,8 +282,10 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `pack` reports that `lib/<arch>/<Config>` mixes MSVC `.lib` and MinGW `.a` | old libraries survive a toolchain switch; delete that directory (or run `build.py clean`) and rebuild with a single toolchain |
 | `pack --with-cef` reports the wrapper for the selected CEF version is missing | the build and pack CEF versions must match (e.g. `build --cef-version 109` with `pack --with-cef --cef-version 109`); the error names the version actually present in the lib directory |
 | `pack --with-examples` reports that `bin` does not match the target x86/x64 architecture | on Windows `bin/` is shared by all architectures; remove the other architecture's exe/dll files (or keep only the target build's artifacts) and repack |
-| MinGW Debug link fails with `out of memory allocating ...` | GNU ld now gets `-Wl,--no-keep-memory`; use `--jobs 2` if memory is still tight (lld on clang/CLANG64 does not need it) |
+| MinGW build or link (especially Debug) fails with `out of memory allocating ...` | reduce parallelism with `--jobs 2`; GNU ld already gets `-Wl,--no-keep-memory` (lld on clang/CLANG64 does not need it) |
+| MinGW examples fail to start after disabling static linking (`DUILIB_MINGW_STATIC=OFF`) | that mode depends on compiler runtime DLLs; copy `libstdc++-6.dll`, `libgcc_s_seh-1.dll` (x86: `libgcc_s_dw2-1.dll`) and `libwinpthread-1.dll` next to the exe; the default static build does not need them |
 | MinGW Debug link fails with `No space left on device` | a Debug example is roughly 200–280 MB and all examples take about 10 GB; clean `bin/` and retry, or use the Release configuration |
+| `deps` fails building SDL3 with `cl.exe`/`LNK1104`, or `--sdl` fails after switching MSVC/MinGW | the SDL3 build directory was used by another toolchain or runtime; dependency preparation clears it automatically when the CRT does not match, so simply retry |
 
 Legacy troubleshooting notes from the script era remain in [build/README.en.md](README.en.md).
 

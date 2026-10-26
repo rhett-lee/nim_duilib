@@ -443,20 +443,25 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
     ]
     if args.deps_root:
         defines.append(f"-DDUILIB_DEPS_ROOT={Path(args.deps_root).expanduser().resolve()}")
+
+    # 以下选项在 CMake 缓存中是有状态的：只传 ON 或只在传入时传值，会让上一次
+    # 调用的取值（如 --no-examples、--md、--sdl、--cef-version 109）残留在同一个
+    # out/<arch>/<Config> 里，之后的“默认”构建实际仍沿用旧选项。这里每次都显式
+    # 传入解析后的取值，保证每次调用的配置只由本次命令行决定。
     if args.sdl is not None:
-        defines.append(f"-DDUILIB_ENABLE_SDL={'ON' if args.sdl else 'OFF'}")
-    if args.md:
-        defines.append("-DDUILIB_MD=ON")
-    if args.cef_version:
-        defines.append(f"-DDUILIB_CEF_VERSION={args.cef_version}")
-    if args.skia_ref:
-        defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref}")
-    if args.sdl_ref:
-        defines.append(f"-DDUILIB_SDL_REF={args.sdl_ref}")
-    if args.cef_archive:
-        defines.append(f"-DDUILIB_CEF_ARCHIVE={Path(args.cef_archive).expanduser().resolve()}")
-    if getattr(args, "no_examples", False):
-        defines.append("-DDUILIB_BUILD_EXAMPLES=OFF")
+        sdl_enabled = args.sdl
+    else:
+        # 与根工程默认一致：Windows（含 MinGW）默认关闭，其他平台强制开启
+        sdl_enabled = sys.platform != "win32"
+    defines.append(f"-DDUILIB_ENABLE_SDL={'ON' if sdl_enabled else 'OFF'}")
+    defines.append(f"-DDUILIB_MD={'ON' if args.md else 'OFF'}")
+    defines.append(f"-DDUILIB_BUILD_EXAMPLES={'OFF' if getattr(args, 'no_examples', False) else 'ON'}")
+    defines.append(f"-DDUILIB_CEF_VERSION={args.cef_version or manifest['cef']['default']}")
+    defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref or manifest['skia']['default']}")
+    defines.append(f"-DDUILIB_SDL_REF={args.sdl_ref or manifest['sdl']['default']}")
+    archive = Path(args.cef_archive).expanduser().resolve() if args.cef_archive else ""
+    defines.append(f"-DDUILIB_CEF_ARCHIVE={archive}")
+
     defines.extend(args.cmake_arg)
     return defines, manifest
 
@@ -560,7 +565,8 @@ def cmd_build(args, messages) -> int:
     if runner.run(_build_command(args, toolchain, build_dir, args.config, args.target),
                   cwd=REPO_ROOT) != 0:
         raise BuildError(messages.t("build.failed"), messages.hint("build.failed_hint"))
-    print(messages.t("build.done"))
+    if not args.dry_run:
+        print(messages.t("build.done"))
     return 0
 
 
@@ -713,7 +719,8 @@ def cmd_clean(args, messages) -> int:
                 raise BuildError(
                     messages.t("build.clean_failed").format(path=target, error=exc),
                     messages.hint("build.clean_failed_hint"))
-    print(messages.t("build.clean_deps_done") if args.deps else messages.t("build.clean_done"))
+    if not args.dry_run:
+        print(messages.t("build.clean_deps_done") if args.deps else messages.t("build.clean_done"))
     return 0
 
 

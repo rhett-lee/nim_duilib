@@ -94,6 +94,12 @@ python3 build/build.py --config Release
 `--sdl` 只是编译开关；`pack` 要在包内包含 SDL3 时必须另加 `--with-sdl`
 （只写 `--sdl` 时 `build.py` 会打印提示，打包内容保持不变）。
 
+`out/<arch>/<Config>` 会复用 CMake 缓存，而 `DUILIB_MD`、`DUILIB_BUILD_EXAMPLES`、
+`DUILIB_ENABLE_SDL`、`DUILIB_CEF_VERSION`、`DUILIB_SKIA_REF` 等都是有状态选项。
+`build.py` 每次都会显式传入解析后的取值，所以先跑 `--no-examples --md`、再跑默认
+命令不会沿用旧选项；只有绕过 `build.py` 直接用 `cmake` 配置同一目录时才需要自己
+清理缓存（删除构建目录后重新配置）。
+
 ## 5. 依赖准备
 
 依赖目录默认位于仓库同级（可用 `--deps-root` 覆盖）：
@@ -274,7 +280,9 @@ MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与
 | `pack` 报“库目录同时包含 MSVC（.lib）与 MinGW（.a）产物” | 切换工具链后旧库仍留在 `lib/<arch>/<Config>`；删除该目录（或 `build.py clean`）后用单一工具链重新构建 |
 | `pack --with-cef` 报缺少所选版本的 wrapper | 编译与打包的 CEF 版本必须一致（如 `build --cef-version 109` 对应 `pack --with-cef --cef-version 109`）；错误信息会指出库目录中实际存在的版本 |
 | `pack --with-examples` 报“bin 的架构与目标 x86/x64 不一致” | Windows 的 `bin/` 被多个架构共用；清理 `bin/` 中其它架构的 exe/dll，或只保留目标架构的构建产物后重新打包 |
-| MinGW Debug 链接报 `out of memory allocating ...` | GNU ld 已追加 `-Wl,--no-keep-memory`；内存仍紧张时用 `--jobs 2` 降低并行链接数（clang/CLANG64 的 lld 不需要该参数） |
+| MinGW 编译或链接（尤其 Debug）报 `out of memory allocating ...` | 降低并行度：`--jobs 2`；链接阶段 GNU ld 已追加 `-Wl,--no-keep-memory`（clang/CLANG64 的 lld 不需要该参数） |
+| MinGW 关闭静态链接（`DUILIB_MINGW_STATIC=OFF`）后示例启动缺 `libstdc++-6.dll` 等 | 该模式依赖编译器运行库，需把 `libstdc++-6.dll`、`libgcc_s_seh-1.dll`（x86 为 `libgcc_s_dw2-1.dll`）、`libwinpthread-1.dll` 复制到 exe 同级；默认静态链接无此问题 |
+| `deps` 构建 SDL3 时出现 `cl.exe`/`LNK1104`，或切换 MSVC/MinGW 后 `--sdl` 失败 | SDL3 构建目录被其它工具链或运行库使用过；依赖准备会在 CRT 不一致时自动清理，直接重试即可 |
 | MinGW Debug 链接报 `No space left on device` | MinGW Debug 示例单个约 200–280 MB，全部示例约 10 GB；清理 `bin/` 后重试，或改用 Release 配置 |
 
 更细的旧脚本时代问题排查记录保留在 [build/README.md](README.md)。

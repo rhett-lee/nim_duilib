@@ -148,6 +148,21 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   so packing an x86 SDK used to collect leftover x64 examples. The PE COFF
   Machine field is now checked; mismatching exe/dll files are skipped and
   packaging is blocked (clean `bin/` or use `--allow-missing`).
+- `build.py`: stateful options such as `DUILIB_MD`, `DUILIB_BUILD_EXAMPLES`,
+  `DUILIB_ENABLE_SDL`, `DUILIB_CEF_VERSION` and `DUILIB_SKIA_REF` were only set
+  when passed, so reusing an `out/<arch>/<Config>` directory kept stale values
+  in the CMake cache (e.g. a plain build after `--no-examples` no longer built
+  examples). Every invocation now passes the resolved values explicitly, so the
+  result depends only on the current command line.
+- Dependency preparation: the SDL3 build directories are keyed by
+  architecture/config only, independent of the toolchain. After switching
+  toolchains or runtimes (MSVC <-> MinGW, /MT <-> /MD) the old CMake cache kept
+  the previous compiler, so e.g. `--sdl` under MinGW still invoked `cl.exe` and
+  failed without the MSVC environment. The `.duilib-sdl` stamp is now compared
+  first; on a CRT mismatch the SDL3 build directory is cleared and reconfigured.
+- `build.py --dry-run`: `build` and `clean` still printed "build finished" /
+  "removed" although they only printed commands; the completion messages are now
+  suppressed in dry-run mode, matching `pack`/`test`.
 
 ## [1.0.2026.1023] - 2026-10-23
 
