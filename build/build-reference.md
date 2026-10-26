@@ -83,6 +83,7 @@ python3 build/build.py --config Release
 | `--skia-ref` / `--sdl-ref` | 选择版本清单中的 ref |
 | `--sdl` / `--no-sdl` | 显式启用/关闭 SDL；Windows 默认关闭，其他平台强制开启 |
 | `--md` | 使用 MSVC 动态运行库（/MD、/MDd） |
+| `--no-absolute-rpath` | Unix 产物只写相对 rpath，不附加 SDL3 等绝对兜底路径 |
 | `--cef-archive <file>` | 使用本地 CEF 归档，跳过下载 |
 | `--no-deps`（build） | 跳过依赖准备，直接构建 |
 | `--target <name>`（build） | 只构建指定目标，如 `duilib` |
@@ -99,6 +100,12 @@ python3 build/build.py --config Release
 `build.py` 每次都会显式传入解析后的取值，所以先跑 `--no-examples --md`、再跑默认
 命令不会沿用旧选项；只有绕过 `build.py` 直接用 `cmake` 配置同一目录时才需要自己
 清理缓存（删除构建目录后重新配置）。
+
+Unix 上示例程序默认写入相对 rpath（`$ORIGIN/../lib`、`@loader_path/../lib` 等），
+并追加 SDL3 依赖前缀作为构建树兜底。要生成完全不含构建机绝对路径的产物，可加
+`--no-absolute-rpath`（等价于 `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`）；此时
+构建树中的示例需自行设置 `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`，打包后的程序仍
+通过相对 rpath 找到包内 SDL3。
 
 ## 5. 依赖准备
 
@@ -139,7 +146,8 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   `out/llvm.<arch>.release` 或 `out/gcc.<arch>.release`。Debug 复用 Release 编译
   模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
 - **SDL3**：固定 tag（`sdl.default`）。Windows 默认不启用；显式启用时由 `deps`
-  自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath。
+  自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath（相对条目在前，
+  绝对兜底由 `DUILIB_RPATH_ABSOLUTE` 控制）。
 - **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
   `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
   `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：
@@ -286,6 +294,7 @@ MSYS2 各环境使用各自目录下的工具链（MSYS2 终端中 `MSYSTEM` 与
 | `CMake version is too old` | 升级到 CMake 3.24+ |
 | CEF 示例无法运行 | 确认 `bin/libcef_win/<arch>`（或 `bin/libcef_linux`）包含运行时；`pack --with-cef` 会带上 |
 | 打包的示例程序加载了构建机的 `.so` | 示例程序已写入相对 rpath（`$ORIGIN/../lib`、`$ORIGIN/libcef_linux`），优先使用包内库；Linux 示例依赖 libcef 时请用 `pack --with-cef`，否则包内缺少 CEF 运行时 |
+| 产物中仍有构建机绝对路径（`otool`/`readelf` 可见） | 这些路径来自 `DUILIB_RPATH_ABSOLUTE=ON` 的 SDL3 兜底；发布构建可加 `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`，或改用 `DUILIB_SDL_RPATH=OFF` 完全关闭 rpath |
 | CEF 下载失败 | 用 `--cef-archive <file>` 指定本地归档，或 `--offline` 使用缓存 |
 | Linux 文本不显示 | 安装 fontconfig 与中文字体，确认 `bin/resources/fonts` 存在 |
 | 构建目录损坏 | `python3 build/build.py clean` 后重试 |

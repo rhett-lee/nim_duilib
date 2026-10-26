@@ -216,6 +216,9 @@ def _add_common_options(parser: argparse.ArgumentParser, suppress_defaults: bool
                         help="强制关闭 SDL")
     parser.add_argument("--md", action="store_true", default=default(False),
                         help="使用 MSVC 动态运行库 (/MD, /MDd)")
+    parser.add_argument("--no-absolute-rpath", dest="rpath_absolute",
+                        action="store_false", default=default(True),
+                        help="Unix 产物只写相对 rpath，不附加 SDL3 等绝对兜底路径")
     parser.add_argument("--cef-archive", default=default(None),
                         help="本地 CEF 归档路径（跳过下载）")
 
@@ -502,6 +505,9 @@ def _cmake_defines(args, arch: str, deps_mode: str, force: bool) -> list:
         sdl_enabled = sys.platform != "win32"
     defines.append(f"-DDUILIB_ENABLE_SDL={'ON' if sdl_enabled else 'OFF'}")
     defines.append(f"-DDUILIB_MD={'ON' if args.md else 'OFF'}")
+    # Unix rpath 的绝对兜底默认开启；发布构建可用 --no-absolute-rpath。
+    rpath_absolute = getattr(args, "rpath_absolute", True)
+    defines.append(f"-DDUILIB_RPATH_ABSOLUTE={'ON' if rpath_absolute else 'OFF'}")
     defines.append(f"-DDUILIB_BUILD_EXAMPLES={'OFF' if getattr(args, 'no_examples', False) else 'ON'}")
     defines.append(f"-DDUILIB_CEF_VERSION={args.cef_version or manifest['cef']['default']}")
     defines.append(f"-DDUILIB_SKIA_REF={args.skia_ref or manifest['skia']['default']}")

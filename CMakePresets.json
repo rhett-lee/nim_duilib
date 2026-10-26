@@ -14,7 +14,8 @@
         "DUILIB_DEPS_MODE": "off",
         "DUILIB_LANG": "auto",
         "DUILIB_ENABLE_CEF": "ON",
-        "DUILIB_SDL_RPATH": "ON"
+        "DUILIB_SDL_RPATH": "ON",
+        "DUILIB_RPATH_ABSOLUTE": "ON"
       }
     },
     {

@@ -262,7 +262,8 @@ Git、生成器对应的构建工具（Ninja 生成器 → `ninja`；Makefiles �
 | `DUILIB_NINJA_EXECUTABLE` | 空 | 覆盖 `ninja` 可执行文件路径 |
 | `DUILIB_MD` | `OFF` | `ON` → Skia 用 `/MD`、`/MDd`；`OFF` → `/MT`、`/MTd` |
 | `DUILIB_SKIA_REQUIRE_PATCH` | `ON` | 所选 Skia ref 缺少 `patchZip` 时报错 |
-| `DUILIB_SDL_RPATH` | `ON` | Unix 产物写入指向 `${DUILIB_SDL_ROOT}/lib` 的绝对 rpath |
+| `DUILIB_SDL_RPATH` | `ON` | Unix 产物写入 rpath（相对条目在前） |
+| `DUILIB_RPATH_ABSOLUTE` | `ON` | rpath 是否追加 `${DUILIB_SDL_ROOT}/lib` 等绝对兜底路径；`OFF` 时只保留相对条目 |
 
 所有路径都用 `CACHE PATH`，便于下游复用已有的 skia/SDL3/cef_binary 缓存。
 
@@ -402,14 +403,16 @@ extra_cflags=["-DSK_DISABLE_LEGACY_PNG_WRITEBUFFER"]
   缺 Debug 库时提示重新执行 `deps`，不静默回退到 Release 库。
 
 - **运行库搜索路径（rpath）**：Unix 默认开启（`DUILIB_SDL_RPATH=ON`），
-  在可执行文件上写入**绝对路径** `${DUILIB_SDL_ROOT}/lib`，确保优先加载构建的 SDL3
-  而不是系统已安装的版本；同时把 `bin/libcef_linux`（Linux CEF 运行时）加入 rpath。
-  Linux 使用 `-Wl,-rpath,<abs>`，macOS 使用 `-Wl,-rpath,<abs>`（兼容 `@rpath` 安装名），
-  FreeBSD 使用 `-Wl,-rpath,${DUILIB_SDL_ROOT}/lib:/usr/local/lib`
-  （`/usr/local/lib` 是 ports 安装的 fontconfig/freetype/X11 默认位置，必须保留）；
-  可通过 `DUILIB_SDL_RPATH=OFF` 关闭，改由 `LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH` 控制。
-  实现上统一设置 `CMAKE_INSTALL_RPATH` 与 `CMAKE_BUILD_RPATH`，并关闭
-  `CMAKE_SKIP_RPATH`，保证构建树与安装后的可执行文件都能找到依赖。
+  先写入相对条目（macOS `@loader_path`、其他 `$ORIGIN`；Linux 另含 CEF 的
+  `libcef_linux`、SDL 的 `../lib`），保证打包后优先加载包内库；
+  `DUILIB_RPATH_ABSOLUTE=ON`（默认）时再追加 `${DUILIB_SDL_ROOT}/lib` 绝对路径，
+  让构建树中的示例无需环境变量即可运行。`DUILIB_RPATH_ABSOLUTE=OFF` 时只保留
+  相对条目，产物完全可迁移，构建树运行需自行设置 `LD_LIBRARY_PATH`/
+  `DYLD_LIBRARY_PATH`。FreeBSD 的 `/usr/local/lib` 也受该开关控制。
+  实现上统一设置 `CMAKE_INSTALL_RPATH` 与 `CMAKE_BUILD_RPATH`，并设置
+  `CMAKE_BUILD_WITH_INSTALL_RPATH=TRUE`：构建树直接使用安装期 rpath，避免 CMake
+  把 `target_link_directories` 里的绝对路径（静态库目录、Skia 输出目录）自动写进
+  `BUILD_RPATH`。`DUILIB_SDL_RPATH=OFF` 仍表示完全不写 rpath。
 - **验证**：Linux/FreeBSD `readelf -d bin/<example> | grep -E 'RPATH|RUNPATH'`、
   macOS `otool -L bin/<example>`，确认指向 `${DUILIB_SDL_ROOT}/lib`（FreeBSD 另含
   `/usr/local/lib`）而非 `/usr/lib`；若系统已安装同名 SDL3，`ldd` 结果必须指向
@@ -629,7 +632,8 @@ Windows 与 Linux 共用同一套实现，只是复制目标不同。
 | `DUILIB_GN_EXECUTABLE` / `DUILIB_NINJA_EXECUTABLE` | 空 | 覆盖 `gn` / `ninja` 路径 |
 | `DUILIB_MD` | `OFF` | Windows CRT：`OFF` → `/MT`、`/MTd`；`ON` → `/MD`、`/MDd` |
 | `DUILIB_SKIA_REQUIRE_PATCH` | `ON` | Skia ref 缺少 `patchZip` 时报错 |
-| `DUILIB_SDL_RPATH` | `ON` | Unix 写入指向 `${DUILIB_SDL_ROOT}/lib` 的绝对 rpath |
+| `DUILIB_SDL_RPATH` | `ON` | Unix 写入 rpath（相对条目在前） |
+| `DUILIB_RPATH_ABSOLUTE` | `ON` | rpath 是否追加 `${DUILIB_SDL_ROOT}/lib` 等绝对兜底路径 |
 | `DUILIB_ENABLE_CEF` | Windows MSVC 三架构 / Linux / macOS `ON`；MinGW、MSYS2、FreeBSD `OFF` | 与脚本构建的示例集合一致；MinGW 因 MSVC ABI 不兼容默认关闭 |
 | `DUILIB_CEF_VERSION` | 清单 `default`（当前 `142`） | `109` / `142`；只改 `third_party_versions.json` 即可升级 |
 | `DUILIB_CEF_109` | `OFF` | 旧选项，`ON` 等价于 `DUILIB_CEF_VERSION=109` |

@@ -178,6 +178,7 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         manifest = entry.load_manifest(entry.VERSIONS_FILE)
         self.assertIn('-DDUILIB_BUILD_EXAMPLES=ON', defines)
         self.assertIn('-DDUILIB_MD=OFF', defines)
+        self.assertIn('-DDUILIB_RPATH_ABSOLUTE=ON', defines)
         expected_sdl = ('-DDUILIB_ENABLE_SDL=OFF' if sys.platform == 'win32'
                         else '-DDUILIB_ENABLE_SDL=ON')
         self.assertIn(expected_sdl, defines)
@@ -194,6 +195,10 @@ class CmakeDefinePersistenceTests(unittest.TestCase):
         self.assertIn('-DDUILIB_MD=ON', defines)
         self.assertIn('-DDUILIB_ENABLE_SDL=ON', defines)
         self.assertIn('-DDUILIB_CEF_VERSION=109', defines)
+
+    def test_no_absolute_rpath(self):
+        defines = self._defines(['build', '--no-absolute-rpath'])
+        self.assertIn('-DDUILIB_RPATH_ABSOLUTE=OFF', defines)
 
     def test_cmake_arg_comes_last(self):
         defines = self._defines(['build', '--md',

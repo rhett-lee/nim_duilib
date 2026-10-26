@@ -277,7 +277,8 @@ duilib_msg("options.arch_resolved" " ${_duilib_arch}")
 option(DUILIB_BUILD_THIRD_PARTY "Build zlib/libpng/cximage/libwebp" ON)
 option(DUILIB_BUILD_EXAMPLES "Build example applications" ON)
 option(DUILIB_MD "Use the MSVC dynamic runtime (/MD, /MDd)" OFF)
-option(DUILIB_SDL_RPATH "Write an absolute rpath to the SDL3 prefix on Unix" ON)
+option(DUILIB_SDL_RPATH "Write rpath entries on Unix (relative first)" ON)
+option(DUILIB_RPATH_ABSOLUTE "Include absolute fallback paths in the Unix rpath" ON)
 option(DUILIB_OFFLINE "Use only cached dependency sources/archives" OFF)
 option(DUILIB_DEPS_AUTO_CLONE "Allow git clone while preparing dependencies" ON)
 option(DUILIB_DEPS_FORCE "Rebuild dependencies even when stamps match" OFF)
@@ -403,6 +404,14 @@ set(DUILIB_EXAMPLES "${_duilib_examples}" CACHE STRING "Example applications to 
 # 相对条目必须排在绝对条目之前：打包后的示例程序与库的相对位置是
 #   bin/<exe>、lib/libSDL3.so*、bin/libcef_linux/libcef.so
 # 这样解包即可运行，不会反过来加载构建机上的同名库。
+#
+# DUILIB_RPATH_ABSOLUTE=OFF 时只保留相对条目，产物完全可迁移；此时构建树中的
+# 示例需要自行设置 LD_LIBRARY_PATH/DYLD_LIBRARY_PATH，打包后的程序不受影响。
+#
+# 构建树也使用 INSTALL_RPATH：CMake 默认会把 target_link_directories 里的
+# 绝对路径（lib/<Config>、Skia 输出目录等）写进 BUILD_RPATH，而这些目录只
+# 提供静态库，既不必要又会让产物带上构建机路径。统一使用 INSTALL_RPATH 后，
+# 构建树与打包产物中的 rpath 完全一致。
 # ---------------------------------------------------------------------------
 if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
     if(DUILIB_OS_MACOS)
@@ -416,15 +425,19 @@ if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
         list(APPEND _duilib_rpath "${_duilib_origin}/libcef_linux")
     endif()
     if(DUILIB_ENABLE_SDL)
-        # 包内 SDL3 在 lib/；构建树中没有该目录时才回退到依赖前缀
+        # 包内 SDL3 在 lib/
         list(APPEND _duilib_rpath "${_duilib_origin}/../lib")
-        if(EXISTS "${DUILIB_SDL_ROOT}/lib64")
-            list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib64")
-        else()
-            list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib")
+        if(DUILIB_RPATH_ABSOLUTE)
+            # 构建树没有 lib/libSDL3*.dylib 时，用依赖前缀兜底
+            if(EXISTS "${DUILIB_SDL_ROOT}/lib64")
+                list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib64")
+            else()
+                list(APPEND _duilib_rpath "${DUILIB_SDL_ROOT}/lib")
+            endif()
         endif()
     endif()
-    if(DUILIB_OS_FREEBSD)
+    if(DUILIB_OS_FREEBSD AND DUILIB_RPATH_ABSOLUTE)
+        # ports 安装的 fontconfig/freetype/X11 默认位置
         list(APPEND _duilib_rpath "/usr/local/lib")
     endif()
     if(_duilib_rpath)
@@ -432,7 +445,8 @@ if(NOT DUILIB_OS_WINDOWS AND DUILIB_SDL_RPATH)
         set(CMAKE_BUILD_RPATH "${_duilib_rpath}")
         set(CMAKE_INSTALL_RPATH "${_duilib_rpath}")
         set(CMAKE_SKIP_RPATH FALSE)
-        set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+        set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+        set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
     endif()
 endif()
 

@@ -87,6 +87,7 @@ python3 build/build.py --config Release
 | `--skia-ref` / `--sdl-ref` | select a ref from the version manifest |
 | `--sdl` / `--no-sdl` | force SDL on/off; off by default on Windows, forced on elsewhere |
 | `--md` | use the MSVC dynamic runtime (/MD, /MDd) |
+| `--no-absolute-rpath` | write only origin-relative rpath entries on Unix |
 | `--cef-archive <file>` | use a local CEF archive and skip downloading |
 | `--no-deps` (build) | skip dependency preparation |
 | `--target <name>` (build) | build only the given target, e.g. `duilib` |
@@ -106,6 +107,14 @@ resolved values explicitly, so running `--no-examples --md` first and then a
 plain command does not inherit the old options. Only when configuring the same
 directory directly with `cmake` do you need to clear the cache (delete the build
 directory and reconfigure).
+
+On Unix, examples carry origin-relative rpath entries (`$ORIGIN/../lib`,
+`@loader_path/../lib`, etc.) plus the SDL3 prefix as a build-tree fallback. To
+produce artifacts with no build-machine absolute paths, pass
+`--no-absolute-rpath` (equivalent to
+`--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`); examples in the build tree then need
+`LD_LIBRARY_PATH`/`DYLD_LIBRARY_PATH`, while packaged programs still find the
+bundled SDL3 through the relative entries.
 
 ## 5. Dependencies
 
@@ -153,7 +162,8 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   configuration needs its own Skia variant directory.
 - **SDL3**: fixed tag (`sdl.default`). Disabled on Windows by default; when enabled,
   `deps` builds Debug and Release static libraries. Unix builds shared libraries and
-  writes rpath entries.
+  writes rpath entries (relative entries first; the absolute fallback is controlled
+  by `DUILIB_RPATH_ABSOLUTE`).
 - **CEF**: fixed version branch (`cef.default`; `109` is available for Windows 7).
   The `_minimal` distributions are used everywhere (about half the size of the standard
   package; they contain `include/`, `Release/` and `Resources/`). Only
@@ -296,6 +306,7 @@ sure the Skia libraries are the `mingw64-llvm.<arch>` variant.
 | `CMake version is too old` | upgrade to CMake 3.24+ |
 | CEF example does not start | ensure `bin/libcef_win/<arch>` (or `bin/libcef_linux`) contains the runtime; `pack --with-cef` includes it |
 | Packaged examples load the builder's `.so` | examples carry a relative rpath (`$ORIGIN/../lib`, `$ORIGIN/libcef_linux`) so bundled libraries win; use `pack --with-cef` when examples depend on libcef |
+| Build-machine absolute paths remain in the binary (`otool`/`readelf`) | They come from the `DUILIB_RPATH_ABSOLUTE=ON` SDL3 fallback; build packages with `--cmake-arg=-DDUILIB_RPATH_ABSOLUTE=OFF`, or disable rpath entirely with `DUILIB_SDL_RPATH=OFF` |
 | CEF download fails | pass `--cef-archive <file>` or use `--offline` with a cache |
 | No text on Linux | install fontconfig and CJK fonts; check `bin/resources/fonts` |
 | Corrupted build tree | `python3 build/build.py clean` and retry |
