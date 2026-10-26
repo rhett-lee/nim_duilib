@@ -267,5 +267,30 @@ class SelectionTest(unittest.TestCase):
             sdk.parse_selection("X99")
 
 
+def _print_help() -> None:
+    """打印本测试脚本的用途与用法。
+
+    直接交给 unittest.main() 时，--help 只显示 unittest 自己的参数说明，
+    看不出本脚本测什么、不测什么，因此这里单独输出。
+    """
+    print("build/test_sdk_package.py：sdk_package_test.py 的纯函数单元测试")
+    print()
+    print("覆盖范围：")
+    print("  - 包名解析，CMake 元数据与 MANIFEST 字段解析")
+    print("  - 能力推断（静态/DLL，SDL/CEF/WebView2/JPEG）")
+    print("  - 归档根选择、场景适用性、场景编号选择")
+    print()
+    print("不做什么：不读取真实 SDK 包，不调用 CMake，也不编译、链接或运行任何 C++ 代码。")
+    print("要验证真实 SDK 包（含消费者编译/链接/运行），请使用：")
+    print("  python3 build/sdk_package_test.py --package <发布包>")
+    print("查看可执行场景：")
+    print("  python3 build/sdk_package_test.py --list-scenarios")
+    print()
+    print("其余参数仍由 unittest 解析：-v、-q、-k <模式>、<测试类或测试方法>。")
+
+
 if __name__ == "__main__":
-    unittest.main()
+    if any(arg in ("-h", "--help") for arg in sys.argv[1:]):
+        _print_help()
+    else:
+        unittest.main()
