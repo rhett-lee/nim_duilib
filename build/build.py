@@ -23,6 +23,8 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 from i18n import make_messages, set_console_utf8
@@ -37,6 +39,8 @@ VALID_CONFIGS = ("Debug", "Release")
 VALID_ARCHES = ("auto", "x86", "x64", "arm64")
 DEFAULT_CONFIG = "Release"
 DEFAULT_DEPS_MODE = "prepare"
+# Skia 补丁归档只随 skia_compile 仓库分发，版本清单里只有文件名。
+SKIA_COMPILE_RAW_BASE = "https://raw.githubusercontent.com/rhett-lee/skia_compile/main"
 
 
 class BuildError(Exception):
@@ -532,6 +536,64 @@ def _check_cef_archive(args, messages) -> None:
                          messages.hint("build.cef_archive_missing_hint"))
 
 
+def _deps_root(args) -> Path:
+    return Path(args.deps_root).expanduser().resolve() if args.deps_root else REPO_ROOT.parent
+
+
+def _skia_patch_archive(manifest, args) -> Path | None:
+    """当前 Skia ref 对应的补丁归档路径；该 ref 不需要补丁时返回 None。"""
+    ref = getattr(args, "skia_ref", None) or manifest["skia"]["default"]
+    patch_zip = manifest["skia"].get("refs", {}).get(ref, {}).get("patchZip", "")
+    return _deps_root(args) / "skia_compile" / patch_zip if patch_zip else None
+
+
+def _skia_patch_needed(args) -> bool:
+    """已有 Skia 编译产物时由 CMake 判断是否复用，避免无谓的补丁下载。"""
+    if getattr(args, "force", False):
+        return True
+    skia_out = _deps_root(args) / "skia" / "out"
+    if not skia_out.is_dir():
+        return True
+    return not any((entry / name).is_file()
+                   for entry in skia_out.iterdir()
+                   for name in ("skia.lib", "libskia.a"))
+
+
+def _ensure_skia_patch(args, messages) -> None:
+    """缺少 Skia 补丁归档时，从 skia_compile 仓库下载到 deps 目录。"""
+    try:
+        manifest = load_manifest(VERSIONS_FILE)
+    except (OSError, ValueError):
+        # 清单损坏时交给 configure 阶段统一报错
+        return
+    patch = _skia_patch_archive(manifest, args)
+    if patch is None or patch.is_file() or not _skia_patch_needed(args):
+        return
+    if getattr(args, "offline", False):
+        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
+                         messages.hint("deps.offline_missing_hint"))
+
+    url = f"{SKIA_COMPILE_RAW_BASE}/{patch.name}"
+    print(messages.t("deps.skia_patch_fetching") + f" ({patch.name})", flush=True)
+    if args.dry_run:
+        print(f"+ download {url} -> {patch}", flush=True)
+        return
+
+    temp = patch.with_name(patch.name + ".part")
+    try:
+        patch.parent.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(url, timeout=60) as response, temp.open("wb") as handle:
+            shutil.copyfileobj(response, handle)
+        # 代理或错误页面可能返回非 zip 内容，避免把坏文件写进缓存
+        if not zipfile.is_zipfile(temp):
+            raise OSError("downloaded file is not a zip archive")
+        temp.replace(patch)
+    except OSError as error:
+        temp.unlink(missing_ok=True)
+        raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
+                         messages.hint("deps.skia_patch_fetch_failed_hint")) from error
+
+
 def cmd_deps(args, messages) -> int:
     _require_cmake(messages)
     _check_cef_archive(args, messages)
@@ -540,6 +602,7 @@ def cmd_deps(args, messages) -> int:
     toolchain = detect_toolchain(arch, args.vs_version)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
+    _ensure_skia_patch(args, messages)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
     return 0
 
@@ -554,6 +617,7 @@ def cmd_build(args, messages) -> int:
     runner = Runner(toolchain.env, args.dry_run)
 
     if not args.no_deps:
+        _ensure_skia_patch(args, messages)
         _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", False)
 
     print(messages.t("build.configuring") + f" ({arch}/{args.config})", flush=True)
@@ -584,9 +648,11 @@ def _info_line(text: str) -> None:
 
 def cmd_doctor(args, messages) -> int:
     arch = resolve_arch(args.arch)
+    host = platform_name()
     print(messages.t("doctor.title"), flush=True)
-    _ok_line(f"platform {platform_name()}/{arch}")
-    _ok_line(f"python {platform.python_version()} ({sys.executable})")
+    _ok_line(f"platform {host}/{arch}")
+    # 显示实际的解释器名字（Linux 上通常只有 python3，避免误以为存在 python）
+    _ok_line(f"{Path(sys.executable).stem} {platform.python_version()} ({sys.executable})")
     _ok_line(f"repository {REPO_ROOT}")
 
     cmake = shutil.which("cmake")
@@ -608,6 +674,7 @@ def cmd_doctor(args, messages) -> int:
         if toolchain.vs_install:
             _ok_line(f"visual studio {toolchain.vs_install}")
 
+    manifest = None
     try:
         manifest = load_manifest(VERSIONS_FILE)
         _ok_line(f"skia ref {manifest['skia']['default']}")
@@ -616,15 +683,62 @@ def cmd_doctor(args, messages) -> int:
     except (OSError, ValueError) as error:
         _warn_line(f"third_party_versions.json: {error}")
 
-    deps_root = Path(args.deps_root).expanduser().resolve() if args.deps_root else REPO_ROOT.parent
+    deps_root = _deps_root(args)
+    _ok_line(f"deps root {deps_root}")
+    offline = getattr(args, "offline", False)
+    missing_hint = "offline: cannot fetch it" if offline else "build.py deps will fetch it"
+
+    # Skia 源码与补丁归档都由 build.py deps 自动获取。
     skia_root = deps_root / "skia"
-    sdl_root = deps_root / "SDL3"
-    _ok_line(f"skia source {skia_root}") if skia_root.is_dir() else _warn_line(f"skia source missing: {skia_root}")
-    if sdl_root.is_dir():
-        _ok_line(f"sdl prefix {sdl_root}")
+    if skia_root.is_dir():
+        _ok_line(f"skia source {skia_root}")
     else:
-        # 首次构建前 SDL3 前缀必然不存在，由 deps 生成，因此只作提示
-        _info_line(f"sdl prefix not built yet: {sdl_root} (build.py deps will build it)")
+        _warn_line(f"skia source missing: {skia_root} ({missing_hint})")
+
+    patch = _skia_patch_archive(manifest, args) if manifest else None
+    if patch is not None:
+        if patch.is_file():
+            _ok_line(f"skia patch {patch}")
+        else:
+            _warn_line(f"skia patch missing: {patch} ({missing_hint})")
+
+    # SDL 在 Windows 默认关闭，其他平台强制开启；只报告当前配置实际需要的依赖。
+    sdl_enabled = args.sdl if args.sdl is not None else host != "windows"
+    sdl_src = deps_root / "SDL"
+    sdl_root = deps_root / "SDL3"
+    if not sdl_enabled:
+        _info_line("sdl disabled (pass --sdl to enable)")
+    else:
+        if sdl_src.is_dir():
+            _ok_line(f"sdl source {sdl_src}")
+        else:
+            _warn_line(f"sdl source missing: {sdl_src} ({missing_hint})")
+        if sdl_root.is_dir():
+            _ok_line(f"sdl prefix {sdl_root}")
+        else:
+            # 首次构建前 SDL3 前缀必然不存在，由 deps 生成
+            _info_line(f"sdl prefix not built yet: {sdl_root} ("
+                       f"{'offline: cannot build it' if offline else 'build.py deps will build it'})")
+
+    # CEF 运行时由 deps 下载；MinGW 与 FreeBSD 不支持 CEF。
+    cef_supported = host in ("linux", "macos") or (host == "windows" and not os.environ.get("MSYSTEM"))
+    if not cef_supported:
+        _info_line("cef not supported in this environment")
+    else:
+        cef_version = getattr(args, "cef_version", None) or (manifest["cef"]["default"] if manifest else "")
+        if host == "windows":
+            suffix = "_109" if cef_version == "109" else ""
+            cef_arch = "Win32" if arch == "x86" else arch
+            cef_dest, cef_marker = REPO_ROOT / "bin" / f"libcef_win{suffix}" / cef_arch, "libcef.dll"
+        elif host == "linux":
+            cef_dest, cef_marker = REPO_ROOT / "bin" / "libcef_linux", "libcef.so"
+        else:
+            cef_dest, cef_marker = deps_root / "cef_binary", Path("include") / "cef_version.h"
+        if (cef_dest / cef_marker).is_file():
+            _ok_line(f"cef runtime {cef_version} {cef_dest}")
+        else:
+            _info_line(f"cef runtime {cef_version} not prepared yet: {cef_dest} ("
+                       f"{'offline: cannot download it' if offline else 'build.py deps will download it'})")
 
     if not cmake:
         return 1 if not shutil.which("git") else 0

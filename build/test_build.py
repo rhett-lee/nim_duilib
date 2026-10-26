@@ -13,7 +13,9 @@ import io
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
+from unittest import mock
 
 BUILD_DIR = Path(__file__).resolve().parent
 REPO_ROOT = BUILD_DIR.parent
@@ -280,6 +282,51 @@ class DryRunOutputTests(unittest.TestCase):
             lines = [line for line in output.getvalue().splitlines() if line.strip()]
             self.assertEqual(len(lines), 1)
             self.assertIn(str(target), lines[0])
+
+
+class SkiaPatchTests(unittest.TestCase):
+    def _messages(self):
+        return entry.make_messages("zh_CN")
+
+    def test_offline_reports_missing_patch(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = entry.parse_args(["deps", "--deps-root", root, "--offline"])
+            with self.assertRaises(entry.BuildError):
+                entry._ensure_skia_patch(args, self._messages())
+            self.assertFalse((Path(root) / "skia_compile").exists())
+
+    def test_dry_run_prints_download(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = entry.parse_args(["deps", "--deps-root", root, "--dry-run"])
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                entry._ensure_skia_patch(args, self._messages())
+            self.assertIn("+ download ", output.getvalue())
+            self.assertFalse((Path(root) / "skia_compile").exists())
+
+    def test_download_writes_archive(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = entry.parse_args(["deps", "--deps-root", root])
+            patch = entry._skia_patch_archive(
+                entry.load_manifest(entry.VERSIONS_FILE), args)
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w") as archive:
+                archive.writestr("patch.txt", "x")
+            with mock.patch.object(entry.urllib.request, "urlopen",
+                                   return_value=io.BytesIO(buffer.getvalue())):
+                entry._ensure_skia_patch(args, self._messages())
+            self.assertTrue(patch.is_file())
+
+    def test_built_artifacts_skip_download(self):
+        with tempfile.TemporaryDirectory() as root:
+            variant = Path(root) / "skia" / "out" / "llvm.x64.release"
+            variant.mkdir(parents=True)
+            (variant / "skia.lib").write_text("x", encoding="utf-8")
+            args = entry.parse_args(["deps", "--deps-root", root])
+            with mock.patch.object(entry.urllib.request, "urlopen") as mocked:
+                entry._ensure_skia_patch(args, self._messages())
+                mocked.assert_not_called()
+            self.assertFalse((Path(root) / "skia_compile").exists())
 
 
 if __name__ == "__main__":

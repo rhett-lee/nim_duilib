@@ -184,6 +184,14 @@
       "en": "check DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT in third_party_versions.json",
       "zh_CN": "检查 third_party_versions.json 中的 DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT"
     },
+    "deps.skia_patch_fetching": {
+      "en": "[deps] fetching the Skia patch archive",
+      "zh_CN": "[deps] 正在获取 Skia 补丁归档"
+    },
+    "deps.skia_patch_fetch_failed_hint": {
+      "en": "check network access, or download the archive from https://github.com/rhett-lee/skia_compile into DUILIB_SKIA_COMPILE_ROOT manually",
+      "zh_CN": "检查网络连接，或从 https://github.com/rhett-lee/skia_compile 手工下载补丁归档到 DUILIB_SKIA_COMPILE_ROOT"
+    },
     "deps.sdl_ready": {
       "en": "[OK] SDL3 is ready",
       "zh_CN": "[OK] SDL3 已就绪"

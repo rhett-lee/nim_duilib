@@ -15,6 +15,9 @@
   构建树统一为 `out/<arch>/<Config>`。
 - 依赖自动准备：版本清单 `cmake/third_party_versions.json` 锁定 Skia、SDL3 与 CEF，
   支持下载缓存、sha256 校验、断点续传与并发锁；已有产物可按 stamp 直接采纳。
+- 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动从
+  [skia_compile](https://github.com/rhett-lee/skia_compile) 下载到 `skia_compile/`；
+  `--offline` 下不联网，需提前自备。
 - 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
   `.en.md` 改为前置依赖与发布打包索引。
 - `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
@@ -26,6 +29,9 @@
   `build/autotest.py` 的构建步骤改为调用 `build.py`。
 - CEF 运行时按版本与架构输出到 `bin/libcef_win[/_109]/<arch>` 或 `bin/libcef_linux`，
   编译使用仓库跟踪的头文件与导入库。
+- `doctor` 的依赖状态报告更完整：分别列出 Skia 源码与补丁归档、SDL 源码与前缀、
+  CEF 运行时，缺失时说明由 `deps` 获取，`--offline` 下则提示无法获取；解释器名称
+  按实际命令显示（Linux 上为 `python3`）。
 
 ### 移除
 

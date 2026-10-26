@@ -16,6 +16,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - Automatic dependency preparation driven by `cmake/third_party_versions.json`
   (Skia, SDL3, CEF), with download caches, sha256 checks, resume and a process lock;
   existing artifacts are adopted through stamp files.
+- When the Skia patch archive is missing, `build.py deps` / `build` downloads it from
+  [skia_compile](https://github.com/rhett-lee/skia_compile) into `skia_compile/`;
+  `--offline` never touches the network.
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
   and `README.en.md` now focus on prerequisites and packaging.
 - `build/test_build.py`: standard-library unit tests for the build entry and i18n.
@@ -27,6 +30,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `build/autotest.py` now builds through `build.py`.
 - CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`;
   compilation uses the tracked headers and import libraries.
+- `doctor` reports dependency state in more detail: Skia source and patch archive,
+  SDL source and prefix, and the CEF runtime are listed separately, noting that
+  `deps` fetches them while `--offline` cannot; the interpreter is shown under its
+  actual command name (`python3` on Linux).
 
 ### Removed
 
