@@ -414,7 +414,10 @@ class SkiaPatchTests(unittest.TestCase):
             runner = mock.Mock()
             runner.run.side_effect = fake_run
             entry._ensure_skia_patch(args, self._messages(), runner)
-            self.assertEqual(calls[0], ["git", "-C", str(repo), "pull", "--ff-only"])
+            # build.py 的 deps root 会 resolve() 成真实路径；macOS 上 /var 是
+            # /private/var 的符号链接，这里同样按真实路径比较。
+            self.assertEqual(calls[0],
+                             ["git", "-C", str(repo.resolve()), "pull", "--ff-only"])
             self.assertTrue(patch.is_file())
 
     def test_built_artifacts_skip_clone(self):

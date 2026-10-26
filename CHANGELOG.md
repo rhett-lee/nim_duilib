@@ -193,6 +193,10 @@
   上一级/上两级、构建目录及其上一级/上两级为基准解析相对路径（取第一个命中），
   `sdk_test` 与解包目录并列时写 `-DNIM_DUILIB_SDK_DIR=./nim_duilib-<版本>-<平台>`
   也能直接工作；省略时按常见布局自动探测；找不到时报错并列出所有尝试过的目录。
+- 单元测试（macOS）：`test_build.SkiaPatchTests.test_existing_repo_is_pulled` 用临时
+  目录的原始路径做比较，而 `build.py` 的 deps root 会 `resolve()` 成真实路径；macOS 上
+  `/var` 是 `/private/var` 的符号链接，两者不相等导致测试失败。断言改为按
+  `Path.resolve()` 后的路径比较，Windows/Linux 结果不变。
 
 ## [1.0.2026.1023] - 2026-10-23
 

@@ -224,6 +224,11 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `-DNIM_DUILIB_SDK_DIR=./nim_duilib-<version>-<platform>` also works when `sdk_test`
   sits next to the unpacked directory. Omitting the variable enables automatic layout
   detection; on failure the error lists every directory that was tried.
+- Unit tests (macOS): `test_build.SkiaPatchTests.test_existing_repo_is_pulled` compared
+  against the raw temp directory path, while the deps root in `build.py` is `resolve()`d
+  to the real path; on macOS `/var` is a symlink to `/private/var`, so the strings
+  differed and the test failed. The assertion now compares `Path.resolve()`d paths;
+  Windows/Linux results are unchanged.
 
 ## [1.0.2026.1023] - 2026-10-23
 
