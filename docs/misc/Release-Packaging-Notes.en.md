@@ -248,7 +248,12 @@ the **actually collected files**:
 - **CMake (all platforms)**: `lib/cmake/nim_duilib/nim_duilibConfig.cmake`
   provides `nim_duilib::duilib`; it validates platform/toolchain/arch/config/
   runtime and provides `nim_duilib_copy_runtime(<target> [RESOURCES]
-  [DESTINATION <dir>])`.
+  [FRAMEWORKS] [DESTINATION <dir>])`; `FRAMEWORKS` (macOS) copies
+  `lib/libSDL3*.dylib` into the App Bundle's `Contents/Frameworks` and sets the
+  executable's rpath to `@executable_path/../Frameworks`
+  (`BUILD_WITH_INSTALL_RPATH`, so the bundle's copies win); for a `MACOSX_BUNDLE` target
+  without `DESTINATION`, `RESOURCES` copies into
+  `Contents/Resources/duilib/`.
 - Metadata fields: version, system, arch, config, toolchain, DLL mode, SDL
   kind, WebView2/JPEG/CEF, MSVC runtime, runtime DLLs. MinGW packages do not
   generate `msvc/`; WebView2/JPEG/CEF are only declared available for MSVC.

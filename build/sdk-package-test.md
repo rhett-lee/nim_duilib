@@ -11,7 +11,8 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 1. **包级校验**：解包、目录布局、SHA256SUMS、元数据、CMake/MSVC 接入文件、禁止内容、
    `pack.py --verify`、文档与许可证、tar 格式重打包；
 2. **真实消费者验证**：用 `build/sdk_test` 这个仅依赖解包 SDK 的 CMake 工程完成配置、
-   编译、链接、运行，并核对运行期编译特性；
+   编译、链接、运行，并核对运行期编译特性；macOS 上还会用同一工程生成 App Bundle，
+   验证 `FRAMEWORKS`/rpath/`Contents/Resources/duilib` 的部署是否正确；
 3. **负向用例**：配置、架构、MSVC 运行库、工具链不匹配时必须被 SDK 拒绝；缺库/缺头
    文件、被篡改的包必须被 `pack.py --verify` 拒绝。
 
@@ -25,11 +26,17 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 | `build/test-matrix.md` | 人工维护 | 构建与打包组合的回归矩阵、命令和状态记录 | 矩阵提供“待测包”的来源与组合清单；本工具提供包级与消费者级自动判断 |
 | `build/test_sdk_package.py` | 无（纯函数） | 覆盖包名解析、元数据解析、能力推断、场景适用性、场景选择 | 不需要真实发布包；随 `python3 build/build.py test` 一起执行 |
 
+> 两个脚本名字相近，注意区分：真正测试发布包的是
+> `python3 build/sdk_package_test.py --package <包>`；`build/test_sdk_package.py`
+> 只跑纯函数单测。若误把 `--package`、`--list-scenarios` 等编排器参数传给后者，
+> 它会打印提示并自动转交给 `sdk_package_test.py`。
+
 本工具**不做**这些事：
 
 - 不生成发布包、不编译 nim_duilib 库，也不修改源码；
 - 不替代 `pack.py --verify` 本身，只是把它的结果纳入 P07/C07/C08/C09；
 - 不验证示例程序的完整功能，C10 只做“启动后存活 3 秒”的冒烟；
+- C11 只验证 App Bundle 的部署与启动，不创建窗口、不验证界面渲染；
 - 不做跨平台运行：消费者场景要求包平台与本机一致，负向场景也受工具链和生成器限制。
 
 ## 2. 前置条件
@@ -41,32 +48,33 @@ nim_duilib 自身；它验证的是下游用户实际拿到的东西。
 | Python | Python 3 | 脚本仅用标准库；P07/C07/C08/C09 会用当前 Python 解释器调用 `pack.py` |
 | 待测包 | 已由 `build.py pack` 或 `build/pack.py` 生成 | 支持 zip、tgz、tar.bz2 等 `shutil.unpack_archive` 可解格式；归档必须只有一个顶层目录 |
 | 磁盘空间 | 至少能容纳解包内容、消费者构建树和重打包归档 | 带示例/CEF 的包可达数百 MB，Debug 消费者构建还会额外占用空间 |
-| CMake | 3.18+（`build/sdk_test/CMakeLists.txt` 的最低版本） | 只影响 C01–C06；C01–C06 找不到 `cmake` 时记为 SKIP |
-| 生成器/编译器 | CMake 可用的 Ninja、Makefiles 或 Visual Studio 生成器 | 只影响 C01–C06；工具链经 `build.py` 的 `detect_toolchain()` 探测 |
+| CMake | 3.18+（`build/sdk_test/CMakeLists.txt` 的最低版本） | 只影响 C01–C06、C11；找不到 `cmake` 时记为 SKIP |
+| 生成器/编译器 | CMake 可用的 Ninja、Makefiles 或 Visual Studio 生成器 | 只影响 C01–C06、C11；工具链经 `build.py` 的 `detect_toolchain()` 探测 |
 | 桌面会话 | 能启动 GUI 程序 | 只影响 C10；无桌面环境时示例可能启动即退出，从而判为 FAIL |
 
 ### 2.2 编译类场景的环境要求
 
-`SCENARIO_ORDER` 把 C01–C06、C10 登记为“需编译”，但实际行为有区别：
+`SCENARIO_ORDER` 把 C01–C06、C10、C11 登记为“需编译”，但实际行为有区别：
 
 | 场景 | 环境要求 | 是否真正编译 |
 | :--- | :--- | :--- |
 | C01 / C02 | 包平台 = 本机平台；CMake + 生成器 + 可用编译器；Windows MSVC 需 VS 2022+（C++ 工作负载），MinGW 需 MSYS2 且设置 `MSYSTEM`，`mingw-llvm` 还需 `CC`/`CXX` 指向 clang | 是：配置、编译、链接、运行 |
 | C03–C06 | 同上，但不要求能正常编译本包；C03 还要求生成器不是 Visual Studio 多配置生成器 | 否：只执行 CMake 配置并期待失败 |
 | C10 | 包平台 = 本机平台；工具链探测通过；包内含示例；指定 `--run-examples`；可启动 GUI | 否：直接运行包内 `bin/basic` |
+| C11 | macOS 本机 + macOS 包 + 包内有 SDL3 动态库；CMake + Ninja/Makefiles + 可用编译器；系统 `otool` | 是：配置、编译、链接、检查 bundle、迁移后运行 |
 
 因此：
 
 - **完全不需要编译器**：P01–P08、C07–C09。它们只做归档读取、哈希、重打包和
   `pack.py --verify`，适合在任何机器上先跑一遍。
-- **需要编译环境**：C01、C02。
+- **需要编译环境**：C01、C02、C11（C11 仅 macOS）。
 - **需要工具链环境但不编译**：C03–C06。
 - **需要同平台且能启动 GUI**：C10。
-- `--no-build` 会跳过 C01–C06 和 C10，包括 C03–C06 的配置阶段。
+- `--no-build` 会跳过 C01–C06、C10、C11，包括 C03–C06 的配置阶段。
 
 平台与工具链的前置判断集中在 `build_block_reason()`：包平台与本机不同、MSVC 包不在
 Windows、MinGW 包未设置 `MSYSTEM`、`mingw-llvm` 包的 `CC`/`CXX` 不含 `clang`、
-工具链探测失败，都会让 C01/C02/C10 直接 SKIP。C03–C06 在此基础上还有各自的额外门禁。
+工具链探测失败，都会让 C01/C02/C10/C11 直接 SKIP。C03–C06 在此基础上还有各自的额外门禁。
 
 ## 3. 快速开始
 
@@ -114,6 +122,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | `python3 build/sdk_package_test.py --package dist/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug.zip` | 对单个包执行全部适用场景 |
 | `python3 build/sdk_package_test.py --package dist/<包> --no-build` | 只做包级场景（P01–P08、C07–C09） |
 | `python3 build/sdk_package_test.py --package dist/<包> --scenarios P01,C01` | 只跑指定场景，编号大小写不敏感 |
+| `python3 build/sdk_package_test.py --package dist/<macOS包> --scenarios C11 --keep` | 只验证 macOS App Bundle（`FRAMEWORKS`/rpath/资源布局），保留构建目录与日志 |
 | `python3 build/sdk_package_test.py --package dist/a.zip --package dist/b.zip --jobs 4` | 多包依次执行；每个包独立输出目录与报告条目 |
 | `python3 build/sdk_package_test.py --package dist/<包> --keep` | 保留解包目录、消费者构建目录和日志 |
 | `python3 build/sdk_package_test.py --package dist/<包> --dry-run` | 不执行编译类场景；包级场景仍真实执行 |
@@ -129,7 +138,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | :--- | :--- | :--- |
 | `--package ARCHIVE` | 无（除非 `--list-scenarios`） | 待测发布包，可重复；路径会 `resolve()` 为绝对路径 |
 | `--scenarios LIST` | `all` | 逗号分隔的场景编号；`all` 或空串表示全部 |
-| `--no-build` | 关 | 跳过所有“需编译”场景（C01–C06、C10） |
+| `--no-build` | 关 | 跳过所有“需编译”场景（C01–C06、C10、C11） |
 | `--run-examples` | 关 | 解除 C10 的开关门禁；仍需包内含示例且环境满足 |
 | `--out-dir DIR` | 平台默认目录 | 输出目录；显式指定时不再追加时间戳 |
 | `--keep` | 关 | 保留 `extract/`、`work/`、`logs/` |
@@ -140,7 +149,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 三个开关的准确行为：
 
 - **`--no-build`**：`scenario_applicability()` 对每个编译类场景返回不适用，原因为
-  “指定了 --no-build”。C01–C06、C10 全部 SKIP；P01–P08、C07–C09 仍执行。
+  “指定了 --no-build”。C01–C06、C10、C11 全部 SKIP；P01–P08、C07–C09 仍执行。
 - **`--dry-run`**：`run_package()` 在进入场景前就把编译类场景记为
   `SKIP / dry-run：未执行`，因此 **不会调用 CMake，也不会把构建命令写进日志**。
   CLI 帮助中的“只打印将执行的命令”在本工具里实际表现为“跳过编译类场景”。
@@ -177,6 +186,7 @@ nim_duilib-<版本>-<系统>-<架构>[-mingw-gcc|-mingw-llvm][-sdl][-cef|-cef109
 | C08 | `negative.tampered` | 包级 | 任意包；需要重打包 | 篡改 `bin/resources/themes/default/global.xml`（不存在时取 SHA256SUMS 中体积最小的文件），重打包后 `--verify` 必须失败且输出含 `SHA256` | 无 |
 | C09 | `package.tar-formats` | 包级 | 任意包；需要重打包 | 从解包目录重新生成 `.tgz` 与 `.tar.bz2`，两者分别通过 `pack.py --verify` | 无；磁盘空间不足会 FAIL |
 | C10 | `examples.smoke` | 需编译（不编译） | 指定 `--run-examples`；包内含示例；平台与工具链前置满足 | 启动 `bin/basic.exe`（Unix 为 `bin/basic`，macOS 为 `bin/basic.app/Contents/MacOS/basic`），3 秒后进程仍存活 | 未指定 `--run-examples`；包内无示例；平台/工具链前置不满足；找不到 `bin/basic` |
+| C11 | `consumer.macos-bundle` | 需编译 | 仅 macOS 本机；macOS 包；包内有 SDL3 动态库；平台与工具链前置满足 | 用 `build/sdk_test` 构建 `sdk_bundle.app`（`MACOSX_BUNDLE` + `RESOURCES FRAMEWORKS`）→ 检查 `Contents/Frameworks/libSDL3*.dylib`、`Contents/Resources/duilib/themes/default/global.xml` → `otool -L` 引用 `@rpath/libSDL3*` 且无 SDK 绝对路径 → `otool -l` 含 `LC_RPATH @executable_path/../Frameworks` → `otool -D` 为 `@rpath/...` → 把 `.app` 复制到构建树外运行，要求返回 0、输出 `SDK_TEST_RESULT=ok` 与正的 `SDK_TEST_SDL_VERSION` | 非 macOS；非 macOS 包；包内无 SDL3 动态库（静态 SDL 或无 SDL）；`--no-build`；工具链不可用；找不到 `otool` |
 
 ### 4.1 包级场景细节
 
@@ -206,7 +216,8 @@ C01/C02 的实际步骤与限制：
    （`x86`→`Win32`、`x64`→`x64`、`arm64`→`ARM64`），单配置生成器使用
    `-DCMAKE_BUILD_TYPE=<包配置>`；
 2. 把包元数据转换成 `-DSDK_EXPECT_*` 传给消费者工程，先验证 CMake 包元数据自洽；
-3. 编译 `build/sdk_test`，搜索输出名为 `sdk_consumer` 的可执行文件；
+3. 编译 `build/sdk_test` 的 `nim_duilib_sdk_consumer` 目标（macOS 工程里还有 bundle
+   目标，但这里用 `--target` 只构建消费者），搜索输出名为 `sdk_consumer` 的可执行文件；
 4. 检查可执行文件同级是否有 `resources/themes/default/global.xml`；DLL 包还要求
    `bin/` 下所有顶层 DLL 都已复制过来；
 5. 运行程序，要求返回码为 0 且输出含 `SDK_TEST_RESULT=ok`；
@@ -236,6 +247,31 @@ C03–C06 只执行配置，并检查失败原因关键字：
 C10 只负责启动存活判断：找到示例程序后 `Popen` 启动，等待 3 秒；进程已退出则 FAIL，
 仍存活则 PASS，随后终止进程。它不检查窗口内容、不点击、不验证渲染结果。
 
+C11 的步骤（仅 macOS）：
+
+1. 用同一个 `build/sdk_test` 工程配置到独立的 `work/consumer_bundle` 目录，只构建
+   `nim_duilib_sdk_bundle` 目标；
+2. 由 CMake 生成 `sdk_bundle.app`：`bundle_main.cpp` 使用
+   `GlobalManager::GetResourceRootPath(true)`，`nim_duilib_copy_runtime(... RESOURCES
+   FRAMEWORKS)` 把 SDL3 dylib 放进 `Contents/Frameworks`、把主题资源放进
+   `Contents/Resources/duilib`，并把可执行文件的 rpath 设为
+   `@executable_path/../Frameworks`（使用 `INSTALL_RPATH`，避免构建树的 SDK
+   绝对路径抢先命中同名库）；
+3. 检查 bundle 布局：`Contents/MacOS/sdk_bundle`、`Contents/Frameworks/libSDL3*.dylib`、
+   `Contents/Resources/duilib/themes/default/global.xml`；
+4. 用 `otool` 检查链接与加载信息：`-L` 必须是 `@rpath/libSDL3*` 且不含 SDK 根目录的
+   绝对路径；`-l` 必须出现 `LC_RPATH @executable_path/../Frameworks`；`-D` 的
+   install_name 必须以 `@rpath/` 开头；
+5. 把整个 `.app` 复制到 `work/bundle-relocated/`（构建树之外）再运行，避免构建目录
+   的绝对 rpath 掩盖问题；运行环境带 `DYLD_PRINT_LIBRARIES=1`，要求 dyld 打印的
+   SDL3 路径位于迁移后 `.app` 的 `Contents/Frameworks`，且不出现 SDK 的 `lib/`
+   路径；同时要求返回 0、输出 `SDK_TEST_RESULT=ok`、资源根含
+   `Contents/Resources/duilib`、`SDK_TEST_SDL_VERSION` 为正数，并核对
+   `SDK_TEST_FEATURES` 与包能力一致。
+
+C11 不创建窗口，因此无桌面会话的 macOS 也能执行；它也不负责签名/公证，
+`.app` 未签名时直接从 `Contents/MacOS` 启动即可。
+
 ## 5. 消费者工程单独用法
 
 `build/sdk_test` 是一个独立的 CMake 工程，只依赖解包后的 SDK，不引用 nim_duilib
@@ -243,13 +279,17 @@ C10 只负责启动存活判断：找到示例程序后 `Popen` 启动，等待 
 
 | 文件 | 作用 |
 | :--- | :--- |
-| `CMakeLists.txt` | `find_package(nim_duilib CONFIG REQUIRED)`、`SDK_EXPECT_*` 自检、按包能力选择头文件用例、复制运行期文件 |
+| `CMakeLists.txt` | `find_package(nim_duilib CONFIG REQUIRED)`、`SDK_EXPECT_*` 自检、按包能力选择头文件用例、复制运行期文件；macOS 上额外登记 App Bundle 目标 |
 | `main.cpp` | 运行期用例：输出特性、检查资源目录、`Startup`/`Shutdown`、输出 `SDK_TEST_RESULT` |
+| `bundle_main.cpp` | macOS App Bundle 运行期用例：`GetResourceRootPath(true)`、调用 `SDL_GetVersion()` 验证 Frameworks/rpath、`Startup`/`Shutdown` |
 | `header_duilib.cpp` | 伞形头文件自包含用例，始终参与编译 |
 | `header_cef.cpp` | CEF 头文件转发用例，仅 `HAS_CEF=1` 时编译 |
 | `header_webview2.cpp` | WebView2 头文件转发用例，仅 `HAS_WEBVIEW2=1` 时编译 |
 
-目标名是 `nim_duilib_sdk_consumer`，输出文件名为 `sdk_consumer`。
+目标名是 `nim_duilib_sdk_consumer`，输出文件名为 `sdk_consumer`。macOS 上还会创建
+`nim_duilib_sdk_bundle`（`MACOSX_BUNDLE`），输出 `sdk_bundle.app`，内部调用
+`nim_duilib_copy_runtime(nim_duilib_sdk_bundle RESOURCES FRAMEWORKS)`；其他平台不创建
+该目标。
 
 ### 5.1 手工配置与运行
 
@@ -310,6 +350,20 @@ cmake --build <临时目录>/sdk_consumer_ninja --parallel 4
 Linux/macOS 上去掉 `.exe`；`NIM_DUILIB_SDK_DIR` 用实际解包路径。`SDK_EXPECT_*` 都可以
 省略，省略时不校验对应项。
 
+macOS 上专门跑 App Bundle 用例（构建 `sdk_bundle.app`，再按 C11 的方式检查）：
+
+```bash
+cmake -S build/sdk_test -B <临时目录>/sdk_bundle -DNIM_DUILIB_SDK_DIR=<解包后的 SDK 根目录>
+cmake --build <临时目录>/sdk_bundle --target nim_duilib_sdk_bundle --parallel 4
+
+# 产物：<临时目录>/sdk_bundle/sdk_bundle.app
+find <临时目录>/sdk_bundle/sdk_bundle.app/Contents -maxdepth 5 \
+     \( -name 'libSDL3*.dylib' -o -name global.xml \)
+otool -L <临时目录>/sdk_bundle/sdk_bundle.app/Contents/MacOS/sdk_bundle | grep SDL3
+otool -l <临时目录>/sdk_bundle/sdk_bundle.app/Contents/MacOS/sdk_bundle | grep -A2 LC_RPATH
+cp -R <临时目录>/sdk_bundle/sdk_bundle.app /tmp/ && /tmp/sdk_bundle.app/Contents/MacOS/sdk_bundle
+```
+
 ### 5.2 `SDK_EXPECT_*` 变量
 
 | 变量 | 校验的 CMake 元数据 | 取值示例 |
@@ -357,12 +411,25 @@ SDK_TEST_RESULT=ok
 | 返回码 5 | 捕获到 `std::exception` |
 | 返回码 6 | 捕获到未知异常 |
 
+`sdk_bundle.app`（C11）的 stdout 在同样格式上多两行：
+
+```text
+SDK_TEST_BUNDLE=1
+SDK_TEST_SDL_VERSION=30201
+```
+
+`SDK_TEST_SDL_VERSION` 是 `SDL_GetVersion()` 从 `Contents/Frameworks` 的动态库读到的
+版本号；能打印它说明 `@rpath` 已生效。C11 的判定见第 4.2 节，另外还要求
+`SDK_TEST_RESOURCE_ROOT` 位于 `Contents/Resources/duilib`。
+
 编排器判定 C01/C02 成功需要同时满足：进程返回码为 0、输出含
 `SDK_TEST_RESULT=ok`、`SDK_TEST_FEATURES` 的 `sdl`/`cef`/`webview2`/`jpeg`/`dll`
 全部与包能力推断一致。任一不满足都判 FAIL。
 
 `nim_duilib_copy_runtime(<target> RESOURCES)` 会把 SDK 的 `bin/*.dll` 和
-`bin/resources/` 复制到可执行文件同级；手工运行时若跳过这一步，资源目录检查会失败。
+`bin/resources/` 复制到可执行文件同级；目标是 macOS `MACOSX_BUNDLE` 且未指定
+`DESTINATION` 时，资源改复制到 `<target>.app/Contents/Resources/duilib/`。
+手工运行时若跳过这一步，资源目录检查会失败。
 
 ## 6. 结果解读与 report.json
 
@@ -407,14 +474,17 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 ├─ 01-nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/
 │  ├─ extract/nim_duilib-1.0.2026.1023-win-x64-cef-examples-debug/...
 │  ├─ work/consumer/...            # 消费者构建树
+│  ├─ work/consumer_bundle/...     # macOS App Bundle 构建树（仅 C11）
+│  ├─ work/bundle-relocated/...    # 迁移后的 .app 副本（仅 C11，用于运行）
 │  ├─ work/repack.tgz / repack.tar.bz2 / bad-*.tgz / tampered.tgz
-│  └─ logs/consumer.log, neg-config.log, neg-arch.log, neg-runtime.log, neg-toolchain.log
+│  └─ logs/consumer.log, bundle.log, neg-config.log, neg-arch.log, neg-runtime.log, neg-toolchain.log
 └─ 02-<下一个包>/
 ```
 
 日志规则：
 
 - C01/C02 写 `consumer.log`（配置、编译、运行输出追加在同一文件）；
+- C11 写 `bundle.log`（配置、编译、`otool` 输出与迁移后运行追加在同一文件）；
 - C03 写 `neg-config.log`，C04 写 `neg-arch.log`，C05 写 `neg-runtime.log`，
   C06 写 `neg-toolchain.log`；
 - P 系列和 C07–C09 不单独写日志，失败原因在 `detail` 和终端输出中；
@@ -510,6 +580,11 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 | C02 DLL 未复制到可执行文件同级 | 包内缺少顶层 DLL、复制步骤失败 | 检查 `bin/` 顶层 DLL 与 `info.caps["bin_dlls"]`；查看构建后复制日志 |
 | C01/C02 运行失败（rc=3/4/5/6） | 资源目录不存在、`Startup` 返回 false、异常、CEF/SDL/CRT 运行库缺失 | 手工运行 `sdk_consumer` 看完整输出；确认资源、DLL 与 CRT 已部署；CEF 运行时目录需自行复制 |
 | C01/C02 特性不一致 | SDK 头文件宏（`DUILIB_SDL` 等）与实际包能力不符 | 对照 P04；检查 `nim_duilibPackageInfo.cmake` 与 CMake 目标宏；重新构建/出包 |
+| C11 `Contents/Frameworks` 没有 dylib | `nim_duilib_copy_runtime` 未加 `FRAMEWORKS`、包内 `lib/libSDL3*.dylib` 缺失、或 `NIM_DUILIB_SDL_DYLIBS` 未登记 | 检查 `CMakeLists.txt` 的调用与 `bundle.log`；确认 P04 的 `HAS_SDL` 与实际文件；macOS 包应由当前 `nim_duilibConfig.cmake` 生成 |
+| C11 `otool -L` 仍是绝对路径 | SDL3 的 `install_name` 不是 `@rpath`（例如未启用 `MACOSX_RPATH`） | 用 `otool -D lib/libSDL3*.dylib` 检查；重新构建依赖，或 `install_name_tool -id @rpath/<文件名>` 后重新出包 |
+| C11 缺少 `LC_RPATH` | 目标不是 `MACOSX_BUNDLE`，或 `nim_duilib_copy_runtime` 未执行到设置 rpath 的分支（无动态 SDL） | 检查 `add_executable(... MACOSX_BUNDLE)` 与包内 SDL 形态；用 `otool -l` 查看实际 rpath |
+| C11 迁移后运行失败（`Library not loaded`） | `Contents/Frameworks` 缺少 dylib、符号链接链缺失、或签名被破坏 | 不解包直接运行构建树里的 `.app` 对比；确认 `libSDL3.dylib -> libSDL3.<abi>.dylib` 符号链接；归档解包需保留符号链接 |
+| C11 资源目录检查失败 | `RESOURCES` 未生效，或目标不是 `MACOSX_BUNDLE`（资源落到了 `Contents/MacOS/resources`） | 检查 `bundle.log`；确认调用为 `nim_duilib_copy_runtime(<bundle> RESOURCES FRAMEWORKS)`，且未显式传 `DESTINATION` |
 | C03 配置没有被拒绝 | 生成器是多配置的 Visual Studio（本应 SKIP）；或 SDK 未校验配置 | 先用 Ninja/Makefiles 生成器复核；若仍通过，检查 SDK 的配置校验逻辑与错误文案“配置为” |
 | C04 架构没有被拒绝 | 本机没有相反架构工具集（本应 SKIP）；或 SDK 未校验架构 | Windows 安装 VS 的 x86/x64 工具集后重试；检查错误文案“架构为” |
 | C05 运行库没有被拒绝 | 包不是 Windows MSVC，或未声明 `MT`/`MD`（本应 SKIP）；DLL 包未使用 `/MD` | 检查 P04 是否已报运行库问题；确认 DLL 包元数据为 `MD`，静态包默认 `MT` |
@@ -518,7 +593,7 @@ SKIP 是“没测到”，不是通过。`--no-build`、`--dry-run`、包类型�
 | C07/C08 `--verify` 接受了坏包 | `pack.py --verify` 回归，或重打包时跳文件/篡改未生效 | 手工检查 `work/bad-*.tgz`、`work/tampered.tgz`；确认 `pack.py` 是当前版本 |
 | C09 重打包校验失败 | 重构的 tgz/tar.bz2 内容或权限有问题，或磁盘空间不足 | 查看失败输出与磁盘余量；确认解包目录完整；先跑 P07 排除原包问题 |
 | 所有场景 SKIP、退出码 2 | 只选了编译类场景但包类型/环境不适用；`--no-build` 后只剩不适用场景；工具链/CMake 缺失 | 看每个 SKIP 的 `detail`；补跑 P 系列确认包本身；安装缺失工具或改用适用包 |
-| C01–C06 全部 SKIP“找不到 cmake” | `cmake` 不在 `PATH` | 把 CMake 加入 `PATH`；包级场景不受影响 |
+| C01–C06、C11 全部 SKIP“找不到 cmake” | `cmake` 不在 `PATH` | 把 CMake 加入 `PATH`；包级场景不受影响 |
 | 磁盘空间不足 | 解包 + 消费者构建 + 多个重打包归档 | 换用空间充足的 `--out-dir`；清理旧的运行目录；排查时先用 `--scenarios P01,P02,P03` 缩小范围 |
 
 ## 8. 扩展新场景的方法
@@ -588,20 +663,21 @@ P01–P08、C07–C09 对任何可加载的包都会执行（其中 P02/P04/P05 
 | Windows MSVC 静态，无 CEF，Debug，x86 | 全部执行 | C01 需 x86 编译器；C04 用 x64 作相反架构；C05/C06 视工具而定；C10 可选 | 真实 x86 包 + x86 工具集 |
 | Windows MinGW gcc/llvm 静态，无 CEF，Release，x64 | 全部执行 | C01 需 MSYS2 + `MSYSTEM`（llvm 变体还需 `CC`/`CXX` 指向 clang）；C03 用 Ninja；C04 通常 SKIP；C05/C06 SKIP；C10 可选 | 真实 MinGW 包；MSYS2/MinGW-w64 环境；CEF 不支持 |
 | Linux gcc/clang 静态，SDL，Release，x64 | 全部执行 | C01 PASS；C03 用 Ninja/Makefiles；C04 SKIP（包架构=主机）；C05/C06 SKIP；C10 需桌面会话且包含示例 | 真实 Linux 包；X11/字体等运行依赖 |
-| macOS 静态，SDL，Release，x64，含示例 | 全部执行 | C01 PASS；C03 PASS；C04 SKIP；C05/C06 SKIP；C10 需 `bin/basic.app` 与桌面会话 | 真实 macOS 包（`.app` 示例） |
+| macOS 静态，SDL（动态 dylib），Release，x64，含示例 | 全部执行 | C01 PASS；C11 PASS（`sdk_bundle.app` 的 Frameworks/rpath/资源布局）；C03 PASS；C04 SKIP；C05/C06 SKIP；C10 需 `bin/basic.app` 与桌面会话 | 真实 macOS 包（`.app` 示例）；macOS 本机 + `otool` |
 | Windows/Linux/macOS arm64 任意静态包 | 全部执行 | C01 需要 arm64 编译器或可用交叉/仿真环境，否则 SKIP；C04 在 Windows 需要 arm64 工具集或 x64 生成器才能构造相反架构，否则 SKIP；C05/C06 视 Windows 环境；C10 需能运行 arm64 程序 | 真实 arm64 包；arm64 工具链或真机；结构可由包级场景先行验证 |
 | 非 Windows 或 MinGW 的 DLL 包 | 结构上可执行包级场景 | C02 需要平台一致且工具链支持；C05/C06 不适用 | 当前构建不产出该组合，属于不适用/需外部产物 |
 
 ### 9.3 必须用真实包或真实环境才能验证的部分
 
-- **C01/C02/C10**：需要真实库文件、真实可执行文件和匹配的编译器/运行环境。只含
-  元数据和目录结构的“合成包”可以通过 P 系列，但无法完成消费者编译运行。
+- **C01/C02/C10/C11**：需要真实库文件、真实可执行文件和匹配的编译器/运行环境。只含
+  元数据和目录结构的“合成包”可以通过 P 系列，但无法完成消费者编译运行；C11 还需要
+  macOS 本机、真实 SDL3 dylib 与 `otool`。
 - **CEF/WebView2 运行期**：消费者只编译头文件并核对宏，不启动浏览器、不复制
   `bin/libcef_win*/` 等 CEF 运行时目录。CEF 运行期部署需要真实包配合示例（C10）或
   手工验证。
 - **DLL 模式**：当前构建系统没有 duilib DLL 构建目标，DLL 组合必须使用真实 DLL
   产物（历史或外部构建）才能覆盖 C02 与 P04 的 `MD` 规则。
-- **arm64**：需要 arm64 工具链、真机或仿真环境；没有时 C01/C02/C10 会 SKIP，C04 也
+- **arm64**：需要 arm64 工具链、真机或仿真环境；没有时 C01/C02/C10/C11 会 SKIP，C04 也
   可能因工具集缺失而 SKIP。
 - **Linux/macOS 运行**：C10 需要桌面会话、X11/字体或 macOS 窗口环境；纯 headless
   环境只能验证包级场景。

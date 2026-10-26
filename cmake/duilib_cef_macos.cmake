@@ -118,6 +118,28 @@ if(OS_MAC)
     # Copy the CEF framework into the Frameworks directory and create the necessary symlinks.
     COPY_MAC_FRAMEWORK("${CEF_TARGET}" "${CEF_BINARY_DIR}" "${CEF_APP}")
 
+    # SDL3 在 macOS 上是动态库（cmake/duilib_deps_run.cmake 使用 SDL_SHARED=ON），
+    # 必须随 App Bundle 分发：复制到 Contents/Frameworks，并让可执行文件用相对
+    # rpath 查找，否则只能靠构建机的绝对路径运行，换目录或换机器就会加载失败。
+    if(DUILIB_ENABLE_SDL)
+        # 在构建期复制：DUILIB_DEPS_MODE=auto 时 SDL3 由 duilib_deps 目标在
+        # 构建阶段安装，configure 阶段还看不到 dylib，因此由 -P 脚本内 glob。
+        add_custom_command(TARGET ${CEF_TARGET}
+                           POST_BUILD
+                           COMMAND ${CMAKE_COMMAND}
+                                   "-DSDL3_LIB_DIR=${DUILIB_SDL_LIB_PATH}"
+                                   "-DBUNDLE_FRAMEWORKS_DIR=${CEF_APP}/Contents/Frameworks"
+                                   -P "${CMAKE_CURRENT_LIST_DIR}/duilib_copy_sdl_bundle.cmake"
+                           COMMENT "Copying SDL3 runtime into ${CEF_TARGET}.app"
+                           VERBATIM)
+
+        # 主程序的 exe 在 Contents/MacOS，动态库在 Contents/Frameworks；
+        # 用安装期 rpath 覆盖构建树 rpath，避免把 SDL3 的绝对路径写进包内。
+        set_target_properties(${CEF_TARGET} PROPERTIES
+            BUILD_WITH_INSTALL_RPATH TRUE
+            INSTALL_RPATH "@executable_path/../Frameworks")
+    endif()
+
     # temp build directory
     set(CEF_OLD_TARGET_OUT_DIR ${CEF_TARGET_OUT_DIR})
     set(CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin_helper/")
@@ -161,6 +183,15 @@ if(OS_MAC)
         set_target_properties(${_helper_target} PROPERTIES
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})
+
+        if(DUILIB_ENABLE_SDL)
+            # Helper 的 exe 位于 Contents/Frameworks/<Helper>.app/Contents/MacOS，
+            # 向上三级才回到主 App 的 Contents/Frameworks（SDL3 由主目标复制一次）。
+            # 该层级与 CEF 加载 Framework 的 kPathFromHelperExe（"../../.."）一致。
+            set_target_properties(${_helper_target} PROPERTIES
+                BUILD_WITH_INSTALL_RPATH TRUE
+                INSTALL_RPATH "@executable_path/../../..")
+        endif()
 
         # Helper 链接 CEF wrapper 时同样要等 wrapper 生成完毕（并行构建下 Helper
         # 先于主目标构建，不能依赖主目标的依赖关系传递过来）

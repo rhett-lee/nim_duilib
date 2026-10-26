@@ -11,7 +11,10 @@
 #
 # 运行期复制（可选）：
 #   include(${nim_duilib_DIR}/nim_duilibHelpers.cmake)   # 本文件已自动 include
-#   nim_duilib_copy_runtime(my_app [RESOURCES] [DESTINATION <dir>])
+#   nim_duilib_copy_runtime(my_app [RESOURCES] [FRAMEWORKS] [DESTINATION <dir>])
+#   FRAMEWORKS 仅 macOS：要求目标为 MACOSX_BUNDLE，把 lib/libSDL3*.dylib 复制到
+#   <target>.app/Contents/Frameworks，并把 rpath 设为
+#   @executable_path/../Frameworks（BUILD_WITH_INSTALL_RPATH，bundle 内的库优先）。
 
 cmake_minimum_required(VERSION 3.18)
 
@@ -303,6 +306,19 @@ else()
                 "${nim_duilib_LIB_DIR}")
         endif()
         list(APPEND _nim_link "${_nim_sdl_lib}")
+
+        if(APPLE)
+            # 记录动态库文件名（含 libSDL3.dylib 符号链接），供
+            # nim_duilib_copy_runtime(... FRAMEWORKS) 复制到 App Bundle。
+            set(_nim_sdl_dylibs "")
+            foreach(_nim_sdl_candidate IN LISTS _nim_sdl_candidates)
+                if(_nim_sdl_candidate MATCHES "\\.dylib$")
+                    get_filename_component(_nim_sdl_name "${_nim_sdl_candidate}" NAME)
+                    list(APPEND _nim_sdl_dylibs "${_nim_sdl_name}")
+                endif()
+            endforeach()
+            set_property(GLOBAL PROPERTY NIM_DUILIB_SDL_DYLIBS "${_nim_sdl_dylibs}")
+        endif()
     endif()
 
     _nim_duilib_add_lib("svg")

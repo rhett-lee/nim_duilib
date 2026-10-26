@@ -4,7 +4,8 @@
 
 以“解包后的成品包”为唯一输入，覆盖三类用例：
   1. P*：包结构、校验和、元数据、接入文件、负向包；
-  2. C01/C02：真实 CMake 消费者工程完成配置、编译、链接、运行；
+  2. C01/C02/C11：真实 CMake 消费者工程完成配置、编译、链接、运行
+     （C11 专测 macOS App Bundle 的 Frameworks/rpath/资源布局）；
   3. C03-C06：配置/架构/运行库/工具链不匹配时必须被 SDK 拒绝。
 
 用法：
@@ -63,6 +64,7 @@ SCENARIO_ORDER = [
     ("C08", "negative.tampered", "文件被篡改必须被 --verify 发现", False),
     ("C09", "package.tar-formats", "tgz/tarbz2 重新打包后仍可通过校验", False),
     ("C10", "examples.smoke", "示例程序冒烟启动（可选）", True),
+    ("C11", "consumer.macos-bundle", "macOS App Bundle：Frameworks/rpath/资源布局", True),
 ]
 SCENARIO_NAMES = {sid: name for sid, name, _desc, _build in SCENARIO_ORDER}
 BUILD_SCENARIOS = {sid for sid, _name, _desc, needs_build in SCENARIO_ORDER if needs_build}
@@ -283,6 +285,14 @@ def scenario_applicability(sid: str, caps: dict, meta: dict, *,
             return False, "未指定 --run-examples"
         if not caps.get("has_examples"):
             return False, "包内不含示例程序"
+        if build_block_reason:
+            return False, build_block_reason
+        return True, ""
+    if sid == "C11":
+        if host_system() != "macos":
+            return False, "App Bundle 用例仅在 macOS 上执行"
+        if not caps.get("has_sdl") or caps.get("sdl_kind") != "shared":
+            return False, "包内没有 SDL3 动态库，Frameworks 无内容可验证"
         if build_block_reason:
             return False, build_block_reason
         return True, ""
@@ -855,10 +865,13 @@ def configure_command(info: PackageInfo, build_dir: Path, toolchain, *,
     return command
 
 
-def build_command(build_dir: Path, toolchain, jobs: int, config: str | None) -> list[str]:
+def build_command(build_dir: Path, toolchain, jobs: int, config: str | None,
+                  target: str | None = None) -> list[str]:
     command = [cmake_exe(), "--build", str(build_dir), "--parallel", str(jobs)]
     if toolchain.generator.startswith("Visual Studio") and config:
         command += ["--config", config]
+    if target:
+        command += ["--target", target]
     return command
 
 
@@ -926,7 +939,10 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
     if rc != 0:
         raise AssertionError("配置失败（rc=%d）：\n%s" % (rc, _tail(output)))
 
-    build = build_command(build_dir, toolchain, options.jobs, info.meta("CONFIG"))
+    # 只构建可执行文件消费者目标；macOS 上同一工程还登记了 bundle 目标，
+    # 由 C11 单独构建，避免每个场景都多链接一次静态库。
+    build = build_command(build_dir, toolchain, options.jobs, info.meta("CONFIG"),
+                          target="nim_duilib_sdk_consumer")
     rc, output = run_command(build, cwd=REPO_ROOT, env=env, log_path=log,
                              dry_run=False, timeout=3600)
     if rc != 0:
@@ -957,7 +973,13 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
         raise AssertionError("运行失败（rc=%d）：\n%s"
                              % (proc.returncode, _tail(run_output)))
 
-    features = _parse_features(run_output)
+    _check_features(info, run_output)
+    return "配置/编译/运行通过，特性开关与元数据一致"
+
+
+def _check_features(info: PackageInfo, output: str) -> None:
+    """核对程序打印的 SDK_TEST_FEATURES 与包能力。"""
+    features = _parse_features(output)
     expected = {
         "sdl": "1" if info.caps["has_sdl"] else "0",
         "cef": "1" if info.caps["has_cef"] else "0",
@@ -969,7 +991,6 @@ def check_consumer(info: PackageInfo, work_dir: Path, log_dir: Path, options: Op
              for key, value in expected.items() if features.get(key) != value]
     if wrong:
         raise AssertionError("运行期编译特性与元数据不一致：%s" % ", ".join(wrong))
-    return "配置/编译/运行通过，特性开关与元数据一致"
 
 
 def _parse_features(output: str) -> dict:
@@ -1143,6 +1164,152 @@ class Result:
     log: str = ""
 
 
+def find_macos_bundle(build_dir: Path) -> Path | None:
+    """在构建目录中定位 sdk_bundle.app（兼容多配置生成器的 <Config>/ 子目录）。"""
+    for path in sorted(build_dir.rglob("sdk_bundle.app")):
+        if (path / "Contents/MacOS/sdk_bundle").is_file():
+            return path
+    return None
+
+
+def _otool_path() -> str | None:
+    found = shutil.which("otool")
+    if found:
+        return found
+    fallback = Path("/usr/bin/otool")
+    return str(fallback) if fallback.is_file() else None
+
+
+def _run_otool(arguments: list[str], log_path: Path, env: dict) -> str:
+    otool = _otool_path()
+    if otool is None:
+        raise ScenarioSkipped("找不到 otool，无法检查 App Bundle 的 rpath 与 install_name")
+    rc, output = run_command([otool, *arguments], cwd=REPO_ROOT, env=env,
+                             log_path=log_path, dry_run=False, timeout=120)
+    if rc != 0:
+        raise AssertionError("otool %s 执行失败（rc=%d）：\n%s"
+                             % (" ".join(arguments), rc, _tail(output)))
+    return output
+
+
+def check_macos_bundle(info: PackageInfo, work_dir: Path, log_dir: Path,
+                       options: Options) -> str:
+    """C11：用 SDK 包生成 macOS App Bundle，验证 Frameworks/rpath/资源布局。"""
+    if sys.platform != "darwin":
+        raise ScenarioSkipped("App Bundle 用例仅在 macOS 上执行")
+    if not info.caps.get("has_sdl") or info.caps.get("sdl_kind") != "shared":
+        raise ScenarioSkipped("包内没有 SDL3 动态库，Frameworks 无内容可验证")
+    blocked = build_block_reason(info)
+    if blocked:
+        raise ScenarioSkipped(blocked)
+    toolchain, reason = detect_toolchain(info)
+    if toolchain is None:
+        raise ScenarioSkipped("工具链不可用（%s）" % reason)
+
+    build_dir = work_dir / "consumer_bundle"
+    env = toolchain.env
+    log = log_dir / "bundle.log"
+    log.parent.mkdir(parents=True, exist_ok=True)
+    if log.is_file():
+        log.unlink()
+
+    configure = configure_command(info, build_dir, toolchain)
+    rc, output = run_command(configure, cwd=REPO_ROOT, env=env, log_path=log,
+                             dry_run=options.dry_run)
+    if options.dry_run:
+        raise ScenarioSkipped("dry-run：已打印配置/编译命令")
+    if rc != 0:
+        raise AssertionError("配置失败（rc=%d）：\n%s" % (rc, _tail(output)))
+
+    build = build_command(build_dir, toolchain, options.jobs, info.meta("CONFIG"),
+                          target="nim_duilib_sdk_bundle")
+    rc, output = run_command(build, cwd=REPO_ROOT, env=env, log_path=log,
+                             dry_run=False, timeout=3600)
+    if rc != 0:
+        raise AssertionError("编译失败（rc=%d）：\n%s" % (rc, _tail(output)))
+
+    app = find_macos_bundle(build_dir)
+    if app is None:
+        raise AssertionError("未找到 sdk_bundle.app（构建目录：%s）" % build_dir)
+
+    exe = app / "Contents/MacOS/sdk_bundle"
+    dylibs = sorted((app / "Contents/Frameworks").glob("libSDL3*.dylib"))
+    if not dylibs:
+        raise AssertionError("Contents/Frameworks 中没有 libSDL3*.dylib：%s"
+                             % (app / "Contents/Frameworks"))
+    global_xml = app / "Contents/Resources/duilib/themes/default/global.xml"
+    if not global_xml.is_file():
+        raise AssertionError("资源未复制到 Contents/Resources/duilib：%s" % global_xml)
+
+    # rpath 与 install_name：确认引用 @rpath，且不残留 SDK/构建机的绝对路径。
+    linked = _run_otool(["-L", str(exe)], log, env)
+    if "@rpath/libSDL3" not in linked:
+        raise AssertionError("可执行文件未引用 @rpath/libSDL3*.dylib：\n%s"
+                             % _tail(linked))
+    if str(info.root) in linked:
+        raise AssertionError("可执行文件仍引用 SDK 绝对路径（%s）：\n%s"
+                             % (info.root, _tail(linked)))
+    load_commands = _run_otool(["-l", str(exe)], log, env)
+    if "@executable_path/../Frameworks" not in load_commands:
+        raise AssertionError("可执行文件缺少 LC_RPATH @executable_path/../Frameworks：\n%s"
+                             % _tail(load_commands))
+    install_name = _run_otool(["-D", str(dylibs[0])], log, env)
+    if not any(line.strip().startswith("@rpath/")
+               for line in install_name.splitlines()):
+        raise AssertionError("SDL3 的 install_name 不是 @rpath：\n%s"
+                             % _tail(install_name))
+
+    # 把 .app 复制到构建树之外再运行，确保不依赖构建目录的绝对 rpath。
+    relocated_root = work_dir / "bundle-relocated"
+    if relocated_root.exists():
+        shutil.rmtree(relocated_root)
+    relocated_root.mkdir(parents=True, exist_ok=True)
+    relocated_app = relocated_root / app.name
+    shutil.copytree(app, relocated_app, symlinks=True)
+    relocated_exe = relocated_app / "Contents/MacOS/sdk_bundle"
+
+    # DYLD_PRINT_LIBRARIES 让 dyld 打印实际加载的路径：既能证明 Frameworks 生效，
+    # 也能发现“仍在从 SDK 的绝对路径加载”的假通过。
+    run_env = dict(env)
+    run_env["DYLD_PRINT_LIBRARIES"] = "1"
+    try:
+        proc = subprocess.run([str(relocated_exe)], cwd=str(relocated_exe.parent),
+                              env=run_env, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, timeout=180)
+    except subprocess.TimeoutExpired:
+        raise AssertionError("迁移后运行超时（180 秒）")
+    run_output = proc.stdout.decode("utf-8", errors="replace")
+    _log_command(log, [str(relocated_exe)], run_output, proc.returncode)
+    if proc.returncode != 0 or "SDK_TEST_RESULT=ok" not in run_output:
+        raise AssertionError("迁移后运行失败（rc=%d）：\n%s"
+                             % (proc.returncode, _tail(run_output)))
+    if "Contents/Frameworks/libSDL3" not in run_output:
+        raise AssertionError("dyld 未从 Contents/Frameworks 加载 SDL3：\n%s"
+                             % _tail(run_output))
+    if "/lib/libSDL3" in run_output:
+        raise AssertionError("dyld 仍从 SDK 的 lib/ 加载 SDL3（rpath 顺序或 "
+                             "install_name 有问题）：\n%s" % _tail(run_output))
+    resource_line = next((line for line in run_output.splitlines()
+                          if line.startswith("SDK_TEST_RESOURCE_ROOT=")), "")
+    if "Contents/Resources/duilib" not in resource_line:
+        raise AssertionError("资源根不是 Contents/Resources/duilib：%s"
+                             % (resource_line or "(未输出 SDK_TEST_RESOURCE_ROOT)"))
+    sdl_version = 0
+    for line in run_output.splitlines():
+        if line.startswith("SDK_TEST_SDL_VERSION="):
+            try:
+                sdl_version = int(line.split("=", 1)[1])
+            except ValueError:
+                sdl_version = 0
+            break
+    if sdl_version <= 0:
+        raise AssertionError("未取到 SDL3 运行期版本号（Frameworks 未生效）：\n%s"
+                             % _tail(run_output))
+    _check_features(info, run_output)
+    return ("App Bundle 通过：Frameworks/libSDL3*.dylib、rpath、"
+            "Contents/Resources/duilib 与迁移后运行均正常（SDL3 %d）" % sdl_version)
+
+
 def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,
                      log_dir: Path, options: Options):
     if sid == "P01":
@@ -1179,6 +1346,8 @@ def _scenario_runner(sid: str, info: PackageInfo, work_dir: Path,
         return check_tar_formats(info, work_dir)
     if sid == "C10":
         return check_examples_smoke(info, work_dir, log_dir, options)
+    if sid == "C11":
+        return check_macos_bundle(info, work_dir, log_dir, options)
     raise AssertionError("未知场景：%s" % sid)
 
 

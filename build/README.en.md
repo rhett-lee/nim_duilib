@@ -133,7 +133,11 @@ paths, library lists and macros by hand:
   `nim_duilib.sdk.props` and `manifest/`. Import `nim_duilib.targets` once at the end of
   a `.vcxproj` to get compilation, linking, manifests and runtime DLL copying.
 - `lib/cmake/nim_duilib/` (all platforms): `find_package(nim_duilib CONFIG REQUIRED)`
-  provides `nim_duilib::duilib` and `nim_duilib_copy_runtime(<target> [RESOURCES])`.
+  provides `nim_duilib::duilib` and
+  `nim_duilib_copy_runtime(<target> [RESOURCES] [FRAMEWORKS])`
+  (`FRAMEWORKS` is for macOS App Bundles only; on a bundle target `RESOURCES`
+  copies into `Contents/Resources/duilib/`). See `sdk_test/bundle_main.cpp`
+  and `sdk_test/CMakeLists.txt` for a runnable bundle integration sample.
 - Both mechanisms validate architecture/configuration/toolchain. Packages are single
   architecture and single configuration; Debug and Release need their own packages.
   The MSVC runtime is enforced from package metadata by default (can be disabled).

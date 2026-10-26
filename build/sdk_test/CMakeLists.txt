@@ -9,6 +9,10 @@
 # 可选期望值（空表示不校验）：
 #   -DSDK_EXPECT_VERSION / SYSTEM / ARCH / CONFIG / TOOLCHAIN
 #   -DSDK_EXPECT_IS_DLL / HAS_SDL / HAS_CEF / HAS_WEBVIEW2 / HAS_JPEG / MSVC_RUNTIME
+#
+# 目标：
+#   nim_duilib_sdk_consumer  -> sdk_consumer（全平台，可执行文件）
+#   nim_duilib_sdk_bundle    -> sdk_bundle.app（仅 macOS，App Bundle 用例）
 
 cmake_minimum_required(VERSION 3.18)
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
@@ -154,3 +158,30 @@ target_link_libraries(nim_duilib_sdk_consumer PRIVATE nim_duilib::duilib)
 
 # 复制运行期 DLL 与 resources/ 到可执行文件同级，模拟下游真实部署。
 nim_duilib_copy_runtime(nim_duilib_sdk_consumer RESOURCES)
+
+# ---------------------------------------------------------------------------
+# macOS App Bundle 消费者用例
+#
+# 专门验证 bundle 形态的下游接入：
+#   - MACOSX_BUNDLE 目标，产物为 sdk_bundle.app；
+#   - FRAMEWORKS 把 SDK 的 lib/libSDL3*.dylib 复制到 Contents/Frameworks，
+#     并把主可执行文件的 rpath 设为 @executable_path/../Frameworks（优先 bundle 内的库）；
+#   - RESOURCES 在 bundle 目标上复制到 Contents/Resources/duilib/，
+#     与 GlobalManager::GetResourceRootPath(true) 的查找位置一致。
+# 运行期用例见 bundle_main.cpp；由 sdk_package_test.py 的 C11 驱动。
+# 该目标只在 macOS 上创建，其他平台不参与配置与构建。
+# ---------------------------------------------------------------------------
+if(APPLE)
+    add_executable(nim_duilib_sdk_bundle MACOSX_BUNDLE
+        bundle_main.cpp
+    )
+    set_target_properties(nim_duilib_sdk_bundle PROPERTIES
+        OUTPUT_NAME "sdk_bundle"
+        MACOSX_BUNDLE_BUNDLE_NAME "nim_duilib SDK Bundle"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "org.nimduilib.sdk.bundle.test"
+        MACOSX_BUNDLE_BUNDLE_VERSION "${NIM_DUILIB_PACKAGE_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${NIM_DUILIB_PACKAGE_VERSION}"
+    )
+    target_link_libraries(nim_duilib_sdk_bundle PRIVATE nim_duilib::duilib)
+    nim_duilib_copy_runtime(nim_duilib_sdk_bundle RESOURCES FRAMEWORKS)
+endif()

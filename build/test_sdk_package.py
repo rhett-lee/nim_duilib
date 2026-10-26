@@ -2,9 +2,11 @@
 """build/sdk_package_test.py 的纯函数单元测试（不需要真实发布包）。"""
 
 import importlib.util
+import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 MODULE_PATH = Path(__file__).resolve().parent / "sdk_package_test.py"
 _SPEC = importlib.util.spec_from_file_location("sdk_package_test_under_test", MODULE_PATH)
@@ -253,6 +255,40 @@ class ApplicabilityTest(unittest.TestCase):
         self.assertFalse(ok)
         self.assertEqual(reason, "平台不同")
 
+    def test_macos_bundle_requires_macos(self):
+        caps = {"is_dll": False, "has_sdl": True, "sdl_kind": "shared"}
+        with mock.patch.object(sdk, "host_system", return_value="linux"):
+            ok, reason = sdk.scenario_applicability("C11", caps, {})
+        self.assertFalse(ok)
+        self.assertIn("macOS", reason)
+
+    def test_macos_bundle_requires_shared_sdl(self):
+        with mock.patch.object(sdk, "host_system", return_value="macos"):
+            for caps, expected in (
+                    ({"is_dll": False, "has_sdl": False, "sdl_kind": ""}, False),
+                    ({"is_dll": False, "has_sdl": True, "sdl_kind": "static"}, False),
+                    ({"is_dll": False, "has_sdl": True, "sdl_kind": "shared"}, True)):
+                ok, reason = sdk.scenario_applicability("C11", caps, {})
+                self.assertEqual(ok, expected, reason)
+                if not expected:
+                    self.assertIn("SDL3", reason)
+
+    def test_macos_bundle_build_blocked(self):
+        caps = {"is_dll": False, "has_sdl": True, "sdl_kind": "shared"}
+        with mock.patch.object(sdk, "host_system", return_value="macos"):
+            ok, reason = sdk.scenario_applicability(
+                "C11", caps, {}, build_block_reason="平台不同")
+        self.assertFalse(ok)
+        self.assertEqual(reason, "平台不同")
+
+    def test_macos_bundle_no_build(self):
+        caps = {"is_dll": False, "has_sdl": True, "sdl_kind": "shared"}
+        with mock.patch.object(sdk, "host_system", return_value="macos"):
+            ok, reason = sdk.scenario_applicability(
+                "C11", caps, {}, no_build=True)
+        self.assertFalse(ok)
+        self.assertIn("--no-build", reason)
+
 
 class SelectionTest(unittest.TestCase):
     def test_all(self):
@@ -287,10 +323,42 @@ def _print_help() -> None:
     print("  python3 build/sdk_package_test.py --list-scenarios")
     print()
     print("其余参数仍由 unittest 解析：-v、-q、-k <模式>、<测试类或测试方法>。")
+    print("若误把编排器参数（如 --package）传给本脚本，会自动转交给")
+    print("build/sdk_package_test.py。")
+
+
+# 只有 sdk_package_test.py（用例编排器）认识的选项。两个脚本名字相近，用户很容易
+# 把两者看混；这里检测到编排器参数就转交，而不是让 unittest 报 unrecognized arguments。
+ORCHESTRATOR_OPTIONS = {
+    "--package", "--scenarios", "--no-build", "--run-examples",
+    "--out-dir", "--keep", "--jobs", "--dry-run", "--list-scenarios",
+}
+
+
+def _is_orchestrator_invocation(argv: list) -> bool:
+    for arg in argv:
+        if arg.split("=", 1)[0] in ORCHESTRATOR_OPTIONS:
+            return True
+    return False
+
+
+def _run_orchestrator(argv: list) -> int:
+    orchestrator = Path(__file__).resolve().with_name("sdk_package_test.py")
+    print("build/test_sdk_package.py 只是纯函数单元测试，正在转交给用例编排器：")
+    print("  python3 %s %s" % (orchestrator, " ".join(argv)))
+    sys.stdout.flush()
+    try:
+        return subprocess.call([sys.executable, str(orchestrator), *argv])
+    except OSError as exc:
+        print("无法启动 %s：%s" % (orchestrator, exc))
+        return 2
 
 
 if __name__ == "__main__":
-    if any(arg in ("-h", "--help") for arg in sys.argv[1:]):
+    _argv = sys.argv[1:]
+    if any(arg in ("-h", "--help") for arg in _argv):
         _print_help()
+    elif _is_orchestrator_invocation(_argv):
+        sys.exit(_run_orchestrator(_argv))
     else:
         unittest.main()

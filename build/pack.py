@@ -1966,9 +1966,19 @@ def write_manifest(collector, pkg_root_name, version, sys_tag, arch_tag,
     lines.append('  CMake（全平台）：')
     lines.append('    find_package(nim_duilib CONFIG REQUIRED)')
     lines.append('    target_link_libraries(<target> PRIVATE nim_duilib::duilib)')
-    lines.append('    nim_duilib_copy_runtime(<target> [RESOURCES])')
+    if sys_tag == 'macos':
+        lines.append('    nim_duilib_copy_runtime(<target> [RESOURCES] [FRAMEWORKS])')
+    else:
+        lines.append('    nim_duilib_copy_runtime(<target> [RESOURCES])')
     lines.append('  nim_duilib_copy_runtime 在构建后复制 bin/*.dll；RESOURCES 额外复制')
     lines.append('  bin/resources 到输出目录的 resources/（默认不复制，避免覆盖应用自己的主题）。')
+    if sys_tag == 'macos':
+        lines.append('  macOS 的 App Bundle 可加 FRAMEWORKS（目标需为 MACOSX_BUNDLE）：')
+        lines.append('  把 lib/libSDL3*.dylib 复制到 Contents/Frameworks，并把 rpath 设为')
+        lines.append('  @executable_path/../Frameworks（优先使用 bundle 内的库）；Helper 的 exe 在')
+        lines.append('  Contents/Frameworks/<Helper>.app/Contents/MacOS，需用 ../../..。')
+        lines.append('  bundle 目标上的 RESOURCES 复制到 Contents/Resources/duilib/')
+        lines.append('  （不指定 DESTINATION 时），与 GetResourceRootPath(true) 一致。')
     lines.append('  可设置 NIM_DUILIB_SET_MSVC_RUNTIME=OFF 退出运行库强制对齐；')
     lines.append('  NIM_DUILIB_ALLOW_{ARCH,CONFIG}_MISMATCH=ON 放行不匹配（不推荐）。')
     lines.append('  注意：发布包是单架构、单配置的，Debug/Release 需各用各的包。')

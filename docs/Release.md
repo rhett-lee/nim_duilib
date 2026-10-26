@@ -142,7 +142,9 @@ nim_duilib-<版本>-<系统>-<架构>[-特性]/
    Runtime；
    duilib 以 DLL 模式构建时 `bin/duilib*.dll` 需与可执行文件同级；
    Windows 动态 SDL3 需复制 `bin/SDL3.dll`；
-   Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）。
+   Unix 的 `libSDL3.so*` 需可被找到（`LD_LIBRARY_PATH` 等）；
+   macOS 的 App Bundle 由 `duilib_cef_macos.cmake` 自动复制到
+   `Contents/Frameworks/` 并设置相对 rpath（见“macOS：下游手动配置 CEF”）。
 6. **配置一致性**：Debug 包只给 Debug 下游，Release 包只给 Release 下游，
    两套不可混用。MSVC 运行库随包固定：静态模式为 `/MT`（Debug 为 `/MTd`），
    DLL 模式为 `/MD`（Debug 为 `/MDd`），下游默认由接入层强制对齐。
@@ -278,6 +280,29 @@ nim_duilib_copy_runtime(my_app DESTINATION "${CMAKE_BINARY_DIR}/bin")
 nim_duilib_copy_runtime(my_tool RESOURCES DESTINATION "${CMAKE_BINARY_DIR}/bin")
 ```
 
+**macOS App Bundle（SDL3 动态库）**：macOS 包内的 SDL3 是动态库，构建 `.app` 时
+加 `FRAMEWORKS`，脚本会把 SDK 的 `lib/libSDL3*.dylib` 复制到
+`.app/Contents/Frameworks`，并把可执行文件的 rpath 设为
+`@executable_path/../Frameworks`（`BUILD_WITH_INSTALL_RPATH`，优先使用 bundle
+内的库；消费者已显式设置的 rpath 条目会保留在其后，因此消费者自己的 rpath
+属性应在调用 `nim_duilib_copy_runtime` 之前设置）：
+
+```cmake
+add_executable(my_app MACOSX_BUNDLE main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
+```
+
+目标为 `MACOSX_BUNDLE` 且未指定 `DESTINATION` 时，`RESOURCES` 复制到
+`my_app.app/Contents/Resources/duilib/`（对应
+`GlobalManager::GetResourceRootPath(true)`），不会落到 `Contents/MacOS/resources`。
+可直接参考 `build/sdk_test/bundle_main.cpp` 与 `build/sdk_test/CMakeLists.txt`
+（发布包测试的 C11 场景）获取完整可运行的 bundle 接入示例。
+
+Helper 可执行文件位于 `Contents/Frameworks/<Helper>.app/Contents/MacOS`，需要
+自行设置 rpath `@executable_path/../../..`（脚本只处理主可执行文件）。若包内是
+静态 SDL（`libSDL3.a`），`FRAMEWORKS` 只给出警告、不复制文件。
+
 **校验与开关**：`find_package` 会校验平台、工具链、架构、配置与 MSVC 运行库，
 不匹配默认直接 `FATAL_ERROR`：
 
@@ -299,7 +324,9 @@ cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
 ```
 
 CEF 运行时（`libcef.dll`、`*.pak`、`icudtl.dat`）仍需自行放到程序目录；
-`nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `bin/resources/`。
+`nim_duilib_copy_runtime` 只复制 SDK 的 `bin/*.dll` 与 `bin/resources/`
+（macOS 的 `FRAMEWORKS` 额外复制 `lib/libSDL3*.dylib` 到 App Bundle；bundle 目标上
+`RESOURCES` 的目标目录为 `Contents/Resources/duilib/`）。
 
 ### 头文件路径不可改动
 
@@ -562,6 +589,14 @@ cmake --build build
    保持一致，否则 CEF 子进程无法启动；
 5. 默认启用沙箱（`CEF_USE_SANDBOX`）；确实不需要时在配置阶段加
    `-DUSE_SANDBOX=OFF`，并同步调整 Helper 与 entitlements。
+6. macOS 的 SDL3 是动态库（`cmake/duilib_deps_run.cmake` 使用
+   `SDL_SHARED=ON`），`duilib_cef_macos.cmake` 会在构建后把它复制进
+   `<app>/Contents/Frameworks/`，并为主程序设置 rpath
+   `@executable_path/../Frameworks`、为各 Helper 设置
+   `@executable_path/../../..`（Helper 的 exe 位于
+   `Contents/Frameworks/<Helper>.app/Contents/MacOS`，向上三级回到外层
+   `Frameworks`）。不要手工把 dylib 放到 `Contents/MacOS/`：既不符合 bundle
+   约定，打包与签名也要额外处理。
 
 #### 4. 资源目录
 
@@ -588,6 +623,7 @@ MyApp.app/Contents/Resources/duilib/
 MyApp.app/Contents/
   MacOS/MyApp
   Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources（icudtl.dat、*.pak）
+  Frameworks/libSDL3*.dylib                           # SDL3 动态库（libSDL3 -> libSDL3.<abi>）
   Frameworks/MyApp Helper.app/
   Frameworks/MyApp Helper (GPU).app/
   Frameworks/MyApp Helper (Renderer).app/
@@ -613,7 +649,18 @@ Framework 的相对位置由 `COPY_MAC_FRAMEWORK` 保证，手工移动后需重
    codesign -dv --verbose=4 MyApp.app          # 查看签名、entitlements、runtime
    spctl -a -vv MyApp.app                      # Gatekeeper 评估（需已公证）
    otool -L "MyApp.app/Contents/MacOS/MyApp"   # 确认未残留绝对路径依赖
+   otool -L "MyApp.app/Contents/MacOS/MyApp" | grep SDL3   # 期望 @rpath/libSDL3*.dylib
+   otool -l "MyApp.app/Contents/MacOS/MyApp" | grep -A2 LC_RPATH
+                                               # 期望 @executable_path/../Frameworks
+   otool -D "MyApp.app/Contents/Frameworks/libSDL3.0.dylib"
+                                               # 期望 @rpath/libSDL3.0.dylib（不是绝对路径）
+   DYLD_PRINT_LIBRARIES=1 "MyApp.app/Contents/MacOS/MyApp"
+                                               # 加载路径应指向 Contents/Frameworks
    ```
+
+   复制进 bundle 的 `libSDL3*.dylib` 与 CEF Framework 一样属于嵌套二进制，
+   对外发布时必须逐个签名（`codesign --force --sign <身份> .../libSDL3*.dylib`），
+   再由内到外签 Helper、Framework 与主 app。
 
 #### 7. 常见问题
 
@@ -621,6 +668,7 @@ Framework 的相对位置由 `COPY_MAC_FRAMEWORK` 保证，手工移动后需重
 | :--- | :--- | :--- |
 | 启动即退出，无窗口 | Helper 缺失或名称与主程序不匹配 | 检查 `Contents/Frameworks/* Helper*.app`，且 `CFBundleExecutable` 用 `"<App> Helper"` 形式 |
 | 白屏 / 页面不加载 | Framework 未随包或被移动 | 用 `COPY_MAC_FRAMEWORK` 复制，保持 `Contents/Frameworks/` 位置 |
+| `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 dylib 未放进 `Contents/Frameworks`，或 rpath 仍指向构建机 | 重新构建（脚本会自动复制并设置 rpath）；用 `otool -L`/`otool -l` 检查，必要时重新签名 |
 | `libcef.dylib` 加载失败 | 主进程直接链接了 libcef，或 bundle id 不一致 | 主进程用 `CefScopedLibraryLoader::LoadInMain()`；Framework 与 Helper 的 bundle id 同一前缀 |
 | 只显示空窗口或崩溃在 `CefInitialize` | 未初始化 sandbox / Helper 参数不全 | 保留 `process_helper_mac.cc` 的 sandbox 初始化，或统一改为 `USE_SANDBOX=OFF` |
 | 找不到主题、字体 | 资源未按 `Contents/Resources/duilib/` 布局 | 检查 `DUILIB_THEME_DIR_NAME` 与复制目标路径 |

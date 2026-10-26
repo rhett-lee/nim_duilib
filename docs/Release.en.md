@@ -174,7 +174,9 @@ To let downstream builds **compile, link and run**, `MANIFEST.txt` records:
    `bin/duilib*.dll` must sit next to the executable when duilib
    is built in DLL mode; copy `bin/SDL3.dll` for dynamic SDL3 on Windows;
    on Unix `libSDL3.so*` must be findable (`LD_LIBRARY_PATH`
-   etc.).
+   etc.); for macOS App Bundles `duilib_cef_macos.cmake` copies the dylib into
+   `Contents/Frameworks/` and sets a relative rpath (see
+   "macOS: configuring CEF downstream").
 6. **Configuration consistency**: a Debug package serves Debug downstream
    builds only, and a Release package serves Release only. Never mix the two.
    The MSVC runtime is fixed by the package: `/MT` (Debug `/MTd`) for static
@@ -317,6 +319,32 @@ nim_duilib_copy_runtime(my_app DESTINATION "${CMAKE_BINARY_DIR}/bin")
 nim_duilib_copy_runtime(my_tool RESOURCES DESTINATION "${CMAKE_BINARY_DIR}/bin")
 ```
 
+**macOS App Bundle (dynamic SDL3)**: SDL3 is a dynamic library in macOS packages.
+When building an `.app`, pass `FRAMEWORKS`: the helper copies the SDK's
+`lib/libSDL3*.dylib` into `.app/Contents/Frameworks` and sets the executable's
+rpath (`BUILD_WITH_INSTALL_RPATH`, so the bundle's copies win; consumer-set
+rpath entries are kept after it, so set your own rpath properties before
+calling `nim_duilib_copy_runtime`) to
+`@executable_path/../Frameworks`:
+
+```cmake
+add_executable(my_app MACOSX_BUNDLE main.cpp)
+target_link_libraries(my_app PRIVATE nim_duilib::duilib)
+nim_duilib_copy_runtime(my_app RESOURCES FRAMEWORKS)
+```
+
+For a `MACOSX_BUNDLE` target without an explicit `DESTINATION`, `RESOURCES`
+copies into `my_app.app/Contents/Resources/duilib/` (where
+`GlobalManager::GetResourceRootPath(true)` looks), not
+`Contents/MacOS/resources`. See `build/sdk_test/bundle_main.cpp` and
+`build/sdk_test/CMakeLists.txt` (scenario C11 of the package test suite) for a
+complete, runnable bundle integration sample.
+
+A Helper executable lives in `Contents/Frameworks/<Helper>.app/Contents/MacOS`
+and needs the rpath `@executable_path/../../..` added by the consumer (the
+helper only handles the main executable). If the package ships static SDL
+(`libSDL3.a`), `FRAMEWORKS` only warns and copies nothing.
+
 **Validation and switches**: `find_package` validates platform, toolchain,
 architecture, configuration and the MSVC runtime, and fails with
 `FATAL_ERROR` by default on mismatch:
@@ -342,7 +370,9 @@ cmake -S . -B build-release -G "Visual Studio 17 2022" -A x64 ^
 
 The CEF runtime (`libcef.dll`, `*.pak`, `icudtl.dat`) still has to be placed
 next to the executable manually; `nim_duilib_copy_runtime` only copies the
-SDK's `bin/*.dll` and `bin/resources/`.
+SDK's `bin/*.dll` and `bin/resources/` (on macOS, `FRAMEWORKS` additionally
+copies `lib/libSDL3*.dylib` into the App Bundle, and `RESOURCES` targets
+`Contents/Resources/duilib/` for bundle builds).
 
 ### The header path layout must not change
 
@@ -640,6 +670,15 @@ set it in their own `CMakeLists.txt` before including
 5. The sandbox is enabled by default (`CEF_USE_SANDBOX`); to disable it, pass
    `-DUSE_SANDBOX=OFF` at configure time and adjust the Helpers and
    entitlements accordingly.
+6. SDL3 is a dynamic library on macOS (`cmake/duilib_deps_run.cmake` uses
+   `SDL_SHARED=ON`). `duilib_cef_macos.cmake` copies it into
+   `<app>/Contents/Frameworks/` after the build, sets the main executable's
+   rpath to `@executable_path/../Frameworks`, and sets each Helper's rpath to
+   `@executable_path/../../..` (a Helper executable lives in
+   `Contents/Frameworks/<Helper>.app/Contents/MacOS`, three levels below the
+   outer `Frameworks`). Do not place the dylib in `Contents/MacOS/` by hand:
+   that breaks the bundle convention and requires extra packaging and signing
+   work.
 
 #### 4. Resource directory
 
@@ -667,6 +706,7 @@ Non-CEF or non-bundle macOS programs use `GetResourceRootPath(false)` and keep
 MyApp.app/Contents/
   MacOS/MyApp
   Frameworks/Chromium Embedded Framework.framework/   # libcef + Resources (icudtl.dat, *.pak)
+  Frameworks/libSDL3*.dylib                           # SDL3 dylib (libSDL3 -> libSDL3.<abi>)
   Frameworks/MyApp Helper.app/
   Frameworks/MyApp Helper (GPU).app/
   Frameworks/MyApp Helper (Renderer).app/
@@ -695,7 +735,19 @@ manual move requires re-signing.
    codesign -dv --verbose=4 MyApp.app          # signature, entitlements, runtime
    spctl -a -vv MyApp.app                      # Gatekeeper (after notarization)
    otool -L "MyApp.app/Contents/MacOS/MyApp"   # no absolute-path leftovers
+   otool -L "MyApp.app/Contents/MacOS/MyApp" | grep SDL3   # expect @rpath/libSDL3*.dylib
+   otool -l "MyApp.app/Contents/MacOS/MyApp" | grep -A2 LC_RPATH
+                                               # expect @executable_path/../Frameworks
+   otool -D "MyApp.app/Contents/Frameworks/libSDL3.0.dylib"
+                                               # expect @rpath/libSDL3.0.dylib (not absolute)
+   DYLD_PRINT_LIBRARIES=1 "MyApp.app/Contents/MacOS/MyApp"
+                                               # loaded path should be Contents/Frameworks
    ```
+
+   Like the CEF framework, the `libSDL3*.dylib` copied into the bundle is a
+   nested binary: when distributing, sign each dylib
+   (`codesign --force --sign <identity> .../libSDL3*.dylib`) and then sign the
+   Helpers, the framework and the main app from the inside out.
 
 #### 7. Troubleshooting
 
@@ -703,6 +755,7 @@ manual move requires re-signing.
 | :--- | :--- | :--- |
 | Exits immediately, no window | Missing Helpers or names not matching the app | Check `Contents/Frameworks/* Helper*.app`; `CFBundleExecutable` must be `"<App> Helper"` |
 | Blank page / page never loads | Framework missing or moved | Use `COPY_MAC_FRAMEWORK`; keep it in `Contents/Frameworks/` |
+| `Library not loaded: @rpath/libSDL3*.dylib` | SDL3 dylib missing from `Contents/Frameworks`, or rpath still points at the build machine | Rebuild (the script copies it and sets the rpath); check with `otool -L`/`otool -l`, and re-sign if needed |
 | `libcef.dylib` fails to load | Main process links libcef directly, or bundle ids mismatch | Use `CefScopedLibraryLoader::LoadInMain()`; share a bundle-id prefix between framework and Helpers |
 | Empty window or crash in `CefInitialize` | Sandbox not initialized / incomplete helper args | Keep the sandbox init from `process_helper_mac.cc`, or switch consistently to `USE_SANDBOX=OFF` |
 | Theme or fonts not found | Resources not under `Contents/Resources/duilib/` | Check `DUILIB_THEME_DIR_NAME` and the copy destination |

@@ -28,6 +28,23 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   and `README.en.md` now focus on prerequisites and packaging.
 - `build/test_build.py`: standard-library unit tests for the build entry and i18n.
 - Compliance: `THIRD-PARTY-NOTICES.md`; SDK license directory renamed to `LICENSES/`.
+- SDK integration layer (macOS App Bundles): `nim_duilib_copy_runtime` gained a
+  `FRAMEWORKS` option (the target must be a `MACOSX_BUNDLE`) that copies the
+  package's `lib/libSDL3*.dylib` into `<target>.app/Contents/Frameworks` and
+  sets the executable's rpath to `@executable_path/../Frameworks`
+  (`BUILD_WITH_INSTALL_RPATH`, so the bundled libraries win over the SDK's
+  build-tree absolute path).
+  `nim_duilibConfig.cmake` records the SDL3 dylib names, and the bundled README
+  and integration docs describe the option.
+- SDK integration layer (bundle resources): on a `MACOSX_BUNDLE` target without
+  `DESTINATION`, `nim_duilib_copy_runtime`'s `RESOURCES` now copies into
+  `Contents/Resources/duilib/`, matching
+  `GlobalManager::GetResourceRootPath(true)`.
+- Package test suite: new C11 macOS App Bundle consumer scenario. A
+  `nim_duilib_sdk_bundle` target in `build/sdk_test` (with `bundle_main.cpp`)
+  builds `sdk_bundle.app` from the SDK package and verifies
+  `Contents/Frameworks/libSDL3*.dylib`, `@rpath`/`LC_RPATH`,
+  `Contents/Resources/duilib`, then runs a copy of the app outside the build tree.
 
 ### Changed
 
@@ -157,6 +174,16 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   `Contents/Frameworks`) is collected with its original layout. On macOS `--with-cef`
   only controls examples; it collects no CEF development files or runtime (bundles
   carry the framework themselves). The previous "error out" behaviour is removed.
+- CEF example App Bundles (macOS): the programs link dynamic SDL3 (`SDL_SHARED=ON`
+  at build time), but `duilib_cef_macos.cmake` neither copied `libSDL3*.dylib`
+  into `Contents/Frameworks` nor set an rpath for it. They only ran because the
+  rpath still contained the builder's absolute SDL3 path, so moving the bundle or
+  using another machine failed to load the dylib. The build now copies the dylib
+  into the bundle, sets the main executable's rpath to
+  `@executable_path/../Frameworks` and each Helper's rpath to
+  `@executable_path/../../..` (a Helper executable lives in
+  `Contents/Frameworks/<Helper>.app/Contents/MacOS`); packaging collects it with
+  the bundle.
 - Only the `cef` and `CefBrowser` examples link CEF: with `DUILIB_ENABLE_CEF` enabled
   in the root project, every example used to link `libcef` (`ldd` on Linux showed
   `libcef.so` for `basic` and friends). This is now controlled per example by

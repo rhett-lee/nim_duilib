@@ -358,3 +358,4 @@ healthchecksdb
 /msvc/PropertySheets/duilib_dll.flag
 /bin/*.dll
 /dist
+/out

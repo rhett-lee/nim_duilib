@@ -26,6 +26,20 @@
   `.en.md` 改为前置依赖与发布打包索引。
 - `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
 - 合规：`THIRD-PARTY-NOTICES.md`，SDK 包内许可证目录统一为 `LICENSES/`。
+- SDK 接入层（macOS App Bundle）：`nim_duilib_copy_runtime` 新增 `FRAMEWORKS`
+  选项（目标须为 `MACOSX_BUNDLE`），把包内 `lib/libSDL3*.dylib` 复制到
+  `<target>.app/Contents/Frameworks`，并把可执行文件的 rpath 设为
+  `@executable_path/../Frameworks`（`BUILD_WITH_INSTALL_RPATH`，保证 bundle
+  内的库优先，避免构建树的 SDK 绝对路径抢先命中）；`nim_duilibConfig.cmake`
+  登记 SDL3 dylib 文件名，包内 README 与接入文档同步说明。
+- SDK 接入层（macOS App Bundle 资源）：`nim_duilib_copy_runtime` 的 `RESOURCES`
+  在 `MACOSX_BUNDLE` 目标上（未指定 `DESTINATION` 时）复制到
+  `Contents/Resources/duilib/`，与 `GlobalManager::GetResourceRootPath(true)`
+  的查找位置一致。
+- 发布包测试新增 macOS App Bundle 消费者用例 C11：`build/sdk_test/bundle_main.cpp`
+  与 `nim_duilib_sdk_bundle` 目标用 SDK 包生成 `sdk_bundle.app`，校验
+  `Contents/Frameworks/libSDL3*.dylib`、`@rpath`/`LC_RPATH`、
+  `Contents/Resources/duilib`，并把 `.app` 复制到构建树外运行。
 
 ### 变更
 
@@ -140,6 +154,13 @@
   指定后整个目录（含 `Contents/Frameworks` 内的 CEF Framework、Helper 与符号链接）
   按原结构收集。macOS 的 `--with-cef` 只控制示例，不收集 CEF 开发文件与运行时
   （Bundle 自带 Framework），原“直接报错”的行为移除。
+- CEF 示例 App Bundle（macOS）：程序链接的是动态 SDL3（构建时 `SDL_SHARED=ON`），
+  但 `duilib_cef_macos.cmake` 既没有把 `libSDL3*.dylib` 放进 `Contents/Frameworks`，
+  也没有设置指向它的 rpath，能运行只是因为 rpath 中残留构建机的 SDL3 绝对路径，
+  换目录/换机器即加载失败。现在构建后自动把 dylib 复制进 Bundle，并为主程序设置
+  rpath `@executable_path/../Frameworks`、为 Helper 设置
+  `@executable_path/../../..`（Helper 的 exe 在
+  `Contents/Frameworks/<Helper>.app/Contents/MacOS`），打包时随 Bundle 一并收集。
 - CEF 只由 `cef` 与 `CefBrowser` 示例链接：此前根工程开启 `DUILIB_ENABLE_CEF`
   时所有示例都链接 `libcef`（Linux 下 `basic` 等程序的 `ldd` 出现 `libcef.so`）。
   现在由示例级 `DUILIB_EXAMPLE_CEF` 控制，`DUILIB_ENABLE_CEF` 只决定库是否编译

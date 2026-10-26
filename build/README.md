@@ -141,7 +141,11 @@ python3 build/autotest.py --preset arm64-synthetic --dry-run      # 只打印命
   `nim_duilib.sdk.props` 与 `manifest/`。下游 `.vcxproj` 末尾导入一次
   `nim_duilib.targets` 即可完成编译、链接、manifest 与运行期 DLL 复制。
 - `lib/cmake/nim_duilib/`（全平台）：`find_package(nim_duilib CONFIG REQUIRED)`
-  得到 `nim_duilib::duilib`，并提供 `nim_duilib_copy_runtime(<target> [RESOURCES])`。
+  得到 `nim_duilib::duilib`，并提供
+  `nim_duilib_copy_runtime(<target> [RESOURCES] [FRAMEWORKS])`
+  （`FRAMEWORKS` 仅 macOS App Bundle；bundle 目标上的 `RESOURCES` 复制到
+  `Contents/Resources/duilib/`）。可运行的 bundle 接入示例见
+  `sdk_test/bundle_main.cpp` 与 `sdk_test/CMakeLists.txt`。
 - 两套机制都会校验架构/配置/工具链；包是单架构、单配置的，Debug 与 Release
   必须各用各的包。MSVC 运行库默认按包元数据强制对齐（可关闭）。
 
