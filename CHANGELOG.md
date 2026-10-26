@@ -185,6 +185,14 @@
   `.duilib-sdl` stamp 判断，CRT 不一致时先清空 SDL3 构建目录再重新配置。
 - `build.py --dry-run`：`build` 与 `clean` 在只打印命令、未实际执行的情况下仍输出
   “编译完成/已删除”；现在 dry-run 不再打印完成提示（与 `pack`/`test` 一致）。
+- SDK 测试消费者工程（`build/sdk_test`）：`NIM_DUILIB_SDK_DIR` 支持省略与相对路径。
+  解包后把 `sdk_test` 放进 SDK 根目录并执行
+  `cmake -S ./sdk_test -B ./build -DNIM_DUILIB_SDK_DIR=./` 时，原先的相对路径被按构建
+  目录解析，`find_package(nim_duilib CONFIG)` 找不到
+  `lib/cmake/nim_duilib/nim_duilibConfig.cmake`。现在以 `sdk_test` 自身、它的
+  上一级/上两级、构建目录及其上一级/上两级为基准解析相对路径（取第一个命中），
+  `sdk_test` 与解包目录并列时写 `-DNIM_DUILIB_SDK_DIR=./nim_duilib-<版本>-<平台>`
+  也能直接工作；省略时按常见布局自动探测；找不到时报错并列出所有尝试过的目录。
 
 ## [1.0.2026.1023] - 2026-10-23
 

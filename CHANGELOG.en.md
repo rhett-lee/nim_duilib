@@ -214,6 +214,16 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 - `build.py --dry-run`: `build` and `clean` still printed "build finished" /
   "removed" although they only printed commands; the completion messages are now
   suppressed in dry-run mode, matching `pack`/`test`.
+- SDK test consumer project (`build/sdk_test`): `NIM_DUILIB_SDK_DIR` may now be omitted
+  or given as a relative path. After unpacking, placing `sdk_test` inside the SDK root
+  and running `cmake -S ./sdk_test -B ./build -DNIM_DUILIB_SDK_DIR=./` resolved the
+  relative path against the build directory, so `find_package(nim_duilib CONFIG)`
+  could not find `lib/cmake/nim_duilib/nim_duilibConfig.cmake`. Relative paths are now
+  resolved against `sdk_test` itself, its parent/grandparent, and the build directory
+  (and its parents), taking the first hit, so
+  `-DNIM_DUILIB_SDK_DIR=./nim_duilib-<version>-<platform>` also works when `sdk_test`
+  sits next to the unpacked directory. Omitting the variable enables automatic layout
+  detection; on failure the error lists every directory that was tried.
 
 ## [1.0.2026.1023] - 2026-10-23
 

@@ -253,7 +253,43 @@ C10 只负责启动存活判断：找到示例程序后 `Popen` 启动，等待 
 
 ### 5.1 手工配置与运行
 
-只有一个必填变量：`NIM_DUILIB_SDK_DIR`，指向解包后的 SDK 根目录（不是归档文件）。
+`NIM_DUILIB_SDK_DIR` 指向解包后的 SDK 根目录（同时含 `include/` 与 `lib/` 的那层，
+不是归档文件）。它有三种写法，工程都会自动解析：
+
+| 写法 | 示例 | 解析规则 |
+| :--- | :--- | :--- |
+| 省略 | `cmake -S ./sdk_test -B ./build` | 探测常见布局：`sdk_test` 的上一级、构建目录的上两级等 |
+| 相对路径 | `-DNIM_DUILIB_SDK_DIR=./`<br>`-DNIM_DUILIB_SDK_DIR=./nim_duilib-1.0.2026.1023-win-x64` | 分别以 `sdk_test` 自身、它的上一级/上两级、构建目录及其上一级/上两级为基准解析，取第一个命中 |
+| 绝对路径 | `-DNIM_DUILIB_SDK_DIR=C:/sdk/nim_duilib-1.0.2026.1023-win-x64` | 直接使用 |
+
+CMake 不提供“调用 cmake 的目录”，所以相对路径靠上面这组基准近似；解析成功时会打印
+`nim_duilib SDK 根目录（自动探测）：...`，一个都没找到时报错并列出所有尝试过的目录。
+也可以直接指定包配置目录（`<SDK>/lib/cmake/nim_duilib`），或用
+`-Dnim_duilib_DIR=<包配置目录>` 交给 `find_package` 自行处理。
+
+把 `sdk_test` 拷进解包后的 SDK 根目录，在根目录里执行（`./` 指的是 `sdk_test`
+自己，工程会自动找到上一级的 SDK 根）：
+
+```bash
+cmake -S ./sdk_test -B ./sdk_consumer -DNIM_DUILIB_SDK_DIR=./
+cmake --build ./sdk_consumer --config Release --parallel 4
+./sdk_consumer/Release/sdk_consumer.exe
+```
+
+`sdk_test` 与解包目录并列时同样可以写相对路径（以 `sdk_test` 的上一级为基准）：
+
+```bash
+cmake -S ./sdk_test -B ./sdk_consumer -DNIM_DUILIB_SDK_DIR=./nim_duilib-1.0.2026.1023-win-x64
+cmake --build ./sdk_consumer --config Release --parallel 4
+./sdk_consumer/Release/sdk_consumer.exe
+```
+
+`--config` 必须与包配置一致（Debug 包用 `Debug`，Release 包用 `Release`）。Visual
+Studio 是多配置生成器，而发布包是单配置的，配置阶段会打印一条
+`当前是多配置生成器…` 告警，这是预期行为：构建时用对 `--config` 即可。x86 包需要
+加 `-A Win32`，arm64 包加 `-A ARM64`（x64 不用加）。
+
+使用源码树里的 `build/sdk_test`（不在 SDK 根目录内）时要显式给出 SDK 根目录：
 
 Visual Studio 生成器：
 

@@ -38,7 +38,8 @@
 | `build/README.md`（修改） | 文件概览表登记新增文件 |
 
 所有临时产物（解包目录、CMake 构建树、报告）默认写到
-`C:\develop\temp\sdk_test\<时间戳>\`，不写入仓库的 `dist/`、`lib/`、`bin/`、`out/`。
+`<系统临时目录>/nim_duilib_sdk_test/<时间戳>/`（`tempfile.gettempdir()`），
+不写入仓库的 `dist/`、`lib/`、`bin/`、`out/`。
 
 ## 3. 测试架构
 
@@ -48,7 +49,7 @@
 
 | 变量 | 含义 |
 | :--- | :--- |
-| `NIM_DUILIB_SDK_DIR` | 解包后的 SDK 根目录（必需） |
+| `NIM_DUILIB_SDK_DIR` | 解包后的 SDK 根目录（Runner 传绝对路径；手工使用时可省略或写相对路径，工程会自动探测） |
 | `SDK_EXPECT_VERSION` | 期望版本（空表示不校验） |
 | `SDK_EXPECT_SYSTEM` / `ARCH` / `CONFIG` / `TOOLCHAIN` | 期望平台元数据 |
 | `SDK_EXPECT_IS_DLL` / `HAS_SDL` / `HAS_CEF` / `HAS_WEBVIEW2` / `HAS_JPEG` | 期望能力开关 |
@@ -56,8 +57,11 @@
 
 流程：
 
-1. `list(APPEND CMAKE_PREFIX_PATH "${NIM_DUILIB_SDK_DIR}")` 后
-   `find_package(nim_duilib CONFIG REQUIRED)`；
+1. 先解析 `NIM_DUILIB_SDK_DIR`（绝对路径直接用；相对路径以 `sdk_test` 自身、它的
+   上一级/上两级、构建目录及其上一级/上两级为基准解析，取第一个命中；省略时探测
+   `sdk_test` 的上一级等常见布局），找到含
+   `lib/cmake/nim_duilib/nim_duilibConfig.cmake` 的目录后加入 `CMAKE_PREFIX_PATH`，
+   再 `find_package(nim_duilib CONFIG REQUIRED)`；找不到时报错并列出尝试过的目录；
 2. 用 `sdk_expect()` 逐项比对 `NIM_DUILIB_PACKAGE_*` 变量与期望值，不一致直接
    `FATAL_ERROR`（这是「元数据自洽」用例的编译期部分）；
 3. 目标 `nim_duilib_sdk_consumer` 链接 `nim_duilib::duilib`；
