@@ -6,6 +6,9 @@
 #
 # 版本一致性：下载包里的 include/cef_version.h 必须与仓库内跟踪的头文件一致，
 # 避免“头文件是 142、运行时是 109”这类难以定位的崩溃。
+#
+# 清单统一使用 `_minimal` 发行包：包含 include/、Release/、Resources/ 等
+# 运行与校验所需文件，体积约为标准包的一半。
 
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_i18n.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/duilib_download.cmake")

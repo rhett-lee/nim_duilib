@@ -200,6 +200,18 @@
       "en": "check network access, or clone https://github.com/rhett-lee/skia_compile.git into DUILIB_SKIA_COMPILE_ROOT manually",
       "zh_CN": "检查网络连接，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆到 DUILIB_SKIA_COMPILE_ROOT"
     },
+    "deps.skia_patch_dir_invalid": {
+      "en": "[ERROR] the skia_compile directory exists but is not a git checkout",
+      "zh_CN": "[ERROR] skia_compile 目录已存在，但不是 git 仓库"
+    },
+    "deps.skia_patch_dir_invalid_hint": {
+      "en": "remove that directory, or clone https://github.com/rhett-lee/skia_compile.git into it manually",
+      "zh_CN": "删除该目录，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆进去"
+    },
+    "deps.retry": {
+      "en": "[deps] {what} failed (attempt {attempt}), retrying in {delay}s",
+      "zh_CN": "[deps] {what} 失败（第 {attempt} 次），{delay} 秒后重试"
+    },
     "deps.sdl_ready": {
       "en": "[OK] SDL3 is ready",
       "zh_CN": "[OK] SDL3 已就绪"

@@ -18,7 +18,10 @@
 - 缺少 Skia 补丁归档时，`build.py deps` / `build` 自动克隆整个
   [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到 `skia_compile/`；
   仓库已存在则 `git pull` 更新，失败时继续使用本地内容（与旧脚本一致）；
-  `--offline` 下不联网，需提前自备。
+  `--offline` 下不联网，需提前自备。直接用 CMake 构建（`DUILIB_DEPS_MODE=auto`
+  或 `duilib_deps` 目标）时也会自动完成同样的克隆。
+- 网络操作统一重试：`git clone/fetch`、CEF 下载共用版本清单 `retry` 段
+  （`maxAttempts=0` 无限重试、`delaySeconds=20`）。
 - 双语构建参考手册 `build/build-reference.md` / `.en.md`；`build/README.md` /
   `.en.md` 改为前置依赖与发布打包索引。
 - `build/test_build.py`：构建入口与 i18n 的标准库单元测试。
@@ -29,7 +32,8 @@
 - 统一入口一次只构建一个 `--config`（Debug/Release），需要两者时调用两次；
   `build/autotest.py` 的构建步骤改为调用 `build.py`。
 - CEF 运行时按版本与架构输出到 `bin/libcef_win[/_109]/<arch>` 或 `bin/libcef_linux`，
-  编译使用仓库跟踪的头文件与导入库。
+  编译使用仓库跟踪的头文件与导入库。所有平台统一使用 `_minimal` 发行包（体积约为
+  标准包的一半，含 `include/`、`Release/`、`Resources/`）。
 - `doctor` 的依赖状态报告更完整：分别列出 Skia 源码与补丁归档、SDL 源码与前缀、
   CEF 运行时，缺失时说明由 `deps` 获取，`--offline` 下则提示无法获取；解释器名称
   按实际命令显示（Linux 上为 `python3`）。

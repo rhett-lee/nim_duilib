@@ -94,6 +94,17 @@ class ManifestTests(unittest.TestCase):
         self.assertIsNone(entry.cef_archive_entry(self.manifest, "999", "windows", "x64"))
         self.assertIsNone(entry.cef_archive_entry(self.manifest, "142", "plan9", "x64"))
 
+    def test_cef_archives_are_minimal(self):
+        for version, block in self.manifest["cef"]["versions"].items():
+            for key, archive in block["archives"].items():
+                self.assertTrue(archive["file"].endswith("_minimal.tar.bz2"),
+                                f"{version}/{key}: {archive['file']}")
+
+    def test_retry_defaults(self):
+        self.assertEqual(self.manifest["retry"]["maxAttempts"], 0)
+        self.assertEqual(self.manifest["retry"]["delaySeconds"], 20)
+        self.assertTrue(self.manifest["skiaCompileRepo"].endswith("skia_compile.git"))
+
     def test_load_manifest_rejects_bad_schema(self):
         import json
         import tempfile
@@ -324,6 +335,38 @@ class SkiaPatchTests(unittest.TestCase):
             self.assertEqual(calls[0][:5], ["git", "clone", "--depth", "1",
                                             entry.SKIA_COMPILE_REPO])
             self.assertTrue(patch.is_file())
+
+    def test_clone_retries_until_success(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = entry.parse_args(["deps", "--deps-root", root])
+            patch = entry._skia_patch_archive(
+                entry.load_manifest(entry.VERSIONS_FILE), args)
+            calls = []
+
+            def fake_run(command, cwd=None):
+                calls.append(command)
+                if len(calls) == 1:
+                    return 128
+                patch.parent.mkdir(parents=True, exist_ok=True)
+                patch.write_bytes(b"x")
+                return 0
+
+            runner = mock.Mock()
+            runner.run.side_effect = fake_run
+            with mock.patch.object(entry.time, "sleep") as sleep:
+                entry._ensure_skia_patch(args, self._messages(), runner)
+            self.assertEqual(len(calls), 2)
+            sleep.assert_called_once()
+            self.assertTrue(patch.is_file())
+
+    def test_non_git_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = Path(root) / "skia_compile"
+            repo.mkdir()
+            (repo / "stale.txt").write_text("x", encoding="utf-8")
+            args = entry.parse_args(["deps", "--deps-root", root])
+            with self.assertRaises(entry.BuildError):
+                entry._ensure_skia_patch(args, self._messages(), mock.Mock())
 
     def test_existing_repo_is_pulled(self):
         with tempfile.TemporaryDirectory() as root:

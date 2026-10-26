@@ -48,6 +48,33 @@ if("${DUILIB_SDL_REPO}" STREQUAL "")
         duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
     endif()
 endif()
+if("${DUILIB_SKIA_COMPILE_REPO}" STREQUAL "")
+    string(JSON DUILIB_SKIA_COMPILE_REPO ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" skiaCompileRepo)
+    if(_duilib_json_err OR DUILIB_SKIA_COMPILE_REPO STREQUAL "")
+        duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+    endif()
+endif()
+
+# 统一重试参数：根工程会从清单读取后通过 -D 传入；脚本直接运行时在此兜底
+if("${DUILIB_DOWNLOAD_RETRIES}" STREQUAL "" OR "${DUILIB_DOWNLOAD_RETRY_DELAY}" STREQUAL "")
+    string(JSON _duilib_retry_max ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" retry maxAttempts)
+    if(_duilib_json_err)
+        set(_duilib_retry_max 0)
+    endif()
+    string(JSON _duilib_retry_delay ERROR_VARIABLE _duilib_json_err
+           GET "${DUILIB_VERSIONS_JSON}" retry delaySeconds)
+    if(_duilib_json_err)
+        set(_duilib_retry_delay 20)
+    endif()
+    if("${DUILIB_DOWNLOAD_RETRIES}" STREQUAL "")
+        set(DUILIB_DOWNLOAD_RETRIES "${_duilib_retry_max}")
+    endif()
+    if("${DUILIB_DOWNLOAD_RETRY_DELAY}" STREQUAL "")
+        set(DUILIB_DOWNLOAD_RETRY_DELAY "${_duilib_retry_delay}")
+    endif()
+endif()
 
 # 依赖根目录与锁（并发 deps 只允许一个进程写入）
 get_filename_component(DUILIB_DEPS_ROOT "${DUILIB_DEPS_ROOT}" ABSOLUTE)
@@ -288,31 +315,81 @@ function(_duilib_clone ref_type ref_value repo dest)
         duilib_error_values("${dest} does not exist and automatic cloning is disabled"
                             "clone the repository manually or enable DUILIB_DEPS_AUTO_CLONE")
     endif()
-    if(DUILIB_DEPS_PLATFORM STREQUAL "windows")
-        set(_null "NUL")
-    else()
-        set(_null "/dev/null")
-    endif()
     if(ref_type STREQUAL "commit")
-        execute_process(COMMAND git clone --filter=blob:none --no-checkout "${repo}" "${dest}"
-                        RESULT_VARIABLE _rc)
-        if(NOT _rc EQUAL 0)
+        # 克隆/fetch 是网络操作，统一按清单里的 retry 参数重试
+        duilib_run_with_retry(_ok "git clone ${repo}"
+                              git clone --filter=blob:none --no-checkout "${repo}" "${dest}")
+        if(NOT _ok)
+            file(REMOVE_RECURSE "${dest}")
             duilib_error_values("git clone failed for ${repo}" "check the network/proxy settings")
         endif()
-        execute_process(COMMAND git -C "${dest}" fetch --depth 1 origin "${ref_value}"
-                        RESULT_VARIABLE _rc)
-        if(NOT _rc EQUAL 0)
+        duilib_run_with_retry(_ok "git fetch ${ref_value}"
+                              git -C "${dest}" fetch --depth 1 origin "${ref_value}")
+        if(NOT _ok)
+            file(REMOVE_RECURSE "${dest}")
             duilib_error_values("git fetch ${ref_value} failed" "check the network/proxy settings")
         endif()
         execute_process(COMMAND git -C "${dest}" checkout "${ref_value}"
                         RESULT_VARIABLE _rc)
     else()
-        execute_process(COMMAND git clone --depth 1 --branch "${ref_value}" "${repo}" "${dest}"
-                        RESULT_VARIABLE _rc)
+        duilib_run_with_retry(_ok "git clone ${repo}"
+                              git clone --depth 1 --branch "${ref_value}" "${repo}" "${dest}")
+        if(NOT _ok)
+            file(REMOVE_RECURSE "${dest}")
+            duilib_error_values("git clone failed for ${repo}" "check the network/proxy settings")
+        endif()
+        set(_rc 0)
     endif()
     if(NOT _rc EQUAL 0)
         duilib_error_values("git clone/checkout failed for ${repo}" "check the network/proxy settings")
     endif()
+endfunction()
+
+# 确保补丁归档存在；缺失时克隆/更新 skia_compile 仓库（与 build.py 行为一致）。
+function(_duilib_ensure_skia_patch out_patch)
+    set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
+    if(EXISTS "${_patch}")
+        set(${out_patch} "${_patch}" PARENT_SCOPE)
+        return()
+    endif()
+    if(DUILIB_OFFLINE)
+        duilib_error("deps.offline_missing" "deps.offline_missing_hint")
+    endif()
+    if(NOT EXISTS "${DUILIB_SKIA_COMPILE_ROOT}/.git")
+        if(EXISTS "${DUILIB_SKIA_COMPILE_ROOT}")
+            file(GLOB _entries "${DUILIB_SKIA_COMPILE_ROOT}/*")
+            if(_entries)
+                duilib_error_values(
+                    "${DUILIB_SKIA_COMPILE_ROOT} exists but is not a git checkout"
+                    "remove that directory, or clone ${DUILIB_SKIA_COMPILE_REPO} into it manually")
+            endif()
+        endif()
+        if(NOT DUILIB_DEPS_AUTO_CLONE)
+            duilib_error_values("${DUILIB_SKIA_COMPILE_ROOT} does not exist and automatic cloning is disabled"
+                                "clone ${DUILIB_SKIA_COMPILE_REPO} manually or enable DUILIB_DEPS_AUTO_CLONE")
+        endif()
+        duilib_msg("deps.skia_patch_fetching" " (${DUILIB_SKIA_COMPILE_ROOT})")
+        file(MAKE_DIRECTORY "${DUILIB_SKIA_COMPILE_ROOT}")
+        duilib_run_with_retry(_ok "git clone skia_compile"
+                              git clone --depth 1 "${DUILIB_SKIA_COMPILE_REPO}"
+                              "${DUILIB_SKIA_COMPILE_ROOT}")
+        if(NOT _ok)
+            file(REMOVE_RECURSE "${DUILIB_SKIA_COMPILE_ROOT}")
+            duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
+        endif()
+    else()
+        # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
+        duilib_msg("deps.skia_patch_updating" " (${DUILIB_SKIA_COMPILE_ROOT})")
+        execute_process(COMMAND git -C "${DUILIB_SKIA_COMPILE_ROOT}" pull --ff-only
+                        RESULT_VARIABLE _rc)
+        if(NOT _rc EQUAL 0)
+            duilib_warn("deps.skia_patch_update_failed")
+        endif()
+    endif()
+    if(NOT EXISTS "${_patch}")
+        duilib_error("deps.skia_patch_missing" "deps.skia_patch_fetch_failed_hint")
+    endif()
+    set(${out_patch} "${_patch}" PARENT_SCOPE)
 endfunction()
 
 function(duilib_prepare_skia)
@@ -345,6 +422,11 @@ function(duilib_prepare_skia)
     endif()
 
     # 源码
+    if(EXISTS "${DUILIB_SKIA_ROOT}" AND NOT EXISTS "${DUILIB_SKIA_ROOT}/.git")
+        # 没有 .git 的残留目录无法 fetch，避免在无限重试下卡死
+        duilib_error_values("${DUILIB_SKIA_ROOT} exists but is not a git checkout"
+                            "remove that directory, or clone the repository manually")
+    endif()
     if(NOT EXISTS "${DUILIB_SKIA_ROOT}")
         _duilib_clone("${DUILIB_SKIA_REF_TYPE}" "${DUILIB_SKIA_REF_VALUE}"
                       "${DUILIB_SKIA_REPO}" "${DUILIB_SKIA_ROOT}")
@@ -354,8 +436,12 @@ function(duilib_prepare_skia)
             if(DUILIB_OFFLINE)
                 duilib_error("deps.offline_missing" "deps.offline_missing_hint")
             endif()
-            execute_process(COMMAND git -C "${DUILIB_SKIA_ROOT}" fetch origin "${DUILIB_SKIA_REF_VALUE}"
-                            RESULT_VARIABLE _rc)
+            duilib_run_with_retry(_ok "git fetch ${DUILIB_SKIA_REF_VALUE}"
+                                  git -C "${DUILIB_SKIA_ROOT}" fetch origin "${DUILIB_SKIA_REF_VALUE}")
+            if(NOT _ok)
+                duilib_error_values("git fetch ${DUILIB_SKIA_REF_VALUE} failed"
+                                    "check the network/proxy settings")
+            endif()
             execute_process(COMMAND git -C "${DUILIB_SKIA_ROOT}" checkout "${DUILIB_SKIA_REF_VALUE}"
                             RESULT_VARIABLE _rc)
             if(NOT _rc EQUAL 0)
@@ -365,20 +451,16 @@ function(duilib_prepare_skia)
         endif()
     endif()
 
-    # 补丁包
+    # 补丁包：缺失时由本脚本克隆/更新 skia_compile 仓库（build.py 路径同样适用）
     if(NOT "${DUILIB_SKIA_PATCH_ZIP}" STREQUAL "")
-        set(_patch "${DUILIB_SKIA_COMPILE_ROOT}/${DUILIB_SKIA_PATCH_ZIP}")
-        if(EXISTS "${_patch}")
-            message(STATUS "[deps] applying Skia patch ${_patch}")
-            file(REMOVE_RECURSE "${_out_dir}")
-            execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
-                            WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
-                            RESULT_VARIABLE _tar_rc)
-            if(NOT _tar_rc EQUAL 0)
-                duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
-            endif()
-        elseif(DUILIB_SKIA_REQUIRE_PATCH)
-            duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
+        _duilib_ensure_skia_patch(_patch)
+        message(STATUS "[deps] applying Skia patch ${_patch}")
+        file(REMOVE_RECURSE "${_out_dir}")
+        execute_process(COMMAND "${CMAKE_COMMAND}" -E tar xf "${_patch}"
+                        WORKING_DIRECTORY "${DUILIB_SKIA_ROOT}"
+                        RESULT_VARIABLE _tar_rc)
+        if(NOT _tar_rc EQUAL 0)
+            duilib_error_values("failed to extract ${_patch}" "check the patch archive integrity")
         endif()
     elseif(DUILIB_SKIA_REQUIRE_PATCH)
         duilib_error("deps.skia_patch_missing" "deps.skia_patch_missing_hint")
@@ -527,6 +609,11 @@ function(duilib_prepare_sdl)
         return()
     endif()
 
+    if(EXISTS "${DUILIB_SDL_SRC}" AND NOT EXISTS "${DUILIB_SDL_SRC}/.git")
+        # 没有 .git 的残留目录无法更新，避免在无限重试下卡死
+        duilib_error_values("${DUILIB_SDL_SRC} exists but is not a git checkout"
+                            "remove that directory, or clone the repository manually")
+    endif()
     if(NOT EXISTS "${DUILIB_SDL_SRC}")
         _duilib_clone("tag" "${DUILIB_SDL_REF_VALUE}"
                       "${DUILIB_SDL_REPO}" "${DUILIB_SDL_SRC}")

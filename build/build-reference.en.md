@@ -125,9 +125,22 @@ The Skia patch archive is obtained automatically by `build.py deps` (and the def
 `build`): when missing, the whole
 [skia_compile](https://github.com/rhett-lee/skia_compile) repository is cloned into
 `<deps-root>/skia_compile`; an existing checkout is updated with `git pull`, and a
-failed update keeps the local copy (matching the legacy script). `--offline` never
-touches the network, so the archive must be prepared in advance; `doctor` reports
-whether it exists.
+failed update keeps the local copy (matching the legacy script). Building directly with
+CMake (`DUILIB_DEPS_MODE=auto` or the `duilib_deps` target) performs the same
+clone/update through the dependency script. `--offline` never touches the network, so
+the archive must be prepared in advance; `doctor` reports whether it exists.
+
+All network operations (git clone/fetch, CEF downloads) share one retry policy kept in
+the `retry` block of
+[third_party_versions.json](../cmake/third_party_versions.json):
+
+```json
+"retry": { "maxAttempts": 0, "delaySeconds": 20 }
+```
+
+`maxAttempts=0` means retry forever (the default) and `delaySeconds` is the fixed delay
+between attempts. `git pull` is the exception: it is tried once and a failure only warns
+before continuing with the local copy (matching the legacy script).
 
 Versions are pinned in [third_party_versions.json](../cmake/third_party_versions.json):
 
@@ -142,7 +155,9 @@ Versions are pinned in [third_party_versions.json](../cmake/third_party_versions
   `deps` builds Debug and Release static libraries. Unix builds shared libraries and
   writes rpath entries.
 - **CEF**: fixed version branch (`cef.default`; `109` is available for Windows 7).
-  Only `Release/*` and `Resources/*` are downloaded to:
+  The `_minimal` distributions are used everywhere (about half the size of the standard
+  package; they contain `include/`, `Release/` and `Resources/`). Only
+  `Release/*` and `Resources/*` are installed to:
   - Windows: `bin/libcef_win/<arch>` (142) or `bin/libcef_win_109/<arch>` (109)
   - Linux: `bin/libcef_linux`
   - macOS: `<deps-root>/cef_binary`

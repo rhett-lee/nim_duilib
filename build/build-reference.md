@@ -117,8 +117,19 @@ python3 build/build.py --config Release
 Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取：缺少时克隆整个
 [skia_compile](https://github.com/rhett-lee/skia_compile) 仓库到
 `<deps-root>/skia_compile`；仓库已存在则执行 `git pull` 更新，更新失败时继续使用
-本地已有内容（与旧脚本一致）。`--offline` 下不联网，需要提前自备补丁归档；
-`doctor` 会显示该归档是否存在。
+本地已有内容（与旧脚本一致）。直接用 CMake 构建（`DUILIB_DEPS_MODE=auto` 或
+`duilib_deps` 目标）时由依赖脚本执行同样的克隆/更新逻辑。`--offline` 下不联网，
+需要提前自备补丁归档；`doctor` 会显示该归档是否存在。
+
+所有网络操作（git clone/fetch、CEF 下载）共用一套重试参数，维护在
+[third_party_versions.json](../cmake/third_party_versions.json) 的 `retry` 段：
+
+```json
+"retry": { "maxAttempts": 0, "delaySeconds": 20 }
+```
+
+`maxAttempts=0` 表示无限重试（默认），`delaySeconds` 为两次尝试之间的固定间隔。
+`git pull` 例外：只尝试一次，失败仅告警并继续使用本地内容（与旧脚本一致）。
 
 版本由 [third_party_versions.json](../cmake/third_party_versions.json) 统一锁定：
 
@@ -129,8 +140,9 @@ Skia 的补丁归档由 `build.py deps`（以及默认的 `build`）自动获取
   模式，仅切换运行库（`/MTd` 或 `/MDd`），因此每种配置需要各自的 Skia 变体目录。
 - **SDL3**：固定 tag（`sdl.default`）。Windows 默认不启用；显式启用时由 `deps`
   自动构建 Debug + Release 静态库。Unix 构建动态库，并写入 rpath。
-- **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。只下载
-  `Release/*` 与 `Resources/*` 运行时，放到：
+- **CEF**：固定版本分支（`cef.default`，可选 `109` 兼容 Windows 7）。统一使用
+  `_minimal` 发行包（体积约为标准包的一半，含 `include/`、`Release/`、
+  `Resources/`），只安装 `Release/*` 与 `Resources/*` 运行时，放到：
   - Windows：`bin/libcef_win/<arch>`（142）或 `bin/libcef_win_109/<arch>`（109）
   - Linux：`bin/libcef_linux`
   - macOS：`<deps-root>/cef_binary`

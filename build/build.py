@@ -23,6 +23,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from i18n import make_messages, set_console_utf8
@@ -557,6 +558,35 @@ def _skia_patch_needed(args) -> bool:
                    for name in ("skia.lib", "libskia.a"))
 
 
+def _retry_settings(manifest: dict) -> tuple[int, int]:
+    """清单 retry 段：最大次数（0 = 无限）与重试间隔秒数。"""
+    retry = manifest.get("retry", {}) if isinstance(manifest, dict) else {}
+    try:
+        attempts = int(retry.get("maxAttempts", 0))
+    except (TypeError, ValueError):
+        attempts = 0
+    try:
+        delay = int(retry.get("delaySeconds", 20))
+    except (TypeError, ValueError):
+        delay = 20
+    return max(attempts, 0), max(delay, 0)
+
+
+def _run_with_retry(runner: Runner, command, messages, what: str,
+                    attempts: int, delay: int) -> bool:
+    """执行网络命令；失败时按清单的统一参数重试（attempts=0 表示无限）。"""
+    attempt = 1
+    while True:
+        if runner.run(command) == 0:
+            return True
+        if attempts and attempt >= attempts:
+            return False
+        print(messages.t("deps.retry").format(what=what, attempt=attempt, delay=delay),
+              flush=True)
+        time.sleep(delay)
+        attempt += 1
+
+
 def _ensure_skia_patch(args, messages, runner: Runner) -> None:
     """缺少 Skia 补丁归档时，克隆/更新 skia_compile 仓库获取。"""
     try:
@@ -571,6 +601,8 @@ def _ensure_skia_patch(args, messages, runner: Runner) -> None:
         raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                          messages.hint("deps.offline_missing_hint"))
 
+    repo_url = manifest.get("skiaCompileRepo") or SKIA_COMPILE_REPO
+    attempts, delay = _retry_settings(manifest)
     repo_dir = patch.parent
     if (repo_dir / ".git").is_dir():
         # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
@@ -578,9 +610,16 @@ def _ensure_skia_patch(args, messages, runner: Runner) -> None:
         if runner.run(["git", "-C", str(repo_dir), "pull", "--ff-only"]) != 0:
             _warn_line(messages.t("deps.skia_patch_update_failed"))
     else:
+        if repo_dir.exists() and any(repo_dir.iterdir()):
+            # 非 git 目录无法克隆进去，避免无限重试
+            raise BuildError(messages.t("deps.skia_patch_dir_invalid") + f": {repo_dir}",
+                             messages.hint("deps.skia_patch_dir_invalid_hint"))
         print(messages.t("deps.skia_patch_fetching") + f" ({repo_dir})", flush=True)
         repo_dir.parent.mkdir(parents=True, exist_ok=True)
-        if runner.run(["git", "clone", "--depth", "1", SKIA_COMPILE_REPO, str(repo_dir)]) != 0:
+        if not _run_with_retry(
+                runner,
+                ["git", "clone", "--depth", "1", repo_url, str(repo_dir)],
+                messages, f"git clone {repo_url}", attempts, delay):
             raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                              messages.hint("deps.skia_patch_fetch_failed_hint"))
     if not args.dry_run and not patch.is_file():

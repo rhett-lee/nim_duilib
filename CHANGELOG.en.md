@@ -20,7 +20,10 @@ Version numbers are maintained in `duilib/duilib_version.h` in
   [skia_compile](https://github.com/rhett-lee/skia_compile) repository into
   `skia_compile/`; an existing checkout is updated with `git pull`, falling back to the
   local copy when the update fails (matching the legacy script); `--offline` never
-  touches the network.
+  touches the network. Building directly with CMake (`DUILIB_DEPS_MODE=auto` or the
+  `duilib_deps` target) performs the same clone automatically.
+- Unified network retries: `git clone/fetch` and CEF downloads share the `retry` block in
+  the version manifest (`maxAttempts=0` = unlimited, `delaySeconds=20`).
 - Bilingual build reference `build/build-reference.md` / `.en.md`; `build/README.md`
   and `README.en.md` now focus on prerequisites and packaging.
 - `build/test_build.py`: standard-library unit tests for the build entry and i18n.
@@ -30,7 +33,9 @@ Version numbers are maintained in `duilib/duilib_version.h` in
 
 - One invocation builds one `--config` (Debug/Release); invoke twice for both.
   `build/autotest.py` now builds through `build.py`.
-- CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`;
+- CEF runtime files are placed in `bin/libcef_win[/_109]/<arch>` or `bin/libcef_linux`
+  using the `_minimal` distributions on every platform (about half the size of the
+  standard package, still containing `include/`, `Release/` and `Resources/`);
   compilation uses the tracked headers and import libraries.
 - `doctor` reports dependency state in more detail: Skia source and patch archive,
   SDL source and prefix, and the CEF runtime are listed separately, noting that

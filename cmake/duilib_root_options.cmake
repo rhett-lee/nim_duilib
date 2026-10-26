@@ -159,6 +159,27 @@ if(NOT _duilib_json_err)
     set(DUILIB_SKIA_PATCH_ZIP "${_duilib_skia_patch}")
 endif()
 
+# skia_compile 仓库（补丁归档来源）
+string(JSON DUILIB_SKIA_COMPILE_REPO ERROR_VARIABLE _duilib_json_err
+       GET "${DUILIB_VERSIONS_JSON}" skiaCompileRepo)
+if(_duilib_json_err OR DUILIB_SKIA_COMPILE_REPO STREQUAL "")
+    duilib_error("deps.versions_invalid" "deps.versions_invalid_hint")
+endif()
+set(DUILIB_SKIA_COMPILE_REPO "${DUILIB_SKIA_COMPILE_REPO}" CACHE STRING
+    "skia_compile repository URL (patch archives)" FORCE)
+
+# 统一网络重试参数（0 = 无限重试）；单一维护点在清单的 retry 段
+string(JSON _duilib_retry_max ERROR_VARIABLE _duilib_json_err
+       GET "${DUILIB_VERSIONS_JSON}" retry maxAttempts)
+if(_duilib_json_err)
+    set(_duilib_retry_max 0)
+endif()
+string(JSON _duilib_retry_delay ERROR_VARIABLE _duilib_json_err
+       GET "${DUILIB_VERSIONS_JSON}" retry delaySeconds)
+if(_duilib_json_err)
+    set(_duilib_retry_delay 20)
+endif()
+
 # ---------------------------------------------------------------------------
 # CEF 版本
 # ---------------------------------------------------------------------------
@@ -263,8 +284,11 @@ option(DUILIB_DEPS_FORCE "Rebuild dependencies even when stamps match" OFF)
 option(DUILIB_SKIA_REQUIRE_PATCH "Require the manifest patchZip for the selected Skia ref" ON)
 option(DUILIB_SKIA_AUTOBUILD "Skip the Skia existence check (deps builds it first)" OFF)
 set(DUILIB_DEPS_LOCK_TIMEOUT "5" CACHE STRING "Dependency preparation lock timeout in seconds")
-set(DUILIB_DOWNLOAD_RETRIES "0" CACHE STRING "Download retries: 0 = unlimited")
-set(DUILIB_DOWNLOAD_RETRY_DELAY "3" CACHE STRING "Initial download retry delay in seconds")
+# 值来自 third_party_versions.json 的 retry 段，修改清单即可统一调整
+set(DUILIB_DOWNLOAD_RETRIES "${_duilib_retry_max}" CACHE STRING
+    "Network retries: 0 = unlimited (retry.maxAttempts in third_party_versions.json)" FORCE)
+set(DUILIB_DOWNLOAD_RETRY_DELAY "${_duilib_retry_delay}" CACHE STRING
+    "Retry interval in seconds (retry.delaySeconds in third_party_versions.json)" FORCE)
 set(DUILIB_DOWNLOAD_CONNECT_TIMEOUT "30" CACHE STRING "Download connect timeout in seconds")
 set(DUILIB_DEPS_JOBS "6" CACHE STRING "Parallel jobs for Skia/SDL dependency builds")
 set(DUILIB_LLVM_ROOT "C:/LLVM" CACHE PATH "LLVM root used by Skia on Windows")
