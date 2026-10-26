@@ -23,8 +23,6 @@ import re
 import shutil
 import subprocess
 import sys
-import urllib.request
-import zipfile
 from pathlib import Path
 
 from i18n import make_messages, set_console_utf8
@@ -40,7 +38,7 @@ VALID_ARCHES = ("auto", "x86", "x64", "arm64")
 DEFAULT_CONFIG = "Release"
 DEFAULT_DEPS_MODE = "prepare"
 # Skia 补丁归档只随 skia_compile 仓库分发，版本清单里只有文件名。
-SKIA_COMPILE_RAW_BASE = "https://raw.githubusercontent.com/rhett-lee/skia_compile/main"
+SKIA_COMPILE_REPO = "https://github.com/rhett-lee/skia_compile.git"
 
 
 class BuildError(Exception):
@@ -559,8 +557,8 @@ def _skia_patch_needed(args) -> bool:
                    for name in ("skia.lib", "libskia.a"))
 
 
-def _ensure_skia_patch(args, messages) -> None:
-    """缺少 Skia 补丁归档时，从 skia_compile 仓库下载到 deps 目录。"""
+def _ensure_skia_patch(args, messages, runner: Runner) -> None:
+    """缺少 Skia 补丁归档时，克隆/更新 skia_compile 仓库获取。"""
     try:
         manifest = load_manifest(VERSIONS_FILE)
     except (OSError, ValueError):
@@ -573,25 +571,21 @@ def _ensure_skia_patch(args, messages) -> None:
         raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
                          messages.hint("deps.offline_missing_hint"))
 
-    url = f"{SKIA_COMPILE_RAW_BASE}/{patch.name}"
-    print(messages.t("deps.skia_patch_fetching") + f" ({patch.name})", flush=True)
-    if args.dry_run:
-        print(f"+ download {url} -> {patch}", flush=True)
-        return
-
-    temp = patch.with_name(patch.name + ".part")
-    try:
-        patch.parent.mkdir(parents=True, exist_ok=True)
-        with urllib.request.urlopen(url, timeout=60) as response, temp.open("wb") as handle:
-            shutil.copyfileobj(response, handle)
-        # 代理或错误页面可能返回非 zip 内容，避免把坏文件写进缓存
-        if not zipfile.is_zipfile(temp):
-            raise OSError("downloaded file is not a zip archive")
-        temp.replace(patch)
-    except OSError as error:
-        temp.unlink(missing_ok=True)
+    repo_dir = patch.parent
+    if (repo_dir / ".git").is_dir():
+        # 与旧脚本一致：更新失败只告警，继续使用本地已有内容
+        print(messages.t("deps.skia_patch_updating") + f" ({repo_dir})", flush=True)
+        if runner.run(["git", "-C", str(repo_dir), "pull", "--ff-only"]) != 0:
+            _warn_line(messages.t("deps.skia_patch_update_failed"))
+    else:
+        print(messages.t("deps.skia_patch_fetching") + f" ({repo_dir})", flush=True)
+        repo_dir.parent.mkdir(parents=True, exist_ok=True)
+        if runner.run(["git", "clone", "--depth", "1", SKIA_COMPILE_REPO, str(repo_dir)]) != 0:
+            raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
+                             messages.hint("deps.skia_patch_fetch_failed_hint"))
+    if not args.dry_run and not patch.is_file():
         raise BuildError(messages.t("deps.skia_patch_missing") + f": {patch}",
-                         messages.hint("deps.skia_patch_fetch_failed_hint")) from error
+                         messages.hint("deps.skia_patch_fetch_failed_hint"))
 
 
 def cmd_deps(args, messages) -> int:
@@ -602,7 +596,7 @@ def cmd_deps(args, messages) -> int:
     toolchain = detect_toolchain(arch, args.vs_version)
     reset_stale_build_dir(build_dir, toolchain, messages, args.dry_run)
     runner = Runner(toolchain.env, args.dry_run)
-    _ensure_skia_patch(args, messages)
+    _ensure_skia_patch(args, messages, runner)
     _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", args.force)
     return 0
 
@@ -617,7 +611,7 @@ def cmd_build(args, messages) -> int:
     runner = Runner(toolchain.env, args.dry_run)
 
     if not args.no_deps:
-        _ensure_skia_patch(args, messages)
+        _ensure_skia_patch(args, messages, runner)
         _prepare(args, messages, runner, toolchain, arch, build_dir, "prepare", False)
 
     print(messages.t("build.configuring") + f" ({arch}/{args.config})", flush=True)

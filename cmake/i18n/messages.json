@@ -185,12 +185,20 @@
       "zh_CN": "检查 third_party_versions.json 中的 DUILIB_SKIA_PATCH_ZIP / DUILIB_SKIA_COMPILE_ROOT"
     },
     "deps.skia_patch_fetching": {
-      "en": "[deps] fetching the Skia patch archive",
-      "zh_CN": "[deps] 正在获取 Skia 补丁归档"
+      "en": "[deps] cloning the skia_compile repository",
+      "zh_CN": "[deps] 正在克隆 skia_compile 仓库"
+    },
+    "deps.skia_patch_updating": {
+      "en": "[deps] updating the skia_compile repository",
+      "zh_CN": "[deps] 正在更新 skia_compile 仓库"
+    },
+    "deps.skia_patch_update_failed": {
+      "en": "skia_compile update failed, continuing with the local copy",
+      "zh_CN": "skia_compile 更新失败，继续使用本地已有内容"
     },
     "deps.skia_patch_fetch_failed_hint": {
-      "en": "check network access, or download the archive from https://github.com/rhett-lee/skia_compile into DUILIB_SKIA_COMPILE_ROOT manually",
-      "zh_CN": "检查网络连接，或从 https://github.com/rhett-lee/skia_compile 手工下载补丁归档到 DUILIB_SKIA_COMPILE_ROOT"
+      "en": "check network access, or clone https://github.com/rhett-lee/skia_compile.git into DUILIB_SKIA_COMPILE_ROOT manually",
+      "zh_CN": "检查网络连接，或手工把 https://github.com/rhett-lee/skia_compile.git 克隆到 DUILIB_SKIA_COMPILE_ROOT"
     },
     "deps.sdl_ready": {
       "en": "[OK] SDL3 is ready",

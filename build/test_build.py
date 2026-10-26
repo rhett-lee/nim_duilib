@@ -13,7 +13,6 @@ import io
 import sys
 import tempfile
 import unittest
-import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -292,40 +291,69 @@ class SkiaPatchTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             args = entry.parse_args(["deps", "--deps-root", root, "--offline"])
             with self.assertRaises(entry.BuildError):
-                entry._ensure_skia_patch(args, self._messages())
+                entry._ensure_skia_patch(args, self._messages(), mock.Mock())
             self.assertFalse((Path(root) / "skia_compile").exists())
 
-    def test_dry_run_prints_download(self):
+    def test_dry_run_prints_clone(self):
         with tempfile.TemporaryDirectory() as root:
             args = entry.parse_args(["deps", "--deps-root", root, "--dry-run"])
             output = io.StringIO()
             with contextlib.redirect_stdout(output):
-                entry._ensure_skia_patch(args, self._messages())
-            self.assertIn("+ download ", output.getvalue())
+                entry._ensure_skia_patch(args, self._messages(), entry.Runner({}, True))
+            text = output.getvalue()
+            self.assertIn("git clone", text)
+            self.assertIn(entry.SKIA_COMPILE_REPO, text)
             self.assertFalse((Path(root) / "skia_compile").exists())
 
-    def test_download_writes_archive(self):
+    def test_clone_writes_archive(self):
         with tempfile.TemporaryDirectory() as root:
             args = entry.parse_args(["deps", "--deps-root", root])
             patch = entry._skia_patch_archive(
                 entry.load_manifest(entry.VERSIONS_FILE), args)
-            buffer = io.BytesIO()
-            with zipfile.ZipFile(buffer, "w") as archive:
-                archive.writestr("patch.txt", "x")
-            with mock.patch.object(entry.urllib.request, "urlopen",
-                                   return_value=io.BytesIO(buffer.getvalue())):
-                entry._ensure_skia_patch(args, self._messages())
+            calls = []
+
+            def fake_run(command, cwd=None):
+                calls.append(command)
+                patch.parent.mkdir(parents=True, exist_ok=True)
+                patch.write_bytes(b"x")
+                return 0
+
+            runner = mock.Mock()
+            runner.run.side_effect = fake_run
+            entry._ensure_skia_patch(args, self._messages(), runner)
+            self.assertEqual(calls[0][:5], ["git", "clone", "--depth", "1",
+                                            entry.SKIA_COMPILE_REPO])
             self.assertTrue(patch.is_file())
 
-    def test_built_artifacts_skip_download(self):
+    def test_existing_repo_is_pulled(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = Path(root) / "skia_compile"
+            (repo / ".git").mkdir(parents=True)
+            args = entry.parse_args(["deps", "--deps-root", root])
+            patch = entry._skia_patch_archive(
+                entry.load_manifest(entry.VERSIONS_FILE), args)
+            calls = []
+
+            def fake_run(command, cwd=None):
+                calls.append(command)
+                patch.write_bytes(b"x")
+                return 0
+
+            runner = mock.Mock()
+            runner.run.side_effect = fake_run
+            entry._ensure_skia_patch(args, self._messages(), runner)
+            self.assertEqual(calls[0], ["git", "-C", str(repo), "pull", "--ff-only"])
+            self.assertTrue(patch.is_file())
+
+    def test_built_artifacts_skip_clone(self):
         with tempfile.TemporaryDirectory() as root:
             variant = Path(root) / "skia" / "out" / "llvm.x64.release"
             variant.mkdir(parents=True)
             (variant / "skia.lib").write_text("x", encoding="utf-8")
             args = entry.parse_args(["deps", "--deps-root", root])
-            with mock.patch.object(entry.urllib.request, "urlopen") as mocked:
-                entry._ensure_skia_patch(args, self._messages())
-                mocked.assert_not_called()
+            runner = mock.Mock()
+            entry._ensure_skia_patch(args, self._messages(), runner)
+            runner.run.assert_not_called()
             self.assertFalse((Path(root) / "skia_compile").exists())
 
 
